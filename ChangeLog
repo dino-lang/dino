@@ -1,5 +1,10 @@
 2002-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* AMMUNITION/earley.c (set_core_hash, parse_state_hash,
+	trans_visit_node_hash, reserv_mem_hash): Use size_t.
+	
+2002-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/d_heap.c (expand_vector): Fix bug with disp.
 	
 	* DINO/d_func.c (tree_heap_node_hash): Use size_t.
