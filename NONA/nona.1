@@ -1,0 +1,89 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH NONA 1 "5 Apr 2001" COCOM "User Manuals"
+.SH NAME
+nona \- code selector description translator
+.SH SYNOPSIS
+.B nona [ -c++ -v -debug -export -pprefix]
+.I specification-file
+
+.SH DESCRIPTION
+
+Command
+.B nona
+translates code selector description (CS) which is
+described in specification file into code for solving code
+selection (tree matcher) and possibly other back-end tasks.  The
+specification file must have suffix
+.B `.nona'
+.  Tree matcher
+determined by CS builds cover of low level internal
+representation (which must be a directed acyclic graph) by the
+tree patterns with minimal cost on the first bottom up pass and
+fulfills actions associated with the choiced tree patterns on the
+second bottom up pass.
+
+.PP
+Generated code consists of interface and implementation files
+having the same names as one of specification file and
+correspondingly suffixes
+.B `.h'
+and
+.B `.c'
+(C code) or
+.B `.cpp'
+(C++ code).
+.PP
+Full documentation of OKA is in OKA User's manual.
+.SH OPTIONS
+The options which are known for NONA are:
+.IP -c++
+NONA generates C++ code instead of C code (default).
+.IP -v
+NONA outputs statistic information to standard output stream.
+.IP -debug
+NONA outputs debugging information during execution of
+function `CS_find_cover' and `CS_traverse_cover' (see
+generated code).
+.IP -export
+NONA generates macros defining identifiers of terminals as
+integer constants and inclusion of their in the interface
+file.  Usually the user himself declares the identifiers in
+a C declarations section.
+.IP -pprefix
+NONA generates names starting with prefix `prefix' instead of
+`CS'.
+.SH FILES
+.I file.nona
+.RS
+NONA specification file
+.RE
+.I file.c
+.RS
+generated C implementation file
+.RE
+.I file.cpp
+.RS
+generated C++ implementation file
+.RE
+.I file.h
+.RS
+generated interface file
+.RE
+
+There are no any temporary files used by NONA.
+.SH ENVIRONMENT
+There are no environment variables which affect NONA behavior.
+.SH DIAGNOSTICS
+NONA diagnostics is self-explanatory.
+.SH AUTHOR
+Vladimir N. Makarov, vmakarov@users.sourceforge.net
+.SH "SEE ALSO"
+.BR msta (1),
+.BR shilka (1),
+.BR sprut (1),
+.BR oka (1).
+NONA manual.
+.SH BUGS
+Please, report bugs to cocom-bugs@lists.sourceforge.net.

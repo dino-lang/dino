@@ -1,0 +1,41 @@
+%extend A_syntax A_value
+
+%type bool_t
+
+%double var expr
+
+%import {
+typedef int bool_t;
+}
+
+%export {
+typedef int unused_type;
+}
+
+%local
+{
+#include <signal.h>
+}
+
+%%
+number
+%skeleton
+    [
+#ifdef __IR_CPP__
+       !$$->IR_number_value () != 0
+#else
+       !IR_number_value ($$) != 0
+#endif
+    ]
+;
+var :: ident, value
+%other
+    number : integer_t
+    defined : bool_t
+;
+expr :: , value
+;
+%%
+main ()
+{
+}

@@ -1,0 +1,81 @@
+%automaton integer float
+
+%unit <integer> ib0 ib1 load_store only_load multiplier multiplier_write_back
+
+%unit <float> float_divider divider_write_back
+
+%instruction LDL LDQ LDQ_U LDL_L LDQ_L LDS LDT
+             STL STQ STQ_U
+             STL_C STQ_C
+             LDAH LDA ADDL ADDQ S4ADDL S4ADDQ S8ADDL S8ADDQ S4SUBL S4SUBQ
+             S8SUBL S8SUBQ SUBL SUBQ CMPEQ CMPLT CMPLE CMPULT CMPULE CMPBGE AND
+             BIC BIS ORNOT XOR EQV CMOVEQ CMOVNE CMOVLBS CMOVLT CMOVGE
+             CMOVLBC CMOVLE CMOVGT SLL SRA SRL EXTBL EXTWL EXTLL EXTQL
+             EXTWH EXTLH EXTQH INSBL INSWL INSLL INSQL INSWH INSLH INSQH
+             MSKBL MSKWL MSKLL MSKQL MSKWH MSKLH MSKQH ZAP ZAPNOT
+             STS STT
+             MB TRAPB RPCC CALL_PAL JMP JSR RET JSR_COROUTINE BR BSR
+             BLBC BLBS BEQ BNE BLT BLE BGT BGE
+             FBEQ FBNE FBLT FBLE FBGT FBGE
+             UMULH MULQ
+             MULL
+             ADDS ADDT SUBS SUBT MULS MULT CMPTEQ CMPTLT CMPTLE
+             CPYS CPYSN CPYSE CVTLQ CVTQL CVTQS CVTQT CVTTQ CVTTS
+             FCMOVEQ FCMOVNE FCMOVLE FCMOVLT FCMOVGE FCMOVGT
+             DIVS
+             DIVT
+             RESERVED
+
+%%
+
+
+LDL, LDQ, LDQ_U, LDL_L, LDQ_L, LDS, LDT: (ib0 | ib1) + load_store
+;
+
+STL, STQ, STQ_U: ib1 + load_store
+;
+
+STL_C, STQ_C: (ib0 | ib1) + load_store  %nothing  only_load
+;
+
+LDAH, LDA, ADDL, ADDQ, S4ADDL, S4ADDQ, S8ADDL, S8ADDQ, S4SUBL, S4SUBQ, S8SUBL,
+  S8SUBQ, SUBL, SUBQ, CMPEQ, CMPLT, CMPLE, CMPULT, CMPULE, CMPBGE, AND,
+  BIC, BIS, ORNOT, XOR, EQV, CMOVEQ, CMOVNE, CMOVLBS, CMOVLT, CMOVGE,
+  CMOVLBC, CMOVLE, CMOVGT, SLL, SRA, SRL, EXTBL, EXTWL, EXTLL, EXTQL,
+  EXTWH, EXTLH, EXTQH, INSBL, INSWL, INSLL, INSQL, INSWH, INSLH, INSQH,
+  MSKBL, MSKWL, MSKLL, MSKQL, MSKWH, MSKLH, MSKQH, ZAP, ZAPNOT:
+             ib0 + multiplier_write_back
+;
+
+STS, STT: ib0 + load_store
+;
+
+MB, TRAPB, RPCC, CALL_PAL, JMP, JSR, RET, JSR_COROUTINE, BR, BSR, BLBC, BLBS,
+   BEQ, BNE, BLT, BLE, BGT, BGE: ib1
+;
+
+FBEQ, FBNE, FBLT, FBLE, FBGT, FBGE: ib0
+;
+
+UMULH, MULQ: ib0 + multiplier*18  multiplier_write_back + multiplier*3
+;
+
+MULL:        ib0 + multiplier*16  multiplier_write_back + multiplier*3
+;
+
+ADDS, ADDT, SUBS, SUBT, MULS, MULT, CMPTEQ, CMPTLT, CMPTLE,
+   CPYS, CPYSN, CPYSE, CVTLQ, CVTQL, CVTQS, CVTQT, CVTTQ, CVTTS,
+   FCMOVEQ, FCMOVNE, FCMOVLE, FCMOVLT, FCMOVGE, FCMOVGT:
+             ib1 + divider_write_back
+;
+
+DIVS: ib1 + float_divider*24  (float_divider + divider_write_back)*2
+      float_divider*2
+;
+
+DIVT: ib1 + float_divider*53  (float_divider + divider_write_back)*2
+      float_divider*4
+;
+
+RESERVED: ib1
+;

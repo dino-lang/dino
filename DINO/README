@@ -1,0 +1,12 @@
+  This directory DINO contains interpreter of the programming language
+DINO.  The DINO is high-level object-oriented scripting language.  The
+DINO have the following major features:
+
+  To install DINO see file INSTALL in the current directory.
+
+  Documentation of DINO is in files `dino.1', `dino.txt', `dino.dvi',
+`dino.ps', `dino.info*', `dino*.html'.
+
+Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+
+Vladimir Makarov

@@ -1,0 +1,488 @@
+#!/bin/sh
+# @configure_input@
+
+#
+# Script to test of allocation package (files `hashtab.h', `hashtab.c').
+#
+
+#
+# Usage: hashtab.tst [start_test_number]
+#
+# The script outputs self-explanatory messages and returns zero exit code if 
+# it is all ok.
+#
+
+script_file=$0
+CC='@CC@'
+CC_options='@CFLAGS@ @DEFS@ -I. -I@srcdir@/'
+source_addfiles='@srcdir@/allocate.c @srcdir@/hashtab.c'
+addfiles='allocate.o hashtab.o'
+test_file=thashtab.c
+outfile=./a.out
+
+if test x$1 = x
+then
+    start_test_number=1
+else
+    if expr $1 + 0 >/dev/null
+    then
+        start_test_number=`expr $1 + 0`
+    else
+        echo $script_file:invalid argument $1 2>&1
+        exit 1
+    fi
+fi
+
+# Compilation of addfiles
+
+echo '      ' $CC $CC_options -c $source_addfiles
+if $CC $CC_options -c $source_addfiles; then
+        result=ok
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi
+
+# Test 1.
+if test $result = ok -a $start_test_number -le 1; then
+        cat >$test_file <<'TEST1'
+#include <stdlib.h>
+#include "allocate.h"
+#include "hashtab.h"
+
+static unsigned
+hash_function (hash_table_entry_t entry)
+{
+  const char *str = entry;
+  unsigned result, i;
+
+  for (result = i = 0;*str++ != '\0'; i++)
+    result += ((unsigned char) *str << (i % 8));
+  return result;
+}
+
+static int
+eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
+{
+  return strcmp (el1, el2) == 0;
+}
+
+main ()
+{
+  hash_table_t htab;
+
+  htab = create_hash_table (10, hash_function, eq_function);
+  delete_hash_table (htab);
+  exit (0);
+}
+TEST1
+
+        echo test 1:
+        echo '      ' $CC $CC_options $test_file $addfiles
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 2.
+if test $result = ok -a $start_test_number -le 2; then
+        cat >$test_file <<'TEST2'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "hashtab.h"
+
+static unsigned
+hash_function (hash_table_entry_t entry)
+{
+  const char *str = entry;
+  unsigned result, i;
+
+  for (result = i = 0;*str++ != '\0'; i++)
+    result += ((unsigned char) *str << (i % 8));
+  return result;
+}
+
+static int
+eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
+{
+  return strcmp (el1, el2) == 0;
+}
+
+main ()
+{
+  hash_table_t htab;
+
+  htab = create_hash_table (0, hash_function, eq_function);
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  if (strcmp (*find_hash_table_entry (htab, "ghi", 0), "ghi") != 0)
+    exit (1);
+  delete_hash_table (htab);
+  exit (0);
+}
+TEST2
+
+        echo test 2:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 3.
+if test $result = ok -a $start_test_number -le 3; then
+        cat >$test_file <<'TEST3'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "hashtab.h"
+
+static unsigned
+hash_function (hash_table_entry_t entry)
+{
+  const char *str = entry;
+  unsigned result, i;
+
+  for (result = i = 0;*str++ != '\0'; i++)
+    result += ((unsigned char) *str << (i % 8));
+  return result;
+}
+
+static int
+eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
+{
+  return strcmp (el1, el2) == 0;
+}
+
+main ()
+{
+  hash_table_t htab;
+
+  htab = create_hash_table (0, hash_function, eq_function);
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  if (*find_hash_table_entry (htab, "kl", 0) != NULL)
+    exit (1);
+  delete_hash_table (htab);
+  exit (0);
+}
+TEST3
+
+        echo test 3:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 4.
+if test $result = ok -a $start_test_number -le 4; then
+        cat >$test_file <<'TEST4'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "hashtab.h"
+
+static unsigned
+hash_function (hash_table_entry_t entry)
+{
+  const char *str = entry;
+  unsigned result, i;
+
+  for (result = i = 0;*str++ != '\0'; i++)
+    result += ((unsigned char) *str << (i % 8));
+  return result;
+}
+
+static int
+eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
+{
+  return strcmp (el1, el2) == 0;
+}
+
+main ()
+{
+  hash_table_t htab;
+
+  htab = create_hash_table (0, hash_function, eq_function);
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  remove_element_from_hash_table_entry (htab, "abcd");
+  remove_element_from_hash_table_entry (htab, "ef");
+  remove_element_from_hash_table_entry (htab, "ghi");
+  remove_element_from_hash_table_entry (htab, "nopqrst");
+  if (strcmp (*find_hash_table_entry (htab, "klm", 0), "klm") != 0)
+    exit (1);
+  delete_hash_table (htab);
+  exit (0);
+}
+TEST4
+
+        echo test 4:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 5.
+if test $result = ok -a $start_test_number -le 5; then
+        cat >$test_file <<'TEST5'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "hashtab.h"
+
+static unsigned
+hash_function (hash_table_entry_t entry)
+{
+  const char *str = entry;
+  unsigned result, i;
+
+  for (result = i = 0;*str++ != '\0'; i++)
+    result += ((unsigned char) *str << (i % 8));
+  return result;
+}
+
+static int
+eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
+{
+  return strcmp (el1, el2) == 0;
+}
+
+main ()
+{
+  hash_table_t htab;
+
+  htab = create_hash_table (0, hash_function, eq_function);
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  remove_element_from_hash_table_entry (htab, "abcd");
+  remove_element_from_hash_table_entry (htab, "ef");
+  remove_element_from_hash_table_entry (htab, "ghi");
+  remove_element_from_hash_table_entry (htab, "nopqrst");
+  if (*find_hash_table_entry (htab, "abcd", 0) != NULL)
+    exit (1);
+  delete_hash_table (htab);
+  exit (0);
+}
+TEST5
+
+        echo test 5:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 6.
+if test $result = ok -a $start_test_number -le 6; then
+        cat >$test_file <<'TEST6'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "hashtab.h"
+
+static unsigned
+hash_function (hash_table_entry_t entry)
+{
+  const char *str = entry;
+  unsigned result, i;
+
+  for (result = i = 0;*str++ != '\0'; i++)
+    result += ((unsigned char) *str << (i % 8));
+  return result;
+}
+
+static int
+eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
+{
+  return strcmp (el1, el2) == 0;
+}
+
+main ()
+{
+  hash_table_t htab;
+
+  htab = create_hash_table (0, hash_function, eq_function);
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  remove_element_from_hash_table_entry (htab, "abcd");
+  remove_element_from_hash_table_entry (htab, "ef");
+  remove_element_from_hash_table_entry (htab, "ghi");
+  remove_element_from_hash_table_entry (htab, "nopqrst");
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  if (strcmp (*find_hash_table_entry (htab, "abcd", 0), "abcd") != 0)
+    exit (1);
+  delete_hash_table (htab);
+  exit (0);
+}
+TEST6
+
+        echo test 6:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 7.
+if test $result = ok -a $start_test_number -le 7; then
+        cat >$test_file <<'TEST7'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "hashtab.h"
+
+static unsigned
+hash_function (hash_table_entry_t entry)
+{
+  const char *str = entry;
+  unsigned result, i;
+
+  for (result = i = 0;*str++ != '\0'; i++)
+    result += ((unsigned char) *str << (i % 8));
+  return result;
+}
+
+static int
+eq_function (hash_table_entry_t el1, hash_table_entry_t el2)
+{
+  return strcmp (el1, el2) == 0;
+}
+
+main ()
+{
+  hash_table_t htab;
+  int c, ac;
+
+  htab = create_hash_table (0, hash_function, eq_function);
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  c = hash_table_collisions (htab);
+  ac = all_hash_table_collisions ();
+  empty_hash_table (htab);
+  if (c != hash_table_collisions (htab) || ac != all_hash_table_collisions ())
+    exit (1);
+  if (*find_hash_table_entry (htab, "abcd", 0) != NULL)
+    exit (1);
+  if (*find_hash_table_entry (htab, "ef", 0) != NULL)
+    exit (1);
+  if (*find_hash_table_entry (htab, "ghi", 0) != NULL)
+    exit (1);
+  if (*find_hash_table_entry (htab, "j", 0) != NULL)
+    exit (1);
+  if (*find_hash_table_entry (htab, "klm", 0) != NULL)
+    exit (1);
+  if (*find_hash_table_entry (htab, "nopqrst", 0) != NULL)
+    exit (1);
+  *find_hash_table_entry (htab, "abcd", 1) = "abcd";
+  *find_hash_table_entry (htab, "ef", 1) = "ef";
+  *find_hash_table_entry (htab, "ghi", 1) = "ghi";
+  *find_hash_table_entry (htab, "j", 1) = "j";
+  *find_hash_table_entry (htab, "klm", 1) = "klm";
+  *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
+  if (strcmp (*find_hash_table_entry (htab, "abcd", 0), "abcd") != 0)
+    exit (1);
+  delete_hash_table (htab);
+  exit (0);
+}
+TEST7
+
+        echo test 7:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Final message
+
+if test $result = ok; then
+        echo $script_file: it is all ok
+        rm -f $addfiles $test_file $outfile
+        exit 0
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi
+

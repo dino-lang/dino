@@ -1,0 +1,539 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for DINO (interpriter of language Dino)
+#
+#   DATA_RIGHTS: 
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir     the subdirectory used for creation of compressed
+#                        distribution tar file
+#            prefix      common prefix for installation directories
+#            exec_prefix common prefix for binary installation directories
+#            bindir      the directory used for installation of `dino'
+#            libdir      the directory used for installation of dino programs
+#            includedir  the directory used for installation header files
+#            mandir      the directory for installation of man pages
+#            man1dir     the directory for installation of `dino.1'
+#            INSTALL     utility used for installation `dino'
+#            INSTALLDATA utility used for installing nonexecutables
+#            SED         utility used instead of POSIX utility `sed'
+#            ETAGS       utility used for creation of `dino' tag table
+#            CC          used C compiler
+#            CFLAGS      C compiler flags
+#            AR           utility for creation of archives
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create `dino'
+#            test            test `dino'
+#            install         create and install `dino'
+#            uninstall       delete the installed file
+#            clean           delete all object files and file `dino'
+#            realclean       deletion all which can be built up automatically
+#            distclean       deletion all not needed for distribution
+#            TAGS            updating TAGS table for the `dino' sources
+#            dist-copy       copying `dino' distribution files into `distdir'
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#
+
+SHELL=/bin/sh
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.  Don't forget cange version
+# number in d_dino.c
+distdir = dino-0.53
+
+# Use only full path name for the directory bindir
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# Common prefix for binary installation directories.
+# NOTE: this directory must exist when you start installation.
+exec_prefix=@exec_prefix@
+
+# The directory for installation of `dino'.
+bindir=@bindir@
+
+# The directory for installation of dino program.
+libdir=@libdir@
+
+# The directory for installation of man pages
+mandir=@mandir@
+
+# The directory for installation of `dino.1'
+man1dir=$(mandir)/man1
+
+# The directory for installation of header files.
+includedir=@includedir@
+
+# Utility for installation `dino'.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables (e.g. `dino.1').
+INSTALLDATA=@INSTALL_DATA@
+
+# Utility used instead of POSIX utility `sed'.
+SED=sed
+
+# Utility used instead of POSIX utility `awk'.
+AWK=@AWK@
+
+# Utility for creation of `dino' tag table.
+ETAGS=etags
+
+# Standard path for searching for DINO (included) programs and DINO library
+DINO_LIBRARY_DIRECTORY=\"$(libdir)\"
+
+# Command which make (shared) dino/external library:
+DINO_MAKELIB = @DINO_MAKELIB@
+EXTERN_MAKELIB = @EXTERN_MAKELIB@
+
+# Command which tune (unshared) dino/extern library (usually ranlib):
+DINO_AFTER_MAKELIB = @DINO_AFTER_MAKELIB@
+EXTERN_AFTER_MAKELIB = @EXTERN_AFTER_MAKELIB@
+
+# Library containing all objects
+dino_lib_name=@DINO_LIB_NAME@
+dino_lib_suffix=@DINO_LIB_SUFFIX@
+dino_lib=$(dino_lib_name).$(dino_lib_suffix)
+
+# Additional libraries.  If you add a library as part of DINO, please
+# correct DINO_EXTERN_LIBS here and DINO_ADDITIONAL_LIBS in
+# configure.in too.  If libraries will be static, add code also in
+# get_library_search_function (file d_main.c).
+extern_lib_suffix=@EXTERN_LIB_SUFFIX@
+mpi_lib=mpi.$(extern_lib_suffix)
+ieee_lib=ieee.$(extern_lib_suffix)
+
+# Libraries (separted by ":") which will be searched by default for
+# DINO externals in STANDARD_DINO_LIB_DIRECTORY or in $DINO_HOME.
+DINO_EXTERN_LIBS=$(mpi_lib) $(ieee_lib)
+DINO_EXTERN_LIBS_PATH=\"$(mpi_lib):$(ieee_lib)\"
+
+# Value of macro STANDARD_DINO_LIB_NAME
+DINO_LIB_NAME=\"$(dino_lib)\"
+
+# Obligatory compiler options
+OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION  -I../AMMUNITION -I$(srcdir)\
+        -I@top_srcdir@/REGEX\
+        -DSTANDARD_DINO_INCLUDE_DIRECTORY=$(DINO_LIBRARY_DIRECTORY)\
+        -DSTANDARD_DINO_EXTERN_LIBS=$(DINO_EXTERN_LIBS_PATH)\
+        -DSTANDARD_DINO_LIB_DIRECTORY=$(DINO_LIBRARY_DIRECTORY)\
+        -DSTANDARD_DINO_LIB_NAME=$(DINO_LIB_NAME)
+
+# C compiler and its flag used for compilation of C files.
+CC = @CC@
+CFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@ @DINO_GCC_FPIC@
+# The same as previous but for external libraries functions.
+ECFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@ @EXTERN_GCC_FPIC@ -DIEEE_QUAD
+LIBS = @LIBS@
+DINO_ADDITIONAL_LIBS = @DINO_ADDITIONAL_LIBS@
+
+# The following option will be used for linking dino executable.
+DINO_ADDITIONAL_LINK_OPTION = @DINO_ADDITIONAL_LINK_OPTION@
+
+# Utility for creation of archives.
+AR=ar
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+top_srcdir = @top_srcdir@
+
+# All object files of the syntax description translator:
+objects = d_errors.o d_ir.o d_run.o d_yacc.o d_blocktab.o d_context.o\
+	  d_conv.o d_func.o d_eval.o d_dino.o
+
+# ALL header files used by all source files of Dino self.
+common = $(srcdir)/d_dino.h $(srcdir)/d_errors.h $(srcdir)/d_common.h
+
+# All source files of Dino.
+source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
+         $(srcdir)/d_blocktab.h\
+	 $(srcdir)/d_context.h $(srcdir)/d_conv.h\
+	 $(srcdir)/d_func.h $(srcdir)/d_eval.h\
+         $(srcdir)/d_errors.c $(srcdir)/d_yacc.y $(srcdir)/d_blocktab.c\
+	 $(srcdir)/d_context.c  $(srcdir)/d_func.c $(srcdir)/d_conv.c\
+         $(srcdir)/d_eval.c $(srcdir)/d_dino.c\
+	 $(srcdir)/d_aixdl.c $(srcdir)/d_main.c\
+         $(srcdir)/d_ir.sprut $(srcdir)/d_types.h $(srcdir)/d_extern.sprut\
+	 $(srcdir)/d_run.sprut $(srcdir)/d_kw.shilka\
+	 $(srcdir)/mpi.c $(srcdir)/mpi.d\
+	 $(srcdir)/ieee_int.c $(srcdir)/ieee.d
+
+ammunition = ../AMMUNITION/C/allocate.o ../AMMUNITION/C/vlobject.o\
+	     ../AMMUNITION/C/position.o ../AMMUNITION/C/hashtab.o\
+	     ../AMMUNITION/C/objstack.o ../AMMUNITION/C/errors.o\
+	     ../AMMUNITION/C/commline.o ../AMMUNITION/C/ticker.o\
+	     ../AMMUNITION/C/earley.o
+
+additional_files = Makefile.in README INSTALL dino.1 compare.tst dino.tst.in\
+                   ldAix dino.dsw dino.dsp
+
+doc_files = dino.txt dino.info* dino*.html dino.dvi dino.ps
+
+example_files = extern.d fact.d fibonacci.d idcount.d mult.d \
+                prodcons.d sieve.d tak.d tmult.d
+
+# Files which are not in distribution
+additional_rcs_files = dino.sgml.in
+
+# Default entry
+all : d_config.h $(dino_lib) $(DINO_EXTERN_LIBS) dino d_extern.h
+
+d_config.h: ../AMMUNITION/cocom-config.h
+	cp ../AMMUNITION/cocom-config.h d_config.h
+
+dino: $(srcdir)/d_main.c $(DINO_ADDITIONAL_LIBS)
+	$(CC) $(CFLAGS) $(srcdir)/d_main.c -o $@ $(DINO_ADDITIONAL_LIBS) $(LIBS) $(DINO_ADDITIONAL_LINK_OPTION)
+
+$(dino_lib): $(objects) $(ammunition)
+	rm -f $(dino_lib)
+	$(SHELL) -c "$(DINO_MAKELIB) $(objects) ../REGEX/regex.o $(ammunition)" $(dino_lib)
+	$(SHELL) -c "$(DINO_AFTER_MAKELIB)" $(dino_lib)
+
+$(mpi_lib): mpi.o arithm.o
+	rm -f $(mpi_lib)
+	$(SHELL) -c "$(EXTERN_MAKELIB) mpi.o arithm.o" $(mpi_lib)
+	$(SHELL) -c "$(EXTERN_AFTER_MAKELIB)" $(mpi_lib)
+
+$(ieee_lib): ieee_int.o IEEE.o arithm.o bits.o
+	rm -f $(ieee_lib)
+	$(SHELL) -c "$(EXTERN_MAKELIB) ieee_int.o IEEE.o arithm.o bits.o" $(ieee_lib)
+	$(SHELL) -c "$(EXTERN_AFTER_MAKELIB)" $(ieee_lib)
+
+d_ir.c d_ir.h : $(srcdir)/d_ir.sprut
+# Use -debug instead of -only-macro for debugging
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set $(srcdir)/d_ir.sprut
+
+d_run.c d_run.h : $(srcdir)/d_extern.sprut $(srcdir)/d_run.sprut
+# Use -debug instead of -only-macro for debugging
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set $(srcdir)/d_run.sprut
+
+d_extern.c d_extern.h : $(srcdir)/d_extern.sprut
+# Use -debug instead of -only-macro for debugging
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set $(srcdir)/d_extern.sprut
+	rm -f d_extern.c
+
+d_kw.c : $(srcdir)/d_kw.shilka
+	../SHILKA/shilka -no-definitions -strip $(srcdir)/d_kw.shilka
+
+d_yacc.c: $(srcdir)/d_yacc.y
+	@echo must be - conflicts: 7 shift/reduce.
+	../MSTA/msta -no-regular-optimization $(srcdir)/d_yacc.y
+
+test : dino
+	$(SHELL) dino.tst
+	@echo ++++ Comparison of different script language implementations ++++
+	$(SHELL) $(srcdir)/compare.tst
+
+# Creation of installation directories and all object files and copying
+# the interpreter `dino' and its man file to target directories.
+install: all
+	-mkdir $(bindir)
+	$(INSTALL) dino $(bindir)/dino
+	-mkdir $(libdir)
+	$(INSTALLDATA) $(dino_lib) $(libdir)
+	$(INSTALLDATA) $(mpi_lib) $(libdir)
+	$(INSTALLDATA) $(ieee_lib) $(libdir)
+	$(INSTALLDATA) $(srcdir)/mpi.d $(libdir)
+	$(INSTALLDATA) $(srcdir)/ieee.d $(libdir)
+	-mkdir $(includedir)
+	$(INSTALLDATA) d_extern.h $(includedir)
+	$(INSTALLDATA) d_config.h $(includedir)
+	$(INSTALLDATA) $(srcdir)/d_types.h $(includedir)
+	-mkdir $(mandir)
+	-mkdir $(man1dir)
+	$(INSTALLDATA) $(srcdir)/dino.1 $(man1dir)/dino.1
+
+# Delete the installed files and the installation directories.
+uninstall:
+	rm -f $(bindir)/dino
+	-rmdir $(bindir)
+	rm -f $(libdir)/$(dino_lib)
+	rm -f $(libdir)/$(mpi_lib)
+	rm -f $(libdir)/$(ieee_lib)
+	rm -f $(libdir)/mpi.d
+	rm -f $(libdir)/ieee.d
+	-rmdir $(libdir)
+	rm -f $(includedir)/d_extern.h
+	rm -f $(includedir)/d_config.h
+	rm -f $(includedir)/d_types.h
+	-rmdir $(includedir)
+	rm -f $(man1dir)/dino.1
+	-rmdir $(man1dir)
+	-rmdir $(mandir)
+
+# Deletion of object files of the translator, executable file `dino'
+# and also deletion of `d_ir.c', `d_ir.h', `d_extern.h',
+# `d_run.c', `d_run.h' and also deletion of `d_kw.c' and `d_yacc.c'.
+clean :
+	rm -f $(objects) d_main.o $(dino_lib)\
+                         $(mpi_lib) $(ieee_lib)\
+                         mpi.o arithm.o ieee_int.o IEEE.o bits.o dino\
+			 d_ir.c d_ir.h d_extern.h\
+			 d_run.c d_run.h d_kw.c d_yacc.c
+
+# Deletion all not needed for distribution: the same as entry `clean'.
+distclean: clean
+	rm -f Makefile
+	rm -f dino.sgml dino.tex dino.log dino.aux dino.toc\
+              dino.sgml.tmp dino.tmp d_config.h
+
+# Deletion all which can be built up automatically:
+# the same as entry `distclean' and emacs TAGS table.
+realclean: distclean
+	rm -f TAGS
+
+# Updating TAGS table for the `dino' sources.
+TAGS : $(source)
+	$(ETAGS) $(source)
+
+# Ouput names of TAGS table for the `dino' sources.
+tagsout : $(source)
+	for i in $(source);do\
+	  echo `basename $$i`;\
+	done
+
+# Create empty subdirectory used for creation of compressed distribution
+# tar file.
+create-distdir:
+	-mkdir $(distdir)
+	rm -f -r $(distdir)/*
+	mkdir $(distdir)/mpi
+	mkdir $(distdir)/ieee
+	mkdir $(distdir)/Examples
+
+# Copying `dino' distribution files into `distdir'.
+dist-copy: create-distdir doc
+	cp $(source) $(distdir)
+	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in mpi/mpi.dsw mpi/mpi.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/mpi;\
+	done
+	for i in ieee/ieee.dsw ieee/ieee.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/ieee;\
+	done
+	for i in $(example_files);do\
+	  cp $(srcdir)/Examples/$$i $(distdir)/Examples;\
+	done
+	chmod -R +w $(distdir)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
+	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in mpi/mpi.dsw mpi/mpi.dsp;do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in ieee/ieee.dsw ieee/ieee.dsp;do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(example_files);do\
+	  $(RCS) -n$(RCSLABEL) $(srcdir)/Examples/$$i;\
+	done
+
+# Unconditional creation of compressed distribution tar file.
+dist: dist-copy
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+
+# Creation of documentation
+
+doc : dino.txt dino.html dino.info dino.dvi dino.ps
+
+dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
+	nroff -man $(srcdir)/dino.1 | $(AWK) '{gsub (/.\b/,"");print;}' > dino.tmp
+	$(AWK) '{if($$0 == "%%%")\
+                     {while ((getline line < "dino.tmp") > 0)\
+                        print line;close("dino.tmp")}\
+                 else print;}' $(srcdir)/dino.sgml.in > $@
+	rm -f dino.tmp
+
+dino.txt: dino.sgml.tmp
+	$(srcdir)/../sgml-txt dino.sgml.tmp > $@
+	
+dino.html: dino.sgml.tmp
+	$(srcdir)/../sgml-html dino.sgml.tmp >dino.sgml
+	sgml2html dino.sgml
+	
+dino.info: dino.sgml.tmp
+	$(srcdir)/../sgml-info dino.sgml.tmp >dino.sgml
+	sgml2info dino.sgml
+	for i in dino.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+dino.dvi: dino.sgml.tmp
+	$(srcdir)/../sgml-tex dino.sgml.tmp >dino.sgml
+	sgml2latex dino.sgml
+	if test ! -f dino.dvi\
+           -o -f dino.tex -a dino.tex -nt dino.dvi; then\
+    	        latex dino.tex; latex dino.tex;\
+        fi
+
+dino.ps: dino.dvi
+	dvips -o $@ dino.dvi
+
+# The following entry is only for internal usage.  It adds makefile
+# dependencies for DINO object files to the end of given file.
+depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
+	@echo ++++ Adding Makefile dependencies ++++
+	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
+	echo '#' >>$(srcdir)/Makefile.in
+	$(SED) '/^# The following is generated with the aid of Makefile entry depend/,$$d' <$(srcdir)/Makefile.in >Makefile.tmp
+	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
+	echo '# Do not place anything below this line' >>Makefile.tmp
+	echo '#' >>Makefile.tmp
+	for i in d_ir.c d_run.c d_kw.c d_yacc.c\
+	   $(srcdir)/../DINO/d_errors.c\
+           $(srcdir)/../DINO/d_blocktab.c $(srcdir)/../DINO/d_context.c\
+           $(srcdir)/../DINO/d_conv.c $(srcdir)/../DINO/d_func.c\
+	   $(srcdir)/../DINO/d_eval.c $(srcdir)/../DINO/d_dino.c\
+	   $(srcdir)/../DINO/d_main.c\
+	   $(srcdir)/../DINO/mpi.c $(srcdir)/../AMMUNITION/arithm.c\
+	   $(srcdir)/../DINO/ieee_int.c\
+           $(srcdir)/../AMMUNITION/IEEE.c $(srcdir)/../AMMUNITION/bits.c;do\
+	   gcc -MM -I- -I$(srcdir)/../DINO $(CFLAGS) $$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/DINO/d_ir\.h%d_ir.h%'\
+                | $(SED) 's%\$$(top_srcdir)/DINO/d_run\.h%d_run.h%'\
+                | $(SED) 's%\$$(top_srcdir)/DINO/d_extern\.h%d_extern.h%'\
+                | $(SED) 's%\$$(top_srcdir)/DINO/d_kw\.c%d_kw.c%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                | $(SED) 's%\$$(top_srcdir)/DINO/d_config\.h%../DINO/d_config.h%'\
+                         >>Makefile.tmp;\
+	   if test $$i = $(srcdir)/../DINO/mpi.c -o $$i = $(srcdir)/../AMMUNITION/arithm.c;then \
+		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
+	   elif test $$i = $(srcdir)/../DINO/ieee_int.c; then\
+		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
+           elif test $$i = $(srcdir)/../AMMUNITION/IEEE.c -o $$i = $(srcdir)/../AMMUNITION/bits.c;then \
+		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
+           else echo '	$$(CC) -c $$(CFLAGS) -o $$@' $$i;fi \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g' >>Makefile.tmp;\
+	done
+	mv Makefile.tmp $(srcdir)/Makefile.in
+
+#
+# The following is generated with the aid of Makefile entry depend
+# Do not place anything below this line
+#
+d_ir.o: d_ir.c d_ir.h $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/DINO/d_types.h $(top_srcdir)/DINO/d_built.h
+	$(CC) -c $(CFLAGS) -o $@ d_ir.c
+d_run.o: d_run.c d_run.h $(top_srcdir)/DINO/d_types.h ../DINO/d_config.h \
+ d_ir.h $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/objstack.h
+	$(CC) -c $(CFLAGS) -o $@ d_run.c
+d_kw.o: d_kw.c
+	$(CC) -c $(CFLAGS) -o $@ d_kw.c
+d_yacc.o: d_yacc.c $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h d_ir.h $(top_srcdir)/DINO/d_types.h \
+ $(top_srcdir)/DINO/d_yacc.h d_kw.c
+	$(CC) -c $(CFLAGS) -o $@ d_yacc.c
+d_errors.o: $(top_srcdir)/DINO/d_errors.c $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h d_ir.h $(top_srcdir)/DINO/d_types.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_errors.c
+d_blocktab.o: $(top_srcdir)/DINO/d_blocktab.c $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h ../DINO/d_config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h d_ir.h $(top_srcdir)/DINO/d_types.h \
+ $(top_srcdir)/DINO/d_blocktab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_blocktab.c
+d_context.o: $(top_srcdir)/DINO/d_context.c $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h d_ir.h $(top_srcdir)/DINO/d_types.h \
+ $(top_srcdir)/DINO/d_blocktab.h $(top_srcdir)/DINO/d_context.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_context.c
+d_conv.o: $(top_srcdir)/DINO/d_conv.c $(top_srcdir)/DINO/d_conv.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h ../DINO/d_config.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_conv.c
+d_func.o: $(top_srcdir)/DINO/d_func.c d_run.h $(top_srcdir)/DINO/d_types.h \
+ ../DINO/d_config.h d_ir.h $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/DINO/d_built.h \
+ $(top_srcdir)/DINO/d_conv.h $(top_srcdir)/DINO/d_func.h $(top_srcdir)/REGEX/regex.h \
+ $(top_srcdir)/AMMUNITION/earley.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_func.c
+d_eval.o: $(top_srcdir)/DINO/d_eval.c $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/DINO/d_conv.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_ir.h $(top_srcdir)/DINO/d_func.h \
+ $(top_srcdir)/DINO/d_blocktab.h $(top_srcdir)/DINO/d_eval.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_eval.c
+d_dino.o: $(top_srcdir)/DINO/d_dino.c $(top_srcdir)/AMMUNITION/commline.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/DINO/d_common.h $(top_srcdir)/DINO/d_dino.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h d_ir.h $(top_srcdir)/DINO/d_types.h \
+ d_run.h $(top_srcdir)/DINO/d_yacc.h $(top_srcdir)/DINO/d_blocktab.h \
+ $(top_srcdir)/DINO/d_context.h $(top_srcdir)/DINO/d_eval.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_dino.c
+d_main.o: $(top_srcdir)/DINO/d_main.c $(top_srcdir)/DINO/d_dino.h ../DINO/d_config.h \
+ d_run.h $(top_srcdir)/DINO/d_types.h d_ir.h $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/AMMUNITION/allocate.h ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/objstack.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/d_main.c
+mpi.o: $(top_srcdir)/DINO/mpi.c d_extern.h $(top_srcdir)/DINO/d_types.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/arithm.h \
+ ../AMMUNITION/cocom-config.h
+	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/mpi.c
+arithm.o: $(top_srcdir)/AMMUNITION/arithm.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/arithm.h
+	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/AMMUNITION/arithm.c
+ieee_int.o: $(top_srcdir)/DINO/ieee_int.c d_extern.h $(top_srcdir)/DINO/d_types.h \
+ ../DINO/d_config.h $(top_srcdir)/AMMUNITION/arithm.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/IEEE.h
+	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/ieee_int.c
+IEEE.o: $(top_srcdir)/AMMUNITION/IEEE.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/bits.h $(top_srcdir)/AMMUNITION/arithm.h $(top_srcdir)/AMMUNITION/IEEE.h \
+ $(top_srcdir)/AMMUNITION/IEEEtens.c
+	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/AMMUNITION/IEEE.c
+bits.o: $(top_srcdir)/AMMUNITION/bits.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/bits.h
+	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/AMMUNITION/bits.c

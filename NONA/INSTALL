@@ -1,0 +1,16 @@
+  Better way to install NONA is usage of top COCOM configure &
+Makefile (see file INSTALL in the top COCOM directory).
+
+  In any case you need to run configure in the top COCOM directory (in
+order to create Makefile for NONA), to build AMMUNITION and SPRUT
+(because NONA uses them for its building).  After that we can work
+with only NONA (building, installation, and so on).  The NONA Makefile
+has additional entries in comparison of the top COCOM Makefile.  These
+are:
+
+test - testing NONA
+TAGS - updating TAGS in current directory for only NONA
+
+Example of NONA specification is files `a29k.nona' (part of a Pascal
+cross-compiler for AM29050).
+

@@ -1,0 +1,426 @@
+/*
+   FILE NAME:   ird.sprut
+
+   TITLE:       Internal representation description for SPRUT (internal
+                representation description translator) itself
+
+   DESCRIPTION: This file describes internal representation description
+                for SPRUT (internal representation description translator)
+                itself.  SPRUT generates standard procedural interface (SPI
+                -- see documentation of SPRUT), i.e. definitions of types,
+                macros, variables, functions for work with internal
+                representation of SPRUT itself.
+
+   SPECIAL CONSIDERATION:
+         The SPRUT generates SPI part of which is analogous to SPI created
+       manually (see files `sprut-ird.h' and `sprut-ird.c').
+       The important difference of generated SPI is presence of abstract node
+       types which are used for convenience.
+   
+*/
+
+%import {
+
+#include "objstack.h"
+#include "position.h"
+
+/* Definitions of predefined types: */
+
+typedef int integer_t;
+
+typedef int bool_t;
+
+typedef char *string_t;
+
+/* This type describes all parts (sections -- see SPRUT documentation)
+   declarations of fields, constraints, and actions of an internal
+   representation description.  There is enumeration constant with field
+   declaration section name and prefix `DP_' for each declaration part.
+   `DP' is abbreviation of declaration part. */
+
+typedef enum
+{
+  DP_CLASS,
+  DP_SKELETON,
+  DP_OTHER
+} declaration_part_t;
+
+}
+
+
+%export {
+
+/* These macros for storage management of SPRUT internal representation: */
+
+/* Start work with the storage manager -- see SPRUT documentation. */
+
+#define IR_START_ALLOC()    OS_CREATE (irp, 0)
+
+/* Finish work with the storage manager -- see SPRUT documentation. */
+
+#define IR_STOP_ALLOC()     OS_DELETE (irp)
+
+/* Allocate storage for internal representation of given size
+   -- see SPRUT documentation. */
+
+#define IR_ALLOC(ptr, size, ptr_type)\
+  do {\
+    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
+    OS_TOP_FINISH (irp);\
+  } while (0);
+
+/* Free storage of internal representation of given size -- see SPRUT
+   documentation. */
+
+#define IR_FREE(ptr, size)
+
+
+/* These macros are analogous to ones of package `object-stack'
+   worked with storage of SPRUT internal representation: */
+
+/* Start new internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
+
+/* Nullify current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
+
+/* Shorten current internal representation object on given number bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
+
+/* Return start address of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
+
+/* Return length of current internal representation object in bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
+
+/* Add byte to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
+
+/* Add string to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
+
+/* Add memory of given length to the end of current internal representation
+   object -- see also package `object-stack'. */
+
+#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
+
+extern os_t irp;
+}
+
+%local {
+
+/* All internal representation storage is implemented by object stack.  See
+   package `object-stack'. */
+
+os_t irp;
+}
+
+%type integer_t bool_t string_t position_t declaration_part_t
+
+%%
+
+%abstract
+node :: %root
+%other
+    /* Start source position of object represented by given node. */
+    position : position_t
+;
+
+/* It describes any identifier occurrence. All fields are defined
+   by scanner of SPRUT. */
+identifier :: node
+%other
+    identifier_itself : string_t
+;
+
+/* It describes double node type identifier declaration occurrence.
+   All fields are defined before semantic analysis of SPRUT. */
+double_declaration :: node
+    /* Field `position' of given node is defined by position of
+       corresponding double declaration identifier. */
+%other
+    /* Arc to node representing textually next double declaration. */
+    next_double_declaration : double_declaration
+    double_declaration_identifier : identifier
+;
+
+/* It describes code insertion, i.e. C code in `{' and `}'.  All fields
+   are defined by scanner of SPRUT. */
+code_insertion :: node
+%other
+    /* Surrounding '{' and '}' are absent here.  Remember that constructions
+       `$' & `$$' will be changed only during SPI generation.  */
+    code_insertion_itself : string_t
+;
+
+/* It describes expression, i.e. C code in `[' and `]'.  All
+   are defined by scanner of SPRUT. */
+expression :: node
+%other
+    /* Surrounding '[' and ']' are absent here.  Remember that constructions
+       `$' & `$$' will be changed only during SPI generation.  */
+    expression_itself : string_t
+;
+
+%abstract
+code :: node
+    /* Field `position' of given node type is defined by position of
+       corresponding code insertion. */
+%other
+    /* Arc to node representing next textually import/export or
+       local code. */
+    next_code_insertion : code
+    /* Arc to node which represents corresponding code insertion. */
+    code_itself : code_insertion
+;
+
+/* It describes local code, i.e. construction `%local {...}'.  All
+   fields are defined before semantic analysis of SPRUT. */
+local_code :: code
+;    
+
+/* It describes import code, i.e. construction `%import {...}'.  All
+   fields are defined before semantic analysis of SPRUT. */
+import_code :: code
+;
+
+/* It describes export code, i.e. construction `%export {...}'.  All
+   fields are defined before semantic analysis of SPRUT. */
+export_code :: code
+;
+
+%abstract
+node_type_element :: node
+%other
+    /* Arc to node representing next field, constraint or action. */
+    next_field : node_type_element
+    /* See commentaries for `declaration_part_t'. */
+    declaration_part : declaration_part_t
+;
+
+/* It describes constraint.  All fields are defined before semantic
+   analysis of SPRUT. */
+constraint :: node_type_element
+    /* Field `position' of given node type is defined by position of
+       corresponding expression. */
+%other
+    constraint_code : expression
+;
+
+/* It describes action.  All fields are defined before semantic
+   analysis of SPRUT. */
+action :: node_type_element
+    /* Field `position' of given node type is defined by position of
+       corresponding code insertion. */
+%other
+    /* Arc to node which represents corresponding code insertion. */
+    action_code : code_insertion
+;
+
+/* It describes fields of node types.  All fields (except for
+   `previous_synonym_field' and `field_type') are defined before semantic
+   analysis of SPRUT.  Field `double_field_flag' is made more precise on
+   semantic analysis of SPRUT.  There are copy of field node for each node
+   type in the following constructions
+        node_type_1, node_type_2, ... :: super_type
+           ...
+           field : ...
+           ...
+*/
+field :: node_type_element
+    /* Field `position' of given node type is defined by position of
+       corresponding field identifier. */
+%other
+    /* TRUE for field with construction `%double' and FALSE otherwise before
+       semantic analysis.  Aftewards TRUE also for fields which refer to
+       nodes described as double (this is not equivalent to that
+       `double_node_flag' of corresponding node type is TRUE). */
+    double_field_flag : bool_t
+    /* Fields of given node type may be declared in different description parts
+       , i.e. in different files (see construction `%extend' in SPRUT
+       documentation).  This field informs  on what level description
+       (0, 1, ...) the field is declared. */
+    declaration_level : integer_t
+    /* Arc to node representing identifier of field. */
+    field_identifier : identifier
+    /* Arc to node representing previous field with the same name.
+       The previous field shall be declared in another node type which
+       is not super type or subtype of node type of given field. */
+    previous_synonym_field : field
+    /* Arc to node representing identifier of field type. */
+    field_type_identifier : identifier
+    /* Arc to node representing node type or predefined type which is
+       field type. */
+    field_type : type
+    /* Arc to node representing node type in which the field is declared. */
+    node_type : node_type
+;
+
+%abstract
+type :: node
+    /* Field `position' of given node is defined by position of
+       corresponding type identifier. */
+%other
+    /* Arc to node representing next textually node type or predefined type. */
+    next_type : type
+    /* Arc to node representing corresponding type identifier. */
+    type_identifier : identifier
+;
+
+/* It describes all nodes types including `%root'.  All fields (except
+   for `first_declaration_level', `node_type_number',
+   `fields_structure_has_been_output', and
+   `class_fields_structure_has_been_output') are defined before
+   semantic analysis of SPRUT.  Field `double_node_flag' is initiated
+   by FALSE before semantic analysis of SPRUT and is made more precise
+   on the semantic analysis. */
+node_type :: type
+%other
+    /* Given node type may be defined in several description parts, i.e.
+       in several files (see construction `%extend' in SPRUT documentation).
+       This field informs on what minimum level (0, 1, ...) the node type is
+       declared. */
+    first_declaration_level : integer_t
+    /* Enumeration of all node types: 0, 1, 2, and so on. */
+    node_type_number : integer_t
+    /* Remember that double and non-double fields can refer to given node.
+       The field shall be set up during node creation and after only made more
+       precise. */
+    double_node_flag : bool_t
+    /* The following field is the first element of list of immediate
+       super types of given node type. */
+    first_super_type_list_element : super_type_list_element
+    /* The following field is the last element of list of immediate
+       super types of given node type. */
+    last_super_type_list_element : super_type_list_element
+    /* The following field is defined if field
+       `first_super_type_list_element' is NULL.  The field value is TRUE
+       if the previous field is not list of additional immediate super
+       types (i.e. this list does not start with comma -- see
+       syntax). */
+    basic_super_types_flag : bool_t
+    /* Arc to node representing the last field, constraint or action of
+       cyclic list formed by field `next_field'. */
+    last_field : node_type_element
+    /* TRUE for node type declared as abstract. */
+    abstract_flag : bool_t
+    /* The following field is used in a function traversing all node types.
+       The field value is TRUE if node type was already processed. */
+    traverse_flag : bool_t
+    /* The following fields are used during generation. */
+    /* The following field is TRUE if decalaration of structure containing
+       fields of of given node type is already output. */ 
+    fields_structure_has_been_output : bool_t       {$ = 0 /*FALSE*/;}
+    /* The following field is TRUE if decalaration of structure containing
+       class fields of of given nod type is already output.  The field value
+       will be always FALSE if the node type does not have class fields. */ 
+    class_fields_structure_has_been_output : bool_t {$ = 0 /*FALSE*/;}
+    /* The following field is TRUE if the node type (or its subtype)
+       is used as secondary super type (not the first super type)
+       somewhere. */
+    secondary_super_type_flag : bool_t              {$ = 0 /*FALSE*/;}
+    /* The following field is used during analysis to search for
+       common super types of node types. */
+    mark_flag : bool_t                              {$ = 0 /*FALSE*/;}
+    /* The following field is used during generation when non-flat
+       structure implementation is used.  The value is TRUE if the
+       structure containing node type fields is already output. */
+    node_structure_has_been_output : bool_t         {$ = 0 /*FALSE*/;}
+    /* The following member value is the last visited node type who is
+       checked on multiple inheretence. */
+    who_visisted_on_multiple_inheritence_checking : node_type {$ = NULL;}
+;
+
+/* All fields (except for `immediate_super_type') are defined before
+   semantic analysis of SPRUT. */
+super_type_list_element :: node
+%other
+    /* Arc to node representing identifier of super type.  The
+       following field is always not NULL. */
+    immediate_super_type_identifier : identifier
+    /* Arc to node representing node type of immediate super type
+       (NULL for `%root'). */
+    immediate_super_type : node_type
+    /* The following field is NULL for the last element of super type
+       list. */
+    next_super_type_list_element : super_type_list_element
+    /* The following member is necessary because additional super
+       types may be connected to the node type.  To disable repeated
+       setting and testing super types. */
+    setting_and_testing_super_type_was_made : bool_t  {$ = 0 /*FALSE*/;}
+    /* The following member is necessary because additional super
+       types may be connected to the node type.  To disable repeated
+       testing super type cycle. */
+    testing_super_type_cycle_was_made : bool_t  {$ = 0 /*FALSE*/;}
+;
+
+/* It describes predefined type.  All fields are defined before
+   semantic analysis of SPRUT. */
+predefined_type :: type
+;
+
+/* It describes additional code.  All fields (except for
+   `next_additional_code') are defined by SPRUT scanner. */
+additional_code :: node
+%other
+    /* Arc to node representing next textually additional code.  The
+       next additional code can be only in another description part which
+       refers to given description part by construction `%extend'. */
+    next_additional_code : additional_code
+    additional_code_itself : string_t
+;
+
+/* It describes description part (it is stored in separate file).
+   All fields are defined before semantic analysis of SPRUT. */
+description_part :: node
+    /* Field `position' of given node type is start position of corresponding
+       file. */
+%other
+    /* Description part level.  The most nested description part has zero
+       level. */
+    description_part_level : integer_t
+    /* Arc to node representing the first extended description part
+       (see construction `%extend') of given description. */
+    first_basic_description_part : description_part
+    /* Arc to node representing the next extended description part of
+       some description part.  The list formed with the aid of
+       following field does not contain description part declared in
+       the corresponding `%extend' construction if the description
+       part is a part of description mentioned early in the `%extend'
+       construction.  Therefore only one description refers to given
+       description by the fields `first_basic_description_part' or
+       `next_basic_description_part'. */
+    next_basic_description_part : description_part
+    /* Arc to node representing the last local or import/export code of
+       cyclic list formed by field `next_code_insertion'. */
+    last_code_insertion : code
+    /* Arc to node representing the last double node type identifier
+       declaration of cyclic list formed by field `next_double_declaration'. */
+    last_double_declaration : double_declaration
+    /* Arc to node representing the last node type or predefined type
+       of cyclic list formed by field `next_type'. */
+    last_type : type
+    /* Arc to node representing the last additional code
+       of cyclic list formed by field `next_additional_code'. */
+    last_additional_code : additional_code
+;
+
+/*
+Local Variables:
+mode:c
+End:
+*/

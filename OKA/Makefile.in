@@ -1,0 +1,331 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for OKA (pipeline hazards description translator)
+#
+#   DATA_RIGHTS: 
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir     the subdirectory used for creation of compressed
+#                        distribution tar file
+#            prefix      common prefix for installation directories
+#            exec_prefix common prefix for binary installation directories
+#            bindir      the directory used for installation of `oka'
+#            mandir      the directory for installation of man pages
+#            man1dir     the directory for installation of `oka.1'
+#            INSTALL     utility used for installation `oka'
+#            INSTALLDATA utility used for installing nonexecutables
+#            SED         utility used instead of POSIX utility `sed'
+#            ETAGS       utility used for creation of `oka' tag table
+#            YACC        used YACC (e.g. `bison -y')
+#            YFLAGS      YACC flags (e.g. -v)
+#            CC          used C compiler
+#            CFLAGS      C compiler flags
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create `oka'
+#            test            test `oka'
+#            install         create and install `oka'
+#            uninstall       delete the installed file
+#            clean           delete all object files and file `oka'
+#            realclean       deletion all which can be built up automatically
+#            distclean       deletion all not needed for distribution
+#            TAGS            updating TAGS table for the `oka' sources
+#            dist-copy       copying `oka' distribution files into `distdir'
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#
+
+SHELL=/bin/sh
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.
+distdir = oka-0.48
+
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# Common prefix for binary installation directories.
+# NOTE: this directory must exist when you start installation.
+exec_prefix=@exec_prefix@
+
+# The directory for installation of `oka'.
+bindir=@bindir@
+
+# The directory for installation of man pages
+mandir=@mandir@
+
+# The directory for installation of `oka.1'
+man1dir=$(mandir)/man1
+
+# Utility for installation `oka'.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables (e.g. `oka.1').
+INSTALLDATA=@INSTALL_DATA@
+
+# Utility used instead of POSIX utility `sed'.
+SED=sed
+
+# Utility used instead of POSIX utility `awk'.
+AWK=@AWK@
+
+# Utility for creation of `oka' tag table.
+ETAGS=etags
+
+# YACC its flag used for creation of syntax analyzer.
+YACC = @YACC@
+
+# Obligatory compiler options
+OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION -I../AMMUNITION -I$(srcdir)
+
+# C compiler and its flag used for compilation of C files.
+CC = @CC@
+CFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+top_srcdir = @top_srcdir@
+
+# All object files of the pipeline hazards description translator:
+objects = ird.o common.o\
+          tab.o yacc.o anal.o gen.o main.o
+
+# All source files of the translator.
+source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
+         $(srcdir)/yacc.h $(srcdir)/yacc.y $(srcdir)/anal.h $(srcdir)/anal.c\
+	 $(srcdir)/gen.h $(srcdir)/gen.c $(srcdir)/main.c $(srcdir)/ird.sprut
+
+additional_files = Makefile.in README INSTALL oka.1\
+                   alpha-ev4.oka alpha-ev5.oka oka.dsw oka.dsp
+
+doc_files = oka.txt oka.info* oka*.html oka.dvi oka.ps
+
+# Scheduler files
+scheduler_files = SCHEDULE/schedule.h\
+                  SCHEDULE/schedtst.c SCHEDULE/schedtst.cpp\
+                  SCHEDULE/schedule.tst.in SCHEDULE/schedule++.tst.in\
+                  SCHEDULE/schedule.c SCHEDULE/schedule.cpp SCHEDULE/test.oka
+
+# Files which are not in distribution
+additional_rcs_files = oka.sgml.in
+
+# Default entry
+all : oka
+
+oka : $(objects) ../AMMUNITION/libcocom.a
+	$(CC) $(CFLAGS) -o $@ $(objects) ../AMMUNITION/libcocom.a @LIBS@
+
+ird.c ird.h : $(srcdir)/ird.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set -new -copy\
+                       -transform $(srcdir)/ird.sprut
+
+yacc.c: $(srcdir)/yacc.y
+	$(YACC) $(srcdir)/yacc.y
+# This is necessary for MS-DOS YACC (BISON) and VMS POSIX YACC
+	if test ! -f y.tab.c && test -f y_tab.c;then mv y_tab.c $@;\
+	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
+	else mv y.tab.c $@;fi
+
+test : oka
+	(cd SCHEDULE; $(SHELL) schedule.tst; $(SHELL) schedule++.tst)
+
+# Creation of installation directories and all object files and copying
+# the translator `oka' and its man file to target directories.
+install: all
+	-mkdir $(bindir)
+	$(INSTALL) oka $(bindir)/oka
+	-mkdir $(mandir)
+	-mkdir $(man1dir)
+	$(INSTALLDATA) $(srcdir)/oka.1 $(man1dir)/oka.1
+
+# Delete the installed files and the installation directories.
+uninstall:
+	rm -f $(bindir)/oka
+	-rmdir $(bindir)
+	rm -f $(man1dir)/oka.1
+	-rmdir $(man1dir)
+	-rmdir $(mandir)
+
+# Deletion of object files of the translator, executable file `oka' and also
+# deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'.
+clean :
+	rm -f $(objects) oka ird.c ird.h yacc.c
+
+# Deletion all not needed for distribution: the same as entry `clean'.
+distclean: clean
+	rm -f Makefile SCHEDULE/schedule.tst SCHEDULE/schedule++.tst
+	rm -f oka.sgml oka.tex oka.log oka.aux oka.toc\
+              oka.sgml.tmp oka.tmp
+
+# Deletion all which can be built up automatically:
+# the same as entry `distclean' and emacs TAGS table.
+realclean: distclean
+	rm -f TAGS
+
+# Updating TAGS table for the `oka' sources.
+TAGS : $(source)
+	$(ETAGS) $(source)
+
+# Ouput names of TAGS table for the `oka' sources.
+tagsout : $(source)
+	for i in $(source);do\
+	  echo `basename $$i`;\
+	done
+
+# Create empty subdirectory used for creation of compressed distribution
+# tar file.
+create-distdir:
+	-mkdir $(distdir)
+	rm -f -r $(distdir)/*
+	mkdir $(distdir)/SCHEDULE
+	mkdir $(distdir)/SCHEDULE/cschedule
+	mkdir $(distdir)/SCHEDULE/cppschedule
+
+# Copying `oka' distribution files into `distdir'.
+dist-copy: create-distdir doc
+	cp $(source) $(distdir)
+	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(scheduler_files);do cp $(srcdir)/$$i $(distdir)/SCHEDULE;done
+	for i in SCHEDULE/cschedule/cschedule.dsw SCHEDULE/cschedule/cschedule.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/SCHEDULE/cschedule;\
+	done
+	for i in SCHEDULE/cppschedule/cppschedule.dsw SCHEDULE/cppschedule/cppschedule.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/SCHEDULE/cppschedule;\
+	done
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	chmod -R +w $(distdir)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
+	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(scheduler_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in SCHEDULE/cschedule/cschedule.dsw SCHEDULE/cschedule/cschedule.dsp;do\
+	  $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+	done
+	for i in SCHEDULE/cppschedule/cppschedule.dsw SCHEDULE/cppschedule/cppschedule.dsp;do\
+	  $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+	done
+	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+
+# Unconditional creation of compressed distribution tar file.
+dist: dist-copy
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+
+# Creation of documentation
+
+doc : oka.txt oka.html oka.info oka.dvi oka.ps
+
+oka.sgml.tmp : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
+	nroff -man $(srcdir)/oka.1 | $(AWK) '{gsub (/.\b/,"");print;}' > oka.tmp
+	$(AWK) '{if($$0 == "%%%")\
+                     {while ((getline line < "oka.tmp") > 0)\
+                        print line;close("oka.tmp")}\
+                 else print;}' $(srcdir)/oka.sgml.in > $@
+	rm -f oka.tmp
+
+oka.txt: oka.sgml.tmp
+	$(srcdir)/../sgml-txt oka.sgml.tmp > $@
+	
+oka.html: oka.sgml.tmp
+	$(srcdir)/../sgml-html oka.sgml.tmp >oka.sgml
+	sgml2html oka.sgml
+	
+oka.info: oka.sgml.tmp
+	$(srcdir)/../sgml-info oka.sgml.tmp >oka.sgml
+	sgml2info oka.sgml
+	for i in oka.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+oka.dvi: oka.sgml.tmp
+	$(srcdir)/../sgml-tex oka.sgml.tmp >oka.sgml
+	sgml2latex oka.sgml
+	if test ! -f oka.dvi\
+           -o -f oka.tex -a oka.tex -nt oka.dvi; then\
+    	        latex oka.tex; latex oka.tex;\
+        fi
+
+oka.ps: oka.dvi
+	dvips -o $@ oka.dvi
+
+# The following entry is only for internal usage.  It adds makefile
+# dependencies for OKA object files to the end of given file.
+depend : ird.c ird.h yacc.c
+	@echo ++++ Adding Makefile dependencies ++++
+	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
+	echo '#' >>$(srcdir)/Makefile.in
+	$(SED) '/^# The following is generated with the aid of Makefile entry depend/,$$d' <$(srcdir)/Makefile.in >Makefile.tmp
+	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
+	echo '# Do not place anything below this line' >>Makefile.tmp
+	echo '#' >>Makefile.tmp
+	for i in ird.c $(srcdir)/../OKA/common.c $(srcdir)/../OKA/tab.c yacc.c\
+                 $(srcdir)/../OKA/anal.c $(srcdir)/../OKA/gen.c\
+                 $(srcdir)/../OKA/main.c;do\
+	   gcc -MM -I- -I$(srcdir)/../OKA $(CFLAGS) $$i\
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/OKA/ird\.h%ird.h%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                         >>Makefile.tmp;\
+	   echo '	$$(CC) -c $$(CFLAGS) -o $$@' $$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g' >>Makefile.tmp;\
+	done
+	mv Makefile.tmp $(srcdir)/Makefile.in
+
+#
+# The following is generated with the aid of Makefile entry depend
+# Do not place anything below this line
+#
+ird.o: ird.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h
+	$(CC) -c $(CFLAGS) -o $@ ird.c
+common.o: $(top_srcdir)/OKA/common.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/OKA/common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/OKA/common.c
+tab.o: $(top_srcdir)/OKA/tab.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/OKA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/OKA/tab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/OKA/tab.c
+yacc.o: yacc.c ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/OKA/common.h $(top_srcdir)/OKA/tab.h $(top_srcdir)/OKA/yacc.h
+	$(CC) -c $(CFLAGS) -o $@ yacc.c
+anal.o: $(top_srcdir)/OKA/anal.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/OKA/common.h $(top_srcdir)/OKA/tab.h \
+ $(top_srcdir)/OKA/anal.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/OKA/anal.c
+gen.o: $(top_srcdir)/OKA/gen.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/bits.h $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/OKA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/OKA/tab.h $(top_srcdir)/OKA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/OKA/gen.c
+main.o: $(top_srcdir)/OKA/main.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/commline.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/ticker.h ird.h $(top_srcdir)/OKA/common.h $(top_srcdir)/OKA/tab.h \
+ $(top_srcdir)/OKA/yacc.h $(top_srcdir)/OKA/anal.h $(top_srcdir)/OKA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/OKA/main.c

@@ -1,0 +1,16 @@
+  Better way to install DINO is usage of top COCOM configure &
+Makefile (see file INSTALL in the top COCOM directory).
+
+  In any case you need to run configure in the top COCOM directory (in
+order to create Makefile for DINO), to build AMMUNITION, SPRUT,
+SHILKA, and MSTA (because DINO uses them for its building).  After
+that we can work with only DINO (building, installation, and so on).
+The DINO Makefile has additional entries in comparison of the top
+COCOM Makefile.  These are:
+
+test - testing DINO
+TAGS - updating TAGS in current directory for only DINO
+???
+Examples of DINO specifications file are in `c5.y', `cpp5.y',
+`fcalc.y', `fparse.y', `gram.y', `java.y', `m2c.y', `p-yacc.y',
+`sql1.y'.  Example of DINO scanner specification file is in `lex.y'.

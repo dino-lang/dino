@@ -1,0 +1,34 @@
+%%
+break    {return BREAK;}
+catch    {return CATCH;}
+char     {return CHAR;}
+class    {return CLASS;}
+continue {return CONTINUE;}
+ext      {return EXT;}
+extern   {return EXTERN;}
+else     {return ELSE;}
+final    {return FINAL;}
+float    {return FLOAT;}
+for      {return FOR;}
+friend   {return FRIEND;}
+func     {return FUNC;}
+hide     {return HIDE;}
+hideblock{return HIDEBLOCK;}
+if       {return IF;}
+in       {return IN;}
+include  {return INCLUDE;}
+int      {return INT;}
+new      {return NEW;}
+nil      {return NIL;}
+public   {return PUBLIC;}
+private  {return PRIVATE;}
+return   {return RETURN;}
+table    {return TABLE;}
+thread   {return THREAD;}
+throw    {return THROW;}
+try      {return TRY;}
+type     {return TYPE;}
+var      {return VAR;}
+vector   {return VECTOR;}
+wait     {return WAIT;}
+%other   {return 0;}

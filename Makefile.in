@@ -1,0 +1,339 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for COCOM (Russian Armour)
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir     the subdirectory used for creation of compressed
+#                        distribution tar file
+#            ETAGS       utility used for creation of COCOM tag table
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create all
+#            install         create and install all
+#            test            test all
+#            uninstall       delete the installed file
+#            clean           delete all temporary (object) files
+#            realclean       deletion all which can be built up automatically
+#            distclean       deletion all not needed for distribution
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#            TAGS            updating TAGS table for all COCOM sources
+#
+
+SHELL=/bin/sh
+
+@SET_MAKE@
+
+# Utility for creation of `COCOM' tag table.
+ETAGS=etags
+
+# SED utility
+SED=sed
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+# COCOM only start
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.
+distdir = cocom-0.993
+# COCOM only end
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file only for DINO.
+distdinodir = dino-0.53
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+# All files in this directory.
+source_files = $(srcdir)/Makefile.in
+
+# COCOM only start
+only_cocom_source_files =
+# COCOM only end
+
+# Additional files
+additional_files = COPYING COPYING.LIB configure install-sh yacc.exe
+
+# COCOM only start
+only_cocom_additional_files = README INSTALL WIN32-INSTALL.txt CHANGES
+# COCOM only end
+
+doc_files =
+
+# Files which are not in distribution
+additional_rcs_files = configure.in acconfig.h
+
+# COCOM only start
+only_cocom_doc_files = cocom.txt cocom.info* cocom*.html cocom.dvi cocom.ps
+
+only_cocom_rcs_doc_files = armoury.html msta.jpg nona.jpg oka.jpg shilka.jpg\
+                           sprut.jpg
+
+# Files which are not in distribution
+only_cocom_additional_rcs_files = cocom.sgml.in configure.in msta-template.bmp\
+                                  sgml-html sgml-info sgml-rtf sgml-tex\
+                                  sgml-txt sgml-postinfo
+# COCOM only end
+
+# All directories containing needed for DINO
+directories = AMMUNITION SPRUT SHILKA MSTA DINO
+
+# COCOM only start
+# All directories containing components of COCOM
+only_cocom_directories = NONA OKA
+# COCOM only end
+
+# Regexp directory
+RX = REGEX
+
+# Default entry
+all:
+	for i in $(directories);do\
+	  if test $$i = DINO; then\
+	    (cd $(RX); make GCC_FPIC='@DINO_GCC_FPIC@' regex.o);\
+          fi;\
+	  (cd $$i; $(MAKE));\
+	done
+# COCOM only start
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE));\
+	done
+# COCOM only end
+
+# For internal use only.  It requires executables of some tools.
+# Use it only if your compiler is GCC.
+depend: all
+	for i in $(directories);do\
+	  (cd $$i; $(MAKE) depend);\
+	done
+# COCOM only start
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE) depend);\
+	done
+# COCOM only end
+
+test:
+	for i in $(directories);do\
+	  (cd $$i; $(MAKE) test);\
+	done
+# COCOM only start
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE) test);\
+	done
+# COCOM only end
+
+# Creation of installation directories and install files.
+install: all
+# COCOM only start
+	for i in $(directories) $(only_cocom_directories);do\
+	  if test $$i != DINO; then\
+	    (cd $$i; $(MAKE) install);\
+	  fi;\
+	done
+# COCOM only end
+	(cd DINO; $(MAKE) install)
+
+# Delete the installed files and the installation directories.
+uninstall:
+# COCOM only start
+	for i in $(directories) $(only_cocom_directories);do\
+	  if test $$i != DINO; then\
+            (cd $$i; $(MAKE) uninstall);\
+	  fi;\
+	done
+# COCOM only end
+	(cd DINO; $(MAKE) uninstall)
+
+# Deletion of temporary (object) files.
+clean:
+# COCOM only start
+	rm -f cocom.sgml cocom.tmp
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE) clean);\
+	done
+# COCOM only end
+	for i in $(directories) $(RX);do\
+	  (cd $$i; $(MAKE) clean);\
+	done
+
+# Deletion all not needed for distribution.
+distclean:
+# COCOM only start
+	rm -f cocom.sgml cocom.tmp
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE) distclean);\
+	done
+# COCOM only end
+	for i in $(directories) $(RX);do\
+	  (cd $$i; $(MAKE) distclean);\
+	done
+	rm -f TAGS Makefile config.cache config.log config.status
+	rm -f cocom-config.h
+
+# Deletion all which can be built up automatically:
+realclean:
+	for i in $(directories) $(RX);do\
+	  (cd $$i; $(MAKE) realclean);\
+	done
+	rm -f TAGS Makefile config.cache config.log config.status
+# COCOM only start
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE) realclean);\
+	done
+	rm -f cocom.tex cocom.log cocom.aux cocom.toc cocom.sgml
+# COCOM only end
+	rm -f cocom-config.h
+
+# Unconditional creation of compressed distribution tar file.
+# COCOM only start
+dist: doc
+	rm -f -r $(distdir)
+	mkdir $(distdir)
+	for i in $(source_files) $(only_cocom_source_files);do\
+	   cp $$i $(distdir);\
+        done
+	for i in  $(additional_files) $(only_cocom_additional_files);do\
+          cp $(srcdir)/$$i $(distdir);\
+        done
+	for i in $(doc_files) $(only_cocom_doc_files) $(only_cocom_rcs_doc_files);do\
+          cp $(srcdir)/$$i $(distdir);\
+        done
+	for i in $(directories) $(only_cocom_directories) $(RX);do\
+	  (cd $$i; $(MAKE) distdir=../$(distdir)/$$i dist-copy);\
+	done
+	mkdir $(distdir)/cocom
+	for i in cocom/cocom.c cocom/cocom.dsw cocom/cocom.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/cocom;\
+	done
+	chmod -R +w $(distdir)
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+# COCOM only end
+
+distdino:
+	rm -f -r $(distdinodir)
+	mkdir $(distdinodir)
+	for i in $(source_files);do cp $$i $(distdinodir);done
+	for i in $(additional_files);do\
+	   cp $(srcdir)/$$i $(distdinodir);\
+	done
+	cp DINO-README $(distdinodir)/README
+	cp DINO-INSTALL $(distdinodir)/INSTALL
+	cp DINO-WIN32-INSTALL.txt $(distdinodir)/WIN32-INSTALL.txt
+	cp DINO-CHANGES $(distdinodir)/CHANGES
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(directories) $(RX);do\
+	  (cd $$i; $(MAKE) distdir=../$(distdinodir)/$$i dist-copy);\
+	done
+	mkdir $(distdinodir)/dinolang
+	for i in dinolang/dinolang.c dinolang/dinolang.dsw\
+		 dinolang/dinolang.dsp;do\
+	  cp $(srcdir)/$$i $(distdinodir)/dinolang;\
+	done
+	chmod -R +w $(distdinodir)
+	$(SED) '/# COCOM only start/,/# COCOM only end/d'\
+		 $(distdinodir)/configure >__tmp
+	mv __tmp $(distdinodir)/configure
+	chmod +x $(distdinodir)/configure
+	$(SED) '/# COCOM only start/,/# COCOM only end/d'\
+		 $(distdinodir)/Makefile.in | $(SED) 's/COCOM/DINO/' >__tmp
+	mv __tmp $(distdinodir)/Makefile.in
+	tar cf -  $(distdinodir) | gzip -c >$(distdinodir).tar.gz
+
+# Creation of documentation
+
+# COCOM only start
+doc : cocom.txt cocom.html cocom.info cocom.dvi cocom.ps
+
+cocom.txt: $(srcdir)/cocom.sgml.in
+	$(srcdir)/sgml-txt $(srcdir)/cocom.sgml.in > $@
+	
+cocom.html: $(srcdir)/cocom.sgml.in
+	$(srcdir)/sgml-html $(srcdir)/cocom.sgml.in >cocom.sgml
+	sgml2html cocom.sgml
+	
+cocom.info: $(srcdir)/cocom.sgml.in
+	$(srcdir)/sgml-info $(srcdir)/cocom.sgml.in >cocom.sgml
+	sgml2info cocom.sgml
+	for i in cocom.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+cocom.dvi: $(srcdir)/cocom.sgml.in
+	$(srcdir)/sgml-tex $(srcdir)/cocom.sgml.in >cocom.sgml
+	sgml2latex cocom.sgml
+	if test ! -f cocom.dvi\
+           -o -f cocom.tex -a cocom.tex -nt cocom.dvi; then\
+    	        latex cocom.tex; latex cocom.tex;\
+        fi
+
+cocom.ps: cocom.dvi
+	dvips -o $@ cocom.dvi
+# COCOM only end
+
+# Updating TAGS table for all COCOM sources.
+TAGS : make-TAGS
+
+make-TAGS:
+	rm -f TAGS
+	for i in $(directories);do\
+	    for j in `(cd $$i; $(MAKE) -s tagsout)`;do\
+	        $(ETAGS) -a @top_srcdir@/$$i/$$j;\
+	    done;\
+	done
+# COCOM only start
+	for i in $(only_cocom_directories);do\
+	    for j in `(cd $$i; $(MAKE) -s tagsout)`;do\
+	        $(ETAGS) -a @top_srcdir@/$$i/$$j;\
+	    done;\
+	done
+	$(ETAGS) -a $(only_cocom_source_files)
+# COCOM only end
+	$(ETAGS) -a $(source_files)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source_files);do $(RCS) -n$(RCSLABEL) $$i;done
+# COCOM only start
+	for i in $(only_cocom_source_files);do $(RCS) -n$(RCSLABEL) $$i;done
+# COCOM only end
+	for i in $(additional_files);do\
+          $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+        done
+# COCOM only start
+	for i in $(only_cocom_additional_files);do\
+           $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+        done
+# COCOM only end
+	$(RCS) -n$(RCSLABEL) DINO-README DINO-INSTALL DINO-WIN32-INSTALL.txt DINO-CHANGES
+	for i in $(additional_rcs_files) $(only_cocom_rcs_doc_files);do\
+           $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+        done
+# COCOM only start
+	for i in $(only_cocom_additional_rcs_files);do\
+          $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+        done
+# COCOM only end
+	for i in $(directories);do\
+	  (cd $$i; $(MAKE) rcslabel RCSLABEL=$(RCSLABEL));\
+	done
+# COCOM only start
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE) rcslabel RCSLABEL=$(RCSLABEL));\
+	done
+	for i in cocom/cocom.c cocom/cocom.dsw cocom/cocom.dsp;do\
+	  rcs -n$(RCSLABEL) $$i;\
+	done
+# COCOM only end
+	for i in dinolang/dinolang.c dinolang/dinolang.dsw\
+		 dinolang/dinolang.dsp;do\
+	  rcs -n$(RCSLABEL) $$i;\
+	done

@@ -1,0 +1,1636 @@
+%import {
+
+#ifdef HAVE_CONFIG_H
+#include "cocom-config.h"
+#else /* In this case we are oriented to ANSI C */
+#ifndef HAVE_ASSERT_H
+#define HAVE_ASSERT_H
+#endif
+#endif /* #ifdef HAVE_CONFIG_H */
+
+
+#include <ctype.h>
+#include "vlobject.h"
+#include "objstack.h"
+#include "position.h"
+
+#ifdef HAVE_ASSERT_H
+#include <assert.h>
+#else
+#ifndef assert
+#define assert(code) do { if (code == 0) abort ();} while (0)
+#endif
+#endif
+
+/* Definitions of predefined types: */
+
+typedef int integer_t;
+
+typedef int bool_t;
+
+typedef char *string_t;
+
+/* All bit operations are executed by the following elements. */
+
+typedef unsigned int bit_string_element_t;
+
+/* Token string is given by its number (0, 1, ...). */
+
+typedef long int token_string_t;
+
+/* Variable length bit string. */
+
+struct context_t
+  {
+    vlo_t bit_string;
+  };
+
+typedef struct context_t *context_t;
+
+}
+
+
+%export {
+
+/* These macros for storage management of MSTA internal representation: */
+
+/* Start work with the storage manager -- see MSTA documentation. */
+
+#define IR_START_ALLOC()    OS_CREATE (irp, 5000)
+
+/* Finish work with the storage manager -- see MSTA documentation. */
+
+#define IR_STOP_ALLOC()     OS_DELETE (irp)
+
+/* Allocate storage for internal representation of given size
+   -- see MSTA documentation. */
+
+#define IR_ALLOC(ptr, size, ptr_type)\
+  do {\
+    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
+    OS_TOP_FINISH (irp);\
+  } while (0);
+
+/* Free storage of internal representation of given size -- see MSTA
+   documentation. */
+
+#define IR_FREE(ptr, size)
+
+
+/* These macros are analogous to ones of package `object-stack'
+   worked with storage of MSTA internal representation: */
+
+/* Start new internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
+
+/* Nullify current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
+
+/* Shorten current internal representation object on given number bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
+
+/* Return start address of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
+
+/* The following macro increases length of current internal
+   representation object -- see also package `object-stack'. */
+
+#define IR_TOP_EXPAND(length)  OS_TOP_EXPAND (irp, length)
+
+/* Return length of current internal representation object in bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
+
+/* Add byte to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
+
+/* Add string to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
+
+/* Add memory of given length to the end of current internal representation
+   object -- see also package `object-stack'. */
+
+#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
+
+extern os_t irp;
+
+void process_canonical_rule_action
+      (IR_node_t canonical_rule, void (*process_char) (char ch),
+       void (*process_attribute) (IR_node_t canonical_rule,
+                                  position_t attribute_position,
+                                  const char *tag_name,
+                                  const char *attribute_name));
+}
+
+%local {
+
+#include "common.h"
+
+/* All internal representation storage is implemented by object stack.  See
+   package `object-stack'. */
+
+os_t irp;
+}
+
+%type integer_t bool_t string_t token_string_t context_t position_t
+
+%%
+
+%abstract
+node :: %root
+%skeleton
+    /* Start source position of object represented by given node. */
+    position : position_t
+;
+
+/****** All fields of the following fields are defined by MSTA scanner. ******/
+
+/* This node represents identifier in the sense of YACC see MSTA
+   syntax, i.e.  usual identifier or character constant (literal). */
+%abstract
+identifier_or_literal :: node
+;
+
+/* It describes any identifier occurrence. */
+identifier :: identifier_or_literal
+    /* The field `position' can have value `no_position' only for
+       identifier `error'. */
+%skeleton
+    identifier_itself : string_t   [!IS_NULL ($)]
+    /* The following field value is TRUE when the identifier contains
+       `.'. */
+    dot_presence_flag : bool_t
+;
+
+/* It describes any literal (character)  occurrence. */
+literal :: identifier_or_literal
+    /* The position of the node may be position of string or range if
+       given literal is formed from the string or the range. */
+%skeleton
+    /* The following field value is character as it is in the source
+       file (including apostrophes) or its standard representation
+       otherwise.  In some case (when definition of literal with code
+       is used) the value can be empty string. */
+    character_representation : string_t   [!IS_NULL ($)]
+    /* The following field value can be negative only for invalid
+       literals. */
+    literal_code : integer_t
+;
+
+/* It describes any string occurrence. */
+string :: node
+%skeleton
+    /* The following field value is string as it is in the source file
+       (including quotes). */
+    string_representation : string_t [!IS_NULL ($)]
+    /* The following field is string value. */
+    string_itself : string_t         [!IS_NULL ($)]
+;
+
+/* It describes a number. */
+number :: node
+%skeleton
+    number_value : integer_t
+;
+
+/* It describes code insertion, i.e. C code in `{' and `}'. */
+code_insertion :: node
+    /* Position here corresponds to '{'. */
+%skeleton
+    /* Surrounding '{' and '}' or `%{' and `%}' are absent here.
+       Remember that constructions `$...' will be changed only during
+       parser generation.  */
+    code_insertion_itself : string_t   [!IS_NULL ($)]
+;
+
+/* It describes additional code.  All fields are defined by MSTA scanner. */
+additional_code :: node
+%skeleton
+    additional_code_itself : string_t   [!IS_NULL ($)]
+;
+
+
+/****** All fields of the following fields are defined by MSTA parser. ******/
+
+%abstract
+definition :: node
+%skeleton
+    /* Arc to node representing next textually definition. */
+    next_definition : definition
+;
+
+start_definition :: definition
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%start'. */
+%skeleton
+    identifier : identifier_or_literal   [!IS_NULL ($)]
+;
+
+%abstract
+code :: definition
+    /* Field `position' of given node type is defined by position of
+       corresponding code insertion. */
+%skeleton
+    /* Arc to node which represents corresponding code insertion. */
+    code_itself : code_insertion   [!IS_NULL ($)]
+;
+
+/* It describes yacc code insertion, i.e. construction `%{...%}'.  All
+   fields are defined before semantic analysis of MSTA. */
+yacc_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding `%{'. */
+;    
+
+/* It describes local code, i.e. construction `%local {...}'.  All
+   fields are defined before semantic analysis of MSTA. */
+local_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%local'. */
+;    
+
+/* It describes import code, i.e. construction `%import {...}'.  All
+   fields are defined before semantic analysis of MSTA. */
+import_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%import'. */
+;
+
+/* It describes export code, i.e. construction `%export {...}'.  All
+   fields are defined before semantic analysis of MSTA. */
+export_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%export'. */
+;
+
+/* It describes union code, i.e. construction `%union {...}'.  All
+   fields are defined before semantic analysis of MSTA. */
+union_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%union'. */
+;
+
+scanner_definition :: definition
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%scanner'. */
+;
+
+expect_definition :: definition
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%expect'. */
+%skeleton
+    /* The following field referres to number of expected shift/reduce
+       conflicts. */
+    expected_number : number;
+;
+
+%abstract
+symbol_definition :: definition
+%skeleton
+    symbol_list : symbol
+    tag : identifier_or_literal
+;
+
+token_definition :: symbol_definition
+    /* Field `position' of given node type is defined by the position of
+       corresponding keyword `%token'. */
+;
+
+left_definition :: symbol_definition
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%left'. */
+;
+
+right_definition :: symbol_definition
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%right'. */
+;
+
+nonassoc_definition :: symbol_definition
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%nonassoc'. */
+;
+
+type_definition :: symbol_definition
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%type'. */
+;
+
+symbol :: node
+%skeleton
+    identifier_or_literal : identifier_or_literal   [!IS_NULL ($)]
+    /* The following field value is NULL in the most cases. */
+    number : number
+    /* Next symbol in the symbol definition list. */
+    next_symbol : symbol
+;
+
+rule :: node
+    /* Field `position' of given node type is defined by position of
+       the nonterminal identifier in the left hand side of the rule. */
+%skeleton
+    /* The following field is identifier in the left hand side of
+       rule. */
+    nonterm_identifier : identifier   [!IS_NULL ($)]
+    /* The following field corresponds to right hand side of rule. */
+    pattern : pattern                 [!IS_NULL ($)]
+    /* The following field forms list of all syntax description rules. */
+    next_rule : rule
+;    
+
+/* It describes an pattern in the syntax of MSTA.  All fields are
+   defined by MSTA parser. */
+pattern :: node
+%skeleton
+    /* The following field refers to the alternative list of the
+       pattern. */
+    alternatives_list : alternative         [!IS_NULL ($)]
+;
+
+/* It describes an alternative in the syntax of MSTA.  All fields are
+   defined by MSTA parser. */
+%abstract
+alternative :: node
+%skeleton
+    /* The following field reffers to the alternative list of the
+       pattern. */
+    next_alternative : alternative
+;
+
+sequence :: alternative
+    /* Field `position' of given node type is defined by position of
+       the previous token. */
+%skeleton
+    /* The following field is null for empty alternative. */
+    sequence : sequence_element
+    /* The following field is precedence of identifier or literal (if
+       any) for given sequence. */
+    precedence_identifier_or_literal : identifier_or_literal
+    /* The following field is max look ahead number in conflict
+       resolution for given sequence. */
+    max_look_ahead_number : number
+;
+
+separator_iteration :: alternative
+    /* Field `position' of given node type is defined by position of
+       `/'. */
+%skeleton
+    iteration_sequence : sequence_element
+    iteration_precedence_identifier_or_literal : identifier_or_literal
+    iteration_max_look_ahead_number : number
+    separator_sequence : sequence_element
+    separator_precedence_identifier_or_literal : identifier_or_literal
+    separator_max_look_ahead_number : number
+;
+
+%abstract
+sequence_element :: node
+%skeleton
+    next_sequence_element : sequence_element
+    /* The following field represents identifier of the sequence
+       element it can be null. */
+    sequence_element_identifier : identifier_or_literal
+;
+
+/* The following node represents clause `%cp'. */
+control_point :: sequence_element
+%skeleton
+    [IS_NULL (IR_sequence_element_identifier ($$))]
+;
+
+default :: sequence_element
+%skeleton
+    /* Field `position' of given node type is defined by position of
+       `['. */
+    default_pattern : pattern     [!IS_NULL ($)]
+;
+
+star_iteration :: sequence_element
+%skeleton
+    /* Field `position' of given node type is defined by position of
+       `*'. */
+    iteration_unit : unit   [!IS_NULL ($)]
+;
+
+plus_iteration :: sequence_element
+%skeleton
+    /* Field `position' of given node type is defined by position of
+       `+'. */
+    iteration_unit : unit   [!IS_NULL ($)]
+;
+
+code_insertion_atom :: sequence_element
+    /* Field `position' of given node type is defined by position of
+       the code insertion. */
+%skeleton
+    code_insertion : code_insertion  [!IS_NULL ($)]
+;
+
+%abstract
+unit :: sequence_element
+;
+
+group :: unit
+%skeleton
+    /* Field `position' of given node type is defined by position of
+       `('. */
+    pattern : pattern     [!IS_NULL ($)]
+;
+
+range_atom :: unit
+    /* Field `position' of given node type is defined by position of
+       `-'. */
+%skeleton
+    left_bound : literal
+    right_bound : literal
+;
+
+range_no_left_bound_atom :: range_atom
+    /* Field `position' of given node type is defined by position of
+       `<-'. */
+;
+
+range_no_right_bound_atom :: range_atom
+    /* Field `position' of given node type is defined by position of
+       `->'. */
+;
+
+range_no_left_right_bounds_atom :: range_atom
+    /* Field `position' of given node type is defined by position of
+       `<->'. */
+;
+
+identifier_or_literal_atom :: unit
+    /* Field `position' of given node type is defined by position of
+       the identifier or literal. */
+%skeleton
+    identifier_or_literal : identifier_or_literal  [!IS_NULL ($)]
+;
+
+string_atom :: unit
+    /* Field `position' of given node type is defined by position of
+       the string. */
+%skeleton
+    string : string  [!IS_NULL ($)]
+;
+
+description :: node
+    /* Field `position' of given node type is defined by position of
+       the first file character. */
+%skeleton
+    definition_list : definition
+    /* May be NULL because of syntax errors. */
+    rule_list : rule
+    additional_code : additional_code
+;
+
+
+/****** All fields of the following fields are defined by MSTA analyzer. *****/
+
+%abstract
+denotation :: %root
+%other
+    /* The corresponding single nonterm definition denoting the
+       pattern or alternative. */
+    corresponding_single_nonterm_definition : single_nonterm_definition
+;    
+
+alternative :: , denotation
+;
+
+sequence_element :: , denotation
+;
+
+%abstract
+single_definition :: node
+%skeleton
+    /* The first terminal identifier or literal or nonterminal
+       identifier occurence which declared the identifier (in
+       constructions `%token', `%right', `%type', and so on, or in
+       left hand side of a rule).  The implicit nonterminal,
+       i.e. nonterminal which occurs only during transformation rules
+       to cannonical mode, is represented by identifier with value
+       `$n' where n is positive unique number. */
+    identifier_or_literal : identifier_or_literal
+    next_single_definition : single_definition
+%other
+    type : identifier    {$ = NULL;}
+    /* The following field value is TRUE if given nonterminal or token
+       is derived from axiom. */
+    accessibility_flag : bool_t                   {$ = FALSE;}
+    /* The following field is list of given single definition
+       usages. */
+    single_definition_usage_list : canonical_rule_element
+                                                     {$ = NULL;}
+;
+
+single_term_definition :: single_definition
+    /* Field `position' of given node type is defined by position of
+       the first terminal identifier or literal occurence which
+       declared the terminal (in construction `%token', `%right',
+       `%left', `%nonassoc' or as literal in the right side of the
+       rules.  The field `position' can have value `no_position' only
+       for default definition of token `error' and the end marker
+       `$end' of the start rule. */
+%other
+    /* The following field is the order number (0, 1, ...) of given
+       token. */
+    token_order_number : integer_t
+    /* The following field is code of the terminal.  The negative
+       value means undefined code so far.  This code can be negative
+       also after semantic analysis only for incorrect literals.  Zero
+       value has the end marker of the start rule. */
+    value : integer_t                  {$ = (-1);}
+    /* The following field is priority of the terminal.  The negative
+       value means that the terminal was not in any construction
+       `%left', `right', `%nonassoc'. */
+    priority : integer_t            {$ = (-1);}
+    /* Maximum one the following field can have value of TRUE. */
+    left_assoc_flag, right_assoc_flag, nonassoc_flag : bool_t  {$ = FALSE;}
+    /* The following field is used to make unintersected partition of
+       literal ranges. */
+    deletion_flag : bool_t  {$ = FALSE;}
+;
+
+/* The following node type describes literal range considered as
+   single terminal.  This considerably speeds up scanner
+   generation. */
+literal_range_definition :: single_term_definition
+%skeleton
+    /* The following field is right literal of range. */
+    right_range_bound_literal : literal
+      [!IS_NULL ($)
+       && IR_IS_OF_TYPE (IR_identifier_or_literal ($$), IR_NM_literal)]
+%other
+    /* The following field is defined only when field `value' value is
+       not undefined. */
+    right_range_bound_value : integer_t
+    /* The following field is TRUE if the literal range has a bound
+       literal with explicit value or is formed from such literal
+       range. */
+    bounds_have_explicit_values : bool_t       {$ = FALSE;}
+;
+
+single_nonterm_definition :: single_definition
+    /* Field `position' of given node type is defined by position of
+       the first nonterminal identifier occurence in the left side of
+       a rule or by the position of the corresponding pattern or
+       sequence element for implicit nonterminal, i.e. nonterminal
+       which occurs only during transformation rules to the cannonical
+       mode.  The field `position' can have value `no_position' only
+       for default definition of nonterminal `$accept' in the left
+       hand side of the start rule. */
+%skeleton
+    /* The following field value is alternative or sequence element to
+       which the nonterminal corresponds.  The field value is NULL
+       only for non implicit nonterminal. */
+    corresponding_pattern : node       {$ = NULL;}
+            [IS_NULL ($) || IR_IS_OF_TYPE ($, IR_NM_alternative)
+             || IR_IS_OF_TYPE ($, IR_NM_sequence_element)]
+%other
+    /* The following field is the order number (0, 1, ...) of given
+       nonterminal. */
+    nonterm_order_number : integer_t
+    /* The following field value is the list of canonical rules with
+       given nonterminal in the left hand side of the rules. */
+    nonterm_canonical_rule_list : canonical_rule     {$ = NULL;}
+    /* The following field value is TRUE if given nonterminal can
+       derive any terminal string. */
+    derivation_ability_flag : bool_t              {$ = FALSE;}
+    /* The following field is used to calculate grammar symbol
+       relations. */
+    pass_number : integer_t
+;
+
+/* All source grammar is transformed into the canonical mode,
+   i.e. into the grammar only with rules `N : S1 S2 ....'. */
+
+canonical_rule :: node
+    /* Field `position' of given node type is defined by position of
+       the nonterminal identifier occurence in the left side of the
+       corresponding noncanonical rule or by the position of the
+       corresponding pattern or sequence element for the implicit
+       rule, i.e. rule with nonterminal which occurs only during
+       transformation rules to the cannonical mode.  The field value
+       can be `no_position' only for start rule `$accept : axiom
+       $end'. */
+%skeleton
+    left_hand_side : single_nonterm_definition      [!IS_NULL ($)]
+    right_hand_side : right_hand_side_element
+    action : code_insertion
+    /* The following field is not NULL if the canonical rule (with
+       empty right hand side) is formed from code insertion inside a
+       rule.  Such rule differs from the other by possibility to use
+       attributes from the original rule.  The field value is right
+       hand side element with implicit nonterminal which is left hand
+       side of given rule. */
+    original_code_insertion_place : right_hand_side_element
+    next_canonical_rule : canonical_rule
+%other
+    /* The following field is flag that the first rhs element is %cp.
+       Remember that %cp itself is absent in canonical rule. */ 
+    next_cp_flag : bool_t                                   {$ = FALSE;}
+    /* The following field vlaue is order number (0, 1, 2, ...) of the
+       rule in the description.  Rule `$accept : axiom $end' has value
+       0. */
+    canonical_rule_order_number : integer_t 
+    next_nonterm_canonical_rule : canonical_rule                {$ = NULL;}
+    /* The following field is not NULL after analysis if there was
+       the corresponding correct %prec-clause. */
+    precedence_single_term_definition : single_term_definition  {$ = NULL;}
+    /* The following field value is rule priority.  The negative value
+       means that the rule does not contain construction `%prec' or
+       terminal which is declared in a construction `%left', `right',
+       `%nonassoc'. */
+    rule_priority : integer_t            {$ = (-1);}
+    /* The following field is max look ahead number in conflict
+       resolution for LR_situation with given rule. */
+    max_look_ahead_value : integer_t     {$ = 0;}
+    /* The following field value is defined only when the regular
+       optimization is on and the action is not NULL.  The value is
+       number of outputs of given action. */
+    output_action_number : integer_t {$ = 0;}
+;
+
+/* It is important that all right hand side elements belong only one
+   canonical rule. */
+
+%abstract
+right_hand_side_element :: node
+%skeleton
+    /* The following field is rule of given right hand side element.
+       Remember that right hand side element belongs to only one
+       canonical rule. */
+    canonical_rule : canonical_rule                 [!IS_NULL ($)]
+    next_right_hand_side_element : right_hand_side_element
+;
+
+/* The following type describes real element of canonical rule
+   (terminal or nonterminal). */
+
+canonical_rule_element :: right_hand_side_element
+    /* Field `position' of given node type is defined by position of
+       the element, i.e. by the position of the corresponding
+       identifier or literal occurence or pattern or sequence element
+       (in the case of the implicit nonterminal, string, or range) in
+       the source grammar.  The field value can be `no_position' only
+       for element of start rule `$accept : axiom $end'. */
+%skeleton
+    element_itself : single_definition                 [!IS_NULL ($)]
+    /* The following field value is identifier after `@' (if any) or
+       NULL otherwise. */
+    element_identifier : identifier
+    /* The following field is next usage of given single definition
+       (`element_itself'). */
+    next_single_definition_usage : canonical_rule_element
+%other
+    /* The following field is flag that the next rhs element is %cp.
+       Remember that %cp itself is absent in canonical rule. */ 
+    next_cp_flag : bool_t                                   {$ = FALSE;}
+;
+
+description
+%other
+    /* The following field refers for the first union code in the
+       description. */
+    union_code : union_code                         {$ = NULL;}
+    /* The value of the following field is the last single definition.
+       The single definition list is cyclic. After the analysis of the
+       correct description the list contains also definition of
+       nonterminal `$accept' and terminal `$end'. */
+    single_definition_list : single_definition
+    /* The following field value is the number of tokens of the
+       grammar.  After the analysis of the correct description this
+       value takes into account also end marker `$end'. */
+    tokens_number : integer_t            {$ = 0;}
+    /* The following field value is the number of nonterminals (more
+       accurately number of single nonterm definitions) of the
+       grammar.  After the analysis of the correct description this
+       value takes into account also start axiom `$accept'. */
+    nonterminals_number : integer_t      {$ = 0;}
+    /* The following field value is the number of canonical rules of
+       the grammar.  After the analysis of the correct description
+       this value takes into account also start rule `$accept : axiom
+       $end'. */
+    canonical_rules_number : integer_t      {$ = 0;}
+    /* The following field is number of patterns rules for which were
+       removed because there are equivalent patterns. */
+    duplicated_patterns_number : integer_t {$ = 0;}
+    /* After the analysis of the correct description the field refers
+       to the rule `$accept : axiom $end'. */
+    canonical_rule_list : canonical_rule
+    /* The following field is start symbol identifier.  After the
+       analysis of the correct description, the field can not be NULL.
+       After the analysis of correct description the field value is
+       start nonterminal identifier `$accept'. */
+    axiom_identifier : identifier  {$ = NULL;}
+    /* The following field of definition of axiom.  The field value
+       can be NULL after semantic analysis only for error description.
+       After the analysis of correct description the field value is
+       single definition of start rule nonterminal `$accept'. */
+    axiom_definition : single_nonterm_definition {$ = NULL;}
+    /* The following field is TRUE when the clause `%scanner' is
+       present. */
+    scanner_flag : bool_t   {$ = FALSE;}
+    /* The following field is number of the expected shift/reduce
+       conflicts.  After the analysis of the correct description, the
+       field value can not be negative if construction %expect is
+       present in the grammar. */
+    expected_shift_reduce_conflicts_number : integer_t    {$ = -1;}
+;
+
+
+/***** All fields of the following fields are defined by MSTA generator. *****/
+
+right_hand_side_element
+%other
+    /* The following field is flag that control point is started from
+       this right hand side element. */
+    cp_start_flag : bool_t {$ = FALSE;}  [!$ || IR_cp_flag ($$)]
+    /* The following field is flag that this is under control point
+       which started here or on previous RHS element.  This is field
+       is used for evaluation field `under_control_point_flag' in node
+       `LR_situation'. */
+    cp_flag : bool_t {$ = FALSE;}
+    /* The two following field is used to decrease time in order to
+       evaluate of context of LR-situations. */
+    /* The following field value is length of minimal token string
+       length from the following context. */
+    minimal_FIRST_of_rule_tail_length : integer_t
+    /* The following field value is set FIRST (k) of string derived
+       from given right hand side element to the correponding rule
+       end. */
+    FIRST_of_rule_tail : context_t
+;
+
+/* The following type describes end marker of canonical rule. */
+
+canonical_rule_end :: right_hand_side_element
+    /* Field `position' of given node type is `no_position'. */
+;
+
+single_term_definition
+%other
+    /* Cyclic list of tokens of a equivalence class is fromed with the
+       aid of the following field. */
+    next_equivalence_class_token : single_term_definition     [!IS_NULL ($)]
+    /* The following field value is the order number of equivalence
+       class of given token.  Remember that some tokens may be
+       equivalent after the regular optimization.  If there are not
+       equivalent tokens than the value is equal to value of field
+       `token_order_number'.  The negative field value means undefined
+       value. */
+    equivalence_class_number : integer_t
+    /* The following field is used during determining equivalence token
+       classes. */
+    token_was_processed_on_equivalence : bool_t
+;
+
+single_nonterm_definition
+%other
+    /* The following field value is minimal length of terminal string
+       derived from given nonterminal. */
+    minimal_derived_string_length : integer_t        {$ = -1; /* Undefined */}
+    /* The following field value is relation FIRST (k) for given
+       nonterminal, i.e. bit string with TRUE for bits whose
+       corresponding token strings can be the first token strings from
+       given nonterminal.  Correspondence between the bit and the
+       token string is defined by the token string order number. */
+    relation_FIRST : context_t                       {$ = NULL;}
+    /* The following field is used to calculate grammar symbol
+       relations. */
+    process_nonterminal_on_its_process_pass : bool_t
+    /* The following field is used to output corresponding pattern
+       (of course if the nonterminal is created implicitly from
+       a complex pattern) only once. */
+    pattern_has_been_output : bool_t              {$ = FALSE;}
+;
+
+canonical_rule
+%other
+    /* The following field is used during making full LR-set. */
+    canonical_rule_LR_situation : LR_situation            {$ = NULL;}
+;
+
+single_definition
+%other
+    /* The following field is used during determing fields
+       `first_symbol_LR_situation' and `next_symbol_LR_situation' (see
+       comments for node type `LR_situation'). */
+    last_symbol_LR_situation_processed : LR_situation {$ = NULL;}
+;
+
+/* The following node type represents LR-situation (see theory of
+   LR-grammar). */
+
+LR_situation :: %root
+%skeleton
+    /* The following field is right hand side element of the rule of
+       given LR-situation after dot. */
+    element_after_dot : right_hand_side_element
+    /* The following field is context of given LR-situation.  In case
+       of building LALR(k)-sets by modified DeRemer's algorithm, the
+       field is NULL. */
+    context : context_t
+    /* The following field refers to LR-set to which given LR-situation
+       belongs. */
+    LR_set : LR_set                                  [!IS_NULL ($)]
+    /* The following field is next LR-situation of an LR-set. */
+    next_LR_situation : LR_situation
+%other
+    /* The following field is defined only for LR-situation with field
+       `first_symbol_LR_situation' equal TRUE.  The field refers to
+       LR-set which is produced from given LR-situation LR-set by
+       shifting symbol before the dot.  The field value is NULL if the
+       dot is placed in the rightmost position of the situation (or
+       the end marker before the dot) or if shifted LR-situation is in
+       an unreachable LR-state after the regular optimization. */
+    goto_LR_set : %double LR_set                    {$ = NULL;}
+    /* The following field value has sense only when the previous
+       field value is defined and not NULL.  The field value TRUE
+       means that the corresponding arc has been removed during
+       conflict resolution or the regular optimization. */
+    goto_arc_has_been_removed : bool_t                {$ = FALSE;}
+    /* This is look ahead context (used for action) created after the
+       conflict resolution.  In case of DeRemer algoritm the context
+       length is minimum length context necessary for conflict
+       resolution. */
+    look_ahead_context : context_t      {$ = NULL;}
+    /* The following field is TRUE if the situation is the first
+       situation in the LR-set with given symbol before dot. */
+    first_symbol_LR_situation : bool_t
+    /* The following field is the next LR-situation in the LR-set with
+       the same symbol before dot. */
+    next_symbol_LR_situation : LR_situation {$ = NULL;}
+    /* The following field is TRUE if the situation is important
+       (basic) situation in the LR-set. */
+    important_LR_situation_flag : bool_t
+    /* The following field is used during making full LR-set. */
+    situation_in_stack_flag : bool_t              {$ = FALSE;}
+    /* The following field is flag that this situation is under
+       control point.  The value is TRUE only if corresponding right
+       hand side element (element after dot) has cp_flag = TRUE or all
+       LR-situations from which given LR-situation is derived have the
+       same field with value = TRUE. */
+    under_control_point_flag : bool_t             {$ = FALSE;}
+    /* The following field is flag that this situation is in back
+       tracking conflict with another situation.  The value is TRUE
+       only if one of these two LR-situation has a
+       under_control_point_flag == TRUE and there is a conflict
+       between the LR-situations. */
+    back_tracking_conflict_flag : bool_t          {$ = FALSE;}
+    /* The following two fields are defined only for reduce
+       LR-situation.  The first one is array of LR-sets which have
+       LR-situation with the dot at the leftmost place and for which
+       there are paths from those LR-sets to given LR-situtaion.  The
+       second one is the size of the array. */
+    /* The field value is always defined.  The following field value
+       is not NULL, only if parser action for given LR-situation is
+       changed by trnasition by regular arc.  In the last case, if
+       given LR-situation is a fold LR-situation, the regular arc is
+       not marked by terminal.  Otherwise, if given LR-situation is a
+       shift LR-situation, the regular arc is marked by the terminal
+       before the dot in given LR-situation and the value of field
+       `goto_arc_has_been_removed' is true.  If the following field
+       value is not NULL, then given LR-situation
+       `first_symbol_LR_situation' is TRUE. */
+    corresponding_regular_arc : regular_arc          {$ = NULL;}
+       [$ == NULL || IR_IS_OF_TYPE (IR_element_after_dot ($$),
+                                    IR_NM_canonical_rule_end)
+        || IR_first_symbol_LR_situation ($$)
+        && IR_goto_arc_has_been_removed ($$)]
+    /*--------------------------------------------------------------
+      The following fields are not defined if they belong to
+      unreachable LR-set.
+      --------------------------------------------------------------- */
+    /* The following field value has sense only when the previous
+       field `element_after_dot' refers for `canonical_rule_end' and
+       the LR-situation context is not empty.  The field value is
+       number of given reduce LR-situation with nonempty context.  If
+       regular optimization is off the field value is simply canonical
+       rule number of given reduce.  Otherwise all reduce
+       LR-situations can have unique values of the field. */
+    reduce_number : integer_t
+    /* The following field value has sense only when the previous
+       field `element_after_dot' refers for `canonical_rule_end' and
+       field `corresponding_regular_arc' value is not NULL.  The field
+       value is number of LR-sets which will be popped from the parser
+       stack if reduction described this LR-situation will be
+       fulfilled.  If the regular optimization is off then the field
+       value is equal to length of the right hand side of the
+       corresponding canonical rule. */
+    popped_LR_sets_number : integer_t
+    /* The following field value has sense only when the previous
+       field `element_after_dot' refers for `canonical_rule_end'.  The
+       field value is number of attributes which will be popped from
+       the attribute stack if reduction described this LR-situation
+       will be fulfilled.  If the regular optimization is off then the
+       field value is equal to length of the right hand side of the
+       corresponding canonical rule. */
+    popped_attributes_number : integer_t
+;
+
+/* The following node type represents LR-set (see theory of
+   LR-grammar). */
+
+LR_set :: %root
+%skeleton
+    /* The following field is list of LR-situations of given LR-set.
+       The first situations in the list are the original (with shifted
+       dot) LR-situations in the same order as in LR_set
+       predecessors. */
+    LR_situation_list : LR_situation                 [!IS_NULL ($)]
+    /* The following field refers to LR-core to which given LR-set
+       belongs. */
+    LR_core : LR_core                                [!IS_NULL ($)]
+    /* The following field is next LR-set of a LR-core (LR-set without
+       context).  It is important that all LR_sets of a LR-core has
+       LR-situations (of course without accounting for contexts) of the
+       following list in the same order. */
+    next_LR_set : LR_set
+%other
+    /* The following field value is list of conflicts (except for
+       conflicts resolved by precedence rules) in given LR-set. */
+    conflicts_list : conflict                        {$ = NULL;}
+    /* The following field value is used only during classical
+       building LALR-sets (by iterations).  The field value TRUE means
+       that the LR-set is already in stack of LR-sets which are
+       planned for processing. */
+    it_is_in_LALR_sets_stack : bool_t            {$ = FALSE;}
+    /* The value is TRUE if given LR-set is reachable from the start
+       LR-set (through basic and regular LR-arcs). */
+    reachable_flag : bool_t                       {$ = TRUE;}
+    it_is_pushed_LR_set : bool_t                  {$ = FALSE;}
+    /* The value is TRUE if attribute corresponding to given LR-set
+       (more correctly to characteristic symbol of LR-set) is used in
+       a folding rule.  The field value is always TRUE when regular
+       optimization is off. */
+    attribute_is_used : bool_t                    {$ = FALSE;}
+    /* The following field is used for some traversing LR-sets. */
+    visit_flag : bool_t
+    /* Now the two following fields are defined but not used.  All
+       LR-sets defined during splitting LR-sets form cyclic list.  The
+       head of the list is the first following field. */
+    first_splitted_LR_set : LR_set   {$ = NULL;}
+    next_splitted_LR_set : LR_set    {$ = NULL;}
+    /* The following field value is TRUE iff possible backtracking in
+       the corresponding LR-set. */
+    back_tracking_flag : bool_t {$ = FALSE;}
+    /*--------------------------------------------------------------
+      The following fields are not defined if they belong to
+      unreachable LR-set.
+      --------------------------------------------------------------- */
+    /* The following field value is used only during regular
+       optimization is on.  The value is TRUE if given LR-set is
+       in the stack of reduce action LR sets (see algorithm). */
+    it_is_in_reduce_action_LR_sets_stack : bool_t {$ = FALSE;}
+    /* The following field represents trie representation (see
+       comments for node type `LR_set_look_ahead_trie_node') of look
+       ahead context of given LR-set.  The trie makes significantly
+       more convinient building action table and parser description
+       output. */
+    LR_set_look_ahead_trie : LR_set_look_ahead_trie_node   [!IS_NULL ($)]
+    /* The following field is the order number (0, 1, ...) of given
+       LR-set. Of course, if the LR-set is reachable. */
+    LR_set_order_number : integer_t
+    /* The following field value is all (basic and regular) LR-arcs
+       marked by terminals which exit from given LR-set.  This value
+       is evaluated after the regular optimization if any. */
+    term_arcs_number : integer_t
+    /* The following field value is basic LR-arcs marked by
+       nonterminals which exit from given LR-set.  This value is
+       evaluated after the regular optimization if any. */
+    nonterm_arcs_number : integer_t
+    /* The following field is used for some traversing LR-sets. */
+    start_LR_set_pass : LR_set                             {$ = NULL;}
+    /* The following field is used for better output comments in the
+       parser. */
+    LR_set_has_been_output_in_comment : bool_t
+;
+
+/* The following node type describes node of trie which is another
+   representation of the LR-set look ahead context.  For example,
+   context ['a', 'cd', 'ce'] is represented by the following trie:
+
+      -----  brother    -----
+     | 'a' |---------->| 'c' |
+      -----             -----
+                          | the first son
+                          v
+                        -----  brother -----
+                       | 'd' |------->| 'e' |
+                        -----          -----
+ 
+   This trie has specific feature which is consequence of the used
+   contexts.  No one context token string is prefix of another context
+   token string. */
+
+LR_set_look_ahead_trie_node :: %root
+%skeleton
+  /* The last node in list connected with the aid of field
+     `next_brother' can have value equal to NULL.  This means that the
+     corresponding LR-situation is default LR-situation.  This
+     LR-situation is not obligatoryly reduce LR-situation iff the trie
+     node is not the uppest level trie node. */
+  corresponding_single_term_definition : single_term_definition
+  /* The following field refers to LR-situation (reduce situation or
+     the first symbol (terminal) shift situation).  The field value is
+     defined only when value of field `first_son' is NULL and value of
+     field `corresponding_single_term_definition' is not NULL.  The
+     LR-situation can have non null field `corresponding_regular_arc'
+     value. */
+  corresponding_LR_situation : LR_situation
+  first_son : LR_set_look_ahead_trie_node
+  /* The following field is also used for forming free trie nodes
+     list. */
+  next_brother : LR_set_look_ahead_trie_node
+%other
+  first_back_track_alternative : back_track_alternative {$ = NULL;}
+     [IS_NULL ($)
+      || IS_NULL (IR_first_son ($$))
+                  && !IS_NULL (IR_last_back_track_alternative ($$))]
+  last_back_track_alternative : back_track_alternative  {$ = NULL;}
+     [IS_NULL ($)
+      || IS_NULL (IR_first_son ($$))
+                  && !IS_NULL (IR_first_back_track_alternative ($$))]
+  /* The following field is used to output action tables.  This field
+     is defined only for the first trie node of a trie level, i.e.
+     for node to which a field `first_son' refers. */
+  additional_action_table_number : integer_t
+;
+
+
+back_track_alternative :: %root
+%skeleton
+  /* Head of the corresponding backtracking trie-nodes list. */
+  corresponding_LR_set_look_ahead_trie_node : LR_set_look_ahead_trie_node 
+  next_back_track_alternative : back_track_alternative
+;
+
+/* The following node type represents conflicts (except for conflicts
+   resolved by precedence rules) in a LR-set. */
+
+conflict :: %root
+%skeleton
+    /* The two following fields values are fold LR-situation and shift
+       LR-situation (by terminal `single_term_definition') or another
+       fold LR-situation between conflict exists.  The first field
+       refers to LR-situation which describes action (shift or reduce)
+       which will be applied actually on given terminal.  The shift
+       LR-situation can be only the first symbol LR-situation. */
+    used_LR_situation : LR_situation                            [!IS_NULL ($)]
+    unused_LR_situation : LR_situation                          [!IS_NULL ($)]
+    /* The following field refers to token string on which given
+       conflict exists. */
+    token_string : token_string_t                               [$ >= 0]
+    /* The following field refers to next conflict in given LR-set. */
+    next_conflict : conflict
+;
+
+/* The following node type represents arc added during the regular
+   optimization. */
+
+regular_arc :: %root
+%skeleton
+    /* The following field value LR-situation from which given regular
+       arc exits.  This LR-situation can be reduce one or shift by
+       terminal. */
+    from_LR_situation : LR_situation                 [!IS_NULL ($)]
+    /* The following field value LR-set into which given regular arc
+       enters. */
+    to_LR_set : %double LR_set                       [!IS_NULL ($)]
+    /* The following field value defines terminal marking given arc.
+       If the following field is not null, transition corresponding
+       given regular arc will result in also shifting the terminal. */
+    terminal_marking_arc : single_term_definition
+%other
+    /* The following fields value defines list of rules reduces of
+       which are to be fulfilled on the transition between the LR-sets
+       by the arc. */
+    first_rule_list_element : rule_list_element       {$ = NULL;}
+    last_rule_list_element : rule_list_element        {$ = NULL;}
+    /* The field value is number of LR-sets which will be popped from
+       the parser state stack if transition by given arc will be
+       fulfilled.  This values is simply number of pushed LR-sets on
+       the path with start point ``from_LR_set'' of length
+       `immediate_to_predecessor__from_LR_set_distance'.  The field
+       value of `regular_arc_popped_LR_sets_number' may be negative.
+       This is the case when the transition onto the situation is
+       covered by a regular arc, e.g.
+                 A -> ...a . empty C   rule 1
+                      ...a . error
+                 
+                    B -> ...a . empty C   the same rule as rule 1
+
+       The first LR-set is pushed and reachable.
+       The second one can be unreachable and covered by
+       regular arc from
+                     B -> ... .a empty C
+       to
+                     B -> ...a empty . C */
+    regular_arc_popped_LR_sets_number : integer_t
+    /* The following field value is total changing of attributes stack
+       size after transition according the regular arc.  The field
+       value is defined only for regular arcs from reachable
+       LR-sets.  The value may be negative if empty rules are
+       present. */
+    regular_arc_popped_attributes_number : integer_t
+    /* The following is max increment of states stack during regular
+       arc transitions. */
+    max_states_stack_increment : integer_t
+    /* The following is max increment of attributes stack during regular
+       arc transitions. */
+    max_attributes_stack_increment : integer_t
+    /* The following fields are used to reflect equivalence of regular
+       arcs.  Regular arcs are equivalent iff
+         1. The same value of field `to_LR_set';
+         2. The field `terminal_marking_arc' values in are all
+            null or all non null.
+         3. The same sequence actions in the corresponding rule lists.
+         4. The same values of fields `regular_arc_popped_LR_sets_number'.
+         5. The attributes in actions have the same displacements
+            from the top of attributes stack.  It means that values
+            of fields `regular_arc_popped_attributes_number' are the same.
+       The two following fields form list of equivalent regular arcs.
+       The flag is marking here the list head. */
+    first_equivalent_regular_arc_flag : bool_t     {$ = FALSE;}
+    /* The following field forms cyclic list. */
+    next_equivalent_regular_arc : regular_arc         {$ = NULL;}
+    /* All equivalent regular arcs have the same following number.
+       The value are 0, 1, ..., number_of_regular_arc - 1. */
+    number_of_regular_arc : integer_t
+    /* The following field value is TRUE if the result LR-set
+       corresponding shift the terminal will be on the stack after
+       passing by the regular arc.  If the regular arc is not marked
+       by terminal, the value will be FALSE. */
+    result_LR_set_will_be_on_the_stack : bool_t {$ = 0 /* FALSE */;}
+;
+
+/* The following node type represents one rule whose reduce will be
+   fulfilled on the transition between the LR-sets by regular arc. */
+
+rule_list_element :: %root
+%skeleton
+    canonical_rule : canonical_rule  [!IS_NULL ($)]
+    /* The following field value is next rule whose reduce will be
+       fulfilled on the transition between the LR-sets by the regular
+       arc. */
+    next_rule_list_element : rule_list_element
+%other
+    /* The following field value is number of used attributes
+       corresponding to symbols of right hand side of the rule except
+       for attribute of the terminal marking regular arc if any . */
+    right_hand_side_used_attributes_number : integer_t 
+    /* The following field value is TRUE iff attribute of nonterminal
+       in the left hand side of rule is used. */
+    lhs_nonterm_attribute_is_used : bool_t
+    /* The following field value is TRUE if the result LR-set
+       corresponding given rule will be on the stack after passing by
+       the regular arc. */
+    result_LR_set_will_be_on_the_stack : bool_t {$ = 0 /* FALSE */;}
+;
+
+/* The following node type represents LR-core (see theory of
+   LR-grammar). */
+
+LR_core :: %root
+%skeleton
+    /* The following field is list of LR-sets of given LR-core. */
+    LR_set_list : LR_set                             [!IS_NULL ($)]
+    next_LR_core : LR_core
+%other
+    /* The following fields are used during LALR-optimization. */
+    first_pass_flag : bool_t
+    second_pass_flag : bool_t
+;
+
+/* The following node describes dependence node.  The dependence nodes
+   are used for evaluation of LALR contexts of LR-situations by
+   generalized method DeRemer. */
+%abstract
+DeRemer_dependence :: %root
+%skeleton
+    /* It is a characteristic of the context. */ 
+    look_ahead : integer_t
+%other
+    /* Context for given dependence node. */
+    context : context_t
+    /* Nodes from which given node depends. */
+    dependencies : dependence_list_element
+    /* The following field value is TRUE iff the context has been
+       evaluated eventually. */
+    context_has_been_evaluated : bool_t {$ = FALSE;}
+    /* The following field value is used for multiple traversing
+       graphs of dependencies. */
+    pass_number : integer_t {$ = -1;}
+    /* Unique number */
+    unique_number : integer_t
+;
+
+/* The following node describes context which can be combined after
+   traversing from given LR-set on given distance and making goto by
+   given nonterminal. */
+LR_set_dependence :: DeRemer_dependence
+%skeleton
+    /* Start LR-set from which traversing starts. */
+    LR_set : LR_set
+    /* Distance of traversing*/
+    back_distance : integer_t
+    /* Nonterminal which is used for goto after traversing. */
+    nonterm : single_nonterm_definition
+;
+
+/* The following node describes concatenation of given token and the
+   contexts of dependencies of given node. */
+shift_dependence :: DeRemer_dependence
+%skeleton
+    token : single_term_definition
+;
+
+/* The following node describes context for shift LR-situation. */
+shift_LR_situation_dependence :: shift_dependence
+%skeleton
+    /* It is a shift LR-situation for which the context is being evaluated. */ 
+    shift_LR_situation : LR_situation
+;
+
+/* The following node describes a element of the dependencies. */
+dependence_list_element :: %root
+%skeleton
+    dependence : DeRemer_dependence
+    next_dependence_list_element : dependence_list_element
+;
+
+canonical_rule
+%other
+    /* The following field value is TRUE if action for given canonical
+       rule has been output into generated parser ???. */
+    canonical_rule_action_has_been_output : bool_t     {$ = FALSE;}
+    /* The following field value is regular arc action list (of course
+       if the one exists) which contains only one action corresponding
+       to reducing of given canonical rule. ???
+    regular_arc_action_list_for_the_rule : regular_arc_action  {$ = NULL;} */
+    /* Number of corresponding action code copies in generated parser.
+       This field value is always 0 if the action is absent for given
+       rule???. */
+    action_code_copies_number : integer_t {$ = 0;}
+;
+
+description
+%other
+    /* The following field value refers to the first LR-core (which
+       contains only one start (with LR-situation
+       `$accept : . axiom $end') LR-set. */
+    LR_core_list : LR_core                           [!IS_NULL ($)]
+    /* The following field value is number of new LR-sets created
+       because of splitting LR-sets during regular optimization. */
+    splitted_LR_sets_number : integer_t {$ = 0;}
+    /* The following field is number of LR-sets (reachable LR_sets)
+       immediately before output the parser. */
+    LR_sets_number : integer_t
+    /* The following value is defined only when the regular
+       optimization is on.  The value is number of pushed reachable
+       LR-sets. */
+    pushed_LR_sets_number : integer_t
+    /* The following field is number of reduce LR-situations (if the
+       regular optimization is on) or canonical rules (if the regular
+       optimization is on) with nonempty context. */
+    reduces_number : integer_t
+    /* The field value is number of all description regular arcs. */
+    all_number_of_regular_arcs : integer_t  {$ = 0;}
+    /* The field value is number of all description regular arcs
+       equevalence number. */
+    number_of_regular_arcs : integer_t  {$ = 0;}
+    /* The following field value is the number of token equivalence
+       classes.  Remember that some tokens may be equivalent after the
+       regular optimization.  If there are not equivalent tokens than
+       the value is equal to value of field `tokens_number'. */
+    token_equivalence_classes_number : integer_t
+    /* The following value is defined only when the regular
+       optimization is on.  The value is number of duplicated actions in
+       the generated parser. */
+    duplicated_actions : integer_t      {$ = 0;}
+    /* Flag of that %cp is present and backtracking is needed. */
+    back_tracking_exists : bool_t       {$ = FALSE;}
+;
+
+%%
+
+/* ??? */
+void
+process_canonical_rule_action
+  (IR_node_t canonical_rule, void (*process_char) (char ch),
+   void (*process_attribute) (IR_node_t canonical_rule,
+                              position_t attribute_position,
+                              const char *tag_name,
+                              const char *attribute_name))
+{
+  char *code;
+  char *start_code;
+  vlo_t attribute_name;
+  vlo_t tag_name;
+  position_t start_attribute_position;
+  position_t current_position;
+
+  if (IR_action (canonical_rule) == NULL)
+    return;
+  VLO_CREATE (attribute_name, 100);
+  VLO_CREATE (tag_name, 100);
+  current_position = IR_position (IR_action (canonical_rule));
+  current_position.column_number++; /* skip '{' */
+  code = IR_code_insertion_itself (IR_action (canonical_rule));
+  assert (code != NULL);
+  /* !! This code is bound to scanner */
+  while (*code != '\0')
+    {
+      switch (*code)
+        {
+        case '$':
+          start_attribute_position = current_position;
+          if (code [1] == '<' && (isalpha (code [2]) || code [2] == '_'))
+            {
+              start_code = code;
+              code += 2;
+              current_position.column_number += 2;
+              do
+                {
+                  VLO_ADD_BYTE (tag_name, *code);
+                  code++;
+                  current_position.column_number++;
+                }
+              while (isalpha (*code) || isdigit (*code) || *code == '_');
+              VLO_ADD_BYTE (tag_name, '\0');
+              if (*code != '>')
+                {
+                  current_position = start_attribute_position;
+                  code = start_code;
+                }
+            }
+          VLO_ADD_BYTE (tag_name, '\0');
+          if (*code != '\0')
+            {
+              if (code [1] == '$')
+                {
+                  code++;
+                  current_position.column_number++;
+                  (*process_attribute) (canonical_rule,
+                                        start_attribute_position,
+                                        VLO_BEGIN (tag_name), "$");
+                }
+              else if (isdigit (code [1])
+                       || code [1] == '-' && isdigit (code [2]))
+                {
+                  code++;
+                  current_position.column_number++;
+                  do
+                    {
+                      VLO_ADD_BYTE (attribute_name, *code);
+                      code++;
+                      current_position.column_number++;
+                    }
+                  while (isdigit (*code));
+                  VLO_ADD_BYTE (attribute_name, '\0');
+                  (*process_attribute) (canonical_rule,
+                                        start_attribute_position,
+                                        VLO_BEGIN (tag_name),
+                                        VLO_BEGIN (attribute_name));
+                  if (*code != '\0')
+                    (*process_char) (*code);
+                  VLO_NULLIFY (attribute_name);
+                }
+              else if (isalpha (code [1]) || code [1] == '_')
+                {
+                  code++;
+                  current_position.column_number++;
+                  do
+                    {
+                      VLO_ADD_BYTE (attribute_name, *code);
+                      code++;
+                      current_position.column_number++;
+                    }
+                  while (isalpha (*code) || isdigit (*code) || *code == '_');
+                  VLO_ADD_BYTE (attribute_name, '\0');
+                  (*process_attribute) (canonical_rule,
+                                        start_attribute_position,
+                                        VLO_BEGIN (tag_name),
+                                        VLO_BEGIN (attribute_name));
+                  if (*code != '\0')
+                    (*process_char) (*code);
+                  VLO_NULLIFY (attribute_name);
+                }
+              else
+                (*process_char) (*code);
+            }
+          VLO_NULLIFY (tag_name);
+          break;
+        case '/':
+          (*process_char) (*code);
+          if (code [1] == '*')
+            {
+              /* C comment. */
+              code++;
+              current_position.column_number++;
+              (*process_char) (*code);
+              for (;;)
+                {
+                  code++;
+                  if (*code == '*')
+                    {
+                      current_position.column_number++;
+                      (*process_char) (*code);
+                      code++;
+                      if (*code == '/')
+                        {
+                          current_position.column_number++;
+                          (*process_char) (*code);
+                          break;
+                        }
+                      else
+                        {
+                          code--;
+                          continue;
+                        }
+                    }
+                  else if (*code == '\0')
+                    {
+                      code--;
+                      break;
+                    }
+                  else
+                    {
+                      if (*code == '\n')
+                        {
+                          current_position.column_number = 1;
+                          current_position.line_number++;
+                        }
+                      else
+                        current_position.column_number++;
+                      (*process_char) (*code);
+                    }
+                }
+            }
+          break;
+        case '\'':
+          (*process_char) (*code);
+          code++;
+          if (*code == '\0' || *code == '\n')
+            code--;
+          else if (*code != '\'')
+            {
+              current_position.column_number++;
+              if (*code == '\\')
+                {
+                  (*process_char) (*code);
+                  code++;
+                  if (*code == 'n' || *code == 't' || *code == 'v'
+                      || *code == 'b' || *code == 'r' || *code == 'f'
+                      || *code == '\\' || *code == '\'' || *code == '\"')
+                    {
+                      current_position.column_number++;
+                      (*process_char) (*code);
+                    }
+                  else if (*code == '\n')
+                    {
+                      current_position.column_number = 1;
+                      current_position.line_number++;
+                      (*process_char) (*code);
+                    }
+                  else if (isdigit (*code) && *code != '8' && *code != '9')
+                    {
+                      current_position.column_number++;
+                      (*process_char) (*code);
+                      if (isdigit (code [1]) && code [1] != '8'
+                          && code [1] != '9')
+                        {
+                          code++;
+                          current_position.column_number++;
+                          (*process_char) (*code);
+                          if (isdigit (code [1]) && code [1] != '8'
+                              && code [1] != '9')
+                            {
+                              code++;
+                              current_position.column_number++;
+                              (*process_char) (*code);
+                            }
+                        }
+                    }
+                  else
+                    code--;
+                }
+              else
+                (*process_char) (*code);
+            }
+          else
+            {
+              current_position.column_number++;
+              (*process_char) (*code);
+            }
+          if (code [1] == '\'')
+            {
+              code++;
+              current_position.column_number++;
+              (*process_char) (*code);
+            }
+          break;
+        case '\"':
+          (*process_char) (*code);
+          for (;;)
+            {
+              code++;
+              if (*code == '\"')
+                {
+                  current_position.column_number++;
+                  (*process_char) (*code);
+                  break;
+                }
+              else if (*code == '\0' || *code == '\n')
+                {
+                  code--;
+                  break;
+                }
+              else
+                {
+                  current_position.column_number++;
+                  if (*code == '\\')
+                    {
+                      (*process_char) (*code);
+                      code++;
+                      if (*code == 'n' || *code == 't' || *code == 'v'
+                          || *code == 'b' || *code == 'r' || *code == 'f'
+                          || *code == '\\' || *code == '\'' || *code == '\"')
+                        {
+                          current_position.column_number++;
+                          (*process_char) (*code);
+                        }
+                      else if (*code == '\n')
+                        {
+                          current_position.column_number = 1;
+                          current_position.line_number++;
+                          (*process_char) (*code);
+                        }
+                      else if (isdigit (*code) && *code != '8' && *code != '9')
+                        {
+                          current_position.column_number++;
+                          (*process_char) (*code);
+                          if (isdigit (code [1]) && code [1] != '8'
+                              && code [1] != '9')
+                            {
+                              code++;
+                              current_position.column_number++;
+                              (*process_char) (*code);
+                              if (isdigit (code [1]) && code [1] != '8'
+                                  && code [1] != '9')
+                                {
+                                  code++;
+                                  current_position.column_number++;
+                                  (*process_char) (*code);
+                                }
+                            }
+                        }
+                      else
+                        code--;
+                    }
+                  else
+                    (*process_char) (*code);
+                }
+            }
+          break;
+        default:
+          (*process_char) (*code);
+          break;
+        }
+      if (*code != '\0')
+        {
+          if (*code != '\n')
+            current_position.column_number++;
+          else
+            {
+              current_position.column_number = 1;
+              current_position.line_number++;
+            }
+          code++;
+        }
+    }
+  VLO_DELETE (attribute_name);
+  VLO_DELETE (tag_name);
+}
+
+
+/*
+Local Variables:
+mode:c
+End:
+*/

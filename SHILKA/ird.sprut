@@ -1,0 +1,349 @@
+/*
+   FILE NAME:   ird.sprut
+
+   TITLE:       Internal representation description for Shilka (keywords
+                description translator)
+
+   DESCRIPTION: This file describes internal representation
+                description for Shilka (keywords description translator).
+                Sprut generates standard procedural interface of Shilka
+                internal representation, i.e. definitions of types,
+                macros, variables, functions for work with internal
+                representation of Shilka.
+
+*/
+
+%import {
+
+#include "objstack.h"
+#include "position.h"
+
+/* Definitions of predefined types: */
+
+typedef int integer_t;
+
+typedef int bool_t;
+
+typedef char *string_t;
+
+}
+
+
+%export {
+
+/* These macros for storage management of Shilka internal representation: */
+
+/* Start work with the storage manager -- see Sprut documentation. */
+
+#define IR_START_ALLOC()    OS_CREATE (irp, 0)
+
+/* Finish work with the storage manager -- see Sprut documentation. */
+
+#define IR_STOP_ALLOC()     OS_DELETE (irp)
+
+/* Allocate storage for internal representation of given size
+   -- see Sprut documentation. */
+
+#define IR_ALLOC(ptr, size, ptr_type)\
+  do {\
+    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
+    OS_TOP_FINISH (irp);\
+  } while (0);
+
+/* Free storage of internal representation of given size -- see Sprut
+   documentation. */
+
+#define IR_FREE(ptr, size)
+
+
+/* These macros are analogous to ones of package `object-stack'
+   worked with storage of Sprut internal representation: */
+
+/* Start new internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
+
+/* Nullify current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
+
+/* Shorten current internal representation object on given number bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
+
+/* Return start address of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
+
+/* Return length of current internal representation object in bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
+
+/* Expand current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_EXPAND(length)  OS_TOP_EXPAND (irp, length)
+
+/* Add byte to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
+
+/* Add string to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
+
+/* Add memory of given length to the end of current internal representation
+   object -- see also package `object-stack'. */
+
+#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
+
+extern os_t irp;
+
+const char *keyword_representation (IR_node_t keyword);
+const char *keyword_string (IR_node_t keyword);
+
+}
+
+%local {
+
+/* All internal representation storage is implemented by object stack.  See
+   package `object-stack'. */
+
+os_t irp;
+}
+
+%type integer_t bool_t string_t position_t reservation_sets_list_t
+
+%%
+
+%abstract
+node :: %root
+%skeleton
+    /* Start source position of object represented by given node. */
+    position : position_t
+;
+
+/***** All fields of the following fields are defined by Shilka scanner. *****/
+
+/* It describes any identifier occurrence. */
+identifier :: node
+%skeleton
+    identifier_itself : string_t     [!IS_NULL ($)]
+;
+
+/* It describes any identifier occurrence. */
+string :: node
+%skeleton
+    /* The following field value is string as it is in the source file
+       (including quotes). */
+    string_representation : string_t [!IS_NULL ($)]
+    /* The following field is string value. */
+    string_itself : string_t         [!IS_NULL ($)]
+;
+
+/* It describes code insertion, i.e. C code in `{' and `}'. */
+code_insertion :: node
+%skeleton
+    /* Surrounding '{' and '}' are absent here. */
+    code_insertion_itself : string_t
+;
+
+/* It describes additional code.  All fields are defined by Shilka scanner. */
+additional_code :: node
+%skeleton
+    additional_code_itself : string_t
+;
+
+/***** All fields of the following fields are defined by Shilka parser. *****/
+
+%abstract
+keyword :: node
+%skeleton
+    /* Arc to node representing next textually keyword definition. */
+    name : identifier
+    frequency : integer_t
+    /* Arc to node which represents corresponding code insertion. */
+    action : code_insertion
+    next_keyword : keyword
+;
+
+identifier_keyword :: keyword
+%skeleton
+    identifier : identifier
+;
+
+string_keyword :: keyword
+%skeleton
+    string : string
+;
+
+%abstract
+declaration :: node
+%skeleton
+    /* Arc to node representing next textually declaration. */
+    next_declaration : declaration
+;
+
+%abstract
+code :: declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding code insertion. */
+%skeleton
+    /* Arc to node which represents corresponding code insertion. */
+    code_itself : code_insertion
+;
+
+/* It describes local code, i.e. construction `%local {...}'.  All
+   fields are defined before semantic analysis of Shilka. */
+local_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%local'. */
+;    
+
+/* It describes import code, i.e. construction `%import {...}'.  All
+   fields are defined before semantic analysis of Shilka. */
+import_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%import'. */
+;
+
+/* It describes export code, i.e. construction `%export {...}'.  All
+   fields are defined before semantic analysis of Shilka. */
+export_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%export'. */
+;
+
+description :: node
+    /* Field `position' of given node type is defined by position of
+       the first description token. */
+%skeleton
+    declaration_list : declaration
+    keyword_type : identifier
+%other
+    keyword_list : keyword
+    additional_code : additional_code
+    other_is_present : bool_t {$ = 0; /*FALSE*/}
+    /* The following fields are defined only if the previous field
+       value is TRUE; */
+    other_position : position_t
+    other_action : code_insertion
+;
+
+/**** All fields of the following fields are defined by Shilka generator. ****/
+
+/* The following node describes transition into the next level of the
+   trie. */
+%abstract
+trie_node_next_level :: %root
+%other
+    /* The following field refers for the list of the next level trie
+       nodes. */
+    trie_node_list : trie_node
+    /* The following field value is defined only if the previous field is
+       not null.  Index (0, ...) in keyword which is used for
+       partition on the next trie level. */
+    trie_node_list_index : integer_t
+    /* The cost of recognition of keywords corresponding given trie
+       node. */
+    recognition_cost : integer_t;
+;
+
+/* The following node describes internal node of the trie and
+   transitions into the next level of the trie. */
+trie_node :: trie_node_next_level
+%other
+    /* The character marking transition from the previous level of
+       trie to given trie node. */
+    character_code : integer_t
+    /* The following field is the next trie node on the same level. */
+    next_trie_node : trie_node
+    /* The following field value is not null if this trie node is
+       leave.  In this case `trie_node_list' is null. */
+    keyword : keyword [IS_NULL ($) && !IS_NULL (IR_trie_node_list ($$))
+                       || !IS_NULL ($) && IS_NULL (IR_trie_node_list ($$))]
+    /* The following field is pointer to previous level of trie node
+       level. */
+    upper_trie_node_level : trie_node_next_level [IS_NULL ($)]
+;
+
+/* The following node describes set of keywords of the same length. */
+keyword_set :: trie_node_next_level
+%skeleton
+    /* The length of keywords in the set. */
+    length : integer_t
+    /* The following field is the list of the set. */
+    the_same_length_keyword_list : keyword
+    /* The following field value is the length of the previous list. */
+    the_same_length_keywords_number : integer_t
+    /* The next set of keywords of another length. */
+    next_keyword_set : keyword_set
+    /* The field `trie_node_list' is null only if the set contains
+       only one keyword. */
+;
+
+keyword
+%other
+    /* Flag of the first keyword with the same name. */
+    first_the_same_name_keyword_flag : bool_t
+    /* The next keyword with the same name. */
+    next_the_same_name_keyword : keyword
+    /* The following field is index (0, 1, ...) of keywords with the
+       same name. */
+    keyword_name_index : integer_t
+    /* The following field refers for the next keyword with the same
+       length. */
+    next_the_same_length_keyword : keyword
+;
+
+description
+%other
+    /* The following field refers for the list of the sets of keywords
+       with the same length. */
+    keyword_set_list : keyword_set
+    /* The following field value is number of keywords in the
+       description. */
+    keywords_number : integer_t
+    /* The following field value is number of different keyword names
+       in the description. */
+    keyword_names_number : integer_t
+;
+
+%%
+
+/* The following function returns external (printable) form of keyword
+   representation. */
+
+const char *
+keyword_representation (IR_node_t keyword)
+{
+  if (IR_IS_OF_TYPE (keyword, IR_NM_string_keyword))
+    return IR_string_representation (IR_string (keyword));
+  else
+    return IR_identifier_itself (IR_identifier (keyword));
+}
+
+/* The following function returns internal (printable) form of keyword
+   representation. */
+
+const char *
+keyword_string (IR_node_t keyword)
+{
+  if (IR_IS_OF_TYPE (keyword, IR_NM_string_keyword))
+    return IR_string_itself (IR_string (keyword));
+  else
+    return IR_identifier_itself (IR_identifier (keyword));
+}
+
+/*
+Local Variables:
+mode:c
+End:
+*/

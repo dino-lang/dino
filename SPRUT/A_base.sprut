@@ -1,0 +1,52 @@
+%import {
+typedef int integer_t;
+typedef char *string_t;
+}
+
+%local {
+static int is_null (IR_node_t node);
+
+static void comment (char *string);
+}
+
+%type integer_t string_t
+%%
+ident
+%class
+    number_of_idents : integer_t
+    {comment ("long \
+               commentary");  /* Once more commentary */}
+%skeleton
+    ident_string : string_t [!is_null ($$)] {comment ($);}
+;
+ident :: node
+%class
+    {comment ("once more action");}
+;
+node :: %root
+%skeleton
+    position : integer_t
+;
+number :: node
+%skeleton
+    number_value : integer_t
+    {
+#ifdef __IR_CPP__
+      $$->IR_set_number_value (1);
+#else
+      IR_set_number_value ($$, 1);
+#endif
+     }
+    [$ != 0]
+;
+%%
+static int
+is_null (IR_node_t node)
+{
+  return node == NULL;
+}
+
+static void
+comment (char *string)
+{
+}

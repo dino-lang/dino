@@ -1,0 +1,577 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for work with ammunition (reusable packages)
+#
+#   DATA_RIGHTS: 
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir      the subdirectory used for creation of compressed
+#                         distribution tar file
+#            prefix       common prefix for installation directories
+#            exec_prefix  common prefix for binary installation directories
+#            libdir       the directory used for installation of the library
+#            includedir   the directory used for installation header files
+#            INSTALL      utility used fort installing executables
+#            INSTALLDATA  utility used fort installing nonexecutables
+#            BC           utility used instead of POSIX arbitrary precision
+#	                  calculator (`bc')
+#            AWK          utility used instead of POSIX utility `awk'
+#            SED          utility used instead of POSIX utility `sed'
+#            ETAGS        utility used for creation of reusable packages tag
+#                         table
+#            CC           used C compiler
+#            CFLAGS       C compiler flags
+#            CXX          used C++ compiler
+#            CXXFLAGS     C++ compiler flags
+#            RANLIB       utility for conversion of archives to random
+#                         libraries
+#            AR           utility for creation of archives
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create `IEEEtens.c' and all object files
+#            test            test packages
+#            install         create and install the library of reusable
+#                            functions, header files, and its man pages
+#            uninstall       delete the installed file
+#            clean           delete all object files
+#            realclean       delete all which can be built up automatically
+#            distclean       delete all not needed for distribution
+#            TAGS            updating TAGS table for the packages sources
+#            dist-copy       copying distribution files into `distdir'
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#
+
+SHELL=/bin/sh
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.
+distdir = ammunition-0.99
+
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# Common prefix for binary installation directories.
+# NOTE: this directory must exist when you start installation.
+exec_prefix=@exec_prefix@
+
+# The directory for installation of the library.
+libdir=@libdir@
+
+# The directory for installation of header files.
+includedir=@includedir@
+
+# Utility for installing executables.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables.
+INSTALLDATA=@INSTALL_DATA@
+
+# Utility used instead of POSIX arbitrary precision calculator (`bc').
+BC=bc
+
+# Utility used instead of POSIX utility `awk'.
+AWK=@AWK@
+
+# Utility used instead of POSIX utility `sed'.
+SED=sed
+
+# Utility for creation of reusable packages tag table.
+ETAGS=etags
+
+# Obligatory compiler options
+OPTIONS=@DEFS@ -I.. -I. -I$(srcdir)
+
+# C compiler and its flag used for compilation of C files.
+CC = @CC@
+CFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@ @DINO_GCC_FPIC@
+
+# C++ compiler and its flag used for compilation of C++ files.
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@
+
+# Yacc
+YACC=@YACC@
+
+# Utility for conversion of archives to random libraries.
+RANLIB=@RANLIB@
+
+# Utility for creation of archives.
+AR=ar
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+# Directory for C object file
+Cdir=C
+
+# Directory for C++ object file
+Cxxdir=C++
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+top_srcdir = @top_srcdir@
+
+# All hand written source files of the packages.
+source = $(srcdir)/allocate.h $(srcdir)/allocate.c $(srcdir)/allocate.tst.in\
+         $(srcdir)/allocate.cpp $(srcdir)/allocate++.tst.in\
+	 $(srcdir)/vlobject.h $(srcdir)/vlobject.c $(srcdir)/vlobject.tst.in\
+         $(srcdir)/vlobject.cpp $(srcdir)/vlobject++.tst.in\
+         $(srcdir)/objstack.h $(srcdir)/objstack.c $(srcdir)/objstack.tst.in\
+         $(srcdir)/objstack.cpp $(srcdir)/objstack++.tst.in\
+	 $(srcdir)/hashtab.h $(srcdir)/hashtab.c $(srcdir)/hashtab.tst.in\
+         $(srcdir)/hashtab.cpp $(srcdir)/hashtab++.tst.in\
+         $(srcdir)/commline.h $(srcdir)/commline.c $(srcdir)/commline.tst.in\
+         $(srcdir)/commline.cpp $(srcdir)/commline++.tst.in\
+	 $(srcdir)/position.h $(srcdir)/position.c $(srcdir)/position.tst.in\
+         $(srcdir)/position.cpp $(srcdir)/position++.tst.in\
+         $(srcdir)/errors.h $(srcdir)/errors.c $(srcdir)/errors.tst.in\
+         $(srcdir)/errors.cpp $(srcdir)/errors++.tst.in\
+         $(srcdir)/ticker.h $(srcdir)/ticker.c $(srcdir)/ticker.tst.in\
+         $(srcdir)/ticker.cpp $(srcdir)/ticker++.tst.in\
+         $(srcdir)/bits.h $(srcdir)/bits.c $(srcdir)/bits.tst.in\
+         $(srcdir)/bits.cpp $(srcdir)/bits++.tst.in\
+         $(srcdir)/arithm.h $(srcdir)/arithm.c $(srcdir)/arithm.tst.in\
+         $(srcdir)/arithm.cpp $(srcdir)/arithm++.tst.in\
+         $(srcdir)/IEEE.h $(srcdir)/IEEE.c $(srcdir)/IEEE.tst.in\
+         $(srcdir)/IEEE.cpp $(srcdir)/IEEE++.tst.in\
+         $(srcdir)/earley.h $(srcdir)/earley.c $(srcdir)/sgramm.y\
+	 $(srcdir)/earley.tst.in\
+	 $(srcdir)/earley.cpp $(srcdir)/earley++.tst.in\
+         $(srcdir)/cocom-config.h.in $(srcdir)/cocom-config.h.bot\
+         $(srcdir)/cocom-config.h.top $(srcdir)/Makefile.in
+
+additional_files = README INSTALL
+
+doc_files = ammunition.txt ammunition.info* ammunition*.html\
+            ammunition.dvi ammunition.ps\
+            ammunition++.txt ammunition++.info* ammunition++*.html\
+            ammunition++.dvi ammunition++.ps
+
+# Files which are not in distribution
+additional_rcs_files = ammunition.sgml.in ammunition++.sgml.in
+
+# All C object files
+Cobjects = $(Cdir)/allocate.o  $(Cdir)/vlobject.o  $(Cdir)/objstack.o\
+           $(Cdir)/hashtab.o $(Cdir)/commline.o\
+           $(Cdir)/position.o  $(Cdir)/errors.o\
+           $(Cdir)/ticker.o  $(Cdir)/bits.o\
+           $(Cdir)/arithm.o  $(Cdir)/IEEE.o\
+           $(Cdir)/earley.o
+
+# All C++ object files
+Cppobjects = $(Cxxdir)/allocate.o  $(Cxxdir)/vlobject.o  $(Cxxdir)/objstack.o\
+             $(Cxxdir)/hashtab.o $(Cxxdir)/commline.o\
+             $(Cxxdir)/position.o  $(Cxxdir)/errors.o\
+             $(Cxxdir)/ticker.o  $(Cxxdir)/bits.o\
+             $(Cxxdir)/arithm.o  $(Cxxdir)/IEEE.o\
+             $(Cxxdir)/earley.o
+
+# C Library
+Clibrary = libcocom.a
+
+# C++ Library
+Cpplibrary = libcocom++.a
+
+# Default entry
+all: $(Cdir)  $(Cxxdir)  $(Clibrary)  $(Cpplibrary)
+
+$(Cdir):
+	-mkdir $(Cdir)
+
+$(Cxxdir):
+	-mkdir $(Cxxdir)
+
+$(Clibrary): IEEEtens.c $(Cobjects)
+	rm -f $(Clibrary)
+	$(AR) rc $(Clibrary) $(Cobjects)
+	$(RANLIB) $(Clibrary)
+
+$(Cpplibrary): IEEEtens.c $(Cppobjects)
+	rm -f $(Cpplibrary)
+	$(AR) rc $(Cpplibrary) $(Cppobjects)
+	$(RANLIB) $(Cpplibrary)
+
+# Generation of the most precise floating point representation of
+# powers of ten (max power (340) > log10 (2) * (max power of IEEE double
+# number (1024) + 2 * fraction size of IEEE double numbers (2*53 = 106)
+# + minimal bits needed for representation of hundred (7))).  See also
+# commentaries for in file `IEEE.c'.
+
+# Generation of the most precise floating point representation of
+# powers of ten (max power (5010) > log10 (2) * (max power of IEEE quad
+# number (16384) + 2 * fraction size of IEEE quad numbers (2*113 = 226)
+# + minimal bits needed for representation of hundred (7))).  See also
+# commentaries for in file `IEEE.c'.
+IEEEtens.c :
+	if test -f $(srcdir)/IEEEtens.c; then\
+	  cp $(srcdir)/IEEEtens.c IEEEtens.c;\
+	else\
+	  echo \
+	  | $(AWK) 'BEGIN {for(i=0;i<=5020;i++)\
+                           print "echo \"obase=2;j=1;for(i=0;i<=", i-1,\
+                           ";i++)j*=10;j;\"|bc";}'\
+	  | $(SHELL)\
+	  | $(AWK) '/\\$$/ {s = s substr($$0, 1, length - 1);}\
+	            $$0 !~ /\\$$/ {print s $$0; s = "";}'\
+	  | $(AWK) '{FractionSize = 15;\
+                     exponent = length - 1;\
+	             result = "  {"  exponent  ", ";\
+		     NLastZeros = NR - 1;\
+		     if (length - NLastZeros > FractionSize * 8)\
+		       result = result  "1, {";\
+		     else\
+		       result = result  "0, {";\
+	             for (i = 0; i < FractionSize; i++){\
+	               if (i != 0) result = result ", ";\
+	               result = result "0x";\
+		       for (j = 0; j < 2; j++){\
+	                 xdigit = substr ($$0, (2 * i + j) * 4 + 1, 4);\
+	                 xdigit = xdigit substr ("0000", length (xdigit) + 1);\
+	                 if (xdigit == "0000") xdigit = "0";\
+		         else if (xdigit == "0001") xdigit = "1";\
+		         else if (xdigit == "0010") xdigit = "2";\
+		         else if (xdigit == "0011") xdigit = "3";\
+		         else if (xdigit == "0100") xdigit = "4";\
+		         else if (xdigit == "0101") xdigit = "5";\
+		         else if (xdigit == "0110") xdigit = "6";\
+		         else if (xdigit == "0111") xdigit = "7";\
+	                 else if (xdigit == "1000") xdigit = "8";\
+		         else if (xdigit == "1001") xdigit = "9";\
+		         else if (xdigit == "1010") xdigit = "a";\
+		         else if (xdigit == "1011") xdigit = "b";\
+		         else if (xdigit == "1100") xdigit = "c";\
+		         else if (xdigit == "1101") xdigit = "d";\
+		         else if (xdigit == "1110") xdigit = "e";\
+		         else if (xdigit == "1111") xdigit = "f";\
+		         else xdigit = "$$";\
+	                 result = result xdigit;\
+	               }\
+	             }\
+        	     print result "}},";}'\
+	  | $(AWK) '{print $$0;if (NR==370)print "#ifdef IEEE_QUAD"}\
+		     END {print "#endif"}' > $@;\
+	fi
+
+sgramm.c: $(srcdir)/sgramm.y
+	$(YACC) $(srcdir)/sgramm.y
+	mv y.tab.c $@
+
+# Test the packages.
+test: test-c test-cpp
+
+test-c: IEEEtens.c
+	$(SHELL) allocate.tst
+	$(SHELL) vlobject.tst
+	$(SHELL) objstack.tst
+	$(SHELL) hashtab.tst
+	$(SHELL) commline.tst
+	$(SHELL) position.tst
+	-$(SHELL) errors.tst
+	$(SHELL) ticker.tst
+	$(SHELL) bits.tst
+	$(SHELL) arithm.tst
+	$(SHELL) IEEE.tst
+	$(SHELL) earley.tst
+
+test-cpp:
+	$(SHELL) allocate++.tst
+	$(SHELL) vlobject++.tst
+	$(SHELL) objstack++.tst
+	$(SHELL) hashtab++.tst
+	$(SHELL) commline++.tst
+	$(SHELL) position++.tst
+	-$(SHELL) errors++.tst
+	$(SHELL) ticker++.tst
+	$(SHELL) bits++.tst
+	$(SHELL) arithm++.tst
+	$(SHELL) IEEE++.tst
+	$(SHELL) earley++.tst
+
+# Creation of installation directories and the library of reusable
+# functions, header files, and their man files to target directories.
+install: all
+	-mkdir $(libdir)
+	$(INSTALLDATA) $(Clibrary) $(libdir)/$(Clibrary)
+	$(INSTALLDATA) $(Cpplibrary) $(libdir)/$(Cpplibrary)
+	-mkdir $(includedir)
+	$(INSTALLDATA) cocom-config.h  $(includedir)/cocom-config.h
+	$(INSTALLDATA) $(srcdir)/allocate.h  $(includedir)/allocate.h
+	$(INSTALLDATA) $(srcdir)/vlobject.h $(includedir)/vlobject.h
+	$(INSTALLDATA) $(srcdir)/objstack.h $(includedir)/objstack.h
+	$(INSTALLDATA) $(srcdir)/hashtab.h $(includedir)/hashtab.h
+	$(INSTALLDATA) $(srcdir)/commline.h $(includedir)/commline.h
+	$(INSTALLDATA) $(srcdir)/position.h $(includedir)/position.h
+	$(INSTALLDATA) $(srcdir)/errors.h $(includedir)/errors.h
+	$(INSTALLDATA) $(srcdir)/ticker.h $(includedir)/ticker.h
+	$(INSTALLDATA) $(srcdir)/bits.h $(includedir)/bits.h
+	$(INSTALLDATA) $(srcdir)/arithm.h $(includedir)/arithm.h
+	$(INSTALLDATA) $(srcdir)/IEEE.h $(includedir)/IEEE.h
+	$(INSTALLDATA) $(srcdir)/earley.h $(includedir)/earley.h
+
+# Delete the installed files and the installation directories.
+uninstall:
+	rm -f $(libdir)/$(Clibrary) $(libdir)/$(Cpplibrary)
+	-rmdir $(libdir)
+	rm -f $(includedir)/cocom-config.h
+	rm -f $(includedir)/allocate.h
+	rm -f $(includedir)/vlobject.h
+	rm -f $(includedir)/objstack.h
+	rm -f $(includedir)/hashtab.h
+	rm -f $(includedir)/commline.h
+	rm -f $(includedir)/position.h
+	rm -f $(includedir)/errors.h
+	rm -f $(includedir)/ticker.h
+	rm -f $(includedir)/bits.h
+	rm -f $(includedir)/arithm.h
+	rm -f $(includedir)/IEEE.h
+	rm -f $(includedir)/earley.h
+	-rmdir $(includedir)
+
+# Delete all temporary files and the libraries.
+clean:
+	rm -f $(Cobjects) $(Clibrary) $(Cppobjects) $(Cpplibrary)
+	-rmdir $(Cdir) $(Cxxdir)
+
+# Delete all which can be built up automatically.
+realclean: distclean
+	rm -f IEEEtens.c
+	rm -f TAGS
+
+# Delete all not needed for distribution.
+distclean: clean
+	rm -f Makefile
+	rm -f allocate.tst vlobject.tst objstack.tst hashtab.tst
+	rm -f commline.tst position.tst errors.tst ticker.tst bits.tst
+	rm -f arithm.tst IEEE.tst earley.tst sgramm.c
+	rm -f allocate++.tst vlobject++.tst objstack++.tst hashtab++.tst
+	rm -f commline++.tst position++.tst errors++.tst ticker++.tst
+	rm -f bits++.tst arithm++.tst IEEE++.tst earley++.tst
+	rm -f ammunition.sgml ammunition.tex ammunition.log\
+              ammunition.aux ammunition.toc
+	rm -f ammunition++.sgml ammunition++.tex ammunition++.log\
+	      ammunition++.aux ammunition++.toc\
+              ammunition.sgml.tmp ammunition.tmp\
+              ammunition++.sgml.tmp ammunition++.tmp
+
+# Updating TAGS table for reusable packages sources.
+TAGS : $(source)
+	$(ETAGS) $(source)
+
+# Ouput names of TAGS table for the reusable packages sources.
+tagsout : $(source)
+	for i in $(source);do\
+	  echo `basename $$i`;\
+	done
+
+# Create empty subdirectory used for creation of compressed distribution
+# tar file.
+create-distdir:
+	-mkdir $(distdir)
+	rm -f -r $(distdir)/*
+	mkdir $(distdir)/clibcocom
+	mkdir $(distdir)/cpplibcocom
+
+# Copying distribution files into `distdir'.
+dist-copy: create-distdir doc IEEEtens.c
+	cp $(source) IEEEtens.c $(distdir)
+	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in clibcocom/clibcocom.dsw clibcocom/clibcocom.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/clibcocom;\
+	done
+	for i in cpplibcocom/cpplibcocom.dsw cpplibcocom/cpplibcocom.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/cpplibcocom;\
+	done
+	chmod -R +w $(distdir)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
+	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in clibcocom/clibcocom.dsw clibcocom/clibcocom.dsp;do\
+	  $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+	done
+	for i in cpplibcocom/cpplibcocom.dsw cpplibcocom/cpplibcocom.dsp;do\
+	  $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
+	done
+
+# Unconditional creation of compressed distribution tar file.
+dist: dist-copy
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+
+# Creation of documentation
+
+doc : ammunition.txt ammunition.html ammunition.info\
+      ammunition.dvi ammunition.ps\
+      ammunition++.txt ammunition++.html ammunition++.info\
+      ammunition++.dvi ammunition++.ps
+
+ammunition.sgml.tmp: ammunition.sgml.in
+	cp ammunition.sgml.in ammunition.sgml.tmp
+
+ammunition.txt: ammunition.sgml.tmp
+	$(srcdir)/../sgml-txt ammunition.sgml.tmp > $@
+	
+ammunition.html: ammunition.sgml.tmp
+	$(srcdir)/../sgml-html ammunition.sgml.tmp >ammunition.sgml
+	sgml2html ammunition.sgml
+	
+ammunition.info: ammunition.sgml.tmp
+	$(srcdir)/../sgml-info ammunition.sgml.tmp >ammunition.sgml
+	sgml2info ammunition.sgml
+	for i in ammunition.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+ammunition.dvi: ammunition.sgml.tmp
+	$(srcdir)/../sgml-tex ammunition.sgml.tmp >ammunition.sgml
+	sgml2latex ammunition.sgml
+	if test ! -f ammunition.dvi\
+           -o -f ammunition.tex -a ammunition.tex -nt ammunition.dvi; then\
+    	        latex ammunition.tex; latex ammunition.tex;\
+        fi
+
+ammunition.ps: ammunition.dvi
+	dvips -o $@ ammunition.dvi
+
+ammunition++.sgml.tmp: ammunition++.sgml.in
+	cp ammunition++.sgml.in ammunition++.sgml.tmp
+
+ammunition++.txt: ammunition++.sgml.tmp
+	$(srcdir)/../sgml-txt ammunition++.sgml.tmp > $@
+	
+ammunition++.html: ammunition++.sgml.tmp
+	$(srcdir)/../sgml-html ammunition++.sgml.tmp >ammunition++.sgml
+	sgml2html ammunition++.sgml
+	
+ammunition++.info: ammunition++.sgml.tmp
+	$(srcdir)/../sgml-info ammunition++.sgml.tmp >ammunition++.sgml
+	sgml2info ammunition++.sgml
+	for i in ammunition++.info*;do\
+	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+ammunition++.dvi: ammunition++.sgml.tmp
+	$(srcdir)/../sgml-tex ammunition++.sgml.tmp >ammunition++.sgml
+	sgml2latex ammunition++.sgml
+	if test ! -f ammunition++.dvi\
+           -o -f ammunition++.tex -a ammunition++.tex -nt ammunition++.dvi; then\
+    	        latex ammunition++.tex; latex ammunition++.tex;\
+        fi
+
+ammunition++.ps: ammunition++.dvi
+	dvips -o $@ ammunition++.dvi
+
+# The following entry is only for internal usage.  It adds makefile
+# dependencies for IRDT object files to the end of given file.
+depend : IEEEtens.c sgramm.c $(Cdir) $(Cxxdir)
+	@echo ++++ Adding Makefile dependencies for C ++++
+	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
+	echo '#' >>$(srcdir)/Makefile.in
+	$(SED) '/^# The following is generated with the aid of Makefile entry depend/,$$d' <$(srcdir)/Makefile.in >Makefile.tmp
+	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
+	echo '# Do not place anything below this line' >>Makefile.tmp
+	echo '#' >>Makefile.tmp
+	for i in allocate.c vlobject.c objstack.c hashtab.c\
+	         commline.c position.c errors.c ticker.c\
+	         bits.c arithm.c IEEE.c earley.c;\
+	do\
+	   echo $(Cdir)/`gcc -MM -I- -I$(srcdir)/../AMMUNITION $(CFLAGS) $(srcdir)/../AMMUNITION/$$i` | $(SED) 's/\\//g'\
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./g'` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/sgramm\.c%sgramm.c%g' \
+			 >>Makefile.tmp;\
+	   echo '	$$(CC) -c $$(CFLAGS) -o $$@' $(srcdir)/../AMMUNITION/$$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./g'` \
+                | $(SED) 's% \./% %g' \
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/sgramm\.c%sgramm.c%g' \
+                         >>Makefile.tmp;\
+	done
+	
+	@echo ++++ Adding Makefile dependencies for C++ ++++
+	for i in allocate.cpp vlobject.cpp objstack.cpp hashtab.cpp\
+	         commline.cpp position.cpp errors.cpp ticker.cpp\
+	         bits.cpp arithm.cpp IEEE.cpp earley.cpp;\
+	do\
+	   echo $(Cxxdir)/`gcc -MM -I- -I$(srcdir)/../AMMUNITION $(CFLAGS) $(srcdir)/../AMMUNITION/$$i` | $(SED) 's/\\//g'\
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./g'` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/sgramm\.c%sgramm.c%g' \
+			 >>Makefile.tmp;\
+	   echo '	$$(CXX) -c $$(CXXFLAGS) -o $$@' $(srcdir)/../AMMUNITION/$$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./g'` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/sgramm\.c%sgramm.c%g' \
+			 >>Makefile.tmp;\
+	done
+	mv Makefile.tmp $(srcdir)/Makefile.in
+
+#
+# The following is generated with the aid of Makefile entry depend
+# Do not place anything below this line
+#
+C/allocate.o: $(top_srcdir)/AMMUNITION/allocate.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/allocate.c
+C/vlobject.o: $(top_srcdir)/AMMUNITION/vlobject.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/vlobject.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/vlobject.c
+C/objstack.o: $(top_srcdir)/AMMUNITION/objstack.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/objstack.c
+C/hashtab.o: $(top_srcdir)/AMMUNITION/hashtab.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/hashtab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/hashtab.c
+C/commline.o: $(top_srcdir)/AMMUNITION/commline.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/commline.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/commline.c
+C/position.o: $(top_srcdir)/AMMUNITION/position.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/position.c
+C/errors.o: $(top_srcdir)/AMMUNITION/errors.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/position.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/errors.c
+C/ticker.o: $(top_srcdir)/AMMUNITION/ticker.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/ticker.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/ticker.c
+C/bits.o: $(top_srcdir)/AMMUNITION/bits.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/bits.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/bits.c
+C/arithm.o: $(top_srcdir)/AMMUNITION/arithm.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/arithm.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/arithm.c
+C/IEEE.o: $(top_srcdir)/AMMUNITION/IEEE.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/bits.h $(top_srcdir)/AMMUNITION/arithm.h $(top_srcdir)/AMMUNITION/IEEE.h  $(top_srcdir)/AMMUNITION/IEEEtens.c
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/IEEE.c
+C/earley.o: $(top_srcdir)/AMMUNITION/earley.c ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/hashtab.h  $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/earley.h sgramm.c
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/earley.c
+C++/allocate.o: $(top_srcdir)/AMMUNITION/allocate.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/allocate.cpp
+C++/vlobject.o: $(top_srcdir)/AMMUNITION/vlobject.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/vlobject.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/vlobject.cpp
+C++/objstack.o: $(top_srcdir)/AMMUNITION/objstack.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/objstack.cpp
+C++/hashtab.o: $(top_srcdir)/AMMUNITION/hashtab.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/hashtab.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/hashtab.cpp
+C++/commline.o: $(top_srcdir)/AMMUNITION/commline.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/commline.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/commline.cpp
+C++/position.o: $(top_srcdir)/AMMUNITION/position.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/position.cpp
+C++/errors.o: $(top_srcdir)/AMMUNITION/errors.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h  $(top_srcdir)/AMMUNITION/errors.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/errors.cpp
+C++/ticker.o: $(top_srcdir)/AMMUNITION/ticker.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/ticker.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/ticker.cpp
+C++/bits.o: $(top_srcdir)/AMMUNITION/bits.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/bits.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/bits.cpp
+C++/arithm.o: $(top_srcdir)/AMMUNITION/arithm.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/arithm.h $(top_srcdir)/AMMUNITION/allocate.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/arithm.cpp
+C++/IEEE.o: $(top_srcdir)/AMMUNITION/IEEE.cpp ../AMMUNITION/cocom-config.h  $(top_srcdir)/AMMUNITION/bits.h $(top_srcdir)/AMMUNITION/arithm.h $(top_srcdir)/AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/IEEE.h $(top_srcdir)/AMMUNITION/IEEEtens.c
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/IEEE.cpp
+C++/earley.o: $(top_srcdir)/AMMUNITION/earley.cpp $(top_srcdir)/AMMUNITION/earley.c  ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/earley.h  sgramm.c
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/earley.cpp

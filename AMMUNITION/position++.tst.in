@@ -1,0 +1,457 @@
+#!/bin/sh
+# @configure_input@
+
+#
+# Script to test of allocation package (files `position.h', `position.cpp').
+#
+
+#
+# Usage: position++.tst [start_test_number]
+#
+# The script outputs self-explanatory messages and returns zero exit code if 
+# it is all ok.
+#
+
+script_file=$0
+CXX='@CXX@'
+CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
+source_addfiles='@srcdir@/allocate.cpp @srcdir@/vlobject.cpp @srcdir@/objstack.cpp @srcdir@/position.cpp'
+addfiles='allocate.o vlobject.o objstack.o position.o'
+test_file=tposition.cpp
+outfile=./a.out
+
+if test x$1 = x
+then
+    start_test_number=1
+else
+    if expr $1 + 0 >/dev/null
+    then
+        start_test_number=`expr $1 + 0`
+    else
+        echo $script_file:invalid argument $1 2>&1
+        exit 1
+    fi
+fi
+
+# Compilation of addfiles
+
+echo '      ' $CXX $CXX_options -c $source_addfiles
+if $CXX $CXX_options -c $source_addfiles; then
+        result=ok
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi
+
+# Test 1.
+if test $result = ok -a $start_test_number -le 1; then
+        cat >$test_file <<'TEST1'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  positions::initiate ();
+  if (positions::current.file_name () != NULL
+      || positions::current.line_number != 0
+      || positions::current.column_number != 0
+      || positions::current.path () != NULL)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST1
+
+        echo test 1:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 2.
+if test $result = ok -a $start_test_number -le 2; then
+        cat >$test_file <<'TEST2'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  position_t pos1;
+
+  positions::initiate ();
+  positions::start_file ("abcde");
+  pos1 = positions::current;
+  if (positions::compare (positions::no_position, pos1) >= 0)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST2
+
+        echo test 2:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 3.
+if test $result = ok -a $start_test_number -le 3; then
+        cat >$test_file <<'TEST3'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  position_t pos1;
+
+  positions::initiate ();
+  positions::start_file ("abcde");
+  pos1 = positions::current;
+  positions::current.line_number += 5;
+  positions::current.column_number += 20;
+  if (positions::compare (positions::current, pos1) <= 0)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST3
+
+        echo test 3:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 4.
+if test $result = ok -a $start_test_number -le 4; then
+        cat >$test_file <<'TEST4'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  position_t pos1;
+
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::current.line_number += 5;
+  positions::current.column_number += 20;
+  pos1 = positions::current;
+  positions::start_file ("fgh");
+  positions::current.line_number += 3;
+  positions::current.column_number += 10;
+  if (positions::compare (positions::current, pos1) <= 0)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST4
+
+        echo test 4:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 5.
+if test $result = ok -a $start_test_number -le 5; then
+        cat >$test_file <<'TEST5'
+#include <stdlib.h>
+#include <string.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  position_t pos1;
+
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::current.line_number += 5;
+  positions::current.column_number += 20;
+  pos1 = positions::current;
+  positions::start_file ("fgh");
+  positions::current.line_number += 3;
+  positions::current.column_number += 10;
+  positions::finish_file ();
+  if (strcmp (positions::current.file_name (), "abcde") != 0
+      || positions::current.line_number != 6
+      || positions::current.column_number != 21)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST5
+
+        echo test 5:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 6.
+if test $result = ok -a $start_test_number -le 6; then
+        cat >$test_file <<'TEST6'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  position_t pos1;
+
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::current.line_number += 5;
+  positions::current.column_number += 20;
+  pos1 = positions::current;
+  positions::start_file ("fgh");
+  positions::current.line_number += 3;
+  positions::current.column_number += 10;
+  positions::finish_file ();
+  if (positions::compare (positions::current, pos1) != 0)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST6
+
+        echo test 6:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 7.
+if test $result = ok -a $start_test_number -le 7; then
+        cat >$test_file <<'TEST7'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::start_file ("fgh");
+  positions::current.line_number += 3;
+  positions::finish_file ();
+  positions::finish_file ();
+  if (positions::current.file_name () != NULL
+      || positions::current.line_number != 0
+      || positions::current.column_number != 0
+      || positions::current.path () != NULL)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST7
+
+        echo test 7:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 8.
+if test $result = ok -a $start_test_number -le 8; then
+        cat >$test_file <<'TEST8'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::start_file ("fgh");
+  positions::current.line_number += 3;
+  positions::finish_file ();
+  positions::finish_file ();
+  if (positions::compare (positions::current, positions::no_position) != 0)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST8
+
+        echo test 8:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 9.
+if test $result = ok -a $start_test_number -le 9; then
+        cat >$test_file <<'TEST9'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::start_file ("fgh");
+  positions::finish_file ();
+  positions::finish_file ();
+  if (positions::current.file_inclusion_level () != 0)
+    exit (1);
+  positions::finish ();
+  exit (0);
+}
+TEST9
+
+        echo test 9:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 10.
+if test $result = ok -a $start_test_number -le 10; then
+        cat >$test_file <<'TEST10'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::start_file ("fgh");
+  positions::finish_file ();
+  if (positions::current.file_inclusion_level () != 0)
+    exit (1);
+  positions::finish_file ();
+  positions::finish ();
+  exit (0);
+}
+TEST10
+
+        echo test 10:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 11.
+if test $result = ok -a $start_test_number -le 11; then
+        cat >$test_file <<'TEST11'
+#include <stdlib.h>
+#include "position.h"
+#include "allocate.h"
+main ()
+{
+  positions::initiate ();
+  positions::start_file ("abcde");
+  positions::start_file ("fgh");
+  positions::start_file ("ik");
+  if (positions::current.file_inclusion_level () != 2)
+    exit (1);
+  positions::finish_file ();
+  positions::finish_file ();
+  positions::finish_file ();
+  positions::finish ();
+  exit (0);
+}
+TEST11
+
+        echo test 11:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Final message
+
+if test $result = ok; then
+        echo $script_file: it is all ok
+        rm -f $addfiles $test_file $outfile
+        exit 0
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi

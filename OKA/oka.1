@@ -1,0 +1,104 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH OKA 1 "5 APR 2001" COCOM "User Manuals"
+.SH NAME
+oka \- pipeline Hazards Description Translator
+.SH SYNOPSIS
+.B oka [ -c++ -debug -enum -export -no-minimization
+.B       -split number -pprefix -v ]
+.I specification-file
+
+.SH DESCRIPTION
+
+.B OKA
+generates code for fast recognition of pipeline hazards of
+processor which is described in specification file.  The
+specification file must have suffix
+.B `.oka'
+.
+
+.PP
+The generated code consists of interface and implementation files
+having the same names as one of specification file and
+correspondingly suffixes
+.B `.h'
+and
+.B `.c'
+(C code) or
+.B `.cpp'
+(C++ code).
+.PP
+Full documentation of OKA is in OKA User's manual.
+.SH OPTIONS
+The options which are known for OKA are:
+.IP -c++
+OKA generates C++ code instead of C code (default).
+.IP -debug
+OKA creates code for output of debugging information during
+execution of the generated code.
+.IP -enum
+OKA generates instruction codes as enumeration constant.  By
+default OKA generates instructions code as macro definition.
+.IP -export
+OKA generates macros defining identifiers of instructions
+in the interface file (instead of in the implementation file).
+.IP -no-minimization
+OKA does not minimization of generated deterministic finite
+state automaton (DFA).
+.IP -split number
+OKA makes automatic splitting automaton on given number
+automata in order to decrease sizes of generated tables.
+The option is taken into account only if constructions
+`%unit' are absent in the specification file.
+This option has not been implemented yet.
+.IP -pprefix
+Generated code uses
+.B `prefix'
+instead of
+.B `OKA'
+for names of
+the generated objects.
+.IP -time
+OKA outputs detail time statistics of its work into stderr.
+.IP -v
+OKA creates description file which contains description of
+result automaton and statistics information.  The file will
+have the same name as one of given specification file and
+suffix
+.B `.output'
+.  The statistics information is also output
+into standard stream.
+.SH FILES
+.I file.oka
+.RS
+OKA specification file
+.RE
+.I file.c
+.RS
+generated C implementation file
+.RE
+.I file.cpp
+.RS
+generated C++ implementation file
+.RE
+.I file.h
+.RS
+generated interface file
+.RE
+
+There are no any temporary files used by OKA.
+.SH ENVIRONMENT
+There are no environment variables which affect OKA behavior.
+.SH DIAGNOSTICS
+OKA diagnostics is self-explanatory.
+.SH AUTHOR
+Vladimir N. Makarov, vmakarov@users.sourceforge.net
+.SH "SEE ALSO"
+.BR msta (1),
+.BR shilka (1),
+.BR sprut (1),
+.BR nona (1).
+OKA manual.
+.SH BUGS
+Please, report bugs to cocom-bugs@lists.sourceforge.net.

@@ -1,0 +1,31 @@
+/* Description of some test machine. */
+
+%automaton integer integer_division float
+
+%unit <integer> ib0 ib1 multiplier multiplier_write_back
+
+%unit <integer_division>  divider divider_write_back
+
+%unit <float> float_divider float_divider_write_back
+
+%instruction ADD MUL DIV FADD FMUL FDIV
+
+%%
+
+
+ADD: ib0 + multiplier_write_back
+;
+
+MUL: ib0 + multiplier*16  multiplier_write_back + multiplier*3
+;
+
+DIV: ib0 + divider*30  divider_write_back + divider*3
+;
+
+FADD, FMUL: ib1 + float_divider_write_back
+;
+
+FDIV: ib1 + float_divider*24  (float_divider + float_divider_write_back)*2
+      float_divider*2
+;
+

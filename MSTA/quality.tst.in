@@ -1,0 +1,1636 @@
+#!/bin/sh
+# @configure_input@
+
+#
+# Script to test of MSTA quality
+#
+
+#
+# Usage: quality.tst [start_test_number]
+#
+# The script outputs self-explanatory messages and returns zero exit code if 
+# it is all ok.
+#
+
+script_file=$0
+MSTA=./msta
+temp_file=_temp.out
+temp2_file=_temp2.out
+temp3_file=_temp3.out
+fexec=./a.out
+CC='@CC@ -g'
+SHILKA=../SHILKA/shilka
+
+if test x$1 = x
+then
+    start_test_number=1
+else
+    if expr $1 + 0 >/dev/null
+    then
+        start_test_number=`expr $1 + 0`
+    else
+        echo $script_file:invalid argument $1 2>&1
+        exit 1
+    fi
+fi
+
+result=ok
+
+# Test 1.
+if test $result = ok -a $start_test_number -le 1; then
+        echo test 1:
+        msta_file=@srcdir@/c5.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA $msta_file "2>$temp_file"
+        if $MSTA $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT1' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT1
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 2.
+if test $result = ok -a $start_test_number -le 2; then
+        echo test 2:
+        msta_file=@srcdir@/cpp5.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA $msta_file "2>$temp_file"
+        if $MSTA $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT2' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  24 shift/reduce and 18 reduce/reduce conflicts.
+INPUT2
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 3.
+if test $result = ok -a $start_test_number -le 3; then
+        echo test 3:
+        msta_file=@srcdir@/fparse.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file "2>$temp_file"
+        if $MSTA -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT3' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT3
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 4.
+if test $result = ok -a $start_test_number -le 4; then
+        echo test 4:
+        msta_file=@srcdir@/gram.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file "2>$temp_file"
+        if $MSTA -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT4' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT4
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 5.
+if test $result = ok -a $start_test_number -le 5; then
+        echo test 5:
+        msta_file=@srcdir@/java.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file "2>$temp_file"
+        if $MSTA -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT5' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT5
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 6.
+if test $result = ok -a $start_test_number -le 6; then
+        echo test 6:
+        msta_file=@srcdir@/p-yacc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA $msta_file "2>$temp_file"
+        if $MSTA $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT6' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT6
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 7.
+if test $result = ok -a $start_test_number -le 7; then
+        echo test 7:
+        msta_file=@srcdir@/m2c.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file "2>$temp_file"
+        if $MSTA -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT7' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT7
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 8.
+if test $result = ok -a $start_test_number -le 8; then
+        echo test 8:
+        msta_file=@srcdir@/sql1.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file "2>$temp_file"
+        if $MSTA -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT8' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT8
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 9.
+if test $result = ok -a $start_test_number -le 9; then
+        echo test 9:
+        msta_file=@srcdir@/pascal.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA $msta_file "2>$temp_file"
+        if $MSTA $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT9' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT9
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 11.
+if test $result = ok -a $start_test_number -le 11; then
+        echo test 11:
+        msta_file=@srcdir@/c5.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -lr $msta_file "2>$temp_file"
+        if $MSTA -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT11' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT11
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 12.
+if test $result = ok -a $start_test_number -le 12; then
+        echo test 12:
+        msta_file=@srcdir@/cpp5.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -lr $msta_file "2>$temp_file"
+        if $MSTA -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT12' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  24 shift/reduce and 18 reduce/reduce conflicts.
+INPUT12
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 13.
+if test $result = ok -a $start_test_number -le 13; then
+        echo test 13:
+        msta_file=@srcdir@/fparse.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -lr $msta_file "2>$temp_file"
+        if $MSTA -w -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT13' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT13
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 14.
+if test $result = ok -a $start_test_number -le 14; then
+        echo test 14:
+        msta_file=@srcdir@/gram.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -lr $msta_file "2>$temp_file"
+        if $MSTA -w -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT14' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT14
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 15.
+if test $result = ok -a $start_test_number -le 15; then
+        echo test 15:
+        msta_file=@srcdir@/java.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -lr $msta_file "2>$temp_file"
+        if $MSTA -w -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT15' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT15
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 16.
+if test $result = ok -a $start_test_number -le 16; then
+        echo test 16:
+        msta_file=@srcdir@/p-yacc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -lr $msta_file "2>$temp_file"
+        if $MSTA -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT16' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT16
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 17.
+if test $result = ok -a $start_test_number -le 17; then
+        echo test 17:
+        msta_file=@srcdir@/m2c.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -lr $msta_file "2>$temp_file"
+        if $MSTA -w -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT17' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT17
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 18.
+if test $result = ok -a $start_test_number -le 18; then
+        echo test 18:
+        msta_file=@srcdir@/sql1.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -lr $msta_file "2>$temp_file"
+        if $MSTA -w -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT18' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT18
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 19.
+if test $result = ok -a $start_test_number -le 19; then
+        echo test 19:
+        msta_file=@srcdir@/pascal.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -lr $msta_file "2>$temp_file"
+        if $MSTA -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT19' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT19
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# test 21.
+if test $result = ok -a $start_test_number -le 21; then
+        echo test 21:
+        msta_file=@srcdir@/c5.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT21' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT21
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# test 22.
+if test $result = ok -a $start_test_number -le 22; then
+        echo test 22:
+        msta_file=@srcdir@/cpp5.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT22' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  24 shift/reduce and 18 reduce/reduce conflicts.
+INPUT22
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# test 23.
+if test $result = ok -a $start_test_number -le 23; then
+        echo test 23:
+        msta_file=@srcdir@/fparse.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -w -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT23' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT23
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# test 24.
+if test $result = ok -a $start_test_number -le 24; then
+        echo test 24:
+        msta_file=@srcdir@/gram.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -w -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT24' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT24
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# test 25.
+if test $result = ok -a $start_test_number -le 25; then
+        echo test 25:
+        msta_file=@srcdir@/java.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -w -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT25' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT25
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# test 26.
+if test $result = ok -a $start_test_number -le 26; then
+        echo test 26:
+        msta_file=@srcdir@/p-yacc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT26' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT26
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# test 27.
+if test $result = ok -a $start_test_number -le 27; then
+        echo test 27:
+        msta_file=@srcdir@/m2c.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -w -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT27' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT27
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# test 28.
+if test $result = ok -a $start_test_number -le 28; then
+        echo test 28:
+        msta_file=@srcdir@/sql1.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -w -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT28' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT28
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# test 29.
+if test $result = ok -a $start_test_number -le 29; then
+        echo test 29:
+        msta_file=@srcdir@/pascal.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT29' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT29
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 30.
+if test $result = ok -a $start_test_number -le 30; then
+        echo test 30:
+        msta_file=@srcdir@/p-yacc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA $msta_file "2>$temp_file"
+        if $MSTA $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT30' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT30
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 31.
+if test $result = ok -a $start_test_number -le 31; then
+        echo test 31:
+        msta_file=@srcdir@/p-yacc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -lr $msta_file "2>$temp_file"
+        if $MSTA -lr $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT31' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT31
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 32.
+if test $result = ok -a $start_test_number -le 32; then
+        echo test 32:
+        msta_file=@srcdir@/p-yacc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v -lr-situation-context $msta_file "2>$temp_file"
+        if $MSTA -v -lr-situation-context $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT32' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT32
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 33.
+if test $result = ok -a $start_test_number -le 33; then
+        echo test 33:
+        msta_file=@srcdir@/fcalc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file "2>$temp_file"
+        if $MSTA -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT33' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT33
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file -lm; then
+                                echo $fexec ">$temp_file"
+                                if $fexec <<'INPUT33-1' >$temp_file; then
+t = 10
+10 * (t + t * 3)
+5 * t + 3
+8 / 2 / 2
+INPUT33-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT33-2' && cmp $temp_file $temp3_file; then
+	10
+	400
+	53
+	2
+INPUT33-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 34.
+if test $result = ok -a $start_test_number -le 34; then
+        echo test 34:
+        msta_file=@srcdir@/fcalc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -lr -w $msta_file "2>$temp_file"
+        if $MSTA -lr -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT34' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT34
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file -lm; then
+                                echo $fexec ">$temp_file"
+                                if $fexec <<'INPUT34-1' >$temp_file; then
+t = 10
+10 * (t + t * 3)
+5 * t + 3
+8 / 2 / 2
+INPUT34-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT34-2' && cmp $temp_file $temp3_file; then
+	10
+	400
+	53
+	2
+INPUT34-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 35.
+if test $result = ok -a $start_test_number -le 35; then
+        echo test 35:
+        msta_file=@srcdir@/fcalc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v -lr-situation-context -w $msta_file "2>$temp_file"
+        if $MSTA -v -lr-situation-context -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT35' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT35
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file -lm; then
+                                echo $fexec ">$temp_file"
+                                if $fexec <<'INPUT35-1' >$temp_file; then
+t = 10
+10 * (t + t * 3)
+5 * t + 3
+8 / 2 / 2
+INPUT35-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT35-2' && cmp $temp_file $temp3_file; then
+	10
+	400
+	53
+	2
+INPUT35-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 36.
+if test $result = ok -a $start_test_number -le 36; then
+        echo test 36 '(error-recovery)':
+        msta_file=@srcdir@/fcalc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file "2>$temp_file"
+        if $MSTA -w $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT36' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT36
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file -lm; then
+                                echo $fexec ">$temp_file"
+                                if $fexec <<'INPUT36-1' >$temp_file; then
+t = 10
+)
+)
+)
+)
+)
+)
+)
+)
+10 * (t + t * 3)
+)
+)
+)
+)
+)
+)
+)
+)
+5 * t + 3
+8 / 2 / 2
+INPUT36-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT36-2' && cmp $temp_file $temp3_file; then
+	10
+syntax error
+	400
+syntax error
+	53
+	2
+INPUT36-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 37.
+if test $result = ok -a $start_test_number -le 37; then
+        echo test 37 '(yacc error-recovery)':
+        msta_file=@srcdir@/fcalc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w -yacc-error-recovery $msta_file "2>$temp_file"
+        if $MSTA -w -yacc-error-recovery $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT37' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT37
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file -lm; then
+                                echo $fexec ">$temp_file"
+                                if $fexec <<'INPUT37-1' >$temp_file; then
+t = 10
+)
+)
+)
+)
+)
+)
+)
+)
+10 * (t + t * 3)
+)
+)
+)
+)
+)
+)
+)
+)
+5 * t + 3
+8 / 2 / 2
+INPUT37-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT37-2' && cmp $temp_file $temp3_file; then
+	10
+syntax error
+	400
+syntax error
+	53
+	2
+INPUT37-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 38.
+if test $result = ok -a $start_test_number -le 38; then
+        echo test 38 '(C++)':
+        msta_file=@srcdir@/c5.y
+        output_file=`basename $msta_file .y`.cpp
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -c++ $msta_file "2>$temp_file"
+        if $MSTA -c++ $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT38' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+INPUT38
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                result=ok
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 39.
+if test $result = ok -a $start_test_number -le 39; then
+        echo test 39 '(scanner)':
+        msta_file=@srcdir@/lex.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA $msta_file "2>$temp_file"
+        if $MSTA $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT39' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  5 shift/reduce conflicts.
+INPUT39
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                echo $fexec ">$temp_file"
+                                if $fexec - <<'INPUT39-1' 2>$temp_file; then
+/* aaaaaaaaa * aaaaaaaaaaa */
+
+"aaaaa"         	
+
+aaaa
+1020
+a10
+b20
+INPUT39-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT39-2' && cmp $temp_file $temp3_file; then
+302 - aaaaa
+300 - aaaa
+301 - 1020
+300 - a10
+300 - b20
+INPUT39-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 40.
+if test $result = ok -a $start_test_number -le 40; then
+        echo test 40 '(C++ scanner)':
+        msta_file=@srcdir@/lex.y
+        output_file=`basename $msta_file .y`.cpp
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -c++ $msta_file "2>$temp_file"
+        if $MSTA -c++ $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT40' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  5 shift/reduce conflicts.
+INPUT40
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file; then
+                                echo $fexec ">$temp_file"
+                                if $fexec - <<'INPUT40-1' 2>$temp_file; then
+/* aaaaaaaaa * aaaaaaaaaaa */
+
+"aaaaa"         	
+
+aaaa
+1020
+a10
+b20
+INPUT40-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT40-2' && cmp $temp_file $temp3_file; then
+302 - aaaaa
+300 - aaaa
+301 - 1020
+300 - a10
+300 - b20
+INPUT40-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+# Test 41.
+if test $result = ok -a $start_test_number -le 41; then
+      echo test 41 '(oberon2 scanner, shilka & parser)':
+      msta_file=@srcdir@/oberon2-lex.y
+      output_file=`basename $msta_file .y`.c
+      echo '      ' $MSTA $msta_file "2>$temp_file"
+      if $MSTA $msta_file 2>$temp_file; then
+          echo '      ' cmp $temp_file $temp3_file
+          if cat >$temp3_file <<'INPUT41' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  30 shift/reduce conflicts.
+INPUT41
+            msta_file=@srcdir@/oberon2-gram.y
+            output_file1=`basename $msta_file .y`.c
+            echo '      ' $MSTA $msta_file "2>$temp_file"
+            if $MSTA $msta_file 2>$temp_file; then
+              echo '      ' cmp $temp_file $temp3_file
+              if cat >$temp3_file <<'INPUT41-1' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT41-1
+                shilka_file=@srcdir@/oberon2-kw.shilka
+                output_file2=`basename $shilka_file .shilka`.c
+                echo '      ' $SHILKA $shilka_file -no-definitions -length "2>$temp_file"
+                if $SHILKA -no-definitions -length $shilka_file 2>$temp_file; then
+                  head -n 5 $temp_file >$temp2_file
+                  mv $temp2_file $temp_file
+                  echo '      ' cmp $temp_file $temp3_file
+                  if cat >$temp3_file <<'INPUT41-2' && cmp $temp_file $temp3_file; then
+
+34 keywords, 34 different keyword names
+4.5 average keywords length, 4.5 weighted average keywords length
+3800 achieved trie cost, 3200 minimal cost, 118 % ratio
+
+INPUT41-2
+                    echo '      ' $CC -I. $output_file1 -o $fexec "2>$temp_file"
+                    if $CC -I. $output_file1 -o $fexec 2>$temp_file; then
+                      echo $fexec ">$temp_file"
+                      if $fexec - <<'INPUT41-3' 2>$temp_file; then
+MODULE Counter;
+  IMPORT Texts, Oberon;
+
+  VAR
+    counter: LONGINT;
+    w: Writer;
+    (*1 (*2 (*3 (*4 *) *) *) *)
+  PROCEDURE Add*; (* takes a numeric agrument from the command line *)
+    VAR s: Scanner;
+  BEGIN
+    Texts.OpenScanner(s, Oberon.Par.text, Oberon.par.pos);
+    Texts.Scan(s);
+    IF s.class = Texts.Int THEN INC(counter,s,i) END
+  END Add;
+
+  PROCEDURE Write*;
+  BEGIN
+    Texts.WriteInt(w,counter,5); Texts.WriteLn(w);
+  END Write;
+BEGIN counter := 0; Texts.OpenWrite(w)
+END Counter .
+INPUT41-3
+                         echo '      ' cmp $temp_file $temp3_file
+                         if cat >$temp3_file <<'INPUT41-4' && cmp $temp_file $temp3_file; then
+code = 0
+INPUT41-4
+                            result=ok
+                         else
+                            result=fail
+                         fi
+                      else
+                         result=fail
+                      fi                        
+                    else
+                      result=fail
+                    fi                        
+                  else
+                      result=fail
+                  fi                        
+                else
+                  result=fail
+                fi
+              else
+                result=fail
+              fi
+            else
+              result=fail
+            fi
+          else
+            result=fail
+          fi
+      else
+          result=fail
+      fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec
+fi
+
+
+# Test 42.
+if test $result = ok -a $start_test_number -le 42; then
+        echo test 42:
+        msta_file=temp.y
+cat >$msta_file <<EOF
+%%
+s : e1 "abcdef"  {$$ = $1;}
+  | e2 "abcdeg"  {$$ = $1;}
+  | 'b'          {$$ = 0;}
+e1 : %la 8       {$$ = 8;}
+e2 :             {$$ = 2;}
+EOF
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v $msta_file "2>$temp_file"
+        if $MSTA -v $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT42' && cmp $temp_file $temp3_file; then
+  Max look ahead is 8 tokens
+  Real look ahead is 6 tokens
+INPUT42
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec temp.y
+fi
+
+# Test 43.
+if test $result = ok -a $start_test_number -le 43; then
+        echo test 43:
+        msta_file=temp.y
+cat >$msta_file <<EOF
+%%
+s : e1 "abcdef"            {$$ = $1;}
+  | e2 "abcdeg"            {$$ = $1;}
+  | 'b'                    {$$ = 0;}
+e1 : %la 8 %prec 'a'      {$$ = 8;}
+e2 :             {$$ = 2;}
+EOF
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v $msta_file "2>$temp_file"
+        if $MSTA -v $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT43' && cmp $temp_file $temp3_file; then
+  Max look ahead is 8 tokens
+  Real look ahead is 6 tokens
+INPUT43
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec temp.y
+fi
+
+
+# Test 44.
+if test $result = ok -a $start_test_number -le 44; then
+        echo test 44:
+        msta_file=temp.y
+cat >$msta_file <<EOF
+%%
+s : e "abcdef" {$$ = $1;}
+  | "abcdeg" %la 10 {$$ = 1;}
+e : {$$ = 2;}
+EOF
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v $msta_file "2>$temp_file"
+        if $MSTA -v $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT44' && cmp $temp_file $temp3_file; then
+  Max look ahead is 10 tokens
+  Real look ahead is 6 tokens
+INPUT44
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $output_file $description_file $fexec temp.y
+fi
+
+# Test 45.
+if test $result = ok -a $start_test_number -le 45; then
+        echo test 45:
+        msta_file=temp.y
+cat >$msta_file <<EOF
+%%
+s : e "abcdef" {$$ = $1;}
+  | "abcdeg" %la 10 {$$ = 1;}
+e : %prec 'd'  {$$ = 2;}
+EOF
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -v $msta_file "2>$temp_file"
+        if $MSTA -v $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT45' && cmp $temp_file $temp3_file; then
+  Max look ahead is 10 tokens
+  Real look ahead is 6 tokens
+INPUT45
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+if test $result = ok; then
+        rm -f $temp_file $temp3_file $output_file $description_file $fexec temp.y
+fi
+
+
+# Final message
+
+if test $result = ok; then
+        echo $script_file: it is all ok
+        exit 0
+else
+        echo '***' $script_file: test is failed see file $temp_file, $temp3_file, $msta_file, $output_file
+        exit 1
+fi

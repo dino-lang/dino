@@ -1,0 +1,310 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for NONA (code selector description translator)
+#
+#   DATA_RIGHTS: 
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir     the subdirectory used for creation of compressed
+#                        distribution tar file
+#            prefix      common prefix for installation directories
+#            exec_prefix common prefix for installation directories
+#            bindir      the directory used for installation of `nona'
+#            mandir      the directory for installation of man pages
+#            man1dir     the directory for installation of `nona.1'
+#            INSTALL     utility used for installation `nona'
+#            INSTALLDATA utility used for installing nonexecutables
+#            SED         utility used instead of POSIX utility `sed'
+#            ETAGS       utility used for creation of `nona' tag table
+#            YACC        used YACC (e.g. `bison -y')
+#            YFLAGS      YACC flags (e.g. -v)
+#            CC          used C compiler
+#            CFLAGS      C compiler flags
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create `nona'
+#            test            test `nona'
+#            install         create and install `nona'
+#            uninstall       delete the installed file
+#            clean           delete all object files and file `nona'
+#            realclean       deletion all which can be built up automatically
+#            distclean       deletion all not needed for distribution
+#            TAGS            updating TAGS table for the `nona' sources
+#            dist-copy       copying `nona' distribution files into `distdir'
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#
+
+SHELL=/bin/sh
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.
+distdir = nona-0.68
+
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# Common prefix for binary installation directories.
+# NOTE: this directory must exist when you start installation.
+exec_prefix=@exec_prefix@
+
+# The directory for installation of `nona'.
+bindir=@bindir@
+
+# The directory for installation of man pages
+mandir=@mandir@
+
+# The directory for installation of `nona.1'
+man1dir=$(mandir)/man1
+
+# Utility for installation `nona'.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables (e.g. `nona.1').
+INSTALLDATA=@INSTALL_DATA@
+
+# Utility used instead of POSIX utility `sed'.
+SED=sed
+
+# Utility used instead of POSIX utility `awk'.
+AWK=@AWK@
+
+# Utility for creation of `nona' tag table.
+ETAGS=etags
+
+# YACC its flag used for creation of syntax analyzer.
+YACC = @YACC@
+
+# Obligatory compiler options
+OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION -I../AMMUNITION -I$(srcdir)
+
+# C compiler and its flag used for compilation of C files.
+CC = @CC@
+CFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+top_srcdir = @top_srcdir@
+
+# All object files of the code selector description translator:
+objects = ird.o common.o tab.o yacc.o anal.o gen.o main.o
+
+# All source files of the translator.
+source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
+         $(srcdir)/yacc.h $(srcdir)/yacc.y $(srcdir)/anal.h $(srcdir)/anal.c\
+	 $(srcdir)/gen.h $(srcdir)/gen.c $(srcdir)/main.c $(srcdir)/ird.sprut\
+         $(srcdir)/Makefile.in 
+
+additional_files = README INSTALL nona.1 a29k.nona nona.dsw nona.dsp
+
+doc_files = nona.txt nona.info* nona*.html nona.dvi nona.ps
+
+# Files which are not in distribution
+additional_rcs_files = nona.sgml.in
+
+# Default entry
+all : nona
+
+nona : $(objects) ../AMMUNITION/libcocom.a
+	$(CC) $(CFLAGS) -o $@ $(objects) ../AMMUNITION/libcocom.a
+
+ird.c ird.h : $(srcdir)/ird.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set -new -copy\
+                       $(srcdir)/ird.sprut
+
+yacc.c: $(srcdir)/yacc.y
+	$(YACC) $(srcdir)/yacc.y
+# This is necessary for MS-DOS YACC (BISON) and VMS POSIX YACC
+	if test ! -f y.tab.c && test -f y_tab.c;then mv y_tab.c $@;\
+	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
+	else mv y.tab.c $@;fi
+
+test : nona
+	if ./nona -export $(srcdir)/a29k.nona && $(CC) -c a29k.c\
+           && ./nona -c++ -export $(srcdir)/a29k.nona && $(CC) -c a29k.cpp;\
+        then echo "Test OK"; else echo "Test FAIL!";fi
+	rm -f a29k.h a29k.c a29k.cpp
+
+# Creation of installation directories and all object files and copying
+# the translator `nona' and its man file to target directories.
+install: all
+	-mkdir $(bindir)
+	$(INSTALL) nona $(bindir)/nona
+	-mkdir $(mandir)
+	-mkdir $(man1dir)
+	$(INSTALLDATA) $(srcdir)/nona.1 $(man1dir)/nona.1
+
+# Delete the installed files and the installation directories.
+uninstall:
+	rm -f $(bindir)/nona
+	-rmdir $(bindir)
+	rm -f $(man1dir)/nona.1
+	-rmdir $(man1dir)
+	-rmdir $(mandir)
+
+# Deletion of object files of the translator, executable file `nona' and also
+# deletion of `ird.c' and `ird.h', and `yacc.c'
+clean :
+	rm -f $(objects) nona ird.c ird.h yacc.c
+	rm -f a29k.h a29k.c a29k.cpp
+
+# Deletion all not needed for distribution: the same as entry `clean'.
+distclean: clean
+	rm -f Makefile
+	rm -f nona.sgml nona.tex nona.log nona.aux nona.toc\
+              nona.sgml.tmp nona.tmp
+
+# Deletion all which can be built up automatically:
+# the same as entry `distclean' and emacs TAGS table.
+realclean: distclean
+	rm -f TAGS
+
+# Updating TAGS table for the `nona' sources.
+TAGS : $(source)
+	$(ETAGS) $(source)
+
+# Ouput names of TAGS table for the `nona' sources.
+tagsout : $(source)
+	for i in $(source);do\
+	  echo `basename $$i`;\
+	done
+
+# Create empty subdirectory used for creation of compressed distribution
+# tar file.
+create-distdir:
+	-mkdir $(distdir)
+	rm -f -r $(distdir)/*
+
+# Copying `nona' distribution files into `distdir'.
+dist-copy: create-distdir doc
+	cp $(source) $(distdir)
+	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	chmod -R +w $(distdir)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
+	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+
+# Unconditional creation of compressed distribution tar file.
+dist: dist-copy
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+
+# Creation of documentation
+
+doc : nona.txt nona.html nona.info nona.dvi nona.ps
+
+nona.sgml.tmp : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
+	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");print;}' > nona.tmp
+	$(AWK) '{if($$0 == "%%%")\
+                     {while ((getline line < "nona.tmp") > 0)\
+                        print line;close("nona.tmp")}\
+                 else print;}' $(srcdir)/nona.sgml.in > $@
+	rm -f nona.tmp
+
+nona.txt: nona.sgml.tmp
+	$(srcdir)/../sgml-txt nona.sgml.tmp > $@
+	
+nona.html: nona.sgml.tmp
+	$(srcdir)/../sgml-html nona.sgml.tmp >nona.sgml
+	sgml2html nona.sgml
+	
+nona.info: nona.sgml.tmp
+	$(srcdir)/../sgml-info nona.sgml.tmp >nona.sgml
+	sgml2info nona.sgml
+	for i in nona.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+nona.dvi: nona.sgml.tmp
+	$(srcdir)/../sgml-tex nona.sgml.tmp >nona.sgml
+	sgml2latex nona.sgml
+	if test ! -f nona.dvi\
+           -o -f nona.tex -a nona.tex -nt nona.dvi; then\
+    	        latex nona.tex; latex nona.tex;\
+        fi
+
+nona.ps: nona.dvi
+	dvips -o $@ nona.dvi
+
+# The following entry is only for internal usage.  It adds makefile
+# dependencies for NONA object files to the end of given file.
+depend : ird.c ird.h yacc.c
+	@echo ++++ Adding Makefile dependencies ++++
+	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
+	echo '#' >>$(srcdir)/Makefile.in
+	$(SED) '/^# The following is generated with the aid of Makefile entry depend/,$$d' <$(srcdir)/Makefile.in >Makefile.tmp
+	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
+	echo '# Do not place anything below this line' >>Makefile.tmp
+	echo '#' >>Makefile.tmp
+	for i in ird.c $(srcdir)/../NONA/common.c $(srcdir)/../NONA/tab.c\
+                 yacc.c $(srcdir)/../NONA/anal.c $(srcdir)/../NONA/gen.c\
+                 $(srcdir)/../NONA/main.c;do\
+	   gcc -MM -I- -I$(srcdir)/../NONA $(CFLAGS) $$i\
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/NONA/ird\.h%ird.h%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                         >>Makefile.tmp;\
+	   echo '	$$(CC) -c $$(CFLAGS) -o $$@' $$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g' >>Makefile.tmp;\
+	done
+	mv Makefile.tmp $(srcdir)/Makefile.in
+
+#
+# The following is generated with the aid of Makefile entry depend
+# Do not place anything below this line
+#
+ird.o: ird.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h
+	$(CC) -c $(CFLAGS) -o $@ ird.c
+common.o: $(top_srcdir)/NONA/common.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/NONA/common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/NONA/common.c
+tab.o: $(top_srcdir)/NONA/tab.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/NONA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/NONA/tab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/NONA/tab.c
+yacc.o: yacc.c ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/NONA/common.h $(top_srcdir)/NONA/tab.h $(top_srcdir)/NONA/yacc.h
+	$(CC) -c $(CFLAGS) -o $@ yacc.c
+anal.o: $(top_srcdir)/NONA/anal.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/NONA/common.h $(top_srcdir)/NONA/tab.h \
+ $(top_srcdir)/NONA/anal.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/NONA/anal.c
+gen.o: $(top_srcdir)/NONA/gen.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/NONA/common.h ird.h $(top_srcdir)/NONA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/NONA/gen.c
+main.o: $(top_srcdir)/NONA/main.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/commline.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/NONA/common.h $(top_srcdir)/NONA/tab.h $(top_srcdir)/NONA/yacc.h $(top_srcdir)/NONA/anal.h \
+ $(top_srcdir)/NONA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/NONA/main.c

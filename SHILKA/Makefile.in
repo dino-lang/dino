@@ -1,0 +1,317 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for Shilka (keywords description translator)
+#
+#   DATA_RIGHTS: 
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir     the subdirectory used for creation of compressed
+#                        distribution tar file
+#            prefix      common prefix for installation directories
+#            exec_prefix common prefix for binary installation directories
+#            bindir      the directory used for installation of `shilka'
+#            mandir      the directory for installation of man pages
+#            man1dir     the directory for installation of `shilka.1'
+#            INSTALL     utility used for installation `shilka'
+#            INSTALLDATA utility used for installing nonexecutables
+#            SED         utility used instead of POSIX utility `sed'
+#            ETAGS       utility used for creation of `shilka' tag table
+#            YACC        used YACC (e.g. `bison -y')
+#            YFLAGS      YACC flags (e.g. -v)
+#            CC          used C compiler
+#            CFLAGS      C compiler flags
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create `shilka'
+#            test            test `shilka'
+#            install         create and install `shilka'
+#            uninstall       delete the installed file
+#            clean           delete all object files and file `shilka'
+#            realclean       deletion all which can be built up automatically
+#            distclean       deletion all not needed for distribution
+#            TAGS            updating TAGS table for the `shilka' sources
+#            dist-copy       copying `shilka' distribution files into `distdir'
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#
+
+SHELL=/bin/sh
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.
+distdir = shilka-0.8
+
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# Common prefix for binary installation directories.
+# NOTE: this directory must exist when you start installation.
+exec_prefix=@exec_prefix@
+
+# The directory for installation of `shilka'.
+bindir=@bindir@
+
+# The directory for installation of man pages
+mandir=@mandir@
+
+# The directory for installation of `shilka.1'
+man1dir=$(mandir)/man1
+
+# Utility for installation `shilka'.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables (e.g. `shilka.1').
+INSTALLDATA=@INSTALL_DATA@
+
+# Utility used instead of POSIX utility `sed'.
+SED=sed
+
+# Utility used instead of POSIX utility `awk'.
+AWK=@AWK@
+
+# Utility for creation of `shilka' tag table.
+ETAGS=etags
+
+# YACC and its flags used for creation of syntax analyzer.
+YACC= @YACC@
+YFLAGS=
+
+# Obligatory compiler options
+OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION -I../AMMUNITION -I$(srcdir)
+
+# C compiler and its flag used for compilation of C files.
+CC = @CC@
+CFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+top_srcdir = @top_srcdir@
+
+# All object files of the pipeline hazards description translator:
+objects = ird.o common.o\
+          tab.o yacc.o anal.o gen.o main.o
+
+# All source files of the translator.
+source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
+         $(srcdir)/yacc.h $(srcdir)/yacc.y $(srcdir)/anal.h $(srcdir)/anal.c\
+	 $(srcdir)/gen.h $(srcdir)/gen.c $(srcdir)/main.c $(srcdir)/ird.sprut\
+         $(srcdir)/Makefile.in
+
+additional_files = README INSTALL\
+                   shilka.tst.in compare.tst.in\
+		   java.shilka ada-standards.shilka ada.shilka\
+                   b.shilka c.shilka cpp.shilka d.shilka gpc.shilka\
+                   modula2.shilka modula3.shilka pascal.shilka\
+                   gcc.shilka gcc.gperf c.gperf shilka.1 shilka.dsw shilka.dsp
+
+doc_files = shilka.txt shilka.info* shilka*.html shilka.dvi shilka.ps
+
+# Files which are not in distribution
+additional_rcs_files = shilka.sgml.in
+
+# Default entry
+all : shilka
+
+shilka : $(objects) ../AMMUNITION/libcocom.a
+	$(CC) $(CFLAGS) -o $@ $(objects) ../AMMUNITION/libcocom.a
+
+ird.c ird.h : $(srcdir)/ird.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set -new\
+                       $(srcdir)/ird.sprut
+
+yacc.c: $(srcdir)/yacc.y
+	$(YACC) $(YFLAGS) $(srcdir)/yacc.y
+# This is necessary for MS-DOS YACC (BISON) and VMS POSIX YACC
+	if test ! -f y.tab.c && test -f y_tab.c;then mv y_tab.c $@;\
+	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
+	else mv y.tab.c $@;fi
+
+test : shilka
+	$(SHELL) ./shilka.tst
+	$(SHELL) ./compare.tst
+
+# Creation of installation directories and all object files and copying
+# the translator `shilka' and its man file to target directories.
+install: all
+	-mkdir $(bindir)
+	$(INSTALL) shilka $(bindir)/shilka
+	-mkdir $(mandir)
+	-mkdir $(man1dir)
+	$(INSTALLDATA) $(srcdir)/shilka.1 $(man1dir)/shilka.1
+
+# Delete the installed files and the installation directories.
+uninstall:
+	rm -f $(bindir)/shilka
+	-rmdir $(bindir)
+	rm -f $(man1dir)/shilka.1
+	-rmdir $(man1dir)
+	-rmdir $(mandir)
+
+# Deletion of object files of the translator, executable file `shilka' and also
+# deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'.
+clean :
+	rm -f $(objects) shilka ird.c ird.h yacc.c
+
+# Deletion all not needed for distribution: the same as entry `clean'.
+distclean: clean
+	rm -f Makefile
+	rm -f shilka.sgml shilka.tex shilka.log shilka.aux shilka.toc\
+	      shilka.sgml.tmp shilka.tmp
+
+# Deletion all which can be built up automatically:
+# the same as entry `distclean' and emacs TAGS table.
+realclean: distclean
+	rm -f TAGS
+
+# Updating TAGS table for the `shilka' sources.
+TAGS : $(source)
+	$(ETAGS) $(source)
+
+# Ouput names of TAGS table for the `shilka' sources.
+tagsout : $(source)
+	for i in $(source);do\
+	  echo `basename $$i`;\
+	done
+
+# Create empty subdirectory used for creation of compressed distribution
+# tar file.
+create-distdir:
+	-mkdir $(distdir)
+	rm -f -r $(distdir)/*
+
+# Copying `shilka' distribution files into `distdir'.
+dist-copy: create-distdir doc
+	cp $(source) $(distdir)
+	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	chmod -R +w $(distdir)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
+	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+
+# Unconditional creation of compressed distribution tar file.
+dist: dist-copy
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+
+# Creation of documentation
+
+doc : shilka.txt shilka.html shilka.info shilka.dvi shilka.ps
+
+shilka.sgml.tmp : $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
+	nroff -man $(srcdir)/shilka.1 | $(AWK) '{gsub (/.\b/,"");print;}' > shilka.tmp
+	$(AWK) '{if($$0 == "%%%")\
+                     {while ((getline line < "shilka.tmp") > 0)\
+                        print line;close("shilka.tmp")}\
+                 else print;}' $(srcdir)/shilka.sgml.in > $@
+	rm -f shilka.tmp
+
+shilka.txt: shilka.sgml.tmp
+	$(srcdir)/../sgml-txt shilka.sgml.tmp > $@
+	
+shilka.html: shilka.sgml.tmp
+	$(srcdir)/../sgml-html shilka.sgml.tmp >shilka.sgml
+	sgml2html shilka.sgml
+	
+shilka.info: shilka.sgml.tmp
+	$(srcdir)/../sgml-info shilka.sgml.tmp >shilka.sgml
+	sgml2info shilka.sgml
+	for i in shilka.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+shilka.dvi: shilka.sgml.tmp
+	$(srcdir)/../sgml-tex shilka.sgml.tmp >shilka.sgml
+	sgml2latex shilka.sgml
+	if test ! -f shilka.dvi\
+           -o -f shilka.tex -a shilka.tex -nt shilka.dvi; then\
+    	        latex shilka.tex; latex shilka.tex;\
+        fi
+
+shilka.ps: shilka.dvi
+	dvips -o $@ shilka.dvi
+
+# The following entry is only for internal usage.  It adds makefile
+# dependencies for SHILKA object files to the end of given file.
+depend : ird.c ird.h yacc.c
+	@echo ++++ Adding Makefile dependencies ++++
+	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
+	echo '#' >>$(srcdir)/Makefile.in
+	$(SED) '/^# The following is generated with the aid of Makefile entry depend/,$$d' <$(srcdir)/Makefile.in >Makefile.tmp
+	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
+	echo '# Do not place anything below this line' >>Makefile.tmp
+	echo '#' >>Makefile.tmp
+	for i in ird.c $(srcdir)/../SHILKA/common.c\
+                 $(srcdir)/../SHILKA/tab.c yacc.c\
+                 $(srcdir)/../SHILKA/anal.c $(srcdir)/../SHILKA/gen.c\
+                 $(srcdir)/../SHILKA/main.c;do\
+	   gcc -MM -I- -I$(srcdir)/../SHILKA $(CFLAGS) $$i\
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/SHILKA/ird\.h%ird.h%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                         >>Makefile.tmp;\
+	   echo '	$$(CC) -c $$(CFLAGS) -o $$@' $$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g' >>Makefile.tmp;\
+	done
+	mv Makefile.tmp $(srcdir)/Makefile.in
+
+#
+# The following is generated with the aid of Makefile entry depend
+# Do not place anything below this line
+#
+ird.o: ird.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h
+	$(CC) -c $(CFLAGS) -o $@ ird.c
+common.o: $(top_srcdir)/SHILKA/common.c ../AMMUNITION/cocom-config.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SHILKA/common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/common.c
+tab.o: $(top_srcdir)/SHILKA/tab.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/SHILKA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SHILKA/tab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/tab.c
+yacc.o: yacc.c ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SHILKA/common.h $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/yacc.h
+	$(CC) -c $(CFLAGS) -o $@ yacc.c
+anal.o: $(top_srcdir)/SHILKA/anal.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/SHILKA/common.h \
+ $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/anal.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/anal.c
+gen.o: $(top_srcdir)/SHILKA/gen.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/bits.h $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/SHILKA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/gen.c
+main.o: $(top_srcdir)/SHILKA/main.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/commline.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/ticker.h ird.h $(top_srcdir)/SHILKA/common.h \
+ $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/yacc.h $(top_srcdir)/SHILKA/anal.h $(top_srcdir)/SHILKA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/main.c

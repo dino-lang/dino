@@ -1,0 +1,335 @@
+#!/bin/sh
+
+#
+# Script to test of MSTA.
+#
+
+#
+# Usage: msta.tst
+#
+# The script outputs self-explanatory messages and returns zero exit code if 
+# it is all ok.
+#
+
+CC='@CC@ @CFLAGS@ @DEFS@'
+#CC='gcc'
+ygram=temp.y
+cgram=temp.c
+outputf=_output
+outfile=./a.out
+
+echo +++++++++++ Testing MSTA ++++++++++++++++++++++++++++++++
+
+if test x$1 = x
+then
+    start_test_number=1
+else
+    if expr $1 + 0 >/dev/null
+    then
+        start_test_number=`expr $1 + 0`
+    else
+        echo $script_file:invalid argument $1 2>&1
+        exit 1
+    fi
+fi
+
+result=ok
+
+# Test 1.
+if test $result = ok -a $start_test_number -le 1; then
+    echo test 1: calculator
+    result=fail
+    echo ./msta @srcdir@/fcalc.y
+    if ./msta @srcdir@/fcalc.y; then
+	    echo $CC fcalc.c -lm
+	    if $CC fcalc.c -o $outfile -lm; then
+	            echo $outfile ">$outputf"
+		    if $outfile >$outputf <<'INPUT1'; then
+10+10*5
+(10 - 5) *3
+INPUT1
+                        if cmp $outputf - <<'EOF1'; then
+	60
+	15
+EOF1
+                                result=ok
+                        fi
+		    fi
+	    fi
+    fi
+fi
+
+# Test 2.
+if test $result = ok -a $start_test_number -le 2; then
+    echo test 2: Basile bug
+    cat >$ygram <<'TEST2'
+/* file QISH/qbootgram.y for MSTA (a super Yacc in Cocom) -*- C -*- */
+/* I lost my first qbootgram.y! */
+%{
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <strings.h>
+#include <string.h>
+#include <dlfcn.h>
+#include <assert.h>
+
+#include "qish.h"
+
+#define yyerror fatalerr
+
+#warning qbootgram.y is very incomplete
+%}
+
+%union {
+  /* union describing semantic value */
+  int ival;
+  double floval;
+  struct { int cod; int i; } icodval;
+  struct { int cod; unsigned u; } ucodval;
+}
+
+%token INT 
+
+%token FLOAT
+
+%token STRING
+
+%token IDENT
+
+%token NIL EXPORT CODE SPEC PARAM SAY OBJ VAR ARG LABEL FORWARD
+
+%token CODELEM_INT CODELEM_VAR CODELEM_OPER CODELEM_OPUB CODELEM_OPSB 
+%token CODELEM_OPUH CODELEM_OPSH CODELEM_OPUL CODELEM_OPSL
+
+
+%type <ival> INT
+%type <icodval> CODELEM_INT CODELEM_VAR CODELEM_OPSB  CODELEM_OPSH CODELEM_OPSL
+%type <ucodval> CODELEM_OPER CODELEM_OPUB CODELEM_OPUH CODELEM_OPUL 
+
+%start top_level
+
+%% 
+/* this use MSTA (Ebnf) extensions for repetition, option, ... */
+
+top_level:  ( directive | definition ) * ;
+
+directive: 
+  EXPORT STRING object objval ';'
+| SAY STRING ';'
+  ;
+
+definition: OBJ IDENT '='  object ';'
+| VAR IDENT + ';'
+| ARG IDENT + ';'
+| LABEL IDENT + ';'
+| FORWARD IDENT + ';'
+;
+
+objval: INT | object | IDENT | NIL ;
+
+object: code_object | special_object | plain_object;
+
+code_object: CODE '{' [ spec_header ] [ code_param ] code '}' ;
+
+spec_header: '+' objval [ objval [ objval ] ] ';' ;
+
+special_object: SPEC '{' [ spec_header ] spec_content * '}' ;
+
+spec_content: INT | STRING | FLOAT ;
+
+code_param: PARAM objval * ';' ;
+
+code: code_element + ;
+
+code_element:
+   CODELEM_INT  
+ | CODELEM_VAR 
+ | CODELEM_OPER 
+ | CODELEM_OPUB INT
+ | CODELEM_OPSB INT
+ | CODELEM_OPUH INT
+ | CODELEM_OPSH INT 
+ | CODELEM_OPUL INT
+ | CODELEM_OPSL INT
+   :
+
+plain_object: [ '!' INT ] '[' objval * ']' ;
+%%
+
+/* trailer */
+TEST2
+    result=fail
+    echo ./msta $ygram "2>$outputf"
+    if ./msta $ygram 2>$outputf; then
+       echo >/dev/null
+    else
+      if cmp $outputf - <<'EOF2'; then
+temp.y:95:16: nonterminal `INT' is declared as token early
+temp.y:33:7: here definition of token `INT'
+EOF2
+	result=ok
+      fi
+    fi
+fi
+
+# Test 3.
+if test $result = ok -a $start_test_number -le 3; then
+    echo test 3: Cliff Lyons bug
+    cat >$ygram <<'TEST3'
+%%
+h :          {printf ("reduce `h:'\n");}
+  | h h 'x'  {printf ("reduce `h: h h 'x''\n");}
+  ;
+%%
+
+static char input [] = "xxxxxxx";
+static curr_ch = 0;
+yylex ()
+{
+  if (curr_ch >= sizeof (input) / sizeof (char) - 1)
+    return 0;
+ printf ("input: %d=%c\n", curr_ch, input [curr_ch]);
+ return input [curr_ch++];
+}
+  
+yyerror (s)  /* Called by yyparse on error */
+     char *s;
+{
+  printf ("%s\n", s);
+}
+
+main ()
+{
+  exit (yyparse ());
+}
+
+TEST3
+    result=fail
+    echo ./msta $ygram "2>$outputf"
+    if ./msta -lr $ygram 2>$outputf && cmp $outputf - <<'EOF3'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+EOF3
+	    echo $CC $cgram
+	    if $CC $cgram -o $outfile; then
+	            echo $outfile ">$outputf"
+		    if $outfile >$outputf && cmp $outputf - <<'EOF3'; then
+reduce `h:'
+input: 0=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 1=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 2=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 3=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 4=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 5=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 6=x
+reduce `h:'
+reduce `h: h h 'x''
+EOF3
+                                result=ok
+		    fi
+	    fi
+    fi
+fi
+
+# Test 4.
+if test $result = ok -a $start_test_number -le 4; then
+    echo test 4: Cliff Lyons bug
+    cat >$ygram <<'TEST4'
+%%
+h :          {printf ("reduce `h:'\n");}
+  | h h 'x'  {printf ("reduce `h: h h 'x''\n");}
+  ;
+%%
+
+static char input [] = "xxxxxxx";
+static curr_ch = 0;
+yylex ()
+{
+  if (curr_ch >= sizeof (input) / sizeof (char) - 1)
+    return 0;
+ printf ("input: %d=%c\n", curr_ch, input [curr_ch]);
+ return input [curr_ch++];
+}
+  
+yyerror (s)  /* Called by yyparse on error */
+     char *s;
+{
+  printf ("%s\n", s);
+}
+
+main ()
+{
+  exit (yyparse ());
+}
+
+TEST4
+    result=fail
+    echo ./msta -lr $ygram "2>$outputf"
+    if ./msta -lr $ygram 2>$outputf && cmp $outputf - <<'EOF4'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+EOF4
+	    echo $CC $cgram
+	    if $CC $cgram -o $outfile; then
+	            echo $outfile ">$outputf"
+		    if $outfile >$outputf && cmp $outputf - <<'EOF4'; then
+reduce `h:'
+input: 0=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 1=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 2=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 3=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 4=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 5=x
+reduce `h:'
+reduce `h: h h 'x''
+input: 6=x
+reduce `h:'
+reduce `h: h h 'x''
+EOF4
+                                result=ok
+		    fi
+	    fi
+    fi
+fi
+
+# Final message
+
+if test $result = ok; then
+	echo it is all ok
+        rm -f $outfile fcalc.c $outputf $ygram $cgram
+	exit 0
+else
+	echo '***' test is failed see $ygram $outputf
+	exit 1
+fi

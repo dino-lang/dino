@@ -1,0 +1,608 @@
+#!/bin/sh
+# @configure_input@
+
+#
+# Script to test of allocation package (files `commline.h',
+#                                             `commline.cpp').
+#
+
+#
+# Usage: commline++.tst [start_test_number]
+#
+# The script outputs self-explanatory messages and returns zero exit code if 
+# it is all ok.
+#
+
+script_file=$0
+CXX='@CXX@'
+CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
+source_addfiles='@srcdir@/allocate.cpp @srcdir@/vlobject.cpp @srcdir@/objstack.cpp @srcdir@/commline.cpp'
+addfiles='allocate.o vlobject.o objstack.o commline.o'
+test_file=tcommline.cpp
+outfile=./a.out
+
+if test x$1 = x
+then
+    start_test_number=1
+else
+    if expr $1 + 0 >/dev/null
+    then
+        start_test_number=`expr $1 + 0`
+    else
+        echo $script_file:invalid argument $1 2>&1
+        exit 1
+    fi
+fi
+
+# Compilation of addfiles
+
+echo '      ' $CC $CXX_options -c $source_addfiles
+if $CXX $CXX_options -c $source_addfiles; then
+        result=ok
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi
+
+# Test 1.
+if test $result = ok -a $start_test_number -le 1; then
+        cat >$test_file <<'TEST1'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  if (!suCXXess)
+    exit (1);
+  exit (0);
+}
+TEST1
+
+        echo test 1:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' a.out
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 2.
+if test $result = ok -a $start_test_number -le 2; then
+        cat >$test_file <<'TEST2'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+/* Incorrect description: construction `*' */
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star `*' marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  if (suCXXess)
+    exit (1);
+  exit (0);
+}
+TEST2
+
+        echo test 2:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 3.
+if test $result = ok -a $start_test_number -le 3; then
+        cat >$test_file <<'TEST3'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION "dir file %% `-o file' `-c' `-Ldir'"
+
+main (int argc, char **argv)
+{
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  cml->output_description ();
+  exit (0);
+}
+TEST3
+
+        echo test 3:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if test "`$outfile 2>&1|awk 'NR==2'`" = ' `-o file'"'"' `-c'"'"' `-Ldir'"'"
+                then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 4.
+if test $result = ok -a $start_test_number -le 4; then
+        cat >$test_file <<'TEST4'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  if (cml->number_of_operands () != 6)
+    exit (1);
+  exit (0);
+}
+TEST4
+
+        echo test 4:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2\
+ file3 file4 -- -c -l -- file5
+                if $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2 file3 file4\
+                         -- -c -l -- file5; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 5.
+if test $result = ok -a $start_test_number -le 5; then
+        cat >$test_file <<'TEST5'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  if (cml->last_option_place ("-L") != 8)
+    exit (1);
+  exit (0);
+}
+TEST5
+
+        echo test 5:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2\
+ file3 file4 -- -L./../ -- -L./.
+                if $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2\
+                   file3 file4 -- -L./../ -- -L./.; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 6.
+if test $result = ok -a $start_test_number -le 6; then
+        cat >$test_file <<'TEST6'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  if (strcmp (cml->argument_vector () [cml->next_operand (1)], "file3") != 0
+      || strcmp (cml->argument_vector () [cml->next_operand (0)], "file4") != 0
+      || strcmp (cml->argument_vector () [cml->next_operand (0)], "--") != 0
+      || strcmp (cml->argument_vector () [cml->next_operand (0)], "-L./.") != 0
+      || cml->next_operand (0) != 0)
+    exit (1);
+  exit (0);
+}
+TEST6
+
+        echo test 6:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2\
+ file3 file4 -- -- -L./.
+                if $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2\
+                   file3 file4 -- -- -L./.; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 7.
+if test $result = ok -a $start_test_number -le 7; then
+        cat >$test_file <<'TEST7'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  if (strcmp (cml->argument_vector () [cml->next_option (1)], "-c") != 0
+      || strcmp (cml->argument_vector () [cml->next_option (0)], "-g") != 0
+      || strcmp (cml->argument_vector () [cml->next_option (0)], "-c") != 0
+      || strcmp (cml->argument_vector () [cml->next_option (0)], "-lc") != 0
+      || strcmp (cml->argument_vector () [cml->next_option (0)], "-L../") != 0
+      || strcmp (cml->argument_vector () [cml->next_option (0)], "-o") != 0
+      || strcmp (cml->argument_vector () [cml->next_option (0)], "-L./") != 0
+      || strcmp (cml->argument_vector () [cml->next_option (0)], "-o") != 0
+      || cml->next_option (0) != 0)
+    exit (1);
+  exit (0);
+}
+TEST7
+
+        echo test 7:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2\
+ file3 file4 -- -- -L./.
+                if $outfile -c -g -c -lc -L../ -o file1 -L./ -o file2\
+                   file3 file4 -- -- -L./.; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 8.
+if test $result = ok -a $start_test_number -le 8; then
+        cat >$test_file <<'TEST8'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  int i, option_has_argument;
+  char *option;
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  for (i = cml->next_option (1); i != 0; i = cml->next_option (0))
+    {
+      option = cml->option_characteristics (i, &option_has_argument);
+      if (option == NULL)
+        {
+          if (option_has_argument)
+            /* correct option but without argument in the command line */
+            exit (0);
+        }
+    }
+  exit (1);
+}
+TEST8
+
+        echo test 8:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile -c -g -c -lc -L../ -o -L./
+                if $outfile -c -g -c -lc -L../ -o -L./ ; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 9.
+if test $result = ok -a $start_test_number -le 9; then
+        cat >$test_file <<'TEST9'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  int i, option_has_argument;
+  char *option;
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  for (i = cml->next_option (1); i != 0; i = cml->next_option (0))
+    {
+      option = cml->option_characteristics (i, &option_has_argument);
+      if (option == NULL)
+        {
+          if (!option_has_argument)
+            /* unknown option in the command line */
+            exit (0);
+        }
+    }
+  exit (1);
+}
+TEST9
+
+        echo test 9:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile -c -g -c -x
+                if $outfile -c -g -c -x ; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 10.
+if test $result = ok -a $start_test_number -le 10; then
+        cat >$test_file <<'TEST10'
+#include <stdlib.h>
+#include <string.h>
+#include "allocate.h"
+#include "commline.h"
+
+#define DESCRIPTION \
+"dir xxx file\n\
+%%\n\
+command line:  pc [options] file ... \n\
+                               Options:\n\
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.\n\
+`-29000'  AMD29000 code generation   `-29050'* AMD29050 code generation\n\
+`-c'      only object files creation `-el'     output of listing\n\
+`-g'      information for debuggers  `-Idir'   data task units directory\n\
+`-lxxx'   library                    `-Ldir'   libraries directory\n\
+`-o file' output file                `-O'      all optimizations\n\
+`-S'      only ass. code creation    `-v'      version indication\n\
+`-w'      no warnings generation\n\
+               Star * marks defaults\
+"
+
+main (int argc, char **argv)
+{
+  int i, option_has_argument;
+  char *option;
+  command_line *cml;
+  int suCXXess;
+
+  cml = new command_line (argc, argv, DESCRIPTION, suCXXess);
+  for (i = cml->next_option (1); i != 0; i = cml->next_option (0))
+    {
+      option = cml->option_characteristics (i, &option_has_argument);
+      if (option == NULL)
+        {
+          if (option_has_argument)
+            /* correct option but without argument in the command line */
+            exit (1);
+          else 
+            /* unknown option */
+            exit (1);
+        }
+      else if (strcmp (option, "-0") != 0
+               && strcmp (option, "-1") != 0 && strcmp (option, "-29000") != 0
+               && strcmp (option, "-29050") != 0 && strcmp (option, "-c") != 0
+               && strcmp (option, "-el") != 0 && strcmp (option, "-g") != 0
+               && strcmp (option, "-I") != 0 && strcmp (option, "-l") != 0
+               && strcmp (option, "-L") != 0 && strcmp (option, "-o") != 0
+               && strcmp (option, "-O") != 0 && strcmp (option, "-S") != 0
+               && strcmp (option, "-v") != 0 && strcmp (option, "-w") != 0)
+        exit (1);
+    }
+  exit (0);
+}
+TEST10
+
+        echo test 10:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile -0 -1 -29000 -29050 -c -el -g -I./ -lc\
+ -L./ -o file -O -S -v -w
+                if $outfile -0 -1 -29000 -29050 -c -el -g -I./ -lc\
+                         -L./ -o file -O -S -v -w; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Final message
+
+if test $result = ok; then
+        echo $script_file: it is all ok
+        rm -f $addfiles $test_file $outfile
+        exit 0
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi

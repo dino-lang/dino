@@ -1,0 +1,185 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH SPRUT 1 "5 APR 2001" COCOM "User Manuals"
+.SH NAME
+sprut \- internal representation description translator
+.SH SYNOPSIS
+.B sprut [ -c++ -v -macro -only-macro -debug -pprefix -no-line -all
+.B         -access -set -new -free -free-graph -copy -copy-graph
+.B         -equal -equal-graph -check -check-graph -print -input
+.B -output -traverse -transform]
+.I specification-file
+
+.SH DESCRIPTION
+.B SPRUT
+(internal representation definition translator) generates
+standard procedural interface (
+.B SPI
+) for work with internal
+representation which is described in specification file.  The
+specification file must have suffix
+.B `.sprut'
+.  If the specification
+file is an extension (see language description) of another
+specification file the later is also used to SPI generation and so on.
+
+SPI consists of interface and implementation files having the same
+names as one of specification file and correspondingly suffixes
+.B `.h'
+and
+.B `.c'
+(C code) or
+.B `.cpp'
+(C++ code).
+.PP
+Full documentation of SPRUT and SPI see in SPRUT User's manual.
+.SH OPTIONS
+The options which are known for SPRUT are:
+.IP -c++
+Output of C++ code instead of C code (which is default).
+.IP -v
+SPRUT outputs verbose warning information (about fields with the same
+name in different node types, about repeated declaration of a
+predefined type and so on) to standard error stream.
+.IP -statistics
+SPRUT outputs statistic information (about number of (all, abstract,
+double) node types, number of (all, double, synonym, class, skeleton,
+others) fields) to standard output stream.
+.IP -flat
+SPRUT generates code for flat work with node fields.  It means that
+node fields declared in an abstract type are processed in each place
+where fields of corresponding sub-type are processed.  By default
+SPRUT generates code which processes node fields recursively (i.e.
+code for processing (e.g.  copying) fields declared in super types
+exists in one exemplar.  The option usage generates more fast code,
+but the code is considerably bigger.
+.IP -flat-structure
+SPRUT generates flat implementation of C/C++ structures corresponding
+to node types, i.e.  node type is represented by C/C++ structure which
+contains members corresponding to all node fields including fields
+declared in super types of given node type.  By default SPRUT
+generates the structures which contain only members corresponding to
+fields declared only in given node type and member whose type is
+structure corresponding to immediate super type of given node type.
+This considerably decreases number C/C++ declarations in interface
+file especially with many node types with multi-level inheritance.
+.IP -fast
+This option forces to generate some tables as unpacked and as a
+consequence to speed up code for access to fields.  By default the
+tables are generated as packed.  This results in considerable memory
+economy.
+.IP -long-node-size
+IRTD generates many long tables which contain displacements relative
+to begin of C/C++ structures which implement node types.  This option
+usage forces to represent the displacements as unsigned long.  As a
+consequence any size nodes can be used.  By default it is believed
+that size of structure implementing a node is represented by byte,
+i.e.  maximal size of C/C++ structures which implement nodes is
+supposed to be not greater than 255 bytes and as a consequence much
+memory is economized.  It should be remember that function
+.B `IR_start'
+(see SPI) generated in debugging mode checks correctness of real node sizes.
+.IP -short-node-size
+This option usage forces to represent the displacements in structures
+implementing node types as unsigned short.  See also option
+.B `-long-node-size'.
+.IP -macro 
+SPRUT generates access macros and functions (see SPI).  Only option
+.B `-macro'
+or
+.B `only-macro'
+can be in SPRUT command line.
+.IP -only-macro 
+SPRUT generates macros instead of access functions (see SPI).
+.IP -debug
+SPRUT generates checking constraint determined by type sub-type
+relations in node field declaration in modification functions (see
+SPI).  Also other checks (e.g.  that a node has given field and
+others) are fulfilled by SPI functions (but not macros) generated
+under this option.
+.IP -pprefix
+Generated SPI uses
+.B `prefix'
+instead of
+.B `IR_'
+for names of SPI objects.
+.IP -no-line
+SPRUT does not generate files containing numbered line directives.
+.IP -all
+SPRUT generates all SPI functions.  Its effect is equivalent to
+presence of all subsequent options in the command line.
+.IP -access
+SPRUT generates access functions (see SPI).
+.IP -set
+SPRUT generates modification functions (see SPI).
+.IP -new
+SPRUT generates node type specific creation functions (see SPI).
+.IP -free
+SPRUT generates function for deletion of nodes (see SPI).
+.IP -free-graph
+SPRUT generates functions for deletion of graphs and nodes (see SPI).
+.IP -copy
+SPRUT generates function for copying nodes (see SPI).
+.IP -copy-graph
+SPRUT generates functions for copying graphs and nodes (see SPI).
+.IP -equal
+SPRUT generates function for determination of nodes equality (see
+SPI).
+.IP -equal-graph
+SPRUT generates functions for determination of nodes and graphs
+equality (see SPI).
+.IP -check
+SPRUT generates function for checking node constraints (see SPI).
+.IP -check-graph
+SPRUT generates functions for checking nodes and graphs constraints
+(see SPI).
+.IP -print
+SPRUT generates function for printing nodes (see SPI).
+.IP -input
+SPRUT generates function for input of nodes (see SPI).
+.IP -output
+SPRUT generates function for output of nodes (see SPI).
+.IP -traverse
+SPRUT generates function for traversing graphs (see SPI).
+.IP -reverse-traverse
+SPRUT generates function for reverse traversing graphs (see SPI).
+.IP -transform
+SPRUT generates functions for transforming acyclic graphs (see SPI).
+.IP -no-node-name
+SPRUT does not generate array containing node names (see SPI) if it is
+not necessary.  For example, the array is necessary when function for
+print of nodes are generated.
+.SH FILES
+.I file.sprut
+.RS
+SPRUT specification file
+.RE
+.I file.c
+.RS
+generated SPI implementation file
+.RE
+.I file.cpp
+.RS
+generated C++ implementation file
+.RE
+.I file.h
+.RS
+generated SPI interface file
+.RE
+
+There are no any temporary files used by SPRUT.
+.SH ENVIRONMENT
+There are no environment variables which affect SPRUT behavior.
+.SH DIAGNOSTICS
+SPRUT diagnostics is self-explanatory.
+.SH AUTHOR
+Vladimir N. Makarov, vmakarov@users.sourceforge.net
+.SH "SEE ALSO"
+.BR msta (1),
+.BR shilka (1),
+.BR oka (1),
+.BR nona (1).
+SPRUT manual.
+.SH BUGS
+Please, report bugs to cocom-bugs@lists.sourceforge.net.

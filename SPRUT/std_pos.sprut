@@ -1,0 +1,43 @@
+/* This is file `std_pos.sprut'.  The file contains description of C
+   position type and its type specific macros (see SPRUT
+   documentation).  The macros is implemented with the aid of package
+   `positions' therefore the package must be initiated before usage
+   macros from this file. */
+
+%type position_t
+
+%import {
+
+#include <stdio.h>
+#include "position.h"
+
+/* The type `position_t' is already in file `positions.h'. */
+
+}
+
+%local {
+
+/* Type specific macros (see SPRUT documentation) for `position_t': */
+#define IR_BEGIN_position_t(a)        ((a) = no_position)
+#define IR_END_position_t(a)        
+#define IR_COPY_position_t(a, b)      ((a) = (b))
+#define IR_EQUAL_position_t(a, b)     (compare_positions ((a), (b)) == 0)
+#define IR_PRINT_position_t(a)\
+   printf ("(file = \"%s\", line = %d, pos = %d)",\
+           (a).file_name, (a).line_number, (a).column_number)
+
+#define IR_INPUT_position_t(file, a)  (fread (&(a), sizeof (a), 1, (file))\
+                                       != sizeof (a))
+#define IR_OUTPUT_position_t(file, a)  (fwrite (&(a), sizeof (a), 1, (file))\
+                                        != sizeof (a))
+
+}
+
+%%
+
+/*
+Local Variables:
+mode:c
+End:
+*/
+

@@ -1,0 +1,7 @@
+%extend A_base
+%%
+%abstract
+value :: %root
+%other
+    value : number
+;

@@ -1,0 +1,727 @@
+/*
+   FILE NAME:   ird.sprut
+
+   TITLE:       Internal representation description for OKA (pipeline
+                hazards description translator)
+
+   DESCRIPTION: This file describes internal representation
+                description for OKA (pipeline hazards description
+                translator).  SPRUT generates standard procedural
+                interface of OKA internal representation,
+                i.e. definitions of types, macros, variables,
+                functions for work with internal representation of
+                OKA.
+
+*/
+
+%import {
+
+#include "objstack.h"
+#include "position.h"
+
+/* Definitions of predefined types: */
+
+typedef int integer_t;
+
+typedef int bool_t;
+
+typedef char *string_t;
+
+typedef unsigned int unit_reservation_set_element_t;
+
+typedef unit_reservation_set_element_t *reservation_sets_list_t;
+
+}
+
+
+%export {
+
+/* These macros for storage management of OKA internal representation: */
+
+/* Start work with the storage manager -- see OKA documentation. */
+
+#define IR_START_ALLOC()    OS_CREATE (irp, 0)
+
+/* Finish work with the storage manager -- see OKA documentation. */
+
+#define IR_STOP_ALLOC()     OS_DELETE (irp)
+
+/* Allocate storage for internal representation of given size
+   -- see OKA documentation. */
+
+#define IR_ALLOC(ptr, size, ptr_type)\
+  do {\
+    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
+    OS_TOP_FINISH (irp);\
+  } while (0);
+
+/* Free storage of internal representation of given size -- see OKA
+   documentation. */
+
+#define IR_FREE(ptr, size)
+
+
+/* These macros are analogous to ones of package `object-stack'
+   worked with storage of OKA internal representation: */
+
+/* Start new internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
+
+/* Nullify current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
+
+/* Shorten current internal representation object on given number bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
+
+/* Return start address of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
+
+/* Return length of current internal representation object in bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
+
+/* Expand current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_EXPAND(length)  OS_TOP_EXPAND (irp, length)
+
+/* Add byte to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
+
+/* Add string to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
+
+/* Add memory of given length to the end of current internal representation
+   object -- see also package `object-stack'. */
+
+#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
+
+extern os_t irp;
+
+IR_node_t find_result (IR_node_t instruction, integer_t number);
+
+IR_node_t find_input (IR_node_t instruction, integer_t number);
+
+}
+
+%local {
+
+/* All internal representation storage is implemented by object stack.  See
+   package `object-stack'. */
+
+os_t irp;
+}
+
+%type integer_t bool_t string_t position_t reservation_sets_list_t
+
+%%
+
+%abstract
+node :: %root
+%skeleton
+    /* Start source position of object represented by given node. */
+    position : position_t
+;
+
+/****** All fields of the following fields are defined by OKA scanner. ******/
+
+/* It describes any identifier occurrence. */
+identifier :: node
+%skeleton
+    identifier_itself : string_t
+    /* The following field forms various list of identifier:
+         in instruction declaration
+         in reservation declaration
+         in unit declaration          */
+    next_identifier : identifier
+;
+
+/* It describes any number occurrence. */
+number :: node
+%skeleton
+    number_value : integer_t
+;
+
+/* It describes code insertion, i.e. C code in `{' and `}'. */
+code_insertion :: node
+%skeleton
+    /* Surrounding '{' and '}' are absent here. */
+    code_insertion_itself : string_t
+;
+
+/****** All fields of the following fields are defined by OKA parser. ******/
+
+%abstract
+declaration :: node
+%skeleton
+    /* Arc to node representing next textually declaration. */
+    next_declaration : declaration
+;
+
+%abstract
+identifier_declaration :: declaration
+%skeleton
+    identifier_list : identifier
+;
+
+instruction_declaration :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%instruction'. */
+;
+
+reservation_declaration :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%reservation'. */
+;
+
+unit_declaration :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%unit'. */
+%skeleton
+    /* The following field value is identifier of the automaton to
+       which given unit belongs.  The following field value is NULL if
+       such identifier is absent in the description for given unit. */
+    automaton_identifier : identifier
+;
+
+exclusion_clause :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%unit'. */
+%skeleton
+    /* The following field value is identifier list in the second part
+       of exclusion clause. */
+    identifier_list_2 : identifier
+;
+
+
+automaton_declaration :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%unit'. */
+;
+
+%abstract
+code :: declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding code insertion. */
+%skeleton
+    /* Arc to node which represents corresponding code insertion. */
+    code_itself : code_insertion
+;
+
+/* It describes local code, i.e. construction `%local {...}'.  All
+   fields are defined before semantic analysis of OKA. */
+local_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%local'. */
+;    
+
+/* It describes import code, i.e. construction `%import {...}'.  All
+   fields are defined before semantic analysis of OKA. */
+import_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%import'. */
+;
+
+/* It describes export code, i.e. construction `%export {...}'.  All
+   fields are defined before semantic analysis of OKA. */
+export_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%export'. */
+;
+
+/* It describes expression (reservation or instruction) definition. */
+expression_definition :: node
+    /* Field `position' of given node type is defined by position of
+       the reservation or instruction identifier in the left hand side
+       of the expression definition. */
+%skeleton
+    /* Arc to node which represents corresponding identifier. */
+    expression_identifier : identifier [!IS_NULL ($)]
+%other
+    /* The definitions corresponding to construction `A, B, C, ... :
+       ....' will refer for the same expression. */
+    expression : expression
+    next_expression_definition : expression_definition
+;
+
+%abstract
+expression :: node
+;
+
+%abstract
+one_operand_expression :: expression
+%skeleton
+    operand : expression   [!IS_NULL ($)]
+;
+
+%abstract
+two_operand_expression :: expression
+%skeleton
+    left_operand : expression    [!IS_NULL ($)]
+    right_operand : expression   [!IS_NULL ($)]
+;
+
+/* It describes concatenation operation (A B). */
+new_cycle_concatenation :: two_operand_expression
+    /* Field `position' of given node type is defined by position of
+       the second expression of the operation. */
+;
+
+/* It describes plus operation (A + B). */
+concatenation :: two_operand_expression
+    /* Field `position' of given node type is defined by position of
+       the second expression of the operation. */
+;
+
+/* It describes construction [A]. */
+optional_expression :: one_operand_expression
+    /* Field `position' of given node type is defined by position of
+       the corresponding `['. */
+;
+
+/* It describes alternation operation (A | B). */
+alternative :: two_operand_expression
+    /* Field `position' of given node type is defined by position of
+       the corresponding `|'. */
+;
+
+/* It describes repetition operation (A * B). */
+repetition :: one_operand_expression
+    /* Field `position' of given node type is defined by position of
+       the corresponding `*'. */
+%skeleton
+    [!IS_NULL (IR_right_operand ($$))]
+    repetition_number : number [!IS_NULL ($))]
+;
+
+/* It describes operand (unit or expression). */
+expression_atom :: expression
+    /* Field `position' of given node type is defined by position of
+       the corresponding identifier. */
+%skeleton
+    /* The following field is identifier an unit or a reservation. */
+    expression_identifier : identifier [!IS_NULL ($)]
+;
+
+/* It describes something that makes no reservation %nothing, %input,
+   or %result. */
+%abstract
+no_unit :: expression
+;
+
+nothing :: no_unit
+    /* Field `position' of given node type is defined by position of
+       the corresponding identifier. */
+;
+
+/* It describes instruction result or input. */
+%abstract
+result_or_input :: no_unit
+;
+
+result :: result_or_input
+    /* Field `position' of given node type is defined by position of
+       the corresponding identifier. */
+%skeleton
+    /* The number of the result. */
+    result_number : integer_t
+;
+
+input :: result_or_input
+    /* Field `position' of given node type is defined by position of
+       the corresponding identifier. */
+%skeleton
+    /* The number of the input. */
+    input_number : integer_t
+;
+
+/* It describes additional code.  All fields are defined by OKA scanner. */
+additional_code :: node
+%skeleton
+    additional_code_itself : string_t
+;
+
+description :: node
+    /* Field `position' of given node type is defined by position of
+       the first description token. */
+%skeleton
+    declaration_list : declaration
+    /* May be NULL because of syntax errors. */
+    expression_definition_list : expression_definition
+    additional_code : additional_code  [!IS_NULL ($)]
+;
+
+/****** All fields of the following fields are defined by OKA analyzer. ******/
+
+%abstract
+single_declaration :: node
+%skeleton
+    /* The first instruction (or reservation or unit) identifier
+       occurence which declared the identifier (in constructions
+       `%instruction', `%reservation', `%unit', or in left hand side of
+       expression definition. */
+    identifier : identifier                            [!IS_NULL ($)]
+    next_single_declaration : single_declaration
+;
+
+/* Remember that automaton declarations have own name space. */
+
+single_automaton_declaration :: single_declaration
+    /* Field `position' of given node type is defined by position of
+       the first automaton identifier occurence which declared the
+       automaton (in construction `%automaton'). */
+%other
+    /* The following field value is TRUE if the automaton is used in an
+       expression definition. */
+    automaton_is_used : bool_t   {$ = 0 /*FALSE*/;}
+;
+
+single_unit_declaration :: single_declaration
+    /* Field `position' of given node type is defined by position of
+       the first unit identifier occurence which declared the unit (in
+       construction `%unit'). */
+%other
+    /* The following field value is TRUE if the unit is used in an
+       expression definition. */
+    unit_is_used : bool_t   {$ = 0 /*FALSE*/;}
+    /* The following field value is order number (0, 1, ...) of given
+       unit. */
+    unit_number : integer_t
+    /* The following field value is corresponding single declaration
+       of automaton which was given in description.  If the field
+       value is NULL then automaton in the unit declaration was
+       absent. */
+    single_automaton_declaration : single_automaton_declaration
+    /* The following field value is maximal cycle number (1, ...) on
+       which given unit occurs in instructions.  Zero value means that
+       given unit is not used in instructions. */
+    max_occurrence_cycle_number : integer_t    {$ = 0;}
+    /* The following list contains units which conflict with given
+       unit. */
+    exclusion_list : unit_set_element          {$ = NULL;}
+;
+
+/* The following nodes represent exclusion list for units.  Each
+   element are accessed through only one exclusion_list. */
+unit_set_element :: node
+    /* Field `position' of given node type is defined by position of
+       the identifier in the list. */
+%skeleton
+    single_unit_declaration : single_unit_declaration
+    next_unit_set_element : unit_set_element
+;
+
+%abstract
+single_expression_declaration :: single_declaration
+%other
+    /* The following field refers to expression defined for given
+       instruction or expression.  The value can be NULL only if
+       errors were fixed or it is special instruction `cycle
+       advancing'. */
+    expression : expression   {$ = NULL;}
+    /* The following field is used to check up cycle in expression
+       definition. */
+    cycle_checking_pass_number : integer_t
+;
+
+single_reservation_declaration :: single_expression_declaration
+    /* Field `position' of given node type is defined by position of
+       the first reservation identifier occurence which declared the
+       reservation (in construction `%reservation'). */
+;
+
+/* The following two nodes forms list of results and inputs of an
+   instruction. */
+result_list :: %root
+%skeleton
+    result : result             [!IS_NULL ($)]
+    next_result : result_list
+;
+
+input_list :: %root
+%skeleton
+    input : input               [!IS_NULL ($)]
+    next_input : input_list
+;
+
+single_instruction_declaration :: single_expression_declaration
+    /* Field `position' of given node type is defined by position of
+       the first instruction identifier occurence which declared the
+       instruction (in construction `%instruction'). */
+%other
+    /* The following field value is order number (0, 1, ...) of given
+       instruction. */
+    instruction_number : integer_t
+    result_list : result_list
+    input_list : result_list
+;
+
+expression_atom
+%other
+    /* The following field refers for single declaration of unit or
+       reservation corresponding to given atom identifier.  The filed
+       value can be NULL only if error were fixed. */
+    single_declaration : single_declaration
+;
+
+description
+%other
+    /* The value of the following field is the last single declaration.
+       The single declaration list is cyclic. */
+    single_declaration_list : single_declaration
+    /* The following fields values are correspondingly number of
+       units and instructions in the description. */
+    units_number : integer_t             {$ = 0;}
+    /* The following field is the number of instructions. */
+    instructions_number : integer_t      {$ = 0;}
+    /* The following field value is max length (in cycles) of
+       reservations of instructions.  The field value is defined only
+       for correct programs. */
+    max_instruction_reservation_cycles : integer_t
+;
+
+/***** All fields of the following fields are defined by OKA generator. *****/
+
+/* The following node type describes state of FA. */
+
+state :: %root
+%skeleton
+    /* The following field is list of processor unit reservations on
+       each cycle. */
+    reservations : reservation_sets_list_t
+    /* The following field is unique number of given state between
+       other states. */
+    unique_number : integer_t
+    /* The following field value is automaton to which given state
+       belongs. */
+    automaton : automaton    [!IS_NULL ($)]
+%other
+    /* The following field value is the first arc output from given
+       state. */
+    first_out_arc : arc                                  {$ = NULL;}
+    /* The following field is used to form NDFA. */
+    it_was_placed_in_stack_for_NDFA_forming : bool_t  {$ = 0 /* FALSE */;}
+    /* The following field is used to form DFA. */
+    it_was_placed_in_stack_for_DFA_forming : bool_t   {$ = 0 /* FALSE */;}
+    /* The following field is used to transform NDFA to DFA.  The
+       field value is not NULL if the state is a compound state.  In
+       this case the value of field `unit_sets_list' is NULL.  All
+       states in the list are in the hash table. */
+    component_states : alternative_state       {$ = NULL;}
+    /* The following field is used for passing graph of states. */
+    pass_number : integer_t                    {$ = 0;}
+    /* The list of states belonging to one equivalence class is formed
+       with the aid of the following field. */
+    next_equivalence_class_state : state
+    /* The two following fields are used during minimization of a
+       finite state automaton. */
+    equivalence_class_number_1, equivalence_class_number_2 : integer_t
+    /* The following field is used during minimization of a finite
+       state automaton.  The field value is state corresponding to
+       equivalence class to which given state belongs. */
+    equivalence_class_state : state
+    /* The following field value is the order number of given state.
+       The states in final DFA is enumerated with the aid of the
+       following field. */
+    order_state_number : integer_t
+;
+
+arc :: %root
+%skeleton
+    /* The following field refers for the state into which given arc
+       enters. */
+    to_state : state              [!IS_NULL ($)]
+    /* The following field describes that the instruction issue (with
+       cycle advancing for special instruction `cycle advancing' and
+       without cycle advancing for others) makes transition from given
+       state to another given state. */
+    instruction : automaton_instruction_declaration
+       [!IS_NULL ($) && IR_first_instruction_with_the_same_reservations ($)]
+    /* The following field value is the next arc output from the same
+       state. */
+    next_out_arc : arc
+%other
+    /* List of arcs marked given instruction is formed with the
+       following field.  The field is used in transfromation NDFA ->
+       DFA. */
+    next_arc_marked_by_instruction : arc    {$ = NULL;}
+;
+
+single_instruction_declaration
+%other
+    /* The following field is the instruction expression transformed
+       that the expression has not optional expression, repetition
+       expression, and an reservation name (i.e. reservation
+       identifiers are changed by the corresponding expression) and
+       all alternations are the topest level of the expression.  The
+       value can be NULL only if it is special instruction `cycle
+       advancing'. */
+    transformed_expression : expression         {$ = NULL;}
+    /* The following field value is list of arcs marked given
+       instruction.  The field is used in transfromation NDFA ->
+       DFA. */
+    arcs_marked_by_instruction : arc     {$ = NULL;}
+    /* The following field is used during minimization of a finite
+       state automaton.  The field value is number of equivalence
+       class of state into which arc marked by given instruction
+       enters from a state (fixed during an automaton
+       minimization). */
+    equivalence_class_number : integer_t
+;
+
+single_unit_declaration
+%other
+    /* The following field value is number of the automaton to which
+       given unit belongs. */
+    corresponding_automaton_number : integer_t
+;
+
+/* The following node type decsribes an alternative state which
+   characterizes unit reservations of the instrution. */
+
+alternative_state :: %root
+%skeleton
+    /* The following field is a state which
+       characterizes unit reservations of the instrution. */
+    state : state
+    /* The following field refers to the next state which
+       characterizes unit reservations of the instrution. */
+    next_alternative_state : alternative_state
+;
+
+/* The following node type describes instruction declaration of the
+   automaton. */
+
+automaton_instruction_declaration :: %root
+%skeleton
+    /* The following field value is the corresponding instruction
+       declaration of description. */
+    single_instruction_declaration : single_declaration    [!IS_NULL ($)]
+    /* The following field value is the next instruction declaration
+       for an automaton. */
+    next_automaton_instruction_declaration : automaton_instruction_declaration
+%other
+    /* The following field is states which characterize automaton unit
+       reservations of the instrution.  The value can be NULL only if
+       it is special instruction `cycle advancing'. */
+    alternative_state_list : alternative_state  {$ = NULL;}
+    /* The following field refers the next automaton instruction with
+       the same reservations. */
+    next_the_same_reservations_instruction : automaton_instruction_declaration
+    /* The following field is flag of the first automaton instruction
+       with the same reservations in the single declaration list.
+       Only arcs marked such instruction is present in the automaton.
+       This significantly decreases memory requirements especially
+       when several automatons are formed. */
+    first_instruction_with_the_same_reservations : bool_t
+    /* Cyclic list of instructions of a equivalence class is formed
+       with the aid of the following field. */
+    next_equivalence_class_instruction : automaton_instruction_declaration
+       [!IS_NULL ($) && IR_first_instruction_with_the_same_reservations ($)]
+    /* The following field value is TRUE if the instruction
+       declaration is the first instruction declaration with given
+       equivalence number. */
+    first_out_arc_with_given_equialence_number : bool_t {$ = 0 /* FALSE */;}
+    /* The following field is number of class of equivalence of
+       instructions.  It is necessary because many instructions may be
+       equivalent with the point of view of pipeline hazards. */
+    instruction_equivalence_class_number : integer_t
+;
+
+single_automaton_declaration
+%other
+    /* The following field value is the corresponding automaton.  This
+       field is not NULL only if the automaton is present in unit
+       declarations and the automatic partition on automatons is not
+       used. */
+    corresponding_automaton : automaton
+;
+
+automaton :: %root
+%skeleton
+    /* The following field value is the list of instruction
+       declarations for given automaton. */
+    automaton_instruction_declaration_list : automaton_instruction_declaration
+    /* The following field value is the corresponding single automaton
+       declaration.  This field is not NULL only if the automatic
+       partition on automatons is not used. */
+    corresponding_single_automaton_declaration : single_automaton_declaration
+    /* The following field value is the next automaton. */
+    next_automaton : automaton
+%other
+    /* The following field is start state of FA.  There are not unit
+       reservations in the state. */
+    start_state : state
+    /* The following field value is number of equivalence classes of
+       instructions (see field `instruction_equivalence_class_number'
+       in `single_instruction_declaration'). */
+    instruction_equivalence_classes_number : integer_t
+    /* The following field value is number of states of final DFA. */
+    achieved_states_number : integer_t
+    /* The following field value is the order number (0, 1, ...) of
+       given automaton. */
+    automaton_order_number : integer_t
+    /* The following fields contain statistics information about
+       building automaton. */
+    NDFA_states_number, DFA_states_number,
+    /* The following field value is defined only if minimization of
+       DFA is used. */
+                        minimal_DFA_states_number : integer_t
+    NDFA_arcs_number, DFA_arcs_number,
+    /* The following field value is defined only if minimization of
+       DFA is used. */
+                        minimal_DFA_arcs_number : integer_t
+;
+
+description
+%other
+    /* The following field value is the first automaton. */
+    first_automaton : automaton   [!IS_NULL ($)]
+;
+
+%%
+
+/* I think there is no sense to use complex search structure. */
+
+IR_node_t
+find_result (IR_node_t instruction, integer_t number)
+{
+  IR_node_t element;
+
+  for (element = IR_result_list (instruction);
+       element != NULL && IR_result_number (IR_result (element)) != number;
+       element = IR_next_result (element))
+    ;
+  return element;
+}
+
+IR_node_t
+find_input (IR_node_t instruction, integer_t number)
+{
+  IR_node_t element;
+
+  for (element = IR_input_list (instruction);
+       element != NULL && IR_input_number (IR_input (element)) != number;
+       element = IR_next_input (element))
+    ;
+  return element;
+}
+
+/*
+Local Variables:
+mode:c
+End:
+*/

@@ -1,0 +1,16 @@
+  Better way to install MSTA is usage of top COCOM configure &
+Makefile (see file INSTALL in the top COCOM directory).
+
+  In any case you need to run configure in the top COCOM directory (in
+order to create Makefile for MSTA), to build AMMUNITION and SPRUT
+(because MSTA uses them for its building).  After that we can work
+with only MSTA (building, installation, and so on).  The MSTA Makefile
+has additional entries in comparison of the top COCOM Makefile.  These
+are:
+
+test - testing MSTA
+TAGS - updating TAGS in current directory for only MSTA
+
+Examples of MSTA specifications file are in `c5.y', `cpp5.y',
+`fcalc.y', `fparse.y', `gram.y', `java.y', `m2c.y', `p-yacc.y',
+`sql1.y'.  Example of MSTA scanner specification file is in `lex.y'.

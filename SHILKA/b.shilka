@@ -1,0 +1,11 @@
+%import {
+typedef void *void_t;
+}
+
+%type void_t
+
+%%
+
+"\n\r\377Ab" = nothing {return (void_t) 1;}
+aaaaa = nothing        {return (void_t) 2;}
+%other {return NULL;}

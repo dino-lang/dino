@@ -1,0 +1,33 @@
+%%
+if
+do
+int
+for
+case
+char     1600
+auto
+goto
+else     5700
+long
+void     8200
+enum
+float
+short
+union
+break
+while
+const
+double
+static   7300
+extern
+struct
+return   1000
+sizeof   1100
+switch
+signed
+typedef
+default
+unsigned
+continue
+register
+volatile

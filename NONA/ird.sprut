@@ -1,0 +1,397 @@
+/*
+   FILE NAME:   ird.sprut
+
+   TITLE:       Internal representation description for NONA (code
+                selector description translator)
+
+   DESCRIPTION: This file describes internal representation
+                description for NONA (code selector description
+                translator).  SPRUT generates standard procedural
+                interface of NONA internal representation,
+                i.e. definitions of types, macros, variables,
+                functions for work with internal representation of
+                NONA.
+
+*/
+
+%import {
+
+#include "objstack.h"
+#include "position.h"
+
+/* Definitions of predefined types: */
+
+typedef int integer_t;
+
+typedef int bool_t;
+
+typedef char *string_t;
+
+}
+
+
+%export {
+
+/* These macros for storage management of NONA internal representation: */
+
+/* Start work with the storage manager -- see NONA documentation. */
+
+#define IR_START_ALLOC()    OS_CREATE (irp, 0)
+
+/* Finish work with the storage manager -- see NONA documentation. */
+
+#define IR_STOP_ALLOC()     OS_DELETE (irp)
+
+/* Allocate storage for internal representation of given size
+   -- see NONA documentation. */
+
+#define IR_ALLOC(ptr, size, ptr_type)\
+  do {\
+    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
+    OS_TOP_FINISH (irp);\
+  } while (0);
+
+/* Free storage of internal representation of given size -- see NONA
+   documentation. */
+
+#define IR_FREE(ptr, size)
+
+
+/* These macros are analogous to ones of package `object-stack'
+   worked with storage of NONA internal representation: */
+
+/* Start new internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
+
+/* Nullify current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
+
+/* Shorten current internal representation object on given number bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
+
+/* Return start address of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
+
+/* Return length of current internal representation object in bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
+
+/* Add byte to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
+
+/* Add string to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
+
+/* Add memory of given length to the end of current internal representation
+   object -- see also package `object-stack'. */
+
+#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
+
+extern os_t irp;
+
+}
+
+%local {
+
+/* All internal representation storage is implemented by object stack.  See
+   package `object-stack'. */
+
+os_t irp;
+}
+
+%type integer_t bool_t string_t position_t
+
+%%
+
+%abstract
+node :: %root
+%skeleton
+    /* Start source position of object represented by given node. */
+    position : position_t
+;
+
+/****** All fields of the following fields are defined by NONA scanner. ******/
+
+/* It describes any identifier occurrence. */
+identifier :: node
+%skeleton
+    identifier_itself : string_t
+    /* The following field forms various list of identifier:
+         in terminal declaration
+         in commutative declaration
+         in type declaration          */
+    next_identifier : identifier
+;
+
+/* It describes code insertion, i.e. C code in `{' and `}'. */
+code_insertion :: node
+%skeleton
+    /* Surrounding '{' and '}' are absent here.  Remember that
+       constructions `$...' will be changed only during code selector
+       description generation.  */
+    code_insertion_itself : string_t
+;
+
+/* It describes expression, i.e. C code in `[' and `]'. */
+expression :: node
+%skeleton
+    /* Surrounding '[' and ']' are absent here.  Remember that constructions
+       `$' & `$$' will be changed only during code selector description
+       generation.  */
+    expression_itself : string_t
+;
+
+/****** All fields of the following fields are defined by NONA parser. ******/
+
+%abstract
+declaration :: node
+%skeleton
+    /* Arc to node representing next textually declaration. */
+    next_declaration : declaration
+;
+
+%abstract
+identifier_declaration :: declaration
+%skeleton
+    identifier_list : identifier
+    /* The following field can not be NULL for type declaration. */
+    type : identifier
+;
+
+term_declaration :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%term'. */
+;
+
+commutative_declaration :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%commutative'. */
+;
+
+type_declaration :: identifier_declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%term'. */
+%skeleton
+    [!IS_NULL ($)]   /* constraint for field `type'. */
+;
+
+%abstract
+code :: declaration
+    /* Field `position' of given node type is defined by position of
+       corresponding code insertion. */
+%skeleton
+    /* Arc to node which represents corresponding code insertion. */
+    code_itself : code_insertion
+;
+
+/* It describes local code, i.e. construction `%local {...}'.  All
+   fields are defined before semantic analysis of NONA. */
+local_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%local'. */
+;    
+
+/* It describes import code, i.e. construction `%import {...}'.  All
+   fields are defined before semantic analysis of NONA. */
+import_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%import'. */
+;
+
+/* It describes export code, i.e. construction `%export {...}'.  All
+   fields are defined before semantic analysis of NONA. */
+export_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%export'. */
+;
+
+/* It describes union code, i.e. construction `%union {...}'.  All
+   fields are defined before semantic analysis of NONA. */
+union_code :: code
+    /* Field `position' of given node type is defined by position of
+       corresponding keyword `%union'. */
+;
+
+rule :: node
+    /* Field `position' of given node type is defined by position of
+       the nonterminal identifier in the left hand side of the rule. */
+%skeleton
+    nonterm_identifier : identifier   [!IS_NULL ($)]
+    pattern : pattern                 [!IS_NULL ($)]
+    optional_cost : expression
+    optional_constraint : expression
+    optional_action : code_insertion
+    /* The following field forms list of all code selector description
+       rules. */
+    next_rule : rule
+;    
+
+/* It describes pattern.  All fields are defined by NONA parser. */
+
+pattern :: node
+    /* Field `position' of given node type is defined by position of
+       the first terminal or nonterminal identifier. */
+%skeleton
+    /* Terminal or nonterminal. */
+    identifier : identifier          [!IS_NULL ($)]
+    /* NULL if pattern only consists of terminal or
+       nonterminal (chain rule). */
+    pattern_list : pattern
+    /* The following field forms list of patterns in tree pattern. */
+    next_pattern : pattern
+;
+
+
+/* It describes additional code.  All fields are defined by NONA scanner. */
+additional_code :: node
+%skeleton
+    additional_code_itself : string_t
+;
+
+description :: node
+    /* Field `position' of given node type is defined by position of
+       the first description token. */
+%skeleton
+    declaration_list : declaration
+    /* May be NULL because of syntax errors. */
+    rule_list : rule
+    additional_code : additional_code  [!IS_NULL ($)]
+;
+
+/****** All fields of the following fields are defined by NONA analyzer. *****/
+
+%abstract
+single_declaration :: node
+%skeleton
+    /* The first terminal (or nonterminal) identifier occurence which declared
+       the identifier  (in constructions `%term', `%commutative', or in
+       left hand side of a rule. */
+    identifier : identifier                            [!IS_NULL ($)]
+    next_single_declaration : single_declaration
+    type : identifier
+;
+
+single_term_declaration :: single_declaration
+    /* Field `position' of given node type is defined by position of
+       the first terminal identifier occurence which declared the terminal
+       (in construction `%term' or `%commutative'. */
+%skeleton
+    /* Flag of that the operation designated by the terminal is commutative. */
+    commutative_flag : bool_t
+    /* The position of the first occurence of the terminal in rules.
+       If the terminal is not used the value is `no_position'. */
+    first_position_in_rules : position_t
+    /* All rules in which the first terminal in the right hand side is
+       given terminal.  The value of the following field is the last such rule.
+       The list of such rules is cyclic. */
+    term_rule_list : rule
+    /* Arity of the terminal.  Undefined value is -1 (when the terminal
+       is not used). */
+    arity : integer_t
+;
+
+single_nonterm_declaration :: single_declaration
+%skeleton
+    /* The following field value is length of the nonterminal rule list. */
+    number_of_nonterminal_rules : integer_t
+    /* All rules in which the nonterminal is in the left hand side.
+       The value of the following field is the last such rule.
+       The list of such rules is cyclic. */
+    nonterm_rule_list : rule              [!IS_NULL ($)]
+    /* All rules in which only the nonterminal is in the right hand side.
+       The value of the following field is the last such rule.
+       The list of such rules is cyclic. */
+    chain_rule_list : rule
+    /* The value of the following field is TRUE if the nonterminal can
+       derive tree with only terminal leaves.  The initial value is to
+       be FALSE. */
+    derivability_flag : bool_t
+    /* The following field is used to implement traversing or rules.
+       The value is number of the most recent traversing rules with
+       given nonterminal in the left hand side.  The initial value is to
+       be 0. */
+    traverse_number : integer_t
+;
+
+rule
+%other
+    /* Flag of that this rule is new because of commutative operators in the
+       rule. */
+    new_commutative_rule_flag : bool_t
+    /* The number of given rule in all description (1, 2, ...). */
+    rule_number : integer_t
+    /* The number (1, 2, ...  ) of given rule in rules of nonterminal which
+       is in the left hand side. */
+    nonterm_rule_number : integer_t
+    /* The next rule in which the nonterminal of given rule is
+       in the left hand side. */
+    next_nonterm_rule : rule        [!IS_NULL ($)]  
+    /* The next rule in which only the nonterminal is in the right
+       hand side. */
+    next_chain_rule : rule
+    /* All patterns of the rule in textual order.  The value of the following
+       field is the last such pattern.  The list of such patterns is cyclic.
+       The identifier of the first pattern of the list corresponds to `$1',
+       the one of the second -- `$2' and so on. */
+    textual_pattern_list : pattern  [!IS_NULL ($)]
+    /* Declaration corresponding to nonterminal in the left hand side.
+       The value may be NULL iff terminal is in the left hand side. */
+    single_nonterm_declaration : single_nonterm_declaration
+    /* The next rule in which the first terminal of given rule is the same. */
+    next_term_rule : rule
+;
+
+pattern
+%other
+    /* The number of given pattern in rule (1, 2, ...).  This number is
+       number after `$' for given pattern.  The ordinal number in the textual
+       pattern list is the same as ordinal number iff corresponding number is
+       not created because of commutativity of an operator. */
+    original_number : integer_t
+    /* Flag of that given commutative operator has been processed.  The field
+       is used during creation new rules because of commuatative operator. */
+    commutative_process_flag : bool_t
+    /* Declaration corresponding to identifier in the pattern. 
+       The following field value may be NULL for undeclared identifier. */
+    single_declaration : single_declaration
+    /* See comments for field `textual_pattern_list' in node type `rule'. */
+    next_textual_pattern : pattern    [!IS_NULL ($)]
+    /* Number of given nonterminal pattern (1, 2, ...)
+       in textual pattern list.  Defined only if identifier of given
+       pattern is nonterminal.*/
+    textual_nonterminal_pattern_number : integer_t
+    /* Pattern in which given pattern is immediately placed.
+       NULL for uppest pattern in a rule. */
+    father : pattern
+;
+
+description
+%other
+    /* The value of the following field is the last single declaration.
+       The single declaration list is cyclic. */
+    single_declaration_list : single_declaration
+    /* Number of nonterminals in given description (more correctly number
+       of nonterminals in the single declaration list). */
+    number_of_nonterminals : integer_t
+    /* Max number of nonterminals in patterns of rules. */
+    max_number_of_rule_nonterminals : integer_t
+;
+
+/*
+Local Variables:
+mode:c
+End:
+*/

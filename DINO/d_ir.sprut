@@ -1,0 +1,2738 @@
+/* Value of node pointer to erroneous (syntactically or semantically)
+   constructions is NULL.  But this value may be also used for representation
+   of correct program.
+
+   After semantic analysis idents are changed by corresponding
+   decl occurrence. */
+
+%import {
+
+#include "d_common.h"
+#include "d_types.h"
+
+extern int it_is_int_string (const char *str);
+extern int_t a2i (const char *str);
+extern floating_t a2f (const char *str);
+extern const char *i2a (int_t number);
+extern const char *f2a (floating_t number);
+
+/* Structures representing binary_operation_node and unary_operation_node
+   have member of its mode.  EVT is abbreviation of expr value type.
+   The order of enumeration constants is important. */
+
+enum expr_value_type
+{
+  /* To correctly initiate nodes' member value_type of this enumeration
+     constant is to be equal to the following value. */
+  EVT_UNKNOWN = 0,
+  EVT_CHAR = 1,
+  EVT_INT = 2,
+  EVT_FLOAT = 4,
+  EVT_VECTOR = 8,
+  EVT_TABLE = 16,
+  EVT_FUNC = 32,
+  EVT_CLASS = 64,
+  EVT_TYPE = 128
+};
+
+/* This is mask for number. */
+#define EVT_NUMBER_MASK (EVT_CHAR | EVT_INT | EVT_FLOAT)
+/* This is mask for number or vector. */
+#define EVT_NUMBER_VECTOR_MASK (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VECTOR)
+/* This is mask for number, vector, or table. */
+#define EVT_NUMBER_VECTOR_TABLE_MASK\
+   (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VECTOR  | EVT_TABLE)
+/* This is mask for number or string. */
+#define EVT_NUMBER_STRING_MASK EVT_NUMBER_VECTOR_MASK
+
+typedef enum expr_value_type expr_value_type_t;
+
+typedef int type_mask_t;
+
+typedef int integer_t;
+
+typedef char *string_t;
+
+typedef void (*implementation_func_t) (int_t pars_number);
+
+}
+
+%export {
+
+
+/* These macros for storage management of DINO internal representation: */
+
+/* Start work with the storage manager -- see DINO documentation. */
+
+#define IR_START_ALLOC()    OS_CREATE (irp, 0)
+
+/* Finish work with the storage manager -- see DINO documentation. */
+
+#define IR_STOP_ALLOC()     OS_DELETE (irp)
+
+/* Allocate storage for internal representation of given size
+   -- see DINO documentation. */
+
+#define IR_ALLOC(ptr, size, ptr_type)\
+  do {\
+    OS_TOP_EXPAND (irp, size); ptr = (ptr_type) OS_TOP_BEGIN (irp);\
+    OS_TOP_FINISH (irp);\
+  } while (0);
+
+/* Free storage of internal representation of given size -- see DINO
+   documentation. */
+
+#define IR_FREE(ptr, size)
+
+
+/* These macros are analogous to ones of package `object-stack'
+   worked with storage of DINO internal representation: */
+
+/* Start new internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_FINISH()  OS_TOP_FINISH (irp)
+
+/* Nullify current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_NULLIFY()  OS_TOP_NULLIFY (irp)
+
+/* Shorten current internal representation object on given number bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_SHORTEN(length) OS_TOP_SHORTEN (irp, length)
+
+/* Return start address of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_BEGIN()  OS_TOP_BEGIN (irp)
+
+/* Return length of current internal representation object in bytes -- see
+   also package `object-stack'. */
+
+#define IR_TOP_LENGTH()  OS_TOP_LENGTH (irp)
+
+/* Expand current internal representation object -- see also package
+   `object-stack'. */
+
+#define IR_TOP_EXPAND(length)  OS_TOP_EXPAND (irp, length)
+
+/* Add byte to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_BYTE(b)  OS_TOP_ADD_BYTE (irp, b)
+
+/* Add string to the end of current internal representation object -- see also
+   package `object-stack'. */
+
+#define IR_TOP_ADD_STRING(str)  OS_TOP_ADD_STRING (irp, str)
+
+/* Add memory of given length to the end of current internal representation
+   object -- see also package `object-stack'. */
+
+#define IR_TOP_ADD_MEMORY(mem, length)  OS_TOP_ADD_MEMORY (irp, mem, length)
+
+extern os_t irp;
+
+
+extern void initiate_table (void);
+extern void delete_table (void);
+extern IR_node_t *find_table_entry (IR_node_t ref, int reserve);
+extern void include_to_table (IR_node_t ref);
+extern IR_node_t find_unique_ident (char *string);
+extern IR_node_t create_node (IR_node_mode_t mode);
+extern IR_node_t create_node_with_pos (IR_node_mode_t mode, position_t pos);
+extern IR_node_t create_unique_node_with_string (IR_node_mode_t m,
+                                                 const char *str,
+                                                 char **string_in_pool_ptr);
+extern IR_node_t create_unique_ident_node (const char *str);
+extern IR_node_mode_t occurrence_mode (IR_node_t decl);
+extern IR_node_t create_occurrence_node (IR_node_t decl, position_t pos);
+extern void initiate_icode (void);
+
+extern IR_node_t find_decl_in_given_scope (IR_node_t ident, IR_node_t scope);
+extern IR_node_t find_decl (IR_node_t ident, IR_node_t scope);
+extern void set_environment_declarations (IR_node_t environment_scope);
+
+extern IR_node_t get_ident_node (char *name, position_t pos);
+extern IR_node_t get_int_node (int_t number_value, position_t pos);
+extern IR_node_t get_float_node (floating_t number_value, position_t pos);
+
+/* Variable name for the rest parameter values (...). */
+#define ARGS_NAME "args"
+
+/* This is name of varibale which will contains catdhed exception in
+   corresponding catch block. */
+
+#define CATCH_EXCEPTION_NAME "e"
+
+extern IR_node_t temp_unique_ident;
+extern IR_node_t temp_unique_int;
+extern IR_node_t temp_unique_float;
+extern IR_node_t temp_unique_char;
+extern IR_node_t temp_unique_string;
+extern IR_node_t temp_ident;
+extern IR_node_t temp_decl;
+extern IR_node_t temp_var_occurrence;
+
+
+#define IR_POINTER(v) ((IR_node_t)(v))
+
+/* This is type definition of program counter.  All nodes (except for
+   unique nodes and var_node, func_node, class_node) is
+   chained by members (one or two) of such type.  Remember that
+   func may suspend the process therefore expr should be
+   also be chained by program counter.  If it is needed to execute the
+   following and its pc is NULL than it means that finishing current
+   process is needed.  There is process for block corresponding all
+   program and its finishing means that program exits. */
+
+typedef IR_node_t pc_t;
+
+/* Macros for transformation of given node reference to previously
+   mentioned type. */
+
+#define PC(v) ((pc_t)(v))
+
+/* This is trick (usage that IR_NODE_MODE is macro)!!!  Therefore the
+   following macro must apply to node with the same structure as node
+   with mode m. */
+
+#define IR_SET_MODE(v, m) (IR_NODE_MODE (v) = (m))
+
+/* The macro call value is pointer to unique ident node of
+   corresponding ident node V.  V may be NULL. */
+
+#define IR_GET_UNIQUE_IDENT(v)\
+  ((v) == NULL ? v : IR_unique_ident (v))
+
+/* The following macro value is standard environment which is parsed
+   before the program. The last character must be a space for correct
+   parsing. */
+#define ENVIRONMENT \
+  "class except () { \n"\
+  "  class error (msg){\n"\
+  "    class signal (msg) {\n"\
+  "      class sigint (msg) {}\n"\
+  "      class sigill (msg) {}\n"\
+  "      class sigabrt (msg) {}\n"\
+  "      class sigfpe (msg) {}\n"\
+  "      class sigterm (msg) {}\n"\
+  "      class sigsegv (msg) {}\n"\
+  "    }\n"\
+  "    class invenv (msg) {}\n"\
+  "    class invop (msg) {\n"\
+  "      class optype (msg) {}\n"\
+  "      class opvalue (msg) {}\n"\
+  "    }\n"\
+  "    class invindex (msg) {\n"\
+  "      class indextype (msg) {}\n"\
+  "      class indexvalue (msg) {}\n"\
+  "      class indexop (msg) {}\n"\
+  "    }\n"\
+  "    class invkey (msg) {\n"\
+  "      class keyvalue (msg) {}\n"\
+  "      class keyop (msg) {}\n"\
+  "    }\n"\
+  "    class invcall (msg) {\n"\
+  "      class callop (msg) {}\n"\
+  "      class partype (msg) {}\n"\
+  "      class invresult (msg) {}\n"\
+  "      class invinput (msg) {}\n"\
+  "      class eof (msg) {}\n"\
+  "      class parnumber (msg) {}\n"\
+  "      class syserror (msg) {\n"\
+  "        class eaccess (msg) {}\n"\
+  "        class eagain (msg) {}\n"\
+  "        class ebadf (msg) {}\n"\
+  "        class ebusy (msg) {}\n"\
+  "        class echild (msg) {}\n"\
+  "        class edeadlk (msg) {}\n"\
+  "        class edom (msg) {}\n"\
+  "        class eexist (msg) {}\n"\
+  "        class efault (msg) {}\n"\
+  "        class efbig (msg) {}\n"\
+  "        class eintr (msg) {}\n"\
+  "        class einval (msg) {}\n"\
+  "        class eio (msg) {}\n"\
+  "        class eisdir (msg) {}\n"\
+  "        class emfile (msg) {}\n"\
+  "        class emlink (msg) {}\n"\
+  "        class enametoolong (msg) {}\n"\
+  "        class enfile (msg) {}\n"\
+  "        class enodev (msg) {}\n"\
+  "        class enoent (msg) {}\n"\
+  "        class enoexec (msg) {}\n"\
+  "        class enolck (msg) {}\n"\
+  "        class enomem (msg) {}\n"\
+  "        class enospc (msg) {}\n"\
+  "        class enosys (msg) {}\n"\
+  "        class enotdir (msg) {}\n"\
+  "        class enotempty (msg) {}\n"\
+  "        class enotty (msg) {}\n"\
+  "        class enxio (msg) {}\n"\
+  "        class eperm (msg) {}\n"\
+  "        class epipe (msg) {}\n"\
+  "        class erange (msg) {}\n"\
+  "        class erofs (msg) {}\n"\
+  "        class espipe (msg) {}\n"\
+  "        class esrch (msg) {}\n"\
+  "        class exdev (msg) {}\n"\
+  "      }\n"\
+  "      class systemcall (msg) {\n"\
+  "        class noshell (msg) {}\n"\
+  "        class systemfail (msg) {}\n"\
+  "      }\n"\
+  "      class invregexp (msg) {\n"\
+  "        class ebrack (msg) {}\n"\
+  "        class erange (msg) {}\n"\
+  "        class ectype (msg) {}\n"\
+  "        class eparen (msg) {}\n"\
+  "        class esubreg (msg) {}\n"\
+  "        class eend (msg) {}\n"\
+  "        class eescape (msg) {}\n"\
+  "        class badpat (msg) {}\n"\
+  "        class esize (msg) {}\n"\
+  "        class espace (msg) {}\n"\
+  "      }\n"\
+  "      class invparser (msg) {\n"\
+  "        class invgrammar (msg) {}\n"\
+  "        class invtoken (msgs) {}\n"\
+  "        class pmemory (msgs) {}\n"\
+  "      }\n"\
+  "      class invextern (msg) {\n"\
+  "        class noextern (msg) {}\n"\
+  "        class libclose (msg) {}\n"\
+  "        class noexternsupp (msg) {}\n"\
+  "      }\n"\
+  "      class invenvar (msg) {}\n"\
+  "      class internal (msg) {}\n"\
+  "    }\n"\
+  "    class invaccess (msg) {\n"\
+  "      class accessop (msg) {}\n"\
+  "      class accessvalue (msg) {}\n"\
+  "      class dereftype (msg) {}\n"\
+  "      class arrowtype (msg) {}\n"\
+  "      class immutable (msg) {}\n"\
+  "    }\n"\
+  "    class deadlock (msg) {}\n"\
+  "  }\n"\
+  "}\n"\
+  "class anode (name, transl) {\n"\
+  "  public name, transl;\n"\
+  "}\n"\
+  "class token (code) {public code;}\n"\
+  "final class parser ()\n"\
+  "{\n"\
+  "  var ambiguous_p;\n"\
+  "  public ambiguous_p;\n"\
+  "  var grammar;\n"\
+  "  private grammar;\n"\
+  "\n"\
+  "  func int_earley_parse_grammar(){} func int_earley_set_debug_level(){}\n"\
+  "  private int_earley_parse_grammar, int_earley_set_debug_level;\n"\
+  "  func int_earley_set_one_parse_flag (){}\n"\
+  "  private int_earley_set_one_parse_flag;\n"\
+  "  func int_earley_set_error_recovery_flag () {}\n"\
+  "  private int_earley_set_error_recovery_flag;\n"\
+  "  func int_earley_set_recovery_match (){} func int_earley_parse (){}\n"\
+  "  private int_earley_set_recovery_match, int_earley_parse;\n"\
+  "  func int_earley_create_grammar (){}\n"\
+  "  private int_earley_create_grammar;\n"\
+  "\n"\
+  "  func set_grammar (descr, strict_p) {\n"\
+  "    int_earley_parse_grammar (grammar, strict_p, descr);\n"\
+  "  }\n"\
+  "  func set_debug (level) {\n"\
+  "    return int_earley_set_debug_level (grammar, level);\n"\
+  "  }\n"\
+  "  func set_one_parse (flag) {\n"\
+  "    return int_earley_set_one_parse_flag (grammar, flag);\n"\
+  "  }\n"\
+  "  func set_recovery (flag) {\n"\
+  "    return int_earley_set_error_recovery_flag (grammar, flag);\n"\
+  "  }\n"\
+  "  func set_recovery_match (n_toks) {\n"\
+  "    return int_earley_set_recovery_match (grammar, n_toks);\n"\
+  "  }\n"\
+  "  func parse (tokens, error_func) {\n"\
+  "    var i; // Trick to guarantee temp. vars to call error_func\n"\
+  "    i = 1 + 2 * (3 + 4 * (5 + 6 * 7));\n"\
+  "    return int_earley_parse (grammar, tokens, error_func);\n"\
+  "  }\n"\
+  "\n"\
+  "  grammar = int_earley_create_grammar ();\n"\
+  "}\n"\
+  "var final excepts = except ();\n"\
+  "var final errors = excepts.error (nil);\n"\
+  "var final signals = errors.signal (nil);\n"\
+  "var final invops = errors.invop (nil);\n"\
+  "var final invindexes = errors.invindex (nil);\n"\
+  "var final invkeys = errors.invkey (nil);\n"\
+  "var final invcalls = errors.invcall (nil);\n"\
+  "var final syserrors = invcalls.syserror (nil);\n"\
+  "var final systemcalls = invcalls.systemcall (nil);\n"\
+  "var final invregexps = invcalls.invregexp (nil);\n"\
+  "var final invparsers = invcalls.invparser (nil);\n"\
+  "var final invexterns = invcalls.invextern (nil);\n"\
+  "var final invaccesses = errors.invaccess (nil);\n"\
+  "var argv, env, final main_thread, final curr_thread;\n"\
+  "// Do not place any code inside file (it is only for internal purposes)\n"\
+  "final class file (){\n"\
+  "  private file_ptr; var file_ptr;\n"\
+  "  if (__nogenerate__ != nil)\n"\
+  "    throw invcalls.callop\n"\
+  "            (\"File can be created only by functions open or popen\");}\n"\
+  "var stdin = final file ();\n"\
+  "var stdout = final file ();\n"\
+  "var stderr = final file ();\n"\
+  "var final __nogenerate__ = 0;\n"\
+  "func max (){} func min (){}\n"\
+  "func tolower (){} func toupper (){}\n"\
+  "func eltype (){}\n"\
+  "func keys (){}\n"\
+  "func context (){} func inside (){}\n"\
+  "func subv(){} func cmpv(){} func del(){} func ins(){}  func insv(){}\n"\
+  "func sort(){}\n"\
+  "func sqrt (){} func exp (){} func log (){} func log10(){} func pow(){} \n"\
+  "func sin(){} func cos(){} func atan2(){} \n"\
+  "func match(){} func sub(){} func gsub(){}\n"\
+  "func split(){} var split_regex = \"[ \t]+\";\n"\
+  "func srand(){} func rand(){} \n"\
+  "func readdir(){} func ftype () {}\n"\
+  "func fun(){} func fgn () {} func fsize(){}\n"\
+  "func fatime() {} func fmtime(){} func fctime () {}\n"\
+  "func fumode() {} func fgmode(){} func fomode () {}\n"\
+  "func time(){}\n"\
+  "func strtime() {} var time_format = \"%a %b %d %H:%M:%S %Z %Y\";\n"\
+  "func clock(){}\n"\
+  "func gc() {} \n"\
+  "func rename() {} func remove(){}\n"\
+  "func mkdir() {} func rmdir(){}\n"\
+  "func getcwd() {} func chdir(){}\n"\
+  "func chumod() {} func chgmod() {} func chomod() {} func isatty(){}\n"\
+  "func open() {} func close(){} func flush(){}\n"\
+  "func popen() {} func pclose(){}\n"\
+  "func tell() {} func seek() {}\n"\
+  "func put(){} func putln(){} func fput(){} func fputln(){}\n"\
+  "func print(){} func println(){} func fprint(){} func fprintln(){}\n"\
+  "func get(){} func getln(){} func fget(){} func fgetln(){}\n"\
+  "func scan(){} func scanln(){} func fscan(){} func fscanln(){}\n"\
+  "func getpid(){} func getun(){} func geteun(){}\n"\
+  "func getgn(){} func getegn(){} func getgroups(){}\n"\
+  "func system(){}\n"\
+  "func exit(){}\n"\
+  "func __init__() {} __init__();"
+
+/* The following must be defined in ENVIRONMENT (see above).  The
+   variables are to be defined in set_environment_declarations. */
+
+#define EXCEPT_NAME "except"
+extern IR_node_t except_decl;
+
+#define ERROR_NAME "error"
+extern IR_node_t error_decl;
+
+#define SIGNAL_NAME "signal"
+extern IR_node_t signal_decl;
+
+#define SIGINT_NAME "sigint"
+extern IR_node_t sigint_decl;
+
+#define SIGILL_NAME "sigill"
+extern IR_node_t sigill_decl;
+
+#define SIGABRT_NAME "sigabrt"
+extern IR_node_t sigabrt_decl;
+
+#define SIGFPE_NAME "sigfpe"
+extern IR_node_t sigfpe_decl;
+
+#define SIGTERM_NAME "sigterm"
+extern IR_node_t sigterm_decl;
+
+#define SIGSEGV_NAME "sigsegv"
+extern IR_node_t sigsegv_decl;
+
+#define INVENV_NAME "invenv"
+extern IR_node_t invenv_decl;
+
+#define INVOP_NAME "invop"
+extern IR_node_t invop_decl;
+
+#define OPTYPE_NAME "optype"
+extern IR_node_t optype_decl;
+
+#define OPVALUE_NAME "opvalue"
+extern IR_node_t opvalue_decl;
+
+#define INVINDEX_NAME "invindex"
+extern IR_node_t invindex_decl;
+
+#define INDEXTYPE_NAME "indextype"
+extern IR_node_t indextype_decl;
+
+#define INDEXVALUE_NAME "indexvalue"
+extern IR_node_t indexvalue_decl;
+
+#define INDEXOP_NAME "indexop"
+extern IR_node_t indexop_decl;
+
+#define INVKEY_NAME "invkey"
+extern IR_node_t invkey_decl;
+
+#define KEYVALUE_NAME "keyvalue"
+extern IR_node_t keyvalue_decl;
+
+#define KEYOP_NAME "keyop"
+extern IR_node_t keyop_decl;
+
+#define INVCALL_NAME "invcall"
+extern IR_node_t invcall_decl;
+
+#define CALLOP_NAME "callop"
+extern IR_node_t callop_decl;
+
+#define PARTYPE_NAME "partype"
+extern IR_node_t partype_decl;
+
+#define INVRESULT_NAME "invresult"
+extern IR_node_t invresult_decl;
+
+#define INVINPUT_NAME "invinput"
+extern IR_node_t invinput_decl;
+
+#define EOF_NAME "eof"
+extern IR_node_t eof_decl;
+
+#define PARNUMBER_NAME "parnumber"
+extern IR_node_t parnumber_decl;
+
+#define SYSERROR_NAME "syserror"
+extern IR_node_t syserror_decl;
+
+#define EACCESS_NAME "eaccess"
+extern IR_node_t eaccess_decl;
+
+#define EAGAIN_NAME "eagain"
+extern IR_node_t eagain_decl;
+
+#define EBADF_NAME "ebadf"
+extern IR_node_t ebadf_decl;
+
+#define EBUSY_NAME "ebusy"
+extern IR_node_t ebusy_decl;
+
+#define ECHILD_NAME "echild"
+extern IR_node_t echild_decl;
+
+#define EDEADLK_NAME "edeadlk"
+extern IR_node_t edeadlk_decl;
+
+#define EDOM_NAME "edom"
+extern IR_node_t edom_decl;
+
+#define EEXIST_NAME "eexist"
+extern IR_node_t eexist_decl;
+
+#define EFAULT_NAME "efault"
+extern IR_node_t efault_decl;
+
+#define EFBIG_NAME "efbig"
+extern IR_node_t efbig_decl;
+
+#define EINTR_NAME "eintr"
+extern IR_node_t eintr_decl;
+
+#define EINVAL_NAME "einval"
+extern IR_node_t einval_decl;
+
+#define EIO_NAME "eio"
+extern IR_node_t eio_decl;
+
+#define EISDIR_NAME "eisdir"
+extern IR_node_t eisdir_decl;
+
+#define EMFILE_NAME "emfile"
+extern IR_node_t emfile_decl;
+
+#define EMLINK_NAME "emlink"
+extern IR_node_t emlink_decl;
+
+#define ENAMETOOLONG_NAME "enametoolong"
+extern IR_node_t enametoolong_decl;
+
+#define ENFILE_NAME "enfile"
+extern IR_node_t enfile_decl;
+
+#define ENODEV_NAME "enodev"
+extern IR_node_t enodev_decl;
+
+#define ENOENT_NAME "enoent"
+extern IR_node_t enoent_decl;
+
+#define ENOEXEC_NAME "enoexec"
+extern IR_node_t enoexec_decl;
+
+#define ENOLCK_NAME "enolck"
+extern IR_node_t enolck_decl;
+
+#define ENOMEM_NAME "enomem"
+extern IR_node_t enomem_decl;
+
+#define ENOSPC_NAME "enospc"
+extern IR_node_t enospc_decl;
+
+#define ENOSYS_NAME "enosys"
+extern IR_node_t enosys_decl;
+
+#define ENOTDIR_NAME "enotdir"
+extern IR_node_t enotdir_decl;
+
+#define ENOTEMPTY_NAME "enotempty"
+extern IR_node_t enotempty_decl;
+
+#define ENOTTY_NAME "enotty"
+extern IR_node_t enotty_decl;
+
+#define ENXIO_NAME "enxio"
+extern IR_node_t enxio_decl;
+
+#define EPERM_NAME "eperm"
+extern IR_node_t eperm_decl;
+
+#define EPIPE_NAME "epipe"
+extern IR_node_t epipe_decl;
+
+#define ERANGE_NAME "erange"
+extern IR_node_t erange_decl;
+
+#define EROFS_NAME "erofs"
+extern IR_node_t erofs_decl;
+
+#define ESPIPE_NAME "espipe"
+extern IR_node_t espipe_decl;
+
+#define ESRCH_NAME "esrch"
+extern IR_node_t esrch_decl;
+
+#define EXDEV_NAME "exdev"
+extern IR_node_t exdev_decl;
+
+#define SYSTEMCALL_NAME "systemcall"
+extern IR_node_t systemcall_decl;
+
+#define NOSHELL_NAME "noshell"
+extern IR_node_t noshell_decl;
+
+#define SYSTEMFAIL_NAME "systemfail"
+extern IR_node_t systemfail_decl;
+
+#define INVREGEXP_NAME "invregexp"
+extern IR_node_t invregexp_decl;
+
+#define EBRACK_NAME "ebrack"
+extern IR_node_t ebrack_decl;
+
+#define ERANGE_NAME "erange"
+extern IR_node_t erange_decl;
+
+#define ECTYPE_NAME "ectype"
+extern IR_node_t ectype_decl;
+
+#define EPAREN_NAME "eparen"
+extern IR_node_t eparen_decl;
+
+#define ESUBREG_NAME "esubreg"
+extern IR_node_t esubreg_decl;
+
+#define EEND_NAME "eend"
+extern IR_node_t eend_decl;
+
+#define EESCAPE_NAME "eescape"
+extern IR_node_t eescape_decl;
+
+#define BADPAT_NAME "badpat"
+extern IR_node_t badpat_decl;
+
+#define ESIZE_NAME "esize"
+extern IR_node_t esize_decl;
+
+#define ESPACE_NAME "espace"
+extern IR_node_t espace_decl;
+
+#define INVPARSER_NAME "invparser"
+extern IR_node_t invparser_decl;
+
+#define INVGRAMMAR_NAME "invgrammar"
+extern IR_node_t invgrammar_decl;
+
+#define INVTOKEN_NAME "invtoken"
+extern IR_node_t invtoken_decl;
+
+#define PMEMORY_NAME "pmemory"
+extern IR_node_t pmemory_decl;
+
+#define INVEXTERN_NAME "invextern"
+extern IR_node_t invextern_decl;
+
+#define NOEXTERN_NAME "noextern"
+extern IR_node_t noextern_decl;
+
+#define LIBCLOSE_NAME "libclose"
+extern IR_node_t libclose_decl;
+
+#define NOEXTERNSUPP_NAME "noexternsupp"
+extern IR_node_t noexternsupp_decl;
+
+#define INVENVAR_NAME "invenvar"
+extern IR_node_t invenvar_decl;
+
+#define INTERNAL_NAME "internal"
+extern IR_node_t internal_decl;
+
+#define INVACCESS_NAME "invaccess"
+extern IR_node_t invaccess_decl;
+
+#define ACCESSOP_NAME "accessop"
+extern IR_node_t accessop_decl;
+
+#define ACCESSVALUE_NAME "accessvalue"
+extern IR_node_t accessvalue_decl;
+
+#define DEREFTYPE_NAME "dereftype"
+extern IR_node_t dereftype_decl;
+
+#define ARROWTYPE_NAME "arrowtype"
+extern IR_node_t arrowtype_decl;
+
+#define IMMUTABLE_NAME "immutable"
+extern IR_node_t immutable_decl;
+
+#define DEADLOCK_NAME "deadlock"
+extern IR_node_t deadlock_decl;
+
+#define ANODE_NAME "anode"
+extern IR_node_t anode_decl;
+
+#define EXCEPTS_NAME "excepts"
+extern IR_node_t excepts_decl;
+
+#define ERRORS_NAME "errors"
+extern IR_node_t errors_decl;
+
+#define SIGNALS_NAME "signals"
+extern IR_node_t signals_decl;
+
+#define INVOPS_NAME "invops"
+extern IR_node_t invops_decl;
+
+#define INVINDEXES_NAME "invindexes"
+extern IR_node_t invindexes_decl;
+
+#define INVKEYS_NAME "invkeys"
+extern IR_node_t invkeys_decl;
+
+#define SYSERRORS_NAME "syserrors"
+extern IR_node_t syserrors_decl;
+
+#define INVCALLS_NAME "invcalls"
+extern IR_node_t invcalls_decl;
+
+#define SYSTEMCALLS_NAME "systemcalls"
+extern IR_node_t systemcalls_decl;
+
+#define INVREGEXPS_NAME "invregexps"
+extern IR_node_t invregexps_decl;
+
+#define INVPARSERS_NAME "invparsers"
+extern IR_node_t invparsers_decl;
+
+#define INVEXTERNS_NAME "invexterns"
+extern IR_node_t invexterns_decl;
+
+#define INVACCESSES_NAME "invaccesses"
+extern IR_node_t invaccesses_decl;
+
+#define ARGV_NAME "argv"
+extern IR_node_t argv_decl;
+
+#define ENV_NAME "env"
+extern IR_node_t env_decl;
+
+#define MAIN_THREAD_NAME "main_thread"
+extern IR_node_t main_thread_decl;
+
+#define CURR_THREAD_NAME "curr_thread"
+extern IR_node_t curr_thread_decl;
+
+#define TOKEN_NAME "token"
+extern IR_node_t token_decl;
+
+#define CODE_NAME "code"
+extern IR_node_t code_decl;
+
+#define PARSER_NAME "parser"
+extern IR_node_t parser_decl;
+
+#define AMBIGUOUS_P_NAME "ambiguous_p"
+extern IR_node_t ambiguous_p_decl;
+
+#define INT_EARLEY_PARSE_GRAMMAR_NAME "int_earley_parse_grammar"
+extern IR_node_t int_earley_parse_grammar_decl;
+
+#define INT_EARLEY_SET_DEBUG_LEVEL_NAME "int_earley_set_debug_level"
+extern IR_node_t int_earley_set_debug_level_decl;
+
+#define INT_EARLEY_SET_ONE_PARSE_FLAG_NAME "int_earley_set_one_parse_flag"
+extern IR_node_t int_earley_set_one_parse_flag_decl;
+
+#define INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME \
+  "int_earley_set_error_recovery_flag"
+extern IR_node_t int_earley_set_error_recovery_flag_decl;
+
+#define INT_EARLEY_SET_RECOVERY_MATCH_NAME "int_earley_set_recovery_match"
+extern IR_node_t int_earley_set_recovery_match_decl;
+
+#define INT_EARLEY_PARSE_NAME "int_earley_parse"
+extern IR_node_t int_earley_parse_decl;
+
+#define INT_EARLEY_CREATE_GRAMMAR_NAME "int_earley_create_grammar"
+extern IR_node_t int_earley_create_grammar_decl;
+
+#define FILE_NAME "file"
+extern IR_node_t file_decl;
+
+#define FILE_PTR_NAME "file_ptr"
+extern IR_node_t file_ptr_decl;
+
+#define STDIN_NAME "stdin"
+extern IR_node_t stdin_decl;
+
+#define STDOUT_NAME "stdout"
+extern IR_node_t stdout_decl;
+
+#define STDERR_NAME "stderr"
+extern IR_node_t stderr_decl;
+
+#define MIN_NAME "min"
+extern IR_node_t min_decl;
+
+#define MAX_NAME "max"
+extern IR_node_t max_decl;
+
+#define TOLOWER_NAME "tolower"
+extern IR_node_t tolower_decl;
+
+#define TOUPPER_NAME "toupper"
+extern IR_node_t toupper_decl;
+
+#define ELTYPE_NAME "eltype"
+extern IR_node_t eltype_decl;
+
+#define KEYS_NAME "keys"
+extern IR_node_t keys_decl;
+
+#define CONTEXT_NAME "context"
+extern IR_node_t context_decl;
+
+#define INSIDE_NAME "inside"
+extern IR_node_t inside_decl;
+
+#define SUBV_NAME "subv"
+extern IR_node_t subv_decl;
+
+#define CMPV_NAME "cmpv"
+extern IR_node_t cmpv_decl;
+
+#define DEL_NAME "del"
+extern IR_node_t del_decl;
+
+#define INS_NAME "ins"
+extern IR_node_t ins_decl;
+
+#define INSV_NAME "insv"
+extern IR_node_t insv_decl;
+
+#define SORT_NAME "sort"
+extern IR_node_t sort_decl;
+
+#define SQRT_NAME "sqrt"
+extern IR_node_t sqrt_decl;
+
+#define EXP_NAME "exp"
+extern IR_node_t exp_decl;
+
+#define LOG_NAME "log"
+extern IR_node_t log_decl;
+
+#define LOG10_NAME "log10"
+extern IR_node_t log10_decl;
+
+#define POW_NAME "pow"
+extern IR_node_t pow_decl;
+
+#define SIN_NAME "sin"
+extern IR_node_t sin_decl;
+
+#define COS_NAME "cos"
+extern IR_node_t cos_decl;
+
+#define ATAN2_NAME "atan2"
+extern IR_node_t atan2_decl;
+
+#define MATCH_NAME "match"
+extern IR_node_t match_decl;
+
+#define SUB_NAME "sub"
+extern IR_node_t sub_decl;
+
+#define GSUB_NAME "gsub"
+extern IR_node_t gsub_decl;
+
+#define SPLIT_NAME "split"
+extern IR_node_t split_decl;
+
+#define SPLIT_REGEX_NAME "split_regex"
+extern IR_node_t split_regex_decl;
+
+#define SRAND_NAME "srand"
+extern IR_node_t srand_decl;
+
+#define RAND_NAME "rand"
+extern IR_node_t rand_decl;
+
+#define READDIR_NAME "readdir"
+extern IR_node_t readdir_decl;
+
+#define FTYPE_NAME "ftype"
+extern IR_node_t ftype_decl;
+
+#define FUN_NAME "fun"
+extern IR_node_t fun_decl;
+
+#define FGN_NAME "fgn"
+extern IR_node_t fgn_decl;
+
+#define FSIZE_NAME "fsize"
+extern IR_node_t fsize_decl;
+
+#define FATIME_NAME "fatime"
+extern IR_node_t fatime_decl;
+
+#define FMTIME_NAME "fmtime"
+extern IR_node_t fmtime_decl;
+
+#define FCTIME_NAME "fctime"
+extern IR_node_t fctime_decl;
+
+#define FUMODE_NAME "fumode"
+extern IR_node_t fumode_decl;
+
+#define FGMODE_NAME "fgmode"
+extern IR_node_t fgmode_decl;
+
+#define FOMODE_NAME "fomode"
+extern IR_node_t fomode_decl;
+
+#define TIME_NAME "time"
+extern IR_node_t time_decl;
+
+#define STRTIME_NAME "strtime"
+extern IR_node_t strtime_decl;
+
+#define TIME_FORMAT_NAME "time_format"
+extern IR_node_t time_format_decl;
+
+#define CLOCK_NAME "clock"
+extern IR_node_t clock_decl;
+
+#define GC_NAME "gc"
+extern IR_node_t gc_decl;
+
+#define RENAME_NAME "rename"
+extern IR_node_t rename_decl;
+
+#define REMOVE_NAME "remove"
+extern IR_node_t remove_decl;
+
+#define MKDIR_NAME "mkdir"
+extern IR_node_t mkdir_decl;
+
+#define RMDIR_NAME "rmdir"
+extern IR_node_t rmdir_decl;
+
+#define GETCWD_NAME "getcwd"
+extern IR_node_t getcwd_decl;
+
+#define CHDIR_NAME "chdir"
+extern IR_node_t chdir_decl;
+
+#define CHUMOD_NAME "chumod"
+extern IR_node_t chumod_decl;
+
+#define CHGMOD_NAME "chgmod"
+extern IR_node_t chgmod_decl;
+
+#define CHOMOD_NAME "chomod"
+extern IR_node_t chomod_decl;
+
+#define ISATTY_NAME "isatty"
+extern IR_node_t isatty_decl;
+
+#define OPEN_NAME "open"
+extern IR_node_t open_decl;
+
+#define CLOSE_NAME "close"
+extern IR_node_t close_decl;
+
+#define FLUSH_NAME "flush"
+extern IR_node_t flush_decl;
+
+#define POPEN_NAME "popen"
+extern IR_node_t popen_decl;
+
+#define PCLOSE_NAME "pclose"
+extern IR_node_t pclose_decl;
+
+#define TELL_NAME "tell"
+extern IR_node_t tell_decl;
+
+#define SEEK_NAME "seek"
+extern IR_node_t seek_decl;
+
+#define PUT_NAME "put"
+extern IR_node_t put_decl;
+
+#define PUTLN_NAME "putln"
+extern IR_node_t putln_decl;
+
+#define FPUT_NAME "fput"
+extern IR_node_t fput_decl;
+
+#define FPUTLN_NAME "fputln"
+extern IR_node_t fputln_decl;
+
+#define PRINT_NAME "print"
+extern IR_node_t print_decl;
+
+#define PRINTLN_NAME "println"
+extern IR_node_t println_decl;
+
+#define FPRINT_NAME "fprint"
+extern IR_node_t fprint_decl;
+
+#define FPRINTLN_NAME "fprintln"
+extern IR_node_t fprintln_decl;
+
+#define GET_NAME "get"
+extern IR_node_t get_decl;
+
+#define GETLN_NAME "getln"
+extern IR_node_t getln_decl;
+
+#define FGET_NAME "fget"
+extern IR_node_t fget_decl;
+
+#define FGETLN_NAME "fgetln"
+extern IR_node_t fgetln_decl;
+
+#define SCAN_NAME "scan"
+extern IR_node_t scan_decl;
+
+#define SCANLN_NAME "scanln"
+extern IR_node_t scanln_decl;
+
+#define FSCAN_NAME "fscan"
+extern IR_node_t fscan_decl;
+
+#define FSCANLN_NAME "fscanln"
+extern IR_node_t fscanln_decl;
+
+#define GETPID_NAME "getpid"
+extern IR_node_t getpid_decl;
+
+#define GETPGID_NAME "getpgid"
+extern IR_node_t getpgid_decl;
+
+#define GETUN_NAME "getun"
+extern IR_node_t getun_decl;
+
+#define GETEUN_NAME "geteun"
+extern IR_node_t geteun_decl;
+
+#define GETGN_NAME "getgn"
+extern IR_node_t getgn_decl;
+
+#define GETEGN_NAME "getegn"
+extern IR_node_t getegn_decl;
+
+#define GETGROUPS_NAME "getgroups"
+extern IR_node_t getgroups_decl;
+
+#define SYSTEM_NAME "system"
+extern IR_node_t system_decl;
+
+#define EXIT_NAME "exit"
+extern IR_node_t exit_decl;
+
+#define INIT_NAME "__init__"
+extern IR_node_t init_decl;
+
+}
+
+%local {
+#include "d_common.h"
+#include "d_built.h"
+
+/* All internal representation storage is implemented by object stack.  See
+   package `object-stack'. */
+
+os_t irp;
+
+IR_node_t temp_unique_ident;
+IR_node_t temp_unique_int;
+IR_node_t temp_unique_float;
+IR_node_t temp_unique_char;
+IR_node_t temp_unique_string;
+IR_node_t temp_ident;
+IR_node_t temp_decl;
+IR_node_t temp_var_occurrence;
+
+}
+
+%type char_t int_t floating_t string_t integer_t bool_t position_t type_mask_t
+      implementation_func_t ticker_t
+
+%%
+
+/************* The following part are set in syntax analyzer **************/
+
+/* Only char_node can refer to this node. */
+unique_char :: %root
+%other
+        char_value : char_t
+;
+
+%abstract
+generic_pos :: %root
+%other
+        pos : position_t
+;
+
+char :: generic_pos
+%other
+        unique_char : unique_char /* always defined */
+;
+
+/* Only number_node can refer to this node. */
+unique_int :: %root
+%other
+        int_value : int_t
+;
+
+/* Only number_node can refer to this node. */
+int :: generic_pos
+%other
+        unique_int : unique_int /* always defined */
+;
+
+unique_float :: %root
+%other
+        float_value : floating_t
+;
+
+float :: generic_pos
+%other
+        unique_float : unique_float /* always defined */
+;
+
+unique_string :: %root
+%other
+        string_value : string_t
+;
+
+string :: generic_pos
+%other
+        unique_string : unique_string /* always defined */
+;
+
+/* Only ident can refer to this node. */
+unique_ident :: %root
+%other
+        ident_string : string_t
+;
+
+/* After semantic analysis reference from any code node to the
+   following node is changed on reference to node representing the
+   corresponding object occurrence (e.g. var occurrence). */
+ident :: generic_pos
+%other
+        unique_ident : unique_ident /* always defined */
+;
+
+%abstract
+expr :: %root
+;
+
+%abstract
+operation :: generic_pos, expr
+;
+
+/* The following structures are representing all binary and unary
+   operation nodes. */
+%abstract
+binary_operation :: operation
+%other
+        left_operand, right_operand : expr
+;
+
+%abstract
+unary_operation :: operation
+%other
+        operand : expr
+;
+
+in, or, xor, and, eq, ne, identity, unidentity, lt, gt, le, ge,
+   lshift, rshift, ashift, concat, plus, minus,
+   mult, div, mod, period, arrow, index, key_index :: binary_operation
+;
+
+logical_or, logical_and :: binary_operation
+;
+
+/* conditional expression */
+cond :: operation
+%other
+   left_operand, right_operand, cond : expr
+   false_path_pc : generic_pos
+;
+
+const, new,
+   not, unary_plus, unary_minus, bitwise_not, length,
+   typeof, vectorof, tableof, funcof, threadof, classof,
+   deref :: unary_operation
+;
+
+%abstract
+designator :: %root
+;
+
+ident :: , designator , expr
+;
+
+index, period, deref, arrow :: , designator
+;
+
+int, float, char, string :: , expr
+;
+
+%abstract
+type :: generic_pos, expr
+;
+
+/* The following nodes represent different types.  Type of nil is used
+   only in the evaluator.  Actually there is no nodes `nil_type'. */
+nil_type, hide_type, hideblock_type, char_type, int_type, float_type,
+   vector_type, table_type,
+   func_type, thread_type, class_type, stack_type, process_type, instance_type,
+   type_type :: type
+;
+
+/* The following structure represents vector, table construction
+   nodes. */
+vector, table ::  generic_pos, expr
+%other
+        elist : elist_element
+;
+
+/* The following structure is representing expr list element
+   nodes. */
+elist_element :: generic_pos
+%other
+        /* Always null for actual parameters. */
+        repetition_key : expr
+        expr : expr
+        /* Pointer to next expr list element (elist). */
+        elist : elist_element
+;
+
+class_func_thread_call :: generic_pos, expr
+%other
+        /* Reference to expr that defines the called func. */
+        func_expr : expr
+        /* The following member refers to expr list representing
+           actual parameter node. */
+        elist : elist_element
+;
+
+/* Identifier in a clause (public, private, or friend). */
+access_ident :: %root
+%other
+	ident : ident
+	public_flag : bool_t
+	friend_flag : bool_t
+	next_access_ident : access_ident
+;
+
+%abstract
+stmt :: generic_pos
+%other
+        next_stmt : stmt
+;
+
+/* var_assign is an assign inside var-clause.  par_assign (or assign for
+   parameter) if the parameter value is nil.  See also node
+   par_assign_test. */
+assign, mult_assign, div_assign, rem_assign,
+plus_assign, minus_assign, concat_assign, lshift_assign,
+rshift_assign, ashift_assign, and_assign, xor_assign, or_assign,
+var_assign, par_assign :: stmt
+%other
+        assignment_var : designator
+        assignment_expr : expr
+;
+
+procedure_call :: stmt
+%other
+        /* See commentaries for func call node. */
+        proc_expr : expr
+        elist : elist_element
+;
+
+if_stmt :: stmt
+%other
+        if_expr : expr
+        /* Reference to stmts after keyword then. */
+        if_part : stmt
+        /* Reference to stmts after keyword else. */
+        else_part : stmt
+;
+
+/* This node serves as test loop expr in interpreter. */
+for_stmt :: stmt
+%other
+        /* Reference to the stmt which is first in the for-construction.*/
+        for_initial_stmt : stmt
+        for_guard_expr : expr
+        /* Reference to the stmt which is last in the for-construction. */
+        for_iterate_stmt : stmt
+        /* Reference to stmts in given for-stmt. */
+        for_stmts : stmt
+;
+
+foreach_stmt :: stmt
+%other
+        /* Reference to designator left to `in'.*/
+        foreach_designator : designator
+        /* Reference to table right to `in'.*/
+        foreach_table : expr
+        /* Reference to stmts in given for-stmt. */
+        foreach_stmts : stmt
+;
+
+break_stmt :: stmt
+;
+
+continue_stmt :: stmt
+;
+
+return_without_result :: stmt
+;
+
+return_with_result :: stmt
+%other
+        /* Reference to expr after keyword return. */
+        returned_expr : expr
+;
+
+throw :: stmt
+%other
+        /* Reference to expr (instance value) after keyword THROW. */
+        throw_expr : expr
+;
+
+wait_stmt :: stmt
+%other
+        /* Reference to expr after keyword wait. */
+        wait_guard_expr : expr
+;
+
+/* The following structure is representing block nodes. */
+block :: stmt
+%other
+        /* This member is defined for all blocks. */
+        scope : block
+        /* Reference to stmts in given block. */
+        block_stmts : stmt
+        /* Reference to corresponding func or class (NULL for
+           separate block) or extension (only before the evaluation). */
+        func_class_ext : func_class_ext
+        /* Lists of identifiers in public, private, and friend
+           clauses. */
+        access_list : access_ident
+        /* The list of exceptions for TRY block, NULL for simple
+           block. */
+        exceptions : exception
+;
+
+exception :: generic_pos
+%other
+          exception_class_expr : expr
+          /* The following field is not NULL only for the first
+             identifier in the exception list. */
+          block : block
+          next_exception : exception
+;
+
+%abstract
+decl :: stmt
+%other
+        scope : block
+        ident : ident
+        /* may be non-null if this is environment declaration */
+        implementation_func : implementation_func_t
+;
+
+%abstract
+may_be_const_decl :: decl
+%other
+	/* Flag of that this is constant (can not be changed). */
+	const_flag : bool_t
+;
+
+/* The following node represents formal parameter of funcs and classes
+   too. */
+var :: may_be_const_decl
+;
+
+/* The following node represents external variable declaration. */
+external_var :: may_be_const_decl
+;
+
+/* The following node represents formal parameter of funcs and classes
+   too. */
+pub :: decl
+;
+
+/* The following node represents external function declaration. */
+external_func :: decl
+;
+
+%abstract
+func_class_ext :: decl
+;
+
+%abstract
+func_or_class :: func_class_ext
+        /* The next stmt is always corresponding block node. */
+%other
+        /* Number of parameters of the func.  The formal
+           parameters are the start vars in the func block.  The
+           number takes into account variable for `...' too. */
+        parameters_number : integer_t
+	/* Flag of that args must be defined.  In order words ... is
+           used. */
+	args_flag : bool_t
+	/* Flag of that this is final (can not be extended). */
+	final_flag : bool_t
+;
+
+/* The first nodes in corresponding block is func parameter
+   represented by var nodes.  Its scope is this block. */
+func :: func_or_class
+%other
+	/* Thrue if this true. */
+	thread_flag : bool_t
+;
+
+/* See commentaries for func node. */
+class :: func_or_class
+;
+
+/* Extensions are absent during evaluation and the most of context
+   analysis. */
+ext :: func_class_ext
+;
+
+/************* The following part is set in context analyzer **************/
+
+generic_pos
+%other
+        /* The next exceuted node during usually sequential execution
+           of the program */
+        next_pc : generic_pos
+;
+
+unique_ident
+%other
+        /* If the following member is negative than the ident is
+           not used for access to any block decl.  Otherwise
+           the member value is number of the ident in all
+           idents used for access to any block decl.  This
+           member must be initiated by negative value for the node
+           creation time. */
+        block_decl_ident_number : integer_t
+        /* If the following member is TRUE than the ident is
+           decalared in some block. */
+        it_is_declared_in_block : bool_t
+;
+
+operation
+%other
+	/* Possible types of value of given operation. */
+        value_type : type_mask_t
+;
+
+/* These nodes are analogous to previous nodes without `no_testing'
+   and created to mention that the evaluator may do not test
+   corresponding decl availability in the corresponding
+   class. */
+no_testing_period :: binary_operation
+;
+
+lvalue_period, lvalue_arrow, lvalue_index, lvalue_key_index,
+  lvalue_no_testing_period :: binary_operation, designator
+;
+
+lvalue_deref :: unary_operation, designator
+;
+
+logical_or, logical_and
+%other
+   /* If the result of the logical operation is known here, then go to
+      node given by the following field. */
+   short_path_pc : generic_pos
+;
+
+/* This is end of short circuit operation. */
+logical_or_end, logical_and_end :: generic_pos
+;
+
+/* This is end of cond operation or parameter assign.  Do nothing, only used
+   for simplicity of binding. */
+cond_end, par_assign_end :: generic_pos
+;
+
+/* The sequence `des expr par_assign' is changed by `des par_assign_test expr
+   par_assign par_assign_end' */
+par_assign_test :: generic_pos
+%other
+   /* If the result of the parameter value is not nil then follow the
+      path in the following field which refers for node
+      par_assign_end. */
+   skip_par_assign_path_pc : generic_pos
+;
+
+/* Simply for pushing undefined value on the stack. */
+nil ::  generic_pos, expr
+;
+
+vector, table
+%other
+        /* Number of elements in the list elist. */
+        parts_number : integer_t
+;
+
+elist_element
+        /* pc is not used. */
+;
+
+class_func_thread_call
+%other
+        /* Number of elements in the list elist. */
+        class_func_thread_call_parameters_number : integer_t
+;
+
+procedure_call
+%other
+        /* Number of elements in the list elist. */
+        procedure_call_pars_number : integer_t
+;
+
+if_stmt
+%other
+        /* This member is used to control flow to else-part. */
+        else_part_pc : generic_pos
+;
+
+for_stmt
+%other
+        /* This member is used to control flow into loop body. */
+        body_pc : generic_pos
+;
+
+/* This node serves as test loop expr in interpreter.  The pc flows as
+   following
+
+  foreach_start->foreach_designator->foreach_table->foreach_stmt->for_finish
+               ^                                       |
+               |                                       |: body_pc
+              foreach_next_iteration<--foreach_stmts<--
+*/
+foreach_stmt
+%other
+        /* This member is used to control flow into loop body. */
+        body_pc : generic_pos
+;
+
+break_stmt
+%other
+        /* Number of non simple blocks inside corresponding for-stmt and
+           surrounding given break or continue stmt. */
+        number_of_surrounding_blocks : integer_t
+;
+
+continue_stmt
+%other
+        /* See commentaries for break stmt. */
+        number_of_surrounding_blocks : integer_t
+;
+
+wait_stmt
+%other
+        /* The following program count refers to start of with guard
+           expr.  This is needed for resuming processes. */
+        start_wait_guard_expr_pc : generic_pos
+;
+
+block
+%other
+        /* Number of all blocks which contain given block. */
+        block_level : integer_t
+        /* Number of all decls immediately placed in given block. */
+        decls_number : integer_t
+        /* Number of vars immediately placed in given block. */
+        vars_number : integer_t
+        /* Number of temporary vars needed for expr
+           evaluation in given block. */
+        temporary_vars_number : integer_t
+        /* Order number (0, ...) of the class in set of all program
+           classes. */
+        block_number : integer_t
+        /* See the following comment.  The field value is NULL if the
+	   corresponding block is not try-block. */
+        catch_list_pc : generic_pos
+        /* The following flag is TRUE if the block does not contains
+	   declarations and catches and the block is not block of
+	   function or class or extension. */
+        simple_block_flag : bool_t {$ = FALSE;}
+        /* The following flag is TRUE if an instance of the block may
+           be used after block execution finish.  It is possibly if
+           there is a function or class value is assigned to variable,
+           passed as parameter, returned as function result or became
+           as vector/table element.  This flag is used to solve can we
+           try to pop block instance after its execution and as
+           consequence to decrease number of GC.  We could be more
+           accurate in several ways:
+             o Check only function/class inside the block.
+             o Check that vector whose element is the function class
+               is assigned to, passed as parameter, returned as
+               function result or became as vector/table element.. */
+        extended_life_context_flag : bool_t {$ = FALSE;}
+        /* The following is the list of friends of the block. */
+        friends : friend {$ = NULL;}
+;
+
+/* The following is a node of the list of friends of block (it means
+   that the friend (all blocks inside it) can have access to the block
+   private declarations). */
+friend :: %root
+%other
+        friend_decl : decl
+        next_friend : friend
+;
+
+/* The node for making solution to catch given exception or not.  The
+   flow is the following:
+           catch_list_pc                           catch_list_pc
+   try block ----------> class expr -> exception   ---------> class expr...
+       |                                   | next_pc                ....
+       |                                   V
+       |                                catch block                 ....
+       |                                   | next_pc                  |
+       |                                   V                          |
+        -----------------------------> catches_finish<----------------
+          next_pc                         | next_pc
+                                          V
+                                       
+*/
+exception
+%other
+        /* This member is used to control flow when there is no catch
+           for given exception. */
+        catch_list_pc : generic_pos
+;
+
+decl
+%other
+	public_flag : bool_t
+        /* The following field is the first access ident if the decl
+           ident is in an access clause. */
+	access_ident : access_ident
+;
+
+%abstract
+decl_in_block :: %root
+%other
+        /* Number (0, ...) of the var (only immediatly placed) in
+           block decls. */
+        decl_number_in_block : integer_t
+;
+
+var :: , decl_in_block
+        /* pc is not used */
+%other
+        /* Number (0, ...) of the var (only immediatly placed) in
+           block vars.  The numeration of vars in func starts with 0.
+           The class-constructor block has only one permanent var
+           storing self value of the corresponding class_instance.
+           The following value is number of class_instance var
+           corresponding give node. */
+        var_number_in_block : integer_t
+;
+
+external_var, external_func, func_or_class :: , decl_in_block
+        /* pc is not used */
+;
+
+%abstract
+occurrence :: generic_pos
+%other
+        decl : decl /* always defined */
+;
+
+/* The ident will changed by three following nodes
+   (occurrences). */
+
+/* The following structure is representing var occurrence nodes. */
+external_var_occurrence, var_occurrence :: expr
+;
+
+/* The following structure is representing lvalue var occurrence nodes. */
+lvalue_external_var_occurrence, lvalue_var_occurrence :: designator
+;
+
+var_occurrence, lvalue_var_occurrence :: , occurrence
+;
+
+external_var_occurrence, lvalue_external_var_occurrence :: , occurrence
+;
+
+external_func_occurrence, func_occurrence, class_occurrence :: occurrence, expr
+;
+
+/* This node does nothing in interpreter.  The node serves only for
+   connection of if- and else- parts. */
+if_finish :: generic_pos
+;
+
+/* This node does nothing in interpreter.  The node serves only for
+   connection of break stmt in for and foreach. */
+for_finish :: generic_pos
+;
+
+/* See commentaries for foreach. */
+foreach_start, foreach_next_iteration :: generic_pos
+;
+
+/* This node serves for finishing any block. */
+block_finish :: generic_pos
+%other
+        simple_block_flag : bool_t
+;
+
+/* There is one node for given try block which serves for finishing
+   each catch block.  See comment for exception. */
+catches_finish :: generic_pos
+;
+
+/* This node serves for pop up func call in procedure call stmt. */
+pop_func_call :: generic_pos
+;
+
+/************* The following part is set in evaluator **************/
+
+func_or_class
+%other
+        /* Number of function/class calls. */
+        calls_number : integer_t {$ = 0;}
+	/* Time of function (class body) execution.  Defined if the
+	   previous filed is not zero. */
+        exec_time : ticker_t
+        interrupts_number : integer_t
+;
+
+%abstract
+external :: %root
+%other
+        /* Address of loaded external. */
+        address : string_t {$ = NULL;}
+;
+  
+external_var, external_func :: , external
+;
+
+block
+%other
+        /* The following field is cached address of container for the
+           current block.  If it is NULL, the cached value is not
+           defined. */
+	cached_container_address : string_t
+;
+
+%%
+
+/* Funcs for work with code node hash table.  The table contains pointers
+   to code nodes representing unique idents, values (cardinal, integer
+   and etc.), decls (i.e. nodes having members ident and scope). */
+
+/* The node hash table. */
+
+static hash_table_t node_hash_table;
+
+/* Func for evaluation of hash value of code node represented by EL_PTR. */
+
+static unsigned
+hash_func (hash_table_entry_t el_ptr)
+{
+  IR_node_t node_ref;
+  IR_node_mode_t mode;
+  char *chp, ch;
+  int_t int_number;
+  floating_t float_number;
+  size_t i, size, hash_value;
+
+  node_ref = IR_POINTER (el_ptr);
+  mode = IR_NODE_MODE (node_ref);
+  if (mode == IR_NM_var || mode == IR_NM_external_var
+      || mode == IR_NM_external_func || mode == IR_NM_func
+      || mode == IR_NM_class || mode == IR_NM_ext)
+    hash_value
+      = ((unsigned) (long) IR_scope (node_ref)
+	 + (unsigned) (long) IR_GET_UNIQUE_IDENT (IR_ident (node_ref)));
+  else
+    {
+      if (mode == IR_NM_unique_char)
+	{
+	  size = sizeof (char_t);
+          ch = IR_char_value (node_ref);
+	  chp = &ch;
+	}
+      else if (mode == IR_NM_unique_int)
+	{
+	  size = sizeof (int_t);
+          int_number = IR_int_value (node_ref);
+	  chp = (char *) &int_number;
+	}
+      else if (mode == IR_NM_unique_float)
+	{
+	  size = sizeof (floating_t);
+          float_number = IR_float_value (node_ref);
+	  chp = (char *) &float_number;
+	}
+      else if (mode == IR_NM_unique_string)
+	{
+	  chp = IR_string_value (node_ref);
+	  size = strlen (chp);
+	}
+      else if (mode == IR_NM_unique_ident)
+	{
+	  chp = IR_ident_string (node_ref);
+	  size = strlen (chp);
+	}
+      else
+	assert (FALSE);
+      for (hash_value = 0, i = 0; i < size; i++, chp++)
+	hash_value += (*chp);
+    }
+  return hash_value;
+}
+
+/* Func used for comparison of hash table elements represented by EL1_PTR,
+   EL2_PTR.  Return TRUE if the elements represent equal nodes. */
+
+static int
+compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
+{
+  IR_node_t node_ref1, node_ref2;
+  IR_node_mode_t mode1, mode2;
+  int elements_are_equal;
+
+  node_ref1 = IR_POINTER (el1_ptr);
+  node_ref2 = IR_POINTER (el2_ptr);
+  mode1 = IR_NODE_MODE (node_ref1);
+  mode2 = IR_NODE_MODE (node_ref2);
+  if ((mode1 == IR_NM_var || mode1 == IR_NM_external_var
+       || mode1 == IR_NM_external_func || mode1 == IR_NM_func
+       || mode1 == IR_NM_class || mode1 == IR_NM_ext)
+      && (mode2 == IR_NM_var || mode2 == IR_NM_external_var
+	  || mode2 == IR_NM_external_func || mode2 == IR_NM_func
+	  || mode2 == IR_NM_class || mode2 == IR_NM_ext))
+    elements_are_equal
+      = (IR_scope (node_ref1) == IR_scope (node_ref2)
+	 && (IR_GET_UNIQUE_IDENT (IR_ident (node_ref1))
+	     == IR_GET_UNIQUE_IDENT (IR_ident (node_ref2))));
+  else
+    {
+      elements_are_equal = mode1 == mode2;
+      if (elements_are_equal)
+	{
+	  if (mode1 == IR_NM_unique_ident)
+	    elements_are_equal
+	      = (strcmp (IR_ident_string (node_ref1),
+			 IR_ident_string (node_ref2))
+		 == 0);
+	  else if (mode1 == IR_NM_unique_char)
+	    elements_are_equal = (IR_char_value (node_ref1)
+				  == IR_char_value (node_ref2));
+	  else if (mode1 == IR_NM_unique_int)
+	    elements_are_equal
+	      = (IR_int_value (node_ref1) == IR_int_value (node_ref2));
+	  else if (mode1 == IR_NM_unique_float)
+	    elements_are_equal
+	      = (IR_float_value (node_ref1) == IR_float_value (node_ref2));
+	  else if (mode1 == IR_NM_unique_string)
+	    elements_are_equal
+	      = strcmp (IR_string_value (node_ref1),
+                        IR_string_value (node_ref2)) == 0;
+	  else
+	    assert (FALSE);
+	}
+    }
+  return elements_are_equal;
+}
+
+void
+initiate_table (void)
+{
+  node_hash_table = create_hash_table (1000, hash_func, compare_func);
+}
+
+/* Delete the code node hash table. */
+
+void
+delete_table (void)
+{
+  delete_hash_table (node_hash_table);
+}
+
+/* Find pointer to the code node hash table entry which contains pointer to
+   node with the same keys as in node starting with REF or else the empty entry
+   (its value is NULL).  If RESERVE is TRUE than the empty entry is reseved
+   and must be filled by node with the same keys as in node starting with
+   REF. */
+
+IR_node_t *
+find_table_entry (IR_node_t ref, int reserve)
+{
+  return
+    (IR_node_t *) find_hash_table_entry (node_hash_table,
+					  (hash_table_entry_t) ref, reserve);
+}
+
+/* Include node starting with REF to the code node hash table.  If node with
+   the same keys is already in the table than delete it and include the node
+   starting with REF to the table. */
+
+void
+include_to_table (IR_node_t ref)
+{
+  IR_node_t *table_entry_pointer;
+
+  table_entry_pointer = find_table_entry (ref, TRUE);
+  *table_entry_pointer = ref;
+}
+
+/* Return pointer to unique ident node with the hash table key STRING. */
+
+IR_node_t
+find_unique_ident (char *string)
+{
+  IR_node_t result;
+
+  IR_set_ident_string (temp_unique_ident, string);
+  result = (*find_table_entry (temp_unique_ident, FALSE));
+  return result;
+}
+
+/* Allocate memory for node with given mode and initiate its mode. */
+
+IR_node_t
+create_node (IR_node_mode_t mode)
+{
+  return IR_create_node (mode);
+}
+
+/* Allocate memory for node with given mode and initiate its common members
+   MODE and POS. */
+
+IR_node_t
+create_node_with_pos (IR_node_mode_t mode, position_t pos)
+{
+  IR_node_t ref;
+
+  ref = IR_create_node (mode);
+  IR_set_pos (ref, pos);
+  return ref;
+}
+
+/* Allocate memory for node with given mode and string attribute and
+   initiate its common member mode.  Return pointer to the string
+   attribute STR through parameter string_in_pool_ptr.  Nodes with string
+   attribute are unique string, unique ident. */
+
+IR_node_t
+create_unique_node_with_string (IR_node_mode_t m,
+				const char *str, char **string_in_pool_ptr)
+{
+  IR_node_t ref;
+
+  ref = IR_create_node (m);
+  IR_TOP_EXPAND (strlen (str) + 1);
+  *string_in_pool_ptr = IR_TOP_BEGIN ();
+  IR_TOP_FINISH ();
+  strcpy (*string_in_pool_ptr, str);
+  return ref;
+}
+
+/* Create unique ident with name STR (allocate memory, copy attribute
+   in pool, initiate members and include to the hash table if the unique
+   ident does not exist).  Only this func must be used for creation
+   of unique ident because only this func initiates correctly some
+   members. */
+
+IR_node_t
+create_unique_ident_node (const char *str)
+{
+  IR_node_t ref;
+  char *string_in_pool;
+
+  IR_set_ident_string (temp_unique_ident, (char *) str);
+  ref = *find_table_entry (temp_unique_ident, FALSE);
+  if (ref == NULL)
+    {
+      ref = create_unique_node_with_string (IR_NM_unique_ident, str,
+                                            &string_in_pool);
+      IR_set_ident_string (ref, string_in_pool);
+      /* The following means that the ident is not used for access to 
+         any class decl. */
+      IR_set_block_decl_ident_number (ref, -1);
+      include_to_table (ref);
+    }
+  return ref;
+}
+
+/* The func returns occurrence mode (var occurrence and etc.) for 
+   corresponding DECL.  DECL must be only var, func
+   or class. */
+
+IR_node_mode_t
+occurrence_mode (IR_node_t decl)
+{
+  assert (decl != NULL);
+  if (IR_NODE_MODE (decl) == IR_NM_var)
+    return IR_NM_var_occurrence;
+  else if (IR_NODE_MODE (decl) == IR_NM_external_var)
+    return IR_NM_external_var_occurrence;
+  else if (IR_NODE_MODE (decl) == IR_NM_external_func)
+    return IR_NM_external_func_occurrence;
+  else if (IR_NODE_MODE (decl) == IR_NM_func)
+    return IR_NM_func_occurrence;
+  else if (IR_NODE_MODE (decl) == IR_NM_class)
+    return IR_NM_class_occurrence;
+  else
+    assert (FALSE);
+  return IR_NM_var_occurrence; /* No warnings */
+}
+
+/* The func creates occurrence_node (var, func or class) with
+   POS for corresponding DECL.  DECL must be only var,
+   func or class. */
+
+IR_node_t
+create_occurrence_node (IR_node_t decl, position_t pos)
+{
+  IR_node_t occurrence_node;
+
+  occurrence_node = create_node_with_pos (occurrence_mode (decl), pos);
+  IR_set_decl (occurrence_node, decl);
+  return occurrence_node;
+}
+
+/* This func should be invoked only one before any work with intermediate
+   code but after initiation of table.  The func creates standard
+   environment. */
+
+void
+initiate_icode (void)
+{
+  IR_start ();
+  temp_unique_ident = IR_create_node (IR_NM_unique_ident);
+  temp_unique_int = IR_create_node (IR_NM_unique_int);
+  temp_unique_float = IR_create_node (IR_NM_unique_float);
+  temp_unique_char = IR_create_node (IR_NM_unique_char);
+  temp_unique_string = IR_create_node (IR_NM_unique_string);
+  temp_ident = IR_create_node (IR_NM_ident);
+  temp_decl = IR_create_node (IR_NM_var);
+  temp_var_occurrence = IR_create_node (IR_NM_var_occurrence);
+}
+
+
+
+/* This page contains func for searching for idents according to
+   language visibility rules. */
+
+/* The func returns pointer to decl with key (IDENT, SCOPE)
+   or NULL if such decl does not exist.  IDENT is to be not NULL.
+   SCOPE may be NULL. */
+
+IR_node_t
+find_decl_in_given_scope (IR_node_t ident, IR_node_t scope)
+{
+  IR_set_ident (temp_decl, ident);
+  IR_set_scope (temp_decl, scope);
+  return *find_table_entry (temp_decl, FALSE);
+}
+
+/* The func returns pointer to decl visible according language
+   rule from SCOPE and designated by IDENT, or returns NULL if such
+   decl does not exist.  IDENT is to be not NULL.
+   SCOPE may be NULL. */
+
+IR_node_t
+find_decl (IR_node_t ident, IR_node_t scope)
+{
+  IR_node_t decl;
+
+  assert (scope != NULL);
+  for (;;)
+    {
+      decl = find_decl_in_given_scope (ident, scope);
+      if (decl != NULL || scope == NULL)
+	break;
+      scope = IR_scope (scope);
+    }
+  return decl;
+}
+
+/* The following function sets up the variable *PTR to corresponding
+   declarations from the environment with given name. */
+static void
+set_a_environment_declaration (IR_node_t *ptr, char *name,
+			       IR_node_t environment_scope,
+			       implementation_func_t func)
+{
+  IR_node_t unique_ident;
+
+  unique_ident = find_unique_ident (name);
+  assert (unique_ident != NULL);
+  IR_set_unique_ident (temp_ident, unique_ident);
+  *ptr = find_decl_in_given_scope (temp_ident, environment_scope);
+  assert (*ptr != NULL);
+  IR_set_implementation_func (*ptr, func);
+}
+
+/* See comments for ENVIRONMENT. */
+IR_node_t except_decl;
+IR_node_t error_decl;
+IR_node_t signal_decl;
+IR_node_t sigint_decl;
+IR_node_t sigill_decl;
+IR_node_t sigabrt_decl;
+IR_node_t sigfpe_decl;
+IR_node_t sigterm_decl;
+IR_node_t sigsegv_decl;
+IR_node_t invenv_decl;
+IR_node_t invop_decl;
+IR_node_t optype_decl;
+IR_node_t opvalue_decl;
+IR_node_t invindex_decl;
+IR_node_t indextype_decl;
+IR_node_t indexvalue_decl;
+IR_node_t indexop_decl;
+IR_node_t invkey_decl;
+IR_node_t keyvalue_decl;
+IR_node_t keyop_decl;
+IR_node_t invcall_decl;
+IR_node_t callop_decl;
+IR_node_t partype_decl;
+IR_node_t invresult_decl;
+IR_node_t invinput_decl;
+IR_node_t eof_decl;
+IR_node_t parnumber_decl;
+IR_node_t syserror_decl;
+IR_node_t eaccess_decl;
+IR_node_t eagain_decl;
+IR_node_t ebadf_decl;
+IR_node_t ebusy_decl;
+IR_node_t echild_decl;
+IR_node_t edeadlk_decl;
+IR_node_t edom_decl;
+IR_node_t eexist_decl;
+IR_node_t efault_decl;
+IR_node_t efbig_decl;
+IR_node_t eintr_decl;
+IR_node_t einval_decl;
+IR_node_t eio_decl;
+IR_node_t eisdir_decl;
+IR_node_t emfile_decl;
+IR_node_t emlink_decl;
+IR_node_t enametoolong_decl;
+IR_node_t enfile_decl;
+IR_node_t enodev_decl;
+IR_node_t enoent_decl;
+IR_node_t enoexec_decl;
+IR_node_t enolck_decl;
+IR_node_t enomem_decl;
+IR_node_t enospc_decl;
+IR_node_t enosys_decl;
+IR_node_t enotdir_decl;
+IR_node_t enotempty_decl;
+IR_node_t enotty_decl;
+IR_node_t enxio_decl;
+IR_node_t eperm_decl;
+IR_node_t epipe_decl;
+IR_node_t erange_decl;
+IR_node_t erofs_decl;
+IR_node_t espipe_decl;
+IR_node_t esrch_decl;
+IR_node_t exdev_decl;
+IR_node_t invextern_decl;
+IR_node_t noextern_decl;
+IR_node_t libclose_decl;
+IR_node_t noexternsupp_decl;
+IR_node_t invenvar_decl;
+IR_node_t internal_decl;
+IR_node_t systemcall_decl;
+IR_node_t noshell_decl;
+IR_node_t systemfail_decl;
+IR_node_t invregexp_decl;
+IR_node_t ebrack_decl;
+IR_node_t erange_decl;
+IR_node_t ectype_decl;
+IR_node_t eparen_decl;
+IR_node_t esubreg_decl;
+IR_node_t eend_decl;
+IR_node_t eescape_decl;
+IR_node_t badpat_decl;
+IR_node_t esize_decl;
+IR_node_t espace_decl;
+IR_node_t invparser_decl;
+IR_node_t invgrammar_decl;
+IR_node_t invtoken_decl;
+IR_node_t pmemory_decl;
+IR_node_t invaccess_decl;
+IR_node_t accessop_decl;
+IR_node_t accessvalue_decl;
+IR_node_t dereftype_decl;
+IR_node_t arrowtype_decl;
+IR_node_t immutable_decl;
+IR_node_t deadlock_decl;
+IR_node_t anode_decl;
+IR_node_t excepts_decl;
+IR_node_t errors_decl;
+IR_node_t signals_decl;
+IR_node_t invops_decl;
+IR_node_t invindexes_decl;
+IR_node_t invkeys_decl;
+IR_node_t syserrors_decl;
+IR_node_t invcalls_decl;
+IR_node_t systemcalls_decl;
+IR_node_t invregexps_decl;
+IR_node_t invparsers_decl;
+IR_node_t invexterns_decl;
+IR_node_t invaccesses_decl;
+IR_node_t argv_decl;
+IR_node_t env_decl;
+IR_node_t main_thread_decl;
+IR_node_t curr_thread_decl;
+IR_node_t token_decl;
+IR_node_t code_decl;
+IR_node_t parser_decl;
+IR_node_t ambiguous_p_decl;
+IR_node_t int_earley_parse_grammar_decl;
+IR_node_t int_earley_set_debug_level_decl;
+IR_node_t int_earley_set_one_parse_flag_decl;
+IR_node_t int_earley_set_error_recovery_flag_decl;
+IR_node_t int_earley_set_recovery_match_decl;
+IR_node_t int_earley_parse_decl;
+IR_node_t int_earley_create_grammar_decl;
+IR_node_t file_decl;
+IR_node_t file_ptr_decl;
+IR_node_t stdin_decl;
+IR_node_t stdout_decl;
+IR_node_t stderr_decl;
+IR_node_t min_decl;
+IR_node_t max_decl;
+IR_node_t tolower_decl;
+IR_node_t toupper_decl;
+IR_node_t eltype_decl;
+IR_node_t keys_decl;
+IR_node_t context_decl;
+IR_node_t inside_decl;
+IR_node_t subv_decl;
+IR_node_t cmpv_decl;
+IR_node_t del_decl;
+IR_node_t ins_decl;
+IR_node_t insv_decl;
+IR_node_t sort_decl;
+IR_node_t sqrt_decl;
+IR_node_t exp_decl;
+IR_node_t log_decl;
+IR_node_t log10_decl;
+IR_node_t pow_decl;
+IR_node_t sin_decl;
+IR_node_t cos_decl;
+IR_node_t atan2_decl;
+IR_node_t match_decl;
+IR_node_t sub_decl;
+IR_node_t gsub_decl;
+IR_node_t split_decl;
+IR_node_t split_regex_decl;
+IR_node_t srand_decl;
+IR_node_t rand_decl;
+IR_node_t readdir_decl;
+IR_node_t ftype_decl;
+IR_node_t fun_decl;
+IR_node_t fgn_decl;
+IR_node_t fsize_decl;
+IR_node_t fatime_decl;
+IR_node_t fmtime_decl;
+IR_node_t fctime_decl;
+IR_node_t fumode_decl;
+IR_node_t fgmode_decl;
+IR_node_t fomode_decl;
+IR_node_t time_decl;
+IR_node_t strtime_decl;
+IR_node_t time_format_decl;
+IR_node_t clock_decl;
+IR_node_t gc_decl;
+IR_node_t rename_decl;
+IR_node_t remove_decl;
+IR_node_t mkdir_decl;
+IR_node_t rmdir_decl;
+IR_node_t getcwd_decl;
+IR_node_t chdir_decl;
+IR_node_t chumod_decl;
+IR_node_t chgmod_decl;
+IR_node_t chomod_decl;
+IR_node_t isatty_decl;
+IR_node_t open_decl;
+IR_node_t close_decl;
+IR_node_t flush_decl;
+IR_node_t popen_decl;
+IR_node_t pclose_decl;
+IR_node_t tell_decl;
+IR_node_t seek_decl;
+IR_node_t put_decl;
+IR_node_t putln_decl;
+IR_node_t fput_decl;
+IR_node_t fputln_decl;
+IR_node_t print_decl;
+IR_node_t println_decl;
+IR_node_t fprint_decl;
+IR_node_t fprintln_decl;
+IR_node_t get_decl;
+IR_node_t getln_decl;
+IR_node_t fget_decl;
+IR_node_t fgetln_decl;
+IR_node_t scan_decl;
+IR_node_t scanln_decl;
+IR_node_t fscan_decl;
+IR_node_t fscanln_decl;
+IR_node_t getpid_decl;
+IR_node_t getpgid_decl;
+IR_node_t getun_decl;
+IR_node_t geteun_decl;
+IR_node_t getgn_decl;
+IR_node_t getegn_decl;
+IR_node_t getgroups_decl;
+IR_node_t system_decl;
+IR_node_t exit_decl;
+IR_node_t init_decl;
+
+struct decl_entry
+{
+  IR_node_t *decl_ptr;
+  char *name;
+  IR_node_t *scope_ptr;
+  implementation_func_t func_ptr;
+};
+
+
+static struct decl_entry decls_table [] =
+{
+  {&except_decl, EXCEPT_NAME, NULL, NULL},
+  {&error_decl, ERROR_NAME, &except_decl, NULL},
+  {&signal_decl, SIGNAL_NAME, &error_decl, NULL},
+  {&sigint_decl, SIGINT_NAME, &signal_decl, NULL},
+  {&sigill_decl, SIGILL_NAME, &signal_decl, NULL},
+  {&sigabrt_decl, SIGABRT_NAME, &signal_decl, NULL},
+  {&sigfpe_decl, SIGFPE_NAME, &signal_decl, NULL},
+  {&sigterm_decl, SIGTERM_NAME, &signal_decl, NULL},
+  {&sigsegv_decl, SIGSEGV_NAME, &signal_decl, NULL},
+  {&invenv_decl, INVENV_NAME, &error_decl, NULL},
+  {&invop_decl, INVOP_NAME, &error_decl, NULL},
+  {&optype_decl, OPTYPE_NAME, &invop_decl, NULL},
+  {&opvalue_decl, OPVALUE_NAME, &invop_decl, NULL},
+  {&invindex_decl, INVINDEX_NAME, &error_decl, NULL},
+  {&indextype_decl, INDEXTYPE_NAME, &invindex_decl, NULL},
+  {&indexvalue_decl, INDEXVALUE_NAME, &invindex_decl, NULL},
+  {&indexop_decl, INDEXOP_NAME, &invindex_decl, NULL},
+  {&invkey_decl, INVKEY_NAME, &error_decl, NULL},
+  {&keyvalue_decl, KEYVALUE_NAME, &invkey_decl, NULL},
+  {&keyop_decl, KEYOP_NAME, &invkey_decl, NULL},
+  {&invcall_decl, INVCALL_NAME, &error_decl, NULL},
+  {&callop_decl, CALLOP_NAME, &invcall_decl, NULL},
+  {&partype_decl, PARTYPE_NAME, &invcall_decl, NULL},
+  {&invresult_decl, INVRESULT_NAME, &invcall_decl, NULL},
+  {&invinput_decl, INVINPUT_NAME, &invcall_decl, NULL},
+  {&eof_decl, EOF_NAME, &invcall_decl, NULL},
+  {&parnumber_decl, PARNUMBER_NAME, &invcall_decl, NULL},
+  {&syserror_decl, SYSERROR_NAME, &invcall_decl, NULL},
+  {&eaccess_decl, EACCESS_NAME, &syserror_decl, NULL},
+  {&eagain_decl, EAGAIN_NAME, &syserror_decl, NULL},
+  {&ebadf_decl, EBADF_NAME, &syserror_decl, NULL},
+  {&ebusy_decl, EBUSY_NAME, &syserror_decl, NULL},
+  {&echild_decl, ECHILD_NAME, &syserror_decl, NULL},
+  {&edeadlk_decl, EDEADLK_NAME, &syserror_decl, NULL},
+  {&edom_decl, EDOM_NAME, &syserror_decl, NULL},
+  {&eexist_decl, EEXIST_NAME, &syserror_decl, NULL},
+  {&efault_decl, EFAULT_NAME, &syserror_decl, NULL},
+  {&efbig_decl, EFBIG_NAME, &syserror_decl, NULL},
+  {&eintr_decl, EINTR_NAME, &syserror_decl, NULL},
+  {&einval_decl, EINVAL_NAME, &syserror_decl, NULL},
+  {&eio_decl, EIO_NAME, &syserror_decl, NULL},
+  {&eisdir_decl, EISDIR_NAME, &syserror_decl, NULL},
+  {&emfile_decl, EMFILE_NAME, &syserror_decl, NULL},
+  {&emlink_decl, EMLINK_NAME, &syserror_decl, NULL},
+  {&enametoolong_decl, ENAMETOOLONG_NAME, &syserror_decl, NULL},
+  {&enfile_decl, ENFILE_NAME, &syserror_decl, NULL},
+  {&enodev_decl, ENODEV_NAME, &syserror_decl, NULL},
+  {&enoent_decl, ENOENT_NAME, &syserror_decl, NULL},
+  {&enoexec_decl, ENOEXEC_NAME, &syserror_decl, NULL},
+  {&enolck_decl, ENOLCK_NAME, &syserror_decl, NULL},
+  {&enomem_decl, ENOMEM_NAME, &syserror_decl, NULL},
+  {&enospc_decl, ENOSPC_NAME, &syserror_decl, NULL},
+  {&enosys_decl, ENOSYS_NAME, &syserror_decl, NULL},
+  {&enotdir_decl, ENOTDIR_NAME, &syserror_decl, NULL},
+  {&enotempty_decl, ENOTEMPTY_NAME, &syserror_decl, NULL},
+  {&enotty_decl, ENOTTY_NAME, &syserror_decl, NULL},
+  {&enxio_decl, ENXIO_NAME, &syserror_decl, NULL},
+  {&eperm_decl, EPERM_NAME, &syserror_decl, NULL},
+  {&epipe_decl, EPIPE_NAME, &syserror_decl, NULL},
+  {&erange_decl, ERANGE_NAME, &syserror_decl, NULL},
+  {&erofs_decl, EROFS_NAME, &syserror_decl, NULL},
+  {&espipe_decl, ESPIPE_NAME, &syserror_decl, NULL},
+  {&esrch_decl, ESRCH_NAME, &syserror_decl, NULL},
+  {&exdev_decl, EXDEV_NAME, &syserror_decl, NULL},
+  {&systemcall_decl, SYSTEMCALL_NAME, &invcall_decl, NULL},
+  {&noshell_decl, NOSHELL_NAME, &systemcall_decl, NULL},
+  {&systemfail_decl, SYSTEMFAIL_NAME, &systemcall_decl, NULL},
+  {&invregexp_decl, INVREGEXP_NAME, &invcall_decl, NULL},
+  {&ebrack_decl, EBRACK_NAME, &invregexp_decl, NULL},
+  {&erange_decl, ERANGE_NAME, &invregexp_decl, NULL},
+  {&ectype_decl, ECTYPE_NAME, &invregexp_decl, NULL},
+  {&eparen_decl, EPAREN_NAME, &invregexp_decl, NULL},
+  {&esubreg_decl, ESUBREG_NAME, &invregexp_decl, NULL},
+  {&eend_decl, EEND_NAME, &invregexp_decl, NULL},
+  {&eescape_decl, EESCAPE_NAME, &invregexp_decl, NULL},
+  {&badpat_decl, BADPAT_NAME, &invregexp_decl, NULL},
+  {&esize_decl, ESIZE_NAME, &invregexp_decl, NULL},
+  {&espace_decl, ESPACE_NAME, &invregexp_decl, NULL},
+  {&invparser_decl, INVPARSER_NAME, &invcall_decl, NULL},
+  {&invgrammar_decl, INVGRAMMAR_NAME, &invparser_decl, NULL},
+  {&invtoken_decl, INVTOKEN_NAME, &invparser_decl, NULL},
+  {&pmemory_decl, PMEMORY_NAME, &invparser_decl, NULL},
+  {&invextern_decl, INVEXTERN_NAME, &invcall_decl, NULL},
+  {&noextern_decl, NOEXTERN_NAME, &invextern_decl, NULL},
+  {&libclose_decl, LIBCLOSE_NAME, &invextern_decl, NULL},
+  {&noexternsupp_decl, NOEXTERNSUPP_NAME, &invextern_decl, NULL},
+  {&invenvar_decl, INVENVAR_NAME, &invcall_decl, NULL},
+  {&internal_decl, INTERNAL_NAME, &invcall_decl, NULL},
+  {&invaccess_decl, INVACCESS_NAME, &error_decl, NULL},
+  {&accessop_decl, ACCESSOP_NAME, &invaccess_decl, NULL},
+  {&accessvalue_decl, ACCESSVALUE_NAME, &invaccess_decl, NULL},
+  {&dereftype_decl, DEREFTYPE_NAME, &invaccess_decl, NULL},
+  {&arrowtype_decl, ARROWTYPE_NAME, &invaccess_decl, NULL},
+  {&immutable_decl, IMMUTABLE_NAME, &invaccess_decl, NULL},
+  {&deadlock_decl, DEADLOCK_NAME, &error_decl, NULL},
+  {&anode_decl, ANODE_NAME, NULL, NULL},
+  {&excepts_decl, EXCEPTS_NAME, NULL, NULL},
+  {&errors_decl, ERRORS_NAME, NULL, NULL},
+  {&signals_decl, SIGNALS_NAME, NULL, NULL},
+  {&invops_decl, INVOPS_NAME, NULL, NULL},
+  {&invindexes_decl, INVINDEXES_NAME, NULL, NULL},
+  {&invkeys_decl, INVKEYS_NAME, NULL, NULL},
+  {&syserrors_decl, SYSERRORS_NAME, NULL, NULL},
+  {&invcalls_decl, INVCALLS_NAME, NULL, NULL},
+  {&systemcalls_decl, SYSTEMCALLS_NAME, NULL, NULL},
+  {&invregexps_decl, INVREGEXPS_NAME, NULL, NULL},
+  {&invparsers_decl, INVPARSERS_NAME, NULL, NULL},
+  {&invexterns_decl, INVEXTERNS_NAME, NULL, NULL},
+  {&invaccesses_decl, INVACCESSES_NAME, NULL, NULL},
+  {&argv_decl, ARGV_NAME, NULL, NULL},
+  {&env_decl, ENV_NAME, NULL, NULL},
+  {&main_thread_decl, MAIN_THREAD_NAME, NULL, NULL},
+  {&curr_thread_decl, CURR_THREAD_NAME, NULL, NULL},
+  {&token_decl, TOKEN_NAME, NULL, NULL},
+  {&code_decl, CODE_NAME, &token_decl, NULL},
+  {&parser_decl, PARSER_NAME, NULL, NULL},
+  {&ambiguous_p_decl, AMBIGUOUS_P_NAME, &parser_decl, NULL},
+  {&int_earley_parse_grammar_decl, INT_EARLEY_PARSE_GRAMMAR_NAME,
+   &parser_decl, int_earley_parse_grammar},
+  {&int_earley_set_debug_level_decl, INT_EARLEY_SET_DEBUG_LEVEL_NAME,
+   &parser_decl, int_earley_set_debug_level},
+  {&int_earley_set_one_parse_flag_decl, INT_EARLEY_SET_ONE_PARSE_FLAG_NAME,
+   &parser_decl, int_earley_set_one_parse_flag},
+  {&int_earley_set_error_recovery_flag_decl,
+   INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME, &parser_decl,
+   int_earley_set_error_recovery_flag},
+  {&int_earley_set_recovery_match_decl, INT_EARLEY_SET_RECOVERY_MATCH_NAME,
+   &parser_decl, int_earley_set_recovery_match},
+  {&int_earley_parse_decl, INT_EARLEY_PARSE_NAME,
+   &parser_decl, int_earley_parse},
+  {&int_earley_create_grammar_decl, INT_EARLEY_CREATE_GRAMMAR_NAME,
+   &parser_decl, int_earley_create_grammar},
+  {&file_decl, FILE_NAME, NULL, NULL},
+  {&file_ptr_decl, FILE_PTR_NAME, &file_decl, NULL},
+  {&stdin_decl, STDIN_NAME, NULL, NULL},
+  {&stdout_decl, STDOUT_NAME, NULL, NULL},
+  {&stderr_decl, STDERR_NAME, NULL, NULL},
+  {&min_decl, MIN_NAME, NULL, min_call},
+  {&max_decl, MAX_NAME, NULL, max_call},
+  {&tolower_decl, TOLOWER_NAME, NULL, tolower_call},
+  {&toupper_decl, TOUPPER_NAME, NULL, toupper_call},
+  {&eltype_decl, ELTYPE_NAME, NULL, eltype_call},
+  {&keys_decl, KEYS_NAME, NULL, keys_call},
+  {&context_decl, CONTEXT_NAME, NULL, context_call},
+  {&inside_decl, INSIDE_NAME, NULL, inside_call},
+  {&subv_decl, SUBV_NAME, NULL, subv_call},
+  {&cmpv_decl, CMPV_NAME, NULL, cmpv_call},
+  {&del_decl, DEL_NAME, NULL, del_call},
+  {&ins_decl, INS_NAME, NULL, ins_call},
+  {&insv_decl, INSV_NAME, NULL, insv_call},
+  {&sort_decl, SORT_NAME, NULL, sort_call},
+  {&sqrt_decl, SQRT_NAME, NULL, sqrt_call},
+  {&exp_decl, EXP_NAME, NULL, exp_call},
+  {&log_decl, LOG_NAME, NULL, log_call},
+  {&log10_decl, LOG10_NAME, NULL, log10_call},
+  {&pow_decl, POW_NAME, NULL, pow_call},
+  {&sin_decl, SIN_NAME, NULL, sin_call},
+  {&cos_decl, COS_NAME, NULL, cos_call},
+  {&atan2_decl, ATAN2_NAME, NULL, atan2_call},
+  {&match_decl, MATCH_NAME, NULL, match_call},
+  {&sub_decl, SUB_NAME, NULL, sub_call},
+  {&gsub_decl, GSUB_NAME, NULL, gsub_call},
+  {&split_regex_decl, SPLIT_REGEX_NAME, NULL, NULL},
+  {&split_decl, SPLIT_NAME, NULL, split_call},
+  {&srand_decl, SRAND_NAME, NULL, srand_call},
+  {&rand_decl, RAND_NAME, NULL, rand_call},
+  {&readdir_decl, READDIR_NAME, NULL, readdir_call},
+  {&ftype_decl, FTYPE_NAME, NULL, ftype_call},
+  {&fun_decl, FUN_NAME, NULL, fun_call},
+  {&fgn_decl, FGN_NAME, NULL, fgn_call},
+  {&fsize_decl, FSIZE_NAME, NULL, fsize_call},
+  {&fatime_decl, FATIME_NAME, NULL, fatime_call},
+  {&fmtime_decl, FMTIME_NAME, NULL, fmtime_call},
+  {&fctime_decl, FCTIME_NAME, NULL, fctime_call},
+  {&fumode_decl, FUMODE_NAME, NULL, fumode_call},
+  {&fgmode_decl, FGMODE_NAME, NULL, fgmode_call},
+  {&fomode_decl, FOMODE_NAME, NULL, fomode_call},
+  {&time_decl, TIME_NAME, NULL, time_call},
+  {&strtime_decl, STRTIME_NAME, NULL, strtime_call},
+  {&time_format_decl, TIME_FORMAT_NAME, NULL, NULL},
+  {&clock_decl, CLOCK_NAME, NULL, clock_call},
+  {&gc_decl, GC_NAME, NULL, gc_call},
+  {&rename_decl, RENAME_NAME, NULL, rename_call},
+  {&remove_decl, REMOVE_NAME, NULL, remove_call},
+  {&mkdir_decl, MKDIR_NAME, NULL, mkdir_call},
+  {&rmdir_decl, RMDIR_NAME, NULL, rmdir_call},
+  {&getcwd_decl, GETCWD_NAME, NULL, getcwd_call},
+  {&chdir_decl, CHDIR_NAME, NULL, chdir_call},
+  {&chumod_decl, CHUMOD_NAME, NULL, chumod_call},
+  {&chgmod_decl, CHGMOD_NAME, NULL, chgmod_call},
+  {&chomod_decl, CHOMOD_NAME, NULL, chomod_call},
+  {&isatty_decl, ISATTY_NAME, NULL, isatty_call},
+  {&open_decl, OPEN_NAME, NULL, open_call},
+  {&close_decl, CLOSE_NAME, NULL, close_call},
+  {&flush_decl, FLUSH_NAME, NULL, flush_call},
+  {&popen_decl, POPEN_NAME, NULL, popen_call},
+  {&pclose_decl, PCLOSE_NAME, NULL, pclose_call},
+  {&tell_decl, TELL_NAME, NULL, tell_call},
+  {&seek_decl, SEEK_NAME, NULL, seek_call},
+  {&put_decl, PUT_NAME, NULL, put_call},
+  {&putln_decl, PUTLN_NAME, NULL, putln_call},
+  {&fput_decl, FPUT_NAME, NULL, fput_call},
+  {&fputln_decl, FPUTLN_NAME, NULL, fputln_call},
+  {&print_decl, PRINT_NAME, NULL, print_call},
+  {&println_decl, PRINTLN_NAME, NULL, println_call},
+  {&fprint_decl, FPRINT_NAME, NULL, fprint_call},
+  {&fprintln_decl, FPRINTLN_NAME, NULL, fprintln_call},
+  {&get_decl, GET_NAME, NULL, get_call},
+  {&getln_decl, GETLN_NAME, NULL, getln_call},
+  {&fget_decl, FGET_NAME, NULL, fget_call},
+  {&fgetln_decl, FGETLN_NAME, NULL, fgetln_call},
+  {&scan_decl, SCAN_NAME, NULL, scan_call},
+  {&scanln_decl, SCANLN_NAME, NULL, scanln_call},
+  {&fscan_decl, FSCAN_NAME, NULL, fscan_call},
+  {&fscanln_decl, FSCANLN_NAME, NULL, fscanln_call},
+  {&getpid_decl, GETPID_NAME, NULL, getpid_call},
+  {&getun_decl, GETUN_NAME, NULL, getun_call},
+  {&geteun_decl, GETEUN_NAME, NULL, geteun_call},
+  {&getgn_decl, GETGN_NAME, NULL, getgn_call},
+  {&getegn_decl, GETEGN_NAME, NULL, getegn_call},
+  {&getgroups_decl, GETGROUPS_NAME, NULL, getgroups_call},
+  {&system_decl, SYSTEM_NAME, NULL, system_call},
+  {&exit_decl, EXIT_NAME, NULL, exit_call},
+  {&init_decl, INIT_NAME, NULL, init_call}
+};
+
+/* The following function sets up the variables above to corresponding
+   declarations from the environment with given scope. */
+void
+set_environment_declarations (IR_node_t environment_scope)
+{
+  int i;
+
+  for (i = 0; i < sizeof (decls_table) / sizeof (decls_table [0]); i++)
+    set_a_environment_declaration
+      (decls_table[i].decl_ptr, decls_table[i].name,
+       (decls_table[i].scope_ptr == NULL
+	? environment_scope
+	: IR_next_stmt (*decls_table[i].scope_ptr)),
+       decls_table[i].func_ptr);
+}
+
+
+
+/* Return new identifier node with given NAME and POS. */
+
+IR_node_t
+get_ident_node (char *name, position_t pos)
+{
+  IR_node_t result;
+
+  result = create_node_with_pos (IR_NM_ident, pos);
+  IR_set_unique_ident (result, create_unique_ident_node (name));
+  return result;
+}
+
+/* Return new int node with given NUMBER_VALUE and POS. */
+
+IR_node_t
+get_int_node (int_t number_value, position_t pos)
+{
+  IR_node_t result;
+  IR_node_t unique_number_value_node;
+
+  IR_set_int_value (temp_unique_int, number_value);
+  unique_number_value_node = *find_table_entry (temp_unique_int, FALSE);
+  if (unique_number_value_node == NULL)
+    {
+      unique_number_value_node = create_node (IR_NM_unique_int);
+      IR_set_int_value (unique_number_value_node, number_value);
+      include_to_table (unique_number_value_node);
+    }
+  result = create_node_with_pos (IR_NM_int, pos);
+  IR_set_unique_int (result, unique_number_value_node);
+  return result;
+}
+
+
+/* Return new number node with given NUMBER_VALUE and POS. */
+
+IR_node_t
+get_float_node (floating_t number_value, position_t pos)
+{
+  IR_node_t result;
+  IR_node_t unique_number_value_node;
+
+  IR_set_float_value (temp_unique_float, number_value);
+  unique_number_value_node = *find_table_entry (temp_unique_float, FALSE);
+  if (unique_number_value_node == NULL)
+    {
+      unique_number_value_node = create_node (IR_NM_unique_float);
+      IR_set_float_value (unique_number_value_node, number_value);
+      include_to_table (unique_number_value_node);
+    }
+  result = create_node_with_pos (IR_NM_float, pos);
+  IR_set_unique_float (result, unique_number_value_node);
+  return result;
+}
+
+
+
+/* This page contains functions for transformation to/from string. */
+
+int
+it_is_int_string (const char *str)
+{
+  for (; *str != '\0'; str++)
+    if (!isdigit (*str))
+      return FALSE;
+  return TRUE;
+}
+
+/* The function returns int_t value for character number
+   representation.  It always change the value of ERRNO. */
+int_t
+a2i (const char *str)
+{
+  int_t res;
+  long int l;
+
+  errno = 0;
+#ifdef HAVE_STRTOL
+  l = strtol (str, (char **) NULL, 10);
+  res = l;
+#ifdef ERANGE
+  if (res != l)
+    errno = ERANGE;
+#endif
+#else
+  res = atoi (str);
+#endif
+  return res;
+}
+
+/* The function returns floating_t value for character number
+   representation.  It always change the value of ERRNO. */
+floating_t
+a2f (const char *str)
+{
+  double d;
+  floating_t res;
+
+  errno = 0;
+#ifdef HAVE_STRTOD
+  d = strtod (str, (char **) NULL);
+  res = d;
+#ifdef ERANGE
+  if (res != d)
+    errno = ERANGE;
+#endif
+#else
+  res = atof (str);
+#endif
+  return res;
+}
+
+const char *
+i2a (int_t number)
+{
+  static char result [30];
+  sprintf (result, "%ld", (long int) number);
+  return result;
+}
+
+extern const char *
+f2a (floating_t number)
+{
+  static char result [30];
+  sprintf (result, "%g", number);
+  return result;
+}
+

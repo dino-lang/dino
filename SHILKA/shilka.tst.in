@@ -1,0 +1,146 @@
+#!/bin/sh
+#
+# Script to testing Shilka.
+#
+
+#
+# Usage: shilka.tst
+#
+# The script requires GPERF.
+#
+
+SHILKA=./shilka
+script_file=$0
+CC='@CC@'
+CC_options='@CFLAGS@'
+test_shilka=temp.shilka
+test_file=test.c
+outfile=./a.out
+stderr=_stderr.out
+
+if test x$1 = x
+then
+    start_test_number=1
+else
+    if expr $1 + 0 >/dev/null
+    then
+        start_test_number=`expr $1 + 0`
+    else
+        echo $script_file:invalid argument $1 2>&1
+        exit 1
+    fi
+fi
+
+result=ok
+
+# Test 1.
+if test $result = ok -a $start_test_number -le 1; then
+	echo test 1
+        cat >$test_shilka <<'TEST1'
+
+%%
+sum
+sync
+ter
+TEST1
+        echo '      ' $SHILKA $test_shilka "2>$stderr"
+        if $SHILKA $test_shilka 2>$stderr; then
+           cat >$test_file <<'TEST1'
+#include "temp.c"
+main ()
+{
+  KR_reset ();
+  if (KR_find_keyword ("sum", 3) != KR_sum)
+    exit (1);
+  else if (KR_find_keyword ("SUM", 3) != KR__not_found)
+    exit (1);
+  else if (KR_find_keyword ("sync", 4) != KR_sync)
+    exit (1);
+  else if (KR_find_keyword ("SYNC", 4) != KR__not_found)
+    exit (1);
+  else if (KR_find_keyword ("ter", 3) != KR_ter)
+    exit (1);
+  else if (KR_find_keyword ("TER", 3) != KR__not_found)
+    exit (1);
+  else if (KR_find_keyword ("abraca", 6) != KR__not_found)
+    exit (1);
+  exit (0);
+}
+TEST1
+           echo '      ' $CC $CC_options $test_file -o $outfile
+           if $CC $CC_options $test_file -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+           else
+                result=fail
+           fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 2.
+if test $result = ok -a $start_test_number -le 2; then
+	echo test 2
+        cat >$test_shilka <<'TEST2'
+
+%%
+sum
+sync
+ter
+TEST2
+        echo '      ' $SHILKA -case $test_shilka "2>$stderr"
+        if $SHILKA -case $test_shilka 2>$stderr; then
+           cat >$test_file <<'TEST2'
+#include "temp.c"
+main ()
+{
+  KR_reset ();
+  if (KR_find_keyword ("sum", 3) != KR_sum)
+    exit (1);
+  else if (KR_find_keyword ("SUM", 3) != KR_sum)
+    exit (1);
+  else if (KR_find_keyword ("sync", 4) != KR_sync)
+    exit (1);
+  else if (KR_find_keyword ("SYNC", 4) != KR_sync)
+    exit (1);
+  else if (KR_find_keyword ("ter", 3) != KR_ter)
+    exit (1);
+  else if (KR_find_keyword ("TER", 3) != KR_ter)
+    exit (1);
+  else if (KR_find_keyword ("abraca", 6) != KR__not_found)
+    exit (1);
+  exit (0);
+}
+TEST2
+           echo '      ' $CC $CC_options $test_file -o $outfile
+           if $CC $CC_options $test_file -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+           else
+                result=fail
+           fi
+        else
+                result=fail
+        fi
+fi
+
+
+# Final message
+
+if test $result = ok; then
+        echo $script_file: it is all ok
+        rm -f $test_file $test_shilka $outfile $stderr
+        exit 0
+else
+        echo '***' $script_file: test is failed see files $test_file $test_shilka
+        exit 1
+fi

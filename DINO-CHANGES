@@ -1,0 +1,8 @@
+13/05/2001: Version 0.53 of DINO has been made.  The major difference
+with the previous version:
+
+  Profiling DINO programs, new language construction friend adding
+  IEEE package, adding Earley parser.  Speeding up Dino interpreter.
+
+----------------------------------------------------------------------
+09/05/1999: Base version 0.5 of DINO has been made.

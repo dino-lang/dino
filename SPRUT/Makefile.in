@@ -1,0 +1,787 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for Sprut (internal representation description
+#                translator)
+#
+#   DATA_RIGHTS: 
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir     the subdirectory used for creation of compressed
+#                        distribution tar file
+#            prefix      common prefix for installation directories
+#            exec_prefix common prefix for binary installation directories
+#            bindir      the directory used for installation of `sprut'
+#            libdir      the directory used for installation of standard
+#                        library of `sprut'
+#            mandir      the directory for installation of man pages
+#            man1dir     the directory for installation of `sprut.1'
+#            INSTALL     utility used for installation `sprut'
+#            INSTALLDATA utility used fort installing nonexecutables
+#            SED         utility used instead of POSIX utility `sed'
+#            ETAGS       utility used for creation of `sprut' tag table
+#            YACC        used YACC (e.g. `bison -y')
+#            YFLAGS      YACC flags (e.g. -v)
+#            CC          used C compiler
+#            CFLAGS      C compiler flags
+#            CXX         used C++ compiler
+#            CXXFLAGS    C++ compiler flags
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create `sprut'
+#            test            test `sprut'
+#            install         create and install `sprut', its library and man
+#                            file
+#            uninstall       delete the installed file
+#            clean           delete all object files and file `sprut'
+#            realclean       deletion all which can be built up automatically
+#            distclean       deletion all not needed for distribution
+#            TAGS            updating TAGS table for the `sprut' sources
+#            dist-copy       copying `sprut' distribution files into `distdir'
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#
+
+SHELL=/bin/sh
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.
+distdir = sprut-0.9
+
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# Common prefix for binary installation directories.
+# NOTE: this directory must exist when you start installation.
+exec_prefix=@exec_prefix@
+
+# The directory for installation of `sprut'.
+bindir=@bindir@
+
+# The directory for installation of SPRUT standard libraries.
+libdir=@libdir@
+
+# The directory for installation of man pages
+mandir=@mandir@
+
+# The directory for installation of `sprut.1'
+man1dir=$(mandir)/man1
+
+# Utility for installation `sprut'.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables (e.g. `sprut.1').
+INSTALLDATA=@INSTALL_DATA@
+
+# Utility used instead of POSIX utility `sed'.
+SED=sed
+
+# Utility used instead of POSIX utility `awk'.
+AWK=@AWK@
+
+# Utility for creation of `sprut' tag table.
+ETAGS=etags
+
+# YACC its flag used for creation of syntax analyzer.
+YACC = @YACC@
+
+# Obligatory compiler options
+OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION -I../AMMUNITION -I$(srcdir) -DSTANDARD_LIBRARY_DIRECTORY=\"$(libdir)\"
+
+# C compiler and its flag used for compilation of C files.
+CC = @CC@
+CFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@
+
+# C++ compiler and its flag used for compilation of C++ files.
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+top_srcdir = @top_srcdir@
+
+# All object files of the internal representation translator:
+objects = ird.o common.o tab.o yacc.o anal.o gen.o main.o
+
+# All source files of the translator itself.
+source = $(srcdir)/sprut-ird.h $(srcdir)/sprut-ird.c $(srcdir)/common.h\
+         $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c $(srcdir)/yacc.h\
+         $(srcdir)/yacc.y $(srcdir)/anal.h $(srcdir)/anal.c\
+	 $(srcdir)/gen.h $(srcdir)/gen.c $(srcdir)/main.c $(srcdir)/ird.sprut\
+         $(srcdir)/std_type.sprut $(srcdir)/std_mem.sprut\
+         $(srcdir)/std_bmem.sprut\
+         $(srcdir)/std_str.sprut $(srcdir)/std_pos.sprut\
+         $(srcdir)/sprut.tst $(srcdir)/Makefile.in
+         
+additional_files = A_test.sprut A_syntax.sprut A_value.sprut A_base.sprut\
+	           README INSTALL sprut.1 sprut.dsw sprut.dsp
+
+doc_files = sprut.txt sprut.info* sprut*.html sprut.dvi sprut.ps
+
+# Files which are not in distribution
+additional_rcs_files = sprut.sgml.in
+
+# Default entry
+all : sprut
+
+sprut : $(objects) ../AMMUNITION/libcocom.a
+	$(CC) $(CFLAGS) -o $@ $(objects) ../AMMUNITION/libcocom.a
+
+ird.c : $(srcdir)/sprut-ird.c
+	rm -f $@
+	cp $(srcdir)/sprut-ird.c $@
+	chmod +w $@
+
+ird.h : $(srcdir)/sprut-ird.h
+	rm -f $@
+	cp $(srcdir)/sprut-ird.h $@
+	chmod +w $@
+
+yacc.c: $(srcdir)/yacc.y
+	@echo must be because of error recovery \"conflicts: 2 shift/reduce\"
+	$(YACC) $(srcdir)/yacc.y
+	@echo
+# This is necessary for MS-DOS YACC (BISON) and VMS POSIX YACC
+	if test ! -f y.tab.c && test -f y_tab.c;then mv y_tab.c $@;\
+	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
+	else mv y.tab.c $@;fi
+
+# B-tests and test of `sprut' built on base `ird.sprut'
+test : sprut A-test A1-test B-tests sprut-boot
+	@echo
+	@echo "translation of internal representation of sprut itself"
+	@echo ./sprut -macro -debug -access -set -copy $(srcdir)/ird.sprut
+	@if ./sprut -macro -debug -access -set -copy $(srcdir)/ird.sprut; then\
+		echo "+++ internal representation of sprut itself is ok";\
+		rm -f ird.c ird.h;\
+	else\
+		echo "*** internal representation of sprut itself is bad";\
+		echo "    see \"$(srcdir)/ird.sprut\"";\
+		exit 1;\
+	fi
+
+# Test semantically correct description (A-test).
+A-test:
+	@echo
+	@echo A_test is executed
+	@echo C interface: non-flat structures and work with node fields
+	@if ./sprut -all -debug $(srcdir)/A_test.sprut; then\
+		if $(CC) A_test.c; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.c A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: flat structures and non-flat work with node fields
+	@if ./sprut -all -debug -flat-structure $(srcdir)/A_test.sprut; then\
+		if $(CC) A_test.c; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.c A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: non-flat structures and flat work with node fields
+	@if ./sprut -all -debug -flat $(srcdir)/A_test.sprut; then\
+		if $(CC) A_test.c; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.c A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: flat structures and work with node fields
+	@if ./sprut -all -debug -flat -flat-structure $(srcdir)/A_test.sprut; then\
+		if $(CC) A_test.c; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.c A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: Access and modification macros and functions
+	@if ./sprut -all -debug -macro $(srcdir)/A_test.sprut; then\
+		if $(CC) A_test.c; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.c A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: Only access and modification macros
+	@if ./sprut -all -debug -only-macro $(srcdir)/A_test.sprut; then\
+		if $(CC) A_test.c; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.c A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: Only access and modification functions
+	@if ./sprut -all -debug $(srcdir)/A_test.sprut; then\
+		if $(CC) A_test.c; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.c A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo
+	@echo C++ interface: non-flat structures and work with node fields
+	@if ./sprut -c++ -all -debug $(srcdir)/A_test.sprut; then\
+		if $(CXX) A_test.cpp; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.cpp A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: flat structures and non-flat work with node fields
+	@if ./sprut -c++ -all -debug -flat-structure $(srcdir)/A_test.sprut; then\
+		if $(CXX) A_test.cpp; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.cpp A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: non-flat structures and flat work with node fields
+	@if ./sprut -c++ -all -debug -flat $(srcdir)/A_test.sprut; then\
+		if $(CXX) A_test.cpp; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.cpp A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: flat structures and work with node fields
+	@if ./sprut -c++ -all -debug -flat -flat-structure $(srcdir)/A_test.sprut; then\
+		if $(CXX) A_test.cpp; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.cpp A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: Access and modification macros and functions
+	@if ./sprut -c++ -all -debug -macro $(srcdir)/A_test.sprut; then\
+		if $(CXX) A_test.cpp; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.cpp A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: Only access and modification macros
+	@if ./sprut -c++ -all -debug -only-macro $(srcdir)/A_test.sprut; then\
+		if $(CXX) A_test.cpp; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.cpp A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: Only access and modification functions
+	@if ./sprut -c++ -all -debug $(srcdir)/A_test.sprut; then\
+		if $(CXX) A_test.cpp; then\
+			echo "+++ A_test is ok";\
+			rm -f A_test.cpp A_test.h a.out;\
+		else\
+			echo "*** A_test is failed";\
+			echo "    see \"$(srcdir)/A_test.sprut\", \"A_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A_test is failed -- see \"$(srcdir)/A_test.sprut\"";\
+		exit 1;\
+	fi
+        
+# The same as A_test but without %double
+A1_base.sprut: $(srcdir)/A_base.sprut
+	$(SED) "s/%double//g" $(srcdir)/A_base.sprut | $(SED) "s/A_/A1_/g" >$@
+A1_syntax.sprut: $(srcdir)/A_syntax.sprut
+	$(SED) "s/%double//g" $(srcdir)/A_syntax.sprut | $(SED) "s/A_/A1_/g" >$@
+A1_value.sprut: $(srcdir)/A_value.sprut
+	$(SED) "s/%double//g" $(srcdir)/A_value.sprut | $(SED) "s/A_/A1_/g" >$@
+A1_test.sprut: $(srcdir)/A_test.sprut
+	$(SED) "s/^%double.*$$//g" $(srcdir)/A_test.sprut | $(SED) "s/A_/A1_/g" >$@
+
+# Test semantically correct description without double (A1-test).
+A1-test: A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
+	@echo
+	@echo A1_test is executed
+	@echo C interface: non-flat structures and work with node fields
+	@if ./sprut -all -debug A1_test.sprut; then\
+		if $(CC) A1_test.c; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.c A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: flat structures and non-flat work with node fields
+	@if ./sprut -all -debug -flat-structure A1_test.sprut; then\
+		if $(CC) A1_test.c; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.c A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: non-flat structures and flat work with node fields
+	@if ./sprut -all -debug -flat A1_test.sprut; then\
+		if $(CC) A1_test.c; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.c A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: flat structures and work with node fields
+	@if ./sprut -all -debug -flat -flat-structure A1_test.sprut; then\
+		if $(CC) A1_test.c; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.c A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: Access and modification macros and functions
+	@if ./sprut -all -debug -macro A1_test.sprut; then\
+		if $(CC) A1_test.c; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.c A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: Only access and modification macros
+	@if ./sprut -all -debug -only-macro A1_test.sprut; then\
+		if $(CC) A1_test.c; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.c A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C interface: Only access and modification functions
+	@if ./sprut -all -debug A1_test.sprut; then\
+		if $(CC) A1_test.c; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.c A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.c\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo
+	@echo C++ interface: non-flat structures and work with node fields
+	@if ./sprut -c++ -all -debug A1_test.sprut; then\
+		if $(CXX) A1_test.cpp; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.cpp A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: flat structures and non-flat work with node fields
+	@if ./sprut -c++ -all -debug -flat-structure A1_test.sprut; then\
+		if $(CXX) A1_test.cpp; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.cpp A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: non-flat structures and flat work with node fields
+	@if ./sprut -c++ -all -debug -flat A1_test.sprut; then\
+		if $(CXX) A1_test.cpp; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.cpp A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: flat structures and work with node fields
+	@if ./sprut -c++ -all -debug -flat -flat-structure A1_test.sprut; then\
+		if $(CXX) A1_test.cpp; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.cpp A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: Access and modification macros and functions
+	@if ./sprut -c++ -all -debug -macro A1_test.sprut; then\
+		if $(CXX) A1_test.cpp; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.cpp A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: Only access and modification macros
+	@if ./sprut -c++ -all -debug -only-macro A1_test.sprut; then\
+		if $(CXX) A1_test.cpp; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.cpp A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@echo C++ interface: Only access and modification functions
+	@if ./sprut -c++ -all -debug A1_test.sprut; then\
+		if $(CXX) A1_test.cpp; then\
+			echo "+++ A1_test is ok";\
+			rm -f A1_test.cpp A1_test.h a.out;\
+		else\
+			echo "*** A1_test is failed";\
+			echo "    see \"A1_test.sprut\", \"A1_test.cpp\"";\
+			exit 1;\
+		fi;\
+	else\
+		echo "*** A1_test is failed -- see \"A1_test.sprut\"";\
+		exit 1;\
+	fi
+	@rm -r A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
+        
+# Test only semantically incorrect descriptions (B-tests).
+B-tests:
+	@echo
+	@echo B_tests are executed
+	$(SHELL) $(srcdir)/sprut.tst
+
+# Make `sprut' by `ird.sprut'.
+sprut-boot: sprut
+	@echo
+	./sprut -macro -debug -access -set -copy $(srcdir)/ird.sprut
+	@echo Make \"sprut\" on the base of \"$(srcdir)/ird.sprut\"
+	make sprut
+
+# Creation of installation directories and all object files and copying
+# the translator `sprut', its libraries and man files to target directories.
+install: all
+	-mkdir $(bindir)
+	$(INSTALL) sprut $(bindir)/sprut
+	-mkdir $(libdir)
+	$(INSTALLDATA) $(srcdir)/std_type.sprut $(libdir)/std_type.sprut
+	$(INSTALLDATA) $(srcdir)/std_mem.sprut $(libdir)/std_mem.sprut
+	$(INSTALLDATA) $(srcdir)/std_bmem.sprut $(libdir)/std_bmem.sprut
+	$(INSTALLDATA) $(srcdir)/std_str.sprut $(libdir)/std_str.sprut
+	$(INSTALLDATA) $(srcdir)/std_pos.sprut $(libdir)/std_pos.sprut
+	-mkdir $(mandir)
+	-mkdir $(man1dir)
+	$(INSTALLDATA) $(srcdir)/sprut.1 $(man1dir)/sprut.1
+
+# Delete the installed files and the installation directories.
+uninstall:
+	rm -f $(bindir)/sprut
+	-rmdir $(bindir)
+	rm -f $(libdir)/std_type.sprut
+	rm -f $(libdir)/std_mem.sprut
+	rm -f $(libdir)/std_bmem.sprut
+	rm -f $(libdir)/std_str.sprut
+	rm -f $(libdir)/std_pos.sprut
+	-rmdir $(libdir)
+	rm -f $(man1dir)/sprut.1
+	-rmdir $(man1dir)
+	-rmdir $(mandir)
+
+# Deletion of object files of the translator, executable file `sprut' and also
+# deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'
+clean :
+	rm -f $(objects) sprut ird.c ird.h yacc.c\
+	      A1_base.sprut A1_syntax.sprut A1_value.sprut A1_test.sprut
+
+# Deletion all not needed for distribution: the same as entry `clean'.
+distclean: clean
+	rm -f Makefile
+	rm -f sprut.sgml sprut.tex sprut.log sprut.aux sprut.toc\
+              sprut.sgml.tmp sprut.tmp
+
+# Deletion all which can be built up automatically:
+# the same as entry `distclean' and emacs TAGS table.
+realclean: distclean
+	rm -f TAGS
+
+# Updating TAGS table for the `sprut' sources.
+TAGS : $(source)
+	$(ETAGS) $(source)
+
+# Ouput names of TAGS table for the `sprut' sources.
+tagsout : $(source)
+	for i in $(source);do\
+	  echo `basename $$i`;\
+	done
+
+# Create empty subdirectory used for creation of compressed distribution
+# tar file.
+create-distdir:
+	-mkdir $(distdir)
+	rm -f -r $(distdir)/*
+
+# Copying `sprut' distribution files into `distdir'.
+dist-copy: create-distdir doc
+	cp $(source) $(distdir)
+	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	chmod -R +w $(distdir)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
+	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+
+# Unconditional creation of compressed distribution tar file.
+dist: dist-copy
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+
+# Creation of documentation
+
+doc : sprut.txt sprut.html sprut.info sprut.dvi sprut.ps
+
+sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
+	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");print;}' > sprut.tmp
+	$(AWK) '{if($$0 == "%%%")\
+                     {while ((getline line < "sprut.tmp") > 0)\
+                        print line;close("sprut.tmp")}\
+                 else print;}' $(srcdir)/sprut.sgml.in > $@
+	rm -f sprut.tmp
+
+
+sprut.txt: sprut.sgml.tmp
+	$(srcdir)/../sgml-txt sprut.sgml.tmp > $@
+	
+sprut.html: sprut.sgml.tmp
+	$(srcdir)/../sgml-html sprut.sgml.tmp >sprut.sgml
+	sgml2html sprut.sgml
+	
+sprut.info: sprut.sgml.tmp
+	$(srcdir)/../sgml-info sprut.sgml.tmp >sprut.sgml
+	sgml2info sprut.sgml
+	for i in sprut.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+sprut.dvi: sprut.sgml.tmp
+	$(srcdir)/../sgml-tex sprut.sgml.tmp >sprut.sgml
+	sgml2latex sprut.sgml
+	if test ! -f sprut.dvi\
+           -o -f sprut.tex -a sprut.tex -nt sprut.dvi; then\
+    	        latex sprut.tex; latex sprut.tex;\
+        fi
+
+sprut.ps: sprut.dvi
+	dvips -o $@ sprut.dvi
+
+# The following entry is only for internal usage.  It adds makefile
+# dependencies for SPRUT object files to the end of given file.
+depend : ird.c ird.h yacc.c
+	@echo ++++ Adding Makefile dependencies ++++
+	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
+	echo '#' >>$(srcdir)/Makefile.in
+	$(SED) '/^# The following is generated with the aid of Makefile entry depend/,$$d' <$(srcdir)/Makefile.in >Makefile.tmp
+	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
+	echo '# Do not place anything below this line' >>Makefile.tmp
+	echo '#' >>Makefile.tmp
+	for i in ird.c $(srcdir)/../SPRUT/common.c\
+                 $(srcdir)/../SPRUT/tab.c yacc.c\
+	         $(srcdir)/../SPRUT/anal.c $(srcdir)/../SPRUT/gen.c\
+                 $(srcdir)/../SPRUT/main.c;do\
+	   gcc -MM -I- -I$(srcdir)/../SPRUT $(CFLAGS) $$i\
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./g'` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/SPRUT/ird\.h%ird.h%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                         >>Makefile.tmp;\
+	   echo '	$$(CC) -c $$(CFLAGS) -o $$@' $$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g' >>Makefile.tmp;\
+	done
+	mv Makefile.tmp $(srcdir)/Makefile.in
+
+#
+# The following is generated with the aid of Makefile entry depend
+# Do not place anything below this line
+#
+ird.o: ird.c ../AMMUNITION/cocom-config.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h
+	$(CC) -c $(CFLAGS) -o $@ ird.c
+common.o: $(top_srcdir)/SPRUT/common.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SPRUT/common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/common.c
+tab.o: $(top_srcdir)/SPRUT/tab.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SPRUT/common.h \
+ $(top_srcdir)/SPRUT/tab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/tab.c
+yacc.o: yacc.c ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SPRUT/common.h $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/yacc.h
+	$(CC) -c $(CFLAGS) -o $@ yacc.c
+anal.o: $(top_srcdir)/SPRUT/anal.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/SPRUT/common.h \
+ $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/anal.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/anal.c
+gen.o: $(top_srcdir)/SPRUT/gen.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/SPRUT/common.h \
+ $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/gen.c
+main.o: $(top_srcdir)/SPRUT/main.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/commline.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SPRUT/common.h $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/yacc.h $(top_srcdir)/SPRUT/anal.h \
+ $(top_srcdir)/SPRUT/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/main.c

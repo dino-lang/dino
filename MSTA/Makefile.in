@@ -1,0 +1,417 @@
+#
+#   FILE NAME:   Makefile
+#
+#   TITLE:       Makefile for MSTA (syntax description translator)
+#
+#   DATA_RIGHTS: 
+#
+#   SPECIAL CONSIDERATION: Following makefile macro can be redefined
+#        on make command line:
+#            distdir     the subdirectory used for creation of compressed
+#                        distribution tar file
+#            prefix      common prefix for installation directories
+#            exec_prefix common prefix for binary installation directories
+#            bindir      the directory used for installation of `msta'
+#            mandir      the directory for installation of man pages
+#            man1dir     the directory for installation of `msta.1'
+#            INSTALL     utility used for installation `msta'
+#            INSTALLDATA utility used for installing nonexecutables
+#            SED         utility used instead of POSIX utility `sed'
+#            ETAGS       utility used for creation of `msta' tag table
+#            YACC        used YACC (e.g. `bison -y')
+#            YFLAGS      YACC flags (e.g. -v)
+#            CC          used C compiler
+#            CFLAGS      C compiler flags
+#
+#   MAKEFILE ENTRIES:
+#            all (default)   create `msta'
+#            test            test `msta'
+#            install         create and install `msta'
+#            uninstall       delete the installed file
+#            clean           delete all object files and file `msta'
+#            realclean       deletion all which can be built up automatically
+#            distclean       deletion all not needed for distribution
+#            TAGS            updating TAGS table for the `msta' sources
+#            dist-copy       copying `msta' distribution files into `distdir'
+#            dist            unconditional creation of compressed
+#                            distribution tar file
+#
+
+SHELL=/bin/sh
+
+# The subdirectory used for copying sources and creation of 
+# compressed distribution tar file.
+distdir = msta-0.9
+
+# Use only full path name for the directory bindir
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# Common prefix for binary installation directories.
+# NOTE: this directory must exist when you start installation.
+exec_prefix=@exec_prefix@
+
+# The directory for installation of `msta'.
+bindir=@bindir@
+
+# The directory for installation of man pages
+mandir=@mandir@
+
+# The directory for installation of `msta.1'
+man1dir=$(mandir)/man1
+
+# Utility for installation `msta'.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables (e.g. `msta.1').
+INSTALLDATA=@INSTALL_DATA@
+
+# Utility used instead of POSIX utility `sed'.
+SED=sed
+
+# Utility used instead of POSIX utility `awk'.
+AWK=@AWK@
+
+# Utility for creation of `msta' tag table.
+ETAGS=etags
+
+# YACC its flag used for creation of syntax analyzer.
+YACC = @YACC@
+
+# Obligatory compiler options
+OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION -I../AMMUNITION -I$(srcdir)
+
+# C compiler and its flag used for compilation of C files.
+CC = @CC@
+CFLAGS = @CFLAGS@ $(OPTIONS) @C_DEBUG_DEFINE@
+
+# RCS utility
+RCS=rcs
+
+# Undefined value for marking a release.
+RCSLABEL=
+
+# Supporting possibility build directories
+
+srcdir = @srcdir@
+
+top_srcdir = @top_srcdir@
+
+# All object files of the syntax description translator:
+objects = ird.o common.o tab.o yacc.o anal.o gen-comm.o output.o contexts.o\
+          relation.o lr-sets.o lr.o regular.o la-trie.o\
+          descript.o parser.o gen.o main.o
+
+# All source files of the translator.
+source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
+         $(srcdir)/yacc.h $(srcdir)/yacc.y $(srcdir)/anal.h $(srcdir)/anal.c\
+         $(srcdir)/gen-comm.h $(srcdir)/gen-comm.c\
+         $(srcdir)/output.h $(srcdir)/output.c\
+         $(srcdir)/contexts.h $(srcdir)/contexts.c\
+         $(srcdir)/relation.h $(srcdir)/relation.c\
+         $(srcdir)/lr-sets.h $(srcdir)/lr-sets.c\
+         $(srcdir)/lr.h $(srcdir)/lr.c\
+         $(srcdir)/regular.h $(srcdir)/regular.c\
+         $(srcdir)/la-trie.h $(srcdir)/la-trie.c\
+         $(srcdir)/descript.h $(srcdir)/descript.c\
+         $(srcdir)/parser.h $(srcdir)/parser.c\
+	 $(srcdir)/gen.h $(srcdir)/gen.c $(srcdir)/main.c $(srcdir)/ird.sprut\
+         $(srcdir)/Makefile.in 
+
+additional_files = README INSTALL msta.1 msta.tst.in quality.tst.in\
+                   c5.y cpp5.y fcalc.y\
+                   fparse.y gram.y java.y m2c.y pascal.y p-yacc.y sql1.y\
+                   lex.y oberon2-gram.y oberon2-lex.y oberon2-kw.shilka\
+                   compare.tst.in msta.dsw msta.dsp
+
+doc_files = msta.txt msta.info* msta*.html msta.dvi msta.ps
+
+# Files which are not in distribution
+additional_rcs_files = msta.sgml.in
+
+# Default entry
+all : msta
+
+msta : $(objects) ../AMMUNITION/libcocom.a
+	$(CC) $(CFLAGS) -o $@ $(objects) ../AMMUNITION/libcocom.a
+
+ird.c ird.h : $(srcdir)/ird.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set -new -copy\
+                       $(srcdir)/ird.sprut
+
+yacc.c: $(srcdir)/yacc.y
+	@echo must be because of error recovery \"conflicts: 6 shift/reduce\"
+	$(YACC) $(srcdir)/yacc.y
+# This is necessary for MS-DOS YACC (BISON) and VMS POSIX YACC
+	if test ! -f y.tab.c && test -f y_tab.c;then mv y_tab.c $@;\
+	elif test ! -f y.tab.c && test -f ytab.c;then mv ytab.c $@;\
+	else mv y.tab.c $@;fi
+
+test: msta
+	$(SHELL) msta.tst
+	$(SHELL) quality.tst
+# Deremer LALR(1) & regular optimization
+	./msta $(srcdir)/yacc.y
+	cp yacc.c temp.c
+	make msta
+	./msta $(srcdir)/yacc.y
+	cmp yacc.c temp.c
+# LR(1) & LALR(1) optimization & regular optimization
+	./msta -lr $(srcdir)/yacc.y
+	cp yacc.c temp.c
+	make msta
+	./msta -lr $(srcdir)/yacc.y
+	cmp yacc.c temp.c
+# classic LALR(1) & regular optimization
+	./msta -lr-situation-context -v $(srcdir)/yacc.y
+	cp yacc.c temp.c
+	make msta
+	./msta -lr-situation-context -v $(srcdir)/yacc.y
+	cmp yacc.c temp.c
+# yacc emulation
+	./msta -yacc $(srcdir)/yacc.y
+	cp y.tab.c temp.c
+	make msta
+	./msta -yacc $(srcdir)/yacc.y
+	cmp y.tab.c temp.c
+	rm -f yacc.c temp.c y.tab.c yacc.output
+	$(SHELL) ./compare.tst
+
+# Creation of installation directories and all object files and copying
+# the translator `msta' and its man file to target directories.
+install: all
+	-mkdir $(bindir)
+	$(INSTALL) msta $(bindir)/msta
+	-mkdir $(mandir)
+	-mkdir $(man1dir)
+	$(INSTALLDATA) $(srcdir)/msta.1 $(man1dir)/msta.1
+
+# Delete the installed file and the installation directories.
+uninstall:
+	-rm -f $(bindir)/msta
+	-rmdir $(bindir)
+	rm -f $(man1dir)/msta.1
+	-rmdir $(man1dir)
+	-rmdir $(mandir)
+
+# Deletion of object files of the translator, executable file `msta' and also
+# deletion of `ird.c' and `ird.h', `yacc.c'
+clean :
+	rm -f $(objects) msta ird.c ird.h yacc.c
+
+# Deletion all not needed for distribution: the same as entry `clean'.
+distclean: clean
+	rm -f Makefile msta.sgml msta.sgml.tmp msta.tmp
+
+# Deletion all which can be built up automatically:
+# the same as entry `distclean' and emacs TAGS table.
+realclean: distclean
+	rm -f TAGS
+
+# Updating TAGS table for the `msta' sources.
+TAGS : $(source)
+	$(ETAGS) $(source)
+
+# Ouput names of TAGS table for the `msta' sources.
+tagsout : $(source)
+	for i in $(source);do\
+	  echo `basename $$i`;\
+	done
+
+# Create empty subdirectory used for creation of compressed distribution
+# tar file.
+create-distdir:
+	-mkdir $(distdir)
+	rm -f -r $(distdir)/*
+
+# Copying `msta' distribution files into `distdir'.
+dist-copy: create-distdir doc
+	cp $(source) $(distdir)
+	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
+	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	chmod -R +w $(distdir)
+
+# Label RCS files.
+rcslabel:
+	@if test x$(RCSLABEL) = x; then echo undefined RCSLABEL; exit 1; fi
+	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
+	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+
+# Unconditional creation of compressed distribution tar file.
+dist: dist-copy
+	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
+
+# Creation of documentation
+
+doc : msta.txt msta.html msta.info msta.dvi msta.ps
+
+msta.sgml.tmp : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
+	nroff -man $(srcdir)/msta.1 | $(AWK) '{gsub (/.\b/,"");print;}' > msta.tmp
+	$(AWK) '{if($$0 == "%%%")\
+                     {while ((getline line < "msta.tmp") > 0)\
+                        print line;close("msta.tmp")}\
+                 else print;}' $(srcdir)/msta.sgml.in > $@
+	rm -f msta.tmp
+
+msta.txt: msta.sgml.tmp
+	$(srcdir)/../sgml-txt msta.sgml.tmp > $@
+	
+msta.html: msta.sgml.tmp
+	$(srcdir)/../sgml-html msta.sgml.tmp >msta.sgml
+	sgml2html msta.sgml
+	
+msta.info: msta.sgml.tmp
+	$(srcdir)/../sgml-info msta.sgml.tmp >msta.sgml
+	sgml2info msta.sgml
+	for i in msta.info*;do\
+   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
+	done
+	
+msta.dvi: msta.sgml.tmp
+	$(srcdir)/../sgml-tex msta.sgml.tmp >msta.sgml
+	sgml2latex msta.sgml
+	if test ! -f msta.dvi\
+           -o -f msta.tex -a msta.tex -nt msta.dvi; then\
+    	        latex msta.tex; latex msta.tex;\
+        fi
+
+msta.ps: msta.dvi
+	dvips -o $@ msta.dvi
+
+# The following entry is only for internal usage.  It adds makefile
+# dependencies for MSTA object files to the end of given file.
+depend : ird.c ird.h yacc.c
+	@echo ++++ Adding Makefile dependencies ++++
+	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
+	echo '#' >>$(srcdir)/Makefile.in
+	$(SED) '/^# The following is generated with the aid of Makefile entry depend/,$$d' <$(srcdir)/Makefile.in >Makefile.tmp
+	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
+	echo '# Do not place anything below this line' >>Makefile.tmp
+	echo '#' >>Makefile.tmp
+	for i in ird.c $(srcdir)/../MSTA/common.c $(srcdir)/../MSTA/tab.c\
+                 yacc.c $(srcdir)/../MSTA/anal.c $(srcdir)/../MSTA/gen-comm.c\
+                 $(srcdir)/../MSTA/output.c $(srcdir)/../MSTA/contexts.c\
+                 $(srcdir)/../MSTA/relation.c $(srcdir)/../MSTA/lr-sets.c\
+                 $(srcdir)/../MSTA/lr.c $(srcdir)/../MSTA/regular.c\
+                 $(srcdir)/../MSTA/la-trie.c $(srcdir)/../MSTA/descript.c\
+                 $(srcdir)/../MSTA/parser.c $(srcdir)/../MSTA/gen.c\
+                 $(srcdir)/../MSTA/main.c;do\
+	   gcc -MM -I- -I$(srcdir)/../MSTA $(CFLAGS) $$i\
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./g'` \
+                | $(SED) 's% \./% %g'\
+                | $(SED) 's%\$$(top_srcdir)/MSTA/ird\.h%ird.h%'\
+                | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
+                        >>Makefile.tmp;\
+	   echo '	$$(CC) -c $$(CFLAGS) -o $$@' $$i \
+                | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
+                | $(SED) 's/\\./\\\\./'g` \
+                | $(SED) 's% \./% %g' >>Makefile.tmp;\
+	done
+	mv Makefile.tmp $(srcdir)/Makefile.in
+
+#
+# The following is generated with the aid of Makefile entry depend
+# Do not place anything below this line
+#
+ird.o: ird.c ird.h ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/MSTA/common.h
+	$(CC) -c $(CFLAGS) -o $@ ird.c
+common.o: $(top_srcdir)/MSTA/common.c ird.h \
+ ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/MSTA/common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/common.c
+tab.o: $(top_srcdir)/MSTA/tab.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/MSTA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/MSTA/tab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/tab.c
+yacc.o: yacc.c ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/MSTA/common.h $(top_srcdir)/MSTA/tab.h $(top_srcdir)/MSTA/yacc.h
+	$(CC) -c $(CFLAGS) -o $@ yacc.c
+anal.o: $(top_srcdir)/MSTA/anal.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/hashtab.h ird.h \
+ $(top_srcdir)/MSTA/common.h $(top_srcdir)/MSTA/tab.h $(top_srcdir)/MSTA/anal.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/anal.c
+gen-comm.o: $(top_srcdir)/MSTA/gen-comm.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/MSTA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/MSTA/gen-comm.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/gen-comm.c
+output.o: $(top_srcdir)/MSTA/output.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/MSTA/common.h ird.h \
+ $(top_srcdir)/MSTA/output.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/output.c
+contexts.o: $(top_srcdir)/MSTA/contexts.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/bits.h $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/MSTA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/MSTA/output.h \
+ $(top_srcdir)/MSTA/contexts.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/contexts.c
+relation.o: $(top_srcdir)/MSTA/relation.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/MSTA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/MSTA/contexts.h $(top_srcdir)/MSTA/relation.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/relation.c
+lr-sets.o: $(top_srcdir)/MSTA/lr-sets.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/MSTA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/MSTA/output.h \
+ $(top_srcdir)/MSTA/contexts.h $(top_srcdir)/MSTA/lr-sets.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/lr-sets.c
+lr.o: $(top_srcdir)/MSTA/lr.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/MSTA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/MSTA/gen-comm.h $(top_srcdir)/MSTA/contexts.h $(top_srcdir)/MSTA/relation.h \
+ $(top_srcdir)/MSTA/lr-sets.h $(top_srcdir)/MSTA/lr.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/lr.c
+regular.o: $(top_srcdir)/MSTA/regular.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/MSTA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/MSTA/gen-comm.h \
+ $(top_srcdir)/MSTA/output.h $(top_srcdir)/MSTA/contexts.h $(top_srcdir)/MSTA/lr-sets.h \
+ $(top_srcdir)/MSTA/regular.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/regular.c
+la-trie.o: $(top_srcdir)/MSTA/la-trie.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/MSTA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/MSTA/contexts.h $(top_srcdir)/MSTA/lr-sets.h $(top_srcdir)/MSTA/la-trie.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/la-trie.c
+descript.o: $(top_srcdir)/MSTA/descript.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/MSTA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/MSTA/gen-comm.h $(top_srcdir)/MSTA/output.h $(top_srcdir)/MSTA/contexts.h \
+ $(top_srcdir)/MSTA/lr-sets.h $(top_srcdir)/MSTA/lr.h $(top_srcdir)/MSTA/descript.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/descript.c
+parser.o: $(top_srcdir)/MSTA/parser.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/MSTA/common.h \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/MSTA/gen-comm.h \
+ $(top_srcdir)/MSTA/output.h $(top_srcdir)/MSTA/contexts.h $(top_srcdir)/MSTA/parser.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/parser.c
+gen.o: $(top_srcdir)/MSTA/gen.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/ticker.h $(top_srcdir)/MSTA/common.h \
+ ird.h $(top_srcdir)/MSTA/gen-comm.h $(top_srcdir)/MSTA/output.h $(top_srcdir)/MSTA/contexts.h \
+ $(top_srcdir)/MSTA/relation.h $(top_srcdir)/MSTA/lr-sets.h $(top_srcdir)/MSTA/lr.h $(top_srcdir)/MSTA/regular.h \
+ $(top_srcdir)/MSTA/la-trie.h $(top_srcdir)/MSTA/descript.h $(top_srcdir)/MSTA/parser.h $(top_srcdir)/MSTA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/gen.c
+main.o: $(top_srcdir)/MSTA/main.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/commline.h \
+ $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/ticker.h ird.h $(top_srcdir)/MSTA/common.h $(top_srcdir)/MSTA/tab.h \
+ $(top_srcdir)/MSTA/yacc.h $(top_srcdir)/MSTA/anal.h $(top_srcdir)/MSTA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/main.c

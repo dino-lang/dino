@@ -1,0 +1,33 @@
+   This is DINO interpreter.  DINO is high level scripting language.
+DINO is oriented on the same domain of applications as famous
+scripting languages perl, tcl, python.  The most of programmers know C
+language.  Therefore Dino aims to look like C language where it is
+possible.  Dino is an object oriented languages with garbage
+collection.  Dino has possibilities of parallelism description and
+exceptions handling.  Dino is an extensible language with possibility
+of dynamic load of libraries written on other languages.  DINO is
+implemented on Unixes of different flavors with the aid of AMMUNITION,
+SHILKA, SPRUT, MSTA (components of COCOM tool set).  DINO also has
+been ported also into WIN32 environment.
+
+   The DINO interpreter is distributed under GNU Public License (see
+more detail in file COPYING).
+
+   Installation of the tool set is described in file INSTALL (see
+WIN32-INSTALL.txt for installation under WIN32 environment).  See
+files dino.* in directory DINO for brief description of the language
+and interpriter.
+
+   The interpriter has been tested extensively only on the following
+platforms:
+       i386 under Linux
+       sparc under Solaris2.5
+       mips under IRIX4.x
+       pa-risc under HPUX10.x
+       powerpc under AIX4.2
+
+  Differences between versions of DINO are described in file CHANGES.
+
+Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+
+Vladimir Makarov

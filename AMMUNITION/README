@@ -1,0 +1,86 @@
+  This directory AMMUNITION contains reusable packages on C/C++:
+`allocate', `vlobject', `objstack', `hashtab', `commline', `ticker',
+`position', `errors', `bits', `arithm', `IEEE':
+   o allocate
+        Allocating and freeing memory with automatic fixing some
+        allocation errors.
+   o vlobject
+        Work with variable length objects (VLO).  Any number of bytes
+        may be added to and removed from the end of VLO.  If it is
+        needed the memory allocated for storing variable length object
+        may be expanded possibly with changing the object place.  But
+        between any additions of the bytes (or tailoring) the object
+        place is not changed.  To decrease number of changes of the
+        object place the memory being allocated for the object is
+        longer than the current object length.
+   o objstack
+        Work with stacks of objects (OS).  Work with the object on the
+        stack top is analogous to one with a variable length object.
+        One motivation for the package is the problem of growing char
+        strings in symbol tables.  Memory for OS is allocated by
+        segments.  A segment may contain more one objects.  The most
+        recently allocated segment contains object on the top of OS.
+        If there is not sufficient free memory for the top object than
+        new segment is created and the top object is transferred into
+        the new segment, i.e. there is not any memory reallocation.
+        Therefore the top object may change its address. But other
+        objects never change address.
+   o hashtab
+        Work with hash tables.  The package permits to work
+        simultaneously with several expandable hash tables.  Besides
+        insertion and search of elements the elements from the hash
+        tables can be also removed.  The table element can be only a
+        pointer.  The size of hash tables is not fixed.  The hash
+        table will be automatically expanded when its occupancy will
+        became big.
+   o position
+        Work with source code positions.  The package serves to
+        support information about source positions of compiled files
+        taking all included files into account.
+   o errors
+        Output of compiler messages.  The package serves output
+        one-pass or multi-pass compiler messages of various modes
+        (errors, warnings, fatal, system errors and appended messages)
+        in Unix style or for traditional listing.  The package also
+        permits adequate error reporting for included files.
+   o commline
+        Work with command line.  The package implements features
+        analogous to ones of public domain function `getopt'.  The
+        goal of the package creation is to use more readable language
+        of command line description and to use command line
+        description as help output of program.
+   o ticker
+        Simultaneous work with several tickers (timers).
+   o bits
+        Work with bit strings (copying, moving, setting, testing,
+        comparison).
+   o arithm
+        Implementing host machine-independently arbitrary precision
+        integer numbers arithmetic.  The implementation of the package
+        functions are not sufficiently efficient in order to use for
+        run-time.  The package functions are oriented to implement
+        constant-folding in compilers, cross-compilers.
+   o IEEE
+        Implementing host machine-independently IEEE floating point
+        arithmetic.  The implementation of the package functions are
+        not sufficiently efficient in order to use for run-time.  The
+        package functions are oriented to implement constant-folding
+        in compilers, cross-compilers.
+
+  There are files with corresponding names and extensions `.h'
+(interface file for C/C++), `.c' (implementation file on C), and
+`.cpp' (implementation file on C++).
+
+  To install AMMUNITION see file INSTALL in the current directory.
+
+  There are also shell scripts for testing the package with
+corresponding names and extension `.tst'.  Documentation of the
+reusable packages is in files `ammunition.txt', `ammunition.dvi',
+`ammunition.ps', `ammunition.info*', `ammunition*.html',
+`ammunition*.rtf' for C and `ammunition++.txt', `ammunition++.dvi',
+`ammunition++.ps', `ammunition++.info*', `ammunition++*.html',
+`ammunition++*.rtf'.
+
+Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+
+Vladimir Makarov

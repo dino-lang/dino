@@ -1,0 +1,205 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(DINO/d_main.c)
+AC_CONFIG_HEADER(AMMUNITION/cocom-config.h)
+
+AC_CONFIG_SUBDIRS(REGEX)
+
+dnl Checks for programs.
+AC_PROG_AWK
+dnl Try C++ before C because configure reports cros-compiler for CXX sometimes.
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AC_PROG_YACC
+AC_PROG_LEX
+
+dnl Checks for libraries.
+AC_CHECK_LIB(m, log)
+AC_CHECK_LIB(dl, dlopen)
+
+dnl Checks for header files.
+AC_CHECK_HEADERS(assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_BIGENDIAN
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_TYPE_GETGROUPS
+dnl There is no clock_t `sys/types.h', or `stdlib.h' or `stddef.h' on Linux
+dnl I think checking time.h will be sufficient.
+dnl AC_CHECK_TYPE(clock_t, long)
+
+dnl Checks for library functions.
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS(strerror memcpy memset memcmp memmove vsprintf dlopen getgroups\
+               strtol strtod setitimer sigaction sigemptyset)
+
+AC_SUBST(START_SPRUT_OPTIONS)
+AC_SUBST(C_DEBUG_DEFINE)
+if test x$cocom_debug = x; then
+  C_DEBUG_DEFINE=-DNDEBUG
+  START_SPRUT_OPTIONS=-only-macro
+else
+  C_DEBUG_DEFINE=
+  START_SPRUT_OPTIONS=-debug
+fi
+
+AC_SUBST(DINO_GCC_FPIC)
+AC_SUBST(EXTERN_GCC_FPIC)
+AC_SUBST(DINO_LIB_SUFFIX)
+AC_SUBST(EXTERN_LIB_SUFFIX)
+AC_SUBST(DINO_MAKELIB)
+AC_SUBST(EXTERN_MAKELIB)
+AC_SUBST(DINO_AFTER_MAKELIB)
+AC_SUBST(EXTERN_AFTER_MAKELIB)
+
+AC_SUBST(DINO_ADDITIONAL_LINK_OPTION)
+
+AC_SUBST(DINO_LIB_NAME)
+AC_SUBST(DINO_ADDITIONAL_LIBS)
+
+if test x$no_shlib != x -o x$cocom_debug != x; then
+  no_extern_shlib=yes
+  dino_shlib=
+fi
+
+system=`uname`.`uname -r`
+
+DINO_LIB_NAME=libdino
+DINO_ADDITIONAL_LIBS=
+
+GCC_FPIC=
+case $system in
+	Linux*)
+	  GCC_FPIC=-fPIC
+	  LIB_SUFFIX=so
+	  MAKELIB="gcc -shared -Wl,-soname,\\\$\$0 -o \\\$\$0"
+	  AFTER_MAKELIB="echo \\\$\$0"
+# The following option is needed if we use no shared dino library but
+# shared external library
+          SPECIAL_LINK_OPTION=-rdynamic
+          ;;
+	SunOS.5*)
+	  GCC_FPIC=-fPIC
+	  LIB_SUFFIX=so
+	  MAKELIB="/usr/ccs/bin/ld -G -z text -o \\\$\$0"
+	  AFTER_MAKELIB="echo \\\$\$0"
+# Export symbols. (this is GNU ld).
+# So Yo should have gcc and GNU loader.
+          save=$CFLAGS
+          CFLAGS=-Wl,-E
+          AC_TRY_RUN(int i;main(){exit(0);}, gnu_ld=yes, gnu_ld=)
+          CFLAGS=$save
+          if test x$gnu_ld != x; then
+            SPECIAL_LINK_OPTION=-Wl,-E
+          fi
+	  ;;
+	IRIX.5*)
+	  LIB_SUFFIX=so
+	  MAKELIB="ld -shared -rdata_shared -o \\\$\$0"
+	  AFTER_MAKELIB="echo \\\$\$0"
+          SPECIAL_LINK_OPTION=
+	  ;;
+	IRIX.6*|IRIX64*)
+	  LIB_SUFFIX=so
+	  MAKELIB="ld -n32 -shared -rdata_shared -o \\\$\$0"
+	  AFTER_MAKELIB="echo \\\$\$0"
+          SPECIAL_LINK_OPTION=
+	  ;;
+	OSF1*)
+	  GCC_FPIC=-fPIC
+	  LIB_SUFFIX=so
+	  MAKELIB="ld -shared -expect_unresolved \"*\" -o \\\$\$0"
+	  AFTER_MAKELIB="echo \\\$\$0"
+          SPECIAL_LINK_OPTION=
+          if test x$no_extern_shlib = x -a x$dino_shlib = x; then
+            dino_shlib=yes
+          fi
+	  ;;
+	AIX*)
+	  GCC_FPIC=-DAIX_DLOPEN
+	  LIB_SUFFIX=so
+	  MAKELIB="$top_srcdir/DINO/ldAix /bin/ld -bhalt:4 -bM:SRE -bE:lib.exp -H512 -T512 -o \\\$\$0 -lc -lld"
+	  AFTER_MAKELIB="echo \\\$\$0"
+	  DINO_ADDITIONAL_LIBS='-lld'
+          SPECIAL_LINK_OPTION=
+# The following line prohibits shlibs because AIX implementation
+# requires to link all external libraries during building interpreter.
+# This is useless.  So better use dino library and link it with
+# call_extern and main to make an extended interpreter.
+	  dino_shlib=
+	  no_extern_shlib=yes
+	  no_shlib=yes
+	  ;;
+	*)
+	  dino_shlib=
+	  no_extern_shlib=yes
+	  no_shlib=yes
+	  ;;
+esac
+
+DINO_LIB_SUFFIX=$LIB_SUFFIX
+EXTERN_LIB_SUFFIX=$LIB_SUFFIX
+DINO_GCC_FPIC=$GCC_FPIC
+EXTERN_GCC_FPIC=$GCC_FPIC
+DINO_MAKELIB=$MAKELIB
+EXTERN_MAKELIB=$MAKELIB
+DINO_AFTER_MAKELIB=$AFTER_MAKELIB
+EXTERN_AFTER_MAKELIB=$AFTER_MAKELIB
+
+DINO_ADDITIONAL_LINK_OPTION=
+
+if test x$dino_shlib = x; then
+  echo +++We will not use DINO shared library
+  DINO_GCC_FPIC=-DNO_DINO_SHLIB
+  DINO_LIB_SUFFIX=a
+  DINO_MAKELIB="ar rc \\\$\$0"
+  DINO_AFTER_MAKELIB="$RANLIB \\\$\$0;echo \\\$\$0"
+  DINO_ADDITIONAL_LIBS="$DINO_LIB_NAME.$DINO_LIB_SUFFIX"
+  if test x$no_extern_shlib = x; then
+    DINO_ADDITIONAL_LINK_OPTION=$SPECIAL_LINK_OPTION
+  fi
+else
+  echo +++We will use DINO shared library
+fi
+
+if test x$no_extern_shlib != x; then
+  echo +++We will not use shared library for externals
+  EXTERN_GCC_FPIC=-DNO_EXTERN_SHLIB
+  DINO_GCC_FPIC="$DINO_GCC_FPIC -DNO_EXTERN_SHLIB"
+  EXTERN_LIB_SUFFIX=a
+  EXTERN_MAKELIB="ar rc \\\$\$0"
+  EXTERN_AFTER_MAKELIB="$RANLIB \\\$\$0;echo \\\$\$0"
+  DINO_ADDITIONAL_LIBS="$DINO_ADDITIONAL_LIBS mpi.$EXTERN_LIB_SUFFIX ieee.$EXTERN_LIB_SUFFIX"
+else
+  echo +++We will use shared library for externals
+fi
+
+output_files="DINO/Makefile DINO/dino.tst\
+          SHILKA/Makefile MSTA/Makefile SPRUT/Makefile\
+          AMMUNITION/Makefile AMMUNITION/allocate.tst AMMUNITION/vlobject.tst\
+          AMMUNITION/objstack.tst AMMUNITION/hashtab.tst\
+          AMMUNITION/commline.tst AMMUNITION/position.tst\
+          AMMUNITION/errors.tst AMMUNITION/ticker.tst AMMUNITION/bits.tst\
+          AMMUNITION/arithm.tst AMMUNITION/IEEE.tst AMMUNITION/earley.tst\
+          AMMUNITION/allocate++.tst AMMUNITION/vlobject++.tst\
+          AMMUNITION/objstack++.tst AMMUNITION/hashtab++.tst\
+          AMMUNITION/commline++.tst AMMUNITION/position++.tst\
+          AMMUNITION/errors++.tst AMMUNITION/ticker++.tst\
+          AMMUNITION/bits++.tst AMMUNITION/arithm++.tst AMMUNITION/IEEE++.tst\
+          AMMUNITION/earley++.tst\
+          MSTA/msta.tst MSTA/quality.tst MSTA/compare.tst\
+	  SHILKA/shilka.tst SHILKA/compare.tst\
+          Makefile"
+
+# COCOM only start
+output_files="$output_files OKA/Makefile\
+             OKA/SCHEDULE/schedule.tst OKA/SCHEDULE/schedule++.tst\
+ 	     NONA/Makefile"
+# COCOM only end
+
+AC_OUTPUT($output_files)

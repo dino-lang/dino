@@ -1,0 +1,30 @@
+   This is COCOM tool set (Russian Armoury) oriented onto the creation
+of compilers, cross-compilers, interpreters, and other language
+processors.  The distribution also contains interpreter of language
+DINO as an example of the tool set usage.  The tool set is aimed to
+use on Unixes of different flavors.  COCOM also has been ported also
+into WIN32 environment.
+
+   The tool set is distributed under GNU Public License (see more
+detail in file COPYING).  All AMMUNITION packages (except for earley
+parser) have less restrictive License -- GNU Library General Public
+License (see more details in file COPYING.LIB).
+
+   Installation of the tool set is described in file INSTALL (see
+WIN32-INSTALL.txt for installation under WIN32 environment).  See
+files cocom.* in this directory for brief description of the tool set
+and documentation of each component of the tool set in the
+corresponding directory.
+
+   The tool set has been tested extensively only on the following platforms:
+       i386 under Linux
+       sparc under Solaris2.5
+       mips under IRIX4.x
+       pa-risc under HPUX10.x
+       powerpc under AIX4.2
+
+  Differences between versions of COCOM are described in file CHANGES.
+
+Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+
+Vladimir Makarov

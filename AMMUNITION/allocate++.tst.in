@@ -1,0 +1,86 @@
+#!/bin/sh
+# @configure_input@
+
+#
+# Script to test of allocation package (files `allocate.h', `allocate.cpp').
+#
+
+#
+# Usage: allocate++.tst [start_test_number]
+#
+# The script outputs self-explanatory messages and returns zero exit code if 
+# it is all ok.
+#
+
+script_file=$0
+CXX='@CXX@'
+CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
+source_addfiles='@srcdir@/allocate.cpp'
+addfiles='allocate.o'
+test_file=tallocate.cpp
+outfile=./a.out
+
+if test x$1 = x
+then
+    start_test_number=1
+else
+    if expr $1 + 0 >/dev/null
+    then
+        start_test_number=`expr $1 + 0`
+    else
+        echo $script_file:invalid argument $1 2>&1
+        exit 1
+    fi
+fi
+
+# Compilation of addfiles
+
+echo '      ' $CXX $CXX_options -c $source_addfiles
+if $CXX $CXX_options -c $source_addfiles; then
+        result=ok
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi
+
+# Test 1.
+if test $result = ok -a $start_test_number -le 1; then
+        cat >$test_file <<'TEST1'
+#include <stdlib.h>
+#include "allocate.h"
+main ()
+{
+  char * str;
+  str = (char *) allocate::malloc (10);
+  str = (char *) allocate::realloc (str, 20);
+  allocate::free (str);
+  str = (char *) allocate::calloc (1, 15 - 5);
+  allocate::free (str);
+  exit (0);
+}
+TEST1
+
+        echo test 1:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Final message
+
+if test $result = ok; then
+        echo $script_file: it is all ok
+        rm -f $addfiles $test_file $outfile
+        exit 0
+else
+        echo '***' $script_file: test is failed see file $test_file
+        exit 1
+fi

@@ -1,0 +1,342 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH MSTA 1 "5 SEP 1999" COCOM "User Manuals"
+.SH NAME
+msta \- syntax description translator
+.SH SYNOPSIS
+.B msta [ -d -define -l -line -t -trace -v -verbose
+.B        -b file_prefix -p sym_prefix
+.B        -h -help --help -w -c++ -enum -no-enum
+.B        -pattern-equiv -no-pattern-equiv
+.B        -look-ahead number -la number
+.B        -lr -no-lr -lalr-optimization -no-lalr-optimization
+.B        -regular-optimization -no-regular-optimization
+.B        -split-lr-sets -no-split-lr-sets
+.B        -yacc-error-recovery -no-yacc-error-recovery
+.B        -yacc-input -no-yacc-input -strict -no-strict
+.B        -yacc-file-names -no-yacc-file-names
+.B        -o name -y -yacc -full-lr-set -lr-situation-context
+.B        -removed-lr-sets -expand -no-expand -time]
+.I specification-file
+.SH DESCRIPTION
+
+MSTA reads input grammar which is described in specification file and
+generates parser for it.  MSTA can process any POSIX YACC grammar and
+generates equivalent parser in the sence of POSIX standard.  But MSTA
+can do many additional things: generation of more safe error recovery,
+better output of generated parser description, generation of fast
+LALR(k)- and LR(k)-grammar parser with acceptable space requirements,
+generation of scanners described as context-free grammar (CFG), and so
+on.  The specification file must have suffix
+.B `.y'
+.PP
+The generated code consists of optional interface and implementation files and
+optional description file
+having the same names as one of specification file and correspondingly
+suffixes
+.B `.h'
+(if option
+.B -d
+or
+.B -c++
+is given) and
+.B `.c'
+(C code) or
+.B `.cpp'
+(C++ code) and
+.B `.output'
+(description file).  If MSTA runs in YACC regime, the corresponding
+files will be
+.B `y.tab.h'
+(if option
+.B -d
+or
+.B -c++
+is given) and
+.B `y.tab.c'
+(C code) or
+.B `y.tab.cpp'
+(C++ code) and
+.B `y.output'
+(description file).
+.PP
+Full documentation of MSTA is in MSTA User's manual.
+.SH OPTIONS
+The options which are known for MSTA and YACC are:
+.IP -d
+Create the interface file.  By default the interface file is not
+generated.
+.IP -l
+Insert user's original code into generated parser without
+.B `#line'
+constructs.  By default constructions
+.B `#line'
+are always generated.
+.IP -t
+Permit compilation of debugging code in the code file (tracing of the
+parser work).  Runtime debugging statements are always contained in
+the parser, but by default conditional compilation directives prevent
+their compilation.  This option defines macro
+.B `YYDEBUG'
+as 1 (by default its value is 0) and as consequence the debugging statements
+are processed.
+.IP -v
+Create a file containing description of the parser.
+.IP "-b file_prefix"
+Use file_prefix instead of
+.B `y'
+as the prefix for all output filenames
+when YACC regime of generated file names is on.
+.IP "-p sym_prefix"
+Use sym_prefix instead of yy as the prefix for all external names
+(i.e.  functions
+.B yyparse
+,
+.B yylex
+, and 
+.B yyerror
+, and the variables
+.B yylval
+, 
+.B yychar
+, and 
+.B yydebug
+) produced by MSTA.
+.PP
+Additional options which are known only for MSTA are:
+.IP -define
+This is synonym of option
+.B `-d'
+.
+.IP -line
+This is synonym of option
+.B `-l'
+.
+.IP -trace
+This is synonym of option
+.B `-t'
+.
+.IP -verbose
+This is synonym of option
+.B `-v'
+.
+.IP "-h, -help, --help"
+These options result in that only brief description of options is
+output into stderr.  The same result can be achieved by calling MSTA
+without any options and arguments.
+.IP -w
+No any warning messages are generated, e.g. repeated description of
+type, value, and priority of token or terminal, repeated construction
+.B `%start'
+and many others.
+.IP -c++
+Output of C++ code instead of C code (which is default).
+.IP -enum
+Generate token constants as enumeration instead of macro.
+.IP -no-enum
+Generate token constants as macro (this is default).
+.IP -pattern-equiv
+Equivalent patterns are denoted by the same nonterminal (by default).
+Sometimes this results in dramatic reducing conflicts when complex
+patterns are used.
+.IP -no-pattern-equiv
+Even equivalent patterns are denoted by different nonterminals and are
+expanded into the different set of rules
+.IP "-look-ahead number, -la number"
+Determine maximal length of look-ahead when LR(k) and LALR(k)
+generated parser.  This does not mean that MSTA in each situation and
+for each input will look ahead on given number tokens.  MSTA looks
+ahead only on minimal number of tokens required for resolution of a
+conflict.  The default value of maximal look ahead is 1.
+.IP -lr
+Input grammar is considered to be a LR(k)-grammar.
+.IP -no-lr
+Input grammar is considered to be a LALR(k)-grammar.  This is default.
+.IP -lalr-optimization
+If the input grammar is considered to be a LR(k)-grammar, MSTA will
+make LALR(k)-optimization after building LR(k)-parser.  It means that
+MSTA will extract LALR(k)-parts of LR(k)-grammar and will represent
+them by addequate LALR-sets.  If the input LR(k)-grammar is "almost" a
+LALR(k)-grammar, MSTA can descrease size of the generated parser in
+several times.  If the input grammar is a LALR(k)-grammar, MSTA will
+create LALR(k)-parser.  This option is default when option
+.B `-lr'
+is given.
+.IP -no-lalr-optimization
+When option
+.B `-lr'
+is given, MSTA does not make LALR-optimization.
+.IP -regular-optimization
+After building LALR-sets or LR-sets and optional LALR-optimization,
+MSTA makes extracting regular parts of input grammar and implement
+them by adequate methods (deterministic finite automaton).  This
+decreases number of final states in the generated parser, speeds up
+the parser, but sigthly increases the parser size because some actions
+will be present in several examplars in the parser.  The more regular
+parts in the input grammar, the better this method works.  By default
+this option is on.
+.IP -no-regular-optimization
+Disable the regular optimizations.
+.IP -split-lr-sets
+Splitting LR-sets during regular optimization in order to extract the
+most of regular parts (only when option
+.B `-regular-optimization'
+is on).
+By default this option is on if
+.B `%free_format'
+is present in the
+specification file.
+.IP -no-split-lr-sets
+Option is opposite to the previous one.  By default this option is on
+if
+.B `%free_format'
+is absent in the specification file.
+.IP -yacc-error-recovery
+The generated parser will use error recover according to Posix YACC
+standard.
+.IP -no-yacc-error-recovery
+The generated parser will use sligthly modified error recovery method.
+This method is more safe.  It is guaranteed that this method can not
+be cycled.  This error recovery is used by default.
+.IP -yacc-input
+Only Posix YACC input can be used as input grammar.
+.IP -no-yacc-input
+All input grammar features of MSTA can be used.  This option is default.
+.IP -yacc-file-names
+MSTA output file names are generated according to Posix YACC
+(
+.B y.output
+, 
+.B y.tab.c
+, 
+.B y.tab.h).
+.IP -strict
+Use only strict POSIX YACC input (this option is in action only  when 
+.B -yacc-input
+) not SYSTEM V one.  Errors are output when nonstrict features are used.
+These features are usage of ';' after definitions and C/C++ code
+insertions and usage of a token and a literal in %type clauses as before and
+after a description of the token and the literal.  This option is on
+by default.
+.IP -no-strict
+This option is in action only when
+.B -yacc-input
+is on.  Only warnings about non strict POSIX YACC features usage are output.
+.IP -no-yacc-file-names
+Output files will have the same name and suffixes (
+.B .h
+,
+.B .c
+, and
+.B .output
+).  This option is on by default.
+.IP -o name
+Specify names of output files (header file 
+.B name.h
+, code file
+.B name.c
+, description file
+.B name.output
+.
+.IP "-y, -yacc"
+Emulate Posix YACC.  It means that the options
+.B `-yacc-input'
+, 
+.B `-lalr'
+, 
+.B `-yacc-error-recovery'
+, and 
+.B `-yacc-file-names' are on, and 
+.B -c++
+is off.
+This option is useful with other options, e.g. options 
+.B `-lr'
+and
+.B `-y'
+means also
+.B `-yacc-input'
+, 
+.B `-yacc-error-recovery'
+, and 
+.B `-yacc-file-names'.
+.IP -full-lr-set
+Write all LR-situations (besides essential ones) of LR-sets into a
+file containing description of the parser (the option acts only with
+option
+.B `-v'
+).  Sometimes it is useful for better understanding
+conflicts.  But in this case the description file can be significantly
+bigger.
+.IP -lr-situation-context
+Write context of LR-situations into description of the parser (the
+option acts only with option
+.B `-v'
+).  Sometimes it is useful for better
+understanding conflicts.  But in this case the description file can be
+huge espicially for LR(k)- and LALR(k)-grammar when k > 1 or when with
+option
+.B `-full-lr-set'
+.  Also usage of the option results in more slow
+parser generation speed because classic method of LR-, LALR-sets is
+used instead of fast DeRemer method.  By default this option is off.
+.IP -removed-lr-sets
+Write LR-sets removed during conflict resolution and regular
+optimization into description of the parser (the option acts only with
+option
+.B -v
+).  By default such unchievable LR-sets are not present in
+the description file.
+.IP -expand
+Attributes and states stacks in the parser will be expandable (this is
+default).
+.IP -no-expand
+Attributes and states stacks in the parser will be not expandable.
+.IP -time
+Output detail time statistics of MSTA work on its basic passes and
+optimizations.
+.SH FILES
+.I file.y
+.RS
+MSTA specification file
+.RE
+.I file.c
+or
+.I y.tab.c
+.RS
+generated C implementation file
+.RE
+.I file.cpp
+or
+.I y.tab.cpp
+.RS
+generated C++ implementation file
+.RE
+.I file.h
+or
+.I y.tab.h
+.RS
+generated interface file
+.RE
+.I file.output
+or
+.I y.output
+.RS
+generated interface file
+.RE
+There are no any temporary files used by MSTA.
+.SH ENVIRONMENT
+There are no environment variables which affect MSTA behavior.
+.SH DIAGNOSTICS
+MSTA diagnostics is self-explanatory.
+.SH AUTHOR
+Vladimir N. Makarov, vmakarov@users.sourceforge.net
+.SH "SEE ALSO"
+.BR oka (1),
+.BR sprut (1),
+.BR nona (1),
+.BR shilka (1).
+SHILKA manual.
+.SH BUGS
+Please, report bugs to cocom-bugs@lists.sourceforge.net.
+ 

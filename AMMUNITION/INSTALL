@@ -1,0 +1,11 @@
+  Better way to install AMMUNITION is usage of top COCOM configure &
+Makefile (see file INSTALL in the top COCOM directory).
+
+  In any case you need to run configure in the top COCOM directory in
+order to create Makefile for AMMUNITION.  After that we can work with
+only AMMUNITION packages (building, installation, and so on).  The
+AMMUNITION Makefile has additional entries in comparison of the top
+COCOM Makefile.  These are:
+
+test - tesing packages
+TAGS - updating TAGS in current directory for only AMMUNITION

@@ -1,0 +1,108 @@
+#ifndef __D_CONFIG_H__
+#define __D_CONFIG_H__
+
+#ifdef HAVE_CONFIG_H
+#include "d_config.h"
+#else /* In this case we are oriented to ANSI C and dfcn.h */
+#ifndef HAVE_FLOAT_H
+#define HAVE_FLOAT_H
+#endif
+#ifndef HAVE_LIMITS_H
+#define HAVE_LIMITS_H
+#endif
+#endif /* #ifdef HAVE_CONFIG_H */
+
+#include <stdio.h>
+
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#else
+#ifndef UCHAR_MAX
+#define UCHAR_MAX 255
+#endif
+#ifndef UINT_MAX
+#define UINT_MAX (INT_MAX * 2U + 1)
+#endif
+#ifndef INT_MAX
+#define INT_MAX 2147483647
+#endif  
+#ifndef INT_MIN
+#define INT_MIN (-INT_MAX-1)
+#endif
+#endif
+
+#include <math.h>
+
+#ifdef HAVE_FLOAT_H
+#include <float.h>
+#else
+#define FLT_MAX  3.40282347e+38F         /* IEEE float */
+#define DBL_MAX  1.7976931348623157e+308 /* IEEE double */
+#define FLT_MANT_DIG  24
+#define FLT_MAX_EXP  128
+#define DBL_MANT_DIG  53
+#define DBL_MAX_EXP 1024
+#endif
+
+#if INT_MAX == 2147483647
+typedef int int_t;
+typedef unsigned int unsigned_int_t;
+#define MAX_INT   INT_MAX	/* int */
+#elif  LONG_MAX == 2147483647
+typedef long int int_t;
+typedef long unsigned int unsigned_int_t;
+#define MAX_INT   LONG_MAX	/* long int */
+#elif  SHRT_MAX == 2147483647
+typedef short int int_t;
+typedef short unsigned int unsigned_int_t;
+#define MAX_INT   SHRT_MAX	/* short int */
+#else
+#error there is no 32 bits int
+#endif
+
+#if DBL_MANT_DIG == 53 && DBL_MAX_EXP == 1024
+typedef double floating_t;
+
+#ifdef HUGE_VAL
+#define FLOATING_HUGE_VAL HUGE_VAL
+#endif
+
+#define MAX_FLOAT DBL_MAX	/* double */
+#elif FLT_MANT_DIG == 53 && FLT_MAX_EXP == 1024
+typedef float floating_t;
+
+#ifdef HUGE_VALF
+#define FLOATING_HUGE_VAL HUGE_VALF
+#endif
+
+#define MAX_FLOAT FLT_MAX	/* float */
+#else
+#error there is no IEEE double
+#endif
+
+#ifdef WORDS_BIGENDIAN
+static const char __nan__[8] = { 0x7f, 0xf8, 0, 0, 0, 0, 0, 0 };
+#define IS_FLOATING_NAN(var)\
+  ((((int_t *) &var) [0] & ((int_t *) __nan__) [0]) == ((int_t *) __nan__) [0])
+#else
+static const char __nan__[8] = { 0, 0, 0, 0, 0, 0, 0xf8, 0x7f };
+#define IS_FLOATING_NAN(var)\
+  ((((int_t *) &var) [1] & ((int_t *) __nan__) [1]) == ((int_t *) __nan__) [1])
+#endif
+
+#ifndef FLOATING_HUGE_VAL
+#ifdef WORDS_BIGENDIAN
+static const char __infinity[8] = { 0x7f, 0xf0, 0, 0, 0, 0, 0, 0 };
+#else
+static const char __infinity[8] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x7f }
+#endif
+#define FLOATING_NAN (*(floating_t *) __infinity)
+#endif
+
+typedef unsigned char char_t;
+
+#define MAX_CHAR  UCHAR_MAX /* unsigned char */
+
+typedef char bool_t;
+
+#endif /*#ifndef __D_CONFIG_H__ */

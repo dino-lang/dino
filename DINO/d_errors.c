@@ -1,0 +1,297 @@
+#include <stdarg.h>
+
+#include "d_common.h"
+#include "d_ir.h"
+
+/* ERR is standard prefix for message which may be used by all error
+   found before the evaluation.  DERR is one found during the
+   evaluation. */
+
+char ERR_no_memory[] = "no memory";
+char ERR_invalid_char_constant[] = "invalid character constant";
+char ERR_invalid_input_char[] = "invalid symbol";
+char ERR_float_value[] = "too big or too small floating point value";
+char ERR_int_value[] = "too big integer value";
+char ERR_string_end_absence[] = "string end is absent";
+char ERR_exponent_absence[] = "exponent of float is absent";
+char ERR_eof_in_comment[] = "comment is not finished (EOF)";
+char ERR_interrupt_exception[] = "interrupt";
+char ERR_illegal_instruction_exception[] = "illegal instruction";
+char ERR_abort_exception[] = "abort";
+char ERR_floating_point_exception[] = "floating point exception";
+char ERR_termination_exception[] = "termination";
+char ERR_segment_access_violation_exception[]
+  = "segment access violation";
+
+char ERR_repeated_decl[] = "repeated declaration for identifier `%s'";
+char ERR_previous_decl_location[]
+  = "(previous declaration of identifier `%s')";
+char ERR_undeclared_ident[] = "undeclared identifier `%s'";
+char ERR_udenclared_ident_access_list []
+  = "there is no declaration for identifier `%s' in access list";
+char ERR_invalid_friend []
+  = "friend identifier `%s' is neither function nor class";
+char ERR_contradicted_ident_access_list []
+  = "identifier `%s' is declared as public and private";
+char ERR_previous_access_location []
+  = "previous place of identifier `%s' in access list";
+char ERR_extension_without_class_or_func []
+  = "extension %s without extended func or class";
+char ERR_extension_of_final [] = "extension of final func/class `%s'";
+char ERR_decl_is_absent_in_a_block []
+  = "there is not such declaration in a block";
+char ERR_invalid_type_of_arrow_left_operand []
+  = "left operand of arrow must be of string type";
+char ERR_invalid_type_of_deref_operand []
+  = "operand of unary `*' must be of string type";
+char ERR_invalid_logical_operation_operand_type []
+  = "invalid type of operand in logical operation (||, &&)";
+char ERR_invalid_comparison_operation_operand_type []
+  = "invalid type of operand in comparison operation (==, !=)";
+char ERR_invalid_order_comparison_operation_operand_type []
+  = "invalid type of operand in order comparison operation (<, >, <=, >=)";
+char ERR_invalid_concat_operation_operand_type []
+  = "invalid type of operand in concat operation `@'";
+char ERR_invalid_arithmetic_operation_operand_type []
+  = "invalid operand type in (+, -, *, /, %, |, ^, &, <<, >>, >>>)";
+char ERR_invalid_repetition_type []
+  = "invalid type of repetition in vector (`[...]')";
+char ERR_invalid_length_operand_type []
+  = "invalid operand type in length operation `#'";
+char ERR_invalid_conversion_to_vector_operand_type []
+  = "invalid operand type vector (...)";
+char ERR_invalid_conversion_to_table_operand_type []
+  = "invalid operand type table (...)";
+char ERR_invalid_cond_type []
+  = "invalid conition type in conditional expression (`...?...:...')";
+char ERR_invalid_vector_type []
+  = "invalid type of vector in vector elements access (`[...]')";
+char ERR_invalid_table_type []
+  = "invalid type of table in table elements access (`{...}')";
+char ERR_invalid_index_type []
+  = "invalid type of index in  vector elements access (`[...]')";
+char ERR_invalid_class_func_thread_designator []
+  = "invalid class, function, or thread designator in class or function call";
+char ERR_invalid_if_expr_type [] = "invalid type of if-expr";
+char ERR_invalid_for_guard_expr_type [] = "invalid type of for-expr";
+char ERR_invalid_wait_guard_expr_type [] = "invalid type of wait-expr";
+char ERR_invalid_foreach_table_type [] = "invalid type of foreach-table";
+char ERR_invalid_throw_expr_type [] = "invalid type of throw-expr";
+char ERR_invalid_catch_expr_type [] = "invalid type of catch-expr";
+char ERR_non_variable_in_assignment []
+  = "non variable in assignment statement";
+char ERR_const_assignment [] = "constant `%s' in assignment statement";
+char ERR_non_variable_in_foreach []
+  = "non variable in for-stmt left to `in'";
+char ERR_continue_is_not_in_loop []
+  = "statement continue is not in for-statement";
+char ERR_break_is_not_in_loop []
+  = "statement break is not in for-statement";
+char ERR_return_outside_func_class_ext []
+  = "statement return is not in function, class, or extension";
+char ERR_return_with_result_in_class []
+  = "statement return with result is in class";
+char ERR_return_with_result_in_thread []
+  = "statement return with result is in thread";
+char ERR_function_call_in_wait_stmt []
+  = "function call is present in wait statement";
+
+char DERR_environment_corrupted[]
+  = "run time error - environment has been corrupted";
+char DERR_logical_or_operands_types []
+  = "run time error - invalid types of operands of operator \"||\"";
+char DERR_logical_and_operands_types []
+  = "run time error - invalid types of operands of operator \"&&\"";
+char DERR_cond_operand_type []
+  = "run time error - invalid type of condition in operator \"? :\"";
+char DERR_not_operand_type []
+  = "run time error - invalid type of operand of operator \"!\"";
+char DERR_bitwise_not_operand_type []
+  = "run time error - invalid type of operand of operator \"~\"";
+char DERR_lt_operands_types []
+  = "run time error - invalid types of operands of operator \"<\"";
+char DERR_gt_operands_types []
+  = "run time error - invalid types of operands of operator \">\"";
+char DERR_le_operands_types []
+  = "run time error - invalid types of operands of operator \"<=\"";
+char DERR_ge_operands_types []
+  = "run time error - invalid types of operands of operator \">=\"";
+char DERR_plus_operands_types []
+  = "run time error - invalid types of operands of operator \"+\"";
+char DERR_minus_operands_types []
+  = "run time error - invalid types of operands of binary operator \"-\"";
+char DERR_concat_operands_types []
+  = "run time error - invalid types of operands of operator \"#\"";
+char DERR_mult_operands_types []
+  = "run time error - invalid types of operands of operator \"*\"";
+char DERR_div_operands_types []
+  = "run time error - invalid types of operands of operator \"/\"";
+char DERR_mod_operands_types []
+  = "run time error - invalid types of operands of operator \"%\"";
+char DERR_lshift_operands_types []
+  = "run time error - invalid types of operands of operator \"<<\"";
+char DERR_rshift_operands_types []
+  = "run time error - invalid types of operands of operator \">>\"";
+char DERR_ashift_operands_types []
+  = "run time error - invalid types of operands of operator \">>>\"";
+char DERR_and_operands_types []
+  = "run time error - invalid types of operands of operator \"&\"";
+char DERR_xor_operands_types []
+  = "run time error - invalid types of operands of operator \"^\"";
+char DERR_or_operands_types []
+  = "run time error - invalid types of operands of operator \"|\"";
+char DERR_unary_plus_operand_type []
+  = "run time error - invalid type of operand of unary operator \"+\"";
+char DERR_unary_minus_operand_type []
+  = "run time error - invalid type of operand of unary operator \"-\"";
+char DERR_length_operand_type []
+  = "run time error - invalid type of operand of operator \"#\"";
+char DERR_conversion_to_vector_operand_type []
+  = "run time error - invalid type of operand of vector (...)";
+char DERR_conversion_to_table_operand_type []
+  = "run time error - invalid type of operand of table (...)";
+char DERR_elist_repetition_type []
+  = "run time error - invalid type of repetition";
+char DERR_invalid_if_expr_type []
+  = "run time error - invalid if-expression type";
+char DERR_invalid_for_guard_expr_type []
+  = "run time error - invalid for-guard expression type";
+char DERR_invalid_wait_guard_expr_type []
+  = "run time error - invalid wait-guard expression type";
+char DERR_no_exception_after_throw []
+  = "run time - an except instance must be after throw";
+char DERR_index_is_not_int []
+  = "run time error - index is not integer";
+char DERR_index_is_negative_number []
+  = "run time error - index is negative number";
+char DERR_index_is_greater_than_array_bound []
+  = "run time error - index is greater than array bound";
+char DERR_index_operation_for_non_array []
+  = "run time error - index operation for non array";
+char DERR_repeated_key []
+  = "run time error - repeated key in the table  (`{...}')";
+char DERR_no_such_key []
+  = "run time error - no such key in table";
+char DERR_key_index_operation_for_non_table []
+  = "run time error - key index operation for non table";
+char DERR_in_table_operand_type []
+  = "run time error - non table right to `in'";
+char DERR_none_class_or_func_before_left_bracket []
+  = "run time error - none class or function is before \"(\"";
+char DERR_parameter_type []
+  = "run time error - invalid parameter type of `%s'";
+char DERR_invalid_result []
+  = "run time error - invalid function result used by function `%s'";;
+char DERR_invalid_input []
+  = "run time error - invalid input read by function `%s'";;
+char DERR_eof_occured []
+  = "run time error - EOF occured in `%s'";
+char DERR_parameters_number []
+  = "run time error - invalid number of parameters of `%s'";
+char DERR_eaccess [] = "system error - permission denied: `%s'";
+char DERR_eagain [] = "system error - resource temporarily unavailable: `%s'";
+char DERR_ebadf [] = "system error - bad file descriptor: `%s'";
+char DERR_ebusy [] = "system error - resource busy: `%s'";
+char DERR_echild [] = "system error - no child processes: `%s'";
+char DERR_edeadlk [] = "system error - resource deadlock avoided: `%s'";
+char DERR_edom [] = "system error - domain error: `%s'";
+char DERR_eexist [] = "system error - file exists in `%s'";
+char DERR_efault [] = "system error - bad address: `%s'";
+char DERR_efbig [] = "system error - file too large: `%s'";
+char DERR_eintr [] = "system error - interrupted function call: `%s'";
+char DERR_einval [] = "system error - invalid argument: `%s'";
+char DERR_eio [] = "system error - input/output: `%s'";
+char DERR_eisdir [] = "system error - is a directory: `%s'";
+char DERR_emfile [] = "system error - too many open files: `%s'";
+char DERR_emlink [] = "system error - too many links: `%s'";
+char DERR_enametoolong [] = "system error - filename too long: `%s'";
+char DERR_enfile [] = "system error - too many open files in system: `%s'";
+char DERR_enodev [] = "system error - no such device: `%s'";
+char DERR_enoent [] = "system error - no such file or directory: `%s'";
+char DERR_enoexec [] = "system error - exec format error: `%s'";
+char DERR_enolck [] = "system error - no locks available: `%s'";
+char DERR_enomem [] = "system error - not enough space: `%s'";
+char DERR_enospc [] = "system error - no space left on device: `%s'";
+char DERR_enosys [] = "system error - function not implemented: `%s'";
+char DERR_enotdir [] = "system error - not a directory: `%s'";
+char DERR_enotempty [] = "system error - directory not empty: `%s'";
+char DERR_enotty []
+  = "system error - inappropriate I/O control operation: `%s'";
+char DERR_enxio [] = "system error - no such device or address: `%s'";
+char DERR_eperm [] = "system error - operation not permitted: `%s'";
+char DERR_epipe [] = "system error - broken pipe: `%s'";
+char DERR_erange [] = "system error - result too large: `%s'";
+char DERR_erofs [] = "system error - read-only file system: `%s'";
+char DERR_espipe [] = "system error - invalid seek: `%s'";
+char DERR_esrch [] = "system error - no such process: `%s'";
+char DERR_exdev [] = "system error - improper link: `%s'";
+char DERR_no_shell []
+  = "run time error - no shell found during call of `system'";
+char DERR_other_fail_in_system_call []
+  = "run time error - fail during call of `system'";
+char DERR_reg_ebrack []
+  = "run time error - unmatched bracket list operators in regexp";
+char DERR_reg_erange []
+  = "run time error - invalid use of the range operator in regexp";
+char DERR_reg_ectype []
+  = "run time error - unknown character class name in regexp";
+char DERR_reg_eparen []
+  = "run time error - unmatched parenthesis group operators in regexp";
+char DERR_reg_esubreg []
+  = "run time error - invalid back reference to a subexpr. in regexp";
+char DERR_reg_eend []
+  = "run time error - non specific error in regexp";
+char DERR_reg_eescape []
+  = "run time error - invalid escape sequence in regexp";
+char DERR_reg_badpat []
+  = "run time error - invalid  use  of pattern operators in regexp";
+char DERR_reg_esize []
+  = "run time error - too big compiled regular expression";
+char DERR_reg_espace []
+  = "run time error - regexp routines ran out of memory";
+char DERR_no_such_external []
+  = "run time error - can not find external function %s";
+char DERR_library_close_error []
+  = "run time error - closing library %s";
+char DERR_no_support_extern_funcs []
+  = "run time error - there is no support of external functions on the host";
+char DERR_corrupted_environment_var []
+  = "run time error - bad value of environment variable `%s'";
+char DERR_internal_error []
+  = "run time error - internal error in `%s'";
+char DERR_func_in_left_arrow_side []
+  = "run time error - function is in left side of operation \"->\"";
+char DERR_class_in_left_arrow_side []
+  = "run time error - class is in left side of operation \"->\"";
+char DERR_func_as_variable []
+  = "run time error - usage function as variable";
+char DERR_class_as_variable []
+  = "run time error - usage class as variable";
+char DERR_value_is_not_class_instance_or_stack []
+  = "run time error - value is not class instance or stack (\".\" or \"->\")";
+char DERR_decl_is_absent_in_given_class_or_block []
+  = "run time error - there is not such declaration in given class";
+char DERR_private_decl_access_from_outside_block []
+  = "run time error - access to private decl `%s' from outside";
+char DERR_there_is_not_such_decl []
+  = "run time error - there is not such declaration (operation \"->\" or \"*\")";
+char DERR_decl_name_is_not_string []
+  = "run time error - decl name is not string (operation \"->\" or \"*\")";
+char DERR_immutable_vector_modification []
+  = "run time error - attempt to modify immutable vector";
+char DERR_immutable_table_modification []
+  = "run time error - attempt to modify immutable table";
+char DERR_immutable_instance_modification []
+  = "run time error - attempt to modify immutable instance";
+char DERR_deadlock [] = "run time error - process deadlock";
+char DERR_unprocessed_exception []
+  = "run time error - exception %s has not been processed";
+
+/* This func is called by yacc parser and for fatal error
+   reporting. */
+int
+yyerror (const char *message)
+{
+  error (FALSE, *source_position_ptr, "%s", message);
+  return 0; /* No warnings */
+}

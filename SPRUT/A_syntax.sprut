@@ -1,0 +1,40 @@
+%extend A_base
+%%
+unary
+%skeleton
+    operand : expr
+;
+binary
+%skeleton
+    left, right : expr
+;
+%abstract
+expr :: node
+;
+%abstract
+unary :: expr
+;
+%abstract
+binary :: expr
+;
+plus_op :: binary
+;
+mult_op :: binary
+;
+neg_op :: unary
+;
+%abstract
+stat :: node
+%other
+    next_stat : %double stat
+;
+assign :: stat
+%skeleton
+    var : ident
+    expr : expr
+;
+if_stat, while_stat :: stat
+%skeleton
+    cond : expr
+    stat : stat
+;

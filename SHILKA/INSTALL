@@ -1,0 +1,14 @@
+  Better way to install SHILKA is usage of top COCOM configure &
+Makefile (see file INSTALL in the top COCOM directory).
+
+  In any case you need to run configure in the top COCOM directory (in
+order to create Makefile for SHILKA), to build AMMUNITION and SPRUT
+(because SHILKA uses them for its building).  After that we can work
+with only SHILKA (building, installation, and so on).  The SHILKA
+Makefile has additional entries in comparison of the top COCOM
+Makefile.  These are:
+
+test - testing SHILKA & comparing with GNU gperf (requires installed gperf)
+TAGS - updating TAGS in current directory for only SHILKA
+
+Example of OKA specifications are files `*.shilka'.

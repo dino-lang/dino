@@ -1,0 +1,2397 @@
+<!doctype linuxdoc system>
+<article>
+
+<!-- Title information -->
+
+<title>Ammunition (Reusable packages) - C interface
+<author>Vladimir Makarov, <tt>vmakarov@users.sourceforge.net</tt>
+<date>Apr 5, 2001
+<abstract>
+This document describes ammunition (reusable packages written in C/C++).
+</abstract>
+<toc>
+
+<sect>Introduction
+<p>
+This document describes ammunition (reusable packages written in
+C/C++).  The packages are oriented towards creation of compiler and
+cross-compiler.  Currently there are the following packages (their
+names and tasks):
+
+   <descrip>
+   <tag>allocate</tag>      allocating and freeing memory with
+                       fixing some allocation errors
+   <tag>vlobject</tag>      work with variable length objects
+   <tag>objstack</tag>      work with stacks of objects
+   <tag>hashtab</tag>       work with hash tables
+   <tag>position</tag>      work with source code positions
+   <tag>errors</tag>        output of compiler messages
+   <tag>commline</tag>      work with command line
+   <tag>bits</tag>          work with bit strings
+   <tag>arithm</tag>        implementing host machine-independently arbitrary
+                       precision integer numbers arithmetic
+   <tag>IEEE</tag>          implementing host machine-independently IEEE
+                       floating point arithmetic
+   <tag>ticker</tag>        timer
+   <tag>earley</tag>        Earley parser
+   </descrip>
+
+<sect>Package for allocating memory with fixing some allocation errors
+<p>
+Developing modern compilers it is necessary to avoid arbitrary limits
+on the length or number of any data structure by allocating all data
+structures dynamically.  Here the package `allocate' which implements
+allocation and freeing memory with automatic fixing allocation errors
+is suggested.
+
+The package automatically calls action on situation `no memory'.  The
+action never returns control back because after calling function which
+processes allocation error the function `abort' is always called.
+Therefore the function which processes allocation error should not
+return control back.
+
+The interface part of the package is file `allocate.h'.  Defining
+macro `NDEBUG' (e.g. by option `-D' in C compiler command line) before
+the package macros usage disables fixing some internal errors and
+errors of usage of the package.  The implementation part is file
+`allocate.c'.  The interface contains the following external
+definitions and macros:
+
+     <descrip>
+     <tag>Function `change_allocation_error_function'</tag>
+        <tscreen><verb>
+        `void change_allocation_error_function
+              (void (*error_function) (void))) (void)'
+        </verb></tscreen>
+        is used for changing up action on the situation `no memory'.
+        The function also returns former function which was early
+        action on the situation `no memory'.
+
+     <tag>Function `default_allocation_error_function'</tag>
+        <tscreen><verb>
+        `void default_allocation_error_function (void)'
+        </verb></tscreen>
+        is default action of the package on the situation `no memory'.
+        This action consists of output message `*** no memory ***' to
+        standard error stream and calling function `exit' with code
+        equals to 1.
+
+     <tag>Macro `MALLOC'</tag>
+        <tscreen><verb>
+        `MALLOC(ptr, size)'
+        </verb></tscreen>
+        is analogous to ANSI C library function `malloc'.  But the
+        macro has two parameters.  The first is pointer variable which
+        is set up by address of allocated memory.  The second is size
+        of needed memory.
+
+     <tag>Macro `CALLOC'</tag>
+        <tscreen><verb>
+        `CALLOC(ptr, nel, size)'
+        </verb></tscreen>
+        is analogous to ANSI C library function `calloc'.  But the
+        macro has three parameters.  The first is pointer variable
+        which is set up by address of allocated memory.  The last two
+        parameters have the same sense as in standard function
+        `calloc'.
+
+     <tag>Macro `FREE'</tag>
+        <tscreen><verb>
+        `FREE(ptr)'
+        </verb></tscreen>
+        is analogous to ANSI C library function `free' but can accept
+        nil pointer value.  In this case macro does nothing.
+
+     <tag>Macro `REALLOC'</tag>
+        <tscreen><verb>
+        `REALLOC(new, old, size)'
+        </verb></tscreen>
+        is analogous to ANSI C library function `realloc' but has
+        three parameters.  The first parameter is variable which is
+        set up by new address of reallocated memory.  The second is
+        old address of reallocated memory.  And third is new size of
+        reallocated memory.
+     </descrip>
+
+<sect>Package for work with variable length objects
+<p>
+The package `vlobject' implements work with variable length object
+(VLO) and uses package `allocate'.  Any number of bytes may be added
+to and removed from the end of VLO.  If it is needed the memory
+allocated for storing variable length object may be expanded possibly
+with changing the object place.  But between any additions of the
+bytes (or tailoring) the object place is not changed.  To decrease
+number of changes of the object place the memory being allocated for
+the object is longer than the current object length.
+
+Because arguments of all macros which return a result (`VLO_LENGTH',
+`VLO_BEGIN', `VLO_BOUND', and `VLO_END') may be evaluated many times
+no side-effects should be in the arguments.
+
+The package uses package `allocate'.  The interface part of the
+package is file `vlobject.h'.  Defining macro `NDEBUG' (e.g. by option
+`-D' in C compiler command line) before the package macros usage
+disables fixing some internal errors and errors of usage of the
+package.  The implementation part is file `vlobject.c'.  The interface
+contains the following definitions and macros:
+
+       <descrip>
+       <tag>Type `vlo_t'</tag>
+          describes a descriptor of variable length object.  All work
+          with variable length object is executed by the following
+          macros through the descriptors.  Structure (implementation)
+          of this type is not needed for using variable length object.
+          But it should remember that work with the object through
+          several descriptors is not safe.
+
+       <tag>Macro `VLO_DEFAULT_LENGTH'</tag>
+          has value which is default initial size of memory is
+          allocated for VLO when the object is created (with zero
+          initial size).  Original value of the macros is equal to
+          512.  This macro can be redefined in C compiler command line
+          or with the aid of directive `#undef' before any using
+          the package macros.
+
+       <tag>Macro `VLO_CREATE'</tag>
+          <tscreen><verb>
+          `VLO_CREATE(vlo, initial_length)'
+          </verb></tscreen>
+          is used for creation of VLO with initial zero length.
+          Initial memory allocated for VLO whose descriptor is given
+          as the first macro parameter is given as the second
+          parameter.  If the second parameter is equal to zero then
+          the initial allocated memory length is equal to
+          `VLO_DEFAULT_LENGTH'.
+
+       <tag>`VLO_DELETE'</tag>
+          <tscreen><verb>
+          `VLO_DELETE(vlo)'
+          </verb></tscreen>
+          is used for freeing memory used by VLO whose descriptor is
+          given as the macro parameter.
+
+       <tag>Macro `VLO_NULLIFY'</tag>
+          <tscreen><verb>
+          `VLO_NULLIFY(vlo)'
+          </verb></tscreen>
+          makes that length of VLO whose descriptor is given as the
+          macro parameter will be equal to zero (but memory for VLO is
+          not freed and not reallocated).
+
+       <tag>Macro `VLO_TAILOR'</tag>
+          <tscreen><verb>
+          `VLO_TAILOR(vlo)'
+          </verb></tscreen>
+          makes that length of memory allocated for VLO whose
+          descriptor is given as the macro parameter becomes equal to
+          VLO length.
+
+       <tag>Macro `VLO_LENGTH'</tag>
+          <tscreen><verb>
+          `VLO_LENGTH(vlo)'
+          </verb></tscreen>
+          returns current length of VLO whose descriptor is given as
+          the macro parameter.
+
+       <tag>Macros `VLO_BEGIN', `VLO_END', `VLO_BOUND'</tag>
+          <tscreen><verb>
+          `VLO_BEGIN(vlo)', `VLO_END(vlo)', `VLO_BOUND(vlo)'
+          </verb></tscreen>
+          return pointer (of type `void *') to correspondingly the
+          first, the last byte of VLO whose descriptor is given as the
+          macros parameter, and pointer to the last byte plus one.
+          Remember that the object may change own place after any
+          addition.
+
+       <tag>Macro `VLO_SHORTEN'</tag>
+          <tscreen><verb>
+          `VLO_SHORTEN(vlo, n)'
+          </verb></tscreen>
+          removes n bytes from the end of VLO whose descriptor is
+          given as the first parameter.  VLO is nullified if its
+          length is less than n.
+
+       <tag>Macro `VLO_EXPAND'</tag>
+          <tscreen><verb>
+          `VLO_EXPAND(vlo, length)'
+          </verb></tscreen>
+          increases length of VLO whose descriptor is given as the
+          first parameter on number of bytes given as the second
+          parameter.  The values of bytes added to the end of VLO will
+          be not defined.
+
+       <tag>Macro `VLO_ADD_BYTE'</tag>
+          <tscreen><verb>
+          `VLO_ADD_BYTE(vlo, b)'
+          </verb></tscreen>
+          adds byte given as the second parameter to the end of VLO
+          whose descriptor is given as the first parameter.
+
+       <tag>Macro `VLO_ADD_MEMORY'</tag>
+          <tscreen><verb>
+          `VLO_ADD_MEMORY(vlo, str, length)'
+          </verb></tscreen>
+          adds memory starting with address given as the second macro
+          parameter and with length given as the third parameter to
+          the end of VLO whose descriptor is given as the first
+          parameter.
+
+       <tag>Macro `VLO_ADD_STRING'</tag>
+          <tscreen><verb>
+          `VLO_ADD_STRING(vlo, str)'
+          </verb></tscreen>
+          adds C string (with end marker 0) given as the second macro
+          parameter to the end of VLO whose descriptor is given as the
+          first parameter.  Before the addition the macro deletes last
+          character of the VLO.  The last character is suggested to be
+          C string end marker 0.
+       </descrip>
+
+<sect>Package for work with stacks of objects
+<p>
+The package `objstack' is based on package `allocate' and implements
+efficient work with stacks of objects (OS).  Work with the object on
+the stack top is analogous to one with a variable length object.  One
+motivation for the package is the problem of growing char strings in
+symbol tables.  Memory for OS is allocated by segments.  A segment may
+contain more one objects.  The most recently allocated segment
+contains object on the top of OS.  If there is not sufficient free
+memory for the top object than new segment is created and the top
+object is transferred into the new segment, i.e. there is not any
+memory reallocation.  Therefore the top object may change its address.
+But other objects never change address.
+
+Because arguments of all macros which return a result
+(`OS_TOP_LENGTH', `OS_TOP_BEGIN', `OS_TOP_BOUND', and `OS_TOP_END')
+may be evaluated many times no side-effects should be in the
+arguments.
+
+The package uses package `allocate'.  The interface part of the
+package is file `objstack.h'.  Defining macro `NDEBUG' (e.g.  by
+option `-D' in C compiler command line) before the package macros
+usage disables fixing some internal errors and errors of usage of the
+package.  The implementation part is file `objstack.c'.  The interface
+contains the following definitions and macros:
+
+     <descrip>
+     <tag>Type `os_t'</tag>
+        describes a descriptor of stack of objects.  All work with
+        stack of objects is executed by the following macros through
+        the descriptors.  Structure (implementation) of this type is
+        not needed for using stack of objects.  But it should remember
+        that work with the stack through several descriptors is not
+        safe.
+
+     <tag>Macro `OS_DEFAULT_SEGMENT_LENGTH'</tag>
+        has value which is default size of memory segments which will
+        be allocated for OS when the stack is created (with zero
+        initial segment size).  This is also minimal size of all
+        segments.  Original value of the macros is equal to 512.  This
+        macro can be redefined in C compiler command line or with the
+        aid of directive `#undef' before any using the package
+        macros.
+
+     <tag>Macro `OS_CREATE'</tag>
+        <tscreen><verb>
+        `OS_CREATE(os, initial_segment_length)'
+        </verb></tscreen>
+        creates OS which contains the single zero length object.  OS
+        descriptor is given as the first macro parameter.  Minimum
+        size of memory segments which will be allocated for OS is
+        given as the second parameter.  If the second parameter is
+        equal to zero the allocated memory segments length is equal to
+        `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment
+        length is always not less than maximum alignment.
+
+     <tag>Macro `OS_DELETE'</tag>
+        <tscreen><verb>
+        `OS_DELETE(os)'
+        </verb></tscreen>
+        is used for freeing all memory used by OS whose descriptor is
+        given as the macro parameter.
+
+     <tag>Macro `OS_EMPTY'</tag>
+        <tscreen><verb>
+        `OS_EMPTY(os)'
+        </verb></tscreen>
+        is used for removing all objects and freeing all memory
+        allocated for OS except for the first segment.
+
+     <tag>Macro `OS_TOP_FINISH'</tag>
+        <tscreen><verb>
+        `OS_TOP_FINISH(os)'
+        </verb></tscreen>
+        creates new variable length object with initial zero length on
+        the top of OS whose descriptor is given as the macro
+        parameter.  The work (analogous to one with variable length
+        object) with object which was on the top of OS is finished,
+        i.e. the object will never more change address.
+
+     <tag>Macro `OS_TOP_NULLIFY'</tag>
+        <tscreen><verb>
+        `OS_TOP_NULLIFY(os)'
+        </verb></tscreen>
+        makes that length of variable length object on the top of OS
+        whose descriptor is given as the macro parameter will be equal
+        to zero.
+
+     <tag>Macro `OS_TOP_LENGTH'</tag>
+        <tscreen><verb>
+        `OS_TOP_LENGTH(os)'
+        </verb></tscreen>
+        returns current length of variable length object on the top of
+        OS whose descriptor is given as the macro parameter.
+
+     <tag>Macros `OS_TOP_BEGIN', `OS_TOP_END', `OS_TOP_BOUND'</tag>
+        <tscreen><verb>
+        `OS_TOP_BEGIN(os)', `OS_TOP_END(os)', `OS_TOP_BOUND(os)'
+        </verb></tscreen>
+        return pointer to correspondingly the first and the last byte
+        of variable length object on the top of OS whose descriptor is
+        given as the macros parameter, and pointer to the last byte
+        plus one.  Remember that the top object may change own place
+        after any addition.
+
+     <tag>Macro `OS_TOP_SHORTEN'</tag>
+        <tscreen><verb>
+        `OS_TOP_SHORTEN(os, n)'
+        </verb></tscreen>
+        removes n bytes from the end of variable length object on the
+        top of OS whose descriptor is given as the first parameter.
+        The top variable length object is nullified if its length is
+        less than n.
+
+     <tag>Macro `OS_TOP_EXPAND'</tag>
+        <tscreen><verb>
+        `OS_TOP_EXPAND(os, length)'
+        </verb></tscreen>
+        increases length of variable length object on the top of OS
+        whose descriptor is given as the first parameter on number of
+        bytes given as the second parameter.  The values of bytes
+        added to the end of variable length object on the top of OS
+        will be not defined.
+
+     <tag>Macro `OS_TOP_ADD_BYTE'</tag>
+        <tscreen><verb>
+        `OS_TOP_ADD_BYTE(os, b)'
+        </verb></tscreen>
+        adds byte given as the second parameter to the end of variable
+        length object on the top of OS whose descriptor is given as
+        the first parameter.
+
+     <tag>Macro `OS_TOP_ADD_MEMORY'</tag>
+        <tscreen><verb>
+        `OS_TOP_ADD_MEMORY(os, str, length)'
+        </verb></tscreen>
+        adds memory starting with address given as the second macro
+        parameter and with length given as the third parameter to the
+        end of variable length object on the top of OS whose
+        descriptor is given as the first parameter.
+
+     <tag>Macro `OS_TOP_ADD_STRING'</tag>
+        <tscreen><verb>
+        `OS_TOP_ADD_STRING(os, str)'
+        </verb></tscreen>
+        adds C string (with end marker 0) given as the second macro
+        parameter to the end of variable length string on the top of
+        OS whose descriptor is given as the first parameter.  Before
+        the addition the macro deletes last character of the top
+        variable length object.  The last character is suggested to be
+        C string end marker 0.
+     </descrip>
+
+<sect>Package for work with hash tables
+<p>
+The most compilers use search structures.  Here the package `hashtab'
+which implements expandable hash tables is suggested.  This abstract
+data implements features analogous to ones of public domain functions
+`hsearch', `hcreate' and `hdestroy'.  The goal of the abstract data
+creation is to implement additional needed features.  The abstract
+data permits to work simultaneously with several expandable hash
+tables.  Besides insertion and search of elements the elements from
+the hash tables can be also removed.  The table element can be only a
+pointer.  The size of hash tables is not fixed.  The hash table will
+be expanded when its occupancy will become big.
+
+The abstract data implementation is based on generalized Algorithm D
+from Knuth's book "The art of computer programming".  Hash table is
+expanded by creation of new hash table and transferring elements from
+the old table to the new table.
+
+The package uses package `allocate'.  The interface part of the
+abstract data is file `hashtab.h'.  The implementation part is file
+`hashtab.c'.  The interface contains the following external
+definitions:
+
+     <descrip>
+     <tag>Type `hash_table_entry_t'</tag>
+        is described as `void *' and represents hash table element
+        type.  Empty entries have value `NULL'.
+
+     <tag>Type `hash_table_t'</tag>
+        describes hash table itself.  All work with hash table should
+        be executed only through functions mentioned below.
+
+     <tag>Function `create_hash_table'</tag>
+        <tscreen><verb>
+        `hash_table_t create_hash_table
+           (size_t size,
+            unsigned (*hash_function) (hash_table_entry_t el_ptr),
+            int (*eq_function) (hash_table_entry_t el1_ptr,
+                                hash_table_entry_t el2_ptr))'
+        </verb></tscreen>
+        creates and returns hash table with length slightly longer
+        than value of function parameter `size'.  Created hash table
+        is initiated as empty (all the hash table entries are NULL).
+        The hash table will use functions `hash_function',
+        `eq_function' given as the function parameters to evaluate
+        table element hash value and function to test on equality of
+        two table elements.
+
+     <tag>Function `delete_hash_table'</tag>
+        <tscreen><verb>
+        `void delete_hash_table (hash_table_t htab)'
+        </verb></tscreen>
+        frees memory allocated for hash table given as parameter
+        `htab'.  Naturally the hash table must already exist.
+
+     <tag>Function `empty_hash_table'</tag>
+        <tscreen><verb>
+        `void empty_hash_table  (hash_table_t htab)'
+        </verb></tscreen>
+        makes hash table given as parameter `htab' empty.  Naturally
+        the hash table must already exist.  If you need to remove all
+        table elements, it is better to use this function than several
+        times function `remove_element_from_hash_table_entry'.  This
+        function does not change size of the table or clear statistics
+        about collisions.
+
+     <tag>Function `find_hash_table_entry'
+        <tscreen><verb>
+        `hash_table_entry_t *find_hash_table_entry
+                             (hash_table_t htab,
+                              hash_table_entry_t element,
+                              int reserve)'
+        </verb></tscreen>
+        searches for hash table entry which contains element equal to
+        value of the function parameter `element' or empty entry in
+        which `element' can be placed (if the element does not exist
+        in the table).  The function parameter `reserve' is to be
+        nonzero if the element is to be placed in the table.  The
+        element should be inserted into the table entry before another
+        call of `find_hash_table_entry'.  The table is expanded if
+        occupancy (taking into account also deleted elements) is more
+        than 75%.  The occupancy of the table after the
+        expansion will be about 50%.
+
+     <tag>Function `remove_element_from_hash_table_entry'</tag>
+        <tscreen><verb>
+        `void remove_element_from_hash_table_entry
+              (hash_table_t htab, hash_table_entry_t element)'
+        </verb></tscreen>
+        removes element from hash table_entry whose value is given as
+        the function parameter.  Hash table entry for given value
+        should be not empty (or deleted).  The hash table entry value
+        will be marked as deleted after the function call.
+
+     <tag>Function `hash_table_size'</tag>
+        <tscreen><verb>
+        `size_t hash_table_size (hash_table_t htab)'
+        </verb></tscreen>
+        returns current size of given hash table.
+
+     <tag>Function `hash_table_elements_number'</tag>
+        <tscreen><verb>
+        `size_t hash_table_elements_number (hash_table_t htab)'
+        </verb></tscreen>
+        returns current number of elements in given hash table.
+
+     <tag>Function `hash_table_collisions'</tag>
+        <tscreen><verb>
+        `int hash_table_collisions (hash_table_t htab)'
+        </verb></tscreen>
+        returns number of of percents of fixed collisions during all
+        work with given hash table.
+
+     <tag>Function `all_hash_table_collisions'</tag>
+        <tscreen><verb>
+        `int all_hash_table_collisions (void)'
+        </verb></tscreen>
+        returns number of of percents of fixed collisions during all
+        work with all hash tables.
+     </descrip>
+
+<sect>Package for work with source code positions
+<p>
+The compilers often use internal representation which stores source
+code positions.  Here package `position' which serves to support
+information about source positions of compiled files taking into
+account all included files is suggested.
+
+The strategy of the package usage can be follows.  Function
+`initiate_positions' is called by the first.  After that function
+`start_file_position' is called when a file is opened for compilation
+as source or included file.  Members `line_number' and `column_number'
+of variable `current_position' are modified correspondingly during
+given file compilation.  The value of `current_position' can be stored
+into internal representation for usage for output messages on the
+following passes.  Function `finish_file_position' is called when a
+processed file is closed.  Function `finish_positions' may be called
+after all processing a source file.
+
+The package uses packages `vlobject' and `objstack' which use package
+`allocate'.  The interface part of the package is file `position.h'.
+The implementation part is file `position.c'.  The interface contains
+the following external definitions:
+
+     <descrip>
+     <tag>Type `position_t'</tag>
+        is structure which describes a file position.  The structure
+        has the following members:
+
+            <descrip>
+            <tag>Member `file_name'</tag>
+               is name of file to which given position belongs.
+
+            <tag>Members `line_number', `column_number'</tag>
+               are source line and column corresponding to given
+               position.
+
+            <tag>Member `path'</tag>
+               is pointer to another position structure representing
+               position of include-clause which caused immediately
+               given file compilation.
+            </descrip>
+
+     <tag>Variable `no_position'</tag>
+        has value of type `position_t' has members with values equals
+        to zero or `NULL'.  The value does not correspond to concrete
+        file position.
+
+     <tag>Variable `current_position'</tag>
+        has value which is current file position.
+
+     <tag>Function `initiate_positions'</tag>
+        <tscreen><verb>
+        `void initiate_positions (void)'
+        </verb></tscreen>
+        initiates the package.  Value of variable `current_position'
+        becomes equal to `no_position'.
+
+     <tag>Function `finish_position'</tag>
+        <tscreen><verb>
+        `void finish_positions (void)'
+        </verb></tscreen>
+        frees all memory allocated during package work.
+
+     <tag>Function `position_file_inclusion_level'</tag>
+        <tscreen><verb>
+        `int position_file_inclusion_level (position_t position)'
+        </verb></tscreen>
+        returns level of inclusion of file of position given as the
+        function parameter.  The level numbers are started with zero
+        for positions corresponding non-included files and for
+        positions which does not correspond to concrete file.
+
+     <tag>Function `start_file_position'</tag>
+        <tscreen><verb>
+        `void start_file_position (const char *file_name)'
+        </verb></tscreen>
+        copys position structure (by dynamic memory allocation) in
+        variable `current_position' and sets up new values of members
+        of `current_position'.  Values of members `file_name',
+        `line_number', `column_number', and `path' become equal to the
+        function parameter value, 1, 0, and pointer to the copied
+        structure.  Values of `current_position' during different
+        calls of the function must be different (e.g.  different
+        columns or lines), i.e. positions of different include-clauses
+        must be different.
+
+     <tag>Function `finish_file_position'</tag>
+        <tscreen><verb>
+        `void finish_file_position (void)'
+        </verb></tscreen>
+        recovers previous value of variable `current_position', more
+        exactly sets up the variable by structure to which the
+        variable member `path' refers.
+
+     <tag>Function `compare_positions'</tag>
+        <tscreen><verb>
+        `int compare_positions (position_t position_1,
+                                position_t position_2)'
+        </verb></tscreen>
+        compares two positions given by parameters of type
+        `position_t' and returns -1 (if the first position is less
+        than the second), 0 (if the first position is equal to the
+        second) or 1 (if the first position is greater than the
+        second).  The order of positions is lexicographic.
+     </descrip>
+
+<sect>Package for output of compiler messages
+<p>
+The most of compilers report error messages for incorrect program.
+Here the package `errors' which serves to output one-pass or
+multi-pass compiler messages of various modes (errors, warnings,
+fatal, system errors and appended messages) in Unix style or for
+traditional listing is suggested.  The package also permits adequate
+error reporting for included files.
+
+The package uses packages `vlobject', `objstack', `position' which
+use package `allocate'.  Therefore package `position' have to be
+initiated before any work with this package.  The interface part of
+the package is file `errors.h'.  The implementation part is file
+`errors.c'.  The maximum length of generated error message is
+suggested to be not greater then `MAX_ERROR_MESSAGE_LENGTH'.  The
+default value (150) of this macro can be redefined with corresponding
+C compiler option `-DMAX_ERROR_MESSAGE_LENGTH=...'  during compilation
+of file `errors.c'.  The interface contains the following external
+definitions:
+
+     <descrip>
+     <tag>Integer variables `number_of_errors', `number_of_warnings'</tag>
+        have values which are number of correspondingly errors and
+        warnings fixed after the most recent package initiation.
+
+     <tag>Integer variable `maximum_number_of_errors'</tag>
+        has value which is maximum number of errors which will be
+        fixed.  If an error is fixed with number equals to
+        `maximum_number_of_errors' then special fatal error `fatal
+        error -- too many errors' with position of given error is
+        fixed instead of the error.  And all following errors are
+        ignored.  Zero value of the variable means that the special
+        fatal error will never fixed.
+
+     <tag>Integer constant `default_maximum_number_of_errors'</tag>
+        defines originally value of variable
+        `maximum_number_of_errors'.  The constant value is `50'.
+
+     <tag>Variable `fatal_error_function'</tag>
+        contains pointer to function without parameters which will be
+        called after fixing a fatal error.  The fatal error function
+        is suggested to do not return the control back.
+
+     <tag>Function `default_fatal_error_function'</tag>
+        <tscreen><verb>
+        `void default_fatal_error_function (void)'
+        </verb></tscreen>
+        defines originally value of variable `fatal_error_function'.
+        The function only calls `exit (1)'.
+
+     <tag>Function `initiate_errors'</tag>
+        <tscreen><verb>
+        `void initiate_errors (int immediate_output_flag)'
+        </verb></tscreen>
+        initiates the package in regime depending on parameter value.
+        If the parameter value is nonzero than all fixed messages are
+        output immediately.  Otherwise the compiler messages are
+        stored until function `output_errors' are called.
+
+     <tag>Function `finish_errors'</tag>
+        <tscreen><verb>
+        `void finish_errors (void)'
+        </verb></tscreen>
+        frees all memory allocated during package work.
+
+     <tag>Function `output_errors'</tag>
+        <tscreen><verb>
+        `void output_errors (void)'
+        </verb></tscreen>
+        sorts (stable sorting) all fixed messages by their positions,
+        outputs ones, and deletes ones.  Appended messages will be
+        output after corresponding error or warning.  This function
+        should be used only in regime of storing messages.
+
+     <tag>Function `error'</tag>
+        <tscreen><tscreen><verb>
+        `void error (int fatal_error_flag, position_t
+                     position, const char *format, ...)'
+        </verb></tscreen></tscreen>
+        fixes error (fatal error if the first parameter value is
+        nonzero) at the position given as the second parameter.  If
+        the error is fatal than functions `output_errors' and
+        `*fatal_error_function' are called.  The diagnostic messages
+        are formed analogous to output of function `printf'.  For
+        example,
+        <tscreen><verb>
+           error (1, current_position, "fatal error - no memory");
+        </verb></tscreen>
+
+     <tag>Function `warning'</tag>
+        <tscreen><verb>
+        `void warning (position_t position, const char *format, ...)'
+        </verb></tscreen>
+        is analogous to the previous but is used to fix a warning.
+
+     <tag>Function `append_message'</tag>
+        <tscreen><verb>
+        `void append_message (position_t position,
+                              const char *format, ...)'
+        </verb></tscreen>
+        When regime of immediately output of fixed message is on this
+        function is analogous to the previous (except for incrementing
+        variable `number_of_warnings').  In opposite case the appended
+        message will be output with the most recent fixed error or
+        warning independently from value of the first parameter.  Of
+        course the previously fixed error or warning must exist.
+
+        For example, this function may be used for generation of
+        messages of type
+        <tscreen><verb>
+              `<file>:<line>:<position-1>: repeated declaration'
+        </verb></tscreen>
+        and then
+        <tscreen><verb>
+              `<file>:<line>:<position-1>: previous declaration'.
+        </verb></tscreen>
+        Description of function `default_output_error_function'
+        contains explanation why decremented position is output.
+
+     <tag>Function `system_error'</tag>
+        <tscreen><verb>
+        `void system_error (int fatal_error_flag,
+                            position_t position,
+                            const char *format, ...)'
+        </verb></tscreen>
+        is analogous to function `error' but serves to fix a system
+        error.  The current system message without head blanks (given
+        by standard function `strerror') is placed after the message
+        formed by the function parameters.  For example, the following
+        call may be used when a file is not opened
+
+        <tscreen><verb>
+             system_error  (1, current_position,
+                            "fatal error - %s:", new_file_name);
+        </verb></tscreen>
+
+     <tag>Variable `output_error_function'</tag>
+        contains pointer to function which is used to output error
+        message.  The function has three parameters -- flag of
+        appended message, message position and message itself.
+
+     <tag>Function `default_output_error_function'</tag>
+        <tscreen><verb>
+        `void default_output_error_function
+              (int appended_message_flag, position_t position,
+               const char *message)'
+        </verb></tscreen>
+        Originally value of variable `output_error_function' is equal
+        to this function.  The function is oriented to output in Unix
+        style according to GNU standard.  To output a listing the
+        value of variable `output_error_function' should be changed.
+        The function output message in the following formats:
+        <tscreen><verb>
+  MESSAGE                              (NULL file name)
+  FILE_NAME:1: MESSAGE                 (zero line number)
+  FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
+  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER-1: MESSAGE  (all other cases)
+        </verb></tscreen>
+        After that the function outputs newline.  The function also
+        outputs additional messages `in file processed from ...'  if
+        given message is not appended message and corresponds to file
+        different from one of previous output error.  This message
+        reflects path of the message position (see package
+        `position'), i.e.  reflects positions of corresponding
+        include-clauses.  Decremented column number is output in order
+        to be in concordance with editor Emacs in which positions
+        start with 0.
+     </descrip>
+
+<sect>Package for work with command line
+<p>
+To make easy process of command line, here abstract data `commline'
+is suggested.  This abstract data implements features analogous to
+ones of public domain function `getopt'.  The goal of the abstract
+data creation is to use more readable language of command line
+description and to use command line description as help output of
+program.
+
+POSIX terminology concerning command line is used here.  Command
+line is divided into command name and arguments.  The arguments are
+subdivided into options, option-arguments and operands.  Option starts
+with `-'.  All arguments after first `--' in command line are treated
+as operands.
+
+The description of command line is made up from two parts.  Any part
+(or both) may be absent in the description.  First part contains
+option-arguments names of options which are in the second part.
+option-arguments names are separated by white space.  The second part
+starts with percents `%%' and contains any text in which
+description of options are placed.  Any description of option starts
+with character ``' followed by character `-' and finishes by character
+`''.  White spaces may precede option-argument name.  It means that
+the corresponding option has obligatory separate option-argument.  For
+example, the following may be a part of description of options of a
+pascal compiler command line.
+
+<code>
+dir xxx file
+%%
+command line:  pc [options] file ... 
+                               Options:
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.
+`-29000'  Am29000 code generation    `-29050'* Am29050 code generation
+`-c'      only object files creation `-el'     output of listing
+`-g'      information for debuggers  `-Idir'   data task units directory
+`-lxxx'   library                    `-Ldir'   libraries directory
+`-o file' output file                `-O'      all optimizations
+`-S'      only ass. code creation    `-v'      loaded processes indication
+`-w'      no warnings generation
+               Star * marks defaults
+</code>
+
+In this example options with names `-I', `-l', `-L' and `-o' have
+option-arguments but only option with name `-o' has separate
+option-argument, i.e. option-argument which is represented by separate
+argument after given option in command line.
+
+The interface part of the abstract data is file `commline.h'.  The
+package uses package `vlobject' which use package `allocate'.  The
+implementation part is file `commline.c'.  The interface contains the
+following external definitions:
+
+       <descrip>
+       <tag>Function </tag>
+          <tscreen><verb>
+          `int start_command_line_processing
+               (int argc, char **argv, const char *description)'
+          </verb></tscreen>
+          must be called before any work with abstract data.  The
+          function processes command line description given as string
+          parameter and command line itself given as two parameter
+          `argc' and `argv'.  The function also initiates variables
+          `argument_vector' and `argument_count' by parameters `argc'
+          and `argv'.  The function returns 0 if error in command line
+          description is fixed, otherwise returns 1 (it means
+          success).
+
+       <tag>Function `output_command_line_description'</tag>
+          <tscreen><verb>
+          `void output_command_line_description (void)'
+          </verb></tscreen>
+          outputs the second part (without `%%') of description of
+          options to stderr.  This function should be called when it
+          is necessary to show the program usage.
+
+       <tag>Function `next_operand'</tag>
+          <tscreen><verb>
+          `int next_operand (int flag_of_first)'
+          </verb></tscreen>
+          returns command line argument number of next operand if the
+          function parameter is nonzero.  Otherwise the function
+          returns number of the first operand in the command line.
+          The function returns 0 if all operands are already
+          processed.  Returned number may be used as index of array
+          `argument_vector' to access corresponding operand.
+
+       <tag>Function `number_of_operands'</tag>
+          <tscreen><verb>
+          `int number_of_operands (void)'
+          </verb></tscreen>
+          returns number of operands in the command line.
+
+       <tag>Function `next_option'</tag>
+          <tscreen><verb>
+          `int next_option (int flag_of_first)'
+          </verb></tscreen>
+          returns command line argument number of next option if the
+          function parameter is nonzero.  Otherwise the function
+          returns number of the first option in the command line.  The
+          function returns 0 if all options are already processed.
+          Returned number may be used as index of array
+          `argument_vector' to access corresponding option.
+
+       <tag>Function `option_characteristics'</tag>
+          <tscreen><verb>
+          `char *option_characteristics (int argument_number,
+                                         int *option_has_argument)'
+          </verb></tscreen>
+          returns pointer to option name which describes the command
+          line argument with number `argument_number' given as the
+          first parameter of the function.  The function returns NULL
+          if the corresponding option in the command line description
+          is not found or an option described as with option-argument
+          has not option-argument in the command line.  Remember that
+          option name with option-argument differs from option in the
+          command line (e.g. `-U' and `-Ufoo').  If the option in the
+          command line description is found than the function sets up
+          correspondingly the second function parameter
+          `option_has_argument'.  The case of returned NULL and
+          `*option_has_argument' equals to TRUE means that given
+          option must have option-argument but the option has not
+          option-argument in the command line.
+
+       <tag>Function `last_option_place'</tag>
+          <tscreen><verb>
+          `int last_option_place (const char *option_name)'
+          </verb></tscreen>
+          returns number of last option with given option name in the
+          command line.  The function returns 0 if the option is
+          absent in the command line.
+
+       <tag>Function `option_argument'</tag>
+          <tscreen><verb>
+          `char *option_argument (const char *option_name)'
+          </verb></tscreen>
+          returns pointer to argument of last option in the command
+          line with given option name.  The function returns NULL if
+          the option is absent in the command line.  The function must
+          be called only for options which have argument separated by
+          white spaces.
+
+       <tag>Variables `argument_count', `argument_vector'</tag>
+          have analogous values as parameters `argc' and `argv' of
+          function `main'.  See also description of
+          `start_command_line_processing'.
+       </descrip>
+
+<sect>Package for work with bit strings
+<p>
+The package for work with bit strings is used to implement package
+`IEEE'.  But of course the package can be used for solving other
+tasks.
+
+Here a bit is given by address (start address) of byte from which
+counting bits starts and its displacement which is any non negative
+number of bit from the start address.  The most significant bit of the
+start address byte has number 0.  The bit string is given by its first
+bit and its length in bits.
+
+The interface part of the package is file `bits.h'.  The
+implementation part is file `bits.c'.  The interface contains the
+following external definitions of macros and functions:
+
+       <descrip>
+       <tag>Macro `BIT'</tag>
+          <tscreen><verb>
+          `BIT(start_byte, bit_displacement)'
+          </verb></tscreen>
+          returns given bit value as integer value `0' or `1'.  There
+          is macro `SET_BIT (start_byte, bit_displacement, bit) for
+          changing value of a bit.  Parameter `bit' must have value
+          `0' or `1'.
+
+       <tag>Function `is_zero_bit_string'</tag>
+          <tscreen><verb>
+          `int is_zero_bit_string (const void *start_byte,
+                                   int bit_displacement,
+                                   int bit_length)'
+          </verb></tscreen>
+          returns `1' if given bit string contains only zero value
+          bits, 0 otherwise.
+
+       <tag>Function `bit_string_set'</tag>
+          <tscreen><verb>
+          `void bit_string_set (void *start_byte, int
+                                bit_displacement, int bit,
+                                int bit_length)'
+          </verb></tscreen>
+          sets up new value of all bits of given bit string.  This
+          function is bit string analog of standard C function
+          `memset'.
+
+       <tag>Function `bit_string_copy'</tag>
+          <tscreen><verb>
+          `void bit_string_copy (void *to, int to_bit_displacement,
+                                 const void *from,
+                                 int from_bit_displacement,
+                                 int bit_length)'
+          </verb></tscreen>
+          copys a bit string to another bit string.  The bit strings
+          must be nonoverlapped.  This function is bit string analog
+          of standard C function `memcpy'.
+
+       <tag>Function `bit_string_move'</tag>
+          <tscreen><verb>
+          void bit_string_move (void *to, int to_bit_displacement,
+                                const void *from,
+                                int from_bit_displacement,
+                                int bit_length)'
+          </verb></tscreen>
+          copys a bit string to another bit string.  The bit strings
+          can be overlapped.  This function is bit string analog of
+          standard C function `memmove'.
+
+       <tag>Function `bit_string_comparison'</tag>
+          <tscreen><verb>
+          `int bit_string_comparison
+               (const void *str1, int bit_displacement1,
+                const void *str2, int bit_displacement2,
+                int bit_length)'
+          </verb></tscreen>
+          returns 0 if the bit strings are equal, 1 if the first bit
+          string is greater than the second, -1 if the first bit
+          string is less than the second.  This function is bit string
+          analog of standard C function `memcmp'.
+       </descrip>
+
+<sect>Package for machine-independent arbitrary precision integer arithmetic
+<p>
+Abstract data `arithm' may be used for implementation of a
+cross-compiler.  This abstract data implements arbitrary precision
+integer and unsigned integer number arithmetic by machine independent
+way.  The implementation of the package functions are not sufficiently
+efficient in order to use for run-time.  The package functions are
+oriented to implement constant-folding in compilers.  This package is
+necessary because host machine may not support such arithmetic for
+target machine.  For example, VAX does not support does not support
+more 32-bits integer numbers arithmetic.
+
+The numbers in packages are represented by bytes in big endian mode,
+negative integer numbers are represented in complementary code.  All
+sizes are given in bytes and must be positive.  Results of executions
+of all functions can coincide with a operand(s).  All functions of
+addition, subtraction, multiplication, division, evaluation of
+remainder, shift, changing size and transformation of string into
+number fix overflow.  The overflow is fixed when result can not be
+represented by number of given size.
+
+The interface part of the abstract data is file `arithm.h'.  The
+implementation part is file `arithm.c'.  The maximum length of integer
+number is suggested to be not greater then `MAX_INTEGER_OPERAND_SIZE'.
+The default value (128) of this macro can be redefined with
+corresponding C compiler option `-DMAX_INTEGER_OPERAND_SIZE=...'
+during compilation of file `arithm.c'.  But in any case the minimal
+value of the macros will be 16.  The interface contains the following
+external definitions:
+
+     <descrip>
+     <tag>Variable `overflow_bit'</tag>
+        has only two values 0 or 1.  The value `1' corresponds to
+        overflow.  The variable value are modified by all functions of
+        addition, subtract, multiplication, division, evaluation of
+        remainder, shift, changing size and transformation of string
+        into number.
+
+     <tag>Variable `const unsigned char *zero_constant'</tag>
+        represents zero (unsigned) integer of any size.
+
+     <tag>Function `void default_arithmetic_overflow_reaction (void)'</tag>
+        Originally reaction on all integer and unsigned integer
+        overflow is equal to this function.  The function does
+        nothing.  Reaction on overflow for integers or unsigned
+        integers is called after setting up variable `overflow_bit'.
+
+     <tag>Function `set_integer_overflow_reaction'</tag>
+        <tscreen><verb>
+        `void (*set_integer_overflow_reaction
+                (void (*function) (void))) (void)'
+        </verb></tscreen>
+        changes reaction on integer overflow and returns previous
+        overflow reaction function.  There is analogous function
+        <tscreen><verb>
+        `set_unsigned_integer_overflow_reaction'
+        </verb></tscreen>
+        for unsigned integer overflow.
+
+     <tag>Function `integer_maximum'</tag>
+        <tscreen><verb>
+        `void integer_maximum   (int  size,  void  *result)'
+        </verb></tscreen>
+        creates given size (in bytes) maximal integer constant which
+        is placed in memory whose address is given by the second
+        parameter.  There is analogous function
+        <tscreen><verb>
+        `integer_minimum' and
+        `unsigned_integer_maximum'.
+        </verb></tscreen>
+
+     <tag>Function `add_integer'</tag>
+        <tscreen><verb>
+        `void add_integer (int size,
+                           const void *op1, const void *op2,
+                           void *result)'
+        </verb></tscreen>
+        makes integer addition of integers of given size.  The
+        function fixes overflow when result can not be represented by
+        number of given size.  There are analogous functions which
+        implement other integer operations:
+        <tscreen><verb>
+        `subtract_integer',
+        `multiply_integer',
+        `divide_integer',
+        `integer_remainder'.
+        </verb></tscreen>
+         Also there are analogous functions
+        <tscreen><verb>
+        `subtract_unsigned_integer',
+        `multiply_unsigned_integer',
+        `divide_unsigned_integer',
+        `unsigned_integer_remainder'
+        </verb></tscreen>
+        for unsigned integers.
+
+     <tag>Function `integer_shift_left'</tag>
+        <tscreen><verb>
+        `void  integer_shift_left (int size,  const void *operand,
+                                   int bits, void *result)'
+        </verb></tscreen>
+        makes left shift of integer of given size on given number of
+        bits.  If number of bits is negative the function makes shift
+        to right actually.  The function fixes overflow when result
+        can not be represented by number of given size, i.e. in other
+        words the opposite shift (to right) results in number not
+        equal to source operand.  There are analogous functions which
+        implement another integer operation <tscreen><verb>
+        `integer_shift_right'.  </verb></tscreen> Also there are
+        analogous functions <tscreen><verb>
+        `unsigned_integer_shift_left' and
+        `unsigned_integer_shift_right' for unsigned integers.
+        </verb></tscreen>
+
+     <tag>Function `integer_or'</tag>
+        <tscreen><verb>
+        `void integer_or (int size, const void *op1, const void *op2,
+                          void *result)'
+        </verb></tscreen>
+        makes bitwise `or' of integers of given size.  There is
+        analogous function which implement bitwise `and':
+        <tscreen><verb>
+        `integer_and'.
+        </verb></tscreen>
+         Also there are equivalent functions
+        <tscreen><verb>
+        `unsigned_integer_or',
+        `unsigned_integer_and',
+        </verb></tscreen>
+        for unsigned integers.
+
+        Function 
+        <tscreen><verb>
+        `void integer_not (int size, const void *operand,
+                           void *result)'
+        </verb></tscreen>
+        makes bitwise `not' of integer of given size.  There is
+        equivalent function for unsigned integer:
+        <tscreen><verb>
+        `unsigned_integer_not'.
+        </verb></tscreen>
+
+     <tag>Function `eq_integer'</tag>
+        <tscreen><verb>
+        `int eq_integer (int size, const void *op1, const void *op2)'
+        </verb></tscreen>
+        compares two integers of given size on equality and returns 1
+        or 0 depending on result of the comparison.  There are
+        analogous functions which implement other integer operations:
+        <tscreen><verb>
+        `ne_integer',
+        `gt_integer',
+        `lt_integer',
+        `ge_integer',
+        and `le_integer'.
+        </verb></tscreen>   
+        Also there are analogous functions
+        <tscreen><verb>
+        `eq_unsigned_integer',
+        `ne_unsigned_integer',
+        `gt_unsigned_integer',                 
+        `lt_unsigned_integer',
+        `ge_unsigned_integer',
+        and `le_unsigned_integer'
+        </verb></tscreen>
+        for unsigned integers.
+
+     <tag>Function `change_integer_size'</tag>
+        <tscreen><verb>
+        `void  change_integer_size (int operand_size,
+                                    const  void *operand,
+                                    int result_size, void *result)'
+        </verb></tscreen>
+        changes size of integer.  The function fixes overflow when
+        result can not be represented by number of given size.  There
+        is analogous function
+        <tscreen><verb>
+        `change_unsigned_integer_size'
+        </verb></tscreen>
+        for unsigned integers.
+
+     <tag>Function `integer_to_string'</tag>
+        <tscreen><verb>
+        `char *integer_to_string (int  size, const void *operand,
+                                  char *result)'
+        </verb></tscreen>
+        transforms integer of given size to decimal ascii
+        representation.  Sign is present in result string only for
+        negative numbers.  The function returns value `result'.  There
+        is analogous function
+        <tscreen><verb>
+        `unsigned_integer_to_string'
+        </verb></tscreen>
+        for unsigned integers.
+
+     <tag>Function `integer_from_string'</tag>
+        <tscreen><verb>
+        `char *integer_from_string (int  size, const char *operand,
+                                    void *result)'
+        </verb></tscreen>
+        skips all white spaces at the begin of source string and
+        transforms the tail of the source string (decimal ascii
+        representation with possible sign `+' or `-') to given size
+        integer and returns pointer to first non digit in the source
+        string.  If the string started with invalid integer
+        representation the result will be zero.  The function fixes
+        overflow when result can not be represented by number of given
+        size.  There is analogous function
+        <tscreen><verb>
+        `unsigned_integer_from_string'
+        </verb></tscreen>
+        for unsigned integers.  But sign `+' is believed to be not
+        part of unsigned integer.
+     </descrip>
+
+<sect>Package for machine-independent IEEE floating point arithmetic
+<p>
+Abstract data `IEEE' may be used for implementation of a
+cross-compiler.  This abstract data implements IEEE floating point
+arithmetic by machine independent way with the aid of package
+`arithm'.  This abstract data is necessary because host machine may
+not support such arithmetic for target machine.  For example, VAX does
+not support IEEE floating point arithmetic.  The floating point
+numbers are represented by bytes in big endian mode.  The
+implementation of the package functions are not sufficiently efficient
+in order to use for run-time.  The package functions are oriented to
+implement constant-folding in compilers.  All integer sizes (see
+transformation functions) are given in bytes and must be positive.
+
+Functions of addition, subtraction, multiplication, division,
+conversion floating point numbers of different formats can fix input
+exceptions.  If an operand of such operation is trapping (signal) not
+a number then invalid operation and reserved operand exceptions are
+fixed and the result is (quiet) NaN, otherwise if an operand is
+(quiet) NaN then only reserved operand exception is fixed and the
+result is (quiet) NaN.  Operation specific processing the rest of
+special case values of operands is placed with description of the
+operation.  In general case the function can fix output exceptions and
+produces results for exception according to the following table.  The
+result and status for a given exceptional operation are determined by
+the highest priority exception.  If, for example, an operation
+produces both overflow and imprecise result exceptions, the overflow
+exception, having higher priority, determines the behavior of the
+operation.  The behavior of this operation is therefore described by
+the Overflow entry of the table.
+
+<tscreen><verb>
+    Exception|Condition|                     |Result |Status
+  -----------|---------|---------------------|-------|-------------
+             |masked   |         IEEE_RN(_RP)| +Inf  |IEEE_OFL and
+             |overflow | sign +  IEEE_RZ(_RM)| +Max  |IEEE_IMP    
+             |exception|---------------------|-------|-------------
+    Overflow |         | sign -  IEEE_RN(_RM)| -Inf  |IEEE_OFL and
+             |         |         IEEE_RZ(_RP)| -Max  |IEEE_IMP    
+             |---------|---------------------|-------|-------------
+             |unmasked | Precise result      |See    |IEEE_OFL
+             |overflow |---------------------|above  |-------------
+             |exception| Imprecise result    |       |IEEE_OFL and
+             |         |                     |       |IEEE_IMP    
+  -----------|---------|---------------------|-------|-------------
+             |masked   |                     |Rounded|IEEE_UFL and
+             |underflow| Imprecise result    |result |IEEE_IMP    
+   Underflow |exception|                     |       |     
+             |---------|---------------------|-------|-------------
+             |unmasked | Precise result      |result |IEEE_UFL
+             |underflow|---------------------|-------|-------------
+             |exception| Imprecise result    |Rounded|IEEE_UFL and
+             |         |                     |result |IEEE_IMP    
+  -----------|-------------------------------|-------|-------------
+             |masked imprecise exception     |Rounded|IEEE_IMP
+   Imprecise |                               |result |             
+             |-------------------------------|-------|-------------
+             |unmasked imprecise exception   |Rounded|IEEE_IMP
+             |                               |result |             
+</verb></tscreen>
+
+The package uses package `bits'.  The interface part of the abstract
+data is file `IEEE.h'.  The implementation part is file `IEEE.c'.  The
+interface contains the following external definitions:
+
+     <descrip>
+     <tag>Macros `IEEE_FLOAT_SIZE', `IEEE_DOUBLE_SIZE', `IEEE_QUAD_SIZE'</tag>
+        have values which are are sizes of IEEE single, double, and
+        quad precision floating point numbers (`4', `8', and `16'
+        correspondingly).
+
+     <tag>Types `IEEE_float_t', `IEEE_double_t', and `IEEE_quad_t'</tag>
+        represent correspondingly IEEE single precision, double, and
+        quad precision floating point numbers.  The size of these type
+        are equal to `IEEE_FLOAT_SIZE', `IEEE_DOUBLE_SIZE', and
+        `IEEE_QUAD_SIZE'.
+
+     <tag>Function `IEEE_reset'</tag>
+        <tscreen><verb>
+        `void IEEE_reset (void)'
+        </verb></tscreen>
+        and to separate bits in mask returned by functions
+        <tscreen><verb>
+        `IEEE_get_sticky_status_bits',
+        `IEEE_get_status_bits', and
+        `IEEE_get_trap_mask'.
+        </verb></tscreen>
+     <tag>Function `IEEE_get_trap_mask'</tag>
+        <tscreen><verb>
+        `int IEEE_get_trap_mask (void)'
+        </verb></tscreen>
+        returns exceptions trap mask.  Function
+        <tscreen><verb>
+        `int IEEE_set_trap_mask (int mask)'
+        </verb></tscreen>
+        sets up new exception trap mask and returns the previous.
+
+        If the mask bit corresponding given exception is set, a
+        floating point exception trap does not occur for given
+        exception.  Such exception is said to be masked exception.
+        Initial exception trap mask is zero.  Remember that more one
+        exception may be occurred simultaneously.
+
+     <tag>Function `IEEE_set_sticky_status_bits'</tag>
+        <tscreen><verb>
+        `int IEEE_set_sticky_status_bits (int mask)'
+        </verb></tscreen>
+        changes sticky status bits and returns the previous bits.
+
+        Function
+        <tscreen><verb>
+        `int IEEE_get_sticky_status_bits (void)'
+        </verb></tscreen>
+        returns mask of current sticky status bits.  Only sticky
+        status bits corresponding to masked exceptions are updated
+        regardless whether a floating point exception trap is taken or
+        not.  Initial values of sticky status bits are zero.
+
+     <tag>Function `IEEE_get_status_bits'</tag>
+        <tscreen><verb>
+        `int IEEE_get_status_bits (void)'
+        </verb></tscreen>
+        returns mask of status bits.  It is supposed that the function
+        will be used in trap on an floating point exception.  Status
+        bits are updated regardless of the current exception trap mask
+        only when a floating point exception trap is taken.  Initial
+        values of status bits are zero.
+
+     <tag>Constants `IEEE_RN', `IEEE_RM', `IEEE_RP', `IEEE_RZ'</tag>
+        defines rounding control (round to nearest representable
+        number, round toward minus infinity, round toward plus
+        infinity, round toward zero).
+
+        Round to nearest means the result produced is the
+        representable value nearest to the infinitely-precise result.
+        There are special cases when infinitely precise result falls
+        exactly halfway between two representable values.  In this
+        cases the result will be whichever of those two representable
+        values has a fractional part whose least significant bit is
+        zero.
+
+        Round toward minus infinity means the result produced is the
+        representable value closest to but no greater than the
+        infinitely precise result.
+
+        Round toward plus infinity means the result produced is the
+        representable value closest to but no less than the infinitely
+        precise result.
+
+        Round toward zero, i.e.  the result produced is the
+        representable value closest to but no greater in magnitude
+        than the infinitely precise result.  There are two functions
+        <tscreen><verb>
+        `int IEEE_set_round (int round_mode)'
+        </verb></tscreen>
+        which sets up current rounding mode and returns previous mode
+        and
+        <tscreen><verb>
+        `int IEEE_get_round (void)'
+        </verb></tscreen>
+        which returns current mode.  Initial rounding mode is round to
+        nearest.
+
+     <tag>Function `default_floating_point_exception_trap'</tag>
+        <tscreen><verb>
+        `void default_floating_point_exception_trap (void)'
+        </verb></tscreen>
+        Originally reaction on occurred trap on an unmasked floating
+        point exception is equal to this function.  The function does
+        nothing. All occurred exceptions can be found in the trap with
+        the aid of status bits.
+
+     <tag>Function `IEEE_set_floating_point_exception_trap'</tag>
+        <tscreen><verb>
+        `void (*IEEE_set_floating_point_exception_trap
+                (void (*function) (void))) (void)'
+        </verb></tscreen>
+        sets up trap on an unmasked exception.  Function given as
+        parameter simulates floating point exception trap.
+
+     <tag>Function `IEEE_positive_zero'</tag>
+        <tscreen><verb>
+        `IEEE_float_t IEEE_positive_zero (void)'
+        </verb></tscreen>
+        returns positive single precision zero constant.  There are
+        analogous functions which return other special case values:
+        <tscreen><verb>
+        `IEEE_negative_zero',
+        `IEEE_NaN',
+        `IEEE_trapping_NaN',
+        `IEEE_positive_infinity',
+        `IEEE_negative_infinity',
+        `IEEE_double_positive_zero',
+        `IEEE_double_negative_zero',
+        `IEEE_double_NaN',
+        `IEEE_double_trapping_NaN',
+        `IEEE_double_positive_infinity',
+        `IEEE_double_negative_infinity'.
+        `IEEE_quad_positive_zero',
+        `IEEE_quad_negative_zero',
+        `IEEE_quad_NaN',
+        `IEEE_quad_trapping_NaN',
+        `IEEE_quad_positive_infinity',
+        `IEEE_quad_negative_infinity'.
+        </verb></tscreen>
+
+        According to the IEEE standard NaN (and trapping NaN) can be
+        represented by more one bit string.  But all functions of the
+        package generate and use only one its representation created
+        by function `IEEE_NaN' (and `IEEE_trapping_NaN',
+        `IEEE_double_NaN', `IEEE_double_trapping_NaN',
+        `IEEE_quad_NaN', `IEEE_quad_trapping_NaN').  A (quiet) NaN
+        does not cause an Invalid Operation exception and can be
+        reported as an operation result.  A trapping NaN causes an
+        Invalid Operation exception if used as in input operand to
+        floating point operation.  Trapping NaN can not be reported as
+        an operation result.
+
+     <tag>Function `IEEE_is_positive_zero'</tag>
+        <tscreen><verb>
+        `int IEEE_is_positive_zero (IEEE_float single_float)'
+        </verb></tscreen>
+        returns 1 if given number is positive single precision zero
+        constant.  There are analogous functions for other special
+        case values:
+        <tscreen><verb>
+        `IEEE_is_negative_zero',
+        `IEEE_is_NaN',
+        `IEEE_is_trapping_NaN',
+        `IEEE_is_positive_infinity',
+        `IEEE_is_negative_infinity',
+        `IEEE_is_positive_maximum' (positive max value),
+        `IEEE_is_negative_maximum',
+        `IEEE_is_positive_minimum' (positive min value),
+        `IEEE_is_negative_minimum',
+        `IEEE_is_double_positive_zero',
+        `IEEE_is_double_negative_zero',
+        `IEEE_is_double_NaN',
+        `IEEE_is_double_trapping_NaN',
+        `IEEE_is_double_positive_infinity',
+        `IEEE_is_double_negative_infinity',
+        `IEEE_is_double_positive_maximum',
+        `IEEE_is_double_negative_maximum',
+        `IEEE_is_double_positive_minimum',
+        `IEEE_is_double_negative_minimum'.
+        `IEEE_is_quad_positive_zero',
+        `IEEE_is_quad_negative_zero',
+        `IEEE_is_quad_NaN',
+        `IEEE_is_quad_trapping_NaN',
+        `IEEE_is_quad_positive_infinity',
+        `IEEE_is_quad_negative_infinity',
+        `IEEE_is_quad_positive_maximum',
+        `IEEE_is_quad_negative_maximum',
+        `IEEE_is_quad_positive_minimum',
+        `IEEE_is_quad_negative_minimum'.
+        </verb></tscreen>
+        In spite of that all functions of the package generate and use
+        only one its representation created by function `IEEE_NaN' (or
+        `IEEE_trapping_NaN', or `IEEE_double_NaN', or
+        `IEEE_double_trapping_NaN', or `IEEE_quad_NaN', or
+        `IEEE_quad_trapping_NaN').  The function `IEEE_is_NaN' (and
+        `IEEE_trapping_NaN', and `IEEE_double_NaN', and
+        `IEEE_double_trapping_NaN', and `IEEE_quad_NaN', and
+        `IEEE_quad_trapping_NaN') determines any representation of
+        NaN.
+
+     <tag>Function `IEEE_is_normalized'</tag>
+        <tscreen><verb>
+        `int IEEE_is_normalized (IEEE_float_t single_float)'
+        </verb></tscreen>
+        returns TRUE if single precision number is normalized (special
+        case values are not normalized).  There is analogous function
+        <tscreen><verb>
+        `IEEE_is_denormalized'
+        </verb></tscreen>
+        for determination of denormalized number.  There are analogous
+        functions
+        <tscreen><verb>
+        `IEEE_is_double_normalized' and
+        `IEEE_is_double_denormalized' and
+        `IEEE_is_quad_normalized' and
+        `IEEE_is_quad_denormalized'
+        </verb></tscreen>
+        for doubles and quads.
+
+     <tag>Function `IEEE_add_single'</tag>
+        <tscreen><verb>
+        `IEEE_float_t IEEE_add_single (IEEE_float_t single1,
+                                       IEEE_float_t single2)'
+        </verb></tscreen>
+        makes single precision addition of floating point numbers.
+        There are analogous functions which implement other floating
+        point operations:
+        <tscreen><verb>
+        `IEEE_subtract_single',
+        `IEEE_multiply_single',
+        `IEEE_divide_single',
+        `IEEE_add_double',
+        `IEEE_subtract_double',
+        `IEEE_multiply_double',
+        `IEEE_divide_double'.
+        `IEEE_add_quad',
+        `IEEE_subtract_quad',
+        `IEEE_multiply_quad',
+        `IEEE_divide_quad'.
+        </verb></tscreen>
+        Results and input exceptions for operands of special cases
+        values (except for NaNs) are described for addition by the
+        following table
+<tscreen><verb>
+            first  |         second operand                
+            operand|---------------------------------------
+                   |    +Inf      |    -Inf     |   Others
+            -------|--------------|-------------|----------
+            +Inf   |    +Inf      |     NaN     |   +Inf
+                   |    none      |IEEE_INV(_RO)|   none
+            -------|--------------|-------------|----------
+            -Inf   |    NaN       |    -Inf     |   -Inf
+                   |IEEE_INV(_RO) |    none     |   none
+            -------|--------------|-------------|----------
+            Others |    +Inf      |    -Inf     |
+                   |    none      |    none     |          
+</verb></tscreen>
+        Results and input exceptions for operands of special cases
+        values (except for NaNs) are described for subtraction by the
+        following table
+<tscreen><verb>
+            first  |         second operand                
+            operand|---------------------------------------
+                   |    +Inf     |    -Inf      |   Others
+            -------|-------------|--------------|----------
+            +Inf   |     NaN     |    +Inf      |   +Inf
+                   |IEEE_INV(_RO)|    none      |   none
+            -------|-------------|--------------|----------
+            -Inf   |    -Inf     |    NaN       |   -Inf
+                   |    none     |IEEE_INV(_RO) |   none
+            -------|-------------|--------------|----------
+            Others |    -Inf     |    +Inf      |
+                   |    none     |    none      |          
+</verb></tscreen>
+        Results and input exceptions for operands of special cases
+        values (except for NaNs) are described for multiplication by
+        the following table
+<tscreen><verb>
+        first  |         second operand                
+        operand|---------------------------------------------------
+               |    +Inf     |    -Inf     |    0        |   Others
+        -------|-------------|-------------|-------------|---------
+        +Inf   |    +Inf     |    -Inf     |    NaN      |  (+-)Inf
+               |    none     |    none     |IEEE_INV(_RO)|   none  
+        -------|-------------|-------------|-------------|---------
+        -Inf   |    -Inf     |    +Inf     |    NaN      |  (+-)Inf
+               |    none     |    none     |IEEE_INV(_RO)|   none  
+        -------|-------------|-------------|-------------|---------
+        0      |     NaN     |    NaN      |   (+-)0     |  (+-)0  
+               |IEEE_INV(_RO)|IEEE_INV(_RO)|   none      |  none   
+        -------|-------------|-------------|-------------|---------
+        Others |   (+-)Inf   |   (+-)Inf   |   (+-)0     |         
+               |    none     |    none     |   none      |         
+</verb></tscreen>
+        Results and input exceptions for operands of special cases
+        values (except for NaNs) are described for division by the
+        following table
+<tscreen><verb>
+        first  |         second operand                
+        operand|---------------------------------------------------
+               |    +Inf     |    -Inf     |    0        |   Others
+        -------|-------------|-------------|-------------|---------
+        +Inf   |     NaN     |     NaN     |   (+-)Inf   |  (+-)Inf
+               |IEEE_INV(_RO)|IEEE_INV(_RO)|   none      |   none  
+        -------|-------------|-------------|-------------|---------
+        -Inf   |     NaN     |     NaN     |   (+-)Inf   |  (+-)Inf
+               |IEEE_INV(_RO)|IEEE_INV(_RO)|   none      |   none  
+        -------|-------------|-------------|-------------|---------
+        0      |   (+-)0     |   (+-)0     |     NaN     |  (+-)0  
+               |   none      |   none      |IEEE_INV(_RO)|  none   
+        -------|-------------|-------------|-------------|---------
+        Others |   (+-)0     |   (+-)0     |   (+-)Inf   |         
+               |   none      |    none     |   IEEE_DZ   |         
+</verb></tscreen>
+     <tag>Function `IEEE_eq_single'</tag>
+        <tscreen><verb>
+        `int IEEE_eq_single (IEEE_float_t single1,
+                             IEEE_float_t single2)'
+        </verb></tscreen>
+        compares two single precision floating point numbers on
+        equality and returns 1 or 0 depending on result of the
+        comparison.  There are analogous functions which implement
+        other integer operations:
+        <tscreen><verb>
+        `IEEE_ne_single',
+        `IEEE_gt_single',
+        `IEEE_lt_single',
+        `IEEE_ge_single',
+        `IEEE_le_single',
+        `IEEE_eq_double',
+        `IEEE_ne_double',
+        `IEEE_gt_double',
+        `IEEE_lt_double',
+        `IEEE_ge_double',
+        `IEEE_le_double'.
+        `IEEE_eq_quad',
+        `IEEE_ne_quad',
+        `IEEE_gt_quad',
+        `IEEE_lt_quad',
+        `IEEE_ge_quad',
+        `IEEE_le_quad'.
+        </verb></tscreen>
+        Results and input exceptions for operands of special cases
+        values are described for equality and inequality by the
+        following table
+<tscreen><verb>        
+        first  |         second operand                
+        operand|---------------------------------------
+               |    SNaN     |    QNaN      |   Others
+        -------|-------------|--------------|----------
+        SNaN   |   FALSE     |   FALSE      |  FALSE
+               |  IEEE_INV   |  IEEE_INV    | IEEE_INV
+        -------|-------------|--------------|----------
+        QNaN   |   FALSE     |   FALSE      |  FALSE
+               |  IEEE_INV   |    none      |   none
+        -------|-------------|--------------|----------
+        Others |   FALSE     |   FALSE      |
+               |  IEEE_INV   |    none      |          
+</verb></tscreen>
+        Results and input exceptions for operands of special cases
+        values are described for other comparison operation by the
+        following table
+<tscreen><verb>        
+        first  |         second operand                
+        operand|---------------------------------------
+               |    SNaN     |    QNaN      |   Others
+        -------|-------------|--------------|----------
+        SNaN   |   FALSE     |   FALSE      |  FALSE
+               |  IEEE_INV   |  IEEE_INV    | IEEE_INV
+        -------|-------------|--------------|----------
+        QNaN   |   FALSE     |   FALSE      |  FALSE
+               |  IEEE_INV   |  IEEE_INV    | IEEE_INV
+        -------|-------------|--------------|----------
+        Others |   FALSE     |   FALSE      |
+               |  IEEE_INV   |  IEEE_INV    |          
+</verb></tscreen>
+     <tag>Transformation  functions</tag>
+        <tscreen><verb>
+        `IEEE_double_t IEEE_single_to_double
+                       (IEEE_float_t single_float)',
+        
+        `IEEE_float_t IEEE_double_to_single
+                      (IEEE_double_t double_float)',
+        
+        `IEEE_quad_t IEEE_single_to_quad
+                     (IEEE_float_t single_float)',
+        
+        `IEEE_float_t IEEE_quad_to_single
+                      (IEEE_quad_t quad_float)',
+        
+        `IEEE_quad_t IEEE_double_to_quad
+                     (IEEE_double_t double_float)',
+        
+        `IEEE_double_t IEEE_quad_to_double
+                      (IEEE_quad_t quad_float)',
+        
+        `IEEE_float_t IEEE_single_from_integer
+                      (int size, const void *integer)',
+        
+        `IEEE_float_t IEEE_single_from_unsigned_integer
+                      (int size, const void *unsigned_integer)',
+        
+        `IEEE_double_t IEEE_double_from_integer
+                       (int size, const void *integer)',
+        
+        `IEEE_double_t IEEE_double_from_unsigned_integer
+                       (int size, const void *unsigned_integer)',
+        
+        `IEEE_quad_t IEEE_quad_from_integer
+                     (int size, const void *integer)',
+        
+        `IEEE_quad_t IEEE_quad_from_unsigned_integer
+                     (int size, const void *unsigned_integer)',
+        
+        `void IEEE_single_to_integer
+              (int size, IEEE_float_t single_float, void *integer)',
+        
+        `void IEEE_single_to_unsigned_integer
+              (int size, IEEE_float_t single_float,
+               void *unsigned_integer)',
+        
+        `void IEEE_double_to_integer
+              (int size, IEEE_double_t double_float, void *integer)',
+        
+        `void IEEE_double_to_unsigned_integer
+              (int size, IEEE_double_t double_float,
+               void *unsigned_integer)'.
+
+        `void IEEE_quad_to_integer
+              (int size, IEEE_quad_t quad_float, void *integer)',
+        
+        `void IEEE_quad_to_unsigned_integer
+              (int size, IEEE_quad_t quad_float,
+               void *unsigned_integer)'.
+        </verb></tscreen>
+        Actually no one output exceptions occur during transformation
+        of single precision floating point number to double and quad
+        precision number or of double precision floating point number
+        to quad precision number.  No input exceptions occur during
+        transformation of integer numbers to floating point numbers.
+        Results and input exceptions for operand of special cases
+        values (and for NaNs) are described for conversion floating
+        point number to integer by the following table
+<tscreen><verb>
+                    Operand     | Result & Exception
+                  --------------|-------------------
+                      SNaN      |     0  
+                                |IEEE_INV(_RO)
+                  --------------|-------------------
+                      QNaN      |     0    
+                                |IEEE_INV(_RO)     
+                  --------------|-------------------
+                      +Inf      |    IMax     
+                                |  IEEE_INV     
+                  --------------|-------------------
+                      -Inf      |    IMin     
+                                |  IEEE_INV     
+                  --------------|-------------------
+                      Others    |             
+                                |               
+</verb></tscreen>
+        Results and input exceptions for operand of special cases
+        values (and for NaNs) are described for conversion floating
+        point number to unsigned integer by the following table
+<tscreen><verb>
+                    Operand     | Result & Exception
+                  --------------|-------------------
+                      SNaN      |     0  
+                                |IEEE_INV(_RO)
+                  --------------|-------------------
+                      QNaN      |     0    
+                                |IEEE_INV(_RO)     
+                  --------------|-------------------
+                      +Inf      |    IMax     
+                                |  IEEE_INV     
+                  --------------|-------------------
+                      -Inf or   |    0     
+                 negative number|  IEEE_INV     
+                  --------------|-------------------
+                      Others    |             
+                                |               
+</verb></tscreen>
+        Results and exceptions for NaNs during transformation of
+        floating point numbers to (unsigned) integers are differed
+        from the ones for operations of addition, multiplication and
+        so on.
+
+     <tag>Function `IEEE_single_to_string'</tag>
+        <tscreen><verb>
+        `char *IEEE_single_to_string (IEEE_float_t single_float,
+                                      char *result)'
+        </verb></tscreen>
+        transforms single precision to decimal ascii representation
+        with obligatory integer part (1 digit), fractional part (of
+        constant length), and optional exponent.  Signs minus are
+        present if it is needed.  The special cases IEEE floating
+        point values are represented by strings `SNaN', `QNaN',
+        `+Inf', `-Inf', `+0', and `-0'.  The function returns value
+        `result'.  There are analogous functions
+        <tscreen><verb>
+        `IEEE_string_from_double'
+        `IEEE_string_from_quad'
+        </verb></tscreen>
+        for doubles and quads.  Current round mode does not affect
+        the resultant ascii representation.  The function outputs 9
+        decimal fraction digits for single precision number, 17
+        decimal fraction digits for double precision number, and 36
+        for quad precision number.
+
+     <tag>Function `IEEE_single_from_string'</tag>
+        <tscreen><verb>
+        `char *IEEE_single_from_string (const char *operand,
+                                        IEEE_float_t *result)'
+        </verb></tscreen>
+        skips all white spaces at the begin of source string and
+        transforms tail of the source string to single precision
+        floating point number.  The number must correspond the
+        following syntax
+        <tscreen><verb>
+           ['+' | '-'] [<decimal digits>] [ '.' [<decimal digits>] ]
+                [ ('e' | 'E') ['+' | '-'] <decimal digits>]
+        </verb></tscreen>
+        or must be the following strings `SNaN', `QNaN', `+Inf',
+        `-Inf', `+0', or `-0'.  The function returns pointer to first
+        character in the source string after read floating point
+        number.  If the string does not correspond floating point
+        number syntax the result will be zero and function returns the
+        source string.
+
+        The function can fix output exceptions as described above.
+        There are analogous functions
+        <tscreen><verb>
+        `IEEE_double_from_string'
+        `IEEE_quad_from_string'
+        </verb></tscreen>
+        for doubles and quads.  Current round mode may affect
+        resultant floating point number.  It is guaranteed that
+        transformation `IEEE floating point number -> string -> IEEE
+        floating point number' results in the same IEEE floating point
+        number if round to nearest mode is used.  But the reverse
+        transformation `string with 9 (or 17 or 36) digits -> IEEE
+        floating point number -> string' may results in different
+        digits of the fractions in ascii representation because a
+        floating point number may represent several such strings with
+        differences in the least significant digit.  But the ascii
+        representations are identical when functions
+        `IEEE_single_from_string', `IEEE_double_from_string',
+        `IEEE_quad_from_string' do not fix imprecise result exception
+        or less than 9 (or 17 or 36) digits of the fractions in the
+        ascii representations are compared.
+     </descrip>
+Important note: All items (they contains word quad or QUAD in their
+names) relative to IEEE 128 bits floating point numbers are defined
+only when macro `IEEE_QUAD' is defined.  By default `IEEE_QUAD' is not
+defined.  It is made because supporting IEEE 18-bits numbers requires
+more 100Kb memory.
+
+
+<sect>Ticker package
+<p>
+The package `ticker' implements a timer.  Timer can be activated or
+can be stopped.  The timer accumulates execution time only when it is
+in active state.  The interface part of the package is file
+`ticker.h'.  The implementation part is file `ticker.c'.  The
+interface contains the following external definitions and macros:
+       <descrip>
+       <tag>Type `ticker_t'</tag>
+          describes a timer.  Knowledge of structure (implementation)
+          of this type is not needed for using timer.
+
+       <tag>Function `create_ticker'</tag>
+          <tscreen><verb>
+          `ticker_t create_ticker (void)'
+          </verb></tscreen>
+          returns new timer.  The state of the timer is active.  This
+          function call must to be the first for given timer.
+
+       <tag>Function `ticker_off'</tag>
+          <tscreen><verb>
+          `void ticker_off (ticker_t *ticker)'
+          </verb></tscreen>
+          stops the timer given as the first parameter.
+
+       <tag>Function `ticker_on'</tag>
+          <tscreen><verb>
+          `void ticker_on (ticker_t *ticker)'
+          </verb></tscreen>
+          activates the timer given as the first parameter.
+
+       <tag>Public function `active_time'</tag>
+          <tscreen><verb>
+          `double active_time (ticker_t ticker)'
+          </verb></tscreen>
+          returns time in seconds as double float value in which
+          given timer was active.
+
+       <tag>Public function `active_time_string'</tag>
+          <tscreen><verb>
+          `const char *active_time_string (void)'
+          </verb></tscreen>
+          returns string representation of time in seconds in which
+          the timer given as the function parameter was active.
+          Remember that this function must be the single in a C++
+          expression because the string is stored in a static variable
+          of the function.
+       </descrip>
+
+<sect>Earley parser
+<p>
+The package `earley' implements earley parser.  The earley parser
+implementation has the following features:
+
+    <itemize>
+    <item>It is sufficiently fast and does not require much memory.
+      This is the fastest implementation of Earley parser which I
+      know.  The main design goal is to achieve speed and memory
+      requirements which are necessary to use it in prototype
+      compilers and language processors.  It parses 30K lines of C
+      program per second on 500 MHz Pentium III and allocates about
+      5Mb memory for 10K line C program.
+
+    <item>It makes simple syntax directed translation.  So an
+      abstract tree is already the output of Earley parser.
+
+    <item>It can parse input described by an ambiguous grammar.  In
+      this case the parse result can be an abstract tree or all
+      possible abstract trees.  Moreover it produces the compact
+      representation of all possible parse trees by using DAG instead
+      of real trees.  These feature can be used to parse natural
+      language sentences.
+
+    <item>It can make syntax error recovery.  Moreover its error
+      recovery algorithms finds error recovery with minimal number of
+      ignored tokens.  It permits to implement parsers with very good
+      error recovery and reporting.
+
+    <item>It has fast startup.  There is no practically delay between
+      processing grammar and start of parsing.
+
+    <item>It has flexible interface.  The input grammar can be given
+      by YACC-like description or providing functions returning
+      terminals and rules.
+
+    <item>It has good debugging features.  It can print huge amount of
+      information about grammar, parsing, error recovery, translation.
+      You can even output the result translation in form for a graphic
+      visualization program.
+    </itemize>
+
+The interface part of the parser is file `earley.h'.  The
+implementation part is file `earley.c'.  The interface contains the
+following external definitions and macros:
+       <descrip>
+       <tag>Struct `grammar'</tag>
+          describes a grammar.  Knowledge of structure
+          (implementation) of this type is not visible and not needed
+          for using the parser.
+
+       <tag>Macro `EARLEY_NO_MEMORY'</tag>
+          is error code of the parser.  The parser functions return
+          the code when parser can not allocate enough memory for its
+          work.
+
+       <tag>Macro `EARLEY_UNDEFINED_OR_BAD_GRAMMAR'</tag>
+          is error code of the parser.  The parser functions return
+          the code when we call parsing without defining grammar or
+          call parsing for bad defined grammar.
+
+       <tag>Macro `EARLEY_DESCRIPTION_SYNTAX_ERROR_CODE'</tag>
+          is error code of the parser.  The code is returned when the
+          grammar is defined by description and there is syntax error
+          in the description.
+
+       <tag>Macro `EARLEY_FIXED_NAME_USAGE'</tag>
+          is error code of the parser.  The code is returned when the
+          grammar uses reserved names for terminals and nonterminals.
+          There are two reserved names `$S' (for axiom) and `$eof' for
+          end of file (input end marker).  The parser adds these
+          symbols and rules with these symbols to the grammar given by
+          user.  So user should not use these names in his grammar.
+
+       <tag>Macro `EARLEY_REPEATED_TERM_DECL'</tag>
+          is error code of the parser.  The code is returned when the
+          grammar contains several declarations of terminals with the
+          same name.
+
+       <tag>Macro `EARLEY_NEGATIVE_TERM_CODE'</tag>
+          is error code of the parser.  The code is returned when the
+          grammar terminal is described with negative code.
+
+       <tag>Macro `EARLEY_REPEATED_TERM_CODE'</tag>
+          is error code of the parser.  The code is returned when the
+          two or more grammar terminals are described with the same
+          code.
+
+       <tag>Macro `EARLEY_NO_RULES'</tag>
+          is error code of the parser.  The code is returned when the
+          grammar given by user has no rules.
+
+       <tag>Macro `EARLEY_TERM_IN_RULE_LHS'</tag>
+          is error code of the parser.  The code is returned when
+          grammar rule given by user contains terminal in left hand
+          side of the rule.
+
+       <tag>Macro `EARLEY_INCORRECT_TRANSLATION'</tag>
+          is error code of the parser.  The code is returned when
+          grammar rule translation is not correct.  The single reason
+          for this is translation of the rule consists of translations
+          of more one symbols in the right hand side of the rule
+          without forming an abstract tree node.
+
+       <tag>Macro `EARLEY_INCORRECT_SYMBOL_NUMBER'</tag>
+          is error code of the parser.  The code is returned when
+          grammar rule translation contains incorrect symbol number
+          which should be nonnegative number less than rule right hand
+          side length.
+
+       <tag>Macro `EARLEY_UNACCESSIBLE_NONTERM'</tag>
+          is error code of the parser.  The code is returned when
+          there is grammar nonterminal which can not be derived from
+          axiom.
+
+       <tag>Macro `EARLEY_NONTERM_DERIVATION'</tag>
+          is error code of the parser.  The code is returned when
+          there is grammar nonterminal which can not derive a terminal
+          string.
+
+       <tag>Macro `EARLEY_LOOP_NONTERM'</tag>
+          is error code of the parser.  The code is returned when
+          there is grammar nonterminal which can derive only itself.
+          The parser does not work with such grammars.
+
+       <tag>Macro `EARLEY_INVALID_TOKEN_CODE'</tag>
+          is error code of the parser.  The code is returned when the
+          parser got input token whose code is different from all
+          grammar terminal codes.
+
+       <tag>Enumeration `earley_tree_node_type'</tag>
+          describes all possible nodes of abstract tree representing
+          the translation.  There are the following enumeration
+          constants:
+            <descrip>
+            <tag>`EARLEY_NIL'</tag>
+               the corresponding node represents empty translations.
+
+            <tag>`EARLEY_ERROR'</tag>
+               the corresponding node represents translation of
+               special terminal `error' (see error recovery).
+
+	    <tag>`EARLEY_TERM'</tag>
+               the corresponding node represents translation of
+               a terminal.
+
+	    <tag>`EARLEY_ANODE'</tag>
+               the corresponding node represents an abstract node.
+
+	    <tag>`EARLEY_ALT'</tag>
+               the corresponding node represents an alternative of the
+               translation.  Such nodes creates only when there are
+               two or more possible translations.  It means that the
+               grammar is ambiguous.
+            </descrip>
+       <tag>Structure `earley_tree_node'</tag>
+
+          represents node of the translation.  The nodes refer for
+          each other forming DAG (direct acyclic graph) in general
+          case.  The main reason of generating DAG is that some input
+          fragments may have the same translation, when there are
+          several parsings of input (which is possible only for
+          ambiguous grammars).  But DAG may be created even for
+          unambigous grammar because some nodes (empty and error
+          nodes) exist only in one exemplar.  When such nodes are not
+          created, the translation nodes forms a tree.  This structure
+          has the following members:
+            <descrip>
+            <tag>Member `type' of type `enum earley_tree_node_type'</tag>
+               representing type of the translation node.
+
+            <tag>Union `val'</tag>
+               Depending on the translation node type, one of the
+               union members `nil', `error', `term', `anode', and
+               `alt' of the structure types described below is used to
+               represent the translation node.
+            </descrip>
+       <tag>Structure `earley_nil'</tag>
+          represents empty node.  It has no members.  Actually the
+          translation is DAG (not tree) in general case.  The empty
+          and error nodes are present only in one exemplar.
+
+       <tag>Structure `earley_error'</tag>
+          represents translation of special terminal `error'.  It has
+          no members.  The error node exists only in one exemplar.
+
+       <tag>Structure `earley_term'</tag>
+          represents translation of terminals.  It has
+          the following two members:
+            <descrip>
+            <tag>Integer member `code'</tag>
+               representing code of the corresponding terminal.
+
+            <tag>Member `attr' of type `* void'</tag>
+               is reference for the attribute of the corresponding
+               terminal.
+            </descrip>
+       <tag>Structure `earley_anode'</tag>
+          represents abstract node.  It has the following two members:
+            <descrip>
+            <tag>Member `code' of type `const char *'</tag>
+               representing name of anode as it given in the
+               corresponding rule translation.
+
+            <tag>Member `children' of type `struct earley_tree_node **'</tag>
+               is array of nodes representing the translations of the
+               symbols given in the rule with the abstract node.
+            </descrip>
+       <tag>Structure `earley_alt'</tag>
+          represents an alternative of the translation.  It has the
+          following two members:
+            <descrip>
+            <tag>Member `node' of type `struct earley_tree_node *'</tag>
+               representing alternative translation.
+
+            <tag>Member `next' of type `struct earley_tree_node *'</tag>
+               is reference for the next alternative of translation.
+            </descrip>
+       <tag>Function `earley_create_grammar'</tag>
+          <tscreen><verb>
+          `struct grammar *earley_create_grammar (void)'
+          </verb></tscreen>
+          should be called the first.  It actually creates an earley
+          parser with undefined grammar.  You can use two or more
+          parsers simultaneously.  The function returns `NULL' if
+          there is no memory.
+
+       <tag>Function `earley_error_code'</tag>
+          <tscreen><verb>
+          `int earley_error_code (struct grammar *g)'
+          </verb></tscreen>
+          returns the last occurred error code (see the possible error
+          codes above) for given parser.  If the function returns
+          zero, no error was found so far.
+
+       <tag>Function `earley_error_message'</tag>
+          <tscreen><verb>
+          `const char *earley_error_message (struct grammar *g)'
+          </verb></tscreen>
+          returns detail message about last occurred error.  The
+          message always corresponds to the last error code returned
+          the previous function.
+
+       <tag>Function `earley_read_grammar'</tag>
+          <tscreen><verb>
+          `int earley_read_grammar (struct grammar *g, int strict_p,
+                		    const char *(*read_terminal) (int *code),
+		                    const char *(*read_rule)
+                                                  (const char ***rhs,
+					           const char **abs_node,
+					           int **transl))'
+          </verb></tscreen>
+          is one of two functions which tunes the parser to given
+          grammar.  The grammar is read with the aid functions given
+          as parameters.
+
+          `read_terminal' is function for reading terminals.  This
+          function is called before function `read_rule'.  The
+          function should return the name and the code of the next
+          terminal.  If all terminals have been read the function
+          returns NULL.  The terminal code should be nonnegative.
+
+          `read_rule' is function called to read the next rule.  This
+          function is called after function `read_terminal'.  The
+          function should return the name of nonterminal in the left
+          hand side of the rule and array of names of symbols in the
+          right hand side of the rule (the array end marker should be
+          `NULL').  If all rules have been read, the function returns
+          `NULL'.  All symbol with name which was not provided
+          function `read_terminal' are considered to be nonterminals.
+          The function also returns translation given by abstract node
+          name and its fields which will be translation of symbols
+          (with indexes given in array given by parameter `transl') in
+          the right hand side of the rule.  All indexes in `transl'
+          should be different (so the translation of a symbol can not
+          be represented twice).  The end marker of the array should
+          be a negative value.  If parametr `transl' is `NULL' or
+          contains only the end marker, translations of the rule will
+          be empty node.  If `abs_node' is `NULL', abstract node is
+          not created.  In this case `transl' should be null or
+          contain at most one element.  This means that the
+          translation of the rule will be correspondingly empty node
+          or the translation of the symbol in the right hand side
+          given by the single array element.
+
+          There is reserved terminal `error' which is used to mark
+          start point of error recovery.
+ 
+          Nonzero parameter `strict_p' value means more strict checking
+          the grammar.  In this case, all nonterminals will be checked
+          on ability to derive a terminal string instead of only
+          checking axiom for this.
+
+          The function returns zero if it is all ok.  Otherwise, the
+          function returns the error code occured.
+
+       <tag>Function `earley_parse_grammar'</tag>
+          <tscreen><verb>
+          `int earley_parse_grammar (struct grammar *g, int strict_p,
+	                             const char *description)'
+          </verb></tscreen>
+          is another function which tunes the parser to given grammar.
+          The grammar is given by string `description'.  The
+          description is similiar YACC one.  It has the following
+          syntax:
+          <tscreen><verb>
+             file : file terms [';']
+                  | file rule
+                  | terms [';']
+                  | rule
+
+             terms : terms IDENTIFIER ['=' NUMBER]
+                   | TERM
+
+             rule : IDENTIFIER ':' rhs [';']
+	     
+             rhs : rhs '|' sequence [translation]
+                 | sequence [translation]
+	     
+             sequence :
+                      | sequence IDENTIFIER
+                      | sequence C_CHARACTER_CONSTANT
+	     
+             translation : ['#'] NUMBER
+                         | '#' IDENTIFIER '(' numbers ')'
+	     
+             numbers :
+                     | numbers NUMBER
+          </verb></tscreen>
+          So the description consists of terminal declaration and
+          rules sections.
+
+          Terminal declaration section describes name of terminals and
+          their codes.  Terminal code is optional.  If it is omitted,
+          the terminal code will the next free code starting with 256.
+          You can declare terminal several times (the single condition
+          its code should be the same).
+
+          Character constant present in the rules is a terminal
+          described by default.  Its code is always code of the
+          character constant.
+
+          Rules syntax is the same as YACC rule syntax.  The single
+          difference is an optional translation construction starting
+          with `#' right after each alternative.  The translation part
+          could be a single number which means that the translation of
+          the alternative will be the translation of the symbol with
+          given number (symbol numbers in alternative starts with 0).
+          Or the translation can be abstract node with given name and
+          with fields whose values are the translations of the
+          alternative symbols with numbers given in parentheses after
+          the abstract node name.
+
+          There is reserved terminal `error' which is used to mark
+          start point of error recovery.
+
+       <tag>Function `earley_set_lookahead_level'</tag>
+          <tscreen><verb>
+          `int earley_set_lookahead_level (struct grammar *grammar,
+                                           int level)'
+          </verb></tscreen>
+          sets up level of usage of look ahead in parser work.  Value
+          zero means no usage of lookaheads at all.  Lookahead with
+          static (independent on input tokens) context sets in parser
+          situation (value 1) gives the best results with the point of
+          view of space and speed, lookahead with dynamic (dependent
+          on input tokens) context sets in parser situations (all the
+          rest parameter values) does slightly worse, and no usage of
+          lookaheads does the worst.  The default value is 1
+          (lookahead with static situation context sets).  The
+          function returns the previously set up level.
+
+       <tag>Function `earley_set_debug_level'</tag>
+          <tscreen><verb>
+          `int earley_set_debug_level (struct grammar *grammar,
+                                       int level)'
+          </verb></tscreen>
+          sets up level of debugging information output to `stderr'.
+          The more level, the more information is output.  The default
+          value is 0 (no output).  The debugging information includes
+          statistics, result translation tree, grammar, parser sets,
+          parser sets with all situations, situations with
+          contexts. The function returns the previously set up debug
+          level.  Setting up negative debug level results in output of
+          translation for program `dot' of graphic visualization
+          package `graphviz'.
+
+       <tag>Function `earley_set_one_parse_flag'</tag>
+          <tscreen><verb>
+          `int earley_set_one_parse_flag (struct grammar *grammar,
+                                          int flag)'
+          </verb></tscreen>
+          sets up building only one translation tree (parameter value
+          0) or all parse trees for ambiguous grammar for which
+          several parsings are possible.  For unambiguous grammar the
+          flag does not affect the result.  The default value is 1.
+          The function returns the previously used flag value.
+
+       <tag>Function `earley_set_error_recovery_flag'</tag>
+          <tscreen><verb>
+          `int earley_set_error_recovery_flag (struct grammar *grammar,
+                                               int flag)'
+          </verb></tscreen>
+          sets up internal flag whose nonzero value means making error
+          recovery if syntax error occurred.  Otherwise, syntax error
+          results in finishing parsing (although function
+          `syntax_error' in function `earley_parse' will be called
+          once).  The default value is 1. The function returns the
+          previously used flag value.
+
+       <tag>Function `earley_set_recovery_match'</tag>
+          <tscreen><verb>
+          `int earley_set_recovery_match (struct grammar *grammar,
+                                          int n_toks)'
+          </verb></tscreen>
+          sets up recovery parameter which means how much subsequent
+          tokens should be successfully shifted to finish error
+          recovery.  The default value is 3.  The function returns the
+          previously used flag value.
+
+       <tag>Function `earley_parse'</tag>
+          <tscreen><verb>
+          `int earley_parse (struct grammar *grammar,
+   		 	     int (*read_token) (void **attr),
+			     void (*syntax_error)
+                                  (int err_tok_num, void *err_tok_attr,
+			           int start_ignored_tok_num,
+	                           void *start_ignored_tok_attr,
+		                   int start_recovered_tok_num,
+			           void *start_recovered_tok_attr),
+			     void *(*parse_alloc) (int nmemb),
+			     struct earley_tree_node **root,
+			     int *ambiguous_p)'
+          </verb></tscreen>
+	  is major parser function.  It parses input according the
+          grammar.  The function returns the error code (which can be
+          also returned by `earley_error_code').  If the code is
+          zero, the function will also return root of the parse tree
+          through parameter `root'.  The tree representing the
+          translation.  Value passed through `root' will be `NULL'
+          only if syntax error was occurred and error recovery was
+          switched off).  The function sets up flag passed by
+          parameter `ambiguous_p' if we found that the grammar is
+          ambiguous (it works even we asked only one parse tree
+          without alternatives).
+
+          Function `read_token' provides input tokens.  It returns
+          code the next input token and its attribute.  If the
+          function returns negative value we've read all tokens.
+
+          Function `syntax_error' called when synatctic error has been
+          found.  It may print an error message about syntax error
+          which occurred on token with number `err_tok_num' and
+          attribute `err_tok_attr'.  The following four parameters
+          describes made error recovery which ignored tokens starting
+          with token given by 3rd and 4th parameters.  The first token
+          which was not ignored is described by the last parameters.
+          If the number of ignored tokens is zero, the all parameters
+          describes the same token.  If the error recovery is switched
+          off (see comments for `earley_set_error_recovery_flag'), the
+          third and the fifth parameters will be negative and the
+          forth and the sixth parameters will be `NULL'.
+ 
+          Function `parse_alloc' is used by Earley parser to allocate
+          memory for parse tree representation (translation).  After
+          calling `earley_free_grammar' we free all memory allocated
+          for the parser.  At this point it is convenient to free all
+          memory but parse tree.  Therefore we require the following
+          function.  So the caller will be responsible to allocate and
+          free memory for parse tree representation (translation).
+          But the caller should not free the memory until
+          `earley_free_grammar' is called for the parser.  The
+          function may be called even during reading the grammar not
+          only during the parsing.
+
+       <tag>Function `earley_free_grammar'</tag>
+          <tscreen><verb>
+          `void earley_free_grammar (struct grammar *grammar)'
+          </verb></tscreen>
+          frees all memory allocated for the parser.  This function
+          should be called the last for given parser.
+       </descrip>
+</article>

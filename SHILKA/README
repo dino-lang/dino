@@ -1,0 +1,16 @@
+  This directory contains SHILKA is oriented to fast recognition of
+keywords and standard identifiers in compilers.  SHILKA is analogous
+to GNU package `gperf' but based on minimal pruned O-trie which can
+take into accout the frequency of keyword occurences in the program.
+Gperf can not make it.  SHILKA is up to 20% faster than Gperf.  SHILKA
+is also simpler than Gperf in the usage.
+
+  To install SHILKA see file INSTALL in the current directory.
+
+  Documentation of SHILKA is in files `shilka.1', `shilka.txt',
+`shilka.dvi', `shilka.ps', `shilka.info*', `shilka*.html',
+`shilka*.rtf'.
+
+Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+
+Vladimir Makarov

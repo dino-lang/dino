@@ -1,0 +1,36 @@
+  This directory constains SPRUT is a translator of a compiler
+internal representation description (IRD) into Standard Procedural
+Interface (SPI).  The most convenient form of the internal
+representation is a directed graph.  IRD defines structure of the
+graph.  SPI provides general graph manipulating functions.  The
+defined graph nodes can be decorated with attributes of arbitrary
+types.
+
+  IRD declares types of nodes of the graph.  Nodes contains fields,
+part of them represents links between nodes, and another part of them
+stores attributes of arbitrary types.  To make easy describing
+internal representation the IRD supports explicitly multiple
+inheritance in node types.  There can be several levels of internal
+representation description in separate files.  The nodes of one level
+refer to the nodes of previous levels.  Therefore each next level
+enriches source program internal representation.  For example, the
+zero level representation may be internal representation for scanner,
+the first level may be internal representation for parser, and so on.
+
+  SPI can contains functions to construct and destroy graphs and graph
+nodes, to copy graphs or graph nodes, to read and write graphs or
+graph nodes from (to) files, to print graphs or graph nodes, to check
+up constraints on graph, to traverse graphs, and to transform acyclic
+graphs in some commonly used manners.  SPI can also check up the most
+important constraints on internal representation during work with node
+fields.  SPI can automatically maintain back links between internal
+representation nodes.
+
+  To install SPRUT see file INSTALL in the current directory.
+
+  Documentation of SPRUT is in files `sprut.1', `sprut.txt',
+`sprut.dvi', `sprut.ps', `sprut.info*', `sprut*.html', `sprut*.rtf'.
+
+Please send bug reports and comments to cocom-bugs@lists.sourceforge.net
+
+Vladimir Makarov

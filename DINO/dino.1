@@ -1,0 +1,121 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH DINO 1 "5 May 2001" DINO "User Manuals"
+.SH NAME
+dino \- interpreter of the programming language DINO
+.SH SYNOPSIS
+.B dino [ -s -h size -Idirname -Lpath -p] (-c
+.I program
+.B |
+.I program-file
+.B ) dino-program-arguments
+.SH DESCRIPTION
+.B dino
+interprets program on DINO programming language.  The
+program file (and include files) must have suffix
+.B .d
+.
+.PP
+Description of DINO language is in report of the Programming Language DINO.
+.SH OPTIONS
+The options which are known for DINO interpreter are:
+.IP "-c program"
+Execute Dino
+.B program
+given on the command line as argument.
+.IP "-h number"
+Determine the size of the heap chunks used by DINO interpreter.  The
+size can be given in bytes (e.g. 32000), in kilobytes (e.g. 64k), or
+in megabytes (e.g. 1m).  The default size is 1 Megabyte.  Initially,
+Dino interpreter creates one chunk.  It allocates additional chunk
+(as rule of the same size) whenever there are no additional memory
+after garbage collection.
+.IP -s
+Output some statistics of interpreter work into stderr.  Statistics
+contains maximal heap size, number of heap chunks, and number of
+collisions in hash tables which are used for implementation DINO
+tables.
+.IP -Idirname
+Define directory in which Dino include files will be searched for.
+The order searching in directories given with this option is the same
+as one on the command line.
+.IP -Ldirname
+Define external libraries (if shared or dll libraries are implemented
+on the system.  this is true for Linux, Solaris, Irix, OSF, and
+Windows) in which Dino external variable and functions will be
+searched for.  The order searching in libraries given with this option
+is the same as one on the command line.
+.IP -p
+Output profile information into stderr.  Profile information contains
+number of calls and exceution times of all called functions and
+classes.
+.SH FILES
+.I file.d
+.RS
+DINO program file
+.RE
+.I libdino.so
+.RS
+DINO shared library on some Unix systems.
+.RE
+.I mpi.d
+.RS
+DINO file implementing multiple precision arithmetic.
+.RE
+.I mpi.so
+.RS
+DINO shared library used by for implementing MPI on some Unix systems.
+.RE
+.I mpi.dll
+.RS
+DINO dll library used by for implementing MPI on Windows systems.
+.RE
+.I ieee.d
+.RS
+DINO file implementing IEEE standrad floating point arithmetic.
+.RE
+.I ieee.so
+.RS
+DINO shared library used by for implementing IEEE on some Unix systems.
+.RE
+.I ieee.dll
+.RS
+DINO dll library used by for implementing IEEE on Windows systems.
+.RE
+There are no any temporary files used by DINO.
+.SH ENVIRONMENT
+There are the following environment variables which affect DINO behavior:
+.IP DINO_HOME
+If non-null, it defines places of dino shared library (such library
+may be only on some Unix systems including Linux, Solaris), include
+files, dino standard external libraries.  The places are defined as
+subdirectory
+.B lib
+in directory given by the environment variable value.  You should
+define the variable value on Windows if you installed the files not in
+directory
+.B "C:\\\\dino\\\\lib"
+.IP DINO_PATH
+If non-null, it defines place of dino include-files.  The value of
+variable has more priority than
+.B DINO_HOME
+but less priority than values given in
+.B -I
+options.
+.IP DINO_LIB
+If non-null, it defines places of dino shared library, if any.  The value of
+variable has more priority than
+.B DINO_HOME.
+.IP DINO_EXTERN_LIBS
+If non-null, it defines paths of dino additional external libraries.
+The libraries should be separated by `:' (on Unix) or `;' (on Windows).
+The value has less priority than values given in
+.B -L
+options.
+.SH DIAGNOSTICS
+DINO diagnostics is self-explanatory.
+.SH AUTHOR
+Vladimir N. Makarov, vmakarov@users.sourceforge.net
+.SH BUGS
+Please, report bugs to cocom-bugs@lists.sourceforge.net.
