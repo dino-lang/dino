@@ -1812,7 +1812,7 @@ BEGIN { print "hello world" }
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time sh -c 'i=0; while test $i -lt 200;do $0 $*; i=`expr $i + 1`;done' $AWK -f $ftest|fgrep user
+  time sh -c 'i=0; while test $i -lt 200;do $0 $*; i=`expr $i + 1`;done' $AWK -f $ftest </dev/null |fgrep user
 fi
 
 cat <<'EOF' >$ftest

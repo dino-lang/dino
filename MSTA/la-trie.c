@@ -14,6 +14,7 @@
 #include "ird.h"
 #include "contexts.h"
 #include "lr-sets.h"
+#include "gen-comm.h"
 #include "la-trie.h"
 
 #ifdef HAVE_ASSERT_H

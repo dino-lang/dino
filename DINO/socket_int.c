@@ -417,7 +417,11 @@ WIN_EXPORT val_t
 _recvfrom (int npars, val_t *vals)
 {
   int sd, len;
+#ifdef hpux
+  int from_len;
+#else
   socklen_t from_len;
+#endif
   ER_node_t var, vect, instance;
   struct sockaddr_in saddr;
   val_t val;
@@ -518,7 +522,11 @@ WIN_EXPORT val_t
 _accept (int npars, val_t *vals)
 {
   int sd, new_sd;
+#ifdef hpux
+  int addr_len;
+#else
   socklen_t addr_len;
+#endif
   struct sockaddr_in saddr;
   ER_node_t vect, var;
   val_t val;

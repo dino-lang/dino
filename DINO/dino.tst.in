@@ -20846,7 +20846,7 @@ TEST357
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
 		sort $stdout | awk '/^(HOSTNAME|USER|MACHTYPE|TERMCAP|LANG|DISPLAY|LOGNAME|COLUMNS|TERM|OSTYPE)/ && length != 0' >$ftemp
-		sh -c 'set' | sort | awk '/^(HOSTNAME|USER|MACHTYPE|TERMCAP|LANG|DISPLAY|LOGNAME|COLUMNS|TERM|OSTYPE)/ && length != 0' >$ftemp2
+		sh -c 'env' | sort | awk '/^(HOSTNAME|USER|MACHTYPE|TERMCAP|LANG|DISPLAY|LOGNAME|COLUMNS|TERM|OSTYPE)/ && length != 0' >$ftemp2
                 echo '      ' $CMP $ftemp $ftemp2
                 if $CMP $ftemp $ftemp2; then
                         result=ok
@@ -27754,7 +27754,8 @@ OUTPUT497
         if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP $stderr $ftemp2
+		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
+                echo '      ' $CMP $ftemp $ftemp2
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
 In file processed from test.d:1:18:
 @srcdir@/socket.d:39:11: host is unknown

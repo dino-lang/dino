@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <pwd.h>
 #include <grp.h>
+#include <unistd.h>
 
 static char *
 getun (void)
@@ -2103,13 +2104,13 @@ void
 getcwd_call (int_t pars_number)
 {
   ER_node_t vect;
-  char buf [FILENAME_MAX + 1], *str;
+  char buf [PATH_MAX + 1], *str;
 
   if (pars_number != 0)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, GETCWD_NAME);
   errno = 0;
-  str = getcwd (buf, FILENAME_MAX);
+  str = getcwd (buf, PATH_MAX);
   if (errno)
     process_system_errors (GETCWD_NAME);
   vect = create_string (str);

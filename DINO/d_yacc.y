@@ -1419,7 +1419,7 @@ file_path_name (const char *directory_name, const char *file_name,
 static const char *
 canonical_path_name (const char *name)
 {
-  char buf [FILENAME_MAX + 1];
+  char buf [PATH_MAX + 1];
   char *p, *str, *result;
   int sep, sep1;
 #ifdef WIN32
@@ -1433,7 +1433,7 @@ canonical_path_name (const char *name)
     }
   else
     {
-      getcwd (buf, FILENAME_MAX);
+      getcwd (buf, PATH_MAX);
       if (isalpha (*buf) && buf [1] == ':')
         drive = *buf;
     }
@@ -1442,7 +1442,7 @@ canonical_path_name (const char *name)
 #endif
   if (*name != sep && *name != sep1)
     {
-      getcwd (buf, FILENAME_MAX);
+      getcwd (buf, PATH_MAX);
 #ifdef WIN32
       if (isalpha (*buf) && buf [1] == ':')
         {
