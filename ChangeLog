@@ -1,5 +1,15 @@
 2003-12-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* DINO/O/DEBUG: New directory.
+	* DINO/O/DEBUG/{chtest.d, et2atest.d, outest.d, parstest.d, scandeb.d,
+	scantest.d}: New files.
+	* DINO/O/DEBUG/{com-check, com-error, com-out, com-parse,
+	com-scan, com-tree}: New files.
+	* DINO/O/DEBUG/{Exp.ob, Export.ob, Imp.ob, List.ob, Sieve.ob}: New
+	files.
+	
+2003-12-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/O: New directory.
 	* DINO/O/FE: New directory.
 	* DINO/O/FE{atree.d, check.d, ctree.d, et2at.d, lex.d, outsym.d,

@@ -1,0 +1,54 @@
+MODULE List;
+
+CONST ii = 10; jj* = -ii + 20;
+      ss* = {ii .. jj, ii};
+      ff* = FALSE;
+      ptr* = NIL;
+TYPE
+  List* = POINTER TO ListDesc;
+  ListDesc = RECORD
+	       key*: ARRAY 64 OF CHAR;
+	       next: List;
+             END;
+	
+VAR root*, head*: List; tail* : List;
+
+PROCEDURE Find* (key: ARRAY OF CHAR): List;
+  VAR p: List;
+BEGIN
+  p := root;
+  WHILE (p # NIL) & (p.key < key) DO p := p.next END;
+  IF (p = NIL) OR (p.key > key) THEN RETURN NIL
+  ELSE RETURN p
+  END
+END Find;
+
+PROCEDURE Insert* (key: ARRAY OF CHAR; unique: BOOLEAN);
+  VAR p, q: List;
+BEGIN
+  IF (root = NIL) OR (root.key > key) THEN
+    NEW (q); COPY (key, q.key); q.next := root; root := q
+  ELSE
+    p := root; q := root;	(* -> to test uniqueness with root.key *)
+    WHILE (q # NIL) & (q.key < key) DO p := q; q := q.next END;
+    IF unique & (q # NIL) & (q.key = key) THEN HALT (99) END;
+    NEW (q); COPY (key, q.key); q.next := p.next; p.next := q
+  END
+END Insert;
+
+PROCEDURE Delete (key: ARRAY OF CHAR);
+  VAR p, q: List;
+BEGIN
+  IF (root = NIL) OR (root.key > key) THEN RETURN
+  ELSIF root.key = key THEN
+    WHILE (root # NIL) & (root.key = key) DO root := root.next END
+  ELSE
+    p := root; q := root.next;
+    WHILE (q # NIL) & (q.key < key) DO p := q; q := q.next END;
+    WHILE (p.next # NIL) & (p.next.key = key) DO
+    	p.next := p.next.next
+    END
+  END
+END Delete;
+
+END List.

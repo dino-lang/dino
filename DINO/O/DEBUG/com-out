@@ -1,0 +1,11 @@
+# !/bin/sh
+if test x$DINO_HOME = x; then
+  echo "define DINO_HOME first -- good bye"; exit 1
+fi
+if test x$O_HOME = x; then
+  echo "define O_HOME first -- good bye"; exit 1
+fi
+if test x$DINO_LIB = x; then
+  DINO_LIB=$DINO_HOME
+fi
+$DINO_HOME/dino -I$O_HOME/.. -I$O_HOME/FE -I$O_HOME/BE -I$O_HOME/LIB -I$O_HOME/MACH/i386 -L$DINO_LIB/ieee.so -L$DINO_LIB/mpi.so $O_HOME/DEBUG/outest.d $O_HOME/DEBUG/Export.ob

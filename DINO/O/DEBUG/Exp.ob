@@ -1,0 +1,3 @@
+MODULE Exp;
+  TYPE t* = INTEGER;
+END Exp.

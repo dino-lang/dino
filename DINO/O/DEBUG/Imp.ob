@@ -1,0 +1,11 @@
+MODULE Imp;
+  IMPORT Exp;
+  VAR i : Exp.t; a : ARRAY 10 OF Exp.t;
+BEGIN
+  i := 10;
+  LOOP
+    a[i] := i;
+    IF i = 20 THEN EXIT; END;
+    i := i + 1;
+  END;
+END Imp.
