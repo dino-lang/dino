@@ -76,7 +76,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/man/man1/oka.1*
 %doc /usr/man/man1/shilka.1*
 %doc /usr/man/man1/sprut.1*
-%doc CHANGES INSTALL README cocom.txt cocom.dvi cocom.ps cocom.info cocom.html
+%doc %attr(0555,root,root) CHANGES INSTALL README cocom.txt cocom.dvi cocom.ps cocom.info cocom.html
 %doc AMMUNITION/ammunition.txt AMMUNITION/ammunition.ps
 %doc AMMUNITION/ammunition.dvi AMMUNITION/ammunition.info
 %doc AMMUNITION/ammunition.info-1 AMMUNITION/ammunition.info-2
@@ -124,3 +124,4 @@ rm -rf $RPM_BUILD_ROOT
 %doc SPRUT/sprut.info SPRUT/sprut.info-1 SPRUT/sprut.info-2
 %doc SPRUT/sprut.html SPRUT/sprut-1.html SPRUT/sprut-2.html SPRUT/sprut-3.html
 %doc SPRUT/sprut-4.html SPRUT/sprut-5.html
+y

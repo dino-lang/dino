@@ -3680,13 +3680,30 @@ FILES
               DINO  dll  library  used by for implementing MPI on
               Windows systems.
        ieee.d
-              DINO file implementing IEEE standrad floating point
+              DINO file implementing IEEE standard floating point
               arithmetic.
        ieee.so
               DINO  shared  library used by for implementing IEEE
               on some Unix systems.
        ieee.dll
               DINO dll library used by for implementing  IEEE  on
+              Windows systems.
+       ipcerr.d
+              DINO file definining exception of ipc/network soft-
+              ware.  This file is used by socket.d.
+       ipcerr.so
+              DINO shared library used by for implementing IPCERR
+              on some Unix systems.
+       ipcerr.dll
+              DINO dll library used by for implementing IPCERR on
+              Windows systems.
+       socket.d
+              DINO file implementing work with sockets.
+       socket.so
+              DINO shared library used by for implementing SOCKET
+              on some Unix systems.
+       socket.dll
+              DINO dll library used by for implementing SOCKET on
               Windows systems.
        There are no any temporary files used by DINO.
 
@@ -3695,28 +3712,11 @@ ENVIRONMENT
        DINO behavior:
 
        DINO_HOME
-              If non-null,  it  defines  places  of  dino  shared
+              If  non-null,  it  defines  places  of  dino shared
               library (such library may be only on some Unix sys-
               tems including Linux, Solaris), include files, dino
-              standard   external   libraries.   The  places  are
-              defined as subdirectory lib in directory  given  by
-              the  environment variable value.  You should define
-              the variable value on Windows if you installed  the
-              files not in directory C:\dino\lib
-
-       DINO_PATH
-              If  non-null,  it  defines  place  of dino include-
-              files.  The value of  variable  has  more  priority
-              than  DINO_HOME but less priority than values given
-              in -I options.
-
-       DINO_LIB
-              If non-null,  it  defines  places  of  dino  shared
-              library,  if  any.   The value of variable has more
-              priority than DINO_HOME.
-
-       DINO_EXTERN_LIBS
-              If non-null, it defines paths  of  dino  additional
+              standard  external  libraries.   The   places   are
+              defined  as  subdirectory lib in directory given by
 
 
 
@@ -3729,9 +3729,26 @@ DINO                        5 May 2001                          2
 DINO(1)                    User Manuals                   DINO(1)
 
 
-              external  libraries.  The libraries should be sepa-
-              rated by `:' (on Unix) or `;'  (on  Windows).   The
-              value  has  less  priority  than values given in -L
+              the environment variable value.  You should  define
+              the  variable value on Windows if you installed the
+              files not in directory C:\dino\lib
+
+       DINO_PATH
+              If non-null, it  defines  place  of  dino  include-
+              files.   The  value  of  variable has more priority
+              than DINO_HOME but less priority than values  given
+              in -I options.
+
+       DINO_LIB
+              If  non-null,  it  defines  places  of  dino shared
+              library, if any.  The value of  variable  has  more
+              priority than DINO_HOME.
+
+       DINO_EXTERN_LIBS
+              If  non-null,  it  defines paths of dino additional
+              external libraries.  The libraries should be  sepa-
+              rated  by  `:'  (on Unix) or `;' (on Windows).  The
+              value has less priority than  values  given  in  -L
               options.
 
 DIAGNOSTICS
@@ -3742,23 +3759,6 @@ AUTHOR
 
 BUGS
        Please, report bugs to cocom-bugs@lists.sourceforge.net.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

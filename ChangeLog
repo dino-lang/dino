@@ -1,5 +1,22 @@
 2002-03-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* cocom.spec, dino.spec: Use %attr for %doc.
+
+	* DINO/d_dino.h (STANDARD_DINO_EXTERN_LIBS): Add ipcerr and
+	socket.
+
+	* DINO/d_func.c (process_errno_call): Remove assert.
+
+	* DINO/dino.1: Add ipcerr and socket.
+
+	* DINO/dino.dvi, DINO/dino.info, DINO/dino.info-1,
+	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
+	DINO/dino.ps, DINO/dino.txt: Update.
+	
+	* DINO/dino.tst.in: Add tests for socket.
+
+2002-03-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* cocom.spec: New file.
 
 	* dino.spec: New file.

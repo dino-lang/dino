@@ -154,9 +154,9 @@ int dlclose (void *handle);
    STANDARD_DINO_LIB_DIRECTORY.  Separator is : or ; (for WIN32). */
 #ifndef STANDARD_DINO_EXTERN_LIBS
 #ifdef WIN32
-#define STANDARD_DINO_EXTERN_LIBS "mpi.dll;ieee.so"
+#define STANDARD_DINO_EXTERN_LIBS "mpi.dll;ieee.dll;ipcerr.dll;socket.dll"
 #else
-#define STANDARD_DINO_EXTERN_LIBS "mpi.so:ieee.so"
+#define STANDARD_DINO_EXTERN_LIBS "mpi.so:ieee.so:ipcerr.so:socket.so"
 #endif
 #endif
 

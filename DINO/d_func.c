@@ -4114,7 +4114,6 @@ process_errno_call (int_t pars_number)
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
   SET_TOP;
-  assert (result != NULL);
   ER_SET_MODE (ctop, ER_NM_nil);
   INCREMENT_PC();
 }
