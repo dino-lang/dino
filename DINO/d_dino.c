@@ -133,15 +133,6 @@ char **program_environment;
    never refer for varibale value only set it up. */
 position_t source_position;
 
-/* The value of the following var can be changed only during run time.
-   The var stores pointer to processed source position of processed
-   language construction.  All the rest time it is simply reference to
-   variable source_position.  All references for source_position are
-   made through this variable.  Such complicated implementation is
-   used to speed up interpreter.  During run-time we update only
-   pointer not all structure. */
-position_t *source_position_ptr = &source_position;
-
 /* Jump buffer for exit. */
 static jmp_buf exit_longjump_buff;
 
@@ -224,7 +215,7 @@ dino_fatal_finish (void)
 static void
 error_func_for_allocate (void)
 {
-  error (FALSE, *source_position_ptr, ERR_no_memory);
+  error (FALSE, IR_pos (cpc), ERR_no_memory);
   dino_finish (1);
 }
 
@@ -297,9 +288,9 @@ exception_action (int signal_number)
     }
   set_exception_action (signal_number);
   if (eval_long_jump_set_flag)
-    eval_error (class, signals_decl, *source_position_ptr, message);
+    eval_error (class, signals_decl, IR_pos (cpc), message);
   else if (signal_number != SIGINT && signal_number != SIGTERM)
-    error (TRUE, *source_position_ptr, message);
+    error (TRUE, IR_pos (cpc), message);
   else
     dino_finish (1);
 }

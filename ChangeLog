@@ -1,3 +1,80 @@
+2001-11-22  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_common.h (source_position_ptr): Remove it.
+	(SET_SOURCE_POSITION_PTR): Ditto.
+
+	* DINO/d_context.c (type_test, third_expr_processing,
+	third_block_passing): Use source_position instead of
+	source_position_ptr.
+
+	* DINO/d_dino.c (source_position_ptr): Remove it.
+	(error_func_for_allocate, exception_action): Use IR_pos (cpc)
+	instead of source_position_ptr.
+
+	* DINO/d_errors.c (yyerror): Use source_position instead of
+	source_position_ptr.
+
+	* DINO/d_eval.c (FIND_CONTEXT_BY_SCOPE): New macro.
+	(find_context_by_scope): Use it.
+	(find_context_by_scope): New macro.
+	(execute_a_period_operation, check_vector_index,
+	store_vector_element, load_table_element, store_table_element):
+	Use IR_pos (cpc) instead of source_position_ptr.
+	(load_designator_value): Remove parameter and
+	SET_SOURCE_POSITION_PTR.
+	(store_designator_value):
+	(store_designator_value): Remove SET_SOURCE_POSITION_PTR.
+	(prepare_op_assign): Call load_designator_value without the
+	parameter.  Use IR_pos (cpc) instead of source_position_ptr.
+	(execute_div_op, execute_mod_op, execute_concat_op): Use IR_pos
+	(cpc) instead of source_position_ptr.
+	(evaluate): Move its code into evaluate_code.  Remove it.  Use
+	IR_pos (cpc) instead of source_position_ptr.
+
+	* DINO/d_func.c (min_max_call, to_lower_upper, eltype_call,
+	keys_call, context_call, inside_call, process_regcomp_errors,
+	match_call, gmatch_call, generall_sub_call, split_call, subv_call,
+	cmpv_call, del_call, general_ins_call, rev_call,
+	array_sort_compare_function, sort_call, two_strings_func_start,
+	string_func_start, getcwd_call, get_stat, file_start, open_call,
+	flush_call, tell_call, seek_call, file_function_call_start,
+	general_put_call, general_get_call, general_get_ln_file_call,
+	get_call, getln_call, getf_call, fget_function_call_start,
+	fgetf_call, invinput_error, general_scan_call, scan_call,
+	scanln_call, function_without_par, getgroups_call,
+	float_function_start, float_function_start2, general_rand_call,
+	process_system_errors, readdir_call, stat_start, time_call,
+	strtime_call, clock_call, system_call, exit_call,
+	process_func_class_call, int_earley_parse_grammar,
+	int_earley_parse_grammar, int_earley_set_debug_level,
+	int_earley_set_one_parse_flag, int_earley_set_error_recovery_flag,
+	int_earley_set_recovery_match, init_read_token, int_earley_parse,
+	int_earley_create_grammar): Use IR_pos (cpc) instead of
+	source_position_ptr.
+	(real_func_call_pos_ptr): Rename it into real_func_call_pc.
+
+	* DINO/d_heap.c (activate_process, external_address): Use IR_pos
+	(cpc) instead of source_position_ptr.
+
+	* DINO/d_ir.sprut (assign_stmt): New abstract node.
+	(assign, mult_assign, div_assign, rem_assign, plus_assign,
+	minus_assign, concat_assign, lshift_assign, rshift_assign,
+	ashift_assign, and_assign, xor_assign, or_assign, var_assign,
+	par_assign): Use it as base.
+
+	* DINO/d_yacc.y: Use source_position instead of
+	source_position_ptr.
+	(yylex): Ditto.
+
+	* DINO/dino.tst.in (128, 314, 348-350): Change expected error
+	position.
+	
+	* DINO/dino.sgml.in: New function sput, sputln, sprint, sprintln.
+
+	* DINO/{dino-4.html, dino-8.html, dino.dvi, dino.html, dino.info,
+	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
+	dino.txt: Update.
+	
 2001-11-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_built.h (sput_call, sputln_call, sprint_call,

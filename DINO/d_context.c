@@ -875,7 +875,7 @@ type_test (IR_node_t expr, type_mask_t type_mask, char *message)
   if (expr == NULL)
     return;
   if (!IT_IS_OF_TYPE (expr, type_mask))
-    error (FALSE, *source_position_ptr, message);
+    error (FALSE, source_position, message);
 }
 
 /* This macro is used to connect commands for interpreter (see comments for
@@ -948,7 +948,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
 	ident = expr;
 	decl = find_decl (expr, current_scope);
 	if (decl == NULL)
-	  error (FALSE, *source_position_ptr, ERR_undeclared_ident,
+	  error (FALSE, source_position, ERR_undeclared_ident,
 		 IR_ident_string (IR_unique_ident (ident)));
 	else
 	  {
@@ -973,11 +973,11 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
       if (IR_left_operand (expr) != NULL) {
 	if (IR_NODE_MODE (expr) == IR_NM_arrow
 	    && !IT_IS_OF_TYPE (IR_left_operand (expr), EVT_VECTOR))
-	  error (FALSE, *source_position_ptr,
+	  error (FALSE, source_position,
 		 ERR_invalid_type_of_arrow_left_operand);
 	else if (!IR_it_is_declared_in_block (IR_unique_ident
 					      (IR_right_operand (expr))))
-	  error (FALSE, *source_position_ptr, ERR_decl_is_absent_in_a_block);
+	  error (FALSE, source_position, ERR_decl_is_absent_in_a_block);
       }
       break;
     case IR_NM_deref:
@@ -986,8 +986,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
       SET_PC (expr);
       if (IR_operand (expr) != NULL) {
 	if (!IT_IS_OF_TYPE (IR_operand (expr), EVT_VECTOR))
-	  error (FALSE, *source_position_ptr,
-		 ERR_invalid_type_of_deref_operand);
+	  error (FALSE, source_position, ERR_invalid_type_of_deref_operand);
       }
       break;
     case IR_NM_logical_or:
@@ -1004,11 +1003,11 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
 					     == IR_NM_logical_or
 					     ? IR_NM_logical_or_end
 					     : IR_NM_logical_and_end),
-					    *source_position_ptr);
+					    source_position);
         IR_set_short_path_pc (IR_POINTER (current_pc), PC (logical_end));
 	IR_set_right_operand
 	  (expr, third_expr_processing (IR_right_operand (expr), FALSE));
-	IR_set_pos (logical_end, *source_position_ptr);
+	IR_set_pos (logical_end, source_position);
 	type_test (IR_left_operand (expr), EVT_NUMBER_STRING_MASK,
 		   ERR_invalid_logical_operation_operand_type);
 	type_test (IR_right_operand (expr), EVT_NUMBER_STRING_MASK,
@@ -1044,7 +1043,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
 				  EVT_NUMBER_STRING_MASK)
 		  || !IT_IS_OF_TYPE (IR_right_operand (expr),
 				     EVT_NUMBER_STRING_MASK))))
-	error (FALSE, *source_position_ptr,
+	error (FALSE, source_position,
 	       ERR_invalid_comparison_operation_operand_type);
       SET_PC (expr);
       IR_set_value_type (expr, EVT_INT);
@@ -1248,7 +1247,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
         SET_SOURCE_POSITION (expr);
         IR_set_cond (expr, third_expr_processing (IR_cond (expr), FALSE));
 	SET_PC (expr);
-	cond_end = create_node_with_pos (IR_NM_cond_end, *source_position_ptr);
+	cond_end = create_node_with_pos (IR_NM_cond_end, source_position);
         IR_set_left_operand
 	  (expr, third_expr_processing (IR_left_operand (expr),
 					func_class_assign_p));
@@ -1336,7 +1335,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
 	SET_PC (expr);
 	if (!IT_IS_OF_TYPE (IR_func_expr (expr), EVT_FUNC)
 	    && !IT_IS_OF_TYPE (IR_func_expr (expr), EVT_CLASS))
-	  error (FALSE, *source_position_ptr,
+	  error (FALSE, source_position,
 		 ERR_invalid_class_func_thread_designator);
 	break;  
       }
@@ -1487,9 +1486,9 @@ third_block_passing (IR_node_t first_level_stmt)
 			 (temp, ERR_non_variable_in_assignment));
 	    IR_set_assignment_var (stmt, temp);
 	    par_assign_test = create_node_with_pos (IR_NM_par_assign_test,
-						    *source_position_ptr);
+						    source_position);
 	    par_assign_end = create_node_with_pos (IR_NM_par_assign_end,
-						   *source_position_ptr);
+						   source_position);
 	    IR_set_skip_par_assign_path_pc (par_assign_test, par_assign_end);
 	    SET_PC (par_assign_test);
 	    IR_set_assignment_expr
@@ -1528,8 +1527,8 @@ third_block_passing (IR_node_t first_level_stmt)
 	    type_test (IR_if_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_if_expr_type);
 	    SET_PC (stmt);
-	    if_finish
-	      = create_node_with_pos (IR_NM_if_finish, *source_position_ptr);
+	    if_finish = create_node_with_pos (IR_NM_if_finish,
+					      source_position);
 	    third_block_passing (IR_if_part (stmt));
 	    if (current_pc == PC (stmt))
 	      if_part_begin_pc = PC (if_finish);
@@ -1541,7 +1540,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	      }
 	    current_pc = PC (stmt);
 	    third_block_passing (IR_else_part (stmt));
-	    IR_set_pos (if_finish, *source_position_ptr);
+	    IR_set_pos (if_finish, source_position);
 	    if (current_pc == PC (stmt))
 	      IR_set_else_part_pc (stmt, PC (if_finish));
 	    else
@@ -1587,10 +1586,10 @@ third_block_passing (IR_node_t first_level_stmt)
 	    else
 	      start_next_iteration_pc = IR_next_pc (before_guard_expr);
 	    for_finish = create_node_with_pos (IR_NM_for_finish,
-					       *source_position_ptr);
+					       source_position);
 	    current_pc = PC (stmt);
 	    third_block_passing (IR_for_stmts (stmt));
-	    IR_set_pos (for_finish, *source_position_ptr);
+	    IR_set_pos (for_finish, source_position);
 	    /* The following guard is needed because the last stmt
 	       may be break or continue. */
 	    if (current_pc != NULL)
@@ -1616,7 +1615,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	    saved_start_next_iteration_pc = start_next_iteration_pc;
 	    saved_for_finish = for_finish;
 	    foreach_start = create_node_with_pos (IR_NM_foreach_start,
-						  *source_position_ptr);
+						  source_position);
 	    SET_PC (foreach_start);
 	    before_in_expr = current_pc;
 	    temp = third_expr_processing (IR_foreach_designator (stmt), FALSE);
@@ -1636,14 +1635,14 @@ third_block_passing (IR_node_t first_level_stmt)
 	    SET_PC (stmt);
 	    foreach_next_iteration
 	      = create_node_with_pos (IR_NM_foreach_next_iteration,
-				      *source_position_ptr);
+				      source_position);
 	    IR_set_next_pc (foreach_next_iteration,
 			    IR_next_pc (before_in_expr));
 	    start_next_iteration_pc = PC (foreach_next_iteration);
 	    for_finish = create_node_with_pos (IR_NM_for_finish,
-					       *source_position_ptr);
+					       source_position);
 	    third_block_passing (IR_foreach_stmts (stmt));
-	    IR_set_pos (for_finish, *source_position_ptr);
+	    IR_set_pos (for_finish, source_position);
 	    /* The following guard is needed because the last stmt may
 	       be break or continue. */
 	    if (current_pc != NULL)
@@ -1659,7 +1658,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	case IR_NM_break_stmt:
 	case IR_NM_continue_stmt:
 	  if (for_finish == NULL)
-	    error (FALSE, *source_position_ptr,
+	    error (FALSE, source_position,
 		   IR_NODE_MODE (stmt) == IR_NM_continue_stmt
 		   ? ERR_continue_is_not_in_loop : ERR_break_is_not_in_loop);
 	  else
@@ -1681,16 +1680,16 @@ third_block_passing (IR_node_t first_level_stmt)
 
 	    func_class_ext = find_covered_func_class_ext (current_scope);
 	    if (func_class_ext == NULL)
-	      error (FALSE, *source_position_ptr,
+	      error (FALSE, source_position,
 		     ERR_return_outside_func_class_ext);
 	    if (IR_NODE_MODE (stmt) == IR_NM_return_with_result)
 	      {
 		if (IR_IS_OF_TYPE (func_class_ext, IR_NM_class))
-		  error (FALSE, *source_position_ptr,
+		  error (FALSE, source_position,
 			 ERR_return_with_result_in_class);
 		else if (IR_IS_OF_TYPE (func_class_ext, IR_NM_func)
 			 && IR_thread_flag (func_class_ext))
-		  error (FALSE, *source_position_ptr,
+		  error (FALSE, source_position,
 			 ERR_return_with_result_in_thread);
 		IR_set_returned_expr
 		  (stmt,
@@ -1710,8 +1709,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	    type_test (IR_wait_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_wait_guard_expr_type);
 	    if (there_is_function_call_in_expr)
-	      error (FALSE, *source_position_ptr,
-		     ERR_function_call_in_wait_stmt);
+	      error (FALSE, source_position, ERR_function_call_in_wait_stmt);
 	    IR_set_start_wait_guard_expr_pc
 	      (stmt, IR_next_pc (IR_POINTER (before_wait_guard_expr)));
 	    SET_PC (stmt);
@@ -1746,7 +1744,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	      number_of_surrounding_blocks--;
 	    current_scope = saved_current_scope;
 	    block_finish = PC (create_node_with_pos (IR_NM_block_finish,
-						     *source_position_ptr));
+						     source_position));
 	    IR_set_simple_block_flag (IR_POINTER (block_finish),
 				      IR_simple_block_flag (stmt));
 	    SET_PC (block_finish);
@@ -1756,8 +1754,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	    else if (IR_exceptions (stmt) != NULL)
 	      {
 		catches_finish = PC (create_node_with_pos
-				     (IR_NM_catches_finish,
-				      *source_position_ptr));
+				     (IR_NM_catches_finish, source_position));
 		previous_node_catch_list_pc = PC (stmt); /* block */
 		SET_PC (catches_finish);
 		last_except_with_block = NULL;

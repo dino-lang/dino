@@ -46,6 +46,8 @@ History
 
   Oct 31, 2001.  Special method destroy.
 
+  Nov 22, 2001.  New functions sput, sputln, sprint, sprintln.
+
 
 
 1. Introduction
@@ -403,6 +405,7 @@ report later.
   rev            rmdir
   scan           scanln         seek           signals
   sin            sort           split          split_regex
+  sprint         sprintln       sput           sputln
   sqrt           srand          stderr         stdin
   stdout         strtime        sub            subv
   syserrors      system         systemcalls
@@ -3363,6 +3366,10 @@ There are the following miscellaneous functions.
      o rand ().  The function returns a pseudo-random
        integer value.  If the function srand is not called
        before, 1 will be used as the seed value.
+     o sput (...), sputln (...), sprint (...), sprintln (...).
+       The functions are analogous to functions put, putln, print, and
+       println but they return the result string instead of output of
+       the formed string into standard output stream.
      
 
 9. Appendix A. Syntax of Dino

@@ -14478,7 +14478,7 @@ TEST128
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT128' && cmp $stderr $ftemp2; then
-test.d:1:22: run time error - invalid function result used by function `sort'
+test.d:2:31: run time error - invalid function result used by function `sort'
 OUTPUT128
                         result=ok
                 else
@@ -19426,7 +19426,7 @@ TEST314
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT314' && cmp $stderr $ftemp2; then
-test.d:7:5: run time error - attempt to modify immutable instance
+test.d:7:2: run time error - attempt to modify immutable instance
 OUTPUT314
                         result=ok
                 else
@@ -20192,7 +20192,7 @@ TEST348
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT348' && cmp $stderr $ftemp2; then
-test.d:1:5: run time error - process deadlock
+test.d:1:6: run time error - process deadlock
 OUTPUT348
                         result=ok
                 else
@@ -20216,7 +20216,7 @@ TEST349
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT349' && cmp $stderr $ftemp2; then
-test.d:4:4: run time error - process deadlock
+test.d:1:20: run time error - process deadlock
 OUTPUT349
                         result=ok
                 else
@@ -20239,7 +20239,7 @@ TEST350
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT350' && cmp $stderr $ftemp2; then
-test.d:1:19: run time error - process deadlock
+test.d:1:20: run time error - process deadlock
 OUTPUT350
                         result=ok
                 else

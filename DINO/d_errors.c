@@ -310,6 +310,6 @@ char DERR_unprocessed_exception []
 int
 yyerror (const char *message)
 {
-  error (FALSE, *source_position_ptr, "%s", message);
+  error (FALSE, source_position, "%s", message);
   return 0; /* No warnings */
 }

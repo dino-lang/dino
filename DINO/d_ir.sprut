@@ -1317,16 +1317,20 @@ stmt :: generic_pos
         next_stmt : stmt
 ;
 
+%abstract
+assign_stmt :: stmt
+%other
+        assignment_var : designator
+        assignment_expr : expr
+;
+
 /* var_assign is an assign inside var-clause.  par_assign (or assign for
    parameter) if the parameter value is nil.  See also node
    par_assign_test. */
 assign, mult_assign, div_assign, rem_assign,
 plus_assign, minus_assign, concat_assign, lshift_assign,
 rshift_assign, ashift_assign, and_assign, xor_assign, or_assign,
-var_assign, par_assign :: stmt
-%other
-        assignment_var : designator
-        assignment_expr : expr
+var_assign, par_assign :: assign_stmt
 ;
 
 procedure_call :: stmt

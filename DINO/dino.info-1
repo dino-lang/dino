@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino13668.info.2.
+/tmp/sgmltmp.dino27758.info.2.
 
    \input texinfo
 
@@ -46,6 +46,8 @@ The Programming Language DINO
                       parameter for getf and fgetf.
      
        Oct 31, 2001.  Special method destroy.
+     
+       Nov 22, 2001.  New functions sput, sputln, sprint, sprintln.
 
 * Menu:
 
@@ -402,6 +404,7 @@ detail in the report later.
        rev            rmdir
        scan           scanln         seek           signals
        sin            sort           split          split_regex
+       sprint         sprintln       sput           sputln
        sqrt           srand          stderr         stdin
        stdout         strtime        sub            subv
        syserrors      system         systemcalls

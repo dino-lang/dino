@@ -22,7 +22,6 @@ extern int program_arguments_number;
 extern char **program_arguments;
 extern char **program_environment;
 extern position_t source_position;
-extern position_t *source_position_ptr;
 extern unsigned int heap_chunk_size;
 extern int statistics_flag;
 extern int profile_flag;
@@ -35,10 +34,6 @@ extern void dino_finish (int code);
 #endif
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
-
-#define SET_SOURCE_POSITION_PTR(ref)					    \
-  (source_position_ptr = (position_t *) ((char *) (ref)			    \
-					 + _IR_D_pos [IR_NODE_MODE (ref)]))
 
 #define ENVIRONMENT_PSEUDO_FILE_NAME "<environment>"
 

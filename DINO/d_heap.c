@@ -2591,8 +2591,7 @@ activate_process (void)
 {
   activate_given_process (ER_next (cprocess));
   if (first_process_not_started == cprocess)
-    eval_error (deadlock_decl, errors_decl, *source_position_ptr,
-		DERR_deadlock);
+    eval_error (deadlock_decl, errors_decl, IR_pos (cpc), DERR_deadlock);
 }
 
 void
@@ -2778,7 +2777,7 @@ external_address (IR_node_t decl)
 #if 0
 	  dlclose (handle);
 	  if (dlerror () != NULL)
-	    eval_error (libclose_decl, invexterns_decl, *source_position_ptr,
+	    eval_error (libclose_decl, invexterns_decl, IR_pos (cpc),
 			DERR_library_close_error, *curr_libname_ptr);
 #endif
 	}
@@ -2822,7 +2821,7 @@ external_address (IR_node_t decl)
 	}
 #endif
       if (*curr_libname_ptr == NULL)
-	eval_error (noextern_decl, invexterns_decl, *source_position_ptr,
+	eval_error (noextern_decl, invexterns_decl, IR_pos (cpc),
 		    DERR_no_such_external, name);
     }
   IR_set_address (decl, address);

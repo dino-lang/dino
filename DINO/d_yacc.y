@@ -597,8 +597,8 @@ assign : '='            {$$ = IR_NM_assign;}
        | XOR_ASSIGN     {$$ = IR_NM_xor_assign;}
        | OR_ASSIGN      {$$ = IR_NM_or_assign;}
        ;
-incr_decr : INCR {$$ = get_int_node (1, *source_position_ptr);}
-          | DECR {$$ = get_int_node (-1, *source_position_ptr);}
+incr_decr : INCR {$$ = get_int_node (1, source_position);}
+          | DECR {$$ = get_int_node (-1, source_position);}
           ;
 executive_stmt :
       {$<flag>$ = $<flag>0;} end_simple_stmt      {$$ = NULL;}
@@ -693,7 +693,7 @@ executive_stmt :
     | block_stmt     {$$ = $1;}
     | try_block_stmt {$$ = $1;}
     ;
-for_guard_expr :      {$$ = get_int_node (1, *source_position_ptr);}
+for_guard_expr :      {$$ = get_int_node (1, source_position);}
                | expr {$$ = $1;}
                ;
 block_stmt :    {
@@ -2193,8 +2193,8 @@ int yylex (void)
                 IR_set_char_value (unique_char_node_ptr, input_char);
                 include_to_table (unique_char_node_ptr);
               }
-            yylval.pointer
-              = create_node_with_pos (IR_NM_char, *source_position_ptr);
+            yylval.pointer = create_node_with_pos (IR_NM_char,
+						   source_position);
             IR_set_unique_char (yylval.pointer, unique_char_node_ptr);
             return CHARACTER;
           }
@@ -2235,8 +2235,8 @@ int yylex (void)
                                      string_value_in_code_memory);
                 include_to_table (unique_string_node_ptr);
               }
-            yylval.pointer
-              = create_node_with_pos (IR_NM_string, *source_position_ptr);
+            yylval.pointer = create_node_with_pos (IR_NM_string,
+						   source_position);
             IR_set_unique_string (yylval.pointer, unique_string_node_ptr);
             return STRING;
           }
@@ -2268,7 +2268,7 @@ int yylex (void)
                   unique_ident
                     = create_unique_ident_node (VLO_BEGIN (symbol_text));
                   yylval.pointer = create_node_with_pos (IR_NM_ident,
-							 *source_position_ptr);
+							 source_position);
                   IR_set_unique_ident (yylval.pointer, unique_ident);
                   return IDENT;
                 }
@@ -2327,11 +2327,11 @@ int yylex (void)
 	      if (float_flag)
 		yylval.pointer
 		  = get_float_node (a2f (VLO_BEGIN (symbol_text)),
-				    *source_position_ptr);
+				    source_position);
               else
 		yylval.pointer
 		  = get_int_node (a2i (VLO_BEGIN (symbol_text)),
-				  *source_position_ptr);
+				  source_position);
 	      if (errno)
                 error (FALSE, current_position,
 		       (float_flag ? ERR_float_value : ERR_int_value));

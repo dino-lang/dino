@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino13668.info.2.
+/tmp/sgmltmp.dino27758.info.2.
 
    \input texinfo
 
@@ -199,6 +199,11 @@ Miscellaneous functions
    * `rand ()'.  The function returns a pseudo-random integer value.
      If the function `srand' is not called before, 1 will be used as
      the seed value.
+
+   * `sput (...), sputln (...), sprint (...), sprintln (...)'.  The
+     functions are analogous to functions put, putln, print, and
+     println but they return the result string instead of output of the
+     formed string into standard output stream.
 
 
 File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implementation,  Prev: Predeclared identifiers,  Up: Top
