@@ -1,3 +1,13 @@
+2002-05-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* AMMUNITION/IEEE++.tst.in: Extend arrays for results.
+
+	* DINO/Makefile.in (test-dino, compare-dino): New entries.
+
+	* DINO/dino.tst.in: Add processing zero division tests for
+	ppc-linux.
+	(357): Remove LS_COLORS.
+
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/IEEE.tst.in: Extend arrays for results.
