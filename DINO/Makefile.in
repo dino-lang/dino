@@ -233,7 +233,7 @@ d_kw.c : $(srcdir)/d_kw.shilka
 
 d_yacc.c: $(srcdir)/d_yacc.y
 	@echo must be - conflicts: 7 shift/reduce.
-	../MSTA/msta -no-regular-optimization $(srcdir)/d_yacc.y
+	../MSTA/msta -no-regular-optimization -local-error-recovery $(srcdir)/d_yacc.y
 
 test : dino
 	$(SHELL) dino.tst

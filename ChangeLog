@@ -1,3 +1,9 @@
+2002-02-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/Makefile.in: Use -local-error-recovery.
+
+	* DINO/dino.dsp: Ditto.
+
 2002-02-08  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* MSTA/p-common.h (error_reduce_flag, error_conflict_flag): New

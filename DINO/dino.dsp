@@ -279,7 +279,7 @@ SOURCE=.\d_yacc.y
 InputPath=.\d_yacc.y
 
 "d_yacc.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\bin\msta -no-regular-optimization d_yacc.y
+	..\bin\msta -no-regular-optimization -local-error-recovery d_yacc.y
 
 # End Custom Build
 
@@ -290,7 +290,7 @@ InputPath=.\d_yacc.y
 InputPath=.\d_yacc.y
 
 "d_yacc.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	..\bin\msta -no-regular-optimization d_yacc.y
+	..\bin\msta -no-regular-optimization -local-error-recovery d_yacc.y
 
 # End Custom Build
 
