@@ -36,8 +36,11 @@ YACC.  Therefore MSTA has the following additional features:
       which can not be described by regular expressions (i.e. nested
       comments).
 
-    o More safe error recovery and reporting (besides error
-      recovery method of YACC).
+    o More safe error recovery and reporting (the 1st additional
+      error recovery method besides error recovery method of YACC).
+
+    o A minimal error recovery and reporting (the 2nd additional
+      error recovery method besides error recovery method of YACC).
 
     o Fast generation of fast parsers.
     
@@ -692,9 +695,30 @@ or `YY'):
          looping of the parser or discarding all input tokens if the
          stop symbols are not met.
          
-         By default MSTA generates an new improved error recovery which
-         does not permit infinite parser looping and use context after
-         several error as stop symbols.
+         By default MSTA generates the standard YACC error recovery.
+         There are two additional methods which msta can generate for
+         error recovery.
+         
+         The first one is a local error recovery which does not permit
+         infinite parser looping and use context after several error
+         as stop symbols. According this method look ahead set also
+         includes look ahead tokens after token `error' in states
+         which have the `error' token is acceptable and which are
+         lower in the parser stack than the first state with
+         acceptable token `error'.  In this case the feedback from the
+         parser to the scanner could not work correctly because
+         although rule actions are executed in such case the parser
+         reads the tokens once.
+          
+         The second one is a minimal cost error recovery where the
+         cost is overall number of tokens ignored.  The feedback from
+         the parser to the scanner does not work correctly.  So you
+         shouldn't use this method when there is the feedback.
+         Calling `yyerrok' has no sense for such method because the
+         parser in such recovery mode never executes the rule actions.
+         This method is the best quality error recovery although it my
+         be expensive method because in the worst case it might save
+         all input tokens.
      o YYERR_RECOVERY_MATCHES
          The parser is considered to be recovering from a previous
          error until the parser has shifted over at least
@@ -704,45 +728,45 @@ or `YY'):
          redefine its value.  But in any case the value will be
          positive.  This macro is not a part of YACC POSIX standard.
      o YYERR_MAX_LOOK_AHEAD_CHARS
-         This macro is generated only when new error recovery mode is
+         This macro is generated only when the local recovery mode is
          used.  The default value is 7. This value can not be less 1.
          See description below.
      o YYERR_LOOK_AHEAD_INCREMENT
-         This macro is generated only when new error recovery mode is
-         used.  The default value is 3. This value can not be less 0.
-         See description below.
+         This macro is generated only when the local error recovery
+         mode is used.  The default value is 3. This value can not be
+         less 0.  See description below.
      o YYERR_POPPED_ERROR_STATES
-         This macro is generated only when new error recovery mode is
-         used.  The default value is 2. This value can not be less 0.
-         See description below.
+         This macro is generated only when the local error recovery
+         mode is used.  The default value is 2. This value can not be
+         less 0.  See description below.
      o YYERR_DISCARDED_CHARS
-         This macro is generated only when new error recovery mode is
-         used.  The default value is 3. This value can not be less 0.
-         See description below.
+         This macro is generated only when the local error recovery
+         mode is used.  The default value is 3. This value can not be
+         less 0.  See description below.
      o yydeeper_error_try
          This and the previous macros (YYERR_MAX_LOOK_AHEAD_CHARS -
-         YYERR_DISCARDED_CHARS) are used only when new error recovery
-         is generated.  Before starting description of new error
-         recovery, let me remind how YACC error recovery works.  When
-         the parser recognizes a syntactic error, it switches into
-         error recovery mode.  Error recovery itself consists of one
-         or more steps.  Each step consists of finding the top state
-         on the stack with possible shift on pseudo-token `error',
-         throwing all states upper the state with `error', and making
-         shift on the `error' token.  After that all token are discarded
-         until token (so called stop symbol) which can be after the
-         pseudo-token `error' is read.  After that any recognized error
-         results in the new error recovery step.  And finally the
-         error recovery is switched off only when
-         YYERR_RECOVERY_MATCHES (by default 3) tokens are shifted
-         without occurring syntactic error.
+         YYERR_DISCARDED_CHARS) are used only when the local error
+         recovery is generated.  Before starting description of the
+         local error recovery, let me remind how YACC error recovery
+         works.  When the parser recognizes a syntactic error, it
+         switches into error recovery mode.  Error recovery itself
+         consists of one or more steps.  Each step consists of finding
+         the top state on the stack with possible shift on
+         pseudo-token `error', throwing all states upper the state
+         with `error', and making shift on the `error' token.  After
+         that all token are discarded until token (so called stop
+         symbol) which can be after the pseudo-token `error' is read.
+         After that any recognized error results in the local error
+         recovery step.  And finally the error recovery is switched
+         off only when YYERR_RECOVERY_MATCHES (by default 3) tokens
+         are shifted without occurring syntactic error.
          
-         The differences of new error recovery from classic YACC error
+         The differences of the local error recovery from classic YACC error
          recovery is in the following:
          
          o The parser saves all discarded tokens in error
            recovery mode and returns them back into the input stream
-           on the new error recovery step.
+           on the local error recovery step.
 
          o Only YYERR_LOOK_AHEAD_INCREMENT tokens can be
            discarded on the first step, 2 * YYERR_LOOK_AHEAD_INCREMENT
@@ -750,7 +774,7 @@ or `YY'):
            YYERR_MAX_LOOK_AHEAD_CHARS tokens).
 
          o If the parser requires discarding more tokens which is
-           possible on the step, the new error recovery step starts.
+           possible on the step, the local error recovery step starts.
            Moreover if action `yydeeper_error_try' has been fulfilled
            on the previous step, the new step starts searching for the
            error state on the stack with the state which is deeper
@@ -764,10 +788,10 @@ or `YY'):
            YYERR_DISCARDED_CHARS tokens without saving them before
            searching for the stop symbols.
          
-         By default MSTA generates an new improved error recovery
-         which does not permit infinite parser looping and use context
-         after several error as stop symbols.  The following fragment
-         illustrates usage of new error recovery mode.
+         By default MSTA generates YACC error recovery which does not
+         permit infinite parser looping and use context after several
+         error as stop symbols.  The following fragment illustrates
+         usage of the local error recovery mode.
 
            #define YYERR_END_RECOVERY() yyerr_end_recovery()
            ...
@@ -835,17 +859,20 @@ or `YY'):
      o yyerrok
          This macro can be used only in a semantic action itself.  The
          macro causes the parser to act as if it has fully recovered
-         from any previous errors.  The macro is a part of YACC
-         POSIX standard.
+         from any previous errors.  The macro is a part of YACC POSIX
+         standard.  The macro has no sense for minimal error recovery
+         method because the parser in such recovery mode never
+         executes the rule actions.
 
      o YYERR_END_RECOVERY()
          This macro is called when the parser switches from the
          recovery state into normal state.  By default the macro does
          nothing.  You can redefine this macro, e.g. to output the
          last error buffered by your `yyerror' function in order to
-         implement better error diagnostics of the parser.  The macro
-         is not a part of YACC POSIX standard and the macro is
-         not generated when yacc error recovery is used.
+         implement better error diagnostics of the parser in the local
+         recovery mode.  The macro is not a part of YACC POSIX
+         standard and the macro is not generated when yacc error
+         recovery is used.
 
      o YYERRCODE
          The token error is reserved for error handling.  The name
@@ -1053,22 +1080,24 @@ SYNOPSIS
        ber -la number  -lr  -no-lr  -lalr-optimization  -no-lalr-
        optimization  -regular-optimization  -no-regular-optimiza-
        tion -split-lr-sets -no-split-lr-sets -yacc-error-recovery
-       -no-yacc-error-recovery -yacc-input -no-yacc-input -strict
-       -no-strict -yacc-file-names -no-yacc-file-names -o name -y
-       -yacc  -full-lr-set -lr-situation-context -removed-lr-sets
-       -expand -no-expand -time] specification-file
+       -local-error-recovery  -minimal-error-recovery -yacc-input
+       -no-yacc-input -strict  -no-strict  -yacc-file-names  -no-
+       yacc-file-names  -o  name -y -yacc -full-lr-set -lr-situa-
+       tion-context -removed-lr-sets  -expand  -no-expand  -time]
+       specification-file
 
 DESCRIPTION
-       MSTA reads input grammar which is described in  specifica-
-       tion  file  and generates parser for it.  MSTA can process
-       any POSIX YACC grammar and generates equivalent parser  in
-       the  sence  of POSIX standard.  But MSTA can do many addi-
-       tional things: generation of  more  safe  error  recovery,
-       better  output of generated parser description, generation
-       of fast LALR(k)- and LR(k)-grammar parser with  acceptable
-       space  requirements,  generation  of scanners described as
-       context-free grammar (CFG), and so on.  The  specification
-       file must have suffix `.y'
+       MSTA  reads input grammar which is described in specifica-
+       tion file and generates parser for it.  MSTA  can  process
+       any  POSIX YACC grammar and generates equivalent parser in
+       the sence of POSIX standard.  But MSTA can do  many  addi-
+       tional  things:  generation of more safe error recovery or
+       much better error recovery,  better  output  of  generated
+       parser   description,  generation  of  fast  LALR(k)-  and
+       LR(k)-grammar parser with acceptable  space  requirements,
+       generation  of  scanners described as context-free grammar
+       (CFG), and so on.  The specification file must have suffix
+       `.y'
 
        The  generated  code  consists  of  optional interface and
        implementation files and optional description file  having
@@ -1095,8 +1124,6 @@ OPTIONS
        -t     Permit compilation of debugging code  in  the  code
               file  (tracing of the parser work).  Runtime debug-
               ging statements are always contained in the parser,
-              but  by  default conditional compilation directives
-              prevent their  compilation.   This  option  defines
 
 
 
@@ -1109,6 +1136,8 @@ COCOM                       5 SEP 1999                          1
 MSTA(1)                    User Manuals                   MSTA(1)
 
 
+              but  by  default conditional compilation directives
+              prevent their  compilation.   This  option  defines
               macro  `YYDEBUG'  as  1 (by default its value is 0)
               and as consequence  the  debugging  statements  are
               processed.
@@ -1160,9 +1189,7 @@ MSTA(1)                    User Manuals                   MSTA(1)
               default).
 
        -pattern-equiv
-              Equivalent patterns are denoted by the same nonter-
-              minal (by default).  Sometimes this results in dra-
-              matic reducing conflicts when complex patterns  are
+              Equivalent  patterns  are  denoted  by   the   same
 
 
 
@@ -1175,7 +1202,9 @@ COCOM                       5 SEP 1999                          2
 MSTA(1)                    User Manuals                   MSTA(1)
 
 
-              used.
+              nonterminal  (by  default).  Sometimes this results
+              in dramatic reducing conflicts  when  complex  pat-
+              terns are used.
 
        -no-pattern-equiv
               Even  equivalent  patterns are denoted by different
@@ -1227,8 +1256,6 @@ MSTA(1)                    User Manuals                   MSTA(1)
        -no-regular-optimization
               Disable the regular optimizations.
 
-       -split-lr-sets
-              Splitting  LR-sets  during  regular optimization in
 
 
 
@@ -1241,6 +1268,8 @@ COCOM                       5 SEP 1999                          3
 MSTA(1)                    User Manuals                   MSTA(1)
 
 
+       -split-lr-sets
+              Splitting  LR-sets  during  regular optimization in
               order to extract the most of  regular  parts  (only
               when  option  `-regular-optimization'  is  on).  By
               default this option is on if `%free_format' is pre-
@@ -1253,13 +1282,22 @@ MSTA(1)                    User Manuals                   MSTA(1)
 
        -yacc-error-recovery
               The generated parser will use error recover accord-
-              ing to Posix YACC standard.
+              ing to Posix YACC standard.  This error recovery is
+              used by default.
 
-       -no-yacc-error-recovery
-              The generated parser  will  use  sligthly  modified
-              error  recovery  method.  This method is more safe.
-              It is  guaranteed  that  this  method  can  not  be
-              cycled.  This error recovery is used by default.
+       -local-error-recovery
+              The  generated  parser  will  use sligthly modified
+              error recovery method.  This method is  more  safe.
+              It  is  guaranteed  that  this  method  can  not be
+              cycled.
+
+       -minimal-error-recovery
+              The generated parser will use a minimal cost  error
+              recovery where the cost is overall number of tokens
+              ignored.  It is guaranteed that this method can not
+              be cycled.  This method is expensive because it may
+              save  many  input   tokens,   parser   states   and
+              attributes.
 
        -yacc-input
               Only Posix YACC input can be used as input grammar.
@@ -1284,17 +1322,6 @@ MSTA(1)                    User Manuals                   MSTA(1)
 
        -no-strict
               This  option  is in action only when -yacc-input is
-              on.  Only warnings about non strict POSIX YACC fea-
-              tures usage are output.
-
-       -no-yacc-file-names
-              Output files will have the same name and suffixes (
-              .h , .c , and .output ).   This  option  is  on  by
-              default.
-
-       -o     Specify names of output files (header file name.h ,
-              code file name.c , description file name.output
-
 
 
 
@@ -1306,6 +1333,17 @@ COCOM                       5 SEP 1999                          4
 
 MSTA(1)                    User Manuals                   MSTA(1)
 
+
+              on.  Only warnings about non strict POSIX YACC fea-
+              tures usage are output.
+
+       -no-yacc-file-names
+              Output files will have the same name and suffixes (
+              .h , .c , and .output ).   This  option  is  on  by
+              default.
+
+       -o     Specify names of output files (header file name.h ,
+              code file name.c , description file name.output
 
        -y, -yacc
               Emulate Posix YACC.   It  means  that  the  options
@@ -1350,17 +1388,6 @@ MSTA(1)                    User Manuals                   MSTA(1)
               not expandable.
 
        -time  Output detail time statistics of MSTA work  on  its
-              basic passes and optimizations.
-
-FILES
-       file.y
-              MSTA specification file
-       file.c or y.tab.c
-              generated C implementation file
-       file.cpp or y.tab.cpp
-              generated C++ implementation file
-       file.h or y.tab.h
-              generated interface file
 
 
 
@@ -1373,6 +1400,17 @@ COCOM                       5 SEP 1999                          5
 MSTA(1)                    User Manuals                   MSTA(1)
 
 
+              basic passes and optimizations.
+
+FILES
+       file.y
+              MSTA specification file
+       file.c or y.tab.c
+              generated C implementation file
+       file.cpp or y.tab.cpp
+              generated C++ implementation file
+       file.h or y.tab.h
+              generated interface file
        file.output or y.output
               generated interface file
        There are no any temporary files used by MSTA.
@@ -1392,17 +1430,6 @@ SEE ALSO
 
 BUGS
        Please, report bugs to cocom-bugs@lists.sourceforge.net.
-
-
-
-
-
-
-
-
-
-
-
 
 
 

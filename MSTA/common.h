@@ -19,6 +19,16 @@
 
 #define TAB_STOP 8
 
+/* The following macros denotes the used error recovery method: yacc
+   error recovery as described in the POSIX standard, a local error
+   recovery which is better in many cases but it could not work
+   correctly if there is feedback from the parser to the scanner, and
+   the minimal cost error recovery which also could not work correctly
+   if there is feedback from the parser to the scanner. */
+#define YACC_ERROR_RECOVERY 0
+#define LOCAL_ERROR_RECOVERY 1
+#define MINIMAL_ERROR_RECOVERY 2
+
 extern int define_flag;
 extern int line_flag;
 extern int trace_flag;
@@ -38,7 +48,7 @@ extern int lalr_optimization_flag;
 extern int regular_optimization_flag;
 extern int split_lr_sets_flag;
 extern int split_lr_sets_flag_is_defined;
-extern int yacc_error_recovery_flag;
+extern int msta_error_recovery;
 extern int yacc_input_flag;
 extern int strict_flag;
 extern int yacc_file_names_flag;

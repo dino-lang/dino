@@ -1107,8 +1107,8 @@ if test $result = ok -a $start_test_number -le 36; then
         msta_file=@srcdir@/fcalc.y
         output_file=`basename $msta_file .y`.c
         description_file=`basename $msta_file .y`.output
-        echo '      ' $MSTA -w $msta_file "2>$temp_file"
-        if $MSTA -w $msta_file 2>$temp_file; then
+        echo '      ' $MSTA -w $msta_file -local-error-recovery "2>$temp_file"
+        if $MSTA -w -local-error-recovery $msta_file 2>$temp_file; then
                 echo '      ' cmp $temp_file $temp3_file
                 if cat >$temp3_file <<'INPUT36' && cmp $temp_file $temp3_file; then
   Max look ahead is 1 token
@@ -1624,6 +1624,115 @@ if test $result = ok; then
         rm -f $temp_file $temp3_file $output_file $description_file $fexec temp.y
 fi
 
+
+# Test 46.
+if test $result = ok -a $start_test_number -le 46; then
+        echo test 46 '(error-recovery)':
+        msta_file=@srcdir@/fcalc.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file -minimal-error-recovery "2>$temp_file"
+        if $MSTA -w -minimal-error-recovery $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT46' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT46
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file -lm; then
+                                echo $fexec ">$temp_file"
+                                if $fexec <<'INPUT46-1' >$temp_file; then
+t = 10
+)
+=
+10 * (t + t * 3)
+)
+*
+5 / t + 3
+8 / 2 / 2
+)
+/
+INPUT46-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT46-2' && cmp $temp_file $temp3_file; then
+	10
+syntax error
+	400
+syntax error
+	3.5
+	2
+syntax error
+INPUT46-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 47.
+if test $result = ok -a $start_test_number -le 47; then
+        echo test 47 '(error-recovery)':
+        msta_file=@srcdir@/fcalc1.y
+        output_file=`basename $msta_file .y`.c
+        description_file=`basename $msta_file .y`.output
+        echo '      ' $MSTA -w $msta_file -minimal-error-recovery "2>$temp_file"
+        if $MSTA -w -minimal-error-recovery $msta_file 2>$temp_file; then
+                echo '      ' cmp $temp_file $temp3_file
+                if cat >$temp3_file <<'INPUT47' && cmp $temp_file $temp3_file; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+INPUT47
+                        result=ok
+                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
+                        if $CC $output_file -o $fexec 2>$temp_file -lm; then
+                                echo $fexec ">$temp_file"
+                                if $fexec <<'INPUT47-1' >$temp_file; then
+t = 10
+10 * (t + )
+5 * t + 3
+8 / 2 / 2
+)
+/
+INPUT47-1
+                                    echo '      ' cmp $temp_file $temp3_file
+                                    if cat >$temp3_file <<'INPUT47-2' && cmp $temp_file $temp3_file; then
+	10
+syntax error
+	100
+	53
+	2
+syntax error
+INPUT47-2
+                                        result=ok
+                                    else
+                                        result=fail
+                                    fi
+                                else
+                                    result=fail
+                                fi                        
+                        else
+                                result=fail
+                        fi                        
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
 
 # Final message
 

@@ -13,22 +13,22 @@ msta \- syntax description translator
 .B        -lr -no-lr -lalr-optimization -no-lalr-optimization
 .B        -regular-optimization -no-regular-optimization
 .B        -split-lr-sets -no-split-lr-sets
-.B        -yacc-error-recovery -no-yacc-error-recovery
+.B        -yacc-error-recovery -local-error-recovery -minimal-error-recovery
 .B        -yacc-input -no-yacc-input -strict -no-strict
 .B        -yacc-file-names -no-yacc-file-names
 .B        -o name -y -yacc -full-lr-set -lr-situation-context
 .B        -removed-lr-sets -expand -no-expand -time]
 .I specification-file
 .SH DESCRIPTION
-
 MSTA reads input grammar which is described in specification file and
 generates parser for it.  MSTA can process any POSIX YACC grammar and
 generates equivalent parser in the sence of POSIX standard.  But MSTA
-can do many additional things: generation of more safe error recovery,
-better output of generated parser description, generation of fast
-LALR(k)- and LR(k)-grammar parser with acceptable space requirements,
-generation of scanners described as context-free grammar (CFG), and so
-on.  The specification file must have suffix
+can do many additional things: generation of more safe error recovery
+or much better error recovery, better output of generated parser
+description, generation of fast LALR(k)- and LR(k)-grammar parser with
+acceptable space requirements, generation of scanners described as
+context-free grammar (CFG), and so on.  The specification file must
+have suffix
 .B `.y'
 .PP
 The generated code consists of optional interface and implementation files and
@@ -194,11 +194,16 @@ if
 is absent in the specification file.
 .IP -yacc-error-recovery
 The generated parser will use error recover according to Posix YACC
-standard.
-.IP -no-yacc-error-recovery
+standard.  This error recovery is used by default.
+.IP -local-error-recovery
 The generated parser will use sligthly modified error recovery method.
 This method is more safe.  It is guaranteed that this method can not
-be cycled.  This error recovery is used by default.
+be cycled.
+.IP -minimal-error-recovery
+The generated parser will use a minimal cost error recovery where the
+cost is overall number of tokens ignored.  It is guaranteed that this
+method can not be cycled.  This method is expensive because it may
+save many input tokens, parser states and attributes.
 .IP -yacc-input
 Only Posix YACC input can be used as input grammar.
 .IP -no-yacc-input

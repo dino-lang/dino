@@ -974,6 +974,8 @@ LR_set :: %root
        LR-set (through basic and regular LR-arcs). */
     reachable_flag : bool_t                       {$ = TRUE;}
     it_is_pushed_LR_set : bool_t                  {$ = FALSE;}
+    /* The following value is TRUE if it contains .error */
+    it_is_errored_LR_set : bool_t                 {$ = FALSE;}
     /* The value is TRUE if attribute corresponding to given LR-set
        (more correctly to characteristic symbol of LR-set) is used in
        a folding rule.  The field value is always TRUE when regular

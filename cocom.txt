@@ -278,8 +278,11 @@ have the following additional features:
       which can not be described by regular expressions (i.e. nested
       comments).
 
-    o More safe error recovery and reporting (besides error
-      recovery method of YACC).
+    o More safe error recovery and reporting (the 1st additional
+      error recovery method besides error recovery method of YACC).
+
+    o A minimal error recovery and reporting (the 2nd additional
+      error recovery method besides error recovery method of YACC).
 
     o Fast generation of fast parsers.
     

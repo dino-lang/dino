@@ -144,6 +144,8 @@ output_finish_code_insertions (void)
      (IR_scanner_flag (description) ? "yystranslate" : "yytranslate")
 #define PUSHED_STATE_FLAGS_VECTOR_NAME\
      (IR_scanner_flag (description) ? "yyspushed" : "yypushed")
+#define ERRORED_STATE_FLAGS_VECTOR_NAME\
+     (IR_scanner_flag (description) ? "yyserrored" : "yyerrored")
 #define REDUCE_LENGTHS_VECTOR_NAME\
      (IR_scanner_flag (description) ? "yysrlength" : "yyrlength")
 #define REDUCE_NONTERMS_VECTOR_NAME\
@@ -257,6 +259,10 @@ output_finish_code_insertions (void)
    (IR_scanner_flag (description)\
     ? "YYSLOOK_AHEAD_EXPAND_SIZE" : "YYLOOK_AHEAD_EXPAND_SIZE")
 
+#define YYUNDEFINED_RECOVERY_COST_MACRO_NAME\
+   (IR_scanner_flag (description)\
+    ? "YYSUNDEFINED_RECOVERY_COST" : "YYUNDEFINED_RECOVERY_COST")
+
 #define YYTOKEN_NAME_MACRO_NAME\
      (IR_scanner_flag (description) ? "YYSTOKEN_NAME" : "YYTOKEN_NAME")
 
@@ -267,6 +273,16 @@ output_finish_code_insertions (void)
      (IR_scanner_flag (description)\
       ? "yysexpand_attributes_stack" : "yyexpand_attributes_stack")
 
+#define YYEXPAND_SAVED_STATES_BUFFER_FUNCTION_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysexpand_saved_states_buffer" : "yyexpand_saved_states_buffer")
+#define YYEXPAND_SAVED_ATTRIBUTES_BUFFER_FUNCTION_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysexpand_saved_attributes_buffer"\
+      : "yyexpand_saved_attributes_buffer")
+#define YYINCREASE_TOKENS_BUFFER_FUNCTION_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysincrease_saved_tokens_buffer" : "yyincrease_saved_tokens_buffer")
 
 static int max_token_value;
 
@@ -1454,6 +1470,44 @@ output_pushed_states_table (void)
   VLO_DELETE (vector);
 }
 
+static void
+output_errored_states_table (void)
+{
+  IR_node_t current_LR_set;
+  IR_node_t current_LR_core;
+  vlo_t vector;
+  int vector_index;
+
+  VLO_CREATE (vector, 5000);
+  VLO_EXPAND (vector,
+              IR_LR_sets_number (description) * sizeof (vector_element_t));
+  for (vector_index = 0;
+       vector_index < IR_LR_sets_number (description);
+       vector_index++)
+    ((vector_element_t *) VLO_BEGIN (vector)) [vector_index] = 0;
+  for (current_LR_core = IR_LR_core_list (description);
+       current_LR_core != NULL;
+       current_LR_core = IR_next_LR_core (current_LR_core))
+    for (current_LR_set = IR_LR_set_list (current_LR_core);
+         current_LR_set != NULL;
+         current_LR_set = IR_next_LR_set (current_LR_set))
+      if (IR_reachable_flag (current_LR_set)
+          && IR_it_is_errored_LR_set (current_LR_set))
+        ((vector_element_t *) VLO_BEGIN (vector))
+          [IR_LR_set_order_number (current_LR_set)] = 1;
+  output_string (output_implementation_file,
+                 "/* Flags of errored LR-sets. */\n");
+  output_string (output_implementation_file, "static const ");
+  output_vector_element_type (0, 1);
+  output_char (' ', output_implementation_file);
+  output_string (output_implementation_file, ERRORED_STATE_FLAGS_VECTOR_NAME);
+  output_string (output_implementation_file, "[] = {\n");
+  output_vector ((vector_element_t *) VLO_BEGIN (vector),
+                 VLO_LENGTH (vector) / sizeof (vector_element_t));
+  output_string (output_implementation_file, "};\n\n");
+  VLO_DELETE (vector);
+}
+
 static int
 output_token_representation (FILE *f, IR_node_t single_term_definition,
                              int literal_code)
@@ -1671,6 +1725,19 @@ output_parser_tables (void)
            active_time_string (temp_ticker));
       temp_ticker = create_ticker ();
 #endif
+      if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+	{
+	  output_errored_states_table ();
+#ifndef NDEBUG
+	  if (time_flag)
+	    fprintf
+	      (stderr,
+	       "      errored states flag table creation & output -- %ssec\n",
+	       active_time_string (temp_ticker));
+	  temp_ticker = create_ticker ();
+
+#endif
+	}
       output_nattr_pop_table ();
 #ifndef NDEBUG
       if (time_flag)
@@ -1696,6 +1763,14 @@ output_include_directives (void)
 {
   output_string (output_implementation_file, "#include <stdio.h>\n");
   output_string (output_implementation_file, "#include <stdlib.h>\n\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (output_implementation_file, "#include <limits.h>\n\n");
+      output_string (output_implementation_file, "#ifndef INT_MAX\n");
+      output_string (output_implementation_file,
+		     "#define INT_MAX 2147483647\n");
+      output_string (output_implementation_file, "#endif\n\n");
+    }
 }
 
 static void
@@ -1927,6 +2002,16 @@ output_yyparse_title (FILE *f, int inside_class)
 #define YYNERRS_VARIABLE_NAME\
      (IR_scanner_flag (description) ? "yysnerrs" : "yynerrs")
 
+#define YYSTATE_TOKEN_NUMS_VARIABLE_NAME\
+ (IR_scanner_flag (description) ? "yysstate_token_nums" : "yystate_token_nums")
+#define YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME\
+ (IR_scanner_flag (description)\
+  ? "yyssaved_state_token_nums" : "yysaved_state_token_nums")
+#define YYSAVED_STATES_VARIABLE_NAME\
+ (IR_scanner_flag (description) ? "yyssaved_states" : "yysaved_states")
+#define YYSAVED_ATTRIBUTES_VARIABLE_NAME\
+ (IR_scanner_flag (description) ? "yyssaved_attributes" : "yysaved_attributes")
+
 static void
 output_inside_outside_definitions (FILE *f, int inside_flag)
 {
@@ -1940,7 +2025,8 @@ output_inside_outside_definitions (FILE *f, int inside_flag)
   output_string (f, " *");
   output_string (f, YYATTRIBUTES_VARIABLE_NAME);
   output_string (f, ";\n");
-  if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
+  if (real_look_ahead_number == 2
+      && msta_error_recovery == YACC_ERROR_RECOVERY)
     {
       /* Definition of `yylook_ahead_char'. */
       output_string (f, (inside_flag ? "  int " : "static int "));
@@ -1953,7 +2039,8 @@ output_inside_outside_definitions (FILE *f, int inside_flag)
       output_string (f, YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
       output_string (f, ";\n");
     }
-  else if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+  else if (real_look_ahead_number > 2
+	   || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       /* Definition of `yylook_ahead_char'. */
       output_string (f, (inside_flag ? "  int *" : "static int *"));
@@ -1968,6 +2055,27 @@ output_inside_outside_definitions (FILE *f, int inside_flag)
       output_string (f, YYSTYPE_MACRO_NAME);
       output_string (f, " *");
       output_string (f, YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
+      output_string (f, ";\n");
+    }
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      /* Definition of `yystate_token_nums'. */
+      output_string (f, (inside_flag ? "  int *" : "static int *"));
+      output_string (f, YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, ";\n");
+      /* Definition of `yysaved_state_token_nums'. */
+      output_string (f, (inside_flag ? "  int *" : "static int *"));
+      output_string (f, YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, ";\n");
+      /* Definition of `yysaved_states'. */
+      output_string (f, (inside_flag ? "  int *" : "static int *"));
+      output_string (f, YYSAVED_STATES_VARIABLE_NAME);
+      output_string (f, ";\n");
+      /* Definition of `yysaved_attributes'. */
+      output_string (f, (inside_flag ? "  " : "static "));
+      output_string (f, YYSTYPE_MACRO_NAME);
+      output_string (f, " *");
+      output_string (f, YYSAVED_ATTRIBUTES_VARIABLE_NAME);
       output_string (f, ";\n");
     }
   /* Definition of `yynerrs'. */
@@ -1996,10 +2104,57 @@ output_state_or_attribute_stack_expansion_function_title (FILE *f,
   output_string (f, " (");
   output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
   output_string (f, " **start, ");
+  if (state_flag && msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    output_string (f, "int **state_tokens, ");
   output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
   output_string (f, " **end, ");
   output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
   output_string (f, " **top)");
+}
+
+static void
+output_saved_state_or_attribute_buffer_expansion_function_title
+  (FILE *f, int state_flag, int in_class_flag)
+{
+  assert (msta_error_recovery == MINIMAL_ERROR_RECOVERY);
+  assert (!in_class_flag || cpp_flag);
+  if (!cpp_flag)
+    output_string (f, "static ");
+  output_string (f, "int ");
+  if (cpp_flag && !in_class_flag)
+    {
+      output_yyparser_class_name (f);
+      output_string (f, "::");
+    }
+  output_string (f, (state_flag
+		     ? YYEXPAND_SAVED_STATES_BUFFER_FUNCTION_NAME
+		     : YYEXPAND_SAVED_ATTRIBUTES_BUFFER_FUNCTION_NAME));
+  output_string (f, " (");
+  output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
+  output_string (f, " **start, ");
+  if (state_flag)
+    output_string (f, "int **token_nums_start, ");
+  output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
+  output_string (f, " **end, int length)");
+}
+
+static void
+output_token_buffer_increase_function_title (FILE *f, int in_class_flag)
+{
+  assert (msta_error_recovery == MINIMAL_ERROR_RECOVERY);
+  assert (!in_class_flag || cpp_flag);
+  if (!cpp_flag)
+    output_string (f, "static ");
+  output_string (f, "int ");
+  if (cpp_flag && !in_class_flag)
+    {
+      output_yyparser_class_name (f);
+      output_string (f, "::");
+    }
+  output_string (f, YYINCREASE_TOKENS_BUFFER_FUNCTION_NAME);
+  output_string (f, " (int **start, ");
+  output_string (f, YYSTYPE_MACRO_NAME);
+  output_string (f, " **attr_start, int **end, int **curr)");
 }
 
 static void
@@ -2018,6 +2173,18 @@ output_class_start (FILE *f)
       output_string (f, ";\n  ");
       output_state_or_attribute_stack_expansion_function_title (f,
 								FALSE, TRUE);
+      output_string (f, ";\n");
+    }
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, "  ");
+      output_saved_state_or_attribute_buffer_expansion_function_title
+	(f, TRUE, TRUE);
+      output_string (f, ";\n  ");
+      output_saved_state_or_attribute_buffer_expansion_function_title
+	(f, FALSE, TRUE);
+      output_string (f, ";\n");
+      output_token_buffer_increase_function_title (f, TRUE);
       output_string (f, ";\n");
     }
   output_string (f, "\npublic:\n");
@@ -2054,8 +2221,7 @@ output_class_finish (FILE *f)
   output_string (f, "  virtual ~");
   output_yyparser_class_name (f);
   output_string (f, " (void)");
-  if (IR_scanner_flag (description)
-      && (real_look_ahead_number > 2 || !yacc_error_recovery_flag))
+  if (IR_scanner_flag (description))
     output_string (f, ";\n");
   else
     output_string (f, "  {}\n");
@@ -2163,6 +2329,14 @@ output_yylex_finish_title (FILE *f, int inside_class)
 
 #define YYERRLAB_LABEL_NAME\
      (IR_scanner_flag (description) ? "yyserrlab" : "yyerrlab")
+#define YYNEXT_ERROR_LABEL_NAME\
+     (IR_scanner_flag (description) ? "yysnext_error" : "yynext_error")
+#define YYERR_RECOVERY_TRY_END_LABEL_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyserr_recovery_try_end" : "yyerr_recovery_try_end")
+#define YYRECOVERY_FINISH_LABEL_NAME\
+     (IR_scanner_flag (description) ?\
+      "yysrecovery_finish" : "yyrecovery_finish")
 #define YYSTATE_VARIABLE_NAME\
      (IR_scanner_flag (description) ? "yysstate" : "yystate")
 #define YYPREV_CHAR_VARIABLE_NAME  \
@@ -2201,17 +2375,72 @@ output_yylex_finish_title (FILE *f, int inside_class)
      (IR_scanner_flag (description)\
       ? "yyserr_popped_error_states" : "yyerr_popped_error_states")
 
+#define YYSAVED_STATES_END_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyssaved_states_end" : "yysaved_states_end")
+#define YYSAVED_ATTRIBUTES_END_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyssaved_attributes_end" : "yysaved_attributes_end")
+#define YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyslook_ahead_char_end" : "yylook_ahead_char_end")
+#define YYCHAR_PTR_VARIABLE_NAME\
+     (IR_scanner_flag (description) ? "yyschar_ptr" : "yychar_ptr")
+#define YYERROR_STATE_VARIABLE_NAME\
+     (IR_scanner_flag (description) ? "yyserror_state" : "yyerror_state")
+#define YYBEST_ERROR_STATE_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysbest_error_state" : "yybest_error_state")
+#define YYERROR_ATTRIBUTE_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyserror_attribute" : "yyerror_attribute")
+#define YYBEST_ERROR_ATTRIBUTE_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysbest_error_attribute" : "yybest_error_attribute")
+#define YYRECOVERY_COST_VARIABLE_NAME\
+     (IR_scanner_flag (description) ? "yysrecovery_cost" : "yyrecovery_cost")
+#define YYBEST_RECOVERY_COST_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysbest_recovery_cost" : "yybest_recovery_cost")
+#define YYERROR_STATE_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyserror_state_num" : "yyerror_state_num")
+#define YYBEST_ERROR_STATE_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysbest_error_state_num" : "yybest_error_state_num")
+#define YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyserror_attribute_num" : "yyerror_attribute_num")
+#define YYBEST_ERROR_ATTRIBUTE_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysbest_error_attribute_num" : "yybest_error_attribute_num")
+#define YYTOKEN_IGNORED_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yystoken_ignored_num" : "yytoken_ignored_num")
+#define YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yysbest_token_ignored_num" : "yybest_token_ignored_num")
+#define YYCURR_TOKEN_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description) ? "yyscurr_token_num" : "yycurr_token_num")
+#define YYERROR_TOKEN_NUM_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyserror_token_num" : "yyerror_token_num")
+#define YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME\
+     (IR_scanner_flag (description)\
+      ? "yyslook_ahead_char_end" : "yylook_ahead_char_end")
 
 static void
 output_look_ahead_arrays_length (FILE *f)
 {
-  assert (real_look_ahead_number > 2 || !yacc_error_recovery_flag
-	  || IR_back_tracking_exists (description));
+  assert (real_look_ahead_number > 2 || IR_back_tracking_exists (description)
+	  || msta_error_recovery != YACC_ERROR_RECOVERY);
   output_string (f, "(");
-  output_decimal_number (f,
-                         real_look_ahead_number
-                         - (yacc_error_recovery_flag ? 1 : 0), 0);
-  if (!yacc_error_recovery_flag)
+  output_decimal_number
+    (f, real_look_ahead_number - (msta_error_recovery == YACC_ERROR_RECOVERY
+				  ? 1 : 0), 0);
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    output_string (f, " + 100");
+  else if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       output_string (f, " + ");
       output_string (f, YYERR_MAX_LOOK_AHEAD_CHARS_MACRO_NAME);
@@ -2370,7 +2599,7 @@ output_definitions_outside_yyparse (void)
   output_string (output_implementation_file, " = ");
   output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
   output_string (output_implementation_file, ";} while (0)\n\n");
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       /* `#define yydeeper_error_try' */
       output_string (output_implementation_file, "#define ");
@@ -2414,7 +2643,7 @@ output_definitions_outside_yyparse (void)
                  YYERR_RECOVERY_MATCHES_MACRO_NAME);
   output_string (output_implementation_file, "  1\n");
   output_string (output_implementation_file, "#endif\n\n");
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       /* Definition of `YYERR_MAX_LOOK_AHEAD_CHARS' */
       output_string (output_implementation_file, "#ifndef  ");
@@ -2501,8 +2730,8 @@ output_definitions_outside_yyparse (void)
       output_string (output_implementation_file, "  0\n");
       output_string (output_implementation_file, "#endif\n\n");
     }
-  if (real_look_ahead_number > 2 || !yacc_error_recovery_flag
-      || IR_back_tracking_exists (description))
+  if (real_look_ahead_number > 2 || IR_back_tracking_exists (description)
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       /* Definition of `YYLOOK_AHEAD_SIZE' */
       output_string (output_implementation_file, "#ifndef  ");
@@ -2529,7 +2758,14 @@ output_definitions_outside_yyparse (void)
                      YYLOOK_AHEAD_SIZE_MACRO_NAME);
       output_string (output_implementation_file, "  ");
       output_look_ahead_arrays_length (output_implementation_file);
-      output_string (output_implementation_file, "\n#endif\n\n");
+      output_string (output_implementation_file, "\n#endif\n");
+    }
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (output_implementation_file, "\n#define  ");
+      output_string (output_implementation_file,
+                     YYUNDEFINED_RECOVERY_COST_MACRO_NAME);
+      output_string (output_implementation_file, "  INT_MAX\n\n");
     }
   if (IR_back_tracking_exists (description))
     {
@@ -2635,8 +2871,10 @@ output_state_or_attribute_stack_expansion_function (int state_flag)
   output_string (f, YYSTACK_EXPAND_SIZE_MACRO_NAME);
   output_string (f, ";\n  ");
   output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
-  output_string (f, " *new_start;\n\n");
-  output_string (f, "#if ");
+  output_string (f, " *new_start;\n");
+  if (state_flag && msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    output_string (f, "  int *new_state_tokens;\n");
+  output_string (f, "\n#if ");
   output_string (f, YYDEBUG_MACRO_NAME);
   output_string (f, " != 0\n");
   output_string (f, "  if (");
@@ -2672,6 +2910,22 @@ output_state_or_attribute_stack_expansion_function (int state_flag)
   output_string (f, " stack expansion\");\n");
   output_string (f, "      return 1;\n");
   output_string (f, "    }\n");
+  if (state_flag && msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, "  new_state_tokens = (int *) ");
+      output_string (f, YYREALLOC_MACRO_NAME);
+      output_string (f, " (*state_tokens, new_size * sizeof (");
+      output_string (f, "int));\n");
+      output_string (f, "  if (new_state_tokens == NULL)\n");
+      output_string (f, "    {\n");
+      output_string (f, "      ");
+      output_yyerror_function_name (f);
+      output_string (f, " (\"no memory for expansion of numbers of tokens ");
+      output_string (f, "corresponding to states\");\n");
+      output_string (f, "      return 1;\n");
+      output_string (f, "    }\n");
+      output_string (f, "  *state_tokens = new_state_tokens;\n");
+    }
   output_string (f, "  *end = new_start + (new_size - 1);\n");
   output_string (f, "  *top = *top + (new_start - *start);\n");
   output_string (f, "  *start = new_start;\n");
@@ -2679,6 +2933,141 @@ output_state_or_attribute_stack_expansion_function (int state_flag)
   output_string (f, "}\n\n");
 }
 
+static void
+output_saved_state_or_attribute_buffer_expansion_function (int state_flag)
+{
+  FILE *f = output_implementation_file;
+
+  assert (msta_error_recovery == MINIMAL_ERROR_RECOVERY);
+  output_saved_state_or_attribute_buffer_expansion_function_title
+    (f, state_flag, FALSE);
+  output_string (f, "\n{\n");
+  output_string (f, "  int size = *end - *start + 1;\n  ");
+  output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
+  output_string (f, " *new_start;\n");
+  if (state_flag)
+    output_string (f, "  int *new_token_nums_start;\n");
+  output_string (f, "\n  if (size >= length)\n    return 0;");
+  output_string (f, "\n#if ");
+  output_string (f, YYDEBUG_MACRO_NAME);
+  output_string (f, " != 0\n");
+  output_string (f, "  if (");
+  output_yydebug_variable_name (f);
+  output_string (f, ")\n    fprintf (stderr, \"Expanding saved ");
+  output_string (f, (state_flag ? "states": "attributes"));
+  output_string
+    (f, " buffer (old size - %d, new size - %d)\\n\", size, length);\n");
+  output_string (f, "#endif\n");
+  output_string (f, "  if (length > ");
+  output_string (f, YYMAX_STACK_SIZE_MACRO_NAME);
+  output_string (f, ")\n");
+  output_string (f, "    {\n");
+  output_string (f, "      ");
+  output_yyerror_function_name (f);
+  output_string (f, " (\" saved ");
+  output_string (f, (state_flag ? "states": "attributes"));
+  output_string (f, " buffer is overfull\");\n");
+  output_string (f, "      return 1;\n");
+  output_string (f, "    }\n");
+  output_string (f, "  new_start = (");
+  output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
+  output_string (f, " *) ");
+  output_string (f, YYREALLOC_MACRO_NAME);
+  output_string (f, " (*start, length * sizeof (");
+  output_string (f, (state_flag ? "int" : YYSTYPE_MACRO_NAME));
+  output_string (f, "));\n");
+  output_string (f, "  if (new_start == NULL)\n");
+  output_string (f, "    {\n");
+  output_string (f, "      ");
+  output_yyerror_function_name (f);
+  output_string (f, " (\"no memory for saved ");
+  output_string (f, (state_flag ? "states": "attributes"));
+  output_string (f, " buffer expansion\");\n");
+  output_string (f, "      return 1;\n");
+  output_string (f, "    }\n");
+  if (state_flag)
+    {
+      output_string (f, "  new_token_nums_start = (int *) ");
+      output_string (f, YYREALLOC_MACRO_NAME);
+      output_string (f, " (*token_nums_start, length * sizeof (int));\n");
+      output_string (f, "  if (new_token_nums_start == NULL)\n");
+      output_string (f, "    {\n");
+      output_string (f, "      ");
+      output_yyerror_function_name (f);
+      output_string (f, " (\"no memory for saved state token numbers");
+      output_string (f, " buffer expansion\");\n");
+      output_string (f, "      return 1;\n");
+      output_string (f, "    }\n");
+      output_string (f, "  *token_nums_start = new_token_nums_start;\n");
+    }
+  output_string (f, "  *end = new_start + (length - 1);\n");
+  output_string (f, "  *start = new_start;\n");
+  output_string (f, "  return 0;\n");
+  output_string (f, "}\n\n");
+}
+
+static void
+output_token_buffer_increase_function (void)
+{
+  FILE *f = output_implementation_file;
+
+  output_token_buffer_increase_function_title (f, FALSE);
+  output_string (f, "\n{\n");
+  output_string (f, "  int size = *end - *start + 1;\n");
+  output_string (f, "  int new_size = 2 * size;\n");
+  output_string (f, "  int *new_start, i;\n  ");
+  output_string (f, YYSTYPE_MACRO_NAME);
+  output_string (f, " *new_attr_start;\n");
+  output_string (f, "\n#if ");
+  output_string (f, YYDEBUG_MACRO_NAME);
+  output_string (f, " != 0\n");
+  output_string (f, "  if (");
+  output_yydebug_variable_name (f);
+  output_string (f, ")\n    fprintf (stderr, \"Increasing token buffer ");
+  output_string
+    (f, " (old size - %d, new size - %d)\\n\", size, new_size);\n");
+  output_string (f, "#endif\n");
+  output_string (f, "  new_start = (int *) ");
+  output_string (f, YYREALLOC_MACRO_NAME);
+  output_string (f, " (*start, new_size * sizeof (int));\n");
+  output_string (f, "  if (new_start == NULL)\n");
+  output_string (f, "    {\n");
+  output_string (f, "      ");
+  output_yyerror_function_name (f);
+  output_string (f, " (\"no memory for increasing token buffer\");\n");
+  output_string (f, "      return 1;\n");
+  output_string (f, "    }\n");
+  output_string (f, "  new_attr_start = (");
+  output_string (f, YYSTYPE_MACRO_NAME);
+  output_string (f, " *) ");
+  output_string (f, YYREALLOC_MACRO_NAME);
+  output_string (f, " (*attr_start, new_size * sizeof (");
+  output_string (f, YYSTYPE_MACRO_NAME);
+  output_string (f, "));\n");
+  output_string (f, "  if (new_attr_start == NULL)\n");
+  output_string (f, "    {\n");
+  output_string (f, "      ");
+  output_yyerror_function_name (f);
+  output_string
+    (f, " (\"no memory for increasing token attribute buffer\");\n");
+  output_string (f, "      return 1;\n");
+  output_string (f, "    }\n");
+  output_string (f, "  *curr = *curr + (new_start - *start);\n");
+  output_string (f, "  for (i = new_start + size - 1 - *curr; i >= 0; i--)\n");
+  output_string (f, "    {\n");
+  output_string (f, "      (*curr) [i + new_size - size] = (*curr) [i];\n");
+  output_string
+    (f, "      new_attr_start [i + *curr - new_start + new_size - size]\n");
+  output_string (f, "        = new_attr_start [i + *curr - new_start];\n");
+  output_string (f, "     }\n");
+  output_string (f, "  for (i = new_size - size - 1; i >= 0; i--)\n");
+  output_string (f, "    (*curr) [i] = YYEMPTY;\n");
+  output_string (f, "  *end = new_start + (new_size - 1);\n");
+  output_string (f, "  *start = new_start;\n");
+  output_string (f, "  *attr_start = new_attr_start;\n");
+  output_string (f, "  return 0;\n");
+  output_string (f, "}\n\n");
+}
 
 static void
 output_action_char (char ch)
@@ -2826,7 +3215,11 @@ output_states_stack_check (int number, const char *indent)
     return;
   /* if (yystates_top >= yystates_end - <number - 1>
 ------------------ expand_flag ---------------------------------
-         && yyexpand_states_stack (&yystates, &yystates_end, &yystates_top)
+         && yyexpand_states_stack (&yystates,
+-------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
+                                   &yystate_token_nums,
+---------------------------------------------------------------
+                                   &yystates_end, &yystates_top)
 ----------------------------------------------------------------
         )
      YYABORT; */
@@ -2849,6 +3242,12 @@ output_states_stack_check (int number, const char *indent)
 		     YYEXPAND_STATES_STACK_FUNCTION_NAME);
       output_string (output_implementation_file, "(&");
       output_string (output_implementation_file, YYSTATES_VARIABLE_NAME);
+      if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+	{
+	  output_string (output_implementation_file, ", &");
+	  output_string (output_implementation_file,
+			 YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+	}
       output_string (output_implementation_file, ", &");
       output_string (output_implementation_file, YYSTATES_END_VARIABLE_NAME);
       output_string (output_implementation_file, ", &");
@@ -2865,15 +3264,31 @@ output_states_stack_check (int number, const char *indent)
 static void
 output_state_pushing (int check_states_stack, const char *indent)
 {
+  FILE *f = output_implementation_file;
+
   if (check_states_stack)
     output_states_stack_check (1, indent);
   /* (*++yystates_top) = yystate; */
-  output_string (output_implementation_file, indent);
-  output_string (output_implementation_file, "(*++");
-  output_string (output_implementation_file, YYSTATES_TOP_VARIABLE_NAME);
-  output_string (output_implementation_file, ") = ");
-  output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-  output_string (output_implementation_file, ";\n");
+  output_string (f, indent);
+  output_string (f, "(*++");
+  output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+  output_string (f, ") = ");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, ";\n");
+#if 0
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, indent);
+      output_string (f, YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, "] = ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, ";\n");
+    }
+#endif
 }
 
 static void
@@ -3142,7 +3557,9 @@ output_shift_pop_actions (IR_node_t regular_arc)
               yychar = YYEMPTY;
               yyerr_status--;
        */
-      if (IR_scanner_flag (description) || !yacc_error_recovery_flag)
+      if ((IR_scanner_flag (description)
+	   && msta_error_recovery == YACC_ERROR_RECOVERY)
+	  || msta_error_recovery == LOCAL_ERROR_RECOVERY)
         {
           output_string (output_implementation_file, "          ");
           output_string (output_implementation_file,
@@ -3190,6 +3607,13 @@ output_shift_pop_actions (IR_node_t regular_arc)
         = canonical_rule_right_hand_side_prefix_length (canonical_rule, NULL);
       if (IR_action (canonical_rule) != NULL)
         {
+	  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+	    {
+	      output_string (output_implementation_file, "\n          if (");
+	      output_string (output_implementation_file,
+			     YYERR_STATUS_VARIABLE_NAME);
+	      output_string (output_implementation_file, " < 0)");
+	    }
           output_line (output_implementation_file,
                        IR_position (IR_action (canonical_rule)).line_number,
                        IR_position (IR_action (canonical_rule)).file_name);
@@ -3357,20 +3781,33 @@ output_debug_print_about_saving_token (FILE *f, const char *indent)
 /*
    if (yyfirst_char_ptr(_1) >= yylook_ahead_char + YYLOOK_AHEAD_SIZE)
      yyfirst_char_ptr(_1) = yylook_ahead_char;
+   or
+   if (yyfirst_char_ptr > yylook_ahead_char_end)
+     yyfirst_char_ptr = yylook_ahead_char;
+
 */
 
 static void
 output_check_yyfirst_char_ptr (FILE *f, const char *indent, int flag_1)
 {
+  assert (msta_error_recovery != MINIMAL_ERROR_RECOVERY || !flag_1);
   output_string (f, indent);
   output_string (f, "if (");
   output_string (f, (flag_1
 		     ? YYFIRST_CHAR_PTR_1_VARIABLE_NAME
 		     : YYFIRST_CHAR_PTR_VARIABLE_NAME));
-  output_string (f, " >= ");
-  output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-  output_string (f, " + ");
-  output_string (f, YYLOOK_AHEAD_SIZE_MACRO_NAME);
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, " > ");
+      output_string (f, YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+    }
+  else
+    {
+      output_string (f, " >= ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " + ");
+      output_string (f, YYLOOK_AHEAD_SIZE_MACRO_NAME);
+    }
   output_string (f, ")\n");
   output_string (f, indent);
   output_string (f, "  ");
@@ -3418,6 +3855,251 @@ output_look_ahead_read_without_saving (FILE *f, const char *indent)
 }
 
 static void
+output_saving_token (FILE *f, const char *indent)
+{
+  /* 
+       yylook_ahead_attribute [yyfirst_char_ptr - yylook_ahead] == yylval;
+       *yyfirst_char_ptr++ = yychar;
+       if (yyfirst_char_ptr > yylook_ahead_char_end)
+    or if (yyfirst_char_ptr > yylook_ahead_char + YYLOOK_AHEAD_SIZE)
+         yyfirst_char_ptr = yylook_ahead_size;
+  */
+  output_string (f, indent);
+  output_string (f, YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
+  output_string (f, " [");
+  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+  output_string (f, " - ");
+  output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+  output_string (f, "] = ");
+  output_yylval_variable_name (f);
+  output_string (f, ";\n");
+  output_string (f, indent);
+  output_string (f, "*");
+  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+  output_string (f, "++ = ");
+  output_yychar_variable_name (f);
+  output_string (f, ";\n");
+  output_check_yyfirst_char_ptr (f, indent, FALSE);
+}
+
+static void
+output_increase_tokens_buffer (FILE *f, const char *indent)
+{
+  /* 
+     if (*yyfirst_char_ptr != YYEMPTY
+         && yyincrease_tokens_buffer (&yylook_ahead_char,
+                                      &yylook_ahead_attribute,
+                                      &yylook_ahead_char_end,
+                                      &yyfirst_char_ptr))
+       YYABORT;
+  */
+  output_string (f, indent);
+  output_string (f, "if (*");
+  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+  output_string (f, " != ");
+  output_string (f, YYEMPTY_MACRO_NAME);
+  output_string (f, "\n");
+  output_string (f, indent);
+  output_string (f, "    && ");
+  output_string (f, YYINCREASE_TOKENS_BUFFER_FUNCTION_NAME);
+  output_string (f, " (&");
+  output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+  output_string (f, ",\n");
+  output_string (f, indent);
+  output_string (f, "                                       &");
+  output_string (f, YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
+  output_string (f, ",\n");
+  output_string (f, indent);
+  output_string (f, "                                       &");
+  output_string (f, YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+  output_string (f, ",\n");
+  output_string (f, indent);
+  output_string (f, "                                       &");
+  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+  output_string (f, "))\n  ");
+  output_string (f, indent);
+  output_string (f, YYABORT_MACRO_NAME);
+  output_string (f, ";\n");
+}
+
+static void
+output_restoring_minimal_recovery_state (int best_p, int input_p,
+					 const char *indent)
+{
+  FILE *f = output_implementation_file;
+  /*
+#if YYDEBUG != 0
+  	  if (yydebug)
+  	    fprintf (stderr, "Error recovery (end)  - restoring %d states and %d attributes(, discard %d tokens)\n",
+  		     yy(best)error_state_num - YYERR_RECOVERY_MATCHES, yy(best)error_attribute_num(,
+                     yybest_token_ignored_num));
+#endif
+  	  / * It corresponds .error * /
+  	  memcpy (yystates, yysaved_states,
+  		  yy(best)error_state_num * sizeof (int));
+  	  memcpy (yystate_token_nums, yysaved_state_token_nums,
+  		  yy(best)error_state_num * sizeof (int));
+  	  memcpy (yyattributes, yysaved_attributes,
+  		  yy(best)error_attribute_num * sizeof (yylval));
+	  yystates_top = yystates + yy(best)error_state_num - 1;
+	  yyattributes_top = yyattributes + yy(best)error_attribute_num - 1;
+  	  / * Restore input * /
+  	  yytemp = yycurr_token_num;
+  	  for (yychar_ptr = yyfirst_char_ptr - 1;;)
+  	    {
+  	      if (yychar_ptr < yylook_ahead_char)
+  		yychar_ptr += yylook_ahead_char_end - yylook_ahead_char + 1;
+  	      if (*yychar_ptr == YYEMPTY)
+  		break;
+  	      yycurr_token_num--;
+  	      yyfirst_char_ptr = yychar_ptr;
+  	      yychar_ptr--;
+  	    }
+  */
+  output_string (f, "#if ");
+  output_string (f, YYDEBUG_MACRO_NAME);
+  output_string (f, " != 0\n");
+  output_string (f, indent);
+  output_string (f, "if (");
+  output_yydebug_variable_name (f);
+  output_string (f, ")\n");
+  output_string (f, indent);
+  if (best_p)
+    output_string (f, "  fprintf (stderr, \"Error recovery end - restoring %d states and %d attributes, discard %d tokens\\n\",\n");
+  else
+    output_string (f, "  fprintf (stderr, \"Error recovery - restoring %d states and %d attributes\\n\",\n");
+  output_string (f, indent);
+  output_string (f, "           ");
+  output_string (f, (best_p
+		     ? YYBEST_ERROR_STATE_NUM_VARIABLE_NAME
+		     : YYERROR_STATE_NUM_VARIABLE_NAME));
+  output_string (f, ", ");
+  output_string (f, (best_p
+		     ? YYBEST_ERROR_ATTRIBUTE_NUM_VARIABLE_NAME
+		     : YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME));
+  if (best_p)
+    {
+      output_string (f, ",\n");
+      output_string (f, indent);
+      output_string (f, "           ");
+      output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
+    }
+  output_string (f, ");\n#endif\n");
+  output_string (f, indent);
+  output_string (f, "/* It corresponds .error */\n");
+  output_string (f, indent);
+  output_string (f, "memcpy (");
+  output_string (f, YYSTATES_VARIABLE_NAME);
+  output_string (f, ", ");
+  output_string (f, YYSAVED_STATES_VARIABLE_NAME);
+  output_string (f, ",\n");
+  output_string (f, indent);
+  output_string (f, "        ");
+  output_string (f, (best_p
+		     ? YYBEST_ERROR_STATE_NUM_VARIABLE_NAME
+		     : YYERROR_STATE_NUM_VARIABLE_NAME));
+  output_string (f, " * sizeof (int));\n");
+  output_string (f, indent);
+  output_string (f, "memcpy (");
+  output_string (f, YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+  output_string (f, ", ");
+  output_string (f, YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME);
+  output_string (f, ",\n");
+  output_string (f, indent);
+  output_string (f, "        ");
+  output_string (f, (best_p
+		     ? YYBEST_ERROR_STATE_NUM_VARIABLE_NAME
+		     : YYERROR_STATE_NUM_VARIABLE_NAME));
+  output_string (f, " * sizeof (int));\n");
+  output_string (f, indent);
+  output_string (f, "memcpy (");
+  output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+  output_string (f, ", ");
+  output_string (f, YYSAVED_ATTRIBUTES_VARIABLE_NAME);
+  output_string (f, ",\n");
+  output_string (f, indent);
+  output_string (f, "        ");
+  output_string (f, (best_p
+		     ? YYBEST_ERROR_ATTRIBUTE_NUM_VARIABLE_NAME
+		     : YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME));
+  output_string (f, " * sizeof (yylval));\n");
+  output_string (f, indent);
+  output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, YYSTATES_VARIABLE_NAME);
+  output_string (f, " + ");
+  output_string (f, (best_p
+		     ? YYBEST_ERROR_STATE_NUM_VARIABLE_NAME
+		     : YYERROR_STATE_NUM_VARIABLE_NAME));
+  output_string (f, " - 1;\n");
+  output_string (f, indent);
+  output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+  output_string (f, " + ");
+  output_string (f, (best_p
+		     ? YYBEST_ERROR_ATTRIBUTE_NUM_VARIABLE_NAME
+		     : YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME));
+  output_string (f, " - 1;\n");
+  if (input_p)
+    {
+      output_string (f, indent);
+      output_string (f, "/* Restore input */\n");
+      output_string (f, indent);
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, indent);
+      output_string (f, "for (");
+      output_string (f, YYCHAR_PTR_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " - 1;;)\n");
+      output_string (f, indent);
+      output_string (f, "  {\n");
+      output_string (f, indent);
+      output_string (f, "    if (");
+      output_string (f, YYCHAR_PTR_VARIABLE_NAME);
+      output_string (f, " < ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, ")\n");
+      output_string (f, indent);
+      output_string (f, "      ");
+      output_string (f, YYCHAR_PTR_VARIABLE_NAME);
+      output_string (f, " += ");
+      output_string (f, YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " + 1;\n");
+      output_string (f, indent);
+      output_string (f, "    if (*");
+      output_string (f, YYCHAR_PTR_VARIABLE_NAME);
+      output_string (f, " == ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ")\n");
+      output_string (f, indent);
+      output_string (f, "      break;\n");
+      output_string (f, indent);
+      output_string (f, "    ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, "--;\n");
+      output_string (f, indent);
+      output_string (f, "    ");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYCHAR_PTR_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, indent);
+      output_string (f, "    ");
+      output_string (f, YYCHAR_PTR_VARIABLE_NAME);
+      output_string (f, "--;\n");
+      output_string (f, indent);
+      output_string (f, "  }\n");
+    }
+}
+
+static void
 output_switch (void)
 {
   IR_node_t current_LR_core;
@@ -3454,19 +4136,67 @@ output_switch (void)
             yyerror ("syntax error"); or yyerror ("lexical error");
 yyerrlab:
             ++yynerrs;
+-------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
+	    yyfirst_char_ptr--;
+	    if (yyfirst_char_ptr < yylook_ahead_char)
+	      yyfirst_char_ptr += yylook_ahead_char_end - yylook_ahead_char + 1;
+	    yylook_ahead_attribute [yyfirst_char_ptr - yylook_ahead_char] = yylval;
+	    *yyfirst_char_ptr++ = yychar;
+	    if (yyfirst_char_ptr > yylook_ahead_char_end)
+	      yyfirst_char_ptr = yylook_ahead_char;
+	    if (*yyfirst_char_ptr != YYEMPTY
+		&& yyincrease_saved_tokens_buffer (&yylook_ahead_char,
+			    		           &yylook_ahead_attribute,
+						   &yylook_ahead_char_end,
+						   &yyfirst_char_ptr))
+	      YYABORT;
+#if YYDEBUG != 0
+	    if (yydebug)
+	      fprintf (stderr,
+		       "Error recovery saving token %d (%s)\n",
+		       yychar, YYTOKEN_NAME (yychar));
+#endif
+	    yybest_recovery_cost = YYUNDEFINED_RECOVERY_COST;
+	    if (yyexpand_saved_states_buffer(&yysaved_states,
+	    				       &yysaved_state_token_nums,
+	    				       &yysaved_states_end,
+	    				       yystates_top - yystates + 1))
+	    	YYABORT;
+	    memcpy (yysaved_states, yystates,
+	    	      (yystates_top - yystates + 1) * sizeof (int));
+	    memcpy (yysaved_state_token_nums, yystate_token_nums,
+	    	      (yystates_top - yystates + 1) * sizeof (int));
+	    if (yyexpand_saved_attributes_buffer(&yysaved_attributes,
+	    					   &yysaved_attributes_end,
+	    					   yyattributes_top
+	    					   - yyattributes + 1))
+	    	YYABORT;
+	    memcpy (yysaved_attributes, yyattributes,
+		    (yyattributes_top - yyattributes + 1) * sizeof (yylval));
+#if YYDEBUG != 0
+            if (yydebug)
+              fprintf (stderr, "Error recovery - saving %d states and %d attributes\n",
+                       yystates_top - yystates + 1,
+		       yyattributes_top - yyattributes + 1);
+#endif
+----------------------------------------------------------
 ------- when regular optimization ------------------------
             if (!yypushed [yystate])
               {
                  if (yystates_top >= yystates_end
 -------------- when expand_flag--------------------------------
-                     && yyexpand_states_stack (&yystates, &yystates_end, &yystates_top)
+                     && yyexpand_states_stack (&yystates,
+-------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
+                                               &yystate_token_nums,
+---------------------------------------------------------------
+                                               &yystates_end, &yystates_top)
 ---------------------------------------------------------------
                     )
                    YYABORT;
                  (*++yystates_top) == yystate;
                }
 ----------------------------------------------------------
--------------- if !yacc_error_recovery_flag --------------
+-------------- if msta_error_recovery == LOCAL_ERROR_RECOVERY --------------
              yyerr_states_bound = yystates_top - yystates + 1;
              yyerr_new_try = 0;
              yyerr_look_ahead_chars = YYERR_LOOK_AHEAD_INCREMENT;
@@ -3488,6 +4218,107 @@ yyerrlab:
   output_string (f, ":\n              ++");
   output_string (f, YYNERRS_VARIABLE_NAME);
   output_string (f, ";\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, "              ");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, "--;\n              if (");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " < ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, ")\n                ");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " += ");
+      output_string (f, YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " + 1;\n");
+      output_saving_token (f, "              ");
+      output_increase_tokens_buffer (f, "              ");
+      output_debug_print_about_saving_token (f, "              ");
+      output_string (f, "              ");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYUNDEFINED_RECOVERY_COST_MACRO_NAME);
+      output_string (f, ";\n              if (");
+      output_string (f, YYEXPAND_SAVED_STATES_BUFFER_FUNCTION_NAME);
+      output_string (f, "(&");
+      output_string (f, YYSAVED_STATES_VARIABLE_NAME);
+      output_string (f, ",\n                                               &");
+      output_string (f, YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, ",\n                                               &");
+      output_string (f, YYSAVED_STATES_END_VARIABLE_NAME);
+      output_string (f, ",\n                                               ");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, " + 1))\n");
+      output_string (f, "                ");
+      output_string (f, YYABORT_MACRO_NAME);
+      output_string (f, ";\n              memcpy (");
+      output_string (f, YYSAVED_STATES_VARIABLE_NAME);
+      output_string (f, ", ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, ",\n                      (");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, " + 1) * sizeof (int));\n");
+      output_string (f, "              memcpy (");
+      output_string (f, YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, ", ");
+      output_string (f, YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, ",\n                      (");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, " + 1) * sizeof (int));\n");
+      output_string (f, "              if (");
+      output_string (f, YYEXPAND_SAVED_ATTRIBUTES_BUFFER_FUNCTION_NAME);
+      output_string (f, "(&");
+      output_string (f, YYSAVED_ATTRIBUTES_VARIABLE_NAME);
+      output_string (f, ",\n");
+      output_string
+	(f, "                                                   &");
+      output_string (f, YYSAVED_ATTRIBUTES_END_VARIABLE_NAME);
+      output_string
+	(f, ",\n                                                   ");
+      output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+      output_string
+	(f, "\n                                                   - ");
+      output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+      output_string (f, " + 1))\n");
+      output_string (f, "                ");
+      output_string (f, YYABORT_MACRO_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              memcpy (");
+      output_string (f, YYSAVED_ATTRIBUTES_VARIABLE_NAME);
+      output_string (f, ", ");
+      output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+      output_string (f, ",\n                      (");
+      output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+      output_string (f, " + 1) * sizeof (yylval));\n");
+      output_string (f, "#if ");
+      output_string (f, YYDEBUG_MACRO_NAME);
+      output_string (f, " != 0\n");
+      output_string (f, "              if (");
+      output_yydebug_variable_name (f);
+      output_string (f, ")\n");
+      output_string
+	(f, "                fprintf (stderr, \"Error recovery - saving %d states and %d attributes\\n\",\n");
+      output_string (f, "                         ");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, " + 1,\n");
+      output_string (f, "                         ");
+      output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+      output_string (f, " + 1);\n#endif\n");
+    }
   if (regular_optimization_flag)
     {
       output_string (f, "              if (!");
@@ -3496,34 +4327,10 @@ yyerrlab:
       output_string (f, YYSTATE_VARIABLE_NAME);
       output_string (f, "])\n");
       output_string (f, "                {\n");
-      output_string (f, "                  if (");
-      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
-      output_string (f, " >= ");
-      output_string (f, YYSTATES_END_VARIABLE_NAME);
-      if (expand_flag)
-	{
-	  output_string (f, "\n                      && ");
-	  output_string (f, YYEXPAND_STATES_STACK_FUNCTION_NAME);
-	  output_string (f, "(&");
-	  output_string (f, YYSTATES_VARIABLE_NAME);
-	  output_string (f, ", &");
-	  output_string (f, YYSTATES_END_VARIABLE_NAME);
-	  output_string (f, ", &");
-	  output_string (f, YYSTATES_TOP_VARIABLE_NAME);
-	  output_string (f, ")");
-	}
-      output_string (f, ")\n");
-      output_string (f, "                    ");
-      output_string (f, YYABORT_MACRO_NAME);
-      output_string (f, ";\n");
-      output_string (f, "                  (*++");
-      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
-      output_string (f, ") = ");
-      output_string (f, YYSTATE_VARIABLE_NAME);
-      output_string (f, ";\n");
+      output_state_pushing (expand_flag, "                  ");
       output_string (f, "                }\n");
     }
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       output_string (f, "              ");
       output_string (f, YYERR_STATES_BOUND_VARIABLE_NAME);
@@ -3672,14 +4479,18 @@ yyerrlab:
       output_string (f, "                }\n");
       output_debug_print_about_saving_token (f, "              ");
     }
-  output_string (f, "            }\n");
-  /* if (yyerr_status < YYERR_RECOVERY_MATCHES
--------------- if !yacc_error_recovery_flag --------------
+  if (msta_error_recovery != MINIMAL_ERROR_RECOVERY)
+    output_string (f, "            }\n");
+  /*
+------ if msta_error_recovery != MINIMAL_ERROR_RECOVERY --------------
+     if (yyerr_status < YYERR_RECOVERY_MATCHES
+-------------- if msta_error_recovery == LOCAL_ERROR_RECOVERY --------------
          || yyerr_look_ahead_chars <= 0
---------------------------------------------------------
+----------------------------------------------------------------------------
         )
        {
--------------- if !yacc_error_recovery_flag --------------
+----------------------------------------------------------------------------
+-------------- if msta_error_recovery == LOCAL_ERROR_RECOVERY --------------
              yyerr_popped_error_states++;
              if (yyerr_look_ahead_chars < yyerr_popped_error_states * YYERR_LOOK_AHEAD_INCREMENT)
 ;
@@ -3803,14 +4614,19 @@ yyerrlab:
                    }
                }
 --------------------------------------------------------
+         yytemp = yyabase [yystate];
+-------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
+yynext_error:
+----------------------------------------------------------------------------
          yyerr_status = YYERR_RECOVERY_MATCHES;
+         yytoken_ignored_num = 0;
          for (;;)
            {
              if (
-----------------------------------------
+----------------------- msta_error_recovery == LOCAL_ERROR_RECOVERY -------
                  (yystates_top - yystates < yyerr_states_bound || !yyerr_new_try)
                  &&
------------------------------------------------
+---------------------------------------------------------------------------
                  yytemp != YYNO_ACTION_BASE
                  && yyacheck [yytemp + YYERRCLASS] == yystate
                  && yyaction [yytemp] < <first pop shift action>)
@@ -3818,10 +4634,16 @@ yyerrlab:
                  /* shift on error * /
 #if YYDEBUG != 0
                  if (yydebug)
-                   fprintf (stderr, "state %d, error recovery shifting\
-to state %d\n", yystate, yyaction [yytemp]);
+                   fprintf (stderr, "state %d, error shifting to state %d\n", yystate, yyaction [yytemp + YYERRCLASS]);
 #endif
-                 yystate = yyaction [yytemp];
+                 yystate = yyaction [yytemp + YYERRCLASS];
+----------------------- msta_error_recovery == MINIMAL_ERROR_RECOVERY -------
+		 yyerror_state_num = yystates_top - yystates + 1;
+		 yyerror_attributes_num = yyattributes_top - yyattributes + 1;
+                 yyerror_state = yystate;
+                 yyerror_attribute = yyval;
+                 yyerror_token_num = yystate_token_nums [yystates_top - yystates];
+---------------------------------------------------------------------------
 ------- when regular optimization ------------------------
                  if (yypushed [yystate])
                    {
@@ -3839,13 +4661,17 @@ to state %d\n", yystate, yyaction [yytemp]);
 ------- when regular optimization ------------------------
                    }
 ----------------------------------------------------------
--------------- if !yacc_error_recovery_flag --------------
+-------------- if msta_error_recovery == LOCAL_ERROR_RECOVERY --------------
                  yyerr_states_bound = yystates_top - yystates;
---------------------------------------------------------
+----------------------------------------------------------------------------
                  break;
                }
              if (yystates_top <= yystates)
+-------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
+               break;
+----------------------------------------------------------------------------
                YYABORT;
+----------------------------------------------------------------------------
              yystate = *--yystates_top;
              yytemp = yyabase [yystate];
 ------- when regular optimization ------------------------
@@ -3857,39 +4683,85 @@ to state %d\n", yystate, yyaction [yytemp]);
              yyattributes_top--;
 ----------------------------------------------------------
            }
+-------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
+        if (yystates_top <= yystates
+            && yybest_recovery_cost == YYUNDEFINED_RECOVERY_COST)
+            /* No more error states and no recovery. * /
+            YYABORT;
+        if (yystates_top <= yystates
+            || yycurr_token_num - yyerror_token_num >= yybest_recovery_cost)
+          goto yyrecovery_finish;
+       }
+     else if (yyerr_status < YYERR_RECOVERY_MATCHES)
+       {
+         yytoken_ignored_num += YYERR_RECOVERY_MATCHES - yyerr_status;
+         yyerr_status = YYERR_RECOVERY_MATCHES;
+#if YYDEBUG != 0
+	  if (yydebug)
+	    fprintf (stderr, "Error recovery - restoring %d states and %d attributes\n",
+			 yyerror_state_num, yyerror_attribute_num);
+#endif
+	  /* It corresponds .error * /
+	  memcpy (yystates, yysaved_states,
+	  	      yyerror_state_num * sizeof (int));
+	  memcpy (yystate_token_nums, yysaved_state_token_nums,
+	  	      yyerror_state_num * sizeof (int));
+	  memcpy (yyattributes, yysaved_attributes,
+	  	      yyerror_attribute_num * sizeof (yylval));
+	  yystates_top = yystates + yyerror_state_num - 1;
+	  yyattributes_top = yyattributes + yyerror_attribute_num - 1;
+	  yystate = yyerror_state;
+	  yyval = yyerror_attribute;
+	  if (yypushed [yystate])
+            {
+	      (*++yystates_top) = yystate;
+	      (*++yyattributes_top) = yyval;
+ 	    }
+----------------------------------------------------------------------------
        } 
      else
        {
          if (yychar == YYEOF)
+-------------- if msta_error_recovery != MINIMAL_ERROR_RECOVERY --------------
            YYABORT;
+---------------else----------------------------------------------------------
+           if (yybest_recovery_cost == YYUNDEFINED_RECOVERY_COST)
+             YYABORT;
+           else
+             goto yyrecovery_finish;
+	 yytoken_ignored_num++;
+-----------------------------------------------------------------------------
 #if YYDEBUG != 0
          if (yydebug)
            fprintf (stderr,
                     "state %d, error recovery discards token %d (%s)\n",
                     yystate, yychar, YYTOKEN_NAME(yychar));
 #endif
--------------- if !yacc_error_recovery_flag --------------
+-------------- if msta_error_recovery == LOCAL_ERROR_RECOVERY --------------
          yyerr_look_ahead_chars--;
---------------------------------------------------------
--------------- if scanner  || !yacc_error_recovery_flag ----------------------
+----------------------------------------------------------------------------
+-------------- if scanner  || msta_error_recovery == LOCAL_ERROR_RECOVERY --
          yyprev_char = yychar;
-------------------------------------------------------------------------------
+----------------------------------------------------------------------------
          yychar = YYEMPTY;
        }
      break; */
-  output_string (f, "          if (");
-  output_string (f, YYERR_STATUS_VARIABLE_NAME);
-  output_string (f, " < ");
-  output_string (f, YYERR_RECOVERY_MATCHES_MACRO_NAME);
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery != MINIMAL_ERROR_RECOVERY)
     {
-      output_string (f, " || ");
-      output_string (f, YYERR_LOOK_AHEAD_CHARS_VARIABLE_NAME);
-      output_string (f, " <= 0");
+      output_string (f, "          if (");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " < ");
+      output_string (f, YYERR_RECOVERY_MATCHES_MACRO_NAME);
+      if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
+	{
+	  output_string (f, " || ");
+	  output_string (f, YYERR_LOOK_AHEAD_CHARS_VARIABLE_NAME);
+	  output_string (f, " <= 0");
+	}
+      output_string (f, ")\n");
+      output_string (f, "            {\n");
     }
-  output_string (f, ")\n");
-  output_string (f, "            {\n");
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       output_string (f, "              ");
       output_string (f, YYERR_POPPED_ERROR_STATES_VARIABLE_NAME);
@@ -4172,6 +5044,22 @@ to state %d\n", yystate, yyaction [yytemp]);
       output_string (f, "                }\n");
     }
   output_string (f, "              ");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, ACTION_BASE_VECTOR_NAME);
+  output_string (f, " [");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, "];\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, "            ");
+      output_string (f, YYNEXT_ERROR_LABEL_NAME);
+      output_string (f, ":\n");
+      output_string (f, "              ");
+      output_string (f, YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, " = 0;\n");
+    }
+  output_string (f, "              ");
   output_string (f, YYERR_STATUS_VARIABLE_NAME);
   output_string (f, " = ");
   output_string (f, YYERR_RECOVERY_MATCHES_MACRO_NAME);
@@ -4179,7 +5067,7 @@ to state %d\n", yystate, yyaction [yytemp]);
   output_string (f, "              for (;;)\n");
   output_string (f, "                {\n");
   output_string (f, "                  if (");
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       output_string (f, "(");
       output_string (f, YYSTATES_TOP_VARIABLE_NAME);
@@ -4241,10 +5129,46 @@ to state %d\n", yystate, yyaction [yytemp]);
   output_string (f, YYTEMP_VARIABLE_NAME);
   output_string (f, " + ");
   output_string (f, ERRCLASS_MACRO_NAME);
-  output_string (f, "];\n ");
+  output_string (f, "];\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, "                      ");
+      output_string (f, YYERROR_STATE_NUM_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, " + 1;\n");
+      output_string (f, "                      ");
+      output_string (f, YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+      output_string (f, " + 1;\n");
+      output_string (f, "                      ");
+      output_string (f, YYERROR_STATE_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "                      ");
+      output_string (f, YYERROR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, "];\n");
+      output_string (f, "                      ");
+      output_string (f, YYERROR_ATTRIBUTE_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYVAL_VARIABLE_NAME);
+      output_string (f, ";\n");
+    }
   if (regular_optimization_flag)
     {
-      output_string (f, "                     if (");
+      output_string (f, "                      if (");
       output_string (f, PUSHED_STATE_FLAGS_VECTOR_NAME);
       output_string (f, " [");
       output_string (f, YYSTATE_VARIABLE_NAME);
@@ -4261,7 +5185,7 @@ to state %d\n", yystate, yyaction [yytemp]);
     output_attribute_pushing (TRUE, FALSE, "                     ");
   if (regular_optimization_flag)
     output_string (f, "                        }\n");
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       output_string (f, "                      ");
       output_string (f, YYERR_STATES_BOUND_VARIABLE_NAME);
@@ -4279,7 +5203,8 @@ to state %d\n", yystate, yyaction [yytemp]);
   output_string (f, YYSTATES_VARIABLE_NAME);
   output_string (f, ")\n");
   output_string (f, "                    ");
-  output_string (f, YYABORT_MACRO_NAME);
+  output_string (f, (msta_error_recovery == MINIMAL_ERROR_RECOVERY
+		     ? "break" : YYABORT_MACRO_NAME));
   output_string (f, ";\n");
   output_string (f, "                  ");
   output_string (f, YYSTATE_VARIABLE_NAME);
@@ -4311,6 +5236,77 @@ to state %d\n", yystate, yyaction [yytemp]);
       output_string (f, "];\n");
     }
   output_string (f, "                }\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, "              if (");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " <= ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, "\n                  && ");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, " == ");
+      output_string (f, YYUNDEFINED_RECOVERY_COST_MACRO_NAME);
+      output_string (f, ")\n");
+      output_string
+	(f, "                /* No more error states and no recovery. */");
+      output_string (f, "\n                ");
+      output_string (f, YYABORT_MACRO_NAME);
+      output_string (f, ";\n              if (");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " <= ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, "\n                  || ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYERROR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, " >= ");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, ")\n                goto ");
+      output_string (f, YYRECOVERY_FINISH_LABEL_NAME);
+      output_string (f, ";\n");
+      output_string (f, "            }\n");
+      output_string (f, "          else if (");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " < ");
+      output_string (f, YYERR_RECOVERY_MATCHES_MACRO_NAME);
+      output_string (f, ")\n");
+      output_string (f, "            {\n");
+      output_string (f, "              ");
+      output_string (f, YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, " += ");
+      output_string (f, YYERR_RECOVERY_MATCHES_MACRO_NAME);
+      output_string (f, " - ");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, ";\n              ");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYERR_RECOVERY_MATCHES_MACRO_NAME);
+      output_string (f, ";\n");
+      output_restoring_minimal_recovery_state (FALSE, FALSE, "              ");
+      output_string (f, "              ");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYERROR_STATE_VARIABLE_NAME);
+      output_string (f, ";\n              ");
+      output_string (f, YYVAL_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYERROR_ATTRIBUTE_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              if (");
+      output_string (f, PUSHED_STATE_FLAGS_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, "])\n");
+      output_string (f, "                {\n");
+      output_string (f, "                  /* We don't need to check stack ends */\n");
+      output_state_pushing (FALSE, "                  ");
+      output_string (f, "                  (*++");
+      output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+      output_string (f, ") = ");
+      output_string (f, YYVAL_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "                }\n");
+    }
   output_string (f, "            }\n");
   output_string (f, "          else\n");
   output_string (f, "            {\n");
@@ -4320,7 +5316,23 @@ to state %d\n", yystate, yyaction [yytemp]);
   output_string (f, YYEOF_MACRO_NAME);
   output_string (f, ")\n");
   output_string (f, "                ");
-  output_string (f, YYABORT_MACRO_NAME);
+  if (msta_error_recovery != MINIMAL_ERROR_RECOVERY)
+    output_string (f, YYABORT_MACRO_NAME);
+  else
+    {
+      output_string (f, "if (");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, " == ");
+      output_string (f, YYUNDEFINED_RECOVERY_COST_MACRO_NAME);
+      output_string (f, ")\n                  ");
+      output_string (f, YYABORT_MACRO_NAME);
+      output_string (f, ";\n                else\n");
+      output_string (f, "                  goto ");
+      output_string (f, YYRECOVERY_FINISH_LABEL_NAME);
+      output_string (f, ";\n              ");
+      output_string (f, YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, "++");
+    }
   output_string (f, ";\n");
   output_string (f, "#if ");
   output_string (f, YYDEBUG_MACRO_NAME);
@@ -4341,13 +5353,15 @@ to state %d\n", yystate, yyaction [yytemp]);
   output_string (f, " (");
   output_yychar_variable_name (f);
   output_string (f, "));\n#endif\n");
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       output_string (f, "              ");
       output_string (f, YYERR_LOOK_AHEAD_CHARS_VARIABLE_NAME);
       output_string (f, "--;\n");
     }
-  if (IR_scanner_flag (description) || !yacc_error_recovery_flag)
+  if ((IR_scanner_flag (description)
+       && msta_error_recovery == YACC_ERROR_RECOVERY)
+      || msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       output_string (f, "              ");
       output_string (f, YYPREV_CHAR_VARIABLE_NAME);
@@ -4363,11 +5377,30 @@ to state %d\n", yystate, yyaction [yytemp]);
   output_string (f, "            }\n");
   output_string (f, "          break;\n");
   /*  case YYFINAL:
+      ---------------------- minimal error recovery ---------------------
+        if (yyerrstatus >= 0)
+	  {
+	    yychar = YYEMPTY;
+            goto yyerr_recovery_try_end;
+          }
+      -------------------------------------------------------------------
         YYACCEPT;
         break; */
   output_string (f, "        case ");
   output_string (f, FINAL_STATE_VALUE_MACRO_NAME);
   output_string (f, ":\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_string (f, "          if (");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " >= 0)\n            {\n              ");
+      output_yychar_variable_name (f);
+      output_string (f, " = ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ";\n              goto ");
+      output_string (f, YYERR_RECOVERY_TRY_END_LABEL_NAME);
+      output_string (f, ";\n            }\n");
+    }
   output_string (f, "          ");
   output_string (f, YYACCEPT_MACRO_NAME);
   output_string (f, ";\n");
@@ -4466,12 +5499,14 @@ to state %d\n", yystate, yyaction [yytemp]);
             output_pushing (last_LR_set,
                             TRUE, regular_optimization_flag || expand_flag,
 			    TRUE);
-            /*-------------- if scanner || !yacc_error_recovery_flag -----
+            /*-- if scanner || msta_error_recovery == LOCAL_ERROR_RECOVERY -
                        yyprev_char = yychar;
-              ------------------------------------------------------------
+              --------------------------------------------------------------
                        yychar=YYEMPTY;
                        break; */
-            if (IR_scanner_flag (description) || !yacc_error_recovery_flag)
+            if ((IR_scanner_flag (description)
+		 && msta_error_recovery == YACC_ERROR_RECOVERY)
+		|| msta_error_recovery == LOCAL_ERROR_RECOVERY)
               {
                 output_string (f, "          ");
                 output_string (f, YYPREV_CHAR_VARIABLE_NAME);
@@ -4544,6 +5579,14 @@ to state %d\n", yystate, yyaction [yytemp]);
           output_string (f, " */\n");
           if (IR_action (canonical_rule) != NULL)
             {
+	      if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+		{
+		  output_string (output_implementation_file,
+				 "\n          if (");
+		  output_string (output_implementation_file,
+				 YYERR_STATUS_VARIABLE_NAME);
+		  output_string (output_implementation_file, " < 0)");
+		}
               output_line
                 (f, IR_position (IR_action (canonical_rule)).line_number,
                  IR_position (IR_action (canonical_rule)).file_name);
@@ -4641,7 +5684,9 @@ output_definition_inside_yyparse (void)
   output_string (output_implementation_file, ";\n");
   if (!IR_scanner_flag (description))
     output_inside_outside_definitions (output_implementation_file, TRUE);
-  if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+  if ((real_look_ahead_number > 2
+       && msta_error_recovery == YACC_ERROR_RECOVERY)
+      || msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       /* Definition of `yyfirst_char_ptr_1'. */
       output_string (output_implementation_file, "  int *");
@@ -4649,7 +5694,9 @@ output_definition_inside_yyparse (void)
 		     YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
       output_string (output_implementation_file, ";\n");
     }
-  if (IR_scanner_flag (description) || !yacc_error_recovery_flag)
+  if ((IR_scanner_flag (description)
+       && msta_error_recovery == YACC_ERROR_RECOVERY)
+      || msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       /* Definition of `yyprev_char'. */
       output_string (output_implementation_file, "  int ");
@@ -4661,7 +5708,7 @@ output_definition_inside_yyparse (void)
   output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
   output_string (output_implementation_file, ";\n");
   output_definition_yytemp_variable ();
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       /* Definition of `yytemp1'. */
       output_string (output_implementation_file, "  int ");
@@ -4705,7 +5752,7 @@ output_definition_inside_yyparse (void)
   output_string (output_implementation_file, "  int *");
   output_string (output_implementation_file, YYSTATES_TOP_VARIABLE_NAME);
   output_string (output_implementation_file, ";\n");
-  if (!yacc_error_recovery_flag)
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       /* Definition of `yyerr_states_bound'. */
       output_string (output_implementation_file, "  int ");
@@ -4736,67 +5783,316 @@ output_definition_inside_yyparse (void)
   output_string (output_implementation_file, " *");
   output_string (output_implementation_file, YYATTRIBUTES_TOP_VARIABLE_NAME);
   output_string (output_implementation_file, ";\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      /* Definition of `yysaved_states_end'. */
+      output_string (output_implementation_file, "  int *");
+      output_string (output_implementation_file,
+		     YYSAVED_STATES_END_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yysaved_attributes_end'. */
+      output_string (output_implementation_file, "  ");
+      output_string (output_implementation_file, YYSTYPE_MACRO_NAME);
+      output_string (output_implementation_file, " *");
+      output_string (output_implementation_file,
+		     YYSAVED_ATTRIBUTES_END_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yylook_ahead_char_end'. */
+      output_string (output_implementation_file, "  int *");
+      output_string (output_implementation_file,
+		     YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yychar_ptr'. */
+      output_string (output_implementation_file, "  int *");
+      output_string (output_implementation_file, YYCHAR_PTR_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yyerror_state, yybest_error_state'. */
+      output_string (output_implementation_file, "  int ");
+      output_string (output_implementation_file, YYERROR_STATE_VARIABLE_NAME);
+      output_string (output_implementation_file, ", ");
+      output_string (output_implementation_file,
+		     YYBEST_ERROR_STATE_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yyerror_attribute, yybest_error_attribute'. */
+      output_string (output_implementation_file, "  ");
+      output_string (output_implementation_file, YYSTYPE_MACRO_NAME);
+      output_string (output_implementation_file, " ");
+      output_string (output_implementation_file,
+		     YYERROR_ATTRIBUTE_VARIABLE_NAME);
+      output_string (output_implementation_file, ", ");
+      output_string (output_implementation_file,
+		     YYBEST_ERROR_ATTRIBUTE_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yyrecovery_cost, yybest_recovery_cost'. */
+      output_string (output_implementation_file, "  int ");
+      output_string (output_implementation_file,
+		     YYRECOVERY_COST_VARIABLE_NAME);
+      output_string (output_implementation_file, ", ");
+      output_string (output_implementation_file,
+		     YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yyerror_state_num, yybest_error_state_num'. */
+      output_string (output_implementation_file, "  int ");
+      output_string (output_implementation_file,
+		     YYERROR_STATE_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ", ");
+      output_string (output_implementation_file,
+		     YYBEST_ERROR_STATE_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yyerror_attribute_num, yybest_error_attribute_num'. */
+      output_string (output_implementation_file, "  int ");
+      output_string (output_implementation_file,
+		     YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ", ");
+      output_string (output_implementation_file,
+		     YYBEST_ERROR_ATTRIBUTE_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yytoken_ignored_num, yybest_token_ignored_num'. */
+      output_string (output_implementation_file, "  int ");
+      output_string (output_implementation_file,
+		     YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ", ");
+      output_string (output_implementation_file,
+		     YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+      /* Definition of `yycurr_token_num, yyerror_token_num'. */
+      output_string (output_implementation_file, "  int ");
+      output_string (output_implementation_file,
+		     YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ", ");
+      output_string (output_implementation_file,
+		     YYERROR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (output_implementation_file, ";\n");
+    }
   output_char ('\n', output_implementation_file);
 }
-
 
 static void
 output_code_before_switch (void)
 {
   int i;
+  FILE *f = output_implementation_file;
 
   /*
      #if YYDEBUG != 0
         if (yydebug)
           fprintf(stderr, "Entering state %d\n", yystate);
      #endif */
-  output_string (output_implementation_file, "#if ");
-  output_string (output_implementation_file, YYDEBUG_MACRO_NAME);
-  output_string (output_implementation_file, " != 0\n");
-  output_string (output_implementation_file, "      if (");
-  output_yydebug_variable_name (output_implementation_file);
-  output_string (output_implementation_file,
-                 ")\n        fprintf (stderr, \"Entering state %d\\n\", ");
-  output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-  output_string (output_implementation_file, ");\n");
-  output_string (output_implementation_file, "#endif\n");
+  output_string (f, "#if ");
+  output_string (f, YYDEBUG_MACRO_NAME);
+  output_string (f, " != 0\n");
+  output_string (f, "      if (");
+  output_yydebug_variable_name (f);
+  output_string (f, ")\n        fprintf (stderr, \"Entering state %d\\n\", ");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, ");\n#endif\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      /*
+        if (yyerrored [yystate])
+	  yystate_token_nums [yystates_top - yystates] = yycurr_token_num;
+        if (yyerr_status == 0
+  	  || (yyerr_status > 0 && (yybest_recovery_cost
+  				   <= yycurr_token_num - yyerror_token_num)))
+  	{
+        yyerr_recovery_try_end:
+  	  / * end of recovery try * /
+  	  if (yybest_recovery_cost > yycurr_token_num - yyerror_token_num)
+  	    {
+  	      / * So far it is the best * /
+  	      yybest_error_state = yyerror_state;
+  	      yybest_error_attribute = yyerror_attribute;
+  	      yybest_recovery_cost = yycurr_token_num - yyerror_token_num;
+  	      yybest_error_state_num = yyerror_state_num;
+  	      yybest_error_attribute_num = yyerror_attribute_num;
+  	      yybest_token_ignored_num = yytoken_ignored_num;
+#if YYDEBUG != 0
+  	      if (yydebug)
+  		fprintf (stderr, "Error recovery - the best recovery found with %d cost and %d rejected tokens\n",
+  			 yybest_recovery_cost - YYERR_RECOVERY_MATCHES + yyerr_status, yytoken_ignored_num);
+#endif
+  	    }
+#if YYDEBUG != 0
+  	  if (yydebug)
+  	    fprintf (stderr, "Error recovery - restoring %d states and %d attributes\n",
+  		     yyerror_state_num, yyerror_attribute_num);
+#endif
+  	  / * It corresponds .error * /
+  	  memcpy (yystates, yysaved_states,
+  		  yyerror_state_num * sizeof (int));
+  	  memcpy (yystate_token_nums, yysaved_state_token_nums,
+  		  yyerror_state_num * sizeof (int));
+  	  memcpy (yyattributes, yysaved_attributes,
+  		  yyerror_attribute_num * sizeof (yylval));
+	  yystates_top = yystates + yyerror_state_num - 1;
+	  yyattributes_top = yyattributes + yyerror_attribute_num - 1;
+  	  / * Restore input * /
+  	  yytemp = yycurr_token_num;
+  	  for (yychar_ptr = yyfirst_char_ptr - 1;;)
+  	    {
+  	      if (yychar_ptr < yylook_ahead_char)
+  		yychar_ptr += yylook_ahead_char_end - yylook_ahead_char + 1;
+  	      if (*yychar_ptr == YYEMPTY)
+  		break;
+  	      yycurr_token_num--;
+  	      yyfirst_char_ptr = yychar_ptr;
+  	      yychar_ptr--;
+  	    }
+#if YYDEBUG != 0
+  	  if (yydebug)
+  	    fprintf (stderr, "Error recovery - restoring %d saved tokens\n",
+  		     yytemp - yycurr_token_num);
+#endif
+  	  
+  	  yytemp = YYNO_ACTION_BASE; / * to pop error * /
+  	  goto yynext_error;
+    	}
+      */
+      output_string (f, "      if (");
+      output_string (f, ERRORED_STATE_FLAGS_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, "])\n        ");
+      output_string (f, YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYSTATES_VARIABLE_NAME);
+      output_string (f, "] = ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "      if (");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " == 0\n");
+      output_string (f, "          || (");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " > 0 && (");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, "\n");
+      output_string (f, "                                   <= ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYERROR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, ")))\n");
+      output_string (f, "        {\n        ");
+      output_string (f, YYERR_RECOVERY_TRY_END_LABEL_NAME);
+      output_string (f, ":\n          /* end of recovery try */\n");
+      output_string (f, "          if (");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, " > ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYERROR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, ")\n");
+      output_string (f, "            {\n");
+      output_string (f, "              /* So far it is the best */\n");
+      output_string (f, "              ");
+      output_string (f, YYBEST_ERROR_STATE_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYERROR_STATE_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              ");
+      output_string (f, YYBEST_ERROR_ATTRIBUTE_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYERROR_ATTRIBUTE_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              ");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYERROR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              ");
+      output_string (f, YYBEST_ERROR_STATE_NUM_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYERROR_STATE_NUM_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              ");
+      output_string (f, YYBEST_ERROR_ATTRIBUTE_NUM_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              ");
+      output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "#if ");
+      output_string (f, YYDEBUG_MACRO_NAME);
+      output_string (f, " != 0\n              ");
+      output_string (f, "if (");
+      output_yydebug_variable_name (f);
+      output_string (f, ")\n                ");
+      output_string (f, "fprintf (stderr, \"Error recovery - the best recovery found with %d cost and %d rejected tokens\\n\",\n");
+      output_string (f, "                         ");
+      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYERR_RECOVERY_MATCHES_MACRO_NAME);
+      output_string (f, " + ");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, ", ");
+      output_string (f, YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, ");\n#endif\n            }\n");
+      output_restoring_minimal_recovery_state (FALSE, TRUE, "          ");
+      output_string (f, "\n#if ");
+      output_string (f, YYDEBUG_MACRO_NAME);
+      output_string (f, " != 0\n");
+      output_string (f, "          if (");
+      output_yydebug_variable_name (f);
+      output_string (f, ")\n            fprintf (stderr, \"Error recovery - restoring %d saved tokens\\n\",\n");
+      output_string (f, "                     ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, ");\n#endif\n");
+      output_string (f, "          ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, NO_ACTION_BASE_MACRO_NAME);
+      output_string (f, ";\n");
+      output_string (f, "          goto ");
+      output_string (f, YYNEXT_ERROR_LABEL_NAME);
+      output_string (f,";\n");
+      output_string (f, "        }\n");
+    }
   /* `yytemp = yyabase[yystate];' */
-  output_string (output_implementation_file, "      ");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, ACTION_BASE_VECTOR_NAME);
-  output_string (output_implementation_file, " [");
-  output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-  output_string (output_implementation_file, "];\n");
+  output_string (f, "      ");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, ACTION_BASE_VECTOR_NAME);
+  output_string (f, " [");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, "];\n");
   /*
      if (yytemp == YYNO_ACTION_BASE)
        yytemp = yyadefault [yystate];
    */
-  output_string (output_implementation_file, "      if (");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, " == ");
-  output_string (output_implementation_file, NO_ACTION_BASE_MACRO_NAME);
-  output_string (output_implementation_file, ")\n");
-  output_string (output_implementation_file, "        ");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, ACTION_DEFAULT_VECTOR_NAME);
-  output_string (output_implementation_file, " [");
-  output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-  output_string (output_implementation_file, "];\n");
+  output_string (f, "      if (");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, " == ");
+  output_string (f, NO_ACTION_BASE_MACRO_NAME);
+  output_string (f, ")\n");
+  output_string (f, "        ");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, ACTION_DEFAULT_VECTOR_NAME);
+  output_string (f, " [");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, "];\n");
   /* 
      else
        {
          if (yychar == YYEMPTY)
            {
    */
-  output_string (output_implementation_file, "      else\n        {\n");
-  output_string (output_implementation_file, "          if (");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, " == ");
-  output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-  output_string (output_implementation_file, ")\n            {\n");
-  if (!yacc_error_recovery_flag)
+  output_string (f, "      else\n        {\n");
+  output_string (f, "          if (");
+  output_yychar_variable_name (f);
+  output_string (f, " == ");
+  output_string (f, YYEMPTY_MACRO_NAME);
+  output_string (f, ")\n            {\n");
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
       /*
 #ifdef YYERR_RECOVERY_END
@@ -4804,84 +6100,108 @@ output_code_before_switch (void)
                YYERR_RECOVERY_END ();
 #endif
       */
-      output_string (output_implementation_file, "#ifdef ");
-      output_string (output_implementation_file,
-                     YYERR_RECOVERY_END_MACRO_NAME);
-      output_string (output_implementation_file, "\n              if (");
-      output_string (output_implementation_file, YYERR_STATUS_VARIABLE_NAME);
-      output_string (output_implementation_file, " == 0)\n");
-      output_string (output_implementation_file, "                ");
-      output_string (output_implementation_file,
-                     YYERR_RECOVERY_END_MACRO_NAME);
-      output_string (output_implementation_file, " ();\n");
-      output_string (output_implementation_file, "#endif\n\n");
+      output_string (f, "#ifdef ");
+      output_string (f, YYERR_RECOVERY_END_MACRO_NAME);
+      output_string (f, "\n              if (");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " == 0)\n");
+      output_string (f, "                ");
+      output_string (f, YYERR_RECOVERY_END_MACRO_NAME);
+      output_string (f, " ();\n");
+      output_string (f, "#endif\n\n");
     }
-  if (real_look_ahead_number >= 2 || !yacc_error_recovery_flag)
+  if (real_look_ahead_number >= 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       /* `if (yylook_ahead_char == YYEMPTY)'
          or `if (*yyfirst_char_ptr == YYEMPTY)' */
-      output_string (output_implementation_file, "              if (");
-      if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+      output_string (f, "              if (");
+      if (real_look_ahead_number > 2
+	  || msta_error_recovery != YACC_ERROR_RECOVERY)
 	{
-	  output_string (output_implementation_file, "*");
-	  output_string (output_implementation_file,
-			 YYFIRST_CHAR_PTR_VARIABLE_NAME);
+	  output_string (f, "*");
+	  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
 	}
       else
-	output_string (output_implementation_file,
-		       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-      output_string (output_implementation_file, " == ");
-      output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-      output_string (output_implementation_file, ")\n                {\n");
+	output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " == ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ")\n                {\n");
     }
   /* `yychar = yylex ();'
      or  `yyschar = yyslex ();'*/
-  if (real_look_ahead_number >= 2 || !yacc_error_recovery_flag)
-    output_string (output_implementation_file, "    ");
-  output_string (output_implementation_file, "              ");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, " = ");
-  output_yylex_function_name (output_implementation_file);
-  output_string (output_implementation_file, " ();\n");
+  if (real_look_ahead_number >= 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
+    output_string (f, "    ");
+  output_string (f, "              ");
+  output_yychar_variable_name (f);
+  output_string (f, " = ");
+  output_yylex_function_name (f);
+  output_string (f, " ();\n");
   /* #if YYDEBUG != 0
         if (yydebug)
           fprintf(stderr, "Reading a token %d (%s)\n",
                   yychar, YYTOKEN_NAME (yychar));
      #endif */
-  output_string (output_implementation_file, "#if ");
-  output_string (output_implementation_file, YYDEBUG_MACRO_NAME);
-  output_string (output_implementation_file, " != 0\n");
-  if (real_look_ahead_number >= 2 || !yacc_error_recovery_flag)
-    output_string (output_implementation_file, "    ");
-  output_string (output_implementation_file, "              if (");
-  output_yydebug_variable_name (output_implementation_file);
-  output_string (output_implementation_file, ")\n");
-  if (real_look_ahead_number >= 2 || !yacc_error_recovery_flag)
-    output_string (output_implementation_file, "    ");
+  output_string (f, "#if ");
+  output_string (f, YYDEBUG_MACRO_NAME);
+  output_string (f, " != 0\n");
+  if (real_look_ahead_number >= 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
+    output_string (f, "    ");
+  output_string (f, "              if (");
+  output_yydebug_variable_name (f);
+  output_string (f, ")\n");
+  if (real_look_ahead_number >= 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
+    output_string (f, "    ");
   output_string
-    (output_implementation_file,
-     "                fprintf (stderr, \"Reading a token %d (%s)\\n\",\n");
-  if (real_look_ahead_number >= 2 || !yacc_error_recovery_flag)
-    output_string (output_implementation_file, "    ");
-  output_string (output_implementation_file, "                         ");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, ", ");
-  output_string (output_implementation_file, YYTOKEN_NAME_MACRO_NAME);
-  output_string (output_implementation_file, " (");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, "));\n");
-  output_string (output_implementation_file, "#endif\n");
-  if (!yacc_error_recovery_flag)
+    (f, "                fprintf (stderr, \"Reading a token %d (%s)\\n\",\n");
+  if (real_look_ahead_number >= 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
+     output_string (f, "    ");
+  output_string (f, "                         ");
+  output_yychar_variable_name (f);
+  output_string (f, ", ");
+  output_string (f, YYTOKEN_NAME_MACRO_NAME);
+  output_string (f, " (");
+  output_yychar_variable_name (f);
+  output_string (f, "));\n");
+  output_string (f, "#endif\n");
+  if (msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       /* 
 	 if (yyerr_status > 0)
 	   {
 	     yylook_ahead_attribute [yyfirst_char_ptr - yylook_ahead] == yylval;
 	     *yyfirst_char_ptr++ = yychar;
-	     if (yyfirst_char_ptr >= yylook_ahead_char_ptr + YYLOOK_AHEAD_SIZE)
+	     if (yyfirst_char_ptr > yylook_ahead_char_end)
+	  or if (yyfirst_char_ptr > yylook_ahead_char + YYLOOK_AHEAD_SIZE)
 	       yyfirst_char_ptr = yylook_ahead_size;
+      */
+      output_string (f, "                  if (");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " > 0)\n");
+      output_string (f, "                    {\n");
+      output_saving_token (f, "                      ");
+    }
+  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
+    {
+      /* 
              ???? testing on expansion here.
 	     *yyfirst_char_ptr = YYEMPTY;
+      */
+      output_string (f, "                      *");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ";\n");
+    }
+  else if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    output_increase_tokens_buffer (f, "                      ");
+  if (msta_error_recovery != YACC_ERROR_RECOVERY)
+    {
+      /* 
 #if YYDEBUG != 0
              if (yydebug)
                fprintf (stderr,
@@ -4890,93 +6210,61 @@ output_code_before_switch (void)
 #endif
 	   }
       */
-      output_string (output_implementation_file, "                  if (");
-      output_string (output_implementation_file, YYERR_STATUS_VARIABLE_NAME);
-      output_string (output_implementation_file, " > 0)\n");
-      output_string (output_implementation_file, "                    {\n");
-      output_string (output_implementation_file, "                      ");
-      output_string (output_implementation_file,
-		     YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
-      output_string (output_implementation_file, " [");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_VARIABLE_NAME);
-      output_string (output_implementation_file, " - ");
-      output_string (output_implementation_file,
-		     YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-      output_string (output_implementation_file, "] = ");
-      output_yylval_variable_name (output_implementation_file);
-      output_string (output_implementation_file, ";\n");
-      output_string (output_implementation_file, "                      *");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_VARIABLE_NAME);
-      output_string (output_implementation_file, "++ = ");
-      output_yychar_variable_name (output_implementation_file);
-      output_string (output_implementation_file, ";\n");
-      output_check_yyfirst_char_ptr (output_implementation_file,
-				     "                      ", FALSE);
-      output_string (output_implementation_file, "                      *");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-      output_string (output_implementation_file, ";\n");
-      output_debug_print_about_saving_token (output_implementation_file,
-					     "                      ");
-      output_string (output_implementation_file, "                    }\n");
+      output_debug_print_about_saving_token (f, "                      ");
+      output_string (f, "                    }\n");
     }
-  if (real_look_ahead_number >= 2 || !yacc_error_recovery_flag)
+  if (real_look_ahead_number >= 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       /* }...else...{ */
-      output_string (output_implementation_file, "                }\n");
-      output_string (output_implementation_file, "              else\n");
-      output_string (output_implementation_file, "                {\n");
+      output_string (f, "                }\n");
+      output_string (f, "              else\n");
+      output_string (f, "                {\n");
       /* `yychar = yylook_ahead_char;' or `yychar = *yyfirst_char_ptr;' */
-      output_string (output_implementation_file, "                  ");
-      output_yychar_variable_name (output_implementation_file);
-      output_string (output_implementation_file, " = ");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-	output_string (output_implementation_file,
-		       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "                  ");
+      output_yychar_variable_name (f);
+      output_string (f, " = ");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+	output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
 	{
-	  output_string (output_implementation_file, "*");
-	  output_string (output_implementation_file,
-			 YYFIRST_CHAR_PTR_VARIABLE_NAME);
+	  output_string (f, "*");
+	  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
 	}
-      output_string (output_implementation_file, ";\n");
+      output_string (f, ";\n");
       /* `yylval = yylook_ahead_attribute;'
          or `yylval = yylook_ahead_attribute [yyfirst_char_ptr - yylook_ahead_char];' */
-      output_string (output_implementation_file, "                  ");
-      output_yylval_variable_name (output_implementation_file);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file,
-                     YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file, ";\n");
+      output_string (f, "                  ");
+      output_yylval_variable_name (f);
+      output_string (f, " = ");
+      output_string (f, YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, ";\n");
       else
 	{
-	  output_string (output_implementation_file, " [");
-	  output_string (output_implementation_file,
-			 YYFIRST_CHAR_PTR_VARIABLE_NAME);
-	  output_string (output_implementation_file, " - ");
-	  output_string (output_implementation_file,
-			 YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-	  output_string (output_implementation_file, "];\n");
+	  output_string (f, " [");
+	  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+	  output_string (f, " - ");
+	  output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+	  output_string (f, "];\n");
 	}
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
         {
           /* `yylook_ahead_char = YYEMPTY;' */
-          output_string (output_implementation_file, "                  ");
-          output_string (output_implementation_file,
-                         YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-          output_string (output_implementation_file, " = ");
-          output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-          output_string (output_implementation_file, ";\n");
+          output_string (f, "                  ");
+          output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+          output_string (f, " = ");
+          output_string (f, YYEMPTY_MACRO_NAME);
+          output_string (f, ";\n");
         }
       else
         {
           /*
 	     if (yyerr_status <= 0)
+	  or if (yyerr_status < 0)
                *yyfirst_char_ptr++ = YYEMPTY;
 	     else
                {
@@ -4989,42 +6277,45 @@ output_code_before_switch (void)
 #endif
                }
 	     if (yyfirst_char_ptr >= yylook_ahead_char + YYLOOK_AHEAD_SIZE)
+	  or if (yyfirst_char_ptr > yylook_ahead_char_end)
 	       yyfirst_char_ptr = yylook_ahead_char;
 	   */
-	  output_string (output_implementation_file, "                  if (");
-	  output_string (output_implementation_file,
-			 YYERR_STATUS_VARIABLE_NAME);
-	  output_string (output_implementation_file, " <= 0)\n");
-	  output_string (output_implementation_file, "                    *");
-	  output_string (output_implementation_file,
-			 YYFIRST_CHAR_PTR_VARIABLE_NAME);
-          output_string (output_implementation_file, "++ = ");
-          output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-          output_string (output_implementation_file, ";\n");
-          output_string (output_implementation_file,
-			 "                  else\n");
-          output_string (output_implementation_file,
-			 "                    {\n");
-	  output_string (output_implementation_file, "                      ");
-	  output_string (output_implementation_file,
-			 YYFIRST_CHAR_PTR_VARIABLE_NAME);
-          output_string (output_implementation_file, "++;\n");
-	  output_debug_print_about_saving_token (output_implementation_file,
-						 "                      ");
-          output_string (output_implementation_file,
-			 "                    }\n");
-	  output_check_yyfirst_char_ptr (output_implementation_file,
-					 "                  ", FALSE);
+	  output_string (f, "                  if (");
+	  output_string (f, YYERR_STATUS_VARIABLE_NAME);
+	  if (msta_error_recovery == LOCAL_ERROR_RECOVERY)
+	    output_string (f, " <= 0)\n");
+	  else
+	    output_string (f, " < 0)\n");
+	  output_string (f, "                    *");
+	  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+          output_string (f, "++ = ");
+          output_string (f, YYEMPTY_MACRO_NAME);
+          output_string (f, ";\n");
+          output_string (f, "                  else\n");
+          output_string (f, "                    {\n");
+	  output_string (f, "                      ");
+	  output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+          output_string (f, "++;\n");
+	  output_debug_print_about_saving_token (f, "                      ");
+          output_string (f, "                    }\n");
+	  output_check_yyfirst_char_ptr (f, "                  ", FALSE);
         }
-      output_string (output_implementation_file, "                }\n");
+      output_string (f, "                }\n");
     }
-  output_string (output_implementation_file, "            }\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      /* yycurr_token_num++; */
+      output_string (f, "              ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, "++;\n");
+    }
+  output_string (f, "            }\n");
   /* #if YYDEBUG != 0
        if (yydebug)
          {
            fprintf (stderr, "Now input is at %d (%s)",
 	            yychar, YYTOKEN_NAME (yychar));
----------------------- la > 2 || !yacc_error_recovery_flag--------------
+------- la > 2 || msta_error_recovery == LOCAL_ERROR_RECOVERY--------------
            for (yyfirst_char_ptr_1 = yyfirst_char_ptr; *yyfirst_char_ptr_1 != YYEMPTY;)
 	     {
 	       fprintf (stderr, " %d (%s)", *yyfirst_char_ptr_1,
@@ -5041,84 +6332,69 @@ output_code_before_switch (void)
 	   fprintf (stderr, "\n");
          }
      #endif */
-  output_string (output_implementation_file, "#if ");
-  output_string (output_implementation_file, YYDEBUG_MACRO_NAME);
-  output_string (output_implementation_file, " != 0\n");
-  output_string (output_implementation_file, "          if (");
-  output_yydebug_variable_name (output_implementation_file);
-  output_string (output_implementation_file, ")\n");
-  output_string (output_implementation_file, "            {\n");
-  output_string (output_implementation_file, "              ");
-  output_string (output_implementation_file,
-                 "fprintf (stderr, \"Now input is at %d (%s)\",\n");
-  output_string (output_implementation_file, "                       ");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, ", ");
-  output_string (output_implementation_file, YYTOKEN_NAME_MACRO_NAME);
-  output_string (output_implementation_file, " (");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, "));\n");
-  if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+  output_string (f, "#if ");
+  output_string (f, YYDEBUG_MACRO_NAME);
+  output_string (f, " != 0\n");
+  output_string (f, "          if (");
+  output_yydebug_variable_name (f);
+  output_string (f, ")\n");
+  output_string (f, "            {\n");
+  output_string (f, "              ");
+  output_string (f, "fprintf (stderr, \"Now input is at %d (%s)\",\n");
+  output_string (f, "                       ");
+  output_yychar_variable_name (f);
+  output_string (f, ", ");
+  output_string (f, YYTOKEN_NAME_MACRO_NAME);
+  output_string (f, " (");
+  output_yychar_variable_name (f);
+  output_string (f, "));\n");
+  if ((real_look_ahead_number > 2
+       && msta_error_recovery == YACC_ERROR_RECOVERY)
+      || msta_error_recovery == LOCAL_ERROR_RECOVERY)
     {
-      output_string (output_implementation_file,
-		     "              for (");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_VARIABLE_NAME);
-      output_string (output_implementation_file, "; *");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-      output_string (output_implementation_file, " != ");
-      output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-      output_string (output_implementation_file, ";)\n");
-      output_string (output_implementation_file, "                {\n");
-      output_string (output_implementation_file,
-		     "                  fprintf (stderr, \" %d (%s)\", *");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-      output_string (output_implementation_file, ",\n");
-      output_string (output_implementation_file,
-		     "                           ");
-      output_string (output_implementation_file, YYTOKEN_NAME_MACRO_NAME);
-      output_string (output_implementation_file, " (*");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-      output_string (output_implementation_file, "));\n");
-      output_string (output_implementation_file, "                  ");
-      output_string (output_implementation_file,
-		     YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-      output_string (output_implementation_file, "++;\n");
-      output_check_yyfirst_char_ptr (output_implementation_file,
-				     "                  ", TRUE);
-      output_string (output_implementation_file, "                }\n");
+      output_string (f, "              for (");
+      output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, "; *");
+      output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+      output_string (f, " != ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ";)\n");
+      output_string (f, "                {\n");
+      output_string (f, "                  fprintf (stderr, \" %d (%s)\", *");
+      output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+      output_string (f, ",\n");
+      output_string (f, "                           ");
+      output_string (f, YYTOKEN_NAME_MACRO_NAME);
+      output_string (f, " (*");
+      output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+      output_string (f, "));\n");
+      output_string (f, "                  ");
+      output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+      output_string (f, "++;\n");
+      output_check_yyfirst_char_ptr (f, "                  ", TRUE);
+      output_string (f, "                }\n");
     }
   else if (real_look_ahead_number == 2)
     {
-      output_string (output_implementation_file, "              if (");
-      output_string (output_implementation_file,
-		     YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-      output_string (output_implementation_file, " != ");
-      output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-      output_string (output_implementation_file, ")\n");
-      output_string (output_implementation_file,
-		     "                fprintf (stderr, \" %d (%s)\", ");
-      output_string (output_implementation_file,
-		     YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-      output_string (output_implementation_file, ",\n");
-      output_string (output_implementation_file,
-		     "                         ");
-      output_string (output_implementation_file, YYTOKEN_NAME_MACRO_NAME);
-      output_string (output_implementation_file, " (");
-      output_string (output_implementation_file,
-		     YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-      output_string (output_implementation_file, "));\n");
+      output_string (f, "              if (");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " != ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ")\n");
+      output_string (f, "                fprintf (stderr, \" %d (%s)\", ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, ",\n");
+      output_string (f, "                         ");
+      output_string (f, YYTOKEN_NAME_MACRO_NAME);
+      output_string (f, " (");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "));\n");
     }
-  output_string (output_implementation_file,
-		 "              fprintf (stderr, \"\\n\");\n");
-  output_string (output_implementation_file, "            }\n");
-  output_string (output_implementation_file, "#endif\n");
+  output_string (f, "              fprintf (stderr, \"\\n\");\n");
+  output_string (f, "            }\n");
+  output_string (f, "#endif\n");
   /*
 ----------------- scanner -------------
      if (yychar < 0)
@@ -5130,46 +6406,46 @@ output_code_before_switch (void)
          yychar = YYEOF; /* To prevent repeated reading EOF * /
        }
    */
-  output_string (output_implementation_file, "          if (");
-  output_yychar_variable_name (output_implementation_file);
+  output_string (f, "          if (");
+  output_yychar_variable_name (f);
   if (IR_scanner_flag (description))
-    output_string (output_implementation_file, " < 0)\n            {\n");
+    output_string (f, " < 0)\n            {\n");
   else
-    output_string (output_implementation_file, " <= 0)\n            {\n");
-  output_string (output_implementation_file, "              ");
-  output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, TRANSLATE_VECTOR_NAME);
-  output_string (output_implementation_file, " [0];\n");
-  output_string (output_implementation_file, "              ");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, YYEOF_MACRO_NAME);
-  output_string (output_implementation_file,
-                 ";  /* To prevent repeated reading EOF */\n            }\n");
+    output_string (f, " <= 0)\n            {\n");
+  output_string (f, "              ");
+  output_string (f, YYCHAR1_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, TRANSLATE_VECTOR_NAME);
+  output_string (f, " [0];\n");
+  output_string (f, "              ");
+  output_yychar_variable_name (f);
+  output_string (f, " = ");
+  output_string (f, YYEOF_MACRO_NAME);
+  output_string (f,
+		 ";  /* To prevent repeated reading EOF */\n            }\n");
   /*
      else if (yychar > YYLAST_TOKEN_CODE)
        YYABORT;
    */
-  output_string (output_implementation_file, "          else if (");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, " > ");
-  output_string (output_implementation_file, LAST_TOKEN_VALUE_MACRO_NAME);
-  output_string (output_implementation_file, ")\n            ");
-  output_string (output_implementation_file, YYABORT_MACRO_NAME);
-  output_string (output_implementation_file, ";\n");
+  output_string (f, "          else if (");
+  output_yychar_variable_name (f);
+  output_string (f, " > ");
+  output_string (f, LAST_TOKEN_VALUE_MACRO_NAME);
+  output_string (f, ")\n            ");
+  output_string (f, YYABORT_MACRO_NAME);
+  output_string (f, ";\n");
   /*
      else
        yychar1 = yytranslate [yychar];
    */
-  output_string (output_implementation_file, "          else\n");
-  output_string (output_implementation_file, "            ");
-  output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, TRANSLATE_VECTOR_NAME);
-  output_string (output_implementation_file, " [");
-  output_yychar_variable_name (output_implementation_file);
-  output_string (output_implementation_file, "];\n");
+  output_string (f, "          else\n");
+  output_string (f, "            ");
+  output_string (f, YYCHAR1_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, TRANSLATE_VECTOR_NAME);
+  output_string (f, " [");
+  output_yychar_variable_name (f);
+  output_string (f, "];\n");
   /* 
      yytemp += yychar1;
      if (yyacheck[yytemp] != yystate)
@@ -5177,45 +6453,45 @@ output_code_before_switch (void)
      else
        yytemp = yyaction[yytemp];
    */
-  output_string (output_implementation_file, "          ");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, " += ");
-  output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
-  output_string (output_implementation_file, ";\n");
-  output_string (output_implementation_file, "          if (");
-  output_string (output_implementation_file, ACTION_CHECK_VECTOR_NAME);
-  output_string (output_implementation_file, " [");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, "] != ");
-  output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-  output_string (output_implementation_file, ")\n");
-  output_string (output_implementation_file, "            ");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, ACTION_DEFAULT_VECTOR_NAME);
-  output_string (output_implementation_file, " [");
-  output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-  output_string (output_implementation_file, "];\n");
-  output_string (output_implementation_file, "          else\n");
-  output_string (output_implementation_file, "            ");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, ACTION_COMB_VECTOR_NAME);
-  output_string (output_implementation_file, " [");
-  output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-  output_string (output_implementation_file, "];\n");
-  output_string (output_implementation_file, "        }\n");
+  output_string (f, "          ");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, " += ");
+  output_string (f, YYCHAR1_VARIABLE_NAME);
+  output_string (f, ";\n");
+  output_string (f, "          if (");
+  output_string (f, ACTION_CHECK_VECTOR_NAME);
+  output_string (f, " [");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, "] != ");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, ")\n");
+  output_string (f, "            ");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, ACTION_DEFAULT_VECTOR_NAME);
+  output_string (f, " [");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, "];\n");
+  output_string (f, "          else\n");
+  output_string (f, "            ");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, ACTION_COMB_VECTOR_NAME);
+  output_string (f, " [");
+  output_string (f, YYTEMP_VARIABLE_NAME);
+  output_string (f, "];\n");
+  output_string (f, "        }\n");
   if (real_look_ahead_number >= 2)
     {
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
         {
           /* `if (yytemp >= YY1LOOK_AHEAD_TABLE_VALUE)' */
-          output_string (output_implementation_file, "      if (");
-          output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-          output_string (output_implementation_file, " >= ");
-          output_string (output_implementation_file,
-                         FIRST_LOOK_AHEAD_TABLE_VALUE_MACRO_NAME);
-          output_string (output_implementation_file, ")\n");
+          output_string (f, "      if (");
+          output_string (f, YYTEMP_VARIABLE_NAME);
+          output_string (f, " >= ");
+          output_string (f, FIRST_LOOK_AHEAD_TABLE_VALUE_MACRO_NAME);
+          output_string (f, ")\n");
         }
       else
         {
@@ -5223,61 +6499,57 @@ output_code_before_switch (void)
              yyfirst_char_ptr_1 = yyfirst_char_ptr;
              while (yytemp >= YY1LOOK_AHEAD_TABLE_VALUE)
            */
-          output_string (output_implementation_file, "      ");
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-          output_string (output_implementation_file, " = ");
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_VARIABLE_NAME);
-          output_string (output_implementation_file, ";\n");
-          output_string (output_implementation_file, "      while (");
-          output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-          output_string (output_implementation_file, " >= ");
-          output_string (output_implementation_file,
-                         FIRST_LOOK_AHEAD_TABLE_VALUE_MACRO_NAME);
-          output_string (output_implementation_file, ")\n");
+          output_string (f, "      ");
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_string (f, " = ");
+          output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+          output_string (f, ";\n");
+          output_string (f, "      while (");
+          output_string (f, YYTEMP_VARIABLE_NAME);
+          output_string (f, " >= ");
+          output_string (f, FIRST_LOOK_AHEAD_TABLE_VALUE_MACRO_NAME);
+          output_string (f, ")\n");
         }
-      output_string (output_implementation_file, "        {\n");
+      output_string (f, "        {\n");
       /*
          yystate = yytemp + YYLOOK_AHEAD_TABLE_BASE;
          yytemp = yyabase[yystate];
        */
-      output_string (output_implementation_file, "          ");
-      output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, " + ");
-      output_string (output_implementation_file,
-                     LOOK_AHEAD_TABLE_BASE_MACRO_NAME);
-      output_string (output_implementation_file, ";\n");
-            output_string (output_implementation_file, "          ");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, ACTION_BASE_VECTOR_NAME);
-      output_string (output_implementation_file, " [");
-      output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-      output_string (output_implementation_file, "];\n");
+      output_string (f, "          ");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " + ");
+      output_string (f, LOOK_AHEAD_TABLE_BASE_MACRO_NAME);
+      output_string (f, ";\n");
+      output_string (f, "          ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, ACTION_BASE_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, "];\n");
       /*
          if (yytemp == YYNO_ACTION_BASE)
            yytemp = yyadefault [yystate];
        */
-      output_string (output_implementation_file, "          if (");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, " == ");
-      output_string (output_implementation_file, NO_ACTION_BASE_MACRO_NAME);
-      output_string (output_implementation_file, ")\n");
-      output_string (output_implementation_file, "            ");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, ACTION_DEFAULT_VECTOR_NAME);
-      output_string (output_implementation_file, " [");
-      output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-      output_string (output_implementation_file, "];\n");
+      output_string (f, "          if (");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " == ");
+      output_string (f, NO_ACTION_BASE_MACRO_NAME);
+      output_string (f, ")\n");
+      output_string (f, "            ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, ACTION_DEFAULT_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, "];\n");
       /* 
          else
            {
        */
-      output_string (output_implementation_file,
+      output_string (f,
                      "          else\n            {\n");
       /*
          if (yylook_ahead_char == YYEMPTY)
@@ -5311,122 +6583,110 @@ output_code_before_switch (void)
              yylval = yysaved_lval;
            }
        */
-      output_string (output_implementation_file, "              if (");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "              if (");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
-      output_string (output_implementation_file, " == ");
-      output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-      output_string (output_implementation_file, ")\n                {\n");
-      output_string (output_implementation_file, "                  ");
-      output_string (output_implementation_file, YYSAVED_LVAL_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_yylval_variable_name (output_implementation_file);
-      output_string (output_implementation_file, ";\n");
-      output_string (output_implementation_file, "                  ");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " == ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ")\n                {\n");
+      output_string (f, "                  ");
+      output_string (f, YYSAVED_LVAL_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_yylval_variable_name (f);
+      output_string (f, ";\n");
+      output_string (f, "                  ");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
-      output_string (output_implementation_file, " = ");
-      output_yylex_function_name (output_implementation_file);
-      output_string (output_implementation_file, " ();\n");
-      if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+      output_string (f, " = ");
+      output_yylex_function_name (f);
+      output_string (f, " ();\n");
+      if ((real_look_ahead_number > 2
+	   && msta_error_recovery == YACC_ERROR_RECOVERY)
+	  || msta_error_recovery == LOCAL_ERROR_RECOVERY)
 	{
-	  output_string (output_implementation_file, "                  if (");
-          output_string (output_implementation_file,
-			 YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-	  output_string (output_implementation_file, " >= ");
-          output_string (output_implementation_file,
-			 YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-	  output_string (output_implementation_file, " + (");
-          output_string (output_implementation_file,
-			 YYLOOK_AHEAD_SIZE_MACRO_NAME);
-	  output_string (output_implementation_file, " - 1))\n");
-	  output_string (output_implementation_file, "                    *");
-          output_string (output_implementation_file,
-			 YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-	  output_string (output_implementation_file, " = ");
-          output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-	  output_string (output_implementation_file, ";\n");
-	  output_string (output_implementation_file,
-			 "                  else\n");
-	  output_string (output_implementation_file, "                    *");
-          output_string (output_implementation_file,
-			 YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-	  output_string (output_implementation_file, " = ");
-          output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-	  output_string (output_implementation_file, ";\n");
+	  output_string (f, "                  if (");
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+	  output_string (f, " >= ");
+          output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+	  output_string (f, " + (");
+          output_string (f, YYLOOK_AHEAD_SIZE_MACRO_NAME);
+	  output_string (f, " - 1))\n");
+	  output_string (f, "                    *");
+          output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+	  output_string (f, " = ");
+          output_string (f, YYEMPTY_MACRO_NAME);
+	  output_string (f, ";\n");
+	  output_string (f, "                  else\n");
+	  output_string (f, "                    *");
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+	  output_string (f, " = ");
+          output_string (f, YYEMPTY_MACRO_NAME);
+	  output_string (f, ";\n");
 	}
-      output_string (output_implementation_file, "#if ");
-      output_string (output_implementation_file, YYDEBUG_MACRO_NAME);
-      output_string (output_implementation_file, " != 0\n");
-      output_string (output_implementation_file, "                  if (");
-      output_yydebug_variable_name (output_implementation_file);
-      output_string (output_implementation_file, ")\n");
-      output_string
-        (output_implementation_file, "                    ");
-      output_string
-        (output_implementation_file,
-         "fprintf (stderr, \"Reading a look ahead token %d (%s)\\n\",\n");
-      output_string
-        (output_implementation_file, "                             ");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "#if ");
+      output_string (f, YYDEBUG_MACRO_NAME);
+      output_string (f, " != 0\n");
+      output_string (f, "                  if (");
+      output_yydebug_variable_name (f);
+      output_string (f, ")\n");
+      output_string (f, "                    ");
+      output_string (f,
+		     "fprintf (stderr, \"Reading a look ahead token %d (%s)\\n\",\n");
+      output_string (f, "                             ");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
-      output_string (output_implementation_file, ", ");
-      output_string (output_implementation_file, YYTOKEN_NAME_MACRO_NAME);
-      output_string (output_implementation_file, " (");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, ", ");
+      output_string (f, YYTOKEN_NAME_MACRO_NAME);
+      output_string (f, " (");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
-      output_string (output_implementation_file, "));\n");
-      output_string (output_implementation_file, "#endif\n");
-      output_string (output_implementation_file, "                  ");
-      output_string (output_implementation_file,
-                     YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
-      if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+      output_string (f, "));\n");
+      output_string (f, "#endif\n");
+      output_string (f, "                  ");
+      output_string (f, YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
+      if ((real_look_ahead_number > 2
+	   && msta_error_recovery == YACC_ERROR_RECOVERY)
+	  || msta_error_recovery == LOCAL_ERROR_RECOVERY)
         {
-          output_string (output_implementation_file, " [");
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-          output_string (output_implementation_file, " - ");
-          output_string (output_implementation_file,
-                         YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
-          output_string (output_implementation_file, "]");
+          output_string (f, " [");
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_string (f, " - ");
+          output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+          output_string (f, "]");
         }
-      output_string (output_implementation_file, " = ");
-      output_yylval_variable_name (output_implementation_file);
-      output_string (output_implementation_file, ";\n");
-      output_string (output_implementation_file, "                  ");
-      output_yylval_variable_name (output_implementation_file);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, YYSAVED_LVAL_VARIABLE_NAME);
-      output_string (output_implementation_file, ";\n");
-      output_string (output_implementation_file, "                }\n");
+      output_string (f, " = ");
+      output_yylval_variable_name (f);
+      output_string (f, ";\n");
+      output_string (f, "                  ");
+      output_yylval_variable_name (f);
+      output_string (f, " = ");
+      output_string (f, YYSAVED_LVAL_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "                }\n");
       /*
 ---------------- scanner ------------
          if (yylook_ahead_char < 0)
@@ -5448,39 +6708,36 @@ output_code_before_switch (void)
              *yyfirst_char_ptr_1 = YYEOF; /* To prevent repeated reading EOF * /
             }
        */
-      output_string (output_implementation_file, "              if (");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "              if (");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
       if (IR_scanner_flag (description))
-        output_string (output_implementation_file, " < 0)\n");
+        output_string (f, " < 0)\n");
       else
-        output_string (output_implementation_file, " <= 0)\n");
-      output_string (output_implementation_file, "                {\n");
-      output_string (output_implementation_file, "                  ");
-      output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
-      output_string (output_implementation_file, " = 0;\n");
-      output_string (output_implementation_file, "                  ");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+        output_string (f, " <= 0)\n");
+      output_string (f, "                {\n");
+      output_string (f, "                  ");
+      output_string (f, YYCHAR1_VARIABLE_NAME);
+      output_string (f, " = 0;\n");
+      output_string (f, "                  ");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, YYEOF_MACRO_NAME);
-      output_string (output_implementation_file,
-                     "; /* To prevent repeated reading EOF */\n");
-      output_string (output_implementation_file, "                }\n");
+      output_string (f, " = ");
+      output_string (f, YYEOF_MACRO_NAME);
+      output_string (f, "; /* To prevent repeated reading EOF */\n");
+      output_string (f, "                }\n");
       /*
          else if (yylook_ahead_char > YYLAST_TOKEN_CODE)
            YYABORT;
@@ -5488,23 +6745,21 @@ output_code_before_switch (void)
          else if (*yyfirst_char_ptr_1 > YYLAST_TOKEN_CODE)
            YYABORT;
        */
-      output_string (output_implementation_file, "              else if (");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "              else if (");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
-      output_string (output_implementation_file, " > ");
-      output_string (output_implementation_file,
-                     LAST_TOKEN_VALUE_MACRO_NAME);
-      output_string (output_implementation_file, ")\n");
-      output_string (output_implementation_file, "                ");
-      output_string (output_implementation_file, YYABORT_MACRO_NAME);
-      output_string (output_implementation_file, ";\n");
+      output_string (f, " > ");
+      output_string (f, LAST_TOKEN_VALUE_MACRO_NAME);
+      output_string (f, ")\n");
+      output_string (f, "                ");
+      output_string (f, YYABORT_MACRO_NAME);
+      output_string (f, ";\n");
       /*
          else
            yychar1 = yytranslate [yylook_ahead_char];
@@ -5512,22 +6767,21 @@ output_code_before_switch (void)
          else
            yychar1 = yytranslate [*yyfirst_char_ptr_1];
        */
-      output_string (output_implementation_file, "              else\n");
-      output_string (output_implementation_file, "                ");
-      output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, TRANSLATE_VECTOR_NAME);
-      output_string (output_implementation_file, " [");
-      if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
-        output_string (output_implementation_file,
-                       YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "              else\n");
+      output_string (f, "                ");
+      output_string (f, YYCHAR1_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, TRANSLATE_VECTOR_NAME);
+      output_string (f, " [");
+      if (real_look_ahead_number == 2
+	  && msta_error_recovery == YACC_ERROR_RECOVERY)
+        output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       else
         {
-          output_char ('*', output_implementation_file);
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_char ('*', f);
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
         }
-      output_string (output_implementation_file, "];\n");
+      output_string (f, "];\n");
       /* 
          yytemp += yychar1;
          if (yyacheck[yytemp] != yystate)
@@ -5535,48 +6789,48 @@ output_code_before_switch (void)
          else
            yytemp = yyaction[yytemp];
        */
-      output_string (output_implementation_file, "              ");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, " += ");
-      output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
-      output_string (output_implementation_file, ";\n");
-      output_string (output_implementation_file, "              if (");
-      output_string (output_implementation_file, ACTION_CHECK_VECTOR_NAME);
-      output_string (output_implementation_file, " [");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, "] != ");
-      output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-      output_string (output_implementation_file, ")\n");
-      output_string (output_implementation_file, "                ");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, ACTION_DEFAULT_VECTOR_NAME);
-      output_string (output_implementation_file, " [");
-      output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-      output_string (output_implementation_file, "];\n");
-      output_string (output_implementation_file, "              else\n");
-      output_string (output_implementation_file, "                ");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, ACTION_COMB_VECTOR_NAME);
-      output_string (output_implementation_file, " [");
-      output_string (output_implementation_file, YYTEMP_VARIABLE_NAME);
-      output_string (output_implementation_file, "];\n");
-      if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+      output_string (f, "              ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " += ");
+      output_string (f, YYCHAR1_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "              if (");
+      output_string (f, ACTION_CHECK_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, "] != ");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, ")\n");
+      output_string (f, "                ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, ACTION_DEFAULT_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, "];\n");
+      output_string (f, "              else\n");
+      output_string (f, "                ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, ACTION_COMB_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, "];\n");
+      if ((real_look_ahead_number > 2
+	   && msta_error_recovery == YACC_ERROR_RECOVERY)
+	  || msta_error_recovery == LOCAL_ERROR_RECOVERY)
         {
           /* yyfirst_char_ptr_1++;
 	     if (yyfirst_char_ptr_1 >= yylook_ahead_char + YYLOOK_AHEAD_SIZE)
 	       yyfirst_char_ptr_1 = yylook_ahead_char;
 	  */
-          output_string (output_implementation_file, "              ");
-          output_string (output_implementation_file,
-                         YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
-          output_string (output_implementation_file, "++;\n");
-	  output_check_yyfirst_char_ptr (output_implementation_file,
-					 "              ", TRUE);
+          output_string (f, "              ");
+          output_string (f, YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
+          output_string (f, "++;\n");
+	  output_check_yyfirst_char_ptr (f, "              ", TRUE);
         }
-      output_string (output_implementation_file, "            }\n");
-      output_string (output_implementation_file, "        }\n");
+      output_string (f, "            }\n");
+      output_string (f, "        }\n");
     }
 }
 
@@ -5593,7 +6847,8 @@ output_initiation_code (void)
   output_string (output_implementation_file, " = ");
   output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
   output_string (output_implementation_file, ";\n");
-  if (real_look_ahead_number == 2 && yacc_error_recovery_flag)
+  if (real_look_ahead_number == 2
+      && msta_error_recovery == YACC_ERROR_RECOVERY)
     {
       /* `yylook_ahead_char = YYEMPTY;' */
       output_string (output_implementation_file, "  ");
@@ -5603,7 +6858,8 @@ output_initiation_code (void)
       output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
       output_string (output_implementation_file, ";\n");
     }
-  else if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+  else if (real_look_ahead_number > 2
+	   || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       /* yyfirst_char_ptr = yylook_ahead_char; */
       output_string (output_implementation_file, "  ");
@@ -5632,6 +6888,14 @@ output_initiation_code (void)
       output_string (output_implementation_file, "] = ");
       output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
       output_string (output_implementation_file, ";\n");
+      if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+	{
+	  /* yycurr_token_num = 0; */
+	  output_string (output_implementation_file, "  ");
+	  output_string (output_implementation_file,
+			 YYCURR_TOKEN_NUM_VARIABLE_NAME);
+	  output_string (output_implementation_file, " = 0;\n");
+	}
     }
 }
 
@@ -5676,7 +6940,7 @@ output_scanner_array_variables_allocation (void)
   output_scanner_array_allocation
     (YYATTRIBUTES_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME, YYSTYPE_MACRO_NAME,
      YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME, !cpp_flag);
-  if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+  if (real_look_ahead_number > 2 || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       output_scanner_array_allocation
 	(YYLOOK_AHEAD_CHAR_VARIABLE_NAME, YYLOOK_AHEAD_SIZE_MACRO_NAME,
@@ -5684,6 +6948,22 @@ output_scanner_array_variables_allocation (void)
       output_scanner_array_allocation
 	(YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME, YYLOOK_AHEAD_SIZE_MACRO_NAME,
 	 YYSTYPE_MACRO_NAME, YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME, !cpp_flag);
+      if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+	{
+	  output_scanner_array_allocation
+	    (YYSTATE_TOKEN_NUMS_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     "int", YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME, !cpp_flag);
+	  output_scanner_array_allocation
+	    (YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     "int", YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME, !cpp_flag);
+	  output_scanner_array_allocation
+	    (YYSAVED_STATES_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     "int", YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME, !cpp_flag);
+	  output_scanner_array_allocation
+	    (YYSAVED_ATTRIBUTES_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     YYSTYPE_MACRO_NAME, YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME,
+	     !cpp_flag);
+	}
     }
 }
 
@@ -5729,14 +7009,36 @@ output_parser_array_variables_allocation (void)
   output_parser_array_allocation (YYATTRIBUTES_VARIABLE_NAME,
 				  YYSTACK_SIZE_MACRO_NAME, YYSTYPE_MACRO_NAME,
 				  "no memory for attributes stack");
-  if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+  if (real_look_ahead_number > 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       output_parser_array_allocation
 	(YYLOOK_AHEAD_CHAR_VARIABLE_NAME, YYLOOK_AHEAD_SIZE_MACRO_NAME,
-	 "int", "no memory for look ahead tokens");
+	 "int", (msta_error_recovery == MINIMAL_ERROR_RECOVERY
+		 ? "no memory for saved look ahead tokens"
+		 : "no memory for look ahead tokens"));
       output_parser_array_allocation
 	(YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME, YYLOOK_AHEAD_SIZE_MACRO_NAME,
-	 YYSTYPE_MACRO_NAME, "no memory for look ahead token attributes");
+	 YYSTYPE_MACRO_NAME,
+	 (msta_error_recovery == MINIMAL_ERROR_RECOVERY
+	  ? "no memory for saved look ahead token attributes"
+	  : "no memory for look ahead token attributes"));
+      if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+	{
+	  output_parser_array_allocation
+	    (YYSTATE_TOKEN_NUMS_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     "int", "no memory for numbers of tokens corresponding to states");
+	  output_parser_array_allocation
+	    (YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     "int",
+	     "no memory for saved numbers of tokens corresponding to states");
+	  output_parser_array_allocation
+	    (YYSAVED_STATES_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     "int", "no memory for saved states buffer");
+	  output_parser_array_allocation
+	    (YYSAVED_ATTRIBUTES_VARIABLE_NAME, YYSTACK_SIZE_MACRO_NAME,
+	     YYSTYPE_MACRO_NAME, "no memory for saved attributes buffer");
+	}
     }
 }
 
@@ -5761,62 +7063,76 @@ output_free_arrays (void)
 {
   output_free_array (YYSTATES_VARIABLE_NAME);
   output_free_array (YYATTRIBUTES_VARIABLE_NAME);
-  if (real_look_ahead_number > 2 || !yacc_error_recovery_flag)
+  if (real_look_ahead_number > 2
+      || msta_error_recovery != YACC_ERROR_RECOVERY)
     {
       output_free_array (YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
       output_free_array (YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
+      if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+	{
+	  output_free_array (YYSTATE_TOKEN_NUMS_VARIABLE_NAME);
+	  output_free_array (YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME);
+	  output_free_array (YYSAVED_STATES_VARIABLE_NAME);
+	  output_free_array (YYSAVED_ATTRIBUTES_VARIABLE_NAME);
+	}
     }
 }
 
 static void
 output_parser_itself (void)
 {
+  FILE *f = output_implementation_file;
+
   output_definitions_outside_yyparse ();
   if (expand_flag)
     {
       output_state_or_attribute_stack_expansion_function (TRUE);
       output_state_or_attribute_stack_expansion_function (FALSE);
     }
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      output_saved_state_or_attribute_buffer_expansion_function (TRUE);
+      output_saved_state_or_attribute_buffer_expansion_function (FALSE);
+      output_token_buffer_increase_function ();
+    }
   if (IR_scanner_flag (description))
     {
-      output_yylex_start_title (output_implementation_file, FALSE);
-      output_string (output_implementation_file, "\n{\n");
+      output_yylex_start_title (f, FALSE);
+      output_string (f, "\n{\n");
       output_definition_yytemp_variable ();
-      output_string (output_implementation_file, "\n");
+      output_string (f, "\n");
       output_scanner_array_variables_allocation ();
       output_initiation_code ();
-      output_string (output_implementation_file, "  ");
+      output_string (f, "  ");
       if (!cpp_flag)
-	output_string (output_implementation_file, "*");
-      output_string (output_implementation_file,
-		     YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME);
-      output_string (output_implementation_file, " = 0;\n");
-      output_string (output_implementation_file, "  return;\n");
-      output_string (output_implementation_file, "}\n\n");
+	output_string (f, "*");
+      output_string (f, YYSCANNER_CONSTRUCTOR_ERROR_FLAG_NAME);
+      output_string (f, " = 0;\n");
+      output_string (f, "  return;\n");
+      output_string (f, "}\n\n");
     }
   if (IR_scanner_flag (description))
     {
-      output_yylex_finish_title (output_implementation_file, FALSE);
-      output_string (output_implementation_file, "\n{\n");
+      output_yylex_finish_title (f, FALSE);
+      output_string (f, "\n{\n");
       output_free_arrays ();
-      output_string (output_implementation_file, "}\n\n");
+      output_string (f, "}\n\n");
     }
-  output_yyparse_title (output_implementation_file, FALSE);
-  output_string (output_implementation_file, "\n{\n");
+  output_yyparse_title (f, FALSE);
+  output_string (f, "\n{\n");
   output_definition_inside_yyparse ();
   /*
      #if YYDEBUG != 0
         if (yydebug)
           fprintf (stderr, "Starting parse\n");
      #endif */
-  output_string (output_implementation_file, "#if ");
-  output_string (output_implementation_file, YYDEBUG_MACRO_NAME);
-  output_string (output_implementation_file, " != 0\n");
-  output_string (output_implementation_file, "  if (");
-  output_yydebug_variable_name (output_implementation_file);
-  output_string (output_implementation_file,
-                 ")\n    fprintf (stderr, \"Starting parse\\n\");\n");
-  output_string (output_implementation_file, "#endif\n");
+  output_string (f, "#if ");
+  output_string (f, YYDEBUG_MACRO_NAME);
+  output_string (f, " != 0\n");
+  output_string (f, "  if (");
+  output_yydebug_variable_name (f);
+  output_string (f, ")\n    fprintf (stderr, \"Starting parse\\n\");\n");
+  output_string (f, "#endif\n");
   /* allocation of arrays in parser. */
   if (!IR_scanner_flag (description))
     output_parser_array_variables_allocation ();
@@ -5824,82 +7140,267 @@ output_parser_itself (void)
      yystates_end = yystates + YYSTACK_SIZE - 1;
      yystates_top = yystates - 1;
   */
-  output_string (output_implementation_file, "  ");
-  output_string (output_implementation_file, YYSTATES_END_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, YYSTATES_VARIABLE_NAME);
-  output_string (output_implementation_file, " + ");
-  output_string (output_implementation_file, YYSTACK_SIZE_MACRO_NAME);
-  output_string (output_implementation_file, " - 1;\n");
-  output_string (output_implementation_file, "  ");
-  output_string (output_implementation_file, YYSTATES_TOP_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, YYSTATES_VARIABLE_NAME);
-  output_string (output_implementation_file, " - 1;\n");
+  output_string (f, "  ");
+  output_string (f, YYSTATES_END_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, YYSTATES_VARIABLE_NAME);
+  output_string (f, " + ");
+  output_string (f, YYSTACK_SIZE_MACRO_NAME);
+  output_string (f, " - 1;\n");
+  output_string (f, "  ");
+  output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, YYSTATES_VARIABLE_NAME);
+  output_string (f, " - 1;\n");
   /*
      yyattributes_end = yyattributes + YYSTACK_SIZE - 1;
      yyattributes_top = yyattributes - 1;
   */
-  output_string (output_implementation_file, "  ");
-  output_string (output_implementation_file, YYATTRIBUTES_END_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, YYATTRIBUTES_VARIABLE_NAME);
-  output_string (output_implementation_file, " + ");
-  output_string (output_implementation_file, YYSTACK_SIZE_MACRO_NAME);
-  output_string (output_implementation_file, " - 1;\n");
-  output_string (output_implementation_file, "  ");
-  output_string (output_implementation_file, YYATTRIBUTES_TOP_VARIABLE_NAME);
-  output_string (output_implementation_file, " = ");
-  output_string (output_implementation_file, YYATTRIBUTES_VARIABLE_NAME);
-  output_string (output_implementation_file, " - 1;\n");
+  output_string (f, "  ");
+  output_string (f, YYATTRIBUTES_END_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+  output_string (f, " + ");
+  output_string (f, YYSTACK_SIZE_MACRO_NAME);
+  output_string (f, " - 1;\n");
+  output_string (f, "  ");
+  output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+  output_string (f, " = ");
+  output_string (f, YYATTRIBUTES_VARIABLE_NAME);
+  output_string (f, " - 1;\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      /* yysaved_states_end = yysaved_states + YYSTACK_SIZE - 1; */
+      output_string (f, "  ");
+      output_string (f, YYSAVED_STATES_END_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYSAVED_STATES_VARIABLE_NAME);
+      output_string (f, " + ");
+      output_string (f, YYSTACK_SIZE_MACRO_NAME);
+      output_string (f, " - 1;\n");
+      /* yysaved_attributes_end = yysaved_attributes + YYSTACK_SIZE - 1; */
+      output_string (f, "  ");
+      output_string (f, YYSAVED_ATTRIBUTES_END_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYSAVED_ATTRIBUTES_VARIABLE_NAME);
+      output_string (f, " + ");
+      output_string (f, YYSTACK_SIZE_MACRO_NAME);
+      output_string (f, " - 1;\n");
+      /* yylook_ahead_char_end = yylook_ahead_char + YYLOOK_AHEAD_SIZE - 1; */
+      output_string (f, "  ");
+      output_string (f, YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " + ");
+      output_string (f, YYLOOK_AHEAD_SIZE_MACRO_NAME);
+      output_string (f, " - 1;\n");
+    }
   if (!IR_scanner_flag (description))
     output_initiation_code ();
   /* `yystate = 0; /* Start state * /' */
-  output_string (output_implementation_file, "  ");
-  output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-  output_string (output_implementation_file, " = 0; /* Start state */\n");
+  output_string (f, "  ");
+  output_string (f, YYSTATE_VARIABLE_NAME);
+  output_string (f, " = 0; /* Start state */\n");
   if (IR_it_is_pushed_LR_set (IR_LR_set_list (IR_LR_core_list (description))))
     {
       /* (*++yystates_top) = yystate; */
-      output_string (output_implementation_file, "  (*++");
-      output_string (output_implementation_file, YYSTATES_TOP_VARIABLE_NAME);
-      output_string (output_implementation_file, ") = ");
-      output_string (output_implementation_file, YYSTATE_VARIABLE_NAME);
-      output_string (output_implementation_file, ";\n");
+      output_string (f, "  (*++");
+      output_string (f, YYSTATES_TOP_VARIABLE_NAME);
+      output_string (f, ") = ");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, ";\n");
     }
   if (IR_attribute_is_used (IR_LR_set_list (IR_LR_core_list (description))))
     {
       /* ++yyattributes_top; */
-      output_string (output_implementation_file, "  ++");
-      output_string (output_implementation_file,
-                     YYATTRIBUTES_TOP_VARIABLE_NAME);
-      output_string (output_implementation_file, ";\n");
+      output_string (f, "  ++");
+      output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+      output_string (f, ";\n");
     }
   /* `yyerr_status = (-1);' */
-  output_string (output_implementation_file, "  ");
-  output_string (output_implementation_file, YYERR_STATUS_VARIABLE_NAME);
-  output_string (output_implementation_file, " = (-1);\n");
+  output_string (f, "  ");
+  output_string (f, YYERR_STATUS_VARIABLE_NAME);
+  output_string (f, " = (-1);\n");
   /* Main cycle start. */
-  output_string (output_implementation_file, "  for (;;)\n    {\n");
+  output_string (f, "  for (;;)\n    {\n");
   output_code_before_switch ();
   /* Switch. */
   output_switch ();
-  output_string (output_implementation_file, "    }\n\n");
+  if (msta_error_recovery == MINIMAL_ERROR_RECOVERY)
+    {
+      /* 
+      continue;
+
+    yyrecovery_finish:
+      yyerr_status = -1;
+#if YYDEBUG != 0
+      if (yydebug)
+	fprintf (stderr,
+		 "Error recovery end - restore %d states and %d attributes\n",
+		 yybest_error_state_num, yybest_error_attributes_num);
+#endif
+      memcpy (yystates, yysaved_states,
+	      yybest_error_state_num * sizeof (int));
+      memcpy (yystate_token_nums, yysaved_state_token_nums,
+	      yybest_error_state_num * sizeof (int));
+      memcpy (yyattributes, yysaved_attributes,
+	      yybest_error_attributes_num * sizeof (yylval));
+      yystates_top = yystates + yybest_error_state_num - 1;
+      yyattributes_top = yyattributes + yybest_error_attributes_num - 1;
+      /* Restore input * /
+      yytemp = yycurr_token_num;
+      for (yychar_ptr = yyfirst_char_ptr - 1;;)
+	{
+	  if (yychar_ptr < yylook_ahead_char)
+	    yychar_ptr += yylook_ahead_char_end - yylook_ahead_char + 1;
+	  if (*yychar_ptr == YYEMPTY)
+	    break;
+	  yycurr_token_num--;
+	  yyfirst_char_ptr = yychar_ptr;
+	  yychar_ptr--;
+	}
+      /* Shift yybest_token_ignored_num: * /
+      while (yybest_token_ignored_num-- != 0)
+	{
+	  *yyfirst_char_ptr++ = YYEMPTY;
+	  if (yyfirst_char_ptr > yylook_ahead_char_end)
+	    yyfirst_char_ptr = yylook_ahead_char;
+	  yycurr_token_num++;
+	}
+#if YYDEBUG != 0
+      if (yydebug)
+        {
+	  yychar1 = yytemp = 0;
+	  while (yyfirst_char_ptr [yytemp] != YYEMPTY)
+	    {
+	      yytemp++; yychar1++;
+	      if (yyfirst_char_ptr + yytemp > yylook_ahead_char_end)
+		yytemp = yylook_ahead_char - yyfirst_char_ptr;
+	    }
+	  fprintf (stderr,
+		   "Error recovery end - restore %d saved input tokens\n",
+		   yychar1);
+	}
+#endif
+      yystate = yybest_error_state;
+      if (yypushed [yystate])
+	{
+	  /* We don't need to check stack ends * /
+	  (*++yystates_top) = yystate;
+	  (*++yyattributes_top) = yybest_error_attribute;
+	}
+#ifdef YYERR_RECOVERY_END
+      YYERR_RECOVERY_END ();
+#endif
+      */
+      output_string (f, "      continue;\n");
+      output_string (f, "    ");
+      output_string (f, YYRECOVERY_FINISH_LABEL_NAME);
+      output_string (f, ":\n");
+      output_string (f, "      ");
+      output_string (f, YYERR_STATUS_VARIABLE_NAME);
+      output_string (f, " = -1;\n");
+      output_restoring_minimal_recovery_state (TRUE, TRUE, "      ");
+      output_string (f, "      /* Shift yybest_token_ignored_num: */\n");
+      output_string (f, "      while (");
+      output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, "-- != 0)\n");
+      output_string (f, "        {\n          *");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, "++ = ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ";\n");
+      output_string (f, "          if (");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " > ");
+      output_string (f, YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+      output_string (f, ")\n");
+      output_string (f, "            ");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "          ");
+      output_string (f, YYCURR_TOKEN_NUM_VARIABLE_NAME);
+      output_string (f, "++;\n");
+      output_string (f, "        }\n");
+      output_string (f, "#if ");
+      output_string (f, YYDEBUG_MACRO_NAME);
+      output_string (f, " != 0\n");
+      output_string (f, "      if (");
+      output_yydebug_variable_name (f);
+      output_string (f, ")\n        {\n          ");
+      output_string (f, YYCHAR1_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = 0;\n          while (");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " [");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, "] != ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ")\n            {\n              ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, "++; ");
+      output_string (f, YYCHAR1_VARIABLE_NAME);
+      output_string (f, "++;\n              if (");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " + ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " > ");
+      output_string (f, YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME);
+      output_string (f, ")\n                ");
+      output_string (f, YYTEMP_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, ";\n            }\n");
+      output_string (f, "          fprintf (stderr,\n");
+      output_string (f, "                   \"Error recovery end - restore %d saved input tokens\\n\",\n");
+      output_string (f, "                   ");
+      output_string (f, YYCHAR1_VARIABLE_NAME);
+      output_string (f, ");\n        }\n#endif\n");
+      output_string (f, "      ");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, " = ");
+      output_string (f, YYBEST_ERROR_STATE_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "      if (");
+      output_string (f, PUSHED_STATE_FLAGS_VECTOR_NAME);
+      output_string (f, " [");
+      output_string (f, YYSTATE_VARIABLE_NAME);
+      output_string (f, "])\n");
+      output_string (f, "        {\n");
+      output_string (f, "          /* We don't need to check stack ends */\n");
+      output_state_pushing (FALSE, "          ");
+      output_string (f, "          (*++");
+      output_string (f, YYATTRIBUTES_TOP_VARIABLE_NAME);
+      output_string (f, ") = ");
+      output_string (f, YYBEST_ERROR_ATTRIBUTE_VARIABLE_NAME);
+      output_string (f, ";\n");
+      output_string (f, "        }\n");
+      output_string (f, "#ifdef ");
+      output_string (f, YYERR_RECOVERY_END_MACRO_NAME);
+      output_string (f, "\n      ");
+      output_string (f, YYERR_RECOVERY_END_MACRO_NAME);
+      output_string (f, " ();\n#endif\n");
+    }
+  output_string (f, "    }\n\n");
   /* code for yyaccept, yyabort */
-  output_string (output_implementation_file, YYACCEPT_LABEL_NAME);
-  output_string (output_implementation_file, ":\n");
+  output_string (f, YYACCEPT_LABEL_NAME);
+  output_string (f, ":\n");
   if (!IR_scanner_flag (description))
     output_free_arrays ();
-  output_string (output_implementation_file, "  return 0;\n\n");
-  output_string (output_implementation_file, YYABORT_LABEL_NAME);
-  output_string (output_implementation_file, ":\n");
+  output_string (f, "  return 0;\n\n");
+  output_string (f, YYABORT_LABEL_NAME);
+  output_string (f, ":\n");
   if (!IR_scanner_flag (description))
     output_free_arrays ();
-  output_string (output_implementation_file, "  return ");
-  output_string (output_implementation_file,
-		 IR_scanner_flag (description) ? "-1" : "1");
-  output_string (output_implementation_file, ";\n\n");
-  output_string (output_implementation_file, "}\n\n");
+  output_string (f, "  return ");
+  output_string (f, IR_scanner_flag (description) ? "-1" : "1");
+  output_string (f, ";\n\n");
+  output_string (f, "}\n\n");
 }
 
 static void

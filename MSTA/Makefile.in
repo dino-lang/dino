@@ -120,7 +120,7 @@ source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
          $(srcdir)/Makefile.in 
 
 additional_files = README INSTALL msta.1 msta.tst.in quality.tst.in\
-                   c5.y cpp5.y fcalc.y\
+                   c5.y cpp5.y fcalc.y fcalc1.y\
                    fparse.y gram.y java.y m2c.y pascal.y p-yacc.y sql1.y\
                    lex.y oberon2-gram.y oberon2-lex.y oberon2-kw.shilka\
                    compare.tst.in msta.dsw msta.dsp

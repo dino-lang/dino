@@ -259,10 +259,12 @@ user_signal_action (int signal_number)
 "                   %scanner is absent\n"
 
 #define COMMAND_LINE_DESCRIPTION_PART3 \
-"  `-yacc-error-recovery'\n"\
+"* `-yacc-error-recovery'\n"\
 "                   Use error recover according to Posix YACC standard.\n"\
-"* `-no-yacc-error-recovery'\n"\
-"                   Use another error recovery method.\n"\
+"  `-local-error-recovery'\n"\
+"                   Use a local error recovery method.\n"\
+"  `-minimal-error-recovery'\n"\
+"                   Use minimal error recovery method.\n"\
 "  `-yacc-input'    Only Posix YACC input can be used as input grammar.\n"\
 "  `-strict'        Use only strict POSIX YACC input (when `-yacc-input')\n"\
 "                   not SYSTEM V one.  Errors are output when nonstrict\n"\
@@ -346,10 +348,12 @@ user_signal_action (int signal_number)
 "                   %scanner is absent\n"
 
 #define COMMAND_LINE_DESCRIPTION_PART3 \
-"  `-yacc-error-recovery'\n"\
+"* `-yacc-error-recovery'\n"\
 "                   Use error recover according to Posix YACC standard.\n"\
-"* `-no-yacc-error-recovery'\n"\
-"                   Use another error recovery method.\n"\
+"  `-local-error-recovery'\n"\
+"                   Use a local error recovery method.\n"\
+"  `-minimal-error-recovery'\n"\
+"                   Use minimal error recovery method.\n"\
 "  `-yacc-input'    Only Posix YACC input can be used as input grammar.\n"\
 "* `-no-yacc-input' All input grammar features of MSTA can be used.\n"\
 "  `-strict'        Use only strict POSIX YACC input (when `-yacc-input')\n"\
@@ -434,7 +438,7 @@ main (int argc, char **argv)
   lalr_optimization_flag = TRUE;
   regular_optimization_flag = TRUE;
   split_lr_sets_flag_is_defined = FALSE;
-  yacc_error_recovery_flag = FALSE;
+  msta_error_recovery = YACC_ERROR_RECOVERY;
   yacc_input_flag = FALSE;
   strict_flag = FALSE;
   yacc_file_names_flag = FALSE;
@@ -466,7 +470,7 @@ main (int argc, char **argv)
           regular_optimization_flag = FALSE;
           split_lr_sets_flag = FALSE;
           split_lr_sets_flag_is_defined = TRUE;
-          yacc_error_recovery_flag = TRUE;
+          msta_error_recovery = YACC_ERROR_RECOVERY;
           enum_flag = FALSE;
           yacc_input_flag = TRUE;
           strict_flag = FALSE;
@@ -556,9 +560,11 @@ main (int argc, char **argv)
           split_lr_sets_flag_is_defined = TRUE;
         }
       else if (strcmp (option, "-yacc-error-recovery") == 0)
-        yacc_error_recovery_flag = TRUE;
-      else if (strcmp (option, "-no-yacc-error-recovery") == 0)
-        yacc_error_recovery_flag = FALSE;
+        msta_error_recovery = YACC_ERROR_RECOVERY;
+      else if (strcmp (option, "-local-error-recovery") == 0)
+        msta_error_recovery = LOCAL_ERROR_RECOVERY;
+      else if (strcmp (option, "-minimal-error-recovery") == 0)
+        msta_error_recovery = MINIMAL_ERROR_RECOVERY;
       else if (strcmp (option, "-yacc-input") == 0)
         yacc_input_flag = TRUE;
       else if (strcmp (option, "-no-yacc-input") == 0)

@@ -151,9 +151,29 @@ in the new error recovery step. This is technique of standard
 YACC error recovery.  Such technique may result in infinite
 looping of the parser or discarding all input tokens if the
 stop symbols are not met.
-<P>By default MSTA generates an new improved error recovery which
-does not permit infinite parser looping and use context after
-several error as stop symbols.
+<P>By default MSTA generates the standard YACC error recovery.
+There are two additional methods which msta can generate for
+error recovery.
+<P>The first one is a local error recovery which does not permit
+infinite parser looping and use context after several error
+as stop symbols. According this method look ahead set also
+includes look ahead tokens after token `error' in states
+which have the `error' token is acceptable and which are
+lower in the parser stack than the first state with
+acceptable token `error'.  In this case the feedback from the
+parser to the scanner could not work correctly because
+although rule actions are executed in such case the parser
+reads the tokens once.
+<P> 
+The second one is a minimal cost error recovery where the
+cost is overall number of tokens ignored.  The feedback from
+the parser to the scanner does not work correctly.  So you
+shouldn't use this method when there is the feedback.
+Calling `yyerrok' has no sense for such method because the
+parser in such recovery mode never executes the rule actions.
+This method is the best quality error recovery although it my
+be expensive method because in the worst case it might save
+all input tokens.
 <DT><B>YYERR_RECOVERY_MATCHES</B><DD><P>The parser is considered to be recovering from a previous
 error until the parser has shifted over at least
 YYSERR_RECOVERY_MATCHES normal input tokens since the last
@@ -161,40 +181,40 @@ error was detected or a semantic action has executed the
 macro `yyerrok'.  The default value of macro is 3.  You can
 redefine its value.  But in any case the value will be
 positive.  This macro is not a part of YACC POSIX standard.
-<DT><B>YYERR_MAX_LOOK_AHEAD_CHARS</B><DD><P>This macro is generated only when new error recovery mode is
+<DT><B>YYERR_MAX_LOOK_AHEAD_CHARS</B><DD><P>This macro is generated only when the local recovery mode is
 used.  The default value is 7. This value can not be less 1.
 See description below.
-<DT><B>YYERR_LOOK_AHEAD_INCREMENT</B><DD><P>This macro is generated only when new error recovery mode is
-used.  The default value is 3. This value can not be less 0.
-See description below.
-<DT><B>YYERR_POPPED_ERROR_STATES</B><DD><P>This macro is generated only when new error recovery mode is
-used.  The default value is 2. This value can not be less 0.
-See description below.
-<DT><B>YYERR_DISCARDED_CHARS</B><DD><P>This macro is generated only when new error recovery mode is
-used.  The default value is 3. This value can not be less 0.
-See description below.
+<DT><B>YYERR_LOOK_AHEAD_INCREMENT</B><DD><P>This macro is generated only when the local error recovery
+mode is used.  The default value is 3. This value can not be
+less 0.  See description below.
+<DT><B>YYERR_POPPED_ERROR_STATES</B><DD><P>This macro is generated only when the local error recovery
+mode is used.  The default value is 2. This value can not be
+less 0.  See description below.
+<DT><B>YYERR_DISCARDED_CHARS</B><DD><P>This macro is generated only when the local error recovery
+mode is used.  The default value is 3. This value can not be
+less 0.  See description below.
 <DT><B>yydeeper_error_try</B><DD><P>This and the previous macros (YYERR_MAX_LOOK_AHEAD_CHARS -
-YYERR_DISCARDED_CHARS) are used only when new error recovery
-is generated.  Before starting description of new error
-recovery, let me remind how YACC error recovery works.  When
-the parser recognizes a syntactic error, it switches into
-error recovery mode.  Error recovery itself consists of one
-or more steps.  Each step consists of finding the top state
-on the stack with possible shift on pseudo-token `error',
-throwing all states upper the state with `error', and making
-shift on the `error' token.  After that all token are discarded
-until token (so called stop symbol) which can be after the
-pseudo-token `error' is read.  After that any recognized error
-results in the new error recovery step.  And finally the
-error recovery is switched off only when
-YYERR_RECOVERY_MATCHES (by default 3) tokens are shifted
-without occurring syntactic error.
-<P>The differences of new error recovery from classic YACC error
+YYERR_DISCARDED_CHARS) are used only when the local error
+recovery is generated.  Before starting description of the
+local error recovery, let me remind how YACC error recovery
+works.  When the parser recognizes a syntactic error, it
+switches into error recovery mode.  Error recovery itself
+consists of one or more steps.  Each step consists of finding
+the top state on the stack with possible shift on
+pseudo-token `error', throwing all states upper the state
+with `error', and making shift on the `error' token.  After
+that all token are discarded until token (so called stop
+symbol) which can be after the pseudo-token `error' is read.
+After that any recognized error results in the local error
+recovery step.  And finally the error recovery is switched
+off only when YYERR_RECOVERY_MATCHES (by default 3) tokens
+are shifted without occurring syntactic error.
+<P>The differences of the local error recovery from classic YACC error
 recovery is in the following:
 <UL>
 <LI>The parser saves all discarded tokens in error
 recovery mode and returns them back into the input stream
-on the new error recovery step.
+on the local error recovery step.
 </LI>
 <LI>Only YYERR_LOOK_AHEAD_INCREMENT tokens can be
 discarded on the first step, 2 * YYERR_LOOK_AHEAD_INCREMENT
@@ -202,7 +222,7 @@ on the second step and so on (but no more
 YYERR_MAX_LOOK_AHEAD_CHARS tokens).
 </LI>
 <LI>If the parser requires discarding more tokens which is
-possible on the step, the new error recovery step starts.
+possible on the step, the local error recovery step starts.
 Moreover if action `yydeeper_error_try' has been fulfilled
 on the previous step, the new step starts searching for the
 error state on the stack with the state which is deeper
@@ -217,10 +237,10 @@ YYERR_DISCARDED_CHARS tokens without saving them before
 searching for the stop symbols.</LI>
 </UL>
 
-By default MSTA generates an new improved error recovery
-which does not permit infinite parser looping and use context
-after several error as stop symbols.  The following fragment
-illustrates usage of new error recovery mode.
+By default MSTA generates YACC error recovery which does not
+permit infinite parser looping and use context after several
+error as stop symbols.  The following fragment illustrates
+usage of the local error recovery mode.
 <BLOCKQUOTE><CODE>
 <PRE>
            #define YYERR_END_RECOVERY() yyerr_end_recovery()
@@ -287,16 +307,19 @@ accumulates the number for all calls of `yylex'.
 <P>
 <DT><B>yyerrok</B><DD><P>This macro can be used only in a semantic action itself.  The
 macro causes the parser to act as if it has fully recovered
-from any previous errors.  The macro is a part of YACC
-POSIX standard.
+from any previous errors.  The macro is a part of YACC POSIX
+standard.  The macro has no sense for minimal error recovery
+method because the parser in such recovery mode never
+executes the rule actions.
 <P>
 <DT><B>YYERR_END_RECOVERY()</B><DD><P>This macro is called when the parser switches from the
 recovery state into normal state.  By default the macro does
 nothing.  You can redefine this macro, e.g. to output the
 last error buffered by your `yyerror' function in order to
-implement better error diagnostics of the parser.  The macro
-is not a part of YACC POSIX standard and the macro is
-not generated when yacc error recovery is used.
+implement better error diagnostics of the parser in the local
+recovery mode.  The macro is not a part of YACC POSIX
+standard and the macro is not generated when yacc error
+recovery is used.
 <P>
 <DT><B>YYERRCODE</B><DD><P>The token error is reserved for error handling.  The name
 error can be used in grammar rules.  It indicates places

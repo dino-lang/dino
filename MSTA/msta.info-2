@@ -1,5 +1,5 @@
 This is msta.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.msta30094.info.2.
+/tmp/sgmltmp.msta22230.info.2.
 
    \input texinfo
 
@@ -25,22 +25,24 @@ MSTA Usage
             ber -la number  -lr  -no-lr  -lalr-optimization  -no-lalr-
             optimization  -regular-optimization  -no-regular-optimiza-
             tion -split-lr-sets -no-split-lr-sets -yacc-error-recovery
-            -no-yacc-error-recovery -yacc-input -no-yacc-input -strict
-            -no-strict -yacc-file-names -no-yacc-file-names -o name -y
-            -yacc  -full-lr-set -lr-situation-context -removed-lr-sets
-            -expand -no-expand -time] specification-file
+            -local-error-recovery  -minimal-error-recovery -yacc-input
+            -no-yacc-input -strict  -no-strict  -yacc-file-names  -no-
+            yacc-file-names  -o  name -y -yacc -full-lr-set -lr-situa-
+            tion-context -removed-lr-sets  -expand  -no-expand  -time]
+            specification-file
      
      DESCRIPTION
-            MSTA reads input grammar which is described in  specifica-
-            tion  file  and generates parser for it.  MSTA can process
-            any POSIX YACC grammar and generates equivalent parser  in
-            the  sence  of POSIX standard.  But MSTA can do many addi-
-            tional things: generation of  more  safe  error  recovery,
-            better  output of generated parser description, generation
-            of fast LALR(k)- and LR(k)-grammar parser with  acceptable
-            space  requirements,  generation  of scanners described as
-            context-free grammar (CFG), and so on.  The  specification
-            file must have suffix `.y'
+            MSTA  reads input grammar which is described in specifica-
+            tion file and generates parser for it.  MSTA  can  process
+            any  POSIX YACC grammar and generates equivalent parser in
+            the sence of POSIX standard.  But MSTA can do  many  addi-
+            tional  things:  generation of more safe error recovery or
+            much better error recovery,  better  output  of  generated
+            parser   description,  generation  of  fast  LALR(k)-  and
+            LR(k)-grammar parser with acceptable  space  requirements,
+            generation  of  scanners described as context-free grammar
+            (CFG), and so on.  The specification file must have suffix
+            `.y'
      
             The  generated  code  consists  of  optional interface and
             implementation files and optional description file  having
@@ -67,8 +69,6 @@ MSTA Usage
             -t     Permit compilation of debugging code  in  the  code
                    file  (tracing of the parser work).  Runtime debug-
                    ging statements are always contained in the parser,
-                   but  by  default conditional compilation directives
-                   prevent their  compilation.   This  option  defines
      
      
      
@@ -81,6 +81,8 @@ MSTA Usage
      MSTA(1)                    User Manuals                   MSTA(1)
      
      
+                   but  by  default conditional compilation directives
+                   prevent their  compilation.   This  option  defines
                    macro  `YYDEBUG'  as  1 (by default its value is 0)
                    and as consequence  the  debugging  statements  are
                    processed.
@@ -132,9 +134,7 @@ MSTA Usage
                    default).
      
             -pattern-equiv
-                   Equivalent patterns are denoted by the same nonter-
-                   minal (by default).  Sometimes this results in dra-
-                   matic reducing conflicts when complex patterns  are
+                   Equivalent  patterns  are  denoted  by   the   same
      
      
      
@@ -147,7 +147,9 @@ MSTA Usage
      MSTA(1)                    User Manuals                   MSTA(1)
      
      
-                   used.
+                   nonterminal  (by  default).  Sometimes this results
+                   in dramatic reducing conflicts  when  complex  pat-
+                   terns are used.
      
             -no-pattern-equiv
                    Even  equivalent  patterns are denoted by different
@@ -199,8 +201,6 @@ MSTA Usage
             -no-regular-optimization
                    Disable the regular optimizations.
      
-            -split-lr-sets
-                   Splitting  LR-sets  during  regular optimization in
      
      
      
@@ -213,6 +213,8 @@ MSTA Usage
      MSTA(1)                    User Manuals                   MSTA(1)
      
      
+            -split-lr-sets
+                   Splitting  LR-sets  during  regular optimization in
                    order to extract the most of  regular  parts  (only
                    when  option  `-regular-optimization'  is  on).  By
                    default this option is on if `%free_format' is pre-
@@ -225,13 +227,22 @@ MSTA Usage
      
             -yacc-error-recovery
                    The generated parser will use error recover accord-
-                   ing to Posix YACC standard.
+                   ing to Posix YACC standard.  This error recovery is
+                   used by default.
      
-            -no-yacc-error-recovery
-                   The generated parser  will  use  sligthly  modified
-                   error  recovery  method.  This method is more safe.
-                   It is  guaranteed  that  this  method  can  not  be
-                   cycled.  This error recovery is used by default.
+            -local-error-recovery
+                   The  generated  parser  will  use sligthly modified
+                   error recovery method.  This method is  more  safe.
+                   It  is  guaranteed  that  this  method  can  not be
+                   cycled.
+     
+            -minimal-error-recovery
+                   The generated parser will use a minimal cost  error
+                   recovery where the cost is overall number of tokens
+                   ignored.  It is guaranteed that this method can not
+                   be cycled.  This method is expensive because it may
+                   save  many  input   tokens,   parser   states   and
+                   attributes.
      
             -yacc-input
                    Only Posix YACC input can be used as input grammar.
@@ -256,17 +267,6 @@ MSTA Usage
      
             -no-strict
                    This  option  is in action only when -yacc-input is
-                   on.  Only warnings about non strict POSIX YACC fea-
-                   tures usage are output.
-     
-            -no-yacc-file-names
-                   Output files will have the same name and suffixes (
-                   .h , .c , and .output ).   This  option  is  on  by
-                   default.
-     
-            -o     Specify names of output files (header file name.h ,
-                   code file name.c , description file name.output
-     
      
      
      
@@ -278,6 +278,17 @@ MSTA Usage
      
      MSTA(1)                    User Manuals                   MSTA(1)
      
+     
+                   on.  Only warnings about non strict POSIX YACC fea-
+                   tures usage are output.
+     
+            -no-yacc-file-names
+                   Output files will have the same name and suffixes (
+                   .h , .c , and .output ).   This  option  is  on  by
+                   default.
+     
+            -o     Specify names of output files (header file name.h ,
+                   code file name.c , description file name.output
      
             -y, -yacc
                    Emulate Posix YACC.   It  means  that  the  options
@@ -322,17 +333,6 @@ MSTA Usage
                    not expandable.
      
             -time  Output detail time statistics of MSTA work  on  its
-                   basic passes and optimizations.
-     
-     FILES
-            file.y
-                   MSTA specification file
-            file.c or y.tab.c
-                   generated C implementation file
-            file.cpp or y.tab.cpp
-                   generated C++ implementation file
-            file.h or y.tab.h
-                   generated interface file
      
      
      
@@ -345,6 +345,17 @@ MSTA Usage
      MSTA(1)                    User Manuals                   MSTA(1)
      
      
+                   basic passes and optimizations.
+     
+     FILES
+            file.y
+                   MSTA specification file
+            file.c or y.tab.c
+                   generated C implementation file
+            file.cpp or y.tab.cpp
+                   generated C++ implementation file
+            file.h or y.tab.h
+                   generated interface file
             file.output or y.output
                    generated interface file
             There are no any temporary files used by MSTA.
@@ -364,17 +375,6 @@ MSTA Usage
      
      BUGS
             Please, report bugs to cocom-bugs@lists.sourceforge.net.
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
      
      
      

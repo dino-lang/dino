@@ -1,3 +1,94 @@
+2002-01-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* Makefile.in (additional_files): Add fcalc1.y.
+
+	* MSTA/common.h (YACC_ERROR_RECOVERY, LOCAL_ERROR_RECOVERY,
+	MINIMAL_ERROR_RECOVERY): New macros.
+	(yacc_error_recovery_flag): Rename it into msta_error_recovery.
+
+	* MSTA/common.c (yacc_error_recovery_flag): Rename it into
+	msta_error_recovery.
+	
+	* MSTA/main.c (COMMAND_LINE_DESCRIPTION_PART3, main): Rename
+	-no-yacc-error-recovery into -local-error-recovery.  Add new
+	option -minimal-error-recovery.  Make -yacc-error-recovery by
+	default.
+	
+	* MSTA/ird.sprut (LR_set): Add field it_is_errored_LR_set.
+	
+	* MSTA/regular.c (mark_semantic_pushed_LR_sets): Setup flag
+	it_is_errored_LR_set.
+
+	* MSTA/parser.c (ERRORED_STATE_FLAGS_VECTOR_NAME,
+	YYUNDEFINED_RECOVERY_COST_MACRO_NAME,
+	YYEXPAND_SAVED_STATES_BUFFER_FUNCTION_NAME,
+	YYEXPAND_SAVED_ATTRIBUTES_BUFFER_FUNCTION_NAME,
+	YYINCREASE_TOKENS_BUFFER_FUNCTION_NAME): New macros.
+	(output_errored_states_table): New function.
+	(output_parser_tables): Call the new function.
+	(output_include_directives): Add include file limits.h.
+	(YYSTATE_TOKEN_NUMS_VARIABLE_NAME,
+	YYSAVED_STATE_TOKEN_NUMS_VARIABLE_NAME,
+	YYSAVED_STATES_VARIABLE_NAME, YYSAVED_ATTRIBUTES_VARIABLE_NAME):
+	New macros.
+	(output_inside_outside_definitions): Add code for minimal error
+	recovery.
+	(output_saved_state_or_attribute_buffer_expansion_function_title,
+	output_token_buffer_increase_function_title): New functions.
+	(output_class_start, output_class_start): Add code for minimal
+	error recovery.
+	(YYNEXT_ERROR_LABEL_NAME, YYERR_RECOVERY_TRY_END_LABEL_NAME,
+	YYRECOVERY_FINISH_LABEL_NAME, YYSAVED_STATES_END_VARIABLE_NAME,
+	YYSAVED_ATTRIBUTES_END_VARIABLE_NAME,
+	YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME, YYCHAR_PTR_VARIABLE_NAME,
+	YYERROR_STATE_VARIABLE_NAME, YYBEST_ERROR_STATE_VARIABLE_NAME,
+	YYERROR_ATTRIBUTE_VARIABLE_NAME,
+	YYBEST_ERROR_ATTRIBUTE_VARIABLE_NAME,
+	YYRECOVERY_COST_VARIABLE_NAME, YYBEST_RECOVERY_COST_VARIABLE_NAME,
+	YYERROR_STATE_NUM_VARIABLE_NAME,
+	YYBEST_ERROR_STATE_NUM_VARIABLE_NAME,
+	YYERROR_ATTRIBUTE_NUM_VARIABLE_NAME,
+	YYBEST_ERROR_ATTRIBUTE_NUM_VARIABLE_NAME,
+	YYTOKEN_IGNORED_NUM_VARIABLE_NAME,
+	YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME,
+	YYCURR_TOKEN_NUM_VARIABLE_NAME, YYERROR_TOKEN_NUM_VARIABLE_NAME,
+	YYLOOK_AHEAD_CHAR_END_VARIABLE_NAME): New macros.
+	(output_look_ahead_arrays_length,
+	output_definitions_outside_yyparse,
+	output_state_or_attribute_stack_expansion,
+	output_states_stack_check, output_states_stack_check,
+	output_states_stack_check, output_shift_pop_actions,
+	output_shift_pop_actions, output_debug_print_about_saving_token,
+	output_check_yyfirst_char_ptr): Add code for minimal error
+	recovery.
+	(output_saving_token, output_increase_tokens_buffer,
+	output_restoring_minimal_recovery_state): New functions.
+	(output_switch, output_definition_inside_yyparse,
+	output_code_before_switch, output_initiation_code,
+	output_scanner_array_variables_allocatio,
+	output_parser_array_variables_allocation, output_free_arrays,
+	output_parser_itself): Add code for minimal error recovery.
+	
+	* MSTA/quality.tst.in: New tests 46 and 47 for minimal error
+	recovery.  Use option -local-error-recovery.
+
+	* MSTA/msta.1: Rename -no-yacc-error-recovery into
+	-local-error-recovery.  Add new option -minimal-error-recovery.
+	Make -yacc-error-recovery by default.
+
+	* cocom.sgml.in: Add information about the new error recovery
+	method.
+
+	* MSTA/msta.sgml.in: Add information about the new (minimal) error
+	recovery method.
+
+	* cocom.dvi, cocom.html, cocom.info, cocom.ps, cocom.txt: Update.
+
+        * MSTA/msta-1.html, MSTA/msta-3.html, MSTA/msta-5.html,
+	MSTA/msta.1, MSTA/msta.dvi, MSTA/msta.info, MSTA/msta.info-1,
+	MSTA/msta.info-2, MSTA/msta.ps, MSTA/msta.sgml.in, MSTA/msta.txt:
+	Update.
+	
 2001-12-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* d_built.h (int_earley_set_cost_flag): New prototype.

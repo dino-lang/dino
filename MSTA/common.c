@@ -161,16 +161,25 @@ int split_lr_sets_flag_is_defined;
    error and reads tokens and discards them until it finds a token
    which is in look ahead set after the token `error'.
 
-   In the opposite case another error recovery method is used.
-   According this method look ahead set also includes look ahead
-   tokens after token `error' in states which have the `error' token
-   is acceptable and which are lower in the parser stack than the
-   first state with acceptable token `error'.
+   Flag (`-local-error-recovery') means another error recovery method
+   is used.  According this method look ahead set also includes look
+   ahead tokens after token `error' in states which have the `error'
+   token is acceptable and which are lower in the parser stack than
+   the first state with acceptable token `error'.  In this case the
+   feedback from the parser to the scanner could not work correctly
+   because although rule actions are executed in such case the parser
+   reads the tokens once.
 
-   The defualt value is FALSE.  The oposite value will be when flag
-   `-no-yacc-error-recovery' is present on the MSTA command line. */
+   Flag (`-minimal-error-recovery') means usage of the minimal cost
+   error recovery where the cost is overall number of tokens ignored.
+   The feedback from the parser to the scanner does not work
+   correctly.  So you shouldn't use this method when there is the
+   feedback.  Calling yyerrok has no sense for such method because the
+   parser in such recovery mode never executes the rule actions.
 
-int yacc_error_recovery_flag;
+   The defualt value is YACC_ERROR_RECOVERY. */
+
+int msta_error_recovery;
 
 /* Flag of that MSTA accepts input file only in the format of Posix
    YACC (`-yacc-input').  The defualt value is FALSE.  The opposite

@@ -1,5 +1,5 @@
 This is cocom.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.cocom16934.info.2.
+/tmp/sgmltmp.cocom22298.info.2.
 
    \input texinfo
 
@@ -283,8 +283,11 @@ MSTA have the following additional features:
      which can not be described by regular expressions (i.e. nested
      comments).
 
-   * More safe error recovery and reporting (besides error recovery
-     method of YACC).
+   * More safe error recovery and reporting (the 1st additional error
+     recovery method besides error recovery method of YACC).
+
+   * A minimal error recovery and reporting (the 2nd additional error
+     recovery method besides error recovery method of YACC).
 
    * Fast generation of fast parsers.
 

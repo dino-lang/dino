@@ -1064,7 +1064,11 @@ mark_semantic_pushed_LR_sets (void)
                       = IR_element_itself (IR_element_after_dot 
                                            (current_LR_situation));
                     if (symbol_definition == error_single_definition)
-                      IR_set_it_is_pushed_LR_set (current_LR_set, TRUE);/*???*/
+		      {
+			/* It is necessary for error recovery. */
+			IR_set_it_is_pushed_LR_set (current_LR_set, TRUE);
+			IR_set_it_is_errored_LR_set (current_LR_set, TRUE);
+		      }
                   }
               }
             else if (IR_canonical_rule (IR_element_after_dot
