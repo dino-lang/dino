@@ -1730,10 +1730,12 @@ unpack_vector (ER_node_t vect)
       ER_SET_MODE (vect, mode);
       for (i = els_number - 1; ; i--)
 	{
-	  ER_SET_MODE (INDEXED_VAL (els, i), el_type);
+	  /* Use this order.  It is important when we have only one
+             element. */
 	  memcpy ((char *) INDEXED_VAL (els, i) + displ,
 		  (char *) ER_pack_els (GET_TEMP_REF (0)) + i * el_size,
 		  el_size);
+	  ER_SET_MODE (INDEXED_VAL (els, i), el_type);
 	  if (i == 0)
 	    break;
 	}

@@ -1,3 +1,10 @@
+2002-03-08  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_heap.c (unpack_vector): Set up mode after moving the
+	value.
+
+	* DINO/compare.tst: Add Dino test for sockets.
+	
 2002-02-27  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in: Remove CR for test outputs under Cygwin.

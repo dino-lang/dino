@@ -6,6 +6,7 @@
 #
 
 DINO=./dino
+srcdir=`dirname $0`
 ftest=__ftest.d
 input=__input
 temp=__temp
@@ -705,11 +706,11 @@ proc runClient {n addr port} {
 set n [lindex $argv 0]
 
 if {[llength $argv] < 2} {
-    socket -server newClient -myaddr localhost 10000
+    socket -server newClient -myaddr localhost 10002
     # exec tclsh [info script] $n client &
     vwait forever
 } else {
-    runClient $n localhost 10000
+    runClient $n localhost 10002
 }
 EOF
   echo TCL:
@@ -721,12 +722,40 @@ wait
 EOF
 fi
 
-#????
+#
 cat <<'EOF' >$ftest
+include "socket";
+if (#argv < 2) {
+  var s, cl, str, l = 0;
+  s = sockets.stream_server (10003, 4);
+  cl = s.accept ();
+  try {
+    for (;;) {
+      str = cl.read (64); l+= #str; cl.write (str);
+    }
+  } catch (socket_excepts.eof) {
+    putln ("i got ", l, " bytes");
+  }
+} else {
+  var cl, send, rec, i, n = int (argv [0]);
+  cl = sockets.stream_client ("localhost", 10003);
+  send = "Hello there sailor\n";
+  for (i = 0; i < n; i++) {
+    cl.write (send);
+    rec = cl.read (19);
+    if (send != rec) {
+      put ("different strings"); println (send, rec);
+    }
+  }
+}
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if time $DINO $ftest 1000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+  time sh <<EOF | fgrep user
+$DINO -I$srcdir -L./socket.so $ftest 50000&
+$DINO -I$srcdir -L./socket.so $ftest 50000 client 2>&1
+wait
+EOF
 
 fi
 
