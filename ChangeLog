@@ -1,3 +1,27 @@
+2001-07-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_built.h (rcount_call): Rename it into gmatch.
+
+        * DINO/d_func.c (rcount_call): Rename it into gmatch.  Return
+	vector instead of the count.
+	
+        * DINO/d_ir.sprut (RCOUNT_NAME, rcount_decl): Rename them into
+	GMATCH_NAME, gmatch_decl.
+
+	* DINO/d_run.sprut (temp_vlobj2): New global variable.
+	(initiate_heap): Create temp_vlobj2.
+	(finish_heap): Delete temp_vlobj2.
+	
+	* DINO/dino.tst.in: Test gmatch instead of rcount.
+	
+	* DINO/dino.sgml.in: Add description of function gmatch and
+	remove rcount.
+
+	* DINO/dino-4.html, DINO/dino-8.html DINO/dino.dvi,
+	DINO/dino.html, DINO/dino.info, DINO/dino.info-1,
+	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
+	DINO/dino.ps, DINO/dino.txt: Update.
+	
 2001-07-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_built.h (getf_call, fgetf_call): New prototypes.

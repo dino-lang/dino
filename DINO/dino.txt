@@ -34,6 +34,8 @@ History
 
   Jul 19, 2001.  Functions getf and fgetf have been added.
 
+  Jun 23, 2001.  Function gmatch is added, rcount is removed.
+
 
 1. Introduction
 
@@ -374,7 +376,8 @@ report later.
   fun
   gc             get            getcwd         getegn
   geteun         getgn          getgroups      getf
-  getln          getpid         getun          gsub
+  getln          getpid         getun          gmatch
+  gsub
   ins            inside         insv           invaccesses
   invcalls       invexterns     invindexes     invkeys
   invops         invparsers     invregexps     isatty
@@ -385,8 +388,8 @@ report later.
   open
   parser         pclose         popen          pow
   print          println        put            putln
-  rand           rcount         readdir        remove
-  rename         rmdir
+  rand           readdir        remove         rename
+  rmdir
   scan           scanln         seek           signals
   sin            sort           split          split_regex
   sqrt           srand          stderr         stdin
@@ -2590,7 +2593,6 @@ of the regular expression.
 There are the following Dino pattern matching functions:
      
      o match (regex, string).  The function searches for
-
        matching regular expression regex in string.
        The both parameters should be strings after their implicit
        string conversion.  The matching is made according to standard
@@ -2627,15 +2629,23 @@ There are the following Dino pattern matching functions:
 
           [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
 
-     o rcount (regex, string[, flag]).  The function
-       searches number of different occurrences of regular expression
+     o gmatch (regex, string[, flag]).  The function
+       searches for different occurrences of regular expression
        regex in string.  The both parameters should
        be strings after their implicit string conversion.  The third
        parameter is optional.  If it is present, it should be integer
        after implicit integer conversion.  If its value is nonzero,
        the substrings matched by regexp can be overlapped.  Otherwise,
        the substrings are never overlapped.  If the parameter is
-       absent, the function behaves as its value were  zero.
+       absent, the function behaves as its value were zero.  The
+       function returns a new mutable vector of integers.  The length
+       of the vector is 2 * N where N is number of
+       the found occurrences.  Pairs of the vector elements correspond
+       to the occurrences.  The first element of the pairs is index of
+       the first character of substring corresponding to all regular
+       expression in the corresponding occurrences and the second
+       element is index of the last character plus one.  If there is
+       no one occurrence, the function returns nil.
        
        Example: The program
 
@@ -2644,8 +2654,8 @@ There are the following Dino pattern matching functions:
 
        outputs
 
-          2
-          4
+          [0, 2, 2, 4]
+          [0, 2, 1, 3, 2, 4, 3, 5]
 
      o sub (regex, string, subst).  The function searches
        for matching regular expression regex in

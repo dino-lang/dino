@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino25017.info.2.
+/tmp/sgmltmp.dino10986.info.2.
 
    \input texinfo
 
@@ -34,6 +34,8 @@ The Programming Language DINO
        Jun 22, 2001.  Function rcount is added.
      
        Jul 19, 2001.  Functions getf and fgetf have been added.
+     
+       Jun 23, 2001.  Function gmatch is added, rcount is removed.
 
 * Menu:
 
@@ -374,7 +376,8 @@ detail in the report later.
        fun
        gc             get            getcwd         getegn
        geteun         getgn          getgroups      getf
-       getln          getpid         getun          gsub
+       getln          getpid         getun          gmatch
+       gsub
        ins            inside         insv           invaccesses
        invcalls       invexterns     invindexes     invkeys
        invops         invparsers     invregexps     isatty
@@ -385,8 +388,8 @@ detail in the report later.
        open
        parser         pclose         popen          pow
        print          println        put            putln
-       rand           rcount         readdir        remove
-       rename         rmdir
+       rand           readdir        remove         rename
+       rmdir
        scan           scanln         seek           signals
        sin            sort           split          split_regex
        sqrt           srand          stderr         stdin

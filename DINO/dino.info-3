@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino25017.info.2.
+/tmp/sgmltmp.dino10986.info.2.
 
    \input texinfo
 
@@ -326,41 +326,39 @@ defined in Posix 1003.2: no particular limit is imposed on the length
 of the regular expression.
 
    There are the following Dino pattern matching functions:
-   * `match (regex, string)'.  The function searches for
-
-     matching regular expression `regex' in `string'.  The both
-     parameters should be strings after their implicit string
-     conversion.  The matching is made according to standard POSIX
-     1003.2: The regular expression matches the substring starting
-     earliest in the string.  If the regular expression could match
-     more than one substring starting at that point, it matches the
-     longest.  Subexpressions also match the longest possible
-     substrings, subject to the constraint that the whole match be as
-     long as possible, with subexpressions starting earlier in the
-     regular expression taking priority over ones starting later.  In
-     other words higher-level subexpressions take priority over their
-     lower-level component subexpressions.  Match lengths are measured
-     in characters, not collating elements.  A null string is
-     considered longer than no match at all.  If there is no matching,
-     the function returns value `nil'.  Otherwise, the function returns
-     new mutable vector of integers.  The length of the vector is `2 *
-     (N + 1)' where `N' is number of atoms which are regular
-     expressions in parentheses.  The first two elements are index of
-     the first character of substring corresponding to all regular
-     expression and index of the last character plus one.  The
-     subsequent two elements are index of the first character of
-     substring corresponding to the first atom in the regular
-     expression (the atoms are ordered by their open parentheses) and
-     index of the last character plus one.  And so on.  If there is no
-     matching with a regular expression in parentheses, the
-     corresponding vector elements will have negative values.  Example:
-     The program
+   * `match (regex, string)'.  The function searches for matching
+     regular expression `regex' in `string'.  The both parameters
+     should be strings after their implicit string conversion.  The
+     matching is made according to standard POSIX 1003.2: The regular
+     expression matches the substring starting earliest in the string.
+     If the regular expression could match more than one substring
+     starting at that point, it matches the longest.  Subexpressions
+     also match the longest possible substrings, subject to the
+     constraint that the whole match be as long as possible, with
+     subexpressions starting earlier in the regular expression taking
+     priority over ones starting later.  In other words higher-level
+     subexpressions take priority over their lower-level component
+     subexpressions.  Match lengths are measured in characters, not
+     collating elements.  A null string is considered longer than no
+     match at all.  If there is no matching, the function returns value
+     `nil'.  Otherwise, the function returns new mutable vector of
+     integers.  The length of the vector is `2 * (N + 1)' where `N' is
+     number of atoms which are regular expressions in parentheses.  The
+     first two elements are index of the first character of substring
+     corresponding to all regular expression and index of the last
+     character plus one.  The subsequent two elements are index of the
+     first character of substring corresponding to the first atom in
+     the regular expression (the atoms are ordered by their open
+     parentheses) and index of the last character plus one.  And so on.
+     If there is no matching with a regular expression in parentheses,
+     the corresponding vector elements will have negative values.
+     Example: The program
                     println (match ("()(a)((a)(a))", "baaab"));
 
      outputs
                     [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
 
-   * `rcount (regex, string[, flag])'.  The function searches number of
+   * `gmatch (regex, string[, flag])'.  The function searches for
      different occurrences of regular expression `regex' in `string'.
      The both parameters should be strings after their implicit string
      conversion.  The third parameter is optional.  If it is present,
@@ -368,13 +366,20 @@ of the regular expression.
      value is nonzero, the substrings matched by regexp can be
      overlapped.  Otherwise, the substrings are never overlapped.  If
      the parameter is absent, the function behaves as its value were
-     zero.  Example: The program
+     zero.  The function returns a new mutable vector of integers.  The
+     length of the vector is `2 * N' where `N' is number of the found
+     occurrences.  Pairs of the vector elements correspond to the
+     occurrences.  The first element of the pairs is index of the first
+     character of substring corresponding to all regular expression in
+     the corresponding occurrences and the second element is index of
+     the last character plus one.  If there is no one occurrence, the
+     function returns `nil'.  Example: The program
                     println (rcount ("aa", "aaaaa"));
                     println (rcount ("aa", "aaaaa", 1));
 
      outputs
-                    2
-                    4
+                    [0, 2, 2, 4]
+                    [0, 2, 1, 3, 2, 4, 3, 5]
 
    * `sub (regex, string, subst)'.  The function searches for matching
      regular expression `regex' in `string'.  The all parameters should
@@ -906,161 +911,4 @@ are notion of user and group identifiers.
    * `getgroups ()'.  The function returns new vector of strings
      (possibly empty vector) representing supplementary group names for
      the current OS process.
-
-
-File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to process information,  Up: Predeclared functions
-
-Miscellaneous functions
------------------------
-
-   There are the following miscellaneous functions.
-   * `max (v1, v2, ...)'.  The function searches for and returns
-     maximal value between all parameters.  The parameters should be of
-     integer or floating point type after implicit arithmetic
-     conversions.  So the function can return integer or floating point
-     number depending from the type of maximal value after the
-     conversion.
-
-   * `min (v1, v2, ...)'.  The function is analogous to the previous
-     function but searches for and returns the minimal value.
-
-   * `tolower (str)'.  The function expects that parameter `str' (after
-     implicit string conversion) is a string.  The function returns new
-     string `str' in which upper case letters changed by the
-     corresponding lower case letters.
-
-   * `toupper (str)'.  The function expects that parameter `str' (after
-     implicit string conversion) is a string.  The function returns new
-     string `str' in which lower case letters changed by the
-     corresponding upper case letters.
-
-   * `eltype (vect)'.  The function expects that the parameter value is
-     a vector.  The function returns `nil' if the vector is
-     heterogenous, otherwise the function returns type of the vector
-     elements (type of `nil' if the vector is empty).
-
-   * `keys (tab)'.  The function expects that the parameter value is a
-     table.  The function returns new mutable vector containing all
-     keys of the table.  The order of keys in the vector is undefined.
-
-   * `context (par)'. The function returns context (see section
-     `Declarations and Scope Rules') represented by a block instance or
-     an object for given parameter value which should be a function, a
-     class, a thread, a block instance, or an object.
-
-   * `inside (par1, par2[, flag])'.  The function usage goal is to
-     check that something declared inside something other.  If the
-     third parameter value after implicit integer conversion is given
-     and nonzero, it is checked with taking contexts into account.  The
-     second parameter value should be a function or a class.  The first
-     parameter value should be a function, a class, an object, or a
-     block instance.  In the last three cases, they defines
-     corresponding function, class, block.  If the function, class,
-     block defined by the first parameter is declared inside function
-     or class given by the second parameter, the function `inside'
-     returns 1.  The function `inside' returns 1 also if function or
-     class defined by the first parameter is the same as the function or
-     class given by the second parameter.  Otherwise the function
-     `inside' returns 0.  The following example illustrates the
-     difference between checking with taking contexts into account and
-     without it.
-                    class c () {
-                      class subc () {
-                      }
-                    }
-                    inside (c ().subc (), c ().subc);
-                    inside (c ().subc (), c ().subc, 1);
-
-     The first call of `inside' returns 1, the second one returns 0.
-
-   * `subv (vect, index[, length])'.  The function is used to extract a
-     slice of vector elements.  The first parameter value should be a
-     vector after implicit string conversion.  The second and the third
-     parameter values should be integers after implicit integer
-     conversion. The function extracts only element or part of the
-     slice existing in the vector (so you can use any values of the
-     index and the length).  If index is negative, it is considered to
-     be equal to zero.  If the length is negative, the slice will
-     finish on the vector end.  The function returns new vector which
-     is the slice.  The result vector is immutable only when the
-     original vector is immutable.
-
-   * `del (vect, index[, length]) or del (tab, key)'.  The first form
-     of the function is used to remove the vector element or the slice
-     of vector elements from the mutable vector.  The second and the
-     third parameter values should be integers after implicit integer
-     conversion. The function removes only element or part of the slice
-     existing in the vector (so you can use any values of the index and
-     the length).  If index is negative, it is considered to be equal
-     to zero.  If the length is negative, the slice will finish on the
-     vector end.  The second form of the function is used to remove the
-     element (if any) with given key from the mutable table.  The
-     function generates exception `immutable' if we are trying to
-     remove from an immutable vector or table.
-
-   * `ins (vect, el[, index])'.  The function inserts element given by
-     the second parameter into the vector given by the first parameter
-     on the place given by the third parameter.  If the third parameter
-     is not given it is believed to be zero.  The third parameter
-     should be an integer after implicit integer conversion.  If the
-     third parameter is negative or equal or greater than the vector
-     length, the element is inserted at the end of the vector.  The
-     function generates exception `immutable' if we are trying to
-     insert into an immutable vector.
-
-   * `insv (vect, vect[, index])'.  The function is analogous to the
-     function `ins' but it is used for insertion of all vector elements
-     into the vector given as the first parameter.  So the second
-     parameter value should be a vector.
-
-   * `cmpv (vect, vect)'.  The function makes implicit string
-     conversion of the parameter values.  After that, the parameter
-     values should be vectors whose the first corresponding equal
-     elements should have the same type (character, integer, or
-     floating point type).  The first corresponding unequal elements
-     should have the same type too (the remaining elements can have
-     different type).  As usually if this is not true, exception
-     `partype' is generated.  The function returns 1 if the first
-     unequal element value of the first vector is greater than the
-     corresponding element in the second vector, -1 if less, and 0 if
-     the all vector elements are equal.  If the first vector is a
-     prefix of the second vector, the function returns -1.  If the
-     second vector is a prefix of the first vector, the function
-     returns 1.  So it is generalized lexicographical order.
-
-   * `sort (vect[, compare_function])'.  The function returns
-     new sorted vector.  The original vector given as the first
-     parameter value should be a homogeneous vector whose elements are
-     of character, integer, or floating point type.  If the second
-     parameter is not given, standard arithmetic order (see comparison
-     operators) is used.  To use special ordering, use the second
-     parameter which should be a function which compares two elements
-     of the vector and returns negative integer if the first parameter
-     value (element) is less than the second one, positive integer if
-     the first parameter value is greater than the second one, and zero
-     if they are equal.
-
-   * `exit (code)'.  The function finishes work of the interpreter with
-     given code which should be integer value after implicit integer
-     conversion.
-
-   * `gc ()'.  The function forces garbage collection with heap
-     compaction.  Usually Dino interpreter itself calls garbage
-     collection when there are no more free memory.
-
-   * `system (command)'.  The function executes command given by a
-     string (the parameter value) in OS command interpreter.  Besides
-     standard exceptions `parnumber' and `partype' the function may
-     generate exceptions `noshell' and `systemfail'.
-
-   * `srand ([seed])'.  The function sets the parameter value (after
-     implicit integer conversion) as the seed for a new sequence of
-     pseudo-random integers to be returned by `rand'.  These sequences
-     are repeatable by calling `srand' with the same seed value.  If
-     the parameter is not given, the seed will be the result of calling
-     function `time'.
-
-   * `rand ()'.  The function returns a pseudo-random integer value.
-     If the function `srand' is not called before, 1 will be used as
-     the seed value.
 

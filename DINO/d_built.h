@@ -10,7 +10,7 @@ extern void keys_call (int_t pars_number);
 extern void context_call (int_t pars_number);
 extern void inside_call (int_t pars_number);
 extern void match_call (int_t pars_number);
-extern void rcount_call (int_t pars_number);
+extern void gmatch_call (int_t pars_number);
 extern void sub_call (int_t pars_number);
 extern void gsub_call (int_t pars_number);
 extern void split_call (int_t pars_number);

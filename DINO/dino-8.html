@@ -921,7 +921,6 @@ of the regular expression.
 <P>There are the following Dino pattern matching functions:
 <UL>
 <LI><CODE>match (regex, string)</CODE>.  The function searches for
-
 matching regular expression <CODE>regex</CODE> in <CODE>string</CODE>.
 The both parameters should be strings after their implicit
 string conversion.  The matching is made according to standard
@@ -963,15 +962,23 @@ outputs
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
-<LI><CODE>rcount (regex, string[, flag])</CODE>.  The function
-searches number of different occurrences of regular expression
+<LI><CODE>gmatch (regex, string[, flag])</CODE>.  The function
+searches for different occurrences of regular expression
 <CODE>regex</CODE> in <CODE>string</CODE>.  The both parameters should
 be strings after their implicit string conversion.  The third
 parameter is optional.  If it is present, it should be integer
 after implicit integer conversion.  If its value is nonzero,
 the substrings matched by regexp can be overlapped.  Otherwise,
 the substrings are never overlapped.  If the parameter is
-absent, the function behaves as its value were  zero.
+absent, the function behaves as its value were zero.  The
+function returns a new mutable vector of integers.  The length
+of the vector is <CODE>2 * N</CODE> where <CODE>N</CODE> is number of
+the found occurrences.  Pairs of the vector elements correspond
+to the occurrences.  The first element of the pairs is index of
+the first character of substring corresponding to all regular
+expression in the corresponding occurrences and the second
+element is index of the last character plus one.  If there is
+no one occurrence, the function returns <B>nil</B>.
 <P>Example: The program
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -983,8 +990,8 @@ absent, the function behaves as its value were  zero.
 outputs
 <BLOCKQUOTE><CODE>
 <PRE>
-          2
-          4
+          [0, 2, 2, 4]
+          [0, 2, 1, 3, 2, 4, 3, 5]
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>

@@ -69,6 +69,7 @@ extern vlo_t heap_temp_refs;
 #define TEMP_REFS_LENGTH() (VLO_LENGTH (heap_temp_refs) / sizeof (ER_node_t))
 
 extern vlo_t temp_vlobj;
+extern vlo_t temp_vlobj2;
 
 extern ER_node_t cprocess;
 extern int_t context_number;
@@ -202,8 +203,9 @@ ER_node_t below_ctop;
    be packed during GC or its size can not be changed. */
 vlo_t heap_temp_refs;
 
-/* Temporary variable length object. */
+/* Temporary variable length objects. */
 vlo_t temp_vlobj;
+vlo_t temp_vlobj2;
 
 /* Current (active) process. */
 ER_node_t cprocess;
@@ -653,6 +655,7 @@ initiate_heap ()
   uppest_stack = NULL;
   CREATE_TEMP_REF ();
   VLO_CREATE (temp_vlobj, 256);
+  VLO_CREATE (temp_vlobj2, 256);
   no_gc_flag = FALSE;
   gc_number = 0;
   free_gc_memory_percent = 0;
@@ -684,6 +687,7 @@ finish_heap (void)
   VLO_DELETE (heap_chunks);
   VLO_DELETE (external_vars);
   FINISH_TEMP_REF ();
+  VLO_DELETE (temp_vlobj2);
   VLO_DELETE (temp_vlobj);
 }
 

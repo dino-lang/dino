@@ -820,25 +820,26 @@ match_call (int_t pars_number)
 }
 
 void
-rcount_call (int_t pars_number)
+gmatch_call (int_t pars_number)
 {
   regex_t *reg;
   regmatch_t *pmatch;
-  ER_node_t vect;
+  ER_node_t vect, result;
   size_t els_number;
-  int code, flag, count;
+  int code, flag, count, disp;
+  int_t el;
   const char *start;
 
   if (pars_number != 2 && pars_number != 3)
     eval_error (parnumber_decl, invcalls_decl, *source_position_ptr,
-		DERR_parameters_number, RCOUNT_NAME);
+		DERR_parameters_number, GMATCH_NAME);
   flag = 0;
   if (pars_number == 3)
     {
       implicit_int_conversion (1);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
 	eval_error (partype_decl, invcalls_decl,
-		    *source_position_ptr, DERR_parameter_type, RCOUNT_NAME);
+		    *source_position_ptr, DERR_parameter_type, GMATCH_NAME);
       flag = ER_i (ctop);
       TOP_DOWN;
       pars_number--;
@@ -852,26 +853,40 @@ rcount_call (int_t pars_number)
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
     eval_error (partype_decl, invcalls_decl,
-		*source_position_ptr, DERR_parameter_type, RCOUNT_NAME);
+		*source_position_ptr, DERR_parameter_type, GMATCH_NAME);
   code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
   if (code != 0)
-    process_regcomp_errors (code, RCOUNT_NAME);
+    process_regcomp_errors (code, GMATCH_NAME);
   /* Make vector which can store regmatch_t's. */
   VLO_NULLIFY (temp_vlobj);
   VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
   pmatch = (regmatch_t *) VLO_BEGIN (temp_vlobj);
+  VLO_NULLIFY (temp_vlobj2);
   start = ER_pack_els (ER_vect (ctop));
+  disp = 0;
   count = 0;
-  while (!regexec (reg, start, reg->re_nsub + 1, pmatch, 0))
+  while (!regexec (reg, start + disp, reg->re_nsub + 1, pmatch, 0))
     {
-      start += (!flag ? pmatch[0].rm_eo : 1);
+      el = pmatch[0].rm_so + disp;
+      VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
+      el = pmatch[0].rm_eo + disp;
+      VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
+      disp += (!flag ? pmatch[0].rm_eo : 1);
       count++;
     }
   /* Pop all actual parameters. */
   DECR_FREE (cstack, pars_number);
   SET_TOP;
-  ER_SET_MODE (ctop, ER_NM_int);
-  ER_set_i (ctop, count);
+  if (count == 0)
+    ER_SET_MODE (ctop, ER_NM_nil);
+  else
+    {
+      result = create_pack_vector (2 * count, ER_NM_int);
+      memcpy (ER_pack_els (result), VLO_BEGIN (temp_vlobj2),
+	      2 * count * sizeof (el));
+      ER_SET_MODE (ctop, ER_NM_vect);
+      ER_set_vect (ctop, result);
+    }
   INCREMENT_PC();
 }
 

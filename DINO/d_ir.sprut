@@ -397,7 +397,7 @@ typedef IR_node_t pc_t;
   "func sort(){}\n"\
   "func sqrt (){} func exp (){} func log (){} func log10(){} func pow(){} \n"\
   "func sin(){} func cos(){} func atan2(){} \n"\
-  "func match(){} func rcount(){} func sub(){} func gsub(){}\n"\
+  "func match(){} func gmatch(){} func sub(){} func gsub(){}\n"\
   "func split(){} var split_regex = \"[ \t]+\";\n"\
   "func srand(){} func rand(){} \n"\
   "func readdir(){} func ftype () {}\n"\
@@ -886,8 +886,8 @@ extern IR_node_t atan2_decl;
 #define MATCH_NAME "match"
 extern IR_node_t match_decl;
 
-#define RCOUNT_NAME "rcount"
-extern IR_node_t rcount_decl;
+#define GMATCH_NAME "gmatch"
+extern IR_node_t gmatch_decl;
 
 #define SUB_NAME "sub"
 extern IR_node_t sub_decl;
@@ -2299,7 +2299,7 @@ IR_node_t sin_decl;
 IR_node_t cos_decl;
 IR_node_t atan2_decl;
 IR_node_t match_decl;
-IR_node_t rcount_decl;
+IR_node_t gmatch_decl;
 IR_node_t sub_decl;
 IR_node_t gsub_decl;
 IR_node_t split_decl;
@@ -2539,7 +2539,7 @@ static struct decl_entry decls_table [] =
   {&cos_decl, COS_NAME, NULL, cos_call},
   {&atan2_decl, ATAN2_NAME, NULL, atan2_call},
   {&match_decl, MATCH_NAME, NULL, match_call},
-  {&rcount_decl, RCOUNT_NAME, NULL, rcount_call},
+  {&gmatch_decl, GMATCH_NAME, NULL, gmatch_call},
   {&sub_decl, SUB_NAME, NULL, sub_call},
   {&gsub_decl, GSUB_NAME, NULL, gsub_call},
   {&split_regex_decl, SPLIT_REGEX_NAME, NULL, NULL},

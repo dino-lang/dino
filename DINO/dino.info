@@ -1,77 +1,77 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino25017.info.2.
+/tmp/sgmltmp.dino10986.info.2.
 
    \input texinfo
 
 
 Indirect:
 dino.info-1: 108
-dino.info-2: 49223
-dino.info-3: 98740
-dino.info-4: 148465
+dino.info-2: 49295
+dino.info-3: 98812
+dino.info-4: 140612
 
 Tag Table:
 (Indirect)
 Node: Top108
-Node: Introduction1411
-Node: Syntax2694
-Node: Vocabulary and Representation3608
-Node: Declarations and Scope Rules10261
-Node: Variable Declarations20401
-Node: External Declarations21406
-Node: Functions Classes Extensions22642
-Node: Expressions28703
-Node: Types and Values29260
-Node: Designators38101
-Node: Call40591
-Node: Operators42601
-Node: Logical operators46221
-Node: Bit operators48075
-Node: Comparison operators49223
-Node: Arithmetic operators51030
-Node: Miscellaneous operators52160
-Node: Executive statements55258
-Node: Empty statement56183
-Node: Block-statement56586
-Node: Assignment statements57303
-Node: Call-statement59260
-Node: If-statement59827
-Node: For-statement60631
-Node: Foreach-statement62104
-Node: Break- and continue-statement63128
-Node: Return-statement64000
-Node: Throw-statement64747
-Node: Try-block65553
-Node: Wait-statement68093
-Node: Program68850
-Node: Predeclared identifiers72403
-Node: Predeclared variables72857
-Node: Arguments and environment73244
-Node: Threads73877
-Node: Exceptions74443
-Node: Files76025
-Node: Miscellaneous variables76699
-Node: Predeclared classes77466
-Node: File77811
-Node: Exception classes78283
-Node: Earley parser classes89522
-Node: Parser-89853
-Node: Token-98740
-Node: Anode-99369
-Node: Example of Earley parser usage-101334
-Node: Predeclared functions104234
-Node: Mathematical functions105443
-Node: Pattern matching functions106976
-Node: File functions118497
-Node: Functions for access to file/directory information118921
-Node: Functions for work with directories123471
-Node: Functions for work with files-125023
-Node: File output functions128642
-Node: File input functions131852
-Node: Time functions135209
-Node: Functions for access to process information138544
-Node: Miscellaneous functions140012
-Node: Appendix A- Syntax of Dino148465
-Node: Appendix B- Implementation153234
+Node: Introduction1484
+Node: Syntax2767
+Node: Vocabulary and Representation3681
+Node: Declarations and Scope Rules10334
+Node: Variable Declarations20473
+Node: External Declarations21478
+Node: Functions Classes Extensions22714
+Node: Expressions28775
+Node: Types and Values29332
+Node: Designators38173
+Node: Call40663
+Node: Operators42673
+Node: Logical operators46293
+Node: Bit operators48147
+Node: Comparison operators49295
+Node: Arithmetic operators51102
+Node: Miscellaneous operators52232
+Node: Executive statements55330
+Node: Empty statement56255
+Node: Block-statement56658
+Node: Assignment statements57375
+Node: Call-statement59332
+Node: If-statement59899
+Node: For-statement60703
+Node: Foreach-statement62176
+Node: Break- and continue-statement63200
+Node: Return-statement64072
+Node: Throw-statement64819
+Node: Try-block65625
+Node: Wait-statement68165
+Node: Program68922
+Node: Predeclared identifiers72475
+Node: Predeclared variables72929
+Node: Arguments and environment73316
+Node: Threads73949
+Node: Exceptions74515
+Node: Files76097
+Node: Miscellaneous variables76771
+Node: Predeclared classes77538
+Node: File77883
+Node: Exception classes78355
+Node: Earley parser classes89594
+Node: Parser-89925
+Node: Token-98812
+Node: Anode-99441
+Node: Example of Earley parser usage-101406
+Node: Predeclared functions104306
+Node: Mathematical functions105515
+Node: Pattern matching functions107048
+Node: File functions119097
+Node: Functions for access to file/directory information119521
+Node: Functions for work with directories124071
+Node: Functions for work with files-125623
+Node: File output functions129242
+Node: File input functions132452
+Node: Time functions135809
+Node: Functions for access to process information139144
+Node: Miscellaneous functions140612
+Node: Appendix A- Syntax of Dino149065
+Node: Appendix B- Implementation153834
 
 End Tag Table
