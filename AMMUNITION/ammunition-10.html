@@ -1,0 +1,324 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Ammunition (Reusable packages) - C interface: Package for machine-independent arbitrary precision integer arithmetic</TITLE>
+ <LINK HREF="ammunition-11.html" REL=next>
+ <LINK HREF="ammunition-9.html" REL=previous>
+ <LINK HREF="ammunition.html#toc10" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition-11.html">Next</A>
+<A HREF="ammunition-9.html">Previous</A>
+<A HREF="ammunition.html#toc10">Contents</A>
+<HR>
+<H2><A NAME="s10">10. Package for machine-independent arbitrary precision integer arithmetic</A></H2>
+
+<P>Abstract data `arithm' may be used for implementation of a
+cross-compiler.  This abstract data implements arbitrary precision
+integer and unsigned integer number arithmetic by machine independent
+way.  The implementation of the package functions are not sufficiently
+efficient in order to use for run-time.  The package functions are
+oriented to implement constant-folding in compilers.  This package is
+necessary because host machine may not support such arithmetic for
+target machine.  For example, VAX does not support does not support
+more 32-bits integer numbers arithmetic.
+<P>The numbers in packages are represented by bytes in big endian mode,
+negative integer numbers are represented in complementary code.  All
+sizes are given in bytes and must be positive.  Results of executions
+of all functions can coincide with a operand(s).  All functions of
+addition, subtraction, multiplication, division, evaluation of
+remainder, shift, changing size and transformation of string into
+number fix overflow.  The overflow is fixed when result can not be
+represented by number of given size.
+<P>The interface part of the abstract data is file `arithm.h'.  The
+implementation part is file `arithm.c'.  The maximum length of integer
+number is suggested to be not greater then `MAX_INTEGER_OPERAND_SIZE'.
+The default value (128) of this macro can be redefined with
+corresponding C compiler option `-DMAX_INTEGER_OPERAND_SIZE=...'
+during compilation of file `arithm.c'.  But in any case the minimal
+value of the macros will be 16.  The interface contains the following
+external definitions:
+<P>
+<DL>
+<DT><B>Variable `overflow_bit'</B><DD><P>has only two values 0 or 1.  The value `1' corresponds to
+overflow.  The variable value are modified by all functions of
+addition, subtract, multiplication, division, evaluation of
+remainder, shift, changing size and transformation of string
+into number.
+<P>
+<DT><B>Variable `const unsigned char *zero_constant'</B><DD><P>represents zero (unsigned) integer of any size.
+<P>
+<DT><B>Function `void default_arithmetic_overflow_reaction (void)'</B><DD><P>Originally reaction on all integer and unsigned integer
+overflow is equal to this function.  The function does
+nothing.  Reaction on overflow for integers or unsigned
+integers is called after setting up variable `overflow_bit'.
+<P>
+<DT><B>Function `set_integer_overflow_reaction'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void (*set_integer_overflow_reaction
+                (void (*function) (void))) (void)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+changes reaction on integer overflow and returns previous
+overflow reaction function.  There is analogous function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `set_unsigned_integer_overflow_reaction'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+for unsigned integer overflow.
+<P>
+<DT><B>Function `integer_maximum'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void integer_maximum   (int  size,  void  *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+creates given size (in bytes) maximal integer constant which
+is placed in memory whose address is given by the second
+parameter.  There is analogous function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `integer_minimum' and
+        `unsigned_integer_maximum'.
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<DT><B>Function `add_integer'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void add_integer (int size,
+                           const void *op1, const void *op2,
+                           void *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes integer addition of integers of given size.  The
+function fixes overflow when result can not be represented by
+number of given size.  There are analogous functions which
+implement other integer operations:
+<BLOCKQUOTE><CODE>
+<PRE>
+        `subtract_integer',
+        `multiply_integer',
+        `divide_integer',
+        `integer_remainder'.
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Also there are analogous functions
+<BLOCKQUOTE><CODE>
+<PRE>
+        `subtract_unsigned_integer',
+        `multiply_unsigned_integer',
+        `divide_unsigned_integer',
+        `unsigned_integer_remainder'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+for unsigned integers.
+<P>
+<DT><B>Function `integer_shift_left'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void  integer_shift_left (int size,  const void *operand,
+                                   int bits, void *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes left shift of integer of given size on given number of
+bits.  If number of bits is negative the function makes shift
+to right actually.  The function fixes overflow when result
+can not be represented by number of given size, i.e. in other
+words the opposite shift (to right) results in number not
+equal to source operand.  There are analogous functions which
+implement another integer operation 
+<BLOCKQUOTE><CODE>
+<PRE>
+        `integer_shift_right'.  
+</PRE>
+</CODE></BLOCKQUOTE>
+ Also there are
+analogous functions 
+<BLOCKQUOTE><CODE>
+<PRE>
+        `unsigned_integer_shift_left' and
+        `unsigned_integer_shift_right' for unsigned integers.
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<DT><B>Function `integer_or'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void integer_or (int size, const void *op1, const void *op2,
+                          void *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes bitwise `or' of integers of given size.  There is
+analogous function which implement bitwise `and':
+<BLOCKQUOTE><CODE>
+<PRE>
+        `integer_and'.
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Also there are equivalent functions
+<BLOCKQUOTE><CODE>
+<PRE>
+        `unsigned_integer_or',
+        `unsigned_integer_and',
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+for unsigned integers.
+<P>Function 
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void integer_not (int size, const void *operand,
+                           void *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes bitwise `not' of integer of given size.  There is
+equivalent function for unsigned integer:
+<BLOCKQUOTE><CODE>
+<PRE>
+        `unsigned_integer_not'.
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<DT><B>Function `eq_integer'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int eq_integer (int size, const void *op1, const void *op2)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+compares two integers of given size on equality and returns 1
+or 0 depending on result of the comparison.  There are
+analogous functions which implement other integer operations:
+<BLOCKQUOTE><CODE>
+<PRE>
+        `ne_integer',
+        `gt_integer',
+        `lt_integer',
+        `ge_integer',
+        and `le_integer'.
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+   
+Also there are analogous functions
+<BLOCKQUOTE><CODE>
+<PRE>
+        `eq_unsigned_integer',
+        `ne_unsigned_integer',
+        `gt_unsigned_integer',                 
+        `lt_unsigned_integer',
+        `ge_unsigned_integer',
+        and `le_unsigned_integer'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+for unsigned integers.
+<P>
+<DT><B>Function `change_integer_size'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void  change_integer_size (int operand_size,
+                                    const  void *operand,
+                                    int result_size, void *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+changes size of integer.  The function fixes overflow when
+result can not be represented by number of given size.  There
+is analogous function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `change_unsigned_integer_size'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+for unsigned integers.
+<P>
+<DT><B>Function `integer_to_string'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `char *integer_to_string (int  size, const void *operand,
+                                  char *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+transforms integer of given size to decimal ascii
+representation.  Sign is present in result string only for
+negative numbers.  The function returns value `result'.  There
+is analogous function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `unsigned_integer_to_string'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+for unsigned integers.
+<P>
+<DT><B>Function `integer_from_string'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `char *integer_from_string (int  size, const char *operand,
+                                    void *result)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+skips all white spaces at the begin of source string and
+transforms the tail of the source string (decimal ascii
+representation with possible sign `+' or `-') to given size
+integer and returns pointer to first non digit in the source
+string.  If the string started with invalid integer
+representation the result will be zero.  The function fixes
+overflow when result can not be represented by number of given
+size.  There is analogous function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `unsigned_integer_from_string'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+for unsigned integers.  But sign `+' is believed to be not
+part of unsigned integer.
+</DL>
+<P>
+<HR>
+<A HREF="ammunition-11.html">Next</A>
+<A HREF="ammunition-9.html">Previous</A>
+<A HREF="ammunition.html#toc10">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Ammunition (Reusable packages) - C interface: Package for work with bit strings</TITLE>
+ <LINK HREF="ammunition-10.html" REL=next>
+ <LINK HREF="ammunition-8.html" REL=previous>
+ <LINK HREF="ammunition.html#toc9" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition-10.html">Next</A>
+<A HREF="ammunition-8.html">Previous</A>
+<A HREF="ammunition.html#toc9">Contents</A>
+<HR>
+<H2><A NAME="s9">9. Package for work with bit strings</A></H2>
+
+<P>The package for work with bit strings is used to implement package
+`IEEE'.  But of course the package can be used for solving other
+tasks.
+<P>Here a bit is given by address (start address) of byte from which
+counting bits starts and its displacement which is any non negative
+number of bit from the start address.  The most significant bit of the
+start address byte has number 0.  The bit string is given by its first
+bit and its length in bits.
+<P>The interface part of the package is file `bits.h'.  The
+implementation part is file `bits.c'.  The interface contains the
+following external definitions of macros and functions:
+<P>
+<DL>
+<DT><B>Macro `BIT'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `BIT(start_byte, bit_displacement)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns given bit value as integer value `0' or `1'.  There
+is macro `SET_BIT (start_byte, bit_displacement, bit) for
+changing value of a bit.  Parameter `bit' must have value
+`0' or `1'.
+<P>
+<DT><B>Function `is_zero_bit_string'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int is_zero_bit_string (const void *start_byte,
+                                   int bit_displacement,
+                                   int bit_length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns `1' if given bit string contains only zero value
+bits, 0 otherwise.
+<P>
+<DT><B>Function `bit_string_set'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void bit_string_set (void *start_byte, int
+                                bit_displacement, int bit,
+                                int bit_length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+sets up new value of all bits of given bit string.  This
+function is bit string analog of standard C function
+`memset'.
+<P>
+<DT><B>Function `bit_string_copy'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void bit_string_copy (void *to, int to_bit_displacement,
+                                 const void *from,
+                                 int from_bit_displacement,
+                                 int bit_length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+copys a bit string to another bit string.  The bit strings
+must be nonoverlapped.  This function is bit string analog
+of standard C function `memcpy'.
+<P>
+<DT><B>Function `bit_string_move'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          void bit_string_move (void *to, int to_bit_displacement,
+                                const void *from,
+                                int from_bit_displacement,
+                                int bit_length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+copys a bit string to another bit string.  The bit strings
+can be overlapped.  This function is bit string analog of
+standard C function `memmove'.
+<P>
+<DT><B>Function `bit_string_comparison'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int bit_string_comparison
+               (const void *str1, int bit_displacement1,
+                const void *str2, int bit_displacement2,
+                int bit_length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns 0 if the bit strings are equal, 1 if the first bit
+string is greater than the second, -1 if the first bit
+string is less than the second.  This function is bit string
+analog of standard C function `memcmp'.
+</DL>
+<P>
+<HR>
+<A HREF="ammunition-10.html">Next</A>
+<A HREF="ammunition-8.html">Previous</A>
+<A HREF="ammunition.html#toc9">Contents</A>
+</BODY>
+</HTML>

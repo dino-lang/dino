@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Ammunition (Reusable packages) - C interface: Package for work with stacks of objects</TITLE>
+ <LINK HREF="ammunition-5.html" REL=next>
+ <LINK HREF="ammunition-3.html" REL=previous>
+ <LINK HREF="ammunition.html#toc4" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition-5.html">Next</A>
+<A HREF="ammunition-3.html">Previous</A>
+<A HREF="ammunition.html#toc4">Contents</A>
+<HR>
+<H2><A NAME="s4">4. Package for work with stacks of objects</A></H2>
+
+<P>The package `objstack' is based on package `allocate' and implements
+efficient work with stacks of objects (OS).  Work with the object on
+the stack top is analogous to one with a variable length object.  One
+motivation for the package is the problem of growing char strings in
+symbol tables.  Memory for OS is allocated by segments.  A segment may
+contain more one objects.  The most recently allocated segment
+contains object on the top of OS.  If there is not sufficient free
+memory for the top object than new segment is created and the top
+object is transferred into the new segment, i.e. there is not any
+memory reallocation.  Therefore the top object may change its address.
+But other objects never change address.
+<P>Because arguments of all macros which return a result
+(`OS_TOP_LENGTH', `OS_TOP_BEGIN', `OS_TOP_BOUND', and `OS_TOP_END')
+may be evaluated many times no side-effects should be in the
+arguments.
+<P>The package uses package `allocate'.  The interface part of the
+package is file `objstack.h'.  Defining macro `NDEBUG' (e.g.  by
+option `-D' in C compiler command line) before the package macros
+usage disables fixing some internal errors and errors of usage of the
+package.  The implementation part is file `objstack.c'.  The interface
+contains the following definitions and macros:
+<P>
+<DL>
+<DT><B>Type `os_t'</B><DD><P>describes a descriptor of stack of objects.  All work with
+stack of objects is executed by the following macros through
+the descriptors.  Structure (implementation) of this type is
+not needed for using stack of objects.  But it should remember
+that work with the stack through several descriptors is not
+safe.
+<P>
+<DT><B>Macro `OS_DEFAULT_SEGMENT_LENGTH'</B><DD><P>has value which is default size of memory segments which will
+be allocated for OS when the stack is created (with zero
+initial segment size).  This is also minimal size of all
+segments.  Original value of the macros is equal to 512.  This
+macro can be redefined in C compiler command line or with the
+aid of directive `#undef' before any using the package
+macros.
+<P>
+<DT><B>Macro `OS_CREATE'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_CREATE(os, initial_segment_length)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+creates OS which contains the single zero length object.  OS
+descriptor is given as the first macro parameter.  Minimum
+size of memory segments which will be allocated for OS is
+given as the second parameter.  If the second parameter is
+equal to zero the allocated memory segments length is equal to
+`OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment
+length is always not less than maximum alignment.
+<P>
+<DT><B>Macro `OS_DELETE'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_DELETE(os)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is used for freeing all memory used by OS whose descriptor is
+given as the macro parameter.
+<P>
+<DT><B>Macro `OS_EMPTY'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_EMPTY(os)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is used for removing all objects and freeing all memory
+allocated for OS except for the first segment.
+<P>
+<DT><B>Macro `OS_TOP_FINISH'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_FINISH(os)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+creates new variable length object with initial zero length on
+the top of OS whose descriptor is given as the macro
+parameter.  The work (analogous to one with variable length
+object) with object which was on the top of OS is finished,
+i.e. the object will never more change address.
+<P>
+<DT><B>Macro `OS_TOP_NULLIFY'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_NULLIFY(os)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes that length of variable length object on the top of OS
+whose descriptor is given as the macro parameter will be equal
+to zero.
+<P>
+<DT><B>Macro `OS_TOP_LENGTH'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_LENGTH(os)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns current length of variable length object on the top of
+OS whose descriptor is given as the macro parameter.
+<P>
+<DT><B>Macros `OS_TOP_BEGIN', `OS_TOP_END', `OS_TOP_BOUND'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_BEGIN(os)', `OS_TOP_END(os)', `OS_TOP_BOUND(os)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+return pointer to correspondingly the first and the last byte
+of variable length object on the top of OS whose descriptor is
+given as the macros parameter, and pointer to the last byte
+plus one.  Remember that the top object may change own place
+after any addition.
+<P>
+<DT><B>Macro `OS_TOP_SHORTEN'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_SHORTEN(os, n)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+removes n bytes from the end of variable length object on the
+top of OS whose descriptor is given as the first parameter.
+The top variable length object is nullified if its length is
+less than n.
+<P>
+<DT><B>Macro `OS_TOP_EXPAND'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_EXPAND(os, length)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+increases length of variable length object on the top of OS
+whose descriptor is given as the first parameter on number of
+bytes given as the second parameter.  The values of bytes
+added to the end of variable length object on the top of OS
+will be not defined.
+<P>
+<DT><B>Macro `OS_TOP_ADD_BYTE'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_ADD_BYTE(os, b)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adds byte given as the second parameter to the end of variable
+length object on the top of OS whose descriptor is given as
+the first parameter.
+<P>
+<DT><B>Macro `OS_TOP_ADD_MEMORY'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_ADD_MEMORY(os, str, length)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adds memory starting with address given as the second macro
+parameter and with length given as the third parameter to the
+end of variable length object on the top of OS whose
+descriptor is given as the first parameter.
+<P>
+<DT><B>Macro `OS_TOP_ADD_STRING'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `OS_TOP_ADD_STRING(os, str)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adds C string (with end marker 0) given as the second macro
+parameter to the end of variable length string on the top of
+OS whose descriptor is given as the first parameter.  Before
+the addition the macro deletes last character of the top
+variable length object.  The last character is suggested to be
+C string end marker 0.
+</DL>
+<P>
+<HR>
+<A HREF="ammunition-5.html">Next</A>
+<A HREF="ammunition-3.html">Previous</A>
+<A HREF="ammunition.html#toc4">Contents</A>
+</BODY>
+</HTML>

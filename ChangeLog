@@ -1,3 +1,21 @@
 2001-05-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* cocom.html cocom.dvi cocom.txt cocom.ps cocom.info
+	AMMUNITION/ammunition*.html AMMUNITION/ammunition.info*
+	AMMUNITION/ammunition.txt AMMUNITION/ammunition.dvi
+	AMMUNITION/ammunition.ps AMMUNITIONammunition++*.html
+	AMMUNITIONammunition++.info* AMMUNITIONammunition++.txt
+	AMMUNITIONammunition++.dvi AMMUNITIONammunition++.ps
+	DINO/dino*.html DINO/dino.info* DINO/dino.txt DINO/dino.dvi
+	DINO/dino.ps MSTA/msta*.html MSTA/msta.info* MSTA/msta.txt
+	MSTA/msta.dvi MSTA/msta.ps NONA/nona*.html NONA/nona.info*
+	NONA/nona.txt NONA/nona.dvi NONA/nona.ps OKA/oka*.html
+	OKA/oka.info* OKA/oka.txt OKA/oka.dvi OKA/oka.ps
+	SHILKA/shilka*.html SHILKA/shilka.info* SHILKA/shilka.txt
+	SHILKA/shilka.dvi SHILKA/dino.ps SPRUT/sprut*.html
+	SPRUT/sprut.info* SPRUT/sprut.txt SPRUT/sprut.dvi SPRUT/sprut.ps:
+	Add generated documentation files.
+
+2001-05-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* Initial revision of cocom and dino.

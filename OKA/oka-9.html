@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>OKA (pipeline hazards description translator): Appendix 3 - Output of pipeline Hazards Description Translator</TITLE>
+ <LINK HREF="oka-8.html" REL=previous>
+ <LINK HREF="oka.html#toc9" REL=contents>
+</HEAD>
+<BODY>
+Next
+<A HREF="oka-8.html">Previous</A>
+<A HREF="oka.html#toc9">Contents</A>
+<HR>
+<H2><A NAME="s9">9. Appendix 3 - Output of pipeline Hazards Description Translator</A></H2>
+
+<P>The following output was generated under Linux 1.2.8 on Compaq Aero
+(Intel SX-25, 8MB memory).
+<BLOCKQUOTE><CODE>
+<PRE>
+
+bash$ time oka -v alpha-ev5.oka
+
+Automaton `integer'
+        36 NDFA states,             152 NDFA arcs
+        32 DFA states,              138 DFA arcs
+        24 minimal DFA states,      118 minimal DFA arcs
+       146 all instructions           7 instruction equivalence classes
+
+Automaton `multiply'
+       186 NDFA states,            2283 NDFA arcs
+       261 DFA states,             2958 DFA arcs
+       236 minimal DFA states,     2748 minimal DFA arcs
+       146 all instructions          13 instruction equivalence classes
+
+Automaton `float'
+       180 NDFA states,             720 NDFA arcs
+       209 DFA states,              867 DFA arcs
+       149 minimal DFA states,      687 minimal DFA arcs
+       146 all instructions           8 instruction equivalence classes
+
+   606 all allocated states,       3802 all allocated arcs
+  1281 all allocated alternative states
+  2177 all comb vector elements,   4428 all transition table elements
+7.90user 1.09system 0:10.39elapsed 86%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (69major+247minor)pagefaults 0swaps
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+Next
+<A HREF="oka-8.html">Previous</A>
+<A HREF="oka.html#toc9">Contents</A>
+</BODY>
+</HTML>

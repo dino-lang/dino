@@ -1,0 +1,1310 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>SPRUT (internal representation description translator): Standard Procedural Interface</TITLE>
+ <LINK HREF="sprut-4.html" REL=next>
+ <LINK HREF="sprut-2.html" REL=previous>
+ <LINK HREF="sprut.html#toc3" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="sprut-4.html">Next</A>
+<A HREF="sprut-2.html">Previous</A>
+<A HREF="sprut.html#toc3">Contents</A>
+<HR>
+<H2><A NAME="s3">3. Standard Procedural Interface</A></H2>
+
+<P>An internal representation description is translated by SPRUT
+(internal representation definition translator) into a standard
+procedural interface (SPI).  If the specification file is an extension
+(see the language description) of another specification file the later
+is also used to SPI generation and so on.  SPI consists of interface
+and implementation files having the same names as one of the
+specification file and correspondingly suffixes `.h' and `.c' (C code)
+or `.cpp' (C++ code).
+<P>
+<H2><A NAME="ss3.1">3.1 C SPI</A>
+</H2>
+
+<P>By default (when option `-c++' is not present on the command line)
+SPRUT generates C SPI.  The following subsections describe C SPI.
+<P>
+<H3>C SPI types, variables, macros</H3>
+
+<P>Interface file of SPI consists of C declarations of the following
+types, variables and macros.
+<OL>
+<LI>Type `IR_node_mode_t' is represented by enumeration
+definition.  There is enumeration constant with node type name
+and prefix `IR_NM_' for each node type declaration even for
+abstract node type.  Also there are enumeration constants with
+names `IR_NM__root' and `IR_NM__error' for and predefined type
+`%root' and for error nodes.  `IR_NM' is abbreviation of
+internal representation node mode.  There is also the
+enumeration name `IR_node_mode_enum' which is convenient to
+use in imported section for forward definition of pointer to
+this enumeration.
+</LI>
+<LI>Type `IR_node_t' represents a node (more correctly pointer to
+a structure representing node).  There are the type value
+`NULL' reserved to represent none node.
+<P>The structure of this type is opaque and all work with nodes
+are to be fulfilled through macros (or/and functions).  But to
+show efficacy of types implementation it should be said that
+every node type is turned into a structure declaration.  All
+these structures have first member of type `IR_node_mode_t'.
+Other members represent the node fields except for class
+field.  Depending on SPRUT command line option
+`-flat-structure' (see SPRUT usage) this structure can contain
+also members corresponding to fields declared in super types
+of given node type or member which type is structure
+corresponding to immediate super type of given node type.
+Class fields for each non-abstract node type are represented
+by only one separate structure.
+<P>The fields in different node types with the same name (when it
+is consequence of existing common super type with this field)
+have the same displacement from the structure begin because
+types of previous fields is guaranteed to be the same in these
+structures.  The fields in different node types with the same
+name (when it is not consequence of existing common super type
+with this field) may have the different displacement from the
+structure begin therefore access to such fields requires
+additional indirect addressing.
+<P>Double linked field (see internal representation description
+language) requires more memory (about in five times) for its
+implementation.  Speed of SPI work with double linked fields
+is sightly slower.  Because additional work is needed only to
+setting up the field value and my experience shows that
+usually number of setting up fields value is less than number
+of their fetching about in ten times.
+<P>Type `IR_node_t' is simply pointer to struct representing node
+type `%root'.  The name of this structure is `IR_node'.
+This name can be used in imported section for forward
+reference for nodes (instead of `IR_node_t').
+<P>
+</LI>
+<LI>Optional variable `IR_node_name' is array mapping values of type
+`IR_node_mode_t' to names (strings) in C. (see also
+option -no-node-name in SPRUT usage).
+        </LI>
+<LI>Variable `IR_node_size' is array mapping values of type
+`IR_node_mode_t' to size of corresponding structures on C.
+</LI>
+<LI>Macro `IR_IS_TYPE(type, supertype)' is evaluated as nonzero if
+the first argument of type `IR_node_mode_t' is equal to the
+second argument or node type represented by the first argument
+is a sub-type of node type represented by the second argument.
+Otherwise the macro returns zero.  But this macro returns
+always zero for any error node, i.e.  this macro can be used
+to define that the node of the first mode has fields of the
+node of the second mode.
+        </LI>
+<LI>Macro `IR_NODE_MODE(node)' returns node mode represented by
+value of type `IR_node_mode_t' for node given as the macro
+argument of type `IR_node_t'.
+</LI>
+<LI>Macro `IR_IS_OF_TYPE(node, supertype)' is abbreviation of
+frequently used `IR_IS_TYPE (IR_NODE_MODE (node), supertype)'.
+</LI>
+<LI>Macro `IR_NODE_LEVEL(node)' has value which is internal
+representation description level in which declaration of given
+node type starts.</LI>
+</OL>
+<P>
+<H3>C Functions</H3>
+
+<P>SPI interface file also contains definitions of generated functions to
+creation, deletion, modification, comparison, copy, check, print, and
+binary input/output of internal representation nodes and functions for
+access to values of internal representation node fields.
+<P>These functions do not permit to work with abstract nodes.  Only one
+graph function can be active, e.g.  call of function `IR_check_graph'
+is not permitted during work of any traverse or transformation
+function.
+<P>Macros can be generated with or instead of the functions for access to
+internal representation node fields.  This feature should be used if
+used C preprocessor has not rigid constraints on number of defined
+macros.  Because macros arguments may be evaluated many times no
+side-effects should be in the arguments.
+<OL>
+<LI>Access functions (or/and macros).  These functions are
+generated when option `-access' is present in the SPRUT command
+line.  If option `-macro' is used the access functions and
+macros are generated.  If option `-only-macro' is used only
+access macros are generated.  Only option `-macro' or
+`-only-macro' can be on the command line of SPRUT.  There is
+one function for each field with unique name.  Access function
+has name formed from prefix `IR_' and corresponding field
+name.  There is one exception.  When access functions and
+macros are generated, macros have names starting with prefix
+`IR_' and the functions have names starting with prefix
+`IR_F_'.  Access function has one argument of type `IR_node_t'.
+The argument represents node which must have such field.  Type
+of returned value is predefined type (if the field is of such
+type) or `IR_node_t' (if the field is of a node type).
+<P>Functions
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_double_link_t IR__first_double_link (IR_node_t node)',
+
+        `IR_double_link_t IR__next_double_link
+               (IR_double_link_t prev_double_link)',
+
+        `IR_double_link_t IR__previous_double_link
+               (IR_double_link_t next_double_link)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+return references to fields which have double links to given
+node.  Functions `IR__first_double_link' is always implemented
+by function.  The node itself which contains such links can be
+determined by function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR__owner (IR_double_link_t link)'.
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Here type `IR_double_link_t' represents pointer to double
+fields.  The functions may also check up that the node has
+given field (see SPRUT options).
+<P>
+</LI>
+<LI>Modification functions.  These functions are generated when
+option `-set' is present in the SPRUT command line.  There is
+one functions for each field with unique name.  Modification
+function has name formed from prefix `IR_set_' and
+corresponding field name.
+<P>Modification function has two arguments. The first argument of
+type `IR_node_t' represents node which must have such field.
+The second argument of predefined type (if the field is of
+such type) or of type `IR_node_t' (if the field is of a node
+type) represents new value of the field.
+<P>The function may check up constraint if the field represents
+arc to node of a node type or its sub-types (see SPRUT
+options).  The functions may also check up that the node has
+given field.
+<P>There is also function for modification of double links
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR__set_double_link (IR_double_link_t double_link,
+                                   IR_node_t value)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Remember that values of `IR__next_double_link' and
+`IR__previous_double_link' are changed after calling this
+function.
+<P>
+</LI>
+<LI>Function 
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_create_node (IR_node_mode_t node_mode)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated in any case.  This function allocates storage for
+node of any type (except for abstract) represented by the
+argument (it can be also `IRNM__error), sets up node mode and
+node level, fulfills fields assignments (except for class
+fields) in the same order as the fields are declared.  The
+field assignment is fulfilled according to type specific
+operation (see section `Type specific macros') and actions
+which are defined after given field in sections of skeleton
+and other fields of corresponding node type.  After that the
+function returns the created node.  The single way to create
+error nodes is to use this function with argument
+`IRNM__error'.
+</LI>
+<LI>Node type specific creation functions.  These functions are
+generated when option `-new' is present in the SPRUT command
+line.  There is one function for each node type (except for
+abstract).  Names of functions are formed from prefix
+`IR_new_' and corresponding node type name.  The number of
+parameters of a function is equal to one of skeleton fields of
+corresponding node type.  The parameters of these functions
+have to be given in the order of the skeleton fields in the
+specification.  Fields of the super-type (recursively) precede
+the ones of the sub-type.
+<P>These functions may check up constraints on skeleton fields
+which represent arc to node of a node type or its sub-types
+(see SPRUT options).  These functions call node creation
+function and after that assign parameters values to
+corresponding skeleton fields.  After that the functions
+return the created node.  These functions provide a mechanism
+similar to record aggregates.  Nested calls of such functions
+allow programming with terms as in LISP.
+<P>
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_free_node (IR_node_t node)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-free' or `-free-graph' is present
+in the SPRUT command line.  This function deletes given node.
+The deletion consists of evaluation of finalization macros for
+node fields (see field type specific macros) in reverse order
+and all node space deallocation.  The function also delete
+double linked fields of given node from the corresponding
+lists of double linked fields.  But the user should know that
+there may be dangling references to given node itself after
+the function call.  The function does nothing if the parameter
+value is equal to NULL.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_free_graph (IR_node_t graph)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-free-graph' is present in the SPRUT
+command line.  This function deletes given node and all nodes
+accessible from given node `graph'.  The nodes are deleted in
+depth first order.  The function does nothing if the parameter
+value is equal to NULL.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_conditional_free_graph
+                 (IR_node_t graph,
+                  int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-free-graph' is present in the SPRUT
+command line.  This function deletes given node and all nodes
+accessible from given node `graph'.  The nodes are deleted in
+depth first order.  The function does nothing if the parameter
+value is equal to NULL.  The processing (traversing and
+deleting) children of node which is passed to the
+parameter-function is not fulfilled if the parameter-function
+returns zero.  All graph is deleted when the returned value is
+always nonzero.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_copy_node (IR_node_t node)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-copy' or `-copy-graph' is present
+in the SPRUT command line.  This function makes copy of given
+node.  Field type specific macros are used (see section `Type
+specific macros') to make this.  The function only returns
+NULL if the parameter value is equal to NULL.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_copy_graph (IR_node_t graph)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-copy-graph' is present in the
+command line.  This function makes copy of graph given by its
+node `graph'.  The function only returns NULL if the parameter
+value is equal to NULL.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_conditional_copy_graph
+                     (IR_node_t graph,
+                      int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-copy-graph' is present in the
+command line.  This function makes copy of graph given by its
+node `graph'.  The function only returns NULL if the parameter
+value is equal to NULL.  The processing (traversing and
+copying) children of node which is passed to the
+parameter-function is not fulfilled if the parameter-function
+returns zero.  All nodes of graph are copied when the returned
+value is always nonzero.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_is_equal_node (IR_node_t node_1,
+                               IR_node_t node_2)'.
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-equal' or `-equal-graph' is present
+in the SPRUT command line.  This function returns nonzero iff
+`node_1' is equal to `node_2', i.e.  node_1 and node_2 have
+the same type and all fields of `node_1' are equal to the
+corresponding fields of `node_2'.  Field type specific macros
+are used (see section `Type specific macros') to make this.
+The function return nonzero if parameter values are equal to
+NULL.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_is_equal_graph (IR_node_t graph_1,
+                                IR_node_t graph_2)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-equal-graph' is present in the SPRUT
+command line.  This function returns nonzero iff graph
+starting with node `graph_1' is equal to graph starting with
+node `graph_2', i.e.  the graphs have the same structure and
+all predefined type fields of `graph_1' are equal to the
+corresponding fields of `graph_2'.  The function returns TRUE
+if parameter values are equal to NULL.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_is_conditional_equal_graph
+               (IR_node_t graph_1, IR_node_t graph_2,
+                int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-equal-graph' is present in the SPRUT
+command line.  This function returns nonzero iff graph
+starting with node `graph_1' is equal to graph starting with
+node `graph_2', i.e.  the graphs have the same structure and
+all predefined type fields of `graph_1' are equal to the
+corresponding fields of `graph_2'.  The function returns TRUE
+if parameter values are equal to NULL.  The processing
+(traversing and comparing) children of node which is passed to
+the parameter-function is not fulfilled if the
+parameter-function returns zero.  All nodes of the graphs are
+compared when the returned value is always nonzero.
+Unprocessed graph nodes are believed to be equal.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_check_node (IR_node_t node,
+                            int class_field_flag)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+This function is generated when option `-check' or
+`-check-graph' is present in the SPRUT command line.  By
+default the most of generated functions (and macros) which
+work with internal representation nodes do not check up
+constraints which described in the specification.
+<P>There are two kinds of constraints.  The first is constraint
+on field which represents arc to node of given type or its
+sub-types.  The second is constraint which defined by target
+code (see the internal representation definition language).
+The user is responsible to adhere to the constraints.
+Function `IR_check_node' can be used to check all constraints
+corresponding to given node.  The function does nothing if the
+parameter value is equal to null.  In case of a constraint
+violation the involved node and all child nodes are printed on
+standard error and the function returns nonzero (error flag).
+If the second parameter value is zero then class fields of
+given node are not checked up.
+<P>
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_check_graph (IR_node_t graph,
+                             int class_field_flag)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-check-graph' is present in the sprut
+command line.  This function checks given node `graph' and all
+nodes accessible from given node.  It should be known that a
+class field is processed only when the second parameter value
+is nonzero.  The function does nothing if the parameter value
+is equal to null.  In case of fixing any constraint violation
+returns nonzero (error flag).
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_conditional_check_graph
+               (IR_node_t graph, int class_field_flag,
+                int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-check-graph' is present in the sprut
+command line.  This function checks given node `graph' and all
+nodes accessible from given node.  It should be known that a
+class field is processed only when the second parameter value
+is nonzero.  The function does nothing if the parameter value
+is equal to null.  In case of fixing any constraint violation
+returns nonzero (error flag).  The processing (traversing and
+checking) children of node which is passed to the
+parameter-function is not fulfilled if the parameter-function
+returns zero.  All nodes of graph are checked when the
+returned value is always nonzero.  It is better to free
+changed nodes which are not used after transformation
+especially when there are double links to the nodes (otherwise
+the nodes can be accessible with the aid of functions for work
+with double links).
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_print_node (IR_node_t node,
+                             int class_field_flag)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-print' is present in the sprut
+command line or options `-check' or `check-graph' is present
+because check functions use this print function.  The function
+outputs values of node fields with their names to standard
+output in readable form.  To make this the function outputs
+sequentially all the node fields (including class fields if
+the second parameter value is nonzero) with the aid of field
+type specific macros (see below).  The function does nothing
+if the parameter value is equal to null.
+</LI>
+<LI>Functions
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_output_node (FILE *output_file, IR_node_t node,
+                             int level)',
+
+        `IR_node_t IR_input_node (FILE *input_file,
+                                  IR_node_t *original_address)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+are   generated    when   option correspondingly `-output'  or
+`-input' is present in the SPRUT command line.
+<P>Function `IR_output_node' writes node to given file.  To make
+this the function outputs the second parameter value, node
+address and after that sequentially all the node fields
+(except for class fields) whose declarations are present in
+internal representation description of `level' or less than
+the one (see internal representation description language).
+The node type must be also declared in internal representation
+description of `level' or less than the one.  The function
+does nothing if the value of parameter `node' is equal to
+NULL.  A nonzero function result code means fixing an error
+during output.
+<P>Function `IR_input_node' reads node from given file, allocates
+space for the node, initiates its fields and changes the node
+fields output early.  To make this the function uses function
+`create_node'.  The output level of input node must be less or
+equal to the internal representation level of given SPI.  Null
+value returned by the function means fixing an error during
+input.  The function returns original address of input node
+through the second parameter.  The output and input of fields
+is fulfilled with the aid of field type specific macros (see
+section `Type specific macros').
+<P>
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_traverse_depth_first
+              (IR_node_t graph, int class_field_flag,
+               void (*function) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-traverse' is present in the SPRUT
+command line.  This function traverses graph given by its node
+`graph' depth first (it means bottom up for tree).  Arcs
+represented by class fields are included in this graph if the
+second parameter value is nonzero.  At every node a function
+given as parameter is executed.  Arcs implementing lists of
+double linked fields are not traversed.  The function does
+nothing if the `graph' parameter value is equal to NULL.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_traverse_reverse_depth_first
+              (IR_node_t graph, int class_field_flag,
+               int (*function) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-reverse-traverse' is present in the
+SPRUT command line.  This function is analogous to the previous
+but the graph is traversed in reverse depth first order (it
+means top down order for tree).  The traverse of children of
+node which is passed to the parameter-function is not
+fulfilled if the parameter-function returns zero.  All graph
+is traversed when the returned value is always nonzero.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_transform_dag
+           (IR_node_t graph, int class_field_flag,
+            int (*guard_function) (IR_node_t node),
+            IR_node_t (*transformation_function) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-transform' is present in the SPRUT
+command line.  This function is used for transformation of
+directed acyclic graphs.  This is needed for various goals,
+e.g. for constant folding optimization.  At first the function
+calls guard function.  If the guard function returns zero, the
+function return the first parameter.  Otherwise when the guard
+function returns nonzero, all fields (including class fields
+if parameter `class_field_flag' is nonzero) of given node are
+also processed, i.e.  the fields values are changed.  And
+finally the node itself is processed by the transformation
+function (remember that the transformation function is never
+called for nodes which are parts of a graph cycle), and the
+result of transformation function is the result of given
+function.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_start (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated in any case.  This function is to be called
+before any work with internal representation.  The function
+initiates internal representation storage management (see next
+section), fulfills class field type specific initializations,
+evaluates actions bound to class fields, and make some other
+initiations.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_stop (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated in any case.  The call of this function is to be
+last.  The function fulfills class field type specific
+finalizations and finishes internal representation storage
+management.</LI>
+</OL>
+<P>
+<H2><A NAME="ss3.2">3.2 C++ SPI</A>
+</H2>
+
+<P>SPRUT generates C++ SPI only when option `-c++' is present on the
+command line.  Mainly C++ SPI is analogous to one on C.  Major
+difference is that `IR_node_t' and `IR_double_link_t' are pointer to
+classes not to structures.  As the consequence, the most of functions
+are public or friend functions of the classes.
+<P>
+<H3>C++ SPI types, variables, macros</H3>
+
+<P>C++ interface file of SPI consists of C++ declarations of the following
+types, variables.
+<OL>
+<LI>Type `IR_node_mode_t' is represented by enumeration
+definition.  There is enumeration constant with node type name
+and prefix `IR_NM_' for each node type declaration even for
+abstract node type.  Also there are enumeration constants with
+names `IR_NM__root' and `IR_NM__error' for and predefined type
+`%root' and for error nodes.  `IR_NM' is abbreviation of
+internal representation node mode.  There is also the
+enumeration name `IR_node_mode_enum' which is convenient to
+use in imported section for forward definition of pointer to
+this enumeration.
+</LI>
+<LI>Type `IR_node_t' represents a node (more correctly pointer to
+a class representing node).  There are the type value
+`NULL' reserved to represent none node.
+<P>The class of this type is opaque (i.e. there are not public
+variables in the class) and all work with nodes are to be
+fulfilled through public or friend functions.  But to show
+efficacy of types implementation it should be said that every
+node type is turned into a structure declaration.  All these
+structures have first member of type `IR_node_mode_t'.  Other
+members represent the node fields except for SPRUT class
+field.  Depending on SPRUT command line option
+`-flat-structure' (see SPRUT usage) this structure can contain
+also members corresponding to fields declared in super types
+of given node type or member which type is structure
+corresponding to immediate super type of given node type.
+SPRUT class fields for each non-abstract node type are
+represented by only one separate structure.
+<P>The fields in different node types with the same name (when it
+is consequence of existing common super type with this field)
+have the same displacement from the structure begin because
+types of previous fields is guaranteed to be the same in these
+structures.  The fields in different node types with the same
+name (when it is not consequence of existing common super type
+with this field) may have the different displacement from the
+structure begin therefore access to such fields requires
+additional indirect addressing.
+<P>Double linked field (see internal representation description
+language) requires more memory (about in five times) for its
+implementation.  Speed of SPI work with double linked fields
+is sightly slower.  Because additional work is needed only to
+setting up the field value and my experience shows that
+usually number of setting up fields value is less than number
+of their fetching about in ten times.
+<P>Type `IR_node_t' is simply pointer to class representing node
+type `%root'.  The name of this class is `IR_node'.
+This name can be used in imported section for forward
+reference for nodes (instead of `IR_node_t').
+<P>
+</LI>
+<LI>Optional variable `IR_node_name' is array mapping values of
+type `IR_node_mode_t' to names (strings) in C++ (see also
+option -no-node-name in SPRUT usage).
+        </LI>
+<LI>Variable `IR_node_size' is array mapping values of type
+`IR_node_mode_t' to size of corresponding structures on C++.</LI>
+</OL>
+<P>
+<H3>C++ Functions</H3>
+
+<P>C++ SPI interface file also contains definitions of generated
+functions to quering characteritics of nodes, creation, deletion,
+modification, comparison, copy, check, print, and binary input/output
+of internal representation nodes and functions for access to values of
+internal representation node fields.
+<P>These functions do not permit to work with abstract nodes.  Only one
+graph function can be active, e.g.  call of function `IR_check_graph'
+is not permitted during work of any traverse or transformation
+function.
+<P>For sake of efficacy, the part of functions (access to internal
+representation node fields and quering charateristics of the nodes) is
+generated as inline.
+<OL>
+<LI>Function `IR_is_type (IR_node_mode_t type, IR_node_mode_t
+super)' which is public static (i.e. which is relative to
+class not to a object of the class) function of class
+`IR_node' is evaluated as nonzero if the first argument of
+type `IR_node_mode_t' is equal to the second argument or node
+type represented by the first argument is a sub-type of node
+type represented by the second argument.  Otherwise the
+function returns zero.  But this function returns always zero
+for any error node, i.e.  this function can be used to define
+that the node of the first mode has fields of the node of the
+second mode.
+        </LI>
+<LI>Function `IR_node_mode (void)' declared as public in the class
+`IR_node' returns node mode represented by value of type
+`IR_node_mode_t' for given node.
+</LI>
+<LI>Function `IR_is_of_type (IR_node_mode_t super)' declared as
+public in the class `IR_node' is abbreviation of frequently
+used `IR_is_type (node->IR_node_mode (), super)'.
+</LI>
+<LI>Function `IR_node_level (void)' declared as public in the
+class `IR_node' has value which is internal representation
+description level in which declaration of given node type
+starts.
+</LI>
+<LI>Access functions.  These functions declared as public in the
+class `IR_node' are generated when option `-access' is present
+in the SPRUT command line.  There is one function for each
+field with unique name.  Access function has name formed from
+prefix `IR_' and corresponding field name.  Access function
+has no arguments.  Type of returned value is predefined type
+(if the field is of such type) or `IR_node_t' (if the field is
+of a node type).
+<P>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_double_link_t IR__first_double_link (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+and functions declared as public in the class for which
+pointer of type `IR_double_link_t' refers
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_double_link_t IR__next_double_link (void)',
+
+        `IR_double_link_t IR__previous_double_link (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+return pointer to fields which have double links to given
+node.  The node itself which contains such links can be
+determined by function declared as public in the class for
+which pointer of type `IR_double_link_t' refers
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR__owner (void)'.
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Here type `IR_double_link_t' represents pointer to class
+representing double fields.  The functions may also check up
+that the node has given field (see SPRUT options).
+<P>
+</LI>
+<LI>Modification functions.  These functions declared as public in
+the class `IR_node' are generated when option `-set' is
+present in the SPRUT command line.  There is one functions for
+each field with unique name.  Modification function has name
+formed from prefix `IR_set_' and corresponding field name.
+<P>Modification function has one argument is of predefined type
+(if the field is of such type) or of type `IR_node_t' (if the
+field is of a node type).  Argument represents new value of
+the field.
+<P>The function may check up constraint if the field represents
+arc to node of a node type or its sub-types (see SPRUT
+options).  The functions may also check up that the node has
+given field.
+<P>There is also function declared as public in the class for
+which pointer of type `IR_double_link_t' refers for
+modification of double links
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR__set_double_link (IR_node_t value)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Remember that values of `IR__next_double_link' and
+`IR__previous_double_link' are changed after calling this
+function.
+<P>
+</LI>
+<LI>Function declared as friend of class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_create_node (IR_node_mode_t node_mode)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated in any case.  This function allocates storage for
+node of any type (except for abstract) represented by the
+argument (it can be also `IRNM__error), sets up node mode and
+node level, fulfills fields assignments (except for class
+fields) in the same order as the fields are declared.  The
+field assignment is fulfilled according to type specific
+operation (see section `Type specific macros') and actions
+which are defined after given field in sections of skeleton
+and other fields of corresponding node type.  After that the
+function returns the created node.  The single way to create
+error nodes is to use this function with argument
+`IRNM__error'.  Remember that class `IR_node' has no public
+constructors and destructors.
+</LI>
+<LI>Node type specific creation functions declared as friend of
+class `IR_node'.  These functions are generated when option
+`-new' is present in the SPRUT command line.  There is one
+function for each node type (except for abstract).  Names of
+functions are formed from prefix `IR_new_' and corresponding
+node type name.  The number of parameters of a function is
+equal to one of skeleton fields of corresponding node type.
+The parameters of these functions have to be given in the
+order of the skeleton fields in the specification.  Fields of
+the super-type (recursively) precede the ones of the sub-type.
+<P>These functions may check up constraints on skeleton fields
+which represent arc to node of a node type or its sub-types
+(see SPRUT options).  These functions call node creation
+function and after that assign parameters values to
+corresponding skeleton fields.  After that the functions
+return the created node.  These functions provide a mechanism
+similar to record aggregates.  Nested calls of such functions
+allow programming with terms as in LISP.
+<P>
+</LI>
+<LI>Function declared as friend of class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_free_node (IR_node_t node)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-free' or `-free-graph' is present
+in the SPRUT command line.  This function deletes given node.
+The deletion consists of evaluation of finalization macros for
+node fields (see field type specific macros) in reverse order
+and all node space deallocation.  The function also delete
+double linked fields of given node from the corresponding
+lists of double linked fields.  But the user should know that
+there may be dangling references to given node itself after
+the function call.  Remember also that class `IR_node' has no
+public constructors and destructors.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_free_graph (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-free-graph' is present in the SPRUT
+command line.  This function deletes given node and all nodes
+accessible from given node.  The nodes are deleted in depth
+first order.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_conditional_free_graph
+                (int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-free-graph' is present in the SPRUT
+command line.  This function deletes given node and all nodes
+accessible from given node.  The nodes are deleted in depth
+first order.  The processing (traversing and deleting)
+children of node which is passed to the parameter-function is
+not fulfilled if the parameter-function returns zero.  All
+graph is deleted when the returned value is always nonzero.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_copy_node (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-copy' or `-copy-graph' is present
+in the SPRUT command line.  This function makes copy of given
+node.  Field type specific macros are used (see section `Type
+specific macros') to make this.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_copy_graph (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-copy-graph' is present in the
+command line.  This function makes copy of graph given by its
+node.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_conditional_copy_graph
+                          (int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-copy-graph' is present in the
+command line.  This function makes copy of graph given by its
+node.  The processing (traversing and copying) children of
+node which is passed to the parameter-function is not
+fulfilled if the parameter-function returns zero.  All nodes
+of graph are copied when the returned value is always nonzero.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_is_equal_node (IR_node_t node_2)'.
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-equal' or `-equal-graph' is present
+in the SPRUT command line.  This function returns nonzero iff
+given node is equal to `node_2', i.e.  given node and node_2
+have the same type and all fields of given node are equal to
+the corresponding fields of `node_2'.  Field type specific
+macros are used (see section `Type specific macros') to make
+this.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_is_equal_graph (IR_node_t graph_2)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-equal-graph' is present in the SPRUT
+command line.  This function returns nonzero iff graph
+starting with given node is equal to graph starting with
+node `graph_2', i.e.  the graphs have the same structure and
+all predefined type fields of given node are equal to the
+corresponding fields of `graph_2'.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_is_conditional_equal_graph
+               (IR_node_t graph_2, int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-equal-graph' is present in the
+SPRUT command line.  This function returns nonzero iff graph
+starting with given node is equal to graph starting with node
+`graph_2', i.e. the graphs have the same structure and all
+predefined type fields of given node are equal to the
+corresponding fields of `graph_2'.  The processing (traversing
+and comparing) children of node which is passed to the
+parameter-function is not fulfilled if the parameter-function
+returns zero.  All nodes of the graphs are compared when the
+returned value is always nonzero.  Unprocessed graph nodes are
+believed to be equal.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_check_node (int class_field_flag)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+This function is generated when option `-check' or
+`-check-graph' is present in the SPRUT command line.  By
+default the most of generated functions which work with
+internal representation nodes do not check up constraints
+which described in the specification.
+<P>There are two kinds of constraints.  The first is constraint
+on field which represents arc to node of given type or its
+sub-types.  The second is constraint which defined by target
+code (see the internal representation definition language).
+The user is responsible to adhere to the constraints.
+Function `IR_check_node' can be used to check all constraints
+corresponding to given node.  In case of a constraint
+violation the involved node and all child nodes are printed on
+standard error and the function returns nonzero (error flag).
+If the parameter value is zero then class fields of given node
+are not checked up.
+<P>
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_check_graph (int class_field_flag)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-check-graph' is present in the
+SPRUT command line.  This function checks given node and all
+nodes accessible from given node.  It should be known that a
+class field is processed only when the parameter value is
+nonzero.  In case of fixing any constraint violation returns
+nonzero (error flag).
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_conditional_check_graph
+               (int class_field_flag,
+                int (*guard) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-check-graph' is present in the
+SPRUT command line.  This function checks given node and all
+nodes accessible from given node.  It should be known that a
+class field is processed only when the first parameter value
+is nonzero.  In case of fixing any constraint violation
+returns nonzero (error flag).  The processing (traversing and
+checking) children of node which is passed to the
+parameter-function is not fulfilled if the parameter-function
+returns zero.  All nodes of the graph are checked when the
+returned value is always nonzero.  It is better to free
+changed nodes which are not used after transformation
+especially when there are double links to the nodes (otherwise
+the nodes can be accessible with the aid of functions for work
+with double links).
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_print_node (int class_field_flag)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-print' is present in the SPRUT
+command line or options `-check' or `check-graph' is present
+because check functions use this print function.  The function
+outputs values of node fields with their names to standard
+output in readable form.  To make this the function outputs
+sequentially all the node fields (including class fields if
+the parameter value is nonzero) with the aid of field
+type specific macros (see below).
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int IR_output_node (FILE *output_file, int level)',
+</PRE>
+</CODE></BLOCKQUOTE>
+
+and function declared as friend of class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_input_node (FILE *input_file,
+                                  IR_node_t *original_address)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+are generated when option correspondingly `-output' or
+`-input' is present in the SPRUT command line.
+<P>Function `IR_output_node' writes node to given file.  To make
+this the function outputs given node address and after that
+sequentially all the node fields (except for class fields)
+whose declarations are present in internal representation
+description of `level' or less than the one (see internal
+representation description language).  The node type must be
+also declared in internal representation description of
+`level' or less than the one.  A nonzero function result code
+means fixing an error during output.
+<P>Function `IR_input_node' reads node from given file, allocates
+space for the node, initiates its fields and changes the node
+fields output early.  To make this the function uses function
+`create_node'.  The output level of input node must be less or
+equal to the internal representation level of given SPI.  Null
+value returned by the function means fixing an error during
+input.  The function returns original address of input node
+through the second parameter.  The output and input of fields
+is fulfilled with the aid of field type specific macros (see
+section `Type specific macros').
+<P>
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_traverse_depth_first
+              (int class_field_flag,
+               void (*function) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-traverse' is present in the SPRUT
+command line.  This function traverses graph given by its node
+in depth first order (it means bottom up for tree).  Arcs
+represented by class fields are included in this graph if the
+first parameter value is nonzero.  At every node a function
+given as parameter is executed.  Arcs implementing lists of
+double linked fields are not traversed.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_traverse_reverse_depth_first
+              (int class_field_flag,
+               int (*function) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-reverse-traverse' is present in the
+SPRUT command line.  This function is analogous to the previous
+but the graph is traversed in reverse depth first order (it
+means top down order for tree).  The traverse of children of
+node which is passed to the parameter-function is not
+fulfilled if the parameter-function returns zero.  All the graph
+is traversed when the returned value is always nonzero.
+</LI>
+<LI>Function declared as public in the class `IR_node'
+<BLOCKQUOTE><CODE>
+<PRE>
+        `IR_node_t IR_transform_dag
+           (int class_field_flag,
+            int (*guard_function) (IR_node_t node),
+            IR_node_t (*transformation_function) (IR_node_t node))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated when option `-transform' is present in the SPRUT
+command line.  This function is used for transformation of
+directed acyclic graphs.  This is needed for various goals,
+e.g. for constant folding optimization.  At first the function
+calls guard function.  If the guard function returns zero, the
+function return given node.  Otherwise when the guard
+function returns nonzero, all fields (including class fields
+if parameter `class_field_flag' is nonzero) of given node are
+also processed, i.e.  the fields values are changed.  And
+finally the node itself is processed by the transformation
+function (remember that the transformation function is never
+called for nodes which are parts of a graph cycle), and the
+result of transformation function is the result of given
+function.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_start (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated in any case.  This function is to be called
+before any work with internal representation.  The function
+initiates internal representation storage management (see next
+section), fulfills class field type specific initializations,
+evaluates actions bound to class fields, and make some other
+initiations.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void IR_stop (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is generated in any case.  The call of this function is to be
+last.  The function fulfills class field type specific
+finalizations and finishes internal representation storage
+management.</LI>
+</OL>
+<P>
+<H2><A NAME="ss3.3">3.3 Type specific macros</A>
+</H2>
+
+<P>C and C++ SPI uses some macros which work with node fields.  These
+macros are field type specific and are generated by SPRUT for each
+predefined types and type `IR_node_t'.  All these macros can be
+redefined.  There are the following field type specific macros.
+<OL>
+<LI>Initialization and finalization macros.  These macros can
+assign an initial value to field or/and even construct complex
+data structures.
+
+Finalization is performed immediately before the node is
+deleted.  For example finalization macro can release memory
+space dynamically allocated by initialization macro.  These
+macros have names formed from prefixes correspondingly
+`IR_BEGIN_' and `IR_END_' and name of the field type, e.g.
+
+`IR_BEGIN_integer'
+or `IR_END_IR_node_t'.
+
+By default initialization macros have definition
+<BLOCKQUOTE><CODE>
+<PRE>
+           `bzero (&amp;(a), sizeof (a))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where `a' is the macros argument.  Finalization macros do
+nothing.  It is very important for correct work of double
+linked fields that initialization macro for `IR_node_t'
+initiates a pointer by NULL value.
+</LI>
+<LI>Copy macros.  The operation copy is used by copy functions
+generated by SPRUT.  These macros have names formed from prefix
+`IR_COPY_' and name of the field type.  The default macros
+definitions are
+<BLOCKQUOTE><CODE>
+<PRE>
+           `((a) = (b))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where `a' and `b' are the macro parameters representing fields
+of given type.  Therefore, pointer semantics is assumed for
+fields of a pointer type.  The user has to take care about the
+macros redefinition if value semantics is needed.
+</LI>
+<LI>Equality macros.  These macros check whether two fields are
+equal.  They are used in functions which test the equality of
+nodes.  These macros have names formed from prefix `IR_EQUAL_'
+and name of the type.  The default macros definitions are
+<BLOCKQUOTE><CODE>
+<PRE>
+           `((a) == (b))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where `a' and `b' are the macro parameters representing fields
+of given type.
+</LI>
+<LI>Print macros.  These macros are used by print function
+generated by SPRUT.  These macros have names formed from prefix
+`IR_PRINT_' and name of the type.  By default the macros for
+`IR_node_t' is defined as
+<BLOCKQUOTE><CODE>
+<PRE>
+           `printf ("%lx", (unsigned long) (a))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where `a' is macro parameter.  The macros for other types do
+nothing.
+</LI>
+<LI>Input/output macros.  These macros are used by input/output
+functions generated by SPRUT.  These macros have names formed
+from prefixes `IR_INPUT_' and `IR_OUTPUT_' and name of the
+type.  By default the macros have definitions
+<BLOCKQUOTE><CODE>
+<PRE>
+        `(fwrite (&amp;(field), sizeof (field), 1, (file))
+                          != sizeof (field))'
+
+        and `(fread (&amp;(field), sizeof (field), 1, (file))
+                          != sizeof (field))'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+where `file' and `field' are the macros parameters.  The
+definitions may be more complicated for predefined types.</LI>
+</OL>
+
+It should be repeated that it is possible to redefine the operations
+by including new macro definitions in the C/C++ declaration section.  For
+example
+<BLOCKQUOTE><CODE>
+<PRE>
+    %import{
+    typedef int PT_line, PT_position;
+    }
+    %local{
+    #define IR_BEGIN_PT_line(l) (l) = ...
+    #define IR_BEGIN_PT_position(p) (p) = ...
+    #define IR_BEGIN_IR_node_t (n) (n) = ...
+    }
+    %type PT_line PT_position PT_boolean
+
+    %%
+    %abstract
+    node :: %root
+      line : PT_line
+      position : PT_position
+    ...
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<H2><A NAME="ss3.4">3.4 Storage management macros</A>
+</H2>
+
+<P>SPRUT completely automatically generates macros of storage management
+for the nodes.  Usually, the user does not have to care about it.  The
+predefined storage management uses C/C++ standard functions for global
+storage with free lists.  The default macro definitions are placed
+before default field type specific macro definitions but after all
+code insertions.  The user can create own storage manager by
+redefinition of one or more the following macros and placing them in a
+C/C++ declaration section.  But the user should know that all
+functions generated by SPRUT believe that the storage can not change
+its place after the allocation.
+<OL>
+<LI>Macros `IR_START_ALLOC()', `IR_STOP_ALLOC()' are evaluated in
+functions correspondingly `IR_start' and `IR_stop' and are to
+be used to start and finish work with the storage manager.
+</LI>
+<LI>Macros `IR_ALLOC(ptr, size, ptr_type)', `IR_FREE(ptr, size)'
+allocate and free storage whose size is given as the second
+parameter.  The first parameter serves to return pointer to
+memory being allocated or to point to memory being freed.  The
+third parameter is type of `ptr'.</LI>
+</OL>
+
+By default these macros are defined as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+    #define IR_START_ALLOC()
+    #define IR_STOP_ALLOC()
+    #define IR_ALLOC(ptr, size, ptr_type)\
+                                 ((ptr) = (ptr_type) malloc (size))
+    #define IR_FREE(ptr, size)   free (ptr)
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+<A HREF="sprut-4.html">Next</A>
+<A HREF="sprut-2.html">Previous</A>
+<A HREF="sprut.html#toc3">Contents</A>
+</BODY>
+</HTML>

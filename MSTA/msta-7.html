@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>MSTA (syntax description translator): Appendix 1 - Syntax of MSTA description file (YACC description)</TITLE>
+ <LINK HREF="msta-8.html" REL=next>
+ <LINK HREF="msta-6.html" REL=previous>
+ <LINK HREF="msta.html#toc7" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="msta-8.html">Next</A>
+<A HREF="msta-6.html">Previous</A>
+<A HREF="msta.html#toc7">Contents</A>
+<HR>
+<H2><A NAME="s7">7. Appendix 1 - Syntax of MSTA description file (YACC description)</A></H2>
+
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+%token IDENTIFIER_OR_LITERAL /* identifier (including '.')
+                                and literal */
+%token C_IDENTIFIER          /* identifier followed by a : */
+%token NUMBER                /* [0-9][0-9]* */
+%token STRING                /* "..." of C syntax */
+%token CODE_INSERTION        /* { ... } */
+%token YACC_CODE_INSERTION   /* %{ ... %} */
+%token ADDITIONAL_C_CODE     /* code after second %% */
+
+/* Reserved words : %type=>TYPE %left=>LEFT, etc.  The attributes of
+   the following tokens are not defined and not used. */
+
+%token   LEFT RIGHT NONASSOC TOKEN PREC LA TYPE START
+         UNION LOCAL IMPORT EXPORT SCANNER EXPECT
+%token   PERCENTS             /* the %% mark */
+%token   SEMICOLON            /* ; */
+%token   BAR                  /* | */
+%token   SLASH                /* / */
+%token   STAR                 /* * */
+%token   PLUS                 /* + */
+%token   LESS                 /* &lt; */
+%token   GREATER              /* > */
+%token   LEFT_PARENTHESIS     /* ) */
+%token   RIGHT_PARENTHESIS    /* ( */
+%token   LEFT_SQUARE_BRACKET  /* [ */
+%token   RIGHT_SQUARE_BRACKET /* ] */
+%token   AT                   /* @ */
+%token   RANGE                /* - */
+%token   RANGE_NO_LEFT_BOUND  /* &lt;- */
+%token   RANGE_NO_RIGHT_BOUND /* -> */
+%token   RANGE_NO_LEFT_RIGHT_BOUNDS  /* &lt;-> */
+
+/*       8-bit character literals stand for themselves; */
+/*       tokens have to be defined for multibyte characters */
+
+%start   description
+
+%%
+
+description  : definitions PERCENTS rules tail
+             ;
+
+tail  : /* empty */
+      | ADDITIONAL_C_CODE
+      ;
+
+definitions  : /* empty */
+             | definitions  definition  definition_tail
+             ;
+
+definition_tail :
+                | definition_semicolon_list
+                ;
+
+definition_semicolon_list : SEMICOLON
+                          | definition_semicolon_list SEMICOLON
+                          ;
+
+definition   : START
+               IDENTIFIER_OR_LITERAL
+             | UNION   CODE_INSERTION
+             | YACC_CODE_INSERTION
+             | LOCAL  CODE_INSERTION
+             | IMPORT CODE_INSERTION
+             | EXPORT CODE_INSERTION
+             | SCANNER
+             | EXPECT NUMBER
+             | symbol_list_start tag symbol_list
+             ;
+
+symbol_list_start : TOKEN
+                  | LEFT
+                  | RIGHT
+                  | NONASSOC
+                  | TYPE
+                  ;
+
+tag : /* empty */
+    | LESS  IDENTIFIER_OR_LITERAL  GREATER
+    ;
+
+symbol_list : symbol
+            | symbol_list  symbol
+            ;
+
+symbol  : IDENTIFIER_OR_LITERAL
+        | IDENTIFIER_OR_LITERAL  NUMBER
+        ;
+
+/* Rule section */
+
+rules : rule  semicolons
+      | rules  rule  semicolons
+      ;
+
+rule : C_IDENTIFIER pattern
+     ;
+
+pattern : alternatives
+        ;
+
+alternatives : alternatives  BAR  alternative
+             | alternative
+             ;
+
+alternative : sequence prec_la
+            | sequence prec_la SLASH sequence prec_la
+            ;
+
+sequence : /* empty */
+         | sequence  sequence_element
+         ;
+
+sequence_element : nonamed_sequence_element
+                 | nonamed_sequence_element AT IDENTIFIER_OR_LITERAL
+                 ;
+
+nonamed_sequence_element
+   : LEFT_SQUARE_BRACKET
+     pattern  RIGHT_SQUARE_BRACKET
+   | unit  STAR
+   | unit  PLUS
+   | CODE_INSERTION  code_insertion_tail
+   | unit
+   ;
+
+code_insertion_tail
+   :
+   | code_insertion_semicolon_list
+   ;
+
+code_insertion_semicolon_list
+  : SEMICOLON
+  | code_insertion_semicolon_list SEMICOLON
+  ;
+
+unit : LEFT_PARENTHESIS
+       pattern  RIGHT_PARENTHESIS
+     | IDENTIFIER_OR_LITERAL
+     | STRING
+     | IDENTIFIER_OR_LITERAL  RANGE  IDENTIFIER_OR_LITERAL
+     | IDENTIFIER_OR_LITERAL  RANGE_NO_LEFT_BOUND  IDENTIFIER_OR_LITERAL
+     | IDENTIFIER_OR_LITERAL  RANGE_NO_RIGHT_BOUND IDENTIFIER_OR_LITERAL
+     | IDENTIFIER_OR_LITERAL  RANGE_NO_LEFT_RIGHT_BOUNDS
+       IDENTIFIER_OR_LITERAL
+     ;
+
+prec_la : /* empty */
+        | PREC  IDENTIFIER_OR_LITERAL
+        | PREC  IDENTIFIER_OR_LITERAL  CODE_INSERTION  code_insertion_tail
+        | LA NUMBER
+        | PREC  IDENTIFIER_OR_LITERAL   LA NUMBER
+        | LA NUMBER   PREC  IDENTIFIER_OR_LITERAL 
+        | LA NUMBER  CODE_INSERTION code_insertion_tail
+        | PREC IDENTIFIER_OR_LITERAL  LA NUMBER
+               CODE_INSERTION code_insertion_tail
+        | LA NUMBER  PREC IDENTIFIER_OR_LITERAL 
+               CODE_INSERTION code_insertion_tail
+       ;
+
+semicolons : /* empty */
+           | semicolons  SEMICOLON
+           ;
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+<A HREF="msta-8.html">Next</A>
+<A HREF="msta-6.html">Previous</A>
+<A HREF="msta.html#toc7">Contents</A>
+</BODY>
+</HTML>

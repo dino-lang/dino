@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Ammunition (Reusable packages) - C interface: Package for work with variable length objects</TITLE>
+ <LINK HREF="ammunition-4.html" REL=next>
+ <LINK HREF="ammunition-2.html" REL=previous>
+ <LINK HREF="ammunition.html#toc3" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition-4.html">Next</A>
+<A HREF="ammunition-2.html">Previous</A>
+<A HREF="ammunition.html#toc3">Contents</A>
+<HR>
+<H2><A NAME="s3">3. Package for work with variable length objects</A></H2>
+
+<P>The package `vlobject' implements work with variable length object
+(VLO) and uses package `allocate'.  Any number of bytes may be added
+to and removed from the end of VLO.  If it is needed the memory
+allocated for storing variable length object may be expanded possibly
+with changing the object place.  But between any additions of the
+bytes (or tailoring) the object place is not changed.  To decrease
+number of changes of the object place the memory being allocated for
+the object is longer than the current object length.
+<P>Because arguments of all macros which return a result (`VLO_LENGTH',
+`VLO_BEGIN', `VLO_BOUND', and `VLO_END') may be evaluated many times
+no side-effects should be in the arguments.
+<P>The package uses package `allocate'.  The interface part of the
+package is file `vlobject.h'.  Defining macro `NDEBUG' (e.g. by option
+`-D' in C compiler command line) before the package macros usage
+disables fixing some internal errors and errors of usage of the
+package.  The implementation part is file `vlobject.c'.  The interface
+contains the following definitions and macros:
+<P>
+<DL>
+<DT><B>Type `vlo_t'</B><DD><P>describes a descriptor of variable length object.  All work
+with variable length object is executed by the following
+macros through the descriptors.  Structure (implementation)
+of this type is not needed for using variable length object.
+But it should remember that work with the object through
+several descriptors is not safe.
+<P>
+<DT><B>Macro `VLO_DEFAULT_LENGTH'</B><DD><P>has value which is default initial size of memory is
+allocated for VLO when the object is created (with zero
+initial size).  Original value of the macros is equal to
+512.  This macro can be redefined in C compiler command line
+or with the aid of directive `#undef' before any using
+the package macros.
+<P>
+<DT><B>Macro `VLO_CREATE'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_CREATE(vlo, initial_length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is used for creation of VLO with initial zero length.
+Initial memory allocated for VLO whose descriptor is given
+as the first macro parameter is given as the second
+parameter.  If the second parameter is equal to zero then
+the initial allocated memory length is equal to
+`VLO_DEFAULT_LENGTH'.
+<P>
+<DT><B>`VLO_DELETE'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_DELETE(vlo)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is used for freeing memory used by VLO whose descriptor is
+given as the macro parameter.
+<P>
+<DT><B>Macro `VLO_NULLIFY'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_NULLIFY(vlo)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes that length of VLO whose descriptor is given as the
+macro parameter will be equal to zero (but memory for VLO is
+not freed and not reallocated).
+<P>
+<DT><B>Macro `VLO_TAILOR'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_TAILOR(vlo)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes that length of memory allocated for VLO whose
+descriptor is given as the macro parameter becomes equal to
+VLO length.
+<P>
+<DT><B>Macro `VLO_LENGTH'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_LENGTH(vlo)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns current length of VLO whose descriptor is given as
+the macro parameter.
+<P>
+<DT><B>Macros `VLO_BEGIN', `VLO_END', `VLO_BOUND'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_BEGIN(vlo)', `VLO_END(vlo)', `VLO_BOUND(vlo)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+return pointer (of type `void *') to correspondingly the
+first, the last byte of VLO whose descriptor is given as the
+macros parameter, and pointer to the last byte plus one.
+Remember that the object may change own place after any
+addition.
+<P>
+<DT><B>Macro `VLO_SHORTEN'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_SHORTEN(vlo, n)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+removes n bytes from the end of VLO whose descriptor is
+given as the first parameter.  VLO is nullified if its
+length is less than n.
+<P>
+<DT><B>Macro `VLO_EXPAND'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_EXPAND(vlo, length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+increases length of VLO whose descriptor is given as the
+first parameter on number of bytes given as the second
+parameter.  The values of bytes added to the end of VLO will
+be not defined.
+<P>
+<DT><B>Macro `VLO_ADD_BYTE'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_ADD_BYTE(vlo, b)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adds byte given as the second parameter to the end of VLO
+whose descriptor is given as the first parameter.
+<P>
+<DT><B>Macro `VLO_ADD_MEMORY'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_ADD_MEMORY(vlo, str, length)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adds memory starting with address given as the second macro
+parameter and with length given as the third parameter to
+the end of VLO whose descriptor is given as the first
+parameter.
+<P>
+<DT><B>Macro `VLO_ADD_STRING'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `VLO_ADD_STRING(vlo, str)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adds C string (with end marker 0) given as the second macro
+parameter to the end of VLO whose descriptor is given as the
+first parameter.  Before the addition the macro deletes last
+character of the VLO.  The last character is suggested to be
+C string end marker 0.
+</DL>
+<P>
+<HR>
+<A HREF="ammunition-4.html">Next</A>
+<A HREF="ammunition-2.html">Previous</A>
+<A HREF="ammunition.html#toc3">Contents</A>
+</BODY>
+</HTML>

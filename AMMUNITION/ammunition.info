@@ -1,0 +1,29 @@
+This is ammunition.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.ammunition31807.info.2.
+
+   \input texinfo
+
+
+Indirect:
+ammunition.info-1: 120
+ammunition.info-2: 44155
+ammunition.info-3: 84439
+
+Tag Table:
+(Indirect)
+Node: Top120
+Node: Introduction1008
+Node: Package for allocating memory with fixing some allocation errors2027
+Node: Package for work with variable length objects5132
+Node: Package for work with stacks of objects10267
+Node: Package for work with hash tables16587
+Node: Package for work with source code positions21991
+Node: Package for output of compiler messages26466
+Node: Package for work with command line34024
+Node: Package for work with bit strings40784
+Node: Package for machine-independent arbitrary precision integer arithmetic44155
+Node: Package for machine-independent IEEE floating point arithmetic52694
+Node: Ticker package82724
+Node: Earley parser84439
+
+End Tag Table

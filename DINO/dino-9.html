@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Programming Language DINO: Appendix A. Syntax of Dino</TITLE>
+ <LINK HREF="dino-10.html" REL=next>
+ <LINK HREF="dino-8.html" REL=previous>
+ <LINK HREF="dino.html#toc9" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="dino-10.html">Next</A>
+<A HREF="dino-8.html">Previous</A>
+<A HREF="dino.html#toc9">Contents</A>
+<HR>
+<H2><A NAME="s9">9. Appendix A. Syntax of Dino</A></H2>
+
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+Expr = Expr "?"  Expr ":" Expr
+     | Expr "||"  Expr
+     | Expr "&amp;&amp;"  Expr
+     | Expr in  Expr
+     | Expr "|"  Expr
+     | Expr "^"  Expr
+     | Expr "&amp;"  Expr 
+     | Expr "=="  Expr  
+     | Expr "!="  Expr  
+     | Expr "==="  Expr  
+     | Expr "!=="  Expr  
+     | Expr "&lt;"  Expr
+     | Expr ">"  Expr  
+     | Expr "&lt;="  Expr
+     | Expr ">="  Expr 
+     | Expr "&lt;&lt;"  Expr
+     | Expr ">>"  Expr
+     | Expr ">>>"  Expr
+     | Expr "@"  Expr
+     | Expr "+"  Expr
+     | Expr "-"  Expr
+     | Expr "*"  Expr
+     | Expr "/"  Expr
+     | Expr "%"  Expr
+     | "!"  Expr
+     | "+"  Expr
+     | "-"  Expr
+     | "~"  Expr
+     | "#"  Expr
+     | final  Expr
+     | new  Expr
+     | Designator
+     | INTEGER
+     | FLOATINGPOINTNUMBER
+     | CHARACTER
+     | nil
+     | "(" Expr ")"
+     | Call
+     | "["  ElistPartsList "]"
+     | "{"  ElistPartsList "}"
+     | STRING
+     | char
+     | int
+     | float
+     | hide
+     | hideblock
+     | vector
+     | table
+     | func
+     | thread
+     | class
+     | func "(" ")"
+     | vector "(" Expr ")"
+     | table "(" Expr ")"
+     | thread "(" ")"
+     | class "(" ")"
+     | type
+     | type "(" Expr ")"
+     | func "(" Expr ")"
+     | thread "(" Expr ")"
+     | class "(" Expr ")"
+
+Designator = DesignatorOrCall "["  Expr "]"
+           | DesignatorOrCall "{"  Expr "}"
+           | DesignatorOrCall ActualParameters
+           | DesignatorOrCall "."  IDENT
+           | "(" Expr ")" "->"  IDENT
+           |  "*" "(" Expr ")"
+           | IDENT
+
+ElistPartsList = [ Expr [ ":" Expr ] {"," Expr [ ":" Expr ] } ]
+        
+DesignatorOrCall = Designator
+                 | Call
+
+Call = Designator ActualParameters
+
+ActualParameters = "("  [ Expr { "," Expr } ] ")"
+        
+VarParList = VarPar { "," VarPar }
+        
+VarPar = [final] IDENT [ "="  Expr]
+
+Stmt = ExecutiveStmt
+     | Declaration
+
+Assign = "="
+       | "*="
+       | "/="
+       | "%="
+       | "+="
+       | "-="
+       | "@="
+       | "&lt;&lt;="
+       | ">>="
+       | ">>>="
+       | "&amp;="
+       | "^="
+       | "|="
+
+ExecutiveStmt = ";"
+              | Designator Assign  Expr ";"
+              | Designator ("++" | "--")  ";"
+              | ("++" | "--")  Designator ";"
+              | Designator ActualParameters  ";"
+              | if  "(" Expr ")" Stmt [ else Stmt ]
+              | for  "("  Stmt ForGuardExpr ";"  Stmt ")" Stmt
+              | for  "("  Designator in Expr ")" Stmt
+              | break ";"
+              | continue ";"
+              | return  [ Expr ] ";"
+              | throw  Expr ";"
+              | wait  Expr ";"
+              | BlockStmt
+              | TryBlockStmt
+
+ForGuardExpr = [Expr]
+
+BlockStmt = Block
+
+TryBlockStmt = try Block { Catch }
+        
+Catch = catch  "(" ExceptClassList ")" Block
+
+ExceptClassList = Expr { "," Expr }
+
+Declaration = VarDeclarations
+            | AccessClause
+            | ExternDeclarations
+            | FuncClassExtDeclaration
+            | IncludeDeclaration
+
+VarDeclarations = var  VarParList ";"
+
+ExternDeclarations = extern  ExternItem { "," ExternItem } ";"
+
+FuncClassExtDeclaration = Header Block
+
+AccessClause = (public | private | friend) AccessList ";"
+
+AccessList = IDENT { "," IDENT }
+        
+IncludeDeclaration = include ["+"] STRING ";"
+
+ExternItem = IDENT 
+           | IDENT  "(" ")"
+
+Header = [final] FuncThreadClass IDENT FormalParameters
+       | ext IDENT
+
+FuncThreadClass = func 
+                | thread 
+                | class 
+        
+FormalParameters = "("  [ VarParList ] ")"
+                 | "("  VarParList "," "..."  ")"
+                 | "(" "..."  ")"
+        
+Block = "{"  StmtList "}"
+
+StmtList = { Stmt }
+        
+Program = StmtList
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+<A HREF="dino-10.html">Next</A>
+<A HREF="dino-8.html">Previous</A>
+<A HREF="dino.html#toc9">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Ammunition (Reusable packages) - C interface: Package for output of compiler messages</TITLE>
+ <LINK HREF="ammunition-8.html" REL=next>
+ <LINK HREF="ammunition-6.html" REL=previous>
+ <LINK HREF="ammunition.html#toc7" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition-8.html">Next</A>
+<A HREF="ammunition-6.html">Previous</A>
+<A HREF="ammunition.html#toc7">Contents</A>
+<HR>
+<H2><A NAME="s7">7. Package for output of compiler messages</A></H2>
+
+<P>The most of compilers report error messages for incorrect program.
+Here the package `errors' which serves to output one-pass or
+multi-pass compiler messages of various modes (errors, warnings,
+fatal, system errors and appended messages) in Unix style or for
+traditional listing is suggested.  The package also permits adequate
+error reporting for included files.
+<P>The package uses packages `vlobject', `objstack', `position' which
+use package `allocate'.  Therefore package `position' have to be
+initiated before any work with this package.  The interface part of
+the package is file `errors.h'.  The implementation part is file
+`errors.c'.  The maximum length of generated error message is
+suggested to be not greater then `MAX_ERROR_MESSAGE_LENGTH'.  The
+default value (150) of this macro can be redefined with corresponding
+C compiler option `-DMAX_ERROR_MESSAGE_LENGTH=...'  during compilation
+of file `errors.c'.  The interface contains the following external
+definitions:
+<P>
+<DL>
+<DT><B>Integer variables `number_of_errors', `number_of_warnings'</B><DD><P>have values which are number of correspondingly errors and
+warnings fixed after the most recent package initiation.
+<P>
+<DT><B>Integer variable `maximum_number_of_errors'</B><DD><P>has value which is maximum number of errors which will be
+fixed.  If an error is fixed with number equals to
+`maximum_number_of_errors' then special fatal error `fatal
+error -- too many errors' with position of given error is
+fixed instead of the error.  And all following errors are
+ignored.  Zero value of the variable means that the special
+fatal error will never fixed.
+<P>
+<DT><B>Integer constant `default_maximum_number_of_errors'</B><DD><P>defines originally value of variable
+`maximum_number_of_errors'.  The constant value is `50'.
+<P>
+<DT><B>Variable `fatal_error_function'</B><DD><P>contains pointer to function without parameters which will be
+called after fixing a fatal error.  The fatal error function
+is suggested to do not return the control back.
+<P>
+<DT><B>Function `default_fatal_error_function'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void default_fatal_error_function (void)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+defines originally value of variable `fatal_error_function'.
+The function only calls `exit (1)'.
+<P>
+<DT><B>Function `initiate_errors'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void initiate_errors (int immediate_output_flag)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+initiates the package in regime depending on parameter value.
+If the parameter value is nonzero than all fixed messages are
+output immediately.  Otherwise the compiler messages are
+stored until function `output_errors' are called.
+<P>
+<DT><B>Function `finish_errors'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void finish_errors (void)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+frees all memory allocated during package work.
+<P>
+<DT><B>Function `output_errors'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void output_errors (void)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+sorts (stable sorting) all fixed messages by their positions,
+outputs ones, and deletes ones.  Appended messages will be
+output after corresponding error or warning.  This function
+should be used only in regime of storing messages.
+<P>
+<DT><B>Function `error'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void error (int fatal_error_flag, position_t
+                     position, const char *format, ...)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+</CODE></BLOCKQUOTE>
+
+fixes error (fatal error if the first parameter value is
+nonzero) at the position given as the second parameter.  If
+the error is fatal than functions `output_errors' and
+`*fatal_error_function' are called.  The diagnostic messages
+are formed analogous to output of function `printf'.  For
+example,
+<BLOCKQUOTE><CODE>
+<PRE>
+           error (1, current_position, "fatal error - no memory");
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<DT><B>Function `warning'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void warning (position_t position, const char *format, ...)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is analogous to the previous but is used to fix a warning.
+<P>
+<DT><B>Function `append_message'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void append_message (position_t position,
+                              const char *format, ...)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+When regime of immediately output of fixed message is on this
+function is analogous to the previous (except for incrementing
+variable `number_of_warnings').  In opposite case the appended
+message will be output with the most recent fixed error or
+warning independently from value of the first parameter.  Of
+course the previously fixed error or warning must exist.
+<P>For example, this function may be used for generation of
+messages of type
+<BLOCKQUOTE><CODE>
+<PRE>
+              `&lt;file>:&lt;line>:&lt;position-1>: repeated declaration'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+and then
+<BLOCKQUOTE><CODE>
+<PRE>
+              `&lt;file>:&lt;line>:&lt;position-1>: previous declaration'.
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Description of function `default_output_error_function'
+contains explanation why decremented position is output.
+<P>
+<DT><B>Function `system_error'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void system_error (int fatal_error_flag,
+                            position_t position,
+                            const char *format, ...)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is analogous to function `error' but serves to fix a system
+error.  The current system message without head blanks (given
+by standard function `strerror') is placed after the message
+formed by the function parameters.  For example, the following
+call may be used when a file is not opened
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+             system_error  (1, current_position,
+                            "fatal error - %s:", new_file_name);
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<DT><B>Variable `output_error_function'</B><DD><P>contains pointer to function which is used to output error
+message.  The function has three parameters -- flag of
+appended message, message position and message itself.
+<P>
+<DT><B>Function `default_output_error_function'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void default_output_error_function
+              (int appended_message_flag, position_t position,
+               const char *message)'
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Originally value of variable `output_error_function' is equal
+to this function.  The function is oriented to output in Unix
+style according to GNU standard.  To output a listing the
+value of variable `output_error_function' should be changed.
+The function output message in the following formats:
+<BLOCKQUOTE><CODE>
+<PRE>
+  MESSAGE                              (NULL file name)
+  FILE_NAME:1: MESSAGE                 (zero line number)
+  FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
+  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER-1: MESSAGE  (all other cases)
+        
+</PRE>
+</CODE></BLOCKQUOTE>
+
+After that the function outputs newline.  The function also
+outputs additional messages `in file processed from ...'  if
+given message is not appended message and corresponds to file
+different from one of previous output error.  This message
+reflects path of the message position (see package
+`position'), i.e.  reflects positions of corresponding
+include-clauses.  Decremented column number is output in order
+to be in concordance with editor Emacs in which positions
+start with 0.
+</DL>
+<P>
+<HR>
+<A HREF="ammunition-8.html">Next</A>
+<A HREF="ammunition-6.html">Previous</A>
+<A HREF="ammunition.html#toc7">Contents</A>
+</BODY>
+</HTML>

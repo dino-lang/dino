@@ -1,0 +1,31 @@
+This is sprut.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.sprut29895.info.2.
+
+   \input texinfo
+
+
+Indirect:
+sprut.info-1: 110
+sprut.info-2: 45117
+
+Tag Table:
+(Indirect)
+Node: Top110
+Node: Introduction679
+Node: Internal representation description language2817
+Node: Layout of internal representation description3701
+Node: Declarations5315
+Node: Types of nodes8850
+Node: Standard Procedural Interface15193
+Node: C SPI15977
+Node: C SPI types variables macros16272
+Node: C Functions21021
+Node: C++ SPI40866
+Node: C++ SPI types variables macros41415
+Node: C++ Functions45117
+Node: Type specific macros65124
+Node: Storage management macros69137
+Node: SPRUT Usage70813
+Node: Appendix 1 - Syntax of internal representation description language81121
+
+End Tag Table

@@ -1,0 +1,421 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>NONA (code selector description translator): Generated code</TITLE>
+ <LINK HREF="nona-4.html" REL=next>
+ <LINK HREF="nona-2.html" REL=previous>
+ <LINK HREF="nona.html#toc3" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="nona-4.html">Next</A>
+<A HREF="nona-2.html">Previous</A>
+<A HREF="nona.html#toc3">Contents</A>
+<HR>
+<H2><A NAME="s3">3. Generated code</A></H2>
+
+<P>A specification as described in the previous section is translated
+by code selector description translator (NONA) into code selector
+description (CS) interface and implementation files having the same
+names as one of specification file and correspondingly suffixes `.h'
+and `.c' for C or `.cpp' for C++ (see option `-c++').
+<P>
+<P>
+<H2><A NAME="ss3.1">3.1 C Interface objects</A>
+</H2>
+
+<P>C interface file of CS consists of the following definitions of
+generated type and functions:
+<OL>
+<LI>There is constant with nonterminal name and prefix `CSNT_' for
+each nonterminal.  `CSNT' is abbreviation of code selector
+description nonterminal.  The constants are defined as macros
+(with the aid of C preprocessor directive `#define').  The
+constants are used as parameter of functions `CS_it_is_axiom'
+and `CS_traverse_cover' (see below).
+</LI>
+<LI>Macro `CS_NODE' must represent type of node of low level
+internal representation.  This macro can be redefined (only in
+a C declaration section which starts with `%import').  By
+default this macro is defined as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+           #define CS_NODE           struct IR_node_struct *
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI>Macro `CS_TYPE' defines type of terminal and nonterminal
+attributes.  This macro can not be redefined if the
+corresponding code selector description has a construction
+`%union' which already describes terminal and nonterminal
+attribute types because in this case the default macro
+definition is absent.  By default this macro is defined as
+follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+           #define CS_TYPE           CS_node
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI>Type `CS_node' is defined as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+           typedef CS_NODE CS_node;
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI>Type `CS_cover' describes a minimal cost cover.  The values of
+this types are created by function `CS_find_cover' and deleted
+by function `CS_delete_cover'.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `CS_cover CS_find_cover (CS_node node)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes the first bottom up pass on directed acyclic graph given
+by its node and finds a minimal cost cover for each
+nonterminal.  The minimal cost cover is returned.  If error
+occurs during the pass then macro `CS_ERROR' (see below) is
+evaluated.  For example, the cause of error may be meeting
+undeclared terminal code.  During building cover, each
+directed acyclic graph (DAG) node is visited only once.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `int CS_it_is_axiom (CS_cover cover, int nonterminal)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns 1 if there is a minimal cost cover for given
+nonterminal in given cover, 0 otherwise.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `CS_TYPE CS_traverse_cover (CS_cover cover, int nonterminal)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes the second bottom up, left to right pass and fulfills
+actions corresponding a minimal cost cover for given
+nonterminal in cover found by call of function
+`CS_find_cover'.  A minimal cost cover for given nonterminal
+must be in given cover before the function call.  This
+condition can be checked by function `CS_it_is_axiom'.  The
+function returns attribute of given nonterminal after
+fulfilling the actions.  Remember that action (and attribute
+evaluation) associated with tree pattern is fulfilled only
+once for each occurrence of the tree pattern in given cover of
+a directed acyclic graph.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void CS_delete_cover (CS_cover cover)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+frees memory allocated to `cover' which was to be created by
+call of function `CS_find_cover'.  Of course this cover can
+not be used in function `CS_traverse_cover' after that.  The
+memory is freed in the reverse order therefore allocation
+macros (see below) can use stack strategy of the memory
+allocation.
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void CS_start (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is to be called before any work with code selector
+description.  The function initiates code selector description
+storage management (see below).
+</LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+        `void CS_finish (void)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is to be last.  The function finishes code selector description
+storage management.  Therefore only function `CS_start' can be
+called after this function call.</LI>
+</OL>
+<P>
+<H2><A NAME="ss3.2">3.2 C++ Interface objects</A>
+</H2>
+
+<P>C++ interface file (see option -c++) of CS consists of the following
+definitions of generated type and functions:
+<OL>
+<LI>There is constant with nonterminal name and prefix `CSNT_' for
+each nonterminal.  `CSNT' is abbreviation of code selector
+description nonterminal.  The constants are defined as macros
+(with the aid of C preprocessor directive `#define').  The
+constants are used as parameter of functions `CS_it_is_axiom'
+and `CS_traverse_cover' (see below).
+</LI>
+<LI>Macro `CS_NODE' must represent type of node of low level
+internal representation.  This macro can be redefined (only in
+a C declaration section which starts with `%import').  By
+default this macro is defined as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+           #define CS_NODE           struct IR_node_struct *
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI>Macro `CS_TYPE' defines type of terminal and nonterminal
+attributes.  This macro can not be redefined if the
+corresponding code selector description has a construction
+`%union' which already describes terminal and nonterminal
+attribute types because in this case the default macro
+definition is absent.  By default this macro is defined as
+follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+           #define CS_TYPE           CS_node
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI>Type `CS_node' is defined as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+           typedef CS_NODE CS_node;
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI>Type `CS_cover' describes a minimal cost cover.  It is pointer
+objects of a class.  The class has not public constructors and
+desctructors.  The class objects can be created only by
+function `CS_find_cover' and can be deleted by function
+`CS_traverse_cover'.  This class has the following friend
+functions:
+<OL>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+            `CS_cover CS_find_cover (CS_node node)'
+    
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes the first bottom up pass on directed acyclic graph
+given by its node and finds a minimal cost cover for each
+nonterminal.  The minimal cost cover is returned.  If
+error occurs during the pass then macro `CS_ERROR' (see
+below) is evaluated.  For example, the cause of error may
+be meeting undeclared terminal code.  During building
+cover, each directed acyclic graph (DAG) node is visited
+only once.
+    </LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+            `void CS_start (void)'
+    
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is to be called before any work with code selector
+description.  The function initiates code selector
+description storage management (see below).
+    </LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+            `void CS_finish (void)'
+    
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is to be last.  The function finishes code selector
+description storage management.  Therefore only function
+`CS_start' can be called after this function call.</LI>
+</OL>
+
+
+This class has also the following class functions:
+<OL>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+            `int CS_it_is_axiom (int nonterminal)'
+    
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns 1 if there is a minimal cost cover for given
+nonterminal in given cover, 0 otherwise.
+    </LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+            `CS_TYPE CS_traverse_cover (int nonterminal)'
+    
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes the second bottom up, left to right pass and
+fulfills actions corresponding a minimal cost cover for
+given nonterminal in cover found by call of function
+`CS_find_cover'.  A minimal cost cover for given
+nonterminal must be in given cover before the function
+call.  This condition can be checked by function
+`CS_it_is_axiom'.  The function returns attribute of given
+nonterminal after fulfilling the actions.  Remember that
+action (and attribute evaluation) associated with tree
+pattern is fulfilled only once for each occurrence of the
+tree pattern in given cover of a directed acyclic graph.
+    </LI>
+<LI>Function
+<BLOCKQUOTE><CODE>
+<PRE>
+            `void CS_delete_cover (void)'
+    
+</PRE>
+</CODE></BLOCKQUOTE>
+
+frees memory allocated to the cover which was to be
+created by call of function `CS_find_cover'.  Of course
+the function `CS_traverse_cover' can not be used after
+that (because the object is removed).  The memory is freed
+in the reverse order therefore allocation macros (see
+below) can use stack strategy of the memory allocation.</LI>
+</OL>
+</LI>
+</OL>
+<P>
+<H2><A NAME="ss3.3">3.3 Implementation file macros</A>
+</H2>
+
+<P>CS implementation file uses the following macros generated by NONA.
+These macros can be redefined (in any C/C++ declaration section).
+<OL>
+<LI>Macro `CS_OPERATION(node)' must return value defined by a
+constant which represents mode of the low level internal
+representation node (see description of construction `%term').
+</LI>
+<LI>Macros
+<BLOCKQUOTE><CODE>
+<PRE>
+        `CS_OPERAND_1_OF_1(node)',
+        `CS_OPERAND_1_OF_2(node)',
+        `CS_OPERAND_2_OF_2(node)', and so on.
+</PRE>
+</CODE></BLOCKQUOTE>
+
+These macros define the structure of the low level internal
+representation for which is needed to build minimal cost
+cover. The structure must be a directed acyclic graph (DAG).
+
+Macro of kind `CS_OPERAND_k_OF_n' defines k-th arc from the
+DAG node given as the macro argument which has `n' such arcs.
+Let us consider tree pattern
+<BLOCKQUOTE><CODE>
+<PRE>
+        `integer_plus (register, const8)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+To access to children of node represented by terminal
+`integer_plus' the macros `CS_OPERAND_1_OF_2' and
+`CS_OPERAND_2_OF_2' will be used.
+</LI>
+<LI>Macros
+<BLOCKQUOTE><CODE>
+<PRE>
+        `CS_STATE(node)',
+        `CS_SET_STATE(node, state)'
+</PRE>
+</CODE></BLOCKQUOTE>
+
+define access to the a DAG node field.  The field is used by
+tree pattern matchers.  The type of this field must be any
+pointer type.  Macro `CS_STATE' has one argument of type
+`CS_node'.  Macro `CS_SET_STATE' has two arguments of types
+correspondingly `CS_node' and `void *'.
+</LI>
+<LI>Macro `CS_ATTRIBUTE(node)' must return value of type
+`CS_TYPE'.  This value is attribute of the terminal
+corresponding to given node of low level internal
+representation.
+
+This macro for given terminal may be evaluated several times
+because the terminal attribute can be in cost or constraint
+constructions.  The value of the macro for the terminal must
+be l-value (variable in other words) when construction
+`%union' is present and given terminal is declared with type
+because in this case the operation `.'  of C/C++ language is
+applyed to the macro value in order to get access to the
+terminal attribute.
+</LI>
+<LI>Macro `CS_ERROR(str)' is a reaction on fixing an error by tree
+pattern matcher.  The macro argument is tree pattern matcher
+message about the error.</LI>
+</OL>
+
+By default these macros are defined as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+    #define CS_OPERATION(node)        IR_NODE_MODE (node)
+    #define CS_OPERAND_1_OF_1(node)   IR_operand (node)
+    #define CS_OPERAND_1_OF_2(node)   IR_operand_1 (node)
+    #define CS_OPERAND_2_OF_2(node)   IR_operand_2 (node)
+    #define CS_OPERAND_1_OF_3(node)   IR_operand_1 (node)
+    #define CS_OPERAND_2_OF_3(node)   IR_operand_2 (node)
+    #define CS_OPERAND_3_OF_3(node)   IR_operand_3 (node)
+    ...
+    #define CS_STATE(node)            IR_state (node)
+    #define CS_SET_STATE(node, state) IR_set_state (node, state)
+    #define CS_ATTRIBUTE(node)        (node)
+    #define CS_ERROR(str)             fprintf (stderr, "%s\012", str)
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<H2><A NAME="ss3.4">3.4 Storage management macros</A>
+</H2>
+
+<P>NONA completely automatically generates macros of storage management
+for the cover.  Usually, the user does not have to care about it.  The
+predefined storage management uses C standard functions for global
+storage with free lists.  The user can create own storage manager by
+redefinition of one or more the following macros and placing them in a
+C declaration section.  But the user should know that all functions
+generated by NONA believe that the storage can not change its place
+after the allocation.
+<OL>
+<LI>Macros `CS_START_ALLOC()', `CS_FINISH_ALLOC()' are evaluated in
+functions correspondingly `CS_start' and `CS_finish' and are to
+be used to start and finish work with the storage manager.
+</LI>
+<LI>Macros `CS_ALLOC(ptr, size, ptr_type)', `CS_FREE(ptr, size)'
+allocate and free storage whose size is given as the second
+parameter.  The first parameter serves to return pointer to
+memory being allocated or to point to memory being freed.</LI>
+</OL>
+
+By default these macros are defined as follows:
+<BLOCKQUOTE><CODE>
+<PRE>
+    #define CS_START_ALLOC()
+    #define CS_FINISH_ALLOC()
+    #define CS_ALLOC(ptr, size, ptr_type) \
+                           ((ptr) = (ptr_type) malloc (size))
+    #define CS_FREE(ptr, size)  free (ptr)
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+<A HREF="nona-4.html">Next</A>
+<A HREF="nona-2.html">Previous</A>
+<A HREF="nona.html#toc3">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Programming Language DINO: Program</TITLE>
+ <LINK HREF="dino-8.html" REL=next>
+ <LINK HREF="dino-6.html" REL=previous>
+ <LINK HREF="dino.html#toc7" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="dino-8.html">Next</A>
+<A HREF="dino-6.html">Previous</A>
+<A HREF="dino.html#toc7">Contents</A>
+<HR>
+<H2><A NAME="s7">7. Program</A></H2>
+
+<P>Dino program is simply a sequence of statements.  There is special
+declaration useful for writing programs consisting of several files or
+for making Dino packages.  This is include-declaration.  Before
+execution of any statements all include-declarations are changed by
+files whose base names given by the strings.  It is made recursively,
+i.e.  the files themselves can contain other include-declarations.
+There should be no infinite recursion in this.  If <B>+</B> is
+present in the include-declaration, the file inserted in any case.
+Without <B>+</B> the file inserted only if it has been not inserted
+yet into the block of the declaration.
+<BLOCKQUOTE><CODE>
+<PRE>
+          Program = StmtList
+
+          IncludeDeclaration = include ["+"] STRING ";"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<P>The following program outputs the first 24 Fibonachi numbers.
+<BLOCKQUOTE><CODE>
+<PRE>
+          // Recursive function to compute Fibonacci numbers
+          func fibonacci (n)
+            {
+               if (n &lt;= 1) return 1;
+               return (fibonacci(n-1) + fibonacci(n-2));
+            }
+          
+          var i, fibnum;
+          
+          fibnum = 0;
+          for (i = 0; i &lt;= 24; i++) 
+            {
+              fibnum = fibonacci(i);
+              putln (i @ " " @ fibnum); 
+            }
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>The following program outputs the number of prime numbers less 8190.
+<BLOCKQUOTE><CODE>
+<PRE>
+          var i, prime, k, count, flags;
+          var final SieveSize = 8190;
+
+          flags = [SieveSize + 1 : 0];
+          count = 0;
+          for (i = 0; i &lt;= SieveSize; i++)
+            flags[i] = 1;
+          for (i = 0; i &lt;= SieveSize; i++)
+            if (flags[i])
+              {
+                prime = i + i + 3;
+                k = i + prime;
+                for (;1;;)
+                  {
+                      if (k > SieveSize)
+                      break;
+                    flags[k] = 0;
+                    k += prime;
+                  }
+                count++;
+              }
+          println (count);
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>The following program outputs number of occurrences of numbers
+and identifiers in stdin.
+<BLOCKQUOTE><CODE>
+<PRE>
+          var i, key, voc = {};
+          for (;;)
+            try {
+              var ln, a;
+
+              ln = getln ();
+              if (ln == "")
+                continue;
+              a = split (ln, "[^[:alnum:]]");
+              for (i = 0; i &lt; #a; i++)
+                voc {a[i]} = (a[i] in voc ? voc {a[i]} + 1 : 1);
+            } catch (invcalls.eof) {
+              break;
+            }
+          func comp (el1, el2) {
+            return cmpv (tolower (el1), tolower (el2));
+          }
+          key = sort (keys (voc), comp);
+          for (i = 0; i &lt; #key; i++)
+            putln (key[i], " : ", voc{key[i]});
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>The following program uses Dino package <CODE>mpi</CODE>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          include "mpi";
+          var mpi1, mpi2;
+          mpi1 = mpis.from_string(50, "1000000000000000000000000000000000000");
+          mpi2 = mpis.from_string(50, "5000000000000000000000000000000000000");
+          putln (mpis.to_string (mpis.add (mpi1, mpi2)));
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+<A HREF="dino-8.html">Next</A>
+<A HREF="dino-6.html">Previous</A>
+<A HREF="dino.html#toc7">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,1599 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>The Programming Language DINO: Predeclared identifiers</TITLE>
+ <LINK HREF="dino-9.html" REL=next>
+ <LINK HREF="dino-7.html" REL=previous>
+ <LINK HREF="dino.html#toc8" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="dino-9.html">Next</A>
+<A HREF="dino-7.html">Previous</A>
+<A HREF="dino.html#toc8">Contents</A>
+<HR>
+<H2><A NAME="s8">8. Predeclared identifiers</A></H2>
+
+<P>Dino has a lot of predeclared identifiers.  Section <EM>Declarations
+and Scope Rules</EM> contains them in alphanumeric order.  Here they
+are described according the declaration category which they belongs
+to.
+<P>
+<H2><A NAME="ss8.1">8.1 Predeclared variables</A>
+</H2>
+
+<P>Dino has some predeclared variables which contain useful information
+or can be used to control behaviour of Dino interpreter.
+<P>
+<H3>Arguments and environment</H3>
+
+<P>To access Dino program arguments and environment, the following
+variables can be used.
+<UL>
+<LI><CODE>argv</CODE>.  The variable value is immutable vector
+whose elements are strings (immutable vectors of characters)
+representing arguments of Dino program (see implementation).</LI>
+<LI><CODE>env</CODE>.  The variable value is immutable table whose
+elements are strings (immutable vectors of characters)
+representing values of environment variables whose names are
+the keys of the table.</LI>
+</UL>
+<P>
+<H3>Threads</H3>
+
+<P>To access some information about threads in Dino program, the
+following variables can be used.
+<UL>
+<LI><CODE>main_thread</CODE>.  The variable value is the main
+thread.  When Dino program starts, there is only one thread
+which is called <EM>the main thread</EM>.</LI>
+<LI><CODE>curr_thread</CODE>.  The variable value is thread in
+which you get the variable value.</LI>
+</UL>
+
+All these variables are final, so you can not change their values.
+<P>
+<H3>Exceptions</H3>
+
+<P>When it is necessary to create an exception which is a object of class
+declared inside class <CODE>except</CODE> or when it is necessary to refer
+for a class inside class <CODE>except</CODE>, the following variables can
+be used.  Instead of typing <CODE>catch (except().signal().sigint)</CODE>,
+you could type <CODE>catch (signals.sigint)</CODE>.
+<UL>
+<LI><CODE>excepts</CODE>.  The variable value is an object of class
+<CODE>except</CODE>.</LI>
+<LI><CODE>errors</CODE>.  The variable value is an object of class
+<CODE>excepts.error</CODE>.</LI>
+<LI><CODE>signals</CODE>.  The variable value is an object of class
+<CODE>errors.signal</CODE>.</LI>
+<LI><CODE>invops</CODE>.  The variable value is an object of class
+<CODE>errors.invop</CODE>.</LI>
+<LI><CODE>invindexes</CODE>.  The variable value is an object of
+class <CODE>errors.invindex</CODE>.</LI>
+<LI><CODE>invkeys</CODE>.  The variable value is an object of class
+<CODE>errors.invkey</CODE>.</LI>
+<LI><CODE>invcalls</CODE>.  The variable value is an object of
+class <CODE>errors.invcall</CODE>.</LI>
+<LI><CODE>syserrors</CODE>.  The variable value is an object of
+class <CODE>invcalls.syserror</CODE>.</LI>
+<LI><CODE>systemcalls</CODE>.  The variable value is an object of
+class <CODE>invcalls.systemcall</CODE>.</LI>
+<LI><CODE>invparsers</CODE>.  The variable value is an object of
+class <CODE>invcalls.invparser</CODE>.</LI>
+<LI><CODE>invregexps</CODE>.  The variable value is an object of
+class <CODE>invcalls.invregexp</CODE>.</LI>
+<LI><CODE>invexterns</CODE>.  The variable value is an object of
+class <CODE>invcalls.invextern</CODE>.</LI>
+<LI><CODE>invaccesses</CODE>.  The variable value is an object of
+class <CODE>errors.invaccess</CODE>.</LI>
+</UL>
+
+All these variables are final, so you can not change their values.
+<P>
+<H3>Files</H3>
+
+<P>To output something into standard streams or to input something from
+the standard input stream, the following variables can be used.
+<UL>
+<LI><CODE>stdin</CODE>.  The variable value is an object of class
+<CODE>file</CODE> which corresponds to standard input stream.</LI>
+<LI><CODE>stdout</CODE>.  The variable value is an object of class
+<CODE>file</CODE> which corresponds to standard output stream.</LI>
+<LI><CODE>stderr</CODE>.  The variable value is an object of class
+<CODE>file</CODE> which corresponds to standard error stream.</LI>
+</UL>
+
+All these variables are final, so you can not change their values.
+<P>
+<H3>Miscellaneous variables</H3>
+
+<P>Values of the following variables are used by some predeclared
+functions:
+<UL>
+<LI><CODE>split_regex</CODE>.  The variable value is string which
+represents regular expression which is used by predeclared
+function <CODE>split</CODE> when the second parameter is not given.
+Initial value of the variable is string <CODE>"[ \t]+"</CODE>.</LI>
+<LI><CODE>time_format</CODE>.  The variable value is string which
+is output format of time used by function <CODE>strtime</CODE> when
+it is called without parameters.  Initial value of the variable
+is string <CODE>"%a %b %d %H:%M:%S %Z %Y"</CODE>.</LI>
+</UL>
+<P>
+<H2><A NAME="ss8.2">8.2 Predeclared classes</A>
+</H2>
+
+<P>The most of the predeclared classes describe exceptions which may be
+generated in Dino program.
+<P>
+<H3>File</H3>
+
+<P>Dino has predeclared final class <CODE>file</CODE>.  Work with files in
+Dino program are made through objects of the class.  All declarations
+inside of the class are private.  The objects of the class can be
+created only by predeclared function <CODE>open</CODE> or <CODE>popen</CODE>.
+You can not create an object of the class calling the class because
+exception <CODE>callop</CODE> will be generated in this case.
+<P>
+<H3>Exception classes</H3>
+
+<P>All Dino exceptions are represented by objects of predeclared class
+<CODE>except</CODE> or of an class in the class <CODE>except</CODE>.  The
+class <CODE>except</CODE> has no parameters therefore all arguments in
+call of the class will be ignored.  There is one predeclared class
+<CODE>error</CODE> inside class <CODE>except</CODE>.  All classes
+corresponding user-declared exceptions are suggested to be declared in
+class <CODE>except</CODE> not in the class <CODE>error</CODE> because all
+other exceptions (e.g. generated by Dino interpreter itself or by
+predeclared functions) are objects of class <CODE>error</CODE> or
+predeclared classes inside the class <CODE>error</CODE>. The class
+<CODE>error</CODE> and all classes inside the class has one parameter
+<CODE>msg</CODE> which contains readable message about the exception.  The
+following classes are declared in the class <CODE>error</CODE>:
+<P>
+<UL>
+<LI><CODE>signal</CODE>.  Classes inside this class describe
+exceptions by receiving a signal from other OS processes.  They
+are
+<UL>
+<LI><CODE>sigint</CODE>.  This class describes exception
+generated by user's interrupt from keyboard.</LI>
+<LI><CODE>sigill</CODE>.  This class describes exception
+generated by illegal instruction execution.</LI>
+<LI><CODE>sigabrt</CODE>.  This class describes exception
+generated by signal abort.</LI>
+<LI><CODE>sigfpe</CODE>.  This class describes a floating point
+exception.</LI>
+<LI><CODE>sigterm</CODE>.  This class describes exception
+generated by termination signal.</LI>
+<LI><CODE>sigsegv</CODE>.  This class describes exception
+generated by an invalid memory reference.</LI>
+</UL>
+</LI>
+<LI><CODE>invenv</CODE>.  This class describes corruption of Dino
+program environment (see predeclared variable <CODE>env</CODE>).</LI>
+<LI><CODE>invop</CODE>.  Classes inside this class describe
+exceptions when operands of operations have incorrect type or
+value.
+<UL>
+<LI><CODE>optype</CODE>.  This class describes that operand of
+an operation is not of required type (possibly after
+implicit conversions).</LI>
+<LI><CODE>opvalue</CODE>.  This class reserved for description
+of that operand of an operation has invalid value.  Now
+this exception is not generated.</LI>
+</UL>
+</LI>
+<LI><CODE>invindex</CODE>.  Classes inside this class describe
+exceptions in referring for a vector element.
+<UL>
+<LI><CODE>indextype</CODE>.  This class describes that the
+index is not of integer type (possibly after implicit
+integer conversion).</LI>
+<LI><CODE>indexvalue</CODE>.  This class describes that the
+index is negative or equal or more than the vector length.</LI>
+<LI><CODE>indexop</CODE>.  This class describes that the first
+operand in referring vector element is not vector.</LI>
+</UL>
+</LI>
+<LI><CODE>invkey</CODE>.  Classes inside this class describe
+exceptions in referring for a table element.
+<UL>
+<LI><CODE>keyvalue</CODE>.  This class describes that there is
+no element in the table with given key when we need value
+of the element.  The exception does not occur when table
+element reference stands in the left hand side of an
+assignment-statement.</LI>
+<LI><CODE>keyop</CODE>.  This class describes that the first
+operand in referring table element is not table.</LI>
+</UL>
+</LI>
+<LI><CODE>invcall</CODE>.  Classes inside this class describe
+exceptions in calling functions (mainly predeclared ones).
+<UL>
+<LI><CODE>callop</CODE>.  This class describes that we try to
+call something which is not function, class, or
+thread-function.  The exception is also generated when you
+try to create a class <CODE>file</CODE> instance by calling the
+class.</LI>
+<LI><CODE>partype</CODE>.  This class describes that a
+parameter value of predeclared function is not of required
+type.</LI>
+<LI><CODE>invresult</CODE>.  This class describes that the
+result value of function call is not of required type,
+e.g. comparison function used in call function
+<CODE>sort</CODE> returns non integer value.</LI>
+<LI><CODE>invinput</CODE>.  This class describes that file
+input is not of required format.  Usually the exception is
+generated by function <CODE>scan</CODE> etc.</LI>
+<LI><CODE>eof</CODE>.  This class describes that end of file is
+encountered.  Usually the exception is generated by
+functions reading files (<CODE>get</CODE>, <CODE>scan</CODE> etc).</LI>
+<LI><CODE>parnumber</CODE>.  This class describes that the
+actual parameters number is not valid when we call a
+predeclared function.</LI>
+<LI><CODE>syserror</CODE>.  Classes inside this class describe
+exceptions in predeclared functions which call OS system
+functions.  Some exceptions are never generated but may
+be generated in the future on some OSes.
+<UL>
+<LI><CODE>eaccess</CODE>.  This describes system error
+"Permission denied".</LI>
+<LI><CODE>eagain</CODE>.  This describes system error
+"Resource temporarily unavailable".</LI>
+<LI><CODE>ebadf</CODE>.  This describes system error
+"Bad file descriptor".</LI>
+<LI><CODE>ebusy</CODE>.  This describes system error
+"Resource busy".</LI>
+<LI><CODE>echild</CODE>.  This describes system error
+"No child processes".</LI>
+<LI><CODE>edeadlk</CODE>.  This describes system error
+"Resource deadlock avoided".</LI>
+<LI><CODE>edom</CODE>.  This describes system error
+"Domain error".</LI>
+<LI><CODE>eexist</CODE>.  This describes system error
+"File exists".</LI>
+<LI><CODE>efault</CODE>.  This describes system error
+"Bad address".</LI>
+<LI><CODE>efbig</CODE>.  This describes system error
+"File too large".</LI>
+<LI><CODE>eintr</CODE>.  This describes system error
+"Interrupted function call".</LI>
+<LI><CODE>einval</CODE>.  This describes system error
+"Invalid argument".</LI>
+<LI><CODE>eio</CODE>.  This describes system error
+"Input/output error".</LI>
+<LI><CODE>eisdir</CODE>.  This describes system error
+"Is a directory".</LI>
+<LI><CODE>emfile</CODE>.  This describes system error
+"Too many open files".</LI>
+<LI><CODE>emlink</CODE>.  This describes system error
+"Too many links".</LI>
+<LI><CODE>enametoolong</CODE>.  This describes system error
+"Filename too long".</LI>
+<LI><CODE>enfile</CODE>.  This describes system error "Too
+many open files in system".</LI>
+<LI><CODE>enodev</CODE>.  This describes system error "No
+such device".</LI>
+<LI><CODE>enoent</CODE>.  This describes system error "No
+such file or directory".</LI>
+<LI><CODE>enoexec</CODE>.  This describes system error
+"Exec format error".</LI>
+<LI><CODE>enolck</CODE>.  This describes system error "No
+locks available".</LI>
+<LI><CODE>enomem</CODE>.  This describes system error "Not
+enough space".</LI>
+<LI><CODE>enospc</CODE>.  This describes system error "No
+space left on device".</LI>
+<LI><CODE>enosys</CODE>.  This describes system error
+"Function not implemented".</LI>
+<LI><CODE>enotdir</CODE>.  This describes system error "Not
+a directory".</LI>
+<LI><CODE>enotempty</CODE>.  This describes system error
+"Directory not empty".</LI>
+<LI><CODE>enotty</CODE>.  This describes system error
+"Inappropriate I/O control operation".</LI>
+<LI><CODE>enxio</CODE>.  This describes system error "No
+such device or address".</LI>
+<LI><CODE>eperm</CODE>.  This describes system error
+"Operation not permitted".</LI>
+<LI><CODE>epipe</CODE>.  This describes system error
+"Broken pipe".</LI>
+<LI><CODE>erange</CODE>.  This describes system error
+"Result too large".</LI>
+<LI><CODE>erofs</CODE>.  This describes system error
+"Read-only file system".</LI>
+<LI><CODE>espipe</CODE>.  This describes system error
+"Invalid seek".</LI>
+<LI><CODE>esrch</CODE>.  This describes system error "No
+such process".</LI>
+<LI><CODE>exdev</CODE>.  This describes system error
+"Improper link".</LI>
+</UL>
+</LI>
+<LI><CODE>systemcall</CODE>.  Classes inside this class
+describe exceptions in calling predeclared function
+<CODE>system</CODE>.
+<UL>
+<LI><CODE>noshell</CODE>.  This class describes exception
+that the function <CODE>system</CODE> can not find OS
+command interpriter (shell).</LI>
+<LI><CODE>systemfail</CODE>.  This class describes all
+remaining exceptions in calling OS function
+<CODE>system</CODE>.</LI>
+</UL>
+</LI>
+<LI><CODE>invparser</CODE>.  Classes inside this class describe
+exceptions specific for calling functions of predeclared
+class <CODE>parser</CODE> implementing earley parser.
+<UL>
+<LI><CODE>invgrammar</CODE>.  This class describes
+exception that earley parser got a bad grammar,
+e.g. without rules, with loops in rules, with
+nonterminals unachievable from axiom, with nonterminals
+not deriving any terminal string etc.</LI>
+<LI><CODE>invtoken</CODE>.  This class describes exception
+that parser got input token with unknown (undeclared)
+code.</LI>
+<LI><CODE>pmemory</CODE>.  This class describes exception
+that there is no enough memory for internal parser
+data.</LI>
+</UL>
+</LI>
+<LI><CODE>invregexp</CODE>.  Classes inside this class describe
+exceptions specific for calling predeclared functions
+implementing regular expression pattern matching.
+<UL>
+<LI><CODE>ebrack</CODE>.  This class describes exception
+that regular expression has unmatched bracket.</LI>
+<LI><CODE>erange</CODE>.  This class describes exception
+that there is invalid use of range in regular
+expression.</LI>
+<LI><CODE>ectype</CODE>.  This class describes exception
+that there is unknown character class name in regular
+expression.</LI>
+<LI><CODE>eparen</CODE>.  This class describes exception
+that regular expression has unmatched parenthesis.</LI>
+<LI><CODE>esubreg</CODE>.  This class describes exception
+that there is invalid back reference to a subexpression
+in regular expression.</LI>
+<LI><CODE>eend</CODE>.  This class describes exception that
+there is non specific error in regular expression.</LI>
+<LI><CODE>eescape</CODE>.  This class describes exception
+that there is a trailing backslash.</LI>
+<LI><CODE>badpat</CODE>.  This class describes exception
+that there is invalid use of pattern operators in
+regular expression.</LI>
+<LI><CODE>esize</CODE>.  This class describes exception
+that compiled regular expression is too big.</LI>
+<LI><CODE>espace</CODE>.  This class describes exception
+that there is no memory for regular expression function
+work.</LI>
+</UL>
+</LI>
+<LI><CODE>invextern</CODE>.  Classes inside this class describe
+exceptions in calling external functions or in access to
+an external variable.
+<UL>
+<LI><CODE>noextern</CODE>.  This class describes exception
+that given external can not be find.</LI>
+<LI><CODE>libclose</CODE>.  This class describes exception
+that there is an error in closing a shared library.</LI>
+<LI><CODE>noexternsupp</CODE>.  This class describes
+exception in usage of externals when they are not
+implemented under this OS.</LI>
+</UL>
+</LI>
+<LI><CODE>invenvar</CODE>.  This class describes corruption in
+value of variables <CODE>split_regex</CODE> and
+<CODE>time_format</CODE> (e.g. their values are not strings).</LI>
+<LI><CODE>internal</CODE>.  This class describes all other
+(nonspecified) exceptions in calling predeclared functions.</LI>
+</UL>
+</LI>
+</UL>
+<P>
+<H3>Earley parser classes</H3>
+
+<P>Dino has three following classes which are relative to earley parser
+embedded into Dino interpreter.
+<P>
+<H3>Parser.</H3>
+
+<P>Dino has predeclared final class <CODE>parser</CODE> which implements
+Earley parser.  Earley parser is very powerfull tools to implement
+serious language compilers, processors, or translators.  The
+implementaion of Earley parser used in Dino has the following
+features:
+<P>
+<UL>
+<LI>It is sufficiently fast and does not require much memory.
+This is the fastest implementation of Earley parser which I
+know.  The main design goal is to achieve speed and memory
+requirements which are necessary to use it in prototype
+compilers and language processors.  It parses 30K lines of C
+program per second on 500 MHz Pentium III and allocates about
+5Mb memory for 10K line C program.</LI>
+<LI>It makes simple syntax directed translation.  So an
+abstract tree is already the output of Earley parser.</LI>
+<LI>It can parse input described by an ambiguous grammar.  In
+this case the parse result can be an abstract tree or all
+possible abstract trees.  Moreover it produces the compact
+representation of all possible parse trees by using DAG instead
+of real trees.  These feature can be used to parse natural
+language sentences.</LI>
+<LI>It can make syntax error recovery.  Moreover its error
+recovery algorithms finds error recovery with minimal number of
+ignored tokens.  It permits to implement parsers with very good
+error recovery and reporting.</LI>
+<LI>It has fast startup.  There is no practically delay between
+processing grammar and start of parsing.</LI>
+<LI>It has flexible interface.  The input grammar is given by
+YACC-like description.</LI>
+<LI>It has good debugging features.  It can print huge amount of
+information about grammar, parsing, error recovery, translation.
+You can even output the result translation in form for a graphic
+visualization program.</LI>
+</UL>
+
+The following public functions and variables are declared in the class
+<CODE>parser</CODE>:
+<UL>
+<LI><CODE>ambiguous_p</CODE>.  This public variable stores
+information about the last parsing.  Nonzero variable value
+means that during last parsing on given input the parser found
+that the grammar is ambiguous.  The parser find this even if
+you asked producing only one parser tree (see function
+<CODE>set_one_parse</CODE>).
+</LI>
+<LI><CODE>set_grammar (descr, strict_p)</CODE>.  This function
+tunes the parser to given grammar.  The grammar is given by
+string <CODE>descr</CODE>.  Nonzero parameter <CODE>strict_p</CODE>
+value (after implicit implicit integer conversion) means more
+strict checking the grammar.  In this case, all nonterminals
+will be checked on ability to derive a terminal string instead
+of only checking axiom for this.  The function can generate
+exceptions <CODE>partype</CODE> (if the parameters has wrong types)
+or <CODE>invgrammar</CODE> if the description is a bad grammar.
+The function also can generate exception <CODE>pmemory</CODE> if
+there are no memory for internal parser data.
+
+The description is similiar <EM>YACC</EM> one.  It has the
+following syntax:
+<BLOCKQUOTE><CODE>
+<PRE>
+          file : file terms [';']
+               | file rule
+               | terms [';']
+               | rule
+       
+          terms : terms IDENTIFIER ['=' NUMBER]
+                | TERM
+       
+          rule : IDENTIFIER ':' rhs [';']
+          
+          rhs : rhs '|' sequence [translation]
+              | sequence [translation]
+          
+          sequence :
+                   | sequence IDENTIFIER
+                   | sequence C_CHARACTER_CONSTANT
+          
+          translation : ['#'] NUMBER
+                      | '#' IDENTIFIER '(' numbers ')'
+          
+          numbers :
+                  | numbers NUMBER
+       
+</PRE>
+</CODE></BLOCKQUOTE>
+
+So the description consists of terminal declaration and
+rules sections.
+       
+Terminal declaration section describes name of terminals and
+their codes.  Terminal code is optional.  If it is omitted,
+the terminal code will the next free code starting with 256.
+You can declare terminal several times (the single condition
+its code should be the same).
+       
+Character constant present in the rules is a terminal
+described by default.  Its code is always code of the
+character constant.
+       
+Rules syntax is the same as <EM>YACC</EM> rule syntax.  The
+single difference is an optional translation construction
+starting with <CODE>#</CODE> right after each alternative.  The
+translation part could be a single number which means that the
+translation of the alternative will be the translation of the
+symbol with given number (symbol numbers in alternative starts
+with 0).  Or the translation can be abstract node with given
+name and with fields whose values are the translations of the
+alternative symbols with numbers given in parentheses after the
+abstract node name.
+
+There is reserved terminal <CODE>error</CODE> which marks start
+point of error recovery.
+ </LI>
+<LI><CODE>set_debug (level)</CODE>.  This function sets up level of
+debugging information output to <CODE>stderr</CODE>.  The more
+level, the more information is output.  The default value is 0
+(no output).  The debugging information includes statistics,
+result translation tree, grammar, parser sets, parser sets with
+all situations, situations with contexts.  The function returns
+the previously set up debug level.  Setting up negative debug
+level results in output of translation for program <B>dot</B>
+of graphic visualization package <B>graphviz</B>.  The
+parameter should be an integer after implicit integer
+conversion.  The function will generate exception
+<CODE>partype</CODE> if it is not true.</LI>
+<LI><CODE>set_one_parse (flag)</CODE>.  This function sets up flag
+whose nonzero value means means building only one translation
+tree (without alternative nodes).  For unambiguous grammar the
+flag does not affect the result.  The function returns the
+previously set up flag value.  The default value of the flag is
+1.  The parameter should be an integer after implicit integer
+conversion.  The function will generate exception
+<CODE>partype</CODE> if it is not true.</LI>
+<LI><CODE>set_recovery (flag)</CODE>.  This function sets up flag
+whose nonzero value means making error recovery if syntax error
+occurred.  Otherwise, syntax error results in finishing parsing
+(although syntax error function passed to <CODE>parse</CODE> is
+called once).  The function returns the previously set up flag
+value.  The default value of the flag is 1.  The parameter
+should be an integer after implicit integer conversion.  The
+function will generate exception <CODE>partype</CODE> if it is not
+true.</LI>
+<LI><CODE>set_recovery_match (n_toks)</CODE>.  This function sets
+up parser internal parameter meaning how much subsequent tokens
+should be successfully shifted to finish error recovery.  The
+default value is 3.  The function returns the previously set up
+value.  The parameter should be an integer after implicit
+integer conversion.  The function will generate exception
+<CODE>partype</CODE> if it is not true.
+</LI>
+<LI><CODE>parse (tokens, error_func)</CODE>. This function is major
+function of the class.  It makes translation according to
+previously set up grammar of input given by parameter
+<CODE>tokens</CODE> whose value should be array of objects of
+predeclared class <CODE>token</CODE>.  If the parser recognizes a
+syntax error it calls function given through parameter
+<CODE>error_func</CODE> with six parameters:
+<UL>
+<LI>index of token (in array <CODE>tokens</CODE>) on which the
+syntax error occured.</LI>
+<LI>the error token itself.</LI>
+<LI>index of the first token (in array <CODE>tokens</CODE>)
+ignored because of error recovery.</LI>
+<LI>the first ignored token itself.</LI>
+<LI>index of the first token (in array <CODE>tokens</CODE>)
+which is not ignored after error recovery.</LI>
+<LI>the first not ignored token itself.</LI>
+</UL>
+
+If the parser works with switched off error recovery (see
+function <CODE>set_recovery</CODE>, the third and fifth parameters
+will be negative and forth and sixth parameters will be
+<B>nil</B>.
+
+The function returns object of predeclared class <CODE>anode</CODE>
+which is root of the abtsract tree representing the translation
+of the parser input.  The function can generate exception
+<CODE>partype</CODE> if the parameter types are wrong or
+<CODE>invtoken_decl</CODE> if the input token has wrong code.  The
+function also can generate exception <CODE>pmemory</CODE> if there
+are no memory for internal parser data.</LI>
+</UL>
+<P>The call of class <CODE>parser</CODE> itself can generate exception
+<CODE>pmemory</CODE> if there are no memory for internal parser
+data.
+<P>
+<H3>Token.</H3>
+
+<P>Dino has predeclared class <CODE>token</CODE>.  Objects of this class
+should be input of the earley parser (see function <CODE>parse</CODE> in
+class <CODE>parser</CODE>).  The result abstract tree representing
+translation will have input tokens as leaves.  Class <CODE>token</CODE>
+has one public variable <CODE>code</CODE> whose value should be code of
+terminal described in the grammar.  You could extend the class
+description e.g. by adding variables whose values could be attributes
+of the token (e.g. source line number, name of an identifier, or
+value for a number).
+<P>
+<H3>Anode.</H3>
+
+<P>Dino has predeclared class <CODE>anode</CODE> whose objects are nodes of
+abtract tree representing the translation (see function <CODE>parse</CODE>
+of class <CODE>parser</CODE>).  Objects of this class are generated by
+earley parser.  The class has two public variables <CODE>name</CODE> whose
+value is string representing name of the abstract node as it given in
+the grammar and <CODE>transl</CODE> whose value is array with abstract node
+fields as the array elements.  There are a few node types which have
+special meaning:
+<P>
+<UL>
+<LI>Terminal node which has reserved name <CODE>$term</CODE>.
+Value of public variable <CODE>transl</CODE> for this node is
+object of class <CODE>token</CODE> representing the corresponding
+input token which was an element of array passed as parameter
+of function <CODE>parse</CODE> of function <CODE>parser</CODE>.</LI>
+<LI>Error node which has reserved name <CODE>$error</CODE>.  This
+node exists in one exemplar and represents translation of
+grammar reserved symbol <CODE>error</CODE>.  The value is public
+variable will be <B>nil</B> in this case.</LI>
+<LI>Empty node which has reserved name <CODE>$nil</CODE>.  This
+node exists also in one exemplar and represents translation of
+grammar symbol for which we did not describe a translation.
+For example, in a grammar rule an abstract node refers for
+translation of nonterminal for which we do not produce a
+translation.  The value is public variable of such class object
+will be <B>nil</B> in this case.</LI>
+<LI>Alternative node which has reserved name <CODE>$alt</CODE>.  It
+represents all possible alternatives in translation of grammar
+nonterminal.  The value of public variable <CODE>transl</CODE> will
+be array with elements whose value are objects of class
+<CODE>anode</CODE> which represent the all possible translations.
+Such nodes can be generated by the parser only if the grammar
+is ambiguous and we did not asked it to produce only one
+translation.</LI>
+</UL>
+<P>
+<H3>Example of Earley parser usage.</H3>
+
+<P>Let us write program which transforms expression into postfix polish
+form.  Please, read the program comments to understand what the code
+do.  The program should output string <CODE>"abcda*+*+"</CODE> which is
+postfix polish form of input string <CODE>"a+b*(c+d*a)"</CODE>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          // The following is expression grammar:
+          var grammar = "E : E '+' T   # plus (0 2)\n\
+                           | T         # 0\n\
+                           | error     # 0\n\
+                         T : T '*' F   # mult (0 2)\n\
+                           | F         # 0\n\
+                         F : 'a'       # 0\n\
+                           | 'b'       # 0\n\
+                           | 'c'       # 0\n\
+                           | 'd'       # 0\n\
+                           | '(' E ')' # 1";
+          // Create parser and set up grammar.
+          var p = parser ();
+          p.set_grammar (grammar, 1);
+
+          // Add attribute repr to token:
+          ext token { var repr; }
+          // The following code forms input tokens from string:
+          var str = "a+b*(c+d*a)";
+          var i, inp = [#str : nil];
+          for (i = 0; i &lt; #str; i++) {
+            inp [i] = token (str[i] + 0);
+            inp [i].repr = str[i];
+          }
+          // The following function output messages about syntax errors
+          // syntax error recovery:
+          func error (err_start, err_tok,
+                      start_ignored_num, start_ignored_tok_attr,
+                      start_recovered_num, start_recovered_tok) {
+            put ("syntax error on token #", err_start,
+                 " (" @ err_tok.code @ ")");
+            putln (" -- ignore ", start_recovered_num - start_ignored_num,
+                   " tokens starting with token #", start_ignored_num);
+          }
+
+          var root = p.parse (inp, error); // parse
+
+          // Output translation in polish inverse form
+          func pr (r) {
+            var i, n = r.name;
+
+            if (n == "$term")
+              put (r.transl.repr);
+            else if (n == "mult" || n == "plus") {
+              for (i = 0; i &lt; #r.transl; i++)
+                pr (r.transl [i]);
+              put (n == "mult" ? "*" : "+");
+            }
+            else if (n != "$error") {
+              putln ("internal error");
+              exit (1);
+            }
+          }
+
+          pr (root);
+          putln ();
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<H2><A NAME="ss8.3">8.3 Predeclared functions</A>
+</H2>
+
+<P>The predeclared functions expect given number actual parameters (may
+be variable number parameters).  If the actual parameter number is
+unexpected one, exception <CODE>partype</CODE> is generated.  The predeclared
+functions believe that the actual parameters (may be after implicit
+conversions) are of required type.  If it is not true, exception
+<CODE>partype</CODE> is generated.  To show how many parameters the
+function requires, we will write names of the parameters and to use
+brackets <CODE>[</CODE> and <CODE>]</CODE> for the optional parameters in
+description of the functions.
+<P>Examples:  The following description
+<BLOCKQUOTE><CODE>
+<PRE>
+          strtime ([format [, time]])
+</PRE>
+</CODE></BLOCKQUOTE>
+
+describes that the function can accept zero, one, or two
+parameters.  If only one parameter is given, then this is
+parameter <CODE>format</CODE>.
+<P>If something special is not said about the returned result, the
+function returns default value <B>nil</B>.
+<P>
+<P>
+<H3>Mathematical functions</H3>
+
+<P>The following functions make implicit arithmetic conversion of the
+parameters.  After the conversions the parameters are expected to be
+of integer or floating point type.  The result is always a floating
+point number.
+<UL>
+<LI><CODE>sqrt (x)</CODE>.  The function returns the square root of
+<CODE>x</CODE>.  The function generates exception <CODE>edom</CODE> if
+<CODE>x</CODE> is negative.</LI>
+<LI><CODE>exp (x)</CODE>.  The function returns <CODE>e</CODE> (the
+base of natural logarithms) raised to the power of <CODE>x</CODE>.</LI>
+<LI><CODE>log (x)</CODE>.  The function returns the natural
+logarithm of <CODE>x</CODE>.  The function generates exception
+<CODE>edom</CODE> if <CODE>x</CODE> is negative or may generate
+<CODE>erange</CODE> if the value is zero.</LI>
+<LI><CODE>log10 (x)</CODE>.  The function returns the decimal
+logarithm of <CODE>x</CODE>.  The function generate exception
+<CODE>edom</CODE> if <CODE>x</CODE> is negative or may generate
+<CODE>erange</CODE> if the value is zero.</LI>
+<LI><CODE>pow (x, y)</CODE>.  The function returns <CODE>x</CODE>
+raised to the power of <CODE>y</CODE>.  The function generates
+exception <CODE>edom</CODE> if x is negative and y is not integral
+value.</LI>
+<LI><CODE>sin (x)</CODE>.  The function returns the sine of
+<CODE>x</CODE>.</LI>
+<LI><CODE>cos (x)</CODE>.  The function returns the cosine of
+<CODE>x</CODE>.</LI>
+<LI><CODE>atan2 (x, y)</CODE>.  The function returns the arc
+tangent of the two variables <CODE>x</CODE> and <CODE>y</CODE>.  It is
+similar to calculating the arc tangent of <CODE>y / x</CODE>,
+except that the signs of both arguments are used to determine
+the quadrant of the result.</LI>
+</UL>
+<P>
+<H3>Pattern matching functions</H3>
+
+<P>Dino has predeclared functions which are used for <EM>pattern
+matching</EM>.  The pattern is described by <EM>regular
+expressions</EM> (<EM>regex</EM>).  The pattern has syntax of
+<EM>extended</EM> POSIX (1003.2) regular expression, i.e. the pattern
+has the following syntax:
+<BLOCKQUOTE><CODE>
+<PRE>
+          Regex = Branch {"|" Branch}
+</PRE>
+</CODE></BLOCKQUOTE>
+
+A regex matches anything that matches one of the <EM>branches</EM>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          Branch = {Piece}
+</PRE>
+</CODE></BLOCKQUOTE>
+
+A branch matches a match for the first <EM>piece</EM>, followed by a
+match for the second piece, etc.  If the pieces are omitted, the
+branch matches the null string.
+<BLOCKQUOTE><CODE>
+<PRE>
+          Piece = Atom ("*" | "+" | "?" | Bound)
+
+          Bound = "{" Min ["," [Max]] "}"
+
+          Min = &lt;unsigned integer between 0 and 255 inclusive>
+
+          Max = &lt;unsigned integer between 0 and 255 inclusive>
+</PRE>
+</CODE></BLOCKQUOTE>
+
+An <EM>atom</EM> followed by <CODE>*</CODE> matches a sequence of 0 or
+more matches of the atom.  An atom followed by <CODE>+</CODE> matches a
+sequence of 1 or more matches of the atom.  An atom followed by
+<CODE>?</CODE> matches a sequence of 0 or 1 matches of the atom.
+<P>There is more general construction (a <EM>bound</EM>) for describing
+repetitions of atom.  An atom followed by a bound containing only one
+integer <CODE>min</CODE> matches a sequence of exactly <CODE>min</CODE>
+matches of the atom.  An atom followed by a bound containing one
+integer <CODE>min</CODE> and a comma matches a sequence of <CODE>min</CODE> or
+more matches of the atom.  An atom followed by a bound containing two
+integers <CODE>min</CODE> and <CODE>max</CODE> matches a sequence of
+<CODE>min</CODE> through <CODE>max</CODE> (inclusive) matches of the atom.
+<BLOCKQUOTE><CODE>
+<PRE>
+          Atom = "(" Regex ")"
+               | "(" ")"
+               | "."
+               | "^"
+               | "$"
+               | BracketedList
+               | "\^"
+               | "\["
+               | "\$"
+               | "\("
+               | "\)"
+               | "\*"
+               | "\+"
+               | "\?"
+               | "\{"
+               | &lt;any pair the first character is \ and the second is any
+                  except for ^.[$()|*+? >
+               | &lt;any character except for ^.[$()|*+? >
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Regular expression enclosed in <CODE>()</CODE> can be an atom.  In this
+case it matches a match for the regular expression in the
+parentheses), an atom <CODE>()</CODE> matches the null string.  Atom
+<CODE>.</CODE> matches any single character.  Atoms <CODE>^</CODE> and
+<CODE>$</CODE> match correspondingly the null string at the beginning of a
+line and the null string at the end of a line.
+<P>Atom which is <CODE>\</CODE> followed by one of the characters
+<CODE>^.[$()|*+?{\</CODE> matches that character taken as an ordinary
+character.  Atom which is <CODE>\</CODE> followed by any other character
+matches the second character taken as an ordinary character, as if the
+<CODE>\</CODE> had not been present.  So you should use <CODE>\\</CODE> for
+matching with single <CODE>\</CODE>.  An atom which is any other single
+character matches that character.  It is illegal to end an regular
+expression with <CODE>\</CODE>.  There is an exception which is not
+described by the atom syntax.  A <CODE>{</CODE> followed by a character
+other than a digit is an ordinary character not the beginning of a
+bound and matches character <CODE>{</CODE>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          BracketedList = "[" List "]"
+
+          List = FirstChar ["-" Char] {Char ["-" Char]}
+
+          Char = &lt;any character except for ^ - and ]>
+               | CollatingElement
+
+          Char = FirstChar
+               | "^"
+
+          CollatingElement = "[:" Class ":]"
+
+          Class = "alnum"
+                | "alpha"
+                | "blank"
+                | "ctrl"
+                | "digit"
+                | "graph"
+                | "lower"
+                | "print"
+                | "punct"
+                | "space"
+                | "upper"
+                | "xdigit"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+An atom can be a bracket expression which is a <EM>list</EM> of
+characters enclosed in <CODE>[]</CODE>.  Usually it is used to match
+practically any single character from the list.  If the list begins
+with <CODE>^</CODE>, it matches any single character (but see below) not
+from the rest of the list.  If two characters in the list are
+separated by <CODE>-</CODE>, this is shorthand for the full <EM>range</EM>
+of characters between those two (inclusive) in the collating sequence
+of ASCII codes, e.g. <CODE>[0-9]</CODE> matches any decimal digit.  It is
+illegal for two ranges to share an <EM>endpoint</EM>,
+e.g. <CODE>a-c-e</CODE>.
+<P>There are exceptions which are not described by the atom syntax which
+is used to include a literal <CODE>]</CODE> in the list: make it the first
+character (following a possible <CODE>^</CODE>).  To include a literal
+<CODE>-</CODE>, make it the first or the last character, or the second
+endpoint of a range.  As you can see from the syntax, all special
+characters (except for <CODE>[</CODE>) described in atom lose their
+special significance within a bracket expression.
+<P>Collating element is a name of a character class enclosed in
+<CODE>[:</CODE> and <CODE>:]</CODE>.  It denotes the list of all characters
+belonging to that class.  Standard character class names are:
+<BLOCKQUOTE><CODE>
+<PRE>
+       alnum       digit       punct
+       alpha       graph       space
+       blank       lower       upper
+       cntrl       print       xdigit
+</PRE>
+</CODE></BLOCKQUOTE>
+
+These names stand for the character classes defined in ANSI C include
+file <CODE>ctype.h</CODE>.  There is an exception not described by the
+syntax: a character class can not be used as an endpoint of a range.
+<P>There is an extension in regular expressions used by DINO and in ones
+defined in Posix 1003.2: no particular limit is imposed on the length
+of the regular expression.
+<P>There are the following Dino pattern matching functions:
+<UL>
+<LI><CODE>match (regex, string)</CODE>.  The function searches for
+matching regular expression <CODE>regex</CODE> in <CODE>string</CODE>.
+The both parameters should be strings after their implicit
+string conversion.  The matching is made according to standard
+POSIX 1003.2: The regular expression matches the substring
+starting earliest in the string.  If the regular expression
+could match more than one substring starting at that point, it
+matches the longest.  Subexpressions also match the longest
+possible substrings, subject to the constraint that the whole
+match be as long as possible, with subexpressions starting
+earlier in the regular expression taking priority over ones
+starting later.  In other words higher-level subexpressions
+take priority over their lower-level component subexpressions.
+Match lengths are measured in characters, not collating
+elements.  A null string is considered longer than no match at
+all.  If there is no matching, the function returns value
+<B>nil</B>.  Otherwise, the function returns new mutable
+vector of integers.  The length of the vector is <CODE>2 * (N +
+1)</CODE> where <CODE>N</CODE> is number of atoms which are regular
+expressions in parentheses.  The first two elements are index
+of the first character of substring corresponding to all
+regular expression and index of the last character plus one.
+The subsequent two elements are index of the first character of
+substring corresponding to the first atom in the regular
+expression (the atoms are ordered by their open parentheses)
+and index of the last character plus one.  And so on.
+<P>Example: The program
+<BLOCKQUOTE><CODE>
+<PRE>
+          println (match ("()(a)((a)(a))", "baaab"));
+</PRE>
+</CODE></BLOCKQUOTE>
+
+outputs
+<BLOCKQUOTE><CODE>
+<PRE>
+          [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI><CODE>sub (regex, string, subst)</CODE>.  The function searches
+for matching regular expression <CODE>regex</CODE> in
+<CODE>string</CODE>.  The all parameters should be string after
+their implicit string conversion.  If there is no matching, the
+function returns value <B>nil</B>.  Otherwise, the function
+returns new mutable vector of characters in which the matched
+substring has been changed by string <CODE>subst</CODE>.  Within
+the replacement string <CODE>subst</CODE>, the sequence
+<CODE>\n</CODE>, where <CODE>n</CODE> is a digit from 1 to 9, may be
+used to indicate just the text that matched the <CODE>n</CODE>'th
+atom of the regex in parentheses.  The sequence <CODE>\0</CODE>
+represents the entire matched text, as does the character
+<CODE>&amp;</CODE>.</LI>
+<LI><CODE>gsub (regex, string, subst)</CODE>.  The function is
+analogous to function <CODE>sub</CODE> except for the function
+searches for all non-overlapped substrings matched with the
+regular expression and returns new mutable vector of characters
+in which all matched substrings have been changed by string
+<CODE>subst</CODE>.</LI>
+<LI><CODE>split (string [, regex])</CODE>.  The function splits
+<CODE>string</CODE> onto non-overlapped substrings separated by
+strings matched with the regular expression.  The all
+parameters should be strings after their implicit string
+conversion.  If the second parameter is omitted the value of
+predeclared variable <CODE>split_regex</CODE> is used instead of
+the second parameter value.  In this case the function may
+generate exception <CODE>invenvar</CODE> (corrupted value of a
+predeclared variable).  The function returns new mutable vector
+with elements which are the separated substrings.  If the
+regular expression is null string, the function returns new
+mutable vector with elements which are strings each containing
+one character of the string parameter.  <P> Examples: The
+program
+<BLOCKQUOTE><CODE>
+<PRE>
+          println (split ("aaa bbb ccc  ddd"));
+</PRE>
+</CODE></BLOCKQUOTE>
+
+outputs
+<BLOCKQUOTE><CODE>
+<PRE>
+          ["aaa", "bbb", "ccc", "ddd"]
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The program
+<BLOCKQUOTE><CODE>
+<PRE>
+          println (split ("abcdef", ""));
+</PRE>
+</CODE></BLOCKQUOTE>
+
+outputs
+<BLOCKQUOTE><CODE>
+<PRE>
+          ["a", "b", "c", "d", "e", "f"]
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+</UL>
+
+If the regular expression is incorrect, the functions generates one of
+the following predeclared exceptions (see predeclared classes):
+<UL>
+<LI><CODE>ebrack</CODE>.  Regular expression has unmatched bracket.</LI>
+<LI><CODE>erange</CODE>.  Invalid use of range in regular
+expression.</LI>
+<LI><CODE>ectype</CODE>.  Unknown character class name in regular
+expression.</LI>
+<LI><CODE>eparen</CODE>.  Regular expression has unmatched
+parenthesis.</LI>
+<LI><CODE>esubreg</CODE>.  Invalid back reference to a
+subexpression in regular expression.</LI>
+<LI><CODE>eend</CODE>.  Non specific error in regular expression.</LI>
+<LI><CODE>eescape</CODE>.  Invalid escape sequence in regex.</LI>
+<LI><CODE>ebadpat</CODE>.  Invalid use of pattern operators in
+regular expression.</LI>
+<LI><CODE>esize</CODE>.  Compiled regular expression is too big.</LI>
+<LI><CODE>espace</CODE>.  No memory for regular expression function
+work.</LI>
+</UL>
+<P>
+<H3>File functions</H3>
+
+<P>Dino has some predeclared functions working on files and
+directories.
+<P>
+<H3>Functions for access to file/directory information</H3>
+
+<P>The following predeclared functions can be used for reading file or
+directory information.  The functions may generate an exception
+declared in class syserror (e.g. <CODE>eaccess</CODE>,
+<CODE>enametoolong</CODE>, <CODE>enfile</CODE> and so on) besides standard
+<CODE>partype</CODE>, <CODE>parnumber</CODE>.  The functions expect one
+parameter which should be a file instance (see predeclared class
+<CODE>file</CODE>) or path name of a file represented by a string (the
+functions makes implicit string conversion of the parameter).  The
+single exception is <CODE>isatty</CODE> which expect only a file instance.
+<UL>
+<LI><CODE>ftype (fileinstance_or_filename)</CODE>.  The function
+returns one the following characters:
+<UL>
+<LI><CODE>'f'</CODE>.  A regular file.</LI>
+<LI><CODE>'d'</CODE>.  A directory.</LI>
+<LI><CODE>'L'</CODE>.  A symbolic link.</LI>
+<LI><CODE>'c'</CODE>.  A character device.</LI>
+<LI><CODE>'b'</CODE>.  A block device.</LI>
+<LI><CODE>'p'</CODE>.  A fifo.</LI>
+<LI><CODE>'S'</CODE>.  A socket.</LI>
+</UL>
+
+Under some OSes the function never returns some of the
+characters (e.g. 'c' or 'b').</LI>
+<LI><CODE>fun (fileinstance_or_filename)</CODE>.  The function
+returns new string representing name of owner of the file
+(directory).  Under some OSes the function may return new
+string <CODE>"Unknown"</CODE> if there is no notion "owner" in the
+OS file system.</LI>
+<LI><CODE>fgn (fileinstance_or_filename)</CODE>.  Analogous to the
+previous function except for it returns new string representing
+name of group of the file (directory).  Under some OSes the
+function may return new string <CODE>"Unknown"</CODE> if there is
+no notion "group" in the OS file system.</LI>
+<LI><CODE>fsize (fileinstance_or_filename)</CODE>.  The function
+returns integer value which is the length in bytes of the file.</LI>
+<LI><CODE>fatime (fileinstance_or_filename)</CODE>.  The function
+returns integer value which is time of the last access to the
+file (directory).  The time is measured in seconds since the
+fixed time (usually since January 1, 1970).  See also <EM>time
+functions</EM>.</LI>
+<LI><CODE>fmtime (fileinstance_or_filename)</CODE>.  Analogous to the
+previous functions but returns time of the last modification.</LI>
+<LI><CODE>fctime (fileinstance_or_filename)</CODE>.  Analogous to the
+previous functions but returns time of the last change.  Here
+the change means usually changing file attributes (owner, modes
+and so on), the modification means usually changing the file
+itself.</LI>
+<LI><CODE>fumode (fileinstance_or_filename)</CODE>.  The function
+returns new string representing rights of owner of the file
+(directory).  The string may contain the following characters
+(in the same order if the string contains more one character):
+<UL>
+<LI><CODE>'s'</CODE>.  Sticky bit of the file (directory).</LI>
+<LI><CODE>'r'</CODE>.  Right to read.</LI>
+<LI><CODE>'w'</CODE>.  Right to write.</LI>
+<LI><CODE>'x'</CODE>.  Right to execute.</LI>
+</UL>
+</LI>
+<LI><CODE>fgmode (fileinstance_or_filename)</CODE>.  Analogous to the
+previous function except for that it returns information about
+the file (directory) group users rights and that the function
+never returns a string containing character <CODE>'s'</CODE>.</LI>
+<LI><CODE>fomode (fileinstance_or_filename)</CODE>.  Analogous to the
+previous function except for that it returns information about
+rights of all other users.</LI>
+<LI><CODE>isatty (fileinstance)</CODE>.  The function returns 1 if
+a file instance given as parameter is an open file connected to
+a terminal and 0 else.</LI>
+</UL>
+
+The following function can be used to change rights of the file
+(directory) for different users.  The function expects two strings
+(after implicit string conversions).  The first one is path name of a
+file (directory).  The second one is rights.  If the string contains a
+character 'r', this is right to read (see characters used to denote
+different rights in description of function <CODE>fumod</CODE>).  The
+functions always return value <B>nil</B>.
+<UL>
+<LI><CODE>chumod (path, mode)</CODE>.  The function sets up rights
+for the file (directory) owner according to given mode.</LI>
+<LI><CODE>chgmod (path, mode)</CODE>.  Analogous to the previous
+function except for that it sets up rights for the file
+(directory) group users and that the function ignores character
+<CODE>'s'</CODE>.</LI>
+<LI><CODE>chomod (path, mode)</CODE>.  Analogous to the previous
+function except for that it sets up rights for all other users.</LI>
+</UL>
+<P>
+<H3>Functions for work with directories</H3>
+
+<P>The following functions work with directories.  The functions may
+generate an exception declared in class syserror
+(e.g. <CODE>eaccess</CODE>, <CODE>enametoolong</CODE>, <CODE>enotdir</CODE> and so
+on) besides standard <CODE>partype</CODE>, <CODE>parnumber</CODE>.
+<UL>
+<LI><CODE>readdir (dirpath)</CODE>.  The function makes implicit
+string conversion of the parameter value which should be a
+string (directory path).  The function returns new mutable
+vector with elements which are strings representing names of
+all files and sub-directories (including <CODE>"."</CODE> and
+<CODE>".."</CODE> for the current and parent directory
+respectively) in given directory.</LI>
+<LI><CODE>mkdir (dirpath)</CODE>.  The function creates directory
+with given name represented by a string (the parameter value
+after implicit string conversion).  The directory has
+read/write/execute rights for all.  You can change it with the
+aid of functions <CODE>ch*mod</CODE>.</LI>
+<LI><CODE>rmdir (dirpath)</CODE>.  The function returns the
+directory given by a string which is parameter value after
+implicit string conversion.</LI>
+<LI><CODE>getcwd ()</CODE>.  The function returns new string
+representing full path of the current directory.</LI>
+<LI><CODE>chdir (dirpath)</CODE>.  The function makes the directory
+given by a string (which is parameter value after implicit
+string conversion) the current directory.</LI>
+</UL>
+<P>
+<H3>Functions for work with files.</H3>
+
+<P>The following functions (besides input/output functions) work with OS
+files.  The functions may generate an exception declared in class
+syserror (e.g. <CODE>eaccess</CODE>, <CODE>enametoolong</CODE>,
+<CODE>eisdir</CODE> and so on) besides standard <CODE>partype</CODE>,
+<CODE>parnumber</CODE>.  The function <CODE>rename</CODE> can be used for
+renaming a directory besides files.
+<UL>
+<LI><CODE>rename (old_path, new_path)</CODE>.  The function renames
+file (directory) given by its path name.  The old and new names
+are given by parameter values which should be strings after
+implicit string conversions.</LI>
+<LI><CODE>remove (file_path)</CODE>.  The function removes OS file
+given by its path name.  The file path name should be a string
+after implicit string conversion.</LI>
+<LI><CODE>open (file_path, mode)</CODE>.  The function opens the
+file for work in given <EM>mode</EM>, creates new class
+<CODE>file</CODE> instance, associates the opened file to the
+instance, and returns the instance.  The parameter values
+should be strings after implicit string conversions.  The first
+parameter value is string representing the file path.  The
+second parameter value is string representing mode for work
+with the file (see all possible modes in ANSI C function
+<CODE>fopen</CODE> documentation).  All work with an opened file
+is made through the file instance.</LI>
+<LI><CODE>close (fileinstance)</CODE>.  The function closes file
+opened by function <CODE>open</CODE>.  The file is given by class
+<CODE>file</CODE> instance.  The function also removes association
+of the instance with the file.</LI>
+<LI><CODE>flush (fileinstance)</CODE>.  The function flushes any
+output that has been buffered for the opened file given by
+class <CODE>file</CODE> instance.</LI>
+<LI><CODE>popen (command, mode)</CODE>.  The function starts shell
+command line given by the first parameter value (which should
+be a string after implicit string conversion), creates a pipe,
+creates new class <CODE>file</CODE> instance, associates the pipe
+with the instance, and return the instance.  Writing to such
+pipe (through the class file instance) writes to the standard
+input of the command.  Conversely, reading from the pipe reads
+the command's standard output.  After implicit string
+conversion the second parameter value should be string "r" (for
+reading from the pipe) or "w" (for writing to the pipe).  The
+pipe should be closed by function <CODE>pclose</CODE>.</LI>
+<LI><CODE>pclose (fileinstance)</CODE>.  The function waits for the
+command connected to a pipe to terminate.  The pipe is given by
+class <CODE>file</CODE> instance returned by function
+<CODE>popen</CODE>.  The function also removes association of the
+instance with the pipe.</LI>
+<LI><CODE>tell (fileinstance)</CODE>.  The function returns the
+current value of the file position indicator for the file
+(opened by function <CODE>open</CODE>) given by class <CODE>file</CODE>
+instance.</LI>
+<LI><CODE>seek (fileinstance, offset, whence)</CODE>.  The function
+sets up the current file position indicator for the file
+(opened by function <CODE>open</CODE>) given by class <CODE>file</CODE>
+instance.  The position is given by <CODE>offset</CODE> which
+should be an integer after implicit arithmetic conversion and
+<CODE>whence</CODE> which should be a string after implicit string
+conversion.  The first character of the string should be
+<CODE>'s'</CODE>, <CODE>'c'</CODE>, or <CODE>'e'</CODE> (these characters
+mean that the offset is relative to the start of the file, the
+current position indicator, or end-of-file, respectively).</LI>
+</UL>
+<P>
+<H3>File output functions</H3>
+
+<P>The following functions are used to output something into opened
+files.  All the functions return always value <B>nil</B>.  The
+functions may generate an exception declared in class syserror
+(e.g. <CODE>eio</CODE>, <CODE>enospc</CODE> and so on) besides standard
+<CODE>partype</CODE>, <CODE>parnumber</CODE>.
+<UL>
+<LI><CODE>put (...)</CODE>.  All parameters should be strings after
+implicit string conversions.  The function outputs all strings
+into standard output stream.</LI>
+<LI><CODE>putln (...)</CODE>.  The function is analogous to
+function <CODE>put</CODE> except for that it additionally outputs
+new line character after output of all the strings.</LI>
+<LI><CODE>fput (fileinstance, ...)</CODE>.  The function is
+analogous to function <CODE>put</CODE> except for that it outputs
+the string into opened file associated with class <CODE>file</CODE>
+instance which is the first parameter value.</LI>
+<LI><CODE>fputln (fileinstance, ...)</CODE>.  The function is
+analogous to function <CODE>fput</CODE> except for that it
+additionally outputs new line character after output of all the
+strings.</LI>
+<LI><CODE>print (...)</CODE>.  The function outputs all parameter
+values into standard output stream.  The function never makes
+implicit conversions of the parameter values.  The parameter
+values are output as they could be represented in Dino itself
+(e.g. character <CODE>'c'</CODE> is output as <CODE>'c'</CODE>, vector
+<CODE>['a', 'b', 'c']</CODE> is output as <CODE>"abc"</CODE>, vector
+<CODE>[10, 20]</CODE> as <CODE>[10, 20]</CODE> and so on).  As you know
+some values (functions, classes, block instances, class
+instances, threads) are not represented fully in DINO.  Such
+values are represented schematically.  For example, output
+<CODE>func f {}.g(unique_number)</CODE> means function <CODE>f</CODE>
+in call of function (or class) <CODE>g</CODE> with given unique
+number and function g is in instance of the implicit block
+covering all program.  For the function <CODE>g</CODE>, output
+would look like simply <CODE>func g</CODE> because there is only
+one instance of the implicit block covering all program.
+Output for instance of class <CODE>c</CODE> in function <CODE>f</CODE>
+looks like <CODE>instance {}.f(unique_number).c(unique_number)</CODE>.
+Output for block instance of function <CODE>f</CODE> looks like
+<CODE>stack {}.f(unique_number)</CODE>.  Output for thread whose
+thread-function <CODE>t</CODE> is declared in function <CODE>f</CODE>
+looks like <CODE>thread unique_number {}.f(unique_number).t(unique_number)</CODE>.</LI>
+<LI><CODE>println (...)</CODE>.  The function is analogous to
+function <CODE>print</CODE> except for that it additionally outputs
+new line character after output of all parameters.</LI>
+<LI><CODE>fprint (fileinstance, ...)</CODE>.  The function is
+analogous to function <CODE>print</CODE> except for that it outputs
+the parameters into opened file associated with class
+<CODE>file</CODE> instance which is the first parameter value.</LI>
+<LI><CODE>fprintln (fileinstance, ...)</CODE>.  The function is
+analogous to function <CODE>fprint</CODE> except for that it
+additionally outputs new line character after output of all the
+output parameters.</LI>
+</UL>
+<P>
+<H3>File input functions</H3>
+
+<P>The following functions are used to input something from opened files.
+All the functions return always value <B>nil</B>.  The functions may
+generate an exception declared in class syserror (e.g. <CODE>eio</CODE>,
+<CODE>enospc</CODE> and so on) and <CODE>eof</CODE> besides standard
+<CODE>partype</CODE>, <CODE>parnumber</CODE>.
+<UL>
+<LI><CODE>get ()</CODE>.  The function reads one character from
+standard input stream and returns it.  The functions generates
+exception <CODE>eof</CODE> if the function tries to read the end of
+file.</LI>
+<LI><CODE>getln</CODE>.  The function reads one line from standard
+input stream and returns it as new string.  The end of line is
+character newline or end of file.  The returned string does not
+contain the newline character.  The function generates
+exception <CODE>eof</CODE> only when the file position indicator
+before the function call stands exactly on the end of file.</LI>
+<LI><CODE>fget (fileinstance)</CODE>.  The function is analogous to
+function <CODE>get</CODE> except for that it reads from opened file
+associated with class <CODE>file</CODE> instance which is the
+parameter value.</LI>
+<LI><CODE>fgetln (fileinstance)</CODE>.  The function is analogous to
+function <CODE>getln</CODE> except for that it reads from opened
+file associated with class <CODE>file</CODE> instance which is the
+parameter value.</LI>
+<LI><CODE>scan ()</CODE>.  The functions reads character, integer,
+floating point number, string, vector, or table and returns it
+as the result.  The input values should be represented in the
+file as ones in Dino language (except for that there should be
+no identifiers in the input values and there should be no
+operators in the values.  Although sign <CODE>+</CODE> and
+<CODE>-</CODE> is possible in integer or floating point
+represenation).  The table or vector should contains only
+values of types mentioned above.  The values in the file can be
+separated by white characters.  If there is error
+(e.g. unbalanced brackets in a vector value) in read value
+representation the function generates exception
+<CODE>invinput</CODE>.  The functions generates exception
+<CODE>eof</CODE> if only white characters are unread in the file.</LI>
+<LI><CODE>scanln ()</CODE>.  The function is analogous to function
+<CODE>scan</CODE> except for that it skips all characters until end
+of line or end of file after reading the value.  Skipping is
+made even if the exception <CODE>invinput</CODE> is generated.</LI>
+<LI><CODE>fscan (fileinstance)</CODE>.  The function is analogous
+to function <CODE>scan</CODE> except for that it reads from opened
+file associated with class <CODE>file</CODE> instance which is the
+parameter value.</LI>
+<LI><CODE>fscanln (fileinstance)</CODE>.  The function is analogous
+to function <CODE>scanln</CODE> except for that it reads from
+opened file associated with class <CODE>file</CODE> instance which
+is the parameter value.</LI>
+</UL>
+<P>
+<H3>Time functions</H3>
+
+<P>The following functions can be used to get information about real
+time.
+<UL>
+<LI><CODE>time ()</CODE>.  The function returns time in seconds
+since the fixed time (usually since January 1, 1970).</LI>
+<LI><CODE>strtime ([format [, time]])</CODE>.  The function returns
+string representing <CODE>time</CODE> (integer representing time in
+seconds since the fixed time) according to <CODE>format</CODE>
+(string).  If the format is not given, the value of variable
+<CODE>time_format</CODE> is used.  In this case if
+<CODE>time_format</CODE> value is corrupted, the function generates
+exception <CODE>invenvar</CODE>.  If the time is not given, the
+current time is used.  The format is the same as in C library
+function <CODE>strftime</CODE>.  Here the extraction from the
+function documentation.  The following format specifier can be
+used in the format.
+<UL>
+<LI><CODE>%a</CODE> - the abbreviated weekday name according to
+the current locale.</LI>
+<LI><CODE>%A</CODE> - the full weekday name according to the
+current locale.</LI>
+<LI><CODE>%%b</CODE> - the abbreviated month name according to
+the current locale.</LI>
+<LI><CODE>%%B</CODE> - the full month name according to the
+current locale.</LI>
+<LI><CODE>%%c</CODE> - the preferred date and time
+representation for the current locale.</LI>
+<LI><CODE>%%d</CODE> - the day of the month as a decimal number
+(range 01 to 31).</LI>
+<LI><CODE>%%H</CODE> - the hour as a decimal number using a
+24-hour clock (range 00 to 23).</LI>
+<LI><CODE>%%I</CODE> - the hour as a decimal number using a
+12-hour clock (range 01 to 12).</LI>
+<LI><CODE>%%j</CODE> - the day of the year as a decimal number
+(range 001 to 366).</LI>
+<LI><CODE>%%m</CODE> - the month as a decimal number (range 01
+to 12).</LI>
+<LI><CODE>%%M</CODE> - the minute as a decimal number.</LI>
+<LI><CODE>%%p</CODE> - either `am' or `pm' according to the given time
+value, or the corresponding strings for the current locale.</LI>
+<LI><CODE>%%S</CODE> - the second as a decimal number.</LI>
+<LI><CODE>%%U</CODE> - the week number of the current year as a
+decimal number, starting with the first Sunday as the first
+day of the first week.</LI>
+<LI><CODE>%%W</CODE> - the week number of the current year as a
+decimal number, starting with the first Monday as the first
+day of the first week.</LI>
+<LI><CODE>%%w</CODE> - the day of the week as a decimal, Sunday
+being 0.</LI>
+<LI><CODE>%%x</CODE> - the preferred date representation for
+the current locale without the time.</LI>
+<LI><CODE>%%X</CODE> - the preferred time representation for
+the current locale without the date.</LI>
+<LI><CODE>%%y</CODE> - the year as a decimal number without a
+century (range 00 to 99).</LI>
+<LI><CODE>%%Y</CODE> - the year as a decimal number including
+the century.</LI>
+<LI><CODE>%%Z</CODE> - the time zone or name or abbreviation.</LI>
+<LI><CODE>%%%</CODE> - a literal `%' character.</LI>
+</UL>
+</LI>
+</UL>
+<P>
+<H3>Functions for access to process information</H3>
+
+<P>There are Dino predeclared functions which are used to get information
+about the current OS process (Dino interpreter which executes the
+program).  Each OS processor has unique identifier and usually OS
+processes are called by a concrete user and group and are executed on
+behalf of the concrete user and group (so called effective
+identifiers).  The following functions return such information.  On
+some OSes the function may return string "Unknown" as a name if there
+are notion of user and group identifiers.
+<UL>
+<LI><CODE>getpid ()</CODE>.  The function returns integer value
+which is process ID of the current OS process.</LI>
+<LI><CODE>getun ()</CODE>.  The function returns new string which
+is user name for the current OS process.</LI>
+<LI><CODE>geteun ()</CODE>.  The function returns new string which
+is effective user name for the current OS process.</LI>
+<LI><CODE>getgn ()</CODE>.  The function returns new string which
+is group name for the current OS process.</LI>
+<LI><CODE>getegn ()</CODE>.  The function returns new string which
+is effective group name for the current OS process.</LI>
+<LI><CODE>getgroups ()</CODE>.  The function returns new vector of
+strings (possibly empty vector) representing supplementary
+group names for the current OS process.</LI>
+</UL>
+<P>
+<H3>Miscellaneous functions</H3>
+
+<P>There are the following miscellaneous functions.
+<UL>
+<LI><CODE>max (v1, v2, ...)</CODE>.  The function searches for and
+returns maximal value between all parameters.  The parameters
+should be of integer or floating point type after implicit
+arithmetic conversions.  So the function can return integer or
+floating point number depending from the type of maximal value
+after the conversion.</LI>
+<LI><CODE>min (v1, v2, ...)</CODE>.  The function is analogous to
+the previous function but searches for and returns the minimal
+value.</LI>
+<LI><CODE>tolower (str)</CODE>.  The function expects that
+parameter <CODE>str</CODE> (after implicit string conversion) is
+a string.  The function returns new string <CODE>str</CODE> in which
+upper case letters changed by the corresponding lower case
+letters.</LI>
+<LI><CODE>toupper (str)</CODE>.  The function expects that
+parameter <CODE>str</CODE> (after implicit string conversion) is
+a string.  The function returns new string <CODE>str</CODE> in which
+lower case letters changed by the corresponding upper case
+letters.</LI>
+<LI><CODE>eltype (vect)</CODE>.  The function expects that the
+parameter value is a vector.  The function returns <B>nil</B>
+if the vector is heterogenous, otherwise the function returns
+type of the vector elements (type of <B>nil</B> if the vector
+is empty).</LI>
+<LI><CODE>keys (tab)</CODE>.  The function expects that the
+parameter value is a table.  The function returns new mutable
+vector containing all keys of the table.  The order of keys in
+the vector is undefined.</LI>
+<LI><CODE>context (par)</CODE>. The function returns context (see
+section <EM>Declarations and Scope Rules</EM>) represented by a
+block instance or an object for given parameter value which
+should be a function, a class, a thread, a block instance, or
+an object.</LI>
+<LI><CODE>inside (par1, par2[, flag])</CODE>.  The function usage
+goal is to check that something declared inside something
+other.  If the third parameter value after implicit integer
+conversion is given and nonzero, it is checked with taking
+contexts into account.  The second parameter value should be a
+function or a class.  The first parameter value should be a
+function, a class, an object, or a block instance.  In the last
+three cases, they defines corresponding function, class, block.
+If the function, class, block defined by the first parameter is
+declared inside function or class given by the second
+parameter, the function <CODE>inside</CODE> returns 1.  The
+function <CODE>inside</CODE> returns 1 also if function or class
+defined by the first parameter is the same as the function or
+class given by the second parameter.  Otherwise the function
+<CODE>inside</CODE> returns 0.  The following example illustrates
+the difference between checking with taking contexts into
+account and without it.
+<BLOCKQUOTE><CODE>
+<PRE>
+          class c () {
+            class subc () {
+            }
+          }
+          inside (c ().subc (), c ().subc);
+          inside (c ().subc (), c ().subc, 1);
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The first call of <CODE>inside</CODE> returns 1, the second one
+returns 0.</LI>
+<LI><CODE>subv (vect, index[, length])</CODE>.  The function is
+used to extract a slice of vector elements.  The first
+parameter value should be a vector after implicit string
+conversion.  The second and the third parameter values should
+be integers after implicit integer conversion. The function
+extracts only element or part of the slice existing in the
+vector (so you can use any values of the index and the length).
+If index is negative, it is considered to be equal to zero.  If
+the length is negative, the slice will finish on the vector
+end.  The function returns new vector which is the slice.  The
+result vector is immutable only when the original vector is
+immutable.</LI>
+<LI><CODE>del (vect, index[, length]) or del (tab, key)</CODE>.
+The first form of the function is used to remove the vector
+element or the slice of vector elements from the mutable
+vector.  The second and the third parameter values should be
+integers after implicit integer conversion. The function
+removes only element or part of the slice existing in the
+vector (so you can use any values of the index and the length).
+If index is negative, it is considered to be equal to zero.  If
+the length is negative, the slice will finish on the vector
+end.  The second form of the function is used to remove the
+element (if any) with given key from the mutable table.  The
+function generates exception <CODE>immutable</CODE> if we are
+trying to remove from an immutable vector or table.</LI>
+<LI><CODE>ins (vect, el[, index])</CODE>.  The function inserts
+element given by the second parameter into the vector given by
+the first parameter on the place given by the third parameter.
+If the third parameter is not given it is believed to be zero.
+The third parameter should be an integer after implicit integer
+conversion.  If the third parameter is negative or equal or
+greater than the vector length, the element is inserted at the
+end of the vector.  The function generates exception
+<CODE>immutable</CODE> if we are trying to insert into an immutable
+vector.</LI>
+<LI><CODE>insv (vect, vect[, index])</CODE>.  The function is
+analogous to the function <CODE>ins</CODE> but it is used for
+insertion of all vector elements into the vector given as the
+first parameter.  So the second parameter value should be a
+vector.</LI>
+<LI><CODE>cmpv (vect, vect)</CODE>.  The function makes implicit
+string conversion of the parameter values.  After that, the
+parameter values should be vectors whose the first
+corresponding equal elements should have the same type
+(character, integer, or floating point type).  The first
+corresponding unequal elements should have the same type too
+(the remaining elements can have different type).  As usually
+if this is not true, exception <CODE>partype</CODE> is generated.
+The function returns 1 if the first unequal element value of
+the first vector is greater than the corresponding element in
+the second vector, -1 if less, and 0 if the all vector elements
+are equal.  If the first vector is a prefix of the second
+vector, the function returns -1.  If the second vector is a
+prefix of the first vector, the function returns 1.  So it is
+generalized lexicographical order.</LI>
+<LI><CODE>sort (vect[, compare_function])</CODE>.  The function
+returns new sorted vector.  The original vector given as the
+first parameter value should be a homogeneous vector whose
+elements are of character, integer, or floating point type.  If
+the second parameter is not given, standard arithmetic order
+(see comparison operators) is used.  To use special ordering,
+use the second parameter which should be a function which
+compares two elements of the vector and returns negative
+integer if the first parameter value (element) is less than the
+second one, positive integer if the first parameter value is
+greater than the second one, and zero if they are equal.</LI>
+<LI><CODE>exit (code)</CODE>.  The function finishes work of the
+interpreter with given code which should be integer value after
+implicit integer conversion.</LI>
+<LI><CODE>gc ()</CODE>.  The function forces garbage collection
+with heap compaction.  Usually Dino interpreter itself calls
+garbage collection when there are no more free memory.</LI>
+<LI><CODE>system (command)</CODE>.  The function executes command
+given by a string (the parameter value) in OS command
+interpreter.  Besides standard exceptions <CODE>parnumber</CODE>
+and <CODE>partype</CODE> the function may generate exceptions
+<CODE>noshell</CODE> and <CODE>systemfail</CODE>.</LI>
+<LI><CODE>srand ([seed])</CODE>.  The function sets the parameter
+value (after implicit integer conversion) as the seed for a new
+sequence of pseudo-random integers to be returned by
+<CODE>rand</CODE>.  These sequences are repeatable by calling
+<CODE>srand</CODE> with the same seed value.  If the parameter is
+not given, the seed will be the result of calling function
+<CODE>time</CODE>.</LI>
+<LI><CODE>rand ()</CODE>.  The function returns a pseudo-random
+integer value.  If the function <CODE>srand</CODE> is not called
+before, 1 will be used as the seed value.</LI>
+</UL>
+<P>
+<HR>
+<A HREF="dino-9.html">Next</A>
+<A HREF="dino-7.html">Previous</A>
+<A HREF="dino.html#toc8">Contents</A>
+</BODY>
+</HTML>

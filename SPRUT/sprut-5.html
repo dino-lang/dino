@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>SPRUT (internal representation description translator): Appendix 1 - Syntax of internal representation description language</TITLE>
+ <LINK HREF="sprut-4.html" REL=previous>
+ <LINK HREF="sprut.html#toc5" REL=contents>
+</HEAD>
+<BODY>
+Next
+<A HREF="sprut-4.html">Previous</A>
+<A HREF="sprut.html#toc5">Contents</A>
+<HR>
+<H2><A NAME="s5">5. Appendix 1 - Syntax of internal representation description language</A></H2>
+
+<P>YACC notation is used to describe full syntax of internal
+representation description language.
+<BLOCKQUOTE><CODE>
+<PRE>
+
+  %token PERCENTS COMMA COLON DOUBLE_COLON SEMICOLON
+         IDENTIFIER CODE_INSERTION EXPRESSION ADDITIONAL_C_CODE
+
+  %token DOUBLE EXTEND LOCAL IMPORT EXPORT TYPE ROOT ABSTRACT CLASS
+         SKELETON OTHER 
+
+  %start description
+
+  %%
+
+  description : declaration_part PERCENTS node_type_definition_list
+                ADDITIONAL_C_CODE
+              ;
+
+  declaration_part :
+                   | declaration_part DOUBLE any_node_type_name
+                   | declaration_part EXTEND IDENTIFIER
+                   | declaration_part predefined_types_declaration
+                   | declaration_part LOCAL CODE_INSERTION
+                   | declaration_part IMPORT  CODE_INSERTION
+                   | declaration_part EXPORT  CODE_INSERTION
+                   ;
+
+  predefined_types_declaration : TYPE 
+                               | predefined_types_declaration IDENTIFIER
+                               ;
+
+  node_type_definition_list : node_type_definition
+                            | node_type_definition_list
+                                 SEMICOLON  node_type_definition
+                            ;
+
+  node_type_definition :
+                       | abstract_node_flag type_nodes_identifier_list
+                            optional_immediate_super_type_list
+                            class_field_definition_part
+                            skeleton_field_definition_part
+                            other_field_definition_part
+                       ;
+
+  abstract_node_flag :
+                     | ABSTRACT
+                     ;
+
+  type_nodes_identifier_list : identifier_list
+                             ;
+
+  optional_immediate_super_type_list :
+                                     | immediate_super_type_list
+                                     ;
+
+  immediate_super_type_list : DOUBLE_COLON any_node_type_name
+                            | DOUBLE_COLON COMMA any_node_type_name
+                            | immediate_super_type_list COMMA
+                                any_node_type_name
+                            ;
+
+  any_node_type : ROOT
+                | IDENTIFIER
+                ;
+
+  class_field_definition_part :
+                              | CLASS field_definition_list
+                              ;
+
+  skeleton_field_definition_part :
+                                 | SKELETON field_definition_list
+                                 ;
+
+  other_field_definition_part :
+                              | OTHER field_definition_list
+                              ;
+
+  field_definition_list :
+                        | field_definition_list field_definition
+                        | field_definition_list constraint
+                        | field_definition_list action
+                        ;
+
+  field_definition : field_identifier_list  COLON  optional_double
+                       any_node_type_name
+                   ;
+
+  optional_double :
+                  | DOUBLE
+                  ;
+
+  constraint : EXPRESSION
+             ;
+
+  action : CODE_INSERTION
+         ;
+
+  field_identifier_list : identifier_list
+                        ;
+
+  identifier_list : IDENTIFIER
+                  | identifier_list  COMMA  IDENTIFIER
+                  ;
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+Next
+<A HREF="sprut-4.html">Previous</A>
+<A HREF="sprut.html#toc5">Contents</A>
+</BODY>
+</HTML>

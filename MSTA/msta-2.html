@@ -1,0 +1,607 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>MSTA (syntax description translator): MSTA description language</TITLE>
+ <LINK HREF="msta-3.html" REL=next>
+ <LINK HREF="msta-1.html" REL=previous>
+ <LINK HREF="msta.html#toc2" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="msta-3.html">Next</A>
+<A HREF="msta-1.html">Previous</A>
+<A HREF="msta.html#toc2">Contents</A>
+<HR>
+<H2><A NAME="s2">2. MSTA description language</A></H2>
+
+<P>MSTA description languages is superset of YACC language.  The major
+additional features are Extended Backus Naur Form (EBNF) for more
+convenient descriptions of languages, additional constructions in
+rules for more convenient description of scanners, and named
+attributes.
+<P>
+<P>
+<H2><A NAME="ss2.1">2.1 Layout of MSTA description</A>
+</H2>
+
+<P>MSTA description structure has the following layout which
+is similar to one of YACC file.
+<BLOCKQUOTE><CODE>
+<PRE>
+     DECLARATIONS
+     %%
+     RULES
+     %%
+     ADDITIONAL C/C++ CODE
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The `%%' serves to separate the sections of description.  All sections
+are optional.  The first `%%' starts section of keywords and is
+obligatory even if the section is empty, the second `%%' may be absent
+if section of additional C/C++ code is absent too.
+<P>Full YACC syntax of MSTA description file is placed in Appendix 1.
+<P>
+<P>
+<H2><A NAME="ss2.2">2.2 Declarations</A>
+</H2>
+
+<P>The section of declarations may contain the following construction:
+<BLOCKQUOTE><CODE>
+<PRE>
+   %start  identifier
+</PRE>
+</CODE></BLOCKQUOTE>
+
+which determines axiom of the grammar.  If such construction is
+absent, the axiom is believed to be nonterminal in the left hand side
+of the first rule.  If there are several such construction, all ones
+except for the first are ignored.
+<P>By default, the values of attributes of the terminals (tokens) and
+nonterminals shall be integers.  If you are going to use the values of
+different types, you shall use
+<BLOCKQUOTE><CODE>
+<PRE>
+   &lt;tag>
+</PRE>
+</CODE></BLOCKQUOTE>
+
+in constructs declaring symbols (%token, %type, %left, ...)  and shall
+insert corresponding union member names in the following construction:
+<BLOCKQUOTE><CODE>
+<PRE>
+   %union { body of union in C/C++ }
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Alternatively, the union can be declared in interface file, and a
+typedef used to define the symbol YYSTYPE (see generated code) to
+represent this union.  The effect of %union is to provide the
+declaration of YYSTYPE directly from the input.
+<P>There is group of the following declarators which take token
+(terminal) or nonterminal names as arguments.
+<BLOCKQUOTE><CODE>
+<PRE>
+   %token [&lt;tag>] name [number] [name [number]]...
+   %left [&lt;tag>] name [number] [name [number]]...
+   %right [&lt;tag>] name [number] [name [number]]...
+   %nonassoc [&lt;tag>] name [number] [name [number]]...
+   %type &lt;tag> name...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The names can optionally be preceded by the name of a C/C++ union
+member (called a tag see above) appearing within ``&lt;'' and ``>''.  The
+use of tag specifies that the tokens or nonterminals named in this
+construction are to be of the same C/C++ type as the union member
+referenced by the tag.
+<P>If symbol used in grammar is undefined by a %token, %left, %right, or
+%nonassoc declaration, the symbol will be considered as a nonterminal.
+<P>The first occurrence of a given token can be followed by a positive
+integer in constructions `%token', `%left', `%right', and `%nonassoc'
+defining tokens.  In this case the value assigned to it shall be code
+of the corresponding token returned by scanner.
+<P>Constructions `%left', `%right', and `%nonassoc' assign precedence and
+to the corresponding tokens.  All tokens in the same construction have
+the same precedence level and associativity; the constructions is
+suggested to be placed in order of increasing precedence.
+Construction `%left' denotes that the operators (tokens) in that
+construction are left associative, and construction `%right' similarly
+denotes right associative operators.
+<P>Construction `%nonassoc' means that tokens cannot be used
+associatively.  If the parser encounters associative use of this token
+it will report an error.
+<P>The construction `%type' means that the attributes of the
+corresponding nonterminals are of type given in the tag field.
+<P>Once the type, precedence, or token number of a symbol is specified,
+it shall not be changed.  If the first declaration of a token does not
+assign a token number, MSTA will assign a token number.  Once this
+assignment is made, the token number shall not be changed by explicit
+assignment.
+<P>Usually real grammars can not be declared without shift/reduce
+conflicts.  To control suggested number of shift/reduce conflicts, the
+following construction can be used.
+<BLOCKQUOTE><CODE>
+<PRE>
+   %expect number
+</PRE>
+</CODE></BLOCKQUOTE>
+
+If such construction is present, MSTA will report error if the number
+of shift/reduce conflicts is not the same as one in the construction.
+Remember that it is not standard YACC construction.
+<P>The following construction in declarations means that the scanner
+should be generated.
+<BLOCKQUOTE><CODE>
+<PRE>
+   %scanner
+</PRE>
+</CODE></BLOCKQUOTE>
+
+There are the following major differences in parser and scanner
+generated by MSTA
+<UL>
+<LI>In order to use a MSTA generated parser with a MSTA generated
+scanner, all objects in a MSTA scanner (variables, types, macro,
+and so on) are named by adding letter `s' or `S' after prefixes
+`yy' or `YY'.</LI>
+<LI>Additional function `yylex_start' is generated.  The function
+should be used for initiation of scanner (see Generated code).</LI>
+<LI>Function `yylex' is generated instead of function `yyparse'.
+This function can be called many times for getting next token.
+Code of the next token is suggested to returned by statements
+`return' in the actions.  Input stream (look ahead characters)
+is saved from a call of `yylex' to the next its call.</LI>
+<LI>Instead of function `yylex' a function `yyslex' is
+used to read the next character (token in terminology of MSTA
+specification file) from the input stream.  -1 is used as the
+end of file instead of 0 because scanner must read and process
+zero characters.</LI>
+<LI>Macro `YYSABORT' is -1 in order to differ token code from
+flag of finishing work of the scanner.  Remember that analogous
+macro `YYABORT' for MSTA parser is 1.</LI>
+<LI>To extract all regular parts in the scanner grammar,
+splitting LR-sets is fulfilled (see MSTA implementation).</LI>
+</UL>
+
+You can look at a scanner specification in Appendix 2.
+<P>There may be also the following constructions in the declaration
+section
+<BLOCKQUOTE><CODE>
+<PRE>
+     %{
+        C/C++ DECLARATIONS
+     %}
+
+     %local {
+        C/C++ DECLARATIONS
+     }
+
+     %import {
+        C/C++ DECLARATION
+     }
+
+     and
+
+     %export {
+        C/C++ DECLARATION
+     }
+</PRE>
+</CODE></BLOCKQUOTE>
+
+which contain any C/C++ declarations (types, variables, macros, and so
+on) used in sections.  Remember the only first construction is
+standard POSIX YACC construction.
+<P>The local C/C++ declarations are inserted at the begin of generated
+implementation file (see section `generated code') but after
+include-directive of interface file (if present -- see MSTA Usage).
+You also can use more traditional construction of YACC %{ ... %}
+instead.
+<P>C/C++ declarations which start with `%import' are inserted at the
+begin of generated interface file.  If the interface file is not
+generated, the code is inserted at the begin of the part of
+implementation file which would correspond the interface file.
+<P>C/C++ declarations which start with `%export' are inserted at the end
+of generated interface file.  For example, such exported C/C++ code
+may contain definitions of external variables and functions which
+refer to definitions generated by MSTA.  If the interface file is
+not generated, the code is inserted at the end of the part of
+implementation file which would correspond the interface file.
+<P>All C/C++ declarations are placed in the same order as in the section
+of declarations.
+<P>
+<P>
+<H2><A NAME="ss2.3">2.3 Rules</A>
+</H2>
+
+<P>The section of declarations is followed by section of rules.
+<P>The rules section defines the context-free grammar to be accepted by
+the function yacc generates, and associates with those rules C
+language actions and additional precedence information.  The grammar
+is described below, and a formal definition follows.
+<P>The rules section contains one or more grammar rules.  A grammar rule
+has the following form:
+<BLOCKQUOTE><CODE>
+<PRE>
+      nonterminal : pattern ;
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The nonterminal in the left side hand of the rule describes a language
+construction and pattern into which the nonterminal is derivated.  The
+semicolon at the end of the rule can be absent.
+<P>MSTA can use EBNF (Extended Backus-Naur Form) to describe the
+patterns.  Because the pattern can be quite complex, MSTA internally
+transforms rules in the description into simple rules and assigns a
+unique number to each simple rule.  Simple rule can contains only
+sequence of nonterminals and tokens.  Simple rules and the numbers
+assigned to the rules appear in the description file (see MSTA usage).
+To achieve to the simple rules, MSTA makes the following
+transformations (in the same order).
+<OL>
+<LI>Alternatives
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : pattern1 | pattern2
+</PRE>
+</CODE></BLOCKQUOTE>
+
+are transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : pattern1
+         nonterminal : pattern2
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
+<LI>Lists
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... pattern / s_pattern ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+are transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N ...
+         N : N s_patter pattern
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  This construction is very convenient for
+description of lists with separators, e.g. identifier separated
+by commas.  Remember that the lists are not feature of standard
+POSIX YACC.
+<P>
+</LI>
+<LI>Naming
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N @ identifier  ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Here N denotes a nonterminal, a token, or the following
+constructions.  Instead of number in actions, the identifier
+can be used for naming attributes of the nonterminal, the
+token, or nonterminal which is created during transformation of
+the following constructions.  Remember that the naming is not
+feature of standard POSIX YACC.
+<P>
+</LI>
+<LI>Optional construction
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ...  [ pattern ]  ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N ...
+         N : pattern
+         N :
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  This construction is very convenient for
+description of optional constructions.  Remember that the
+optional construction is not feature of standard POSIX YACC.
+<P>
+</LI>
+<LI>Optional repetition
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... pattern * ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N ...
+         N : N pattern
+         N :
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  This construction is very convenient for
+description of zero or more the patterns.  Remember that the
+optional repetition is not feature of standard POSIX YACC.
+<P>
+</LI>
+<LI>Repetition
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... pattern + ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N ...
+         N : N pattern
+         N : pattern
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  This construction is very convenient for
+description of one or more the patterns.  Remember that the
+repetition is not feature of standard POSIX YACC.
+<P>
+</LI>
+<LI>Grouping
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... ( pattern ) ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N ...
+         N : pattern
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  This construction is necessary to change
+priority of the transformations.  Remember that the grouping is
+not feature of standard POSIX YACC.
+<P>
+</LI>
+<LI>String
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... string ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... '1st char' '2nd char' ... 'last char' ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Here the string is simply sequence of string characters as MSTA
+literals.  Remember that the strings are not standard feature
+of POSIX YACC.
+<P>
+</LI>
+<LI>Range
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... token1  -  tokenN ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : N
+         N : token1
+         N : token2
+         ...
+         N : tokenN
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  The range is simply any token with code
+between code of token1 and code of token2 (inclusively).  The
+code of token1 must be less or equal to the code of token2.
+Remember that the ranges are not feature of standard POSIX
+YACC.
+<P>
+</LI>
+<LI>Left open range
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... token1  &lt;-  tokenN ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : N
+         N : token2
+         N : token3
+         ...
+         N : tokenN
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  The left open range is simply any token with
+code between code of token1 + 1 and code of token2
+(inclusively).  The code of token1 must be less to the code of
+token2.  Remember that the ranges are not feature of standard
+POSIX YACC.
+<P>
+</LI>
+<LI>Right open range
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... token1  ->  tokenN ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : N
+         N : token1
+         N : token2
+         ...
+         N : tokenN-1
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  The right open range is simply any token with
+code between code of token1 and code of token2 - 1
+(inclusively).  The code of token1 must be less to the code of
+token2.  Remember that the ranges are not feature of standard
+POSIX YACC.
+<P>
+</LI>
+<LI>Left right open range
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... token1  &lt;->  tokenN ...
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : N
+         N : token2
+         N : token3
+         ...
+         N : tokenN-1
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  The left right open range is simply any token
+with code between code of token1 + 1 and code of token2 - 1
+(inclusively).  The code of token1 must be less to the code of
+token2 - 1.  Remember that the ranges are not feature of
+standard POSIX YACC.
+<P>
+</LI>
+<LI>Action inside pattern
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... action  something non empty
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is transformed into
+<BLOCKQUOTE><CODE>
+<PRE>
+         nonterminal : ... N  something non empty
+         N : action
+</PRE>
+</CODE></BLOCKQUOTE>
+
+N denotes here a new nonterminal created during the
+transformation.  The action is a C/C++ block.</LI>
+</OL>
+
+After the all possible transformations mentioned above, the rules will
+contain sequence of only tokens (literals or token identifiers) and
+nonterminals finishing optional %prec or/and %la construction or/and
+an action.
+<P>The action is an arbitrary C/C++ block, i.e. declarations and
+statements enclosed in curly braces { and }.  Certain pseudo-variables
+can be used in the action for attribute references.  These are changed
+by data structures known internally to MSTA.  The pseudo-variables have
+the following forms:
+<DL>
+<DT><B>$$</B><DD><P>This pseudo-variable denotes the nonterminal in the left
+hand side of the simple rule.
+<P>
+<DT><B>$number</B><DD><P>This pseudo-variable refers to the attribute of sequence
+element (nonterminal, token, or action) specified by its
+number in the right side of the rule before changing actions
+inside pattern (see transformation above), reading from left
+to right.  The number can be zero or negative.  If it is, it
+refers to the attribute of the symbol (token or nonterminal)
+on the parser's stack preceding the leftmost symbol of the
+rule.  (That is, $0 refers to the attribute of the symbol
+immediately preceding the leftmost symbol in the rule, to be
+found on the parser's stack, and $-1 refers to the symbol to
+its left.)  If number refers to an element past the current
+point in the rule (i.e. past the action), or beyond the
+bottom of the stack, the result is undefined.
+<P>
+<DT><B>$identifier</B><DD><P>These pseudo-variable is analogous to the previous one but
+the attribute name is used instead of its number.  Of course
+the attribute naming must exist.
+<P>
+<DT><B>$&lt;...>number</B><DD><P>This pseudo-variable is used when there are attributes of
+different types in the grammar and the number corresponds to
+the nonterminal whose type is not known because the
+nonterminal has been generated during the transformation of
+rules into the simple rules.  The type name of the attribute
+is placed into angle braces.
+<P>
+<DT><B>$&lt;...>identifier</B><DD><P>These pseudo-variable is analogous to the previous one but
+the attribute name is used instead of its number.  Of course
+the attribute naming must exist.
+<P>
+<DT><B>$&lt;...>$</B><DD><P>This pseudo-variable is used when there are attributes of
+different types in the grammar and the type of nonterminal
+is not known because the nonterminal has been generated
+during the transformation of rules into the simple rules.
+</DL>
+
+Messages about some shift/reduce conflicts are not generated if the
+rules in the conflict has priority and associativity.  The priority
+and associativity of rule are simply the precedence level and
+associativity of the last token in the rule with declared precedence
+level and associativity.
+<P>The optional construction `%prec ...' can be used to change the
+precedence level associated with a particular simple rule.  Examples
+of this are in cases where a unary and binary operator have the same
+symbolic representation, but need to be given different precedences.
+The reserved keyword `%prec' can be followed by a token identifier or
+a literal.  It shall cause the precedence of the grammar rule to
+become that of the following token identifier or literal.
+<P>The optional construction `%la number' can be used to change the
+maximal look ahead associated with a particular simple rule.  Example
+of this is when there is a classical conflict if-then-else which is to
+be resolved correctly with look ahead equal to 1 and there is a rule
+with conflict which must be resolved with look ahead equal to 3.  In
+this case you can call MSTA with maximal look ahead equal to 1 (this
+is default) and place %la 3 in the rule which takes part in the
+conflict which must be resolved with look ahead equal to 3.
+<P>If a program section follows, the grammar rules shall be terminated by
+%%.
+<P>
+<P>
+<HR>
+<A HREF="msta-3.html">Next</A>
+<A HREF="msta-1.html">Previous</A>
+<A HREF="msta.html#toc2">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>SHILKA (keywords description translator): Appendix 2 - Example of SHILKA description file</TITLE>
+ <LINK HREF="shilka-8.html" REL=next>
+ <LINK HREF="shilka-6.html" REL=previous>
+ <LINK HREF="shilka.html#toc7" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="shilka-8.html">Next</A>
+<A HREF="shilka-6.html">Previous</A>
+<A HREF="shilka.html#toc7">Contents</A>
+<HR>
+<H2><A NAME="s7">7. Appendix 2 - Example of SHILKA description file</A></H2>
+
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+/* Keywords of ANSI C. */
+%import {
+   struct keyword {int kw; int primitive_type_flag;};
+   typedef struct keyword *keyword_t;
+}
+%type keyword_t
+%%
+if            {static struct keyword res = {KR_if, 0}; return &amp;res;}
+do            {static struct keyword res = {KR_do, 0}; return &amp;res;}
+int           {static struct keyword res = {KR_int, 1}; return &amp;res;}
+for           {static struct keyword res = {KR_for, 0}; return &amp;res;}
+case          {static struct keyword res = {KR_case, 0}; return &amp;res;}
+char     1600 {static struct keyword res = {KR_char, 1}; return &amp;res;}
+auto          {static struct keyword res = {KR_auto, 0}; return &amp;res;}
+goto          {static struct keyword res = {KR_goto, 0}; return &amp;res;}
+else     5700 {static struct keyword res = {KR_else, 0}; return &amp;res;}
+long          {static struct keyword res = {KR_long, 0}; return &amp;res;}
+void     8200 {static struct keyword res = {KR_void, 1}; return &amp;res;}
+enum          {static struct keyword res = {KR_void, 0}; return &amp;res;}
+float         {static struct keyword res = {KR_float, 1}; return &amp;res;}
+short         {static struct keyword res = {KR_short, 0}; return &amp;res;}
+union         {static struct keyword res = {KR_union, 0}; return &amp;res;}
+break         {static struct keyword res = {KR_break, 0}; return &amp;res;}
+while         {static struct keyword res = {KR_while, 0}; return &amp;res;}
+const         {static struct keyword res = {KR_const, 0}; return &amp;res;}
+double        {static struct keyword res = {KR_double, 0}; return &amp;res;}
+static   7300 {static struct keyword res = {KR_static, 0}; return &amp;res;}
+extern        {static struct keyword res = {KR_extern, 0}; return &amp;res;}
+struct        {static struct keyword res = {KR_struct, 0}; return &amp;res;}
+return   1000 {static struct keyword res = {KR_return, 0}; return &amp;res;}
+sizeof   1100 {static struct keyword res = {KR_sizeof, 0}; return &amp;res;}
+switch        {static struct keyword res = {KR_switch, 0}; return &amp;res;}
+signed        {static struct keyword res = {KR_signed, 0}; return &amp;res;}
+typedef       {static struct keyword res = {KR_typedef, 0}; return &amp;res;}
+default       {static struct keyword res = {KR_default, 0}; return &amp;res;}
+unsigned      {static struct keyword res = {KR_unsigned, 0}; return &amp;res;}
+continue      {static struct keyword res = {KR_continue, 0}; return &amp;res;}
+register      {static struct keyword res = {KR_register, 0}; return &amp;res;}
+volatile      {static struct keyword res = {KR_volatile, 0}; return &amp;res;}
+%other        {return NULL;}                                                  
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+<A HREF="shilka-8.html">Next</A>
+<A HREF="shilka-6.html">Previous</A>
+<A HREF="shilka.html#toc7">Contents</A>
+</BODY>
+</HTML>

@@ -1,0 +1,1147 @@
+This is dino.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.dino30209.info.2.
+
+   \input texinfo
+
+
+File: dino.info,  Node: Top,  Next: Introduction,  Up: (dir)
+
+The Programming Language DINO
+*****************************
+
+     Vladimir Makarov, `vmakarov@users.sourceforge.net'
+     May 05, 2001
+
+   This document describes programming language DINO.
+
+     History
+     ==========
+       Apr 29, 2001.  Documentation of all object corresponding to Earley's
+                      parser was added.
+     
+       May 05, 2001.  Semantics of private declaration is changed slightly.
+                      Early, they were accessible only by separate
+                      identifier.  Now they are accessible inside their
+                      scope.  In other words, they can be accessible by `.'
+                      or `->' inside the scope.
+     
+                      Adding profile option -p.
+     
+                      Adding IEEE standard floating point arithmetic.
+     
+                      Declaration block friends.
+
+* Menu:
+
+* Introduction::
+* Syntax::
+* Vocabulary and Representation::
+* Declarations and Scope Rules::
+* Expressions::
+* Executive statements::
+* Program::
+* Predeclared identifiers::
+* Appendix A- Syntax of Dino::
+* Appendix B- Implementation::
+
+
+File: dino.info,  Node: Introduction,  Next: Syntax,  Prev: Top,  Up: Top
+
+Introduction
+************
+
+   DINO is high level scripting dynamic-typed language.  DINO is
+designed taking such design principles as simplicity, uniformity, and
+expressiveness into account.  Dino is oriented on the same domain of
+applications as famous scripting languages Perl, TCL, Python.  The most
+of programmers know C language.  Therefore Dino aims to look like C
+language where it is possible.  Dino is an object oriented language
+with garbage collection.  Dino has possibilities of parallelism
+description and exceptions handling.  Dino is an extensible language
+with possibility of dynamic load of libraries written on other
+languages.  The high level structures of Dino are
+   * heterogenous extensible vectors
+
+   * extensible associative tables with possibilities of deleting table
+     elements
+
+   * objects
+
+   Originally, Dino was used in russian graphics company ANIMATEK
+(Animatek (http://www.animatek.com)) for description of movement of
+dinosaurs in an project.  It has been considerably redesigned and
+implemented with the aid of COCOM tool set.
+
+   This document is not a programmer's tutorial.  It is concise
+description of language DINO and can be used as programmer's reference.
+
+
+File: dino.info,  Node: Syntax,  Next: Vocabulary and Representation,  Prev: Introduction,  Up: Top
+
+Syntax
+******
+
+   An extended Backus-Naur Formalism (EBNF) is used to describe the
+syntax of Dino.  Alternatives are separated by `[verbar]'.  Brackets
+`[' and `]' denote optionality of the enclosed expression, and braces
+`{' and `}' denote repetition (zero or more times).
+Parentheses `(' and `)' are used for grouping EBNF construction
+containing alternatives inside them as one construction.
+
+   Terminal symbols denoting class of terminals (e.g. identifier)
+consist of only upper-case letters (e.g. IDENT).  Remaining terminal
+symbols either start with a lower-case letter (e.g. keyword else), or
+are denoted by ASCII character sequences in double quotes (e.g.
+`"=="').  Non-terminal symbols start with an upper-case letter and
+contain at least one lower-case letter (e.g. FormalParameters).
+
+
+File: dino.info,  Node: Vocabulary and Representation,  Next: Declarations and Scope Rules,  Prev: Syntax,  Up: Top
+
+Vocabulary and Representation
+*****************************
+
+   Wherever it is possible, we use also EBNF for description of lexical
+symbols through ASCII set characters.  Otherwise, we use natural
+language sentences in `<' and `>'.  Lexical symbols are identifiers,
+numbers, character constants, strings, operators, delimiters, and
+comments.  White characters (blanks and line breaks) must not occur
+within the symbols (except in comments, and blanks in strings).  White
+characters are ignored unless they are essential to separate two
+consecutive lexical symbols.  Upper- and lower-case letters are
+considered to be distinct.
+  1. `Identifier' is sequence of letters and digits starting with a
+     letter.  Underline is believed to be a letter for identifier.
+                    Ident = Letter {Letter | Digit}
+          
+                    Letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j"
+                           | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t"
+                           | "u" | "v" | "w" | "x" | "y" | "z"
+                           | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J"
+                           | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T"
+                           | "U" | "V" | "W" | "X" | "Y" | "Z"
+                           | "_"
+          
+                    OctalDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+          
+                    Digit = OctalDigit | "8" | "9"
+
+     Examples:
+                    line  line2  next_line  NextLine
+
+  2. `Numbers' are (unsigned) decimal integer or floating point
+     numbers.  Numbers start with a digit.  Flag of floating point
+     number is presence of decimal point `.' or exponent in the number.
+                    Number = Integer | FloatingPointNumber
+          
+                    Integer = Digit {Digit}
+          
+                    FloatingPointNumber = Digit {Digit} "." { Digit } [Exponent]
+                                        | Digit {Digit} [Exponent]
+          
+                    Exponent = ("e" | "E") [ "+" | "-" ] Digit { Digit }
+
+     Examples:
+                    10
+                    100.
+                    1e2
+                    100.0E+0
+
+  3. Dino `character constant' denotes an ASCII character.  The
+     following sequences starting with backslash have special meaning
+     inside Dino character constant:
+        * "\a'    -' ASCII character alert
+
+        * "\b'    -' ASCII character backspace
+
+        * "\f'    -' ASCII character form feed
+
+        * "\n'    -' ASCII character new line
+
+        * "\r'    -' ASCII character carriage return
+
+        * "\t'    -' ASCII character horizontal tab
+
+        * "\v'    -' ASCII character vertical tab
+
+        * "\code' -' ASCII character with given octal code
+
+        * "\char' -' ASCII character char for all remaining characters
+
+     To denote single quote mark use sequence `\".  Double quote mark
+     can be represented either by `\"' or simply by `"'.  To represent
+     backslash inside the character constant, use two ASCII backslashes.
+                    Character = "'" Char "'"
+          
+                    Char = <any ASCII character except for the single quote ',
+                            backslash \, or line break>
+                         | SimpleEscapeSequence
+                         | OctalEscapeSequence
+          
+                    EscapeSequence = <one of  \'  \"  \\  \a  \b  \f  \n  \r  \t  \v>
+          
+                    OctalEscapeSequence = "\" OctalDigit [ OctalDigit [ OctalDigit ] ]
+
+     Examples:
+                    'a'  '\''  '\\'  '\12'  '"'
+
+  4. `Strings' are sequence of ASCII characters enclosed in double
+     quote marks. There are the same sequences of ASCII characters with
+     special meaning as in character constant.  To denote double quote
+     mark use sequence `\"'.  Single quote mark can be represented
+     either by `\" or simply by `".  To represent backslash inside the
+     character constant, use two ASCII backslashes.
+                    String = """ {Char} """
+
+     Examples:
+                    "This is Dino"  "Don't worry\n"
+
+  5. Remaining essential symbols are called `operators' and
+     `delimiters'.  Operators are used for forming expressions,
+     delimiters are used for forming syntax constructions.  There is
+     special kind of operators and delimiters which look like
+     identifiers containing only lower-case letters.  They are reserved
+     identifiers (keywords).  Keywords can not be used on the place of
+     identifier.
+                    OperatorOrAndDelimeter = "?" | ":" | "|" | "||" | "&" | "&&" | "^"
+                                           | "==" | "!=" | "===" | "!==" | "<" | ">"
+                                           | "<=" | ">=" | "<<" | ">>" | ">>>" | "@"
+                                           | "+" | "-" | "/" | "*" | "%" | "!" | "+"
+                                           | "-" | "~" | "#" | "(" | ")" | "[" | "]"
+                                           | "{" | "}" | "->" | "." | "," | ";" | "="
+                                           | "*=" | "/=" | "%=" | "+=" | "-="
+                                           | "@=" | "<<=" | ">>=" | ">>>=" | "&="
+                                           | "^=" | "|=" | "++" | "--" | "..."
+                                           | Keyword
+          
+                    Keyword = "break" | "catch" | "char" | "class" | "continue"
+                            | "else" | "ext" | "extern"
+                            | "final" | "float" | "for" | "friend" | "func"
+                            | "hide" | "hideblock" | "if" | "in" | "int"
+                            | "new" | "nil" | "public" | "private" | "return"
+                            | "table" | "thread" | "throw" | "try" | "type"
+                            | "var" | "vector" | "wait"
+
+  6. `Comments' are considered analogous to blanks on syntax level of
+     the program.  There are two type of comments.  The first comment
+     is arbitrary character sequences starting with `/*' and finishing
+     by `*/'.  The second type comment starts with `//' and finishes
+     with the first line break or with the end of file.
+                    Comment = "/*" <arbitrary char. sequence not containing pair */> "*/"
+                            | "//" <arbitrary char. sequence finishing on line break>
+
+
+File: dino.info,  Node: Declarations and Scope Rules,  Next: Expressions,  Prev: Vocabulary and Representation,  Up: Top
+
+Declarations and Scope Rules
+****************************
+
+   Dino program has block structure.  Each block introduces a new
+identifier scope.  Block consists of executive statements and
+declarations and may contains nested blocks.  Each identifier used in a
+program should be declared in a declaration of the program, unless it
+is a predeclared identifier.
+               Block = "{"  StmtList "}"
+     
+               StmtList = { Stmt }
+     
+               Stmt = ExecutiveStmt
+                    | Declaration
+
+   Declaring identifier, you also specify certain permanent properties
+of an declaration, such as whether it is a variable, a function, or a
+class.  The identifier is then used to refer to the associated
+declaration (more correctly with the declaration instance).
+               Declaration = VarDeclarations
+                           | AccessClause
+                           | ExternDeclarations
+                           | FuncClassExtDeclaration
+                           | IncludeDeclaration
+
+   The scope of an declaration is textually from the start (not from the
+point of declaration!) to the end of the block to which the declaration
+belongs and hence to which the declaration is local.  It excludes the
+scopes of declarations with the same identifier which are in nested
+blocks.  In a block, maximum one declaration of the same identifier is
+possible.
+
+   It is important to understand notion of instantiation of the
+declaration.  This notion reflects program execution not static
+structure of program.  An instance exists in `context'.  Actually,
+context is execution environment consisting of covering block instances
+or/and class objects.  A new instance of the block is created when the
+block execution starts.  There may be more one instance of the same
+block, e.g. when the block is a function or class body (block instance
+in this case is a class object), or when the block is executed on
+different threads (parallel execution branches) or when there is a
+reference to block instance after its execution.  When new instance of
+the block starts, all the block declarations are instantiated too.  For
+a variable declaration, it means new instance of variable is created in
+given context.  For a function or class declaration, it means that the
+function or class is bound to given context.
+
+   Examples: The following program illustrates case when a reference to
+block instance exists after its execution.  The program outputs result
+8.
+               var i, f;
+     
+               for (i = 0; i < 10; i++)
+                 if (i % 4 == 0)
+                   {
+                     var j = i;
+                     func r () {return j;}
+                     f = r;
+                   }
+               putln (f ());
+
+   Declaration is either private or public.  Private declaration is
+accessible only inside the declaration scope or inside function or
+class which are declared as friend in the declaration block.  Public
+declaration instance is accessible always when association (see below)
+of the identifier is successful.  By default, (instances of)
+declarations in class block are public.  In all other places, the
+(instances of) declarations are private by default.  The following
+constructions are used for declaring identifier public, private, or as
+friend:
+               AccessClause = (public | private | friend) AccessList ";"
+     
+               AccessList = IDENT { "," IDENT }
+
+   Examples:
+               public param1, param2;
+               private call_count;
+               friend class2;
+
+   Association of identifier and the declaration instance are performed
+by the following rules:
+   * The corresponding declaration instance are searched for separate
+     identifier occurrence in the instance of the block in which the
+     identifier occurs.  If the previous failed, the declaration is
+     searched in covering block instance of the current block instance.
+     And so on.
+
+   * Declaration instance for identifier in the following construction
+                  designator.identifier
+
+     is searched in block instance (e.g. in a class object) whose value
+     is in the designator.  If the designator is a class object, its
+     context is a class object, and the search failed, the search is
+     continued in the covering class object etc.  Exception `accessop'
+     occurs if the declaration is not found with such identifier, or
+     the declaration is private and the construction is not in the
+     declaration scope and not inside friend of the declaration scope.
+
+   * Declaration instance for identifier whose name is expression value
+     in the following construction
+                  *(expression)
+
+     is searched in the same way as a separate identifier.  Exception
+     `accessop' occurs if there is no instance of declaration with such
+     identifier in covering block instances.
+
+   * Declaration for identifier in the following construction
+                  (expression)->identifier
+
+     is searched in analogous way as in construction
+     `designator.identifier' in block instance which is value of the
+     variable whose name is given by the expression.  The variable is
+     searched in the same way as in construction `*(expression)'.
+     Exception `accessop' occurs if there is no variable instance with
+     given name in covering block instances, there is no instance of
+     the declaration with such identifier in given context (the
+     variable value), or the declaration is private and the
+     construction is not in the declaration scope.
+
+   The following identifiers are predeclared on the top level (in
+implicit block covering all program).  They are described in more
+detail in the report later.
+       anode          argv           atan2
+       chdir          chgmod         chomod         chumod
+       clock          close          cmpv           context
+       cos            curr_thread
+       del
+       eltype         env            errors         except
+       excepts        exit           exp
+       fatime         fctime         fget           fgetln
+       fgmode         fgn            file           flush
+       fmtime         fomode         fprint         fprintln
+       fput           fputln         fscan          fscanln
+       fsize          ftype          fumode         fun
+       gc             get            getcwd         getegn
+       geteun         getgn          getgroups      getln
+       getpid         getun          gsub
+       ins            inside         insv           invaccesses
+       invcalls       invexterns     invindexes     invkeys
+       invops         invparsers     invregexps     isatty
+       keys
+       log            log10
+       main_thread    match          max            min
+       mkdir
+       open
+       pclose         popen          pow            print
+       println        put            putln
+       rand           readdir        remove         rename
+       rmdir
+       scan           scanln         seek           signals
+       sin            sort           split          split_regex
+       sqrt           srand          stderr         stdin
+       stdout         strtime        sub            subv
+       syserrors      system         systemcalls
+       tell           time           time_format    token
+       tolower        toupper
+
+   The following identifiers are predeclared in class `except'
+mentioned above.
+       error
+
+   The following identifiers are predeclared in class `error' mentioned
+above.
+       deadlock
+       invaccess      invcall        invenv         invindex
+       invkey         invop
+       signal
+
+   The following identifiers are predeclared in class `signal'
+mentioned above.
+       sigabrt        sigfpe         sigill         sigint
+       sigsegv        sigterm
+
+   The following identifiers are predeclared in class `invop' mentioned
+above.
+       optype         opvalue
+
+   The following identifiers are predeclared in class `invindex'
+mentioned above.
+       indexop        indextype      indexvalue
+
+   The following identifiers are predeclared in class `invkey'
+mentioned above.
+       keyop          keyvalue
+
+   The following identifiers are predeclared in class `invcall'
+mentioned above.
+       callop
+       eof
+       internal       invenvar       invextern      invinput
+       invparser      invregexp      invresult
+       parnumber      partype
+       syserror       systemcall
+
+   The following identifiers are predeclared in class `syserror'
+mentioned above.
+       eaccess        eagain         ebadf          ebusy
+       echild         edeadlk        edom           eexist
+       efault         efbig          eintr          einval
+       eio            eisdir         emfile         emlink
+       enametoolong   enfile         enodev         enoent
+       enoexec        enolck         enomem         enospc
+       enosys         enotdir        enotempty      enotty
+       enxio          eperm          epipe          erange
+       erofs          espipe         esrch          exdev
+
+   The following identifiers are predeclared in class `systemcall'
+mentioned above.
+       noshell
+       systemfail
+
+   The following identifiers are predeclared in class `invparser'
+mentioned above.
+       invgrammar     invtoken
+       pmemory
+
+   The following identifiers are predeclared in class `invregexp'
+mentioned above.
+       badpat
+       ebrack         ectype         eend           eescape
+       eparen         erange         esize          espace
+       esubreg
+
+   The following identifiers are predeclared in class `invextern'
+mentioned above.
+       libclose
+       noextern       noexternsupp
+
+   The following identifiers are predeclared in class `invaccess'
+mentioned above.
+       accessop       accessvalue    arrowtype
+       dereftype
+       immutable
+
+* Menu:
+
+* Variable Declarations::
+* External Declarations::
+* Functions Classes Extensions::
+
+
+File: dino.info,  Node: Variable Declarations,  Next: External Declarations,  Up: Declarations and Scope Rules
+
+Variable Declarations
+=====================
+
+   Dino is imperative language. In other words it has `variables' which
+are named containers of values.  Variable can contain any value.  This
+means that DINO is a dynamic-type language.  Declaration of variable
+also may define initial value of the variable.  Assigning of the
+initial value to the variable instance is made after execution of the
+previous statements of the block.  By default initial value of
+variables is special value `nil'.  The value of variable can not be
+changed after its initialization if its declaration contains keyword
+`final'.
+               VarDeclarations = var  VarParList ";"
+     
+               VarParList = VarPar { "," VarPar }
+     
+               VarPar = [final] IDENT [ "="  Expr]
+
+   Examples:
+               var i = 0, j, k;
+               var final constant = 10, final nil_constant, l;
+
+
+File: dino.info,  Node: External Declarations,  Next: Functions Classes Extensions,  Prev: Variable Declarations,  Up: Declarations and Scope Rules
+
+External Declarations
+=====================
+
+   Dino permits to use functions written on other languages, e.g. C.
+The functions should have special prototypes and can have to access to
+DINO standard procedural interface (SPI).  Dino can also have access to
+variables of special type declared in source code on other language.
+The details of such features implementation and DINO SPI are not
+described here (some details are given in appendix B).  As rule, the
+external functions and variables will be implemented as dynamically
+loaded libraries.  This is powerful instrument of DINO extension.  The
+external functions, variables are declared after keyword `extern'.  The
+external function identifier is followed by `()'.  All external
+declarations (e.g. in different blocks) with the same identifier refer
+for the same external function or variable.
+               ExternDeclarations = extern  ExternItem { "," ExternItem } ";"
+     
+               ExternItem = IDENT
+                          | IDENT  "(" ")"
+
+   Examples:
+               extern function (), variable;
+
+
+File: dino.info,  Node: Functions Classes Extensions,  Prev: External Declarations,  Up: Declarations and Scope Rules
+
+Functions Classes Extensions
+============================
+
+   Function/class declaration consists of a function/class header and a
+function/class block (body).  The header specifies the function
+identifier and `formal parameters'.  Function can return the result
+with the aid of statement `return'.  If the result value after keyword
+return is absent or return statement is absent or is not executed, the
+function returns `nil' by default.  Class call returns an object of the
+class which can be considered as a block instance of the class body.
+Return-statement for classes must be without result.
+`Thread-functions' are analogous to general functions.  The difference
+is in that a new execution `thread' is created during the
+thread-function call, return-statement inside thread-function must be
+without an expression, and thread-function returns the corresponding
+(execution) thread.  The execution thread finishes when the
+corresponding thread block finishes.  Execution threads are executed
+parallelly.  Originally only one thread (so called `main thread')
+exists in DINO program.
+
+   The formal parameters are considered to be declared in function/class
+block and to be initialized by values of `actual parameters' during
+call of the function/class.  The function can be called with any
+numbers of `actual parameters'.  If the number of actual parameters are
+less than the formal parameters number, the remaining formal parameters
+are initialized by special value `nil'.  Otherwise if the number of
+actual parameters are more than the formal parameters number, the
+remaining actual parameter values are ignored.  In order to process all
+actual parameters, you should place `...' at the end of list of formal
+parameter declarations.  That means that formal parameter with
+identifier `args' will be declared implicitly.  The value of the
+parameter will be vector whose elements will be the remaining actual
+parameter values.  If the number of actual parameters are less or equal
+to the number of formal parameters (not taking implicit parameter
+`args' into account), the value of `args' will be empty vector.  The
+formal parameter can be initialized by default value in way analogous
+to variable initialization.  The initialization is made only when the
+corresponding actual parameter value is `nil'.
+
+   Instead of inheritance usually used in object oriented languages,
+Dino supports `extension'.  This feature permits to modify
+function/class behaviour.  All inside extension bodies is inserted at
+the end of body of function/class declared with the same identifier in
+the same block in the same order as the extensions are placed in the
+block.  Function/class declared as `final' can not be extended.
+               FuncClassExtDeclaration = Header Block
+     
+               Header = [final] FuncThreadClass IDENT FormalParameters
+                      | ext IDENT
+     
+               FuncThreadClass = func
+                               | thread
+                               | class
+     
+               FormalParameters = "("  [ VarParList ] ")"
+                                | "("  VarParList "," "..."  ")"
+                                | "(" "..."  ")"
+
+   Examples:
+
+   The following header is a parameterless class header.
+               class stack ()
+
+   The following header is a class header with initialization
+               class stack (max_height = 100)
+
+   The following function is a function with variable number parameters
+               func print_args (...)
+                 {
+                   for (i = 0; i < #args; i++)
+                     println (args[i]);
+                 }
+
+   The following illustrates usage of extensions
+                class point (x = 0, y = 0) {
+                }
+                ext point {
+                  class circle (radius = 1) {
+                    func square () {return 3.14 * radius * radius;}
+                  }
+                }
+                ext point {
+                  ext circle {
+                    class ellipse (width) {
+                      func square () {
+                        ...
+                      }
+                    }
+                }
+
+   The following example illustrates threads.
+               class buffer (length = 3) {
+                 var b = [length:nil], first = 0, free = 0, empty = 1;
+                 private b, first, free, length;
+                 func consume () {
+                   var res;
+     
+                   wait !empty;
+                   res = b [first];
+                   first = (first + 1) % length;
+                   empty = first == free;
+                   return res;
+                 }
+                 func produce (val) {
+                   wait empty || free != first;
+                   b [free] = val;
+                   free = (free + 1) % length;
+                   empty = 0;
+                 }
+               }
+     
+               thread consumer (buffer) {
+                   func produce (val) {
+                     buffer.produce (val);
+                     put ("produce: ");
+                     println (val);
+                   }
+                   produce (10);
+                   produce (10.5);
+                   produce ("string");
+                   produce ('c');
+                   produce (nil);
+               }
+     
+               thread producer (buffer) {
+                 var val;
+     
+                 for (;;) {
+                   val = buffer.consume ();
+                   if (val == nil)
+                     break;
+                   put ("consume: ");
+                   println (val);
+                 }
+               }
+     
+               var queue = buffer ();
+               consumer (queue);
+               producer (queue);
+
+
+File: dino.info,  Node: Expressions,  Next: Executive statements,  Prev: Declarations and Scope Rules,  Up: Top
+
+Expressions
+***********
+
+   Expressions are constructs denoting rules of computation of a value
+from other values by the application of `operators'.  Expressions
+consist of `operands' and operators.  Parentheses may be used to
+express specific associations of operators and operands.  Dino is a
+dynamic-typed language.  That means that variable can store any Dino
+value.
+
+* Menu:
+
+* Types and Values::
+* Designators::
+* Call::
+* Operators::
+
+
+File: dino.info,  Node: Types and Values,  Next: Designators,  Up: Expressions
+
+Types and Values
+================
+
+   All Dino values are `the first class values', i.e. they can be
+assigned to a variable, can be passed as a parameter of function/class,
+and can be returned by functions.  Operators require operands whose
+values are of given types and return value of the result type.  The
+most of values have a represention in Dino.  When a value
+representation is encountered in expression during the expression
+evaluation, the new value is generated.
+
+   There are values of `structured types', i.e. values which are built
+from other values.  The value of a structured type may be `mutable' or
+`immutable'.  Value or sub-value of mutable value can be changed.
+Immutable value can not be changed after its generation.  You can make
+mutable value an immutable by applying operator `final' as side effect.
+In all cases, the operator returns the operand value as the result.
+If you try to change immutable value, exception `immutable' is
+generated.  You can make new mutable value as side effect of applying
+operator `new'.  The operator returns new value equal to the operand
+value.
+               Expr = final  Expr
+                    | new  Expr
+
+   Structured value types are also `shared value types'.  This notion
+means that if two or more different variables (array elements or table
+elements or keys) refer for the same value and the value is changed
+through one variable, the value which is referred through other
+variables is changed too.  There is no difference between notion "the
+same value" and notion "equal values" for non-shared type values.  For
+the shared type operands, the equality means that the operands have the
+same structure (e.g. vectors with the same length) and the
+corresponding element values are the same.
+
+   Examples:
+               new 5
+               new ['a', 'b', 'c']
+               new "abc"
+               new {"key0" : 10, "key1" : 20}
+               final 5
+               final ['a', 'b', 'c']
+               final "abc"
+               final {"key0" : 10, "key1" : 20}
+
+   Dino has the following types of values:
+   * special value `nil'.  This is default value of variables when the
+     corresponding block starts.  The value is represented by keyword
+     `nil'.
+                           Expr = nil
+
+   * `character' which represents ASCII characters.  The representation
+     see `Character' in section `Vocabulary and Representation'.
+                           Expr = CHARACTER
+
+   * `integer'.  Its representation see `Integer' in section
+     `Vocabulary and Representation'.  It is always stored as 32-bit
+     integer value.
+                           Expr = INTEGER
+
+   * `floating point number'.  Its representation see
+     `FloatingPointNumber' in section `Vocabulary and Representation'.
+     It is always stored as IEEE double (64-bit) floating point value.
+                           Expr = FLOATINGPOINTNUMBER
+
+   * `vector'.  This is a structured shared type value.  Vector value
+     is represented by list of values (or expressions) in brackets with
+     optional repetitions of the vector elements followed by `:'.  The
+     repetition value is conversed into integer value by default.  If
+     the repetition value after this is not of integer, exception
+     `optype' is generated. If the repetition value is negative or
+     zero, the element value will be absent in the vector.  Elements of
+     vector are accessed by their indexes.  Indexes always starts with
+     0.  Vectors in Dino are heterogenous, i.e. elements of a vector
+     may be of different types.  String represents immutable vector
+     whose all elements are characters in the string.  Elements of
+     mutable vectors can be added to or removed from the vector (see
+     predefined functions `ins, insv, del').
+                           Expr = "["  ElistPartsList "]"
+                                | STRING
+                           ElistPartsList = [ Expr [":" Expr ] {"," Expr [":" Expr ] } ]
+
+     Examples:
+                         "aaab"
+                         ['a', 'a', 'a', 'b']
+                         [3 : 'a', 'b']
+                         [3.0 : 'a', 'b']
+                         ["3" : 'a', 'b']
+                         ['a', 10, 10.0, "abcd", {}]
+                         []
+
+   * `table'.  This is a structured shared type value.  Table value is
+     represented by list of key values (expression values) in figure
+     parentheses `{' and `}' with optional element values
+     with preceding `:'.  By default element value is equal to `nil'.
+     It is not possible to have elements with equal keys in a table.
+     If it is not true in a table constructor, exception `keyvalue' is
+     generated.  Elements of tables are accessed by their keys.
+     Elements of mutable tables can be added to or removed from the
+     table correspondingly by assigning value and with the aid function
+     `del'.  The side effect of table constructor execution is that the
+     keys become immutable.
+                           Expr = "{"  ElistPartsList "}"
+
+     Examples:
+                         {'a', 'b', 10:[10]}
+                         {'a' : nil, 'b' : nil, 10 : [10]}
+                         {[10, 'a', {10}] : 10, [10] : {20:20}}
+                         {}
+
+   * `function'.  Its value is represented by function designator.  It
+     is important to remember that the function is bound to a context.
+
+   * `thread-function'.  Its value is represented by thread-function
+     designator.  It is important to remember that the thread-function
+     is bound to a context.
+
+   * `class'.  Its value is represented by class designator.  It is
+     important to remember that the class is bound to a context.
+
+   * `block instance'.  There is no Dino representation of such values.
+
+   * `thread'.  There is no Dino representation of such values.  Thread
+     value is generated by calling a thread-function.
+
+   * `object'(class instance).  This is a structured shared type value.
+     There is no Dino representation of such values.  Objects are
+     generated by calling classes.
+
+   * `hide value'.  Hide value can not be generated in Dino code.  They
+     are generated by external functions.
+
+   * `hide block'.  This value is analogous to hide value.  The
+     differences are in that the size of a hide value is constrained by
+     C program pointer.  The size of hideblock value has no such
+     constraint.  Also hideblock is of shared type.
+
+   * `type'.  The value of such types are returned by special operator
+     `type (expression)'.
+                           Expr = char
+                                | int
+                                | float
+                                | hide
+                                | hideblock
+                                | vector
+                                | table
+                                | func
+                                | thread
+                                | class
+                                | func "(" ")"
+                                | thread "(" ")"
+                                | class "(" ")"
+                                | type
+
+     There are the following type values:
+        * type of `nil'.  There is no value representing type of `nil'.
+          So use operator `type (nil)' to get it.
+
+        * type of characters.  The value is represented by Dino keyword
+          `char'.
+
+        * type of integers.  The value is represented by Dino keyword
+          `int'.
+
+        * type of floating point numbers.  The value is represented by
+          Dino keyword `float'.
+
+        * type of vectors.  The value is represented by Dino keyword
+          `vector'.
+
+        * type of tables.  The value is represented by Dino keyword
+          `table'.
+
+        * type of functions.  The value is represented by Dino keyword
+          `func'.
+
+        * type of thread-functions.  The value is represented by Dino
+          keyword `thread'.
+
+        * type of classes.  The value is represented by Dino keyword
+          `class'.
+
+        * type of block instances.  The value is represented by Dino
+          construction `func ()'.
+
+        * type of threads.  The value is represented by Dino
+          construction `thread ()'.
+
+        * type of objects.  The value is represented by Dino
+          construction `class ()'.
+
+        * type of hide values.  The value is represented by Dino
+          keyword `hide'.
+
+        * type of hideblocks.  The value is represented by Dino keyword
+          `hideblock'.
+
+        * type of types.  The value is represented by Dino keyword
+          `type'.
+
+
+File: dino.info,  Node: Designators,  Next: Call,  Prev: Types and Values,  Up: Expressions
+
+Designators
+===========
+
+   There is special Dino construction called `designator'.  Designator
+refers for an vector or table element or for an declaration.  If
+designator refers for vector or table element or for variable
+declaration, it can stand in left hand side of assignment statement.
+If the designator stands in an expression, the corresponding value is
+used (vector/table element value, variable value, function,
+thread-function, or class).
+               Expr = Designator
+
+   Designator referring for a vector element has the following syntax
+               Designator = DesignatorOrCall "["  Expr "]"
+     
+               DesignatorOrCall = Designator
+                                | Call
+
+   The value of the construction before the brackets must be a vector.
+Otherwise, the exception `indexop' is generated.  The value of
+expression in the brackets (so called `index') is conversed to integer.
+If it is not possible, exception `indextype' is generated.  If index
+is negative or greater or equal to the vector length, the exception
+`indexvalue' is generated.  The value of the designator will be the
+vector element value with given index (the indexes starts with zero).
+Examples:
+               vect [1]
+               vect ["1"]
+               vect [1.0]
+
+   Designator referring for a table element has the following syntax
+               Designator = DesignatorOrCall "{"  Expr "}"
+
+   The value of the construction before the figure brackets must be a
+table.  Otherwise, the exception `keyop' is generated.  The value of
+expression in the figure brackets is called `key'.  The value of the
+designator will be the table element value with key which is equal to
+given key.  If the element with given key is absent in the table,
+exception `keyvalue' is generated.  Examples:
+               tab {'c'}
+               tab {10}
+               tab {"1"}
+               tab {1.0}
+
+   The remaining forms of designator refer for a declaration.  See
+section `Declarations and Scope Rules' describing how they work.
+               Designator = DesignatorOrCall "."  IDENT
+                          | "(" Expr ")" "->"  IDENT
+                          |  "*" "(" Expr ")"
+                          | IDENT
+
+   Examples:
+               value
+               *("value")
+               value.f
+               ("value")->f
+
+
+File: dino.info,  Node: Call,  Next: Operators,  Prev: Designators,  Up: Expressions
+
+Call
+====
+
+   One form of expression is call of function, thread-function, or
+class.  The value of designator before the actual parameters should be
+function, thread-function, or class.  Otherwise, exception `callop' is
+generated.  Instance of block corresponding to the body of the
+function, thread-function, or class is created.  The actual parameter
+values are assigned to the corresponding formal parameters.  If the
+corresponding function, thread-function, or class has no default formal
+parameter `args' (see section `Declarations'), the remaining actual
+parameter values are ignored.  Otherwise, vector whose elements are the
+remaining parameter values are created and assigned to parameter
+`args'.  If there is no corresponding actual parameter for a formal
+parameter, the default parameter value (see section `Declarations') or
+value `nil' are assigned to the formal parameter.  Then statements in
+the block are executed.  If it is call of a thread-function, new
+execution thread is created, and the statements of the block is
+executed in the new thread.  The value of call of the thread-function
+is the corresponding thread.  It is returned before starting execution
+of the statements in the new thread.
+
+   Execution of the body is finished by achieving the block end or by
+execution of return-statement.  Finishing of thread-function results in
+finishing the corresponding thread.  The return-statement in
+thread-function or in class should be without an expression.  The call
+of class returns the created object.  Function call returns value of
+the expression in the executed return-statement.  Otherwise, the
+function call returns value `nil'.
+               Expr = Call
+     
+               Call = Designator ActualParameters
+     
+               ActualParameters = "("  [ Expr { "," Expr } ] ")"
+
+   Examples:
+               f ()
+               f (10, 11, ni, [])
+               obj.objf ()
+
+
+File: dino.info,  Node: Operators,  Prev: Call,  Up: Expressions
+
+Operators
+=========
+
+   Expressions consist of operands and operators.  Order in which
+operators are executed in expression is defined by their `priority' and
+`associativity' of operators.  That means that expression `a op1 b op2
+c' when operators `op2' has higher priority than `op1' is analogous to
+`a op1 (b op2 b)'.  Dino operators have the analogous priorities as
+ones in C language.  The following Dino operators are placed in their
+priority (the higher line on which the operator is place, the higher its
+priority).
+               !  #  ~  final  new
+               *  /  %
+               +  -
+               @
+               <<  >>  >>>
+               <  >  <=  >=
+               ==  !=  ===  !==
+               &
+               ^
+               |
+               in
+               &&
+               ||
+               :
+               ?
+
+   All binary operators have left associativity in Dino.  That means
+that expression `a op1 b op2 c' when operators `op1' and `op2' have the
+same priority is analogous to `(a op1 b) op2 b'.  Parentheses may be
+used to express specific associations of operators and operands.
+               Expr = "(" Expr ")"
+
+   The most of Dino operators require that the operands to be of given
+types.  If an operand is not given type, the conversion of it into the
+type may be made.  If after the possible conversion the operands are
+not still of necessary types, exception `optype' is generated (when
+something special about exceptions in this case is not mentioned).  The
+following conversion may be made by default:
+   * `Integer conversion'.  If the operand is a character, its code
+     becomes integer.  If the operand is a floating point number, its
+     fractional part is thrown away and integral part becomes integer.
+     If the operand is a vector of characters, the corresponding string
+     is believed to be decimal representation of integer and is
+     conversed into the corresponding integer.  If the corresponding
+     string is not a correct integer representation, the result is
+     undefined.  If the corresponding string represents an integer
+     whose representation requires more 32 bits, exception `erange' may
+     be generated.  In all remaining cases the result of conversion
+     coincide with the operand.
+
+   * `Arithmetic conversion'.  Analogous to integer conversion except
+     for that conversion float pointing number -> integer is not made
+     and if the string represents floating point number (i.e. contains
+     exponent or fraction), the result will be the corresponding
+     floating point number instead of integer.  Additionally if the
+     operand is in a non-short circuit binary operator (non logical
+     operators) and another operand is floating point number after the
+     conversion, the first operand is conversed into floating point
+     number too.  Analogously if the result is an integer which can not
+     be represented by 32-bit integer or the result is an floating
+     point number not represented by IEEE double, the exception
+     `erange' may be generated.
+
+   * `String conversion'.  If the operand is a character, the result
+     will be a new string (immutable vector of characters) with one
+     element which is the character.  If the operand is an integer or a
+     floating point number, the result will be new string of characters
+     which is a decimal string representation of the number.
+
+* Menu:
+
+* Logical operators::
+* Bit operators::
+* Comparison operators::
+* Arithmetic operators::
+* Miscellaneous operators::
+
+
+File: dino.info,  Node: Logical operators,  Next: Bit operators,  Up: Operators
+
+Logical operators
+-----------------
+
+   Logical operators produce integer result 1 which means `true' or 0
+which means `false'.  Logical `or' `[verbar][verbar]' and logical `and'
+`&&' are `short circuit' operators.  That means that the
+second operand is evaluated depending on the result of the first
+operand.  When the operands of the operators are evaluated, the
+arithmetic conversion is made.
+
+   If the first result of logical `or' is nonzero (integer or floating
+point), the result will be 1.  Otherwise, the second operand is
+evaluated.  If the second operand is nonzero, the result will be 1.
+Otherwise, the result will be 0.
+
+   If the first result of logical `and' is zero (integer or floating
+point), the result will be 0.  Otherwise, the second operand is
+evaluated.  If the second operand is nonzero, the result will be 1.
+Otherwise, the result will be 0.
+
+   Logical negotiation `!' makes impilict integer conversion of the
+operand.  If the operand is zero (integer or floating point), the
+result will be 1.  Otherwise, the result will be 0.
+
+   Operator `in' checks that there is an element with given key (the
+first operand) in given table (the second operand).  If the element is
+in the table, the result will be 1.  Otherwise the result will be 0.
+If the second operand is not a table, exception `keyop' is generated.
+               Expr = Expr "||"  Expr
+                    | Expr "&&"  Expr
+                    | Expr in  Expr
+                    | "!"  Expr
+
+   Examples:
+               !(type (i) == int && type (a) == table && i >= 0 && i < #a)
+               k in t && t {k} == 0
+               0.0  || another_try
+               0  || another_try
+
+
+File: dino.info,  Node: Bit operators,  Next: Comparison operators,  Prev: Logical operators,  Up: Operators
+
+Bit operators
+-------------
+
+   The following operators work on integers (implicit integer conversion
+is made) and return integer result.  Operators `[verbar] [circ  ] [amp
+] [tilde ]' denotes correspondingly bit or, bit exclusive or, bit and,
+and bit negotiation of 32-bit integers.
+
+   Operators `<< >>> >>' denote correspondingly logical left bit shift,
+logical right bit shift, and arithmetic (with sign extension) right bit
+shift of given number (the first operand) on given number bits (the
+second operand).  The value of the second operand must be non-negative.
+Otherwise the result is undefined.
+               Expr = Expr "|"  Expr
+                    | Expr "^"  Expr
+                    | Expr "&"  Expr
+                    | Expr "<<"  Expr
+                    | Expr ">>"  Expr
+                    | Expr ">>>"  Expr
+                    | "~"  Expr
+
+   Examples:
+               (i >> shift) & mask
+               i & ~mask | (value << shift) & mask
+               i >>> 2
+               i << 2
+

@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>MSTA (syntax description translator): Appendix 3 - Run of MSTA on the previous description file</TITLE>
+ <LINK HREF="msta-8.html" REL=previous>
+ <LINK HREF="msta.html#toc9" REL=contents>
+</HEAD>
+<BODY>
+Next
+<A HREF="msta-8.html">Previous</A>
+<A HREF="msta.html#toc9">Contents</A>
+<HR>
+<H2><A NAME="s9">9. Appendix 3 - Run of MSTA on the previous description file</A></H2>
+
+<P>This output is produced on Compaq Aero 486 SX/25 with 12Mb under Linux 2.0.29.
+<BLOCKQUOTE><CODE>
+<PRE>
+bash$ msta -time lex.y
+  parser time            -- 0.02sec
+  semantic analyzer time -- 0.11sec
+  Look ahead is 1 token
+      Creating LR(0)-sets -- 0.05sec
+      Conflicts processing -- 0.10sec
+    create LALR-sets only with needed contexts -- 0.10sec
+      marking LR-sets with used attributes -- 0.01sec
+      splitting LR-sets for regular optimization -- 0.01sec
+      transforming LR-graph -- 0.04sec
+      removal unused nonterm. LR-arcs &amp; marking unreachable LR-sets -- 0.00sec
+      marking semantically pushed LR-sets -- 0.00sec
+      making concordance between pushed LR-sets -- 0.00sec
+      making concordance between pushed LR-set attributes -- 0.00sec
+      evaluating popped LR-sets &amp; attributes of regular arcs -- 0.02sec
+      stack displacement for used attributes evaluation -- 0.02sec
+      searching for regular arcs equivalence -- 0.03sec
+    all regular optimization -- 0.14sec
+    making parser look-ahead trie -- 0.02sec
+    making token equivalence classes -- 0.03sec
+  all generation of internal parser representation -- 0.30sec
+  Real look ahead is 1 token
+  5 shift/reduce conflicts.
+      translate vector creation &amp; output -- 0.05sec
+      action table creation &amp; output -- 0.02sec
+      nonterminal goto table creation &amp; output -- 0.01sec
+      pushed states flag table creation &amp; output -- 0.00sec
+      popped attributes number table creation &amp; output -- 0.01sec
+      token name table creation &amp; output -- 0.03sec
+    creation, compacting, output of tables -- 0.14sec
+  all parser output -- 0.25sec
+overall time -- 0.75sec
+</PRE>
+</CODE></BLOCKQUOTE>
+<HR>
+Next
+<A HREF="msta-8.html">Previous</A>
+<A HREF="msta.html#toc9">Contents</A>
+</BODY>
+</HTML>

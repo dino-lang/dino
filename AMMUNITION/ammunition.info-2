@@ -1,0 +1,829 @@
+This is ammunition.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.ammunition31807.info.2.
+
+   \input texinfo
+
+
+File: ammunition.info,  Node: Package for machine-independent arbitrary precision integer arithmetic,  Next: Package for machine-independent IEEE floating point arithmetic,  Prev: Package for work with bit strings,  Up: Top
+
+Package for machine-independent arbitrary precision integer arithmetic
+**********************************************************************
+
+   Abstract data `arithm' may be used for implementation of a
+cross-compiler.  This abstract data implements arbitrary precision
+integer and unsigned integer number arithmetic by machine independent
+way.  The implementation of the package functions are not sufficiently
+efficient in order to use for run-time.  The package functions are
+oriented to implement constant-folding in compilers.  This package is
+necessary because host machine may not support such arithmetic for
+target machine.  For example, VAX does not support does not support
+more 32-bits integer numbers arithmetic.
+
+   The numbers in packages are represented by bytes in big endian mode,
+negative integer numbers are represented in complementary code.  All
+sizes are given in bytes and must be positive.  Results of executions
+of all functions can coincide with a operand(s).  All functions of
+addition, subtraction, multiplication, division, evaluation of
+remainder, shift, changing size and transformation of string into
+number fix overflow.  The overflow is fixed when result can not be
+represented by number of given size.
+
+   The interface part of the abstract data is file `arithm.h'.  The
+implementation part is file `arithm.c'.  The maximum length of integer
+number is suggested to be not greater then
+`MAX_INTEGER_OPERAND_SIZE'.  The default value
+(128) of this macro can be redefined with corresponding C compiler
+option `-DMAX_INTEGER_OPERAND_SIZE=...'  during
+compilation of file `arithm.c'.  But in any case the minimal value of
+the macros will be 16.  The interface contains the following external
+definitions:
+
+`Variable `overflow_bit''
+     has only two values 0 or 1.  The value `1' corresponds to
+     overflow.  The variable value are modified by all functions of
+     addition, subtract, multiplication, division, evaluation of
+     remainder, shift, changing size and transformation of string into
+     number.
+
+`Variable `const unsigned char *zero_constant''
+     represents zero (unsigned) integer of any size.
+
+`Function `void default_arithmetic_overflow_reaction (void)''
+     Originally reaction on all integer and unsigned integer overflow
+     is equal to this function.  The function does nothing.  Reaction
+     on overflow for integers or unsigned integers is called after
+     setting up variable `overflow_bit'.
+
+`Function `set_integer_overflow_reaction''
+                  `void (*set_integer_overflow_reaction
+                          (void (*function) (void))) (void)'
+
+     changes reaction on integer overflow and returns previous overflow
+     reaction function.  There is analogous function
+                  `set_unsigned_integer_overflow_reaction'
+
+     for unsigned integer overflow.
+
+`Function `integer_maximum''
+                  `void integer_maximum   (int  size,  void  *result)'
+
+     creates given size (in bytes) maximal integer constant which is
+     placed in memory whose address is given by the second parameter.
+     There is analogous function
+                  `integer_minimum' and
+                  `unsigned_integer_maximum'.
+
+`Function `add_integer''
+                  `void add_integer (int size,
+                                     const void *op1, const void *op2,
+                                     void *result)'
+
+     makes integer addition of integers of given size.  The function
+     fixes overflow when result can not be represented by number of
+     given size.  There are analogous functions which implement other
+     integer operations:
+                  `subtract_integer',
+                  `multiply_integer',
+                  `divide_integer',
+                  `integer_remainder'.
+
+     Also there are analogous functions
+                  `subtract_unsigned_integer',
+                  `multiply_unsigned_integer',
+                  `divide_unsigned_integer',
+                  `unsigned_integer_remainder'
+
+     for unsigned integers.
+
+`Function `integer_shift_left''
+                  `void  integer_shift_left (int size,  const void *operand,
+                                             int bits, void *result)'
+
+     makes left shift of integer of given size on given number of bits.
+     If number of bits is negative the function makes shift to right
+     actually.  The function fixes overflow when result can not be
+     represented by number of given size, i.e. in other words the
+     opposite shift (to right) results in number not equal to source
+     operand.  There are analogous functions which implement another
+     integer operation
+                  `integer_shift_right'.
+      Also there are analogous functions
+                  `unsigned_integer_shift_left' and
+                  `unsigned_integer_shift_right' for unsigned integers.
+
+`Function `integer_or''
+                  `void integer_or (int size, const void *op1, const void *op2,
+                                    void *result)'
+
+     makes bitwise `or' of integers of given size.  There is analogous
+     function which implement bitwise `and':
+                  `integer_and'.
+
+     Also there are equivalent functions
+                  `unsigned_integer_or',
+                  `unsigned_integer_and',
+
+     for unsigned integers.
+
+     Function
+                  `void integer_not (int size, const void *operand,
+                                     void *result)'
+
+     makes bitwise `not' of integer of given size.  There is equivalent
+     function for unsigned integer:
+                  `unsigned_integer_not'.
+
+`Function `eq_integer''
+                  `int eq_integer (int size, const void *op1, const void *op2)'
+
+     compares two integers of given size on equality and returns 1 or 0
+     depending on result of the comparison.  There are analogous
+     functions which implement other integer operations:
+                  `ne_integer',
+                  `gt_integer',
+                  `lt_integer',
+                  `ge_integer',
+                  and `le_integer'.
+
+     Also there are analogous functions
+                  `eq_unsigned_integer',
+                  `ne_unsigned_integer',
+                  `gt_unsigned_integer',
+                  `lt_unsigned_integer',
+                  `ge_unsigned_integer',
+                  and `le_unsigned_integer'
+
+     for unsigned integers.
+
+`Function `change_integer_size''
+                  `void  change_integer_size (int operand_size,
+                                              const  void *operand,
+                                              int result_size, void *result)'
+
+     changes size of integer.  The function fixes overflow when result
+     can not be represented by number of given size.  There is
+     analogous function
+                  `change_unsigned_integer_size'
+
+     for unsigned integers.
+
+`Function `integer_to_string''
+                  `char *integer_to_string (int  size, const void *operand,
+                                            char *result)'
+
+     transforms integer of given size to decimal ascii representation.
+     Sign is present in result string only for negative numbers.  The
+     function returns value `result'.  There is analogous function
+                  `unsigned_integer_to_string'
+
+     for unsigned integers.
+
+`Function `integer_from_string''
+                  `char *integer_from_string (int  size, const char *operand,
+                                              void *result)'
+
+     skips all white spaces at the begin of source string and
+     transforms the tail of the source string (decimal ascii
+     representation with possible sign `+' or `-') to given size
+     integer and returns pointer to first non digit in the source
+     string.  If the string started with invalid integer representation
+     the result will be zero.  The function fixes overflow when result
+     can not be represented by number of given size.  There is
+     analogous function
+                  `unsigned_integer_from_string'
+
+     for unsigned integers.  But sign `+' is believed to be not part of
+     unsigned integer.
+
+
+File: ammunition.info,  Node: Package for machine-independent IEEE floating point arithmetic,  Next: Ticker package,  Prev: Package for machine-independent arbitrary precision integer arithmetic,  Up: Top
+
+Package for machine-independent IEEE floating point arithmetic
+**************************************************************
+
+   Abstract data `IEEE' may be used for implementation of a
+cross-compiler.  This abstract data implements IEEE floating point
+arithmetic by machine independent way with the aid of package `arithm'.
+This abstract data is necessary because host machine may not support
+such arithmetic for target machine.  For example, VAX does not support
+IEEE floating point arithmetic.  The floating point numbers are
+represented by bytes in big endian mode.  The implementation of the
+package functions are not sufficiently efficient in order to use for
+run-time.  The package functions are oriented to implement
+constant-folding in compilers.  All integer sizes (see transformation
+functions) are given in bytes and must be positive.
+
+   Functions of addition, subtraction, multiplication, division,
+conversion floating point numbers of different formats can fix input
+exceptions.  If an operand of such operation is trapping (signal) not a
+number then invalid operation and reserved operand exceptions are fixed
+and the result is (quiet) NaN, otherwise if an operand is (quiet) NaN
+then only reserved operand exception is fixed and the result is (quiet)
+NaN.  Operation specific processing the rest of special case values of
+operands is placed with description of the operation.  In general case
+the function can fix output exceptions and produces results for
+exception according to the following table.  The result and status for
+a given exceptional operation are determined by the highest priority
+exception.  If, for example, an operation produces both overflow and
+imprecise result exceptions, the overflow exception, having higher
+priority, determines the behavior of the operation.  The behavior of
+this operation is therefore described by the Overflow entry of the
+table.
+
+         Exception|Condition|                     |Result |Status
+       -----------|---------|---------------------|-------|-------------
+                  |masked   |         IEEE_RN(_RP)| +Inf  |IEEE_OFL and
+                  |overflow | sign +  IEEE_RZ(_RM)| +Max  |IEEE_IMP
+                  |exception|---------------------|-------|-------------
+         Overflow |         | sign -  IEEE_RN(_RM)| -Inf  |IEEE_OFL and
+                  |         |         IEEE_RZ(_RP)| -Max  |IEEE_IMP
+                  |---------|---------------------|-------|-------------
+                  |unmasked | Precise result      |See    |IEEE_OFL
+                  |overflow |---------------------|above  |-------------
+                  |exception| Imprecise result    |       |IEEE_OFL and
+                  |         |                     |       |IEEE_IMP
+       -----------|---------|---------------------|-------|-------------
+                  |masked   |                     |Rounded|IEEE_UFL and
+                  |underflow| Imprecise result    |result |IEEE_IMP
+        Underflow |exception|                     |       |
+                  |---------|---------------------|-------|-------------
+                  |unmasked | Precise result      |result |IEEE_UFL
+                  |underflow|---------------------|-------|-------------
+                  |exception| Imprecise result    |Rounded|IEEE_UFL and
+                  |         |                     |result |IEEE_IMP
+       -----------|-------------------------------|-------|-------------
+                  |masked imprecise exception     |Rounded|IEEE_IMP
+        Imprecise |                               |result |
+                  |-------------------------------|-------|-------------
+                  |unmasked imprecise exception   |Rounded|IEEE_IMP
+                  |                               |result |
+
+   The package uses package `bits'.  The interface part of the abstract
+data is file `IEEE.h'.  The implementation part is file `IEEE.c'.  The
+interface contains the following external definitions:
+
+`Macros `IEEE_FLOAT_SIZE', `IEEE_DOUBLE_SIZE', `IEEE_QUAD_SIZE''
+     have values which are are sizes of IEEE single, double, and quad
+     precision floating point numbers (`4', `8', and `16'
+     correspondingly).
+
+`Types `IEEE_float_t', `IEEE_double_t', and `IEEE_quad_t''
+     represent correspondingly IEEE single precision, double, and quad
+     precision floating point numbers.  The size of these type are
+     equal to `IEEE_FLOAT_SIZE',
+     `IEEE_DOUBLE_SIZE', and
+     `IEEE_QUAD_SIZE'.
+
+`Function `IEEE_reset''
+                  `void IEEE_reset (void)'
+
+     and to separate bits in mask returned by functions
+                  `IEEE_get_sticky_status_bits',
+                  `IEEE_get_status_bits', and
+                  `IEEE_get_trap_mask'.
+
+`Function `IEEE_get_trap_mask''
+                  `int IEEE_get_trap_mask (void)'
+
+     returns exceptions trap mask.  Function
+                  `int IEEE_set_trap_mask (int mask)'
+
+     sets up new exception trap mask and returns the previous.
+
+     If the mask bit corresponding given exception is set, a floating
+     point exception trap does not occur for given exception.  Such
+     exception is said to be masked exception.  Initial exception trap
+     mask is zero.  Remember that more one exception may be occurred
+     simultaneously.
+
+`Function `IEEE_set_sticky_status_bits''
+                  `int IEEE_set_sticky_status_bits (int mask)'
+
+     changes sticky status bits and returns the previous bits.
+
+     Function
+                  `int IEEE_get_sticky_status_bits (void)'
+
+     returns mask of current sticky status bits.  Only sticky status
+     bits corresponding to masked exceptions are updated regardless
+     whether a floating point exception trap is taken or not.  Initial
+     values of sticky status bits are zero.
+
+`Function `IEEE_get_status_bits''
+                  `int IEEE_get_status_bits (void)'
+
+     returns mask of status bits.  It is supposed that the function
+     will be used in trap on an floating point exception.  Status bits
+     are updated regardless of the current exception trap mask only
+     when a floating point exception trap is taken.  Initial values of
+     status bits are zero.
+
+`Constants `IEEE_RN', `IEEE_RM', `IEEE_RP', `IEEE_RZ''
+     defines rounding control (round to nearest representable number,
+     round toward minus infinity, round toward plus infinity, round
+     toward zero).
+
+     Round to nearest means the result produced is the representable
+     value nearest to the infinitely-precise result.  There are special
+     cases when infinitely precise result falls exactly halfway between
+     two representable values.  In this cases the result will be
+     whichever of those two representable values has a fractional part
+     whose least significant bit is zero.
+
+     Round toward minus infinity means the result produced is the
+     representable value closest to but no greater than the infinitely
+     precise result.
+
+     Round toward plus infinity means the result produced is the
+     representable value closest to but no less than the infinitely
+     precise result.
+
+     Round toward zero, i.e.  the result produced is the representable
+     value closest to but no greater in magnitude than the infinitely
+     precise result.  There are two functions
+                  `int IEEE_set_round (int round_mode)'
+
+     which sets up current rounding mode and returns previous mode and
+                  `int IEEE_get_round (void)'
+
+     which returns current mode.  Initial rounding mode is round to
+     nearest.
+
+`Function `default_floating_point_exception_trap''
+                  `void default_floating_point_exception_trap (void)'
+
+     Originally reaction on occurred trap on an unmasked floating point
+     exception is equal to this function.  The function does nothing.
+     All occurred exceptions can be found in the trap with the aid of
+     status bits.
+
+`Function `IEEE_set_floating_point_exception_trap''
+                  `void (*IEEE_set_floating_point_exception_trap
+                          (void (*function) (void))) (void)'
+
+     sets up trap on an unmasked exception.  Function given as
+     parameter simulates floating point exception trap.
+
+`Function `IEEE_positive_zero''
+                  `IEEE_float_t IEEE_positive_zero (void)'
+
+     returns positive single precision zero constant.  There are
+     analogous functions which return other special case values:
+                  `IEEE_negative_zero',
+                  `IEEE_NaN',
+                  `IEEE_trapping_NaN',
+                  `IEEE_positive_infinity',
+                  `IEEE_negative_infinity',
+                  `IEEE_double_positive_zero',
+                  `IEEE_double_negative_zero',
+                  `IEEE_double_NaN',
+                  `IEEE_double_trapping_NaN',
+                  `IEEE_double_positive_infinity',
+                  `IEEE_double_negative_infinity'.
+                  `IEEE_quad_positive_zero',
+                  `IEEE_quad_negative_zero',
+                  `IEEE_quad_NaN',
+                  `IEEE_quad_trapping_NaN',
+                  `IEEE_quad_positive_infinity',
+                  `IEEE_quad_negative_infinity'.
+
+     According to the IEEE standard NaN (and trapping NaN) can be
+     represented by more one bit string.  But all functions of the
+     package generate and use only one its representation created by
+     function `IEEE_NaN' (and `IEEE_trapping_NaN',
+     `IEEE_double_NaN',
+     `IEEE_double_trapping_NaN',
+     `IEEE_quad_NaN',
+     `IEEE_quad_trapping_NaN').  A (quiet) NaN
+     does not cause an Invalid Operation exception and can be reported
+     as an operation result.  A trapping NaN causes an Invalid
+     Operation exception if used as in input operand to floating point
+     operation.  Trapping NaN can not be reported as an operation
+     result.
+
+`Function `IEEE_is_positive_zero''
+                  `int IEEE_is_positive_zero (IEEE_float single_float)'
+
+     returns 1 if given number is positive single precision zero
+     constant.  There are analogous functions for other special case
+     values:
+                  `IEEE_is_negative_zero',
+                  `IEEE_is_NaN',
+                  `IEEE_is_trapping_NaN',
+                  `IEEE_is_positive_infinity',
+                  `IEEE_is_negative_infinity',
+                  `IEEE_is_positive_maximum' (positive max value),
+                  `IEEE_is_negative_maximum',
+                  `IEEE_is_positive_minimum' (positive min value),
+                  `IEEE_is_negative_minimum',
+                  `IEEE_is_double_positive_zero',
+                  `IEEE_is_double_negative_zero',
+                  `IEEE_is_double_NaN',
+                  `IEEE_is_double_trapping_NaN',
+                  `IEEE_is_double_positive_infinity',
+                  `IEEE_is_double_negative_infinity',
+                  `IEEE_is_double_positive_maximum',
+                  `IEEE_is_double_negative_maximum',
+                  `IEEE_is_double_positive_minimum',
+                  `IEEE_is_double_negative_minimum'.
+                  `IEEE_is_quad_positive_zero',
+                  `IEEE_is_quad_negative_zero',
+                  `IEEE_is_quad_NaN',
+                  `IEEE_is_quad_trapping_NaN',
+                  `IEEE_is_quad_positive_infinity',
+                  `IEEE_is_quad_negative_infinity',
+                  `IEEE_is_quad_positive_maximum',
+                  `IEEE_is_quad_negative_maximum',
+                  `IEEE_is_quad_positive_minimum',
+                  `IEEE_is_quad_negative_minimum'.
+
+     In spite of that all functions of the package generate and use
+     only one its representation created by function `IEEE_NaN'
+     (or `IEEE_trapping_NaN', or
+     `IEEE_double_NaN', or
+     `IEEE_double_trapping_NaN', or
+     `IEEE_quad_NaN', or
+     `IEEE_quad_trapping_NaN').  The function
+     `IEEE_is_NaN' (and
+     `IEEE_trapping_NaN', and
+     `IEEE_double_NaN', and
+     `IEEE_double_trapping_NaN', and
+     `IEEE_quad_NaN', and
+     `IEEE_quad_trapping_NaN') determines any
+     representation of NaN.
+
+`Function `IEEE_is_normalized''
+                  `int IEEE_is_normalized (IEEE_float_t single_float)'
+
+     returns TRUE if single precision number is normalized (special
+     case values are not normalized).  There is analogous function
+                  `IEEE_is_denormalized'
+
+     for determination of denormalized number.  There are analogous
+     functions
+                  `IEEE_is_double_normalized' and
+                  `IEEE_is_double_denormalized' and
+                  `IEEE_is_quad_normalized' and
+                  `IEEE_is_quad_denormalized'
+
+     for doubles and quads.
+
+`Function `IEEE_add_single''
+                  `IEEE_float_t IEEE_add_single (IEEE_float_t single1,
+                                                 IEEE_float_t single2)'
+
+     makes single precision addition of floating point numbers.  There
+     are analogous functions which implement other floating point
+     operations:
+                  `IEEE_subtract_single',
+                  `IEEE_multiply_single',
+                  `IEEE_divide_single',
+                  `IEEE_add_double',
+                  `IEEE_subtract_double',
+                  `IEEE_multiply_double',
+                  `IEEE_divide_double'.
+                  `IEEE_add_quad',
+                  `IEEE_subtract_quad',
+                  `IEEE_multiply_quad',
+                  `IEEE_divide_quad'.
+
+     Results and input exceptions for operands of special cases values
+     (except for NaNs) are described for addition by the following table
+                      first  |         second operand
+                      operand|---------------------------------------
+                             |    +Inf      |    -Inf     |   Others
+                      -------|--------------|-------------|----------
+                      +Inf   |    +Inf      |     NaN     |   +Inf
+                             |    none      |IEEE_INV(_RO)|   none
+                      -------|--------------|-------------|----------
+                      -Inf   |    NaN       |    -Inf     |   -Inf
+                             |IEEE_INV(_RO) |    none     |   none
+                      -------|--------------|-------------|----------
+                      Others |    +Inf      |    -Inf     |
+                             |    none      |    none     |
+
+     Results and input exceptions for operands of special cases values
+     (except for NaNs) are described for subtraction by the following
+     table
+                      first  |         second operand
+                      operand|---------------------------------------
+                             |    +Inf     |    -Inf      |   Others
+                      -------|-------------|--------------|----------
+                      +Inf   |     NaN     |    +Inf      |   +Inf
+                             |IEEE_INV(_RO)|    none      |   none
+                      -------|-------------|--------------|----------
+                      -Inf   |    -Inf     |    NaN       |   -Inf
+                             |    none     |IEEE_INV(_RO) |   none
+                      -------|-------------|--------------|----------
+                      Others |    -Inf     |    +Inf      |
+                             |    none     |    none      |
+
+     Results and input exceptions for operands of special cases values
+     (except for NaNs) are described for multiplication by the
+     following table
+                  first  |         second operand
+                  operand|---------------------------------------------------
+                         |    +Inf     |    -Inf     |    0        |   Others
+                  -------|-------------|-------------|-------------|---------
+                  +Inf   |    +Inf     |    -Inf     |    NaN      |  (+-)Inf
+                         |    none     |    none     |IEEE_INV(_RO)|   none
+                  -------|-------------|-------------|-------------|---------
+                  -Inf   |    -Inf     |    +Inf     |    NaN      |  (+-)Inf
+                         |    none     |    none     |IEEE_INV(_RO)|   none
+                  -------|-------------|-------------|-------------|---------
+                  0      |     NaN     |    NaN      |   (+-)0     |  (+-)0
+                         |IEEE_INV(_RO)|IEEE_INV(_RO)|   none      |  none
+                  -------|-------------|-------------|-------------|---------
+                  Others |   (+-)Inf   |   (+-)Inf   |   (+-)0     |
+                         |    none     |    none     |   none      |
+
+     Results and input exceptions for operands of special cases values
+     (except for NaNs) are described for division by the following table
+                  first  |         second operand
+                  operand|---------------------------------------------------
+                         |    +Inf     |    -Inf     |    0        |   Others
+                  -------|-------------|-------------|-------------|---------
+                  +Inf   |     NaN     |     NaN     |   (+-)Inf   |  (+-)Inf
+                         |IEEE_INV(_RO)|IEEE_INV(_RO)|   none      |   none
+                  -------|-------------|-------------|-------------|---------
+                  -Inf   |     NaN     |     NaN     |   (+-)Inf   |  (+-)Inf
+                         |IEEE_INV(_RO)|IEEE_INV(_RO)|   none      |   none
+                  -------|-------------|-------------|-------------|---------
+                  0      |   (+-)0     |   (+-)0     |     NaN     |  (+-)0
+                         |   none      |   none      |IEEE_INV(_RO)|  none
+                  -------|-------------|-------------|-------------|---------
+                  Others |   (+-)0     |   (+-)0     |   (+-)Inf   |
+                         |   none      |    none     |   IEEE_DZ   |
+
+`Function `IEEE_eq_single''
+                  `int IEEE_eq_single (IEEE_float_t single1,
+                                       IEEE_float_t single2)'
+
+     compares two single precision floating point numbers on equality
+     and returns 1 or 0 depending on result of the comparison.  There
+     are analogous functions which implement other integer operations:
+                  `IEEE_ne_single',
+                  `IEEE_gt_single',
+                  `IEEE_lt_single',
+                  `IEEE_ge_single',
+                  `IEEE_le_single',
+                  `IEEE_eq_double',
+                  `IEEE_ne_double',
+                  `IEEE_gt_double',
+                  `IEEE_lt_double',
+                  `IEEE_ge_double',
+                  `IEEE_le_double'.
+                  `IEEE_eq_quad',
+                  `IEEE_ne_quad',
+                  `IEEE_gt_quad',
+                  `IEEE_lt_quad',
+                  `IEEE_ge_quad',
+                  `IEEE_le_quad'.
+
+     Results and input exceptions for operands of special cases values
+     are described for equality and inequality by the following table
+
+                  first  |         second operand
+                  operand|---------------------------------------
+                         |    SNaN     |    QNaN      |   Others
+                  -------|-------------|--------------|----------
+                  SNaN   |   FALSE     |   FALSE      |  FALSE
+                         |  IEEE_INV   |  IEEE_INV    | IEEE_INV
+                  -------|-------------|--------------|----------
+                  QNaN   |   FALSE     |   FALSE      |  FALSE
+                         |  IEEE_INV   |    none      |   none
+                  -------|-------------|--------------|----------
+                  Others |   FALSE     |   FALSE      |
+                         |  IEEE_INV   |    none      |
+
+     Results and input exceptions for operands of special cases values
+     are described for other comparison operation by the following table
+
+                  first  |         second operand
+                  operand|---------------------------------------
+                         |    SNaN     |    QNaN      |   Others
+                  -------|-------------|--------------|----------
+                  SNaN   |   FALSE     |   FALSE      |  FALSE
+                         |  IEEE_INV   |  IEEE_INV    | IEEE_INV
+                  -------|-------------|--------------|----------
+                  QNaN   |   FALSE     |   FALSE      |  FALSE
+                         |  IEEE_INV   |  IEEE_INV    | IEEE_INV
+                  -------|-------------|--------------|----------
+                  Others |   FALSE     |   FALSE      |
+                         |  IEEE_INV   |  IEEE_INV    |
+
+`Transformation  functions'
+                  `IEEE_double_t IEEE_single_to_double
+                                 (IEEE_float_t single_float)',
+          
+                  `IEEE_float_t IEEE_double_to_single
+                                (IEEE_double_t double_float)',
+          
+                  `IEEE_quad_t IEEE_single_to_quad
+                               (IEEE_float_t single_float)',
+          
+                  `IEEE_float_t IEEE_quad_to_single
+                                (IEEE_quad_t quad_float)',
+          
+                  `IEEE_quad_t IEEE_double_to_quad
+                               (IEEE_double_t double_float)',
+          
+                  `IEEE_double_t IEEE_quad_to_double
+                                (IEEE_quad_t quad_float)',
+          
+                  `IEEE_float_t IEEE_single_from_integer
+                                (int size, const void *integer)',
+          
+                  `IEEE_float_t IEEE_single_from_unsigned_integer
+                                (int size, const void *unsigned_integer)',
+          
+                  `IEEE_double_t IEEE_double_from_integer
+                                 (int size, const void *integer)',
+          
+                  `IEEE_double_t IEEE_double_from_unsigned_integer
+                                 (int size, const void *unsigned_integer)',
+          
+                  `IEEE_quad_t IEEE_quad_from_integer
+                               (int size, const void *integer)',
+          
+                  `IEEE_quad_t IEEE_quad_from_unsigned_integer
+                               (int size, const void *unsigned_integer)',
+          
+                  `void IEEE_single_to_integer
+                        (int size, IEEE_float_t single_float, void *integer)',
+          
+                  `void IEEE_single_to_unsigned_integer
+                        (int size, IEEE_float_t single_float,
+                         void *unsigned_integer)',
+          
+                  `void IEEE_double_to_integer
+                        (int size, IEEE_double_t double_float, void *integer)',
+          
+                  `void IEEE_double_to_unsigned_integer
+                        (int size, IEEE_double_t double_float,
+                         void *unsigned_integer)'.
+          
+                  `void IEEE_quad_to_integer
+                        (int size, IEEE_quad_t quad_float, void *integer)',
+          
+                  `void IEEE_quad_to_unsigned_integer
+                        (int size, IEEE_quad_t quad_float,
+                         void *unsigned_integer)'.
+
+     Actually no one output exceptions occur during transformation of
+     single precision floating point number to double and quad
+     precision number or of double precision floating point number to
+     quad precision number.  No input exceptions occur during
+     transformation of integer numbers to floating point numbers.
+     Results and input exceptions for operand of special cases values
+     (and for NaNs) are described for conversion floating point number
+     to integer by the following table
+                              Operand     | Result & Exception
+                            --------------|-------------------
+                                SNaN      |     0
+                                          |IEEE_INV(_RO)
+                            --------------|-------------------
+                                QNaN      |     0
+                                          |IEEE_INV(_RO)
+                            --------------|-------------------
+                                +Inf      |    IMax
+                                          |  IEEE_INV
+                            --------------|-------------------
+                                -Inf      |    IMin
+                                          |  IEEE_INV
+                            --------------|-------------------
+                                Others    |
+                                          |
+
+     Results and input exceptions for operand of special cases values
+     (and for NaNs) are described for conversion floating point number
+     to unsigned integer by the following table
+                              Operand     | Result & Exception
+                            --------------|-------------------
+                                SNaN      |     0
+                                          |IEEE_INV(_RO)
+                            --------------|-------------------
+                                QNaN      |     0
+                                          |IEEE_INV(_RO)
+                            --------------|-------------------
+                                +Inf      |    IMax
+                                          |  IEEE_INV
+                            --------------|-------------------
+                                -Inf or   |    0
+                           negative number|  IEEE_INV
+                            --------------|-------------------
+                                Others    |
+                                          |
+
+     Results and exceptions for NaNs during transformation of floating
+     point numbers to (unsigned) integers are differed from the ones
+     for operations of addition, multiplication and so on.
+
+`Function `IEEE_single_to_string''
+                  `char *IEEE_single_to_string (IEEE_float_t single_float,
+                                                char *result)'
+
+     transforms single precision to decimal ascii representation with
+     obligatory integer part (1 digit), fractional part (of constant
+     length), and optional exponent.  Signs minus are present if it is
+     needed.  The special cases IEEE floating point values are
+     represented by strings `SNaN', `QNaN', `+Inf', `-Inf', `+0', and
+     `-0'.  The function returns value `result'.  There are analogous
+     functions
+                  `IEEE_string_from_double'
+                  `IEEE_string_from_quad'
+
+     for doubles and quads.  Current round mode does not affect the
+     resultant ascii representation.  The function outputs 9 decimal
+     fraction digits for single precision number, 17 decimal fraction
+     digits for double precision number, and 36 for quad precision
+     number.
+
+`Function `IEEE_single_from_string''
+                  `char *IEEE_single_from_string (const char *operand,
+                                                  IEEE_float_t *result)'
+
+     skips all white spaces at the begin of source string and
+     transforms tail of the source string to single precision floating
+     point number.  The number must correspond the following syntax
+                     ['+' | '-'] [<decimal digits>] [ '.' [<decimal digits>] ]
+                          [ ('e' | 'E') ['+' | '-'] <decimal digits>]
+
+     or must be the following strings `SNaN', `QNaN', `+Inf', `-Inf',
+     `+0', or `-0'.  The function returns pointer to first character in
+     the source string after read floating point number.  If the string
+     does not correspond floating point number syntax the result will
+     be zero and function returns the source string.
+
+     The function can fix output exceptions as described above.  There
+     are analogous functions
+                  `IEEE_double_from_string'
+                  `IEEE_quad_from_string'
+
+     for doubles and quads.  Current round mode may affect resultant
+     floating point number.  It is guaranteed that transformation `IEEE
+     floating point number -> string -> IEEE floating point number'
+     results in the same IEEE floating point number if round to nearest
+     mode is used.  But the reverse transformation `string with 9 (or
+     17 or 36) digits -> IEEE floating point number -> string' may
+     results in different digits of the fractions in ascii
+     representation because a floating point number may represent
+     several such strings with differences in the least significant
+     digit.  But the ascii representations are identical when functions
+     `IEEE_single_from_string',
+     `IEEE_double_from_string',
+     `IEEE_quad_from_string' do not fix imprecise
+     result exception or less than 9 (or 17 or 36) digits of the
+     fractions in the ascii representations are compared.
+
+   Important note: All items (they contains word quad or QUAD in their
+names) relative to IEEE 128 bits floating point numbers are defined
+only when macro `IEEE_QUAD' is defined.  By default
+`IEEE_QUAD' is not defined.  It is made because supporting IEEE
+18-bits numbers requires more 100Kb memory.
+
+
+File: ammunition.info,  Node: Ticker package,  Next: Earley parser,  Prev: Package for machine-independent IEEE floating point arithmetic,  Up: Top
+
+Ticker package
+**************
+
+   The package `ticker' implements a timer.  Timer can be activated or
+can be stopped.  The timer accumulates execution time only when it is
+in active state.  The interface part of the package is file `ticker.h'.
+The implementation part is file `ticker.c'.  The interface contains
+the following external definitions and macros:
+`Type `ticker_t''
+     describes a timer.  Knowledge of structure (implementation) of
+     this type is not needed for using timer.
+
+`Function `create_ticker''
+                    `ticker_t create_ticker (void)'
+
+     returns new timer.  The state of the timer is active.  This
+     function call must to be the first for given timer.
+
+`Function `ticker_off''
+                    `void ticker_off (ticker_t *ticker)'
+
+     stops the timer given as the first parameter.
+
+`Function `ticker_on''
+                    `void ticker_on (ticker_t *ticker)'
+
+     activates the timer given as the first parameter.
+
+`Public function `active_time''
+                    `double active_time (ticker_t ticker)'
+
+     returns time in seconds as double float value in which given timer
+     was active.
+
+`Public function `active_time_string''
+                    `const char *active_time_string (void)'
+
+     returns string representation of time in seconds in which the
+     timer given as the function parameter was active.  Remember that
+     this function must be the single in a C++ expression because the
+     string is stored in a static variable of the function.
+

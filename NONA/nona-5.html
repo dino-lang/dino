@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>NONA (code selector description translator): Appendix 1 - Syntax of code selector description language</TITLE>
+ <LINK HREF="nona-4.html" REL=previous>
+ <LINK HREF="nona.html#toc5" REL=contents>
+</HEAD>
+<BODY>
+Next
+<A HREF="nona-4.html">Previous</A>
+<A HREF="nona.html#toc5">Contents</A>
+<HR>
+<H2><A NAME="s5">5. Appendix 1 - Syntax of code selector description language</A></H2>
+
+<P>YACC notation is used to describe full syntax of code selector
+description language.
+<BLOCKQUOTE><CODE>
+<PRE>
+  %token PERCENTS LEFT_PARENTHESIS RIGHT_PARENTHESIS
+         LEFT_ANGLE_BRACKET RIGHT_ANGLE_BRACKET COMMA COLON SEMICOLON
+         IDENTIFIER CODE_INSERTION EXPRESSION ADDITIONAL_C_CODE
+
+  %token COMMUTATIVE LOCAL IMPORT EXPORT UNION TERM TYPE IF 
+
+  %start description
+
+  %%
+
+  description : declaration_part  PERCENTS  rule_list  ADDITIONAL_C_CODE
+              ;
+
+  declaration_part :
+                   | declaration_part  commutative_declaration
+                   | declaration_part  term_declaration
+                   | declaration_part  type_declaration
+                   | declaration_part  LOCAL CODE_INSERTION
+                   | declaration_part  IMPORT CODE_INSERTION
+                   | declaration_part  EXPORT CODE_INSERTION
+                   | declaration_part  UNION CODE_INSERTION
+                   ;
+
+  term_declaration : TERM  optional_type
+                   | term_declaration  term_identifier
+                   ;
+
+  commutative_declaration : COMMUTATIVE  optional_type
+                          | commutative_declaration  term_identifier
+                          ;
+
+  type_declaration : TYPE  type
+                   | type_declaration  term_or_nonterm_identifier
+                   ;
+
+  optional_type :
+                | type
+                ;
+
+  type : LEFT_ANGLE_BRACKET  IDENTIFIER  RIGHT_ANGLE_BRACKET
+       ;
+
+  rule_list :
+            | rule_list  rule
+            ;
+
+  rule : nonterm_identifier  COLON  pattern
+         optional_cost  optional_constraint  optional_action  SEMICOLON
+       ;
+
+  optional_action :
+                  | CODE_INSERTION
+                  ;
+
+  optional_constraint :
+                      | IF  EXPRESSION
+                      ;
+
+  optional_cost :
+                | EXPRESSION
+                ;
+
+  nonterm_identifier : IDENTIFIER
+                     ;
+
+  term_identifier : IDENTIFIER
+                  ;
+
+  term_or_nonterm_identifier : IDENTIFIER
+                             ;
+
+  pattern : IDENTIFIER  LEFT_PARENTHESIS  pattern_list  RIGHT_PARENTHESIS
+          | term_or_nonterm_identifier
+          ;
+
+  pattern_list : pattern
+               | pattern_list COMMA pattern
+               ;
+</PRE>
+</CODE></BLOCKQUOTE>
+<P>
+<HR>
+Next
+<A HREF="nona-4.html">Previous</A>
+<A HREF="nona.html#toc5">Contents</A>
+</BODY>
+</HTML>

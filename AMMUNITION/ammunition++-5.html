@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with hash tables</TITLE>
+ <LINK HREF="ammunition++-6.html" REL=next>
+ <LINK HREF="ammunition++-4.html" REL=previous>
+ <LINK HREF="ammunition++.html#toc5" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition++-6.html">Next</A>
+<A HREF="ammunition++-4.html">Previous</A>
+<A HREF="ammunition++.html#toc5">Contents</A>
+<HR>
+<H2><A NAME="s5">5. Package for work with hash tables</A></H2>
+
+<P>The most compilers use search structures.  Here the package `hashtab'
+which implements expandable hash tables is suggested.  This abstract
+data implements features analogous to ones of public domain functions
+`hsearch', `hcreate' and `hdestroy'.  The goal of the abstract data
+creation is to implement additional needed features.  The abstract
+data permits to work simultaneously with several expandable hash
+tables.  Besides insertion and search of elements the elements from
+the hash tables can be also removed.  The table element can be only a
+pointer.  The size of hash tables is not fixed.  The hash table will
+be expanded when its occupancy will become big.
+<P>The abstract data implementation is based on generalized Algorithm D
+from Knuth's book "The art of computer programming".  Hash table is
+expanded by creation of new hash table and transferring elements from
+the old table to the new table.
+<P>The package uses package `allocate'.  The interface part of the
+abstract data is file `hashtab.h'.  The implementation part is file
+`hashtab.cpp'.  The interface contains the following objects:
+<P>
+<DL>
+<DT><B>Type `hash_table_entry_t'</B><DD><P>is described as `void *' and represents hash table element
+type.  Empty entries have value `NULL'.
+<P>
+<DT><B>Type `hash_table_t'</B><DD><P>describes hash table itself.  The type is simply synonym of
+`class hash_table *'.
+<P>
+<DT><B>Class `hash_table'</B><DD><P>The class contains the following functions:
+<DL>
+<DT><B>Public constructor `hash_table'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `hash_table
+              (size_t size,
+               unsigned (*hash_function)
+                                  (hash_table_entry_t el_ptr),
+               int (*eq_function) (hash_table_entry_t el1_ptr,
+                                   hash_table_entry_t el2_ptr))'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+creates hash table with length slightly longer than value
+of function parameter `size'.  Created hash table is
+initiated as empty (all the hash table entries are NULL).
+The hash table will use functions `hash_function',
+`eq_function' given as the function parameters to evaluate
+table element hash value and function to test on equality
+of two table elements.
+<P>
+<DT><B>Public destructor `&nbsp;hash_table'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `~hash_table (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+deletes given hash table and frees memory allocated for it.
+<P>
+<DT><B>Public function `empty'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `void empty  (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+makes the hash table empty.  If you need to remove all
+table elements, it is better to use this function than
+several times function `remove_element_from_entry'.  This
+function does not change size of the table or clear
+statistics about collisions.
+<P>
+<DT><B>Public function `find_entry'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `hash_table_entry_t *find_entry
+                                (hash_table_entry_t element,
+                                 int reserve)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+searches for hash table entry which contains element equal to
+value of the function parameter `element' or empty entry in
+which `element' can be placed (if the element does not exist
+in the table).  The function parameter `reserve' is to be
+nonzero if the element is to be placed in the table.  The
+element should be inserted into the table entry before another
+call of `find_hash_table_entry'.  The table is expanded if
+occupancy (taking into account also deleted elements) is more
+than 75%.  The occupancy of the table after the
+expansion will be about 50%.
+<P>
+<DT><B>Public function `remove_element_from_entry'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `void remove_element_from_entry
+                    (hash_table_entry_t element)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+removes element from hash table_entry whose value is given as
+the function parameter.  Hash table entry for given value
+should be not empty (or deleted).  The hash table entry value
+will be marked as deleted after the function call.
+<P>
+<DT><B>Public function `size'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `size_t size (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns current size of given hash table.
+<P>
+<DT><B>Public function `elements_number'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `size_t elements_number (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns current number of elements in given hash table.
+<P>
+<DT><B>Public function `collisions'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `int collisions (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns number of of percents of fixed collisions during all
+work with given hash table.
+<P>
+<DT><B>Static public function `all_collisions'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `int all_collisions (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns number of of percents of fixed collisions during all
+work with all hash tables.
+</DL>
+</DL>
+<P>
+<HR>
+<A HREF="ammunition++-6.html">Next</A>
+<A HREF="ammunition++-4.html">Previous</A>
+<A HREF="ammunition++.html#toc5">Contents</A>
+</BODY>
+</HTML>

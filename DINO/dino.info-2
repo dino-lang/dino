@@ -1,0 +1,1256 @@
+This is dino.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.dino30209.info.2.
+
+   \input texinfo
+
+
+File: dino.info,  Node: Comparison operators,  Next: Arithmetic operators,  Prev: Bit operators,  Up: Operators
+
+Comparison operators
+--------------------
+
+   All comparison operators return a logical value (integer 0 which
+means false or integer 1 which means true).
+
+   Operator equality `==' and inequality `!=' may make some conversion
+of the operands.  If one of the two operands is string, then the string
+conversion is applied to another operand before the comparison.
+Otherwise, the standard arithmetic conversion is applied to the
+operands.  The operators do not generate exceptions (but the
+conversions may).  The operands are equal if they have the same type
+and equal values (see section `Types and Values').
+
+   Operators identity `===' and unidentity `!==' returns 1 if the
+operands have the same value or 0 otherwise.  The operators never
+generates exceptions.
+
+   By default the arithmetic conversion is applied to the operands of
+operators `< > <= >='.  There is no exception if the operands after the
+conversion are of integer or floating point number type.  So the
+operands should be characters, integers, floating point numbers, or
+strings representing integers or floating point numbers.
+               Expr = Expr "=="  Expr
+                    | Expr "!="  Expr
+                    | Expr "==="  Expr
+                    | Expr "!=="  Expr
+                    | Expr "<"  Expr
+                    | Expr ">"  Expr
+                    | Expr "<="  Expr
+                    | Expr ">="  Expr
+
+   Examples:
+               10 == 10
+               10 === 10
+               10 == 10.0
+               10 !== 10.0
+               10 <= 'c'
+               p != nil
+               'c' == "c"
+               10 < "20.0"
+               [10, 20] == [10, 20]
+               [10, 20] !== [10, 20]
+
+
+File: dino.info,  Node: Arithmetic operators,  Next: Miscellaneous operators,  Prev: Comparison operators,  Up: Operators
+
+Arithmetic operators
+--------------------
+
+   The following operators return integer or floating point number.
+Before operator execution, implicit arithmetic conversion is made on
+operands.  Binary operators `+ - * / %' denote correspondingly
+integer or floating point addition, subtraction, multiplication,
+division, and evaluation of remainder.  Unary operator `-' denotes
+arithmetic negotiation.  Unary operator `+' is given for symmetry and
+it returns simply the operand after the conversion.  It can be used
+e.g. for conversion of a string into integer or floating point number.
+               Expr = Expr "+"  Expr
+                    | Expr "-"  Expr
+                    | Expr "*"  Expr
+                    | Expr "/"  Expr
+                    | Expr "%"  Expr
+                    | "+"  Expr
+                    | "-"  Expr
+
+   Examples:
+               +"0"
+               +"10."
+               +"1e1"
+               -i
+               (value + m - 1) / m * m
+               index % bound
+
+
+File: dino.info,  Node: Miscellaneous operators,  Prev: Arithmetic operators,  Up: Operators
+
+Miscellaneous operators
+-----------------------
+
+   Conditional expression is analogous to C language one.  The implicit
+arithmetic conversion is made for the first expression followed by `?'.
+If the value of the expression is non zero (integer or floating
+point), the second expression with preceding `:' is evaluated and it
+will be the result of the condition expression.  Otherwise, the third
+expression is evaluated and it becomes the result.
+
+   Operator `[num   ]' can be applied to a vector or a table.  It
+returns the length of the vector or elements number in the table.
+
+   Operator `@' denotes concatenation of two vectors into new vector.
+Before the concatenation the implicit string conversion of the operands
+is made.
+
+   The remaining operators look like a function call.  Operator `type'
+returns the expression type.  Never an exception generation is possible
+during the operator evaluation.
+
+   Operator `vector' is used to conversion of a value into vector.  The
+first, implicit string conversion is applied to the operand.  If the
+operand is a table after the conversion, the table is transformed into
+new vector which consists of pairs (one pair for each element of the
+table).  The first element of the pair is key of the corresponding
+element, the second one is the element itself.  The order of the pairs
+in the result vector is undefined.
+
+   Operator `table' is used to conversion of a value into table.  The
+first, string conversion is applied to the operand.  If the operand is
+a vector after the conversion, the vector is transformed into new table
+whose elements equal to the vector elements have integer keys equal to
+the corresponding vector indexes.
+
+   If the operand of operator `func' is an block instance of body of a
+function, it returns the corresponding function.  Otherwise, it returns
+value `nil'.  The operator never generates exception.
+
+   If the operand of operator `thread' is a thread, it returns the
+corresponding thread-function.  Otherwise, it returns value `nil'.  The
+operator never generates exception.
+
+   If the operand of operator `class' is an object, it returns the
+object class.  Otherwise, it returns value `nil'.  The operator never
+generates exception.
+               Expr = Expr "?"  Expr ":" Expr
+                    | "#"  Expr
+                    | Expr "@"  Expr
+                    | type "(" Expr ")"
+                    | vector "(" Expr ")"
+                    | table "(" Expr ")"
+                    | func "(" Expr ")"
+                    | thread "(" Expr ")"
+                    | class "(" Expr ")"
+
+   Examples:
+               i < 10 ? i : 10
+               #{"a", 'b'}
+               #["a", 'b']
+               "concat this " @ "and this"
+               type (type)
+               type (10)
+               vector  (10)
+               vector ({"1":1, "2":2})
+               table ([1, 2, 3, 4])
+               func (context (obj))
+               thread (curr_thread)
+               class (c ())
+
+
+File: dino.info,  Node: Executive statements,  Next: Program,  Prev: Expressions,  Up: Top
+
+Executive statements
+********************
+
+   Statements denote actions.  There are `simple' and `compound'
+statements.  Simple statements do no consists of any parts that are
+statements themselves.  They are the assignment, the procedure call,
+the return, the break, the continue, the throw, and the wait
+statements.  Analogous to C language the last symbol of Dino simple
+statement is semicolon `;'.  Compound statements consists of parts that
+are statements themselves.  They are used to express sequencing,
+exception handling, conditional, and repetitive execution.
+
+* Menu:
+
+* Empty statement::
+* Block-statement::
+* Assignment statements::
+* Call-statement::
+* If-statement::
+* For-statement::
+* Foreach-statement::
+* Break- and continue-statement::
+* Return-statement::
+* Throw-statement::
+* Try-block::
+* Wait-statement::
+
+
+File: dino.info,  Node: Empty statement,  Next: Block-statement,  Up: Executive statements
+
+Empty statement
+===============
+
+   There is also empty statement in Dino.  It denotes no action.  The
+empty statement is included in Dino for convenience.
+               ExecutiveStmt = ";"
+
+   Example: Usage of empty statement in for-statement
+               for (i = 0; a[i] == 0; i++)
+                 ;
+
+
+File: dino.info,  Node: Block-statement,  Next: Assignment statements,  Prev: Empty statement,  Up: Executive statements
+
+Block-statement
+===============
+
+   Block-statement is simply block and can used to group statements in
+one statement and/or also to describe local declarations.  How the
+block is executed see in section `Declaration and Scope Rules'.
+               ExecutiveStmt = BlockStmt
+     
+               BlockStmt = Block
+
+   Example: Usage of block-statement in for-statement
+               sum = 0;
+               for (i = 0; i < #a; i++)
+                 {
+                   var value = a[i];
+                   if (value > 0)
+                     sum += value;
+                 }
+
+
+File: dino.info,  Node: Assignment statements,  Next: Call-statement,  Prev: Block-statement,  Up: Executive statements
+
+Assignment statements
+=====================
+
+   Assignment-statements is used to change variable values or element
+values of a structured value which are referred through a designator
+(see sub-section `Designator' in section `Expressions'.  The designator
+can not denote final variable (see section `Variable Declaration').
+You can not change element value of immutable value (see section `Types
+and Values').  In this case exception `immutable' is generated.
+
+   Simple assignment statement looks like `Designator = Expr;'.  That
+means that the expression value is assigned to variable or element of
+structured type value denoted by the designator.  For convenience of C
+programmers there are also Dino assignments kind of `Designator op=
+Expr;', `Designator++;', `++Designator;', `Designator-;', and
+`-Designator;'.  They are analogous correspondingly to `Designator =
+Designator op Expr;', `Designator = Designator + 1;', and `Designator =
+Designator - 1;'.  The only difference is in that the Designator is
+evaluated only once not twice as in the analogous form.  It is
+important to know if you have `side effects' in the statement.
+               ExecutiveStmt = Designator Assign  Expr ";"
+                             | Designator ("++" | "--")  ";"
+                             | ("++" | "--")  Designator ";"
+               Assign = "="
+                      | "*="
+                      | "/="
+                      | "%="
+                      | "+="
+                      | "-="
+                      | "@="
+                      | "<<="
+                      | ">>="
+                      | ">>>="
+                      | "&="
+                      | "^="
+                      | "|="
+
+   Examples:
+               v = [10, 20];
+               i = 1;
+               i++;
+               --i;
+               i *= 20
+
+
+File: dino.info,  Node: Call-statement,  Next: If-statement,  Prev: Assignment statements,  Up: Executive statements
+
+Call-statement
+==============
+
+   Call-statement is used to call a function, a thread-function, or a
+class.  It works analogous to the call in expression (see sub-section
+`Call' in section `Types and Values').  The single difference is in
+that call-statement throws away the call result.
+               ExecutiveStmt = Designator ActualParameters  ";"
+
+   Examples:
+               putln ("percent=" @ percent @ "%");
+               newthread ();
+
+
+File: dino.info,  Node: If-statement,  Next: For-statement,  Prev: Call-statement,  Up: Executive statements
+
+If-statement
+============
+
+   Dino if-statement is analogous to C language one.  The first,
+expression after `if' is evaluated and arithmetic conversion is made to
+it.  The value should be an integer or a floating-point number,
+otherwise exception `optype' is generated.  If the value is nonzero the
+first statement is executed, otherwise the statement after `else' is
+executed if any.  The problem with `dangling else' is resolved
+analogous to C language - `else' is associated with the last `if'.
+               ExecutiveStmt = if  "(" Expr ")" Stmt [ else Stmt ]
+
+   Examples:
+               if (i < 0) i = 0;
+               if (i < j) return -1; else if (i > 0) return 1; else return 0;
+
+
+File: dino.info,  Node: For-statement,  Next: Foreach-statement,  Prev: If-statement,  Up: Executive statements
+
+For-statement
+=============
+
+   Dino for-statement is analogous to C language one.  The statement is
+executed in the following way.
+  1. Execution of the first statement in the parentheses.
+
+  2. The expression (`for-guard') is evaluated and the implicit
+     arithmetic conversion is made.  The value should be an integer or
+     a floating point number.  If this is not true, exception `optype'
+     is generated.
+
+  3. If the value of for-guard is nonzero, the body of the loop (the
+     last statement) is executed.  Otherwise, the for-statement
+     execution finishes.
+
+  4. When the body has been executed, the second statement in the
+     parentheses is executed and steps 2,3,4 (one iteration) are
+     repeated.
+
+   If the second statement is a simple statement, the statement
+semicolon can be omitted.  The for-statement also can be finished by
+execution of statement `break' in the body.  The body can be finished by
+execution of statement `continue'.  In this case, the for-statement
+execution continues with the step 4.
+               ExecutiveStmt = for  "("  Stmt ForGuardExpr ";"  Stmt ")" Stmt
+     
+               ForGuardExpr = [Expr]
+
+   Examples:
+               for (i = 0; i < 10; i++;) sum += v [i];
+               for (i = 0; i < 10; i++) sum += v [i];
+               for ({sum = 0; i = 0;} i < 10; i++) sum += v [i];
+
+
+File: dino.info,  Node: Foreach-statement,  Next: Break- and continue-statement,  Prev: For-statement,  Up: Executive statements
+
+Foreach-statement
+=================
+
+   This statement is used to execution of the foreach-statement body
+(the statement) for all keys of table which is value of the expression.
+The expression value should be a table.  If this is not true, exception
+`keyop' is generated.  The current key value on each iteration is
+assigned to the designator.  The order in which key values are assigned
+on each iteration is undefined.  One iteration can be finished with the
+aid of statement `continue' and all foreach-statement can be finished
+by execution of statement `break'.
+               ExecutiveStmt = for  "("  Designator in Expr ")" Stmt
+
+   Examples:
+               putln ("All table is");
+               for (k in t) {
+                 put ("key=");
+                 print (k);
+                 put (", element=");
+                 println (t{k});
+               }
+
+
+File: dino.info,  Node: Break- and continue-statement,  Next: Return-statement,  Prev: Foreach-statement,  Up: Executive statements
+
+Break- and continue-statement
+=============================
+
+   Statements `break' and `continue' are used correspondingly to finish
+execution of the most nested for- or foreach-statement covering the
+statement and to finish one iteration of the body of the for- or
+foreach-statement.  These statement can be used only inside of a for-
+or foreach-statement.
+               ExecutiveStmt = break ";"
+                             | continue ";"
+
+   Examples:
+               for (i = 0; i < 10; i++) {
+                  if (ind [i] < 0)
+                    continiue;
+                  val = v [ind[i]];
+               }
+               for (i in t)
+                 if (t{i} == elval)
+                   break;
+
+
+File: dino.info,  Node: Return-statement,  Next: Throw-statement,  Prev: Break- and continue-statement,  Up: Executive statements
+
+Return-statement
+================
+
+   Return-statement is used to finish execution of a function, a thread,
+or class block.  The statement corresponds to the most nested function,
+function-thread, or class covering the statement.  So return-statement
+can be placed only in a function, a function-thread, or a class.
+Expression in return-statement can be given only for functions.  In
+this case, the expression value will be value of the function call
+(instead of default result value `nil').
+               ExecutiveStmt = return  [ Expr ] ";"
+
+   Examples:
+               return;
+               return [10, 2:0]
+
+
+File: dino.info,  Node: Throw-statement,  Next: Try-block,  Prev: Return-statement,  Up: Executive statements
+
+Throw-statement
+===============
+
+   This statement generates exception which is given by value of the
+expression.  The expression should be an object of predeclared class
+`except' or an object of class declared somewhere in predeclared class
+`except'.  If this is not true, exception `optype' is generated.  How
+exceptions are processed are described in the following section.
+               ExecutiveStmt = throw  Expr ";"
+
+   Examples:
+               ext except {
+                 ext error {
+                   class myexcept (msg) {}
+                 }
+               }
+               throw errors.myexcept ("this is an user defined exception");
+
+
+File: dino.info,  Node: Try-block,  Next: Wait-statement,  Prev: Throw-statement,  Up: Executive statements
+
+Try-block
+=========
+
+   Exceptions can be generated by Dino interpreter when some conditions
+are not satisfied, by predeclared Dino functions, by other OS
+processes, by user interruptions, or by user with the aid of
+throw-statement.  Actually, the exceptions are represented by an object
+of predeclared class `except' or by an object of class declared inside
+of the predeclared class `except'.  All predeclared exceptions are
+described in section `Predeclared Identifiers'.  To catch and to
+process exceptions, try-block can be used.
+
+   When an exception is occurred, the most nested try-block which
+covering the statement generating the exception or currently being
+executed (when this is is generated by an OS process, by an user
+interruption) is searched for.  Then, expressions in the catch list
+elements are processed subsequently.  The expression value in the catch
+list element being processed should be predeclared class `except' or
+class declared inside the predeclared class `except'.  If the
+expression being processed is a class and the exception is an object of
+the class or an object of a class declared in the class given by the
+expression being processed, the block corresponding to given catch list
+element is executed.  If there is not such catch expression, the most
+nested try-block covering the current try-block is searched for and
+processing the exception is repeated.  If there are no more such
+try-blocks, the program finishes with diagnostics which is dependent on
+the generated exception.
+
+   Blocks corresponding to catch list elements have predeclared variable
+`e'.  When the block execution start, the variable contains the object
+representing the exception.
+               ExecutiveStmt = TryBlockStmt
+     
+               TryBlockStmt = try Block { Catch }
+     
+               Catch = catch  "(" ExceptClassList ")" Block
+     
+               ExceptClassList = Expr { "," Expr }
+
+   Examples:
+               try {
+                 var ln;
+                 for (;;)
+                   ln = getln;
+               } catch (invcalls.eof) {
+               }
+               try {
+                 var v = [];
+                 v {1} = 0;
+               } catch (except) {
+                 put ("catching and propagating up exception"); println (class (e));
+                 throw e;
+               }
+
+
+File: dino.info,  Node: Wait-statement,  Prev: Try-block,  Up: Executive statements
+
+Wait-statement
+==============
+
+   This statement is used for synchronization of different threads in
+Dino program.  The expression can not contain a function,
+thread-function call.  The thread in which the statement has been
+executed waits until the expression value becomes nonzero.  The
+expression value (after implicit arithmetic conversion) should be an
+integer or a floating point number.  Otherwise exception `optype' is
+generated.  The important thing to know how to make synchronization is
+that the assignment statement without calls is always executed as one
+transaction.
+               ExecutiveStmt = wait  Expr ";"
+
+   Examples:
+               wait !empty;
+
+
+File: dino.info,  Node: Program,  Next: Predeclared identifiers,  Prev: Executive statements,  Up: Top
+
+Program
+*******
+
+   Dino program is simply a sequence of statements.  There is special
+declaration useful for writing programs consisting of several files or
+for making Dino packages.  This is include-declaration.  Before
+execution of any statements all include-declarations are changed by
+files whose base names given by the strings.  It is made recursively,
+i.e.  the files themselves can contain other include-declarations.
+There should be no infinite recursion in this.  If `+' is present in
+the include-declaration, the file inserted in any case.  Without `+'
+the file inserted only if it has been not inserted yet into the block
+of the declaration.
+               Program = StmtList
+     
+               IncludeDeclaration = include ["+"] STRING ";"
+
+   Examples:
+
+   The following program outputs the first 24 Fibonachi numbers.
+               // Recursive function to compute Fibonacci numbers
+               func fibonacci (n)
+                 {
+                    if (n <= 1) return 1;
+                    return (fibonacci(n-1) + fibonacci(n-2));
+                 }
+     
+               var i, fibnum;
+     
+               fibnum = 0;
+               for (i = 0; i <= 24; i++)
+                 {
+                   fibnum = fibonacci(i);
+                   putln (i @ " " @ fibnum);
+                 }
+
+   The following program outputs the number of prime numbers less 8190.
+               var i, prime, k, count, flags;
+               var final SieveSize = 8190;
+     
+               flags = [SieveSize + 1 : 0];
+               count = 0;
+               for (i = 0; i <= SieveSize; i++)
+                 flags[i] = 1;
+               for (i = 0; i <= SieveSize; i++)
+                 if (flags[i])
+                   {
+                     prime = i + i + 3;
+                     k = i + prime;
+                     for (;1;;)
+                       {
+                           if (k > SieveSize)
+                           break;
+                         flags[k] = 0;
+                         k += prime;
+                       }
+                     count++;
+                   }
+               println (count);
+
+   The following program outputs number of occurrences of numbers and
+identifiers in stdin.
+               var i, key, voc = {};
+               for (;;)
+                 try {
+                   var ln, a;
+     
+                   ln = getln ();
+                   if (ln == "")
+                     continue;
+                   a = split (ln, "[^[:alnum:]]");
+                   for (i = 0; i < #a; i++)
+                     voc {a[i]} = (a[i] in voc ? voc {a[i]} + 1 : 1);
+                 } catch (invcalls.eof) {
+                   break;
+                 }
+               func comp (el1, el2) {
+                 return cmpv (tolower (el1), tolower (el2));
+               }
+               key = sort (keys (voc), comp);
+               for (i = 0; i < #key; i++)
+                 putln (key[i], " : ", voc{key[i]});
+
+   The following program uses Dino package `mpi'.
+               include "mpi";
+               var mpi1, mpi2;
+               mpi1 = mpis.from_string(50, "1000000000000000000000000000000000000");
+               mpi2 = mpis.from_string(50, "5000000000000000000000000000000000000");
+               putln (mpis.to_string (mpis.add (mpi1, mpi2)));
+
+
+File: dino.info,  Node: Predeclared identifiers,  Next: Appendix A- Syntax of Dino,  Prev: Program,  Up: Top
+
+Predeclared identifiers
+***********************
+
+   Dino has a lot of predeclared identifiers.  Section `Declarations
+and Scope Rules' contains them in alphanumeric order.  Here they are
+described according the declaration category which they belongs to.
+
+* Menu:
+
+* Predeclared variables::
+* Predeclared classes::
+* Predeclared functions::
+
+
+File: dino.info,  Node: Predeclared variables,  Next: Predeclared classes,  Up: Predeclared identifiers
+
+Predeclared variables
+=====================
+
+   Dino has some predeclared variables which contain useful information
+or can be used to control behaviour of Dino interpreter.
+
+* Menu:
+
+* Arguments and environment::
+* Threads::
+* Exceptions::
+* Files::
+* Miscellaneous variables::
+
+
+File: dino.info,  Node: Arguments and environment,  Next: Threads,  Up: Predeclared variables
+
+Arguments and environment
+-------------------------
+
+   To access Dino program arguments and environment, the following
+variables can be used.
+   * `argv'.  The variable value is immutable vector whose elements are
+     strings (immutable vectors of characters) representing arguments
+     of Dino program (see implementation).
+
+   * `env'.  The variable value is immutable table whose elements are
+     strings (immutable vectors of characters) representing values of
+     environment variables whose names are the keys of the table.
+
+
+File: dino.info,  Node: Threads,  Next: Exceptions,  Prev: Arguments and environment,  Up: Predeclared variables
+
+Threads
+-------
+
+   To access some information about threads in Dino program, the
+following variables can be used.
+   * `main_thread'.  The variable value is the main thread.
+     When Dino program starts, there is only one thread which is called
+     `the main thread'.
+
+   * `curr_thread'.  The variable value is thread in which you
+     get the variable value.
+
+   All these variables are final, so you can not change their values.
+
+
+File: dino.info,  Node: Exceptions,  Next: Files,  Prev: Threads,  Up: Predeclared variables
+
+Exceptions
+----------
+
+   When it is necessary to create an exception which is a object of
+class declared inside class `except' or when it is necessary to refer
+for a class inside class `except', the following variables can be used.
+Instead of typing `catch (except().signal().sigint)', you could type
+`catch (signals.sigint)'.
+   * `excepts'.  The variable value is an object of class `except'.
+
+   * `errors'.  The variable value is an object of class
+     `excepts.error'.
+
+   * `signals'.  The variable value is an object of class
+     `errors.signal'.
+
+   * `invops'.  The variable value is an object of class `errors.invop'.
+
+   * `invindexes'.  The variable value is an object of class
+     `errors.invindex'.
+
+   * `invkeys'.  The variable value is an object of class
+     `errors.invkey'.
+
+   * `invcalls'.  The variable value is an object of class
+     `errors.invcall'.
+
+   * `syserrors'.  The variable value is an object of class
+     `invcalls.syserror'.
+
+   * `systemcalls'.  The variable value is an object of class
+     `invcalls.systemcall'.
+
+   * `invparsers'.  The variable value is an object of class
+     `invcalls.invparser'.
+
+   * `invregexps'.  The variable value is an object of class
+     `invcalls.invregexp'.
+
+   * `invexterns'.  The variable value is an object of class
+     `invcalls.invextern'.
+
+   * `invaccesses'.  The variable value is an object of class
+     `errors.invaccess'.
+
+   All these variables are final, so you can not change their values.
+
+
+File: dino.info,  Node: Files,  Next: Miscellaneous variables,  Prev: Exceptions,  Up: Predeclared variables
+
+Files
+-----
+
+   To output something into standard streams or to input something from
+the standard input stream, the following variables can be used.
+   * `stdin'.  The variable value is an object of class `file' which
+     corresponds to standard input stream.
+
+   * `stdout'.  The variable value is an object of class `file' which
+     corresponds to standard output stream.
+
+   * `stderr'.  The variable value is an object of class `file' which
+     corresponds to standard error stream.
+
+   All these variables are final, so you can not change their values.
+
+
+File: dino.info,  Node: Miscellaneous variables,  Prev: Files,  Up: Predeclared variables
+
+Miscellaneous variables
+-----------------------
+
+   Values of the following variables are used by some predeclared
+functions:
+   * `split_regex'.  The variable value is string which
+     represents regular expression which is used by predeclared
+     function `split' when the second parameter is not given.  Initial
+     value of the variable is string `"[ \t]+"'.
+
+   * `time_format'.  The variable value is string which is
+     output format of time used by function `strtime' when it is called
+     without parameters.  Initial value of the variable is string
+     `"%a %b %d %H:%M:%S
+     %Z %Y"'.
+
+
+File: dino.info,  Node: Predeclared classes,  Next: Predeclared functions,  Prev: Predeclared variables,  Up: Predeclared identifiers
+
+Predeclared classes
+===================
+
+   The most of the predeclared classes describe exceptions which may be
+generated in Dino program.
+
+* Menu:
+
+* File::
+* Exception classes::
+* Earley parser classes::
+
+
+File: dino.info,  Node: File,  Next: Exception classes,  Up: Predeclared classes
+
+File
+----
+
+   Dino has predeclared final class `file'.  Work with files in Dino
+program are made through objects of the class.  All declarations inside
+of the class are private.  The objects of the class can be created only
+by predeclared function `open' or `popen'.  You can not create an
+object of the class calling the class because exception `callop' will
+be generated in this case.
+
+
+File: dino.info,  Node: Exception classes,  Next: Earley parser classes,  Prev: File,  Up: Predeclared classes
+
+Exception classes
+-----------------
+
+   All Dino exceptions are represented by objects of predeclared class
+`except' or of an class in the class `except'.  The class `except' has
+no parameters therefore all arguments in call of the class will be
+ignored.  There is one predeclared class `error' inside class `except'.
+All classes corresponding user-declared exceptions are suggested to be
+declared in class `except' not in the class `error' because all other
+exceptions (e.g. generated by Dino interpreter itself or by predeclared
+functions) are objects of class `error' or predeclared classes inside
+the class `error'. The class `error' and all classes inside the class
+has one parameter `msg' which contains readable message about the
+exception.  The following classes are declared in the class `error':
+
+   * `signal'.  Classes inside this class describe exceptions by
+     receiving a signal from other OS processes.  They are
+        * `sigint'.  This class describes exception generated by user's
+          interrupt from keyboard.
+
+        * `sigill'.  This class describes exception generated by
+          illegal instruction execution.
+
+        * `sigabrt'.  This class describes exception generated by
+          signal abort.
+
+        * `sigfpe'.  This class describes a floating point exception.
+
+        * `sigterm'.  This class describes exception generated by
+          termination signal.
+
+        * `sigsegv'.  This class describes exception generated by an
+          invalid memory reference.
+
+   * `invenv'.  This class describes corruption of Dino program
+     environment (see predeclared variable `env').
+
+   * `invop'.  Classes inside this class describe exceptions when
+     operands of operations have incorrect type or value.
+        * `optype'.  This class describes that operand of an operation
+          is not of required type (possibly after implicit conversions).
+
+        * `opvalue'.  This class reserved for description of that
+          operand of an operation has invalid value.  Now this
+          exception is not generated.
+
+   * `invindex'.  Classes inside this class describe exceptions in
+     referring for a vector element.
+        * `indextype'.  This class describes that the index is not of
+          integer type (possibly after implicit integer conversion).
+
+        * `indexvalue'.  This class describes that the index is
+          negative or equal or more than the vector length.
+
+        * `indexop'.  This class describes that the first operand in
+          referring vector element is not vector.
+
+   * `invkey'.  Classes inside this class describe exceptions in
+     referring for a table element.
+        * `keyvalue'.  This class describes that there is no element in
+          the table with given key when we need value of the element.
+          The exception does not occur when table element reference
+          stands in the left hand side of an assignment-statement.
+
+        * `keyop'.  This class describes that the first operand in
+          referring table element is not table.
+
+   * `invcall'.  Classes inside this class describe exceptions in
+     calling functions (mainly predeclared ones).
+        * `callop'.  This class describes that we try to call something
+          which is not function, class, or thread-function.  The
+          exception is also generated when you try to create a class
+          `file' instance by calling the class.
+
+        * `partype'.  This class describes that a parameter value of
+          predeclared function is not of required type.
+
+        * `invresult'.  This class describes that the result value of
+          function call is not of required type, e.g. comparison
+          function used in call function `sort' returns non integer
+          value.
+
+        * `invinput'.  This class describes that file input is not of
+          required format.  Usually the exception is generated by
+          function `scan' etc.
+
+        * `eof'.  This class describes that end of file is encountered.
+          Usually the exception is generated by functions reading
+          files (`get', `scan' etc).
+
+        * `parnumber'.  This class describes that the actual parameters
+          number is not valid when we call a predeclared function.
+
+        * `syserror'.  Classes inside this class describe exceptions in
+          predeclared functions which call OS system functions.  Some
+          exceptions are never generated but may be generated in the
+          future on some OSes.
+             * `eaccess'.  This describes system error "Permission
+               denied".
+
+             * `eagain'.  This describes system error "Resource
+               temporarily unavailable".
+
+             * `ebadf'.  This describes system error "Bad file
+               descriptor".
+
+             * `ebusy'.  This describes system error "Resource busy".
+
+             * `echild'.  This describes system error "No child
+               processes".
+
+             * `edeadlk'.  This describes system error "Resource
+               deadlock avoided".
+
+             * `edom'.  This describes system error "Domain error".
+
+             * `eexist'.  This describes system error "File exists".
+
+             * `efault'.  This describes system error "Bad address".
+
+             * `efbig'.  This describes system error "File too large".
+
+             * `eintr'.  This describes system error "Interrupted
+               function call".
+
+             * `einval'.  This describes system error "Invalid
+               argument".
+
+             * `eio'.  This describes system error "Input/output error".
+
+             * `eisdir'.  This describes system error "Is a directory".
+
+             * `emfile'.  This describes system error "Too many open
+               files".
+
+             * `emlink'.  This describes system error "Too many links".
+
+             * `enametoolong'.  This describes system error "Filename
+               too long".
+
+             * `enfile'.  This describes system error "Too many open
+               files in system".
+
+             * `enodev'.  This describes system error "No such device".
+
+             * `enoent'.  This describes system error "No such file or
+               directory".
+
+             * `enoexec'.  This describes system error "Exec format
+               error".
+
+             * `enolck'.  This describes system error "No locks
+               available".
+
+             * `enomem'.  This describes system error "Not enough
+               space".
+
+             * `enospc'.  This describes system error "No space left on
+               device".
+
+             * `enosys'.  This describes system error "Function not
+               implemented".
+
+             * `enotdir'.  This describes system error "Not a
+               directory".
+
+             * `enotempty'.  This describes system error "Directory not
+               empty".
+
+             * `enotty'.  This describes system error "Inappropriate
+               I/O control operation".
+
+             * `enxio'.  This describes system error "No such device or
+               address".
+
+             * `eperm'.  This describes system error "Operation not
+               permitted".
+
+             * `epipe'.  This describes system error "Broken pipe".
+
+             * `erange'.  This describes system error "Result too
+               large".
+
+             * `erofs'.  This describes system error "Read-only file
+               system".
+
+             * `espipe'.  This describes system error "Invalid seek".
+
+             * `esrch'.  This describes system error "No such process".
+
+             * `exdev'.  This describes system error "Improper link".
+
+        * `systemcall'.  Classes inside this class describe exceptions
+          in calling predeclared function `system'.
+             * `noshell'.  This class describes exception that the
+               function `system' can not find OS command interpriter
+               (shell).
+
+             * `systemfail'.  This class describes all remaining
+               exceptions in calling OS function `system'.
+
+        * `invparser'.  Classes inside this class describe exceptions
+          specific for calling functions of predeclared class `parser'
+          implementing earley parser.
+             * `invgrammar'.  This class describes exception that
+               earley parser got a bad grammar, e.g. without rules,
+               with loops in rules, with nonterminals unachievable from
+               axiom, with nonterminals not deriving any terminal
+               string etc.
+
+             * `invtoken'.  This class describes exception that parser
+               got input token with unknown (undeclared) code.
+
+             * `pmemory'.  This class describes exception that there is
+               no enough memory for internal parser data.
+
+        * `invregexp'.  Classes inside this class describe exceptions
+          specific for calling predeclared functions implementing
+          regular expression pattern matching.
+             * `ebrack'.  This class describes exception that regular
+               expression has unmatched bracket.
+
+             * `erange'.  This class describes exception that there is
+               invalid use of range in regular expression.
+
+             * `ectype'.  This class describes exception that there is
+               unknown character class name in regular expression.
+
+             * `eparen'.  This class describes exception that regular
+               expression has unmatched parenthesis.
+
+             * `esubreg'.  This class describes exception that there is
+               invalid back reference to a subexpression in regular
+               expression.
+
+             * `eend'.  This class describes exception that there is
+               non specific error in regular expression.
+
+             * `eescape'.  This class describes exception that there is
+               a trailing backslash.
+
+             * `badpat'.  This class describes exception that there is
+               invalid use of pattern operators in regular expression.
+
+             * `esize'.  This class describes exception that compiled
+               regular expression is too big.
+
+             * `espace'.  This class describes exception that there is
+               no memory for regular expression function work.
+
+        * `invextern'.  Classes inside this class describe exceptions
+          in calling external functions or in access to an external
+          variable.
+             * `noextern'.  This class describes exception that given
+               external can not be find.
+
+             * `libclose'.  This class describes exception that there
+               is an error in closing a shared library.
+
+             * `noexternsupp'.  This class describes exception in usage
+               of externals when they are not implemented under this OS.
+
+        * `invenvar'.  This class describes corruption in value of
+          variables `split_regex' and `time_format' (e.g.
+          their values are not strings).
+
+        * `internal'.  This class describes all other (nonspecified)
+          exceptions in calling predeclared functions.
+
+
+File: dino.info,  Node: Earley parser classes,  Prev: Exception classes,  Up: Predeclared classes
+
+Earley parser classes
+---------------------
+
+   Dino has three following classes which are relative to earley parser
+embedded into Dino interpreter.
+
+* Menu:
+
+* Parser-::
+* Token-::
+* Anode-::
+* Example of Earley parser usage-::
+
+
+File: dino.info,  Node: Parser-,  Next: Token-,  Up: Earley parser classes
+
+Parser-
+.......
+
+   Dino has predeclared final class `parser' which implements Earley
+parser.  Earley parser is very powerfull tools to implement serious
+language compilers, processors, or translators.  The implementaion of
+Earley parser used in Dino has the following features:
+
+   * It is sufficiently fast and does not require much memory.  This is
+     the fastest implementation of Earley parser which I know.  The
+     main design goal is to achieve speed and memory requirements which
+     are necessary to use it in prototype compilers and language
+     processors.  It parses 30K lines of C program per second on 500
+     MHz Pentium III and allocates about 5Mb memory for 10K line C
+     program.
+
+   * It makes simple syntax directed translation.  So an abstract tree
+     is already the output of Earley parser.
+
+   * It can parse input described by an ambiguous grammar.  In this
+     case the parse result can be an abstract tree or all possible
+     abstract trees.  Moreover it produces the compact representation
+     of all possible parse trees by using DAG instead of real trees.
+     These feature can be used to parse natural language sentences.
+
+   * It can make syntax error recovery.  Moreover its error recovery
+     algorithms finds error recovery with minimal number of ignored
+     tokens.  It permits to implement parsers with very good error
+     recovery and reporting.
+
+   * It has fast startup.  There is no practically delay between
+     processing grammar and start of parsing.
+
+   * It has flexible interface.  The input grammar is given by
+     YACC-like description.
+
+   * It has good debugging features.  It can print huge amount of
+     information about grammar, parsing, error recovery, translation.
+     You can even output the result translation in form for a graphic
+     visualization program.
+
+   The following public functions and variables are declared in the
+class `parser':
+   * `ambiguous_p'.  This public variable stores information
+     about the last parsing.  Nonzero variable value means that during
+     last parsing on given input the parser found that the grammar is
+     ambiguous.  The parser find this even if you asked producing only
+     one parser tree (see function `set_one_parse').
+
+   * `set_grammar (descr, strict_p)'.  This function
+     tunes the parser to given grammar.  The grammar is given by string
+     `descr'.  Nonzero parameter `strict_p' value (after
+     implicit implicit integer conversion) means more strict checking
+     the grammar.  In this case, all nonterminals will be checked on
+     ability to derive a terminal string instead of only checking axiom
+     for this.  The function can generate exceptions `partype' (if the
+     parameters has wrong types) or `invgrammar' if the description is
+     a bad grammar.  The function also can generate exception `pmemory'
+     if there are no memory for internal parser data.
+
+     The description is similiar `YACC' one.  It has the following
+     syntax:
+                    file : file terms [';']
+                         | file rule
+                         | terms [';']
+                         | rule
+          
+                    terms : terms IDENTIFIER ['=' NUMBER]
+                          | TERM
+          
+                    rule : IDENTIFIER ':' rhs [';']
+          
+                    rhs : rhs '|' sequence [translation]
+                        | sequence [translation]
+          
+                    sequence :
+                             | sequence IDENTIFIER
+                             | sequence C_CHARACTER_CONSTANT
+          
+                    translation : ['#'] NUMBER
+                                | '#' IDENTIFIER '(' numbers ')'
+          
+                    numbers :
+                            | numbers NUMBER
+
+     So the description consists of terminal declaration and rules
+     sections.
+
+     Terminal declaration section describes name of terminals and their
+     codes.  Terminal code is optional.  If it is omitted, the terminal
+     code will the next free code starting with 256.  You can declare
+     terminal several times (the single condition its code should be
+     the same).
+
+     Character constant present in the rules is a terminal described by
+     default.  Its code is always code of the character constant.
+
+     Rules syntax is the same as `YACC' rule syntax.  The single
+     difference is an optional translation construction starting with
+     `[num   ]' right after each alternative.  The translation part
+     could be a single number which means that the translation of the
+     alternative will be the translation of the symbol with given
+     number (symbol numbers in alternative starts with 0).  Or the
+     translation can be abstract node with given name and with fields
+     whose values are the translations of the alternative symbols with
+     numbers given in parentheses after the abstract node name.
+
+     There is reserved terminal `error' which marks start point of
+     error recovery.
+
+   * `set_debug (level)'.  This function sets up level of
+     debugging information output to `stderr'.  The more level, the
+     more information is output.  The default value is 0 (no output).
+     The debugging information includes statistics, result translation
+     tree, grammar, parser sets, parser sets with all situations,
+     situations with contexts.  The function returns the previously set
+     up debug level.  Setting up negative debug level results in output
+     of translation for program `dot' of graphic visualization package
+     `graphviz'.  The parameter should be an integer after implicit
+     integer conversion.  The function will generate exception
+     `partype' if it is not true.
+
+   * `set_one_parse (flag)'.  This function sets up flag
+     whose nonzero value means means building only one translation tree
+     (without alternative nodes).  For unambiguous grammar the flag
+     does not affect the result.  The function returns the previously
+     set up flag value.  The default value of the flag is 1.  The
+     parameter should be an integer after implicit integer conversion.
+     The function will generate exception `partype' if it is not true.
+
+   * `set_recovery (flag)'.  This function sets up flag whose
+     nonzero value means making error recovery if syntax error
+     occurred.  Otherwise, syntax error results in finishing parsing
+     (although syntax error function passed to `parse' is called once).
+     The function returns the previously set up flag value.  The
+     default value of the flag is 1.  The parameter should be an
+     integer after implicit integer conversion.  The function will
+     generate exception `partype' if it is not true.
+
+   * `set_recovery_match (n_toks)'.  This function
+     sets up parser internal parameter meaning how much subsequent
+     tokens should be successfully shifted to finish error recovery.
+     The default value is 3.  The function returns the previously set up
+     value.  The parameter should be an integer after implicit integer
+     conversion.  The function will generate exception `partype' if it
+     is not true.
+
+   * `parse (tokens, error_func)'. This function is major
+     function of the class.  It makes translation according to
+     previously set up grammar of input given by parameter `tokens'
+     whose value should be array of objects of predeclared class
+     `token'.  If the parser recognizes a syntax error it calls
+     function given through parameter `error_func' with six
+     parameters:
+        * index of token (in array `tokens') on which the syntax error
+          occured.
+
+        * the error token itself.
+
+        * index of the first token (in array `tokens') ignored because
+          of error recovery.
+
+        * the first ignored token itself.
+
+        * index of the first token (in array `tokens') which is not
+          ignored after error recovery.
+
+        * the first not ignored token itself.
+
+     If the parser works with switched off error recovery (see function
+     `set_recovery', the third and fifth parameters will be
+     negative and forth and sixth parameters will be `nil'.
+
+     The function returns object of predeclared class `anode' which is
+     root of the abtsract tree representing the translation of the
+     parser input.  The function can generate exception `partype' if
+     the parameter types are wrong or `invtoken_decl' if the
+     input token has wrong code.  The function also can generate
+     exception `pmemory' if there are no memory for internal parser
+     data.
+
+   The call of class `parser' itself can generate exception `pmemory'
+if there are no memory for internal parser data.
+

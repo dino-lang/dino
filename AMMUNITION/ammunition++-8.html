@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with command line</TITLE>
+ <LINK HREF="ammunition++-9.html" REL=next>
+ <LINK HREF="ammunition++-7.html" REL=previous>
+ <LINK HREF="ammunition++.html#toc8" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition++-9.html">Next</A>
+<A HREF="ammunition++-7.html">Previous</A>
+<A HREF="ammunition++.html#toc8">Contents</A>
+<HR>
+<H2><A NAME="s8">8. Package for work with command line</A></H2>
+
+<P>To make easy process of command line, here abstract data `commline'
+is suggested.  This abstract data implements features analogous to
+ones of public domain function `getopt'.  The goal of the abstract
+data creation is to use more readable language of command line
+description and to use command line description as help output of
+program.
+<P>POSIX terminology concerning command line is used here.  Command
+line is divided into command name and arguments.  The arguments are
+subdivided into options, option-arguments and operands.  Option starts
+with `-'.  All arguments after first `--' in command line are treated
+as operands.
+<P>The description of command line is made up from two parts.  Any part
+(or both) may be absent in the description.  First part contains
+option-arguments names of options which are in the second part.
+option-arguments names are separated by white space.  The second part
+starts with percents `%%' and contains any text in which
+description of options are placed.  Any description of option starts
+with character ``' followed by character `-' and finishes by character
+`''.  White spaces may precede option-argument name.  It means that
+the corresponding option has obligatory separate option-argument.  For
+example, the following may be a part of description of options of a
+pascal compiler command line.
+<P>
+<HR>
+<PRE>
+dir xxx file
+%%
+command line:  pc [options] file ... 
+                               Options:
+`-0'      Pascal standard level 0    `-1'      Pascal standard Level 1.
+`-29000'  Am29000 code generation    `-29050'* Am29050 code generation
+`-c'      only object files creation `-el'     output of listing
+`-g'      information for debuggers  `-Idir'   data task units directory
+`-lxxx'   library                    `-Ldir'   libraries directory
+`-o file' output file                `-O'      all optimizations
+`-S'      only ass. code creation    `-v'      loaded processes indication
+`-w'      no warnings generation
+               Star * marks defaults
+</PRE>
+<HR>
+<P>In this example options with names `-I', `-l', `-L' and `-o' have
+option-arguments but only option with name `-o' has separate
+option-argument, i.e. option-argument which is represented by separate
+argument after given option in command line.
+<P>The interface part of the abstract data is file `commline.h'.  The
+package uses package `vlobject' which use package `allocate'.  The
+implementation part is file `commline.cpp'.  The interface contains
+only one class `command_line'.  The class has the following members:
+<P>
+<DL>
+<DT><B>Public constructor `command_line'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `command_line (int argc, char **argv,
+                         const char *description,
+                         int &amp;correct_description_flag)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+The constructor processes command line description given as
+string parameter and command line itself given as two
+parameter `argc' and `argv'.  The function returns 0 through
+parameter `correct_description_flag' if error in command
+line description is fixed, otherwise returns 1 (it means
+success).
+<P>
+<DT><B>Public destructor `command_line'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `~command_line (void)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+finishes work with the command line.
+<P>
+<DT><B>Public function `output_description'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void output_description (void)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+outputs the second part (without `%%') of description of
+options to stderr.  This function should be called when it
+is necessary to show the program usage.
+<P>
+<DT><B>Public function `next_operand'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int next_operand (int flag_of_first)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns command line argument number of next operand if the
+function parameter is nonzero.  Otherwise the function
+returns number of the first operand in the command line.
+The function returns 0 if all operands are already
+processed.  Returned number may be used as index of array
+returned by function `argument_vector' to access
+corresponding operand.
+<P>
+<DT><B>Public function `number_of_operands'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int number_of_operands (void)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns number of operands in the command line.
+<P>
+<DT><B>Public function `next_option'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int next_option (int flag_of_first)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns command line argument number of next option if the
+function parameter is nonzero.  Otherwise the function
+returns number of the first option in the command line.  The
+function returns 0 if all options are already processed.
+Returned number may be used as index of array returned by
+function `argument_vector' to access corresponding option.
+<P>
+<DT><B>Function `option_characteristics'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `char *option_characteristics (int argument_number,
+                                         int *option_has_argument)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns pointer to option name which describes the command
+line argument with number `argument_number' given as the
+first parameter of the function.  The function returns NULL
+if the corresponding option in the command line description
+is not found or an option described as with option-argument
+has not option-argument in the command line.  Remember that
+option name with option-argument differs from option in the
+command line (e.g. `-U' and `-Ufoo').  If the option in the
+command line description is found than the function sets up
+correspondingly the second function parameter
+`option_has_argument'.  The case of returned NULL and
+`*option_has_argument' equals to TRUE means that given
+option must have option-argument but the option has not
+option-argument in the command line.
+<P>
+<DT><B>Public function `last_option_place'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int last_option_place (const char *option_name)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns number of last option with given option name in the
+command line.  The function returns 0 if the option is
+absent in the command line.
+<P>
+<DT><B>Public function `option_argument'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `char *option_argument (const char *option_name)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns pointer to argument of last option in the command
+line with given option name.  The function returns NULL if
+the option is absent in the command line.  The function must
+be called only for options which have argument separated by
+white spaces.
+<P>
+<DT><B>Public functions `argument_count', `argument_vector'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int argument_count (void)'
+          `char **argument_vector (void)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+return `argc' and `argv' of function `main'.  See also
+description of the class constructor.
+</DL>
+<P>
+<HR>
+<A HREF="ammunition++-9.html">Next</A>
+<A HREF="ammunition++-7.html">Previous</A>
+<A HREF="ammunition++.html#toc8">Contents</A>
+</BODY>
+</HTML>
