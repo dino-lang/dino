@@ -84,10 +84,10 @@ on other languages.  The high level structures of Dino are
       table elements
     o objects
     
-Originally, Dino was used in the russian graphics company ANIMATEK
-(<url url="http://www.animatek.com" name="Animatek">) for description
-of the movement of dinosaurs in a project.  It has been considerably
-redesigned and was implemented with the aid of the COCOM tool set.
+Originally, Dino was used in the russian graphics company ANIMATEK for
+description of the movement of dinosaurs in a project.  It has been
+considerably redesigned and was implemented with the aid of the COCOM
+tool set.
 
 This document is not intended for use as a programmer's tutorial.  It
 is a concise description of the language DINO and can be used as a

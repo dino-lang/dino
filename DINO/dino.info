@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.6 from
-/tmp/linuxdoc-dir-8685/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-16704/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -102,9 +102,9 @@ on other languages.  The high level structures of Dino are
    * objects
 
    Originally, Dino was used in the russian graphics company ANIMATEK
-(Animatek (http://www.animatek.com)) for description of the movement of
-dinosaurs in a project.  It has been considerably redesigned and was
-implemented with the aid of the COCOM tool set.
+for description of the movement of dinosaurs in a project.  It has been
+considerably redesigned and was implemented with the aid of the COCOM
+tool set.
 
    This document is not intended for use as a programmer's tutorial.  It
 is a concise description of the language DINO and can be used as a
@@ -4207,68 +4207,68 @@ Appendix B- Implementation
 
 
 Tag Table:
-Node: Top121
-Node: Introduction2575
-Node: Syntax3909
-Node: Vocabulary and Representation4806
-Node: Declarations and Scope Rules11401
-Node: Variable Declarations21862
-Node: External Declarations22884
-Node: Functions Classes Extensions24133
-Node: Expressions31472
-Node: Types and Values32029
-Node: Designators41006
-Node: Calls43618
-Node: Operators45667
-Node: Logical operators49328
-Node: Bit operators51079
-Node: Comparison operators52188
-Node: Arithmetic operators54072
-Node: Miscellaneous operators55200
-Node: Executive statements60022
-Node: Empty statement60930
-Node: Block-statement61340
-Node: Assignment statements62055
-Node: Call-statement64107
-Node: If-statement64681
-Node: For-statement65503
-Node: Foreach-statement66967
-Node: Break- and continue-statement67967
-Node: Return-statement68811
-Node: Throw-statement69580
-Node: Try-block70354
-Node: Wait-statement72800
-Node: Program73579
-Node: Predeclared identifiers77017
-Node: Predeclared variables77480
-Node: Arguments and environment77884
-Node: Version78522
-Node: Threads79043
-Node: Exceptions79578
-Node: Files81215
-Node: Miscellaneous variables81910
-Node: Predeclared classes82627
-Node: File82969
-Node: Exception classes83413
-Node: Earley parser classes95365
-Node: Parser-95732
-Node: Token-106577
-Node: Anode-107240
-Node: Nil_anode and error_anode-109373
-Node: Example of Earley parser usage-109768
-Node: Predeclared functions112616
-Node: Mathematical functions113844
-Node: Pattern matching functions115393
-Node: File functions127564
-Node: Functions for access to file/directory information127985
-Node: Functions for work with directories132581
-Node: Functions for work with files-134159
-Node: File output functions137853
-Node: File input functions151130
-Node: Time functions155002
-Node: Functions for access to process information158006
-Node: Miscellaneous functions159511
-Node: Appendix A- Syntax of Dino168925
-Node: Appendix B- Implementation173613
+Node: Top122
+Node: Introduction2576
+Node: Syntax3873
+Node: Vocabulary and Representation4770
+Node: Declarations and Scope Rules11365
+Node: Variable Declarations21826
+Node: External Declarations22848
+Node: Functions Classes Extensions24097
+Node: Expressions31436
+Node: Types and Values31993
+Node: Designators40970
+Node: Calls43582
+Node: Operators45631
+Node: Logical operators49292
+Node: Bit operators51043
+Node: Comparison operators52152
+Node: Arithmetic operators54036
+Node: Miscellaneous operators55164
+Node: Executive statements59986
+Node: Empty statement60894
+Node: Block-statement61304
+Node: Assignment statements62019
+Node: Call-statement64071
+Node: If-statement64645
+Node: For-statement65467
+Node: Foreach-statement66931
+Node: Break- and continue-statement67931
+Node: Return-statement68775
+Node: Throw-statement69544
+Node: Try-block70318
+Node: Wait-statement72764
+Node: Program73543
+Node: Predeclared identifiers76981
+Node: Predeclared variables77444
+Node: Arguments and environment77848
+Node: Version78486
+Node: Threads79007
+Node: Exceptions79542
+Node: Files81179
+Node: Miscellaneous variables81874
+Node: Predeclared classes82591
+Node: File82933
+Node: Exception classes83377
+Node: Earley parser classes95329
+Node: Parser-95696
+Node: Token-106541
+Node: Anode-107204
+Node: Nil_anode and error_anode-109337
+Node: Example of Earley parser usage-109732
+Node: Predeclared functions112580
+Node: Mathematical functions113808
+Node: Pattern matching functions115357
+Node: File functions127528
+Node: Functions for access to file/directory information127949
+Node: Functions for work with directories132545
+Node: Functions for work with files-134123
+Node: File output functions137817
+Node: File input functions151094
+Node: Time functions154966
+Node: Functions for access to process information157970
+Node: Miscellaneous functions159475
+Node: Appendix A- Syntax of Dino168889
+Node: Appendix B- Implementation173577
 
 End Tag Table

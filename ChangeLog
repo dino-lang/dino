@@ -1,5 +1,19 @@
 2004-09-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
+	* cocom.sgml.in: Add pdf.
+
+	* cocom.dvi, cocom.html, cocom.info, cocom.ps, cocom.pdf,
+	cocom.txt: Update.
+
+	* DINO/dino.sgml.in: Remove url.
+
+	* DINO/dino.pdf: New file.
+
+	* DINO/dino.dvi, DINO/dino*.html, DINO/dino.info, DINO/dino.ps,
+	DINO/dino.txt: Update.
+
+2004-09-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
         * armoury.html, msta.jpg, nona.jpg, oka.jpg, shilka.jpg,
 	sprut.jpg: Remove files.
 	
