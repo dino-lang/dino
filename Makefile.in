@@ -41,12 +41,12 @@ RCSLABEL=
 # COCOM only start
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.
-distdir = cocom-0.993
+distdir = cocom-0.995
 # COCOM only end
 
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file only for DINO.
-distdinodir = dino-0.53
+distdinodir = dino-0.54
 
 # Supporting possibility build directories
 
