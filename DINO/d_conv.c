@@ -11,8 +11,6 @@ void
 to_vect_string_conversion (ER_node_t var)
 {
   ER_node_mode_t mode;
-  size_t length;
-  size_t allocated_length;
   const char *representation;
   char str[2];
   ER_node_t vect;
@@ -21,36 +19,21 @@ to_vect_string_conversion (ER_node_t var)
   if (mode == ER_NM_float || mode == ER_NM_int || mode == ER_NM_char)
     {
       if (mode == ER_NM_float)
-	{
-	  representation = f2a (ER_f (var));
-	  length = strlen (representation);
-	}
+	representation = f2a (ER_f (var));
       else if (mode == ER_NM_int)
-	{
-	  representation = i2a (ER_i (var));
-	  length = strlen (representation);
-	}
+	representation = i2a (ER_i (var));
       else
 	{
 	  *str = ER_ch (var);
 	  str [1] = '\0';
 	  representation = str;
-	  length = 1;
 	}
-      allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			  + OPTIMAL_ELS_SIZE (length + 1));
       TOP_UP;
       *(val_t *) ctop = *(val_t *) var;
-      vect = (ER_node_t) heap_allocate (allocated_length);
+      vect = create_string (representation);
       /* Remeber `var' may be changed. */
       *(val_t *) var = *(val_t *) ctop;
       TOP_DOWN;
-      ER_SET_MODE (vect, ER_NM_heap_pack_vect);
-      ER_set_immutable (vect, TRUE);
-      ER_set_pack_vect_el_type (vect, ER_NM_char);
-      ER_set_els_number (vect, length);
-      ER_set_allocated_length (vect, allocated_length);
-      strcpy (ER_pack_els (vect), representation);
       ER_SET_MODE (var, ER_NM_vect);
       ER_set_vect (var, vect);
     }

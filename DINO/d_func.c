@@ -357,6 +357,7 @@ to_lower_upper (int_t pars_number, int lower_flag)
   ER_node_t vect;
   const char *name = (lower_flag ? TOLOWER_NAME : TOUPPER_NAME);
   char *str;
+  size_t len;
 
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, *source_position_ptr,
@@ -367,7 +368,10 @@ to_lower_upper (int_t pars_number, int lower_flag)
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
     eval_error (partype_decl, invcalls_decl, *source_position_ptr,
 		DERR_parameter_type, name);
-  vect = create_string (ER_pack_els (ER_vect (ctop)));
+  len = strlen (ER_pack_els (ER_vect (ctop)));
+  vect = create_empty_string (len + 1);
+  strcpy (ER_pack_els (vect), ER_pack_els (ER_vect (ctop)));
+  ER_set_els_number (vect, len);
   for (str = ER_pack_els (vect); *str != 0; str++)
     if (isalpha (*str))
       *str = (lower_flag ? tolower (*str) : toupper (*str));
@@ -649,15 +653,116 @@ process_regcomp_errors (int code, const char *function_name)
 
 #define RE_DINO_SYNTAX (REG_EXTENDED)
 
+/* The following structure is element of the cache of compiled
+   regex. */
+struct regex_node
+{
+  /* Compiled regex. */
+  regex_t regex;
+  /* Regex string representation.  It is a key of in the cache. */
+  const char *string;
+};
+
+/* Temporary structure. */
+static struct regex_node regex_node;
+
+/* Hash table which implements the cache. */
+static hash_table_t regex_tab;
+/* This object stack contains elements of the cache. */
+static os_t regex_os;
+/* Vector containing pointers to the cache elements. */
+static vlo_t regex_vlo;
+
+/* Hash of the node. */
+static unsigned
+regex_node_hash (hash_table_entry_t n)
+{
+  unsigned hash_value, i;
+  const char *str = ((struct regex_node *) n)->string;
+
+  for (hash_value = i =0; *str != '\0'; str++, i++)
+    hash_value += ((unsigned char) *str << (i % CHAR_BIT));
+  return hash_value;
+}
+
+/* Equality of nodes. */
+static int
+regex_node_eq (hash_table_entry_t n1, hash_table_entry_t n2)
+{
+  struct regex_node *node1 = ((struct regex_node *) n1);
+  struct regex_node *node2 = ((struct regex_node *) n2);
+
+  return strcmp (node1->string, node2->string) == 0;
+}
+
+/* Find compiled version of regex STRING in the cache.  If it is
+   absent, compile it and insert it into cache.  Returns nonzero if
+   there were errors during the compilation. */
+static int
+find_regex (const char *string, regex_t **result)
+{
+  hash_table_entry_t *entry;
+  struct regex_node *reg;
+  int code;
+
+  *result = NULL;
+  regex_node.string = string;
+  entry = find_hash_table_entry (regex_tab, &regex_node, FALSE);
+  if (*entry != NULL)
+    {
+      *result = &((struct regex_node *) (*entry))->regex;
+      return 0;
+    }
+  OS_TOP_EXPAND (regex_os, sizeof (struct regex_node));
+  reg = OS_TOP_BEGIN (regex_os);
+  code = regcomp (&reg->regex, string, RE_DINO_SYNTAX);
+  if (code != 0)
+    {
+      regfree (&reg->regex);
+      OS_TOP_NULLIFY (regex_os);
+      return code;
+    }
+  OS_TOP_FINISH (regex_os);
+  VLO_ADD_MEMORY (regex_vlo, &reg, sizeof (reg));
+  OS_TOP_EXPAND (regex_os, strlen (string) + 1);
+  reg->string = OS_TOP_BEGIN (regex_os);
+  OS_TOP_FINISH (regex_os);
+  strcpy ((char *) reg->string, string);
+  entry = find_hash_table_entry (regex_tab, reg, TRUE);
+  *entry = reg;
+  *result = &reg->regex;
+  return 0;
+}
+
+/* Create the cache of compiled regexs. */
+static void
+initiate_regex_tab (void)
+{
+  OS_CREATE (regex_os, 0);
+  VLO_CREATE (regex_vlo, 0);
+  regex_tab = create_hash_table (400, regex_node_hash, regex_node_eq);
+}
+
+/* Delete the cache of compiled regexs. */
+static void
+finish_regex_tab (void)
+{
+  int i;
+
+  delete_hash_table (regex_tab);
+  for (i = 0; i < VLO_LENGTH (regex_vlo) / sizeof (struct regex_node *); i++)
+    regfree (&((struct regex_node **) VLO_BEGIN (regex_vlo)) [i]->regex);
+  VLO_DELETE (regex_vlo);
+  OS_DELETE (regex_os);
+}
+
 void
 match_call (int_t pars_number)
 {
-  regex_t reg;
+  regex_t *reg;
   regmatch_t *pmatch;
-  ER_node_t result;
+  ER_node_t vect, result;
   size_t els_number;
-  size_t length;
-  size_t allocated_length;
   size_t i;
   int code;
 
@@ -674,34 +779,24 @@ match_call (int_t pars_number)
       || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
     eval_error (partype_decl, invcalls_decl,
 		*source_position_ptr, DERR_parameter_type, MATCH_NAME);
-  code = regcomp(&reg, ER_pack_els (ER_vect (below_ctop)), RE_DINO_SYNTAX);
+  code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
   if (code != 0)
     process_regcomp_errors (code, MATCH_NAME);
   else
     {
-      els_number = (reg.re_nsub + 1) * 2;
-      /* Make vector which can store regmatch_t's and int's. */
-      length = els_number * sizeof (int_t);
-      if (length < (reg.re_nsub + 1) * sizeof (regmatch_t))
-	length = (reg.re_nsub + 1) * sizeof (regmatch_t);
-      allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			  + OPTIMAL_ELS_SIZE (length));
-      /* Do not change size & packing. */
-      PUSH_TEMP_REF (ER_vect (ctop));
-      PUSH_TEMP_REF (ER_vect (below_ctop));
-      result = heap_allocate (allocated_length);
-      POP_TEMP_REF (2);
-      ER_SET_MODE (result, ER_NM_heap_pack_vect);
-      pmatch = (regmatch_t *) (ER_pack_els (result) + length
-			       - (reg.re_nsub + 1) * sizeof (regmatch_t));
-      ER_set_immutable (result, FALSE);
-      ER_set_pack_vect_el_type (result, ER_NM_int);
-      ER_set_els_number (result, 0);
-      ER_set_allocated_length (result, allocated_length);
-      if (!regexec (&reg, ER_pack_els (ER_vect (ctop)),
-		    reg.re_nsub + 1, pmatch, 0))
+      els_number = (reg->re_nsub + 1) * 2;
+      /* Make pmatch vector. */
+      VLO_NULLIFY (temp_vlobj);
+      VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
+      pmatch = VLO_BEGIN (temp_vlobj);
+      if (!regexec (reg, ER_pack_els (ER_vect (ctop)), reg->re_nsub + 1,
+		    pmatch, 0))
 	{
-	  ER_set_els_number (result, els_number);
+	  /* Do not change size & packing. */
+	  PUSH_TEMP_REF (ER_vect (ctop));
+	  PUSH_TEMP_REF (ER_vect (below_ctop));
+	  result = create_pack_vector (els_number, ER_NM_int);
+	  POP_TEMP_REF (2);
 	  for (i = 0; i < els_number; i += 2)
 	    {
 	      ((int_t *) ER_pack_els (result)) [i] = pmatch[i / 2].rm_so;
@@ -709,9 +804,8 @@ match_call (int_t pars_number)
 	    }
 	}
       else
-	result = 0;
+	result = NULL;
     }
-  regfree (&reg);
   /* Pop all actual parameters. */
   DECR_FREE (cstack, pars_number);
   SET_TOP;
@@ -728,7 +822,7 @@ match_call (int_t pars_number)
 void
 rcount_call (int_t pars_number)
 {
-  regex_t reg;
+  regex_t *reg;
   regmatch_t *pmatch;
   ER_node_t vect;
   size_t els_number;
@@ -759,21 +853,20 @@ rcount_call (int_t pars_number)
       || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
     eval_error (partype_decl, invcalls_decl,
 		*source_position_ptr, DERR_parameter_type, RCOUNT_NAME);
-  code = regcomp(&reg, ER_pack_els (ER_vect (below_ctop)), RE_DINO_SYNTAX);
+  code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
   if (code != 0)
     process_regcomp_errors (code, RCOUNT_NAME);
   /* Make vector which can store regmatch_t's. */
   VLO_NULLIFY (temp_vlobj);
-  VLO_EXPAND (temp_vlobj, (reg.re_nsub + 1) * sizeof (regmatch_t));
+  VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
   pmatch = (regmatch_t *) VLO_BEGIN (temp_vlobj);
   start = ER_pack_els (ER_vect (ctop));
   count = 0;
-  while (!regexec (&reg, start, reg.re_nsub + 1, pmatch, 0))
+  while (!regexec (reg, start, reg->re_nsub + 1, pmatch, 0))
     {
       start += (!flag ? pmatch[0].rm_eo : 1);
       count++;
     }
-  regfree (&reg);
   /* Pop all actual parameters. */
   DECR_FREE (cstack, pars_number);
   SET_TOP;
@@ -785,7 +878,7 @@ rcount_call (int_t pars_number)
 static void
 generall_sub_call (int_t pars_number, int global_flag)
 {
-  regex_t reg;
+  regex_t *reg;
   regmatch_t pmatch [10];
   size_t sub_length [10];
   size_t n_subst;
@@ -794,7 +887,6 @@ generall_sub_call (int_t pars_number, int global_flag)
   ER_node_t regexp_val;
   size_t length;
   size_t evaluated_length;
-  size_t allocated_length;
   size_t start;
   size_t i;
   const char *substitution;
@@ -822,7 +914,7 @@ generall_sub_call (int_t pars_number, int global_flag)
       || ER_pack_vect_el_type (ER_vect (regexp_val)) != ER_NM_char)
     eval_error (partype_decl, invcalls_decl, *source_position_ptr,
 		DERR_parameter_type, global_flag ? GSUB_NAME : SUB_NAME);
-  code = regcomp(&reg, ER_pack_els (ER_vect (regexp_val)), RE_DINO_SYNTAX);
+  code = find_regex (ER_pack_els (ER_vect (regexp_val)), &reg);
   if (code != 0)
     process_regcomp_errors (code, global_flag ? GSUB_NAME : SUB_NAME);
   else
@@ -834,9 +926,9 @@ generall_sub_call (int_t pars_number, int global_flag)
 	sub_length [i] = 0;
       n_subst = 0;
       while ((start < ER_els_number (vect) || start == 0)
-	     && !regexec (&reg, ER_pack_els (vect) + start, 10, pmatch, 0))
+	     && !regexec (reg, ER_pack_els (vect) + start, 10, pmatch, 0))
 	{
-	  for (i = 0; i < (reg.re_nsub + 1 > 10 ? 10 : reg.re_nsub + 1); i++)
+	  for (i = 0; i < (reg->re_nsub + 1 > 10 ? 10 : reg->re_nsub + 1); i++)
 	    sub_length [i] += (pmatch[i].rm_eo - pmatch[i].rm_so);
 	  start += (pmatch[0].rm_eo == 0 ? 1 : pmatch[0].rm_eo);
 	  n_subst++;
@@ -859,26 +951,19 @@ generall_sub_call (int_t pars_number, int global_flag)
 	      evaluated_length += n_subst;
 	    }
 	}
-      /* Allocate result string. */
-      allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			  + OPTIMAL_ELS_SIZE (evaluated_length));
       /* Do not change size & packing. */
       PUSH_TEMP_REF (vect);
       PUSH_TEMP_REF (ER_vect (ctop));
-      result = heap_allocate (allocated_length);
+      result = create_pack_vector (evaluated_length, ER_NM_char);
+      ER_set_els_number (result, 0);
       vect = GET_TEMP_REF (1);
       POP_TEMP_REF (2);
-      ER_SET_MODE (result, ER_NM_heap_pack_vect);
-      ER_set_immutable (result, FALSE);
-      ER_set_pack_vect_el_type (result, ER_NM_char);
-      ER_set_els_number (result, 0);
-      ER_set_allocated_length (result, allocated_length);
       /* Make actual substitution. */
       start = length = 0;
       dst = ER_pack_els (result);
       substitution = ER_pack_els (ER_vect (ctop));
       while ((start < ER_els_number (vect) || start == 0)
-	     && !regexec (&reg, ER_pack_els (vect) + start, 10, pmatch, 0))
+	     && !regexec (reg, ER_pack_els (vect) + start, 10, pmatch, 0))
 	{
 	  if (pmatch[0].rm_so != 0)
 	    memcpy (dst, ER_pack_els (vect) + start, pmatch[0].rm_so);
@@ -902,7 +987,7 @@ generall_sub_call (int_t pars_number, int global_flag)
 		  *dst++ = c;
 		  length++;
 		}
-	      else if (i < reg.re_nsub + 1
+	      else if (i < reg->re_nsub + 1
 		       && pmatch[i].rm_eo != pmatch[i].rm_so)
 		{
 		  memcpy (dst, ER_pack_els (vect) + start + pmatch[i].rm_so,
@@ -937,7 +1022,6 @@ generall_sub_call (int_t pars_number, int global_flag)
       ER_set_els_number (result, length);
       assert (length == evaluated_length);
     }
-  regfree (&reg);
   /* Pop all actual parameters. */
   DECR_FREE (cstack, pars_number);
   SET_TOP;
@@ -966,13 +1050,13 @@ gsub_call (int_t pars_number)
 void
 split_call (int_t pars_number)
 {
-  regex_t reg;
+  regex_t *reg;
   regmatch_t pmatch [1];
   ER_node_t result;
   ER_node_t vect;
   ER_node_t sub_vect;
   size_t els_number;
-  size_t allocated_length, chars_number;
+  size_t chars_number;
   size_t el_size, start;
   const char *split_regex;
   ER_node_t split_var;
@@ -1013,7 +1097,7 @@ split_call (int_t pars_number)
 		    *source_position_ptr, DERR_corrupted_environment_var,
 		    SPLIT_REGEX_NAME);
     }
-  code = regcomp(&reg, split_regex, RE_DINO_SYNTAX);
+  code = find_regex (split_regex, &reg);
   if (code != 0)
     process_regcomp_errors (code, SPLIT_NAME);
   else
@@ -1024,7 +1108,7 @@ split_call (int_t pars_number)
       /* Count substrings. */
       while (start < ER_els_number (vect) || start == 0)
 	{
-	  ok = !regexec (&reg, ER_pack_els (vect) + start, 1, pmatch, 0);
+	  ok = !regexec (reg, ER_pack_els (vect) + start, 1, pmatch, 0);
 	  if (ok && pmatch[0].rm_so == 0 && pmatch[0].rm_eo != 0)
 	    {
 	      /* Pattern by pattern. */
@@ -1036,22 +1120,16 @@ split_call (int_t pars_number)
 	    break;
 	  start += (pmatch[0].rm_eo == 0 ? 1 : pmatch[0].rm_eo);
 	}
-      allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			  + OPTIMAL_ELS_SIZE (els_number * el_size));
       /* Do not change size & packing. */
       PUSH_TEMP_REF (vect);
-      result = heap_allocate (allocated_length);
+      result = create_pack_vector (els_number, ER_NM_vect);
+      ER_set_els_number (result, 0);
       PUSH_TEMP_REF (result);
       vect = GET_TEMP_REF (1);
-      ER_SET_MODE (result, ER_NM_heap_pack_vect);
-      ER_set_immutable (result, FALSE);
-      ER_set_pack_vect_el_type (result, ER_NM_vect);
-      ER_set_els_number (result, 0);
-      ER_set_allocated_length (result, allocated_length);
       start = els_number = 0;
       while (start < ER_els_number (vect) || start == 0)
 	{
-	  ok = !regexec (&reg, ER_pack_els (vect) + start, 1, pmatch, 0);
+	  ok = !regexec (reg, ER_pack_els (vect) + start, 1, pmatch, 0);
 	  if (ok)
 	    {
 	      if (pmatch[0].rm_so != 0 || pmatch[0].rm_eo == 0)
@@ -1073,16 +1151,10 @@ split_call (int_t pars_number)
 	  else
 	    chars_number = ER_els_number (vect) - start;
 	  /* Create substring. */
-	  allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			      + OPTIMAL_ELS_SIZE (chars_number));
-	  sub_vect = heap_allocate (allocated_length);
+	  sub_vect = create_pack_vector (chars_number, ER_NM_char);
+	  ER_set_immutable (sub_vect, TRUE);
 	  result = GET_TEMP_REF (0);
 	  vect = GET_TEMP_REF (1);
-	  ER_SET_MODE (sub_vect, ER_NM_heap_pack_vect);
-	  ER_set_immutable (sub_vect, TRUE);
-	  ER_set_pack_vect_el_type (sub_vect, ER_NM_char);
-	  ER_set_els_number (sub_vect, chars_number);
-	  ER_set_allocated_length (sub_vect, allocated_length);
 	  strcpy (ER_pack_els (sub_vect), ER_pack_els (vect) + start);
 	  assert (el_size == sizeof (ER_node_t));
 	  memcpy (ER_pack_els (result) + el_size * els_number, &sub_vect,
@@ -1096,7 +1168,6 @@ split_call (int_t pars_number)
 	}
       POP_TEMP_REF (2);
     }
-  regfree (&reg);
   /* Pop all actual parameters. */
   DECR_FREE (cstack, pars_number);
   SET_TOP;
@@ -1154,7 +1225,6 @@ subv_call (int_t pars_number)
   size_t vect_length;
   size_t el_size;
   ER_node_mode_t el_type;
-  size_t allocated_length;
 
   if (pars_number < 2 || pars_number > 3)
     eval_error (parnumber_decl, invcalls_decl, *source_position_ptr,
@@ -1214,15 +1284,9 @@ subv_call (int_t pars_number)
     {
       el_type = ER_pack_vect_el_type (vect);
       el_size = type_size_table [el_type];
-      allocated_length
-	= (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-	   + OPTIMAL_ELS_SIZE ((el_type == ER_NM_char ? length + 1 : length)
-			       * el_size));
-      res = heap_allocate (allocated_length);
-      ER_SET_MODE (res, ER_NM_heap_pack_vect);
-      ER_set_pack_vect_el_type (res, el_type);
+      res = create_pack_vector (el_type == ER_NM_char ? length + 1 : length,
+				el_type);
       ER_set_els_number (res, length);
-      ER_set_allocated_length (res, allocated_length);
       vect = GET_TEMP_REF (0);
       memcpy (ER_pack_els (res), ER_pack_els (vect) + start * el_size,
 	      el_size * length);
@@ -3302,7 +3366,6 @@ getgroups_call (int_t pars_number)
   ER_node_t vect;
   size_t els_number;
   size_t el_type_size;
-  size_t allocated_length;
   size_t i;
 
   if (pars_number != 0)
@@ -3317,21 +3380,19 @@ getgroups_call (int_t pars_number)
   VLO_EXPAND (temp_vlobj, sizeof (GETGROUPS_T) * els_number);
   getgroups (els_number, (GETGROUPS_T *) VLO_BEGIN (temp_vlobj));
   el_type_size = type_size_table [ER_NM_vect];
-  allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-		      + OPTIMAL_ELS_SIZE (els_number * el_type_size));
-  vect = heap_allocate (allocated_length);
-  ER_SET_MODE (vect, ER_NM_heap_pack_vect);
-  ER_set_immutable (vect, FALSE);
-  ER_set_pack_vect_el_type (vect, ER_NM_vect);
-  ER_set_els_number (vect, els_number);
-  ER_set_allocated_length (vect, allocated_length);
+  vect = create_pack_vector (els_number, ER_NM_vect);
+  ER_set_els_number (vect, 0);
   /* Place the result instead of the function. */
   ER_SET_MODE (ctop, ER_NM_vect);
   ER_set_vect (ctop, vect);
   for (i = 0; i < els_number; i++)
-    ((ER_node_t *) ER_pack_els (ER_vect (ctop))) [i]
-      = create_string (getgrgid (((GETGROUPS_T *) VLO_BEGIN (temp_vlobj)) [i])
-                       ->gr_name);
+    {
+      vect = create_string (getgrgid
+			    (((GETGROUPS_T *) VLO_BEGIN (temp_vlobj)) [i])
+			    ->gr_name);
+      ((ER_node_t *) ER_pack_els (ER_vect (ctop))) [i] = vect;
+      ER_set_els_number (ER_vect (ctop), i + 1);
+    }
 #else
   vect = create_empty_vector ();
   /* Place the result instead of the function. */
@@ -3790,7 +3851,6 @@ readdir_call (int_t pars_number)
   size_t i;
   size_t dir_files_number;
   size_t el_size;
-  size_t allocated_length;
 
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, *source_position_ptr,
@@ -3825,14 +3885,8 @@ readdir_call (int_t pars_number)
 	{
 	  el_size = type_size_table [ER_NM_vect];
 	  dir_files_number = i;
-	  allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			      + OPTIMAL_ELS_SIZE (dir_files_number * el_size));
-	  result = heap_allocate (allocated_length);
-	  ER_SET_MODE (result, ER_NM_heap_pack_vect);
-	  ER_set_immutable (result, FALSE);
-	  ER_set_pack_vect_el_type (result, ER_NM_vect);
+	  result = create_pack_vector (dir_files_number, ER_NM_vect);
 	  ER_set_els_number (result, 0);
-	  ER_set_allocated_length (result, allocated_length);
 	  PUSH_TEMP_REF (result);
 	  /* We read maximum which may be in the vector.  Remember
              that the directory may be changed during two opendir
@@ -4036,11 +4090,14 @@ fctime_call (int_t pars_number)
 static void
 mode_finish (int_t pars_number, const char *result)
 {
+  ER_node_t vect;
+
   /* Pop all actual parameters. */
   DECR_FREE (cstack, pars_number);
   SET_TOP;
+  vect = create_string (result);
   ER_SET_MODE (ctop, ER_NM_vect);
-  ER_set_vect (ctop, create_string (result));
+  ER_set_vect (ctop, vect);
   INCREMENT_PC();
 }
 
@@ -4567,10 +4624,18 @@ void
 initiate_funcs (void)
 {
   initiate_io ();
+  initiate_regex_tab ();
 #ifdef FLOATING_NAN
   floating_nan = FLOATING_NAN;
   minus_floating_nan = -FLOATING_NAN;
 #endif
+}
+
+void
+finish_funcs (void)
+{
+  finish_regex_tab ();
+  finish_io ();
 }
 
 

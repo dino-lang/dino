@@ -648,7 +648,7 @@ finish_heap (void)
 /* The following func is used for allocation of any heap object
    (except for the stack frame) with SIZE (!=0).  The func returns
    pointer to the allocated heap memory.  If there is no heap memory
-   than fatal error is fixed.  The allocated memeory is zeroed (see
+   than fatal error is fixed.  The allocated memory is zeroed (see
    initiate_heap and compact_heap). */
 void *
 heap_allocate (size_t size)
@@ -1217,6 +1217,8 @@ change_obj_refs (void)
 	    CHANGE_REF (((_ER_heap_process *) curr_obj)
 			->_ER_S_heap_process.saved_cstack);
 	    break;
+	  case ER_NM_heap_hideblock:
+	    break;
 	  default:
 	    /* Redirections do not survive GC. */
 	    assert (FALSE);
@@ -1256,10 +1258,11 @@ compact_heap (void)
 	  next_obj = next_heap_object (curr_obj);
 	  if (ER_it_was_processed (curr_obj))
 	    {
-	      /* Tailor vector size only here although tailoring has been
-		 taken into account in new_place value. */
+	      /* Tailor vector size only here although tailoring has
+		 been taken into account in new_place value.  Remeber
+		 that temp refs are already set up to new places. */
 	      tailored_size
-		= (!in_heap_temp_refs (curr_obj)
+		= (!in_heap_temp_refs ((ER_node_t) new_place)
 		   ? tailored_heap_object_size (curr_obj)
 		   : heap_object_size (curr_obj));
 	      if (new_place + tailored_size > curr_place_descr->chunk_bound)
@@ -1535,6 +1538,25 @@ create_unpack_vector (size_t els_number)
   return unpack_vect;
 }
 
+/* Create mutable packed vector with ELS_NUMBER elements of ELTYPE
+   (their value is undefined). */
+ER_node_t
+create_pack_vector (size_t els_number, ER_node_mode_t eltype)
+{
+  ER_node_t pack_vect;
+  size_t allocated_length;
+
+  allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
+		      + OPTIMAL_ELS_SIZE (els_number * type_size (eltype)));
+  pack_vect = heap_allocate (allocated_length);
+  ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
+  ER_set_pack_vect_el_type (pack_vect, eltype);
+  ER_set_immutable (pack_vect, FALSE);
+  ER_set_els_number (pack_vect, els_number);
+  ER_set_allocated_length (pack_vect, allocated_length);
+  return pack_vect;
+}
+
 /* Make that vector contains room for el_number.  Return the vector
    (may be with new place). */
 ER_node_t
@@ -1735,16 +1757,10 @@ ER_node_t
 create_empty_string (size_t min_length)
 {
   ER_node_t vect;
-  size_t allocated_length;
   
-  allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-		      + OPTIMAL_ELS_SIZE (min_length));
-  vect = heap_allocate (allocated_length);
-  ER_SET_MODE (vect, ER_NM_heap_pack_vect);
+  vect = create_pack_vector (min_length, ER_NM_char);
   ER_set_immutable (vect, TRUE);
-  ER_set_pack_vect_el_type (vect, ER_NM_char);
   ER_set_els_number (vect, 0);
-  ER_set_allocated_length (vect, allocated_length);
   ER_pack_els (vect) [0] = '\0';
   return vect;
 }
@@ -1756,7 +1772,8 @@ create_string (const char *string)
   size_t chars_number;
   
   chars_number = strlen (string);
-  vect = create_empty_string (chars_number + 1);
+  vect = create_pack_vector (chars_number + 1, ER_NM_char);
+  ER_set_immutable (vect, TRUE);
   ER_set_els_number (vect, chars_number);
   strcpy (ER_pack_els (vect), string);
   return vect;
@@ -2616,6 +2633,7 @@ external_address (IR_node_t decl)
   void *address;
   const char *name;
   const char **curr_libname_ptr;
+  int i;
 
   name = IR_ident_string (IR_unique_ident (IR_ident (decl)));
   if (IR_address (decl) != NULL)
@@ -2694,6 +2712,13 @@ external_address (IR_node_t decl)
     }
   IR_set_address (decl, address);
   if (IR_IS_OF_TYPE (decl, IR_NM_external_var))
-    VLO_ADD_MEMORY (external_vars, &address, sizeof (address));
+    {
+      for (i = 0; i < VLO_LENGTH (external_vars) / sizeof (void *); i++)
+	/* We need something faster (hashtab) ??? */
+	if (((void **) VLO_BEGIN (external_vars)) [i] == address)
+	  break;
+      if (i >= VLO_LENGTH (external_vars) / sizeof (void *))
+	VLO_ADD_MEMORY (external_vars, &address, sizeof (address));
+    }
   return address;
 }

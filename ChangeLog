@@ -1,3 +1,48 @@
+2001-07-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_extern.sprut (create_pack_vector): New function prototype
+	and member in struct spi.
+	(create_pack_vector): New function.
+
+	* DINO/d_run.sprut (compact_heap): Use new_place for looking for
+	object in temp refs.
+	(create_pack_vector): New function.
+	(create_empty_string, create_string): Use create_pack_vector.
+	(external_address): Insert an external variable address in
+	external_vars only once.
+	
+	* DINO/d_conv.c (to_vect_string_conversion): Use create_string.
+
+	* DINO/d_eval.c (execute_concat_op): Use create_pack_vector and
+	create_unpack_vector.
+	(evaluate): Use create_pack_vector.  Set up the correct context
+	for func and class.
+
+	* DINO/d_func.c (to_lower_upper): Create the result string first
+	before copying into it.
+	(regex_node): New global structure.
+	(regex_tab, regex_os, regex_vlo): New global variables.
+	(regex_node_hash, regex_node_eq, regex_node_eq,
+	initiate_regex_tab, finish_regex_tab): New functions.
+	(match_call): Use find_regex and create_pack_vector.  Place pmatch
+	in temp_vlobj.  Don't call regfree.
+	(rcount_call): Use find_regex.  Don't call regfree.
+	(generall_sub_call): Use find_regex and create_pack_vector.  Don't
+	call regfree.
+	(split_call): Ditto.
+	(subv_call): Use create_pack_vector.
+	(getgroups_call, readdir_call): Ditto.
+	(mode_finish): Create the string before set mode of ctop.
+	(initiate_funcs): Call initiate_regex_tab.
+	(finish_funcs): New function.
+
+	* DINO/dino.tst.in: Correct test results for the 66th test.
+
+	* DINO/dino.sgml.in: Fix typo in regex syntax.
+
+	* DINO/{dino-8.html, dino.dvi, dino.info*, dino.ps, dino.txt}:
+	Update.
+	
 2001-07-06  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_run.sprut (heap_object_size): Add processing hideblock.

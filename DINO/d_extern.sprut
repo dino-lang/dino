@@ -231,6 +231,7 @@ ER_node_t create_hideblock (size_t length);
 
 ER_node_t create_empty_vector (void);
 ER_node_t create_unpack_vector (size_t els_number);
+ER_node_t create_pack_vector (size_t els_number, ER_node_mode_t eltype);
 ER_node_t expand_vector (ER_node_t vect, size_t el_number);
 ER_node_t unpack_vector (ER_node_t vect);
 void pack_vector_if_possible (ER_node_t unpack_vect);
@@ -268,6 +269,7 @@ struct spi
   
   ER_node_t (*create_empty_vector) (void);
   ER_node_t (*create_unpack_vector) (size_t els_number);
+  ER_node_t (*create_pack_vector) (size_t els_number);
   ER_node_t (*expand_vector) (ER_node_t vect, size_t el_number);
   ER_node_t (*unpack_vector) (ER_node_t vect);
   void (*pack_vector_if_possible) (ER_node_t unpack_vect);
@@ -601,6 +603,12 @@ ER_node_t
 create_unpack_vector (size_t els_number)
 {
   return (*spi->create_unpack_vector) (els_number);
+}
+
+ER_node_t 
+create_pack_vector (size_t els_number)
+{
+  return (*spi->create_pack_vector) (els_number);
 }
 
 ER_node_t

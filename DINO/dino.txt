@@ -2527,8 +2527,8 @@ bound and matches character {.
 
           List = FirstChar ["-" Char] {Char ["-" Char]}
 
-          Char = <any character except for ^ - and ]>
-               | CollatingElement
+          FirstChar = <any character except for ^ - and ]>
+                    | CollatingElement
 
           Char = FirstChar
                | "^"

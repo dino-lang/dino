@@ -860,8 +860,8 @@ bound and matches character <CODE>{</CODE>.
 
           List = FirstChar ["-" Char] {Char ["-" Char]}
 
-          Char = &lt;any character except for ^ - and ]>
-               | CollatingElement
+          FirstChar = &lt;any character except for ^ - and ]>
+                    | CollatingElement
 
           Char = FirstChar
                | "^"

@@ -662,7 +662,6 @@ static void
 execute_concat_op (void)
 {
   size_t els_number;
-  size_t allocated_length;
   ER_node_t vect;
   
   to_vect_string_conversion (ctop);
@@ -702,21 +701,14 @@ execute_concat_op (void)
       el_size = type_size_table [result_el_type];
       els_number = (ER_els_number (pack_vect2)
 		    + ER_els_number (pack_vect1));
-      allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			  + OPTIMAL_ELS_SIZE (els_number * el_size));
       /* Do not change size & packing. */
       PUSH_TEMP_REF (ER_vect (ctop));
       PUSH_TEMP_REF (ER_vect (below_ctop));
-      result = heap_allocate (allocated_length);
+      result = create_pack_vector (els_number, result_el_type);
       POP_TEMP_REF (2);
       /* Restore locals after allocation (remember GC). */
       pack_vect1 = ER_vect (below_ctop);
       pack_vect2 = ER_vect (ctop);
-      ER_SET_MODE (result, ER_NM_heap_pack_vect);
-      ER_set_immutable (result, FALSE);
-      ER_set_pack_vect_el_type (result, result_el_type);
-      ER_set_els_number (result, els_number);
-      ER_set_allocated_length (result, allocated_length);
       if (ER_els_number (pack_vect1) != 0)
 	memcpy (ER_pack_els (result), ER_pack_els (pack_vect1),
 		ER_els_number (pack_vect1) * el_size);
@@ -738,21 +730,14 @@ execute_concat_op (void)
       
       els_number = (ER_els_number (unpack_vect2)
 		    + ER_els_number (unpack_vect1));
-      allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
-			  + OPTIMAL_ELS_SIZE (els_number
-					      * sizeof (val_t)));
       /* Do not change size & packing. */
       PUSH_TEMP_REF (ER_vect (ctop));
       PUSH_TEMP_REF (ER_vect (below_ctop));
-      result = heap_allocate (allocated_length);
+      result = create_unpack_vector (els_number);
       POP_TEMP_REF (2);
       /* Restore after allocation (remeber about GC). */
       unpack_vect1 = ER_vect (below_ctop);
       unpack_vect2 = ER_vect (ctop);
-      ER_SET_MODE (result, ER_NM_heap_unpack_vect);
-      ER_set_immutable (result, FALSE);
-      ER_set_els_number (result, els_number);
-      ER_set_allocated_length (result, allocated_length);
       if (ER_els_number (unpack_vect1) != 0)
 	memcpy (ER_unpack_els (result), ER_unpack_els (unpack_vect1),
 		ER_els_number (unpack_vect1) * sizeof (val_t));
@@ -1583,7 +1568,6 @@ evaluate (IR_node_mode_t node_mode)
 	size_t el_size_type;
 	size_t els_number;
 	int_t repetition;
-	size_t allocated_length;
 	int pack_flag;
         
 	vect_parts_number = IR_parts_number (IR_POINTER (cpc));
@@ -1622,15 +1606,7 @@ evaluate (IR_node_mode_t node_mode)
 	    if (pack_flag)
 	      {
 		el_size_type = type_size_table [ER_NODE_MODE (ctop)];
-		allocated_length
-		  = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-		     + OPTIMAL_ELS_SIZE (els_number * el_size_type));
-		vect = heap_allocate (allocated_length);
-		ER_SET_MODE (vect, ER_NM_heap_pack_vect);
-		ER_set_immutable (vect, FALSE);
-		ER_set_pack_vect_el_type (vect, ER_NODE_MODE (ctop));
-		ER_set_els_number (vect, els_number);
-                ER_set_allocated_length (vect, allocated_length);
+		vect = create_pack_vector (els_number, ER_NODE_MODE (ctop));
               }
 	    else
 	      vect = create_unpack_vector (els_number);
@@ -2189,19 +2165,27 @@ evaluate (IR_node_mode_t node_mode)
       break;
     case IR_NM_external_func_occurrence:
     case IR_NM_func_occurrence:
-      TOP_UP;
-      ER_SET_MODE (ctop, ER_NM_func);
-      ER_set_func (ctop, IR_decl (IR_POINTER (cpc)));
-      ER_set_func_context (ctop, cstack);
-      INCREMENT_PC ();
-      break;
+      {
+	IR_node_t decl = IR_decl (IR_POINTER (cpc));
+
+	TOP_UP;
+	ER_SET_MODE (ctop, ER_NM_func);
+	ER_set_func (ctop, decl);
+	ER_set_func_context (ctop, find_context_by_scope (IR_scope (decl)));
+	INCREMENT_PC ();
+	break;
+      }
     case IR_NM_class_occurrence:
-      TOP_UP;
-      ER_SET_MODE (ctop, ER_NM_class);
-      ER_set_class (ctop, IR_decl (IR_POINTER (cpc)));
-      ER_set_class_context (ctop, cstack);
-      INCREMENT_PC ();
-      break;
+      {
+	IR_node_t decl = IR_decl (IR_POINTER (cpc));
+
+	TOP_UP;
+	ER_SET_MODE (ctop, ER_NM_class);
+	ER_set_class (ctop, decl);
+	ER_set_class_context (ctop, find_context_by_scope (IR_scope (decl)));
+	INCREMENT_PC ();
+	break;
+      }
     case IR_NM_if_finish:
     case IR_NM_for_finish:
     case IR_NM_catches_finish:
