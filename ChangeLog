@@ -1,5 +1,8 @@
 2005-01-15  Vladimir N. Makarov  <vmakarov@redhat.com>
 
+	* SPRUT/std_pos.sprut, SPRUT/sprut-ird.c, SHILKA/gpc.shilka,
+	NONA/tab.h:  Change the last year.
+
 	* SPRUT/yacc.y, SPRUT/yacc.h, SPRUT/tab.h, SPRUT/tab.c,
 	SPRUT/std_type.sprut, SPRUT/std_str.sprut, SPRUT/std_str.sprut,
 	SPRUT/std_mem.sprut, SPRUT/std_bmem.sprut, SPRUT/sprut.tst,
@@ -78,7 +81,7 @@
 	AMMUNITION/allocate.c, AMMUNITION/allocate++.tst.in,
 	AMMUNITION/Makefile.in, AMMUNITION/IEEE.tst.in, AMMUNITION/IEEE.h,
 	AMMUNITION/IEEE.cpp, AMMUNITION/IEEE.c, AMMUNITION/IEEE++.tst.in,
-	Makefile.in: Change the last year.
+	Makefile.in: Change the last year. Change the last year.
 
 	* SPRUT/main.c, SHILKA/main.c, SHILKA/compare.tst.in, OKA/main.c,
 	NONA/main.c, MSTA/main.c, DINO/d_main.c: Change return type of
