@@ -26661,7 +26661,7 @@ TEST466
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT466' && cmp $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of parameters of `getf'
+test.d:1:15: run time error - invalid parameter type of `getf'
 OUTPUT466
                         result=ok
                 else
@@ -26724,7 +26724,7 @@ TEST469
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT469' && cmp $stderr $ftemp2; then
-test.d:1:16: run time error - invalid number of parameters of `fgetf'
+test.d:1:16: run time error - invalid parameter type of `fgetf'
 OUTPUT469
                         result=ok
                 else

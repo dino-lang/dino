@@ -1,5 +1,13 @@
 2001-10-05  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* AMMUNITION/{earley.tst.in, earley++.tst.in}: Use srcdir for the
+	tests.
+
+	* DINO/dino.tst.in: Use new diagnostics in tests 466 and 469
+	(functions getf and fgetf).
+	
+2001-10-05  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
         * DINO/d_ir.sprut (ENVIRONMENT): Add definition of function rev.
 	(REV_NAME): New macro.
 	(rev_decl): New varaibale and its external declaration.
