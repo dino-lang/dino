@@ -366,7 +366,7 @@ mpi_change_size (int npars, val_t *vals)
 #define MAX_INTEGER_SIZE 128
 
 WIN_EXPORT val_t
-mpi_to_string (int npars, val_t *vals)
+mpi_to_based_string (int npars, val_t *vals)
 {
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -377,14 +377,16 @@ mpi_to_string (int npars, val_t *vals)
   ER_node_t vect;
   char str [3 * MAX_INTEGER_SIZE];
 
-  assert (npars == 1
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  assert (npars == 2
+	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   size_var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)),
 			  0);
   size = ER_i (size_var);
   hidevalue = ER_hideblock_start (ER_hideblock (var));
-  integer_to_string (size, hidevalue, str);
+  integer_to_based_string (size, hidevalue, ER_i ((ER_node_t) (vals + 1)),
+			   str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
   ER_set_vect (res, vect);
@@ -392,7 +394,7 @@ mpi_to_string (int npars, val_t *vals)
 }
 
 WIN_EXPORT val_t
-mpi_from_string (int npars, val_t *vals)
+mpi_from_based_string (int npars, val_t *vals)
 {
   int_t size;
   void *hideblock;
@@ -401,15 +403,17 @@ mpi_from_string (int npars, val_t *vals)
 
   assert (npars == 2
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
+	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);
   var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))),
 		     1);
   size_var = INDEXED_VAL (ER_instance_vars
 			  (ER_instance ((ER_node_t) (vals + 1))), 0);
   size = ER_i (size_var);
   hideblock = create_hideblock (size);
-  integer_from_string (size, ER_pack_els (ER_vect ((ER_node_t) vals)),
-		       ER_hideblock_start ((ER_node_t) hideblock));
+  integer_from_based_string (size, ER_pack_els (ER_vect ((ER_node_t) vals)),
+			     ER_i ((ER_node_t) (vals + 2)),
+			     ER_hideblock_start ((ER_node_t) hideblock));
   check_overflow ();
   mpi = ER_instance ((ER_node_t) (vals + 1));
   /* Size is already set up. */

@@ -2,6 +2,7 @@ ext except {
   class mpi_except () {
     class mpi_type (msg) {}
     class mpi_size () {}
+    class mpi_base () {}
     class mpi_unequal_size () {}
     class mpi_overflow () {}
   }
@@ -38,12 +39,12 @@ final class mpi_package () {
   private mpi_add, mpi_subtract, mpi_multiply, mpi_divide, mpi_remainder,
           mpi_shift_right, mpi_shift_left, mpi_or, mpi_and, mpi_not,
           mpi_eq, mpi_ne, mpi_gt, mpi_lt, mpi_ge, mpi_le,
-          mpi_change_size, mpi_to_string, mpi_from_string;
+          mpi_change_size, mpi_to_based_string, mpi_from_based_string;
   extern mpi_add(), mpi_subtract(), mpi_multiply(),
          mpi_divide(), mpi_remainder(), mpi_shift_right(), mpi_shift_left(),
          mpi_or(), mpi_and(), mpi_not(),
          mpi_eq(), mpi_ne(), mpi_gt(), mpi_lt(), mpi_ge(), mpi_le(),
-         mpi_change_size(), mpi_to_string(), mpi_from_string();
+         mpi_change_size(), mpi_to_based_string(), mpi_from_based_string();
   func add (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_add (op1, op2, new op1));
@@ -120,17 +121,29 @@ final class mpi_package () {
       throw mpi_excepts.mpi_size();
     return check_overflow (mpi_change_size (op, new_size, new op));
   }
-  func to_string (op) {
+  func to_based_string (op, base) {
+    if (type (base) != int)
+      throw mpi_excepts.mpi_type();
+    if (base < 2 || base > 16)
+      throw mpi_excepts.mpi_base();
     check (op);
-    return mpi_to_string (op);
+    return mpi_to_based_string (op, base);
   }
-  func from_string (size, string) { // Overflow is possible
-    if (type (size) != int
+  func to_string (op) {
+    return to_based_string (op, 10);
+  }
+  func from_based_string (size, string, base) { // Overflow is possible
+    if (type (size) != int || type (base) != int
         || type (string) != vector ||  eltype (string) != char)
       throw mpi_excepts.mpi_type();
     if (size < 1 || size > max_mpi_size)
       throw mpi_excepts.mpi_size();
-    return check_overflow (mpi_from_string (string, mpi (size)));
+    if (base < 2 || base > 16)
+      throw mpi_excepts.mpi_base();
+    return check_overflow (mpi_from_based_string (string, mpi (size), base));
+  }
+  func from_string (size, string) {
+    return from_based_string (size, string, 10);
   }
 }
 

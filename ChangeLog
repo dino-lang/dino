@@ -1,3 +1,15 @@
+2001-06-21  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* mpi.c (mpi_to_string, mpi_from_string): Rename them into
+	mpi_to_based_string and mpi_from_based_string.  Use
+	integer_to_based_string and integer_from_based_string.
+
+	* mpi.d (mpi_except): Add mpi_base.
+	(mpi_to_string, mpi_from_string): Rename them into
+	mpi_to_based_string and mpi_from_based_string.
+	(to_based_string, from_based_string): New functions.
+	(to_string, from_string): Use them.
+	
 2001-06-20  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* arithm.c, arithm.cpp, arithm.h: Add new functions
