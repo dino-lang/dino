@@ -1,3 +1,15 @@
+2003-03-07  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* configure.in: Use -fomit-frame-pointer for x86 gcc.
+
+	* configure: Update.
+
+	* DINO/d_run.sprut (FEW_REGISTERS): Define for x86.
+	(below_ctop): define as macros if FEW_REGISTERS is defined.
+	(SET_TOP, TOP_UP, TOP_DOWN): Make variants for FEW_REGISTERS.
+	
+	* DINO/d_heap.c (below_ctop): undefine if FEW_REGISTERS is defined.
+
 2003-01-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in (test #14): Output results and check them.

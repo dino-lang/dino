@@ -48,7 +48,16 @@ extern pc_t cpc;
 extern ER_node_t cstack;
 extern ER_node_t uppest_stack;
 extern ER_node_t ctop;
+
+#if defined (__i386) || defined (__i586) || defined (__i686)
+#define FEW_REGISTERS
+#endif
+
+#ifdef FEW_REGISTERS
+#define below_ctop (INDEXED_VAL (ctop, -1))
+#else
 extern ER_node_t below_ctop;
+#endif
 
 #ifdef NO_OPTIMIZE
 #define ER_CTOP() ER_ctop (cstack)
@@ -57,6 +66,28 @@ extern ER_node_t below_ctop;
 #endif
 
 #ifdef NO_OPTIMIZE
+
+#ifdef FEW_REGISTERS
+
+#define SET_TOP\
+   do {\
+     ctop = (ER_node_t) ER_CTOP ();\
+   } while (0)
+
+#define TOP_UP\
+   do {\
+     DECR_CTOP (-1);\
+     ctop = (ER_node_t) ER_CTOP ();\
+   } while (0)
+
+#define TOP_DOWN\
+   do {\
+     DECR_CTOP (1);\
+     ctop = (ER_node_t) ER_CTOP ();\
+   } while (0)
+
+#else /* #ifdef FEW_REGISTERS */
+
 #define SET_TOP\
    do {\
      ctop = (ER_node_t) ER_CTOP ();\
@@ -77,7 +108,28 @@ extern ER_node_t below_ctop;
      below_ctop = INDEXED_VAL (ctop, -1);\
    } while (0)
 
-#else
+#endif /* #ifdef FEW_REGISTERS */
+
+#else /* #ifdef NO_OPTIMIZE */
+
+#ifdef FEW_REGISTERS
+
+#define SET_TOP\
+   do {\
+   } while (0)
+
+#define TOP_UP\
+   do {\
+     ctop = INDEXED_VAL (ctop, 1);\
+   } while (0)
+
+#define TOP_DOWN\
+   do {\
+     ctop = below_ctop;\
+   } while (0)
+
+#else /* #ifdef FEW_REGISTERS */
+
 #define SET_TOP\
    do {\
      below_ctop = INDEXED_VAL (ctop, -1);\
@@ -95,7 +147,10 @@ extern ER_node_t below_ctop;
      below_ctop = INDEXED_VAL (ctop, -1);\
    } while (0)
 
-#endif
+#endif /* #ifdef FEW_REGISTERS */
+
+#endif /* #ifdef NO_OPTIMIZE */
+
 extern vlo_t heap_temp_refs;
 
 #define CREATE_TEMP_REF() VLO_CREATE (heap_temp_refs, 256)

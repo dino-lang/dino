@@ -42,7 +42,10 @@ ER_node_t uppest_stack;
 /* Pointers to the var on the top and below the top of stack cstack.
    Don't use the variables during GC. */
 ER_node_t ctop;
+
+#ifndef FEW_REGISTERS
 ER_node_t below_ctop;
+#endif
 
 /* Pointers to a heap objects.  Garbage collector will change it
    correspondingly too.  If the pointer refers for vector, it can not
