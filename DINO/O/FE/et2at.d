@@ -44,7 +44,7 @@ func tr_lt (t) { return gen_op2 (t).lt (); }
 func tr_le (t) { return gen_op2 (t).le (); }
 func tr_gt (t) { return gen_op2 (t).gt (); }
 func tr_ge (t) { return gen_op2 (t).ge (); }
-func tr_set_in (t) { return gen_op2 (t).set_in (); }
+func tr_in (t) { return gen_op2 (t).set_in (); }
 func tr_is (t) {return gen_expr (t).op2 (tr (t, 1), tr (t, 2, in_type)).is ();}
 func tr_plus (t) { return gen_op2 (t).plus (); }
 func tr_minus (t) { return gen_op2 (t).minus (); }
@@ -101,7 +101,7 @@ func tr_des_and_par (t) {
   var des = tr (t, 1), par = t.transl [2], dcl = nil, left;
 
   if (par.name == "$term" && inside (par.transl.lex, lexs.ident))
-    dcl = decltab.get (par.transl.lex, curr_scope);
+    dcl = decltab.find (par.transl.lex, curr_scope);
   else if (par.name == "dot") { // module should be already read
     left = par.transl [1];
     if (left.name == "$term" && inside (left.transl.lex, lexs.ident)) {
@@ -153,7 +153,7 @@ func tr_while (t) {
   return gen_stmt (t).while (tr (t, 1), vtr (t, 2, in_other));
 }
 func tr_repeat (t) {
-  return gen_stmt (t).repeat (tr (t, 1), vtr (t, 2), in_other);
+  return gen_stmt (t).repeat (tr (t, 1), vtr (t, 2, in_other));
 }
 
 func tr_with (t) {
@@ -247,9 +247,9 @@ func tr_conc (t) { // translation of concatenation
   else return [f, s];
 }
 
-func tr_fps (t) {
-  var var_p = tr (t, 0) != nil, identlist = tr (t, 1, in_other);
-  var typedef = tr (t, 2, in_type), ident, i, par, res = [];
+func tr_fps (t, var_p = 0) {
+  var identlist = tr (t, 0, in_other);
+  var typedef = tr (t, 1, in_type), ident, i, par, res = [];
     
   for (i = 0; i < #identlist; i++) {
     ident = identlist [i];
@@ -261,11 +261,19 @@ func tr_fps (t) {
   return res;
 }
 
+func tr_vfps (t) { return tr_fps (t); }
+
+var proc_p = 0; // nonzero for checking formals for a procedure (not a type)
+
 func tr_formals (t) {
-  var l = t.transl [0], n;
+  var l = t.transl [0], n, res;
 
   n = (l.name == "$nil" ? node ("", 0, 0) : gen_pos_node (l.transl.lex));
-  return n.tdef ().proc (vtr (t, 1), tr (t, 2, in_type));
+  res = n.tdef ().proc (nil, tr (t, 2, in_type));
+  if (!proc_p) {res.scope = curr_scope; curr_scope = res;}
+  res.pars = vtr (t, 1);
+  if (!proc_p) curr_scope = res.scope;
+  return res;
 }
 
 func tr_hint (t) { return 1; }
@@ -283,7 +291,7 @@ func tr_proc (t) {
 		   "ident after `END' is not the same as the procedure ident");
   }
   p = n.decl (ident, curr_scope).proc (export); curr_scope = p;
-  p.hint = tr (t, 0) != nil; p.tdef = tr (t, 2);
+  p.hint = tr (t, 0) != nil; proc_p = 1; p.tdef = tr (t, 2); proc_p = 0;
   if (ident == nil) res = nil;
   else {
     tp = decltab.get (ident, p.scope); res = p;
@@ -326,7 +334,7 @@ func find_module (id) {
 func read_module_export (name) { // scan & parse & translate
   var at, st, fname, lexs, before = clock ();
   var scan = scanner (imported_module_file_name (name));
-
+  
   lexs = scan.get_lexs ();
   at = o2parse (grammar_fname (), lexs, scan.term_map);
   trans_time -= clock () - before; st = et2at_where (at);
@@ -352,7 +360,7 @@ func tr_module (t) {
   
   if (ident == nil) { ident = end_ident; n = node ("", 0, 0); }
   else {
-    n = gen_pos_node (ident); println (end_ident);
+    n = gen_pos_node (ident);
     if (end_ident != nil && ident.repr != end_ident.repr)
       diags.error (end_ident.fname, end_ident.lno, end_ident.pos,
 		   "ident after `END' is not the same as the module ident");
@@ -368,7 +376,7 @@ func tr_module (t) {
 
 var funcs = {"$error" : nothing, "$nil" : nothing, "$term" : tr_term,
 	     "eq" : tr_eq, "ne" : tr_ne, "lt" : tr_lt, "le" : tr_le,
-	     "gt" : tr_gt, "ge" : tr_ge, "set_in" : tr_set_in,  "is" : tr_is,
+	     "gt" : tr_gt, "ge" : tr_ge, "in" : tr_in,  "is" : tr_is,
 	     "plus" : tr_plus,  "minus" : tr_minus, "or" : tr_or,
 	     "and" : tr_and, "mult" : tr_mult, "rdiv" : tr_rdiv,
 	     "div" : tr_div, "mod" : tr_mod, "pos" : tr_pos,  "neg" : tr_neg,
@@ -383,10 +391,10 @@ var funcs = {"$error" : nothing, "$nil" : nothing, "$term" : tr_term,
 	     "const" : tr_const, "type" : tr_type, "var" : tr_var,
 	     "pointer" : tr_pointer, "array" : tr_array,
 	     "oparray" : tr_oparray, "fields" : tr_fields,
-             "record" : tr_record, "exportid" : tr_exportid, "fps" : tr_fps,
-	     "formals" : tr_formals, "hint" : tr_hint, "proc" : tr_proc,
-             "forward" : tr_forward, "import" : tr_import,
-	     "module" : tr_module};
+             "record" : tr_record, "exportid" : tr_exportid,
+             "fps" : tr_fps, "vfps" : tr_vfps, "formals" : tr_formals,
+             "hint" : tr_hint, "proc" : tr_proc, "forward" : tr_forward,
+	     "import" : tr_import, "module" : tr_module};
 
 func et2at_where (t, where_par) {
   var saved = where, res;

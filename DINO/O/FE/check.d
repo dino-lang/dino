@@ -17,7 +17,8 @@ func is_string (t) {
   return (t != nil && t.tp != nil && inside (t.tp, tdefs.arr)
 	  && t.tdef.tp === t_char);
 }
-func str_char (t) {return t != nil && inside (t, exprs.str) && #t.v.str == 1;}
+func str_char (l) {return l != nil && inside (l, lexs.str) && #l.str == 1;}
+func is_of_char (e) {return e != nil && e.tp === t_char || str_char (e.lex);}
 
 var final rank = {t_shortint : 0, t_integer : 1, t_longint : 2,
 		  t_real : 3, t_longreal : 4};
@@ -27,8 +28,8 @@ func type_included (t0, t1) {
 }
 
 func type_extended (t0, t1, ptr_p) {
-  if (ptr_p && inside (t0, tdefs.ptr) && inside (t1, tdefs.ptr))
-    return type_extended (t0.tdef.tp, t1.tdef.tp, 1);
+  if (ptr_p && inside (t1, tdefs.ptr))
+    return type_extended (t0, t1.tdef.tp, 0);
   if (!inside (t0, tdefs.rec) || !inside (t1, tdefs.rec))
     return 0;
   for (; t0 != nil; t0 = t0.base == nil ? nil : t0.base.tp)
@@ -53,8 +54,7 @@ func eq_type (t1, t2) {
       && (inside (t1, tdefs.ptr) || inside (t1, tdefs.proc))) return 1;
   else if (t1 != nil && inside (t1, tdefs.proc)
 	   && t2 != nil && inside (t2, tdefs.proc)) {
-    if (t1.tdef !== t2.tdef || t1.tdef.tp !== t2.tdef.tp
-	|| #t1.pars != #t2.pars) return 0;
+    if (t1.tdef.tp !== t2.tdef.tp || #t1.pars != #t2.pars) return 0;
     for (i = 0; i < #t1.pars; i++) {
       p1 = t1.pars [i]; p2 = t2.pars [i]; pt1 = p1.tdef; pt2 = p2.tdef;
       if (pt1 != nil && inside (pt1, tdefs.arr) && pt1.expr == nil)
@@ -177,8 +177,9 @@ func check_tdef (t) {
     }
     if (not_int (tdef) || tdef != nil && l == nil)
       cerr (t.expr, "non-integer constant length");
-    else if (t.expr != nil) l = lex (l.lno, l.pos, l.fname, l.repr,
-				     l.code).integer ().li (mpi2long (l.v));
+    else if (t.expr != nil)
+      t.expr.lex = lex (l.lno, l.pos, l.fname, l.repr,
+			l.code).integer ().li (mpi2long (l.v));
     check_tdef (t.tdef); t.tp = t;
   } else if (inside (t, tdefs.rec)) {
     t.tp = t;
@@ -211,14 +212,15 @@ func not_assign_compatible (e, vt) {
 	  && (e.tp !== t_nil
 	      || !inside (vt, tdefs.ptr) && !inside (vt, tdefs.proc))
 	  && (vt != t_char || !str_char (e.lex))
-	  && (e.lex == nil || !inside (e.lex, decls.proc)
-	      || !inside (vt, tdefs.proc) || !eq_type (vt, e.lex.tdef.tp)
-	      || e.lex.scope == nil || !inside (e.lex.scope, decls.module))
-	  && (e.lex == nil || !inside (e.lex, exprs.str)
+	  && (!inside (e, dess.qualid) || e.decl == nil
+	      || !inside (e.decl, decls.proc)
+	      || !inside (vt, tdefs.proc) || !eq_type (vt, e.decl.tdef.tp)
+	      || e.decl.scope == nil || !inside (e.decl.scope, decls.module))
+	  && (!inside (e.tp, tdefs.arr) || e.tp.expr.lex == nil
+	      || !inside (e.tp.expr.lex, lexs.integer)
 	      || !inside (vt, tdefs.arr) || vt.expr.lex == nil
 	      || !inside (vt.expr.lex, lexs.integer)
-	      || !mpis.lt (mpis.from_string (mach.li_size, #e.v.str @ ""),
-			   vt.expr.lex.v)));
+	      || !mpis.lt (e.tp.expr.lex.v, vt.expr.lex.v)));
 }
 
 func check_std_call (c, func_p) { // ???
@@ -284,7 +286,7 @@ func check_ext_des (d, et) {
       && (!inside (d, dess.qualid) || d.decl != nil
 	  && (!inside (d.decl, decls.par) || !d.decl.var_p
 	      || !inside (vt, tdefs.rec)))) {
-    cerr (d, "inavlid designator in IS or type guard"); err = 1;
+    cerr (d, "invalid designator in IS or type guard"); err = 1;
   }
   if (vt != nil && et != nil && !type_extended (et, vt, 1)) {
     cerr (d, "it is not extension of the type"); err = 1;
@@ -292,10 +294,19 @@ func check_ext_des (d, et) {
   return err;
 }
 
+var case_tp; // current type of case labels.
+
+func case_lab_cmp (c1, c2) {
+  if (case_tp == t_char) return c1.min - c2.min;
+  else if (mpis.lt (c1.min, c2.min)) return -1;
+  else if (mpis.gt (c1.min, c2.min)) return 1;
+  else return 0;
+}
+
 var loop_level = 0;
 
 func check_stmt (t) {
-  var i, j, r, tp, tp1, tp2, v, v1, v2, cv, err;
+  var i, j, k, min, max, r, tp, tp1, tp2, v, v1, v2, cv, err;
 
   if (inside (t, stmts.assign)) {
     check_expr (t.des); check_expr (t.expr);
@@ -313,47 +324,54 @@ func check_stmt (t) {
     check_stmts (t.else_stmts);
   } else if (inside (t, stmts.case)) {
     check_expr (t.expr); tp = t.expr.tp; cv = {};
-    if (not_int (tp) && tp != nil && tp != t_char) {
+    if (not_int (tp) && !is_of_char (t.expr)) {
       cerr (t, "invalid type of case-expr"); tp = nil;
     }
+    t.case_labs = [];
     for (i = 0; i < #t.cases; i += 2) {
       r = t.cases [i];
       for (j = 0; j < #r; j += 2) {
-	check_expr (r [j]); check_expr (r [j + 1]);
-	tp1 = r [j].tp; tp2 = r [j + 1].tp;
-	if (tp == nil && not_int (tp1) && tp1 != nil && tp1 != t_char
-	    || tp != nil && (tp != tp1 || !is_int (tp) || !is_int (tp1)))
-	  cerr (r [j], "invalid type of case-value");
-	else if (tp == nil && not_int (tp2) && tp2 != nil && tp2 != t_char
-		 || tp != nil && (tp != tp2 || !is_int (tp) || !is_int (tp2)))
-	  cerr (r [j + 1], "invalid type of case-value");
-	else if (tp != nil) {
-	  if (t.cases [j].lex == nil) cerr (r [j], "non const case-value");
-	  else if (r [j + 1].lex == nil)
-	    cerr (r [j + 1], "non const case-value");
+        min = r [j]; max = r [j + 1]; check_expr (min); check_expr (max);
+	tp1 = min.tp; tp2 = max.tp;
+	if (tp == nil && not_int (tp1) && !is_of_char (min)
+	    || is_of_char (t.expr) && !is_of_char (min)
+            || is_int (tp) && !is_int (tp1))
+	  cerr (min, "invalid type of case-value");
+	else if (tp == nil && not_int (tp2) && !is_of_char (max)
+		 || is_of_char (t.expr) && !is_of_char (max)
+		 || is_int (tp) && !is_int (tp2))
+	  cerr (max, "invalid type of case-value");
+	else if (tp == nil) {
+	  if (min.lex == nil) cerr (min, "non const case-value");
+	  else if (max.lex == nil)
+	    cerr (max, "non const case-value");
 	} else {
-	  if (tp == t_char) {
-	    v1 = r [j].lex.ch_code; v2 = r [j + 1].lex.ch_code;
-	    if (v1 > v2) cerr (r [j], "lower bound > upper bound");
-	    else {
-	      for (v = v1; v <= v2; v++)
-		if (v in cv) cerr (t.cases [i], "repeated case-value ",
-				   v @ "");
-		else cv {v} = r [j];
-	    }
+	  if (is_of_char (t.expr)) {
+	    v1 = (tp1 === t_char ? min.lex.ch_code : min.lex.str [0]);
+	    v2 = (tp2 === t_char ? max.lex.ch_code : max.lex.str [0]);
+	    if (v1 > v2) cerr (min, "lower bound > upper bound");
+	    else ins (t.case_labs, node (max.fname, max.lno, max.pos)
+		      .case_lab (v1, v2, t.cases [i + 1]), -1);
 	  } else {
-	    v1 = mpi2long (r [j].lex.v); v2 = mpi2long (r [j + 1].lex.v);
-	    if (mpis.gt (v1, v2)) cerr (r [j], "lower bound > upper bound");
-	    else {
-	      for (v = v1; mpis.le (v, v2);)
-		if (v in cv) cerr (t.cases [i], "repeated case-value ",
-				   mpis.to_string (v));
-		else cv {v} = r [j];
-	      v = mpis.add (v, mpis.from_string ("1"));
-	    }
+	    v1 = mpi2long (min.lex.v); v2 = mpi2long (max.lex.v);
+	    if (mpis.gt (v1, v2)) cerr (min, "lower bound > upper bound");
+	    else ins (t.case_labs, node (max.fname, max.lno, max.pos)
+		      .case_lab (v1, v2, t.cases [i + 1]), -1);
 	  }
+	  case_tp = tp; t.case_labs = sort (t.case_labs, case_lab_cmp);
+          for (k = 0; k < #t.case_labs; k++)
+            if (k != 0) {
+              if (is_of_char (t.expr)
+	          && t.case_labs [k - 1].max >= t.case_labs [k].min)
+		cerr (t.case_labs [k - 1], "repeated case-value \"",
+		      t.case_labs [k - 1].max @ "\"");
+              else if (is_int (tp) && mpis.ge (t.case_labs [k - 1].max,
+					       t.case_labs [k].min))
+		cerr (t.case_labs [k - 1], "repeated case-value ",
+		      mpis.to_string (t.case_labs [k - 1].max));
+            }
 	}
-	check_stmts (t.case [i + 1]);
+	check_stmts (t.cases [i + 1]);
       }
     }
     check_stmts (t.else_stmts);
@@ -580,7 +598,7 @@ func check_op2 (t) {
 	t.tp = t_real;
     }
     if (t.tp != nil && l != nil) {
-      var v, opn, lv = t.left.lex.v, rv = t.right.lex.v;
+      var v, lv = t.left.lex.v, rv = t.right.lex.v;
 
       if (t.tp === t_set) {
 	if (inside (t, op2s.plus)) v = mpis.or (lv, rv);
@@ -608,7 +626,7 @@ func check_op2 (t) {
 	else  v = mpis.divide (lv, rv);
 	mpis.mpi_ignore_overflow = 0;
 	if (mpis.mpi_overflow)
-	  diags.error (l.fname, l.lno, l.start, "overflow in ", opn);
+	  diags.error (l.fname, l.lno, l.pos, "overflow in ", opn);
 	t.lex = mpi2int (l.integer (), v);
       }
     }

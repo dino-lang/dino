@@ -55,7 +55,7 @@ class scanner (final fname) {
   var p_skip = "[[:space:]]*";                            // blanks
   var p_hd = "[0-9A-F]";                                  // hexDigit
   var p_id = "^([[:alpha:]][[:alnum:]]*)" @ p_skip;       // identifier
-  var p_char = "([[:digit:]][A-F]*X)";                    // character
+  var p_char = "([[:digit:]]" @ p_hd @ "*X)";             // character
   var p_int = "([[:digit:]]+|[[:digit:]]" @ p_hd @ "*H)"; // integer number
   var p_scale = "[ED][+-]?[[:digit:]]+";                  // ScaleFactor
   var p_real = "([[:digit:]]+\\.[[:digit:]]*(" @ p_scale @ ")?)";// real number
@@ -154,7 +154,7 @@ class scanner (final fname) {
 	  
 	  l = lex (lno, start, fname, tok, number).integer ();
 	  if (tok [#tok - 1] == 'H') { // there is a suffix.
-	    base = 16;
+	    base = 16; tok = new tok; // because tok may be immutable
 	    del (tok, #tok - 1);
 	  }
 	  mpis.mpi_ignore_overflow = 1;
@@ -178,6 +178,7 @@ class scanner (final fname) {
 	  suf = (v [p_realps + 2] >= 0 ? tok [v [p_realps + 2]] : nil);
 	  ieees.ignore_excepts = 1;
 	  if (suf == 'D') {
+	    tok = new tok; // tok may be immutable.
 	    tok [v [p_realps + 2]] = 'E'; // for function from_string
 	    l = l.lr (mach.lr_class ());
           } else l = l.r (mach.r_class ());
@@ -214,7 +215,11 @@ class scanner (final fname) {
     }
   }
 
-  f = fname == "-" ? stdin : open (fname, "r");
+  try {
+    f = fname == "-" ? stdin : open (fname, "r");
+  } catch (invcalls.syserror) {
+    diags.simple_fatal ("cannot open file \"", fname, "\"");
+  }
   lno = 0; ln = estr;
 
   // The folllowing is table terminal name -> its code:

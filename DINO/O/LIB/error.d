@@ -11,6 +11,7 @@ class diag () {
   }
   func output (pars) {
     var i;
+
     for (i = 0; i < #pars; i++)
       fput (stderr, pars [i]);
     fputln (stderr);
@@ -18,11 +19,12 @@ class diag () {
   func error (fname, lno, pos, ...) {
     ppos (fname, lno, pos); output (args); nerr++;
   }
+  func simple_fatal (...) { output (args); exit (1); }
   func fatal (fname, lno, pos, ...) {
     ppos (fname, lno, pos); output (args); exit (1);
   }
   func warn (fname, lno, pos, ...) {
-    ppos (fname, lno, pos); output (args); nwarn++;
+    ppos (fname, lno, pos); fput (stderr, "warn -- "); output (args); nwarn++;
   }
 }
 

@@ -10,3 +10,4 @@ if test x$DINO_LIB = x; then
 fi
 $DINO_HOME/dino -I$O_HOME/.. -I$O_HOME/FE -I$O_HOME/BE -I$O_HOME/LIB -I$O_HOME/MACH/i386 -L$DINO_LIB/ieee.so -L$DINO_LIB/mpi.so $O_HOME/DEBUG/et2atest.d $O_HOME/DEBUG/Sieve.ob
 $DINO_HOME/dino -I$O_HOME/.. -I$O_HOME/FE -I$O_HOME/BE -I$O_HOME/LIB -I$O_HOME/MACH/i386 -L$DINO_LIB/ieee.so -L$DINO_LIB/mpi.so $O_HOME/DEBUG/et2atest.d $O_HOME/DEBUG/List.ob
+$DINO_HOME/dino -I$O_HOME/.. -I$O_HOME/FE -I$O_HOME/BE -I$O_HOME/LIB -I$O_HOME/MACH/i386 -L$DINO_LIB/ieee.so -L$DINO_LIB/mpi.so $O_HOME/DEBUG/et2atest.d $O_HOME/DEBUG/Report.ob

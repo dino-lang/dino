@@ -24,6 +24,11 @@ ext node {
     ext qualid { var decl; }
   }
   
+  class case_lab (min, max, stmt) {} // min/max may be identical.
+  ext stmt {
+    ext case { var case_labs; }
+  }
+
   ext expr {
     var tp, lex;
     ext des {

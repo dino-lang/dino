@@ -1,3 +1,38 @@
+2003-12-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/O/FE/tree.d: Remove it.
+	* DINO/O/DEBUG/Report.ob: Add.
+	* DINO/O/DEBUG/com-check, DINO/O/DEBUG/com-tree: Process
+	Report.ob.
+	* DINO/O/DEBUG/et2atest.d (pr_tree): Check on exit-stmt.
+	* DINO/O/FE/atree.d: Add scope to tdefs.proc.
+	* DINO/O/FE/check.d (str_char): Use lexs instead of exprs.
+	(is_of_char): New func.
+	(type_extended): Check only t1 on ptr.
+	(eq_type): Check only tp for proc return type.
+	(not_assign_compatible): Fix cases for proc type and array of
+	char.
+	(case_tp): New variable.
+	(case_lab_cmp): New function.
+	(check_stmt): Use ranges for comparison.
+	(check_op2): Fix nested declarations of opn.
+	* DINO/O/FE/ctree.d (case_lab): New class.
+	(case): New filed case_labs.
+	* DINO/O/FE/et2at.d (tr_set_in): Rename it on tr_in.
+	(tr_des_and_par): Use find instead of get.
+	(tr_repeat): Fix typo in parameters.
+	(tr_fps): Add new parameter.
+	(tr_vfps): New function.
+	(proc_p): New variable.
+	(tr_formals): Change scope for proc type.
+	(tr_proc): Use proc_p.
+	* DINO/O/FE/o.y: Use new node vfps.
+	* DINO/O/FE/scanner.d (p_char): Fix regexp.
+	(scanner): Copy tok when it is changed.  Process exception for
+	opening file.
+	* DINO/O/LIB/error.d (simple_fatal): New function.
+	(warn): Add prefix to message.
+	
 2003-12-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/O/DEBUG: New directory.

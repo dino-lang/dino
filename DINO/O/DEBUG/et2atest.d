@@ -148,7 +148,7 @@ func pr_tree (t, indent) {
 	put (" ("); pr_indent (indent); put ("expr = ");
 	pr_tree (t.expr, indent); put (")");
       }
-    } else internal_error ("invalid statement");
+    } else if (!inside (t, stmts.exit)) internal_error ("invalid statement");
   } else if (inside (t, class (exprs))) {
     put (" (");
     if (inside (t, exprs.op2)) {

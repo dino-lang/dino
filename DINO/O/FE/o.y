@@ -77,8 +77,8 @@ NoFormalPars :                                           # formals (- - -)
 FPSectionSeq : FPSection                                 # conc (0 -)
              | FPSectionSeq ';' FPSection                # conc (0 2)
              ;
-FPSection : IdentSeq ':' FormalType                      # fps (- 0 2)
-          | VAR IdentSeq ':' FormalType                  # fps (0 1 3)
+FPSection : IdentSeq ':' FormalType                      # fps (0 2)
+          | VAR IdentSeq ':' FormalType                  # vfps (1 3)
           | error                                        # -
           ;
 ReturnType  :                                            # -

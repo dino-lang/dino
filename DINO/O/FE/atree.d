@@ -21,8 +21,9 @@ class node (fname, lno, pos) {
     // base may be nil, fields is array of fields
     class rec (base, fields)        {var scope;}
     class ptr (tdef)                {}
-    // tdef may be nil for a procedure.  pars is array of pars
-    class proc (pars, tdef)         {}
+    // tdef may be nil for a procedure.  pars is array of pars.
+    // scope is defined for procedure type decl only.
+    class proc (pars, tdef)         {var scope;}
   }
   
   class stmt () {

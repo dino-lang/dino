@@ -1,0 +1,154 @@
+(* Code taken from the Reprort *)
+MODULE Report;
+  (* exported:  Function *)
+  (* IMPORT Texts; *)
+  (* identfiers: *)
+  VAR scan, Oberon, GetSymbol, firstLetter : INTEGER;
+  (* constants: *)
+  CONST c1 = 1987; c2 = 100H; c3 = 12.3; c4 = 4.567E8; c5 = 0.57712566D-6;
+  (* strings: *)
+  CONST s1 = "OBERON"; s2 = "Don't worry!";
+  (* constant declarations: *)
+  CONST N = 100; limit = 2*N -1; all = {0 .. 10};
+  (* Type declarations: *)
+  TYPE
+    Table = ARRAY N OF REAL;
+    Tree = POINTER TO Node;
+    Node = RECORD key: INTEGER; left, right: Tree END;
+    CenterNode = RECORD (Node) name: ARRAY 32 OF CHAR; subnode: Tree END;
+    Function* = PROCEDURE (x: INTEGER): INTEGER;
+  (* Array types: *)
+  TYPE
+    Arr = ARRAY N OF INTEGER;
+    Tab = ARRAY 10, 20 OF REAL;
+  (* Record types: *)
+  TYPE
+    Rec1 = RECORD day, month, year: INTEGER END;
+    Rec2 = RECORD name, firstname: ARRAY 32 OF CHAR;
+                  age: INTEGER;
+                  salary: REAL
+           END;
+  (* Variable declarations: *)
+  VAR
+    i, j, k:  INTEGER;
+    x, y:     REAL;
+    p, q:     BOOLEAN;
+    s:        SET;
+    f:        Function;
+    a:        ARRAY 100 OF REAL;
+    w:        ARRAY 16 OF
+              RECORD ch: CHAR;
+                count: INTEGER
+              END;
+    t, t1, t2, L: Tree;
+    ch:       CHAR;
+    name:     ARRAY 40 OF CHAR;
+
+  (* Procedures: *)
+  PROCEDURE Read (VAR ch : CHAR); BEGIN ch := 10X;END Read;
+  PROCEDURE Write (ch : CHAR); BEGIN END Write;
+  PROCEDURE ReadInt(VAR x: INTEGER);
+   VAR i : INTEGER; ch: CHAR;
+  BEGIN i := 0; Read(ch);
+   WHILE ("0" <= ch) & (ch <= "9") DO
+       i := 10*i + (ORD(ch)-ORD("0")); Read(ch)
+   END ;
+   x := i
+  END ReadInt;
+
+  PROCEDURE WriteInt(x: INTEGER);  (* 0 <= x < 10.0E5 *)
+   VAR i: INTEGER;
+       buf: ARRAY 5 OF INTEGER;
+  BEGIN i := 0;
+   REPEAT buf[i] := x MOD 10;  x := x DIV 10;  INC(i) UNTIL x = 0;
+   REPEAT DEC(i); Write(CHR(buf[i] + ORD("0"))) UNTIL i = 0
+  END WriteInt;
+
+  PROCEDURE log2(x: INTEGER): INTEGER;
+   VAR y: INTEGER;  (*assume x > 0*)
+  BEGIN y := 0;
+   WHILE x > 1 DO x := x DIV 2; INC(y) END ;
+   RETURN y
+  END log2;
+
+  PROCEDURE Designators;
+  BEGIN
+   i := i;
+   x := a[i];
+   w[3].ch := w[3].ch;
+   i := t.key;
+   t := t.left.right;
+   t := t(CenterNode).subnode;
+  END Designators;
+
+  PROCEDURE Expressions;
+  BEGIN
+   i := 1987;
+   i := i DIV 3;
+   p := ~p OR q;
+   i := (i+j) * (i-j);
+   s := s - {8, 9, 13};
+   x := i + x;
+   y := a[i+j] * a[i-j];
+   q := (0<=i) & (i<100);
+   p := t.key = 0;
+   q := k IN {i .. j-1};
+   p := t IS CenterNode;
+  END Expressions;
+
+  PROCEDURE ReadIdentifier; BEGIN END ReadIdentifier;
+  PROCEDURE ReadNumber; BEGIN END ReadNumber;
+  PROCEDURE ReadString; BEGIN END ReadString;
+  PROCEDURE SpecialCharacter; BEGIN END SpecialCharacter;
+
+  PROCEDURE Statements;
+  BEGIN
+   i := 0;
+   p := i = j;
+   x := i + 1;
+   k := log2(i+j);
+   f := log2;
+   s := {2, 3, 5, 7, 11, 13};
+   a[i] := (x+y) * (x-y);
+   t.key := i;
+   w[i+1].ch := "A";
+
+   ReadInt(i); (* see Section 10 *)
+   WriteInt(j*2+1);
+   INC(w[k].count);
+
+   IF (ch >= "A") & (ch <= "Z") THEN ReadIdentifier
+   ELSIF (ch >= "0") & (ch <= "9") THEN ReadNumber
+   ELSIF ch = 22X THEN ReadString
+   END;
+
+   CASE ch OF
+       "A" .. "Z": ReadIdentifier
+     | 22X : ReadString
+     | "0" .. "9": ReadNumber
+   ELSE SpecialCharacter
+   END;
+
+   WHILE j > 0 DO
+    j := j DIV 2; i := i+1
+   END;
+
+   WHILE (t # NIL) & (t.key # i) DO
+    t := t.left
+   END;
+
+   LOOP
+    IF t1 = NIL THEN EXIT END ;
+    IF k < t1.key THEN t2 := t1.left; p := TRUE
+    ELSIF k > t1.key THEN t2 := t1.right; p := FALSE
+    ELSE EXIT
+    END ;
+    t1 := t2
+   END;
+
+   WITH t: CenterNode DO name := t.name; L := t.subnode END
+  END Statements;
+
+BEGIN Oberon := 1
+END Report.
+
