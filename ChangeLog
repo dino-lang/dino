@@ -1,3 +1,11 @@
+2004-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* AMMUNITION/{arithm.c, arithm.cpp}
+	(multiply_unsigned_integer_by_digit_without_overflow_reaction,
+	multiply_unsigned_integer_without_overflow_reaction,
+	add_digit_to_unsigned_integer_without_overflow_reaction): Use
+	unsigned long.
+
 2004-01-29  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_built.h (putf_call, fputf_call, sputf_call): New external

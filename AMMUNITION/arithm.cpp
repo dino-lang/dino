@@ -368,7 +368,7 @@ multiply_unsigned_integer_by_digit_without_overflow_reaction
       sum = (((unsigned char *) operand) [digit_number] * digit + carry);
       if (sum > UCHAR_MAX)
         {
-          assert (sum < (UCHAR_MAX + 1) * (UCHAR_MAX + 1));
+          assert (sum < (unsigned long) (UCHAR_MAX + 1) * (UCHAR_MAX + 1));
           carry = sum / (UCHAR_MAX + 1);
           sum %= UCHAR_MAX + 1;
         }
@@ -571,7 +571,8 @@ multiply_unsigned_integer_without_overflow_reaction
                    * ((unsigned char *) op2) [op2_digit_number]
                    + long_result [op1_digit_number + op2_digit_number + 1]
                    + carry);
-              assert (partial_sum < (UCHAR_MAX + 1) * (UCHAR_MAX + 1));
+              assert (partial_sum
+		      < (unsigned long) (UCHAR_MAX + 1) * (UCHAR_MAX + 1));
               long_result [op1_digit_number + op2_digit_number + 1]
                 = (unsigned char) (partial_sum % (UCHAR_MAX + 1));
               carry = partial_sum / (UCHAR_MAX + 1);
@@ -1667,7 +1668,7 @@ add_digit_to_unsigned_integer_without_overflow_reaction
       sum = ((unsigned char *) operand) [digit_number] + carry;
       if (sum > UCHAR_MAX)
         {
-          assert (sum < (UCHAR_MAX + 1) * (UCHAR_MAX + 1));
+          assert (sum < (unsigned long) (UCHAR_MAX + 1) * (UCHAR_MAX + 1));
           carry = sum / (UCHAR_MAX + 1);
           sum %= UCHAR_MAX + 1;
         }
