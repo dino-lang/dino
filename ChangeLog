@@ -1,3 +1,40 @@
+2002-03-18  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* AMMUNITION/earley.c (earley_set_lookahead_level): Check the
+	parameter level and change it if it is not in the range.
+
+	* AMMUNITION/{earley.tst.in, earley++.tst.in}: Add tests with
+	lookahead level not in the range.
+
+	* AMMUNITION/{ammunition.sgml.in, ammunition++.sgml.in}: Comments
+	about the lookahead value not in ther range.
+
+        * AMMUNITION/{ammunition++-13.html, ammunition++.dvi,
+	ammunition++.info, ammunition++.info-1, ammunition++.info-2,
+	ammunition++.info-3, ammunition++.info-4, ammunition++.ps,
+	ammunition++.txt, ammunition-13.html, ammunition.dvi,
+	ammunition.info, ammunition.info-1, ammunition.info-2,
+	ammunition.info-3, ammunition.ps, ammunition.txt}: Update.
+
+	* DINO/d_ir.sprut (int_earley_set_lookahead_level, set_lookahead):
+	New functions in the environment.
+	(INT_EARLEY_SET_LOOKAHEAD_LEVEL_NAME): New macro.
+	(int_earley_set_lookahead_level_decl): New global variable.
+	(decls_table): Add entry for int_earley_set_lookahead_level.
+
+	* DINO/d_built.h (int_earley_set_lookahead_level): New extrenal
+	definition.
+
+	* DINO/d_func.c (int_earley_set_lookahead_level): New function.
+
+	* DINO/dino.tst.in: New tests for set_lookahead.
+
+	* DINO/dino.sgml.in (set_lookahead): Describe it.
+
+	* DINO/{dino-10.html, dino-8.html, dino.dvi, dino.html, dino.info,
+	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
+	dino.txt): Update.
+	
 2002-03-15  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_func.c (int_earley_parse): Process case root==NULL.

@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-5608/sgmltmp.dino5608.info.2.
+This is dino.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.dino13669.info.2.
 
    \input texinfo
 
@@ -144,6 +144,16 @@ class `parser':
      set up flag value.  The default value of the flag is 1.  The
      parameter should be an integer after implicit integer conversion.
      The function will generate exception `partype' if it is not true.
+
+   * `set_lookahead (flag)'.  This function sets up flag of of
+     usage of look ahead in parser work.  The usage of lookahead gives
+     the best results with the point of view of space and speed.  The
+     default value is 1 (lookahead usage).  The function returns the
+     previously set up flag.  No usage of lookahead is useful sometimes
+     to get more understandable debug output of the parser work (see
+     function `set_debug').  The parameter should be an integer
+     after implicit integer conversion.  The function will generate
+     exception `partype' if it is not true.
 
    * `set_cost (flag)'.  This function sets up building only
      translation tree (trees if we set up one_parse_flag

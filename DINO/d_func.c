@@ -4996,6 +4996,32 @@ int_earley_set_one_parse_flag (int npars)
   INCREMENT_PC();
 }
 
+/* The following function implements function set_lookahead in class
+   parser. */
+void
+int_earley_set_lookahead_level (int npars)
+{
+  int i;
+  ER_node_t par1, par2;
+  const char *name = "set_lookahead";
+
+  par1 = INDEXED_VAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (0);
+  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
+  if (ER_NODE_MODE (par2) != ER_NM_int)
+    eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
+		DERR_parameter_type, name);
+  i = ER_i (par2);
+  i = earley_set_lookahead_level ((struct grammar *) ER_hide (par1),
+				  i ? 1 : 0);
+  DECR_CTOP (npars);
+  SET_TOP;
+  ER_SET_MODE (ctop, ER_NM_int);
+  ER_set_i (ctop, i);
+  INCREMENT_PC();
+}
+
 /* The following function implements function set_cost in class
    parser. */
 void

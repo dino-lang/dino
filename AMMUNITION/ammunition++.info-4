@@ -1,5 +1,5 @@
-This is ammunition++.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-5988/sgmltmp.ammunition++5988.info.2.
+This is ammunition++.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.ammunition++13573.info.2.
 
    \input texinfo
 
@@ -382,7 +382,9 @@ following external definitions and macros:
           parameter values) does slightly worse, and no usage of
           lookaheads does the worst.  The default value is 1 (lookahead
           with static situation context sets).  The function returns the
-          previously set up level.
+          previously set up level.  If the level value is negative,
+          zero is used instead of it.  If the value is greater than
+          two, two is used in this case.
 
     `Public function `set_debug_level''
                             `int set_debug_level (int level)'

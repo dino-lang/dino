@@ -1,5 +1,5 @@
-This is ammunition.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-5903/sgmltmp.ammunition5903.info.2.
+This is ammunition.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.ammunition13489.info.2.
 
    \input texinfo
 
@@ -375,7 +375,9 @@ following external definitions and macros:
      context sets in parser situations (all the rest parameter values)
      does slightly worse, and no usage of lookaheads does the worst.
      The default value is 1 (lookahead with static situation context
-     sets).  The function returns the previously set up level.
+     sets).  The function returns the previously set up level.  If the
+     level value is negative, zero is used instead of it.  If the value
+     is greater than two, two is used in this case.
 
 `Function `earley_set_debug_level''
                     `int earley_set_debug_level (struct grammar *grammar,

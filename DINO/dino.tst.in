@@ -27340,6 +27340,123 @@ OUTPUT490
         fi
 fi
 
+# Test 491.
+if test $result = ok -a $start_test_number -le 491; then
+	echo test 491: Parsing expression without lookahead
+        cat >$test_file <<'TEST491'
+var g = "E : E '+' T # plus (0 2)\n\
+           | T       # 0\n\
+           | error   # 0\n\
+         T : T '*' F # mult (0 2)\n\
+           | F       # 0\n\
+         F : 'a' # 0\n\
+           | '(' E ')' # 1";
+
+var p = parser ();
+
+ext token { var order;}
+
+p.set_debug (0);
+println (p.set_lookahead (0));
+p.set_one_parse (0);
+p.set_grammar (g, 1);
+
+var str = "a+a*(a+a*a)";
+var i, inp = [#str : nil];
+
+for (i = 0; i < #str; i++) {
+  inp [i] = token (str[i] + 0);
+  inp [i].order = i;
+}
+
+func error (err_tok_num, err_tok,
+            start_ignored_tok_num, start_ignored_tok_attr,
+	    start_recovered_tok_num, start_recovered_tok) {
+  put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
+  putln (" -- ignore ", start_recovered_tok_num - start_ignored_tok_num,
+         " tokens starting with token #", start_ignored_tok_num);
+}
+
+var root = p.parse (inp, error);
+
+func pr (r, ind) {
+  var i, n = r.name;
+
+  for (i = 0; i < ind; i++)
+    put (" ");
+  put (n);
+  if (n == "$term")
+    putln ("(", r.transl.code, ", ", r.transl.order, ")");
+  else if (n == "$error" || n == "$nil")
+    putln ();
+  else {
+    putln ("(");
+    for (i = 0; i < #r.transl; i++)
+       pr (r.transl [i], ind + 2);
+    for (i = 0; i < ind; i++)
+      put (" ");
+    putln (")");
+  }
+}
+
+pr (root, 0);
+println (p.set_lookahead (1));
+exit (p.ambiguous_p);
+TEST491
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP - $stdout
+                if cat >$ftemp2 <<'OUTPUT491' && $CMP $stdout $ftemp2; then
+1
+plus(
+  $term(97, 0)
+  mult(
+    $term(97, 2)
+    plus(
+      $term(97, 5)
+      mult(
+        $term(97, 7)
+        $term(97, 9)
+      )
+    )
+  )
+)
+0
+OUTPUT491
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 492.
+if test $result = ok -a $start_test_number -le 492; then
+	echo test 492: More parameter exception.
+        cat >$test_file <<'TEST492'
+var p = parser ();
+p.set_lookahead ("0");
+p.set_debug ("0");
+p.set_lookahead (nil);
+exit (0);
+TEST492
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT492' && $CMP $stderr $ftemp2; then
+test.d:4:17: run time error - invalid parameter type of `set_lookahead'
+OUTPUT492
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

@@ -98,6 +98,7 @@ extern void init_call (int_t pars_number);
 extern void int_earley_parse_grammar (int_t pars_number);
 extern void int_earley_set_debug_level (int_t pars_number);
 extern void int_earley_set_one_parse_flag (int_t pars_number);
+extern void int_earley_set_lookahead_level (int_t pars_number);
 extern void int_earley_set_cost_flag (int_t pars_number);
 extern void int_earley_set_error_recovery_flag (int_t pars_number);
 extern void int_earley_set_recovery_match (int_t pars_number);

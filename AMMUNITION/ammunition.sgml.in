@@ -2426,7 +2426,9 @@ following external definitions and macros:
           rest parameter values) does slightly worse, and no usage of
           lookaheads does the worst.  The default value is 1
           (lookahead with static situation context sets).  The
-          function returns the previously set up level.
+          function returns the previously set up level.  If the level
+          value is negative, zero is used instead of it.  If the value
+          is greater than two, two is used in this case.
 
        <tag>Function `earley_set_debug_level'</tag>
           <tscreen><verb>

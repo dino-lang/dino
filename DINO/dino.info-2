@@ -1,7 +1,49 @@
-This is dino.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-5608/sgmltmp.dino5608.info.2.
+This is dino.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.dino13669.info.2.
 
    \input texinfo
+
+
+File: dino.info,  Node: Logical operators,  Next: Bit operators,  Up: Operators
+
+Logical operators
+-----------------
+
+   Logical operators produce integer result 1 which means `true' or 0
+which means `false'.  Logical `or' `[verbar][verbar]' and logical `and'
+`&&' are `short circuit' operators.  That means that the
+second operand is evaluated depending on the result of the first
+operand.  When the operands of the operators are evaluated, the
+arithmetic conversion is made.
+
+   If the first result of logical `or' is nonzero (integer or floating
+point), the result will be 1.  Otherwise, the second operand is
+evaluated.  If the second operand is nonzero, the result will be 1.
+Otherwise, the result will be 0.
+
+   If the first result of logical `and' is zero (integer or floating
+point), the result will be 0.  Otherwise, the second operand is
+evaluated.  If the second operand is nonzero, the result will be 1.
+Otherwise, the result will be 0.
+
+   Logical negotiation `!' makes impilict integer conversion of the
+operand.  If the operand is zero (integer or floating point), the
+result will be 1.  Otherwise, the result will be 0.
+
+   Operator `in' checks that there is an element with given key (the
+first operand) in given table (the second operand).  If the element is
+in the table, the result will be 1.  Otherwise the result will be 0.
+If the second operand is not a table, exception `keyop' is generated.
+               Expr = Expr "||"  Expr
+                    | Expr "&&"  Expr
+                    | Expr in  Expr
+                    | "!"  Expr
+
+   Examples:
+               !(type (i) == int && type (a) == table && i >= 0 && i < #a)
+               k in t && t {k} == 0
+               0.0  || another_try
+               0  || another_try
 
 
 File: dino.info,  Node: Bit operators,  Next: Comparison operators,  Prev: Logical operators,  Up: Operators

@@ -53,6 +53,8 @@ History
 
   Mar 15, 2002.  Function parse may return nil.
 
+  Mar 18, 2002.  New function set_lookahead.
+
 </verb></tscreen>
 
 <sect>Introduction
@@ -2318,6 +2320,16 @@ The following public functions and variables are declared in the class
        flag does not affect the result.  The function returns the
        previously set up flag value.  The default value of the flag is
        1.  The parameter should be an integer after implicit integer
+       conversion.  The function will generate exception
+       <tt>partype</tt> if it is not true.
+     <item><tt>set_lookahead (flag)</tt>.  This function sets up flag of
+       of usage of look ahead in parser work.  The usage of lookahead
+       gives the best results with the point of view of space and
+       speed.  The default value is 1 (lookahead usage).  The function
+       returns the previously set up flag.  No usage of lookahead is
+       useful sometimes to get more understandable debug output of
+       the parser work (see function <tt>set_debug</tt>).  The
+       parameter should be an integer after implicit integer
        conversion.  The function will generate exception
        <tt>partype</tt> if it is not true.
      <item><tt>set_cost (flag)</tt>.  This function sets up building
