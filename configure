@@ -2221,7 +2221,7 @@ if test x$no_extern_shlib != x; then
   EXTERN_LIB_SUFFIX=a
   EXTERN_MAKELIB="ar rc \\\$\$0"
   EXTERN_AFTER_MAKELIB="$RANLIB \\\$\$0;echo \\\$\$0"
-  DINO_ADDITIONAL_LIBS="$DINO_ADDITIONAL_LIBS mpi.$EXTERN_LIB_SUFFIX ieee.$EXTERN_LIB_SUFFIX"
+  DINO_ADDITIONAL_LIBS="$DINO_ADDITIONAL_LIBS mpi.$EXTERN_LIB_SUFFIX ieee.$EXTERN_LIB_SUFFIX ipcerr.$EXTERN_LIB_SUFFIX socket.$EXTERN_LIB_SUFFIX"
 else
   echo +++We will use shared library for externals
 fi

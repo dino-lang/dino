@@ -1,5 +1,11 @@
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* configure.in (DINO_ADDITIONAL_LIBS): Add socket and ipcerr.
+
+	* configure: Update.
+
+2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/d_context.c (fourth_expr_processing): Make the result type
 	void.
 	(fourth_block_passing): Remove variables temp and elist.
