@@ -48,6 +48,9 @@ History
 
   Nov 22, 2001.  New functions sput, sputln, sprint, sprintln.
 
+  Dec 13, 2001.  New variables nil_anode and error_anode and new
+                 function set_cost.
+
 
 
 1. Introduction
@@ -379,8 +382,8 @@ report later.
   clock          close          cmpv           context
   cos            curr_thread
   del
-  eltype         env            errors         except
-  excepts        exit           exp
+  eltype         env            error_anode    errors
+  except         excepts        exit           exp
   fatime         fctime         fget           fgetf
   fgetln         fgmode         fgn            file
   flush          fmtime         fomode         fprint
@@ -398,6 +401,7 @@ report later.
   log            log10
   main_thread    match          max            min
   mkdir
+  nil_anode
   open
   parser         pclose         popen          pow
   print          println        put            putln
@@ -2252,11 +2256,14 @@ parser:
                    | sequence IDENTIFIER
                    | sequence C_CHARACTER_CONSTANT
           
-          translation : ['#'] NUMBER
-                      | '#' IDENTIFIER '(' numbers ')'
+          translation : '#'
+                      | '#' NUMBER
+                      | '#' '-'
+                      | '#' IDENTIFIER [NUMBER] '(' numbers ')'
           
           numbers :
                   | numbers NUMBER
+                  | numbers '-'
        
        So the description consists of terminal declaration and
        rules sections.
@@ -2277,13 +2284,19 @@ parser:
        translation part could be a single number which means that the
        translation of the alternative will be the translation of the
        symbol with given number (symbol numbers in alternative starts
-       with 0).  Or the translation can be abstract node with given
-       name and with fields whose values are the translations of the
+       with 0).  Or the translation can be empty or - which
+       designates value of variable nil_anode.  Or the
+       translation can be abstract node with given name, optional
+       cost, and with fields whose values are the translations of the
        alternative symbols with numbers given in parentheses after the
-       abstract node name.
+       abstract node name.  You can use - in abstract node to
+       show that empty node should be used in this place.  If the cost
+       is absent it is believed to be one.  The cost of terminal,
+       error node, and empty node is always zero.
 
        There is reserved terminal error which marks start
-       point of error recovery.
+       point of error recovery.  The translation of the terminal is
+       value of variable error_anode.
  
      o set_debug (level).  This function sets up level of
        debugging information output to stderr.  The more
@@ -2305,6 +2318,14 @@ parser:
        1.  The parameter should be an integer after implicit integer
        conversion.  The function will generate exception
        partype if it is not true.
+     o set_cost (flag).  This function sets up building
+       only translation tree (trees if we set up one_parse_flag to 0)
+       with minimal cost.  For unambiguous grammar the flag does not
+       affect the result.  The default value is 0. The function
+       returns the previously set up flag value.  The default value of
+       the flag is 0.  The parameter should be an integer after
+       implicit integer conversion.  The function will generate
+       exception partype if it is not true.
      o set_recovery (flag).  This function sets up flag
        whose nonzero value means making error recovery if syntax error
        occurred.  Otherwise, syntax error results in finishing parsing
@@ -2388,13 +2409,15 @@ special meaning:
        input token which was an element of array passed as parameter
        of function parse of function parser.
      o Error node which has reserved name $error.  This
-       node exists in one exemplar and represents translation of
-       grammar reserved symbol error.  The value is public
-       variable will be nil in this case.
+       node exists in one exemplar (see description of variable
+       error_anode) and represents translation of grammar
+       reserved symbol error.  The value is public variable
+       will be nil in this case.
      o Empty node which has reserved name $nil.  This
-       node exists also in one exemplar and represents translation of
-       grammar symbol for which we did not describe a translation.
-       For example, in a grammar rule an abstract node refers for
+       node exists also in one exemplar (see description of variable
+       nil_anode) and represents translation of grammar
+       symbol for which we did not describe a translation.  For
+       example, in a grammar rule an abstract node refers for
        translation of nonterminal for which we do not produce a
        translation.  The value is public variable of such class object
        will be nil in this case.
@@ -2408,7 +2431,13 @@ special meaning:
        translation.
      
 
-8.2.3.4. Example of Earley parser usage.
+8.2.3.4. Nil_anode and error_anode.
+There is only one instance of anode which represents empty
+(nil) nodes.  The same is true for the error nodes.  The final
+variables nil_anode and error_anode correspondingly
+refer to these nodes.
+
+8.2.3.5. Example of Earley parser usage.
 
 Let us write program which transforms expression into postfix polish
 form.  Please, read the program comments to understand what the code

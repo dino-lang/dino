@@ -319,10 +319,26 @@ typedef IR_node_t pc_t;
   "    class deadlock (msg) {}\n"\
   "  }\n"\
   "}\n"\
+  "var final excepts = except ();\n"\
+  "var final errors = excepts.error (nil);\n"\
+  "var final signals = errors.signal (nil);\n"\
+  "var final invops = errors.invop (nil);\n"\
+  "var final invindexes = errors.invindex (nil);\n"\
+  "var final invkeys = errors.invkey (nil);\n"\
+  "var final invcalls = errors.invcall (nil);\n"\
+  "var final syserrors = invcalls.syserror (nil);\n"\
+  "var final systemcalls = invcalls.systemcall (nil);\n"\
+  "var final invregexps = invcalls.invregexp (nil);\n"\
+  "var final invparsers = invcalls.invparser (nil);\n"\
+  "var final invexterns = invcalls.invextern (nil);\n"\
+  "var final invaccesses = errors.invaccess (nil);\n"\
+  "var argv, env, final version, final main_thread, final curr_thread;\n"\
   "class anode (name, transl) {\n"\
   "  public name, transl;\n"\
   "}\n"\
   "class token (code) {public code;}\n"\
+  "var final nil_anode = anode (\"$nil\");\n"\
+  "var final error_anode = anode (\"$error\");\n"\
   "final class parser ()\n"\
   "{\n"\
   "  var ambiguous_p;\n"\
@@ -334,6 +350,8 @@ typedef IR_node_t pc_t;
   "  private int_earley_parse_grammar, int_earley_set_debug_level;\n"\
   "  func int_earley_set_one_parse_flag (){}\n"\
   "  private int_earley_set_one_parse_flag;\n"\
+  "  func int_earley_set_cost_flag (){}\n"\
+  "  private int_earley_set_cost_flag;\n"\
   "  func int_earley_set_error_recovery_flag () {}\n"\
   "  private int_earley_set_error_recovery_flag;\n"\
   "  func int_earley_set_recovery_match (){} func int_earley_parse (){}\n"\
@@ -350,6 +368,9 @@ typedef IR_node_t pc_t;
   "  func set_one_parse (flag) {\n"\
   "    return int_earley_set_one_parse_flag (grammar, flag);\n"\
   "  }\n"\
+  "  func set_cost (flag) {\n"\
+  "    return int_earley_set_cost_flag (grammar, flag);\n"\
+  "  }\n"\
   "  func set_recovery (flag) {\n"\
   "    return int_earley_set_error_recovery_flag (grammar, flag);\n"\
   "  }\n"\
@@ -364,20 +385,6 @@ typedef IR_node_t pc_t;
   "\n"\
   "  grammar = int_earley_create_grammar ();\n"\
   "}\n"\
-  "var final excepts = except ();\n"\
-  "var final errors = excepts.error (nil);\n"\
-  "var final signals = errors.signal (nil);\n"\
-  "var final invops = errors.invop (nil);\n"\
-  "var final invindexes = errors.invindex (nil);\n"\
-  "var final invkeys = errors.invkey (nil);\n"\
-  "var final invcalls = errors.invcall (nil);\n"\
-  "var final syserrors = invcalls.syserror (nil);\n"\
-  "var final systemcalls = invcalls.systemcall (nil);\n"\
-  "var final invregexps = invcalls.invregexp (nil);\n"\
-  "var final invparsers = invcalls.invparser (nil);\n"\
-  "var final invexterns = invcalls.invextern (nil);\n"\
-  "var final invaccesses = errors.invaccess (nil);\n"\
-  "var argv, env, final version, final main_thread, final curr_thread;\n"\
   "// Do not place any code inside file (it is only for internal purposes)\n"\
   "final class file (){\n"\
   "  private file_ptr; var file_ptr;\n"\
@@ -716,9 +723,6 @@ extern IR_node_t immutable_decl;
 #define DEADLOCK_NAME "deadlock"
 extern IR_node_t deadlock_decl;
 
-#define ANODE_NAME "anode"
-extern IR_node_t anode_decl;
-
 #define EXCEPTS_NAME "excepts"
 extern IR_node_t excepts_decl;
 
@@ -773,11 +777,20 @@ extern IR_node_t main_thread_decl;
 #define CURR_THREAD_NAME "curr_thread"
 extern IR_node_t curr_thread_decl;
 
+#define ANODE_NAME "anode"
+extern IR_node_t anode_decl;
+
 #define TOKEN_NAME "token"
 extern IR_node_t token_decl;
 
 #define CODE_NAME "code"
 extern IR_node_t code_decl;
+
+#define NIL_ANODE_NAME "nil_anode"
+extern IR_node_t nil_anode_decl;
+
+#define ERROR_ANODE_NAME "error_anode"
+extern IR_node_t error_anode_decl;
 
 #define PARSER_NAME "parser"
 extern IR_node_t parser_decl;
@@ -793,6 +806,9 @@ extern IR_node_t int_earley_set_debug_level_decl;
 
 #define INT_EARLEY_SET_ONE_PARSE_FLAG_NAME "int_earley_set_one_parse_flag"
 extern IR_node_t int_earley_set_one_parse_flag_decl;
+
+#define INT_EARLEY_SET_COST_FLAG_NAME "int_earley_set_cost_flag"
+extern IR_node_t int_earley_set_cost_flag_decl;
 
 #define INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME \
   "int_earley_set_error_recovery_flag"
@@ -2272,7 +2288,6 @@ IR_node_t dereftype_decl;
 IR_node_t arrowtype_decl;
 IR_node_t immutable_decl;
 IR_node_t deadlock_decl;
-IR_node_t anode_decl;
 IR_node_t excepts_decl;
 IR_node_t errors_decl;
 IR_node_t signals_decl;
@@ -2291,13 +2306,17 @@ IR_node_t env_decl;
 IR_node_t version_decl;
 IR_node_t main_thread_decl;
 IR_node_t curr_thread_decl;
+IR_node_t anode_decl;
 IR_node_t token_decl;
 IR_node_t code_decl;
+IR_node_t nil_anode_decl;
+IR_node_t error_anode_decl;
 IR_node_t parser_decl;
 IR_node_t ambiguous_p_decl;
 IR_node_t int_earley_parse_grammar_decl;
 IR_node_t int_earley_set_debug_level_decl;
 IR_node_t int_earley_set_one_parse_flag_decl;
+IR_node_t int_earley_set_cost_flag_decl;
 IR_node_t int_earley_set_error_recovery_flag_decl;
 IR_node_t int_earley_set_recovery_match_decl;
 IR_node_t int_earley_parse_decl;
@@ -2510,7 +2529,6 @@ static struct decl_entry decls_table [] =
   {&arrowtype_decl, ARROWTYPE_NAME, &invaccess_decl, NULL},
   {&immutable_decl, IMMUTABLE_NAME, &invaccess_decl, NULL},
   {&deadlock_decl, DEADLOCK_NAME, &error_decl, NULL},
-  {&anode_decl, ANODE_NAME, NULL, NULL},
   {&excepts_decl, EXCEPTS_NAME, NULL, NULL},
   {&errors_decl, ERRORS_NAME, NULL, NULL},
   {&signals_decl, SIGNALS_NAME, NULL, NULL},
@@ -2529,8 +2547,11 @@ static struct decl_entry decls_table [] =
   {&version_decl, VERSION_NAME, NULL, NULL},
   {&main_thread_decl, MAIN_THREAD_NAME, NULL, NULL},
   {&curr_thread_decl, CURR_THREAD_NAME, NULL, NULL},
+  {&anode_decl, ANODE_NAME, NULL, NULL},
   {&token_decl, TOKEN_NAME, NULL, NULL},
   {&code_decl, CODE_NAME, &token_decl, NULL},
+  {&nil_anode_decl, NIL_ANODE_NAME, NULL, NULL},
+  {&error_anode_decl, ERROR_ANODE_NAME, NULL, NULL},
   {&parser_decl, PARSER_NAME, NULL, NULL},
   {&ambiguous_p_decl, AMBIGUOUS_P_NAME, &parser_decl, NULL},
   {&int_earley_parse_grammar_decl, INT_EARLEY_PARSE_GRAMMAR_NAME,
@@ -2539,6 +2560,8 @@ static struct decl_entry decls_table [] =
    &parser_decl, int_earley_set_debug_level},
   {&int_earley_set_one_parse_flag_decl, INT_EARLEY_SET_ONE_PARSE_FLAG_NAME,
    &parser_decl, int_earley_set_one_parse_flag},
+  {&int_earley_set_cost_flag_decl, INT_EARLEY_SET_COST_FLAG_NAME,
+   &parser_decl, int_earley_set_cost_flag},
   {&int_earley_set_error_recovery_flag_decl,
    INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME, &parser_decl,
    int_earley_set_error_recovery_flag},

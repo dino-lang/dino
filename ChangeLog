@@ -1,5 +1,33 @@
 2001-12-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* d_built.h (int_earley_set_cost_flag): New prototype.
+
+	* d_ir.sprut (ENVIRONMENT): New Dino variables nil_anode and
+	error_anode, new functions int_earley_set_cost_flag and set_cost.
+	(nil_anode_decl, error_anode_decl, int_earley_set_cost_flag_decl):
+	New variables.
+	(NIL_ANODE_NAME, ERROR_ANODE_NAME, INT_EARLEY_SET_COST_FLAG_NAME):
+	New macros.
+	(decls_table): New entries for nil_anode, error_anode,
+	int_earley_set_cost_flag.
+	
+	* d_func.c (int_earley_set_cost_flag): New function.
+	(tree_to_heap): Use nil_anode_decl and error_anode_decl.
+	(init_parse_alloc): Rename it into int_parse_alloc.
+	(int_earley_parse): Add new parameter for earley_parse.
+
+	* dino.tst.in (265, 284): New expected positions for argv and env.
+
+	* dino.sgml.in (nil_anode, error_anode): New environment
+	variables.
+	(set_cost): New parser function.
+
+	* dino.html, dino-4.html, dino-8.html,, dino.dvi, dino.info,
+	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
+	dino.txt: Update.
+	
+2001-12-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
         * earley.h (EARLEY_NIL_TRANSLATION_NUMBER, EARLEY_NEGATIVE COST):
 	new macros.
 	(earley_anode): New member cost.

@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino27758.info.2.
+/tmp/sgmltmp.dino17318.info.2.
 
    \input texinfo
 
@@ -48,6 +48,9 @@ The Programming Language DINO
        Oct 31, 2001.  Special method destroy.
      
        Nov 22, 2001.  New functions sput, sputln, sprint, sprintln.
+     
+       Dec 13, 2001.  New variables nil_anode and error_anode and new
+                      function set_cost.
 
 * Menu:
 
@@ -378,8 +381,8 @@ detail in the report later.
        clock          close          cmpv           context
        cos            curr_thread
        del
-       eltype         env            errors         except
-       excepts        exit           exp
+       eltype         env            error_anode    errors
+       except         excepts        exit           exp
        fatime         fctime         fget           fgetf
        fgetln         fgmode         fgn            file
        flush          fmtime         fomode         fprint
@@ -397,6 +400,7 @@ detail in the report later.
        log            log10
        main_thread    match          max            min
        mkdir
+       nil_anode
        open
        parser         pclose         popen          pow
        print          println        put            putln

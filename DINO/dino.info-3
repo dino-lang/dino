@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino27758.info.2.
+/tmp/sgmltmp.dino17318.info.2.
 
    \input texinfo
 
@@ -85,11 +85,14 @@ class `parser':
                              | sequence IDENTIFIER
                              | sequence C_CHARACTER_CONSTANT
           
-                    translation : ['#'] NUMBER
-                                | '#' IDENTIFIER '(' numbers ')'
+                    translation : '#'
+                                | '#' NUMBER
+                                | '#' '-'
+                                | '#' IDENTIFIER [NUMBER] '(' numbers ')'
           
                     numbers :
                             | numbers NUMBER
+                            | numbers '-'
 
      So the description consists of terminal declaration and rules
      sections.
@@ -109,12 +112,18 @@ class `parser':
      could be a single number which means that the translation of the
      alternative will be the translation of the symbol with given
      number (symbol numbers in alternative starts with 0).  Or the
-     translation can be abstract node with given name and with fields
-     whose values are the translations of the alternative symbols with
-     numbers given in parentheses after the abstract node name.
+     translation can be empty or `-' which designates value of variable
+     `nil_anode'.  Or the translation can be abstract node with
+     given name, optional cost, and with fields whose values are the
+     translations of the alternative symbols with numbers given in
+     parentheses after the abstract node name.  You can use `-' in
+     abstract node to show that empty node should be used in this
+     place.  If the cost is absent it is believed to be one.  The cost
+     of terminal, error node, and empty node is always zero.
 
      There is reserved terminal `error' which marks start point of
-     error recovery.
+     error recovery.  The translation of the terminal is value of
+     variable `error_anode'.
 
    * `set_debug (level)'.  This function sets up level of
      debugging information output to `stderr'.  The more level, the
@@ -135,6 +144,15 @@ class `parser':
      set up flag value.  The default value of the flag is 1.  The
      parameter should be an integer after implicit integer conversion.
      The function will generate exception `partype' if it is not true.
+
+   * `set_cost (flag)'.  This function sets up building only
+     translation tree (trees if we set up one_parse_flag
+     to 0) with minimal cost.  For unambiguous grammar the flag does not
+     affect the result.  The default value is 0. The function returns
+     the previously set up flag value.  The default value of the flag
+     is 0.  The parameter should be an integer after implicit integer
+     conversion.  The function will generate exception `partype' if it
+     is not true.
 
    * `set_recovery (flag)'.  This function sets up flag whose
      nonzero value means making error recovery if syntax error
@@ -206,7 +224,7 @@ could be attributes of the token (e.g. source line number, name of an
 identifier, or value for a number).
 
 
-File: dino.info,  Node: Anode-,  Next: Example of Earley parser usage-,  Prev: Token-,  Up: Earley parser classes
+File: dino.info,  Node: Anode-,  Next: Nil_anode and error_anode-,  Prev: Token-,  Up: Earley parser classes
 
 Anode-
 ......
@@ -225,15 +243,17 @@ elements.  There are a few node types which have special meaning:
      array passed as parameter of function `parse' of function `parser'.
 
    * Error node which has reserved name `$error'.  This node exists in
-     one exemplar and represents translation of grammar reserved symbol
-     `error'.  The value is public variable will be `nil' in this case.
+     one exemplar (see description of variable `error_anode')
+     and represents translation of grammar reserved symbol `error'.
+     The value is public variable will be `nil' in this case.
 
    * Empty node which has reserved name `$nil'.  This node exists also
-     in one exemplar and represents translation of grammar symbol for
-     which we did not describe a translation.  For example, in a
-     grammar rule an abstract node refers for translation of
-     nonterminal for which we do not produce a translation.  The value
-     is public variable of such class object will be `nil' in this case.
+     in one exemplar (see description of variable `nil_anode')
+     and represents translation of grammar symbol for which we did not
+     describe a translation.  For example, in a grammar rule an
+     abstract node refers for translation of nonterminal for which we
+     do not produce a translation.  The value is public variable of
+     such class object will be `nil' in this case.
 
    * Alternative node which has reserved name `$alt'.  It represents
      all possible alternatives in translation of grammar nonterminal.
@@ -244,7 +264,18 @@ elements.  There are a few node types which have special meaning:
      produce only one translation.
 
 
-File: dino.info,  Node: Example of Earley parser usage-,  Prev: Anode-,  Up: Earley parser classes
+File: dino.info,  Node: Nil_anode and error_anode-,  Next: Example of Earley parser usage-,  Prev: Anode-,  Up: Earley parser classes
+
+Nil_anode and error_anode-
+........................................
+
+   There is only one instance of `anode' which represents empty (nil)
+nodes.  The same is true for the error nodes.  The final variables
+`nil_anode' and `error_anode' correspondingly refer to
+these nodes.
+
+
+File: dino.info,  Node: Example of Earley parser usage-,  Prev: Nil_anode and error_anode-,  Up: Earley parser classes
 
 Example of Earley parser usage-
 ...............................
@@ -984,90 +1015,4 @@ and so on) and `eof' besides standard `partype', `parnumber'.
    * `fscanln (fileinstance)'.  The function is analogous to function
      `scanln' except for that it reads from opened file associated with
      class `file' instance which is the parameter value.
-
-
-File: dino.info,  Node: Time functions,  Next: Functions for access to process information,  Prev: File functions,  Up: Predeclared functions
-
-Time functions
---------------
-
-   The following functions can be used to get information about real
-time.
-   * `time ()'.  The function returns time in seconds since the fixed
-     time (usually since January 1, 1970).
-
-   * `strtime ([format [, time]])'.  The function returns string
-     representing `time' (integer representing time in seconds since
-     the fixed time) according to `format' (string).  If the format is
-     not given, the value of variable `time_format' is used.  In
-     this case if `time_format' value is corrupted, the function
-     generates exception `invenvar'.  If the time is not given, the
-     current time is used.  The format is the same as in C library
-     function `strftime'.  Here the extraction from the function
-     documentation.  The following format specifier can be used in the
-     format.
-        * `%a' - the abbreviated weekday name according to the
-          current locale.
-
-        * `%A' - the full weekday name according to the current
-          locale.
-
-        * `%%b' - the abbreviated month name according to
-          the current locale.
-
-        * `%%B' - the full month name according to the
-          current locale.
-
-        * `%%c' - the preferred date and time
-          representation for the current locale.
-
-        * `%%d' - the day of the month as a decimal number
-          (range 01 to 31).
-
-        * `%%H' - the hour as a decimal number using a
-          24-hour clock (range 00 to 23).
-
-        * `%%I' - the hour as a decimal number using a
-          12-hour clock (range 01 to 12).
-
-        * `%%j' - the day of the year as a decimal number
-          (range 001 to 366).
-
-        * `%%m' - the month as a decimal number (range 01
-          to 12).
-
-        * `%%M' - the minute as a decimal number.
-
-        * `%%p' - either `am' or `pm' according to the
-          given time value, or the corresponding strings for the
-          current locale.
-
-        * `%%S' - the second as a decimal number.
-
-        * `%%U' - the week number of the current year as a
-          decimal number, starting with the first Sunday as the first
-          day of the first week.
-
-        * `%%W' - the week number of the current year as a
-          decimal number, starting with the first Monday as the first
-          day of the first week.
-
-        * `%%w' - the day of the week as a decimal, Sunday
-          being 0.
-
-        * `%%x' - the preferred date representation for
-          the current locale without the time.
-
-        * `%%X' - the preferred time representation for
-          the current locale without the date.
-
-        * `%%y' - the year as a decimal number without a
-          century (range 00 to 99).
-
-        * `%%Y' - the year as a decimal number including
-          the century.
-
-        * `%%Z' - the time zone or name or abbreviation.
-
-        * `%%%' - a literal `%' character.
 

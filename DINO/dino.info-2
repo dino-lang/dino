@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino27758.info.2.
+/tmp/sgmltmp.dino17318.info.2.
 
    \input texinfo
 
@@ -1139,5 +1139,6 @@ embedded into Dino interpreter.
 * Parser-::
 * Token-::
 * Anode-::
+* Nil_anode and error_anode-::
 * Example of Earley parser usage-::
 

@@ -1,7 +1,93 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino27758.info.2.
+/tmp/sgmltmp.dino17318.info.2.
 
    \input texinfo
+
+
+File: dino.info,  Node: Time functions,  Next: Functions for access to process information,  Prev: File functions,  Up: Predeclared functions
+
+Time functions
+--------------
+
+   The following functions can be used to get information about real
+time.
+   * `time ()'.  The function returns time in seconds since the fixed
+     time (usually since January 1, 1970).
+
+   * `strtime ([format [, time]])'.  The function returns string
+     representing `time' (integer representing time in seconds since
+     the fixed time) according to `format' (string).  If the format is
+     not given, the value of variable `time_format' is used.  In
+     this case if `time_format' value is corrupted, the function
+     generates exception `invenvar'.  If the time is not given, the
+     current time is used.  The format is the same as in C library
+     function `strftime'.  Here the extraction from the function
+     documentation.  The following format specifier can be used in the
+     format.
+        * `%a' - the abbreviated weekday name according to the
+          current locale.
+
+        * `%A' - the full weekday name according to the current
+          locale.
+
+        * `%%b' - the abbreviated month name according to
+          the current locale.
+
+        * `%%B' - the full month name according to the
+          current locale.
+
+        * `%%c' - the preferred date and time
+          representation for the current locale.
+
+        * `%%d' - the day of the month as a decimal number
+          (range 01 to 31).
+
+        * `%%H' - the hour as a decimal number using a
+          24-hour clock (range 00 to 23).
+
+        * `%%I' - the hour as a decimal number using a
+          12-hour clock (range 01 to 12).
+
+        * `%%j' - the day of the year as a decimal number
+          (range 001 to 366).
+
+        * `%%m' - the month as a decimal number (range 01
+          to 12).
+
+        * `%%M' - the minute as a decimal number.
+
+        * `%%p' - either `am' or `pm' according to the
+          given time value, or the corresponding strings for the
+          current locale.
+
+        * `%%S' - the second as a decimal number.
+
+        * `%%U' - the week number of the current year as a
+          decimal number, starting with the first Sunday as the first
+          day of the first week.
+
+        * `%%W' - the week number of the current year as a
+          decimal number, starting with the first Monday as the first
+          day of the first week.
+
+        * `%%w' - the day of the week as a decimal, Sunday
+          being 0.
+
+        * `%%x' - the preferred date representation for
+          the current locale without the time.
+
+        * `%%X' - the preferred time representation for
+          the current locale without the date.
+
+        * `%%y' - the year as a decimal number without a
+          century (range 00 to 99).
+
+        * `%%Y' - the year as a decimal number including
+          the century.
+
+        * `%%Z' - the time zone or name or abbreviation.
+
+        * `%%%' - a literal `%' character.
 
 
 File: dino.info,  Node: Functions for access to process information,  Next: Miscellaneous functions,  Prev: Time functions,  Up: Predeclared functions

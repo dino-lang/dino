@@ -18348,7 +18348,7 @@ TEST265
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT265' && cmp $stderr $ftemp2; then
 test.d:1:5: repeated declaration for identifier `argv'
-<environment>:167:4: (previous declaration of identifier `argv')
+<environment>:122:4: (previous declaration of identifier `argv')
 OUTPUT265
                         result=ok
                 else
@@ -18767,7 +18767,7 @@ TEST284
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT284' && cmp $stderr $ftemp2; then
 test.d:1:5: repeated declaration for identifier `env'
-<environment>:167:10: (previous declaration of identifier `env')
+<environment>:122:10: (previous declaration of identifier `env')
 OUTPUT284
                         result=ok
                 else

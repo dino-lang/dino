@@ -4996,6 +4996,30 @@ int_earley_set_one_parse_flag (int npars)
   INCREMENT_PC();
 }
 
+/* The following function implements function set_cost in class
+   parser. */
+void
+int_earley_set_cost_flag (int npars)
+{
+  int i;
+  ER_node_t par1, par2;
+  const char *name = "set_cost";
+
+  par1 = INDEXED_VAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (0);
+  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
+  if (ER_NODE_MODE (par2) != ER_NM_int)
+    eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
+		DERR_parameter_type, name);
+  i = earley_set_cost_flag ((struct grammar *) ER_hide (par1), ER_i (par2));
+  DECR_CTOP (npars);
+  SET_TOP;
+  ER_SET_MODE (ctop, ER_NM_int);
+  ER_set_i (ctop, i);
+  INCREMENT_PC();
+}
+
 /* The following function implements function set_recovery in class
    parser. */
 void
@@ -5154,7 +5178,7 @@ static ER_node_t
 tree_to_heap (struct earley_tree_node *root)
 {
   hash_table_entry_t *entry;
-  ER_node_t res, vect, name_vect;
+  ER_node_t var, res, vect, name_vect;
   struct earley_tree_node *node, *alt;
   struct tree_heap_node *tree_heap_node;
   int i;
@@ -5174,9 +5198,12 @@ tree_to_heap (struct earley_tree_node *root)
     {
     case EARLEY_NIL:
     case EARLEY_ERROR:
-      name_vect = create_string (root->type == EARLEY_NIL ? "$nil" : "$error");
-      ER_set_vect (ctop, name_vect);
-      res = create_instance (1);
+      var = INDEXED_VAL (ER_stack_vars (uppest_stack),
+			 IR_var_number_in_block (root->type == EARLEY_NIL
+						 ? nil_anode_decl
+						 : error_anode_decl));
+      assert (ER_NODE_MODE (var) == ER_NM_instance);
+      res = ER_instance (var);
       break;
     case EARLEY_TERM:
       name_vect = create_string ("$term");
@@ -5241,7 +5268,7 @@ tree_to_heap (struct earley_tree_node *root)
 
 /* The following function allocates memory for the parse tree. */
 static void *
-init_parse_alloc (int nmemb)
+int_parse_alloc (int nmemb)
 {
   void *res;
 
@@ -5298,7 +5325,7 @@ int_earley_parse (int npars)
 				     tree_heap_node_hash, tree_heap_node_eq);
   /* We need it because init_syntax_token may change it. */
   code = earley_parse (g, init_read_token, init_syntax_token,
-		       init_parse_alloc, &root, &ambiguous_p);
+		       int_parse_alloc, NULL, &root, &ambiguous_p);
   if (code == EARLEY_NO_MEMORY)
     {
       no_gc_flag = FALSE;
