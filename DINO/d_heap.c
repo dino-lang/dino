@@ -2415,6 +2415,8 @@ remove_tab_el (ER_node_t tab, ER_node_t key)
       || ER_NODE_MODE (entry_key) == ER_NM_deleted_entry)
     return FALSE;
   ER_SET_MODE (entry_key, ER_NM_deleted_entry);
+  assert (ER_els_number (tab) > 0);
+  ER_set_els_number (tab, ER_els_number (tab) - 1);
   ER_set_deleted_els_number (tab, ER_deleted_els_number (tab) + 1);
   return TRUE;
 }

@@ -1,3 +1,9 @@
+2002-07-31  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_heap.c (remove_tab_el): Decrease number of elements too.
+
+	* DINO/dino.tst.in (507th test): New test for checking the bug.
+	
 2002-05-21  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* Makefile.in (distdir, distdinodir): Set up the new versions.
