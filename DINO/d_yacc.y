@@ -1416,6 +1416,12 @@ file_path_name (const char *directory_name, const char *file_name,
 #define getcwd(p, s)			_getcwd (p, s)
 #endif
 
+#ifdef WIN32
+#ifndef PATH_MAX
+#define PATH_MAX _MAX_PATH
+#endif
+#endif
+
 static const char *
 canonical_path_name (const char *name)
 {

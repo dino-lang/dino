@@ -2100,6 +2100,12 @@ rmdir_call (int_t pars_number)
   ER_SET_MODE (ctop, ER_NM_nil);
 }
 
+#ifdef WIN32
+#ifndef PATH_MAX
+#define PATH_MAX _MAX_PATH
+#endif
+#endif
+
 void
 getcwd_call (int_t pars_number)
 {

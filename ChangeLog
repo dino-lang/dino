@@ -1,3 +1,11 @@
+2002-05-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_func.c (PATH_MAX): Define it for WIN32.
+
+	* DINO/d_yacc.y (PATH_MAX): Ditto.
+
+	* DINO/dino.tst.in (506): Indentation.
+
 2002-05-12  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in (506): Add Serhei's interpriter.

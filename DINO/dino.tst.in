@@ -28040,8 +28040,8 @@ fi
 # Test 506.
 if test $result = ok -a $start_test_number -le 506; then
 	echo test 506: Serhei\'s interpereter -- big program - 1500 lines.
-	echo rm -rf $tempdir
-	echo mkdir $tempdir
+	echo '      ' rm -rf $tempdir
+	echo '      ' mkdir $tempdir
 	if rm -rf $tempdir && mkdir $tempdir; then
 	  echo '      ' Forming Grip interpriter files and test program in $tempdir
 	  cat >$tempdir/anode_work.d <<'TEST506'
@@ -29560,10 +29560,10 @@ OUTPUT506-2
           result=fail
         fi
         if test $result = ok; then
-          echo Serhei\'s interpreter test is ok  -- rm -rf $tempdir
+          echo '      ' Serhei\'s interpreter test is ok  -- rm -rf $tempdir
           rm -rf $tempdir
         else
-          echo Serhei\'s interpreter test failed -- look at directory $tempdir
+          echo '      ' Serhei\'s interpreter test failed -- look at directory $tempdir
         fi
 fi
 
