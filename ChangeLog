@@ -1,3 +1,11 @@
+2002-05-15  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* AMMUNITION/earley.c (sit_number): Add the sit_number.
+	(sit_create): Initiate it.
+	(sit_print): Print it.
+	(set_insert): Use it in sorting.
+	(error_recovery): Add debug print about building the new set.
+
 2002-05-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* SPRUT/{A_base.sprut, A_syntax.sprut, A_test.sprut,
