@@ -2154,6 +2154,31 @@ if test "$GCC" = yes; then
   case $system in
 	i386*|i486*|i586*|i686*)
   	  CFLAGS="$CFLAGS -fomit-frame-pointer"
+          save=$CFLAGS
+          CFLAGS="-O2 -finline-limit=2000"
+          if test "$cross_compiling" = yes; then
+    { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2164 "configure"
+#include "confdefs.h"
+int i;main(){exit(0);}
+EOF
+if { (eval echo configure:2168: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+then
+  inline_limit=yes
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -fr conftest*
+  inline_limit=
+fi
+rm -fr conftest*
+fi
+
+          if test "$inline_limit" = yes; then
+            CFLAGS="$save -finline-limit=2000"
+          fi
           ;;
 	*)
 	  ;;
@@ -2161,7 +2186,7 @@ if test "$GCC" = yes; then
 fi
 
 echo $ac_n "checking for inet_ntoa in -lxnet""... $ac_c" 1>&6
-echo "configure:2165: checking for inet_ntoa in -lxnet" >&5
+echo "configure:2190: checking for inet_ntoa in -lxnet" >&5
 ac_lib_var=`echo xnet'_'inet_ntoa | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2169,7 +2194,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lxnet  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2173 "configure"
+#line 2198 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2180,7 +2205,7 @@ int main() {
 inet_ntoa()
 ; return 0; }
 EOF
-if { (eval echo configure:2184: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2209: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2210,14 +2235,14 @@ if test "$cross_compiling" = yes; then
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 2214 "configure"
+#line 2239 "configure"
 #include "confdefs.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 main () {struct in_addr i;inet_aton ("127.0.0.1", &i);return 0;}
 EOF
-if { (eval echo configure:2221: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2246: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   inet_aton=yes
 else
@@ -2230,7 +2255,7 @@ rm -fr conftest*
 fi
 
 echo $ac_n "checking whether inet_aton was defined""... $ac_c" 1>&6
-echo "configure:2234: checking whether inet_aton was defined" >&5
+echo "configure:2259: checking whether inet_aton was defined" >&5
 if test $inet_aton = yes; then
  echo "$ac_t""yes" 1>&6
  cat >> confdefs.h <<\EOF

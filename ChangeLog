@@ -1,5 +1,11 @@
 2003-03-07  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* configure.in: Set up -finline-limit for x86 gcc.
+
+	* configure: Update.
+
+2003-03-07  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* configure.in: Use -fomit-frame-pointer for x86 gcc.
 
 	* configure: Update.

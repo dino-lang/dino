@@ -160,6 +160,12 @@ if test "$GCC" = yes; then
   case $system in
 	i386*|i486*|i586*|i686*)
   	  CFLAGS="$CFLAGS -fomit-frame-pointer"
+          save=$CFLAGS
+          CFLAGS="-O2 -finline-limit=2000"
+          AC_TRY_RUN(int i;main(){exit(0);}, inline_limit=yes, inline_limit=)
+          if test "$inline_limit" = yes; then
+            CFLAGS="$save -finline-limit=2000"
+          fi
           ;;
 	*)
 	  ;;
