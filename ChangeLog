@@ -1,3 +1,7 @@
+2001-11-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/compare.tst: Check for failing tests.
+
 2001-11-22  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_common.h (source_position_ptr): Remove it.

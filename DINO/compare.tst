@@ -9,6 +9,7 @@ DINO=./dino
 ftest=__ftest.d
 input=__input
 temp=__temp
+temp2=__temp2
 
 if test x`echo -n` != "x-n";then
   NECHO="echo -n"
@@ -110,7 +111,7 @@ print "Ack(3,$NUM): $ack\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 7 2>&1|fgrep user
+  if time $PERL $ftest 7 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -134,7 +135,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 7 2>&1|fgrep user
+  if time $PYTHON $ftest 7 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 echo
@@ -159,7 +160,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 7 </dev/null 2>&1|fgrep user
+  if time $AWK -f $ftest 7 </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -174,7 +175,7 @@ putln ("Ack(3,", n, "): ", ack (3, n));
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 7 2>&1|fgrep user
+if time $DINO $ftest 7 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -213,7 +214,7 @@ print "$Y[0] $Y[$last]\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 700 2>&1|fgrep user
+  if time $PERL $ftest 700 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -238,7 +239,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 700 2>&1|fgrep user
+  if time $PYTHON $ftest 700 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -271,7 +272,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 700 2>&1|fgrep user
+  if time $TCLSH $ftest 700 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -299,7 +300,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 700 </dev/null 2>&1|fgrep user
+  if time $AWK -f $ftest 700 </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -317,7 +318,7 @@ putln (y [0], " ", y [n - 1]);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 700 2>&1|fgrep user
+if time $DINO $ftest 700 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -384,7 +385,7 @@ print "$nl $nw $nc\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest <$input 2>&1|fgrep user
+  if time $PERL $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -412,7 +413,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest <$input 2>&1|fgrep user
+  if time $PYTHON $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -450,7 +451,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest <$input 2>&1|fgrep user
+  if time $TCLSH $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -475,7 +476,7 @@ END { print NR, nw, nc }
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest <$input 2>&1|fgrep user
+  if time $AWK -f $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -497,7 +498,7 @@ try {
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest <$input 2>&1|fgrep user
+if time $DINO $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -592,7 +593,7 @@ main();
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 50000 2>&1|fgrep user
+  if time $PERL $ftest 50000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -662,7 +663,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 50000 2>&1|fgrep user
+  if time $PYTHON $ftest 50000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -725,7 +726,7 @@ cat <<'EOF' >$ftest
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 1000 2>&1|fgrep user
+if time $DINO $ftest 1000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -812,7 +813,7 @@ print "Exceptions: HI=$HI / LO=$LO\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 100000 2>&1|fgrep user
+  if time $PERL $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -881,7 +882,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 100000 2>&1|fgrep user
+  if time $PYTHON $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -946,7 +947,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 100000 2>&1|fgrep user
+  if time $TCLSH $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1002,7 +1003,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 100000 2>&1|fgrep user
+if time $DINO $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -1033,7 +1034,7 @@ print "$fib\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 28 2>&1|fgrep user
+  if time $PERL $ftest 28 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -1058,7 +1059,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 28 2>&1|fgrep user
+  if time $PYTHON $ftest 28 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1083,7 +1084,7 @@ puts [fib $N]
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 28 2>&1|fgrep user
+  if time $TCLSH $ftest 28 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -1104,7 +1105,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 28 2>&1|fgrep user
+  if time $AWK -f $ftest 28 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1119,7 +1120,7 @@ putln (fibonacci (n));
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 28 2>&1|fgrep user
+if time $DINO $ftest 28 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -1156,7 +1157,7 @@ print "$c\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 80000 2>&1|fgrep user
+  if time $PERL $ftest 80000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -1183,7 +1184,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 80000 2>&1|fgrep user
+  if time $PYTHON $ftest 80000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1215,7 +1216,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 80000 2>&1|fgrep user
+  if time $TCLSH $ftest 80000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -1241,7 +1242,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 80000 2>&1|fgrep user
+  if time $AWK -f $ftest 80000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1257,7 +1258,7 @@ putln (c);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 80000 2>&1|fgrep user
+if time $DINO $ftest 80000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -1287,7 +1288,7 @@ print "$hash1{foo_1} $hash1{foo_9999} $hash2{foo_1} $hash2{foo_9999}\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 50 2>&1|fgrep user
+  if time $PERL $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -1314,7 +1315,7 @@ print hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999']
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 50 2>&1|fgrep user
+  if time $PYTHON $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1342,7 +1343,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 50 2>&1|fgrep user
+  if time $TCLSH $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -1362,7 +1363,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 50 2>&1|fgrep user
+  if time $AWK -f $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1386,7 +1387,7 @@ putln (hash1 {"foo_1"}, " ", hash1 {"foo_9999"}, " ",
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 50 2>&1|fgrep user
+if time $DINO $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -1464,7 +1465,7 @@ printf("%.10f\n", $ary[-1]);
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 20000 2>&1|fgrep user
+  if time $PERL $ftest 20000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -1529,7 +1530,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 20000 2>&1|fgrep user
+  if time $PYTHON $ftest 20000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1608,7 +1609,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 20000 2>&1|fgrep user
+  if time $TCLSH $ftest 20000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -1667,7 +1668,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 20000 2>&1|fgrep user
+  if time $AWK -f $ftest 20000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1730,7 +1731,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 20000 2>&1|fgrep user
+if time $DINO $ftest 20000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -1851,7 +1852,7 @@ sub test_lists {
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 16 2>&1|fgrep user
+  if time $PERL $ftest 16 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -1901,7 +1902,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 16 2>&1|fgrep user
+  if time $PYTHON $ftest 16 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1981,7 +1982,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 16 2>&1|fgrep user
+  if time $TCLSH $ftest 16 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -2029,7 +2030,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 16 2>&1|fgrep user
+if time $DINO $ftest 16 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -2104,7 +2105,7 @@ print "$mm->[0]->[0] $mm->[2]->[3] $mm->[3]->[2] $mm->[4]->[4]\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 30 2>&1|fgrep user
+  if time $PERL $ftest 30 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -2164,7 +2165,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 30 2>&1|fgrep user
+  if time $PYTHON $ftest 30 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2237,7 +2238,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 30 2>&1|fgrep user
+  if time $TCLSH $ftest 30 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 echo
@@ -2292,7 +2293,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 30 2>&1|fgrep user
+if time $DINO $ftest 30 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -2372,7 +2373,7 @@ main();
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 100000 2>&1|fgrep user
+  if time $PERL $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -2430,7 +2431,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 100000 2>&1|fgrep user
+  if time $PYTHON $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 
@@ -2479,7 +2480,7 @@ main();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 100000 2>&1|fgrep user
+if time $DINO $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -2521,7 +2522,7 @@ print "$x\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 11 2>&1|fgrep user
+  if time $PERL $ftest 11 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -2551,7 +2552,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 11 2>&1|fgrep user
+  if time $PYTHON $ftest 11 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2590,7 +2591,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 11 2>&1|fgrep user
+  if time $TCLSH $ftest 11 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -2612,7 +2613,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 11 2>&1|fgrep user
+  if time $AWK -f $ftest 11 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -2630,7 +2631,7 @@ putln (x);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 11 </dev/null 2>&1|fgrep user
+if time $DINO $ftest 11 </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -2716,7 +2717,7 @@ main();
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 100000 2>&1|fgrep user
+  if time $PERL $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -2776,7 +2777,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 100000 2>&1|fgrep user
+  if time $PYTHON $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 
@@ -2828,7 +2829,7 @@ main();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 100000 2>&1|fgrep user
+if time $DINO $ftest 100000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -2896,7 +2897,7 @@ echo
 
 #  echo PERL:
 #  if test "x$NECHO" != x;then $NECHO "   ";fi
-#  time $PERL $ftest 20000 2>&1|fgrep user
+#  if time $PERL $ftest 20000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -2953,7 +2954,7 @@ main(int(sys.argv[1]))
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 20000 2>&1|fgrep user
+  if time $PYTHON $ftest 20000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -2996,7 +2997,7 @@ main (argv [0] < 1 ? 1 : int (argv [0]));
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 20000 </dev/null 2>&1|fgrep user
+if time $DINO $ftest 20000 </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -3026,7 +3027,7 @@ printf "%.9f\n", gen_random(100.0);
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 500000 2>&1|fgrep user
+  if time $PERL $ftest 500000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -3059,7 +3060,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 500000 2>&1|fgrep user
+  if time $PYTHON $ftest 500000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3101,7 +3102,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 500000 2>&1|fgrep user
+  if time $TCLSH $ftest 500000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -3126,7 +3127,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 500000 2>&1|fgrep user
+  if time $AWK -f $ftest 500000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -3147,7 +3148,7 @@ putln (vector (gen_random (100.0), "%.9f"));
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 500000 </dev/null 2>&1|fgrep user
+if time $DINO $ftest 500000 </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -3235,7 +3236,7 @@ while ($NUM--) {
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 5000 <$input 2>&1|fgrep user
+  if time $PERL $ftest 5000 <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -3277,7 +3278,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 5000 <$input 2>&1|fgrep user
+  if time $PYTHON $ftest 5000 <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3311,7 +3312,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 5000 <$input 2>&1|fgrep user
+  if time $TCLSH $ftest 5000 <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -3355,7 +3356,7 @@ END {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 5000 <$input 2>&1|fgrep user
+  if time $AWK -f $ftest 5000 <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -3394,7 +3395,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 5000 <$input 2>&1|fgrep user
+if time $DINO $ftest 5000 <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -14154,7 +14155,7 @@ print join("\n", reverse split(/\n/, <STDIN>)),"\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest <$input 2>&1|fgrep 'user '
+  if time $PERL $ftest <$input >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -14173,7 +14174,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest <$input 2>&1|fgrep 'user '
+  if time $PYTHON $ftest <$input >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -14195,7 +14196,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest <$input 2>&1|fgrep 'user '
+  if time $TCLSH $ftest <$input >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -14210,7 +14211,7 @@ END { for (i = NR; i >= 1; i--)
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest <$input 2>&1|fgrep 'user '
+  if time $AWK -f $ftest <$input >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -14226,7 +14227,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest <$input 2>&1|fgrep 'user '
+if time $DINO $ftest <$input >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
 
 fi
 
@@ -14265,7 +14266,7 @@ print "Count: $count\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 50 2>&1|fgrep user
+  if time $PERL $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -14296,7 +14297,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 50 2>&1|fgrep user
+  if time $PYTHON $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -14336,7 +14337,7 @@ puts "Count: $count"
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 50 2>&1|fgrep user
+  if time $TCLSH $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -14365,7 +14366,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest 50 2>&1|fgrep 'user '
+  if time $AWK -f $ftest 50 >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -14389,7 +14390,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 50 2>&1|fgrep user
+if time $DINO $ftest 50 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -91671,7 +91672,7 @@ while (<STDIN>) {
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest <$input 2>&1|fgrep user
+  if time $PERL $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -91699,7 +91700,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest <$input 2>&1|fgrep user
+  if time $PYTHON $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -91729,7 +91730,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest <$input 2>&1|fgrep user
+  if time $TCLSH $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -91751,7 +91752,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest <$input 2>&1|fgrep user
+  if time $AWK -f $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -91773,7 +91774,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest <$input 2>&1|fgrep user
+if time $DINO $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -92341,7 +92342,7 @@ printf("kurtosis:           %f\n", $kurtosis);
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest <$input 2>&1|fgrep user
+  if time $PERL $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -92405,7 +92406,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest <$input 2>&1|fgrep user
+  if time $PYTHON $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -92469,7 +92470,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest <$input 2>&1|fgrep user
+  if time $TCLSH $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -92527,7 +92528,7 @@ main();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest <$input 2>&1|fgrep user
+if time $DINO $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -92554,7 +92555,7 @@ print length($str),"\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 500000 2>&1|fgrep user
+  if time $PERL $ftest 500000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -92576,7 +92577,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 500000 2>&1|fgrep user
+  if time $PYTHON $ftest 500000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -92596,7 +92597,7 @@ main [lindex $argv 0]
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 500000 2>&1|fgrep user
+  if time $TCLSH $ftest 500000 >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 # AWK is too slow therefore it is disqualified.
@@ -92613,7 +92614,7 @@ putln (#str);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest 500000 </dev/null 2>&1|fgrep user
+if time $DINO $ftest 500000 </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -93643,7 +93644,7 @@ print "$tot\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest <$input 2>&1|fgrep user
+  if time $PERL $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -93663,7 +93664,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest <$input 2>&1|fgrep user
+  if time $PYTHON $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -93683,7 +93684,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest <$input 2>&1|fgrep user
+  if time $TCLSH $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -93696,7 +93697,7 @@ END { print tot }
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest <$input 2>&1|fgrep user
+  if time $AWK -f $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -93716,7 +93717,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest <$input 2>&1|fgrep user
+if time $DINO $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -96496,7 +96497,7 @@ print sort { $b cmp $a } @lines;
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest <$input 2>&1|fgrep user
+  if time $PERL $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -96545,7 +96546,7 @@ main()
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest <$input 2>&1|fgrep user
+  if time $PYTHON $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96578,7 +96579,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest <$input 2>&1|fgrep user
+  if time $TCLSH $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -96608,7 +96609,7 @@ END {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest <$input 2>&1|fgrep user
+  if time $AWK -f $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96646,7 +96647,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest <$input 2>&1|fgrep user
+if time $DINO $ftest <$input >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -96662,7 +96663,7 @@ for ($i=0; $i < 2000000;$i++){}
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -96671,7 +96672,7 @@ for i in range (2000000): i
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96683,7 +96684,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -96692,7 +96693,7 @@ END {for (i=0.0; i<2000000.0; i=i+1.0);}
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest </dev/null 2>&1|fgrep user
+  if time $AWK -f $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96701,7 +96702,7 @@ for (i=0; i < 2000000;i++);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -96721,7 +96722,7 @@ for ($i = 0; $i < 1000000; $i++) {
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -96734,7 +96735,7 @@ for i in range(1000000):
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96750,7 +96751,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96760,7 +96761,7 @@ for (i = 0; i < 1000000; i++) f();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -96788,7 +96789,7 @@ print &tak(21, 14, 7) . "\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -96803,7 +96804,7 @@ print tak(21, 14, 7)
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96822,7 +96823,7 @@ puts [tak 21 14 7]
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96837,7 +96838,7 @@ putln (tak(21, 14, 7));
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -96868,7 +96869,7 @@ print $x . "\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -96887,7 +96888,7 @@ print x
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96909,7 +96910,7 @@ puts [main]
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96929,7 +96930,7 @@ putln (x);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -96958,7 +96959,7 @@ for ($i = 0; $i < 25; $i++) {
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -96976,7 +96977,7 @@ for i in range (25):
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96998,7 +96999,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97020,7 +97021,7 @@ for (i = 0; i <= 24; i++)
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -97055,7 +97056,7 @@ if test x$PERL != x; then
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -97078,7 +97079,7 @@ print count
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97112,7 +97113,7 @@ exit 0
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -97143,7 +97144,7 @@ SieveSize=8190
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest </dev/null 2>&1|fgrep user
+  if time $AWK -f $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97175,7 +97176,7 @@ putln (count);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -97210,7 +97211,7 @@ print $count . "\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -97233,7 +97234,7 @@ print count
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97267,7 +97268,7 @@ exit 0
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -97298,7 +97299,7 @@ SieveSize=8190
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest </dev/null 2>&1|fgrep user
+  if time $AWK -f $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97330,7 +97331,7 @@ println (count);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -97373,7 +97374,7 @@ mmult ($m1, 70, 70, $m2, 70, 70);
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -97403,7 +97404,7 @@ mmult (m1,m2)
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97443,7 +97444,7 @@ mmult 70
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97482,7 +97483,7 @@ mmult (m1, m2);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -97525,7 +97526,7 @@ mmult ($m1, 70, 70, $m2, 70, 70);
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -97556,7 +97557,7 @@ mmult (m1, 70, 70, m2, 70, 70)
 EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97596,7 +97597,7 @@ mmult 70
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97641,7 +97642,7 @@ mmult (m1, m2);
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -97656,21 +97657,21 @@ if test x$PERL != x; then
   $DINO -c 'putln("$j = 1;");var i; for (i=0;i<100000;i++)putln ("$i = $j;");' > $ftest
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PERL $ftest 2>&1|fgrep user
+  if time $PERL $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
   $DINO -c 'putln("j = 1");var i; for (i=0;i<100000;i++)putln ("i = j");' > $ftest
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $PYTHON $ftest 2>&1|fgrep user
+  if time $PYTHON $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
   $DINO -c 'putln("set j 1");var i; for (i=0;i<100000;i++)putln ("set i $j");' > $ftest
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $TCLSH $ftest 2>&1|fgrep user
+  if time $TCLSH $ftest >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -97678,14 +97679,14 @@ if test x$AWK != x; then
   echo '}' >>$ftest
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time $AWK -f $ftest </dev/null 2>&1|fgrep user
+  if time $AWK -f $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 $DINO -c 'putln("var i, j;\nj = 1;");var i; for (i=0;i<100000;i++)putln ("i = j;");' > $ftest
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-time $DINO $ftest </dev/null 2>&1|fgrep user
+if time $DINO $ftest </dev/null >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
-rm -f $ftest $input $temp
+rm -f $ftest $input $temp $temp2
