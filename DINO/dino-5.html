@@ -676,11 +676,15 @@ small to be a floating-point number, exception <CODE>erange</CODE> is
 generated.
 <P>Operator <CODE>vector</CODE> is used to conversion of a value into vector.
 The first, implicit string conversion is applied to the operand.  The
-operand should be a table or a vector after the conversion.  The table
-is transformed into new vector which consists of pairs (one pair for
-each element of the table).  The first element of the pair is key of
-the corresponding element, the second one is the element itself.  The
-order of the pairs in the result vector is undefined.
+optional second expression defines format used only for the string
+conversion of a character, an integer, a floating point number, or a
+string.  The second parameter value should be a string after implicit
+string conversion.  The format should not be given for a table.  The
+first operand should be a table or a vector after the conversion.  The
+table is transformed into new vector which consists of pairs (one pair
+for each element of the table).  The first element of the pair is key
+of the corresponding element, the second one is the element itself.
+The order of the pairs in the result vector is undefined.
 <P>Operator <CODE>table</CODE> is used to conversion of a value into table.
 The first, string conversion is applied to the operand.  The operand
 should be a vector or a table after the conversion.  The vector is
@@ -704,7 +708,7 @@ never generates exception.
                | char "(" Expr ")"
                | int "(" Expr ")"
                | float "(" Expr ")"
-               | vector "(" Expr ")"
+               | vector "(" Expr ["," Expr] ")"
                | table "(" Expr ")"
                | func "(" Expr ")"
                | thread "(" Expr ")"
@@ -723,6 +727,7 @@ Examples:
           type (10)
           char (12)
           vector  (10)
+          vector  (10, "%x")
           vector ({"1":1, "2":2})
           table ([1, 2, 3, 4])
           func (context (obj))

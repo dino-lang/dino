@@ -19,6 +19,7 @@ extern void cmpv_call (int_t pars_number);
 extern void del_call (int_t pars_number);
 extern void ins_call (int_t pars_number);
 extern void insv_call (int_t pars_number);
+extern void rev_call (int_t pars_number);
 extern void sort_call (int_t pars_number);
 extern void rename_call (int_t pars_number);
 extern void remove_call (int_t pars_number);

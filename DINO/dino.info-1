@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino31705.info.2.
+/tmp/sgmltmp.dino27397.info.2.
 
    \input texinfo
 
@@ -38,6 +38,10 @@ The Programming Language DINO
        Jun 23, 2001.  Function gmatch is added, rcount is removed.
      
        Jun 25, 2001.  Operators char, int, float are added.
+     
+       Sep 25, 2001.  Vector conversion with format.  New function rev.
+                      del, ins, insv now return the vector.  getln
+                      with parameter.
 
 * Menu:
 
@@ -391,7 +395,7 @@ detail in the report later.
        parser         pclose         popen          pow
        print          println        put            putln
        rand           readdir        remove         rename
-       rmdir
+       rev            rmdir
        scan           scanln         seek           signals
        sin            sort           split          split_regex
        sqrt           srand          stderr         stdin

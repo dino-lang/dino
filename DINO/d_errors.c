@@ -66,6 +66,8 @@ char ERR_invalid_conversion_to_float_operand_type []
   = "invalid operand type in float (...)";
 char ERR_invalid_conversion_to_vector_operand_type []
   = "invalid operand type vector (...)";
+char ERR_invalid_conversion_format_type []
+  = "invalid format type in vector (...)";
 char ERR_invalid_conversion_to_table_operand_type []
   = "invalid operand type table (...)";
 char ERR_invalid_cond_type []
@@ -160,6 +162,10 @@ char DERR_conversion_to_float_operand_type []
   = "run time error - invalid type of operand of float (...)";
 char DERR_conversion_to_vector_operand_type []
   = "run time error - invalid type of operand of vector (...)";
+char DERR_format_conversion_to_vector_operand_type []
+  = "run time error - invalid type of operand of format vector (...)";
+char DERR_vector_conversion_format_type []
+  = "run time error - invalid type of format of vector (...)";
 char DERR_conversion_to_table_operand_type []
   = "run time error - invalid type of operand of table (...)";
 char DERR_elist_repetition_type []

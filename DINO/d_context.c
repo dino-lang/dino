@@ -143,6 +143,11 @@ first_expr_processing (IR_node_t expr, int current_temp_vars_number)
       SET_SOURCE_POSITION (expr);
       first_expr_processing (IR_operand (expr), current_temp_vars_number);
       break;
+    case IR_NM_format_vectorof:
+      SET_SOURCE_POSITION (expr);
+      first_expr_processing (IR_operand (expr), current_temp_vars_number++);
+      first_expr_processing (IR_format (expr), current_temp_vars_number);
+      break;
     case IR_NM_cond:
       SET_SOURCE_POSITION (expr);
       first_expr_processing (IR_cond (expr), current_temp_vars_number);
@@ -842,6 +847,7 @@ value_type (IR_node_t expr)
     case IR_NM_intof:
     case IR_NM_floatof:
     case IR_NM_vectorof:
+    case IR_NM_format_vectorof:
     case IR_NM_tableof:
     case IR_NM_funcof:
     case IR_NM_threadof:
@@ -1197,6 +1203,17 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
       SET_PC (expr);
       type_test (IR_operand (expr), EVT_NUMBER_VECTOR_TABLE_MASK,
 		 ERR_invalid_conversion_to_vector_operand_type);
+      IR_set_value_type (expr, EVT_VECTOR);
+      break;
+    case IR_NM_format_vectorof:
+      SET_SOURCE_POSITION (expr);
+      IR_set_operand (expr, third_expr_processing (IR_operand (expr), FALSE));
+      IR_set_format (expr, third_expr_processing (IR_format (expr), FALSE));
+      SET_PC (expr);
+      type_test (IR_operand (expr), EVT_NUMBER_VECTOR_TABLE_MASK,
+		 ERR_invalid_conversion_to_vector_operand_type);
+      type_test (IR_format (expr), EVT_VECTOR,
+		 ERR_invalid_conversion_format_type);
       IR_set_value_type (expr, EVT_VECTOR);
       break;
     case IR_NM_tableof:
@@ -1893,6 +1910,10 @@ fourth_expr_processing (IR_node_t expr)
     case IR_NM_new:
     case IR_NM_const:
       fourth_expr_processing (IR_operand (expr));
+      break;
+    case IR_NM_format_vectorof:
+      fourth_expr_processing (IR_operand (expr));
+      fourth_expr_processing (IR_format (expr));
       break;
     case IR_NM_logical_or:
     case IR_NM_logical_and:

@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino31705.info.2.
+/tmp/sgmltmp.dino27397.info.2.
 
    \input texinfo
 
@@ -125,7 +125,8 @@ Miscellaneous functions
      vector end.  The second form of the function is used to remove the
      element (if any) with given key from the mutable table.  The
      function generates exception `immutable' if we are trying to
-     remove from an immutable vector or table.
+     remove from an immutable vector or table.  The function returns
+     the modified vector.
 
    * `ins (vect, el[, index])'.  The function inserts element given by
      the second parameter into the vector given by the first parameter
@@ -135,12 +136,18 @@ Miscellaneous functions
      third parameter is negative or equal or greater than the vector
      length, the element is inserted at the end of the vector.  The
      function generates exception `immutable' if we are trying to
-     insert into an immutable vector.
+     insert into an immutable vector.  The function returns the
+     modified vector.
 
    * `insv (vect, vect[, index])'.  The function is analogous to the
      function `ins' but it is used for insertion of all vector elements
      into the vector given as the first parameter.  So the second
-     parameter value should be a vector.
+     parameter value should be a vector.  The function returns the
+     modified vector.
+
+   * `rev (vect)'.  The function reverses given vector.  The function
+     generates exception `immutable' if we are trying to reverse an
+     immutable vector.  The function returns the modified vector.
 
    * `cmpv (vect, vect)'.  The function makes implicit string
      conversion of the parameter values.  After that, the parameter
@@ -254,7 +261,7 @@ Appendix A- Syntax of Dino
           | char "(" Expr ")"
           | int "(" Expr ")"
           | float "(" Expr ")"
-          | vector "(" Expr ")"
+          | vector "(" Expr ["," Expr] ")"
           | table "(" Expr ")"
           | thread "(" ")"
           | class "(" ")"

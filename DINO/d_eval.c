@@ -663,8 +663,8 @@ execute_concat_op (void)
   size_t els_number;
   ER_node_t vect;
   
-  to_vect_string_conversion (ctop);
-  to_vect_string_conversion (below_ctop);
+  to_vect_string_conversion (ctop, NULL);
+  to_vect_string_conversion (below_ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (below_ctop) != ER_NM_vect)
     eval_error (optype_decl, invops_decl,
@@ -890,7 +890,7 @@ evaluate (IR_node_mode_t node_mode)
     case IR_NM_lvalue_deref:
     case IR_NM_arrow:
     case IR_NM_lvalue_arrow:
-      to_vect_string_conversion (ctop);
+      to_vect_string_conversion (ctop, NULL);
       if (ER_NODE_MODE (ctop) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
 	  || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
@@ -1380,7 +1380,7 @@ evaluate (IR_node_mode_t node_mode)
       INCREMENT_PC ();
       break;
     case IR_NM_length:
-      to_vect_string_conversion (ctop);
+      to_vect_string_conversion (ctop, NULL);
       if (ER_NODE_MODE (ctop) != ER_NM_vect
           && ER_NODE_MODE (ctop) != ER_NM_tab)
 	eval_error (optype_decl, invops_decl,
@@ -1430,7 +1430,7 @@ evaluate (IR_node_mode_t node_mode)
 	  ER_node_t instance;
 	  
 	  size = instance_size (ER_class (ER_instance (ctop)));
-	  instance = heap_allocate (size);
+	  instance = heap_allocate (size, FALSE);
 	  memcpy (instance, ER_instance (ctop), size);
 	  ER_set_immutable (instance, FALSE);
 	  ER_set_instance (ctop, instance);
@@ -1492,16 +1492,41 @@ evaluate (IR_node_mode_t node_mode)
 	INCREMENT_PC ();
 	break;
       }
+    case IR_NM_format_vectorof:
+      if (ER_NODE_MODE (ctop) != ER_NM_nil)
+	{
+	  ER_node_t vect;
+	  
+	  if (ER_NODE_MODE (below_ctop) != ER_NM_char
+	      && ER_NODE_MODE (below_ctop) != ER_NM_int
+	      && ER_NODE_MODE (below_ctop) != ER_NM_float
+	      && (ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
+		  || (ER_pack_vect_el_type (ER_vect (below_ctop))
+		      != ER_NM_char)))
+	    eval_error (optype_decl, invops_decl, *source_position_ptr,
+			DERR_format_conversion_to_vector_operand_type);
+	  to_vect_string_conversion (ctop, NULL);
+	  if (ER_NODE_MODE (ctop) != ER_NM_vect
+	      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
+	      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
+	    eval_error (optype_decl, invops_decl, *source_position_ptr,
+			DERR_vector_conversion_format_type);
+	  to_vect_string_conversion (below_ctop, ER_pack_els (ER_vect (ctop)));
+	  TOP_DOWN;
+	  INCREMENT_PC ();
+	  break;
+	}
+      TOP_DOWN;
+      /* fall through */
     case IR_NM_vectorof:
       {
 	ER_node_t vect;
 
-	to_vect_string_conversion (ctop);
+	to_vect_string_conversion (ctop, NULL);
 	if (ER_NODE_MODE (ctop) != ER_NM_vect)
 	  {
 	    if (ER_NODE_MODE (ctop) != ER_NM_tab)
-	      eval_error (optype_decl, invops_decl,
-			  *source_position_ptr,
+	      eval_error (optype_decl, invops_decl, *source_position_ptr,
 			  DERR_conversion_to_vector_operand_type);
 	    vect = table_to_vector_conversion (ER_tab (ctop));
 	    ER_SET_MODE (ctop, ER_NM_vect);
@@ -1516,7 +1541,7 @@ evaluate (IR_node_mode_t node_mode)
 
 	if (ER_NODE_MODE (ctop) != ER_NM_tab)
 	  {
-	    to_vect_string_conversion (ctop);
+	    to_vect_string_conversion (ctop, NULL);
 	    if (ER_NODE_MODE (ctop) != ER_NM_vect)
 	      eval_error (optype_decl, invops_decl,
 			  *source_position_ptr,
@@ -2349,7 +2374,8 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
   assert (strlen (message) <= MAX_EVAL_ERROR_MESSAGE_LENGTH);
   exception_position = position;
   PUSH_TEMP_REF (create_string (message));
-  error_instance = (ER_node_t) heap_allocate (instance_size (except_class));
+  error_instance = (ER_node_t) heap_allocate (instance_size (except_class),
+					      FALSE);
   ER_SET_MODE (error_instance, ER_NM_heap_instance);
   ER_set_class (error_instance, except_class);
   ER_set_block_node (error_instance, IR_next_stmt (except_class));

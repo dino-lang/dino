@@ -342,6 +342,12 @@ expr : expr '?' pos expr ':' expr
           $$ = create_node_with_pos (IR_NM_vectorof, $1);
           IR_set_operand ($$, $4);
         }
+     | pos VECTOR '(' expr ',' expr ')'
+       	{
+          $$ = create_node_with_pos (IR_NM_format_vectorof, $1);
+          IR_set_operand ($$, $4);
+          IR_set_format ($$, $6);
+        }
      | pos TABLE '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_tableof, $1);
@@ -363,6 +369,7 @@ expr : expr '?' pos expr ':' expr
           IR_set_operand ($$, $4);
         }
      ;
+
 /* Stop symbols:*/
 eof_stop : END_OF_FILE          {yychar = END_OF_FILE;}
          | END_OF_INCLUDE_FILE  {yychar = END_OF_INCLUDE_FILE;}

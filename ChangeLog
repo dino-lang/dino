@@ -1,3 +1,110 @@
+2001-10-05  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+        * DINO/d_ir.sprut (ENVIRONMENT): Add definition of function rev.
+	(REV_NAME): New macro.
+	(rev_decl): New varaibale and its external declaration.
+	(format_vectorof): New node type.
+	(decls_table): Add entry for the new function.
+        
+	* DINO/d_extern.sprut (heap_vect): Add field disp.
+	(ER_unpack_els, ER_pack_els): Use the field.
+
+	* DINO/d_run.sprut (OPTIMAL_ELS_SIZE): Make it bigger.
+	(_pack_els, _unpack_els):
+	(heap_chunk): Add member chunk_stack_top.
+	(new_heap_chunk): Initialize the member
+	(heap_allocate): Add new parameter saying where in the heap to
+	allocate.
+	(try_heap_free): Rename it onto try_heap_stack_free.
+	(tailored_heap_object_size): Take field disp (for vector) into
+	account.
+	(define_new_heap_object): New function.
+	(define_new_heap_object_places): Use the new function.
+	(change_obj_refs): Rename it into change_refs.  Use the next new
+	function.
+	(change_obj_refs): New function.
+	(move_object): New function.
+	(compact_heap): Use the previous new function.
+	(gc): Use function change_refs.
+	(heap_push, heap_pop):  Use allocation for the stacks.
+	(create_empty_vector): Use the disp and new parameter for heap
+	allocation.
+	(create_unpack_vector, expand_vector, unpack_vector): Ditto.
+	(create_pack_vector, pack_vector_if_possible): Use the disp.
+	(copy_vector): Use the new parameter for heap allocation.
+	(hash_val): Use another encoding.
+	(hash_key): Ditto.
+	(START_TABLE_SIZE): Use the bigger vector.
+	(create_tab, create_process): Use the new parameter for heap
+	allocation.
+
+	* DINO/d_yacc.y: Add transformation into vector with a format.
+	
+	* DINO/d_built.h (rev_call): New function definition.
+
+	* DINO/d_context.c (first_expr_processing, value_type,
+	third_expr_processing, fourth_expr_processing): Add processing
+	format_vectorof.
+
+	* DINO/d_conv.h (to_vect_string_conversion): New format parameter.
+
+	* DINO/d_conv.c (to_vect_string_conversion): Add conversion with
+	format.  Fix a GC bug.
+	(implicit_var_arithmetic_conversion,
+	implicit_conversion_for_eq_op): Add NULL parameter to call of
+	to_vect_string_conversion.
+
+	* DINO/d_errors.h (ERR_invalid_conversion_format_type,
+	DERR_format_conversion_to_vector_operand_type,
+	DERR_vector_conversion_format_type):  External definitions of the
+	new error messages.
+	
+	* DINO/d_errors.c (ERR_invalid_conversion_format_type,
+	DERR_format_conversion_to_vector_operand_type,
+	DERR_vector_conversion_format_type): The new error messages.
+
+	* DINO/d_eval.c (execute_concat_op): Add NULL parameter to call of
+	to_vect_string_conversion.
+	(evaluate): Ditto.  Add new parameter to call of heap_allocate.
+	Process format_vectorof.
+	(eval_error): Add new parameter to call of heap_allocate.
+	
+	* DINO/d_func.c (to_lower_upper, match_call, gmatch_call,
+	generall_sub_call, split_call, subv_call, cmpv_call): Add NULL
+	parameter to call of to_vect_string_conversion.
+	(del_call): Take the first element disp into account.  Return the
+	result.
+	(general_ins_call): Return the result.
+	(rev_call): New function.
+	(two_strings_func_start, string_func_start, print_val,
+	general_put_call, general_get_call): Add NULL parameter to call of
+	to_vect_string_conversion.
+	(general_get_ln_file_call): Add new parameter as_lns_p.
+	(getf_call): Process the new parameter.
+	(fgetln_call): Use the new general_get_ln_file_call parameter.
+	(fgetf_call): Ditto.  Process the new parameter.
+	(general_scan_call): Use shorter code.
+	(readdir_call, strtime_call, system_call): Add NULL parameter to
+	call of to_vect_string_conversion.
+	(create_instance): Add new parameter to call of heap_allocate.
+
+	* DINO/dino.tst.in: New output for test # 362 because of new
+	hashing.
+	
+	* DINO/dino.sgml.in: Vector conversion with format.  New function
+	rev.  Function del, ins, insv now return the vector.  Function
+	getln is with parameter now.
+
+	* DINO/{dino-4.html, dino-5.html, dino-8.html, dino-9.html,
+	dino.html, dino.dvi, dino.info, dino.info-1, dino.info-2,
+	dino.info-3, dino.info-4, dino.ps, dino.txt}: Update.
+
+2001-10-05  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* REGEX/regex.h: Update it.
+
+	* REGEX/regex.c: Update it.
+
 2001-07-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_run.sprut (new_heap_chunk): Increase size according to

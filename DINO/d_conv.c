@@ -8,19 +8,28 @@
 __inline__
 #endif
 void
-to_vect_string_conversion (ER_node_t var)
+to_vect_string_conversion (ER_node_t var, const char *format)
 {
   ER_node_mode_t mode;
   const char *representation;
-  char str[2];
+  char str[1000];
   ER_node_t vect;
-
+  int saved_no_gc_flag;
+      
   mode = ER_NODE_MODE (var);
   if (mode == ER_NM_float || mode == ER_NM_int || mode == ER_NM_char)
     {
-      int saved_no_gc_flag;
-
-      if (mode == ER_NM_float)
+      if (format != NULL)
+	{
+	  if (mode == ER_NM_float)
+	    sprintf (str, format, ER_f (var));
+	  else if (mode == ER_NM_int)
+	    sprintf (str, format, ER_i (var));
+	  else
+	    sprintf (str, format, ER_ch (var));
+	  representation = str;
+	}
+      else if (mode == ER_NM_float)
 	representation = f2a (ER_f (var));
       else if (mode == ER_NM_int)
 	representation = i2a (ER_i (var));
@@ -45,6 +54,19 @@ to_vect_string_conversion (ER_node_t var)
       ER_set_vect (var, vect);
       if (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_unpack_vect)
 	pack_vector_if_possible (ER_vect (var));
+      if (format != NULL)
+	{
+	  assert (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_vect
+		  && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char);
+	  sprintf (str, format, ER_pack_els (ER_vect (var)));
+	  /* Remeber `var' may be changed in GC. */
+	  saved_no_gc_flag = no_gc_flag;
+	  no_gc_flag = TRUE;
+	  vect = create_string (str);
+	  no_gc_flag = saved_no_gc_flag;
+	  ER_SET_MODE (var, ER_NM_vect);
+	  ER_set_vect (var, vect);
+	}
     }
 }
 
@@ -65,7 +87,7 @@ implicit_var_arithmetic_conversion (ER_node_t var)
     }
   else if (ER_NODE_MODE (var) == ER_NM_vect)
     {
-      to_vect_string_conversion (var);
+      to_vect_string_conversion (var, NULL);
       if (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char)
 	{
@@ -197,8 +219,8 @@ implicit_conversion_for_eq_op (void)
 		 && ER_pack_vect_el_type (ER_vect (below_ctop)) == ER_NM_char);
   if (string_flag)
     {
-      to_vect_string_conversion (ctop);
-      to_vect_string_conversion (below_ctop);
+      to_vect_string_conversion (ctop, NULL);
+      to_vect_string_conversion (below_ctop, NULL);
     }
   else if (ER_NODE_MODE (ctop) == ER_NM_vect
 	   && ER_NODE_MODE (below_ctop) == ER_NM_vect

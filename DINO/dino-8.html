@@ -982,8 +982,8 @@ no one occurrence, the function returns <B>nil</B>.
 <P>Example: The program
 <BLOCKQUOTE><CODE>
 <PRE>
-          println (rcount ("aa", "aaaaa"));
-          println (rcount ("aa", "aaaaa", 1));
+          println (gmatch ("aa", "aaaaa"));
+          println (gmatch ("aa", "aaaaa", 1));
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -1570,7 +1570,8 @@ the length is negative, the slice will finish on the vector
 end.  The second form of the function is used to remove the
 element (if any) with given key from the mutable table.  The
 function generates exception <CODE>immutable</CODE> if we are
-trying to remove from an immutable vector or table.</LI>
+trying to remove from an immutable vector or table.  The
+function returns the modified vector.</LI>
 <LI><CODE>ins (vect, el[, index])</CODE>.  The function inserts
 element given by the second parameter into the vector given by
 the first parameter on the place given by the third parameter.
@@ -1580,12 +1581,16 @@ conversion.  If the third parameter is negative or equal or
 greater than the vector length, the element is inserted at the
 end of the vector.  The function generates exception
 <CODE>immutable</CODE> if we are trying to insert into an immutable
-vector.</LI>
+vector.  The function returns the modified vector.</LI>
 <LI><CODE>insv (vect, vect[, index])</CODE>.  The function is
 analogous to the function <CODE>ins</CODE> but it is used for
 insertion of all vector elements into the vector given as the
 first parameter.  So the second parameter value should be a
-vector.</LI>
+vector.  The function returns the modified vector.</LI>
+<LI><CODE>rev (vect)</CODE>.  The function reverses given vector.
+The function generates exception <CODE>immutable</CODE> if we are
+trying to reverse an immutable vector.  The function returns
+the modified vector.</LI>
 <LI><CODE>cmpv (vect, vect)</CODE>.  The function makes implicit
 string conversion of the parameter values.  After that, the
 parameter values should be vectors whose the first

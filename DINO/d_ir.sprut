@@ -394,7 +394,7 @@ typedef IR_node_t pc_t;
   "func keys (){}\n"\
   "func context (){} func inside (){}\n"\
   "func subv(){} func cmpv(){} func del(){} func ins(){}  func insv(){}\n"\
-  "func sort(){}\n"\
+  "func rev(){} func sort(){}\n"\
   "func sqrt (){} func exp (){} func log (){} func log10(){} func pow(){} \n"\
   "func sin(){} func cos(){} func atan2(){} \n"\
   "func match(){} func gmatch(){} func sub(){} func gsub(){}\n"\
@@ -856,6 +856,9 @@ extern IR_node_t ins_decl;
 #define INSV_NAME "insv"
 extern IR_node_t insv_decl;
 
+#define REV_NAME "rev"
+extern IR_node_t rev_decl;
+
 #define SORT_NAME "sort"
 extern IR_node_t sort_decl;
 
@@ -1222,6 +1225,11 @@ cond :: operation
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
    typeof, charof, intof, floatof, vectorof, tableof,
    funcof, threadof, classof, deref :: unary_operation
+;
+
+format_vectorof :: vectorof
+%other
+   format : expr
 ;
 
 %abstract
@@ -2288,6 +2296,7 @@ IR_node_t cmpv_decl;
 IR_node_t del_decl;
 IR_node_t ins_decl;
 IR_node_t insv_decl;
+IR_node_t rev_decl;
 IR_node_t sort_decl;
 IR_node_t sqrt_decl;
 IR_node_t exp_decl;
@@ -2528,6 +2537,7 @@ static struct decl_entry decls_table [] =
   {&del_decl, DEL_NAME, NULL, del_call},
   {&ins_decl, INS_NAME, NULL, ins_call},
   {&insv_decl, INSV_NAME, NULL, insv_call},
+  {&rev_decl, REV_NAME, NULL, rev_call},
   {&sort_decl, SORT_NAME, NULL, sort_call},
   {&sqrt_decl, SQRT_NAME, NULL, sqrt_call},
   {&exp_decl, EXP_NAME, NULL, exp_call},

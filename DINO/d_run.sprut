@@ -18,7 +18,7 @@
 
 /* The macro call returns optimal allocation size for vector elements.
    Remember vector can grow.  Remember also about string end char. */
-#define OPTIMAL_ELS_SIZE(s) (((s) + 1) * 4 / 3)
+#define OPTIMAL_ELS_SIZE(s) (((s) + 1) * 3 / 2)
 
 extern pc_t cpc;
 extern ER_node_t cstack;
@@ -107,7 +107,7 @@ extern integer_t all_interrupts_number;
 extern void profile_interrupt (void);
 #endif
 
-extern void *heap_allocate (size_t size);
+extern void *heap_allocate (size_t size, int stack_p);
 extern void initiate_heap (void);
 extern void finish_heap (void);
 extern void gc (void);
@@ -387,7 +387,8 @@ _pack_els (ER_node_t vect)
   char *res;
   
   assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
-  res = (char *) vect + ALLOC_SIZE (sizeof (_ER_heap_pack_vect));
+  res = ((char *) vect + ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
+	 + ER_disp (vect));
   return res;
 }
 
@@ -398,7 +399,8 @@ _unpack_els (ER_node_t vect)
   
   assert (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect);
   res = (ER_node_t) ((char *) vect
-		     + ALLOC_SIZE (sizeof (_ER_heap_unpack_vect)));
+		     + ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
+		     + ER_disp (vect));
   return res;
 }
 
@@ -538,19 +540,21 @@ block_stack_size (IR_node_t block_node_ptr)
 /* The heap objects are placed on one side of the heap chunks. New
    chunk is created when there is no memory in GC.
 
+                 heap growth
+              ----->     <---- 
          __________________________       __________________________   
-	|        |                 |     |        |                 |  
-	| objects|                 |     | objects|                 |  ...
+	|        |         |       |     |        |          |      |  
+	| objects|         |stacks |     | objects|          |stacks|  ...
 	 --------------------------       --------------------------   
-	          ^		                   ^                   
-		  |        ---->                   |        ---->      
-	chunk_free     heap_growth          chunk_free heap_growth */
+	          ^	    ^	           
+		  |         |
+	chunk_free         chunk_stack_top */
 
 struct heap_chunk
 {
   /* First and first after the last byte of the heap chunk. */
   char *chunk_start, *chunk_bound;
-  char *chunk_free;
+  char *chunk_free, *chunk_stack_top;
 };
 
 /* Array of heap descriptors. */
@@ -609,7 +613,7 @@ new_heap_chunk (size_t size)
   size = ALLOC_SIZE (size);
   CALLOC (str, 1, size);
   curr_heap_chunk->chunk_start = curr_heap_chunk->chunk_free = str;
-  curr_heap_chunk->chunk_bound = str + size;
+  curr_heap_chunk->chunk_stack_top = curr_heap_chunk->chunk_bound = str + size;
   heap_size += size;
   free_heap_memory += size;
   heap_chunks_number++;
@@ -699,22 +703,31 @@ finish_heap (void)
    than fatal error is fixed.  The allocated memory is zeroed (see
    initiate_heap and compact_heap). */
 void *
-heap_allocate (size_t size)
+heap_allocate (size_t size, int stack_p)
 {
   void *result;
 
   assert (size > 0);
   size = ALLOC_SIZE (size);
-  if (curr_heap_chunk->chunk_free + size > curr_heap_chunk->chunk_bound)
+  if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free < size)
     {
       if (!no_gc_flag)
 	gc ();
-      if (curr_heap_chunk->chunk_free + size > curr_heap_chunk->chunk_bound)
+      if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free
+	  < size)
 	new_heap_chunk (size > heap_chunk_size ? size : heap_chunk_size);
     }
-  result = curr_heap_chunk->chunk_free;
-  curr_heap_chunk->chunk_free += size;
-  assert (curr_heap_chunk->chunk_free <= curr_heap_chunk->chunk_bound);
+  if (stack_p)
+    {
+      curr_heap_chunk->chunk_stack_top -= size;
+      result = curr_heap_chunk->chunk_stack_top;
+    }
+  else
+    {
+      result = curr_heap_chunk->chunk_free;
+      curr_heap_chunk->chunk_free += size;
+    }
+  assert (curr_heap_chunk->chunk_free <= curr_heap_chunk->chunk_stack_top);
   free_heap_memory -= size;
   ER_SET_MODE ((ER_node_t) result, ER_NM_heap_instance);
   ER_set_unique_number ((ER_node_t) result, unique_number);
@@ -762,11 +775,11 @@ heap_object_size (ER_node_t obj)
 __inline__
 #endif
 static int
-try_heap_free (void *from, size_t size)
+try_heap_stack_free (void *from, size_t size)
 {
-  if (curr_heap_chunk->chunk_free - size != (char *) from)
+  if (curr_heap_chunk->chunk_stack_top != (char *) from)
     return FALSE;
-  curr_heap_chunk->chunk_free -= size;
+  curr_heap_chunk->chunk_stack_top += size;
   return TRUE;
 }
 
@@ -774,22 +787,25 @@ try_heap_free (void *from, size_t size)
 static size_t
 tailored_heap_object_size (ER_node_t obj)
 {
-  size_t size;
-  size_t el_size;
-  size_t optimal_size;
+  size_t size, el_size, head_size, all_els_size, optimal_size;
   ER_node_mode_t node_mode = ER_NODE_MODE (obj);
   
+#if 1
   if (node_mode == ER_NM_heap_pack_vect || node_mode == ER_NM_heap_unpack_vect)
     {
       size = ER_allocated_length (obj);
       el_size = (node_mode == ER_NM_heap_pack_vect
 		 ? type_size (ER_pack_vect_el_type (obj)) : sizeof (val_t));
-      optimal_size = (ALLOC_SIZE (ER_node_size [node_mode])
-		      + OPTIMAL_ELS_SIZE (ER_els_number (obj) * el_size));
+      all_els_size = ER_els_number (obj) * el_size;
+      head_size = ALLOC_SIZE (ER_node_size [node_mode]);
+      optimal_size = (head_size + OPTIMAL_ELS_SIZE (all_els_size));
+      if (optimal_size < head_size + all_els_size + ER_disp (obj))
+	optimal_size = head_size + all_els_size + ER_disp (obj);
       if (size > optimal_size)
 	size = optimal_size;
     }
   else
+#endif
     size = heap_object_size (obj);
   return ALLOC_SIZE (size);
 }
@@ -813,10 +829,16 @@ clean_heap_object_process_flag (void)
   for (curr_descr = VLO_BEGIN (heap_chunks);
        (char *) curr_descr <= (char *) VLO_END (heap_chunks);
        curr_descr++)
-    for (curr_obj = (ER_node_t) curr_descr->chunk_start;
-	 (char *) curr_obj < curr_descr->chunk_free;
-	 curr_obj = next_heap_object (curr_obj))
-      ER_set_it_was_processed (curr_obj, FALSE);
+    {
+      for (curr_obj = (ER_node_t) curr_descr->chunk_start;
+	   (char *) curr_obj < curr_descr->chunk_free;
+	   curr_obj = next_heap_object (curr_obj))
+	ER_set_it_was_processed (curr_obj, FALSE);
+      for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
+	   (char *) curr_obj < curr_descr->chunk_bound;
+	   curr_obj = next_heap_object (curr_obj))
+	ER_set_it_was_processed (curr_obj, FALSE);
+    }
 }
 
 static void traverse_used_heap_object (ER_node_t start_obj);
@@ -987,13 +1009,48 @@ mark_used_heap_objects (void)
   /* Current stack table is traversed with cprocess. */
 }
 
+#if INLINE
+__inline__
+#endif
+static char *
+define_new_heap_object (ER_node_t obj, struct heap_chunk **descr, char *place)
+{
+  size_t size;
+
+  if (ER_NODE_MODE (obj) == ER_NM_heap_redir)
+    {
+      /* Redirections do not survive GC. */
+      ER_set_it_was_processed (obj, FALSE);
+      ER_set_new_place (obj, NULL);
+    }
+  else if (ER_it_was_processed (obj))
+    {
+      if (ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect
+	  && !in_heap_temp_refs (obj))
+	pack_vector_if_possible (obj);
+      size = (!in_heap_temp_refs (obj)
+	      ? tailored_heap_object_size (obj) : heap_object_size (obj));
+      if (place + size > (*descr)->chunk_bound)
+	{
+	  (*descr)++;
+	  place = (*descr)->chunk_start;
+	}
+      ER_set_new_place (obj, place);
+      /* Packing will be only in compact_heap */
+      place += size;
+      assert (place <= (*descr)->chunk_bound);
+    }
+  else
+    ER_set_new_place (obj, NULL);
+  return place;
+}
+
 static void
 define_new_heap_object_places (void)
 {
   ER_node_t curr_obj;
   struct heap_chunk *curr_descr;
   struct heap_chunk *curr_place_descr;
-  size_t size;
   char *new_place;
 
   mark_used_heap_objects ();
@@ -1006,33 +1063,13 @@ define_new_heap_object_places (void)
       for (curr_obj = (ER_node_t) curr_descr->chunk_start;
 	   (char *) curr_obj < curr_descr->chunk_free;
 	   curr_obj = next_heap_object (curr_obj))
-	if (ER_NODE_MODE (curr_obj) == ER_NM_heap_redir)
-	  {
-	    /* Redirections do not survive GC. */
-	    ER_set_it_was_processed (curr_obj, FALSE);
-	    ER_set_new_place (curr_obj, NULL);
-	  }
-	else if (ER_it_was_processed (curr_obj))
-	  {
-	    if (ER_NODE_MODE (curr_obj) == ER_NM_heap_unpack_vect
-		&& !in_heap_temp_refs (curr_obj))
-	      pack_vector_if_possible (curr_obj);
-	    size = (!in_heap_temp_refs (curr_obj)
-		    ? tailored_heap_object_size (curr_obj)
-		    : heap_object_size (curr_obj));
-	    if (new_place + size > curr_place_descr->chunk_bound)
-	      {
-		assert (curr_place_descr < curr_descr);
-		curr_place_descr++;
-		new_place = curr_place_descr->chunk_start;
-	      }
-	    ER_set_new_place (curr_obj, new_place);
-	    /* Packing will be only in compact_heap */
-	    new_place += size;
-	    assert (new_place <= curr_place_descr->chunk_bound);
-	  }
-	else
-	  ER_set_new_place (curr_obj, NULL);
+	new_place
+	  = define_new_heap_object (curr_obj, &curr_place_descr, new_place);
+      for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
+	   (char *) curr_obj < curr_descr->chunk_bound;
+	   curr_obj = next_heap_object (curr_obj))
+	new_place
+	  = define_new_heap_object (curr_obj, &curr_place_descr, new_place);
     }
 }
 
@@ -1149,12 +1186,119 @@ change_var (ER_node_t var)
     }
 }
 
+#if INLINE
+__inline__
+#endif
+static void
+change_obj_refs (ER_node_t obj)
+{
+  size_t i;
+
+  if (ER_it_was_processed (obj))
+    switch (ER_NODE_MODE (obj))
+      {
+      case ER_NM_heap_pack_vect:
+	{
+	  ER_node_mode_t el_type;
+	  size_t el_size;
+	  
+	  el_type = ER_pack_vect_el_type (obj);
+	  if (el_type == ER_NM_nil || el_type == ER_NM_hide
+	      || el_type == ER_NM_char || el_type == ER_NM_int
+	      || el_type == ER_NM_float || el_type == ER_NM_type)
+	    break;
+	  el_size = type_size (el_type);
+	  if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
+	      || el_type == ER_NM_tab || el_type == ER_NM_instance
+	      || el_type == ER_NM_process || el_type == ER_NM_stack)
+	    for (i = 0; i < ER_els_number (obj); i++)
+	      change_val (el_type,
+			  (ER_node_t *) (ER_pack_els (obj) + i * el_size));
+	  else if (el_type == ER_NM_func)
+	    for (i = 0; i < ER_els_number (obj); i++)
+	      change_val (el_type,
+			  &((struct _ER_S_func *)
+			    (ER_pack_els (obj) + i * el_size))->func_context);
+	  else if (el_type == ER_NM_class)
+	    for (i = 0; i < ER_els_number (obj); i++)
+	      change_val (el_type,
+			  &((struct _ER_S_class *)
+			    (ER_pack_els (obj) + i * el_size))->class_context);
+	  else
+	    assert (FALSE);
+	  break;
+	}
+      case ER_NM_heap_unpack_vect:
+	for (i = 0; i < ER_els_number (obj); i++)
+	  change_var (INDEXED_VAL (ER_unpack_els (obj), i));
+	break;
+      case ER_NM_heap_tab:
+	{
+	  ER_node_mode_t el_type;
+	  
+	  for (i = 0; i < ER_entries_number (obj); i++)
+	    {
+	      el_type = ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
+	      if (el_type == ER_NM_empty_entry
+		  || el_type == ER_NM_deleted_entry)
+		continue;
+	      change_var (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
+	      change_var (INDEXED_ENTRY_VAL (ER_tab_els (obj), i));
+	    }
+	  break;
+	}
+      case ER_NM_heap_instance:
+	{
+	  int vars_number;
+	  
+	  CHANGE_REF (((_ER_heap_instance *) obj)
+		      ->_ER_S_heap_instance._ER_M_context.context);
+	  vars_number = IR_vars_number (IR_next_stmt (ER_class (obj)));
+	  for (i = 0; i < vars_number; i++)
+	    change_var (INDEXED_VAL (ER_instance_vars (obj), i));
+	  break;
+	}
+      case ER_NM_heap_stack:
+	{
+	  ER_node_t var;
+	  size_t stack_size;
+	  
+	  CHANGE_REF (((_ER_heap_stack *) obj)
+		      ->_ER_S_heap_stack._ER_M_context.context);
+	  CHANGE_REF (((_ER_heap_stack *) obj)->_ER_S_heap_stack.prev_stack);
+	  for (var = ER_stack_vars (obj);
+	       (char *) var < ER_free (obj);
+	       var = INDEXED_VAL (var, 1))
+	    change_var (var);
+	  stack_size = ((char *) ER_free (obj) - (char *) ER_stack_vars (obj));
+	  ((_ER_heap_stack *) obj)->_ER_S_heap_stack.free
+	    = (ER_new_place (obj)
+	       + ALLOC_SIZE (sizeof (_ER_heap_stack)) + stack_size);
+	  break;
+	}
+      case ER_NM_heap_process:
+	CHANGE_REF (((_ER_heap_process *) obj)
+		    ->_ER_S_heap_process._ER_M_context.context);
+	CHANGE_REF (((_ER_heap_process *) obj)->_ER_S_heap_process.father);
+	CHANGE_REF (((_ER_heap_process *) obj)->_ER_S_heap_process.prev);
+	CHANGE_REF (((_ER_heap_process *) obj)->_ER_S_heap_process.next);
+	CHANGE_REF (((_ER_heap_process *) obj)
+		    ->_ER_S_heap_process.saved_cstack);
+	break;
+      case ER_NM_heap_hideblock:
+	break;
+      default:
+	/* Redirections do not survive GC. */
+	assert (FALSE);
+      }
+}
+
 /* The function changes all heap references onto references which must
    be after the heap compaction Don't use SPRUT access macros here.
    They can check the reference which will refer to correct object
    only after the heap compaction .*/
 static void
-change_obj_refs (void)
+change_refs (void)
 {
   ER_node_t curr_obj;
   struct heap_chunk *curr_descr;
@@ -1163,116 +1307,16 @@ change_obj_refs (void)
   for (curr_descr = VLO_BEGIN (heap_chunks);
        (char *) curr_descr <= (char *) VLO_END (heap_chunks);
        curr_descr++)
-    for (curr_obj = (ER_node_t) curr_descr->chunk_start;
-	 (char *) curr_obj < curr_descr->chunk_free;
-	 curr_obj = next_heap_object (curr_obj))
-      if (ER_it_was_processed (curr_obj))
-	switch (ER_NODE_MODE (curr_obj))
-	  {
-	  case ER_NM_heap_pack_vect:
-	    {
-	      ER_node_mode_t el_type;
-	      size_t el_size;
-	      
-	      el_type = ER_pack_vect_el_type (curr_obj);
-	      if (el_type == ER_NM_nil || el_type == ER_NM_hide
-	          || el_type == ER_NM_char || el_type == ER_NM_int
-		  || el_type == ER_NM_float || el_type == ER_NM_type)
-		continue;
-	      el_size = type_size (el_type);
-	      if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
-		  || el_type == ER_NM_tab || el_type == ER_NM_instance
-		  || el_type == ER_NM_process || el_type == ER_NM_stack)
-		for (i = 0; i < ER_els_number (curr_obj); i++)
-		  change_val
-		    (el_type, (ER_node_t *)
-		     (ER_pack_els (curr_obj) + i * el_size));
-	      else if (el_type == ER_NM_func)
-		for (i = 0; i < ER_els_number (curr_obj); i++)
-		  change_val
-		    (el_type,
-		     &((struct _ER_S_func *)
-		       (ER_pack_els (curr_obj) + i * el_size))->func_context);
-	      else if (el_type == ER_NM_class)
-		for (i = 0; i < ER_els_number (curr_obj); i++)
-		  change_val
-		    (el_type,
-		     &((struct _ER_S_class *)
-		       (ER_pack_els (curr_obj) + i * el_size))->class_context);
-	      else
-		assert (FALSE);
-	      break;
-	    }
-	  case ER_NM_heap_unpack_vect:
-	    for (i = 0; i < ER_els_number (curr_obj); i++)
-	      change_var (INDEXED_VAL (ER_unpack_els (curr_obj), i));
-	    break;
-	  case ER_NM_heap_tab:
-	    {
-	      ER_node_mode_t el_type;
-	      
-	      for (i = 0; i < ER_entries_number (curr_obj); i++)
-		{
-		  el_type = ER_NODE_MODE (INDEXED_ENTRY_KEY
-					  (ER_tab_els (curr_obj), i));
-		  if (el_type == ER_NM_empty_entry
-		      || el_type == ER_NM_deleted_entry)
-		    continue;
-		  change_var (INDEXED_ENTRY_KEY (ER_tab_els (curr_obj), i));
-		  change_var (INDEXED_ENTRY_VAL (ER_tab_els (curr_obj), i));
-		}
-	      break;
-	    }
-	  case ER_NM_heap_instance:
-	    {
-	      int vars_number;
-	      
-	      CHANGE_REF (((_ER_heap_instance *) curr_obj)
-			  ->_ER_S_heap_instance._ER_M_context.context);
-	      vars_number
-		= IR_vars_number (IR_next_stmt (ER_class (curr_obj)));
-	      for (i = 0; i < vars_number; i++)
-		change_var (INDEXED_VAL (ER_instance_vars (curr_obj), i));
-	      break;
-	    }
-	  case ER_NM_heap_stack:
-	    {
-	      ER_node_t var;
-	      size_t stack_size;
-	      
-	      CHANGE_REF (((_ER_heap_stack *) curr_obj)
-			  ->_ER_S_heap_stack._ER_M_context.context);
-	      CHANGE_REF (((_ER_heap_stack *) curr_obj)
-			  ->_ER_S_heap_stack.prev_stack);
-	      for (var = ER_stack_vars (curr_obj);
-		   (char *) var < ER_free (curr_obj);
-		   var = INDEXED_VAL (var, 1))
-		change_var (var);
-	      stack_size = ((char *) ER_free (curr_obj)
-			    - (char *) ER_stack_vars (curr_obj));
-	      ((_ER_heap_stack *) curr_obj)->_ER_S_heap_stack.free
-		= (ER_new_place (curr_obj)
-		   + ALLOC_SIZE (sizeof (_ER_heap_stack)) + stack_size);
-	      break;
-	    }
-	  case ER_NM_heap_process:
-	    CHANGE_REF (((_ER_heap_process *) curr_obj)
-			->_ER_S_heap_process._ER_M_context.context);
-	    CHANGE_REF (((_ER_heap_process *) curr_obj)
-			->_ER_S_heap_process.father);
-	    CHANGE_REF (((_ER_heap_process *) curr_obj)
-			->_ER_S_heap_process.prev);
-	    CHANGE_REF (((_ER_heap_process *) curr_obj)
-			->_ER_S_heap_process.next);
-	    CHANGE_REF (((_ER_heap_process *) curr_obj)
-			->_ER_S_heap_process.saved_cstack);
-	    break;
-	  case ER_NM_heap_hideblock:
-	    break;
-	  default:
-	    /* Redirections do not survive GC. */
-	    assert (FALSE);
-	  }
+    {
+      for (curr_obj = (ER_node_t) curr_descr->chunk_start;
+	   (char *) curr_obj < curr_descr->chunk_free;
+	   curr_obj = next_heap_object (curr_obj))
+	change_obj_refs (curr_obj);
+      for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
+	   (char *) curr_obj < curr_descr->chunk_bound;
+	   curr_obj = next_heap_object (curr_obj))
+	change_obj_refs (curr_obj);
+    }
   CHANGE_REF (cstack);
   CHANGE_REF (uppest_stack);
   /* `heap_temp_refs' may refer for a vector. */
@@ -1284,13 +1328,59 @@ change_obj_refs (void)
   CHANGE_REF (first_process_not_started);
 }
 
+#if INLINE
+__inline__
+#endif
+static char *
+move_object (ER_node_t obj, struct heap_chunk **descr,
+	     size_t *curr_heap_size, char *place)
+{
+  size_t tailored_size;
+
+  if (ER_it_was_processed (obj))
+    {
+      /* Tailor vector size only here although tailoring has been
+	 taken into account in place value.  Remeber that temp
+	 refs are already set up to new places. */
+      tailored_size = (!in_heap_temp_refs ((ER_node_t) place)
+		       ? tailored_heap_object_size (obj)
+		       : heap_object_size (obj));
+      if (place + tailored_size > (*descr)->chunk_bound)
+	{
+	  /* Zero e.g. because we compare var as full structs. */
+	  if ((*descr)->chunk_free > place)
+	    memset (place, 0, (*descr)->chunk_free - place);
+	  if ((*descr)->chunk_stack_top > place)
+	    memset ((*descr)->chunk_stack_top, 0,
+		    (*descr)->chunk_bound - (*descr)->chunk_stack_top);
+	  else
+	    memset (place, 0, (*descr)->chunk_bound - place);
+	  free_heap_memory += (*descr)->chunk_bound - place;
+	  (*descr)->chunk_free = place;
+	  (*descr)->chunk_stack_top = (*descr)->chunk_bound;
+	  (*descr)++;
+	  place = (*descr)->chunk_start;
+	  *curr_heap_size += ((*descr)->chunk_bound - (*descr)->chunk_start);
+	}
+      if (ER_NODE_MODE (obj) == ER_NM_heap_pack_vect
+	  || ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect)
+	ER_set_allocated_length (obj, tailored_size);
+      assert (ER_new_place (obj) == place);
+      if (place != (char *) obj)
+	memmove (place, obj, tailored_size);
+      place += tailored_size;
+      assert (place <= (*descr)->chunk_bound);
+    }
+  return place;
+}
+
 static void
 compact_heap (void)
 {
   ER_node_t curr_obj, next_obj;
   struct heap_chunk *curr_descr;
   struct heap_chunk *curr_place_descr;
-  size_t tailored_size, curr_heap_size;
+  size_t curr_heap_size;
   char *new_place;
 
   /* Compact the heap */
@@ -1308,49 +1398,32 @@ compact_heap (void)
 	   curr_obj = next_obj)
 	{
 	  next_obj = next_heap_object (curr_obj);
-	  if (ER_it_was_processed (curr_obj))
-	    {
-	      /* Tailor vector size only here although tailoring has
-		 been taken into account in new_place value.  Remeber
-		 that temp refs are already set up to new places. */
-	      tailored_size
-		= (!in_heap_temp_refs ((ER_node_t) new_place)
-		   ? tailored_heap_object_size (curr_obj)
-		   : heap_object_size (curr_obj));
-	      if (new_place + tailored_size > curr_place_descr->chunk_bound)
-		{
-		  if (curr_place_descr->chunk_free > new_place)
-		    /* Zero e.g. because we compare var as full structs. */
-		    memset (new_place, 0,
-			    curr_place_descr->chunk_free - new_place);
-		  free_heap_memory
-		    += curr_place_descr->chunk_bound - new_place;
-		  curr_place_descr->chunk_free = new_place;
-		  assert (curr_place_descr < curr_descr);
-		  curr_place_descr++;
-		  new_place = curr_place_descr->chunk_start;
-		  curr_heap_size += (curr_place_descr->chunk_bound
-				     - curr_place_descr->chunk_start);
-		}
-	      if (ER_NODE_MODE (curr_obj) == ER_NM_heap_pack_vect
-		  || ER_NODE_MODE (curr_obj) == ER_NM_heap_unpack_vect)
-		ER_set_allocated_length (curr_obj, tailored_size);
-	      assert (ER_new_place (curr_obj) == new_place);
-	      if (new_place != (char *) curr_obj)
-		memmove (new_place, curr_obj, tailored_size);
-	      new_place += tailored_size;
-	      assert (new_place <= curr_place_descr->chunk_bound);
-	    }
+	  new_place = move_object (curr_obj, &curr_place_descr,
+				   &curr_heap_size, new_place);
+	}
+      for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
+	   (char *) curr_obj < curr_descr->chunk_bound;
+	   curr_obj = next_obj)
+	{
+	  next_obj = next_heap_object (curr_obj);
+	  new_place = move_object (curr_obj, &curr_place_descr,
+				   &curr_heap_size, new_place);
 	}
     }
   curr_heap_chunk = curr_place_descr;
   assert ((char *) (curr_heap_chunk + 1) <= (char *) VLO_END (heap_chunks)
 	  || curr_heap_chunk->chunk_free >= new_place);
+  /* Zero e.g. because we compare var as full structs: */
   /* Possible situation when e.g. two chunks are compacted in one. */
   if (curr_heap_chunk->chunk_free >= new_place)
-    /* Zero e.g. because we compare var as full structs. */
     memset (new_place, 0, curr_heap_chunk->chunk_free - new_place);
+  if (curr_heap_chunk->chunk_stack_top > new_place)
+    memset (curr_heap_chunk->chunk_stack_top, 0,
+	    curr_heap_chunk->chunk_bound - curr_heap_chunk->chunk_stack_top);
+  else
+    memset (new_place, 0, curr_heap_chunk->chunk_bound - new_place);
   curr_heap_chunk->chunk_free = new_place;
+  curr_heap_chunk->chunk_stack_top = curr_heap_chunk->chunk_bound;
   free_heap_memory += curr_heap_chunk->chunk_bound - new_place;
   for (;;)
     {
@@ -1368,7 +1441,10 @@ compact_heap (void)
 			 - curr_heap_chunk->chunk_start);
       memset (curr_heap_chunk->chunk_start, 0,
 	      curr_heap_chunk->chunk_free - curr_heap_chunk->chunk_start);
+      memset (curr_heap_chunk->chunk_stack_top, 0,
+	      curr_heap_chunk->chunk_bound - curr_heap_chunk->chunk_stack_top);
       curr_heap_chunk->chunk_free = curr_heap_chunk->chunk_start;
+      curr_heap_chunk->chunk_stack_top = curr_heap_chunk->chunk_bound;
     }
   del_heap_chunks (curr_heap_chunk
 		   - (struct heap_chunk *) VLO_BEGIN (heap_chunks) + 1);
@@ -1410,7 +1486,7 @@ gc (void)
 	 VLO_LENGTH (heap_chunks) / sizeof (struct heap_chunk),
 	 sizeof (struct heap_chunk), compare_chunks);
   define_new_heap_object_places ();
-  change_obj_refs ();
+  change_refs ();
   compact_heap ();
   SET_TOP;
   gc_number++;
@@ -1469,7 +1545,7 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context)
 
   /* Remember about possible GC. */
   PUSH_TEMP_REF (context);
-  stack = (ER_node_t) heap_allocate (block_stack_size (block_node_ptr));
+  stack = (ER_node_t) heap_allocate (block_stack_size (block_node_ptr), TRUE);
   context = GET_TEMP_REF (0);
   POP_TEMP_REF (1);
 #ifndef NO_PROFILE
@@ -1545,7 +1621,7 @@ heap_pop (void)
 #endif
   cstack = ER_prev_stack (cstack);
   if (!IR_extended_life_context_flag (block_node)
-      && try_heap_free (stack, heap_object_size (stack))
+      && try_heap_stack_free (stack, heap_object_size (stack))
       && ER_saved_cstack (cprocess) == stack)
     ER_set_saved_cstack (cprocess, cstack);
   if (cstack != NULL)
@@ -1561,7 +1637,7 @@ create_hideblock (size_t length)
   size_t allocated_length;
 
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_hideblock)) + length);
-  hideblock = heap_allocate (allocated_length);
+  hideblock = heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (hideblock, ER_NM_heap_hideblock);
   ER_set_immutable (hideblock, FALSE);
   ER_set_hideblock_length (hideblock, length);
@@ -1578,12 +1654,13 @@ create_empty_vector (void)
 {
   ER_node_t vect;
 
-  vect = heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_pack_vect)));
+  vect = heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_pack_vect)), FALSE);
   ER_SET_MODE (vect, ER_NM_heap_pack_vect);
   ER_set_immutable (vect, FALSE);
   ER_set_allocated_length (vect, ALLOC_SIZE (sizeof (_ER_heap_pack_vect)));
   ER_set_pack_vect_el_type (vect, ER_NM_nil);
   ER_set_els_number (vect, 0);
+  ER_set_disp (vect, 0);
   return vect;
 }
 
@@ -1597,10 +1674,11 @@ create_unpack_vector (size_t els_number)
 
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
 		      + OPTIMAL_ELS_SIZE (els_number * sizeof (val_t)));
-  unpack_vect = heap_allocate (allocated_length);
+  unpack_vect = heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (unpack_vect, ER_NM_heap_unpack_vect);
   ER_set_immutable (unpack_vect, FALSE);
   ER_set_els_number (unpack_vect, els_number);
+  ER_set_disp (unpack_vect, 0);
   ER_set_allocated_length (unpack_vect, allocated_length);
   return unpack_vect;
 }
@@ -1615,11 +1693,12 @@ create_pack_vector (size_t els_number, ER_node_mode_t eltype)
 
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
 		      + OPTIMAL_ELS_SIZE (els_number * type_size (eltype)));
-  pack_vect = heap_allocate (allocated_length);
+  pack_vect = heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
   ER_set_pack_vect_el_type (pack_vect, eltype);
   ER_set_immutable (pack_vect, FALSE);
   ER_set_els_number (pack_vect, els_number);
+  ER_set_disp (pack_vect, 0);
   ER_set_allocated_length (pack_vect, allocated_length);
   return pack_vect;
 }
@@ -1629,10 +1708,10 @@ create_pack_vector (size_t els_number, ER_node_mode_t eltype)
 ER_node_t
 expand_vector (ER_node_t vect, size_t length)
 {
-  size_t allocated_length;
-  size_t prev_vect_allocated_length;
+  size_t disp, allocated_length, prev_vect_allocated_length;
 
-  allocated_length = ER_allocated_length (vect);
+  disp = ER_disp (vect);
+  allocated_length = ER_allocated_length (vect) - disp;
   if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
       && ER_pack_vect_el_type (vect) == ER_NM_char)
     length++; /* for trailing zero byte */
@@ -1655,12 +1734,13 @@ expand_vector (ER_node_t vect, size_t length)
 			     * type_size (ER_pack_vect_el_type (vect))));
   if (allocated_length != prev_vect_allocated_length)
     {
-      vect = heap_allocate (allocated_length);
+      /* ???? don't allocate if can expand because of disp. */
+      vect = heap_allocate (allocated_length, FALSE);
       /* After this, vect has the same unique_number. */
-      memcpy (vect, GET_TEMP_REF (0), prev_vect_allocated_length);
+      memcpy (vect, GET_TEMP_REF (0), prev_vect_allocated_length + disp);
       ER_set_allocated_length (vect, allocated_length);
       ER_SET_MODE (GET_TEMP_REF (0), ER_NM_heap_redir);
-      ER_set_allocated_length (GET_TEMP_REF (0), prev_vect_allocated_length);
+      ER_set_allocated_length (GET_TEMP_REF (0), prev_vect_allocated_length + disp);
       ER_set_redir (GET_TEMP_REF (0), vect);
     }
   POP_TEMP_REF (1);
@@ -1678,9 +1758,10 @@ unpack_vector (ER_node_t vect)
   size_t el_size;
   size_t pack_vect_allocated_length;
   size_t displ;
-  size_t i;
+  size_t i, disp;
   val_t temp_var;
 
+  disp = ER_disp (vect);
   allocated_length = ER_allocated_length (vect);
   immutable = ER_immutable (vect);
   els_number = ER_els_number (vect);
@@ -1689,12 +1770,13 @@ unpack_vector (ER_node_t vect)
   /* For changing by GC. */
   PUSH_TEMP_REF (vect);
   pack_vect_allocated_length = allocated_length;
-  if (allocated_length < (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
-			  + els_number * sizeof (val_t)))
+  if (allocated_length - disp < (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
+				 + els_number * sizeof (val_t)))
     {
       allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
 			  + OPTIMAL_ELS_SIZE (els_number * sizeof (val_t)));
-      vect = heap_allocate (allocated_length);
+      vect = heap_allocate (allocated_length, FALSE);
+      ER_set_disp (vect, 0);
     }
   ER_SET_MODE ((ER_node_t) &temp_var, el_type);
   displ = val_displ ((ER_node_t) &temp_var);
@@ -1760,7 +1842,7 @@ pack_vector_if_possible (ER_node_t unpack_vect)
       allocated_length = ER_allocated_length (unpack_vect);
       pack_vect = unpack_vect;
       ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
-      els = ER_pack_els (pack_vect);
+      els = ER_pack_els (pack_vect) - ER_disp (pack_vect);
       ER_SET_MODE (unpack_vect, ER_NM_heap_unpack_vect);
       displ = val_displ (INDEXED_VAL (ER_unpack_els (unpack_vect), 0));
       for (i = 0; i < els_number; i++)
@@ -1773,6 +1855,7 @@ pack_vector_if_possible (ER_node_t unpack_vect)
       ER_set_immutable (pack_vect, immutable);
       ER_set_pack_vect_el_type (pack_vect, el_type);
       ER_set_els_number (pack_vect, els_number);
+      ER_set_disp (pack_vect, 0);
       ER_set_allocated_length (pack_vect, allocated_length);
     }
 }
@@ -1815,7 +1898,7 @@ copy_vector (ER_node_t vect)
   vect_size = ER_allocated_length (vect);
   /* Do not change size or packing */
   PUSH_TEMP_REF (vect);
-  new_vect = heap_allocate (vect_size);
+  new_vect = heap_allocate (vect_size, FALSE);
   memcpy (new_vect, GET_TEMP_REF (0), vect_size);
   POP_TEMP_REF (1);
   ER_set_immutable (new_vect, FALSE);
@@ -1937,9 +2020,9 @@ hash_val (ER_node_t val)
     case ER_NM_nil:
       return 0;
     case ER_NM_char:
-      return (size_t) ER_ch (val) + 0xffffff00;
+      return (size_t) ER_ch (val);
     case ER_NM_int:
-      return (size_t) ER_i (val) + 0xffff0000;
+      return (size_t) ER_i (val);
     case ER_NM_float:
       {
 	floating_t f;
@@ -1952,7 +2035,7 @@ hash_val (ER_node_t val)
 	return hash;
       }
     case ER_NM_type:
-      return (size_t) ER_type (val) + 0xff000000;
+      return (size_t) ER_type (val);
     case ER_NM_hide:
       return (size_t) ER_hide (val);
     case ER_NM_hideblock:
@@ -1981,11 +2064,12 @@ hash_val (ER_node_t val)
 static size_t
 hash_key (ER_node_t key)
 {
-  size_t hash;
+  size_t hash, el_hash;
   size_t i, j;
   size_t length;
   unsigned char *string;
-  
+  int shift;
+
   switch (ER_NODE_MODE (key))
     {
     case ER_NM_nil:
@@ -2026,7 +2110,9 @@ hash_key (ER_node_t key)
 		memcpy ((char *) var_ref + displ,
 			(char *) ER_pack_els (pv) + i * el_size,
 			el_size);
-		hash += hash_val (var_ref);
+		el_hash = hash_val (var_ref);
+		shift = 13 * i % (CHAR_BIT * sizeof (size_t));
+		hash += (el_hash << shift) | (el_hash >> shift);
 	      }
 	  }
 	else
@@ -2034,7 +2120,11 @@ hash_key (ER_node_t key)
 	    ER_node_t unpv = ER_vect (key);
 	    
 	    for (hash = i = 0; i < ER_els_number (unpv); i++)
-	      hash += hash_val (INDEXED_VAL (ER_unpack_els (unpv), i));
+	      {
+		el_hash = hash_val (INDEXED_VAL (ER_unpack_els (unpv), i));
+		shift = 13 * i % (CHAR_BIT * sizeof (size_t));
+		hash += (el_hash << shift) | (el_hash >> shift);
+	      }
 	  }
 	break;
       }
@@ -2061,14 +2151,22 @@ hash_key (ER_node_t key)
       for (hash = 0,
 	     i = IR_vars_number (IR_next_stmt (ER_class (ER_instance (key))));
 	   i > 0; i--)
-	hash += hash_val (INDEXED_VAL (ER_instance_vars (ER_instance (key)),
-				       i - 1));
+	{
+	  el_hash = hash_val (INDEXED_VAL (ER_instance_vars
+					   (ER_instance (key)), i - 1));
+	  shift = 13 * i % (CHAR_BIT * sizeof (size_t));
+	  hash += (el_hash << shift) | (el_hash >> shift);
+	}
       break;
     case ER_NM_hideblock:
       string = (unsigned char *) ER_hideblock_start (ER_hideblock (key));
       length = ER_hideblock_length (ER_hideblock (key));
       for (hash = i = 0; i < length; i++)
-	hash += string[i] << (5 * i % (CHAR_BIT * (sizeof (size_t) - 1)));
+	{
+	  el_hash = string[i];
+	  shift = 13 * i % (CHAR_BIT * sizeof (size_t));
+	  hash += (el_hash << shift) | (el_hash >> shift);
+	}
       break;
     default:
       assert (FALSE);
@@ -2118,7 +2216,7 @@ eq_key (ER_node_t entry_key, ER_node_t key)
 
 /* Start size of table with N elements.  The table must be not expand
    if we insert size elements number. */
-#define START_TABLE_SIZE(n)  (2*(n) + 3)
+#define START_TABLE_SIZE(n)  (3*(n) + 3)
 
 /* Minimal optimal size of table with N elements.  If the real size is
    less, it is better to expand the table. */
@@ -2155,7 +2253,7 @@ create_tab (size_t size)
   entries_number = higher_prime_number (START_TABLE_SIZE (size));
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_tab))
 		      + 2 * entries_number * sizeof (val_t));
-  result = (ER_node_t) heap_allocate (allocated_length);
+  result = (ER_node_t) heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (result, ER_NM_heap_tab);
   ER_set_immutable (result, FALSE);
   ER_set_els_number (result, 0);
@@ -2242,7 +2340,7 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
 
 /* The following function changes expand given table by creating new
    table and inserting the table elements.  The occupancy of the table
-   after the call will be about 50%.  Remember also that the place in
+   after the call will be about 33%.  Remember also that the place in
    the table of the table entries (identified by keys) are changed. */
 static ER_node_t
 expand_tab (ER_node_t tab)
@@ -2473,7 +2571,8 @@ create_process (pc_t start_process_pc, IR_node_t func, ER_node_t func_context)
 {
   ER_node_t process;
 
-  process = (ER_node_t) heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_process)));
+  process = (ER_node_t) heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_process)),
+				       FALSE);
   ER_SET_MODE (process, ER_NM_heap_process);
   ER_set_context (process, func_context);
   ER_set_context_number (process, context_number);

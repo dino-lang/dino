@@ -38,6 +38,10 @@ History
 
   Jun 25, 2001.  Operators char, int, float are added.
 
+  Sep 25, 2001.  Vector conversion with format.  New function rev.
+                 del, ins, insv now return the vector.  getln
+                 with parameter.
+
 
 1. Introduction
 
@@ -391,7 +395,7 @@ report later.
   parser         pclose         popen          pow
   print          println        put            putln
   rand           readdir        remove         rename
-  rmdir
+  rev            rmdir
   scan           scanln         seek           signals
   sin            sort           split          split_regex
   sqrt           srand          stderr         stdin
@@ -1270,11 +1274,15 @@ generated.
 
 Operator vector is used to conversion of a value into vector.
 The first, implicit string conversion is applied to the operand.  The
-operand should be a table or a vector after the conversion.  The table
-is transformed into new vector which consists of pairs (one pair for
-each element of the table).  The first element of the pair is key of
-the corresponding element, the second one is the element itself.  The
-order of the pairs in the result vector is undefined.
+optional second expression defines format used only for the string
+conversion of a character, an integer, a floating point number, or a
+string.  The second parameter value should be a string after implicit
+string conversion.  The format should not be given for a table.  The
+first operand should be a table or a vector after the conversion.  The
+table is transformed into new vector which consists of pairs (one pair
+for each element of the table).  The first element of the pair is key
+of the corresponding element, the second one is the element itself.
+The order of the pairs in the result vector is undefined.
 
 Operator table is used to conversion of a value into table.
 The first, string conversion is applied to the operand.  The operand
@@ -1301,7 +1309,7 @@ never generates exception.
                | char "(" Expr ")"
                | int "(" Expr ")"
                | float "(" Expr ")"
-               | vector "(" Expr ")"
+               | vector "(" Expr ["," Expr] ")"
                | table "(" Expr ")"
                | func "(" Expr ")"
                | thread "(" Expr ")"
@@ -1317,6 +1325,7 @@ never generates exception.
           type (10)
           char (12)
           vector  (10)
+          vector  (10, "%x")
           vector ({"1":1, "2":2})
           table ([1, 2, 3, 4])
           func (context (obj))
@@ -2678,8 +2687,8 @@ There are the following Dino pattern matching functions:
        
        Example: The program
 
-          println (rcount ("aa", "aaaaa"));
-          println (rcount ("aa", "aaaaa", 1));
+          println (gmatch ("aa", "aaaaa"));
+          println (gmatch ("aa", "aaaaa", 1));
 
        outputs
 
@@ -3241,7 +3250,8 @@ There are the following miscellaneous functions.
        end.  The second form of the function is used to remove the
        element (if any) with given key from the mutable table.  The
        function generates exception immutable if we are
-       trying to remove from an immutable vector or table.
+       trying to remove from an immutable vector or table.  The
+       function returns the modified vector.
      o ins (vect, el[, index]).  The function inserts
        element given by the second parameter into the vector given by
        the first parameter on the place given by the third parameter.
@@ -3251,12 +3261,16 @@ There are the following miscellaneous functions.
        greater than the vector length, the element is inserted at the
        end of the vector.  The function generates exception
        immutable if we are trying to insert into an immutable
-       vector.
+       vector.  The function returns the modified vector.
      o insv (vect, vect[, index]).  The function is
        analogous to the function ins but it is used for
        insertion of all vector elements into the vector given as the
        first parameter.  So the second parameter value should be a
-       vector.
+       vector.  The function returns the modified vector.
+     o rev (vect).  The function reverses given vector.
+       The function generates exception immutable if we are
+       trying to reverse an immutable vector.  The function returns
+       the modified vector.
      o cmpv (vect, vect).  The function makes implicit
        string conversion of the parameter values.  After that, the
        parameter values should be vectors whose the first
@@ -3364,7 +3378,7 @@ Expr = Expr "?"  Expr ":" Expr
      | char "(" Expr ")"
      | int "(" Expr ")"
      | float "(" Expr ")"
-     | vector "(" Expr ")"
+     | vector "(" Expr ["," Expr] ")"
      | table "(" Expr ")"
      | thread "(" ")"
      | class "(" ")"
