@@ -1,5 +1,12 @@
 2001-07-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* DINO/d_run.sprut (new_heap_chunk): Increase size according to
+	heuristic.
+	(compact_heap): Don't delete free heap chunk according to
+	heuristic.  Move objects only if it is necessary.
+
+2001-07-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/d_errors.h (ERR_invalid_conversion_to_char_operand_type,
 	ERR_invalid_conversion_to_int_operand_type,
 	ERR_invalid_conversion_to_float_operand_type,

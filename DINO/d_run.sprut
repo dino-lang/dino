@@ -604,8 +604,8 @@ new_heap_chunk (size_t size)
   curr_heap_chunk
     = &((struct heap_chunk *) VLO_BEGIN (heap_chunks))
       [VLO_LENGTH (heap_chunks) / sizeof (struct heap_chunk) - 1];
-  if (size < heap_size / 3)
-    size = heap_size / 3;
+  if (size + free_heap_memory < (heap_size - free_heap_memory) / 3)
+    size = (heap_size - 4 * free_heap_memory) / 3;
   size = ALLOC_SIZE (size);
   CALLOC (str, 1, size);
   curr_heap_chunk->chunk_start = curr_heap_chunk->chunk_free = str;
@@ -1290,13 +1290,15 @@ compact_heap (void)
   ER_node_t curr_obj, next_obj;
   struct heap_chunk *curr_descr;
   struct heap_chunk *curr_place_descr;
-  size_t tailored_size;
+  size_t tailored_size, curr_heap_size;
   char *new_place;
 
   /* Compact the heap */
   curr_place_descr = VLO_BEGIN (heap_chunks);
   new_place = curr_place_descr->chunk_start;
   free_heap_memory = 0;
+  curr_heap_size = (curr_place_descr->chunk_bound
+		    - curr_place_descr->chunk_start);
   for (curr_descr = VLO_BEGIN (heap_chunks);
        (char *) curr_descr <= (char *) VLO_END (heap_chunks);
        curr_descr++)
@@ -1327,12 +1329,15 @@ compact_heap (void)
 		  assert (curr_place_descr < curr_descr);
 		  curr_place_descr++;
 		  new_place = curr_place_descr->chunk_start;
+		  curr_heap_size += (curr_place_descr->chunk_bound
+				     - curr_place_descr->chunk_start);
 		}
 	      if (ER_NODE_MODE (curr_obj) == ER_NM_heap_pack_vect
 		  || ER_NODE_MODE (curr_obj) == ER_NM_heap_unpack_vect)
 		ER_set_allocated_length (curr_obj, tailored_size);
 	      assert (ER_new_place (curr_obj) == new_place);
-	      memmove (new_place, curr_obj, tailored_size);
+	      if (new_place != (char *) curr_obj)
+		memmove (new_place, curr_obj, tailored_size);
 	      new_place += tailored_size;
 	      assert (new_place <= curr_place_descr->chunk_bound);
 	    }
@@ -1347,6 +1352,24 @@ compact_heap (void)
     memset (new_place, 0, curr_heap_chunk->chunk_free - new_place);
   curr_heap_chunk->chunk_free = new_place;
   free_heap_memory += curr_heap_chunk->chunk_bound - new_place;
+  for (;;)
+    {
+      if (free_heap_memory >= curr_heap_size / 4)
+	break;
+      curr_heap_chunk++;
+      if ((char *) curr_heap_chunk > (char *) VLO_END (heap_chunks))
+	{
+	  curr_heap_chunk--;
+	  break;
+	}
+      free_heap_memory += (curr_heap_chunk->chunk_bound
+			   - curr_heap_chunk->chunk_start);
+      curr_heap_size += (curr_heap_chunk->chunk_bound
+			 - curr_heap_chunk->chunk_start);
+      memset (curr_heap_chunk->chunk_start, 0,
+	      curr_heap_chunk->chunk_free - curr_heap_chunk->chunk_start);
+      curr_heap_chunk->chunk_free = curr_heap_chunk->chunk_start;
+    }
   del_heap_chunks (curr_heap_chunk
 		   - (struct heap_chunk *) VLO_BEGIN (heap_chunks) + 1);
 }
