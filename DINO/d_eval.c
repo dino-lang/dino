@@ -221,7 +221,7 @@ execute_a_period_operation (pc_t a_period_pc)
       /* ??? Is it worth to make it more effective (e.g. bit tables). */
       for (curr_block = ER_block_node (cstack);
 	   curr_block != NULL;
-	   curr_block = IR_scope (curr_block))
+	   curr_block = IR_block_scope (curr_block))
 	if (curr_block == block)
 	  break;
 	else
@@ -591,9 +591,9 @@ find_catch_pc (void)
       else if (cstack == NULL)
 	break;
     }
-  for (curr_scope = IR_next_stmt (ER_class (except));
+  for (curr_scope = IR_next_stmt (ER_instance_class (except));
        curr_scope != NULL;
-       curr_scope = IR_scope (curr_scope))
+       curr_scope = IR_block_scope (curr_scope))
     if (IR_func_class_ext (curr_scope) == error_decl)
       break;
   message = INDEXED_VAL (ER_instance_vars (except), 0);
@@ -610,9 +610,11 @@ find_catch_pc (void)
 	/* No return after error. */
 	error (TRUE, exception_position, ER_pack_els (vect));
     }
-  if (ER_class (except) != sigint_decl && ER_class (except) != sigterm_decl)
+  if (ER_instance_class (except) != sigint_decl
+      && ER_instance_class (except) != sigterm_decl)
     error (TRUE, exception_position, DERR_unprocessed_exception,
-	   IR_ident_string (IR_unique_ident (IR_ident (ER_class (except)))));
+	   IR_ident_string (IR_unique_ident
+			    (IR_ident (ER_instance_class (except)))));
   else
     dino_finish (1);
   return NULL; /* to prevent compiler diagnostic. */
@@ -858,19 +860,19 @@ evaluate_code (void)
       case IR_NM_char:
 	TOP_UP;
 	ER_SET_MODE (ctop, ER_NM_char);
-	ER_set_ch (ctop, IR_char_value (IR_unique_char (IR_POINTER (cpc))));
+	ER_set_ch (ctop, IR_ch_val (IR_POINTER (cpc)));
 	INCREMENT_PC ();
 	break;
       case IR_NM_int:
 	TOP_UP;
 	ER_SET_MODE (ctop, ER_NM_int);
-	ER_set_i (ctop, IR_int_value (IR_unique_int (IR_POINTER (cpc))));
+	ER_set_i (ctop, IR_i_val (IR_POINTER (cpc)));
 	INCREMENT_PC ();
 	break;
       case IR_NM_float:
 	TOP_UP;
 	ER_SET_MODE (ctop, ER_NM_float);
-	ER_set_f (ctop, IR_float_value (IR_unique_float (IR_POINTER (cpc))));
+	ER_set_f (ctop, IR_f_val (IR_POINTER (cpc)));
 	INCREMENT_PC ();
 	break;
       case IR_NM_hide_type:
@@ -961,8 +963,7 @@ evaluate_code (void)
 	{
 	  ER_node_t vect;
 	  
-	  vect = create_string (IR_string_value (IR_unique_string
-						 (IR_POINTER (cpc))));
+	  vect = create_string (IR_str_val (IR_POINTER (cpc)));
 	  TOP_UP;
 	  ER_SET_MODE (ctop, ER_NM_vect);
 	  ER_set_vect (ctop, vect);
@@ -1522,7 +1523,7 @@ evaluate_code (void)
 	    size_t size, un;
 	    ER_node_t instance;
 	    
-	    size = instance_size (ER_class (ER_instance (ctop)));
+	    size = instance_size (ER_instance_class (ER_instance (ctop)));
 	    instance = heap_allocate (size, FALSE);
 	    ER_SET_MODE (instance, ER_NM_heap_instance);
 	    un = ER_unique_number (instance);
@@ -1687,7 +1688,7 @@ evaluate_code (void)
 	    
 	    instance = ER_instance (ctop);
 	    ER_SET_MODE (ctop, ER_NM_class);
-	    ER_set_class (ctop, ER_class (instance));
+	    ER_set_class (ctop, ER_instance_class (instance));
 	    ER_set_class_context (ctop, ER_context (instance));
 	  }
 	else
@@ -1778,7 +1779,8 @@ evaluate_code (void)
 		     curr_vect_part_number = 2 * vect_parts_number - 1;
 		   curr_vect_part_number >= 0;
 		   curr_vect_part_number -= 2)
-		if (ER_i (INDEXED_VAL (ER_CTOP (), -curr_vect_part_number)) > 0)
+		if (ER_i (INDEXED_VAL (ER_CTOP (), -curr_vect_part_number))
+		    > 0)
 		  {
 		    repetition = ER_i (INDEXED_VAL (ER_CTOP (),
 						    -curr_vect_part_number));
@@ -1844,7 +1846,7 @@ evaluate_code (void)
 	      *((val_t *) entry + 1)
 		= *(val_t *) INDEXED_VAL (ER_CTOP (), -curr_tab_el_number + 1);
 	      assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0), ER_NM_val));
-	      elist = IR_elist (elist);
+	      elist = IR_next_elist (elist);
 	    }
 	  DECR_CTOP (2 * tab_els_number - 1);
 	  SET_TOP;
@@ -2065,7 +2067,7 @@ evaluate_code (void)
 	if (ER_NODE_MODE (ctop) == ER_NM_int)
 	  {
 	    if (ER_i (ctop) != 0)
-	      cpc = IR_body_pc (IR_POINTER (cpc));
+	      cpc = IR_for_body_pc (IR_POINTER (cpc));
 	    else
 	      INCREMENT_PC ();
 	  }
@@ -2079,7 +2081,7 @@ evaluate_code (void)
 			  DERR_invalid_for_guard_expr_type);
 	    if (ER_NODE_MODE (ctop) == ER_NM_int && ER_i (ctop) != 0
 		|| ER_NODE_MODE (ctop) == ER_NM_float && ER_f (ctop) != 0.0)
-	      cpc = IR_body_pc (IR_POINTER (cpc));
+	      cpc = IR_for_body_pc (IR_POINTER (cpc));
 	    else
 	      INCREMENT_PC ();
 	  }
@@ -2124,7 +2126,7 @@ evaluate_code (void)
 	      && ER_NODE_MODE (ctop) != ER_NM_deleted_entry)
 	    {
 	      store_designator_value ();
-	      cpc = IR_body_pc (IR_POINTER (cpc));
+	      cpc = IR_foreach_body_pc (IR_POINTER (cpc));
 	    }
 	  else
 	    INCREMENT_PC ();
@@ -2146,7 +2148,7 @@ evaluate_code (void)
 	  break;
 	}
       case IR_NM_block_finish:
-	if (IR_simple_block_flag (IR_POINTER (cpc)))
+	if (IR_simple_block_finish_flag (IR_POINTER (cpc)))
 	  {
 	    INCREMENT_PC ();
 	    QUANTUM_SWITCH_PROCESS;
@@ -2483,7 +2485,7 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
   error_instance = (ER_node_t) heap_allocate (instance_size (except_class),
 					      FALSE);
   ER_SET_MODE (error_instance, ER_NM_heap_instance);
-  ER_set_class (error_instance, except_class);
+  ER_set_instance_class (error_instance, except_class);
   ER_set_block_node (error_instance, IR_next_stmt (except_class));
   ER_set_immutable (error_instance, FALSE);
   ER_set_context

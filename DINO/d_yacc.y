@@ -448,7 +448,7 @@ designator : designator '[' pos expr ']'
 		   = create_node_with_pos (IR_NM_class_func_thread_call,
 					   actual_parameters_construction_pos);
 		 IR_set_func_expr ($$, $1);
-		 IR_set_elist ($$, $2);
+		 IR_set_actuals ($$, $2);
 	       }
            | designator '.' pos IDENT
        	       {
@@ -475,13 +475,13 @@ designator : designator '[' pos expr ']'
 elist_parts_list : elist_part
        	            {
                       $$ = $1;
-                      IR_set_elist ($$, $$);
+                      IR_set_next_elist ($$, $$);
                     }
                  | elist_parts_list ','  {$<flag>$ = $<flag>0;} elist_part
        	            {
 	              $$ = $4;
-                      IR_set_elist ($$, IR_elist ($1));
-                      IR_set_elist ($1, $$);
+                      IR_set_next_elist ($$, IR_next_elist ($1));
+                      IR_set_next_elist ($1, $$);
                     }
        	         ;
 /* The nonterminal with attribute of type flag must be before
@@ -512,7 +512,10 @@ elist_part : pos expr
    elist_parts_list_empty. */
 elist_parts_list_empty :      {$$ = NULL;}
        	               | elist_parts_list
-                              {$$ = IR_elist ($1); IR_set_elist ($1, NULL);}
+                              {
+				$$ = IR_next_elist ($1);
+				IR_set_next_elist ($1, NULL);
+			      }
        	               ;
 /* This nonterminal has second attributes:
    var actual_parameters_construction_pos (see commentaries for
@@ -523,7 +526,10 @@ actual_parameters : '(' pos expr_list_empty ')'
        		       {actual_parameters_construction_pos = $2; $$ = NULL;}
        	          ;
 expr_list_empty :           {$$ = NULL;}
-       	        | expr_list {$$ = IR_elist ($1); IR_set_elist ($1, NULL);}
+       	        | expr_list
+                    {
+		      $$ = IR_next_elist ($1); IR_set_next_elist ($1, NULL);
+		    }
        	        ;
 /* Attribute value is the last element of the cycle list. */
 expr_list : pos expr
@@ -531,15 +537,15 @@ expr_list : pos expr
 	        $$ = create_node_with_pos (IR_NM_elist_element, $1);
                 IR_set_expr ($$, $2);
 	        IR_set_repetition_key ($$, NULL);
-                IR_set_elist ($$, $$);
+                IR_set_next_elist ($$, $$);
               }
           | expr_list ',' pos expr
               {
                 $$ = create_node_with_pos (IR_NM_elist_element, $3);
      	        IR_set_repetition_key ($$, NULL);
                 IR_set_expr ($$, $4);
-                IR_set_elist ($$, IR_elist ($1));
-                IR_set_elist ($1, $$);
+                IR_set_next_elist ($$, IR_next_elist ($1));
+                IR_set_next_elist ($1, $$);
               }
           ;
 /* Attribute value is cyclic list of stmts corresponding to var decls
@@ -649,7 +655,7 @@ executive_stmt :
           $$ = create_node_with_pos (IR_NM_procedure_call,
                                       actual_parameters_construction_pos);
        	 IR_set_proc_expr ($$, $1);
-       	 IR_set_elist ($$, $2);
+       	 IR_set_proc_actuals ($$, $2);
         }
     | IF pos '(' expr ')' {$<flag>$ = $<flag>0;} stmt else_part
        	{
@@ -725,7 +731,7 @@ block_stmt :    {
 	                                              no_position);
                   IR_set_func_class_ext ($<pointer>$, NULL);
                   IR_set_access_list ($<pointer>$, NULL);
-                  IR_set_scope ($<pointer>$, current_scope);
+                  IR_set_block_scope ($<pointer>$, current_scope);
                   current_scope = $<pointer>$;
 		  IR_set_exceptions ($<pointer>$, NULL);
                 }
@@ -735,7 +741,7 @@ block_stmt :    {
        		  IR_set_block_stmts ($$, uncycle_stmt_list ($2));
        		  IR_set_access_list
 		    ($$, uncycle_access_list (IR_access_list ($$)));
-       		  current_scope = IR_scope ($$);
+       		  current_scope = IR_block_scope ($$);
                 }
            ;
 try_block_stmt :    {
@@ -743,7 +749,7 @@ try_block_stmt :    {
 							  no_position);
 		      IR_set_func_class_ext ($<pointer>$, NULL);
 		      IR_set_access_list ($<pointer>$, NULL);
-		      IR_set_scope ($<pointer>$, current_scope);
+		      IR_set_block_scope ($<pointer>$, current_scope);
 		      current_scope = $<pointer>$;
 		      IR_set_exceptions ($<pointer>$, NULL);
                     }
@@ -754,7 +760,7 @@ try_block_stmt :    {
 		      IR_set_access_list
 			($<pointer>$, uncycle_access_list (IR_access_list
 							   ($<pointer>$)));
-		      current_scope = IR_scope ($<pointer>$);
+		      current_scope = IR_block_scope ($<pointer>$);
 		    }
                  catch_list
                     {
@@ -778,7 +784,7 @@ catch : CATCH  '(' except_class_list ')'
 	                                        no_position);
             IR_set_func_class_ext ($<pointer>$, NULL);
             IR_set_access_list ($<pointer>$, NULL);
-            IR_set_scope ($<pointer>$, current_scope);
+            IR_set_block_scope ($<pointer>$, current_scope);
             current_scope = $<pointer>$;
 	    IR_set_exceptions ($<pointer>$, NULL);
 	    /* Add variable for catched exception. */
@@ -798,7 +804,7 @@ catch : CATCH  '(' except_class_list ')'
 	       uncycle_access_list (IR_access_list (current_scope)));
 	    $$ = $3;
 	    IR_set_block (IR_next_exception ($3), current_scope);
-	    current_scope = IR_scope (current_scope);
+	    current_scope = IR_block_scope (current_scope);
 	  }
       | error {$$ = NULL;}
       ;
@@ -830,14 +836,14 @@ access_list : IDENT
                {
                  $$ = create_node (IR_NM_access_ident);
                  IR_set_ident ($$, $1);
-		 IR_set_public_flag ($$, public_flag);
+		 IR_set_access_ident_public_flag ($$, public_flag);
 		 IR_set_friend_flag ($$, friend_flag);
                  IR_set_next_access_ident ($$, $$);
                }
      	    | access_list ',' IDENT
      	       {
                  $$ = create_node (IR_NM_access_ident);
-		 IR_set_public_flag ($$, public_flag);
+		 IR_set_access_ident_public_flag ($$, public_flag);
 		 IR_set_friend_flag ($$, friend_flag);
                  if ($1 != NULL)
                    {
@@ -873,7 +879,7 @@ declaration : VAR set_flag var_par_list {$<flag>$ = $<flag>0;} end_simple_stmt
                     ($$, uncycle_stmt_list (merge_stmt_lists ($1, $2)));
        		  IR_set_access_list
 		    ($$, uncycle_access_list (IR_access_list ($$)));
-                  current_scope = IR_scope ($$);
+                  current_scope = IR_block_scope ($$);
                 } 
             | INCLUDE STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
@@ -969,7 +975,7 @@ header : func_thread_class IDENT
              IR_set_next_stmt (block, $1);
              IR_set_next_stmt ($1, block);
              IR_set_func_class_ext (block, $1);
-             IR_set_scope (block, current_scope);
+             IR_set_block_scope (block, current_scope);
 	     IR_set_access_list (block, NULL);
 	     IR_set_exceptions (block, NULL);
              /* This assignment is here for that formal parameters are
@@ -1004,7 +1010,7 @@ header : func_thread_class IDENT
              IR_set_next_stmt ($$, block);
              IR_set_func_class_ext (block, $$);
 	     IR_set_access_list (block, NULL);
-             IR_set_scope (block, current_scope);
+             IR_set_block_scope (block, current_scope);
 	     IR_set_exceptions (block, NULL);
              current_scope = block;
 	     $$ = NULL; /* Formal parameters list. */

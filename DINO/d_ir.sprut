@@ -1190,16 +1190,26 @@ IR_node_t destroy_unique_ident;
 
 %%
 
+ir_node :: %root
+%other
+        /* The following field is set in context analyzer.  It is
+	   important place it here to have the same filed displacement
+	   for all nodes.  It is important for interpreter speed.  */
+        /* The next executed node during usually sequential execution
+           of the program */
+        next_pc : generic_pos
+;
+
 /************* The following part are set in syntax analyzer **************/
 
 /* Only char_node can refer to this node. */
-unique_char :: %root
+unique_char :: ir_node
 %other
         char_value : char_t
 ;
 
 %abstract
-generic_pos :: %root
+generic_pos :: ir_node
 %other
         pos : position_t
 ;
@@ -1210,7 +1220,7 @@ char :: generic_pos
 ;
 
 /* Only number_node can refer to this node. */
-unique_int :: %root
+unique_int :: ir_node
 %other
         int_value : int_t
 ;
@@ -1221,7 +1231,7 @@ int :: generic_pos
         unique_int : unique_int /* always defined */
 ;
 
-unique_float :: %root
+unique_float :: ir_node
 %other
         float_value : floating_t
 ;
@@ -1231,7 +1241,7 @@ float :: generic_pos
         unique_float : unique_float /* always defined */
 ;
 
-unique_string :: %root
+unique_string :: ir_node
 %other
         string_value : string_t
 ;
@@ -1242,7 +1252,7 @@ string :: generic_pos
 ;
 
 /* Only ident can refer to this node. */
-unique_ident :: %root
+unique_ident :: ir_node
 %other
         ident_string : string_t
 ;
@@ -1282,13 +1292,17 @@ in, or, xor, and, eq, ne, identity, unidentity, lt, gt, le, ge,
    mult, div, mod, period, arrow, index, key_index :: binary_operation
 ;
 
-logical_or, logical_and :: binary_operation
+%abstract
+logical_binary_operation :: binary_operation
+;
+
+logical_or, logical_and :: logical_binary_operation
 ;
 
 /* conditional expression */
-cond :: operation
+cond :: binary_operation
 %other
-   left_operand, right_operand, cond : expr
+   cond : expr
    false_path_pc : generic_pos
 ;
 
@@ -1329,9 +1343,13 @@ nil_type, hide_type, hideblock_type, char_type, int_type, float_type,
 
 /* The following structure represents vector, table construction
    nodes. */
-vector, table ::  generic_pos, expr
+%abstract
+vector_table :: generic_pos, expr
 %other
         elist : elist_element
+;
+
+vector, table ::  vector_table
 ;
 
 /* The following structure is representing expr list element
@@ -1342,7 +1360,7 @@ elist_element :: generic_pos
         repetition_key : expr
         expr : expr
         /* Pointer to next expr list element (elist). */
-        elist : elist_element
+        next_elist : elist_element
 ;
 
 class_func_thread_call :: generic_pos, expr
@@ -1351,14 +1369,14 @@ class_func_thread_call :: generic_pos, expr
         func_expr : expr
         /* The following member refers to expr list representing
            actual parameter node. */
-        elist : elist_element
+        actuals : elist_element
 ;
 
 /* Identifier in a clause (public, private, or friend). */
-access_ident :: %root
+access_ident :: ir_node
 %other
 	ident : ident
-	public_flag : bool_t
+	access_ident_public_flag : bool_t
 	friend_flag : bool_t
 	next_access_ident : access_ident
 ;
@@ -1389,7 +1407,7 @@ procedure_call :: stmt
 %other
         /* See commentaries for func call node. */
         proc_expr : expr
-        elist : elist_element
+        proc_actuals : elist_element
 ;
 
 if_stmt :: stmt
@@ -1423,10 +1441,11 @@ foreach_stmt :: stmt
         foreach_stmts : stmt
 ;
 
-break_stmt :: stmt
+%abstract
+for_break_contintue :: stmt
 ;
 
-continue_stmt :: stmt
+break_stmt, continue_stmt :: for_break_contintue
 ;
 
 return_without_result :: stmt
@@ -1454,7 +1473,7 @@ wait_stmt :: stmt
 block :: stmt
 %other
         /* This member is defined for all blocks. */
-        scope : block
+        block_scope : block
         /* Reference to stmts in given block. */
         block_stmts : stmt
         /* Reference to corresponding func or class (NULL for
@@ -1549,13 +1568,6 @@ ext :: func_class_ext
 
 /************* The following part is set in context analyzer **************/
 
-generic_pos
-%other
-        /* The next exceuted node during usually sequential execution
-           of the program */
-        next_pc : generic_pos
-;
-
 unique_ident
 %other
         /* If the following member is negative than the ident is
@@ -1590,7 +1602,7 @@ lvalue_period, lvalue_arrow, lvalue_index, lvalue_key_index,
 lvalue_deref :: unary_operation, designator
 ;
 
-logical_or, logical_and
+logical_binary_operation
 %other
    /* If the result of the logical operation is known here, then go to
       node given by the following field. */
@@ -1620,7 +1632,7 @@ par_assign_test :: generic_pos
 nil ::  generic_pos, expr
 ;
 
-vector, table
+vector_table
 %other
         /* Number of elements in the list elist. */
         parts_number : integer_t
@@ -1632,13 +1644,13 @@ elist_element
 
 class_func_thread_call
 %other
-        /* Number of elements in the list elist. */
+        /* Number of elements in the list actuals. */
         class_func_thread_call_parameters_number : integer_t
 ;
 
 procedure_call
 %other
-        /* Number of elements in the list elist. */
+        /* Number of elements in the list proc_actuals. */
         procedure_call_pars_number : integer_t
 ;
 
@@ -1651,7 +1663,7 @@ if_stmt
 for_stmt
 %other
         /* This member is used to control flow into loop body. */
-        body_pc : generic_pos
+        for_body_pc : generic_pos
 ;
 
 /* This node serves as test loop expr in interpreter.  The pc flows as
@@ -1659,25 +1671,19 @@ for_stmt
 
   foreach_start->foreach_designator->foreach_table->foreach_stmt->for_finish
                ^                                       |
-               |                                       |: body_pc
+               |                                       |: foreach_body_pc
               foreach_next_iteration<--foreach_stmts<--
 */
 foreach_stmt
 %other
         /* This member is used to control flow into loop body. */
-        body_pc : generic_pos
+        foreach_body_pc : generic_pos
 ;
 
-break_stmt
+for_break_contintue
 %other
         /* Number of non simple blocks inside corresponding for-stmt and
            surrounding given break or continue stmt. */
-        number_of_surrounding_blocks : integer_t
-;
-
-continue_stmt
-%other
-        /* See commentaries for break stmt. */
         number_of_surrounding_blocks : integer_t
 ;
 
@@ -1729,7 +1735,7 @@ block
 /* The following is a node of the list of friends of block (it means
    that the friend (all blocks inside it) can have access to the block
    private declarations). */
-friend :: %root
+friend :: ir_node
 %other
         friend_decl : decl
         next_friend : friend
@@ -1794,21 +1800,15 @@ occurrence :: generic_pos
         decl : decl /* always defined */
 ;
 
-/* The ident will changed by three following nodes
+/* The ident will changed by three following groups of nodes
    (occurrences). */
 
 /* The following structure is representing var occurrence nodes. */
-external_var_occurrence, var_occurrence :: expr
+external_var_occurrence, var_occurrence :: occurrence, expr
 ;
 
 /* The following structure is representing lvalue var occurrence nodes. */
-lvalue_external_var_occurrence, lvalue_var_occurrence :: designator
-;
-
-var_occurrence, lvalue_var_occurrence :: , occurrence
-;
-
-external_var_occurrence, lvalue_external_var_occurrence :: , occurrence
+lvalue_external_var_occurrence, lvalue_var_occurrence :: occurrence, designator
 ;
 
 external_func_occurrence, func_occurrence, class_occurrence :: occurrence, expr
@@ -1831,7 +1831,7 @@ foreach_start, foreach_next_iteration :: generic_pos
 /* This node serves for finishing any block. */
 block_finish :: generic_pos
 %other
-        simple_block_flag : bool_t
+        simple_block_finish_flag : bool_t
 ;
 
 /* There is one node for given try block which serves for finishing
@@ -1841,6 +1841,28 @@ catches_finish :: generic_pos
 
 /* This node serves for pop up func call in procedure call stmt. */
 pop_func_call :: generic_pos
+;
+
+/* The following fields are taken from the corresponding unique nodes.
+   They are used to speed up the interpreter.  */
+char
+%other
+        ch_val : char_t
+;
+
+int
+%other
+        i_val : int_t
+;
+
+float
+%other
+        f_val : floating_t
+;
+
+string
+%other
+        str_val : string_t
 ;
 
 /************* The following part is set in evaluator **************/
@@ -2213,7 +2235,7 @@ find_decl (IR_node_t ident, IR_node_t scope)
       decl = find_decl_in_given_scope (ident, scope);
       if (decl != NULL || scope == NULL)
 	break;
-      scope = IR_scope (scope);
+      scope = IR_block_scope (scope);
     }
   return decl;
 }

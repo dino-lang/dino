@@ -188,7 +188,7 @@ first_expr_processing (IR_node_t expr, int current_temp_vars_number)
 	int elements_number;
 	
 	for (elements_number = 0, elist = IR_elist (expr);
-	     elist != NULL; elist = IR_elist (elist))
+	     elist != NULL; elist = IR_next_elist (elist))
 	  {
 	    elements_number++;
 	    SET_SOURCE_POSITION (elist);
@@ -217,8 +217,8 @@ first_expr_processing (IR_node_t expr, int current_temp_vars_number)
       
       first_expr_processing (IR_func_expr (expr),
 			     current_temp_vars_number++);
-      for (parameters_number = 0, elist = IR_elist (expr); elist != NULL;
-           elist = IR_elist (elist))
+      for (parameters_number = 0, elist = IR_actuals (expr); elist != NULL;
+           elist = IR_next_elist (elist))
 	{
 	  parameters_number++;
 	  SET_SOURCE_POSITION (elist);
@@ -290,9 +290,10 @@ process_extension_block (IR_node_t ext_block, IR_node_t origin_block,
   for (curr_stmt = first_stmt;
        curr_stmt != NULL;
        curr_stmt = IR_next_stmt (curr_stmt))
-    if (IR_IS_OF_TYPE (curr_stmt, IR_NM_decl)
-	|| IR_IS_OF_TYPE (curr_stmt, IR_NM_block))
+    if (IR_IS_OF_TYPE (curr_stmt, IR_NM_decl))
       IR_set_scope (curr_stmt, origin_block);
+    else if (IR_IS_OF_TYPE (curr_stmt, IR_NM_block))
+      IR_set_block_scope (curr_stmt, origin_block);
   if (process_ext_block_flag)
     {
       /* Process the extension block. */
@@ -420,8 +421,8 @@ first_block_passing (IR_node_t first_level_stmt, int current_block_level)
 	    temporary_vars_number = START_TEMP_VARS_NUMBER;
 	    first_expr_processing (IR_proc_expr (stmt),
 				   temporary_vars_number++);
-	    for (parameters_number = 0, elist = IR_elist (stmt);
-		 elist != NULL; elist = IR_elist (elist))
+	    for (parameters_number = 0, elist = IR_proc_actuals (stmt);
+		 elist != NULL; elist = IR_next_elist (elist))
 	      {
 		parameters_number++;
 		SET_SOURCE_POSITION (elist);
@@ -507,7 +508,7 @@ first_block_passing (IR_node_t first_level_stmt, int current_block_level)
 		     IR_decls_number (curr_block) == 0
 		       && IR_exceptions (curr_block) == NULL
 		       && IR_func_class_ext (curr_block) == NULL;
-		     curr_block = IR_scope (curr_block))
+		     curr_block = IR_block_scope (curr_block))
 		  ;
 		if (IR_temporary_vars_number (stmt)
 		    > IR_temporary_vars_number (curr_block))
@@ -683,7 +684,7 @@ second_block_passing (IR_node_t first_level_stmt)
 		 curr_access_ident = IR_next_access_ident (curr_access_ident))
 	      if (IR_friend_flag (curr_access_ident))
 		{
-		  assert (!IR_public_flag (curr_access_ident));
+		  assert (!IR_access_ident_public_flag (curr_access_ident));
 		  decl = find_decl (IR_ident (curr_access_ident),
 				    current_scope);
 		  if (decl == NULL)
@@ -720,12 +721,14 @@ second_block_passing (IR_node_t first_level_stmt)
 					     (curr_access_ident))));
 		  else if (IR_access_ident (decl) == NULL)
 		    {
-		      IR_set_public_flag (decl,
-					  IR_public_flag (curr_access_ident));
+		      IR_set_public_flag
+			(decl,
+			 IR_access_ident_public_flag (curr_access_ident));
 		      IR_set_access_ident (decl, curr_access_ident);
 		    }
-		  else if (IR_public_flag (curr_access_ident)
-			   != IR_public_flag (IR_access_ident (decl)))
+		  else if (IR_access_ident_public_flag (curr_access_ident)
+			   != IR_access_ident_public_flag (IR_access_ident
+							   (decl)))
 		    {
 		      error (FALSE, IR_pos (IR_ident (curr_access_ident)),
 			     ERR_contradicted_ident_access_list,
@@ -773,7 +776,7 @@ surrounding_class (IR_node_t scope)
 {
   IR_node_t func_class_ext;
 
-  for (; scope != NULL; scope = IR_scope (scope))
+  for (; scope != NULL; scope = IR_block_scope (scope))
     {
       func_class_ext = IR_func_class_ext (scope);
       if (func_class_ext != NULL && IR_NODE_MODE (func_class_ext) == IR_NM_class)
@@ -944,9 +947,21 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
   switch (IR_NODE_MODE (expr))
     {
     case IR_NM_char:
+      IR_set_ch_val (expr, IR_char_value (IR_unique_char (expr)));
+      SET_PC (expr);
+      break;
     case IR_NM_int:
+      IR_set_i_val (expr, IR_int_value (IR_unique_int (expr)));
+      SET_PC (expr);
+      break;
     case IR_NM_float:
+      IR_set_f_val (expr, IR_float_value (IR_unique_float (expr)));
+      SET_PC (expr);
+      break;
     case IR_NM_string:
+      IR_set_str_val (expr, IR_string_value (IR_unique_string (expr)));
+      SET_PC (expr);
+      break;
     case IR_NM_nil:
     case IR_NM_char_type:
     case IR_NM_int_type:
@@ -1310,7 +1325,9 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
       {
 	IR_node_t elist;
 	
-	for (elist = IR_elist (expr); elist != NULL; elist = IR_elist (elist))
+	for (elist = IR_elist (expr);
+	     elist != NULL;
+	     elist = IR_next_elist (elist))
 	  {
 	    SET_SOURCE_POSITION (elist);
 	    IR_set_repetition_key
@@ -1351,7 +1368,9 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
 	SET_SOURCE_POSITION (expr);
 	IR_set_func_expr
 	  (expr, third_expr_processing (IR_func_expr (expr), FALSE));
-	for (elist = IR_elist (expr); elist != NULL; elist = IR_elist (elist))
+	for (elist = IR_actuals (expr);
+	     elist != NULL;
+	     elist = IR_next_elist (elist))
 	  {
 	    SET_SOURCE_POSITION (elist);
 	    IR_set_expr (elist, third_expr_processing (IR_expr (elist), TRUE));
@@ -1415,7 +1434,7 @@ static IR_node_t
 find_covered_func_class_ext (IR_node_t scope)
 {
   while (scope != NULL && IR_func_class_ext (scope) == NULL)
-    scope = IR_scope (scope);
+    scope = IR_block_scope (scope);
   if (scope != NULL)
     return IR_func_class_ext (scope);
   else
@@ -1429,14 +1448,14 @@ find_covered_func_class_ext (IR_node_t scope)
    elements values of class decls idents tables (see also commentaries
    for corresponding abstract data).  FIRST_LEVEL_STMT (it may be
    NULL) is first stmt of the processed stmt nesting level.  The func
-   creates chain by members next_pc, body_pc, else_part_pc and
-   start_wait_guard_expr_pc to execution of the processed stmts.  The
-   func may create new nodes block_finish node, if_finish node,
-   for_finish node, node and pop_func_call node and include them into
-   the chain.  The func also change mode of node given as ASSIGN NODE
-   (stmt)->assignment_var in assignment stmt or foreach stmt (with the
-   aid of `make_designator_lvalue').  It is needed for the evaluator.
-   The following table are used for that
+   creates chain by members next_pc, (for_,foreach_)body_pc,
+   else_part_pc and start_wait_guard_expr_pc to execution of the
+   processed stmts.  The func may create new nodes block_finish node,
+   if_finish node, for_finish node, node and pop_func_call node and
+   include them into the chain.  The func also change mode of node
+   given as ASSIGN NODE (stmt)->assignment_var in assignment stmt or
+   foreach stmt (with the aid of `make_designator_lvalue').  It is
+   needed for the evaluator.  The following table are used for that
 
    IR_NM_period                        IR_NM_lvalue_period
    IR_NM_deref                         IR_NM_lvalue_deref
@@ -1527,9 +1546,9 @@ third_block_passing (IR_node_t first_level_stmt)
 	    
 	    IR_set_proc_expr
 	      (stmt, third_expr_processing (IR_proc_expr (stmt), FALSE));
-	    for (elist = IR_elist (stmt);
+	    for (elist = IR_proc_actuals (stmt);
 		 elist != NULL;
-		 elist = IR_elist (elist))
+		 elist = IR_next_elist (elist))
 	      {
 		SET_SOURCE_POSITION (elist);
 		IR_set_expr
@@ -1618,7 +1637,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	       may be break or continue. */
 	    if (current_pc != NULL)
 	      IR_set_next_pc (current_pc, start_next_iteration_pc);
-	    IR_set_body_pc (stmt, IR_next_pc (stmt));
+	    IR_set_for_body_pc (stmt, IR_next_pc (stmt));
 	    current_pc = PC (stmt);
 	    SET_PC (for_finish);
 	    number_of_surrounding_blocks = saved_number_of_surrounding_blocks;
@@ -1671,7 +1690,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	       be break or continue. */
 	    if (current_pc != NULL)
 	      IR_set_next_pc (current_pc, start_next_iteration_pc);
-	    IR_set_body_pc (stmt, IR_next_pc (stmt));
+	    IR_set_foreach_body_pc (stmt, IR_next_pc (stmt));
 	    current_pc = PC (stmt);
 	    SET_PC (for_finish);
 	    number_of_surrounding_blocks = saved_number_of_surrounding_blocks;
@@ -1769,8 +1788,8 @@ third_block_passing (IR_node_t first_level_stmt)
 	    current_scope = saved_current_scope;
 	    block_finish = PC (create_node_with_pos (IR_NM_block_finish,
 						     source_position));
-	    IR_set_simple_block_flag (IR_POINTER (block_finish),
-				      IR_simple_block_flag (stmt));
+	    IR_set_simple_block_finish_flag (IR_POINTER (block_finish),
+					     IR_simple_block_flag (stmt));
 	    SET_PC (block_finish);
 	    IR_set_catch_list_pc (stmt, NULL);
 	    if (IR_func_class_ext (stmt) != NULL)
@@ -1858,7 +1877,7 @@ go_through (IR_node_t pc)
         pc = IR_next_pc (pc);
         break;
       case IR_NM_block_finish:
-        if (!IR_simple_block_flag (pc))
+        if (!IR_simple_block_finish_flag (pc))
           return pc;
         pc = IR_next_pc (pc);
         break;
@@ -1982,7 +2001,9 @@ fourth_expr_processing (IR_node_t expr)
       {
 	IR_node_t elist;
 	
-	for (elist = IR_elist (expr); elist != NULL; elist = IR_elist (elist))
+	for (elist = IR_elist (expr);
+	     elist != NULL;
+	     elist = IR_next_elist (elist))
 	  {
 	    fourth_expr_processing (IR_repetition_key (elist));
             fourth_expr_processing (IR_expr (elist));
@@ -1994,7 +2015,9 @@ fourth_expr_processing (IR_node_t expr)
 	IR_node_t elist;
 	
         fourth_expr_processing (IR_func_expr (expr));
-	for (elist = IR_elist (expr); elist != NULL; elist = IR_elist (elist))
+	for (elist = IR_actuals (expr);
+	     elist != NULL;
+	     elist = IR_next_elist (elist))
           fourth_expr_processing (IR_expr (elist));
 	break;  
       }
@@ -2038,9 +2061,9 @@ fourth_block_passing (IR_node_t first_level_stmt)
 	    IR_node_t elist;
 	    
 	    fourth_expr_processing (IR_proc_expr (stmt));
-	    for (elist = IR_elist (stmt);
+	    for (elist = IR_proc_actuals (stmt);
 		 elist != NULL;
-		 elist = IR_elist (elist))
+		 elist = IR_next_elist (elist))
               fourth_expr_processing (IR_expr (elist));
 	    break;  
 	  }
@@ -2055,12 +2078,13 @@ fourth_block_passing (IR_node_t first_level_stmt)
           fourth_expr_processing (IR_for_guard_expr (stmt));
           fourth_block_passing (IR_for_iterate_stmt (stmt));
           fourth_block_passing (IR_for_stmts (stmt));
-          IR_set_body_pc (stmt, go_through (IR_body_pc (stmt)));
+          IR_set_for_body_pc (stmt, go_through (IR_for_body_pc (stmt)));
           break;
 	case IR_NM_foreach_stmt:
           fourth_expr_processing (IR_foreach_designator (stmt));
           fourth_block_passing (IR_foreach_stmts (stmt));
-          IR_set_body_pc (stmt, go_through (IR_body_pc (stmt)));
+          IR_set_foreach_body_pc (stmt,
+				  go_through (IR_foreach_body_pc (stmt)));
           break;
 	case IR_NM_break_stmt:
 	case IR_NM_continue_stmt:

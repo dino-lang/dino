@@ -348,9 +348,16 @@ extern WIN_EXPORT void set_interface (struct spi *i);
 
 /* This page contains definitions of heap objects. */
 
+/* We could use multiple inheritance to simplify description but it
+   hurts interpreter speed, so we use single inheritance here. */
+
 %abstract
 heap_obj :: %root
 %other
+  /* Is it immutable object (immutable object can not be changed).
+     The filed is used fo vectors, tables, instances, and
+     hideblocks. */
+  immutable : bool_t
   /* These three members are used during garbage collection. */
   it_was_processed : bool_t
   state : instance_state_t
@@ -359,14 +366,7 @@ heap_obj :: %root
 ;
 
 %abstract
-immutable_obj :: heap_obj
-%other
-  /* Is it immutable object (immutable object can not be changed. */
-  immutable : bool_t
-;
-
-%abstract
-heap_vect_tab :: immutable_obj
+heap_vect_tab :: heap_obj
 %other
   allocated_length : size_t  /* actual allocated length of the object. */
   /* Number of elements (vector or table).  It is not used in redirection. */
@@ -408,24 +408,24 @@ heap_tab :: heap_vect_tab
 
 /* Code which may have the context (parent environment). */
 %abstract
-context :: %root
+context_heap_obj :: heap_obj
 %other
   /* Context in which the variables are searched for.  See also
      comment for heap_process. */
-  context : context
+  context : context_heap_obj
   block_node : IR_hidden_node_t /* Pointer to corresponding block node. */
   context_number : int_t        /* Unique number */
 ;
 
 /* Instance of a class. */
-heap_instance :: immutable_obj, context
+heap_instance :: context_heap_obj
 %other
-  class : IR_hidden_node_t /* Pointer to corresponding class decl. */
+  instance_class : IR_hidden_node_t /* Pointer to corresponding class decl. */
   /* The first var is placed immediately after this node in the heap. */
 ;
 
 /* Stack of a block. */
-heap_stack :: heap_obj, context
+heap_stack :: context_heap_obj
 %other
   /* The stack which will be after execution code in the stack.  Chain
      `context' contains the chain `prev_stack'.  But between
@@ -439,7 +439,7 @@ heap_stack :: heap_obj, context
      Temporary vars are placed after all permanent vars. */
 ;
 
-heap_process :: heap_obj, context
+heap_process :: context_heap_obj
 %other
   /* Here context is context of the function (thread) which is called
      during process creation. */
@@ -456,7 +456,7 @@ heap_process :: heap_obj, context
   process_number : int_t
 ;
 
-heap_hideblock :: immutable_obj
+heap_hideblock :: heap_obj
 %other
   /* Length of the block without the header. */
   hideblock_length : int_t
@@ -537,14 +537,14 @@ instance :: val
 /*%final*/
 func :: val
 %other
-  func_context : context
+  func_context : context_heap_obj
   func : IR_hidden_node_t
 ;
 
 /*%final*/
 class :: val
 %other
-  class_context : context
+  class_context : context_heap_obj
   class : IR_hidden_node_t
 ;
 

@@ -1,3 +1,85 @@
+2003-04-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+        * d_ir_sprut (ir_node): New type.  Make it as a root.
+	(logical_binary_operation): New abstract type.
+	(logical_or, logical_and, cond): Inherit logical_binary_operation.
+	(vector_table): New abstract type.
+	(vector, table): Inherit vector_table.
+	(elist): Rename field elist into next_elist.
+	(class_func_thread_call): Rename field elist into actuals.
+	(access_ident): Rename field public_flag onto
+	access_ident_public_flag.
+	(procedure_call): Rename field elist into proc_actuals.
+	(for_break_continue): New abstract node.
+	(break_stmt, continue_stmt): Inherit for_break_continue.
+	(wait_stmt): Rename field scope into block_scope.
+	(for_stmt): Rename field body_pc into for_body_pc.
+	(foreach_stmt): Rename field body_pc into foreach_body_pc.
+	(external_var_occurrence, var_occurrence,
+	lvalue_external_var_occurrence, lvalue_var_occurrence): Make
+	occurrence as the first supertype for them.
+	(block_finish): Rename field simple_block_flag into
+	simple_block_finish_flag.
+	(char, int, float, string): Add new field whose value is value
+	from the corresponding unique nodes.
+	(find_decl): Use block_scope.
+
+	* d_run.sprut (executed_stmts_count, process_quantum): Make them
+	signed.
+	(QUANTUM_SWITCH_PROCESS): Simplify it.
+
+	* d_yacc.y: Use new field names actuals, proc_actuals, next_elist,
+	block_scope, access_ident_public_flag.
+	
+        * d_extern.sprut (heap_obj): Add field immutable.
+	(immutable_obj, context): Remove them.
+	(heap_vect_tab, heap_hideblock): Inherit heap_obj.
+	(context_heap_obj): New abstract type.
+	(heap_instance, heap_stack, heap_process): Inherit context_heap_obj.
+
+	* d_func.c (internal_inside_call): Use new field name block_scope.
+	(get_file, get_stat, create_instance, init_read_token,
+	int_earley_parse): Use new field name instance_class.
+	
+	* d_heap.c (heap_object_size, traverse_used_heap_object): Use new
+	field name instance_class.
+	(change_obj_refs): Use _ER_M_context_heap_obj instead of
+	_ER_M_context.
+	(profile_interrupt): Use new field name block_scope.
+	(eq_instance): Use new field name instance_class.
+	(hash_key): Use new field name block_scope, instance_class.
+	(activate_process): Initialize as -process_quantum.
+	(block_cprocess): Set up status as PS_STARTED if at least one
+	statement has been executed.
+	(process_quantum, executed_stmts_count): Make them signed.
+	
+	* d_context.c (first_expr_processing): Use new field names actuals
+	and next_elist.
+	(process_extension_block): Use new field name block_scope.
+	(first_block_passing): Use new field names proc_actuals,
+	next_elist, and block_scope.
+	(second_block_passing): Use new field name
+	access_ident_public_flag.
+	(surrounding_class): Use new field name block_scope.
+	(third_expr_processing): Set up new fields ch_val, i_val, f_val,
+	str_val.  Use new field names actuals and next_elist.
+	(find_covered_func_class_ext): Use new field name block_scope.
+	(third_block_passing): Use new field names proc_actuals,
+	next_elist, for_body_pc, foreach_body_pc,
+	simple_block_finish_flag.
+	(go_through): Use new field name simple_block_finish_flag.
+	(fourth_expr_processing): Use new field names actuals,
+	proc_actuals, next_elist, for_body_pc, foreach_body_pc.
+
+	* d_eval.c (execute_a_period_operation): Use new field name
+	block_scope.
+	(find_catch_pc): Ditto plus instance_class.
+	(evaluate_code): Use new field name simple_block_finish_flag.
+	(fourth_expr_processing): Use new field names instance_class,
+	next_elist, for_body_pc, foreach_body_pc and new fields ch_val,
+	i_val, f_val, str_val.
+	(eval_error): use new field name instance_class.
+	
 2003-03-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 	
 	* DINO/d_types.h (__infinity): Add missed ;

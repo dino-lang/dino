@@ -588,7 +588,8 @@ internal_inside_call (const char **message_ptr, int context_flag)
   if (func_class != NULL)
     block = IR_scope (func_class);
   for (; !result && block != NULL;
-       block = IR_scope (block), block_context = ER_context (block_context))
+       block = IR_block_scope (block),
+	 block_context = ER_context (block_context))
     if (IR_func_class_ext (block) == func_class_2
 	&& (!context_flag
 	    || ER_context (block_context) == func_class_2_context))
@@ -1935,7 +1936,7 @@ get_file (int_t pars_number, const char *function_name)
 
   var = INDEXED_VAL (ER_CTOP (), -pars_number + 1);
   if (!ER_IS_OF_TYPE (var, ER_NM_instance)
-      || ER_class (ER_instance (var)) != file_decl)
+      || ER_instance_class (ER_instance (var)) != file_decl)
     eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameter_type, function_name);
   instance
@@ -2180,7 +2181,7 @@ get_stat (ER_node_t var, const char *function_name, struct stat *buf)
       && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char)
     result = stat (ER_pack_els (ER_vect (var)), buf);
   else if (ER_IS_OF_TYPE (var, ER_NM_instance)
-	   && ER_class (ER_instance (var)) == file_decl)
+	   && ER_instance_class (ER_instance (var)) == file_decl)
     result
       = fstat (fileno
 	       ((FILE *) ER_hide (INDEXED_VAL
@@ -4759,7 +4760,7 @@ create_instance (int_t pars_number)
   class = ER_class ((ER_node_t) INDEXED_VAL (ER_CTOP (), -pars_number));
   instance = (ER_node_t) heap_allocate (instance_size (class), FALSE);
   ER_SET_MODE (instance, ER_NM_heap_instance);
-  ER_set_class (instance, class);
+  ER_set_instance_class (instance, class);
   ER_set_block_node (instance, IR_next_stmt (class));
   ER_set_immutable (instance, FALSE);
   /* Set Context chain. */
@@ -5167,7 +5168,7 @@ init_read_token (void **attr)
   if ((unsigned_int_t) curr_token >= ER_els_number (tokens_vect))
     return -1;
   tok = *attr = ((ER_node_t *) ER_pack_els (tokens_vect)) [curr_token];
-  if (ER_class (tok) != token_decl)
+  if (ER_instance_class (tok) != token_decl)
     eval_error (invtoken_decl, invparsers_decl, IR_pos (real_func_call_pc),
 		"run time error (parse) -- invalid token #%d", curr_token);
   curr_token++;
@@ -5444,7 +5445,7 @@ int_earley_parse (int npars)
   /* Set up ambiguous_p. */
   instance = ER_context (cstack);
   assert (instance != NULL && ER_NODE_MODE (instance) == ER_NM_heap_instance
-	  && ER_class (instance) == parser_decl);
+	  && ER_instance_class (instance) == parser_decl);
   var = INDEXED_VAL (ER_instance_vars (instance),
 		     IR_var_number_in_block (ambiguous_p_decl));
   ER_SET_MODE (var, ER_NM_int);

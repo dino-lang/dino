@@ -647,7 +647,7 @@ heap_object_size (ER_node_t obj)
       size = ER_allocated_length (obj);
       break;
     case ER_NM_heap_instance:
-      size = instance_size (ER_class (obj));
+      size = instance_size (ER_instance_class (obj));
       break;
     case ER_NM_heap_stack:
       size = block_stack_size (ER_block_node (obj));
@@ -872,7 +872,7 @@ traverse_used_heap_object (ER_node_t obj)
 	int vars_number;
 	
 	traverse_used_heap_object (ER_context (obj));
-	vars_number = IR_vars_number (IR_next_stmt (ER_class (obj)));
+	vars_number = IR_vars_number (IR_next_stmt (ER_instance_class (obj)));
 	for (i = 0; i < vars_number; i++)
 	  traverse_used_var (INDEXED_VAL (ER_instance_vars (obj), i));
 	return;
@@ -1203,8 +1203,9 @@ change_obj_refs (ER_node_t obj)
 	  int vars_number;
 	  
 	  CHANGE_REF (((_ER_heap_instance *) obj)
-		      ->_ER_S_heap_instance._ER_M_context.context);
-	  vars_number = IR_vars_number (IR_next_stmt (ER_class (obj)));
+		      ->_ER_S_heap_instance._ER_M_context_heap_obj.context);
+	  vars_number = IR_vars_number (IR_next_stmt
+					(ER_instance_class (obj)));
 	  for (i = 0; i < vars_number; i++)
 	    change_var (INDEXED_VAL (ER_instance_vars (obj), i));
 	  break;
@@ -1215,7 +1216,7 @@ change_obj_refs (ER_node_t obj)
 	  size_t diff;
 	  
 	  CHANGE_REF (((_ER_heap_stack *) obj)
-		      ->_ER_S_heap_stack._ER_M_context.context);
+		      ->_ER_S_heap_stack._ER_M_context_heap_obj.context);
 	  CHANGE_REF (((_ER_heap_stack *) obj)->_ER_S_heap_stack.prev_stack);
 	  for (var = ER_stack_vars (obj);
 	       (char *) var <= ER_ctop (obj);
@@ -1229,7 +1230,7 @@ change_obj_refs (ER_node_t obj)
 	}
       case ER_NM_heap_process:
 	CHANGE_REF (((_ER_heap_process *) obj)
-		    ->_ER_S_heap_process._ER_M_context.context);
+		    ->_ER_S_heap_process._ER_M_context_heap_obj.context);
 	CHANGE_REF (((_ER_heap_process *) obj)->_ER_S_heap_process.father);
 	CHANGE_REF (((_ER_heap_process *) obj)->_ER_S_heap_process.prev);
 	CHANGE_REF (((_ER_heap_process *) obj)->_ER_S_heap_process.next);
@@ -1515,7 +1516,7 @@ profile_interrupt (void)
     }
   for (block = ER_block_node (cstack);
        block != NULL && (func_class = IR_func_class_ext (block)) == NULL;
-       block = IR_scope (block))
+       block = IR_block_scope (block))
     ;
   if (block != NULL && func_class != NULL)
     IR_set_interrupts_number (func_class,
@@ -1957,11 +1958,11 @@ int
 eq_instance (ER_node_t i1, ER_node_t i2)
 {
   return (i1 == i2
-	  || ER_class (i1) == ER_class (i2)
+	  || ER_instance_class (i1) == ER_instance_class (i2)
 	  && ER_context (i1) == ER_context (i2)
 	  && eq_val ((val_t *) ER_instance_vars (i1),
 		     (val_t *) ER_instance_vars (i2),
-		     IR_vars_number (IR_next_stmt (ER_class (i1)))));
+		     IR_vars_number (IR_next_stmt (ER_instance_class (i1)))));
 }
 
 
@@ -2165,7 +2166,8 @@ hash_key (ER_node_t key)
       }
     case ER_NM_instance:
       for (hash = 0,
-	     i = IR_vars_number (IR_next_stmt (ER_class (ER_instance (key))));
+	     i = IR_vars_number (IR_next_stmt (ER_instance_class
+					       (ER_instance (key))));
 	   i > 0; i--)
 	{
 	  el_hash = hash_val (INDEXED_VAL (ER_instance_vars
@@ -2631,12 +2633,12 @@ activate_given_process (ER_node_t process)
 
       for (block = ER_block_node (ER_saved_cstack (cprocess));
 	   (func_class = IR_func_class_ext (block)) == NULL;
-	   block = IR_scope (block))
+	   block = IR_block_scope (block))
 	;
       ticker_off (&IR_exec_time (func_class));
       for (block = ER_block_node (ER_saved_cstack (process));
 	   (func_class = IR_func_class_ext (block)) == NULL;
-	   block = IR_scope (block))
+	   block = IR_block_scope (block))
 	;
       if (IR_calls_number (func_class) == 0)
 	abort ();
@@ -2672,6 +2674,7 @@ activate_process (void)
   activate_given_process (ER_next (cprocess));
   if (first_process_not_started == cprocess)
     eval_error (deadlock_decl, errors_decl, IR_pos (cpc), DERR_deadlock);
+  executed_stmts_count = -process_quantum; /* start new quantum */
 }
 
 void
@@ -2680,6 +2683,8 @@ block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
   assert (cprocess != NULL);
   ER_set_saved_pc (cprocess, first_resume_pc);
   ER_set_saved_cstack (cprocess, cstack);
+  if (executed_stmts_count != -process_quantum)
+    ER_set_process_status (cprocess, PS_STARTED);
   if (!wait_stmt_flag)
     {
       assert (ER_process_status (cprocess) == PS_STARTED);
@@ -2735,18 +2740,18 @@ delete_cprocess_during_exception (void)
 
 /* The following variables for switching process to prevent
    starvation.  The first one is approximate number of executed stmts
-   after starting the process.  The second one is maximal number of
-   stmts executed in a process without switching. */
-unsigned int executed_stmts_number;
-unsigned int process_quantum;
+   after starting the process minus process quantum.  The second one is
+   maximal number of stmts executed in a process without switching. */
+int executed_stmts_count;
+int process_quantum;
 
 void 
 initiate_processes (pc_t start_pc)
 {
   cprocess = NULL;
   process_number = 0;
-  executed_stmts_number = 0;
   process_quantum = 1000;
+  executed_stmts_count = -process_quantum;
   cprocess = create_process (start_pc, NULL, NULL);
   first_process_not_started = NULL;
   activate_process ();

@@ -225,19 +225,15 @@ extern unsigned int tab_expansions;
 
 extern void initiate_tables (void);
 
-extern unsigned int executed_stmts_number;
-extern unsigned int process_quantum;
+extern int executed_stmts_count;
+extern int process_quantum;
 
 /* Macro for possible switch the process.  Remeber cpc must be correct
    for resuming the current process lately. */
 #define QUANTUM_SWITCH_PROCESS\
   do {\
-    ER_set_process_status (cprocess, PS_STARTED);\
-    if (executed_stmts_number++ >= process_quantum)\
-      {\
-        executed_stmts_number = 0;\
-        block_cprocess (cpc, FALSE);\
-      }\
+    if (++executed_stmts_count >= 0)\
+      block_cprocess (cpc, FALSE);\
   } while (0)\
 
 extern ER_node_t create_process (pc_t start_process_pc, IR_node_t func,
