@@ -1,3 +1,7 @@
+2002-02-27  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/dino.tst.in: Remove CR for test outputs under Cygwin.
+
 2002-02-11  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* MSTA/common.h (error_conflict_flag, error_single_definition):
