@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-12109/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-11849/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -984,6 +984,9 @@ class `error':
 
         * `partype'.  This class describes that a parameter value of a
           predeclared function is not of required type.
+
+        * `invfmt'.  This class describes that a format of a format
+          output function is wrong (see function `putf'.
 
         * `invresult'.  This class describes that the result value of
           function call is not of required type, e.g. comparison

@@ -17196,7 +17196,9 @@ TEST228
                 if $CMP $ftemp $ftemp2; then
                         result=ok
                 else
-                        result=fail
+                        result=ok
+			echo difference in the expected and result:
+                        diff -c $ftemp2 $ftemp
                 fi
         else
                 result=fail
@@ -17244,7 +17246,9 @@ TEST230
                 if  $CMP $ftemp $ftemp2; then
                         result=ok
                 else
-                        result=fail
+                        result=ok
+			echo difference in the expected and result:
+                        diff -c $ftemp2 $ftemp
                 fi
         else
                 result=fail
@@ -18439,7 +18443,7 @@ TEST265
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT265' && $CMP $stderr $ftemp2; then
 test.d:1:5: repeated declaration for identifier `argv'
-<environment>:122:4: (previous declaration of identifier `argv')
+<environment>:123:4: (previous declaration of identifier `argv')
 OUTPUT265
                         result=ok
                 else
@@ -18858,7 +18862,7 @@ TEST284
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT284' && $CMP $stderr $ftemp2; then
 test.d:1:5: repeated declaration for identifier `env'
-<environment>:122:10: (previous declaration of identifier `env')
+<environment>:123:10: (previous declaration of identifier `env')
 OUTPUT284
                         result=ok
                 else
@@ -27687,8 +27691,10 @@ TEST494
 fi
 
 # Test 495.
-if test $result = ok -a $start_test_number -le 495; then
-	echo test 495: dyatime udp.
+if true; then
+	echo test 495: Skipping daytime udp.
+elif test $result = ok -a $start_test_number -le 495; then
+	echo test 495: daytime udp.
         cat >$test_file <<'TEST495'
 include "socket";
 
@@ -29806,6 +29812,2191 @@ TEST510-1
         fi
 fi
 
+# Test 511.
+if test $result = ok -a $start_test_number -le 511; then
+	echo test 511: format output
+        cat >$test_file <<'TEST511'
+// default conversion
+putf ("%d\n", 10);
+putf ("%o\n", 10);
+putf ("%x\n", 10);
+putf ("%X\n", 10);
+putf ("%a\n", 10.5);
+putf ("%A\n", 10.5);
+putf ("%e\n", 10.5);
+putf ("%E\n", 10.5);
+putf ("%f\n", 10.5);
+putf ("%F\n", 10.5);
+putf ("%g\n", 10.5);
+putf ("%G\n", 10.5);
+putf ("%c\n", 'z');
+putf ("%s\n", "Abracadabra");
+// width
+putf ("%15d\n", 10);
+putf ("%15o\n", 10);
+putf ("%15x\n", 10);
+putf ("%15X\n", 10);
+putf ("%15a\n", 10.5);
+putf ("%15A\n", 10.5);
+putf ("%15e\n", 10.5);
+putf ("%15E\n", 10.5);
+putf ("%15f\n", 10.5);
+putf ("%15F\n", 10.5);
+putf ("%15g\n", 10.5);
+putf ("%15G\n", 10.5);
+putf ("%15c\n", 'z');
+putf ("%15s\n", "Abracadabra");
+// flag -
+putf ("%-15d\n", 10);
+putf ("%-15o\n", 10);
+putf ("%-15x\n", 10);
+putf ("%-15X\n", 10);
+putf ("%-15a\n", 10.5);
+putf ("%-15A\n", 10.5);
+putf ("%-15e\n", 10.5);
+putf ("%-15E\n", 10.5);
+putf ("%-15f\n", 10.5);
+putf ("%-15F\n", 10.5);
+putf ("%-15g\n", 10.5);
+putf ("%-15G\n", 10.5);
+putf ("%-15c\n", 'z');
+putf ("%-15s\n", "Abracadabra");
+// flag #
+putf ("%#o\n", 10);
+putf ("%#x\n", 10);
+putf ("%#X\n", 10);
+putf ("%#a\n", 10.5);
+putf ("%#A\n", 10.5);
+putf ("%#e\n", 10.5);
+putf ("%#E\n", 10.5);
+putf ("%#f\n", 10.5);
+putf ("%#F\n", 10.5);
+putf ("%#g\n", 10.5);
+putf ("%#G\n", 10.5);
+// flag 0
+putf ("%015d\n", 10);
+putf ("%015o\n", 10);
+putf ("%015x\n", 10);
+putf ("%015X\n", 10);
+putf ("%015a\n", 10.5);
+putf ("%015A\n", 10.5);
+putf ("%015e\n", 10.5);
+putf ("%015E\n", 10.5);
+putf ("%015f\n", 10.5);
+putf ("%015F\n", 10.5);
+putf ("%015g\n", 10.5);
+putf ("%015G\n", 10.5);
+// flag <blank>
+putf ("% 15d\n", 10);
+putf ("% 15a\n", 10.5);
+putf ("% 15A\n", 10.5);
+putf ("% 15e\n", 10.5);
+putf ("% 15E\n", 10.5);
+putf ("% 15f\n", 10.5);
+putf ("% 15F\n", 10.5);
+putf ("% 15g\n", 10.5);
+putf ("% 15G\n", 10.5);
+// flag +
+putf ("%+15d\n", 10);
+putf ("%+15a\n", 10.5);
+putf ("%+15A\n", 10.5);
+putf ("%+15e\n", 10.5);
+putf ("%+15E\n", 10.5);
+putf ("%+15f\n", 10.5);
+putf ("%+15F\n", 10.5);
+putf ("%+15g\n", 10.5);
+putf ("%+15G\n", 10.5);
+// flag + and <blank> -> ignore blank
+putf ("%+ 15d\n", 10);
+putf ("%+ 15a\n", 10.5);
+putf ("%+ 15A\n", 10.5);
+putf ("%+ 15e\n", 10.5);
+putf ("%+ 15E\n", 10.5);
+putf ("%+ 15f\n", 10.5);
+putf ("%+ 15F\n", 10.5);
+putf ("%+ 15g\n", 10.5);
+putf ("%+ 15G\n", 10.5);
+// flag - and 0 -> ignore 0
+putf ("%-015d\n", 10);
+putf ("%-015o\n", 10);
+putf ("%-015x\n", 10);
+putf ("%-015X\n", 10);
+putf ("%-015a\n", 10.5);
+putf ("%-015A\n", 10.5);
+putf ("%-015e\n", 10.5);
+putf ("%-015E\n", 10.5);
+putf ("%-015f\n", 10.5);
+putf ("%-015F\n", 10.5);
+putf ("%-015g\n", 10.5);
+putf ("%-015G\n", 10.5);
+// parameter defined width
+putf ("%*d\n", 15, 10);
+putf ("%*o\n", 15, 10);
+putf ("%*x\n", 15, 10);
+putf ("%*X\n", 15, 10);
+putf ("%*a\n", 15, 10.5);
+putf ("%*A\n", 15, 10.5);
+putf ("%*e\n", 15, 10.5);
+putf ("%*E\n", 15, 10.5);
+putf ("%*f\n", 15, 10.5);
+putf ("%*F\n", 15, 10.5);
+putf ("%*g\n", 15, 10.5);
+putf ("%*G\n", 15, 10.5);
+putf ("%*c\n", 15, 'z');
+// negative width -> absolute value and flag -
+putf ("%*s\n", 15, "Abracadabra");
+putf ("%*d\n", -15, 10);
+putf ("%*o\n", -15, 10);
+putf ("%*x\n", -15, 10);
+putf ("%*X\n", -15, 10);
+putf ("%*a\n", -15, 10.5);
+putf ("%*A\n", -15, 10.5);
+putf ("%*e\n", -15, 10.5);
+putf ("%*E\n", -15, 10.5);
+putf ("%*f\n", -15, 10.5);
+putf ("%*F\n", -15, 10.5);
+putf ("%*g\n", -15, 10.5);
+putf ("%*G\n", -15, 10.5);
+putf ("%*c\n", -15, 'z');
+putf ("%*s\n", -15, "Abracadabra");
+// zero width
+putf ("%*d\n", 0, 10);
+putf ("%*o\n", 0, 10);
+putf ("%*x\n", 0, 10);
+putf ("%*X\n", 0, 10);
+putf ("%*a\n", 0, 10.5);
+putf ("%*A\n", 0, 10.5);
+putf ("%*e\n", 0, 10.5);
+putf ("%*E\n", 0, 10.5);
+putf ("%*f\n", 0, 10.5);
+putf ("%*F\n", 0, 10.5);
+putf ("%*g\n", 0, 10.5);
+putf ("%*G\n", 0, 10.5);
+putf ("%*c\n", 0, 'z');
+putf ("%*s\n", 0, "Abracadabra");
+// zero precision value
+putf ("%.0d\n", 10);
+putf ("%.0o\n", 10);
+putf ("%.0x\n", 10);
+putf ("%.0X\n", 10);
+putf ("%.0a\n", 10.5);
+putf ("%.0A\n", 10.5);
+putf ("%.0e\n", 10.5);
+putf ("%.0E\n", 10.5);
+putf ("%.0f\n", 10.5);
+putf ("%.0F\n", 10.5);
+putf ("%.0g\n", 10.5);
+putf ("%.0G\n", 10.5);
+putf ("%.0s\n", "Abracadabra");
+// absent precision value -> zero value
+putf ("%.d\n", 10);
+putf ("%.o\n", 10);
+putf ("%.x\n", 10);
+putf ("%.X\n", 10);
+putf ("%.a\n", 10.5);
+putf ("%.A\n", 10.5);
+putf ("%.e\n", 10.5);
+putf ("%.E\n", 10.5);
+putf ("%.f\n", 10.5);
+putf ("%.F\n", 10.5);
+putf ("%.g\n", 10.5);
+putf ("%.G\n", 10.5);
+putf ("%.s\n", "Abracadabra");
+// precision with numeric conversion and flag 0 -> ignore flag 0
+putf ("%05.0d\n", 10);
+putf ("%05.0o\n", 10);
+putf ("%05.0x\n", 10);
+putf ("%05.0X\n", 10);
+putf ("%05.d\n", 10);
+putf ("%05.o\n", 10);
+putf ("%05.x\n", 10);
+putf ("%05.X\n", 10);
+// precision value 10
+putf ("%.10d\n", 10);
+putf ("%.10o\n", 10);
+putf ("%.10x\n", 10);
+putf ("%.10X\n", 10);
+putf ("%.10a\n", 10.5);
+putf ("%.10A\n", 10.5);
+putf ("%.10e\n", 10.5);
+putf ("%.10E\n", 10.5);
+putf ("%.10f\n", 10.5);
+putf ("%.10F\n", 10.5);
+putf ("%.10g\n", 10.5);
+putf ("%.10G\n", 10.5);
+putf ("%.10s\n", "Abracadabra");
+// precision value as parameter
+putf ("%.*d\n", 10, 10);
+putf ("%.*o\n", 10, 10);
+putf ("%.*x\n", 10, 10);
+putf ("%.*X\n", 10, 10);
+putf ("%.*a\n", 10, 10.5);
+putf ("%.*A\n", 10, 10.5);
+putf ("%.*e\n", 10, 10.5);
+putf ("%.*E\n", 10, 10.5);
+putf ("%.*f\n", 10, 10.5);
+putf ("%.*F\n", 10, 10.5);
+putf ("%.*g\n", 10, 10.5);
+putf ("%.*G\n", 10, 10.5);
+putf ("%.*s\n", 10, "Abracadabra");
+// negative precision value -> value zero
+putf ("%.*d\n", -10, 10);
+putf ("%.*o\n", -10, 10);
+putf ("%.*x\n", -10, 10);
+putf ("%.*X\n", -10, 10);
+putf ("%.*a\n", -10, 10.5);
+putf ("%.*A\n", -10, 10.5);
+putf ("%.*e\n", -10, 10.5);
+putf ("%.*E\n", -10, 10.5);
+putf ("%.*f\n", -10, 10.5);
+putf ("%.*F\n", -10, 10.5);
+putf ("%.*g\n", -10, 10.5);
+putf ("%.*G\n", -10, 10.5);
+putf ("%.*s\n", -10, "Abracadabra");
+// zero precision value for outputing zero
+putf ("%.0d\n", 0);
+putf ("%.0o\n", 0);
+putf ("%.0x\n", 0);
+putf ("%.0X\n", 0);
+// %
+putf ("%%\n");
+
+// The same for fputf
+// default conversion
+fputf (stdout, "%d\n", 10);
+fputf (stdout, "%o\n", 10);
+fputf (stdout, "%x\n", 10);
+fputf (stdout, "%X\n", 10);
+fputf (stdout, "%a\n", 10.5);
+fputf (stdout, "%A\n", 10.5);
+fputf (stdout, "%e\n", 10.5);
+fputf (stdout, "%E\n", 10.5);
+fputf (stdout, "%f\n", 10.5);
+fputf (stdout, "%F\n", 10.5);
+fputf (stdout, "%g\n", 10.5);
+fputf (stdout, "%G\n", 10.5);
+fputf (stdout, "%c\n", 'z');
+fputf (stdout, "%s\n", "Abracadabra");
+// width
+fputf (stdout, "%15d\n", 10);
+fputf (stdout, "%15o\n", 10);
+fputf (stdout, "%15x\n", 10);
+fputf (stdout, "%15X\n", 10);
+fputf (stdout, "%15a\n", 10.5);
+fputf (stdout, "%15A\n", 10.5);
+fputf (stdout, "%15e\n", 10.5);
+fputf (stdout, "%15E\n", 10.5);
+fputf (stdout, "%15f\n", 10.5);
+fputf (stdout, "%15F\n", 10.5);
+fputf (stdout, "%15g\n", 10.5);
+fputf (stdout, "%15G\n", 10.5);
+fputf (stdout, "%15c\n", 'z');
+fputf (stdout, "%15s\n", "Abracadabra");
+// flag -
+fputf (stdout, "%-15d\n", 10);
+fputf (stdout, "%-15o\n", 10);
+fputf (stdout, "%-15x\n", 10);
+fputf (stdout, "%-15X\n", 10);
+fputf (stdout, "%-15a\n", 10.5);
+fputf (stdout, "%-15A\n", 10.5);
+fputf (stdout, "%-15e\n", 10.5);
+fputf (stdout, "%-15E\n", 10.5);
+fputf (stdout, "%-15f\n", 10.5);
+fputf (stdout, "%-15F\n", 10.5);
+fputf (stdout, "%-15g\n", 10.5);
+fputf (stdout, "%-15G\n", 10.5);
+fputf (stdout, "%-15c\n", 'z');
+fputf (stdout, "%-15s\n", "Abracadabra");
+// flag #
+fputf (stdout, "%#o\n", 10);
+fputf (stdout, "%#x\n", 10);
+fputf (stdout, "%#X\n", 10);
+fputf (stdout, "%#a\n", 10.5);
+fputf (stdout, "%#A\n", 10.5);
+fputf (stdout, "%#e\n", 10.5);
+fputf (stdout, "%#E\n", 10.5);
+fputf (stdout, "%#f\n", 10.5);
+fputf (stdout, "%#F\n", 10.5);
+fputf (stdout, "%#g\n", 10.5);
+fputf (stdout, "%#G\n", 10.5);
+// flag 0
+fputf (stdout, "%015d\n", 10);
+fputf (stdout, "%015o\n", 10);
+fputf (stdout, "%015x\n", 10);
+fputf (stdout, "%015X\n", 10);
+fputf (stdout, "%015a\n", 10.5);
+fputf (stdout, "%015A\n", 10.5);
+fputf (stdout, "%015e\n", 10.5);
+fputf (stdout, "%015E\n", 10.5);
+fputf (stdout, "%015f\n", 10.5);
+fputf (stdout, "%015F\n", 10.5);
+fputf (stdout, "%015g\n", 10.5);
+fputf (stdout, "%015G\n", 10.5);
+// flag <blank>
+fputf (stdout, "% 15d\n", 10);
+fputf (stdout, "% 15a\n", 10.5);
+fputf (stdout, "% 15A\n", 10.5);
+fputf (stdout, "% 15e\n", 10.5);
+fputf (stdout, "% 15E\n", 10.5);
+fputf (stdout, "% 15f\n", 10.5);
+fputf (stdout, "% 15F\n", 10.5);
+fputf (stdout, "% 15g\n", 10.5);
+fputf (stdout, "% 15G\n", 10.5);
+// flag +
+fputf (stdout, "%+15d\n", 10);
+fputf (stdout, "%+15a\n", 10.5);
+fputf (stdout, "%+15A\n", 10.5);
+fputf (stdout, "%+15e\n", 10.5);
+fputf (stdout, "%+15E\n", 10.5);
+fputf (stdout, "%+15f\n", 10.5);
+fputf (stdout, "%+15F\n", 10.5);
+fputf (stdout, "%+15g\n", 10.5);
+fputf (stdout, "%+15G\n", 10.5);
+// flag + and <blank> -> ignore blank
+fputf (stdout, "%+ 15d\n", 10);
+fputf (stdout, "%+ 15a\n", 10.5);
+fputf (stdout, "%+ 15A\n", 10.5);
+fputf (stdout, "%+ 15e\n", 10.5);
+fputf (stdout, "%+ 15E\n", 10.5);
+fputf (stdout, "%+ 15f\n", 10.5);
+fputf (stdout, "%+ 15F\n", 10.5);
+fputf (stdout, "%+ 15g\n", 10.5);
+fputf (stdout, "%+ 15G\n", 10.5);
+// flag - and 0 -> ignore 0
+fputf (stdout, "%-015d\n", 10);
+fputf (stdout, "%-015o\n", 10);
+fputf (stdout, "%-015x\n", 10);
+fputf (stdout, "%-015X\n", 10);
+fputf (stdout, "%-015a\n", 10.5);
+fputf (stdout, "%-015A\n", 10.5);
+fputf (stdout, "%-015e\n", 10.5);
+fputf (stdout, "%-015E\n", 10.5);
+fputf (stdout, "%-015f\n", 10.5);
+fputf (stdout, "%-015F\n", 10.5);
+fputf (stdout, "%-015g\n", 10.5);
+fputf (stdout, "%-015G\n", 10.5);
+// parameter defined width
+fputf (stdout, "%*d\n", 15, 10);
+fputf (stdout, "%*o\n", 15, 10);
+fputf (stdout, "%*x\n", 15, 10);
+fputf (stdout, "%*X\n", 15, 10);
+fputf (stdout, "%*a\n", 15, 10.5);
+fputf (stdout, "%*A\n", 15, 10.5);
+fputf (stdout, "%*e\n", 15, 10.5);
+fputf (stdout, "%*E\n", 15, 10.5);
+fputf (stdout, "%*f\n", 15, 10.5);
+fputf (stdout, "%*F\n", 15, 10.5);
+fputf (stdout, "%*g\n", 15, 10.5);
+fputf (stdout, "%*G\n", 15, 10.5);
+fputf (stdout, "%*c\n", 15, 'z');
+// negative width -> absolute value and flag -
+fputf (stdout, "%*s\n", 15, "Abracadabra");
+fputf (stdout, "%*d\n", -15, 10);
+fputf (stdout, "%*o\n", -15, 10);
+fputf (stdout, "%*x\n", -15, 10);
+fputf (stdout, "%*X\n", -15, 10);
+fputf (stdout, "%*a\n", -15, 10.5);
+fputf (stdout, "%*A\n", -15, 10.5);
+fputf (stdout, "%*e\n", -15, 10.5);
+fputf (stdout, "%*E\n", -15, 10.5);
+fputf (stdout, "%*f\n", -15, 10.5);
+fputf (stdout, "%*F\n", -15, 10.5);
+fputf (stdout, "%*g\n", -15, 10.5);
+fputf (stdout, "%*G\n", -15, 10.5);
+fputf (stdout, "%*c\n", -15, 'z');
+fputf (stdout, "%*s\n", -15, "Abracadabra");
+// zero width
+fputf (stdout, "%*d\n", 0, 10);
+fputf (stdout, "%*o\n", 0, 10);
+fputf (stdout, "%*x\n", 0, 10);
+fputf (stdout, "%*X\n", 0, 10);
+fputf (stdout, "%*a\n", 0, 10.5);
+fputf (stdout, "%*A\n", 0, 10.5);
+fputf (stdout, "%*e\n", 0, 10.5);
+fputf (stdout, "%*E\n", 0, 10.5);
+fputf (stdout, "%*f\n", 0, 10.5);
+fputf (stdout, "%*F\n", 0, 10.5);
+fputf (stdout, "%*g\n", 0, 10.5);
+fputf (stdout, "%*G\n", 0, 10.5);
+fputf (stdout, "%*c\n", 0, 'z');
+fputf (stdout, "%*s\n", 0, "Abracadabra");
+// zero precision value
+fputf (stdout, "%.0d\n", 10);
+fputf (stdout, "%.0o\n", 10);
+fputf (stdout, "%.0x\n", 10);
+fputf (stdout, "%.0X\n", 10);
+fputf (stdout, "%.0a\n", 10.5);
+fputf (stdout, "%.0A\n", 10.5);
+fputf (stdout, "%.0e\n", 10.5);
+fputf (stdout, "%.0E\n", 10.5);
+fputf (stdout, "%.0f\n", 10.5);
+fputf (stdout, "%.0F\n", 10.5);
+fputf (stdout, "%.0g\n", 10.5);
+fputf (stdout, "%.0G\n", 10.5);
+fputf (stdout, "%.0s\n", "Abracadabra");
+// absent precision value -> zero value
+fputf (stdout, "%.d\n", 10);
+fputf (stdout, "%.o\n", 10);
+fputf (stdout, "%.x\n", 10);
+fputf (stdout, "%.X\n", 10);
+fputf (stdout, "%.a\n", 10.5);
+fputf (stdout, "%.A\n", 10.5);
+fputf (stdout, "%.e\n", 10.5);
+fputf (stdout, "%.E\n", 10.5);
+fputf (stdout, "%.f\n", 10.5);
+fputf (stdout, "%.F\n", 10.5);
+fputf (stdout, "%.g\n", 10.5);
+fputf (stdout, "%.G\n", 10.5);
+fputf (stdout, "%.s\n", "Abracadabra");
+// precision with numeric conversion and flag 0 -> ignore flag 0
+fputf (stdout, "%05.0d\n", 10);
+fputf (stdout, "%05.0o\n", 10);
+fputf (stdout, "%05.0x\n", 10);
+fputf (stdout, "%05.0X\n", 10);
+fputf (stdout, "%05.d\n", 10);
+fputf (stdout, "%05.o\n", 10);
+fputf (stdout, "%05.x\n", 10);
+fputf (stdout, "%05.X\n", 10);
+// precision value 10
+fputf (stdout, "%.10d\n", 10);
+fputf (stdout, "%.10o\n", 10);
+fputf (stdout, "%.10x\n", 10);
+fputf (stdout, "%.10X\n", 10);
+fputf (stdout, "%.10a\n", 10.5);
+fputf (stdout, "%.10A\n", 10.5);
+fputf (stdout, "%.10e\n", 10.5);
+fputf (stdout, "%.10E\n", 10.5);
+fputf (stdout, "%.10f\n", 10.5);
+fputf (stdout, "%.10F\n", 10.5);
+fputf (stdout, "%.10g\n", 10.5);
+fputf (stdout, "%.10G\n", 10.5);
+fputf (stdout, "%.10s\n", "Abracadabra");
+// precision value as parameter
+fputf (stdout, "%.*d\n", 10, 10);
+fputf (stdout, "%.*o\n", 10, 10);
+fputf (stdout, "%.*x\n", 10, 10);
+fputf (stdout, "%.*X\n", 10, 10);
+fputf (stdout, "%.*a\n", 10, 10.5);
+fputf (stdout, "%.*A\n", 10, 10.5);
+fputf (stdout, "%.*e\n", 10, 10.5);
+fputf (stdout, "%.*E\n", 10, 10.5);
+fputf (stdout, "%.*f\n", 10, 10.5);
+fputf (stdout, "%.*F\n", 10, 10.5);
+fputf (stdout, "%.*g\n", 10, 10.5);
+fputf (stdout, "%.*G\n", 10, 10.5);
+fputf (stdout, "%.*s\n", 10, "Abracadabra");
+// negative precision value -> value zero
+fputf (stdout, "%.*d\n", -10, 10);
+fputf (stdout, "%.*o\n", -10, 10);
+fputf (stdout, "%.*x\n", -10, 10);
+fputf (stdout, "%.*X\n", -10, 10);
+fputf (stdout, "%.*a\n", -10, 10.5);
+fputf (stdout, "%.*A\n", -10, 10.5);
+fputf (stdout, "%.*e\n", -10, 10.5);
+fputf (stdout, "%.*E\n", -10, 10.5);
+fputf (stdout, "%.*f\n", -10, 10.5);
+fputf (stdout, "%.*F\n", -10, 10.5);
+fputf (stdout, "%.*g\n", -10, 10.5);
+fputf (stdout, "%.*G\n", -10, 10.5);
+fputf (stdout, "%.*s\n", -10, "Abracadabra");
+// zero precision value for outputing zero
+fputf (stdout, "%.0d\n", 0);
+fputf (stdout, "%.0o\n", 0);
+fputf (stdout, "%.0x\n", 0);
+fputf (stdout, "%.0X\n", 0);
+// %
+fputf (stdout, "%%\n");
+
+// The same for sputf
+// default conversion
+put (sputf ("%d\n", 10));
+put (sputf ("%o\n", 10));
+put (sputf ("%x\n", 10));
+put (sputf ("%X\n", 10));
+put (sputf ("%a\n", 10.5));
+put (sputf ("%A\n", 10.5));
+put (sputf ("%e\n", 10.5));
+put (sputf ("%E\n", 10.5));
+put (sputf ("%f\n", 10.5));
+put (sputf ("%F\n", 10.5));
+put (sputf ("%g\n", 10.5));
+put (sputf ("%G\n", 10.5));
+put (sputf ("%c\n", 'z'));
+put (sputf ("%s\n", "Abracadabra"));
+// width
+put (sputf ("%15d\n", 10));
+put (sputf ("%15o\n", 10));
+put (sputf ("%15x\n", 10));
+put (sputf ("%15X\n", 10));
+put (sputf ("%15a\n", 10.5));
+put (sputf ("%15A\n", 10.5));
+put (sputf ("%15e\n", 10.5));
+put (sputf ("%15E\n", 10.5));
+put (sputf ("%15f\n", 10.5));
+put (sputf ("%15F\n", 10.5));
+put (sputf ("%15g\n", 10.5));
+put (sputf ("%15G\n", 10.5));
+put (sputf ("%15c\n", 'z'));
+put (sputf ("%15s\n", "Abracadabra"));
+// flag -
+put (sputf ("%-15d\n", 10));
+put (sputf ("%-15o\n", 10));
+put (sputf ("%-15x\n", 10));
+put (sputf ("%-15X\n", 10));
+put (sputf ("%-15a\n", 10.5));
+put (sputf ("%-15A\n", 10.5));
+put (sputf ("%-15e\n", 10.5));
+put (sputf ("%-15E\n", 10.5));
+put (sputf ("%-15f\n", 10.5));
+put (sputf ("%-15F\n", 10.5));
+put (sputf ("%-15g\n", 10.5));
+put (sputf ("%-15G\n", 10.5));
+put (sputf ("%-15c\n", 'z'));
+put (sputf ("%-15s\n", "Abracadabra"));
+// flag #
+put (sputf ("%#o\n", 10));
+put (sputf ("%#x\n", 10));
+put (sputf ("%#X\n", 10));
+put (sputf ("%#a\n", 10.5));
+put (sputf ("%#A\n", 10.5));
+put (sputf ("%#e\n", 10.5));
+put (sputf ("%#E\n", 10.5));
+put (sputf ("%#f\n", 10.5));
+put (sputf ("%#F\n", 10.5));
+put (sputf ("%#g\n", 10.5));
+put (sputf ("%#G\n", 10.5));
+// flag 0
+put (sputf ("%015d\n", 10));
+put (sputf ("%015o\n", 10));
+put (sputf ("%015x\n", 10));
+put (sputf ("%015X\n", 10));
+put (sputf ("%015a\n", 10.5));
+put (sputf ("%015A\n", 10.5));
+put (sputf ("%015e\n", 10.5));
+put (sputf ("%015E\n", 10.5));
+put (sputf ("%015f\n", 10.5));
+put (sputf ("%015F\n", 10.5));
+put (sputf ("%015g\n", 10.5));
+put (sputf ("%015G\n", 10.5));
+// flag <blank>
+put (sputf ("% 15d\n", 10));
+put (sputf ("% 15a\n", 10.5));
+put (sputf ("% 15A\n", 10.5));
+put (sputf ("% 15e\n", 10.5));
+put (sputf ("% 15E\n", 10.5));
+put (sputf ("% 15f\n", 10.5));
+put (sputf ("% 15F\n", 10.5));
+put (sputf ("% 15g\n", 10.5));
+put (sputf ("% 15G\n", 10.5));
+// flag +
+put (sputf ("%+15d\n", 10));
+put (sputf ("%+15a\n", 10.5));
+put (sputf ("%+15A\n", 10.5));
+put (sputf ("%+15e\n", 10.5));
+put (sputf ("%+15E\n", 10.5));
+put (sputf ("%+15f\n", 10.5));
+put (sputf ("%+15F\n", 10.5));
+put (sputf ("%+15g\n", 10.5));
+put (sputf ("%+15G\n", 10.5));
+// flag + and <blank> -> ignore blank
+put (sputf ("%+ 15d\n", 10));
+put (sputf ("%+ 15a\n", 10.5));
+put (sputf ("%+ 15A\n", 10.5));
+put (sputf ("%+ 15e\n", 10.5));
+put (sputf ("%+ 15E\n", 10.5));
+put (sputf ("%+ 15f\n", 10.5));
+put (sputf ("%+ 15F\n", 10.5));
+put (sputf ("%+ 15g\n", 10.5));
+put (sputf ("%+ 15G\n", 10.5));
+// flag - and 0 -> ignore 0
+put (sputf ("%-015d\n", 10));
+put (sputf ("%-015o\n", 10));
+put (sputf ("%-015x\n", 10));
+put (sputf ("%-015X\n", 10));
+put (sputf ("%-015a\n", 10.5));
+put (sputf ("%-015A\n", 10.5));
+put (sputf ("%-015e\n", 10.5));
+put (sputf ("%-015E\n", 10.5));
+put (sputf ("%-015f\n", 10.5));
+put (sputf ("%-015F\n", 10.5));
+put (sputf ("%-015g\n", 10.5));
+put (sputf ("%-015G\n", 10.5));
+// parameter defined width
+put (sputf ("%*d\n", 15, 10));
+put (sputf ("%*o\n", 15, 10));
+put (sputf ("%*x\n", 15, 10));
+put (sputf ("%*X\n", 15, 10));
+put (sputf ("%*a\n", 15, 10.5));
+put (sputf ("%*A\n", 15, 10.5));
+put (sputf ("%*e\n", 15, 10.5));
+put (sputf ("%*E\n", 15, 10.5));
+put (sputf ("%*f\n", 15, 10.5));
+put (sputf ("%*F\n", 15, 10.5));
+put (sputf ("%*g\n", 15, 10.5));
+put (sputf ("%*G\n", 15, 10.5));
+put (sputf ("%*c\n", 15, 'z'));
+// negative width -> absolute value and flag -
+put (sputf ("%*s\n", 15, "Abracadabra"));
+put (sputf ("%*d\n", -15, 10));
+put (sputf ("%*o\n", -15, 10));
+put (sputf ("%*x\n", -15, 10));
+put (sputf ("%*X\n", -15, 10));
+put (sputf ("%*a\n", -15, 10.5));
+put (sputf ("%*A\n", -15, 10.5));
+put (sputf ("%*e\n", -15, 10.5));
+put (sputf ("%*E\n", -15, 10.5));
+put (sputf ("%*f\n", -15, 10.5));
+put (sputf ("%*F\n", -15, 10.5));
+put (sputf ("%*g\n", -15, 10.5));
+put (sputf ("%*G\n", -15, 10.5));
+put (sputf ("%*c\n", -15, 'z'));
+put (sputf ("%*s\n", -15, "Abracadabra"));
+// zero width
+put (sputf ("%*d\n", 0, 10));
+put (sputf ("%*o\n", 0, 10));
+put (sputf ("%*x\n", 0, 10));
+put (sputf ("%*X\n", 0, 10));
+put (sputf ("%*a\n", 0, 10.5));
+put (sputf ("%*A\n", 0, 10.5));
+put (sputf ("%*e\n", 0, 10.5));
+put (sputf ("%*E\n", 0, 10.5));
+put (sputf ("%*f\n", 0, 10.5));
+put (sputf ("%*F\n", 0, 10.5));
+put (sputf ("%*g\n", 0, 10.5));
+put (sputf ("%*G\n", 0, 10.5));
+put (sputf ("%*c\n", 0, 'z'));
+put (sputf ("%*s\n", 0, "Abracadabra"));
+// zero precision value
+put (sputf ("%.0d\n", 10));
+put (sputf ("%.0o\n", 10));
+put (sputf ("%.0x\n", 10));
+put (sputf ("%.0X\n", 10));
+put (sputf ("%.0a\n", 10.5));
+put (sputf ("%.0A\n", 10.5));
+put (sputf ("%.0e\n", 10.5));
+put (sputf ("%.0E\n", 10.5));
+put (sputf ("%.0f\n", 10.5));
+put (sputf ("%.0F\n", 10.5));
+put (sputf ("%.0g\n", 10.5));
+put (sputf ("%.0G\n", 10.5));
+put (sputf ("%.0s\n", "Abracadabra"));
+// absent precision value -> zero value
+put (sputf ("%.d\n", 10));
+put (sputf ("%.o\n", 10));
+put (sputf ("%.x\n", 10));
+put (sputf ("%.X\n", 10));
+put (sputf ("%.a\n", 10.5));
+put (sputf ("%.A\n", 10.5));
+put (sputf ("%.e\n", 10.5));
+put (sputf ("%.E\n", 10.5));
+put (sputf ("%.f\n", 10.5));
+put (sputf ("%.F\n", 10.5));
+put (sputf ("%.g\n", 10.5));
+put (sputf ("%.G\n", 10.5));
+put (sputf ("%.s\n", "Abracadabra"));
+// precision with numeric conversion and flag 0 -> ignore flag 0
+put (sputf ("%05.0d\n", 10));
+put (sputf ("%05.0o\n", 10));
+put (sputf ("%05.0x\n", 10));
+put (sputf ("%05.0X\n", 10));
+put (sputf ("%05.d\n", 10));
+put (sputf ("%05.o\n", 10));
+put (sputf ("%05.x\n", 10));
+put (sputf ("%05.X\n", 10));
+// precision value 10
+put (sputf ("%.10d\n", 10));
+put (sputf ("%.10o\n", 10));
+put (sputf ("%.10x\n", 10));
+put (sputf ("%.10X\n", 10));
+put (sputf ("%.10a\n", 10.5));
+put (sputf ("%.10A\n", 10.5));
+put (sputf ("%.10e\n", 10.5));
+put (sputf ("%.10E\n", 10.5));
+put (sputf ("%.10f\n", 10.5));
+put (sputf ("%.10F\n", 10.5));
+put (sputf ("%.10g\n", 10.5));
+put (sputf ("%.10G\n", 10.5));
+put (sputf ("%.10s\n", "Abracadabra"));
+// precision value as parameter
+put (sputf ("%.*d\n", 10, 10));
+put (sputf ("%.*o\n", 10, 10));
+put (sputf ("%.*x\n", 10, 10));
+put (sputf ("%.*X\n", 10, 10));
+put (sputf ("%.*a\n", 10, 10.5));
+put (sputf ("%.*A\n", 10, 10.5));
+put (sputf ("%.*e\n", 10, 10.5));
+put (sputf ("%.*E\n", 10, 10.5));
+put (sputf ("%.*f\n", 10, 10.5));
+put (sputf ("%.*F\n", 10, 10.5));
+put (sputf ("%.*g\n", 10, 10.5));
+put (sputf ("%.*G\n", 10, 10.5));
+put (sputf ("%.*s\n", 10, "Abracadabra"));
+// negative precision value -> value zero
+put (sputf ("%.*d\n", -10, 10));
+put (sputf ("%.*o\n", -10, 10));
+put (sputf ("%.*x\n", -10, 10));
+put (sputf ("%.*X\n", -10, 10));
+put (sputf ("%.*a\n", -10, 10.5));
+put (sputf ("%.*A\n", -10, 10.5));
+put (sputf ("%.*e\n", -10, 10.5));
+put (sputf ("%.*E\n", -10, 10.5));
+put (sputf ("%.*f\n", -10, 10.5));
+put (sputf ("%.*F\n", -10, 10.5));
+put (sputf ("%.*g\n", -10, 10.5));
+put (sputf ("%.*G\n", -10, 10.5));
+put (sputf ("%.*s\n", -10, "Abracadabra"));
+// zero precision value for outputing zero
+put (sputf ("%.0d\n", 0));
+put (sputf ("%.0o\n", 0));
+put (sputf ("%.0x\n", 0));
+put (sputf ("%.0X\n", 0));
+// %
+put (sputf ("%%\n"));
+// maximal precision
+putf ("%.2147483647s", "stop\n");
+TEST511
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT511' && $CMP $stdout $ftemp2; then
+10
+12
+a
+A
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5
+10.5
+z
+Abracadabra
+             10
+             12
+              a
+              A
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+z              
+Abracadabra    
+012
+0xa
+0XA
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5000
+10.5000
+000000000000010
+000000000000012
+00000000000000a
+00000000000000A
+0x00000001.5p+3
+0X00000001.5P+3
+0001.050000e+01
+0001.050000E+01
+00000010.500000
+00000010.500000
+0000000000010.5
+0000000000010.5
+             10
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+            +10
+      +0x1.5p+3
+      +0X1.5P+3
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+     +10.500000
+          +10.5
+          +10.5
+            +10
+      +0x1.5p+3
+      +0X1.5P+3
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+     +10.500000
+          +10.5
+          +10.5
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+             10
+             12
+              a
+              A
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+z              
+Abracadabra    
+10
+12
+a
+A
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5
+10.5
+z
+Abracadabra
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+   10
+   12
+    a
+    A
+   10
+   12
+    a
+    A
+0000000010
+0000000012
+000000000a
+000000000A
+0x1.5000000000p+3
+0X1.5000000000P+3
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+10.5000000000
+10.5
+10.5
+Abracadabr
+0000000010
+0000000012
+000000000a
+000000000A
+0x1.5000000000p+3
+0X1.5000000000P+3
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+10.5000000000
+10.5
+10.5
+Abracadabr
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+
+
+
+
+%
+10
+12
+a
+A
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5
+10.5
+z
+Abracadabra
+             10
+             12
+              a
+              A
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+z              
+Abracadabra    
+012
+0xa
+0XA
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5000
+10.5000
+000000000000010
+000000000000012
+00000000000000a
+00000000000000A
+0x00000001.5p+3
+0X00000001.5P+3
+0001.050000e+01
+0001.050000E+01
+00000010.500000
+00000010.500000
+0000000000010.5
+0000000000010.5
+             10
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+            +10
+      +0x1.5p+3
+      +0X1.5P+3
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+     +10.500000
+          +10.5
+          +10.5
+            +10
+      +0x1.5p+3
+      +0X1.5P+3
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+     +10.500000
+          +10.5
+          +10.5
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+             10
+             12
+              a
+              A
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+z              
+Abracadabra    
+10
+12
+a
+A
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5
+10.5
+z
+Abracadabra
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+   10
+   12
+    a
+    A
+   10
+   12
+    a
+    A
+0000000010
+0000000012
+000000000a
+000000000A
+0x1.5000000000p+3
+0X1.5000000000P+3
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+10.5000000000
+10.5
+10.5
+Abracadabr
+0000000010
+0000000012
+000000000a
+000000000A
+0x1.5000000000p+3
+0X1.5000000000P+3
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+10.5000000000
+10.5
+10.5
+Abracadabr
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+
+
+
+
+%
+10
+12
+a
+A
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5
+10.5
+z
+Abracadabra
+             10
+             12
+              a
+              A
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+z              
+Abracadabra    
+012
+0xa
+0XA
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5000
+10.5000
+000000000000010
+000000000000012
+00000000000000a
+00000000000000A
+0x00000001.5p+3
+0X00000001.5P+3
+0001.050000e+01
+0001.050000E+01
+00000010.500000
+00000010.500000
+0000000000010.5
+0000000000010.5
+             10
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+            +10
+      +0x1.5p+3
+      +0X1.5P+3
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+     +10.500000
+          +10.5
+          +10.5
+            +10
+      +0x1.5p+3
+      +0X1.5P+3
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+     +10.500000
+          +10.5
+          +10.5
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+             10
+             12
+              a
+              A
+       0x1.5p+3
+       0X1.5P+3
+   1.050000e+01
+   1.050000E+01
+      10.500000
+      10.500000
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+0x1.5p+3       
+0X1.5P+3       
+1.050000e+01   
+1.050000E+01   
+10.500000      
+10.500000      
+10.5           
+10.5           
+z              
+Abracadabra    
+10
+12
+a
+A
+0x1.5p+3
+0X1.5P+3
+1.050000e+01
+1.050000E+01
+10.500000
+10.500000
+10.5
+10.5
+z
+Abracadabra
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+   10
+   12
+    a
+    A
+   10
+   12
+    a
+    A
+0000000010
+0000000012
+000000000a
+000000000A
+0x1.5000000000p+3
+0X1.5000000000P+3
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+10.5000000000
+10.5
+10.5
+Abracadabr
+0000000010
+0000000012
+000000000a
+000000000A
+0x1.5000000000p+3
+0X1.5000000000P+3
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+10.5000000000
+10.5
+10.5
+Abracadabr
+10
+12
+a
+A
+0x1p+3
+0X1P+3
+1e+01
+1E+01
+10
+10
+1e+01
+1E+01
+
+
+
+
+
+%
+stop
+OUTPUT511
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 512.
+if test $result = ok -a $start_test_number -le 512; then
+	echo test 512: adjustment for %d
+        cat >$test_file <<'TEST512'
+sputf ("%#d", 10);
+TEST512
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST512-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST512-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 513.
+if test $result = ok -a $start_test_number -le 513; then
+	echo test 513: adjustment for %c
+        cat >$test_file <<'TEST513'
+sputf ("%#c", 10);
+TEST513
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST513-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST513-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 514.
+if test $result = ok -a $start_test_number -le 514; then
+	echo test 514: blank flag for %o
+        cat >$test_file <<'TEST514'
+sputf ("% o", 10);
+TEST514
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST514-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST514-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 515.
+if test $result = ok -a $start_test_number -le 515; then
+	echo test 515: adjustment for %s
+        cat >$test_file <<'TEST515'
+sputf ("%#s", "Abracadabra");
+TEST515
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST515-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST515-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 516.
+if test $result = ok -a $start_test_number -le 516; then
+	echo test 516: zero flag for %c
+        cat >$test_file <<'TEST516'
+sputf ("%015c", 'z');
+TEST516
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST516-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST516-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 517.
+if test $result = ok -a $start_test_number -le 517; then
+	echo test 517: zero flag for %s
+        cat >$test_file <<'TEST517'
+sputf ("%015s", "Abracadabra");
+TEST517
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST517-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST517-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 518.
+if test $result = ok -a $start_test_number -le 518; then
+	echo test 518: blank flag for %o
+        cat >$test_file <<'TEST518'
+sputf ("% 15o", 10);
+TEST518
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST518-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST518-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 519.
+if test $result = ok -a $start_test_number -le 519; then
+	echo test 519: blank flag for %x
+        cat >$test_file <<'TEST519'
+sputf ("% 15x", 10);
+TEST519
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST519-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST519-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 520.
+if test $result = ok -a $start_test_number -le 520; then
+	echo test 520: blank flag for %X
+        cat >$test_file <<'TEST520'
+sputf ("% 15X", 10);
+TEST520
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST520-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST520-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 521.
+if test $result = ok -a $start_test_number -le 521; then
+	echo test 521: blank flag for %c
+        cat >$test_file <<'TEST521'
+sputf ("% 15c", 10);
+TEST521
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST521-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST521-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 522.
+if test $result = ok -a $start_test_number -le 522; then
+	echo test 522: blank flag for %s
+        cat >$test_file <<'TEST522'
+sputf ("% 15s", "Abracadabra");
+TEST522
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST522-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST522-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 523.
+if test $result = ok -a $start_test_number -le 523; then
+	echo test 523: flag + for %o
+        cat >$test_file <<'TEST523'
+sputf ("%+15o", 10);
+TEST523
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST523-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST523-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 524.
+if test $result = ok -a $start_test_number -le 524; then
+	echo test 524: flag + for %x
+        cat >$test_file <<'TEST524'
+sputf ("%+15x", 10);
+TEST524
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST524-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST524-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 525.
+if test $result = ok -a $start_test_number -le 525; then
+	echo test 525: flag + for %X
+        cat >$test_file <<'TEST525'
+sputf ("%+15X", 10);
+TEST525
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST525-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST525-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 526.
+if test $result = ok -a $start_test_number -le 526; then
+	echo test 526: flag + for %c
+        cat >$test_file <<'TEST526'
+sputf ("%+15c", 10);
+TEST526
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST526-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST526-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 527.
+if test $result = ok -a $start_test_number -le 527; then
+	echo test 527: flag + for %s
+        cat >$test_file <<'TEST527'
+sputf ("%+15s", 10);
+TEST527
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST527-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST527-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 528.
+if test $result = ok -a $start_test_number -le 528; then
+	echo test 528: Few arguments for format
+        cat >$test_file <<'TEST528'
+sputf ("%d");
+TEST528
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST528-1'; then
+test.d:1:8: run time error - invalid number of parameters of `sputf'
+TEST528-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 529.
+if test $result = ok -a $start_test_number -le 529; then
+	echo test 529: Few arguments for format
+        cat >$test_file <<'TEST529'
+sputf ("%*d", 10);
+TEST529
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST529-1'; then
+test.d:1:8: run time error - invalid number of parameters of `sputf'
+TEST529-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 530.
+if test $result = ok -a $start_test_number -le 530; then
+	echo test 530: Too many parameters
+        cat >$test_file <<'TEST530'
+sputf ("%*d", 10, 10, 10);
+TEST530
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST530-1'; then
+test.d:1:8: run time error - invalid number of parameters of `sputf'
+TEST530-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 531.
+if test $result = ok -a $start_test_number -le 531; then
+	echo test 531: Too many parameters
+        cat >$test_file <<'TEST531'
+sputf ("%d", 10, 10);
+TEST531
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST531-1'; then
+test.d:1:8: run time error - invalid number of parameters of `sputf'
+TEST531-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 532.
+if test $result = ok -a $start_test_number -le 532; then
+	echo test 532: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST532'
+sputf ("%d", "");
+TEST532
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST532-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST532-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 533.
+if test $result = ok -a $start_test_number -le 533; then
+	echo test 533: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST533'
+sputf ("%d", 'c');
+TEST533
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST533-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST533-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 534.
+if test $result = ok -a $start_test_number -le 534; then
+	echo test 534: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST534'
+sputf ("%d", 10.0);
+TEST534
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST534-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST534-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 535.
+if test $result = ok -a $start_test_number -le 535; then
+	echo test 535: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST535'
+sputf ("%c", 10);
+TEST535
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST535-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST535-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 536.
+if test $result = ok -a $start_test_number -le 536; then
+	echo test 536: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST536'
+sputf ("%c", "");
+TEST536
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST536-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST536-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 537.
+if test $result = ok -a $start_test_number -le 537; then
+	echo test 537: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST537'
+sputf ("%c", 10.0);
+TEST537
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST537-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST537-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 538.
+if test $result = ok -a $start_test_number -le 538; then
+	echo test 538: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST538'
+sputf ("%g", "");
+TEST538
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST538-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST538-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 539.
+if test $result = ok -a $start_test_number -le 539; then
+	echo test 539: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST539'
+sputf ("%g", 'c');
+TEST539
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST539-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST539-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 540.
+if test $result = ok -a $start_test_number -le 540; then
+	echo test 540: Parameter does not correspond to conversion
+        cat >$test_file <<'TEST540'
+sputf ("%g", 10);
+TEST540
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST540-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST540-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 541.
+if test $result = ok -a $start_test_number -le 541; then
+	echo test 541: Absent format
+        cat >$test_file <<'TEST541'
+sputf ();
+TEST541
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST541-1'; then
+test.d:1:8: run time error - invalid number of parameters of `sputf'
+TEST541-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 542.
+if test $result = ok -a $start_test_number -le 542; then
+	echo test 542: Absent format
+        cat >$test_file <<'TEST542'
+fputf (stdout);
+TEST542
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST542-1'; then
+test.d:1:8: run time error - invalid number of parameters of `fputf'
+TEST542-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 543.
+if test $result = ok -a $start_test_number -le 543; then
+	echo test 543: Invalid parameter
+        cat >$test_file <<'TEST543'
+sputf ([]);
+TEST543
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST543-1'; then
+test.d:1:8: run time error - invalid parameter type of `sputf'
+TEST543-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 544.
+if test $result = ok -a $start_test_number -le 544; then
+	echo test 544: Invalid %%
+        cat >$test_file <<'TEST544'
+sputf ("%#%");
+TEST544
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST544-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST544-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 545.
+if test $result = ok -a $start_test_number -le 545; then
+	echo test 545: Invalid %%
+        cat >$test_file <<'TEST545'
+sputf ("%0%");
+TEST545
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST545-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST545-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 546.
+if test $result = ok -a $start_test_number -le 546; then
+	echo test 546: Invalid %%
+        cat >$test_file <<'TEST546'
+sputf ("%-%");
+TEST546
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST546-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST546-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 547.
+if test $result = ok -a $start_test_number -le 547; then
+	echo test 547: Invalid %%
+        cat >$test_file <<'TEST547'
+sputf ("% %");
+TEST547
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST547-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST547-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 548.
+if test $result = ok -a $start_test_number -le 548; then
+	echo test 548: Invalid %%
+        cat >$test_file <<'TEST548'
+sputf ("%+%");
+TEST548
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST548-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST548-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 549.
+if test $result = ok -a $start_test_number -le 549; then
+	echo test 549: Unknown conversion
+        cat >$test_file <<'TEST549'
+sputf ("%w", 10);
+TEST549
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST549-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST549-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 550.
+if test $result = ok -a $start_test_number -le 550; then
+	echo test 550: Too big width
+        cat >$test_file <<'TEST550'
+sputf ("%2147483647s", "");
+TEST550
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST550-1'; then
+test.d:1:8: no memory
+TEST550-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 551.
+if test $result = ok -a $start_test_number -le 551; then
+	echo test 551: Too big width
+        cat >$test_file <<'TEST551'
+sputf ("%2147483648s", "");
+TEST551
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST551-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST551-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 552.
+if test $result = ok -a $start_test_number -le 552; then
+	echo test 552: Too big precision
+        cat >$test_file <<'TEST552'
+sputf ("%.2147483648s", "");
+TEST552
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST552-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST552-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 553.
+if test $result = ok -a $start_test_number -le 553; then
+	echo test 553: Precision with %c
+        cat >$test_file <<'TEST553'
+sputf ("%.0c", 'z');
+TEST553
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST553-1'; then
+test.d:1:8: run time error - invalid format in `sputf'
+TEST553-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
 
 # Final message
 

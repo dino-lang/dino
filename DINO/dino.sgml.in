@@ -62,6 +62,8 @@ History
                  the same context.
   Dec 14, 2003.  Making table key is immutable in assignment.
 
+  Jan 29, 2004.  New exception invfmt. New functions putf, fputf, sputf.
+
 </verb></tscreen>
 
 <sect>Introduction
@@ -472,8 +474,8 @@ The following identifiers are predeclared in the class
 <tscreen><verb>
   callop
   eof
-  internal       invenvar       invextern      invinput
-  invparser      invregexp      invresult
+  internal       invenvar       invextern      invfmt
+  invinput       invparser      invregexp      invresult
   parnumber      partype
   syserror       systemcall
 </verb></tscreen>
@@ -2062,6 +2064,9 @@ The following classes are declared in the class <tt>error</tt>:
          <item><tt>partype</tt>.  This class describes that a
            parameter value of a predeclared function is not of
            required type.
+         <item><tt>invfmt</tt>.  This class describes that a format of
+           a format output function is wrong (see function
+           <tt>putf</tt>.
          <item><tt>invresult</tt>.  This class describes that the
            result value of function call is not of required type,
            e.g. comparison function used in a call to function
@@ -3143,6 +3148,235 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        analogous to function <tt>fput</tt> except for the fact that it
        additionally outputs a new line character after output of all
        the strings.
+
+     <item><tt>putf (format, ...)</tt>.  The first parameter should be
+       strings after implicit string conversion.  The function outputs
+       the rest of parameters according to the format.  The number of
+       the rest parameters should be exactly equal to the conversions
+       (including parameterized widths and precisions) in the format.
+       Otherwise, exception <tt>parnumber</tt> will be generated.  The
+       types of the parameter should correspond to the corresponding
+       conversion specifier (or to be integer for parameterized widths
+       and precisions).  If it is not true, exception <tt>partype</tt>
+       will be generated.  The format is subset of one of standard C
+       function <tt>printf</tt> and has the following syntax:
+       <tscreen><verb>
+          format : <any character except %>
+                 | '%' flags [width] [precision]
+                       conversion_specifier
+          flags :
+                | flag
+
+          flag : '#' | '0' | '-' | ' ' | '+'
+
+          width : '*' | <decimal number starting with non-zero>
+
+          precision : '.' ['*' | <decimal number>]
+
+          conversion_specifier : 'd' | 'o' | 'x' | 'X'
+                               | 'e' | 'E' | 'f' | 'F'
+                               | 'g' | 'G' | 'a' | 'A'
+                               | 'c' | 's' | '%'
+       </verb></tscreen>
+       If the format syntax is wrong, exception <tt>invfmt</tt> is
+       generated.
+
+       Flag '#' means that the value should be converted into an
+       alternative form.  It can be present only for conversion
+       specifiers 'o', 'x', 'X', 'e', 'E', 'f', 'F', 'g', 'G', 'a',
+       and 'A'.  If the flag is used for conversion specifier 'o', the
+       output will be prefixed by '0'.  For 'x' and 'X' the output
+       will be prefixed by '0x' and '0X' correspondingly. For
+       conversions 'a', 'A', 'e', 'E', 'f', 'F', 'g', and 'G' the
+       output will always contain a decimal point.  For conversions
+       'g' and 'G' it also means that trailing zeros are not removed
+       from the output as they would be without the flag.  The
+       following code using flag '#' in format
+<tscreen><verb>
+         putf ("->%#o %#x %#a %#.0e %#.0f %#g\n",
+               8, 10, 1., 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->010 0xa 0x1.p+0 2.e+00 3. 4.00000
+</verb></tscreen>
+
+       Flag '0' means that the output value will be zero padded on the
+       left. If both flags '0' and '-' appear, the flag '0' is
+       ignored.  It is also ignored for conversions 'd', 'o', 'x', and
+       'X' if a precision is given.  The flag is prohibited for
+       conversions 'c' and 's'.  The following code using flag '0' in
+       format
+<tscreen><verb>
+         putf ("->%04d %04x %012.2a %09.2e %05.2f %05.2g\n",
+               8, 10, 1., 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->0008 000a 0x0001.00p+0 02.00e+00 03.00 00004
+</verb></tscreen>
+
+       Flag '-' means that the output will be left adjusted on the
+       field boundary.  (The default is right justification). Flag '-'
+       overrides flag '0' if the both are given.  The following code
+       using flag '-' in format
+<tscreen><verb>
+         putf ("->%-04d %-04x %-012.2a %-09.2e %-05.2f %-05.2g\n",
+               8, 10, 1., 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->8    a    0x1.00p+0    2.00e+00  3.00  4
+</verb></tscreen>
+
+       Flag ' ' means that the output of a signed number will start
+       with a blank for positives number.  The flag can be used only
+       for conversions 'd', 'a', 'A', 'e', 'E', 'f', 'F', 'g', and
+       'G'.  If both flags ' ' and '+' appear, the flag ' ' is
+       ignored.  The following code using flag ' ' in format
+<tscreen><verb>
+         putf ("->% d % .2a % .2e % .2f % .2g\n",
+               8, 1., 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         -> 8  0x1.00p+0  2.00e+00  3.00  4
+</verb></tscreen>
+
+       Flag '+' means that the output of a signed number will start
+       with a plus for positives number.  The flag can be used only
+       for conversions 'd', 'a', 'A', 'e', 'E', 'f', 'F', 'g', and
+       'G'.  Flag '+' overrides flag ' ' if both are given.  The
+       following code using flag '+' in format
+<tscreen><verb>
+         putf ("->%+d %+.2a %+.2e %+.2f %+.2g\n",
+               8, 1., 2., 3., 4.);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->+8 +0x1.00p+0 +2.00e+00 +3.00 +4
+</verb></tscreen>
+
+       The width defines a minimum width of the output value.  If the
+       output is smaller, it is padded with spaces (or zeros -- see
+       flag '0') on the left (if flag '-' is used) or right.  The
+       output is never truncated.  The width should be no more than
+       maximal integer value, otherwise exception <tt>invfmt</tt> is
+       generated.  The width can be given as a parameter of integer
+       type if '*' is used.  If the value of width given by the
+       parameter is negative, flag '-' is believed to be given and the
+       width is believed to be equal to zero.  The following code
+       using width in format
+<tscreen><verb>
+         putf ("->%5d %05d %-5d %*d %*d<-\n", 8, 9, 10, 5, 8, -5, 10);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->    8 00009 10        8 10   <-
+</verb></tscreen>
+
+       The precision is prohibited for conversions 'c'.  If the number
+       after the period is absent, its value will be zero.  The
+       precision can be given as a parameter of integer type if '*' is
+       used after the period.  If the value of precision given by the
+       parameter is negative, its value is believed to be zero too.
+       For conversions 'd', 'o', 'x', and 'X' the precision means
+       minimum number of output digits.  For conversions 'a', 'A',
+       'e', 'E', 'f', and 'F' it means the number of digits to appear
+       after the decimal point.  For 'g' and 'G' it means the maximum
+       number of significant digits.  For 's' it means the maximum
+       number of characters to be output from a string.  The following
+       code using precision in format
+<tscreen><verb>
+         putf ("->%.d %.0d %.5d %.0f %.0e %.2g<-\n",
+               8, 8, 9, 1.6, 2.3, 3.53);
+         putf ("->%.2s %.0d %.*d %.*d<-\n", "long", 0, 5, 8, -5, 8);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->8 8 00009 2 2e+00 3.5<-
+         ->lo  00008 8<-
+</verb></tscreen>
+
+       Conversion 'd' should be used to output integer.  The default
+       precision is 1.  When 0 is output with an explicit precision 0,
+       the output is empty.
+
+       Conversions 'o', 'x', and 'X' should be used to output an
+       integer value as unsigned in octal and hexadecimal form.  The
+       lower case letters <tt>abcdef</tt> are used for 'x' and the
+       upper case letters <tt>ABCDEF</tt> are used for 'X'.  The
+       precision gives the minimum number of digits that must
+       appear. If the output value requires fewer digits, it is padded
+       on the left with zeros.  The default precision is 1.  When 0 is
+       output with an explicit precision 0, the output is empty.
+
+       Conversions 'f' and 'F' should be used to output floating point
+       values.  The output value has a form <tt>[-]ddd.ddd</tt> where
+       the number of digits after the decimal point is given by the
+       precision specification.  The default precision value is 6.  If
+       the precision is explicitly zero, no decimal-point character
+       appears.
+
+       Conversions 'e' and 'E' should be used to output floating point
+       values with an exponent in form <tt>[-]d.ddd[e|E][+|-]dd</tt>.
+       There is always one digit before the decimal-point.  The number
+       of digits after the decimal point is defined by the precision.
+       The default precision value is 6.  If the precision is zero, no
+       decimal-point appears.  Conversion 'E' uses the letter
+       <tt>E</tt> (rather than <tt>e</tt>) to introduce the exponent.
+       The exponent always contains at least two digits.  If the
+       exponent value is zero, the exponent is output as <tt>00</tt>.
+
+       Conversions 'g' and 'G' should be used to output floating point
+       values in style 'f' or 'e' (or 'F' or 'E' for conversion 'G').
+       The precision defines the number of significant digits.  The
+       default value of the precision is 6.  If the precision is zero,
+       it is treated as 1.  Conversion 'e' is used if the exponent
+       from the conversion is less than -4 or not less than the
+       precision.  Trailing zeros are removed from the fractional part
+       of the output.  If all fractional part is zero, the decimal
+       point is removed too.
+
+       Conversion 'a' and 'A' should be used to output floating point
+       values in hexadecimal form <tt>[-]0[x|X]h.hhhh[p|P][+|-}d</tt>.
+       For conversion 'a' the prefix <tt>0x</tt>, the exponent
+       separator <tt>p</tt>, and the letters <tt>abcdef</tt> are used.
+       For 'A' the corresponding upper case letters are used.  There
+       is always one hexadecimal digit before the decimal point, and
+       the number of digits after it is equal to the precision.  The
+       default precision suffices for an exact representation of the
+       value if an exact representation in base 2 exists and otherwise
+       is sufficiently large to distinguish all floating point values.
+       The digit before the decimal point is always nonzero for
+       normalized numbers.
+
+       Conversion 'c' should be used to output a character value.
+
+       Conversion 's' should be used to output strings.
+
+       Conversion '%' should be used to output <tt>%</tt>.
+
+       The following code using different conversions in format
+<tscreen><verb>
+         putf ("->%% %c %s %d %o %x %X<-\n",
+               'c', "string", 7, 8, 20, 20);
+         putf ("->%a %A %f %F<-\n", 1.25, 1.2, 1.5, 1.5);
+         putf ("->%e %E %g %G %g %G<-\n",
+               2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
+</verb></tscreen>
+       will output
+<tscreen><verb>
+         ->% c string 7 10 14 14<-
+         ->0x1.4p+0 0X1.3333333333333P+0 1.500000 1.500000<-
+         ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
+</verb></tscreen>
+
+     <item><tt>fput (fileinstance, format, ...)</tt>.  The function is
+       analogous to the function <tt>putf</tt> except for the fact that
+       it outputs the string into an opened file associated with a
+       class <tt>file</tt> instance which is the first parameter
+       value.
      <item><tt>print (...)</tt>.  The function outputs all parameter
        values into standard output stream.  The function never makes
        implicit conversions of the parameter values.  The parameter
@@ -3500,11 +3734,14 @@ There are the following miscellaneous functions:
      <item><tt>rand ()</tt>.  The function returns a pseudo-random
        integer value.  If the function <tt>srand</tt> was not called
        before, 1 will be used as the seed value.
-     <item><tt>sput (...), sputln (...), sprint (...), sprintln
-       (...)</tt>.  The functions are analogous to functions put,
-       putln, print, and println but they return the result string
-       instead of output of the formed string into the standard output
-       stream.
+     <item><tt>sput (...), sputln (...), sputf (format, ...)</tt> The
+       functions are analogous to functions put, putln, print, and
+       println but they return the result string instead of output of
+       the formed string into the standard output stream.
+     <item><tt>sprint (...), sprintln (...)</tt>.  The functions are
+       analogous to functions print and println but they return the
+       result string instead of output of the formed string into the
+       standard output stream.
      </itemize>
 
 <sect>Appendix A. Syntax of Dino

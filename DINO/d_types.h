@@ -72,14 +72,6 @@
 typedef int int_t;
 typedef unsigned int unsigned_int_t;
 #define MAX_INT   INT_MAX	/* int */
-#elif  LONG_MAX == 2147483647
-typedef long int int_t;
-typedef long unsigned int unsigned_int_t;
-#define MAX_INT   LONG_MAX	/* long int */
-#elif  SHRT_MAX == 2147483647
-typedef short int int_t;
-typedef short unsigned int unsigned_int_t;
-#define MAX_INT   SHRT_MAX	/* short int */
 #else
 #error there is no 32 bits int
 #endif

@@ -1,3 +1,37 @@
+2004-01-29  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_built.h (putf_call, fputf_call, sputf_call): New external
+	declarations.
+
+	* DINO/d_errors.c (DERR_invalid_format): New global variable.
+
+	* DINO/d_errors.h (DERR_invalid_format): New external variable
+	declaration.
+
+	* DINO/d_func.c (general_putf_call, putf_call, fputf_call,
+	sputf_call): New functions.
+
+	* DINO/d_ir.sprut (ENVIRONMENT): Add invfmt, putf, fputf, sputf.
+	(INVFMT_NAME, PUTF_NAME, FPUTF_NAME, SPUTF_NAME): New macros.
+	(invfmt_decl, putf_decl, fputf_decl, sputf_decl): New external
+	declarations and definitions.
+	(decls_table): Add entries for invfmt, putf, fputf, sputf.
+
+	* DINO/dino.tst.in (228, 230): Ignore error about different
+	directories -- just report about it.
+	(265, 284): Change line in <environment>.
+	(495): Skip test for datagram socket.
+	(511-533): New tests for format output.
+	
+	* DINO/d_types.h: Remove test on 32 long and shorts.
+
+        * DINO/dino.sgml.in: Add documenation for invfmt, putf, fputf,
+	sputf.
+	
+	* DINO/{dino.html, dino-4.html, dino-8.html, dino.dvi, dino.info,
+	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
+	dino.txt}: Update.
+	
 2003-12-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/O/FE/tree.d: Remove it.

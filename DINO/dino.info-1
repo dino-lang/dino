@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-12109/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-11849/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -62,6 +62,8 @@ The Programming Language DINO
        Dec 8, 2002.   Equality of instance, classes and functions means
                       the same context.
        Dec 14, 2003.  Making table key is immutable in assignment.
+     
+       Jan 29, 2004.  New exception invfmt. New functions putf, fputf, sputf.
 
 * Menu:
 
@@ -468,8 +470,8 @@ mentioned above.
 mentioned above.
        callop
        eof
-       internal       invenvar       invextern      invinput
-       invparser      invregexp      invresult
+       internal       invenvar       invextern      invfmt
+       invinput       invparser      invregexp      invresult
        parnumber      partype
        syserror       systemcall
 

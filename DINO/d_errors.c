@@ -226,6 +226,7 @@ char DERR_invalid_result []
   = "run time error - invalid function result used by function `%s'";;
 char DERR_invalid_input []
   = "run time error - invalid input read by function `%s'";;
+char DERR_invalid_format [] = "run time error - invalid format in `%s'";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []

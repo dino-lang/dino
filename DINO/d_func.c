@@ -3600,6 +3600,296 @@ str_function_end (char *result, int_t pars_number)
   INCREMENT_PC();
 }
 
+static void
+general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
+{
+  const char *function_name;
+  ER_node_t val;
+  const char *fmt, *ptr, *str;
+  char *curr_fmt, res_fmt [100];
+  int start, curr_par_num, width, precision, add, out;
+  int alternate_flag, zero_flag, left_adjust_flag;
+  int blank_flag, plus_flag, width_flag, precision_flag;
+  char next;
+
+  errno = 0;
+  start = 0;
+  if (param_type == NO_FILE)
+    {
+      function_name = SPUTF_NAME;
+      assert (f == NULL);
+    }
+  else if (param_type == STANDARD_FILE)
+    function_name = PUTF_NAME;
+  else
+    {
+      function_name = FPUTF_NAME;
+      start = 1;
+    }
+  if (pars_number - start <= 0)
+    eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
+		DERR_parameters_number, function_name);
+  val = INDEXED_VAL (ER_CTOP (), -pars_number + 1 + start);
+  to_vect_string_conversion (val, NULL);
+  if (ER_NODE_MODE (val) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
+      || ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
+    eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+		DERR_parameter_type, function_name);
+  fmt = ER_pack_els (ER_vect (val));
+  VLO_NULLIFY (temp_vlobj);
+  curr_par_num = -pars_number + 2 + start;
+  for (ptr = fmt; *ptr != '\0'; ptr++)
+    if (*ptr != '%')
+      VLO_ADD_BYTE (temp_vlobj, *ptr);
+    else
+      {
+	alternate_flag = zero_flag = left_adjust_flag = FALSE;
+	blank_flag = plus_flag = FALSE;
+	for (;;)
+	  {
+	    next = *++ptr;
+	    if (next == '#')
+	      alternate_flag = TRUE;
+	    else if (next == '0')
+	      zero_flag = TRUE;
+	    else if (next == '-')
+	      left_adjust_flag = TRUE;
+	    else if (next == ' ')
+	      blank_flag = TRUE;
+	    else if (next == '+')
+	      plus_flag = TRUE;
+	    else
+	      {
+		ptr--;
+		break;
+	      }
+	  }
+	next = *++ptr;
+	width = 0;
+	width_flag = FALSE;
+	if (next >= '1' && next <= '9')
+	  {
+	    width_flag = TRUE;
+	    do
+	      {
+		if (width <= MAX_INT / 10)
+		  {
+		    width *= 10;
+		    if (width <= MAX_INT - (next - '0'))
+		      width += next - '0';
+		    else
+		      width = -1;
+		  }
+		else
+		  width = -1;
+		if (width < 0)
+		  eval_error (invfmt_decl, invcalls_decl, IR_pos (cpc),
+			      DERR_invalid_format, function_name);
+		next = *++ptr;
+	      }
+	    while (next >= '0' && next <= '9');
+	    ptr--;
+	  }
+	else if (next == '*')
+	  {
+	    width_flag = TRUE;
+	    if (curr_par_num > 0)
+	      eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_parameters_number, function_name);
+	    val = INDEXED_VAL (ER_CTOP (), curr_par_num);
+	    if (ER_NODE_MODE (val) != ER_NM_int)
+	      eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_parameter_type, function_name);
+	    width = ER_i (val);
+	    if (width < 0)
+	      {
+		left_adjust_flag = TRUE;
+		width = -width;
+	      }
+	    curr_par_num++;
+	  }
+	else
+	  ptr--;
+	next = *++ptr;
+	precision = 0;
+	precision_flag = FALSE;
+	if (next == '.')
+	  {
+	    precision_flag = TRUE;
+	    next = *++ptr;
+	    if (next == '*')
+	      {
+		if (curr_par_num > 0)
+		  eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
+			      DERR_parameters_number, function_name);
+		val = INDEXED_VAL (ER_CTOP (), curr_par_num);
+		if (ER_NODE_MODE (val) != ER_NM_int)
+		  eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+			      DERR_parameter_type, function_name);
+		precision = ER_i (val);
+		if (precision < 0)
+		  precision = 0;
+		curr_par_num++;
+	      }
+	    else if (next >= '0' && next <= '9')
+	      {
+		do
+		  {
+		    if (precision <= MAX_INT / 10)
+		      {
+			precision *= 10;
+			if (precision <= MAX_INT - (next - '0'))
+			  precision += next - '0';
+			else
+			  precision = -1;
+		      }
+		    else
+		      precision = -1;
+		    if (precision < 0)
+		      eval_error (invfmt_decl, invcalls_decl, IR_pos (cpc),
+				  DERR_invalid_format, function_name);
+		    next = *++ptr;
+		  }
+		while (next >= '0' && next <= '9');
+		ptr--;
+	      }
+	    else
+	      ptr--;
+	  }
+	else
+	  ptr--;
+	next = *++ptr;
+	curr_fmt = res_fmt;;
+	*curr_fmt++ = '%';
+	if (alternate_flag)
+	  *curr_fmt++ = '#';
+	if (zero_flag)
+	  *curr_fmt++ = '0';
+	if (left_adjust_flag)
+	  *curr_fmt++ = '-';
+	if (blank_flag)
+	  *curr_fmt++ = ' ';
+	if (plus_flag)
+	  *curr_fmt++ = '+';
+	if (width_flag && width != 0)
+	  curr_fmt += sprintf (curr_fmt, "%d", width);
+	if (precision_flag)
+	  curr_fmt += sprintf (curr_fmt, ".%d", precision);
+	if (next == '%')
+	  {
+	    if (alternate_flag || zero_flag || left_adjust_flag
+		|| blank_flag || plus_flag || width_flag || precision_flag)
+	      eval_error (invfmt_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_invalid_format, function_name);
+	    VLO_ADD_BYTE (temp_vlobj, '%');
+	    continue;
+	  }
+	if (curr_par_num > 0)
+	  eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
+		      DERR_parameters_number, function_name);
+	val = INDEXED_VAL (ER_CTOP (), curr_par_num);
+	add = width + 5;
+	if (next == 'd' || next == 'o' || next == 'x' || next == 'X'
+	    || next == 'a' || next == 'A' || next == 'e' || next == 'E'
+	    || next == 'f' || next == 'F' || next == 'g' || next == 'G')
+	  {
+	    if ((next == 'd' && alternate_flag)
+		|| ((next == 'o' || next == 'x' || next == 'X')
+		    && (blank_flag || plus_flag)))
+	      eval_error (invfmt_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_invalid_format, function_name);
+	    curr_fmt += sprintf (curr_fmt, "%c", next);
+	    add += 100;
+	    VLO_EXPAND (temp_vlobj, add);
+	    if (next == 'd' || next == 'o' || next == 'x' || next == 'X')
+	      {
+		if (ER_NODE_MODE (val) != ER_NM_int)
+		  eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+			      DERR_parameter_type, function_name);
+		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
+			       ER_i (val));
+	      }
+	    else
+	      {
+		if (ER_NODE_MODE (val) != ER_NM_float)
+		  eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+			      DERR_parameter_type, function_name);
+		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
+			       ER_f (val));
+	      }
+	  }
+	else if (next == 'c')
+	  {
+	    if (alternate_flag || zero_flag || blank_flag || plus_flag
+		|| precision_flag)
+	      eval_error (invfmt_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_invalid_format, function_name);
+	    
+	    *curr_fmt++ = 'c';
+	    *curr_fmt++ = '\0';
+	    add += 10;
+	    VLO_EXPAND (temp_vlobj, add);
+	    if (ER_NODE_MODE (val) != ER_NM_char)
+	      eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_parameter_type, function_name);
+	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
+			   ER_ch (val));
+	  }
+	else if (next == 's')
+	  {
+	    if (alternate_flag || zero_flag || blank_flag || plus_flag)
+	      eval_error (invfmt_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_invalid_format, function_name);
+	    *curr_fmt++ = 's';
+	    *curr_fmt++ = '\0';
+	    to_vect_string_conversion (val, NULL);
+	    if (ER_NODE_MODE (val) != ER_NM_vect
+		|| ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
+		|| ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
+	      eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+			  DERR_parameter_type, function_name);
+	    str = ER_pack_els (ER_vect (val));
+	    add += strlen (str) + 10;
+	    VLO_EXPAND (temp_vlobj, add);
+	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
+			   str);
+	  }
+	else
+	  eval_error (invfmt_decl, invcalls_decl, IR_pos (cpc),
+		      DERR_invalid_format, function_name);
+	curr_par_num++;
+	assert (out < add);
+	VLO_SHORTEN (temp_vlobj, add - out);
+      }
+  if (curr_par_num != 1)
+    eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
+		DERR_parameters_number, function_name);
+  VLO_ADD_BYTE (temp_vlobj, '\0');
+  if (errno != 0)
+    process_system_errors (function_name);
+  finish_output (f, pars_number);
+}
+
+void
+putf_call (int_t pars_number)
+{
+  general_putf_call (stdout, pars_number, STANDARD_FILE);
+}
+
+void
+fputf_call (int_t pars_number)
+{
+  general_putf_call (file_function_call_start (pars_number, FPUTF_NAME),
+		    pars_number, GIVEN_FILE);
+}
+
+void
+sputf_call (int_t pars_number)
+{
+  general_putf_call (NULL, pars_number, NO_FILE);
+}
+
 void
 getun_call (int_t pars_number)
 {

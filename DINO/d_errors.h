@@ -145,6 +145,8 @@ extern char DERR_parameter_type [];
 extern char DERR_invalid_result [];
 /* Invalid input. */
 extern char DERR_invalid_input [];
+/* Invalid format. */
+extern char DERR_invalid_format [];
 /* EOF. */
 extern char DERR_eof_occured [];
 /* Parameter number. */

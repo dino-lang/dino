@@ -264,6 +264,7 @@ typedef IR_node_t pc_t;
   "      class partype (msg) {}\n"\
   "      class invresult (msg) {}\n"\
   "      class invinput (msg) {}\n"\
+  "      class invfmt (msg) {}\n"\
   "      class eof (msg) {}\n"\
   "      class parnumber (msg) {}\n"\
   "      class syserror (msg) {\n"\
@@ -454,6 +455,7 @@ typedef IR_node_t pc_t;
   "func tell() {} func seek() {}\n"\
   "func put(){} func putln(){}\n"\
   "func fput(){} func fputln(){} func sput(){} func sputln(){}\n"\
+  "func putf (){} func fputf (){} func sputf (){}\n"\
   "func print(){} func println(){}\n"\
   "func fprint(){} func fprintln(){} func sprint(){} func sprintln(){}\n"\
   "func get(){} func getln(){} func getf(){}\n"\
@@ -542,6 +544,9 @@ extern IR_node_t invresult_decl;
 
 #define INVINPUT_NAME "invinput"
 extern IR_node_t invinput_decl;
+
+#define INVFMT_NAME "invfmt"
+extern IR_node_t invfmt_decl;
 
 #define EOF_NAME "eof"
 extern IR_node_t eof_decl;
@@ -1083,6 +1088,15 @@ extern IR_node_t sput_decl;
 
 #define SPUTLN_NAME "sputln"
 extern IR_node_t sputln_decl;
+
+#define PUTF_NAME "putf"
+extern IR_node_t putf_decl;
+
+#define FPUTF_NAME "fputf"
+extern IR_node_t fputf_decl;
+
+#define SPUTF_NAME "sputf"
+extern IR_node_t sputf_decl;
 
 #define PRINT_NAME "print"
 extern IR_node_t print_decl;
@@ -2295,6 +2309,7 @@ IR_node_t callop_decl;
 IR_node_t partype_decl;
 IR_node_t invresult_decl;
 IR_node_t invinput_decl;
+IR_node_t invfmt_decl;
 IR_node_t eof_decl;
 IR_node_t parnumber_decl;
 IR_node_t syserror_decl;
@@ -2475,6 +2490,9 @@ IR_node_t fput_decl;
 IR_node_t fputln_decl;
 IR_node_t sput_decl;
 IR_node_t sputln_decl;
+IR_node_t putf_decl;
+IR_node_t fputf_decl;
+IR_node_t sputf_decl;
 IR_node_t print_decl;
 IR_node_t println_decl;
 IR_node_t fprint_decl;
@@ -2538,6 +2556,7 @@ static struct decl_entry decls_table [] =
   {&partype_decl, PARTYPE_NAME, &invcall_decl, NULL},
   {&invresult_decl, INVRESULT_NAME, &invcall_decl, NULL},
   {&invinput_decl, INVINPUT_NAME, &invcall_decl, NULL},
+  {&invfmt_decl, INVFMT_NAME, &invcall_decl, NULL},
   {&eof_decl, EOF_NAME, &invcall_decl, NULL},
   {&parnumber_decl, PARNUMBER_NAME, &invcall_decl, NULL},
   {&syserror_decl, SYSERROR_NAME, &invcall_decl, NULL},
@@ -2728,6 +2747,9 @@ static struct decl_entry decls_table [] =
   {&fputln_decl, FPUTLN_NAME, NULL, fputln_call},
   {&sput_decl, SPUT_NAME, NULL, sput_call},
   {&sputln_decl, SPUTLN_NAME, NULL, sputln_call},
+  {&putf_decl, PUTF_NAME, NULL, putf_call},
+  {&fputf_decl, FPUTF_NAME, NULL, fputf_call},
+  {&sputf_decl, SPUTF_NAME, NULL, sputf_call},
   {&print_decl, PRINT_NAME, NULL, print_call},
   {&println_decl, PRINTLN_NAME, NULL, println_call},
   {&fprint_decl, FPRINT_NAME, NULL, fprint_call},
