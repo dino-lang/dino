@@ -1,3 +1,69 @@
+2001-10-26  Vladimir Makarov  <users.sourceforge.net>
+
+	* DINO/Makefile.in (DINO_VERSION): New macro.
+	(distdir, libdir, includedir, OPTIONS): Use the new macro.
+	(install): Copy the executable with version in the name.
+
+	* DINO/compare.tst: New tests.  Print versions of the
+	interpreters.  New parameter to run only DINO tests.
+
+	* DINO/d_context.c (fourth_block_passing): Process chain starting
+	with next_pc.
+
+	* DINO/d_conv.c (implicit_arithmetic_conversion): Use ctop instead
+	of free.
+	(implicit_conversion_for_binary_arithmetic,
+	implicit_int_conversion): Change depths in
+	implicit_arithmetic_conversion calls.
+	(implicit_eq_conversion): Use ctop instead of free.
+	(implicit_conversion_for_eq_op): Change depths in
+	implicit_eq_conversion calls.
+
+	* DINO/d_dino.c (d_main): Use macro DINO_VERSION.
+
+	* DINO/d_eval.c (push_var_ref, store_vector_element,
+	store_table_element, store_designator_value, prepare_op_assign):
+	Use ctop instead of free.
+	(evaluate): Ditto.  Change depths in calls of
+	implicit_arithmetic_conversion, implicit_int_conversion.
+
+	* DINO/d_extern.sprut (DECR_FREE): Change it onto DECR_TOP.
+	(DECR_CTOP): New macro.
+	(heap_stack): Rename field free onto ctop.
+
+	* DINO/d_func.c (min_max_call, to_lower_upper, eltype_call,
+	keys_call, context_call, inside_call, match_call, gmatch_call,
+	generall_sub_call, generall_sub_call, split_call, subv_call,
+	cmpv_call, del_call, general_ins_call, rev_call, sort_call,
+	get_file, rename_call, mkdir_call, rmdir_call, getcwd_call,
+	chdir_call, general_chmod, isatty_call, open_call, close_call,
+	flush_call, popen_call, pclose_call, tell_call, seek_call,
+	file_function_call_start, general_put_call, general_print_call,
+	getf_call, fgetf_call, scanel, str_function_end, getgroups_call,
+	float_function_start, float_function_start2,
+	float_function_finish, general_rand_call, readdir_call,
+	ftype_call, stat_finish, fun_call, fgn_call, mode_finish,
+	time_call, strtime_call, clock_call, gc_call, system_call,
+	exit_call, init_call, call_external_func, create_instance,
+	int_earley_parse_grammar, int_earley_set_debug_level,
+	int_earley_set_one_parse_flag, int_earley_set_error_recovery_flag,
+	int_earley_set_recovery_match, int_earley_parse): Use ctop instead
+	of free.  Change depths in calls of implicit_arithmetic_conversion
+	and implicit_int_conversion.
+	(process_func_class_call): Ditto.  Save ctop and set up new one.
+
+	* DINO/d_run.sprut (ER_CTOP): New macro.
+	(SET_TOP, TOP_UP, TOP_DOWN): Use ctop instead of free.  New
+	variants of macros.
+	(traverse_used_heap_object, change_obj_refs): Use ctop instead of
+	free.
+	(gc): Save and restore ctop.
+	(heap_push): Ditto.  Use ctop instead of free.
+	(heap_pop, activate_given_process): Save and restore ctop.
+
+	* DINO/dino.tst.in (test 356): Change output because of added
+	optimizations.
+	
 2001-10-18  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_func.c (del_call): Fix typo in the condition.

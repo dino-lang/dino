@@ -462,7 +462,7 @@ dino_main (int argc, char *argv[], char *envp[])
 #endif
   if (argument_count == 1)
     {
-      fprintf (stderr, "Version 0.53\n");
+      fprintf (stderr, "Version %.2f\n", DINO_VERSION);
       output_command_line_description ();
       dino_finish (1);
     }

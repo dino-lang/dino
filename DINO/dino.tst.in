@@ -20630,16 +20630,18 @@ FULFILL
 PUBLISH
 waitfor output 15 ctime 14
 tick 15
+ROTATE left_back_hoof 0 0 1 1
+step 15
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 16 ctime 15
 ROTATE right_back_hoof 0 0 1 1
 waitfor right 16 ctime 15
 FULFILL
 PUBLISH
 waitfor output 16 ctime 15
-ROTATE left_back_hoof 0 0 1 1
-step 15
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 16 ctime 15
 tick 16
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 17 ctime 16
 ROTATE right_back_hoof 0 0 1 1
 step 16
 ROTATE right_back_hoof 0 0 1 -1
@@ -20647,27 +20649,27 @@ waitfor right 17 ctime 16
 FULFILL
 PUBLISH
 waitfor output 17 ctime 16
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 17 ctime 16
 tick 17
+ROTATE left_back_hoof 0 0 1 1
+waitfor left 18 ctime 17
 ROTATE right_back_hoof 0 0 1 -1
 waitfor right 18 ctime 17
 FULFILL
 PUBLISH
 waitfor output 18 ctime 17
-ROTATE left_back_hoof 0 0 1 1
-waitfor left 18 ctime 17
 tick 18
+ROTATE left_back_hoof 0 0 1 1
+step 18
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 19 ctime 18
 ROTATE right_back_hoof 0 0 1 1
 waitfor right 19 ctime 18
 FULFILL
 PUBLISH
 waitfor output 19 ctime 18
-ROTATE left_back_hoof 0 0 1 1
-step 18
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 19 ctime 18
 tick 19
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 20 ctime 19
 ROTATE right_back_hoof 0 0 1 1
 step 19
 ROTATE right_back_hoof 0 0 1 -1
@@ -20675,27 +20677,27 @@ waitfor right 20 ctime 19
 FULFILL
 PUBLISH
 waitfor output 20 ctime 19
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 20 ctime 19
 tick 20
+ROTATE left_back_hoof 0 0 1 1
+waitfor left 21 ctime 20
 ROTATE right_back_hoof 0 0 1 -1
 waitfor right 21 ctime 20
 FULFILL
 PUBLISH
 waitfor output 21 ctime 20
-ROTATE left_back_hoof 0 0 1 1
-waitfor left 21 ctime 20
 tick 21
+ROTATE left_back_hoof 0 0 1 1
+step 21
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 22 ctime 21
 ROTATE right_back_hoof 0 0 1 1
 waitfor right 22 ctime 21
 FULFILL
 PUBLISH
 waitfor output 22 ctime 21
-ROTATE left_back_hoof 0 0 1 1
-step 21
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 22 ctime 21
 tick 22
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 23 ctime 22
 ROTATE right_back_hoof 0 0 1 1
 step 22
 ROTATE right_back_hoof 0 0 1 -1
@@ -20703,27 +20705,27 @@ waitfor right 23 ctime 22
 FULFILL
 PUBLISH
 waitfor output 23 ctime 22
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 23 ctime 22
 tick 23
+ROTATE left_back_hoof 0 0 1 1
+waitfor left 24 ctime 23
 ROTATE right_back_hoof 0 0 1 -1
 waitfor right 24 ctime 23
 FULFILL
 PUBLISH
 waitfor output 24 ctime 23
-ROTATE left_back_hoof 0 0 1 1
-waitfor left 24 ctime 23
 tick 24
+ROTATE left_back_hoof 0 0 1 1
+step 24
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 25 ctime 24
 ROTATE right_back_hoof 0 0 1 1
 waitfor right 25 ctime 24
 FULFILL
 PUBLISH
 waitfor output 25 ctime 24
-ROTATE left_back_hoof 0 0 1 1
-step 24
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 25 ctime 24
 tick 25
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 26 ctime 25
 ROTATE right_back_hoof 0 0 1 1
 step 25
 ROTATE right_back_hoof 0 0 1 -1
@@ -20731,27 +20733,27 @@ waitfor right 26 ctime 25
 FULFILL
 PUBLISH
 waitfor output 26 ctime 25
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 26 ctime 25
 tick 26
+ROTATE left_back_hoof 0 0 1 1
+waitfor left 27 ctime 26
 ROTATE right_back_hoof 0 0 1 -1
 waitfor right 27 ctime 26
 FULFILL
 PUBLISH
 waitfor output 27 ctime 26
-ROTATE left_back_hoof 0 0 1 1
-waitfor left 27 ctime 26
 tick 27
+ROTATE left_back_hoof 0 0 1 1
+step 27
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 28 ctime 27
 ROTATE right_back_hoof 0 0 1 1
 waitfor right 28 ctime 27
 FULFILL
 PUBLISH
 waitfor output 28 ctime 27
-ROTATE left_back_hoof 0 0 1 1
-step 27
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 28 ctime 27
 tick 28
+ROTATE left_back_hoof 0 0 1 -1
+waitfor left 29 ctime 28
 ROTATE right_back_hoof 0 0 1 1
 step 28
 ROTATE right_back_hoof 0 0 1 -1
@@ -20759,23 +20761,21 @@ waitfor right 29 ctime 28
 FULFILL
 PUBLISH
 waitfor output 29 ctime 28
-ROTATE left_back_hoof 0 0 1 -1
-waitfor left 29 ctime 28
 tick 29
+ROTATE left_back_hoof 0 0 1 1
+waitfor left 30 ctime 29
 ROTATE right_back_hoof 0 0 1 -1
 waitfor right 30 ctime 29
 FULFILL
 PUBLISH
 waitfor output 30 ctime 29
-ROTATE left_back_hoof 0 0 1 1
-waitfor left 30 ctime 29
 tick 30
+ROTATE left_back_hoof 0 0 1 1
 ROTATE right_back_hoof 0 0 1 1
 waitfor right 31 ctime 30
 FULFILL
 PUBLISH
 waitfor output 31 ctime 30
-ROTATE left_back_hoof 0 0 1 1
 tick 31
 ROTATE right_back_hoof 0 0 1 1
 FULFILL

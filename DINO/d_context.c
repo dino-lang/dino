@@ -2085,6 +2085,8 @@ fourth_block_passing (IR_node_t first_level_stmt)
 	default:
 	  assert (FALSE);
 	}
+      assert (IR_IS_OF_TYPE (stmt, IR_NM_generic_pos));
+      IR_set_next_pc (stmt, go_through (IR_next_pc (stmt)));
     }
 }
 #endif

@@ -194,8 +194,14 @@ extern void *get_library_search_function (const char *name);
    _indexed_entry_val (first_entry, index)
 #endif
 
-#define DECR_FREE(stack, decr)\
-   ER_set_free ((stack), ER_free (stack) - (decr) * (int) sizeof (val_t))
+#define DECR_TOP(stack, decr)\
+   ER_set_ctop ((stack), ER_ctop (stack) - (decr) * (int) sizeof (val_t))
+
+#ifdef NO_OPTIMIZE
+#define DECR_CTOP(decr) DECR_TOP (cstack, decr)
+#else
+#define DECR_CTOP(decr) (ctop = INDEXED_VAL (ctop, -(decr)))
+#endif
 
 #ifndef NDEBUG
 size_t _alloc_size(size_t s);
@@ -390,9 +396,9 @@ heap_stack :: heap_obj, context
      prev_stack - cstack may be additional environments (stacks or
      instances. */
   prev_stack : heap_stack
-  /* Pointer to the first free temporary var of the block at the
+  /* Pointer to the last temporary var of the block at the
      current time.  We use char_ptr_t to prevent the checking. */
-  free : char_ptr_t
+  ctop : char_ptr_t
   /* The first var is placed immediately after this node in the heap.
      Temporary vars are placed after all permanent vars. */
 ;

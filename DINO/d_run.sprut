@@ -26,26 +26,52 @@ extern ER_node_t uppest_stack;
 extern ER_node_t ctop;
 extern ER_node_t below_ctop;
 
+#ifdef NO_OPTIMIZE
+#define ER_CTOP() ER_ctop (cstack)
+#else
+#define ER_CTOP() ctop
+#endif
+
+#ifdef NO_OPTIMIZE
 #define SET_TOP\
    do {\
-     ctop = INDEXED_VAL (ER_free (cstack), -1);\
-     below_ctop = INDEXED_VAL (ER_free (cstack), -2);\
+     ctop = (ER_node_t) ER_CTOP ();\
+     below_ctop = INDEXED_VAL (ctop, -1);\
    } while (0)
 
 #define TOP_UP\
    do {\
-     DECR_FREE (cstack, -1);\
      below_ctop = ctop;\
-     ctop = INDEXED_VAL (ER_free (cstack), -1);\
+     DECR_CTOP (-1);\
+     ctop = (ER_node_t) ER_CTOP ();\
    } while (0)
 
 #define TOP_DOWN\
    do {\
-     DECR_FREE (cstack, 1);\
-     ctop = below_ctop;\
-     below_ctop = INDEXED_VAL (ER_free (cstack), -2);\
+     DECR_CTOP (1);\
+     ctop = (ER_node_t) ER_CTOP ();\
+     below_ctop = INDEXED_VAL (ctop, -1);\
    } while (0)
 
+#else
+#define SET_TOP\
+   do {\
+     below_ctop = INDEXED_VAL (ctop, -1);\
+   } while (0)
+
+#define TOP_UP\
+   do {\
+     below_ctop = ctop;\
+     ctop = INDEXED_VAL (ctop, 1);\
+   } while (0)
+
+#define TOP_DOWN\
+   do {\
+     ctop = below_ctop;\
+     below_ctop = INDEXED_VAL (ctop, -1);\
+   } while (0)
+
+#endif
 extern vlo_t heap_temp_refs;
 
 #define CREATE_TEMP_REF() VLO_CREATE (heap_temp_refs, 256)
@@ -975,7 +1001,7 @@ traverse_used_heap_object (ER_node_t obj)
 	traverse_used_heap_object (ER_prev_stack (obj));
 	traverse_used_heap_object (ER_context (obj));
 	for (var = ER_stack_vars (obj);
-	     (char *) var < ER_free (obj);
+	     (char *) var <= ER_ctop (obj);
 	     var = INDEXED_VAL (var, 1))
 	  traverse_used_var (var);
 	return;
@@ -1261,19 +1287,19 @@ change_obj_refs (ER_node_t obj)
       case ER_NM_heap_stack:
 	{
 	  ER_node_t var;
-	  size_t stack_size;
+	  size_t diff;
 	  
 	  CHANGE_REF (((_ER_heap_stack *) obj)
 		      ->_ER_S_heap_stack._ER_M_context.context);
 	  CHANGE_REF (((_ER_heap_stack *) obj)->_ER_S_heap_stack.prev_stack);
 	  for (var = ER_stack_vars (obj);
-	       (char *) var < ER_free (obj);
+	       (char *) var <= ER_ctop (obj);
 	       var = INDEXED_VAL (var, 1))
 	    change_var (var);
-	  stack_size = ((char *) ER_free (obj) - (char *) ER_stack_vars (obj));
-	  ((_ER_heap_stack *) obj)->_ER_S_heap_stack.free
+	  diff = ((char *) ER_ctop (obj) - (char *) ER_stack_vars (obj));
+	  ((_ER_heap_stack *) obj)->_ER_S_heap_stack.ctop
 	    = (ER_new_place (obj)
-	       + ALLOC_SIZE (sizeof (_ER_heap_stack)) + stack_size);
+	       + ALLOC_SIZE (sizeof (_ER_heap_stack)) + diff);
 	  break;
 	}
       case ER_NM_heap_process:
@@ -1479,6 +1505,9 @@ gc (void)
     ticker_on (&gc_ticker);
 #endif
   in_gc_p = TRUE;
+#ifndef NO_OPTIMIZE
+  ER_set_ctop (cstack, (char *) ctop);
+#endif
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
@@ -1488,6 +1517,9 @@ gc (void)
   define_new_heap_object_places ();
   change_refs ();
   compact_heap ();
+#ifndef NO_OPTIMIZE
+  ctop = (ER_node_t) ER_ctop (cstack);
+#endif
   SET_TOP;
   gc_number++;
   free_gc_memory_percent
@@ -1540,7 +1572,6 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context)
 {
   ER_node_t stack;
   ER_node_t curr_var;
-  char *free;
   IR_node_t func_class;
 
   /* Remember about possible GC. */
@@ -1582,20 +1613,27 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context)
   ER_set_context_number (stack, context_number);
   context_number++;
   ER_set_prev_stack (stack, cstack);
+#ifndef NO_OPTIMIZE
+  if (cstack != NULL)
+    ER_set_ctop (cstack, (char *) ctop);
+#endif
   cstack = stack;
   ER_set_block_node (stack, block_node_ptr);
-  free = ((char *) ER_stack_vars (stack)
-          + REAL_BLOCK_VARS_NUMBER (block_node_ptr) * sizeof (val_t));
+  ctop
+     = (ER_node_t) ((char *) ER_stack_vars (stack)
+                    + REAL_BLOCK_VARS_NUMBER (block_node_ptr) * sizeof (val_t)
+	            - sizeof (val_t));
   /* Seting up mode of all permanent stack vars as nil. */
   for (curr_var = ER_stack_vars (stack);
-       (char *) curr_var < free;
+       curr_var <= ctop;
        curr_var = INDEXED_VAL (curr_var, 1))
     ER_SET_MODE (curr_var, ER_NM_nil);
   /* We set them only here because we need to set mode before.
      Remeber about possible field checking. */
-  ER_set_free (stack, free);
-  if (cstack != NULL)
-    SET_TOP;
+#ifdef NO_OPTIMIZE
+  ER_set_ctop (stack, (char *) ctop);
+#endif
+  SET_TOP;
 }
 
 /* The following func finishes work of the block, modifing cstack and
@@ -1619,7 +1657,16 @@ heap_pop (void)
 #ifndef NO_CONTAINER_CACHE
   IR_set_cached_container_address (block_node, NULL);
 #endif
+#ifndef NO_OPTIMIZE
+  ER_set_ctop (cstack, (char *) ctop);
+#endif
   cstack = ER_prev_stack (cstack);
+#ifndef NO_OPTIMIZE
+  if (cstack == NULL)
+    ctop = NULL;
+  else
+    ctop = (ER_node_t) ER_ctop (cstack);
+#endif
   if (!IR_extended_life_context_flag (block_node)
       && try_heap_stack_free (stack, heap_object_size (stack))
       && ER_saved_cstack (cprocess) == stack)
@@ -2625,7 +2672,14 @@ activate_given_process (ER_node_t process)
 #endif
   cprocess = process;
   cpc = ER_saved_pc (cprocess);
+#ifndef NO_OPTIMIZE
+  if (cstack != NULL)
+    ER_set_ctop (cstack, (char *) ctop);
+#endif
   cstack = ER_saved_cstack (cprocess);
+#ifndef NO_OPTIMIZE
+  ctop = (ER_node_t) ER_ctop (cstack);
+#endif
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif

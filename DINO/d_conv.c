@@ -119,8 +119,7 @@ __inline__
 void
 implicit_arithmetic_conversion (int depth)
 {
-  implicit_var_arithmetic_conversion
-    (INDEXED_VAL (ER_free (cstack), -depth));
+  implicit_var_arithmetic_conversion (INDEXED_VAL (ER_CTOP (), -depth));
 }
 
 void
@@ -129,8 +128,8 @@ implicit_conversion_for_binary_arithmetic_op (void)
   int float_flag;
   floating_t f;
 
+  implicit_arithmetic_conversion (0);
   implicit_arithmetic_conversion (1);
-  implicit_arithmetic_conversion (2);
   float_flag = (ER_NODE_MODE (ctop) == ER_NM_float
 		|| ER_NODE_MODE (below_ctop) == ER_NM_float);
   if (float_flag && ER_NODE_MODE (ctop) == ER_NM_int)
@@ -157,7 +156,7 @@ implicit_int_conversion (int depth)
   int_t i;
 
   implicit_arithmetic_conversion (depth);
-  var = INDEXED_VAL (ER_free (cstack), -depth);
+  var = INDEXED_VAL (ER_CTOP (), -depth);
   if (ER_NODE_MODE (var) == ER_NM_float)
     {
       i = (int_t) ER_f (var);
@@ -169,8 +168,8 @@ implicit_int_conversion (int depth)
 void
 implicit_conversion_for_binary_int_op (void)
 {
+  implicit_int_conversion (0);
   implicit_int_conversion (1);
-  implicit_int_conversion (2);
 }
 
 #if INLINE && !defined (SMALL_CODE)
@@ -182,7 +181,7 @@ implicit_eq_conversion (int depth)
   int_t i;
   ER_node_t var;
 
-  var = INDEXED_VAL (ER_free (cstack), -depth);
+  var = INDEXED_VAL (ER_CTOP (), -depth);
   if (ER_NODE_MODE (var) == ER_NM_char)
     {
       i = ER_ch (var);
@@ -234,8 +233,8 @@ implicit_conversion_for_eq_op (void)
     }
   else
     {
+      implicit_eq_conversion (0);
       implicit_eq_conversion (1);
-      implicit_eq_conversion (2);
       float_flag = (ER_NODE_MODE (ctop) == ER_NM_float
 		    || ER_NODE_MODE (below_ctop) == ER_NM_float);
       if (float_flag && ER_NODE_MODE (ctop) == ER_NM_int)

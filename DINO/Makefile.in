@@ -40,10 +40,12 @@
 
 SHELL=/bin/sh
 
+DINO_VERSION=0.54
+
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.  Don't forget cange version
 # number in d_dino.c
-distdir = dino-0.53
+distdir = dino-$(DINO_VERSION)
 
 # Use only full path name for the directory bindir
 # Common prefix for installation directories.
@@ -58,7 +60,7 @@ exec_prefix=@exec_prefix@
 bindir=@bindir@
 
 # The directory for installation of dino program.
-libdir=@libdir@
+libdir=@libdir@/dino-$(DINO_VERSION)
 
 # The directory for installation of man pages
 mandir=@mandir@
@@ -67,7 +69,7 @@ mandir=@mandir@
 man1dir=$(mandir)/man1
 
 # The directory for installation of header files.
-includedir=@includedir@
+includedir=@includedir@/dino-$(DINO_VERSION)
 
 # Utility for installation `dino'.
 INSTALL=@INSTALL@
@@ -119,6 +121,7 @@ DINO_LIB_NAME=\"$(dino_lib)\"
 # Obligatory compiler options
 OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION  -I../AMMUNITION -I$(srcdir)\
         -I@top_srcdir@/REGEX\
+	-DDINO_VERSION=$(DINO_VERSION)\
         -DSTANDARD_DINO_INCLUDE_DIRECTORY=$(DINO_LIBRARY_DIRECTORY)\
         -DSTANDARD_DINO_EXTERN_LIBS=$(DINO_EXTERN_LIBS_PATH)\
         -DSTANDARD_DINO_LIB_DIRECTORY=$(DINO_LIBRARY_DIRECTORY)\
@@ -241,6 +244,7 @@ test : dino
 # the interpreter `dino' and its man file to target directories.
 install: all
 	-mkdir $(bindir)
+	$(INSTALL) dino $(bindir)/dino-$(DINO_VERSION)
 	$(INSTALL) dino $(bindir)/dino
 	-mkdir $(libdir)
 	$(INSTALLDATA) $(dino_lib) $(libdir)
