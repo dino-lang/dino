@@ -76,6 +76,7 @@ extern void cos_call (int_t pars_number);
 extern void atan2_call (int_t pars_number);
 extern void rand_call (int_t pars_number);
 extern void srand_call (int_t pars_number);
+extern void process_errno_call (int_t pars_number);
 extern void readdir_call (int_t pars_number);
 extern void ftype_call (int_t pars_number);
 extern void fun_call (int_t pars_number);

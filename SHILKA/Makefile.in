@@ -291,40 +291,74 @@ depend : ird.c ird.h yacc.c
 # The following is generated with the aid of Makefile entry depend
 # Do not place anything below this line
 #
-ird.o: ird.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
- ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
+ird.o: ird.c ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h
 	$(CC) -c $(CFLAGS) -o $@ ird.c
-common.o: $(top_srcdir)/SHILKA/common.c ../AMMUNITION/cocom-config.h \
- ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SHILKA/common.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/common.c
-tab.o: $(top_srcdir)/SHILKA/tab.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/SHILKA/common.h ird.h \
- $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SHILKA/tab.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/tab.c
-yacc.o: yacc.c ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/position.h \
- $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/vlobject.h \
- $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
- $(top_srcdir)/SHILKA/common.h $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/yacc.h
+common.o: $(top_srcdir)/SHILKA/../SHILKA/common.c \
+ ../AMMUNITION/cocom-config.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/SHILKA/../SHILKA/common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/../SHILKA/common.c
+tab.o: $(top_srcdir)/SHILKA/../SHILKA/tab.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/SHILKA/../SHILKA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/SHILKA/../SHILKA/tab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/../SHILKA/tab.c
+yacc.o: yacc.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SHILKA/../SHILKA/common.h \
+ $(top_srcdir)/SHILKA/../SHILKA/tab.h \
+ $(top_srcdir)/SHILKA/../SHILKA/yacc.h
 	$(CC) -c $(CFLAGS) -o $@ yacc.c
-anal.o: $(top_srcdir)/SHILKA/anal.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
- $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/SHILKA/common.h \
- $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/anal.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/anal.c
-gen.o: $(top_srcdir)/SHILKA/gen.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/hashtab.h $(top_srcdir)/AMMUNITION/bits.h $(top_srcdir)/AMMUNITION/ticker.h \
- $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/SHILKA/common.h \
- ird.h $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/position.h \
- $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/gen.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/gen.c
-main.o: $(top_srcdir)/SHILKA/main.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/commline.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
- $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h \
- $(top_srcdir)/AMMUNITION/ticker.h ird.h $(top_srcdir)/SHILKA/common.h \
- $(top_srcdir)/SHILKA/tab.h $(top_srcdir)/SHILKA/yacc.h $(top_srcdir)/SHILKA/anal.h $(top_srcdir)/SHILKA/gen.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/main.c
+anal.o: $(top_srcdir)/SHILKA/../SHILKA/anal.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SHILKA/../SHILKA/common.h \
+ $(top_srcdir)/SHILKA/../SHILKA/tab.h \
+ $(top_srcdir)/SHILKA/../SHILKA/anal.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/../SHILKA/anal.c
+gen.o: $(top_srcdir)/SHILKA/../SHILKA/gen.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/bits.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/SHILKA/../SHILKA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/SHILKA/../SHILKA/tab.h \
+ $(top_srcdir)/SHILKA/../SHILKA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/../SHILKA/gen.c
+main.o: $(top_srcdir)/SHILKA/../SHILKA/main.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/commline.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/ticker.h ird.h \
+ $(top_srcdir)/SHILKA/../SHILKA/common.h \
+ $(top_srcdir)/SHILKA/../SHILKA/tab.h \
+ $(top_srcdir)/SHILKA/../SHILKA/yacc.h \
+ $(top_srcdir)/SHILKA/../SHILKA/anal.h \
+ $(top_srcdir)/SHILKA/../SHILKA/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SHILKA/../SHILKA/main.c

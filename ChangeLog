@@ -1,3 +1,80 @@
+2002-03-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* Makefile.in: Check only_cocom_source_files on empty.
+
+	* acconfig.h (socklen_t, HAVE_INET_ATON): New undefs.
+
+	* configure.in: Check type scoklen_t, function inet_aton, and
+	libaray -lxnet.
+
+	* configure: Update.
+
+	* AMMUNITION/cocom-config.h.in: Update.
+
+	* DINO/Makefile.in (ipcerr_lib): New macro.
+	(DINO_EXTERN_LIBS, DINO_EXTERN_LIBS_PATH, source): Add files for
+	ipcerr.
+	(ipcerr_lib): New rule for building.
+	(install, uninstall, create-distdir, depend): Add files for
+	ipcerr.
+	Update dependencies.
+
+	* DINO/compare.tst: Add test numbers.
+
+	* DINO/d_main.c (get_library_search_function): Add code for ipcerr
+	and socket.
+	(ipcerr_address, socket_address): Add externals.
+	
+	* DINO/d_built.h (process_errno_call): New prototype.
+
+	* DINO/d_func.c (process_system_errors): Use strerror for
+	default message.
+	(process_errno_call): New function.
+
+	* DINO/d_ir.sprut (ENVIROMENT): New function __process_errno__.
+	(PROCESS_ERRNO_NAME): New macro.
+	(process_errno_decl): New global variable.
+	(decls_table): Add entry for __process_errno__.
+
+	* DINO/socket.d (ipcerr): Include it.
+	(socket_error): Extend error.
+	(invalid_address, host_not_found, no_address, no_recovery): New
+	classes in socket_error.
+	(socket_errors): New variable.
+	(socket_excepts): remove it from __scoket_package.
+	(_socket_invalid_address, _socket_host_not_found,
+	_socket_no_address, _socket_no_recovery, _socket_try_again): New
+	private external vars.
+	(generate_socket_exception): Change it.  Remove parameter.
+
+	* DINO/socket_int.c: Include d_config.h.
+	(_socket_invalid_address, _socket_host_not_found,
+	_socket_no_address, _socket_no_recovery, _socket_try_again): New
+	global vars.
+	(get_ip_address, _gethostinfo, _getservent, _sread, _swrite,
+	_recvfrom, _sendto, _accept, _stream_client, _dgram_client,
+	_stream_server, _dgram_server): Process errors.
+	(_socket_init): Set up _socket_invalid_address,
+	_socket_host_not_found, _socket_no_address, _socket_no_recovery,
+	_socket_try_again.
+	(socket_address): New function.
+
+	* MSTA/Makefile.in: Update dependencies.
+
+	* NONA/Makefile.in: Ditto.
+
+	* OKA/Makefile.in: Ditto.
+
+	* SHILKA/Makefile.in: Ditto.
+
+	* SPRUT/Makefile.in: Ditto.
+
+	* AMMUNITION/Makefile.in: Ditto.
+
+	* DINO/ipcerr.d: New file.
+
+	* DINO/ipcerr_int.c: New file.
+	
 2002-03-18  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.c (earley_set_lookahead_level): Check the

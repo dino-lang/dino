@@ -412,6 +412,7 @@ typedef IR_node_t pc_t;
   "func match(){} func gmatch(){} func sub(){} func gsub(){}\n"\
   "func split(){} var split_regex = \"[ \t]+\";\n"\
   "func srand(){} func rand(){} \n"\
+  "func __process_errno__() {} \n"\
   "func readdir(){} func ftype () {}\n"\
   "func fun(){} func fgn () {} func fsize(){}\n"\
   "func fatime() {} func fmtime(){} func fctime () {}\n"\
@@ -938,6 +939,9 @@ extern IR_node_t srand_decl;
 
 #define RAND_NAME "rand"
 extern IR_node_t rand_decl;
+
+#define PROCESS_ERRNO_NAME "__process_errno__"
+extern IR_node_t process_errno_decl;
 
 #define READDIR_NAME "readdir"
 extern IR_node_t readdir_decl;
@@ -2366,6 +2370,7 @@ IR_node_t split_decl;
 IR_node_t split_regex_decl;
 IR_node_t srand_decl;
 IR_node_t rand_decl;
+IR_node_t process_errno_decl;
 IR_node_t readdir_decl;
 IR_node_t ftype_decl;
 IR_node_t fun_decl;
@@ -2618,6 +2623,7 @@ static struct decl_entry decls_table [] =
   {&split_decl, SPLIT_NAME, NULL, split_call},
   {&srand_decl, SRAND_NAME, NULL, srand_call},
   {&rand_decl, RAND_NAME, NULL, rand_call},
+  {&process_errno_decl, PROCESS_ERRNO_NAME, NULL, process_errno_call},
   {&readdir_decl, READDIR_NAME, NULL, readdir_call},
   {&ftype_decl, FTYPE_NAME, NULL, ftype_call},
   {&fun_decl, FUN_NAME, NULL, fun_call},

@@ -4083,11 +4083,40 @@ process_system_errors (const char *function_name)
       break;
 #endif
     default:
-      /* Internall error: may be something else. */
-      eval_error (internal_decl, invcalls_decl, IR_pos (cpc),
-		  DERR_internal_error, function_name);
+      /* We don't care does strerror exist or not because it is for
+         errors.c. */
+      assert (errno > 0);
+      eval_error (syserror_decl, invcalls_decl, IR_pos (cpc),
+		  strerror (errno), function_name);
       break;
     }
+}
+
+/* The function is not supposed to be used by Dino user.  It should be
+   used by developer of Dino external libraries. */
+void
+process_errno_call (int_t pars_number)
+{
+  const char *name;
+
+  if (pars_number > 1)
+    eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
+		DERR_parameters_number, PROCESS_ERRNO_NAME);
+  if (pars_number == 0)
+    name = "";
+  else
+    {
+      to_vect_string_conversion (ctop, NULL);
+      name = ER_pack_els (ER_vect (ctop));
+    }
+  if (errno)
+    process_system_errors (name);
+  /* Pop all actual parameters. */
+  DECR_CTOP (pars_number);
+  SET_TOP;
+  assert (result != NULL);
+  ER_SET_MODE (ctop, ER_NM_nil);
+  INCREMENT_PC();
 }
 
 void

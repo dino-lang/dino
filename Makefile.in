@@ -306,7 +306,7 @@ make-TAGS:
 	        $(ETAGS) -a @top_srcdir@/$$i/$$j;\
 	    done;\
 	done
-	$(ETAGS) -a $(only_cocom_source_files)
+	if test x$(only_cocom_source_files) != x; then $(ETAGS) -a $(only_cocom_source_files); fi
 # COCOM only end
 	$(ETAGS) -a $(source_files)
 

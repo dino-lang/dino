@@ -762,39 +762,69 @@ depend : ird.c ird.h yacc.c
 # Do not place anything below this line
 #
 ird.o: ird.c ../AMMUNITION/cocom-config.h ird.h \
- $(top_srcdir)/AMMUNITION/objstack.h $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h
 	$(CC) -c $(CFLAGS) -o $@ ird.c
-common.o: $(top_srcdir)/SPRUT/common.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
- ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SPRUT/common.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/common.c
-tab.o: $(top_srcdir)/SPRUT/tab.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/hashtab.h ird.h $(top_srcdir)/AMMUNITION/objstack.h \
- $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/SPRUT/common.h \
- $(top_srcdir)/SPRUT/tab.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/tab.c
-yacc.o: yacc.c ../AMMUNITION/cocom-config.h $(top_srcdir)/AMMUNITION/vlobject.h \
- $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/position.h \
- $(top_srcdir)/AMMUNITION/errors.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
- $(top_srcdir)/SPRUT/common.h $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/yacc.h
+common.o: $(top_srcdir)/SPRUT/../SPRUT/common.c ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/SPRUT/../SPRUT/common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/../SPRUT/common.c
+tab.o: $(top_srcdir)/SPRUT/../SPRUT/tab.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/SPRUT/../SPRUT/common.h \
+ $(top_srcdir)/SPRUT/../SPRUT/tab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/../SPRUT/tab.c
+yacc.o: yacc.c ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SPRUT/../SPRUT/common.h \
+ $(top_srcdir)/SPRUT/../SPRUT/tab.h \
+ $(top_srcdir)/SPRUT/../SPRUT/yacc.h
 	$(CC) -c $(CFLAGS) -o $@ yacc.c
-anal.o: $(top_srcdir)/SPRUT/anal.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
- $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/SPRUT/common.h \
- $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/anal.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/anal.c
-gen.o: $(top_srcdir)/SPRUT/gen.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/vlobject.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h $(top_srcdir)/SPRUT/common.h \
- $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/gen.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/gen.c
-main.o: $(top_srcdir)/SPRUT/main.c ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/AMMUNITION/allocate.h $(top_srcdir)/AMMUNITION/commline.h \
- $(top_srcdir)/AMMUNITION/position.h $(top_srcdir)/AMMUNITION/errors.h \
- $(top_srcdir)/AMMUNITION/vlobject.h $(top_srcdir)/AMMUNITION/objstack.h ird.h \
- $(top_srcdir)/SPRUT/common.h $(top_srcdir)/SPRUT/tab.h $(top_srcdir)/SPRUT/yacc.h $(top_srcdir)/SPRUT/anal.h \
- $(top_srcdir)/SPRUT/gen.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/main.c
+anal.o: $(top_srcdir)/SPRUT/../SPRUT/anal.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SPRUT/../SPRUT/common.h \
+ $(top_srcdir)/SPRUT/../SPRUT/tab.h \
+ $(top_srcdir)/SPRUT/../SPRUT/anal.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/../SPRUT/anal.c
+gen.o: $(top_srcdir)/SPRUT/../SPRUT/gen.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SPRUT/../SPRUT/common.h \
+ $(top_srcdir)/SPRUT/../SPRUT/tab.h \
+ $(top_srcdir)/SPRUT/../SPRUT/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/../SPRUT/gen.c
+main.o: $(top_srcdir)/SPRUT/../SPRUT/main.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/commline.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/SPRUT/../SPRUT/common.h \
+ $(top_srcdir)/SPRUT/../SPRUT/tab.h \
+ $(top_srcdir)/SPRUT/../SPRUT/yacc.h \
+ $(top_srcdir)/SPRUT/../SPRUT/anal.h \
+ $(top_srcdir)/SPRUT/../SPRUT/gen.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/SPRUT/../SPRUT/main.c

@@ -8,6 +8,8 @@
 /* See file mpi.c */
 extern void *mpi_address (const char *name);
 extern void *ieee_address (const char *name);
+extern void *ipcerr_address (const char *name);
+extern void *socket_address (const char *name);
 
 void *
 get_library_search_function (const char *name)
@@ -16,6 +18,10 @@ get_library_search_function (const char *name)
     return mpi_address;
   if (strcmp (name, "ieee") == 0)
     return ieee_address;
+  if (strcmp (name, "ipcerr") == 0)
+    return ipcerr_address;
+  if (strcmp (name, "socket") == 0)
+    return socket_address;
   /* You can add here new library (see mpi_address in mpi.c. */
   return NULL;
 }

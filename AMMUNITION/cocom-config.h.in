@@ -32,6 +32,12 @@
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 #undef WORDS_BIGENDIAN
 
+/* Define to `size_t' if socklen_t is not defined in <sys/socket.h>.  */
+#undef socklen_t
+
+/* Does inet_aton is present. */
+#undef HAVE_INET_ATON
+
 /* Define if you have the dlopen function.  */
 #undef HAVE_DLOPEN
 

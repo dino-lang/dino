@@ -80,7 +80,7 @@ if test $start_test_number -le 1; then
 
 ######################################################
 echo 
-echo '+++++ Test ackermann (good test for recursive functions N=7):  +++++'
+echo '+++++ Test #1 ackermann (good test for recursive functions N=7):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -185,7 +185,7 @@ if test $start_test_number -le 2; then
 
 ######################################################
 echo 
-echo '+++++ Array access (N=700):  +++++'
+echo '+++++ Test #2: Array access (N=700):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -328,7 +328,7 @@ if test $start_test_number -le 3; then
 
 ######################################################
 echo 
-echo '+++++ Count lines/words/chars (N=2000):  +++++'
+echo '+++++ Test #3:  Count lines/words/chars (N=2000):  +++++'
 
 cat <<'EOF' >$temp
 Subject:      Re: Who was Izchak Miller?
@@ -508,7 +508,7 @@ if test $start_test_number -le 4; then
 
 ######################################################
 echo 
-echo '+++++ Echo client/server (N=50000):  +++++'
+echo '+++++ Test #4: Echo client/server (N=50000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -752,8 +752,8 @@ EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
   time sh <<EOF | fgrep user
-$DINO -I$srcdir -L./socket.so $ftest 50000&
-$DINO -I$srcdir -L./socket.so $ftest 50000 client 2>&1
+$DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest 50000&
+$DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest 50000 client 2>&1
 wait
 EOF
 
@@ -764,7 +764,7 @@ if test $start_test_number -le 5; then
 
 ######################################################
 echo 
-echo '+++++ Exceptions mechanism (N=100000):  +++++'
+echo '+++++ Test #5: Exceptions mechanism (N=100000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1041,7 +1041,7 @@ if test $start_test_number -le 6; then
 
 ######################################################
 echo 
-echo '+++++ Fibonacci Numbers (N=28):  +++++'
+echo '+++++ Test 6: Fibonacci Numbers (N=28):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1158,7 +1158,7 @@ if test $start_test_number -le 7; then
 
 ######################################################
 echo 
-echo '+++++ Hash (Associative Array) Access (N=80000):  +++++'
+echo '+++++ Test #7: Hash (Associative Array) Access (N=80000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1296,7 +1296,7 @@ if test $start_test_number -le 8; then
 
 ######################################################
 echo 
-echo '+++++ Hashes, Part II (N=50):  +++++'
+echo '+++++ Test #8: Hashes, Part II (N=50):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1425,7 +1425,7 @@ if test $start_test_number -le 9; then
 
 ######################################################
 echo 
-echo '+++++ Heapsort (N=20000):  +++++'
+echo '+++++ Test #9: Heapsort (N=20000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1769,7 +1769,7 @@ if test $start_test_number -le 10; then
 
 ######################################################
 echo 
-echo '+++++ Hello: Start up time (N=200)+++++'
+echo '+++++ Test #10: Hello: Start up time (N=200)+++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1828,7 +1828,7 @@ if test $start_test_number -le 11; then
 
 ######################################################
 echo 
-echo '+++++ List Processing (N=16):  +++++'
+echo '+++++ Test #11: List Processing (N=16):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2068,7 +2068,7 @@ if test $start_test_number -le 12; then
 
 ######################################################
 echo 
-echo '+++++ Matrix Multiplication (N=30):  +++++'
+echo '+++++ Test #12: Matrix Multiplication (N=30):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2331,7 +2331,7 @@ if test $start_test_number -le 13; then
 
 ######################################################
 echo 
-echo '+++++ Method Calls (N=100000):  +++++'
+echo '+++++ Test #13: Method Calls (N=100000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2518,7 +2518,7 @@ if test $start_test_number -le 14; then
 
 ######################################################
 echo 
-echo '+++++ Nested Loops (N=11):  +++++'
+echo '+++++ Test #14: Nested Loops (N=11):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2669,7 +2669,7 @@ if test $start_test_number -le 15; then
 
 ######################################################
 echo 
-echo '+++++ Object Instantiation (N=100000):  +++++'
+echo '+++++ Test #15: Object Instantiation (N=100000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2867,7 +2867,7 @@ if test $start_test_number -le 16; then
 
 ######################################################
 echo 
-echo '+++++ Producer/Consumer Threads (N=20000):  +++++'
+echo '+++++ Test #16: Producer/Consumer Threads (N=20000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -3035,7 +3035,7 @@ if test $start_test_number -le 17; then
 
 ######################################################
 echo 
-echo '+++++ Random Number Generator (N=500000):  +++++'
+echo '+++++ Test #17: Random Number Generator (N=500000):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -3186,7 +3186,7 @@ if test $start_test_number -le 18; then
 
 ######################################################
 echo 
-echo '+++++ Regular Expression Matching (N=5000):  +++++'
+echo '+++++ Test #18: Regular Expression Matching (N=5000):  +++++'
 
 cat <<'EOF' >$input
 datafile for regex matching of phone numbers test
@@ -3433,7 +3433,7 @@ if test $start_test_number -le 19; then
 
 ######################################################
 echo 
-echo '+++++ Reverse a File (N=20):  +++++'
+echo '+++++ Test #19: Reverse a File (N=20):  +++++'
 
 cat <<'EOF' >$temp
 aback
@@ -14265,7 +14265,7 @@ if test $start_test_number -le 20; then
 
 ######################################################
 echo 
-echo '+++++ Sieve of Eratosthenes (N=50):  +++++'
+echo '+++++ Test #20: Sieve of Eratosthenes (N=50):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -14428,7 +14428,7 @@ if test $start_test_number -le 21; then
 
 ######################################################
 echo 
-echo '+++++ Spell Checker (N=10):  +++++'
+echo '+++++ Test #21: Spell Checker (N=10):  +++++'
 
 cat <<'EOF' >$temp
 aback
@@ -91812,7 +91812,7 @@ if test $start_test_number -le 22; then
 
 ######################################################
 echo 
-echo '+++++ Statistical Moments (N=150):  +++++'
+echo '+++++ Test #22: Statistical Moments (N=150):  +++++'
 
 cat <<'EOF' >$temp
 1
@@ -92566,7 +92566,7 @@ if test $start_test_number -le 23; then
 
 ######################################################
 echo 
-echo +++++ String Concatenation:  +++++
+echo '+++++ Test #23: String Concatenation:  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -92652,7 +92652,7 @@ if test $start_test_number -le 24; then
 
 ######################################################
 echo 
-echo '+++++ Sum a File of Numbers (N=1000):  +++++'
+echo '+++++ Test #24: Sum a File of Numbers (N=1000):  +++++'
 
 cat <<'EOF' >$temp
 1
@@ -93755,7 +93755,7 @@ if test $start_test_number -le 25; then
 
 ######################################################
 echo 
-echo '+++++ Word Frequency (N=20):  +++++'
+echo '+++++ Test #25: Word Frequency (N=20):  +++++'
 
 cat <<'EOF' >$temp
 
@@ -96684,7 +96684,7 @@ fi
 if test $start_test_number -le 26; then
 
 ######################################################
-echo +++++ Test Loop \(2M iteration loop with empty body\): +++++
+echo '+++++ Test #26: Test Loop (2M iteration loop with empty body): +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -96740,7 +96740,7 @@ if test $start_test_number -le 27; then
 
 ######################################################
 echo 
-echo +++++ Test function \(1M call of empty function without params\):  +++++
+echo '++++ Test #27 function (1M call of empty function without params):  ++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -96799,7 +96799,7 @@ if test $start_test_number -le 28; then
 
 ######################################################
 echo 
-echo +++++ Test tak \(very good test for recursive functions\):  +++++
+echo '+++++ Test #28 tak (very good test for recursive functions):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -96876,7 +96876,7 @@ if test $start_test_number -le 29; then
 
 ######################################################
 echo 
-echo +++++ Test fact \(another good test for recursive functions\):  +++++
+echo '+++++ Test #29 fact (another good test for recursive functions):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -96968,7 +96968,7 @@ if test $start_test_number -le 30; then
 
 ######################################################
 echo 
-echo +++++ Test fibonacci \(good test for recursive functions also\):  +++++
+echo '++++ Test #30 fibonacci (good test for recursive functions also):  ++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97059,7 +97059,7 @@ if test $start_test_number -le 31; then
 
 ######################################################
 echo 
-echo +++++ Test sieve \(usage of arrays not tables when possible\):  +++++
+echo '+++++ Test #31 sieve (usage of arrays not tables when possible):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97214,7 +97214,7 @@ if test $start_test_number -le 32; then
 
 ######################################################
 echo 
-echo +++++ Test sieve \(usage of associative tables\):  +++++
+echo '+++++ Test #32: sieve (usage of associative tables):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97369,7 +97369,7 @@ if test $start_test_number -le 33; then
 
 ######################################################
 echo 
-echo +++++ Test matrix mult \(usage of arrays not tables when possible\): +++++
+echo '+++ Test #33: matrix mult (usage of arrays not tables when possible): +++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97521,7 +97521,7 @@ if test $start_test_number -le 34; then
 
 ######################################################
 echo 
-echo +++++ Test matrix mult \(usage of associative tables\):  +++++
+echo '+++++ Test #34: matrix mult (usage of associative tables):  +++++'
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97680,7 +97680,7 @@ if test $start_test_number -le 35; then
 
 ######################################################
 echo 
-echo +++++ Test compilation speed \(simple program of 100K lines\):  +++++
+echo '+++++ Test #35: compilation speed (simple program of 100K lines):  +++++'
 
 if test x$PERL != x; then
   $DINO -c 'putln("$j = 1;");var i; for (i=0;i<100000;i++)putln ("$i = $j;");' > $ftest

@@ -109,12 +109,13 @@ dino_lib=$(dino_lib_name).$(dino_lib_suffix)
 extern_lib_suffix=@EXTERN_LIB_SUFFIX@
 mpi_lib=mpi.$(extern_lib_suffix)
 ieee_lib=ieee.$(extern_lib_suffix)
+ipcerr_lib=ipcerr.$(extern_lib_suffix)
 socket_lib=socket.$(extern_lib_suffix)
 
 # Libraries (separted by ":") which will be searched by default for
 # DINO externals in STANDARD_DINO_LIB_DIRECTORY or in $DINO_HOME.
-DINO_EXTERN_LIBS=$(mpi_lib) $(ieee_lib) $(socket_lib)
-DINO_EXTERN_LIBS_PATH=\"$(mpi_lib):$(ieee_lib):$(socket_lib)\"
+DINO_EXTERN_LIBS=$(mpi_lib) $(ieee_lib) $(ipcerr_lib) $(socket_lib)
+DINO_EXTERN_LIBS_PATH=\"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib)\"
 
 # Value of macro STANDARD_DINO_LIB_NAME
 DINO_LIB_NAME=\"$(dino_lib)\"
@@ -174,6 +175,7 @@ source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
 	 $(srcdir)/d_run.sprut $(srcdir)/d_heap.c $(srcdir)/d_kw.shilka\
 	 $(srcdir)/mpi.c $(srcdir)/mpi.d\
 	 $(srcdir)/ieee_int.c $(srcdir)/ieee.d\
+	 $(srcdir)/ipcerr_int.c $(srcdir)/ipcerr.d\
 	 $(srcdir)/socket_int.c $(srcdir)/socket.d
 
 ammunition = ../AMMUNITION/C/allocate.o ../AMMUNITION/C/vlobject.o\
@@ -217,6 +219,11 @@ $(ieee_lib): ieee_int.o IEEE.o arithm.o bits.o
 	$(SHELL) -c "$(EXTERN_MAKELIB) ieee_int.o IEEE.o arithm.o bits.o" $(ieee_lib)
 	$(SHELL) -c "$(EXTERN_AFTER_MAKELIB)" $(ieee_lib)
 
+$(ipcerr_lib): ipcerr_int.o
+	rm -f $(ipcerr_lib)
+	$(SHELL) -c "$(EXTERN_MAKELIB) ipcerr_int.o" $(ipcerr_lib)
+	$(SHELL) -c "$(EXTERN_AFTER_MAKELIB)" $(ipcerr_lib)
+
 $(socket_lib): socket_int.o
 	rm -f $(socket_lib)
 	$(SHELL) -c "$(EXTERN_MAKELIB) socket_int.o" $(socket_lib)
@@ -257,9 +264,11 @@ install: all
 	$(INSTALLDATA) $(dino_lib) $(libdir)
 	$(INSTALLDATA) $(mpi_lib) $(libdir)
 	$(INSTALLDATA) $(ieee_lib) $(libdir)
+	$(INSTALLDATA) $(ipcerr_lib) $(libdir)
 	$(INSTALLDATA) $(socket_lib) $(libdir)
 	$(INSTALLDATA) $(srcdir)/mpi.d $(libdir)
 	$(INSTALLDATA) $(srcdir)/ieee.d $(libdir)
+	$(INSTALLDATA) $(srcdir)/ipcerr.d $(libdir)
 	$(INSTALLDATA) $(srcdir)/socket.d $(libdir)
 	-mkdir $(includedir)
 	$(INSTALLDATA) d_extern.h $(includedir)
@@ -276,9 +285,11 @@ uninstall:
 	rm -f $(libdir)/$(dino_lib)
 	rm -f $(libdir)/$(mpi_lib)
 	rm -f $(libdir)/$(ieee_lib)
+	rm -f $(libdir)/$(ipcerr_lib)
 	rm -f $(libdir)/$(socket_lib)
 	rm -f $(libdir)/mpi.d
 	rm -f $(libdir)/ieee.d
+	rm -f $(libdir)/ipcerr.d
 	rm -f $(libdir)/socket.d
 	-rmdir $(libdir)
 	rm -f $(includedir)/d_extern.h
@@ -294,8 +305,9 @@ uninstall:
 # `d_run.c', `d_run.h' and also deletion of `d_kw.c' and `d_yacc.c'.
 clean :
 	rm -f $(objects) d_main.o $(dino_lib)\
-                         $(mpi_lib) $(ieee_lib) $(socket_lib)\
-                         mpi.o arithm.o ieee_int.o IEEE.o bits.o socket_int.o\
+                         $(mpi_lib) $(ieee_lib) $(ipcerr_lib) $(socket_lib)\
+                         mpi.o arithm.o ieee_int.o IEEE.o bits.o\
+                         ipcerr_int.o socket_int.o\
 			 dino\
 			 d_ir.c d_ir.h d_extern.h\
 			 d_run.c d_run.h d_kw.c d_yacc.c
@@ -328,6 +340,7 @@ create-distdir:
 	rm -f -r $(distdir)/*
 	mkdir $(distdir)/mpi
 	mkdir $(distdir)/ieee
+	mkdir $(distdir)/ipcerr
 	mkdir $(distdir)/socket
 	mkdir $(distdir)/Examples
 
@@ -341,6 +354,9 @@ dist-copy: create-distdir doc
 	done
 	for i in ieee/ieee.dsw ieee/ieee.dsp;do\
 	  cp $(srcdir)/$$i $(distdir)/ieee;\
+	done
+	for i in ipcerr/ipcerr.dsw ipcerr/ipcerr.dsp;do\
+	  cp $(srcdir)/$$i $(distdir)/ipcerr;\
 	done
 	for i in socket/socket.dsw socket/socket.dsp;do\
 	  cp $(srcdir)/$$i $(distdir)/socket;\
@@ -358,6 +374,7 @@ rcslabel:
 	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
 	for i in mpi/mpi.dsw mpi/mpi.dsp;do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
 	for i in ieee/ieee.dsw ieee/ieee.dsp;do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
+	for i in ipcerr/ipcerr.dsw ipcerr/ipcerr.dsp;do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
 	for i in socket/socket.dsw socket/socket.dsp;do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
 	for i in $(example_files);do\
 	  $(RCS) -n$(RCSLABEL) $(srcdir)/Examples/$$i;\
@@ -437,6 +454,7 @@ depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
 	   $(srcdir)/../DINO/d_main.c\
 	   $(srcdir)/../DINO/mpi.c $(srcdir)/../AMMUNITION/arithm.c\
 	   $(srcdir)/../DINO/ieee_int.c\
+	   $(srcdir)/../DINO/ipcerr_int.c\
 	   $(srcdir)/../DINO/socket_int.c\
            $(srcdir)/../AMMUNITION/IEEE.c $(srcdir)/../AMMUNITION/bits.c;do\
 	   gcc -MM -I- -I$(srcdir)/../DINO $(CFLAGS) $$i \
@@ -453,6 +471,8 @@ depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
 	   if test $$i = $(srcdir)/../DINO/mpi.c -o $$i = $(srcdir)/../AMMUNITION/arithm.c;then \
 		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
 	   elif test $$i = $(srcdir)/../DINO/ieee_int.c; then\
+		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
+	   elif test $$i = $(srcdir)/../DINO/ipcerr_int.c; then\
 		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
 	   elif test $$i = $(srcdir)/../DINO/socket_int.c; then\
 		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
@@ -675,9 +695,13 @@ ieee_int.o: $(top_srcdir)/DINO/../DINO/ieee_int.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/IEEE.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/ieee_int.c
+ipcerr_int.o: $(top_srcdir)/DINO/../DINO/ipcerr_int.c \
+ d_config.h d_extern.h \
+ $(top_srcdir)/DINO/../DINO/d_types.h
+	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/ipcerr_int.c
 socket_int.o: $(top_srcdir)/DINO/../DINO/socket_int.c \
- d_extern.h $(top_srcdir)/DINO/../DINO/d_types.h \
- d_config.h
+ d_config.h d_extern.h \
+ $(top_srcdir)/DINO/../DINO/d_types.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/socket_int.c
 IEEE.o: $(top_srcdir)/DINO/../AMMUNITION/IEEE.c \
  ../AMMUNITION/cocom-config.h \

@@ -1,6 +1,7 @@
 /* We made all check inside DINO code therefore we trust in correct
    operand types. */
 
+#include "d_config.h"
 #include "d_extern.h"
 #include <assert.h>
 #include <errno.h>
@@ -9,6 +10,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+extern int h_errno;
 
 #ifdef WIN32
 
@@ -26,7 +29,9 @@ DllMain (HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 #define WIN_EXPORT
 #endif
 
-WIN_EXPORT val_t _socket_errno, _socket_eof;
+WIN_EXPORT val_t _socket_errno, _socket_invalid_address,
+  _socket_host_not_found, _socket_no_address, _socket_no_recovery,
+  _socket_try_again, _socket_eof;
 
 static char *
 skip_triple (char *str)
@@ -78,19 +83,36 @@ get_ip_address (char *name)
     {
       name = str;
       if (gethostname (str, sizeof (str)) < 0)
-	abort ();
+	return NULL;
     }
   addr_p = ip_addres_p (name);
   if (addr_p)
     {
-      if (inet_aton (name, &addr) == 0)
-	abort ();
+#ifdef HAVE_inet_aton
+      if (inet_aton (name, &addr)) == 0)
+#else
+      if ((addr.s_addr = inet_addr (name)) == -1)
+#endif
+	{
+	  _socket_errno = _socket_invalid_address;      
+	  return NULL;
+	}
     }
   else
     {
       he = gethostbyname (name);
       if (he == NULL)
-	return NULL;
+	{
+	  if (h_errno == HOST_NOT_FOUND)
+	    _socket_errno = _socket_host_not_found;
+	  else if (h_errno == NO_DATA)
+	    _socket_errno = _socket_no_address;
+	  else if (h_errno == NO_RECOVERY)
+	    _socket_errno = _socket_no_recovery;
+	  else if (h_errno == TRY_AGAIN)
+	    _socket_errno = _socket_try_again;
+	  return NULL;
+	}
       memcpy (&addr.s_addr, he->h_addr, sizeof (addr.s_addr));
     }
   return &addr;
@@ -118,10 +140,15 @@ _gethostinfo (int npars, val_t *vals)
 			AF_INET);
   if (he == NULL)
     {
+      if (h_errno == HOST_NOT_FOUND)
+	_socket_errno = _socket_host_not_found;
+      else if (h_errno == NO_DATA)
+	_socket_errno = _socket_no_address;
+      else if (h_errno == NO_RECOVERY)
+	_socket_errno = _socket_no_recovery;
+      else if (h_errno == TRY_AGAIN)
+	_socket_errno = _socket_try_again;
       ER_SET_MODE (res, ER_NM_nil);
-      /* ??? abort ();
-	 ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
-	 ER_set_i ((ER_node_t) &_socket_errno, 1); */
       return val;
     }
   instance = ER_instance ((ER_node_t) (vals + 1));
@@ -187,9 +214,6 @@ _getservent (int npars, val_t *vals)
   if (se == NULL)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      /* ??? abort ();
-	 ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
-	 ER_set_i ((ER_node_t) &_socket_errno, 1); */
       return val;
     }
   instance = ER_instance ((ER_node_t) vals);
@@ -258,8 +282,8 @@ _sread (int npars, val_t *vals)
   else if (len < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      abort ();
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -288,7 +312,8 @@ _swrite (int npars, val_t *vals)
   if (len < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -304,7 +329,7 @@ _recvfrom (int npars, val_t *vals)
   int sd, len;
   socklen_t from_len;
   ER_node_t var, vect, instance;
-  struct sockaddr_in s_addr;
+  struct sockaddr_in saddr;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
@@ -318,13 +343,13 @@ _recvfrom (int npars, val_t *vals)
   ER_set_els_number (vect, 0);
   instance = ER_instance ((ER_node_t) (vals + 2));
   from_len = sizeof (struct sockaddr_in);
-  len = recvfrom (sd, ER_pack_els (vect), len, 0, (struct sockaddr *) &s_addr,
+  len = recvfrom (sd, ER_pack_els (vect), len, 0, (struct sockaddr *) &saddr,
 		  &from_len);
   if (len < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      abort ();
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -337,11 +362,11 @@ _recvfrom (int npars, val_t *vals)
       /* peer_addr */
       var = INDEXED_VAL (var, 1);
       ER_SET_MODE (var, ER_NM_vect);
-      ER_set_vect (var, create_string (inet_ntoa (s_addr.sin_addr)));
+      ER_set_vect (var, create_string (inet_ntoa (saddr.sin_addr)));
       /* port */
       var = INDEXED_VAL (var, 1);
       ER_SET_MODE (var, ER_NM_int);
-      ER_set_i (var, ntohs (s_addr.sin_port));
+      ER_set_i (var, ntohs (saddr.sin_port));
       ER_SET_MODE (res, ER_NM_instance);
       ER_set_instance (res, instance);
     }
@@ -353,7 +378,7 @@ _sendto (int npars, val_t *vals)
 {
   int sd, len, port;
   char *str, *addr;
-  struct sockaddr_in s_addr;
+  struct sockaddr_in saddr;
   struct in_addr *sin_addr_ptr;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -368,19 +393,22 @@ _sendto (int npars, val_t *vals)
   addr = ER_pack_els (ER_vect ((ER_node_t) (vals + 2)));
   port = ER_i ((ER_node_t) (vals + 3));
   assert (port >= 0);
-  s_addr.sin_family = AF_INET;
-  s_addr.sin_port = htons (port);
+  saddr.sin_family = AF_INET;
+  saddr.sin_port = htons (port);
   sin_addr_ptr = get_ip_address (addr);
   if (sin_addr_ptr == NULL)
-    abort (); /* ??? */
-  s_addr.sin_addr = *sin_addr_ptr;
-  len = sendto (sd, str, len, 0, (struct sockaddr *)&s_addr,
+    {
+      ER_SET_MODE (res, ER_NM_nil);
+      return val;
+    }
+  saddr.sin_addr = *sin_addr_ptr;
+  len = sendto (sd, str, len, 0, (struct sockaddr *)&saddr,
 		sizeof (struct sockaddr_in));
   if (len < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      abort ();
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -395,19 +423,19 @@ _accept (int npars, val_t *vals)
 {
   int sd, new_sd;
   socklen_t addr_len;
-  struct sockaddr_in s_addr;
+  struct sockaddr_in saddr;
   ER_node_t vect, var;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   sd = ER_i ((ER_node_t) vals);
-  new_sd = accept (sd, (struct sockaddr *)&s_addr, &addr_len);
+  new_sd = accept (sd, (struct sockaddr *)&saddr, &addr_len);
   if (new_sd < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      abort ();
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -417,10 +445,10 @@ _accept (int npars, val_t *vals)
       ER_set_i (var, new_sd);
       var = INDEXED_VAL (ER_unpack_els (vect), 1);
       ER_SET_MODE (var, ER_NM_vect);
-      ER_set_vect (var, create_string (inet_ntoa (s_addr.sin_addr)));
+      ER_set_vect (var, create_string (inet_ntoa (saddr.sin_addr)));
       var = INDEXED_VAL (ER_unpack_els (vect), 2);
       ER_SET_MODE (var, ER_NM_int);
-      ER_set_i (var, ntohs (s_addr.sin_port));
+      ER_set_i (var, ntohs (saddr.sin_port));
       ER_SET_MODE (res, ER_NM_vect);
       ER_set_vect (res, vect);
     }
@@ -432,7 +460,7 @@ _stream_client (int npars, val_t *vals)
 {
   char *addr;
   int sfd, port;
-  struct sockaddr_in s_addr;
+  struct sockaddr_in saddr;
   struct in_addr *sin_addr_ptr;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -441,22 +469,30 @@ _stream_client (int npars, val_t *vals)
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   sfd = socket (AF_INET, SOCK_STREAM, 0);
   if (sfd < 0)
-    printf ("sfd < 0\n"), abort (); /* ??? */
+    {
+      ER_SET_MODE (res, ER_NM_nil);
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
+      return val;
+    }
   /* connect */
   addr = ER_pack_els (ER_vect ((ER_node_t) vals));
   port = ER_i ((ER_node_t) (vals + 1));
   assert (port >= 0);
-  s_addr.sin_family = AF_INET;
-  s_addr.sin_port = htons (port);
+  saddr.sin_family = AF_INET;
+  saddr.sin_port = htons (port);
   sin_addr_ptr = get_ip_address (addr);
   if (sin_addr_ptr == NULL)
-    printf ("sin_addr_ptr == NULL\n"), abort (); /* ??? */
-  s_addr.sin_addr = *sin_addr_ptr;
-  if (connect (sfd, &s_addr, sizeof (s_addr)) < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      perror ("connect :"), abort ();
+      return val;
+    }
+  saddr.sin_addr = *sin_addr_ptr;
+  if (connect (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) < 0)
+    {
+      ER_SET_MODE (res, ER_NM_nil);
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -471,7 +507,7 @@ _dgram_client (int npars, val_t *vals)
 {
   char *addr;
   int sfd, port;
-  struct sockaddr_in s_addr;
+  struct sockaddr_in saddr;
   struct in_addr *sin_addr_ptr;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -482,8 +518,8 @@ _dgram_client (int npars, val_t *vals)
   if (sfd < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      abort ();
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -498,7 +534,7 @@ _stream_server (int npars, val_t *vals)
 {
   char *addr;
   int sfd, port, queue_len;
-  struct sockaddr_in s_addr;
+  struct sockaddr_in saddr;
   struct in_addr *sin_addr_ptr;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -507,22 +543,27 @@ _stream_server (int npars, val_t *vals)
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   port = ER_i ((ER_node_t) vals);
   queue_len = ER_i ((ER_node_t) (vals + 1));
-  assert (port >= 0); /* queue_len??? */
+  assert (port >= 0);
   sfd = socket (AF_INET, SOCK_STREAM, 0);
   if (sfd < 0)
-    printf ("sfd < 0\n"), abort (); /* ??? */
-  s_addr.sin_family = AF_INET;
-  s_addr.sin_port = htons (port);
-  s_addr.sin_addr.s_addr = INADDR_ANY;
-  if (bind (sfd, (struct sockaddr *) &s_addr, sizeof (s_addr)) < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      perror ("bind: "), abort ();
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
+      return val;
+    }
+  saddr.sin_family = AF_INET;
+  saddr.sin_port = htons (port);
+  saddr.sin_addr.s_addr = INADDR_ANY;
+  if (bind (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) < 0
+      || listen (sfd, queue_len) < 0)
+    {
+      ER_SET_MODE (res, ER_NM_nil);
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
-      listen (sfd, queue_len); /* ??? */
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, sfd);
     }
@@ -534,7 +575,7 @@ _dgram_server (int npars, val_t *vals)
 {
   char *addr;
   int sfd, port, queue_len;
-  struct sockaddr_in s_addr;
+  struct sockaddr_in saddr;
   struct in_addr *sin_addr_ptr;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -544,15 +585,20 @@ _dgram_server (int npars, val_t *vals)
   assert (port >= 0);
   sfd = socket (AF_INET, SOCK_DGRAM, 0);
   if (sfd < 0)
-    printf ("sfd < 0\n"), abort (); /* ??? */
-  s_addr.sin_family = AF_INET;
-  s_addr.sin_port = htons (port);
-  s_addr.sin_addr.s_addr = INADDR_ANY;
-  if (bind (sfd, (struct sockaddr *) &s_addr, sizeof (s_addr)) < 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
-      errno; /* ??? */
-      perror ("bind: "), abort ();
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
+      return val;
+    }
+  saddr.sin_family = AF_INET;
+  saddr.sin_port = htons (port);
+  saddr.sin_addr.s_addr = INADDR_ANY;
+  if (bind (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) < 0)
+    {
+      ER_SET_MODE (res, ER_NM_nil);
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
     }
   else
     {
@@ -570,8 +616,74 @@ _socket_init ()
 
   ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
   ER_set_i ((ER_node_t) &_socket_errno, 0);
+  ER_SET_MODE ((ER_node_t) &_socket_invalid_address, ER_NM_int);
+  ER_set_i ((ER_node_t) &_socket_invalid_address, 99999990);
+  ER_SET_MODE ((ER_node_t) &_socket_host_not_found, ER_NM_int);
+  ER_set_i ((ER_node_t) &_socket_host_not_found, 99999991);
+  ER_SET_MODE ((ER_node_t) &_socket_no_address, ER_NM_int);
+  ER_set_i ((ER_node_t) &_socket_no_address, 99999992);
+  ER_SET_MODE ((ER_node_t) &_socket_no_recovery, ER_NM_int);
+  ER_set_i ((ER_node_t) &_socket_no_recovery, 99999993);
+  ER_SET_MODE ((ER_node_t) &_socket_try_again, ER_NM_int);
+  ER_set_i ((ER_node_t) &_socket_try_again, 99999994);
   ER_SET_MODE ((ER_node_t) &_socket_eof, ER_NM_int);
-  ER_set_i ((ER_node_t) &_socket_eof, 1);
+  ER_set_i ((ER_node_t) &_socket_eof, 99999995);
   ER_SET_MODE (res, ER_NM_nil);
   return val;
 }
+
+#ifndef WIN32
+#if !defined(HAVE_DLOPEN) || defined(NO_EXTERN_SHLIB)
+
+/* Function for implementing externals with static libraries.  See all
+   externals name in ieee.d. */
+void *
+socket_address (const char *name)
+{
+  if (strcmp (name, "_socket_errno") == 0)
+    return _socket_errno;
+  else if (strcmp (name, "_socket_invalid_address") == 0)
+    return _socket_invalid_address;
+  else if (strcmp (name, "_socket_host_not_found") == 0)
+    return _socket_host_not_found;
+  else if (strcmp (name, "_socket_no_address") == 0)
+    return _socket_no_address;
+  else if (strcmp (name, "_socket_no_recovery") == 0)
+    return _socket_no_recovery;
+  else if (strcmp (name, "_socket_try_again") == 0)
+    return _socket_try_again;
+  else if (strcmp (name, "_socket_eof") == 0)
+    return _socket_eof;
+  else if (strcmp (name, "_gethostinfo") == 0)
+    return _gethostinfo;
+  else if (strcmp (name, "_setservent") == 0)
+    return _setservent;
+  else if (strcmp (name, "_getservent") == 0)
+    return _getservent;
+  else if (strcmp (name, "_endservent") == 0)
+    return _endservent;
+  else if (strcmp (name, "_sread") == 0)
+    return _sread;
+  else if (strcmp (name, "_swrite") == 0)
+    return _swrite;
+  else if (strcmp (name, "_recvfrom") == 0)
+    return _recvfrom;
+  else if (strcmp (name, "_sendto") == 0)
+    return _sendto;
+  else if (strcmp (name, "_accept") == 0)
+    return _accept;
+  else if (strcmp (name, "_stream_client") == 0)
+    return _stream_client;
+  else if (strcmp (name, "_dgram_client") == 0)
+    return _dgram_client;
+  else if (strcmp (name, "_stream_server") == 0)
+    return _stream_server;
+  else if (strcmp (name, "_dgram_server") == 0)
+    return _dgram_server;
+  else if (strcmp (name, "_socket_init") == 0)
+    return _socket_init;
+  else
+    return NULL;
+}
+#endif
+#endif
