@@ -71,6 +71,10 @@ man1dir=$(mandir)/man1
 # The directory for installation of header files.
 includedir=@includedir@/dino-$(DINO_VERSION)
 
+# Additional prefix used to install ammunition temporarily.  It is
+# necessary only for RPM.
+DESTDIR=
+
 # Utility for installation `dino'.
 INSTALL=@INSTALL@
 
@@ -257,48 +261,47 @@ test : dino
 # Creation of installation directories and all object files and copying
 # the interpreter `dino' and its man file to target directories.
 install: all
-	-mkdir $(bindir)
-	$(INSTALL) dino $(bindir)/dino-$(DINO_VERSION)
-	$(INSTALL) dino $(bindir)/dino
-	-mkdir $(libdir)
-	$(INSTALLDATA) $(dino_lib) $(libdir)
-	$(INSTALLDATA) $(mpi_lib) $(libdir)
-	$(INSTALLDATA) $(ieee_lib) $(libdir)
-	$(INSTALLDATA) $(ipcerr_lib) $(libdir)
-	$(INSTALLDATA) $(socket_lib) $(libdir)
-	$(INSTALLDATA) $(srcdir)/mpi.d $(libdir)
-	$(INSTALLDATA) $(srcdir)/ieee.d $(libdir)
-	$(INSTALLDATA) $(srcdir)/ipcerr.d $(libdir)
-	$(INSTALLDATA) $(srcdir)/socket.d $(libdir)
-	-mkdir $(includedir)
-	$(INSTALLDATA) d_extern.h $(includedir)
-	$(INSTALLDATA) d_config.h $(includedir)
-	$(INSTALLDATA) $(srcdir)/d_types.h $(includedir)
-	-mkdir $(mandir)
-	-mkdir $(man1dir)
-	$(INSTALLDATA) $(srcdir)/dino.1 $(man1dir)/dino.1
+	-mkdir -p $(DESTDIR)/$(bindir)
+	$(INSTALL) dino $(DESTDIR)/$(bindir)/dino-$(DINO_VERSION)
+	$(INSTALL) dino $(DESTDIR)/$(bindir)/dino
+	-mkdir -p $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(dino_lib) $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(mpi_lib) $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(ieee_lib) $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(ipcerr_lib) $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(socket_lib) $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(srcdir)/mpi.d $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(srcdir)/ieee.d $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(srcdir)/ipcerr.d $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(srcdir)/socket.d $(DESTDIR)/$(libdir)
+	-mkdir -p $(DESTDIR)/$(includedir)
+	$(INSTALLDATA) d_extern.h $(DESTDIR)/$(includedir)
+	$(INSTALLDATA) d_config.h $(DESTDIR)/$(includedir)
+	$(INSTALLDATA) $(srcdir)/d_types.h $(DESTDIR)/$(includedir)
+	-mkdir -p $(DESTDIR)/$(man1dir)
+	$(INSTALLDATA) $(srcdir)/dino.1 $(DESTDIR)/$(man1dir)/dino.1
 
 # Delete the installed files and the installation directories.
 uninstall:
-	rm -f $(bindir)/dino
-	-rmdir $(bindir)
-	rm -f $(libdir)/$(dino_lib)
-	rm -f $(libdir)/$(mpi_lib)
-	rm -f $(libdir)/$(ieee_lib)
-	rm -f $(libdir)/$(ipcerr_lib)
-	rm -f $(libdir)/$(socket_lib)
-	rm -f $(libdir)/mpi.d
-	rm -f $(libdir)/ieee.d
-	rm -f $(libdir)/ipcerr.d
-	rm -f $(libdir)/socket.d
-	-rmdir $(libdir)
-	rm -f $(includedir)/d_extern.h
-	rm -f $(includedir)/d_config.h
-	rm -f $(includedir)/d_types.h
-	-rmdir $(includedir)
-	rm -f $(man1dir)/dino.1
-	-rmdir $(man1dir)
-	-rmdir $(mandir)
+	rm -f $(DESTDIR)/$(bindir)/dino
+	-rmdir $(DESTDIR)/$(bindir)
+	rm -f $(DESTDIR)/$(libdir)/$(dino_lib)
+	rm -f $(DESTDIR)/$(libdir)/$(mpi_lib)
+	rm -f $(DESTDIR)/$(libdir)/$(ieee_lib)
+	rm -f $(DESTDIR)/$(libdir)/$(ipcerr_lib)
+	rm -f $(DESTDIR)/$(libdir)/$(socket_lib)
+	rm -f $(DESTDIR)/$(libdir)/mpi.d
+	rm -f $(DESTDIR)/$(libdir)/ieee.d
+	rm -f $(DESTDIR)/$(libdir)/ipcerr.d
+	rm -f $(DESTDIR)/$(libdir)/socket.d
+	-rmdir $(DESTDIR)/$(libdir)
+	rm -f $(DESTDIR)/$(includedir)/d_extern.h
+	rm -f $(DESTDIR)/$(includedir)/d_config.h
+	rm -f $(DESTDIR)/$(includedir)/d_types.h
+	-rmdir $(DESTDIR)/$(includedir)
+	rm -f $(DESTDIR)/$(man1dir)/dino.1
+	-rmdir $(DESTDIR)/$(man1dir)
+	-rmdir $(DESTDIR)/$(mandir)
 
 # Deletion of object files of the translator, executable file `dino'
 # and also deletion of `d_ir.c', `d_ir.h', `d_extern.h',

@@ -44,6 +44,10 @@ RCSLABEL=
 distdir = cocom-0.995
 # COCOM only end
 
+# Additional prefix used to install cocom and dino temporarily.
+# It is necessary only for RPM.
+DESTDIR=
+
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file only for DINO.
 distdinodir = dino-0.54
@@ -135,22 +139,22 @@ install: all
 # COCOM only start
 	for i in $(directories) $(only_cocom_directories);do\
 	  if test $$i != DINO; then\
-	    (cd $$i; $(MAKE) install);\
+	    (cd $$i; $(MAKE) DESTDIR=$(DESTDIR) install);\
 	  fi;\
 	done
 # COCOM only end
-	(cd DINO; $(MAKE) install)
+	(cd DINO; $(MAKE) DESTDIR=$(DESTDIR) install)
 
 # Delete the installed files and the installation directories.
 uninstall:
 # COCOM only start
 	for i in $(directories) $(only_cocom_directories);do\
 	  if test $$i != DINO; then\
-            (cd $$i; $(MAKE) uninstall);\
+            (cd $$i; $(MAKE) DESTDIR=$(DESTDIR) uninstall);\
 	  fi;\
 	done
 # COCOM only end
-	(cd DINO; $(MAKE) uninstall)
+	(cd DINO; $(MAKE) DESTDIR=$(DESTDIR) uninstall)
 
 # Deletion of temporary (object) files.
 clean:

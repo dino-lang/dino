@@ -60,6 +60,10 @@ mandir=@mandir@
 # The directory for installation of `oka.1'
 man1dir=$(mandir)/man1
 
+# Additional prefix used to install ammunition temporarily.  It is
+# necessary only for RPM.
+DESTDIR=
+
 # Utility for installation `oka'.
 INSTALL=@INSTALL@
 
@@ -143,19 +147,18 @@ test : oka
 # Creation of installation directories and all object files and copying
 # the translator `oka' and its man file to target directories.
 install: all
-	-mkdir $(bindir)
-	$(INSTALL) oka $(bindir)/oka
-	-mkdir $(mandir)
-	-mkdir $(man1dir)
-	$(INSTALLDATA) $(srcdir)/oka.1 $(man1dir)/oka.1
+	-mkdir -p $(DESTDIR)/$(bindir)
+	$(INSTALL) oka $(DESTDIR)/$(bindir)/oka
+	-mkdir -p $(DESTDIR)/$(man1dir)
+	$(INSTALLDATA) $(srcdir)/oka.1 $(DESTDIR)/$(man1dir)/oka.1
 
 # Delete the installed files and the installation directories.
 uninstall:
-	rm -f $(bindir)/oka
-	-rmdir $(bindir)
-	rm -f $(man1dir)/oka.1
-	-rmdir $(man1dir)
-	-rmdir $(mandir)
+	rm -f $(DESTDIR)/$(bindir)/oka
+	-rmdir $(DESTDIR)/$(bindir)
+	rm -f $(DESTDIR)/$(man1dir)/oka.1
+	-rmdir $(DESTDIR)/$(man1dir)
+	-rmdir $(DESTDIR)/$(mandir)
 
 # Deletion of object files of the translator, executable file `oka' and also
 # deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'.

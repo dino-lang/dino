@@ -1,3 +1,13 @@
+2002-03-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* cocom.spec: New file.
+
+	* dino.spec: New file.
+
+	* Makefile.in, AMMUNITION/Makefile.in, DINO/Makefile.in,
+	MSTA/Makefile.in, NONA/Makefile.in, OKA/Makefile.in,
+	SHILKA/Makefile.in, SPRUT/Makefile.in: Add DESTDIR needed for RPM.
+
 2002-03-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* Makefile.in: Check only_cocom_source_files on empty.

@@ -61,6 +61,10 @@ mandir=@mandir@
 # The directory for installation of `msta.1'
 man1dir=$(mandir)/man1
 
+# Additional prefix used to install ammunition temporarily.  It is
+# necessary only for RPM.
+DESTDIR=
+
 # Utility for installation `msta'.
 INSTALL=@INSTALL@
 
@@ -181,19 +185,18 @@ test: msta
 # Creation of installation directories and all object files and copying
 # the translator `msta' and its man file to target directories.
 install: all
-	-mkdir $(bindir)
-	$(INSTALL) msta $(bindir)/msta
-	-mkdir $(mandir)
-	-mkdir $(man1dir)
-	$(INSTALLDATA) $(srcdir)/msta.1 $(man1dir)/msta.1
+	-mkdir -p $(DESTDIR)/$(bindir)
+	$(INSTALL) msta $(DESTDIR)/$(bindir)/msta
+	-mkdir -p $(DESTDIR)/$(man1dir)
+	$(INSTALLDATA) $(srcdir)/msta.1 $(DESTDIR)/$(man1dir)/msta.1
 
 # Delete the installed file and the installation directories.
 uninstall:
-	-rm -f $(bindir)/msta
-	-rmdir $(bindir)
-	rm -f $(man1dir)/msta.1
-	-rmdir $(man1dir)
-	-rmdir $(mandir)
+	-rm -f $(DESTDIR)/$(bindir)/msta
+	-rmdir $(DESTDIR)/$(bindir)
+	rm -f $(DESTDIR)/$(man1dir)/msta.1
+	-rmdir $(DESTDIR)/$(man1dir)
+	-rmdir $(DESTDIR)/$(mandir)
 
 # Deletion of object files of the translator, executable file `msta' and also
 # deletion of `ird.c' and `ird.h', `yacc.c'

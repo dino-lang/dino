@@ -60,6 +60,10 @@ mandir=@mandir@
 # The directory for installation of `nona.1'
 man1dir=$(mandir)/man1
 
+# Additional prefix used to install ammunition temporarily.  It is
+# necessary only for RPM.
+DESTDIR=
+
 # Utility for installation `nona'.
 INSTALL=@INSTALL@
 
@@ -139,19 +143,18 @@ test : nona
 # Creation of installation directories and all object files and copying
 # the translator `nona' and its man file to target directories.
 install: all
-	-mkdir $(bindir)
-	$(INSTALL) nona $(bindir)/nona
-	-mkdir $(mandir)
-	-mkdir $(man1dir)
-	$(INSTALLDATA) $(srcdir)/nona.1 $(man1dir)/nona.1
+	-mkdir -p $(DESTDIR)/$(bindir)
+	$(INSTALL) nona $(DESTDIR)/$(bindir)/nona
+	-mkdir -p $(DESTDIR)/$(man1dir)
+	$(INSTALLDATA) $(srcdir)/nona.1 $(DESTDIR)/$(man1dir)/nona.1
 
 # Delete the installed files and the installation directories.
 uninstall:
-	rm -f $(bindir)/nona
-	-rmdir $(bindir)
-	rm -f $(man1dir)/nona.1
-	-rmdir $(man1dir)
-	-rmdir $(mandir)
+	rm -f $(DESTDIR)/$(bindir)/nona
+	-rmdir $(DESTDIR)/$(bindir)
+	rm -f $(DESTDIR)/$(man1dir)/nona.1
+	-rmdir $(DESTDIR)/$(man1dir)
+	-rmdir $(DESTDIR)/$(mandir)
 
 # Deletion of object files of the translator, executable file `nona' and also
 # deletion of `ird.c' and `ird.h', and `yacc.c'

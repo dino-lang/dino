@@ -69,6 +69,10 @@ mandir=@mandir@
 # The directory for installation of `sprut.1'
 man1dir=$(mandir)/man1
 
+# Additional prefix used to install ammunition temporarily.  It is
+# necessary only for RPM.
+DESTDIR=
+
 # Utility for installation `sprut'.
 INSTALL=@INSTALL@
 
@@ -601,31 +605,30 @@ sprut-boot: sprut
 # Creation of installation directories and all object files and copying
 # the translator `sprut', its libraries and man files to target directories.
 install: all
-	-mkdir $(bindir)
-	$(INSTALL) sprut $(bindir)/sprut
-	-mkdir $(libdir)
-	$(INSTALLDATA) $(srcdir)/std_type.sprut $(libdir)/std_type.sprut
-	$(INSTALLDATA) $(srcdir)/std_mem.sprut $(libdir)/std_mem.sprut
-	$(INSTALLDATA) $(srcdir)/std_bmem.sprut $(libdir)/std_bmem.sprut
-	$(INSTALLDATA) $(srcdir)/std_str.sprut $(libdir)/std_str.sprut
-	$(INSTALLDATA) $(srcdir)/std_pos.sprut $(libdir)/std_pos.sprut
-	-mkdir $(mandir)
-	-mkdir $(man1dir)
-	$(INSTALLDATA) $(srcdir)/sprut.1 $(man1dir)/sprut.1
+	-mkdir -p $(DESTDIR)/$(bindir)
+	$(INSTALL) sprut $(DESTDIR)/$(bindir)/sprut
+	-mkdir -p $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(srcdir)/std_type.sprut $(DESTDIR)/$(libdir)/std_type.sprut
+	$(INSTALLDATA) $(srcdir)/std_mem.sprut $(DESTDIR)/$(libdir)/std_mem.sprut
+	$(INSTALLDATA) $(srcdir)/std_bmem.sprut $(DESTDIR)/$(libdir)/std_bmem.sprut
+	$(INSTALLDATA) $(srcdir)/std_str.sprut $(DESTDIR)/$(libdir)/std_str.sprut
+	$(INSTALLDATA) $(srcdir)/std_pos.sprut $(DESTDIR)/$(libdir)/std_pos.sprut
+	-mkdir -p $(DESTDIR)/$(man1dir)
+	$(INSTALLDATA) $(srcdir)/sprut.1 $(DESTDIR)/$(man1dir)/sprut.1
 
 # Delete the installed files and the installation directories.
 uninstall:
-	rm -f $(bindir)/sprut
-	-rmdir $(bindir)
-	rm -f $(libdir)/std_type.sprut
-	rm -f $(libdir)/std_mem.sprut
-	rm -f $(libdir)/std_bmem.sprut
-	rm -f $(libdir)/std_str.sprut
-	rm -f $(libdir)/std_pos.sprut
-	-rmdir $(libdir)
-	rm -f $(man1dir)/sprut.1
-	-rmdir $(man1dir)
-	-rmdir $(mandir)
+	rm -f $(DESTDIR)/$(bindir)/sprut
+	-rmdir $(DESTDIR)/$(bindir)
+	rm -f $(DESTDIR)/$(libdir)/std_type.sprut
+	rm -f $(DESTDIR)/$(libdir)/std_mem.sprut
+	rm -f $(DESTDIR)/$(libdir)/std_bmem.sprut
+	rm -f $(DESTDIR)/$(libdir)/std_str.sprut
+	rm -f $(DESTDIR)/$(libdir)/std_pos.sprut
+	-rmdir $(DESTDIR)/$(libdir)
+	rm -f $(DESTDIR)/$(man1dir)/sprut.1
+	-rmdir $(DESTDIR)/$(man1dir)
+	-rmdir $(DESTDIR)/$(mandir)
 
 # Deletion of object files of the translator, executable file `sprut' and also
 # deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'

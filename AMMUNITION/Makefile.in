@@ -50,6 +50,10 @@ SHELL=/bin/sh
 # compressed distribution tar file.
 distdir = ammunition-0.99
 
+# Additional prefix used to install ammunition temporarily.  It is
+# necessary only for RPM.
+DESTDIR=
+
 # Common prefix for installation directories.
 # NOTE: this directory must exist when you start installation.
 prefix=@prefix@
@@ -293,42 +297,43 @@ test-cpp:
 # Creation of installation directories and the library of reusable
 # functions, header files, and their man files to target directories.
 install: all
-	-mkdir $(libdir)
-	$(INSTALLDATA) $(Clibrary) $(libdir)/$(Clibrary)
-	$(INSTALLDATA) $(Cpplibrary) $(libdir)/$(Cpplibrary)
-	-mkdir $(includedir)
-	$(INSTALLDATA) cocom-config.h  $(includedir)/cocom-config.h
-	$(INSTALLDATA) $(srcdir)/allocate.h  $(includedir)/allocate.h
-	$(INSTALLDATA) $(srcdir)/vlobject.h $(includedir)/vlobject.h
-	$(INSTALLDATA) $(srcdir)/objstack.h $(includedir)/objstack.h
-	$(INSTALLDATA) $(srcdir)/hashtab.h $(includedir)/hashtab.h
-	$(INSTALLDATA) $(srcdir)/commline.h $(includedir)/commline.h
-	$(INSTALLDATA) $(srcdir)/position.h $(includedir)/position.h
-	$(INSTALLDATA) $(srcdir)/errors.h $(includedir)/errors.h
-	$(INSTALLDATA) $(srcdir)/ticker.h $(includedir)/ticker.h
-	$(INSTALLDATA) $(srcdir)/bits.h $(includedir)/bits.h
-	$(INSTALLDATA) $(srcdir)/arithm.h $(includedir)/arithm.h
-	$(INSTALLDATA) $(srcdir)/IEEE.h $(includedir)/IEEE.h
-	$(INSTALLDATA) $(srcdir)/earley.h $(includedir)/earley.h
+	-mkdir -p $(DESTDIR)/$(libdir)
+	$(INSTALLDATA) $(Clibrary) $(DESTDIR)/$(libdir)/$(Clibrary)
+	$(INSTALLDATA) $(Cpplibrary) $(DESTDIR)/$(libdir)/$(Cpplibrary)
+	-mkdir -p $(DESTDIR)/$(includedir)
+	$(INSTALLDATA) cocom-config.h $(DESTDIR)/$(includedir)/cocom-config.h
+	$(INSTALLDATA) $(srcdir)/allocate.h $(DESTDIR)/$(includedir)/allocate.h
+	$(INSTALLDATA) $(srcdir)/vlobject.h $(DESTDIR)/$(includedir)/vlobject.h
+	$(INSTALLDATA) $(srcdir)/objstack.h $(DESTDIR)/$(includedir)/objstack.h
+	$(INSTALLDATA) $(srcdir)/hashtab.h $(DESTDIR)/$(includedir)/hashtab.h
+	$(INSTALLDATA) $(srcdir)/commline.h $(DESTDIR)/$(includedir)/commline.h
+	$(INSTALLDATA) $(srcdir)/position.h $(DESTDIR)/$(includedir)/position.h
+	$(INSTALLDATA) $(srcdir)/errors.h $(DESTDIR)/$(includedir)/errors.h
+	$(INSTALLDATA) $(srcdir)/ticker.h $(DESTDIR)/$(includedir)/ticker.h
+	$(INSTALLDATA) $(srcdir)/bits.h $(DESTDIR)/$(includedir)/bits.h
+	$(INSTALLDATA) $(srcdir)/arithm.h $(DESTDIR)/$(includedir)/arithm.h
+	$(INSTALLDATA) $(srcdir)/IEEE.h $(DESTDIR)/$(includedir)/IEEE.h
+	$(INSTALLDATA) $(srcdir)/earley.h $(DESTDIR)/$(includedir)/earley.h
 
 # Delete the installed files and the installation directories.
 uninstall:
-	rm -f $(libdir)/$(Clibrary) $(libdir)/$(Cpplibrary)
-	-rmdir $(libdir)
-	rm -f $(includedir)/cocom-config.h
-	rm -f $(includedir)/allocate.h
-	rm -f $(includedir)/vlobject.h
-	rm -f $(includedir)/objstack.h
-	rm -f $(includedir)/hashtab.h
-	rm -f $(includedir)/commline.h
-	rm -f $(includedir)/position.h
-	rm -f $(includedir)/errors.h
-	rm -f $(includedir)/ticker.h
-	rm -f $(includedir)/bits.h
-	rm -f $(includedir)/arithm.h
-	rm -f $(includedir)/IEEE.h
-	rm -f $(includedir)/earley.h
-	-rmdir $(includedir)
+	rm -f $(DESTDIR)/$(libdir)/$(Clibrary)
+	rm -f $(DESTDIR)/$(libdir)/$(Cpplibrary)
+	-rmdir $(DESTDIR)/$(libdir)
+	rm -f $(DESTDIR)/$(includedir)/cocom-config.h
+	rm -f $(DESTDIR)/$(includedir)/allocate.h
+	rm -f $(DESTDIR)/$(includedir)/vlobject.h
+	rm -f $(DESTDIR)/$(includedir)/objstack.h
+	rm -f $(DESTDIR)/$(includedir)/hashtab.h
+	rm -f $(DESTDIR)/$(includedir)/commline.h
+	rm -f $(DESTDIR)/$(includedir)/position.h
+	rm -f $(DESTDIR)/$(includedir)/errors.h
+	rm -f $(DESTDIR)/$(includedir)/ticker.h
+	rm -f $(DESTDIR)/$(includedir)/bits.h
+	rm -f $(DESTDIR)/$(includedir)/arithm.h
+	rm -f $(DESTDIR)/$(includedir)/IEEE.h
+	rm -f $(DESTDIR)/$(includedir)/earley.h
+	-rmdir $(DESTDIR)/$(includedir)
 
 # Delete all temporary files and the libraries.
 clean:

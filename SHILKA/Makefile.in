@@ -60,6 +60,10 @@ mandir=@mandir@
 # The directory for installation of `shilka.1'
 man1dir=$(mandir)/man1
 
+# Additional prefix used to install ammunition temporarily.  It is
+# necessary only for RPM.
+DESTDIR=
+
 # Utility for installation `shilka'.
 INSTALL=@INSTALL@
 
@@ -145,19 +149,18 @@ test : shilka
 # Creation of installation directories and all object files and copying
 # the translator `shilka' and its man file to target directories.
 install: all
-	-mkdir $(bindir)
-	$(INSTALL) shilka $(bindir)/shilka
-	-mkdir $(mandir)
-	-mkdir $(man1dir)
-	$(INSTALLDATA) $(srcdir)/shilka.1 $(man1dir)/shilka.1
+	-mkdir -p $(DESTDIR)/$(bindir)
+	$(INSTALL) shilka $(DESTDIR)/$(bindir)/shilka
+	-mkdir -p $(DESTDIR)/$(man1dir)
+	$(INSTALLDATA) $(srcdir)/shilka.1 $(DESTDIR)/$(man1dir)/shilka.1
 
 # Delete the installed files and the installation directories.
 uninstall:
-	rm -f $(bindir)/shilka
-	-rmdir $(bindir)
-	rm -f $(man1dir)/shilka.1
-	-rmdir $(man1dir)
-	-rmdir $(mandir)
+	rm -f $(DESTDIR)/$(bindir)/shilka
+	-rmdir $(DESTDIR)/$(bindir)
+	rm -f $(DESTDIR)/$(man1dir)/shilka.1
+	-rmdir $(DESTDIR)/$(man1dir)
+	-rmdir $(DESTDIR)/$(mandir)
 
 # Deletion of object files of the translator, executable file `shilka' and also
 # deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'.
