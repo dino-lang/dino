@@ -1,3 +1,32 @@
+2002-04-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_dino.c (dino_finish): Call final_call_destroy_functions.
+	Process negative code.
+	(error_func_for_allocate): Use the negative code.
+
+	* DINO/d_heap.c (final_call_destroy_functions): New function.
+	(mark_instances_need_destroying): Add new parameter.
+	(mark_used_heap_objects): Call mark_instances_need_destroying with
+	the parameter.
+
+	* DINO/d_run.sprut (final_call_destroy_functions): New prototype.
+
+	* DINO/dino.tst.in: Add new tests for final destroying.
+
+	* DINO/socket.d (_socket_fin, _close_socket): New declarations.
+	(destroy): New functions in __socket_package, stream_client,
+	dgram_client, stream_server, dgram_server.
+
+	* DINO/socket_int.c (_close_socket, _socket_fin): New functions.
+	(socket_initialized_p): New static variable.
+	(_socket_init): Set up socket_initialized_p.
+	(socket_address): Add references for _close_socket, _socket_fin.
+
+	* DINO/dino.sgml.in: Calling destroy by finishing the program.
+
+	* DINO/{dino.dvi, dino.info*, dino.ps, dino.txt, dino.html,
+	dino-4.html}: Update.
+	
 2002-04-29  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in: New tests for getservbyname, getservbyport.

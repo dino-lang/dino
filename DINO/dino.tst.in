@@ -27591,8 +27591,8 @@ TEST496
      if uname | fgrep CYGWIN; then
         echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file time >$stdout"
         if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file time >$stdout; then
-                echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout
-                if egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout; then
+                echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout
+                if egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout; then
                         result=ok
                 else
 			cat $stdout
@@ -27604,8 +27604,8 @@ TEST496
      else
         echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file time >$stdout"
         if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file time >$stdout; then
-                echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout
-                if egrep '^[A-Za-z]+ [A-Za-z]+ [0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout; then
+                echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout
+                if egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout; then
                         result=ok
                 else
 			cat $stdout
@@ -27634,7 +27634,7 @@ TEST497
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
 In file processed from test.d:1:18:
-@srcdir@/socket.d:38:11: host is unknown
+@srcdir@/socket.d:39:11: host is unknown
 OUTPUT497
                         result=ok
                 else
@@ -27649,7 +27649,7 @@ OUTPUT497
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
 In file processed from test.d:1:18:
-@srcdir@/socket.d:38:11: host is unknown
+@srcdir@/socket.d:39:11: host is unknown
 OUTPUT497
                         result=ok
                 else
@@ -27809,6 +27809,123 @@ OUTPUT501a
                 result=fail
         fi
      fi
+fi
+
+# Test 502.
+if test $result = ok -a $start_test_number -le 502; then
+	echo test 502: Final destroying by implicit program finish.
+        cat >$test_file <<'TEST502'
+class c () {
+  putln ("creating instance");
+  func destroy () {putln ("destroying instance");}
+}
+
+var i = c ();
+TEST502
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT502' && $CMP $stdout $ftemp2; then
+creating instance
+destroying instance
+OUTPUT502
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 503.
+if test $result = ok -a $start_test_number -le 503; then
+	echo test 503: Final destroying by zero exit.
+        cat >$test_file <<'TEST503'
+class c () {
+  putln ("creating instance");
+  func destroy () {putln ("destroying instance");}
+}
+
+var i = c ();
+exit (0);
+TEST503
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT503' && $CMP $stdout $ftemp2; then
+creating instance
+destroying instance
+OUTPUT503
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 504.
+if test $result = ok -a $start_test_number -le 504; then
+	echo test 504: Final destroying by nonzero exit.
+        cat >$test_file <<'TEST504'
+class c () {
+  putln ("creating instance");
+  func destroy () {putln ("destroying instance");}
+}
+
+var i = c ();
+exit (1);
+TEST504
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT504' && $CMP $stdout $ftemp2; then
+creating instance
+destroying instance
+OUTPUT504
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 505.
+if test $result = ok -a $start_test_number -le 505; then
+	echo test 505: Final destroying by throw.
+        cat >$test_file <<'TEST505'
+class c () {
+  putln ("creating instance");
+  func destroy () {putln ("destroying instance");}
+}
+
+var i = c ();
+throw except ();
+TEST505
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT505' && $CMP $stdout $ftemp2; then
+creating instance
+destroying instance
+OUTPUT505
+	           if cat >$ftemp2 <<'OUTPUT505a' && $CMP $stderr $ftemp2; then
+test.d:7:5: run time error - exception except has not been processed
+OUTPUT505a
+                        result=ok
+                   else
+                        result=fail
+                   fi
+                else
+                        result=fail
+                fi
+        fi
 fi
 
 # Final message

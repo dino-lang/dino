@@ -22,10 +22,11 @@ var socket_errors = errors.socket_error ();
 final class __socket_package () {
   extern _socket_errno, _socket_invalid_address, _socket_host_not_found,
     _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
-    _gethostinfo (), _getservbyport (), _getservbyname (), _socket_init ();
+    _gethostinfo (), _getservbyport (), _getservbyname (),
+    _socket_init (), _socket_fin ();
   private _socket_errno, _socket_invalid_address, _socket_host_not_found,
     _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
-    _gethostinfo, _getservbyport, _getservbyname, _socket_init,
+    _gethostinfo, _getservbyport, _getservbyname, _socket_init, _socket_fin,
     host_info, serv_info;
 
   func generate_socket_exception () {
@@ -88,9 +89,11 @@ final class __socket_package () {
   private generate_socket_exception;
 
   extern _sread (), _swrite (), _recvfrom (), _sendto (), _accept (),
-    _stream_client (), _dgram_client (), _stream_server (), _dgram_server ();
+    _stream_client (), _dgram_client (), _stream_server (), _dgram_server (),
+    _close_socket ();
   private _sread, _swrite, _recvfrom, _sendto, _accept,
-    _stream_client, _dgram_client, _stream_server, _dgram_server;
+    _stream_client, _dgram_client, _stream_server, _dgram_server,
+    _close_socket;
 
   // If you change it, change code of _recvfrom too.
   class datagram (str, peer_addr, port) {}
@@ -117,6 +120,10 @@ final class __socket_package () {
         generate_socket_exception ();
       return nb;
     }
+
+    private destroy;
+    func destroy () {_close_socket (sfd);}
+
     if (type (peer_addr) != vector || eltype (peer_addr) != char
         || type (port) != int)
       throw socket_excepts.optype ();
@@ -151,6 +158,10 @@ final class __socket_package () {
         generate_socket_exception ();
       return nb;
     }
+
+    private destroy;
+    func destroy () {_close_socket (sfd);}
+
     sfd = _dgram_client ();
     if (sfd == nil)
       generate_socket_exception ();
@@ -167,6 +178,10 @@ final class __socket_package () {
       proxy_sfd = v [0];      
       return stream_client (v [1], v [2]);
     }
+
+    private destroy;
+    func destroy () {_close_socket (sfd);}
+
     if (type (port) != int)
       throw socket_excepts.optype ();
     if (type (queue_len) != int)
@@ -201,12 +216,19 @@ final class __socket_package () {
         generate_socket_exception ();
       return nb;
     }
+
+    private destroy;
+    func destroy () {_close_socket (sfd);}
+
     if (type (port) != int)
       throw socket_excepts.optype ();
     sfd = _dgram_server (port);
     if (sfd == nil)
       generate_socket_exception ();
   }
+
+  private destroy;
+  func destroy () {_socket_fin ();}
 
   _socket_init ();
 }

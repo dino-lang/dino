@@ -1,4 +1,3 @@
-/* ??? closesocket */
 /* We made all check inside DINO code therefore we trust in correct
    operand types. */
 
@@ -752,18 +751,46 @@ _dgram_server (int npars, val_t *vals)
 }
 
 WIN_EXPORT val_t
-_socket_init ()
+_close_socket (int npars, val_t *vals)
+{
+  int sd;
+  val_t val;
+  ER_node_t res = (ER_node_t) &val;
+
+  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  sd = ER_i ((ER_node_t) vals);
+  /* We just ignore the errors becuse our goal to free the descriptors
+     in calling function destroy.  */
+#if defined(WIN32)
+  closesocket (sd);
+#else
+  close (sd);
+#endif
+  ER_SET_MODE (res, ER_NM_nil);
+  return val;
+}
+
+#ifdef WIN32
+static int socket_initialized_p = 0;
+#endif
+
+WIN_EXPORT val_t
+_socket_init (int npars, val_t *vals)
 {
   val_t val;
   ER_node_t res = (ER_node_t) &val;
+
+  assert (npars == 0);
+
 #ifdef WIN32
   WORD wVersionRequested;
   WSADATA wsaData;
 
-  wVersionRequested = MAKEWORD (1, 1);
-  if (WSAStartup (wVersionRequested, &wsaData) != 0)
-    /* We just ignore absence of the necessary socket library version
-       because we will have error WSANOTINITIALISED. */;
+  wVersionRequested = MAKEWORD (2, 0);
+  /* We just ignore absence of the necessary socket library version
+     because we will have error WSANOTINITIALISED. */
+  if (WSAStartup (wVersionRequested, &wsaData) == 0)
+    socket_initialized_p = 1;
 #endif
   ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
   ER_set_i ((ER_node_t) &_socket_errno, 0);
@@ -779,6 +806,21 @@ _socket_init ()
   ER_set_i ((ER_node_t) &_socket_try_again, 99999994);
   ER_SET_MODE ((ER_node_t) &_socket_eof, ER_NM_int);
   ER_set_i ((ER_node_t) &_socket_eof, 99999995);
+  ER_SET_MODE (res, ER_NM_nil);
+  return val;
+}
+
+WIN_EXPORT val_t
+_socket_fin (int npars, val_t *vals)
+{
+  val_t val;
+  ER_node_t res = (ER_node_t) &val;
+
+#ifdef WIN32
+  if (socket_initialized_p && WSACleanup () == 0)
+    socket_initialized_p = 0;
+#endif
+  assert (npars == 0);
   ER_SET_MODE (res, ER_NM_nil);
   return val;
 }
@@ -829,8 +871,12 @@ socket_address (const char *name)
     return _stream_server;
   else if (strcmp (name, "_dgram_server") == 0)
     return _dgram_server;
+  else if (strcmp (name, "_close_socket") == 0)
+    return _close_socket;
   else if (strcmp (name, "_socket_init") == 0)
     return _socket_init;
+  else if (strcmp (name, "_socket_fin") == 0)
+    return _socket_fin;
   else
     return NULL;
 }

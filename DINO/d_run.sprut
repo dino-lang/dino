@@ -135,6 +135,7 @@ extern void profile_interrupt (void);
 
 extern void *heap_allocate (size_t size, int stack_p);
 extern void initiate_heap (void);
+extern void final_call_destroy_functions (void);
 extern void finish_heap (void);
 extern void gc (void);
 extern void heap_push (IR_node_t block_node_ptr, ER_node_t context);

@@ -56,6 +56,8 @@ History
 
   Mar 18, 2002.  New function set_lookahead.
 
+  Apr 30, 2002.  Calling destroy by finishing the program.
+
 
 
 1. Introduction
@@ -609,19 +611,23 @@ default value in a way analogous to variable initialization.  The
 initialization is made only when the corresponding actual parameter
 value is nil.
 
-If a class contains a function with the name destroy, the function
-will be called when the class object becomes garbage during the
-garbage collection process.  The function can also be called explicitly if it
-is declared as public.  You should be remember that although the
-function may have parameters and return a value, the garbage collector
-ignores the result value and does not pass actual parameters.  So the
-values of the parameters will be nil if the function is
-called by the garbage collector.  You may prevent removing the
-corresponding object in the function destroy by assigning the object
-to a variable.  It means that the function can be called several times
-(during several garbage collections) for the same object.  But you
-should also avoid creation of objects during the call of function
-destroy because it may result in increase of the heap.
+If a class contains a function with the name destroy, the
+function will be called when the class object becomes garbage during
+the garbage collection process or at the end of the program.  The
+function can also be called explicitly if it is declared as public.
+You should be remember that although the function may have parameters
+and return a value, the garbage collector (or finishing the program)
+ignores the result value and does not pass actual parameters.  The
+single exception when the function destroy is not called by
+finishing the program is the case when memory can not be allocated
+more.  So the values of the parameters will be nil if the
+function is called by the garbage collector (or finishing the
+program).  You may prevent removing the corresponding object in the
+function destroy by assigning the object to a variable.  It means that
+the function can be called several times (during several garbage
+collections) for the same object.  But you should also avoid creation
+of objects during the call of function destroy because it may
+result in increase of the heap.
 
 Instead of inheritance usually used in object-oriented languages, Dino
 supports extension.  This feature permits to modify

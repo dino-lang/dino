@@ -164,6 +164,8 @@ dino_finish (int code)
   char unit;
   int size;
 
+  if (code >= 0)
+    final_call_destroy_functions ();
 #ifndef NO_PROFILE
   if (code == 0 && profile_flag)
     print_profile (first_program_stmt);
@@ -203,7 +205,7 @@ dino_finish (int code)
       if (tab_expansions != 0)
 	fprintf (stderr, "Tables expansions - %d\n", tab_expansions);
     }
-  longjmp (exit_longjump_buff, (code == 0 ? -1 : code));
+  longjmp (exit_longjump_buff, (code == 0 ? -1 : code < 0 ? 1 : code));
 }
 
 static void
@@ -216,7 +218,7 @@ static void
 error_func_for_allocate (void)
 {
   error (FALSE, IR_pos (cpc), ERR_no_memory);
-  dino_finish (1);
+  dino_finish (-1);
 }
 
 static void

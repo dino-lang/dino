@@ -510,6 +510,42 @@ initiate_heap ()
 #endif
 }
 
+/* Some forward declarations. */
+static void clean_heap_object_process_flag (void);
+static int mark_instances_need_destroying (int mark_dependent_p);
+static void destroy_instances (void);
+
+/* Just call destroy functions. */
+void
+final_call_destroy_functions (void)
+{
+  IR_node_t block_node_ptr;
+
+  if (uppest_stack == NULL)
+    /* Heap is not initialized.  */
+    return;
+  clean_heap_object_process_flag ();
+  if (mark_instances_need_destroying (FALSE))
+    {
+      if (cstack == NULL)
+	{
+	  cstack = uppest_stack;
+	  block_node_ptr = ER_block_node (cstack);
+	  ctop = (ER_node_t) ((char *) ER_stack_vars (cstack)
+			      + REAL_BLOCK_VARS_NUMBER (block_node_ptr)
+			      * sizeof (val_t) - sizeof (val_t));
+#ifdef NO_OPTIMIZE
+	  ER_set_ctop (cstack, (char *) ctop);
+#endif
+	  SET_TOP;
+	  cpc = ER_return_pc (cstack);
+	  if (cprocess != NULL)
+	    ER_set_saved_cstack (cprocess, cstack);
+	}
+      destroy_instances ();
+    }
+}
+
 void
 finish_heap (void)
 {
@@ -834,9 +870,10 @@ traverse_used_heap_object (ER_node_t obj)
     }
 }
 
-/* Return true if there are objects to be destroyed. */
+/* Return true if there are objects to be destroyed.  Mark objects
+   achieved from instance to be destroyed if MARK_DEPENDENT_P.  */
 static int
-mark_instances_need_destroying (void)
+mark_instances_need_destroying (int mark_dependent_p)
 {
   ER_node_t curr_obj;
   struct heap_chunk *curr_descr;
@@ -856,18 +893,19 @@ mark_instances_need_destroying (void)
 	    result = TRUE;
 	  }
     }
-  for (curr_descr = VLO_BEGIN (heap_chunks);
-       (char *) curr_descr <= (char *) VLO_END (heap_chunks);
-       curr_descr++)
-    {
-      for (curr_obj = (ER_node_t) curr_descr->chunk_start;
-	   (char *) curr_obj < curr_descr->chunk_free;
-	   curr_obj = next_heap_object (curr_obj))
-	if (ER_NODE_MODE (curr_obj) == ER_NM_heap_instance
-	    && ER_state (curr_obj) == IS_to_be_destroyed)
-	  traverse_used_heap_object (curr_obj);
-    }
-  return TRUE;
+  if (mark_dependent_p)
+    for (curr_descr = VLO_BEGIN (heap_chunks);
+	 (char *) curr_descr <= (char *) VLO_END (heap_chunks);
+	 curr_descr++)
+      {
+	for (curr_obj = (ER_node_t) curr_descr->chunk_start;
+	     (char *) curr_obj < curr_descr->chunk_free;
+	     curr_obj = next_heap_object (curr_obj))
+	  if (ER_NODE_MODE (curr_obj) == ER_NM_heap_instance
+	      && ER_state (curr_obj) == IS_to_be_destroyed)
+	    traverse_used_heap_object (curr_obj);
+      }
+  return result;
 }
 
 static int
@@ -886,7 +924,7 @@ mark_used_heap_objects (void)
   traverse_used_heap_object (cprocess);
   traverse_used_heap_object (first_process_not_started);
   /* Traverse all instances which needs to be destroyed. */
-  return mark_instances_need_destroying ();
+  return mark_instances_need_destroying (TRUE);
 }
 
 #if INLINE

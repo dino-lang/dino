@@ -9,7 +9,7 @@
 %DVIPSCommandLine: dvips -o /home/vmakarov/utils/cvs/cocom/DINO/dino.ps
 %+ /home/vmakarov/utils/cvs/cocom/DINO/dino.dvi
 %DVIPSParameters: dpi=600, compressed
-%DVIPSSource:  TeX output 2002.04.11:1703
+%DVIPSSource:  TeX output 2002.04.30:1853
 %%BeginProcSet: texc.pro
 %!
 /TeXDict 300 dict def TeXDict begin/N{def}def/B{bind def}N/S{exch}N/X{S
@@ -1713,39 +1713,40 @@ g(sputln,)f(sprint,)h(sprintln)g(added.)286 2452 y(Dec)f(13,)g(2001.)79
 b(New)40 b(variables)h(nil_anode)h(and)d(error_anode)j(and)e(new)874
 2556 y(function)h(set_cost.)286 2764 y(Mar)f(15,)g(2002.)79
 b(Function)41 b(parse)g(may)e(return)i(nil.)286 2973
-y(Mar)f(18,)g(2002.)79 b(New)40 b(function)h(set_lookahead.)0
-3311 y Fg(1)131 b(In)l(tro)t(duction)0 3550 y Fj(DINO)29
-b(is)g(a)g(high)g(lev)n(el)f(dynamic-t)n(yp)r(ed)h(scripting)f
-(language.)40 b(DINO)29 b(is)g(designed)g(taking)f(suc)n(h)h(design)f
-(principles)h(as)0 3663 y(simplicit)n(y)-7 b(,)26 b(uniformit)n(y)-7
-b(,)26 b(and)g(expressiv)n(eness)e(in)n(to)h(accoun)n(t.)35
-b(Dino)26 b(is)g(orien)n(ted)f(on)h(the)g(same)f(domain)g(of)h
-(applications)0 3777 y(as)33 b(the)h(famous)f(scripting)g(languages)e
-(P)n(erl,)k(TCL,)f(and)f(Python.)55 b(Most)33 b(programmers)e(kno)n(w)i
-(the)h(C)f(programming)0 3890 y(language.)62 b(Therefore)35
-b(Dino)i(aims)f(to)g(lo)r(ok)g(lik)n(e)g(C)g(where)g(it)h(is)g(p)r
-(ossible.)63 b(Dino)36 b(is)h(an)f(ob)5 b(ject)36 b(orien)n(ted)g
-(language)0 4004 y(with)27 b(garbage)d(collection.)36
-b(Dino)26 b(has)g(p)r(ossibilities)h(of)f(parallelism)f(description)h
-(and)g(exception)g(handling.)36 b(Dino)27 b(is)f(an)0
-4118 y(extensible)e(language)e(with)i(the)h(p)r(ossibilit)n(y)e(of)h
-(dynamic)g(loading)e(of)i(libraries)f(written)h(on)f(other)h
-(languages.)33 b(The)24 b(high)0 4231 y(lev)n(el)j(structures)g(of)g
-(Dino)h(are)125 4454 y Fd(\017)41 b Fj(heterogenous)25
-b(extensible)j(v)n(ectors)125 4634 y Fd(\017)41 b Fj(extensible)27
+y(Mar)f(18,)g(2002.)79 b(New)40 b(function)h(set_lookahead.)286
+3181 y(Apr)f(30,)g(2002.)79 b(Calling)41 b(destroy)g(by)e(finishing)j
+(the)d(program.)0 3519 y Fg(1)131 b(In)l(tro)t(duction)0
+3758 y Fj(DINO)29 b(is)g(a)g(high)g(lev)n(el)f(dynamic-t)n(yp)r(ed)h
+(scripting)f(language.)40 b(DINO)29 b(is)g(designed)g(taking)f(suc)n(h)
+h(design)f(principles)h(as)0 3871 y(simplicit)n(y)-7
+b(,)26 b(uniformit)n(y)-7 b(,)26 b(and)g(expressiv)n(eness)e(in)n(to)h
+(accoun)n(t.)35 b(Dino)26 b(is)g(orien)n(ted)f(on)h(the)g(same)f
+(domain)g(of)h(applications)0 3985 y(as)33 b(the)h(famous)f(scripting)g
+(languages)e(P)n(erl,)k(TCL,)f(and)f(Python.)55 b(Most)33
+b(programmers)e(kno)n(w)i(the)h(C)f(programming)0 4099
+y(language.)62 b(Therefore)35 b(Dino)i(aims)f(to)g(lo)r(ok)g(lik)n(e)g
+(C)g(where)g(it)h(is)g(p)r(ossible.)63 b(Dino)36 b(is)h(an)f(ob)5
+b(ject)36 b(orien)n(ted)g(language)0 4212 y(with)27 b(garbage)d
+(collection.)36 b(Dino)26 b(has)g(p)r(ossibilities)h(of)f(parallelism)f
+(description)h(and)g(exception)g(handling.)36 b(Dino)27
+b(is)f(an)0 4326 y(extensible)e(language)e(with)i(the)h(p)r(ossibilit)n
+(y)e(of)h(dynamic)g(loading)e(of)i(libraries)f(written)h(on)f(other)h
+(languages.)33 b(The)24 b(high)0 4439 y(lev)n(el)j(structures)g(of)g
+(Dino)h(are)125 4662 y Fd(\017)41 b Fj(heterogenous)25
+b(extensible)j(v)n(ectors)125 4842 y Fd(\017)41 b Fj(extensible)27
 b(asso)r(ciativ)n(e)f(tables)h(with)h(the)g(abilit)n(y)f(to)h(delete)f
-(table)h(elemen)n(ts)125 4814 y Fd(\017)41 b Fj(ob)5
-b(jects)0 5037 y(Originally)-7 b(,)21 b(Dino)g(w)n(as)e(used)i(in)g
+(table)h(elemen)n(ts)125 5022 y Fd(\017)41 b Fj(ob)5
+b(jects)0 5245 y(Originally)-7 b(,)21 b(Dino)g(w)n(as)e(used)i(in)g
 (the)g(russian)f(graphics)f(compan)n(y)h(ANIMA)-7 b(TEK)22
 b(\()p Fc(A)n(nimatek)f Fi(<http://www.anim)o(at)o(ek)o(.)0
-5150 y(com>)p Fj(\))31 b(for)g(description)h(of)g(the)g(mo)n(v)n(emen)n
+5359 y(com>)p Fj(\))31 b(for)g(description)h(of)g(the)g(mo)n(v)n(emen)n
 (t)f(of)h(dinosaurs)f(in)h(a)g(pro)5 b(ject.)49 b(It)33
-b(has)e(b)r(een)i(considerably)d(redesigned)h(and)0 5264
+b(has)e(b)r(een)i(considerably)d(redesigned)h(and)0 5472
 y(w)n(as)c(implemen)n(ted)h(with)g(the)g(aid)f(of)h(the)f(COCOM)g(to)r
-(ol)h(set.)0 5420 y(This)d(do)r(cumen)n(t)g(is)f(not)h(in)n(tended)g
+(ol)h(set.)0 5629 y(This)d(do)r(cumen)n(t)g(is)f(not)h(in)n(tended)g
 (for)g(use)f(as)h(a)f(programmer's)e(tutorial.)35 b(It)26
 b(is)e(a)h(concise)f(description)g(of)h(the)g(language)0
-5534 y(DINO)j(and)f(can)g(b)r(e)h(used)g(as)f(a)g(programmer's)e
+5742 y(DINO)j(and)f(can)g(b)r(e)h(used)g(as)f(a)g(programmer's)e
 (reference.)p eop
 %%Page: 4 4
 4 3 bop 0 -167 3900 5 v 0 -200 a Ff(2.)73 b(Syn)m(tax)3424
@@ -2255,66 +2256,71 @@ b(The)33 b(initialization)g(is)f(made)h(only)g(when)g(the)0
 b(alue)27 b(is)g Ff(nil)p Fj(.)0 4551 y(If)38 b(a)e(class)g(con)n
 (tains)g(a)h(function)h(with)f(the)h(name)e Fi(destroy)p
 Fj(,)h(the)h(function)f(will)g(b)r(e)h(called)f(when)g(the)g(class)f
-(ob)5 b(ject)0 4664 y(b)r(ecomes)34 b(garbage)d(during)j(the)h(garbage)
-c(collection)j(pro)r(cess.)55 b(The)34 b(function)h(can)f(also)f(b)r(e)
-h(called)g(explicitly)g(if)h(it)f(is)0 4778 y(declared)d(as)g(public.)
-50 b(Y)-7 b(ou)32 b(should)f(b)r(e)i(remem)n(b)r(er)e(that)h(although)f
-(the)h(function)g(ma)n(y)f(ha)n(v)n(e)g(parameters)f(and)i(return)0
-4891 y(a)f(v)-5 b(alue,)32 b(the)g(garbage)d(collector)h(ignores)g(the)
-h(result)g(v)-5 b(alue)32 b(and)f(do)r(es)g(not)g(pass)g(actual)f
-(parameters.)47 b(So)31 b(the)h(v)-5 b(alues)0 5005 y(of)30
-b(the)h(parameters)d(will)j(b)r(e)g Ff(nil)e Fj(if)i(the)f(function)h
-(is)f(called)g(b)n(y)g(the)h(garbage)d(collector.)44
-b(Y)-7 b(ou)30 b(ma)n(y)f(prev)n(en)n(t)h(remo)n(ving)0
-5118 y(the)j(corresp)r(onding)e(ob)5 b(ject)32 b(in)h(the)g(function)g
-(destro)n(y)f(b)n(y)g(assigning)f(the)i(ob)5 b(ject)33
-b(to)f(a)g(v)-5 b(ariable.)52 b(It)33 b(means)f(that)h(the)0
-5232 y(function)25 b(can)f(b)r(e)g(called)g(sev)n(eral)f(times)h
+(ob)5 b(ject)0 4664 y(b)r(ecomes)27 b(garbage)e(during)i(the)g(garbage)
+e(collection)i(pro)r(cess)f(or)g(at)h(the)h(end)g(of)f(the)h(program.)
+34 b(The)27 b(function)h(can)f(also)0 4778 y(b)r(e)f(called)f
+(explicitly)h(if)g(it)g(is)g(declared)f(as)g(public.)36
+b(Y)-7 b(ou)26 b(should)f(b)r(e)h(remem)n(b)r(er)f(that)h(although)f
+(the)h(function)g(ma)n(y)f(ha)n(v)n(e)0 4891 y(parameters)g(and)h
+(return)g(a)h(v)-5 b(alue,)26 b(the)h(garbage)e(collector)g(\(or)h
+(\034nishing)h(the)g(program\))d(ignores)h(the)i(result)g(v)-5
+b(alue)26 b(and)0 5005 y(do)r(es)h(not)g(pass)g(actual)g(parameters.)35
+b(The)27 b(single)g(exception)g(when)g(the)h(function)g
+Fi(destroy)d Fj(is)i(not)g(called)g(b)n(y)g(\034nishing)0
+5118 y(the)k(program)e(is)h(the)h(case)f(when)h(memory)f(can)g(not)g(b)
+r(e)i(allo)r(cated)d(more.)46 b(So)30 b(the)h(v)-5 b(alues)30
+b(of)h(the)g(parameters)e(will)i(b)r(e)0 5232 y Ff(nil)d
+Fj(if)h(the)f(function)h(is)g(called)f(b)n(y)g(the)h(garbage)d
+(collector)h(\(or)h(\034nishing)g(the)h(program\).)38
+b(Y)-7 b(ou)28 b(ma)n(y)g(prev)n(en)n(t)g(remo)n(ving)0
+5346 y(the)33 b(corresp)r(onding)e(ob)5 b(ject)32 b(in)h(the)g
+(function)g(destro)n(y)f(b)n(y)g(assigning)f(the)i(ob)5
+b(ject)33 b(to)f(a)g(v)-5 b(ariable.)52 b(It)33 b(means)f(that)h(the)0
+5459 y(function)25 b(can)f(b)r(e)g(called)g(sev)n(eral)f(times)h
 (\(during)g(sev)n(eral)f(garbage)f(collections\))i(for)f(the)i(same)f
-(ob)5 b(ject.)35 b(But)25 b(y)n(ou)e(should)0 5346 y(also)31
+(ob)5 b(ject.)35 b(But)25 b(y)n(ou)e(should)0 5573 y(also)31
 b(a)n(v)n(oid)g(creation)g(of)h(ob)5 b(jects)32 b(during)g(the)h(call)e
 (of)i(function)f Fi(destroy)e Fj(b)r(ecause)i(it)g(ma)n(y)g(result)g
-(in)h(increase)d(of)j(the)0 5459 y(heap.)0 5616 y(Instead)38
-b(of)g(inheritance)g(usually)g(used)g(in)g(ob)5 b(ject-orien)n(ted)37
-b(languages,)i(Dino)g(supp)r(orts)e Fc(extension)6 b
-Fj(.)69 b(This)38 b(feature)0 5729 y(p)r(ermits)24 b(to)f(mo)r(dify)h
-(function/class)f(b)r(eha)n(viour.)34 b(All)24 b(co)r(de)f(inside)h(an)
-f(extension)g(b)r(o)r(dy)h(is)g(inserted)f(at)h(the)f(end)h(of)g(b)r(o)
-r(dy)p eop
+(in)h(increase)d(of)j(the)0 5686 y(heap.)p eop
 %%Page: 12 12
 12 11 bop 0 -167 3900 5 v 0 -200 a Ff(4.)73 b(Declarations)32
-b(and)h(Scop)s(e)e(Rules)2424 b Fj(12)0 162 y(of)26 b(the)g
-(function/class)e(declared)h(with)h(the)g(same)f(iden)n(ti\034er)g(in)h
-(the)g(same)f(blo)r(c)n(k)g(in)h(the)g(same)f(order)f(as)h(the)h
-(extensions)0 275 y(are)h(placed)g(in)h(the)g(blo)r(c)n(k.)36
-b(A)28 b(function/class)e(declared)h(as)g Fc(\034nal)36
-b Fj(can)27 b(not)h(b)r(e)g(extended.)600 489 y Fe
-(FuncClassExtDeclaration)44 b(=)39 b(Header)i(Block)600
-697 y(Header)f(=)g([final])g(FuncThreadClass)j(IDENT)d
-(FormalParameters)874 801 y(|)g(ext)g(IDENT)600 1009
-y(FuncThreadClass)i(=)e(func)1227 1113 y(|)g(thread)1227
-1217 y(|)g(class)600 1426 y(FormalParameters)i(=)e("\(")79
-b([)39 b(VarParList)j(])d("\)")1266 1530 y(|)h("\(")79
-b(VarParList)41 b(",")f("...")80 b("\)")1266 1634 y(|)40
-b("\(")g("...")79 b("\)")0 1857 y Fj(Examples:)0 2013
+b(and)h(Scop)s(e)e(Rules)2424 b Fj(12)0 162 y(Instead)38
+b(of)g(inheritance)g(usually)g(used)g(in)g(ob)5 b(ject-orien)n(ted)37
+b(languages,)i(Dino)g(supp)r(orts)e Fc(extension)6 b
+Fj(.)69 b(This)38 b(feature)0 275 y(p)r(ermits)24 b(to)f(mo)r(dify)h
+(function/class)f(b)r(eha)n(viour.)34 b(All)24 b(co)r(de)f(inside)h(an)
+f(extension)g(b)r(o)r(dy)h(is)g(inserted)f(at)h(the)f(end)h(of)g(b)r(o)
+r(dy)0 389 y(of)i(the)g(function/class)e(declared)h(with)h(the)g(same)f
+(iden)n(ti\034er)g(in)h(the)g(same)f(blo)r(c)n(k)g(in)h(the)g(same)f
+(order)f(as)h(the)h(extensions)0 502 y(are)h(placed)g(in)h(the)g(blo)r
+(c)n(k.)36 b(A)28 b(function/class)e(declared)h(as)g
+Fc(\034nal)36 b Fj(can)27 b(not)h(b)r(e)g(extended.)600
+712 y Fe(FuncClassExtDeclaration)44 b(=)39 b(Header)i(Block)600
+920 y(Header)f(=)g([final])g(FuncThreadClass)j(IDENT)d
+(FormalParameters)874 1024 y(|)g(ext)g(IDENT)600 1233
+y(FuncThreadClass)i(=)e(func)1227 1337 y(|)g(thread)1227
+1441 y(|)g(class)600 1649 y(FormalParameters)i(=)e("\(")79
+b([)39 b(VarParList)j(])d("\)")1266 1753 y(|)h("\(")79
+b(VarParList)41 b(",")f("...")80 b("\)")1266 1857 y(|)40
+b("\(")g("...")79 b("\)")0 2077 y Fj(Examples:)0 2233
 y(The)28 b(follo)n(wing)e(is)i(a)f(parameterless)e(class)i(header:)600
-2227 y Fe(class)40 b(stack)g(\(\))0 2450 y Fj(The)28
+2443 y Fe(class)40 b(stack)g(\(\))0 2662 y Fj(The)28
 b(follo)n(wing)e(is)i(a)f(class)f(header)h(with)h(an)f(initialization:)
-600 2663 y Fe(class)40 b(stack)g(\(max_height)i(=)d(100\))0
-2886 y Fj(The)28 b(follo)n(wing)e(is)i(a)f(function)h(with)g(a)f(v)-5
+600 2872 y Fe(class)40 b(stack)g(\(max_height)i(=)d(100\))0
+3091 y Fj(The)28 b(follo)n(wing)e(is)i(a)f(function)h(with)g(a)f(v)-5
 b(ariable)27 b(n)n(um)n(b)r(er)g(of)g(parameters:)600
-3099 y Fe(func)40 b(print_args)h(\(...\))678 3203 y({)757
-3308 y(for)e(\(i)h(=)g(0;)f(i)h(<)f(#args;)i(i++\))835
-3412 y(println)g(\(args[i]\);)678 3516 y(})0 3739 y Fj(The)28
+3301 y Fe(func)40 b(print_args)h(\(...\))678 3405 y({)757
+3509 y(for)e(\(i)h(=)g(0;)f(i)h(<)f(#args;)i(i++\))835
+3613 y(println)g(\(args[i]\);)678 3717 y(})0 3936 y Fj(The)28
 b(follo)n(wing)e(example)h(illustrates)g(the)h(usage)e(of)i
-(extensions:)639 3952 y Fe(class)40 b(point)h(\(x)e(=)h(0,)f(y)h(=)f
-(0\))h({)639 4056 y(})639 4160 y(ext)g(point)g({)717
-4264 y(class)h(circle)f(\(radius)h(=)e(1\))h({)796 4368
+(extensions:)639 4146 y Fe(class)40 b(point)h(\(x)e(=)h(0,)f(y)h(=)f
+(0\))h({)639 4250 y(})639 4354 y(ext)g(point)g({)717
+4459 y(class)h(circle)f(\(radius)h(=)e(1\))h({)796 4563
 y(func)g(square)g(\(\))g({return)h(3.14)f(*)f(radius)i(*)e(radius;})717
-4473 y(})639 4577 y(})639 4681 y(ext)h(point)g({)717
-4785 y(ext)g(circle)h({)796 4889 y(class)f(ellipse)h(\(width\))g({)874
-4993 y(func)f(square)h(\(\))f({)953 5097 y(...)874 5201
-y(})796 5305 y(})639 5410 y(})0 5632 y Fj(The)28 b(follo)n(wing)e
+4667 y(})639 4771 y(})639 4875 y(ext)h(point)g({)717
+4979 y(ext)g(circle)h({)796 5083 y(class)f(ellipse)h(\(width\))g({)874
+5187 y(func)f(square)h(\(\))f({)953 5291 y(...)874 5395
+y(})796 5500 y(})639 5604 y(})0 5823 y Fj(The)28 b(follo)n(wing)e
 (example)h(is)h(a)f(class)f(with)i(the)g(function)g Fi(destroy)p
 Fj(:)p eop
 %%Page: 13 13
