@@ -1,3 +1,15 @@
+2003-12-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/O: New directory.
+	* DINO/O/FE: New directory.
+	* DINO/O/FE{atree.d, check.d, ctree.d, et2at.d, lex.d, outsym.d,
+	o.y, parser.d, scanner.d, table.d, tree.d}: New files.
+	* DINO/O/MACH: New directory.
+	* DINO/O/MACH/i386: New directory.
+	* DINO/O/MACH/i386/machine.d: New file.
+	* DINO/O/LIB: New directory.
+	* DINO/O/LIB{comm.d, error.d}: New files.
+
 2003-12-15  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (store_table_element, initiate_vars): Make the table
