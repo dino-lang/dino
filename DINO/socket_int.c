@@ -1,21 +1,34 @@
+/* ??? closesocket */
 /* We made all check inside DINO code therefore we trust in correct
    operand types. */
 
+#ifdef HAVE_CONFIG_H
 #include "d_config.h"
+#endif
 #include "d_extern.h"
 #include <assert.h>
 #include <errno.h>
+
+#ifndef WIN32
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#else
+#include <windows.h>
+#include <winsock2.h>
+#endif
 
+#ifndef WIN32
 extern int h_errno;
+#endif
 
 #ifdef WIN32
 
 #include <windows.h>
+
+typedef SOCKET socket_t;
 
 #define WIN_EXPORT  __declspec(dllexport)
 
@@ -83,13 +96,22 @@ get_ip_address (char *name)
     {
       name = str;
       if (gethostname (str, sizeof (str)) < 0)
-	return NULL;
+	{
+#ifdef WIN32
+	  errno = WSAGetLatError ();
+	  ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+	  ER_set_i ((ER_node_t) &_socket_errno, errno);
+#endif
+	  return NULL;
+	}
     }
   addr_p = ip_addres_p (name);
   if (addr_p)
     {
-#ifdef HAVE_inet_aton
+#if defined(HAVE_inet_aton) && !defined(WIN32)
       if (inet_aton (name, &addr)) == 0)
+#elif defined(WIN32)
+      if ((addr.s_addr = inet_addr (name)) == INADDR_NONE)
 #else
       if ((addr.s_addr = inet_addr (name)) == -1)
 #endif
@@ -103,6 +125,7 @@ get_ip_address (char *name)
       he = gethostbyname (name);
       if (he == NULL)
 	{
+#if !defined(WIN32)
 	  if (h_errno == HOST_NOT_FOUND)
 	    _socket_errno = _socket_host_not_found;
 	  else if (h_errno == NO_DATA)
@@ -111,6 +134,22 @@ get_ip_address (char *name)
 	    _socket_errno = _socket_no_recovery;
 	  else if (h_errno == TRY_AGAIN)
 	    _socket_errno = _socket_try_again;
+#else
+	  errno = WSAGetLatError ();
+	  if (errno == WSAHOST_NOT_FOUND)
+	    _socket_errno = _socket_host_not_found;
+	  else if (errno == WSANO_DATA)
+	    _socket_errno = _socket_no_address;
+	  else if (errno == WSANO_RECOVERY)
+	    _socket_errno = _socket_no_recovery;
+	  else if (errno == WSATRY_AGAIN)
+	    _socket_errno = _socket_try_again;
+	  else
+	    {
+	      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+	      ER_set_i ((ER_node_t) &_socket_errno, errno);
+	    }
+#endif
 	  return NULL;
 	}
       memcpy (&addr.s_addr, he->h_addr, sizeof (addr.s_addr));
@@ -140,14 +179,31 @@ _gethostinfo (int npars, val_t *vals)
 			AF_INET);
   if (he == NULL)
     {
+#if !defined(WIN32)
       if (h_errno == HOST_NOT_FOUND)
 	_socket_errno = _socket_host_not_found;
       else if (h_errno == NO_DATA)
 	_socket_errno = _socket_no_address;
       else if (h_errno == NO_RECOVERY)
-	_socket_errno = _socket_no_recovery;
+        _socket_errno = _socket_no_recovery;
       else if (h_errno == TRY_AGAIN)
 	_socket_errno = _socket_try_again;
+#else
+      errno = WSAGetLatError ();
+      if (errno == WSAHOST_NOT_FOUND)
+        _socket_errno = _socket_host_not_found;
+      else if (errno == WSANO_DATA)
+        _socket_errno = _socket_no_address;
+      else if (errno == WSANO_RECOVERY)
+        _socket_errno = _socket_no_recovery;
+      else if (errno == WSATRY_AGAIN)
+        _socket_errno = _socket_try_again;
+      else
+        {
+          ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+          ER_set_i ((ER_node_t) &_socket_errno, errno);
+        }
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       return val;
     }
@@ -184,39 +240,30 @@ _gethostinfo (int npars, val_t *vals)
   ER_SET_MODE (var, ER_NM_vect);
   ER_set_vect (var, vect);
   ER_SET_MODE (res, ER_NM_instance);
-  ER_set_vect (res, instance);
+  ER_set_instance (res, instance);
   return val;
 }
 
-WIN_EXPORT val_t
-_setservent (int npars, val_t *vals)
+static val_t
+form_servent (ER_node_t instance, struct servent *se)
 {
-  val_t val;
-  ER_node_t res = (ER_node_t) &val;
-
-  assert (npars == 0);
-  ER_SET_MODE (res, ER_NM_nil);
-  setservent (0);
-  return val;
-}
-
-WIN_EXPORT val_t
-_getservent (int npars, val_t *vals)
-{
+  ER_node_t var, vect;
   int i;
-  ER_node_t instance, var, vect;
-  struct servent *se;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
-  se = getservent ();
   if (se == NULL)
     {
+#ifdef WIN32
+      errno = WSAGetLatError ();
+      if (errno == WSA_NO_DATA)
+	errno = 0;
+      ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+      ER_set_i ((ER_node_t) &_socket_errno, errno);
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       return val;
     }
-  instance = ER_instance ((ER_node_t) vals);
   /* name */
   var = ER_instance_vars (instance);
   vect = create_string (se->s_name);
@@ -242,21 +289,61 @@ _getservent (int npars, val_t *vals)
   ER_SET_MODE (var, ER_NM_vect);
   ER_set_vect (var, vect);
   ER_SET_MODE (res, ER_NM_instance);
-  ER_set_vect (res, instance);
+  ER_set_instance (res, instance);
   return val;
 }
 
 WIN_EXPORT val_t
-_endservent (int npars, val_t *vals)
+_getservbyport (int npars, val_t *vals)
 {
-  val_t val;
-  ER_node_t res = (ER_node_t) &val;
+  ER_node_t instance, var, vect;
+  int port;
+  char *proto;
 
-  assert (npars == 0);
-  ER_SET_MODE (res, ER_NM_nil);
-  endservent ();
-  return val;
+  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  instance = ER_instance ((ER_node_t) vals);
+  var = ER_instance_vars (instance);
+  /* port */
+  var = INDEXED_VAL (var, 2);
+  assert (ER_NODE_MODE (var) == ER_NM_int);
+  port = ER_i (var);
+  /* proto */
+  var = INDEXED_VAL (var, 1);
+  assert (ER_NODE_MODE (var) == ER_NM_vect);
+  vect = ER_vect (var);
+  assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  proto = ER_pack_els (vect);
+  ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+  ER_set_i ((ER_node_t) &_socket_errno, 0);
+  return form_servent (instance, getservbyport (port, proto));
 }
+
+
+WIN_EXPORT val_t
+_getservbyname (int npars, val_t *vals)
+{
+  ER_node_t instance, var, vect;
+  char *name, *proto;
+
+  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  instance = ER_instance ((ER_node_t) vals);
+  /* name */
+  var = ER_instance_vars (instance);
+  assert (ER_NODE_MODE (var) == ER_NM_vect);
+  vect = ER_vect (var);
+  assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  name = ER_pack_els (vect);
+  /* proto */
+  var = INDEXED_VAL (var, 3);
+  assert (ER_NODE_MODE (var) == ER_NM_vect);
+  vect = ER_vect (var);
+  assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  proto = ER_pack_els (vect);
+  ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
+  ER_set_i ((ER_node_t) &_socket_errno, 0);
+  return form_servent (instance, getservbyname (name, proto));
+}
+
 
 WIN_EXPORT val_t
 _sread (int npars, val_t *vals)
@@ -273,7 +360,7 @@ _sread (int npars, val_t *vals)
   assert (len >= 0);
   vect = create_pack_vector (len + 1, ER_NM_char);
   ER_set_els_number (vect, 0);
-  len = read (sd, ER_pack_els (vect), len);
+  len = recv (sd, ER_pack_els (vect), len, 0);
   if (len == 0)
     {
       ER_SET_MODE (res, ER_NM_nil);
@@ -281,6 +368,9 @@ _sread (int npars, val_t *vals)
     }
   else if (len < 0)
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -308,9 +398,12 @@ _swrite (int npars, val_t *vals)
   sd = ER_i ((ER_node_t) vals);
   str = ER_pack_els (ER_vect ((ER_node_t) (vals + 1)));
   len = ER_els_number (ER_vect ((ER_node_t) (vals + 1)));
-  len = write (sd, str, len);
+  len = send (sd, str, len, 0);
   if (len < 0)
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -347,6 +440,9 @@ _recvfrom (int npars, val_t *vals)
 		  &from_len);
   if (len < 0)
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -406,6 +502,9 @@ _sendto (int npars, val_t *vals)
 		sizeof (struct sockaddr_in));
   if (len < 0)
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -431,8 +530,15 @@ _accept (int npars, val_t *vals)
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   sd = ER_i ((ER_node_t) vals);
   new_sd = accept (sd, (struct sockaddr *)&saddr, &addr_len);
+#if defined(WIN32)
+  if (new_sd == INVALID_SOCKET)
+#else
   if (new_sd < 0)
+#endif
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -468,8 +574,15 @@ _stream_client (int npars, val_t *vals)
   assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   sfd = socket (AF_INET, SOCK_STREAM, 0);
+#if defined(WIN32)
+  if (sfd == INVALID_SOCKET)
+#else
   if (sfd < 0)
+#endif
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -488,8 +601,11 @@ _stream_client (int npars, val_t *vals)
       return val;
     }
   saddr.sin_addr = *sin_addr_ptr;
-  if (connect (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) < 0)
+  if (connect (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) != 0)
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -515,8 +631,15 @@ _dgram_client (int npars, val_t *vals)
   assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   sfd = socket (AF_INET, SOCK_DGRAM, 0);
+#if defined(WIN32)
+  if (sfd == INVALID_SOCKET)
+#else
   if (sfd < 0)
+#endif
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -545,8 +668,15 @@ _stream_server (int npars, val_t *vals)
   queue_len = ER_i ((ER_node_t) (vals + 1));
   assert (port >= 0);
   sfd = socket (AF_INET, SOCK_STREAM, 0);
+#if defined(WIN32)
+  if (sfd == INVALID_SOCKET)
+#else
   if (sfd < 0)
+#endif
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -555,9 +685,12 @@ _stream_server (int npars, val_t *vals)
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons (port);
   saddr.sin_addr.s_addr = INADDR_ANY;
-  if (bind (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) < 0
-      || listen (sfd, queue_len) < 0)
+  if (bind (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) != 0
+      || listen (sfd, queue_len) != 0)
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -584,8 +717,15 @@ _dgram_server (int npars, val_t *vals)
   port = ER_i ((ER_node_t) vals);
   assert (port >= 0);
   sfd = socket (AF_INET, SOCK_DGRAM, 0);
+#if defined(WIN32)
+  if (sfd == INVALID_SOCKET)
+#else
   if (sfd < 0)
+#endif
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -594,8 +734,11 @@ _dgram_server (int npars, val_t *vals)
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons (port);
   saddr.sin_addr.s_addr = INADDR_ANY;
-  if (bind (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) < 0)
+  if (bind (sfd, (struct sockaddr *) &saddr, sizeof (saddr)) != 0)
     {
+#if defined(WIN32)
+      errno = WSAGetLatError ();
+#endif
       ER_SET_MODE (res, ER_NM_nil);
       ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
       ER_set_i ((ER_node_t) &_socket_errno, errno);
@@ -613,7 +756,15 @@ _socket_init ()
 {
   val_t val;
   ER_node_t res = (ER_node_t) &val;
+#ifdef WIN32
+  WORD wVersionRequested;
+  WSADATA wsaData;
 
+  wVersionRequested = MAKEWORD (1, 1);
+  if (WSAStartup (wVersionRequested, &wsaData) != 0)
+    /* We just ignore absence of the necessary socket library version
+       because we will have error WSANOTINITIALISED. */;
+#endif
   ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
   ER_set_i ((ER_node_t) &_socket_errno, 0);
   ER_SET_MODE ((ER_node_t) &_socket_invalid_address, ER_NM_int);
@@ -656,12 +807,10 @@ socket_address (const char *name)
     return _socket_eof;
   else if (strcmp (name, "_gethostinfo") == 0)
     return _gethostinfo;
-  else if (strcmp (name, "_setservent") == 0)
+  else if (strcmp (name, "_gethostbyport") == 0)
     return _setservent;
-  else if (strcmp (name, "_getservent") == 0)
+  else if (strcmp (name, "_gethostbyname") == 0)
     return _getservent;
-  else if (strcmp (name, "_endservent") == 0)
-    return _endservent;
   else if (strcmp (name, "_sread") == 0)
     return _sread;
   else if (strcmp (name, "_swrite") == 0)

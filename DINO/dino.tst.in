@@ -27470,8 +27470,8 @@ TEST493
         if uname | fgrep CYGWIN; then
             echo '      ' "$DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@  $test_file 127.0.0.1 >$stdout"
             if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file 127.0.0.1 >$stdout; then
-                echo '      ' egrep '^".+"\[\]\[".+"\]$' $stdout
-                if egrep '^".+"\[\]\[".+"\]$' $stdout; then
+                echo '      ' egrep '^".+"\[.*\]\[".+"\]$' $stdout
+                if egrep '^".+"\[.*\]\[".+"\]$' $stdout; then
                         result=ok
                 else
                         result=fail
@@ -27482,8 +27482,8 @@ TEST493
         else
             echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file 127.0.0.1 >$stdout"
             if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 127.0.0.1 >$stdout; then
-                echo '      ' egrep '^".+"\[\]\[".+"\]$' $stdout
-                if egrep '^".+"\[\]\[".+"\]$' $stdout; then
+                echo '      ' egrep '^".+"\[.*\]\[".+"\]$' $stdout
+                if egrep '^".+"\[.*\]\[".+"\]$' $stdout; then
                         result=ok
                 else
                         result=fail
@@ -27534,7 +27534,7 @@ fi
 
 # Test 495.
 if test $result = ok -a $start_test_number -le 495; then
-	echo test 495: getservbyname.
+	echo test 495: dyatime udp.
         cat >$test_file <<'TEST495'
 include "socket";
 
@@ -27634,7 +27634,7 @@ TEST497
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
 In file processed from test.d:1:18:
-@srcdir@/socket.d:39:11: host is unknown
+@srcdir@/socket.d:38:11: host is unknown
 OUTPUT497
                         result=ok
                 else
@@ -27649,7 +27649,7 @@ OUTPUT497
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
 In file processed from test.d:1:18:
-@srcdir@/socket.d:39:11: host is unknown
+@srcdir@/socket.d:38:11: host is unknown
 OUTPUT497
                         result=ok
                 else
@@ -27691,6 +27691,124 @@ OUTPUT498
         else
                 result=fail
         fi
+fi
+
+# Test 499.
+if test $result = ok -a $start_test_number -le 499; then
+	echo test 499: getservbyport.
+        cat >$test_file <<'TEST499'
+include "socket";
+
+var s = sockets.getservbyport (argv [0] + 0, "tcp");
+if (s != nil)
+  println (s.name, s.aliases, s.port, s.proto);
+exit (0);
+TEST499
+     if uname | fgrep CYGWIN; then
+        echo '      ' "$DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@  $test_file 37 >$stdout"
+        if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file 37 >$stdout; then
+                echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
+                if egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+     else
+        echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file 37 >$stdout"
+        if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 37 >$stdout; then
+                echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
+                if egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+     fi
+fi
+
+# Test 500.
+if test $result = ok -a $start_test_number -le 500; then
+	echo test 500: getservbyname for unknown name.
+        cat >$test_file <<'TEST500'
+include "socket";
+
+var s = sockets.getservbyname (argv[0], "tcp");
+if (s != nil)
+  println (s.name, s.aliases, s.port, s.proto);
+exit (0);
+TEST500
+     if uname | fgrep CYGWIN; then
+        echo '      ' "$DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@  $test_file abracadabra >$stdout"
+        if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file abracadabra >$stdout; then
+                echo '      ' $CMP - $stdout
+                if cat >$ftemp2 <<'OUTPUT500' && $CMP $stdout $ftemp2; then
+OUTPUT500
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+     else
+        echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file abracadabra >$stdout"
+        if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file abracadabra >$stdout; then
+                echo '      ' $CMP - $stdout
+                if cat >$ftemp2 <<'OUTPUT500a' && $CMP $stdout $ftemp2; then
+OUTPUT500a
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+     fi
+fi
+
+# Test 501.
+if test $result = ok -a $start_test_number -le 501; then
+	echo test 501: getservbyport for unknown port.
+        cat >$test_file <<'TEST501'
+include "socket";
+
+var s = sockets.getservbyport (argv[0] + 0, "tcp");
+if (s != nil)
+  println (s.name, s.aliases, s.port, s.proto);
+exit (0);
+TEST501
+     if uname | fgrep CYGWIN; then
+        echo '      ' "$DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@  $test_file 313131 >$stdout"
+        if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file 313131 >$stdout; then
+                echo '      ' $CMP - $stdout
+                if cat >$ftemp2 <<'OUTPUT501' && $CMP $stdout $ftemp2; then
+OUTPUT501
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+     else
+        echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file 313131 >$stdout"
+        if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 313131 >$stdout; then
+                echo '      ' $CMP - $stdout
+                if cat >$ftemp2 <<'OUTPUT501a' && $CMP $stdout $ftemp2; then
+OUTPUT501a
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+     fi
 fi
 
 # Final message

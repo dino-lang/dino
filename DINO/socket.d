@@ -22,11 +22,10 @@ var socket_errors = errors.socket_error ();
 final class __socket_package () {
   extern _socket_errno, _socket_invalid_address, _socket_host_not_found,
     _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
-    _gethostinfo (), _setservent (), _getservent (), _endservent (),
-    _socket_init ();
+    _gethostinfo (), _getservbyport (), _getservbyname (), _socket_init ();
   private _socket_errno, _socket_invalid_address, _socket_host_not_found,
     _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
-    _gethostinfo, _setservent, _getservent, _endservent, _socket_init,
+    _gethostinfo, _getservbyport, _getservbyname, _socket_init,
     host_info, serv_info;
 
   func generate_socket_exception () {
@@ -53,77 +52,37 @@ final class __socket_package () {
       throw socket_excepts.optype ();
     var h = host_info  ();
     h = _gethostinfo (str, h);
-    // ??? socket_errno
+    if (h == nil)
+      generate_socket_exception ();
     return h;
   }
 
-  // If you change it, change code of _getservent too.
+  // If you change it, change code of _getservbyname, _getservbyport too.
   class serv_info (final name, final aliases, final port, final proto) {}
 
-  func getservices () {
-    var s, v = [];
-
-    _setservent();
-    for (;;) {
-      s = serv_info  ();
-      s = _getservent (s);
-      if (s == nil)
-        break;
-      ins (v, s, -1);
-    }
-    _endservent ();
-    // ??? socket_errno
-    return v;
-  }
-
   func getservbyport (port, proto) {
-    var s, t;
+    var s;
 
-    if (type (proto) != vector || eltype (proto) != char)
+    if (type (proto) != vector || eltype (proto) != char || type (port) != int)
       throw socket_excepts.optype ();
-    if (port == nil)
-      t = {};
-    else if (type (port) != int)
-      throw socket_excepts.optype ();
-    _setservent();
-    for (;;) {
-      s = serv_info  ();
-      s = _getservent (s);
-      if (s == nil)
-        break;
-      if (port == s.port && s.proto == proto)
-        break;
-      else if (port == nil && s.proto == proto)
-        t {s.port} = s;
-    }
-    _endservent ();
-    // ??? socket_errno
-    return (port == nil ? t : s);
+    s = serv_info  (nil, nil, port, proto);
+    s = _getservbyport (s);
+    if (s == nil && _socket_errno != 0)
+      generate_socket_exception ();
+    return s;
   }
 
   func getservbyname (name, proto) {
-    var s, t;
+    var s;
 
-    if (type (proto) != vector || eltype (proto) != char)
+    if (type (proto) != vector || eltype (proto) != char
+	|| type (name) != vector || eltype (name) != char)
       throw socket_excepts.optype ();
-    if (name == nil)
-      t = {};
-    else if (type (name) != vector || eltype (name) != char)
-      throw socket_excepts.optype ();
-    _setservent();
-    for (;;) {
-      s = serv_info  ();
-      s = _getservent (s);
-      if (s == nil)
-        break;
-      if (name == s.name && s.proto == proto)
-        break;
-      else if (name == nil && s.proto == proto)
-        t {s.name} = s;
-    }
-    _endservent ();
-    // ??? socket_errno
-    return (name == nil ? t : s);
+    s = serv_info  (name, nil, nil, proto);
+    s = _getservbyname (s);
+    if (s == nil && _socket_errno != 0)
+      generate_socket_exception ();
+    return s;
   }
 
   private generate_socket_exception;
@@ -173,7 +132,7 @@ final class __socket_package () {
     func recvfrom (len) {
       if (type (len) != int)
         throw socket_excepts.optype ();
-  	else if (len < 0)
+      else if (len < 0)
         throw socket_excepts.opvalue ();
       var dg = _recvfrom (sfd, len, datagram ());
       if (dg == nil)

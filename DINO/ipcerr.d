@@ -33,6 +33,7 @@ ext except {
         class etimedout (msg) {}
         class etoomanyrefs (msg) {}
         class ewouldblock (msg) {}
+        class eos_specific (msg) {}
       }
     }
   }
@@ -47,7 +48,7 @@ class ipc_err () {
     _enotconn_no, _enotsock_no, _eopnotsupp_no, _epfnosupport_no,
     _eprotonosupport_no, _eprototype_no, _eremoterelease_no,
     _eshutdown_no, _esocktnosupport_no, _etimedout_no, _etoomanyrefs_no,
-    _ewouldblock_no;
+    _ewouldblock_no, _eos_specific_nos;
 
   private _eaddrinuse_no, _eaddrnotavail_no, _eafnosupport_no,
     _ealready_no, _econnaborted_no, _econnrefused_no, _econnreset_no,
@@ -57,7 +58,7 @@ class ipc_err () {
     _enotconn_no, _enotsock_no, _eopnotsupp_no, _epfnosupport_no,
     _eprotonosupport_no, _eprototype_no, _eremoterelease_no,
     _eshutdown_no, _esocktnosupport_no, _etimedout_no, _etoomanyrefs_no,
-    _ewouldblock_no;
+    _ewouldblock_no, _eos_specific_nos;
 
   extern _eaddrinuse_msg, _eaddrnotavail_msg, _eafnosupport_msg,
     _ealready_msg, _econnaborted_msg, _econnrefused_msg, _econnreset_msg,
@@ -67,7 +68,7 @@ class ipc_err () {
     _enotconn_msg, _enotsock_msg, _eopnotsupp_msg, _epfnosupport_msg,
     _eprotonosupport_msg, _eprototype_msg, _eremoterelease_msg,
     _eshutdown_msg, _esocktnosupport_msg, _etimedout_msg, _etoomanyrefs_msg,
-    _ewouldblock_msg;
+    _ewouldblock_msg, _eos_specific_msgs;
 
   private _eaddrinuse_msg, _eaddrnotavail_msg, _eafnosupport_msg,
     _ealready_msg, _econnaborted_msg, _econnrefused_msg, _econnreset_msg,
@@ -77,7 +78,7 @@ class ipc_err () {
     _enotconn_msg, _enotsock_msg, _eopnotsupp_msg, _epfnosupport_msg,
     _eprotonosupport_msg, _eprototype_msg, _eremoterelease_msg,
     _eshutdown_msg, _esocktnosupport_msg, _etimedout_msg, _etoomanyrefs_msg,
-    _ewouldblock_msg;
+    _ewouldblock_msg, _eos_specific_msgs;
 
   extern _ipc_err_init (); private _ipc_err_init;
   _ipc_err_init ();
@@ -149,6 +150,12 @@ class ipc_err () {
     n2e {_etoomanyrefs_no} = syserrors.etoomanyrefs (_etoomanyrefs_msg);
   if (_ewouldblock_no > 0)
     n2e {_ewouldblock_no} = syserrors.ewouldblock (_ewouldblock_msg);
+
+  var i;
+  if (_eos_specific_nos != nil)
+    for (i = 0; i < #_eos_specific_nos; i++)
+      n2e {_eos_specific_nos [i]}
+	 = syserrors.eos_specific (_eos_specific_msgs [i]);
 }
 
 var ipc_errs = ipc_err ();

@@ -1,3 +1,24 @@
+2002-04-29  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/dino.tst.in: New tests for getservbyname, getservbyport.
+
+	* DINO/ipcerr.d: Add _eos_specific_nos and _eos_specific_msgs.
+
+	* DINO/ipcerr_int.c: Ditto.
+	(set_ipc_os_error): New function.
+	(_ipc_err_init): Add windows errors.
+
+	* DINO/socket.d (_setservent, _getservent, _endservent): Remove
+	them.
+	(_getservbyport, _getservbyname): New externals.
+	(getservices): Remove it.
+	(getservbyport, getservbyname): Use _getservbyport and
+	_getservbyname.
+
+	* DINO/socket_int.c: Add code for windows.
+	(_setservent, _getservent, _endservent): Remove them.
+	(_getservbyport, _getservbyname, form_servent): New functions.
+	
 2002-04-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (find_context_by_scope): Remove checking cached
