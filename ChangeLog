@@ -1,3 +1,10 @@
+2001-11-02  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/dino.tst.in (258, 453): Use srdcir for include under
+	Cygnwin.
+	(483): Process success for conversion of string representation of
+	tiny float into 0 too.
+
 2001-11-01  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/Makefile.in: Add all necessary for new file d_heap.c.

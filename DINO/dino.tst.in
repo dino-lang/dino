@@ -17998,9 +17998,9 @@ putln (mpis.unsigned_to_string (mpis.unsigned_change_size (mpi2, 2)));
 putln ("ovfw=", mpis.mpi_overflow);
 mpis.mpi_ignore_overflow = 0;
 TEST258
-        echo '      ' $DINO -L./mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
+        echo '      ' $DINO -L./mpi.dll -I@srcdir@ $test_file "2>$stderr"
         if uname | fgrep CYGWIN; then
-	    if $DINO -Lmpi.dll -I. $test_file 2>$stderr >$stdout; then
+	    if $DINO -Lmpi.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' cmp $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT258' && cmp $stdout $ftemp2; then
 15
@@ -25978,7 +25978,7 @@ putln ("quad ", q1.to_string (), " -> double ", d1.to_string ());
 TEST453
         echo '      ' $DINO -L./ieee.@EXTERN_LIB_SUFFIX@ -L./mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
         if uname | fgrep CYGWIN; then
-	    if $DINO -Lieee.dll -Lmpi.dll -I. $test_file 2>$stderr >$stdout; then
+	    if $DINO -Lieee.dll -Lmpi.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' cmp $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && cmp $stdout $ftemp2; then
 *******IEEE singles:**********
@@ -27022,12 +27022,19 @@ println (float ("1e-500"));
 TEST483
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
-                result=fail
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT483' && cmp $stdout $ftemp2; then
+0
+OUTPUT483
+                        result=ok
+                else
+                        result=fail
+                fi
         else
                 echo '      ' cmp - $stderr
-                if cat >$ftemp2 <<'OUTPUT483' && cmp $stderr $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT483-1' && cmp $stderr $ftemp2; then
 test.d:1:15: system error - result too big (small): `string-to-float conversion'
-OUTPUT483
+OUTPUT483-1
                         result=ok
                 else
                         result=fail
