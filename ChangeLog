@@ -1,3 +1,7 @@
+2001-07-06  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_run.sprut (heap_object_size): Add processing hideblock.
+
 2001-06-29  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
         * AMMUNITION/IEEE.h (MAX_SINGLE_2_STRING_LENGTH,

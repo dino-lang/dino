@@ -700,6 +700,10 @@ heap_object_size (ER_node_t obj)
     case ER_NM_heap_process:
       size = ALLOC_SIZE (sizeof (_ER_heap_process));
       break;
+    case ER_NM_heap_hideblock:
+      size = (ALLOC_SIZE (sizeof (_ER_heap_hideblock))
+	      + ER_hideblock_length (obj));
+      break;
     default:
       assert (FALSE);
     }
