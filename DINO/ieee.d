@@ -3,6 +3,7 @@ include "mpi";
 ext except {
   class ieee_except () {
     class optype (msg) {}
+    class opvalue (msg) {}
     class round_value (msg) {}
     class invalid_operation () {}
     class reserved_operand () {}
@@ -17,11 +18,12 @@ ext except {
 // Use only instance `ieees' (see below).
 final class __ieee_package () {
   var ieee_excepts = excepts.ieee_except ();
+  var ignore_excepts = 0;
 
   private check_mpi, process_except;
   func check_mpi (op) {
     if (type (op) != class () || !inside (op, mpi_package))
-      throw ieee_excepts.optype();
+      throw ieee_excepts.optype ();
   }
 
   // The following can be used to form trap mask.
@@ -34,6 +36,8 @@ final class __ieee_package () {
 
   func process_except () {
     var status_bits = get_status_bits ();
+    if (ignore_excepts)
+      return;
     if (status_bits & inv)
       throw ieee_excepts.invalid_operation ();
     else if (status_bits & ro)
@@ -68,7 +72,7 @@ final class __ieee_package () {
   func set_trap_mask (mask) {
     // 1 means that there will be no corresponding exception fixed.
     if (type (mask) != int)
-      throw ieee_excepts.optype();
+      throw ieee_excepts.optype ();
     ieee_set_trap_mask (mask);
   }
 
@@ -76,7 +80,7 @@ final class __ieee_package () {
 
   func set_sticky_status_bits (mask) {
     if (type (mask) != int)
-      throw ieee_excepts.optype();
+      throw ieee_excepts.optype ();
     ieee_set_sticky_status_bits (mask);
   }
 
@@ -88,7 +92,7 @@ final class __ieee_package () {
 
   func set_round (r) {
     if (type (r) != int)
-      throw ieee_excepts.optype();
+      throw ieee_excepts.optype ();
     if (r < 0 || r > 3)
       throw ieee_excepts.round_value();
     ieee_set_round (r);
@@ -108,7 +112,7 @@ final class __ieee_package () {
     private check;
     func check (op) {
       if (type (op) != class () || !inside (op, ieees.single))
-        throw ieee_excepts.optype();
+        throw ieee_excepts.optype ();
     }
 
     extern ieee_single_positive_zero (), ieee_single_negative_zero (),
@@ -126,7 +130,8 @@ final class __ieee_package () {
       ieee_gt_single (), ieee_le_single (), ieee_ge_single (),
       ieee_single_to_double (), ieee_single_to_quad (),
       ieee_single_from_integer (), ieee_integer_from_single (),
-      ieee_single_to_string (), ieee_single_from_string (),
+      ieee_single_to_binary_string (), ieee_single_to_string (),
+      ieee_single_from_binary_string (), ieee_single_from_string (),
       ieee_single_from_float ();
 
     private ieee_single_positive_zero, ieee_single_negative_zero,
@@ -142,7 +147,9 @@ final class __ieee_package () {
       ieee_ne_single, ieee_lt_single, ieee_gt_single, ieee_le_single,
       ieee_ge_single, ieee_single_to_double, ieee_single_to_quad,
       ieee_single_from_integer, ieee_integer_from_single,
-      ieee_single_to_string, ieee_single_from_string, ieee_single_from_float;
+      ieee_single_to_binary_string, ieee_single_to_string,
+      ieee_single_from_binary_string, ieee_single_from_string,
+      ieee_single_from_float;
 
     func pzero () {value = ieee_single_positive_zero ();}
     func nzero () {value = ieee_single_negative_zero ();}
@@ -246,16 +253,31 @@ final class __ieee_package () {
       process_except ();
       return result;
     }
+    func to_binary_string (base) {// May generate exception
+      if (type (base) != int)
+	throw ieee_excepts.optype ();
+      if (base != 2 && base != 4 && base != 8 &&  base != 16)
+ 	throw ieee_excepts.opvalue ();
+      return ieee_single_to_binary_string (value, base);
+    }
     func to_string () {return ieee_single_to_string (value);}
+    func from_binary_string (str, base) {// May generate exception
+      if (type (str) != vector || eltype (str) != char || type (base) != int)
+	throw ieee_excepts.optype ();
+      if (base != 2 && base != 4 && base != 8 &&  base != 16)
+ 	throw ieee_excepts.opvalue ();
+      value = ieee_single_from_binary_string (str, base);
+      process_except ();
+    }
     func from_string (str) {// May generate exception
       if (type (str) != vector || eltype (str) != char)
-	throw ieee_excepts.optype();
+	throw ieee_excepts.optype ();
       value = ieee_single_from_string (str);
       process_except ();
     }
     func from_float (f) {
       if (type (f) != float)
-	throw ieee_excepts.optype();
+	throw ieee_excepts.optype ();
       value = ieee_single_from_float (f);
       process_except ();
     }
@@ -274,7 +296,7 @@ final class __ieee_package () {
     private check;
     func check (op) {
       if (type (op) != class () || !inside (op, ieees.double))
-        throw ieee_excepts.optype();
+        throw ieee_excepts.optype ();
     }
 
     extern ieee_double_positive_zero (), ieee_double_negative_zero (),
@@ -292,7 +314,8 @@ final class __ieee_package () {
       ieee_gt_double (), ieee_le_double (), ieee_ge_double (),
       ieee_double_to_single (), ieee_double_to_quad (),
       ieee_double_from_integer (), ieee_integer_from_double (),
-      ieee_double_to_string (), ieee_double_from_string (),
+      ieee_double_to_binary_string (), ieee_double_to_string (),
+      ieee_double_from_binary_string (), ieee_double_from_string (),
       ieee_double_from_float ();
 
     private ieee_double_positive_zero, ieee_double_negative_zero,
@@ -308,7 +331,9 @@ final class __ieee_package () {
       ieee_ne_double, ieee_lt_double, ieee_gt_double, ieee_le_double,
       ieee_ge_double, ieee_double_to_single, ieee_double_to_quad,
       ieee_double_from_integer, ieee_integer_from_double,
-      ieee_double_to_string, ieee_double_from_string, ieee_double_from_float;
+      ieee_double_to_binary_string, ieee_double_to_string,
+      ieee_double_from_binary_string, ieee_double_from_string,
+      ieee_double_from_float;
 
     func pzero () {value = ieee_double_positive_zero ();}
     func nzero () {value = ieee_double_negative_zero ();}
@@ -412,16 +437,31 @@ final class __ieee_package () {
       process_except ();
       return result;
     }
+    func to_binary_string (base) {// May generate exception
+      if (type (base) != int)
+	throw ieee_excepts.optype ();
+      if (base != 2 && base != 4 && base != 8 &&  base != 16)
+ 	throw ieee_excepts.opvalue ();
+      return ieee_double_to_binary_string (value, base);
+    }
     func to_string () {return ieee_double_to_string (value);}
+    func from_binary_string (str, base) {// May generate exception
+      if (type (str) != vector || eltype (str) != char || type (base) != int)
+	throw ieee_excepts.optype ();
+      if (base != 2 && base != 4 && base != 8 &&  base != 16)
+ 	throw ieee_excepts.opvalue ();
+      value = ieee_double_from_binary_string (str, base);
+      process_except ();
+    }
     func from_string (str) {// May generate exception
       if (type (str) != vector || eltype (str) != char)
-	throw ieee_excepts.optype();
+	throw ieee_excepts.optype ();
       value = ieee_double_from_string (str);
       process_except ();
     }
     func from_float (f) {
       if (type (f) != float)
-	throw ieee_excepts.optype();
+	throw ieee_excepts.optype ();
       value = ieee_double_from_float (f);
       process_except ();
     }
@@ -440,7 +480,7 @@ final class __ieee_package () {
     private check;
     func check (op) {
       if (type (op) != class () || !inside (op, ieees.quad))
-        throw ieee_excepts.optype();
+        throw ieee_excepts.optype ();
     }
 
     extern ieee_quad_positive_zero (), ieee_quad_negative_zero (),
@@ -458,7 +498,8 @@ final class __ieee_package () {
       ieee_gt_quad (), ieee_le_quad (), ieee_ge_quad (),
       ieee_quad_to_single (), ieee_quad_to_double (),
       ieee_quad_from_integer (), ieee_integer_from_quad (),
-      ieee_quad_to_string (), ieee_quad_from_string (),
+      ieee_quad_to_binary_string (), ieee_quad_to_string (),
+      ieee_quad_from_binary_string (), ieee_quad_from_string (),
       ieee_quad_from_float ();
 
     private ieee_quad_positive_zero, ieee_quad_negative_zero,
@@ -473,7 +514,8 @@ final class __ieee_package () {
       ieee_multiply_quad, ieee_divide_quad, ieee_eq_quad, ieee_ne_quad,
       ieee_lt_quad, ieee_gt_quad, ieee_le_quad, ieee_ge_quad,
       ieee_quad_to_single, ieee_quad_to_double, ieee_quad_from_integer,
-      ieee_integer_from_quad, ieee_quad_to_string, ieee_quad_from_string,
+      ieee_integer_from_quad, ieee_quad_to_binary_string, ieee_quad_to_string,
+      ieee_quad_from_binary_string, ieee_quad_from_string,
       ieee_quad_from_float;
 
     func pzero () {value = ieee_quad_positive_zero ();}
@@ -578,16 +620,31 @@ final class __ieee_package () {
       process_except ();
       return result;
     }
+    func to_binary_string (base) {// May generate exception
+      if (type (base) != int)
+	throw ieee_excepts.optype ();
+      if (base != 2 && base != 4 && base != 8 &&  base != 16)
+ 	throw ieee_excepts.opvalue ();
+      return ieee_quad_to_binary_string (value, base);
+    }
     func to_string () {return ieee_quad_to_string (value);}
+    func from_binary_string (str, base) {// May generate exception
+      if (type (str) != vector || eltype (str) != char || type (base) != int)
+	throw ieee_excepts.optype ();
+      if (base != 2 && base != 4 && base != 8 &&  base != 16)
+ 	throw ieee_excepts.opvalue ();
+      value = ieee_quad_from_binary_string (str, base);
+      process_except ();
+    }
     func from_string (str) {// May generate exception
       if (type (str) != vector || eltype (str) != char)
-	throw ieee_excepts.optype();
+	throw ieee_excepts.optype ();
       value = ieee_quad_from_string (str);
       process_except ();
     }
     func from_float (f) {
       if (type (f) != float)
-	throw ieee_excepts.optype();
+	throw ieee_excepts.optype ();
       value = ieee_quad_from_float (f);
       process_except ();
     }

@@ -25167,7 +25167,13 @@ include "ieee";
 var s1 = ieees.single(), s2 = ieees.single();
 putln ("*******IEEE singles:**********");
 
+putln ("pzero s1 (2, 4, 8, 16)=", s1.to_binary_string (2), ", ",
+       s1.to_binary_string (4), ", ", s1.to_binary_string (8), ", ",
+       s1.to_binary_string (16));
 putln ("pzero s1=", s1.to_string ());
+putln ("pzero s2 (2, 4, 8, 16)=", s2.to_binary_string (2), ", ",
+       s2.to_binary_string (4), ", ", s2.to_binary_string (8), ", ",
+       s2.to_binary_string (16));
 putln ("pzero s2=", s2.to_string ());
 
 s1 = ieees.single("0");
@@ -25187,22 +25193,32 @@ s1.ninfinity();
 putln ("-infinity s1=", s1.to_string (),
        " s1 is -infinity = ", s1.is_ninfinity ());
 s1.pmax();
-putln ("+max s1=", s1.to_string (),
+putln ("+max s1 (10, 16)=", s1.to_string (), ", ", s1.to_binary_string (16),
        " s1 is norm = ", s1.is_normalized ());
 s1.nmax();
-putln ("-max s1=", s1.to_string (), " s1 is norm = ", s1.is_normalized ());
+putln ("-max s1 (10, 16)=", s1.to_string (), ", ", s1.to_binary_string (16),
+       " s1 is norm = ", s1.is_normalized ());
 s1.pmin();
-putln ("+min s1=", s1.to_string (), " s1 is denorm = ", s1.is_denormalized ());
+putln ("+min s1 (10, 16)=", s1.to_string (), ", ", s1.to_binary_string (16),
+       " s1 is denorm = ", s1.is_denormalized ());
 s1.nmin();
-putln ("-min s1=", s1.to_string (), " s1 is denorm = ", s1.is_denormalized ());
+putln ("-min s1 (10,16)=", s1.to_string (), ", ", s1.to_binary_string (16),
+       " s1 is denorm = ", s1.is_denormalized ());
 
 s1.from_float(5.0);
 s2.from_float(10.0);
-putln ("s1 = ", s1.to_string ());
+putln ("s1 (10,2,4,8,16)= ", s1.to_string (), ", ", s1.to_binary_string (2),
+       ", ", s1.to_binary_string (4), ", ", s1.to_binary_string (8),
+       ", ", s1.to_binary_string (16));
 putln ("s2 = ", s2.to_string ());
 
 s1.from_string("5.0");
 s2.from_string("10.0");
+putln ("s1 = ", s1.to_string ());
+putln ("s2 = ", s2.to_string ());
+
+s1.from_binary_string("5.0", 16);
+s2.from_binary_string("2.8p2", 16);
 putln ("s1 = ", s1.to_string ());
 putln ("s2 = ", s2.to_string ());
 
@@ -25228,12 +25244,32 @@ try {
   putln ("  got zero_division");
 }
 
+{
+  var s3 = ieees.single (), st, res;
+  ieees.ignore_excepts = 1;
+  put (s1.to_string (), " / ", s3.to_string (), " = ");
+  res = s1.divide (s3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.dz);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var s3 = ieees.single ("3");
   put (s1.to_string (), " / ", s3.to_string (), " ...");
   s1.divide (s3);
 } catch (ieees.ieee_excepts.imprecise_result) {
   putln ("  got imprecise result");
+}
+
+{
+  var s3 = ieees.single ("3"), st, res;
+  ieees.ignore_excepts = 1;
+  put (s1.to_string (), " / ", s3.to_string (), " = ");
+  res = s1.divide (s3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.imp);
+  ieees.ignore_excepts = 0;
 }
 
 try {
@@ -25245,6 +25281,17 @@ try {
   putln ("  got overflow");
 }
 
+{
+  var s3 = ieees.single (), st, res;
+  ieees.ignore_excepts = 1;
+  s3.pmax ();
+  put (s3.to_string (), " + ", s3.to_string (), " = ");
+  res = s3.add (s3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ofl);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var s3 = ieees.single ();
   s3.pmin ();
@@ -25252,6 +25299,17 @@ try {
   s3.divide (ieees.single ("10"));
 } catch (ieees.ieee_excepts.underflow) {
   putln ("  got underflow");
+}
+
+{
+  var s3 = ieees.single (), st, res;
+  s3.pmin ();
+  ieees.ignore_excepts = 1;
+  put (s3.to_string (), " / 10 = ");
+  res = s3.divide (ieees.single ("10"));
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ufl);
+  ieees.ignore_excepts = 0;
 }
 
 try {
@@ -25262,12 +25320,32 @@ try {
   putln ("  got invalid operation");
 }
 
+{
+  var s3 = ieees.single ("SNaN"), st, res;
+  ieees.ignore_excepts = 1;
+  put (s3.to_string (), " + ", s3.to_string (), " = ");
+  res = s3.add (s3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.inv);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var s3 = ieees.single ("QNaN");
   put (s3.to_string (), " + ", s3.to_string (), " ...");
   s3.add (s3);
 } catch (ieees.ieee_excepts.reserved_operand) {
   putln ("  got reserved operand");
+}
+
+{
+  var s3 = ieees.single ("QNaN"), st, res;
+  ieees.ignore_excepts = 1;
+  put (s3.to_string (), " + ", s3.to_string (), " = ");
+  res = s3.add (s3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ro);
+  ieees.ignore_excepts = 0;
 }
 
 putln ("sticky status bits = ", ieees.get_sticky_status_bits ());
@@ -25355,7 +25433,13 @@ ieees.reset ();
 var d1 = ieees.double(), d2 = ieees.double();
 putln ("*******IEEE doubles:**********");
 
+putln ("pzero d1 (2, 4, 8, 16)=", d1.to_binary_string (2), ", ",
+       d1.to_binary_string (4), ", ", d1.to_binary_string (8), ", ",
+       d1.to_binary_string (16));
 putln ("pzero d1=", d1.to_string ());
+putln ("pzero d2 (2, 4, 8, 16)=", d2.to_binary_string (2), ", ",
+       d2.to_binary_string (4), ", ", d2.to_binary_string (8), ", ",
+       d2.to_binary_string (16));
 putln ("pzero d2=", d2.to_string ());
 
 d1 = ieees.double("0");
@@ -25375,22 +25459,32 @@ d1.ninfinity();
 putln ("-infinity d1=", d1.to_string (),
        " d1 is -infinity = ", d1.is_ninfinity ());
 d1.pmax();
-putln ("+max d1=", d1.to_string (),
+putln ("+max d1 (10, 16)=", d1.to_string (), ", ", d1.to_binary_string (16),
        " d1 is norm = ", d1.is_normalized ());
 d1.nmax();
-putln ("-max d1=", d1.to_string (), " d1 is norm = ", d1.is_normalized ());
+putln ("-max d1 (10, 16)=", d1.to_string (), ", ", d1.to_binary_string (16),
+       " d1 is norm = ", d1.is_normalized ());
 d1.pmin();
-putln ("+min d1=", d1.to_string (), " d1 is denorm = ", d1.is_denormalized ());
+putln ("+min d1 (10, 16)=", d1.to_string (), ", ", d1.to_binary_string (16),
+       " d1 is denorm = ", d1.is_denormalized ());
 d1.nmin();
-putln ("-min d1=", d1.to_string (), " d1 is denorm = ", d1.is_denormalized ());
+putln ("-min d1 (10,16)=", d1.to_string (), ", ", d1.to_binary_string (16),
+       " d1 is denorm = ", d1.is_denormalized ());
 
 d1.from_float(5.0);
 d2.from_float(10.0);
-putln ("d1 = ", d1.to_string ());
+putln ("d1 (10,2,4,8,16)= ", d1.to_string (), ", ", d1.to_binary_string (2),
+       ", ", d1.to_binary_string (4), ", ", d1.to_binary_string (8),
+       ", ", d1.to_binary_string (16));
 putln ("d2 = ", d2.to_string ());
 
 d1.from_string("5.0");
 d2.from_string("10.0");
+putln ("d1 = ", d1.to_string ());
+putln ("d2 = ", d2.to_string ());
+
+d1.from_binary_string("5.0", 16);
+d2.from_binary_string("2.8p2", 16);
 putln ("d1 = ", d1.to_string ());
 putln ("d2 = ", d2.to_string ());
 
@@ -25416,12 +25510,32 @@ try {
   putln ("  got zero_division");
 }
 
+{
+  var d3 = ieees.double (), st, res;
+  ieees.ignore_excepts = 1;
+  put (d1.to_string (), " / ", d3.to_string (), " = ");
+  res = d1.divide (d3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.dz);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var d3 = ieees.double ("3");
   put (d1.to_string (), " / ", d3.to_string (), " ...");
   d1.divide (d3);
 } catch (ieees.ieee_excepts.imprecise_result) {
   putln ("  got imprecise result");
+}
+
+{
+  var d3 = ieees.double ("3"), st, res;
+  ieees.ignore_excepts = 1;
+  put (d1.to_string (), " / ", d3.to_string (), " = ");
+  res = d1.divide (d3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.imp);
+  ieees.ignore_excepts = 0;
 }
 
 try {
@@ -25433,6 +25547,17 @@ try {
   putln ("  got overflow");
 }
 
+{
+  var d3 = ieees.double (), st, res;
+  ieees.ignore_excepts = 1;
+  d3.pmax ();
+  put (d3.to_string (), " + ", d3.to_string (), " = ");
+  res = d3.add (d3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ofl);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var d3 = ieees.double ();
   d3.pmin ();
@@ -25440,6 +25565,17 @@ try {
   d3.divide (ieees.double ("10"));
 } catch (ieees.ieee_excepts.underflow) {
   putln ("  got underflow");
+}
+
+{
+  var d3 = ieees.double (), st, res;
+  d3.pmin ();
+  ieees.ignore_excepts = 1;
+  put (d3.to_string (), " / 10 = ");
+  res = d3.divide (ieees.double ("10"));
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ufl);
+  ieees.ignore_excepts = 0;
 }
 
 try {
@@ -25450,12 +25586,32 @@ try {
   putln ("  got invalid operation");
 }
 
+{
+  var d3 = ieees.double ("SNaN"), st, res;
+  ieees.ignore_excepts = 1;
+  put (d3.to_string (), " + ", d3.to_string (), " = ");
+  res = d3.add (d3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.inv);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var d3 = ieees.double ("QNaN");
   put (d3.to_string (), " + ", d3.to_string (), " ...");
   d3.add (d3);
 } catch (ieees.ieee_excepts.reserved_operand) {
   putln ("  got reserved operand");
+}
+
+{
+  var d3 = ieees.double ("QNaN"), st, res;
+  ieees.ignore_excepts = 1;
+  put (d3.to_string (), " + ", d3.to_string (), " = ");
+  res = d3.add (d3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ro);
+  ieees.ignore_excepts = 0;
 }
 
 putln ("sticky status bits = ", ieees.get_sticky_status_bits ());
@@ -25543,7 +25699,13 @@ ieees.reset ();
 var q1 = ieees.quad(), q2 = ieees.quad();
 putln ("*******IEEE quads:**********");
 
+putln ("pzero q1 (2, 4, 8, 16)=", q1.to_binary_string (2), ", ",
+       q1.to_binary_string (4), ", ", q1.to_binary_string (8), ", ",
+       q1.to_binary_string (16));
 putln ("pzero q1=", q1.to_string ());
+putln ("pzero q2 (2, 4, 8, 16)=", q2.to_binary_string (2), ", ",
+       q2.to_binary_string (4), ", ", q2.to_binary_string (8), ", ",
+       q2.to_binary_string (16));
 putln ("pzero q2=", q2.to_string ());
 
 q1 = ieees.quad("0");
@@ -25563,22 +25725,32 @@ q1.ninfinity();
 putln ("-infinity q1=", q1.to_string (),
        " q1 is -infinity = ", q1.is_ninfinity ());
 q1.pmax();
-putln ("+max q1=", q1.to_string (),
+putln ("+max q1 (10, 16)=", q1.to_string (), ", ", q1.to_binary_string (16),
        " q1 is norm = ", q1.is_normalized ());
 q1.nmax();
-putln ("-max q1=", q1.to_string (), " q1 is norm = ", q1.is_normalized ());
+putln ("-max q1 (10, 16)=", q1.to_string (), ", ", q1.to_binary_string (16),
+       " q1 is norm = ", q1.is_normalized ());
 q1.pmin();
-putln ("+min q1=", q1.to_string (), " q1 is denorm = ", q1.is_denormalized ());
+putln ("+min q1 (10, 16)=", q1.to_string (), ", ", q1.to_binary_string (16),
+       " q1 is denorm = ", q1.is_denormalized ());
 q1.nmin();
-putln ("-min q1=", q1.to_string (), " q1 is denorm = ", q1.is_denormalized ());
+putln ("-min q1 (10,16)=", q1.to_string (), ", ", q1.to_binary_string (16),
+       " q1 is denorm = ", q1.is_denormalized ());
 
 q1.from_float(5.0);
 q2.from_float(10.0);
-putln ("q1 = ", q1.to_string ());
+putln ("q1 (10,2,4,8,16)= ", q1.to_string (), ", ", q1.to_binary_string (2),
+       ", ", q1.to_binary_string (4), ", ", q1.to_binary_string (8),
+       ", ", q1.to_binary_string (16));
 putln ("q2 = ", q2.to_string ());
 
 q1.from_string("5.0");
 q2.from_string("10.0");
+putln ("q1 = ", q1.to_string ());
+putln ("q2 = ", q2.to_string ());
+
+q1.from_binary_string("5.0", 16);
+q2.from_binary_string("2.8p2", 16);
 putln ("q1 = ", q1.to_string ());
 putln ("q2 = ", q2.to_string ());
 
@@ -25604,12 +25776,32 @@ try {
   putln ("  got zero_division");
 }
 
+{
+  var q3 = ieees.quad (), st, res;
+  ieees.ignore_excepts = 1;
+  put (q1.to_string (), " / ", q3.to_string (), " = ");
+  res = q1.divide (q3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.dz);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var q3 = ieees.quad ("3");
   put (q1.to_string (), " / ", q3.to_string (), " ...");
   q1.divide (q3);
 } catch (ieees.ieee_excepts.imprecise_result) {
   putln ("  got imprecise result");
+}
+
+{
+  var q3 = ieees.quad ("3"), st, res;
+  ieees.ignore_excepts = 1;
+  put (q1.to_string (), " / ", q3.to_string (), " = ");
+  res = q1.divide (q3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.imp);
+  ieees.ignore_excepts = 0;
 }
 
 try {
@@ -25621,6 +25813,17 @@ try {
   putln ("  got overflow");
 }
 
+{
+  var q3 = ieees.quad (), st, res;
+  ieees.ignore_excepts = 1;
+  q3.pmax ();
+  put (q3.to_string (), " + ", q3.to_string (), " = ");
+  res = q3.add (q3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ofl);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var q3 = ieees.quad ();
   q3.pmin ();
@@ -25628,6 +25831,17 @@ try {
   q3.divide (ieees.quad ("10"));
 } catch (ieees.ieee_excepts.underflow) {
   putln ("  got underflow");
+}
+
+{
+  var q3 = ieees.quad (), st, res;
+  q3.pmin ();
+  ieees.ignore_excepts = 1;
+  put (q3.to_string (), " / 10 = ");
+  res = q3.divide (ieees.quad ("10"));
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ufl);
+  ieees.ignore_excepts = 0;
 }
 
 try {
@@ -25638,12 +25852,32 @@ try {
   putln ("  got invalid operation");
 }
 
+{
+  var q3 = ieees.quad ("SNaN"), st, res;
+  ieees.ignore_excepts = 1;
+  put (q3.to_string (), " + ", q3.to_string (), " = ");
+  res = q3.add (q3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.inv);
+  ieees.ignore_excepts = 0;
+}
+
 try {
   var q3 = ieees.quad ("QNaN");
   put (q3.to_string (), " + ", q3.to_string (), " ...");
   q3.add (q3);
 } catch (ieees.ieee_excepts.reserved_operand) {
   putln ("  got reserved operand");
+}
+
+{
+  var q3 = ieees.quad ("QNaN"), st, res;
+  ieees.ignore_excepts = 1;
+  put (q3.to_string (), " + ", q3.to_string (), " = ");
+  res = q3.add (q3);
+  st = ieees.get_status_bits ();
+  putln (res.to_string (), " status bits = ", st, ", ", ieees.ro);
+  ieees.ignore_excepts = 0;
 }
 
 putln ("sticky status bits = ", ieees.get_sticky_status_bits ());
@@ -25748,17 +25982,21 @@ TEST453
                 echo '      ' cmp $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && cmp $stdout $ftemp2; then
 *******IEEE singles:**********
+pzero s1 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero s1=+0
+pzero s2 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero s2=+0
 -zero s1=-0 s1 is -zero = 1
 nan s1=QNaN s1 is nan = 1
 trap nan s1=SNaN s1 is trap nan = 1
 +infinity s1=+Inf s1 is +infinity = 1
 -infinity s1=-Inf s1 is -infinity = 1
-+max s1=3.40282347e38 s1 is norm = 1
--max s1=-3.40282347e38 s1 is norm = 1
-+min s1=1.40129846e-45 s1 is denorm = 1
--min s1=-1.40129846e-45 s1 is denorm = 1
++max s1 (10, 16)=3.40282347e38, 1.fffffep127 s1 is norm = 1
+-max s1 (10, 16)=-3.40282347e38, -1.fffffep127 s1 is norm = 1
++min s1 (10, 16)=1.40129846e-45, 1.p-149 s1 is denorm = 1
+-min s1 (10,16)=-1.40129846e-45, -1.p-149 s1 is denorm = 1
+s1 (10,2,4,8,16)= 5.00000000, 1.01p2, 1.1p2, 1.2p2, 1.4p2
+s2 = 1.00000000e1
 s1 = 5.00000000
 s2 = 1.00000000e1
 s1 = 5.00000000
@@ -25776,11 +26014,17 @@ s1 > s2 = 0
 s1 >= s2 = 0
 sticky status bits = 0
 5.00000000 / +0 ...  got zero_division
+5.00000000 / +0 = +Inf status bits = 32, 32
 5.00000000 / 3.00000000 ...  got imprecise result
+5.00000000 / 3.00000000 = 1.66666663 status bits = 16, 16
 3.40282347e38 + 3.40282347e38 ...  got overflow
+3.40282347e38 + 3.40282347e38 = +Inf status bits = 4, 4
 1.40129846e-45 / 10 ...  got underflow
+1.40129846e-45 / 10 = +0 status bits = 24, 8
 SNaN + SNaN ...  got invalid operation
+SNaN + SNaN = QNaN status bits = 3, 1
 QNaN + QNaN ...  got reserved operand
+QNaN + QNaN = QNaN status bits = 2, 2
 sticky status bits = 0
 trap mask = 0
 trap mask = 63
@@ -25803,17 +26047,21 @@ round = 3
 ms (from s1) = 5
 s1 (from ms) = 5.00000000
 *******IEEE doubles:**********
+pzero d1 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero d1=+0
+pzero d2 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero d2=+0
 -zero d1=-0 d1 is -zero = 1
 nan d1=QNaN d1 is nan = 1
 trap nan d1=SNaN d1 is trap nan = 1
 +infinity d1=+Inf d1 is +infinity = 1
 -infinity d1=-Inf d1 is -infinity = 1
-+max d1=1.7976931348623157e308 d1 is norm = 1
--max d1=-1.7976931348623157e308 d1 is norm = 1
-+min d1=4.9406564584124654e-324 d1 is denorm = 1
--min d1=-4.9406564584124654e-324 d1 is denorm = 1
++max d1 (10, 16)=1.7976931348623157e308, 1.fffffffffffffp1023 d1 is norm = 1
+-max d1 (10, 16)=-1.7976931348623157e308, -1.fffffffffffffp1023 d1 is norm = 1
++min d1 (10, 16)=4.9406564584124654e-324, 1.p-1074 d1 is denorm = 1
+-min d1 (10,16)=-4.9406564584124654e-324, -1.p-1074 d1 is denorm = 1
+d1 (10,2,4,8,16)= 5.0000000000000000, 1.01p2, 1.1p2, 1.2p2, 1.4p2
+d2 = 1.0000000000000000e1
 d1 = 5.0000000000000000
 d2 = 1.0000000000000000e1
 d1 = 5.0000000000000000
@@ -25831,11 +26079,17 @@ d1 > d2 = 0
 d1 >= d2 = 0
 sticky status bits = 0
 5.0000000000000000 / +0 ...  got zero_division
+5.0000000000000000 / +0 = +Inf status bits = 32, 32
 5.0000000000000000 / 3.0000000000000000 ...  got imprecise result
+5.0000000000000000 / 3.0000000000000000 = 1.6666666666666667 status bits = 16, 16
 1.7976931348623157e308 + 1.7976931348623157e308 ...  got overflow
+1.7976931348623157e308 + 1.7976931348623157e308 = +Inf status bits = 4, 4
 4.9406564584124654e-324 / 10 ...  got underflow
+4.9406564584124654e-324 / 10 = +0 status bits = 24, 8
 SNaN + SNaN ...  got invalid operation
+SNaN + SNaN = QNaN status bits = 3, 1
 QNaN + QNaN ...  got reserved operand
+QNaN + QNaN = QNaN status bits = 2, 2
 sticky status bits = 0
 trap mask = 0
 trap mask = 63
@@ -25858,17 +26112,21 @@ round = 3
 md (from d1) = 5
 d1 (from md) = 5.0000000000000000
 *******IEEE quads:**********
+pzero q1 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero q1=+0
+pzero q2 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero q2=+0
 -zero q1=-0 q1 is -zero = 1
 nan q1=QNaN q1 is nan = 1
 trap nan q1=SNaN q1 is trap nan = 1
 +infinity q1=+Inf q1 is +infinity = 1
 -infinity q1=-Inf q1 is -infinity = 1
-+max q1=1.18973149535723176508575932662800702e4932 q1 is norm = 1
--max q1=-1.18973149535723176508575932662800702e4932 q1 is norm = 1
-+min q1=6.47517511943802511092443895822764655e-4966 q1 is denorm = 1
--min q1=-6.47517511943802511092443895822764655e-4966 q1 is denorm = 1
++max q1 (10, 16)=1.18973149535723176508575932662800702e4932, 1.ffffffffffffffffffffffffffffp16383 q1 is norm = 1
+-max q1 (10, 16)=-1.18973149535723176508575932662800702e4932, -1.ffffffffffffffffffffffffffffp16383 q1 is norm = 1
++min q1 (10, 16)=6.47517511943802511092443895822764655e-4966, 1.p-16494 q1 is denorm = 1
+-min q1 (10,16)=-6.47517511943802511092443895822764655e-4966, -1.p-16494 q1 is denorm = 1
+q1 (10,2,4,8,16)= 5.00000000000000000000000000000000000, 1.01p2, 1.1p2, 1.2p2, 1.4p2
+q2 = 1.00000000000000000000000000000000000e1
 q1 = 5.00000000000000000000000000000000000
 q2 = 1.00000000000000000000000000000000000e1
 q1 = 5.00000000000000000000000000000000000
@@ -25886,11 +26144,17 @@ q1 > q2 = 0
 q1 >= q2 = 0
 sticky status bits = 0
 5.00000000000000000000000000000000000 / +0 ...  got zero_division
+5.00000000000000000000000000000000000 / +0 = +Inf status bits = 32, 32
 5.00000000000000000000000000000000000 / 3.00000000000000000000000000000000000 ...  got imprecise result
+5.00000000000000000000000000000000000 / 3.00000000000000000000000000000000000 = 1.66666666666666666666666666666666673 status bits = 16, 16
 1.18973149535723176508575932662800702e4932 + 1.18973149535723176508575932662800702e4932 ...  got overflow
+1.18973149535723176508575932662800702e4932 + 1.18973149535723176508575932662800702e4932 = +Inf status bits = 4, 4
 6.47517511943802511092443895822764655e-4966 / 10 ...  got underflow
+6.47517511943802511092443895822764655e-4966 / 10 = +0 status bits = 24, 8
 SNaN + SNaN ...  got invalid operation
+SNaN + SNaN = QNaN status bits = 3, 1
 QNaN + QNaN ...  got reserved operand
+QNaN + QNaN = QNaN status bits = 2, 2
 sticky status bits = 0
 trap mask = 0
 trap mask = 63
@@ -25931,17 +26195,21 @@ OUTPUT453
                 echo '      ' cmp $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && cmp $stdout $ftemp2; then
 *******IEEE singles:**********
+pzero s1 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero s1=+0
+pzero s2 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero s2=+0
 -zero s1=-0 s1 is -zero = 1
 nan s1=QNaN s1 is nan = 1
 trap nan s1=SNaN s1 is trap nan = 1
 +infinity s1=+Inf s1 is +infinity = 1
 -infinity s1=-Inf s1 is -infinity = 1
-+max s1=3.40282347e38 s1 is norm = 1
--max s1=-3.40282347e38 s1 is norm = 1
-+min s1=1.40129846e-45 s1 is denorm = 1
--min s1=-1.40129846e-45 s1 is denorm = 1
++max s1 (10, 16)=3.40282347e38, 1.fffffep127 s1 is norm = 1
+-max s1 (10, 16)=-3.40282347e38, -1.fffffep127 s1 is norm = 1
++min s1 (10, 16)=1.40129846e-45, 1.p-149 s1 is denorm = 1
+-min s1 (10,16)=-1.40129846e-45, -1.p-149 s1 is denorm = 1
+s1 (10,2,4,8,16)= 5.00000000, 1.01p2, 1.1p2, 1.2p2, 1.4p2
+s2 = 1.00000000e1
 s1 = 5.00000000
 s2 = 1.00000000e1
 s1 = 5.00000000
@@ -25959,11 +26227,17 @@ s1 > s2 = 0
 s1 >= s2 = 0
 sticky status bits = 0
 5.00000000 / +0 ...  got zero_division
+5.00000000 / +0 = +Inf status bits = 32, 32
 5.00000000 / 3.00000000 ...  got imprecise result
+5.00000000 / 3.00000000 = 1.66666663 status bits = 16, 16
 3.40282347e38 + 3.40282347e38 ...  got overflow
+3.40282347e38 + 3.40282347e38 = +Inf status bits = 4, 4
 1.40129846e-45 / 10 ...  got underflow
+1.40129846e-45 / 10 = +0 status bits = 24, 8
 SNaN + SNaN ...  got invalid operation
+SNaN + SNaN = QNaN status bits = 3, 1
 QNaN + QNaN ...  got reserved operand
+QNaN + QNaN = QNaN status bits = 2, 2
 sticky status bits = 0
 trap mask = 0
 trap mask = 63
@@ -25986,17 +26260,21 @@ round = 3
 ms (from s1) = 5
 s1 (from ms) = 5.00000000
 *******IEEE doubles:**********
+pzero d1 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero d1=+0
+pzero d2 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero d2=+0
 -zero d1=-0 d1 is -zero = 1
 nan d1=QNaN d1 is nan = 1
 trap nan d1=SNaN d1 is trap nan = 1
 +infinity d1=+Inf d1 is +infinity = 1
 -infinity d1=-Inf d1 is -infinity = 1
-+max d1=1.7976931348623157e308 d1 is norm = 1
--max d1=-1.7976931348623157e308 d1 is norm = 1
-+min d1=4.9406564584124654e-324 d1 is denorm = 1
--min d1=-4.9406564584124654e-324 d1 is denorm = 1
++max d1 (10, 16)=1.7976931348623157e308, 1.fffffffffffffp1023 d1 is norm = 1
+-max d1 (10, 16)=-1.7976931348623157e308, -1.fffffffffffffp1023 d1 is norm = 1
++min d1 (10, 16)=4.9406564584124654e-324, 1.p-1074 d1 is denorm = 1
+-min d1 (10,16)=-4.9406564584124654e-324, -1.p-1074 d1 is denorm = 1
+d1 (10,2,4,8,16)= 5.0000000000000000, 1.01p2, 1.1p2, 1.2p2, 1.4p2
+d2 = 1.0000000000000000e1
 d1 = 5.0000000000000000
 d2 = 1.0000000000000000e1
 d1 = 5.0000000000000000
@@ -26014,11 +26292,17 @@ d1 > d2 = 0
 d1 >= d2 = 0
 sticky status bits = 0
 5.0000000000000000 / +0 ...  got zero_division
+5.0000000000000000 / +0 = +Inf status bits = 32, 32
 5.0000000000000000 / 3.0000000000000000 ...  got imprecise result
+5.0000000000000000 / 3.0000000000000000 = 1.6666666666666667 status bits = 16, 16
 1.7976931348623157e308 + 1.7976931348623157e308 ...  got overflow
+1.7976931348623157e308 + 1.7976931348623157e308 = +Inf status bits = 4, 4
 4.9406564584124654e-324 / 10 ...  got underflow
+4.9406564584124654e-324 / 10 = +0 status bits = 24, 8
 SNaN + SNaN ...  got invalid operation
+SNaN + SNaN = QNaN status bits = 3, 1
 QNaN + QNaN ...  got reserved operand
+QNaN + QNaN = QNaN status bits = 2, 2
 sticky status bits = 0
 trap mask = 0
 trap mask = 63
@@ -26041,17 +26325,21 @@ round = 3
 md (from d1) = 5
 d1 (from md) = 5.0000000000000000
 *******IEEE quads:**********
+pzero q1 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero q1=+0
+pzero q2 (2, 4, 8, 16)=+0, +0, +0, +0
 pzero q2=+0
 -zero q1=-0 q1 is -zero = 1
 nan q1=QNaN q1 is nan = 1
 trap nan q1=SNaN q1 is trap nan = 1
 +infinity q1=+Inf q1 is +infinity = 1
 -infinity q1=-Inf q1 is -infinity = 1
-+max q1=1.18973149535723176508575932662800702e4932 q1 is norm = 1
--max q1=-1.18973149535723176508575932662800702e4932 q1 is norm = 1
-+min q1=6.47517511943802511092443895822764655e-4966 q1 is denorm = 1
--min q1=-6.47517511943802511092443895822764655e-4966 q1 is denorm = 1
++max q1 (10, 16)=1.18973149535723176508575932662800702e4932, 1.ffffffffffffffffffffffffffffp16383 q1 is norm = 1
+-max q1 (10, 16)=-1.18973149535723176508575932662800702e4932, -1.ffffffffffffffffffffffffffffp16383 q1 is norm = 1
++min q1 (10, 16)=6.47517511943802511092443895822764655e-4966, 1.p-16494 q1 is denorm = 1
+-min q1 (10,16)=-6.47517511943802511092443895822764655e-4966, -1.p-16494 q1 is denorm = 1
+q1 (10,2,4,8,16)= 5.00000000000000000000000000000000000, 1.01p2, 1.1p2, 1.2p2, 1.4p2
+q2 = 1.00000000000000000000000000000000000e1
 q1 = 5.00000000000000000000000000000000000
 q2 = 1.00000000000000000000000000000000000e1
 q1 = 5.00000000000000000000000000000000000
@@ -26069,11 +26357,17 @@ q1 > q2 = 0
 q1 >= q2 = 0
 sticky status bits = 0
 5.00000000000000000000000000000000000 / +0 ...  got zero_division
+5.00000000000000000000000000000000000 / +0 = +Inf status bits = 32, 32
 5.00000000000000000000000000000000000 / 3.00000000000000000000000000000000000 ...  got imprecise result
+5.00000000000000000000000000000000000 / 3.00000000000000000000000000000000000 = 1.66666666666666666666666666666666673 status bits = 16, 16
 1.18973149535723176508575932662800702e4932 + 1.18973149535723176508575932662800702e4932 ...  got overflow
+1.18973149535723176508575932662800702e4932 + 1.18973149535723176508575932662800702e4932 = +Inf status bits = 4, 4
 6.47517511943802511092443895822764655e-4966 / 10 ...  got underflow
+6.47517511943802511092443895822764655e-4966 / 10 = +0 status bits = 24, 8
 SNaN + SNaN ...  got invalid operation
+SNaN + SNaN = QNaN status bits = 3, 1
 QNaN + QNaN ...  got reserved operand
+QNaN + QNaN = QNaN status bits = 2, 2
 sticky status bits = 0
 trap mask = 0
 trap mask = 63

@@ -201,12 +201,6 @@ $(Cpplibrary): IEEEtens.c $(Cppobjects)
 	$(RANLIB) $(Cpplibrary)
 
 # Generation of the most precise floating point representation of
-# powers of ten (max power (340) > log10 (2) * (max power of IEEE double
-# number (1024) + 2 * fraction size of IEEE double numbers (2*53 = 106)
-# + minimal bits needed for representation of hundred (7))).  See also
-# commentaries for in file `IEEE.c'.
-
-# Generation of the most precise floating point representation of
 # powers of ten (max power (5010) > log10 (2) * (max power of IEEE quad
 # number (16384) + 2 * fraction size of IEEE quad numbers (2*113 = 226)
 # + minimal bits needed for representation of hundred (7))).  See also

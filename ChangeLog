@@ -1,3 +1,68 @@
+2001-06-29  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+        * AMMUNITION/IEEE.h (MAX_SINGLE_2_STRING_LENGTH,
+	MAX_DOUBLE_2_STRING_LENGTH, MAX_QUAD_2_STRING_LENGTH,
+	MAX_SINGLE_4_STRING_LENGTH, MAX_DOUBLE_4_STRING_LENGTH,
+	MAX_QUAD_4_STRING_LENGTH, MAX_SINGLE_8_STRING_LENGTH,
+	MAX_DOUBLE_8_STRING_LENGTH, MAX_QUAD_8_STRING_LENGTH,
+	MAX_SINGLE_10_STRING_LENGTH, MAX_DOUBLE_10_STRING_LENGTH,
+	MAX_QUAD_10_STRING_LENGTH, MAX_SINGLE_16_STRING_LENGTH,
+	MAX_DOUBLE_16_STRING_LENGTH, MAX_QUAD_16_STRING_LENGTH): New
+	macros.
+	(IEEE_single_to_binary_string, IEEE_double_to_binary_string,
+	IEEE_quad_to_binary_string, IEEE_single_from_binary_string,
+	IEEE_double_from_binary_string, IEEE_quad_from_binary_string): New
+	function prototypes.
+	(to_binary_string, from_binary_string): New C++ functions.
+	
+        * AMMUNITION/IEEE.c (float_to_binary_string,
+	IEEE_to_binary_string, IEEE_single_to_binary_string,
+	IEEE_double_to_binary_string, IEEE_quad_to_binary_string,
+	binary_string_to_float, IEEE_from_binary_string,
+	IEEE_single_from_binary_string, IEEE_double_from_binary_string,
+	IEEE_quad_from_binary_string): New functions.
+	(float_to_string): Use local array to get the fraction string.
+	
+        * AMMUNITION/IEEE.cpp (float_to_binary_string,
+	IEEE_to_binary_string, IEEE_single::to_binary_string,
+	IEEE_double::to_binary_string, IEEE_quad::to_binary_string,
+	binary_string_to_float, IEEE_from_binary_string,
+	IEEE_single::from_binary_string, IEEE_double::from_binary_string,
+	IEEE_quad::from_binary_string): New functions.
+	(float_to_string): Use local array to get the fraction string.
+
+	* AMMUNITION/IEEE.tst.in: Add the new macros and test the new
+	external functions.
+
+	* AMMUNITION/IEEE++.tst.in: Ditto.
+	
+	* AMMUNITION/ammunition.sgml.in: Add description of the new macros
+	and the external functions.
+
+	* AMMUNITION/ammunition++.sgml.in: Ditto.
+
+	* AMMUNITION/{ammunition.info*, ammunition.txt, ammunition.ps,
+	ammunition.dvi, ammunition-11.html}: Update.
+
+	* AMMUNITION/{ammunition++.info*, ammunition++.txt,
+	ammunition++.ps, ammunition++.dvi, ammunition++-11.html}: Ditto.
+
+	* AMMUNITION/ammunition++.info-4: New file.
+
+	* DINO/ieee.d (opvalue): New exception class.
+	(ignore_excepts): New variable.
+	(process_except): Use it.
+	(to_binary_string, from_binary_string):  New functions.
+
+	* DINO/ieee_int.c (ieee_single_to_binary_string,
+	ieee_double_to_binary_string, ieee_quad_to_binary_string,
+	ieee_single_from_binary_string, ieee_double_from_binary_string,
+	ieee_quad_from_binary_string): New functions.
+	(ieee_address): Add their addresses.
+
+	* DINO/ieee.tst.in (453): Test new functions and ignoring the
+	excepts.
+
 2001-06-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* SHILKA/yacc.y (make_lower_case_string): New function.  Use it

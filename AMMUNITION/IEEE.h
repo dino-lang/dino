@@ -131,6 +131,28 @@
 
 #define IEEE_RZ  3
 
+/* The following macro values are maximal length of array for the
+   corresponding string representation of IEEE numbers. */
+
+#define MAX_SINGLE_2_STRING_LENGTH   35
+#define MAX_DOUBLE_2_STRING_LENGTH   65
+#define MAX_QUAD_2_STRING_LENGTH     126
+
+#define MAX_SINGLE_4_STRING_LENGTH   23
+#define MAX_DOUBLE_4_STRING_LENGTH   39
+#define MAX_QUAD_4_STRING_LENGTH     70
+
+#define MAX_SINGLE_8_STRING_LENGTH   19
+#define MAX_DOUBLE_8_STRING_LENGTH   30
+#define MAX_QUAD_8_STRING_LENGTH     51
+
+#define MAX_SINGLE_10_STRING_LENGTH  18
+#define MAX_DOUBLE_10_STRING_LENGTH  29
+#define MAX_QUAD_10_STRING_LENGTH    47
+
+#define MAX_SINGLE_16_STRING_LENGTH  17
+#define MAX_DOUBLE_16_STRING_LENGTH  28
+#define MAX_QUAD_16_STRING_LENGTH    42
 
 #ifndef __cplusplus
 
@@ -357,10 +379,28 @@ extern void IEEE_quad_to_unsigned_integer
   (int size, IEEE_quad_t quad_float, void *unsigned_integer);
 #endif
 
+extern char *IEEE_single_to_binary_string (IEEE_float_t single_float, int base,
+					   char *result);
+extern char *IEEE_double_to_binary_string (IEEE_double_t double_float,
+					   int base, char *result);
+#ifdef IEEE_QUAD
+extern char *IEEE_quad_to_binary_string (IEEE_quad_t quad_float, int base,
+					 char *result);
+#endif
+
 extern char *IEEE_single_to_string (IEEE_float_t single_float, char *result);
 extern char *IEEE_double_to_string (IEEE_double_t double_float, char *result);
 #ifdef IEEE_QUAD
 extern char *IEEE_quad_to_string (IEEE_quad_t quad_float, char *result);
+#endif
+
+extern char *IEEE_single_from_binary_string (const char *operand, int base,
+					     IEEE_float_t *result);
+extern char *IEEE_double_from_binary_string (const char *operand, int base,
+					     IEEE_double_t *result);
+#ifdef IEEE_QUAD
+extern char *IEEE_quad_from_binary_string (const char *operand, int base,
+					   IEEE_quad_t *result);
 #endif
 
 extern char *IEEE_single_from_string (const char *operand,
@@ -475,8 +515,12 @@ public:
   void to_signed_integer (int size, void *integer);
   void to_unsigned_integer (int size, void *unsigned_integer);
 
+  char *to_binary_string (int base, char *result);
+
   char *to_string (char *result);
   
+  char *from_binary_string (const char *operand, int base);
+
   char *from_string (const char *operand);
 
   IEEE_float (void)
@@ -610,8 +654,12 @@ public:
   void to_signed_integer (int size, void *integer);
   void to_unsigned_integer (int size, void *unsigned_integer);
 
+  char *to_binary_string (int base, char *result);
+
   char *to_string (char *result);
   
+  char *from_binary_string (const char *operand, int base);
+
   char *from_string (const char *operand);
 
   IEEE_double (void)
@@ -748,8 +796,12 @@ public:
   void to_signed_integer (int size, void *integer);
   void to_unsigned_integer (int size, void *unsigned_integer);
 
+  char *to_binary_string (int base, char *result);
+
   char *to_string (char *result);
   
+  char *from_binary_string (const char *operand, int base);
+
   char *from_string (const char *operand);
 
   IEEE_quad (void)

@@ -1,5 +1,5 @@
 This is ammunition.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.ammunition22992.info.2.
+/tmp/sgmltmp.ammunition12027.info.2.
 
    \input texinfo
 
@@ -7,7 +7,7 @@ This is ammunition.info, produced by makeinfo version 4.0 from
 Indirect:
 ammunition.info-1: 120
 ammunition.info-2: 44155
-ammunition.info-3: 86062
+ammunition.info-3: 90214
 
 Tag Table:
 (Indirect)
@@ -23,7 +23,7 @@ Node: Package for work with command line34024
 Node: Package for work with bit strings40784
 Node: Package for machine-independent arbitrary precision integer arithmetic44155
 Node: Package for machine-independent IEEE floating point arithmetic54317
-Node: Ticker package84347
-Node: Earley parser86062
+Node: Ticker package88499
+Node: Earley parser90214
 
 End Tag Table

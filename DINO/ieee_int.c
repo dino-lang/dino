@@ -1252,6 +1252,29 @@ ieee_integer_from_quad (int npars, val_t *vals)
 }
 
 WIN_EXPORT val_t
+ieee_single_to_binary_string (int npars, val_t *vals)
+{
+  IEEE_float_t temp;
+  int base;
+  val_t val;
+  ER_node_t res = (ER_node_t) &val;
+  ER_node_t vect;
+  char str [80];
+
+  assert (npars == 2
+	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
+	  IEEE_FLOAT_SIZE);
+  base = ER_i ((ER_node_t) (vals + 1));
+  IEEE_single_to_binary_string (temp, base, str);
+  vect = create_string (str);
+  ER_SET_MODE (res, ER_NM_vect);
+  ER_set_vect (res, vect);
+  return val;
+}
+
+WIN_EXPORT val_t
 ieee_single_to_string (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -1272,6 +1295,29 @@ ieee_single_to_string (int npars, val_t *vals)
 }
 
 WIN_EXPORT val_t
+ieee_double_to_binary_string (int npars, val_t *vals)
+{
+  IEEE_double_t temp;
+  int base;
+  val_t val;
+  ER_node_t res = (ER_node_t) &val;
+  ER_node_t vect;
+  char str [80];
+
+  assert (npars == 2
+	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
+	  IEEE_DOUBLE_SIZE);
+  base = ER_i ((ER_node_t) (vals + 1));
+  IEEE_double_to_binary_string (temp, base, str);
+  vect = create_string (str);
+  ER_SET_MODE (res, ER_NM_vect);
+  ER_set_vect (res, vect);
+  return val;
+}
+
+WIN_EXPORT val_t
 ieee_double_to_string (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -1285,6 +1331,29 @@ ieee_double_to_string (int npars, val_t *vals)
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  IEEE_DOUBLE_SIZE);
   IEEE_double_to_string (temp, str);
+  vect = create_string (str);
+  ER_SET_MODE (res, ER_NM_vect);
+  ER_set_vect (res, vect);
+  return val;
+}
+
+WIN_EXPORT val_t
+ieee_quad_to_binary_string (int npars, val_t *vals)
+{
+  IEEE_quad_t temp;
+  int base;
+  val_t val;
+  ER_node_t res = (ER_node_t) &val;
+  ER_node_t vect;
+  char str [80];
+
+  assert (npars == 2
+	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
+	  IEEE_QUAD_SIZE);
+  base = ER_i ((ER_node_t) (vals + 1));
+  IEEE_quad_to_binary_string (temp, base, str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
   ER_set_vect (res, vect);
@@ -1354,6 +1423,22 @@ ieee_quad_from_float (int npars, val_t *vals)
 }
 
 WIN_EXPORT val_t
+ieee_single_from_binary_string (int npars, val_t *vals)
+{
+  void *hideblock;
+  int base;
+
+  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  hideblock = create_hideblock (IEEE_FLOAT_SIZE);
+  base = ER_i ((ER_node_t) (vals + 1));
+  IEEE_single_from_binary_string
+    (ER_pack_els (ER_vect ((ER_node_t) vals)), base,
+     (IEEE_float_t *) ER_hideblock_start ((ER_node_t) hideblock));
+  return return_hideblock (hideblock);
+}
+
+WIN_EXPORT val_t
 ieee_single_from_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1367,6 +1452,22 @@ ieee_single_from_string (int npars, val_t *vals)
 }
 
 WIN_EXPORT val_t
+ieee_double_from_binary_string (int npars, val_t *vals)
+{
+  void *hideblock;
+  int base;
+
+  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  hideblock = create_hideblock (IEEE_DOUBLE_SIZE);
+  base = ER_i ((ER_node_t) (vals + 1));
+  IEEE_double_from_binary_string
+    (ER_pack_els (ER_vect ((ER_node_t) vals)), base,
+     (IEEE_double_t *) ER_hideblock_start ((ER_node_t) hideblock));
+  return return_hideblock (hideblock);
+}
+
+WIN_EXPORT val_t
 ieee_double_from_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1376,6 +1477,22 @@ ieee_double_from_string (int npars, val_t *vals)
   IEEE_double_from_string
     (ER_pack_els (ER_vect ((ER_node_t) vals)),
      (IEEE_double_t *) ER_hideblock_start ((ER_node_t) hideblock));
+  return return_hideblock (hideblock);
+}
+
+WIN_EXPORT val_t
+ieee_quad_from_binary_string (int npars, val_t *vals)
+{
+  void *hideblock;
+  int base;
+
+  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  hideblock = create_hideblock (IEEE_QUAD_SIZE);
+  base = ER_i ((ER_node_t) (vals + 1));
+  IEEE_quad_from_binary_string
+    (ER_pack_els (ER_vect ((ER_node_t) vals)), base,
+     (IEEE_quad_t *) ER_hideblock_start ((ER_node_t) hideblock));
   return return_hideblock (hideblock);
 }
 
@@ -1614,10 +1731,16 @@ ieee_address (const char *name)
     return ieee_quad_from_integer;
   else if (strcmp (name, "ieee_integer_from_quad") == 0)
     return ieee_integer_from_quad;
+  else if (strcmp (name, "ieee_single_to_binary_string") == 0)
+    return ieee_single_to_binary_string;
   else if (strcmp (name, "ieee_single_to_string") == 0)
     return ieee_single_to_string;
+  else if (strcmp (name, "ieee_double_to_binary_string") == 0)
+    return ieee_double_to_binary_string;
   else if (strcmp (name, "ieee_double_to_string") == 0)
     return ieee_double_to_string;
+  else if (strcmp (name, "ieee_quad_to_binary_string") == 0)
+    return ieee_quad_to_binary_string;
   else if (strcmp (name, "ieee_quad_to_string") == 0)
     return ieee_quad_to_string;
   else if (strcmp (name, "ieee_single_from_float") == 0)
@@ -1626,10 +1749,16 @@ ieee_address (const char *name)
     return ieee_double_from_float;
   else if (strcmp (name, "ieee_quad_from_float") == 0)
     return ieee_quad_from_float;
+  else if (strcmp (name, "ieee_single_from_binary_string") == 0)
+    return ieee_single_from_binary_string;
   else if (strcmp (name, "ieee_single_from_string") == 0)
     return ieee_single_from_string;
+  else if (strcmp (name, "ieee_double_from_binary_string") == 0)
+    return ieee_double_from_binary_string;
   else if (strcmp (name, "ieee_double_from_string") == 0)
     return ieee_double_from_string;
+  else if (strcmp (name, "ieee_quad_from_binary_string") == 0)
+    return ieee_quad_from_binary_string;
   else if (strcmp (name, "ieee_quad_from_string") == 0)
     return ieee_quad_from_string;
   else if (strcmp (name, "ieee_reset") == 0)

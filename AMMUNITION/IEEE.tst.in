@@ -53,7 +53,7 @@ if test $result = ok -a $start_test_number -le 1; then
 main ()
 {
   IEEE_float_t f;
-  char str [500], res [500], *r1, *r2;
+  char str [500], res [MAX_SINGLE_2_STRING_LENGTH], *r1, *r2;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -65,11 +65,51 @@ main ()
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
+  r2 = IEEE_single_to_binary_string (f, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
   IEEE_set_sticky_status_bits (0);
   strcpy (str, "2.");
   r1 = IEEE_single_from_string (str, &f);
   r2 = IEEE_single_to_string (f, res);
   if (r2 != res || *r1 != '\0' || strcmp ("2.00000000", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
@@ -81,11 +121,51 @@ main ()
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
+  r2 = IEEE_single_to_binary_string (f, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.8p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.4p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.2p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.1p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
   IEEE_set_sticky_status_bits (0);
   strcpy (str, "+4");
   r1 = IEEE_single_from_string (str, &f);
   r2 = IEEE_single_to_string (f, res);
   if (r2 != res || *r1 != '\0' || strcmp ("4.00000000", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_single_to_binary_string (f, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
@@ -395,6 +475,62 @@ main ()
       || IEEE_get_sticky_status_bits () != (IEEE_UFL | IEEE_IMP)
       || IEEE_get_status_bits () != 0)
     exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_maximum (), 16, res);
+  r1 = IEEE_single_from_binary_string ("1.fffffep127", 16, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.fffffep127", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_maximum (), f))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_maximum (), 8, res);
+  r1 = IEEE_single_from_binary_string ("1.77777776p127", 8, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.77777776p127", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_maximum (), f))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_maximum (), 4, res);
+  r1 = IEEE_single_from_binary_string ("1.333333333332p127", 4, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.333333333332p127", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_maximum (), f))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_maximum (), 2, res);
+  r1 = IEEE_single_from_binary_string ("1.11111111111111111111111p127", 2, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.11111111111111111111111p127", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_maximum (), f))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_minimum (), 16, res);
+  r1 = IEEE_single_from_binary_string ("1.p-149", 16, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-149", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_minimum (), f))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_minimum (), 8, res);
+  r1 = IEEE_single_from_binary_string ("1.p-149", 8, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-149", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_minimum (), f))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_minimum (), 4, res);
+  r1 = IEEE_single_from_binary_string ("1.p-149", 4, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-149", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_minimum (), f))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_single_to_binary_string (IEEE_positive_minimum (), 2, res);
+  r1 = IEEE_single_from_binary_string ("1.p-149", 2, &f);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-149", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_single (IEEE_positive_minimum (), f))
+    exit (1);
   exit (0);
 }
 TEST1
@@ -422,7 +558,7 @@ if test $result = ok -a $start_test_number -le 2; then
 main ()
 {
   IEEE_double_t d;
-  char str [500], res [500], *r1, *r2;
+  char str [500], res [MAX_DOUBLE_2_STRING_LENGTH], *r1, *r2;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -434,11 +570,51 @@ main ()
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
+  r2 = IEEE_double_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
   IEEE_set_sticky_status_bits (0);
   strcpy (str, "2.");
   r1 = IEEE_double_from_string (str, &d);
   r2 = IEEE_double_to_string (d, res);
   if (r2 != res || *r1 != '\0' || strcmp ("2.0000000000000000", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
@@ -450,11 +626,51 @@ main ()
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
+  r2 = IEEE_double_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.8p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.4p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.2p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.1p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
   IEEE_set_sticky_status_bits (0);
   strcpy (str, "+4");
   r1 = IEEE_double_from_string (str, &d);
   r2 = IEEE_double_to_string (d, res);
   if (r2 != res || *r1 != '\0' || strcmp ("4.0000000000000000", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_double_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
@@ -768,6 +984,62 @@ main ()
       || IEEE_get_sticky_status_bits () != (IEEE_UFL | IEEE_IMP)
       || IEEE_get_status_bits () != 0)
     exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_maximum (), 16, res);
+  r1 = IEEE_double_from_binary_string ("1.fffffffffffffp1023", 16, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.fffffffffffffp1023", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_maximum (), 8, res);
+  r1 = IEEE_double_from_binary_string ("1.777777777777777774p1023", 8, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.777777777777777774p1023", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_maximum (), 4, res);
+  r1 = IEEE_double_from_binary_string ("1.33333333333333333333333333p1023", 4, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.33333333333333333333333333p1023", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_maximum (), 2, res);
+  r1 = IEEE_double_from_binary_string ("1.1111111111111111111111111111111111111111111111111111p1023", 2, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.1111111111111111111111111111111111111111111111111111p1023", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_minimum (), 16, res);
+  r1 = IEEE_double_from_binary_string ("1.p-1074", 16, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-1074", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_minimum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_minimum (), 8, res);
+  r1 = IEEE_double_from_binary_string ("1.p-1074", 8, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-1074", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_minimum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_minimum (), 4, res);
+  r1 = IEEE_double_from_binary_string ("1.p-1074", 4, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-1074", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_minimum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_double_to_binary_string (IEEE_double_positive_minimum (), 2, res);
+  r1 = IEEE_double_from_binary_string ("1.p-1074", 2, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-1074", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_double (IEEE_double_positive_minimum (), d))
+    exit (1);
   exit (0);
 }
 TEST2
@@ -795,7 +1067,7 @@ if test $result = ok -a $start_test_number -le 3; then
 main ()
 {
   IEEE_float_t f;
-  char res [500], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -877,7 +1149,7 @@ if test $result = ok -a $start_test_number -le 4; then
 main ()
 {
   IEEE_double_t d;
-  char res [500], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -4225,7 +4497,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [500], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -4803,7 +5075,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [500], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -5381,7 +5653,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [500], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -5965,7 +6237,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [500], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -6549,7 +6821,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [500], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -7073,7 +7345,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [500], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -7597,7 +7869,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [500], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -8205,7 +8477,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [500], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -8814,7 +9086,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_SINGLE_10_STRING_LENGTH];
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -8954,7 +9226,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_DOUBLE_10_STRING_LENGTH];
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -9204,7 +9476,7 @@ if test $result = ok -a $start_test_number -le 27; then
 #include "IEEE.h"
 main ()
 {
-  char res [500];
+  char res [MAX_SINGLE_10_STRING_LENGTH];
   unsigned char integer[4];
   unsigned char long_integer[17];
 
@@ -9381,7 +9653,7 @@ if test $result = ok -a $start_test_number -le 28; then
 #include "IEEE.h"
 main ()
 {
-  char res [500];
+  char res [MAX_DOUBLE_10_STRING_LENGTH];
   unsigned char integer[8];
   unsigned char long_integer[257];
 
@@ -9557,7 +9829,7 @@ if test $result = ok -a $start_test_number -le 29; then
 #include "IEEE.h"
 main ()
 {
-  char res [500];
+  char res [MAX_SINGLE_10_STRING_LENGTH];
   unsigned char unsigned_integer[4];
   unsigned char long_unsigned_integer[16];
 
@@ -9721,7 +9993,7 @@ if test $result = ok -a $start_test_number -le 30; then
 #include "IEEE.h"
 main ()
 {
-  char res [500];
+  char res [MAX_DOUBLE_10_STRING_LENGTH];
   unsigned char unsigned_integer[8];
   unsigned char long_unsigned_integer[128];
 
@@ -9896,7 +10168,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_SINGLE_10_STRING_LENGTH];
   unsigned char integer[4];
   unsigned char result[4];
 
@@ -10211,7 +10483,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_DOUBLE_10_STRING_LENGTH];
   unsigned char integer[8];
   unsigned char result[8];
 
@@ -10526,7 +10798,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_SINGLE_10_STRING_LENGTH];
   unsigned char unsigned_integer[4];
   unsigned char result[4];
 
@@ -10785,7 +11057,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_DOUBLE_10_STRING_LENGTH];
   unsigned char unsigned_integer[8];
   unsigned char result[8];
 
@@ -11033,7 +11305,7 @@ if test $result = ok -a $start_test_number -le 35; then
 main ()
 {
   IEEE_quad_t d;
-  char str [500], res [500], *r1, *r2;
+  char str [500], res [MAX_QUAD_2_STRING_LENGTH], *r1, *r2;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -11045,11 +11317,51 @@ main ()
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
   IEEE_set_sticky_status_bits (0);
   strcpy (str, "2.");
   r1 = IEEE_quad_from_string (str, &d);
   r2 = IEEE_quad_to_string (d, res);
   if (r2 != res || *r1 != '\0' || strcmp ("2.00000000000000000000000000000000000", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p1", res) != 0
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
@@ -11061,11 +11373,51 @@ main ()
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.8p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.4p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.2p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("-1.1p1", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
   IEEE_set_sticky_status_bits (0);
   strcpy (str, "+4");
   r1 = IEEE_quad_from_string (str, &d);
   r2 = IEEE_quad_to_string (d, res);
   if (r2 != res || *r1 != '\0' || strcmp ("4.00000000000000000000000000000000000", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 16, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 8, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 4, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
+      || IEEE_get_sticky_status_bits () != 0
+      || IEEE_get_status_bits () != 0)
+    exit (1);
+  r2 = IEEE_quad_to_binary_string (d, 2, res);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p2", res) != 0
       || IEEE_get_sticky_status_bits () != 0
       || IEEE_get_status_bits () != 0)
     exit (1);
@@ -11379,6 +11731,62 @@ main ()
       || IEEE_get_sticky_status_bits () != (IEEE_UFL | IEEE_IMP)
       || IEEE_get_status_bits () != 0)
     exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_maximum (), 16, res);
+  r1 = IEEE_quad_from_binary_string ("1.ffffffffffffffffffffffffffffp16383", 16, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.ffffffffffffffffffffffffffffp16383", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_maximum (), 8, res);
+  r1 = IEEE_quad_from_binary_string ("1.77777777777777777777777777777777777774p16383", 8, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.77777777777777777777777777777777777774p16383", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_maximum (), 4, res);
+  r1 = IEEE_quad_from_binary_string ("1.33333333333333333333333333333333333333333333333333333333p16383", 4, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.33333333333333333333333333333333333333333333333333333333p16383", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_maximum (), 2, res);
+  r1 = IEEE_quad_from_binary_string ("1.1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111p16383", 2, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111p16383", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_maximum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_minimum (), 16, res);
+  r1 = IEEE_quad_from_binary_string ("1.p-16494", 16, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-16494", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_minimum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_minimum (), 8, res);
+  r1 = IEEE_quad_from_binary_string ("1.p-16494", 8, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-16494", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_minimum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_minimum (), 4, res);
+  r1 = IEEE_quad_from_binary_string ("1.p-16494", 4, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-16494", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_minimum (), d))
+    exit (1);
+  IEEE_set_sticky_status_bits (0);
+  r2 = IEEE_quad_to_binary_string (IEEE_quad_positive_minimum (), 2, res);
+  r1 = IEEE_quad_from_binary_string ("1.p-16494", 2, &d);
+  if (r2 != res || *r1 != '\0' || strcmp ("1.p-16494", res) != 0
+      || IEEE_get_sticky_status_bits () != 0 || IEEE_get_status_bits () != 0
+      || IEEE_ne_quad (IEEE_quad_positive_minimum (), d))
+    exit (1);
   exit (0);
 }
 TEST35
@@ -11406,7 +11814,7 @@ if test $result = ok -a $start_test_number -le 36; then
 main ()
 {
   IEEE_quad_t d;
-  char res [500], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -13127,7 +13535,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [500], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -13705,7 +14113,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [500], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -14289,7 +14697,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [500], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -14813,7 +15221,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [500], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH], *r;
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -15422,7 +15830,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_SINGLE_10_STRING_LENGTH];
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -15562,7 +15970,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_QUAD_10_STRING_LENGTH];
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -15812,7 +16220,7 @@ if test $result = ok -a $start_test_number -le 49; then
 #include "IEEE.h"
 main ()
 {
-  char res [500];
+  char res [MAX_QUAD_10_STRING_LENGTH];
   unsigned char integer[16];
   unsigned char long_integer[4095];
 
@@ -15988,7 +16396,7 @@ if test $result = ok -a $start_test_number -le 50; then
 #include "IEEE.h"
 main ()
 {
-  char res [500];
+  char res [MAX_QUAD_10_STRING_LENGTH];
   unsigned char unsigned_integer[16];
   unsigned char long_unsigned_integer[2048];
 
@@ -16163,7 +16571,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_QUAD_10_STRING_LENGTH];
   unsigned char integer[8];
   unsigned char result[8];
 
@@ -16478,7 +16886,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_QUAD_10_STRING_LENGTH];
   unsigned char unsigned_integer[8];
   unsigned char result[8];
 
@@ -16737,7 +17145,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_DOUBLE_10_STRING_LENGTH];
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -16877,7 +17285,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [500];
+  char res [MAX_QUAD_10_STRING_LENGTH];
 
   IEEE_set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);

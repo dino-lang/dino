@@ -4002,6 +4002,164 @@ IEEE_quad::to_unsigned_integer (int size, void *unsigned_integer)
 
 
 /* This page contains function for transformation of IEEE floating
+   point numbers to ascii binary strings. */
+
+/* The following function transforms IEEE floating point number given
+   by its sign, exponent, and fraction to binary (in a given base)
+   ascii representation with obligatory integer part (1 digit),
+   optional fractional part, and optional binary exponent.  Signs
+   minus are present if it is needed.  The function returns result.
+   Current round mode does not affect the resultant ascii
+   representation.  BASE should be 2, 4, 8, or 16. */
+
+static char *
+float_to_binary_string (int non_biased_exponent, int sign, fraction_t fraction,
+			int true_fraction_bit_length, int base, char *result)
+{
+  char *result_without_sign;
+  int number_of_significant_digits;
+  int i, digit_bits;
+  void (*saved_unsigned_overflow_reaction) (void);
+  char fraction_str [INTERNAL_FRACTION_SIZE * CHAR_BIT + 1];
+
+  assert (base == 2 || base == 4 || base == 8 || base == 16);
+  digit_bits = (base == 2 ? 1 : base == 4 ? 2 : base == 8 ? 3 : 4);
+  saved_unsigned_overflow_reaction
+    = unsigned_integer::set_overflow_reaction
+      (integer::default_arithmetic_overflow_reaction);
+  normalize_fraction (&non_biased_exponent, fraction);
+  if (sign)
+    {
+      strcpy (result, "-");
+      result_without_sign = result + 1;
+    }
+  else
+    result_without_sign = result;
+  result_without_sign++; /* For point */
+  unsigned_integer::shift_right (INTERNAL_FRACTION_SIZE, fraction,
+				digit_bits - 1, fraction);
+  unsigned_integer::to_based_string (INTERNAL_FRACTION_SIZE, fraction,
+				     base, fraction_str);
+  number_of_significant_digits = 0;
+  for (i = 0; fraction_str [i] != '\0'; i++)
+    if (fraction_str [i] != '0')
+      number_of_significant_digits = i;
+  number_of_significant_digits++;
+  strncpy (result_without_sign, fraction_str, number_of_significant_digits);
+  result_without_sign [-1] = *result_without_sign;
+  *result_without_sign = '.';
+  result_without_sign [number_of_significant_digits] = '\0';
+  assert (number_of_significant_digits != 1
+	  || result_without_sign [-1] != '0');
+  if (non_biased_exponent != 0)
+    sprintf (result_without_sign + number_of_significant_digits,
+             "p%d", non_biased_exponent);
+  (void) unsigned_integer::set_overflow_reaction
+    (saved_unsigned_overflow_reaction);
+  return result;
+}
+
+/* The following function transforms IEEE number FP with
+   characteristics D to decimal ascii representation with obligatory
+   integer part (1 digit), optional fractional part, and optional
+   binary exponent with the aid of function `float_to_binary_string'.
+   Signs minus are present if it is needed.  The special cases IEEE
+   floating point values are represented by strings `SNaN', `QNaN',
+   `+Inf', `-Inf', `+0', and `-0'.  The function returns the result.
+   Current round mode does not affect the resultant ascii
+   representation.  The function produce no input or output
+   exceptions.  BASE should be 2, 4, 8, or 16. */
+
+static char *
+IEEE_to_binary_string (void *fp, float_desc_t d, int base, char *result)
+{
+  enum number_class fp_class;
+  fraction_t fraction;
+  int sign;
+  int exponent;
+
+  fp_class = float_class (fp, d);
+  if (fp_class == TRAPPING_NOT_A_NUMBER)
+    return strcpy (result, TRAPPING_NaN_NAME);
+  else if (fp_class == NOT_A_NUMBER)
+    return strcpy (result, NaN_NAME);
+  else if (fp_class == POSITIVE_INFINITY)
+    return strcpy (result, POSITIVE_INFINITY_NAME);
+  else if (fp_class == NEGATIVE_INFINITY)
+    return strcpy (result, NEGATIVE_INFINITY_NAME);
+  else if (fp_class == POSITIVE_ZERO)
+    return strcpy (result, "+0");
+  else if (fp_class == NEGATIVE_ZERO)
+    return strcpy (result, "-0");
+  else
+    {
+      assert (fp_class == NORMALIZED_NUMBER
+              || fp_class == DENORMALIZED_NUMBER);
+      unpack_float (fp, d, &sign, &exponent, fraction);
+      return
+        float_to_binary_string (exponent - d->exponent_bias, sign, fraction,
+				d->true_fraction_bit_length, base, result);
+    }
+}
+
+/* The following function transforms IEEE single precision to binary
+   ascii representation with obligatory integer part (1 digit),
+   optional fractional part, and optional binary exponent with the aid
+   of function `float_to_binary_string'.  Signs minus are present if
+   it is needed.  The special cases IEEE floating point values are
+   represented by strings `SNaN', `QNaN', `+Inf', `-Inf', `+0', and
+   `-0'.  The function returns the result.  Current round mode does
+   not affect the resultant ascii representation.  The function
+   produce no input or output exceptions.  BASE should be 2, 4, 8, or
+   16. */
+
+char *
+IEEE_float::to_binary_string (int base, char *result)
+{
+  current_status_bits = 0;
+  return IEEE_to_binary_string (this, &single_float_desc, base, result);
+}
+
+/* The following function transforms IEEE double precision to binary
+   ascii representation with obligatory integer part (1 digit),
+   optional fractional part, and optional binary_exponent with the aid
+   of function `float_to_binary_string'.  Signs minus are present if
+   it is needed.  The special cases IEEE floating point values are
+   represented by strings `SNaN', `QNaN', `+Inf', `-Inf', `+0', and
+   `-0'.  The function returns the result.  Current round mode does
+   not affect the resultant ascii representation. The function produce
+   no input or output exceptions.  BASE should be 2, 4, 8, or 16. */
+
+char *
+IEEE_double::to_binary_string (int base, char *result)
+{
+  current_status_bits = 0;
+  return IEEE_to_binary_string (this, &double_float_desc, base, result);
+}
+
+#ifdef IEEE_QUAD
+/* The following function transforms IEEE quad precision to binary
+   ascii representation with obligatory integer part (1 digit),
+   optional fractional part, and optional exponent with the aid of
+   function `float_to_binary_string'.  Signs minus are present if it
+   is needed.  The special cases IEEE floating point values are
+   represented by strings `SNaN', `QNaN', `+Inf', `-Inf', `+0', and
+   `-0'.  The function returns the result.  Current round mode does
+   not affect the resultant ascii representation.  The function
+   produce no input or output exceptions.  BASE should be 2, 4, 8, or
+   16. */
+
+char *
+IEEE_quad::to_binary_string (int base, char *result)
+{
+  current_status_bits = 0;
+  return IEEE_to_binary_string (this, &quad_float_desc, base, result);
+}
+#endif /* #ifdef IEEE_QUAD */
+
+
+
+/* This page contains function for transformation of IEEE floating
    point numbers to strings. */
 
 /* The following function transforms IEEE floating point number given
@@ -4028,6 +4186,7 @@ float_to_string (int non_biased_exponent, int sign, fraction_t fraction,
   fraction_t ten_fraction;
   int number_of_significant_digits;
   int shift_right;
+  char fraction_str [INTERNAL_FRACTION_SIZE * CHAR_BIT + 1];
   void (*saved_unsigned_overflow_reaction) (void);
 
   saved_unsigned_overflow_reaction
@@ -4099,29 +4258,30 @@ float_to_string (int non_biased_exponent, int sign, fraction_t fraction,
   unsigned_integer::shift_right (INTERNAL_FRACTION_SIZE, fraction, shift_right,
                                  fraction);
   unsigned_integer::to_string (INTERNAL_FRACTION_SIZE, fraction,
-                               result_without_sign);
-  ten_power += strlen (result_without_sign) - 1;
-  assert (strlen (result_without_sign) > number_of_significant_digits
-          && (strlen (result_without_sign)
+                               fraction_str);
+  ten_power += strlen (fraction_str) - 1;
+  assert (strlen (fraction_str) > number_of_significant_digits
+          && (strlen (fraction_str)
               <= (unsigned) number_of_significant_digits + 3));
-  if (result_without_sign [number_of_significant_digits] >= '5')
+  if (fraction_str [number_of_significant_digits] >= '5')
     {
       int digit_number;
       
       /* Rounding */
       for (digit_number = number_of_significant_digits - 1;
-           digit_number >=0 && result_without_sign [digit_number] == '9';
+           digit_number >=0 && fraction_str [digit_number] == '9';
            digit_number--)
-        result_without_sign [digit_number] = '0';
+        fraction_str [digit_number] = '0';
       if (digit_number >= 0)
-        result_without_sign [digit_number]++;
+        fraction_str [digit_number]++;
       else
         {
-          *result_without_sign = '1';
+          *fraction_str = '1';
           ten_power++;
         }
     }
-  result_without_sign [number_of_significant_digits] = '\0';
+  fraction_str [number_of_significant_digits] = '\0';
+  strcpy (result_without_sign, fraction_str);
   /* Place point */
   result_without_sign [-1] = *result_without_sign;
   *result_without_sign = '.';
@@ -4262,6 +4422,339 @@ IEEE_quad::to_string (char *result)
 {
   current_status_bits = 0;
   return IEEE_to_string (this, &quad_float_desc, result);
+}
+#endif /* #ifdef IEEE_QUAD */
+
+
+
+/* This page contains function for transformation of binary ascii
+   strings to IEEE floating point numbers. */
+
+/* The following function transforms binary ascii representation to
+   IEEE floating point number given by its sign, binary exponent, and
+   fraction.  The floating point number must correspond the following
+   syntax
+
+            ['+' | '-'] [<digits>] [ '.' [<digits>] ]
+                  [ ('p' | 'P') ['+' | '-'] <decimal digits>]
+
+   The function returns pointer to first character in the source
+   string after read floating point number.  The function reads string
+   as long as possible.  Current round mode may affect resultant
+   floating point number.  Digit should be less BASE which in its turn
+   should be 2, 4, 8, or 16. */
+
+static char *
+binary_string_to_float (const char *operand, int base, int *sign,
+			int *non_biased_exponent, fraction_t fraction,
+			int *imprecise_flag)
+{
+  int leading_zero_flag;
+  int number_of_rest_significant_digits;
+  int binary_exponent;
+  int additional_binary_exponent;
+  const char *exponent_start;
+  int exponent_minus_flag;
+  int digit_bits;
+  fraction_t temporary_fraction, factor;
+  char digit_string [2];
+
+  assert (base == 2 || base == 4 || base == 8 || base == 16);
+  *imprecise_flag = 0 /* FALSE */;
+  (void) unsigned_integer::from_string (INTERNAL_FRACTION_SIZE, "0", fraction);
+  (void) unsigned_integer::from_based_string (INTERNAL_FRACTION_SIZE, "10",
+					      base, factor);
+  digit_bits = (base == 2 ? 1 : base == 4 ? 2 : base == 8 ? 3 : 4);
+  number_of_rest_significant_digits
+    = (int) ((INTERNAL_FRACTION_SIZE * CHAR_BIT / 2.0 * digit_bits) + 2.0);
+  /* The following statement for subsequent rounding */
+  number_of_rest_significant_digits++;
+  if (*operand == '-' || *operand == '+')
+    {
+      *sign = *operand == '-';
+      operand++;
+    }
+  else
+    *sign = 0;
+  leading_zero_flag = 1 /* TRUE */;
+  binary_exponent = INTERNAL_FRACTION_SIZE * CHAR_BIT - 1;
+  while ((isdigit (*operand) && *operand - '0' < base)
+	 || base == 16 && ((*operand >= 'a' && *operand <= 'f')
+			   || (*operand >= 'A' && *operand <= 'F')))
+    {
+      if (*operand != '0' || !leading_zero_flag)
+        {
+          if (number_of_rest_significant_digits > 0)
+            {
+              number_of_rest_significant_digits--;
+              unsigned_integer::multiply
+		(INTERNAL_FRACTION_SIZE, fraction, factor, fraction);
+              assert (!integer::overflow_bit);
+              *digit_string = *operand;
+              digit_string [1] = '\0';
+              (void) unsigned_integer::from_based_string
+		(INTERNAL_FRACTION_SIZE, digit_string,
+		 base, temporary_fraction);
+              unsigned_integer::add (INTERNAL_FRACTION_SIZE, fraction,
+				     temporary_fraction, fraction);
+              assert (!integer::overflow_bit);
+            }
+          else
+            {
+              *imprecise_flag = *imprecise_flag || *operand != '0';
+              binary_exponent += digit_bits;
+            }
+          leading_zero_flag = 0 /* FALSE */;
+        }
+      operand++;
+    }
+  if (*operand == '.')
+    {
+      operand++;
+      while ((isdigit (*operand) && *operand - '0' < base)
+	     || base == 16 && ((*operand >= 'a' && *operand <= 'f')
+			       || (*operand >= 'A' && *operand <= 'F')))
+        {
+          if (*operand != '0' || !leading_zero_flag)
+            {
+              if (number_of_rest_significant_digits > 0)
+                {
+                  number_of_rest_significant_digits--;
+                  unsigned_integer::multiply (INTERNAL_FRACTION_SIZE,
+					      fraction, factor, fraction);
+                  assert (!integer::overflow_bit);
+                  *digit_string = *operand;
+                  digit_string [1] = '\0';
+                  (void) unsigned_integer::from_based_string
+		    (INTERNAL_FRACTION_SIZE, digit_string,
+		     base, temporary_fraction);
+                  unsigned_integer::add (INTERNAL_FRACTION_SIZE, fraction,
+					 temporary_fraction, fraction);
+                  assert (!integer::overflow_bit);
+		  binary_exponent -= digit_bits;
+                }
+              else
+                *imprecise_flag = *imprecise_flag || *operand != '0';
+              leading_zero_flag = 0 /* FALSE */;
+            }
+          else
+	    binary_exponent -= digit_bits;
+          operand++;
+        }
+    }
+  if (*operand == 'p' || *operand == 'P')
+    {
+      exponent_start = operand;
+      operand++;
+      if (*operand == '-' || *operand == '+')
+        {
+          exponent_minus_flag = *operand == '-';
+          operand++;
+        }
+      else
+        exponent_minus_flag = 0 /* FALSE */;
+      if (!isdigit (*operand))
+        operand = exponent_start;
+      else
+        {
+          additional_binary_exponent = binary_exponent;
+          binary_exponent = 0;
+          do
+            {
+              if (INT_MAX / 10 < binary_exponent)
+                binary_exponent = INT_MAX / 2;
+              else
+                binary_exponent *= 10;
+              if (INT_MAX - (*operand - '0') < binary_exponent)
+                binary_exponent = INT_MAX / 2;
+              else
+                binary_exponent += *operand - '0';
+              operand++;
+            }
+          while (isdigit (*operand));
+        }
+      if (exponent_minus_flag)
+        binary_exponent = additional_binary_exponent - binary_exponent;
+      else
+        binary_exponent += additional_binary_exponent;
+    }
+  if (leading_zero_flag)
+    {
+      /* It is zero */
+      assert (bits::is_zero_bit_string (fraction, 0,
+					INTERNAL_FRACTION_SIZE * CHAR_BIT)
+              && !*imprecise_flag);
+      *non_biased_exponent = NON_BIASED_EXPONENT_FOR_UNDERFLOW;
+    }
+  else
+    {
+      *non_biased_exponent = binary_exponent;
+      normalize_fraction (non_biased_exponent, fraction);
+    }
+  return (char *) operand;
+}
+
+/* The following function skips all white spaces at the begin of
+   source string and transforms binary ascii representation to IEEE
+   floating point number FP with characteristics D with the aid of
+   function `string_to_float'.  The floating point number must
+   correspond the following syntax
+  
+          ['+' | '-'] [<digits>] [ '.' [<digits>] ]
+                  [ ('p' | 'P') ['+' | '-'] <decimal digits>]
+
+       or must be the following strings
+
+              `SNaN', `QNaN', `+Inf', `-Inf', `+0', or `-0'.
+
+   Digit should be less BASE which in its turn should be 2, 4, 8, or
+   16.  The function returns pointer to first character in the source
+   string after read floating point number.  The function reads string
+   as long as possible.  The function can fix output exceptions as
+   described in the file begin.  Current round mode may affect
+   resultant floating point number.  It is guaranteed that
+   transformation `IEEE floating point number -> string -> IEEE
+   floating point number' results in the same IEEE floating point
+   number if round to nearest mode is used. */
+
+static char *
+IEEE_from_binary_string (const char *operand, int base,
+			 void *fp, float_desc_t d)
+{
+  int imprecise_flag;
+  int sign;
+  int non_biased_exponent;
+  fraction_t fraction;
+  void (*saved_unsigned_overflow_reaction) (void);
+
+  while (isspace (*operand))
+    operand++;
+  if (strncmp (operand, TRAPPING_NaN_NAME, strlen (TRAPPING_NaN_NAME)) == 0)
+    {
+      trapping_NaN (fp, d);
+      operand += strlen (TRAPPING_NaN_NAME);
+    }
+  else if (strncmp (operand, NaN_NAME, strlen (NaN_NAME)) == 0)
+    {
+      NaN (fp, d);;
+      operand += strlen (NaN_NAME);
+    }
+  else if (strncmp (operand, POSITIVE_INFINITY_NAME,
+                    strlen (POSITIVE_INFINITY_NAME)) == 0)
+    {
+      positive_infinity (fp, d);
+      operand += strlen (POSITIVE_INFINITY_NAME);
+    }
+  else if (strncmp (operand, NEGATIVE_INFINITY_NAME,
+                    strlen (NEGATIVE_INFINITY_NAME)) == 0)
+    {
+      negative_infinity (fp, d);
+      operand += strlen (NEGATIVE_INFINITY_NAME);
+    }
+  else
+    {
+      saved_unsigned_overflow_reaction
+        = unsigned_integer::set_overflow_reaction
+          (integer::default_arithmetic_overflow_reaction);
+      operand = binary_string_to_float (operand, base,
+					&sign, &non_biased_exponent,
+					fraction, &imprecise_flag);
+      form_float (fp, d, sign, non_biased_exponent + d->exponent_bias,
+		  fraction, 0, imprecise_flag,
+		  saved_unsigned_overflow_reaction);
+    }
+  return (char *) operand;
+}
+
+/* The following function skips all white spaces at the begin of
+   source string and transforms binary ascii representation to IEEE
+   single precision floating point number with the aid of function
+   `string_to_float'.  The floating point number must correspond the
+   following syntax
+  
+          ['+' | '-'] [<digits>] [ '.' [<digits>] ]
+                  [ ('p' | 'P') ['+' | '-'] <decimal digits>]
+
+       or must be the following strings
+
+              `SNaN', `QNaN', `+Inf', `-Inf', `+0', or `-0'.
+
+   Digit should be less BASE which in its turn should be 2, 4, 8, or
+   16.  The function returns pointer to first character in the source
+   string after read floating point number.  The function reads string
+   as long as possible.  The function can fix output exceptions as
+   described in the file begin.  Current round mode may affect
+   resultant floating point number.  It is guaranteed that
+   transformation `IEEE floating point number -> string -> IEEE
+   floating point number' results in the same IEEE floating point
+   number if round to nearest mode is used. */
+
+char *
+IEEE_float::from_binary_string (const char *operand, int base)
+{
+  current_status_bits = 0;
+  return IEEE_from_binary_string (operand, base, this, &single_float_desc);
+}
+
+/* The following function skips all white spaces at the begin of
+   source string and transforms decimal ascii representation to IEEE
+   double precision floating point number with the aid of function
+   `string_to_float'.  The floating point number must correspond the
+   following syntax
+
+            ['+' | '-'] [<digits>] [ '.' [<digits>] ]
+                  [ ('p' | 'P') ['+' | '-'] <decimal digits>]
+
+       or must be the following strings
+
+              `SNaN', `QNaN', `+Inf', `-Inf', `+0', or `-0'.
+
+   Digit should be less BASE which in its turn should be 2, 4, 8, or
+   16.  The function returns pointer to first character in the source
+   string after read floating point number.  The function reads string
+   as long as possible.  The function can fix output exceptions as
+   described in the file begin.  Current round mode may affect
+   resultant floating point number.  It is guaranteed that
+   transformation `IEEE floating point number -> string -> IEEE
+   floating point number' results in the same IEEE floating point
+   number if round to nearest mode is used. */
+
+char *
+IEEE_double::from_binary_string (const char *operand, int base)
+{
+  current_status_bits = 0;
+  return IEEE_from_binary_string (operand, base, this, &double_float_desc);
+}
+
+#ifdef IEEE_QUAD
+/* The following function skips all white spaces at the begin of
+   source string and transforms binary ascii representation to IEEE
+   quad precision floating point number with the aid of function
+   `string_to_float'.  The floating point number must correspond the
+   following syntax
+
+            ['+' | '-'] [<digits>] [ '.' [<digits>] ]
+                  [ ('p' | 'P') ['+' | '-'] <decimal digits>]
+
+       or must be the following strings
+
+              `SNaN', `QNaN', `+Inf', `-Inf', `+0', or `-0'.
+
+   Digit should be less BASE which in its turn should be 2, 4, 8, or
+   16.  The function returns pointer to first character in the source
+   string after read floating point number.  The function reads string
+   as long as possible.  The function can fix output exceptions as
+   described in the file begin.  Current round mode may affect
+   resultant floating point number.  It is guaranteed that
+   transformation `IEEE floating point number -> string -> IEEE
+   floating point number' results in the same IEEE floating point
+   number if round to nearest mode is used. */
+
+char *
+IEEE_quad::from_binary_string (const char *operand, int base)
+{
+  current_status_bits = 0;
+  return IEEE_from_binary_string (operand, base, this, &quad_float_desc);
 }
 #endif /* #ifdef IEEE_QUAD */
 
