@@ -1,5 +1,13 @@
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* DINO/dino.tst.in (357): Try a few environement variables.
+
+2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/dino.tst.in (499): Try absent service too for non CYGWIN.
+
+2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* SHILKA/Makefile.in (test): Don't compare if there is no gperf.
 
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
@@ -58,7 +66,7 @@
 	(487): Try additional digit in the exponent.
 	(495): Increase datagram message buffer.
 	(497): Use suffix .dll and canonized path in the error message.
-	(499): Try absent service too.
+	(499): Try absent service too for CYGWIN.
 
 	* DINO/ipcerr_int.c (_ipc_err_init): Fix typo with eltype of
 	vector _eos_specific_nos.  Return nil.
