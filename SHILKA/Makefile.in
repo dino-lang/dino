@@ -144,7 +144,11 @@ yacc.c: $(srcdir)/yacc.y
 
 test : shilka
 	$(SHELL) ./shilka.tst
-	$(SHELL) ./compare.tst
+	@if type gperf 2>&1|fgrep 'ot found';then\
+	  echo +++ Can not compare with gperf because it is not found +++;\
+	else\
+	  $(SHELL) ./compare.tst;\
+	fi
 
 # Creation of installation directories and all object files and copying
 # the translator `shilka' and its man file to target directories.

@@ -1,5 +1,9 @@
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* SHILKA/Makefile.in (test): Don't compare if there is no gperf.
+
+2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* configure.in (DINO_ADDITIONAL_LIBS): Add socket and ipcerr.
 
 	* configure: Update.
