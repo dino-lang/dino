@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-12416/sgmltmp.dino12416.info.2.
+This is dino.info, produced by makeinfo version 4.0 from
+/tmp/sgmltmp.dino16424.info.2.
 
    \input texinfo
 
@@ -196,17 +196,19 @@ class `parser':
         * index of the token (in array `tokens') on which the syntax
           error occured.
 
-        * the error token itself.
+        * the error token itself.  It may be `nil' for end of file.
 
         * index of the first token (in array `tokens') ignored due to
           error recovery.
 
-        * the first ignored token itself.
+        * the first ignored token itself.  It may be `nil' for end of
+          file.
 
         * index of the first token (in array `tokens') which is not
           ignored after error recovery.
 
-        * the first not ignored token itself.
+        * the first not ignored token itself.  It may be `nil' for end
+          of file.
 
      If the parser works with switched off error recovery (see function
      `set_recovery', the third and fifth parameters will be

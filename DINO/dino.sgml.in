@@ -2407,13 +2407,16 @@ The following public functions and variables are declared in the class
           <itemize>
           <item>index of the token (in array <tt>tokens</tt>) on which
             the syntax error occured.
-          <item>the error token itself.
+          <item>the error token itself.  It may be <bf>nil</bf> for
+            end of file.
           <item>index of the first token (in array <tt>tokens</tt>)
             ignored due to error recovery.
-          <item>the first ignored token itself.
+          <item>the first ignored token itself.  It may be
+            <bf>nil</bf> for end of file.
           <item>index of the first token (in array <tt>tokens</tt>)
             which is not ignored after error recovery.
-          <item>the first not ignored token itself.
+          <item>the first not ignored token itself.  It may be
+            <bf>nil</bf> for end of file.
           </itemize>
        If the parser works with switched off error recovery (see
        function <tt>set_recovery</tt>, the third and fifth parameters

@@ -5180,20 +5180,35 @@ init_syntax_token (int err_tok_num, void *err_tok_attr,
   ER_SET_MODE (ctop, ER_NM_int);
   ER_set_i (ctop, err_tok_num);
   TOP_UP;
-  ER_SET_MODE (ctop, ER_NM_instance);
-  ER_set_instance (ctop, err_tok_attr);
+  if (err_tok_attr == NULL)
+    ER_SET_MODE (ctop, ER_NM_nil);
+  else
+    {
+      ER_SET_MODE (ctop, ER_NM_instance);
+      ER_set_instance (ctop, err_tok_attr);
+    }
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_int);
   ER_set_i (ctop, start_ignored_tok_num);
   TOP_UP;
-  ER_SET_MODE (ctop, ER_NM_instance);
-  ER_set_instance (ctop, start_ignored_tok_attr);
+  if (start_ignored_tok_attr == NULL)
+    ER_SET_MODE (ctop, ER_NM_nil);
+  else
+    {
+      ER_SET_MODE (ctop, ER_NM_instance);
+      ER_set_instance (ctop, start_ignored_tok_attr);
+    }
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_int);
   ER_set_i (ctop, start_recovered_tok_num);
   TOP_UP;
-  ER_SET_MODE (ctop, ER_NM_instance);
-  ER_set_instance (ctop, start_recovered_tok_attr);
+  if (start_recovered_tok_attr == NULL)
+    ER_SET_MODE (ctop, ER_NM_nil);
+  else
+    {
+      ER_SET_MODE (ctop, ER_NM_instance);
+      ER_set_instance (ctop, start_recovered_tok_attr);
+    }
   call_func_class (6);
   TOP_DOWN; /* reject the result. */
 }

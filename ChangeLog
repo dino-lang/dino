@@ -1,3 +1,16 @@
+2002-04-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_ir.sprut (ENVIRONMENT): Rename i into __i.
+
+	* DINO/d_func.c (init_syntax_token): Add processing attributes
+	equal to NULL.
+
+	* DINO/dino.sgml.in: Add comments about possible nil values for
+	attributes in function syntax_error.
+
+	* dino.info, dino.info-1, dino.info-2, dino.info-3, dino.info-4,
+	dino.ps, dino.dvi, dino.txt, dino-8.html, dino-10.html: Update.
+	
 2002-03-31  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
         * DINO/dino.sgml.in: Edit it.

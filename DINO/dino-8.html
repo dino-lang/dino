@@ -608,13 +608,16 @@ syntax error it calls the function given through parameter
 <UL>
 <LI>index of the token (in array <CODE>tokens</CODE>) on which
 the syntax error occured.</LI>
-<LI>the error token itself.</LI>
+<LI>the error token itself.  It may be <B>nil</B> for
+end of file.</LI>
 <LI>index of the first token (in array <CODE>tokens</CODE>)
 ignored due to error recovery.</LI>
-<LI>the first ignored token itself.</LI>
+<LI>the first ignored token itself.  It may be
+<B>nil</B> for end of file.</LI>
 <LI>index of the first token (in array <CODE>tokens</CODE>)
 which is not ignored after error recovery.</LI>
-<LI>the first not ignored token itself.</LI>
+<LI>the first not ignored token itself.  It may be
+<B>nil</B> for end of file.</LI>
 </UL>
 
 If the parser works with switched off error recovery (see
