@@ -1227,6 +1227,7 @@ move_object (ER_node_t obj, struct heap_chunk **descr,
       tailored_size = (!in_heap_temp_refs ((ER_node_t) place)
 		       ? tailored_heap_object_size (obj)
 		       : heap_object_size (obj));
+      assert (tailored_size <= heap_object_size (obj));
       if (place + tailored_size > (*descr)->chunk_bound)
 	{
 	  /* Zero e.g. because we compare var as full structs. */
@@ -1294,7 +1295,9 @@ compact_heap (void)
     }
   curr_heap_chunk = curr_place_descr;
   assert ((char *) (curr_heap_chunk + 1) <= (char *) VLO_END (heap_chunks)
-	  || curr_heap_chunk->chunk_free >= new_place);
+	  || curr_heap_chunk->chunk_free + (curr_heap_chunk->chunk_bound
+					    - curr_heap_chunk->chunk_stack_top)
+	  >= new_place);
   /* Zero e.g. because we compare var as full structs: */
   /* Possible situation when e.g. two chunks are compacted in one. */
   if (curr_heap_chunk->chunk_free >= new_place)
@@ -1716,6 +1719,7 @@ unpack_vector (ER_node_t vect)
       allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
 			  + OPTIMAL_ELS_SIZE (els_number * sizeof (val_t)));
       vect = heap_allocate (allocated_length, FALSE);
+      ER_SET_MODE (vect, ER_NM_heap_unpack_vect);
       ER_set_disp (vect, 0);
     }
   ER_SET_MODE ((ER_node_t) &temp_var, el_type);

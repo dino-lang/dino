@@ -1,3 +1,16 @@
+2002-03-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/socket.d: New file.
+
+	* DINO/socket_int.c: New file.
+	
+	* DINO/Makefile.in: Add building sockets module.
+	
+	* DINO/d_heap.c (move_object): Check that the tailored size is less
+	than the original one.
+	(compact_heap): Take moved stacks into account of checking the
+	last heap chunk.
+
 2002-03-08  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/{ammunition++.dvi, ammunition++.info,
