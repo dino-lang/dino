@@ -1,3 +1,7 @@
+2001-05-31  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* Makefile.in (distdino): Fix different build directory problem.
+
 2001-05-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/Makefile.in DINO/Makefile.in MSTA/Makefile.in

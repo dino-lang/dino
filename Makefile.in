@@ -221,14 +221,13 @@ distdino:
 	rm -f -r $(distdinodir)
 	mkdir $(distdinodir)
 	for i in $(source_files);do cp $$i $(distdinodir);done
-	for i in $(additional_files);do\
+	for i in $(additional_files) $(doc_files);do\
 	   cp $(srcdir)/$$i $(distdinodir);\
 	done
-	cp DINO-README $(distdinodir)/README
-	cp DINO-INSTALL $(distdinodir)/INSTALL
-	cp DINO-WIN32-INSTALL.txt $(distdinodir)/WIN32-INSTALL.txt
-	cp DINO-CHANGES $(distdinodir)/CHANGES
-	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
+	cp $(srcdir)/DINO-README $(distdinodir)/README
+	cp $(srcdir)/DINO-INSTALL $(distdinodir)/INSTALL
+	cp $(srcdir)/DINO-WIN32-INSTALL.txt $(distdinodir)/WIN32-INSTALL.txt
+	cp $(srcdir)/DINO-CHANGES $(distdinodir)/CHANGES
 	for i in $(directories) $(RX);do\
 	  (cd $$i; $(MAKE) distdir=../$(distdinodir)/$$i dist-copy);\
 	done
