@@ -39,6 +39,7 @@ extern int w_flag;
 extern int cpp_flag;
 extern int enum_flag;
 extern int error_reduce_flag;
+extern int error_conflict_flag;
 extern int pattern_equiv_flag;
 extern int full_lr_set_flag;
 extern int lr_situation_context_flag;
@@ -74,6 +75,8 @@ extern FILE *output_description_file;
 extern char *output_description_file_name;
 
 extern IR_node_t description;
+
+extern IR_node_t error_single_definition;
 
 extern int max_look_ahead_number;
 

@@ -553,21 +553,22 @@ process_definition_list (void)
           }
       }
   error_identifier = IR_new_identifier (no_position, "error", FALSE);
-  if (find_single_definition (error_identifier) == NULL)
+  if ((error_single_definition = find_single_definition (error_identifier))
+      == NULL)
     {
       /* Create single terminal definition for `error'. */
-      single_definition
+      error_single_definition
         = IR_new_single_term_definition (no_position, error_identifier, NULL);
 #ifndef NDEBUG
-      assert (single_definition
-              == insert_single_definition (single_definition));
+      assert (error_single_definition
+              == insert_single_definition (error_single_definition));
 #else
-      insert_single_definition (single_definition);
+      insert_single_definition (error_single_definition);
 #endif
-      IR_set_value (single_definition, ERROR_DEFAULT_VALUE);
+      IR_set_value (error_single_definition, ERROR_DEFAULT_VALUE);
       /* Check up dupicated values in function
          `check_duplicated_token_values'. */
-      add_single_definition_to_cyclic_list (single_definition);
+      add_single_definition_to_cyclic_list (error_single_definition);
     }
   for (current_definition = IR_definition_list (description);
        current_definition != NULL;

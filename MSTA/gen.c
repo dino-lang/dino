@@ -43,31 +43,6 @@
 
 
 
-static void
-find_error_single_definition (void)
-{
-  IR_node_t current_single_definition;
-  IR_node_t identifier_or_literal;
-
-  for (current_single_definition = IR_single_definition_list (description);
-       current_single_definition != NULL;
-       current_single_definition
-       = IR_next_single_definition (current_single_definition))
-    {
-      identifier_or_literal
-        = IR_identifier_or_literal (current_single_definition);
-      if (IR_IS_OF_TYPE (current_single_definition,
-                         IR_NM_single_term_definition)
-          && IR_IS_OF_TYPE (identifier_or_literal, IR_NM_identifier)
-          && strcmp (IR_identifier_itself (identifier_or_literal),
-                     "error") == 0)
-        {
-          error_single_definition = current_single_definition;
-          break;
-        }
-    }
-}
-
 /* Add start rule `$accept : axiom $end ...' as the first rule in the
    canonical rules list.  `$end' will have value equals to 0.  `$end'
    and `$accept' are added to the end of the single definition list
@@ -797,7 +772,6 @@ generate (void)
   if (!split_lr_sets_flag_is_defined)
     split_lr_sets_flag = IR_scanner_flag (description);
   initiate_output ();
-  find_error_single_definition ();
   add_start_rule ();
   add_canonical_rule_end ();
   set_cp_flags (); /* must be only when rule ends have been added. */

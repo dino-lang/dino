@@ -1,4 +1,3 @@
-extern IR_node_t error_single_definition;
 extern IR_node_t end_marker_single_definition;
 extern int real_look_ahead_number;
 

@@ -49,11 +49,6 @@ memcpy (void *to, const void *from, size_t size)
 
 
 
-/* The following variable value is definition corresponding to special
-   token `error'. */
-
-IR_node_t error_single_definition;
-
 /* The following variable value is definition of LR grammar end
    marker. */
 

@@ -429,6 +429,77 @@ EOF7
     fi
 fi
 
+# Test 8.
+if test $result = ok -a $start_test_number -le 8; then
+    echo test 8: Conflict on error without reporting
+    cat >$ygram <<'TEST8'
+%token identifier
+%%
+start : formal_parameter_section_list
+      ;
+formal_parameter_section_list
+  : formal_parameter_section
+  | formal_parameter_section_list ';' formal_parameter_section
+  | formal_parameter_section_list error
+  | error
+  ;
+formal_parameter_section : identifier_list ':' identifier
+                         | identifier_list error identifier
+                         | identifier_list error
+                         ;
+identifier_list : identifier_sequence
+identifier_sequence : identifier
+                    | error
+                    | identifier_sequence ',' identifier
+                    | identifier_sequence ',' error
+                    ;
+TEST8
+    result=fail
+    echo ./msta -no-error-conflict $ygram "2>$outputf"
+    if ./msta -no-error-conflict $ygram 2>$outputf && cmp $outputf - <<'EOF8'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+EOF8
+      result=ok
+    fi
+fi
+
+# Test 9.
+if test $result = ok -a $start_test_number -le 9; then
+    echo test 9: Conflict on error with reporting
+    cat >$ygram <<'TEST9'
+%token identifier
+%%
+start : formal_parameter_section_list
+      ;
+formal_parameter_section_list
+  : formal_parameter_section
+  | formal_parameter_section_list ';' formal_parameter_section
+  | formal_parameter_section_list error
+  | error
+  ;
+formal_parameter_section : identifier_list ':' identifier
+                         | identifier_list error identifier
+                         | identifier_list error
+                         ;
+identifier_list : identifier_sequence
+identifier_sequence : identifier
+                    | error
+                    | identifier_sequence ',' identifier
+                    | identifier_sequence ',' error
+                    ;
+TEST9
+    result=fail
+    echo ./msta $ygram "2>$outputf"
+    if ./msta $ygram 2>$outputf && cmp $outputf - <<'EOF9'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 reduce/reduce conflict.
+EOF9
+      result=ok
+    fi
+fi
+
 # Final message
 
 if test $result = ok; then

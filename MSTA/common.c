@@ -191,6 +191,17 @@ int msta_error_recovery;
 
 int error_reduce_flag;
 
+/* Flag of that MSTA reports conflicts on look ahead containing token
+   error (`-error-conflict').  The default value is TRUE.  The
+   opposite value will be when flag `-no-error-conflict' is present on
+   the MSTA command line.  Token error is not a real token it is never
+   read but many error recovery rules may generate conflicts on error.
+   To avoid this you can use the option.  In this case the conflict on
+   error will be not reported for LR-set which is the result of
+   shifting token error. */
+
+int error_conflict_flag;
+
 /* Flag of that MSTA accepts input file only in the format of Posix
    YACC (`-yacc-input').  The defualt value is FALSE.  The opposite
    value will be when flag `-no-yacc-input' is present on the MSTA
@@ -282,6 +293,11 @@ char *output_description_file_name;
    being processed. */
 
 IR_node_t description;
+
+/* Value of the following variable is node representing reserved
+   terminal error.  It is set up only after the analysis. */
+
+IR_node_t error_single_definition;
 
 /* Maximum of look ahead on the command line and in %la constructions. */
 
