@@ -1,5 +1,9 @@
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* DINO/socket_int.c (h_errno): Check cywgin too.
+	
+2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* OKA/gen.c (unit_on_all_alternatives,
 	form_the_same_automaton_unit_lists_from_expression): Process
 	nothing.

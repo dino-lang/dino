@@ -42,7 +42,7 @@
 #include <windows.h>
 #endif
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__CYGWIN__)
 #ifndef h_errno
 extern int h_errno;
 #endif
