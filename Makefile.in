@@ -62,7 +62,7 @@ RCSLABEL=
 # COCOM only start
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.
-distdir = cocom-0.995
+distdir = cocom-0.996
 # COCOM only end
 
 # Additional prefix used to install cocom and dino temporarily.
@@ -71,7 +71,7 @@ DESTDIR=
 
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file only for DINO.
-distdinodir = dino-0.54
+distdinodir = dino-0.55
 
 # Supporting possibility build directories
 

@@ -62,7 +62,7 @@ SHELL=/bin/sh
 
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.
-distdir = nona-0.68
+distdir = nona-0.996
 
 # Common prefix for installation directories.
 # NOTE: this directory must exist when you start installation.

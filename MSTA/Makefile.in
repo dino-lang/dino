@@ -60,7 +60,7 @@ SHELL=/bin/sh
 
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.
-distdir = msta-0.95
+distdir = msta-0.996
 
 # Use only full path name for the directory bindir
 # Common prefix for installation directories.

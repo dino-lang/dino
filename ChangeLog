@@ -1,3 +1,21 @@
+2002-05-21  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* Makefile.in (distdir, distdinodir): Set up the new versions.
+
+	* DINO/Makefile.in (DINO_VERSION):  Set up new version 0.55.
+
+	* AMMUNITION/Makefile.in (distdir): Set up new version 0.996.
+
+	* MSTA/Makefile.in (distdir): Ditto.
+
+	* NONA/Makefile.in (distdir): Ditto.
+
+	* OKA/Makefile.in (distdir): Ditto.
+
+	* SHILKA/Makefile.in (distdir): Ditto.
+
+	* SPRUT/Makefile.in (distdir): Ditto.
+
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* CHANGES, DINO-CHANGES: Update them.
