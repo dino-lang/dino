@@ -1,3 +1,45 @@
+19/05/2002: Version 0.995 of COCOM has been made.  The major
+difference with the previous version:
+
+* Ammunition:
+
+     o Package arithm will work with numbers with bases upto 35. New
+       tests.
+
+     o Earley parser will be able to use rules costs to chose the
+       translation with minimal cost. Some bugs will be fixed. New
+       tests.
+
+* MSTA:
+
+     o MSTA will have an additional error recovery with minimal
+       cost. New tests.
+
+* Dino:
+
+     o Minor changes in the language (few new operators and special
+       method `destroy').
+
+     o New functions. 
+
+     o New package to work with sockets.
+
+     o Many fixed bugs. 
+
+     o The sped up interpreter (upto 50%). 
+
+     o Comparison tests with perl, python, tcl, awk. 
+
+     o Many new tests. 
+
+     o Improved documentation. 
+
+* OKA:
+
+     o Fixing problem of possible incorrect automata generation
+       because of wrong distribution of units to automata and the
+       construction `exclusion'.
+
 13/05/2001: Version 0.993 of COCOM has been made.  The major difference
 with the previous version:
 

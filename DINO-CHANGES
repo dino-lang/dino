@@ -1,3 +1,24 @@
+19/05/2002: Version 0.54 of DINO has been made.  The major difference
+with the previous version:
+
+     o Minor changes in the language (few new operators and special
+       method `destroy').
+
+     o New functions. 
+
+     o New package to work with sockets.
+
+     o Many fixed bugs. 
+
+     o The sped up interpreter (upto 50%). 
+
+     o Comparison tests with perl, python, tcl, awk. 
+
+     o Many new tests. 
+
+     o Improved documentation. 
+
+
 13/05/2001: Version 0.53 of DINO has been made.  The major difference
 with the previous version:
 
