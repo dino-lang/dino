@@ -1,5 +1,15 @@
 2001-07-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* DINO/d_eval.c (print_profile): Print GC time too.
+
+	* DINO/d_run.sprut (in_gc_p, gc_interrupts_number): New global
+	variables.
+	(initiate_heap): Initiate them.
+	(gc): Set up and clear in_gc_p.
+	(profile_interrupt): Check that we are in GC.
+	
+2001-07-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/d_extern.sprut (create_pack_vector): New function prototype
 	and member in struct spi.
 	(create_pack_vector): New function.

@@ -89,6 +89,8 @@ extern int free_gc_memory_percent;
 extern size_t heap_size;
 extern size_t free_heap_memory;
 extern int heap_chunks_number;
+extern int in_gc_p;
+extern integer_t gc_interrupts_number;
 
 #if ! defined (NO_PROFILE) && defined (HAVE_SETITIMER)
 extern integer_t all_interrupts_number; 
@@ -562,6 +564,10 @@ size_t heap_size;
 size_t free_heap_memory;
 /* Number of heap_chunks */
 int heap_chunks_number;
+/* TRUE if we ar making GC. */
+int in_gc_p;
+/* Number of interrupts in GC. */
+integer_t gc_interrupts_number;
 
 /* Each heap object has unique number for hashing purpose. */
 static size_t unique_number;
@@ -630,6 +636,8 @@ initiate_heap ()
   gc_number = 0;
   free_gc_memory_percent = 0;
   context_number = 0;
+  in_gc_p = FALSE;
+  gc_interrupts_number = 0;
 }
 
 void
@@ -1350,6 +1358,7 @@ clear_caches (void)
 void
 gc (void)
 {
+  in_gc_p = TRUE;
 #ifndef NO_CONTAINER_CACHE
   clear_caches ();
 #endif
@@ -1364,6 +1373,7 @@ gc (void)
   free_gc_memory_percent
     = (free_gc_memory_percent * (gc_number - 1)
        + 100 * free_heap_memory / heap_size) / gc_number;
+  in_gc_p = FALSE;
 }
 
 
@@ -1378,6 +1388,11 @@ profile_interrupt (void)
   IR_node_t block, func_class;
   
   all_interrupts_number++;
+  if (in_gc_p)
+    {
+      gc_interrupts_number++;
+      return;
+    }
   for (block = ER_block_node (cstack);
        block != NULL && (func_class = IR_func_class_ext (block)) == NULL;
        block = IR_scope (block))

@@ -2512,12 +2512,27 @@ print_profile (IR_node_t first_level_stmt)
 		   ? 0.0
 		   : (all_time * IR_interrupts_number (*func_ptr)
 		      / all_interrupts_number));
+      if (gc_interrupts_number != 0
+	  && gc_interrupts_number > IR_interrupts_number (*func_ptr))
+	{
+	  fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
+		   gc_number,
+		   all_time * gc_interrupts_number / all_interrupts_number);
+	  gc_interrupts_number = 0;
+	}
+	
 #endif
       fprintf (stderr, "%8d %8.2f  --  %s: \"%s\": %d\n",
 	       IR_calls_number (*func_ptr), func_time,
 	       IR_ident_string (IR_unique_ident (IR_ident (*func_ptr))),
 	       IR_pos (*func_ptr).file_name, IR_pos (*func_ptr).line_number);
     }
+#ifdef HAVE_SETITIMER
+  if (gc_interrupts_number != 0)
+    fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
+	     gc_number,
+	     all_time * gc_interrupts_number / all_interrupts_number);
+#endif
   fprintf (stderr, "         %8.2f  --  All Program\n", all_time);
   VLO_DELETE (profile_funcs);
 }
