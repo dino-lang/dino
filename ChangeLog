@@ -1,3 +1,28 @@
+2002-05-10  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/dino.tst.in (357): Fix missed changing stderr onto ftemp.
+
+2002-05-10  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* MSTA/la-trie.c: Include gen-comm.h.
+
+	* MSTA/Makefile.in: Update dependencies.
+
+	* DINO/socket_int.c (_recvfrom, _accept): Use always int for
+	length under HPUX.
+
+	* DINO/dino.tst.in (357): Use env instead of set.
+
+	* DINO/d_yacc.y (canonical_path_name): Use PATH_MAX instead of
+	FILENAME_MAX.
+
+	* DINO/d_func.c (getcwd_call): Ditto.
+	Include unistd.h.
+
+	* DINO/compare.tst: Use /dev/null as AWK input for startup test.
+
+	* cocom/cocom.dsw: Add projects ipcerr and socket.
+	
 2002-05-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/IEEE++.tst.in: Extend arrays for results.

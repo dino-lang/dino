@@ -27756,7 +27756,7 @@ OUTPUT497
         else
 		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
                 echo '      ' $CMP $ftemp $ftemp2
-                if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT497' && $CMP $ftemp $ftemp2; then
 In file processed from test.d:1:18:
 @srcdir@/socket.d:39:11: host is unknown
 OUTPUT497
