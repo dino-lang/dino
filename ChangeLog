@@ -1,5 +1,9 @@
 2001-10-27  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
+	* DINO/dino.tst.in: Add new test for version.
+	
+2001-10-27  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/d_func.c (getgn, getegn, getgroups_call, fgn_call): Add
 	checking getgrgid on NULL.
 	
