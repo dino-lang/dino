@@ -1454,7 +1454,7 @@ del_call (int_t pars_number)
 	{
 	  /* Remove tail */
 	  ER_set_els_number (vect, start);
-	  if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect
+	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
 	      && ER_pack_vect_el_type (vect) == ER_NM_char)
 	    ER_pack_els (vect) [start] = '\0';
 	}

@@ -2149,7 +2149,11 @@ evaluate (IR_node_mode_t node_mode)
 		    DERR_invalid_wait_guard_expr_type);
       if (ER_NODE_MODE (ctop) == ER_NM_int && ER_i (ctop) == 0
 	  || ER_NODE_MODE (ctop) == ER_NM_float && ER_f (ctop) == 0.0)
-	block_cprocess (IR_start_wait_guard_expr_pc (IR_POINTER (cpc)), TRUE);
+	{
+	  TOP_DOWN;
+	  block_cprocess (IR_start_wait_guard_expr_pc (IR_POINTER (cpc)),
+			  TRUE);
+	}
       else
 	{
 	  TOP_DOWN;
