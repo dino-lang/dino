@@ -125,9 +125,15 @@ Currently there are the following packages:
           In this case the parse result can be an abstract tree or all
           possible abstract trees.  Moreover it produces the compact
           representation of all possible parse trees by using DAG
-          instead of real trees.  These feature can be used to parse
+          instead of real trees.  This feature can be used to parse
           natural language sentences.
     
+        <item>It can parse input described by an ambiguous grammar
+          according to the abstract node costs.  In this case the
+          parse result can be an minimal cost abstract tree or all
+          possible minimal cost abstract trees.  This feature can be
+          used to code selection task in compilers.
+
         <item>It can make syntax error recovery.  Moreover its error
           recovery algorithms finds error recovery with minimal number
           of ignored tokens.  It permits to implement parsers with

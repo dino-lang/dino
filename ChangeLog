@@ -1,3 +1,69 @@
+2001-12-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+        * earley.h (EARLEY_NIL_TRANSLATION_NUMBER, EARLEY_NEGATIVE COST):
+	new macros.
+	(earley_anode): New member cost.
+	(earley_set_cost_flag, set_cost_flag): New functions.
+	(earley_parse, parse): New parameter parse_free.
+	(read_rule): New parameter anode_cost.
+	
+	* earley.c (grammar): New member cost_p.
+	(parse_free): New global variable.
+	(rule): New member anode_cost.
+	(rule_new_start): New parameter anode_cost.
+	(earley_read_grammar): New parameter anode_cost.
+	(earley_set_cost_flag): New function.
+	(trans_print_node): Rename it trans_visit_node.
+	(trans_print_node_hash): Rename it trans_visit_node_hash.
+	(trans_print_node_eq): Rename it trans_visit_node_eq.
+	(trans_print_nodes_tab): Rename it trans_visit_nodes_tab.
+	(trans_print_nodes_os): Rename it trans_visit_nodes_os.
+	(n_trans_print_nodes): Rename it n_trans_visit_nodes.
+	(reserv_mem_tab, tnodes_vlo): New global variables.
+	(reserv_mem_hash, reserv_mem_eq, prune_to_minimal,
+	traverse_pruned_translation, find_minimal_translation): New
+	functions.
+	(make_parse): Change NULL onto empty node after processing the
+	corresponding rule. Change pl_ind even if we don't nee a
+	translation (a bug). Add building minimal tree(s).  Setup original
+	cost to abstract nodes.
+	(earley_parse): New parameter parse_free.
+	(read_rule): New parameter anode_cost.  Set up anode_cost.
+	(use_functions, use_description): Add the new parameters.
+	
+        * earley.cpp (earley::read_grammar): New paarmeter anode_cost.
+	(earley::set_cost_flag): New function.
+	(earley::parse): New parmeter parse_free.
+	(use_functions, use_description): Add the new paremeters.
+	
+	* sgramm.y: Add rules for cost and empty nodes.
+	(srule): New member anode_cost.
+	(anode_cost): New global variable.
+	(yylex): New lexema '-'.
+	(sread_rule): New parameter anode_cost.
+
+	* earley.tst.in, earley++.tst.in: New shell variable srdcir.  Add
+	new parameters for (erley_)parse and read_rule.
+	(42-47): New tests for costs and empty nodes.
+	
+	* ammunition.sgml.in, ammunition++.sgml.in: Add building minimal
+	cost trees.  New grammar syntax for transaltion (cost and `-').
+	(macro EARLEY_NIL_TRANSLATION_NUMBER, macro EARLEY_NEGATIVE COST,
+	member cost, parameter anode_cost, function earley_set_cost_flag,
+	public function set_cost_flag, parameter parse_free): Describe
+	them.
+	
+	* ammunition.info, ammunition.info-1, ammunition.info-2,
+	ammunition.info-3, ammunition.info-4, ammunition.dvi,
+	ammunition.ps, ammunition.txt, ammunition-13.html,
+	ammunition.info, ammunition.info-1, ammunition.info-2,
+	ammunition.info-3, ammunition.info-4, ammunition.dvi,
+	ammunition.ps, ammunition.txt, ammunition-13.html: Update.
+
+	* cocom.sgml.in: Add building minimal cost trees.
+	
+	* cocom.dvi, cocom.html, cocom.info, cocom.ps, cocom.txt: Update.
+	
 2001-11-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/compare.tst: Check for failing tests.

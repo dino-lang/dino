@@ -2045,8 +2045,14 @@ implementation has the following features:
       this case the parse result can be an abstract tree or all
       possible abstract trees.  Moreover it produces the compact
       representation of all possible parse trees by using DAG instead
-      of real trees.  These feature can be used to parse natural
+      of real trees.  This feature can be used to parse natural
       language sentences.
+
+    <item>It can parse input described by an ambiguous grammar
+      according to the abstract node costs.  In this case the parse
+      result can be an minimal cost abstract tree or all possible
+      minimal cost abstract trees.  This feature can be used to code
+      selection task in compilers.
 
     <item>It can make syntax error recovery.  Moreover its error
       recovery algorithms finds error recovery with minimal number of
@@ -2074,6 +2080,9 @@ following external definitions and macros:
           describes a grammar.  Knowledge of structure
           (implementation) of this type is not visible and not needed
           for using the parser.
+
+       <tag>Macro `EARLEY_NIL_TRANSLATION_NUMBER'</tag>
+          is reserved to be designation of empty node for translation.
 
        <tag>Macro `EARLEY_NO_MEMORY'</tag>
           is error code of the parser.  The parser functions return
@@ -2128,6 +2137,10 @@ following external definitions and macros:
           of more one symbols in the right hand side of the rule
           without forming an abstract tree node.
 
+       <tag>Macro `EARLEY_NEGATIVE COST'</tag>
+          is error code of the parser.  The code is returned when
+          abstract node has a negative cost.
+
        <tag>Macro `EARLEY_INCORRECT_SYMBOL_NUMBER'</tag>
           is error code of the parser.  The code is returned when
           grammar rule translation contains incorrect symbol number
@@ -2180,7 +2193,6 @@ following external definitions and macros:
                grammar is ambiguous.
             </descrip>
        <tag>Structure `earley_tree_node'</tag>
-
           represents node of the translation.  The nodes refer for
           each other forming DAG (direct acyclic graph) in general
           case.  The main reason of generating DAG is that some input
@@ -2224,9 +2236,14 @@ following external definitions and macros:
        <tag>Structure `earley_anode'</tag>
           represents abstract node.  It has the following two members:
             <descrip>
-            <tag>Member `code' of type `const char *'</tag>
+            <tag>Member `name' of type `const char *'</tag>
                representing name of anode as it given in the
                corresponding rule translation.
+
+            <tag>Member `cost' of type `int'</tag>
+               representing cost of the node plus costs of all
+               children if the cost flag is set up.  Otherwise, the
+               value is cost of the abstract node itself.
 
             <tag>Member `children' of type `struct earley_tree_node **'</tag>
                is array of nodes representing the translations of the
@@ -2274,6 +2291,7 @@ following external definitions and macros:
 		                    const char *(*read_rule)
                                                   (const char ***rhs,
 					           const char **abs_node,
+                                                   int *anode_cost,
 					           int **transl))'
           </verb></tscreen>
           is one of two functions which tunes the parser to given
@@ -2300,14 +2318,20 @@ following external definitions and macros:
           the right hand side of the rule.  All indexes in `transl'
           should be different (so the translation of a symbol can not
           be represented twice).  The end marker of the array should
-          be a negative value.  If parametr `transl' is `NULL' or
-          contains only the end marker, translations of the rule will
-          be empty node.  If `abs_node' is `NULL', abstract node is
-          not created.  In this case `transl' should be null or
-          contain at most one element.  This means that the
-          translation of the rule will be correspondingly empty node
-          or the translation of the symbol in the right hand side
-          given by the single array element.
+          be a negative value.  There is a reserved value of the
+          translation symbol number denoting empty node.  It is value
+          defined by macro `EARLEY_NIL_TRANSLATION_NUMBER'.  If
+          parameter `transl' is `NULL' or contains only the end
+          marker, translations of the rule will be empty node.  If
+          `abs_node' is `NULL', abstract node is not created.  In this
+          case `transl' should be null or contain at most one element.
+          This means that the translation of the rule will be
+          correspondingly empty node or the translation of the symbol
+          in the right hand side given by the single array
+          element. The cost of the abstract node if given is passed
+          through parameter `anode_cost'.  If `abs_node' is not
+          `NULL', the cost should be greater or equal to zero.
+          Otherwise the cost is ignored.
 
           There is reserved terminal `error' which is used to mark
           start point of error recovery.
@@ -2347,11 +2371,14 @@ following external definitions and macros:
                       | sequence IDENTIFIER
                       | sequence C_CHARACTER_CONSTANT
 	     
-             translation : ['#'] NUMBER
-                         | '#' IDENTIFIER '(' numbers ')'
+             translation : '#'
+                         | '#' NUMBER
+                         | '#' '-'
+                         | '#' IDENTIFIER [NUMBER] '(' numbers ')'
 	     
              numbers :
                      | numbers NUMBER
+                     | numbers '-'
           </verb></tscreen>
           So the description consists of terminal declaration and
           rules sections.
@@ -2372,10 +2399,15 @@ following external definitions and macros:
           could be a single number which means that the translation of
           the alternative will be the translation of the symbol with
           given number (symbol numbers in alternative starts with 0).
-          Or the translation can be abstract node with given name and
-          with fields whose values are the translations of the
-          alternative symbols with numbers given in parentheses after
-          the abstract node name.
+          Or the translation can be empty or `-' which mean empty
+          node.  Or the translation can be abstract node with given
+          name, optional cost, and with fields whose values are the
+          translations of the alternative symbols with numbers given
+          in parentheses after the abstract node name.  You can use
+          `-' in abstract node to show that empty node should be used
+          in this place.  If the cost is absent it is believed to be
+          one.  The cost of terminal, error node, and empty node is
+          always zero.
 
           There is reserved terminal `error' which is used to mark
           start point of error recovery.
@@ -2422,6 +2454,16 @@ following external definitions and macros:
           flag does not affect the result.  The default value is 1.
           The function returns the previously used flag value.
 
+       <tag>Function `earley_set_cost_flag'</tag>
+          <tscreen><verb>
+          `int earley_set_cost_flag (struct grammar *grammar, int flag)'
+          </verb></tscreen>
+          sets up building only translation tree (trees if we set up
+          one_parse_flag to 0) with minimal cost.  For unambiguous
+          grammar the flag does not affect the result.  The default
+          value is 0.  The function returns the previously used flag
+          value.
+
        <tag>Function `earley_set_error_recovery_flag'</tag>
           <tscreen><verb>
           `int earley_set_error_recovery_flag (struct grammar *grammar,
@@ -2455,6 +2497,7 @@ following external definitions and macros:
 		                   int start_recovered_tok_num,
 			           void *start_recovered_tok_attr),
 			     void *(*parse_alloc) (int nmemb),
+			     void (*parse_free) (void *mem),
 			     struct earley_tree_node **root,
 			     int *ambiguous_p)'
           </verb></tscreen>
@@ -2497,7 +2540,9 @@ following external definitions and macros:
           But the caller should not free the memory until
           `earley_free_grammar' is called for the parser.  The
           function may be called even during reading the grammar not
-          only during the parsing.
+          only during the parsing.  Function `parse_free' is used by
+          the parser to free memory allocated by `parse_alloc'.  If it
+          is `NULL', the memory is not freed.
 
        <tag>Function `earley_free_grammar'</tag>
           <tscreen><verb>
