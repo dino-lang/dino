@@ -87,41 +87,47 @@ var final t_longreal = _nst (), final t_nil = _nst ();
 var final t_real = _nst (), final t_set = _nst ();
 var final t_shortint = _nst ();
 
-var final t_inc = _nst (), final t_dec = _nst ();
+var final t_abs = _nst (), final t_ash = _nst (), final t_cap = _nst (),
+    final t_chr = _nst (), final t_copy = _nst (), final t_dec = _nst (),
+    final t_entier = _nst (), final t_excl = _nst (), final t_halt = _nst (),
+    final t_inc = _nst (), final t_incl = _nst (), final t_len = _nst (),
+    final t_long = _nst (), final t_max = _nst (), final t_min = _nst (),
+    final t_new = _nst (), final t_odd = _nst (), final t_ord = _nst (),
+    final t_short = _nst (), final t_size = _nst ();
 
 var final v_false = exprs.stdexpr (_unum ());
 var final v_true = exprs.stdexpr (_unum ());
 
 var _ins = decltab.insert, _decl = nodes.decl;
 
-var final d_abs = _ins (_decl (abs_id).proc (), 0);
-var final d_ash = _ins (_decl (ash_id).proc (), 0);
+var final d_abs = _ins (_decl (abs_id).proc (0, nil, t_abs), 0);
+var final d_ash = _ins (_decl (ash_id).proc (0, nil, t_ash), 0);
 var final d_boolean = _ins (_decl (boolean_id).tdecl (0, t_boolean), 0);
-var final d_cap = _ins (_decl (cap_id).proc (), 0);
+var final d_cap = _ins (_decl (cap_id).proc (0, nil, t_cap), 0);
 var final d_char = _ins (_decl (char_id).tdecl (0, t_char), 0);
-var final d_chr = _ins (_decl (chr_id).proc (), 0);
-var final d_copy = _ins (_decl (copy_id).proc (), 0);
+var final d_chr = _ins (_decl (chr_id).proc (0, nil, t_chr), 0);
+var final d_copy = _ins (_decl (copy_id).proc (0, nil, t_copy), 0);
 var final d_dec = _ins (_decl (dec_id).proc (0, nil, t_dec), 0);
-var final d_entier = _ins (_decl (entier_id).proc (), 0);
-var final d_excl = _ins (_decl (excl_id).proc (), 0);
+var final d_entier = _ins (_decl (entier_id).proc (0, nil, t_entier), 0);
+var final d_excl = _ins (_decl (excl_id).proc (0, nil, t_excl), 0);
 var final d_false = _ins (_decl (false_id).const (0, v_false), 0);
-var final d_halt = _ins (_decl (halt_id).proc (), 0);
+var final d_halt = _ins (_decl (halt_id).proc (0, nil, t_halt), 0);
 var final d_inc = _ins (_decl (inc_id).proc (0, nil, t_inc), 0);
-var final d_incl = _ins (_decl (incl_id).proc (), 0);
+var final d_incl = _ins (_decl (incl_id).proc (0, nil, t_incl), 0);
 var final d_integer = _ins (_decl (integer_id).tdecl (0, t_integer), 0);
-var final d_len = _ins (_decl (len_id).proc (), 0);
-var final d_long = _ins (_decl (long_id).proc (), 0);
+var final d_len = _ins (_decl (len_id).proc (0, nil, t_len), 0);
+var final d_long = _ins (_decl (long_id).proc (0, nil, t_long), 0);
 var final d_longint = _ins (_decl (longint_id).tdecl (0, t_longint), 0);
 var final d_longreal = _ins (_decl (longreal_id).tdecl (0, t_longreal), 0);
-var final d_max = _ins (_decl (max_id).proc (), 0);
-var final d_min = _ins (_decl (min_id).proc (), 0);
-var final d_new = _ins (_decl (new_id).proc (), 0);
+var final d_max = _ins (_decl (max_id).proc (0, nil, t_max), 0);
+var final d_min = _ins (_decl (min_id).proc (0, nil, t_min), 0);
+var final d_new = _ins (_decl (new_id).proc (0, nil, t_new), 0);
 var final d_nil = _ins (_decl (nil_id).tdecl (0, t_nil), 0);
-var final d_odd = _ins (_decl (odd_id).proc (), 0);
-var final d_ord = _ins (_decl (ord_id).proc (), 0);
+var final d_odd = _ins (_decl (odd_id).proc (0, nil, t_odd), 0);
+var final d_ord = _ins (_decl (ord_id).proc (0, nil, t_ord), 0);
 var final d_real = _ins (_decl (real_id).tdecl (0, t_real), 0);
 var final d_set = _ins (_decl (set_id).tdecl (0, t_set), 0);
-var final d_short = _ins (_decl (short_id).proc (), 0);
+var final d_short = _ins (_decl (short_id).proc (0, nil, t_short), 0);
 var final d_shortint = _ins (_decl (shortint_id).tdecl (0, t_shortint), 0);
-var final d_size = _ins (_decl (size_id).proc (), 0);
+var final d_size = _ins (_decl (size_id).proc (0, nil, t_size), 0);
 var final d_true = _ins (_decl (true_id).const (0, v_true), 0);

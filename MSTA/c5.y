@@ -856,7 +856,7 @@ yyerror(char *string)
 }
 
 
-void main()
+int main()
 {
 #ifdef __cplusplus
     c5 p;

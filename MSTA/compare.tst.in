@@ -206,7 +206,7 @@ main()
   ticker_t t;
   int code;
 
-#ifdef YYDEBUG
+#if YYDEBUG
   yydebug = 1;
 #endif
   store_lexs ();

@@ -1,3 +1,38 @@
+2004-08-24  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_eval.c (evaluate_code): Add code to use labels instead of
+	switch-stmt.
+
+	* DINO/O/DEBUG/Exp.ob: Add newline at the end of file.
+	* DINO/O/DEBUG/Imp.ob: Add imported record.
+
+	* DINO/O/FE/check.d: (find_qualid) Add checking for private
+	identifier.
+	(check_tdef_qualid): Change default value for parameter.
+	(check_std_call): Add code for checking more standard procedures.
+	(check_call): Assign type for function call.
+	(check_des): Check private field.
+	(func check_des): Add parameter value for call of find_qualid.
+
+	* DINO/O/FE/table.d: Add more standard procedure declarations.
+
+	* DINO/O/MACH/i386/machine.d: Change integer and long integer
+	sizes.
+
+	* MSTA/c5.y (main): Change return type.
+
+	* MSTA/compare.tst.in (main): Use #if instead of #ifdef.
+
+	* MSTA/lex.y (main): Change return type.
+
+	* MSTA/quality.tst.in: Define CXX and use it for C++ tests.
+
+	* MSTA/fcalc1.y: New file.
+	
+	* OKA/SCHEDULE/schedtst.c (main): Change return type.
+
+	* OKA/SCHEDULE/schedtst.cpp (main): Ditto.
+	
 2004-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/{arithm.c, arithm.cpp}

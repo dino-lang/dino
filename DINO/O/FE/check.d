@@ -1,4 +1,3 @@
-// check public, private fields
 // Decrease number of lines e -> expr, v ->
 
 // Checking context of the program.
@@ -152,11 +151,13 @@ func find_qualid (q, check_p = 1) {
   if (d == nil) cerr (q, "undefined identfifier ", q.ident.repr);
   else if (check_p && usage_before_decl (q, d)) {
     d = nil; cerr (q, "usage before declaration: ", q.ident.repr);
+  } else if (q.module_ident != nil && !d.export) {
+    d = nil; cerr (q, "private identifier: ", q.ident.repr);
   }
   return d;
 }
 
-func check_tdef_qualid (t, ptr_p = 1) {
+func check_tdef_qualid (t, ptr_p = 0) {
   var d = find_qualid (t, !ptr_p);
 
   if (d != nil && !inside (d, decls.tdecl))
@@ -223,26 +224,148 @@ func not_assign_compatible (e, vt) {
 	      || !mpis.lt (e.tp.expr.lex.v, vt.expr.lex.v)));
 }
 
-func check_std_call (c, func_p) { // ???
-  var tp = c.des.tp;
+func check_std_call (c, func_p) { // constant folding ???
+  var d, tp, l;
 
-  if (tp == t_inc || tp == t_dec) {
-    if (#c.actuals != 1 && #c.actuals != 2)
-      cerr (c, "invalid num of args of ", tp == t_inc ? "INC" : "DEC");
-    else {
-      check_expr (c.actuals [0]);
-      if (!inside (c.actuals [0], exprs.des))
-	cerr (c, "1st arg is not designator - ", tp == t_inc ? "INC" : "DEC");
-      else if (not_int (c.actuals [0].tp))
-	cerr (c, "non-integer var - ", tp == t_inc ? "INC" : "DEC");
-      else if (#c.actuals == 2) {
-	check_expr (c.actuals [1]);
-	if (not_int (c.actuals [1].tp))
-	  cerr (c, "non-integer 2nd arg - ", tp == t_inc ? "INC" : "DEC");
-	else if (common_numeric_type (c.actuals [0].tp, c.actuals [1].tp)
-		 != c.actuals [0].tp) cerr (c, "incr/dec too big for var");
-      }
+  if (!inside (c.des, dess.qualid))
+    internal_error (class_name (class (c.des)) @ " in check_std_call");
+  d = c.des.decl;
+  if (#c.actuals != 1
+      && (d == d_abs || d == d_cap || d == d_chr || d == d_entier
+	  || d == d_halt || d == d_long || d == d_max || d == d_min
+	  || d == d_new || d == d_odd || d == d_ord || d == d_short
+	  || d == d_size)
+      || #c.actuals != 2 && (d == d_ash || d == d_copy
+			     || d == d_excl || d == d_incl)
+      || #c.actuals != 1 && #c.actuals != 2
+      && (d == d_inc || d == d_dec || d == d_len))
+    cerr (c, "invalid num of args of ", d.ident.repr);
+  else if (func_p && (d == d_copy || d == d_dec || d == d_excl || d == d_halt
+		      || d == d_inc || d == d_incl || d == d_new))
+    cerr (c, "calling proc in expr: ", d.ident.repr);
+  else if (!func_p && (d == d_abs || d == d_ash || d == d_cap || d == d_chr
+		       || d == d_entier || d == d_len || d == d_long
+		       || d == d_max || d == d_min || d == d_odd || d == d_ord
+		       || d == d_short || d == d_size))
+    cerr (c, "calling func in non-expr: ", d.ident.repr);
+  else if (d == d_inc || d == d_dec) {
+    check_expr (c.actuals [0]);
+    if (!inside (c.actuals [0], exprs.des))
+      cerr (c, "1st arg is not designator - ", d.ident.repr);
+    else if (not_int (c.actuals [0].tp))
+      cerr (c, "non-integer var - ", d.ident.repr);
+    else if (#c.actuals == 2) {
+      check_expr (c.actuals [1]);
+      if (not_int (c.actuals [1].tp))
+	cerr (c, "non-integer 2nd arg - ", d.ident.repr);
+      else if (common_numeric_type (c.actuals [0].tp, c.actuals [1].tp)
+	       != c.actuals [0].tp) cerr (c, "incr/dec too big for var");
     }
+  } else if (d == d_abs) {
+    check_expr (c.actuals [0]);
+    if (not_numeric (c.actuals [0].tp))
+      cerr (c, "non-numeric arg - ", d.ident.repr);
+    c.tp = c.actuals [0].tp;
+  } else if (d == d_ash) {
+    check_expr (c.actuals [0]); check_expr (c.actuals [1]);
+    if (not_int (c.actuals [0].tp))
+      cerr (c, "non-integer 1st arg - ", d.ident.repr);
+    if (not_int (c.actuals [1].tp))
+      cerr (c, "non-integer 2nd arg - ", d.ident.repr);
+    c.tp = t_longint;
+  } else if (d == d_cap) {
+    check_expr (c.actuals [0]);
+    if (is_of_char (c.actuals [0]))
+      cerr (c, "non-char arg - ", d.ident.repr);
+    c.tp = t_char;
+  } else if (d == d_chr) {
+    check_expr (c.actuals [0]);
+    if (not_int (c.actuals [0].tp))
+      cerr (c, "non-integer arg - ", d.ident.repr);
+    c.tp = t_char;
+  } else if (d == d_copy) { // ??? what about sizes
+    check_expr (c.actuals [0]); check_expr (c.actuals [1]);
+    if (!inside (c.actuals [1], exprs.des) || c.actuals [1].lex != nil)
+      cerr (t, "1st arg is not designator - ", d.ident.repr);
+    else if (c.actuals [0].tp != nil && is_string (c.actuals [0].tp)
+	     || c.actuals [1].tp != nil && is_string (c.actuals [1].tp))
+      cerr (t, "bad assignment type - ", d.ident.repr);
+  } else if (d == d_entier) {
+    check_expr (c.actuals [0]);
+    if (not_real (c.actuals [0].tp))
+      cerr (c, "non-real arg - ", d.ident.repr);
+    c.tp = t_longint;
+  } else if (d == d_halt) {
+    check_expr (c.actuals [0]); l = c.actuals [0]; tp = c.actuals [0].tp;
+    if (not_int (tp) || tp != nil && l == nil)
+      cerr (c, "non-integer constant - ", d.ident.repr);
+  } else if (d == d_incl || d == d_excl) {
+    check_expr (c.actuals [0]);
+    if (!inside (c.actuals [0], exprs.des))
+      cerr (c, "1st arg is not designator - ", d.ident.repr);
+    else if (c.actuals [0].tp != nil && c.actuals [0].tp !== t_set)
+      cerr (c, "non-integer var - ", d.ident.repr);
+    check_expr (c.actuals [1]);
+    if (not_int (c.actuals [1].tp))
+      cerr (c, "non-integer 2nd arg - ", d.ident.repr);
+  } else if (d == d_len) { // ???
+  } else if (d == d_long) {
+    check_expr (c.actuals [0]); tp = c.actuals [0].tp;
+    if (tp != nil && tp != t_real && tp != t_shortint && tp != t_integer)
+      cerr (c, "wrong type arg - ", d.ident.repr);
+    if (tp == t_real) c.tp = t_longreal;
+    else if (tp == t_shortint) c.tp = t_integer;
+    else if (tp == t_integer) c.tp = t_longint;
+  } else if (d == d_max || d == d_min) {
+    check_tdef (c.actuals [0]); tp = c.actuals [0].tp;
+    if (tp == nil) c.tp = t_integer;
+    else if (tp === t_set) {
+      c.lex = mpi2int (lex (c.lno, c.pos, c.fname).integer (),
+		       (d == d_min ? mach.i_zero
+			: mpis.from_string (mach.i_size, mach.max_set @ "")));
+      c.tp = t_integer;
+    } else if (tp === t_integer || tp === t_shortint || tp === t_longint) {
+      c.lex = mpi2int (lex (c.lno, c.pos, c.fname).integer (),
+		       (d == d_min ?
+			(tp === t_integer ? mach.min_i
+			 : tp === t_shortint ? mach.min_si : mach.min_li)
+			(tp === t_integer ? mach.max_i
+			 : tp === t_shortint ? mach.max_si : mach.max_li)));
+      c.tp = tp;
+    } else if (tp === t_boolean) {
+      c.lex = lex (c.lno, c.pos, c.fname).ch (d == d_max); c.tp = tp;
+    } else if (tp === t_char) {
+      c.tp = tp; l = lex (c.lno, c.pos, c.fname);
+      c.lex = (d == d_min ? l.ch (0) : l.ch (max_ch));
+    } else if (tp === t_real || tp === t_longreal) {
+      l = lex (c.lno, c.pos, c.fname).floating ();
+      l = (tp === tp_real ? l.r (mach.r_class ()) : l.lr (mach.lr_class ()));
+      c.lex = l; c.tp = t_tp; if (d == d_min) l.v.nmax (); else l.v.pmax ();
+    } else cerr (c, "wrong type - ", d.ident.repr);
+  } else if (d == d_new) {
+    check_expr (c.actuals [0]);
+    if (!inside (c.actuals [0], exprs.des))
+      cerr (c, "1st arg is not designator - ", d.ident.repr);
+    else if (c.actuals [0].tp != nil && !inside (c.actuals [0].tp, tdefs.ptr))
+      cerr (c, "non-pointer var - ", d.ident.repr);
+  } else if (d == d_odd) {
+    check_expr (c.actuals [0]);
+    if (not_int (c.actuals [0].tp))
+      cerr (c, "non-integer arg - ", d.ident.repr);
+    c.tp = t_boolean;
+  } else if (d == d_ord) {
+    check_expr (c.actuals [0]);
+    if (!is_of_char (c.actuals [0]))
+      cerr (c, "non-char arg - ", d.ident.repr);
+    c.tp = t_integer;
+  } else if (d == d_short) {
+    check_expr (c.actuals [0]); tp = c.actuals [0].tp;
+    if (tp != nil && tp != t_longreal && tp != t_integer && tp != t_longint)
+      cerr (c, "wrong type arg - ", d.ident.repr);
+    if (tp == t_longreal) c.tp = t_real;
+    else if (tp == t_integer) c.tp = t_shortint;
+    else if (tp == t_longint) c.tp = t_integer;
+  } else if (d == d_size) { // ???
   } else cerr (c, "calling non-", func_p ? "func" : "proc");
 }
 
@@ -251,8 +374,7 @@ func check_call (c, func_p) {
 
   check_des (c.des);
   if (c.des.tp != nil && inside (c.des.tp, tdefs.stdtype)) {
-    check_std_call (c, func_p);
-    return;
+    check_std_call (c, func_p); return;
   }
   if (c.des.tp != nil) {
     if (!inside (c.des.tp, tdefs.proc))
@@ -276,6 +398,7 @@ func check_call (c, func_p) {
 	cerr (a, "incorrect actual param value (type)");
     }
   }
+  if (tp != nil && func_p) c.tp = tp.tdef.tp;
 }
 
 func check_ext_des (d, et) {
@@ -427,7 +550,7 @@ func check_floating (l, msg) {
 		"as result of ", msg);
 }
 
-func check_op1 (t) { // !!!!
+func check_op1 (t) {
   check_expr (t.op);
   if (inside (t, op1s.pos)) {
     if (not_numeric (t.op.tp)) cerr (t, "invalid type of monadic +");
@@ -684,7 +807,11 @@ func check_des (t) {
 	rec = rec.base.tp;
       }
       if (f == nil) cerr (t, "no such field in the record: ", t.ident.repr);
-      else t.tp = f.tdef.tp;
+      else {
+	if (t.fname != f.fname && !f.export)
+          cerr (t, "private field: ", t.ident.repr);
+        t.tp = f.tdef.tp;
+      }
     }
   } else if (inside (t, dess.elem)) {
     check_des (t.des); check_expr (t.index);
@@ -712,7 +839,7 @@ func check_des (t) {
     check_des (t.des); check_tdef (t.tdef); check_ext_des (t.des, t.tdef.tp);
     t.tp = t.tdef.tp;
   } else if (inside (t, dess.qualid)) {
-    d = find_qualid (t);
+    d = find_qualid (t, 1);
     if (d != nil) {
       if (inside (d, decls.const)) {
 	t.decl = d;

@@ -253,7 +253,7 @@ void scheduler::finish_environment (void)
 {
 }
 
-void main ()
+int main ()
 {
   scheduler *sched;
 

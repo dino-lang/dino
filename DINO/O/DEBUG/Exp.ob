@@ -1,3 +1,4 @@
 MODULE Exp;
   TYPE t* = INTEGER;
+       rec* = RECORD a* : INTEGER; END;
 END Exp.

@@ -89,7 +89,7 @@ yyserror (const char *message)
 }
 #endif
 
-void
+int
 main (int argc, char **argv)
 {
   int token;

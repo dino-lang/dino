@@ -40,6 +40,7 @@ temp2_file=_temp2.out
 temp3_file=_temp3.out
 fexec=./a.out
 CC='@CC@ -g'
+CXX='@CXX@ -g'
 SHILKA=../SHILKA/shilka
 
 if test x$1 = x
@@ -1277,8 +1278,8 @@ if test $result = ok -a $start_test_number -le 38; then
   1 shift/reduce conflict.
 INPUT38
                         result=ok
-                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
-                        if $CC $output_file -o $fexec 2>$temp_file; then
+                        echo '      ' $CXX $output_file -o $fexec "2>$temp_file"
+                        if $CXX $output_file -o $fexec 2>$temp_file; then
                                 result=ok
                         else
                                 result=fail
@@ -1368,8 +1369,8 @@ if test $result = ok -a $start_test_number -le 40; then
   5 shift/reduce conflicts.
 INPUT40
                         result=ok
-                        echo '      ' $CC $output_file -o $fexec "2>$temp_file"
-                        if $CC $output_file -o $fexec 2>$temp_file; then
+                        echo '      ' $CXX $output_file -o $fexec "2>$temp_file"
+                        if $CXX $output_file -o $fexec 2>$temp_file; then
                                 echo $fexec ">$temp_file"
                                 if $fexec - <<'INPUT40-1' 2>$temp_file; then
 /* aaaaaaaaa * aaaaaaaaaaa */

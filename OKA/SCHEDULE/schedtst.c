@@ -256,7 +256,7 @@ void scheduler_finish_environment (void)
 {
 }
 
-void main ()
+int main ()
 {
   printf ("******ORIGINAL\n");
   initiate_scheduler (1, 1);
