@@ -29,7 +29,7 @@
 #include "d_conv.h"
 #include "d_func.h"
 #include "d_run.h"
-#include "d_blocktab.h"
+#include "d_runtab.h"
 #include "d_eval.h"
 
 
@@ -277,7 +277,7 @@ execute_a_period_operation (pc_t a_period_pc)
 		    IR_pos (cpc), DERR_func_as_variable);
       ER_SET_MODE (ctop, ER_NM_func);
       ER_set_func_context (ctop, container);
-      ER_set_func (ctop, decl);
+      ER_set_func_no (ctop, FUNC_CLASS_NO (decl));
       break;
     case IR_NM_class:
       if (IR_NODE_MODE (IR_POINTER (a_period_pc)) == IR_NM_lvalue_period
@@ -288,7 +288,7 @@ execute_a_period_operation (pc_t a_period_pc)
 		    IR_pos (cpc), DERR_class_as_variable);
       ER_SET_MODE (ctop, ER_NM_class);
       ER_set_class_context (ctop, container);
-      ER_set_class (ctop, decl);
+      ER_set_class_no (ctop, FUNC_CLASS_NO (decl));
       break;
     default:
       assert (FALSE);
@@ -1036,7 +1036,7 @@ evaluate_code (void)
 		    ER_SET_MODE (ctop, ER_NM_func);
 		    container = find_context_by_scope (IR_scope (decl));
 		    ER_set_func_context (ctop, container);
-		    ER_set_func (ctop, decl);
+		    ER_set_func_no (ctop, FUNC_CLASS_NO (decl));
 		  }
 		else if (IR_NODE_MODE (IR_POINTER (cpc)) == IR_NM_lvalue_deref)
 		  eval_error (accessop_decl, invaccesses_decl,
@@ -1054,7 +1054,7 @@ evaluate_code (void)
 		    ER_SET_MODE (ctop, ER_NM_class);
 		    container = find_context_by_scope (IR_scope (decl));
 		    ER_set_class_context (ctop, container);
-		    ER_set_class (ctop, decl);
+		    ER_set_class_no (ctop, FUNC_CLASS_NO (decl));
 		  }
 		else if (IR_NODE_MODE (IR_POINTER (cpc)) == IR_NM_lvalue_deref)
 		  eval_error (accessop_decl, invaccesses_decl,
@@ -1253,7 +1253,7 @@ evaluate_code (void)
 				 ER_instance (below_ctop));
 	      break;
 	    case ER_NM_func:
-	      res = (ER_func (ctop) == ER_func (below_ctop)
+	      res = (ER_func_no (ctop) == ER_func_no (below_ctop)
 		     && (ER_func_context (ctop)
 			 == ER_func_context (below_ctop)));
 	      break;
@@ -1261,7 +1261,7 @@ evaluate_code (void)
 	      res = ER_process (ctop) == ER_process (below_ctop);
 	      break;
 	    case ER_NM_class:
-	      res = (ER_class (ctop) == ER_class (below_ctop)
+	      res = (ER_class_no (ctop) == ER_class_no (below_ctop)
 		     && (ER_class_context (ctop)
 			 == ER_class_context (below_ctop)));
 	      break;
@@ -1330,14 +1330,14 @@ evaluate_code (void)
 	      break;
 	    case ER_NM_func:
 	      /* We don't check the context here. */
-	      res = (ER_func (ctop) == ER_func (below_ctop));
+	      res = (ER_func_no (ctop) == ER_func_no (below_ctop));
 	      break;
 	    case ER_NM_process:
 	      res = ER_process (ctop) == ER_process (below_ctop);
 	      break;
 	    case ER_NM_class:
 	      /* We don't check the context here. */
-	      res = ER_class (ctop) == ER_class (below_ctop);
+	      res = ER_class_no (ctop) == ER_class_no (below_ctop);
 	      break;
 	    case ER_NM_stack:
 	      res = ER_stack (ctop) == ER_stack (below_ctop);
@@ -1641,7 +1641,8 @@ evaluate_code (void)
 	      to_vect_string_conversion (ctop, NULL);
 	      if (ER_NODE_MODE (ctop) != ER_NM_vect)
 		eval_error (optype_decl, invops_decl,
-			    IR_pos (cpc), DERR_conversion_to_table_operand_type);
+			    IR_pos (cpc),
+			    DERR_conversion_to_table_operand_type);
 	      tab = vector_to_table_conversion (ER_vect (ctop));
 	      ER_SET_MODE (ctop, ER_NM_tab);
 	      ER_set_tab (ctop, tab);
@@ -1659,7 +1660,9 @@ evaluate_code (void)
 	    
 	    stack = ER_stack (ctop);
 	    ER_SET_MODE (ctop, ER_NM_func);
-	    ER_set_func (ctop, IR_func_class_ext (ER_block_node (stack)));
+	    ER_set_func_no (ctop,
+			    FUNC_CLASS_NO (IR_func_class_ext
+					   (ER_block_node (stack))));
 	    ER_set_func_context (ctop, ER_context (stack));
 	  }
 	else
@@ -1674,7 +1677,7 @@ evaluate_code (void)
 	    
 	    process = ER_process (ctop);
 	    ER_SET_MODE (ctop, ER_NM_func);
-	    ER_set_func (ctop, ER_thread_func (process));
+	    ER_set_func_no (ctop, FUNC_CLASS_NO (ER_thread_func (process)));
 	    ER_set_func_context (ctop, ER_context (process));
 	  }
 	else
@@ -1688,7 +1691,8 @@ evaluate_code (void)
 	    
 	    instance = ER_instance (ctop);
 	    ER_SET_MODE (ctop, ER_NM_class);
-	    ER_set_class (ctop, ER_instance_class (instance));
+	    ER_set_class_no (ctop,
+			     FUNC_CLASS_NO (ER_instance_class (instance)));
 	    ER_set_class_context (ctop, ER_context (instance));
 	  }
 	else
@@ -2271,7 +2275,7 @@ evaluate_code (void)
 	  
 	  TOP_UP;
 	  ER_SET_MODE (ctop, ER_NM_class);
-	  ER_set_class (ctop, except_decl);
+	  ER_set_class_no (ctop, FUNC_CLASS_NO (except_decl));
 	  ER_set_class_context (ctop, uppest_stack);
 	  if (!ER_IS_OF_TYPE (below_ctop, ER_NM_instance)
 	      || !internal_inside_call (&message, 0))
@@ -2341,7 +2345,7 @@ evaluate_code (void)
 	  
 	  TOP_UP;
 	  ER_SET_MODE (ctop, ER_NM_func);
-	  ER_set_func (ctop, decl);
+	  ER_set_func_no (ctop, FUNC_CLASS_NO (decl));
 	  ER_set_func_context (ctop, find_context_by_scope (IR_scope (decl)));
 	  INCREMENT_PC ();
 	  break;
@@ -2352,7 +2356,7 @@ evaluate_code (void)
 	  
 	  TOP_UP;
 	  ER_SET_MODE (ctop, ER_NM_class);
-	  ER_set_class (ctop, decl);
+	  ER_set_class_no (ctop, FUNC_CLASS_NO (decl));
 	  ER_set_class_context (ctop, find_context_by_scope (IR_scope (decl)));
 	  INCREMENT_PC ();
 	  break;

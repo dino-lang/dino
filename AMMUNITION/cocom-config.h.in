@@ -38,6 +38,9 @@
 /* Does inet_aton is present. */
 #undef HAVE_INET_ATON
 
+/* The number of bytes in a char *.  */
+#undef SIZEOF_CHAR_P
+
 /* Define if you have the dlopen function.  */
 #undef HAVE_DLOPEN
 

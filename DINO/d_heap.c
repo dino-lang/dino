@@ -23,7 +23,7 @@
 */
 
 #include "d_run.h"
-#include "d_blocktab.h"
+#include "d_runtab.h"
 
 /* Current program counter of command being executed.  This value is
    used to execution of commands for interpreter (see comments for
@@ -191,8 +191,8 @@ node_mode_2_type (ER_node_mode_t node_mode)
     case ER_NM_tab:
       return ER_T_table;
     case ER_NM_func:
-      return (IR_IS_OF_TYPE (ER_func (ctop), IR_NM_func)
-	      && IR_thread_flag (ER_func (ctop))
+      return (IR_IS_OF_TYPE (NO_TO_FUNC_CLASS (ER_func_no (ctop)), IR_NM_func)
+	      && IR_thread_flag (NO_TO_FUNC_CLASS (ER_func_no (ctop)))
 	      ? ER_T_thread : ER_T_func);
     case ER_NM_class:
       return ER_T_class;
@@ -1444,7 +1444,7 @@ destroy_instances (void)
 	    TOP_UP;
 	    ER_SET_MODE (ctop, ER_NM_func);
 	    ER_set_func_context (ctop, curr_obj);
-	    ER_set_func (ctop, decl);
+	    ER_set_func_no (ctop, FUNC_CLASS_NO (decl));
 	    call_func_class (0);
 	    TOP_DOWN;
 	    ER_set_state (curr_obj, IS_destroyed);
@@ -2065,12 +2065,12 @@ hash_val (ER_node_t val)
     case ER_NM_instance:
       return (size_t) ER_unique_number (ER_instance (val));
     case ER_NM_func:
-      return ((size_t) ER_func (val)
+      return ((size_t) ER_func_no (val)
 	      + (size_t) ER_unique_number (ER_func_context (val)));
     case ER_NM_process:
       return (size_t) ER_unique_number (ER_process (val));
     case ER_NM_class:
-      return ((size_t) ER_class (val)
+      return ((size_t) ER_class_no (val)
 	      + (size_t) ER_unique_number (ER_class_context (val)));
     case ER_NM_stack:
       return (size_t) ER_unique_number (ER_stack (val));
@@ -2220,12 +2220,12 @@ eq_key (ER_node_t entry_key, ER_node_t key)
       return eq_instance (ER_instance (key), ER_instance (entry_key));
     case ER_NM_func:
       return (ER_func_context (key) == ER_func_context (entry_key)
-	      && ER_func (key) == ER_func (entry_key));
+	      && ER_func_no (key) == ER_func_no (entry_key));
     case ER_NM_process:
       return ER_process (key) == ER_process (entry_key);
     case ER_NM_class:
       return (ER_class_context (key) == ER_class_context (entry_key)
-	      && ER_class (key) == ER_class (entry_key));
+	      && ER_class_no (key) == ER_class_no (entry_key));
     case ER_NM_stack:
       return ER_stack (key) == ER_stack (entry_key);
     default:

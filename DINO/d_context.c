@@ -24,7 +24,7 @@
 
 #include "d_common.h"
 #include "d_ir.h"
-#include "d_blocktab.h"
+#include "d_runtab.h"
 #include "d_context.h"
 
 /* Pointer to block node which opens current scope. */
@@ -612,8 +612,8 @@ first_block_passing (IR_node_t first_level_stmt, int current_block_level)
    for corresponding abstract data).  FIRST_LEVEL_STMT (it may be
    NULL) is the first stmt of the processed stmt nesting level.
    
-   The function also processes access lists and sets up public_flag
-   for declarations. */
+   The function also processes access lists, sets up public_flag
+   for declarations, and sets up func class table.  */
 static void
 second_block_passing (IR_node_t first_level_stmt)
 {
@@ -749,11 +749,13 @@ second_block_passing (IR_node_t first_level_stmt)
 		second_block_passing (IR_block (curr_except));
 	    break;
 	  }
-	case IR_NM_var:
-	case IR_NM_external_var:
 	case IR_NM_external_func:
 	case IR_NM_func:
 	case IR_NM_class:
+	  set_func_class_no (stmt);
+	  /* FALL THROUGH  */
+	case IR_NM_var:
+	case IR_NM_external_var:
 	  {
 	    IR_node_t block;
 

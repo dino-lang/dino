@@ -26,6 +26,7 @@
 #include "d_built.h"
 #include "d_conv.h"
 #include "d_func.h"
+#include "d_runtab.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -555,12 +556,12 @@ internal_inside_call (const char **message_ptr, int context_flag)
     }
   else if (ER_NODE_MODE (below_ctop) == ER_NM_func)
     {
-      func_class = ER_func (below_ctop);
+      func_class = NO_TO_FUNC_CLASS (ER_func_no (below_ctop));
       block_context = ER_func_context (below_ctop);
     }
   else if (ER_NODE_MODE (below_ctop) == ER_NM_class)
     {
-      func_class = ER_class (below_ctop);
+      func_class = NO_TO_FUNC_CLASS (ER_class_no (below_ctop));
       block_context = ER_class_context (below_ctop);
     }
   else
@@ -570,12 +571,12 @@ internal_inside_call (const char **message_ptr, int context_flag)
     }
   if (ER_IS_OF_TYPE (ctop, ER_NM_class))
     {
-      func_class_2 = ER_class (ctop);
+      func_class_2 = NO_TO_FUNC_CLASS (ER_class_no (ctop));
       func_class_2_context = ER_class_context (ctop);
     }
   else if (ER_IS_OF_TYPE (ctop, ER_NM_func))
     {
-      func_class_2 = ER_func (ctop);
+      func_class_2 = NO_TO_FUNC_CLASS (ER_func_no (ctop));
       func_class_2_context = ER_func_context (ctop);
     }
   else
@@ -1764,7 +1765,7 @@ array_sort_compare_function (const void *el1, const void *el2)
 
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_func);
-  ER_set_func (ctop, dino_compare_func);
+  ER_set_func_no (ctop, FUNC_CLASS_NO (dino_compare_func));
   ER_set_func_context (ctop, GET_TEMP_REF (0));
   TOP_UP;
   if (sorted_vect_el_type != ER_NM_val)
@@ -1837,7 +1838,7 @@ sort_call (int_t pars_number)
 		    DERR_parameter_type, SORT_NAME);
       vect = copy_vector (ER_vect (below_ctop));
       PUSH_TEMP_REF (ER_func_context (ctop));
-      dino_compare_func = ER_func (ctop);
+      dino_compare_func = NO_TO_FUNC_CLASS (ER_func_no (ctop));
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	sorted_vect_el_type = ER_NM_val;
       else
@@ -1952,7 +1953,7 @@ place_file_instance (FILE *f)
   ER_node_t instance;
 
   ER_SET_MODE (ctop, ER_NM_class);
-  ER_set_class (ctop, file_decl);
+  ER_set_class_no (ctop, FUNC_CLASS_NO (file_decl));
   ER_set_class_context (ctop, uppest_stack);
   instance = create_instance (0);
   TOP_UP;
@@ -2616,8 +2617,9 @@ print_val (ER_node_t val, int quote_flag)
 	  if (print_context (ER_func_context (val)))
 	    VLO_ADD_STRING (temp_vlobj, ".");
 	  VLO_ADD_STRING (temp_vlobj,
-			  IR_ident_string (IR_unique_ident 
-					   (IR_ident (ER_func (val)))));
+			  IR_ident_string
+			  (IR_unique_ident 
+			   (IR_ident (NO_TO_FUNC_CLASS (ER_func_no (val))))));
 	}
       else
 	{
@@ -2625,8 +2627,9 @@ print_val (ER_node_t val, int quote_flag)
 	  if (print_context (ER_class_context (val)))
 	    VLO_ADD_STRING (temp_vlobj, ".");
 	  VLO_ADD_STRING (temp_vlobj,
-			  IR_ident_string (IR_unique_ident 
-					   (IR_ident (ER_class (val)))));
+			  IR_ident_string
+			  (IR_unique_ident 
+			   (IR_ident (NO_TO_FUNC_CLASS (ER_class_no (val))))));
 	}
       break;
     case ER_NM_stack:
@@ -4757,7 +4760,9 @@ create_instance (int_t pars_number)
   int curr_par;
   char *free;
   
-  class = ER_class ((ER_node_t) INDEXED_VAL (ER_CTOP (), -pars_number));
+  class = NO_TO_FUNC_CLASS (ER_class_no
+			    ((ER_node_t) INDEXED_VAL (ER_CTOP (),
+						      -pars_number)));
   instance = (ER_node_t) heap_allocate (instance_size (class), FALSE);
   ER_SET_MODE (instance, ER_NM_heap_instance);
   ER_set_instance_class (instance, class);
@@ -4836,7 +4841,7 @@ process_func_class_call (int_t pars_number)
   if (ER_NODE_MODE (func_class_val) == ER_NM_class)
     {
       /* See also case with IR_NM_block_finish .*/
-      func_class = ER_class (func_class_val);
+      func_class = NO_TO_FUNC_CLASS (ER_class_no (func_class_val));
       instance = create_instance (pars_number);
       PUSH_TEMP_REF (instance);
       heap_push (IR_next_stmt (func_class), GET_TEMP_REF (0));
@@ -4850,7 +4855,7 @@ process_func_class_call (int_t pars_number)
     }
   else if (ER_NODE_MODE (func_class_val) == ER_NM_func)
     {
-      func_class = ER_func (func_class_val);
+      func_class = NO_TO_FUNC_CLASS (ER_func_no (func_class_val));
       if (IR_IS_OF_TYPE (func_class, IR_NM_external_func))
 	call_external_func (pars_number, func_class);
       else if (IR_implementation_func (func_class) != NULL)
@@ -5196,7 +5201,7 @@ init_syntax_token (int err_tok_num, void *err_tok_attr,
 {
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_func);
-  ER_set_func (ctop, error_func);
+  ER_set_func_no (ctop, FUNC_CLASS_NO (error_func));
   ER_set_func_context (ctop, error_func_context);
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_int);
@@ -5281,7 +5286,7 @@ tree_to_heap (struct earley_tree_node *root)
     return ((struct tree_heap_node *) *entry)->heap_node;
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_class);
-  ER_set_class (ctop, anode_decl);
+  ER_set_class_no (ctop, FUNC_CLASS_NO (anode_decl));
   ER_set_class_context (ctop, uppest_stack);
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_vect);
@@ -5406,7 +5411,7 @@ int_earley_parse (int npars)
   no_gc_flag = TRUE;
   tokens_vect = ER_vect (par2);
   curr_token = 0;
-  error_func = ER_func (par3);
+  error_func = NO_TO_FUNC_CLASS (ER_func_no (par3));
   error_func_context = ER_func_context (par3);
   g = (struct grammar *) ER_hide (par1);
   OS_CREATE (tree_mem_os, 0);

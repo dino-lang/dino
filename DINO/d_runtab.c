@@ -24,18 +24,36 @@
 
 #include "d_common.h"
 #include "d_ir.h"
-#include "d_blocktab.h"
+#include "d_runtab.h"
 
+vlo_t func_class_tab;
+static int_t curr_func_class_no;
 
 struct block_decl_idents_tables block_decl_idents_tables;
 
-/* This func is to called only one before any work with this abstract
+/* This func is to be called only once before any work with this abstract
    data. */
 void
-initiate_blocks_table (void)
+initiate_run_tables (void)
 {
   block_decl_idents_tables.idents_number = 0;
   VLO_CREATE (block_decl_idents_tables.blocks_decls, 2000);
+  curr_func_class_no = 0;
+  VLO_CREATE (func_class_tab, 800);
+}
+
+/* This func is to set up an order number and the corresponding table
+   entry for FUNC_CLASS. */
+void
+set_func_class_no (IR_node_t func_class)
+{
+  if (IR_no (func_class) >= 0)
+    return;
+  IR_set_no (func_class, curr_func_class_no);
+  assert (curr_func_class_no * sizeof (IR_node_t)
+	  == VLO_LENGTH (func_class_tab));
+  VLO_ADD_MEMORY (func_class_tab, &func_class, sizeof (IR_node_t));
+  curr_func_class_no++;
 }
 
 /* The func creates new block decls idents table in this abstract data
@@ -74,7 +92,7 @@ process_block_decl_unique_ident (IR_node_t unique_ident)
    given DECL (in block BLOCK_REF).  Both values are to be not NULL.
    The sequence of the abstract data funcs calls may be described
    regular expr:
-   initiate_blocks_table
+   initiate_run_tables
       (
        (new_block | process_block_decl_unique_ident)*
        define_block_decl*
@@ -103,10 +121,11 @@ define_block_decl (IR_node_t decl, IR_node_t block_ref)
 }
 
 void
-finish_blocks_table (void)
+finish_run_tables (void)
 {
   vlo_t *vlo_ref;
 
+  VLO_DELETE (func_class_tab);
   for (vlo_ref = VLO_BEGIN (block_decl_idents_tables.blocks_decls);
        (char *) vlo_ref
 	 <= (char *) VLO_END (block_decl_idents_tables.blocks_decls);

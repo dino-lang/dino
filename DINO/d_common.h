@@ -88,3 +88,7 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define INLINE 0
 #endif
 #endif
+
+#ifdef WIN32
+#define SIZEOF_CHAR_P 4
+#endif

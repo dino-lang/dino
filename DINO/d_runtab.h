@@ -1,9 +1,10 @@
-/* The following implements abstract data block_decl_idents_tables.
+/* The file implements func class table (Number->func_class and
+   func_class -> Number) and abstract data block_decl_idents_tables.
    This abstract data mainly serves for access to block decl nodes by
    block_number and block_decl_ident_number (see commentaries for
-   block_node and unique_ident_node).  The abstract data is designed and
-   implemented for implementation dynamic load another file in
-   the future (see commentaries for func define_block_decl).*/
+   block_node and unique_ident_node).  The abstract data is designed
+   and implemented for implementation dynamic load another file in the
+   future (see commentaries for func define_block_decl).*/
 
 /*
    Copyright (C) 1997-2002 Vladimir Makarov.
@@ -28,6 +29,16 @@
    02111-1307, USA.
 
 */
+
+extern vlo_t func_class_tab;
+
+#if SIZEOF_CHAR_P <= 4
+#define FUNC_CLASS_NO(fc)    ((int_t) (fc))
+#define NO_TO_FUNC_CLASS(no) ((IR_node_t) no)
+#else
+#define FUNC_CLASS_NO(fc)    (IR_no (fc))
+#define NO_TO_FUNC_CLASS(no) (((IR_node_t *) VLO_BEGIN (func_class_tab)) [no])
+#endif
 
 struct block_decl_idents_tables
 {
@@ -74,8 +85,9 @@ extern struct block_decl_idents_tables block_decl_idents_tables;
       [block_decl_ident_number])\
    : NULL)
 
-extern void initiate_blocks_table (void);
+extern void initiate_run_tables (void);
+extern void set_func_class_no (IR_node_t func_class);
 extern int new_block (void);
 extern void process_block_decl_unique_ident (IR_node_t unique_ident);
 extern void define_block_decl (IR_node_t decl, IR_node_t block_ref);
-extern void finish_blocks_table (void);
+extern void finish_run_tables (void);

@@ -83,7 +83,7 @@ LINK32=link.exe
 # Name "dino - Win32 Debug"
 # Begin Source File
 
-SOURCE=.\d_blocktab.c
+SOURCE=.\d_runtab.c
 # ADD CPP /I "..\ammunition" /I "..\regex" /D "NO_DINO_SHLIB"
 # End Source File
 # Begin Source File

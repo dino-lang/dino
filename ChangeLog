@@ -1,7 +1,56 @@
-2003-05-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+2003-09-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
-	* AMMUNITION/earley.tst.in (test 41): Print used memory for linux.
+        * configure.in: Check size of char *.
+	
+	* configure: Update.
 
+	* AMMUNITION/cocom-config.h.in: Add undef for SIZEOF_CHAR_P.
+
+	* AMMUNITION/earley.c (make_parse):  Add state to the stack even
+	if the situation position is zero.
+	
+	* AMMUNITION/{earley.tst.in, earley++.tst.in}: Add test for empty
+	rule with anode.
+
+	* DINO/d_blocktab.{ch}: Rename them into d_runtab.{ch}.
+	(initiate_blocks_table): Rename it onto initiate_run_tables.
+	(set_func_class_no): New function.
+	(finish_blocks_table): rename it onto finish_run_tables.
+	
+	* DINO/Makefile.in: Rename blocktab on runtab.
+
+	* DINO/dino.dsp: Rename blocktab on runtab.
+	
+	* DINO/d_common.h: Define SIZEOF_CHAR_P for WIN32.
+
+	* DINO/d_extern.sprut (func): Change field func onto func_no.
+	(class): Change field class onto class_no.
+
+	* DINO/d_func.c: Add include d_runtab.h.
+	(internal_inside_call, array_sort_compare_function, sort_call,
+	place_file_instance, print_val, create_instance,
+	process_func_class_call, init_syntax_token, tree_to_heap,
+	int_earley_parse): Use field func_{class_}no instead of
+	func{class}.
+
+	* DINO/d_heap.c: Rename blocktab on runtab.
+	(node_mode_2_type, destroy_instances, hash_val, eq_key):
+
+	* DINO/d_ir.sprut: (func_or_class, external_func): New field no.
+	
+	* DINO/d_context.c: Rename blocktab on runtab.
+	(second_block_passing): Set up func_class_no.
+
+	* DINO/d_dino.c: Rename blocktab on runtab.
+	(dino_start): Rename finish_blocks_table on finish_run_tables.
+	(dino_finish): Rename initiate_blocks_table on
+	initiate_run_tables.
+
+	* DINO/d_eval.c: Rename blocktab on runtab.
+	(execute_a_period_operation): Use field func_{class_}no instead of
+	func{class}.
+	(evaluate_code): Ditto.
+	
 2003-04-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
         * d_ir_sprut (ir_node): New type.  Make it as a root.

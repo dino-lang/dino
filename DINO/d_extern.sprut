@@ -538,14 +538,14 @@ instance :: val
 func :: val
 %other
   func_context : context_heap_obj
-  func : IR_hidden_node_t
+  func_no : int_t
 ;
 
 /*%final*/
 class :: val
 %other
   class_context : context_heap_obj
-  class : IR_hidden_node_t
+  class_no : int_t
 ;
 
 /*%final*/

@@ -28,7 +28,7 @@
 #include "d_ir.h"
 #include "d_run.h"
 #include "d_yacc.h"
-#include "d_blocktab.h"
+#include "d_runtab.h"
 #include "d_context.h"
 #include "d_eval.h"
 
@@ -194,7 +194,7 @@ dino_finish (int code)
   if (code == 0 && profile_flag)
     print_profile (first_program_stmt);
 #endif
-  finish_blocks_table ();
+  finish_run_tables ();
   IR_stop ();
   delete_table ();
   finish_scanner ();
@@ -258,7 +258,7 @@ dino_start (void)
   source_position = no_position;
   VLO_CREATE (include_path_directories_vector, 0);
   VLO_CREATE (libraries_vector, 0);
-  initiate_blocks_table ();
+  initiate_run_tables ();
 }
 
 static void set_exception_action (int signal_number);

@@ -29,6 +29,7 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_TYPE_GETGROUPS
+AC_CHECK_SIZEOF(char *)
 dnl There is no clock_t `sys/types.h', or `stdlib.h' or `stddef.h' on Linux
 dnl I think checking time.h will be sufficient.
 dnl AC_CHECK_TYPE(clock_t, long)

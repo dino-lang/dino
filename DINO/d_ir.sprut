@@ -1770,6 +1770,18 @@ decl
 	access_ident : access_ident
 ;
 
+func_or_class
+%other
+	/* Order number of the function or class.  */
+	no : int_t {$ = -1;}
+;
+
+external_func
+%other
+	/* Order number of the external function.  */
+	no : int_t {$ = -1;}
+;
+
 %abstract
 decl_in_block :: %root
 %other

@@ -181,7 +181,7 @@ srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 
 # All object files of the syntax description translator:
-objects = d_errors.o d_ir.o d_run.o d_heap.o d_yacc.o d_blocktab.o\
+objects = d_errors.o d_ir.o d_run.o d_heap.o d_yacc.o d_runtab.o\
 	  d_context.o d_conv.o d_func.o d_eval.o d_dino.o
 
 # ALL header files used by all source files of Dino self.
@@ -189,10 +189,10 @@ common = $(srcdir)/d_dino.h $(srcdir)/d_errors.h $(srcdir)/d_common.h
 
 # All source files of Dino.
 source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
-         $(srcdir)/d_blocktab.h\
+         $(srcdir)/d_runtab.h\
 	 $(srcdir)/d_context.h $(srcdir)/d_conv.h\
 	 $(srcdir)/d_func.h $(srcdir)/d_eval.h\
-         $(srcdir)/d_errors.c $(srcdir)/d_yacc.y $(srcdir)/d_blocktab.c\
+         $(srcdir)/d_errors.c $(srcdir)/d_yacc.y $(srcdir)/d_runtab.c\
 	 $(srcdir)/d_context.c  $(srcdir)/d_func.c $(srcdir)/d_conv.c\
          $(srcdir)/d_eval.c $(srcdir)/d_dino.c\
 	 $(srcdir)/d_aixdl.c $(srcdir)/d_main.c\
@@ -476,7 +476,7 @@ depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
 	echo '#' >>Makefile.tmp
 	for i in d_ir.c d_run.c d_kw.c d_yacc.c\
 	   $(srcdir)/../DINO/d_errors.c\
-           $(srcdir)/../DINO/d_blocktab.c $(srcdir)/../DINO/d_context.c\
+           $(srcdir)/../DINO/d_runtab.c $(srcdir)/../DINO/d_context.c\
            $(srcdir)/../DINO/d_conv.c $(srcdir)/../DINO/d_func.c\
 	   $(srcdir)/../DINO/d_eval.c $(srcdir)/../DINO/d_heap.c\
 	   $(srcdir)/../DINO/d_dino.c\
@@ -578,7 +578,7 @@ d_errors.o: $(top_srcdir)/DINO/../DINO/d_errors.c \
  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
  $(top_srcdir)/DINO/../DINO/d_types.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_errors.c
-d_blocktab.o: $(top_srcdir)/DINO/../DINO/d_blocktab.c \
+d_runtab.o: $(top_srcdir)/DINO/../DINO/d_runtab.c \
  $(top_srcdir)/DINO/../DINO/d_common.h \
  $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
@@ -591,8 +591,8 @@ d_blocktab.o: $(top_srcdir)/DINO/../DINO/d_blocktab.c \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
  $(top_srcdir)/DINO/../DINO/d_types.h \
- $(top_srcdir)/DINO/../DINO/d_blocktab.h
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_blocktab.c
+ $(top_srcdir)/DINO/../DINO/d_runtab.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_runtab.c
 d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
  $(top_srcdir)/DINO/../DINO/d_common.h \
  $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
@@ -606,7 +606,7 @@ d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
  $(top_srcdir)/DINO/../DINO/d_types.h \
- $(top_srcdir)/DINO/../DINO/d_blocktab.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_context.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_context.c
 d_conv.o: $(top_srcdir)/DINO/../DINO/d_conv.c \
@@ -658,7 +658,7 @@ d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
  $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_ir.h \
  $(top_srcdir)/DINO/../DINO/d_func.h \
- $(top_srcdir)/DINO/../DINO/d_blocktab.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_eval.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_eval.c
 d_heap.o: $(top_srcdir)/DINO/../DINO/d_heap.c d_run.h \
@@ -674,7 +674,7 @@ d_heap.o: $(top_srcdir)/DINO/../DINO/d_heap.c d_run.h \
  $(top_srcdir)/DINO/../DINO/d_errors.h \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
- $(top_srcdir)/DINO/../DINO/d_blocktab.h
+ $(top_srcdir)/DINO/../DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_heap.c
 d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/AMMUNITION/commline.h \
@@ -691,7 +691,7 @@ d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_run.h \
  $(top_srcdir)/DINO/../DINO/d_yacc.h \
- $(top_srcdir)/DINO/../DINO/d_blocktab.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_context.h \
  $(top_srcdir)/DINO/../DINO/d_eval.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_dino.c
