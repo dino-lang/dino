@@ -282,7 +282,7 @@ exception_action (int signal_number)
       class = sigsegv_decl;
       message = ERR_segment_access_violation_exception;
       break;
-#if ! defined (NO_PROFILE) && defined (HAVE_SETITIMER)
+#if ! defined (NO_PROFILE) && HAVE_SETITIMER
     case SIGVTALRM:
       if (profile_flag)
 	{

@@ -1,3 +1,27 @@
+2001-07-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_common.h (HAVE_SETITIMER): Set up the default value.
+
+	* DINO/d_dino.c (exception_action): Use HAVE_SETITIMER value.
+
+	* DINO/d_eval.c (find_context_by_scope): Use
+	current_cached_container_tick.
+	(evaluate_program): Use HAVE_SETITIMER value.
+	(profile_compare_function): Ditto.
+	(print_profile): Ditto.  Print gc time when HAVE_SETITIMER==0.
+
+	* DINO/d_ir.sprut (block): New field cached_container_tick.
+
+	* DINO/d_run.sprut (current_cached_container_tick, gc_ticker): New
+	global variables.
+	(initiate_heap): Initialize the variables.
+	(clear_caches): Remove it.
+	(gc): Modify current_cached_container_tick instead of calling
+	clear_caches.  Switch on/off gc_ticker.
+	(heap_push): Modify current_cached_container_tick.
+	(activate_given_process): Modify current_cached_container_tick
+	instead of calling clear_caches.
+	
 2001-07-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (print_profile): Print GC time too.

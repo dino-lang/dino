@@ -21,8 +21,7 @@ find_context_by_scope (IR_node_t scope)
   IR_node_t func_class_ext;
 
 #ifndef NO_CONTAINER_CACHE
-  if (IR_func_class_ext (scope) == NULL
-      || IR_IS_OF_TYPE (IR_func_class_ext (scope), IR_NM_func))
+  if (IR_cached_container_tick (scope) == current_cached_container_tick)
     {
       container = (ER_node_t) IR_cached_container_address (scope);
       if (container != NULL)
@@ -43,8 +42,8 @@ find_context_by_scope (IR_node_t scope)
        instance). */
     container = ER_context (container);
 #ifndef NO_CONTAINER_CACHE
-  /* It is set up for class but not used. */
   IR_set_cached_container_address (scope, (string_t) container);
+  IR_set_cached_container_tick (scope, current_cached_container_tick);
 #endif
   return container;
 }
@@ -2388,7 +2387,7 @@ evaluate_program (pc_t start_pc)
       struct itimerval itimer;
 
       all_time_ticker = create_ticker ();
-#ifdef HAVE_SETITIMER
+#if HAVE_SETITIMER
       itimer.it_value.tv_sec = itimer.it_interval.tv_sec = 0;
       itimer.it_value.tv_usec = itimer.it_interval.tv_usec = 1;
       if (setitimer (ITIMER_VIRTUAL, &itimer, NULL))
@@ -2469,7 +2468,7 @@ profile_compare_function (const void *el1, const void *el2)
   IR_node_t func2 = *(IR_node_t *) el2;
   double time1, time2;
 
-#ifdef HAVE_SETITIMER
+#if HAVE_SETITIMER
   return IR_interrupts_number (func2) - IR_interrupts_number (func1);
 #else
   time1 = active_time (IR_exec_time (func1));
@@ -2491,7 +2490,10 @@ print_profile (IR_node_t first_level_stmt)
   IR_node_t *func_ptr;
   double all_time = active_time (all_time_ticker);
   double func_time;
-
+#if !HAVE_SETITIMER
+  double gc_time = active_time (gc_ticker);
+#endif
+	
   ticker_off (&all_time_ticker);
   VLO_CREATE (profile_funcs, 0);
   collect_profile (first_level_stmt);
@@ -2500,13 +2502,24 @@ print_profile (IR_node_t first_level_stmt)
 	 profile_compare_function);
   fprintf
     (stderr,
-     "\n** Calls *** Time **** Name **************************************\n");
+#if !HAVE_SETITIMER
+     "\n** Calls ** In Time ** Name **************************************\n"
+#else
+     "\n** Calls *** Time **** Name **************************************\n"
+#endif
+     );
   for (func_ptr = (IR_node_t *) VLO_BEGIN (profile_funcs);
        (char *) func_ptr <= (char *) VLO_END (profile_funcs);
        func_ptr++)
     {
-#ifndef HAVE_SETITIMER
+#if !HAVE_SETITIMER
       func_time = active_time (IR_exec_time (*func_ptr));
+      if (gc_number != 0 && gc_time != 0.0 && gc_time > func_time)
+	{
+	  fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
+		   gc_number, gc_time);
+	  gc_time = 0.0;
+	}
 #else
       func_time = (all_interrupts_number == 0
 		   ? 0.0
@@ -2527,7 +2540,11 @@ print_profile (IR_node_t first_level_stmt)
 	       IR_ident_string (IR_unique_ident (IR_ident (*func_ptr))),
 	       IR_pos (*func_ptr).file_name, IR_pos (*func_ptr).line_number);
     }
-#ifdef HAVE_SETITIMER
+#if !HAVE_SETITIMER
+  if (gc_number != 0 && gc_time != 0.0)
+    fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
+	     gc_number, gc_time);
+#else
   if (gc_interrupts_number != 0)
     fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
 	     gc_number,

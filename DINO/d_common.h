@@ -58,6 +58,10 @@ extern int memcmp (const void *mem1, const void *mem2, size_t size);
 extern void *memmove (void *s1, const void *s2, size_t n);
 #endif /* #ifndef HAVE_MEMMOVE */
 
+#if !defined (NO_PROFILE) && !defined (HAVE_SETITIMER)
+#define HAVE_SETITIMER 0
+#endif
+
 #ifndef INLINE
 #ifdef __GNUC__
 #define INLINE 1

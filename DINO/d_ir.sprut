@@ -1781,8 +1781,10 @@ block
 %other
         /* The following field is cached address of container for the
            current block.  If it is NULL, the cached value is not
-           defined. */
+           defined or cached_container_tick is not equal to the
+           current value. */
 	cached_container_address : string_t
+	cached_container_tick : integer_t {$ = -1;}
 ;
 
 %%
