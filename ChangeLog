@@ -1,3 +1,54 @@
+2001-07-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_errors.h (ERR_invalid_conversion_to_char_operand_type,
+	ERR_invalid_conversion_to_int_operand_type,
+	ERR_invalid_conversion_to_float_operand_type,
+	DERR_conversion_to_char_operand_type,
+	DERR_conversion_to_int_operand_type,
+	DERR_conversion_to_float_operand_type): New external definitions.
+
+	* DINO/d_errors.c (ERR_invalid_conversion_to_char_operand_type,
+	ERR_invalid_conversion_to_int_operand_type,
+	ERR_invalid_conversion_to_float_operand_type,
+	DERR_conversion_to_char_operand_type,
+	DERR_conversion_to_int_operand_type,
+	DERR_conversion_to_float_operand_type): New messages.
+	(DERR_erange): Change the message.
+
+	* DINO/d_yacc.y: Add rules for {char, int, float} (..).
+	(get_string_code): Add processing `\a'.
+
+	* DINO/d_ir.sprut (charof, intof, floatof): New nodes.
+
+	* DINO/d_func.c (print_ch, get_char_code): Add processing `\a'.
+
+	* DINO/d_eval.c (evaluate): Add evaluating charof, intof, floatof.
+
+	* DINO/d_context.c (first_expr_processing, value_type,
+	third_expr_processing, fourth_expr_processing): Add processing
+	charof, intof, floatof.
+	
+	* DINO/d_run.sprut (try_heap_free): Return TRUE if heap piece has
+	been freed.
+	(heap_pop): Changed saved_cstack for current processor if the
+	stack has been popped.
+	(pack_vector_if_possible): Set eltype when els_number == 0.
+
+	* DINO/d_conv.c (to_vect_string_conversion): Switch off GC
+	temporally.
+
+	* Dino/Makefile.in: Fix typo.
+	
+	* DINO/dino.tst.in: Add tests for {char, int, float} (..).  Modify
+	output for system error `result too large'.
+
+	* DINO/dino.sgml.in: Add descriptions of {char, int, float} (..).
+
+	* DINO/dino-5.html, DINO/dino-8.html, DINO/dino-9.html,
+	DINO/dino.dvi, DINO/dino.html, DINO/dino.info, DINO/dino.info-1,
+	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
+	DINO/dino.ps, DINO/dino.txt: Update.
+
 2001-07-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_built.h (rcount_call): Rename it into gmatch.

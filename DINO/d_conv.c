@@ -18,6 +18,8 @@ to_vect_string_conversion (ER_node_t var)
   mode = ER_NODE_MODE (var);
   if (mode == ER_NM_float || mode == ER_NM_int || mode == ER_NM_char)
     {
+      int saved_no_gc_flag;
+
       if (mode == ER_NM_float)
 	representation = f2a (ER_f (var));
       else if (mode == ER_NM_int)
@@ -28,12 +30,11 @@ to_vect_string_conversion (ER_node_t var)
 	  str [1] = '\0';
 	  representation = str;
 	}
-      TOP_UP;
-      *(val_t *) ctop = *(val_t *) var;
+      /* Remeber `var' may be changed in GC. */
+      saved_no_gc_flag = no_gc_flag;
+      no_gc_flag = TRUE;
       vect = create_string (representation);
-      /* Remeber `var' may be changed. */
-      *(val_t *) var = *(val_t *) ctop;
-      TOP_DOWN;
+      no_gc_flag = saved_no_gc_flag;
       ER_SET_MODE (var, ER_NM_vect);
       ER_set_vect (var, vect);
     }

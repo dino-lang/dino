@@ -132,6 +132,9 @@ first_expr_processing (IR_node_t expr, int current_temp_vars_number)
     case IR_NM_const:
     case IR_NM_new:
     case IR_NM_typeof:
+    case IR_NM_charof:
+    case IR_NM_intof:
+    case IR_NM_floatof:
     case IR_NM_vectorof:
     case IR_NM_tableof:
     case IR_NM_funcof:
@@ -835,6 +838,9 @@ value_type (IR_node_t expr)
     case IR_NM_bitwise_not:
     case IR_NM_length:
     case IR_NM_typeof:
+    case IR_NM_charof:
+    case IR_NM_intof:
+    case IR_NM_floatof:
     case IR_NM_vectorof:
     case IR_NM_tableof:
     case IR_NM_funcof:
@@ -1160,6 +1166,30 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
       IR_set_operand (expr, third_expr_processing (IR_operand (expr), FALSE));
       SET_PC (expr);
       IR_set_value_type (expr, EVT_TYPE);
+      break;
+    case IR_NM_charof:
+      SET_SOURCE_POSITION (expr);
+      IR_set_operand (expr, third_expr_processing (IR_operand (expr), FALSE));
+      SET_PC (expr);
+      type_test (IR_operand (expr), EVT_NUMBER_VECTOR_MASK,
+		 ERR_invalid_conversion_to_char_operand_type);
+      IR_set_value_type (expr, EVT_CHAR);
+      break;
+    case IR_NM_intof:
+      SET_SOURCE_POSITION (expr);
+      IR_set_operand (expr, third_expr_processing (IR_operand (expr), FALSE));
+      SET_PC (expr);
+      type_test (IR_operand (expr), EVT_NUMBER_VECTOR_MASK,
+		 ERR_invalid_conversion_to_int_operand_type);
+      IR_set_value_type (expr, EVT_INT);
+      break;
+    case IR_NM_floatof:
+      SET_SOURCE_POSITION (expr);
+      IR_set_operand (expr, third_expr_processing (IR_operand (expr), FALSE));
+      SET_PC (expr);
+      type_test (IR_operand (expr), EVT_NUMBER_VECTOR_MASK,
+		 ERR_invalid_conversion_to_float_operand_type);
+      IR_set_value_type (expr, EVT_FLOAT);
       break;
     case IR_NM_vectorof:
       SET_SOURCE_POSITION (expr);
@@ -1852,6 +1882,9 @@ fourth_expr_processing (IR_node_t expr)
     case IR_NM_bitwise_not:
     case IR_NM_length:
     case IR_NM_typeof:
+    case IR_NM_charof:
+    case IR_NM_intof:
+    case IR_NM_floatof:
     case IR_NM_vectorof:
     case IR_NM_tableof:
     case IR_NM_funcof:

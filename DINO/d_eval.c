@@ -1447,6 +1447,51 @@ evaluate (IR_node_mode_t node_mode)
 	INCREMENT_PC ();
 	break;
       }
+    case IR_NM_charof:
+      {
+	int i;
+
+	implicit_int_conversion (1);
+	if (ER_NODE_MODE (ctop) != ER_NM_int)
+	  eval_error (optype_decl, invops_decl, *source_position_ptr,
+		      DERR_conversion_to_char_operand_type);
+	if (ER_i (ctop) > MAX_CHAR || ER_i (ctop) < 0)
+	  {
+#ifdef ERANGE
+	    errno = ERANGE;
+	    process_system_errors ("int-to-char conversion");
+#endif
+	  }
+	i = ER_i (ctop);
+	ER_SET_MODE (ctop, ER_NM_char);
+	ER_set_ch (ctop, i);
+	INCREMENT_PC ();
+	break;
+      }
+    case IR_NM_intof:
+      implicit_int_conversion (1);
+      if (ER_NODE_MODE (ctop) != ER_NM_int)
+	eval_error (optype_decl, invops_decl, *source_position_ptr,
+		    DERR_conversion_to_int_operand_type);
+      INCREMENT_PC ();
+      break;
+    case IR_NM_floatof:
+      {
+	floating_t f;
+
+	implicit_arithmetic_conversion (1);
+	if (ER_NODE_MODE (ctop) == ER_NM_int)
+	  {
+	    f = ER_i (ctop);
+	    ER_SET_MODE (ctop, ER_NM_float);
+	    ER_set_f (ctop, f);
+	  }
+	 else if (ER_NODE_MODE (ctop) != ER_NM_float)
+	   eval_error (optype_decl, invops_decl, *source_position_ptr,
+		       DERR_conversion_to_float_operand_type);
+	INCREMENT_PC ();
+	break;
+      }
     case IR_NM_vectorof:
       {
 	ER_node_t vect;
@@ -1990,8 +2035,8 @@ evaluate (IR_node_mode_t node_mode)
     case IR_NM_block_finish:
       if (IR_simple_block_flag (IR_POINTER (cpc)))
 	{
-	  QUANTUM_SWITCH_PROCESS;
 	  INCREMENT_PC ();
+	  QUANTUM_SWITCH_PROCESS;
 	  break;
 	}
       /* Flow through */

@@ -58,6 +58,12 @@ char ERR_invalid_repetition_type []
   = "invalid type of repetition in vector (`[...]')";
 char ERR_invalid_length_operand_type []
   = "invalid operand type in length operation `#'";
+char ERR_invalid_conversion_to_char_operand_type []
+  = "invalid operand type in char (...)";
+char ERR_invalid_conversion_to_int_operand_type []
+  = "invalid operand type in int (...)";
+char ERR_invalid_conversion_to_float_operand_type []
+  = "invalid operand type in float (...)";
 char ERR_invalid_conversion_to_vector_operand_type []
   = "invalid operand type vector (...)";
 char ERR_invalid_conversion_to_table_operand_type []
@@ -146,6 +152,12 @@ char DERR_unary_minus_operand_type []
   = "run time error - invalid type of operand of unary operator \"-\"";
 char DERR_length_operand_type []
   = "run time error - invalid type of operand of operator \"#\"";
+char DERR_conversion_to_char_operand_type []
+  = "run time error - invalid type of operand of char (...)";
+char DERR_conversion_to_int_operand_type []
+  = "run time error - invalid type of operand of int (...)";
+char DERR_conversion_to_float_operand_type []
+  = "run time error - invalid type of operand of float (...)";
 char DERR_conversion_to_vector_operand_type []
   = "run time error - invalid type of operand of vector (...)";
 char DERR_conversion_to_table_operand_type []
@@ -220,7 +232,7 @@ char DERR_enotty []
 char DERR_enxio [] = "system error - no such device or address: `%s'";
 char DERR_eperm [] = "system error - operation not permitted: `%s'";
 char DERR_epipe [] = "system error - broken pipe: `%s'";
-char DERR_erange [] = "system error - result too large: `%s'";
+char DERR_erange [] = "system error - result too big (small): `%s'";
 char DERR_erofs [] = "system error - read-only file system: `%s'";
 char DERR_espipe [] = "system error - invalid seek: `%s'";
 char DERR_esrch [] = "system error - no such process: `%s'";

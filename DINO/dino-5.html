@@ -654,18 +654,38 @@ the operands is made.
 <P>The remaining operators look like a function call.  Operator
 <CODE>type</CODE> returns the expression type.  Never an exception
 generation is possible during the operator evaluation.
+<P>Operator <CODE>char</CODE> is used to conversion of a value into
+character.  The first, implicit integer conversion is applied to the
+operand.  The operand should be an integer after the conversion.
+Otherwise, exception <CODE>optype</CODE> will be generated.  The integer
+is transformed into character with the corresponding code.  If the
+code is too big to be a character or negative, exception
+<CODE>erange</CODE> is generated.
+<P>Operator <CODE>int</CODE> is used to conversion of a value into integer.
+The first, implicit integer conversion is applied to the operand.  The
+operand should be an integer after the conversion.  Otherwise,
+exception <CODE>optype</CODE> will be generated.  If the code is too big
+to be an integer, exception <CODE>erange</CODE> is generated.
+<P>Operator <CODE>float</CODE> is used to conversion of a value into
+floating-point number.  The first, implicit arithmetic conversion is
+applied to the operand.  The operand should be an integer or a
+floating-point number after the conversion.  Otherwise, exception
+<CODE>optype</CODE> will be generated.  The integer is transformed into
+the corresponding floating-point number.  If the code is too big or
+small to be a floating-point number, exception <CODE>erange</CODE> is
+generated.
 <P>Operator <CODE>vector</CODE> is used to conversion of a value into vector.
-The first, implicit string conversion is applied to the operand.  If
-the operand is a table after the conversion, the table is transformed
-into new vector which consists of pairs (one pair for each element of
-the table).  The first element of the pair is key of the corresponding
-element, the second one is the element itself.  The order of the pairs
-in the result vector is undefined.
+The first, implicit string conversion is applied to the operand.  The
+operand should be a table or a vector after the conversion.  The table
+is transformed into new vector which consists of pairs (one pair for
+each element of the table).  The first element of the pair is key of
+the corresponding element, the second one is the element itself.  The
+order of the pairs in the result vector is undefined.
 <P>Operator <CODE>table</CODE> is used to conversion of a value into table.
-The first, string conversion is applied to the operand.  If the
-operand is a vector after the conversion, the vector is transformed
-into new table whose elements equal to the vector elements have
-integer keys equal to the corresponding vector indexes.
+The first, string conversion is applied to the operand.  The operand
+should be a vector or a table after the conversion.  The vector is
+transformed into new table whose elements equal to the vector elements
+have integer keys equal to the corresponding vector indexes.
 <P>If the operand of operator <CODE>func</CODE> is an block instance of body
 of a function, it returns the corresponding function.  Otherwise, it
 returns value <B>nil</B>.  The operator never generates exception.
@@ -681,6 +701,9 @@ never generates exception.
                | "#"  Expr
                | Expr "@"  Expr
                | type "(" Expr ")"
+               | char "(" Expr ")"
+               | int "(" Expr ")"
+               | float "(" Expr ")"
                | vector "(" Expr ")"
                | table "(" Expr ")"
                | func "(" Expr ")"
@@ -698,6 +721,7 @@ Examples:
           "concat this " @ "and this"
           type (type)
           type (10)
+          char (12)
           vector  (10)
           vector ({"1":1, "2":2})
           table ([1, 2, 3, 4])

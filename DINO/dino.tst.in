@@ -15973,7 +15973,7 @@ TEST179
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT179' && cmp $stderr $ftemp2; then
-test.d:1:18: system error - result too large: `string-to-int conversion'
+test.d:1:18: system error - result too big (small): `string-to-int conversion'
 OUTPUT179
                         result=ok
                 else
@@ -15994,7 +15994,7 @@ TEST180
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT180' && cmp $stderr $ftemp2; then
-test.d:1:18: system error - result too large: `string-to-float conversion'
+test.d:1:18: system error - result too big (small): `string-to-float conversion'
 OUTPUT180
                         result=ok
                 else
@@ -16015,7 +16015,7 @@ TEST181
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT181' && cmp $stderr $ftemp2; then
-test.d:1:18: system error - result too large: `string-to-float conversion'
+test.d:1:18: system error - result too big (small): `string-to-float conversion'
 OUTPUT181
                         result=ok
                 else
@@ -16141,7 +16141,7 @@ TEST187
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT187' && cmp $stderr $ftemp2; then
-test.d:1:24: system error - result too large: `string-to-int conversion'
+test.d:1:24: system error - result too big (small): `string-to-int conversion'
 OUTPUT187
                         result=ok
                 else
@@ -16162,7 +16162,7 @@ TEST188
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT188' && cmp $stderr $ftemp2; then
-test.d:1:29: system error - result too large: `string-to-float conversion'
+test.d:1:29: system error - result too big (small): `string-to-float conversion'
 OUTPUT188
                         result=ok
                 else
@@ -20847,7 +20847,7 @@ TEST359
         else
                 echo '      ' cmp - $stderr
                 if cat >$ftemp2 <<'OUTPUT359' && cmp $stderr $ftemp2; then
-test.d:1:13: system error - result too large: `pow'
+test.d:1:13: system error - result too big (small): `pow'
 OUTPUT359
                         result=ok
                 else
@@ -26726,6 +26726,308 @@ TEST469
                 if cat >$ftemp2 <<'OUTPUT469' && cmp $stderr $ftemp2; then
 test.d:1:16: run time error - invalid number of parameters of `fgetf'
 OUTPUT469
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 470.
+if test $result = ok -a $start_test_number -le 470; then
+	echo test 470
+        cat >$test_file <<'TEST470'
+println (char ('a'));
+println (char ("97"));
+TEST470
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT470' && cmp $stdout $ftemp2; then
+'a'
+'a'
+OUTPUT470
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 471.
+if test $result = ok -a $start_test_number -le 471; then
+	echo test 471
+        cat >$test_file <<'TEST471'
+println (int (10.0));
+println (int ("10"));
+TEST471
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT471' && cmp $stdout $ftemp2; then
+10
+10
+OUTPUT471
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 472.
+if test $result = ok -a $start_test_number -le 472; then
+	echo test 472
+        cat >$test_file <<'TEST472'
+println (float (10.5));
+println (float ("10.5"));
+println (float (10));
+TEST472
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT472' && cmp $stdout $ftemp2; then
+10.5
+10.5
+10
+OUTPUT472
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 473.
+if test $result = ok -a $start_test_number -le 473; then
+	echo test 473
+        cat >$test_file <<'TEST473'
+println (char (nil));
+TEST473
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT473' && cmp $stderr $ftemp2; then
+test.d:1:14: run time error - invalid type of operand of char (...)
+OUTPUT473
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 474.
+if test $result = ok -a $start_test_number -le 474; then
+	echo test 474
+        cat >$test_file <<'TEST474'
+println (char ({}));
+TEST474
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT474' && cmp $stderr $ftemp2; then
+test.d:1:18: invalid operand type in char (...)
+OUTPUT474
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 475.
+if test $result = ok -a $start_test_number -le 475; then
+	echo test 475
+        cat >$test_file <<'TEST475'
+println (char (300));
+TEST475
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT475' && cmp $stderr $ftemp2; then
+test.d:1:14: system error - result too big (small): `int-to-char conversion'
+OUTPUT475
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 476.
+if test $result = ok -a $start_test_number -le 476; then
+	echo test 476
+        cat >$test_file <<'TEST476'
+println (char ("30000000000000000"));
+TEST476
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT476' && cmp $stderr $ftemp2; then
+test.d:1:14: system error - result too big (small): `string-to-int conversion'
+OUTPUT476
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 477.
+if test $result = ok -a $start_test_number -le 477; then
+	echo test 477
+        cat >$test_file <<'TEST477'
+println (int (nil));
+TEST477
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT477' && cmp $stderr $ftemp2; then
+test.d:1:13: run time error - invalid type of operand of int (...)
+OUTPUT477
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 478.
+if test $result = ok -a $start_test_number -le 478; then
+	echo test 478
+        cat >$test_file <<'TEST478'
+println (int ({}));
+TEST478
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT478' && cmp $stderr $ftemp2; then
+test.d:1:17: invalid operand type in int (...)
+OUTPUT478
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 479.
+if test $result = ok -a $start_test_number -le 479; then
+	echo test 479
+        cat >$test_file <<'TEST479'
+println (int ("30000000000000000"));
+TEST479
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT479' && cmp $stderr $ftemp2; then
+test.d:1:13: system error - result too big (small): `string-to-int conversion'
+OUTPUT479
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 480.
+if test $result = ok -a $start_test_number -le 480; then
+	echo test 480
+        cat >$test_file <<'TEST480'
+println (float (nil));
+TEST480
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT480' && cmp $stderr $ftemp2; then
+test.d:1:15: run time error - invalid type of operand of float (...)
+OUTPUT480
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 481.
+if test $result = ok -a $start_test_number -le 481; then
+	echo test 481
+        cat >$test_file <<'TEST481'
+println (float ({}));
+TEST481
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT481' && cmp $stderr $ftemp2; then
+test.d:1:19: invalid operand type in float (...)
+OUTPUT481
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 482.
+if test $result = ok -a $start_test_number -le 482; then
+	echo test 482
+        cat >$test_file <<'TEST482'
+println (float ("1e500"));
+TEST482
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT482' && cmp $stderr $ftemp2; then
+test.d:1:15: system error - result too big (small): `string-to-float conversion'
+OUTPUT482
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 483.
+if test $result = ok -a $start_test_number -le 483; then
+	echo test 483
+        cat >$test_file <<'TEST483'
+println (float ("1e-500"));
+TEST483
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT483' && cmp $stderr $ftemp2; then
+test.d:1:15: system error - result too big (small): `string-to-float conversion'
+OUTPUT483
                         result=ok
                 else
                         result=fail

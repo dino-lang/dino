@@ -1,7 +1,40 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino10986.info.2.
+/tmp/sgmltmp.dino31705.info.2.
 
    \input texinfo
+
+
+File: dino.info,  Node: Functions for access to process information,  Next: Miscellaneous functions,  Prev: Time functions,  Up: Predeclared functions
+
+Functions for access to process information
+-------------------------------------------
+
+   There are Dino predeclared functions which are used to get
+information about the current OS process (Dino interpreter which
+executes the program).  Each OS processor has unique identifier and
+usually OS processes are called by a concrete user and group and are
+executed on behalf of the concrete user and group (so called effective
+identifiers).  The following functions return such information.  On
+some OSes the function may return string "Unknown" as a name if there
+are notion of user and group identifiers.
+   * `getpid ()'.  The function returns integer value which is process
+     ID of the current OS process.
+
+   * `getun ()'.  The function returns new string which is user name
+     for the current OS process.
+
+   * `geteun ()'.  The function returns new string which is effective
+     user name for the current OS process.
+
+   * `getgn ()'.  The function returns new string which is group name
+     for the current OS process.
+
+   * `getegn ()'.  The function returns new string which is effective
+     group name for the current OS process.
+
+   * `getgroups ()'.  The function returns new vector of strings
+     (possibly empty vector) representing supplementary group names for
+     the current OS process.
 
 
 File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to process information,  Up: Predeclared functions
@@ -218,6 +251,9 @@ Appendix A- Syntax of Dino
           | thread
           | class
           | func "(" ")"
+          | char "(" Expr ")"
+          | int "(" Expr ")"
+          | float "(" Expr ")"
           | vector "(" Expr ")"
           | table "(" Expr ")"
           | thread "(" ")"

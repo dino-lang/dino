@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino10986.info.2.
+/tmp/sgmltmp.dino31705.info.2.
 
    \input texinfo
 
@@ -104,19 +104,40 @@ is made.
 returns the expression type.  Never an exception generation is possible
 during the operator evaluation.
 
+   Operator `char' is used to conversion of a value into character.
+The first, implicit integer conversion is applied to the operand.  The
+operand should be an integer after the conversion.  Otherwise,
+exception `optype' will be generated.  The integer is transformed into
+character with the corresponding code.  If the code is too big to be a
+character or negative, exception `erange' is generated.
+
+   Operator `int' is used to conversion of a value into integer.  The
+first, implicit integer conversion is applied to the operand.  The
+operand should be an integer after the conversion.  Otherwise,
+exception `optype' will be generated.  If the code is too big to be an
+integer, exception `erange' is generated.
+
+   Operator `float' is used to conversion of a value into
+floating-point number.  The first, implicit arithmetic conversion is
+applied to the operand.  The operand should be an integer or a
+floating-point number after the conversion.  Otherwise, exception
+`optype' will be generated.  The integer is transformed into the
+corresponding floating-point number.  If the code is too big or small
+to be a floating-point number, exception `erange' is generated.
+
    Operator `vector' is used to conversion of a value into vector.  The
-first, implicit string conversion is applied to the operand.  If the
-operand is a table after the conversion, the table is transformed into
-new vector which consists of pairs (one pair for each element of the
-table).  The first element of the pair is key of the corresponding
-element, the second one is the element itself.  The order of the pairs
-in the result vector is undefined.
+first, implicit string conversion is applied to the operand.  The
+operand should be a table or a vector after the conversion.  The table
+is transformed into new vector which consists of pairs (one pair for
+each element of the table).  The first element of the pair is key of
+the corresponding element, the second one is the element itself.  The
+order of the pairs in the result vector is undefined.
 
    Operator `table' is used to conversion of a value into table.  The
-first, string conversion is applied to the operand.  If the operand is
-a vector after the conversion, the vector is transformed into new table
-whose elements equal to the vector elements have integer keys equal to
-the corresponding vector indexes.
+first, string conversion is applied to the operand.  The operand should
+be a vector or a table after the conversion.  The vector is transformed
+into new table whose elements equal to the vector elements have integer
+keys equal to the corresponding vector indexes.
 
    If the operand of operator `func' is an block instance of body of a
 function, it returns the corresponding function.  Otherwise, it returns
@@ -133,6 +154,9 @@ generates exception.
                     | "#"  Expr
                     | Expr "@"  Expr
                     | type "(" Expr ")"
+                    | char "(" Expr ")"
+                    | int "(" Expr ")"
+                    | float "(" Expr ")"
                     | vector "(" Expr ")"
                     | table "(" Expr ")"
                     | func "(" Expr ")"
@@ -146,6 +170,7 @@ generates exception.
                "concat this " @ "and this"
                type (type)
                type (10)
+               char (12)
                vector  (10)
                vector ({"1":1, "2":2})
                table ([1, 2, 3, 4])
@@ -1066,191 +1091,4 @@ embedded into Dino interpreter.
 * Token-::
 * Anode-::
 * Example of Earley parser usage-::
-
-
-File: dino.info,  Node: Parser-,  Next: Token-,  Up: Earley parser classes
-
-Parser-
-.......
-
-   Dino has predeclared final class `parser' which implements Earley
-parser.  Earley parser is very powerfull tools to implement serious
-language compilers, processors, or translators.  The implementaion of
-Earley parser used in Dino has the following features:
-
-   * It is sufficiently fast and does not require much memory.  This is
-     the fastest implementation of Earley parser which I know.  The
-     main design goal is to achieve speed and memory requirements which
-     are necessary to use it in prototype compilers and language
-     processors.  It parses 30K lines of C program per second on 500
-     MHz Pentium III and allocates about 5Mb memory for 10K line C
-     program.
-
-   * It makes simple syntax directed translation.  So an abstract tree
-     is already the output of Earley parser.
-
-   * It can parse input described by an ambiguous grammar.  In this
-     case the parse result can be an abstract tree or all possible
-     abstract trees.  Moreover it produces the compact representation
-     of all possible parse trees by using DAG instead of real trees.
-     These feature can be used to parse natural language sentences.
-
-   * It can make syntax error recovery.  Moreover its error recovery
-     algorithms finds error recovery with minimal number of ignored
-     tokens.  It permits to implement parsers with very good error
-     recovery and reporting.
-
-   * It has fast startup.  There is no practically delay between
-     processing grammar and start of parsing.
-
-   * It has flexible interface.  The input grammar is given by
-     YACC-like description.
-
-   * It has good debugging features.  It can print huge amount of
-     information about grammar, parsing, error recovery, translation.
-     You can even output the result translation in form for a graphic
-     visualization program.
-
-   The following public functions and variables are declared in the
-class `parser':
-   * `ambiguous_p'.  This public variable stores information
-     about the last parsing.  Nonzero variable value means that during
-     last parsing on given input the parser found that the grammar is
-     ambiguous.  The parser find this even if you asked producing only
-     one parser tree (see function `set_one_parse').
-
-   * `set_grammar (descr, strict_p)'.  This function
-     tunes the parser to given grammar.  The grammar is given by string
-     `descr'.  Nonzero parameter `strict_p' value (after
-     implicit implicit integer conversion) means more strict checking
-     the grammar.  In this case, all nonterminals will be checked on
-     ability to derive a terminal string instead of only checking axiom
-     for this.  The function can generate exceptions `partype' (if the
-     parameters has wrong types) or `invgrammar' if the description is
-     a bad grammar.  The function also can generate exception `pmemory'
-     if there are no memory for internal parser data.
-
-     The description is similiar `YACC' one.  It has the following
-     syntax:
-                    file : file terms [';']
-                         | file rule
-                         | terms [';']
-                         | rule
-          
-                    terms : terms IDENTIFIER ['=' NUMBER]
-                          | TERM
-          
-                    rule : IDENTIFIER ':' rhs [';']
-          
-                    rhs : rhs '|' sequence [translation]
-                        | sequence [translation]
-          
-                    sequence :
-                             | sequence IDENTIFIER
-                             | sequence C_CHARACTER_CONSTANT
-          
-                    translation : ['#'] NUMBER
-                                | '#' IDENTIFIER '(' numbers ')'
-          
-                    numbers :
-                            | numbers NUMBER
-
-     So the description consists of terminal declaration and rules
-     sections.
-
-     Terminal declaration section describes name of terminals and their
-     codes.  Terminal code is optional.  If it is omitted, the terminal
-     code will the next free code starting with 256.  You can declare
-     terminal several times (the single condition its code should be
-     the same).
-
-     Character constant present in the rules is a terminal described by
-     default.  Its code is always code of the character constant.
-
-     Rules syntax is the same as `YACC' rule syntax.  The single
-     difference is an optional translation construction starting with
-     `[num   ]' right after each alternative.  The translation part
-     could be a single number which means that the translation of the
-     alternative will be the translation of the symbol with given
-     number (symbol numbers in alternative starts with 0).  Or the
-     translation can be abstract node with given name and with fields
-     whose values are the translations of the alternative symbols with
-     numbers given in parentheses after the abstract node name.
-
-     There is reserved terminal `error' which marks start point of
-     error recovery.
-
-   * `set_debug (level)'.  This function sets up level of
-     debugging information output to `stderr'.  The more level, the
-     more information is output.  The default value is 0 (no output).
-     The debugging information includes statistics, result translation
-     tree, grammar, parser sets, parser sets with all situations,
-     situations with contexts.  The function returns the previously set
-     up debug level.  Setting up negative debug level results in output
-     of translation for program `dot' of graphic visualization package
-     `graphviz'.  The parameter should be an integer after implicit
-     integer conversion.  The function will generate exception
-     `partype' if it is not true.
-
-   * `set_one_parse (flag)'.  This function sets up flag
-     whose nonzero value means means building only one translation tree
-     (without alternative nodes).  For unambiguous grammar the flag
-     does not affect the result.  The function returns the previously
-     set up flag value.  The default value of the flag is 1.  The
-     parameter should be an integer after implicit integer conversion.
-     The function will generate exception `partype' if it is not true.
-
-   * `set_recovery (flag)'.  This function sets up flag whose
-     nonzero value means making error recovery if syntax error
-     occurred.  Otherwise, syntax error results in finishing parsing
-     (although syntax error function passed to `parse' is called once).
-     The function returns the previously set up flag value.  The
-     default value of the flag is 1.  The parameter should be an
-     integer after implicit integer conversion.  The function will
-     generate exception `partype' if it is not true.
-
-   * `set_recovery_match (n_toks)'.  This function
-     sets up parser internal parameter meaning how much subsequent
-     tokens should be successfully shifted to finish error recovery.
-     The default value is 3.  The function returns the previously set up
-     value.  The parameter should be an integer after implicit integer
-     conversion.  The function will generate exception `partype' if it
-     is not true.
-
-   * `parse (tokens, error_func)'. This function is major
-     function of the class.  It makes translation according to
-     previously set up grammar of input given by parameter `tokens'
-     whose value should be array of objects of predeclared class
-     `token'.  If the parser recognizes a syntax error it calls
-     function given through parameter `error_func' with six
-     parameters:
-        * index of token (in array `tokens') on which the syntax error
-          occured.
-
-        * the error token itself.
-
-        * index of the first token (in array `tokens') ignored because
-          of error recovery.
-
-        * the first ignored token itself.
-
-        * index of the first token (in array `tokens') which is not
-          ignored after error recovery.
-
-        * the first not ignored token itself.
-
-     If the parser works with switched off error recovery (see function
-     `set_recovery', the third and fifth parameters will be
-     negative and forth and sixth parameters will be `nil'.
-
-     The function returns object of predeclared class `anode' which is
-     root of the abtsract tree representing the translation of the
-     parser input.  The function can generate exception `partype' if
-     the parameter types are wrong or `invtoken_decl' if the
-     input token has wrong code.  The function also can generate
-     exception `pmemory' if there are no memory for internal parser
-     data.
-
-   The call of class `parser' itself can generate exception `pmemory'
-if there are no memory for internal parser data.
 

@@ -604,6 +604,8 @@ new_heap_chunk (size_t size)
   curr_heap_chunk
     = &((struct heap_chunk *) VLO_BEGIN (heap_chunks))
       [VLO_LENGTH (heap_chunks) / sizeof (struct heap_chunk) - 1];
+  if (size < heap_size / 3)
+    size = heap_size / 3;
   size = ALLOC_SIZE (size);
   CALLOC (str, 1, size);
   curr_heap_chunk->chunk_start = curr_heap_chunk->chunk_free = str;
@@ -759,11 +761,13 @@ heap_object_size (ER_node_t obj)
 #if INLINE
 __inline__
 #endif
-static void
+static int
 try_heap_free (void *from, size_t size)
 {
-  if (curr_heap_chunk->chunk_free - size == (char *) from)
-    curr_heap_chunk->chunk_free -= size;
+  if (curr_heap_chunk->chunk_free - size != (char *) from)
+    return FALSE;
+  curr_heap_chunk->chunk_free -= size;
+  return TRUE;
 }
 
 
@@ -1517,8 +1521,10 @@ heap_pop (void)
   IR_set_cached_container_address (block_node, NULL);
 #endif
   cstack = ER_prev_stack (cstack);
-  if (!IR_extended_life_context_flag (block_node))
-    try_heap_free (stack, heap_object_size (stack));
+  if (!IR_extended_life_context_flag (block_node)
+      && try_heap_free (stack, heap_object_size (stack))
+      && ER_saved_cstack (cprocess) == stack)
+    ER_set_saved_cstack (cprocess, cstack);
   if (cstack != NULL)
     SET_TOP;
 }
@@ -1717,7 +1723,9 @@ pack_vector_if_possible (ER_node_t unpack_vect)
 
   immutable = ER_immutable (unpack_vect);
   els_number = ER_els_number (unpack_vect);
-  el_type = ER_NODE_MODE (INDEXED_VAL (ER_unpack_els (unpack_vect), 0));
+  el_type = (els_number != 0
+	     ? ER_NODE_MODE (INDEXED_VAL (ER_unpack_els (unpack_vect), 0))
+	     : ER_NM_nil);
   for (i = 0; i < els_number; i++)
     if (ER_NODE_MODE (INDEXED_VAL (ER_unpack_els (unpack_vect), i))
 	!= el_type)

@@ -1219,10 +1219,9 @@ cond :: operation
    false_path_pc : generic_pos
 ;
 
-const, new,
-   not, unary_plus, unary_minus, bitwise_not, length,
-   typeof, vectorof, tableof, funcof, threadof, classof,
-   deref :: unary_operation
+const, new, not, unary_plus, unary_minus, bitwise_not, length,
+   typeof, charof, intof, floatof, vectorof, tableof,
+   funcof, threadof, classof, deref :: unary_operation
 ;
 
 %abstract

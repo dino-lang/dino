@@ -322,6 +322,21 @@ expr : expr '?' pos expr ':' expr
           $$ = create_node_with_pos (IR_NM_typeof, $1);
           IR_set_operand ($$, $4);
         }
+     | pos CHAR '(' expr ')'
+       	{
+          $$ = create_node_with_pos (IR_NM_charof, $1);
+          IR_set_operand ($$, $4);
+        }
+     | pos INT '(' expr ')'
+       	{
+          $$ = create_node_with_pos (IR_NM_intof, $1);
+          IR_set_operand ($$, $4);
+        }
+     | pos FLOAT '(' expr ')'
+       	{
+          $$ = create_node_with_pos (IR_NM_floatof, $1);
+          IR_set_operand ($$, $4);
+        }
      | pos VECTOR '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_vectorof, $1);
@@ -1655,7 +1670,9 @@ static int get_string_code (int input_char, int *correct_newln)
       else if (input_char == 't')
         input_char = '\t';
       else if (input_char == 'v')
-      input_char = '\v';
+	input_char = '\v';
+      else if (input_char == 'a')
+        input_char = '\a';
       else if (input_char == 'b')
         input_char = '\b';
       else if (input_char == 'r')

@@ -1782,6 +1782,8 @@ print_ch (FILE *f, int ch)
     fprintf (f, "\\t");
   else if (ch == '\v')
     fprintf (f, "\\v");
+  else if (ch == '\a')
+    fprintf (f, "\\a");
   else if (ch == '\b')
     fprintf (f, "\\b");
   else if (ch == '\r')
@@ -2893,7 +2895,9 @@ get_char_code (FILE *f, int curr_char, int *correct_newln)
       else if (curr_char == 't')
         curr_char = '\t';
       else if (curr_char == 'v')
-      curr_char = '\v';
+	curr_char = '\v';
+      else if (curr_char == 'a')
+        curr_char = '\a';
       else if (curr_char == 'b')
         curr_char = '\b';
       else if (curr_char == 'r')
