@@ -53,7 +53,7 @@ if test $result = ok -a $start_test_number -le 1; then
 main ()
 {
   IEEE_float_t f, pm, nm;
-  char str [500], res [MAX_SINGLE_2_STRING_LENGTH], *r1, *r2;
+  char str [500], res [MAX_SINGLE_2_STRING_LENGTH+1], *r1, *r2;
 
   IEEE::reset ();
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
@@ -564,7 +564,7 @@ if test $result = ok -a $start_test_number -le 2; then
 main ()
 {
   IEEE_double_t d, pm, nm;
-  char str [500], res [MAX_DOUBLE_2_STRING_LENGTH], *r1, *r2;
+  char str [500], res [MAX_DOUBLE_2_STRING_LENGTH+1], *r1, *r2;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -1078,7 +1078,7 @@ if test $result = ok -a $start_test_number -le 3; then
 main ()
 {
   IEEE_float_t f;
-  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -1160,7 +1160,7 @@ if test $result = ok -a $start_test_number -le 4; then
 main ()
 {
   IEEE_double_t d;
-  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -4508,7 +4508,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -5086,7 +5086,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -5664,7 +5664,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -6248,7 +6248,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -6832,7 +6832,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -7356,7 +7356,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -7880,7 +7880,7 @@ main ()
   IEEE_float_t nmax;
   IEEE_float_t pmin;
   IEEE_float_t nmin;
-  char res [MAX_SINGLE_10_STRING_LENGTH], *r;
+  char res [MAX_SINGLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -8488,7 +8488,7 @@ main ()
   IEEE_double_t nmax;
   IEEE_double_t pmin;
   IEEE_double_t nmin;
-  char res [MAX_DOUBLE_10_STRING_LENGTH], *r;
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -9097,7 +9097,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [MAX_SINGLE_10_STRING_LENGTH];
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1];
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -9237,7 +9237,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [MAX_DOUBLE_10_STRING_LENGTH];
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1];
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                        | IEEE_DZ);
@@ -9487,7 +9487,7 @@ if test $result = ok -a $start_test_number -le 27; then
 #include "IEEE.h"
 main ()
 {
-  char res [MAX_SINGLE_10_STRING_LENGTH];
+  char res [MAX_SINGLE_10_STRING_LENGTH+1];
   unsigned char integer[4];
   unsigned char long_integer[17];
   IEEE_float_t f;
@@ -9685,7 +9685,7 @@ if test $result = ok -a $start_test_number -le 28; then
 #include "IEEE.h"
 main ()
 {
-  char res [MAX_DOUBLE_10_STRING_LENGTH];
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1];
   unsigned char integer[8];
   unsigned char long_integer[257];
   IEEE_double_t d;
@@ -9882,7 +9882,7 @@ if test $result = ok -a $start_test_number -le 29; then
 #include "IEEE.h"
 main ()
 {
-  char res [MAX_SINGLE_10_STRING_LENGTH];
+  char res [MAX_SINGLE_10_STRING_LENGTH+1];
   unsigned char unsigned_integer[4];
   unsigned char long_unsigned_integer[16];
   IEEE_float_t f;
@@ -10031,7 +10031,7 @@ if test $result = ok -a $start_test_number -le 30; then
 #include "IEEE.h"
 main ()
 {
-  char res [MAX_DOUBLE_10_STRING_LENGTH];
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1];
   unsigned char unsigned_integer[8];
   unsigned char long_unsigned_integer[128];
   IEEE_double_t d;
@@ -10191,7 +10191,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [MAX_SINGLE_10_STRING_LENGTH];
+  char res [MAX_SINGLE_10_STRING_LENGTH+1];
   unsigned char integer[4];
   unsigned char result[4];
 
@@ -10506,7 +10506,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [MAX_DOUBLE_10_STRING_LENGTH];
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1];
   unsigned char integer[8];
   unsigned char result[8];
 
@@ -10821,7 +10821,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [MAX_SINGLE_10_STRING_LENGTH];
+  char res [MAX_SINGLE_10_STRING_LENGTH+1];
   unsigned char unsigned_integer[4];
   unsigned char result[4];
 
@@ -11080,7 +11080,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [MAX_DOUBLE_10_STRING_LENGTH];
+  char res [MAX_DOUBLE_10_STRING_LENGTH+1];
   unsigned char unsigned_integer[8];
   unsigned char result[8];
 
@@ -11328,7 +11328,7 @@ if test $result = ok -a $start_test_number -le 35; then
 main ()
 {
   IEEE_quad_t d, pm, nm;
-  char str [500], res [MAX_QUAD_2_STRING_LENGTH], *r1, *r2;
+  char str [500], res [MAX_QUAD_2_STRING_LENGTH+1], *r1, *r2;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -11844,7 +11844,7 @@ if test $result = ok -a $start_test_number -le 36; then
 main ()
 {
   IEEE_quad_t d;
-  char res [MAX_QUAD_10_STRING_LENGTH], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -13565,7 +13565,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [MAX_QUAD_10_STRING_LENGTH], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -14143,7 +14143,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [MAX_QUAD_10_STRING_LENGTH], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -14727,7 +14727,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [MAX_QUAD_10_STRING_LENGTH], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -15251,7 +15251,7 @@ main ()
   IEEE_quad_t nmax;
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
-  char res [MAX_QUAD_10_STRING_LENGTH], *r;
+  char res [MAX_QUAD_10_STRING_LENGTH+1], *r;
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -15860,7 +15860,7 @@ main ()
   IEEE_float_t pmin;
   IEEE_float_t nmin;
   char *r;
-  char res [MAX_SINGLE_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -16000,7 +16000,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [MAX_QUAD_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -16250,7 +16250,7 @@ if test $result = ok -a $start_test_number -le 49; then
 #include "IEEE.h"
 main ()
 {
-  char res [MAX_QUAD_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
   unsigned char integer[16];
   unsigned char long_integer[4095];
   IEEE_quad_t f;
@@ -16447,7 +16447,7 @@ if test $result = ok -a $start_test_number -le 50; then
 #include "IEEE.h"
 main ()
 {
-  char res [MAX_QUAD_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
   unsigned char unsigned_integer[16];
   unsigned char long_unsigned_integer[2048];
   IEEE_quad_t f;
@@ -16623,7 +16623,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [MAX_QUAD_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
   unsigned char integer[8];
   unsigned char result[8];
 
@@ -16938,7 +16938,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [MAX_QUAD_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
   unsigned char unsigned_integer[8];
   unsigned char result[8];
 
@@ -17197,7 +17197,7 @@ main ()
   IEEE_double_t pmin;
   IEEE_double_t nmin;
   char *r;
-  char res [MAX_DOUBLE_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
@@ -17337,7 +17337,7 @@ main ()
   IEEE_quad_t pmin;
   IEEE_quad_t nmin;
   char *r;
-  char res [MAX_QUAD_10_STRING_LENGTH];
+  char res [MAX_QUAD_10_STRING_LENGTH+1];
 
   IEEE::set_trap_mask (IEEE_INV | IEEE_RO | IEEE_OFL | IEEE_UFL | IEEE_IMP
                       | IEEE_DZ);
