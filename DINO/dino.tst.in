@@ -29768,6 +29768,25 @@ OUTPUT508
 fi
 
 
+# Test 509.
+if test $result = ok -a $start_test_number -le 509; then
+	echo test 509: Checking that return is in function/class/ext.
+        cat >$test_file <<'TEST509'
+return ret;
+TEST509
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST509-1'; then
+test.d:1:7: statement return is not in function, class, or extension
+TEST509-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+
 # Final message
 
 if test $result = ok; then

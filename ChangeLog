@@ -1,3 +1,10 @@
+2003-10-18  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_context.c (third_block_passing): Check return inside
+	class/ext/function if it is in a scope.
+
+	* DINO/dino.tst.in: New test 509 for return on the top level.
+
 2003-09-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
         * configure.in: Check size of char *.

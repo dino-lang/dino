@@ -1727,7 +1727,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	    if (func_class_ext == NULL)
 	      error (FALSE, source_position,
 		     ERR_return_outside_func_class_ext);
-	    if (IR_NODE_MODE (stmt) == IR_NM_return_with_result)
+	    else if (IR_NODE_MODE (stmt) == IR_NM_return_with_result)
 	      {
 		if (IR_IS_OF_TYPE (func_class_ext, IR_NM_class))
 		  error (FALSE, source_position,
