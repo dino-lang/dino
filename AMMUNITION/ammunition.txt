@@ -1219,6 +1219,21 @@ external definitions:
         
         for unsigned integers.
 
+     o Function `integer_to_based_string'
+        
+        `char *integer_to_based_string (int  size, const void *operand,
+                                	int base, char *result)'
+        
+        transforms integer of given size to ascii representation with
+        given base.  The base should be between 2 and 16 including
+        them.  Digits more 9 are represented by 'a', 'b' etc.  Sign is
+        present in result string only for negative numbers.  The
+        function returns value `result'.  There is analogous function
+        
+        `unsigned_integer_to_based_string'
+        
+        for unsigned integers.
+
      o Function `integer_from_string'
         
         `char *integer_from_string (int  size, const char *operand,
@@ -1234,6 +1249,27 @@ external definitions:
         size.  There is analogous function
         
         `unsigned_integer_from_string'
+        
+        for unsigned integers.  But sign `+' is believed to be not
+        part of unsigned integer.
+
+     o Function `integer_from_based_string'
+        
+        `char *integer_from_based_string (int  size, const char *operand,
+                                          int base, void *result)'
+        
+        skips all white spaces at the begin of source string and
+        transforms the tail of the source string (ascii representation
+        with given base and with possible sign `+' or `-') to given
+        size integer and returns pointer to first non digit in the
+        source string.  The base should be between 2 and 16 including
+        them.  Digits more 9 are represented by 'a' (or 'A'), 'b' (or
+        'B') etc.  If the string started with invalid integer
+        representation the result will be zero.  The function fixes
+        overflow when result can not be represented by number of given
+        size.  There is analogous function
+        
+        `unsigned_integer_from_based_string'
         
         for unsigned integers.  But sign `+' is believed to be not
         part of unsigned integer.

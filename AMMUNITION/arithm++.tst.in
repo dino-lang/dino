@@ -98,8 +98,8 @@ if test $result = ok -a $start_test_number -le 1; then
 
 main()
 {
-  int i;
-  char str [20], s[20], d[4];
+  int i, b;
+  char str [20], s[20], d[4], d1[4];
 
   signed_integer::from_string (4, "-2147483649", d);
   if (!integer::overflow_bit)
@@ -111,6 +111,40 @@ main()
   signed_integer::to_string (4, d, s);
   if (strcmp (s, str) !=0)
     exit (1);
+
+  signed_integer::from_based_string (4, "-80000001", 16, d);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MIN);
+  signed_integer::from_string (4, str, d);
+  if (integer::overflow_bit)
+    exit (1);
+  signed_integer::to_based_string (4, d, 16, s);
+  if (strcmp (s, "-80000000") !=0)
+    exit (1);
+
+  signed_integer::from_based_string (4, "-800000Ff", 16, d);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MIN);
+  signed_integer::from_string (4, str, d);
+  if (integer::overflow_bit)
+    exit (1);
+  signed_integer::to_based_string (4, d, 16, s);
+  if (strcmp (s, "-80000000") !=0)
+    exit (1);
+
+  signed_integer::from_based_string (4, "-20000000001", 8, d);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MIN);
+  signed_integer::from_string (4, str, d);
+  if (integer::overflow_bit)
+    exit (1);
+  signed_integer::to_based_string (4, d, 8, s);
+  if (strcmp (s, "-20000000000") !=0)
+    exit (1);
+
   signed_integer::from_string (4, "2147483648", d);
   if (!integer::overflow_bit)
     exit (1);
@@ -121,6 +155,29 @@ main()
   signed_integer::to_string (4, d, s);
   if (strcmp (s, str) !=0)
     exit (1);  
+
+  signed_integer::from_based_string (4, "80000000", 16, d);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MAX);
+  signed_integer::from_string (4, str, d);
+  if (integer::overflow_bit)
+    exit (1);
+  signed_integer::to_based_string (4, d, 16, s);
+  if (strcmp (s, "7fffffff") !=0)
+    exit (1);  
+
+  signed_integer::from_based_string (4, "20000000000", 8, d);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MAX);
+  signed_integer::from_string (4, str, d);
+  if (integer::overflow_bit)
+    exit (1);
+  signed_integer::to_based_string (4, d, 8, s);
+  if (strcmp (s, "17777777777") !=0)
+    exit (1);  
+
   for (i = -2000; i < 2000 ; i++)
     {
       sprintf (str, "%d", i);
@@ -131,6 +188,18 @@ main()
       if (strcmp (s, str) !=0)
         exit (1);
     }
+  for (b = 2; b <= 16; b++)
+    for (i = -2000; i < 2000; i++)
+      {
+        sprintf (str, "%d", i);
+        signed_integer::from_string (4, str, d);
+        if (integer::overflow_bit)
+          exit (1);
+        signed_integer::to_based_string (4, d, b, s);
+        signed_integer::from_based_string (4, s, b, d1);
+        if (!signed_integer::eq (4, d, d1))
+          exit (1);
+      }
   exit (0);
 }
 TEST1
@@ -204,8 +273,8 @@ if test $result = ok -a $start_test_number -le 2; then
 
 main()
 {
-  int i;
-  char str [20], s[20], d[4];
+  int i, b;
+  char str [20], s[20], d[4], d1[4];
 
   unsigned_integer::from_string (4, "4294967296", d);
   if (!integer::overflow_bit)
@@ -217,6 +286,29 @@ main()
   unsigned_integer::to_string (4, d, s);
   if (strcmp (s, str) !=0)
     exit (1);
+
+  unsigned_integer::from_based_string (4, "100000000", 16, d);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%u", UINT_MAX);
+  unsigned_integer::from_string (4, str, d);
+  if (integer::overflow_bit)
+    exit (1);
+  unsigned_integer::to_based_string (4, d, 16, s);
+  if (strcmp (s, "ffffffff") !=0)
+    exit (1);
+
+  unsigned_integer::from_based_string (4, "40000000000", 8, d);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%u", UINT_MAX);
+  unsigned_integer::from_string (4, str, d);
+  if (integer::overflow_bit)
+    exit (1);
+  unsigned_integer::to_based_string (4, d, 8, s);
+  if (strcmp (s, "37777777777") !=0)
+    exit (1);
+
   for (i = 0; i < 4000 ; i++)
     {
       sprintf (str, "%u", i);
@@ -227,6 +319,18 @@ main()
       if (strcmp (s, str) !=0)
         exit (1);
     }
+  for (b = 2; b <= 16; b++)
+    for (i = 0; i < 4000 ; i++)
+      {
+        sprintf (str, "%u", i);
+        unsigned_integer::from_string (4, str, d);
+        if (integer::overflow_bit)
+          exit (1);
+        unsigned_integer::to_based_string (4, d, b, s);
+        unsigned_integer::from_based_string (4, s, b, d1);
+        if (!unsigned_integer::eq (4, d, d1))
+          exit (1);
+      }
   exit (0);
 }
 TEST2
@@ -2288,9 +2392,9 @@ if test $result = ok -a $start_test_number -le 36; then
 
 main()
 {
-  int i;
+  int i, b;
   char str [20], s[20];
-  sint<4> d;
+  sint<4> d, d1;
 
   d.from_str ("-2147483649");
   if (!integer::overflow_bit)
@@ -2302,6 +2406,29 @@ main()
   d.to_str (s);
   if (strcmp (s, str) !=0)
     exit (1);
+
+  d.from_based_str ("-80000001", 16);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MIN);
+  d.from_str (str);
+  if (d.overflow_bit)
+    exit (1);
+  d.to_based_str (16, s);
+  if (strcmp (s, "-80000000") !=0)
+    exit (1);
+
+  d.from_based_str ("-20000000001", 8);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MIN);
+  d.from_str (str);
+  if (d.overflow_bit)
+    exit (1);
+  d.to_based_str (8, s);
+  if (strcmp (s, "-20000000000") !=0)
+    exit (1);
+
   d.from_str ("2147483648");
   if (!integer::overflow_bit)
     exit (1);
@@ -2312,6 +2439,29 @@ main()
   d.to_str (s);
   if (strcmp (s, str) !=0)
     exit (1);  
+
+  d.from_based_str ("80000000", 16);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MAX);
+  d.from_str (str);
+  if (integer::overflow_bit)
+    exit (1);
+  d.to_based_str (16, s);
+  if (strcmp (s, "7fffffff") !=0)
+    exit (1);  
+
+  d.from_based_str ("20000000000", 8);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%d", INT_MAX);
+  d.from_str (str);
+  if (integer::overflow_bit)
+    exit (1);
+  d.to_based_str (8, s);
+  if (strcmp (s, "17777777777") !=0)
+    exit (1);  
+
   for (i = -2000; i < 2000 ; i++)
     {
       sprintf (str, "%d", i);
@@ -2321,6 +2471,18 @@ main()
       d.to_str (s);
       if (strcmp (s, str) !=0)
         exit (1);
+    }
+  for (b = 2; b <= 16; b++)
+    for (i = -2000; i < 2000; i++)
+      {
+        sprintf (str, "%d", i);
+        d.from_str (str);
+        if (d.overflow_bit)
+          exit (1);
+        d.to_based_str (b, s);
+        d1.from_based_str (s, b);
+        if (!(d == d1))
+          exit (1);
     }
   exit (0);
 }
@@ -2395,9 +2557,9 @@ if test $result = ok -a $start_test_number -le 37; then
 
 main()
 {
-  int i;
+  int i, b;
   char str [20], s[20];
-  unsint<4> d;
+  unsint<4> d, d1;
 
   d.from_str ("4294967296");
   if (!integer::overflow_bit)
@@ -2409,6 +2571,29 @@ main()
   d.to_str (s);
   if (strcmp (s, str) !=0)
     exit (1);
+
+  d.from_based_str ("100000000", 16);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%u", UINT_MAX);
+  d.from_str (str);
+  if (d.overflow_bit)
+    exit (1);
+  d.to_based_str (16, s);
+  if (strcmp (s, "ffffffff") !=0)
+    exit (1);
+
+  d.from_based_str ("40000000000", 8);
+  if (!integer::overflow_bit)
+    exit (1);
+  sprintf (str, "%u", UINT_MAX);
+  d.from_str (str);
+  if (d.overflow_bit)
+    exit (1);
+  d.to_based_str (8, s);
+  if (strcmp (s, "37777777777") !=0)
+    exit (1);
+
   for (i = 0; i < 4000 ; i++)
     {
       sprintf (str, "%u", i);
@@ -2419,6 +2604,18 @@ main()
       if (strcmp (s, str) !=0)
         exit (1);
     }
+  for (b = 2; b <= 16; b++)
+    for (i = 0; i < 4000 ; i++)
+      {
+        sprintf (str, "%u", i);
+        d.from_str (str);
+        if (d.overflow_bit)
+          exit (1);
+        d.to_based_str (b, s);
+        d1.from_based_str (s, b);
+        if (!(d == d1))
+          exit (1);
+      }
   exit (0);
 }
 TEST37

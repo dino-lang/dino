@@ -100,12 +100,20 @@ extern void change_unsigned_integer_size
 extern void change_integer_size (int operand_size, const void *operand,
                                  int result_size, void *result);
 
+extern char *unsigned_integer_to_based_string (int size, const void *operand,
+					       int base, char *result);
 extern char *unsigned_integer_to_string (int size, const void *operand,
                                          char *result);
+extern char *integer_to_based_string (int size, const void *operand, int base,
+				      char *result);
 extern char *integer_to_string (int size, const void *operand, char *result);
 
+extern char *unsigned_integer_from_base_string (int size, const char *operand,
+						int base, void *result);
 extern char *unsigned_integer_from_string (int size, const char *operand,
                                            void *result);
+extern char *integer_from_based_string (int size, const char *operand,
+					int base, void *result);
 extern char *integer_from_string (int size, const char *operand,
                                   void *result);
 
@@ -164,8 +172,12 @@ public:
   static void change_size (int operand_size, const void *operand,
                            int result_size, void *result);
   
+  static char *to_based_string (int size, const void *operand, int base,
+				char *result);
   static char *to_string (int size, const void *operand, char *result);
   
+  static char *from_based_string (int size, const char *operand, int base,
+				  void *result);
   static char *from_string (int size, const char *operand, void *result);
 };
 
@@ -208,7 +220,11 @@ public:
   static void change_size
     (int operand_size, const void *operand, int result_size, void *result);
   
+  static char *to_based_string (int size, const void *operand, int base,
+				char *result);
   static char *to_string (int size, const void *operand, char *result);
+  static char *from_based_string (int size, const char *operand, int base,
+				  void *result);
   static char *from_string (int size, const char *operand, void *result);
 };
 
@@ -380,9 +396,19 @@ public:
       return ge (size, this->container, op.container);
     }
 
+  inline char *to_based_str (int base, char *result)      
+    {                                               
+      return to_based_string (size, this->container, base, result);
+    }
+
   inline char *to_str (char *result)      
     {                                               
       return to_string (size, this->container, result);
+    }
+
+  inline char *from_based_str (const char *operand, int base)
+    {                                               
+      return from_based_string (size, operand, base, this->container);
     }
 
   inline char *from_str (const char *operand)
@@ -571,9 +597,19 @@ public:
       return ge (size, this->container, op.container);
     }
 
+  inline char *to_based_str (int base, char *result)      
+    {                                               
+      return to_based_string (size, this->container, base, result);
+    }
+
   inline char *to_str (char *result)      
     {                                               
       return to_string (size, this->container, result);
+    }
+
+  inline char *from_based_str (const char *operand, int base)
+    {                                               
+      return from_based_string (size, operand, base, this->container);
     }
 
   inline char *from_str (const char *operand)

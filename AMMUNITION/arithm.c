@@ -1526,12 +1526,15 @@ change_integer_size (int operand_size, const void *operand,
 /* This page contains functions for conversion of arbitrary precision
    numbers to ascii representation. */
 
-/* This function transforms unsigned integer of given size to decimal
-   ascii representation.  Sign is absent in result string.  The
-   function returns the result string. */
+/* This function transforms unsigned integer of given size to BASE
+   ascii representation.  BASE should be between 2 and 16 including
+   them.  Digits more 9 are represented by 'a', 'b' etc.  Sign is
+   absent in result string.  The function returns the result
+   string. */
 
 char *
-unsigned_integer_to_string (int size, const void *operand, char *result)
+unsigned_integer_to_based_string (int size, const void *operand, int base,
+				  char *result)
 {
   int digit_number;
   int i;
@@ -1541,7 +1544,8 @@ unsigned_integer_to_string (int size, const void *operand, char *result)
   int length;
   int temporary;
   unsigned char operand_copy [MAX_INTEGER_OPERAND_SIZE];
-
+  
+  assert (base >= 2 && base <= 16);
   assert (size > 0);
   assert (size <= MAX_INTEGER_OPERAND_SIZE);
   memcpy (operand_copy, operand, (size_t) size);
@@ -1551,12 +1555,13 @@ unsigned_integer_to_string (int size, const void *operand, char *result)
     for (digit_number = 0, remainder = 0; digit_number < size; digit_number++)
       {
         divisable = remainder * (UCHAR_MAX + 1) + operand_copy [digit_number];
-        remainder = divisable % 10;
-        operand_copy [digit_number] = (unsigned char) (divisable / 10);
+        remainder = divisable % base;
+        operand_copy [digit_number] = (unsigned char) (divisable / base);
         if (operand_copy [digit_number] != 0)
           nonzero_flag = 1 /* TRUE */;
       }
-    result [length++] = (unsigned char) ('0' + remainder);
+    result [length++] = (unsigned char) (remainder < 10 ? '0' + remainder
+					 : 'a' + remainder - 10);
   } while (nonzero_flag);
   result [length] = '\0';
   for (i = 0; i < length/2; i++)
@@ -1568,6 +1573,39 @@ unsigned_integer_to_string (int size, const void *operand, char *result)
   return result;
 }
 
+/* This function transforms unsigned integer of given size to decimal
+   ascii representation.  Sign is absent in result string.  The
+   function returns the result string. */
+
+char *
+unsigned_integer_to_string (int size, const void *operand, char *result)
+{
+  return unsigned_integer_to_based_string (size, operand, 10, result);
+}
+
+/* This function transforms integer of given size to BASE ascii
+   representation.  BASE should be between 2 and 16 including them.
+   Digits more 9 are represented by 'a', 'b' etc.  Sign is present in
+   result string only for negative numbers.  The function returns the
+   result string. */
+
+char *
+integer_to_based_string (int size, const void *operand, int base, char *result)
+{
+  unsigned char operand_copy [MAX_INTEGER_OPERAND_SIZE];
+
+  assert (base >= 2 && base <= 16);
+  if (!INTEGER_SIGN (operand))
+    return unsigned_integer_to_based_string (size, operand, base, result);
+  assert (size > 0);
+  memcpy (operand_copy, operand, (size_t) size);
+  /* May be integer overflow. But result is correct because it is unsigned. */
+  make_complementary_code (size, operand_copy, operand_copy);
+  *result = '-';
+  unsigned_integer_to_based_string (size, operand_copy, base, result + 1);
+  return result;
+}
+
 /* This function transforms integer of given size to decimal ascii
    representation.  Sign is present in result string only for negative
    numbers.  The function returns the result string. */
@@ -1575,17 +1613,7 @@ unsigned_integer_to_string (int size, const void *operand, char *result)
 char *
 integer_to_string (int size, const void *operand, char *result)
 {
-  unsigned char operand_copy [MAX_INTEGER_OPERAND_SIZE];
-
-  if (!INTEGER_SIGN (operand))
-    return unsigned_integer_to_string (size, operand, result);
-  assert (size > 0);
-  memcpy (operand_copy, operand, (size_t) size);
-  /* May be integer overflow. But result is correct because it is unsigned. */
-  make_complementary_code (size, operand_copy, operand_copy);
-  *result = '-';
-  unsigned_integer_to_string (size, operand_copy, result + 1);
-  return result;
+  return integer_to_based_string (size, operand, 10, result);
 }
 
 
@@ -1623,35 +1651,72 @@ add_digit_to_unsigned_integer_without_overflow_reaction
   return carry != 0;
 }
 
-/* This function transforms source string (decimal ascii
-   representation without sign) to given size unsigned integer and
-   returns pointer to first non digit in the source string through a
-   parameter.  If the string started with invalid integer
-   representation the result will be zero and returns the operand
-   through the parameter.  The function returns 1 if unsigned integer
-   overflow is fixed, 0 otherwise. */
+/* This function transforms source string (BASE ascii representation
+   without sign) to given size unsigned integer and returns pointer to
+   first non digit in the source string through a parameter.  BASE
+   should be between 2 and 16 including them.  If the string started
+   with invalid integer representation the result will be zero and
+   returns the operand through the parameter.  The function returns 1
+   if unsigned integer overflow is fixed, 0 otherwise. */
 
 static int
 string_to_unsigned_integer_without_overflow_reaction
-  (int size, const char *operand, void *result, char **first_nondigit)
+  (int size, const char *operand, void *result, char **first_nondigit,
+   int base)
 {
   int overflow_flag;
 
+  assert (base >= 2 && base <= 16);
   memset (result, 0, (size_t) size);
-  for (overflow_flag = 0; isdigit (*operand); operand++)
+  for (overflow_flag = 0;
+       (isdigit (*operand) && *operand - '0' < base)
+	 || (base > 10
+	     && ((*operand >= 'a' && *operand < 'a' + base - 10)
+		 || (*operand >= 'A' && *operand < 'A' + base - 10)));
+       operand++)
     {
       overflow_flag
         = overflow_flag
           || multiply_unsigned_integer_by_digit_without_overflow_reaction
-             (size, result, 10);
+             (size, result, base);
       overflow_flag
         = overflow_flag
           || add_digit_to_unsigned_integer_without_overflow_reaction
-             (size, result, *operand - '0');
-
+             (size, result,
+	      isdigit (*operand) ? *operand - '0'
+	      : *operand >= 'A' && *operand <= 'F' ? *operand - 'A' + 10
+	      : *operand - 'a' + 10);
     }
   *first_nondigit = (char *) operand;
   return overflow_flag;
+}
+
+/* This function skips all white spaces at the begin of source string
+   and transforms tail of the source string (BASE ascii representation
+   without sign) to given size unsigned integer with the aid of
+   function `string_to_unsigned_integer_without_overflow_reaction'.
+   BASE should be between 2 and 16 including them.  Digits more 9 are
+   represented by 'a' (or 'A'), 'b' (or 'B') etc.  If the string
+   started with invalid unsigned integer representation the result
+   will be zero.  The function fixes overflow when result can not be
+   represented by number of given size.  The function returns address
+   of the first nondigit in the source string. */
+
+char *
+unsigned_integer_from_based_string (int size, const char *operand, int base,
+				    void *result)
+{
+  char *first_nondigit;
+
+  assert (size > 0);
+  while (isspace (*operand))
+    operand++;
+  overflow_bit
+    = string_to_unsigned_integer_without_overflow_reaction
+      (size, operand, result, &first_nondigit, base);
+  if (overflow_bit)
+    (*unsigned_integer_overflow_reaction) ();
+  return first_nondigit;
 }
 
 /* This function skips all white spaces at the begin of source string
@@ -1667,31 +1732,23 @@ string_to_unsigned_integer_without_overflow_reaction
 char *
 unsigned_integer_from_string (int size, const char *operand, void *result)
 {
-  char *first_nondigit;
-
-  assert (size > 0);
-  while (isspace (*operand))
-    operand++;
-  overflow_bit
-    = string_to_unsigned_integer_without_overflow_reaction
-      (size, operand, result, &first_nondigit);
-  if (overflow_bit)
-    (*unsigned_integer_overflow_reaction) ();
-  return first_nondigit;
+  return unsigned_integer_from_based_string (size, operand, 10, result);
 }
 
 /* This function skips all white spaces at the begin of source string
-   and transforms tail of the source string (decimal ascii
-   representation with possible sign `+' or `-') to given size integer
-   with the aid of function
-   `string_to_unsigned_integer_without_overflow_reaction'.  If the
-   string started with invalid integer representation the result will
-   be zero.  The function fixes overflow when result can not be
+   and transforms tail of the source string (BASE ascii representation
+   with possible sign `+' or `-') to given size integer with the aid
+   of function `string_to_unsigned_integer_without_overflow_reaction'.
+   BASE should be between 2 and 16 including them.  Digits more 9 are
+   represented by 'a' (or 'A'), 'b' (or 'B') etc.  If the string
+   started with invalid integer representation the result will be
+   zero.  The function fixes overflow when result can not be
    represented by number of given size.  the function returns Address
    of the first nondigit in the source string. */
 
 char *
-integer_from_string (int size, const char *operand, void *result)
+integer_from_based_string (int size, const char *operand, int base,
+			   void *result)
 {
   int negative_number_flag;
   char *first_nondigit;
@@ -1710,7 +1767,7 @@ integer_from_string (int size, const char *operand, void *result)
     }
   overflow_bit
     = string_to_unsigned_integer_without_overflow_reaction
-      (size, operand, result, &first_nondigit);
+      (size, operand, result, &first_nondigit, base);
   unsigned_result_sign = INTEGER_SIGN (result);
   if (negative_number_flag)
     /* May be integer overflow when `result' is correct.  But result
@@ -1724,3 +1781,20 @@ integer_from_string (int size, const char *operand, void *result)
     (*unsigned_integer_overflow_reaction) ();
   return first_nondigit;
 }
+
+/* This function skips all white spaces at the begin of source string
+   and transforms tail of the source string (decimal ascii
+   representation with possible sign `+' or `-') to given size integer
+   with the aid of function
+   `string_to_unsigned_integer_without_overflow_reaction'.  If the
+   string started with invalid integer representation the result will
+   be zero.  The function fixes overflow when result can not be
+   represented by number of given size.  the function returns Address
+   of the first nondigit in the source string. */
+
+char *
+integer_from_string (int size, const char *operand, void *result)
+{
+  return integer_from_based_string (size, operand, 10, result);
+}
+

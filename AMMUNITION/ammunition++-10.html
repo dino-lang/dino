@@ -224,6 +224,22 @@ negative numbers (it is not possible for the function in
 class `unsigned_integer').  The functions return value
 `result'.
 <P>
+<DT><B>Static public functions `to_based_string'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `char *to_based_string (int  size, const void *operand,
+                                   int base, char *result)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+transform integer of given size to ascii representation
+with given base.  The base should be between 2 and 16
+including them.  Digits more 9 are represented by 'a', 'b'
+etc.  Sign is present in result string only for negative
+numbers (it is not possible for the function in class
+`unsigned_integer').  The functions return value `result'.
+<P>
 <DT><B>Static public functions `from_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -242,6 +258,27 @@ string.  If the string started with invalid integer
 representation the result will be zero.  The functions fix
 overflow when result can not be represented by number of
 given size.
+<P>
+<DT><B>Static public functions `from_based_string'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `char *from_based_string (int  size, const char *operand,
+                                     int base, void *result)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+skip all white spaces at the begin of source string and
+transforms the tail of the source string (ascii
+representation with given base and with possible sign `+'
+or `-' only for the function in class `signed_integer') to
+given size integer and return pointer to first non digit in
+the source string.  The base should be between 2 and 16
+including them.  Digits more 9 are represented by 'a' (or
+'A'), 'b' (or 'B') etc.  If the string started with invalid
+integer representation the result will be zero.  The
+functions fix overflow when result can not be represented
+by number of given size.
 </DL>
 <DT><B>Classes `sint' and `unsint'</B><DD><P>Classes `signed_integer' and `unsigned_integer' containing
 only static function are simply written in C style.  Object
@@ -396,6 +433,21 @@ present in result string only for negative numbers (it is
 not possible for the function in class `unsint').  The
 functions return value `result'.
 <P>
+<DT><B>Public functions `to_based_str'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `char *to_based_str (int base, char *result)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+transform integer to ascii representation with given base.
+The base should be between 2 and 16 including them.  Digits
+more 9 are represented by 'a', 'b' etc.  Sign is present in
+result string only for negative numbers (it is not possible
+for the function in class `unsint').  The functions return
+value `result'.
+<P>
 <DT><B>Public functions `from_str'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -412,6 +464,26 @@ return pointer to first non digit in the source string.
 If the string started with invalid integer representation
 the result will be zero.  The functions fixe overflow when
 result can not be represented by number of given size.
+<P>
+<DT><B>Public functions `from_based_str'</B><DD><P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `char *from_based_str (const char *operand, int base)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+skip all white spaces at the begin of source string and
+transforms the tail of the source string (ascii
+representation with given base and with possible sign `+'
+or `-' only for the function in class `signed_integer') to
+given integer and return pointer to first non digit in the
+source string.  The base should be between 2 and 16
+including them.  Digits more 9 are represented by 'a' (or
+'A'), 'b' (or 'B') etc.  If the string started with invalid
+integer representation the result will be zero.  The
+functions fixe overflow when result can not be represented
+by number of given size.
 </DL>
 <DT><B>Template functions `new_size'</B><DD><P>
 <BLOCKQUOTE><CODE>

@@ -1191,6 +1191,18 @@ external definitions:
            class `unsigned_integer').  The functions return value
            `result'.
    
+        o Static public functions `to_based_string'
+           
+           `char *to_based_string (int  size, const void *operand,
+                                   int base, char *result)'
+           
+           transform integer of given size to ascii representation
+           with given base.  The base should be between 2 and 16
+           including them.  Digits more 9 are represented by 'a', 'b'
+           etc.  Sign is present in result string only for negative
+           numbers (it is not possible for the function in class
+           `unsigned_integer').  The functions return value `result'.
+   
         o Static public functions `from_string'
            
            `char *from_string (int  size, const char *operand,
@@ -1205,6 +1217,23 @@ external definitions:
            representation the result will be zero.  The functions fix
            overflow when result can not be represented by number of
            given size.
+
+        o Static public functions `from_based_string'
+           
+           `char *from_based_string (int  size, const char *operand,
+                                     int base, void *result)'
+           
+           skip all white spaces at the begin of source string and
+           transforms the tail of the source string (ascii
+           representation with given base and with possible sign `+'
+           or `-' only for the function in class `signed_integer') to
+           given size integer and return pointer to first non digit in
+           the source string.  The base should be between 2 and 16
+           including them.  Digits more 9 are represented by 'a' (or
+           'A'), 'b' (or 'B') etc.  If the string started with invalid
+           integer representation the result will be zero.  The
+           functions fix overflow when result can not be represented
+           by number of given size.
         
      o Classes `sint' and `unsint'
         Classes `signed_integer' and `unsigned_integer' containing
@@ -1316,6 +1345,17 @@ external definitions:
            not possible for the function in class `unsint').  The
            functions return value `result'.
    
+        o Public functions `to_based_str'
+           
+           `char *to_based_str (int base, char *result)'
+           
+           transform integer to ascii representation with given base.
+           The base should be between 2 and 16 including them.  Digits
+           more 9 are represented by 'a', 'b' etc.  Sign is present in
+           result string only for negative numbers (it is not possible
+           for the function in class `unsint').  The functions return
+           value `result'.
+   
         o Public functions `from_str'
            
            `char *from_str (const char *operand)'
@@ -1328,6 +1368,22 @@ external definitions:
            If the string started with invalid integer representation
            the result will be zero.  The functions fixe overflow when
            result can not be represented by number of given size.
+
+        o Public functions `from_based_str'
+           
+           `char *from_based_str (const char *operand, int base)'
+           
+           skip all white spaces at the begin of source string and
+           transforms the tail of the source string (ascii
+           representation with given base and with possible sign `+'
+           or `-' only for the function in class `signed_integer') to
+           given integer and return pointer to first non digit in the
+           source string.  The base should be between 2 and 16
+           including them.  Digits more 9 are represented by 'a' (or
+           'A'), 'b' (or 'B') etc.  If the string started with invalid
+           integer representation the result will be zero.  The
+           functions fixe overflow when result can not be represented
+           by number of given size.
         
      o Template functions `new_size'
         

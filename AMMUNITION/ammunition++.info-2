@@ -1,5 +1,5 @@
 This is ammunition++.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.ammunition++31892.info.2.
+/tmp/sgmltmp.ammunition++23077.info.2.
 
    \input texinfo
 
@@ -153,6 +153,18 @@ definitions:
           class `unsigned_integer').  The functions return value
           `result'.
 
+    `Static public functions `to_based_string''
+                          `char *to_based_string (int  size, const void *operand,
+                                                  int base, char *result)'
+
+          transform integer of given size to ascii representation with
+          given base.  The base should be between 2 and 16 including
+          them.  Digits more 9 are represented by 'a', 'b' etc.  Sign
+          is present in result string only for negative numbers (it is
+          not possible for the function in class
+          `unsigned_integer').  The functions return value
+          `result'.
+
     `Static public functions `from_string''
                           `char *from_string (int  size, const char *operand,
                                               void *result)'
@@ -166,6 +178,22 @@ definitions:
           representation the result will be zero.  The functions fix
           overflow when result can not be represented by number of
           given size.
+
+    `Static public functions `from_based_string''
+                          `char *from_based_string (int  size, const char *operand,
+                                                    int base, void *result)'
+
+          skip all white spaces at the begin of source string and
+          transforms the tail of the source string (ascii
+          representation with given base and with possible sign `+' or
+          `-' only for the function in class `signed_integer') to
+          given size integer and return pointer to first non digit in
+          the source string.  The base should be between 2 and 16
+          including them.  Digits more 9 are represented by 'a' (or
+          'A'), 'b' (or 'B') etc.  If the string started with invalid
+          integer representation the result will be zero.  The
+          functions fix overflow when result can not be represented by
+          number of given size.
 
 `Classes `sint' and `unsint''
      Classes `signed_integer' and `unsigned_integer'
@@ -260,6 +288,16 @@ definitions:
           possible for the function in class `unsint').  The functions
           return value `result'.
 
+    `Public functions `to_based_str''
+                          `char *to_based_str (int base, char *result)'
+
+          transform integer to ascii representation with given base.
+          The base should be between 2 and 16 including them.  Digits
+          more 9 are represented by 'a', 'b' etc.  Sign is present in
+          result string only for negative numbers (it is not possible
+          for the function in class `unsint').  The functions return
+          value `result'.
+
     `Public functions `from_str''
                           `char *from_str (const char *operand)'
 
@@ -271,6 +309,21 @@ definitions:
           If the string started with invalid integer representation the
           result will be zero.  The functions fixe overflow when result
           can not be represented by number of given size.
+
+    `Public functions `from_based_str''
+                          `char *from_based_str (const char *operand, int base)'
+
+          skip all white spaces at the begin of source string and
+          transforms the tail of the source string (ascii
+          representation with given base and with possible sign `+' or
+          `-' only for the function in class `signed_integer') to
+          given integer and return pointer to first non digit in the
+          source string.  The base should be between 2 and 16 including
+          them.  Digits more 9 are represented by 'a' (or 'A'), 'b' (or
+          'B') etc.  If the string started with invalid integer
+          representation the result will be zero.  The functions fixe
+          overflow when result can not be represented by number of
+          given size.
 
 `Template functions `new_size''
                   `template <int result_size, int operand_size>
@@ -872,52 +925,4 @@ names) relative to IEEE 128 bits floating point numbers are defined
 only when macro `IEEE_QUAD' is defined.  By default
 `IEEE_QUAD' is not defined.  It is made because supporting IEEE
 18-bits numbers requires more 100Kb memory.
-
-
-File: ammunition++.info,  Node: Ticker package,  Next: Earley parser,  Prev: Package for machine-independent IEEE floating point arithmetic,  Up: Top
-
-Ticker package
-**************
-
-   The package `ticker' implements a timer.  Timer can be activated or
-can be stopped.  The timer accumulates execution time only when it is
-in active state.  The interface part of the package is file `ticker.h'.
-The implementation part is file `ticker.cpp'.  The interface contains
-the following external definitions and macros:
-
-`Type `ticker_t''
-     describes a timer.  This type is simply synonym of `class ticker'.
-
-`Class `ticker''
-     Timers are objects of this class.  The class has the following
-     members:
-    `Public constructor `ticker''
-                            `ticker (void)'
-
-          creates new timer.  The state of the timer is active.
-
-    `Public function `ticker_off''
-                            `void ticker_off (void)'
-
-          stops given timer.
-
-    `Public function `ticker_on''
-                            `void ticker_on (void)'
-
-          activates given timer.
-
-    `Function `active_time''
-                            `double active_time (ticker_t ticker)'
-
-          returns time in seconds as double float value in which the
-          timer given as the function parameter was active.
-
-    `Function `active_time_string''
-                            `const char *active_time_string (ticker_t ticker)'
-
-          returns string representation of time in seconds in which the
-          timer given as the function parameter was active.  Remember
-          that this function must be the single in a C++ expression
-          because the string is stored in a static variable of the
-          function.
 

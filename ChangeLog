@@ -1,3 +1,25 @@
+2001-06-20  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* arithm.c, arithm.cpp, arithm.h: Add new functions
+	unsigned_integer_to_based_string, integer_to_based_string,
+	unsigned_integer_from_base_string, integer_from_based_string,
+	to_based_string, from_based_string, to_based_str, from_based_str.
+	(integer_from_string, unsigned_integer_from_string,
+	string_to_unsigned_integer_without_overflow_reaction,
+	integer_to_string, unsigned_integer_to_string): Modify them.
+	(signed_integer::from_string, unsigned_integer::from_string,
+	string_to_unsigned_integer_without_overflow_reaction,
+	signed_integer::to_string, unsigned_integer::to_string): Modify
+	them.
+	
+        * ammunition.sgml.in, ammunition.sgml.in: The new functions
+	documentation.
+
+	* ammunition.txt, ammunition.ps, ammunition.info*, ammunition.dvi,
+	ammunition-10.html, ammunition++.txt, ammunition++.ps,
+	ammunition++.info*, ammunition++.dvi, ammunition++-10.html:
+	Update.
+	
 2001-06-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* sgml-txt: Fix bug with itemize inside enum.
