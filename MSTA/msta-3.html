@@ -130,12 +130,12 @@ MSTA scanner).  This means abnormal parser work finish.  The
 macro is a part of YACC POSIX standard.
 <P>
 <DT><B>yyerror</B><DD><P>When the parser detects a syntax error in its normal state,
-it normally calls external function yyerror with the string
-"syntax error" ("lexical error" for a scanner) as its
-argument.  User must provide function `yyerror' for building
-parser program.  After that the parser jumps to recovery
-mode.  The parser is considered to be recovering from a
-previous error until the parser has shifted over at least
+it normally calls external function yyerror with string
+argument whose value is defined by macro YYERROR_MESSAGE.
+User must provide function `yyerror' for building parser
+program.  After that the parser jumps to recovery mode.  The
+parser is considered to be recovering from a previous error
+until the parser has shifted over at least
 YYERR_RECOVERY_MATCHES normal input tokens since the last
 error was detected or a semantic action has executed the
 macro `yyerrok'.  The function is a part of YACC POSIX
@@ -174,6 +174,12 @@ parser in such recovery mode never executes the rule actions.
 This method is the best quality error recovery although it my
 be expensive method because in the worst case it might save
 all input tokens.
+<P>
+<DT><B>YYERROR_MESSAGE</B><DD><P>The macro value is used as a parameter of function yyerror
+when a syntax error occurs. The default value of macro is
+"syntax error" ("lexical error" for a scanner).  You can
+redefine its value.  But in any case the value should be a
+string. The macro is not a part of YACC POSIX standard.
 <DT><B>YYERR_RECOVERY_MATCHES</B><DD><P>The parser is considered to be recovering from a previous
 error until the parser has shifted over at least
 YYSERR_RECOVERY_MATCHES normal input tokens since the last

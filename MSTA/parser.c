@@ -204,6 +204,8 @@ output_finish_code_insertions (void)
 #define YYSTACK_EXPAND_SIZE_MACRO_NAME\
      (IR_scanner_flag (description)\
       ? "YYSSTACK_EXPAND_SIZE" : "YYMAX_STACK_EXPAND_SIZE")
+#define YYERROR_MESSAGE_MACRO_NAME\
+     (IR_scanner_flag (description) ? "YYSERROR_MESSAGE" : "YYERROR_MESSAGE")
 #define YYSTYPE_MACRO_NAME\
      (IR_scanner_flag (description) ? "YYSSTYPE" : "YYSTYPE")
 #define YYDEBUG_MACRO_NAME\
@@ -2570,6 +2572,16 @@ output_definitions_outside_yyparse (void)
       output_string (output_implementation_file, "  10\n");
       output_string (output_implementation_file, "#endif\n\n");
     }
+  /* Definition of `YYERROR_MESSAGE' */
+  output_string (output_implementation_file, "#ifndef  ");
+  output_string (output_implementation_file, YYERROR_MESSAGE_MACRO_NAME);
+  output_string (output_implementation_file, "\n#define  ");
+  output_string (output_implementation_file, YYERROR_MESSAGE_MACRO_NAME);
+  if (IR_scanner_flag (description))
+    output_string (output_implementation_file, " \"lexical error\"\n");
+  else
+    output_string (output_implementation_file, " \"syntax error\"\n");
+  output_string (output_implementation_file, "#endif\n\n");
   /* `#define YYEMPTY  -2' */
   output_string (output_implementation_file, "#define ");
   output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
@@ -2964,7 +2976,7 @@ output_saved_state_or_attribute_buffer_expansion_function (int state_flag)
   output_string (f, "    {\n");
   output_string (f, "      ");
   output_yyerror_function_name (f);
-  output_string (f, " (\" saved ");
+  output_string (f, " (\"saved ");
   output_string (f, (state_flag ? "states": "attributes"));
   output_string (f, " buffer is overfull\");\n");
   output_string (f, "      return 1;\n");
@@ -3551,23 +3563,15 @@ output_shift_pop_actions (IR_node_t regular_arc)
           max_attributes_stack_displacement++;
         }
       /*
--------------- if scanner || ! yacc error recovery ----------------------
               yyprev_char = yychar;
--------------------------------------------------------------------------
               yychar = YYEMPTY;
               yyerr_status--;
        */
-      if ((IR_scanner_flag (description)
-	   && msta_error_recovery == YACC_ERROR_RECOVERY)
-	  || msta_error_recovery == LOCAL_ERROR_RECOVERY)
-        {
-          output_string (output_implementation_file, "          ");
-          output_string (output_implementation_file,
-                         YYPREV_CHAR_VARIABLE_NAME);
-          output_string (output_implementation_file, " = ");
-          output_yychar_variable_name (output_implementation_file);
-          output_string (output_implementation_file, ";\n");
-        }
+      output_string (output_implementation_file, "          ");
+      output_string (output_implementation_file, YYPREV_CHAR_VARIABLE_NAME);
+      output_string (output_implementation_file, " = ");
+      output_yychar_variable_name (output_implementation_file);
+      output_string (output_implementation_file, ";\n");
       output_string (output_implementation_file, "          ");
       output_yychar_variable_name (output_implementation_file);
       output_string (output_implementation_file, " = ");
@@ -4133,7 +4137,7 @@ output_switch (void)
   /*    /* Here error processing and error recovery. * /
         if (yyerr_status <= 0)
           {
-            yyerror ("syntax error"); or yyerror ("lexical error");
+            yyerror (YYERROR_MESSAGE);
 yyerrlab:
             ++yynerrs;
 -------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
@@ -4210,10 +4214,9 @@ yyerrlab:
   output_string (f, " <= 0)\n            {\n");
   output_string (f, "              ");
   output_yyerror_function_name (f);
-  if (IR_scanner_flag (description))
-    output_string (f, " (\"lexical error\");\n");
-  else
-    output_string (f, " (\"syntax error\");\n");
+  output_string (f, " (");
+  output_string (f, YYERROR_MESSAGE_MACRO_NAME);
+  output_string (f, ");\n");
   output_string (f, YYERRLAB_LABEL_NAME);
   output_string (f, ":\n              ++");
   output_string (f, YYNERRS_VARIABLE_NAME);
@@ -4740,7 +4743,7 @@ yynext_error:
 -------------- if msta_error_recovery == LOCAL_ERROR_RECOVERY --------------
          yyerr_look_ahead_chars--;
 ----------------------------------------------------------------------------
--------------- if scanner  || msta_error_recovery == LOCAL_ERROR_RECOVERY --
+-------------- if msta_error_recovery != MINIMAL_ERROR_RECOVERY --------------
          yyprev_char = yychar;
 ----------------------------------------------------------------------------
          yychar = YYEMPTY;
@@ -5359,9 +5362,7 @@ yynext_error:
       output_string (f, YYERR_LOOK_AHEAD_CHARS_VARIABLE_NAME);
       output_string (f, "--;\n");
     }
-  if ((IR_scanner_flag (description)
-       && msta_error_recovery == YACC_ERROR_RECOVERY)
-      || msta_error_recovery == LOCAL_ERROR_RECOVERY)
+  if (msta_error_recovery != MINIMAL_ERROR_RECOVERY)
     {
       output_string (f, "              ");
       output_string (f, YYPREV_CHAR_VARIABLE_NAME);
@@ -5499,21 +5500,15 @@ yynext_error:
             output_pushing (last_LR_set,
                             TRUE, regular_optimization_flag || expand_flag,
 			    TRUE);
-            /*-- if scanner || msta_error_recovery == LOCAL_ERROR_RECOVERY -
+            /*
                        yyprev_char = yychar;
-              --------------------------------------------------------------
                        yychar=YYEMPTY;
                        break; */
-            if ((IR_scanner_flag (description)
-		 && msta_error_recovery == YACC_ERROR_RECOVERY)
-		|| msta_error_recovery == LOCAL_ERROR_RECOVERY)
-              {
-                output_string (f, "          ");
-                output_string (f, YYPREV_CHAR_VARIABLE_NAME);
-                output_string (f, " = ");
-                output_yychar_variable_name (f);
-                output_string (f, ";\n");
-              }
+	    output_string (f, "          ");
+	    output_string (f, YYPREV_CHAR_VARIABLE_NAME);
+	    output_string (f, " = ");
+	    output_yychar_variable_name (f);
+	    output_string (f, ";\n");
             output_string (f, "          ");
             output_yychar_variable_name (f);
             output_string (f, " = ");
@@ -5694,15 +5689,10 @@ output_definition_inside_yyparse (void)
 		     YYFIRST_CHAR_PTR_1_VARIABLE_NAME);
       output_string (output_implementation_file, ";\n");
     }
-  if ((IR_scanner_flag (description)
-       && msta_error_recovery == YACC_ERROR_RECOVERY)
-      || msta_error_recovery == LOCAL_ERROR_RECOVERY)
-    {
-      /* Definition of `yyprev_char'. */
-      output_string (output_implementation_file, "  int ");
-      output_string (output_implementation_file, YYPREV_CHAR_VARIABLE_NAME);
-      output_string (output_implementation_file, ";\n");
-    }
+  /* Definition of `yyprev_char'. */
+  output_string (output_implementation_file, "  int ");
+  output_string (output_implementation_file, YYPREV_CHAR_VARIABLE_NAME);
+  output_string (output_implementation_file, ";\n");
   /* Definition of `yychar1'. */
   output_string (output_implementation_file, "  int ");
   output_string (output_implementation_file, YYCHAR1_VARIABLE_NAME);
@@ -7232,6 +7222,7 @@ output_parser_itself (void)
       continue;
 
     yyrecovery_finish:
+      yychar = YYEMPTY;
       yyerr_status = -1;
 #if YYDEBUG != 0
       if (yydebug)
@@ -7262,6 +7253,7 @@ output_parser_itself (void)
       /* Shift yybest_token_ignored_num: * /
       while (yybest_token_ignored_num-- != 0)
 	{
+	  yyprev_char = *yyfirst_char_ptr;
 	  *yyfirst_char_ptr++ = YYEMPTY;
 	  if (yyfirst_char_ptr > yylook_ahead_char_end)
 	    yyfirst_char_ptr = yylook_ahead_char;
@@ -7279,7 +7271,7 @@ output_parser_itself (void)
 	    }
 	  fprintf (stderr,
 		   "Error recovery end - restore %d saved input tokens\n",
-		   yychar1);
+		   yychar1f);
 	}
 #endif
       yystate = yybest_error_state;
@@ -7298,6 +7290,11 @@ output_parser_itself (void)
       output_string (f, YYRECOVERY_FINISH_LABEL_NAME);
       output_string (f, ":\n");
       output_string (f, "      ");
+      output_yychar_variable_name (output_implementation_file);
+      output_string (output_implementation_file, " = ");
+      output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
+      output_string (output_implementation_file, ";\n");
+      output_string (f, "      ");
       output_string (f, YYERR_STATUS_VARIABLE_NAME);
       output_string (f, " = -1;\n");
       output_restoring_minimal_recovery_state (TRUE, TRUE, "      ");
@@ -7305,7 +7302,11 @@ output_parser_itself (void)
       output_string (f, "      while (");
       output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
       output_string (f, "-- != 0)\n");
-      output_string (f, "        {\n          *");
+      output_string (f, "        {\n          ");
+      output_string (f, YYPREV_CHAR_VARIABLE_NAME);
+      output_string (f, " = *");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, ";\n          *");
       output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
       output_string (f, "++ = ");
       output_string (f, YYEMPTY_MACRO_NAME);

@@ -1,12 +1,12 @@
 This is msta.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.msta22230.info.2.
+/tmp/sgmltmp.msta28191.info.2.
 
    \input texinfo
 
 
 Indirect:
 msta.info-1: 108
-msta.info-2: 46969
+msta.info-2: 47306
 
 Tag Table:
 (Indirect)
@@ -18,12 +18,12 @@ Node: Declarations3519
 Node: Rules10436
 Node: Generated code21477
 Node: C code21953
-Node: C++ code40871
-Node: Implementation42303
-Node: MSTA Usage46969
-Node: Future of MSTA development62671
-Node: Appendix 1 - Syntax of MSTA description file (YACC description)63097
-Node: Appendix 2 - Example of MSTA scanner description file68764
-Node: Appendix 3 - Run of MSTA on the previous description file72472
+Node: C++ code41208
+Node: Implementation42640
+Node: MSTA Usage47306
+Node: Future of MSTA development63008
+Node: Appendix 1 - Syntax of MSTA description file (YACC description)63434
+Node: Appendix 2 - Example of MSTA scanner description file69101
+Node: Appendix 3 - Run of MSTA on the previous description file72809
 
 End Tag Table

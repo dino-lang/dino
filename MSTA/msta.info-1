@@ -1,5 +1,5 @@
 This is msta.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.msta22230.info.2.
+/tmp/sgmltmp.msta28191.info.2.
 
    \input texinfo
 
@@ -676,8 +676,8 @@ same sense and names with additional s or S after the prefix `yy' or
 
 `yyerror'
      When the parser detects a syntax error in its normal state, it
-     normally calls external function yyerror with the string "syntax
-     error" ("lexical error" for a scanner) as its argument.  User must
+     normally calls external function yyerror with string argument
+     whose value is defined by macro YYERROR_MESSAGE.  User must
      provide function `yyerror' for building parser program.  After
      that the parser jumps to recovery mode.  The parser is considered
      to be recovering from a previous error until the parser has
@@ -719,6 +719,13 @@ same sense and names with additional s or S after the prefix `yy' or
      executes the rule actions.  This method is the best quality error
      recovery although it my be expensive method because in the worst
      case it might save all input tokens.
+
+`YYERROR_MESSAGE'
+     The macro value is used as a parameter of function yyerror when a
+     syntax error occurs. The default value of macro is "syntax error"
+     ("lexical error" for a scanner).  You can redefine its value.  But
+     in any case the value should be a string. The macro is not a part
+     of YACC POSIX standard.
 
 `YYERR_RECOVERY_MATCHES'
      The parser is considered to be recovering from a previous error
