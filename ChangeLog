@@ -1,5 +1,9 @@
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* AMMUNITION/IEEE.tst.in: Extend arrays for results.
+
+2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/dino.tst.in (357): Try a few environement variables.
 
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
