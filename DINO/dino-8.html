@@ -1336,12 +1336,21 @@ character newline or end of file.  The returned string does not
 contain the newline character.  The function generates
 exception <CODE>eof</CODE> only when the file position indicator
 before the function call stands exactly on the end of file.</LI>
+<LI><CODE>getf ()</CODE>.  The function reads all standard input
+stream and returns it as new string.  The returned string does
+not contain the newline character.  The function generates
+exception <CODE>eof</CODE> only when the file position indicator
+before the function call stands exactly on the end of file.</LI>
 <LI><CODE>fget (fileinstance)</CODE>.  The function is analogous to
 function <CODE>get</CODE> except for that it reads from opened file
 associated with class <CODE>file</CODE> instance which is the
 parameter value.</LI>
 <LI><CODE>fgetln (fileinstance)</CODE>.  The function is analogous to
 function <CODE>getln</CODE> except for that it reads from opened
+file associated with class <CODE>file</CODE> instance which is the
+parameter value.</LI>
+<LI><CODE>fgetf (fileinstance)</CODE>.  The function is analogous
+to function <CODE>getf</CODE> except for that it reads from opened
 file associated with class <CODE>file</CODE> instance which is the
 parameter value.</LI>
 <LI><CODE>scan ()</CODE>.  The functions reads character, integer,

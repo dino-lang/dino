@@ -2726,7 +2726,8 @@ general_get_call (FILE *f, int file_flag)
 }
 
 static void
-general_getln_call (FILE *f, int file_flag)
+general_get_ln_file_call (FILE *f, int param_flag, int ln_flag,
+		    const char *func_name)
 {
   ER_node_t vect;
   int ch;
@@ -2739,7 +2740,7 @@ general_getln_call (FILE *f, int file_flag)
   for (;;)
     {
       ch  = fgetc (f);
-      if (ch == '\n' || ch == EOF)
+      if (ch == '\n' && ln_flag || ch == EOF)
 	break;
       vect = expand_vector (vect, vect_length + 2);
       ER_pack_els (vect) [vect_length] = ch;
@@ -2748,12 +2749,12 @@ general_getln_call (FILE *f, int file_flag)
     }
   ER_pack_els (vect) [vect_length] = '\0';
   if (errno != 0)
-    process_system_errors (file_flag ? FGETLN_NAME : GETLN_NAME);
+    process_system_errors (func_name);
   if (ch == EOF && vect_length == 0)
     eval_error (eof_decl, invcalls_decl, *source_position_ptr,
-		DERR_eof_occured, file_flag ? FGETLN_NAME : GETLN_NAME);
+		DERR_eof_occured, func_name);
   /* Pop all actual parameters. */
-  if (file_flag)
+  if (param_flag)
     {
       DECR_FREE (cstack, 1);
       SET_TOP;
@@ -2779,7 +2780,16 @@ getln_call (int_t pars_number)
   if (pars_number != 0)
     eval_error (parnumber_decl, invcalls_decl,
 		*source_position_ptr, DERR_parameters_number, GETLN_NAME);
-  general_getln_call (stdin, FALSE);
+  general_get_ln_file_call (stdin, FALSE, TRUE, GETLN_NAME);
+}
+
+void
+getf_call (int_t pars_number)
+{
+  if (pars_number != 0)
+    eval_error (parnumber_decl, invcalls_decl,
+		*source_position_ptr, DERR_parameters_number, GETF_NAME);
+  general_get_ln_file_call (stdin, FALSE, FALSE, GETF_NAME);
 }
 
 static FILE *
@@ -2800,8 +2810,17 @@ fget_call (int_t pars_number)
 void
 fgetln_call (int_t pars_number)
 {
-  general_getln_call (fget_function_call_start (pars_number, FGETLN_NAME),
-		      TRUE);
+  general_get_ln_file_call
+    (fget_function_call_start (pars_number, FGETLN_NAME),
+     TRUE, TRUE, FGETLN_NAME);
+}
+
+void
+fgetf_call (int_t pars_number)
+{
+  general_get_ln_file_call
+    (fget_function_call_start (pars_number, FGETF_NAME),
+     TRUE, FALSE, FGETF_NAME);
 }
 
 #define F_CHAR   256

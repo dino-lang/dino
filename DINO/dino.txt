@@ -32,6 +32,8 @@ History
 
   Jun 22, 2001.  Function rcount is added.
 
+  Jul 19, 2001.  Functions getf and fgetf have been added.
+
 
 1. Introduction
 
@@ -364,14 +366,15 @@ report later.
   del
   eltype         env            errors         except
   excepts        exit           exp
-  fatime         fctime         fget           fgetln
-  fgmode         fgn            file           flush
-  fmtime         fomode         fprint         fprintln
-  fput           fputln         fscan          fscanln
-  fsize          ftype          fumode         fun
+  fatime         fctime         fget           fgetf
+  fgetln         fgmode         fgn            file
+  flush          fmtime         fomode         fprint
+  fprintln       fput           fputln         fscan
+  fscanln        fsize          ftype          fumode
+  fun
   gc             get            getcwd         getegn
-  geteun         getgn          getgroups      getln
-  getpid         getun          gsub
+  geteun         getgn          getgroups      getf
+  getln          getpid         getun          gsub
   ins            inside         insv           invaccesses
   invcalls       invexterns     invindexes     invkeys
   invops         invparsers     invregexps     isatty
@@ -2976,12 +2979,21 @@ partype, parnumber.
        contain the newline character.  The function generates
        exception eof only when the file position indicator
        before the function call stands exactly on the end of file.
+     o getf ().  The function reads all standard input
+       stream and returns it as new string.  The returned string does
+       not contain the newline character.  The function generates
+       exception eof only when the file position indicator
+       before the function call stands exactly on the end of file.
      o fget (fileinstance).  The function is analogous to
        function get except for that it reads from opened file
        associated with class file instance which is the
        parameter value.
      o fgetln (fileinstance).  The function is analogous to
        function getln except for that it reads from opened
+       file associated with class file instance which is the
+       parameter value.
+     o fgetf (fileinstance).  The function is analogous
+       to function getf except for that it reads from opened
        file associated with class file instance which is the
        parameter value.
      o scan ().  The functions reads character, integer,

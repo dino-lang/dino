@@ -1,3 +1,26 @@
+2001-07-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_built.h (getf_call, fgetf_call): New prototypes.
+
+	* DINO/d_func.c (general_getln_call): rename it onto
+	general_get_ln_file_call.  Add new parameters to process [f]getf.
+	(getf_call, fgetf_call): New functions.
+	(getln_call, fgetln_call): Use general_get_ln_file_call.
+
+	* DINO/d_ir.sprut (GETF_NAME, FGETF_NAME, getf_decl, fgetf_decl):
+	New macros and variables.
+	(decls_table): Add entries for getf fgtef.
+
+	* DINO/dino.tst.in: Add tests for getf and fgetf.
+	
+	* DINO/dino.sgml.in: Add description of functions getf and
+	fgetf.
+
+	* DINO/dino-4.html, DINO/dino-8.htmlM DINO/dino.dvi,
+	DINO/dino.html, DINO/dino.info, DINO/dino.info-1,
+	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
+	DINO/dino.ps, DINO/dino.txt: Update.
+	
 2001-07-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_common.h (HAVE_SETITIMER): Set up the default value.

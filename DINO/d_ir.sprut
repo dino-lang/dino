@@ -417,7 +417,8 @@ typedef IR_node_t pc_t;
   "func tell() {} func seek() {}\n"\
   "func put(){} func putln(){} func fput(){} func fputln(){}\n"\
   "func print(){} func println(){} func fprint(){} func fprintln(){}\n"\
-  "func get(){} func getln(){} func fget(){} func fgetln(){}\n"\
+  "func get(){} func getln(){} func getf(){}\n"\
+  "func fget(){} func fgetln(){} func fgetf(){}\n"\
   "func scan(){} func scanln(){} func fscan(){} func fscanln(){}\n"\
   "func getpid(){} func getun(){} func geteun(){}\n"\
   "func getgn(){} func getegn(){} func getgroups(){}\n"\
@@ -1035,11 +1036,17 @@ extern IR_node_t get_decl;
 #define GETLN_NAME "getln"
 extern IR_node_t getln_decl;
 
+#define GETF_NAME "getf"
+extern IR_node_t getf_decl;
+
 #define FGET_NAME "fget"
 extern IR_node_t fget_decl;
 
 #define FGETLN_NAME "fgetln"
 extern IR_node_t fgetln_decl;
+
+#define FGETF_NAME "fgetf"
+extern IR_node_t fgetf_decl;
 
 #define SCAN_NAME "scan"
 extern IR_node_t scan_decl;
@@ -2342,8 +2349,10 @@ IR_node_t fprint_decl;
 IR_node_t fprintln_decl;
 IR_node_t get_decl;
 IR_node_t getln_decl;
+IR_node_t getf_decl;
 IR_node_t fget_decl;
 IR_node_t fgetln_decl;
+IR_node_t fgetf_decl;
 IR_node_t scan_decl;
 IR_node_t scanln_decl;
 IR_node_t fscan_decl;
@@ -2580,8 +2589,10 @@ static struct decl_entry decls_table [] =
   {&fprintln_decl, FPRINTLN_NAME, NULL, fprintln_call},
   {&get_decl, GET_NAME, NULL, get_call},
   {&getln_decl, GETLN_NAME, NULL, getln_call},
+  {&getf_decl, GETF_NAME, NULL, getf_call},
   {&fget_decl, FGET_NAME, NULL, fget_call},
   {&fgetln_decl, FGETLN_NAME, NULL, fgetln_call},
+  {&fgetf_decl, FGETF_NAME, NULL, fgetf_call},
   {&scan_decl, SCAN_NAME, NULL, scan_call},
   {&scanln_decl, SCANLN_NAME, NULL, scanln_call},
   {&fscan_decl, FSCAN_NAME, NULL, fscan_call},

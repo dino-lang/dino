@@ -26560,6 +26560,179 @@ TEST461-1
         fi
 fi
 
+# Test 462.
+if test $result = ok -a $start_test_number -le 462; then
+	echo test 462
+        cat >$test_file <<'TEST462'
+put (getf());
+TEST462
+        echo '      ' "echo abcd | $DINO $test_file 2>$stderr"
+        if echo abcd | $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT462' && cmp $stdout $ftemp2; then
+abcd
+OUTPUT462
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 463.
+if test $result = ok -a $start_test_number -le 463; then
+	echo test 463
+        cat >$test_file <<'TEST463'
+var c, f = open ("test.d", "r");
+put (fgetf (f));
+TEST463
+        echo '      ' "echo abcd | $DINO $test_file 2>$stderr"
+        if echo abcd | $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT463' && cmp $stdout $ftemp2; then
+var c, f = open ("test.d", "r");
+put (fgetf (f));
+OUTPUT463
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 464.
+if test $result = ok -a $start_test_number -le 464; then
+	echo test 464
+        cat >$test_file <<'TEST464'
+put (getf ());
+put (getf ());
+TEST464
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT464' && cmp $stderr $ftemp2; then
+test.d:2:11: run time error - EOF occured in `getf'
+OUTPUT464
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 465.
+if test $result = ok -a $start_test_number -le 465; then
+	echo test 465
+        cat >$test_file <<'TEST465'
+var c, f=open ("test.d", "r");
+for (;1;)
+  put (fgetf (f));
+TEST465
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT465' && cmp $stderr $ftemp2; then
+test.d:3:14: run time error - EOF occured in `fgetf'
+OUTPUT465
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 466.
+if test $result = ok -a $start_test_number -le 466; then
+	echo test 466
+        cat >$test_file <<'TEST466'
+var c = getf (nil);
+TEST466
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT466' && cmp $stderr $ftemp2; then
+test.d:1:15: run time error - invalid number of parameters of `getf'
+OUTPUT466
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 467.
+if test $result = ok -a $start_test_number -le 467; then
+	echo test 467
+        cat >$test_file <<'TEST467'
+var c = fgetf ();
+TEST467
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT467' && cmp $stderr $ftemp2; then
+test.d:1:16: run time error - invalid number of parameters of `fgetf'
+OUTPUT467
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 468.
+if test $result = ok -a $start_test_number -le 468; then
+	echo test 468
+        cat >$test_file <<'TEST468'
+var c = fgetf (nil);
+TEST468
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT468' && cmp $stderr $ftemp2; then
+test.d:1:16: run time error - invalid parameter type of `fgetf'
+OUTPUT468
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 469.
+if test $result = ok -a $start_test_number -le 469; then
+	echo test 469
+        cat >$test_file <<'TEST469'
+var c = fgetf (stdin, nil);
+TEST469
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT469' && cmp $stderr $ftemp2; then
+test.d:1:16: run time error - invalid number of parameters of `fgetf'
+OUTPUT469
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

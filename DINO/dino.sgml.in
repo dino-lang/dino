@@ -31,6 +31,8 @@ History
                  Declaration block friends.
 
   Jun 22, 2001.  Function rcount is added.
+
+  Jul 19, 2001.  Functions getf and fgetf have been added.
 </verb></tscreen>
 
 <sect>Introduction
@@ -364,14 +366,15 @@ report later.
   del
   eltype         env            errors         except
   excepts        exit           exp
-  fatime         fctime         fget           fgetln
-  fgmode         fgn            file           flush
-  fmtime         fomode         fprint         fprintln
-  fput           fputln         fscan          fscanln
-  fsize          ftype          fumode         fun
+  fatime         fctime         fget           fgetf
+  fgetln         fgmode         fgn            file
+  flush          fmtime         fomode         fprint
+  fprintln       fput           fputln         fscan
+  fscanln        fsize          ftype          fumode
+  fun
   gc             get            getcwd         getegn
-  geteun         getgn          getgroups      getln
-  getpid         getun          gsub
+  geteun         getgn          getgroups      getf
+  getln          getpid         getun          gsub
   ins            inside         insv           invaccesses
   invcalls       invexterns     invindexes     invkeys
   invops         invparsers     invregexps     isatty
@@ -2976,12 +2979,21 @@ generate an exception declared in class syserror (e.g. <tt>eio</tt>,
        contain the newline character.  The function generates
        exception <tt>eof</tt> only when the file position indicator
        before the function call stands exactly on the end of file.
+     <item><tt>getf ()</tt>.  The function reads all standard input
+       stream and returns it as new string.  The returned string does
+       not contain the newline character.  The function generates
+       exception <tt>eof</tt> only when the file position indicator
+       before the function call stands exactly on the end of file.
      <item><tt>fget (fileinstance)</tt>.  The function is analogous to
        function <tt>get</tt> except for that it reads from opened file
        associated with class <tt>file</tt> instance which is the
        parameter value.
      <item><tt>fgetln (fileinstance)</tt>.  The function is analogous to
        function <tt>getln</tt> except for that it reads from opened
+       file associated with class <tt>file</tt> instance which is the
+       parameter value.
+     <item><tt>fgetf (fileinstance)</tt>.  The function is analogous
+       to function <tt>getf</tt> except for that it reads from opened
        file associated with class <tt>file</tt> instance which is the
        parameter value.
      <item><tt>scan ()</tt>.  The functions reads character, integer,
