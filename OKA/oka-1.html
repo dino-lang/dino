@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>OKA (pipeline hazards description translator): Introduction</TITLE>
  <LINK HREF="oka-2.html" REL=next>
 
@@ -12,7 +12,7 @@
 Previous
 <A HREF="oka.html#toc1">Contents</A>
 <HR>
-<H2><A NAME="s1">1. Introduction</A></H2>
+<H2><A NAME="s1">1.</A> <A HREF="oka.html#toc1">Introduction</A></H2>
 
 <P>OKA is a translator of a processor pipeline hazards description (PHD)
 into code for fast recognition of pipeline hazards.  Instruction
@@ -20,7 +20,7 @@ execution can be started only if its issue conditions are satisfied.
 If not, instruction is interlocked until its conditions are satisfied.
 Such an "interlock (pipeline) delay" causes interruption of the
 fetching of successor instructions (or demands NOP instructions, e.g.
-for MIPS).
+for MIPS).</P>
 <P>There are two major kind of interlock delays in modern superscalar
 RISC processors.  The first one is data dependence delay.  The
 instruction execution is not started until all source data has been
@@ -36,9 +36,9 @@ shared processors resources, i.e. buses, internal registers, and/or
 functional units, which are reserved for some time.  Taking into
 account of this kind of delay is complex especially for modern RISC
 processors.  The goal of OKA is to generate code for fast recognition
-of such kind delay (pipeline hazards).
-<P>
-<P>
+of such kind delay (pipeline hazards).</P>
+
+
 <HR>
 <A HREF="oka-2.html">Next</A>
 Previous

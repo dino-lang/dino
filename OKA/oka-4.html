@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>OKA (pipeline hazards description translator): OKA Usage</TITLE>
  <LINK HREF="oka-5.html" REL=next>
  <LINK HREF="oka-3.html" REL=previous>
@@ -12,35 +12,32 @@
 <A HREF="oka-3.html">Previous</A>
 <A HREF="oka.html#toc4">Contents</A>
 <HR>
-<H2><A NAME="s4">4. OKA Usage</A></H2>
+<H2><A NAME="s4">4.</A> <A HREF="oka.html#toc4">OKA Usage</A></H2>
 
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
+OKA(1)                           User Manuals                           OKA(1)
 
-
-
-OKA(1)                     User Manuals                    OKA(1)
 
 
 NAME
        oka - pipeline Hazards Description Translator
 
 SYNOPSIS
-       oka  [  -c++  -debug -enum -export -no-minimization -split
-       number -pprefix -v ] specification-file
+       oka [ -c++ -debug -enum -export -no-minimization -split number -pprefix
+       -v ] specification-file
 
 
 DESCRIPTION
-       OKA generates code for fast recognition of  pipeline  haz-
-       ards  of  processor  which  is  described in specification
-       file.  The specification file must have suffix `.oka'
+       OKA generates code for fast recognition of pipeline hazards of  proces-
+       sor  which  is described in specification file.  The specification file
+       must have suffix `.oka'
 
 
-       The generated code consists of interface  and  implementa-
-       tion  files  having the same names as one of specification
-       file and correspondingly suffixes `.h' and `.c'  (C  code)
-       or `.cpp' (C++ code).
+       The generated code consists of interface and implementation files  hav-
+       ing  the  same  names  as one of specification file and correspondingly
+       suffixes `.h' and `.c' (C code) or `.cpp' (C++ code).
 
        Full documentation of OKA is in OKA User's manual.
 
@@ -49,53 +46,36 @@ OPTIONS
 
        -c++   OKA generates C++ code instead of C code (default).
 
-       -debug OKA creates code for output of  debugging  informa-
-              tion during execution of the generated code.
+       -debug OKA creates code for output of debugging information during exe-
+              cution of the generated code.
 
-       -enum  OKA generates instruction codes as enumeration con-
-              stant.  By default OKA generates instructions  code
-              as macro definition.
+       -enum  OKA  generates  instruction  codes  as enumeration constant.  By
+              default OKA generates instructions code as macro definition.
 
        -export
-              OKA   generates   macros  defining  identifiers  of
-              instructions in the interface file (instead  of  in
-              the implementation file).
+              OKA generates macros defining identifiers of instructions in the
+              interface file (instead of in the implementation file).
 
        -no-minimization
-              OKA  does not minimization of generated determinis-
-              tic finite state automaton (DFA).
+              OKA  does  not  minimization  of  generated deterministic finite
+              state automaton (DFA).
 
-       -split OKA makes automatic splitting  automaton  on  given
-              number  automata in order to decrease sizes of gen-
-              erated tables.  The option is  taken  into  account
-              only  if  constructions  `%unit'  are absent in the
-              specification  file.   This  option  has  not  been
-              implemented yet.
+       -split OKA makes automatic splitting automaton on given number automata
+              in  order  to decrease sizes of generated tables.  The option is
+              taken into account only if constructions `%unit' are  absent  in
+              the  specification  file.   This option has not been implemented
+              yet.
 
        -pprefix
-              Generated  code  uses `prefix' instead of `OKA' for
-              names of the generated objects.
+              Generated code uses `prefix' instead of `OKA' for names  of  the
+              generated objects.
 
-       -time  OKA outputs detail time statistics of its work into
+       -time  OKA outputs detail time statistics of its work into stderr.
 
-
-
-COCOM                       5 APR 2001                          1
-
-
-
-
-
-OKA(1)                     User Manuals                    OKA(1)
-
-
-              stderr.
-
-       -v     OKA   creates   description   file  which  contains
-              description  of  result  automaton  and  statistics
-              information.   The  file will have the same name as
-              one of given specification file and  suffix  `.out-
-              put' into standard stream.
+       -v     OKA  creates  description  file  which  contains  description of
+              result automaton and statistics information.  The file will have
+              the  same  name  as  one  of given specification file and suffix
+              `.output' into standard stream.
 
 FILES
        file.oka
@@ -110,8 +90,7 @@ FILES
        There are no any temporary files used by OKA.
 
 ENVIRONMENT
-       There are no environment variables which affect OKA behav-
-       ior.
+       There are no environment variables which affect OKA behavior.
 
 DIAGNOSTICS
        OKA diagnostics is self-explanatory.
@@ -127,30 +106,11 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-COCOM                       5 APR 2001                          2
-
+COCOM                             5 APR 2001                            OKA(1)
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <HR>
 <A HREF="oka-5.html">Next</A>
 <A HREF="oka-3.html">Previous</A>

@@ -149,7 +149,7 @@ source = $(srcdir)/sprut-ird.h $(srcdir)/sprut-ird.c $(srcdir)/common.h\
 additional_files = A_test.sprut A_syntax.sprut A_value.sprut A_base.sprut\
 	           README INSTALL sprut.1 sprut.dsw sprut.dsp
 
-doc_files = sprut.txt sprut.info* sprut*.html sprut.dvi sprut.ps
+doc_files = sprut.txt sprut.info* sprut*.html sprut.pdf sprut.dvi sprut.ps
 
 # Files which are not in distribution
 additional_rcs_files = sprut.sgml.in
@@ -702,10 +702,10 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : sprut.sgml.tmp $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
+doc : sprut.sgml.tmp $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.pdf $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
 
 sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
-	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");print;}' > sprut.tmp
+	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");print;}' > sprut.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "sprut.tmp") > 0)\
                         print line;close("sprut.tmp")}\
@@ -718,7 +718,7 @@ $(srcdir)/sprut.txt: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	
 $(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	$(srcdir)/../sgml-html sprut.sgml.tmp >sprut.sgml
-	sgml2html sprut.sgml
+	linuxdoc -B html --papersize=letter sprut.sgml
 	if test -f sprut-1.html;then\
   	  for i in sprut-*.html;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -728,7 +728,7 @@ $(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	
 $(srcdir)/sprut.info: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	$(srcdir)/../sgml-info sprut.sgml.tmp >sprut.sgml
-	sgml2info sprut.sgml
+	linuxdoc -B info --papersize=letter sprut.sgml
 	for i in sprut.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
@@ -739,14 +739,19 @@ $(srcdir)/sprut.info: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
         fi
 	mv sprut.info $(srcdir)/sprut.info
 	
-$(srcdir)/sprut.dvi: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
+$(srcdir)/sprut.dvi $(srcdir)/sprut.pdf: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	$(srcdir)/../sgml-tex sprut.sgml.tmp >sprut.sgml
-	sgml2latex sprut.sgml
+	linuxdoc -B latex --papersize=letter sprut.sgml
 	if test ! -f sprut.dvi\
            -o -f sprut.tex -a sprut.tex -nt sprut.dvi; then\
     	        latex sprut.tex; latex sprut.tex;\
         fi
 	mv sprut.dvi $(srcdir)/sprut.dvi
+	if test ! -f sprut.pdf\
+           -o -f sprut.tex -a sprut.tex -nt sprut.pdf; then\
+    	        pdflatex sprut.tex; pdflatex sprut.tex;\
+        fi
+	mv sprut.pdf $(srcdir)/sprut.pdf
 
 $(srcdir)/sprut.ps: $(srcdir)/sprut.dvi
 	dvips -o $@ $(srcdir)/sprut.dvi

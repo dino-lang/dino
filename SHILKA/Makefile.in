@@ -141,7 +141,7 @@ additional_files = README INSTALL\
                    modula2.shilka modula3.shilka pascal.shilka\
                    gcc.shilka gcc.gperf c.gperf shilka.1 shilka.dsw shilka.dsp
 
-doc_files = shilka.txt shilka.info* shilka*.html shilka.dvi shilka.ps
+doc_files = shilka.txt shilka.info* shilka*.html shilka.pdf shilka.dvi shilka.ps
 
 # Files which are not in distribution
 additional_rcs_files = shilka.sgml.in
@@ -239,10 +239,10 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : shilka.sgml.tmp $(srcdir)/shilka.txt $(srcdir)/shilka.html $(srcdir)/shilka.info $(srcdir)/shilka.dvi $(srcdir)/shilka.ps
+doc : shilka.sgml.tmp $(srcdir)/shilka.txt $(srcdir)/shilka.html $(srcdir)/shilka.info $(srcdir)/shilka.pdf $(srcdir)/shilka.dvi $(srcdir)/shilka.ps
 
 shilka.sgml.tmp : $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
-	nroff -man $(srcdir)/shilka.1 | $(AWK) '{gsub (/.\b/,"");print;}' > shilka.tmp
+	nroff -man $(srcdir)/shilka.1 | $(AWK) '{gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/.\b/,"");print;}' > shilka.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "shilka.tmp") > 0)\
                         print line;close("shilka.tmp")}\
@@ -254,7 +254,7 @@ $(srcdir)/shilka.txt: $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
 	
 $(srcdir)/shilka.html: $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
 	$(srcdir)/../sgml-html shilka.sgml.tmp >shilka.sgml
-	sgml2html shilka.sgml
+	linuxdoc -B html shilka.sgml
 	if test -f shilka-1.html;then\
   	  for i in shilka-*.html;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -264,7 +264,7 @@ $(srcdir)/shilka.html: $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
 	
 $(srcdir)/shilka.info: $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
 	$(srcdir)/../sgml-info shilka.sgml.tmp >shilka.sgml
-	sgml2info shilka.sgml
+	linuxdoc -B info shilka.sgml
 	for i in shilka.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
@@ -275,14 +275,19 @@ $(srcdir)/shilka.info: $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
         fi
 	mv shilka.info $(srcdir)/shilka.info
 	
-$(srcdir)/shilka.dvi: $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
+$(srcdir)/shilka.dvi $(srcdir)/shilka.pdf: $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
 	$(srcdir)/../sgml-tex shilka.sgml.tmp >shilka.sgml
-	sgml2latex shilka.sgml
+	linuxdoc -B latex shilka.sgml
 	if test ! -f shilka.dvi\
            -o -f shilka.tex -a shilka.tex -nt shilka.dvi; then\
     	        latex shilka.tex; latex shilka.tex;\
         fi
 	mv shilka.dvi $(srcdir)/shilka.dvi
+	if test ! -f shilka.pdf\
+           -o -f shilka.tex -a shilka.tex -nt shilka.pdf; then\
+    	        pdflatex shilka.tex; pdflatex shilka.tex;\
+        fi
+	mv shilka.pdf $(srcdir)/shilka.pdf
 
 $(srcdir)/shilka.ps: $(srcdir)/shilka.dvi
 	dvips -o $@ $(srcdir)/shilka.dvi

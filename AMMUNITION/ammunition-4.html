@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C interface: Package for work with stacks of objects</TITLE>
  <LINK HREF="ammunition-5.html" REL=next>
  <LINK HREF="ammunition-3.html" REL=previous>
@@ -12,7 +12,7 @@
 <A HREF="ammunition-3.html">Previous</A>
 <A HREF="ammunition.html#toc4">Contents</A>
 <HR>
-<H2><A NAME="s4">4. Package for work with stacks of objects</A></H2>
+<H2><A NAME="s4">4.</A> <A HREF="ammunition.html#toc4">Package for work with stacks of objects</A></H2>
 
 <P>The package `objstack' is based on package `allocate' and implements
 efficient work with stacks of objects (OS).  Work with the object on
@@ -24,17 +24,17 @@ contains object on the top of OS.  If there is not sufficient free
 memory for the top object than new segment is created and the top
 object is transferred into the new segment, i.e. there is not any
 memory reallocation.  Therefore the top object may change its address.
-But other objects never change address.
+But other objects never change address.</P>
 <P>Because arguments of all macros which return a result
 (`OS_TOP_LENGTH', `OS_TOP_BEGIN', `OS_TOP_BOUND', and `OS_TOP_END')
 may be evaluated many times no side-effects should be in the
-arguments.
+arguments.</P>
 <P>The package uses package `allocate'.  The interface part of the
 package is file `objstack.h'.  Defining macro `NDEBUG' (e.g.  by
 option `-D' in C compiler command line) before the package macros
 usage disables fixing some internal errors and errors of usage of the
 package.  The implementation part is file `objstack.c'.  The interface
-contains the following definitions and macros:
+contains the following definitions and macros:</P>
 <P>
 <DL>
 <DT><B>Type `os_t'</B><DD><P>describes a descriptor of stack of objects.  All work with
@@ -42,16 +42,16 @@ stack of objects is executed by the following macros through
 the descriptors.  Structure (implementation) of this type is
 not needed for using stack of objects.  But it should remember
 that work with the stack through several descriptors is not
-safe.
-<P>
+safe.</P>
+
 <DT><B>Macro `OS_DEFAULT_SEGMENT_LENGTH'</B><DD><P>has value which is default size of memory segments which will
 be allocated for OS when the stack is created (with zero
 initial segment size).  This is also minimal size of all
 segments.  Original value of the macros is equal to 512.  This
 macro can be redefined in C compiler command line or with the
 aid of directive `#undef' before any using the package
-macros.
-<P>
+macros.</P>
+
 <DT><B>Macro `OS_CREATE'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -66,8 +66,8 @@ size of memory segments which will be allocated for OS is
 given as the second parameter.  If the second parameter is
 equal to zero the allocated memory segments length is equal to
 `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment
-length is always not less than maximum alignment.
-<P>
+length is always not less than maximum alignment.</P>
+
 <DT><B>Macro `OS_DELETE'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -77,8 +77,8 @@ length is always not less than maximum alignment.
 </CODE></BLOCKQUOTE>
 
 is used for freeing all memory used by OS whose descriptor is
-given as the macro parameter.
-<P>
+given as the macro parameter.</P>
+
 <DT><B>Macro `OS_EMPTY'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -88,8 +88,8 @@ given as the macro parameter.
 </CODE></BLOCKQUOTE>
 
 is used for removing all objects and freeing all memory
-allocated for OS except for the first segment.
-<P>
+allocated for OS except for the first segment.</P>
+
 <DT><B>Macro `OS_TOP_FINISH'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -102,8 +102,8 @@ creates new variable length object with initial zero length on
 the top of OS whose descriptor is given as the macro
 parameter.  The work (analogous to one with variable length
 object) with object which was on the top of OS is finished,
-i.e. the object will never more change address.
-<P>
+i.e. the object will never more change address.</P>
+
 <DT><B>Macro `OS_TOP_NULLIFY'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -114,8 +114,8 @@ i.e. the object will never more change address.
 
 makes that length of variable length object on the top of OS
 whose descriptor is given as the macro parameter will be equal
-to zero.
-<P>
+to zero.</P>
+
 <DT><B>Macro `OS_TOP_LENGTH'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -125,8 +125,8 @@ to zero.
 </CODE></BLOCKQUOTE>
 
 returns current length of variable length object on the top of
-OS whose descriptor is given as the macro parameter.
-<P>
+OS whose descriptor is given as the macro parameter.</P>
+
 <DT><B>Macros `OS_TOP_BEGIN', `OS_TOP_END', `OS_TOP_BOUND'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -139,8 +139,8 @@ return pointer to correspondingly the first and the last byte
 of variable length object on the top of OS whose descriptor is
 given as the macros parameter, and pointer to the last byte
 plus one.  Remember that the top object may change own place
-after any addition.
-<P>
+after any addition.</P>
+
 <DT><B>Macro `OS_TOP_SHORTEN'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -152,8 +152,8 @@ after any addition.
 removes n bytes from the end of variable length object on the
 top of OS whose descriptor is given as the first parameter.
 The top variable length object is nullified if its length is
-less than n.
-<P>
+less than n.</P>
+
 <DT><B>Macro `OS_TOP_EXPAND'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -166,8 +166,8 @@ increases length of variable length object on the top of OS
 whose descriptor is given as the first parameter on number of
 bytes given as the second parameter.  The values of bytes
 added to the end of variable length object on the top of OS
-will be not defined.
-<P>
+will be not defined.</P>
+
 <DT><B>Macro `OS_TOP_ADD_BYTE'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -178,8 +178,8 @@ will be not defined.
 
 adds byte given as the second parameter to the end of variable
 length object on the top of OS whose descriptor is given as
-the first parameter.
-<P>
+the first parameter.</P>
+
 <DT><B>Macro `OS_TOP_ADD_MEMORY'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -191,8 +191,8 @@ the first parameter.
 adds memory starting with address given as the second macro
 parameter and with length given as the third parameter to the
 end of variable length object on the top of OS whose
-descriptor is given as the first parameter.
-<P>
+descriptor is given as the first parameter.</P>
+
 <DT><B>Macro `OS_TOP_ADD_STRING'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -206,9 +206,10 @@ parameter to the end of variable length string on the top of
 OS whose descriptor is given as the first parameter.  Before
 the addition the macro deletes last character of the top
 variable length object.  The last character is suggested to be
-C string end marker 0.
+C string end marker 0.</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition-5.html">Next</A>
 <A HREF="ammunition-3.html">Previous</A>

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>SPRUT (internal representation description translator): Standard Procedural Interface</TITLE>
  <LINK HREF="sprut-4.html" REL=next>
  <LINK HREF="sprut-2.html" REL=previous>
@@ -12,7 +12,7 @@
 <A HREF="sprut-2.html">Previous</A>
 <A HREF="sprut.html#toc3">Contents</A>
 <HR>
-<H2><A NAME="s3">3. Standard Procedural Interface</A></H2>
+<H2><A NAME="s3">3.</A> <A HREF="sprut.html#toc3">Standard Procedural Interface</A></H2>
 
 <P>An internal representation description is translated by SPRUT
 (internal representation definition translator) into a standard
@@ -21,14 +21,14 @@ procedural interface (SPI).  If the specification file is an extension
 is also used to SPI generation and so on.  SPI consists of interface
 and implementation files having the same names as one of the
 specification file and correspondingly suffixes `.h' and `.c' (C code)
-or `.cpp' (C++ code).
-<P>
-<H2><A NAME="ss3.1">3.1 C SPI</A>
+or `.cpp' (C++ code).</P>
+
+<H2><A NAME="ss3.1">3.1</A> <A HREF="sprut.html#toc3.1">C SPI</A>
 </H2>
 
 <P>By default (when option `-c++' is not present on the command line)
-SPRUT generates C SPI.  The following subsections describe C SPI.
-<P>
+SPRUT generates C SPI.  The following subsections describe C SPI.</P>
+
 <H3>C SPI types, variables, macros</H3>
 
 <P>Interface file of SPI consists of C declarations of the following
@@ -60,7 +60,7 @@ also members corresponding to fields declared in super types
 of given node type or member which type is structure
 corresponding to immediate super type of given node type.
 Class fields for each non-abstract node type are represented
-by only one separate structure.
+by only one separate structure.</P>
 <P>The fields in different node types with the same name (when it
 is consequence of existing common super type with this field)
 have the same displacement from the structure begin because
@@ -69,19 +69,19 @@ structures.  The fields in different node types with the same
 name (when it is not consequence of existing common super type
 with this field) may have the different displacement from the
 structure begin therefore access to such fields requires
-additional indirect addressing.
+additional indirect addressing.</P>
 <P>Double linked field (see internal representation description
 language) requires more memory (about in five times) for its
 implementation.  Speed of SPI work with double linked fields
 is sightly slower.  Because additional work is needed only to
 setting up the field value and my experience shows that
 usually number of setting up fields value is less than number
-of their fetching about in ten times.
+of their fetching about in ten times.</P>
 <P>Type `IR_node_t' is simply pointer to struct representing node
 type `%root'.  The name of this structure is `IR_node'.
 This name can be used in imported section for forward
-reference for nodes (instead of `IR_node_t').
-<P>
+reference for nodes (instead of `IR_node_t').</P>
+
 </LI>
 <LI>Optional variable `IR_node_name' is array mapping values of type
 `IR_node_mode_t' to names (strings) in C. (see also
@@ -110,17 +110,18 @@ frequently used `IR_IS_TYPE (IR_NODE_MODE (node), supertype)'.
 representation description level in which declaration of given
 node type starts.</LI>
 </OL>
-<P>
+</P>
+
 <H3>C Functions</H3>
 
 <P>SPI interface file also contains definitions of generated functions to
 creation, deletion, modification, comparison, copy, check, print, and
 binary input/output of internal representation nodes and functions for
-access to values of internal representation node fields.
+access to values of internal representation node fields.</P>
 <P>These functions do not permit to work with abstract nodes.  Only one
 graph function can be active, e.g.  call of function `IR_check_graph'
 is not permitted during work of any traverse or transformation
-function.
+function.</P>
 <P>Macros can be generated with or instead of the functions for access to
 internal representation node fields.  This feature should be used if
 used C preprocessor has not rigid constraints on number of defined
@@ -167,8 +168,8 @@ determined by function
 
 Here type `IR_double_link_t' represents pointer to double
 fields.  The functions may also check up that the node has
-given field (see SPRUT options).
-<P>
+given field (see SPRUT options).</P>
+
 </LI>
 <LI>Modification functions.  These functions are generated when
 option `-set' is present in the SPRUT command line.  There is
@@ -179,11 +180,11 @@ corresponding field name.
 type `IR_node_t' represents node which must have such field.
 The second argument of predefined type (if the field is of
 such type) or of type `IR_node_t' (if the field is of a node
-type) represents new value of the field.
+type) represents new value of the field.</P>
 <P>The function may check up constraint if the field represents
 arc to node of a node type or its sub-types (see SPRUT
 options).  The functions may also check up that the node has
-given field.
+given field.</P>
 <P>There is also function for modification of double links
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -194,8 +195,8 @@ given field.
 
 Remember that values of `IR__next_double_link' and
 `IR__previous_double_link' are changed after calling this
-function.
-<P>
+function.</P>
+
 </LI>
 <LI>Function 
 <BLOCKQUOTE><CODE>
@@ -234,8 +235,8 @@ function and after that assign parameters values to
 corresponding skeleton fields.  After that the functions
 return the created node.  These functions provide a mechanism
 similar to record aggregates.  Nested calls of such functions
-allow programming with terms as in LISP.
-<P>
+allow programming with terms as in LISP.</P>
+
 </LI>
 <LI>Function
 <BLOCKQUOTE><CODE>
@@ -409,8 +410,8 @@ parameter value is equal to null.  In case of a constraint
 violation the involved node and all child nodes are printed on
 standard error and the function returns nonzero (error flag).
 If the second parameter value is zero then class fields of
-given node are not checked up.
-<P>
+given node are not checked up.</P>
+
 </LI>
 <LI>Function
 <BLOCKQUOTE><CODE>
@@ -494,7 +495,7 @@ The node type must be also declared in internal representation
 description of `level' or less than the one.  The function
 does nothing if the value of parameter `node' is equal to
 NULL.  A nonzero function result code means fixing an error
-during output.
+during output.</P>
 <P>Function `IR_input_node' reads node from given file, allocates
 space for the node, initiates its fields and changes the node
 fields output early.  To make this the function uses function
@@ -504,8 +505,8 @@ value returned by the function means fixing an error during
 input.  The function returns original address of input node
 through the second parameter.  The output and input of fields
 is fulfilled with the aid of field type specific macros (see
-section `Type specific macros').
-<P>
+section `Type specific macros').</P>
+
 </LI>
 <LI>Function
 <BLOCKQUOTE><CODE>
@@ -593,16 +594,17 @@ last.  The function fulfills class field type specific
 finalizations and finishes internal representation storage
 management.</LI>
 </OL>
-<P>
-<H2><A NAME="ss3.2">3.2 C++ SPI</A>
+</P>
+
+<H2><A NAME="ss3.2">3.2</A> <A HREF="sprut.html#toc3.2">C++ SPI</A>
 </H2>
 
 <P>SPRUT generates C++ SPI only when option `-c++' is present on the
 command line.  Mainly C++ SPI is analogous to one on C.  Major
 difference is that `IR_node_t' and `IR_double_link_t' are pointer to
 classes not to structures.  As the consequence, the most of functions
-are public or friend functions of the classes.
-<P>
+are public or friend functions of the classes.</P>
+
 <H3>C++ SPI types, variables, macros</H3>
 
 <P>C++ interface file of SPI consists of C++ declarations of the following
@@ -635,7 +637,7 @@ also members corresponding to fields declared in super types
 of given node type or member which type is structure
 corresponding to immediate super type of given node type.
 SPRUT class fields for each non-abstract node type are
-represented by only one separate structure.
+represented by only one separate structure.</P>
 <P>The fields in different node types with the same name (when it
 is consequence of existing common super type with this field)
 have the same displacement from the structure begin because
@@ -644,19 +646,19 @@ structures.  The fields in different node types with the same
 name (when it is not consequence of existing common super type
 with this field) may have the different displacement from the
 structure begin therefore access to such fields requires
-additional indirect addressing.
+additional indirect addressing.</P>
 <P>Double linked field (see internal representation description
 language) requires more memory (about in five times) for its
 implementation.  Speed of SPI work with double linked fields
 is sightly slower.  Because additional work is needed only to
 setting up the field value and my experience shows that
 usually number of setting up fields value is less than number
-of their fetching about in ten times.
+of their fetching about in ten times.</P>
 <P>Type `IR_node_t' is simply pointer to class representing node
 type `%root'.  The name of this class is `IR_node'.
 This name can be used in imported section for forward
-reference for nodes (instead of `IR_node_t').
-<P>
+reference for nodes (instead of `IR_node_t').</P>
+
 </LI>
 <LI>Optional variable `IR_node_name' is array mapping values of
 type `IR_node_mode_t' to names (strings) in C++ (see also
@@ -665,18 +667,19 @@ option -no-node-name in SPRUT usage).
 <LI>Variable `IR_node_size' is array mapping values of type
 `IR_node_mode_t' to size of corresponding structures on C++.</LI>
 </OL>
-<P>
+</P>
+
 <H3>C++ Functions</H3>
 
 <P>C++ SPI interface file also contains definitions of generated
 functions to quering characteritics of nodes, creation, deletion,
 modification, comparison, copy, check, print, and binary input/output
 of internal representation nodes and functions for access to values of
-internal representation node fields.
+internal representation node fields.</P>
 <P>These functions do not permit to work with abstract nodes.  Only one
 graph function can be active, e.g.  call of function `IR_check_graph'
 is not permitted during work of any traverse or transformation
-function.
+function.</P>
 <P>For sake of efficacy, the part of functions (access to internal
 representation node fields and quering charateristics of the nodes) is
 generated as inline.
@@ -743,8 +746,8 @@ which pointer of type `IR_double_link_t' refers
 
 Here type `IR_double_link_t' represents pointer to class
 representing double fields.  The functions may also check up
-that the node has given field (see SPRUT options).
-<P>
+that the node has given field (see SPRUT options).</P>
+
 </LI>
 <LI>Modification functions.  These functions declared as public in
 the class `IR_node' are generated when option `-set' is
@@ -754,11 +757,11 @@ formed from prefix `IR_set_' and corresponding field name.
 <P>Modification function has one argument is of predefined type
 (if the field is of such type) or of type `IR_node_t' (if the
 field is of a node type).  Argument represents new value of
-the field.
+the field.</P>
 <P>The function may check up constraint if the field represents
 arc to node of a node type or its sub-types (see SPRUT
 options).  The functions may also check up that the node has
-given field.
+given field.</P>
 <P>There is also function declared as public in the class for
 which pointer of type `IR_double_link_t' refers for
 modification of double links
@@ -770,8 +773,8 @@ modification of double links
 
 Remember that values of `IR__next_double_link' and
 `IR__previous_double_link' are changed after calling this
-function.
-<P>
+function.</P>
+
 </LI>
 <LI>Function declared as friend of class `IR_node'
 <BLOCKQUOTE><CODE>
@@ -811,8 +814,8 @@ function and after that assign parameters values to
 corresponding skeleton fields.  After that the functions
 return the created node.  These functions provide a mechanism
 similar to record aggregates.  Nested calls of such functions
-allow programming with terms as in LISP.
-<P>
+allow programming with terms as in LISP.</P>
+
 </LI>
 <LI>Function declared as friend of class `IR_node'
 <BLOCKQUOTE><CODE>
@@ -969,8 +972,8 @@ corresponding to given node.  In case of a constraint
 violation the involved node and all child nodes are printed on
 standard error and the function returns nonzero (error flag).
 If the parameter value is zero then class fields of given node
-are not checked up.
-<P>
+are not checked up.</P>
+
 </LI>
 <LI>Function declared as public in the class `IR_node'
 <BLOCKQUOTE><CODE>
@@ -1051,7 +1054,7 @@ description of `level' or less than the one (see internal
 representation description language).  The node type must be
 also declared in internal representation description of
 `level' or less than the one.  A nonzero function result code
-means fixing an error during output.
+means fixing an error during output.</P>
 <P>Function `IR_input_node' reads node from given file, allocates
 space for the node, initiates its fields and changes the node
 fields output early.  To make this the function uses function
@@ -1061,8 +1064,8 @@ value returned by the function means fixing an error during
 input.  The function returns original address of input node
 through the second parameter.  The output and input of fields
 is fulfilled with the aid of field type specific macros (see
-section `Type specific macros').
-<P>
+section `Type specific macros').</P>
+
 </LI>
 <LI>Function declared as public in the class `IR_node'
 <BLOCKQUOTE><CODE>
@@ -1149,8 +1152,9 @@ last.  The function fulfills class field type specific
 finalizations and finishes internal representation storage
 management.</LI>
 </OL>
-<P>
-<H2><A NAME="ss3.3">3.3 Type specific macros</A>
+</P>
+
+<H2><A NAME="ss3.3">3.3</A> <A HREF="sprut.html#toc3.3">Type specific macros</A>
 </H2>
 
 <P>C and C++ SPI uses some macros which work with node fields.  These
@@ -1265,8 +1269,9 @@ example
     ...
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss3.4">3.4 Storage management macros</A>
+</P>
+
+<H2><A NAME="ss3.4">3.4</A> <A HREF="sprut.html#toc3.4">Storage management macros</A>
 </H2>
 
 <P>SPRUT completely automatically generates macros of storage management
@@ -1301,7 +1306,8 @@ By default these macros are defined as follows:
     #define IR_FREE(ptr, size)   free (ptr)
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <HR>
 <A HREF="sprut-4.html">Next</A>
 <A HREF="sprut-2.html">Previous</A>

@@ -1472,233 +1472,169 @@ By default these macros are defined as follows:
 4. SPRUT Usage
 
 
+SPRUT(1)                         User Manuals                         SPRUT(1)
 
-
-
-SPRUT(1)                   User Manuals                  SPRUT(1)
 
 
 NAME
        sprut - internal representation description translator
 
 SYNOPSIS
-       sprut  [  -c++  -v -macro -only-macro -debug -pprefix -no-
-       line -all -access -set -new -free -free-graph -copy -copy-
-       graph   -equal  -equal-graph  -check  -check-graph  -print
-       -input -output -traverse -transform] specification-file
+       sprut  [  -c++  -v  -macro  -only-macro  -debug  -pprefix -no-line -all
+       -access -set -new -free -free-graph -copy  -copy-graph  -equal  -equal-
+       graph  -check  -check-graph -print -input -output -traverse -transform]
+       specification-file
 
 
 DESCRIPTION
-       SPRUT (internal representation definition translator) gen-
-       erates standard procedural interface ( SPI ) for work with
-       internal representation which is described  in  specifica-
-       tion  file.   The  specification  file  must  have  suffix
-       `.sprut' file is an extension (see  language  description)
-       of  another  specification  file the later is also used to
-       SPI generation and so on.
+       SPRUT (internal representation definition translator)  generates  stan-
+       dard procedural interface ( SPI ) for work with internal representation
+       which is described in specification file.  The specification file  must
+       have suffix `.sprut' file is an extension (see language description) of
+       another specification file the later is also used to SPI generation and
+       so on.
 
-       SPI consists of interface and implementation files  having
-       the  same  names  as  one of specification file and corre-
-       spondingly suffixes `.h' and `.c' (C code) or `.cpp'  (C++
-       code).
+       SPI  consists  of  interface  and  implementation files having the same
+       names as one of specification file and  correspondingly  suffixes  `.h'
+       and `.c' (C code) or `.cpp' (C++ code).
 
-       Full  documentation  of  SPRUT and SPI see in SPRUT User's
-       manual.
+       Full documentation of SPRUT and SPI see in SPRUT User's manual.
 
 OPTIONS
        The options which are known for SPRUT are:
 
-       -c++   Output of C++ code instead  of  C  code  (which  is
-              default).
+       -c++   Output of C++ code instead of C code (which is default).
 
-       -v     SPRUT  outputs  verbose  warning information (about
-              fields with the same name in different node  types,
-              about repeated declaration of a predefined type and
-              so on) to standard error stream.
+       -v     SPRUT outputs verbose warning information (about fields with the
+              same name in different node types, about repeated declaration of
+              a predefined type and so on) to standard error stream.
 
        -statistics
-              SPRUT outputs statistic information  (about  number
-              of  (all,  abstract,  double) node types, number of
-              (all, double,  synonym,  class,  skeleton,  others)
-              fields) to standard output stream.
+              SPRUT  outputs  statistic  information  (about  number  of (all,
+              abstract, double) node types, number of (all,  double,  synonym,
+              class, skeleton, others) fields) to standard output stream.
 
-       -flat  SPRUT  generates  code  for  flat  work  with  node
-              fields.  It means that node fields declared  in  an
-              abstract  type  are  processed  in each place where
-              fields of corresponding sub-type are processed.  By
-              default  SPRUT  generates code which processes node
-              fields recursively (i.e.  code for processing (e.g.
-              copying)  fields  declared in super types exists in
-              one exemplar.  The option usage generates more fast
-              code, but the code is considerably bigger.
-
-
-
-
-COCOM                       5 APR 2001                          1
-
-
-
-
-
-SPRUT(1)                   User Manuals                  SPRUT(1)
-
+       -flat  SPRUT  generates  code for flat work with node fields.  It means
+              that node fields declared in an abstract type are  processed  in
+              each place where fields of corresponding sub-type are processed.
+              By default SPRUT generates  code  which  processes  node  fields
+              recursively  (i.e.   code  for processing (e.g.  copying) fields
+              declared in super types exists  in  one  exemplar.   The  option
+              usage  generates  more  fast  code, but the code is considerably
+              bigger.
 
        -flat-structure
-              SPRUT generates flat implementation of C/C++ struc-
-              tures corresponding to node types, i.e.  node  type
-              is  represented  by  C/C++ structure which contains
-              members corresponding to all node fields  including
-              fields  declared in super types of given node type.
-              By default SPRUT  generates  the  structures  which
-              contain   only   members  corresponding  to  fields
-              declared only in given node type and  member  whose
-              type  is structure corresponding to immediate super
-              type  of  given  node  type.    This   considerably
-              decreases  number  C/C++  declarations in interface
-              file especially with many node  types  with  multi-
-              level inheritance.
+              SPRUT generates flat implementation of C/C++  structures  corre-
+              sponding  to node types, i.e.  node type is represented by C/C++
+              structure which  contains  members  corresponding  to  all  node
+              fields  including  fields  declared in super types of given node
+              type.  By default SPRUT generates the structures  which  contain
+              only members corresponding to fields declared only in given node
+              type and member whose type is structure corresponding to immedi-
+              ate  super type of given node type.  This considerably decreases
+              number C/C++ declarations in interface file especially with many
+              node types with multi-level inheritance.
 
-       -fast  This  option  forces  to  generate  some  tables as
-              unpacked and as a consequence to speed up code  for
-              access to fields.  By default the tables are gener-
-              ated as packed.  This results in considerable  mem-
-              ory economy.
+       -fast  This  option forces to generate some tables as unpacked and as a
+              consequence to speed up code for access to fields.   By  default
+              the   tables   are   generated   as  packed.   This  results  in
+              considerable memory economy.
 
        -long-node-size
-              IRTD  generates many long tables which contain dis-
-              placements relative to begin  of  C/C++  structures
-              which  implement  node  types.   This  option usage
-              forces to represent the displacements  as  unsigned
-              long.  As a consequence any size nodes can be used.
-              By default it is believed that  size  of  structure
-              implementing  a  node  is represented by byte, i.e.
-              maximal size of C/C++  structures  which  implement
-              nodes  is supposed to be not greater than 255 bytes
-              and as a consequence much memory is economized.  It
-              should  be  remember  that function `IR_start' (see
-              SPI) generated in debugging mode checks correctness
-              of real node sizes.
+              IRTD generates many long tables which contain displacements rel-
+              ative  to  begin of C/C++ structures which implement node types.
+              This option usage  forces  to  represent  the  displacements  as
+              unsigned long.  As a consequence any size nodes can be used.  By
+              default it is believed that size  of  structure  implementing  a
+              node  is represented by byte, i.e.  maximal size of C/C++ struc-
+              tures which implement nodes is supposed to be not  greater  than
+              255  bytes  and  as a consequence much memory is economized.  It
+              should be remember that function `IR_start' (see SPI)  generated
+              in debugging mode checks correctness of real node sizes.
 
        -short-node-size
-              This option usage forces to represent the displace-
-              ments in  structures  implementing  node  types  as
-              unsigned short.  See also option `-long-node-size'.
+              This  option  usage  forces  to  represent  the displacements in
+              structures implementing node types as unsigned short.  See  also
+              option `-long-node-size'.
 
-       -macro SPRUT generates access macros  and  functions  (see
-              SPI).   Only option `-macro' or `only-macro' can be
-              in SPRUT command line.
+       -macro SPRUT  generates  access  macros  and functions (see SPI).  Only
+              option `-macro' or `only-macro' can be in SPRUT command line.
 
        -only-macro
-              SPRUT generates macros instead of access  functions
-              (see SPI).
+              SPRUT generates macros instead of access functions (see SPI).
 
-       -debug SPRUT  generates  checking constraint determined by
-              type sub-type relations in node  field  declaration
-              in  modification  functions  (see SPI).  Also other
-              checks (e.g.  that a node has given field and  oth-
-              ers)  are  fulfilled  by  SPI  functions  (but  not
-
-
-
-COCOM                       5 APR 2001                          2
-
-
-
-
-
-SPRUT(1)                   User Manuals                  SPRUT(1)
-
-
-              macros) generated under this option.
+       -debug SPRUT generates checking constraint determined by type  sub-type
+              relations  in  node  field declaration in modification functions
+              (see SPI).  Also other checks (e.g.  that a node has given field
+              and others) are fulfilled by SPI functions (but not macros) gen-
+              erated under this option.
 
        -pprefix
-              Generated SPI uses `prefix' instead  of  `IR_'  for
-              names of SPI objects.
+              Generated SPI uses `prefix' instead of `IR_' for  names  of  SPI
+              objects.
 
        -no-line
-              SPRUT  does  not generate files containing numbered
-              line directives.
+              SPRUT  does  not  generate files containing numbered line direc-
+              tives.
 
-       -all   SPRUT generates all SPI functions.  Its  effect  is
-              equivalent to presence of all subsequent options in
-              the command line.
+       -all   SPRUT generates all SPI functions.  Its effect is equivalent  to
+              presence of all subsequent options in the command line.
 
        -access
               SPRUT generates access functions (see SPI).
 
        -set   SPRUT generates modification functions (see SPI).
 
-       -new   SPRUT generates node type specific  creation  func-
-              tions (see SPI).
+       -new   SPRUT generates node type specific creation functions (see SPI).
 
-       -free  SPRUT generates function for deletion of nodes (see
-              SPI).
+       -free  SPRUT generates function for deletion of nodes (see SPI).
 
        -free-graph
-              SPRUT generates functions for  deletion  of  graphs
-              and nodes (see SPI).
-
-       -copy  SPRUT  generates  function  for  copying nodes (see
+              SPRUT generates functions for deletion of graphs and nodes  (see
               SPI).
+
+       -copy  SPRUT generates function for copying nodes (see SPI).
 
        -copy-graph
-              SPRUT generates functions for  copying  graphs  and
-              nodes (see SPI).
+              SPRUT  generates  functions  for  copying  graphs and nodes (see
+              SPI).
 
-       -equal SPRUT generates function for determination of nodes
-              equality (see SPI).
+       -equal SPRUT generates function for  determination  of  nodes  equality
+              (see SPI).
 
        -equal-graph
-              SPRUT  generates  functions  for  determination  of
-              nodes and graphs equality (see SPI).
+              SPRUT  generates functions for determination of nodes and graphs
+              equality (see SPI).
 
-       -check SPRUT  generates  function  for  checking node con-
-              straints (see SPI).
+       -check SPRUT generates function  for  checking  node  constraints  (see
+              SPI).
 
        -check-graph
-              SPRUT generates functions for  checking  nodes  and
-              graphs constraints (see SPI).
+              SPRUT  generates  functions  for  checking nodes and graphs con-
+              straints (see SPI).
 
-       -print SPRUT  generates  function  for printing nodes (see
-              SPI).
+       -print SPRUT generates function for printing nodes (see SPI).
 
-       -input SPRUT generates function for input  of  nodes  (see
-
-
-
-COCOM                       5 APR 2001                          3
-
-
-
-
-
-SPRUT(1)                   User Manuals                  SPRUT(1)
-
-
-              SPI).
+       -input SPRUT generates function for input of nodes (see SPI).
 
        -output
-              SPRUT  generates  function for output of nodes (see
-              SPI).
+              SPRUT generates function for output of nodes (see SPI).
 
        -traverse
-              SPRUT generates function for traversing graphs (see
-              SPI).
+              SPRUT generates function for traversing graphs (see SPI).
 
        -reverse-traverse
-              SPRUT  generates  function  for  reverse traversing
-              graphs (see SPI).
+              SPRUT generates function  for  reverse  traversing  graphs  (see
+              SPI).
 
        -transform
-              SPRUT generates functions for transforming  acyclic
-              graphs (see SPI).
+              SPRUT  generates  functions for transforming acyclic graphs (see
+              SPI).
 
        -no-node-name
-              SPRUT does not generate array containing node names
-              (see SPI) if it is not necessary.  For example, the
-              array is necessary when function for print of nodes
-              are generated.
+              SPRUT does not generate array containing node names (see SPI) if
+              it  is  not necessary.  For example, the array is necessary when
+              function for print of nodes are generated.
 
 FILES
        file.sprut
@@ -1713,8 +1649,7 @@ FILES
        There are no any temporary files used by SPRUT.
 
 ENVIRONMENT
-       There are no  environment  variables  which  affect  SPRUT
-       behavior.
+       There are no environment variables which affect SPRUT behavior.
 
 DIAGNOSTICS
        SPRUT diagnostics is self-explanatory.
@@ -1730,12 +1665,7 @@ BUGS
 
 
 
-
-
-
-COCOM                       5 APR 2001                          4
-
-
+COCOM                             5 APR 2001                          SPRUT(1)
 
 
 5. Appendix 1 - Syntax of internal representation description language

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>NONA (code selector description translator): NONA Usage</TITLE>
  <LINK HREF="nona-5.html" REL=next>
  <LINK HREF="nona-3.html" REL=previous>
@@ -12,15 +12,13 @@
 <A HREF="nona-3.html">Previous</A>
 <A HREF="nona.html#toc4">Contents</A>
 <HR>
-<H2><A NAME="s4">4. NONA Usage</A></H2>
+<H2><A NAME="s4">4.</A> <A HREF="nona.html#toc4">NONA Usage</A></H2>
 
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
+NONA(1)                          User Manuals                          NONA(1)
 
-
-
-NONA(1)                    User Manuals                   NONA(1)
 
 
 NAME
@@ -31,64 +29,46 @@ SYNOPSIS
 
 
 DESCRIPTION
-       Command nona translates  code  selector  description  (CS)
-       which  is  described  in  specification file into code for
-       solving code selection (tree matcher) and  possibly  other
-       back-end  tasks.   The specification file must have suffix
-       `.nona' determined by CS builds cover of low level  inter-
-       nal  representation  (which  must  be  a  directed acyclic
-       graph) by the tree patterns with minimal cost on the first
-       bottom  up  pass  and fulfills actions associated with the
-       choiced tree patterns on the second bottom up pass.
+       Command  nona  translates  code  selector  description  (CS)  which  is
+       described in specification file into code for  solving  code  selection
+       (tree  matcher)  and  possibly other back-end tasks.  The specification
+       file must have suffix `.nona' determined by  CS  builds  cover  of  low
+       level  internal representation (which must be a directed acyclic graph)
+       by the tree patterns with minimal cost on the first bottom up pass  and
+       fulfills  actions associated with the choiced tree patterns on the sec-
+       ond bottom up pass.
 
 
-       Generated code consists of  interface  and  implementation
-       files  having  the same names as one of specification file
-       and correspondingly suffixes `.h' and  `.c'  (C  code)  or
-       `.cpp' (C++ code).
+       Generated code consists of interface and  implementation  files  having
+       the  same  names  as one of specification file and correspondingly suf-
+       fixes `.h' and `.c' (C code) or `.cpp' (C++ code).
 
        Full documentation of OKA is in OKA User's manual.
 
 OPTIONS
        The options which are known for NONA are:
 
-       -c++   NONA   generates   C++   code  instead  of  C  code
-              (default).
+       -c++   NONA generates C++ code instead of C code (default).
 
-       -v     NONA outputs statistic information to standard out-
-              put stream.
+       -v     NONA outputs statistic information to standard output stream.
 
-       -debug NONA outputs debugging information during execution
-              of function `CS_find_cover' and `CS_traverse_cover'
-              (see generated code).
+       -debug NONA outputs debugging information during execution of  function
+              `CS_find_cover' and `CS_traverse_cover' (see generated code).
 
        -export
-              NONA  generates macros defining identifiers of ter-
-              minals as integer constants and inclusion of  their
-              in  the  interface  file.  Usually the user himself
-              declares the identifiers in a C  declarations  sec-
-              tion.
+              NONA generates macros defining identifiers of terminals as inte-
+              ger constants and inclusion of  their  in  the  interface  file.
+              Usually  the user himself declares the identifiers in a C decla-
+              rations section.
 
        -pprefix
-              NONA  generates names starting with prefix `prefix'
-              instead of `CS'.
+              NONA generates names starting with prefix  `prefix'  instead  of
+              `CS'.
 
 FILES
        file.nona
               NONA specification file
        file.c
-
-
-
-COCOM                       5 Apr 2001                          1
-
-
-
-
-
-NONA(1)                    User Manuals                   NONA(1)
-
-
               generated C implementation file
        file.cpp
               generated C++ implementation file
@@ -98,8 +78,7 @@ NONA(1)                    User Manuals                   NONA(1)
        There are no any temporary files used by NONA.
 
 ENVIRONMENT
-       There are  no  environment  variables  which  affect  NONA
-       behavior.
+       There are no environment variables which affect NONA behavior.
 
 DIAGNOSTICS
        NONA diagnostics is self-explanatory.
@@ -115,42 +94,11 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-COCOM                       5 Apr 2001                          2
-
+COCOM                             5 Apr 2001                           NONA(1)
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <HR>
 <A HREF="nona-5.html">Next</A>
 <A HREF="nona-3.html">Previous</A>

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C interface: Ticker package</TITLE>
  <LINK HREF="ammunition-13.html" REL=next>
  <LINK HREF="ammunition-11.html" REL=previous>
@@ -12,7 +12,7 @@
 <A HREF="ammunition-11.html">Previous</A>
 <A HREF="ammunition.html#toc12">Contents</A>
 <HR>
-<H2><A NAME="s12">12. Ticker package</A></H2>
+<H2><A NAME="s12">12.</A> <A HREF="ammunition.html#toc12">Ticker package</A></H2>
 
 <P>The package `ticker' implements a timer.  Timer can be activated or
 can be stopped.  The timer accumulates execution time only when it is
@@ -21,8 +21,8 @@ in active state.  The interface part of the package is file
 interface contains the following external definitions and macros:
 <DL>
 <DT><B>Type `ticker_t'</B><DD><P>describes a timer.  Knowledge of structure (implementation)
-of this type is not needed for using timer.
-<P>
+of this type is not needed for using timer.</P>
+
 <DT><B>Function `create_ticker'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -32,8 +32,8 @@ of this type is not needed for using timer.
 </CODE></BLOCKQUOTE>
 
 returns new timer.  The state of the timer is active.  This
-function call must to be the first for given timer.
-<P>
+function call must to be the first for given timer.</P>
+
 <DT><B>Function `ticker_off'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -42,8 +42,8 @@ function call must to be the first for given timer.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-stops the timer given as the first parameter.
-<P>
+stops the timer given as the first parameter.</P>
+
 <DT><B>Function `ticker_on'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -52,8 +52,8 @@ stops the timer given as the first parameter.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-activates the timer given as the first parameter.
-<P>
+activates the timer given as the first parameter.</P>
+
 <DT><B>Public function `active_time'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -63,8 +63,8 @@ activates the timer given as the first parameter.
 </CODE></BLOCKQUOTE>
 
 returns time in seconds as double float value in which
-given timer was active.
-<P>
+given timer was active.</P>
+
 <DT><B>Public function `active_time_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -77,9 +77,10 @@ returns string representation of time in seconds in which
 the timer given as the function parameter was active.
 Remember that this function must be the single in a C++
 expression because the string is stored in a static variable
-of the function.
+of the function.</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition-13.html">Next</A>
 <A HREF="ammunition-11.html">Previous</A>

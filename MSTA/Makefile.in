@@ -148,7 +148,7 @@ additional_files = README INSTALL msta.1 msta.tst.in quality.tst.in\
                    lex.y oberon2-gram.y oberon2-lex.y oberon2-kw.shilka\
                    compare.tst.in msta.dsw msta.dsp
 
-doc_files = msta.txt msta.info* msta*.html msta.dvi msta.ps
+doc_files = msta.txt msta.info* msta*.html msta.pdf msta.dvi msta.ps
 
 # Files which are not in distribution
 additional_rcs_files = msta.sgml.in
@@ -268,10 +268,10 @@ dist: dist-copy
 # Creation of documentation
 
 doc : msta.sgml.tmp $(srcdir)/msta.txt $(srcdir)/msta.html\
-      $(srcdir)/msta.info $(srcdir)/msta.dvi $(srcdir)/msta.ps
+      $(srcdir)/msta.info $(srcdir)/msta.pdf $(srcdir)/msta.dvi $(srcdir)/msta.ps
 
 msta.sgml.tmp : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
-	nroff -man $(srcdir)/msta.1 | $(AWK) '{gsub (/.\b/,"");print;}' > msta.tmp
+	nroff -man $(srcdir)/msta.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");print;}' > msta.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "msta.tmp") > 0)\
                         print line;close("msta.tmp")}\
@@ -283,7 +283,7 @@ $(srcdir)/msta.txt: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	
 $(srcdir)/msta.html: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	$(srcdir)/../sgml-html msta.sgml.tmp >msta.sgml
-	sgml2html msta.sgml
+	linuxdoc -B html --papersize=letter msta.sgml
 	if test -f msta-1.html;then\
   	  for i in msta-*.html;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -293,7 +293,7 @@ $(srcdir)/msta.html: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	
 $(srcdir)/msta.info: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	$(srcdir)/../sgml-info msta.sgml.tmp >msta.sgml
-	sgml2info msta.sgml
+	linuxdoc -B info --papersize=letter msta.sgml
 	for i in msta.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
@@ -304,14 +304,19 @@ $(srcdir)/msta.info: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
         fi
 	mv msta.info $(srcdir)/msta.info
 	
-$(srcdir)/msta.dvi: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
+$(srcdir)/msta.dvi $(srcdir)/msta.pdf: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	$(srcdir)/../sgml-tex msta.sgml.tmp >msta.sgml
-	sgml2latex msta.sgml
+	linuxdoc -B latex --papersize=letter msta.sgml
 	if test ! -f msta.dvi\
            -o -f msta.tex -a msta.tex -nt msta.dvi; then\
     	        latex msta.tex; latex msta.tex;\
         fi
 	mv msta.dvi $(srcdir)/msta.dvi
+	if test ! -f msta.pdf\
+           -o -f msta.tex -a msta.tex -nt msta.pdf; then\
+    	        pdflatex msta.tex; pdflatex msta.tex;\
+        fi
+	mv msta.pdf $(srcdir)/msta.pdf
 
 $(srcdir)/msta.ps: $(srcdir)/msta.dvi
 	dvips -o $@ $(srcdir)/msta.dvi

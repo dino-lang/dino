@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Package for machine-independent arbitrary precision integer arithmetic</TITLE>
  <LINK HREF="ammunition++-11.html" REL=next>
  <LINK HREF="ammunition++-9.html" REL=previous>
@@ -12,7 +12,7 @@
 <A HREF="ammunition++-9.html">Previous</A>
 <A HREF="ammunition++.html#toc10">Contents</A>
 <HR>
-<H2><A NAME="s10">10. Package for machine-independent arbitrary precision integer arithmetic</A></H2>
+<H2><A NAME="s10">10.</A> <A HREF="ammunition++.html#toc10">Package for machine-independent arbitrary precision integer arithmetic</A></H2>
 
 <P>Abstract data `arithm' may be used for implementation of a
 cross-compiler.  This abstract data implements arbitrary precision
@@ -22,7 +22,7 @@ efficient in order to use for run-time.  The package functions are
 oriented to implement constant-folding in compilers.  This package is
 necessary because host machine may not support such arithmetic for
 target machine.  For example, VAX does not support does not support
-more 32-bits integer numbers arithmetic.
+more 32-bits integer numbers arithmetic.</P>
 <P>The numbers in packages are represented by bytes in big endian mode,
 negative integer numbers are represented in complementary code.  All
 sizes are given in bytes and must be positive.  Results of executions
@@ -30,7 +30,7 @@ of all functions can coincide with a operand(s).  All functions of
 addition, subtraction, multiplication, division, evaluation of
 remainder, shift, changing size and transformation of string into
 number fix overflow.  The overflow is fixed when result can not be
-represented by number of given size.
+represented by number of given size.</P>
 <P>The interface part of the abstract data is file `arithm.h'.  The
 implementation part is file `arithm.cpp'.  The maximum length of integer
 number is suggested to be not greater then `MAX_INTEGER_OPERAND_SIZE'.
@@ -38,7 +38,7 @@ The default value (128) of this macro can be redefined with
 corresponding C++ compiler option `-DMAX_INTEGER_OPERAND_SIZE=...'
 during compilation of file `arithm.cpp'.  But in any case the minimal
 value of the macros will be 16.  The interface contains the following
-external definitions:
+external definitions:</P>
 <P>
 <DL>
 <DT><B>Class `integer'</B><DD><P>is auxialiary.  It serves to describe common variables and
@@ -50,10 +50,10 @@ has the following members.
 overflow.  The variable value are modified by all functions of
 addition, subtract, multiplication, division, evaluation of
 remainder, shift, changing size and transformation of string
-into number.
-<P>
-<DT><B>Public static variable `const unsigned char *zero_constant'</B><DD><P>represents zero (unsigned) integer of any size.
-<P>
+into number.</P>
+
+<DT><B>Public static variable `const unsigned char *zero_constant'</B><DD><P>represents zero (unsigned) integer of any size.</P>
+
 <DT><B>Public static function `default_arithmetic_overflow_reaction'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -65,8 +65,9 @@ into number.
 Originally reaction on all integer and unsigned integer
 overflow is equal to this function.  The function does
 nothing.  Reaction on overflow for integers or unsigned
-integers is called after setting up variable `overflow_bit'.
+integers is called after setting up variable `overflow_bit'.</P>
 </DL>
+</P>
 <DT><B>Classes `signed_integer' and `unsigned_integer'</B><DD><P>are sub-classes of the class `integer'.  The first class
 contains functions for implementation of signed integer
 arithmetic.  The second one contains functions for
@@ -83,8 +84,8 @@ contains the following functions:
 </CODE></BLOCKQUOTE>
 
 change reaction on integer overflow and returns previous
-overflow reaction function.
-<P>
+overflow reaction function.</P>
+
 <DT><B>Static public functions `maximum'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -95,8 +96,8 @@ overflow reaction function.
 
 create given size (in bytes) maximal integer constant which
 is placed in memory whose address is given by the second
-parameter.
-<P>
+parameter.</P>
+
 <DT><B>Static public functions `add'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -120,7 +121,8 @@ implement other operations:
            
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <DT><B>Static public functions `shift_left'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -143,7 +145,8 @@ functions which implement another operation
            
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <DT><B>Static public function `_or_'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -162,6 +165,7 @@ analogous functions which implement bitwise `and':
            
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 <P>Static public functions
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -171,8 +175,8 @@ analogous functions which implement bitwise `and':
 </PRE>
 </CODE></BLOCKQUOTE>
 
-make bitwise `not' of integer of given size.
-<P>
+make bitwise `not' of integer of given size.</P>
+
 <DT><B>Static public functions `eq'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -194,8 +198,8 @@ analogous functions which implement other integer operations:
            
 </PRE>
 </CODE></BLOCKQUOTE>
-   
-<P>
+   </P>
+
 <DT><B>Static public functions `change_size'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -207,8 +211,8 @@ analogous functions which implement other integer operations:
 </CODE></BLOCKQUOTE>
 
 change size of integer.  The functions fix overflow when
-result can not be represented by number of given size.
-<P>
+result can not be represented by number of given size.</P>
+
 <DT><B>Static public functions `to_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -222,8 +226,8 @@ transform integer of given size to decimal ascii
 representation.  Sign is present in result string only for
 negative numbers (it is not possible for the function in
 class `unsigned_integer').  The functions return value
-`result'.
-<P>
+`result'.</P>
+
 <DT><B>Static public functions `to_based_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -238,8 +242,8 @@ with given base.  The base should be between 2 and 36
 including them.  Digits more 9 are represented by 'a', 'b'
 etc.  Sign is present in result string only for negative
 numbers (it is not possible for the function in class
-`unsigned_integer').  The functions return value `result'.
-<P>
+`unsigned_integer').  The functions return value `result'.</P>
+
 <DT><B>Static public functions `from_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -257,8 +261,8 @@ and return pointer to first non digit in the source
 string.  If the string started with invalid integer
 representation the result will be zero.  The functions fix
 overflow when result can not be represented by number of
-given size.
-<P>
+given size.</P>
+
 <DT><B>Static public functions `from_based_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -278,8 +282,9 @@ including them.  Digits more 9 are represented by 'a' (or
 'A'), 'b' (or 'B') etc.  If the string started with invalid
 integer representation the result will be zero.  The
 functions fix overflow when result can not be represented
-by number of given size.
+by number of given size.</P>
 </DL>
+</P>
 <DT><B>Classes `sint' and `unsint'</B><DD><P>Classes `signed_integer' and `unsigned_integer' containing
 only static function are simply written in C style.  Object
 oriented implementation of integer arithmetic requires C++
@@ -302,8 +307,8 @@ classes have the following memebers:
 </CODE></BLOCKQUOTE>
 
 can be used for creation integer with given value or zero
-integer.
-<P>
+integer.</P>
+
 <DT><B>Static public functions `max', `min'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -316,8 +321,8 @@ integer.
 </CODE></BLOCKQUOTE>
 
 create integers and unsigned integers of maximal and minimal
-value.
-<P>
+value.</P>
+
 <DT><B>Public operators `+'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -342,7 +347,8 @@ implement other operations:
            
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <DT><B>Public operators `&lt;&lt;'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -365,7 +371,8 @@ implement another operation (right shift)
            
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <DT><B>Public operators `|'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -385,6 +392,7 @@ operators which implement bitwise `and':
            
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 <P>Public operators
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -394,8 +402,8 @@ operators which implement bitwise `and':
 </PRE>
 </CODE></BLOCKQUOTE>
 
-make bitwise `not' of integer of given size.
-<P>
+make bitwise `not' of integer of given size.</P>
+
 <DT><B>Public operators `=='</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -418,8 +426,8 @@ analogous operators which implement other integer operations:
            
 </PRE>
 </CODE></BLOCKQUOTE>
-   
-<P>
+   </P>
+
 <DT><B>Public functions `to_str'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -431,8 +439,8 @@ analogous operators which implement other integer operations:
 transform integer to decimal ascii representation.  Sign is
 present in result string only for negative numbers (it is
 not possible for the function in class `unsint').  The
-functions return value `result'.
-<P>
+functions return value `result'.</P>
+
 <DT><B>Public functions `to_based_str'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -446,8 +454,8 @@ The base should be between 2 and 36 including them.  Digits
 more 9 are represented by 'a', 'b' etc.  Sign is present in
 result string only for negative numbers (it is not possible
 for the function in class `unsint').  The functions return
-value `result'.
-<P>
+value `result'.</P>
+
 <DT><B>Public functions `from_str'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -463,8 +471,8 @@ function in class `signed_integer') to given integer and
 return pointer to first non digit in the source string.
 If the string started with invalid integer representation
 the result will be zero.  The functions fixe overflow when
-result can not be represented by number of given size.
-<P>
+result can not be represented by number of given size.</P>
+
 <DT><B>Public functions `from_based_str'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -483,8 +491,9 @@ including them.  Digits more 9 are represented by 'a' (or
 'A'), 'b' (or 'B') etc.  If the string started with invalid
 integer representation the result will be zero.  The
 functions fixe overflow when result can not be represented
-by number of given size.
+by number of given size.</P>
 </DL>
+</P>
 <DT><B>Template functions `new_size'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -499,9 +508,10 @@ by number of given size.
 </CODE></BLOCKQUOTE>
 
 change size of integer.  The functions fix overflow when
-result can not be represented by number of given size.
+result can not be represented by number of given size.</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition++-11.html">Next</A>
 <A HREF="ammunition++-9.html">Previous</A>

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C interface: Package for allocating memory with fixing some allocation errors</TITLE>
  <LINK HREF="ammunition-3.html" REL=next>
  <LINK HREF="ammunition-1.html" REL=previous>
@@ -12,24 +12,24 @@
 <A HREF="ammunition-1.html">Previous</A>
 <A HREF="ammunition.html#toc2">Contents</A>
 <HR>
-<H2><A NAME="s2">2. Package for allocating memory with fixing some allocation errors</A></H2>
+<H2><A NAME="s2">2.</A> <A HREF="ammunition.html#toc2">Package for allocating memory with fixing some allocation errors</A></H2>
 
 <P>Developing modern compilers it is necessary to avoid arbitrary limits
 on the length or number of any data structure by allocating all data
 structures dynamically.  Here the package `allocate' which implements
 allocation and freeing memory with automatic fixing allocation errors
-is suggested.
+is suggested.</P>
 <P>The package automatically calls action on situation `no memory'.  The
 action never returns control back because after calling function which
 processes allocation error the function `abort' is always called.
 Therefore the function which processes allocation error should not
-return control back.
+return control back.</P>
 <P>The interface part of the package is file `allocate.h'.  Defining
 macro `NDEBUG' (e.g. by option `-D' in C compiler command line) before
 the package macros usage disables fixing some internal errors and
 errors of usage of the package.  The implementation part is file
 `allocate.c'.  The interface contains the following external
-definitions and macros:
+definitions and macros:</P>
 <P>
 <DL>
 <DT><B>Function `change_allocation_error_function'</B><DD><P>
@@ -43,8 +43,8 @@ definitions and macros:
 
 is used for changing up action on the situation `no memory'.
 The function also returns former function which was early
-action on the situation `no memory'.
-<P>
+action on the situation `no memory'.</P>
+
 <DT><B>Function `default_allocation_error_function'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -56,8 +56,8 @@ action on the situation `no memory'.
 is default action of the package on the situation `no memory'.
 This action consists of output message `*** no memory ***' to
 standard error stream and calling function `exit' with code
-equals to 1.
-<P>
+equals to 1.</P>
+
 <DT><B>Macro `MALLOC'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -69,8 +69,8 @@ equals to 1.
 is analogous to ANSI C library function `malloc'.  But the
 macro has two parameters.  The first is pointer variable which
 is set up by address of allocated memory.  The second is size
-of needed memory.
-<P>
+of needed memory.</P>
+
 <DT><B>Macro `CALLOC'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -83,8 +83,8 @@ is analogous to ANSI C library function `calloc'.  But the
 macro has three parameters.  The first is pointer variable
 which is set up by address of allocated memory.  The last two
 parameters have the same sense as in standard function
-`calloc'.
-<P>
+`calloc'.</P>
+
 <DT><B>Macro `FREE'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -94,8 +94,8 @@ parameters have the same sense as in standard function
 </CODE></BLOCKQUOTE>
 
 is analogous to ANSI C library function `free' but can accept
-nil pointer value.  In this case macro does nothing.
-<P>
+nil pointer value.  In this case macro does nothing.</P>
+
 <DT><B>Macro `REALLOC'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -108,9 +108,10 @@ is analogous to ANSI C library function `realloc' but has
 three parameters.  The first parameter is variable which is
 set up by new address of reallocated memory.  The second is
 old address of reallocated memory.  And third is new size of
-reallocated memory.
+reallocated memory.</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition-3.html">Next</A>
 <A HREF="ammunition-1.html">Previous</A>

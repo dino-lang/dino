@@ -1,4 +1,4 @@
-Summary: COCOM (Russian Armoury)
+Summary: COCOM
 Name: cocom
 Version: 0.995
 Release: 1
@@ -124,4 +124,3 @@ rm -rf $RPM_BUILD_ROOT
 %doc SPRUT/sprut.info SPRUT/sprut.info-1 SPRUT/sprut.info-2
 %doc SPRUT/sprut.html SPRUT/sprut-1.html SPRUT/sprut-2.html SPRUT/sprut-3.html
 %doc SPRUT/sprut-4.html SPRUT/sprut-5.html
-y

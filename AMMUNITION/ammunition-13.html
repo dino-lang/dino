@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C interface: Earley parser</TITLE>
  <LINK HREF="ammunition-12.html" REL=previous>
  <LINK HREF="ammunition.html#toc13" REL=contents>
@@ -11,10 +11,10 @@ Next
 <A HREF="ammunition-12.html">Previous</A>
 <A HREF="ammunition.html#toc13">Contents</A>
 <HR>
-<H2><A NAME="s13">13. Earley parser</A></H2>
+<H2><A NAME="s13">13.</A> <A HREF="ammunition.html#toc13">Earley parser</A></H2>
 
 <P>The package `earley' implements earley parser.  The earley parser
-implementation has the following features:
+implementation has the following features:</P>
 <P>
 <UL>
 <LI>It is sufficiently fast and does not require much memory.
@@ -58,102 +58,104 @@ information about grammar, parsing, error recovery, translation.
 You can even output the result translation in form for a graphic
 visualization program.</LI>
 </UL>
+</P>
 <P>The interface part of the parser is file `earley.h'.  The
 implementation part is file `earley.c'.  The interface contains the
 following external definitions and macros:
 <DL>
 <DT><B>Struct `grammar'</B><DD><P>describes a grammar.  Knowledge of structure
 (implementation) of this type is not visible and not needed
-for using the parser.
-<P>
-<DT><B>Macro `EARLEY_NIL_TRANSLATION_NUMBER'</B><DD><P>is reserved to be designation of empty node for translation.
-<P>
+for using the parser.</P>
+
+<DT><B>Macro `EARLEY_NIL_TRANSLATION_NUMBER'</B><DD><P>is reserved to be designation of empty node for translation.</P>
+
 <DT><B>Macro `EARLEY_NO_MEMORY'</B><DD><P>is error code of the parser.  The parser functions return
 the code when parser can not allocate enough memory for its
-work.
-<P>
+work.</P>
+
 <DT><B>Macro `EARLEY_UNDEFINED_OR_BAD_GRAMMAR'</B><DD><P>is error code of the parser.  The parser functions return
 the code when we call parsing without defining grammar or
-call parsing for bad defined grammar.
-<P>
+call parsing for bad defined grammar.</P>
+
 <DT><B>Macro `EARLEY_DESCRIPTION_SYNTAX_ERROR_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
 grammar is defined by description and there is syntax error
-in the description.
-<P>
+in the description.</P>
+
 <DT><B>Macro `EARLEY_FIXED_NAME_USAGE'</B><DD><P>is error code of the parser.  The code is returned when the
 grammar uses reserved names for terminals and nonterminals.
 There are two reserved names `$S' (for axiom) and `$eof' for
 end of file (input end marker).  The parser adds these
 symbols and rules with these symbols to the grammar given by
-user.  So user should not use these names in his grammar.
-<P>
+user.  So user should not use these names in his grammar.</P>
+
 <DT><B>Macro `EARLEY_REPEATED_TERM_DECL'</B><DD><P>is error code of the parser.  The code is returned when the
 grammar contains several declarations of terminals with the
-same name.
-<P>
+same name.</P>
+
 <DT><B>Macro `EARLEY_NEGATIVE_TERM_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
-grammar terminal is described with negative code.
-<P>
+grammar terminal is described with negative code.</P>
+
 <DT><B>Macro `EARLEY_REPEATED_TERM_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
 two or more grammar terminals are described with the same
-code.
-<P>
+code.</P>
+
 <DT><B>Macro `EARLEY_NO_RULES'</B><DD><P>is error code of the parser.  The code is returned when the
-grammar given by user has no rules.
-<P>
+grammar given by user has no rules.</P>
+
 <DT><B>Macro `EARLEY_TERM_IN_RULE_LHS'</B><DD><P>is error code of the parser.  The code is returned when
 grammar rule given by user contains terminal in left hand
-side of the rule.
-<P>
+side of the rule.</P>
+
 <DT><B>Macro `EARLEY_INCORRECT_TRANSLATION'</B><DD><P>is error code of the parser.  The code is returned when
 grammar rule translation is not correct.  The single reason
 for this is translation of the rule consists of translations
 of more one symbols in the right hand side of the rule
-without forming an abstract tree node.
-<P>
+without forming an abstract tree node.</P>
+
 <DT><B>Macro `EARLEY_NEGATIVE COST'</B><DD><P>is error code of the parser.  The code is returned when
-abstract node has a negative cost.
-<P>
+abstract node has a negative cost.</P>
+
 <DT><B>Macro `EARLEY_INCORRECT_SYMBOL_NUMBER'</B><DD><P>is error code of the parser.  The code is returned when
 grammar rule translation contains incorrect symbol number
 which should be nonnegative number less than rule right hand
-side length.
-<P>
+side length.</P>
+
 <DT><B>Macro `EARLEY_UNACCESSIBLE_NONTERM'</B><DD><P>is error code of the parser.  The code is returned when
 there is grammar nonterminal which can not be derived from
-axiom.
-<P>
+axiom.</P>
+
 <DT><B>Macro `EARLEY_NONTERM_DERIVATION'</B><DD><P>is error code of the parser.  The code is returned when
 there is grammar nonterminal which can not derive a terminal
-string.
-<P>
+string.</P>
+
 <DT><B>Macro `EARLEY_LOOP_NONTERM'</B><DD><P>is error code of the parser.  The code is returned when
 there is grammar nonterminal which can derive only itself.
-The parser does not work with such grammars.
-<P>
+The parser does not work with such grammars.</P>
+
 <DT><B>Macro `EARLEY_INVALID_TOKEN_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
 parser got input token whose code is different from all
-grammar terminal codes.
-<P>
+grammar terminal codes.</P>
+
 <DT><B>Enumeration `earley_tree_node_type'</B><DD><P>describes all possible nodes of abstract tree representing
 the translation.  There are the following enumeration
 constants:
 <DL>
-<DT><B>`EARLEY_NIL'</B><DD><P>the corresponding node represents empty translations.
-<P>
+<DT><B>`EARLEY_NIL'</B><DD><P>the corresponding node represents empty translations.</P>
+
 <DT><B>`EARLEY_ERROR'</B><DD><P>the corresponding node represents translation of
-special terminal `error' (see error recovery).
-<P>
+special terminal `error' (see error recovery).</P>
+
 <DT><B>`EARLEY_TERM'</B><DD><P>the corresponding node represents translation of
-a terminal.
-<P>
-<DT><B>`EARLEY_ANODE'</B><DD><P>the corresponding node represents an abstract node.
-<P>
+a terminal.</P>
+
+<DT><B>`EARLEY_ANODE'</B><DD><P>the corresponding node represents an abstract node.</P>
+
 <DT><B>`EARLEY_ALT'</B><DD><P>the corresponding node represents an alternative of the
 translation.  Such nodes creates only when there are
 two or more possible translations.  It means that the
-grammar is ambiguous.
+grammar is ambiguous.</P>
 </DL>
+</P>
 <DT><B>Structure `earley_tree_node'</B><DD><P>represents node of the translation.  The nodes refer for
 each other forming DAG (direct acyclic graph) in general
 case.  The main reason of generating DAG is that some input
@@ -165,47 +167,51 @@ nodes) exist only in one exemplar.  When such nodes are not
 created, the translation nodes forms a tree.  This structure
 has the following members:
 <DL>
-<DT><B>Member `type' of type `enum earley_tree_node_type'</B><DD><P>representing type of the translation node.
-<P>
+<DT><B>Member `type' of type `enum earley_tree_node_type'</B><DD><P>representing type of the translation node.</P>
+
 <DT><B>Union `val'</B><DD><P>Depending on the translation node type, one of the
 union members `nil', `error', `term', `anode', and
 `alt' of the structure types described below is used to
-represent the translation node.
+represent the translation node.</P>
 </DL>
+</P>
 <DT><B>Structure `earley_nil'</B><DD><P>represents empty node.  It has no members.  Actually the
 translation is DAG (not tree) in general case.  The empty
-and error nodes are present only in one exemplar.
-<P>
+and error nodes are present only in one exemplar.</P>
+
 <DT><B>Structure `earley_error'</B><DD><P>represents translation of special terminal `error'.  It has
-no members.  The error node exists only in one exemplar.
-<P>
+no members.  The error node exists only in one exemplar.</P>
+
 <DT><B>Structure `earley_term'</B><DD><P>represents translation of terminals.  It has
 the following two members:
 <DL>
-<DT><B>Integer member `code'</B><DD><P>representing code of the corresponding terminal.
-<P>
+<DT><B>Integer member `code'</B><DD><P>representing code of the corresponding terminal.</P>
+
 <DT><B>Member `attr' of type `* void'</B><DD><P>is reference for the attribute of the corresponding
-terminal.
+terminal.</P>
 </DL>
+</P>
 <DT><B>Structure `earley_anode'</B><DD><P>represents abstract node.  It has the following two members:
 <DL>
 <DT><B>Member `name' of type `const char *'</B><DD><P>representing name of anode as it given in the
-corresponding rule translation.
-<P>
+corresponding rule translation.</P>
+
 <DT><B>Member `cost' of type `int'</B><DD><P>representing cost of the node plus costs of all
 children if the cost flag is set up.  Otherwise, the
-value is cost of the abstract node itself.
-<P>
+value is cost of the abstract node itself.</P>
+
 <DT><B>Member `children' of type `struct earley_tree_node **'</B><DD><P>is array of nodes representing the translations of the
-symbols given in the rule with the abstract node.
+symbols given in the rule with the abstract node.</P>
 </DL>
+</P>
 <DT><B>Structure `earley_alt'</B><DD><P>represents an alternative of the translation.  It has the
 following two members:
 <DL>
-<DT><B>Member `node' of type `struct earley_tree_node *'</B><DD><P>representing alternative translation.
-<P>
-<DT><B>Member `next' of type `struct earley_tree_node *'</B><DD><P>is reference for the next alternative of translation.
+<DT><B>Member `node' of type `struct earley_tree_node *'</B><DD><P>representing alternative translation.</P>
+
+<DT><B>Member `next' of type `struct earley_tree_node *'</B><DD><P>is reference for the next alternative of translation.</P>
 </DL>
+</P>
 <DT><B>Function `earley_create_grammar'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -217,8 +223,8 @@ following two members:
 should be called the first.  It actually creates an earley
 parser with undefined grammar.  You can use two or more
 parsers simultaneously.  The function returns `NULL' if
-there is no memory.
-<P>
+there is no memory.</P>
+
 <DT><B>Function `earley_error_code'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -229,8 +235,8 @@ there is no memory.
 
 returns the last occurred error code (see the possible error
 codes above) for given parser.  If the function returns
-zero, no error was found so far.
-<P>
+zero, no error was found so far.</P>
+
 <DT><B>Function `earley_error_message'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -241,8 +247,8 @@ zero, no error was found so far.
 
 returns detail message about last occurred error.  The
 message always corresponds to the last error code returned
-the previous function.
-<P>
+the previous function.</P>
+
 <DT><B>Function `earley_read_grammar'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -259,12 +265,12 @@ the previous function.
 
 is one of two functions which tunes the parser to given
 grammar.  The grammar is read with the aid functions given
-as parameters.
+as parameters.</P>
 <P>`read_terminal' is function for reading terminals.  This
 function is called before function `read_rule'.  The
 function should return the name and the code of the next
 terminal.  If all terminals have been read the function
-returns NULL.  The terminal code should be nonnegative.
+returns NULL.  The terminal code should be nonnegative.</P>
 <P>`read_rule' is function called to read the next rule.  This
 function is called after function `read_terminal'.  The
 function should return the name of nonterminal in the left
@@ -292,16 +298,16 @@ in the right hand side given by the single array
 element. The cost of the abstract node if given is passed
 through parameter `anode_cost'.  If `abs_node' is not
 `NULL', the cost should be greater or equal to zero.
-Otherwise the cost is ignored.
+Otherwise the cost is ignored.</P>
 <P>There is reserved terminal `error' which is used to mark
-start point of error recovery.
+start point of error recovery.</P>
 <P>Nonzero parameter `strict_p' value means more strict checking
 the grammar.  In this case, all nonterminals will be checked
 on ability to derive a terminal string instead of only
-checking axiom for this.
+checking axiom for this.</P>
 <P>The function returns zero if it is all ok.  Otherwise, the
-function returns the error code occured.
-<P>
+function returns the error code occured.</P>
+
 <DT><B>Function `earley_parse_grammar'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -347,15 +353,15 @@ syntax:
 </CODE></BLOCKQUOTE>
 
 So the description consists of terminal declaration and
-rules sections.
+rules sections.</P>
 <P>Terminal declaration section describes name of terminals and
 their codes.  Terminal code is optional.  If it is omitted,
 the terminal code will the next free code starting with 256.
 You can declare terminal several times (the single condition
-its code should be the same).
+its code should be the same).</P>
 <P>Character constant present in the rules is a terminal
 described by default.  Its code is always code of the
-character constant.
+character constant.</P>
 <P>Rules syntax is the same as YACC rule syntax.  The single
 difference is an optional translation construction starting
 with `#' right after each alternative.  The translation part
@@ -370,10 +376,10 @@ in parentheses after the abstract node name.  You can use
 `-' in abstract node to show that empty node should be used
 in this place.  If the cost is absent it is believed to be
 one.  The cost of terminal, error node, and empty node is
-always zero.
+always zero.</P>
 <P>There is reserved terminal `error' which is used to mark
-start point of error recovery.
-<P>
+start point of error recovery.</P>
+
 <DT><B>Function `earley_set_lookahead_level'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -394,8 +400,8 @@ lookaheads does the worst.  The default value is 1
 (lookahead with static situation context sets).  The
 function returns the previously set up level.  If the level
 value is negative, zero is used instead of it.  If the value
-is greater than two, two is used in this case.
-<P>
+is greater than two, two is used in this case.</P>
+
 <DT><B>Function `earley_set_debug_level'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -413,8 +419,8 @@ parser sets with all situations, situations with
 contexts. The function returns the previously set up debug
 level.  Setting up negative debug level results in output of
 translation for program `dot' of graphic visualization
-package `graphviz'.
-<P>
+package `graphviz'.</P>
+
 <DT><B>Function `earley_set_one_parse_flag'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -428,8 +434,8 @@ sets up building only one translation tree (parameter value
 0) or all parse trees for ambiguous grammar for which
 several parsings are possible.  For unambiguous grammar the
 flag does not affect the result.  The default value is 1.
-The function returns the previously used flag value.
-<P>
+The function returns the previously used flag value.</P>
+
 <DT><B>Function `earley_set_cost_flag'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -442,8 +448,8 @@ sets up building only translation tree (trees if we set up
 one_parse_flag to 0) with minimal cost.  For unambiguous
 grammar the flag does not affect the result.  The default
 value is 0.  The function returns the previously used flag
-value.
-<P>
+value.</P>
+
 <DT><B>Function `earley_set_error_recovery_flag'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -458,8 +464,8 @@ recovery if syntax error occurred.  Otherwise, syntax error
 results in finishing parsing (although function
 `syntax_error' in function `earley_parse' will be called
 once).  The default value is 1. The function returns the
-previously used flag value.
-<P>
+previously used flag value.</P>
+
 <DT><B>Function `earley_set_recovery_match'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -472,8 +478,8 @@ previously used flag value.
 sets up recovery parameter which means how much subsequent
 tokens should be successfully shifted to finish error
 recovery.  The default value is 3.  The function returns the
-previously used flag value.
-<P>
+previously used flag value.</P>
+
 <DT><B>Function `earley_parse'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -503,10 +509,10 @@ only if syntax error was occurred and error recovery was
 switched off.  The function sets up flag passed by
 parameter `ambiguous_p' if we found that the grammar is
 ambiguous (it works even we asked only one parse tree
-without alternatives).
+without alternatives).</P>
 <P>Function `read_token' provides input tokens.  It returns
 code the next input token and its attribute.  If the
-function returns negative value we've read all tokens.
+function returns negative value we've read all tokens.</P>
 <P>Function `syntax_error' called when synatctic error has been
 found.  It may print an error message about syntax error
 which occurred on token with number `err_tok_num' and
@@ -518,7 +524,7 @@ If the number of ignored tokens is zero, the all parameters
 describes the same token.  If the error recovery is switched
 off (see comments for `earley_set_error_recovery_flag'), the
 third and the fifth parameters will be negative and the
-forth and the sixth parameters will be `NULL'.
+forth and the sixth parameters will be `NULL'.</P>
 <P>Function `parse_alloc' is used by Earley parser to allocate
 memory for parse tree representation (translation).  After
 calling `earley_free_grammar' we free all memory allocated
@@ -531,8 +537,8 @@ But the caller should not free the memory until
 function may be called even during reading the grammar not
 only during the parsing.  Function `parse_free' is used by
 the parser to free memory allocated by `parse_alloc'.  If it
-is `NULL', the memory is not freed.
-<P>
+is `NULL', the memory is not freed.</P>
+
 <DT><B>Function `earley_free_grammar'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -542,8 +548,9 @@ is `NULL', the memory is not freed.
 </CODE></BLOCKQUOTE>
 
 frees all memory allocated for the parser.  This function
-should be called the last for given parser.
+should be called the last for given parser.</P>
 </DL>
+</P>
 <HR>
 Next
 <A HREF="ammunition-12.html">Previous</A>

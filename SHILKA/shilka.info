@@ -1,5 +1,5 @@
-This is shilka.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.shilka29992.info.2.
+This is shilka.info, produced by makeinfo version 4.6 from
+/tmp/linuxdoc-dir-31594/sgmltmp.shilka.info.2.
 
    \input texinfo
 
@@ -32,7 +32,7 @@ File: shilka.info,  Node: Introduction,  Next: Keywords description language,  P
 Introduction
 ************
 
-   SHILKA is translator of keywords description into code for fast
+SHILKA is translator of keywords description into code for fast
 recognition of keywords and standard identifiers in compilers.  SHILKA
 is implemented with the aid of other components of COCOM toolset.
 
@@ -236,7 +236,7 @@ File: shilka.info,  Node: Keywords description language,  Next: Generated code, 
 Keywords description language
 *****************************
 
-   A keywords description describes mainly keywords (or standard
+A keywords description describes mainly keywords (or standard
 identifiers) of a language and possibly the keywords frequencies in
 typical program.  The frequencies are used for generation of pruned
 O-trie for faster keyword recognition in the program.  The default
@@ -256,7 +256,7 @@ File: shilka.info,  Node: Layout of keywords description,  Next: Declarations,  
 Layout of keywords description
 ==============================
 
-   Keywords description structure has the following layout which is
+Keywords description structure has the following layout which is
 similar to one of YACC file.
           DECLARATIONS
           %%
@@ -264,17 +264,16 @@ similar to one of YACC file.
           %%
           ADDITIONAL C/C++ CODE
 
-   The `%%' serves to separate the sections of
-description.  All sections are optional.  The first `%%'
-starts section of keywords and is obligatory even if the section is
-empty, the second `%%' may be absent if section of
-additional C/C++ code is absent too.
+   The `%%' serves to separate the sections of description.  All
+sections are optional.  The first `%%' starts section of keywords and is
+obligatory even if the section is empty, the second `%%' may be absent
+if section of additional C/C++ code is absent too.
 
    The section of declarations contains optional declaration of type of
 generated function for keyword recognition.  If the type is given then
-actions for all keywords and keyword `%other' with the action
-should be given.  Otherwise the function will return codes of recognized
-keywords (of type `int' or `enum' - see SHILKA Usage).  The section of
+actions for all keywords and keyword `%other' with the action should be
+given.  Otherwise the function will return codes of recognized keywords
+(of type `int' or `enum' - see SHILKA Usage).  The section of
 declarations may contain subsections of code on C/C++.
 
    The next section contains keywords list which describes keyword
@@ -293,21 +292,21 @@ File: shilka.info,  Node: Declarations,  Next: Keywords,  Prev: Layout of keywor
 Declarations
 ============
 
-   The section of declarations may contain the following construction:
+The section of declarations may contain the following construction:
           %type IDENTIFIER
 
    Only the first such construction is taken into account.  All
 subsequent constructions `%type' are ignored.
 
    Such constructions declare type of data recognized by function
-`KR_find_keyword'. E.g. the function can return pointer
-to structure which contains additional information of recognized
-keyword.  By default the function returns only code of recognized
-keyword (of integer type or enumeration - see SHILKA Usage).  If
-construction `%type' is present, we should also put construction
-`%other' in the keyword section and actions returning data of
-the declared type for each keyword definition in the section of
-keywords.  Otherwise SHILKA will generate warning messages.
+`KR_find_keyword'. E.g. the function can return pointer to structure
+which contains additional information of recognized keyword.  By
+default the function returns only code of recognized keyword (of
+integer type or enumeration - see SHILKA Usage).  If construction
+`%type' is present, we should also put construction `%other' in the
+keyword section and actions returning data of the declared type for
+each keyword definition in the section of keywords.  Otherwise SHILKA
+will generate warning messages.
 
    There may be also the following constructions in the declaration
 section
@@ -332,15 +331,15 @@ so on) used in sections.
 implementation file (see section `generated code') but after
 include-directive of interface file (if present - see SHILKA Usage).
 
-   C/C++ declarations which start with `%import' are inserted at
-the begin of generated interface file.  If the interface file is not
+   C/C++ declarations which start with `%import' are inserted at the
+begin of generated interface file.  If the interface file is not
 generated, the code is inserted at the begin of the part of
 implementation file which would correspond the interface file.
 
-   C/C++ declarations which start with `%export' are inserted at
-the end of generated interface file.  For example, such exported C/C++
-code may contain definitions of external variables and functions which
-refer to definitions generated by SHILKA.  If the interface file is not
+   C/C++ declarations which start with `%export' are inserted at the end
+of generated interface file.  For example, such exported C/C++ code may
+contain definitions of external variables and functions which refer to
+definitions generated by SHILKA.  If the interface file is not
 generated, the code is inserted at the end of the part of
 implementation file which would correspond the interface file.
 
@@ -353,7 +352,7 @@ File: shilka.info,  Node: Keywords,  Prev: Declarations,  Up: Keywords descripti
 Keywords
 ========
 
-   The section of declarations is followed by section of keyword
+The section of declarations is followed by section of keyword
 definitions.  Usually keyword definition is described by the following
 construction
           IDENTIFIER = IDENTIFIER frequency action
@@ -363,9 +362,9 @@ construction
    Here the first identifier is a keyword itself.  The second identifier
 determines the keyword name which will be generated as macro definition
 or enumeration (see SHILKA usage) for given keyword.  The name is
-formed from the prefix KR_ and the second identifier.  The
-second identifier with = may be absent.  In this case the keyword name
-is formed from prefix KR_ and the keyword itself (i.e. the first
+formed from the prefix KR_ and the second identifier.  The second
+identifier with = may be absent.  In this case the keyword name is
+formed from prefix KR_ and the keyword itself (i.e. the first
 identifier).
 
    Optional frequency of the keyword occurence in program (in some
@@ -378,10 +377,10 @@ recognized.  Usually the action will be only returning pointer to the
 structure describing the recognized keyword.  Default action is simply
 returning the keyword name whose value is keyword code defined as macro
 or enumeration constant.  If you are going to return data distinct from
-the keyword code, we should use declaration %type (see above)
-and should define actions for all keywords and for special keyword
-definition %other with action (see below).  Otherwise SHILKA
-will generate warning messages.
+the keyword code, we should use declaration %type (see above) and
+should define actions for all keywords and for special keyword
+definition %other with action (see below).  Otherwise SHILKA will
+generate warning messages.
 
    Identifier in SHILKA is the same as one in C.  If you want to
 recognize also strings distinct from SHILKA identifier, you should use
@@ -396,10 +395,9 @@ construction.
 keyword is recognized.
           OTHER action
 
-   Default action is only returning special code
-KR__not_found.  If you are going to return data
-distinct from the keyword code, we probably should return value NULL
-here.
+   Default action is only returning special code KR__not_found.  If you
+are going to return data distinct from the keyword code, we probably
+should return value NULL here.
 
    Only the first such construction is taken into account.  All
 subsequent such constructions are ignored.
@@ -410,7 +408,7 @@ File: shilka.info,  Node: Generated code,  Next: SHILKA Usage,  Prev: Keywords d
 Generated code
 **************
 
-   A specification as described in the previous section is translated by
+A specification as described in the previous section is translated by
 SHILKA (keywords description translator) into interface and
 implementation files having the same names as one of specification file
 and correspondingly suffixes `.h' and `.c' (C code) or `.cpp' (C++
@@ -427,7 +425,7 @@ File: shilka.info,  Node: C++ code,  Next: C code,  Up: Generated code
 C++ code
 ========
 
-   The interface and implementation files consist of the following
+The interface and implementation files consist of the following
 definitions of generated macros, types, and functions:
 `Class `KR_recognizer'.'
      Object of the class describes a keyword recognizer.  If the
@@ -467,9 +465,8 @@ definitions of generated macros, types, and functions:
           SHILKA flag `-strip' has been used during the keyword
           recognizer or flag `-statistics' has been not used.  Flag
           `-statistics' simply generates macro definition
-          `__KR__DEBUG__'
-          which includes code for picking up and outputting statistics
-          about keyword occurrences.
+          `__KR__DEBUG__' which includes code for picking up and
+          outputting statistics about keyword occurrences.
 
        3. Function
                             `void KR_reset (void)'
@@ -489,15 +486,16 @@ definitions of generated macros, types, and functions:
 
 `Macros or enumeration (see option `-enum')'
      which declare keyword codes.  Macros or enumeration constants have
-     the same name as one in the description file and prefix
-     `KR_' (see also option `-p').  SHILKA generates additional
-     code `KR__not_found'.  By default such code
-     means that any keyword is not found.  Macros or enumeration are
-     generated in interface file only if option `-export' is present on
-     SHILKA command line.  By default, the macros or the enumeration
-     are generated in the implementation file.  Usually, the last case
-     means that only the keyword recognizer implementation file is
-     used, and the file is included into another C/C++ file.
+     the same name as one in the description file and prefix `KR_' (see
+     also option `-p').  SHILKA generates additional code
+     `KR__not_found'.  By default such code means that any keyword is
+     not found.  Macros or enumeration are generated in interface file
+     only if option `-export' is present on SHILKA command line.  By
+     default, the macros or the enumeration are generated in the
+     implementation file.  Usually, the last case means that only the
+     keyword recognizer implementation file is used, and the file is
+     included into another C/C++ file.
+
 
 
 File: shilka.info,  Node: C code,  Prev: C++ code,  Up: Generated code
@@ -505,19 +503,19 @@ File: shilka.info,  Node: C code,  Prev: C++ code,  Up: Generated code
 C code
 ======
 
-   The interface and implementation files consist of the following
+The interface and implementation files consist of the following
 definitions of generated macros, types, and functions:
   1. Macros or enumeration (see option `-enum') which declare keyword
      codes.  Macros or enumeration constants have the same name as one
-     in the description file and prefix `KR_' (see also option
-     `-p').  SHILKA generates additional code
-     `KR__not_found'.  By default such code means
-     that any keyword is not found.  Macros or enumeration are
-     generated in interface file only if option `-export' is present on
-     SHILKA command line.  By default, the macros or the enumeration
-     are generated in the implementation file.  Usually, the last case
-     means that only the keyword recognizer implementation file is
-     generated, and the file is included into another C/C++ file.
+     in the description file and prefix `KR_' (see also option `-p').
+     SHILKA generates additional code `KR__not_found'.  By default such
+     code means that any keyword is not found.  Macros or enumeration
+     are generated in interface file only if option `-export' is
+     present on SHILKA command line.  By default, the macros or the
+     enumeration are generated in the implementation file.  Usually,
+     the last case means that only the keyword recognizer
+     implementation file is generated, and the file is included into
+     another C/C++ file.
 
   2. Function
                     `<type> KR_find_keyword (const char *KR_keyword,
@@ -527,14 +525,13 @@ definitions of generated macros, types, and functions:
      length in characters of the keyword.  By default the function
      returns code of recognized keyword (integer type or enumeration -
      see flag `-enum').  The function can also return value of type
-     given in construction `%type' of the description file.
-     Usually the value contains some additional information about
-     recognized keyword.  By default the keyword is suggested to be
-     stored according to C representation (with zero byte as end
-     marker).  If this is not true, you can use option `-length' during
-     generation of the keyword recognizer by SHILKA.  In this case the
-     function `strncmp' instead of `strcmp' is used for keywords
-     comparison.
+     given in construction `%type' of the description file.  Usually
+     the value contains some additional information about recognized
+     keyword.  By default the keyword is suggested to be stored
+     according to C representation (with zero byte as end marker).  If
+     this is not true, you can use option `-length' during generation
+     of the keyword recognizer by SHILKA.  In this case the function
+     `strncmp' instead of `strcmp' is used for keywords comparison.
 
      If option `-inline' has been used, the function is defined as
      inline.  This can significantly speed up keywords recognition.
@@ -563,9 +560,8 @@ definitions of generated macros, types, and functions:
      function do nothing if SHILKA flag `-strip' has been used during
      the keyword recognizer or flag `-statistics' has been not used.
      Flag `-statistics' simply generates macro definition
-     `__KR__DEBUG__' which
-     includes code for picking up and outputting statistics about
-     keyword occurrences.
+     `__KR__DEBUG__' which includes code for picking up and outputting
+     statistics about keyword occurrences.
 
      If the interface file is generated, the interface file contains
      external definition of the function.  The implementation file
@@ -578,120 +574,97 @@ File: shilka.info,  Node: SHILKA Usage,  Next: Future of SHILKA development,  Pr
 SHILKA Usage
 ************
 
-
-
-
-     SHILKA(1)                  User Manuals                 SHILKA(1)
+     SHILKA(1)                        User Manuals                        SHILKA(1)
+     
      
      
      NAME
             shilka - keywords description translator
      
      SYNOPSIS
-            shilka  [  -c++  --statistics -inline -strip -length -case
-            -no-definitions -interface -export  -enum  -pprefix  -time
-            -fast n -w -h -help -v] specification-file
+            shilka [ -c++ --statistics -inline -strip -length -case -no-definitions
+            -interface -export -enum -pprefix -time -fast n -w -h -help -v]  speci-
+            fication-file
      
      DESCRIPTION
-            SHILKA  generates  code  for  fast recognition of pipeline
-            hazards of processor which is described  in  specification
-            file.  The specification file must have suffix `.shilka'
+            SHILKA  generates code for fast recognition of pipeline hazards of pro-
+            cessor which is described in  specification  file.   The  specification
+            file must have suffix ‘.shilka’
      
-            The  generated  code  consists  of  optional interface and
-            implementation files having the same names as one of spec-
-            ification  file  and  correspondingly  suffixes  `.h'  (if
-            option -interface is given) and `.c' (C  code)  or  `.cpp'
-            (C++ code).
+            The  generated  code  consists of optional interface and implementation
+            files having the same names as one of  specification  file  and  corre-
+            spondingly  suffixes  ‘.h’  (if option -interface is given) and ‘.c’ (C
+            code) or ‘.cpp’ (C++ code).
      
-            The  fast  recognition  of  keywords is based on structure
-            called as minimal prunned O-trie.  Full  documentation  of
-            SHILKA is in SHILKA User's manual.
+            The fast recognition of keywords is based on structure called as  mini-
+            mal  prunned  O-trie.  Full documentation of SHILKA is in SHILKA User’s
+            manual.
      
      OPTIONS
             The options which are known for SHILKA are:
      
-            -c++   Output  of  C++  code  instead  of C code (which is
-                   default).
+            -c++   Output of C++ code instead of C code (which is default).
      
             -statistics
-                   Generation of macro definition  which  switches  on
-                   gathering  and  printing keyword occurrence statis-
-                   tics.  Then such statistics can be used for setting
-                   up  frequencies  in the description file for faster
-                   recognition of keywords.
+                   Generation of macro definition which switches on  gathering  and
+                   printing  keyword  occurrence  statistics.  Then such statistics
+                   can be used for setting up frequencies in the  description  file
+                   for faster recognition of keywords.
      
             -inline
-                   Generation of function of  keyword  recognition  as
-                   inline  (take care with used C compiler).  This can
-                   be speed up keyword recognition.
+                   Generation  of  function  of keyword recognition as inline (take
+                   care with used C compiler).  This can be speed up keyword recog-
+                   nition.
      
-            -strip Striping  off  code  for  gathering  and   printing
-                   statistics.   By default the code is present in the
-                   implementation file.  The code can be  switched  on
-                   by definition of a macro (see option -statistics ).
+            -strip Striping  off  code  for  gathering and printing statistics.  By
+                   default the code is present in  the  implementation  file.   The
+                   code  can  be  switched  on by definition of a macro (see option
+                   -statistics ).
      
             -length
-                   Usage of strncmp instead of strcmp to compare  key-
-                   words.   This  can  be  useful if keyword is repre-
-                   sented by a string  without  C  string  end  marker
-                   (' ').
+                   Usage of strncmp instead of strcmp to  compare  keywords.   This
+                   can  be  useful  if keyword is represented by a string without C
+                   string end marker (’ ’).
      
-            -case  Keywords  case is ignored during their recognition.
-                   This  is  useful  for  recognition   keywords   (or
-     
-     
-     
-     COCOM                       5 APR 2001                          1
-     
-     
-     
-     
-     
-     SHILKA(1)                  User Manuals                 SHILKA(1)
-     
-     
-                   standard  identifiers) in such language as Fortran.
+            -case  Keywords case is ignored during their recognition.  This is use-
+                   ful  for  recognition keywords (or standard identifiers) in such
+                   language as Fortran.
      
             -no-definitions
-                   No generation of macros (or  enumeration)  defining
-                   identifiers of keywords.
+                   No generation of macros (or enumeration) defining identifiers of
+                   keywords.
      
             -interface
-                   Generation  of additional interface file (with suf-
-                   fix `.h' ).
+                   Generation of additional interface file (with suffix ‘.h’ ).
      
             -export
-                   SHILKA generates  macros  defining  identifiers  of
-                   keywords  in  the interface file (instead of in the
-                   implementation file).  This option has  sense  only
-                   when -interface is present.
+                   SHILKA  generates macros defining identifiers of keywords in the
+                   interface file (instead of in the  implementation  file).   This
+                   option has sense only when -interface is present.
      
-            -enum  Output  of enumeration instead of macro definitions
-                   for identifiers of keywords.
+            -enum  Output  of  enumeration instead of macro definitions for identi-
+                   fiers of keywords.
      
             -pprefix
-                   Usage of prefix  instead  of  `KR_'  (default)  for
-                   names of generated objects.
+                   Usage of prefix instead of ‘KR_’ (default) for names  of  gener-
+                   ated objects.
      
-            -time  Output  of  time  statistics of the SHILKA run into
-                   stderr.
+            -time  Output of time statistics of the SHILKA run into stderr.
      
             -fast n
-                   If number of rested unchecked characters is less or
-                   equal  n,  then  functions `strcmp' or `strncmp' is
-                   not used at all.  Instead of this, simply comparing
-                   rested  unchecked  characters  is  used.   This can
-                   speed up keyword recognition.  The default value of
-                   the parameter is 3.
+                   If  number  of  rested  unchecked characters is less or equal n,
+                   then functions  ‘strcmp’  or  ‘strncmp’  is  not  used  at  all.
+                   Instead of this, simply comparing rested unchecked characters is
+                   used.  This can speed up keyword recognition.  The default value
+                   of the parameter is 3.
      
             -w     Disable generation of all warnings.
      
             -h, -help
                    Output of brief help message about SHILKA usage.
      
-            -v     Creation of description file containing details how
-                   the code generated by  SHILKA  will  recognize  the
-                   keywords.
+            -v     Creation  of  description  file  containing details how the code
+                   generated by SHILKA will recognize the keywords.
      
      FILES
             file.shilka
@@ -705,20 +678,8 @@ SHILKA Usage
      
             There are no any temporary files used by SHILKA.
      
-     
-     
-     COCOM                       5 APR 2001                          2
-     
-     
-     
-     
-     
-     SHILKA(1)                  User Manuals                 SHILKA(1)
-     
-     
      ENVIRONMENT
-            There  are  no  environment  variables which affect SHILKA
-            behavior.
+            There are no environment variables which affect SHILKA behavior.
      
      DIAGNOSTICS
             SHILKA diagnostics is self-explanatory.
@@ -734,46 +695,7 @@ SHILKA Usage
      
      
      
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     COCOM                       5 APR 2001                          3
+     COCOM                             5 APR 2001                         SHILKA(1)
 
 
 File: shilka.info,  Node: Future of SHILKA development,  Next: Appendix 1 - Syntax of SHILKA description file (YACC description),  Prev: SHILKA Usage,  Up: Top
@@ -781,7 +703,7 @@ File: shilka.info,  Node: Future of SHILKA development,  Next: Appendix 1 - Synt
 Future of SHILKA development
 ****************************
 
-   Some C/C++ compilers generate bad code for switch-statement.  In this
+Some C/C++ compilers generate bad code for switch-statement.  In this
 case, generation of table-driven keyword recognition based on minimal
 pruned O-trie would be useful.
 
@@ -886,8 +808,8 @@ File: shilka.info,  Node: Appendix 3 - Run of SHILKA on the previous description
 Appendix 3 - Run of SHILKA on the previous description file
 ***********************************************************
 
-   This output is produced on Compaq Aero 486 SX/25 with 12Mb under
-Linux 2.0.29.
+This output is produced on Compaq Aero 486 SX/25 with 12Mb under Linux
+2.0.29.
      bash$ shilka -time d.shilka
      
      32 keywords, 32 different keyword names
@@ -901,19 +823,19 @@ Linux 2.0.29.
 
 
 Tag Table:
-Node: Top112
-Node: Introduction772
-Node: Keywords description language9664
-Node: Layout of keywords description10331
-Node: Declarations11903
-Node: Keywords14282
-Node: Generated code16651
-Node: C++ code17158
-Node: C code20896
-Node: SHILKA Usage24411
-Node: Future of SHILKA development30410
-Node: Appendix 1 - Syntax of SHILKA description file (YACC description)30807
-Node: Appendix 2 - Example of SHILKA description file32357
-Node: Appendix 3 - Run of SHILKA on the previous description file36534
+Node: Top126
+Node: Introduction786
+Node: Keywords description language9332
+Node: Layout of keywords description9996
+Node: Declarations11516
+Node: Keywords13801
+Node: Generated code16118
+Node: C++ code16622
+Node: C code20257
+Node: SHILKA Usage23682
+Node: Future of SHILKA development28905
+Node: Appendix 1 - Syntax of SHILKA description file (YACC description)29299
+Node: Appendix 2 - Example of SHILKA description file30849
+Node: Appendix 3 - Run of SHILKA on the previous description file33864
 
 End Tag Table

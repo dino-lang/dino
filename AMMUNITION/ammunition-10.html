@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C interface: Package for machine-independent arbitrary precision integer arithmetic</TITLE>
  <LINK HREF="ammunition-11.html" REL=next>
  <LINK HREF="ammunition-9.html" REL=previous>
@@ -12,7 +12,7 @@
 <A HREF="ammunition-9.html">Previous</A>
 <A HREF="ammunition.html#toc10">Contents</A>
 <HR>
-<H2><A NAME="s10">10. Package for machine-independent arbitrary precision integer arithmetic</A></H2>
+<H2><A NAME="s10">10.</A> <A HREF="ammunition.html#toc10">Package for machine-independent arbitrary precision integer arithmetic</A></H2>
 
 <P>Abstract data `arithm' may be used for implementation of a
 cross-compiler.  This abstract data implements arbitrary precision
@@ -22,7 +22,7 @@ efficient in order to use for run-time.  The package functions are
 oriented to implement constant-folding in compilers.  This package is
 necessary because host machine may not support such arithmetic for
 target machine.  For example, VAX does not support does not support
-more 32-bits integer numbers arithmetic.
+more 32-bits integer numbers arithmetic.</P>
 <P>The numbers in packages are represented by bytes in big endian mode,
 negative integer numbers are represented in complementary code.  All
 sizes are given in bytes and must be positive.  Results of executions
@@ -30,7 +30,7 @@ of all functions can coincide with a operand(s).  All functions of
 addition, subtraction, multiplication, division, evaluation of
 remainder, shift, changing size and transformation of string into
 number fix overflow.  The overflow is fixed when result can not be
-represented by number of given size.
+represented by number of given size.</P>
 <P>The interface part of the abstract data is file `arithm.h'.  The
 implementation part is file `arithm.c'.  The maximum length of integer
 number is suggested to be not greater then `MAX_INTEGER_OPERAND_SIZE'.
@@ -38,22 +38,22 @@ The default value (128) of this macro can be redefined with
 corresponding C compiler option `-DMAX_INTEGER_OPERAND_SIZE=...'
 during compilation of file `arithm.c'.  But in any case the minimal
 value of the macros will be 16.  The interface contains the following
-external definitions:
+external definitions:</P>
 <P>
 <DL>
 <DT><B>Variable `overflow_bit'</B><DD><P>has only two values 0 or 1.  The value `1' corresponds to
 overflow.  The variable value are modified by all functions of
 addition, subtract, multiplication, division, evaluation of
 remainder, shift, changing size and transformation of string
-into number.
-<P>
-<DT><B>Variable `const unsigned char *zero_constant'</B><DD><P>represents zero (unsigned) integer of any size.
-<P>
+into number.</P>
+
+<DT><B>Variable `const unsigned char *zero_constant'</B><DD><P>represents zero (unsigned) integer of any size.</P>
+
 <DT><B>Function `void default_arithmetic_overflow_reaction (void)'</B><DD><P>Originally reaction on all integer and unsigned integer
 overflow is equal to this function.  The function does
 nothing.  Reaction on overflow for integers or unsigned
-integers is called after setting up variable `overflow_bit'.
-<P>
+integers is called after setting up variable `overflow_bit'.</P>
+
 <DT><B>Function `set_integer_overflow_reaction'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -72,8 +72,8 @@ overflow reaction function.  There is analogous function
 </PRE>
 </CODE></BLOCKQUOTE>
 
-for unsigned integer overflow.
-<P>
+for unsigned integer overflow.</P>
+
 <DT><B>Function `integer_maximum'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -92,7 +92,8 @@ parameter.  There is analogous function
         
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <DT><B>Function `add_integer'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -128,8 +129,8 @@ Also there are analogous functions
 </PRE>
 </CODE></BLOCKQUOTE>
 
-for unsigned integers.
-<P>
+for unsigned integers.</P>
+
 <DT><B>Function `integer_shift_left'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -160,7 +161,8 @@ analogous functions
         
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <DT><B>Function `integer_or'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -188,7 +190,7 @@ Also there are equivalent functions
 </PRE>
 </CODE></BLOCKQUOTE>
 
-for unsigned integers.
+for unsigned integers.</P>
 <P>Function 
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -206,7 +208,8 @@ equivalent function for unsigned integer:
         
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <DT><B>Function `eq_integer'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -242,8 +245,8 @@ Also there are analogous functions
 </PRE>
 </CODE></BLOCKQUOTE>
 
-for unsigned integers.
-<P>
+for unsigned integers.</P>
+
 <DT><B>Function `change_integer_size'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -264,8 +267,8 @@ is analogous function
 </PRE>
 </CODE></BLOCKQUOTE>
 
-for unsigned integers.
-<P>
+for unsigned integers.</P>
+
 <DT><B>Function `integer_to_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -286,8 +289,8 @@ is analogous function
 </PRE>
 </CODE></BLOCKQUOTE>
 
-for unsigned integers.
-<P>
+for unsigned integers.</P>
+
 <DT><B>Function `integer_to_based_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -309,8 +312,8 @@ function returns value `result'.  There is analogous function
 </PRE>
 </CODE></BLOCKQUOTE>
 
-for unsigned integers.
-<P>
+for unsigned integers.</P>
+
 <DT><B>Function `integer_from_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -336,8 +339,8 @@ size.  There is analogous function
 </CODE></BLOCKQUOTE>
 
 for unsigned integers.  But sign `+' is believed to be not
-part of unsigned integer.
-<P>
+part of unsigned integer.</P>
+
 <DT><B>Function `integer_from_based_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -365,9 +368,10 @@ size.  There is analogous function
 </CODE></BLOCKQUOTE>
 
 for unsigned integers.  But sign `+' is believed to be not
-part of unsigned integer.
+part of unsigned integer.</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition-11.html">Next</A>
 <A HREF="ammunition-9.html">Previous</A>

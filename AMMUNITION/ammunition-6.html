@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C interface: Package for work with source code positions</TITLE>
  <LINK HREF="ammunition-7.html" REL=next>
  <LINK HREF="ammunition-5.html" REL=previous>
@@ -12,12 +12,12 @@
 <A HREF="ammunition-5.html">Previous</A>
 <A HREF="ammunition.html#toc6">Contents</A>
 <HR>
-<H2><A NAME="s6">6. Package for work with source code positions</A></H2>
+<H2><A NAME="s6">6.</A> <A HREF="ammunition.html#toc6">Package for work with source code positions</A></H2>
 
 <P>The compilers often use internal representation which stores source
 code positions.  Here package `position' which serves to support
 information about source positions of compiled files taking into
-account all included files is suggested.
+account all included files is suggested.</P>
 <P>The strategy of the package usage can be follows.  Function
 `initiate_positions' is called by the first.  After that function
 `start_file_position' is called when a file is opened for compilation
@@ -27,33 +27,34 @@ given file compilation.  The value of `current_position' can be stored
 into internal representation for usage for output messages on the
 following passes.  Function `finish_file_position' is called when a
 processed file is closed.  Function `finish_positions' may be called
-after all processing a source file.
+after all processing a source file.</P>
 <P>The package uses packages `vlobject' and `objstack' which use package
 `allocate'.  The interface part of the package is file `position.h'.
 The implementation part is file `position.c'.  The interface contains
-the following external definitions:
+the following external definitions:</P>
 <P>
 <DL>
 <DT><B>Type `position_t'</B><DD><P>is structure which describes a file position.  The structure
-has the following members:
+has the following members:</P>
 <P>
 <DL>
-<DT><B>Member `file_name'</B><DD><P>is name of file to which given position belongs.
-<P>
+<DT><B>Member `file_name'</B><DD><P>is name of file to which given position belongs.</P>
+
 <DT><B>Members `line_number', `column_number'</B><DD><P>are source line and column corresponding to given
-position.
-<P>
+position.</P>
+
 <DT><B>Member `path'</B><DD><P>is pointer to another position structure representing
 position of include-clause which caused immediately
-given file compilation.
+given file compilation.</P>
 </DL>
-<P>
+</P>
+
 <DT><B>Variable `no_position'</B><DD><P>has value of type `position_t' has members with values equals
 to zero or `NULL'.  The value does not correspond to concrete
-file position.
-<P>
-<DT><B>Variable `current_position'</B><DD><P>has value which is current file position.
-<P>
+file position.</P>
+
+<DT><B>Variable `current_position'</B><DD><P>has value which is current file position.</P>
+
 <DT><B>Function `initiate_positions'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -63,8 +64,8 @@ file position.
 </CODE></BLOCKQUOTE>
 
 initiates the package.  Value of variable `current_position'
-becomes equal to `no_position'.
-<P>
+becomes equal to `no_position'.</P>
+
 <DT><B>Function `finish_position'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -73,8 +74,8 @@ becomes equal to `no_position'.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-frees all memory allocated during package work.
-<P>
+frees all memory allocated during package work.</P>
+
 <DT><B>Function `position_file_inclusion_level'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -86,8 +87,8 @@ frees all memory allocated during package work.
 returns level of inclusion of file of position given as the
 function parameter.  The level numbers are started with zero
 for positions corresponding non-included files and for
-positions which does not correspond to concrete file.
-<P>
+positions which does not correspond to concrete file.</P>
+
 <DT><B>Function `start_file_position'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -104,8 +105,8 @@ function parameter value, 1, 0, and pointer to the copied
 structure.  Values of `current_position' during different
 calls of the function must be different (e.g.  different
 columns or lines), i.e. positions of different include-clauses
-must be different.
-<P>
+must be different.</P>
+
 <DT><B>Function `finish_file_position'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -116,8 +117,8 @@ must be different.
 
 recovers previous value of variable `current_position', more
 exactly sets up the variable by structure to which the
-variable member `path' refers.
-<P>
+variable member `path' refers.</P>
+
 <DT><B>Function `compare_positions'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -131,9 +132,10 @@ compares two positions given by parameters of type
 `position_t' and returns -1 (if the first position is less
 than the second), 0 (if the first position is equal to the
 second) or 1 (if the first position is greater than the
-second).  The order of positions is lexicographic.
+second).  The order of positions is lexicographic.</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition-7.html">Next</A>
 <A HREF="ammunition-5.html">Previous</A>

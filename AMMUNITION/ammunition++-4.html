@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with stacks of objects</TITLE>
  <LINK HREF="ammunition++-5.html" REL=next>
  <LINK HREF="ammunition++-3.html" REL=previous>
@@ -12,7 +12,7 @@
 <A HREF="ammunition++-3.html">Previous</A>
 <A HREF="ammunition++.html#toc4">Contents</A>
 <HR>
-<H2><A NAME="s4">4. Package for work with stacks of objects</A></H2>
+<H2><A NAME="s4">4.</A> <A HREF="ammunition++.html#toc4">Package for work with stacks of objects</A></H2>
 
 <P>The package `objstack' is based on package `allocate' and implements
 efficient work with stacks of objects (OS).  Work with the object on
@@ -24,28 +24,28 @@ contains object on the top of OS.  If there is not sufficient free
 memory for the top object than new segment is created and the top
 object is transferred into the new segment, i.e. there is not any
 memory reallocation.  Therefore the top object may change its address.
-But other objects never change address.
+But other objects never change address.</P>
 <P>The package uses package `allocate'.  The interface part of the
 package is file `objstack.h'.  Defining macro `NDEBUG' (e.g.  by
 option `-D' in C++ compiler command line) before inclusion of the
 interface file disables fixing some internal errors and errors of
 usage of the package.  The implementation part is file `objstack.cpp'.
-The interface contains the following objects:
+The interface contains the following objects:</P>
 <P>
 <DL>
 <DT><B>Type `os_t'</B><DD><P>describes a descriptor of stack of objects.  The type is
 simply synonym of `class os'.  All work with stack of objects
 is executed through the descriptors.  It should remember that
-work with the stack through several descriptors is not safe.
-<P>
+work with the stack through several descriptors is not safe.</P>
+
 <DT><B>Macro `OS_DEFAULT_SEGMENT_LENGTH'</B><DD><P>has value which is default size of memory segments which will
 be allocated for OS when the stack is created (with not given
 initial segment size).  This is also minimal size of all
 segments.  Original value of the macros is equal to 512.  This
 macro can be redefined in C++ compiler command line or with
 the aid of directive `#undef' before including the interface
-file.
-<P>
+file.</P>
+
 <DT><B>Class `os'</B><DD><P>The class contains the following functions:
 <DL>
 <DT><B>Public constructor `os'</B><DD><P>
@@ -62,8 +62,8 @@ Minimum size of memory segments which will be allocated for
 OS is given as the parameter.  If the parameter is absent
 the allocated memory segments length is equal to
 `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment
-length is always not less than maximum alignment.
-<P>
+length is always not less than maximum alignment.</P>
+
 <DT><B>Public destructor `&nbsp;os'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -73,8 +73,8 @@ length is always not less than maximum alignment.
 </CODE></BLOCKQUOTE>
 
 is used for deleting the descritor of OS and freeing
-memory used by the OS.
-<P>
+memory used by the OS.</P>
+
 <DT><B>Public function `empty'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -84,8 +84,8 @@ memory used by the OS.
 </CODE></BLOCKQUOTE>
 
 is used for removing all objects on OS and freeing all
-memory allocated for OS except for the first segment.
-<P>
+memory allocated for OS except for the first segment.</P>
+
 <DT><B>Public function `top_finish'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -98,8 +98,8 @@ creates new variable length object with initial zero length
 on the top of OS of given descriptor.  The work (analogous
 to one with variable length object) with object which was
 on the top of OS is finished, i.e. the object will never
-more change address.
-<P>
+more change address.</P>
+
 <DT><B>Public function `top_nullify'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -109,8 +109,8 @@ more change address.
 </CODE></BLOCKQUOTE>
 
 makes that length of variable length object on the top of
-OS of given descriptor will be equal to zero.
-<P>
+OS of given descriptor will be equal to zero.</P>
+
 <DT><B>Public function `top_length'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -120,8 +120,8 @@ OS of given descriptor will be equal to zero.
 </CODE></BLOCKQUOTE>
 
 returns current length of variable length object on the top of
-OS of given descriptor.
-<P>
+OS of given descriptor.</P>
+
 <DT><B>Public functions `top_begin', `top_end', `top_bound'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -135,8 +135,8 @@ return pointer to correspondingly the first, the last byte
 of variable length object on the top of OS of given
 descriptor, and pointer to the last byte plus one.
 Remember that the top object may change own place after any
-addition.
-<P>
+addition.</P>
+
 <DT><B>Public function `top_shorten'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -147,8 +147,8 @@ addition.
 
 removes n bytes from the end of variable length object on
 the top of OS of given descriptor.  The top variable length
-object is nullified if its length is less than n.
-<P>
+object is nullified if its length is less than n.</P>
+
 <DT><B>Public function `top_expand'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -161,8 +161,8 @@ increases length of variable length object on the top of OS
 of given descriptor on number of bytes given as the
 parameter.  The values of bytes added to the end of
 variable length object on the top of OS will be not
-defined.
-<P>
+defined.</P>
+
 <DT><B>Public function `top_add_byte'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -172,8 +172,8 @@ defined.
 </CODE></BLOCKQUOTE>
 
 adds byte given as the parameter to the end of variable
-length object on the top of OS of given descriptor.
-<P>
+length object on the top of OS of given descriptor.</P>
+
 <DT><B>Public function `top_add_memory'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -185,8 +185,8 @@ length object on the top of OS of given descriptor.
 adds memory starting with address given as the first
 parameter and with length given as the second parameter to
 the end of variable length object on the top of OS of given
-descriptor.
-<P>
+descriptor.</P>
+
 <DT><B>Public function `top_add_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -199,10 +199,12 @@ adds C++ string (with end marker 0) given as the parameter
 to the end of variable length string on the top of OS of
 the descriptor.  Before the addition the macro deletes last
 character of the top variable length object.  The last
-character is suggested to be C++ string end marker 0.
+character is suggested to be C++ string end marker 0.</P>
 </DL>
+</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition++-5.html">Next</A>
 <A HREF="ammunition++-3.html">Previous</A>

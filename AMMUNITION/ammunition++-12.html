@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Ticker package</TITLE>
  <LINK HREF="ammunition++-13.html" REL=next>
  <LINK HREF="ammunition++-11.html" REL=previous>
@@ -12,18 +12,18 @@
 <A HREF="ammunition++-11.html">Previous</A>
 <A HREF="ammunition++.html#toc12">Contents</A>
 <HR>
-<H2><A NAME="s12">12. Ticker package</A></H2>
+<H2><A NAME="s12">12.</A> <A HREF="ammunition++.html#toc12">Ticker package</A></H2>
 
 <P>The package `ticker' implements a timer.  Timer can be activated or
 can be stopped.  The timer accumulates execution time only when it is
 in active state.  The interface part of the package is file
 `ticker.h'.  The implementation part is file `ticker.cpp'.  The
-interface contains the following external definitions and macros:
+interface contains the following external definitions and macros:</P>
 <P>
 <DL>
 <DT><B>Type `ticker_t'</B><DD><P>describes a timer.  This type is simply synonym of `class
-ticker'.
-<P>
+ticker'.</P>
+
 <DT><B>Class `ticker'</B><DD><P>Timers are objects of this class.  The class has the
 following members:
 <DL>
@@ -35,8 +35,8 @@ following members:
 </PRE>
 </CODE></BLOCKQUOTE>
 
-creates new timer.  The state of the timer is active.
-<P>
+creates new timer.  The state of the timer is active.</P>
+
 <DT><B>Public function `ticker_off'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -45,8 +45,8 @@ creates new timer.  The state of the timer is active.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-stops given timer.
-<P>
+stops given timer.</P>
+
 <DT><B>Public function `ticker_on'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -55,8 +55,8 @@ stops given timer.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-activates given timer.
-<P>
+activates given timer.</P>
+
 <DT><B>Function `active_time'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -66,8 +66,8 @@ activates given timer.
 </CODE></BLOCKQUOTE>
 
 returns time in seconds as double float value in which the
-timer given as the function parameter was active.
-<P>
+timer given as the function parameter was active.</P>
+
 <DT><B>Function `active_time_string'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -80,10 +80,12 @@ returns string representation of time in seconds in which
 the timer given as the function parameter was active.
 Remember that this function must be the single in a C++
 expression because the string is stored in a static variable
-of the function.
+of the function.</P>
 </DL>
+</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition++-13.html">Next</A>
 <A HREF="ammunition++-11.html">Previous</A>

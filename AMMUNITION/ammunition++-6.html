@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with source code positions</TITLE>
  <LINK HREF="ammunition++-7.html" REL=next>
  <LINK HREF="ammunition++-5.html" REL=previous>
@@ -12,12 +12,12 @@
 <A HREF="ammunition++-5.html">Previous</A>
 <A HREF="ammunition++.html#toc6">Contents</A>
 <HR>
-<H2><A NAME="s6">6. Package for work with source code positions</A></H2>
+<H2><A NAME="s6">6.</A> <A HREF="ammunition++.html#toc6">Package for work with source code positions</A></H2>
 
 <P>The compilers often use internal representation which stores source
 code positions.  Here package `position' which serves to support
 information about source positions of compiled files taking into
-account all included files is suggested.
+account all included files is suggested.</P>
 <P>The strategy of the package usage can be follows.  Function `initiate'
 of class `positions' is called by the first.  After that function
 `start_file' of class `positions' is called when a file is opened for
@@ -28,20 +28,20 @@ correspondingly during given file compilation.  The value of
 usage for output messages on the following passes.  Function
 `finish_file' of class `positions' is called when a processed file is
 closed.  Function `finish' of class `positions' may be called after
-all processing a source file.
+all processing a source file.</P>
 <P>The package uses packages `vlobject' and `objstack' which use package
 `allocate'.  The interface part of the package is file `position.h'.
 The implementation part is file `position.cpp'.  The interface contains
-the following objects:
+the following objects:</P>
 <P>
 <DL>
 <DT><B>Type `position_t'</B><DD><P>is simply `class position' describes a file position.  The
-class has the following members:
+class has the following members:</P>
 <P>
 <DL>
 <DT><B>Public members `line_number', `column_number'</B><DD><P>are source line and column corresponding to given
-position.
-<P>
+position.</P>
+
 <DT><B>Public function `file_name'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -50,8 +50,8 @@ position.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-returns name of file to which given position belongs.
-<P>
+returns name of file to which given position belongs.</P>
+
 <DT><B>Public function `path'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -62,8 +62,8 @@ returns name of file to which given position belongs.
 
 is pointer to another position class object
 representing position of a include-clause which caused
-immediately given file compilation.
-<P>
+immediately given file compilation.</P>
+
 <DT><B>Public function `path'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -75,18 +75,19 @@ immediately given file compilation.
 returns number of level of position file inclusion.
 The level numbers are started with zero for positions
 corresponding non-included files and for positions
-which does not correspond to concrete file.
+which does not correspond to concrete file.</P>
 </DL>
-<P>
+</P>
+
 <DT><B>Class `positions'</B><DD><P>The class has not public constructors/destructors.  The class
 has the following members:
 <DL>
 <DT><B>Static const member `no_position'</B><DD><P>has value of type `position_t' has values `line_number',
 `column_number' equals to zero or `NULL'.  The value does not
-correspond to concrete file position.
-<P>
-<DT><B>Static member `current'</B><DD><P>has value which is current file position.
-<P>
+correspond to concrete file position.</P>
+
+<DT><B>Static member `current'</B><DD><P>has value which is current file position.</P>
+
 <DT><B>Static public function `initiate'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -96,8 +97,8 @@ correspond to concrete file position.
 </CODE></BLOCKQUOTE>
 
 initiates the package.  Value of variable `current' becomes
-equal to `no_position'.
-<P>
+equal to `no_position'.</P>
+
 <DT><B>Static public function `finish'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -106,8 +107,8 @@ equal to `no_position'.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-frees all memory allocated during package work.
-<P>
+frees all memory allocated during package work.</P>
+
 <DT><B>Static public function `start_file'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -123,8 +124,8 @@ become equal to the function parameter value, 1, 0, and
 pointer to the saved position.  Values of `current' during
 different calls of the function must be different (e.g.
 different columns or lines), i.e. positions of different
-include-clauses must be different.
-<P>
+include-clauses must be different.</P>
+
 <DT><B>Static public function `finish_file'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -135,8 +136,8 @@ include-clauses must be different.
 
 restores previous value of the member `current', more
 exactly sets up the member by position to which the
-member `path' refers.
-<P>
+member `path' refers.</P>
+
 <DT><B>Static public Function `compare'</B><DD><P>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -150,10 +151,12 @@ compares two positions given by parameters of type
 `position_t' and returns -1 (if the first position is less
 than the second), 0 (if the first position is equal to the
 second) or 1 (if the first position is greater than the
-second).  The order of positions is lexicographic.
+second).  The order of positions is lexicographic.</P>
 </DL>
+</P>
 </DL>
-<P>
+</P>
+
 <HR>
 <A HREF="ammunition++-7.html">Next</A>
 <A HREF="ammunition++-5.html">Previous</A>

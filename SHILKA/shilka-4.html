@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>SHILKA (keywords description translator): SHILKA Usage</TITLE>
  <LINK HREF="shilka-5.html" REL=next>
  <LINK HREF="shilka-3.html" REL=previous>
@@ -12,125 +12,102 @@
 <A HREF="shilka-3.html">Previous</A>
 <A HREF="shilka.html#toc4">Contents</A>
 <HR>
-<H2><A NAME="s4">4. SHILKA Usage</A></H2>
+<H2><A NAME="s4">4.</A> <A HREF="shilka.html#toc4">SHILKA Usage</A></H2>
 
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
+SHILKA(1)                        User Manuals                        SHILKA(1)
 
-
-
-SHILKA(1)                  User Manuals                 SHILKA(1)
 
 
 NAME
        shilka - keywords description translator
 
 SYNOPSIS
-       shilka  [  -c++  --statistics -inline -strip -length -case
-       -no-definitions -interface -export  -enum  -pprefix  -time
-       -fast n -w -h -help -v] specification-file
+       shilka [ -c++ --statistics -inline -strip -length -case -no-definitions
+       -interface -export -enum -pprefix -time -fast n -w -h -help -v]  speci-
+       fication-file
 
 DESCRIPTION
-       SHILKA  generates  code  for  fast recognition of pipeline
-       hazards of processor which is described  in  specification
-       file.  The specification file must have suffix `.shilka'
+       SHILKA  generates code for fast recognition of pipeline hazards of pro-
+       cessor which is described in  specification  file.   The  specification
+       file must have suffix ‘.shilka’
 
-       The  generated  code  consists  of  optional interface and
-       implementation files having the same names as one of spec-
-       ification  file  and  correspondingly  suffixes  `.h'  (if
-       option -interface is given) and `.c' (C  code)  or  `.cpp'
-       (C++ code).
+       The  generated  code  consists of optional interface and implementation
+       files having the same names as one of  specification  file  and  corre-
+       spondingly  suffixes  ‘.h’  (if option -interface is given) and ‘.c’ (C
+       code) or ‘.cpp’ (C++ code).
 
-       The  fast  recognition  of  keywords is based on structure
-       called as minimal prunned O-trie.  Full  documentation  of
-       SHILKA is in SHILKA User's manual.
+       The fast recognition of keywords is based on structure called as  mini-
+       mal  prunned  O-trie.  Full documentation of SHILKA is in SHILKA User’s
+       manual.
 
 OPTIONS
        The options which are known for SHILKA are:
 
-       -c++   Output  of  C++  code  instead  of C code (which is
-              default).
+       -c++   Output of C++ code instead of C code (which is default).
 
        -statistics
-              Generation of macro definition  which  switches  on
-              gathering  and  printing keyword occurrence statis-
-              tics.  Then such statistics can be used for setting
-              up  frequencies  in the description file for faster
-              recognition of keywords.
+              Generation of macro definition which switches on  gathering  and
+              printing  keyword  occurrence  statistics.  Then such statistics
+              can be used for setting up frequencies in the  description  file
+              for faster recognition of keywords.
 
        -inline
-              Generation of function of  keyword  recognition  as
-              inline  (take care with used C compiler).  This can
-              be speed up keyword recognition.
+              Generation  of  function  of keyword recognition as inline (take
+              care with used C compiler).  This can be speed up keyword recog-
+              nition.
 
-       -strip Striping  off  code  for  gathering  and   printing
-              statistics.   By default the code is present in the
-              implementation file.  The code can be  switched  on
-              by definition of a macro (see option -statistics ).
+       -strip Striping  off  code  for  gathering and printing statistics.  By
+              default the code is present in  the  implementation  file.   The
+              code  can  be  switched  on by definition of a macro (see option
+              -statistics ).
 
        -length
-              Usage of strncmp instead of strcmp to compare  key-
-              words.   This  can  be  useful if keyword is repre-
-              sented by a string  without  C  string  end  marker
-              (' ').
+              Usage of strncmp instead of strcmp to  compare  keywords.   This
+              can  be  useful  if keyword is represented by a string without C
+              string end marker (’ ’).
 
-       -case  Keywords  case is ignored during their recognition.
-              This  is  useful  for  recognition   keywords   (or
-
-
-
-COCOM                       5 APR 2001                          1
-
-
-
-
-
-SHILKA(1)                  User Manuals                 SHILKA(1)
-
-
-              standard  identifiers) in such language as Fortran.
+       -case  Keywords case is ignored during their recognition.  This is use-
+              ful  for  recognition keywords (or standard identifiers) in such
+              language as Fortran.
 
        -no-definitions
-              No generation of macros (or  enumeration)  defining
-              identifiers of keywords.
+              No generation of macros (or enumeration) defining identifiers of
+              keywords.
 
        -interface
-              Generation  of additional interface file (with suf-
-              fix `.h' ).
+              Generation of additional interface file (with suffix ‘.h’ ).
 
        -export
-              SHILKA generates  macros  defining  identifiers  of
-              keywords  in  the interface file (instead of in the
-              implementation file).  This option has  sense  only
-              when -interface is present.
+              SHILKA  generates macros defining identifiers of keywords in the
+              interface file (instead of in the  implementation  file).   This
+              option has sense only when -interface is present.
 
-       -enum  Output  of enumeration instead of macro definitions
-              for identifiers of keywords.
+       -enum  Output  of  enumeration instead of macro definitions for identi-
+              fiers of keywords.
 
        -pprefix
-              Usage of prefix  instead  of  `KR_'  (default)  for
-              names of generated objects.
+              Usage of prefix instead of ‘KR_’ (default) for names  of  gener-
+              ated objects.
 
-       -time  Output  of  time  statistics of the SHILKA run into
-              stderr.
+       -time  Output of time statistics of the SHILKA run into stderr.
 
        -fast n
-              If number of rested unchecked characters is less or
-              equal  n,  then  functions `strcmp' or `strncmp' is
-              not used at all.  Instead of this, simply comparing
-              rested  unchecked  characters  is  used.   This can
-              speed up keyword recognition.  The default value of
-              the parameter is 3.
+              If  number  of  rested  unchecked characters is less or equal n,
+              then functions  ‘strcmp’  or  ‘strncmp’  is  not  used  at  all.
+              Instead of this, simply comparing rested unchecked characters is
+              used.  This can speed up keyword recognition.  The default value
+              of the parameter is 3.
 
        -w     Disable generation of all warnings.
 
        -h, -help
               Output of brief help message about SHILKA usage.
 
-       -v     Creation of description file containing details how
-              the code generated by  SHILKA  will  recognize  the
-              keywords.
+       -v     Creation  of  description  file  containing details how the code
+              generated by SHILKA will recognize the keywords.
 
 FILES
        file.shilka
@@ -144,20 +121,8 @@ FILES
 
        There are no any temporary files used by SHILKA.
 
-
-
-COCOM                       5 APR 2001                          2
-
-
-
-
-
-SHILKA(1)                  User Manuals                 SHILKA(1)
-
-
 ENVIRONMENT
-       There  are  no  environment  variables which affect SHILKA
-       behavior.
+       There are no environment variables which affect SHILKA behavior.
 
 DIAGNOSTICS
        SHILKA diagnostics is self-explanatory.
@@ -173,50 +138,11 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-COCOM                       5 APR 2001                          3
-
+COCOM                             5 APR 2001                         SHILKA(1)
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <HR>
 <A HREF="shilka-5.html">Next</A>
 <A HREF="shilka-3.html">Previous</A>

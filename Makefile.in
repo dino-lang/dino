@@ -22,7 +22,7 @@
 #   Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #   02111-1307, USA.
 #
-#   TITLE:       Makefile for COCOM (Russian Armour)
+#   TITLE:       Makefile for COCOM
 #
 #   SPECIAL CONSIDERATION: Following makefile macro can be redefined
 #        on make command line:
@@ -97,10 +97,9 @@ doc_files =
 additional_rcs_files = configure.in acconfig.h
 
 # COCOM only start
-only_cocom_doc_files = cocom.txt cocom.info* cocom*.html cocom.dvi cocom.ps
+only_cocom_doc_files = cocom.txt cocom.info* cocom*.html cocom.pdf cocom.dvi cocom.ps
 
-only_cocom_rcs_doc_files = armoury.html msta.jpg nona.jpg oka.jpg shilka.jpg\
-                           sprut.jpg
+only_cocom_rcs_doc_files = 
 
 # Files which are not in distribution
 only_cocom_additional_rcs_files = cocom.sgml.in configure.in msta-template.bmp\
@@ -274,14 +273,22 @@ distdino:
 # Creation of documentation
 
 # COCOM only start
-doc : $(srcdir)/cocom.txt $(srcdir)/cocom.html $(srcdir)/cocom.info $(srcdir)/cocom.dvi $(srcdir)/cocom.ps
+doc : $(srcdir)/cocom.txt $(srcdir)/cocom.html $(srcdir)/cocom.info $(srcdir)/cocom.pdf $(srcdir)/cocom.dvi $(srcdir)/cocom.ps
+	for i in $(directories);do\
+	  (cd $$i; $(MAKE) doc);\
+	done
+# COCOM only start
+	for i in $(only_cocom_directories);do\
+	  (cd $$i; $(MAKE) doc);\
+	done
+# COCOM only end
 
 $(srcdir)/cocom.txt: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-txt $(srcdir)/cocom.sgml.in > $@
 	
 $(srcdir)/cocom.html: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-html $(srcdir)/cocom.sgml.in >cocom.sgml
-	sgml2html cocom.sgml
+	linuxdoc -B html --papersize=letter cocom.sgml
 	if test -f cocom-1.html;then\
   	  for i in cocom-*.html;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -291,7 +298,7 @@ $(srcdir)/cocom.html: $(srcdir)/cocom.sgml.in
 	
 $(srcdir)/cocom.info: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-info $(srcdir)/cocom.sgml.in >cocom.sgml
-	sgml2info cocom.sgml
+	linuxdoc -B info --papersize=letter cocom.sgml
 	for i in cocom.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
@@ -302,14 +309,19 @@ $(srcdir)/cocom.info: $(srcdir)/cocom.sgml.in
         fi
 	mv cocom.info $(srcdir)/cocom.info
 	
-$(srcdir)/cocom.dvi: $(srcdir)/cocom.sgml.in
+$(srcdir)/cocom.dvi $(srcdir)/cocom.pdf: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-tex $(srcdir)/cocom.sgml.in >cocom.sgml
-	sgml2latex cocom.sgml
+	linuxdoc -B latex --papersize=letter cocom.sgml
 	if test ! -f cocom.dvi\
            -o -f cocom.tex -a cocom.tex -nt cocom.dvi; then\
     	        latex cocom.tex; latex cocom.tex;\
         fi
 	mv cocom.dvi $(srcdir)/cocom.dvi
+	if test ! -f cocom.pdf\
+           -o -f cocom.tex -a cocom.tex -nt cocom.pdf; then\
+    	        pdflatex cocom.tex; pdflatex cocom.tex;\
+        fi
+	mv cocom.pdf $(srcdir)/cocom.pdf
 
 $(srcdir)/cocom.ps: $(srcdir)/cocom.dvi
 	dvips -o $@ $(srcdir)/cocom.dvi

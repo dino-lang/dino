@@ -1,3 +1,59 @@
+2004-09-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+        * armoury.html, msta.jpg, nona.jpg, oka.jpg, shilka.jpg,
+	sprut.jpg: Remove files.
+	
+	* Makefile.in: Remove references to the files.  Add pdf file
+	generation.  Recursive calls for doc.  Use linuxdoc.
+
+	* AMMUNITION/Makefile.in:   Add pdf file
+	generation.  Use linuxdoc.
+
+	* DINO/Makefile.in: Ditto.
+	
+	* MSTA/Makefile.in: Ditto.
+	
+	* NONA/Makefile.in: Ditto.
+	
+	* OKA/Makefile.in: Ditto.
+	
+	* SHILKA/Makefile.in: Ditto.
+	
+	* SPUT/Makefile.in: Ditto.
+	
+	* cocom.pdf, AMMUNITION/ammunition++.pdf,
+	AMMUNITION/ammunition.pdf, MSTA/msta.pdf, NONA/nona.pdf,
+	OKA/oka.pdf, SHILKA/shilka.pdf, SPRUT/sprut.pdf: New files.
+
+	* cocom.spec: Remove garbage at the end of file.
+	
+	* cocom.sgml.in: Remove russian armoury and reference to
+	armoury.html.
+
+	* cocom.dvi, cocom.html, cocom.info, cocom.ps, cocom.txt: Update.
+
+	* AMMUNITION/ammunition++.dvi, AMMUNITION/ammunition++*.html,
+	AMMUNITION/ammunition++.info, AMMUNITION/ammunition++.ps,
+	AMMUNITION/ammunition.dvi, AMMUNITION/ammunition*.html,
+	AMMUNITION/ammunition.info, AMMUNITION/ammunition.ps: Update.
+
+	* DINO/dino.dvi, DINO/dino*.html, DINO/dino.info, DINO/dino.ps: Ditto.
+
+	* MSTA/msta.dvi, MSTA/msta*.html, MSTA/msta.info, MSTA/msta.ps,
+	MSTA/msta.txt: Ditto.
+	
+	* NONA/nona.dvi, NONA/nona*.html, NONA/nona.info, NONA/nona.ps,
+	NONA/nona.txt: Ditto.
+
+	* OKA/oka.dvi, OKA/oka*.html, OKA/oka.info, OKA/oka.ps,
+	OKA/oka.txt: Ditto.
+
+	* SHILKA/shilka.dvi, SHILKA/shilka*.html, SHILKA/shilka.info,
+	SHILKA/shilka.ps, SHILKA/shilka.txt: Ditto.
+	
+	* SPRUT/sprut.dvi, SPRUT/sprut*.html, SPRUT/sprut.info,
+	SPRUT/sprut.ps, SPRUT/sprut.txt: Ditto.
+	
 2004-08-24  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (evaluate_code): Add code to use labels instead of

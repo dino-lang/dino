@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>SPRUT (internal representation description translator): Introduction</TITLE>
  <LINK HREF="sprut-2.html" REL=next>
 
@@ -12,14 +12,14 @@
 Previous
 <A HREF="sprut.html#toc1">Contents</A>
 <HR>
-<H2><A NAME="s1">1. Introduction</A></H2>
+<H2><A NAME="s1">1.</A> <A HREF="sprut.html#toc1">Introduction</A></H2>
 
 <P>SPRUT is a translator of a compiler internal representation
 description (IRD) into Standard Procedural Interface (SPI).  The most
 convenient form of the internal representation is a directed graph.
 IRD defines structure of the graph.  SPI provides general graph
 manipulating functions.  The defined graph nodes can be decorated with
-attributes of arbitrary types.
+attributes of arbitrary types.</P>
 <P>IRD declares types of nodes of the graph.  Nodes contains fields, part
 of them represents links between nodes, and another part of them
 stores attributes of arbitrary types.  To make easy describing
@@ -30,7 +30,7 @@ files.  The nodes of one level refer to the nodes of previous levels.
 Therefore each next level enriches source program internal
 representation.  For example, the zero level representation may be
 internal representation for scanner, the first level may be internal
-representation for parser, and so on.
+representation for parser, and so on.</P>
 <P>SPI can contains functions to construct and destroy graphs and graph
 nodes, to copy graphs or graph nodes, to read and write graphs or
 graph nodes from (to) files, to print graphs or graph nodes, to check
@@ -38,7 +38,7 @@ up constraints on graph, to traverse graphs, and to transform acyclic
 graphs in some commonly used manners.  SPI can also check up the most
 important constraints on internal representation during work with node
 fields.  SPI can automatically maintain back links between internal
-representation nodes.
+representation nodes.</P>
 <P>Using SPRUT has the following advantages:
 <OL>
 <LI>brief and concise notation for internal representation
@@ -49,10 +49,11 @@ the compiler
 <LI>user is freed from the task of writing large amounts of
 relatively simple code</LI>
 </OL>
+</P>
 <P>The following sections define the internal representation description
-language, explain SPI, and present some examples.
-<P>
-<P>
+language, explain SPI, and present some examples.</P>
+
+
 <HR>
 <A HREF="sprut-2.html">Next</A>
 Previous
