@@ -118,7 +118,7 @@ static const char __nan__[8] = { 0, 0, 0, 0, 0, 0, 0xf8, 0x7f };
 #ifdef WORDS_BIGENDIAN
 static const char __infinity[8] = { 0x7f, 0xf0, 0, 0, 0, 0, 0, 0 };
 #else
-static const char __infinity[8] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x7f }
+static const char __infinity[8] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x7f };
 #endif
 #define FLOATING_NAN (*(floating_t *) __infinity)
 #endif
