@@ -191,15 +191,6 @@ int msta_error_recovery;
 
 int error_reduce_flag;
 
-/* Flag of that MSTA reports conflicts on look ahead containing token
-   error (`-error-conflict').  The default value is TRUE.  The
-   opposite value will be when flag `-no-error-conflict' is present on
-   the MSTA command line.  Token error is not a real token it is never
-   read but many error recovery rules may generate conflicts on error.
-   To avoid this you can use the option. */
-
-int error_conflict_flag;
-
 /* Flag of that MSTA accepts input file only in the format of Posix
    YACC (`-yacc-input').  The defualt value is FALSE.  The opposite
    value will be when flag `-no-yacc-input' is present on the MSTA

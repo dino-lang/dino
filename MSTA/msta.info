@@ -1,29 +1,29 @@
 This is msta.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-22870/sgmltmp.msta22870.info.2.
+/tmp/sgml-tools-dir-7977/sgmltmp.msta7977.info.2.
 
    \input texinfo
 
 
 Indirect:
-msta.info-1: 130
-msta.info-2: 47328
+msta.info-1: 128
+msta.info-2: 47326
 
 Tag Table:
 (Indirect)
-Node: Top130
-Node: Introduction802
-Node: MSTA description language2309
-Node: Layout of MSTA description2814
-Node: Declarations3541
-Node: Rules10458
-Node: Generated code21499
-Node: C code21975
-Node: C++ code41230
-Node: Implementation42662
-Node: MSTA Usage47328
-Node: Future of MSTA development63120
-Node: Appendix 1 - Syntax of MSTA description file (YACC description)63546
-Node: Appendix 2 - Example of MSTA scanner description file69213
-Node: Appendix 3 - Run of MSTA on the previous description file72921
+Node: Top128
+Node: Introduction800
+Node: MSTA description language2307
+Node: Layout of MSTA description2812
+Node: Declarations3539
+Node: Rules10456
+Node: Generated code21497
+Node: C code21973
+Node: C++ code41228
+Node: Implementation42660
+Node: MSTA Usage47326
+Node: Future of MSTA development62627
+Node: Appendix 1 - Syntax of MSTA description file (YACC description)63053
+Node: Appendix 2 - Example of MSTA scanner description file68720
+Node: Appendix 3 - Run of MSTA on the previous description file72428
 
 End Tag Table

@@ -1,15 +1,41 @@
 2002-02-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
+	* MSTA/common.h (error_conflict_flag): Remove it.
+
+	* MSTA/common.c (error_conflict_flag): Remove it.
+
+	* MSTA/lr.c (contains_error): Remove.
+	(add_context_conflicts): Remove error_conflict_flag.
+
+	* MSTA/main.c: Remove options -(no-)error-conflict.
+	(main): Remove error_conflict_flag.
+
+	* MSTA/msta.tst.in: Remove test for options -(no-)error-conflict.
+
+	* MSTA/msta.1: Add description of options -(no-)error-conflict.
+
+	* MSTA/msta-5.html, MSTA/msta.dvi, MSTA/msta.info,
+	MSTA/msta.info-1, MSTA/msta.info-2, MSTA/msta.ps, MSTA/msta.txt:
+	Update.
+
+2002-02-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* Makefile.in (distdir, distdinodir): Change it.
+
+	* MSTA/Makefile.in (distdir): Change it.
+
+2002-02-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/Makefile.in: Use -local-error-recovery.
 
 	* DINO/dino.dsp: Ditto.
 
 2002-02-08  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
-	* MSTA/p-common.h (error_reduce_flag, error_conflict_flag): New
+	* MSTA/common.h (error_reduce_flag, error_conflict_flag): New
 	external definition.
 
-	* MSTA/p-common.c (error_reduce_flag, error_conflict_flag): New
+	* MSTA/common.c (error_reduce_flag, error_conflict_flag): New
 	variables.
 
 	* MSTA/lr.c (contains_error): New function.

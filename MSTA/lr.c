@@ -503,23 +503,6 @@ add_conflict (IR_node_t LR_set, IR_node_t used_LR_situation,
     }
 }
 
-static int
-contains_error (token_string_t token_string)
-{
-  IR_node_t single_term_definition;
-  int n;
-
-  for (n = 0;; n++)
-    {
-      single_term_definition = get_n_th_token (token_string, n);
-      if (single_term_definition == NULL)
-	break;
-      if (single_term_definition == error_single_definition)
-	return TRUE;
-    }
-  return FALSE;
-}
-
 /* ??? */
 static int fold_is_used_in_conflict_resolution;
 static IR_node_t conflict_resolution_fold_LR_situation;
@@ -532,8 +515,7 @@ add_context_conflicts (token_string_t token_string)
                       (another_conflict_resolution_LR_situation),
                       IR_NM_canonical_rule_end)
       && !(IR_first_symbol_LR_situation
-           (another_conflict_resolution_LR_situation))
-      || !error_conflict_flag && contains_error (token_string))
+           (another_conflict_resolution_LR_situation)))
     return;
   if (fold_is_used_in_conflict_resolution)
     add_conflict (IR_LR_set (another_conflict_resolution_LR_situation),

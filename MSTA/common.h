@@ -39,7 +39,6 @@ extern int w_flag;
 extern int cpp_flag;
 extern int enum_flag;
 extern int error_reduce_flag;
-extern int error_conflict_flag;
 extern int pattern_equiv_flag;
 extern int full_lr_set_flag;
 extern int lr_situation_context_flag;
