@@ -1,5 +1,12 @@
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* OKA/oka.sgml.in: Add comments about checking automata of units
+	in exclusion and on reservation alternatives.
+
+	* OKA/{oka-2.html, oka.dvi, oka.info, oka.ps, oka.txt}: Update.
+	
+2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* OKA/oka.tst: New file.
 
 	* OKA/Makefile.in (additional_files): Add oka.tst

@@ -1,5 +1,5 @@
 This is oka.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.oka30353.info.2.
+/tmp/sgmltmp.oka24312.info.2.
 
    \input texinfo
 
@@ -148,6 +148,7 @@ construction is useful in such situations
 
    The functional units left to the semicolon can not be reserved with
 the units right to the semicolon (and vise versa) on the same cycle.
+All units in the construction should belong the same automata.
 
    All automaton identifiers present in unit declarations must be
 declared in the following construction
@@ -230,7 +231,9 @@ positive number times.
 
    The construction `EXPRESSION [verbar] EXPRESSION' means that the
 instructions reserve units according to the left or to the right
-expression (so called alternative).
+expression (so called alternative).  If an unit is present only on one
+alternative it should belong to the same automaton as units on other
+alternative.  OKA checks this and reports if it is not true.
 
    All binary operators have the left associativity and the following
 priority:
@@ -910,15 +913,15 @@ Node: Introduction831
 Node: Pipeline hazards description language2447
 Node: Layout of pipeline hazards description2984
 Node: Declarations4680
-Node: Expressions7606
-Node: Generated code10542
-Node: C++ code11007
-Node: C code13627
-Node: OKA Usage16151
-Node: Implementation20153
-Node: Future of OKA development20692
-Node: Appendix 1 - Syntax of pipeline Hazards Description (YACC grammar)21529
-Node: Appendix 2 - Description of Alpha architecture (EV5 version)25068
-Node: Appendix 3 - Output of pipeline Hazards Description Translator33465
+Node: Expressions7669
+Node: Generated code10770
+Node: C++ code11235
+Node: C code13855
+Node: OKA Usage16379
+Node: Implementation20381
+Node: Future of OKA development20920
+Node: Appendix 1 - Syntax of pipeline Hazards Description (YACC grammar)21757
+Node: Appendix 2 - Description of Alpha architecture (EV5 version)25296
+Node: Appendix 3 - Output of pipeline Hazards Description Translator33693
 
 End Tag Table

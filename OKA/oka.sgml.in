@@ -122,6 +122,7 @@ construction is useful in such situations
 </verb></tscreen>
 The functional units left to the semicolon can not be reserved with
 the units right to the semicolon (and vise versa) on the same cycle.
+All units in the construction should belong the same automata.
 
 All automaton identifiers present in unit declarations must be
 declared in the following construction
@@ -203,9 +204,11 @@ The construction `EXPRESSION * NUMBER' is simply abbreviation of
 `EXPRESSION EXPRESSION ...' where the expression is repeated by given
 positive number times.
 
-The construction `EXPRESSION | EXPRESSION' means that the
-instructions reserve units according to the left or to the right
-expression (so called alternative).
+The construction `EXPRESSION | EXPRESSION' means that the instructions
+reserve units according to the left or to the right expression (so
+called alternative).  If an unit is present only on one alternative it
+should belong to the same automaton as units on other alternative.
+OKA checks this and reports if it is not true.
 
 All binary operators have the left associativity and the following
 priority:
