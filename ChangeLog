@@ -1,5 +1,70 @@
 2002-05-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* SPRUT/{A_base.sprut, A_syntax.sprut, A_test.sprut,
+	A_value.sprut, Makefile.in, anal.c, anal.h, common.c, common.h,
+	gen.c, gen.h, ird.sprut, main.c, sprut-ird.c, sprut-ird.h,
+	sprut.tst, std_bmem.sprut, std_mem.sprut, std_pos.sprut,
+	std_str.sprut, std_type.sprut, tab.c, tab.h, yacc.h, yacc.y}:
+	Copyright in the file headers.
+
+	* SHILKA/{Makefile.in, ada-standards.shilka, ada.shilka, anal.c,
+	anal.h, b.shilka, c.shilka, common.c, common.h, cpp.shilka,
+	d.shilka, gcc.shilka, gen.c, gen.h, gpc.shilka, ird.sprut,
+	java.shilka, main.c, modula2.shilka, modula3.shilka,
+	pascal.shilka, shilka.tst.in, tab.c, tab.h, yacc.h, yacc.y}:
+	Ditto.
+
+	* NONA/{Makefile.in, a29k.nona, anal.c, anal.h, common.c,
+	common.h, gen.c, gen.h, ird.sprut, main.c, tab.c, tab.h, yacc.h,
+	yacc.y}: Ditto.
+
+	* OKA/{Makefile.in, alpha-ev4.oka, alpha-ev5.oka, anal.c, anal.h,
+	common.c, common.h, gen.c, gen.h, ird.sprut, main.c, tab.c, tab.h,
+	yacc.h, yacc.y}: Ditto.
+
+	* OKA/SCHEDULE/{schedtst.c, schedtst.cpp, schedule++.tst.in,
+	schedule.c, schedule.cpp, schedule.h, schedule.tst.in, test.oka}:
+	Ditto.
+
+	* MSTA/{Makefile.in, anal.c, anal.h, common.c, common.h,
+	compare.tst.in, contexts.c, contexts.h, descript.c, descript.h,
+	gen-comm.c, gen-comm.h, gen.c, gen.h, ird.sprut, la-trie.c,
+	la-trie.h, lr-sets.c, lr-sets.h, lr.c, lr.h, main.c,
+	oberon2-kw.shilka, output.c, output.h, p-yacc.y, parser.c,
+	parser.h, quality.tst.in, regular.c, regular.h, relation.c,
+	relation.h, tab.c, tab.h, yacc.h, yacc.y}: Ditto.
+
+	* DINO/{Makefile.in, compare.tst, d_blocktab.c, d_blocktab.h,
+	d_built.h, d_common.h, d_context.c, d_context.h, d_conv.c,
+	d_conv.h, d_dino.c, d_dino.h, d_errors.c, d_errors.h, d_eval.c,
+	d_eval.h, d_extern.sprut, d_func.c, d_func.h, d_heap.c,
+	d_ir.sprut, d_kw.shilka, d_main.c, d_run.sprut, d_types.h,
+	d_yacc.h, d_yacc.y, dino.tst.in, ieee.d, ieee_int.c, ipcerr.d,
+	ipcerr_int.c, mpi.c, mpi.d, socket.d, socket_int.c}: Ditto.
+
+	* DINO/Examples/{extern.d, fact.d, fibonacci.d, idcount.d, mult.d,
+	prodcons.d, sieve.d, tak.d, tmult.d}: Ditto.
+
+	* AMMUNITION/{IEEE++.tst.in, IEEE.c, IEEE.cpp, IEEE.h,
+	IEEE.tst.in, Makefile.in, allocate++.tst.in, allocate.c,
+	allocate.cpp, allocate.h, allocate.tst.in, arithm++.tst.in,
+	arithm.c, arithm.cpp, arithm.h, arithm.tst.in, bits++.tst.in,
+	bits.c, bits.cpp, bits.h, bits.tst.in, commline++.tst.in,
+	commline.c, commline.cpp, commline.h, commline.tst.in,
+	earley++.tst.in, earley.c, earley.cpp, earley.h, earley.tst.in,
+	errors++.tst.in, errors.c, errors.cpp, errors.h, errors.tst.in,
+	hashtab++.tst.in, hashtab.c, hashtab.cpp, hashtab.h,
+	hashtab.tst.in, objstack++.tst.in, objstack.c, objstack.cpp,
+	objstack.h, objstack.tst.in, position++.tst.in, position.c,
+	position.cpp, position.h, position.tst.in, sgramm.y,
+	ticker++.tst.in, ticker.c, ticker.cpp, ticker.h, ticker.tst.in,
+	vlobject++.tst.in, vlobject.c, vlobject.cpp, vlobject.h,
+	vlobject.tst.in}: Ditto.
+
+	* Makefile.in: Ditto.
+	
+2002-05-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/d_func.c (PATH_MAX): Define it for WIN32.
 
 	* DINO/d_yacc.y (PATH_MAX): Ditto.

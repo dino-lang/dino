@@ -3,7 +3,27 @@
 #
 # Script to test of DINO.
 #
-
+# Copyright (C) 1997-2002 Vladimir Makarov.
+# 
+# Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+# 
+# This file is part of interpreter of DINO.
+# 
+# This is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with GNU CC; see the file COPYING.  If not, write to the Free
+# Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+# 02111-1307, USA.
+#
 #
 # Usage: dino.tst [start_test_number [build by MSVC]] 
 #
@@ -27742,7 +27762,7 @@ TEST497
                 echo '      ' $CMP $ftemp $ftemp2
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $ftemp $ftemp2; then
 In file processed from test.d:1:18:
-@srcdir@/socket.d:39:11: host is unknown
+@srcdir@/socket.d:63:11: host is unknown
 OUTPUT497
                         result=ok
                 else
@@ -27758,7 +27778,7 @@ OUTPUT497
                 echo '      ' $CMP $ftemp $ftemp2
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $ftemp $ftemp2; then
 In file processed from test.d:1:18:
-@srcdir@/socket.d:39:11: host is unknown
+@srcdir@/socket.d:63:11: host is unknown
 OUTPUT497
                         result=ok
                 else
