@@ -1,5 +1,12 @@
 2001-10-26  Vladimir Makarov  <users.sourceforge.net>
 
+	* DINO/d_eval.c (test): Remove function test.
+
+	* DINO/d_func.c (process_func_class_call): Remove function test
+	call.
+	
+2001-10-26  Vladimir Makarov  <users.sourceforge.net>
+
 	* DINO/Makefile.in (DINO_VERSION): New macro.
 	(distdir, libdir, includedir, OPTIONS): Use the new macro.
 	(install): Copy the executable with version in the name.

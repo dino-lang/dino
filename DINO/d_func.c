@@ -4779,9 +4779,6 @@ process_func_class_call (int_t pars_number)
 	      ER_SET_MODE (ctop, ER_NM_process);
               ER_set_process (ctop, process);
 	    }
-#if 0
-	  test ();
-#endif
 	}
     }
   else
