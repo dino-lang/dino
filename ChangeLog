@@ -1,3 +1,29 @@
+2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* OKA/oka.tst: New file.
+
+	* OKA/Makefile.in (additional_files): Add oka.tst
+	(test-oka test-sched): New entries.
+	(test): Use them.
+	(gen.c): Update dependencies.
+
+	* OKA/alpha-ev5.oka (multiply): Remove the automaton.
+
+	* OKA/anal.c (add_exclusion_list): Check automata of the units and
+	report if they are not the same.
+
+	* OKA/gen.c (position.h, errors.h): Add teh included files.
+	(the_same_automaton_lists): New variable.
+	(unit_on_all_alternatives,
+	form_the_same_automaton_unit_lists_from_expression,
+	form_the_same_automaton_unit_lists,
+	check_unit_distributions_to_automata): New functions.
+	(generate): Call check_unit_distributions_to_automata.  Check
+	number_of_errors after that.
+
+	* OKA/ird.sprut (single_unit_declaration): Add new fields
+	the_same_automaton_unit, the_same_automaton_message_reported_p.
+	
 2002-05-15  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.c (sit_number): Add the sit_number.

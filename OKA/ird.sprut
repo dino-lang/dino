@@ -418,6 +418,13 @@ single_unit_declaration :: single_declaration
     /* The following field value is TRUE if the unit is used in an
        expression definition. */
     unit_is_used : bool_t   {$ = 0 /*FALSE*/;}
+    /* The following field value is used to form cyclic lists of units
+       which should be in the same automaton because the unit is
+       reserved not on all alternatives of a regexp on a cycle.  */
+    the_same_automaton_unit : single_unit_declaration
+    /* The following field is TRUE if we already reported that the unit
+       is not in the same automaton.  */
+    the_same_automaton_message_reported_p : integer_t
     /* The following field value is order number (0, 1, ...) of given
        unit. */
     unit_number : integer_t

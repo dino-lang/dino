@@ -29,11 +29,10 @@
    o Is it necessary divider_write_back if floating divide has not
      accurate latency. */
 
-%automaton integer multiply float
+%automaton integer float
 
 %unit <integer> e0 e1 load_store_1 load_store_2 store_reservation
-
-%unit <multiply> multiplier multiplier_write_back
+                multiplier_write_back multiplier 
 
 %unit <float> fa fm float_divider divider_write_back
 

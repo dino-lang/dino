@@ -59,6 +59,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "position.h"
+#include "errors.h"
 #include "hashtab.h"
 #include "bits.h"
 #include "ticker.h"
@@ -1518,6 +1520,229 @@ transform_instruction_expressions (void)
          transform_expression
          (copy_instruction_expression_and_change_expression_identifiers
           (IR_expression (current_single_instruction_declaration))));
+}
+
+
+
+/* The following variable is an array indexed by cycle.  Each element
+   contains cyclic list of units which should be in the same cycle.  */
+static IR_node_t *the_same_automaton_lists;
+
+/* The function processes all alternative reservations on CYCLE in
+   given EXPRESSION to check the SINGLE_UNIT_DECLARATION is not
+   reserved on the all alternatives.  If it is true, the unit should
+   be in the same automaton with other analogous units reserved on
+   CYCLE in given EXPRESSION.  The function returns the next cycle
+   after the last cycle if reservation EXPRESSION through
+   NEXT_CYCLE. */
+static int
+unit_on_all_alternatives
+  (IR_node_t single_unit_declaration, IR_node_t expression, int cycle,
+   int curr_cycle, int *next_cycle)
+{
+  int temp, flag;
+
+  assert (expression != NULL);
+  if (IR_IS_OF_TYPE (expression, IR_NM_alternative))
+    {
+      /* We don't care about next_cycle because alternatives are on
+	 the top of expression trees. */
+      *next_cycle = 0;
+      return
+	(unit_on_all_alternatives
+	 (single_unit_declaration, IR_left_operand (expression),
+	  cycle, curr_cycle, &temp)
+	 && unit_on_all_alternatives
+	    (single_unit_declaration, IR_right_operand (expression),
+	     cycle, curr_cycle, &temp));
+    }
+  else if (IR_IS_OF_TYPE (expression, IR_NM_concatenation))
+    {
+      flag = unit_on_all_alternatives (single_unit_declaration,
+				       IR_left_operand (expression),
+				       cycle, curr_cycle, &temp);
+      flag = (unit_on_all_alternatives (single_unit_declaration,
+				       IR_right_operand (expression),
+					cycle, temp - 1, next_cycle)
+	      || flag);
+      return flag;
+    }
+  else if (IR_IS_OF_TYPE (expression, IR_NM_new_cycle_concatenation))
+    {
+      flag = unit_on_all_alternatives (single_unit_declaration,
+				       IR_left_operand (expression),
+				       cycle, curr_cycle, &temp);
+      flag = (unit_on_all_alternatives (single_unit_declaration,
+				       IR_right_operand (expression),
+				       cycle, temp, next_cycle)
+	      || flag);
+      return flag;
+    }
+  else 
+    {
+      assert (IR_IS_OF_TYPE (expression, IR_NM_expression_atom)
+	      && IR_IS_OF_TYPE (IR_single_declaration (expression),
+				IR_NM_single_unit_declaration));
+      *next_cycle = curr_cycle + 1;
+      return (single_unit_declaration == IR_single_declaration (expression)
+	      && curr_cycle == cycle);
+    }
+}
+
+/* The function processes given EXPRESSION starting with CYCLE to find
+   units which should be in the same automaton.  The function results
+   the next cycle after the last expression cycle.  */
+static int
+form_the_same_automaton_unit_lists_from_expression (IR_node_t expression,
+						    IR_node_t sub_expression,
+						    int cycle)
+{
+  IR_node_t single_unit_declaration, last;
+
+  assert (sub_expression != NULL);
+  if (IR_IS_OF_TYPE (sub_expression, IR_NM_alternative))
+    {
+      form_the_same_automaton_unit_lists_from_expression
+	(expression, IR_left_operand (sub_expression), cycle);
+      form_the_same_automaton_unit_lists_from_expression
+	(expression, IR_right_operand (sub_expression), cycle);
+      return 0; /* We don't care about the result because alternatives
+                   are on the top of expression trees. */
+    }
+  else if (IR_IS_OF_TYPE (sub_expression, IR_NM_concatenation))
+    {
+      return
+	form_the_same_automaton_unit_lists_from_expression
+	(expression, IR_right_operand (sub_expression),
+	 form_the_same_automaton_unit_lists_from_expression
+	 (expression, IR_left_operand (sub_expression), cycle) - 1);
+    }
+  else if (IR_IS_OF_TYPE (sub_expression, IR_NM_new_cycle_concatenation))
+    {
+      return
+	form_the_same_automaton_unit_lists_from_expression
+	(expression, IR_right_operand (sub_expression),
+	 form_the_same_automaton_unit_lists_from_expression
+	 (expression, IR_left_operand (sub_expression), cycle));
+    }
+  else 
+    {
+      int temp;
+
+      assert (IR_IS_OF_TYPE (sub_expression, IR_NM_expression_atom)
+	      && IR_IS_OF_TYPE (IR_single_declaration (sub_expression),
+				IR_NM_single_unit_declaration));
+      single_unit_declaration = IR_single_declaration (sub_expression);
+      if (!unit_on_all_alternatives (single_unit_declaration, expression,
+				     cycle, 0, &temp))
+	{
+	  if (the_same_automaton_lists [cycle] == NULL)
+	    the_same_automaton_lists [cycle] = single_unit_declaration;
+	  else
+	    {
+	      for (last = the_same_automaton_lists [cycle];;)
+		{
+		  if (last == single_unit_declaration)
+		    return cycle + 1;
+		  if (IR_the_same_automaton_unit (last)
+		      == the_same_automaton_lists [cycle])
+		    break;
+		  last = IR_the_same_automaton_unit (last);
+		}
+	      IR_set_the_same_automaton_unit
+		(last, IR_the_same_automaton_unit (single_unit_declaration));
+	      IR_set_the_same_automaton_unit
+		(single_unit_declaration, the_same_automaton_lists [cycle]);
+	    }
+	}
+      return cycle + 1;
+    }
+}
+
+/* The function initializes data to search for units which should be
+   in the same automaton and call function
+   `form_the_same_automaton_unit_lists_from_expression' for each insn
+   reservation.  */
+static void
+form_the_same_automaton_unit_lists (void)
+{
+  IR_node_t current_single_instruction_declaration;
+  vlo_t the_same_automaton_lists_container;
+  int i;
+
+  VLO_CREATE (the_same_automaton_lists_container, 0);
+  VLO_EXPAND (the_same_automaton_lists_container,
+	      IR_max_instruction_reservation_cycles (description)
+	      * sizeof (IR_node_t));
+  the_same_automaton_lists = VLO_BEGIN (the_same_automaton_lists_container);
+  for (current_single_instruction_declaration
+       = IR_single_declaration_list (description);
+       current_single_instruction_declaration != NULL;
+       current_single_instruction_declaration
+       = IR_next_single_declaration (current_single_instruction_declaration))
+    if (IR_IS_OF_TYPE (current_single_instruction_declaration,
+                       IR_NM_single_unit_declaration))
+      {
+	IR_set_the_same_automaton_message_reported_p
+	  (current_single_instruction_declaration, FALSE);
+	IR_set_the_same_automaton_unit
+	  (current_single_instruction_declaration,
+	   current_single_instruction_declaration);
+      }
+  for (current_single_instruction_declaration
+       = IR_single_declaration_list (description);
+       current_single_instruction_declaration != NULL;
+       current_single_instruction_declaration
+       = IR_next_single_declaration (current_single_instruction_declaration))
+    if (IR_IS_OF_TYPE (current_single_instruction_declaration,
+                       IR_NM_single_instruction_declaration)
+        && (current_single_instruction_declaration
+            != cycle_advancing_single_instruction_declaration))
+      {
+	for (i = 0;
+	     i < IR_max_instruction_reservation_cycles (description);
+	     i++)
+	  the_same_automaton_lists [i] = NULL;
+	form_the_same_automaton_unit_lists_from_expression
+	  (IR_transformed_expression (current_single_instruction_declaration),
+	   IR_transformed_expression (current_single_instruction_declaration),
+	   0);
+      }
+  VLO_DELETE (the_same_automaton_lists_container);
+}
+
+/* The function finds units which should be in the same automaton and,
+   if they are not, reports about it.  */
+static void
+check_unit_distributions_to_automata (void)
+{
+  IR_node_t current_single_instruction_declaration;
+  IR_node_t start_unit, unit;
+
+  form_the_same_automaton_unit_lists ();
+  for (current_single_instruction_declaration
+       = IR_single_declaration_list (description);
+       current_single_instruction_declaration != NULL;
+       current_single_instruction_declaration
+       = IR_next_single_declaration (current_single_instruction_declaration))
+    if (IR_IS_OF_TYPE (current_single_instruction_declaration,
+                       IR_NM_single_unit_declaration))
+      {
+	start_unit = current_single_instruction_declaration;
+	if (!IR_the_same_automaton_message_reported_p (start_unit))
+	  for (unit = IR_the_same_automaton_unit (start_unit);
+	       unit != start_unit;
+	       unit = IR_the_same_automaton_unit (unit))
+	    if (IR_single_automaton_declaration (start_unit)
+		!= IR_single_automaton_declaration (unit))
+	      {
+		error (FALSE, IR_position (IR_identifier (start_unit)),
+		       "Units `%s' and `%s' should be in the same automaton",
+		       IR_identifier_itself (IR_identifier (start_unit)),
+		       IR_identifier_itself (IR_identifier (unit)));
+		IR_set_the_same_automaton_message_reported_p (unit, TRUE);
+	      }
+      }
 }
 
 
@@ -4516,47 +4741,51 @@ generate (void)
   add_cycle_advancing_single_instruction_declaration ();
   transform_instruction_expressions ();
   ticker_off (&transformation_time);
-  create_automatons ();
-  ticker_off (&automaton_generation_time);
-  output_time = create_ticker ();
-  initiate_output ();
-  output_ifndef (output_interface_file, description_name);
-  output_string (output_interface_file, "#define ");
-  output_ifdef_parameter_name (output_interface_file, description_name);
-  output_string (output_interface_file, "\n\n");
-  if (debug_flag)
+  check_unit_distributions_to_automata ();
+  if (number_of_errors == 0)
     {
-      output_string (output_implementation_file, "#define ");
-      output_ifdef_parameter_name (output_implementation_file,
-                                   DEBUG_PARAMETER_NAME);
-      output_string (output_implementation_file, "\n\n");
+      create_automatons ();
+      ticker_off (&automaton_generation_time);
+      output_time = create_ticker ();
+      initiate_output ();
+      output_ifndef (output_interface_file, description_name);
+      output_string (output_interface_file, "#define ");
+      output_ifdef_parameter_name (output_interface_file, description_name);
+      output_string (output_interface_file, "\n\n");
+      if (debug_flag)
+	{
+	  output_string (output_implementation_file, "#define ");
+	  output_ifdef_parameter_name (output_implementation_file,
+				       DEBUG_PARAMETER_NAME);
+	  output_string (output_implementation_file, "\n\n");
+	}
+      /* ??? */
+      output_string (output_implementation_file, "#include <assert.h>\n");
+      output_string (output_implementation_file, "#include <stdio.h>\n");
+      output_string (output_implementation_file, "#include \"");
+      output_string (output_implementation_file, output_interface_file_name);
+      output_string (output_implementation_file, "\"\n\n");
+      output_start_code_insertions ();
+      output_tables ();
+      output_chip_definitions ();
+      output_transition_function ();
+      output_is_dead_lock_function ();
+      output_reset_function ();
+      if (cpp_flag)
+	output_chip_function ();
+      output_finish_code_insertions ();
+      output_additional_code ();
+      output_endif (output_interface_file, description_name);
+      if (v_flag)
+	{
+	  output_description ();
+	  output_automaton_descriptions ();
+	  output_statistics (output_description_file);
+	}
+      output_statistics (stderr);
+      ticker_off (&output_time);
+      output_time_statistics (stderr);
     }
-  /* ??? */
-  output_string (output_implementation_file, "#include <assert.h>\n");
-  output_string (output_implementation_file, "#include <stdio.h>\n");
-  output_string (output_implementation_file, "#include \"");
-  output_string (output_implementation_file, output_interface_file_name);
-  output_string (output_implementation_file, "\"\n\n");
-  output_start_code_insertions ();
-  output_tables ();
-  output_chip_definitions ();
-  output_transition_function ();
-  output_is_dead_lock_function ();
-  output_reset_function ();
-  if (cpp_flag)
-    output_chip_function ();
-  output_finish_code_insertions ();
-  output_additional_code ();
-  output_endif (output_interface_file, description_name);
-  if (v_flag)
-    {
-      output_description ();
-      output_automaton_descriptions ();
-      output_statistics (output_description_file);
-    }
-  output_statistics (stderr);
-  ticker_off (&output_time);
-  output_time_statistics (stderr);
   finish_states ();
   finish_arcs ();
 }

@@ -141,6 +141,7 @@ add_exclusion_list (IR_node_t dest_list, IR_node_t source_list)
 {
   IR_node_t current_dest_unit_set_element;
   IR_node_t current_source_unit_set_element;
+  IR_node_t source, dest;
   IR_node_t current_exclusion_list_unit;
   IR_node_t last_exclusion_list_unit;
   IR_node_t copy;
@@ -154,15 +155,23 @@ add_exclusion_list (IR_node_t dest_list, IR_node_t source_list)
 	 current_source_unit_set_element
 	   = IR_next_unit_set_element (current_source_unit_set_element))
       {
-	if (IR_single_unit_declaration (current_dest_unit_set_element)
-	    == IR_single_unit_declaration (current_source_unit_set_element))
+	dest = IR_single_unit_declaration (current_dest_unit_set_element);
+	source = IR_single_unit_declaration (current_source_unit_set_element);
+	if (dest == source)
 	  {
-	    error (FALSE,
-		   IR_position (current_dest_unit_set_element),
+	    error (FALSE, IR_position (current_dest_unit_set_element),
 		   "unit `%s' excludes itself",
-		   IR_identifier_itself (IR_identifier
-					 (IR_single_unit_declaration
-					  (current_dest_unit_set_element))));
+		   IR_identifier_itself (IR_identifier (dest)));
+	    continue;
+	  }
+	if (IR_single_automaton_declaration (source)
+	    != IR_single_automaton_declaration (dest))
+	  {
+	    error
+	      (FALSE, IR_position (current_dest_unit_set_element),
+	       "units `%s' and `%s' in exclusion set belong to different automata",
+	       IR_identifier_itself (IR_identifier (source)),
+	       IR_identifier_itself (IR_identifier (dest)));
 	    continue;
 	  }
 	for (current_exclusion_list_unit
