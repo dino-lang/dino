@@ -1,3 +1,22 @@
+2002-02-05  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* MSTA/parser.c (YYERROR_MESSAGE_MACRO_NAME): New macro.
+	(output_definitions_outside_yyparse): Output the new macro
+	definition.
+	(output_shift_pop_actions): Output setting up yyprev_char for all
+	regimes.
+	(output_switch): Use YYERROR_MESSAGE.  Output setting up
+	yyprev_char for all regimes.
+	(output_definition_inside_yyparse): Output definition of
+	yyprev_char for all regimes.
+	(output_parser_itself): Output clearing yychar and setting up
+	yyprev_char at the end of minimal cost error recovery.
+
+	* MSTA/msta.sgml.in (YYERROR_MESSAGE): Describe the new macro.
+
+	* MSTA/msta-3.html, MSTA/msta.dvi, MSTA/msta.ps, MSTA/msta.txt,
+	MSTA/msta.info*: Update.
+	
 2002-01-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* Makefile.in (additional_files): Add fcalc1.y.
