@@ -1,5 +1,7 @@
 2005-01-15  Vladimir N. Makarov  <vmakarov@redhat.com>
 
+	* MSTA/compare.tst.in: Missed file for commiting.
+
 	* SPRUT/std_pos.sprut, SPRUT/sprut-ird.c, SHILKA/gpc.shilka,
 	NONA/tab.h:  Change the last year.
 

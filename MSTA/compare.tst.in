@@ -5,7 +5,7 @@
 # Script to comparison of Bison, Yacc (byacc), and MSTA.
 #
 #
-# Copyright (C) 1997-2002 Vladimir Makarov.
+# Copyright (C) 1997-2005 Vladimir Makarov.
 #
 # Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 #
@@ -234,7 +234,7 @@ typedef const char *string_t;
 
 %token TYPEDEF EXTERN STATIC AUTO REGISTER
 %token CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE CONST VOLATILE VOID
-%token STRUCT UNION ENUM ELIPSIS RANGE
+%token STRUCT UNION ENUM ELIPSIS
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
@@ -740,10 +740,7 @@ void count();
 {L}({L}|{D})*		{ count(); return(check_type()); }
 
 0[xX]{H}+{IS}?		{ count(); return(CONSTANT); }
-0[xX]{H}+{IS}?		{ count(); return(CONSTANT); }
 0{D}+{IS}?		{ count(); return(CONSTANT); }
-0{D}+{IS}?		{ count(); return(CONSTANT); }
-{D}+{IS}?		{ count(); return(CONSTANT); }
 {D}+{IS}?		{ count(); return(CONSTANT); }
 '(\\.|[^\\'])+'		{ count(); return(CONSTANT); }
 
