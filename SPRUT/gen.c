@@ -1,7 +1,7 @@
 /*
    FILE NAME:   gen.c
 
-   Copyright (C) 1997-2002 Vladimir Makarov.
+   Copyright (C) 1997-2005 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -11763,7 +11763,7 @@ generate_spi (void)
   output_offsetof_macro_name (output_interface_file);
   output_string
     (output_interface_file,
-     "(type, field) ((char *)&((type *) 0)->field - (char *) 0)\n");
+     "(type, field) ((char *)&((type *) 64)->field - (char *) 64)\n");
   output_string (output_interface_file, "#endif\n\n");
   output_start_code_insertions ();
   output_default_macros ();

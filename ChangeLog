@@ -1,3 +1,101 @@
+2005-01-15  Vladimir N. Makarov  <vmakarov@redhat.com>
+
+	* SPRUT/yacc.y, SPRUT/yacc.h, SPRUT/tab.h, SPRUT/tab.c,
+	SPRUT/std_type.sprut, SPRUT/std_str.sprut, SPRUT/std_str.sprut,
+	SPRUT/std_mem.sprut, SPRUT/std_bmem.sprut, SPRUT/sprut.tst,
+	SPRUT/sprut-ird.h, SPRUT/sprut-ird.h, SPRUT/main.c,
+	SPRUT/ird.sprut, SPRUT/gen.h, SPRUT/gen.c, SPRUT/common.h,
+	SPRUT/common.c, SPRUT/anal.h, SPRUT/anal.c, SPRUT/Makefile.in,
+	SPRUT/A_value.sprut, SPRUT/A_test.sprut, SPRUT/A_syntax.sprut,
+	SPRUT/A_base.sprut, SHILKA/yacc.y, SHILKA/yacc.h, SHILKA/tab.h,
+	SHILKA/tab.c, SHILKA/shilka.tst.in, SHILKA/pascal.shilka,
+	SHILKA/modula3.shilka, SHILKA/modula2.shilka, SHILKA/main.c,
+	SHILKA/java.shilka, SHILKA/ird.sprut, SHILKA/ird.sprut,
+	SHILKA/gen.h, SHILKA/gen.c, SHILKA/gcc.shilka, SHILKA/d.shilka,
+	SHILKA/cpp.shilka, SHILKA/common.h, SHILKA/common.c,
+	SHILKA/c.shilka, SHILKA/b.shilka, SHILKA/anal.h, SHILKA/anal.c,
+	SHILKA/ada.shilka, SHILKA/ada-standards.shilka,
+	SHILKA/Makefile.in, OKA/SCHEDULE/test.oka,
+	OKA/SCHEDULE/schedule.tst.in, OKA/SCHEDULE/schedule.h,
+	OKA/SCHEDULE/schedule.cpp, OKA/SCHEDULE/schedule.c,
+	OKA/SCHEDULE/schedule++.tst.in, OKA/SCHEDULE/schedtst.cpp,
+	OKA/SCHEDULE/schedtst.c, OKA/yacc.y, OKA/yacc.h, OKA/tab.h,
+	OKA/tab.c, OKA/oka.tst, OKA/main.c, OKA/ird.sprut, OKA/gen.h,
+	OKA/gen.c, OKA/common.h, OKA/common.c, OKA/anal.h, OKA/anal.c,
+	OKA/alpha-ev5.oka, OKA/alpha-ev4.oka, OKA/Makefile.in,
+	NONA/yacc.y, NONA/yacc.h, NONA/yacc.h, NONA/tab.c, NONA/main.c,
+	NONA/ird.sprut, NONA/gen.h, NONA/gen.c, NONA/common.h,
+	NONA/common.c, NONA/anal.h, NONA/anal.c, NONA/a29k.nona,
+	NONA/Makefile.in, MSTA/yacc.y, MSTA/yacc.h, MSTA/tab.h,
+	MSTA/tab.c, MSTA/relation.h, MSTA/relation.c, MSTA/regular.h,
+	MSTA/regular.c, MSTA/quality.tst.in, MSTA/parser.h, MSTA/parser.c,
+	MSTA/p-yacc.y, MSTA/output.h, MSTA/output.c,
+	MSTA/oberon2-kw.shilka, MSTA/main.c, MSTA/lr.h, MSTA/lr.c,
+	MSTA/lr-sets.h, MSTA/lr-sets.c, MSTA/la-trie.h, MSTA/la-trie.c,
+	MSTA/ird.sprut, MSTA/gen.h, MSTA/gen.c, MSTA/gen-comm.h,
+	MSTA/gen-comm.c, MSTA/descript.h, MSTA/descript.c,
+	MSTA/contexts.h, MSTA/contexts.c, MSTA/common.h, MSTA/common.c,
+	MSTA/anal.h, MSTA/anal.c, MSTA/Makefile.in, DINO/Examples/tmult.d,
+	DINO/Examples/tak.d, DINO/Examples/sieve.d,
+	DINO/Examples/prodcons.d, DINO/Examples/mult.d,
+	DINO/Examples/idcount.d, DINO/Examples/fibonacci.d,
+	DINO/Examples/fact.d, DINO/Examples/extern.d, DINO/socket_int.c,
+	DINO/socket.d, DINO/mpi.d, DINO/mpi.c, DINO/ipcerr_int.c,
+	DINO/ipcerr.d, DINO/ieee_int.c, DINO/ieee.d, DINO/dino.tst.in,
+	DINO/dino.ps, DINO/d_yacc.y, DINO/d_yacc.h, DINO/d_types.h,
+	DINO/d_runtab.h, DINO/d_runtab.c, DINO/d_run.sprut, DINO/d_main.c,
+	DINO/d_kw.shilka, DINO/d_ir.sprut, DINO/d_heap.c, DINO/d_func.h,
+	DINO/d_func.c, DINO/d_extern.sprut, DINO/d_eval.h, DINO/d_eval.c,
+	DINO/d_errors.h, DINO/d_errors.c, DINO/d_dino.h, DINO/d_dino.c,
+	DINO/d_conv.h, DINO/d_conv.c, DINO/d_context.h, DINO/d_context.c,
+	DINO/d_common.h, DINO/d_built.h, DINO/compare.tst,
+	DINO/Makefile.in, AMMUNITION/vlobject.tst.in,
+	AMMUNITION/vlobject.h, AMMUNITION/vlobject.cpp,
+	AMMUNITION/vlobject.c, AMMUNITION/vlobject++.tst.in,
+	AMMUNITION/ticker.tst.in, AMMUNITION/ticker.h,
+	AMMUNITION/ticker.cpp, AMMUNITION/ticker.c,
+	AMMUNITION/ticker++.tst.in, AMMUNITION/sgramm.y,
+	AMMUNITION/position.tst.in, AMMUNITION/position.h,
+	AMMUNITION/position.cpp, AMMUNITION/position.c,
+	AMMUNITION/position++.tst.in, AMMUNITION/objstack.tst.in,
+	AMMUNITION/objstack.h, AMMUNITION/objstack.cpp,
+	AMMUNITION/objstack.c, AMMUNITION/objstack++.tst.in,
+	AMMUNITION/hashtab.tst.in, AMMUNITION/hashtab.h,
+	AMMUNITION/hashtab.cpp, AMMUNITION/hashtab.c,
+	AMMUNITION/hashtab++.tst.in, AMMUNITION/errors.tst.in,
+	AMMUNITION/errors.h, AMMUNITION/errors.cpp, AMMUNITION/errors.c,
+	AMMUNITION/errors++.tst.in, AMMUNITION/earley.tst.in,
+	AMMUNITION/earley.h, AMMUNITION/earley.cpp, AMMUNITION/earley.c,
+	AMMUNITION/earley++.tst.in, AMMUNITION/commline.tst.in,
+	AMMUNITION/commline.h, AMMUNITION/commline.cpp,
+	AMMUNITION/commline.c, AMMUNITION/commline++.tst.in,
+	AMMUNITION/bits.tst.in, AMMUNITION/bits.h, AMMUNITION/bits.cpp,
+	AMMUNITION/bits.c, AMMUNITION/bits++.tst.in,
+	AMMUNITION/arithm.tst.in, AMMUNITION/arithm.h,
+	AMMUNITION/arithm.cpp, AMMUNITION/arithm.c,
+	AMMUNITION/arithm++.tst.in, AMMUNITION/allocate.tst.in,
+	AMMUNITION/allocate.h, AMMUNITION/allocate.cpp,
+	AMMUNITION/allocate.c, AMMUNITION/allocate++.tst.in,
+	AMMUNITION/Makefile.in, AMMUNITION/IEEE.tst.in, AMMUNITION/IEEE.h,
+	AMMUNITION/IEEE.cpp, AMMUNITION/IEEE.c, AMMUNITION/IEEE++.tst.in,
+	Makefile.in: Change the last year.
+
+	* SPRUT/main.c, SHILKA/main.c, SHILKA/compare.tst.in, OKA/main.c,
+	NONA/main.c, MSTA/main.c, DINO/d_main.c: Change return type of
+	main.
+
+	* SPRUT/gen.c (generate_spi): Use 16 instead of 0.
+
+	* REGEX/regex.h (__restrict_arr): Define it only it is undefined.
+
+	* MSTA/compare.tst.in, AMMUNITION/earley.tst.in,
+	AMMUNITION/earley++.tst.in: Remove duplicated lex patterns.
+
+	* DINO/dino.ps, DINO/dino.pdf, DINO/dino.info, DINO/dino.dvi:
+	Update.
+
+	* dino.spec, INSTALL, DINO-INSTALL: Change version.
+	
 2004-09-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* cocom.sgml.in: Add pdf.

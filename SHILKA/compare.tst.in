@@ -112,7 +112,7 @@ struct id {
   struct id *next;
 };
 
-void
+int
 main ()
 {
   const char *str; struct id id, *prev, *list, *curr;

@@ -76,12 +76,12 @@ In other case do follows:
 
   2. Specify where to find `configure' when you run it:
 
-          ../dino-0.53/configure ...
+          ../dino-0.55/configure ...
 
   3. Specify where to find the sources, as an argument `--srcdir' to
      `configure':
 
-          ../dino-0.53/configure --srcdir=../dino-0.53
+          ../dino-0.55/configure --srcdir=../dino-0.55
 
   4. It is better to use full directory path for --srcdir if you use
      EMACS compile command.

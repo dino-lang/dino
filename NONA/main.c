@@ -1,7 +1,7 @@
 /*
    FILE NAME:   main.c
 
-   Copyright (C) 1997-2002 Vladimir Makarov.
+   Copyright (C) 1997-2005 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -235,7 +235,7 @@ user_signal_action (int signal_number)
    semantic analyzer, and generator of NONA and sets up reaction on
    user's signals. */
 
-void
+int
 main (int argc, char **argv)
 {
   int i, okay;

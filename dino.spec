@@ -1,6 +1,6 @@
 Summary: Interpreter of the language DINO
 Name: dino
-Version: 0.54
+Version: 0.55
 Release: 1
 Source0: %{name}-%{version}.tar.gz
 License: GPL

@@ -76,12 +76,12 @@ In other case do follows:
 
   2. Specify where to find `configure' when you run it:
 
-          ../cocom-0.99/configure ...
+          ../cocom-0.996/configure ...
 
   3. Specify where to find the sources, as an argument `--srcdir' to
      `configure':
 
-          ../cocom-0.99/configure --srcdir=../cocom-0.99
+          ../cocom-0.996/configure --srcdir=../cocom-0.996
 
   4. It is better to use full directory path for --srcdir if you use
      EMACS compile command.
