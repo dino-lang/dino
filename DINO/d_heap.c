@@ -2130,6 +2130,8 @@ eq_key (ER_node_t entry_key, ER_node_t key)
     return FALSE;
   switch (ER_NODE_MODE (key))
     {
+    case ER_NM_nil:
+      return TRUE;
     case ER_NM_char:
       return ER_ch (key) == ER_ch (entry_key);
     case ER_NM_int:
