@@ -27055,6 +27055,81 @@ TEST484
         fi
 fi
 
+# Test 485.
+if test $result = ok -a $start_test_number -le 485; then
+	echo test 485
+        cat >$test_file <<'TEST485'
+var objs_number = 0;
+class obj () {
+  private n, destroy;
+  var n = objs_number;
+  objs_number++;
+  putln ("creating ", n);
+  private destroy;
+  func destroy () {objs_number--; putln ("destroying ", n);}
+}
+
+var i;
+for (i = 0; i < 20; i++)
+  obj ();
+gc ();
+putln (objs_number);
+TEST485
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT485' && cmp $stdout $ftemp2; then
+creating 0
+creating 1
+creating 2
+creating 3
+creating 4
+creating 5
+creating 6
+creating 7
+creating 8
+creating 9
+creating 10
+creating 11
+creating 12
+creating 13
+creating 14
+creating 15
+creating 16
+creating 17
+creating 18
+creating 19
+destroying 0
+destroying 1
+destroying 2
+destroying 3
+destroying 4
+destroying 5
+destroying 6
+destroying 7
+destroying 8
+destroying 9
+destroying 10
+destroying 11
+destroying 12
+destroying 13
+destroying 14
+destroying 15
+destroying 16
+destroying 17
+destroying 18
+destroying 19
+0
+OUTPUT485
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

@@ -5,7 +5,7 @@
 /* Don't use -flat-structure for generation SPI from this description. */
 
 %type bool_t size_t hide_t char_t int_t unsigned_int_t floating_t char_ptr_t
-      IR_hidden_node_t ER_type_t ER_node_mode_t
+      instance_state_t IR_hidden_node_t ER_type_t ER_node_mode_t
       process_status_t stack_ptr_t
 
 %import {
@@ -17,6 +17,17 @@ typedef void *hide_t;
 typedef struct IR_node *IR_hidden_node_t;
 
 typedef char *char_ptr_t;
+
+/* This enumeration declares all possible states of of heap instance
+   which contains function destroy.  Don't change it.  */
+enum instance_state
+{
+  IS_initial = 0,
+  IS_to_be_destroyed,
+  IS_destroyed
+};
+
+typedef enum instance_state instance_state_t;
 
 /* This enumeration declares all possible states of process. */
 enum process_status
@@ -316,8 +327,9 @@ extern WIN_EXPORT void set_interface (struct spi *i);
 %abstract
 heap_obj :: %root
 %other
-  /* These two members are used during garbage collection. */
+  /* These three members are used during garbage collection. */
   it_was_processed : bool_t
+  state : instance_state_t
   new_place : char_ptr_t
   unique_number : size_t
 ;

@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgml-tools-dir-1286/sgmltmp.dino1286.info.2.
+/tmp/sgmltmp.dino13668.info.2.
 
    \input texinfo
 
@@ -389,14 +389,14 @@ Appendix B- Implementation
             dino - interpreter of the programming language DINO
      
      SYNOPSIS
-            dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro­
+            dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro-
             gram-file ) dino-program-arguments
      
      DESCRIPTION
             dino interprets program on DINO programming language.  The
             program file (and include files) must have suffix .d
      
-            Description  of DINO language is in report of the Program­
+            Description  of DINO language is in report of the Program-
             ming Language DINO.
      
      OPTIONS
@@ -410,7 +410,7 @@ Appendix B- Implementation
                    Determine  the size of the heap chunks used by DINO
                    interpreter.  The size can be given in bytes  (e.g.
                    32000),  in  kilobytes  (e.g. 64k), or in megabytes
-                   (e.g. 1m).  The default size is 1  Megabyte.   Ini­
+                   (e.g. 1m).  The default size is 1  Megabyte.   Ini-
                    tially,  Dino  interpreter  creates  one chunk.  It
                    allocates additional chunk (as  rule  of  the  same
                    size) whenever there are no additional memory after
@@ -424,7 +424,7 @@ Appendix B- Implementation
      
             -Idirname
                    Define directory in which Dino include  files  will
-                   be  searched  for.  The order searching in directo­
+                   be  searched  for.  The order searching in directo-
                    ries given with this option is the same as  one  on
                    the command line.
      
@@ -439,6 +439,18 @@ Appendix B- Implementation
      
             -p     Output  profile  information  into stderr.  Profile
                    information contains number of calls and  exceution
+     
+     
+     
+     DINO                        5 May 2001                          1
+     
+     
+     
+     
+     
+     DINO(1)                    User Manuals                   DINO(1)
+     
+     
                    times of all called functions and classes.
      
      FILES
@@ -447,7 +459,7 @@ Appendix B- Implementation
             libdino.so
                    DINO shared library on some Unix systems.
             mpi.d
-                   DINO  file  implementing  multiple precision arith­
+                   DINO  file  implementing  multiple precision arith-
                    metic.
             mpi.so
                    DINO shared library used by for implementing MPI on
@@ -472,7 +484,7 @@ Appendix B- Implementation
      
             DINO_HOME
                    If non-null,  it  defines  places  of  dino  shared
-                   library (such library may be only on some Unix sys­
+                   library (such library may be only on some Unix sys-
                    tems including Linux, Solaris), include files, dino
                    standard   external   libraries.   The  places  are
                    defined as subdirectory lib in directory  given  by
@@ -493,7 +505,19 @@ Appendix B- Implementation
      
             DINO_EXTERN_LIBS
                    If non-null, it defines paths  of  dino  additional
-                   external  libraries.  The libraries should be sepa­
+     
+     
+     
+     DINO                        5 May 2001                          2
+     
+     
+     
+     
+     
+     DINO(1)                    User Manuals                   DINO(1)
+     
+     
+                   external  libraries.  The libraries should be sepa-
                    rated by `:' (on Unix) or `;'  (on  Windows).   The
                    value  has  less  priority  than values given in -L
                    options.
@@ -509,6 +533,47 @@ Appendix B- Implementation
      
      
      
-     DINO                        5 May 2001                          1
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     DINO                        5 May 2001                          3
 
 

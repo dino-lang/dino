@@ -72,7 +72,7 @@ first_expr_processing (IR_node_t expr, int current_temp_vars_number)
 	ident = expr;
 	expr = find_decl (expr, current_scope);
 	if (expr != NULL && IR_scope (expr) != NULL)
-	  process_block_decl_ident (ident);
+	  process_block_decl_unique_ident (IR_unique_ident (ident));
 	if (current_temp_vars_number
 	    > IR_temporary_vars_number (current_scope))
 	  IR_set_temporary_vars_number (current_scope,
@@ -84,7 +84,8 @@ first_expr_processing (IR_node_t expr, int current_temp_vars_number)
       SET_SOURCE_POSITION (expr);
       first_expr_processing (IR_left_operand (expr), current_temp_vars_number);
       if (IR_right_operand (expr) != NULL)
-	process_block_decl_ident (IR_right_operand (expr));
+	process_block_decl_unique_ident
+	  (IR_unique_ident (IR_right_operand (expr)));
       break;
     case IR_NM_deref:
       SET_SOURCE_POSITION (expr);
@@ -2099,6 +2100,7 @@ test_context (IR_node_t first_program_stmt_ptr)
 
   current_scope = NULL;
   VLO_CREATE (possible_table_extensions, 0);
+  process_block_decl_unique_ident (destroy_unique_ident);
   first_program_stmt_ptr = first_block_passing (first_program_stmt_ptr, 0);
   /* Check that there are no extensions in the table. */
   for (curr_ext_ptr = (IR_node_t *) VLO_BEGIN (possible_table_extensions);

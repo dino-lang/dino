@@ -4634,6 +4634,7 @@ create_instance (int_t pars_number)
   ER_set_context (instance, ER_class_context (INDEXED_VAL (ER_CTOP (),
 							   -pars_number)));
   ER_set_context_number (instance, context_number);
+  ER_set_state (instance, IS_initial);
   context_number++;
   /* Initialize object variables. */
   free = ((char *) ER_instance_vars (instance)
@@ -4779,6 +4780,7 @@ process_func_class_call (int_t pars_number)
 	      ER_set_ctop (cstack, (char *) ctop);
 #endif
 	      cstack = ER_prev_stack (cstack);
+	      ER_set_saved_cstack (cprocess, cstack);
 #ifndef NO_OPTIMIZE
 	      ctop = (ER_node_t) ER_ctop (cstack);
 #endif

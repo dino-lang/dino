@@ -36,12 +36,12 @@ new_block (void)
    block_decl_ident_number and block decls idents
    tables will contain element for IDENT (it is to be not NULL). */
 void
-process_block_decl_ident (IR_node_t ident)
+process_block_decl_unique_ident (IR_node_t unique_ident)
 {
-  if (IR_block_decl_ident_number (IR_unique_ident (ident)) < 0)
+  if (IR_block_decl_ident_number (unique_ident) < 0)
     {
       IR_set_block_decl_ident_number
-	(IR_unique_ident (ident), block_decl_idents_tables.idents_number);
+	(unique_ident, block_decl_idents_tables.idents_number);
       block_decl_idents_tables.idents_number++;
     }
 }
@@ -52,7 +52,7 @@ process_block_decl_ident (IR_node_t ident)
    regular expr:
    initiate_blocks_table
       (
-       (new_block | process_block_decl_ident)*
+       (new_block | process_block_decl_unique_ident)*
        define_block_decl*
       )* */
 void

@@ -175,7 +175,7 @@ extern IR_node_t temp_unique_string;
 extern IR_node_t temp_ident;
 extern IR_node_t temp_decl;
 extern IR_node_t temp_var_occurrence;
-
+extern IR_node_t destroy_unique_ident;
 
 #define IR_POINTER(v) ((IR_node_t)(v))
 
@@ -1115,6 +1115,7 @@ IR_node_t temp_unique_string;
 IR_node_t temp_ident;
 IR_node_t temp_decl;
 IR_node_t temp_var_occurrence;
+IR_node_t destroy_unique_ident;
 
 }
 
@@ -2099,6 +2100,7 @@ initiate_icode (void)
   temp_ident = IR_create_node (IR_NM_ident);
   temp_decl = IR_create_node (IR_NM_var);
   temp_var_occurrence = IR_create_node (IR_NM_var_occurrence);
+  destroy_unique_ident = create_unique_ident_node ("destroy");
 }
 
 

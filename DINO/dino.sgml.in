@@ -44,6 +44,8 @@ History
   Oct 27, 2001.  New predefined variable version.  Additional
                  parameter for getf and fgetf.
 
+  Oct 31, 2001.  Special method destroy.
+
 </verb></tscreen>
 
 <sect>Introduction
@@ -575,6 +577,20 @@ can be initialized by default value in way analogous to variable
 initialization.  The initialization is made only when the
 corresponding actual parameter value is <bf>nil</bf>.
 <p>
+If a class contains function with name <tt>destroy</tt>, the function
+will be called when the class object becomes a garbage during the
+garbage collection.  The function also can be called explicitly if it
+is declared as public.  You should be remember that although the
+function may have parameters and return a value, the garbage collector
+ignores the result value and does not pass actual parameters.  So the
+values of the parameters will be <bf>nil</bf> if the function is
+called by the garbage collector.  You may prevent removing the
+corresponding object in the function destroy by assigning the object
+to a variable.  It means that the function can be called several times
+(during several garbage collections) for the same object.  But you
+should also avoid creation of objects during call of function
+<tt>destroy</tt> because it may result in the heap increase.
+<p>
 Instead of inheritance usually used in object oriented languages, Dino
 supports <em>extension</em>.  This feature permits to modify
 function/class behaviour.  All inside extension bodies is inserted at
@@ -630,6 +646,16 @@ block.  Function/class declared as <em>final</em> can not be extended.
                  }
                }
            }
+</verb></tscreen>
+        The following example is a class with function <tt>destroy</tt>.
+<tscreen><verb>
+          var objs_number = 0;
+          class obj () {
+            private n, destroy;
+            var n = objs_number;
+            objs_number++;
+            func destroy () {objs_number--; objs_number--;}
+          }
 </verb></tscreen>
         The following example illustrates threads.
 <tscreen><verb>

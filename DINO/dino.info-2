@@ -1,7 +1,37 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgml-tools-dir-1286/sgmltmp.dino1286.info.2.
+/tmp/sgmltmp.dino13668.info.2.
 
    \input texinfo
+
+
+File: dino.info,  Node: Bit operators,  Next: Comparison operators,  Prev: Logical operators,  Up: Operators
+
+Bit operators
+-------------
+
+   The following operators work on integers (implicit integer conversion
+is made) and return integer result.  Operators `[verbar] [circ  ] [amp
+] [tilde ]' denotes correspondingly bit or, bit exclusive or, bit and,
+and bit negotiation of 32-bit integers.
+
+   Operators `<< >>> >>' denote correspondingly logical left bit shift,
+logical right bit shift, and arithmetic (with sign extension) right bit
+shift of given number (the first operand) on given number bits (the
+second operand).  The value of the second operand must be non-negative.
+Otherwise the result is undefined.
+               Expr = Expr "|"  Expr
+                    | Expr "^"  Expr
+                    | Expr "&"  Expr
+                    | Expr "<<"  Expr
+                    | Expr ">>"  Expr
+                    | Expr ">>>"  Expr
+                    | "~"  Expr
+
+   Examples:
+               (i >> shift) & mask
+               i & ~mask | (value << shift) & mask
+               i >>> 2
+               i << 2
 
 
 File: dino.info,  Node: Comparison operators,  Next: Arithmetic operators,  Prev: Bit operators,  Up: Operators

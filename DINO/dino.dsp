@@ -100,7 +100,7 @@ SOURCE=.\d_conv.c
 # Begin Source File
 
 SOURCE=.\d_dino.c
-# ADD CPP /I "..\ammunition" /I "..\regex" /D "NO_DINO_SHLIB"
+# ADD CPP /I "..\ammunition" /I "..\regex" /D "NO_DINO_SHLIB" /D DINO_VERSION=0.54
 # End Source File
 # Begin Source File
 
@@ -110,7 +110,7 @@ SOURCE=.\d_errors.c
 # Begin Source File
 
 SOURCE=.\d_eval.c
-# ADD CPP /I "..\ammunition" /I "..\regex" /D "NO_DINO_SHLIB"
+# ADD CPP /I "..\ammunition" /I "..\regex" /D "NO_DINO_SHLIB" /D DINO_VERSION=0.54
 # End Source File
 # Begin Source File
 
@@ -144,6 +144,11 @@ InputPath=.\d_extern.sprut
 # Begin Source File
 
 SOURCE=.\d_func.c
+# ADD CPP /I "..\ammunition" /I "..\regex" /D "NO_DINO_SHLIB"
+# End Source File
+# Begin Source File
+
+SOURCE=.\d_heap.c
 # ADD CPP /I "..\ammunition" /I "..\regex" /D "NO_DINO_SHLIB"
 # End Source File
 # Begin Source File
@@ -295,7 +300,7 @@ InputPath=.\d_yacc.y
 # Begin Source File
 
 SOURCE=..\Regex\regex.c
-# ADD CPP /D "_POSIX_SOURCE" /D "STDC_HEADERS" /D "HAVE_STRING_H" /D "REGEX_MALLOC"
+# ADD CPP /I "..\regex" /D "_POSIX_SOURCE" /D "STDC_HEADERS" /D "HAVE_STRING_H" /D "REGEX_MALLOC"
 # End Source File
 # End Target
 # End Project

@@ -11,7 +11,7 @@ struct block_decl_idents_tables
      decls stored. */
   vlo_t blocks_decls;
   /* The value of following var is modified by func
-     process_block_decl_ident.  As the result of this the value is
+     process_block_decl_unique_ident.  As the result of this the value is
      maximal number of idents used for access to decls of blocks after
      processing all stmts. */
   int idents_number;
@@ -52,6 +52,6 @@ extern struct block_decl_idents_tables block_decl_idents_tables;
 
 extern void initiate_blocks_table (void);
 extern int new_block (void);
-extern void process_block_decl_ident (IR_node_t ident);
+extern void process_block_decl_unique_ident (IR_node_t unique_ident);
 extern void define_block_decl (IR_node_t decl, IR_node_t block_ref);
 extern void finish_blocks_table (void);

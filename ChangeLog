@@ -1,3 +1,44 @@
+2001-11-01  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/Makefile.in: Add all necessary for new file d_heap.c.
+	
+	* DINO/d_ir.sprut (destroy_unique_ident): New global variable.
+	(initiate_icode): Initiate the new variable.
+	
+	* DINO/d_blocktab.h (process_block_decl_ident): Rename it onto
+	process_block_decl_unique_ident.
+
+	* DINO/d_blocktab.c (process_block_decl_ident): Rename it onto
+	process_block_decl_unique_ident.
+	
+	* DINO/d_context.c (first_expr_processing): Use
+	`process_block_decl_unique_ident' instead of
+	`process_block_decl_ident'.
+	(test_context): Add processing for ident `destroy'.
+	
+	* DINO/d_extern.sprut (instance_state_t, instance_state): New type
+	and enumeration.
+	(heap_obj): Add field `state'.
+	
+	* DINO/d_heap.c: New file -- former part of d_run.sprut.  Add code
+	for implementing destroy.  Set up field `saved_cstack' for the
+	current process whenever cstack is changed.
+	
+	* DINO/d_func.c (create_instance): Set up field `state'.
+	(process_func_class_call): Set up field `saved_cstack' for the
+	current process.
+	
+	* DINO/d_run.sprut: Move all functions into d_heap.c.
+	
+	* DINO/dino.dsp: Add d_heap.c.
+	
+	* DINO/dino.tst.in: New test for destroy.
+	
+	* DINO/dino.sgml.in:  Add description of function destroy.
+
+	* DINO/{dino-4.html, dino.html, dino-10.html, dino.dvi,
+	dino.info*, dino.ps, dino.txt}: Update.
+
 2001-10-27  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in: Add new test for version.
