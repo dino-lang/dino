@@ -66,7 +66,10 @@ fi
 
 if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
-for {set i 0} {$i < 1000000} {incr i} {}
+proc main {} {
+  for {set i 0} {$i < 1000000} {incr i} {}
+}
+main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -123,9 +126,12 @@ if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
 proc f {} {
 }
-for {set i 0} {$i < 100000} {incr i} {
-  f
+proc main {} {
+  for {set i 0} {$i < 100000} {incr i} {
+    f
+  }
 }
+main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -186,9 +192,9 @@ proc tak {x y z} {
     if {!($y < $x)} {
 	set z
     } else {
-	tak [tak [expr $x - 1] $y $z] \
-	    [tak [expr $y - 1] $z $x] \
-	    [tak [expr $z - 1] $x $y]
+	tak [tak [expr {$x - 1}] $y $z] \
+	    [tak [expr {$y - 1}] $z $x] \
+	    [tak [expr {$z - 1}] $x $y]
     }
 }
 
@@ -265,13 +271,16 @@ proc fact x {
   if {$x <= 1} {
     return 1
   }
-  return [expr $x * [fact [expr $x-1]]]
+  return [expr {$x * [fact [expr {$x-1}]]}]
 }
 
-for {set i 0} {$i < 10000} {incr i} {
-  set x [fact 12]
+proc main {} {
+  for {set i 0} {$i < 10000} {incr i} {
+    set x [fact 12]
+  }
+  return $x
 }
-puts $x
+puts [main]
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -346,13 +355,16 @@ proc fibonaci x {
   if {$x <= 1} {
     return 1
   }
-  return [expr [fibonaci [expr $x-1]] + [fibonaci [expr $x-2]]]
+  return [expr {[fibonaci [expr {$x-1}]] + [fibonaci [expr {$x-2}]]}]
 }
 
-for {set i 0} {$i < 25} {incr i} {
-  set x [fibonaci $i]
-  puts "$i $x"
+proc main {} {
+  for {set i 0} {$i < 25} {incr i} {
+    set x [fibonaci $i]
+    puts "$i $x"
+  }
 }
+main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -437,26 +449,29 @@ fi
 if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
 
-set SieveSize 8190
+proc main {} {
+  set SieveSize 8190
 
-for {set iter 0} {$iter < 10} {incr iter} {
-  set count 0
-  for {set i 0} {$i <= $SieveSize} {incr i} {
-    set flags($i) 1
-  }
-  for {set i 0} {$i <= $SieveSize} {incr i} {
-    if {$flags($i)} {
-      set prime [expr $i + $i + 3]
-      set k [expr $i + $prime]
-      while {$k <= $SieveSize} {
-         set flags($k) 0
-         set k [expr $k + $prime]
+  for {set iter 0} {$iter < 10} {incr iter} {
+    set count 0
+    for {set i 0} {$i <= $SieveSize} {incr i} {
+      set flags($i) 1
+    }
+    for {set i 0} {$i <= $SieveSize} {incr i} {
+      if {$flags($i)} {
+        set prime [expr {$i + $i + 3}]
+        set k [expr {$i + $prime}]
+        while {$k <= $SieveSize} {
+           set flags($k) 0
+           set k [expr {$k + $prime}]
+        }
+        incr count
       }
-      incr count
     }
   }
+  return $count
 }
-puts $count
+puts [main]
 
 exit 0
 EOF
@@ -584,26 +599,29 @@ fi
 if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
 
-set SieveSize 8190
+proc main {} {
+  set SieveSize 8190
 
-for {set iter 0} {$iter < 10} {incr iter} {
-  set count 0
-  for {set i 0} {$i <= $SieveSize} {incr i} {
-    set flags($i) 1
-  }
-  for {set i 0} {$i <= $SieveSize} {incr i} {
-    if {$flags($i)} {
-      set prime [expr $i + $i + 3]
-      set k [expr $i + $prime]
-      while {$k <= $SieveSize} {
-         set flags($k) 0
-         set k [expr $k + $prime]
+  for {set iter 0} {$iter < 10} {incr iter} {
+    set count 0
+    for {set i 0} {$i <= $SieveSize} {incr i} {
+      set flags($i) 1
+    }
+    for {set i 0} {$i <= $SieveSize} {incr i} {
+      if {$flags($i)} {
+        set prime [expr {$i + $i + 3}]
+        set k [expr {$i + $prime}]
+        while {$k <= $SieveSize} {
+           set flags($k) 0
+           set k [expr {$k + $prime}]
+        }
+        incr count
       }
-      incr count
     }
   }
+  return $count
 }
-puts $count
+puts [main]
 
 exit 0
 EOF
@@ -757,7 +775,7 @@ proc mmult {l} {
     for {set j 0} {$j < $l} {incr j} {
       set el 0
       for {set k 0} {$k < $l} {incr k} {
-        set el [expr $el + $m1($i,$k) * $m2($k,$j)]
+        set el [expr {$el + $m1($i,$k) * $m2($k,$j)}]
       }
       set result($i,$j) $el
     }
@@ -765,13 +783,17 @@ proc mmult {l} {
   return
 }
 
-for {set i 0} {$i < 100} {incr i} {
-  for {set j 0} {$j < 100} {incr j} {
-    set m1($i,$j) 1
-    set m2($i,$j) 1
+proc initm {} {
+  global m1 m2
+  for {set i 0} {$i < 100} {incr i} {
+    for {set j 0} {$j < 100} {incr j} {
+      set m1($i,$j) 1
+      set m2($i,$j) 1
+    }
   }
 }
 
+initm
 mmult 100
 EOF
   echo TCL:
@@ -897,7 +919,7 @@ proc mmult {l} {
     for {set j 0} {$j < $l} {incr j} {
       set el 0
       for {set k 0} {$k < $l} {incr k} {
-        set el [expr $el + $m1($i,$k) * $m2($k,$j)]
+        set el [expr {$el + $m1($i,$k) * $m2($k,$j)}]
       }
       set result($i,$j) $el
     }
@@ -905,13 +927,17 @@ proc mmult {l} {
   return
 }
 
-for {set i 0} {$i < 100} {incr i} {
-  for {set j 0} {$j < 100} {incr j} {
-    set m1($i,$j) 1
-    set m2($i,$j) 1
+proc initm {} {
+  global m1 m2
+  for {set i 0} {$i < 100} {incr i} {
+    for {set j 0} {$j < 100} {incr j} {
+      set m1($i,$j) 1
+      set m2($i,$j) 1
+    }
   }
 }
 
+initm
 mmult 100
 EOF
   echo TCL:

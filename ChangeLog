@@ -1,6 +1,12 @@
+2001-06-05  Dave Bodenstab  <imdave@mcs.net>
+
+	* DINO/compare.tst: Permit to use compiled code for TCL tests.
+
 2001-05-31  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* Makefile.in (distdino): Fix different build directory problem.
+
+	* yacc.exe: New file.
 
 2001-05-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
