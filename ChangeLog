@@ -1,5 +1,17 @@
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* OKA/gen.c (unit_on_all_alternatives,
+	form_the_same_automaton_unit_lists_from_expression): Process
+	nothing.
+
+	* DINO/compare.tst (test 4): Remove wait.
+
+	* DINO/dino.tst.in (78, 79, 81): Process ia64 output.
+
+	* DINO/socket.d (stream_server): Remove debuging output.
+	
+2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* OKA/oka.sgml.in: Add comments about checking automata of units
 	in exclusion and on reservation alternatives.
 

@@ -1578,7 +1578,12 @@ unit_on_all_alternatives
 	      || flag);
       return flag;
     }
-  else 
+  else if (IR_IS_OF_TYPE (expression, IR_NM_nothing))
+    {
+      *next_cycle = curr_cycle + 1;
+      return FALSE;
+    }
+  else
     {
       assert (IR_IS_OF_TYPE (expression, IR_NM_expression_atom)
 	      && IR_IS_OF_TYPE (IR_single_declaration (expression),
@@ -1625,6 +1630,8 @@ form_the_same_automaton_unit_lists_from_expression (IR_node_t expression,
 	 form_the_same_automaton_unit_lists_from_expression
 	 (expression, IR_left_operand (sub_expression), cycle));
     }
+  else if (IR_IS_OF_TYPE (sub_expression, IR_NM_nothing))
+    return cycle + 1;
   else 
     {
       int temp;

@@ -727,20 +727,17 @@ proc runClient {n addr port} {
 set n [lindex $argv 0]
 
 if {[llength $argv] < 2} {
-    socket -server newClient -myaddr localhost 10002
+    socket -server newClient -myaddr localhost 10004
     # exec tclsh [info script] $n client &
     vwait forever
 } else {
-    runClient $n localhost 10002
+    runClient $n localhost 10004
 }
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  time sh <<EOF | fgrep user
-$TCLSH $ftest 50000&
-$TCLSH $ftest 50000 client 2>&1
-wait
-EOF
+  $TCLSH $ftest 50000&
+  time $TCLSH $ftest 50000 client 2>&1|fgrep user
 fi
 
 #
@@ -770,13 +767,12 @@ if (#argv < 2) {
   }
 }
 EOF
+
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-  time sh <<EOF | fgrep user
-$DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest 50000&
-$DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest 50000 client 2>&1
-wait
-EOF
+
+  $DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest 50000&
+  time $DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest 50000 client 2>&1|fgrep user
 
 fi
 

@@ -198,7 +198,6 @@ final class __socket_package () {
       var v = _accept (sfd);
       if (v == nil)
         generate_socket_exception ();
-      println ("+++", v);
       proxy_sfd = v [0];      
       return stream_client (v [1], v [2]);
     }

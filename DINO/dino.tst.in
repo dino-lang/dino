@@ -13101,6 +13101,9 @@ OUTPUT78
 	    elif uname -a|fgrep Linux|fgrep ppc && $CMP - $stderr <<'OUTPUT78a'; then
 OUTPUT78a
 		    result=ok
+	    elif uname -a|fgrep Linux|fgrep ia64 && $CMP - $stderr <<'OUTPUT78b'; then
+OUTPUT78b
+		    result=ok
 	    else
 		    result=fail
 	    fi
@@ -13144,6 +13147,13 @@ OUTPUT79
 		    elif uname -a|fgrep Linux|fgrep ppc; then
 			if cat >$ftemp2 <<'OUTPUT79a' && $CMP $stdout $ftemp2; then
 OUTPUT79a
+			    result=ok
+			else
+			    result=fail
+			fi
+		    elif uname -a|fgrep Linux|fgrep ia64; then
+			if cat >$ftemp2 <<'OUTPUT79b' && $CMP $stdout $ftemp2; then
+OUTPUT79b
 			    result=ok
 			else
 			    result=fail
@@ -13222,6 +13232,13 @@ OUTPUT81
 		    elif uname -a|fgrep Linux|fgrep ppc; then
 			if cat >$ftemp2 <<'OUTPUT81a' && $CMP $stdout $ftemp2; then
 OUTPUT81a
+			    result=ok
+			else
+			    result=fail
+			fi
+		    elif uname -a|fgrep Linux|fgrep ia64; then
+			if cat >$ftemp2 <<'OUTPUT81b' && $CMP $stdout $ftemp2; then
+OUTPUT81b
 			    result=ok
 			else
 			    result=fail
