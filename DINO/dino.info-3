@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino30209.info.2.
+/tmp/sgmltmp.dino4707.info.2.
 
    \input texinfo
 
@@ -717,8 +717,8 @@ and so on) and `eof' besides standard `partype', `parnumber'.
      stream and returns it.  The functions generates exception `eof' if
      the function tries to read the end of file.
 
-   * `getln'.  The function reads one line from standard input stream
-     and returns it as new string.  The end of line is character
+   * `getln ()'.  The function reads one line from standard input
+     stream and returns it as new string.  The end of line is character
      newline or end of file.  The returned string does not contain the
      newline character.  The function generates exception `eof' only
      when the file position indicator before the function call stands

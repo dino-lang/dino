@@ -9,7 +9,7 @@
 %DVIPSCommandLine: dvips -o /home/vmakarov/utils/cvs/cocom/DINO/dino.ps
 %+ /home/vmakarov/utils/cvs/cocom/DINO/dino.dvi
 %DVIPSParameters: dpi=600, compressed
-%DVIPSSource:  TeX output 2001.05.30:1110
+%DVIPSSource:  TeX output 2001.06.19:1209
 %%BeginProcSet: texc.pro
 %!
 /TeXDict 300 dict def TeXDict begin/N{def}def/B{bind def}N/S{exch}N/X{S
@@ -1972,7 +1972,7 @@ y(of)23 b(the)h(blo)r(c)n(k)f(in)g(whic)n(h)h(the)g(iden)n(ti\034er)f
 (instance)g(of)g(the)h(curren)n(t)f(blo)r(c)n(k)g(instance.)37
 b(And)28 b(so)f(on.)125 2308 y Fd(\017)41 b Fj(Declaration)26
 b(instance)h(for)g(iden)n(ti\034er)h(in)f(the)h(follo)n(wing)f
-(construction)704 2478 y Fe(designator.identifier)208
+(construction)665 2478 y Fe(designator.identifier)208
 2658 y Fj(is)21 b(searc)n(hed)f(in)i(blo)r(c)n(k)g(instance)f(\(e.g.)35
 b(in)22 b(a)f(class)g(ob)5 b(ject\))21 b(whose)g(v)-5
 b(alue)22 b(is)g(in)g(the)g(designator.)33 b(If)22 b(the)g(designator)e
@@ -1987,14 +1987,14 @@ b Fi(accessop)c Fj(o)r(ccurs)i(if)i(the)g(declaration)d(is)j(not)f
 (friend)g(of)g(the)208 3113 y(declaration)e(scop)r(e.)125
 3293 y Fd(\017)41 b Fj(Declaration)26 b(instance)h(for)g(iden)n
 (ti\034er)h(whose)e(name)i(is)f(expression)f(v)-5 b(alue)28
-b(in)g(the)f(follo)n(wing)g(construction)704 3463 y Fe(*\(expression\))
+b(in)g(the)f(follo)n(wing)g(construction)665 3463 y Fe(*\(expression\))
 208 3643 y Fj(is)e(searc)n(hed)g(in)h(the)g(same)f(w)n(a)n(y)g(as)g(a)g
 (separate)g(iden)n(ti\034er.)36 b(Exception)26 b Fi(accessop)c
 Fj(o)r(ccurs)j(if)i(there)e(is)h(no)f(instance)208 3757
 y(of)i(declaration)f(with)i(suc)n(h)f(iden)n(ti\034er)h(in)g(co)n(v)n
 (ering)d(blo)r(c)n(k)i(instances.)125 3937 y Fd(\017)41
 b Fj(Declaration)26 b(for)h(iden)n(ti\034er)g(in)h(the)g(follo)n(wing)f
-(construction)704 4107 y Fe(\(expression\)->identifier)208
+(construction)665 4107 y Fe(\(expression\)->identifier)208
 4287 y Fj(is)33 b(searc)n(hed)f(in)h(analogous)e(w)n(a)n(y)i(as)f(in)i
 (construction)f Fi(designator.iden)o(ti)o(fie)o(r)27
 b Fj(in)34 b(blo)r(c)n(k)f(instance)g(whic)n(h)g(is)208
@@ -3171,12 +3171,13 @@ b(con)n(tains)h(the)h(ob)5 b(ject)27 b(represen)n(ting)f(the)i
 3926 y(Catch)g(=)f(catch)80 b("\(")40 b(ExceptClassList)i("\)")e(Block)
 600 4135 y(ExceptClassList)i(=)e(Expr)g({)f(",")h(Expr)g(})0
 4356 y Fj(Examples:)600 4567 y Fe(try)g({)678 4671 y(var)g(ln;)678
-4776 y(for)g(\(;;\))757 4880 y(ln)f(=)h(getln;)600 4984
-y(})f(catch)h(\(invcalls.eof\))j({)600 5088 y(})600 5192
-y(try)d({)678 5296 y(var)g(v)f(=)h([];)678 5400 y(v)g({1})f(=)h(0;)600
-5504 y(})f(catch)h(\(except\))h({)678 5608 y(put)f(\("catching)h(and)f
-(propagating)i(up)e(exception"\);)h(println)g(\(class)g(\(e\)\);)678
-5713 y(throw)f(e;)600 5817 y(})p eop
+4776 y(for)g(\(;;\))757 4880 y(ln)f(=)h(getln)g(\(\);)600
+4984 y(})f(catch)h(\(invcalls.eof\))j({)600 5088 y(})600
+5192 y(try)d({)678 5296 y(var)g(v)f(=)h([];)678 5400
+y(v)g({1})f(=)h(0;)600 5504 y(})f(catch)h(\(except\))h({)678
+5608 y(put)f(\("catching)h(and)f(propagating)i(up)e(exception"\);)h
+(println)g(\(class)g(\(e\)\);)678 5713 y(throw)f(e;)600
+5817 y(})p eop
 %%Page: 27 27
 27 26 bop 0 -167 3900 5 v 0 -200 a Ff(7.)73 b(Program)3303
 b Fj(27)0 162 y Fa(6.12)112 b(W)-9 b(ait-statemen)m(t)0
@@ -4628,19 +4629,20 @@ Fj(.)h(The)30 b(function)g(reads)f(one)h(c)n(haracter)d(from)j
 (standard)f(input)i(stream)e(and)g(returns)h(it.)44 b(The)30
 b(functions)208 3715 y(generates)c(exception)h Fi(eof)f
 Fj(if)i(the)g(function)g(tries)f(to)h(read)f(the)g(end)h(of)g(\034le.)
-125 3895 y Fd(\017)41 b Fi(getln)p Fj(.)34 b(The)27 b(function)g(reads)
-e(one)h(line)h(from)f(standard)g(input)h(stream)f(and)g(returns)g(it)h
-(as)f(new)g(string.)36 b(The)27 b(end)208 4009 y(of)g(line)h(is)g(c)n
-(haracter)e(newline)i(or)f(end)h(of)g(\034le.)37 b(The)28
-b(returned)g(string)f(do)r(es)g(not)h(con)n(tain)f(the)h(newline)g(c)n
-(haracter.)208 4122 y(The)36 b(function)g(generates)e(exception)i
-Fi(eof)f Fj(only)g(when)i(the)f(\034le)g(p)r(osition)g(indicator)f(b)r
-(efore)h(the)g(function)g(call)208 4236 y(stands)27 b(exactly)g(on)g
-(the)h(end)g(of)f(\034le.)125 4416 y Fd(\017)41 b Fi(fget)g
-(\(fileinstance\))p Fj(.)30 b(The)23 b(function)g(is)g(analogous)d(to)j
-(function)h Fi(get)d Fj(except)i(for)f(that)i(it)f(reads)f(from)g(op)r
-(ened)208 4529 y(\034le)27 b(asso)r(ciated)f(with)j(class)d
-Fi(file)g Fj(instance)h(whic)n(h)h(is)f(the)h(parameter)e(v)-5
+125 3895 y Fd(\017)41 b Fi(getln)g(\(\))p Fj(.)70 b(The)38
+b(function)i(reads)d(one)i(line)g(from)f(standard)g(input)h(stream)f
+(and)h(returns)f(it)h(as)f(new)h(string.)208 4009 y(The)30
+b(end)h(of)g(line)g(is)f(c)n(haracter)f(newline)i(or)f(end)h(of)f
+(\034le.)47 b(The)31 b(returned)f(string)g(do)r(es)g(not)h(con)n(tain)f
+(the)h(newline)208 4122 y(c)n(haracter.)74 b(The)41 b(function)h
+(generates)d(exception)i Fi(eof)e Fj(only)i(when)g(the)g(\034le)g(p)r
+(osition)g(indicator)f(b)r(efore)h(the)208 4236 y(function)28
+b(call)f(stands)g(exactly)g(on)g(the)h(end)g(of)f(\034le.)125
+4416 y Fd(\017)41 b Fi(fget)g(\(fileinstance\))p Fj(.)30
+b(The)23 b(function)g(is)g(analogous)d(to)j(function)h
+Fi(get)d Fj(except)i(for)f(that)i(it)f(reads)f(from)g(op)r(ened)208
+4529 y(\034le)27 b(asso)r(ciated)f(with)j(class)d Fi(file)g
+Fj(instance)h(whic)n(h)h(is)f(the)h(parameter)e(v)-5
 b(alue.)125 4709 y Fd(\017)41 b Fi(fgetln)g(\(fileinstance\))p
 Fj(.)f(The)31 b(function)g(is)f(analogous)f(to)h(function)h
 Fi(getln)e Fj(except)i(for)f(that)h(it)g(reads)e(from)208

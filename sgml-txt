@@ -5,8 +5,10 @@ then
 	exit 1
 fi
 awk "{if (match (\$0, /<enum>/)) {enum_nest++;curr[enum_nest]=0;} \
+      else if (match (\$0, /<itemize>/)) {enum_nest++;curr[enum_nest]=-1;} \
       else if (match (\$0, /<\/enum>/)) {enum_nest--;} \
-      else if (enum_nest != 0 && match (\$0, /<item>/)) {\
+      else if (match (\$0, /<\/itemize>/)) {enum_nest--;} \
+      else if (enum_nest != 0 && curr[enum_nest] >= 0 && match (\$0, /<item>/)) {\
         curr[enum_nest]++;sub (/<item>/, curr[enum_nest] \". \");\
       } else {\
         gsub (/<item>/,\"o \");\

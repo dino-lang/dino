@@ -311,45 +311,45 @@ Association of identifier and the declaration instance are performed
 by the following rules:
      <itemize>
      <item>The corresponding declaration instance are searched for
-        separate identifier occurrence in the instance of the block in
-        which the identifier occurs.  If the previous failed, the
-        declaration is searched in covering block instance of the
-        current block instance.  And so on.
+       separate identifier occurrence in the instance of the block in
+       which the identifier occurs.  If the previous failed, the
+       declaration is searched in covering block instance of the
+       current block instance.  And so on.
      <item>Declaration instance for identifier in the following
-        construction
+       construction
 <tscreen><verb>
-        designator.identifier
+       designator.identifier
 </verb></tscreen>
-        is searched in block instance (e.g. in a class object) whose
-        value is in the designator.  If the designator is a class
-        object, its context is a class object, and the search failed,
-        the search is continued in the covering class object etc.
-        Exception <tt>accessop</tt> occurs if the declaration is not
-        found with such identifier, or the declaration is private and
-        the construction is not in the declaration scope and not
-        inside friend of the declaration scope.
+       is searched in block instance (e.g. in a class object) whose
+       value is in the designator.  If the designator is a class
+       object, its context is a class object, and the search failed,
+       the search is continued in the covering class object etc.
+       Exception <tt>accessop</tt> occurs if the declaration is not
+       found with such identifier, or the declaration is private and
+       the construction is not in the declaration scope and not
+       inside friend of the declaration scope.
      <item>Declaration instance for identifier whose name is
-        expression value in the following construction
+       expression value in the following construction
 <tscreen><verb>
-        *(expression)
+       *(expression)
 </verb></tscreen>
-        is searched in the same way as a separate identifier.
-        Exception <tt>accessop</tt> occurs if there is no instance of
-        declaration with such identifier in covering block instances.
+       is searched in the same way as a separate identifier.
+       Exception <tt>accessop</tt> occurs if there is no instance of
+       declaration with such identifier in covering block instances.
      <item>Declaration for identifier in the following construction
 <tscreen><verb>
-        (expression)->identifier
+       (expression)->identifier
 </verb></tscreen>
-        is searched in analogous way as in construction
-        <tt>designator.identifier</tt> in block instance which is
-        value of the variable whose name is given by the expression.
-        The variable is searched in the same way as in construction
-        <tt>*(expression)</tt>.  Exception <tt>accessop</tt> occurs if
-        there is no variable instance with given name in covering
-        block instances, there is no instance of the declaration with
-        such identifier in given context (the variable value), or the
-        declaration is private and the construction is not in the
-        declaration scope.
+       is searched in analogous way as in construction
+       <tt>designator.identifier</tt> in block instance which is
+       value of the variable whose name is given by the expression.
+       The variable is searched in the same way as in construction
+       <tt>*(expression)</tt>.  Exception <tt>accessop</tt> occurs if
+       there is no variable instance with given name in covering
+       block instances, there is no instance of the declaration with
+       such identifier in given context (the variable value), or the
+       declaration is private and the construction is not in the
+       declaration scope.
      </itemize>
 The following identifiers are predeclared on the top level (in implicit
 block covering all program).  They are described in more detail in the
@@ -724,53 +724,53 @@ corresponding element values are the same.
 Dino has the following types of values:
           <itemize>
           <item>special value <em>nil</em>.  This is default value of
-             variables when the corresponding block starts.  The value
-             is represented by keyword <bf>nil</bf>.
+            variables when the corresponding block starts.  The value
+            is represented by keyword <bf>nil</bf>.
 <tscreen><verb>
                  Expr = nil
 </verb></tscreen>
           <item><em>character</em> which represents ASCII characters.
-             The representation see <tt>Character</tt> in section
-             <em>Vocabulary and Representation</em>.
+            The representation see <tt>Character</tt> in section
+            <em>Vocabulary and Representation</em>.
 <tscreen><verb>
                  Expr = CHARACTER
 </verb></tscreen>
           <item><em>integer</em>.  Its representation see
-             <tt>Integer</tt> in section <em>Vocabulary and
-             Representation</em>.  It is always stored as 32-bit
-             integer value.
+            <tt>Integer</tt> in section <em>Vocabulary and
+            Representation</em>.  It is always stored as 32-bit
+            integer value.
 <tscreen><verb>
                  Expr = INTEGER
 </verb></tscreen>
           <item><em>floating point number</em>.  Its representation
-             see <tt>FloatingPointNumber</tt> in section
-             <em>Vocabulary and Representation</em>.  It is always
-             stored as IEEE double (64-bit) floating point value.
+            see <tt>FloatingPointNumber</tt> in section
+            <em>Vocabulary and Representation</em>.  It is always
+            stored as IEEE double (64-bit) floating point value.
 <tscreen><verb>
                  Expr = FLOATINGPOINTNUMBER
 </verb></tscreen>
           <item><em>vector</em>.  This is a structured shared type
-             value.  Vector value is represented by list of values (or
-             expressions) in brackets with optional repetitions of the
-             vector elements followed by <tt>:</tt>.  The repetition
-             value is conversed into integer value by default.  If the
-             repetition value after this is not of integer, exception
-             <tt>optype</tt> is generated. If the repetition value is
-             negative or zero, the element value will be absent in the
-             vector.  Elements of vector are accessed by their
-             indexes.  Indexes always starts with 0.  Vectors in Dino
-             are heterogenous, i.e. elements of a vector may be of
-             different types.  String represents immutable vector
-             whose all elements are characters in the string.
-             Elements of mutable vectors can be added to or removed
-             from the vector (see predefined functions <em>ins, insv,
-             del</em>).
+            value.  Vector value is represented by list of values (or
+            expressions) in brackets with optional repetitions of the
+            vector elements followed by <tt>:</tt>.  The repetition
+            value is conversed into integer value by default.  If the
+            repetition value after this is not of integer, exception
+            <tt>optype</tt> is generated. If the repetition value is
+            negative or zero, the element value will be absent in the
+            vector.  Elements of vector are accessed by their
+            indexes.  Indexes always starts with 0.  Vectors in Dino
+            are heterogenous, i.e. elements of a vector may be of
+            different types.  String represents immutable vector
+            whose all elements are characters in the string.
+            Elements of mutable vectors can be added to or removed
+            from the vector (see predefined functions <em>ins, insv,
+            del</em>).
 <tscreen><verb>
                  Expr = "["  ElistPartsList "]"
                       | STRING
                  ElistPartsList = [ Expr [":" Expr ] {"," Expr [":" Expr ] } ]
 </verb></tscreen>
-             Examples:
+            Examples:
 <tscreen><verb>
                "aaab"
                ['a', 'a', 'a', 'b']
@@ -781,22 +781,22 @@ Dino has the following types of values:
                []
 </verb></tscreen>
           <item><em>table</em>.  This is a structured shared type
-             value.  Table value is represented by list of key values
-             (expression values) in figure parentheses <tt>{</tt> and
-             <tt>}</tt> with optional element values with preceding
-             <tt>:</tt>.  By default element value is equal to
-             <bf>nil</bf>.  It is not possible to have elements with
-             equal keys in a table.  If it is not true in a table
-             constructor, exception <tt>keyvalue</tt> is generated.
-             Elements of tables are accessed by their keys.  Elements
-             of mutable tables can be added to or removed from the
-             table correspondingly by assigning value and with the
-             aid function <em>del</em>.  The side effect of table
-             constructor execution is that the keys become immutable.
+            value.  Table value is represented by list of key values
+            (expression values) in figure parentheses <tt>{</tt> and
+            <tt>}</tt> with optional element values with preceding
+            <tt>:</tt>.  By default element value is equal to
+            <bf>nil</bf>.  It is not possible to have elements with
+            equal keys in a table.  If it is not true in a table
+            constructor, exception <tt>keyvalue</tt> is generated.
+            Elements of tables are accessed by their keys.  Elements
+            of mutable tables can be added to or removed from the
+            table correspondingly by assigning value and with the
+            aid function <em>del</em>.  The side effect of table
+            constructor execution is that the keys become immutable.
 <tscreen><verb>
                  Expr = "{"  ElistPartsList "}"
 </verb></tscreen>
-             Examples:
+            Examples:
 <tscreen><verb>
                {'a', 'b', 10:[10]}
                {'a' : nil, 'b' : nil, 10 : [10]}
@@ -804,31 +804,31 @@ Dino has the following types of values:
                {}
 </verb></tscreen>
           <item><em>function</em>.  Its value is represented by
-             function designator.  It is important to remember
-             that the function is bound to a context.
+            function designator.  It is important to remember
+            that the function is bound to a context.
           <item><em>thread-function</em>.  Its value is represented by
-             thread-function designator.  It is important to remember
-             that the thread-function is bound to a context.
+            thread-function designator.  It is important to remember
+            that the thread-function is bound to a context.
           <item><em>class</em>.  Its value is represented by
-             class designator.  It is important to remember
-             that the class is bound to a context.
+            class designator.  It is important to remember
+            that the class is bound to a context.
           <item><em>block instance</em>.  There is no Dino
-             representation of such values.
+            representation of such values.
           <item><em>thread</em>.  There is no Dino representation of
-             such values.  Thread value is generated by calling
-             a thread-function.
+            such values.  Thread value is generated by calling
+            a thread-function.
           <item><em>object</em>(class instance).  This is a structured
-             shared type value.  There is no Dino representation of
-             such values.  Objects are generated by calling classes.
+            shared type value.  There is no Dino representation of
+            such values.  Objects are generated by calling classes.
           <item><em>hide value</em>.  Hide value can not be generated
-             in Dino code.  They are generated by external functions.
+            in Dino code.  They are generated by external functions.
           <item><em>hide block</em>.  This value is analogous to hide
-             value.  The differences are in that the size of a hide
-             value is constrained by C program pointer.  The size of
-             hideblock value has no such constraint.  Also hideblock
-             is of shared type.
+            value.  The differences are in that the size of a hide
+            value is constrained by C program pointer.  The size of
+            hideblock value has no such constraint.  Also hideblock
+            is of shared type.
           <item><em>type</em>.  The value of such types are returned
-             by special operator <tt>type (expression)</tt>.
+            by special operator <tt>type (expression)</tt>.
 <tscreen><verb>
                  Expr = char
                       | int
@@ -845,40 +845,40 @@ Dino has the following types of values:
                       | class "(" ")"
                       | type
 </verb></tscreen>
-             There are the following type values:
-             <itemize>
-             <item>type of <bf>nil</bf>.  There is no value
-                representing type of <bf>nil</bf>.  So use operator
-                <tt>type (nil)</tt> to get it.
-             <item>type of characters.  The value is represented by
-                Dino keyword <tt>char</tt>.
-             <item>type of integers.  The value is represented by Dino
-                keyword <tt>int</tt>.
-             <item>type of floating point numbers.  The value is
-                represented by Dino keyword <tt>float</tt>.
-             <item>type of vectors.  The value is represented by Dino
-                keyword <tt>vector</tt>.
-             <item>type of tables.  The value is represented by Dino
-                keyword <tt>table</tt>.
-             <item>type of functions.  The value is represented by
-                Dino keyword <tt>func</tt>.
-             <item>type of thread-functions.  The value is represented
-                by Dino keyword <tt>thread</tt>.
-             <item>type of classes.  The value is represented by Dino
-                keyword <tt>class</tt>.
-             <item>type of block instances.  The value is represented
-                by Dino construction <tt>func ()</tt>.
-             <item>type of threads.  The value is represented by Dino
-                construction <tt>thread ()</tt>.
-             <item>type of objects.  The value is represented by Dino
-                construction <tt>class ()</tt>.
-             <item>type of hide values.  The value is represented by
-                Dino keyword <tt>hide</tt>.
-             <item>type of hideblocks.  The value is represented by
-                Dino keyword <tt>hideblock</tt>.
-             <item>type of types.  The value is represented by Dino
-                keyword <tt>type</tt>.
-             </itemize>
+            There are the following type values:
+            <itemize>
+            <item>type of <bf>nil</bf>.  There is no value
+              representing type of <bf>nil</bf>.  So use operator
+              <tt>type (nil)</tt> to get it.
+            <item>type of characters.  The value is represented by
+              Dino keyword <tt>char</tt>.
+            <item>type of integers.  The value is represented by Dino
+              keyword <tt>int</tt>.
+            <item>type of floating point numbers.  The value is
+              represented by Dino keyword <tt>float</tt>.
+            <item>type of vectors.  The value is represented by Dino
+              keyword <tt>vector</tt>.
+            <item>type of tables.  The value is represented by Dino
+              keyword <tt>table</tt>.
+            <item>type of functions.  The value is represented by
+              Dino keyword <tt>func</tt>.
+            <item>type of thread-functions.  The value is represented
+              by Dino keyword <tt>thread</tt>.
+            <item>type of classes.  The value is represented by Dino
+              keyword <tt>class</tt>.
+            <item>type of block instances.  The value is represented
+              by Dino construction <tt>func ()</tt>.
+            <item>type of threads.  The value is represented by Dino
+              construction <tt>thread ()</tt>.
+            <item>type of objects.  The value is represented by Dino
+              construction <tt>class ()</tt>.
+            <item>type of hide values.  The value is represented by
+              Dino keyword <tt>hide</tt>.
+            <item>type of hideblocks.  The value is represented by
+              Dino keyword <tt>hideblock</tt>.
+            <item>type of types.  The value is represented by Dino
+              keyword <tt>type</tt>.
+            </itemize>
           </itemize>
 
 <sect1>Designators
@@ -1035,36 +1035,36 @@ not still of necessary types, exception <tt>optype</tt> is generated
 mentioned).  The following conversion may be made by default:
     <itemize>
     <item><em>Integer conversion</em>.  If the operand is a character,
-       its code becomes integer.  If the operand is a floating point
-       number, its fractional part is thrown away and integral part
-       becomes integer.  If the operand is a vector of characters, the
-       corresponding string is believed to be decimal representation
-       of integer and is conversed into the corresponding integer.  If
-       the corresponding string is not a correct integer
-       representation, the result is undefined.  If the corresponding
-       string represents an integer whose representation requires more
-       32 bits, exception <tt>erange</tt> may be generated.  In all
-       remaining cases the result of conversion coincide with the
-       operand.
+      its code becomes integer.  If the operand is a floating point
+      number, its fractional part is thrown away and integral part
+      becomes integer.  If the operand is a vector of characters, the
+      corresponding string is believed to be decimal representation
+      of integer and is conversed into the corresponding integer.  If
+      the corresponding string is not a correct integer
+      representation, the result is undefined.  If the corresponding
+      string represents an integer whose representation requires more
+      32 bits, exception <tt>erange</tt> may be generated.  In all
+      remaining cases the result of conversion coincide with the
+      operand.
     <item><em>Arithmetic conversion</em>.  Analogous to integer
-       conversion except for that conversion float pointing number ->
-       integer is not made and if the string represents floating point
-       number (i.e. contains exponent or fraction), the result will be
-       the corresponding floating point number instead of integer.
-       Additionally if the operand is in a non-short circuit binary
-       operator (non logical operators) and another operand is
-       floating point number after the conversion, the first operand
-       is conversed into floating point number too.  Analogously if
-       the result is an integer which can not be represented by 32-bit
-       integer or the result is an floating point number not
-       represented by IEEE double, the exception <tt>erange</tt> may
-       be generated.
+      conversion except for that conversion float pointing number ->
+      integer is not made and if the string represents floating point
+      number (i.e. contains exponent or fraction), the result will be
+      the corresponding floating point number instead of integer.
+      Additionally if the operand is in a non-short circuit binary
+      operator (non logical operators) and another operand is
+      floating point number after the conversion, the first operand
+      is conversed into floating point number too.  Analogously if
+      the result is an integer which can not be represented by 32-bit
+      integer or the result is an floating point number not
+      represented by IEEE double, the exception <tt>erange</tt> may
+      be generated.
     <item><em>String conversion</em>.  If the operand is a character,
-       the result will be a new string (immutable vector of
-       characters) with one element which is the character.  If the
-       operand is an integer or a floating point number, the result
-       will be new string of characters which is a decimal string
-       representation of the number.
+      the result will be a new string (immutable vector of
+      characters) with one element which is the character.  If the
+      operand is an integer or a floating point number, the result
+      will be new string of characters which is a decimal string
+      representation of the number.
     </itemize>
 
 <sect2>Logical operators
@@ -1583,7 +1583,7 @@ object representing the exception.
           try {
             var ln;
             for (;;)
-              ln = getln;
+              ln = getln ();
           } catch (invcalls.eof) {
           }
           try {
@@ -1925,152 +1925,152 @@ following classes are declared in the class <tt>error</tt>:
            actual parameters number is not valid when we call a
            predeclared function.
          <item><tt>syserror</tt>.  Classes inside this class describe
-             exceptions in predeclared functions which call OS system
-             functions.  Some exceptions are never generated but may
-               be generated in the future on some OSes.
-             <itemize>
-             <item><tt>eaccess</tt>.  This describes system error
-               "Permission denied".
-             <item><tt>eagain</tt>.  This describes system error
-               "Resource temporarily unavailable".
-             <item><tt>ebadf</tt>.  This describes system error
-               "Bad file descriptor".
-             <item><tt>ebusy</tt>.  This describes system error
-               "Resource busy".
-             <item><tt>echild</tt>.  This describes system error
-               "No child processes".
-             <item><tt>edeadlk</tt>.  This describes system error
-               "Resource deadlock avoided".
-             <item><tt>edom</tt>.  This describes system error
-               "Domain error".
-             <item><tt>eexist</tt>.  This describes system error
-               "File exists".
-             <item><tt>efault</tt>.  This describes system error
-               "Bad address".
-             <item><tt>efbig</tt>.  This describes system error
-               "File too large".
-             <item><tt>eintr</tt>.  This describes system error
-               "Interrupted function call".
-             <item><tt>einval</tt>.  This describes system error
-               "Invalid argument".
-             <item><tt>eio</tt>.  This describes system error
-               "Input/output error".
-             <item><tt>eisdir</tt>.  This describes system error
-               "Is a directory".
-             <item><tt>emfile</tt>.  This describes system error
-               "Too many open files".
-             <item><tt>emlink</tt>.  This describes system error
-               "Too many links".
-             <item><tt>enametoolong</tt>.  This describes system error
-               "Filename too long".
-             <item><tt>enfile</tt>.  This describes system error "Too
-               many open files in system".
-             <item><tt>enodev</tt>.  This describes system error "No
-               such device".
-             <item><tt>enoent</tt>.  This describes system error "No
-               such file or directory".
-             <item><tt>enoexec</tt>.  This describes system error
-               "Exec format error".
-             <item><tt>enolck</tt>.  This describes system error "No
-               locks available".
-             <item><tt>enomem</tt>.  This describes system error "Not
-               enough space".
-             <item><tt>enospc</tt>.  This describes system error "No
-               space left on device".
-             <item><tt>enosys</tt>.  This describes system error
-               "Function not implemented".
-             <item><tt>enotdir</tt>.  This describes system error "Not
-               a directory".
-             <item><tt>enotempty</tt>.  This describes system error
-               "Directory not empty".
-             <item><tt>enotty</tt>.  This describes system error
-               "Inappropriate I/O control operation".
-             <item><tt>enxio</tt>.  This describes system error "No
-               such device or address".
-             <item><tt>eperm</tt>.  This describes system error
-               "Operation not permitted".
-             <item><tt>epipe</tt>.  This describes system error
-               "Broken pipe".
-             <item><tt>erange</tt>.  This describes system error
-               "Result too large".
-             <item><tt>erofs</tt>.  This describes system error
-               "Read-only file system".
-             <item><tt>espipe</tt>.  This describes system error
-               "Invalid seek".
-             <item><tt>esrch</tt>.  This describes system error "No
-               such process".
-             <item><tt>exdev</tt>.  This describes system error
-               "Improper link".
-             </itemize>
+           exceptions in predeclared functions which call OS system
+           functions.  Some exceptions are never generated but may
+             be generated in the future on some OSes.
+           <itemize>
+           <item><tt>eaccess</tt>.  This describes system error
+             "Permission denied".
+           <item><tt>eagain</tt>.  This describes system error
+             "Resource temporarily unavailable".
+           <item><tt>ebadf</tt>.  This describes system error
+             "Bad file descriptor".
+           <item><tt>ebusy</tt>.  This describes system error
+             "Resource busy".
+           <item><tt>echild</tt>.  This describes system error
+             "No child processes".
+           <item><tt>edeadlk</tt>.  This describes system error
+             "Resource deadlock avoided".
+           <item><tt>edom</tt>.  This describes system error
+             "Domain error".
+           <item><tt>eexist</tt>.  This describes system error
+             "File exists".
+           <item><tt>efault</tt>.  This describes system error
+             "Bad address".
+           <item><tt>efbig</tt>.  This describes system error
+             "File too large".
+           <item><tt>eintr</tt>.  This describes system error
+             "Interrupted function call".
+           <item><tt>einval</tt>.  This describes system error
+             "Invalid argument".
+           <item><tt>eio</tt>.  This describes system error
+             "Input/output error".
+           <item><tt>eisdir</tt>.  This describes system error
+             "Is a directory".
+           <item><tt>emfile</tt>.  This describes system error
+             "Too many open files".
+           <item><tt>emlink</tt>.  This describes system error
+             "Too many links".
+           <item><tt>enametoolong</tt>.  This describes system error
+             "Filename too long".
+           <item><tt>enfile</tt>.  This describes system error "Too
+             many open files in system".
+           <item><tt>enodev</tt>.  This describes system error "No
+             such device".
+           <item><tt>enoent</tt>.  This describes system error "No
+             such file or directory".
+           <item><tt>enoexec</tt>.  This describes system error
+             "Exec format error".
+           <item><tt>enolck</tt>.  This describes system error "No
+             locks available".
+           <item><tt>enomem</tt>.  This describes system error "Not
+             enough space".
+           <item><tt>enospc</tt>.  This describes system error "No
+             space left on device".
+           <item><tt>enosys</tt>.  This describes system error
+             "Function not implemented".
+           <item><tt>enotdir</tt>.  This describes system error "Not
+             a directory".
+           <item><tt>enotempty</tt>.  This describes system error
+             "Directory not empty".
+           <item><tt>enotty</tt>.  This describes system error
+             "Inappropriate I/O control operation".
+           <item><tt>enxio</tt>.  This describes system error "No
+             such device or address".
+           <item><tt>eperm</tt>.  This describes system error
+             "Operation not permitted".
+           <item><tt>epipe</tt>.  This describes system error
+             "Broken pipe".
+           <item><tt>erange</tt>.  This describes system error
+             "Result too large".
+           <item><tt>erofs</tt>.  This describes system error
+             "Read-only file system".
+           <item><tt>espipe</tt>.  This describes system error
+             "Invalid seek".
+           <item><tt>esrch</tt>.  This describes system error "No
+             such process".
+           <item><tt>exdev</tt>.  This describes system error
+             "Improper link".
+           </itemize>
          <item><tt>systemcall</tt>.  Classes inside this class
-             describe exceptions in calling predeclared function
+           describe exceptions in calling predeclared function
+           <tt>system</tt>.
+           <itemize>
+           <item><tt>noshell</tt>.  This class describes exception
+             that the function <tt>system</tt> can not find OS
+             command interpriter (shell).
+           <item><tt>systemfail</tt>.  This class describes all
+             remaining exceptions in calling OS function
              <tt>system</tt>.
-             <itemize>
-             <item><tt>noshell</tt>.  This class describes exception
-               that the function <tt>system</tt> can not find OS
-               command interpriter (shell).
-             <item><tt>systemfail</tt>.  This class describes all
-               remaining exceptions in calling OS function
-               <tt>system</tt>.
-             </itemize>
+           </itemize>
          <item><tt>invparser</tt>.  Classes inside this class describe
-             exceptions specific for calling functions of predeclared
-             class <tt>parser</tt> implementing earley parser.
-             <itemize>
-             <item><tt>invgrammar</tt>.  This class describes
-               exception that earley parser got a bad grammar,
-               e.g. without rules, with loops in rules, with
-               nonterminals unachievable from axiom, with nonterminals
-               not deriving any terminal string etc.
-             <item><tt>invtoken</tt>.  This class describes exception
-               that parser got input token with unknown (undeclared)
-               code.
-             <item><tt>pmemory</tt>.  This class describes exception
-               that there is no enough memory for internal parser
-               data.
-             </itemize>
+           exceptions specific for calling functions of predeclared
+           class <tt>parser</tt> implementing earley parser.
+           <itemize>
+           <item><tt>invgrammar</tt>.  This class describes
+             exception that earley parser got a bad grammar,
+             e.g. without rules, with loops in rules, with
+             nonterminals unachievable from axiom, with nonterminals
+             not deriving any terminal string etc.
+           <item><tt>invtoken</tt>.  This class describes exception
+             that parser got input token with unknown (undeclared)
+             code.
+           <item><tt>pmemory</tt>.  This class describes exception
+             that there is no enough memory for internal parser
+             data.
+           </itemize>
          <item><tt>invregexp</tt>.  Classes inside this class describe
-             exceptions specific for calling predeclared functions
-             implementing regular expression pattern matching.
-             <itemize>
-             <item><tt>ebrack</tt>.  This class describes exception
-               that regular expression has unmatched bracket.
-             <item><tt>erange</tt>.  This class describes exception
-               that there is invalid use of range in regular
-               expression.
-             <item><tt>ectype</tt>.  This class describes exception
-               that there is unknown character class name in regular
-               expression.
-             <item><tt>eparen</tt>.  This class describes exception
-               that regular expression has unmatched parenthesis.
-             <item><tt>esubreg</tt>.  This class describes exception
-               that there is invalid back reference to a subexpression
-               in regular expression.
-             <item><tt>eend</tt>.  This class describes exception that
-               there is non specific error in regular expression.
-             <item><tt>eescape</tt>.  This class describes exception
-               that there is a trailing backslash.
-             <item><tt>badpat</tt>.  This class describes exception
-               that there is invalid use of pattern operators in
-               regular expression.
-             <item><tt>esize</tt>.  This class describes exception
-               that compiled regular expression is too big.
-             <item><tt>espace</tt>.  This class describes exception
-               that there is no memory for regular expression function
-               work.
-             </itemize>
+           exceptions specific for calling predeclared functions
+           implementing regular expression pattern matching.
+           <itemize>
+           <item><tt>ebrack</tt>.  This class describes exception
+             that regular expression has unmatched bracket.
+           <item><tt>erange</tt>.  This class describes exception
+             that there is invalid use of range in regular
+             expression.
+           <item><tt>ectype</tt>.  This class describes exception
+             that there is unknown character class name in regular
+             expression.
+           <item><tt>eparen</tt>.  This class describes exception
+             that regular expression has unmatched parenthesis.
+           <item><tt>esubreg</tt>.  This class describes exception
+             that there is invalid back reference to a subexpression
+             in regular expression.
+           <item><tt>eend</tt>.  This class describes exception that
+             there is non specific error in regular expression.
+           <item><tt>eescape</tt>.  This class describes exception
+             that there is a trailing backslash.
+           <item><tt>badpat</tt>.  This class describes exception
+             that there is invalid use of pattern operators in
+             regular expression.
+           <item><tt>esize</tt>.  This class describes exception
+             that compiled regular expression is too big.
+           <item><tt>espace</tt>.  This class describes exception
+             that there is no memory for regular expression function
+             work.
+           </itemize>
          <item><tt>invextern</tt>.  Classes inside this class describe
-             exceptions in calling external functions or in access to
-             an external variable.
-             <itemize>
-             <item><tt>noextern</tt>.  This class describes exception
-               that given external can not be find.
-             <item><tt>libclose</tt>.  This class describes exception
-               that there is an error in closing a shared library.
-             <item><tt>noexternsupp</tt>.  This class describes
-               exception in usage of externals when they are not
-               implemented under this OS.
-             </itemize>
+           exceptions in calling external functions or in access to
+           an external variable.
+           <itemize>
+           <item><tt>noextern</tt>.  This class describes exception
+             that given external can not be find.
+           <item><tt>libclose</tt>.  This class describes exception
+             that there is an error in closing a shared library.
+           <item><tt>noexternsupp</tt>.  This class describes
+             exception in usage of externals when they are not
+             implemented under this OS.
+           </itemize>
          <item><tt>invenvar</tt>.  This class describes corruption in
            value of variables <tt>split_regex</tt> and
            <tt>time_format</tt> (e.g. their values are not strings).
@@ -2242,13 +2242,13 @@ The following public functions and variables are declared in the class
        <tt>error_func</tt> with six parameters:
           <itemize>
           <item>index of token (in array <tt>tokens</tt>) on which the
-             syntax error occured.
+            syntax error occured.
           <item>the error token itself.
           <item>index of the first token (in array <tt>tokens</tt>)
-             ignored because of error recovery.
+            ignored because of error recovery.
           <item>the first ignored token itself.
           <item>index of the first token (in array <tt>tokens</tt>)
-             which is not ignored after error recovery.
+            which is not ignored after error recovery.
           <item>the first not ignored token itself.
           </itemize>
        If the parser works with switched off error recovery (see
@@ -2945,7 +2945,7 @@ generate an exception declared in class syserror (e.g. <tt>eio</tt>,
        standard input stream and returns it.  The functions generates
        exception <tt>eof</tt> if the function tries to read the end of
        file.
-     <item><tt>getln</tt>.  The function reads one line from standard
+     <item><tt>getln ()</tt>.  The function reads one line from standard
        input stream and returns it as new string.  The end of line is
        character newline or end of file.  The returned string does not
        contain the newline character.  The function generates

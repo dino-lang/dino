@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino30209.info.2.
+/tmp/sgmltmp.dino4707.info.2.
 
    \input texinfo
 
@@ -321,7 +321,7 @@ by the following rules:
      And so on.
 
    * Declaration instance for identifier in the following construction
-                  designator.identifier
+                 designator.identifier
 
      is searched in block instance (e.g. in a class object) whose value
      is in the designator.  If the designator is a class object, its
@@ -333,14 +333,14 @@ by the following rules:
 
    * Declaration instance for identifier whose name is expression value
      in the following construction
-                  *(expression)
+                 *(expression)
 
      is searched in the same way as a separate identifier.  Exception
      `accessop' occurs if there is no instance of declaration with such
      identifier in covering block instances.
 
    * Declaration for identifier in the following construction
-                  (expression)->identifier
+                 (expression)->identifier
 
      is searched in analogous way as in construction
      `designator.identifier' in block instance which is value of the

@@ -137,15 +137,15 @@ letters are considered to be distinct.
         character.  The following sequences starting with backslash
         have special meaning inside Dino character constant:
           
-          4. \a    - ASCII character alert
-          5. \b    - ASCII character backspace
-          6. \f    - ASCII character form feed
-          7. \n    - ASCII character new line
-          8. \r    - ASCII character carriage return
-          9. \t    - ASCII character horizontal tab
-          10. \v    - ASCII character vertical tab
-          11. \code - ASCII character with given octal code
-          12. \char - ASCII character char for all remaining characters
+          o \a    - ASCII character alert
+          o \b    - ASCII character backspace
+          o \f    - ASCII character form feed
+          o \n    - ASCII character new line
+          o \r    - ASCII character carriage return
+          o \t    - ASCII character horizontal tab
+          o \v    - ASCII character vertical tab
+          o \code - ASCII character with given octal code
+          o \char - ASCII character char for all remaining characters
           
         To denote single quote mark use sequence \'.  Double
         quote mark can be represented either by \" or simply
@@ -167,7 +167,7 @@ letters are considered to be distinct.
 
           'a'  '\''  '\\'  '\12'  '"'
 
-     13. Strings are sequence of ASCII characters enclosed
+     4. Strings are sequence of ASCII characters enclosed
         in double quote marks. There are the same sequences of ASCII
         characters with special meaning as in character constant.  To
         denote double quote mark use sequence \".  Single
@@ -181,7 +181,7 @@ letters are considered to be distinct.
 
           "This is Dino"  "Don't worry\n"
 
-     14. Remaining essential symbols are called operators and
+     5. Remaining essential symbols are called operators and
         delimiters.  Operators are used for forming expressions,
         delimiters are used for forming syntax constructions.  There
         is special kind of operators and delimiters which look like
@@ -208,7 +208,7 @@ letters are considered to be distinct.
 	          | "table" | "thread" | "throw" | "try" | "type"
                   | "var" | "vector" | "wait"
 
-     15. Comments are considered analogous to blanks on syntax level
+     6. Comments are considered analogous to blanks on syntax level
         of the program.  There are two type of comments.  The first
         comment is arbitrary character sequences starting with /*
         and finishing by */.  The second type comment starts with
@@ -311,45 +311,45 @@ Association of identifier and the declaration instance are performed
 by the following rules:
      
      o The corresponding declaration instance are searched for
-        separate identifier occurrence in the instance of the block in
-        which the identifier occurs.  If the previous failed, the
-        declaration is searched in covering block instance of the
-        current block instance.  And so on.
+       separate identifier occurrence in the instance of the block in
+       which the identifier occurs.  If the previous failed, the
+       declaration is searched in covering block instance of the
+       current block instance.  And so on.
      o Declaration instance for identifier in the following
-        construction
+       construction
 
-        designator.identifier
+       designator.identifier
 
-        is searched in block instance (e.g. in a class object) whose
-        value is in the designator.  If the designator is a class
-        object, its context is a class object, and the search failed,
-        the search is continued in the covering class object etc.
-        Exception accessop occurs if the declaration is not
-        found with such identifier, or the declaration is private and
-        the construction is not in the declaration scope and not
-        inside friend of the declaration scope.
+       is searched in block instance (e.g. in a class object) whose
+       value is in the designator.  If the designator is a class
+       object, its context is a class object, and the search failed,
+       the search is continued in the covering class object etc.
+       Exception accessop occurs if the declaration is not
+       found with such identifier, or the declaration is private and
+       the construction is not in the declaration scope and not
+       inside friend of the declaration scope.
      o Declaration instance for identifier whose name is
-        expression value in the following construction
+       expression value in the following construction
 
-        *(expression)
+       *(expression)
 
-        is searched in the same way as a separate identifier.
-        Exception accessop occurs if there is no instance of
-        declaration with such identifier in covering block instances.
+       is searched in the same way as a separate identifier.
+       Exception accessop occurs if there is no instance of
+       declaration with such identifier in covering block instances.
      o Declaration for identifier in the following construction
 
-        (expression)->identifier
+       (expression)->identifier
 
-        is searched in analogous way as in construction
-        designator.identifier in block instance which is
-        value of the variable whose name is given by the expression.
-        The variable is searched in the same way as in construction
-        *(expression).  Exception accessop occurs if
-        there is no variable instance with given name in covering
-        block instances, there is no instance of the declaration with
-        such identifier in given context (the variable value), or the
-        declaration is private and the construction is not in the
-        declaration scope.
+       is searched in analogous way as in construction
+       designator.identifier in block instance which is
+       value of the variable whose name is given by the expression.
+       The variable is searched in the same way as in construction
+       *(expression).  Exception accessop occurs if
+       there is no variable instance with given name in covering
+       block instances, there is no instance of the declaration with
+       such identifier in given context (the variable value), or the
+       declaration is private and the construction is not in the
+       declaration scope.
      
 The following identifiers are predeclared on the top level (in implicit
 block covering all program).  They are described in more detail in the
@@ -724,53 +724,53 @@ corresponding element values are the same.
 Dino has the following types of values:
           
           o special value nil.  This is default value of
-             variables when the corresponding block starts.  The value
-             is represented by keyword nil.
+            variables when the corresponding block starts.  The value
+            is represented by keyword nil.
 
                  Expr = nil
 
           o character which represents ASCII characters.
-             The representation see Character in section
-             Vocabulary and Representation.
+            The representation see Character in section
+            Vocabulary and Representation.
 
                  Expr = CHARACTER
 
           o integer.  Its representation see
-             Integer in section Vocabulary and
-             Representation.  It is always stored as 32-bit
-             integer value.
+            Integer in section Vocabulary and
+            Representation.  It is always stored as 32-bit
+            integer value.
 
                  Expr = INTEGER
 
           o floating point number.  Its representation
-             see FloatingPointNumber in section
-             Vocabulary and Representation.  It is always
-             stored as IEEE double (64-bit) floating point value.
+            see FloatingPointNumber in section
+            Vocabulary and Representation.  It is always
+            stored as IEEE double (64-bit) floating point value.
 
                  Expr = FLOATINGPOINTNUMBER
 
           o vector.  This is a structured shared type
-             value.  Vector value is represented by list of values (or
-             expressions) in brackets with optional repetitions of the
-             vector elements followed by :.  The repetition
-             value is conversed into integer value by default.  If the
-             repetition value after this is not of integer, exception
-             optype is generated. If the repetition value is
-             negative or zero, the element value will be absent in the
-             vector.  Elements of vector are accessed by their
-             indexes.  Indexes always starts with 0.  Vectors in Dino
-             are heterogenous, i.e. elements of a vector may be of
-             different types.  String represents immutable vector
-             whose all elements are characters in the string.
-             Elements of mutable vectors can be added to or removed
-             from the vector (see predefined functions ins, insv,
-             del).
+            value.  Vector value is represented by list of values (or
+            expressions) in brackets with optional repetitions of the
+            vector elements followed by :.  The repetition
+            value is conversed into integer value by default.  If the
+            repetition value after this is not of integer, exception
+            optype is generated. If the repetition value is
+            negative or zero, the element value will be absent in the
+            vector.  Elements of vector are accessed by their
+            indexes.  Indexes always starts with 0.  Vectors in Dino
+            are heterogenous, i.e. elements of a vector may be of
+            different types.  String represents immutable vector
+            whose all elements are characters in the string.
+            Elements of mutable vectors can be added to or removed
+            from the vector (see predefined functions ins, insv,
+            del).
 
                  Expr = "["  ElistPartsList "]"
                       | STRING
                  ElistPartsList = [ Expr [":" Expr ] {"," Expr [":" Expr ] } ]
 
-             Examples:
+            Examples:
 
                "aaab"
                ['a', 'a', 'a', 'b']
@@ -781,22 +781,22 @@ Dino has the following types of values:
                []
 
           o table.  This is a structured shared type
-             value.  Table value is represented by list of key values
-             (expression values) in figure parentheses { and
-             } with optional element values with preceding
-             :.  By default element value is equal to
-             nil.  It is not possible to have elements with
-             equal keys in a table.  If it is not true in a table
-             constructor, exception keyvalue is generated.
-             Elements of tables are accessed by their keys.  Elements
-             of mutable tables can be added to or removed from the
-             table correspondingly by assigning value and with the
-             aid function del.  The side effect of table
-             constructor execution is that the keys become immutable.
+            value.  Table value is represented by list of key values
+            (expression values) in figure parentheses { and
+            } with optional element values with preceding
+            :.  By default element value is equal to
+            nil.  It is not possible to have elements with
+            equal keys in a table.  If it is not true in a table
+            constructor, exception keyvalue is generated.
+            Elements of tables are accessed by their keys.  Elements
+            of mutable tables can be added to or removed from the
+            table correspondingly by assigning value and with the
+            aid function del.  The side effect of table
+            constructor execution is that the keys become immutable.
 
                  Expr = "{"  ElistPartsList "}"
 
-             Examples:
+            Examples:
 
                {'a', 'b', 10:[10]}
                {'a' : nil, 'b' : nil, 10 : [10]}
@@ -804,31 +804,31 @@ Dino has the following types of values:
                {}
 
           o function.  Its value is represented by
-             function designator.  It is important to remember
-             that the function is bound to a context.
+            function designator.  It is important to remember
+            that the function is bound to a context.
           o thread-function.  Its value is represented by
-             thread-function designator.  It is important to remember
-             that the thread-function is bound to a context.
+            thread-function designator.  It is important to remember
+            that the thread-function is bound to a context.
           o class.  Its value is represented by
-             class designator.  It is important to remember
-             that the class is bound to a context.
+            class designator.  It is important to remember
+            that the class is bound to a context.
           o block instance.  There is no Dino
-             representation of such values.
+            representation of such values.
           o thread.  There is no Dino representation of
-             such values.  Thread value is generated by calling
-             a thread-function.
+            such values.  Thread value is generated by calling
+            a thread-function.
           o object(class instance).  This is a structured
-             shared type value.  There is no Dino representation of
-             such values.  Objects are generated by calling classes.
+            shared type value.  There is no Dino representation of
+            such values.  Objects are generated by calling classes.
           o hide value.  Hide value can not be generated
-             in Dino code.  They are generated by external functions.
+            in Dino code.  They are generated by external functions.
           o hide block.  This value is analogous to hide
-             value.  The differences are in that the size of a hide
-             value is constrained by C program pointer.  The size of
-             hideblock value has no such constraint.  Also hideblock
-             is of shared type.
+            value.  The differences are in that the size of a hide
+            value is constrained by C program pointer.  The size of
+            hideblock value has no such constraint.  Also hideblock
+            is of shared type.
           o type.  The value of such types are returned
-             by special operator type (expression).
+            by special operator type (expression).
 
                  Expr = char
                       | int
@@ -845,40 +845,40 @@ Dino has the following types of values:
                       | class "(" ")"
                       | type
 
-             There are the following type values:
-             
-             o type of nil.  There is no value
-                representing type of nil.  So use operator
-                type (nil) to get it.
-             o type of characters.  The value is represented by
-                Dino keyword char.
-             o type of integers.  The value is represented by Dino
-                keyword int.
-             o type of floating point numbers.  The value is
-                represented by Dino keyword float.
-             o type of vectors.  The value is represented by Dino
-                keyword vector.
-             o type of tables.  The value is represented by Dino
-                keyword table.
-             o type of functions.  The value is represented by
-                Dino keyword func.
-             o type of thread-functions.  The value is represented
-                by Dino keyword thread.
-             o type of classes.  The value is represented by Dino
-                keyword class.
-             o type of block instances.  The value is represented
-                by Dino construction func ().
-             o type of threads.  The value is represented by Dino
-                construction thread ().
-             o type of objects.  The value is represented by Dino
-                construction class ().
-             o type of hide values.  The value is represented by
-                Dino keyword hide.
-             o type of hideblocks.  The value is represented by
-                Dino keyword hideblock.
-             o type of types.  The value is represented by Dino
-                keyword type.
-             
+            There are the following type values:
+            
+            o type of nil.  There is no value
+              representing type of nil.  So use operator
+              type (nil) to get it.
+            o type of characters.  The value is represented by
+              Dino keyword char.
+            o type of integers.  The value is represented by Dino
+              keyword int.
+            o type of floating point numbers.  The value is
+              represented by Dino keyword float.
+            o type of vectors.  The value is represented by Dino
+              keyword vector.
+            o type of tables.  The value is represented by Dino
+              keyword table.
+            o type of functions.  The value is represented by
+              Dino keyword func.
+            o type of thread-functions.  The value is represented
+              by Dino keyword thread.
+            o type of classes.  The value is represented by Dino
+              keyword class.
+            o type of block instances.  The value is represented
+              by Dino construction func ().
+            o type of threads.  The value is represented by Dino
+              construction thread ().
+            o type of objects.  The value is represented by Dino
+              construction class ().
+            o type of hide values.  The value is represented by
+              Dino keyword hide.
+            o type of hideblocks.  The value is represented by
+              Dino keyword hideblock.
+            o type of types.  The value is represented by Dino
+              keyword type.
+            
           
 
 5.2. Designators
@@ -1035,36 +1035,36 @@ not still of necessary types, exception optype is generated
 mentioned).  The following conversion may be made by default:
     
     o Integer conversion.  If the operand is a character,
-       its code becomes integer.  If the operand is a floating point
-       number, its fractional part is thrown away and integral part
-       becomes integer.  If the operand is a vector of characters, the
-       corresponding string is believed to be decimal representation
-       of integer and is conversed into the corresponding integer.  If
-       the corresponding string is not a correct integer
-       representation, the result is undefined.  If the corresponding
-       string represents an integer whose representation requires more
-       32 bits, exception erange may be generated.  In all
-       remaining cases the result of conversion coincide with the
-       operand.
+      its code becomes integer.  If the operand is a floating point
+      number, its fractional part is thrown away and integral part
+      becomes integer.  If the operand is a vector of characters, the
+      corresponding string is believed to be decimal representation
+      of integer and is conversed into the corresponding integer.  If
+      the corresponding string is not a correct integer
+      representation, the result is undefined.  If the corresponding
+      string represents an integer whose representation requires more
+      32 bits, exception erange may be generated.  In all
+      remaining cases the result of conversion coincide with the
+      operand.
     o Arithmetic conversion.  Analogous to integer
-       conversion except for that conversion float pointing number ->
-       integer is not made and if the string represents floating point
-       number (i.e. contains exponent or fraction), the result will be
-       the corresponding floating point number instead of integer.
-       Additionally if the operand is in a non-short circuit binary
-       operator (non logical operators) and another operand is
-       floating point number after the conversion, the first operand
-       is conversed into floating point number too.  Analogously if
-       the result is an integer which can not be represented by 32-bit
-       integer or the result is an floating point number not
-       represented by IEEE double, the exception erange may
-       be generated.
+      conversion except for that conversion float pointing number ->
+      integer is not made and if the string represents floating point
+      number (i.e. contains exponent or fraction), the result will be
+      the corresponding floating point number instead of integer.
+      Additionally if the operand is in a non-short circuit binary
+      operator (non logical operators) and another operand is
+      floating point number after the conversion, the first operand
+      is conversed into floating point number too.  Analogously if
+      the result is an integer which can not be represented by 32-bit
+      integer or the result is an floating point number not
+      represented by IEEE double, the exception erange may
+      be generated.
     o String conversion.  If the operand is a character,
-       the result will be a new string (immutable vector of
-       characters) with one element which is the character.  If the
-       operand is an integer or a floating point number, the result
-       will be new string of characters which is a decimal string
-       representation of the number.
+      the result will be a new string (immutable vector of
+      characters) with one element which is the character.  If the
+      operand is an integer or a floating point number, the result
+      will be new string of characters which is a decimal string
+      representation of the number.
     
 
 5.4.1. Logical operators
@@ -1583,7 +1583,7 @@ object representing the exception.
           try {
             var ln;
             for (;;)
-              ln = getln;
+              ln = getln ();
           } catch (invcalls.eof) {
           }
           try {
@@ -1925,152 +1925,152 @@ following classes are declared in the class error:
            actual parameters number is not valid when we call a
            predeclared function.
          o syserror.  Classes inside this class describe
-             exceptions in predeclared functions which call OS system
-             functions.  Some exceptions are never generated but may
-               be generated in the future on some OSes.
-             
-             o eaccess.  This describes system error
-               "Permission denied".
-             o eagain.  This describes system error
-               "Resource temporarily unavailable".
-             o ebadf.  This describes system error
-               "Bad file descriptor".
-             o ebusy.  This describes system error
-               "Resource busy".
-             o echild.  This describes system error
-               "No child processes".
-             o edeadlk.  This describes system error
-               "Resource deadlock avoided".
-             o edom.  This describes system error
-               "Domain error".
-             o eexist.  This describes system error
-               "File exists".
-             o efault.  This describes system error
-               "Bad address".
-             o efbig.  This describes system error
-               "File too large".
-             o eintr.  This describes system error
-               "Interrupted function call".
-             o einval.  This describes system error
-               "Invalid argument".
-             o eio.  This describes system error
-               "Input/output error".
-             o eisdir.  This describes system error
-               "Is a directory".
-             o emfile.  This describes system error
-               "Too many open files".
-             o emlink.  This describes system error
-               "Too many links".
-             o enametoolong.  This describes system error
-               "Filename too long".
-             o enfile.  This describes system error "Too
-               many open files in system".
-             o enodev.  This describes system error "No
-               such device".
-             o enoent.  This describes system error "No
-               such file or directory".
-             o enoexec.  This describes system error
-               "Exec format error".
-             o enolck.  This describes system error "No
-               locks available".
-             o enomem.  This describes system error "Not
-               enough space".
-             o enospc.  This describes system error "No
-               space left on device".
-             o enosys.  This describes system error
-               "Function not implemented".
-             o enotdir.  This describes system error "Not
-               a directory".
-             o enotempty.  This describes system error
-               "Directory not empty".
-             o enotty.  This describes system error
-               "Inappropriate I/O control operation".
-             o enxio.  This describes system error "No
-               such device or address".
-             o eperm.  This describes system error
-               "Operation not permitted".
-             o epipe.  This describes system error
-               "Broken pipe".
-             o erange.  This describes system error
-               "Result too large".
-             o erofs.  This describes system error
-               "Read-only file system".
-             o espipe.  This describes system error
-               "Invalid seek".
-             o esrch.  This describes system error "No
-               such process".
-             o exdev.  This describes system error
-               "Improper link".
-             
+           exceptions in predeclared functions which call OS system
+           functions.  Some exceptions are never generated but may
+             be generated in the future on some OSes.
+           
+           o eaccess.  This describes system error
+             "Permission denied".
+           o eagain.  This describes system error
+             "Resource temporarily unavailable".
+           o ebadf.  This describes system error
+             "Bad file descriptor".
+           o ebusy.  This describes system error
+             "Resource busy".
+           o echild.  This describes system error
+             "No child processes".
+           o edeadlk.  This describes system error
+             "Resource deadlock avoided".
+           o edom.  This describes system error
+             "Domain error".
+           o eexist.  This describes system error
+             "File exists".
+           o efault.  This describes system error
+             "Bad address".
+           o efbig.  This describes system error
+             "File too large".
+           o eintr.  This describes system error
+             "Interrupted function call".
+           o einval.  This describes system error
+             "Invalid argument".
+           o eio.  This describes system error
+             "Input/output error".
+           o eisdir.  This describes system error
+             "Is a directory".
+           o emfile.  This describes system error
+             "Too many open files".
+           o emlink.  This describes system error
+             "Too many links".
+           o enametoolong.  This describes system error
+             "Filename too long".
+           o enfile.  This describes system error "Too
+             many open files in system".
+           o enodev.  This describes system error "No
+             such device".
+           o enoent.  This describes system error "No
+             such file or directory".
+           o enoexec.  This describes system error
+             "Exec format error".
+           o enolck.  This describes system error "No
+             locks available".
+           o enomem.  This describes system error "Not
+             enough space".
+           o enospc.  This describes system error "No
+             space left on device".
+           o enosys.  This describes system error
+             "Function not implemented".
+           o enotdir.  This describes system error "Not
+             a directory".
+           o enotempty.  This describes system error
+             "Directory not empty".
+           o enotty.  This describes system error
+             "Inappropriate I/O control operation".
+           o enxio.  This describes system error "No
+             such device or address".
+           o eperm.  This describes system error
+             "Operation not permitted".
+           o epipe.  This describes system error
+             "Broken pipe".
+           o erange.  This describes system error
+             "Result too large".
+           o erofs.  This describes system error
+             "Read-only file system".
+           o espipe.  This describes system error
+             "Invalid seek".
+           o esrch.  This describes system error "No
+             such process".
+           o exdev.  This describes system error
+             "Improper link".
+           
          o systemcall.  Classes inside this class
-             describe exceptions in calling predeclared function
+           describe exceptions in calling predeclared function
+           system.
+           
+           o noshell.  This class describes exception
+             that the function system can not find OS
+             command interpriter (shell).
+           o systemfail.  This class describes all
+             remaining exceptions in calling OS function
              system.
-             
-             o noshell.  This class describes exception
-               that the function system can not find OS
-               command interpriter (shell).
-             o systemfail.  This class describes all
-               remaining exceptions in calling OS function
-               system.
-             
+           
          o invparser.  Classes inside this class describe
-             exceptions specific for calling functions of predeclared
-             class parser implementing earley parser.
-             
-             o invgrammar.  This class describes
-               exception that earley parser got a bad grammar,
-               e.g. without rules, with loops in rules, with
-               nonterminals unachievable from axiom, with nonterminals
-               not deriving any terminal string etc.
-             o invtoken.  This class describes exception
-               that parser got input token with unknown (undeclared)
-               code.
-             o pmemory.  This class describes exception
-               that there is no enough memory for internal parser
-               data.
-             
+           exceptions specific for calling functions of predeclared
+           class parser implementing earley parser.
+           
+           o invgrammar.  This class describes
+             exception that earley parser got a bad grammar,
+             e.g. without rules, with loops in rules, with
+             nonterminals unachievable from axiom, with nonterminals
+             not deriving any terminal string etc.
+           o invtoken.  This class describes exception
+             that parser got input token with unknown (undeclared)
+             code.
+           o pmemory.  This class describes exception
+             that there is no enough memory for internal parser
+             data.
+           
          o invregexp.  Classes inside this class describe
-             exceptions specific for calling predeclared functions
-             implementing regular expression pattern matching.
-             
-             o ebrack.  This class describes exception
-               that regular expression has unmatched bracket.
-             o erange.  This class describes exception
-               that there is invalid use of range in regular
-               expression.
-             o ectype.  This class describes exception
-               that there is unknown character class name in regular
-               expression.
-             o eparen.  This class describes exception
-               that regular expression has unmatched parenthesis.
-             o esubreg.  This class describes exception
-               that there is invalid back reference to a subexpression
-               in regular expression.
-             o eend.  This class describes exception that
-               there is non specific error in regular expression.
-             o eescape.  This class describes exception
-               that there is a trailing backslash.
-             o badpat.  This class describes exception
-               that there is invalid use of pattern operators in
-               regular expression.
-             o esize.  This class describes exception
-               that compiled regular expression is too big.
-             o espace.  This class describes exception
-               that there is no memory for regular expression function
-               work.
-             
+           exceptions specific for calling predeclared functions
+           implementing regular expression pattern matching.
+           
+           o ebrack.  This class describes exception
+             that regular expression has unmatched bracket.
+           o erange.  This class describes exception
+             that there is invalid use of range in regular
+             expression.
+           o ectype.  This class describes exception
+             that there is unknown character class name in regular
+             expression.
+           o eparen.  This class describes exception
+             that regular expression has unmatched parenthesis.
+           o esubreg.  This class describes exception
+             that there is invalid back reference to a subexpression
+             in regular expression.
+           o eend.  This class describes exception that
+             there is non specific error in regular expression.
+           o eescape.  This class describes exception
+             that there is a trailing backslash.
+           o badpat.  This class describes exception
+             that there is invalid use of pattern operators in
+             regular expression.
+           o esize.  This class describes exception
+             that compiled regular expression is too big.
+           o espace.  This class describes exception
+             that there is no memory for regular expression function
+             work.
+           
          o invextern.  Classes inside this class describe
-             exceptions in calling external functions or in access to
-             an external variable.
-             
-             o noextern.  This class describes exception
-               that given external can not be find.
-             o libclose.  This class describes exception
-               that there is an error in closing a shared library.
-             o noexternsupp.  This class describes
-               exception in usage of externals when they are not
-               implemented under this OS.
-             
+           exceptions in calling external functions or in access to
+           an external variable.
+           
+           o noextern.  This class describes exception
+             that given external can not be find.
+           o libclose.  This class describes exception
+             that there is an error in closing a shared library.
+           o noexternsupp.  This class describes
+             exception in usage of externals when they are not
+             implemented under this OS.
+           
          o invenvar.  This class describes corruption in
            value of variables split_regex and
            time_format (e.g. their values are not strings).
@@ -2242,13 +2242,13 @@ parser:
        error_func with six parameters:
           
           o index of token (in array tokens) on which the
-             syntax error occured.
+            syntax error occured.
           o the error token itself.
           o index of the first token (in array tokens)
-             ignored because of error recovery.
+            ignored because of error recovery.
           o the first ignored token itself.
           o index of the first token (in array tokens)
-             which is not ignored after error recovery.
+            which is not ignored after error recovery.
           o the first not ignored token itself.
           
        If the parser works with switched off error recovery (see
@@ -2945,7 +2945,7 @@ partype, parnumber.
        standard input stream and returns it.  The functions generates
        exception eof if the function tries to read the end of
        file.
-     o getln.  The function reads one line from standard
+     o getln ().  The function reads one line from standard
        input stream and returns it as new string.  The end of line is
        character newline or end of file.  The returned string does not
        contain the newline character.  The function generates

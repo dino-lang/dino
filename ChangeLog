@@ -1,3 +1,12 @@
+2001-06-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* sgml-txt: Fix bug with itemize inside enum.
+
+	* dino.sgml.in: Fix indentation for itemize.
+
+	* dino-{468}.html, dino.dvi, dino-info*, dino.ps, dino.txt:
+	Update.
+
 2001-06-05  Dave Bodenstab  <imdave@mcs.net>
 
 	* DINO/compare.tst: Permit to use compiled code for TCL tests.
