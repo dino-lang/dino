@@ -466,26 +466,32 @@ fi
 if test $result = ok -a $start_test_number -le 14; then
 	echo test 14
         cat >$test_file <<'TEST14'
-var s, t;
-s = new "aaaa";
-s[1] = "b";
+var s, ns, t;
+s = "aaaa";
+ns = new s;
+ns[1] = "b";
+println (s,ns);
 
 s = {"a"};
-s{"a"} = "b";
+ns = new s;
+ns{"a"} = "b";
+println (s,ns);
 
 s = ['a'];
 t = {s:"a"};
-s = new s;
-s[0] = 'b';
+ns = new s;
+ns[0] = 'b';
+println (s, ns);
 
 class c()
 {
   var i;
 }
-var o;
+var o, no;
 o = final c ();
-o = new o;
-o.i = 10;
+no = new o;
+no.i = 10;
+println (o.i, no.i);
 
 s = "10" @ new "10";
 s[0] = 'c';
@@ -494,6 +500,10 @@ TEST14
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT14' && $CMP $stdout $ftemp2; then
+"aaaa"['a', "b", 'a', 'a']
+{"a":nil}{"a":"b"}
+"a""b"
+nil10
 OUTPUT14
                         result=ok
                 else

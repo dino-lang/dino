@@ -1,3 +1,7 @@
+2003-01-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/dino.tst.in (test #14): Output results and check them.
+
 2002-12-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_heap.c (eq_instance): Check context too.
