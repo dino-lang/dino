@@ -348,7 +348,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : dino.txt dino.html dino.info dino.dvi dino.ps
+doc : $(srcdir)/dino.txt $(srcdir)/dino.html $(srcdir)/dino.info $(srcdir)/dino.dvi $(srcdir)/dino.ps
 
 dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
 	nroff -man $(srcdir)/dino.1 | $(AWK) '{gsub (/.\b/,"");print;}' > dino.tmp
@@ -358,30 +358,43 @@ dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
                  else print;}' $(srcdir)/dino.sgml.in > $@
 	rm -f dino.tmp
 
-dino.txt: dino.sgml.tmp
+$(srcdir)/dino.txt: dino.sgml.tmp
 	$(srcdir)/../sgml-txt dino.sgml.tmp > $@
 	
-dino.html: dino.sgml.tmp
+$(srcdir)/dino.html: dino.sgml.tmp
 	$(srcdir)/../sgml-html dino.sgml.tmp >dino.sgml
 	sgml2html dino.sgml
+	if test -f dino-1.html;then\
+  	  for i in dino-*.html;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv dino.html $(srcdir)/dino.html
 	
-dino.info: dino.sgml.tmp
+$(srcdir)/dino.info: dino.sgml.tmp
 	$(srcdir)/../sgml-info dino.sgml.tmp >dino.sgml
 	sgml2info dino.sgml
 	for i in dino.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
+	if test -f dino.info-1;then\
+	  for i in dino.info-*;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv dino.info $(srcdir)/dino.info
 	
-dino.dvi: dino.sgml.tmp
+$(srcdir)/dino.dvi: dino.sgml.tmp
 	$(srcdir)/../sgml-tex dino.sgml.tmp >dino.sgml
 	sgml2latex dino.sgml
 	if test ! -f dino.dvi\
            -o -f dino.tex -a dino.tex -nt dino.dvi; then\
     	        latex dino.tex; latex dino.tex;\
         fi
+	mv dino.dvi $(srcdir)/dino.dvi
 
-dino.ps: dino.dvi
-	dvips -o $@ dino.dvi
+$(srcdir)/dino.ps: $(srcdir)/dino.dvi
+	dvips -o $@ $(srcdir)/dino.dvi
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for DINO object files to the end of given file.

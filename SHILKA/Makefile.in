@@ -211,7 +211,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : shilka.txt shilka.html shilka.info shilka.dvi shilka.ps
+doc : $(srcdir)/shilka.txt $(srcdir)/shilka.html $(srcdir)/shilka.info $(srcdir)/shilka.dvi $(srcdir)/shilka.ps
 
 shilka.sgml.tmp : $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
 	nroff -man $(srcdir)/shilka.1 | $(AWK) '{gsub (/.\b/,"");print;}' > shilka.tmp
@@ -221,30 +221,43 @@ shilka.sgml.tmp : $(srcdir)/shilka.sgml.in $(srcdir)/shilka.1
                  else print;}' $(srcdir)/shilka.sgml.in > $@
 	rm -f shilka.tmp
 
-shilka.txt: shilka.sgml.tmp
+$(srcdir)/shilka.txt: shilka.sgml.tmp
 	$(srcdir)/../sgml-txt shilka.sgml.tmp > $@
 	
-shilka.html: shilka.sgml.tmp
+$(srcdir)/shilka.html: shilka.sgml.tmp
 	$(srcdir)/../sgml-html shilka.sgml.tmp >shilka.sgml
 	sgml2html shilka.sgml
+	if test -f shilka-1.html;then\
+  	  for i in shilka-*.html;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv shilka.html $(srcdir)/shilka.html
 	
-shilka.info: shilka.sgml.tmp
+$(srcdir)/shilka.info: shilka.sgml.tmp
 	$(srcdir)/../sgml-info shilka.sgml.tmp >shilka.sgml
 	sgml2info shilka.sgml
 	for i in shilka.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
+	if test -f shilka.info-1;then\
+	  for i in shilka.info-*;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv shilka.info $(srcdir)/shilka.info
 	
-shilka.dvi: shilka.sgml.tmp
+$(srcdir)/shilka.dvi: shilka.sgml.tmp
 	$(srcdir)/../sgml-tex shilka.sgml.tmp >shilka.sgml
 	sgml2latex shilka.sgml
 	if test ! -f shilka.dvi\
            -o -f shilka.tex -a shilka.tex -nt shilka.dvi; then\
     	        latex shilka.tex; latex shilka.tex;\
         fi
+	mv shilka.dvi $(srcdir)/shilka.dvi
 
-shilka.ps: shilka.dvi
-	dvips -o $@ shilka.dvi
+$(srcdir)/shilka.ps: $(srcdir)/shilka.dvi
+	dvips -o $@ $(srcdir)/shilka.dvi
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for SHILKA object files to the end of given file.

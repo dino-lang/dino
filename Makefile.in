@@ -250,32 +250,45 @@ distdino:
 # Creation of documentation
 
 # COCOM only start
-doc : cocom.txt cocom.html cocom.info cocom.dvi cocom.ps
+doc : $(srcdir)/cocom.txt $(srcdir)/cocom.html $(srcdir)/cocom.info $(srcdir)/cocom.dvi $(srcdir)/cocom.ps
 
-cocom.txt: $(srcdir)/cocom.sgml.in
+$(srcdir)/cocom.txt: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-txt $(srcdir)/cocom.sgml.in > $@
 	
-cocom.html: $(srcdir)/cocom.sgml.in
+$(srcdir)/cocom.html: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-html $(srcdir)/cocom.sgml.in >cocom.sgml
 	sgml2html cocom.sgml
+	if test -f cocom-1.html;then\
+  	  for i in cocom-*.html;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv cocom.html $(srcdir)/cocom.html
 	
-cocom.info: $(srcdir)/cocom.sgml.in
+$(srcdir)/cocom.info: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-info $(srcdir)/cocom.sgml.in >cocom.sgml
 	sgml2info cocom.sgml
 	for i in cocom.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
+	if test -f cocom.info-1;then\
+	  for i in cocom.info-*;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv cocom.info $(srcdir)/cocom.info
 	
-cocom.dvi: $(srcdir)/cocom.sgml.in
+$(srcdir)/cocom.dvi: $(srcdir)/cocom.sgml.in
 	$(srcdir)/sgml-tex $(srcdir)/cocom.sgml.in >cocom.sgml
 	sgml2latex cocom.sgml
 	if test ! -f cocom.dvi\
            -o -f cocom.tex -a cocom.tex -nt cocom.dvi; then\
     	        latex cocom.tex; latex cocom.tex;\
         fi
+	mv cocom.dvi $(srcdir)/cocom.dvi
 
-cocom.ps: cocom.dvi
-	dvips -o $@ cocom.dvi
+$(srcdir)/cocom.ps: $(srcdir)/cocom.dvi
+	dvips -o $@ $(srcdir)/cocom.dvi
 # COCOM only end
 
 # Updating TAGS table for all COCOM sources.

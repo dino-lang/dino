@@ -77,9 +77,6 @@ extraclean: distclean
 	rm -f patch* *~* *\#* *.orig *.rej *.bak core a.out
 .PHONY: mostlyclean clean distclean realclean extraclean
 
-Makefile: Makefile.in ../config.status
-	(cd ..; sh config.status)
-
 # Prevent GNU make 3 from overflowing arg limit on system V.
 .NOEXPORT:
 

@@ -245,7 +245,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : msta.txt msta.html msta.info msta.dvi msta.ps
+doc : $(srcdir)/msta.txt $(srcdir)/msta.html $(srcdir)/msta.info $(srcdir)/msta.dvi $(srcdir)/msta.ps
 
 msta.sgml.tmp : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	nroff -man $(srcdir)/msta.1 | $(AWK) '{gsub (/.\b/,"");print;}' > msta.tmp
@@ -255,30 +255,43 @@ msta.sgml.tmp : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
                  else print;}' $(srcdir)/msta.sgml.in > $@
 	rm -f msta.tmp
 
-msta.txt: msta.sgml.tmp
+$(srcdir)/msta.txt: msta.sgml.tmp
 	$(srcdir)/../sgml-txt msta.sgml.tmp > $@
 	
-msta.html: msta.sgml.tmp
+$(srcdir)/msta.html: msta.sgml.tmp
 	$(srcdir)/../sgml-html msta.sgml.tmp >msta.sgml
 	sgml2html msta.sgml
+	if test -f msta-1.html;then\
+  	  for i in msta-*.html;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv msta.html $(srcdir)/msta.html
 	
-msta.info: msta.sgml.tmp
+$(srcdir)/msta.info: msta.sgml.tmp
 	$(srcdir)/../sgml-info msta.sgml.tmp >msta.sgml
 	sgml2info msta.sgml
 	for i in msta.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
+	if test -f msta.info-1;then\
+	  for i in msta.info-*;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv msta.info $(srcdir)/msta.info
 	
-msta.dvi: msta.sgml.tmp
+$(srcdir)/msta.dvi: msta.sgml.tmp
 	$(srcdir)/../sgml-tex msta.sgml.tmp >msta.sgml
 	sgml2latex msta.sgml
 	if test ! -f msta.dvi\
            -o -f msta.tex -a msta.tex -nt msta.dvi; then\
     	        latex msta.tex; latex msta.tex;\
         fi
+	mv msta.dvi $(srcdir)/msta.dvi
 
-msta.ps: msta.dvi
-	dvips -o $@ msta.dvi
+$(srcdir)/msta.ps: $(srcdir)/msta.dvi
+	dvips -o $@ $(srcdir)/msta.dvi
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for MSTA object files to the end of given file.

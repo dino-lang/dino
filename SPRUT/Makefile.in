@@ -680,7 +680,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : sprut.txt sprut.html sprut.info sprut.dvi sprut.ps
+doc : $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
 
 sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");print;}' > sprut.tmp
@@ -691,30 +691,43 @@ sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	rm -f sprut.tmp
 
 
-sprut.txt: sprut.sgml.tmp
+$(srcdir)/sprut.txt: sprut.sgml.tmp
 	$(srcdir)/../sgml-txt sprut.sgml.tmp > $@
 	
-sprut.html: sprut.sgml.tmp
+$(srcdir)/sprut.html: sprut.sgml.tmp
 	$(srcdir)/../sgml-html sprut.sgml.tmp >sprut.sgml
 	sgml2html sprut.sgml
+	if test -f sprut-1.html;then\
+  	  for i in sprut-*.html;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv sprut.html $(srcdir)/sprut.html
 	
-sprut.info: sprut.sgml.tmp
+$(srcdir)/sprut.info: sprut.sgml.tmp
 	$(srcdir)/../sgml-info sprut.sgml.tmp >sprut.sgml
 	sgml2info sprut.sgml
 	for i in sprut.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
+	if test -f sprut.info-1;then\
+	  for i in sprut.info-*;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv sprut.info $(srcdir)/sprut.info
 	
-sprut.dvi: sprut.sgml.tmp
+$(srcdir)/sprut.dvi: sprut.sgml.tmp
 	$(srcdir)/../sgml-tex sprut.sgml.tmp >sprut.sgml
 	sgml2latex sprut.sgml
 	if test ! -f sprut.dvi\
            -o -f sprut.tex -a sprut.tex -nt sprut.dvi; then\
     	        latex sprut.tex; latex sprut.tex;\
         fi
+	mv sprut.dvi $(srcdir)/sprut.dvi
 
-sprut.ps: sprut.dvi
-	dvips -o $@ sprut.dvi
+$(srcdir)/sprut.ps: $(srcdir)/sprut.dvi
+	dvips -o $@ $(srcdir)/sprut.dvi
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for SPRUT object files to the end of given file.

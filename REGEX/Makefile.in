@@ -60,15 +60,6 @@ distclean:: clean
 realclean:: distclean
 	rm -f patch* *~* *\#* *.orig *.rej *.bak core a.out
 
-configure: configure.in
-	autoconf
-
-config.status: configure
-	sh configure --no-create
-
-Makefile: Makefile.in config.status
-	sh config.status
-
 makeargs = $(MFLAGS) CPPFLAGS='$(CPPFLAGS)' CFLAGS='$(CFLAGS)' CC='$(CC)' \
 DEFS='$(DEFS)' LDFLAGS='$(LDFLAGS)' LOADLIBES='$(LOADLIBES)'
 
@@ -105,5 +96,6 @@ create-distdir:
 
 # Copying `Regex' distribution files into `distdir'.
 dist-copy: create-distdir
-	cp -r $(distfiles) doc test $(distdir)
+	for i in $(distfiles);do cp $(srcdir)/$$i $(distdir);done
+	cp -r $(srcdir)/doc $(srcdir)/test $(distdir)
 	chmod -R +w $(distdir)

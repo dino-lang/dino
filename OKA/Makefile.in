@@ -226,7 +226,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : oka.txt oka.html oka.info oka.dvi oka.ps
+doc : $(srcdir)/oka.txt $(srcdir)/oka.html $(srcdir)/oka.info $(srcdir)/oka.dvi $(srcdir)/oka.ps
 
 oka.sgml.tmp : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
 	nroff -man $(srcdir)/oka.1 | $(AWK) '{gsub (/.\b/,"");print;}' > oka.tmp
@@ -236,30 +236,43 @@ oka.sgml.tmp : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
                  else print;}' $(srcdir)/oka.sgml.in > $@
 	rm -f oka.tmp
 
-oka.txt: oka.sgml.tmp
+$(srcdir)/oka.txt: oka.sgml.tmp
 	$(srcdir)/../sgml-txt oka.sgml.tmp > $@
 	
-oka.html: oka.sgml.tmp
+$(srcdir)/oka.html: oka.sgml.tmp
 	$(srcdir)/../sgml-html oka.sgml.tmp >oka.sgml
 	sgml2html oka.sgml
+	if test -f oka-1.html;then\
+  	  for i in oka-*.html;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv oka.html $(srcdir)/oka.html
 	
-oka.info: oka.sgml.tmp
+$(srcdir)/oka.info: oka.sgml.tmp
 	$(srcdir)/../sgml-info oka.sgml.tmp >oka.sgml
 	sgml2info oka.sgml
 	for i in oka.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
+	if test -f oka.info-1;then\
+	  for i in oka.info-*;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv oka.info $(srcdir)/oka.info
 	
-oka.dvi: oka.sgml.tmp
+$(srcdir)/oka.dvi: oka.sgml.tmp
 	$(srcdir)/../sgml-tex oka.sgml.tmp >oka.sgml
 	sgml2latex oka.sgml
 	if test ! -f oka.dvi\
            -o -f oka.tex -a oka.tex -nt oka.dvi; then\
     	        latex oka.tex; latex oka.tex;\
         fi
+	mv oka.dvi $(srcdir)/oka.dvi
 
-oka.ps: oka.dvi
-	dvips -o $@ oka.dvi
+$(srcdir)/oka.ps: $(srcdir)/oka.dvi
+	dvips -o $@ $(srcdir)/oka.dvi
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for OKA object files to the end of given file.

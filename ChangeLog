@@ -1,3 +1,13 @@
+2001-05-30  Vladimir Makarov  <vmakarov@toke.toronto.redhat.com>
+
+	* Makefile.in AMMUNITION/Makefile.in DINO/Makefile.in
+	MSTA/Makefile.in NONA/Makefile.in OKA/Makefile.in
+	SHILKA/Makefile.in SPRUT/Makefile.in: Generation doc files from
+	any build directory.
+
+	* REGEX/Makefile.in REGEX/doc/Makefile.in REGEX/test/Makefile.in:
+	Removing some unnecessary entries.
+	
 2001-05-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* cocom.html cocom.dvi cocom.txt cocom.ps cocom.info

@@ -206,7 +206,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : nona.txt nona.html nona.info nona.dvi nona.ps
+doc : $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.dvi $(srcdir)/nona.ps
 
 nona.sgml.tmp : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");print;}' > nona.tmp
@@ -216,30 +216,43 @@ nona.sgml.tmp : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
                  else print;}' $(srcdir)/nona.sgml.in > $@
 	rm -f nona.tmp
 
-nona.txt: nona.sgml.tmp
+$(srcdir)/nona.txt: nona.sgml.tmp
 	$(srcdir)/../sgml-txt nona.sgml.tmp > $@
 	
-nona.html: nona.sgml.tmp
+$(srcdir)/nona.html: nona.sgml.tmp
 	$(srcdir)/../sgml-html nona.sgml.tmp >nona.sgml
 	sgml2html nona.sgml
+	if test -f nona-1.html;then\
+  	  for i in nona-*.html;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv nona.html $(srcdir)/nona.html
 	
-nona.info: nona.sgml.tmp
+$(srcdir)/nona.info: nona.sgml.tmp
 	$(srcdir)/../sgml-info nona.sgml.tmp >nona.sgml
 	sgml2info nona.sgml
 	for i in nona.info*;do\
    	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
 	done
-	
-nona.dvi: nona.sgml.tmp
+	if test -f nona.info-1;then\
+	  for i in nona.info-*;do\
+   	    mv $$i $(srcdir)/$$i;\
+	  done;\
+        fi
+	mv nona.info $(srcdir)/nona.info
+
+$(srcdir)/nona.dvi: nona.sgml.tmp
 	$(srcdir)/../sgml-tex nona.sgml.tmp >nona.sgml
 	sgml2latex nona.sgml
 	if test ! -f nona.dvi\
            -o -f nona.tex -a nona.tex -nt nona.dvi; then\
     	        latex nona.tex; latex nona.tex;\
         fi
+	mv nona.dvi $(srcdir)/nona.dvi
 
-nona.ps: nona.dvi
-	dvips -o $@ nona.dvi
+$(srcdir)/nona.ps: $(srcdir)/nona.dvi
+	dvips -o $@ $(srcdir)/nona.dvi
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for NONA object files to the end of given file.
