@@ -39,8 +39,11 @@ History
   Jun 25, 2001.  Operators char, int, float are added.
 
   Sep 25, 2001.  Vector conversion with format.  New function rev.
-                 del, ins, insv now return the vector.  getln
-                 with parameter.
+                 del, ins, insv now return the vector.
+
+  Oct 27, 2001.  New predefined variable version.  Additional
+                 parameter for getf and fgetf.
+
 
 
 1. Introduction
@@ -403,6 +406,7 @@ report later.
   syserrors      system         systemcalls
   tell           time           time_format    token
   tolower        toupper
+  version
 
 The following identifiers are predeclared in class except mentioned above.
 
@@ -1784,7 +1788,17 @@ variables can be used.
        the keys of the table.
      
 
-8.1.2. Threads
+8.1.2. Version
+
+As Dino is a live programming language, it and its interpreter are in
+the process of the permanent development.  To access Dino interpreter
+version and consequently the language version, final variable
+version can be used.  The variable value is Dino version as a
+floating point number.  For example, if the current Dino version is
+0.54, the variable value will be 0.54.
+
+
+8.1.3. Threads
 
 To access some information about threads in Dino program, the
 following variables can be used.
@@ -1797,7 +1811,7 @@ following variables can be used.
      
 All these variables are final, so you can not change their values.
 
-8.1.3. Exceptions
+8.1.4. Exceptions
 
 When it is necessary to create an exception which is a object of class
 declared inside class except or when it is necessary to refer
@@ -1834,7 +1848,7 @@ you could type catch (signals.sigint).
      
 All these variables are final, so you can not change their values.
 
-8.1.4. Files
+8.1.5. Files
 
 To output something into standard streams or to input something from
 the standard input stream, the following variables can be used.
@@ -1848,7 +1862,7 @@ the standard input stream, the following variables can be used.
      
 All these variables are final, so you can not change their values.
 
-8.1.5. Miscellaneous variables
+8.1.6. Miscellaneous variables
 
 Values of the following variables are used by some predeclared
 functions:
@@ -3027,11 +3041,16 @@ partype, parnumber.
        contain the newline character.  The function generates
        exception eof only when the file position indicator
        before the function call stands exactly on the end of file.
-     o getf ().  The function reads all standard input
-       stream and returns it as new string.  The returned string does
-       not contain the newline character.  The function generates
-       exception eof only when the file position indicator
-       before the function call stands exactly on the end of file.
+     o getf ([ln_flag]).  The function reads all standard
+       input stream and returns it as a new string.  The function
+       generates exception eof only when the file position
+       indicator before the function call stands exactly on the end of
+       file.  The function has optional parameter which should be
+       integer after implicit integer conversion.  If the parameter
+       value is not zero, the function returns arrays of strings.
+       Otherwise it behaves as usually.  Each string is a line in the
+       input stream.  The strings does not contain the newline
+       character.
      o fget (fileinstance).  The function is analogous to
        function get except for that it reads from opened file
        associated with class file instance which is the
@@ -3040,10 +3059,10 @@ partype, parnumber.
        function getln except for that it reads from opened
        file associated with class file instance which is the
        parameter value.
-     o fgetf (fileinstance).  The function is analogous
-       to function getf except for that it reads from opened
-       file associated with class file instance which is the
-       parameter value.
+     o fgetf (fileinstance [, ln_flag]).  The function is
+       analogous to function getf except for that it reads
+       from opened file associated with class file instance
+       which is the parameter value.
      o scan ().  The functions reads character, integer,
        floating point number, string, vector, or table and returns it
        as the result.  The input values should be represented in the
@@ -3504,14 +3523,14 @@ NAME
        dino - interpreter of the programming language DINO
 
 SYNOPSIS
-       dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro-
+       dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro­
        gram-file ) dino-program-arguments
 
 DESCRIPTION
        dino interprets program on DINO programming language.  The
        program file (and include files) must have suffix .d
 
-       Description  of DINO language is in report of the Program-
+       Description  of DINO language is in report of the Program­
        ming Language DINO.
 
 OPTIONS
@@ -3525,7 +3544,7 @@ OPTIONS
               Determine  the size of the heap chunks used by DINO
               interpreter.  The size can be given in bytes  (e.g.
               32000),  in  kilobytes  (e.g. 64k), or in megabytes
-              (e.g. 1m).  The default size is 1  Megabyte.   Ini-
+              (e.g. 1m).  The default size is 1  Megabyte.   Ini­
               tially,  Dino  interpreter  creates  one chunk.  It
               allocates additional chunk (as  rule  of  the  same
               size) whenever there are no additional memory after
@@ -3539,7 +3558,7 @@ OPTIONS
 
        -Idirname
               Define directory in which Dino include  files  will
-              be  searched  for.  The order searching in directo-
+              be  searched  for.  The order searching in directo­
               ries given with this option is the same as  one  on
               the command line.
 
@@ -3554,18 +3573,6 @@ OPTIONS
 
        -p     Output  profile  information  into stderr.  Profile
               information contains number of calls and  exceution
-
-
-
-DINO                        5 May 2001                          1
-
-
-
-
-
-DINO(1)                    User Manuals                   DINO(1)
-
-
               times of all called functions and classes.
 
 FILES
@@ -3574,7 +3581,7 @@ FILES
        libdino.so
               DINO shared library on some Unix systems.
        mpi.d
-              DINO  file  implementing  multiple precision arith-
+              DINO  file  implementing  multiple precision arith­
               metic.
        mpi.so
               DINO shared library used by for implementing MPI on
@@ -3599,7 +3606,7 @@ ENVIRONMENT
 
        DINO_HOME
               If non-null,  it  defines  places  of  dino  shared
-              library (such library may be only on some Unix sys-
+              library (such library may be only on some Unix sys­
               tems including Linux, Solaris), include files, dino
               standard   external   libraries.   The  places  are
               defined as subdirectory lib in directory  given  by
@@ -3620,19 +3627,7 @@ ENVIRONMENT
 
        DINO_EXTERN_LIBS
               If non-null, it defines paths  of  dino  additional
-
-
-
-DINO                        5 May 2001                          2
-
-
-
-
-
-DINO(1)                    User Manuals                   DINO(1)
-
-
-              external  libraries.  The libraries should be sepa-
+              external  libraries.  The libraries should be sepa­
               rated by `:' (on Unix) or `;'  (on  Windows).   The
               value  has  less  priority  than values given in -L
               options.
@@ -3648,49 +3643,7 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-DINO                        5 May 2001                          3
-
+DINO                        5 May 2001                          1
 
 
 

@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino27397.info.2.
+/tmp/sgml-tools-dir-1286/sgmltmp.dino1286.info.2.
 
    \input texinfo
 
@@ -40,8 +40,10 @@ The Programming Language DINO
        Jun 25, 2001.  Operators char, int, float are added.
      
        Sep 25, 2001.  Vector conversion with format.  New function rev.
-                      del, ins, insv now return the vector.  getln
-                      with parameter.
+                      del, ins, insv now return the vector.
+     
+       Oct 27, 2001.  New predefined variable version.  Additional
+                      parameter for getf and fgetf.
 
 * Menu:
 
@@ -403,6 +405,7 @@ detail in the report later.
        syserrors      system         systemcalls
        tell           time           time_format    token
        tolower        toupper
+       version
 
    The following identifiers are predeclared in class `except'
 mentioned above.

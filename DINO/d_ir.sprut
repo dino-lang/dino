@@ -377,7 +377,7 @@ typedef IR_node_t pc_t;
   "var final invparsers = invcalls.invparser (nil);\n"\
   "var final invexterns = invcalls.invextern (nil);\n"\
   "var final invaccesses = errors.invaccess (nil);\n"\
-  "var argv, env, final main_thread, final curr_thread;\n"\
+  "var argv, env, final version, final main_thread, final curr_thread;\n"\
   "// Do not place any code inside file (it is only for internal purposes)\n"\
   "final class file (){\n"\
   "  private file_ptr; var file_ptr;\n"\
@@ -761,6 +761,9 @@ extern IR_node_t argv_decl;
 
 #define ENV_NAME "env"
 extern IR_node_t env_decl;
+
+#define VERSION_NAME "version"
+extern IR_node_t version_decl;
 
 #define MAIN_THREAD_NAME "main_thread"
 extern IR_node_t main_thread_decl;
@@ -2265,6 +2268,7 @@ IR_node_t invexterns_decl;
 IR_node_t invaccesses_decl;
 IR_node_t argv_decl;
 IR_node_t env_decl;
+IR_node_t version_decl;
 IR_node_t main_thread_decl;
 IR_node_t curr_thread_decl;
 IR_node_t token_decl;
@@ -2498,6 +2502,7 @@ static struct decl_entry decls_table [] =
   {&invaccesses_decl, INVACCESSES_NAME, NULL, NULL},
   {&argv_decl, ARGV_NAME, NULL, NULL},
   {&env_decl, ENV_NAME, NULL, NULL},
+  {&version_decl, VERSION_NAME, NULL, NULL},
   {&main_thread_decl, MAIN_THREAD_NAME, NULL, NULL},
   {&curr_thread_decl, CURR_THREAD_NAME, NULL, NULL},
   {&token_decl, TOKEN_NAME, NULL, NULL},

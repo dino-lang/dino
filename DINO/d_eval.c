@@ -2275,7 +2275,7 @@ evaluate (IR_node_mode_t node_mode)
 }
 
 static void
-initiate_arguments (void)
+initiate_vars (void)
 {
   ER_node_t var;
   ER_node_t string;
@@ -2340,6 +2340,12 @@ initiate_arguments (void)
   ER_set_tab (var, GET_TEMP_REF (0));
   ER_set_immutable (GET_TEMP_REF (0), TRUE);
   POP_TEMP_REF (1);
+  /* Set version */
+  assert (IR_scope (version_decl) == ER_block_node (cstack));
+  var = INDEXED_VAL (ER_stack_vars (cstack),
+		     IR_var_number_in_block (version_decl));
+  ER_SET_MODE (var, ER_NM_float);
+  ER_set_f (var, DINO_VERSION);
   /* Set main_thread, curr_thread */
   assert (IR_scope (main_thread_decl) == ER_block_node (cstack));
   var = INDEXED_VAL (ER_stack_vars (cstack),
@@ -2453,7 +2459,7 @@ evaluate_program (pc_t start_pc)
   uppest_stack = cstack;
   initiate_processes (cpc);
   INCREMENT_PC ();
-  initiate_arguments ();
+  initiate_vars ();
 #ifndef NO_PROFILE
   if (profile_flag)
     {

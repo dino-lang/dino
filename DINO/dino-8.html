@@ -39,6 +39,16 @@ representing values of environment variables whose names are
 the keys of the table.</LI>
 </UL>
 <P>
+<H3>Version</H3>
+
+<P>As Dino is a live programming language, it and its interpreter are in
+the process of the permanent development.  To access Dino interpreter
+version and consequently the language version, final variable
+<CODE>version</CODE> can be used.  The variable value is Dino version as a
+floating point number.  For example, if the current Dino version is
+0.54, the variable value will be 0.54.
+<P>
+<P>
 <H3>Threads</H3>
 
 <P>To access some information about threads in Dino program, the
@@ -1343,11 +1353,16 @@ character newline or end of file.  The returned string does not
 contain the newline character.  The function generates
 exception <CODE>eof</CODE> only when the file position indicator
 before the function call stands exactly on the end of file.</LI>
-<LI><CODE>getf ()</CODE>.  The function reads all standard input
-stream and returns it as new string.  The returned string does
-not contain the newline character.  The function generates
-exception <CODE>eof</CODE> only when the file position indicator
-before the function call stands exactly on the end of file.</LI>
+<LI><CODE>getf ([ln_flag])</CODE>.  The function reads all standard
+input stream and returns it as a new string.  The function
+generates exception <CODE>eof</CODE> only when the file position
+indicator before the function call stands exactly on the end of
+file.  The function has optional parameter which should be
+integer after implicit integer conversion.  If the parameter
+value is not zero, the function returns arrays of strings.
+Otherwise it behaves as usually.  Each string is a line in the
+input stream.  The strings does not contain the newline
+character.</LI>
 <LI><CODE>fget (fileinstance)</CODE>.  The function is analogous to
 function <CODE>get</CODE> except for that it reads from opened file
 associated with class <CODE>file</CODE> instance which is the
@@ -1356,10 +1371,10 @@ parameter value.</LI>
 function <CODE>getln</CODE> except for that it reads from opened
 file associated with class <CODE>file</CODE> instance which is the
 parameter value.</LI>
-<LI><CODE>fgetf (fileinstance)</CODE>.  The function is analogous
-to function <CODE>getf</CODE> except for that it reads from opened
-file associated with class <CODE>file</CODE> instance which is the
-parameter value.</LI>
+<LI><CODE>fgetf (fileinstance [, ln_flag])</CODE>.  The function is
+analogous to function <CODE>getf</CODE> except for that it reads
+from opened file associated with class <CODE>file</CODE> instance
+which is the parameter value.</LI>
 <LI><CODE>scan ()</CODE>.  The functions reads character, integer,
 floating point number, string, vector, or table and returns it
 as the result.  The input values should be represented in the

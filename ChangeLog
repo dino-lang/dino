@@ -1,11 +1,32 @@
-2001-10-26  Vladimir Makarov  <users.sourceforge.net>
+2001-10-27  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_func.c (getgn, getegn, getgroups_call, fgn_call): Add
+	checking getgrgid on NULL.
+	
+	* DINO/d_eval.c (initiate_arguments): Rename it into
+	initiate_vars.  Add initializing varaibale version.
+	(evaluate_program): Use initiate_vars instead of
+	initiate_arguments.
+
+	* DINO/d_ir.sprut (ENVIRONMENT): Add final variable version.
+	(VERSION_NAME): New macro.
+	(version_decl): New variable.
+	(decls_table): Add entry for version.
+
+	* DINO/dino.sgml.in:  Add description of version and new
+	parameter for getf, fgetf.
+
+	* DINO/{dino-4.html, dino.html, dino-8.html, dino-10.html,
+	dino.dvi, dino.info*, dino.ps, dino.txt}: Update.
+
+2001-10-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (test): Remove function test.
 
 	* DINO/d_func.c (process_func_class_call): Remove function test
 	call.
 	
-2001-10-26  Vladimir Makarov  <users.sourceforge.net>
+2001-10-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/Makefile.in (DINO_VERSION): New macro.
 	(distdir, libdir, includedir, OPTIONS): Use the new macro.

@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino27397.info.2.
+/tmp/sgml-tools-dir-1286/sgmltmp.dino1286.info.2.
 
    \input texinfo
 
@@ -936,11 +936,15 @@ and so on) and `eof' besides standard `partype', `parnumber'.
      when the file position indicator before the function call stands
      exactly on the end of file.
 
-   * `getf ()'.  The function reads all standard input stream and
-     returns it as new string.  The returned string does not contain
-     the newline character.  The function generates exception `eof'
-     only when the file position indicator before the function call
-     stands exactly on the end of file.
+   * `getf ([ln_flag])'.  The function reads all standard input
+     stream and returns it as a new string.  The function generates
+     exception `eof' only when the file position indicator before the
+     function call stands exactly on the end of file.  The function has
+     optional parameter which should be integer after implicit integer
+     conversion.  If the parameter value is not zero, the function
+     returns arrays of strings.  Otherwise it behaves as usually.  Each
+     string is a line in the input stream.  The strings does not
+     contain the newline character.
 
    * `fget (fileinstance)'.  The function is analogous to function
      `get' except for that it reads from opened file associated with
@@ -950,9 +954,10 @@ and so on) and `eof' besides standard `partype', `parnumber'.
      `getln' except for that it reads from opened file associated with
      class `file' instance which is the parameter value.
 
-   * `fgetf (fileinstance)'.  The function is analogous to function
-     `getf' except for that it reads from opened file associated with
-     class `file' instance which is the parameter value.
+   * `fgetf (fileinstance [, ln_flag])'.  The function is
+     analogous to function `getf' except for that it reads from opened
+     file associated with class `file' instance which is the parameter
+     value.
 
    * `scan ()'.  The functions reads character, integer, floating point
      number, string, vector, or table and returns it as the result.

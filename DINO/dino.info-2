@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino27397.info.2.
+/tmp/sgml-tools-dir-1286/sgmltmp.dino1286.info.2.
 
    \input texinfo
 
@@ -655,13 +655,14 @@ or can be used to control behaviour of Dino interpreter.
 * Menu:
 
 * Arguments and environment::
+* Version::
 * Threads::
 * Exceptions::
 * Files::
 * Miscellaneous variables::
 
 
-File: dino.info,  Node: Arguments and environment,  Next: Threads,  Up: Predeclared variables
+File: dino.info,  Node: Arguments and environment,  Next: Version,  Up: Predeclared variables
 
 Arguments and environment
 -------------------------
@@ -677,7 +678,20 @@ variables can be used.
      environment variables whose names are the keys of the table.
 
 
-File: dino.info,  Node: Threads,  Next: Exceptions,  Prev: Arguments and environment,  Up: Predeclared variables
+File: dino.info,  Node: Version,  Next: Threads,  Prev: Arguments and environment,  Up: Predeclared variables
+
+Version
+-------
+
+   As Dino is a live programming language, it and its interpreter are in
+the process of the permanent development.  To access Dino interpreter
+version and consequently the language version, final variable `version'
+can be used.  The variable value is Dino version as a floating point
+number.  For example, if the current Dino version is 0.54, the variable
+value will be 0.54.
+
+
+File: dino.info,  Node: Threads,  Next: Exceptions,  Prev: Version,  Up: Predeclared variables
 
 Threads
 -------

@@ -44,10 +44,8 @@ getgn (void)
   struct group *p;
 
   p = getgrgid (getgid ());
-#ifdef __CYGWIN__
   if (p == NULL)
     return "Unknown";
-#endif
   return p->gr_name;
 }
 
@@ -57,10 +55,8 @@ getegn (void)
   struct group *p;
 
   p = getgrgid (getegid ());
-#ifdef __CYGWIN__
   if (p == NULL)
     return "Unknown";
-#endif
   return p->gr_name;
 }
 
@@ -3520,7 +3516,7 @@ void
 getgroups_call (int_t pars_number)
 {
   ER_node_t vect;
-  size_t els_number;
+  size_t els_number, grs_n;
   size_t el_type_size;
   size_t i;
 
@@ -3535,20 +3531,34 @@ getgroups_call (int_t pars_number)
   VLO_NULLIFY (temp_vlobj);
   VLO_EXPAND (temp_vlobj, sizeof (GETGROUPS_T) * els_number);
   getgroups (els_number, (GETGROUPS_T *) VLO_BEGIN (temp_vlobj));
-  el_type_size = type_size_table [ER_NM_vect];
-  vect = create_pack_vector (els_number, ER_NM_vect);
-  ER_set_els_number (vect, 0);
+  for (grs_n = i = 0; i < els_number; i++)
+    if (getgrgid (((GETGROUPS_T *) VLO_BEGIN (temp_vlobj)) [i]) != NULL)
+      grs_n++;
+  if (grs_n == 0)
+    vect = create_empty_vector ();
+  else
+    {
+      el_type_size = type_size_table [ER_NM_vect];
+      vect = create_pack_vector (grs_n, ER_NM_vect);
+      ER_set_els_number (vect, 0);
+    }
   /* Place the result instead of the function. */
   ER_SET_MODE (ctop, ER_NM_vect);
   ER_set_vect (ctop, vect);
-  for (i = 0; i < els_number; i++)
-    {
-      vect = create_string (getgrgid
-			    (((GETGROUPS_T *) VLO_BEGIN (temp_vlobj)) [i])
-			    ->gr_name);
-      ((ER_node_t *) ER_pack_els (ER_vect (ctop))) [i] = vect;
-      ER_set_els_number (ER_vect (ctop), i + 1);
-    }
+  if (grs_n != 0)
+      for (grs_n = i = 0; i < els_number; i++)
+	{
+	  struct group *gr;
+	  
+	  gr = getgrgid (((GETGROUPS_T *) VLO_BEGIN (temp_vlobj)) [i]);
+	  if (gr != NULL)
+	    {
+	      vect = create_string (gr->gr_name);
+	      ((ER_node_t *) ER_pack_els (ER_vect (ctop))) [grs_n] = vect;
+	      grs_n++;
+	      ER_set_els_number (ER_vect (ctop), grs_n);
+	    }
+	}
 #else
   vect = create_empty_vector ();
   /* Place the result instead of the function. */
@@ -4180,11 +4190,9 @@ fgn_call (int_t pars_number)
     struct group *p;
     
     p = getgrgid (buf.st_gid);
-#ifdef __CYGWIN__
     if (p == NULL)
       str = "Unknown";
     else
-#endif
       str = p->gr_name;
     result = create_string (str);
   }
