@@ -1,5 +1,5 @@
 This is ammunition.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.ammunition17007.info.2.
+/tmp/sgml-tools-dir-5477/sgmltmp.ammunition5477.info.2.
 
    \input texinfo
 
@@ -183,7 +183,7 @@ definitions:
                                                   int base, char *result)'
 
      transforms integer of given size to ascii representation with
-     given base.  The base should be between 2 and 16 including them.
+     given base.  The base should be between 2 and 36 including them.
      Digits more 9 are represented by 'a', 'b' etc.  Sign is present in
      result string only for negative numbers.  The function returns
      value `result'.  There is analogous function
@@ -216,7 +216,7 @@ definitions:
      transforms the tail of the source string (ascii representation
      with given base and with possible sign `+' or `-') to given size
      integer and returns pointer to first non digit in the source
-     string.  The base should be between 2 and 16 including them.
+     string.  The base should be between 2 and 36 including them.
      Digits more 9 are represented by 'a' (or 'A'), 'b' (or 'B') etc.
      If the string started with invalid integer representation the
      result will be zero.  The function fixes overflow when result can

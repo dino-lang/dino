@@ -1197,7 +1197,7 @@ external definitions:
                                    int base, char *result)'
            </verb></tscreen>
            transform integer of given size to ascii representation
-           with given base.  The base should be between 2 and 16
+           with given base.  The base should be between 2 and 36
            including them.  Digits more 9 are represented by 'a', 'b'
            etc.  Sign is present in result string only for negative
            numbers (it is not possible for the function in class
@@ -1228,7 +1228,7 @@ external definitions:
            representation with given base and with possible sign `+'
            or `-' only for the function in class `signed_integer') to
            given size integer and return pointer to first non digit in
-           the source string.  The base should be between 2 and 16
+           the source string.  The base should be between 2 and 36
            including them.  Digits more 9 are represented by 'a' (or
            'A'), 'b' (or 'B') etc.  If the string started with invalid
            integer representation the result will be zero.  The
@@ -1350,7 +1350,7 @@ external definitions:
            `char *to_based_str (int base, char *result)'
            </verb></tscreen>
            transform integer to ascii representation with given base.
-           The base should be between 2 and 16 including them.  Digits
+           The base should be between 2 and 36 including them.  Digits
            more 9 are represented by 'a', 'b' etc.  Sign is present in
            result string only for negative numbers (it is not possible
            for the function in class `unsint').  The functions return
@@ -1378,7 +1378,7 @@ external definitions:
            representation with given base and with possible sign `+'
            or `-' only for the function in class `signed_integer') to
            given integer and return pointer to first non digit in the
-           source string.  The base should be between 2 and 16
+           source string.  The base should be between 2 and 36
            including them.  Digits more 9 are represented by 'a' (or
            'A'), 'b' (or 'B') etc.  If the string started with invalid
            integer representation the result will be zero.  The

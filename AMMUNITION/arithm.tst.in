@@ -203,7 +203,7 @@ main()
       if (strcmp (s, str) !=0)
         exit (1);
     }
-  for (b = 2; b <= 16; b++)
+  for (b = 2; b <= 36; b++)
     for (i = -2000; i < 2000; i++)
       {
         sprintf (str, "%d", i);
@@ -334,7 +334,7 @@ main()
       if (strcmp (s, str) !=0)
         exit (1);
     }
-  for (b = 2; b <= 16; b++)
+  for (b = 2; b <= 36; b++)
     for (i = 0; i < 4000 ; i++)
       {
         sprintf (str, "%u", i);

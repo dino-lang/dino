@@ -1535,7 +1535,7 @@ signed_integer::change_size (int operand_size, const void *operand,
    numbers to ascii representation. */
 
 /* This function transforms unsigned integer of given size to BASE
-   ascii representation.  BASE should be between 2 and 16 including
+   ascii representation.  BASE should be between 2 and 36 including
    them.  Digits more 9 are represented by 'a', 'b' etc.  Sign is
    absent in result string.  The function returns the result
    string. */
@@ -1553,7 +1553,7 @@ unsigned_integer::to_based_string (int size, const void *operand, int base,
   int temporary;
   unsigned char operand_copy [MAX_INTEGER_OPERAND_SIZE];
 
-  assert (base >= 2 && base <= 16);
+  assert (base >= 2 && base <= 36);
   assert (size > 0);
   assert (size <= MAX_INTEGER_OPERAND_SIZE);
   memcpy (operand_copy, operand, (size_t) size);
@@ -1592,7 +1592,7 @@ unsigned_integer::to_string (int size, const void *operand, char *result)
 }
 
 /* This function transforms integer of given size to BASE ascii
-   representation.  BASE should be between 2 and 16 including them.
+   representation.  BASE should be between 2 and 36 including them.
    Digits more 9 are represented by 'a', 'b' etc.  Sign is present in
    result string only for negative numbers.  The function returns the
    result string. */
@@ -1662,7 +1662,7 @@ add_digit_to_unsigned_integer_without_overflow_reaction
 /* This function transforms source string (BASE ascii representation
    without sign) to given size unsigned integer and returns pointer to
    first non digit in the source string through a parameter.  BASE
-   should be between 2 and 16 including them.  If the string started
+   should be between 2 and 36 including them.  If the string started
    with invalid integer representation the result will be zero and
    returns the operand through the parameter.  The function returns 1
    if unsigned integer overflow is fixed, 0 otherwise. */
@@ -1674,7 +1674,7 @@ string_to_unsigned_integer_without_overflow_reaction
 {
   int overflow_flag;
 
-  assert (base >= 2 && base <= 16);
+  assert (base >= 2 && base <= 36);
   memset (result, 0, (size_t) size);
   for (overflow_flag = 0;
        (isdigit (*operand) && *operand - '0' < base)
@@ -1704,7 +1704,7 @@ string_to_unsigned_integer_without_overflow_reaction
    and transforms tail of the source string (BASE ascii representation
    without sign) to given size unsigned integer with the aid of
    function `string_to_unsigned_integer_without_overflow_reaction'.
-   BASE should be between 2 and 16 including them.  Digits more 9 are
+   BASE should be between 2 and 36 including them.  Digits more 9 are
    represented by 'a' (or 'A'), 'b' (or 'B') etc.  If the string
    started with invalid unsigned integer representation the result
    will be zero.  The function fixes overflow when result can not be
@@ -1748,7 +1748,7 @@ unsigned_integer::from_string (int size, const char *operand, void *result)
    and transforms tail of the source string (BASE ascii representation
    with possible sign `+' or `-') to given size integer with the aid
    of function `string_to_unsigned_integer_without_overflow_reaction'.
-   BASE should be between 2 and 16 including them.  Digits more 9 are
+   BASE should be between 2 and 36 including them.  Digits more 9 are
    represented by 'a' (or 'A'), 'b' (or 'B') etc.  If the string
    started with invalid integer representation the result will be
    zero.  The function fixes overflow when result can not be
