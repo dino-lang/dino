@@ -879,12 +879,16 @@ evaluate (IR_node_mode_t node_mode)
       INCREMENT_PC ();
       break;
     case IR_NM_string:
-      TOP_UP;
-      ER_SET_MODE (ctop, ER_NM_vect);
-      ER_set_vect (ctop,
-		   create_string (IR_string_value
-				  (IR_unique_string (IR_POINTER (cpc)))));
-      INCREMENT_PC ();
+      {
+	ER_node_t vect;
+
+	vect = create_string (IR_string_value (IR_unique_string
+					       (IR_POINTER (cpc))));
+	TOP_UP;
+	ER_SET_MODE (ctop, ER_NM_vect);
+	ER_set_vect (ctop, vect);
+	INCREMENT_PC ();
+      }
       break;
     case IR_NM_nil:
       TOP_UP;
@@ -1425,14 +1429,16 @@ evaluate (IR_node_mode_t node_mode)
 	  ER_node_t vect = ER_vect (ctop);
 	  
 	  GO_THROUGH_REDIR (vect);
-	  ER_set_vect (ctop, copy_vector (vect));
+	  vect = copy_vector (vect);
+	  ER_set_vect (ctop, vect);
 	}
       else if (ER_NODE_MODE (ctop) == ER_NM_tab)
 	{
 	  ER_node_t tab = ER_tab (ctop);
 
 	  GO_THROUGH_REDIR (tab);
-	  ER_set_tab (ctop, copy_tab (tab));
+	  tab = copy_tab (tab);
+	  ER_set_tab (ctop, tab);
         }
       else if (ER_NODE_MODE (ctop) == ER_NM_instance)
 	{

@@ -25900,6 +25900,160 @@ OUTPUT453
         fi
 fi
 
+# Test 454.
+if test $result = ok -a $start_test_number -le 454; then
+	echo test 454
+        cat >$test_file <<'TEST454'
+putln (rcount ("aa", "aaaaa"));
+TEST454
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT454' && cmp $stdout $ftemp2; then
+2
+OUTPUT454
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 455.
+if test $result = ok -a $start_test_number -le 455; then
+	echo test 455
+        cat >$test_file <<'TEST455'
+putln (rcount ("aa", "aaaaa", 1));
+TEST455
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT455' && cmp $stdout $ftemp2; then
+4
+OUTPUT455
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 456.
+if test $result = ok -a $start_test_number -le 456; then
+	echo test 456
+        cat >$test_file <<'TEST456'
+var i;
+for (i = 0; i < 300000; i++)
+  rcount ("aa", "aaaaa", 1);
+TEST456
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT456' && cmp $stdout $ftemp2; then
+OUTPUT456
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 457.
+if test $result = ok -a $start_test_number -le 457; then
+	echo test 457
+        cat >$test_file <<'TEST457'
+rcount ("aa", "aaaaa", nil);
+TEST457
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=fail
+        elif cmp $stderr - <<'TEST457-1'; then
+test.d:1:9: run time error - invalid parameter type of `rcount'
+TEST457-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 458.
+if test $result = ok -a $start_test_number -le 458; then
+	echo test 458
+        cat >$test_file <<'TEST458'
+rcount ("aa");
+TEST458
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=fail
+        elif cmp $stderr - <<'TEST458-1'; then
+test.d:1:9: run time error - invalid number of parameters of `rcount'
+TEST458-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 459.
+if test $result = ok -a $start_test_number -le 459; then
+	echo test 459
+        cat >$test_file <<'TEST459'
+rcount ("[aa", "aa");
+TEST459
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=fail
+        elif cmp $stderr - <<'TEST459-1'; then
+test.d:1:9: run time error - unmatched bracket list operators in regexp
+TEST459-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 460.
+if test $result = ok -a $start_test_number -le 460; then
+	echo test 460
+        cat >$test_file <<'TEST460'
+rcount (nil, "aa");
+TEST460
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=fail
+        elif cmp $stderr - <<'TEST460-1'; then
+test.d:1:9: run time error - invalid parameter type of `rcount'
+TEST460-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 461.
+if test $result = ok -a $start_test_number -le 461; then
+	echo test 461
+        cat >$test_file <<'TEST461'
+rcount ("aa", nil);
+TEST461
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=fail
+        elif cmp $stderr - <<'TEST461-1'; then
+test.d:1:9: run time error - invalid parameter type of `rcount'
+TEST461-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

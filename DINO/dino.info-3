@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino4707.info.2.
+/tmp/sgmltmp.dino5641.info.2.
 
    \input texinfo
 
@@ -355,6 +355,22 @@ of the regular expression.
 
      outputs
                     [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
+
+   * `rcount (regex, string[, flag])'.  The function searches number of
+     different occurrences of regular expression `regex' in `string'.
+     The both parameters should be strings after their implicit string
+     conversion.  The third parameter is optional.  If it is present,
+     it should be integer after implicit integer conversion.  If its
+     value is nonzero, the substrings matched by regexp can be
+     overlapped.  Otherwise, the substrings are never overlapped.  If
+     the parameter is absent, the function behaves as its value were
+     zero.  Example: The program
+                    println (rcount ("aa", "aaaaa"));
+                    println (rcount ("aa", "aaaaa", 1));
+
+     outputs
+                    2
+                    4
 
    * `sub (regex, string, subst)'.  The function searches for matching
      regular expression `regex' in `string'.  The all parameters should

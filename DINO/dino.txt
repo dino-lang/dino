@@ -30,6 +30,8 @@ History
                  
                  Declaration block friends.
 
+  Jun 22, 2001.  Function rcount is added.
+
 
 1. Introduction
 
@@ -378,10 +380,10 @@ report later.
   main_thread    match          max            min
   mkdir
   open
-  pclose         popen          pow            print
-  println        put            putln
-  rand           readdir        remove         rename
-  rmdir
+  parser         pclose         popen          pow
+  print          println        put            putln
+  rand           rcount         readdir        remove
+  rename         rmdir
   scan           scanln         seek           signals
   sin            sort           split          split_regex
   sqrt           srand          stderr         stdin
@@ -2618,6 +2620,26 @@ There are the following Dino pattern matching functions:
        outputs
 
           [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
+
+     o rcount (regex, string[, flag]).  The function
+       searches number of different occurrences of regular expression
+       regex in string.  The both parameters should
+       be strings after their implicit string conversion.  The third
+       parameter is optional.  If it is present, it should be integer
+       after implicit integer conversion.  If its value is nonzero,
+       the substrings matched by regexp can be overlapped.  Otherwise,
+       the substrings are never overlapped.  If the parameter is
+       absent, the function behaves as its value were  zero.
+       
+       Example: The program
+
+          println (rcount ("aa", "aaaaa"));
+          println (rcount ("aa", "aaaaa", 1));
+
+       outputs
+
+          2
+          4
 
      o sub (regex, string, subst).  The function searches
        for matching regular expression regex in

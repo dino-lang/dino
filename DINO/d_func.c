@@ -725,6 +725,63 @@ match_call (int_t pars_number)
   INCREMENT_PC();
 }
 
+void
+rcount_call (int_t pars_number)
+{
+  regex_t reg;
+  regmatch_t *pmatch;
+  ER_node_t vect;
+  size_t els_number;
+  int code, flag, count;
+  const char *start;
+
+  if (pars_number != 2 && pars_number != 3)
+    eval_error (parnumber_decl, invcalls_decl, *source_position_ptr,
+		DERR_parameters_number, RCOUNT_NAME);
+  flag = 0;
+  if (pars_number == 3)
+    {
+      implicit_int_conversion (1);
+      if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
+	eval_error (partype_decl, invcalls_decl,
+		    *source_position_ptr, DERR_parameter_type, RCOUNT_NAME);
+      flag = ER_i (ctop);
+      TOP_DOWN;
+      pars_number--;
+    }
+  to_vect_string_conversion (ctop);
+  to_vect_string_conversion (below_ctop);
+  if (ER_NODE_MODE (ctop) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
+      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
+      || ER_NODE_MODE (below_ctop) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
+      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
+    eval_error (partype_decl, invcalls_decl,
+		*source_position_ptr, DERR_parameter_type, RCOUNT_NAME);
+  code = regcomp(&reg, ER_pack_els (ER_vect (below_ctop)), RE_DINO_SYNTAX);
+  if (code != 0)
+    process_regcomp_errors (code, RCOUNT_NAME);
+  /* Make vector which can store regmatch_t's. */
+  VLO_NULLIFY (temp_vlobj);
+  VLO_EXPAND (temp_vlobj, (reg.re_nsub + 1) * sizeof (regmatch_t));
+  pmatch = (regmatch_t *) VLO_BEGIN (temp_vlobj);
+  start = ER_pack_els (ER_vect (ctop));
+  count = 0;
+  while (!regexec (&reg, start, reg.re_nsub + 1, pmatch, 0))
+    {
+      start += (!flag ? pmatch[0].rm_eo : 1);
+      count++;
+    }
+  regfree (&reg);
+  /* Pop all actual parameters. */
+  DECR_FREE (cstack, pars_number);
+  SET_TOP;
+  ER_SET_MODE (ctop, ER_NM_int);
+  ER_set_i (ctop, count);
+  INCREMENT_PC();
+}
+
 static void
 generall_sub_call (int_t pars_number, int global_flag)
 {

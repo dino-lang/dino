@@ -960,6 +960,31 @@ outputs
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
+<LI><CODE>rcount (regex, string[, flag])</CODE>.  The function
+searches number of different occurrences of regular expression
+<CODE>regex</CODE> in <CODE>string</CODE>.  The both parameters should
+be strings after their implicit string conversion.  The third
+parameter is optional.  If it is present, it should be integer
+after implicit integer conversion.  If its value is nonzero,
+the substrings matched by regexp can be overlapped.  Otherwise,
+the substrings are never overlapped.  If the parameter is
+absent, the function behaves as its value were  zero.
+<P>Example: The program
+<BLOCKQUOTE><CODE>
+<PRE>
+          println (rcount ("aa", "aaaaa"));
+          println (rcount ("aa", "aaaaa", 1));
+</PRE>
+</CODE></BLOCKQUOTE>
+
+outputs
+<BLOCKQUOTE><CODE>
+<PRE>
+          2
+          4
+</PRE>
+</CODE></BLOCKQUOTE>
+</LI>
 <LI><CODE>sub (regex, string, subst)</CODE>.  The function searches
 for matching regular expression <CODE>regex</CODE> in
 <CODE>string</CODE>.  The all parameters should be string after

@@ -1752,7 +1752,7 @@ create_string (const char *string)
   size_t chars_number;
   
   chars_number = strlen (string);
-  vect = create_empty_string (chars_number);
+  vect = create_empty_string (chars_number + 1);
   ER_set_els_number (vect, chars_number);
   strcpy (ER_pack_els (vect), string);
   return vect;

@@ -1,3 +1,24 @@
+2001-06-22  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* d_built.h (rcount_call): New prototype.
+
+	* d_eval.c (evaluate): Create objects before setting mode.
+
+	* d_func.c (rcount_call): New function.
+
+	* d_run.sprut (create_string): Call create_empty_string with
+	bigger min_length.
+
+	* d_ir.sprut (rcount): Add new function (macros, table entry
+	etc.).
+
+	* dino.tst.in: Add tests for rcount.
+
+	* dino.sgml.in: Add documentation of rcount.
+
+	* dino.html, dino-4.html, dino-8.html, dino.dvi, dino.info*,
+	dino.ps, dino.txt: Update.
+
 2001-06-21  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* mpi.c (mpi_to_string, mpi_from_string): Rename them into
