@@ -1,5 +1,13 @@
 2002-03-08  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
+	* AMMUNITION/{ammunition++.dvi, ammunition++.info,
+	ammunition++.info-1, ammunition++.info-2, ammunition++.info-3,
+	ammunition++.info-4, ammunition++.ps, ammunition.dvi,
+	ammunition.info, ammunition.info-1, ammunition.info-2,
+	ammunition.info-3, ammunition.ps): Update.
+
+2002-03-08  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
 	* DINO/d_heap.c (unpack_vector): Set up mode after moving the
 	value.
 
