@@ -1,5 +1,12 @@
 2001-06-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* SHILKA/yacc.y (make_lower_case_string): New function.  Use it
+	for creation of keywords when -case.
+
+	* SHILKA/shilka.tst.in: Add Novikov's test.
+	
+2001-06-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* AMMUNITION/arithm.h (unsigned_integer_from_based_string): Fix
 	typo.
 

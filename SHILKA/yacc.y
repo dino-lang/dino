@@ -65,6 +65,8 @@ static void syntax_error (const char *s);
 
 static IR_node_t keyword_type;
 
+static char *make_lower_case_string (char *string);
+
 %}
 
 
@@ -236,15 +238,32 @@ keyword_definition_list :                                  {$$ = NULL;}
 keyword_definition : IDENTIFIER {$<position>$ = current_lexema_position;}
                      optional_name frequency optional_action
                        {
+			 IR_node_t identifier = $1;
+
+			 if (case_flag)
+			   identifier
+			     = IR_new_identifier (IR_position ($1),
+						  make_lower_case_string
+						  (IR_identifier_itself ($1)));
                          $$ = IR_new_identifier_keyword
                               ($<position>2,
-                               ($3 == NULL ? $1 : $3), $4, $5, NULL, $1);
-                       } 
+                               ($3 == NULL ? $1 : $3), $4, $5, NULL,
+			       identifier);
+                       }
                    | STRING {$<position>$ = current_lexema_position;}
                      EQUAL IDENTIFIER frequency optional_action
                        {
+			 IR_node_t string = $1;
+
+			 if (case_flag)
+			   string
+			     = IR_new_string (IR_position ($1),
+					      IR_string_representation ($1),
+					      make_lower_case_string
+					      (IR_string_itself ($1)));
                          $$ = IR_new_string_keyword ($<position>2,
-                                                     $4, $5, $6, NULL, $1);
+                                                     $4, $5, $6, NULL,
+						     string);
                        }
                    | OTHER {$<position>$ = current_lexema_position;}
                      optional_action
@@ -293,6 +312,23 @@ optional_action :                 {$$ = NULL;}
                 ;
 
 %%
+
+
+
+/* Return lower case variant of STRING. */
+
+static char *
+make_lower_case_string (char *string)
+{
+  char *str;
+
+  IR_TOP_ADD_STRING (string);
+  string = (char *) IR_TOP_BEGIN ();
+  IR_TOP_FINISH ();
+  for (str = string; *str != '\0'; str++)
+    *str = our_tolower (*str);
+  return string;
+}
 
 
 

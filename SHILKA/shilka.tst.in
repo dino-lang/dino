@@ -134,6 +134,61 @@ TEST2
 fi
 
 
+# Test 3.
+if test $result = ok -a $start_test_number -le 3; then
+	echo test 3
+        cat >$test_shilka <<'TEST3'
+%export {
+#define THEN 2
+#define THAN 3
+#define IDENT 4
+}
+%%
+Then {return THEN;}
+than {return THAN;}
+%other    {return IDENT;}
+TEST3
+        echo '      ' $SHILKA -case -no-definitions $test_shilka "2>$stderr"
+        if $SHILKA -case $test_shilka 2>$stderr; then
+           cat >$test_file <<'TEST3'
+#include "temp.c"
+main ()
+{
+  KR_reset ();
+  if (KR_find_keyword ("Then", 4) != THEN)
+    exit (1);
+  else if (KR_find_keyword ("Than", 4) != THAN)
+    exit (1);
+  else if (KR_find_keyword ("then", 4) != THEN)
+    exit (1);
+  else if (KR_find_keyword ("than", 4) != THAN)
+    exit (1);
+  else if (KR_find_keyword ("THEN", 4) != THEN)
+    exit (1);
+  else if (KR_find_keyword ("THAN", 4) != THAN)
+    exit (1);
+  else if (KR_find_keyword ("abraca", 6) != IDENT)
+    exit (1);
+  exit (0);
+}
+TEST3
+           echo '      ' $CC $CC_options $test_file -o $outfile
+           if $CC $CC_options $test_file -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+           else
+                result=fail
+           fi
+        else
+                result=fail
+        fi
+fi
+
+
 # Final message
 
 if test $result = ok; then
