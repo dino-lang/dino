@@ -27810,8 +27810,8 @@ TEST499
      else
         echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file 37 >$stdout"
         if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 37 >$stdout; then
-                echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
-                if egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
+                echo '      ' test -z "\`cat $stdout\`" '|| egrep ^".+"\[".+"\]37"tcp"$' $stdout
+                if test -z "`cat $stdout`" || egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
                         result=ok
                 else
                         result=fail
