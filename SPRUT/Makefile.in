@@ -680,7 +680,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
+doc : sprut.sgml.tmp $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
 
 sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");print;}' > sprut.tmp
@@ -691,10 +691,10 @@ sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	rm -f sprut.tmp
 
 
-$(srcdir)/sprut.txt: sprut.sgml.tmp
+$(srcdir)/sprut.txt: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	$(srcdir)/../sgml-txt sprut.sgml.tmp > $@
 	
-$(srcdir)/sprut.html: sprut.sgml.tmp
+$(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	$(srcdir)/../sgml-html sprut.sgml.tmp >sprut.sgml
 	sgml2html sprut.sgml
 	if test -f sprut-1.html;then\
@@ -704,7 +704,7 @@ $(srcdir)/sprut.html: sprut.sgml.tmp
         fi
 	mv sprut.html $(srcdir)/sprut.html
 	
-$(srcdir)/sprut.info: sprut.sgml.tmp
+$(srcdir)/sprut.info: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	$(srcdir)/../sgml-info sprut.sgml.tmp >sprut.sgml
 	sgml2info sprut.sgml
 	for i in sprut.info*;do\
@@ -717,7 +717,7 @@ $(srcdir)/sprut.info: sprut.sgml.tmp
         fi
 	mv sprut.info $(srcdir)/sprut.info
 	
-$(srcdir)/sprut.dvi: sprut.sgml.tmp
+$(srcdir)/sprut.dvi: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	$(srcdir)/../sgml-tex sprut.sgml.tmp >sprut.sgml
 	sgml2latex sprut.sgml
 	if test ! -f sprut.dvi\

@@ -226,7 +226,8 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : $(srcdir)/oka.txt $(srcdir)/oka.html $(srcdir)/oka.info $(srcdir)/oka.dvi $(srcdir)/oka.ps
+doc : oka.sgml.tmp $(srcdir)/oka.txt $(srcdir)/oka.html\
+      $(srcdir)/oka.info $(srcdir)/oka.dvi $(srcdir)/oka.ps
 
 oka.sgml.tmp : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
 	nroff -man $(srcdir)/oka.1 | $(AWK) '{gsub (/.\b/,"");print;}' > oka.tmp
@@ -236,10 +237,10 @@ oka.sgml.tmp : $(srcdir)/oka.sgml.in $(srcdir)/oka.1
                  else print;}' $(srcdir)/oka.sgml.in > $@
 	rm -f oka.tmp
 
-$(srcdir)/oka.txt: oka.sgml.tmp
+$(srcdir)/oka.txt: $(srcdir)/oka.sgml.in $(srcdir)/oka.1
 	$(srcdir)/../sgml-txt oka.sgml.tmp > $@
 	
-$(srcdir)/oka.html: oka.sgml.tmp
+$(srcdir)/oka.html: $(srcdir)/oka.sgml.in $(srcdir)/oka.1
 	$(srcdir)/../sgml-html oka.sgml.tmp >oka.sgml
 	sgml2html oka.sgml
 	if test -f oka-1.html;then\
@@ -249,7 +250,7 @@ $(srcdir)/oka.html: oka.sgml.tmp
         fi
 	mv oka.html $(srcdir)/oka.html
 	
-$(srcdir)/oka.info: oka.sgml.tmp
+$(srcdir)/oka.info: $(srcdir)/oka.sgml.in $(srcdir)/oka.1
 	$(srcdir)/../sgml-info oka.sgml.tmp >oka.sgml
 	sgml2info oka.sgml
 	for i in oka.info*;do\
@@ -262,7 +263,7 @@ $(srcdir)/oka.info: oka.sgml.tmp
         fi
 	mv oka.info $(srcdir)/oka.info
 	
-$(srcdir)/oka.dvi: oka.sgml.tmp
+$(srcdir)/oka.dvi: $(srcdir)/oka.sgml.in $(srcdir)/oka.1
 	$(srcdir)/../sgml-tex oka.sgml.tmp >oka.sgml
 	sgml2latex oka.sgml
 	if test ! -f oka.dvi\

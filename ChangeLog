@@ -1,5 +1,10 @@
 2001-05-30  Vladimir Makarov  <vmakarov@toke.toronto.redhat.com>
 
+	* AMMUNITION/Makefile.in DINO/Makefile.in MSTA/Makefile.in
+	NONA/Makefile.in OKA/Makefile.in SHILKA/Makefile.in
+	SPRUT/Makefile.in: Change generated documenation if it is only
+	obsolete.
+
 	* Makefile.in AMMUNITION/Makefile.in DINO/Makefile.in
 	MSTA/Makefile.in NONA/Makefile.in OKA/Makefile.in
 	SHILKA/Makefile.in SPRUT/Makefile.in: Generation doc files from

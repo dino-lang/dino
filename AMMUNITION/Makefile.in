@@ -412,7 +412,8 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : $(srcdir)/ammunition.txt $(srcdir)/ammunition.html\
+doc : ammunition.sgml.tmp ammunition++.sgml.tmp\
+      $(srcdir)/ammunition.txt $(srcdir)/ammunition.html\
       $(srcdir)/ammunition.info\
       $(srcdir)/ammunition.dvi $(srcdir)/ammunition.ps\
       $(srcdir)/ammunition++.txt $(srcdir)/ammunition++.html\
@@ -422,10 +423,10 @@ doc : $(srcdir)/ammunition.txt $(srcdir)/ammunition.html\
 ammunition.sgml.tmp: $(srcdir)/ammunition.sgml.in
 	cp $(srcdir)/ammunition.sgml.in ammunition.sgml.tmp
 
-$(srcdir)/ammunition.txt: ammunition.sgml.tmp
+$(srcdir)/ammunition.txt: $(srcdir)/ammunition.sgml.in
 	$(srcdir)/../sgml-txt ammunition.sgml.tmp > $@
 	
-$(srcdir)/ammunition.html: ammunition.sgml.tmp
+$(srcdir)/ammunition.html: $(srcdir)/ammunition.sgml.in
 	$(srcdir)/../sgml-html ammunition.sgml.tmp >ammunition.sgml
 	sgml2html ammunition.sgml
 	if test -f ammunition-1.html;then\
@@ -435,7 +436,7 @@ $(srcdir)/ammunition.html: ammunition.sgml.tmp
         fi
 	mv ammunition.html $(srcdir)/ammunition.html
 	
-$(srcdir)/ammunition.info: ammunition.sgml.tmp
+$(srcdir)/ammunition.info: $(srcdir)/ammunition.sgml.in
 	$(srcdir)/../sgml-info ammunition.sgml.tmp >ammunition.sgml
 	sgml2info ammunition.sgml
 	for i in ammunition.info*;do\
@@ -448,7 +449,7 @@ $(srcdir)/ammunition.info: ammunition.sgml.tmp
         fi
 	mv ammunition.info $(srcdir)/ammunition.info
 	
-$(srcdir)/ammunition.dvi: ammunition.sgml.tmp
+$(srcdir)/ammunition.dvi: $(srcdir)/ammunition.sgml.in
 	$(srcdir)/../sgml-tex ammunition.sgml.tmp >ammunition.sgml
 	sgml2latex ammunition.sgml
 	if test ! -f ammunition.dvi\
@@ -463,10 +464,10 @@ $(srcdir)/ammunition.ps: $(srcdir)/ammunition.dvi
 ammunition++.sgml.tmp: $(srcdir)/ammunition++.sgml.in
 	cp $(srcdir)/ammunition++.sgml.in ammunition++.sgml.tmp
 
-$(srcdir)/ammunition++.txt: ammunition++.sgml.tmp
+$(srcdir)/ammunition++.txt: $(srcdir)/ammunition++.sgml.in
 	$(srcdir)/../sgml-txt ammunition++.sgml.tmp > $@
 	
-$(srcdir)/ammunition++.html: ammunition++.sgml.tmp
+$(srcdir)/ammunition++.html: $(srcdir)/ammunition++.sgml.in
 	$(srcdir)/../sgml-html ammunition++.sgml.tmp >ammunition++.sgml
 	sgml2html ammunition++.sgml
 	if test -f ammunition++-1.html;then\
@@ -476,7 +477,7 @@ $(srcdir)/ammunition++.html: ammunition++.sgml.tmp
         fi
 	mv ammunition++.html $(srcdir)/ammunition++.html
 	
-$(srcdir)/ammunition++.info: ammunition++.sgml.tmp
+$(srcdir)/ammunition++.info: $(srcdir)/ammunition++.sgml.in
 	$(srcdir)/../sgml-info ammunition++.sgml.tmp >ammunition++.sgml
 	sgml2info ammunition++.sgml
 	for i in ammunition++.info*;do\
@@ -489,7 +490,7 @@ $(srcdir)/ammunition++.info: ammunition++.sgml.tmp
         fi
 	mv ammunition++.info $(srcdir)/ammunition++.info
 	
-$(srcdir)/ammunition++.dvi: ammunition++.sgml.tmp
+$(srcdir)/ammunition++.dvi: $(srcdir)/ammunition++.sgml.in
 	$(srcdir)/../sgml-tex ammunition++.sgml.tmp >ammunition++.sgml
 	sgml2latex ammunition++.sgml
 	if test ! -f ammunition++.dvi\

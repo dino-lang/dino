@@ -348,7 +348,8 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : $(srcdir)/dino.txt $(srcdir)/dino.html $(srcdir)/dino.info $(srcdir)/dino.dvi $(srcdir)/dino.ps
+doc : dino.sgml.tmp $(srcdir)/dino.txt $(srcdir)/dino.html\
+      $(srcdir)/dino.info $(srcdir)/dino.dvi $(srcdir)/dino.ps
 
 dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
 	nroff -man $(srcdir)/dino.1 | $(AWK) '{gsub (/.\b/,"");print;}' > dino.tmp
@@ -358,10 +359,10 @@ dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
                  else print;}' $(srcdir)/dino.sgml.in > $@
 	rm -f dino.tmp
 
-$(srcdir)/dino.txt: dino.sgml.tmp
+$(srcdir)/dino.txt: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
 	$(srcdir)/../sgml-txt dino.sgml.tmp > $@
 	
-$(srcdir)/dino.html: dino.sgml.tmp
+$(srcdir)/dino.html: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
 	$(srcdir)/../sgml-html dino.sgml.tmp >dino.sgml
 	sgml2html dino.sgml
 	if test -f dino-1.html;then\
@@ -371,7 +372,7 @@ $(srcdir)/dino.html: dino.sgml.tmp
         fi
 	mv dino.html $(srcdir)/dino.html
 	
-$(srcdir)/dino.info: dino.sgml.tmp
+$(srcdir)/dino.info: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
 	$(srcdir)/../sgml-info dino.sgml.tmp >dino.sgml
 	sgml2info dino.sgml
 	for i in dino.info*;do\
@@ -384,7 +385,7 @@ $(srcdir)/dino.info: dino.sgml.tmp
         fi
 	mv dino.info $(srcdir)/dino.info
 	
-$(srcdir)/dino.dvi: dino.sgml.tmp
+$(srcdir)/dino.dvi: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
 	$(srcdir)/../sgml-tex dino.sgml.tmp >dino.sgml
 	sgml2latex dino.sgml
 	if test ! -f dino.dvi\

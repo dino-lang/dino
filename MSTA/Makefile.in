@@ -245,7 +245,8 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : $(srcdir)/msta.txt $(srcdir)/msta.html $(srcdir)/msta.info $(srcdir)/msta.dvi $(srcdir)/msta.ps
+doc : msta.sgml.tmp $(srcdir)/msta.txt $(srcdir)/msta.html\
+      $(srcdir)/msta.info $(srcdir)/msta.dvi $(srcdir)/msta.ps
 
 msta.sgml.tmp : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	nroff -man $(srcdir)/msta.1 | $(AWK) '{gsub (/.\b/,"");print;}' > msta.tmp
@@ -255,10 +256,10 @@ msta.sgml.tmp : $(srcdir)/msta.sgml.in $(srcdir)/msta.1
                  else print;}' $(srcdir)/msta.sgml.in > $@
 	rm -f msta.tmp
 
-$(srcdir)/msta.txt: msta.sgml.tmp
+$(srcdir)/msta.txt: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	$(srcdir)/../sgml-txt msta.sgml.tmp > $@
 	
-$(srcdir)/msta.html: msta.sgml.tmp
+$(srcdir)/msta.html: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	$(srcdir)/../sgml-html msta.sgml.tmp >msta.sgml
 	sgml2html msta.sgml
 	if test -f msta-1.html;then\
@@ -268,7 +269,7 @@ $(srcdir)/msta.html: msta.sgml.tmp
         fi
 	mv msta.html $(srcdir)/msta.html
 	
-$(srcdir)/msta.info: msta.sgml.tmp
+$(srcdir)/msta.info: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	$(srcdir)/../sgml-info msta.sgml.tmp >msta.sgml
 	sgml2info msta.sgml
 	for i in msta.info*;do\
@@ -281,7 +282,7 @@ $(srcdir)/msta.info: msta.sgml.tmp
         fi
 	mv msta.info $(srcdir)/msta.info
 	
-$(srcdir)/msta.dvi: msta.sgml.tmp
+$(srcdir)/msta.dvi: $(srcdir)/msta.sgml.in $(srcdir)/msta.1
 	$(srcdir)/../sgml-tex msta.sgml.tmp >msta.sgml
 	sgml2latex msta.sgml
 	if test ! -f msta.dvi\

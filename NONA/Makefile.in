@@ -206,7 +206,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.dvi $(srcdir)/nona.ps
+doc : nona.sgml.tmp $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.dvi $(srcdir)/nona.ps
 
 nona.sgml.tmp : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");print;}' > nona.tmp
@@ -216,10 +216,10 @@ nona.sgml.tmp : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
                  else print;}' $(srcdir)/nona.sgml.in > $@
 	rm -f nona.tmp
 
-$(srcdir)/nona.txt: nona.sgml.tmp
+$(srcdir)/nona.txt: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	$(srcdir)/../sgml-txt nona.sgml.tmp > $@
 	
-$(srcdir)/nona.html: nona.sgml.tmp
+$(srcdir)/nona.html: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	$(srcdir)/../sgml-html nona.sgml.tmp >nona.sgml
 	sgml2html nona.sgml
 	if test -f nona-1.html;then\
@@ -229,7 +229,7 @@ $(srcdir)/nona.html: nona.sgml.tmp
         fi
 	mv nona.html $(srcdir)/nona.html
 	
-$(srcdir)/nona.info: nona.sgml.tmp
+$(srcdir)/nona.info: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	$(srcdir)/../sgml-info nona.sgml.tmp >nona.sgml
 	sgml2info nona.sgml
 	for i in nona.info*;do\
@@ -242,7 +242,7 @@ $(srcdir)/nona.info: nona.sgml.tmp
         fi
 	mv nona.info $(srcdir)/nona.info
 
-$(srcdir)/nona.dvi: nona.sgml.tmp
+$(srcdir)/nona.dvi: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
 	$(srcdir)/../sgml-tex nona.sgml.tmp >nona.sgml
 	sgml2latex nona.sgml
 	if test ! -f nona.dvi\
