@@ -6,7 +6,7 @@
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@users.sourceforge.net</tt>.
 Edited by Serhei Makarov.
-<date>Apr 05, 2002
+<date>Dec 08, 2002
 <abstract>
 This document describes the programming language DINO.
 </abstract>
@@ -57,6 +57,9 @@ History
   Mar 18, 2002.  New function set_lookahead.
 
   Apr 30, 2002.  Calling destroy by finishing the program.
+
+  Dec 8, 2002.   Equality of instance, classes and functions means
+                 the same context.
 
 </verb></tscreen>
 
@@ -1237,6 +1240,8 @@ before the comparison.  Otherwise, standard arithmetic conversion is
 applied to the operands.  The operators do not generate exceptions
 (but the conversions may).  The operands are equal if they have the
 same type and equal values (see section <em>Types and Values</em>).
+For instances, functions and classes, the equality requires also the
+same context.
 <p>
 Operator identity <tt>===</tt> or unidentity <tt>!==</tt> returns 1
 if the operands have (or not) the same value or 0 otherwise.  The

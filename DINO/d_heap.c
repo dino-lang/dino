@@ -1955,6 +1955,7 @@ eq_instance (ER_node_t i1, ER_node_t i2)
 {
   return (i1 == i2
 	  || ER_class (i1) == ER_class (i2)
+	  && ER_context (i1) == ER_context (i2)
 	  && eq_val ((val_t *) ER_instance_vars (i1),
 		     (val_t *) ER_instance_vars (i2),
 		     IR_vars_number (IR_next_stmt (ER_class (i1)))));

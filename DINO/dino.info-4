@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino16841.info.2.
+This is dino.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-1192/sgmltmp.dino1192.info.2.
 
    \input texinfo
 
@@ -551,21 +551,19 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 Appendix B- Implementation
 **************************
 
-
-
-
      DINO(1)                    User Manuals                   DINO(1)
+     
      
      
      NAME
             dino - the interpreter of the programming language DINO
      
      SYNOPSIS
-            dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro-
+            dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro­
             gram-file ) dino-program-arguments
      
      DESCRIPTION
-            dino interprets a program in  the  DINO  programming  lan-
+            dino interprets a program in  the  DINO  programming  lan­
             guage.  The program file (and include files) must have the
             suffix .d
      
@@ -586,7 +584,7 @@ Appendix B- Implementation
                    megabytes   (e.g.  1m).   The  default  size  is  1
                    Megabyte.  Initially, the Dino interpreter  creates
                    one  chunk.   It allocates one additional chunk (as
-                   rule of the same size) whenever there is  no  addi-
+                   rule of the same size) whenever there is  no  addi­
                    tional memory after garbage collection.
      
             -s     Output  some  statistics  of  interpreter work into
@@ -603,7 +601,7 @@ Appendix B- Implementation
      
             -Ldirname
                    Define where to serach for external  libraries  (if
-                   shared or dll libraries are implemented on the sys-
+                   shared or dll libraries are implemented on the sys­
                    tem.  This is true for Linux, Solaris,  Irix,  OSF,
                    and  Windows)  in which the Dino external variables
                    and functions will be searched for.  The  order  of
@@ -611,19 +609,7 @@ Appendix B- Implementation
                    the same as one on the command line.
      
             -p     Output profile information  into  stderr.   Profile
-     
-     
-     
-     DINO                        5 May 2001                          1
-     
-     
-     
-     
-     
-     DINO(1)                    User Manuals                   DINO(1)
-     
-     
-                   information contains the number of calls and execu-
+                   information contains the number of calls and execu­
                    tion times of all called functions and classes.
      
      FILES
@@ -677,19 +663,7 @@ Appendix B- Implementation
                    shared  libraries  (such  a  library may be only on
                    some Unix systems  including  Linux  and  Solaris),
                    include   files,   and   dino   standard   external
-     
-     
-     
-     DINO                        5 May 2001                          2
-     
-     
-     
-     
-     
-     DINO(1)                    User Manuals                   DINO(1)
-     
-     
-                   libraries.  The places are defined as the subdirec-
+                   libraries.  The places are defined as the subdirec­
                    tory  lib  in  directory  given  by the environment
                    variable value.  You  should  define  the  variable
                    value  on  Windows  if you installed the files in a
@@ -708,9 +682,9 @@ Appendix B- Implementation
      
             DINO_EXTERN_LIBS
                    If  not  null,  it defines paths of additional Dino
-                   external libraries.  The libraries should be  sepa-
-                   rated  by  `:'  (on Unix) or `;' (on Windows).  The
-                   value has less priority than  values  given  in  -L
+                   external  libraries.   The  libraries   should   be
+                   separated  by  `:'  (on  Unix) or `;' (on Windows).
+                   The value has less priority than values given in -L
                    options.
      
      DIAGNOSTICS
@@ -724,28 +698,6 @@ Appendix B- Implementation
      
      
      
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     DINO                        5 May 2001                          3
+     DINO                        5 May 2001                    DINO(1)
 
 

@@ -1,3 +1,11 @@
+2002-12-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_heap.c (eq_instance): Check context too.
+
+	* DINO/dino.tst.in: Add a new test for the change.
+
+	* DINO/dino.sgml.in: Document the change.
+
 2002-07-31  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_heap.c (remove_tab_el): Decrease number of elements too.

@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino16841.info.2.
+This is dino.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-1192/sgmltmp.dino1192.info.2.
 
    \input texinfo
 
@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@users.sourceforge.net'.
-     Apr 05, 2002
+     Dec 08, 2002
    Edited by Serhei Makarov.
 
    This document describes the programming language DINO.
@@ -58,6 +58,9 @@ The Programming Language DINO
        Mar 18, 2002.  New function set_lookahead.
      
        Apr 30, 2002.  Calling destroy by finishing the program.
+     
+       Dec 8, 2002.   Equality of instance, classes and functions means
+                      the same context.
 
 * Menu:
 

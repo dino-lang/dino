@@ -29725,6 +29725,39 @@ TEST507
                 result=fail
         fi
 fi
+
+# Test 508.
+if test $result = ok -a $start_test_number -le 508; then
+	echo test 508: Check bug of deleting elements from table.
+        cat >$test_file <<'TEST508'
+class c (i) {
+  class sc (ai) {}
+}
+var i = c (10);
+putln (i.sc (20) == i.sc (20));
+putln (i.sc (20) == i.sc (30));
+putln (i.sc (20) == c(10).sc (20));
+putln (i.sc (20) == c(30).sc (20));
+TEST508
+        echo '      ' $DINO $test_file ">$stdout" "2>$stderr"
+        if $DINO $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT508' && $CMP $stdout $ftemp2; then
+1
+0
+0
+0
+OUTPUT508
+                  result=ok
+                else
+                  result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+
 # Final message
 
 if test $result = ok; then

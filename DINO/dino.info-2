@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino16841.info.2.
+This is dino.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-1192/sgmltmp.dino1192.info.2.
 
    \input texinfo
 
@@ -91,7 +91,8 @@ conversion is applied to the other operand before the comparison.
 Otherwise, standard arithmetic conversion is applied to the operands.
 The operators do not generate exceptions (but the conversions may).
 The operands are equal if they have the same type and equal values (see
-section `Types and Values').
+section `Types and Values').  For instances, functions and classes, the
+equality requires also the same context.
 
    Operator identity `===' or unidentity `!==' returns 1 if the
 operands have (or not) the same value or 0 otherwise.  The operators
