@@ -1,3 +1,66 @@
+2001-06-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* AMMUNITION/arithm.h (unsigned_integer_from_based_string): Fix
+	typo.
+
+	* DINO/mpi.d (mpi_ignore_overflow): New variable.
+	(check_overflow): Make it private.  Do not generate excpetion if
+	mpi_ignore_overflow is set up.
+	(unsigned_add, unsigned_subtract, unsigned_multiply,
+	unsigned_divide, unsigned_remainder, unsigned_shift_right,
+	unsigned_shift_left, unsigned_or, unsigned_and, unsigned_not,
+	unsigned_eq, unsigned_ne, unsigned_gt, unsigned_lt, unsigned_ge,
+	unsigned_le, unsigned_change_size, unsigned_to_based_string,
+	unsigned_to_string, unsigned_from_based_string,
+	unsigned_from_string): New functions.
+	(mpi_unsigned_add, mpi_unsigned_subtract, mpi_unsigned_multiply,
+	mpi_unsigned_divide, mpi_unsigned_remainder,
+	mpi_unsigned_shift_right, mpi_unsigned_shift_left,
+	mpi_unsigned_or, mpi_unsigned_and, mpi_unsigned_not,
+	mpi_unsigned_eq, mpi_unsigned_ne, mpi_unsigned_gt,
+	mpi_unsigned_lt, mpi_unsigned_ge, mpi_unsigned_le,
+	mpi_unsigned_change_size, mpi_unsigned_to_based_string,
+	mpi_unsigned_from_based_string): New external functions.
+
+	* DINO/mpi.c (arithm_op): New function.
+	(mpi_add, mpi_subtract, mpi_multiply, mpi_divide, mpi_remainder):
+	Use it.
+	(mpi_unsigned_add, mpi_unsigned_subtract, mpi_unsigned_multiply,
+	mpi_unsigned_divide, mpi_unsigned_remainder): New functions.
+	(mpi_par_op): Set up size of the result mpi.
+	(shift): New function.
+	(mpi_shift_right, mpi_shift_left): Use it.
+	(mpi_unsigned_shift_right, mpi_unsigned_shift_left): New
+	functions.
+	(logical): New function.
+	(mpi_or, mpi_and): Use it.
+	(mpi_unsigned_or, mpi_unsigned_and): New functions.
+	(not): New function.
+	(mpi_not): Use it.
+	(mpi_unsigned_not): New function.
+	(cmp): New function.
+	(mpi_eq, mpi_new, mpi_gt, mpi_lt, mpi_ge, mpi_le): Use it.
+	(mpi_unsigned_eq, mpi_unsigned_new, mpi_unsigned_gt,
+	mpi_unsigned_lt, mpi_unsigned_ge, mpi_unsigned_le): New functions.
+	(change_size): New function.
+	(mpi_change_size): Use it.
+	(mpi_unsigned_change_size): New function.
+	(to_based_string): New function.
+	(mpi_to_based_string): Use it.
+	(mpi_unsigned_to_based_string): New function.
+	(from_based_string): New function.
+	(mpi_from_based_string): Use it.
+	(mpi_unsigned_from_based_string): New function.
+	(mpi_address): Add new exported functions.
+
+	* DINO/dino.tst.in: Expand test for mpi.
+	
+	* DINO/dino.sgml.in: Add comment for match.
+
+	* DINO/dino-8.html, DINO/dino.dvi, DINO/dino.info,
+	DINO/dino.info-1, DINO/dino.info-2, DINO/dino.info-3,
+	DINO/dino.info-4, DINO/dino.ps, DINO/dino.txt: Update.
+	
 2001-06-22  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* d_built.h (rcount_call): New prototype.

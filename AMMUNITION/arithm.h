@@ -108,8 +108,8 @@ extern char *integer_to_based_string (int size, const void *operand, int base,
 				      char *result);
 extern char *integer_to_string (int size, const void *operand, char *result);
 
-extern char *unsigned_integer_from_base_string (int size, const char *operand,
-						int base, void *result);
+extern char *unsigned_integer_from_based_string (int size, const char *operand,
+						 int base, void *result);
 extern char *unsigned_integer_from_string (int size, const char *operand,
                                            void *result);
 extern char *integer_from_based_string (int size, const char *operand,

@@ -2587,6 +2587,7 @@ of the regular expression.
 There are the following Dino pattern matching functions:
      <itemize>
      <item><tt>match (regex, string)</tt>.  The function searches for
+
        matching regular expression <tt>regex</tt> in <tt>string</tt>.
        The both parameters should be strings after their implicit
        string conversion.  The matching is made according to standard
@@ -2611,7 +2612,9 @@ There are the following Dino pattern matching functions:
        The subsequent two elements are index of the first character of
        substring corresponding to the first atom in the regular
        expression (the atoms are ordered by their open parentheses)
-       and index of the last character plus one.  And so on.
+       and index of the last character plus one.  And so on.  If there
+       is no matching with a regular expression in parentheses, the
+       corresponding vector elements will have negative values.
        <p>
        Example: The program
 <tscreen><verb>

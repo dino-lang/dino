@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino5641.info.2.
+/tmp/sgmltmp.dino1127.info.2.
 
    \input texinfo
 
@@ -326,31 +326,35 @@ defined in Posix 1003.2: no particular limit is imposed on the length
 of the regular expression.
 
    There are the following Dino pattern matching functions:
-   * `match (regex, string)'.  The function searches for matching
-     regular expression `regex' in `string'.  The both parameters
-     should be strings after their implicit string conversion.  The
-     matching is made according to standard POSIX 1003.2: The regular
-     expression matches the substring starting earliest in the string.
-     If the regular expression could match more than one substring
-     starting at that point, it matches the longest.  Subexpressions
-     also match the longest possible substrings, subject to the
-     constraint that the whole match be as long as possible, with
-     subexpressions starting earlier in the regular expression taking
-     priority over ones starting later.  In other words higher-level
-     subexpressions take priority over their lower-level component
-     subexpressions.  Match lengths are measured in characters, not
-     collating elements.  A null string is considered longer than no
-     match at all.  If there is no matching, the function returns value
-     `nil'.  Otherwise, the function returns new mutable vector of
-     integers.  The length of the vector is `2 * (N + 1)' where `N' is
-     number of atoms which are regular expressions in parentheses.  The
-     first two elements are index of the first character of substring
-     corresponding to all regular expression and index of the last
-     character plus one.  The subsequent two elements are index of the
-     first character of substring corresponding to the first atom in
-     the regular expression (the atoms are ordered by their open
-     parentheses) and index of the last character plus one.  And so on.
-     Example: The program
+   * `match (regex, string)'.  The function searches for
+
+     matching regular expression `regex' in `string'.  The both
+     parameters should be strings after their implicit string
+     conversion.  The matching is made according to standard POSIX
+     1003.2: The regular expression matches the substring starting
+     earliest in the string.  If the regular expression could match
+     more than one substring starting at that point, it matches the
+     longest.  Subexpressions also match the longest possible
+     substrings, subject to the constraint that the whole match be as
+     long as possible, with subexpressions starting earlier in the
+     regular expression taking priority over ones starting later.  In
+     other words higher-level subexpressions take priority over their
+     lower-level component subexpressions.  Match lengths are measured
+     in characters, not collating elements.  A null string is
+     considered longer than no match at all.  If there is no matching,
+     the function returns value `nil'.  Otherwise, the function returns
+     new mutable vector of integers.  The length of the vector is `2 *
+     (N + 1)' where `N' is number of atoms which are regular
+     expressions in parentheses.  The first two elements are index of
+     the first character of substring corresponding to all regular
+     expression and index of the last character plus one.  The
+     subsequent two elements are index of the first character of
+     substring corresponding to the first atom in the regular
+     expression (the atoms are ordered by their open parentheses) and
+     index of the last character plus one.  And so on.  If there is no
+     matching with a regular expression in parentheses, the
+     corresponding vector elements will have negative values.  Example:
+     The program
                     println (match ("()(a)((a)(a))", "baaab"));
 
      outputs

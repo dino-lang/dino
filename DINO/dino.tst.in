@@ -17861,6 +17861,69 @@ putln (mpis.le (mpi1, mpi2));
 putln (mpis.gt (mpi1, mpi2));
 putln (mpis.ge (mpi1, mpi2));
 
+try {
+  mpis.multiply (mpis.multiply (mpi1, mpi2), mpis.multiply (mpi1, mpi2));
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 1");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.to_string (mpis.multiply (mpis.multiply (mpi1, mpi2), mpis.multiply (mpi1, mpi2))));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+mpi2 = mpis.from_string(2, "300");
+try {
+  mpis.change_size (mpi2, 1);
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 2");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.to_string (mpis.change_size (mpi2, 1)));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+
+mpi1 = mpis.unsigned_from_string(1, "10");
+mpi2 = mpis.unsigned_from_string(1, "5");
+putln (mpis.unsigned_to_string (mpis.unsigned_add (mpi1, mpi2)));
+putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi1, mpi2)));
+try {
+  putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi2, mpi1)));
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 3");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi2, mpi1)));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+putln (mpis.unsigned_to_string (mpis.unsigned_multiply (mpi1, mpi2)));
+putln (mpis.unsigned_to_string (mpis.unsigned_divide (mpi1, mpi2)));
+putln (mpis.unsigned_to_string (mpis.unsigned_remainder (mpi1, mpi2)));
+putln (mpis.unsigned_eq (mpi1, mpi2));
+putln (mpis.unsigned_ne (mpi1, mpi2));
+putln (mpis.unsigned_lt (mpi1, mpi2));
+putln (mpis.unsigned_le (mpi1, mpi2));
+putln (mpis.unsigned_gt (mpi1, mpi2));
+putln (mpis.unsigned_ge (mpi1, mpi2));
+
+try {
+  mpis.unsigned_multiply (mpis.unsigned_multiply (mpi1, mpi2), mpis.unsigned_multiply (mpi1, mpi2));
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 4");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.unsigned_to_string (mpis.unsigned_multiply (mpis.unsigned_multiply (mpi1, mpi2), mpis.unsigned_multiply (mpi1, mpi2))));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+mpi2 = mpis.unsigned_from_string(2, "300");
+try {
+  mpis.unsigned_change_size (mpi2, 1);
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 5");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.unsigned_to_string (mpis.unsigned_change_size (mpi2, 1)));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+
 mpi1 = mpis.from_string(50, "10000000000000000000000000000000000000000000000");
 mpi2 = mpis.from_string(50, "5000000000000000000000000000000000000000000000");
 putln (mpis.to_string (mpis.add (mpi1, mpi2)));
@@ -17878,13 +17941,62 @@ putln (mpis.ge (mpi1, mpi2));
 try {
   mpis.multiply (mpis.multiply (mpi1, mpi2), mpis.multiply (mpi1, mpi2));
 } catch (mpis.mpi_excepts.mpi_overflow) {
-  putln ("got overflow 1");
+  putln ("got overflow 6");
 }
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.to_string (mpis.multiply (mpis.multiply (mpi1, mpi2), mpis.multiply (mpi1, mpi2))));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
 try {
   mpis.change_size (mpi2, 2);
 } catch (mpis.mpi_excepts.mpi_overflow) {
-  putln ("got overflow 2");
+  putln ("got overflow 7");
 }
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.to_string (mpis.change_size (mpi2, 2)));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+
+mpi1 = mpis.unsigned_from_string(50, "10000000000000000000000000000000000000000000000");
+mpi2 = mpis.unsigned_from_string(50, "5000000000000000000000000000000000000000000000");
+putln (mpis.unsigned_to_string (mpis.unsigned_add (mpi1, mpi2)));
+putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi1, mpi2)));
+try {
+  putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi2, mpi1)));
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 8");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.unsigned_to_string (mpis.unsigned_subtract (mpi2, mpi1)));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+putln (mpis.unsigned_to_string (mpis.unsigned_multiply (mpi1, mpi2)));
+putln (mpis.unsigned_to_string (mpis.unsigned_divide (mpi1, mpi2)));
+putln (mpis.unsigned_to_string (mpis.unsigned_remainder (mpi1, mpi2)));
+putln (mpis.unsigned_eq (mpi1, mpi2));
+putln (mpis.unsigned_ne (mpi1, mpi2));
+putln (mpis.unsigned_lt (mpi1, mpi2));
+putln (mpis.unsigned_le (mpi1, mpi2));
+putln (mpis.unsigned_gt (mpi1, mpi2));
+putln (mpis.unsigned_ge (mpi1, mpi2));
+try {
+  mpis.unsigned_multiply (mpis.unsigned_multiply (mpi1, mpi2), mpis.unsigned_multiply (mpi1, mpi2));
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 9");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.unsigned_to_string (mpis.unsigned_multiply (mpis.unsigned_multiply (mpi1, mpi2), mpis.unsigned_multiply (mpi1, mpi2))));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
+try {
+  mpis.unsigned_change_size (mpi2, 2);
+} catch (mpis.mpi_excepts.mpi_overflow) {
+  putln ("got overflow 10");
+}
+mpis.mpi_ignore_overflow = 1;
+putln (mpis.unsigned_to_string (mpis.unsigned_change_size (mpi2, 2)));
+putln ("ovfw=", mpis.mpi_overflow);
+mpis.mpi_ignore_overflow = 0;
 TEST258
         echo '      ' $DINO -L./mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
         if uname | fgrep CYGWIN; then
@@ -17903,6 +18015,32 @@ TEST258
 0
 1
 1
+got overflow 1
+-60
+ovfw=1
+got overflow 2
+44
+ovfw=1
+15
+5
+got overflow 3
+251
+ovfw=1
+50
+2
+0
+0
+1
+0
+0
+1
+1
+got overflow 4
+196
+ovfw=1
+got overflow 5
+44
+ovfw=1
 15000000000000000000000000000000000000000000000
 5000000000000000000000000000000000000000000000
 -5000000000000000000000000000000000000000000000
@@ -17915,8 +18053,32 @@ TEST258
 0
 1
 1
-got overflow 1
-got overflow 2
+got overflow 6
+867904737743324110893126166364363704770614348168184133037106651590308130409865771824596108187979317115712568128322928640
+ovfw=1
+got overflow 7
+0
+ovfw=1
+15000000000000000000000000000000000000000000000
+5000000000000000000000000000000000000000000000
+got overflow 8
+2582249878086908589655919172003011874329705792829223512830659356540647622011841194629645353280137831435903171972747493376
+ovfw=1
+50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+2
+0
+0
+1
+0
+0
+1
+1
+got overflow 9
+867904737743324110893126166364363704770614348168184133037106651590308130409865771824596108187979317115712568128322928640
+ovfw=1
+got overflow 10
+0
+ovfw=1
 OUTPUT258
                         result=ok
                 else
@@ -17941,6 +18103,32 @@ OUTPUT258
 0
 1
 1
+got overflow 1
+-60
+ovfw=1
+got overflow 2
+44
+ovfw=1
+15
+5
+got overflow 3
+251
+ovfw=1
+50
+2
+0
+0
+1
+0
+0
+1
+1
+got overflow 4
+196
+ovfw=1
+got overflow 5
+44
+ovfw=1
 15000000000000000000000000000000000000000000000
 5000000000000000000000000000000000000000000000
 -5000000000000000000000000000000000000000000000
@@ -17953,8 +18141,32 @@ OUTPUT258
 0
 1
 1
-got overflow 1
-got overflow 2
+got overflow 6
+867904737743324110893126166364363704770614348168184133037106651590308130409865771824596108187979317115712568128322928640
+ovfw=1
+got overflow 7
+0
+ovfw=1
+15000000000000000000000000000000000000000000000
+5000000000000000000000000000000000000000000000
+got overflow 8
+2582249878086908589655919172003011874329705792829223512830659356540647622011841194629645353280137831435903171972747493376
+ovfw=1
+50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+2
+0
+0
+1
+0
+0
+1
+1
+got overflow 9
+867904737743324110893126166364363704770614348168184133037106651590308130409865771824596108187979317115712568128322928640
+ovfw=1
+got overflow 10
+0
+ovfw=1
 OUTPUT258
                         result=ok
                 else

@@ -921,6 +921,7 @@ of the regular expression.
 <P>There are the following Dino pattern matching functions:
 <UL>
 <LI><CODE>match (regex, string)</CODE>.  The function searches for
+
 matching regular expression <CODE>regex</CODE> in <CODE>string</CODE>.
 The both parameters should be strings after their implicit
 string conversion.  The matching is made according to standard
@@ -945,7 +946,9 @@ regular expression and index of the last character plus one.
 The subsequent two elements are index of the first character of
 substring corresponding to the first atom in the regular
 expression (the atoms are ordered by their open parentheses)
-and index of the last character plus one.  And so on.
+and index of the last character plus one.  And so on.  If there
+is no matching with a regular expression in parentheses, the
+corresponding vector elements will have negative values.
 <P>Example: The program
 <BLOCKQUOTE><CODE>
 <PRE>

@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino5641.info.2.
+/tmp/sgmltmp.dino1127.info.2.
 
    \input texinfo
 
@@ -8,7 +8,7 @@ Indirect:
 dino.info-1: 107
 dino.info-2: 49130
 dino.info-3: 98647
-dino.info-4: 147708
+dino.info-4: 147854
 
 Tag Table:
 (Indirect)
@@ -62,16 +62,16 @@ Node: Example of Earley parser usage-101241
 Node: Predeclared functions104141
 Node: Mathematical functions105350
 Node: Pattern matching functions106883
-Node: File functions118248
-Node: Functions for access to file/directory information118672
-Node: Functions for work with directories123222
-Node: Functions for work with files-124774
-Node: File output functions128393
-Node: File input functions131603
-Node: Time functions134452
-Node: Functions for access to process information137787
-Node: Miscellaneous functions139255
-Node: Appendix A- Syntax of Dino147708
-Node: Appendix B- Implementation152477
+Node: File functions118394
+Node: Functions for access to file/directory information118818
+Node: Functions for work with directories123368
+Node: Functions for work with files-124920
+Node: File output functions128539
+Node: File input functions131749
+Node: Time functions134598
+Node: Functions for access to process information137933
+Node: Miscellaneous functions139401
+Node: Appendix A- Syntax of Dino147854
+Node: Appendix B- Implementation152623
 
 End Tag Table
