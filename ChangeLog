@@ -1,3 +1,7 @@
+2005-01-17  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* CHANGES: Major changes since the last release.
+
 2005-01-15  Vladimir N. Makarov  <vmakarov@redhat.com>
 
 	* MSTA/compare.tst.in: Missed file for commiting.

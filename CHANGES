@@ -1,3 +1,24 @@
+19/01/2005: Version 0.996 of COCOM has been made.  The major
+difference with the previous version:
+
+* Ammunition:
+
+     o Serious bugs in Earley's parser have been fixed. More tests
+       have been added.
+
+* Dino:
+
+     o Adding format input/output to Dino.
+
+     o Many bugs have been fixed.
+
+     o More tests have been added.
+
+     o The interpreter has been significantly sped up.
+
+     o Oberon programming language analyzer has been added as an
+       example of usage of Dino as a prototyping compiler language.
+
 19/05/2002: Version 0.995 of COCOM has been made.  The major
 difference with the previous version:
 
