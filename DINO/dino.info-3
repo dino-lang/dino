@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino4187.info.2.
+This is dino.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-12416/sgmltmp.dino12416.info.2.
 
    \input texinfo
 
@@ -9,65 +9,67 @@ File: dino.info,  Node: Parser-,  Next: Token-,  Up: Earley parser classes
 Parser-
 .......
 
-   Dino has predeclared final class `parser' which implements Earley
-parser.  Earley parser is very powerfull tools to implement serious
-language compilers, processors, or translators.  The implementaion of
-Earley parser used in Dino has the following features:
+   Dino has predeclared final class `parser' which implements the
+Earley parser.  The Earley parser is a very powerful tool to implement
+serious language compilers, processors, or translators.  The
+implementation of the Earley parser used in Dino has the following
+features:
 
    * It is sufficiently fast and does not require much memory.  This is
-     the fastest implementation of Earley parser which I know.  The
+     the fastest implementation of the Earley parser which I know.  The
      main design goal is to achieve speed and memory requirements which
      are necessary to use it in prototype compilers and language
-     processors.  It parses 30K lines of C program per second on 500
-     MHz Pentium III and allocates about 5Mb memory for 10K line C
+     processors.  It parses 30,000 lines of C per second on 500 MHz
+     Pentium III and allocates about 5Mb memory for a 10,000 line C
      program.
 
-   * It makes simple syntax directed translation.  So an abstract tree
-     is already the output of Earley parser.
+   * It makes simple syntax directed translation, so an abstract tree
+     is already the output of the Earley parser.
 
    * It can parse input described by an ambiguous grammar.  In this
      case the parse result can be an abstract tree or all possible
-     abstract trees.  Moreover it produces the compact representation
+     abstract trees.  Moreover, it produces the compact representation
      of all possible parse trees by using DAG instead of real trees.
-     These feature can be used to parse natural language sentences.
+     These features can be used to parse natural language sentences.
 
    * It can make syntax error recovery.  Moreover its error recovery
-     algorithms finds error recovery with minimal number of ignored
-     tokens.  It permits to implement parsers with very good error
+     algorithms find error recovery with a minimal number of ignored
+     tokens.  It permits implemention of parsers with very good error
      recovery and reporting.
 
-   * It has fast startup.  There is no practically delay between
-     processing grammar and start of parsing.
+   * It has fast startup.  There is practically no delay between
+     processing of grammar and start of parsing.
 
-   * It has flexible interface.  The input grammar is given by
+   * It has a flexible interface.  The input grammar is given by a
      YACC-like description.
 
-   * It has good debugging features.  It can print huge amount of
+   * It has a good debugging features.  It can print huge amount of
      information about grammar, parsing, error recovery, translation.
-     You can even output the result translation in form for a graphic
+     You can even get the result translation in a form for a graphic
      visualization program.
 
    The following public functions and variables are declared in the
 class `parser':
    * `ambiguous_p'.  This public variable stores information
-     about the last parsing.  Nonzero variable value means that during
-     last parsing on given input the parser found that the grammar is
-     ambiguous.  The parser find this even if you asked producing only
-     one parser tree (see function `set_one_parse').
+     about the last parsing.  A nonzero variable value means that
+     during the last parsing on a given input the parser found that the
+     grammar is ambiguous.  The parser can find this even if you asked
+     for only one parser tree (see function
+     `set_one_parse').
 
    * `set_grammar (descr, strict_p)'.  This function
      tunes the parser to given grammar.  The grammar is given by string
-     `descr'.  Nonzero parameter `strict_p' value (after
+     `descr'.  Nonzero value of parameter `strict_p' (after
      implicit integer conversion) means more strict checking the
-     grammar.  In this case, all nonterminals will be checked on
-     ability to derive a terminal string instead of only checking axiom
-     for this.  The function can generate exceptions `partype' (if the
-     parameters has wrong types) or `invgrammar' if the description is
-     a bad grammar.  The function also can generate exception `pmemory'
-     if there are no memory for internal parser data.
+     grammar.  In this case, all nonterminals will be checked on their
+     ability to derive a terminal string instead of only checking the
+     axiom for this.  The function can generate exceptions `partype'
+     (if the parameters have wrong types) or `invgrammar' if the
+     description is a bad grammar.  The function can also generate
+     exception `pmemory' if there is no memory for internal parser data.
 
-     The description is similiar `YACC' one.  It has the following
-     syntax:
+     The description is similiar to the `YACC' one.  It has the
+     following syntax:
                     file : file terms [';']
                          | file rule
                          | terms [';']
@@ -94,107 +96,110 @@ class `parser':
                             | numbers NUMBER
                             | numbers '-'
 
-     So the description consists of terminal declaration and rules
+     So the description consists of terminal declaration and rule
      sections.
 
-     Terminal declaration section describes name of terminals and their
-     codes.  Terminal code is optional.  If it is omitted, the terminal
-     code will the next free code starting with 256.  You can declare
-     terminal several times (the single condition its code should be
-     the same).
+     The terminal declaration section describes the name of terminals
+     and their codes.  The terminal code is optional.  If it is
+     omitted, the terminal code will the next free code starting with
+     256.  You can declare a terminal several times (the single
+     condition is that its code should be the same).
 
-     Character constant present in the rules is a terminal described by
-     default.  Its code is always code of the character constant.
+     A character constant present in the rules is a terminal described
+     by default.  Its code is always the ASCII code of the character
+     constant.
 
      Rules syntax is the same as `YACC' rule syntax.  The single
      difference is an optional translation construction starting with
      `[num   ]' right after each alternative.  The translation part
      could be a single number which means that the translation of the
-     alternative will be the translation of the symbol with given
-     number (symbol numbers in alternative starts with 0).  Or the
-     translation can be empty or `-' which designates value of variable
-     `nil_anode'.  Or the translation can be abstract node with
-     given name, optional cost, and with fields whose values are the
-     translations of the alternative symbols with numbers given in
-     parentheses after the abstract node name.  You can use `-' in
-     abstract node to show that empty node should be used in this
-     place.  If the cost is absent it is believed to be one.  The cost
-     of terminal, error node, and empty node is always zero.
+     alternative will be the translation of the symbol with the given
+     number (symbol number in the alternative start is with 0).  Or the
+     translation can be empty or "-" which designates the value of the
+     variable `nil_anode'.  Or the translation can be an
+     abstract node with the given name, optional cost, and with fields
+     whose values are the translations of the alternative symbols with
+     numbers given in parentheses after the abstract node name.  You
+     can use "-" in an abstract node to show that the empty node should
+     be used in this place.  If the cost is absent it is believed to be
+     1.  The cost of the terminal, error node, and empty node is always
+     zero.
 
-     There is reserved terminal `error' which marks start point of
-     error recovery.  The translation of the terminal is value of
-     variable `error_anode'.
+     There is a reserved terminal `error' which marks the start point
+     of error recovery.  The translation of the terminal is the value
+     of the variable `error_anode'.
 
-   * `set_debug (level)'.  This function sets up level of
-     debugging information output to `stderr'.  The more level, the
-     more information is output.  The default value is 0 (no output).
-     The debugging information includes statistics, result translation
-     tree, grammar, parser sets, parser sets with all situations,
-     situations with contexts.  The function returns the previously set
-     up debug level.  Setting up negative debug level results in output
-     of translation for program `dot' of graphic visualization package
-     `graphviz'.  The parameter should be an integer after implicit
-     integer conversion.  The function will generate exception
-     `partype' if it is not true.
+   * `set_debug (level)'.  This function sets up the level of
+     debugging information output to `stderr'.  The higher the level,
+     the more information is output.  The default value is 0 (no
+     output).  The debugging information includes statistics, the
+     result translation tree, the grammar, parser sets, parser sets
+     with all situations, situations with contexts.  The function
+     returns the previously set up debug level.  Setting up a negative
+     debug level results in output of the translation for program `dot'
+     of the graphic visualization package `graphviz'.  The parameter
+     should be an integer after implicit integer conversion.  The
+     function will generate exception `partype' if it is not true.
 
-   * `set_one_parse (flag)'.  This function sets up flag
-     whose nonzero value means means building only one translation tree
-     (without alternative nodes).  For unambiguous grammar the flag
-     does not affect the result.  The function returns the previously
-     set up flag value.  The default value of the flag is 1.  The
-     parameter should be an integer after implicit integer conversion.
-     The function will generate exception `partype' if it is not true.
-
-   * `set_lookahead (flag)'.  This function sets up flag of of
-     usage of look ahead in parser work.  The usage of lookahead gives
-     the best results with the point of view of space and speed.  The
-     default value is 1 (lookahead usage).  The function returns the
-     previously set up flag.  No usage of lookahead is useful sometimes
-     to get more understandable debug output of the parser work (see
-     function `set_debug').  The parameter should be an integer
-     after implicit integer conversion.  The function will generate
-     exception `partype' if it is not true.
-
-   * `set_cost (flag)'.  This function sets up building only
-     translation tree (trees if we set up one_parse_flag
-     to 0) with minimal cost.  For unambiguous grammar the flag does not
-     affect the result.  The default value is 0. The function returns
-     the previously set up flag value.  The default value of the flag
-     is 0.  The parameter should be an integer after implicit integer
+   * `set_one_parse (flag)'.  This function sets up a
+     flag whose nonzero value means building only one translation tree
+     (without any alternative nodes).  For an unambiguous grammar the
+     flag does not affect the result.  The function returns the
+     previously set up flag value.  The default value of the flag is 1.
+     The parameter should be an integer after implicit integer
      conversion.  The function will generate exception `partype' if it
      is not true.
 
-   * `set_recovery (flag)'.  This function sets up flag whose
-     nonzero value means making error recovery if syntax error
-     occurred.  Otherwise, syntax error results in finishing parsing
-     (although syntax error function passed to `parse' is called once).
-     The function returns the previously set up flag value.  The
-     default value of the flag is 1.  The parameter should be an
+   * `set_lookahead (flag)'.  This function sets up a flag of of
+     usage of look ahead in the parser work.  The usage of lookahead
+     gives the best results with the point of view of space and speed.
+     The default value is 1 (the lookahead usage).  The function
+     returns the previously set up flag.  No usage of the lookahead is
+     useful sometimes to get more understandable debug output of the
+     parser work (see function `set_debug').  The parameter
+     should be an integer after implicit integer conversion.  The
+     function will generate the exception `partype' if it is not true.
+
+   * `set_cost (flag)'.  This function sets up building the only
+     translation tree (trees if we set up one_parse_flag
+     to 0) with minimal cost.  For an unambiguous grammar the flag does
+     not affect the result.  The default value is 0. The function
+     returns the previously set up flag value.  The default value of
+     the flag is 0.  The parameter should be an integer after implicit
+     integer conversion.  The function will generate exception
+     `partype' if it is not true.
+
+   * `set_recovery (flag)'.  This function sets up a flag whose
+     nonzero value means making error recovery if a syntax error
+     occurred.  Otherwise, a syntax error results in finishing parsing
+     (although the syntax error function passed to `parse' is called
+     once).  The function returns the previously set up flag value.
+     The default value of the flag is 1.  The parameter should be an
      integer after implicit integer conversion.  The function will
      generate exception `partype' if it is not true.
 
    * `set_recovery_match (n_toks)'.  This function
-     sets up parser internal parameter meaning how much subsequent
+     sets up an internal parser parameter meaning how much subsequent
      tokens should be successfully shifted to finish error recovery.
-     The default value is 3.  The function returns the previously set up
-     value.  The parameter should be an integer after implicit integer
-     conversion.  The function will generate exception `partype' if it
-     is not true.
+     The default value is 3.  The function returns the previously set
+     up value.  The parameter should be an integer after implicit
+     integer conversion.  The function will generate exception
+     `partype' if it is not true.
 
-   * `parse (tokens, error_func)'. This function is major
-     function of the class.  It makes translation according to
-     previously set up grammar of input given by parameter `tokens'
-     whose value should be array of objects of predeclared class
-     `token'.  If the parser recognizes a syntax error it calls
+   * `parse (tokens, error_func)'. This function is the major
+     function of the class.  It makes translation according to the
+     previously set up grammar of input given by the parameter `tokens'
+     whose value should be an array of objects of predeclared class
+     `token'.  If the parser recognizes a syntax error it calls the
      function given through parameter `error_func' with six
      parameters:
-        * index of token (in array `tokens') on which the syntax error
-          occured.
+        * index of the token (in array `tokens') on which the syntax
+          error occured.
 
         * the error token itself.
 
-        * index of the first token (in array `tokens') ignored because
-          of error recovery.
+        * index of the first token (in array `tokens') ignored due to
+          error recovery.
 
         * the first ignored token itself.
 
@@ -205,19 +210,19 @@ class `parser':
 
      If the parser works with switched off error recovery (see function
      `set_recovery', the third and fifth parameters will be
-     negative and forth and sixth parameters will be `nil'.
+     negative and forth and sixth parameter will be `nil'.
 
-     The function returns object of predeclared class `anode' which is
-     root of the abtsract tree representing the translation of the
-     parser input.  The function returns `nil' only if syntax error was
-     occurred and error recovery was switched off.  The function can
-     generate exception `partype' if the parameter types are wrong or
-     `invtoken_decl' if the input token has wrong code.  The
-     function also can generate exception `pmemory' if there are no
-     memory for internal parser data.
+     The function returns an object of the predeclared class `anode'
+     which is the root of the abtsract tree representing the
+     translation of the parser input.  The function returns `nil' only
+     if syntax error was occurred and error recovery was switched off.
+     The function can generate exception `partype' if the parameter
+     types are wrong or exception `invtoken_decl' if any of the
+     input tokens have a wrong code.  The function also can generate
+     exception `pmemory' if there is no memory for internal parser data.
 
-   The call of class `parser' itself can generate exception `pmemory'
-if there are no memory for internal parser data.
+   The call of the class `parser' itself can generate exception
+`pmemory' if there is no memory for internal parser data.
 
 
 File: dino.info,  Node: Token-,  Next: Anode-,  Prev: Parser-,  Up: Earley parser classes
@@ -225,14 +230,14 @@ File: dino.info,  Node: Token-,  Next: Anode-,  Prev: Parser-,  Up: Earley parse
 Token-
 ......
 
-   Dino has predeclared class `token'.  Objects of this class should be
-input of the earley parser (see function `parse' in class `parser').
-The result abstract tree representing translation will have input
-tokens as leaves.  Class `token' has one public variable `code' whose
-value should be code of terminal described in the grammar.  You could
-extend the class description e.g. by adding variables whose values
-could be attributes of the token (e.g. source line number, name of an
-identifier, or value for a number).
+   Dino has a predeclared class `token'.  Objects of this class should
+be the input of the Earley parser (see function `parse' in class
+`parser').  The result abstract tree representing the translation will
+have input tokens as leaves.  The class `token' has one public variable
+`code' whose value should be the code of the corresponding terminal
+described in the grammar.  You could extend the class description e.g.
+by adding variables whose values could be attributes of the token (e.g.
+source line number, name of an identifier, or value for a number).
 
 
 File: dino.info,  Node: Anode-,  Next: Nil_anode and error_anode-,  Prev: Token-,  Up: Earley parser classes
@@ -240,39 +245,41 @@ File: dino.info,  Node: Anode-,  Next: Nil_anode and error_anode-,  Prev: Token-
 Anode-
 ......
 
-   Dino has predeclared class `anode' whose objects are nodes of
+   Dino has a predeclared class `anode' whose objects are nodes of the
 abtract tree representing the translation (see function `parse' of
-class `parser').  Objects of this class are generated by earley parser.
-The class has two public variables `name' whose value is string
-representing name of the abstract node as it given in the grammar and
-`transl' whose value is array with abstract node fields as the array
-elements.  There are a few node types which have special meaning:
+class `parser').  Objects of this class are generated by the Earley
+parser.  The class has two public variables `name' whose value is
+string representing name of the abstract node as it given in the
+grammar and `transl' whose value is array with abstract node fields as
+the array elements.  There are a few node types which have special
+meaning:
 
-   * Terminal node which has reserved name `$term'.  Value of public
-     variable `transl' for this node is object of class `token'
-     representing the corresponding input token which was an element of
-     array passed as parameter of function `parse' of function `parser'.
+   * Terminal node which has reserved name `$term'.  The value of the
+     public variable `transl' for this node is an object of class
+     `token' representing the corresponding input token which was an
+     element of the array passed as a parameter of function `parse' of
+     function `parser'.
 
    * Error node which has reserved name `$error'.  This node exists in
      one exemplar (see description of variable `error_anode')
-     and represents translation of grammar reserved symbol `error'.
-     The value is public variable will be `nil' in this case.
+     and represents the translation of reserved grammar symbol `error'.
+     The value is public variable `transl' will be `nil' in this case.
 
-   * Empty node which has reserved name `$nil'.  This node exists also
-     in one exemplar (see description of variable `nil_anode')
-     and represents translation of grammar symbol for which we did not
-     describe a translation.  For example, in a grammar rule an
-     abstract node refers for translation of nonterminal for which we
-     do not produce a translation.  The value is public variable of
-     such class object will be `nil' in this case.
+   * The empty node which has the reserved name `$nil'.  This node also
+     exists in one exemplar (see description of variable
+     `nil_anode') and represents the translation of a grammar
+     symbol for which we did not describe a translation.  For example,
+     in a grammar rule an abstract node refers for the translation of a
+     nonterminal for which we do not produce a translation.  The value
+     is public variable of such class object will be `nil' in this case.
 
-   * Alternative node which has reserved name `$alt'.  It represents
-     all possible alternatives in translation of grammar nonterminal.
-     The value of public variable `transl' will be array with elements
-     whose value are objects of class `anode' which represent the all
-     possible translations.  Such nodes can be generated by the parser
-     only if the grammar is ambiguous and we did not asked it to
-     produce only one translation.
+   * Alternative node which has the reserved name `$alt'.  It
+     represents all possible alternatives in the translation of the
+     grammar nonterminal.  The value of the public variable `transl'
+     will be an array with elements whose values are objects of class
+     `anode' which represent all possible translations.  Such nodes can
+     be generated by the parser only if the grammar is ambiguous and we
+     did not ask it to produce only one translation.
 
 
 File: dino.info,  Node: Nil_anode and error_anode-,  Next: Example of Earley parser usage-,  Prev: Anode-,  Up: Earley parser classes
@@ -291,11 +298,11 @@ File: dino.info,  Node: Example of Earley parser usage-,  Prev: Nil_anode and er
 Example of Earley parser usage-
 ...............................
 
-   Let us write program which transforms expression into postfix polish
-form.  Please, read the program comments to understand what the code
-do.  The program should output string `"abcda*+*+"' which is postfix
-polish form of input string `"a+b*(c+d*a)"'.
-               // The following is expression grammar:
+   Let us write a program which transforms an expression into postfix
+polish form.  Please, read the program comments to understand what the
+code does.  The program should output string `"abcda*+*+"' which is the
+postfix polish form of input string `"a+b*(c+d*a)"'.
+               // The following is the expression grammar:
                var grammar = "E : E '+' T   # plus (0 2)\n\
                                 | T         # 0\n\
                                 | error     # 0\n\
@@ -358,14 +365,15 @@ File: dino.info,  Node: Predeclared functions,  Prev: Predeclared classes,  Up: 
 Predeclared functions
 =====================
 
-   The predeclared functions expect given number actual parameters (may
-be variable number parameters).  If the actual parameter number is
-unexpected one, exception `partype' is generated.  The predeclared
-functions believe that the actual parameters (may be after implicit
-conversions) are of required type.  If it is not true, exception
-`partype' is generated.  To show how many parameters the function
-requires, we will write names of the parameters and to use brackets `['
-and `]' for the optional parameters in description of the functions.
+   The predeclared functions expect a given number of actual parameters
+(may be a variable number of parameters).  If the actual parameter
+number is an unexpected one, exception `parnumber' is generated.  The
+predeclared functions believe that the actual parameters (may be after
+implicit conversions) are of the required type.  If this is not true,
+exception `partype' is generated.  To show how many parameters the
+function requires, we will write the names of the parameters and use
+brackets `[' and `]' for the optional parameters in the description of
+the functions.
 
    Examples:  The following description
                strtime ([format [, time]])
@@ -373,8 +381,8 @@ and `]' for the optional parameters in description of the functions.
    describes that the function can accept zero, one, or two parameters.
 If only one parameter is given, then this is parameter `format'.
 
-   If something special is not said about the returned result, the
-function returns default value `nil'.
+   If something is not said about the returned result, the function
+returns the default value `nil'.
 
 * Menu:
 
@@ -396,22 +404,22 @@ parameters.  After the conversions the parameters are expected to be of
 integer or floating point type.  The result is always a floating point
 number.
    * `sqrt (x)'.  The function returns the square root of `x'.  The
-     function generates exception `edom' if `x' is negative.
+     function generates the exception `edom' if `x' is negative.
 
-   * `exp (x)'.  The function returns `e' (the base of natural
-     logarithms) raised to the power of `x'.
+   * `exp (x)'.  The function returns `e' (the base of the natural
+     logarithm) raised to the power of `x'.
 
    * `log (x)'.  The function returns the natural logarithm of `x'.
-     The function generates exception `edom' if `x' is negative or may
-     generate `erange' if the value is zero.
+     The function generates the exception `edom' if `x' is negative or
+     may generate `erange' if the value is zero.
 
    * `log10 (x)'.  The function returns the decimal logarithm of `x'.
-     The function generate exception `edom' if `x' is negative or may
-     generate `erange' if the value is zero.
+     The function generates the exception `edom' if `x' is negative or
+     may generate `erange' if the value is zero.
 
    * `pow (x, y)'.  The function returns `x' raised to the power of
      `y'.  The function generates exception `edom' if x is negative and
-     y is not integral value.
+     y is not of integral value.
 
    * `sin (x)'.  The function returns the sine of `x'.
 
@@ -428,10 +436,10 @@ File: dino.info,  Node: Pattern matching functions,  Next: File functions,  Prev
 Pattern matching functions
 --------------------------
 
-   Dino has predeclared functions which are used for `pattern
+   Dino has the predeclared functions which are used for `pattern
 matching'.  The pattern is described by `regular expressions'
 (`regex').  The pattern has syntax of `extended' POSIX (1003.2) regular
-expression, i.e. the pattern has the following syntax:
+expressions, i.e. the pattern has the following syntax:
                Regex = Branch {"|" Branch}
 
    A regex matches anything that matches one of the `branches'.
@@ -440,9 +448,9 @@ expression, i.e. the pattern has the following syntax:
    A branch matches a match for the first `piece', followed by a match
 for the second piece, etc.  If the pieces are omitted, the branch
 matches the null string.
-               Piece = Atom ("*" | "+" | "?" | Bound)
+               Piece = Atom ["*" | "+" | "?" | Bound]
      
-               Bound = "{" Min ["," [Max]] "}"
+               Bound = "{" Min ["," [Max]] "}" | "{" "," Max "}"
      
                Min = <unsigned integer between 0 and 255 inclusive>
      
@@ -453,13 +461,15 @@ the atom.  An atom followed by `+' matches a sequence of 1 or more
 matches of the atom.  An atom followed by `?' matches a sequence of 0
 or 1 matches of the atom.
 
-   There is more general construction (a `bound') for describing
-repetitions of atom.  An atom followed by a bound containing only one
-integer `min' matches a sequence of exactly `min' matches of the atom.
-An atom followed by a bound containing one integer `min' and a comma
-matches a sequence of `min' or more matches of the atom.  An atom
-followed by a bound containing two integers `min' and `max' matches a
-sequence of `min' through `max' (inclusive) matches of the atom.
+   There is a more general construction (a `bound') for describing
+repetitions of an atom.  An atom followed by a bound containing only
+one integer `min' matches a sequence of exactly `min' matches of the
+atom.  An atom followed by a bound containing one integer `min' and a
+comma matches a sequence of `min' or more matches of the atom.  An atom
+followed by a bound containing a comma and one integer `Max' matches at
+most `Max' repetitions of the atom.  An atom followed by a bound
+containing two integers `min' and `max' matches a sequence of `min'
+through `max' (inclusive) matches of the atom.
                Atom = "(" Regex ")"
                     | "(" ")"
                     | "."
@@ -475,26 +485,29 @@ sequence of `min' through `max' (inclusive) matches of the atom.
                     | "\+"
                     | "\?"
                     | "\{"
+                    | "\."
                     | <any pair the first character is \ and the second is any
                        except for ^.[$()|*+? >
                     | <any character except for ^.[$()|*+? >
 
-   Regular expression enclosed in `()' can be an atom.  In this case it
-matches a match for the regular expression in the parentheses), an atom
-`()' matches the null string.  Atom `.' matches any single character.
-Atoms `[circ  ]' and `$' match correspondingly the null string at the
-beginning of a line and the null string at the end of a line.
+   A regular expression enclosed in `()' can be an atom.  In this case
+it matches a match for the regular expression in the parentheses).  The
+atom `()' matches the null string.  The atom `.' matches any single
+character.  Atoms `[circ  ]' and `$' match correspondingly the null
+string at the beginning of a line and the null string at the end of a
+line.
 
-   Atom which is `\' followed by one of the characters `[circ
+   An atom which is `\' followed by one of the characters `[circ
 ].[$()[verbar]*+?{\' matches that character taken as an ordinary
 character.  Atom which is `\' followed by any other character matches
 the second character taken as an ordinary character, as if the `\' had
-not been present.  So you should use `\\' for matching with single `\'.
-An atom which is any other single character matches that character.
-It is illegal to end an regular expression with `\'.  There is an
-exception which is not described by the atom syntax.  A `{'
-followed by a character other than a digit is an ordinary character not
-the beginning of a bound and matches character `{'.
+not been present.  So you should use `\\' for matching with a single
+`\'.  An atom which is any other single character matches that
+character.  It is illegal to end a regular expression with `\'.  There
+is an exception which is not described by the atom syntax.  An `[lcub
+]' followed by a character other than a digit or comma is an ordinary
+character, not the beginning of a bound and matches the character
+`{'.
                BracketedList = "[" List "]"
      
                List = FirstChar ["-" Char] {Char ["-" Char]}
@@ -521,24 +534,23 @@ the beginning of a bound and matches character `{'.
                      | "xdigit"
 
    An atom can be a bracket expression which is a `list' of characters
-enclosed in `[]'.  Usually it is used to match practically any single
-character from the list.  If the list begins with `[circ  ]', it
-matches any single character (but see below) not from the rest of the
-list.  If two characters in the list are separated by `-', this is
-shorthand for the full `range' of characters between those two
-(inclusive) in the collating sequence of ASCII codes, e.g. `[0-9]'
-matches any decimal digit.  It is illegal for two ranges to share an
-`endpoint', e.g. `a-c-e'.
+enclosed in `[]'.  Usually it is used to match any single character
+from the list.  If the list begins with `[circ  ]', it matches any
+single character (but see below) not in the list.  If two characters in
+the list are separated by `-', this is shorthand for the full `range'
+of characters between those two (inclusive) in the collating sequence
+of ASCII codes, e.g. `[0-9]' matches any decimal digit.  It is illegal
+for two ranges to share an `endpoint', e.g. `a-c-e'.
 
    There are exceptions which are not described by the atom syntax which
-is used to include a literal `]' in the list: make it the first
+is used to include a literal `]' in the list by making it the first
 character (following a possible `[circ  ]').  To include a literal `-',
 make it the first or the last character, or the second endpoint of a
 range.  As you can see from the syntax, all special characters (except
-for `[') described in atom lose their special significance within a
+for `[') described in an atom lose their special significance within a
 bracket expression.
 
-   Collating element is a name of a character class enclosed in `[:'
+   A collating element is a name of a character class enclosed in `[:'
 and `:]'.  It denotes the list of all characters belonging to that
 class.  Standard character class names are:
             alnum       digit       punct
@@ -546,42 +558,42 @@ class.  Standard character class names are:
             blank       lower       upper
             cntrl       print       xdigit
 
-   These names stand for the character classes defined in ANSI C include
-file `ctype.h'.  There is an exception not described by the syntax: a
-character class can not be used as an endpoint of a range.
+   These names stand for the character classes defined in the ANSI C
+include file `ctype.h'.  There is an exception not described by the
+syntax: a character class can not be used as an endpoint of a range.
 
-   There is an extension in regular expressions used by DINO and in ones
+   There is an extension of regular expressions used by DINO and of ones
 defined in Posix 1003.2: no particular limit is imposed on the length
 of the regular expression.
 
    There are the following Dino pattern matching functions:
-   * `match (regex, string)'.  The function searches for matching
+   * `match (regex, string)'.  The function searches for the matching
      regular expression `regex' in `string'.  The both parameters
      should be strings after their implicit string conversion.  The
-     matching is made according to standard POSIX 1003.2: The regular
-     expression matches the substring starting earliest in the string.
-     If the regular expression could match more than one substring
-     starting at that point, it matches the longest.  Subexpressions
-     also match the longest possible substrings, subject to the
-     constraint that the whole match be as long as possible, with
+     matching is made according to the standard POSIX 1003.2: The
+     regular expression matches the substring starting earliest in the
+     string.  If the regular expression could match more than one
+     substring starting at that point, it matches the longest.
+     Subexpressions also match the longest possible substrings, subject
+     to the constraint that the whole match be as long as possible, with
      subexpressions starting earlier in the regular expression taking
-     priority over ones starting later.  In other words higher-level
-     subexpressions take priority over their lower-level component
-     subexpressions.  Match lengths are measured in characters, not
-     collating elements.  A null string is considered longer than no
-     match at all.  If there is no matching, the function returns value
-     `nil'.  Otherwise, the function returns new mutable vector of
-     integers.  The length of the vector is `2 * (N + 1)' where `N' is
-     number of atoms which are regular expressions in parentheses.  The
-     first two elements are index of the first character of substring
-     corresponding to all regular expression and index of the last
-     character plus one.  The subsequent two elements are index of the
-     first character of substring corresponding to the first atom in
-     the regular expression (the atoms are ordered by their open
-     parentheses) and index of the last character plus one.  And so on.
-     If there is no matching with a regular expression in parentheses,
-     the corresponding vector elements will have negative values.
-     Example: The program
+     priority over ones starting later.  In other words, higher-level
+     subexpressions take priority over their component subexpressions.
+     Match lengths are measured in characters, not collating elements.
+     A null string is considered longer than no match at all.  If there
+     is no matching, the function returns the value `nil'.  Otherwise,
+     the function returns a new mutable vector of integers.  The length
+     of the vector is `2 * (N + 1)' where `N' is the number of atoms
+     which are regular expressions in parentheses.  The first two
+     elements are the index of the first character of the substring
+     corresponding to the whole regular expression and the index of the
+     last character matched plus one.  The subsequent two elements are
+     the index of the first character of the substring corresponding to
+     the first atom in the regular expression (the atoms are ordered by
+     their open parentheses) and the index of the last character plus
+     one, and so on.  If there is no matching with a regular expression
+     in parentheses, the corresponding vector elements will have
+     negative values.  Example: The program
                     println (match ("()(a)((a)(a))", "baaab"));
 
      outputs
@@ -589,7 +601,7 @@ of the regular expression.
 
    * `gmatch (regex, string[, flag])'.  The function searches for
      different occurrences of regular expression `regex' in `string'.
-     The both parameters should be strings after their implicit string
+     Both parameters should be strings after their implicit string
      conversion.  The third parameter is optional.  If it is present,
      it should be integer after implicit integer conversion.  If its
      value is nonzero, the substrings matched by regexp can be
@@ -610,36 +622,36 @@ of the regular expression.
                     [0, 2, 2, 4]
                     [0, 2, 1, 3, 2, 4, 3, 5]
 
-   * `sub (regex, string, subst)'.  The function searches for matching
-     regular expression `regex' in `string'.  The all parameters should
-     be string after their implicit string conversion.  If there is no
-     matching, the function returns value `nil'.  Otherwise, the
-     function returns new mutable vector of characters in which the
-     matched substring has been changed by string `subst'.  Within the
-     replacement string `subst', the sequence `\n', where `n' is a
-     digit from 1 to 9, may be used to indicate just the text that
-     matched the `n"th atom of the regex in parentheses.  The sequence
-     `\0' represents the entire matched text, as does the character
-     `&'.
+   * `sub (regex, string, subst)'.  The function searches for
+     substrings matching the regular expression `regex' in `string'.
+     All parameters should be string after implicit string conversion.
+     If there is no matching, the function returns the value `nil'.
+     Otherwise, the function returns a new mutable vector of characters
+     in which the first substring matched has been changed to the string
+     `subst'.  Within the replacement string `subst', the sequence
+     `\n', where `n' is a digit from 1 to 9, may be used to indicate
+     the text that matched the `n"th atom of the regex in parentheses.
+     The sequence `\0' represents the entire matched text, as does the
+     character `&'.
 
-   * `gsub (regex, string, subst)'.  The function is analogous to
+   * `gsub (regex, string, subst)'.  The function is analogous to the
      function `sub' except for the function searches for all
-     non-overlapped substrings matched with the regular expression and
-     returns new mutable vector of characters in which all matched
-     substrings have been changed by string `subst'.
+     non-overlapping substrings matched with the regular expression and
+     returns a new mutable vector of characters in which all matched
+     substrings have been changed to the string `subst'.
 
-   * `split (string [, regex])'.  The function splits `string' onto
-     non-overlapped substrings separated by strings matched with the
-     regular expression.  The all parameters should be strings after
-     their implicit string conversion.  If the second parameter is
-     omitted the value of predeclared variable `split_regex' is
-     used instead of the second parameter value.  In this case the
-     function may generate exception `invenvar' (corrupted value of a
-     predeclared variable).  The function returns new mutable vector
+   * `split (string [, regex])'.  The function splits `string' into
+     non-overlapped substrings separated by strings matching the
+     regular expression.  All parameters should be strings after
+     implicit string conversion.  If the second parameter is omitted
+     the value of the predeclared variable `split_regex' is used
+     instead of the second parameter value.  In this case the function
+     may generate the exception `invenvar' (corrupted value of a
+     predeclared variable).  The function returns a new mutable vector
      with elements which are the separated substrings.  If the regular
-     expression is null string, the function returns new mutable vector
-     with elements which are strings each containing one character of
-     the string parameter.   Examples: The program
+     expression is the null string, the function returns a new mutable
+     vector with elements which are strings each containing one
+     character of string.  Examples: The program
                     println (split ("aaa bbb ccc  ddd"));
 
      outputs
@@ -652,8 +664,8 @@ of the regular expression.
                     ["a", "b", "c", "d", "e", "f"]
 
 
-   If the regular expression is incorrect, the functions generates one
-of the following predeclared exceptions (see predeclared classes):
+   If the regular expression is incorrect, the functions generate one of
+the following predeclared exceptions (see predeclared classes):
    * `ebrack'.  Regular expression has unmatched bracket.
 
    * `erange'.  Invalid use of range in regular expression.
@@ -667,13 +679,13 @@ of the following predeclared exceptions (see predeclared classes):
 
    * `eend'.  Non specific error in regular expression.
 
-   * `eescape'.  Invalid escape sequence in regex.
+   * `eescape'.  Invalid escape sequence in regular expression.
 
    * `ebadpat'.  Invalid use of pattern operators in regular expression.
 
    * `esize'.  Compiled regular expression is too big.
 
-   * `espace'.  No memory for regular expression function work.
+   * `espace'.  No memory for the regular expression function to work.
 
 
 File: dino.info,  Node: File functions,  Next: Time functions,  Prev: Pattern matching functions,  Up: Predeclared functions
@@ -681,7 +693,7 @@ File: dino.info,  Node: File functions,  Next: Time functions,  Prev: Pattern ma
 File functions
 --------------
 
-   Dino has some predeclared functions working on files and directories.
+   Dino has some predeclared functions to work on files and directories.
 
 * Menu:
 
@@ -697,14 +709,15 @@ File: dino.info,  Node: Functions for access to file/directory information,  Nex
 Functions for access to file/directory information
 ..................................................
 
-   The following predeclared functions can be used for reading file or
+   The following predeclared functions can be used for accessing file or
 directory information.  The functions may generate an exception
-declared in class syserror (e.g. `eaccess', `enametoolong', `enfile'
-and so on) besides standard `partype', `parnumber'.  The functions
-expect one parameter which should be a file instance (see predeclared
-class `file') or path name of a file represented by a string (the
-functions makes implicit string conversion of the parameter).  The
-single exception is `isatty' which expect only a file instance.
+declared in the class `syserror' (e.g. `eaccess', `enametoolong',
+`enfile' and so on) besides the standard `partype', and `parnumber'.
+The functions expect one parameter which should be a file instance (see
+the predeclared class `file') or the path name of a file represented by
+a string (the functions make implicit string conversion of the
+parameter).  The single exception to this is `isatty' which expects a
+file instance.
    * `ftype (fileinstance_or_filename)'.  The function
      returns one the following characters:
         * `'f".  A regular file.
@@ -726,17 +739,18 @@ single exception is `isatty' which expect only a file instance.
 
    * `fun (fileinstance_or_filename)'.  The function
      returns new string representing name of owner of the file
-     (directory).  Under some OSes the function may return new string
-     `"Unknown"' if there is no notion "owner" in the OS file system.
+     (directory).  Under some OSes the function may return the new
+     string `"Unknown"' if there is no notion "owner" in the OS file
+     system.
 
    * `fgn (fileinstance_or_filename)'.  Analogous to the
-     previous function except for it returns new string representing
-     name of group of the file (directory).  Under some OSes the
-     function may return new string `"Unknown"' if there is no notion
-     "group" in the OS file system.
+     previous function except for it returns a new string representing
+     name of the group of the file (directory).  Under some OSes the
+     function may return the new string `"Unknown"' if there is no
+     notion "group" in the OS file system.
 
    * `fsize (fileinstance_or_filename)'.  The function
-     returns integer value which is the length in bytes of the file.
+     returns an integer value which is the length of the file in bytes.
 
    * `fatime (fileinstance_or_filename)'.  The function
      returns integer value which is time of the last access to the file
@@ -744,18 +758,20 @@ single exception is `isatty' which expect only a file instance.
      (usually since January 1, 1970).  See also `time functions'.
 
    * `fmtime (fileinstance_or_filename)'.  Analogous to
-     the previous functions but returns time of the last modification.
+     the previous functions but returns the time of the last
+     modification.
 
    * `fctime (fileinstance_or_filename)'.  Analogous to
-     the previous functions but returns time of the last change.  Here
-     the change means usually changing file attributes (owner, modes
-     and so on), the modification means usually changing the file
-     itself.
+     the previous functions but it returns the time of the last change.
+     Here `change' usually means changing the file attributes (owner,
+     modes and so on), while `modification' means usually changing the
+     file itself.
 
    * `fumode (fileinstance_or_filename)'.  The function
-     returns new string representing rights of owner of the file
-     (directory).  The string may contain the following characters (in
-     the same order if the string contains more one character):
+     returns a new string representing the rights of the owner of the
+     file (directory).  The string may contain the following characters
+     (in the following order if the string contains more than one
+     character):
         * `'s".  Sticky bit of the file (directory).
 
         * `'r".  Right to read.
@@ -765,34 +781,34 @@ single exception is `isatty' which expect only a file instance.
         * `'x".  Right to execute.
 
    * `fgmode (fileinstance_or_filename)'.  Analogous to
-     the previous function except for that it returns information about
-     the file (directory) group users rights and that the function
-     never returns a string containing character `'s".
+     the previous function except for the fact that it returns
+     information about the file (directory) group user rights and that
+     the function never returns a string containing the character `'s".
 
    * `fomode (fileinstance_or_filename)'.  Analogous to
-     the previous function except for that it returns information about
-     rights of all other users.
+     the previous function except for the act that it returns
+     information about the rights of all other users.
 
-   * `isatty (fileinstance)'.  The function returns 1 if a file
-     instance given as parameter is an open file connected to a
-     terminal and 0 else.
+   * `isatty (fileinstance)'.  The function returns 1 if the file
+     instance given as a parameter is an open file connected to a
+     terminal and 0 otherwise.
 
-   The following function can be used to change rights of the file
-(directory) for different users.  The function expects two strings
-(after implicit string conversions).  The first one is path name of a
-file (directory).  The second one is rights.  If the string contains a
-character 'r', this is right to read (see characters used to denote
-different rights in description of function `fumod').  The functions
-always return value `nil'.
+   The following functions can be used to change rights of usage of the
+file (directory) for different users.  The function expects two strings
+(after implicit string conversion).  The first one is the path name of
+the file (directory).  The second one is the rights.  For instance, if
+the string contains a character 'r', this is right to read (see
+characters used to denote different rights in the description of the
+function `fumode').  The functions always return the value `nil'.
    * `chumod (path, mode)'.  The function sets up rights for the file
-     (directory) owner according to given mode.
+     (directory) owner according to the given mode.
 
    * `chgmod (path, mode)'.  Analogous to the previous function except
-     for that it sets up rights for the file (directory) group users
-     and that the function ignores character `'s".
+     for the fact that it sets up rights for the file (directory) group
+     users and that the function ignores the character `'s".
 
    * `chomod (path, mode)'.  Analogous to the previous function except
-     for that it sets up rights for all other users.
+     for the fact that it sets up rights for all other users.
 
 
 File: dino.info,  Node: Functions for work with directories,  Next: Functions for work with files-,  Prev: Functions for access to file/directory information,  Up: File functions
@@ -802,29 +818,30 @@ Functions for work with directories
 
    The following functions work with directories.  The functions may
 generate an exception declared in class syserror (e.g. `eaccess',
-`enametoolong', `enotdir' and so on) besides standard `partype',
+`enametoolong', `enotdir' and so on) besides the standard `partype',
 `parnumber'.
    * `readdir (dirpath)'.  The function makes implicit string
      conversion of the parameter value which should be a string
-     (directory path).  The function returns new mutable vector with
+     (directory path).  The function returns a new mutable vector with
      elements which are strings representing names of all files and
      sub-directories (including `"."' and `".."' for the current and
      parent directory respectively) in given directory.
 
-   * `mkdir (dirpath)'.  The function creates directory with given name
-     represented by a string (the parameter value after implicit string
-     conversion).  The directory has read/write/execute rights for all.
-     You can change it with the aid of functions `ch*mod'.
+   * `mkdir (dirpath)'.  The function creates a directory with the
+     given name represented by a string (the parameter value after
+     implicit string conversion).  The directory has read/write/execute
+     rights for all.  You can change it with the aid of the functions
+     `ch*mod'.
 
-   * `rmdir (dirpath)'.  The function returns the directory given by a
+   * `rmdir (dirpath)'.  The function removes the directory given by a
      string which is parameter value after implicit string conversion.
 
-   * `getcwd ()'.  The function returns new string representing full
-     path of the current directory.
+   * `getcwd ()'.  The function returns a new string representing the
+     full path of the current directory.
 
-   * `chdir (dirpath)'.  The function makes the directory given by a
-     string (which is parameter value after implicit string conversion)
-     the current directory.
+   * `chdir (dirpath)'.  The function makes the directory given by
+     `dirpath' (which should be a string after implicit string
+     conversion) the current directory.
 
 
 File: dino.info,  Node: Functions for work with files-,  Next: File output functions,  Prev: Functions for work with directories,  Up: File functions
@@ -833,66 +850,68 @@ Functions for work with files-
 ..............................
 
    The following functions (besides input/output functions) work with OS
-files.  The functions may generate an exception declared in class
-syserror (e.g. `eaccess', `enametoolong', `eisdir' and so on) besides
-standard `partype', `parnumber'.  The function `rename' can be used for
-renaming a directory besides files.
+files.  The functions may generate an exception declared in the class
+`syserror' (e.g. `eaccess', `enametoolong', `eisdir' and so on) besides
+the standard `partype', and `parnumber'.  The function `rename' can be
+used for renaming a directory, not only a file.
    * `rename (old_path, new_path)'.  The function renames
-     file (directory) given by its path name.  The old and new names
-     are given by parameter values which should be strings after
-     implicit string conversions.
-
-   * `remove (file_path)'.  The function removes OS file given
-     by its path name.  The file path name should be a string after
+     the file (directory) given by its path name.  The old and new
+     names are given by parameter values which should be strings after
      implicit string conversion.
 
-   * `open (file_path, mode)'.  The function opens the file for
-     work in given `mode', creates new class `file' instance,
-     associates the opened file to the instance, and returns the
-     instance.  The parameter values should be strings after implicit
-     string conversions.  The first parameter value is string
-     representing the file path.  The second parameter value is string
-     representing mode for work with the file (see all possible modes
-     in ANSI C function `fopen' documentation).  All work with an
-     opened file is made through the file instance.
+   * `remove (file_path)'.  The function removes the OS file
+     given by its path name.  The file path name should be a string
+     after implicit string conversion.
 
-   * `close (fileinstance)'.  The function closes file opened by
-     function `open'.  The file is given by class `file' instance.  The
-     function also removes association of the instance with the file.
+   * `open (file_path, mode)'.  The function opens the file for
+     work in the given `mode', creates a new class `file' instance,
+     associates the opened file with the instance, and returns the
+     instance.  The parameter values should be strings after implicit
+     string conversions.  The first parameter value is a string
+     representing the file path.  The second parameter value is string
+     representing the mode for work with the file (for all possible
+     modes see the ANSI C function `fopen' documentation).  All work
+     with an opened file is made through the file instance.
+
+   * `close (fileinstance)'.  The function closes a file opened by the
+     function `open'.  The file is given by the class `file' instance.
+     The function also removes all association of the instance with the
+     file.
 
    * `flush (fileinstance)'.  The function flushes any output that has
-     been buffered for the opened file given by class `file' instance.
+     been buffered for the opened file given by the class `file'
+     instance.
 
-   * `popen (command, mode)'.  The function starts shell command line
+   * `popen (command, mode)'.  The function starts the shell command
      given by the first parameter value (which should be a string after
-     implicit string conversion), creates a pipe, creates new class
-     `file' instance, associates the pipe with the instance, and return
-     the instance.  Writing to such pipe (through the class file
-     instance) writes to the standard input of the command.
+     implicit string conversion), creates a pipe, creates a new class
+     `file' instance, associates the pipe with the instance, and
+     returns the instance.  Writing to such a pipe (through the class
+     file instance) writes to the standard input of the command.
      Conversely, reading from the pipe reads the command's standard
      output.  After implicit string conversion the second parameter
-     value should be string "r" (for reading from the pipe) or "w" (for
-     writing to the pipe).  The pipe should be closed by function
-     `pclose'.
+     value should be the string "r" (for reading from the pipe) or "w"
+     (for writing to the pipe).  The pipe should be closed by the
+     function `pclose'.
 
    * `pclose (fileinstance)'.  The function waits for the command
-     connected to a pipe to terminate.  The pipe is given by class
-     `file' instance returned by function `popen'.  The function also
-     removes association of the instance with the pipe.
+     connected to a pipe to terminate.  The pipe is given by the class
+     `file' instance returned by the function `popen'.  The function
+     also removes the association of the instance with the pipe.
 
    * `tell (fileinstance)'.  The function returns the current value of
      the file position indicator for the file (opened by function
-     `open') given by class `file' instance.
+     `open') given by the class `file' instance.
 
    * `seek (fileinstance, offset, whence)'.  The function sets up the
      current file position indicator for the file (opened by function
-     `open') given by class `file' instance.  The position is given by
-     `offset' which should be an integer after implicit arithmetic
+     `open') given by the class `file' instance.  The position is given
+     by `offset' which should be an integer after implicit arithmetic
      conversion and `whence' which should be a string after implicit
      string conversion.  The first character of the string should be
      `'s", `'c", or `'e" (these characters mean that the offset is
      relative to the start of the file, the current position indicator,
-     or end-of-file, respectively).
+     or the end-of-file, respectively).
 
 
 File: dino.info,  Node: File output functions,  Next: File input functions,  Prev: Functions for work with files-,  Up: File functions
@@ -901,25 +920,25 @@ File output functions
 .....................
 
    The following functions are used to output something into opened
-files.  All the functions return always value `nil'.  The functions may
-generate an exception declared in class syserror (e.g. `eio', `enospc'
-and so on) besides standard `partype', `parnumber'.
+files.  All the functions always return the value `nil'.  The functions
+may generate an exception declared in the class `syserror' (e.g. `eio',
+`enospc' and so on) besides the standard `partype', and `parnumber'.
    * `put (...)'.  All parameters should be strings after implicit
-     string conversions.  The function outputs all strings into
+     string conversion.  The function outputs all strings into the
      standard output stream.
 
-   * `putln (...)'.  The function is analogous to function `put' except
-     for that it additionally outputs new line character after output
-     of all the strings.
+   * `putln (...)'.  The function is analogous to the function `put'
+     except for the fact that it additionally outputs a new line
+     character after output of all the strings.
 
-   * `fput (fileinstance, ...)'.  The function is analogous to function
-     `put' except for that it outputs the string into opened file
-     associated with class `file' instance which is the first parameter
-     value.
+   * `fput (fileinstance, ...)'.  The function is analogous to the
+     function `put' except for the fact that it outputs the string into
+     an opened file associated with a class `file' instance which is
+     the first parameter value.
 
    * `fputln (fileinstance, ...)'.  The function is analogous to
-     function `fput' except for that it additionally outputs new line
-     character after output of all the strings.
+     function `fput' except for the fact that it additionally outputs a
+     new line character after output of all the strings.
 
    * `print (...)'.  The function outputs all parameter values into
      standard output stream.  The function never makes implicit
@@ -929,101 +948,31 @@ and so on) besides standard `partype', `parnumber'.
      `"abc"', vector `[10, 20]' as `[10, 20]' and so on).  As you know
      some values (functions, classes, block instances, class instances,
      threads) are not represented fully in DINO.  Such values are
-     represented schematically.  For example, output `func f [lcub
-     ]}.g(unique_number)' means function `f' in call of
-     function (or class) `g' with given unique number and function g is
-     in instance of the implicit block covering all program.  For the
-     function `g', output would look like simply `func g' because there
-     is only one instance of the implicit block covering all program.
-     Output for instance of class `c' in function `f' looks like
-     `instance {[rcub
-     ].f(unique_number).c(unique_number)'.  Output for
-     block instance of function `f' looks like `stack {[rcub
-     ].f(unique_number)'.  Output for thread whose
-     thread-function `t' is declared in function `f' looks like `thread
-     unique_number {[rcub
+     represented schematically.  For example, the output `func f [lcub
+     ]}.g(unique_number)' would mean function `f' in the
+     call of function (or class) `g' with the given unique number and
+     function g is in the instance of the implicit block covering the
+     whole program.  For the function `g', output would look simply
+     like `func g' because there is only one instance of the implicit
+     block covering the whole program.  Output for an instance of the
+     class `c' in the function `f' looks like `instance {[rcub
+     ].f(unique_number).c(unique_number)'.  Output for a
+     block instance of the function `f' looks like `stack {[rcub
+     ].f(unique_number)'.  Output for a thread whose
+     thread-function `t' is declared in the function `f' would look
+     like `thread unique_number {[rcub
      ].f(unique_number).t(unique_number)'.
 
-   * `println (...)'.  The function is analogous to function `print'
-     except for that it additionally outputs new line character after
-     output of all parameters.
+   * `println (...)'.  The function is analogous to the function
+     `print' except for the fact that it additionally outputs new line
+     character after output of all parameters.
 
-   * `fprint (fileinstance, ...)'.  The function is analogous to
-     function `print' except for that it outputs the parameters into
-     opened file associated with class `file' instance which is the
-     first parameter value.
+   * `fprint (fileinstance, ...)'.  The function is analogous to the
+     function `print' except for the fact that it outputs the
+     parameters into an opened file associated with a class `file'
+     instance which is the value of first parameter.
 
    * `fprintln (fileinstance, ...)'.  The function is analogous to
-     function `fprint' except for that it additionally outputs new line
-     character after output of all the output parameters.
-
-
-File: dino.info,  Node: File input functions,  Prev: File output functions,  Up: File functions
-
-File input functions
-....................
-
-   The following functions are used to input something from opened
-files.  All the functions return always value `nil'.  The functions may
-generate an exception declared in class syserror (e.g. `eio', `enospc'
-and so on) and `eof' besides standard `partype', `parnumber'.
-   * `get ()'.  The function reads one character from standard input
-     stream and returns it.  The functions generates exception `eof' if
-     the function tries to read the end of file.
-
-   * `getln ()'.  The function reads one line from standard input
-     stream and returns it as new string.  The end of line is character
-     newline or end of file.  The returned string does not contain the
-     newline character.  The function generates exception `eof' only
-     when the file position indicator before the function call stands
-     exactly on the end of file.
-
-   * `getf ([ln_flag])'.  The function reads all standard input
-     stream and returns it as a new string.  The function generates
-     exception `eof' only when the file position indicator before the
-     function call stands exactly on the end of file.  The function has
-     optional parameter which should be integer after implicit integer
-     conversion.  If the parameter value is not zero, the function
-     returns arrays of strings.  Otherwise it behaves as usually.  Each
-     string is a line in the input stream.  The strings does not
-     contain the newline character.
-
-   * `fget (fileinstance)'.  The function is analogous to function
-     `get' except for that it reads from opened file associated with
-     class `file' instance which is the parameter value.
-
-   * `fgetln (fileinstance)'.  The function is analogous to function
-     `getln' except for that it reads from opened file associated with
-     class `file' instance which is the parameter value.
-
-   * `fgetf (fileinstance [, ln_flag])'.  The function is
-     analogous to function `getf' except for that it reads from opened
-     file associated with class `file' instance which is the parameter
-     value.
-
-   * `scan ()'.  The functions reads character, integer, floating point
-     number, string, vector, or table and returns it as the result.
-     The input values should be represented in the file as ones in Dino
-     language (except for that there should be no identifiers in the
-     input values and there should be no operators in the values.
-     Although sign `+' and `-' is possible in integer or floating point
-     represenation).  The table or vector should contains only values
-     of types mentioned above.  The values in the file can be separated
-     by white characters.  If there is error (e.g. unbalanced brackets
-     in a vector value) in read value representation the function
-     generates exception `invinput'.  The functions generates exception
-     `eof' if only white characters are unread in the file.
-
-   * `scanln ()'.  The function is analogous to function `scan' except
-     for that it skips all characters until end of line or end of file
-     after reading the value.  Skipping is made even if the exception
-     `invinput' is generated.
-
-   * `fscan (fileinstance)'.  The function is analogous to function
-     `scan' except for that it reads from opened file associated with
-     class `file' instance which is the parameter value.
-
-   * `fscanln (fileinstance)'.  The function is analogous to function
-     `scanln' except for that it reads from opened file associated with
-     class `file' instance which is the parameter value.
+     function `fprint' except for the fact that it additionally outputs
+     a new line character after the output of all the parameters.
 

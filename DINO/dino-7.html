@@ -14,16 +14,16 @@
 <HR>
 <H2><A NAME="s7">7. Program</A></H2>
 
-<P>Dino program is simply a sequence of statements.  There is special
+<P>A Dino program is simply a sequence of statements.  There is a special
 declaration useful for writing programs consisting of several files or
-for making Dino packages.  This is include-declaration.  Before
-execution of any statements all include-declarations are changed by
-files whose base names given by the strings.  It is made recursively,
-i.e.  the files themselves can contain other include-declarations.
-There should be no infinite recursion in this.  If <B>+</B> is
-present in the include-declaration, the file inserted in any case.
-Without <B>+</B> the file inserted only if it has been not inserted
-yet into the block of the declaration.
+for making Dino packages.  This is the include-declaration.  Before
+execution of any statements all include-declarations are replaced by
+files whose base names are given by the strings.  It is made
+recursively, i.e.  the files themselves can contain other
+include-declarations.  There should be no infinite recursion in this.
+If <B>+</B> is present in the include-declaration, the file is
+inserted in any case.  Without <B>+</B> the file is inserted only if
+it has been yet not inserted into the block of the declaration.
 <BLOCKQUOTE><CODE>
 <PRE>
           Program = StmtList
@@ -33,7 +33,7 @@ yet into the block of the declaration.
 </CODE></BLOCKQUOTE>
 
 Examples:
-<P>The following program outputs the first 24 Fibonachi numbers.
+<P>The following program outputs the first 24 Fibonachi numbers:
 <BLOCKQUOTE><CODE>
 <PRE>
           // Recursive function to compute Fibonacci numbers
@@ -53,7 +53,8 @@ Examples:
             }
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>The following program outputs the number of prime numbers less 8190.
+<P>The following program outputs the number of prime numbers less
+than 8190:
 <BLOCKQUOTE><CODE>
 <PRE>
           var i, prime, k, count, flags;
@@ -80,8 +81,8 @@ Examples:
           println (count);
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>The following program outputs number of occurrences of numbers
-and identifiers in stdin.
+<P>The following program outputs the number of occurrences of
+different numbers and identifiers in stdin:
 <BLOCKQUOTE><CODE>
 <PRE>
           var i, key, voc = {};
@@ -106,7 +107,7 @@ and identifiers in stdin.
             putln (key[i], " : ", voc{key[i]});
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>The following program uses Dino package <CODE>mpi</CODE>.
+<P>The following program uses the Dino package <CODE>mpi</CODE>:
 <BLOCKQUOTE><CODE>
 <PRE>
           include "mpi";

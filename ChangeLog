@@ -1,3 +1,16 @@
+2002-03-31  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+        * DINO/dino.sgml.in: Edit it.
+
+	* DINO/dino.1: Ditto.
+	
+	* DINO/dino.html, DINO/dino-1.html, DINO/dino-2.html,
+	DINO/dino-3.html, DINO/dino-4.html, DINO/dino-5.html,
+	DINO/dino-6.html, DINO/dino-7.html, DINO/dino-8.html,
+	DINO/dino-10.html, DINO/dino.info, DINO/dino.info-1,
+	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
+	DINO/dino.ps, DINO/dino.dvi, DINO/dino.txt: Update.
+
 2002-03-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* cocom.spec, dino.spec: Use %attr for %doc.

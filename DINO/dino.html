@@ -14,9 +14,10 @@ Contents
 <HR>
 <H1>The Programming Language DINO</H1>
 
-<H2>Vladimir Makarov, <CODE>vmakarov@users.sourceforge.net</CODE></H2>May 05, 2001
+<H2>Vladimir Makarov, <CODE>vmakarov@users.sourceforge.net</CODE>.
+Edited by Serhei Makarov.</H2>Apr 05, 2002
 <P><HR>
-<EM>This document describes programming language DINO.</EM>
+<EM>This document describes the programming language DINO.</EM>
 <HR>
 <P>
 <BLOCKQUOTE><CODE>
@@ -24,18 +25,18 @@ Contents
 
 History
 ==========
-  Apr 29, 2001.  Documentation of all object corresponding to Earley's
+  Apr 29, 2001.  Documentation of all objects corresponding to Earley's
                  parser was added.
 
-  May 05, 2001.  Semantics of private declaration is changed slightly.
-                 Early, they were accessible only by separate
+  May 05, 2001.  Semantics of private declarations are changed slightly.
+                 Earlier, they were accessible only by a separate
                  identifier.  Now they are accessible inside their
                  scope.  In other words, they can be accessible by `.'
                  or `->' inside the scope.
 
-                 Adding profile option -p.
+                 Added profile option -p.
 
-                 Adding IEEE standard floating point arithmetic.
+                 Added IEEE standard floating point arithmetic.
                  
                  Declaration block friends.
 
@@ -48,14 +49,14 @@ History
   Jun 25, 2001.  Operators char, int, float are added.
 
   Sep 25, 2001.  Vector conversion with format.  New function rev.
-                 del, ins, insv now return the vector.
+                 Del, ins, and insv now return the vector.
 
   Oct 27, 2001.  New predefined variable version.  Additional
                  parameter for getf and fgetf.
 
-  Oct 31, 2001.  Special method destroy.
+  Oct 31, 2001.  Added special method destroy.
 
-  Nov 22, 2001.  New functions sput, sputln, sprint, sprintln.
+  Nov 22, 2001.  New functions sput, sputln, sprint, sprintln added.
 
   Dec 13, 2001.  New variables nil_anode and error_anode and new
                  function set_cost.
@@ -89,7 +90,7 @@ History
 <UL>
 <LI><A HREF="dino-5.html#ss5.1">5.1 Types and Values</A>
 <LI><A HREF="dino-5.html#ss5.2">5.2 Designators</A>
-<LI><A HREF="dino-5.html#ss5.3">5.3 Call</A>
+<LI><A HREF="dino-5.html#ss5.3">5.3 Calls</A>
 <LI><A HREF="dino-5.html#ss5.4">5.4 Operators</A>
 </UL>
 <P>

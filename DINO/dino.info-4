@@ -1,7 +1,84 @@
-This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino4187.info.2.
+This is dino.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-12416/sgmltmp.dino12416.info.2.
 
    \input texinfo
+
+
+File: dino.info,  Node: File input functions,  Prev: File output functions,  Up: File functions
+
+File input functions
+....................
+
+   The following functions are used to input something from opened
+files.  All the functions always return the value `nil'.  The functions
+may generate an exception declared in the class `syserror' (e.g. `eio',
+`enospc' and so on) or `eof' besides the standard `partype', and
+`parnumber'.
+   * `get ()'.  The function reads one character from standard input
+     stream and returns it.  The function generates the exception `eof'
+     if the function tries to read the end of file.
+
+   * `getln ()'.  The function reads one line from standard input
+     stream and returns it as a new string.  The end of line is the
+     newline character or end of file.  The returned string does not
+     contain the newline character.  The function generates the
+     exception `eof' only when the file position indicator before the
+     function call stands exactly on the end of file.
+
+   * `getf ([ln_flag])'.  The function reads the whole standard
+     input stream and returns it as a new string.  The function
+     generates the exception `eof' only when the file position
+     indicator before the function call stands exactly on the end of
+     file.  The function has an optional parameter which should be
+     integer after implicit integer conversion.  If the parameter value
+     is nonzero, the function returns a vector of strings.  Otherwise
+     it behaves as usually.  Each string is a line in the input stream.
+     The strings do not contain the newline character.
+
+   * `fget (fileinstance)'.  The function is analogous to function
+     `get' except for the fact that it reads from an opened file
+     associated with the class `file' instance which is the parameter's
+     value.
+
+   * `fgetln (fileinstance)'.  The function is analogous to the
+     function `getln' except for the fact that it reads from an opened
+     file associated with a class `file' instance which is the
+     parameter value.
+
+   * `fgetf (fileinstance [, ln_flag])'.  The function is
+     analogous to the function `getf' except for the fact that it reads
+     from an opened file associated with a class `file' instance which
+     is the parameter's value.
+
+   * `scan ()'.  The functions reads a character, integer, floating
+     point number, string, vector, or table and returns it as the
+     result.  The input values should be represented in the file as the
+     ones in the Dino language (except for the fact that there should
+     be no identifiers in the input values and there should be no
+     operators in the values, although the signs `+' and `-' are
+     possible in an integer or floating point represenation).  The
+     table or vector should contains only values of types mentioned
+     above.  The values in the file can be separated by white
+     characters.  If there is an error (e.g. unbalanced brackets in a
+     vector value) in the read value representation the function
+     generates the exception `invinput'.  The functions generates the
+     exception `eof' if only white characters are still unread in the
+     file.
+
+   * `scanln ()'.  The function is analogous to the function `scan'
+     except for the fact that it skips all characters until the end of
+     line or the end of file after reading the value.  Skipping is made
+     even if the exception `invinput' is generated.
+
+   * `fscan (fileinstance)'.  The function is analogous to the function
+     `scan' except for the fact that it reads from an opened file
+     associated with a class `file' instance which is the parameter's
+     value.
+
+   * `fscanln (fileinstance)'.  The function is analogous to the
+     function `scanln' except for that it reads from an opened file
+     associated with a class `file' instance which is the parameter
+     value.
 
 
 File: dino.info,  Node: Time functions,  Next: Functions for access to process information,  Prev: File functions,  Up: Predeclared functions
@@ -11,19 +88,19 @@ Time functions
 
    The following functions can be used to get information about real
 time.
-   * `time ()'.  The function returns time in seconds since the fixed
-     time (usually since January 1, 1970).
+   * `time ()'.  The function returns the time in seconds since the
+     fixed time (usually since January 1, 1970).
 
-   * `strtime ([format [, time]])'.  The function returns string
-     representing `time' (integer representing time in seconds since
-     the fixed time) according to `format' (string).  If the format is
-     not given, the value of variable `time_format' is used.  In
-     this case if `time_format' value is corrupted, the function
-     generates exception `invenvar'.  If the time is not given, the
-     current time is used.  The format is the same as in C library
-     function `strftime'.  Here the extraction from the function
-     documentation.  The following format specifier can be used in the
-     format.
+   * `strtime ([format [, time]])'.  The function returns a string
+     representing the `time' (integer representing time in seconds
+     since the fixed time) according to the `format' (string).  If the
+     format is not given, the value of variable `time_format' is
+     used.  In this case if the value of `time_format' is
+     corrupted (it is not a string), the function generates exception
+     `invenvar'.  If the time is not given, the current time is used.
+     The format is the same as in C library function `strftime'.  Here
+     is an extraction from the OS function documentation.  The
+     following format specifiers can be used in the format:
         * `%a' - the abbreviated weekday name according to the
           current locale.
 
@@ -85,7 +162,8 @@ time.
         * `%%Y' - the year as a decimal number including
           the century.
 
-        * `%%Z' - the time zone or name or abbreviation.
+        * `%%Z' - the time zone or the name or an
+          abbreviation.
 
         * `%%%' - a literal `%' character.
 
@@ -96,31 +174,31 @@ Functions for access to process information
 -------------------------------------------
 
    There are Dino predeclared functions which are used to get
-information about the current OS process (Dino interpreter which
-executes the program).  Each OS processor has unique identifier and
+information about the current OS process (the Dino interpreter which
+executes the program).  Each OS process has unique identifier and
 usually OS processes are called by a concrete user and group and are
 executed on behalf of the concrete user and group (so called effective
 identifiers).  The following functions return such information.  On
 some OSes the function may return string "Unknown" as a name if there
-are notion of user and group identifiers.
-   * `getpid ()'.  The function returns integer value which is process
-     ID of the current OS process.
+are notions of user and group identifiers.
+   * `getpid ()'.  The function returns an integer value which is the
+     process ID of the current OS process.
 
-   * `getun ()'.  The function returns new string which is user name
+   * `getun ()'.  The function returns a new string which is the user
+     name for the current OS process.
+
+   * `geteun ()'.  The function returns a new string which is the
+     effective user name for the current OS process.
+
+   * `getgn ()'.  The function returns a new string which is the group
+     name for the current OS process.
+
+   * `getegn ()'.  The function returns a new string which is the
+     effective group name for the current OS process.
+
+   * `getgroups ()'.  The function returns a new vector of strings
+     (possibly the empty vector) representing supplementary group names
      for the current OS process.
-
-   * `geteun ()'.  The function returns new string which is effective
-     user name for the current OS process.
-
-   * `getgn ()'.  The function returns new string which is group name
-     for the current OS process.
-
-   * `getegn ()'.  The function returns new string which is effective
-     group name for the current OS process.
-
-   * `getgroups ()'.  The function returns new vector of strings
-     (possibly empty vector) representing supplementary group names for
-     the current OS process.
 
 
 File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to process information,  Up: Predeclared functions
@@ -128,57 +206,58 @@ File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to 
 Miscellaneous functions
 -----------------------
 
-   There are the following miscellaneous functions.
-   * `max (v1, v2, ...)'.  The function searches for and returns
-     maximal value between all parameters.  The parameters should be of
-     integer or floating point type after implicit arithmetic
-     conversions.  So the function can return integer or floating point
-     number depending from the type of maximal value after the
+   There are the following miscellaneous functions:
+   * `max (v1, v2, ...)'.  The function searches for and returns the
+     maximal value in all of its parameters.  The parameters should be
+     of integer or floating point type after implicit arithmetic
+     conversion.  So the function can return an integer or floating
+     point number depending on the type of the maximal value after the
      conversion.
 
    * `min (v1, v2, ...)'.  The function is analogous to the previous
-     function but searches for and returns the minimal value.
+     function, but searches for and returns the minimal value.
 
-   * `tolower (str)'.  The function expects that parameter `str' (after
-     implicit string conversion) is a string.  The function returns new
-     string `str' in which upper case letters changed by the
-     corresponding lower case letters.
+   * `tolower (str)'.  The function expects that the parameter `str'
+     (after implicit string conversion) is a string.  The function
+     returns new string `str' in which upper case letters are changed
+     to the corresponding lower case letters.
 
-   * `toupper (str)'.  The function expects that parameter `str' (after
-     implicit string conversion) is a string.  The function returns new
-     string `str' in which lower case letters changed by the
-     corresponding upper case letters.
+   * `toupper (str)'.  The function expects that the parameter `str'
+     (after implicit string conversion) is a string.  The function
+     returns the new string `str' in which lower case letters are
+     changed to the corresponding upper case letters.
 
    * `eltype (vect)'.  The function expects that the parameter value is
      a vector.  The function returns `nil' if the vector is
-     heterogenous, otherwise the function returns type of the vector
-     elements (type of `nil' if the vector is empty).
+     heterogenous, otherwise the function returns the type of the
+     vector elements (type of `nil' if the vector is empty).
 
    * `keys (tab)'.  The function expects that the parameter value is a
-     table.  The function returns new mutable vector containing all
-     keys of the table.  The order of keys in the vector is undefined.
+     table.  The function returns a new mutable vector containing all
+     the keys in the table.  The order of keys in the vector is
+     undefined.
 
-   * `context (par)'. The function returns context (see section
+   * `context (par)'. The function returns the context (see section
      `Declarations and Scope Rules') represented by a block instance or
-     an object for given parameter value which should be a function, a
-     class, a thread, a block instance, or an object.
+     an object for the given parameter value which should be a
+     function, a class, a thread, a block instance, or an object.
 
-   * `inside (par1, par2[, flag])'.  The function usage goal is to
-     check that something declared inside something other.  If the
+   * `inside (par1, par2[, flag])'.  The goal for function usage is to
+     check that something is declared inside something other.  If the
      third parameter value after implicit integer conversion is given
      and nonzero, it is checked with taking contexts into account.  The
      second parameter value should be a function or a class.  The first
      parameter value should be a function, a class, an object, or a
-     block instance.  In the last three cases, they defines
-     corresponding function, class, block.  If the function, class,
-     block defined by the first parameter is declared inside function
-     or class given by the second parameter, the function `inside'
-     returns 1.  The function `inside' returns 1 also if function or
-     class defined by the first parameter is the same as the function or
-     class given by the second parameter.  Otherwise the function
-     `inside' returns 0.  The following example illustrates the
-     difference between checking with taking contexts into account and
-     without it.
+     block instance.  In the first three cases, they define
+     corresponding a function, class, or block.  If the function,
+     class, or block defined by the first parameter is declared inside
+     the function or class given by the second parameter, the function
+     `inside' returns 1.  The function `inside' also returns 1 if the
+     function or class defined by the first parameter is the same as
+     the function or class given by the second parameter.  Otherwise
+     the function `inside' returns 0.  The following example
+     illustrates the difference between checking with taking contexts
+     into account and without it.
                     class c () {
                       class subc () {
                       }
@@ -186,43 +265,44 @@ Miscellaneous functions
                     inside (c ().subc (), c ().subc);
                     inside (c ().subc (), c ().subc, 1);
 
-     The first call of `inside' returns 1, the second one returns 0.
+     The first call of `inside' returns 1, while the second one returns
+     0.
 
    * `subv (vect, index[, length])'.  The function is used to extract a
      slice of vector elements.  The first parameter value should be a
-     vector after implicit string conversion.  The second and the third
+     vector after implicit string conversion.  The second and third
      parameter values should be integers after implicit integer
-     conversion. The function extracts only element or part of the
-     slice existing in the vector (so you can use any values of the
+     conversion. The function extracts only an element or the part of
+     the slice existing in the vector (so you can use any values of the
      index and the length).  If index is negative, it is considered to
      be equal to zero.  If the length is negative, the slice will
-     finish on the vector end.  The function returns new vector which
+     finish on the vector end.  The function returns a new vector which
      is the slice.  The result vector is immutable only when the
      original vector is immutable.
 
    * `del (vect, index[, length]) or del (tab, key)'.  The first form
-     of the function is used to remove the vector element or the slice
-     of vector elements from the mutable vector.  The second and the
-     third parameter values should be integers after implicit integer
-     conversion. The function removes only element or part of the slice
-     existing in the vector (so you can use any values of the index and
-     the length).  If index is negative, it is considered to be equal
-     to zero.  If the length is negative, the slice will finish on the
-     vector end.  The second form of the function is used to remove the
-     element (if any) with given key from the mutable table.  The
-     function generates exception `immutable' if we are trying to
-     remove from an immutable vector or table.  The function returns
-     the modified vector.
+     of the function is used to remove the vector element or a slice of
+     vector elements from the mutable vector `vect'.  The second and
+     the third parameter values should be integers after implicit
+     integer conversion. The function removes only an element or the
+     part of the slice existing in the vector (so you can use any
+     values of the index and the length).  If index is negative, it is
+     considered to be equal to zero.  If the length is negative, the
+     slice will finish on the vector end.  The second form of the
+     function is used to remove the element (if it exists) with the
+     given key from the mutable table.  The function generates the
+     exception `immutable' if we are trying to remove from an immutable
+     vector or table.  The function returns the modified vector.
 
-   * `ins (vect, el[, index])'.  The function inserts element given by
-     the second parameter into the vector given by the first parameter
-     on the place given by the third parameter.  If the third parameter
-     is not given it is believed to be zero.  The third parameter
-     should be an integer after implicit integer conversion.  If the
-     third parameter is negative or equal or greater than the vector
-     length, the element is inserted at the end of the vector.  The
-     function generates exception `immutable' if we are trying to
-     insert into an immutable vector.  The function returns the
+   * `ins (vect, el[, index])'.  The function inserts the element given
+     by the second parameter into the vector given by the first
+     parameter on the place given by the third parameter.  If the third
+     parameter is not given it is believed to be zero.  The third
+     parameter should be an integer after implicit integer conversion.
+     If the third parameter is negative or equal to or greater than the
+     vector length, the element is inserted at the end of the vector.
+     The function generates the exception `immutable' if we are trying
+     to insert into an immutable vector.  The function returns the
      modified vector.
 
    * `insv (vect, vect[, index])'.  The function is analogous to the
@@ -231,49 +311,50 @@ Miscellaneous functions
      parameter value should be a vector.  The function returns the
      modified vector.
 
-   * `rev (vect)'.  The function reverses given vector.  The function
-     generates exception `immutable' if we are trying to reverse an
-     immutable vector.  The function returns the modified vector.
+   * `rev (vect)'.  The function reverses the given vector.  The
+     function generates the exception `immutable' if we are trying to
+     reverse an immutable vector.  The function returns the modified
+     vector.
 
    * `cmpv (vect, vect)'.  The function makes implicit string
      conversion of the parameter values.  After that, the parameter
-     values should be vectors whose the first corresponding equal
-     elements should have the same type (character, integer, or
-     floating point type).  The first corresponding unequal elements
-     should have the same type too (the remaining elements can have
-     different type).  As usually if this is not true, exception
-     `partype' is generated.  The function returns 1 if the first
-     unequal element value of the first vector is greater than the
-     corresponding element in the second vector, -1 if less, and 0 if
-     the all vector elements are equal.  If the first vector is a
-     prefix of the second vector, the function returns -1.  If the
-     second vector is a prefix of the first vector, the function
-     returns 1.  So it is generalized lexicographical order.
+     values should be vectors whose first corresponding equal elements
+     should have the same type (character, integer, or floating point
+     type).  The first corresponding unequal elements should have the
+     same type too (the remaining elements can have different type).
+     As usual, if this is not true, exception `partype' is generated.
+     The function returns 1 if the first unequal element value of the
+     first vector is greater than the corresponding element in the
+     second vector, -1 if less, and 0 if the all corresponding vector
+     elements are equal.  If the first vector is a prefix of the second
+     vector, the function returns -1.  If the second vector is a prefix
+     of the first vector, the function returns 1, so it is in fact
+     generalized lexicographical order.
 
-   * `sort (vect[, compare_function])'.  The function returns
+   * `sort (vect[, compare_function])'.  The function returns a
      new sorted vector.  The original vector given as the first
      parameter value should be a homogeneous vector whose elements are
      of character, integer, or floating point type.  If the second
      parameter is not given, standard arithmetic order (see comparison
      operators) is used.  To use special ordering, use the second
      parameter which should be a function which compares two elements
-     of the vector and returns negative integer if the first parameter
-     value (element) is less than the second one, positive integer if
-     the first parameter value is greater than the second one, and zero
-     if they are equal.
+     of the vector and returns a negative integer if the first
+     parameter value (element) is less than the second one, a positive
+     integer if the first parameter value is greater than the second
+     one, and zero if they are equal.
 
-   * `exit (code)'.  The function finishes work of the interpreter with
-     given code which should be integer value after implicit integer
-     conversion.
+   * `exit (code)'.  The function finishes the work of the interpreter
+     with the given code which should be an integer value after
+     implicit integer conversion.
 
-   * `gc ()'.  The function forces garbage collection with heap
-     compaction.  Usually Dino interpreter itself calls garbage
-     collection when there are no more free memory.
+   * `gc ()'.  The function forces garbage collection and heap
+     compaction.  Usually the Dino interpreter itself invokes garbage
+     collection when there is no more free memory.
 
-   * `system (command)'.  The function executes command given by a
-     string (the parameter value) in OS command interpreter.  Besides
-     standard exceptions `parnumber' and `partype' the function may
-     generate exceptions `noshell' and `systemfail'.
+   * `system (command)'.  The function executes the command given by a
+     string (the parameter value) in the OS command interpreter.
+     Besides standard exceptions `parnumber' and `partype' the function
+     may generate exceptions `noshell' and `systemfail'.
 
    * `srand ([seed])'.  The function sets the parameter value (after
      implicit integer conversion) as the seed for a new sequence of
@@ -283,13 +364,13 @@ Miscellaneous functions
      function `time'.
 
    * `rand ()'.  The function returns a pseudo-random integer value.
-     If the function `srand' is not called before, 1 will be used as
+     If the function `srand' was not called before, 1 will be used as
      the seed value.
 
    * `sput (...), sputln (...), sprint (...), sprintln (...)'.  The
      functions are analogous to functions put, putln, print, and
      println but they return the result string instead of output of the
-     formed string into standard output stream.
+     formed string into the standard output stream.
 
 
 File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implementation,  Prev: Predeclared identifiers,  Up: Top
@@ -470,201 +551,153 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 Appendix B- Implementation
 **************************
 
-
-
-
      DINO(1)                    User Manuals                   DINO(1)
+     
      
      
      NAME
-            dino - interpreter of the programming language DINO
+            dino - the interpreter of the programming language DINO
      
      SYNOPSIS
-            dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro-
+            dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro­
             gram-file ) dino-program-arguments
      
      DESCRIPTION
-            dino interprets program on DINO programming language.  The
-            program file (and include files) must have suffix .d
+            dino interprets a program in  the  DINO  programming  lan­
+            guage.  The program file (and include files) must have the
+            suffix .d
      
-            Description  of DINO language is in report of the Program-
-            ming Language DINO.
+            The description of DINO language is in the report  of  the
+            Programming Language DINO.
      
      OPTIONS
-            The options which are known for DINO interpreter are:
+            The options which the DINO interpreter recognizes are:
      
             -c program
-                   Execute Dino program given on the command  line  as
-                   argument.
+                   Execute  the Dino program given on the command line
+                   as the argument.
      
             -h number
-                   Determine  the size of the heap chunks used by DINO
-                   interpreter.  The size can be given in bytes  (e.g.
-                   32000),  in  kilobytes  (e.g. 64k), or in megabytes
-                   (e.g. 1m).  The default size is 1  Megabyte.   Ini-
-                   tially,  Dino  interpreter  creates  one chunk.  It
-                   allocates additional chunk (as  rule  of  the  same
-                   size) whenever there are no additional memory after
-                   garbage collection.
+                   Determine the size of the heap chunks used  by  the
+                   DINO  interpreter.   The size can be given in bytes
+                   (e.g.  32000),  in  kilobytes  (e.g.  64k),  or  in
+                   megabytes   (e.g.  1m).   The  default  size  is  1
+                   Megabyte.  Initially, the Dino interpreter  creates
+                   one  chunk.   It allocates one additional chunk (as
+                   rule of the same size) whenever there is  no  addi­
+                   tional memory after garbage collection.
      
-            -s     Output some statistics  of  interpreter  work  into
-                   stderr.   Statistics  contains  maximal  heap size,
-                   number of heap chunks, and number of collisions  in
-                   hash  tables which are used for implementation DINO
-                   tables.
+            -s     Output  some  statistics  of  interpreter work into
+                   stderr.  Statistics contain the maximal heap  size,
+                   number  of heap chunks, and number of collisions in
+                   hash tables which are used for  the  implementation
+                   of DINO tables.
      
             -Idirname
-                   Define directory in which Dino include  files  will
-                   be  searched  for.  The order searching in directo-
-                   ries given with this option is the same as  one  on
-                   the command line.
+                   Define  the  directory  in which Dino include files
+                   will be searched for.  The order  of  searching  in
+                   directories  given  with this option is the same as
+                   the one on the command line.
      
             -Ldirname
-                   Define   external   libraries  (if  shared  or  dll
-                   libraries are implemented on the system.   this  is
-                   true for Linux, Solaris, Irix, OSF, and Windows) in
-                   which Dino external variable and functions will  be
-                   searched  for.   The  order  searching in libraries
-                   given with this option is the same as  one  on  the
-                   command line.
+                   Define where to serach for external  libraries  (if
+                   shared or dll libraries are implemented on the sys­
+                   tem.  This is true for Linux, Solaris,  Irix,  OSF,
+                   and  Windows)  in which the Dino external variables
+                   and functions will be searched for.  The  order  of
+                   searching  in  libraries  given with this option is
+                   the same as one on the command line.
      
-            -p     Output  profile  information  into stderr.  Profile
-                   information contains number of calls and  exceution
-     
-     
-     
-     DINO                        5 May 2001                          1
-     
-     
-     
-     
-     
-     DINO(1)                    User Manuals                   DINO(1)
-     
-     
-                   times of all called functions and classes.
+            -p     Output profile information  into  stderr.   Profile
+                   information contains the number of calls and execu­
+                   tion times of all called functions and classes.
      
      FILES
             file.d
-                   DINO program file
+                   a DINO program file
             libdino.so
-                   DINO shared library on some Unix systems.
+                   a DINO shared library on some Unix systems.
             mpi.d
-                   DINO  file  implementing  multiple precision arith-
-                   metic.
+                   the  DINO  file  implementing  multiple   precision
+                   arithmetic.
             mpi.so
-                   DINO shared library used by for implementing MPI on
-                   some Unix systems.
+                   the  DINO  shared library used for implementing MPI
+                   on some Unix systems.
             mpi.dll
-                   DINO  dll  library  used by for implementing MPI on
+                   the DINO dll library used for implementing  MPI  on
                    Windows systems.
             ieee.d
-                   DINO file implementing IEEE standard floating point
-                   arithmetic.
+                   the  DINO  file implementing IEEE standard floating
+                   point arithmetic.
             ieee.so
-                   DINO  shared  library used by for implementing IEEE
+                   the DINO shared library used for implementing  IEEE
                    on some Unix systems.
             ieee.dll
-                   DINO dll library used by for implementing  IEEE  on
+                   the  DINO dll library used for implementing IEEE on
                    Windows systems.
             ipcerr.d
-                   DINO file definining exception of ipc/network soft-
-                   ware.  This file is used by socket.d.
+                   the DINO file definining exceptions of  ipc/network
+                   software.  This file is used by socket.d.
             ipcerr.so
-                   DINO shared library used by for implementing IPCERR
-                   on some Unix systems.
+                   the  DINO  shared  library  used  for  implementing
+                   IPCERR on some Unix systems.
             ipcerr.dll
-                   DINO dll library used by for implementing IPCERR on
-                   Windows systems.
+                   the DINO dll library used for  implementing  IPCERR
+                   on Windows systems.
             socket.d
-                   DINO file implementing work with sockets.
+                   the DINO file implementing work with sockets.
             socket.so
-                   DINO shared library used by for implementing SOCKET
-                   on some Unix systems.
+                   the  DINO  shared  library  used  for  implementing
+                   SOCKET on some Unix systems.
             socket.dll
-                   DINO dll library used by for implementing SOCKET on
-                   Windows systems.
-            There are no any temporary files used by DINO.
+                   the DINO dll library used for  implementing  SOCKET
+                   on Windows systems.
+            There are no temporary files used by DINO.
      
      ENVIRONMENT
             There are the following environment variables which affect
-            DINO behavior:
+            DINO's behavior:
      
             DINO_HOME
-                   If  non-null,  it  defines  places  of  dino shared
-                   library (such library may be only on some Unix sys-
-                   tems including Linux, Solaris), include files, dino
-                   standard  external  libraries.   The   places   are
-                   defined  as  subdirectory lib in directory given by
-     
-     
-     
-     DINO                        5 May 2001                          2
-     
-     
-     
-     
-     
-     DINO(1)                    User Manuals                   DINO(1)
-     
-     
-                   the environment variable value.  You should  define
-                   the  variable value on Windows if you installed the
-                   files not in directory C:\dino\lib
+                   If not null, it defines  the  places  of  the  dino
+                   shared  libraries  (such  a  library may be only on
+                   some Unix systems  including  Linux  and  Solaris),
+                   include   files,   and   dino   standard   external
+                   libraries.  The places are defined as the subdirec­
+                   tory  lib  in  directory  given  by the environment
+                   variable value.  You  should  define  the  variable
+                   value  on  Windows  if you installed the files in a
+                   directory other than C:\dino\lib
      
             DINO_PATH
-                   If non-null, it  defines  place  of  dino  include-
-                   files.   The  value  of  variable has more priority
+                   If not null, it defines the places of dino include-
+                   files.  The value of the variable has more priority
                    than DINO_HOME but less priority than values  given
-                   in -I options.
+                   through -I options.
      
             DINO_LIB
-                   If  non-null,  it  defines  places  of  dino shared
+                   If  not  null,  it  defines  places  of dino shared
                    library, if any.  The value of  variable  has  more
                    priority than DINO_HOME.
      
             DINO_EXTERN_LIBS
-                   If  non-null,  it  defines paths of dino additional
-                   external libraries.  The libraries should be  sepa-
-                   rated  by  `:'  (on Unix) or `;' (on Windows).  The
-                   value has less priority than  values  given  in  -L
+                   If  not  null,  it defines paths of additional Dino
+                   external  libraries.   The  libraries   should   be
+                   separated  by  `:'  (on  Unix) or `;' (on Windows).
+                   The value has less priority than values given in -L
                    options.
      
      DIAGNOSTICS
-            DINO diagnostics is self-explanatory.
+            DINO diagnostics are self-explanatory.
      
      AUTHOR
             Vladimir N. Makarov, vmakarov@users.sourceforge.net
      
      BUGS
-            Please, report bugs to cocom-bugs@lists.sourceforge.net.
+            Please report bugs to cocom-bugs@lists.sourceforge.net.
      
      
      
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     DINO                        5 May 2001                          3
+     DINO                        5 May 2001                    DINO(1)
 
 

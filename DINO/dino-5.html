@@ -18,29 +18,29 @@
 from other values by the application of <EM>operators</EM>.
 Expressions consist of <EM>operands</EM> and operators.  Parentheses
 may be used to express specific associations of operators and
-operands.  Dino is a dynamic-typed language.  That means that variable
-can store any Dino value.
+operands.  Dino is a dynamic-typed language.  This means that a
+variable can store any Dino value.
 <P>
 <H2><A NAME="ss5.1">5.1 Types and Values</A>
 </H2>
 
-<P>All Dino values are <EM>the first class values</EM>, i.e. they can be
+<P>All Dino values are <EM>first class values</EM>, i.e. they can be
 assigned to a variable, can be passed as a parameter of
-function/class, and can be returned by functions.  Operators require
-operands whose values are of given types and return value of the
-result type.  The most of values have a represention in Dino.  When a
-value representation is encountered in expression during the
+a function/class, and can be returned by functions.  Operators require
+operands whose values are of given type and return the value of the
+result type.  Most values have a representation in Dino.  When a
+value representation is encountered in an expression during the
 expression evaluation, the new value is generated.
 <P>There are values of <EM>structured types</EM>, i.e. values which are
 built from other values.  The value of a structured type may be
-<EM>mutable</EM> or <EM>immutable</EM>.  Value or sub-value of mutable
-value can be changed.  Immutable value can not be changed after its
-generation.  You can make mutable value an immutable by applying
-operator <CODE>final</CODE> as side effect.  In all cases, the operator
-returns the operand value as the result.  If you try to change
-immutable value, exception <CODE>immutable</CODE> is generated.  You can
-make new mutable value as side effect of applying operator
-<CODE>new</CODE>.  The operator returns new value equal to the operand
+<EM>mutable</EM> or <EM>immutable</EM>.  A value or sub-value of a
+mutable value can be changed.  An immutable value can not be changed
+after its generation.  You can make a mutable value immutable as a
+side effect by applying the operator <CODE>final</CODE>.  In all cases,
+the operator returns the operand value as the result.  If you try to
+change an immutable value, exception <CODE>immutable</CODE> is generated.
+You can make a new mutable value as a side effect of applying operator
+<CODE>new</CODE>.  The operator returns a new value equal to the operand
 value.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -51,13 +51,13 @@ value.
 
 Structured value types are also <EM>shared value types</EM>.  This
 notion means that if two or more different variables (array elements
-or table elements or keys) refer for the same value and the value is
-changed through one variable, the value which is referred through
-other variables is changed too.  There is no difference between notion
-"the same value" and notion "equal values" for non-shared type values.
-For the shared type operands, the equality means that the operands
-have the same structure (e.g. vectors with the same length) and the
-corresponding element values are the same.
+or table elements or keys) refer to the same value and the value is
+changed through one variable, the value which is referred through the
+other variables is changed too.  There is no difference between the
+notion "the same value" and the notion "equal values" for non-shared
+type values.  For the shared type operands, equality means that the
+operands have the same structure (e.g. vectors with the same length)
+and the corresponding element values are the same.
 <P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -73,9 +73,9 @@ corresponding element values are the same.
 </CODE></BLOCKQUOTE>
 <P>Dino has the following types of values:
 <UL>
-<LI>special value <EM>nil</EM>.  This is default value of
-variables when the corresponding block starts.  The value
-is represented by keyword <B>nil</B>.
+<LI>the special value <EM>nil</EM>.  This is the default
+value of all variables when a block starts.  The value is
+represented by the keyword <B>nil</B>.
 <BLOCKQUOTE><CODE>
 <PRE>
                  Expr = nil
@@ -83,17 +83,17 @@ is represented by keyword <B>nil</B>.
 </CODE></BLOCKQUOTE>
 </LI>
 <LI><EM>character</EM> which represents ASCII characters.
-The representation see <CODE>Character</CODE> in section
-<EM>Vocabulary and Representation</EM>.
+For the representation see <CODE>Character</CODE> in the
+section <EM>Vocabulary and Representation</EM>.
 <BLOCKQUOTE><CODE>
 <PRE>
                  Expr = CHARACTER
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
-<LI><EM>integer</EM>.  Its representation see
-<CODE>Integer</CODE> in section <EM>Vocabulary and
-Representation</EM>.  It is always stored as 32-bit
+<LI><EM>integer</EM>.  For its representation see
+<CODE>Integer</CODE> in the section <EM>Vocabulary and
+Representation</EM>.  It is always stored as a 32-bit
 integer value.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -101,10 +101,10 @@ integer value.
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
-<LI><EM>floating point number</EM>.  Its representation
-see <CODE>FloatingPointNumber</CODE> in section
+<LI><EM>floating point number</EM>.  For its
+representation see <CODE>FloatingPointNumber</CODE> in section
 <EM>Vocabulary and Representation</EM>.  It is always
-stored as IEEE double (64-bit) floating point value.
+stored as an IEEE double (64-bit) floating point value.
 <BLOCKQUOTE><CODE>
 <PRE>
                  Expr = FLOATINGPOINTNUMBER
@@ -112,21 +112,21 @@ stored as IEEE double (64-bit) floating point value.
 </CODE></BLOCKQUOTE>
 </LI>
 <LI><EM>vector</EM>.  This is a structured shared type
-value.  Vector value is represented by list of values (or
-expressions) in brackets with optional repetitions of the
-vector elements followed by <CODE>:</CODE>.  The repetition
-value is conversed into integer value by default.  If the
-repetition value after this is not of integer, exception
-<CODE>optype</CODE> is generated. If the repetition value is
-negative or zero, the element value will be absent in the
-vector.  Elements of vector are accessed by their
-indexes.  Indexes always starts with 0.  Vectors in Dino
-are heterogenous, i.e. elements of a vector may be of
-different types.  String represents immutable vector
-whose all elements are characters in the string.
-Elements of mutable vectors can be added to or removed
-from the vector (see predefined functions <EM>ins, insv,
-del</EM>).
+value.  A vector value is represented by a list of values
+(or expressions) in brackets with optional repetitions of
+the vector elements preceded by <CODE>:</CODE>.  The
+repetition value is converted into an integer value by
+default.  If the repetition value after the conversion is
+not integer, exception <CODE>optype</CODE> is generated. If
+the repetition value is negative or zero, the element
+value will be absent in the vector.  Elements of vector
+are accessed by their indexes.  Indexes always starts with
+0.  Vectors in Dino are heterogenous, i.e. elements of a
+vector may be of different types.  A string represents an
+immutable vector all of whose elements are characters in
+the string.  Elements of mutable vectors can be added to
+or removed from the vector (see predefined functions
+<EM>ins, insv, and del</EM>).
 <BLOCKQUOTE><CODE>
 <PRE>
                  Expr = "["  ElistPartsList "]"
@@ -149,18 +149,19 @@ Examples:
 </CODE></BLOCKQUOTE>
 </LI>
 <LI><EM>table</EM>.  This is a structured shared type
-value.  Table value is represented by list of key values
-(expression values) in figure parentheses <CODE>{</CODE> and
-<CODE>}</CODE> with optional element values with preceding
-<CODE>:</CODE>.  By default element value is equal to
-<B>nil</B>.  It is not possible to have elements with
-equal keys in a table.  If it is not true in a table
-constructor, exception <CODE>keyvalue</CODE> is generated.
-Elements of tables are accessed by their keys.  Elements
-of mutable tables can be added to or removed from the
-table correspondingly by assigning value and with the
-aid function <EM>del</EM>.  The side effect of table
-constructor execution is that the keys become immutable.
+value.  A table value is represented by a list of key
+values (expression values) in figure parentheses
+<CODE>{</CODE> and <CODE>}</CODE> with optional element values
+with a preceding <CODE>:</CODE>.  By default the element value
+is equal to <B>nil</B>.  It is not allowed to have
+elements with equal keys in a table.  If it is not true in
+a table constructor, exception <CODE>keyvalue</CODE> is
+generated.  Elements of tables are accessed by their keys.
+Elements of mutable tables can be added to or removed from
+the table correspondingly by assigning values and with the
+aid of the function <EM>del</EM>.  The side effect of the
+table constructor execution is that the keys become
+immutable.
 <BLOCKQUOTE><CODE>
 <PRE>
                  Expr = "{"  ElistPartsList "}"
@@ -177,32 +178,34 @@ Examples:
 </PRE>
 </CODE></BLOCKQUOTE>
 </LI>
-<LI><EM>function</EM>.  Its value is represented by
-function designator.  It is important to remember
-that the function is bound to a context.</LI>
+<LI><EM>function</EM>.  Its value is represented by the
+function designator.  It is important to remember that the
+function is bound to a context.</LI>
 <LI><EM>thread-function</EM>.  Its value is represented by
-thread-function designator.  It is important to remember
-that the thread-function is bound to a context.</LI>
-<LI><EM>class</EM>.  Its value is represented by
-class designator.  It is important to remember
-that the class is bound to a context.</LI>
+the thread-function designator.  It is important to
+remember that the thread-function is bound to a context.</LI>
+<LI><EM>class</EM>.  Its value is represented by the class
+designator.  It is important to remember that the class is
+bound to a context.</LI>
 <LI><EM>block instance</EM>.  There is no Dino
 representation of such values.</LI>
-<LI><EM>thread</EM>.  There is no Dino representation of
-such values.  Thread value is generated by calling
-a thread-function.</LI>
+<LI><EM>thread</EM>.  There is no literal Dino
+representation of such values.  A thread value is
+generated by calling a thread-function.</LI>
 <LI><EM>object</EM>(class instance).  This is a structured
-shared type value.  There is no Dino representation of
-such values.  Objects are generated by calling classes.</LI>
-<LI><EM>hide value</EM>.  Hide value can not be generated
-in Dino code.  They are generated by external functions.</LI>
-<LI><EM>hide block</EM>.  This value is analogous to hide
-value.  The differences are in that the size of a hide
-value is constrained by C program pointer.  The size of
-hideblock value has no such constraint.  Also hideblock
-is of shared type.</LI>
-<LI><EM>type</EM>.  The value of such types are returned
-by special operator <CODE>type (expression)</CODE>.
+shared type value.  There is no literal Dino
+representation of such values.  Objects are generated by
+calling classes.</LI>
+<LI><EM>hide value</EM>.  A hide value can not be
+generated by a Dino code.  They are generated by external
+functions.</LI>
+<LI><EM>hide block</EM>.  This value is analogous to a
+hide value.  The differences are in that the size of a
+hide value is constrained by a C program pointer.  The
+size of q hideblock value has no such constraint.  Also a
+hideblock is of shared type.</LI>
+<LI><EM>type</EM>.  The values of such types are returned
+by th special operator <CODE>type (expression)</CODE>.
 <BLOCKQUOTE><CODE>
 <PRE>
                  Expr = char
@@ -225,35 +228,35 @@ by special operator <CODE>type (expression)</CODE>.
 There are the following type values:
 <UL>
 <LI>type of <B>nil</B>.  There is no value
-representing type of <B>nil</B>.  So use operator
-<CODE>type (nil)</CODE> to get it.</LI>
+representing type of <B>nil</B>.  So use the
+construction <CODE>type (nil)</CODE> to get it.</LI>
 <LI>type of characters.  The value is represented by
-Dino keyword <CODE>char</CODE>.</LI>
-<LI>type of integers.  The value is represented by Dino
-keyword <CODE>int</CODE>.</LI>
+the Dino keyword <CODE>char</CODE>.</LI>
+<LI>type of integers.  The value is represented by the
+Dino keyword <CODE>int</CODE>.</LI>
 <LI>type of floating point numbers.  The value is
-represented by Dino keyword <CODE>float</CODE>.</LI>
-<LI>type of vectors.  The value is represented by Dino
-keyword <CODE>vector</CODE>.</LI>
-<LI>type of tables.  The value is represented by Dino
-keyword <CODE>table</CODE>.</LI>
-<LI>type of functions.  The value is represented by
+represented by the Dino keyword <CODE>float</CODE>.</LI>
+<LI>type of vectors.  The value is represented by the
+Dino keyword <CODE>vector</CODE>.</LI>
+<LI>type of tables.  The value is represented by the
+Dino keyword <CODE>table</CODE>.</LI>
+<LI>type of functions.  The value is represented by the
 Dino keyword <CODE>func</CODE>.</LI>
 <LI>type of thread-functions.  The value is represented
-by Dino keyword <CODE>thread</CODE>.</LI>
-<LI>type of classes.  The value is represented by Dino
-keyword <CODE>class</CODE>.</LI>
+by the Dino keyword <CODE>thread</CODE>.</LI>
+<LI>type of classes.  The value is represented by the
+Dino keyword <CODE>class</CODE>.</LI>
 <LI>type of block instances.  The value is represented
-by Dino construction <CODE>func ()</CODE>.</LI>
-<LI>type of threads.  The value is represented by Dino
-construction <CODE>thread ()</CODE>.</LI>
-<LI>type of objects.  The value is represented by Dino
-construction <CODE>class ()</CODE>.</LI>
+by the Dino construction <CODE>func ()</CODE>.</LI>
+<LI>type of threads.  The value is represented by the
+Dino construction <CODE>thread ()</CODE>.</LI>
+<LI>type of objects.  The value is represented by the
+Dino construction <CODE>class ()</CODE>.</LI>
 <LI>type of hide values.  The value is represented by
-Dino keyword <CODE>hide</CODE>.</LI>
+the Dino keyword <CODE>hide</CODE>.</LI>
 <LI>type of hideblocks.  The value is represented by
-Dino keyword <CODE>hideblock</CODE>.</LI>
-<LI>type of types.  The value is represented by Dino
+the Dino keyword <CODE>hideblock</CODE>.</LI>
+<LI>type of types.  The value is represented by the Dino
 keyword <CODE>type</CODE>.</LI>
 </UL>
 </LI>
@@ -262,10 +265,10 @@ keyword <CODE>type</CODE>.</LI>
 <H2><A NAME="ss5.2">5.2 Designators</A>
 </H2>
 
-<P>There is special Dino construction called <EM>designator</EM>.
-Designator refers for an vector or table element or for an
-declaration.  If designator refers for vector or table element or for
-variable declaration, it can stand in left hand side of assignment
+<P>There is a special Dino construction called a <EM>designator</EM>.
+A designator refers for a vector or table element or for a
+declaration.  If the designator refers to a vector or table element or for
+a variable declaration, it can stand in the left hand side of an assignment
 statement.  If the designator stands in an expression, the
 corresponding value is used (vector/table element value, variable
 value, function, thread-function, or class).
@@ -275,7 +278,7 @@ value, function, thread-function, or class).
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Designator referring for a vector element has the following syntax
+A designator referring to a vector element has the following syntax:
 <BLOCKQUOTE><CODE>
 <PRE>
           Designator = DesignatorOrCall "["  Expr "]"
@@ -287,12 +290,12 @@ Designator referring for a vector element has the following syntax
 
 The value of the construction before the brackets must be a vector.
 Otherwise, the exception <CODE>indexop</CODE> is generated.  The value of
-expression in the brackets (so called <EM>index</EM>) is conversed to
-integer.  If it is not possible, exception <CODE>indextype</CODE> is
-generated.  If index is negative or greater or equal to the vector
-length, the exception <CODE>indexvalue</CODE> is generated.  The value of
-the designator will be the vector element value with given index (the
-indexes starts with zero).
+expression in the brackets (so called the <EM>index</EM>) is converted
+to integer.  If this is not possible, exception <CODE>indextype</CODE> is
+generated.  If the index is negative or greater than or equal to the
+vector length, the exception <CODE>indexvalue</CODE> is generated.  The
+value of the designator will be the vector element value with given
+index (the indexes starts with zero).
 Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -302,7 +305,7 @@ Examples:
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Designator referring for a table element has the following syntax
+A designator referring to a table element has the following syntax:
 <BLOCKQUOTE><CODE>
 <PRE>
           Designator = DesignatorOrCall "{"  Expr "}"
@@ -311,10 +314,10 @@ Designator referring for a table element has the following syntax
 
 The value of the construction before the figure brackets must be a
 table.  Otherwise, the exception <CODE>keyop</CODE> is generated.  The
-value of expression in the figure brackets is called <EM>key</EM>.
-The value of the designator will be the table element value with key
-which is equal to given key.  If the element with given key is absent
-in the table, exception <CODE>keyvalue</CODE> is generated.
+value of expression in the figure brackets is called the <EM>key</EM>.
+The value of the designator will be the table element value with the
+key which is equal to given key.  If the element with the given key is
+absent in the table, exception <CODE>keyvalue</CODE> is generated.
 Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -325,8 +328,8 @@ Examples:
 </PRE>
 </CODE></BLOCKQUOTE>
 
-The remaining forms of designator refer for a declaration.  See
-section <EM>Declarations and Scope Rules</EM> describing how they
+The remaining forms of designator refer to a declaration.  See section
+<EM>Declarations and Scope Rules</EM> for a description on how they
 work.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -347,35 +350,36 @@ Examples:
 </PRE>
 </CODE></BLOCKQUOTE>
 <P>
-<H2><A NAME="ss5.3">5.3 Call</A>
+<H2><A NAME="ss5.3">5.3 Calls</A>
 </H2>
 
-<P>One form of expression is call of function, thread-function, or class.
-The value of designator before the actual parameters should be
-function, thread-function, or class.  Otherwise, exception
-<CODE>callop</CODE> is generated.  Instance of block corresponding to the
-body of the function, thread-function, or class is created.  The
-actual parameter values are assigned to the corresponding formal
-parameters.  If the corresponding function, thread-function, or class
-has no default formal parameter <CODE>args</CODE> (see section
-<EM>Declarations</EM>), the remaining actual parameter values are
-ignored.  Otherwise, vector whose elements are the remaining parameter
-values are created and assigned to parameter <CODE>args</CODE>.  If there
-is no corresponding actual parameter for a formal parameter, the
-default parameter value (see section <EM>Declarations</EM>) or value
-<B>nil</B> are assigned to the formal parameter.  Then statements in
-the block are executed.  If it is call of a thread-function, new
-execution thread is created, and the statements of the block is
-executed in the new thread.  The value of call of the thread-function
-is the corresponding thread.  It is returned before starting execution
-of the statements in the new thread.
-<P>Execution of the body is finished by achieving the block end or by
-execution of return-statement.  Finishing of thread-function results
-in finishing the corresponding thread.  The return-statement in
-thread-function or in class should be without an expression.  The call
-of class returns the created object.  Function call returns value of
-the expression in the executed return-statement.  Otherwise, the
-function call returns value <B>nil</B>.
+<P>One form of expression is the call of a function, thread-function, or
+class.  The value of the designator before the actual parameters
+should be a function, thread-function, or class.  Otherwise, the
+exception <CODE>callop</CODE> is generated.  An instance of the block
+corresponding to the body of the function, thread-function, or class
+is created.  The actual parameter values are assigned to the
+corresponding formal parameters.  If the corresponding function,
+thread-function, or class has no default formal parameter
+<CODE>args</CODE> (see section <EM>Declarations</EM>), the remaining
+actual parameter values are ignored.  Otherwise, a vector whose
+elements are the remaining parameter values is created and assigned to
+the parameter <CODE>args</CODE>.  If there is no corresponding actual
+parameter for a formal parameter, the default parameter value (see
+section <EM>Declarations</EM>) or the value <B>nil</B> is assigned
+to the formal parameter.  Then statements in the block are executed.
+If it is the call of a thread-function, a new execution thread is
+created, and the statements of the block is executed in the new
+thread.  The value of call of the thread-function is the corresponding
+thread.  It is returned before starting the execution of statements in
+the new thread.
+<P>Execution of the body is finished by reaching the block end or by
+execution of a return-statement.  Finishing of the thread-function
+results in finishing the corresponding thread.  The return-statement
+in a thread-function or in class should be without an expression.  The
+call of a class returns the created object.  A function call returns
+the value of the expression in the executed return-statement.
+Otherwise, the function call returns the value <B>nil</B>.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = Call
@@ -398,15 +402,15 @@ Examples:
 <H2><A NAME="ss5.4">5.4 Operators</A>
 </H2>
 
-<P>Expressions consist of operands and operators.  Order in which
-operators are executed in expression is defined by their
+<P>Expressions consist of operands and operators.  The order in which
+operators are executed in an expression is defined by their
 <EM>priority</EM> and <EM>associativity</EM> of operators.  That means
-that expression <CODE>a op1 b op2 c</CODE> when operators <CODE>op2</CODE> has
-higher priority than <CODE>op1</CODE> is analogous to <CODE>a op1 (b op2
-b)</CODE>.  Dino operators have the analogous priorities as ones in C
-language.  The following Dino operators are placed in their priority
-(the higher line on which the operator is place, the higher its
-priority).
+that the expression <CODE>a op1 b op2 c</CODE> when the operator
+<CODE>op2</CODE> has higher priority than <CODE>op1</CODE> is analogous to
+<CODE>a op1 (b op2 c)</CODE>.  Dino operators have analogous priorities to
+the ones in C language.  The following Dino operators are placed in
+the order of their priority (the higher the line on which the operator
+is placed, the higher its priority).
 <BLOCKQUOTE><CODE>
 <PRE>
           !  #  ~  final  new
@@ -428,9 +432,9 @@ priority).
 </CODE></BLOCKQUOTE>
 
 All binary operators have left associativity in Dino.  That means that
-expression <CODE>a op1 b op2 c</CODE> when operators <CODE>op1</CODE> and
+the expression <CODE>a op1 b op2 c</CODE> when operators <CODE>op1</CODE> and
 <CODE>op2</CODE> have the same priority is analogous to <CODE>(a op1 b) op2
-b</CODE>.  Parentheses may be used to express specific associations of
+c</CODE>.  Parentheses may be used to express specific associations of
 operators and operands.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -438,69 +442,69 @@ operators and operands.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-The most of Dino operators require that the operands to be of given
-types.  If an operand is not given type, the conversion of it into the
-type may be made.  If after the possible conversion the operands are
-not still of necessary types, exception <CODE>optype</CODE> is generated
-(when something special about exceptions in this case is not
-mentioned).  The following conversion may be made by default:
+Most of the Dino operators require the operands to be of given types.
+If an operand is not of given type, the conversion of it into the type
+needed may be made.  If after the possible conversions the operands
+are still not of necessary types, exception <CODE>optype</CODE> is
+generated (when something about exceptions in this case is not
+mentioned).  The following conversions may be made by default:
 <UL>
 <LI><EM>Integer conversion</EM>.  If the operand is a character,
 its code becomes integer.  If the operand is a floating point
 number, its fractional part is thrown away and integral part
 becomes integer.  If the operand is a vector of characters, the
-corresponding string is believed to be decimal representation
-of integer and is conversed into the corresponding integer.  If
-the corresponding string is not a correct integer
-representation, the result is undefined.  If the corresponding
-string represents an integer whose representation requires more
-32 bits, exception <CODE>erange</CODE> may be generated.  In all
-remaining cases the result of conversion coincide with the
-operand.</LI>
+corresponding string is believed to be the decimal
+representation of integer and is converted into the
+corresponding integer.  If the corresponding string is not a
+correct integer representation, the result is undefined.  If the
+corresponding string represents an integer whose representation
+requires more 32 bits, exception <CODE>erange</CODE> may be
+generated.  In all remaining cases the results of conversion
+coincide with the operand.</LI>
 <LI><EM>Arithmetic conversion</EM>.  Analogous to integer
-conversion except for that conversion float pointing number ->
-integer is not made and if the string represents floating point
-number (i.e. contains exponent or fraction), the result will be
-the corresponding floating point number instead of integer.
-Additionally if the operand is in a non-short circuit binary
-operator (non logical operators) and another operand is
-floating point number after the conversion, the first operand
-is conversed into floating point number too.  Analogously if
-the result is an integer which can not be represented by 32-bit
-integer or the result is an floating point number not
-represented by IEEE double, the exception <CODE>erange</CODE> may
-be generated.</LI>
+conversion except for that the conversion of float pointing
+number to integer is not made and if the string represents a
+floating point number (i.e. contains an exponent or fraction),
+the result will be the corresponding floating point number
+instead of integer.  Additionally if the operand is in a
+non-short circuit binary operator (non-logical operators) and
+another operand is a floating point number after the conversion,
+the first operand is converted into a floating point number too.
+Analogously if the result is an integer which can not be
+represented by a 32-bit integer or the result is a floating
+point number not represented by IEEE double format, the
+exception <CODE>erange</CODE> may be generated.</LI>
 <LI><EM>String conversion</EM>.  If the operand is a character,
-the result will be a new string (immutable vector of
-characters) with one element which is the character.  If the
-operand is an integer or a floating point number, the result
-will be new string of characters which is a decimal string
-representation of the number.</LI>
+the result will be a new string (immutable vector of characters)
+with one element which is the character.  If the operand is an
+integer or a floating point number, the result will be a new
+string of characters which is a decimal string representation of
+the number.</LI>
 </UL>
 <P>
 <H3>Logical operators</H3>
 
-<P>Logical operators produce integer result 1 which means <EM>true</EM>
-or 0 which means <EM>false</EM>.  Logical `or' <CODE>||</CODE> and logical
-`and' <CODE>&amp;&amp;</CODE> are <EM>short circuit</EM> operators.  That means
-that the second operand is evaluated depending on the result of the
-first operand.  When the operands of the operators are evaluated, the
-arithmetic conversion is made.
-<P>If the first result of logical `or' is nonzero (integer or floating
+<P>Logical operators produce the integer result 1 which means
+<EM>true</EM> or 0 which means <EM>false</EM>.  Logical `or'
+<CODE>||</CODE> and logical `and' <CODE>&amp;&amp;</CODE> are <EM>short circuit</EM>
+operators.  That means that the second operand is evaluated depending
+on the result of the first operand.  When the operands of the
+operators are evaluated, the arithmetic conversion is made.
+<P>If the first operand of logical `or' is nonzero (integer or floating
 point), the result will be 1.  Otherwise, the second operand is
 evaluated.  If the second operand is nonzero, the result will be 1.
 Otherwise, the result will be 0.
-<P>If the first result of logical `and' is zero (integer or floating
+<P>If the first operand of logical `and' is zero (integer or floating
 point), the result will be 0.  Otherwise, the second operand is
 evaluated.  If the second operand is nonzero, the result will be 1.
 Otherwise, the result will be 0.
-<P>Logical negotiation `!' makes impilict integer conversion of the
-operand.  If the operand is zero (integer or floating point), the
-result will be 1.  Otherwise, the result will be 0.
-<P>Operator <CODE>in</CODE> checks that there is an element with given key
-(the first operand) in given table (the second operand).  If the
-element is in the table, the result will be 1.  Otherwise the result
-will be 0.  If the second operand is not a table, exception
+<P>Logical negation `!' makes impilict integer conversion of the operand.
+If the operand is zero (integer or floating point), the result will be
+1.  Otherwise, the result will be 0.
+<P>Operator <CODE>in</CODE> checks that there is an element with the given
+key (the first operand) in the given table (the second operand).  If
+the element is in the table, the result will be 1.  Otherwise the
+result will be 0.  If the second operand is not a table, exception
 <CODE>keyop</CODE> is generated.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -524,14 +528,14 @@ Examples:
 <H3>Bit operators</H3>
 
 <P>The following operators work on integers (implicit integer conversion
-is made) and return integer result.  Operators <CODE>| ^ &amp; ~</CODE>
-denotes correspondingly bit or, bit exclusive or, bit and, and bit
-negotiation of 32-bit integers.
+is made) and return an integer result.  Operators <CODE>| ^ &amp; ~</CODE>
+denote correspondingly bitwise or, bitwise exclusive or, bitwise and,
+and bitwise negation of 32-bit integers.
 <P>Operators <CODE>&lt;&lt; >>> >></CODE> denote correspondingly logical left bit
 shift, logical right bit shift, and arithmetic (with sign extension)
-right bit shift of given number (the first operand) on given number
+right bit shift of given number (the first operand) by given number of
 bits (the second operand).  The value of the second operand must be
-non-negative.  Otherwise the result is undefined.
+non-negative, otherwise the result is undefined.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = Expr "|"  Expr
@@ -558,21 +562,21 @@ Examples:
 
 <P>All comparison operators return a logical value (integer 0 which
 means false or integer 1 which means true).
-<P>Operator equality <CODE>==</CODE> and inequality <CODE>!=</CODE> may make some
-conversion of the operands.  If one of the two operands is string,
-then the string conversion is applied to another operand before the
-comparison.  Otherwise, the standard arithmetic conversion is applied
-to the operands.  The operators do not generate exceptions (but the
-conversions may).  The operands are equal if they have the same type
-and equal values (see section <EM>Types and Values</EM>).
-<P>Operators identity <CODE>===</CODE> and unidentity <CODE>!==</CODE> returns 1
-if the operands have the same value or 0 otherwise.  The operators never
-generates exceptions.
+<P>Operators equality <CODE>==</CODE> and inequality <CODE>!=</CODE> may make
+some conversion of the operands.  If one of the two operands is
+string, then the string conversion is applied to the other operand
+before the comparison.  Otherwise, standard arithmetic conversion is
+applied to the operands.  The operators do not generate exceptions
+(but the conversions may).  The operands are equal if they have the
+same type and equal values (see section <EM>Types and Values</EM>).
+<P>Operator identity <CODE>===</CODE> or unidentity <CODE>!==</CODE> returns 1
+if the operands have (or not) the same value or 0 otherwise.  The
+operators never generate exceptions.
 <P>By default the arithmetic conversion is applied to the operands of
 operators <CODE>&lt; > &lt;= >=</CODE>.  There is no exception if the operands
-after the conversion are of integer or floating point number type.  So
-the operands should be characters, integers, floating point numbers,
-or strings representing integers or floating point numbers.
+after the conversion are of integer or floating point type.  So the
+operands should be characters, integers, floating point numbers, or
+strings representing integers or floating point numbers.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = Expr "=="  Expr  
@@ -604,15 +608,15 @@ Examples:
 <P>
 <H3>Arithmetic operators</H3>
 
-<P>The following operators return integer or floating point number.
+<P>The following operators return integer or floating point numbers.
 Before operator execution, implicit arithmetic conversion is made on
-operands.  Binary operators <CODE>+ - * / %</CODE> denote correspondingly
-integer or floating point addition, subtraction, multiplication,
-division, and evaluation of remainder.  Unary operator <CODE>-</CODE>
-denotes arithmetic negotiation.  Unary operator <CODE>+</CODE> is given
-for symmetry and it returns simply the operand after the conversion.
-It can be used e.g. for conversion of a string into integer or floating
-point number.
+the operands.  The binary operators <CODE>+ - * / %</CODE> denote
+correspondingly integer or floating point addition, subtraction,
+multiplication, division, and evaluation of remainder.  Unary operator
+<CODE>-</CODE> denotes arithmetic negation.  The unary operator <CODE>+</CODE>
+is given for symmetry and it returns simply the operand after the
+conversion.  It can be used for conversion of a string into an integer
+or floating point number.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = Expr "+"  Expr
@@ -639,66 +643,69 @@ Examples:
 <P>
 <H3>Miscellaneous operators</H3>
 
-<P>Conditional expression is analogous to C language one.  The implicit
-arithmetic conversion is made for the first expression followed by
-<CODE>?</CODE>.  If the value of the expression is non zero (integer or
-floating point), the second expression with preceding <CODE>:</CODE> is
-evaluated and it will be the result of the condition expression.
-Otherwise, the third expression is evaluated and it becomes the
-result.
-<P>Operator <CODE>#</CODE> can be applied to a vector or a table.  It returns
-the length of the vector or elements number in the table.
-<P>Operator <CODE>@</CODE> denotes concatenation of two vectors into new
-vector.  Before the concatenation the implicit string conversion of
-the operands is made.
-<P>The remaining operators look like a function call.  Operator
-<CODE>type</CODE> returns the expression type.  Never an exception
-generation is possible during the operator evaluation.
-<P>Operator <CODE>char</CODE> is used to conversion of a value into
-character.  The first, implicit integer conversion is applied to the
+<P>The Dino conditional expression is analogous to the C language one.
+Implicit arithmetic conversion is made for the first expression
+followed by <CODE>?</CODE>.  If the value of the expression is non zero
+(integer or floating point), the second expression with following
+<CODE>:</CODE> is evaluated and it will be the result of the condition
+expression.  Otherwise, the third expression is evaluated and it
+becomes the result.
+<P>The operator <CODE>#</CODE> can be applied to a vector or a table.  It returns
+the length of the vector or the number of elements in the table.
+<P>The operator <CODE>@</CODE> denotes concatenation of two vectors into a new
+vector.  Before the concatenation implicit string conversion of the
+operands is made.
+<P>The remaining operators look like function calls.  Operator
+<CODE>type</CODE> returns the expression type.  Never is exception
+generation possible during the operator evaluation.
+<P>The operator <CODE>char</CODE> is used to conversion of a value into a
+character.  First, implicit integer conversion is applied to the
 operand.  The operand should be an integer after the conversion.
 Otherwise, exception <CODE>optype</CODE> will be generated.  The integer
-is transformed into character with the corresponding code.  If the
-code is too big to be a character or negative, exception
+is transformed into the character with the corresponding code.  If the
+code is too big to be a character or is negative, exception
 <CODE>erange</CODE> is generated.
-<P>Operator <CODE>int</CODE> is used to conversion of a value into integer.
-The first, implicit integer conversion is applied to the operand.  The
+<P>The operator <CODE>int</CODE> is used to conversion of a value into an
+integer.  Implicit integer conversion is applied to the operand.  The
 operand should be an integer after the conversion.  Otherwise,
 exception <CODE>optype</CODE> will be generated.  If the code is too big
 to be an integer, exception <CODE>erange</CODE> is generated.
-<P>Operator <CODE>float</CODE> is used to conversion of a value into
+<P>The operator <CODE>float</CODE> is used to conversion of a value into
 floating-point number.  The first, implicit arithmetic conversion is
 applied to the operand.  The operand should be an integer or a
 floating-point number after the conversion.  Otherwise, exception
-<CODE>optype</CODE> will be generated.  The integer is transformed into
-the corresponding floating-point number.  If the code is too big or
-small to be a floating-point number, exception <CODE>erange</CODE> is
-generated.
-<P>Operator <CODE>vector</CODE> is used to conversion of a value into vector.
-The first, implicit string conversion is applied to the operand.  The
-optional second expression defines format used only for the string
-conversion of a character, an integer, a floating point number, or a
-string.  The second parameter value should be a string after implicit
-string conversion.  The format should not be given for a table.  The
-first operand should be a table or a vector after the conversion.  The
-table is transformed into new vector which consists of pairs (one pair
-for each element of the table).  The first element of the pair is key
-of the corresponding element, the second one is the element itself.
-The order of the pairs in the result vector is undefined.
-<P>Operator <CODE>table</CODE> is used to conversion of a value into table.
-The first, string conversion is applied to the operand.  The operand
-should be a vector or a table after the conversion.  The vector is
-transformed into new table whose elements equal to the vector elements
-have integer keys equal to the corresponding vector indexes.
-<P>If the operand of operator <CODE>func</CODE> is an block instance of body
-of a function, it returns the corresponding function.  Otherwise, it
-returns value <B>nil</B>.  The operator never generates exception.
-<P>If the operand of operator <CODE>thread</CODE> is a thread, it returns the
-corresponding thread-function.  Otherwise, it returns value
-<B>nil</B>.  The operator never generates exception.
-<P>If the operand of operator <CODE>class</CODE> is an object, it returns the
-object class.  Otherwise, it returns value <B>nil</B>.  The operator
-never generates exception.
+<CODE>optype</CODE> will be generated.  If the result integer is
+transformed into the corresponding floating-point number.  If the code
+is too big or too small to be a floating-point number, exception
+<CODE>erange</CODE> is generated.
+<P>The operator <CODE>vector</CODE> is used for conversion of a value into a
+vector.  First, implicit string conversion is applied to the operand.
+The optional second expression defines the format used only for the
+string conversion of a character, an integer, a floating point number,
+or a string.  The second parameter value should be a string after
+implicit string conversion.  The format should not be given for a
+table.  The first operand should be a table or a vector after
+conversion.  The table is transformed into a new vector which consists
+of pairs (one pair for each element in the table).  The first element
+of the pair is a key of the corresponding element, and the second one
+is the element itself.  The order of pairs in the result vector is
+undefined.
+<P>The operator <CODE>table</CODE> is used to conversion of a value into
+table.  First, string conversion is applied to the operand.  The
+operand should be a vector or a table after the conversion.  The
+vector is transformed into a new table whose elements are equal to the
+vector elements that have integer keys equal to the corresponding
+vector indexes.
+<P>If the operand of the operator <CODE>func</CODE> is a block instance of
+the body of a function, it returns the corresponding function.
+Otherwise, it returns the value <B>nil</B>.  The operator never
+generates exceptions.
+<P>If the operand of the operator <CODE>thread</CODE> is a thread, it returns
+the corresponding thread-function.  Otherwise, it returns the value
+<B>nil</B>.  The operator never generates exceptions.
+<P>If the operand of the operator <CODE>class</CODE> is an object, it returns
+the object's class.  Otherwise, it returns the value <B>nil</B>.
+The operator never generates exceptions.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = Expr "?"  Expr ":" Expr

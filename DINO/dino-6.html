@@ -15,10 +15,10 @@
 <H2><A NAME="s6">6. Executive statements</A></H2>
 
 <P>Statements denote actions.  There are <EM>simple</EM> and
-<EM>compound</EM> statements.  Simple statements do no consists of any
-parts that are statements themselves.  They are the assignment, the
-procedure call, the return, the break, the continue, the throw, and
-the wait statements.  Analogous to C language the last symbol of Dino
+<EM>compound</EM> statements.  Simple statements do not consist of any
+parts that are statements themselves.  They are the assignment,
+procedure call, return, break, continue, throw, and the wait
+statements.  Analogous to the C language the last symbol of a Dino
 simple statement is semicolon <CODE>;</CODE>.  Compound statements
 consists of parts that are statements themselves.  They are used to
 express sequencing, exception handling, conditional, and repetitive
@@ -27,7 +27,7 @@ execution.
 <H2><A NAME="ss6.1">6.1 Empty statement</A>
 </H2>
 
-<P>There is also empty statement in Dino.  It denotes no action.  The
+<P>There is also the empty statement in Dino.  It denotes no action.  The
 empty statement is included in Dino for convenience.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -35,7 +35,7 @@ empty statement is included in Dino for convenience.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Example: Usage of empty statement in for-statement
+Example: Usage of an empty statement in a for-statement:
 <BLOCKQUOTE><CODE>
 <PRE>
           for (i = 0; a[i] == 0; i++)
@@ -46,9 +46,10 @@ Example: Usage of empty statement in for-statement
 <H2><A NAME="ss6.2">6.2 Block-statement</A>
 </H2>
 
-<P>Block-statement is simply block and can used to group statements in
-one statement and/or also to describe local declarations.  How the
-block is executed see in section <EM>Declaration and Scope Rules</EM>.
+<P>A block-statement is simply a block and can used to group statements
+into one statement and/or describe local declarations.  For details on
+how the block is executed see section <EM>Declaration and Scope
+Rules</EM>.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = BlockStmt
@@ -57,7 +58,7 @@ block is executed see in section <EM>Declaration and Scope Rules</EM>.
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Example: Usage of block-statement in for-statement
+Example: Usage of a block-statement in a for-statement:
 <BLOCKQUOTE><CODE>
 <PRE>
           sum = 0;
@@ -73,26 +74,25 @@ Example: Usage of block-statement in for-statement
 <H2><A NAME="ss6.3">6.3 Assignment statements</A>
 </H2>
 
-<P>
-<P>Assignment-statements is used to change variable values or element
+<P>Assignment-statements are used to change variable values or element
 values of a structured value which are referred through a designator
 (see sub-section <EM>Designator</EM> in section <EM>Expressions</EM>.
-The designator can not denote final variable (see section <EM>Variable
-Declaration</EM>).  You can not change element value of immutable
-value (see section <EM>Types and Values</EM>).  In this case exception
-<CODE>immutable</CODE> is generated.
-<P>Simple assignment statement looks like <CODE>Designator = Expr;</CODE>.
+The designator can not denote a final variable (see section
+<EM>Variable Declaration</EM>).  You can not change the element value
+of an immutable value (see section <EM>Types and Values</EM>).  In
+this case exception <CODE>immutable</CODE> is generated.
+<P>A simple assignment statement looks like <CODE>Designator = Expr;</CODE>.
 That means that the expression value is assigned to variable or
-element of structured type value denoted by the designator.  For
-convenience of C programmers there are also Dino assignments kind of
+element of structured type value denoted by the designator.  For the
+convenience of C programmers there are also the Dino assignments
 <CODE>Designator op= Expr;</CODE>, <CODE>Designator++;</CODE>,
 <CODE>++Designator;</CODE>, <CODE>Designator--;</CODE>, and
 <CODE>--Designator;</CODE>.  They are analogous correspondingly to
 <CODE>Designator = Designator op Expr;</CODE>, <CODE>Designator = Designator
 + 1;</CODE>, and <CODE>Designator = Designator - 1;</CODE>.  The only
-difference is in that the Designator is evaluated only once not twice
-as in the analogous form.  It is important to know if you have
-<EM>side effects</EM> in the statement.
+difference is in the fact that the designator is evaluated only once,
+not twice as in the analogous form.  It is important to know if you
+have <EM>side effects</EM> in the statement.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = Designator Assign  Expr ";"
@@ -128,10 +128,11 @@ Examples:
 <H2><A NAME="ss6.4">6.4 Call-statement</A>
 </H2>
 
-<P>Call-statement is used to call a function, a thread-function, or a
-class.  It works analogous to the call in expression (see sub-section
-<EM>Call</EM> in section <EM>Types and Values</EM>).  The single
-difference is in that call-statement throws away the call result.
+<P>A call-statement is used to call a function, a thread-function, or a
+class.  It works analogous to the call in an expression (see
+sub-section <EM>Calls</EM> in section <EM>Types and Values</EM>).  The
+single difference is in that a call-statement throws away the call's
+result.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = Designator ActualParameters  ";"
@@ -149,14 +150,14 @@ Examples:
 <H2><A NAME="ss6.5">6.5 If-statement</A>
 </H2>
 
-<P>Dino if-statement is analogous to C language one.  The first,
+<P>The Dino if-statement is analogous to the C language one.  First, the
 expression after <CODE>if</CODE> is evaluated and arithmetic conversion is
-made to it.  The value should be an integer or a floating-point
-number, otherwise exception <CODE>optype</CODE> is generated.  If the
+done to it.  The value should be an integer or a floating-point
+number, otherwise the exception <CODE>optype</CODE> is generated.  If the
 value is nonzero the first statement is executed, otherwise the
-statement after <CODE>else</CODE> is executed if any.  The problem with
-<EM>dangling else</EM> is resolved analogous to C language --
-<CODE>else</CODE> is associated with the last <CODE>if</CODE>.
+statement after <CODE>else</CODE> is executed (if any).  The problem with
+<EM>dangling else</EM> is resolved analogous to the C language --
+<CODE>else</CODE> is associated with the closest <CODE>if</CODE>.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = if  "(" Expr ")" Stmt [ else Stmt ]
@@ -174,11 +175,11 @@ Examples:
 <H2><A NAME="ss6.6">6.6 For-statement</A>
 </H2>
 
-<P>Dino for-statement is analogous to C language one.  The statement is
-executed in the following way.
+<P>The Dino for-statement is analogous to the C language one.  The
+statement is executed in the following way.
 <OL>
 <LI>Execution of the first statement in the parentheses.</LI>
-<LI>The expression (<EM>for-guard</EM>) is evaluated and the
+<LI>The expression (<EM>for-guard</EM>) is evaluated and
 implicit arithmetic conversion is made.  The value should be
 an integer or a floating point number.  If this is not true,
 exception <CODE>optype</CODE> is generated.</LI>
@@ -192,8 +193,8 @@ repeated.</LI>
 
 If the second statement is a simple statement, the statement semicolon
 can be omitted.  The for-statement also can be finished by execution
-of statement <CODE>break</CODE> in the body.  The body can be finished by
-execution of statement <CODE>continue</CODE>.  In this case, the
+of the statement <CODE>break</CODE> in the body.  The body can be finished
+by execution of statement <CODE>continue</CODE>.  In this case, the
 for-statement execution continues with the step 4.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -219,9 +220,9 @@ Examples:
 statement) for all keys of table which is value of the expression.
 The expression value should be a table.  If this is not true,
 exception <CODE>keyop</CODE> is generated.  The current key value on each
-iteration is assigned to the designator.  The order in which key
+iteration is assigned to the designator.  The order in which the key
 values are assigned on each iteration is undefined.  One iteration can
-be finished with the aid of statement <CODE>continue</CODE> and all
+be finished with the aid of the statement <CODE>continue</CODE> and a
 foreach-statement can be finished by execution of statement
 <CODE>break</CODE>.
 <BLOCKQUOTE><CODE>
@@ -233,7 +234,7 @@ foreach-statement can be finished by execution of statement
 Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
-          putln ("All table is");
+          putln ("The table is");
           for (k in t) {
             put ("key=");
             print (k);
@@ -247,10 +248,10 @@ Examples:
 </H2>
 
 <P>Statements <CODE>break</CODE> and <CODE>continue</CODE> are used
-correspondingly to finish execution of the most nested for- or
+correspondingly to finish execution of the closest-containing for- or
 foreach-statement covering the statement and to finish one iteration
-of the body of the for- or foreach-statement.  These statement can
-be used only inside of a for- or foreach-statement.
+of the body of the for- or foreach-statement.  These statement can be
+used only inside a for- or foreach-statement.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = break ";"
@@ -263,7 +264,7 @@ Examples:
 <PRE>
           for (i = 0; i &lt; 10; i++) {
              if (ind [i] &lt; 0)
-               continiue;
+               continue;
              val = v [ind[i]];
           }
           for (i in t)
@@ -276,12 +277,13 @@ Examples:
 </H2>
 
 <P>Return-statement is used to finish execution of a function, a thread,
-or class block.  The statement corresponds to the most nested
-function, function-thread, or class covering the statement.  So
+or class block.  The statement corresponds to the closest-containing
+function, thread-function, or class covering the statement, so the
 return-statement can be placed only in a function, a function-thread,
-or a class.  Expression in return-statement can be given only for
-functions.  In this case, the expression value will be value of the
-function call (instead of default result value <B>nil</B>).
+or a class.  The expression in a return-statement can be given only
+for functions.  In this case, the expression value will be the value
+of the function call (instead of the default result value
+<B>nil</B>).
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = return  [ Expr ] ";"
@@ -299,12 +301,12 @@ Examples:
 <H2><A NAME="ss6.10">6.10 Throw-statement</A>
 </H2>
 
-<P>This statement generates exception which is given by value of the
-expression.  The expression should be an object of predeclared class
-<CODE>except</CODE> or an object of class declared somewhere in
-predeclared class <CODE>except</CODE>.  If this is not true, exception
-<CODE>optype</CODE> is generated.  How exceptions are processed are
-described in the following section.
+<P>This statement generates an exception which is given by value of the
+expression.  The expression should evaluate to an object of
+predeclared class <CODE>except</CODE> or an object of a class declared
+somewhere in predeclared class <CODE>except</CODE>.  If this is not true,
+exception <CODE>optype</CODE> is generated.  How exceptions are processed
+is described in the following section.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = throw  Expr ";"
@@ -326,33 +328,33 @@ Examples:
 <H2><A NAME="ss6.11">6.11 Try-block</A>
 </H2>
 
-<P>Exceptions can be generated by Dino interpreter when some conditions
-are not satisfied, by predeclared Dino functions, by other OS
-processes, by user interruptions, or by user with the aid of
+<P>Exceptions can be generated by the Dino interpreter when some
+conditions are not satisfied, by predeclared Dino functions, by other
+OS processes, by user interruptions, or by the user with the aid of a
 throw-statement.  Actually, the exceptions are represented by an
-object of predeclared class <CODE>except</CODE> or by an object of class
-declared inside of the predeclared class <CODE>except</CODE>.  All
-predeclared exceptions are described in section <EM>Predeclared
-Identifiers</EM>.  To catch and to process exceptions, try-block can
+object of the predeclared class <CODE>except</CODE> or by an object of a
+class declared inside the predeclared class <CODE>except</CODE>.  All
+predeclared exceptions are described in the section <EM>Predeclared
+Identifiers</EM>.  To detect and process exceptions, a try-block can
 be used.
-<P>When an exception is occurred, the most nested try-block which
-covering the statement generating the exception or currently being
-executed (when this is is generated by an OS process, by an user
+<P>When an exception is generated, the closest-containing try-block which
+is covering the statement generating the exception or currently being
+executed (when this is is generated by an OS process or by an user
 interruption) is searched for.  Then, expressions in the catch list
-elements are processed subsequently.  The expression value in the catch
-list element being processed should be predeclared class
-<CODE>except</CODE> or class declared inside the predeclared class
+elements are processed.  The expression value in the catch list
+element being currently processed should be the predeclared class
+<CODE>except</CODE> or a class declared inside the predeclared class
 <CODE>except</CODE>.  If the expression being processed is a class and the
 exception is an object of the class or an object of a class declared
-in the class given by the expression being processed, the block
-corresponding to given catch list element is executed.  If there is
-not such catch expression, the most nested try-block covering the
-current try-block is searched for and processing the exception is
-repeated.  If there are no more such try-blocks, the program finishes
-with diagnostics which is dependent on the generated exception.
-<P>Blocks corresponding to catch list elements have predeclared variable
-<CODE>e</CODE>.  When the block execution start, the variable contains the
-object representing the exception.
+inside the class, the block corresponding to the given catch list
+element is executed.  If there is no such catch expression, the
+closest-containing try-block covering the current try-block is
+searched for and processing the exception is repeated.  If there are
+no more try-blocks, the program finishes with a diagnostic message
+which is dependent on the generated exception.
+<P>Blocks corresponding to catch list elements have a predeclared
+variable <CODE>e</CODE>.  When block execution starts, the variable
+contains the object representing the exception.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = TryBlockStmt
@@ -378,7 +380,7 @@ Examples:
             var v = [];
             v {1} = 0;
           } catch (except) {
-            put ("catching and propagating up exception"); println (class (e));
+            put ("catching and propagating exception"); println (class (e));
             throw e;
           }
 </PRE>
@@ -387,14 +389,14 @@ Examples:
 <H2><A NAME="ss6.12">6.12 Wait-statement</A>
 </H2>
 
-<P>This statement is used for synchronization of different threads in
-Dino program.  The expression can not contain a function,
-thread-function call.  The thread in which the statement has been
+<P>This statement is used for the synchronization of different threads in
+a Dino program.  The expression can not contain a function, class, or
+a thread-function call.  The thread in which the statement has been
 executed waits until the expression value becomes nonzero.  The
 expression value (after implicit arithmetic conversion) should be an
-integer or a floating point number.  Otherwise exception
+integer or a floating point number.  Otherwise the exception
 <CODE>optype</CODE> is generated.  The important thing to know how to make
-synchronization is that the assignment statement without calls is
+synchronization is that an assignment statement without any calls is
 always executed as one transaction.
 <BLOCKQUOTE><CODE>
 <PRE>
