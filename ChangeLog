@@ -1,3 +1,12 @@
+2002-03-14  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* AMMUNITION/earley.c (make_parse): Check found reduce situation
+	always.
+
+	* AMMUNITION/earley.tst.in: Add test for right recursion.
+	
+	* AMMUNITION/earley++.tst.in: Ditto.
+	
 2002-03-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* d_heap.c (eq_vector): Fix typo in the 2nd argument of eq_val in
