@@ -51,6 +51,10 @@
 	func{class}.
 	(evaluate_code): Ditto.
 	
+2003-05-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* AMMUNITION/earley.tst.in (test 41): Print used memory for linux.
+
 2003-04-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
         * d_ir_sprut (ir_node): New type.  Make it as a root.
