@@ -19,7 +19,9 @@
 #endif
 
 #ifndef WIN32
+#ifndef h_errno
 extern int h_errno;
+#endif
 #endif
 
 #ifdef WIN32

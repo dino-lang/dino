@@ -5219,7 +5219,7 @@ tree_heap_node_hash (hash_table_entry_t n)
 {
   struct tree_heap_node *node = ((struct tree_heap_node *) n);
 
-  return (unsigned) node->tree_node;
+  return (size_t) node->tree_node;
 }
 
 /* Equality of nodes. */

@@ -1694,10 +1694,11 @@ expand_vector (ER_node_t vect, size_t length)
   size_t disp, allocated_length, prev_vect_allocated_length;
 
   disp = ER_disp (vect);
-  allocated_length = ER_allocated_length (vect) - disp;
+  allocated_length = ER_allocated_length (vect);
   if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
       && ER_pack_vect_el_type (vect) == ER_NM_char)
     length++; /* for trailing zero byte */
+  length += disp;
   /* For changing by GC. */
   PUSH_TEMP_REF (vect);
   prev_vect_allocated_length = allocated_length;
@@ -1720,10 +1721,10 @@ expand_vector (ER_node_t vect, size_t length)
       /* ???? don't allocate if can expand because of disp. */
       vect = heap_allocate (allocated_length, FALSE);
       /* After this, vect has the same unique_number. */
-      memcpy (vect, GET_TEMP_REF (0), prev_vect_allocated_length + disp);
+      memcpy (vect, GET_TEMP_REF (0), prev_vect_allocated_length);
       ER_set_allocated_length (vect, allocated_length);
       ER_SET_MODE (GET_TEMP_REF (0), ER_NM_heap_redir);
-      ER_set_allocated_length (GET_TEMP_REF (0), prev_vect_allocated_length + disp);
+      ER_set_allocated_length (GET_TEMP_REF (0), prev_vect_allocated_length);
       ER_set_redir (GET_TEMP_REF (0), vect);
     }
   POP_TEMP_REF (1);

@@ -1,3 +1,11 @@
+2002-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_heap.c (expand_vector): Fix bug with disp.
+	
+	* DINO/d_func.c (tree_heap_node_hash): Use size_t.
+	
+	* DINO/socket_int.c (h_errno): Check on macro.
+
 2002-05-10  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in (357): Fix missed changing stderr onto ftemp.
