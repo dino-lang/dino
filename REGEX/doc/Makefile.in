@@ -21,7 +21,6 @@ prefix = /usr/local
 infodir = $(prefix)/info
 
 srcdir = @srcdir@
-VPATH = @srcdir@:../@srcdir@
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@

@@ -36,7 +36,6 @@ LDFLAGS =
 LOADLIBES =
 
 srcdir = @srcdir@
-VPATH = @srcdir@
 
 CC = @CC@
 DEFS = @DEFS@
@@ -97,5 +96,18 @@ create-distdir:
 # Copying `Regex' distribution files into `distdir'.
 dist-copy: create-distdir
 	for i in $(distfiles);do cp $(srcdir)/$$i $(distdir);done
-	cp -r $(srcdir)/doc $(srcdir)/test $(distdir)
+	mkdir $(distdir)/doc
+	for i in Makefile.in include.awk regex.info regex.texi \
+                 texinfo.tex xregex.texi;do \
+	  cp $(srcdir)/doc/$$i $(distdir)/doc; \
+        done
+	mkdir $(distdir)/test
+	for i in ChangeLog Makefile.in alloca.c bsd-interf.c debugmalloc.c \
+                 emacsmalloc.c fileregex.c g++malloc.c getpagesize.h iregex.c \
+                 main.c malloc-test.c other.c printchar.c psx-basic.c \
+                 psx-extend.c psx-generic.c psx-group.c psx-interf.c \
+                 psx-interv.c regexcpp.sed syntax.skel test.c test.h \
+                 tregress.c upcase.c xmalloc.c;do\
+	  cp $(srcdir)/test/$$i $(distdir)/test;\
+        done
 	chmod -R +w $(distdir)

@@ -21,7 +21,6 @@ CFLAGS = -g
 LDFLAGS =
 
 srcdir = @srcdir@
-VPATH = @srcdir@:../@srcdir@
 
 CC = @CC@
 DEFS = @DEFS@
