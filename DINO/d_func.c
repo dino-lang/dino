@@ -5360,19 +5360,18 @@ int_earley_parse (int npars)
 		     IR_var_number_in_block (ambiguous_p_decl));
   ER_SET_MODE (var, ER_NM_int);
   ER_set_i (var, ambiguous_p);
-  /* Translation into heap: */
-#if 1
-  instance = tree_to_heap (root);
-#endif
-  assert (ER_NODE_MODE (instance) == ER_NM_heap_instance);
   DECR_CTOP (npars);
   SET_TOP;
-#if 1
-  ER_SET_MODE (ctop, ER_NM_instance);
-  ER_set_instance (ctop, instance);
-#else
-  ER_SET_MODE (ctop, ER_NM_nil);
-#endif
+  if (root == NULL)
+    ER_SET_MODE (ctop, ER_NM_nil);
+  else
+    {
+      /* Translation into heap: */
+      instance = tree_to_heap (root);
+      assert (ER_NODE_MODE (instance) == ER_NM_heap_instance);
+      ER_SET_MODE (ctop, ER_NM_instance);
+      ER_set_instance (ctop, instance);
+    }
   no_gc_flag = FALSE;
   delete_hash_table (tree_heap_tab);
   OS_DELETE (tree_mem_os);

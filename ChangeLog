@@ -1,3 +1,25 @@
+2002-03-15  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_func.c (int_earley_parse): Process case root==NULL.
+
+	* DINO/dino.tst.in: Add test for parse returning nil.
+
+	* DINO/dino.sgml.in: Add comments about returning nil by function
+	parse.
+
+	* DINO/{dino.html, dino-8.html, dino-10.html, dino.dvi, dino.dvi,
+	dino.info, dino.info-1, dino.info-2, dino.info-3, dino.info-4,
+	dino.ps, dino.txt}: Update.
+
+	* AMMUNITION/{ammunition.sgml.in, ammunition++.sgml.in}: Fix typo.
+
+	* AMMUNITION/{ammunition++-13.html, ammunition++.dvi,
+	ammunition++.info, ammunition++.info-1, ammunition++.info-2,
+	ammunition++.info-3, ammunition++.info-4, ammunition++.ps,
+	ammunition++.txt, ammunition-13.html, ammunition.dvi,
+	ammunition.info, ammunition.info-1, ammunition.info-2,
+	ammunition.info-3, ammunition.ps, ammunition.txt}: Update.
+
 2002-03-14  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.c (make_parse): Check found reduce situation

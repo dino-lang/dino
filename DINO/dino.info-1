@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino17318.info.2.
+This is dino.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-5608/sgmltmp.dino5608.info.2.
 
    \input texinfo
 
@@ -51,6 +51,8 @@ The Programming Language DINO
      
        Dec 13, 2001.  New variables nil_anode and error_anode and new
                       function set_cost.
+     
+       Mar 15, 2002.  Function parse may return nil.
 
 * Menu:
 

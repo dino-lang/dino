@@ -1,30 +1,30 @@
-This is ammunition++.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.ammunition++12458.info.2.
+This is ammunition++.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-5988/sgmltmp.ammunition++5988.info.2.
 
    \input texinfo
 
 
 Indirect:
-ammunition++.info-1: 124
-ammunition++.info-2: 43739
-ammunition++.info-3: 60378
-ammunition++.info-4: 98199
+ammunition++.info-1: 144
+ammunition++.info-2: 43759
+ammunition++.info-3: 60398
+ammunition++.info-4: 98219
 
 Tag Table:
 (Indirect)
-Node: Top124
-Node: Introduction1018
-Node: Package for allocating memory with fixing some allocation errors2039
-Node: Package for work with variable length objects4937
-Node: Package for work with stacks of objects9752
-Node: Package for work with hash tables15922
-Node: Package for work with source code positions21220
-Node: Package for output of compiler messages25991
-Node: Package for work with command line33125
-Node: Package for work with bit strings40114
-Node: Package for machine-independent arbitrary precision integer arithmetic43739
-Node: Package for machine-independent IEEE floating point arithmetic60378
-Node: Ticker package96427
-Node: Earley parser98199
+Node: Top144
+Node: Introduction1038
+Node: Package for allocating memory with fixing some allocation errors2059
+Node: Package for work with variable length objects4957
+Node: Package for work with stacks of objects9772
+Node: Package for work with hash tables15942
+Node: Package for work with source code positions21240
+Node: Package for output of compiler messages26011
+Node: Package for work with command line33145
+Node: Package for work with bit strings40134
+Node: Package for machine-independent arbitrary precision integer arithmetic43759
+Node: Package for machine-independent IEEE floating point arithmetic60398
+Node: Ticker package96447
+Node: Earley parser98219
 
 End Tag Table

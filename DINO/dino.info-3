@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.dino17318.info.2.
+This is dino.info, produced by makeinfo version 4.0b from
+/tmp/sgml-tools-dir-5608/sgmltmp.dino5608.info.2.
 
    \input texinfo
 
@@ -199,11 +199,12 @@ class `parser':
 
      The function returns object of predeclared class `anode' which is
      root of the abtsract tree representing the translation of the
-     parser input.  The function can generate exception `partype' if
-     the parameter types are wrong or `invtoken_decl' if the
-     input token has wrong code.  The function also can generate
-     exception `pmemory' if there are no memory for internal parser
-     data.
+     parser input.  The function returns `nil' only if syntax error was
+     occurred and error recovery was switched off.  The function can
+     generate exception `partype' if the parameter types are wrong or
+     `invtoken_decl' if the input token has wrong code.  The
+     function also can generate exception `pmemory' if there are no
+     memory for internal parser data.
 
    The call of class `parser' itself can generate exception `pmemory'
 if there are no memory for internal parser data.

@@ -51,6 +51,8 @@ History
   Dec 13, 2001.  New variables nil_anode and error_anode and new
                  function set_cost.
 
+  Mar 15, 2002.  Function parse may return nil.
+
 </verb></tscreen>
 
 <sect>Introduction
@@ -2368,11 +2370,13 @@ The following public functions and variables are declared in the class
 
        The function returns object of predeclared class <tt>anode</tt>
        which is root of the abtsract tree representing the translation
-       of the parser input.  The function can generate exception
-       <tt>partype</tt> if the parameter types are wrong or
-       <tt>invtoken_decl</tt> if the input token has wrong code.  The
-       function also can generate exception <tt>pmemory</tt> if there
-       are no memory for internal parser data.
+       of the parser input.  The function returns <bf>nil</bf> only if
+       syntax error was occurred and error recovery was switched off.
+       The function can generate exception <tt>partype</tt> if the
+       parameter types are wrong or <tt>invtoken_decl</tt> if the
+       input token has wrong code.  The function also can generate
+       exception <tt>pmemory</tt> if there are no memory for internal
+       parser data.
      </itemize>
 
 The call of class <tt>parser</tt> itself can generate exception

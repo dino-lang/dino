@@ -606,11 +606,13 @@ will be negative and forth and sixth parameters will be
 
 The function returns object of predeclared class <CODE>anode</CODE>
 which is root of the abtsract tree representing the translation
-of the parser input.  The function can generate exception
-<CODE>partype</CODE> if the parameter types are wrong or
-<CODE>invtoken_decl</CODE> if the input token has wrong code.  The
-function also can generate exception <CODE>pmemory</CODE> if there
-are no memory for internal parser data.</LI>
+of the parser input.  The function returns <B>nil</B> only if
+syntax error was occurred and error recovery was switched off.
+The function can generate exception <CODE>partype</CODE> if the
+parameter types are wrong or <CODE>invtoken_decl</CODE> if the
+input token has wrong code.  The function also can generate
+exception <CODE>pmemory</CODE> if there are no memory for internal
+parser data.</LI>
 </UL>
 <P>The call of class <CODE>parser</CODE> itself can generate exception
 <CODE>pmemory</CODE> if there are no memory for internal parser
