@@ -2339,6 +2339,9 @@ output_yylex_finish_title (FILE *f, int inside_class)
 #define YYRECOVERY_FINISH_LABEL_NAME\
      (IR_scanner_flag (description) ?\
       "yysrecovery_finish" : "yyrecovery_finish")
+#define YYRESTORE_AND_TRY_NEXT_ERROR_LABEL_NAME\
+     (IR_scanner_flag (description) ?\
+      "yysrestore_and_try_next_error" : "yyrestore_and_try_next_error")
 #define YYSTATE_VARIABLE_NAME\
      (IR_scanner_flag (description) ? "yysstate" : "yystate")
 #define YYPREV_CHAR_VARIABLE_NAME  \
@@ -4728,10 +4731,7 @@ yynext_error:
 -------------- if msta_error_recovery != MINIMAL_ERROR_RECOVERY --------------
            YYABORT;
 ---------------else----------------------------------------------------------
-           if (yybest_recovery_cost == YYUNDEFINED_RECOVERY_COST)
-             YYABORT;
-           else
-             goto yyrecovery_finish;
+           goto yyrestore_and_try_next_error;
 	 yytoken_ignored_num++;
 -----------------------------------------------------------------------------
 #if YYDEBUG != 0
@@ -5323,15 +5323,8 @@ yynext_error:
     output_string (f, YYABORT_MACRO_NAME);
   else
     {
-      output_string (f, "if (");
-      output_string (f, YYBEST_RECOVERY_COST_VARIABLE_NAME);
-      output_string (f, " == ");
-      output_string (f, YYUNDEFINED_RECOVERY_COST_MACRO_NAME);
-      output_string (f, ")\n                  ");
-      output_string (f, YYABORT_MACRO_NAME);
-      output_string (f, ";\n                else\n");
-      output_string (f, "                  goto ");
-      output_string (f, YYRECOVERY_FINISH_LABEL_NAME);
+      output_string (f, "goto ");
+      output_string (f, YYRESTORE_AND_TRY_NEXT_ERROR_LABEL_NAME);
       output_string (f, ";\n              ");
       output_string (f, YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
       output_string (f, "++");
@@ -5902,6 +5895,7 @@ output_code_before_switch (void)
   			 yybest_recovery_cost - YYERR_RECOVERY_MATCHES + yyerr_status, yytoken_ignored_num);
 #endif
   	    }
+	yyrestore_and_try_next_error:
 #if YYDEBUG != 0
   	  if (yydebug)
   	    fprintf (stderr, "Error recovery - restoring %d states and %d attributes\n",
@@ -6023,9 +6017,15 @@ output_code_before_switch (void)
       output_string (f, YYERR_STATUS_VARIABLE_NAME);
       output_string (f, ", ");
       output_string (f, YYTOKEN_IGNORED_NUM_VARIABLE_NAME);
-      output_string (f, ");\n#endif\n            }\n");
+      output_string (f, ");\n#endif\n            }\n        ");
+      output_string (f, YYRESTORE_AND_TRY_NEXT_ERROR_LABEL_NAME);
+      output_string (f, ":\n");
       output_restoring_minimal_recovery_state (FALSE, TRUE, "          ");
-      output_string (f, "\n#if ");
+      output_string (f, "\n          ");
+      output_yychar_variable_name (f);
+      output_string (f, " = ");
+      output_string (f, YYEMPTY_MACRO_NAME);
+      output_string (f, ";\n#if ");
       output_string (f, YYDEBUG_MACRO_NAME);
       output_string (f, " != 0\n");
       output_string (f, "          if (");
@@ -7222,7 +7222,6 @@ output_parser_itself (void)
       continue;
 
     yyrecovery_finish:
-      yychar = YYEMPTY;
       yyerr_status = -1;
 #if YYDEBUG != 0
       if (yydebug)
@@ -7250,10 +7249,17 @@ output_parser_itself (void)
 	  yyfirst_char_ptr = yychar_ptr;
 	  yychar_ptr--;
 	}
+      yybest_token_ignored_num++;
       /* Shift yybest_token_ignored_num: * /
       while (yybest_token_ignored_num-- != 0)
 	{
-	  yyprev_char = *yyfirst_char_ptr;
+	  if (yybest_token_ignored_num == 1)
+            yyprev_char = *yyfirst_char_ptr;
+          else if (yybest_token_ignored_num == 0)
+            {
+              yylval = yylook_ahead_attribute [yyfirst_char_ptr - yylook_ahead_char];
+              yychar = *yyfirst_char_ptr;
+	    }
 	  *yyfirst_char_ptr++ = YYEMPTY;
 	  if (yyfirst_char_ptr > yylook_ahead_char_end)
 	    yyfirst_char_ptr = yylook_ahead_char;
@@ -7271,7 +7277,7 @@ output_parser_itself (void)
 	    }
 	  fprintf (stderr,
 		   "Error recovery end - restore %d saved input tokens\n",
-		   yychar1f);
+		   yychar1 + 1);
 	}
 #endif
       yystate = yybest_error_state;
@@ -7290,23 +7296,37 @@ output_parser_itself (void)
       output_string (f, YYRECOVERY_FINISH_LABEL_NAME);
       output_string (f, ":\n");
       output_string (f, "      ");
-      output_yychar_variable_name (output_implementation_file);
-      output_string (output_implementation_file, " = ");
-      output_string (output_implementation_file, YYEMPTY_MACRO_NAME);
-      output_string (output_implementation_file, ";\n");
-      output_string (f, "      ");
       output_string (f, YYERR_STATUS_VARIABLE_NAME);
       output_string (f, " = -1;\n");
       output_restoring_minimal_recovery_state (TRUE, TRUE, "      ");
+      output_string (f, "      ");
+      output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, "++;\n");
       output_string (f, "      /* Shift yybest_token_ignored_num: */\n");
       output_string (f, "      while (");
       output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
       output_string (f, "-- != 0)\n");
-      output_string (f, "        {\n          ");
+      output_string (f, "        {\n          if (");
+      output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, " == 1)\n            ");
       output_string (f, YYPREV_CHAR_VARIABLE_NAME);
       output_string (f, " = *");
       output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
-      output_string (f, ";\n          *");
+      output_string (f, ";\n          else if (");
+      output_string (f, YYBEST_TOKEN_IGNORED_NUM_VARIABLE_NAME);
+      output_string (f, " == 0)\n            {\n              ");
+      output_yychar_variable_name (f);
+      output_string (f, " = *");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, ";\n              ");
+      output_yylval_variable_name (f);
+      output_string (f, " = ");
+      output_string (f, YYLOOK_AHEAD_ATTRIBUTE_VARIABLE_NAME);
+      output_string (f, " [");
+      output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
+      output_string (f, " - ");
+      output_string (f, YYLOOK_AHEAD_CHAR_VARIABLE_NAME);
+      output_string (f, "];\n            }\n          *");
       output_string (f, YYFIRST_CHAR_PTR_VARIABLE_NAME);
       output_string (f, "++ = ");
       output_string (f, YYEMPTY_MACRO_NAME);
@@ -7361,7 +7381,7 @@ output_parser_itself (void)
       output_string (f, "                   \"Error recovery end - restore %d saved input tokens\\n\",\n");
       output_string (f, "                   ");
       output_string (f, YYCHAR1_VARIABLE_NAME);
-      output_string (f, ");\n        }\n#endif\n");
+      output_string (f, " + 1);\n        }\n#endif\n");
       output_string (f, "      ");
       output_string (f, YYSTATE_VARIABLE_NAME);
       output_string (f, " = ");

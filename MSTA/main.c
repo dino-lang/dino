@@ -265,6 +265,14 @@ user_signal_action (int signal_number)
 "                   Use a local error recovery method.\n"\
 "  `-minimal-error-recovery'\n"\
 "                   Use minimal error recovery method.\n"\
+"* `-error-reduce'\n"\
+"                   Permits default reduces on error.\n"\
+"  `-no-error-reduce'\n"\
+"                   Reduces on error only for the right lookahead.\n"\
+"* `-error-conflict'\n"\
+"                   Permits reporting conflicts on error.\n"\
+"  `-no-error-conflict'\n"\
+"                   Do not report conflicts on errors.\n"\
 "  `-yacc-input'    Only Posix YACC input can be used as input grammar.\n"\
 "  `-strict'        Use only strict POSIX YACC input (when `-yacc-input')\n"\
 "                   not SYSTEM V one.  Errors are output when nonstrict\n"\
@@ -278,9 +286,9 @@ user_signal_action (int signal_number)
 "                   .c, and .output).\n"\
 "  `-o name'        Specify names of output files (header file name.h,\n"\
 "                   code file name.c(name.cpp), description file name.output)\n"\
-"  `-y', `-yacc'    Emulate Posix YACC.  It means that the options\n"\
-"                   -no-enum, -yacc-input, -lalr, -yacc-error-recovery,\n"\
-"                   -yacc-file-names, and -no-expand are on.\n"\
+"  `-y', `-yacc'    Emulate Posix YACC.  It means that the options -no-enum\n"\
+"                   -yacc-input, -lalr, -yacc-error-recovery, -error-reduce,\n"\
+"                   -error-conflict and -yacc-file-names are on.\n"\
 "  `-full-lr-set'   Write full LR-sets into a file containing description\n"\
 "                   of the parser (the option acts only with option -v).\n"\
 "  `-lr-situation-context'\n"\
@@ -354,6 +362,14 @@ user_signal_action (int signal_number)
 "                   Use a local error recovery method.\n"\
 "  `-minimal-error-recovery'\n"\
 "                   Use minimal error recovery method.\n"\
+"* `-error-reduce'\n"\
+"                   Permits default reduces on error.\n"\
+"  `-no-error-reduce'\n"\
+"                   Reduces on error only for the right lookahead.\n"\
+"* `-error-conflict'\n"\
+"                   Permits reporting conflicts on error.\n"\
+"  `-no-error-conflict'\n"\
+"                   Do not report conflicts on errors.\n"\
 "  `-yacc-input'    Only Posix YACC input can be used as input grammar.\n"\
 "* `-no-yacc-input' All input grammar features of MSTA can be used.\n"\
 "  `-strict'        Use only strict POSIX YACC input (when `-yacc-input')\n"\
@@ -368,9 +384,9 @@ user_signal_action (int signal_number)
 "                   .c, and .output).\n"\
 "  `-o name'        Specify names of output files (header file name.h,\n"\
 "                   code file name.c(name.cpp), description file name.output)\n"\
-"  `-y', `-yacc'    Emulate Posix YACC.  It means that the options\n"\
-"                   -no-enum, -yacc-input, -lalr, -yacc-error-recovery,\n"\
-"                   and -yacc-file-names are on.\n"\
+"  `-y', `-yacc'    Emulate Posix YACC.  It means that the options -no-enum\n"\
+"                   -yacc-input, -lalr, -yacc-error-recovery, -error-reduce,\n"\
+"                   -error-conflict and -yacc-file-names are on.\n"\
 "  `-full-lr-set'   Write full LR-sets into a file containing description\n"\
 "                   of the parser (the option acts only with option -v).\n"\
 "  `-lr-situation-context'\n"\
@@ -439,6 +455,8 @@ main (int argc, char **argv)
   regular_optimization_flag = TRUE;
   split_lr_sets_flag_is_defined = FALSE;
   msta_error_recovery = YACC_ERROR_RECOVERY;
+  error_reduce_flag = TRUE;
+  error_conflict_flag = TRUE;
   yacc_input_flag = FALSE;
   strict_flag = FALSE;
   yacc_file_names_flag = FALSE;
@@ -472,6 +490,8 @@ main (int argc, char **argv)
           split_lr_sets_flag_is_defined = TRUE;
           msta_error_recovery = YACC_ERROR_RECOVERY;
           enum_flag = FALSE;
+	  error_reduce_flag = TRUE;
+	  error_conflict_flag = TRUE;
           yacc_input_flag = TRUE;
           strict_flag = FALSE;
           yacc_file_names_flag = TRUE;
@@ -565,6 +585,14 @@ main (int argc, char **argv)
         msta_error_recovery = LOCAL_ERROR_RECOVERY;
       else if (strcmp (option, "-minimal-error-recovery") == 0)
         msta_error_recovery = MINIMAL_ERROR_RECOVERY;
+      else if (strcmp (option, "-error-reduce") == 0)
+        error_reduce_flag = TRUE;
+      else if (strcmp (option, "-no-error-reduce") == 0)
+        error_reduce_flag = FALSE;
+      else if (strcmp (option, "-error-conflict") == 0)
+        error_conflict_flag = TRUE;
+      else if (strcmp (option, "-no-error-conflict") == 0)
+        error_conflict_flag = FALSE;
       else if (strcmp (option, "-yacc-input") == 0)
         yacc_input_flag = TRUE;
       else if (strcmp (option, "-no-yacc-input") == 0)

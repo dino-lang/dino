@@ -181,6 +181,25 @@ int split_lr_sets_flag_is_defined;
 
 int msta_error_recovery;
 
+/* Flag of that MSTA generates parser with possible default reducing
+   (without checking the look ahead) when the token error is in the
+   context. (`-error-reduce').  The default value is TRUE.  The
+   opposite value will be when flag `-no-error-reduce' is present on
+   the MSTA command line.  That means that the parser makes reduces
+   only when there is corresponding look ahead.  It results in better
+   error recovery but the parser will have bigger size. */
+
+int error_reduce_flag;
+
+/* Flag of that MSTA reports conflicts on look ahead containing token
+   error (`-error-conflict').  The default value is TRUE.  The
+   opposite value will be when flag `-no-error-conflict' is present on
+   the MSTA command line.  Token error is not a real token it is never
+   read but many error recovery rules may generate conflicts on error.
+   To avoid this you can use the option. */
+
+int error_conflict_flag;
+
 /* Flag of that MSTA accepts input file only in the format of Posix
    YACC (`-yacc-input').  The defualt value is FALSE.  The opposite
    value will be when flag `-no-yacc-input' is present on the MSTA

@@ -13,7 +13,9 @@
 
 CC='@CC@ @CFLAGS@ @DEFS@'
 #CC='gcc'
+AWK='@AWK@'
 ygram=temp.y
+ygramout=temp.output
 cgram=temp.c
 outputf=_output
 outfile=./a.out
@@ -323,13 +325,143 @@ EOF4
     fi
 fi
 
+# Test 5.
+if test $result = ok -a $start_test_number -le 5; then
+    echo test 5: Conflict on error
+    cat >$ygram <<'TEST5'
+%token ident var
+%%
+start : var idlist ':' ident
+      | var idlist error
+      ;
+idlist : idseq
+       ;
+idseq : ident
+      | idseq ',' ident
+      | idseq error
+      ;
+TEST5
+    result=fail
+    echo ./msta $ygram "2>$outputf"
+    if ./msta $ygram 2>$outputf && cmp $outputf - <<'EOF5'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+  1 shift/reduce conflict.
+EOF5
+      result=ok
+    fi
+fi
+
+# Test 6.
+if test $result = ok -a $start_test_number -le 6; then
+    echo test 6: Conflict on error without reporting
+    cat >$ygram <<'TEST6'
+%token ident var
+%%
+start : var idlist ':' ident
+      | var idlist error
+      ;
+idlist : idseq
+       ;
+idseq : ident
+      | idseq ',' ident
+      | idseq error
+      ;
+TEST6
+    result=fail
+    echo ./msta -no-error-conflict $ygram "2>$outputf"
+    if ./msta -no-error-conflict $ygram 2>$outputf && cmp $outputf - <<'EOF6'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+EOF6
+      result=ok
+    fi
+fi
+
+# Test 7.
+if test $result = ok -a $start_test_number -le 7; then
+    echo test 7: Default reduce on error
+    cat >$ygram <<'TEST7'
+%%
+var : idlist '.'
+    ;
+idlist : idseq
+       ;
+idseq :
+      | idseq 'a'
+      | idseq error
+      ;
+TEST7
+    result=fail
+    echo ./msta -v -no-regular-optimization $ygram "2>$outputf"
+    if ./msta -v -no-regular-optimization $ygram 2>$outputf && cmp $outputf - <<'EOF7'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+EOF7
+      if $AWK '/State 3/ {i = 1}  /State 4/ {i =0} i {print}' $ygramout >$outputf && cmp $outputf - <<'EOF7'; then
+State 3
+
+	idlist : idseq .  (2)
+	idseq : idseq . 'a'(97)  (4)
+	idseq : idseq . error  (5)
+
+	'a'(97)  shift 4
+	error  shift 5
+	.  reduce 2
+
+
+EOF7
+        result=ok
+      fi
+    fi
+fi
+
+# Test 8.
+if test $result = ok -a $start_test_number -le 8; then
+    echo test 8: Default reduce on error
+    cat >$ygram <<'TEST8'
+%%
+var : idlist '.'
+    ;
+idlist : idseq
+       ;
+idseq :
+      | idseq 'a'
+      | idseq error
+      ;
+TEST8
+    result=fail
+    echo ./msta -v -no-error-reduce -no-regular-optimization $ygram "2>$outputf"
+    if ./msta -v -no-error-reduce -no-regular-optimization $ygram 2>$outputf && cmp $outputf - <<'EOF8'; then
+  Max look ahead is 1 token
+  Real look ahead is 1 token
+EOF8
+      if $AWK '/State 3/ {i = 1}  /State 4/ {i =0} i {print}' $ygramout >$outputf && cmp $outputf - <<'EOF8';then
+State 3
+
+	idlist : idseq .  (2)
+	idseq : idseq . 'a'(97)  (4)
+	idseq : idseq . error  (5)
+
+	'.'(46)  reduce 2
+	'a'(97)  shift 4
+	error  shift 5
+	.  error
+
+
+EOF8
+        result=ok
+      fi
+    fi
+fi
+
 # Final message
 
 if test $result = ok; then
 	echo it is all ok
-        rm -f $outfile fcalc.c $outputf $ygram $cgram
+        rm -f $outfile fcalc.c $outputf $ygram $ygramout $cgram
 	exit 0
 else
-	echo '***' test is failed see $ygram $outputf
+	echo '***' test is failed see $ygram $ygramout $outputf
 	exit 1
 fi

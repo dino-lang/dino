@@ -186,26 +186,31 @@ set_up_default_LR_situation_of_trie_level
              sizeof (IR_node_t), compare_pointers);
       default_reduce_LR_situation = NULL;
       reduces_number = 0;
-      for (current_LR_situation_ptr = VLO_BEGIN (reduce_LR_situations);
-           current_LR_situation_ptr
-           <= (IR_node_t *) VLO_END (reduce_LR_situations);
-           current_LR_situation_ptr = next_LR_situation_ptr)
-        {
-          for (next_LR_situation_ptr = current_LR_situation_ptr;
-               next_LR_situation_ptr
-               <= (IR_node_t *) VLO_END (reduce_LR_situations);
-               next_LR_situation_ptr++)
-            if (*current_LR_situation_ptr != *next_LR_situation_ptr)
-              break;
-          if (default_reduce_LR_situation == NULL
-              || (reduces_number
-                  < next_LR_situation_ptr - current_LR_situation_ptr))
-            {
-              default_reduce_LR_situation = *current_LR_situation_ptr;
-              reduces_number
-                = next_LR_situation_ptr - current_LR_situation_ptr;
-            }
-        }
+      current_LR_situation_ptr = VLO_BEGIN (reduce_LR_situations);
+      if (error_reduce_flag
+	  || (current_LR_situation_ptr
+	      > (IR_node_t *) VLO_END (reduce_LR_situations))
+	  || !IR_it_is_errored_LR_set (IR_LR_set (*current_LR_situation_ptr)))
+	for (;
+	     current_LR_situation_ptr
+	       <= (IR_node_t *) VLO_END (reduce_LR_situations);
+	     current_LR_situation_ptr = next_LR_situation_ptr)
+	  {
+	    for (next_LR_situation_ptr = current_LR_situation_ptr;
+		 next_LR_situation_ptr
+		   <= (IR_node_t *) VLO_END (reduce_LR_situations);
+		 next_LR_situation_ptr++)
+	      if (*current_LR_situation_ptr != *next_LR_situation_ptr)
+		break;
+	    if (default_reduce_LR_situation == NULL
+		|| (reduces_number
+		    < next_LR_situation_ptr - current_LR_situation_ptr))
+	      {
+		default_reduce_LR_situation = *current_LR_situation_ptr;
+		reduces_number
+		  = next_LR_situation_ptr - current_LR_situation_ptr;
+	      }
+	  }
       VLO_DELETE (reduce_LR_situations);
       if (default_reduce_LR_situation != NULL
           || (trie_level != 0 && shifts_number > reduces_number))

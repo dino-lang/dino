@@ -14,6 +14,7 @@ msta \- syntax description translator
 .B        -regular-optimization -no-regular-optimization
 .B        -split-lr-sets -no-split-lr-sets
 .B        -yacc-error-recovery -local-error-recovery -minimal-error-recovery
+.B        -error-reduce -no-error-reduce -error-conflict -no-error-conflict
 .B        -yacc-input -no-yacc-input -strict -no-strict
 .B        -yacc-file-names -no-yacc-file-names
 .B        -o name -y -yacc -full-lr-set -lr-situation-context
@@ -204,6 +205,22 @@ The generated parser will use a minimal cost error recovery where the
 cost is overall number of tokens ignored.  It is guaranteed that this
 method can not be cycled.  This method is expensive because it may
 save many input tokens, parser states and attributes.
+.IP -error-reduce
+MSTA generates parser with possible default reducing (without checking
+the look ahead) when the token error is in the context.  It means the parser may make a few reduces before recognizing a syntax error.  This option
+is default.
+.IP -no-error-reduce
+The option means that the generated parser makes reduces in situation
+where shift on error is possible only when there is corresponding look
+ahead.  It results in better error recovery but the parser will have
+bigger size.
+.IP -error-conflict
+MSTA reports conflicts on look ahead containing token error.  This
+option is default.
+.IP -no-error-conflict
+Token error is not a real token it is never read but many error recovery
+rules may generate conflicts on error.  To avoid this you can use the
+option.
 .IP -yacc-input
 Only Posix YACC input can be used as input grammar.
 .IP -no-yacc-input

@@ -17,10 +17,8 @@
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-
-
-
 MSTA(1)                    User Manuals                   MSTA(1)
+
 
 
 NAME
@@ -29,36 +27,37 @@ NAME
 SYNOPSIS
        msta  [  -d  -define  -l  -line  -t  -trace -v -verbose -b
        file_prefix -p sym_prefix -h -help --help  -w  -c++  -enum
-       -no-enum -pattern-equiv -no-pattern-equiv -look-ahead num-
+       -no-enum -pattern-equiv -no-pattern-equiv -look-ahead num­
        ber -la number  -lr  -no-lr  -lalr-optimization  -no-lalr-
-       optimization  -regular-optimization  -no-regular-optimiza-
+       optimization  -regular-optimization  -no-regular-optimiza­
        tion -split-lr-sets -no-split-lr-sets -yacc-error-recovery
-       -local-error-recovery  -minimal-error-recovery -yacc-input
-       -no-yacc-input -strict  -no-strict  -yacc-file-names  -no-
-       yacc-file-names  -o  name -y -yacc -full-lr-set -lr-situa-
-       tion-context -removed-lr-sets  -expand  -no-expand  -time]
-       specification-file
+       -local-error-recovery    -minimal-error-recovery   -error-
+       reduce -no-error-reduce -error-conflict -no-error-conflict
+       -yacc-input  -no-yacc-input -strict -no-strict -yacc-file-
+       names -no-yacc-file-names -o name  -y  -yacc  -full-lr-set
+       -lr-situation-context  -removed-lr-sets -expand -no-expand
+       -time] specification-file
 
 DESCRIPTION
-       MSTA  reads input grammar which is described in specifica-
-       tion file and generates parser for it.  MSTA  can  process
-       any  POSIX YACC grammar and generates equivalent parser in
-       the sence of POSIX standard.  But MSTA can do  many  addi-
-       tional  things:  generation of more safe error recovery or
-       much better error recovery,  better  output  of  generated
-       parser   description,  generation  of  fast  LALR(k)-  and
-       LR(k)-grammar parser with acceptable  space  requirements,
-       generation  of  scanners described as context-free grammar
+       MSTA reads input grammar which is described in  specifica­
+       tion  file  and generates parser for it.  MSTA can process
+       any POSIX YACC grammar and generates equivalent parser  in
+       the  sence  of POSIX standard.  But MSTA can do many addi­
+       tional things: generation of more safe error  recovery  or
+       much  better  error  recovery,  better output of generated
+       parser  description,  generation  of  fast  LALR(k)-   and
+       LR(k)-grammar  parser  with acceptable space requirements,
+       generation of scanners described as  context-free  grammar
        (CFG), and so on.  The specification file must have suffix
        `.y'
 
-       The  generated  code  consists  of  optional interface and
-       implementation files and optional description file  having
-       the  same  names  as  one of specification file and corre-
-       spondingly suffixes `.h' (if option -d or -c++  is  given)
-       and  `.c'  (C  code)  or  `.cpp'  (C++ code) and `.output'
-       (description file).  If MSTA runs in YACC regime, the cor-
-       responding  files  will be `y.tab.h' (if option -d or -c++
+       The generated code  consists  of  optional  interface  and
+       implementation  files and optional description file having
+       the same names as one of  specification  file  and  corre­
+       spondingly  suffixes  `.h' (if option -d or -c++ is given)
+       and `.c' (C code)  or  `.cpp'  (C++  code)  and  `.output'
+       (description file).  If MSTA runs in YACC regime, the cor­
+       responding files will be `y.tab.h' (if option -d  or  -c++
        is given) and `y.tab.c' (C code) or `y.tab.cpp' (C++ code)
        and `y.output' (description file).
 
@@ -67,45 +66,33 @@ DESCRIPTION
 OPTIONS
        The options which are known for MSTA and YACC are:
 
-       -d     Create  the  interface file.  By default the inter-
+       -d     Create the interface file.  By default  the  inter­
               face file is not generated.
 
-       -l     Insert user's original code into  generated  parser
-              without  `#line'  constructs.  By default construc-
+       -l     Insert  user's  original code into generated parser
+              without `#line' constructs.  By  default  construc­
               tions `#line' are always generated.
 
-       -t     Permit compilation of debugging code  in  the  code
-              file  (tracing of the parser work).  Runtime debug-
+       -t     Permit  compilation  of  debugging code in the code
+              file (tracing of the parser work).  Runtime  debug­
               ging statements are always contained in the parser,
-
-
-
-COCOM                       5 SEP 1999                          1
-
-
-
-
-
-MSTA(1)                    User Manuals                   MSTA(1)
-
-
-              but  by  default conditional compilation directives
-              prevent their  compilation.   This  option  defines
-              macro  `YYDEBUG'  as  1 (by default its value is 0)
-              and as consequence  the  debugging  statements  are
+              but by default conditional  compilation  directives
+              prevent  their  compilation.   This  option defines
+              macro `YYDEBUG' as 1 (by default its  value  is  0)
+              and  as  consequence  the  debugging statements are
               processed.
 
        -v     Create a file containing description of the parser.
 
        -b file_prefix
-              Use file_prefix instead of `y' as  the  prefix  for
-              all  output filenames when YACC regime of generated
+              Use  file_prefix  instead  of `y' as the prefix for
+              all output filenames when YACC regime of  generated
               file names is on.
 
        -p sym_prefix
-              Use sym_prefix instead of yy as the prefix for  all
-              external  names  (i.e.  functions yyparse , yylex ,
-              and yyerror , and the variables yylval ,  yychar  ,
+              Use  sym_prefix instead of yy as the prefix for all
+              external names (i.e.  functions yyparse ,  yylex  ,
+              and  yyerror  , and the variables yylval , yychar ,
               and yydebug ) produced by MSTA.
 
        Additional options which are known only for MSTA are:
@@ -122,85 +109,73 @@ MSTA(1)                    User Manuals                   MSTA(1)
 
        -h, -help, --help
               These options result in that only brief description
-              of options is output into stderr.  The same  result
+              of  options is output into stderr.  The same result
               can be achieved by calling MSTA without any options
               and arguments.
 
-       -w     No  any  warning  messages  are   generated,   e.g.
-              repeated  description  of type, value, and priority
-              of  token  or   terminal,   repeated   construction
+       -w     No   any   warning  messages  are  generated,  e.g.
+              repeated description of type, value,  and  priority
+              of   token   or   terminal,  repeated  construction
               `%start' and many others.
 
-       -c++   Output  of  C++  code  instead  of C code (which is
+       -c++   Output of C++ code instead  of  C  code  (which  is
               default).
 
-       -enum  Generate token constants as enumeration instead  of
+       -enum  Generate  token constants as enumeration instead of
               macro.
 
        -no-enum
-              Generate   token   constants   as  macro  (this  is
+              Generate  token  constants  as   macro   (this   is
               default).
 
        -pattern-equiv
-              Equivalent  patterns  are  denoted  by   the   same
-
-
-
-COCOM                       5 SEP 1999                          2
-
-
-
-
-
-MSTA(1)                    User Manuals                   MSTA(1)
-
-
-              nonterminal  (by  default).  Sometimes this results
-              in dramatic reducing conflicts  when  complex  pat-
-              terns are used.
+              Equivalent patterns are denoted by the same nonter­
+              minal (by default).  Sometimes this results in dra­
+              matic  reducing conflicts when complex patterns are
+              used.
 
        -no-pattern-equiv
-              Even  equivalent  patterns are denoted by different
-              nonterminals and are expanded  into  the  different
+              Even equivalent patterns are denoted  by  different
+              nonterminals  and  are  expanded into the different
               set of rules
 
        -look-ahead number, -la number
-              Determine  maximal  length of look-ahead when LR(k)
-              and LALR(k) generated parser.  This does  not  mean
+              Determine maximal length of look-ahead  when  LR(k)
+              and  LALR(k)  generated parser.  This does not mean
               that MSTA in each situation and for each input will
-              look ahead on  given  number  tokens.   MSTA  looks
+              look  ahead  on  given  number  tokens.  MSTA looks
               ahead only on minimal number of tokens required for
-              resolution of a conflict.   The  default  value  of
+              resolution  of  a  conflict.   The default value of
               maximal look ahead is 1.
 
-       -lr    Input  grammar is considered to be a LR(k)-grammar.
+       -lr    Input grammar is considered to be a  LR(k)-grammar.
 
-       -no-lr Input grammar is considered to be  a  LALR(k)-gram-
+       -no-lr Input  grammar  is considered to be a LALR(k)-gram­
               mar.  This is default.
 
        -lalr-optimization
-              If   the  input  grammar  is  considered  to  be  a
-              LR(k)-grammar, MSTA will make  LALR(k)-optimization
-              after  building  LR(k)-parser.   It means that MSTA
-              will extract  LALR(k)-parts  of  LR(k)-grammar  and
+              If  the  input  grammar  is  considered  to  be   a
+              LR(k)-grammar,  MSTA will make LALR(k)-optimization
+              after building LR(k)-parser.  It  means  that  MSTA
+              will  extract  LALR(k)-parts  of  LR(k)-grammar and
               will represent them by addequate LALR-sets.  If the
-              input LR(k)-grammar is "almost" a  LALR(k)-grammar,
-              MSTA  can descrease size of the generated parser in
-              several  times.   If  the  input   grammar   is   a
-              LALR(k)-grammar,  MSTA  will create LALR(k)-parser.
-              This option is default when option `-lr' is  given.
+              input  LR(k)-grammar is "almost" a LALR(k)-grammar,
+              MSTA can descrease size of the generated parser  in
+              several   times.    If   the  input  grammar  is  a
+              LALR(k)-grammar, MSTA will  create  LALR(k)-parser.
+              This  option is default when option `-lr' is given.
 
        -no-lalr-optimization
-              When  option  `-lr'  is  given,  MSTA does not make
+              When option `-lr' is  given,  MSTA  does  not  make
               LALR-optimization.
 
        -regular-optimization
-              After building LALR-sets or  LR-sets  and  optional
-              LALR-optimization,  MSTA  makes  extracting regular
-              parts of input grammar and implement them  by  ade-
+              After  building  LALR-sets  or LR-sets and optional
+              LALR-optimization, MSTA  makes  extracting  regular
+              parts  of  input grammar and implement them by ade­
               quate  methods  (deterministic  finite  automaton).
-              This decreases number of final states in the gener-
-              ated  parser,  speeds  up  the  parser, but sigthly
+              This decreases number of final states in the gener­
+              ated parser, speeds  up  the  parser,  but  sigthly
               increases the parser size because some actions will
               be present in several examplars in the parser.  The
               more regular parts in the input grammar, the better
@@ -209,150 +184,138 @@ MSTA(1)                    User Manuals                   MSTA(1)
        -no-regular-optimization
               Disable the regular optimizations.
 
-
-
-
-COCOM                       5 SEP 1999                          3
-
-
-
-
-
-MSTA(1)                    User Manuals                   MSTA(1)
-
-
        -split-lr-sets
-              Splitting  LR-sets  during  regular optimization in
-              order to extract the most of  regular  parts  (only
-              when  option  `-regular-optimization'  is  on).  By
-              default this option is on if `%free_format' is pre-
+              Splitting LR-sets during  regular  optimization  in
+              order  to  extract  the most of regular parts (only
+              when option  `-regular-optimization'  is  on).   By
+              default this option is on if `%free_format' is pre­
               sent in the specification file.
 
        -no-split-lr-sets
               Option is opposite to the previous one.  By default
-              this option is on if `%free_format'  is  absent  in
+              this  option  is  on if `%free_format' is absent in
               the specification file.
 
        -yacc-error-recovery
-              The generated parser will use error recover accord-
+              The generated parser will use error recover accord­
               ing to Posix YACC standard.  This error recovery is
               used by default.
 
        -local-error-recovery
-              The  generated  parser  will  use sligthly modified
-              error recovery method.  This method is  more  safe.
-              It  is  guaranteed  that  this  method  can  not be
+              The generated parser  will  use  sligthly  modified
+              error  recovery  method.  This method is more safe.
+              It is  guaranteed  that  this  method  can  not  be
               cycled.
 
        -minimal-error-recovery
-              The generated parser will use a minimal cost  error
+              The  generated parser will use a minimal cost error
               recovery where the cost is overall number of tokens
               ignored.  It is guaranteed that this method can not
               be cycled.  This method is expensive because it may
-              save  many  input   tokens,   parser   states   and
+              save   many   input   tokens,   parser  states  and
               attributes.
+
+       -error-reduce
+              MSTA generates parser with possible default  reduc­
+              ing  (without  checking  the  look  ahead) when the
+              token error is in the context.  It means the parser
+              may  make a few reduces before recognizing a syntax
+              error.  This option is default.
+
+       -no-error-reduce
+              The option means that the  generated  parser  makes
+              reduces in situation where shift on error is possi­
+              ble only when there is  corresponding  look  ahead.
+              It  results in better error recovery but the parser
+              will have bigger size.
+
+       -error-conflict
+              MSTA reports conflicts  on  look  ahead  containing
+              token error.  This option is default.
+
+       -no-error-conflict
+              Token  error  is  not a real token it is never read
+              but many error recovery  rules  may  generate  con­
+              flicts  on  error.   To  avoid this you can use the
+              option.
 
        -yacc-input
               Only Posix YACC input can be used as input grammar.
 
        -no-yacc-input
-              All input grammar features of  MSTA  can  be  used.
+              All  input  grammar  features  of MSTA can be used.
               This option is default.
 
        -yacc-file-names
-              MSTA  output  file names are generated according to
+              MSTA output file names are generated  according  to
               Posix YACC ( y.output , y.tab.c , y.tab.h).
 
        -strict
               Use only strict POSIX YACC input (this option is in
-              action  only   when -yacc-input ) not SYSTEM V one.
+              action only  when -yacc-input ) not SYSTEM  V  one.
               Errors are output when nonstrict features are used.
-              These  features  are usage of ';' after definitions
-              and C/C++ code insertions and usage of a token  and
-              a  literal  in  %type clauses as before and after a
-              description of the token  and  the  literal.   This
+              These features are usage of ';'  after  definitions
+              and  C/C++ code insertions and usage of a token and
+              a literal in %type clauses as before  and  after  a
+              description  of  the  token  and the literal.  This
               option is on by default.
 
        -no-strict
-              This  option  is in action only when -yacc-input is
-
-
-
-COCOM                       5 SEP 1999                          4
-
-
-
-
-
-MSTA(1)                    User Manuals                   MSTA(1)
-
-
-              on.  Only warnings about non strict POSIX YACC fea-
+              This option is in action only when  -yacc-input  is
+              on.  Only warnings about non strict POSIX YACC fea­
               tures usage are output.
 
        -no-yacc-file-names
               Output files will have the same name and suffixes (
-              .h , .c , and .output ).   This  option  is  on  by
+              .h  ,  .c  ,  and  .output ).  This option is on by
               default.
 
        -o     Specify names of output files (header file name.h ,
               code file name.c , description file name.output
 
        -y, -yacc
-              Emulate Posix YACC.   It  means  that  the  options
-              `-yacc-input'  , `-lalr' , `-yacc-error-recovery' ,
-              and `-yacc-file-names' are on,  and  -c++  is  off.
-              This  option  is  useful  with  other options, e.g.
-              options `-lr' and `-y' means also  `-yacc-input'  ,
+              Emulate  Posix  YACC.   It  means  that the options
+              `-yacc-input' , `-lalr' , `-yacc-error-recovery'  ,
+              and  `-yacc-file-names'  are  on,  and -c++ is off.
+              This option is  useful  with  other  options,  e.g.
+              options  `-lr'  and `-y' means also `-yacc-input' ,
               `-yacc-error-recovery' , and `-yacc-file-names'.
 
        -full-lr-set
               Write all LR-situations (besides essential ones) of
-              LR-sets into a file containing description  of  the
-              parser  (the  option  acts only with option `-v' ).
-              Sometimes it is  useful  for  better  understanding
-              conflicts.   But  in this case the description file
+              LR-sets  into  a file containing description of the
+              parser (the option acts only with  option  `-v'  ).
+              Sometimes  it  is  useful  for better understanding
+              conflicts.  But in this case the  description  file
               can be significantly bigger.
 
        -lr-situation-context
-              Write context of LR-situations into description  of
-              the  parser  (the option acts only with option `-v'
+              Write  context of LR-situations into description of
+              the parser (the option acts only with  option  `-v'
               ).  Sometimes it is useful for better understanding
-              conflicts.   But  in this case the description file
-              can be huge espicially for LR(k)- and LALR(k)-gram-
-              mar  when  k > 1 or when with option `-full-lr-set'
-              parser generation speed because classic  method  of
-              LR-,  LALR-sets  is  used  instead  of fast DeRemer
+              conflicts.  But in this case the  description  file
+              can be huge espicially for LR(k)- and LALR(k)-gram­
+              mar when k > 1 or when with  option  `-full-lr-set'
+              parser  generation  speed because classic method of
+              LR-, LALR-sets is  used  instead  of  fast  DeRemer
               method.  By default this option is off.
 
        -removed-lr-sets
-              Write LR-sets removed  during  conflict  resolution
-              and  regular  optimization  into description of the
-              parser (the option acts only with option -v ).   By
+              Write  LR-sets  removed  during conflict resolution
+              and regular optimization into  description  of  the
+              parser  (the option acts only with option -v ).  By
               default such unchievable LR-sets are not present in
               the description file.
 
        -expand
-              Attributes and states stacks in the parser will  be
+              Attributes  and states stacks in the parser will be
               expandable (this is default).
 
        -no-expand
-              Attributes  and states stacks in the parser will be
+              Attributes and states stacks in the parser will  be
               not expandable.
 
-       -time  Output detail time statistics of MSTA work  on  its
-
-
-
-COCOM                       5 SEP 1999                          5
-
-
-
-
-
-MSTA(1)                    User Manuals                   MSTA(1)
-
-
+       -time  Output  detail  time statistics of MSTA work on its
               basic passes and optimizations.
 
 FILES
@@ -369,7 +332,7 @@ FILES
        There are no any temporary files used by MSTA.
 
 ENVIRONMENT
-       There  are  no  environment  variables  which  affect MSTA
+       There are  no  environment  variables  which  affect  MSTA
        behavior.
 
 DIAGNOSTICS
@@ -387,31 +350,7 @@ BUGS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-COCOM                       5 SEP 1999                          6
-
+COCOM                       5 SEP 1999                    MSTA(1)
 </PRE>
 </CODE></BLOCKQUOTE>
 <P>

@@ -38,6 +38,8 @@ extern const char *sym_prefix;
 extern int w_flag;
 extern int cpp_flag;
 extern int enum_flag;
+extern int error_reduce_flag;
+extern int error_conflict_flag;
 extern int pattern_equiv_flag;
 extern int full_lr_set_flag;
 extern int lr_situation_context_flag;
@@ -75,3 +77,4 @@ extern char *output_description_file_name;
 extern IR_node_t description;
 
 extern int max_look_ahead_number;
+

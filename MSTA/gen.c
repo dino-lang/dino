@@ -236,6 +236,7 @@ set_up_LR_set_some_field_standard_values (void)
   IR_node_t current_LR_core;
   IR_node_t current_LR_set;
   IR_node_t current_LR_situation;
+  IR_node_t symbol_definition;
 
   assert (!regular_optimization_flag);
   for (current_LR_core = IR_LR_core_list (description);
@@ -246,6 +247,9 @@ set_up_LR_set_some_field_standard_values (void)
          current_LR_set = IR_next_LR_set (current_LR_set))
       if (IR_reachable_flag (current_LR_set))
         {
+          if (characteristic_symbol_of_LR_set (current_LR_set)
+              == error_single_definition)
+	    IR_set_it_is_errored_LR_set (current_LR_set, TRUE);
           IR_set_attribute_is_used (current_LR_set, TRUE);
           IR_set_it_is_pushed_LR_set (current_LR_set, TRUE);
           for (current_LR_situation = IR_LR_situation_list (current_LR_set);
@@ -266,6 +270,18 @@ set_up_LR_set_some_field_standard_values (void)
                    (IR_canonical_rule (IR_element_after_dot
                                        (current_LR_situation)), NULL));
               }
+	    else
+	      {
+                if (IR_first_symbol_LR_situation (current_LR_situation))
+                  {
+                    symbol_definition
+                      = IR_element_itself (IR_element_after_dot 
+                                           (current_LR_situation));
+                    if (symbol_definition == error_single_definition)
+		      /* It is necessary for error recovery. */
+		      IR_set_it_is_errored_LR_set (current_LR_set, TRUE);
+                  }
+	      }
         }
 }
 
