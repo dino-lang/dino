@@ -1,3 +1,7 @@
+2002-05-12  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/dino.tst.in (506): Add Serhei's interpriter.
+
 2002-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.c (set_core_hash, parse_state_hash,

@@ -28037,6 +28037,1536 @@ OUTPUT505a
         fi
 fi
 
+# Test 506.
+if test $result = ok -a $start_test_number -le 506; then
+	echo test 506: Serhei\'s interpereter -- big program - 1500 lines.
+	echo rm -rf $tempdir
+	echo mkdir $tempdir
+	if rm -rf $tempdir && mkdir $tempdir; then
+	  echo '      ' Forming Grip interpriter files and test program in $tempdir
+	  cat >$tempdir/anode_work.d <<'TEST506'
+/***********************************************************
+** These functions are used to translate a given object   **
+** of class anode() to the equivalent object of class     **
+** prog().                                                **
+***********************************************************/
+// For elaborate dumpings:
+var dumpfl = 0;
+// Here is the function to parse a program anode. It is very trivial and
+// is included for the client's convenience.
+func parse_program_anode (program_anode, local_dumpfl = 1) {
+  // Initialize the dumpings.
+  dumpfl = local_dumpfl;
+  var object_program = prog (), intermediate_view;
+  if (program_anode.name != "program") { // Wrong node.
+    putln ("! Wrong grammar. Root anode name is : ", program_anode.name);
+    bad_anode ();
+  }
+  if (dumpfl) putln ("& Entering translation phase.");
+  intermediate_view =
+  parse_instruction_anode (program_anode.transl[0], dumpfl);
+  // If we parsed a block, we return it as the object program so as to
+  // have a bit of efficiency.
+  if (intermediate_view. name == "block")
+    object_program = intermediate_view.args[0];
+  // Otherwise we copy the instruction.
+  else object_program.exec = [intermediate_view];
+  if (dumpfl)
+    putln ("& Entering semantical checking phase.");
+  object_program = check_block (object_program);
+  if (dumpfl) {
+    if (global_errfl) putln ("! Semantic check failed.");
+    else putln ("& Semantic check sucessful.");
+  }
+  return object_program;
+}
+/* The function parse_instruction_anode() is used to parse an instruction. */
+func parse_instruction_anode (instruction_anode) {
+  // We declare a variable to work on the result, which is an object of class
+  // instr().
+  if (dumpfl) {
+    putln ("@ Initializing instruction parsing operation with node:");
+    print_anode (instruction_anode);
+  }
+  var result = instr ();
+  if (instruction_anode.name == "assign") { // Assignment statement.
+    if (dumpfl) putln ("* Identified assignment statement.");
+    result.name = "assign";
+    result.args = [3 : nil];
+    result.args [0] = instruction_anode.transl [0].transl [0].transl;
+    result.args [2] = parse_expression_anode (instruction_anode.transl[1]);
+    result.args [1] = (instruction_anode.transl [0].transl [0].transl.type0
+                      == 'I' ?
+                      instruction_anode.transl [0].transl :
+                      bad_anode () );
+    if (instruction_anode.transl [0].name == "array")
+      result.args [1] = parse_expression_anode (instruction_anode.
+                       transl [0].transl [1]);
+    else if (instruction_anode.transl [0].name == "varac") {
+      result.args [1] = expression ();
+      result.args [1].opr = "num";
+      result.args [1].opa1 = token (0);
+      // For compatibility with the semantic checker.
+      result.args [1].opa1.type0 = "I";
+      result.args [1].opa1.value = "0";
+      result.args [1].opa2 = "integer";
+    } else bad_anode ();
+  } else if (instruction_anode.name == "vblock") {
+    // Parse the block now.
+    if (dumpfl) putln ("@ Initiating block parsing.");
+    result.name = "block";
+    result.args = [1 : nil];
+    result.args [0] = prog ();
+    // A block should be an object of class prog().
+    // Process the declarations:
+    if (dumpfl) putln ("@ Processing declarations...");
+    var declarations = flatten (instruction_anode.transl[0], 2),
+    current_identifier_declared_flag = new {};
+    for (var current_declaration_processed = 0;
+         current_declaration_processed < #declarations;
+         current_declaration_processed++) {
+      // "Flatten" the identifiers we want to declare.
+      var identifiers_on_wait = flatten (
+                                declarations [current_declaration_processed]
+                              . transl[0], 1),
+      // Analyze the specification.
+      current_specification_analysis =
+      component (declarations [current_declaration_processed]
+                . transl [1]. transl [0],
+                declarations [current_declaration_processed]
+                . transl [1]. name);
+      // We just assigned an object of class anode() where it is
+      // not needed, so we must eradicate that.
+
+      // Here we declare a shortcut variable used to declare arrays.
+      var array_translation = current_specification_analysis.value;
+
+      // Declare arrays here by deriving their size.
+      if (current_specification_analysis.type0 != "constant")
+        current_specification_analysis.arrfl +=
+                      ( array_translation.name == "$nil" ? 0
+                      : array_translation.name == "$term" ?
+                        array_translation.transl.value
+                      : bad_anode () ); // The grammar is corrupted.
+      current_specification_analysis.value =
+                   ( current_specification_analysis.type0 == "constant" ?
+                     +array_translation.transl.value
+                   : array_translation.name == "$nil" ? 0
+                   : [current_specification_analysis.arrfl : 0]
+                   // For arrays.
+                   );
+      // Now that we have the specification, we may introduce the identifiers
+      // into the environment.
+      if (dumpfl) putln ("@ Declaring identifiers...");
+      for (var current_identifier_processing = 0;
+           current_identifier_processing < #identifiers_on_wait;
+           current_identifier_processing++) {
+        if (identifiers_on_wait [current_identifier_processing]
+           . transl [0].transl in current_identifier_declared_flag) {
+          if (dumpfl) putln ("! Identifier declared twice.");
+          put (program_file, ":",
+               identifiers_on_wait [current_identifier_processing]
+               . transl [0].transl.line_num, ":", identifiers_on_wait
+               [current_identifier_processing]. transl [0].transl.char_num,
+               ": ");
+          error ("Attempt to declare an identifier twice.");
+        }
+        result.args [0].vartable
+        {identifiers_on_wait [current_identifier_processing]
+        . transl [0].transl} = new current_specification_analysis;
+        // Now we make a note of the fact that we have just declared the
+        // identifier to solve the fact that the semantic checker that is
+        // applied later to the block has no way of knowing that we attempted
+        // to declare an identifier twice, so we check it right now.
+        current_identifier_declared_flag
+        {identifiers_on_wait
+        [current_identifier_processing].transl [0].transl} = 1;
+      }
+    }
+    // In case we stumble on a wrong node.
+    /* The rest is pretty easy sailing. All we have to do now
+    is let the instructions be parsed, and convert tokens in the table to
+    strings. */
+    var current_declaration, declarations_to_convert =
+    keys (result.args [0].vartable);
+    if (dumpfl) putln ("* Convert values : ",
+                       sprint (declarations_to_convert));
+    for (var current_declaration_num = 0;
+         current_declaration_num < #declarations_to_convert;
+         current_declaration_num++) {
+      current_declaration = declarations_to_convert [current_declaration_num];
+      if (dumpfl)
+        putln ("* Conversion of ",
+               sprint (current_declaration));
+      if (type (current_declaration) == class ()) {
+        if (dumpfl)
+          putln ("* Conversion worthy to ",
+                 sprint (current_declaration.value));
+        result.args [0].vartable {current_declaration.value} =
+        result.args [0].vartable {current_declaration};
+        result.args [0].vartable =
+        del (result.args [0].vartable, current_declaration);
+      } else if (dumpfl) putln ("* Conversion unworthy.");
+    }
+    if (dumpfl) {
+      putln ("* Result variables :");
+      println (result.args [0].vartable);
+      putln ("@ Parsing the instructions...");
+    }
+    var instructions = flatten (instruction_anode.transl [1],
+                                1);
+    // We recursively call parse_instruction_anode() for each instruction.
+    for (var current_instruction_number = 0;
+         current_instruction_number < #instructions;
+         current_instruction_number++) {
+      result.args [0].exec @=
+      [parse_instruction_anode (instructions [current_instruction_number].
+                               transl [0])];
+    }
+    // Now we must declare the configuration of variables here for the
+    // other blocks.
+    if (dumpfl) putln ("@ Redeclaring underlying blocks...");
+    result.args [0] = redeclare_block (result.args [0]);
+    func redeclare_block (block) {
+      func do_redeclaration (block_to_redeclare) {
+        // We have a block we need to define with synchronized variables.
+        var current_identifier_processed_key;
+        for (current_identifier_processed_key in block.vartable)
+          if (!(current_identifier_processed_key
+	        in block_to_redeclare.vartable)) {
+            block_to_redeclare.vartable {current_identifier_processed_key} =
+            block.vartable {current_identifier_processed_key};
+          }
+          redeclare_block (block_to_redeclare);
+      }
+      func do_instruction (instr) {
+        if (instr.name == "block") {
+          do_redeclaration (instr.args [0]);
+        } else if (instr.name == "for") {
+          do_instruction (instr.args [0]);
+          do_instruction (instr.args [2]);
+          do_instruction (instr.args [3]);
+        } else if (instr.name == "cond") {
+          for (var current_alternative_processing = 1;
+               current_alternative_processing < #instr.args;
+               current_alternative_processing += 2)
+            do_instruction (instr.args [current_alternative_processing]);
+        }
+      }
+      try {
+        for (var current_candidate_number = 0;
+             current_candidate_number < #block.exec;
+             current_candidate_number++)
+          do_instruction (block.exec [current_candidate_number]);
+      } catch (except (). error ()) {
+        if (dumpfl) putln ("! Synchronization of declarations failed.");
+        bad_anode();
+      }
+      return block;
+    }
+    if (dumpfl) putln ("@ Block parsing over.");
+    // Now we are done with our work on the block.
+  } else if (instruction_anode.name == "condit") { // The GRIP conditional.
+    /* In general, a GRIP conditional is written like this:
+       'cond' '{'
+        (<condition> <statement>)...
+        ['else'      <statement>]
+       '}'
+       Not unlike the LISP version. */
+       if (dumpfl) putln ("* Processing conditional.");
+       // Do any initial poking around with the nodes:
+       result = instr ();
+       result.name = "cond";
+       var option_list = flatten (instruction_anode.transl [0], 2);
+       /* Now that we've done that, let's translate that conditional.
+       Args[] for a cond statement look like this:
+        [condition, statement,...]
+       and the else part is represented by a expression evaluating to 1. */
+       for (var current_option_number = 0;
+            current_option_number < #option_list;
+            current_option_number++) {
+         var temp, current_parsed_option;
+         if (option_list [current_option_number].name == "elsif")
+           temp = parse_expression_anode (option_list [current_option_number].
+                                          transl [0]);
+         else if (option_list [current_option_number].name == "else") {
+           temp = expression ();
+           temp.opr = "num";
+           temp.opa1 = token (3);
+           temp.opa1.type0 = 'I';
+           temp.opa1.value = "1";
+           temp.opa2 = "integer";
+         } else bad_anode ();
+         result.args @= [temp, parse_instruction_anode
+                        (option_list [current_option_number].transl [1])];
+       }
+  } else if (instruction_anode.name == "foritr") {
+  /* The GRIP for statement is exactly like the C one,
+     except for the fact that a guard expression is REQUIRED.
+     The internal representation is self-explanatory and represented
+     by the tuple [initialization, guard, increment, body]. */
+    // This is a quite trivial process:
+    if (dumpfl) putln ("* For loop identified.");
+    result.name = "for";
+    result.args = [parse_instruction_anode (instruction_anode.transl [0]),
+                   parse_expression_anode  (instruction_anode.transl [1]),
+                   parse_instruction_anode (instruction_anode.transl [2]),
+                   parse_instruction_anode (instruction_anode.transl [3])];
+  /* The remaining commands are very trivial: The put statement, and the
+     empty statement. */
+  } else if (instruction_anode.name == "output") {
+  /* The put statement outputs all its parameters with an additional newline
+     character at the end. */
+    // Trivial stuff first:
+    if (dumpfl) putln ("* Analyzing output statement.");
+    result.name = "put";
+    var objects_on_wait_list = flatten (instruction_anode.transl [0],
+                                        1);
+    // Now, a loop to deal with every object we want to output.
+    for (var current_object_processing = 0;
+         current_object_processing < #objects_on_wait_list;
+         current_object_processing++) {
+      if (objects_on_wait_list [current_object_processing].name
+          == "expressionel")
+        result.args @= [parse_expression_anode
+                       (objects_on_wait_list
+                       [current_object_processing].transl [0])];
+      else if (objects_on_wait_list [current_object_processing].name
+               == "stringel") {
+        var temp = expression ();
+        temp.opr = "num";
+        temp.opa1 = objects_on_wait_list [current_object_processing].transl[0]
+                                         . transl;
+        temp.opa2 = "string";
+        result.args @= [temp];
+      } else {
+        if (dumpfl) putln ("! Wrong instruction node, name : ",               
+                           instruction_anode.name);
+        bad_anode ();
+      }
+    }
+  } else if (instruction_anode.name == "$nil") {
+    // The empty statement is represented by a nil-anode.
+    if (dumpfl) putln ("* Conversion $nil -> empty statement.");
+    result.name = "empty";
+  /* If we get an unknown node, we finish with a fatal error message. */
+  } else {
+    if (dumpfl) putln ("! Unknown node name : ", instruction_anode.name);
+    bad_anode ();
+  }
+  return result; // Now the result is returned.
+}
+
+func parse_expression_anode (expression_anode) {
+  /* This function parses an expression node into an object of
+     class expression(). It can take both a factor and an expression. */
+  if (dumpfl) {
+    putln ("@ Initiating expression parsing with node :");
+    print_anode (expression_anode);
+  }
+  // A variable on which to work and then return.
+  var result = expression ();
+  // For describing a factor.
+  if (expression_anode.name == "factor") {
+    if (dumpfl) putln ("* Identified a factor.");
+    if (expression_anode.transl [0].name == "$term") { // Literal numbers.
+      if (dumpfl) putln ("* Found literal number.");
+      result.opr = "num";
+      result.opa1 = expression_anode.transl [0].transl;
+      result.opa2 = (expression_anode.transl [0].transl.value ==
+                     int (expression_anode.transl [0].transl.value) ?
+                     "integer" : "real");
+    } else if (expression_anode.transl [0].name == "varac") {
+      // Variable acessing.
+      result.opr = "var";
+      result.opa1 = expression_anode.transl [0].transl [0].transl;
+      result.opa2 = expression ();
+      result.opa2.opr = "num";
+      result.opa2.opa1 = token (3);
+      result.opa2.opa1.type0 = 'N';
+      result.opa2.opa1.value = "0";
+      result.opa2.opa2 = "integer";
+      if (dumpfl) putln ("* Parsed an variable reference.");
+    } else if (expression_anode.transl [0].name == "array") {
+      // Array referencing -- done by the same operator.
+      result.opr = "var";
+      result.opa1 = expression_anode.transl [0].transl [0].transl;
+      result.opa2 = parse_expression_anode
+      (expression_anode.transl [0].transl [1]);
+      if (dumpfl) putln ("* Parsed an array reference.");
+    } else if (expression_anode.transl [0].name == "expression" ||
+               expression_anode.transl [0].name == "double" ||
+               expression_anode.transl [0].name == "single") {
+      // We have a parenthesized expression for which we just recursively
+      // invoke parse_expression_anode().
+      result = parse_expression_anode (expression_anode.transl [0]);
+      if (dumpfl) putln ("* Processed parenthesized expression.");
+    } else {
+      if (dumpfl) putln ("! Bad node, name is ", expression_anode.name);
+      bad_anode ();
+    }
+  } else if (expression_anode.name == "double") { // Binary operators.
+    result.opr = (expression_anode.transl [1].transl.code == 21 ? // Plus.
+                  "add" :
+                  expression_anode.transl [1].transl.code == 22 ? // Minus.
+                  "sub" :
+                  expression_anode.transl [1].transl.code == 23 ? // Times.
+                  "mul" :
+                  expression_anode.transl [1].transl.code == 24 ?
+                  // Division.
+                  "div" :
+                  expression_anode.transl [1].transl.code == 26 ?
+                  // Logical or.
+                  "or " :
+                  expression_anode.transl [1].transl.code == 25 ?
+                  // Logical and.
+                  "and" :
+                  expression_anode.transl [1].transl.code == 14 ?
+                  "gtt" :
+                  expression_anode.transl [1].transl.code == 13 ?
+                  "ltt" :
+                  expression_anode.transl [1].transl.code == 29 ?
+                  "eqs" : bad_anode () );
+    result.opa1 = parse_expression_anode (expression_anode.transl [0]);
+    result.opa2 = parse_expression_anode (expression_anode.transl [2]);
+    /* Now, for efficiency we replace ltt (A,B) by gtt (B,A). */
+    if (result.opr == "ltt") {
+        // Swap the operands.
+        var temp = result.opa1;
+        result.opa1 = result.opa2;
+        result.opa2 = temp;
+        // Rename the operator.
+        result.opr = "gtt";
+    }
+  } else if (expression_anode.name == "single") {
+    // To work on unary operators.
+    if (expression_anode.transl [0].transl.code == 21) {
+      // We have a unary plus operation that does not affect the operand.
+      result = parse_expression_anode (expression_anode.transl [1]);
+    } else {
+      // Other possible operators include unary minus and negation (!).
+      result.opr = ( expression_anode.transl [0].transl.code == 22 ?
+                     // Unary minus.
+                     "neg" :
+                     expression_anode.transl [0].transl.code == 27 ?
+                     // Logical negation.
+                     "not" : bad_anode () );
+      result.opa1 = parse_expression_anode (expression_anode.transl [1]);
+    }
+  } else if (expression_anode.name == "expression") {
+    // This is a reference to a factor.
+    result = parse_expression_anode (expression_anode.transl [0]);
+  } else bad_anode ();
+  return result;
+}
+       /**************************************************
+       ** These are the functions to perform semantical **
+       ** checking. The errors recognized are:          **
+       ** 1. Attempt to declare identifier twice (found **
+       ** at translation time).                         **
+       ** 2. No such identifier declared.               **
+       ** 3. Vector in a context expecting a scalar     **
+       ** value.                                        **
+       ** 4. Attempt to extract an element of a scalar  **
+       ** value.                                        **
+       ** 5. Attempt to assign to a constant.           **
+       **************************************************/
+// The function to check a block does nothing but introduce a name scope for
+// its two internal functions and call check_instruction() for each statement.
+func check_block (block) {
+  /* check_block() has two internal functions that work on an instruction
+     (check_instruction()) and expression (check_expression()). */
+  func check_instruction (instruction) {
+    /* Most of the commands just cause invocations of other functions,
+       but assignment finds four important semantic errors (see #2-5). */
+    // Most important parts first this time.
+    if (instruction.name == "assign") {
+      if (dumpfl) putln ("* Checking an assignment statement.");
+      /* First, check for error #2. */
+      if (!(instruction.args [0].value in block.vartable)) {
+        put (program_file, ":", instruction.args [0].line_num, ":",
+        instruction.args [0].char_num, ": ");
+        error ("No such variable declared.");
+      } else {
+        /* If these would have appeared after the conditional, !keyvalue would
+           be generated, which is undesirable. */
+        /* Now, we may check for error #3. */
+//        if (type (block.vartable {instruction.args [0].value}.value)
+//            == vector 
+//            && instruction.args [1].opr == "num" &&
+//            int (instruction.args [1].opa1.value) == 0) {
+//          put (program_file, ":", instruction.args [0].line_num, ":",
+//               instruction.args [0].char_num, ": ");
+//          error ("Structured value in scalar context.");
+//        }
+//        /* Lastly, error #4 must be checked. "elsif" is used for efficiency. */
+//        else
+        if (type (block.vartable {instruction.args [0].value}.value) !=
+                 vector &&
+                 instruction.args [1].opr != "num" &&
+                 int (instruction.args [1].opa1.value) != 0) {
+          put (program_file, ":", instruction.args [0].line_num, ":",
+               instruction.args [0].char_num, ": ");
+          error ("Attempt to reference element of scalar value.");
+        } else if (block.vartable {instruction.args [0].value}.type0 ==
+                   "constant") {
+          put (program_file, ":", instruction.args [0].line_num, ":",
+               instruction.args [0].char_num, ": ");
+          error ("Attempt to assign to a constant.");
+        }
+      }
+      // Here, we change the token to its value field.
+      instruction.args [0] = instruction.args [0].value;
+      // Now, we invoke check_expression to check two of the expressions:
+      instruction.args [1] = check_expression (instruction.args [1]);
+      instruction.args [2] = check_expression (instruction.args [2]);
+      // Now we are done with our work.
+    } else if (instruction.name == "put") {
+      if (dumpfl) putln ("* Checking a put statement.");
+    /* Here we just invoke check_expression() for every expression. */
+      for (var current_object_num = 0;
+           current_object_num < #instruction.args;
+           current_object_num++) {
+       instruction.args [current_object_num] =
+        check_expression (instruction.args [current_object_num]);
+      }
+    } else if (instruction.name == "empty") {
+      if (dumpfl) putln ("* Checking an empty statement.");
+      // The empty statement is automatically correct.
+    /* All the recursion is done by the statements that are structured. */
+    } else if (instruction.name == "cond") {
+      // Here we juct iterate through all the possible alternatives,
+      // verifying whether each is correct.
+      for (var current_alternative_num = 0;
+           current_alternative_num < #instruction.args;
+           current_alternative_num += 2) {
+        instruction.args [current_alternative_num] =
+        check_expression (instruction.args [current_alternative_num]);
+        instruction.args [current_alternative_num + 1] =
+        check_instruction (instruction.args [current_alternative_num + 1]);
+      }
+    } else if (instruction.name == "for") {
+      // Here, it is even more basic.
+      if (dumpfl) putln ("* Checking a for loop.");
+      instruction.args [0] = check_instruction (instruction.args [0]);
+      instruction.args [2] = check_instruction (instruction.args [2]);
+      instruction.args [3] = check_instruction (instruction.args [3]);
+      instruction.args [1] = check_expression  (instruction.args [1]);
+    } else if (instruction.name == "block") {
+      /* The block statement is resolved by a recursive invocation of
+         check_block(). */
+      instruction.args [0] = check_block (instruction.args [0]);
+    } else fatal_error ("Internal error in translator.");
+    if (dumpfl) {
+      putln ("* Checked instruction, value :");
+      print_instruction (instruction);
+    }
+    return instruction;
+  }
+  /* This function is used to check an expression and replace all tokens with
+     corresponding values. */
+  func check_expression (expression) {
+    /* Let us discuss the values that we need to check. Our errors
+       shall be found all in one operator: var. Its internal representation
+       is as follows:
+       | opr   | opa1  | opa2    |
+       +-------+-------+---------+
+       | "var" | IDENT | ELEMENT |
+       As you can see, it acts both as a reference to a scalar value
+       and a vector. The other operators are trivial:
+       num : don't do anything.
+       neg, not : check opa1 only.
+       Otherwise, we check both operands. */
+    if (expression.opr == "num") { // Don't do anything except replace tokens:
+      expression.opa1 = expression.opa1.value;
+    } else if (expression.opr == "neg" ||
+               expression.opr == "not") { // Check opa1:
+      expression.opa1 = check_expression (expression.opa1);
+    } else if (expression.opr == "var") { // Check for errors.
+      /* The same errors are fixed here as the ones in the assignment
+         statement. In fact, almost the same procedure is used here,
+         except that we do only one recursive invokation at the end, and we
+         work on a different domain of objects. For a more detailed explanation
+         of the algorithm's quirks, see the procedure for assignment.*/
+      if (!(expression.opa1.value in block.vartable)) {
+        put (program_file, ":", expression.opa1.line_num, ":0: ");
+        error ("No such variable declared.");
+      } else {
+        /* Check for error #3. */
+//        if (type (block.vartable {expression.opa1.value}.value) == vector &&
+//            expression.opa2.opr == "num" &&
+//            int (expression.opa2.opa1.value) == 0) {
+//          put (program_file, ":", expression.opa1.line_num, ":0: ");
+//          error ("Structured value in scalar context.");
+//        }
+//        else
+          if (type (block.vartable {expression.opa1.value}.value) !=
+                 vector &&
+                 expression.opa2.opr != "num" &&
+                 int (expression.opa2.opa1.value) != 0) {
+          put (program_file, ":", expression.opa1.value, ":0: ");
+          error ("Scalar value in structured context.");
+        }
+      }
+      expression.opa1 = expression.opa1.value;
+      expression.opa2 = check_expression (expression.opa2);
+    } else { // A binary operator. Recursively invoke check_expression():
+      expression.opa1 = check_expression (expression.opa1);
+      expression.opa2 = check_expression (expression.opa2);
+    }
+    return expression;
+  }
+  if (dumpfl) putln ("@ Initiating block checking.");
+  /* The main body of the function is quite trivial and consists of just a
+     for-loop. Also, we must process the declarations. */
+  for (var current_instruction_num = 0;
+       current_instruction_num < #block.exec;
+       current_instruction_num++)
+    block.exec [current_instruction_num] =
+    check_instruction (block.exec [current_instruction_num]);
+  // Process the declarations.
+  var current_declaration;
+  return block;
+}
+/* What we have left now is a couple of common tasks I found to be
+   easier to put in separate functions. */
+// When an anode that is not supposed to turn up turns up, we finish
+// with a diagnostic message.
+func bad_anode () {
+  fatal_error ("Grammar 'grip.g' corrupted or internal error.");
+}
+// For flattening recursive lists. This is so easily encoded in functional
+// programming languages like ML! Wish I could use it here, but the SPI
+// doesn't allow it.
+func flatten (list_anode_to_flatten, next_num) {
+  if (dumpfl) {
+    putln ("@ Executing flatten operation with:");
+    println (list_anode_to_flatten.transl);
+    print_anode (list_anode_to_flatten);
+  }
+  return // Last element or not?
+         (list_anode_to_flatten.name != "$nil" ?
+          [list_anode_to_flatten] @
+          flatten (list_anode_to_flatten.transl [next_num], next_num) : []);
+}
+TEST506
+	  cat >$tempdir/error.d <<'TEST506a'
+/* If an error arises, this function shall perform the necessary dumping, and
+   increment global_errfl. Other procedures check this variable occasionally,
+   and if it isn't zero, call abend(). */
+var global_errfl = 0;
+
+func error (message, ...) {
+  putln ("Error : ", message); // Print a general description of the problem.
+  // Do any dumping necessary to roughly locate the problem.
+  if (#args != 0)
+    for (var i = 0; i < #args; i++)
+      try {putln(args[i]);} catch (except (). error (). invcall (). partype)
+          {println(args[i]);}
+  global_errfl++; // Increment the global error counter.
+}
+
+// For fatal errors :
+func fatal_error (message, ...) {
+  putln ("Fatal Error : ", message);
+  if (#args != 0)
+    for (var i = 0; i < #args; i++)
+      try {putln (args[i]);}
+      catch (except (). error (). invcall (). partype ())
+          {println (args[i]);}
+  exit (3);
+}
+
+// To assist with abnormal endings.
+
+func abend (message) {
+  putln (global_errfl, message, "error" @ (global_errfl == 1 ? "." : "s."));
+  exit (2);
+}
+
+// To print out abstract nodes in a readable manner:
+
+func print_anode (node_to_print, tablevel = 0, tabchar = ' ') {
+  for (var i = 0; i < tablevel; i++) put (tabchar);
+  put (node_to_print.name, " ");
+  if (node_to_print.name == "$nil") println ();
+  else if (node_to_print.name == "$term")
+    putln (node_to_print.transl.code, ":",
+           node_to_print.transl.type0, ":",
+           sprint (node_to_print.transl.value));
+  else {
+    putln ("(");
+    for (i = 0; i < #node_to_print.transl; i++)
+      print_anode (node_to_print.transl [i], tablevel + 2, tabchar);
+    for (i = 0; i < tablevel; i++) put (tabchar);
+    putln (")");
+  }
+}
+
+// For printing objects of class expr().
+
+func print_expression (expr, tablevel = 0, tabchar = ' ') {
+  for (var i = 0; i < tablevel; i++) put (tabchar);
+  if (expr == nil) return;
+  if (expr.opr == "num") putln (sprint (expr.opa1), " : ", sprint (expr.opa2));
+  else if (expr.opr == "var") {
+    put ("$", sprint (expr.opa1));
+    if (!(expr.opa2.opr == "num" && expr.opa2.opa1 == "0")) {
+      putln (" [");
+      print_expression (expr.opa2, tablevel + 2, tabchar);
+      for (i = 0; i < tablevel; i++) put (tabchar);
+      putln ("]");
+    } else putln ();
+  } else {
+    putln (expr.opr, " (");
+    print_expression (expr.opa1, tablevel + 2, tabchar);
+    print_expression (expr.opa2, tablevel + 2, tabchar);
+    for (i = 0; i < tablevel; i++) put (tabchar);
+    putln (")");
+  }
+}
+// This function is used to print an instruction:
+func print_instruction (instruction, tablevel = 0, tabchar = ' ') {
+  for (var i = 0; i < tablevel; i++) put (tabchar);
+  if (instruction.name == "empty") putln ("-");
+  else {
+    put (instruction.name, " ");
+    if (instruction.name == "block") {
+      putln ("{");
+      for (i in instruction.args [0].vartable) {
+        for (var j = 0; j < tablevel + 2; j++) put (tabchar);
+        putln ("$", sprint (i), " : ", instruction.args [0].vartable {i}.type0,
+               instruction.args [0].vartable {i}.arrfl ?
+               " [" @ instruction.args [0].vartable {i}.arrfl @ "]" : "");
+      }
+      for (i = 0; i < #instruction.args [0].exec; i++)
+        print_instruction (instruction.args [0].exec [i],
+                           tablevel + 2, tabchar);
+      for (i = 0; i < tablevel; i++) put (tabchar);
+      putln ("}");
+    } else if (instruction.name == "for") {
+      putln ();
+      for (i = 0; i < tablevel + 2; i++) put (tabchar);
+      putln ("Initialization : ");
+      print_instruction (instruction.args [0], tablevel + 2, tabchar);
+      for (i = 0; i < tablevel + 2; i++) put (tabchar);
+      putln ("---");
+      for (i = 0; i < tablevel + 2; i++) put (tabchar);
+      putln ("Condition : ");
+      print_expression (instruction.args [1], tablevel + 2, tabchar);
+      for (i = 0; i < tablevel + 2; i++) put (tabchar);
+      putln ("Body : ");
+      print_instruction (instruction.args [3], tablevel + 2, tabchar);
+      for (i = 0; i < tablevel + 2; i++) put (tabchar);
+      put ("Increment : ");
+      print_instruction (instruction.args [2]);
+    } else if (instruction.name == "cond") {
+      putln ();
+      for (i = 0; i < #instruction.args; i += 2) {
+        print_expression  (instruction.args [i], tablevel + 2, tabchar);
+        print_instruction (instruction.args [i + 1], tablevel + 2, tabchar);
+        if (i < #instruction.args - 1) {
+          for (var j = 0; j < tablevel; j++) put (tabchar);
+          putln ("---");
+        }
+      }
+    } else if (instruction.name == "assign") {
+      put ("$", sprint (instruction.args [0]));
+      if (!(instruction.args [1].opr == "num" &&
+            instruction.args [1].opa1 == "0")) {
+        putln (" [");
+        print_expression (instruction.args [1], tablevel + 2, tabchar);
+        for (i = 0; i < tablevel; i++) put (tabchar);
+        putln ("]");
+      } else putln ();
+      print_expression (instruction.args [2], tablevel + 2, tabchar);
+    } else if (instruction.name == "put") {
+      putln ();
+      for (i = 0; i < #instruction.args; i++)
+        print_expression (instruction.args [i], tablevel + 2, tabchar);
+      }
+    }
+}
+TEST506a
+	  cat >$tempdir/grip.d <<'TEST506b'
+////////////////////////////////////////////////////////////////
+// Grip 0.5s54 Designed and implemented by: Serhei Makarov.   //
+// Special thanks to: Vladimir Makarov, for mentoring and     //
+// moral support,                                             //
+//                    Nadia Makarov, for moral support, and   //
+//                    The person who invented ISPs, otherwise //
+// I might not have gotten time to get such a head start in   //
+// programming language design.                               //
+////////////////////////////////////////////////////////////////
+
+// GRIP 0.5 is a structured language roughly capable of performing
+// algorhythmic calculations, e.g. a sieve for primes.
+// WARNING : WE HAVE NOT IMPLEMENTED ANY INPUT DEVICES.
+
+include "error"; // The error management package.
+include "intrep"; // Interpretation package.
+include "parser"; // Translation package.
+
+// Command line options :
+//  -v
+//  --verbose       Turns on dumpings at runtime.
+//
+//  -t
+//  --parse-results Output the results of parsing.
+//
+//  -d
+//  --full-parse    Output information about how
+//                  the parse went.
+//
+//  -h
+//  --help          Print possible command line
+//                  options and quit.
+//
+//  -n
+//  --version       Print version number and quit.
+//
+//  filename        Interpret 'filename'.
+var verbose_flag = 0, debug_level = 0, file_name = "",
+    translator = grip_parser(), db_fl = 0;
+// Db_fl is defined to find conflicting -td options and for -hn option usage.
+// Find if we just want help.
+if (#argv == 0) {
+  putln ("No arguments found. Use 'grip --help' for help.");
+  exit (0);
+}
+for (var argpos = 0; argpos < #argv; argpos++)
+  if (argv[argpos] == "--help" ||
+      argv[argpos] == "-h") {
+    putln ("GRIP 0.5s54.");
+    putln ("Usage: grip (option | filename)...");
+    putln ("Options:");
+    putln ("POSIX one character | GNU style long");
+    putln (" -v                 | --verbose       : ",
+           "Turn on dumpings at runtime.");
+    putln (" -t                 | --parse-results : ",
+           "Show the results of parsing.");
+    putln (" -d                 | --full-parse    : ",
+           "Show how the parse went.");
+    putln (" -n                 | --version       : ",
+           "Print version number and quit.");
+    putln (" -h                 | --help          : ",
+           "Show this screen.");
+    putln ();
+    putln ("Grip returns 0 on success, 2 on a non-fatal error, and");
+    putln ("3 on a fatal error that prevents its functioning properly."); 
+    exit (0);
+  } else if (argv[argpos] == "-n" ||
+             argv[argpos] == "--version") {
+    putln ("GRIP 0.5s54 designed and implemented by Serhei V. Makarov.");
+    putln ("Special thanks to:");
+    putln ("                   Vladimir Makarov, for mentoring and");
+    putln ("                   moral support, and");
+    putln ("                   Nadia Makarov, for moral support.");
+    exit (0);
+  }
+// Analyze argv[] to find out the filename needed.
+for (argpos = 0; argpos < #argv; argpos++) {
+  if (argv[argpos] == "-v" ||
+      argv[argpos] == "--verbose") verbose_flag = 1;
+  else if (argv[argpos] == "-t" ||
+           argv[argpos] == "--parse-results") if (!db_fl) {
+                debug_level = 2;
+                db_fl++;
+        } else error ("Conflicting '-t' and '-d' options.");
+  else if (argv[argpos] == "-d" ||
+           argv[argpos] == "--full-parse") if (!db_fl) {
+                debug_level = 5;
+                db_fl++;
+        } else error ("Conflicting '-t' and '-d' options.");
+  else if (argv[argpos] == "-" && file_name == "") file_name = "/dev/stdin";
+  else if (file_name == "") file_name = argv[argpos];
+  else error ("Too many arguments or arguments invalid.");
+}
+if (file_name == "") error ("No file name specified or file name invalid");
+if (global_errfl) abend (" command line ");
+// Translate and interpret.
+var executable_program = 
+translator.parse_file(file_name, debug_level, verbose_flag);
+executable_program.execute (verbose_flag, verbose_flag, verbose_flag);
+exit(0);
+TEST506b
+	  cat >$tempdir/grip.g <<'TEST506c'
+TERM string = 1
+      ident = 2
+     number = 3
+   programk = 4
+        ddt = 5
+   constant = 6
+    integer = 7
+       real = 8
+       cond = 9
+        for = 10
+        put = 11
+       else = 12
+        lts = 13
+        gts = 14
+        lfp = 15
+        rtp = 16
+        lbr = 17
+        rbr = 18
+        lsb = 19
+        rsb = 20
+        pls = 21
+        mns = 22
+        str = 23
+        fsl = 24
+        amp = 25
+        vrt = 26
+        exc = 27
+        smc = 28
+        eqs = 29
+        spc = 30
+    invalid = 31;
+program : programk ident statement # program (2)
+statement : varac lts mns expression smc # assign (0 3)
+          | lbr decl st_list rbr         # vblock (1 2)
+          | cond lbr c_list              # condit (2)
+          | for lfp statement expression smc statement rtp statement # foritr (2 3 5 7)
+          | put p_list smc               # output (1)
+          | smc                          # -
+expression : expression dop factor # double (0 1 2)
+           | uop factor            # single (0 1)
+           | factor                # expression (0)
+factor : varac              # factor (0)
+       | number             # factor (0)
+       | lfp expression rtp # factor (1)
+dop : pls # 0
+    | mns # 0
+    | str # 0
+    | fsl # 0
+    | vrt # 0
+    | amp # 0
+    | eqs # 0
+    | gts # 0
+    | lts # 0
+uop : pls # 0
+    | mns # 0
+    | exc # 0
+decl : ident_list ddt specif smc decl # declare (0 2 4)
+     |                                # -
+ident_list : ident ident_list  # idl (0 1)
+           |                   # -
+specif : integer as      # integer (1)
+       | real as         # real (1)
+       | constant number # constant (1)
+as : lsb number rsb # 1
+   |                # -
+st_list : statement st_list # st_list (0 1)
+        |                   # -
+c_list : expression statement c_list # elsif (0 1 2)
+       | else statement rbr          # else (- 1 -)
+       | rbr                         # -
+p_list : expression p_list # expressionel (0 1)
+       | string p_list     # stringel (0 1)
+       |                   # -
+varac : ident                    # varac (0)
+      | ident lsb expression rsb # array (0 2)
+TEST506c
+	  cat >$tempdir/intrep.d <<'TEST506d'
+// Here follows the internal representation of a GRIP program.
+/* This is a variable cell class, designed for use with eval(). */
+class component (value, type0) {
+  var arrfl = 0;
+}
+/* This is a simple instruction definition, with a descriptor and arguments. */
+class instr (){
+  var name = "", args = [];
+}
+/* This is an expression class. Note that at most two operands are allowed. */
+class expression (){
+  var opr, opa1, opa2;
+}
+
+/******************************************************************************
+** This is the definition for the actual internal representation of the      **
+** program. Note that the high level structure is almost just an abstract    **
+** form of the source code. There are only two variables: exec, which is     **
+** a vector of instructions, and vartable, a table of component cells.       **
+** This class also contains a virtual machine capable of executing the code. **
+******************************************************************************/
+class prog () {
+  var exec = []; // The executable code.
+  var vartable = new {};
+  // The environment, statically derived during translation.
+  func eval (expr, dumpfl = 0) { // The expression evaluator.
+    var res; // The result is retained for debugging purposes.
+    if (dumpfl) putln ("@ Initiating expression evaluator.");
+    func ovrlap (type1, type2) // A function to derive the type of the result. 
+      { return type1 == "real" || type2 == "real" ? "real" : "integer"; }
+    if (expr.opr == "num") res = component(expr.opa1,expr.opa2);
+                           /* Expression is a single constant */
+    else if (expr.opr == "var") {
+      var index = eval (expr.opa2, dumpfl).value;
+
+      res = vartable {expr.opa1};
+      if (type (res.value) == vector) {
+	//        println (index, "--", #res.value);
+	if (index < 1 || index > #res.value) {
+	  error ("Runtime error : Array index out of bounds.");
+	  exit (2);
+	}
+        res = component (res.value [index - 1], res.type0);
+      }
+    }
+    // Variable reference.
+    else if (expr.opr == "neg") // Unary minus.
+      res = component (-eval (expr.opa1, dumpfl).value,
+                        eval (expr.opa1, dumpfl).type0);
+    else if (expr.opr == "add") // Addition.
+      res = component (eval (expr.opa1, dumpfl).value +
+                       eval (expr.opa2, dumpfl).value,
+                       ovrlap (eval (expr.opa1, dumpfl).type0,
+                               eval (expr.opa2, dumpfl).type0));
+    else if (expr.opr == "sub") // Subtraction.
+      res = component (eval (expr.opa1, dumpfl).value -
+                       eval (expr.opa2, dumpfl).value,
+                       ovrlap (eval (expr.opa1, dumpfl).type0,
+                               eval (expr.opa2, dumpfl).type0));
+    else if (expr.opr == "mul") // Multiplication.
+      res = component (eval (expr.opa1, dumpfl).value *
+                       eval (expr.opa2, dumpfl).value,
+                       ovrlap (eval (expr.opa1, dumpfl).type0,
+                               eval (expr.opa2, dumpfl).type0));
+    else if (expr.opr == "div") {// Division.
+      res = component (eval (expr.opa1, dumpfl).value /
+                       eval (expr.opa2, dumpfl).value,
+                       ovrlap (eval (expr.opa1, dumpfl).type0,
+                               eval (expr.opa2, dumpfl).type0));
+    }
+    else if (expr.opr == "and") // Logical and.
+      res = component (eval (expr.opa1, dumpfl).value &&
+                       eval (expr.opa2, dumpfl).value,
+                       "integer");
+    else if (expr.opr == "or ") // Logical or.
+      res = component (eval (expr.opa1, dumpfl).value ||
+                       eval (expr.opa2, dumpfl).value,
+                       "integer");
+    else if (expr.opr == "not") // Logical negation
+      res = component (!eval (expr.opa1, dumpfl).value, "integer");
+    else if (expr.opr == "gtt") // Greater than.
+      res = component (eval (expr.opa1, dumpfl).value >
+                       eval (expr.opa2, dumpfl).value,
+                       "integer");
+    // The lack of a less than operation is for the fact that x<y <=> y>x.
+    else if (expr.opr == "eqs") // Equals.
+      res = component (eval (expr.opa1, dumpfl).value ==
+                       eval (expr.opa2, dumpfl).value,
+                       "integer");
+    else {
+      // If opr is not one of the specified operations, then there is an
+      // error in the coding.
+      putln ("Fatal Error : Internal error in expression generator :");
+      print_expression (expr);
+    }
+    if (dumpfl) { // Dumping.
+      putln ("* Expression Dumping:\n", sprint (res.value), " : ",
+             sprint (res.type0));
+      if (expr.opr != "num") print_expression (expr);
+      putln ();
+    }
+    return res; // Now the result is made available to the client function.
+  }
+  /***********************************************************************
+  ** This is the actual execution function. It invokes execinstr(), a   **
+  ** function internal to execute(), which may recursively invoke       **
+  ** itself, eval(), and execute() to evaluate expressions, or use      **
+  ** structures.                                                        **
+  ***********************************************************************/
+  func execute (dumpfl, strdumpfl, edumpfl) {
+    if (dumpfl) putln ("& Entering execution phase.");
+    // Dumping for blocks :
+    if (dumpfl) {
+      putln ("* Preliminary dumping of variables for this block:\n",
+             vartable != {} ?
+             sprint (vartable) : "", "\n"); 
+    }
+    for (var instr = 0; instr < #exec; instr++) {
+      // Sequentially perform statements.
+      execinstr (exec [instr], strdumpfl, edumpfl); 
+      /* Invoke execinstr() with the current instruction. */
+    }
+    if (global_errfl) abend (" runtime ");
+    /*******************************************************
+    ** Implementation of execinstr(). Like eval(), it     **
+    ** chooses from a list of possible operations it can  **
+    ** do, and executes the corresponding procedure       **
+    ** needed to do the job.                              **
+    *******************************************************/
+    func execinstr (currinstr, dumpfl, edumpfl) {
+      // Dumping for instructions :
+      if (dumpfl) { putln ("@ Executing of instruction #",
+                           instr + 1, ", value:");
+                    print_instruction (currinstr);
+      }
+      if (currinstr.name == "cond") { /* Conditional branch. */
+        for (var current_option_number = 0;
+             current_option_number < #currinstr.args;
+             current_option_number += 2) {
+          /* This loop iterates through all of the
+             alternatives, checking each one. */
+          if (eval (currinstr.args [current_option_number], edumpfl).value) { 
+            /* Check the current alternative. */
+            execinstr (currinstr.args [current_option_number + 1], dumpfl); 
+            // True: Execute this branch.
+            break; // Exit the loop : No more altenatives need to be checked. 
+          }
+        }
+      } else if (currinstr.name == "for") {
+         // C-style 'for' loop implementation. Note that this statement can
+         // loop at most 100,000 times.
+         var g = 0; // This variable is used for enforcing the iteration limit.
+         for (execinstr (currinstr.args [0], dumpfl); // Initialization.
+              eval (currinstr.args [1], edumpfl). value; // Condition.
+              execinstr (currinstr.args [2], dumpfl)) { // Increment.
+           execinstr (currinstr.args [3], dumpfl); // Execute the body.
+           g++; // Iteration count.
+           if (g > 99999) { // Kill the for loop if alloted
+                            // iterations are used up.
+             if (dumpfl) putln ("! For loop ran out of iterations.");
+             putln ("Warning: Iteration limit exceeded: For loop killed.");
+             break; // Kill the loop.
+           }
+         }
+       } else if (currinstr.name == "assign") {
+         // Classical absolute assignment.
+         var res = eval (currinstr.args [2], edumpfl),
+             index = eval (currinstr.args [1], edumpfl).value,
+             ourtype;
+         // Ourtype is for real <- int compatibility.
+         if (vartable  {currinstr.args [0]}.type0 == "real") ourtype = "real";
+         else ourtype = "integer";
+         var target = vartable {currinstr.args [0]};
+         if (type (target.value) != vector) {
+           // Is this an array? If no :
+          target.value = (ourtype == "real"
+			  ? float (res. value) : int (res. value));
+         } else { // If yes :
+           if (#target.value < index || index < 1) {
+             error ("Runtime error : Array index out of bounds.");
+             exit (2);
+           }
+           target.value [index - 1] = res.value;
+         }
+         vartable {currinstr.args [0]}.type0 = ourtype;
+       } else if (currinstr.name == "block") { // The compound statement.
+         currinstr.args [0].execute (dumpfl, dumpfl, edumpfl);
+       } else if (currinstr.name == "put") { // Output statement.
+         var put_objs = []; // So as not to intermingle output with dumpings.
+         for (var i = 0; i < #currinstr.args; i++)
+           put_objs @= eval (currinstr.args [i], edumpfl).value;
+         for (i = 0; i < #put_objs; i++)
+           put (put_objs [i]);
+           // Output the values of all expressions.
+         putln (); // Don't forget a newline.
+       } else if (currinstr.name == "empty") {
+         // The nil statement - does nothing.
+       } else { // Coding error.
+         putln ("Fatal Error : Internal parsing error : ",
+                "Illegal instruction generated as follows :");
+         print_instruction (currinstr.name, currinstr.args);
+         exit (3);
+       }
+     }
+     // Dumping for blocks :
+     if (dumpfl) {
+       putln ("* Dumping of variables for this block:\n", #vartable != 0 ?
+              sprint (vartable) : "", "\n"); 
+     }
+   } // End execute().
+} // End class prog.
+TEST506d
+	  cat >$tempdir/parser.d <<'TEST506e'
+/****************************************************************************
+** This is the translator for the source code.                             **
+****************************************************************************/
+ext token { // For encoding of identifiers, etc.
+  var value, type0, line_num, char_num;
+}
+class grip_parser () {
+  // The grip_parser class, using the Earley parser.
+  var grammar, source_code; // Grammar is the Earley Parser code.
+  include "scanner"; // Lexical analysis.
+  include "translates"; // Syntactical and semantical analysis.
+}
+TEST506e
+	  cat >$tempdir/scanner.d <<'TEST506f'
+ /*****************************************************************
+ ** The scanner() function does lexical analysis, i.e. finding   **
+ ** numbers, and returns a vector of tokens ready for parsing.   **
+ *****************************************************************/
+func scanner (code) {
+  var tokens = [],
+  /* Array that will later be translated to tokens and returned,
+     which will be called the "token stream". */
+  lexem = "", /* Lexem will accumulate characters in case we wanted to
+  make a token with more than one character, i.e. an identifier.
+  (Will be referred to as the "accumulation stream".) */
+  /* Note on streams: We can't write to the token stream unless
+                      accumulation stream is empty.
+  */
+  /* Next come two important tables to increase parsing efficiency. */
+  character = final {':' : 5,
+                     '<' : 13,
+                     '>' : 14,
+                     '(' : 15,
+                     ')' : 16,
+                     '{' : 17,
+                     '}' : 18,
+                     '[' : 19,
+                     ']' : 20,
+                     '+' : 21,
+                     '-' : 22,
+                     '*' : 23,
+                     '/' : 24,
+                     '&' : 25,
+                     '|' : 26,
+                     '!' : 27,
+                     ';' : 28,
+                     '=' : 29,
+                     ' ' : 30}, // For encoding special characters.
+  keyword = final {"program" : 4,
+                   "constant" : 6,
+                   "integer" : 7,
+                   "real" : 8,
+                   "for" : 10,
+                   "cond" : 9,
+                   "else" : 12,
+                   "put" : 11}, // For encoding keywords.
+  char0, /* Counter for the loop that follows. */
+  lx = 0,
+  lnn = 1; // For retaining the line number of a token.
+  for (char0 = 0; char0 < #code;) { // Build up tokens[].
+    if (char0 != 0 &&
+        code[char0 - 1] == '\n') lnn++;
+    if (code[char0] == '/') { // Value might be a comment.
+      var nofl = 1; // Tells us whether we should keep the slash.
+      char0++; // Look at the next character.
+      if (code[char0] == '*') {
+        nofl = 0; // Don't put the slash to tokens[].
+        for (;; char0++) // It is a comment.
+          if (code[char0] == '*') { // Comment might end.
+            char0++; // Look at next character.
+            if (code[char0] == '/') {
+              char0++;
+              break; // Comment is over.
+            }
+          }
+      }
+      // So that the slash is preserved if there was no comment.
+      if (nofl) tokens = tokens @ '/';
+    } else if (code[char0] <= '9' && code[char0] >= '0') {
+      var realfl = 0; // For support of reals.
+      lexem = "N";
+      for (;; char0++) {
+        for (; code[char0] <= '9' && code[char0] >= '0'; char0++)
+          lexem = lexem @ code[char0];
+        if (code[char0] == '.' && ! realfl) {
+          realfl++; // To avoid meaningless constructs such as 2.3.56.
+          continue; // For scanning reals.
+        }
+        break;
+      }
+      tokens = ins (tokens, lexem, #tokens);
+      lexem = "";
+    } else if (code [char0] <= 'z' &&
+               code [char0] >= 'a' || code[char0] <= 'Z' &&
+               code [char0] >= 'A') {
+      lexem = "I";
+      for (; code [char0] <= 'z' && code[char0] >= 'a'
+             || code [char0] <= 'Z' && code [char0] >= 'A'
+             || code [char0] <= '9' && code [char0] >= '0';
+             char0++)
+        lexem = lexem @ tolower (code [char0]);
+      tokens = ins (tokens, lexem, #tokens);
+      lexem = "";
+    } else if (char0 < #code && (code [char0] == ' '  ||
+                                 code [char0] == '\n' ||
+                                 code [char0] == '\t' ||
+                                 code [char0] == '\f' ||
+                                 code [char0] == '\r' ||
+                                 code [char0] == '\v')) {
+      for (; char0 < #code && (code [char0] == ' '  ||
+                               code [char0] == '\n' ||
+                               code [char0] == '\t' ||
+                               code [char0] == '\f' ||
+                               code [char0] == '\r' ||
+                               code [char0] == '\v');
+           char0++)
+        if (char0 != 0 && code [char0 - 1] == '\n') lnn++;
+    } else if (code[char0] == '"'){
+      char0++;
+      lexem = "S";
+      for (; char0 < #code && code[char0] != '"'; char0++)
+        lexem = lexem @ code[char0];
+      char0++;
+      tokens = ins (tokens, lexem, #tokens);
+      lexem = "";
+    } else {
+      tokens = ins (tokens, code[char0], #tokens);
+      char0++;
+    }
+    // Translate what we got to a token.
+    if (lx < #tokens &&
+        type (tokens[lx]) != char) { // Are we dealing with a string?
+      if (tokens[lx][0] == 'S') { // We have a string constant.
+        var temp = token (1); // Token with code 1.
+        temp.type0 = tokens[lx][0]; // Add the type specifier.
+        temp.value = del (tokens[lx], 0, 1); // Put the rest into value.
+        tokens[lx] = temp; // Put the result into tokens.
+      } else if (tokens[lx][0] == 'I') { // Identifier.
+        var temp;
+        if (del (tokens[lx], 0, 1) in keyword) {
+          // Translate it into a keyword token if it's a keyword.
+          temp = token(keyword{tokens[lx]});
+          // Look it up in the keyword table.
+          temp.type0 = 'K';
+          // Give it type "K".
+          temp.value = tokens[lx];
+          // Give its reproduction for the syntax error manager.
+        } else {
+          temp = token (2); // Token - code 2.
+          temp.type0 = 'I';
+          temp.value = tokens[lx];
+          // Same procedure here as for string constants.
+        }
+        tokens[lx] = temp;
+      } else if (tokens[lx][0] == 'N') { // Number.
+        var temp = token (3); // Token - code 3.
+        temp.type0 = tokens[lx][0];
+        temp.value = del (tokens[lx], 0, 1);
+        tokens[lx] = temp;
+      } else fatal_error ("Internal scanner error.", tokens, tokens[lx]);
+      // Scanner malfunction.
+    } else if (lx < #tokens) { // Single character.
+      if (!(tokens[lx] in character)) { 
+        // We have a bad character that we know the parser will spit out.
+        put (file_name, ":", lnn, ":", char0 % lnn, ": ");
+        error ("Lexical error: Invalid character -- no encoding available.",
+               sprint(tokens[lx]));
+        /* Generate an invalid token that the parser recognizes, but does
+           not use in any rule. */
+        tokens [lx] = token (31);
+        lx++;
+        continue;
+      } else {
+        var temp = token(character {tokens[lx]});
+        temp.type0 = 'C';
+        temp.value = tokens[lx];
+        tokens[lx] = temp;
+      }
+    }
+    if (lx < #tokens) {
+      tokens[lx].line_num = lnn;
+      tokens[lx].char_num = char0 % lnn;
+      lx++;
+    }
+  }
+  return tokens; // Make the result available to the client.
+}
+TEST506f
+	  cat >$tempdir/translates.d <<'TEST506g'
+ /*************************************************************************
+ ** This is the actual translation function. It does any necessary       **
+ ** operations that are done after the translation, so all the main      **
+ ** block needs to do is analyze args and determine the parameters to    **
+ ** this method.                                                         **
+ *************************************************************************/
+func parse_file (program_file, debug_level, verbose_flag) {
+  if (verbose_flag) putln ("& Entering parsing phase.");
+  var token_vector,
+  outside = except (). error (). invcall (). syserror(); // To save typing.
+  /* The following function is called by the parser to
+     do any error messaging. */
+  func syntax_error (error_token_index,
+                     error_token_value,
+                     first_ignored_token_index,
+                     first_ignored_token_value,
+                     new_starting_token_index,
+                     new_starting_token_value) {
+    if (error_token_value == nil ||
+        error_token_value.code != 31) {
+      if (verbose_flag) putln ("! Syntax error.");
+      if (error_token_value != nil)
+        put (program_file, ":", error_token_value.line_num, ":0: ");
+      error (sput ("Syntax error at token value ",
+                        error_token_value
+                        == nil ? "EOF" :
+                        error_token_value.code,
+                   ":", error_token_value
+                        == nil ? "EOF" :
+                        error_token_value.type0,
+                   ":", error_token_value
+                        == nil ? "EOF" :
+                        sprint (error_token_value.value)
+                  )
+            );
+    }
+  }
+  // The next few lines install the grammar.
+  try { // In case we can't find the file.
+    var tape = open (env {"GRAMMARPATH"},"read");
+    grammar = fgetf (tape);
+    close (tape);
+  } catch (outside. eaccess,
+           outside. eagain,
+           outside. ebadf,
+           outside. ebusy,
+           outside. edom,
+           outside. efault,
+           outside. efbig,
+           outside. eio,
+           outside. eisdir,
+           outside. emfile,
+           outside. emlink,
+           outside. enametoolong,
+           outside. enfile,
+           outside. enodev,
+           outside. enoent,
+           outside. enomem,
+           outside. eperm,
+           outside. epipe,
+           outside. espipe,
+           outside. exdev)
+  {fatal_error ("Could not find grammar file 'grip.g'.");}
+  var program, // Source code.
+  abstract_tree; // Intermediate code.
+  try { // To cause exception !pmemory to die with a graceful error message.
+    var machine = parser();
+    public machine;
+    machine.set_grammar (grammar, 1);
+    machine.set_debug (debug_level); // Turns on verbose mode if applicable.
+    machine.set_one_parse (1); // In case the grammar is ambiguous.
+    machine.set_recovery (1); // Turn off error recovery.
+    machine.set_recovery_match (0); // Shift 5 tokens when error is found.
+    try { // To cover 'no such file' errors.
+      program = open (program_file, "read"); // Get the source code.
+    } catch (outside. eaccess,
+             outside. eagain,
+             outside. ebadf,
+             outside. ebusy,
+             outside. edom,
+             outside. efault,
+             outside. efbig,
+             outside. eio,
+             outside. eisdir,
+             outside. emfile,
+             outside. emlink,
+             outside. enametoolong,
+             outside. enfile,
+             outside. enodev,
+             outside. enoent,
+             outside. enomem,
+             outside. eperm,
+             outside. epipe,
+             outside. espipe,
+             outside. exdev
+             ) { // No such file in reach.
+      putln ("Error: No valid file named ",
+             sprint (program_file), " found.");
+      global_errfl++;
+      abend (" I/O ");
+    }
+    source_code = fgetf (program) @ " ";
+    // So we don't get out-of range array bounds during scanning.
+    close(program);
+    if (verbose_flag) putln ("@ Initiating scanner.");
+    token_vector = scanner (source_code);
+    if (verbose_flag && global_errfl)
+      putln ("! Scanner failed, working in error recovery mode.");
+    // Use scanner() to process source_code.
+    if (verbose_flag) putln ("@ Initiating Earley's Parser.");
+    abstract_tree =
+    machine.parse (token_vector, syntax_error);
+    // Parse token_vector into abstract_tree.
+  } catch (except (). error (). invcall (). invparser (). pmemory) {
+    // There wasn't enough memory to parse the program.
+    if (verbose_flag)
+      putln ("! Insufficient memory to set up parser, parsing failed.");
+    error ("Insufficient memory for parser.");
+  }
+  if (global_errfl) { // If syntax errors were found, stop the program.
+    if (verbose_flag) putln ("! Syntax error: Terminating now.");
+    abend (" syntax ");
+  } else if (verbose_flag) {
+    putln ("& Parsing phase sucessful.");
+  /* Here ends the grammar checking. abstract_tree contains the
+     intermediate representation of the program. The task now is
+     to translate it into an object of class prog, and check it
+     for semantical correctness. */
+  }
+  include "anode_work"; // Used to derive an object of class prog().
+  if (verbose_flag) print_anode (abstract_tree);
+  return parse_program_anode (abstract_tree, verbose_flag);
+}
+TEST506g
+	  cat >$tempdir/sieve.g <<'TEST506h'
+/* The program heading. The identifier can conflict with identifiers in
+   the statement. */
+program primeSieve 
+/* This is all one block statement. A GRIP program in fact consists of
+    only one statement. */
+{
+        /* Constant declarations. */
+        sievesize : constant 100;
+        /* Global variables. */
+        i count : integer;
+        /* An array. */
+        flags : integer [100];
+        /* Initialize count and flags. */
+        count <- 0;
+        /* If it isn't the C-style for loop :-) */
+        for (i <- 0; i < sievesize; i <- i + 1; /* This semicolon has to be here. */)
+                flags[i + 1] <- 1;
+        /* Now get to work! */
+        for (i <- 0; i < sievesize; i <- i + 1;)
+                /* This is a multi-branch form of if-then-else. */
+                cond { /* This is NOT a block statement. Negative. */
+                        flags[i + 1] { /* This is another block-statement. */
+                                /* Two local variables. */
+                                k prime : integer;
+                                prime <- 2 * i + 3;
+                                k <- prime + i;
+                                for (; k < sievesize; k <- k + prime;)
+                                        flags[k + 1] <- 0;
+                                count <- count + 1;
+                        }
+                        /* Here would have been "else blablablablabla...", but primeSieve has no
+                            need for "else blablablablabla..." */
+                }
+        /* I/O, unfortunately without the I. Maybe later ;-( */
+        put "The number of primes less than " sievesize " is " count;
+}
+/* This has all of the constructs available to a GRIP programmer. Not much, eh? :-| */
+TEST506h
+	  echo '      ' GRAMMARPATH=$tempdir/grip.g $DINO $tempdir/grip.d $tempdir/sieve.g
+          if GRAMMARPATH=$tempdir/grip.g $DINO $tempdir/grip.d $tempdir/sieve.g 2>$stderr >$stdout; then
+              echo '      ' $CMP $stdout $ftemp2
+              if cat >$ftemp2 <<'OUTPUT506-2' && $CMP $stdout $ftemp2; then
+The number of primes less than 100 is 45
+OUTPUT506-2
+                  result=ok
+              else
+                  result=fail
+              fi
+          else
+              result=fail
+          fi
+        else
+          result=fail
+        fi
+        if test $result = ok; then
+          echo Serhei\'s interpreter test is ok  -- rm -rf $tempdir
+          rm -rf $tempdir
+        else
+          echo Serhei\'s interpreter test failed -- look at directory $tempdir
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then
