@@ -29786,6 +29786,26 @@ TEST509-1
         fi
 fi
 
+# Test 510.
+if test $result = ok -a $start_test_number -le 510; then
+	echo test 510: Checking that return is in function/class/ext.
+        cat >$test_file <<'TEST510'
+var k = "aaa", t = {};
+t {k} = 10;
+k [1] = 'b';
+TEST510
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr; then
+                result=ok
+        elif $CMP $stderr - <<'TEST510-1'; then
+test.d:3:3: run time error - attempt to modify immutable vector
+TEST510-1
+                result=ok
+        else
+                result=fail
+        fi
+fi
+
 
 # Final message
 

@@ -60,6 +60,7 @@ History
 
   Dec 8, 2002.   Equality of instance, classes and functions means
                  the same context.
+  Dec 14, 2003.  Making table key is immutable in assignment.
 
 
 
@@ -775,12 +776,13 @@ built from other values.  The value of a structured type may be
 mutable or immutable.  A value or sub-value of a
 mutable value can be changed.  An immutable value can not be changed
 after its generation.  You can make a mutable value immutable as a
-side effect by applying the operator final.  In all cases,
-the operator returns the operand value as the result.  If you try to
-change an immutable value, exception immutable is generated.
-You can make a new mutable value as a side effect of applying operator
-new.  The operator returns a new value equal to the operand
-value.
+side effect by applying the operator final (the table key is
+also made immutable as a side effect of writing to the table).  In all
+cases, the operator returns the operand value as the result.  If you
+try to change an immutable value, exception immutable is
+generated.  You can make a new mutable value as a side effect of
+applying operator new.  The operator returns a new value
+equal to the operand value.
 
           Expr = final  Expr
                | new  Expr
@@ -972,13 +974,16 @@ Dino has the following types of values:
 
 5.2. Designators
 
-There is a special Dino construction called a designator.
-A designator refers for a vector or table element or for a
-declaration.  If the designator refers to a vector or table element or for
-a variable declaration, it can stand in the left hand side of an assignment
-statement.  If the designator stands in an expression, the
+
+There is a special Dino construction called a designator.  A
+designator refers for a vector or table element or for a declaration.
+If the designator refers to a vector or table element or for a
+variable declaration, it can stand in the left hand side of an
+assignment statement.  If the designator stands in an expression, the
 corresponding value is used (vector/table element value, variable
-value, function, thread-function, or class).
+value, function, thread-function, or class).  When the designator
+referring to table element stands up in the left hand side of an
+assignment statement, its key becomes immutable.
 
           Expr = Designator
 
@@ -1469,7 +1474,8 @@ values of a structured value which are referred through a designator
 The designator can not denote a final variable (see section
 Variable Declaration).  You can not change the element value
 of an immutable value (see section Types and Values).  In
-this case exception immutable is generated.
+this case exception immutable is generated.  Assignment to a
+table element has a side effect, the element key becomes immutable.
 
 A simple assignment statement looks like Designator = Expr;.
 That means that the expression value is assigned to variable or
@@ -3675,7 +3681,7 @@ Program = StmtList
 10. Appendix B. Implementation
 
 
-DINO(1)                    User Manuals                   DINO(1)
+DINO(1)                          User Manuals                          DINO(1)
 
 
 
@@ -3683,58 +3689,53 @@ NAME
        dino - the interpreter of the programming language DINO
 
 SYNOPSIS
-       dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro­
-       gram-file ) dino-program-arguments
+       dino  [  -s  -h  size -Idirname -Lpath -p] (-c program | program-file )
+       dino-program-arguments
 
 DESCRIPTION
-       dino interprets a program in  the  DINO  programming  lan­
-       guage.  The program file (and include files) must have the
-       suffix .d
+       dino interprets a program in the DINO programming language.   The  pro-
+       gram file (and include files) must have the suffix .d
 
-       The description of DINO language is in the report  of  the
-       Programming Language DINO.
+       The  description  of  DINO language is in the report of the Programming
+       Language DINO.
 
 OPTIONS
        The options which the DINO interpreter recognizes are:
 
        -c program
-              Execute  the Dino program given on the command line
-              as the argument.
+              Execute the Dino program given on the command line as the  argu-
+              ment.
 
        -h number
-              Determine the size of the heap chunks used  by  the
-              DINO  interpreter.   The size can be given in bytes
-              (e.g.  32000),  in  kilobytes  (e.g.  64k),  or  in
-              megabytes   (e.g.  1m).   The  default  size  is  1
-              Megabyte.  Initially, the Dino interpreter  creates
-              one  chunk.   It allocates one additional chunk (as
-              rule of the same size) whenever there is  no  addi­
-              tional memory after garbage collection.
+              Determine  the  size  of the heap chunks used by the DINO inter-
+              preter.  The size can be given in bytes (e.g. 32000),  in  kilo-
+              bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
+              is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
+              chunk.   It  allocates one additional chunk (as rule of the same
+              size) whenever there is no additional memory after garbage  col-
+              lection.
 
-       -s     Output  some  statistics  of  interpreter work into
-              stderr.  Statistics contain the maximal heap  size,
-              number  of heap chunks, and number of collisions in
-              hash tables which are used for  the  implementation
-              of DINO tables.
+       -s     Output some statistics of interpreter work into stderr.  Statis-
+              tics contain the maximal heap size, number of heap  chunks,  and
+              number  of  collisions  in  hash  tables  which are used for the
+              implementation of DINO tables.
 
        -Idirname
-              Define  the  directory  in which Dino include files
-              will be searched for.  The order  of  searching  in
-              directories  given  with this option is the same as
-              the one on the command line.
+              Define the  directory  in  which  Dino  include  files  will  be
+              searched  for.  The order of searching in directories given with
+              this option is the same as the one on the command line.
 
        -Ldirname
-              Define where to serach for external  libraries  (if
-              shared or dll libraries are implemented on the sys­
-              tem.  This is true for Linux, Solaris,  Irix,  OSF,
-              and  Windows)  in which the Dino external variables
-              and functions will be searched for.  The  order  of
-              searching  in  libraries  given with this option is
-              the same as one on the command line.
+              Define where to serach for external libraries (if shared or  dll
+              libraries  are  implemented  on  the  system.   This is true for
+              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter-
+              nal  variables and functions will be searched for.  The order of
+              searching in libraries given with this option is the same as one
+              on the command line.
 
-       -p     Output profile information  into  stderr.   Profile
-              information contains the number of calls and execu­
-              tion times of all called functions and classes.
+       -p     Output  profile  information  into  stderr.  Profile information
+              contains the number of calls and execution times of  all  called
+              functions and classes.
 
 FILES
        file.d
@@ -3742,74 +3743,68 @@ FILES
        libdino.so
               a DINO shared library on some Unix systems.
        mpi.d
-              the  DINO  file  implementing  multiple   precision
-              arithmetic.
+              the DINO file implementing multiple precision arithmetic.
        mpi.so
-              the  DINO  shared library used for implementing MPI
-              on some Unix systems.
+              the  DINO  shared library used for implementing MPI on some Unix
+              systems.
        mpi.dll
-              the DINO dll library used for implementing  MPI  on
-              Windows systems.
+              the DINO dll library used for implementing MPI on  Windows  sys-
+              tems.
        ieee.d
-              the  DINO  file implementing IEEE standard floating
-              point arithmetic.
+              the  DINO  file implementing IEEE standard floating point arith-
+              metic.
        ieee.so
-              the DINO shared library used for implementing  IEEE
-              on some Unix systems.
+              the DINO shared library used for implementing IEEE on some  Unix
+              systems.
        ieee.dll
-              the  DINO dll library used for implementing IEEE on
-              Windows systems.
+              the  DINO dll library used for implementing IEEE on Windows sys-
+              tems.
        ipcerr.d
-              the DINO file definining exceptions of  ipc/network
-              software.  This file is used by socket.d.
+              the DINO file definining  exceptions  of  ipc/network  software.
+              This file is used by socket.d.
        ipcerr.so
-              the  DINO  shared  library  used  for  implementing
-              IPCERR on some Unix systems.
+              the  DINO  shared  library  used for implementing IPCERR on some
+              Unix systems.
        ipcerr.dll
-              the DINO dll library used for  implementing  IPCERR
-              on Windows systems.
+              the DINO dll library used for  implementing  IPCERR  on  Windows
+              systems.
        socket.d
               the DINO file implementing work with sockets.
        socket.so
-              the  DINO  shared  library  used  for  implementing
-              SOCKET on some Unix systems.
+              the  DINO  shared  library  used for implementing SOCKET on some
+              Unix systems.
        socket.dll
-              the DINO dll library used for  implementing  SOCKET
-              on Windows systems.
+              the DINO dll library used for  implementing  SOCKET  on  Windows
+              systems.
        There are no temporary files used by DINO.
 
 ENVIRONMENT
-       There are the following environment variables which affect
-       DINO's behavior:
+       There  are the following environment variables which affect DINO behav-
+       ior:
 
        DINO_HOME
-              If not null, it defines  the  places  of  the  dino
-              shared  libraries  (such  a  library may be only on
-              some Unix systems  including  Linux  and  Solaris),
-              include   files,   and   dino   standard   external
-              libraries.  The places are defined as the subdirec­
-              tory  lib  in  directory  given  by the environment
-              variable value.  You  should  define  the  variable
-              value  on  Windows  if you installed the files in a
-              directory other than C:\dino\lib
+              If not null, it defines the places of the dino shared  libraries
+              (such a library may be only on some Unix systems including Linux
+              and  Solaris),  include  files,  and  dino   standard   external
+              libraries.   The  places  are defined as the subdirectory lib in
+              directory given by the environment variable value.   You  should
+              define  the variable value on Windows if you installed the files
+              in a directory other than C:\dino\lib
 
        DINO_PATH
-              If not null, it defines the places of dino include-
-              files.  The value of the variable has more priority
-              than DINO_HOME but less priority than values  given
-              through -I options.
+              If not null, it defines the places of dino  include-files.   The
+              value  of the variable has more priority than DINO_HOME but less
+              priority than values given through -I options.
 
        DINO_LIB
-              If  not  null,  it  defines  places  of dino shared
-              library, if any.  The value of  variable  has  more
-              priority than DINO_HOME.
+              If not null, it defines places of dino shared library,  if  any.
+              The value of variable has more priority than DINO_HOME.
 
        DINO_EXTERN_LIBS
-              If  not  null,  it defines paths of additional Dino
-              external  libraries.   The  libraries   should   be
-              separated  by  `:'  (on  Unix) or `;' (on Windows).
-              The value has less priority than values given in -L
-              options.
+              If  not  null,  it  defines  paths  of  additional Dino external
+              libraries.  The libraries should be separated by ":"  (on  Unix)
+              or  ";"  (on  Windows).  The value has less priority than values
+              given in -L options.
 
 DIAGNOSTICS
        DINO diagnostics are self-explanatory.
@@ -3822,6 +3817,6 @@ BUGS
 
 
 
-DINO                        5 May 2001                    DINO(1)
+DINO                              5 May 2001                           DINO(1)
 
 

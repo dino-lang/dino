@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>The Programming Language DINO</TITLE>
  <LINK HREF="dino-1.html" REL=next>
 
@@ -16,7 +16,7 @@ Contents
 
 <H2>Vladimir Makarov, <CODE>vmakarov@users.sourceforge.net</CODE>.
 Edited by Serhei Makarov.</H2>Dec 08, 2002
-<P><HR>
+<HR>
 <EM>This document describes the programming language DINO.</EM>
 <HR>
 <P>
@@ -69,9 +69,11 @@ History
 
   Dec 8, 2002.   Equality of instance, classes and functions means
                  the same context.
+  Dec 14, 2003.  Making table key is immutable in assignment.
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <P>
 <H2><A NAME="toc1">1.</A> <A HREF="dino-1.html">Introduction</A></H2>
 
@@ -85,35 +87,35 @@ History
 <H2><A NAME="toc4">4.</A> <A HREF="dino-4.html">Declarations and Scope Rules</A></H2>
 
 <UL>
-<LI><A HREF="dino-4.html#ss4.1">4.1 Variable Declarations</A>
-<LI><A HREF="dino-4.html#ss4.2">4.2 External Declarations</A>
-<LI><A HREF="dino-4.html#ss4.3">4.3 Functions, Classes, Extensions</A>
+<LI><A NAME="toc4.1">4.1</A> <A HREF="dino-4.html#ss4.1">Variable Declarations</A>
+<LI><A NAME="toc4.2">4.2</A> <A HREF="dino-4.html#ss4.2">External Declarations</A>
+<LI><A NAME="toc4.3">4.3</A> <A HREF="dino-4.html#ss4.3">Functions, Classes, Extensions</A>
 </UL>
 <P>
 <H2><A NAME="toc5">5.</A> <A HREF="dino-5.html">Expressions</A></H2>
 
 <UL>
-<LI><A HREF="dino-5.html#ss5.1">5.1 Types and Values</A>
-<LI><A HREF="dino-5.html#ss5.2">5.2 Designators</A>
-<LI><A HREF="dino-5.html#ss5.3">5.3 Calls</A>
-<LI><A HREF="dino-5.html#ss5.4">5.4 Operators</A>
+<LI><A NAME="toc5.1">5.1</A> <A HREF="dino-5.html#ss5.1">Types and Values</A>
+<LI><A NAME="toc5.2">5.2</A> <A HREF="dino-5.html#ss5.2">Designators</A>
+<LI><A NAME="toc5.3">5.3</A> <A HREF="dino-5.html#ss5.3">Calls</A>
+<LI><A NAME="toc5.4">5.4</A> <A HREF="dino-5.html#ss5.4">Operators</A>
 </UL>
 <P>
 <H2><A NAME="toc6">6.</A> <A HREF="dino-6.html">Executive statements</A></H2>
 
 <UL>
-<LI><A HREF="dino-6.html#ss6.1">6.1 Empty statement</A>
-<LI><A HREF="dino-6.html#ss6.2">6.2 Block-statement</A>
-<LI><A HREF="dino-6.html#ss6.3">6.3 Assignment statements</A>
-<LI><A HREF="dino-6.html#ss6.4">6.4 Call-statement</A>
-<LI><A HREF="dino-6.html#ss6.5">6.5 If-statement</A>
-<LI><A HREF="dino-6.html#ss6.6">6.6 For-statement</A>
-<LI><A HREF="dino-6.html#ss6.7">6.7 Foreach-statement</A>
-<LI><A HREF="dino-6.html#ss6.8">6.8 Break- and continue-statement</A>
-<LI><A HREF="dino-6.html#ss6.9">6.9 Return-statement</A>
-<LI><A HREF="dino-6.html#ss6.10">6.10 Throw-statement</A>
-<LI><A HREF="dino-6.html#ss6.11">6.11 Try-block</A>
-<LI><A HREF="dino-6.html#ss6.12">6.12 Wait-statement</A>
+<LI><A NAME="toc6.1">6.1</A> <A HREF="dino-6.html#ss6.1">Empty statement</A>
+<LI><A NAME="toc6.2">6.2</A> <A HREF="dino-6.html#ss6.2">Block-statement</A>
+<LI><A NAME="toc6.3">6.3</A> <A HREF="dino-6.html#ss6.3">Assignment statements</A>
+<LI><A NAME="toc6.4">6.4</A> <A HREF="dino-6.html#ss6.4">Call-statement</A>
+<LI><A NAME="toc6.5">6.5</A> <A HREF="dino-6.html#ss6.5">If-statement</A>
+<LI><A NAME="toc6.6">6.6</A> <A HREF="dino-6.html#ss6.6">For-statement</A>
+<LI><A NAME="toc6.7">6.7</A> <A HREF="dino-6.html#ss6.7">Foreach-statement</A>
+<LI><A NAME="toc6.8">6.8</A> <A HREF="dino-6.html#ss6.8">Break- and continue-statement</A>
+<LI><A NAME="toc6.9">6.9</A> <A HREF="dino-6.html#ss6.9">Return-statement</A>
+<LI><A NAME="toc6.10">6.10</A> <A HREF="dino-6.html#ss6.10">Throw-statement</A>
+<LI><A NAME="toc6.11">6.11</A> <A HREF="dino-6.html#ss6.11">Try-block</A>
+<LI><A NAME="toc6.12">6.12</A> <A HREF="dino-6.html#ss6.12">Wait-statement</A>
 </UL>
 <P>
 <H2><A NAME="toc7">7.</A> <A HREF="dino-7.html">Program</A></H2>
@@ -122,9 +124,9 @@ History
 <H2><A NAME="toc8">8.</A> <A HREF="dino-8.html">Predeclared identifiers</A></H2>
 
 <UL>
-<LI><A HREF="dino-8.html#ss8.1">8.1 Predeclared variables</A>
-<LI><A HREF="dino-8.html#ss8.2">8.2 Predeclared classes</A>
-<LI><A HREF="dino-8.html#ss8.3">8.3 Predeclared functions</A>
+<LI><A NAME="toc8.1">8.1</A> <A HREF="dino-8.html#ss8.1">Predeclared variables</A>
+<LI><A NAME="toc8.2">8.2</A> <A HREF="dino-8.html#ss8.2">Predeclared classes</A>
+<LI><A NAME="toc8.3">8.3</A> <A HREF="dino-8.html#ss8.3">Predeclared functions</A>
 </UL>
 <P>
 <H2><A NAME="toc9">9.</A> <A HREF="dino-9.html">Appendix A. Syntax of Dino</A></H2>

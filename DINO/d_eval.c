@@ -470,6 +470,7 @@ store_table_element (void)
     }
   entry = find_tab_entry (tab, INDEXED_VAL (ER_CTOP (), -2), TRUE);
   *(val_t *) entry = *(val_t *) INDEXED_VAL (ER_CTOP (), -2);
+  make_immutable (entry);
   *(val_t *) INDEXED_ENTRY_VAL (entry, 0) = *(val_t *) ctop;
   assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0), ER_NM_val));
 }
@@ -2432,6 +2433,7 @@ initiate_vars (void)
 		    no_position, DERR_environment_corrupted);
       ER_SET_MODE (entry, ER_NM_vect);
       ER_set_vect (entry, GET_TEMP_REF (1));
+      make_immutable (entry);
       var = (ER_node_t) ((char *) entry + sizeof (val_t));
       ER_SET_MODE (var, ER_NM_vect);
       ER_set_vect (var, GET_TEMP_REF (0));

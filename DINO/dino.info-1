@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-1192/sgmltmp.dino1192.info.2.
+This is dino.info, produced by makeinfo version 4.3 from
+/tmp/linuxdoc-dir-12109/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -61,6 +61,7 @@ The Programming Language DINO
      
        Dec 8, 2002.   Equality of instance, classes and functions means
                       the same context.
+       Dec 14, 2003.  Making table key is immutable in assignment.
 
 * Menu:
 
@@ -114,11 +115,11 @@ Syntax
 ******
 
    An extended Backus-Naur Formalism (EBNF) is used to describe the
-syntax of Dino.  Alternatives are separated by `[verbar]'.  Brackets
-`[' and `]' denote optionality of the enclosed expression, and braces
-`{' and `}' denote repetition (zero or more times).
-Parentheses `(' and `)' are used for grouping a EBNF construction
-containing alternatives inside it as one construction.
+syntax of Dino.  Alternatives are separated by `|'.  Brackets `[' and
+`]' denote optionality of the enclosed expression, and braces `{' and
+`}' denote repetition (zero or more times).  Parentheses `(' and `)'
+are used for grouping a EBNF construction containing alternatives
+inside it as one construction.
 
    Terminal symbols denoting a class of terminals (e.g. identifier)
 consist of only upper-case letters (e.g. IDENT).  The remaining
@@ -335,8 +336,8 @@ result 8.
 is accessible only inside the declaration scope or inside functions or
 classes which are declared as `friend' in the declaration block.  A
 public declaration instance is always accessible when association (see
-below) of the identifier is successful.  By default, [lsqb  ]instances
-of] declarations in a class block are public.  In all other places, the
+below) of the identifier is successful.  By default, [instances of]
+declarations in a class block are public.  In all other places, the
 (instances of) declarations are private by default.  The following
 constructions are used for declaring an identifier to be public,
 private, or as friend:
@@ -559,7 +560,7 @@ appendix B).  As rule, the external functions and variables will be
 implemented as dynamically loaded libraries.  This is the powerful
 instrument of DINO extension.  The external functions and variables are
 declared after keyword `extern'.  An external function identifier is
-followed by `()'.  All external declarations (e.g. in different blocks)
+followed by `[]'.  All external declarations (e.g. in different blocks)
 with the same identifier refer the the same external function or
 variable.
                ExternDeclarations = extern  ExternItem { "," ExternItem } ";"
@@ -780,11 +781,12 @@ from other values.  The value of a structured type may be `mutable' or
 `immutable'.  A value or sub-value of a mutable value can be changed.
 An immutable value can not be changed after its generation.  You can
 make a mutable value immutable as a side effect by applying the
-operator `final'.  In all cases, the operator returns the operand value
-as the result.  If you try to change an immutable value, exception
-`immutable' is generated.  You can make a new mutable value as a side
-effect of applying operator `new'.  The operator returns a new value
-equal to the operand value.
+operator `final' (the table key is also made immutable as a side effect
+of writing to the table).  In all cases, the operator returns the
+operand value as the result.  If you try to change an immutable value,
+exception `immutable' is generated.  You can make a new mutable value
+as a side effect of applying operator `new'.  The operator returns a
+new value equal to the operand value.
                Expr = final  Expr
                     | new  Expr
 
@@ -859,15 +861,15 @@ corresponding element values are the same.
 
    * `table'.  This is a structured shared type value.  A table value
      is represented by a list of key values (expression values) in
-     figure parentheses `{' and `}' with optional element
-     values with a preceding `:'.  By default the element value is
-     equal to `nil'.  It is not allowed to have elements with equal
-     keys in a table.  If it is not true in a table constructor,
-     exception `keyvalue' is generated.  Elements of tables are
-     accessed by their keys.  Elements of mutable tables can be added
-     to or removed from the table correspondingly by assigning values
-     and with the aid of the function `del'.  The side effect of the
-     table constructor execution is that the keys become immutable.
+     figure parentheses `{' and `}' with optional element values with a
+     preceding `:'.  By default the element value is equal to `nil'.
+     It is not allowed to have elements with equal keys in a table.  If
+     it is not true in a table constructor, exception `keyvalue' is
+     generated.  Elements of tables are accessed by their keys.
+     Elements of mutable tables can be added to or removed from the
+     table correspondingly by assigning values and with the aid of the
+     function `del'.  The side effect of the table constructor
+     execution is that the keys become immutable.
                            Expr = "{"  ElistPartsList "}"
 
      Examples:
@@ -892,7 +894,7 @@ corresponding element values are the same.
    * `thread'.  There is no literal Dino representation of such values.
      A thread value is generated by calling a thread-function.
 
-   * `object'(class instance).  This is a structured shared type value.
+   * `object'[class instance].  This is a structured shared type value.
      There is no literal Dino representation of such values.  Objects
      are generated by calling classes.
 
@@ -979,7 +981,9 @@ If the designator refers to a vector or table element or for a variable
 declaration, it can stand in the left hand side of an assignment
 statement.  If the designator stands in an expression, the
 corresponding value is used (vector/table element value, variable
-value, function, thread-function, or class).
+value, function, thread-function, or class).  When the designator
+referring to table element stands up in the left hand side of an
+assignment statement, its key becomes immutable.
                Expr = Designator
 
    A designator referring to a vector element has the following syntax:
@@ -1103,7 +1107,7 @@ operator is placed, the higher its priority).
 
    All binary operators have left associativity in Dino.  That means
 that the expression `a op1 b op2 c' when operators `op1' and `op2' have
-the same priority is analogous to `(a op1 b) op2 c'.  Parentheses may
+the same priority is analogous to `[a op1 b] op2 c'.  Parentheses may
 be used to express specific associations of operators and operands.
                Expr = "(" Expr ")"
 

@@ -1,84 +1,7 @@
-This is dino.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-1192/sgmltmp.dino1192.info.2.
+This is dino.info, produced by makeinfo version 4.3 from
+/tmp/linuxdoc-dir-12109/sgmltmp.dino.info.2.
 
    \input texinfo
-
-
-File: dino.info,  Node: File input functions,  Prev: File output functions,  Up: File functions
-
-File input functions
-....................
-
-   The following functions are used to input something from opened
-files.  All the functions always return the value `nil'.  The functions
-may generate an exception declared in the class `syserror' (e.g. `eio',
-`enospc' and so on) or `eof' besides the standard `partype', and
-`parnumber'.
-   * `get ()'.  The function reads one character from standard input
-     stream and returns it.  The function generates the exception `eof'
-     if the function tries to read the end of file.
-
-   * `getln ()'.  The function reads one line from standard input
-     stream and returns it as a new string.  The end of line is the
-     newline character or end of file.  The returned string does not
-     contain the newline character.  The function generates the
-     exception `eof' only when the file position indicator before the
-     function call stands exactly on the end of file.
-
-   * `getf ([ln_flag])'.  The function reads the whole standard
-     input stream and returns it as a new string.  The function
-     generates the exception `eof' only when the file position
-     indicator before the function call stands exactly on the end of
-     file.  The function has an optional parameter which should be
-     integer after implicit integer conversion.  If the parameter value
-     is nonzero, the function returns a vector of strings.  Otherwise
-     it behaves as usually.  Each string is a line in the input stream.
-     The strings do not contain the newline character.
-
-   * `fget (fileinstance)'.  The function is analogous to function
-     `get' except for the fact that it reads from an opened file
-     associated with the class `file' instance which is the parameter's
-     value.
-
-   * `fgetln (fileinstance)'.  The function is analogous to the
-     function `getln' except for the fact that it reads from an opened
-     file associated with a class `file' instance which is the
-     parameter value.
-
-   * `fgetf (fileinstance [, ln_flag])'.  The function is
-     analogous to the function `getf' except for the fact that it reads
-     from an opened file associated with a class `file' instance which
-     is the parameter's value.
-
-   * `scan ()'.  The functions reads a character, integer, floating
-     point number, string, vector, or table and returns it as the
-     result.  The input values should be represented in the file as the
-     ones in the Dino language (except for the fact that there should
-     be no identifiers in the input values and there should be no
-     operators in the values, although the signs `+' and `-' are
-     possible in an integer or floating point represenation).  The
-     table or vector should contains only values of types mentioned
-     above.  The values in the file can be separated by white
-     characters.  If there is an error (e.g. unbalanced brackets in a
-     vector value) in the read value representation the function
-     generates the exception `invinput'.  The functions generates the
-     exception `eof' if only white characters are still unread in the
-     file.
-
-   * `scanln ()'.  The function is analogous to the function `scan'
-     except for the fact that it skips all characters until the end of
-     line or the end of file after reading the value.  Skipping is made
-     even if the exception `invinput' is generated.
-
-   * `fscan (fileinstance)'.  The function is analogous to the function
-     `scan' except for the fact that it reads from an opened file
-     associated with a class `file' instance which is the parameter's
-     value.
-
-   * `fscanln (fileinstance)'.  The function is analogous to the
-     function `scanln' except for that it reads from an opened file
-     associated with a class `file' instance which is the parameter
-     value.
 
 
 File: dino.info,  Node: Time functions,  Next: Functions for access to process information,  Prev: File functions,  Up: Predeclared functions
@@ -94,76 +17,69 @@ time.
    * `strtime ([format [, time]])'.  The function returns a string
      representing the `time' (integer representing time in seconds
      since the fixed time) according to the `format' (string).  If the
-     format is not given, the value of variable `time_format' is
-     used.  In this case if the value of `time_format' is
-     corrupted (it is not a string), the function generates exception
-     `invenvar'.  If the time is not given, the current time is used.
-     The format is the same as in C library function `strftime'.  Here
-     is an extraction from the OS function documentation.  The
-     following format specifiers can be used in the format:
-        * `%a' - the abbreviated weekday name according to the
-          current locale.
-
-        * `%A' - the full weekday name according to the current
+     format is not given, the value of variable `time_format' is used.
+     In this case if the value of `time_format' is corrupted (it is not
+     a string), the function generates exception `invenvar'.  If the
+     time is not given, the current time is used.  The format is the
+     same as in C library function `strftime'.  Here is an extraction
+     from the OS function documentation.  The following format
+     specifiers can be used in the format:
+        * `%a' - the abbreviated weekday name according to the current
           locale.
 
-        * `%%b' - the abbreviated month name according to
-          the current locale.
+        * `%A' - the full weekday name according to the current locale.
 
-        * `%%B' - the full month name according to the
+        * `%%b' - the abbreviated month name according to the current
+          locale.
+
+        * `%%B' - the full month name according to the current locale.
+
+        * `%%c' - the preferred date and time representation for the
           current locale.
 
-        * `%%c' - the preferred date and time
-          representation for the current locale.
+        * `%%d' - the day of the month as a decimal number (range 01 to
+          31).
 
-        * `%%d' - the day of the month as a decimal number
-          (range 01 to 31).
+        * `%%H' - the hour as a decimal number using a 24-hour clock
+          (range 00 to 23).
 
-        * `%%H' - the hour as a decimal number using a
-          24-hour clock (range 00 to 23).
+        * `%%I' - the hour as a decimal number using a 12-hour clock
+          (range 01 to 12).
 
-        * `%%I' - the hour as a decimal number using a
-          12-hour clock (range 01 to 12).
+        * `%%j' - the day of the year as a decimal number (range 001 to
+          366).
 
-        * `%%j' - the day of the year as a decimal number
-          (range 001 to 366).
-
-        * `%%m' - the month as a decimal number (range 01
-          to 12).
+        * `%%m' - the month as a decimal number (range 01 to 12).
 
         * `%%M' - the minute as a decimal number.
 
-        * `%%p' - either `am' or `pm' according to the
-          given time value, or the corresponding strings for the
-          current locale.
+        * `%%p' - either `am' or `pm' according to the given time
+          value, or the corresponding strings for the current locale.
 
         * `%%S' - the second as a decimal number.
 
-        * `%%U' - the week number of the current year as a
-          decimal number, starting with the first Sunday as the first
-          day of the first week.
+        * `%%U' - the week number of the current year as a decimal
+          number, starting with the first Sunday as the first day of
+          the first week.
 
-        * `%%W' - the week number of the current year as a
-          decimal number, starting with the first Monday as the first
-          day of the first week.
+        * `%%W' - the week number of the current year as a decimal
+          number, starting with the first Monday as the first day of
+          the first week.
 
-        * `%%w' - the day of the week as a decimal, Sunday
-          being 0.
+        * `%%w' - the day of the week as a decimal, Sunday being 0.
 
-        * `%%x' - the preferred date representation for
-          the current locale without the time.
+        * `%%x' - the preferred date representation for the current
+          locale without the time.
 
-        * `%%X' - the preferred time representation for
-          the current locale without the date.
+        * `%%X' - the preferred time representation for the current
+          locale without the date.
 
-        * `%%y' - the year as a decimal number without a
-          century (range 00 to 99).
+        * `%%y' - the year as a decimal number without a century (range
+          00 to 99).
 
-        * `%%Y' - the year as a decimal number including
-          the century.
+        * `%%Y' - the year as a decimal number including the century.
 
-        * `%%Z' - the time zone or the name or an
-          abbreviation.
+        * `%%Z' - the time zone or the name or an abbreviation.
 
         * `%%%' - a literal `%' character.
 
@@ -331,10 +247,10 @@ Miscellaneous functions
      of the first vector, the function returns 1, so it is in fact
      generalized lexicographical order.
 
-   * `sort (vect[, compare_function])'.  The function returns a
-     new sorted vector.  The original vector given as the first
-     parameter value should be a homogeneous vector whose elements are
-     of character, integer, or floating point type.  If the second
+   * `sort (vect[, compare_function])'.  The function returns a new
+     sorted vector.  The original vector given as the first parameter
+     value should be a homogeneous vector whose elements are of
+     character, integer, or floating point type.  If the second
      parameter is not given, standard arithmetic order (see comparison
      operators) is used.  To use special ordering, use the second
      parameter which should be a function which compares two elements
@@ -551,7 +467,7 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 Appendix B- Implementation
 **************************
 
-     DINO(1)                    User Manuals                   DINO(1)
+     DINO(1)                          User Manuals                          DINO(1)
      
      
      
@@ -559,58 +475,53 @@ Appendix B- Implementation
             dino - the interpreter of the programming language DINO
      
      SYNOPSIS
-            dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro­
-            gram-file ) dino-program-arguments
+            dino  [  -s  -h  size -Idirname -Lpath -p] (-c program | program-file )
+            dino-program-arguments
      
      DESCRIPTION
-            dino interprets a program in  the  DINO  programming  lan­
-            guage.  The program file (and include files) must have the
-            suffix .d
+            dino interprets a program in the DINO programming language.   The  pro-
+            gram file (and include files) must have the suffix .d
      
-            The description of DINO language is in the report  of  the
-            Programming Language DINO.
+            The  description  of  DINO language is in the report of the Programming
+            Language DINO.
      
      OPTIONS
             The options which the DINO interpreter recognizes are:
      
             -c program
-                   Execute  the Dino program given on the command line
-                   as the argument.
+                   Execute the Dino program given on the command line as the  argu-
+                   ment.
      
             -h number
-                   Determine the size of the heap chunks used  by  the
-                   DINO  interpreter.   The size can be given in bytes
-                   (e.g.  32000),  in  kilobytes  (e.g.  64k),  or  in
-                   megabytes   (e.g.  1m).   The  default  size  is  1
-                   Megabyte.  Initially, the Dino interpreter  creates
-                   one  chunk.   It allocates one additional chunk (as
-                   rule of the same size) whenever there is  no  addi­
-                   tional memory after garbage collection.
+                   Determine  the  size  of the heap chunks used by the DINO inter-
+                   preter.  The size can be given in bytes (e.g. 32000),  in  kilo-
+                   bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
+                   is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
+                   chunk.   It  allocates one additional chunk (as rule of the same
+                   size) whenever there is no additional memory after garbage  col-
+                   lection.
      
-            -s     Output  some  statistics  of  interpreter work into
-                   stderr.  Statistics contain the maximal heap  size,
-                   number  of heap chunks, and number of collisions in
-                   hash tables which are used for  the  implementation
-                   of DINO tables.
+            -s     Output some statistics of interpreter work into stderr.  Statis-
+                   tics contain the maximal heap size, number of heap  chunks,  and
+                   number  of  collisions  in  hash  tables  which are used for the
+                   implementation of DINO tables.
      
             -Idirname
-                   Define  the  directory  in which Dino include files
-                   will be searched for.  The order  of  searching  in
-                   directories  given  with this option is the same as
-                   the one on the command line.
+                   Define the  directory  in  which  Dino  include  files  will  be
+                   searched  for.  The order of searching in directories given with
+                   this option is the same as the one on the command line.
      
             -Ldirname
-                   Define where to serach for external  libraries  (if
-                   shared or dll libraries are implemented on the sys­
-                   tem.  This is true for Linux, Solaris,  Irix,  OSF,
-                   and  Windows)  in which the Dino external variables
-                   and functions will be searched for.  The  order  of
-                   searching  in  libraries  given with this option is
-                   the same as one on the command line.
+                   Define where to serach for external libraries (if shared or  dll
+                   libraries  are  implemented  on  the  system.   This is true for
+                   Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter-
+                   nal  variables and functions will be searched for.  The order of
+                   searching in libraries given with this option is the same as one
+                   on the command line.
      
-            -p     Output profile information  into  stderr.   Profile
-                   information contains the number of calls and execu­
-                   tion times of all called functions and classes.
+            -p     Output  profile  information  into  stderr.  Profile information
+                   contains the number of calls and execution times of  all  called
+                   functions and classes.
      
      FILES
             file.d
@@ -618,74 +529,68 @@ Appendix B- Implementation
             libdino.so
                    a DINO shared library on some Unix systems.
             mpi.d
-                   the  DINO  file  implementing  multiple   precision
-                   arithmetic.
+                   the DINO file implementing multiple precision arithmetic.
             mpi.so
-                   the  DINO  shared library used for implementing MPI
-                   on some Unix systems.
+                   the  DINO  shared library used for implementing MPI on some Unix
+                   systems.
             mpi.dll
-                   the DINO dll library used for implementing  MPI  on
-                   Windows systems.
+                   the DINO dll library used for implementing MPI on  Windows  sys-
+                   tems.
             ieee.d
-                   the  DINO  file implementing IEEE standard floating
-                   point arithmetic.
+                   the  DINO  file implementing IEEE standard floating point arith-
+                   metic.
             ieee.so
-                   the DINO shared library used for implementing  IEEE
-                   on some Unix systems.
+                   the DINO shared library used for implementing IEEE on some  Unix
+                   systems.
             ieee.dll
-                   the  DINO dll library used for implementing IEEE on
-                   Windows systems.
+                   the  DINO dll library used for implementing IEEE on Windows sys-
+                   tems.
             ipcerr.d
-                   the DINO file definining exceptions of  ipc/network
-                   software.  This file is used by socket.d.
+                   the DINO file definining  exceptions  of  ipc/network  software.
+                   This file is used by socket.d.
             ipcerr.so
-                   the  DINO  shared  library  used  for  implementing
-                   IPCERR on some Unix systems.
+                   the  DINO  shared  library  used for implementing IPCERR on some
+                   Unix systems.
             ipcerr.dll
-                   the DINO dll library used for  implementing  IPCERR
-                   on Windows systems.
+                   the DINO dll library used for  implementing  IPCERR  on  Windows
+                   systems.
             socket.d
                    the DINO file implementing work with sockets.
             socket.so
-                   the  DINO  shared  library  used  for  implementing
-                   SOCKET on some Unix systems.
+                   the  DINO  shared  library  used for implementing SOCKET on some
+                   Unix systems.
             socket.dll
-                   the DINO dll library used for  implementing  SOCKET
-                   on Windows systems.
+                   the DINO dll library used for  implementing  SOCKET  on  Windows
+                   systems.
             There are no temporary files used by DINO.
      
      ENVIRONMENT
-            There are the following environment variables which affect
-            DINO's behavior:
+            There  are the following environment variables which affect DINO behav-
+            ior:
      
             DINO_HOME
-                   If not null, it defines  the  places  of  the  dino
-                   shared  libraries  (such  a  library may be only on
-                   some Unix systems  including  Linux  and  Solaris),
-                   include   files,   and   dino   standard   external
-                   libraries.  The places are defined as the subdirec­
-                   tory  lib  in  directory  given  by the environment
-                   variable value.  You  should  define  the  variable
-                   value  on  Windows  if you installed the files in a
-                   directory other than C:\dino\lib
+                   If not null, it defines the places of the dino shared  libraries
+                   (such a library may be only on some Unix systems including Linux
+                   and  Solaris),  include  files,  and  dino   standard   external
+                   libraries.   The  places  are defined as the subdirectory lib in
+                   directory given by the environment variable value.   You  should
+                   define  the variable value on Windows if you installed the files
+                   in a directory other than C:\dino\lib
      
             DINO_PATH
-                   If not null, it defines the places of dino include-
-                   files.  The value of the variable has more priority
-                   than DINO_HOME but less priority than values  given
-                   through -I options.
+                   If not null, it defines the places of dino  include-files.   The
+                   value  of the variable has more priority than DINO_HOME but less
+                   priority than values given through -I options.
      
             DINO_LIB
-                   If  not  null,  it  defines  places  of dino shared
-                   library, if any.  The value of  variable  has  more
-                   priority than DINO_HOME.
+                   If not null, it defines places of dino shared library,  if  any.
+                   The value of variable has more priority than DINO_HOME.
      
             DINO_EXTERN_LIBS
-                   If  not  null,  it defines paths of additional Dino
-                   external  libraries.   The  libraries   should   be
-                   separated  by  `:'  (on  Unix) or `;' (on Windows).
-                   The value has less priority than values given in -L
-                   options.
+                   If  not  null,  it  defines  paths  of  additional Dino external
+                   libraries.  The libraries should be separated by ":"  (on  Unix)
+                   or  ";"  (on  Windows).  The value has less priority than values
+                   given in -L options.
      
      DIAGNOSTICS
             DINO diagnostics are self-explanatory.
@@ -698,6 +603,6 @@ Appendix B- Implementation
      
      
      
-     DINO                        5 May 2001                    DINO(1)
+     DINO                              5 May 2001                           DINO(1)
 
 

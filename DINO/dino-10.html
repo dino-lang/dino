@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>The Programming Language DINO: Appendix B. Implementation</TITLE>
  <LINK HREF="dino-9.html" REL=previous>
  <LINK HREF="dino.html#toc10" REL=contents>
@@ -11,12 +11,12 @@ Next
 <A HREF="dino-9.html">Previous</A>
 <A HREF="dino.html#toc10">Contents</A>
 <HR>
-<H2><A NAME="s10">10. Appendix B. Implementation</A></H2>
+<H2><A NAME="s10">10.</A> <A HREF="dino.html#toc10">Appendix B. Implementation</A></H2>
 
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-DINO(1)                    User Manuals                   DINO(1)
+DINO(1)                          User Manuals                          DINO(1)
 
 
 
@@ -24,58 +24,53 @@ NAME
        dino - the interpreter of the programming language DINO
 
 SYNOPSIS
-       dino  [ -s -h size -Idirname -Lpath -p] (-c program | pro­
-       gram-file ) dino-program-arguments
+       dino  [  -s  -h  size -Idirname -Lpath -p] (-c program | program-file )
+       dino-program-arguments
 
 DESCRIPTION
-       dino interprets a program in  the  DINO  programming  lan­
-       guage.  The program file (and include files) must have the
-       suffix .d
+       dino interprets a program in the DINO programming language.   The  pro-
+       gram file (and include files) must have the suffix .d
 
-       The description of DINO language is in the report  of  the
-       Programming Language DINO.
+       The  description  of  DINO language is in the report of the Programming
+       Language DINO.
 
 OPTIONS
        The options which the DINO interpreter recognizes are:
 
        -c program
-              Execute  the Dino program given on the command line
-              as the argument.
+              Execute the Dino program given on the command line as the  argu-
+              ment.
 
        -h number
-              Determine the size of the heap chunks used  by  the
-              DINO  interpreter.   The size can be given in bytes
-              (e.g.  32000),  in  kilobytes  (e.g.  64k),  or  in
-              megabytes   (e.g.  1m).   The  default  size  is  1
-              Megabyte.  Initially, the Dino interpreter  creates
-              one  chunk.   It allocates one additional chunk (as
-              rule of the same size) whenever there is  no  addi­
-              tional memory after garbage collection.
+              Determine  the  size  of the heap chunks used by the DINO inter-
+              preter.  The size can be given in bytes (e.g. 32000),  in  kilo-
+              bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
+              is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
+              chunk.   It  allocates one additional chunk (as rule of the same
+              size) whenever there is no additional memory after garbage  col-
+              lection.
 
-       -s     Output  some  statistics  of  interpreter work into
-              stderr.  Statistics contain the maximal heap  size,
-              number  of heap chunks, and number of collisions in
-              hash tables which are used for  the  implementation
-              of DINO tables.
+       -s     Output some statistics of interpreter work into stderr.  Statis-
+              tics contain the maximal heap size, number of heap  chunks,  and
+              number  of  collisions  in  hash  tables  which are used for the
+              implementation of DINO tables.
 
        -Idirname
-              Define  the  directory  in which Dino include files
-              will be searched for.  The order  of  searching  in
-              directories  given  with this option is the same as
-              the one on the command line.
+              Define the  directory  in  which  Dino  include  files  will  be
+              searched  for.  The order of searching in directories given with
+              this option is the same as the one on the command line.
 
        -Ldirname
-              Define where to serach for external  libraries  (if
-              shared or dll libraries are implemented on the sys­
-              tem.  This is true for Linux, Solaris,  Irix,  OSF,
-              and  Windows)  in which the Dino external variables
-              and functions will be searched for.  The  order  of
-              searching  in  libraries  given with this option is
-              the same as one on the command line.
+              Define where to serach for external libraries (if shared or  dll
+              libraries  are  implemented  on  the  system.   This is true for
+              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter-
+              nal  variables and functions will be searched for.  The order of
+              searching in libraries given with this option is the same as one
+              on the command line.
 
-       -p     Output profile information  into  stderr.   Profile
-              information contains the number of calls and execu­
-              tion times of all called functions and classes.
+       -p     Output  profile  information  into  stderr.  Profile information
+              contains the number of calls and execution times of  all  called
+              functions and classes.
 
 FILES
        file.d
@@ -83,74 +78,68 @@ FILES
        libdino.so
               a DINO shared library on some Unix systems.
        mpi.d
-              the  DINO  file  implementing  multiple   precision
-              arithmetic.
+              the DINO file implementing multiple precision arithmetic.
        mpi.so
-              the  DINO  shared library used for implementing MPI
-              on some Unix systems.
+              the  DINO  shared library used for implementing MPI on some Unix
+              systems.
        mpi.dll
-              the DINO dll library used for implementing  MPI  on
-              Windows systems.
+              the DINO dll library used for implementing MPI on  Windows  sys-
+              tems.
        ieee.d
-              the  DINO  file implementing IEEE standard floating
-              point arithmetic.
+              the  DINO  file implementing IEEE standard floating point arith-
+              metic.
        ieee.so
-              the DINO shared library used for implementing  IEEE
-              on some Unix systems.
+              the DINO shared library used for implementing IEEE on some  Unix
+              systems.
        ieee.dll
-              the  DINO dll library used for implementing IEEE on
-              Windows systems.
+              the  DINO dll library used for implementing IEEE on Windows sys-
+              tems.
        ipcerr.d
-              the DINO file definining exceptions of  ipc/network
-              software.  This file is used by socket.d.
+              the DINO file definining  exceptions  of  ipc/network  software.
+              This file is used by socket.d.
        ipcerr.so
-              the  DINO  shared  library  used  for  implementing
-              IPCERR on some Unix systems.
+              the  DINO  shared  library  used for implementing IPCERR on some
+              Unix systems.
        ipcerr.dll
-              the DINO dll library used for  implementing  IPCERR
-              on Windows systems.
+              the DINO dll library used for  implementing  IPCERR  on  Windows
+              systems.
        socket.d
               the DINO file implementing work with sockets.
        socket.so
-              the  DINO  shared  library  used  for  implementing
-              SOCKET on some Unix systems.
+              the  DINO  shared  library  used for implementing SOCKET on some
+              Unix systems.
        socket.dll
-              the DINO dll library used for  implementing  SOCKET
-              on Windows systems.
+              the DINO dll library used for  implementing  SOCKET  on  Windows
+              systems.
        There are no temporary files used by DINO.
 
 ENVIRONMENT
-       There are the following environment variables which affect
-       DINO's behavior:
+       There  are the following environment variables which affect DINO behav-
+       ior:
 
        DINO_HOME
-              If not null, it defines  the  places  of  the  dino
-              shared  libraries  (such  a  library may be only on
-              some Unix systems  including  Linux  and  Solaris),
-              include   files,   and   dino   standard   external
-              libraries.  The places are defined as the subdirec­
-              tory  lib  in  directory  given  by the environment
-              variable value.  You  should  define  the  variable
-              value  on  Windows  if you installed the files in a
-              directory other than C:\dino\lib
+              If not null, it defines the places of the dino shared  libraries
+              (such a library may be only on some Unix systems including Linux
+              and  Solaris),  include  files,  and  dino   standard   external
+              libraries.   The  places  are defined as the subdirectory lib in
+              directory given by the environment variable value.   You  should
+              define  the variable value on Windows if you installed the files
+              in a directory other than C:\dino\lib
 
        DINO_PATH
-              If not null, it defines the places of dino include-
-              files.  The value of the variable has more priority
-              than DINO_HOME but less priority than values  given
-              through -I options.
+              If not null, it defines the places of dino  include-files.   The
+              value  of the variable has more priority than DINO_HOME but less
+              priority than values given through -I options.
 
        DINO_LIB
-              If  not  null,  it  defines  places  of dino shared
-              library, if any.  The value of  variable  has  more
-              priority than DINO_HOME.
+              If not null, it defines places of dino shared library,  if  any.
+              The value of variable has more priority than DINO_HOME.
 
        DINO_EXTERN_LIBS
-              If  not  null,  it defines paths of additional Dino
-              external  libraries.   The  libraries   should   be
-              separated  by  `:'  (on  Unix) or `;' (on Windows).
-              The value has less priority than values given in -L
-              options.
+              If  not  null,  it  defines  paths  of  additional Dino external
+              libraries.  The libraries should be separated by ":"  (on  Unix)
+              or  ";"  (on  Windows).  The value has less priority than values
+              given in -L options.
 
 DIAGNOSTICS
        DINO diagnostics are self-explanatory.
@@ -163,9 +152,10 @@ BUGS
 
 
 
-DINO                        5 May 2001                    DINO(1)
+DINO                              5 May 2001                           DINO(1)
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 <HR>
 Next
 <A HREF="dino-9.html">Previous</A>

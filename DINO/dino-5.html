@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>The Programming Language DINO: Expressions</TITLE>
  <LINK HREF="dino-6.html" REL=next>
  <LINK HREF="dino-4.html" REL=previous>
@@ -12,16 +12,16 @@
 <A HREF="dino-4.html">Previous</A>
 <A HREF="dino.html#toc5">Contents</A>
 <HR>
-<H2><A NAME="s5">5. Expressions</A></H2>
+<H2><A NAME="s5">5.</A> <A HREF="dino.html#toc5">Expressions</A></H2>
 
 <P>Expressions are constructs denoting rules of computation of a value
 from other values by the application of <EM>operators</EM>.
 Expressions consist of <EM>operands</EM> and operators.  Parentheses
 may be used to express specific associations of operators and
 operands.  Dino is a dynamic-typed language.  This means that a
-variable can store any Dino value.
-<P>
-<H2><A NAME="ss5.1">5.1 Types and Values</A>
+variable can store any Dino value.</P>
+
+<H2><A NAME="ss5.1">5.1</A> <A HREF="dino.html#toc5.1">Types and Values</A>
 </H2>
 
 <P>All Dino values are <EM>first class values</EM>, i.e. they can be
@@ -30,18 +30,19 @@ a function/class, and can be returned by functions.  Operators require
 operands whose values are of given type and return the value of the
 result type.  Most values have a representation in Dino.  When a
 value representation is encountered in an expression during the
-expression evaluation, the new value is generated.
+expression evaluation, the new value is generated.</P>
 <P>There are values of <EM>structured types</EM>, i.e. values which are
 built from other values.  The value of a structured type may be
 <EM>mutable</EM> or <EM>immutable</EM>.  A value or sub-value of a
 mutable value can be changed.  An immutable value can not be changed
 after its generation.  You can make a mutable value immutable as a
-side effect by applying the operator <CODE>final</CODE>.  In all cases,
-the operator returns the operand value as the result.  If you try to
-change an immutable value, exception <CODE>immutable</CODE> is generated.
-You can make a new mutable value as a side effect of applying operator
-<CODE>new</CODE>.  The operator returns a new value equal to the operand
-value.
+side effect by applying the operator <CODE>final</CODE> (the table key is
+also made immutable as a side effect of writing to the table).  In all
+cases, the operator returns the operand value as the result.  If you
+try to change an immutable value, exception <CODE>immutable</CODE> is
+generated.  You can make a new mutable value as a side effect of
+applying operator <CODE>new</CODE>.  The operator returns a new value
+equal to the operand value.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = final  Expr
@@ -57,7 +58,7 @@ other variables is changed too.  There is no difference between the
 notion "the same value" and the notion "equal values" for non-shared
 type values.  For the shared type operands, equality means that the
 operands have the same structure (e.g. vectors with the same length)
-and the corresponding element values are the same.
+and the corresponding element values are the same.</P>
 <P>Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -71,6 +72,7 @@ and the corresponding element values are the same.
           final {"key0" : 10, "key1" : 20}
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 <P>Dino has the following types of values:
 <UL>
 <LI>the special value <EM>nil</EM>.  This is the default
@@ -261,17 +263,21 @@ keyword <CODE>type</CODE>.</LI>
 </UL>
 </LI>
 </UL>
-<P>
-<H2><A NAME="ss5.2">5.2 Designators</A>
+</P>
+
+<H2><A NAME="ss5.2">5.2</A> <A HREF="dino.html#toc5.2">Designators</A>
 </H2>
 
-<P>There is a special Dino construction called a <EM>designator</EM>.
-A designator refers for a vector or table element or for a
-declaration.  If the designator refers to a vector or table element or for
-a variable declaration, it can stand in the left hand side of an assignment
-statement.  If the designator stands in an expression, the
+
+<P>There is a special Dino construction called a <EM>designator</EM>.  A
+designator refers for a vector or table element or for a declaration.
+If the designator refers to a vector or table element or for a
+variable declaration, it can stand in the left hand side of an
+assignment statement.  If the designator stands in an expression, the
 corresponding value is used (vector/table element value, variable
-value, function, thread-function, or class).
+value, function, thread-function, or class).  When the designator
+referring to table element stands up in the left hand side of an
+assignment statement, its key becomes immutable.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = Designator
@@ -349,8 +355,9 @@ Examples:
           ("value")->f
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss5.3">5.3 Calls</A>
+</P>
+
+<H2><A NAME="ss5.3">5.3</A> <A HREF="dino.html#toc5.3">Calls</A>
 </H2>
 
 <P>One form of expression is the call of a function, thread-function, or
@@ -372,7 +379,7 @@ If it is the call of a thread-function, a new execution thread is
 created, and the statements of the block is executed in the new
 thread.  The value of call of the thread-function is the corresponding
 thread.  It is returned before starting the execution of statements in
-the new thread.
+the new thread.</P>
 <P>Execution of the body is finished by reaching the block end or by
 execution of a return-statement.  Finishing of the thread-function
 results in finishing the corresponding thread.  The return-statement
@@ -398,8 +405,9 @@ Examples:
           obj.objf ()
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss5.4">5.4 Operators</A>
+</P>
+
+<H2><A NAME="ss5.4">5.4</A> <A HREF="dino.html#toc5.4">Operators</A>
 </H2>
 
 <P>Expressions consist of operands and operators.  The order in which
@@ -481,7 +489,8 @@ integer or a floating point number, the result will be a new
 string of characters which is a decimal string representation of
 the number.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Logical operators</H3>
 
 <P>Logical operators produce the integer result 1 which means
@@ -489,18 +498,18 @@ the number.</LI>
 <CODE>||</CODE> and logical `and' <CODE>&amp;&amp;</CODE> are <EM>short circuit</EM>
 operators.  That means that the second operand is evaluated depending
 on the result of the first operand.  When the operands of the
-operators are evaluated, the arithmetic conversion is made.
+operators are evaluated, the arithmetic conversion is made.</P>
 <P>If the first operand of logical `or' is nonzero (integer or floating
 point), the result will be 1.  Otherwise, the second operand is
 evaluated.  If the second operand is nonzero, the result will be 1.
-Otherwise, the result will be 0.
+Otherwise, the result will be 0.</P>
 <P>If the first operand of logical `and' is zero (integer or floating
 point), the result will be 0.  Otherwise, the second operand is
 evaluated.  If the second operand is nonzero, the result will be 1.
-Otherwise, the result will be 0.
+Otherwise, the result will be 0.</P>
 <P>Logical negation `!' makes impilict integer conversion of the operand.
 If the operand is zero (integer or floating point), the result will be
-1.  Otherwise, the result will be 0.
+1.  Otherwise, the result will be 0.</P>
 <P>Operator <CODE>in</CODE> checks that there is an element with the given
 key (the first operand) in the given table (the second operand).  If
 the element is in the table, the result will be 1.  Otherwise the
@@ -524,13 +533,14 @@ Examples:
           0  || another_try
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <H3>Bit operators</H3>
 
 <P>The following operators work on integers (implicit integer conversion
 is made) and return an integer result.  Operators <CODE>| ^ &amp; ~</CODE>
 denote correspondingly bitwise or, bitwise exclusive or, bitwise and,
-and bitwise negation of 32-bit integers.
+and bitwise negation of 32-bit integers.</P>
 <P>Operators <CODE>&lt;&lt; >>> >></CODE> denote correspondingly logical left bit
 shift, logical right bit shift, and arithmetic (with sign extension)
 right bit shift of given number (the first operand) by given number of
@@ -557,11 +567,12 @@ Examples:
           i &lt;&lt; 2
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <H3>Comparison operators</H3>
 
 <P>All comparison operators return a logical value (integer 0 which
-means false or integer 1 which means true).
+means false or integer 1 which means true).</P>
 <P>Operators equality <CODE>==</CODE> and inequality <CODE>!=</CODE> may make
 some conversion of the operands.  If one of the two operands is
 string, then the string conversion is applied to the other operand
@@ -570,10 +581,10 @@ applied to the operands.  The operators do not generate exceptions
 (but the conversions may).  The operands are equal if they have the
 same type and equal values (see section <EM>Types and Values</EM>).
 For instances, functions and classes, the equality requires also the
-same context.
+same context.</P>
 <P>Operator identity <CODE>===</CODE> or unidentity <CODE>!==</CODE> returns 1
 if the operands have (or not) the same value or 0 otherwise.  The
-operators never generate exceptions.
+operators never generate exceptions.</P>
 <P>By default the arithmetic conversion is applied to the operands of
 operators <CODE>&lt; > &lt;= >=</CODE>.  There is no exception if the operands
 after the conversion are of integer or floating point type.  So the
@@ -607,7 +618,8 @@ Examples:
           [10, 20] !== [10, 20]
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <H3>Arithmetic operators</H3>
 
 <P>The following operators return integer or floating point numbers.
@@ -642,7 +654,8 @@ Examples:
           index % bound 
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <H3>Miscellaneous operators</H3>
 
 <P>The Dino conditional expression is analogous to the C language one.
@@ -651,27 +664,27 @@ followed by <CODE>?</CODE>.  If the value of the expression is non zero
 (integer or floating point), the second expression with following
 <CODE>:</CODE> is evaluated and it will be the result of the condition
 expression.  Otherwise, the third expression is evaluated and it
-becomes the result.
+becomes the result.</P>
 <P>The operator <CODE>#</CODE> can be applied to a vector or a table.  It returns
-the length of the vector or the number of elements in the table.
+the length of the vector or the number of elements in the table.</P>
 <P>The operator <CODE>@</CODE> denotes concatenation of two vectors into a new
 vector.  Before the concatenation implicit string conversion of the
-operands is made.
+operands is made.</P>
 <P>The remaining operators look like function calls.  Operator
 <CODE>type</CODE> returns the expression type.  Never is exception
-generation possible during the operator evaluation.
+generation possible during the operator evaluation.</P>
 <P>The operator <CODE>char</CODE> is used to conversion of a value into a
 character.  First, implicit integer conversion is applied to the
 operand.  The operand should be an integer after the conversion.
 Otherwise, exception <CODE>optype</CODE> will be generated.  The integer
 is transformed into the character with the corresponding code.  If the
 code is too big to be a character or is negative, exception
-<CODE>erange</CODE> is generated.
+<CODE>erange</CODE> is generated.</P>
 <P>The operator <CODE>int</CODE> is used to conversion of a value into an
 integer.  Implicit integer conversion is applied to the operand.  The
 operand should be an integer after the conversion.  Otherwise,
 exception <CODE>optype</CODE> will be generated.  If the code is too big
-to be an integer, exception <CODE>erange</CODE> is generated.
+to be an integer, exception <CODE>erange</CODE> is generated.</P>
 <P>The operator <CODE>float</CODE> is used to conversion of a value into
 floating-point number.  The first, implicit arithmetic conversion is
 applied to the operand.  The operand should be an integer or a
@@ -679,7 +692,7 @@ floating-point number after the conversion.  Otherwise, exception
 <CODE>optype</CODE> will be generated.  If the result integer is
 transformed into the corresponding floating-point number.  If the code
 is too big or too small to be a floating-point number, exception
-<CODE>erange</CODE> is generated.
+<CODE>erange</CODE> is generated.</P>
 <P>The operator <CODE>vector</CODE> is used for conversion of a value into a
 vector.  First, implicit string conversion is applied to the operand.
 The optional second expression defines the format used only for the
@@ -691,20 +704,20 @@ conversion.  The table is transformed into a new vector which consists
 of pairs (one pair for each element in the table).  The first element
 of the pair is a key of the corresponding element, and the second one
 is the element itself.  The order of pairs in the result vector is
-undefined.
+undefined.</P>
 <P>The operator <CODE>table</CODE> is used to conversion of a value into
 table.  First, string conversion is applied to the operand.  The
 operand should be a vector or a table after the conversion.  The
 vector is transformed into a new table whose elements are equal to the
 vector elements that have integer keys equal to the corresponding
-vector indexes.
+vector indexes.</P>
 <P>If the operand of the operator <CODE>func</CODE> is a block instance of
 the body of a function, it returns the corresponding function.
 Otherwise, it returns the value <B>nil</B>.  The operator never
-generates exceptions.
+generates exceptions.</P>
 <P>If the operand of the operator <CODE>thread</CODE> is a thread, it returns
 the corresponding thread-function.  Otherwise, it returns the value
-<B>nil</B>.  The operator never generates exceptions.
+<B>nil</B>.  The operator never generates exceptions.</P>
 <P>If the operand of the operator <CODE>class</CODE> is an object, it returns
 the object's class.  Otherwise, it returns the value <B>nil</B>.
 The operator never generates exceptions.
@@ -744,7 +757,8 @@ Examples:
           class (c ())
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <HR>
 <A HREF="dino-6.html">Next</A>
 <A HREF="dino-4.html">Previous</A>

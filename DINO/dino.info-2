@@ -1,5 +1,5 @@
-This is dino.info, produced by makeinfo version 4.0b from
-/tmp/sgml-tools-dir-1192/sgmltmp.dino1192.info.2.
+This is dino.info, produced by makeinfo version 4.3 from
+/tmp/linuxdoc-dir-12109/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -10,11 +10,11 @@ Logical operators
 -----------------
 
    Logical operators produce the integer result 1 which means `true' or
-0 which means `false'.  Logical `or' `[verbar][verbar]' and logical
-`and' `&&' are `short circuit' operators.  That means
-that the second operand is evaluated depending on the result of the
-first operand.  When the operands of the operators are evaluated, the
-arithmetic conversion is made.
+0 which means `false'.  Logical `or' `||' and logical `and' `&&' are
+`short circuit' operators.  That means that the second operand is
+evaluated depending on the result of the first operand.  When the
+operands of the operators are evaluated, the arithmetic conversion is
+made.
 
    If the first operand of logical `or' is nonzero (integer or floating
 point), the result will be 1.  Otherwise, the second operand is
@@ -53,9 +53,9 @@ Bit operators
 -------------
 
    The following operators work on integers (implicit integer conversion
-is made) and return an integer result.  Operators `[verbar] [circ  ]
-& [tilde ]' denote correspondingly bitwise or, bitwise exclusive
-or, bitwise and, and bitwise negation of 32-bit integers.
+is made) and return an integer result.  Operators `| ^ & ~' denote
+correspondingly bitwise or, bitwise exclusive or, bitwise and, and
+bitwise negation of 32-bit integers.
 
    Operators `<< >>> >>' denote correspondingly logical left bit shift,
 logical right bit shift, and arithmetic (with sign extension) right bit
@@ -132,13 +132,12 @@ Arithmetic operators
 
    The following operators return integer or floating point numbers.
 Before operator execution, implicit arithmetic conversion is made on
-the operands.  The binary operators `+ - * / %' denote
-correspondingly integer or floating point addition, subtraction,
-multiplication, division, and evaluation of remainder.  Unary operator
-`-' denotes arithmetic negation.  The unary operator `+' is given for
-symmetry and it returns simply the operand after the conversion.  It
-can be used for conversion of a string into an integer or floating
-point number.
+the operands.  The binary operators `+ - * / %' denote correspondingly
+integer or floating point addition, subtraction, multiplication,
+division, and evaluation of remainder.  Unary operator `-' denotes
+arithmetic negation.  The unary operator `+' is given for symmetry and
+it returns simply the operand after the conversion.  It can be used for
+conversion of a string into an integer or floating point number.
                Expr = Expr "+"  Expr
                     | Expr "-"  Expr
                     | Expr "*"  Expr
@@ -168,8 +167,8 @@ or floating point), the second expression with following `:' is
 evaluated and it will be the result of the condition expression.
 Otherwise, the third expression is evaluated and it becomes the result.
 
-   The operator `[num   ]' can be applied to a vector or a table.  It
-returns the length of the vector or the number of elements in the table.
+   The operator `#' can be applied to a vector or a table.  It returns
+the length of the vector or the number of elements in the table.
 
    The operator `@' denotes concatenation of two vectors into a new
 vector.  Before the concatenation implicit string conversion of the
@@ -338,6 +337,8 @@ values of a structured value which are referred through a designator
 can not denote a final variable (see section `Variable Declaration').
 You can not change the element value of an immutable value (see section
 `Types and Values').  In this case exception `immutable' is generated.
+Assignment to a table element has a side effect, the element key
+becomes immutable.
 
    A simple assignment statement looks like `Designator = Expr;'.  That
 means that the expression value is assigned to variable or element of
@@ -778,12 +779,12 @@ Threads
 
    To access some information about threads in Dino program, the
 following variables can be used.
-   * `main_thread'.  The variable value is the main thread.
-     When the program starts, there is only one thread which is called
-     `the main thread'.
+   * `main_thread'.  The variable value is the main thread.  When the
+     program starts, there is only one thread which is called `the main
+     thread'.
 
-   * `curr_thread'.  The variable value is the thread in which
-     you reference the variable.
+   * `curr_thread'.  The variable value is the thread in which you
+     reference the variable.
 
    All these variables are final, so you can not change their values.
 
@@ -865,16 +866,15 @@ Miscellaneous variables
 
    Values of the following variables are used by some predeclared
 functions:
-   * `split_regex'.  The variable value is a string which
-     represents regular expression which is used by the predeclared
-     function `split' when the second parameter is not given.  The
-     initial value of the variable is string `"[ \t]+"'.
+   * `split_regex'.  The variable value is a string which represents
+     regular expression which is used by the predeclared function
+     `split' when the second parameter is not given.  The initial value
+     of the variable is string `"[ \t]+"'.
 
-   * `time_format'.  The variable value is a string which is the
-     output format of time used by the function `strtime' when it is
-     called without parameters.  The initial value of the variable is
-     the string `"%a %b %d
-     %H:%M:%S %Z %Y"'.
+   * `time_format'.  The variable value is a string which is the output
+     format of time used by the function `strtime' when it is called
+     without parameters.  The initial value of the variable is the
+     string `"%a %b %d %H:%M:%S %Z %Y"'.
 
 
 File: dino.info,  Node: Predeclared classes,  Next: Predeclared functions,  Prev: Predeclared variables,  Up: Predeclared identifiers
@@ -1182,8 +1182,8 @@ class `error':
                under this OS.
 
         * `invenvar'.  This class describes corruption in the type of
-          variables `split_regex' and `time_format' (e.g.
-          their values are not strings).
+          variables `split_regex' and `time_format' (e.g. their values
+          are not strings).
 
         * `internal'.  This class describes all other (nonspecified)
           exceptions in calling predeclared functions.

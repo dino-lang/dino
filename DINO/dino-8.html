@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>The Programming Language DINO: Predeclared identifiers</TITLE>
  <LINK HREF="dino-9.html" REL=next>
  <LINK HREF="dino-7.html" REL=previous>
@@ -12,19 +12,19 @@
 <A HREF="dino-7.html">Previous</A>
 <A HREF="dino.html#toc8">Contents</A>
 <HR>
-<H2><A NAME="s8">8. Predeclared identifiers</A></H2>
+<H2><A NAME="s8">8.</A> <A HREF="dino.html#toc8">Predeclared identifiers</A></H2>
 
 <P>Dino has quite a lot of predeclared identifiers.  The section <EM>Declarations
 and Scope Rules</EM> contains them in alphanumeric order.  Here they
 are described according to the declaration category which they belongs
-to.
-<P>
-<H2><A NAME="ss8.1">8.1 Predeclared variables</A>
+to.</P>
+
+<H2><A NAME="ss8.1">8.1</A> <A HREF="dino.html#toc8.1">Predeclared variables</A>
 </H2>
 
 <P>Dino has some predeclared variables which contain useful information
-or can be used to control the behaviour of the Dino interpreter.
-<P>
+or can be used to control the behaviour of the Dino interpreter.</P>
+
 <H3>Arguments and environment</H3>
 
 <P>To access arguments to the program and the environment, the following
@@ -38,7 +38,8 @@ elements are strings (immutable vectors of characters)
 representing values of environment variables whose names are
 the keys of the table.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Version</H3>
 
 <P>As Dino is a live programming language, it and its interpreter are in
@@ -46,9 +47,9 @@ the process of permanent development.  To access the Dino interpreter's
 version number and consequently the language version, the final variable
 <CODE>version</CODE> can be used.  The variable value is the Dino version as a
 floating point number.  For example, if the current Dino version is
-0.54, the variable value will be 0.54.
-<P>
-<P>
+0.54, the variable value will be 0.54.</P>
+
+
 <H3>Threads</H3>
 
 <P>To access some information about threads in Dino program, the
@@ -61,8 +62,8 @@ which is called <EM>the main thread</EM>.</LI>
 which you reference the variable.</LI>
 </UL>
 
-All these variables are final, so you can not change their values.
-<P>
+All these variables are final, so you can not change their values.</P>
+
 <H3>Exceptions</H3>
 
 <P>When it is necessary to create an exception which is a object of a
@@ -100,8 +101,8 @@ the class <CODE>invcalls.invextern</CODE>.</LI>
 the class <CODE>errors.invaccess</CODE>.</LI>
 </UL>
 
-All these variables are final, so you can not change their values.
-<P>
+All these variables are final, so you can not change their values.</P>
+
 <H3>Files</H3>
 
 <P>To output something into standard streams or to input something from
@@ -118,8 +119,8 @@ class <CODE>file</CODE> which corresponds to the standard error
 stream.</LI>
 </UL>
 
-All these variables are final, so you can not change their values.
-<P>
+All these variables are final, so you can not change their values.</P>
+
 <H3>Miscellaneous variables</H3>
 
 <P>Values of the following variables are used by some predeclared
@@ -135,13 +136,14 @@ is the output format of time used by the function
 initial value of the variable is the string <CODE>"%a %b %d
 %H:%M:%S %Z %Y"</CODE>.</LI>
 </UL>
-<P>
-<H2><A NAME="ss8.2">8.2 Predeclared classes</A>
+</P>
+
+<H2><A NAME="ss8.2">8.2</A> <A HREF="dino.html#toc8.2">Predeclared classes</A>
 </H2>
 
 <P>The most of the predeclared classes describe exceptions which may be
-generated in Dino program.
-<P>
+generated in Dino program.</P>
+
 <H3>File</H3>
 
 <P>Dino has predeclared final class <CODE>file</CODE>.  Work with files in
@@ -149,8 +151,8 @@ Dino program are made through objects of the class.  All declarations
 inside of class are private.  The objects of the class can be created
 only by predeclared functions <CODE>open</CODE> or <CODE>popen</CODE>.  If you
 create an object of the class by calling the class, exception
-<CODE>callop</CODE> will be generated.
-<P>
+<CODE>callop</CODE> will be generated.</P>
+
 <H3>Exception classes</H3>
 
 <P>All Dino exceptions are represented by objects of the predeclared
@@ -409,19 +411,20 @@ the type of variables <CODE>split_regex</CODE> and
 </UL>
 </LI>
 </UL>
-<P>
+</P>
+
 <H3>Earley parser classes</H3>
 
 <P>Dino has the three following classes which are used by the Earley parser
-embedded into the Dino interpreter.
-<P>
+embedded into the Dino interpreter.</P>
+
 <H3>Parser.</H3>
 
 <P>Dino has predeclared final class <CODE>parser</CODE> which implements
 the Earley parser.  The Earley parser is a very powerful tool to implement
 serious language compilers, processors, or translators.  The
 implementation of the Earley parser used in Dino has the following
-features:
+features:</P>
 <P>
 <UL>
 <LI>It is sufficiently fast and does not require much memory.
@@ -636,10 +639,11 @@ have a wrong code.  The function also can generate exception
 <CODE>pmemory</CODE> if there is no memory for internal parser
 data.</LI>
 </UL>
+</P>
 <P>The call of the class <CODE>parser</CODE> itself can generate exception
 <CODE>pmemory</CODE> if there is no memory for internal parser
-data.
-<P>
+data.</P>
+
 <H3>Token.</H3>
 
 <P>Dino has a predeclared class <CODE>token</CODE>.  Objects of this class
@@ -650,8 +654,8 @@ translation will have input tokens as leaves.  The class
 should be the code of the corresponding terminal described in the
 grammar.  You could extend the class description e.g. by adding
 variables whose values could be attributes of the token (e.g. source
-line number, name of an identifier, or value for a number).
-<P>
+line number, name of an identifier, or value for a number).</P>
+
 <H3>Anode.</H3>
 
 <P>Dino has a predeclared class <CODE>anode</CODE> whose objects are nodes of
@@ -661,7 +665,7 @@ generated by the Earley parser.  The class has two public variables
 <CODE>name</CODE> whose value is string representing name of the abstract
 node as it given in the grammar and <CODE>transl</CODE> whose value is
 array with abstract node fields as the array elements.  There are a
-few node types which have special meaning:
+few node types which have special meaning:</P>
 <P>
 <UL>
 <LI>Terminal node which has reserved name <CODE>$term</CODE>.  The
@@ -692,14 +696,15 @@ translations.  Such nodes can be generated by the parser only
 if the grammar is ambiguous and we did not ask it to produce
 only one translation.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Nil_anode and error_anode.</H3>
 
 <P>There is only one instance of <CODE>anode</CODE> which represents empty
 (nil) nodes.  The same is true for the error nodes.  The final
 variables <CODE>nil_anode</CODE> and <CODE>error_anode</CODE> correspondingly
-refer to these nodes.
-<P>
+refer to these nodes.</P>
+
 <H3>Example of Earley parser usage.</H3>
 
 <P>Let us write a program which transforms an expression into postfix
@@ -767,8 +772,9 @@ which is the postfix polish form of input string
           putln ();
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss8.3">8.3 Predeclared functions</A>
+</P>
+
+<H2><A NAME="ss8.3">8.3</A> <A HREF="dino.html#toc8.3">Predeclared functions</A>
 </H2>
 
 <P>The predeclared functions expect a given number of actual parameters
@@ -779,7 +785,7 @@ parameters (may be after implicit conversions) are of the required
 type.  If this is not true, exception <CODE>partype</CODE> is generated.
 To show how many parameters the function requires, we will write the
 names of the parameters and use brackets <CODE>[</CODE> and <CODE>]</CODE> for
-the optional parameters in the description of the functions.
+the optional parameters in the description of the functions.</P>
 <P>Examples:  The following description
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -789,10 +795,10 @@ the optional parameters in the description of the functions.
 
 describes that the function can accept zero, one, or two
 parameters.  If only one parameter is given, then this is
-parameter <CODE>format</CODE>.
+parameter <CODE>format</CODE>.</P>
 <P>If something is not said about the returned result, the function
-returns the default value <B>nil</B>.
-<P>
+returns the default value <B>nil</B>.</P>
+
 <H3>Mathematical functions</H3>
 
 <P>The following functions make implicit arithmetic conversion of the
@@ -828,7 +834,8 @@ similar to calculating the arc tangent of <CODE>y / x</CODE>,
 except that the signs of both arguments are used to determine
 the quadrant of the result.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Pattern matching functions</H3>
 
 <P>Dino has the predeclared functions which are used for <EM>pattern
@@ -867,7 +874,7 @@ branch matches the null string.
 An <EM>atom</EM> followed by <CODE>*</CODE> matches a sequence of 0 or
 more matches of the atom.  An atom followed by <CODE>+</CODE> matches a
 sequence of 1 or more matches of the atom.  An atom followed by
-<CODE>?</CODE> matches a sequence of 0 or 1 matches of the atom.
+<CODE>?</CODE> matches a sequence of 0 or 1 matches of the atom.</P>
 <P>There is a more general construction (a <EM>bound</EM>) for describing
 repetitions of an atom.  An atom followed by a bound containing only
 one integer <CODE>min</CODE> matches a sequence of exactly <CODE>min</CODE>
@@ -907,7 +914,7 @@ case it matches a match for the regular expression in the
 parentheses).  The atom <CODE>()</CODE> matches the null string.  The atom
 <CODE>.</CODE> matches any single character.  Atoms <CODE>^</CODE> and
 <CODE>$</CODE> match correspondingly the null string at the beginning of a
-line and the null string at the end of a line.
+line and the null string at the end of a line.</P>
 <P>An atom which is <CODE>\</CODE> followed by one of the characters
 <CODE>^.[$()|*+?{\</CODE> matches that character taken as an ordinary
 character.  Atom which is <CODE>\</CODE> followed by any other character
@@ -956,15 +963,15 @@ two characters in the list are separated by <CODE>-</CODE>, this is
 shorthand for the full <EM>range</EM> of characters between those two
 (inclusive) in the collating sequence of ASCII codes,
 e.g. <CODE>[0-9]</CODE> matches any decimal digit.  It is illegal for two
-ranges to share an <EM>endpoint</EM>, e.g. <CODE>a-c-e</CODE>.
-<P>
+ranges to share an <EM>endpoint</EM>, e.g. <CODE>a-c-e</CODE>.</P>
+
 <P>There are exceptions which are not described by the atom syntax which
 is used to include a literal <CODE>]</CODE> in the list by making it the first
 character (following a possible <CODE>^</CODE>).  To include a literal
 <CODE>-</CODE>, make it the first or the last character, or the second
 endpoint of a range.  As you can see from the syntax, all special
 characters (except for <CODE>[</CODE>) described in an atom lose their
-special significance within a bracket expression.
+special significance within a bracket expression.</P>
 <P>A collating element is a name of a character class enclosed in
 <CODE>[:</CODE> and <CODE>:]</CODE>.  It denotes the list of all characters
 belonging to that class.  Standard character class names are:
@@ -980,10 +987,10 @@ belonging to that class.  Standard character class names are:
 These names stand for the character classes defined in the ANSI C
 include file <CODE>ctype.h</CODE>.  There is an exception not described by
 the syntax: a character class can not be used as an endpoint of a
-range.
+range.</P>
 <P>There is an extension of regular expressions used by DINO and of ones
 defined in Posix 1003.2: no particular limit is imposed on the length
-of the regular expression.
+of the regular expression.</P>
 <P>There are the following Dino pattern matching functions:
 <UL>
 <LI><CODE>match (regex, string)</CODE>.  The function searches for
@@ -1028,6 +1035,7 @@ outputs
           [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 </LI>
 <LI><CODE>gmatch (regex, string[, flag])</CODE>.  The function
 searches for different occurrences of regular expression
@@ -1061,6 +1069,7 @@ outputs
           [0, 2, 1, 3, 2, 4, 3, 5]
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 </LI>
 <LI><CODE>sub (regex, string, subst)</CODE>.  The function searches
 for substrings matching the regular expression <CODE>regex</CODE>
@@ -1121,6 +1130,7 @@ outputs
           ["a", "b", "c", "d", "e", "f"]
 </PRE>
 </CODE></BLOCKQUOTE>
+</P>
 </LI>
 </UL>
 
@@ -1145,12 +1155,13 @@ regular expression.</LI>
 <LI><CODE>espace</CODE>.  No memory for the regular expression
 function to work.</LI>
 </UL>
-<P>
+</P>
+
 <H3>File functions</H3>
 
 <P>Dino has some predeclared functions to work on files and
-directories.
-<P>
+directories.</P>
+
 <H3>Functions for access to file/directory information</H3>
 
 <P>The following predeclared functions can be used for accessing file or
@@ -1249,7 +1260,8 @@ character <CODE>'s'</CODE>.</LI>
 function except for the fact that it sets up rights for all
 other users.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Functions for work with directories</H3>
 
 <P>The following functions work with directories.  The functions may
@@ -1278,7 +1290,8 @@ representing the full path of the current directory.</LI>
 given by <CODE>dirpath</CODE> (which should be a string after
 implicit string conversion) the current directory.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Functions for work with files.</H3>
 
 <P>The following functions (besides input/output functions) work with OS
@@ -1344,7 +1357,8 @@ of the string should be <CODE>'s'</CODE>, <CODE>'c'</CODE>, or
 to the start of the file, the current position indicator, or
 the end-of-file, respectively).</LI>
 </UL>
-<P>
+</P>
+
 <H3>File output functions</H3>
 
 <P>The following functions are used to output something into opened
@@ -1406,7 +1420,8 @@ analogous to function <CODE>fprint</CODE> except for the fact that
 it additionally outputs a new line character after the output
 of all the parameters.</LI>
 </UL>
-<P>
+</P>
+
 <H3>File input functions</H3>
 
 <P>The following functions are used to input something from opened files.
@@ -1477,7 +1492,8 @@ to the function <CODE>scanln</CODE> except for that it reads from
 an opened file associated with a class <CODE>file</CODE> instance
 which is the parameter value.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Time functions</H3>
 
 <P>The following functions can be used to get information about real
@@ -1543,7 +1559,8 @@ abbreviation.</LI>
 </UL>
 </LI>
 </UL>
-<P>
+</P>
+
 <H3>Functions for access to process information</H3>
 
 <P>There are Dino predeclared functions which are used to get information
@@ -1569,7 +1586,8 @@ which is the effective group name for the current OS process.</LI>
 of strings (possibly the empty vector) representing
 supplementary group names for the current OS process.</LI>
 </UL>
-<P>
+</P>
+
 <H3>Miscellaneous functions</H3>
 
 <P>There are the following miscellaneous functions:
@@ -1735,7 +1753,8 @@ putln, print, and println but they return the result string
 instead of output of the formed string into the standard output
 stream.</LI>
 </UL>
-<P>
+</P>
+
 <HR>
 <A HREF="dino-9.html">Next</A>
 <A HREF="dino-7.html">Previous</A>

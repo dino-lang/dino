@@ -60,6 +60,7 @@ History
 
   Dec 8, 2002.   Equality of instance, classes and functions means
                  the same context.
+  Dec 14, 2003.  Making table key is immutable in assignment.
 
 </verb></tscreen>
 
@@ -775,12 +776,13 @@ built from other values.  The value of a structured type may be
 <em>mutable</em> or <em>immutable</em>.  A value or sub-value of a
 mutable value can be changed.  An immutable value can not be changed
 after its generation.  You can make a mutable value immutable as a
-side effect by applying the operator <tt>final</tt>.  In all cases,
-the operator returns the operand value as the result.  If you try to
-change an immutable value, exception <tt>immutable</tt> is generated.
-You can make a new mutable value as a side effect of applying operator
-<tt>new</tt>.  The operator returns a new value equal to the operand
-value.
+side effect by applying the operator <tt>final</tt> (the table key is
+also made immutable as a side effect of writing to the table).  In all
+cases, the operator returns the operand value as the result.  If you
+try to change an immutable value, exception <tt>immutable</tt> is
+generated.  You can make a new mutable value as a side effect of
+applying operator <tt>new</tt>.  The operator returns a new value
+equal to the operand value.
 <tscreen><verb>
           Expr = final  Expr
                | new  Expr
@@ -972,13 +974,16 @@ Dino has the following types of values:
 
 <sect1>Designators
 <p>
-There is a special Dino construction called a <em>designator</em>.
-A designator refers for a vector or table element or for a
-declaration.  If the designator refers to a vector or table element or for
-a variable declaration, it can stand in the left hand side of an assignment
-statement.  If the designator stands in an expression, the
+
+There is a special Dino construction called a <em>designator</em>.  A
+designator refers for a vector or table element or for a declaration.
+If the designator refers to a vector or table element or for a
+variable declaration, it can stand in the left hand side of an
+assignment statement.  If the designator stands in an expression, the
 corresponding value is used (vector/table element value, variable
-value, function, thread-function, or class).
+value, function, thread-function, or class).  When the designator
+referring to table element stands up in the left hand side of an
+assignment statement, its key becomes immutable.
 <tscreen><verb>
           Expr = Designator
 </verb></tscreen>
@@ -1469,7 +1474,8 @@ values of a structured value which are referred through a designator
 The designator can not denote a final variable (see section
 <em>Variable Declaration</em>).  You can not change the element value
 of an immutable value (see section <em>Types and Values</em>).  In
-this case exception <tt>immutable</tt> is generated.
+this case exception <tt>immutable</tt> is generated.  Assignment to a
+table element has a side effect, the element key becomes immutable.
 <p>
 A simple assignment statement looks like <tt>Designator = Expr;</tt>.
 That means that the expression value is assigned to variable or

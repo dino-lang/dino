@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>The Programming Language DINO: Executive statements</TITLE>
  <LINK HREF="dino-7.html" REL=next>
  <LINK HREF="dino-5.html" REL=previous>
@@ -12,7 +12,7 @@
 <A HREF="dino-5.html">Previous</A>
 <A HREF="dino.html#toc6">Contents</A>
 <HR>
-<H2><A NAME="s6">6. Executive statements</A></H2>
+<H2><A NAME="s6">6.</A> <A HREF="dino.html#toc6">Executive statements</A></H2>
 
 <P>Statements denote actions.  There are <EM>simple</EM> and
 <EM>compound</EM> statements.  Simple statements do not consist of any
@@ -22,9 +22,9 @@ statements.  Analogous to the C language the last symbol of a Dino
 simple statement is semicolon <CODE>;</CODE>.  Compound statements
 consists of parts that are statements themselves.  They are used to
 express sequencing, exception handling, conditional, and repetitive
-execution.
-<P>
-<H2><A NAME="ss6.1">6.1 Empty statement</A>
+execution.</P>
+
+<H2><A NAME="ss6.1">6.1</A> <A HREF="dino.html#toc6.1">Empty statement</A>
 </H2>
 
 <P>There is also the empty statement in Dino.  It denotes no action.  The
@@ -42,8 +42,9 @@ Example: Usage of an empty statement in a for-statement:
             ;
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.2">6.2 Block-statement</A>
+</P>
+
+<H2><A NAME="ss6.2">6.2</A> <A HREF="dino.html#toc6.2">Block-statement</A>
 </H2>
 
 <P>A block-statement is simply a block and can used to group statements
@@ -70,8 +71,9 @@ Example: Usage of a block-statement in a for-statement:
             }
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.3">6.3 Assignment statements</A>
+</P>
+
+<H2><A NAME="ss6.3">6.3</A> <A HREF="dino.html#toc6.3">Assignment statements</A>
 </H2>
 
 <P>Assignment-statements are used to change variable values or element
@@ -80,7 +82,8 @@ values of a structured value which are referred through a designator
 The designator can not denote a final variable (see section
 <EM>Variable Declaration</EM>).  You can not change the element value
 of an immutable value (see section <EM>Types and Values</EM>).  In
-this case exception <CODE>immutable</CODE> is generated.
+this case exception <CODE>immutable</CODE> is generated.  Assignment to a
+table element has a side effect, the element key becomes immutable.</P>
 <P>A simple assignment statement looks like <CODE>Designator = Expr;</CODE>.
 That means that the expression value is assigned to variable or
 element of structured type value denoted by the designator.  For the
@@ -124,8 +127,9 @@ Examples:
           i *= 20
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.4">6.4 Call-statement</A>
+</P>
+
+<H2><A NAME="ss6.4">6.4</A> <A HREF="dino.html#toc6.4">Call-statement</A>
 </H2>
 
 <P>A call-statement is used to call a function, a thread-function, or a
@@ -146,8 +150,9 @@ Examples:
           newthread ();
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.5">6.5 If-statement</A>
+</P>
+
+<H2><A NAME="ss6.5">6.5</A> <A HREF="dino.html#toc6.5">If-statement</A>
 </H2>
 
 <P>The Dino if-statement is analogous to the C language one.  First, the
@@ -171,8 +176,9 @@ Examples:
           if (i &lt; j) return -1; else if (i > 0) return 1; else return 0;
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.6">6.6 For-statement</A>
+</P>
+
+<H2><A NAME="ss6.6">6.6</A> <A HREF="dino.html#toc6.6">For-statement</A>
 </H2>
 
 <P>The Dino for-statement is analogous to the C language one.  The
@@ -212,8 +218,9 @@ Examples:
           for ({sum = 0; i = 0;} i &lt; 10; i++) sum += v [i];
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.7">6.7 Foreach-statement</A>
+</P>
+
+<H2><A NAME="ss6.7">6.7</A> <A HREF="dino.html#toc6.7">Foreach-statement</A>
 </H2>
 
 <P>This statement is used to execution of the foreach-statement body (the
@@ -243,8 +250,9 @@ Examples:
           }
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.8">6.8 Break- and continue-statement</A>
+</P>
+
+<H2><A NAME="ss6.8">6.8</A> <A HREF="dino.html#toc6.8">Break- and continue-statement</A>
 </H2>
 
 <P>Statements <CODE>break</CODE> and <CODE>continue</CODE> are used
@@ -272,8 +280,9 @@ Examples:
               break;
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.9">6.9 Return-statement</A>
+</P>
+
+<H2><A NAME="ss6.9">6.9</A> <A HREF="dino.html#toc6.9">Return-statement</A>
 </H2>
 
 <P>Return-statement is used to finish execution of a function, a thread,
@@ -297,8 +306,9 @@ Examples:
           return [10, 2:0]
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.10">6.10 Throw-statement</A>
+</P>
+
+<H2><A NAME="ss6.10">6.10</A> <A HREF="dino.html#toc6.10">Throw-statement</A>
 </H2>
 
 <P>This statement generates an exception which is given by value of the
@@ -324,8 +334,9 @@ Examples:
           throw errors.myexcept ("this is an user defined exception");
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.11">6.11 Try-block</A>
+</P>
+
+<H2><A NAME="ss6.11">6.11</A> <A HREF="dino.html#toc6.11">Try-block</A>
 </H2>
 
 <P>Exceptions can be generated by the Dino interpreter when some
@@ -336,7 +347,7 @@ object of the predeclared class <CODE>except</CODE> or by an object of a
 class declared inside the predeclared class <CODE>except</CODE>.  All
 predeclared exceptions are described in the section <EM>Predeclared
 Identifiers</EM>.  To detect and process exceptions, a try-block can
-be used.
+be used.</P>
 <P>When an exception is generated, the closest-containing try-block which
 is covering the statement generating the exception or currently being
 executed (when this is is generated by an OS process or by an user
@@ -351,7 +362,7 @@ element is executed.  If there is no such catch expression, the
 closest-containing try-block covering the current try-block is
 searched for and processing the exception is repeated.  If there are
 no more try-blocks, the program finishes with a diagnostic message
-which is dependent on the generated exception.
+which is dependent on the generated exception.</P>
 <P>Blocks corresponding to catch list elements have a predeclared
 variable <CODE>e</CODE>.  When block execution starts, the variable
 contains the object representing the exception.
@@ -385,8 +396,9 @@ Examples:
           }
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
-<H2><A NAME="ss6.12">6.12 Wait-statement</A>
+</P>
+
+<H2><A NAME="ss6.12">6.12</A> <A HREF="dino.html#toc6.12">Wait-statement</A>
 </H2>
 
 <P>This statement is used for the synchronization of different threads in
@@ -410,7 +422,8 @@ Examples:
           wait !empty;
 </PRE>
 </CODE></BLOCKQUOTE>
-<P>
+</P>
+
 <HR>
 <A HREF="dino-7.html">Next</A>
 <A HREF="dino-5.html">Previous</A>

@@ -1,3 +1,18 @@
+2003-12-15  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_eval.c (store_table_element, initiate_vars): Make the table
+	key immutable.
+
+	* DINO/dino.tst.in: New test #510 for checking that key became
+	immutable.
+
+	* DINO/dino.1: Remove apostrophes.
+	
+	* DINO/dino.sgml.in: Making immutable table key in assignment.
+
+	* DINO/dino.txt, DINO/dino.ps, DINO/dino.info*, DINO/dino.dvi,
+	DINO/dino*.html: Update.
+
 2003-10-18  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_context.c (third_block_passing): Check return inside
