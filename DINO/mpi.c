@@ -272,7 +272,7 @@ mpi_unary_op (int npars, val_t *vals, int_t *size,
   assert (npars == 2
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
-  var = INDEXED_VAL (ER_instance_vars (ER_instance ((IR_hidden_node_t) vals)),
+  var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)),
 		     1);
   size_var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)),
 			  0);
@@ -491,7 +491,7 @@ from_based_string (int npars, val_t *vals,
   ER_node_t var, size_var;
   ER_node_t mpi;
 
-  assert (npars == 2
+  assert (npars == 3
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);

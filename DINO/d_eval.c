@@ -544,7 +544,7 @@ find_catch_pc (void)
   no_gc_flag = FALSE;
   except = ER_instance (ctop);
   EMPTY_TEMP_REF ();
-  for (; cstack != NULL;)
+  for (; cstack != uppest_stack;)
     {
       block = ER_block_node (cstack);
       func_class = IR_func_class_ext (block);
@@ -564,6 +564,8 @@ find_catch_pc (void)
 	  ER_set_process_status (cprocess, PS_READY);
 	  return cpc;
 	}
+      else if (cstack == NULL)
+	break;
     }
   for (curr_scope = IR_next_stmt (ER_class (except));
        curr_scope != NULL;
@@ -826,7 +828,7 @@ evaluate_code (void)
   int res;
   IR_node_mode_t node_mode;
 
-  for (; cpc != NULL;)
+  for (;;)
     switch (node_mode = IR_NODE_MODE (IR_POINTER (cpc)))
       {
       case IR_NM_char:
@@ -1498,7 +1500,7 @@ evaluate_code (void)
 	    
 	    size = instance_size (ER_class (ER_instance (ctop)));
 	    instance = heap_allocate (size, FALSE);
-	    ER_SET_MODE (instance, ER_NM_instance);
+	    ER_SET_MODE (instance, ER_NM_heap_instance);
 	    un = ER_unique_number (instance);
 	    memcpy (instance, ER_instance (ctop), size);
 	    ER_set_immutable (instance, FALSE);
@@ -2159,8 +2161,12 @@ evaluate_code (void)
 		  else
 		    assert (FALSE);
 		  heap_pop ();
+		  if (cpc == NULL)
+		    return;
 		  break;
 		}
+	      else if (cstack == uppest_stack)
+		return;
 	      heap_pop ();
 	      if (node_mode == IR_NM_block_finish)
 		{
@@ -2197,6 +2203,8 @@ evaluate_code (void)
 		  else
 		    assert (FALSE);
 		  heap_pop ();
+		  if (cpc == NULL)
+		    return;
 		  break;
 		}
 	      heap_pop ();
@@ -2486,7 +2494,8 @@ call_func_class (int_t pars_number)
   process_func_class_call (pars_number);
   for (;;)
     {
-      evaluate_code ();
+      if (cpc != NULL)
+	evaluate_code ();
       if (saved_process_number != ER_process_number (cprocess))
 	delete_cprocess ();
       else

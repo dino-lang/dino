@@ -1459,6 +1459,11 @@ canonical_path_name (const char *name)
       IR_TOP_ADD_BYTE ('\0');
     }
   IR_TOP_ADD_STRING (name);
+#ifdef WIN32
+  /* It is place for possible inserting `drive:'. */
+  IR_TOP_ADD_BYTE ('\0');
+  IR_TOP_ADD_BYTE ('\0');
+#endif
   result = IR_TOP_BEGIN ();
   IR_TOP_FINISH ();
   for (p = result; *p != '\0'; p++)
@@ -1517,7 +1522,6 @@ full_file_name (const char *fname)
   const char *file_name;
   const char **path_directory_ptr;
   FILE *curr_file;
-  char buf [FILENAME_MAX + 1];
 
   curr_directory_name
     = (*curr_istream_state.file_name == '\0'

@@ -1846,11 +1846,11 @@ go_through (IR_node_t pc)
 
 /* The following recursive function processes short path operations to
    remove nodes unnecessary for execution. */
-static IR_node_t
+static void
 fourth_expr_processing (IR_node_t expr)
 {
   if (expr == NULL)
-    return expr;
+    return;
   if (IR_IS_OF_TYPE (expr, IR_NM_generic_pos))
     IR_set_next_pc (expr, go_through (IR_next_pc (expr)));
   switch (IR_NODE_MODE (expr))
@@ -1986,7 +1986,6 @@ static void
 fourth_block_passing (IR_node_t first_level_stmt)
 {
   IR_node_t stmt;
-  IR_node_t temp;
 
   for (stmt = first_level_stmt; stmt != NULL; stmt = IR_next_stmt (stmt))
     {
@@ -2012,7 +2011,7 @@ fourth_block_passing (IR_node_t first_level_stmt)
 	  break;
 	case IR_NM_procedure_call:
 	  {
-	    IR_node_t elist, pop_func_call;
+	    IR_node_t elist;
 	    
 	    fourth_expr_processing (IR_proc_expr (stmt));
 	    for (elist = IR_elist (stmt);

@@ -1,5 +1,83 @@
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* DINO/d_context.c (fourth_expr_processing): Make the result type
+	void.
+	(fourth_block_passing): Remove variables temp and elist.
+
+	* DINO/d_eval.c (find_catch_pc): Don't pop the uppest stack.
+	(evaluate_code): Don't check cpc in the cycle.  Fix typo in
+	setting up the heap instance mode.  Make return on `return' and
+	`block_finish' when cpc == NULL.  Don't pop up the uppest stack.
+	(call_func_class): Check cpc before evaluate_code.
+
+	* DINO/d_extern.sprut (spi): Add missed parameter for
+	create_pack_vector.
+	(create_pack_vector): Add and use the missed parameter.
+
+	* DINO/d_func.c (match_call): Remove variable vect.
+	(gmatch_call): Ditto.  Remove els_number.
+	(seek_call): Remove res.
+	(initiate_io, finish_io): Make the function result void.
+	(gc_call): Remove result.
+	(exit_call): Remove val and vect.
+	(process_func_class_call): Remove class.
+	(int_earley_parse): Remove i and save_pos_ptr.
+	(int_earley_create_grammar): Remove code.
+
+	* DINO/d_heap.c (final_call_destroy_functions): Add assert to
+	check that uppest stack was not popped up.  Check cstack not NULL.
+	Set up ctop and cpc when cstack is the uppest stack.
+	(hash_key): Remove j and el_type.
+	(spi): Add miised create_pack_vector.
+
+	* DINO/d_yacc.y (canonical_path_name): Expand name on 2 bytes on
+	WIN32.
+	(full_file_name): Remove buf.
+
+	* DINO/dino.tst.in: Add parameter that the interpreter built by
+	the Visual C.
+	(CMP): Remove CR from the second file too.
+	(SCMP): New shell variable.
+	(228): Use the new parameter.
+	(230): Remove Dos drive and change \ onto /.
+	(357): Remove some shell varaibles from the environemnt.
+	(437, 438): Try also concatenated stdout and stderr in another
+	order.
+	(453): Use suffix .dll for CYGWIN.
+	(457 - 461): Use SCMP.
+	(487): Try additional digit in the exponent.
+	(495): Increase datagram message buffer.
+	(497): Use suffix .dll and canonized path in the error message.
+	(499): Try absent service too.
+
+	* DINO/ipcerr_int.c (_ipc_err_init): Fix typo with eltype of
+	vector _eos_specific_nos.  Return nil.
+	(ipcerr_address): Return addresses of external objects.
+
+	* DINO/mpi.c (mpi_unary_op): Fix typo with setting up var.
+	(from_based_string): Fix typo in assert.
+
+	* DINO/socket.d: Add functions destroy.
+
+	* DINO/socket_int.c: Remove winsock2.h.
+	(socklen_t): Define it for WIN32.
+	(get_ip_address): Fix typo in WSAGetLastError.
+	(_gethostinfo): Remove addr_p and str.  Fix typo in
+	WSAGetLastError.
+	(form_servent): Don't setup errno for WSANO_DATA.  Fix typo in
+	WSAGetLastError.
+	(_sread, _swrite): Fix typo in WSAGetLastError.
+	(_recvfrom, _sendto, _accept, _stream_client): Ditto.
+	(_dgram_client): Ditto.  Remove addr, port, saddr, sin_addr_ptr.
+	(_stream_server): Remove addr, sin_addr_ptr.
+	(_dgram_server): Remove addr, queue_len, sin_addr_ptr.  Fix typo
+	in WSAGetLastError.
+	(socket_address): Return addresses of external objects.
+
+	* dinolang/dinolang.dsw: Add socket project.
+	
+2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* AMMUNITION/earley.c (earley_create_grammar): Initialize cost_p.
 
 2002-04-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>

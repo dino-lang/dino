@@ -122,7 +122,7 @@ final class __socket_package () {
     }
 
     private destroy;
-    func destroy () {_close_socket (sfd);}
+    func destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (peer_addr) != vector || eltype (peer_addr) != char
         || type (port) != int)
@@ -160,7 +160,7 @@ final class __socket_package () {
     }
 
     private destroy;
-    func destroy () {_close_socket (sfd);}
+    func destroy () {if (sfd != nil) _close_socket (sfd);}
 
     sfd = _dgram_client ();
     if (sfd == nil)
@@ -180,7 +180,7 @@ final class __socket_package () {
     }
 
     private destroy;
-    func destroy () {_close_socket (sfd);}
+    func destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_excepts.optype ();
@@ -218,7 +218,7 @@ final class __socket_package () {
     }
 
     private destroy;
-    func destroy () {_close_socket (sfd);}
+    func destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_excepts.optype ();

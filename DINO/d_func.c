@@ -756,7 +756,7 @@ match_call (int_t pars_number)
 {
   regex_t *reg;
   regmatch_t *pmatch;
-  ER_node_t vect, result;
+  ER_node_t result;
   size_t els_number;
   size_t i;
   int code;
@@ -819,8 +819,7 @@ gmatch_call (int_t pars_number)
 {
   regex_t *reg;
   regmatch_t *pmatch;
-  ER_node_t vect, result;
-  size_t els_number;
+  ER_node_t result;
   int code, flag, count, disp;
   int_t el;
   const char *start;
@@ -2399,7 +2398,6 @@ seek_call (int_t pars_number)
   int_t pos;
   int whence;
   int ch;
-  int res;
 
   if (pars_number != 3)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
@@ -3061,13 +3059,13 @@ struct token
    symbol. */
 static vlo_t el_text;
 
-static int
+static void
 initiate_io (void)
 {
   VLO_CREATE (el_text, 0);
 }
 
-static int
+static void
 finish_io (void)
 {
   VLO_DELETE (el_text);
@@ -4204,8 +4202,6 @@ readdir_call (int_t pars_number)
 static void
 stat_start (int_t pars_number, const char *function_name, struct stat *buf)
 {
-  int result;
-
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, function_name);
@@ -4553,8 +4549,6 @@ clock_call (int_t pars_number)
 void
 gc_call (int_t pars_number)
 {
-  floating_t result;
-
   if (pars_number != 0)
     eval_error (parnumber_decl, invcalls_decl,
 		IR_pos (cpc), DERR_parameters_number, GC_NAME);
@@ -4621,9 +4615,6 @@ void
 exit_call (int_t pars_number)
 {
   int code;
-  int error_flag;
-  ER_node_t val;
-  ER_node_t vect;
 
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
@@ -4804,7 +4795,6 @@ process_func_class_call (int_t pars_number)
 {
   size_t curr_actual;
   IR_node_t func_class;
-  IR_node_t class;
   ER_node_t func_class_val;
   ER_node_t instance;
   ER_node_t vars, pars;
@@ -5353,12 +5343,11 @@ void
 int_earley_parse (int npars)
 {
   struct grammar *g;
-  int i, code, ambiguous_p;
+  int code, ambiguous_p;
   struct earley_tree_node *root;
   ER_node_t par1, par2, par3, v;
   ER_node_t instance, var;
   const char *name = "parse";
-  position_t *save_pos_ptr;
 
   par1 = INDEXED_VAL (ER_CTOP (), -2);
   par2 = INDEXED_VAL (ER_CTOP (), -1);
@@ -5452,7 +5441,6 @@ void
 int_earley_create_grammar (int npars)
 {
   struct grammar *g;
-  int code;
 
   assert (npars == 0);
   g = earley_create_grammar ();

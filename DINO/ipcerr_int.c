@@ -71,6 +71,8 @@ WIN_EXPORT val_t
 _ipc_err_init (int npars, val_t *vals)
 {
   ER_node_t vect;
+  val_t val;
+  ER_node_t res = (ER_node_t) &val;
 
   assert (npars == 0);
 
@@ -385,114 +387,116 @@ _ipc_err_init (int npars, val_t *vals)
 
 #define MAX_OS_ERROR_VECT_LENGTH 100
 
-  vect = create_pack_vector (MAX_OS_ERROR_VECT_LENGTH, ER_NM_vect);
-  ER_set_els_number (pack_vect, 0);
-  ER_SET_MODE ((ER_node_t) _eos_specific_nos, ER_NM_vect);
-  ER_set_vect ((ER_node_t) _eos_specific_nos, vect);
+  vect = create_pack_vector (MAX_OS_ERROR_VECT_LENGTH, ER_NM_int);
+  ER_set_els_number (vect, 0);
+  ER_SET_MODE ((ER_node_t) &_eos_specific_nos, ER_NM_vect);
+  ER_set_vect ((ER_node_t) &_eos_specific_nos, vect);
 
   vect = create_pack_vector (MAX_OS_ERROR_VECT_LENGTH, ER_NM_vect);
-  ER_set_els_number (pack_vect, 0);
-  ER_SET_MODE ((ER_node_t) _eos_specific_msgs, ER_NM_vect);
-  ER_set_vect ((ER_node_t) _eos_specific_msgs, vect);
+  ER_set_els_number (vect, 0);
+  ER_SET_MODE ((ER_node_t) &_eos_specific_msgs, ER_NM_vect);
+  ER_set_vect ((ER_node_t) &_eos_specific_msgs, vect);
 
   
 #if defined(WSAEACCES)
-  set_pic_os_error (WSAEACCES, "Permission denied");
+  set_ipc_os_error (WSAEACCES, "Permission denied");
 #endif
 
 #if defined(WSAEFAULT)
-  set_pic_os_error (WSAEFAULT, "Bad address");
+  set_ipc_os_error (WSAEFAULT, "Bad address");
 #endif
 
 #if defined(WSAEINTR)
-  set_pic_os_error (WSAEINTR, "Interrupted function call");
+  set_ipc_os_error (WSAEINTR, "Interrupted function call");
 #endif
 
 #if defined(WSAEINVAL)
-  set_pic_os_error (WSAEINVAL, "Invalid argument");
+  set_ipc_os_error (WSAEINVAL, "Invalid argument");
 #endif
 
 #if defined(WSAEMFILE)
-  set_pic_os_error (WSAEMFILE, "Too many open files");
+  set_ipc_os_error (WSAEMFILE, "Too many open files");
 #endif
 
 #if defined(WSAEPROCLIM)
-  set_pic_os_error (WSAEPROCLIM, "Too many processes");
+  set_ipc_os_error (WSAEPROCLIM, "Too many processes");
 #endif
 
 #if defined(WSATYPE_NOT_FOUND)
-  set_pic_os_error (WSATYPE_NOT_FOUND, "Class type not found");
+  set_ipc_os_error (WSATYPE_NOT_FOUND, "Class type not found");
 #endif
 
 #if defined(WSAHOST_NOT_FOUND)
-  set_pic_os_error (WSAHOST_NOT_FOUND, "Host not found");
+  set_ipc_os_error (WSAHOST_NOT_FOUND, "Host not found");
 #endif
 
 #if defined(WSA_INVALID_HANDLE)
-  set_pic_os_error (WSA_INVALID_HANDLE, "Specified event object handle is invalid");
+  set_ipc_os_error (WSA_INVALID_HANDLE, "Specified event object handle is invalid");
 #endif
 
 #if defined(WSA_INVALID_PARAMETER)
-  set_pic_os_error (WSA_INVALID_PARAMETER, "One or more parameters are invalid");
+  set_ipc_os_error (WSA_INVALID_PARAMETER, "One or more parameters are invalid");
 #endif
 
 #if defined(WSAINVALIDPROCTABLE)
-  set_pic_os_error (WSAINVALIDPROCTABLE, "Invalid procedure table from service provider");
+  set_ipc_os_error (WSAINVALIDPROCTABLE, "Invalid procedure table from service provider");
 #endif
 
 #if defined(WSAINVALIDPROVIDER)
-  set_pic_os_error (WSAINVALIDPROVIDER, "Invalid service provider version number");
+  set_ipc_os_error (WSAINVALIDPROVIDER, "Invalid service provider version number");
 #endif
 
 #if defined(WSA_IO_INCOMPLETE)
-  set_pic_os_error (WSA_IO_INCOMPLETE, "Overlapped I/O event object not in signaled stat");
+  set_ipc_os_error (WSA_IO_INCOMPLETE, "Overlapped I/O event object not in signaled stat");
 #endif
 
 #if defined(WSA_NOT_ENOUGH_MEMORY)
-  set_pic_os_error (WSA_NOT_ENOUGH_MEMORY, "Insufficient memory available");
+  set_ipc_os_error (WSA_NOT_ENOUGH_MEMORY, "Insufficient memory available");
 #endif
 
 #if defined(WSANOTINITIALISED)
-  set_pic_os_error (WSANOTINITIALISED, "Successful WSAStartup not yet performed");
+  set_ipc_os_error (WSANOTINITIALISED, "Successful WSAStartup not yet performed");
 #endif
 
 #if defined(WSANO_DATA)
-  set_pic_os_error (WSANO_DATA, "Valid name, no data record of requested type");
+  set_ipc_os_error (WSANO_DATA, "Valid name, no data record of requested type");
 #endif
 
 #if defined(WSANO_RECOVERY)
-  set_pic_os_error (WSANO_RECOVERY, "This is a non-recoverable error");
+  set_ipc_os_error (WSANO_RECOVERY, "This is a non-recoverable error");
 #endif
 
 #if defined(WSAPROVIDERFAILEDINIT)
-  set_pic_os_error (WSAPROVIDERFAILEDINIT, "Unable to initialize a service provider");
+  set_ipc_os_error (WSAPROVIDERFAILEDINIT, "Unable to initialize a service provider");
 #endif
 
 #if defined(WSASYSCALLFAILURE)
-  set_pic_os_error (WSASYSCALLFAILURE, "System call failure");
+  set_ipc_os_error (WSASYSCALLFAILURE, "System call failure");
 #endif
 
 #if defined(WSASYSNOTREADY)
-  set_pic_os_error (WSASYSNOTREADY, "Network subsystem is unavailable");
+  set_ipc_os_error (WSASYSNOTREADY, "Network subsystem is unavailable");
 #endif
 
 #if defined(WSATRY_AGAIN)
-  set_pic_os_error (WSATRY_AGAIN, "Non-authoritative host not found");
+  set_ipc_os_error (WSATRY_AGAIN, "Non-authoritative host not found");
 #endif
 
 #if defined(WSAVERNOTSUPPORTED)
-  set_pic_os_error (WSAVERNOTSUPPORTED, "WINSOCK.DLL version out of range");
+  set_ipc_os_error (WSAVERNOTSUPPORTED, "WINSOCK.DLL version out of range");
 #endif
 
 #if defined(WSAEDISCON)
-  set_pic_os_error (WSAEDISCON, "Graceful shutdown in progress");
+  set_ipc_os_error (WSAEDISCON, "Graceful shutdown in progress");
 #endif
 
 #if defined(WSA_OPERATION_ABORTED)
-  set_pic_os_error (WSA_OPERATION_ABORTED, "Overlapped operation aborted");
+  set_ipc_os_error (WSA_OPERATION_ABORTED, "Overlapped operation aborted");
 #endif
 
 #endif
+  ER_SET_MODE (res, ER_NM_nil);
+  return val;
 }
 
 #ifndef WIN32
@@ -504,129 +508,133 @@ void *
 ipcerr_address (const char *name)
 {
   if (strcmp (name, "_eaddrinuse_no") == 0)
-    return _eaddrinuse_no;
+    return &_eaddrinuse_no;
   else if (strcmp (name, "_eaddrnotavail_no") == 0)
-    return _eaddrnotavail_no;
+    return &_eaddrnotavail_no;
   else if (strcmp (name, "_eafnosupport_no") == 0)
-    return _eafnosupport_no;
+    return &_eafnosupport_no;
   else if (strcmp (name, "_ealready_no") == 0)
-    return _ealready_no;
+    return &_ealready_no;
   else if (strcmp (name, "_econnaborted_no") == 0)
-    return _econnaborted_no;
+    return &_econnaborted_no;
   else if (strcmp (name, "_econnrefused_no") == 0)
-    return _econnrefused_no;
+    return &_econnrefused_no;
   else if (strcmp (name, "_econnreset_no") == 0)
-    return _econnreset_no;
+    return &_econnreset_no;
   else if (strcmp (name, "_edestaddrreq_no") == 0)
-    return _edestaddrreq_no;
+    return &_edestaddrreq_no;
   else if (strcmp (name, "_ehostdown_no") == 0)
-    return _ehostdown_no;
+    return &_ehostdown_no;
   else if (strcmp (name, "_ehostunreach_no") == 0)
-    return _ehostunreach_no;
+    return &_ehostunreach_no;
   else if (strcmp (name, "_einprogress_no") == 0)
-    return _einprogress_no;
+    return &_einprogress_no;
   else if (strcmp (name, "_eisconn_no") == 0)
-    return _eisconn_no;
+    return &_eisconn_no;
   else if (strcmp (name, "_emsgsize_no") == 0)
-    return _emsgsize_no;
+    return &_emsgsize_no;
   else if (strcmp (name, "_enetdown_no") == 0)
-    return _enetdown_no;
+    return &_enetdown_no;
   else if (strcmp (name, "_enetreset_no") == 0)
-    return _enetreset_no;
+    return &_enetreset_no;
   else if (strcmp (name, "_enetunreach_no") == 0)
-    return _enetunreach_no;
+    return &_enetunreach_no;
   else if (strcmp (name, "_enobufs_no") == 0)
-    return _enobufs_no;
+    return &_enobufs_no;
   else if (strcmp (name, "_enoprotoopt_no") == 0)
-    return _enoprotoopt_no;
+    return &_enoprotoopt_no;
   else if (strcmp (name, "_enosr_no") == 0)
-    return _enosr_no;
+    return &_enosr_no;
   else if (strcmp (name, "_enotconn_no") == 0)
-    return _enotconn_no;
+    return &_enotconn_no;
   else if (strcmp (name, "_enotsock_no") == 0)
-    return _enotsock_no;
+    return &_enotsock_no;
   else if (strcmp (name, "_eopnotsupp_no") == 0)
-    return _eopnotsupp_no;
+    return &_eopnotsupp_no;
   else if (strcmp (name, "_epfnosupport_no") == 0)
-    return _epfnosupport_no;
+    return &_epfnosupport_no;
   else if (strcmp (name, "_eprotonosupport_no") == 0)
-    return _eprotonosupport_no;
+    return &_eprotonosupport_no;
   else if (strcmp (name, "_eprototype_no") == 0)
-    return _eprototype_no;
+    return &_eprototype_no;
   else if (strcmp (name, "_eremoterelease_no") == 0)
-    return _eremoterelease_no;
+    return &_eremoterelease_no;
   else if (strcmp (name, "_eshutdown_no") == 0)
-    return _eshutdown_no;
+    return &_eshutdown_no;
   else if (strcmp (name, "_esocktnosupport_no") == 0)
-    return _esocktnosupport_no;
+    return &_esocktnosupport_no;
   else if (strcmp (name, "_etimedout_no") == 0)
-    return _etimedout_no;
+    return &_etimedout_no;
   else if (strcmp (name, "_etoomanyrefs_no") == 0)
-    return _etoomanyrefs_no;
+    return &_etoomanyrefs_no;
   else if (strcmp (name, "_ewouldblock_no") == 0)
-    return _ewouldblock_no;
+    return &_ewouldblock_no;
+  else if (strcmp (name, "_eos_specific_nos") == 0)
+    return &_eos_specific_nos;
   else if (strcmp (name, "_eaddrinuse_msg") == 0)
-    return _eaddrinuse_msg;
+    return &_eaddrinuse_msg;
   else if (strcmp (name, "_eaddrnotavail_msg") == 0)
-    return _eaddrnotavail_msg;
+    return &_eaddrnotavail_msg;
   else if (strcmp (name, "_eafnosupport_msg") == 0)
-    return _eafnosupport_msg;
+    return &_eafnosupport_msg;
   else if (strcmp (name, "_ealready_msg") == 0)
-    return _ealready_msg;
+    return &_ealready_msg;
   else if (strcmp (name, "_econnaborted_msg") == 0)
-    return _econnaborted_msg;
+    return &_econnaborted_msg;
   else if (strcmp (name, "_econnrefused_msg") == 0)
-    return _econnrefused_msg;
+    return &_econnrefused_msg;
   else if (strcmp (name, "_econnreset_msg") == 0)
-    return _econnreset_msg;
+    return &_econnreset_msg;
   else if (strcmp (name, "_edestaddrreq_msg") == 0)
-    return _edestaddrreq_msg;
+    return &_edestaddrreq_msg;
   else if (strcmp (name, "_ehostdown_msg") == 0)
-    return _ehostdown_msg;
+    return &_ehostdown_msg;
   else if (strcmp (name, "_ehostunreach_msg") == 0)
-    return _ehostunreach_msg;
+    return &_ehostunreach_msg;
   else if (strcmp (name, "_einprogress_msg") == 0)
-    return _einprogress_msg;
+    return &_einprogress_msg;
   else if (strcmp (name, "_eisconn_msg") == 0)
-    return _eisconn_msg;
+    return &_eisconn_msg;
   else if (strcmp (name, "_emsgsize_msg") == 0)
-    return _emsgsize_msg;
+    return &_emsgsize_msg;
   else if (strcmp (name, "_enetdown_msg") == 0)
-    return _enetdown_msg;
+    return &_enetdown_msg;
   else if (strcmp (name, "_enetreset_msg") == 0)
-    return _enetreset_msg;
+    return &_enetreset_msg;
   else if (strcmp (name, "_enetunreach_msg") == 0)
-    return _enetunreach_msg;
+    return &_enetunreach_msg;
   else if (strcmp (name, "_enobufs_msg") == 0)
-    return _enobufs_msg;
+    return &_enobufs_msg;
   else if (strcmp (name, "_enoprotoopt_msg") == 0)
-    return _enoprotoopt_msg;
+    return &_enoprotoopt_msg;
   else if (strcmp (name, "_enosr_msg") == 0)
-    return _enosr_msg;
+    return &_enosr_msg;
   else if (strcmp (name, "_enotconn_msg") == 0)
-    return _enotconn_msg;
+    return &_enotconn_msg;
   else if (strcmp (name, "_enotsock_msg") == 0)
-    return _enotsock_msg;
+    return &_enotsock_msg;
   else if (strcmp (name, "_eopnotsupp_msg") == 0)
-    return _eopnotsupp_msg;
+    return &_eopnotsupp_msg;
   else if (strcmp (name, "_epfnosupport_msg") == 0)
-    return _epfnosupport_msg;
+    return &_epfnosupport_msg;
   else if (strcmp (name, "_eprotonosupport_msg") == 0)
-    return _eprotonosupport_msg;
+    return &_eprotonosupport_msg;
   else if (strcmp (name, "_eprototype_msg") == 0)
-    return _eprototype_msg;
+    return &_eprototype_msg;
   else if (strcmp (name, "_eremoterelease_msg") == 0)
-    return _eremoterelease_msg;
+    return &_eremoterelease_msg;
   else if (strcmp (name, "_eshutdown_msg") == 0)
-    return _eshutdown_msg;
+    return &_eshutdown_msg;
   else if (strcmp (name, "_esocktnosupport_msg") == 0)
-    return _esocktnosupport_msg;
+    return &_esocktnosupport_msg;
   else if (strcmp (name, "_etimedout_msg") == 0)
-    return _etimedout_msg;
+    return &_etimedout_msg;
   else if (strcmp (name, "_etoomanyrefs_msg") == 0)
-    return _etoomanyrefs_msg;
+    return &_etoomanyrefs_msg;
   else if (strcmp (name, "_ewouldblock_msg") == 0)
-    return _ewouldblock_msg;
+    return &_ewouldblock_msg;
+  else if (strcmp (name, "_eos_specific_msgs") == 0)
+    return &_eos_specific_msgs;
   else if  (strcmp (name, "_ipc_err_init") == 0)
     return _ipc_err_init;
   else

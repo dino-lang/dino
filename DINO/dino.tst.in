@@ -5,7 +5,7 @@
 #
 
 #
-# Usage: dino.tst [start_test_number]
+# Usage: dino.tst [start_test_number [build by MSVC]] 
 #
 # The script outputs self-explanatory messages and returns zero exit code if 
 # it is all ok.
@@ -23,9 +23,11 @@ tempdir=__tempdir
 result=ok
 
 if uname | fgrep CYGWIN; then
-   CMP="eval sh -c 'tr -d \\\\r <\$0 >__tmp && mv __tmp \$0 && cmp \$0 \$1'"
+   CMP="eval sh -c 'tr -d \\\\r <\$0 >__tmp && mv __tmp \$0 && tr -d \\\\r <\$1 >__tmp && mv __tmp \$1 && cmp \$0 \$1'"
+   SCMP="eval sh -c 'tr -d \\\\r <\$0 >__tmp && mv __tmp \$0 && cmp \$0 \$1'"
 else
    CMP=cmp
+   SCMP=cmp
 fi
 
 if test x$1 = x
@@ -39,6 +41,13 @@ else
         echo $script_file:invalid argument $1 2>&1
         exit 1
     fi
+fi
+
+if test x$2 = x
+then
+    msvc=
+else
+    msvc=yes
 fi
 
 # Test 1.
@@ -17114,7 +17123,13 @@ TEST228
         if $DINO $test_file 2>$stderr >$stdout; then
 		sed 's/^[A-Za-z]://' $stdout|sed 's,\\,/,g' >$ftemp
                 echo '      ' egrep "$ftemp2" $ftemp
-                if echo `pwd` >$ftemp2 && $CMP $ftemp $ftemp2; then
+                if uname | fgrep CYGWIN && test x$msvc != x;then
+                   echo `pwd`| sed 's%/cygdrive/[a-z]%%' >$ftemp2
+                else
+                   echo `pwd` >$ftemp2
+                fi
+                echo '      ' $CMP $ftemp2 $ftemp
+                if $CMP $ftemp $ftemp2; then
                         result=ok
                 else
                         result=fail
@@ -17156,8 +17171,13 @@ TEST230
         mkdir $tempdir
         if $DINO $test_file 2>$stderr >$stdout; then
 		sed 's/^[A-Za-z]://' $stdout|sed 's,\\,/,g' >$ftemp
+                if uname | fgrep CYGWIN && test x$msvc != x;then
+                   echo `pwd`/$tempdir| sed 's%/cygdrive/[a-z]%%' >$ftemp2
+                else
+                   echo `pwd`/$tempdir >$ftemp2
+                fi
                 echo '      ' $CMP $ftemp $ftemp2
-                if  echo `pwd`/$tempdir >$ftemp2 && $CMP $ftemp $ftemp2; then
+                if  $CMP $ftemp $ftemp2; then
                         result=ok
                 else
                         result=fail
@@ -20808,8 +20828,8 @@ for (k in env)
 TEST357
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
-		sort $stdout | awk '!/^_/' >$ftemp
-		set | sort $stdout | awk '!/^_/' >$ftemp2
+		sort $stdout | awk '!/^(_|BASH|EUID|IFS|OPTERR|OPTIND|PPID|PS4|PWD|UID|SHLVL|PS2|TEMP|PATH|HOME|!)/ && length != 0' >$ftemp
+		sh -c 'set' | sort | awk '!/^(_|BASH|EUID|IFS|OPTERR|OPTIND|PPID|PS4|PWD|UID|SHLVL|PS2|TEMP|PATH|HOME|!)/ && length != 0' >$ftemp2
                 echo '      ' $CMP $ftemp $ftemp2
                 if $CMP $ftemp $ftemp2; then
                         result=ok
@@ -24314,6 +24334,33 @@ plus(
 )
 OUTPUT437
                         result=ok
+                elif cat >$ftemp2 <<'OUTPUT437' && $CMP $stdout $ftemp2; then
+plus(
+  $term(97, 0)
+  mult(
+    $term(97, 2)
+    plus(
+      mult(
+        $term(97, 5)
+        $term(97, 7)
+      )
+      $term(97, 9)
+    )
+  )
+)
+Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Input: #tokens = 12, #unique situations = 22
+       #terminal sets = 30, their size = 240
+       #unique set cores = 10, #their start situations = 25
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 10, their length = 25
+       #pairs(set core, symb) = 38, their trans+reduce vects length = 43
+       #unique transition vectors = 12, their length = 16
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 4
+       #alternative nodes = 0, #all nodes = 9
+OUTPUT437
+                        result=ok
                 else
                         result=fail
                 fi
@@ -24422,6 +24469,44 @@ plus(
     )
   )
 )
+OUTPUT438
+                        result=ok
+                elif cat >$ftemp2 <<'OUTPUT438' && $CMP $stdout $ftemp2; then
+plus(
+  $term(97, 0)
+  mult(
+    $term(97, 2)
+    plus(
+      mult(
+        $term(97, 5)
+        $term(97, 7)
+      )
+      $term(97, 9)
+    )
+  )
+)
+Translation:
+      0: ABSTRACT: plus ( 1 2 )
+      1: TERMINAL: code=97, repr='a'
+      2: ABSTRACT: mult ( 3 4 )
+      3: TERMINAL: code=97, repr='a'
+      4: ABSTRACT: plus ( 5 6 )
+      5: ABSTRACT: mult ( 7 8 )
+      7: TERMINAL: code=97, repr='a'
+      8: TERMINAL: code=97, repr='a'
+      6: TERMINAL: code=97, repr='a'
+
+Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
+Input: #tokens = 12, #unique situations = 22
+       #terminal sets = 30, their size = 240
+       #unique set cores = 10, #their start situations = 25
+       #parent indexes for some non start situations = 0
+       #unique set dist. vects = 10, their length = 25
+       #pairs(set core, symb) = 38, their trans+reduce vects length = 43
+       #unique transition vectors = 12, their length = 16
+       #unique reduce vectors = 4, their length = 4
+       #term nodes = 5, #abstract nodes = 4
+       #alternative nodes = 0, #all nodes = 9
 OUTPUT438
                         result=ok
                 else
@@ -25983,8 +26068,8 @@ putln ("quad ", q1.to_string (), " -> single ", s1.to_string ());
 d1 = q1.to_double ();
 putln ("quad ", q1.to_string (), " -> double ", d1.to_string ());
 TEST453
-        echo '      ' $DINO -L./ieee.@EXTERN_LIB_SUFFIX@ -L./mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
         if uname | fgrep CYGWIN; then
+            echo '      ' $DINO -L./ieee.dll -L./mpi.dll -I@srcdir@ $test_file "2>$stderr"
 	    if $DINO -Lieee.dll -Lmpi.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && $CMP $stdout $ftemp2; then
@@ -26198,6 +26283,7 @@ OUTPUT453
                 result=fail
 	    fi
 	else
+            echo '      ' $DINO -L./ieee.@EXTERN_LIB_SUFFIX@ -L./mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
 	    if $DINO -L./ieee.@EXTERN_LIB_SUFFIX@ -L./mpi.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT453' && $CMP $stdout $ftemp2; then
@@ -26486,7 +26572,7 @@ TEST457
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
-        elif $CMP $stderr - <<'TEST457-1'; then
+        elif $SCMP $stderr - <<'TEST457-1'; then
 test.d:1:9: run time error - invalid parameter type of `gmatch'
 TEST457-1
                 result=ok
@@ -26504,7 +26590,7 @@ TEST458
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
-        elif $CMP $stderr - <<'TEST458-1'; then
+        elif $SCMP $stderr - <<'TEST458-1'; then
 test.d:1:9: run time error - invalid number of parameters of `gmatch'
 TEST458-1
                 result=ok
@@ -26522,7 +26608,7 @@ TEST459
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
-        elif $CMP $stderr - <<'TEST459-1'; then
+        elif $SCMP $stderr - <<'TEST459-1'; then
 test.d:1:9: run time error - unmatched bracket list operators in regexp
 TEST459-1
                 result=ok
@@ -26540,7 +26626,7 @@ TEST460
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
-        elif $CMP $stderr - <<'TEST460-1'; then
+        elif $SCMP $stderr - <<'TEST460-1'; then
 test.d:1:9: run time error - invalid parameter type of `gmatch'
 TEST460-1
                 result=ok
@@ -26558,7 +26644,7 @@ TEST461
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=fail
-        elif $CMP $stderr - <<'TEST461-1'; then
+        elif $SCMP $stderr - <<'TEST461-1'; then
 test.d:1:9: run time error - invalid parameter type of `gmatch'
 TEST461-1
                 result=ok
@@ -26622,7 +26708,7 @@ TEST464
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT464' && $CMP $stderr $ftemp2; then
 test.d:2:11: run time error - EOF occured in `getf'
 OUTPUT464
@@ -26645,7 +26731,7 @@ TEST465
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT465' && $CMP $stderr $ftemp2; then
 test.d:3:14: run time error - EOF occured in `fgetf'
 OUTPUT465
@@ -26666,7 +26752,7 @@ TEST466
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT466' && $CMP $stderr $ftemp2; then
 test.d:1:15: run time error - invalid parameter type of `getf'
 OUTPUT466
@@ -26687,7 +26773,7 @@ TEST467
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT467' && $CMP $stderr $ftemp2; then
 test.d:1:16: run time error - invalid number of parameters of `fgetf'
 OUTPUT467
@@ -26708,7 +26794,7 @@ TEST468
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT468' && $CMP $stderr $ftemp2; then
 test.d:1:16: run time error - invalid parameter type of `fgetf'
 OUTPUT468
@@ -26729,7 +26815,7 @@ TEST469
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT469' && $CMP $stderr $ftemp2; then
 test.d:1:16: run time error - invalid parameter type of `fgetf'
 OUTPUT469
@@ -26821,7 +26907,7 @@ TEST473
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT473' && $CMP $stderr $ftemp2; then
 test.d:1:14: run time error - invalid type of operand of char (...)
 OUTPUT473
@@ -26842,7 +26928,7 @@ TEST474
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT474' && $CMP $stderr $ftemp2; then
 test.d:1:18: invalid operand type in char (...)
 OUTPUT474
@@ -26863,7 +26949,7 @@ TEST475
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT475' && $CMP $stderr $ftemp2; then
 test.d:1:14: system error - result too big (small): `int-to-char conversion'
 OUTPUT475
@@ -26884,7 +26970,7 @@ TEST476
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT476' && $CMP $stderr $ftemp2; then
 test.d:1:14: system error - result too big (small): `string-to-int conversion'
 OUTPUT476
@@ -26905,7 +26991,7 @@ TEST477
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT477' && $CMP $stderr $ftemp2; then
 test.d:1:13: run time error - invalid type of operand of int (...)
 OUTPUT477
@@ -26926,7 +27012,7 @@ TEST478
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT478' && $CMP $stderr $ftemp2; then
 test.d:1:17: invalid operand type in int (...)
 OUTPUT478
@@ -26947,7 +27033,7 @@ TEST479
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT479' && $CMP $stderr $ftemp2; then
 test.d:1:13: system error - result too big (small): `string-to-int conversion'
 OUTPUT479
@@ -26968,7 +27054,7 @@ TEST480
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT480' && $CMP $stderr $ftemp2; then
 test.d:1:15: run time error - invalid type of operand of float (...)
 OUTPUT480
@@ -26989,7 +27075,7 @@ TEST481
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT481' && $CMP $stderr $ftemp2; then
 test.d:1:19: invalid operand type in float (...)
 OUTPUT481
@@ -27010,7 +27096,7 @@ TEST482
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT482' && $CMP $stderr $ftemp2; then
 test.d:1:15: system error - result too big (small): `string-to-float conversion'
 OUTPUT482
@@ -27038,7 +27124,7 @@ OUTPUT483
                         result=fail
                 fi
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT483-1' && $CMP $stderr $ftemp2; then
 test.d:1:15: system error - result too big (small): `string-to-float conversion'
 OUTPUT483-1
@@ -27233,6 +27319,10 @@ TEST487
 10 1.02e+11 c ssss
 OUTPUT487
                         result=ok
+                elif cat >$ftemp2 <<'OUTPUT487a' && $CMP $stdout $ftemp2; then
+10 1.02e+011 c ssss
+OUTPUT487a
+                        result=ok
                 else
                         result=fail
                 fi
@@ -27251,7 +27341,7 @@ TEST488
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT488' && $CMP $stderr $ftemp2; then
 test.d:1:9: run time error - invalid parameter type of `sputln'
 OUTPUT488
@@ -27272,7 +27362,7 @@ TEST489
         if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT489' && $CMP $stderr $ftemp2; then
 test.d:1:7: run time error - invalid parameter type of `sput'
 OUTPUT489
@@ -27447,7 +27537,7 @@ TEST492
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT492' && $CMP $stderr $ftemp2; then
 test.d:4:17: run time error - invalid parameter type of `set_lookahead'
 OUTPUT492
@@ -27540,7 +27630,7 @@ include "socket";
 
 var str, s = sockets.dgram_client ();
 s.sendto ("get me date", "tock.usno.navy.mil", 13);
-var d = s.recvfrom (40);
+var d = s.recvfrom (300);
 putln (d.str);
 exit (0);
 TEST495
@@ -27589,8 +27679,8 @@ putln (str);
 exit (0);
 TEST496
      if uname | fgrep CYGWIN; then
-        echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file time >$stdout"
-        if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file time >$stdout; then
+        echo '      ' "$DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@  $test_file time >$stdout"
+        if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file time >$stdout; then
                 echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout
                 if egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout; then
                         result=ok
@@ -27631,8 +27721,9 @@ TEST497
         if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
-                if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
+		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
+                echo '      ' $CMP $ftemp $ftemp2
+                if cat >$ftemp2 <<'OUTPUT497' && $CMP $ftemp $ftemp2; then
 In file processed from test.d:1:18:
 @srcdir@/socket.d:39:11: host is unknown
 OUTPUT497
@@ -27646,7 +27737,7 @@ OUTPUT497
         if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr >$stdout; then
                 result=fail
         else
-                echo '      ' $CMP - $stderr
+                echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT497' && $CMP $stderr $ftemp2; then
 In file processed from test.d:1:18:
 @srcdir@/socket.d:39:11: host is unknown
@@ -27707,8 +27798,8 @@ TEST499
      if uname | fgrep CYGWIN; then
         echo '      ' "$DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@  $test_file 37 >$stdout"
         if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file 37 >$stdout; then
-                echo '      ' egrep '^".+"\[".+"\]37"tcp"$' $stdout
-                if egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
+                echo '      ' test -z "\`cat $stdout\`" '|| egrep ^".+"\[".+"\]37"tcp"$' $stdout
+                if test -z "`cat $stdout`" || egrep '^".+"\[".+"\]37"tcp"$' $stdout; then
                         result=ok
                 else
                         result=fail

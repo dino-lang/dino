@@ -524,12 +524,16 @@ final_call_destroy_functions (void)
   if (uppest_stack == NULL)
     /* Heap is not initialized.  */
     return;
+  assert (curr_heap_chunk->chunk_start > (char *) uppest_stack
+	  || (char *) uppest_stack >= curr_heap_chunk->chunk_bound
+	  || (char *) uppest_stack < curr_heap_chunk->chunk_free
+	  || (char *) uppest_stack >= curr_heap_chunk->chunk_stack_top);
   clean_heap_object_process_flag ();
   if (mark_instances_need_destroying (FALSE))
     {
-      if (cstack == NULL)
+      assert (cstack != NULL);
+      if (cstack == uppest_stack)
 	{
-	  cstack = uppest_stack;
 	  block_node_ptr = ER_block_node (cstack);
 	  ctop = (ER_node_t) ((char *) ER_stack_vars (cstack)
 			      + REAL_BLOCK_VARS_NUMBER (block_node_ptr)
@@ -2049,7 +2053,7 @@ static size_t
 hash_key (ER_node_t key)
 {
   size_t hash, el_hash;
-  size_t i, j;
+  size_t i;
   size_t length;
   unsigned char *string;
   int shift;
@@ -2084,7 +2088,6 @@ hash_key (ER_node_t key)
 	    ER_node_t var_ref = (ER_node_t) &var;
 	    size_t displ;
 	    size_t el_size;
-	    ER_node_mode_t el_type;
 
 	    ER_SET_MODE (var_ref, ER_pack_vect_el_type (pv));
 	    displ = val_displ (var_ref);
@@ -2768,6 +2771,7 @@ struct spi spi =
   create_hideblock,
   create_empty_vector,
   create_unpack_vector,
+  create_pack_vector,
   expand_vector,
   unpack_vector,
   pack_vector_if_possible,
