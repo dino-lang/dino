@@ -27659,6 +27659,40 @@ OUTPUT497
      fi
 fi
 
+# Test 498.
+if test $result = ok -a $start_test_number -le 498; then
+	echo test 498: Contexts and internal caches.
+        cat >$test_file <<'TEST498'
+class a (i, n) {
+  func ex () {
+    putln ("before = ", i);
+    if (n != nil) n.ex ();
+    putln ("after = ", i);
+  }
+}
+
+var o = a (1, a (10, nil));
+
+o.ex ();
+TEST498
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT498' && $CMP $stdout $ftemp2; then
+before = 1
+before = 10
+after = 10
+after = 1
+OUTPUT498
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

@@ -1844,13 +1844,20 @@ external_var, external_func :: , external
 block
 %other
         /* The following field is cached address of container for the
-           current block.  If it is NULL, the cached value is not
-           defined or cached_container_tick is not equal to the
+           current block.  The cached value is not
+           defined if cached_container_tick is not equal to the
            current value. */
 	cached_container_address : string_t
 	cached_container_tick : integer_t {$ = -1;}
 ;
 
+var
+%other
+        /* The following field is cached address of the variable.  The
+           cached value is not defined if cached_container_tick is not
+           equal to the current value. */
+	var_cached_address : string_t
+	var_cached_container_tick : integer_t {$ = -1;}
 %%
 
 /* Funcs for work with code node hash table.  The table contains pointers

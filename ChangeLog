@@ -1,3 +1,19 @@
+2002-04-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_eval.c (find_context_by_scope): Remove checking cached
+	value by NULL.
+	(push_var_val): Add code for cached variable address value.
+	(evaluate_code): Set up unique number for copied instance.
+
+	* DINO/d_heap.c (heap_push, heap_pop): Always increase the tick.
+	(copy_vector): Set up unique number for copied vector.
+
+	* DINO/d_ir.sprut (block): Change comment for the cached address.
+	(var): New fields `var_cached_address' and
+	`var_cached_container_tick'.
+
+	* DINO/dino.tst.in: Add test for the cashes in complicated cases.
+	
 2002-04-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_ir.sprut (ENVIRONMENT): Rename i into __i.

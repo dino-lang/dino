@@ -44,8 +44,7 @@ find_context_by_scope (IR_node_t _scope)
   if (IR_cached_container_tick (_scope) == current_cached_container_tick)
     {
       container = (ER_node_t) IR_cached_container_address (_scope);
-      if (container != NULL)
-	return container;
+      return container;
     }
 #endif
   {
@@ -67,10 +66,8 @@ find_context_by_scope (IR_node_t _scope)
   IR_node_t _scope = scope;						\
   ER_node_t container;							\
 									\
-  if (IR_cached_container_tick (_scope) == current_cached_container_tick\
-      && (container = (ER_node_t) IR_cached_container_address (_scope))	\
-          != NULL)							\
-    ;									\
+  if (IR_cached_container_tick (_scope) == current_cached_container_tick)\
+      container = (ER_node_t) IR_cached_container_address (_scope);	\
   else									\
     {									\
       FIND_CONTEXT_BY_SCOPE						\
@@ -108,11 +105,19 @@ static void
 push_var_val (IR_node_t _decl)
 {
   int var_number_in_block = IR_var_number_in_block (_decl);
+  IR_node_t scope = IR_scope (_decl);
   ER_node_t container;
   char *address;
 
   TOP_UP;
-  container = find_context_by_scope (IR_scope (_decl));
+#ifndef NO_CONTAINER_CACHE
+  if (IR_var_cached_container_tick (_decl) == current_cached_container_tick)
+    {
+      *(val_t *) ctop = *(val_t *) IR_var_cached_address (_decl);
+      return;
+    }
+#endif
+  container = find_context_by_scope (scope);
   if (ER_NODE_MODE (container) == ER_NM_heap_instance)
     address = (char *) INDEXED_VAL (ER_instance_vars (container),
 				    var_number_in_block);
@@ -120,6 +125,10 @@ push_var_val (IR_node_t _decl)
     address = (char *) INDEXED_VAL (ER_stack_vars (container),
 				    var_number_in_block);
   *(val_t *) ctop = *(val_t *) address;
+#ifndef NO_CONTAINER_CACHE
+  IR_set_var_cached_container_tick (_decl, current_cached_container_tick);
+  IR_set_var_cached_address (_decl, address);
+#endif
 }
 
 #if INLINE && !defined (SMALL_CODE)
@@ -1484,13 +1493,16 @@ evaluate_code (void)
 	  }
 	else if (ER_NODE_MODE (ctop) == ER_NM_instance)
 	  {
-	    size_t size;
+	    size_t size, un;
 	    ER_node_t instance;
 	    
 	    size = instance_size (ER_class (ER_instance (ctop)));
 	    instance = heap_allocate (size, FALSE);
+	    ER_SET_MODE (instance, ER_NM_instance);
+	    un = ER_unique_number (instance);
 	    memcpy (instance, ER_instance (ctop), size);
 	    ER_set_immutable (instance, FALSE);
+	    ER_set_unique_number (instance, un);
 	    ER_set_instance (ctop, instance);
 	  }
 	INCREMENT_PC ();

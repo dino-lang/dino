@@ -1500,9 +1500,7 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context)
 	context = ER_context (context);
     }
 #ifndef NO_CONTAINER_CACHE
-  if (context != cstack)
-    current_cached_container_tick++;
-  IR_set_cached_container_address (block_node_ptr, NULL);
+  current_cached_container_tick++;
 #endif
   ER_set_context (stack, context);
   ER_set_context_number (stack, context_number);
@@ -1551,13 +1549,13 @@ heap_pop (void)
 	ticker_off (&IR_exec_time (func_class));
 #endif
     }
-#ifndef NO_CONTAINER_CACHE
-  IR_set_cached_container_address (block_node, NULL);
-#endif
 #ifndef NO_OPTIMIZE
   ER_set_ctop (cstack, (char *) ctop);
 #endif
   cstack = ER_prev_stack (cstack);
+#ifndef NO_CONTAINER_CACHE
+  current_cached_container_tick++;
+#endif
 #ifndef NO_OPTIMIZE
   if (cstack == NULL)
     ctop = NULL;
@@ -1847,6 +1845,8 @@ copy_vector (ER_node_t vect)
   new_vect = heap_allocate (vect_size, FALSE);
   memcpy (new_vect, GET_TEMP_REF (0), vect_size);
   POP_TEMP_REF (1);
+  ER_set_unique_number (new_vect, unique_number);
+  unique_number++;
   ER_set_immutable (new_vect, FALSE);
   return new_vect;
 }
