@@ -27137,6 +27137,145 @@ OUTPUT485
         fi
 fi
 
+# Test 486.
+if test $result = ok -a $start_test_number -le 486; then
+	echo test 486
+        cat >$test_file <<'TEST486'
+put (sprint (nil));put (" ");
+put (sprint (10));put (" ");
+put (sprint (10.2e10));put (" ");
+put (sprint ('c'));put (" ");
+put (sprintln ("ssss"));
+put (sprintln (["aaa", "bbb", "ccc"]));
+put (sprintln (["v1", {"key":"val", {"key1":"val1"}}]));
+func f () {}
+put (sprintln (f));
+class c () {}
+put (sprintln (c));
+put (sprintln (c ()));
+var stop;
+stop = 0;
+thread t () {wait stop;}
+put (sprintln (t()));
+stop = 1;
+TEST486
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+		sed 's/([0-9]*)/()/g' $stdout >$ftemp
+                echo '      ' cmp - $ftemp
+                if cat >$ftemp2 <<'OUTPUT486' && cmp $ftemp $ftemp2; then
+nil 10 1.02e+11 'c' "ssss"
+["aaa", "bbb", "ccc"]
+["v1", {"key":"val", {"key1":"val1"}:nil}]
+func f
+class c
+instance c()
+thread 1 t()
+OUTPUT486
+                        result=ok
+                elif cat >$ftemp2 <<'OUTPUT486-1' && cmp $ftemp $ftemp2; then
+nil 10 1.02e+011 'c' "ssss"
+["aaa", "bbb", "ccc"]
+["v1", {"key":"val", {"key1":"val1"}:nil}]
+func f
+class c
+instance c()
+thread 1 t()
+OUTPUT486-1
+                        result=ok
+                elif cat >$ftemp2 <<'OUTPUT486-2' && cmp $ftemp $ftemp2; then
+nil 10 1.02e+11 'c' "ssss"
+["aaa", "bbb", "ccc"]
+["v1", {{"key1":"val1"}:nil, "key":"val"}]
+func f
+class c
+instance c()
+thread 1 t()
+OUTPUT486-2
+                        result=ok
+                elif cat >$ftemp2 <<'OUTPUT486-3' && cmp $ftemp $ftemp2; then
+nil 10 1.02e+011 'c' "ssss"
+["aaa", "bbb", "ccc"]
+["v1", {{"key1":"val1"}:nil, "key":"val"}]
+func f
+class c
+instance c()
+thread 1 t()
+OUTPUT486-3
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 487.
+if test $result = ok -a $start_test_number -le 487; then
+	echo test 487
+        cat >$test_file <<'TEST487'
+put (sput (10));put (" ");
+put (sput (10.2e10, " "));
+put (sputln ('c', " ", "ssss"));
+TEST487
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' cmp $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT487' && cmp $stdout $ftemp2; then
+10 1.02e+11 c ssss
+OUTPUT487
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 488.
+if test $result = ok -a $start_test_number -le 488; then
+	echo test 488
+        cat >$test_file <<'TEST488'
+sputln (nil);
+TEST488
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT488' && cmp $stderr $ftemp2; then
+test.d:1:9: run time error - invalid parameter type of `sputln'
+OUTPUT488
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 489.
+if test $result = ok -a $start_test_number -le 489; then
+	echo test 489
+        cat >$test_file <<'TEST489'
+sput ([10]);
+TEST489
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' cmp - $stderr
+                if cat >$ftemp2 <<'OUTPUT489' && cmp $stderr $ftemp2; then
+test.d:1:7: run time error - invalid parameter type of `sput'
+OUTPUT489
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

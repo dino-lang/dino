@@ -415,8 +415,10 @@ typedef IR_node_t pc_t;
   "func open() {} func close(){} func flush(){}\n"\
   "func popen() {} func pclose(){}\n"\
   "func tell() {} func seek() {}\n"\
-  "func put(){} func putln(){} func fput(){} func fputln(){}\n"\
-  "func print(){} func println(){} func fprint(){} func fprintln(){}\n"\
+  "func put(){} func putln(){}\n"\
+  "func fput(){} func fputln(){} func sput(){} func sputln(){}\n"\
+  "func print(){} func println(){}\n"\
+  "func fprint(){} func fprintln(){} func sprint(){} func sprintln(){}\n"\
   "func get(){} func getln(){} func getf(){}\n"\
   "func fget(){} func fgetln(){} func fgetf(){}\n"\
   "func scan(){} func scanln(){} func fscan(){} func fscanln(){}\n"\
@@ -1024,6 +1026,12 @@ extern IR_node_t fput_decl;
 #define FPUTLN_NAME "fputln"
 extern IR_node_t fputln_decl;
 
+#define SPUT_NAME "sput"
+extern IR_node_t sput_decl;
+
+#define SPUTLN_NAME "sputln"
+extern IR_node_t sputln_decl;
+
 #define PRINT_NAME "print"
 extern IR_node_t print_decl;
 
@@ -1035,6 +1043,12 @@ extern IR_node_t fprint_decl;
 
 #define FPRINTLN_NAME "fprintln"
 extern IR_node_t fprintln_decl;
+
+#define SPRINT_NAME "sprint"
+extern IR_node_t sprint_decl;
+
+#define SPRINTLN_NAME "sprintln"
+extern IR_node_t sprintln_decl;
 
 #define GET_NAME "get"
 extern IR_node_t get_decl;
@@ -2357,10 +2371,14 @@ IR_node_t put_decl;
 IR_node_t putln_decl;
 IR_node_t fput_decl;
 IR_node_t fputln_decl;
+IR_node_t sput_decl;
+IR_node_t sputln_decl;
 IR_node_t print_decl;
 IR_node_t println_decl;
 IR_node_t fprint_decl;
 IR_node_t fprintln_decl;
+IR_node_t sprint_decl;
+IR_node_t sprintln_decl;
 IR_node_t get_decl;
 IR_node_t getln_decl;
 IR_node_t getf_decl;
@@ -2599,10 +2617,14 @@ static struct decl_entry decls_table [] =
   {&putln_decl, PUTLN_NAME, NULL, putln_call},
   {&fput_decl, FPUT_NAME, NULL, fput_call},
   {&fputln_decl, FPUTLN_NAME, NULL, fputln_call},
+  {&sput_decl, SPUT_NAME, NULL, sput_call},
+  {&sputln_decl, SPUTLN_NAME, NULL, sputln_call},
   {&print_decl, PRINT_NAME, NULL, print_call},
   {&println_decl, PRINTLN_NAME, NULL, println_call},
   {&fprint_decl, FPRINT_NAME, NULL, fprint_call},
   {&fprintln_decl, FPRINTLN_NAME, NULL, fprintln_call},
+  {&sprint_decl, SPRINT_NAME, NULL, sprint_call},
+  {&sprintln_decl, SPRINTLN_NAME, NULL, sprintln_call},
   {&get_decl, GET_NAME, NULL, get_call},
   {&getln_decl, GETLN_NAME, NULL, getln_call},
   {&getf_decl, GETF_NAME, NULL, getf_call},

@@ -1,3 +1,30 @@
+2001-11-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
+	* DINO/d_built.h (sput_call, sputln_call, sprint_call,
+	sprintln_call): New function prototypes.
+
+	* DINO/d_func.c (print_ch): Adding to temp_vlobj instead of
+	printing.
+	(print_context): Ditto.
+	(print_val): Ditto.
+	(file_param_type): New enumeration.
+	(finish_output): New function.
+	(general_put_call, general_print_call): Adding to temp_vlobj
+	instead of printing.  Call finish_output.
+	(put_call, putln_call, fput_call, fputln_call, print_call,
+	println_call, fprint_call, fprintln_call): Use the enumeration.
+	(sput_call, sputln_call, sprint_call, sprintln_call): New
+	functions.
+
+	* DINO/d_ir.sprut (ENVIRONMENT): Add sput, sputln, sprint, sprint.
+	(SPUT_NAME, SPUTLN_NAME, SPRINT_NAME, SPRINTLN_NAME): New macros.
+	(sput_decl, sputln_decl, sprint_decl, sprintln_decl): New
+	definitions.
+	(decls_table): Add entries for sput, sputln, sprint, sprint.
+
+	* DINO/dino.tst.in: Add new tests for sput, sputln, sprint,
+	sprint.
+	
 2001-11-02  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in (258, 453): Use srdcir for include under

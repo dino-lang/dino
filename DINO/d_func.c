@@ -1840,55 +1840,65 @@ sort_call (int_t pars_number)
 }
 
 static void
-print_ch (FILE *f, int ch)
+print_ch (int ch)
 {
+  char str [10];
+
   if (ch == '\'' || ch == '"' || ch == '\\')
-    fprintf (f, "\\%c", ch);
+    sprintf (str, "\\%c", ch);
   else if (isprint (ch))
-    fprintf (f, "%c", ch);
+    sprintf (str, "%c", ch);
   else if (ch == '\n')
-    fprintf (f, "\\n");
+    sprintf (str, "\\n");
   else if (ch == '\t')
-    fprintf (f, "\\t");
+    sprintf (str, "\\t");
   else if (ch == '\v')
-    fprintf (f, "\\v");
+    sprintf (str, "\\v");
   else if (ch == '\a')
-    fprintf (f, "\\a");
+    sprintf (str, "\\a");
   else if (ch == '\b')
-    fprintf (f, "\\b");
+    sprintf (str, "\\b");
   else if (ch == '\r')
-    fprintf (f, "\\r");
+    sprintf (str, "\\r");
   else if (ch == '\f')
-    fprintf (f, "\\f");
+    sprintf (str, "\\f");
   else
-    fprintf (f, "\\%o", ch);
+    sprintf (str, "\\%o", ch);
+  VLO_ADD_STRING (temp_vlobj, str);
 }
 
 static int
-print_context (FILE *f, ER_node_t context)
+print_context (ER_node_t context)
 {
   IR_node_t block;
   IR_node_t func_class;
-  
+  char str [100];
+
   if (context == NULL || ER_context (context) == NULL)
     /* We ignore the uppest implicit block. */
     return FALSE;
   block = ER_block_node (context);
   func_class = IR_func_class_ext (block);
-  if (print_context (f, ER_context (context)))
-    fprintf (f, ".");
+  if (print_context (ER_context (context)))
+    VLO_ADD_STRING (temp_vlobj, ".");
   if (func_class == NULL)
-    fprintf (f, "{}");
+    VLO_ADD_STRING (temp_vlobj, "{}");
   else if (IR_IS_OF_TYPE (func_class, IR_NM_func))
-    fprintf (f, "%s(%ld)",
-	     IR_ident_string (IR_unique_ident (IR_ident (func_class))),
-	     (long int) ER_context_number (context));
+    {
+      VLO_ADD_STRING
+	(temp_vlobj,
+	 IR_ident_string (IR_unique_ident (IR_ident (func_class))));
+      sprintf (str, "(%ld)", (long int) ER_context_number (context));
+      VLO_ADD_STRING (temp_vlobj, str);
+    }
   else
     {
       assert (IR_IS_OF_TYPE (func_class, IR_NM_class));
-      fprintf (f, "%s(%ld)", IR_ident_string
-	       (IR_unique_ident (IR_ident (func_class))),
-	       (long int) ER_context_number (context));
+      VLO_ADD_STRING
+	(temp_vlobj,
+	 IR_ident_string (IR_unique_ident (IR_ident (func_class))));
+      sprintf (str, "(%ld)", (long int) ER_context_number (context));
+      VLO_ADD_STRING (temp_vlobj, str);
     }
   return TRUE;
 }
@@ -2444,7 +2454,7 @@ seek_call (int_t pars_number)
 }
 
 static void
-print_val (FILE *f, ER_node_t val, int quote_flag)
+print_val (ER_node_t val, int quote_flag)
 {
   ER_node_t vect;
   ER_node_t tab;
@@ -2452,42 +2462,50 @@ print_val (FILE *f, ER_node_t val, int quote_flag)
   size_t i;
   int flag;
   char *string;
+  static char str [100];
 
   switch (ER_NODE_MODE (val))
     {
     case ER_NM_nil:
-      fprintf (f, "nil");
+      VLO_ADD_STRING (temp_vlobj, "nil");
       break;
     case ER_NM_hide:
-      fprintf (f, "hide value %lx", (long int) ER_hide (val));
+      sprintf (str, "hide value %lx", (long int) ER_hide (val));
+      VLO_ADD_STRING (temp_vlobj, str);
       break;
     case ER_NM_hideblock:
-      fprintf (f, "hideblock value (");
+      VLO_ADD_STRING (temp_vlobj, "hideblock value (");
       for (i = 0; i < ER_hideblock_length (ER_hideblock (val)); i++)
 	{
 	  if (i != 0)
-	    fputc (' ', f);
-	  fprintf (f, "%x",
+	    VLO_ADD_STRING (temp_vlobj, " ");
+	  sprintf (str, "%x",
 		   (unsigned char)
 		   ER_hideblock_start (ER_hideblock (val)) [i]);
+	  VLO_ADD_STRING (temp_vlobj, str);
 	}
-      fprintf (f, ")");
+      VLO_ADD_STRING (temp_vlobj, ")");
       break;
     case ER_NM_char:
       if (!quote_flag)
-	fprintf (f, "%c", ER_ch (val));
+	{
+	  sprintf (str, "%c", ER_ch (val));
+	  VLO_ADD_STRING (temp_vlobj, str);
+	}
       else
 	{
-	  fprintf (f, "'");
-	  print_ch (f, ER_ch (val));
-	  fprintf (f, "'");
+	  VLO_ADD_STRING (temp_vlobj, "\'");
+	  print_ch (ER_ch (val));
+	  VLO_ADD_STRING (temp_vlobj, "\'");
 	}
       break;
     case ER_NM_int:
-      fprintf (f, "%d", ER_i (val));
+      sprintf (str, "%d", ER_i (val));
+      VLO_ADD_STRING (temp_vlobj, str);
       break;
     case ER_NM_float:
-      fprintf (f, "%g", ER_f (val));
+      sprintf (str, "%g", ER_f (val));
+      VLO_ADD_STRING (temp_vlobj, str);
       break;
     case ER_NM_vect:
       to_vect_string_conversion (val, NULL);
@@ -2496,27 +2514,27 @@ print_val (FILE *f, ER_node_t val, int quote_flag)
 	  && ER_pack_vect_el_type (vect) == ER_NM_char)
 	{
 	  if (!quote_flag)
-	    fprintf (f, "%s", ER_pack_els (vect));
+	    VLO_ADD_STRING (temp_vlobj, ER_pack_els (vect));
 	  else
 	    {
-	      fprintf (f, "\"");
+	      VLO_ADD_STRING (temp_vlobj, "\"");
 	      for (string = (char *) ER_pack_els (vect);
 		   *string != '\0';
 		   string++)
-		print_ch (f, *string);
-	      fprintf (f, "\"");
+		print_ch (*string);
+	      VLO_ADD_STRING (temp_vlobj, "\"");
 	    }
 	}
       else if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	{
-	  fprintf (f, "[");
+	  VLO_ADD_STRING (temp_vlobj, "[");
 	  for (i = 0; i < ER_els_number (vect); i++)
 	    {
-	      print_val (f, INDEXED_VAL (ER_unpack_els (vect), i), TRUE);
+	      print_val (INDEXED_VAL (ER_unpack_els (vect), i), TRUE);
 	      if (i < ER_els_number (vect) - 1)
-		fprintf (f, ", ");
+		VLO_ADD_STRING (temp_vlobj, ", ");
 	    }
-	  fprintf (f, "]");
+	  VLO_ADD_STRING (temp_vlobj, "]");
 	}
       else
 	{
@@ -2525,7 +2543,7 @@ print_val (FILE *f, ER_node_t val, int quote_flag)
 	  size_t displ;
 	  size_t el_size;
 
-	  fprintf (f, "[");
+	  VLO_ADD_STRING (temp_vlobj, "[");
 	  ER_SET_MODE ((ER_node_t) &temp_val, el_type);
 	  displ = val_displ_table [ER_NODE_MODE ((ER_node_t) &temp_val)];
 	  el_size = type_size_table [el_type];
@@ -2533,15 +2551,15 @@ print_val (FILE *f, ER_node_t val, int quote_flag)
 	    {
 	      memcpy ((char *) &temp_val + displ,
 		      (char *) ER_pack_els (vect) + i * el_size, el_size);
-	      print_val (f, (ER_node_t) &temp_val, TRUE);
+	      print_val ((ER_node_t) &temp_val, TRUE);
 	      if (i < ER_els_number (vect) - 1)
-		fprintf (f, ", ");
+		VLO_ADD_STRING (temp_vlobj, ", ");
 	    }
-	  fprintf (f, "]");
+	  VLO_ADD_STRING (temp_vlobj, "]");
 	}
       break;
     case ER_NM_tab:
-      fprintf (f, "{");
+      VLO_ADD_STRING (temp_vlobj, "{");
       tab = ER_tab (val);
       GO_THROUGH_REDIR (tab);
       flag = FALSE;
@@ -2552,48 +2570,48 @@ print_val (FILE *f, ER_node_t val, int quote_flag)
 	      || ER_NODE_MODE (key) == ER_NM_deleted_entry)
 	    continue;
 	  if (flag)
-	    fprintf (f, ", ");
-	  print_val (f, key, TRUE);
-	  fprintf (f, ":");
-	  print_val (f, INDEXED_ENTRY_VAL (ER_tab_els (tab), i), TRUE);
+	    VLO_ADD_STRING (temp_vlobj, ", ");
+	  print_val (key, TRUE);
+	  VLO_ADD_STRING (temp_vlobj, ":");
+	  print_val (INDEXED_ENTRY_VAL (ER_tab_els (tab), i), TRUE);
 	  flag = TRUE;
 	}
-      fprintf (f, "}");
+      VLO_ADD_STRING (temp_vlobj, "}");
       break;
     case ER_NM_func:
     case ER_NM_class:
       if (ER_NODE_MODE (val) == ER_NM_func)
 	{
-	  fprintf (f, "func ");
-	  if (print_context (f, ER_func_context (val)))
-	    fprintf (f, ".");
-	  fprintf (f, "%s",
-		   IR_ident_string (IR_unique_ident 
-				    (IR_ident (ER_func (val)))));
+	  VLO_ADD_STRING (temp_vlobj, "func ");
+	  if (print_context (ER_func_context (val)))
+	    VLO_ADD_STRING (temp_vlobj, ".");
+	  VLO_ADD_STRING (temp_vlobj,
+			  IR_ident_string (IR_unique_ident 
+					   (IR_ident (ER_func (val)))));
 	}
       else
 	{
-	  fprintf (f, "class ");
-	  if (print_context (f, ER_class_context (val)))
-	    fprintf (f, ".");
-	  fprintf (f, "%s",
-		   IR_ident_string (IR_unique_ident 
-				    (IR_ident (ER_class (val)))));
+	  VLO_ADD_STRING (temp_vlobj, "class ");
+	  if (print_context (ER_class_context (val)))
+	    VLO_ADD_STRING (temp_vlobj, ".");
+	  VLO_ADD_STRING (temp_vlobj,
+			  IR_ident_string (IR_unique_ident 
+					   (IR_ident (ER_class (val)))));
 	}
       break;
     case ER_NM_stack:
-      fprintf (f, "stack ");
+      VLO_ADD_STRING (temp_vlobj, "stack ");
       /* Context may be uppest block stack. */
-      print_context (f, ER_stack (val));
+      print_context (ER_stack (val));
       break;
     case ER_NM_instance:
-      fprintf (f, "instance ");
-      if (!print_context (f, ER_instance (val)))
+      VLO_ADD_STRING (temp_vlobj, "instance ");
+      if (!print_context (ER_instance (val)))
 	assert (FALSE);
       break;
     case ER_NM_process:
       if (ER_thread_func (ER_process (val)) == NULL)
-	fprintf (f, "main thread");
+	VLO_ADD_STRING (temp_vlobj, "main thread");
       else
 	{
 	  ER_node_t stack;
@@ -2606,9 +2624,10 @@ print_val (FILE *f, ER_node_t val, int quote_flag)
 				  IR_NM_func)
 		&& IR_thread_flag (IR_func_class_ext (ER_block_node (stack))))
 	      break;
-	  fprintf (f, "thread %ld ",
+	  sprintf (str, "thread %ld ",
 		   (long int) ER_process_number (ER_process (val)));
-	  if (!print_context (f, stack))
+	  VLO_ADD_STRING (temp_vlobj, str);
+	  if (!print_context (stack))
 	    assert (FALSE);
 	}
       break;
@@ -2663,7 +2682,7 @@ print_val (FILE *f, ER_node_t val, int quote_flag)
 	default:
 	  assert (FALSE);
 	}
-      fprintf (f, "%s", string);
+      VLO_ADD_STRING (temp_vlobj, string);
       break;
     default:
       assert (FALSE);
@@ -2679,18 +2698,57 @@ file_function_call_start (int_t pars_number, const char *function_name)
   return get_file (pars_number, function_name);
 }
 
+enum file_param_type
+{
+  NO_FILE,
+  STANDARD_FILE,
+  GIVEN_FILE
+};
+
 static void
-general_put_call (FILE *f, int_t pars_number, int ln_flag, int file_flag)
+finish_output (FILE *f, int pars_number)
+{
+  ER_node_t vect;
+
+  /* Pop all actual parameters. */
+  DECR_CTOP (pars_number);
+  SET_TOP;
+  if (f != NULL)
+    {
+      fputs (VLO_BEGIN (temp_vlobj), f);
+      /* Place the result instead of the function. */
+      ER_SET_MODE (ctop, ER_NM_nil);
+    }
+  else
+    {
+      vect = create_string (VLO_BEGIN (temp_vlobj));
+      /* Place the result instead of the function. */
+      ER_SET_MODE (ctop, ER_NM_vect);
+      ER_set_vect (ctop, vect);
+    }
+  INCREMENT_PC();
+}
+
+static void
+general_put_call (FILE *f, int_t pars_number, int ln_flag,
+		  enum file_param_type param_type)
 {
   int i;
   const char *function_name;
   ER_node_t var;
 
   errno = 0;
-  function_name = (file_flag
-		   ? (ln_flag ? FPUTLN_NAME : FPUT_NAME)
-		   : (ln_flag ? PUTLN_NAME : PUT_NAME));
-  for (i = -pars_number + (file_flag ? 1 : 0) + 1; i <= 0; i++)
+  if (param_type == NO_FILE)
+    {
+      function_name = (ln_flag ? SPUTLN_NAME : SPUT_NAME);
+      assert (f == NULL);
+    }
+  else if (param_type == STANDARD_FILE)
+    function_name = (ln_flag ? PUTLN_NAME : PUT_NAME);
+  else
+    function_name = (ln_flag ? FPUTLN_NAME : FPUT_NAME);
+  VLO_NULLIFY (temp_vlobj);
+  for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
     {
       var = INDEXED_VAL (ER_CTOP (), i);
       to_vect_string_conversion (var, NULL);
@@ -2699,92 +2757,118 @@ general_put_call (FILE *f, int_t pars_number, int ln_flag, int file_flag)
 	  || ER_pack_vect_el_type (ER_vect (var)) != ER_NM_char)
 	eval_error (partype_decl, invcalls_decl, *source_position_ptr,
 		    DERR_parameter_type, function_name);
-      fprintf (f, "%s", ER_pack_els (ER_vect (var)));
+      VLO_ADD_STRING (temp_vlobj, ER_pack_els (ER_vect (var)));
     }
   if (ln_flag)
-    fprintf (f, "\n");
+    VLO_ADD_STRING (temp_vlobj, "\n");
   if (errno != 0)
     process_system_errors (function_name);
-  /* Pop all actual parameters. */
-  DECR_CTOP (pars_number);
-  SET_TOP;
-  /* Place the result instead of the function. */
-  ER_SET_MODE (ctop, ER_NM_nil);
-  INCREMENT_PC();
+  finish_output (f, pars_number);
 }
+
 void
 put_call (int_t pars_number)
 {
-  general_put_call (stdout, pars_number, FALSE, FALSE);
+  general_put_call (stdout, pars_number, FALSE, STANDARD_FILE);
 }
 
 void
 putln_call (int_t pars_number)
 {
-  general_put_call (stdout, pars_number, TRUE, FALSE);
+  general_put_call (stdout, pars_number, TRUE, STANDARD_FILE);
 }
 
 void
 fput_call (int_t pars_number)
 {
   general_put_call (file_function_call_start (pars_number, FPUT_NAME),
-		    pars_number, FALSE, TRUE);
+		    pars_number, FALSE, GIVEN_FILE);
 }
 
 void
 fputln_call (int_t pars_number)
 {
   general_put_call (file_function_call_start (pars_number, FPUTLN_NAME),
-		    pars_number, TRUE, TRUE);
+		    pars_number, TRUE, GIVEN_FILE);
+}
+
+void
+sput_call (int_t pars_number)
+{
+  general_put_call (NULL, pars_number, FALSE, NO_FILE);
+}
+
+void
+sputln_call (int_t pars_number)
+{
+  general_put_call (NULL, pars_number, TRUE, NO_FILE);
 }
 
 static void
-general_print_call (FILE *f, int_t pars_number,
-		    int quote_flag, int ln_flag, int file_flag)
+general_print_call (FILE *f, int_t pars_number, int quote_flag, int ln_flag,
+		    enum file_param_type param_type)
 {
   int i;
+  const char *function_name;
 
   errno = 0;
-  for (i = -pars_number + (file_flag ? 1 : 0) + 1; i <= 0; i++)
-    print_val (f, INDEXED_VAL (ER_CTOP (), i), quote_flag);
-  if (ln_flag)
-    fprintf (f, "\n");
+  if (param_type == NO_FILE)
+    {
+      function_name = (ln_flag ? SPRINTLN_NAME : SPRINT_NAME);
+      assert (f == NULL);
+    }
+  else if (param_type == STANDARD_FILE)
+    function_name = (ln_flag ? PRINTLN_NAME : PRINT_NAME);
+  else
+    function_name = (ln_flag ? FPRINTLN_NAME : FPRINT_NAME);
+  VLO_NULLIFY (temp_vlobj);
+  for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
+    print_val (INDEXED_VAL (ER_CTOP (), i), quote_flag);
   if (errno != 0)
-    process_system_errors (file_flag
-			   ? (ln_flag ? PRINTLN_NAME : PRINT_NAME)
-			   : (ln_flag ? FPRINTLN_NAME : FPRINT_NAME));
-  /* Pop all actual parameters. */
-  DECR_CTOP (pars_number);
-  SET_TOP;
-  /* Place the result instead of the function. */
-  ER_SET_MODE (ctop, ER_NM_nil);
-  INCREMENT_PC();
+    process_system_errors (function_name);
+  if (ln_flag)
+    VLO_ADD_STRING (temp_vlobj, "\n");
+  if (errno != 0)
+    process_system_errors (function_name);
+  finish_output (f, pars_number);
 }
 
 void
 print_call (int_t pars_number)
 {
-  general_print_call (stdout, pars_number, TRUE, FALSE, FALSE);
+  general_print_call (stdout, pars_number, TRUE, FALSE, STANDARD_FILE);
 }
 
 void
 println_call (int_t pars_number)
 {
-  general_print_call (stdout, pars_number, TRUE, TRUE, FALSE);
+  general_print_call (stdout, pars_number, TRUE, TRUE, STANDARD_FILE);
 }
 
 void
 fprint_call (int_t pars_number)
 {
   general_print_call (file_function_call_start (pars_number, FPRINT_NAME),
-		      pars_number, TRUE, FALSE, TRUE);
+		      pars_number, TRUE, FALSE, GIVEN_FILE);
 }
 
 void
 fprintln_call (int_t pars_number)
 {
   general_print_call (file_function_call_start (pars_number, FPRINTLN_NAME),
-		      pars_number, TRUE, TRUE, TRUE);
+		      pars_number, TRUE, TRUE, GIVEN_FILE);
+}
+
+void
+sprint_call (int_t pars_number)
+{
+  general_print_call (NULL, pars_number, TRUE, FALSE, NO_FILE);
+}
+
+void
+sprintln_call (int_t pars_number)
+{
+  general_print_call (NULL, pars_number, TRUE, TRUE, NO_FILE);
 }
 
 static void
