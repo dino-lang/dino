@@ -1,5 +1,10 @@
 2002-03-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
+	* d_heap.c (eq_vector): Fix typo in the 2nd argument of eq_val in
+	comparison of unpacked vectors.
+
+2002-03-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
+
 	* d_heap.c (eq_key): Process nil too.
 
 2002-03-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>

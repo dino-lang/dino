@@ -1828,7 +1828,7 @@ eq_vector (ER_node_t v1, ER_node_t v2)
   else
     return (ER_els_number (v1) == ER_els_number (v2)
 	    && eq_val ((val_t *) ER_unpack_els (v1),
-		       (val_t *) ER_unpack_els (v1),
+		       (val_t *) ER_unpack_els (v2),
 		       ER_els_number (v1)));
 }
 
