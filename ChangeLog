@@ -6,6 +6,9 @@
 
 	* DINO/dino.sgml.in: Document the change.
 
+	* DINO/dino.txt, DINO/dino.ps, DINO/dino.info*, DINO/dino.dvi,
+	DINO/dino.html, DINO/dino-5.html, DINO/dino-10.html: Update.
+
 2002-07-31  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_heap.c (remove_tab_el): Decrease number of elements too.
