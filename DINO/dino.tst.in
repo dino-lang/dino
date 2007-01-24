@@ -1263,9 +1263,9 @@ println (c);
 println (c ());
 var stop;
 stop = 0;
-thread t () {wait stop;}
+thread t () {wait (stop);}
 println (t());
-stop = 1;
+wait (1) stop = 1;
 
 TEST35
         echo '      ' $DINO $test_file "2>$stderr"
@@ -1448,7 +1448,7 @@ fi
 if test $result = ok -a $start_test_number -le 39; then
 	echo test 39
         cat >$test_file <<'TEST39'
-wait 1;
+wait (1);
 TEST39
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -12219,7 +12219,7 @@ println (type (f));
 var flag;
 thread t ()
 {
-  wait flag != nil;
+  wait (flag != nil);
 }
 println (type (t));
 class c ()
@@ -12230,7 +12230,7 @@ var i;
 i = c ();
 println (type (i));
 println (type (t ()));
-flag = 1;
+try {wait (1) flag = 1;}
 println (type (context (i)));
 println (type (type (1)));
 TEST60
@@ -12295,14 +12295,14 @@ if test $result = ok -a $start_test_number -le 62; then
         cat >$test_file <<'TEST62'
 var f;
 thread t () {
-  wait f != nil;
+  wait (f != nil);
 }
 var p;
 p = t ();
 println (thread (p));
 println (thread (1));
 println (thread (main_thread));
-f = 10;
+try {wait (1) f = 10;}
 TEST62
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -12497,9 +12497,9 @@ println (context (i).l);
 {
   var l;
   public l;
-  thread t () { wait l;};
+  thread t () { wait (l);};
   i = t ();
-  l = 0;
+  try {wait (1) l = 0;}
 }
 
 println (context (i).l);
@@ -16774,7 +16774,8 @@ OUTPUT210
 fi
 
 # Test 211.
-if test $result = ok -a $start_test_number -le 211; then
+if false; then
+# Removed deprecated operations.
 	echo test 211
         cat >$test_file <<'TEST211'
 class c() {
@@ -16811,7 +16812,8 @@ OUTPUT211
 fi
 
 # Test 212.
-if test $result = ok -a $start_test_number -le 212; then
+if false; then
+# Removed deprecated operations.
 	echo test 212
         cat >$test_file <<'TEST212'
 class c() {
@@ -16836,7 +16838,8 @@ OUTPUT212
 fi
 
 # Test 213.
-if test $result = ok -a $start_test_number -le 213; then
+if false; then
+# Removed deprecated operations.
 	echo test 213
         cat >$test_file <<'TEST213'
 class c() {
@@ -16862,7 +16865,8 @@ OUTPUT213
 fi
 
 # Test 214.
-if test $result = ok -a $start_test_number -le 214; then
+if false; then
+# Removed deprecated operations.
 	echo test 214
         cat >$test_file <<'TEST214'
 class c() {
@@ -16888,7 +16892,8 @@ OUTPUT214
 fi
 
 # Test 215.
-if test $result = ok -a $start_test_number -le 215; then
+if false; then
+# Removed deprecated operations.
 	echo test 215
         cat >$test_file <<'TEST215'
 class c() {
@@ -17748,7 +17753,8 @@ OUTPUT250
 fi
 
 # Test 251.
-if test $result = ok -a $start_test_number -le 251; then
+if false; then
+# Removed deprecated operations.
 	echo test 251
         cat >$test_file <<'TEST251'
 func f ()
@@ -17794,7 +17800,8 @@ OUTPUT251
 fi
 
 # Test 252.
-if test $result = ok -a $start_test_number -le 252; then
+if false; then
+# Removed deprecated operations.
 	echo test 252
         cat >$test_file <<'TEST252'
 var i=10;
@@ -17816,7 +17823,8 @@ OUTPUT252
 fi
 
 # Test 253.
-if test $result = ok -a $start_test_number -le 253; then
+if false; then
+# Removed deprecated operations.
 	echo test 253
         cat >$test_file <<'TEST253'
 var i=10;
@@ -17839,7 +17847,8 @@ OUTPUT253
 fi
 
 # Test 254.
-if test $result = ok -a $start_test_number -le 254; then
+if false; then
+# Removed deprecated operations.
 	echo test 254
         cat >$test_file <<'TEST254'
 func f() {}
@@ -17861,7 +17870,8 @@ OUTPUT254
 fi
 
 # Test 255.
-if test $result = ok -a $start_test_number -le 255; then
+if false; then
+# Removed deprecated operations.
 	echo test 255
         cat >$test_file <<'TEST255'
 class c() {}
@@ -17883,7 +17893,8 @@ OUTPUT255
 fi
 
 # Test 256.
-if test $result = ok -a $start_test_number -le 256; then
+if false; then
+# Removed deprecated operations.
 	echo test 256
         cat >$test_file <<'TEST256'
 class c()
@@ -17909,7 +17920,8 @@ OUTPUT256
 fi
 
 # Test 257.
-if test $result = ok -a $start_test_number -le 257; then
+if false; then
+# Removed deprecated operations.
 	echo test 257
         cat >$test_file <<'TEST257'
 class c()
@@ -20279,7 +20291,7 @@ fi
 if test $result = ok -a $start_test_number -le 348; then
 	echo test 348
         cat >$test_file <<'TEST348'
-wait 0;
+wait (0);
 TEST348
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20287,7 +20299,7 @@ TEST348
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT348' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - process deadlock
+test.d:1:7: run time error - process deadlock
 OUTPUT348
                         result=ok
                 else
@@ -20300,10 +20312,10 @@ fi
 if test $result = ok -a $start_test_number -le 349; then
 	echo test 349
         cat >$test_file <<'TEST349'
-thread t () { wait 0;}
+thread t () { wait (0);}
 var p;
 p = t ();
-wait 0;
+wait (0);
 TEST349
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20311,7 +20323,7 @@ TEST349
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT349' && $CMP $stderr $ftemp2; then
-test.d:1:20: run time error - process deadlock
+test.d:1:21: run time error - process deadlock
 OUTPUT349
                         result=ok
                 else
@@ -20324,7 +20336,7 @@ fi
 if test $result = ok -a $start_test_number -le 350; then
 	echo test 350
         cat >$test_file <<'TEST350'
-thread t () { wait 0;}
+thread t () { wait (0);}
 var p;
 p = t ();
 TEST350
@@ -20334,7 +20346,7 @@ TEST350
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT350' && $CMP $stderr $ftemp2; then
-test.d:1:20: run time error - process deadlock
+test.d:1:21: run time error - process deadlock
 OUTPUT350
                         result=ok
                 else
@@ -20348,7 +20360,7 @@ if test $result = ok -a $start_test_number -le 351; then
 	echo test 351
         cat >$test_file <<'TEST351'
 func f() {return 1;}
-wait f();
+wait (f());
 TEST351
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20356,7 +20368,7 @@ TEST351
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT351' && $CMP $stderr $ftemp2; then
-test.d:2:7: function call is present in wait statement
+test.d:2:8: function call is present in wait statement
 OUTPUT351
                         result=ok
                 else
@@ -20373,7 +20385,7 @@ class c(){}
 if ({}) {}
 var i;
 for (i=0;c;i++) {}
-wait c;
+wait (c);
 for (i in 10) {}
 try {
   throw 1;
@@ -20454,14 +20466,14 @@ var ctime;
 ctime = 0.0;
 
 func waitfor (n, t){
-  var cont = 1;
+  var cont;
+  wait (1) cont = 1;
   putln (n, " waitfor ", t, " ctime ", ctime);
   for (; cont;)
     try {
-      wait ctime == t;
-      cont = 0;
+      wait (ctime == t) cont = 0;
     } catch (errors.deadlock) {
-      ctime++;
+      wait (1) ctime++;
       putln ("tick ", ctime); 
     }
 }
@@ -20527,14 +20539,14 @@ func rotate (what, axis, angle){
 }
 
 func waitfor (n, t){
-  var cont = 1;
+  var cont;
+  wait (1) cont = 1;
   putln ("waitfor ", n, " ", t, " ctime ", ctime);
   for (; cont;)
     try {
-      wait ctime == t;
-      cont = 0;
+      wait (ctime == t) cont = 0;
     } catch (errors.deadlock) {
-      ctime++;
+      wait (1) ctime++;
       putln ("tick ", ctime); 
     }
 }
@@ -21160,7 +21172,7 @@ TEST367
                 if cat >$ftemp2 <<'OUTPUT367' && $CMP $stdout $ftemp2; then
 []
 [7, 8]
-["ha", "a"]
+["a", "ha"]
 OUTPUT367
                         result=ok
                 else
@@ -24381,7 +24393,7 @@ Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
        #parent indexes for some non start situations = 0
-       #unique set dist. vects = 10, their length = 25
+       #unique set dist. vects = 13, their length = 30
        #pairs(set core, symb) = 38, their trans+reduce vects length = 43
        #unique transition vectors = 12, their length = 16
        #unique reduce vectors = 4, their length = 4
@@ -24421,7 +24433,7 @@ Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
        #parent indexes for some non start situations = 0
-       #unique set dist. vects = 10, their length = 25
+       #unique set dist. vects = 13, their length = 30
        #pairs(set core, symb) = 38, their trans+reduce vects length = 43
        #unique transition vectors = 12, their length = 16
        #unique reduce vectors = 4, their length = 4
@@ -24518,7 +24530,7 @@ Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
        #parent indexes for some non start situations = 0
-       #unique set dist. vects = 10, their length = 25
+       #unique set dist. vects = 13, their length = 30
        #pairs(set core, symb) = 38, their trans+reduce vects length = 43
        #unique transition vectors = 12, their length = 16
        #unique reduce vectors = 4, their length = 4
@@ -24569,7 +24581,7 @@ Input: #tokens = 12, #unique situations = 22
        #terminal sets = 30, their size = 240
        #unique set cores = 10, #their start situations = 25
        #parent indexes for some non start situations = 0
-       #unique set dist. vects = 10, their length = 25
+       #unique set dist. vects = 13, their length = 30
        #pairs(set core, symb) = 38, their trans+reduce vects length = 43
        #unique transition vectors = 12, their length = 16
        #unique reduce vectors = 4, their length = 4
@@ -27316,9 +27328,9 @@ put (sprintln (c));
 put (sprintln (c ()));
 var stop;
 stop = 0;
-thread t () {wait stop;}
+thread t () {wait (stop);}
 put (sprintln (t()));
-stop = 1;
+wait (1) stop = 1;
 TEST486
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -27691,7 +27703,7 @@ TEST494
 fi
 
 # Test 495.
-if true; then
+if test $result = ok; then
 	echo test 495: Skipping daytime udp.
 elif test $result = ok -a $start_test_number -le 495; then
 	echo test 495: daytime udp.
@@ -30552,8 +30564,8 @@ put (sputf ("%.0x\n", 0));
 put (sputf ("%.0X\n", 0));
 // %
 put (sputf ("%%\n"));
-// maximal precision
-putf ("%.2147483647s", "stop\n");
+// big precision
+putf ("%.21474836s", "stop\n");
 TEST511
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -31993,6 +32005,2646 @@ TEST553
 test.d:1:8: run time error - invalid format in `sputf'
 TEST553-1
                 result=ok
+        else
+                result=fail
+        fi
+fi
+
+# Test 553.
+if test $result = ok -a $start_test_number -le 553; then
+	echo test 553: Ackermann from Language Shootout
+        cat >$test_file <<'TEST553'
+func Ack (m, n) {
+  if (m == 0) return n + 1;
+  if (n == 0) return Ack (m - 1, 1);
+  return Ack (m - 1, Ack (m, n - 1));
+}
+
+var N = int (#argv < 1 ? 1 : argv [0]);
+putln ("Ack(3,", N ,"): ", Ack (3, N));
+
+TEST553
+        echo '      ' $DINO $test_file 9 "2>$stderr"
+        if $DINO $test_file 9 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT553' && $CMP $stdout $ftemp2; then
+Ack(3,9): 4093
+OUTPUT553
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 554.
+if test $result = ok -a $start_test_number -le 554; then
+	echo test 554: Binary Trees from Language Shootout
+        cat >$test_file <<'TEST554'
+class node (item, left, right) {}
+
+func BottomUpTree (item, depth) {
+  if (depth <= 0) return item;
+  var i = item + item;
+
+  depth--;
+  return node (item, BottomUpTree (i - 1, depth), BottomUpTree (i, depth));
+}
+
+func ItemCheck (tree) {
+  return (type (tree) != class ()
+	  ? tree : tree.item + ItemCheck (tree.left) - ItemCheck (tree.right));
+}
+
+var N = int (#argv < 1 ? 0 : argv [0]);
+var mindepth = 4, maxdepth = max (N, mindepth + 2);
+var stretchdepth = maxdepth + 1, stretchtree = BottomUpTree (0, stretchdepth);
+
+putf ("stretch tree of depth %d\t  check: %d\n", stretchdepth,
+      ItemCheck (stretchtree));
+
+var i, depth, longlivedtree = BottomUpTree (0, maxdepth);
+
+for (depth = mindepth; depth <= maxdepth; depth += 2) {
+  var iterations = 1 << (maxdepth - depth + mindepth), check = 0;
+
+  for (i = 0; i < iterations; i++)
+    check += (ItemCheck (BottomUpTree (1, depth))
+	      + ItemCheck (BottomUpTree (-1, depth)));
+  putf ("%d\t  trees of depth %d\t  check: %d\n", iterations*2, depth, check);
+}
+
+putf ("long lived tree of depth %d\t  check: %d\n",
+      maxdepth, ItemCheck (longlivedtree));
+TEST554
+        echo '      ' $DINO $test_file 12 "2>$stderr"
+        if $DINO $test_file 12 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT554' && $CMP $stdout $ftemp2; then
+stretch tree of depth 13	  check: -1
+8192	  trees of depth 4	  check: -8192
+2048	  trees of depth 6	  check: -2048
+512	  trees of depth 8	  check: -512
+128	  trees of depth 10	  check: -128
+32	  trees of depth 12	  check: -32
+long lived tree of depth 12	  check: -1
+OUTPUT554
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 555.
+if test $result = ok -a $start_test_number -le 555; then
+	echo test 555: Chameneos from Language Shootout
+        cat >$test_file <<'TEST555'
+var final blue = 0, final red = 1, final yellow = 2, final faded = 3;
+var colors = [blue, red, yellow, blue], N = int (#argv < 1 ? 10 : argv [0]);
+var first = nil, second = nil;
+
+// Create a very social creature.
+class creature (my_color, creatures_met = 0) {
+  thread be () {
+    for (;my_color != faded;) {
+      var other;
+
+      wait (second == nil); // Wait until meeting place clears.
+      if (first != nil) { // Hey, I found a new friend!
+	other = first; wait (1) {first = nil; second = my_color;}
+      } else if (N > 0) { // Sniff, nobody here (yet).
+	N--; first = my_color;
+	wait (second != nil);
+	other = second; wait (1) second = nil;
+      } else other = faded; // meeting place is closed
+
+      // change color
+      if (other == faded) my_color = other;
+      else {
+	creatures_met++;
+	if (my_color == other) ;
+	else if (my_color == blue) my_color = (other == red ? yellow : red);
+	else if (my_color == red) my_color = (other == blue ? yellow : blue);
+	else if (my_color == yellow) my_color = (other == blue ? red : blue);
+      }
+    }
+  }
+}
+
+var i, meetings = 0, creatures = [#colors : nil];
+
+for (i = 0; i < #colors; i++) {
+  creatures [i] = creature (colors [i]); creatures [i].be ();
+}
+
+for (i = 0; i < #colors; i++) {
+  wait (creatures [i].my_color == faded);
+  meetings += creatures [i].creatures_met;
+}
+putln (meetings);
+TEST555
+        echo '      ' $DINO $test_file 1000000 "2>$stderr"
+        if $DINO $test_file 1000000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT555' && $CMP $stdout $ftemp2; then
+2000000
+OUTPUT555
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 556.
+if test $result = ok -a $start_test_number -le 556; then
+	echo test 556: Cheap Concurrency from Language Shootout
+        cat >$test_file <<'TEST556'
+var N = int (#argv < 1 ? 10 : argv [0]);
+var cont_p = 1, i, t, first = nil, last = nil, count = 0;
+
+class thread_node (next = nil, n = -1) {
+  thread start () {
+    for (; cont_p;) {
+      wait (n >= 0 || ! cont_p);
+      if (next != nil) {next.n = n + 1; n = -1;}
+    }
+  }
+}
+
+
+for (i = 0; i < 500; i++) {
+  t = thread_node (); t.start ();
+  if (last == nil) {last = t; first = last;}
+  else {last.next = t; last = last.next;}
+}
+
+for (i = 0; i < N; i++) {
+  first.n = count; wait (last.n >= 0); count = last.n + 1; last.n = -1;
+}
+wait (1) cont_p = 0; putln (count);
+TEST556
+        echo '      ' $DINO $test_file 3000 "2>$stderr"
+        if $DINO $test_file 3000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT556' && $CMP $stdout $ftemp2; then
+1500000
+OUTPUT556
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 557.
+if test $result = ok -a $start_test_number -le 557; then
+	echo test 557: Cheap Concurrency from Language Shootout
+        cat >$test_file <<'TEST557'
+var N = int (#argv < 1 ? 10 : argv [0]);
+var cont_p = 1, i, t, first = nil, last = nil, count = 0;
+
+class thread_node (next = nil, n = -1) {
+  thread start () {
+    for (; cont_p;) {
+      wait (n >= 0 || ! cont_p);
+      if (next != nil) {next.n = n + 1; n = -1;}
+    }
+  }
+}
+
+
+for (i = 0; i < 500; i++) {
+  t = thread_node (); t.start ();
+  if (last == nil) {last = t; first = last;}
+  else {last.next = t; last = last.next;}
+}
+
+for (i = 0; i < N; i++) {
+  first.n = count; wait (last.n >= 0); count = last.n + 1; last.n = -1;
+}
+wait (1)cont_p = 0; putln (count);
+TEST557
+        echo '      ' $DINO $test_file 3000 "2>$stderr"
+        if $DINO $test_file 3000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT557' && $CMP $stdout $ftemp2; then
+1500000
+OUTPUT557
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 558.
+if test $result = ok -a $start_test_number -le 558; then
+	echo test 558: Fasta from Language Shootout
+        cat >$test_file <<'TEST558'
+var IM = 139968, IA = 3877, IC = 29573, Last = 42;
+
+func random (max) {
+  Last = (Last * IA + IC) % IM;
+  return (max * Last) / IM;
+}
+
+class freq (c, p) {}
+
+// Weighted selection from alphabet
+
+func makeCumulative (a) {
+  var i, cp = 0, len = #a;
+
+   for (i = 0; i < len; i++) {
+     cp += a [i].p; a [i].p = cp;
+   }
+}
+
+func selectRandom (a) {
+  var i, len = #a, r = random (1.0);
+
+  for (i = 0; i < len; i++)
+    if (r < a[i].p) return a [i].c;
+  return a [len - 1].c;
+}
+
+// Generate and write FASTA format
+
+func makeRandomFasta (id, desc, a, n) {
+  var i, m, length = 60;
+
+  putln (">", id, " ", desc);
+  for (;n > 0; n -= length) {
+    m = (n < length ? n : length);
+    for (i = 0; i < m; i++)
+      put (selectRandom (a));
+    putln ();
+  }
+}
+
+func makeRepeatFasta (id, desc, s, n) {
+  var i, m, todo = n, length = 60, k = 0, kn = #s;
+
+  putln (">", id, " ", desc);
+  for (; todo > 0;) {
+    m = (todo < length ? todo : length);
+    for (i = 0; i < m; i++) {
+      if (k >= kn)
+	k = 0;
+      put (s [k]);
+      k++;
+    }
+    putln ();
+    todo -= length;
+  }
+}
+
+
+// Main -- define alphabets, make 3 fragments
+
+var alu =   "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG"
+          @ "GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA"
+          @ "CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT"
+          @ "ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA"
+          @ "GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG"
+	  @ "AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC"
+          @ "AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA";
+
+var iub = [ freq ('a', 0.27), freq ('c', 0.12), freq ('g', 0.12),
+	    freq ('t', 0.27), freq ('B', 0.02), freq ('D', 0.02),
+	    freq ('H', 0.02), freq ('K', 0.02), freq ('M', 0.02),
+	    freq ('N', 0.02), freq ('R', 0.02), freq ('S', 0.02),
+	    freq ('V', 0.02), freq ('W', 0.02), freq ('Y', 0.02) ];
+makeCumulative (iub);
+
+var homosapiens = [ freq ('a', 0.3029549426680), freq ('c', 0.1979883004921),
+		    freq ('g', 0.1975473066391), freq ('t', 0.3015094502008) ];
+makeCumulative (homosapiens);
+
+var N = int (#argv < 1 ? 1000 : argv [0]);
+makeRepeatFasta ("ONE", "Homo sapiens alu", alu, N * 2);
+makeRandomFasta ("TWO", "IUB ambiguity codes", iub, N * 3);
+makeRandomFasta ("THREE", "Homo sapiens frequency", homosapiens, N * 5);
+TEST558
+        echo '      ' $DINO $test_file 1000 "2>$stderr"
+        if $DINO $test_file 1000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT558' && $CMP $stdout $ftemp2; then
+>ONE Homo sapiens alu
+GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGA
+TCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACT
+AAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAG
+GCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCG
+CCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGT
+GGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCA
+GGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAA
+TTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAG
+AATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCA
+GCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGT
+AATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACC
+AGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTG
+GTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACC
+CGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAG
+AGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTT
+TGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACA
+TGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCT
+GTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGG
+TTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGT
+CTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGG
+CGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCG
+TCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTA
+CTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCG
+AGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCG
+GGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACC
+TGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAA
+TACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGA
+GGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACT
+GCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTC
+ACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGT
+TCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGC
+CGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCG
+CTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTG
+GGCGACAGAGCGAGACTCCG
+>TWO IUB ambiguity codes
+cttBtatcatatgctaKggNcataaaSatgtaaaDcDRtBggDtctttataattcBgtcg
+tactDtDagcctatttSVHtHttKtgtHMaSattgWaHKHttttagacatWatgtRgaaa
+NtactMcSMtYtcMgRtacttctWBacgaaatatagScDtttgaagacacatagtVgYgt
+cattHWtMMWcStgttaggKtSgaYaaccWStcgBttgcgaMttBYatcWtgacaYcaga
+gtaBDtRacttttcWatMttDBcatWtatcttactaBgaYtcttgttttttttYaaScYa
+HgtgttNtSatcMtcVaaaStccRcctDaataataStcYtRDSaMtDttgttSagtRRca
+tttHatSttMtWgtcgtatSSagactYaaattcaMtWatttaSgYttaRgKaRtccactt
+tattRggaMcDaWaWagttttgacatgttctacaaaRaatataataaMttcgDacgaSSt
+acaStYRctVaNMtMgtaggcKatcttttattaaaaagVWaHKYagtttttatttaacct
+tacgtVtcVaattVMBcttaMtttaStgacttagattWWacVtgWYagWVRctDattBYt
+gtttaagaagattattgacVatMaacattVctgtBSgaVtgWWggaKHaatKWcBScSWa
+accRVacacaaactaccScattRatatKVtactatatttHttaagtttSKtRtacaaagt
+RDttcaaaaWgcacatWaDgtDKacgaacaattacaRNWaatHtttStgttattaaMtgt
+tgDcgtMgcatBtgcttcgcgaDWgagctgcgaggggVtaaScNatttacttaatgacag
+cccccacatYScaMgtaggtYaNgttctgaMaacNaMRaacaaacaKctacatagYWctg
+ttWaaataaaataRattagHacacaagcgKatacBttRttaagtatttccgatctHSaat
+actcNttMaagtattMtgRtgaMgcataatHcMtaBSaRattagttgatHtMttaaKagg
+YtaaBataSaVatactWtataVWgKgttaaaacagtgcgRatatacatVtHRtVYataSa
+KtWaStVcNKHKttactatccctcatgWHatWaRcttactaggatctataDtDHBttata
+aaaHgtacVtagaYttYaKcctattcttcttaataNDaaggaaaDYgcggctaaWSctBa
+aNtgctggMBaKctaMVKagBaactaWaDaMaccYVtNtaHtVWtKgRtcaaNtYaNacg
+gtttNattgVtttctgtBaWgtaattcaagtcaVWtactNggattctttaYtaaagccgc
+tcttagHVggaYtgtNcDaVagctctctKgacgtatagYcctRYHDtgBattDaaDgccK
+tcHaaStttMcctagtattgcRgWBaVatHaaaataYtgtttagMDMRtaataaggatMt
+ttctWgtNtgtgaaaaMaatatRtttMtDgHHtgtcattttcWattRSHcVagaagtacg
+ggtaKVattKYagactNaatgtttgKMMgYNtcccgSKttctaStatatNVataYHgtNa
+BKRgNacaactgatttcctttaNcgatttctctataScaHtataRagtcRVttacDSDtt
+aRtSatacHgtSKacYagttMHtWataggatgactNtatSaNctataVtttRNKtgRacc
+tttYtatgttactttttcctttaaacatacaHactMacacggtWataMtBVacRaSaatc
+cgtaBVttccagccBcttaRKtgtgcctttttRtgtcagcRttKtaaacKtaaatctcac
+aattgcaNtSBaaccgggttattaaBcKatDagttactcttcattVtttHaaggctKKga
+tacatcBggScagtVcacattttgaHaDSgHatRMaHWggtatatRgccDttcgtatcga
+aacaHtaagttaRatgaVacttagattVKtaaYttaaatcaNatccRttRRaMScNaaaD
+gttVHWgtcHaaHgacVaWtgttScactaagSgttatcttagggDtaccagWattWtRtg
+ttHWHacgattBtgVcaYatcggttgagKcWtKKcaVtgaYgWctgYggVctgtHgaNcV
+taBtWaaYatcDRaaRtSctgaHaYRttagatMatgcatttNattaDttaattgttctaa
+ccctcccctagaWBtttHtBccttagaVaatMcBHagaVcWcagBVttcBtaYMccagat
+gaaaaHctctaacgttagNWRtcggattNatcRaNHttcagtKttttgWatWttcSaNgg
+gaWtactKKMaacatKatacNattgctWtatctaVgagctatgtRaHtYcWcttagccaa
+tYttWttaWSSttaHcaaaaagVacVgtaVaRMgattaVcDactttcHHggHRtgNcctt
+tYatcatKgctcctctatVcaaaaKaaaagtatatctgMtWtaaaacaStttMtcgactt
+taSatcgDataaactaaacaagtaaVctaggaSccaatMVtaaSKNVattttgHccatca
+cBVctgcaVatVttRtactgtVcaattHgtaaattaaattttYtatattaaRSgYtgBag
+aHSBDgtagcacRHtYcBgtcacttacactaYcgctWtattgSHtSatcataaatataHt
+cgtYaaMNgBaatttaRgaMaatatttBtttaaaHHKaatctgatWatYaacttMctctt
+ttVctagctDaaagtaVaKaKRtaacBgtatccaaccactHHaagaagaaggaNaaatBW
+attccgStaMSaMatBttgcatgRSacgttVVtaaDMtcSgVatWcaSatcttttVatag
+ttactttacgatcaccNtaDVgSRcgVcgtgaacgaNtaNatatagtHtMgtHcMtagaa
+attBgtataRaaaacaYKgtRccYtatgaagtaataKgtaaMttgaaRVatgcagaKStc
+tHNaaatctBBtcttaYaBWHgtVtgacagcaRcataWctcaBcYacYgatDgtDHccta
+>THREE Homo sapiens frequency
+aacacttcaccaggtatcgtgaaggctcaagattacccagagaacctttgcaatataaga
+atatgtatgcagcattaccctaagtaattatattctttttctgactcaaagtgacaagcc
+ctagtgtatattaaatcggtatatttgggaaattcctcaaactatcctaatcaggtagcc
+atgaaagtgatcaaaaaagttcgtacttataccatacatgaattctggccaagtaaaaaa
+tagattgcgcaaaattcgtaccttaagtctctcgccaagatattaggatcctattactca
+tatcgtgtttttctttattgccgccatccccggagtatctcacccatccttctcttaaag
+gcctaatattacctatgcaaataaacatatattgttgaaaattgagaacctgatcgtgat
+tcttatgtgtaccatatgtatagtaatcacgcgactatatagtgctttagtatcgcccgt
+gggtgagtgaatattctgggctagcgtgagatagtttcttgtcctaatatttttcagatc
+gaatagcttctatttttgtgtttattgacatatgtcgaaactccttactcagtgaaagtc
+atgaccagatccacgaacaatcttcggaatcagtctcgttttacggcggaatcttgagtc
+taacttatatcccgtcgcttactttctaacaccccttatgtatttttaaaattacgttta
+ttcgaacgtacttggcggaagcgttattttttgaagtaagttacattgggcagactcttg
+acattttcgatacgactttctttcatccatcacaggactcgttcgtattgatatcagaag
+ctcgtgatgattagttgtcttctttaccaatactttgaggcctattctgcgaaatttttg
+ttgccctgcgaacttcacataccaaggaacacctcgcaacatgccttcatatccatcgtt
+cattgtaattcttacacaatgaatcctaagtaattacatccctgcgtaaaagatggtagg
+ggcactgaggatatattaccaagcatttagttatgagtaatcagcaatgtttcttgtatt
+aagttctctaaaatagttacatcgtaatgttatctcgggttccgcgaataaacgagatag
+attcattatatatggccctaagcaaaaacctcctcgtattctgttggtaattagaatcac
+acaatacgggttgagatattaattatttgtagtacgaagagatataaaaagatgaacaat
+tactcaagtcaagatgtatacgggatttataataaaaatcgggtagagatctgctttgca
+attcagacgtgccactaaatcgtaatatgtcgcgttacatcagaaagggtaactattatt
+aattaataaagggcttaatcactacatattagatcttatccgatagtcttatctattcgt
+tgtatttttaagcggttctaattcagtcattatatcagtgctccgagttctttattattg
+ttttaaggatgacaaaatgcctcttgttataacgctgggagaagcagactaagagtcgga
+gcagttggtagaatgaggctgcaaaagacggtctcgacgaatggacagactttactaaac
+caatgaaagacagaagtagagcaaagtctgaagtggtatcagcttaattatgacaaccct
+taatacttccctttcgccgaatactggcgtggaaaggttttaaaagtcgaagtagttaga
+ggcatctctcgctcataaataggtagactactcgcaatccaatgtgactatgtaatactg
+ggaacatcagtccgcgatgcagcgtgtttatcaaccgtccccactcgcctggggagacat
+gagaccacccccgtggggattattagtccgcagtaatcgactcttgacaatccttttcga
+ttatgtcatagcaatttacgacagttcagcgaagtgactactcggcgaaatggtattact
+aaagcattcgaacccacatgaatgtgattcttggcaatttctaatccactaaagcttttc
+cgttgaatctggttgtagatatttatataagttcactaattaagatcacggtagtatatt
+gatagtgatgtctttgcaagaggttggccgaggaatttacggattctctattgatacaat
+ttgtctggcttataactcttaaggctgaaccaggcgtttttagacgacttgatcagctgt
+tagaatggtttggactccctctttcatgtcagtaacatttcagccgttattgttacgata
+tgcttgaacaatattgatctaccacacacccatagtatattttataggtcatgctgttac
+ctacgagcatggtattccacttcccattcaatgagtattcaacatcactagcctcagaga
+tgatgacccacctctaataacgtcacgttgcggccatgtgaaacctgaacttgagtagac
+gatatcaagcgctttaaattgcatataacatttgagggtaaagctaagcggatgctttat
+ataatcaatactcaataataagatttgattgcattttagagttatgacacgacatagttc
+actaacgagttactattcccagatctagactgaagtactgatcgagacgatccttacgtc
+gatgatcgttagttatcgacttaggtcgggtctctagcggtattggtacttaaccggaca
+ctatactaataacccatgatcaaagcataacagaatacagacgataatttcgccaacata
+tatgtacagaccccaagcatgagaagctcattgaaagctatcattgaagtcccgctcaca
+atgtgtcttttccagacggtttaactggttcccgggagtcctggagtttcgacttacata
+aatggaaacaatgtattttgctaatttatctatagcgtcatttggaccaatacagaatat
+tatgttgcctagtaatccactataacccgcaagtgctgatagaaaatttttagacgattt
+ataaatgccccaagtatccctcccgtgaatcctccgttatactaattagtattcgttcat
+acgtataccgcgcatatatgaacatttggcgataaggcgcgtgaattgttacgtgacaga
+gatagcagtttcttgtgatatggttaacagacgtacatgaagggaaactttatatctata
+gtgatgcttccgtagaaataccgccactggtctgccaatgatgaagtatgtagctttagg
+tttgtactatgaggctttcgtttgtttgcagagtataacagttgcgagtgaaaaaccgac
+gaatttatactaatacgctttcactattggctacaaaatagggaagagtttcaatcatga
+gagggagtatatggatgctttgtagctaaaggtagaacgtatgtatatgctgccgttcat
+tcttgaaagatacataagcgataagttacgacaattataagcaacatccctaccttcgta
+acgatttcactgttactgcgcttgaaatacactatggggctattggcggagagaagcaga
+tcgcgccgagcatatacgagacctataatgttgatgatagagaaggcgtctgaattgata
+catcgaagtacactttctttcgtagtatctctcgtcctctttctatctccggacacaaga
+attaagttatatatatagagtcttaccaatcatgttgaatcctgattctcagagttcttt
+ggcgggccttgtgatgactgagaaacaatgcaatattgctccaaatttcctaagcaaatt
+ctcggttatgttatgttatcagcaaagcgttacgttatgttatttaaatctggaatgacg
+gagcgaagttcttatgtcggtgtgggaataattcttttgaagacagcactccttaaataa
+tatcgctccgtgtttgtatttatcgaatgggtctgtaaccttgcacaagcaaatcggtgg
+tgtatatatcggataacaattaatacgatgttcatagtgacagtatactgatcgagtcct
+ctaaagtcaattacctcacttaacaatctcattgatgttgtgtcattcccggtatcgccc
+gtagtatgtgctctgattgaccgagtgtgaaccaaggaacatctactaatgcctttgtta
+ggtaagatctctctgaattccttcgtgccaacttaaaacattatcaaaatttcttctact
+tggattaactacttttacgagcatggcaaattcccctgtggaagacggttcattattatc
+ggaaaccttatagaaattgcgtgttgactgaaattagatttttattgtaagagttgcatc
+tttgcgattcctctggtctagcttccaatgaacagtcctcccttctattcgacatcgggt
+ccttcgtacatgtctttgcgatgtaataattaggttcggagtgtggccttaatgggtgca
+actaggaatacaacgcaaatttgctgacatgatagcaaatcggtatgccggcaccaaaac
+gtgctccttgcttagcttgtgaatgagactcagtagttaaataaatccatatctgcaatc
+gattccacaggtattgtccactatctttgaactactctaagagatacaagcttagctgag
+accgaggtgtatatgactacgctgatatctgtaaggtaccaatgcaggcaaagtatgcga
+gaagctaataccggctgtttccagctttataagattaaaatttggctgtcctggcggcct
+cagaattgttctatcgtaatcagttggttcattaattagctaagtacgaggtacaactta
+tctgtcccagaacagctccacaagtttttttacagccgaaacccctgtgtgaatcttaat
+atccaagcgcgttatctgattagagtttacaactcagtattttatcagtacgttttgttt
+ccaacattacccggtatgacaaaatgacgccacgtgtcgaataatggtctgaccaatgta
+ggaagtgaaaagataaatat
+OUTPUT558
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 559.
+if test $result = ok -a $start_test_number -le 559; then
+	echo test 559: Fannkuch from Language Shootout
+        cat >$test_file <<'TEST559'
+func fannkuch (n) {
+   var perm, maxperm, perm1 = [n : 0], count = [n : 0];
+   var i, k, t, flipscount, maxflipscount = 0, m = n - 1, r = n, check = 0;
+
+   for (i = 0; i < n; i++) perm1 [i] = i;
+   for (;;) {
+      if (check < 30) {
+         for (i = 0; i < n; i++) put (perm1 [i] + 1);
+         putln (); check++;
+      }
+
+      for (; r != 1; r--) count [r - 1] = r;
+      if (perm1 [0] != 0 && perm1 [m] != m) {
+	perm = new perm1;
+	for (flipscount = 0;; flipscount++) {
+	  k = perm [0];
+	  if (k == 0) break;
+	  for (i = (k + 1) / 2 - 1; i >= 0 ; i--)  perm [i] <=> perm [k - i];
+	}
+
+	if (flipscount > maxflipscount) {
+	  maxflipscount = flipscount; maxperm = new perm1;
+	}
+      }
+
+      for (;;r++) {
+         if (r == n) return maxflipscount;
+         t = perm1 [0];
+         for (i = 0; i < r; i++) perm1 [i] = perm1 [i + 1];
+         perm1 [r] = t;
+	 count [r]--;
+         if (count [r] > 0) break;
+      }
+   }
+}
+
+var n = int (#argv < 1 ? 1 : argv [0]);
+putln ("Pfannkuchen(", n, ") = ", fannkuch(n));
+TEST559
+        echo '      ' $DINO $test_file 9 "2>$stderr"
+        if $DINO $test_file 9 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT559' && $CMP $stdout $ftemp2; then
+123456789
+213456789
+231456789
+321456789
+312456789
+132456789
+234156789
+324156789
+342156789
+432156789
+423156789
+243156789
+341256789
+431256789
+413256789
+143256789
+134256789
+314256789
+412356789
+142356789
+124356789
+214356789
+241356789
+421356789
+234516789
+324516789
+342516789
+432516789
+423516789
+243516789
+Pfannkuchen(9) = 30
+OUTPUT559
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 560.
+if test $result = ok -a $start_test_number -le 560; then
+	echo test 560: Harmonic from Language Shootout
+        cat >$test_file <<'TEST560'
+var d, partialSum = 0.0, n = int (#argv < 1 ? 10000000 : argv [0]);
+
+for (d = 1; d <= n; d++) partialSum += 1.0 / d;
+putf ("%0.9f\n", partialSum);
+TEST560
+        echo '      ' $DINO $test_file 10000000 "2>$stderr"
+        if $DINO $test_file 10000000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT560' && $CMP $stdout $ftemp2; then
+16.695311366
+OUTPUT560
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 561.
+if test $result = ok -a $start_test_number -le 561; then
+	echo test 561: K-nucleotide from Language Shootout
+        cat >$test_file <<'TEST561'
+func kfrequency (seq, freq, k, frame) {
+  var i, c, stop = #seq - k + 1;
+
+  for (i = frame; i < stop; i += k) {
+    c = subv (seq, i, k);
+    if (c in freq) freq {c}++;
+    else freq {c} = 1;
+  }
+}
+
+func count (seq, frag) {
+  var frame, k = #frag, freq = {};
+
+  for (frame = 0; frame < k; frame++) kfrequency (seq, freq, k, frame);
+  putln (frag in freq ? freq {frag} : 0, "\t", frag);
+}
+
+func frequency (seq, k) {
+  var i, c, sum, frame, freq = {}, sfreq = [];
+  func freq_cmp (el1, el2) {
+    return freq {el2} - freq {el1};
+  }
+
+  for (frame = 0; frame < k; frame++) kfrequency (seq, freq, k, frame);
+  for (c in freq) ins (sfreq, c, -1);
+  sfreq = sort (sfreq, freq_cmp);
+  sum = #seq - k + 1;
+  for (i = 0; i < #sfreq; i++) {
+    c = sfreq [i];
+    putf ("%s %0.3f\n", c, (freq {c} * 100.) / sum);
+  }
+  putln ();
+}
+
+func readseq () {
+  var c, line, lines = [];
+
+  try {
+    for (;;) {
+      line = getln ();
+      if (line [0] == '>' && subv (line, 1, 5) == "THREE") break;
+    }
+    for (;;) {
+      line = getln ();
+      c = line [0];
+      if (c == '>')
+	break;
+      else if (c != ';')
+	insv (lines, toupper (line), -1);
+    }
+  } catch (invcalls.eof) {}
+  return lines;
+}
+
+var seq = readseq ();
+frequency (seq, 1);
+frequency (seq, 2);
+count (seq, "GGT");
+count (seq, "GGTA");
+count (seq, "GGTATT");
+count (seq, "GGTATTTTAATT");
+count (seq, "GGTATTTTAATTTATAGT");
+TEST561
+        echo '      ' $DINO $test_file 1000 "2>$stderr"
+        if $DINO $test_file 1000 <<'INPUT561' 2>$stderr >$stdout; then
+>ONE Homo sapiens alu
+GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGA
+TCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACT
+AAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAG
+GCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCG
+CCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGT
+GGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCA
+GGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAA
+TTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAG
+AATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCA
+GCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGT
+AATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACC
+AGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTG
+GTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACC
+CGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAG
+AGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTT
+TGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACA
+TGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCT
+GTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGG
+TTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGT
+CTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGG
+CGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCG
+TCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTA
+CTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCG
+AGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCG
+GGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACC
+TGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAA
+TACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGA
+GGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACT
+GCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTC
+ACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGT
+TCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGC
+CGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCG
+CTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTG
+GGCGACAGAGCGAGACTCCG
+>TWO IUB ambiguity codes
+cttBtatcatatgctaKggNcataaaSatgtaaaDcDRtBggDtctttataattcBgtcg
+tactDtDagcctatttSVHtHttKtgtHMaSattgWaHKHttttagacatWatgtRgaaa
+NtactMcSMtYtcMgRtacttctWBacgaaatatagScDtttgaagacacatagtVgYgt
+cattHWtMMWcStgttaggKtSgaYaaccWStcgBttgcgaMttBYatcWtgacaYcaga
+gtaBDtRacttttcWatMttDBcatWtatcttactaBgaYtcttgttttttttYaaScYa
+HgtgttNtSatcMtcVaaaStccRcctDaataataStcYtRDSaMtDttgttSagtRRca
+tttHatSttMtWgtcgtatSSagactYaaattcaMtWatttaSgYttaRgKaRtccactt
+tattRggaMcDaWaWagttttgacatgttctacaaaRaatataataaMttcgDacgaSSt
+acaStYRctVaNMtMgtaggcKatcttttattaaaaagVWaHKYagtttttatttaacct
+tacgtVtcVaattVMBcttaMtttaStgacttagattWWacVtgWYagWVRctDattBYt
+gtttaagaagattattgacVatMaacattVctgtBSgaVtgWWggaKHaatKWcBScSWa
+accRVacacaaactaccScattRatatKVtactatatttHttaagtttSKtRtacaaagt
+RDttcaaaaWgcacatWaDgtDKacgaacaattacaRNWaatHtttStgttattaaMtgt
+tgDcgtMgcatBtgcttcgcgaDWgagctgcgaggggVtaaScNatttacttaatgacag
+cccccacatYScaMgtaggtYaNgttctgaMaacNaMRaacaaacaKctacatagYWctg
+ttWaaataaaataRattagHacacaagcgKatacBttRttaagtatttccgatctHSaat
+actcNttMaagtattMtgRtgaMgcataatHcMtaBSaRattagttgatHtMttaaKagg
+YtaaBataSaVatactWtataVWgKgttaaaacagtgcgRatatacatVtHRtVYataSa
+KtWaStVcNKHKttactatccctcatgWHatWaRcttactaggatctataDtDHBttata
+aaaHgtacVtagaYttYaKcctattcttcttaataNDaaggaaaDYgcggctaaWSctBa
+aNtgctggMBaKctaMVKagBaactaWaDaMaccYVtNtaHtVWtKgRtcaaNtYaNacg
+gtttNattgVtttctgtBaWgtaattcaagtcaVWtactNggattctttaYtaaagccgc
+tcttagHVggaYtgtNcDaVagctctctKgacgtatagYcctRYHDtgBattDaaDgccK
+tcHaaStttMcctagtattgcRgWBaVatHaaaataYtgtttagMDMRtaataaggatMt
+ttctWgtNtgtgaaaaMaatatRtttMtDgHHtgtcattttcWattRSHcVagaagtacg
+ggtaKVattKYagactNaatgtttgKMMgYNtcccgSKttctaStatatNVataYHgtNa
+BKRgNacaactgatttcctttaNcgatttctctataScaHtataRagtcRVttacDSDtt
+aRtSatacHgtSKacYagttMHtWataggatgactNtatSaNctataVtttRNKtgRacc
+tttYtatgttactttttcctttaaacatacaHactMacacggtWataMtBVacRaSaatc
+cgtaBVttccagccBcttaRKtgtgcctttttRtgtcagcRttKtaaacKtaaatctcac
+aattgcaNtSBaaccgggttattaaBcKatDagttactcttcattVtttHaaggctKKga
+tacatcBggScagtVcacattttgaHaDSgHatRMaHWggtatatRgccDttcgtatcga
+aacaHtaagttaRatgaVacttagattVKtaaYttaaatcaNatccRttRRaMScNaaaD
+gttVHWgtcHaaHgacVaWtgttScactaagSgttatcttagggDtaccagWattWtRtg
+ttHWHacgattBtgVcaYatcggttgagKcWtKKcaVtgaYgWctgYggVctgtHgaNcV
+taBtWaaYatcDRaaRtSctgaHaYRttagatMatgcatttNattaDttaattgttctaa
+ccctcccctagaWBtttHtBccttagaVaatMcBHagaVcWcagBVttcBtaYMccagat
+gaaaaHctctaacgttagNWRtcggattNatcRaNHttcagtKttttgWatWttcSaNgg
+gaWtactKKMaacatKatacNattgctWtatctaVgagctatgtRaHtYcWcttagccaa
+tYttWttaWSSttaHcaaaaagVacVgtaVaRMgattaVcDactttcHHggHRtgNcctt
+tYatcatKgctcctctatVcaaaaKaaaagtatatctgMtWtaaaacaStttMtcgactt
+taSatcgDataaactaaacaagtaaVctaggaSccaatMVtaaSKNVattttgHccatca
+cBVctgcaVatVttRtactgtVcaattHgtaaattaaattttYtatattaaRSgYtgBag
+aHSBDgtagcacRHtYcBgtcacttacactaYcgctWtattgSHtSatcataaatataHt
+cgtYaaMNgBaatttaRgaMaatatttBtttaaaHHKaatctgatWatYaacttMctctt
+ttVctagctDaaagtaVaKaKRtaacBgtatccaaccactHHaagaagaaggaNaaatBW
+attccgStaMSaMatBttgcatgRSacgttVVtaaDMtcSgVatWcaSatcttttVatag
+ttactttacgatcaccNtaDVgSRcgVcgtgaacgaNtaNatatagtHtMgtHcMtagaa
+attBgtataRaaaacaYKgtRccYtatgaagtaataKgtaaMttgaaRVatgcagaKStc
+tHNaaatctBBtcttaYaBWHgtVtgacagcaRcataWctcaBcYacYgatDgtDHccta
+>THREE Homo sapiens frequency
+aacacttcaccaggtatcgtgaaggctcaagattacccagagaacctttgcaatataaga
+atatgtatgcagcattaccctaagtaattatattctttttctgactcaaagtgacaagcc
+ctagtgtatattaaatcggtatatttgggaaattcctcaaactatcctaatcaggtagcc
+atgaaagtgatcaaaaaagttcgtacttataccatacatgaattctggccaagtaaaaaa
+tagattgcgcaaaattcgtaccttaagtctctcgccaagatattaggatcctattactca
+tatcgtgtttttctttattgccgccatccccggagtatctcacccatccttctcttaaag
+gcctaatattacctatgcaaataaacatatattgttgaaaattgagaacctgatcgtgat
+tcttatgtgtaccatatgtatagtaatcacgcgactatatagtgctttagtatcgcccgt
+gggtgagtgaatattctgggctagcgtgagatagtttcttgtcctaatatttttcagatc
+gaatagcttctatttttgtgtttattgacatatgtcgaaactccttactcagtgaaagtc
+atgaccagatccacgaacaatcttcggaatcagtctcgttttacggcggaatcttgagtc
+taacttatatcccgtcgcttactttctaacaccccttatgtatttttaaaattacgttta
+ttcgaacgtacttggcggaagcgttattttttgaagtaagttacattgggcagactcttg
+acattttcgatacgactttctttcatccatcacaggactcgttcgtattgatatcagaag
+ctcgtgatgattagttgtcttctttaccaatactttgaggcctattctgcgaaatttttg
+ttgccctgcgaacttcacataccaaggaacacctcgcaacatgccttcatatccatcgtt
+cattgtaattcttacacaatgaatcctaagtaattacatccctgcgtaaaagatggtagg
+ggcactgaggatatattaccaagcatttagttatgagtaatcagcaatgtttcttgtatt
+aagttctctaaaatagttacatcgtaatgttatctcgggttccgcgaataaacgagatag
+attcattatatatggccctaagcaaaaacctcctcgtattctgttggtaattagaatcac
+acaatacgggttgagatattaattatttgtagtacgaagagatataaaaagatgaacaat
+tactcaagtcaagatgtatacgggatttataataaaaatcgggtagagatctgctttgca
+attcagacgtgccactaaatcgtaatatgtcgcgttacatcagaaagggtaactattatt
+aattaataaagggcttaatcactacatattagatcttatccgatagtcttatctattcgt
+tgtatttttaagcggttctaattcagtcattatatcagtgctccgagttctttattattg
+ttttaaggatgacaaaatgcctcttgttataacgctgggagaagcagactaagagtcgga
+gcagttggtagaatgaggctgcaaaagacggtctcgacgaatggacagactttactaaac
+caatgaaagacagaagtagagcaaagtctgaagtggtatcagcttaattatgacaaccct
+taatacttccctttcgccgaatactggcgtggaaaggttttaaaagtcgaagtagttaga
+ggcatctctcgctcataaataggtagactactcgcaatccaatgtgactatgtaatactg
+ggaacatcagtccgcgatgcagcgtgtttatcaaccgtccccactcgcctggggagacat
+gagaccacccccgtggggattattagtccgcagtaatcgactcttgacaatccttttcga
+ttatgtcatagcaatttacgacagttcagcgaagtgactactcggcgaaatggtattact
+aaagcattcgaacccacatgaatgtgattcttggcaatttctaatccactaaagcttttc
+cgttgaatctggttgtagatatttatataagttcactaattaagatcacggtagtatatt
+gatagtgatgtctttgcaagaggttggccgaggaatttacggattctctattgatacaat
+ttgtctggcttataactcttaaggctgaaccaggcgtttttagacgacttgatcagctgt
+tagaatggtttggactccctctttcatgtcagtaacatttcagccgttattgttacgata
+tgcttgaacaatattgatctaccacacacccatagtatattttataggtcatgctgttac
+ctacgagcatggtattccacttcccattcaatgagtattcaacatcactagcctcagaga
+tgatgacccacctctaataacgtcacgttgcggccatgtgaaacctgaacttgagtagac
+gatatcaagcgctttaaattgcatataacatttgagggtaaagctaagcggatgctttat
+ataatcaatactcaataataagatttgattgcattttagagttatgacacgacatagttc
+actaacgagttactattcccagatctagactgaagtactgatcgagacgatccttacgtc
+gatgatcgttagttatcgacttaggtcgggtctctagcggtattggtacttaaccggaca
+ctatactaataacccatgatcaaagcataacagaatacagacgataatttcgccaacata
+tatgtacagaccccaagcatgagaagctcattgaaagctatcattgaagtcccgctcaca
+atgtgtcttttccagacggtttaactggttcccgggagtcctggagtttcgacttacata
+aatggaaacaatgtattttgctaatttatctatagcgtcatttggaccaatacagaatat
+tatgttgcctagtaatccactataacccgcaagtgctgatagaaaatttttagacgattt
+ataaatgccccaagtatccctcccgtgaatcctccgttatactaattagtattcgttcat
+acgtataccgcgcatatatgaacatttggcgataaggcgcgtgaattgttacgtgacaga
+gatagcagtttcttgtgatatggttaacagacgtacatgaagggaaactttatatctata
+gtgatgcttccgtagaaataccgccactggtctgccaatgatgaagtatgtagctttagg
+tttgtactatgaggctttcgtttgtttgcagagtataacagttgcgagtgaaaaaccgac
+gaatttatactaatacgctttcactattggctacaaaatagggaagagtttcaatcatga
+gagggagtatatggatgctttgtagctaaaggtagaacgtatgtatatgctgccgttcat
+tcttgaaagatacataagcgataagttacgacaattataagcaacatccctaccttcgta
+acgatttcactgttactgcgcttgaaatacactatggggctattggcggagagaagcaga
+tcgcgccgagcatatacgagacctataatgttgatgatagagaaggcgtctgaattgata
+catcgaagtacactttctttcgtagtatctctcgtcctctttctatctccggacacaaga
+attaagttatatatatagagtcttaccaatcatgttgaatcctgattctcagagttcttt
+ggcgggccttgtgatgactgagaaacaatgcaatattgctccaaatttcctaagcaaatt
+ctcggttatgttatgttatcagcaaagcgttacgttatgttatttaaatctggaatgacg
+gagcgaagttcttatgtcggtgtgggaataattcttttgaagacagcactccttaaataa
+tatcgctccgtgtttgtatttatcgaatgggtctgtaaccttgcacaagcaaatcggtgg
+tgtatatatcggataacaattaatacgatgttcatagtgacagtatactgatcgagtcct
+ctaaagtcaattacctcacttaacaatctcattgatgttgtgtcattcccggtatcgccc
+gtagtatgtgctctgattgaccgagtgtgaaccaaggaacatctactaatgcctttgtta
+ggtaagatctctctgaattccttcgtgccaacttaaaacattatcaaaatttcttctact
+tggattaactacttttacgagcatggcaaattcccctgtggaagacggttcattattatc
+ggaaaccttatagaaattgcgtgttgactgaaattagatttttattgtaagagttgcatc
+tttgcgattcctctggtctagcttccaatgaacagtcctcccttctattcgacatcgggt
+ccttcgtacatgtctttgcgatgtaataattaggttcggagtgtggccttaatgggtgca
+actaggaatacaacgcaaatttgctgacatgatagcaaatcggtatgccggcaccaaaac
+gtgctccttgcttagcttgtgaatgagactcagtagttaaataaatccatatctgcaatc
+gattccacaggtattgtccactatctttgaactactctaagagatacaagcttagctgag
+accgaggtgtatatgactacgctgatatctgtaaggtaccaatgcaggcaaagtatgcga
+gaagctaataccggctgtttccagctttataagattaaaatttggctgtcctggcggcct
+cagaattgttctatcgtaatcagttggttcattaattagctaagtacgaggtacaactta
+tctgtcccagaacagctccacaagtttttttacagccgaaacccctgtgtgaatcttaat
+atccaagcgcgttatctgattagagtttacaactcagtattttatcagtacgttttgttt
+ccaacattacccggtatgacaaaatgacgccacgtgtcgaataatggtctgaccaatgta
+ggaagtgaaaagataaatat
+INPUT561
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT561' && $CMP $stdout $ftemp2; then
+T 31.520
+A 29.600
+C 19.480
+G 19.400
+
+AT 9.922
+TT 9.602
+TA 9.402
+AA 8.402
+GA 6.321
+TC 6.301
+TG 6.201
+GT 6.041
+CT 5.961
+AG 5.841
+CA 5.461
+AC 5.441
+CC 4.041
+CG 4.021
+GC 3.701
+GG 3.341
+
+54	GGT
+24	GGTA
+4	GGTATT
+0	GGTATTTTAATT
+0	GGTATTTTAATTTATAGT
+OUTPUT561
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 562.
+if test $result = ok -a $start_test_number -le 562; then
+	echo test 562: Fasta from Language Shootout
+        cat >$test_file <<'TEST562'
+var PI = 3.141592653589793;
+var SOLAR_MASS = 4 * PI * PI;
+var DAYS_PER_YEAR = 365.24;
+
+class body (x, y, z, vx, vy, vz, mass) {}
+
+var Jupiter = body (4.84143144246472090e+00,
+		    -1.16032004402742839e+00,
+	            -1.03622044471123109e-01,
+		    1.66007664274403694e-03 * DAYS_PER_YEAR,
+		    7.69901118419740425e-03 * DAYS_PER_YEAR,
+		    -6.90460016972063023e-05 * DAYS_PER_YEAR,
+		    9.54791938424326609e-04 * SOLAR_MASS);
+
+var Saturn = body (8.34336671824457987e+00,
+		   4.12479856412430479e+00,
+		   -4.03523417114321381e-01,
+		   -2.76742510726862411e-03 * DAYS_PER_YEAR,
+		   4.99852801234917238e-03 * DAYS_PER_YEAR,
+		   2.30417297573763929e-05 * DAYS_PER_YEAR,
+		   2.85885980666130812e-04 * SOLAR_MASS);
+
+var Uranus = body (1.28943695621391310e+01,
+		   -1.51111514016986312e+01,
+		   -2.23307578892655734e-01,
+		   2.96460137564761618e-03 * DAYS_PER_YEAR,
+		   2.37847173959480950e-03 * DAYS_PER_YEAR,
+		   -2.96589568540237556e-05 * DAYS_PER_YEAR,
+		   4.36624404335156298e-05 * SOLAR_MASS);
+
+var Neptune = body (1.53796971148509165e+01,
+		    -2.59193146099879641e+01,
+		    1.79258772950371181e-01,
+		    2.68067772490389322e-03 * DAYS_PER_YEAR,
+		    1.62824170038242295e-03 * DAYS_PER_YEAR,
+		    -9.51592254519715870e-05 * DAYS_PER_YEAR,
+		    5.15138902046611451e-05 * SOLAR_MASS);
+
+var Sun = body (0., 0., 0., 0., 0., 0., SOLAR_MASS);
+
+func advance (bodies, dt) {
+  var i, j;
+
+  for (i = 0; i < #bodies; i++) {
+    var bi = bodies [i];
+    var bix = bi.x, biy = bi.y, biz = bi.z, bimass = bi.mass;
+    var bivx = bi.vx, bivy = bi.vy, bivz = bi.vz;
+
+    for (j = i + 1; j < #bodies; j++) {
+      var bj = bodies [j];
+      var dx = bix - bj.x, dy = biy - bj.y, dz = biz - bj.z;
+      var distance = sqrt (dx * dx + dy * dy + dz * dz);
+      var mag = dt / (distance * distance * distance);
+      var bim = bimass * mag, bjm = bj.mass * mag;
+      
+      bivx -= dx * bjm; bivy -= dy * bjm; bivz -= dz * bjm;
+      bj.vx += dx * bim; bj.vy += dy * bim; bj.vz += dz * bim;
+    }
+    bi.vx = bivx; bi.vy = bivy; bi.vz = bivz;
+  }
+  for (i = 0; i < #bodies; i++) {
+    var bi = bodies[i];
+
+    bi.x += dt * bi.vx; bi.y += dt * bi.vy; bi.z += dt * bi.vz;
+  }
+}
+
+func energy (bodies) {
+  var i, j, e = 0.;
+
+  for (i = 0; i < #bodies; i++) {
+    var bi = bodies [i];
+    var vx = bi.vx, vy = bi.vy, vz = bi.vz, bim = bi.mass;
+
+    e = e + (0.5 * bim * (vx * vx + vy * vy + vz * vz));
+    for (j = i + 1; j < #bodies; j++) {
+      var bj = bodies [j];
+      var dx = bi.x - bj.x, dy = bi.y - bj.y, dz = bi.z - bj.z;
+      var distance = sqrt (dx * dx + dy * dy + dz * dz);
+
+      e = e - ((bim * bj.mass) / distance);
+    }
+  }
+  return e;
+}
+
+func offsetMomentum (b) {
+  var i, px = 0., py = 0., pz = 0.;
+
+  for (i = 0; i < #b; i++) {
+    var bi = b [i];
+    var bim = bi.mass;
+
+    px = px + (bi.vx * bim);
+    py = py + (bi.vy * bim);
+    pz = pz + (bi.vz * bim);
+  }
+  b [0].vx = -px / SOLAR_MASS;
+  b [0].vy = -py / SOLAR_MASS;
+  b [0].vz = -pz / SOLAR_MASS;
+}
+
+var i, N = int (#argv < 1 ? 1000 : argv [0]);
+var bodies = [Sun, Jupiter, Saturn, Uranus, Neptune];
+
+offsetMomentum (bodies);
+putf ("%0.9f\n", energy (bodies));
+for (i = 0; i < N; i++) {advance (bodies, 0.01);}
+putf ("%0.9f\n", energy (bodies));
+TEST562
+        echo '      ' $DINO $test_file 100000 "2>$stderr"
+        if $DINO $test_file 100000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT562' && $CMP $stdout $ftemp2; then
+-0.169075164
+-0.169079859
+OUTPUT562
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 563.
+if test $result = ok -a $start_test_number -le 563; then
+	echo test 563: Nsieve from Language Shootout
+        cat >$test_file <<'TEST563'
+func nsieve (m) {
+  var i, k, flags = [m + 1 : 1], count = 0;
+  
+  for (i = 2; i <= m; i++)
+    if (flags [i]) {
+      for (k = i + i; k <= m; k += i)
+	flags [k] = 0;
+      count++;
+    }
+  return count;
+}
+
+var i, m, n = max (2, int (#argv < 1 ? 1 : argv [0]));
+
+for (i = 0; i <= 2; i++) {
+  m = (1 << (n - i)) * 10000; putf ("Primes up to %8d %8d\n", m, nsieve (m));
+}
+TEST563
+        echo '      ' $DINO $test_file 8 "2>$stderr"
+        if $DINO $test_file 8 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT563' && $CMP $stdout $ftemp2; then
+Primes up to  2560000   187134
+Primes up to  1280000    98610
+Primes up to   640000    52074
+OUTPUT563
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 564.
+if test $result = ok -a $start_test_number -le 564; then
+	echo test 564: Nsieve Bits from Language Shootout
+        cat >$test_file <<'TEST564'
+var power = 5, precision = 1 << power, mask = precision - 1;
+
+func nsieve (m) {
+  var i, k, cm = (m + precision) / precision, flags = [cm : ~0], count = 0;
+  
+  for (i = 2; i <= m; i++)
+    if (flags [i >> power] & (1 << (i & mask))) {
+      for (k = i + i; k <= m; k += i)
+	flags [k >> power] &= ~(1 << (k & mask));
+      count++;
+    }
+  return count;
+}
+
+
+var i, m, N = max (2, int (#argv < 1 ? 1 : argv [0]));
+
+for (i = 0; i <= 2; i++) {
+  m = (1 << (N - i)) * 10000;
+  putf ("Primes up to %8d %8d\n", m, nsieve (m));
+}
+TEST564
+        echo '      ' $DINO $test_file 8 "2>$stderr"
+        if $DINO $test_file 8 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT564' && $CMP $stdout $ftemp2; then
+Primes up to  2560000   187134
+Primes up to  1280000    98610
+Primes up to   640000    52074
+OUTPUT564
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 565.
+if test $result = ok -a $start_test_number -le 565; then
+	echo test 565: Pidigits from Language Shootout
+        cat >$test_file <<'TEST565'
+include "gmp";
+
+var k = 0, z = [mpzs.mpz (1), mpzs.mpz (0), mpzs.mpz (0), mpzs.mpz (1)];
+
+func next_digit () {
+  var y;
+
+  for (;;) {
+    y = extract_digit (3);
+    if (y == extract_digit (4)) {
+      z = compose ([mpzs.mpz (10), mpzs.mpz (-10 * y),
+		    mpzs.mpz (0), mpzs.mpz (1)], z);
+      return y;
+    }
+    z = compose (z, next_lft ());
+  }
+}
+
+func next_lft () {
+  k++;
+  return [mpzs.mpz (k), mpzs.mpz (4 * k + 2),
+	  mpzs.mpz (0), mpzs.mpz (2 * k + 1)];
+}
+
+func extract_digit (x) {
+  var xx = mpzs.mpz (x);
+
+  return mpzs.get_i (mpzs.tdiv_q (mpzs.add (mpzs.mul (z [0], xx), z [1]),
+				  mpzs.add (mpzs.mul (z [2], xx), z [3])));
+}
+
+func compose (z, w) {
+  return [mpzs.add (mpzs.mul (z [0], w [0]), mpzs.mul (z [1], w [2])),
+	  mpzs.add (mpzs.mul (z [0], w [1]), mpzs.mul (z [1], w [3])),
+	  mpzs.add (mpzs.mul (z [2], w [0]), mpzs.mul (z [3], w [2])),
+	  mpzs.add (mpzs.mul (z [2], w [1]), mpzs.mul (z [3], w [3]))];
+}
+
+// main loop
+
+var i, j, n = int (argv [0]);
+
+for(i = 1; i <= n; i++) {
+  put (next_digit());
+  if (i % 10 == 0) putln ("\t:", i);
+}
+
+if (n % 10 != 0) {
+  for (j = n % 10; j <= 10; j++) put (" ");
+  putln ("\t:", n);
+}
+TEST565
+        echo '      ' $DINO -L./gmp.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 1000 "2>$stderr"
+        if $DINO -L./gmp.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 1000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT565' && $CMP $stdout $ftemp2; then
+3141592653	:10
+5897932384	:20
+6264338327	:30
+9502884197	:40
+1693993751	:50
+0582097494	:60
+4592307816	:70
+4062862089	:80
+9862803482	:90
+5342117067	:100
+9821480865	:110
+1328230664	:120
+7093844609	:130
+5505822317	:140
+2535940812	:150
+8481117450	:160
+2841027019	:170
+3852110555	:180
+9644622948	:190
+9549303819	:200
+6442881097	:210
+5665933446	:220
+1284756482	:230
+3378678316	:240
+5271201909	:250
+1456485669	:260
+2346034861	:270
+0454326648	:280
+2133936072	:290
+6024914127	:300
+3724587006	:310
+6063155881	:320
+7488152092	:330
+0962829254	:340
+0917153643	:350
+6789259036	:360
+0011330530	:370
+5488204665	:380
+2138414695	:390
+1941511609	:400
+4330572703	:410
+6575959195	:420
+3092186117	:430
+3819326117	:440
+9310511854	:450
+8074462379	:460
+9627495673	:470
+5188575272	:480
+4891227938	:490
+1830119491	:500
+2983367336	:510
+2440656643	:520
+0860213949	:530
+4639522473	:540
+7190702179	:550
+8609437027	:560
+7053921717	:570
+6293176752	:580
+3846748184	:590
+6766940513	:600
+2000568127	:610
+1452635608	:620
+2778577134	:630
+2757789609	:640
+1736371787	:650
+2146844090	:660
+1224953430	:670
+1465495853	:680
+7105079227	:690
+9689258923	:700
+5420199561	:710
+1212902196	:720
+0864034418	:730
+1598136297	:740
+7477130996	:750
+0518707211	:760
+3499999983	:770
+7297804995	:780
+1059731732	:790
+8160963185	:800
+9502445945	:810
+5346908302	:820
+6425223082	:830
+5334468503	:840
+5261931188	:850
+1710100031	:860
+3783875288	:870
+6587533208	:880
+3814206171	:890
+7766914730	:900
+3598253490	:910
+4287554687	:920
+3115956286	:930
+3882353787	:940
+5937519577	:950
+8185778053	:960
+2171226806	:970
+6130019278	:980
+7661119590	:990
+9216420198	:1000
+OUTPUT565
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 567.
+if test $result = ok -a $start_test_number -le 566; then
+	echo test 566: Random from Language Shootout
+        cat >$test_file <<'TEST567'
+var c, i, vec, seq = getf (), ilen = #seq;
+
+seq = gsub (">[^\n]+\n|\n", seq, "");
+
+var clen = #seq;
+var variants = ["agggtaaa|tttaccct", "[cgt]gggtaaa|tttaccc[acg]",
+		"a[act]ggtaaa|tttacc[agt]t", "ag[act]gtaaa|tttac[agt]ct",
+		"agg[act]taaa|ttta[agt]cct", "aggg[acg]aaa|ttt[cgt]ccct",
+		"agggt[cgt]aa|tt[acg]accct", "agggta[cgt]a|t[acg]taccct",
+		"agggtaa[cgt]|[acg]ttaccct"];
+
+for (i = 0; i < #variants; i++) {
+  vec = gmatch (variants [i], seq);
+  putln (variants [i], " ", vec == nil ? 0 : #vec / 2);
+}
+
+var subst = {
+  "B" : "(c|g|t)", "D" : "(a|g|t)", "H" : "(a|c|t)", "K" : "(g|t)",
+  "M" : "(a|c)", "N" : "(a|c|g|t)", "R" : "(a|g)", "S" : "(c|g)",
+  "V" : "(a|c|g)", "W" : "(a|t)", "Y" : "(c|t)"
+};
+
+for (c in subst)
+  seq = gsub (c, seq, subst {c});
+
+putln ("\n", ilen, "\n", clen, "\n", #seq);
+TEST567
+        echo '      ' $DINO $test_file 1000 "2>$stderr"
+        if $DINO $test_file 1000 <<'INPUT567' 2>$stderr >$stdout; then
+>ONE Homo sapiens alu
+GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGA
+TCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACT
+AAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAG
+GCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCG
+CCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGT
+GGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCA
+GGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAA
+TTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAG
+AATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCA
+GCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGT
+AATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACC
+AGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTG
+GTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACC
+CGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAG
+AGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTT
+TGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACA
+TGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCT
+GTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGG
+TTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGT
+CTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGG
+CGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCG
+TCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTA
+CTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCG
+AGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCG
+GGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACC
+TGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAA
+TACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGA
+GGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACT
+GCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTC
+ACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGT
+TCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGC
+CGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCG
+CTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTG
+GGCGACAGAGCGAGACTCCG
+>TWO IUB ambiguity codes
+cttBtatcatatgctaKggNcataaaSatgtaaaDcDRtBggDtctttataattcBgtcg
+tactDtDagcctatttSVHtHttKtgtHMaSattgWaHKHttttagacatWatgtRgaaa
+NtactMcSMtYtcMgRtacttctWBacgaaatatagScDtttgaagacacatagtVgYgt
+cattHWtMMWcStgttaggKtSgaYaaccWStcgBttgcgaMttBYatcWtgacaYcaga
+gtaBDtRacttttcWatMttDBcatWtatcttactaBgaYtcttgttttttttYaaScYa
+HgtgttNtSatcMtcVaaaStccRcctDaataataStcYtRDSaMtDttgttSagtRRca
+tttHatSttMtWgtcgtatSSagactYaaattcaMtWatttaSgYttaRgKaRtccactt
+tattRggaMcDaWaWagttttgacatgttctacaaaRaatataataaMttcgDacgaSSt
+acaStYRctVaNMtMgtaggcKatcttttattaaaaagVWaHKYagtttttatttaacct
+tacgtVtcVaattVMBcttaMtttaStgacttagattWWacVtgWYagWVRctDattBYt
+gtttaagaagattattgacVatMaacattVctgtBSgaVtgWWggaKHaatKWcBScSWa
+accRVacacaaactaccScattRatatKVtactatatttHttaagtttSKtRtacaaagt
+RDttcaaaaWgcacatWaDgtDKacgaacaattacaRNWaatHtttStgttattaaMtgt
+tgDcgtMgcatBtgcttcgcgaDWgagctgcgaggggVtaaScNatttacttaatgacag
+cccccacatYScaMgtaggtYaNgttctgaMaacNaMRaacaaacaKctacatagYWctg
+ttWaaataaaataRattagHacacaagcgKatacBttRttaagtatttccgatctHSaat
+actcNttMaagtattMtgRtgaMgcataatHcMtaBSaRattagttgatHtMttaaKagg
+YtaaBataSaVatactWtataVWgKgttaaaacagtgcgRatatacatVtHRtVYataSa
+KtWaStVcNKHKttactatccctcatgWHatWaRcttactaggatctataDtDHBttata
+aaaHgtacVtagaYttYaKcctattcttcttaataNDaaggaaaDYgcggctaaWSctBa
+aNtgctggMBaKctaMVKagBaactaWaDaMaccYVtNtaHtVWtKgRtcaaNtYaNacg
+gtttNattgVtttctgtBaWgtaattcaagtcaVWtactNggattctttaYtaaagccgc
+tcttagHVggaYtgtNcDaVagctctctKgacgtatagYcctRYHDtgBattDaaDgccK
+tcHaaStttMcctagtattgcRgWBaVatHaaaataYtgtttagMDMRtaataaggatMt
+ttctWgtNtgtgaaaaMaatatRtttMtDgHHtgtcattttcWattRSHcVagaagtacg
+ggtaKVattKYagactNaatgtttgKMMgYNtcccgSKttctaStatatNVataYHgtNa
+BKRgNacaactgatttcctttaNcgatttctctataScaHtataRagtcRVttacDSDtt
+aRtSatacHgtSKacYagttMHtWataggatgactNtatSaNctataVtttRNKtgRacc
+tttYtatgttactttttcctttaaacatacaHactMacacggtWataMtBVacRaSaatc
+cgtaBVttccagccBcttaRKtgtgcctttttRtgtcagcRttKtaaacKtaaatctcac
+aattgcaNtSBaaccgggttattaaBcKatDagttactcttcattVtttHaaggctKKga
+tacatcBggScagtVcacattttgaHaDSgHatRMaHWggtatatRgccDttcgtatcga
+aacaHtaagttaRatgaVacttagattVKtaaYttaaatcaNatccRttRRaMScNaaaD
+gttVHWgtcHaaHgacVaWtgttScactaagSgttatcttagggDtaccagWattWtRtg
+ttHWHacgattBtgVcaYatcggttgagKcWtKKcaVtgaYgWctgYggVctgtHgaNcV
+taBtWaaYatcDRaaRtSctgaHaYRttagatMatgcatttNattaDttaattgttctaa
+ccctcccctagaWBtttHtBccttagaVaatMcBHagaVcWcagBVttcBtaYMccagat
+gaaaaHctctaacgttagNWRtcggattNatcRaNHttcagtKttttgWatWttcSaNgg
+gaWtactKKMaacatKatacNattgctWtatctaVgagctatgtRaHtYcWcttagccaa
+tYttWttaWSSttaHcaaaaagVacVgtaVaRMgattaVcDactttcHHggHRtgNcctt
+tYatcatKgctcctctatVcaaaaKaaaagtatatctgMtWtaaaacaStttMtcgactt
+taSatcgDataaactaaacaagtaaVctaggaSccaatMVtaaSKNVattttgHccatca
+cBVctgcaVatVttRtactgtVcaattHgtaaattaaattttYtatattaaRSgYtgBag
+aHSBDgtagcacRHtYcBgtcacttacactaYcgctWtattgSHtSatcataaatataHt
+cgtYaaMNgBaatttaRgaMaatatttBtttaaaHHKaatctgatWatYaacttMctctt
+ttVctagctDaaagtaVaKaKRtaacBgtatccaaccactHHaagaagaaggaNaaatBW
+attccgStaMSaMatBttgcatgRSacgttVVtaaDMtcSgVatWcaSatcttttVatag
+ttactttacgatcaccNtaDVgSRcgVcgtgaacgaNtaNatatagtHtMgtHcMtagaa
+attBgtataRaaaacaYKgtRccYtatgaagtaataKgtaaMttgaaRVatgcagaKStc
+tHNaaatctBBtcttaYaBWHgtVtgacagcaRcataWctcaBcYacYgatDgtDHccta
+>THREE Homo sapiens frequency
+aacacttcaccaggtatcgtgaaggctcaagattacccagagaacctttgcaatataaga
+atatgtatgcagcattaccctaagtaattatattctttttctgactcaaagtgacaagcc
+ctagtgtatattaaatcggtatatttgggaaattcctcaaactatcctaatcaggtagcc
+atgaaagtgatcaaaaaagttcgtacttataccatacatgaattctggccaagtaaaaaa
+tagattgcgcaaaattcgtaccttaagtctctcgccaagatattaggatcctattactca
+tatcgtgtttttctttattgccgccatccccggagtatctcacccatccttctcttaaag
+gcctaatattacctatgcaaataaacatatattgttgaaaattgagaacctgatcgtgat
+tcttatgtgtaccatatgtatagtaatcacgcgactatatagtgctttagtatcgcccgt
+gggtgagtgaatattctgggctagcgtgagatagtttcttgtcctaatatttttcagatc
+gaatagcttctatttttgtgtttattgacatatgtcgaaactccttactcagtgaaagtc
+atgaccagatccacgaacaatcttcggaatcagtctcgttttacggcggaatcttgagtc
+taacttatatcccgtcgcttactttctaacaccccttatgtatttttaaaattacgttta
+ttcgaacgtacttggcggaagcgttattttttgaagtaagttacattgggcagactcttg
+acattttcgatacgactttctttcatccatcacaggactcgttcgtattgatatcagaag
+ctcgtgatgattagttgtcttctttaccaatactttgaggcctattctgcgaaatttttg
+ttgccctgcgaacttcacataccaaggaacacctcgcaacatgccttcatatccatcgtt
+cattgtaattcttacacaatgaatcctaagtaattacatccctgcgtaaaagatggtagg
+ggcactgaggatatattaccaagcatttagttatgagtaatcagcaatgtttcttgtatt
+aagttctctaaaatagttacatcgtaatgttatctcgggttccgcgaataaacgagatag
+attcattatatatggccctaagcaaaaacctcctcgtattctgttggtaattagaatcac
+acaatacgggttgagatattaattatttgtagtacgaagagatataaaaagatgaacaat
+tactcaagtcaagatgtatacgggatttataataaaaatcgggtagagatctgctttgca
+attcagacgtgccactaaatcgtaatatgtcgcgttacatcagaaagggtaactattatt
+aattaataaagggcttaatcactacatattagatcttatccgatagtcttatctattcgt
+tgtatttttaagcggttctaattcagtcattatatcagtgctccgagttctttattattg
+ttttaaggatgacaaaatgcctcttgttataacgctgggagaagcagactaagagtcgga
+gcagttggtagaatgaggctgcaaaagacggtctcgacgaatggacagactttactaaac
+caatgaaagacagaagtagagcaaagtctgaagtggtatcagcttaattatgacaaccct
+taatacttccctttcgccgaatactggcgtggaaaggttttaaaagtcgaagtagttaga
+ggcatctctcgctcataaataggtagactactcgcaatccaatgtgactatgtaatactg
+ggaacatcagtccgcgatgcagcgtgtttatcaaccgtccccactcgcctggggagacat
+gagaccacccccgtggggattattagtccgcagtaatcgactcttgacaatccttttcga
+ttatgtcatagcaatttacgacagttcagcgaagtgactactcggcgaaatggtattact
+aaagcattcgaacccacatgaatgtgattcttggcaatttctaatccactaaagcttttc
+cgttgaatctggttgtagatatttatataagttcactaattaagatcacggtagtatatt
+gatagtgatgtctttgcaagaggttggccgaggaatttacggattctctattgatacaat
+ttgtctggcttataactcttaaggctgaaccaggcgtttttagacgacttgatcagctgt
+tagaatggtttggactccctctttcatgtcagtaacatttcagccgttattgttacgata
+tgcttgaacaatattgatctaccacacacccatagtatattttataggtcatgctgttac
+ctacgagcatggtattccacttcccattcaatgagtattcaacatcactagcctcagaga
+tgatgacccacctctaataacgtcacgttgcggccatgtgaaacctgaacttgagtagac
+gatatcaagcgctttaaattgcatataacatttgagggtaaagctaagcggatgctttat
+ataatcaatactcaataataagatttgattgcattttagagttatgacacgacatagttc
+actaacgagttactattcccagatctagactgaagtactgatcgagacgatccttacgtc
+gatgatcgttagttatcgacttaggtcgggtctctagcggtattggtacttaaccggaca
+ctatactaataacccatgatcaaagcataacagaatacagacgataatttcgccaacata
+tatgtacagaccccaagcatgagaagctcattgaaagctatcattgaagtcccgctcaca
+atgtgtcttttccagacggtttaactggttcccgggagtcctggagtttcgacttacata
+aatggaaacaatgtattttgctaatttatctatagcgtcatttggaccaatacagaatat
+tatgttgcctagtaatccactataacccgcaagtgctgatagaaaatttttagacgattt
+ataaatgccccaagtatccctcccgtgaatcctccgttatactaattagtattcgttcat
+acgtataccgcgcatatatgaacatttggcgataaggcgcgtgaattgttacgtgacaga
+gatagcagtttcttgtgatatggttaacagacgtacatgaagggaaactttatatctata
+gtgatgcttccgtagaaataccgccactggtctgccaatgatgaagtatgtagctttagg
+tttgtactatgaggctttcgtttgtttgcagagtataacagttgcgagtgaaaaaccgac
+gaatttatactaatacgctttcactattggctacaaaatagggaagagtttcaatcatga
+gagggagtatatggatgctttgtagctaaaggtagaacgtatgtatatgctgccgttcat
+tcttgaaagatacataagcgataagttacgacaattataagcaacatccctaccttcgta
+acgatttcactgttactgcgcttgaaatacactatggggctattggcggagagaagcaga
+tcgcgccgagcatatacgagacctataatgttgatgatagagaaggcgtctgaattgata
+catcgaagtacactttctttcgtagtatctctcgtcctctttctatctccggacacaaga
+attaagttatatatatagagtcttaccaatcatgttgaatcctgattctcagagttcttt
+ggcgggccttgtgatgactgagaaacaatgcaatattgctccaaatttcctaagcaaatt
+ctcggttatgttatgttatcagcaaagcgttacgttatgttatttaaatctggaatgacg
+gagcgaagttcttatgtcggtgtgggaataattcttttgaagacagcactccttaaataa
+tatcgctccgtgtttgtatttatcgaatgggtctgtaaccttgcacaagcaaatcggtgg
+tgtatatatcggataacaattaatacgatgttcatagtgacagtatactgatcgagtcct
+ctaaagtcaattacctcacttaacaatctcattgatgttgtgtcattcccggtatcgccc
+gtagtatgtgctctgattgaccgagtgtgaaccaaggaacatctactaatgcctttgtta
+ggtaagatctctctgaattccttcgtgccaacttaaaacattatcaaaatttcttctact
+tggattaactacttttacgagcatggcaaattcccctgtggaagacggttcattattatc
+ggaaaccttatagaaattgcgtgttgactgaaattagatttttattgtaagagttgcatc
+tttgcgattcctctggtctagcttccaatgaacagtcctcccttctattcgacatcgggt
+ccttcgtacatgtctttgcgatgtaataattaggttcggagtgtggccttaatgggtgca
+actaggaatacaacgcaaatttgctgacatgatagcaaatcggtatgccggcaccaaaac
+gtgctccttgcttagcttgtgaatgagactcagtagttaaataaatccatatctgcaatc
+gattccacaggtattgtccactatctttgaactactctaagagatacaagcttagctgag
+accgaggtgtatatgactacgctgatatctgtaaggtaccaatgcaggcaaagtatgcga
+gaagctaataccggctgtttccagctttataagattaaaatttggctgtcctggcggcct
+cagaattgttctatcgtaatcagttggttcattaattagctaagtacgaggtacaactta
+tctgtcccagaacagctccacaagtttttttacagccgaaacccctgtgtgaatcttaat
+atccaagcgcgttatctgattagagtttacaactcagtattttatcagtacgttttgttt
+ccaacattacccggtatgacaaaatgacgccacgtgtcgaataatggtctgaccaatgta
+ggaagtgaaaagataaatat
+INPUT567
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT567' && $CMP $stdout $ftemp2; then
+agggtaaa|tttaccct 1
+[cgt]gggtaaa|tttaccc[acg] 0
+a[act]ggtaaa|tttacc[agt]t 0
+ag[act]gtaaa|tttac[agt]ct 0
+agg[act]taaa|ttta[agt]cct 1
+aggg[acg]aaa|ttt[cgt]ccct 0
+agggt[cgt]aa|tt[acg]accct 0
+agggta[cgt]a|t[acg]taccct 0
+agggtaa[cgt]|[acg]ttaccct 2
+
+10245
+10000
+13348
+OUTPUT567
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 568.
+if test $result = ok -a $start_test_number -le 568; then
+	echo test 568: Reverse Complement from Language Shootout
+        cat >$test_file <<'TEST568'
+var map =   "ACBDGHKMNSRUTWVYacbdghkmnsrutwvy";
+var subst = "TGVHCDMKNSYAAWBRTGVHCDMKNSYAAWBR";
+var line, seq = [];
+
+func output_seq (seq) {
+  var i;
+
+  for (i = 0; i < #seq; i += 60) putln (subv (seq, i, 60));
+}
+
+try {
+  for (;;) {
+    line = getln ();
+    if (line [0] != '>') insv (seq, line, -1);
+    else {
+      output_seq (trans (rev (seq), map, subst));
+      del (seq, 0, -1); putln (line);
+    }
+  }
+} catch (invcalls.eof) {}
+
+output_seq (trans (rev (seq), map, subst));
+TEST568
+        echo '      ' $DINO $test_file 1000 "2>$stderr"
+        if $DINO $test_file 1000 <<'INPUT568' 2>$stderr >$stdout; then
+>ONE Homo sapiens alu
+GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGA
+TCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACT
+AAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAG
+GCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCG
+CCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGT
+GGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCA
+GGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAA
+TTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAG
+AATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCA
+GCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGT
+AATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACC
+AGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTG
+GTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACC
+CGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAG
+AGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTT
+TGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACA
+TGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCT
+GTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGG
+TTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGT
+CTCAAAAAGGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGG
+CGGGCGGATCACCTGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCG
+TCTCTACTAAAAATACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTA
+CTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCG
+AGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCG
+GGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACC
+TGAGGTCAGGAGTTCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAA
+TACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGA
+GGCAGGAGAATCGCTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACT
+GCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAGGCCGGGCGCGGTGGCTC
+ACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGT
+TCGAGACCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATACAAAAATTAGC
+CGGGCGTGGTGGCGCGCGCCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATCG
+CTTGAACCCGGGAGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTG
+GGCGACAGAGCGAGACTCCG
+>TWO IUB ambiguity codes
+cttBtatcatatgctaKggNcataaaSatgtaaaDcDRtBggDtctttataattcBgtcg
+tactDtDagcctatttSVHtHttKtgtHMaSattgWaHKHttttagacatWatgtRgaaa
+NtactMcSMtYtcMgRtacttctWBacgaaatatagScDtttgaagacacatagtVgYgt
+cattHWtMMWcStgttaggKtSgaYaaccWStcgBttgcgaMttBYatcWtgacaYcaga
+gtaBDtRacttttcWatMttDBcatWtatcttactaBgaYtcttgttttttttYaaScYa
+HgtgttNtSatcMtcVaaaStccRcctDaataataStcYtRDSaMtDttgttSagtRRca
+tttHatSttMtWgtcgtatSSagactYaaattcaMtWatttaSgYttaRgKaRtccactt
+tattRggaMcDaWaWagttttgacatgttctacaaaRaatataataaMttcgDacgaSSt
+acaStYRctVaNMtMgtaggcKatcttttattaaaaagVWaHKYagtttttatttaacct
+tacgtVtcVaattVMBcttaMtttaStgacttagattWWacVtgWYagWVRctDattBYt
+gtttaagaagattattgacVatMaacattVctgtBSgaVtgWWggaKHaatKWcBScSWa
+accRVacacaaactaccScattRatatKVtactatatttHttaagtttSKtRtacaaagt
+RDttcaaaaWgcacatWaDgtDKacgaacaattacaRNWaatHtttStgttattaaMtgt
+tgDcgtMgcatBtgcttcgcgaDWgagctgcgaggggVtaaScNatttacttaatgacag
+cccccacatYScaMgtaggtYaNgttctgaMaacNaMRaacaaacaKctacatagYWctg
+ttWaaataaaataRattagHacacaagcgKatacBttRttaagtatttccgatctHSaat
+actcNttMaagtattMtgRtgaMgcataatHcMtaBSaRattagttgatHtMttaaKagg
+YtaaBataSaVatactWtataVWgKgttaaaacagtgcgRatatacatVtHRtVYataSa
+KtWaStVcNKHKttactatccctcatgWHatWaRcttactaggatctataDtDHBttata
+aaaHgtacVtagaYttYaKcctattcttcttaataNDaaggaaaDYgcggctaaWSctBa
+aNtgctggMBaKctaMVKagBaactaWaDaMaccYVtNtaHtVWtKgRtcaaNtYaNacg
+gtttNattgVtttctgtBaWgtaattcaagtcaVWtactNggattctttaYtaaagccgc
+tcttagHVggaYtgtNcDaVagctctctKgacgtatagYcctRYHDtgBattDaaDgccK
+tcHaaStttMcctagtattgcRgWBaVatHaaaataYtgtttagMDMRtaataaggatMt
+ttctWgtNtgtgaaaaMaatatRtttMtDgHHtgtcattttcWattRSHcVagaagtacg
+ggtaKVattKYagactNaatgtttgKMMgYNtcccgSKttctaStatatNVataYHgtNa
+BKRgNacaactgatttcctttaNcgatttctctataScaHtataRagtcRVttacDSDtt
+aRtSatacHgtSKacYagttMHtWataggatgactNtatSaNctataVtttRNKtgRacc
+tttYtatgttactttttcctttaaacatacaHactMacacggtWataMtBVacRaSaatc
+cgtaBVttccagccBcttaRKtgtgcctttttRtgtcagcRttKtaaacKtaaatctcac
+aattgcaNtSBaaccgggttattaaBcKatDagttactcttcattVtttHaaggctKKga
+tacatcBggScagtVcacattttgaHaDSgHatRMaHWggtatatRgccDttcgtatcga
+aacaHtaagttaRatgaVacttagattVKtaaYttaaatcaNatccRttRRaMScNaaaD
+gttVHWgtcHaaHgacVaWtgttScactaagSgttatcttagggDtaccagWattWtRtg
+ttHWHacgattBtgVcaYatcggttgagKcWtKKcaVtgaYgWctgYggVctgtHgaNcV
+taBtWaaYatcDRaaRtSctgaHaYRttagatMatgcatttNattaDttaattgttctaa
+ccctcccctagaWBtttHtBccttagaVaatMcBHagaVcWcagBVttcBtaYMccagat
+gaaaaHctctaacgttagNWRtcggattNatcRaNHttcagtKttttgWatWttcSaNgg
+gaWtactKKMaacatKatacNattgctWtatctaVgagctatgtRaHtYcWcttagccaa
+tYttWttaWSSttaHcaaaaagVacVgtaVaRMgattaVcDactttcHHggHRtgNcctt
+tYatcatKgctcctctatVcaaaaKaaaagtatatctgMtWtaaaacaStttMtcgactt
+taSatcgDataaactaaacaagtaaVctaggaSccaatMVtaaSKNVattttgHccatca
+cBVctgcaVatVttRtactgtVcaattHgtaaattaaattttYtatattaaRSgYtgBag
+aHSBDgtagcacRHtYcBgtcacttacactaYcgctWtattgSHtSatcataaatataHt
+cgtYaaMNgBaatttaRgaMaatatttBtttaaaHHKaatctgatWatYaacttMctctt
+ttVctagctDaaagtaVaKaKRtaacBgtatccaaccactHHaagaagaaggaNaaatBW
+attccgStaMSaMatBttgcatgRSacgttVVtaaDMtcSgVatWcaSatcttttVatag
+ttactttacgatcaccNtaDVgSRcgVcgtgaacgaNtaNatatagtHtMgtHcMtagaa
+attBgtataRaaaacaYKgtRccYtatgaagtaataKgtaaMttgaaRVatgcagaKStc
+tHNaaatctBBtcttaYaBWHgtVtgacagcaRcataWctcaBcYacYgatDgtDHccta
+>THREE Homo sapiens frequency
+aacacttcaccaggtatcgtgaaggctcaagattacccagagaacctttgcaatataaga
+atatgtatgcagcattaccctaagtaattatattctttttctgactcaaagtgacaagcc
+ctagtgtatattaaatcggtatatttgggaaattcctcaaactatcctaatcaggtagcc
+atgaaagtgatcaaaaaagttcgtacttataccatacatgaattctggccaagtaaaaaa
+tagattgcgcaaaattcgtaccttaagtctctcgccaagatattaggatcctattactca
+tatcgtgtttttctttattgccgccatccccggagtatctcacccatccttctcttaaag
+gcctaatattacctatgcaaataaacatatattgttgaaaattgagaacctgatcgtgat
+tcttatgtgtaccatatgtatagtaatcacgcgactatatagtgctttagtatcgcccgt
+gggtgagtgaatattctgggctagcgtgagatagtttcttgtcctaatatttttcagatc
+gaatagcttctatttttgtgtttattgacatatgtcgaaactccttactcagtgaaagtc
+atgaccagatccacgaacaatcttcggaatcagtctcgttttacggcggaatcttgagtc
+taacttatatcccgtcgcttactttctaacaccccttatgtatttttaaaattacgttta
+ttcgaacgtacttggcggaagcgttattttttgaagtaagttacattgggcagactcttg
+acattttcgatacgactttctttcatccatcacaggactcgttcgtattgatatcagaag
+ctcgtgatgattagttgtcttctttaccaatactttgaggcctattctgcgaaatttttg
+ttgccctgcgaacttcacataccaaggaacacctcgcaacatgccttcatatccatcgtt
+cattgtaattcttacacaatgaatcctaagtaattacatccctgcgtaaaagatggtagg
+ggcactgaggatatattaccaagcatttagttatgagtaatcagcaatgtttcttgtatt
+aagttctctaaaatagttacatcgtaatgttatctcgggttccgcgaataaacgagatag
+attcattatatatggccctaagcaaaaacctcctcgtattctgttggtaattagaatcac
+acaatacgggttgagatattaattatttgtagtacgaagagatataaaaagatgaacaat
+tactcaagtcaagatgtatacgggatttataataaaaatcgggtagagatctgctttgca
+attcagacgtgccactaaatcgtaatatgtcgcgttacatcagaaagggtaactattatt
+aattaataaagggcttaatcactacatattagatcttatccgatagtcttatctattcgt
+tgtatttttaagcggttctaattcagtcattatatcagtgctccgagttctttattattg
+ttttaaggatgacaaaatgcctcttgttataacgctgggagaagcagactaagagtcgga
+gcagttggtagaatgaggctgcaaaagacggtctcgacgaatggacagactttactaaac
+caatgaaagacagaagtagagcaaagtctgaagtggtatcagcttaattatgacaaccct
+taatacttccctttcgccgaatactggcgtggaaaggttttaaaagtcgaagtagttaga
+ggcatctctcgctcataaataggtagactactcgcaatccaatgtgactatgtaatactg
+ggaacatcagtccgcgatgcagcgtgtttatcaaccgtccccactcgcctggggagacat
+gagaccacccccgtggggattattagtccgcagtaatcgactcttgacaatccttttcga
+ttatgtcatagcaatttacgacagttcagcgaagtgactactcggcgaaatggtattact
+aaagcattcgaacccacatgaatgtgattcttggcaatttctaatccactaaagcttttc
+cgttgaatctggttgtagatatttatataagttcactaattaagatcacggtagtatatt
+gatagtgatgtctttgcaagaggttggccgaggaatttacggattctctattgatacaat
+ttgtctggcttataactcttaaggctgaaccaggcgtttttagacgacttgatcagctgt
+tagaatggtttggactccctctttcatgtcagtaacatttcagccgttattgttacgata
+tgcttgaacaatattgatctaccacacacccatagtatattttataggtcatgctgttac
+ctacgagcatggtattccacttcccattcaatgagtattcaacatcactagcctcagaga
+tgatgacccacctctaataacgtcacgttgcggccatgtgaaacctgaacttgagtagac
+gatatcaagcgctttaaattgcatataacatttgagggtaaagctaagcggatgctttat
+ataatcaatactcaataataagatttgattgcattttagagttatgacacgacatagttc
+actaacgagttactattcccagatctagactgaagtactgatcgagacgatccttacgtc
+gatgatcgttagttatcgacttaggtcgggtctctagcggtattggtacttaaccggaca
+ctatactaataacccatgatcaaagcataacagaatacagacgataatttcgccaacata
+tatgtacagaccccaagcatgagaagctcattgaaagctatcattgaagtcccgctcaca
+atgtgtcttttccagacggtttaactggttcccgggagtcctggagtttcgacttacata
+aatggaaacaatgtattttgctaatttatctatagcgtcatttggaccaatacagaatat
+tatgttgcctagtaatccactataacccgcaagtgctgatagaaaatttttagacgattt
+ataaatgccccaagtatccctcccgtgaatcctccgttatactaattagtattcgttcat
+acgtataccgcgcatatatgaacatttggcgataaggcgcgtgaattgttacgtgacaga
+gatagcagtttcttgtgatatggttaacagacgtacatgaagggaaactttatatctata
+gtgatgcttccgtagaaataccgccactggtctgccaatgatgaagtatgtagctttagg
+tttgtactatgaggctttcgtttgtttgcagagtataacagttgcgagtgaaaaaccgac
+gaatttatactaatacgctttcactattggctacaaaatagggaagagtttcaatcatga
+gagggagtatatggatgctttgtagctaaaggtagaacgtatgtatatgctgccgttcat
+tcttgaaagatacataagcgataagttacgacaattataagcaacatccctaccttcgta
+acgatttcactgttactgcgcttgaaatacactatggggctattggcggagagaagcaga
+tcgcgccgagcatatacgagacctataatgttgatgatagagaaggcgtctgaattgata
+catcgaagtacactttctttcgtagtatctctcgtcctctttctatctccggacacaaga
+attaagttatatatatagagtcttaccaatcatgttgaatcctgattctcagagttcttt
+ggcgggccttgtgatgactgagaaacaatgcaatattgctccaaatttcctaagcaaatt
+ctcggttatgttatgttatcagcaaagcgttacgttatgttatttaaatctggaatgacg
+gagcgaagttcttatgtcggtgtgggaataattcttttgaagacagcactccttaaataa
+tatcgctccgtgtttgtatttatcgaatgggtctgtaaccttgcacaagcaaatcggtgg
+tgtatatatcggataacaattaatacgatgttcatagtgacagtatactgatcgagtcct
+ctaaagtcaattacctcacttaacaatctcattgatgttgtgtcattcccggtatcgccc
+gtagtatgtgctctgattgaccgagtgtgaaccaaggaacatctactaatgcctttgtta
+ggtaagatctctctgaattccttcgtgccaacttaaaacattatcaaaatttcttctact
+tggattaactacttttacgagcatggcaaattcccctgtggaagacggttcattattatc
+ggaaaccttatagaaattgcgtgttgactgaaattagatttttattgtaagagttgcatc
+tttgcgattcctctggtctagcttccaatgaacagtcctcccttctattcgacatcgggt
+ccttcgtacatgtctttgcgatgtaataattaggttcggagtgtggccttaatgggtgca
+actaggaatacaacgcaaatttgctgacatgatagcaaatcggtatgccggcaccaaaac
+gtgctccttgcttagcttgtgaatgagactcagtagttaaataaatccatatctgcaatc
+gattccacaggtattgtccactatctttgaactactctaagagatacaagcttagctgag
+accgaggtgtatatgactacgctgatatctgtaaggtaccaatgcaggcaaagtatgcga
+gaagctaataccggctgtttccagctttataagattaaaatttggctgtcctggcggcct
+cagaattgttctatcgtaatcagttggttcattaattagctaagtacgaggtacaactta
+tctgtcccagaacagctccacaagtttttttacagccgaaacccctgtgtgaatcttaat
+atccaagcgcgttatctgattagagtttacaactcagtattttatcagtacgttttgttt
+ccaacattacccggtatgacaaaatgacgccacgtgtcgaataatggtctgaccaatgta
+ggaagtgaaaagataaatat
+INPUT568
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT568' && $CMP $stdout $ftemp2; then
+>ONE Homo sapiens alu
+CGGAGTCTCGCTCTGTCGCCCAGGCTGGAGTGCAGTGGCGCGATCTCGGCTCACTGCAAC
+CTCCGCCTCCCGGGTTCAAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGATTACA
+GGCGCGCGCCACCACGCCCGGCTAATTTTTGTATTTTTAGTAGAGACGGGGTTTCACCAT
+GTTGGCCAGGCTGGTCTCGAACTCCTGACCTCAGGTGATCCGCCCGCCTCGGCCTCCCAA
+AGTGCTGGGATTACAGGCGTGAGCCACCGCGCCCGGCCTTTTTGAGACGGAGTCTCGCTC
+TGTCGCCCAGGCTGGAGTGCAGTGGCGCGATCTCGGCTCACTGCAACCTCCGCCTCCCGG
+GTTCAAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGATTACAGGCGCGCGCCACC
+ACGCCCGGCTAATTTTTGTATTTTTAGTAGAGACGGGGTTTCACCATGTTGGCCAGGCTG
+GTCTCGAACTCCTGACCTCAGGTGATCCGCCCGCCTCGGCCTCCCAAAGTGCTGGGATTA
+CAGGCGTGAGCCACCGCGCCCGGCCTTTTTGAGACGGAGTCTCGCTCTGTCGCCCAGGCT
+GGAGTGCAGTGGCGCGATCTCGGCTCACTGCAACCTCCGCCTCCCGGGTTCAAGCGATTC
+TCCTGCCTCAGCCTCCCGAGTAGCTGGGATTACAGGCGCGCGCCACCACGCCCGGCTAAT
+TTTTGTATTTTTAGTAGAGACGGGGTTTCACCATGTTGGCCAGGCTGGTCTCGAACTCCT
+GACCTCAGGTGATCCGCCCGCCTCGGCCTCCCAAAGTGCTGGGATTACAGGCGTGAGCCA
+CCGCGCCCGGCCTTTTTGAGACGGAGTCTCGCTCTGTCGCCCAGGCTGGAGTGCAGTGGC
+GCGATCTCGGCTCACTGCAACCTCCGCCTCCCGGGTTCAAGCGATTCTCCTGCCTCAGCC
+TCCCGAGTAGCTGGGATTACAGGCGCGCGCCACCACGCCCGGCTAATTTTTGTATTTTTA
+GTAGAGACGGGGTTTCACCATGTTGGCCAGGCTGGTCTCGAACTCCTGACCTCAGGTGAT
+CCGCCCGCCTCGGCCTCCCAAAGTGCTGGGATTACAGGCGTGAGCCACCGCGCCCGGCCT
+TTTTGAGACGGAGTCTCGCTCTGTCGCCCAGGCTGGAGTGCAGTGGCGCGATCTCGGCTC
+ACTGCAACCTCCGCCTCCCGGGTTCAAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTG
+GGATTACAGGCGCGCGCCACCACGCCCGGCTAATTTTTGTATTTTTAGTAGAGACGGGGT
+TTCACCATGTTGGCCAGGCTGGTCTCGAACTCCTGACCTCAGGTGATCCGCCCGCCTCGG
+CCTCCCAAAGTGCTGGGATTACAGGCGTGAGCCACCGCGCCCGGCCTTTTTGAGACGGAG
+TCTCGCTCTGTCGCCCAGGCTGGAGTGCAGTGGCGCGATCTCGGCTCACTGCAACCTCCG
+CCTCCCGGGTTCAAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGATTACAGGCGC
+GCGCCACCACGCCCGGCTAATTTTTGTATTTTTAGTAGAGACGGGGTTTCACCATGTTGG
+CCAGGCTGGTCTCGAACTCCTGACCTCAGGTGATCCGCCCGCCTCGGCCTCCCAAAGTGC
+TGGGATTACAGGCGTGAGCCACCGCGCCCGGCCTTTTTGAGACGGAGTCTCGCTCTGTCG
+CCCAGGCTGGAGTGCAGTGGCGCGATCTCGGCTCACTGCAACCTCCGCCTCCCGGGTTCA
+AGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGATTACAGGCGCGCGCCACCACGCC
+CGGCTAATTTTTGTATTTTTAGTAGAGACGGGGTTTCACCATGTTGGCCAGGCTGGTCTC
+GAACTCCTGACCTCAGGTGATCCGCCCGCCTCGGCCTCCCAAAGTGCTGGGATTACAGGC
+GTGAGCCACCGCGCCCGGCC
+>TWO IUB ambiguity codes
+TAGGDHACHATCRGTRGVTGAGWTATGYTGCTGTCABACDWVTRTAAGAVVAGATTTNDA
+GASMTCTGCATBYTTCAAKTTACMTATTACTTCATARGGYACMRTGTTTTYTATACVAAT
+TTCTAKGDACKADACTATATNTANTCGTTCACGBCGYSCBHTANGGTGATCGTAAAGTAA
+CTATBAAAAGATSTGWATBCSGAKHTTABBAACGTSYCATGCAAVATKTSKTASCGGAAT
+WVATTTNTCCTTCTTCTTDDAGTGGTTGGATACVGTTAYMTMTBTACTTTHAGCTAGBAA
+AAGAGKAAGTTRATWATCAGATTMDDTTTAAAVAAATATTKTCYTAAATTVCNKTTRACG
+ADTATATTTATGATSADSCAATAWAGCGRTAGTGTAAGTGACVGRADYGTGCTACHVSDT
+CTVCARCSYTTAATATARAAAATTTAATTTACDAATTGBACAGTAYAABATBTGCAGBVG
+TGATGGDCAAAATBNMSTTABKATTGGSTCCTAGBTTACTTGTTTAGTTTATHCGATSTA
+AAGTCGAKAAASTGTTTTAWAKCAGATATACTTTTMTTTTGBATAGAGGAGCMATGATRA
+AAGGNCAYDCCDDGAAAGTHGBTAATCKYTBTACBGTBCTTTTTGDTAASSWTAAWAARA
+TTGGCTAAGWGRADTYACATAGCTCBTAGATAWAGCAATNGTATMATGTTKMMAGTAWTC
+CCNTSGAAWATWCAAAAMACTGAADNTYGATNAATCCGAYWNCTAACGTTAGAGDTTTTC
+ATCTGGKRTAVGAABVCTGWGBTCTDVGKATTBTCTAAGGVADAAAVWTCTAGGGGAGGG
+TTAGAACAATTAAHTAATNAAATGCATKATCTAAYRTDTCAGSAYTTYHGATRTTWAVTA
+BGNTCDACAGBCCRCAGWCRTCABTGMMAWGMCTCAACCGATRTGBCAVAATCGTDWDAA
+CAYAWAATWCTGGTAHCCCTAAGATAACSCTTAGTGSAACAWTBGTCDTTDGACWDBAAC
+HTTTNGSKTYYAAYGGATNTGATTTAARTTAMBAATCTAAGTBTCATYTAACTTADTGTT
+TCGATACGAAHGGCYATATACCWDTKYATDCSHTDTCAAAATGTGBACTGSCCVGATGTA
+TCMMAGCCTTDAAABAATGAAGAGTAACTHATMGVTTAATAACCCGGTTVSANTGCAATT
+GTGAGATTTAMGTTTAMAAYGCTGACAYAAAAAGGCACAMYTAAGVGGCTGGAABVTACG
+GATTSTYGTBVAKTATWACCGTGTKAGTDTGTATGTTTAAAGGAAAAAGTAACATARAAA
+GGTYCAMNYAAABTATAGNTSATANAGTCATCCTATWADKAACTRGTMSACDGTATSAYT
+AAHSHGTAABYGACTYTATADTGSTATAGAGAAATCGNTAAAGGAAATCAGTTGTNCYMV
+TNACDRTATBNATATASTAGAAMSCGGGANRCKKMCAAACATTNAGTCTRMAATBMTACC
+CGTACTTCTBGDSYAATWGAAAATGACADDCHAKAAAYATATTKTTTTCACANACWAGAA
+AKATCCTTATTAYKHKCTAAACARTATTTTDATBTVWCYGCAATACTAGGKAAASTTDGA
+MGGCHTTHAATVCAHDRYAGGRCTATACGTCMAGAGAGCTBTHGNACARTCCBDCTAAGA
+GCGGCTTTARTAAAGAATCCNAGTAWBTGACTTGAATTACWTVACAGAAABCAATNAAAC
+CGTNTRANTTGAYCMAWBADTANABRGGTKTHTWTAGTTVCTMBKTAGMTVKCCAGCANT
+TVAGSWTTAGCCGCRHTTTCCTTHNTATTAAGAAGAATAGGMTRAARTCTABGTACDTTT
+TATAAVDHAHTATAGATCCTAGTAAGYTWATDWCATGAGGGATAGTAAMDMNGBASTWAM
+TSTATRBAYDABATGTATATYCGCACTGTTTTAACMCWBTATAWAGTATBTSTATVTTAR
+CCTMTTAAKADATCAACTAATYTSVTAKGDATTATGCKTCAYCAKAATACTTKAANGAGT
+ATTSDAGATCGGAAATACTTAAYAAVGTATMCGCTTGTGTDCTAATYTATTTTATTTWAA
+CAGWRCTATGTAGMTGTTTGTTYKTNGTTKTCAGAACNTRACCTACKTGSRATGTGGGGG
+CTGTCATTAAGTAAATNGSTTABCCCCTCGCAGCTCWHTCGCGAAGCAVATGCKACGHCA
+ACAKTTAATAACASAAADATTWNYTGTAATTGTTCGTMHACHTWATGTGCWTTTTGAAHY
+ACTTTGTAYAMSAAACTTAADAAATATAGTABMATATYAATGSGGTAGTTTGTGTBYGGT
+TWSGSVGWMATTDMTCCWWCABTCSVACAGBAATGTTKATBGTCAATAATCTTCTTAAAC
+ARVAATHAGYBWCTRWCABGTWWAATCTAAGTCASTAAAKTAAGVKBAATTBGABACGTA
+AGGTTAAATAAAAACTRMDTWBCTTTTTAATAAAAGATMGCCTACKAKNTBAGYRASTGT
+ASSTCGTHCGAAKTTATTATATTYTTTGTAGAACATGTCAAAACTWTWTHGKTCCYAATA
+AAGTGGAYTMCYTAARCSTAAATWAKTGAATTTRAGTCTSSATACGACWAKAASATDAAA
+TGYYACTSAACAAHAKTSHYARGASTATTATTHAGGYGGASTTTBGAKGATSANAACACD
+TRGSTTRAAAAAAAACAAGARTCVTAGTAAGATAWATGVHAAKATWGAAAAGTYAHVTAC
+TCTGRTGTCAWGATRVAAKTCGCAAVCGASWGGTTRTCSAMCCTAACASGWKKAWDAATG
+ACRCBACTATGTGTCTTCAAAHGSCTATATTTCGTVWAGAAGTAYCKGARAKSGKAGTAN
+TTTCYACATWATGTCTAAAADMDTWCAATSTKDACAMAADADBSAAATAGGCTHAHAGTA
+CGACVGAATTATAAAGAHCCVAYHGHTTTACATSTTTATGNCCMTAGCATATGATAVAAG
+>THREE Homo sapiens frequency
+ATATTTATCTTTTCACTTCCTACATTGGTCAGACCATTATTCGACACGTGGCGTCATTTT
+GTCATACCGGGTAATGTTGGAAACAAAACGTACTGATAAAATACTGAGTTGTAAACTCTA
+ATCAGATAACGCGCTTGGATATTAAGATTCACACAGGGGTTTCGGCTGTAAAAAAACTTG
+TGGAGCTGTTCTGGGACAGATAAGTTGTACCTCGTACTTAGCTAATTAATGAACCAACTG
+ATTACGATAGAACAATTCTGAGGCCGCCAGGACAGCCAAATTTTAATCTTATAAAGCTGG
+AAACAGCCGGTATTAGCTTCTCGCATACTTTGCCTGCATTGGTACCTTACAGATATCAGC
+GTAGTCATATACACCTCGGTCTCAGCTAAGCTTGTATCTCTTAGAGTAGTTCAAAGATAG
+TGGACAATACCTGTGGAATCGATTGCAGATATGGATTTATTTAACTACTGAGTCTCATTC
+ACAAGCTAAGCAAGGAGCACGTTTTGGTGCCGGCATACCGATTTGCTATCATGTCAGCAA
+ATTTGCGTTGTATTCCTAGTTGCACCCATTAAGGCCACACTCCGAACCTAATTATTACAT
+CGCAAAGACATGTACGAAGGACCCGATGTCGAATAGAAGGGAGGACTGTTCATTGGAAGC
+TAGACCAGAGGAATCGCAAAGATGCAACTCTTACAATAAAAATCTAATTTCAGTCAACAC
+GCAATTTCTATAAGGTTTCCGATAATAATGAACCGTCTTCCACAGGGGAATTTGCCATGC
+TCGTAAAAGTAGTTAATCCAAGTAGAAGAAATTTTGATAATGTTTTAAGTTGGCACGAAG
+GAATTCAGAGAGATCTTACCTAACAAAGGCATTAGTAGATGTTCCTTGGTTCACACTCGG
+TCAATCAGAGCACATACTACGGGCGATACCGGGAATGACACAACATCAATGAGATTGTTA
+AGTGAGGTAATTGACTTTAGAGGACTCGATCAGTATACTGTCACTATGAACATCGTATTA
+ATTGTTATCCGATATATACACCACCGATTTGCTTGTGCAAGGTTACAGACCCATTCGATA
+AATACAAACACGGAGCGATATTATTTAAGGAGTGCTGTCTTCAAAAGAATTATTCCCACA
+CCGACATAAGAACTTCGCTCCGTCATTCCAGATTTAAATAACATAACGTAACGCTTTGCT
+GATAACATAACATAACCGAGAATTTGCTTAGGAAATTTGGAGCAATATTGCATTGTTTCT
+CAGTCATCACAAGGCCCGCCAAAGAACTCTGAGAATCAGGATTCAACATGATTGGTAAGA
+CTCTATATATATAACTTAATTCTTGTGTCCGGAGATAGAAAGAGGACGAGAGATACTACG
+AAAGAAAGTGTACTTCGATGTATCAATTCAGACGCCTTCTCTATCATCAACATTATAGGT
+CTCGTATATGCTCGGCGCGATCTGCTTCTCTCCGCCAATAGCCCCATAGTGTATTTCAAG
+CGCAGTAACAGTGAAATCGTTACGAAGGTAGGGATGTTGCTTATAATTGTCGTAACTTAT
+CGCTTATGTATCTTTCAAGAATGAACGGCAGCATATACATACGTTCTACCTTTAGCTACA
+AAGCATCCATATACTCCCTCTCATGATTGAAACTCTTCCCTATTTTGTAGCCAATAGTGA
+AAGCGTATTAGTATAAATTCGTCGGTTTTTCACTCGCAACTGTTATACTCTGCAAACAAA
+CGAAAGCCTCATAGTACAAACCTAAAGCTACATACTTCATCATTGGCAGACCAGTGGCGG
+TATTTCTACGGAAGCATCACTATAGATATAAAGTTTCCCTTCATGTACGTCTGTTAACCA
+TATCACAAGAAACTGCTATCTCTGTCACGTAACAATTCACGCGCCTTATCGCCAAATGTT
+CATATATGCGCGGTATACGTATGAACGAATACTAATTAGTATAACGGAGGATTCACGGGA
+GGGATACTTGGGGCATTTATAAATCGTCTAAAAATTTTCTATCAGCACTTGCGGGTTATA
+GTGGATTACTAGGCAACATAATATTCTGTATTGGTCCAAATGACGCTATAGATAAATTAG
+CAAAATACATTGTTTCCATTTATGTAAGTCGAAACTCCAGGACTCCCGGGAACCAGTTAA
+ACCGTCTGGAAAAGACACATTGTGAGCGGGACTTCAATGATAGCTTTCAATGAGCTTCTC
+ATGCTTGGGGTCTGTACATATATGTTGGCGAAATTATCGTCTGTATTCTGTTATGCTTTG
+ATCATGGGTTATTAGTATAGTGTCCGGTTAAGTACCAATACCGCTAGAGACCCGACCTAA
+GTCGATAACTAACGATCATCGACGTAAGGATCGTCTCGATCAGTACTTCAGTCTAGATCT
+GGGAATAGTAACTCGTTAGTGAACTATGTCGTGTCATAACTCTAAAATGCAATCAAATCT
+TATTATTGAGTATTGATTATATAAAGCATCCGCTTAGCTTTACCCTCAAATGTTATATGC
+AATTTAAAGCGCTTGATATCGTCTACTCAAGTTCAGGTTTCACATGGCCGCAACGTGACG
+TTATTAGAGGTGGGTCATCATCTCTGAGGCTAGTGATGTTGAATACTCATTGAATGGGAA
+GTGGAATACCATGCTCGTAGGTAACAGCATGACCTATAAAATATACTATGGGTGTGTGGT
+AGATCAATATTGTTCAAGCATATCGTAACAATAACGGCTGAAATGTTACTGACATGAAAG
+AGGGAGTCCAAACCATTCTAACAGCTGATCAAGTCGTCTAAAAACGCCTGGTTCAGCCTT
+AAGAGTTATAAGCCAGACAAATTGTATCAATAGAGAATCCGTAAATTCCTCGGCCAACCT
+CTTGCAAAGACATCACTATCAATATACTACCGTGATCTTAATTAGTGAACTTATATAAAT
+ATCTACAACCAGATTCAACGGAAAAGCTTTAGTGGATTAGAAATTGCCAAGAATCACATT
+CATGTGGGTTCGAATGCTTTAGTAATACCATTTCGCCGAGTAGTCACTTCGCTGAACTGT
+CGTAAATTGCTATGACATAATCGAAAAGGATTGTCAAGAGTCGATTACTGCGGACTAATA
+ATCCCCACGGGGGTGGTCTCATGTCTCCCCAGGCGAGTGGGGACGGTTGATAAACACGCT
+GCATCGCGGACTGATGTTCCCAGTATTACATAGTCACATTGGATTGCGAGTAGTCTACCT
+ATTTATGAGCGAGAGATGCCTCTAACTACTTCGACTTTTAAAACCTTTCCACGCCAGTAT
+TCGGCGAAAGGGAAGTATTAAGGGTTGTCATAATTAAGCTGATACCACTTCAGACTTTGC
+TCTACTTCTGTCTTTCATTGGTTTAGTAAAGTCTGTCCATTCGTCGAGACCGTCTTTTGC
+AGCCTCATTCTACCAACTGCTCCGACTCTTAGTCTGCTTCTCCCAGCGTTATAACAAGAG
+GCATTTTGTCATCCTTAAAACAATAATAAAGAACTCGGAGCACTGATATAATGACTGAAT
+TAGAACCGCTTAAAAATACAACGAATAGATAAGACTATCGGATAAGATCTAATATGTAGT
+GATTAAGCCCTTTATTAATTAATAATAGTTACCCTTTCTGATGTAACGCGACATATTACG
+ATTTAGTGGCACGTCTGAATTGCAAAGCAGATCTCTACCCGATTTTTATTATAAATCCCG
+TATACATCTTGACTTGAGTAATTGTTCATCTTTTTATATCTCTTCGTACTACAAATAATT
+AATATCTCAACCCGTATTGTGTGATTCTAATTACCAACAGAATACGAGGAGGTTTTTGCT
+TAGGGCCATATATAATGAATCTATCTCGTTTATTCGCGGAACCCGAGATAACATTACGAT
+GTAACTATTTTAGAGAACTTAATACAAGAAACATTGCTGATTACTCATAACTAAATGCTT
+GGTAATATATCCTCAGTGCCCCTACCATCTTTTACGCAGGGATGTAATTACTTAGGATTC
+ATTGTGTAAGAATTACAATGAACGATGGATATGAAGGCATGTTGCGAGGTGTTCCTTGGT
+ATGTGAAGTTCGCAGGGCAACAAAAATTTCGCAGAATAGGCCTCAAAGTATTGGTAAAGA
+AGACAACTAATCATCACGAGCTTCTGATATCAATACGAACGAGTCCTGTGATGGATGAAA
+GAAAGTCGTATCGAAAATGTCAAGAGTCTGCCCAATGTAACTTACTTCAAAAAATAACGC
+TTCCGCCAAGTACGTTCGAATAAACGTAATTTTAAAAATACATAAGGGGTGTTAGAAAGT
+AAGCGACGGGATATAAGTTAGACTCAAGATTCCGCCGTAAAACGAGACTGATTCCGAAGA
+TTGTTCGTGGATCTGGTCATGACTTTCACTGAGTAAGGAGTTTCGACATATGTCAATAAA
+CACAAAAATAGAAGCTATTCGATCTGAAAAATATTAGGACAAGAAACTATCTCACGCTAG
+CCCAGAATATTCACTCACCCACGGGCGATACTAAAGCACTATATAGTCGCGTGATTACTA
+TACATATGGTACACATAAGAATCACGATCAGGTTCTCAATTTTCAACAATATATGTTTAT
+TTGCATAGGTAATATTAGGCCTTTAAGAGAAGGATGGGTGAGATACTCCGGGGATGGCGG
+CAATAAAGAAAAACACGATATGAGTAATAGGATCCTAATATCTTGGCGAGAGACTTAAGG
+TACGAATTTTGCGCAATCTATTTTTTACTTGGCCAGAATTCATGTATGGTATAAGTACGA
+ACTTTTTTGATCACTTTCATGGCTACCTGATTAGGATAGTTTGAGGAATTTCCCAAATAT
+ACCGATTTAATATACACTAGGGCTTGTCACTTTGAGTCAGAAAAAGAATATAATTACTTA
+GGGTAATGCTGCATACATATTCTTATATTGCAAAGGTTCTCTGGGTAATCTTGAGCCTTC
+ACGATACCTGGTGAAGTGTT
+OUTPUT568
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 569.
+if test $result = ok -a $start_test_number -le 569; then
+	echo test 569: Spectral Norm from Language Shootout
+        cat >$test_file <<'TEST569'
+func A (i, j) { return 1.0 / ((i + j) * (i + j + 1) / 2 + i + 1); }
+
+func Av (n, v) {
+   var i, j, Av = [n : 0.0];
+
+   for (i = 0; i < n; i++)
+      for (j = 0; j < n; j++) Av [i] += A (i, j) * v [j];
+   return Av;
+}
+
+func Atv (n, v) {
+   var i, j, Atv = [n : 0.0];
+
+   for (i = 0; i < n; i++)
+     for (j = 0; j < n; j++) Atv [i] += A (j, i) * v [j];
+   return Atv;
+}
+
+func AtAv (n, v) {return Atv (n, Av (n, v));}
+
+var n = int (#argv < 1 ? 100 : argv [0]);
+var i, u = [n : 1.0], v = [n : 0.0], vBv = 0.0, vv = 0.0;
+
+for (i = 0; i < 10; i++) { v = AtAv (n, u); u = AtAv (n, v); }
+for (i = 0; i < n; i++) { vBv += u [i] * v [i]; vv += v [i] * v [i]; }
+
+putf ("%0.9f\n", sqrt (vBv / vv));
+TEST569
+        echo '      ' $DINO $test_file 200 "2>$stderr"
+        if $DINO $test_file 200 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT569' && $CMP $stdout $ftemp2; then
+1.274223601
+OUTPUT569
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 570.
+if test $result = ok -a $start_test_number -le 570; then
+	echo test 570: Sum file Language Shootout
+        cat >$test_file <<'TEST570'
+var sum = 0;
+try {
+  for (;;) sum += int (getln ());
+} catch (invcalls.eof) {}
+
+putln (sum);
+TEST570
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file  <<'INPUT570' 2>$stderr >$stdout; then
+276
+498
+-981
+770
+-401
+702
+966
+950
+-853
+-53
+-293
+604
+288
+892
+-697
+204
+96
+408
+880
+-7
+-817
+422
+-261
+-485
+-77
+826
+184
+864
+-751
+626
+812
+-369
+-353
+-371
+488
+-83
+-659
+24
+524
+-21
+840
+-757
+-17
+-973
+-843
+260
+858
+-389
+-521
+-99
+482
+-561
+-213
+630
+766
+932
+112
+-419
+-877
+762
+266
+-837
+170
+834
+746
+764
+922
+-89
+576
+-63
+90
+684
+316
+506
+-959
+708
+70
+252
+-747
+342
+-593
+-895
+-937
+-707
+350
+588
+-201
+-683
+-113
+-511
+-867
+322
+202
+472
+150
+-9
+-643
+28
+336
+86
+-925
+836
+-473
+-451
+-971
+-805
+-619
+84
+-67
+806
+270
+366
+334
+-555
+-557
+-331
+-409
+-553
+-145
+-71
+528
+490
+492
+828
+628
+-961
+536
+-859
+-271
+974
+-671
+-749
+414
+-257
+778
+56
+598
+-437
+-899
+-785
+-987
+32
+-999
+132
+-821
+-209
+402
+-543
+194
+-967
+294
+-943
+-285
+-483
+-97
+660
+-481
+-829
+-309
+-597
+-855
+80
+-355
+192
+-823
+436
+916
+282
+-629
+612
+-329
+-535
+780
+-47
+706
+110
+756
+-857
+-933
+-345
+-523
+718
+-31
+902
+678
+540
+698
+456
+-399
+126
+412
+-563
+-321
+-487
+-641
+-195
+-199
+-955
+772
+INPUT570
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT570' && $CMP $stdout $ftemp2; then
+-4818
+OUTPUT570
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 571.
+if test $result = ok -a $start_test_number -le 571; then
+	echo test 571: Takfp Language Shootout
+        cat >$test_file <<'TEST571'
+func Tak (x, y, z) {
+  if (y >= x) return z;
+  return Tak (Tak (x - 1.0, y, z), Tak (y - 1.0, z, x), Tak (z -1.0, x, y));
+}
+
+var n = int (#argv < 1 ? 1 : argv [0]);
+putf ("%.1f\n", Tak (n * 3.0, n * 2.0, n * 1.0));
+TEST571
+        echo '      ' $DINO $test_file 9 "2>$stderr"
+        if $DINO $test_file 9 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT571' && $CMP $stdout $ftemp2; then
+18.0
+OUTPUT571
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 572.
+if test $result = ok -a $start_test_number -le 572; then
+	echo test 572: Swap statement.
+        cat >$test_file <<'TEST572'
+var a = 1, b = 2;
+
+putln (a, " ", b);
+a<=>b;
+putln (a, " ", b);
+
+var ar = [1, 2, 3];
+println (ar);
+ar[0]<=>ar[2];
+println (ar);
+
+class s (i) {}
+var c1 = s (0), c2 = s (3);
+putln (c1.i, ' ', c2.i);
+c1.i<=>c2.i;
+putln (c1.i, ' ', c2.i);
+
+var t = {"s" : 1, "t" : 2};
+putln (t{"s"}, ' ', t{"t"});
+t{"s"}<=>t{"t"};
+putln (t{"s"}, ' ', t{"t"});
+TEST572
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT572' && $CMP $stdout $ftemp2; then
+1 2
+2 1
+[1, 2, 3]
+[3, 2, 1]
+0 3
+3 0
+1 2
+2 1
+OUTPUT572
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 573.
+if test $result = ok -a $start_test_number -le 573; then
+	echo test 573: Health from Language Shootout.
+        cat >$test_file <<'TEST573'
+class queue () {
+  class node (item, next) {}
+  var first = nil, last = nil;
+
+  func Add (o) {
+    var a = node (o, nil);
+
+    if (first == nil) first = a; else last.next = a;
+    last = a;
+  }
+  
+  func Remove (o) {
+    var c, p = nil;
+
+    for (c = first; c != nil && c.item !== o; c = c.next) p = c;
+    if (c == nil) return;
+    if (p == nil) first = first.next; else p.next = c.next;
+    if (last === c) last = p;
+  }
+
+  func Clear() { first = nil; last = nil; }
+}
+
+class Patient (remainingTime = 0, hospitalTime = 0, hospitalVisits = 0) {}
+
+var final LEVELS = 5, final DISTRICTS = 4;
+
+class HealthcareRegion (level, s) {
+  var districts = [DISTRICTS : nil];
+  var localHospital = Hospital (level == LEVELS, level, s);
+
+  func TransferPatients () {
+    var i, n;
+    
+    for (i = #districts - 1; i >= 0; i--)
+      if (districts [i] != nil)
+	for (n = districts [i].TransferPatients().first; n != nil; n = n.next)
+	  localHospital.NewArrival(n.item);
+
+    localHospital.TriageExaminationTreatment ();
+    return localHospital.transfers;
+  }
+
+  func AccumulateTotals () {
+    var i, t = Totals ();
+
+    for (i = #districts - 1; i >= 0; i--)
+      if (districts [i] != nil)
+	t.PlusTotal (districts [i].AccumulateTotals ());
+    
+    localHospital.AccumulateTotals (t);
+    return t;
+  }
+
+  func TreatmentQueue () { return localHospital.treatment; }
+}
+
+func CreateRegion (level, seed1, seed2) {
+  var i, r = nil;
+  
+  if(level > 0) {
+    r = HealthcareRegion (level, seed1 * seed2);
+    for(i = #r.districts - 1; i >= 0; i--)
+      r.districts [i] = CreateRegion (level - 1, seed1 * 4 + i + 1, seed2);
+  }
+  return r;
+}
+
+class Hospital (hasNoRegionalHospital, level, seed) {
+  var availableStaff = 1 << (level - 1);
+  var triage = queue (), examination = queue ();
+  var treatment = queue (), transfers = queue ();
+  var discharged = Totals ();
+
+  func TriageExaminationTreatment () {
+    DischargePatients ();
+    TreatOrTransferPatients ();
+    TriagePatients ();
+    
+    if (genRandom (1.0) > 0.7) NewArrival (Patient ());
+  }
+  
+  func AccumulateTotals (t) {
+    var n;
+    
+    for (n = triage.first; n != nil; n = n.next) t.PlusPatient (n.item);
+    for (n = examination.first; n != nil; n = n.next) t.PlusPatient (n.item);
+    for (n = treatment.first; n != nil; n = n.next) t.PlusPatient (n.item);
+    t.PlusTotal (discharged);
+  }
+  
+  func NewArrival (p) {
+    p.hospitalVisits++;
+    if (availableStaff == 0) triage.Add (p);
+    else {
+      availableStaff--;
+      p.remainingTime = 3;
+      p.hospitalTime += 3;
+      examination.Add (p);
+    }
+  }
+  
+  func DischargePatients () {
+    var n, p;
+    
+    for (n = treatment.first; n != nil; n = n.next) {
+      p = n.item; p.remainingTime--;
+      if (p.remainingTime == 0) {
+	availableStaff++;
+	treatment.Remove (p);
+	discharged.PlusPatient (p);
+      }
+    }
+  }
+
+  func TreatOrTransferPatients () {
+    var p, n;
+
+    transfers.Clear ();
+    for (n = examination.first; n != nil; n = n.next) {
+      p = n.item; p.remainingTime--;
+      if (p.remainingTime == 0) { // no transfer
+	if (genRandom (1.0) > 0.1 || hasNoRegionalHospital) {
+	  treatment.Add(p);
+	  p.remainingTime = 10;
+	  p.hospitalTime += 10;
+	} else { // transfer
+	  availableStaff++;
+	  transfers.Add (p);
+	}
+	examination.Remove(p);
+      }
+    }
+  }
+
+  func TriagePatients () {
+    var p, n;
+
+    for (n = triage.first; n != nil; n = n.next) {
+      p = n.item;
+      if (availableStaff == 0) p.hospitalTime++;
+      else {
+	availableStaff--;
+	p.remainingTime = 3;
+	p.hospitalTime += 3;
+	examination.Add (p);
+	triage.Remove (p);
+      }
+    }
+  }
+
+  var final IM = 139968, final IA = 3877, final IC = 29573;
+
+  func genRandom (max) {
+    seed = (seed * IA + IC) % IM;
+    return max * seed / IM ;
+  }
+}
+
+class Totals () {
+  var patients = 0, hospitalTime = 0, hospitalVisits = 0;
+
+  func PlusTotal (t) {
+    patients += t.patients;
+    hospitalTime += t.hospitalTime;
+    hospitalVisits += t.hospitalVisits;
+  }
+
+   func PlusPatient (p) {
+     patients++;
+     hospitalTime += p.hospitalTime;
+     hospitalVisits += p.hospitalVisits;
+   }
+}
+
+var N = int (#argv < 1 ? 100 : argv [0]);
+var i, healthcareSystem = CreateRegion (LEVELS, 0, 42), t, n;
+
+for (i = 0; i < N; i++)
+  healthcareSystem.TransferPatients ();
+
+t = healthcareSystem.AccumulateTotals ();
+
+putln ("Patients: ", t.patients);
+putln ("Time:     ", t.hospitalTime);
+putln ("Visits:   ", t.hospitalVisits);
+
+putln ("\nTreatment Queue - Remaining Treatment Time");
+for (n = healthcareSystem.TreatmentQueue ().first; n != nil; n = n.next)
+  putln (n.item.remainingTime, "\tanonymous patient");
+TEST573
+        echo '      ' $DINO $test_file 100 "2>$stderr"
+        if $DINO $test_file 100 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT573' && $CMP $stdout $ftemp2; then
+Patients: 10151
+Time:     363815
+Visits:   10526
+
+Treatment Queue - Remaining Treatment Time
+1	anonymous patient
+3	anonymous patient
+9	anonymous patient
+10	anonymous patient
+OUTPUT573
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 574.
+if test $result = ok -a $start_test_number -le 574; then
+	echo test 574: Sync-statement
+        cat >$test_file <<'TEST574'
+var f = 1;
+thread t () {
+  wait (1) {
+    var i;
+
+    f = 0;
+    for (i = 0; i < 1000000; i++)
+      if (i % 100000 == 0) putln (i);
+  }
+}
+
+t ();
+wait (! f);
+putln ("it should be the last message");
+TEST574
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT574' && $CMP $stdout $ftemp2; then
+0
+100000
+200000
+300000
+400000
+500000
+600000
+700000
+800000
+900000
+it should be the last message
+OUTPUT574
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 575.
+if test $result = ok -a $start_test_number -le 575; then
+	echo test 575: Wait in sync-statement
+        cat >$test_file <<'TEST575'
+var flag = 0;
+
+thread f () {
+  wait (1) {
+    wait (flag);
+    flag = 0;
+  }
+}
+
+f ();
+flag = 1;
+wait (! flag);
+putln ("it can not be printed");
+TEST575
+        echo '      ' "echo abcd|$DINO $test_file 2>$stderr"
+        if echo abcd|$DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $stderr $ftemp2
+                if cat >$ftemp2 <<'OUTPUT575' && $CMP $stderr $ftemp2; then
+test.d:5:8: wait in sync-statement
+OUTPUT575
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 576.
+if test $result = ok -a $start_test_number -le 576; then
+	echo test 576: Catching wait in sync-statement
+        cat >$test_file <<'TEST576'
+var flag = 0;
+
+thread f () {
+  try {
+    wait (1) wait (flag);
+  } catch (errors.syncwait) {
+    putln ("got the exception");
+    flag = 0;
+  }
+}
+
+f ();
+flag = 1;
+wait (! flag);
+putln ("continue");
+TEST576
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT576' && $CMP $stdout $ftemp2; then
+got the exception
+continue
+OUTPUT576
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 577.
+if test $result = ok -a $start_test_number -le 577; then
+	echo test 577: Thread call in sync-statement
+        cat >$test_file <<'TEST577'
+var flag = 0;
+
+thread f () {
+}
+
+wait (1) f ();
+putln ("it can not be printed");
+TEST577
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $stderr $ftemp2
+                if cat >$ftemp2 <<'OUTPUT577' && $CMP $stderr $ftemp2; then
+test.d:6:12: thread call in sync-statement
+OUTPUT577
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 578.
+if test $result = ok -a $start_test_number -le 578; then
+	echo test 578: Catching thread call in sync-statement
+        cat >$test_file <<'TEST578'
+var flag = 0;
+
+thread f () {
+}
+
+try {
+  wait (1) f ();
+} catch (invcalls.syncthreadcall) {
+  putln ("got the exception");
+}
+
+putln ("continue");
+TEST578
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT578' && $CMP $stdout $ftemp2; then
+got the exception
+continue
+OUTPUT578
+                        result=ok
+                else
+                        result=fail
+                fi
         else
                 result=fail
         fi

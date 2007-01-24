@@ -1065,11 +1065,7 @@ file_name_directory (const char *file_name)
   assert (file_name != NULL);
   for (current_char_ptr = file_name, last_slash = NULL;
        *current_char_ptr != '\0'; current_char_ptr++)
-#ifdef WIN32
-    if (*current_char_ptr == '/' || *current_char_ptr == '\\')
-#else
     if (*current_char_ptr == '/')
-#endif
       last_slash = current_char_ptr;
   if (last_slash == NULL)
     return ""; /* current directory */
@@ -1095,14 +1091,8 @@ file_path_name (const char *directory_name, const char *file_name,
   assert (directory_name != NULL);
   IR_TOP_ADD_STRING (directory_name);
   if (strlen (directory_name) != 0
-#ifdef WIN32
-      && directory_name [strlen (directory_name) - 1] != '/'
-      && directory_name [strlen (directory_name) - 1] != '\\')
-    IR_TOP_ADD_STRING ("\\");
-#else
       && directory_name [strlen (directory_name) - 1] != '/')
     IR_TOP_ADD_STRING ("/");
-#endif
   IR_TOP_ADD_STRING (file_name);
   IR_TOP_ADD_STRING (file_suffix);
   result = IR_TOP_BEGIN ();

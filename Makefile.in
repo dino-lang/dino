@@ -88,7 +88,7 @@ only_cocom_source_files =
 additional_files = COPYING COPYING.LIB configure install-sh yacc.exe
 
 # COCOM only start
-only_cocom_additional_files = README INSTALL WIN32-INSTALL.txt CHANGES
+only_cocom_additional_files = README INSTALL CHANGES
 # COCOM only end
 
 doc_files =
@@ -250,7 +250,6 @@ distdino:
 	done
 	cp $(srcdir)/DINO-README $(distdinodir)/README
 	cp $(srcdir)/DINO-INSTALL $(distdinodir)/INSTALL
-	cp $(srcdir)/DINO-WIN32-INSTALL.txt $(distdinodir)/WIN32-INSTALL.txt
 	cp $(srcdir)/DINO-CHANGES $(distdinodir)/CHANGES
 	for i in $(directories) $(RX);do\
 	  (cd $$i; $(MAKE) distdir=../$(distdinodir)/$$i dist-copy);\
@@ -362,7 +361,7 @@ rcslabel:
            $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
         done
 # COCOM only end
-	$(RCS) -n$(RCSLABEL) DINO-README DINO-INSTALL DINO-WIN32-INSTALL.txt DINO-CHANGES
+	$(RCS) -n$(RCSLABEL) DINO-README DINO-INSTALL DINO-CHANGES
 	for i in $(additional_rcs_files) $(only_cocom_rcs_doc_files);do\
            $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
         done

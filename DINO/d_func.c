@@ -31,12 +31,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef WIN32
-
 #include <dirent.h>
 #include <pwd.h>
 #include <grp.h>
 #include <unistd.h>
+
+#define NEW_VECTOR
 
 static char *
 getun (void)
@@ -85,222 +85,6 @@ getegn (void)
     return "Unknown";
   return p->gr_name;
 }
-
-#else /* #ifndef WIN32 */
-
-#include <io.h>
-#ifndef S_ISREG
-#define S_ISREG(m) ((m) & _S_IFREG)
-#endif
-
-#ifndef S_ISDIR
-#define S_ISDIR(m) ((m) & _S_IFDIR)
-#endif
-
-#ifndef S_ISCHR
-#define S_ISCHR(m) ((m) & _S_IFCHR)
-#endif
-
-#ifndef S_ISFIFO
-#define S_ISFIFO(m) ((m) & _S_IFIFO)
-#endif
-
-#define popen(cmd,mode) _popen (cmd,mode)
-#define pclose(f) _pclose (f)
-#define getpid() _getpid()
-
-#define geteun() getun ()
-#define getegn() getgn ()
-
-/* It needs something else for Win NT. */
-#define getun() "Unknown"
-#define getgn() "Unknown"
-
-#define mkdir(p)			_mkdir (p)
-#define rmdir(dir)			_rmdir (dir)
-#define stat(path, buffer)		_stat (path, buffer)
-#define fstat(f, buffer)		_fstat (f, buffer)
-#define chmod(fn, m)			_chmod (fn, m)
-#define getcwd(p, s)			_getcwd (p, s)
-#define chdir(p)			_chdir (p)
-#define fileno(f)			_fileno (f)
-#define isatty(h)			_isatty (h)
-
-#ifndef S_IREAD
-#define S_IREAD _S_IREAD
-#endif
-
-#ifndef S_IWRITE
-#define S_IWRITE _S_IWRITE
-#endif
-
-#define S_IXUSR 0
-#define S_ISVTX 0
-#define S_IRGRP 0
-#define S_IWGRP 0
-#define S_IXGRP 0
-#define S_IROTH 0
-#define S_IWOTH 0
-#define S_IXOTH 0
-
-struct dirent
-{
-  long d_ino;	           /* Always zero. */
-  unsigned short d_reclen; /* Always zero. */
-  unsigned short d_namlen; /* Length of name in d_name. */
-  char*	d_name;	           /* File name. */
-  /* NOTE: The name in the dirent structure points to the name in the
-           finddata_t structure in the DIR. */
-};
-
-/* Win32 implemenation */
-typedef struct
-{
-  /* disk transfer area for this dir */
-  struct _finddata_t dd_dta;
-  /* dirent struct to return from dir (NOTE: this makes this thread
-     safe as long as only one thread uses a particular DIR struct at a
-     time). */
-  struct dirent	dd_dir;
-  /* _findnext handle */
-  long dd_handle;
-  /*
-     Status of search:
-       0 = not started yet (next entry to read is first entry)
-      -1 = off the end
-       positive = 0 based index of next entry
-   */
-  short	dd_stat;
-  /* given path for dir with search pattern (struct is extended) */
-  char dd_name[1];
-} DIR;
-
-/* WIN32 implementation. */
-static DIR*
-opendir (const char* dirname)
-{
-  DIR* dir;
-  struct stat dirstat;
-  
-  errno = 0;
-  if (*dirname == '\0')
-    {
-      errno = ENOTDIR;
-      return NULL;
-    }
-  /* Attempt to determine if the given path really is a directory. */
-  if (_stat (dirname, &dirstat))
-    /* Stat set already an error value. */
-    return NULL;
-  if (!S_ISDIR (dirstat.st_mode))
-    {
-      errno = ENOTDIR;
-      return NULL;
-    }
-  dir = (DIR*) malloc (sizeof (DIR) + strlen (dirname) + 2);
-  if (!dir)
-    {
-      errno = ENOMEM;
-      return NULL;
-    }
-  /* Make pattern. */
-  strcpy (dir->dd_name, dirname);
-  if (dir->dd_name[strlen (dir->dd_name) - 1] != '/' &&
-      dir->dd_name[strlen (dir->dd_name) - 1] != '\\')
-    strcat (dir->dd_name, "\\");
-  strcat (dir->dd_name, "*");
-  /* Initialize handle to -1 so that a premature closedir doesn't try
-     to call _findclose on it. */
-  dir->dd_handle = -1;
-  dir->dd_stat = 0;
-  /* Initialize the dirent structure. ino and reclen are invalid under
-     Win32, and name simply points at the appropriate part of the
-     findfirst_t structure. */
-  dir->dd_dir.d_ino = 0;
-  dir->dd_dir.d_reclen = 0;
-  dir->dd_dir.d_namlen = 0;
-  dir->dd_dir.d_name = dir->dd_dta.name;
-  return dir;
-}
-
-/* Win32 implementation. */
-static struct dirent *
-readdir (DIR *dir)
-{
-  errno = 0;
-  /* Check dir correctness. */
-  if (!dir)
-    {
-      errno = EFAULT;
-      return NULL;
-    }
-  if (dir->dd_dir.d_name != dir->dd_dta.name)
-    {
-      errno = EINVAL;
-      return NULL;
-    }
-  if (dir->dd_stat < 0)
-    /* We have already returned all files in the directory
-       (or the structure has an invalid dd_stat). */
-    return NULL;
-  else if (dir->dd_stat == 0)
-    {
-      /* We haven't started the search yet.  Start the search. */
-      dir->dd_handle = _findfirst (dir->dd_name, &dir->dd_dta);
-      
-      if (dir->dd_handle == -1)
-	/* There are no files in the directory. */
-	dir->dd_stat = -1;
-      else
-	dir->dd_stat = 1;
-    }
-  else
-    {
-      /* Get the next search entry. */
-      if (_findnext (dir->dd_handle, &dir->dd_dta))
-	{
-	  /* We are off the end or otherwise error. */
-	  errno = 0; /* Clear flag after _findnext. */
-	  _findclose (dir->dd_handle);
-	  dir->dd_handle = -1;
-	  dir->dd_stat = -1;
-	}
-      else
-	/* Update the status to indicate the correct number. */
-	dir->dd_stat++;
-    }
-  if (dir->dd_stat > 0)
-    {
-      /* Successfully got an entry. Everything about the file is
-	 already appropriately filled in except the length of the file
-	 name. */
-      dir->dd_dir.d_namlen = strlen (dir->dd_dir.d_name);
-      return &dir->dd_dir;
-    }
-  return NULL;
-}
-
-
-/* WIN32 implementation. */
-static int
-closedir (DIR* dir)
-{
-  int rc;
-  
-  errno = 0;
-  rc = 0;
-  if (!dir)
-    {
-      errno = EFAULT;
-      return -1;
-    }
-  if (dir->dd_handle != -1)
-    rc = _findclose(dir->dd_handle);
-  free (dir);
-  return rc;
-}
-
-#endif /* #ifndef WIN32 */
 
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -389,10 +173,18 @@ to_lower_upper (int_t pars_number, int lower_flag)
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
     eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameter_type, name);
-  len = strlen (ER_pack_els (ER_vect (ctop)));
+  vect = ER_vect (ctop);
+#ifndef NEW_VECTOR
+  if (ER_immutable (ER_vect (ctop)))
+    eval_error (immutable_decl, invaccesses_decl, IR_pos (cpc),
+		DERR_immutable_vector_modification);
+#endif
+  len = strlen (ER_pack_els (vect));
+#ifdef NEW_VECTOR
   vect = create_empty_string (len + 1);
   strcpy (ER_pack_els (vect), ER_pack_els (ER_vect (ctop)));
   ER_set_els_number (vect, len);
+#endif
   for (str = ER_pack_els (vect); *str != 0; str++)
     if (isalpha (*str))
       *str = (lower_flag ? tolower (*str) : toupper (*str));
@@ -405,15 +197,102 @@ to_lower_upper (int_t pars_number, int lower_flag)
 }
 
 void
+toupper_call (int_t pars_number)
+{
+  to_lower_upper (pars_number, FALSE);
+}
+
+void
 tolower_call (int_t pars_number)
 {
   to_lower_upper (pars_number, TRUE);
 }
 
 void
-toupper_call (int_t pars_number)
+trans_call (int_t pars_number)
 {
-  to_lower_upper (pars_number, FALSE);
+  ER_node_t vect, v;
+  char *str, *subst, map [256];
+  int i;
+  size_t len;
+
+  if (pars_number != 3)
+    eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
+		DERR_parameters_number, TRANS_NAME);
+  to_vect_string_conversion (INDEXED_VAL (ER_CTOP (), -2), NULL);
+  if (ER_NODE_MODE (ctop) == ER_NM_vect)
+    {
+      v = ER_vect (ctop);
+      GO_THROUGH_REDIR (v);
+      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
+	pack_vector_if_possible (v);
+      ER_set_vect (ctop, v);
+    }
+  if (ER_NODE_MODE (below_ctop) == ER_NM_vect)
+    {
+      v = ER_vect (below_ctop);
+      GO_THROUGH_REDIR (v);
+      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
+	pack_vector_if_possible (v);
+      ER_set_vect (below_ctop, v);
+    }
+  vect = INDEXED_VAL (ER_CTOP (), -2);
+  if (ER_NODE_MODE (vect) == ER_NM_vect)
+    {
+      v = ER_vect (vect);
+      GO_THROUGH_REDIR (v);
+      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
+	pack_vector_if_possible (v);
+      ER_set_vect (vect, v);
+    }
+  if (ER_NODE_MODE (ctop) != ER_NM_vect
+      || (ER_els_number (ER_vect (ctop)) != 0
+	  && (ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
+	      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char))
+      || ER_NODE_MODE (below_ctop) != ER_NM_vect
+      || (ER_els_number (ER_vect (below_ctop)) != 0
+	  && (ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
+	      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char))
+      || ER_els_number (ER_vect (ctop)) != ER_els_number (ER_vect (below_ctop))
+      || ER_NODE_MODE (vect) != ER_NM_vect
+      || (ER_els_number (ER_vect (vect)) != 0
+	  && (ER_NODE_MODE (ER_vect (vect)) != ER_NM_heap_pack_vect
+	      || ER_pack_vect_el_type (ER_vect (vect)) != ER_NM_char)))
+    eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
+		DERR_parameter_type, TRANS_NAME);
+  vect = ER_vect (vect);
+#ifndef NEW_VECTOR
+  if (ER_immutable (vect))
+    eval_error (immutable_decl, invaccesses_decl, IR_pos (cpc),
+		DERR_immutable_vector_modification);
+#endif
+  len = ER_els_number (vect);
+#ifdef NEW_VECTOR
+  vect = create_empty_string (len);
+  ER_set_els_number (vect, len);
+#endif
+  if (len != 0 && ER_els_number (ER_vect (ctop)) != 0)
+    {
+#ifdef NEW_VECTOR
+      memcpy (ER_pack_els (vect),
+	      ER_pack_els (ER_vect (INDEXED_VAL (ER_CTOP (), -2))), len);
+#endif
+      for (i = 0; i < 256; i++)
+	map [i] = i;
+      subst = ER_pack_els (ER_vect (ctop));
+      for (i = 0, str = ER_pack_els (ER_vect (below_ctop));
+	   i < ER_els_number (ER_vect (below_ctop));
+	   i++)
+	map [str [i]] = subst [i];
+      for (str = ER_pack_els (vect), i = 0; i < len; i++)
+	str [i] = map [str [i]];
+    }
+  /* Pop all actual parameters. */
+  DECR_CTOP (pars_number);
+  SET_TOP;
+  ER_SET_MODE (ctop, ER_NM_vect);
+  ER_set_vect (ctop, vect);
+  INCREMENT_PC();
 }
 
 void
@@ -638,7 +517,7 @@ process_regcomp_errors (int code, const char *function_name)
     eval_error (ebrack_decl, invregexps_decl, IR_pos (cpc),
 		DERR_reg_ebrack, function_name);
   else if (code == REG_ERANGE)
-    eval_error (erange_decl, invregexps_decl, IR_pos (cpc),
+    eval_error (reg_erange_decl, invregexps_decl, IR_pos (cpc),
 		DERR_reg_erange, function_name);
   else if (code == REG_ECTYPE)
     eval_error (ectype_decl, invregexps_decl, IR_pos (cpc),
@@ -744,6 +623,11 @@ find_regex (const char *string, regex_t **result)
       OS_TOP_NULLIFY (regex_os);
       return code;
     }
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+  reg->regex.not_bol = 0;
+  reg->regex.not_eol = 0;
+  reg->regex.regs_allocated = REGS_FIXED;
+#endif
   OS_TOP_FINISH (regex_os);
   VLO_ADD_MEMORY (regex_vlo, &reg, sizeof (reg));
   OS_TOP_EXPAND (regex_os, strlen (string) + 1);
@@ -782,7 +666,12 @@ void
 match_call (int_t pars_number)
 {
   regex_t *reg;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+  int len;
+  struct re_registers regs;
+#else
   regmatch_t *pmatch;
+#endif
   ER_node_t result;
   size_t els_number;
   size_t i;
@@ -809,6 +698,29 @@ match_call (int_t pars_number)
       els_number = (reg->re_nsub + 1) * 2;
       /* Make pmatch vector. */
       VLO_NULLIFY (temp_vlobj);
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+      regs.num_regs = reg->re_nsub + 1;
+      VLO_EXPAND (temp_vlobj, 2 * (reg->re_nsub + 1) * sizeof (regoff_t));
+      regs.start = VLO_BEGIN (temp_vlobj);
+      regs.end = regs.start + reg->re_nsub + 1;
+      len = strlen (ER_pack_els (ER_vect (ctop)));
+      if (re_search (reg, ER_pack_els (ER_vect (ctop)),
+		     len, 0, len, &regs) >= 0)
+	{
+	  /* Do not change size & packing. */
+	  PUSH_TEMP_REF (ER_vect (ctop));
+	  PUSH_TEMP_REF (ER_vect (below_ctop));
+	  result = create_pack_vector (els_number, ER_NM_int);
+	  POP_TEMP_REF (2);
+	  for (i = 0; i < els_number; i += 2)
+	    {
+	      ((int_t *) ER_pack_els (result)) [i] = regs.start[i / 2];
+	      ((int_t *) ER_pack_els (result)) [i + 1] = regs.end[i / 2];
+	    }
+	}
+      else
+	result = NULL;
+#else
       VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
       pmatch = VLO_BEGIN (temp_vlobj);
       if (!regexec (reg, ER_pack_els (ER_vect (ctop)), reg->re_nsub + 1,
@@ -827,6 +739,7 @@ match_call (int_t pars_number)
 	}
       else
 	result = NULL;
+#endif
     }
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
@@ -845,7 +758,12 @@ void
 gmatch_call (int_t pars_number)
 {
   regex_t *reg;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+  int len;
+  struct re_registers regs;
+#else
   regmatch_t *pmatch;
+#endif
   ER_node_t result;
   int code, flag, count, disp;
   int_t el;
@@ -878,14 +796,42 @@ gmatch_call (int_t pars_number)
   code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
   if (code != 0)
     process_regcomp_errors (code, GMATCH_NAME);
-  /* Make vector which can store regmatch_t's. */
   VLO_NULLIFY (temp_vlobj);
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+  regs.num_regs = reg->re_nsub + 1;
+  VLO_EXPAND (temp_vlobj, 2 * (reg->re_nsub + 1) * sizeof (regoff_t));
+  regs.start = VLO_BEGIN (temp_vlobj);
+  regs.end = regs.start + reg->re_nsub + 1;
+#else
+  /* Make vector which can store regmatch_t's. */
   VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
   pmatch = (regmatch_t *) VLO_BEGIN (temp_vlobj);
+#endif
   VLO_NULLIFY (temp_vlobj2);
   start = ER_pack_els (ER_vect (ctop));
   disp = 0;
   count = 0;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+  len = strlen (start);
+  while (re_search (reg, start + disp, len, 0, len, &regs) >= 0)
+    {
+      el = regs.start [0] + disp;
+      VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
+      el = regs.end [0] + disp;
+      VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
+      if (flag)
+	{
+	  disp++;
+	  len--;
+	}
+      else
+	{
+	  disp += regs.end [0];
+	  len -= regs.end [0];
+	}
+      count++;
+    }
+#else
   while (!regexec (reg, start + disp, reg->re_nsub + 1, pmatch, 0))
     {
       el = pmatch[0].rm_so + disp;
@@ -895,6 +841,7 @@ gmatch_call (int_t pars_number)
       disp += (!flag ? pmatch[0].rm_eo : 1);
       count++;
     }
+#endif
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
   SET_TOP;
@@ -915,7 +862,13 @@ static void
 generall_sub_call (int_t pars_number, int global_flag)
 {
   regex_t *reg;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+  int len;
+  struct re_registers regs;
+  regoff_t starts [10], ends [10];
+#else
   regmatch_t pmatch [10];
+#endif
   size_t sub_length [10];
   size_t n_subst;
   ER_node_t result;
@@ -958,9 +911,35 @@ generall_sub_call (int_t pars_number, int global_flag)
       vect = ER_vect (below_ctop);
       /* Count result string length. */
       start = 0;
+      n_subst = 0;
       for (i = 0; i < 10; i++)
 	sub_length [i] = 0;
-      n_subst = 0;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+      regs.num_regs = 10;
+      regs.start = starts;
+      regs.end = ends;
+      len = strlen (ER_pack_els (vect));
+      while ((start < ER_els_number (vect) || start == 0)
+	     && re_search (reg, ER_pack_els (vect) + start, len, 0, len,
+			   &regs) >= 0)
+	{
+	  for (i = 0; i < (reg->re_nsub + 1 > 10 ? 10 : reg->re_nsub + 1); i++)
+	    sub_length [i] += (regs.end [i] - regs.start [i]);
+	  if (regs.end [0] == 0)
+	    {
+	      start++;
+	      len--;
+	    }
+	  else
+	    {
+	      start += regs.end [0];
+	      len -= regs.end [0];
+	    }
+	  n_subst++;
+	  if (!global_flag)
+	    break;
+	}
+#else
       while ((start < ER_els_number (vect) || start == 0)
 	     && !regexec (reg, ER_pack_els (vect) + start, 10, pmatch, 0))
 	{
@@ -971,6 +950,7 @@ generall_sub_call (int_t pars_number, int global_flag)
 	  if (!global_flag)
 	    break;
 	}
+#endif
       substitution = ER_pack_els (ER_vect (ctop));
       evaluated_length = ER_els_number (vect) - sub_length [0];
       while (*substitution != '\0')
@@ -998,6 +978,63 @@ generall_sub_call (int_t pars_number, int global_flag)
       start = length = 0;
       dst = ER_pack_els (result);
       substitution = ER_pack_els (ER_vect (ctop));
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+      len = strlen (ER_pack_els (vect));
+      while ((start < ER_els_number (vect) || start == 0)
+	     && re_search (reg, ER_pack_els (vect) + start, len, 0, len,
+			   &regs) >= 0)
+	{
+	  if (regs.start[0] != 0)
+	    memcpy (dst, ER_pack_els (vect) + start, regs.start[0]);
+	  length += regs.start[0];
+	  dst += regs.start[0];
+	  src = substitution;
+	  while (*src != '\0')
+	    {
+	      c = *src++;
+	      if (c == '&')
+		i = 0;
+	      else if (c == '\\' && '0' <= *src && *src <= '9')
+		i = *src++ - '0';
+	      else
+		i = 10;
+	      
+	      if (i >= 10)
+		{
+		  if (c == '\\' && (*src == '\\' || *src == '&'))
+		    c = *src ++;
+		  *dst++ = c;
+		  length++;
+		}
+	      else if (i < reg->re_nsub + 1
+		       && regs.end[i] != regs.start[i])
+		{
+		  memcpy (dst, ER_pack_els (vect) + start + regs.start[i],
+			  regs.end[i] - regs.start[i]);
+		  dst += regs.end[i] - regs.start[i];
+		  length += regs.end[i] - regs.start[i];
+		}
+	    }
+	  if (regs.end[0] == 0)
+	    {
+	      /* Matched empty string */
+	      if (ER_els_number (vect) != 0)
+		{
+		  *dst++ = *(ER_pack_els (vect) + start);
+		  length++;
+		}
+	      start++;
+	      len--;
+	    }
+	  else
+	    {
+	      start += regs.end[0];
+	      len -= regs.end[0];
+	    }
+	  if (!global_flag)
+	    break;
+	}
+#else
       while ((start < ER_els_number (vect) || start == 0)
 	     && !regexec (reg, ER_pack_els (vect) + start, 10, pmatch, 0))
 	{
@@ -1047,6 +1084,7 @@ generall_sub_call (int_t pars_number, int global_flag)
 	  if (!global_flag)
 	    break;
 	}
+#endif
       if (start < ER_els_number (vect))
 	{
 	  memcpy (dst, ER_pack_els (vect) + start,
@@ -1087,7 +1125,13 @@ void
 split_call (int_t pars_number)
 {
   regex_t *reg;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+  int len;
+  struct re_registers regs;
+  regoff_t regs_start, regs_end;
+#else
   regmatch_t pmatch [1];
+#endif
   ER_node_t result;
   ER_node_t vect;
   ER_node_t sub_vect;
@@ -1141,9 +1185,39 @@ split_call (int_t pars_number)
       el_size = type_size_table [ER_NM_vect];
       vect = ER_vect (pars_number == 2 ? below_ctop : ctop);
       els_number = start = 0;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+      regs.num_regs = 1;
+      regs.start = &regs_start;
+      regs.end = &regs_end;
+      len = strlen (ER_pack_els (vect));
+#endif
       /* Count substrings. */
       while (start < ER_els_number (vect) || start == 0)
 	{
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+	  ok = re_search (reg, ER_pack_els (vect) + start, len,
+			   0, len, &regs) >= 0;
+	  if (ok && regs.start[0] == 0 && regs.end[0] != 0)
+	    {
+	      /* Pattern by pattern. */
+	      start += regs.end[0];
+	      len -= regs.end[0];
+	      continue;
+	    }
+	  els_number++;
+	  if (!ok)
+	    break;
+	  if (regs.end[0] == 0)
+	    {
+	      start++;
+	      len--;
+	    }
+	  else
+	    {
+	      start += regs.end[0];
+	      len -= regs.end[0];
+	    }
+#else
 	  ok = !regexec (reg, ER_pack_els (vect) + start, 1, pmatch, 0);
 	  if (ok && pmatch[0].rm_so == 0 && pmatch[0].rm_eo != 0)
 	    {
@@ -1155,6 +1229,7 @@ split_call (int_t pars_number)
 	  if (!ok)
 	    break;
 	  start += (pmatch[0].rm_eo == 0 ? 1 : pmatch[0].rm_eo);
+#endif
 	}
       /* Do not change size & packing. */
       PUSH_TEMP_REF (vect);
@@ -1163,8 +1238,36 @@ split_call (int_t pars_number)
       PUSH_TEMP_REF (result);
       vect = GET_TEMP_REF (1);
       start = els_number = 0;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+      len = strlen (ER_pack_els (vect));
+#endif
       while (start < ER_els_number (vect) || start == 0)
 	{
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+	  ok = re_search (reg, ER_pack_els (vect) + start, len,
+			   0, len, &regs) >= 0;
+	  if (ok)
+	    {
+	      if (regs.start[0] != 0 || regs.end[0] == 0)
+		{
+		  /* Empty pattern case is here too. */
+		  if (regs.start[0] == 0)
+		    regs.start[0]++;
+		  ch = ER_pack_els (vect) [start + regs.start[0]];
+		  ER_pack_els (vect) [start + regs.start[0]] = '\0';
+		  chars_number = regs.start[0];
+		}
+	      else
+		{
+		  /* Pattern by pattern. */
+		  start += regs.end[0];
+		  len -= regs.end[0];
+		  continue;
+		}
+	    }
+	  else
+	    chars_number = ER_els_number (vect) - start;
+#else
 	  ok = !regexec (reg, ER_pack_els (vect) + start, 1, pmatch, 0);
 	  if (ok)
 	    {
@@ -1186,6 +1289,7 @@ split_call (int_t pars_number)
 	    }
 	  else
 	    chars_number = ER_els_number (vect) - start;
+#endif
 	  /* Create substring. */
 	  sub_vect = create_pack_vector (chars_number, ER_NM_char);
 	  ER_set_immutable (sub_vect, TRUE);
@@ -1199,8 +1303,22 @@ split_call (int_t pars_number)
 	  ER_set_els_number (result, els_number);
 	  if (!ok)
 	    break;
+#ifndef USE_POSIX_REGEXEC_FUNCTION
+	  ER_pack_els (vect) [start + regs.start[0]] = ch;
+	  if (regs.end[0] == 0)
+	    {
+	      start++;
+	      len--;
+	    }
+	  else
+	    {
+	      start += regs.end[0];
+	      len -= regs.end[0];
+	    }
+#else
 	  ER_pack_els (vect) [start + pmatch[0].rm_so] = ch;
 	  start += (pmatch[0].rm_eo == 0 ? 1 : pmatch[0].rm_eo);
+#endif
 	}
       POP_TEMP_REF (2);
     }
@@ -1706,9 +1824,13 @@ rev_call (int_t pars_number)
 		DERR_parameter_type, REV_NAME);
   vect = ER_vect (ctop);
   GO_THROUGH_REDIR (vect);
+#ifdef NEW_VECTOR
+  vect = copy_vector (vect);
+#else
   if (ER_immutable (vect))
     eval_error (immutable_decl, invaccesses_decl, IR_pos (cpc),
 		DERR_immutable_vector_modification);
+#endif
   vect_length = ER_els_number (vect);
   if (vect_length != 0)
     {
@@ -1863,34 +1985,6 @@ sort_call (int_t pars_number)
   ER_SET_MODE (ctop, ER_NM_vect);
   ER_set_vect (ctop, vect);
   INCREMENT_PC();
-}
-
-static void
-print_ch (int ch)
-{
-  char str [10];
-
-  if (ch == '\'' || ch == '"' || ch == '\\')
-    sprintf (str, "\\%c", ch);
-  else if (isprint (ch))
-    sprintf (str, "%c", ch);
-  else if (ch == '\n')
-    sprintf (str, "\\n");
-  else if (ch == '\t')
-    sprintf (str, "\\t");
-  else if (ch == '\v')
-    sprintf (str, "\\v");
-  else if (ch == '\a')
-    sprintf (str, "\\a");
-  else if (ch == '\b')
-    sprintf (str, "\\b");
-  else if (ch == '\r')
-    sprintf (str, "\\r");
-  else if (ch == '\f')
-    sprintf (str, "\\f");
-  else
-    sprintf (str, "\\%o", ch);
-  VLO_ADD_STRING (temp_vlobj, str);
 }
 
 static int
@@ -2125,12 +2219,6 @@ rmdir_call (int_t pars_number)
   /* Place the result instead of the function. */
   ER_SET_MODE (ctop, ER_NM_nil);
 }
-
-#ifdef WIN32
-#ifndef PATH_MAX
-#define PATH_MAX _MAX_PATH
-#endif
-#endif
 
 void
 getcwd_call (int_t pars_number)
@@ -2482,6 +2570,14 @@ seek_call (int_t pars_number)
   /* Place the result instead of the function. */
   ER_SET_MODE (ctop, ER_NM_nil);
   INCREMENT_PC();
+}
+
+static void
+print_ch (int ch)
+{
+  char *str = get_ch_repr (ch);
+
+  VLO_ADD_STRING (temp_vlobj, str);
 }
 
 static void
@@ -3932,7 +4028,7 @@ getgroups_call (int_t pars_number)
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
   SET_TOP;
-#if defined(HAVE_GETGROUPS) && !defined(WIN32)
+#if defined(HAVE_GETGROUPS)
   els_number = getgroups (0, NULL);
   VLO_NULLIFY (temp_vlobj);
   VLO_EXPAND (temp_vlobj, sizeof (GETGROUPS_T) * els_number);
@@ -4596,11 +4692,7 @@ fun_call (int_t pars_number)
   ER_node_t result;
 
   stat_start (pars_number, FUN_NAME, &buf);
-#ifndef WIN32
   result = create_string (getpwuid (buf.st_uid)->pw_name);
-#else
-  result = create_string ("Unknown"); /* need something else for Win NT. */
-#endif
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
   SET_TOP;
@@ -4616,7 +4708,6 @@ fgn_call (int_t pars_number)
   ER_node_t result;
   
   stat_start (pars_number, FGN_NAME, &buf);
-#ifndef WIN32
   {
     char *str;
     struct group *p;
@@ -4628,9 +4719,6 @@ fgn_call (int_t pars_number)
       str = p->gr_name;
     result = create_string (str);
   }
-#else
-  result = create_string ("Unknown"); /* need something else for Win NT. */
-#endif
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
   SET_TOP;
@@ -5128,48 +5216,43 @@ process_func_class_call (int_t pars_number)
   int curr_par;
 
   func_class_val = INDEXED_VAL (ER_CTOP (), -pars_number);
-  if (ER_NODE_MODE (func_class_val) == ER_NM_class)
-    {
-      /* See also case with IR_NM_block_finish .*/
-      func_class = NO_TO_FUNC_CLASS (ER_class_no (func_class_val));
-      instance = create_instance (pars_number);
-      PUSH_TEMP_REF (instance);
-      heap_push (IR_next_stmt (func_class), GET_TEMP_REF (0));
-      /* Zeroth val of class block is always corresponding
-	 instance. */
-      ER_SET_MODE (INDEXED_VAL (ER_stack_vars (cstack), 0), ER_NM_instance);
-      ER_set_instance (INDEXED_VAL (ER_stack_vars (cstack), 0),
-                       GET_TEMP_REF (0));
-      POP_TEMP_REF (1);
-      cpc = IR_next_pc (IR_next_stmt (func_class));
-    }
-  else if (ER_NODE_MODE (func_class_val) == ER_NM_func)
+  if (ER_NODE_MODE (func_class_val) == ER_NM_func)
     {
       func_class = NO_TO_FUNC_CLASS (ER_func_no (func_class_val));
-      if (IR_IS_OF_TYPE (func_class, IR_NM_external_func))
+      if (IR_NODE_MODE (func_class) == IR_NM_external_func)
 	call_external_func (pars_number, func_class);
       else if (IR_implementation_func (func_class) != NULL)
 	(*IR_implementation_func (func_class)) (pars_number);
       else
 	{
+	  ER_node_t prev_stack;
+	  int args_p, num, formals_num;
+
+	  if (sync_flag && IR_thread_flag (func_class))
+	    /* We check it before creating a stack (see
+	       find_catch_pc).  */
+	    eval_error (syncthreadcall_decl, invcalls_decl, IR_pos (cpc),
+			DERR_thread_call_in_sync_stmt);
+	  args_p = IR_args_flag (func_class);
+	  assert (! IR_IS_OF_TYPE (func_class, IR_NM_external_func));
 	  real_func_call_pc = cpc;
 	  heap_push (IR_next_stmt (func_class),
-		     ER_func_context (func_class_val));
+		     ER_func_context (func_class_val), pars_number);
 	  /* The value may be changed because of GC. */
-	  func_class_val
-	    = INDEXED_VAL (ER_ctop (ER_prev_stack (cstack)), -pars_number);
+	  prev_stack = ER_prev_stack (cstack);
+	  func_class_val = INDEXED_VAL (ER_ctop (prev_stack), -pars_number);
 	  /* Push actual parameters except for args (but no more than
 	     formal parameters). */
           vars = ER_stack_vars (cstack);
-          pars = (ER_node_t) ER_ctop (ER_prev_stack (cstack));
+          pars = (ER_node_t) ER_ctop (prev_stack);
+	  formals_num = IR_parameters_number (func_class) - (args_p ? 1 : 0);
+	  num = (formals_num < pars_number ? formals_num : pars_number);
 	  for (curr_actual = 0, curr_par = -pars_number + 1;
-	       curr_actual < (IR_parameters_number (func_class)
-			      - (IR_args_flag (func_class) ? 1 : 0))
-		 && curr_actual < pars_number;
+	       curr_actual < num;
 	       curr_actual++, curr_par++)
 	    *(val_t *) INDEXED_VAL (vars, curr_actual)
 	      = *(val_t *) INDEXED_VAL (pars, curr_par);
-	  if (IR_args_flag (func_class))
+	  if (args_p)
 	    {
               ER_node_t vect;
 	      size_t start;
@@ -5179,22 +5262,22 @@ process_func_class_call (int_t pars_number)
 	      else
 		vect = create_unpack_vector (pars_number - curr_actual);
 	      /* Args number */
-	      ER_SET_MODE (INDEXED_VAL (ER_stack_vars (cstack),
-                                        IR_parameters_number (func_class) - 1),
+	      ER_SET_MODE (INDEXED_VAL (ER_stack_vars (cstack),	formals_num),
                            ER_NM_vect);
-	      ER_set_vect (INDEXED_VAL (ER_stack_vars (cstack),
-                                        IR_parameters_number (func_class) - 1),
+	      ER_set_vect (INDEXED_VAL (ER_stack_vars (cstack), formals_num),
 			   vect);
+	      /* The value may be changed because of GC. */
+	      prev_stack = ER_prev_stack (cstack);
 	      for (start = curr_actual;
                    curr_actual < pars_number;
 		   curr_actual++)
 		*(val_t *) INDEXED_VAL (ER_unpack_els (vect),
                                         curr_actual - start)
-		  = *(val_t *) INDEXED_VAL (ER_ctop (ER_prev_stack (cstack)),
+		  = *(val_t *) INDEXED_VAL (ER_ctop (prev_stack),
                                             curr_actual - pars_number + 1);
 	    }
 	  /* Pop all actual parameters and func from previous stack. */
-	  DECR_TOP (ER_prev_stack (cstack), pars_number + 1);
+	  DECR_TOP (prev_stack, pars_number + 1);
 	  cpc = IR_next_pc (IR_next_stmt (func_class));
 	  if (IR_thread_flag (func_class))
 	    {
@@ -5216,6 +5299,32 @@ process_func_class_call (int_t pars_number)
 	      ER_SET_MODE (ctop, ER_NM_process);
               ER_set_process (ctop, process);
 	    }
+	}
+    }
+  else if (ER_NODE_MODE (func_class_val) == ER_NM_class)
+    {
+      /* See also case with IR_NM_block_finish .*/
+      func_class = NO_TO_FUNC_CLASS (ER_class_no (func_class_val));
+      instance = create_instance (pars_number);
+      if (IR_simple_class_flag (func_class))
+	{
+	  TOP_UP;
+	  ER_SET_MODE (ctop, ER_NM_instance);
+	  ER_set_instance (ctop, instance);
+	  INCREMENT_PC ();
+	}
+      else
+	{
+	  PUSH_TEMP_REF (instance);
+	  heap_push (IR_next_stmt (func_class), GET_TEMP_REF (0), 1);
+	  /* Zeroth val of class block is always corresponding
+	     instance. */
+	  ER_SET_MODE (INDEXED_VAL (ER_stack_vars (cstack), 0),
+		       ER_NM_instance);
+	  ER_set_instance (INDEXED_VAL (ER_stack_vars (cstack), 0),
+			   GET_TEMP_REF (0));
+	  POP_TEMP_REF (1);
+	  cpc = IR_next_pc (IR_next_stmt (func_class));
 	}
     }
   else

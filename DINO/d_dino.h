@@ -58,10 +58,6 @@
 #ifdef HAVE_SYS_TIME_H
 #undef HAVE_SYS_TIME_H
 #endif
-#ifdef WIN32
-#define HAVE_STRTOL
-#define HAVE_STRTOD
-#endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
 #include <stdio.h>
@@ -114,11 +110,6 @@
 #include <errno.h>
 #endif
 
-#ifdef WIN32
-#undef HAVE_DLFCN_H
-#undef HAVE_DLOPEN
-#endif
-
 #ifndef AIX_DLOPEN
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -153,21 +144,13 @@ int dlclose (void *handle);
 #include <string.h>
 
 #ifndef STANDARD_DINO_INCLUDE_DIRECTORY
-#ifdef WIN32
-#define STANDARD_DINO_INCLUDE_DIRECTORY "C:\\dino\\lib"
-#else
 #define STANDARD_DINO_INCLUDE_DIRECTORY "/usr/local/lib"
-#endif
 #endif
 
 #define DINO_INCLUDE_PATH_NAME_VARIABLE "DINO_PATH"
 
 #ifndef STANDARD_DINO_LIB_DIRECTORY
-#ifdef WIN32
-#define STANDARD_DINO_LIB_DIRECTORY "C:\\dino\\lib"
-#else
 #define STANDARD_DINO_LIB_DIRECTORY "/usr/local/lib"
-#endif
 #endif
 
 #ifndef STANDARD_DINO_LIB_NAME
@@ -175,13 +158,9 @@ int dlclose (void *handle);
 #endif
 
 /* Libraries are prefixed by $DINO_HOME (if any) or
-   STANDARD_DINO_LIB_DIRECTORY.  Separator is : or ; (for WIN32). */
+   STANDARD_DINO_LIB_DIRECTORY.  Separator is :. */
 #ifndef STANDARD_DINO_EXTERN_LIBS
-#ifdef WIN32
-#define STANDARD_DINO_EXTERN_LIBS "mpi.dll;ieee.dll;ipcerr.dll;socket.dll"
-#else
 #define STANDARD_DINO_EXTERN_LIBS "mpi.so:ieee.so:ipcerr.so:socket.so"
-#endif
 #endif
 
 #define DINO_HOME_NAME_VARIABLE "DINO_HOME"

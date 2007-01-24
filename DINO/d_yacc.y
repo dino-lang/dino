@@ -82,7 +82,7 @@ static int add_include_file (const char *name);
        FINAL FLOAT FOR FRIEND FUNC HIDE HIDEBLOCK IF IN INT
        NEW NIL PUBLIC PRIVATE RETURN TABLE THREAD THROW TRY TYPE
        VAR VECTOR WAIT
-%token ARROW
+%token SWAP
 %token MULT_ASSIGN DIV_ASSIGN REM_ASSIGN PLUS_ASSIGN MINUS_ASSIGN CONCAT_ASSIGN
 %token LSHIFT_ASSIGN RSHIFT_ASSIGN ASHIFT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN
@@ -456,17 +456,6 @@ designator : designator '[' pos expr ']'
                  IR_set_left_operand ($$, $1);
                  IR_set_right_operand ($$, $4);
                }
-           | '(' expr ')' ARROW pos IDENT
-       	       {
-                 $$ = create_node_with_pos (IR_NM_arrow, $5);
-                 IR_set_left_operand ($$, $2);
-                 IR_set_right_operand ($$, $6);
-               }
-           | pos '*' '(' expr ')'
-       	       {
-		 $$ = create_node_with_pos (IR_NM_deref, $1);
-		 IR_set_operand ($$, $4);
-               }
            | IDENT     {$$ = $1;}
            ;
 /* Attribute value is the last element of the cycle list.  The
@@ -638,6 +627,12 @@ executive_stmt :
           IR_set_assignment_var ($$, $1); 
           IR_set_assignment_expr ($$, $4);
         }
+    | designator SWAP pos designator {$<flag>$ = $<flag>0;} end_simple_stmt
+       	{
+          $$ = create_node_with_pos (IR_NM_swap, $3);
+          IR_set_swap_var1 ($$, $1); 
+          IR_set_swap_var2 ($$, $4);
+        }
     | designator incr_decr pos {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
           $$ = create_node_with_pos (IR_NM_plus_assign, $3);
@@ -715,10 +710,17 @@ executive_stmt :
           $$ = create_node_with_pos (IR_NM_throw, $2);
           IR_set_throw_expr ($$, $3); 
         }
-    | WAIT pos expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | WAIT pos '(' expr ')' {$<flag>$ = $<flag>0;} stmt
        	{
           $$ = create_node_with_pos (IR_NM_wait_stmt, $2);
-          IR_set_wait_guard_expr ($$, $3);
+          IR_set_wait_guard_expr ($$, $4);
+          IR_set_wait_stmt ($$, uncycle_stmt_list ($7));
+        }
+    | WAIT pos '(' error bracket_stop {$<flag>$ = $<flag>0;} stmt
+       	{
+          $$ = create_node_with_pos (IR_NM_wait_stmt, $2);
+          IR_set_wait_guard_expr ($$, NULL);
+          IR_set_wait_stmt ($$, uncycle_stmt_list ($7));
         }
     | block_stmt     {$$ = $1;}
     | try_block_stmt {$$ = $1;}
@@ -735,7 +737,7 @@ block_stmt :    {
                   current_scope = $<pointer>$;
 		  IR_set_exceptions ($<pointer>$, NULL);
                 }
-       	     block
+       	      block
        		{
                   $$ = $<pointer>1;
        		  IR_set_block_stmts ($$, uncycle_stmt_list ($2));
@@ -803,7 +805,7 @@ catch : CATCH  '(' except_class_list ')'
 	      (current_scope,
 	       uncycle_access_list (IR_access_list (current_scope)));
 	    $$ = $3;
-	    IR_set_block (IR_next_exception ($3), current_scope);
+	    IR_set_catch_block (IR_next_exception ($3), current_scope);
 	    current_scope = IR_block_scope (current_scope);
 	  }
       | error {$$ = NULL;}
@@ -815,7 +817,7 @@ except_class_list : expr
 			$$ = create_node_with_pos (IR_NM_exception,
 						   current_position);
 			IR_set_exception_class_expr ($$, $1);
-			IR_set_block ($$, NULL);
+			IR_set_catch_block ($$, NULL);
 			IR_set_next_exception ($$, $$);
 		      }
                   | except_class_list ',' expr
@@ -823,7 +825,7 @@ except_class_list : expr
 			$$ = create_node_with_pos (IR_NM_exception,
 						   current_position);
 			IR_set_exception_class_expr ($$, $3);
-			IR_set_block ($$, NULL);
+			IR_set_catch_block ($$, NULL);
 			IR_set_next_exception ($$, IR_next_exception ($1));
 			IR_set_next_exception ($1, $$);
 		      }
@@ -1395,11 +1397,7 @@ file_dir_name (const char *file_name)
   for (curr_char_ptr = file_name, last_slash = NULL;
        *curr_char_ptr != '\0';
        curr_char_ptr++)
-#ifdef WIN32
-    if (*curr_char_ptr == '/' || *curr_char_ptr == '\\')
-#else
     if (*curr_char_ptr == '/')
-#endif
       last_slash = curr_char_ptr;
   if (last_slash == NULL)
     return ""; /* current directory */
@@ -1424,14 +1422,8 @@ file_path_name (const char *directory_name, const char *file_name,
   assert (directory_name != NULL);
   IR_TOP_ADD_STRING (directory_name);
   if (strlen (directory_name) != 0
-#ifdef WIN32
-      && directory_name [strlen (directory_name) - 1] != '/'
-      && directory_name [strlen (directory_name) - 1] != '\\')
-    IR_TOP_ADD_STRING ("\\");
-#else
       && directory_name [strlen (directory_name) - 1] != '/')
     IR_TOP_ADD_STRING ("/");
-#endif
   IR_TOP_ADD_STRING (file_name);
   IR_TOP_ADD_STRING (file_suffix);
   result = IR_TOP_BEGIN ();
@@ -1439,18 +1431,7 @@ file_path_name (const char *directory_name, const char *file_name,
   return result;
 }
 
-#ifndef WIN32
 #include <pwd.h>
-#else
-#include <io.h>
-#define getcwd(p, s)			_getcwd (p, s)
-#endif
-
-#ifdef WIN32
-#ifndef PATH_MAX
-#define PATH_MAX _MAX_PATH
-#endif
-#endif
 
 static const char *
 canonical_path_name (const char *name)
@@ -1458,48 +1439,16 @@ canonical_path_name (const char *name)
   char buf [PATH_MAX + 1];
   char *p, *str, *result;
   int sep, sep1;
-#ifdef WIN32
-  int drive = 0;
-
-  sep = '\\'; sep1 = '/';
-  if (isalpha (*name) && name [1] == ':')
-    {
-      drive = *name;
-      name += 2;
-    }
-  else
-    {
-      getcwd (buf, PATH_MAX);
-      if (isalpha (*buf) && buf [1] == ':')
-        drive = *buf;
-    }
-#else
   sep = sep1 = '/';
-#endif
   if (*name != sep && *name != sep1)
     {
       getcwd (buf, PATH_MAX);
-#ifdef WIN32
-      if (isalpha (*buf) && buf [1] == ':')
-        {
-          drive = *buf;
-          IR_TOP_ADD_STRING (buf + 2);
-        }
-      else
-        IR_TOP_ADD_STRING (buf);
-#else
       IR_TOP_ADD_STRING (buf);
-#endif
       IR_TOP_SHORTEN (1);
       IR_TOP_ADD_BYTE (sep);
       IR_TOP_ADD_BYTE ('\0');
     }
   IR_TOP_ADD_STRING (name);
-#ifdef WIN32
-  /* It is place for possible inserting `drive:'. */
-  IR_TOP_ADD_BYTE ('\0');
-  IR_TOP_ADD_BYTE ('\0');
-#endif
   result = IR_TOP_BEGIN ();
   IR_TOP_FINISH ();
   for (p = result; *p != '\0'; p++)
@@ -1527,14 +1476,6 @@ canonical_path_name (const char *name)
       }
     else
       p++;
-#ifdef WIN32
-  if (drive != 0)
-    {
-      memmove (result+2, result, strlen (result) + 1);
-      *result = drive;
-      result [1] = ':';
-    }
-#endif
   return (const char *) result;
 }
 
@@ -1859,11 +1800,6 @@ int yylex (void)
 	      current_position.column_number++;
 	      return MINUS_ASSIGN;
 	    }
-          else if (input_char == '>')
-	    {
-	      current_position.column_number++;
-	      return ARROW;
-	    }
           else
             {
               d_ungetc (input_char);
@@ -1914,7 +1850,17 @@ int yylex (void)
           if (input_char == '=')
 	    {
 	      current_position.column_number++;
-	      return LE;
+              input_char = d_getc ();
+	      if (input_char == '>')
+		{
+		  current_position.column_number++;
+		  return SWAP;
+		}
+              else
+               {
+                 d_ungetc (input_char);
+                 return LE;
+               }
 	    }
           else if (input_char == '<')
             {

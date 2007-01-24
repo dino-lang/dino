@@ -340,8 +340,6 @@ work.
 <BLOCKQUOTE><CODE>
 <PRE>
           Designator = DesignatorOrCall "."  IDENT
-                     | "(" Expr ")" "->"  IDENT
-                     |  "*" "(" Expr ")"
                      | IDENT
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -350,9 +348,7 @@ Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           value
-          *("value")
           value.f
-          ("value")->f
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
@@ -466,7 +462,7 @@ representation of integer and is converted into the
 corresponding integer.  If the corresponding string is not a
 correct integer representation, the result is undefined.  If the
 corresponding string represents an integer whose representation
-requires more 32 bits, exception <CODE>erange</CODE> may be
+requires more 32 bits, exception <CODE>syserrors.erange</CODE>may be
 generated.  In all remaining cases the results of conversion
 coincide with the operand.</LI>
 <LI><EM>Arithmetic conversion</EM>.  Analogous to integer
@@ -481,7 +477,7 @@ the first operand is converted into a floating point number too.
 Analogously if the result is an integer which can not be
 represented by a 32-bit integer or the result is a floating
 point number not represented by IEEE double format, the
-exception <CODE>erange</CODE> may be generated.</LI>
+exception <CODE>syserrors.erange</CODE> may be generated.</LI>
 <LI><EM>String conversion</EM>.  If the operand is a character,
 the result will be a new string (immutable vector of characters)
 with one element which is the character.  If the operand is an
@@ -679,12 +675,12 @@ operand.  The operand should be an integer after the conversion.
 Otherwise, exception <CODE>optype</CODE> will be generated.  The integer
 is transformed into the character with the corresponding code.  If the
 code is too big to be a character or is negative, exception
-<CODE>erange</CODE> is generated.</P>
+<CODE>syserrors.erange</CODE> is generated.</P>
 <P>The operator <CODE>int</CODE> is used to conversion of a value into an
 integer.  Implicit integer conversion is applied to the operand.  The
 operand should be an integer after the conversion.  Otherwise,
 exception <CODE>optype</CODE> will be generated.  If the code is too big
-to be an integer, exception <CODE>erange</CODE> is generated.</P>
+to be an integer, exception <CODE>syserrors.erange</CODE> is generated.</P>
 <P>The operator <CODE>float</CODE> is used to conversion of a value into
 floating-point number.  The first, implicit arithmetic conversion is
 applied to the operand.  The operand should be an integer or a
@@ -692,7 +688,7 @@ floating-point number after the conversion.  Otherwise, exception
 <CODE>optype</CODE> will be generated.  If the result integer is
 transformed into the corresponding floating-point number.  If the code
 is too big or too small to be a floating-point number, exception
-<CODE>erange</CODE> is generated.</P>
+<CODE>syserrors.erange</CODE> is generated.</P>
 <P>The operator <CODE>vector</CODE> is used for conversion of a value into a
 vector.  First, implicit string conversion is applied to the operand.
 The optional second expression defines the format used only for the

@@ -6,7 +6,7 @@
 The Programming Language DINO
 Vladimir Makarov, vmakarov@users.sourceforge.net.
 Edited by Serhei Makarov.
-Dec 08, 2002
+Jan 25, 2006
 
 This document describes the programming language DINO.
 
@@ -63,6 +63,15 @@ History
   Dec 14, 2003.  Making table key is immutable in assignment.
 
   Jan 29, 2004.  New exception invfmt. New functions putf, fputf, sputf.
+
+  Jan 4,  2006.  New function trans.  Make function rev returning a new
+                 array.
+
+  Jan 15, 2006.  Removing depricated -> and dereference '*' operations
+
+  Jan 16, 2006.  New swap operation.
+
+  Jan 25, 2006.  Add sync statement in wait-stmt
 
 
 
@@ -231,10 +240,10 @@ letters are considered to be distinct.
 			      | "<=" | ">=" | "<<" | ">>" | ">>>" | "@"
 	                      | "+" | "-" | "/" | "*" | "%" | "!" | "+"
                               | "-" | "~" | "#" | "(" | ")" | "[" | "]"
-	                      | "{" | "}" | "->" | "." | "," | ";" | "="
+	                      | "{" | "}" | "." | "," | ";" | "="
 	                      | "*=" | "/=" | "%=" | "+=" | "-="
                               | "@=" | "<<=" | ">>=" | ">>>=" | "&="
-	                      | "^=" | "|=" | "++" | "--" | "..."
+	                      | "^=" | "|=" | "++" | "--" | "..." | "<=>"
                               | Keyword
 
           Keyword = "break" | "catch" | "char" | "class" | "continue"
@@ -366,30 +375,6 @@ instance is performed by the following rules:
        found with such identifier, or the declaration is private and
        the construction is not in the declaration scope and not inside
        a friend of the declaration scope.
-     o Declaration instance for an identifier whose name is an
-       expression value in the following construction
-
-       *(expression)
-
-       is searched in the same way as a separate identifier.  The
-       exception accessop occurs if there is no such instance
-       of a declaration with such an identifier in the covering block
-       instances.
-     o The declaration for an identifier in the following
-       construction
-
-       (expression)->identifier
-
-       is searched in an analogous way to the construction
-       designator.identifier in the block instance which is
-       the value of the variable whose name is given by the
-       expression.  The variable is searched in the same way as in the
-       construction *(expression).  Exception
-       accessop occurs if there is no such variable instance
-       with the given name in covering block instances, there is no
-       instance of the declaration with such identifier in the given
-       context (the variable value), or the declaration is private and
-       the construction is not in the declaration scope.
      
 The following identifiers are predeclared on the top level (in the
 implicit block covering the whole program).  They are described in
@@ -432,7 +417,7 @@ more detail later in the report.
   stdout         strtime        sub            subv
   syserrors      system         systemcalls
   tell           time           time_format    token
-  tolower        toupper
+  tolower        toupper        trans
   version
 
 The following identifiers are predeclared in the class except
@@ -446,7 +431,7 @@ mentioned above.
   deadlock
   invaccess      invcall        invenv         invindex
   invkey         invop
-  signal
+  signal         syncwait
 
 The following identifiers are predeclared in the class signal
 mentioned above.
@@ -477,7 +462,7 @@ invcall mentioned above.
   internal       invenvar       invextern      invfmt
   invinput       invparser      invregexp      invresult
   parnumber      partype
-  syserror       systemcall
+  syncthreadcall syserror       systemcall
 
 The following identifiers are predeclared in the class
 syserror mentioned above.
@@ -521,8 +506,7 @@ invextern mentioned above.
 The following identifiers are predeclared in the class
 invaccess mentioned above.
 
-  accessop       accessvalue    arrowtype
-  dereftype  
+  accessop       accessvalue
   immutable
 
 
@@ -664,7 +648,28 @@ can not be extended.
 
         The following is a class header with an initialization:
 
-          class stack (max_height = 100)
+          class stack (max_height = var a = 1, b = 2;
+
+putln (a, " ", b);
+a<=>b;
+putln (a, " ", b);
+
+var ar = [1, 2, 3];
+println (ar);
+ar[0]<=>ar[2];
+println (ar);
+
+class s (i) {}
+var c1 = s (0), c2 = s (3);
+putln (c1.i, ' ', c2.i);
+c1.i<=>c2.i;
+putln (c1.i, ' ', c2.i);
+
+var t = {"s" : 1, "t" : 2};
+putln (t{"s"}, ' ', t{"t"});
+t{"s"}<=>t{"t"};
+putln (t{"s"}, ' ', t{"t"});
+100)
 
         The following is a function with a variable number of parameters:
 
@@ -710,17 +715,17 @@ can not be extended.
             func consume () {
               var res;
           
-              wait !empty;
+              wait (!empty);
               res = b [first];
               first = (first + 1) % length;
-              empty = first == free;
+              wait (1) empty = first == free;
               return res;
             }
             func produce (val) {
-              wait empty || free != first;
+              wait (empty || free != first);
               b [free] = val;
               free = (free + 1) % length;
-              empty = 0;
+              wait (1) empty = 0;
             }
           }
           
@@ -1032,16 +1037,12 @@ Declarations and Scope Rules for a description on how they
 work.
 
           Designator = DesignatorOrCall "."  IDENT
-                     | "(" Expr ")" "->"  IDENT
-                     |  "*" "(" Expr ")"
                      | IDENT
 
         Examples:
 
           value
-          *("value")
           value.f
-          ("value")->f
 
 
 5.3. Calls
@@ -1140,7 +1141,7 @@ mentioned).  The following conversions may be made by default:
       corresponding integer.  If the corresponding string is not a
       correct integer representation, the result is undefined.  If the
       corresponding string represents an integer whose representation
-      requires more 32 bits, exception erange may be
+      requires more 32 bits, exception syserrors.erangemay be
       generated.  In all remaining cases the results of conversion
       coincide with the operand.
     o Arithmetic conversion.  Analogous to integer
@@ -1155,7 +1156,7 @@ mentioned).  The following conversions may be made by default:
       Analogously if the result is an integer which can not be
       represented by a 32-bit integer or the result is a floating
       point number not represented by IEEE double format, the
-      exception erange may be generated.
+      exception syserrors.erange may be generated.
     o String conversion.  If the operand is a character,
       the result will be a new string (immutable vector of characters)
       with one element which is the character.  If the operand is an
@@ -1340,13 +1341,13 @@ operand.  The operand should be an integer after the conversion.
 Otherwise, exception optype will be generated.  The integer
 is transformed into the character with the corresponding code.  If the
 code is too big to be a character or is negative, exception
-erange is generated.
+syserrors.erange is generated.
 
 The operator int is used to conversion of a value into an
 integer.  Implicit integer conversion is applied to the operand.  The
 operand should be an integer after the conversion.  Otherwise,
 exception optype will be generated.  If the code is too big
-to be an integer, exception erange is generated.
+to be an integer, exception syserrors.erange is generated.
 
 The operator float is used to conversion of a value into
 floating-point number.  The first, implicit arithmetic conversion is
@@ -1355,7 +1356,7 @@ floating-point number after the conversion.  Otherwise, exception
 optype will be generated.  If the result integer is
 transformed into the corresponding floating-point number.  If the code
 is too big or too small to be a floating-point number, exception
-erange is generated.
+syserrors.erange is generated.
 
 The operator vector is used for conversion of a value into a
 vector.  First, implicit string conversion is applied to the operand.
@@ -1492,9 +1493,13 @@ difference is in the fact that the designator is evaluated only once,
 not twice as in the analogous form.  It is important to know if you
 have side effects in the statement.
 
+A special construction Designator <=> Designator; swaps values
+of the designators.
+
           ExecutiveStmt = Designator Assign  Expr ";"
                         | Designator ("++" | "--")  ";"
                         | ("++" | "--")  Designator ";"
+                        | Designator <=> Designator ";"
           Assign = "="
                  | "*="
                  | "/="
@@ -1515,7 +1520,8 @@ have side effects in the statement.
           i = 1;
           i++;
           --i;
-          i *= 20
+          i *= 20;
+          v [0] <=> v [1];
 
 
 6.4. Call-statement
@@ -1740,15 +1746,20 @@ a thread-function call.  The thread in which the statement has been
 executed waits until the expression value becomes nonzero.  The
 expression value (after implicit arithmetic conversion) should be an
 integer or a floating point number.  Otherwise the exception
-optype is generated.  The important thing to know how to make
-synchronization is that an assignment statement without any calls is
-always executed as one transaction.
+optype is generated.  When the expression value becomes
+nonzero, the statement after the expression (it is called
+sync-statement) is executed without interruption by other process.  It
+is used as critical region for process synchronization.  In a critical
+region execution of wait-statement is prohibited (it results in
+generation of exception syncwait).  Also thread calls inside
+a critical region result in generation exception
+syncthreadcall.
 
-          ExecutiveStmt = wait  Expr ";"
+          ExecutiveStmt = wait  "(" Expr ")" Stmt
 
         Examples:
 
-          wait !empty;
+          wait (!empty);
 
 
 7. Program
@@ -2626,11 +2637,11 @@ point number.
      o log (x).  The function returns the natural
        logarithm of x.  The function generates the exception
        edom if x is negative or may generate
-       erange if the value is zero.
+       syserrors.erange if the value is zero.
      o log10 (x).  The function returns the decimal
        logarithm of x.  The function generates the exception
        edom if x is negative or may generate
-       erange if the value is zero.
+       syserrors.erange if the value is zero.
      o pow (x, y).  The function returns x
        raised to the power of y.  The function generates
        exception edom if x is negative and y is not of
@@ -2911,7 +2922,7 @@ If the regular expression is incorrect, the functions generate one of
 the following predeclared exceptions (see predeclared classes):
      
      o ebrack.  Regular expression has unmatched bracket.
-     o erange.  Invalid use of range in regular
+     o invregexps.erange.  Invalid use of range in regular
        expression.
      o ectype.  Unknown character class name in regular
        expression.
@@ -3601,6 +3612,16 @@ There are the following miscellaneous functions:
        a string.  The function returns the new string str in which
        lower case letters are changed to the corresponding upper case
        letters.
+     o trans (str, what, subst).  The function
+       transliterates charactes in a string.  The function expects
+       that the parameters str (after implicit string
+       conversion), what, and subst are strings.
+       The function returns the new string str in which its
+       characters which are present in what are changed to
+       the corresponding characters in <\tt>subst<\tt>.  The last two
+       strings should have the same length.  The second string may
+       contain more than one occurence of a character.  In this case
+       the last correspondence is taken.
      o eltype (vect).  The function expects that the
        parameter value is a vector.  The function returns nil
        if the vector is heterogenous, otherwise the function returns
@@ -3683,10 +3704,8 @@ There are the following miscellaneous functions:
        insertion of all vector elements into the vector given as the
        first parameter.  So the second parameter value should be a
        vector.  The function returns the modified vector.
-     o rev (vect).  The function reverses the given
-       vector.  The function generates the exception
-       immutable if we are trying to reverse an immutable
-       vector.  The function returns the modified vector.
+     o rev (vect).  The function returns reversion of the
+      given vector.
      o cmpv (vect, vect).  The function makes implicit
        string conversion of the parameter values.  After that, the
        parameter values should be vectors whose first corresponding
@@ -3816,8 +3835,6 @@ Designator = DesignatorOrCall "["  Expr "]"
            | DesignatorOrCall "{"  Expr "}"
            | DesignatorOrCall ActualParameters
            | DesignatorOrCall "."  IDENT
-           | "(" Expr ")" "->"  IDENT
-           |  "*" "(" Expr ")"
            | IDENT
 
 ElistPartsList = [ Expr [ ":" Expr ] {"," Expr [ ":" Expr ] } ]
@@ -3862,7 +3879,7 @@ ExecutiveStmt = ";"
               | continue ";"
               | return  [ Expr ] ";"
               | throw  Expr ";"
-              | wait  Expr ";"
+              | wait  "(" Expr ")" Stmt
               | BlockStmt
               | TryBlockStmt
 
@@ -4035,12 +4052,13 @@ ENVIRONMENT
 
        DINO_LIB
               If not null, it defines places of dino shared library,  if  any.
-              The value of variable has more priority than DINO_HOME.
+              The   value  of  variable  has  more  priority  than  DINO_HOME.
+              DINO_EXTERN_LIBS.
 
        DINO_EXTERN_LIBS
-              If  not  null,  it  defines  paths  of  additional Dino external
-              libraries.  The libraries should be separated by ":"  (on  Unix)
-              or  ";"  (on  Windows).  The value has less priority than values
+              If not null,  it  defines  paths  of  additional  Dino  external
+              libraries.   The  libraries should be separated by ":" (on Unix)
+              or ";" (on Windows).  The value has less  priority  than  values
               given in -L options.
 
 DIAGNOSTICS

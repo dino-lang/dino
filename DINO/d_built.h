@@ -29,6 +29,7 @@ extern void min_call (int_t pars_number);
 extern void max_call (int_t pars_number);
 extern void tolower_call (int_t pars_number);
 extern void toupper_call (int_t pars_number);
+extern void trans_call (int_t pars_number);
 extern void eltype_call (int_t pars_number);
 extern void keys_call (int_t pars_number);
 extern void context_call (int_t pars_number);

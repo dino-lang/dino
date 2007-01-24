@@ -3008,34 +3008,38 @@ var count = 0;
 var consumed = 0;
 var produced = 0;
 var data = 0;
+var consumer_finish = 0, producer_finish = 0;
 
 thread consumer (n) {
   var i;
 
   for (;;) {
-    wait count != 0;
+    wait (count != 0);
     i = data;
-    count = 0;
+    wait (1) count = 0;
     consumed++;
     if (i == n - 1)
       break;
   }
+  consumer_finish = 1;
 }
 
 thread producer (n) {
   var i;
 
   for (i = 0; i < n; i++) {
-    wait count == 0;
+    wait (count == 0);
     data = i;
-    count = 1;
+    wait (1) count = 1;
     produced++;
   }
+  producer_finish = 1;
 }
 
 func main (n) {
     producer (n);
     consumer (n);
+    wait (consumer_finish && producer_finish);
     putln (produced, ' ', consumed);
 }
     

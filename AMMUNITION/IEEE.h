@@ -557,22 +557,17 @@ public:
 
 typedef class IEEE_float IEEE_float_t;
 
-/* This is for VC++ 5.0 */
-#ifdef WIN32
-#define NO_TEMPLATE
-#endif
-
 #ifndef NO_TEMPLATE
 
 template <int size> 
-inline class IEEE_float &IEEE_float_from_unsint
+inline IEEE_float &IEEE_float_from_unsint
   (class IEEE_float &single, class unsint<size> &unsigned_integer)
 {
   return single.from_unsigned_integer (size, unsigned_integer.container);
 }
 
 template <int size>
-inline class IEEE_float &IEEE_float_from_sint (class IEEE_float &single,
+inline IEEE_float &IEEE_float_from_sint (class IEEE_float &single,
                                                class sint<size> &integer)
 {
   return single.from_signed_integer (size, integer.container);
@@ -700,14 +695,14 @@ typedef class IEEE_double IEEE_double_t;
 #ifndef NO_TEMPLATE
 
 template <int size> 
-inline class IEEE_double &IEEE_double_from_unsint
+inline IEEE_double &IEEE_double_from_unsint
   (class IEEE_double &double_float, class unsint<size> &unsigned_integer)
 {
   return double_float.from_unsigned_integer (size, unsigned_integer.container);
 }
 
 template <int size>
-inline class IEEE_double &IEEE_double_from_sint
+inline IEEE_double &IEEE_double_from_sint
   (class IEEE_double &double_float, class sint<size> &integer)
 {
   return double_float.from_signed_integer (size, integer.container);
@@ -842,14 +837,14 @@ typedef class IEEE_quad IEEE_quad_t;
 #ifndef NO_TEMPLATE
 
 template <int size> 
-inline class IEEE_quad &IEEE_quad_from_unsint
+inline IEEE_quad &IEEE_quad_from_unsint
   (class IEEE_quad &quad_float, class unsint<size> &unsigned_integer)
 {
   return quad_float.from_unsigned_integer (size, unsigned_integer.container);
 }
 
 template <int size>
-inline class IEEE_quad &IEEE_quad_from_sint
+inline IEEE_quad &IEEE_quad_from_sint
   (class IEEE_quad &quad_float, class sint<size> &integer)
 {
   return quad_float.from_signed_integer (size, integer.container);

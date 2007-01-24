@@ -4937,33 +4937,23 @@ output_rest_double_link_functions_definitions (void)
         output_string (output_file, "\n    {\n");
       else
         output_string (output_file, "\n{\n");
-      if (output_rest_double_link_functions_definitions)
-	{
-          output_ifdef (output_file, DEBUG_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, "    ");
-          output_string (output_file, "  if (");
-          output_string (output_file,
-			 NEXT_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, " == NULL)\n        abort ();\n");
-          else
-            output_string (output_file, " == NULL)\n    abort ();\n");
-          output_endif (output_file, DEBUG_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, "    ");
-          output_string (output_file, "  return ");
-          output_string (output_file,
-                         NEXT_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
-          output_string (output_file, "->");
-          output_string (output_file, DOUBLE_LINK_NEXT_NAME);
-	}
+      output_ifdef (output_file, DEBUG_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, "    ");
+      output_string (output_file, "  if (");
+      output_string (output_file, NEXT_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, " == NULL)\n        abort ();\n");
       else
-	{
-          if (cpp_flag)
-	    output_string (output_file, "    ");
-          output_string (output_file, "  return NULL");
-	}
+	output_string (output_file, " == NULL)\n    abort ();\n");
+      output_endif (output_file, DEBUG_PARAMETER_NAME);
+      if (cpp_flag)
+            output_string (output_file, "    ");
+      output_string (output_file, "  return ");
+      output_string (output_file,
+		     NEXT_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
+      output_string (output_file, "->");
+      output_string (output_file, DOUBLE_LINK_NEXT_NAME);
       if (cpp_flag)
         output_string (output_file, ";\n    }\n\n");
       else
@@ -4981,33 +4971,24 @@ output_rest_double_link_functions_definitions (void)
 	output_string (output_file, "\n    {\n");
       else
 	output_string (output_file, "\n{\n");
-      if (output_rest_double_link_functions_definitions)
-	{
-          output_ifdef (output_file, DEBUG_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, "    ");
-          output_string (output_file, "  if (");
-          output_string (output_file,
-                         PREVIOUS_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, " == NULL)\n        abort ();\n");
-          else
-            output_string (output_file, " == NULL)\n    abort ();\n");
-          output_endif (output_file, DEBUG_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, "    ");
-          output_string (output_file, "  return ");
-          output_string (output_file,
-                         PREVIOUS_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
-          output_string (output_file, "->");
-          output_string (output_file, DOUBLE_LINK_PREVIOUS_NAME);
-	}
+      output_ifdef (output_file, DEBUG_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, "    ");
+      output_string (output_file, "  if (");
+      output_string (output_file,
+		     PREVIOUS_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, " == NULL)\n        abort ();\n");
       else
-	{
-          if (cpp_flag)
-	    output_string (output_file, "    ");
-          output_string (output_file, "  return NULL");
-	}
+	output_string (output_file, " == NULL)\n    abort ();\n");
+      output_endif (output_file, DEBUG_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, "    ");
+      output_string (output_file, "  return ");
+      output_string (output_file,
+		     PREVIOUS_DOUBLE_LINK_FUNCTION_PARAMETER_NAME);
+      output_string (output_file, "->");
+      output_string (output_file, DOUBLE_LINK_PREVIOUS_NAME);
       if (cpp_flag)
         output_string (output_file, ";\n    }\n\n");
       else
@@ -5025,31 +5006,22 @@ output_rest_double_link_functions_definitions (void)
         output_string (output_file, "\n    {\n");
       else
         output_string (output_file, "\n{\n");
-      if (output_rest_double_link_functions_definitions)
-	{
-          output_ifdef (output_file, DEBUG_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, "    ");
-          output_string (output_file, "  if (");
-          output_string (output_file, OWNER_FUNCTION_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, " == NULL)\n        abort ();\n");
-          else
-            output_string (output_file, " == NULL)\n    abort ();\n");
-          output_endif (output_file, DEBUG_PARAMETER_NAME);
-          if (cpp_flag)
-            output_string (output_file, "    ");
-          output_string (output_file, "  return ");
-          output_string (output_file, OWNER_FUNCTION_PARAMETER_NAME);
-          output_string (output_file, "->");
-          output_string (output_file, DOUBLE_LINK_OWNER_NAME);
-	}
+      output_ifdef (output_file, DEBUG_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, "    ");
+      output_string (output_file, "  if (");
+      output_string (output_file, OWNER_FUNCTION_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, " == NULL)\n        abort ();\n");
       else
-	{
-          if (cpp_flag)
-	    output_string (output_file, "    ");
-          output_string (output_file, "  return NULL");
-	}
+	output_string (output_file, " == NULL)\n    abort ();\n");
+      output_endif (output_file, DEBUG_PARAMETER_NAME);
+      if (cpp_flag)
+	output_string (output_file, "    ");
+      output_string (output_file, "  return ");
+      output_string (output_file, OWNER_FUNCTION_PARAMETER_NAME);
+      output_string (output_file, "->");
+      output_string (output_file, DOUBLE_LINK_OWNER_NAME);
       if (cpp_flag)
         output_string (output_file, ";\n    }\n\n");
       else
@@ -11755,16 +11727,19 @@ generate_spi (void)
   output_string (output_implementation_file, "\"\n\n");
   /* The following macro is output to interface file because it is
      used in modification of double fields in modification macros. */
+  output_string (output_interface_file, "#include <stddef.h>\n\n");
   output_string (output_interface_file, "#ifdef offsetof\n#define ");
   output_offsetof_macro_name (output_interface_file);
   output_string (output_interface_file,
                  "(type, field) offsetof (type, field)\n");
-  output_string (output_interface_file, "#else\n#define ");
+  output_string (output_interface_file, "#else\n");
+  output_string (output_interface_file, "#define ");
   output_offsetof_macro_name (output_interface_file);
   output_string
     (output_interface_file,
      "(type, field) ((char *)&((type *) 64)->field - (char *) 64)\n");
-  output_string (output_interface_file, "#endif\n\n");
+  output_string (output_interface_file, "#endif\n");
+  output_string (output_interface_file, "\n");
   output_start_code_insertions ();
   output_default_macros ();
   output_node_mode_type_definition ();

@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-11849/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-8068/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@users.sourceforge.net'.
-     Dec 08, 2002
+     Jan 25, 2006
    Edited by Serhei Makarov.
 
    This document describes the programming language DINO.
@@ -64,6 +64,15 @@ The Programming Language DINO
        Dec 14, 2003.  Making table key is immutable in assignment.
      
        Jan 29, 2004.  New exception invfmt. New functions putf, fputf, sputf.
+     
+       Jan 4,  2006.  New function trans.  Make function rev returning a new
+                      array.
+     
+       Jan 15, 2006.  Removing depricated -> and dereference '*' operations
+     
+       Jan 16, 2006.  New swap operation.
+     
+       Jan 25, 2006.  Add sync statement in wait-stmt
 
 * Menu:
 
@@ -102,9 +111,9 @@ on other languages.  The high level structures of Dino are
    * objects
 
    Originally, Dino was used in the russian graphics company ANIMATEK
-(Animatek (http://www.animatek.com)) for description of the movement of
-dinosaurs in a project.  It has been considerably redesigned and was
-implemented with the aid of the COCOM tool set.
+for description of the movement of dinosaurs in a project.  It has been
+considerably redesigned and was implemented with the aid of the COCOM
+tool set.
 
    This document is not intended for use as a programmer's tutorial.  It
 is a concise description of the language DINO and can be used as a
@@ -247,10 +256,10 @@ considered to be distinct.
                                         | "<=" | ">=" | "<<" | ">>" | ">>>" | "@"
                                         | "+" | "-" | "/" | "*" | "%" | "!" | "+"
                                         | "-" | "~" | "#" | "(" | ")" | "[" | "]"
-                                        | "{" | "}" | "->" | "." | "," | ";" | "="
+                                        | "{" | "}" | "." | "," | ";" | "="
                                         | "*=" | "/=" | "%=" | "+=" | "-="
                                         | "@=" | "<<=" | ">>=" | ">>>=" | "&="
-                                        | "^=" | "|=" | "++" | "--" | "..."
+                                        | "^=" | "|=" | "++" | "--" | "..." | "<=>"
                                         | Keyword
           
                     Keyword = "break" | "catch" | "char" | "class" | "continue"
@@ -373,28 +382,6 @@ instance is performed by the following rules:
      not in the declaration scope and not inside a friend of the
      declaration scope.
 
-   * Declaration instance for an identifier whose name is an expression
-     value in the following construction
-                 *(expression)
-
-     is searched in the same way as a separate identifier.  The
-     exception `accessop' occurs if there is no such instance of a
-     declaration with such an identifier in the covering block
-     instances.
-
-   * The declaration for an identifier in the following construction
-                 (expression)->identifier
-
-     is searched in an analogous way to the construction
-     `designator.identifier' in the block instance which is the value
-     of the variable whose name is given by the expression.  The
-     variable is searched in the same way as in the construction
-     `*(expression)'.  Exception `accessop' occurs if there is no such
-     variable instance with the given name in covering block instances,
-     there is no instance of the declaration with such identifier in
-     the given context (the variable value), or the declaration is
-     private and the construction is not in the declaration scope.
-
    The following identifiers are predeclared on the top level (in the
 implicit block covering the whole program).  They are described in more
 detail later in the report.
@@ -435,7 +422,7 @@ detail later in the report.
        stdout         strtime        sub            subv
        syserrors      system         systemcalls
        tell           time           time_format    token
-       tolower        toupper
+       tolower        toupper        trans
        version
 
    The following identifiers are predeclared in the class `except'
@@ -447,7 +434,7 @@ mentioned above.
        deadlock
        invaccess      invcall        invenv         invindex
        invkey         invop
-       signal
+       signal         syncwait
 
    The following identifiers are predeclared in the class `signal'
 mentioned above.
@@ -473,7 +460,7 @@ mentioned above.
        internal       invenvar       invextern      invfmt
        invinput       invparser      invregexp      invresult
        parnumber      partype
-       syserror       systemcall
+       syncthreadcall syserror       systemcall
 
    The following identifiers are predeclared in the class `syserror'
 mentioned above.
@@ -511,8 +498,7 @@ mentioned above.
 
    The following identifiers are predeclared in the class `invaccess'
 mentioned above.
-       accessop       accessvalue    arrowtype
-       dereftype
+       accessop       accessvalue
        immutable
 
 * Menu:
@@ -659,7 +645,28 @@ be extended.
                class stack ()
 
    The following is a class header with an initialization:
-               class stack (max_height = 100)
+               class stack (max_height = var a = 1, b = 2;
+     
+     putln (a, " ", b);
+     a<=>b;
+     putln (a, " ", b);
+     
+     var ar = [1, 2, 3];
+     println (ar);
+     ar[0]<=>ar[2];
+     println (ar);
+     
+     class s (i) {}
+     var c1 = s (0), c2 = s (3);
+     putln (c1.i, ' ', c2.i);
+     c1.i<=>c2.i;
+     putln (c1.i, ' ', c2.i);
+     
+     var t = {"s" : 1, "t" : 2};
+     putln (t{"s"}, ' ', t{"t"});
+     t{"s"}<=>t{"t"};
+     putln (t{"s"}, ' ', t{"t"});
+     100)
 
    The following is a function with a variable number of parameters:
                func print_args (...)
@@ -701,17 +708,17 @@ be extended.
                  func consume () {
                    var res;
      
-                   wait !empty;
+                   wait (!empty);
                    res = b [first];
                    first = (first + 1) % length;
-                   empty = first == free;
+                   wait (1) empty = first == free;
                    return res;
                  }
                  func produce (val) {
-                   wait empty || free != first;
+                   wait (empty || free != first);
                    b [free] = val;
                    free = (free + 1) % length;
-                   empty = 0;
+                   wait (1) empty = 0;
                  }
                }
      
@@ -1024,15 +1031,11 @@ table, exception `keyvalue' is generated.  Examples:
 section `Declarations and Scope Rules' for a description on how they
 work.
                Designator = DesignatorOrCall "."  IDENT
-                          | "(" Expr ")" "->"  IDENT
-                          |  "*" "(" Expr ")"
                           | IDENT
 
    Examples:
                value
-               *("value")
                value.f
-               ("value")->f
 
 
 File: dino.info,  Node: Calls,  Next: Operators,  Prev: Designators,  Up: Expressions
@@ -1127,9 +1130,9 @@ following conversions may be made by default:
      converted into the corresponding integer.  If the corresponding
      string is not a correct integer representation, the result is
      undefined.  If the corresponding string represents an integer
-     whose representation requires more 32 bits, exception `erange' may
-     be generated.  In all remaining cases the results of conversion
-     coincide with the operand.
+     whose representation requires more 32 bits, exception
+     `syserrors.erange'may be generated.  In all remaining cases the
+     results of conversion coincide with the operand.
 
    * `Arithmetic conversion'.  Analogous to integer conversion except
      for that the conversion of float pointing number to integer is not
@@ -1142,7 +1145,7 @@ following conversions may be made by default:
      into a floating point number too.  Analogously if the result is an
      integer which can not be represented by a 32-bit integer or the
      result is a floating point number not represented by IEEE double
-     format, the exception `erange' may be generated.
+     format, the exception `syserrors.erange' may be generated.
 
    * `String conversion'.  If the operand is a character, the result
      will be a new string (immutable vector of characters) with one

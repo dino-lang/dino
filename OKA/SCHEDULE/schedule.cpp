@@ -27,6 +27,9 @@
 #include <string.h>
 #include "schedule.h"
 
+class resource_history;
+class list;
+
 class scheduler_state
 {
   /* Forward declarations: */

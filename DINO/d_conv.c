@@ -149,20 +149,22 @@ implicit_arithmetic_conversion (int depth)
 void
 implicit_conversion_for_binary_arithmetic_op (void)
 {
-  int float_flag;
+  int float0_p, float1_p;
   floating_t f;
 
-  implicit_arithmetic_conversion (0);
-  implicit_arithmetic_conversion (1);
-  float_flag = (ER_NODE_MODE (ctop) == ER_NM_float
-		|| ER_NODE_MODE (below_ctop) == ER_NM_float);
-  if (float_flag && ER_NODE_MODE (ctop) == ER_NM_int)
+  if (! (float0_p = ER_NODE_MODE (ctop) == ER_NM_float)
+      && ER_NODE_MODE (ctop) != ER_NM_int)
+    implicit_arithmetic_conversion (0);
+  if (! (float1_p = ER_NODE_MODE (below_ctop) == ER_NM_float)
+      && ER_NODE_MODE (below_ctop) != ER_NM_int)
+    implicit_arithmetic_conversion (1);
+  if (float1_p && ER_NODE_MODE (ctop) == ER_NM_int)
     {
       f = ER_i (ctop);
       ER_SET_MODE (ctop, ER_NM_float);
       ER_set_f (ctop, f);
     }
-  else if (float_flag && ER_NODE_MODE (below_ctop) == ER_NM_int)
+  else if (float0_p && ER_NODE_MODE (below_ctop) == ER_NM_int)
     {
       f = ER_i (below_ctop);
       ER_SET_MODE (below_ctop, ER_NM_float);

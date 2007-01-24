@@ -51,11 +51,8 @@ extern int statistics_flag;
 extern int profile_flag;
 extern double start_time;
 extern int max_block_level;
+extern char *get_ch_repr (int ch);
 extern void dino_finish (int code);
-
-#ifdef WIN32
-#define NO_PROFILE
-#endif
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
 
@@ -87,8 +84,4 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #else
 #define INLINE 0
 #endif
-#endif
-
-#ifdef WIN32
-#define SIZEOF_CHAR_P 4
 #endif

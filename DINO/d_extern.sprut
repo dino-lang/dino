@@ -120,10 +120,7 @@ typedef union
     _ER_func func;
     _ER_class cl;
     _ER_process process;
-    _ER_var_ref var_ref;
     _ER_external_var_ref external_var_ref;
-    _ER_vect_el_ref vect_el_ref;
-    _ER_tab_el_ref tab_el_ref;
   } val_t;
 
 /* Return type of node representing value. */
@@ -147,7 +144,7 @@ extern void *get_library_search_function (const char *name);
 /* Align of heap objects. */
 #define MAX_ALIGNMENT sizeof (double)
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 /* The macro call value is size of memory allocated for the heap
    object with size S accounting for aligning. */
 #define ALLOC_SIZE(s) (((s)+MAX_ALIGNMENT-1)/MAX_ALIGNMENT*MAX_ALIGNMENT)
@@ -155,21 +152,21 @@ extern void *get_library_search_function (const char *name);
 #define ALLOC_SIZE(s) _alloc_size (s)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define ER_hideblock_start(hideblock)\
   ((char *) (hideblock) + ALLOC_SIZE (sizeof (_ER_heap_hideblock)))
 #else
 #define ER_hideblock_start(hideblock) _hideblock_start (hideblock)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define ER_pack_els(vect)\
   ((char *) (vect) + ALLOC_SIZE (sizeof (_ER_heap_pack_vect)) + ER_disp (vect))
 #else
 #define ER_pack_els(vect) _pack_els (vect)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define ER_unpack_els(vect)\
   ((ER_node_t) ((char *) (vect) + ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))\
                 + ER_disp (vect)))
@@ -177,35 +174,35 @@ extern void *get_library_search_function (const char *name);
 #define ER_unpack_els(vect) _unpack_els (vect)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define ER_tab_els(tab)\
   ((ER_node_t) ((char *) (tab) + ALLOC_SIZE (sizeof (_ER_heap_tab))))
 #else
 #define ER_tab_els(tab) _tab_els (tab)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define ER_instance_vars(instance)\
   ((ER_node_t) ((char *) (instance) + ALLOC_SIZE (sizeof (_ER_heap_instance))))
 #else
 #define ER_instance_vars(instance) _instance_vars (instance)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define ER_stack_vars(stack)\
   ((ER_node_t) ((char *) (stack) + ALLOC_SIZE (sizeof (_ER_heap_stack))))
 #else
 #define ER_stack_vars(stack) _stack_vars (stack)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define ER_stacks_table(process)\
   ((stack_ptr_t) ((char *) (process) + ALLOC_SIZE (sizeof (_ER_heap_process))))
 #else
 #define ER_stacks_table(process) _stacks_table (process)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define INDEXED_VAL(first_var, index)\
    ((ER_node_t) ((char *) (first_var) + (index) * (int) sizeof (val_t)))
 #else
@@ -213,7 +210,7 @@ extern void *get_library_search_function (const char *name);
    _indexed_val ((ER_node_t) first_var, index)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define INDEXED_ENTRY_KEY(first_entry, index)\
    ((ER_node_t) ((char *) (first_entry) + 2 * (index) * (int) sizeof (val_t)))
 #else
@@ -221,7 +218,7 @@ extern void *get_library_search_function (const char *name);
    _indexed_entry_key (first_entry, index)
 #endif
 
-#if defined(NDEBUG) || defined(WIN32)
+#if defined(NDEBUG)
 #define INDEXED_ENTRY_VAL(first_entry, index)\
    ((ER_node_t) ((char *) (first_entry) + (2 * (index) + 1) * (int) sizeof (val_t)))
 #else
@@ -295,53 +292,6 @@ ER_node_t vector_to_table_conversion (ER_node_t vect);
 
 void make_immutable (ER_node_t obj);
 
-
-#ifdef WIN32
-
-/* This is for such weird dynamic libaries as Windows dll. */
-struct spi
-{
-  ER_type_t (*node_mode_2_type) (ER_node_mode_t node_mode);
-
-  size_t (*instance_size) (IR_hidden_node_t class);
-  size_t (*type_size) (ER_node_mode_t type);
-  size_t (*val_displ) (ER_node_t var);
-  
-  ER_node_t (*create_hideblock) (size_t length);
-  
-  ER_node_t (*create_empty_vector) (void);
-  ER_node_t (*create_unpack_vector) (size_t els_number);
-  ER_node_t (*create_pack_vector) (size_t els_number, ER_node_mode_t eltype);
-  ER_node_t (*expand_vector) (ER_node_t vect, size_t el_number);
-  ER_node_t (*unpack_vector) (ER_node_t vect);
-  void (*pack_vector_if_possible) (ER_node_t unpack_vect);
-  int (*eq_vector) (ER_node_t v1, ER_node_t v2);
-  ER_node_t (*copy_vector) (ER_node_t vect);
-  ER_node_t (*create_empty_string) (size_t min_length);
-  ER_node_t (*create_string) (const char *string);
-  
-  int (*eq_instance) (ER_node_t i1, ER_node_t i2);
-  
-  int (*eq_table) (ER_node_t t1, ER_node_t t2);
-  ER_node_t (*create_tab) (size_t size);
-  ER_node_t (*find_tab_entry) (ER_node_t tab, ER_node_t key, int reserve);
-  int (*remove_tab_el) (ER_node_t tab, ER_node_t key);
-  ER_node_t (*copy_tab) (ER_node_t tab);
-  ER_node_t (*find_next_key) (ER_node_t tab, ER_node_t key);
-  
-  void (*make_immutable) (ER_node_t obj);
-};
-
-#ifndef NO_INTERFACE
-
-#define WIN_EXPORT  __declspec(dllexport)
-extern struct spi *spi;
-extern WIN_EXPORT void set_interface (struct spi *i);
-
-#endif
-
-#endif
-
 }
 
 %%
@@ -402,6 +352,9 @@ heap_tab :: heap_vect_tab
   entries_number : size_t /* number of all entries in the table */
   /* Current number of deleted elements in the table */
   deleted_els_number : size_t
+  /* Index of the last access key or -1 if undefined.  It is used to
+     speed up the repeated access.  */
+  last_key_index : int_t
   /* The first entry is placed immediately after this node in the
      heap. */
 ;
@@ -563,14 +516,6 @@ process :: val
 /* The following may be stored only in temporary vars (in left side of
    assignment): */
 
-/* It is a reference for var.  It is used only in left side of
-   assignment stmt. */
-/*%final*/
-var_ref :: val
-%other
-  var_ref : heap_obj
-;
-
 /* It is a reference for external var.  It is used only in left side
    of assignment stmt. */
 /*%final*/
@@ -579,172 +524,4 @@ external_var_ref :: val
   external_var_ref : char_ptr_t /* Address of external variable. */
 ;
 
-/* It is a reference for vector element.  Index of the vector element
-   is below on the stack. */
-/*%final*/
-vect_el_ref :: val
-%other
-  vect_el_ref : heap_vect_tab
-;
-
-/* It is a reference for table element. Key of the table element is
-   below on the stack. */
-/*%final*/
-tab_el_ref :: val
-%other
-  tab_el_ref : heap_vect_tab
-;
-
 %%
-
-#ifdef WIN32
-
-#ifndef NO_INTERFACE
-struct spi *spi;
-
-WIN_EXPORT void
-set_interface (struct spi *i)
-{
-  spi = i;
-}
-
-ER_type_t
-node_mode_2_type (ER_node_mode_t node_mode)
-{
-  return (*spi->node_mode_2_type) (node_mode);
-}
-
-size_t
-instance_size (IR_hidden_node_t class)
-{
-  return (*spi->instance_size) (class);
-}
-
-size_t
-type_size (ER_node_mode_t type)
-{
-  return (*spi->type_size) (type);
-}
-
-size_t
-val_displ (ER_node_t var)
-{
-  return (*spi->val_displ) (var);
-}
-
-ER_node_t
-create_hideblock (size_t length)
-{
-  return (*spi->create_hideblock) (length);
-}
-
-ER_node_t 
-create_empty_vector (void)
-{
-  return (*spi->create_empty_vector) ();
-}
-
-ER_node_t 
-create_unpack_vector (size_t els_number)
-{
-  return (*spi->create_unpack_vector) (els_number);
-}
-
-ER_node_t 
-create_pack_vector (size_t els_number, ER_node_mode_t eltype)
-{
-  return (*spi->create_pack_vector) (els_number, eltype);
-}
-
-ER_node_t
-expand_vector (ER_node_t vect, size_t el_number)
-{
-  return (*spi->expand_vector) (vect, el_number);
-}
-
-ER_node_t
-unpack_vector (ER_node_t vect)
-{
-  return (*spi->unpack_vector) (vect);
-}
-
-void
-pack_vector_if_possible (ER_node_t unpack_vect)
-{
-  (*spi->pack_vector_if_possible) (unpack_vect);
-}
-
-int
-eq_vector (ER_node_t v1, ER_node_t v2)
-{
-  return (*spi->eq_vector) (v1, v2);
-}
-
-ER_node_t
-copy_vector (ER_node_t vect)
-{
-  return (*spi->copy_vector) (vect);
-}
-
-ER_node_t 
-create_empty_string (size_t min_length)
-{
-  return (*spi->create_empty_string) (min_length);
-}
-
-ER_node_t
-create_string (const char *string)
-{
-  return (*spi->create_string) (string);
-}
-
-int
-eq_instance (ER_node_t i1, ER_node_t i2)
-{
-  return (*spi->eq_instance) (i1, i2);
-}
-
-int 
-eq_table (ER_node_t t1, ER_node_t t2)
-{
-  return (*spi->eq_table) (t1, t2);
-}
-
-ER_node_t
-create_tab (size_t size)
-{
-  return (*spi->create_tab) (size);
-}
-
-ER_node_t
-find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
-{
-  return (*spi->find_tab_entry) (tab, key, reserve);
-}
-
-int 
-remove_tab_el (ER_node_t tab, ER_node_t key)
-{
-  return (*spi->remove_tab_el) (tab, key);
-}
-
-ER_node_t
-copy_tab (ER_node_t tab)
-{
-  return (*spi->copy_tab) (tab);
-}
-
-ER_node_t
-find_next_key (ER_node_t tab, ER_node_t key)
-{
-  return (*spi->find_next_key) (tab, key);
-}
-
-void
-make_immutable (ER_node_t obj)
-{
-  (*spi->make_immutable) (obj);
-}
-
-#endif
-#endif

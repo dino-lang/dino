@@ -248,11 +248,6 @@ public:
 };
 
 
-/* This is for VC++ 5.0 */
-#ifdef WIN32
-#define NO_TEMPLATE
-#endif
-
 #ifndef NO_TEMPLATE
 
 /* Signed integers: */

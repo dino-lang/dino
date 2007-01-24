@@ -7,14 +7,13 @@ collection.  Dino has possibilities of parallelism description and
 exceptions handling.  Dino is an extensible language with possibility
 of dynamic load of libraries written on other languages.  DINO is
 implemented on Unixes of different flavors with the aid of AMMUNITION,
-SHILKA, SPRUT, MSTA (components of COCOM tool set).  DINO also has
-been ported also into WIN32 environment.
+SHILKA, SPRUT, MSTA (components of COCOM tool set).  To install DINO
+under Win32 please use Cygwin.
 
    The DINO interpreter is distributed under GNU Public License (see
 more detail in file COPYING).
 
-   Installation of the tool set is described in file INSTALL (see
-WIN32-INSTALL.txt for installation under WIN32 environment).  See
+   Installation of the tool set is described in file INSTALL.  See
 files dino.* in directory DINO for brief description of the language
 and interpriter.
 

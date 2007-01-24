@@ -1,5 +1,7 @@
-19/01/2005: Version 0.996 of COCOM has been made.  The major
+19/01/2007: Version 0.996 of COCOM has been made.  The major
 difference with the previous version:
+
+* WIN32 port has been removed.  Use Cygnwin for installation under Windows.
 
 * Ammunition:
 

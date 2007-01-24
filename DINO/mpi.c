@@ -29,22 +29,6 @@
 #include "arithm.h"
 #include <assert.h>
 
-#ifdef WIN32
-
-#include <windows.h>
-
-#define WIN_EXPORT  __declspec(dllexport)
-
-BOOL APIENTRY
-DllMain (HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-  return TRUE;
-}
-
-#else
-#define WIN_EXPORT
-#endif
-
 static void
 mpi_binary_op (int npars, val_t *vals, int_t *size,
 	       void **hidevalue1, void **hidevalue2,
@@ -97,7 +81,7 @@ return_int (int_t i)
   return val;
 }
 
-WIN_EXPORT val_t mpi_overflow;
+val_t mpi_overflow;
 
 static void
 check_overflow (void)
@@ -121,61 +105,61 @@ arithm_op (int npars, val_t *vals,
   return return_mpi (mpi);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_add (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, add_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_add (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, add_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_subtract (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, subtract_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_subtract (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, subtract_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_multiply (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, multiply_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_multiply (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, multiply_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_divide (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, divide_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_divide (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, divide_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_remainder (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, integer_remainder);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_remainder (int npars, val_t *vals)
 {
   return arithm_op (npars, vals, unsigned_integer_remainder);
@@ -222,25 +206,25 @@ shift (int npars, val_t *vals, void (*func) (int, const void *, int, void *))
   return return_mpi (mpi);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_shift_right (int npars, val_t *vals)
 {
   return shift (npars, vals, integer_shift_right);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_shift_right (int npars, val_t *vals)
 {
   return shift (npars, vals, unsigned_integer_shift_right);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_shift_left (int npars, val_t *vals)
 {
   return shift (npars, vals, integer_shift_left);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_shift_left (int npars, val_t *vals)
 {
   return shift (npars, vals, unsigned_integer_shift_left);
@@ -261,25 +245,25 @@ logical (int npars, val_t *vals,
 }
 
 
-WIN_EXPORT val_t
+val_t
 mpi_or (int npars, val_t *vals)
 {
   return logical (npars, vals, integer_or);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_or (int npars, val_t *vals)
 {
   return logical (npars, vals, unsigned_integer_or);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_and (int npars, val_t *vals)
 {
   return logical (npars, vals, integer_and);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_and (int npars, val_t *vals)
 {
   return logical (npars, vals, unsigned_integer_and);
@@ -322,13 +306,13 @@ not (int npars, val_t *vals, void (*func) (int, const void *, void *))
   return return_mpi (mpi);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_not (int npars, val_t *vals)
 {
   return not (npars, vals, integer_not);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_not (int npars, val_t *vals)
 {
   return not (npars, vals, unsigned_integer_not);
@@ -365,73 +349,73 @@ cmp (int npars, val_t *vals, int (*func) (int, const void *, const void *))
   return return_int ((*func) (size, hidevalue1, hidevalue2));
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_eq (int npars, val_t *vals)
 {
   return cmp (npars, vals, eq_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_eq (int npars, val_t *vals)
 {
   return cmp (npars, vals, eq_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_ne (int npars, val_t *vals)
 {
   return cmp (npars, vals, ne_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_ne (int npars, val_t *vals)
 {
   return cmp (npars, vals, ne_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_gt (int npars, val_t *vals)
 {
   return cmp (npars, vals, gt_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_gt (int npars, val_t *vals)
 {
   return cmp (npars, vals, gt_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_lt (int npars, val_t *vals)
 {
   return cmp (npars, vals, lt_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_lt (int npars, val_t *vals)
 {
   return cmp (npars, vals, lt_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_ge (int npars, val_t *vals)
 {
   return cmp (npars, vals, ge_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_ge (int npars, val_t *vals)
 {
   return cmp (npars, vals, ge_unsigned_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_le (int npars, val_t *vals)
 {
   return cmp (npars, vals, le_integer);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_le (int npars, val_t *vals)
 {
   return cmp (npars, vals, le_unsigned_integer);
@@ -452,13 +436,13 @@ change_size (int npars, val_t *vals,
   return return_mpi (mpi);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_change_size (int npars, val_t *vals)
 {
   return change_size (npars, vals, change_integer_size);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_change_size (int npars, val_t *vals)
 {
   return change_size (npars, vals, change_unsigned_integer_size);
@@ -494,13 +478,13 @@ to_based_string (int npars, val_t *vals,
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_to_based_string (int npars, val_t *vals)
 {
   return to_based_string (npars, vals, integer_to_based_string);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_to_based_string (int npars, val_t *vals)
 {
   return to_based_string (npars, vals, unsigned_integer_to_based_string);
@@ -536,20 +520,19 @@ from_based_string (int npars, val_t *vals,
   return return_mpi (mpi);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_from_based_string (int npars, val_t *vals)
 {
   return from_based_string (npars, vals, integer_from_based_string);
 }
 
-WIN_EXPORT val_t
+val_t
 mpi_unsigned_from_based_string (int npars, val_t *vals)
 {
   return from_based_string (npars, vals, unsigned_integer_from_based_string);
 }
 
 
-#ifndef WIN32
 #if !defined(HAVE_DLOPEN) || defined(NO_EXTERN_SHLIB)
 
 /* Function for implementing externals with static libraries.  See all
@@ -638,5 +621,4 @@ mpi_address (const char *name)
   else
     return NULL;
 }
-#endif
 #endif

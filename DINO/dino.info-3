@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-11849/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-8068/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -407,11 +407,11 @@ number.
 
    * `log (x)'.  The function returns the natural logarithm of `x'.
      The function generates the exception `edom' if `x' is negative or
-     may generate `erange' if the value is zero.
+     may generate `syserrors.erange' if the value is zero.
 
    * `log10 (x)'.  The function returns the decimal logarithm of `x'.
      The function generates the exception `edom' if `x' is negative or
-     may generate `erange' if the value is zero.
+     may generate `syserrors.erange' if the value is zero.
 
    * `pow (x, y)'.  The function returns `x' raised to the power of
      `y'.  The function generates exception `edom' if x is negative and
@@ -662,7 +662,7 @@ of the regular expression.
 the following predeclared exceptions (see predeclared classes):
    * `ebrack'.  Regular expression has unmatched bracket.
 
-   * `erange'.  Invalid use of range in regular expression.
+   * `invregexps.erange'.  Invalid use of range in regular expression.
 
    * `ectype'.  Unknown character class name in regular expression.
 

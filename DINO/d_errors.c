@@ -112,7 +112,9 @@ char ERR_invalid_throw_expr_type [] = "invalid type of throw-expr";
 char ERR_invalid_catch_expr_type [] = "invalid type of catch-expr";
 char ERR_non_variable_in_assignment []
   = "non variable in assignment statement";
+char ERR_non_variable_in_swap [] = "non variable in swap statement";
 char ERR_const_assignment [] = "constant `%s' in assignment statement";
+char ERR_const_swap [] = "constant `%s' in swap statement";
 char ERR_non_variable_in_foreach []
   = "non variable in for-stmt left to `in'";
 char ERR_continue_is_not_in_loop []
@@ -200,6 +202,8 @@ char DERR_invalid_for_guard_expr_type []
   = "run time error - invalid for-guard expression type";
 char DERR_invalid_wait_guard_expr_type []
   = "run time error - invalid wait-guard expression type";
+char DERR_wait_in_sync_stmt [] = "wait in sync-statement";
+char DERR_thread_call_in_sync_stmt [] = "thread call in sync-statement";
 char DERR_no_exception_after_throw []
   = "run time - an except instance must be after throw";
 char DERR_index_is_not_int []

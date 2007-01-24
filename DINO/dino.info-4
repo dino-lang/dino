@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-11849/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-8068/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -478,6 +478,16 @@ Miscellaneous functions
      returns the new string `str' in which lower case letters are
      changed to the corresponding upper case letters.
 
+   * `trans (str, what, subst)'.  The function transliterates charactes
+     in a string.  The function expects that the parameters `str'
+     (after implicit string conversion), `what', and `subst' are
+     strings.  The function returns the new string `str' in which its
+     characters which are present in `what' are changed to the
+     corresponding characters in <\tt>subst<\tt>.  The last two strings
+     should have the same length.  The second string may contain more
+     than one occurence of a character.  In this case the last
+     correspondence is taken.
+
    * `eltype (vect)'.  The function expects that the parameter value is
      a vector.  The function returns `nil' if the vector is
      heterogenous, otherwise the function returns the type of the
@@ -562,10 +572,7 @@ Miscellaneous functions
      parameter value should be a vector.  The function returns the
      modified vector.
 
-   * `rev (vect)'.  The function reverses the given vector.  The
-     function generates the exception `immutable' if we are trying to
-     reverse an immutable vector.  The function returns the modified
-     vector.
+   * `rev (vect)'.  The function returns reversion of the given vector.
 
    * `cmpv (vect, vect)'.  The function makes implicit string
      conversion of the parameter values.  After that, the parameter
@@ -703,8 +710,6 @@ Appendix A- Syntax of Dino
                 | DesignatorOrCall "{"  Expr "}"
                 | DesignatorOrCall ActualParameters
                 | DesignatorOrCall "."  IDENT
-                | "(" Expr ")" "->"  IDENT
-                |  "*" "(" Expr ")"
                 | IDENT
      
      ElistPartsList = [ Expr [ ":" Expr ] {"," Expr [ ":" Expr ] } ]
@@ -749,7 +754,7 @@ Appendix A- Syntax of Dino
                    | continue ";"
                    | return  [ Expr ] ";"
                    | throw  Expr ";"
-                   | wait  Expr ";"
+                   | wait  "(" Expr ")" Stmt
                    | BlockStmt
                    | TryBlockStmt
      
@@ -924,12 +929,13 @@ Appendix B- Implementation
      
             DINO_LIB
                    If not null, it defines places of dino shared library,  if  any.
-                   The value of variable has more priority than DINO_HOME.
+                   The   value  of  variable  has  more  priority  than  DINO_HOME.
+                   DINO_EXTERN_LIBS.
      
             DINO_EXTERN_LIBS
-                   If  not  null,  it  defines  paths  of  additional Dino external
-                   libraries.  The libraries should be separated by ":"  (on  Unix)
-                   or  ";"  (on  Windows).  The value has less priority than values
+                   If not null,  it  defines  paths  of  additional  Dino  external
+                   libraries.   The  libraries should be separated by ":" (on Unix)
+                   or ";" (on Windows).  The value has less  priority  than  values
                    given in -L options.
      
      DIAGNOSTICS

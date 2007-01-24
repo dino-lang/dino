@@ -67,6 +67,7 @@ TEST1
         echo '      ' $SHILKA $test_shilka "2>$stderr"
         if $SHILKA $test_shilka 2>$stderr; then
            cat >$test_file <<'TEST1'
+#include <stdlib.h>
 #include "temp.c"
 main ()
 {
@@ -117,6 +118,7 @@ TEST2
         echo '      ' $SHILKA -case $test_shilka "2>$stderr"
         if $SHILKA -case $test_shilka 2>$stderr; then
            cat >$test_file <<'TEST2'
+#include <stdlib.h>
 #include "temp.c"
 main ()
 {
@@ -172,6 +174,7 @@ TEST3
         echo '      ' $SHILKA -case -no-definitions $test_shilka "2>$stderr"
         if $SHILKA -case $test_shilka 2>$stderr; then
            cat >$test_file <<'TEST3'
+#include <stdlib.h>
 #include "temp.c"
 main ()
 {

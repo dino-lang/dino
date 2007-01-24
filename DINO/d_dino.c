@@ -182,6 +182,34 @@ get_first_nondigit (const char *s)
   return *s;
 }
 
+char *
+get_ch_repr (int ch)
+{
+  static char str [10];
+
+  if (ch == '\'' || ch == '"' || ch == '\\')
+    sprintf (str, "\\%c", ch);
+  else if (isprint (ch))
+    sprintf (str, "%c", ch);
+  else if (ch == '\n')
+    sprintf (str, "\\n");
+  else if (ch == '\t')
+    sprintf (str, "\\t");
+  else if (ch == '\v')
+    sprintf (str, "\\v");
+  else if (ch == '\a')
+    sprintf (str, "\\a");
+  else if (ch == '\b')
+    sprintf (str, "\\b");
+  else if (ch == '\r')
+    sprintf (str, "\\r");
+  else if (ch == '\f')
+    sprintf (str, "\\f");
+  else
+    sprintf (str, "\\%o", ch);
+  return str;
+}
+
 void
 dino_finish (int code)
 {
@@ -285,9 +313,6 @@ exception_action (int signal_number)
       message = ERR_abort_exception;
       break;
     case SIGFPE:
-#ifdef WIN32
-      _fpreset ();
-#endif
       class = sigfpe_decl;
       message = ERR_floating_point_exception;
       break;
@@ -355,20 +380,12 @@ void add_dino_path (const char *prefix, const char *subdir,
   if (prefix != NULL)
     {
       len = strlen (prefix);
-#ifdef WIN32
-      if (len != 0 && prefix [len - 1] == '\\')
-#else
       if (len != 0 && prefix [len - 1] == '/')
-#endif
 	len--;
       IR_TOP_EXPAND (len + 1 /* '/' */ + 1 /* '\0' */
 		     + (subdir == NULL ? 0 : strlen (subdir)));
       memcpy ((char *) IR_TOP_BEGIN (), prefix, len);
-#ifdef WIN32
-      ((char *) IR_TOP_BEGIN ()) [len] = '\\';
-#else
       ((char *) IR_TOP_BEGIN ()) [len] = '/';
-#endif
       ((char *) IR_TOP_BEGIN ()) [len + 1] = '\0';
       if (subdir != NULL)
 	strcat ((char *) IR_TOP_BEGIN (), subdir);
@@ -376,11 +393,7 @@ void add_dino_path (const char *prefix, const char *subdir,
       IR_TOP_FINISH ();
     }
 
-#ifdef WIN32
-  bound = ';';
-#else
   bound = ':';
-#endif
   if (string != NULL)
     for (;;)
       {
@@ -393,11 +406,7 @@ void add_dino_path (const char *prefix, const char *subdir,
             else
               {
                 len = strlen (prefix);
-#ifdef WIN32
-                if (len != 0 && prefix [len - 1] == '\\')
-#else
                 if (len != 0 && prefix [len - 1] == '/')
-#endif
                   len--;
               }
 	    IR_TOP_EXPAND (len + 1 + (s - string) + 1);
@@ -406,11 +415,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 	    else
 	      {
 		memcpy ((char *) IR_TOP_BEGIN (), prefix, len);
-#ifdef WIN32
-		((char *) IR_TOP_BEGIN ()) [len] = '\\';
-#else
 		((char *) IR_TOP_BEGIN ()) [len] = '/';
-#endif
 		len++;
 	      }
 	    memcpy ((char *) IR_TOP_BEGIN () + len, string, s - string);
@@ -435,6 +440,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-Idirname'  directory for searching for Dino programs\n"\
 "`-Ldirname'  Dino extern libraries\n"\
 "`-s'         output statistics to stderr\n"\
+"`-g'         generate C code\n"\
 "`-p'         output profile information into stderr\n"
 
 #define DEFAULT_HEAP_CHUNK_SIZE  04000000 /* 1024 Kbytes */

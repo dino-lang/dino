@@ -29,22 +29,7 @@
 #include "arithm.h"
 #include "IEEE.h"
 #include <assert.h>
-
-#ifdef WIN32
-
-#include <windows.h>
-
-#define WIN_EXPORT  __declspec(dllexport)
-
-BOOL APIENTRY
-DllMain (HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-  return TRUE;
-}
-
-#else
-#define WIN_EXPORT
-#endif
+#include <string.h>
 
 /* Reset, bits, round etc. initi single, float, double. */
 
@@ -81,7 +66,7 @@ return_nil (void)
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_set_trap_mask (int npars, val_t *vals)
 {
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
@@ -89,14 +74,14 @@ ieee_set_trap_mask (int npars, val_t *vals)
   return return_nil ();
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_get_trap_mask (int npars, val_t *vals)
 {
   assert (npars == 0);
   return return_int (IEEE_get_trap_mask ());
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_set_sticky_status_bits (int npars, val_t *vals)
 {
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
@@ -104,21 +89,21 @@ ieee_set_sticky_status_bits (int npars, val_t *vals)
   return return_nil ();
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_get_sticky_status_bits (int npars, val_t *vals)
 {
   assert (npars == 0);
   return return_int (IEEE_get_sticky_status_bits ());
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_get_status_bits (int npars, val_t *vals)
 {
   assert (npars == 0);
   return return_int (IEEE_get_status_bits ());
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_set_round (int npars, val_t *vals)
 {
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
@@ -126,14 +111,14 @@ ieee_set_round (int npars, val_t *vals)
   return return_nil ();
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_get_round (int npars, val_t *vals)
 {
   assert (npars == 0);
   return return_int (IEEE_get_round ());
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_positive_zero (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -146,7 +131,7 @@ ieee_single_positive_zero (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_positive_zero (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -159,7 +144,7 @@ ieee_double_positive_zero (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_positive_zero (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -172,7 +157,7 @@ ieee_quad_positive_zero (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_negative_zero (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -185,7 +170,7 @@ ieee_single_negative_zero (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_negative_zero (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -198,7 +183,7 @@ ieee_double_negative_zero (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_negative_zero (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -211,7 +196,7 @@ ieee_quad_negative_zero (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_nan (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -224,7 +209,7 @@ ieee_single_nan (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_nan (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -237,7 +222,7 @@ ieee_double_nan (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_nan (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -250,7 +235,7 @@ ieee_quad_nan (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_trapping_nan (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -263,7 +248,7 @@ ieee_single_trapping_nan (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_trapping_nan (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -276,7 +261,7 @@ ieee_double_trapping_nan (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_trapping_nan (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -289,7 +274,7 @@ ieee_quad_trapping_nan (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_positive_infinity (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -302,7 +287,7 @@ ieee_single_positive_infinity (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_positive_infinity (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -315,7 +300,7 @@ ieee_double_positive_infinity (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_positive_infinity (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -328,7 +313,7 @@ ieee_quad_positive_infinity (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_negative_infinity (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -341,7 +326,7 @@ ieee_single_negative_infinity (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_negative_infinity (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -354,7 +339,7 @@ ieee_double_negative_infinity (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_negative_infinity (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -367,7 +352,7 @@ ieee_quad_negative_infinity (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_positive_maximum (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -380,7 +365,7 @@ ieee_single_positive_maximum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_positive_maximum (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -393,7 +378,7 @@ ieee_double_positive_maximum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_positive_maximum (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -406,7 +391,7 @@ ieee_quad_positive_maximum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_negative_maximum (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -419,7 +404,7 @@ ieee_single_negative_maximum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_negative_maximum (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -432,7 +417,7 @@ ieee_double_negative_maximum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_negative_maximum (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -445,7 +430,7 @@ ieee_quad_negative_maximum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_positive_minimum (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -458,7 +443,7 @@ ieee_single_positive_minimum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_positive_minimum (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -471,7 +456,7 @@ ieee_double_positive_minimum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_positive_minimum (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -484,7 +469,7 @@ ieee_quad_positive_minimum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_negative_minimum (int npars, val_t *vals)
 {
   IEEE_float_t res;
@@ -497,7 +482,7 @@ ieee_single_negative_minimum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_negative_minimum (int npars, val_t *vals)
 {
   IEEE_double_t res;
@@ -510,7 +495,7 @@ ieee_double_negative_minimum (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_negative_minimum (int npars, val_t *vals)
 {
   IEEE_quad_t res;
@@ -530,7 +515,7 @@ ieee_un_op (int npars, val_t *vals, void *value, int size)
   memcpy (value, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)), size);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_positive_zero (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -539,7 +524,7 @@ ieee_is_single_positive_zero (int npars, val_t *vals)
   return return_int (IEEE_is_positive_zero (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_positive_zero (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -548,7 +533,7 @@ ieee_is_double_positive_zero (int npars, val_t *vals)
   return return_int (IEEE_is_double_positive_zero (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_positive_zero (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -557,7 +542,7 @@ ieee_is_quad_positive_zero (int npars, val_t *vals)
   return return_int (IEEE_is_quad_positive_zero (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_negative_zero (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -566,7 +551,7 @@ ieee_is_single_negative_zero (int npars, val_t *vals)
   return return_int (IEEE_is_negative_zero (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_negative_zero (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -575,7 +560,7 @@ ieee_is_double_negative_zero (int npars, val_t *vals)
   return return_int (IEEE_is_double_negative_zero (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_negative_zero (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -584,7 +569,7 @@ ieee_is_quad_negative_zero (int npars, val_t *vals)
   return return_int (IEEE_is_quad_negative_zero (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_nan (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -593,7 +578,7 @@ ieee_is_single_nan (int npars, val_t *vals)
   return return_int (IEEE_is_NaN (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_nan (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -602,7 +587,7 @@ ieee_is_double_nan (int npars, val_t *vals)
   return return_int (IEEE_is_double_NaN (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_nan (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -611,7 +596,7 @@ ieee_is_quad_nan (int npars, val_t *vals)
   return return_int (IEEE_is_quad_NaN (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_trapping_nan (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -620,7 +605,7 @@ ieee_is_single_trapping_nan (int npars, val_t *vals)
   return return_int (IEEE_is_trapping_NaN (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_trapping_nan (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -629,7 +614,7 @@ ieee_is_double_trapping_nan (int npars, val_t *vals)
   return return_int (IEEE_is_double_trapping_NaN (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_trapping_nan (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -638,7 +623,7 @@ ieee_is_quad_trapping_nan (int npars, val_t *vals)
   return return_int (IEEE_is_quad_trapping_NaN (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_positive_infinity (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -647,7 +632,7 @@ ieee_is_single_positive_infinity (int npars, val_t *vals)
   return return_int (IEEE_is_positive_infinity (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_positive_infinity (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -656,7 +641,7 @@ ieee_is_double_positive_infinity (int npars, val_t *vals)
   return return_int (IEEE_is_double_positive_infinity (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_positive_infinity (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -665,7 +650,7 @@ ieee_is_quad_positive_infinity (int npars, val_t *vals)
   return return_int (IEEE_is_quad_positive_infinity (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_negative_infinity (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -674,7 +659,7 @@ ieee_is_single_negative_infinity (int npars, val_t *vals)
   return return_int (IEEE_is_negative_infinity (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_negative_infinity (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -683,7 +668,7 @@ ieee_is_double_negative_infinity (int npars, val_t *vals)
   return return_int (IEEE_is_double_negative_infinity (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_negative_infinity (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -692,7 +677,7 @@ ieee_is_quad_negative_infinity (int npars, val_t *vals)
   return return_int (IEEE_is_quad_negative_infinity (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_normalized (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -701,7 +686,7 @@ ieee_is_single_normalized (int npars, val_t *vals)
   return return_int (IEEE_is_normalized (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_normalized (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -710,7 +695,7 @@ ieee_is_double_normalized (int npars, val_t *vals)
   return return_int (IEEE_is_double_normalized (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_normalized (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -719,7 +704,7 @@ ieee_is_quad_normalized (int npars, val_t *vals)
   return return_int (IEEE_is_quad_normalized (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_single_denormalized (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -728,7 +713,7 @@ ieee_is_single_denormalized (int npars, val_t *vals)
   return return_int (IEEE_is_denormalized (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_double_denormalized (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -737,7 +722,7 @@ ieee_is_double_denormalized (int npars, val_t *vals)
   return return_int (IEEE_is_double_denormalized (temp));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_is_quad_denormalized (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -757,7 +742,7 @@ ieee_bin_op (int npars, val_t *vals, void *value1, void *value2, int size)
 	  size);
 }
  
-WIN_EXPORT val_t
+val_t
 ieee_add_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2, res;
@@ -770,7 +755,7 @@ ieee_add_single (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_add_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2, res;
@@ -783,7 +768,7 @@ ieee_add_double (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_add_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2, res;
@@ -796,7 +781,7 @@ ieee_add_quad (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_subtract_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2, res;
@@ -809,7 +794,7 @@ ieee_subtract_single (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_subtract_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2, res;
@@ -822,7 +807,7 @@ ieee_subtract_double (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_subtract_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2, res;
@@ -835,7 +820,7 @@ ieee_subtract_quad (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_multiply_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2, res;
@@ -848,7 +833,7 @@ ieee_multiply_single (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_multiply_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2, res;
@@ -861,7 +846,7 @@ ieee_multiply_double (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_multiply_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2, res;
@@ -874,7 +859,7 @@ ieee_multiply_quad (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_divide_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2, res;
@@ -887,7 +872,7 @@ ieee_divide_single (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_divide_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2, res;
@@ -900,7 +885,7 @@ ieee_divide_double (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_divide_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2, res;
@@ -913,7 +898,7 @@ ieee_divide_quad (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_eq_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2;
@@ -922,7 +907,7 @@ ieee_eq_single (int npars, val_t *vals)
   return return_int (IEEE_eq_single (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_eq_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2;
@@ -931,7 +916,7 @@ ieee_eq_double (int npars, val_t *vals)
   return return_int (IEEE_eq_double (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_eq_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2;
@@ -940,7 +925,7 @@ ieee_eq_quad (int npars, val_t *vals)
   return return_int (IEEE_eq_quad (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_ne_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2;
@@ -949,7 +934,7 @@ ieee_ne_single (int npars, val_t *vals)
   return return_int (IEEE_ne_single (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_ne_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2;
@@ -958,7 +943,7 @@ ieee_ne_double (int npars, val_t *vals)
   return return_int (IEEE_ne_double (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_ne_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2;
@@ -967,7 +952,7 @@ ieee_ne_quad (int npars, val_t *vals)
   return return_int (IEEE_ne_quad (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_lt_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2;
@@ -976,7 +961,7 @@ ieee_lt_single (int npars, val_t *vals)
   return return_int (IEEE_lt_single (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_lt_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2;
@@ -985,7 +970,7 @@ ieee_lt_double (int npars, val_t *vals)
   return return_int (IEEE_lt_double (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_lt_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2;
@@ -994,7 +979,7 @@ ieee_lt_quad (int npars, val_t *vals)
   return return_int (IEEE_lt_quad (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_gt_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2;
@@ -1003,7 +988,7 @@ ieee_gt_single (int npars, val_t *vals)
   return return_int (IEEE_gt_single (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_gt_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2;
@@ -1012,7 +997,7 @@ ieee_gt_double (int npars, val_t *vals)
   return return_int (IEEE_gt_double (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_gt_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2;
@@ -1021,7 +1006,7 @@ ieee_gt_quad (int npars, val_t *vals)
   return return_int (IEEE_gt_quad (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_le_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2;
@@ -1030,7 +1015,7 @@ ieee_le_single (int npars, val_t *vals)
   return return_int (IEEE_le_single (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_le_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2;
@@ -1039,7 +1024,7 @@ ieee_le_double (int npars, val_t *vals)
   return return_int (IEEE_le_double (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_le_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2;
@@ -1048,7 +1033,7 @@ ieee_le_quad (int npars, val_t *vals)
   return return_int (IEEE_le_quad (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_ge_single (int npars, val_t *vals)
 {
   IEEE_float_t temp1, temp2;
@@ -1057,7 +1042,7 @@ ieee_ge_single (int npars, val_t *vals)
   return return_int (IEEE_ge_single (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_ge_double (int npars, val_t *vals)
 {
   IEEE_double_t temp1, temp2;
@@ -1066,7 +1051,7 @@ ieee_ge_double (int npars, val_t *vals)
   return return_int (IEEE_ge_double (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_ge_quad (int npars, val_t *vals)
 {
   IEEE_quad_t temp1, temp2;
@@ -1075,7 +1060,7 @@ ieee_ge_quad (int npars, val_t *vals)
   return return_int (IEEE_ge_quad (temp1, temp2));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_to_double (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -1091,7 +1076,7 @@ ieee_single_to_double (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_to_quad (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -1107,7 +1092,7 @@ ieee_single_to_quad (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_to_single (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -1123,7 +1108,7 @@ ieee_double_to_single (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_to_quad (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -1139,7 +1124,7 @@ ieee_double_to_quad (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_to_single (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -1155,7 +1140,7 @@ ieee_quad_to_single (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_to_double (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -1188,7 +1173,7 @@ extract_mpi (int npars, val_t *vals, int_t *size)
   return ER_hideblock_start (ER_hideblock (var));
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_from_integer (int npars, val_t *vals)
 {
   int_t size;
@@ -1202,7 +1187,7 @@ ieee_single_from_integer (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_integer_from_single (int npars, val_t *vals)
 {
   int_t size;
@@ -1217,7 +1202,7 @@ ieee_integer_from_single (int npars, val_t *vals)
   return return_nil ();
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_from_integer (int npars, val_t *vals)
 {
   int_t size;
@@ -1231,7 +1216,7 @@ ieee_double_from_integer (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_integer_from_double (int npars, val_t *vals)
 {
   int_t size;
@@ -1246,7 +1231,7 @@ ieee_integer_from_double (int npars, val_t *vals)
   return return_nil ();
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_from_integer (int npars, val_t *vals)
 {
   int_t size;
@@ -1260,7 +1245,7 @@ ieee_quad_from_integer (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_integer_from_quad (int npars, val_t *vals)
 {
   int_t size;
@@ -1275,7 +1260,7 @@ ieee_integer_from_quad (int npars, val_t *vals)
   return return_nil ();
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_to_binary_string (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -1298,7 +1283,7 @@ ieee_single_to_binary_string (int npars, val_t *vals)
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_to_string (int npars, val_t *vals)
 {
   IEEE_float_t temp;
@@ -1318,7 +1303,7 @@ ieee_single_to_string (int npars, val_t *vals)
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_to_binary_string (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -1341,7 +1326,7 @@ ieee_double_to_binary_string (int npars, val_t *vals)
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_to_string (int npars, val_t *vals)
 {
   IEEE_double_t temp;
@@ -1361,7 +1346,7 @@ ieee_double_to_string (int npars, val_t *vals)
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_to_binary_string (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -1384,7 +1369,7 @@ ieee_quad_to_binary_string (int npars, val_t *vals)
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_to_string (int npars, val_t *vals)
 {
   IEEE_quad_t temp;
@@ -1404,7 +1389,7 @@ ieee_quad_to_string (int npars, val_t *vals)
   return val;
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_from_float (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1418,7 +1403,7 @@ ieee_single_from_float (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_from_float (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1432,7 +1417,7 @@ ieee_double_from_float (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_from_float (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1446,7 +1431,7 @@ ieee_quad_from_float (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_from_binary_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1462,7 +1447,7 @@ ieee_single_from_binary_string (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_single_from_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1475,7 +1460,7 @@ ieee_single_from_string (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_from_binary_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1491,7 +1476,7 @@ ieee_double_from_binary_string (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_double_from_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1504,7 +1489,7 @@ ieee_double_from_string (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_from_binary_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1520,7 +1505,7 @@ ieee_quad_from_binary_string (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_quad_from_string (int npars, val_t *vals)
 {
   void *hideblock;
@@ -1533,7 +1518,7 @@ ieee_quad_from_string (int npars, val_t *vals)
   return return_hideblock (hideblock);
 }
 
-WIN_EXPORT val_t
+val_t
 ieee_reset (int npars, val_t *vals)
 {
   assert (npars == 0);
@@ -1541,7 +1526,6 @@ ieee_reset (int npars, val_t *vals)
   return return_nil ();
 }
 
-#ifndef WIN32
 #if !defined(HAVE_DLOPEN) || defined(NO_EXTERN_SHLIB)
 
 /* Function for implementing externals with static libraries.  See all
@@ -1790,5 +1774,4 @@ ieee_address (const char *name)
   else
     return NULL;
 }
-#endif
 #endif

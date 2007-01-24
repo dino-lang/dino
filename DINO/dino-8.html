@@ -818,11 +818,11 @@ base of the natural logarithm) raised to the power of
 <LI><CODE>log (x)</CODE>.  The function returns the natural
 logarithm of <CODE>x</CODE>.  The function generates the exception
 <CODE>edom</CODE> if <CODE>x</CODE> is negative or may generate
-<CODE>erange</CODE> if the value is zero.</LI>
+<CODE>syserrors.erange</CODE> if the value is zero.</LI>
 <LI><CODE>log10 (x)</CODE>.  The function returns the decimal
 logarithm of <CODE>x</CODE>.  The function generates the exception
 <CODE>edom</CODE> if <CODE>x</CODE> is negative or may generate
-<CODE>erange</CODE> if the value is zero.</LI>
+<CODE>syserrors.erange</CODE> if the value is zero.</LI>
 <LI><CODE>pow (x, y)</CODE>.  The function returns <CODE>x</CODE>
 raised to the power of <CODE>y</CODE>.  The function generates
 exception <CODE>edom</CODE> if x is negative and y is not of
@@ -1141,7 +1141,7 @@ If the regular expression is incorrect, the functions generate one of
 the following predeclared exceptions (see predeclared classes):
 <UL>
 <LI><CODE>ebrack</CODE>.  Regular expression has unmatched bracket.</LI>
-<LI><CODE>erange</CODE>.  Invalid use of range in regular
+<LI><CODE>invregexps.erange</CODE>.  Invalid use of range in regular
 expression.</LI>
 <LI><CODE>ectype</CODE>.  Unknown character class name in regular
 expression.</LI>
@@ -1895,6 +1895,16 @@ the parameter <CODE>str</CODE> (after implicit string conversion) is
 a string.  The function returns the new string <CODE>str</CODE> in which
 lower case letters are changed to the corresponding upper case
 letters.</LI>
+<LI><CODE>trans (str, what, subst)</CODE>.  The function
+transliterates charactes in a string.  The function expects
+that the parameters <CODE>str</CODE> (after implicit string
+conversion), <CODE>what</CODE>, and <CODE>subst</CODE> are strings.
+The function returns the new string <CODE>str</CODE> in which its
+characters which are present in <CODE>what</CODE> are changed to
+the corresponding characters in &lt;\tt>subst&lt;\tt>.  The last two
+strings should have the same length.  The second string may
+contain more than one occurence of a character.  In this case
+the last correspondence is taken.</LI>
 <LI><CODE>eltype (vect)</CODE>.  The function expects that the
 parameter value is a vector.  The function returns <B>nil</B>
 if the vector is heterogenous, otherwise the function returns
@@ -1980,10 +1990,8 @@ analogous to the function <CODE>ins</CODE> but it is used for
 insertion of all vector elements into the vector given as the
 first parameter.  So the second parameter value should be a
 vector.  The function returns the modified vector.</LI>
-<LI><CODE>rev (vect)</CODE>.  The function reverses the given
-vector.  The function generates the exception
-<CODE>immutable</CODE> if we are trying to reverse an immutable
-vector.  The function returns the modified vector.</LI>
+<LI><CODE>rev (vect)</CODE>.  The function returns reversion of the
+given vector.</LI>
 <LI><CODE>cmpv (vect, vect)</CODE>.  The function makes implicit
 string conversion of the parameter values.  After that, the
 parameter values should be vectors whose first corresponding

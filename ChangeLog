@@ -1,3 +1,215 @@
+2007-01-24  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* CHANGES: WIN32 support is removed.
+	* DINO-README: Ditto.
+	* README: Ditto.
+	* Makefile.in: Remove WIN32-INSTALL.txt and
+	DINO-WIN32-INSTALL.txt.
+	* configure.in: (LIBGMP): Check.
+	(AC_CHECK_HEADERS): Check gmp.h.
+	(DINO_ADDITIONAL_LIBS): Add header gmp.h.
+	* configure: Update.
+	* cocom.dvi, cocom.info, cocom.ps, DINO/dino-10.html,
+	DINO/dino-3.html, DINO/dino-4.html, DINO/dino-5.html,
+	DINO/dino-6.html, DINO/dino-8.html, DINO/dino-9.html,
+	DINO/dino.html, DINO/dino.dvi, DINO/dino.ps, DINO/dino.info,
+	DINO/dino.info-1, DINO/dino.info-2, DINO/dino.info-3,
+	DINO/dino.info-4, DINO/dino.pdf, , DINO/dino.ps: Update.
+	* AMMUNITION/IEEE.h: Remove WIN32.  Fix template functions with
+	class result.
+	* AMMUNITION/IEEE.tst.in: Add stdlib.h.
+	* AMMUNITION/arithm.h: Remove WIN32.
+	* AMMUNITION/cocom-config.h.in: Update.
+	* AMMUNITION/earley++.tst.in:  Use prepared C file.  Add header
+	stddef.h.  Change expected distance statistics.
+	(test_read_token, test_syntax_error): Use ptrdiff_t.
+	* AMMUNITION/earley.c (SYMB_CODE_TRANS_VECT): New macro.
+	(struct symbs): New members symb_code_trans_vect and
+	symb_code_trans_vect_start.
+	(symb_init): Initiate symb_code_trans_vect.
+	(symb_find_by_code): Add attrribute inline.  Use
+	symb_code_trans_vect.
+	(SYMB_CODE_TRANS_VECT_SIZE): New macro.
+	(symb_finish_adding_terms): New function.
+	(symb_empty, symb_fin): Use symb_code_trans_vect.
+	(set_insert): Add code when dist hash table is not used.
+	(earley_read_grammar): Call symb_finish_adding_terms.
+	* AMMUNITION/earley.tst.in (TEST41): Use prepared C file.  Add
+	sttdef.h.  Change expected distance statistics.
+	(yylval): Remove.
+	(get_lex): Use ptrdiff_t.  Don't set up yylval.
+	(test_read_token): Use ptrdiff_t.
+	* AMMUNITION/objstack.h (_OS_expand_memory): Do it public.  Add
+	stddef.h.
+	* DINO/Makefile.in (gmp_lib): New definition.
+	(DINO_EXTERN_LIBS, DINO_EXTERN_LIBS_PATH): Add gmp_lib.
+	(source): Add gmp.c and gmp.d.
+	(additional_files): Remove dino.dsw and dino.dsp.
+	(gmp_lib): New entry.
+	(install, uninstall): Add gamp_lib and gmp.d.
+	(clean): Add gmp_lib.
+	(create-distdir): Remov mpi, ieee, ipcerr, socket.
+	(dist-copy, rcslabel): Remove .dsp and .dsw files.
+	Update dependcies.
+	* DINO/compare.tst: New syntax for wait.
+	* DINO/d_built.h (eltype_call): New definition.
+	* DINO/d_common.h (get_ch_repr): New definition.  Remove WIN32.
+	* DINO/d_context.c (first_expr_processing): Remove arrow and
+	deref.
+	(first_block_passing): Add swap.  Process wait-stmt.
+	(second_block_passing): Ditto.
+	(value_type,): Add local_var_occurrence.  Remove arrow and deref.
+	(third_expr_processing): Skip simple blocks.  Remove arrow and
+	deref.
+	(make_designator_lvalue): New nodes IR_NM_lvalue_period_and_val,
+	IR_NM_lvalue_index_and_val, IR_NM_lvalue_key_index_and_val,
+	IR_NM_lvalue_var_occurrence_and_val,
+	IR_NM_local_lvalue_var_occurrence_and_val,
+	IR_NM_lvalue_external_var_occurrence_and_val,
+	IR_NM_lvalue_no_testing_period_and_val.
+	(third_block_passing): Process _and_val nodes too. Call
+	make_designator_lvalue with additional parameter.  Process swap.
+	Process wait-stmt.  Set simple_class_flag.  Use catch_block
+	instead of block.  Remove arrow and deref.
+	(fourth_block_passing): Process wait-stmt.  Use catch_block
+	instead of block.
+	* DINO/d_conv.c (implicit_conversion_for_binary_arithmetic_op):
+	Speedup.
+	* DINO/d_dino.c: Remove WIN32.
+	(get_ch_repr): New function.
+	(DINO/d_dino.h): Remove WIN32.
+	* DINO/d_errors.c (ERR_non_variable_in_swap, ERR_const_swap,
+	DERR_wait_in_sync_stmt, DERR_thread_call_in_sync_stmt): New
+	variables.
+	* DINO/d_errors.h (ERR_non_variable_in_swap, ERR_const_swap,
+	DERR_wait_in_sync_stmt, DERR_thread_call_in_sync_stmt): New
+	external variable definitions..
+	* DINO/d_eval.c: Remove WIN32 code.
+	(USE_SWITCH): New mcaro.
+	(push_var_ref): Set stack or instance instead of var_ref.
+	(push_var_ref_and_val): New function.
+	(push_var_val): Remove container cache.
+	(push_external_var, execute_a_period_operation): Add parameter.
+	(load_vector_element_by_index): Rename from load_vector_element.
+	(store_vector_element, store_table_element,
+	store_designator_value): Don't use below_ctop.
+	(load_table_element_by_key): Rename from load_table_element.
+	(load_given_designator_value): New function.
+	(load_designator_value): Use the previous function.
+	(find_catch_pc): Use temp_ref.
+	(temp_ident): Remove.
+	(prepare_op_assign): Remove.
+	(evaluate_code): Define goto table.  Remove arrow and deref.  Add
+	code for swap.  Process new wait.
+	(evaluate_program): Initialize sync_flag.
+	* DINO/d_extern.sprut: Remove WIN32.
+	(var_ref, vect_el_ref, tab_el_ref): Remove.
+	(heap_tab). New filed last_key_index.
+	* DINO/d_func.c: Remove WIN32.
+	(NEW_VECTOR): New macro.
+	(to_lower_upper): Add code without generating new vector.
+	(trans_call): New function.
+	(process_regcomp_errors): Use reg_erange_decl.
+	(find_regex. match_call, gmatch_call, generall_sub_call,
+	split_call): Add code when USE_POSIX_REGEXEC_FUNCTION is not
+	defined.
+	(rev_call). Code when NEW_VECTOR is defined.
+	(print_ch): Use get_ch_repr.
+	(process_func_class_call): Speed up.
+	* DINO/d_heap.c: Remove WIN32.  Remove code with FEW_REGISTERS.
+	(sync_flag, temp_ref): New global variable.
+	(in_heap_temp_refs): Use temp_ref.
+	(initiate_heap): Initialize temp_ref.
+	(traverse_used_var): Remove var_ref, vect_el_ref, and tab_el_ref.
+	(traverse_used_heap_object): Initialize last_key_index.
+	(mark_used_heap_objects): Traverse temp_ref.
+	(change_val): Remove var_ref, vect_el_ref, and tab_el_ref.
+	(change_refs): Process temp_ref.  Set up state.
+	(heap_push, heap_pop, expand_vector, unpack_vector, copy_vector):
+	Use temp_ref.
+	(eq_vector): Redirect v2.
+	(hash_key): Better hashing.
+	(START_TABLE_SIZE): Use bigger value.
+	(create_tab): Set up last_key_index.
+	(find_tab_entry): Use last_key_index.
+	(expand_tab): Use temp_ref.  Set up last_key_index.
+	(remove_tab_el): Use last_key_index.
+	(table_to_vector_conversion, vector_to_table_conversion): Use
+	temp_ref.
+	(block_cprocess): Use sync_flag.
+	(delete_cprocess, delete_cprocess_during_exception): Set up
+	first_process_not_started.
+	* DINO/d_ir.sprut (create_occurrence_node): Additional parameter.
+	(syncthreadcall, syncwait): New classes.
+	(dereftype, arrowtype): Remove.
+	(trans): New function.
+	(arrow, lvalue_arrow, deref, lvalue_deref): Remove.
+	(member_access, swap): New nodes.
+	(wait_stmt): New field wait_stmt.
+	(exception): Rename block to catch_block.
+	(local_var_occurrence, lvalue_period_and_val,
+	lvalue_index_and_val, lvalue_key_index_and_val,
+	lvalue_no_testing_period_and_val): New nodes.
+	(class): New member simple_class_flag.
+	(wait_finish, lvalue_external_var_occurrence_and_val,
+	local_lvalue_var_occurrence_and_val,
+	lvalue_var_occurrence_and_val): New nodes.
+	(block): New field block_saved_sync_flag.
+	(var): Remove fields var_cached_address,
+	var_cached_container_tick.
+	(syncthreadcall, reg_erange, syncwait): New table elements.
+	(erange, dereftype, arrowtype): Remove table elements.
+	* DINO/d_main.c: Remove WIN32 code.
+	* DINO/d_run.sprut (sync_flag): New external definition.
+	(FEW_REGISTERS): Remove.
+	(heap_push): Additional parameter.
+	(eval_error): Add attribute noreturn.
+	* DINO/d_yacc.y: Remove WIN32.
+	(swap): Add.
+	(arrow, deref): Remove.
+	(wait): New syntax.
+	* DINO/dino.1 (DINO_EXTERN_LIBS): Description.
+	* DINO/dino.sgml.in (trans, swap): New function and operation.
+	(arrow, deref): Remove.
+	(wait): New syntax.
+	* DINO/dino.tst.in: New synatx for wait.
+	No testing for arrow and deref.
+	New tests from language shootout.
+	* DINO/ipcerr_int.c: Remove WIN32.
+	* DINO/mpi.c: Ditto.
+	* DINO/ieee_int.c: Remove WIN32.  Add string.h.
+	* DINO/socket_int.c: Ditto.
+	* MSTA/compare.tst.in: Use prepared source file. Print used
+	memory.  Add earley parser.
+	* MSTA/main.c: Remove WIN32.
+	* NONA/main.c: Ditto.
+	* OKA/main.c: Ditto.
+	* SHILKA/main.c: Ditto.
+	* SHILKA/shilka.tst.in: Add stdlib.h.
+	* SPRUT/main.c: Remove WIN32.
+	* SPRUT/yacc.y: Ditto.
+	* SPRUT/gen.c (generate_spi): Add stddlib.h.
+	(output_rest_double_link_functions_definitions): Always call
+	output_rest_double_link_functions_definitions.
+	* DINO-WIN32-INSTALL.txt: Remove.
+	* WIN32-INSTALL.txt: Ditto.
+	* AMMUNITION/clibcocom/clibcocom.{dsp,dsw}: Ditto.
+	* AMMUNITION/cpplibcocom/cpplibcocom.{dsp,dsw}: Ditto.
+	* DINO/dino.{dsp,dsw}: Ditto.
+	* DINO/ieee/ieee.{dsp,dsw}: Ditto.
+	* DINO/mpi/mpi.{dsp,dsw}: Ditto.
+	* MSTA/msta.{dsp,dsw}: Ditto.
+	* NONA/nona.{dsp,dsw}: Ditto.
+	* OKA/oka.{dsp,dsw}: Ditto.
+	* OKA/SCHEDULE/cppschedule/cppschedule.{dsp,dsw}: Ditto.
+	* OKA/SCHEDULE/cschedule/cschedule.{dsp,dsw}: Ditto.
+	* OKA/SCHEDULE/schedule.cpp (resource_history, list): Forward
+	declarations.
+	* SHILKA/shilka.{dsp,dsw}:  Remove.
+	* SPRUT/sprut.{dsp,dsw}: Ditto.
+	* cocom/cocom.{c,dsp,dsw}: Ditto.
+	* dinolang/dinolang.{c,dsp,dsw}: Ditto.
+		
 2005-01-17  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* CHANGES: Major changes since the last release.

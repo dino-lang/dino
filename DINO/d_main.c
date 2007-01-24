@@ -26,7 +26,6 @@
 
 #include "d_run.h"
 
-#ifndef WIN32
 #if !defined(HAVE_DLOPEN) || defined(NO_EXTERN_SHLIB)
 
 /* See file mpi.c */
@@ -50,7 +49,6 @@ get_library_search_function (const char *name)
   return NULL;
 }
 
-#endif
 #endif
 
 #ifdef AIX_DLOPEN
@@ -78,9 +76,6 @@ main (int argc, char *argv[], char *envp[])
   if (libraries [nlibs] != NULL)
     nlibs++;
   stdlibs = buffer;
-#ifdef WIN32
-#error this code can not be under Windows
-#endif
   strcpy (stdlibs, "./");
   strcat (stdlibs, STANDARD_DINO_LIB_NAME);
   libraries [nlibs++] = stdlibs;

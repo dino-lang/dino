@@ -134,36 +134,6 @@ exception <CODE>accessop</CODE> occurs if the declaration is not
 found with such identifier, or the declaration is private and
 the construction is not in the declaration scope and not inside
 a friend of the declaration scope.</LI>
-<LI>Declaration instance for an identifier whose name is an
-expression value in the following construction
-<BLOCKQUOTE><CODE>
-<PRE>
-       *(expression)
-</PRE>
-</CODE></BLOCKQUOTE>
-
-is searched in the same way as a separate identifier.  The
-exception <CODE>accessop</CODE> occurs if there is no such instance
-of a declaration with such an identifier in the covering block
-instances.</LI>
-<LI>The declaration for an identifier in the following
-construction
-<BLOCKQUOTE><CODE>
-<PRE>
-       (expression)->identifier
-</PRE>
-</CODE></BLOCKQUOTE>
-
-is searched in an analogous way to the construction
-<CODE>designator.identifier</CODE> in the block instance which is
-the value of the variable whose name is given by the
-expression.  The variable is searched in the same way as in the
-construction <CODE>*(expression)</CODE>.  Exception
-<CODE>accessop</CODE> occurs if there is no such variable instance
-with the given name in covering block instances, there is no
-instance of the declaration with such identifier in the given
-context (the variable value), or the declaration is private and
-the construction is not in the declaration scope.</LI>
 </UL>
 
 The following identifiers are predeclared on the top level (in the
@@ -208,7 +178,7 @@ more detail later in the report.
   stdout         strtime        sub            subv
   syserrors      system         systemcalls
   tell           time           time_format    token
-  tolower        toupper
+  tolower        toupper        trans
   version
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -228,7 +198,7 @@ mentioned above.
   deadlock
   invaccess      invcall        invenv         invindex
   invkey         invop
-  signal
+  signal         syncwait
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -274,7 +244,7 @@ The following identifiers are predeclared in the class
   internal       invenvar       invextern      invfmt
   invinput       invparser      invregexp      invresult
   parnumber      partype
-  syserror       systemcall
+  syncthreadcall syserror       systemcall
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -336,8 +306,7 @@ The following identifiers are predeclared in the class
 <EM>invaccess</EM> mentioned above.
 <BLOCKQUOTE><CODE>
 <PRE>
-  accessop       accessvalue    arrowtype
-  dereftype  
+  accessop       accessvalue
   immutable
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -499,7 +468,28 @@ Examples:</P>
 The following is a class header with an initialization:
 <BLOCKQUOTE><CODE>
 <PRE>
-          class stack (max_height = 100)
+          class stack (max_height = var a = 1, b = 2;
+
+putln (a, " ", b);
+a&lt;=>b;
+putln (a, " ", b);
+
+var ar = [1, 2, 3];
+println (ar);
+ar[0]&lt;=>ar[2];
+println (ar);
+
+class s (i) {}
+var c1 = s (0), c2 = s (3);
+putln (c1.i, ' ', c2.i);
+c1.i&lt;=>c2.i;
+putln (c1.i, ' ', c2.i);
+
+var t = {"s" : 1, "t" : 2};
+putln (t{"s"}, ' ', t{"t"});
+t{"s"}&lt;=>t{"t"};
+putln (t{"s"}, ' ', t{"t"});
+100)
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -557,17 +547,17 @@ The following example illustrates threads:
             func consume () {
               var res;
           
-              wait !empty;
+              wait (!empty);
               res = b [first];
               first = (first + 1) % length;
-              empty = first == free;
+              wait (1) empty = first == free;
               return res;
             }
             func produce (val) {
-              wait empty || free != first;
+              wait (empty || free != first);
               b [free] = val;
               free = (free + 1) % length;
-              empty = 0;
+              wait (1) empty = 0;
             }
           }
           

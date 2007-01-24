@@ -17,11 +17,17 @@ AC_PROG_YACC
 AC_PROG_LEX
 
 dnl Checks for libraries.
+AC_CHECK_LIB(gmp, mpz_add, found=yes,found=no)
+if test $found = yes; then
+AC_CHECK_LIB(gmp, mpz_add)
+else
+AC_CHECK_LIB(gmp, __gmpz_add)
+fi
 AC_CHECK_LIB(m, log)
 AC_CHECK_LIB(dl, dlopen)
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h)
+AC_CHECK_HEADERS(assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h sys/socket.h gmp.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
@@ -223,7 +229,7 @@ if test x$no_extern_shlib != x; then
   EXTERN_LIB_SUFFIX=a
   EXTERN_MAKELIB="ar rc \\\$\$0"
   EXTERN_AFTER_MAKELIB="$RANLIB \\\$\$0;echo \\\$\$0"
-  DINO_ADDITIONAL_LIBS="$DINO_ADDITIONAL_LIBS mpi.$EXTERN_LIB_SUFFIX ieee.$EXTERN_LIB_SUFFIX ipcerr.$EXTERN_LIB_SUFFIX socket.$EXTERN_LIB_SUFFIX"
+  DINO_ADDITIONAL_LIBS="$DINO_ADDITIONAL_LIBS mpi.$EXTERN_LIB_SUFFIX ieee.$EXTERN_LIB_SUFFIX ipcerr.$EXTERN_LIB_SUFFIX socket.$EXTERN_LIB_SUFFIX gmp.$EXTERN_LIB_SUFFIX"
 else
   echo +++We will use shared library for externals
 fi

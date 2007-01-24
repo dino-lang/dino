@@ -86,8 +86,6 @@ Designator = DesignatorOrCall "["  Expr "]"
            | DesignatorOrCall "{"  Expr "}"
            | DesignatorOrCall ActualParameters
            | DesignatorOrCall "."  IDENT
-           | "(" Expr ")" "->"  IDENT
-           |  "*" "(" Expr ")"
            | IDENT
 
 ElistPartsList = [ Expr [ ":" Expr ] {"," Expr [ ":" Expr ] } ]
@@ -132,7 +130,7 @@ ExecutiveStmt = ";"
               | continue ";"
               | return  [ Expr ] ";"
               | throw  Expr ";"
-              | wait  Expr ";"
+              | wait  "(" Expr ")" Stmt
               | BlockStmt
               | TryBlockStmt
 

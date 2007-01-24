@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-11849/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-8068/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -183,14 +183,14 @@ character.  First, implicit integer conversion is applied to the
 operand.  The operand should be an integer after the conversion.
 Otherwise, exception `optype' will be generated.  The integer is
 transformed into the character with the corresponding code.  If the
-code is too big to be a character or is negative, exception `erange' is
-generated.
+code is too big to be a character or is negative, exception
+`syserrors.erange' is generated.
 
    The operator `int' is used to conversion of a value into an integer.
 Implicit integer conversion is applied to the operand.  The operand
 should be an integer after the conversion.  Otherwise, exception
 `optype' will be generated.  If the code is too big to be an integer,
-exception `erange' is generated.
+exception `syserrors.erange' is generated.
 
    The operator `float' is used to conversion of a value into
 floating-point number.  The first, implicit arithmetic conversion is
@@ -198,7 +198,8 @@ applied to the operand.  The operand should be an integer or a
 floating-point number after the conversion.  Otherwise, exception
 `optype' will be generated.  If the result integer is transformed into
 the corresponding floating-point number.  If the code is too big or too
-small to be a floating-point number, exception `erange' is generated.
+small to be a floating-point number, exception `syserrors.erange' is
+generated.
 
    The operator `vector' is used for conversion of a value into a
 vector.  First, implicit string conversion is applied to the operand.
@@ -350,9 +351,13 @@ Designator op Expr;', `Designator = Designator + 1;', and `Designator =
 Designator - 1;'.  The only difference is in the fact that the
 designator is evaluated only once, not twice as in the analogous form.
 It is important to know if you have `side effects' in the statement.
+
+   A special construction `Designator <=> Designator;' swaps values of
+the designators.
                ExecutiveStmt = Designator Assign  Expr ";"
                              | Designator ("++" | "--")  ";"
                              | ("++" | "--")  Designator ";"
+                             | Designator <=> Designator ";"
                Assign = "="
                       | "*="
                       | "/="
@@ -372,7 +377,8 @@ It is important to know if you have `side effects' in the statement.
                i = 1;
                i++;
                --i;
-               i *= 20
+               i *= 20;
+               v [0] <=> v [1];
 
 
 File: dino.info,  Node: Call-statement,  Next: If-statement,  Prev: Assignment statements,  Up: Executive statements
@@ -605,13 +611,17 @@ a thread-function call.  The thread in which the statement has been
 executed waits until the expression value becomes nonzero.  The
 expression value (after implicit arithmetic conversion) should be an
 integer or a floating point number.  Otherwise the exception `optype'
-is generated.  The important thing to know how to make synchronization
-is that an assignment statement without any calls is always executed as
-one transaction.
-               ExecutiveStmt = wait  Expr ";"
+is generated.  When the expression value becomes nonzero, the statement
+after the expression (it is called sync-statement) is executed without
+interruption by other process.  It is used as critical region for
+process synchronization.  In a critical region execution of
+wait-statement is prohibited (it results in generation of exception
+`syncwait').  Also thread calls inside a critical region result in
+generation exception `syncthreadcall'.
+               ExecutiveStmt = wait  "(" Expr ")" Stmt
 
    Examples:
-               wait !empty;
+               wait (!empty);
 
 
 File: dino.info,  Node: Program,  Next: Predeclared identifiers,  Prev: Executive statements,  Up: Top

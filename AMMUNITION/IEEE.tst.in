@@ -67,6 +67,7 @@ fi
 if test $result = ok -a $start_test_number -le 1; then
         cat >$test_file <<'TEST1'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -572,6 +573,7 @@ fi
 if test $result = ok -a $start_test_number -le 2; then
         cat >$test_file <<'TEST2'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -1081,6 +1083,7 @@ fi
 if test $result = ok -a $start_test_number -le 3; then
         cat >$test_file <<'TEST3'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -1163,6 +1166,7 @@ fi
 if test $result = ok -a $start_test_number -le 4; then
         cat >$test_file <<'TEST4'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -1247,6 +1251,7 @@ fi
 if test $result = ok -a $start_test_number -le 5; then
         cat >$test_file <<'TEST5'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -1333,6 +1338,7 @@ fi
 if test $result = ok -a $start_test_number -le 6; then
         cat >$test_file <<'TEST6'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -1419,6 +1425,7 @@ fi
 if test $result = ok -a $start_test_number -le 7; then
         cat >$test_file <<'TEST7'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -1692,6 +1699,7 @@ fi
 if test $result = ok -a $start_test_number -le 8; then
         cat >$test_file <<'TEST8'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -1965,6 +1973,7 @@ fi
 if test $result = ok -a $start_test_number -le 9; then
         cat >$test_file <<'TEST9'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -2282,6 +2291,7 @@ fi
 if test $result = ok -a $start_test_number -le 10; then
         cat >$test_file <<'TEST10'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -2599,6 +2609,7 @@ fi
 if test $result = ok -a $start_test_number -le 11; then
         cat >$test_file <<'TEST11'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -2916,6 +2927,7 @@ fi
 if test $result = ok -a $start_test_number -le 12; then
         cat >$test_file <<'TEST12'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -3233,6 +3245,7 @@ fi
 if test $result = ok -a $start_test_number -le 13; then
         cat >$test_file <<'TEST13'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -3550,6 +3563,7 @@ fi
 if test $result = ok -a $start_test_number -le 14; then
         cat >$test_file <<'TEST14'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -3867,6 +3881,7 @@ fi
 if test $result = ok -a $start_test_number -le 15; then
         cat >$test_file <<'TEST15'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -4184,6 +4199,7 @@ fi
 if test $result = ok -a $start_test_number -le 16; then
         cat >$test_file <<'TEST16'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -4501,6 +4517,7 @@ fi
 if test $result = ok -a $start_test_number -le 17; then
         cat >$test_file <<'TEST17'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -5079,6 +5096,7 @@ fi
 if test $result = ok -a $start_test_number -le 18; then
         cat >$test_file <<'TEST18'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -5657,6 +5675,7 @@ fi
 if test $result = ok -a $start_test_number -le 19; then
         cat >$test_file <<'TEST19'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -6241,6 +6260,7 @@ fi
 if test $result = ok -a $start_test_number -le 20; then
         cat >$test_file <<'TEST20'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -6825,6 +6845,7 @@ fi
 if test $result = ok -a $start_test_number -le 21; then
         cat >$test_file <<'TEST21'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -7349,6 +7370,7 @@ fi
 if test $result = ok -a $start_test_number -le 22; then
         cat >$test_file <<'TEST22'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -7873,6 +7895,7 @@ fi
 if test $result = ok -a $start_test_number -le 23; then
         cat >$test_file <<'TEST23'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -8481,6 +8504,7 @@ fi
 if test $result = ok -a $start_test_number -le 24; then
         cat >$test_file <<'TEST24'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -9089,6 +9113,7 @@ fi
 if test $result = ok -a $start_test_number -le 25; then
         cat >$test_file <<'TEST25'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -9229,6 +9254,7 @@ fi
 if test $result = ok -a $start_test_number -le 26; then
         cat >$test_file <<'TEST26'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -9491,6 +9517,7 @@ fi
 if test $result = ok -a $start_test_number -le 27; then
         cat >$test_file <<'TEST27'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -9668,6 +9695,7 @@ fi
 if test $result = ok -a $start_test_number -le 28; then
         cat >$test_file <<'TEST28'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -9844,6 +9872,7 @@ fi
 if test $result = ok -a $start_test_number -le 29; then
         cat >$test_file <<'TEST29'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -10008,6 +10037,7 @@ fi
 if test $result = ok -a $start_test_number -le 30; then
         cat >$test_file <<'TEST30'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -10171,6 +10201,7 @@ fi
 if test $result = ok -a $start_test_number -le 31; then
         cat >$test_file <<'TEST31'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -10486,6 +10517,7 @@ fi
 if test $result = ok -a $start_test_number -le 32; then
         cat >$test_file <<'TEST32'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -10801,6 +10833,7 @@ fi
 if test $result = ok -a $start_test_number -le 33; then
         cat >$test_file <<'TEST33'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -11060,6 +11093,7 @@ fi
 if test $result = ok -a $start_test_number -le 34; then
         cat >$test_file <<'TEST34'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -11319,6 +11353,7 @@ fi
 if test $result = ok -a $start_test_number -le 35; then
         cat >$test_file <<'TEST35'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -11828,6 +11863,7 @@ fi
 if test $result = ok -a $start_test_number -le 36; then
         cat >$test_file <<'TEST36'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -11912,6 +11948,7 @@ fi
 if test $result = ok -a $start_test_number -le 37; then
         cat >$test_file <<'TEST37'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -11998,6 +12035,7 @@ fi
 if test $result = ok -a $start_test_number -le 38; then
         cat >$test_file <<'TEST38'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -12271,6 +12309,7 @@ fi
 if test $result = ok -a $start_test_number -le 39; then
         cat >$test_file <<'TEST39'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -12588,6 +12627,7 @@ fi
 if test $result = ok -a $start_test_number -le 40; then
         cat >$test_file <<'TEST40'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -12905,6 +12945,7 @@ fi
 if test $result = ok -a $start_test_number -le 41; then
         cat >$test_file <<'TEST41'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -13222,6 +13263,7 @@ fi
 if test $result = ok -a $start_test_number -le 42; then
         cat >$test_file <<'TEST42'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -13539,6 +13581,7 @@ fi
 if test $result = ok -a $start_test_number -le 43; then
         cat >$test_file <<'TEST43'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -14117,6 +14160,7 @@ fi
 if test $result = ok -a $start_test_number -le 44; then
         cat >$test_file <<'TEST44'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -14701,6 +14745,7 @@ fi
 if test $result = ok -a $start_test_number -le 45; then
         cat >$test_file <<'TEST45'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -15225,6 +15270,7 @@ fi
 if test $result = ok -a $start_test_number -le 46; then
         cat >$test_file <<'TEST46'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -15833,6 +15879,7 @@ fi
 if test $result = ok -a $start_test_number -le 47; then
         cat >$test_file <<'TEST47'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -15973,6 +16020,7 @@ fi
 if test $result = ok -a $start_test_number -le 48; then
         cat >$test_file <<'TEST48'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -16235,6 +16283,7 @@ fi
 if test $result = ok -a $start_test_number -le 49; then
         cat >$test_file <<'TEST49'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -16411,6 +16460,7 @@ fi
 if test $result = ok -a $start_test_number -le 50; then
         cat >$test_file <<'TEST50'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -16574,6 +16624,7 @@ fi
 if test $result = ok -a $start_test_number -le 51; then
         cat >$test_file <<'TEST51'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -16889,6 +16940,7 @@ fi
 if test $result = ok -a $start_test_number -le 52; then
         cat >$test_file <<'TEST52'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -17148,6 +17200,7 @@ fi
 if test $result = ok -a $start_test_number -le 53; then
         cat >$test_file <<'TEST53'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()
@@ -17288,6 +17341,7 @@ fi
 if test $result = ok -a $start_test_number -le 54; then
         cat >$test_file <<'TEST54'
 #include <string.h>
+#include <stdlib.h>
 #include "arithm.h"
 #include "IEEE.h"
 main ()

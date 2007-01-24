@@ -1,36 +1,6 @@
-/* AMMUNITION/cocom-config.h.in.  Generated automatically from configure.in by autoheader.  */
-#ifndef __COCOM_CONFIG_H__
-#define __COCOM_CONFIG_H__
-
-
-/* Define to empty if the keyword does not work.  */
-#undef const
-
-/* Define to the type of elements in the array set by `getgroups'.
-   Usually this is either `int' or `gid_t'.  */
-#undef GETGROUPS_T
-
-/* Define to `int' if <sys/types.h> doesn't define.  */
-#undef gid_t
-
-/* Define as __inline if that's what the C compiler calls it.  */
-#undef inline
-
-/* Define as the return type of signal handlers (int or void).  */
-#undef RETSIGTYPE
-
-/* Define to `unsigned' if <sys/types.h> doesn't define.  */
-#undef size_t
-
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
-
-/* Define to `int' if <sys/types.h> doesn't define.  */
-#undef uid_t
-
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
+/* AMMUNITION/cocom-config.h.in.  Generated from configure.in by autoheader.  */
+/* Define to `long' if <sys/types.h> doesn't define.  */
+#undef clock_t
 
 /* Define to `size_t' if socklen_t is not defined in <sys/socket.h>.  */
 #undef socklen_t
@@ -38,76 +8,158 @@
 /* Does inet_aton is present. */
 #undef HAVE_INET_ATON
 
-/* The number of bytes in a char *.  */
-#undef SIZEOF_CHAR_P
+/* Define to the type of elements in the array set by `getgroups'. Usually
+   this is either `int' or `gid_t'. */
+#undef GETGROUPS_T
 
-/* Define if you have the dlopen function.  */
-#undef HAVE_DLOPEN
-
-/* Define if you have the getgroups function.  */
-#undef HAVE_GETGROUPS
-
-/* Define if you have the memcmp function.  */
-#undef HAVE_MEMCMP
-
-/* Define if you have the memcpy function.  */
-#undef HAVE_MEMCPY
-
-/* Define if you have the memmove function.  */
-#undef HAVE_MEMMOVE
-
-/* Define if you have the memset function.  */
-#undef HAVE_MEMSET
-
-/* Define if you have the setitimer function.  */
-#undef HAVE_SETITIMER
-
-/* Define if you have the sigaction function.  */
-#undef HAVE_SIGACTION
-
-/* Define if you have the sigemptyset function.  */
-#undef HAVE_SIGEMPTYSET
-
-/* Define if you have the strerror function.  */
-#undef HAVE_STRERROR
-
-/* Define if you have the strtod function.  */
-#undef HAVE_STRTOD
-
-/* Define if you have the strtol function.  */
-#undef HAVE_STRTOL
-
-/* Define if you have the vsprintf function.  */
-#undef HAVE_VSPRINTF
-
-/* Define if you have the <assert.h> header file.  */
+/* Define to 1 if you have the <assert.h> header file. */
 #undef HAVE_ASSERT_H
 
-/* Define if you have the <dlfcn.h> header file.  */
+/* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define if you have the <errno.h> header file.  */
+/* Define to 1 if you have the `dlopen' function. */
+#undef HAVE_DLOPEN
+
+/* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
 
-/* Define if you have the <float.h> header file.  */
+/* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
-/* Define if you have the <limits.h> header file.  */
-#undef HAVE_LIMITS_H
+/* Define to 1 if you have the `getgroups' function. */
+#undef HAVE_GETGROUPS
 
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
+/* Define to 1 if you have the <gmp.h> header file. */
+#undef HAVE_GMP_H
 
-/* Define if you have the <time.h> header file.  */
-#undef HAVE_TIME_H
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
 
-/* Define if you have the <unistd.h> header file.  */
-#undef HAVE_UNISTD_H
-
-/* Define if you have the dl library (-ldl).  */
+/* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
 
-/* Define if you have the m library (-lm).  */
+/* Define to 1 if you have the `gmp' library (-lgmp). */
+#undef HAVE_LIBGMP
+
+/* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
-#endif /*#ifndef __COCOM_CONFIG_H__ */
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the `memcmp' function. */
+#undef HAVE_MEMCMP
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define to 1 if you have the `setitimer' function. */
+#undef HAVE_SETITIMER
+
+/* Define to 1 if you have the `sigaction' function. */
+#undef HAVE_SIGACTION
+
+/* Define to 1 if you have the `sigemptyset' function. */
+#undef HAVE_SIGEMPTYSET
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strtod' function. */
+#undef HAVE_STRTOD
+
+/* Define to 1 if you have the `strtol' function. */
+#undef HAVE_STRTOL
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <time.h> header file. */
+#undef HAVE_TIME_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `vsprintf' function. */
+#undef HAVE_VSPRINTF
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* The size of a `char *', as computed by sizeof. */
+#undef SIZEOF_CHAR_P
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
+#undef YYTEXT_POINTER
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef gid_t
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `unsigned' if <sys/types.h> does not define. */
+#undef size_t
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef uid_t

@@ -95,12 +95,15 @@ convenience of C programmers there are also the Dino assignments
 + 1;</CODE>, and <CODE>Designator = Designator - 1;</CODE>.  The only
 difference is in the fact that the designator is evaluated only once,
 not twice as in the analogous form.  It is important to know if you
-have <EM>side effects</EM> in the statement.
+have <EM>side effects</EM> in the statement.</P>
+<P>A special construction <CODE>Designator &lt;=> Designator;</CODE> swaps values
+of the designators.
 <BLOCKQUOTE><CODE>
 <PRE>
           ExecutiveStmt = Designator Assign  Expr ";"
                         | Designator ("++" | "--")  ";"
                         | ("++" | "--")  Designator ";"
+                        | Designator &lt;=> Designator ";"
           Assign = "="
                  | "*="
                  | "/="
@@ -124,7 +127,8 @@ Examples:
           i = 1;
           i++;
           --i;
-          i *= 20
+          i *= 20;
+          v [0] &lt;=> v [1];
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
@@ -407,19 +411,24 @@ a thread-function call.  The thread in which the statement has been
 executed waits until the expression value becomes nonzero.  The
 expression value (after implicit arithmetic conversion) should be an
 integer or a floating point number.  Otherwise the exception
-<CODE>optype</CODE> is generated.  The important thing to know how to make
-synchronization is that an assignment statement without any calls is
-always executed as one transaction.
+<CODE>optype</CODE> is generated.  When the expression value becomes
+nonzero, the statement after the expression (it is called
+sync-statement) is executed without interruption by other process.  It
+is used as critical region for process synchronization.  In a critical
+region execution of wait-statement is prohibited (it results in
+generation of exception <CODE>syncwait</CODE>).  Also thread calls inside
+a critical region result in generation exception
+<CODE>syncthreadcall</CODE>.
 <BLOCKQUOTE><CODE>
 <PRE>
-          ExecutiveStmt = wait  Expr ";"
+          ExecutiveStmt = wait  "(" Expr ")" Stmt
 </PRE>
 </CODE></BLOCKQUOTE>
 
 Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
-          wait !empty;
+          wait (!empty);
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>

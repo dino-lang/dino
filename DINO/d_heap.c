@@ -25,6 +25,9 @@
 #include "d_run.h"
 #include "d_runtab.h"
 
+/* The following is true if we are executing sync block.  */
+int sync_flag;
+
 /* Current program counter of command being executed.  This value is
    used to execution of commands for interpreter (see comments for
    typedef pc_t). */
@@ -43,9 +46,7 @@ ER_node_t uppest_stack;
    Don't use the variables during GC. */
 ER_node_t ctop;
 
-#ifndef FEW_REGISTERS
-ER_node_t below_ctop;
-#endif
+ER_node_t temp_ref;
 
 /* Pointers to a heap objects.  Garbage collector will change it
    correspondingly too.  If the pointer refers for vector, it can not
@@ -160,6 +161,8 @@ in_heap_temp_refs (ER_node_t obj)
 {
   int i;
 
+  if (temp_ref == obj)
+    return TRUE;
   for (i = 0; i < TEMP_REFS_LENGTH (); i++)
     if (GET_TEMP_REF (i) == obj)
       return TRUE;
@@ -211,7 +214,7 @@ node_mode_2_type (ER_node_mode_t node_mode)
 
 
 
-#if !defined(NDEBUG) && !defined(WIN32)
+#if !defined(NDEBUG)
 
 size_t
 _alloc_size (size_t s)
@@ -511,6 +514,7 @@ initiate_heap ()
   new_heap_chunk (heap_chunk_size);
   cstack = NULL;
   uppest_stack = NULL;
+  temp_ref = NULL;
   CREATE_TEMP_REF ();
   VLO_CREATE (temp_vlobj, 256);
   VLO_CREATE (temp_vlobj2, 256);
@@ -625,7 +629,9 @@ heap_allocate (size_t size, int stack_p)
   free_heap_memory -= size;
   ER_SET_MODE ((ER_node_t) result, ER_NM_heap_instance);
   ER_set_unique_number ((ER_node_t) result, unique_number);
+#if 0
   ER_SET_MODE ((ER_node_t) result, 0);
+#endif
   unique_number++;
   return result;
 }
@@ -788,16 +794,7 @@ traverse_used_var (ER_node_t var)
     case ER_NM_stack:
       traverse_used_heap_object (ER_stack (var));
       return;
-    case ER_NM_var_ref:
-      traverse_used_heap_object (ER_var_ref (var));
-      return;
     case ER_NM_external_var_ref:
-      return;
-    case ER_NM_vect_el_ref:
-      traverse_used_heap_object (ER_vect_el_ref (var));
-      return;
-    case ER_NM_tab_el_ref:
-      traverse_used_heap_object (ER_tab_el_ref (var));
       return;
     default:
       assert (FALSE);
@@ -854,6 +851,7 @@ traverse_used_heap_object (ER_node_t obj)
       {
 	ER_node_mode_t mode;
 
+	ER_set_last_key_index (obj, -1);
 	for (i = 0; i < ER_entries_number (obj); i++)
 	  {
 	    mode = ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
@@ -917,14 +915,14 @@ mark_instances_need_destroying (int mark_dependent_p)
       for (curr_obj = (ER_node_t) curr_descr->chunk_start;
 	   (char *) curr_obj < curr_descr->chunk_free;
 	   curr_obj = next_heap_object (curr_obj))
-	if (instance_with_destroy (curr_obj) && !ER_it_was_processed (curr_obj)
+	if (!ER_it_was_processed (curr_obj) && instance_with_destroy (curr_obj)
 	    && ER_state (curr_obj) != IS_destroyed)
 	  {
 	    ER_set_state (curr_obj, IS_to_be_destroyed);
 	    result = TRUE;
 	  }
     }
-  if (mark_dependent_p)
+  if (mark_dependent_p && result)
     for (curr_descr = VLO_BEGIN (heap_chunks);
 	 (char *) curr_descr <= (char *) VLO_END (heap_chunks);
 	 curr_descr++)
@@ -947,6 +945,7 @@ mark_used_heap_objects (void)
   clean_heap_object_process_flag ();
   traverse_used_heap_object (cstack);
   traverse_used_heap_object (uppest_stack);
+  traverse_used_heap_object (temp_ref);
   for (i = 0; i < TEMP_REFS_LENGTH (); i++)
     traverse_used_heap_object (GET_TEMP_REF (i));
   for (i = 0; i < VLO_LENGTH (external_vars) / sizeof (void *); i++)
@@ -1062,8 +1061,6 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
       return;
     case ER_NM_vect:
     case ER_NM_tab:
-    case ER_NM_vect_el_ref:
-    case ER_NM_tab_el_ref:
       CHANGE_VECT_TAB_REF (*val_addr);
       return;
     case ER_NM_hideblock:
@@ -1119,18 +1116,7 @@ change_var (ER_node_t var)
     case ER_NM_stack:
       CHANGE_REF (((_ER_stack *) var)->_ER_S_stack.stack);
       return;
-    case ER_NM_var_ref:
-      CHANGE_REF (((_ER_var_ref *) var)->_ER_S_var_ref.var_ref);
-      return;
     case ER_NM_external_var_ref:
-      return;
-    case ER_NM_vect_el_ref:
-      CHANGE_VECT_TAB_REF
-	(((_ER_vect_el_ref *) var)->_ER_S_vect_el_ref.vect_el_ref);
-      return;
-    case ER_NM_tab_el_ref:
-      CHANGE_VECT_TAB_REF
-	(((_ER_tab_el_ref *) var)->_ER_S_tab_el_ref.tab_el_ref);
       return;
     default:
       assert (FALSE);
@@ -1271,6 +1257,7 @@ change_refs (void)
     }
   CHANGE_REF (cstack);
   CHANGE_REF (uppest_stack);
+  CHANGE_VECT_TAB_REF (temp_ref);
   /* `heap_temp_refs' may refer for a vector. */
   for (i = 0; i < TEMP_REFS_LENGTH (); i++)
     CHANGE_VECT_TAB_REF (GET_TEMP_REF (i));
@@ -1445,9 +1432,16 @@ destroy_instances (void)
 	    ER_SET_MODE (ctop, ER_NM_func);
 	    ER_set_func_context (ctop, curr_obj);
 	    ER_set_func_no (ctop, FUNC_CLASS_NO (decl));
-	    call_func_class (0);
-	    TOP_DOWN;
+	    /* We mark it before the call to prevent infinite loop if
+	       the exception occurs during the call. */
 	    ER_set_state (curr_obj, IS_destroyed);
+	    /* We might set temp_ref before heap allocation.  So save
+	       and restore it.  */
+	    PUSH_TEMP_REF (temp_ref);
+	    call_func_class (0);
+	    temp_ref = GET_TEMP_REF (0);
+	    POP_TEMP_REF (1);
+	    TOP_DOWN;
 	  }
     }
   no_gc_flag = FALSE;
@@ -1533,17 +1527,18 @@ profile_interrupt (void)
    chain `prev_stack' except for class constructors stacks (the heap
    instance is used in this case). */
 void
-heap_push (IR_node_t block_node_ptr, ER_node_t context)
+heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
 {
   ER_node_t stack;
   ER_node_t curr_var;
   IR_node_t func_class;
 
   /* Remember about possible GC. */
-  PUSH_TEMP_REF (context);
+  assert (temp_ref == NULL);
+  temp_ref = context;
   stack = (ER_node_t) heap_allocate (block_stack_size (block_node_ptr), TRUE);
-  context = GET_TEMP_REF (0);
-  POP_TEMP_REF (1);
+  context = temp_ref;
+  temp_ref = NULL;
 #ifndef NO_PROFILE
   if (profile_flag)
     {
@@ -1612,7 +1607,7 @@ heap_pop (void)
   IR_node_t func_class = IR_func_class_ext (block_node);
 
   if (func_class != NULL)
-    {	
+    {
       cpc = ER_return_pc (stack);
 #if ! defined (NO_PROFILE) && !HAVE_SETITIMER
       if (profile_flag)
@@ -1632,7 +1627,7 @@ heap_pop (void)
   else
     ctop = (ER_node_t) ER_ctop (cstack);
 #endif
-  if (!IR_extended_life_context_flag (block_node))
+  if (! IR_extended_life_context_flag (block_node))
     try_heap_stack_free (stack, heap_object_size (stack));
   ER_set_saved_cstack (cprocess, cstack);
   if (cstack != NULL)
@@ -1728,7 +1723,8 @@ expand_vector (ER_node_t vect, size_t length)
     length++; /* for trailing zero byte */
   length += disp;
   /* For changing by GC. */
-  PUSH_TEMP_REF (vect);
+  assert (temp_ref == NULL);
+  temp_ref = vect;
   prev_vect_allocated_length = allocated_length;
   if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
     {
@@ -1749,13 +1745,13 @@ expand_vector (ER_node_t vect, size_t length)
       /* ???? don't allocate if can expand because of disp. */
       vect = heap_allocate (allocated_length, FALSE);
       /* After this, vect has the same unique_number. */
-      memcpy (vect, GET_TEMP_REF (0), prev_vect_allocated_length);
+      memcpy (vect, temp_ref, prev_vect_allocated_length);
       ER_set_allocated_length (vect, allocated_length);
-      ER_SET_MODE (GET_TEMP_REF (0), ER_NM_heap_redir);
-      ER_set_allocated_length (GET_TEMP_REF (0), prev_vect_allocated_length);
-      ER_set_redir (GET_TEMP_REF (0), vect);
+      ER_SET_MODE (temp_ref, ER_NM_heap_redir);
+      ER_set_allocated_length (temp_ref, prev_vect_allocated_length);
+      ER_set_redir (temp_ref, vect);
     }
-  POP_TEMP_REF (1);
+  temp_ref = NULL;
   return vect;
 }
 
@@ -1780,7 +1776,8 @@ unpack_vector (ER_node_t vect)
   el_type = ER_pack_vect_el_type (vect);
   el_size = type_size (el_type);
   /* For changing by GC. */
-  PUSH_TEMP_REF (vect);
+  assert (temp_ref == NULL);
+  temp_ref = vect;
   pack_vect_allocated_length = allocated_length;
   if (allocated_length - disp < (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
 				 + els_number * sizeof (val_t)))
@@ -1806,7 +1803,7 @@ unpack_vector (ER_node_t vect)
 	  /* Use this order.  It is important when we have only one
              element. */
 	  memcpy ((char *) INDEXED_VAL (els, i) + displ,
-		  (char *) ER_pack_els (GET_TEMP_REF (0)) + i * el_size,
+		  (char *) ER_pack_els (temp_ref) + i * el_size,
 		  el_size);
 	  ER_SET_MODE (INDEXED_VAL (els, i), el_type);
 	  if (i == 0)
@@ -1817,14 +1814,14 @@ unpack_vector (ER_node_t vect)
   ER_set_allocated_length (vect, allocated_length);
   ER_set_immutable (vect, immutable);
   ER_set_els_number (vect, els_number);
-  if (GET_TEMP_REF (0) != vect)
+  if (temp_ref != vect)
     {
-      ER_SET_MODE (GET_TEMP_REF (0), ER_NM_heap_redir);
-      ER_set_allocated_length (GET_TEMP_REF (0), pack_vect_allocated_length);
-      ER_set_redir (GET_TEMP_REF (0), vect);
-      ER_set_unique_number (vect, ER_unique_number (GET_TEMP_REF (0)));
+      ER_SET_MODE (temp_ref, ER_NM_heap_redir);
+      ER_set_allocated_length (temp_ref, pack_vect_allocated_length);
+      ER_set_redir (temp_ref, vect);
+      ER_set_unique_number (vect, ER_unique_number (temp_ref));
     }
-  POP_TEMP_REF (1);
+  temp_ref = NULL;
   return vect;
 }
 
@@ -1879,26 +1876,31 @@ int
 eq_vector (ER_node_t v1, ER_node_t v2)
 {
   GO_THROUGH_REDIR (v1);
-  if (ER_NODE_MODE (v1) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (v1);
   GO_THROUGH_REDIR (v2);
-  if (ER_NODE_MODE (v2) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (v2);
   if (v1 == v2)
     return TRUE;
+  if (ER_els_number (v1) != ER_els_number (v2))
+    return FALSE;
+  if (ER_NODE_MODE (v1) == ER_NM_heap_pack_vect
+      && ER_NODE_MODE (v2) == ER_NM_heap_pack_vect)
+    return (ER_pack_vect_el_type (v1) == ER_pack_vect_el_type (v2)
+	    && memcmp (ER_pack_els (v1), ER_pack_els (v2),
+		       ER_els_number (v1)
+		       * type_size (ER_pack_vect_el_type (v1))) == 0);
+  if (ER_NODE_MODE (v1) == ER_NM_heap_unpack_vect)
+    pack_vector_if_possible (v1);
+  if (ER_NODE_MODE (v2) == ER_NM_heap_unpack_vect)
+    pack_vector_if_possible (v2);
   if (ER_NODE_MODE (v1) != ER_NODE_MODE (v2))
     return FALSE;
   else if (ER_NODE_MODE (v1) == ER_NM_heap_pack_vect)
     return (ER_pack_vect_el_type (v1) == ER_pack_vect_el_type (v2)
-	    && ER_els_number (v1) == ER_els_number (v2)
 	    && memcmp (ER_pack_els (v1), ER_pack_els (v2),
 		       ER_els_number (v1)
 		       * type_size (ER_pack_vect_el_type (v1))) == 0);
   else
-    return (ER_els_number (v1) == ER_els_number (v2)
-	    && eq_val ((val_t *) ER_unpack_els (v1),
-		       (val_t *) ER_unpack_els (v2),
-		       ER_els_number (v1)));
+    return eq_val ((val_t *) ER_unpack_els (v1), (val_t *) ER_unpack_els (v2),
+		   ER_els_number (v1));
 }
 
 /* The folllowing function make copy the vector vect.  The copy is
@@ -1912,10 +1914,11 @@ copy_vector (ER_node_t vect)
   GO_THROUGH_REDIR (vect);
   vect_size = ER_allocated_length (vect);
   /* Do not change size or packing */
-  PUSH_TEMP_REF (vect);
+  assert (temp_ref == NULL);
+  temp_ref = vect;
   new_vect = heap_allocate (vect_size, FALSE);
-  memcpy (new_vect, GET_TEMP_REF (0), vect_size);
-  POP_TEMP_REF (1);
+  memcpy (new_vect, temp_ref, vect_size);
+  temp_ref = NULL;
   ER_set_unique_number (new_vect, unique_number);
   unique_number++;
   ER_set_immutable (new_vect, FALSE);
@@ -2038,6 +2041,7 @@ hash_val (ER_node_t val)
     case ER_NM_nil:
       return 0;
     case ER_NM_char:
+      /* See also special case (string) in eq_key.  */
       return (size_t) ER_ch (val);
     case ER_NM_int:
       return (size_t) ER_i (val);
@@ -2114,22 +2118,39 @@ hash_key (ER_node_t key)
 	if (ER_NODE_MODE (ER_vect (key)) == ER_NM_heap_pack_vect)
 	  {
 	    ER_node_t pv = ER_vect (key);
-	    val_t var;
-	    ER_node_t var_ref = (ER_node_t) &var;
-	    size_t displ;
-	    size_t el_size;
 
-	    ER_SET_MODE (var_ref, ER_pack_vect_el_type (pv));
-	    displ = val_displ (var_ref);
-	    el_size = type_size (ER_pack_vect_el_type (pv));
-	    for (hash = i = 0; i < ER_els_number (pv); i++)
+	    if (ER_pack_vect_el_type (pv) == ER_NM_char)
 	      {
-		memcpy ((char *) var_ref + displ,
-			(char *) ER_pack_els (pv) + i * el_size,
-			el_size);
-		el_hash = hash_val (var_ref);
-		shift = 13 * i % (CHAR_BIT * sizeof (size_t));
-		hash += (el_hash << shift) | (el_hash >> shift);
+		/* Special frequent case.  */
+		char *str;
+
+		str = (char *) ER_pack_els (pv);
+		for (hash = i = 0; i < ER_els_number (pv); i++)
+		  {
+		    el_hash = str [i];
+		    shift = 13 * i % (CHAR_BIT * sizeof (size_t));
+		    hash += (el_hash << shift) | (el_hash >> shift);
+		  }
+	      }
+	    else
+	      {
+		val_t var;
+		ER_node_t var_ref = (ER_node_t) &var;
+		size_t displ;
+		size_t el_size;
+		
+		ER_SET_MODE (var_ref, ER_pack_vect_el_type (pv));
+		displ = val_displ (var_ref);
+		el_size = type_size (ER_pack_vect_el_type (pv));
+		for (hash = i = 0; i < ER_els_number (pv); i++)
+		  {
+		    memcpy ((char *) var_ref + displ,
+			    (char *) ER_pack_els (pv) + i * el_size,
+			    el_size);
+		    el_hash = hash_val (var_ref);
+		    shift = 13 * i % (CHAR_BIT * sizeof (size_t));
+		    hash += (el_hash << shift) | (el_hash >> shift);
+		  }
 	      }
 	  }
 	else
@@ -2236,7 +2257,7 @@ eq_key (ER_node_t entry_key, ER_node_t key)
 
 /* Start size of table with N elements.  The table must be not expand
    if we insert size elements number. */
-#define START_TABLE_SIZE(n)  (3*(n) + 3)
+#define START_TABLE_SIZE(n)  (3*(n) + 20)
 
 /* Minimal optimal size of table with N elements.  If the real size is
    less, it is better to expand the table. */
@@ -2280,6 +2301,7 @@ create_tab (size_t size)
   ER_set_allocated_length (result, allocated_length);
   ER_set_entries_number (result, entries_number);
   ER_set_deleted_els_number (result, 0);
+  ER_set_last_key_index (result, -1);
   for (i = 0; i < ER_entries_number (result); i++)
     ER_SET_MODE (INDEXED_ENTRY_KEY (ER_tab_els (result), i),
 		 ER_NM_empty_entry);
@@ -2304,23 +2326,30 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
   ER_node_t entry_key;
   ER_node_t first_deleted_entry_key;
   size_t hash_value, secondary_hash_value;
-  val_t key_var;
-
-  key_var = *(val_t *) key;
-  if (reserve
-      && (ER_entries_number (tab)
-	  <= MINIMAL_TABLE_SIZE (ER_els_number (tab)
-				 + ER_deleted_els_number (tab))))
+  int expand_p;
+  int_t last_key_index;
+  
+#if 1
+  if ((last_key_index = ER_last_key_index (tab)) >= 0)
+    {
+      entry_key = INDEXED_ENTRY_KEY (ER_tab_els (tab), last_key_index);
+      if (eq_key (entry_key, key))
+	return entry_key;
+    }
+#endif
+  if (expand_p = (reserve
+		  && (ER_entries_number (tab)
+		      <= MINIMAL_TABLE_SIZE (ER_els_number (tab)
+					     + ER_deleted_els_number (tab)))))
     {
       TOP_UP;
-      *(val_t *)ctop = key_var;
+      *(val_t *)ctop = *(val_t *) key;
       tab = expand_tab (tab);
       /* Don't use key here!  If the key is in heap, the GC will
          change its address. */
-      key_var = *(val_t *)ctop;
-      TOP_DOWN;
+      key = ctop;
     }
-  hash_value = hash_key ((ER_node_t) &key_var);
+  hash_value = hash_key (key);
   secondary_hash_value = 1 + hash_value % (ER_entries_number (tab) - 2);
   hash_value %= ER_entries_number (tab);
   first_deleted_entry_key = NULL;
@@ -2341,12 +2370,16 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
 		  ER_SET_MODE (entry_key, ER_NM_empty_entry);
 		}
 	    }
+	  ER_set_last_key_index (tab, -1);
           break;
         }
       else if (ER_NODE_MODE (entry_key) != ER_NM_deleted_entry)
         {
-          if (eq_key (entry_key, (ER_node_t) &key_var))
-            break;
+          if (eq_key (entry_key, key))
+	    {
+	      ER_set_last_key_index (tab, (int_t) hash_value);
+	      break;
+	    }
         }
       else if (first_deleted_entry_key == NULL)
 	first_deleted_entry_key = entry_key;
@@ -2355,6 +2388,8 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
         hash_value -= ER_entries_number (tab);
       tab_collisions++;
     }
+  if (expand_p)
+    TOP_DOWN;
   return entry_key;
 }
 
@@ -2373,11 +2408,12 @@ expand_tab (ER_node_t tab)
 
   immutable = ER_immutable (tab);
   tab_expansions++;
-  PUSH_TEMP_REF (tab);
+  assert (temp_ref == NULL);
+  temp_ref = tab;
   new_tab = create_tab (ER_els_number (tab));
   ER_set_immutable (new_tab, immutable);
-  tab = GET_TEMP_REF (0);
-  POP_TEMP_REF (1);
+  tab = temp_ref;
+  temp_ref = NULL;
   assert (ER_allocated_length (new_tab) > ER_allocated_length (tab));
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
@@ -2403,6 +2439,7 @@ expand_tab (ER_node_t tab)
   ER_set_allocated_length (tab, allocated_length);
   ER_set_redir (tab, new_tab);
   ER_set_unique_number (new_tab, ER_unique_number (tab));
+  ER_set_last_key_index (new_tab, -1);
   return new_tab;
 }
 
@@ -2424,6 +2461,7 @@ remove_tab_el (ER_node_t tab, ER_node_t key)
   assert (ER_els_number (tab) > 0);
   ER_set_els_number (tab, ER_els_number (tab) - 1);
   ER_set_deleted_els_number (tab, ER_deleted_els_number (tab) + 1);
+  ER_set_last_key_index (tab, -1);
   return TRUE;
 }
 
@@ -2438,10 +2476,11 @@ copy_tab (ER_node_t tab)
   size_t i;
 
   immutable = ER_immutable (tab);
-  PUSH_TEMP_REF (tab);
+  assert (temp_ref == NULL);
+  temp_ref = tab;
   new_tab = create_tab (ER_els_number (tab));
-  tab = GET_TEMP_REF (0);
-  POP_TEMP_REF (1);
+  tab = temp_ref;
+  temp_ref = NULL;
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
 	!= ER_NM_empty_entry
@@ -2482,14 +2521,20 @@ find_next_key (ER_node_t tab, ER_node_t key)
       key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
       if (ER_NODE_MODE (key) != ER_NM_empty_entry
 	  && ER_NODE_MODE (key) != ER_NM_deleted_entry)
-	return key;
+	{
+	  ER_set_last_key_index (tab, i);
+	  return key;
+	}
     }
   for (i = 0; i < ER_entries_number (tab); i++)
     {
       key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
       if (ER_NODE_MODE (key) == ER_NM_empty_entry
 	  || ER_NODE_MODE (key) == ER_NM_deleted_entry)
-	return key;
+	{
+	  ER_set_last_key_index (tab, -1);
+	  return key;
+	}
     }
   assert (FALSE);
   return NULL;
@@ -2503,13 +2548,14 @@ table_to_vector_conversion (ER_node_t tab)
 
   GO_THROUGH_REDIR (tab);
   index = 0;
-  PUSH_TEMP_REF (tab);
+  assert (temp_ref == NULL);
+  temp_ref = tab;
   if (ER_els_number (tab) == 0)
     vect = create_empty_vector ();
   else
     vect = create_unpack_vector (ER_els_number (tab) * 2);
-  tab = GET_TEMP_REF (0);
-  POP_TEMP_REF (1);
+  tab = temp_ref;
+  temp_ref = NULL;
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
 	!= ER_NM_empty_entry
@@ -2533,10 +2579,11 @@ vector_to_table_conversion (ER_node_t vect)
   ER_node_t entry;
 
   GO_THROUGH_REDIR (vect);
-  PUSH_TEMP_REF (vect);
+  assert (temp_ref == NULL);
+  temp_ref = vect;
   tab = create_tab (ER_els_number (vect));
-  vect = GET_TEMP_REF (0);
-  POP_TEMP_REF (1);
+  vect = temp_ref;
+  temp_ref = NULL;
   TOP_UP;
   for (i = 0; i < ER_els_number (vect); i++)
     {
@@ -2681,6 +2728,11 @@ void
 block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
 {
   assert (cprocess != NULL);
+  if (sync_flag)
+    {
+      executed_stmts_count = -process_quantum; /* start new quantum */
+      return;
+    }
   ER_set_saved_pc (cprocess, first_resume_pc);
   ER_set_saved_cstack (cprocess, cstack);
   if (executed_stmts_count != -process_quantum)
@@ -2712,6 +2764,7 @@ block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
 void
 delete_cprocess (void)
 {
+  first_process_not_started = NULL;
   if (ER_next (cprocess) == cprocess)
     dino_finish (0);
   else
@@ -2731,6 +2784,7 @@ delete_cprocess_during_exception (void)
     return FALSE;
   else
     {
+      first_process_not_started = NULL;
       ER_set_prev (ER_next (cprocess), ER_prev (cprocess));
       ER_set_next (ER_prev (cprocess), ER_next (cprocess));
       activate_given_process (ER_father (cprocess));
@@ -2773,11 +2827,7 @@ lib_name (const char *path_name)
   for (curr_char_ptr = path_name, name_start = path_name;
        *curr_char_ptr != '\0';
        curr_char_ptr++)
-#ifdef WIN32
-    if (*curr_char_ptr == '/' || *curr_char_ptr == '\\')
-#else
     if (*curr_char_ptr == '/')
-#endif
       name_start = curr_char_ptr + 1;
   for (curr_char_ptr = name_start, last_period = NULL;
        *curr_char_ptr != '\0';
@@ -2794,38 +2844,6 @@ lib_name (const char *path_name)
   result [len] = '\0';
   return result;
 }
-
-#ifdef WIN32
-#include <windows.h>
-
-struct spi spi =
-{
-  node_mode_2_type,
-  instance_size,
-  type_size,
-  val_displ,
-  create_hideblock,
-  create_empty_vector,
-  create_unpack_vector,
-  create_pack_vector,
-  expand_vector,
-  unpack_vector,
-  pack_vector_if_possible,
-  eq_vector,
-  copy_vector,
-  create_empty_string,
-  create_string,
-  eq_instance,
-  eq_table,
-  create_tab,
-  find_tab_entry,
-  remove_tab_el,
-  copy_tab,
-  find_next_key,
-  make_immutable
-};
-
-#endif
 
 void *
 external_address (IR_node_t decl)
@@ -2866,29 +2884,6 @@ external_address (IR_node_t decl)
 	    eval_error (libclose_decl, invexterns_decl, IR_pos (cpc),
 			DERR_library_close_error, *curr_libname_ptr);
 #endif
-	}
-#elif defined (WIN32)
-      for (curr_libname_ptr = libraries;
-	   *curr_libname_ptr != NULL;
-	   curr_libname_ptr++)
-	{
-	  HANDLE handle;
-	  void (*set_interface_address) (struct spi *i);
-
-	  handle = LoadLibrary(*curr_libname_ptr);
-	  if (handle == NULL)
-	    continue;
-	  set_interface_address
-	    = (void (*) (struct spi *)) GetProcAddress (handle,
-							"set_interface");
-	  if (set_interface_address == NULL)
-	    continue;
-	  address = GetProcAddress (handle, name);
-	  if (address != NULL)
-	    {
-	      (*set_interface_address) (&spi);
-	      break;
-            }
 	}
 #else
       for (curr_libname_ptr = libraries;

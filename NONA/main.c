@@ -118,10 +118,9 @@ file_name_suffix (const char *file_name)
   return (last_period == NULL ? file_name : last_period);
 }
 
-/* The function returns pointer to first char after last `/' (or `\'
-   for WIN32) in given file name, given file name itself if the
-   directory name is absent.  The returned string can not be
-   changed. */
+/* The function returns pointer to first char after last `/' in given
+   file name, given file name itself if the directory name is absent.
+   The returned string can not be changed. */
 
 static const char *
 base_file_name (const char *file_name)
@@ -129,13 +128,7 @@ base_file_name (const char *file_name)
   int directory_name_length;
 
   directory_name_length = strlen (file_name);
-#ifdef WIN32
-  while (directory_name_length >= 0
-         && file_name[directory_name_length] != '/'
-         && file_name[directory_name_length] != '\\')
-#else
   while (directory_name_length >= 0 && file_name[directory_name_length] != '/')
-#endif
     directory_name_length--;
   return file_name + directory_name_length + 1;
 }

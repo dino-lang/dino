@@ -76,7 +76,9 @@ extern char ERR_invalid_foreach_table_type [];
 extern char ERR_invalid_throw_expr_type [];
 extern char ERR_invalid_catch_expr_type [];
 extern char ERR_non_variable_in_assignment [];
+extern char ERR_non_variable_in_swap [];
 extern char ERR_const_assignment [];
+extern char ERR_const_swap [];
 extern char ERR_non_variable_in_foreach [];
 extern char ERR_continue_is_not_in_loop [];
 extern char ERR_break_is_not_in_loop [];
@@ -123,6 +125,8 @@ extern char DERR_elist_repetition_type [];
 extern char DERR_invalid_if_expr_type [];
 extern char DERR_invalid_for_guard_expr_type [];
 extern char DERR_invalid_wait_guard_expr_type [];
+extern char DERR_wait_in_sync_stmt [];
+extern char DERR_thread_call_in_sync_stmt [];
 extern char DERR_no_exception_after_throw [];
 /* Index type. */
 extern char DERR_index_is_not_int [];
