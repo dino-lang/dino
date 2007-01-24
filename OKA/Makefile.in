@@ -130,7 +130,7 @@ source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
 	 $(srcdir)/gen.h $(srcdir)/gen.c $(srcdir)/main.c $(srcdir)/ird.sprut
 
 additional_files = Makefile.in oka.tst README INSTALL oka.1\
-                   alpha-ev4.oka alpha-ev5.oka oka.dsw oka.dsp
+                   alpha-ev4.oka alpha-ev5.oka
 
 doc_files = oka.txt oka.info* oka*.html oka.pdf oka.dvi oka.ps
 

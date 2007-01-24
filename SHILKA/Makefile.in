@@ -139,7 +139,7 @@ additional_files = README INSTALL\
 		   java.shilka ada-standards.shilka ada.shilka\
                    b.shilka c.shilka cpp.shilka d.shilka gpc.shilka\
                    modula2.shilka modula3.shilka pascal.shilka\
-                   gcc.shilka gcc.gperf c.gperf shilka.1 shilka.dsw shilka.dsp
+                   gcc.shilka gcc.gperf c.gperf shilka.1
 
 doc_files = shilka.txt shilka.info* shilka*.html shilka.pdf shilka.dvi shilka.ps
 

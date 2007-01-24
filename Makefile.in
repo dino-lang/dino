@@ -233,10 +233,6 @@ dist: doc
 	for i in $(directories) $(only_cocom_directories) $(RX);do\
 	  (cd $$i; $(MAKE) distdir=../$(distdir)/$$i dist-copy);\
 	done
-	mkdir $(distdir)/cocom
-	for i in cocom/cocom.c cocom/cocom.dsw cocom/cocom.dsp;do\
-	  cp $(srcdir)/$$i $(distdir)/cocom;\
-	done
 	chmod -R +w $(distdir)
 	tar cf -  $(distdir) | gzip -c >$(distdir).tar.gz
 # COCOM only end
@@ -253,11 +249,6 @@ distdino:
 	cp $(srcdir)/DINO-CHANGES $(distdinodir)/CHANGES
 	for i in $(directories) $(RX);do\
 	  (cd $$i; $(MAKE) distdir=../$(distdinodir)/$$i dist-copy);\
-	done
-	mkdir $(distdinodir)/dinolang
-	for i in dinolang/dinolang.c dinolang/dinolang.dsw\
-		 dinolang/dinolang.dsp;do\
-	  cp $(srcdir)/$$i $(distdinodir)/dinolang;\
 	done
 	chmod -R +w $(distdinodir)
 	$(SED) '/# COCOM only start/,/# COCOM only end/d'\
@@ -377,11 +368,4 @@ rcslabel:
 	for i in $(only_cocom_directories);do\
 	  (cd $$i; $(MAKE) rcslabel RCSLABEL=$(RCSLABEL));\
 	done
-	for i in cocom/cocom.c cocom/cocom.dsw cocom/cocom.dsp;do\
-	  rcs -n$(RCSLABEL) $$i;\
-	done
 # COCOM only end
-	for i in dinolang/dinolang.c dinolang/dinolang.dsw\
-		 dinolang/dinolang.dsp;do\
-	  rcs -n$(RCSLABEL) $$i;\
-	done

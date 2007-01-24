@@ -131,7 +131,7 @@ source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
 	 $(srcdir)/gen.h $(srcdir)/gen.c $(srcdir)/main.c $(srcdir)/ird.sprut\
          $(srcdir)/Makefile.in 
 
-additional_files = README INSTALL nona.1 a29k.nona nona.dsw nona.dsp
+additional_files = README INSTALL nona.1 a29k.nona
 
 doc_files = nona.txt nona.info* nona*.html nona.pdf nona.dvi nona.ps
 

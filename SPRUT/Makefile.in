@@ -147,7 +147,7 @@ source = $(srcdir)/sprut-ird.h $(srcdir)/sprut-ird.c $(srcdir)/common.h\
          $(srcdir)/sprut.tst $(srcdir)/Makefile.in
          
 additional_files = A_test.sprut A_syntax.sprut A_value.sprut A_base.sprut\
-	           README INSTALL sprut.1 sprut.dsw sprut.dsp
+	           README INSTALL sprut.1
 
 doc_files = sprut.txt sprut.info* sprut*.html sprut.pdf sprut.dvi sprut.ps
 

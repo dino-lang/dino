@@ -401,12 +401,6 @@ dist-copy: create-distdir doc IEEEtens.c
 	cp $(source) IEEEtens.c $(distdir)
 	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
 	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
-	for i in clibcocom/clibcocom.dsw clibcocom/clibcocom.dsp;do\
-	  cp $(srcdir)/$$i $(distdir)/clibcocom;\
-	done
-	for i in cpplibcocom/cpplibcocom.dsw cpplibcocom/cpplibcocom.dsp;do\
-	  cp $(srcdir)/$$i $(distdir)/cpplibcocom;\
-	done
 	chmod -R +w $(distdir)
 
 # Label RCS files.
@@ -415,12 +409,6 @@ rcslabel:
 	for i in $(source);do $(RCS) -n$(RCSLABEL) $$i;done
 	for i in $(additional_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
 	for i in $(additional_rcs_files);do $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;done
-	for i in clibcocom/clibcocom.dsw clibcocom/clibcocom.dsp;do\
-	  $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
-	done
-	for i in cpplibcocom/cpplibcocom.dsw cpplibcocom/cpplibcocom.dsp;do\
-	  $(RCS) -n$(RCSLABEL) $(srcdir)/$$i;\
-	done
 
 # Unconditional creation of compressed distribution tar file.
 dist: dist-copy

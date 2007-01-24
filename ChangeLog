@@ -1,5 +1,11 @@
 2007-01-24  Vladimir Makarov  <vmakarov@users.sf.net>
 
+	* Makefile.in, AMMUNITION/Makefile.in, MSTA/Makefile.in,
+	NONA/Makefile.in, OKA/Makefile.in, SHILKA/Makefile.in,
+	SPRUT/Makefile.in: Remove .dsp and .dsw files.
+
+2007-01-24  Vladimir Makarov  <vmakarov@users.sf.net>
+
 	* DINO/gmp.c, DINO/gmp.d: New files.
 
 2007-01-24  Vladimir Makarov  <vmakarov@users.sf.net>
