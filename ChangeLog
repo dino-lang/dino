@@ -1,4 +1,8 @@
-2007-01-24  Vladimir Makarov  <vmakarov@redhat.com>
+2007-01-24  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/gmp.c, DINO/gmp.d: New files.
+
+2007-01-24  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* CHANGES: WIN32 support is removed.
 	* DINO-README: Ditto.
@@ -210,11 +214,11 @@
 	* cocom/cocom.{c,dsp,dsw}: Ditto.
 	* dinolang/dinolang.{c,dsp,dsw}: Ditto.
 		
-2005-01-17  Vladimir Makarov  <vmakarov@redhat.com>
+2005-01-17  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* CHANGES: Major changes since the last release.
 
-2005-01-15  Vladimir N. Makarov  <vmakarov@redhat.com>
+2005-01-15  Vladimir N. Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/compare.tst.in: Missed file for commiting.
 
