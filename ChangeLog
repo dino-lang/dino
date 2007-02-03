@@ -1,3 +1,23 @@
+2007-02-02  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/dino.tst.in: New test for gmp.
+	* DINO/gmp.c: Add stdlib.h
+	(mpz_binary_op): Rename to mpz_three_op.
+	(mpz_two_op_ui, mpz_two_op, mpz_one_op_ui, return_float,
+	arithm_unary_op, op_ui, int_op_ui, _z_sub, _z_neg, _z_abs,
+	_z_tdiv_r, _z_pow_ui, _z_root, int_res_op, _z_cmp, _z_ior, _z_xor,
+	_z_and, _z_com, _z_set, _z_set_str, _z_get_d, _z_get_str,
+	_z_set_bit, _z_clr_bit, _z_tst_bit, _z_urandomm): New functions.
+	(mpz_address): Add the new _z functions.
+	* DINO/gmp.d (_z_sub, _z_neg, _z_abs, _z_tdiv_r, _z_pow_ui,
+	_z_root, _z_cmp, _z_ior, _z_xor, _z_and, _z_com, _z_set,
+	_z_set_str, _z_get_d, _z_get_str, _z_set_bit, _z_clr_bit,
+	_z_tst_bit, _z_urandomm): New external declarations.
+	(check_ui, set, set_str, get_f, get_str, set_bit, clr_bit,
+	tst_bit, sub, neg, abs, mul, mod, pow_ui, root, cmp, ior, xor,
+	and, com, rand): New functions.
+	(tdiv_q): Rename to div.
+
 2007-01-24  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* Makefile.in, AMMUNITION/Makefile.in, MSTA/Makefile.in,

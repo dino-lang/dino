@@ -33158,8 +33158,8 @@ func next_lft () {
 func extract_digit (x) {
   var xx = mpzs.mpz (x);
 
-  return mpzs.get_i (mpzs.tdiv_q (mpzs.add (mpzs.mul (z [0], xx), z [1]),
-				  mpzs.add (mpzs.mul (z [2], xx), z [3])));
+  return mpzs.get_i (mpzs.div (mpzs.add (mpzs.mul (z [0], xx), z [1]),
+			       mpzs.add (mpzs.mul (z [2], xx), z [3])));
 }
 
 func compose (z, w) {
@@ -34647,6 +34647,123 @@ OUTPUT578
                 fi
         else
                 result=fail
+        fi
+fi
+
+# Test 579.
+if test $result = ok -a $start_test_number -le 579; then
+	echo test 579: gmp package
+        cat >$test_file <<'TEST579'
+include "gmp";
+
+var gmp1 = mpzs.mpz(5);
+var gmp2 = mpzs.mpz(10);
+var gmp3 = mpzs.mpz(0);
+
+putln (mpzs.get_i (gmp1));
+putln (mpzs.get_f (gmp2));
+mpzs.set_str(gmp1, "10000000000000000000000000000000000000000000000");
+mpzs.set_str(gmp2, "5000000000000000000000000000000000000000000000");
+putln (mpzs.get_str (mpzs.add (gmp1, gmp2), 10));
+putln (mpzs.get_str (mpzs.sub (gmp1, gmp2), 10));
+putln (mpzs.get_str (mpzs.neg (gmp1), 10));
+putln (mpzs.get_str (mpzs.abs (mpzs.neg (gmp1)), 10));
+putln (mpzs.get_str (mpzs.mul (gmp1, gmp2), 10));
+putln (mpzs.get_str (mpzs.div (gmp1, gmp2), 10));
+putln (mpzs.get_str (mpzs.mod (gmp1, gmp2), 10));
+putln (mpzs.get_str (mpzs.mod (gmp2, gmp1), 10));
+putln (mpzs.get_str (mpzs.pow_ui (gmp2, 2), 10));
+putln (mpzs.get_str (mpzs.root (gmp1, 2), 10));
+putln (mpzs.cmp (gmp1, gmp2));
+putln (mpzs.cmp (gmp2, gmp1));
+putln (mpzs.get_str (gmp1, 8));
+putln (mpzs.get_str (gmp2, 8));
+putln (mpzs.get_str (mpzs.ior (gmp1, gmp2), 8));
+putln (mpzs.get_str (mpzs.xor (gmp1, gmp2), 8));
+putln (mpzs.get_str (mpzs.and (gmp1, gmp2), 8));
+putln (mpzs.get_str (mpzs.com (gmp1), 10));
+// putln (mpzs.get_str (mpzs.rand (gmp1, 1), 10));
+// putln (mpzs.get_str (mpzs.rand (gmp1, 0), 10));
+// putln (mpzs.get_str (mpzs.rand (gmp1, 0), 10));
+
+mpzs.set_bit (gmp1, 10);
+putln (mpzs.get_str (gmp1, 10));
+putln (mpzs.tst_bit (gmp1, 10));
+mpzs.clr_bit (gmp1, 10);
+putln (mpzs.get_str (gmp1, 10));
+TEST579
+        if uname | fgrep CYGWIN; then
+            echo '      ' $DINO -L./gmp.dll -I@srcdir@ $test_file "2>$stderr"
+	    if $DINO -Lgmp.dll -I@srcdir@ $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT579' && $CMP $stdout $ftemp2; then
+5
+10
+15000000000000000000000000000000000000000000000
+5000000000000000000000000000000000000000000000
+-10000000000000000000000000000000000000000000000
+10000000000000000000000000000000000000000000000
+50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+2
+0
+5000000000000000000000000000000000000000000000
+25000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+100000000000000000000000
+1
+-1
+0700324573052063614067325026200675322000000000000000
+0340152275425031706033552413100336551000000000000000
+0740376777477073716077777437300777773000000000000000
+0440276706477052112054677435300543673000000000000000
+0300100071000021604023100002000234100000000000000000
+-10000000000000000000000000000000000000000000001
+10000000000000000000000000000000000000000001024
+1
+10000000000000000000000000000000000000000000000
+OUTPUT579
+                        result=ok
+                else
+                        result=fail
+                fi
+	    else
+                result=fail
+	    fi
+	else
+            echo '      ' $DINO -L./gmp.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file "2>$stderr"
+	    if $DINO -L./gmp.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT579' && $CMP $stdout $ftemp2; then
+5
+10
+15000000000000000000000000000000000000000000000
+5000000000000000000000000000000000000000000000
+-10000000000000000000000000000000000000000000000
+10000000000000000000000000000000000000000000000
+50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+2
+0
+5000000000000000000000000000000000000000000000
+25000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+100000000000000000000000
+1
+-1
+0700324573052063614067325026200675322000000000000000
+0340152275425031706033552413100336551000000000000000
+0740376777477073716077777437300777773000000000000000
+0440276706477052112054677435300543673000000000000000
+0300100071000021604023100002000234100000000000000000
+-10000000000000000000000000000000000000000000001
+10000000000000000000000000000000000000000001024
+1
+10000000000000000000000000000000000000000000000
+OUTPUT579
+                        result=ok
+                else
+                        result=fail
+                fi
+	    else
+                result=fail
+	    fi
         fi
 fi
 
