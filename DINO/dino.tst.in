@@ -348,7 +348,7 @@ TEST10
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST10-1'; then
+        elif $SCMP $stderr - <<'TEST10-1'; then
 test.d:2:8: system error - invalid argument: `string-to-float conversion'
 TEST10-1
                 result=ok
@@ -29795,7 +29795,7 @@ TEST509
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST509-1'; then
+        elif $SCMP $stderr - <<'TEST509-1'; then
 test.d:1:7: statement return is not in function, class, or extension
 TEST509-1
                 result=ok
@@ -29815,7 +29815,7 @@ TEST510
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST510-1'; then
+        elif $SCMP $stderr - <<'TEST510-1'; then
 test.d:3:3: run time error - attempt to modify immutable vector
 TEST510-1
                 result=ok
@@ -29833,8 +29833,6 @@ putf ("%d\n", 10);
 putf ("%o\n", 10);
 putf ("%x\n", 10);
 putf ("%X\n", 10);
-putf ("%a\n", 10.5);
-putf ("%A\n", 10.5);
 putf ("%e\n", 10.5);
 putf ("%E\n", 10.5);
 putf ("%f\n", 10.5);
@@ -29848,8 +29846,6 @@ putf ("%15d\n", 10);
 putf ("%15o\n", 10);
 putf ("%15x\n", 10);
 putf ("%15X\n", 10);
-putf ("%15a\n", 10.5);
-putf ("%15A\n", 10.5);
 putf ("%15e\n", 10.5);
 putf ("%15E\n", 10.5);
 putf ("%15f\n", 10.5);
@@ -29863,8 +29859,6 @@ putf ("%-15d\n", 10);
 putf ("%-15o\n", 10);
 putf ("%-15x\n", 10);
 putf ("%-15X\n", 10);
-putf ("%-15a\n", 10.5);
-putf ("%-15A\n", 10.5);
 putf ("%-15e\n", 10.5);
 putf ("%-15E\n", 10.5);
 putf ("%-15f\n", 10.5);
@@ -29877,8 +29871,6 @@ putf ("%-15s\n", "Abracadabra");
 putf ("%#o\n", 10);
 putf ("%#x\n", 10);
 putf ("%#X\n", 10);
-putf ("%#a\n", 10.5);
-putf ("%#A\n", 10.5);
 putf ("%#e\n", 10.5);
 putf ("%#E\n", 10.5);
 putf ("%#f\n", 10.5);
@@ -29890,8 +29882,6 @@ putf ("%015d\n", 10);
 putf ("%015o\n", 10);
 putf ("%015x\n", 10);
 putf ("%015X\n", 10);
-putf ("%015a\n", 10.5);
-putf ("%015A\n", 10.5);
 putf ("%015e\n", 10.5);
 putf ("%015E\n", 10.5);
 putf ("%015f\n", 10.5);
@@ -29900,8 +29890,6 @@ putf ("%015g\n", 10.5);
 putf ("%015G\n", 10.5);
 // flag <blank>
 putf ("% 15d\n", 10);
-putf ("% 15a\n", 10.5);
-putf ("% 15A\n", 10.5);
 putf ("% 15e\n", 10.5);
 putf ("% 15E\n", 10.5);
 putf ("% 15f\n", 10.5);
@@ -29910,8 +29898,6 @@ putf ("% 15g\n", 10.5);
 putf ("% 15G\n", 10.5);
 // flag +
 putf ("%+15d\n", 10);
-putf ("%+15a\n", 10.5);
-putf ("%+15A\n", 10.5);
 putf ("%+15e\n", 10.5);
 putf ("%+15E\n", 10.5);
 putf ("%+15f\n", 10.5);
@@ -29920,8 +29906,6 @@ putf ("%+15g\n", 10.5);
 putf ("%+15G\n", 10.5);
 // flag + and <blank> -> ignore blank
 putf ("%+ 15d\n", 10);
-putf ("%+ 15a\n", 10.5);
-putf ("%+ 15A\n", 10.5);
 putf ("%+ 15e\n", 10.5);
 putf ("%+ 15E\n", 10.5);
 putf ("%+ 15f\n", 10.5);
@@ -29933,8 +29917,6 @@ putf ("%-015d\n", 10);
 putf ("%-015o\n", 10);
 putf ("%-015x\n", 10);
 putf ("%-015X\n", 10);
-putf ("%-015a\n", 10.5);
-putf ("%-015A\n", 10.5);
 putf ("%-015e\n", 10.5);
 putf ("%-015E\n", 10.5);
 putf ("%-015f\n", 10.5);
@@ -29946,8 +29928,6 @@ putf ("%*d\n", 15, 10);
 putf ("%*o\n", 15, 10);
 putf ("%*x\n", 15, 10);
 putf ("%*X\n", 15, 10);
-putf ("%*a\n", 15, 10.5);
-putf ("%*A\n", 15, 10.5);
 putf ("%*e\n", 15, 10.5);
 putf ("%*E\n", 15, 10.5);
 putf ("%*f\n", 15, 10.5);
@@ -29961,8 +29941,6 @@ putf ("%*d\n", -15, 10);
 putf ("%*o\n", -15, 10);
 putf ("%*x\n", -15, 10);
 putf ("%*X\n", -15, 10);
-putf ("%*a\n", -15, 10.5);
-putf ("%*A\n", -15, 10.5);
 putf ("%*e\n", -15, 10.5);
 putf ("%*E\n", -15, 10.5);
 putf ("%*f\n", -15, 10.5);
@@ -29976,8 +29954,6 @@ putf ("%*d\n", 0, 10);
 putf ("%*o\n", 0, 10);
 putf ("%*x\n", 0, 10);
 putf ("%*X\n", 0, 10);
-putf ("%*a\n", 0, 10.5);
-putf ("%*A\n", 0, 10.5);
 putf ("%*e\n", 0, 10.5);
 putf ("%*E\n", 0, 10.5);
 putf ("%*f\n", 0, 10.5);
@@ -29991,8 +29967,6 @@ putf ("%.0d\n", 10);
 putf ("%.0o\n", 10);
 putf ("%.0x\n", 10);
 putf ("%.0X\n", 10);
-putf ("%.0a\n", 10.5);
-putf ("%.0A\n", 10.5);
 putf ("%.0e\n", 10.5);
 putf ("%.0E\n", 10.5);
 putf ("%.0f\n", 10.5);
@@ -30005,8 +29979,6 @@ putf ("%.d\n", 10);
 putf ("%.o\n", 10);
 putf ("%.x\n", 10);
 putf ("%.X\n", 10);
-putf ("%.a\n", 10.5);
-putf ("%.A\n", 10.5);
 putf ("%.e\n", 10.5);
 putf ("%.E\n", 10.5);
 putf ("%.f\n", 10.5);
@@ -30028,8 +30000,6 @@ putf ("%.10d\n", 10);
 putf ("%.10o\n", 10);
 putf ("%.10x\n", 10);
 putf ("%.10X\n", 10);
-putf ("%.10a\n", 10.5);
-putf ("%.10A\n", 10.5);
 putf ("%.10e\n", 10.5);
 putf ("%.10E\n", 10.5);
 putf ("%.10f\n", 10.5);
@@ -30042,8 +30012,6 @@ putf ("%.*d\n", 10, 10);
 putf ("%.*o\n", 10, 10);
 putf ("%.*x\n", 10, 10);
 putf ("%.*X\n", 10, 10);
-putf ("%.*a\n", 10, 10.5);
-putf ("%.*A\n", 10, 10.5);
 putf ("%.*e\n", 10, 10.5);
 putf ("%.*E\n", 10, 10.5);
 putf ("%.*f\n", 10, 10.5);
@@ -30056,8 +30024,6 @@ putf ("%.*d\n", -10, 10);
 putf ("%.*o\n", -10, 10);
 putf ("%.*x\n", -10, 10);
 putf ("%.*X\n", -10, 10);
-putf ("%.*a\n", -10, 10.5);
-putf ("%.*A\n", -10, 10.5);
 putf ("%.*e\n", -10, 10.5);
 putf ("%.*E\n", -10, 10.5);
 putf ("%.*f\n", -10, 10.5);
@@ -30079,8 +30045,6 @@ fputf (stdout, "%d\n", 10);
 fputf (stdout, "%o\n", 10);
 fputf (stdout, "%x\n", 10);
 fputf (stdout, "%X\n", 10);
-fputf (stdout, "%a\n", 10.5);
-fputf (stdout, "%A\n", 10.5);
 fputf (stdout, "%e\n", 10.5);
 fputf (stdout, "%E\n", 10.5);
 fputf (stdout, "%f\n", 10.5);
@@ -30094,8 +30058,6 @@ fputf (stdout, "%15d\n", 10);
 fputf (stdout, "%15o\n", 10);
 fputf (stdout, "%15x\n", 10);
 fputf (stdout, "%15X\n", 10);
-fputf (stdout, "%15a\n", 10.5);
-fputf (stdout, "%15A\n", 10.5);
 fputf (stdout, "%15e\n", 10.5);
 fputf (stdout, "%15E\n", 10.5);
 fputf (stdout, "%15f\n", 10.5);
@@ -30109,8 +30071,6 @@ fputf (stdout, "%-15d\n", 10);
 fputf (stdout, "%-15o\n", 10);
 fputf (stdout, "%-15x\n", 10);
 fputf (stdout, "%-15X\n", 10);
-fputf (stdout, "%-15a\n", 10.5);
-fputf (stdout, "%-15A\n", 10.5);
 fputf (stdout, "%-15e\n", 10.5);
 fputf (stdout, "%-15E\n", 10.5);
 fputf (stdout, "%-15f\n", 10.5);
@@ -30123,8 +30083,6 @@ fputf (stdout, "%-15s\n", "Abracadabra");
 fputf (stdout, "%#o\n", 10);
 fputf (stdout, "%#x\n", 10);
 fputf (stdout, "%#X\n", 10);
-fputf (stdout, "%#a\n", 10.5);
-fputf (stdout, "%#A\n", 10.5);
 fputf (stdout, "%#e\n", 10.5);
 fputf (stdout, "%#E\n", 10.5);
 fputf (stdout, "%#f\n", 10.5);
@@ -30136,8 +30094,6 @@ fputf (stdout, "%015d\n", 10);
 fputf (stdout, "%015o\n", 10);
 fputf (stdout, "%015x\n", 10);
 fputf (stdout, "%015X\n", 10);
-fputf (stdout, "%015a\n", 10.5);
-fputf (stdout, "%015A\n", 10.5);
 fputf (stdout, "%015e\n", 10.5);
 fputf (stdout, "%015E\n", 10.5);
 fputf (stdout, "%015f\n", 10.5);
@@ -30146,8 +30102,6 @@ fputf (stdout, "%015g\n", 10.5);
 fputf (stdout, "%015G\n", 10.5);
 // flag <blank>
 fputf (stdout, "% 15d\n", 10);
-fputf (stdout, "% 15a\n", 10.5);
-fputf (stdout, "% 15A\n", 10.5);
 fputf (stdout, "% 15e\n", 10.5);
 fputf (stdout, "% 15E\n", 10.5);
 fputf (stdout, "% 15f\n", 10.5);
@@ -30156,8 +30110,6 @@ fputf (stdout, "% 15g\n", 10.5);
 fputf (stdout, "% 15G\n", 10.5);
 // flag +
 fputf (stdout, "%+15d\n", 10);
-fputf (stdout, "%+15a\n", 10.5);
-fputf (stdout, "%+15A\n", 10.5);
 fputf (stdout, "%+15e\n", 10.5);
 fputf (stdout, "%+15E\n", 10.5);
 fputf (stdout, "%+15f\n", 10.5);
@@ -30166,8 +30118,6 @@ fputf (stdout, "%+15g\n", 10.5);
 fputf (stdout, "%+15G\n", 10.5);
 // flag + and <blank> -> ignore blank
 fputf (stdout, "%+ 15d\n", 10);
-fputf (stdout, "%+ 15a\n", 10.5);
-fputf (stdout, "%+ 15A\n", 10.5);
 fputf (stdout, "%+ 15e\n", 10.5);
 fputf (stdout, "%+ 15E\n", 10.5);
 fputf (stdout, "%+ 15f\n", 10.5);
@@ -30179,8 +30129,6 @@ fputf (stdout, "%-015d\n", 10);
 fputf (stdout, "%-015o\n", 10);
 fputf (stdout, "%-015x\n", 10);
 fputf (stdout, "%-015X\n", 10);
-fputf (stdout, "%-015a\n", 10.5);
-fputf (stdout, "%-015A\n", 10.5);
 fputf (stdout, "%-015e\n", 10.5);
 fputf (stdout, "%-015E\n", 10.5);
 fputf (stdout, "%-015f\n", 10.5);
@@ -30192,8 +30140,6 @@ fputf (stdout, "%*d\n", 15, 10);
 fputf (stdout, "%*o\n", 15, 10);
 fputf (stdout, "%*x\n", 15, 10);
 fputf (stdout, "%*X\n", 15, 10);
-fputf (stdout, "%*a\n", 15, 10.5);
-fputf (stdout, "%*A\n", 15, 10.5);
 fputf (stdout, "%*e\n", 15, 10.5);
 fputf (stdout, "%*E\n", 15, 10.5);
 fputf (stdout, "%*f\n", 15, 10.5);
@@ -30207,8 +30153,6 @@ fputf (stdout, "%*d\n", -15, 10);
 fputf (stdout, "%*o\n", -15, 10);
 fputf (stdout, "%*x\n", -15, 10);
 fputf (stdout, "%*X\n", -15, 10);
-fputf (stdout, "%*a\n", -15, 10.5);
-fputf (stdout, "%*A\n", -15, 10.5);
 fputf (stdout, "%*e\n", -15, 10.5);
 fputf (stdout, "%*E\n", -15, 10.5);
 fputf (stdout, "%*f\n", -15, 10.5);
@@ -30222,8 +30166,6 @@ fputf (stdout, "%*d\n", 0, 10);
 fputf (stdout, "%*o\n", 0, 10);
 fputf (stdout, "%*x\n", 0, 10);
 fputf (stdout, "%*X\n", 0, 10);
-fputf (stdout, "%*a\n", 0, 10.5);
-fputf (stdout, "%*A\n", 0, 10.5);
 fputf (stdout, "%*e\n", 0, 10.5);
 fputf (stdout, "%*E\n", 0, 10.5);
 fputf (stdout, "%*f\n", 0, 10.5);
@@ -30237,8 +30179,6 @@ fputf (stdout, "%.0d\n", 10);
 fputf (stdout, "%.0o\n", 10);
 fputf (stdout, "%.0x\n", 10);
 fputf (stdout, "%.0X\n", 10);
-fputf (stdout, "%.0a\n", 10.5);
-fputf (stdout, "%.0A\n", 10.5);
 fputf (stdout, "%.0e\n", 10.5);
 fputf (stdout, "%.0E\n", 10.5);
 fputf (stdout, "%.0f\n", 10.5);
@@ -30251,8 +30191,6 @@ fputf (stdout, "%.d\n", 10);
 fputf (stdout, "%.o\n", 10);
 fputf (stdout, "%.x\n", 10);
 fputf (stdout, "%.X\n", 10);
-fputf (stdout, "%.a\n", 10.5);
-fputf (stdout, "%.A\n", 10.5);
 fputf (stdout, "%.e\n", 10.5);
 fputf (stdout, "%.E\n", 10.5);
 fputf (stdout, "%.f\n", 10.5);
@@ -30274,8 +30212,6 @@ fputf (stdout, "%.10d\n", 10);
 fputf (stdout, "%.10o\n", 10);
 fputf (stdout, "%.10x\n", 10);
 fputf (stdout, "%.10X\n", 10);
-fputf (stdout, "%.10a\n", 10.5);
-fputf (stdout, "%.10A\n", 10.5);
 fputf (stdout, "%.10e\n", 10.5);
 fputf (stdout, "%.10E\n", 10.5);
 fputf (stdout, "%.10f\n", 10.5);
@@ -30288,8 +30224,6 @@ fputf (stdout, "%.*d\n", 10, 10);
 fputf (stdout, "%.*o\n", 10, 10);
 fputf (stdout, "%.*x\n", 10, 10);
 fputf (stdout, "%.*X\n", 10, 10);
-fputf (stdout, "%.*a\n", 10, 10.5);
-fputf (stdout, "%.*A\n", 10, 10.5);
 fputf (stdout, "%.*e\n", 10, 10.5);
 fputf (stdout, "%.*E\n", 10, 10.5);
 fputf (stdout, "%.*f\n", 10, 10.5);
@@ -30302,8 +30236,6 @@ fputf (stdout, "%.*d\n", -10, 10);
 fputf (stdout, "%.*o\n", -10, 10);
 fputf (stdout, "%.*x\n", -10, 10);
 fputf (stdout, "%.*X\n", -10, 10);
-fputf (stdout, "%.*a\n", -10, 10.5);
-fputf (stdout, "%.*A\n", -10, 10.5);
 fputf (stdout, "%.*e\n", -10, 10.5);
 fputf (stdout, "%.*E\n", -10, 10.5);
 fputf (stdout, "%.*f\n", -10, 10.5);
@@ -30325,8 +30257,6 @@ put (sputf ("%d\n", 10));
 put (sputf ("%o\n", 10));
 put (sputf ("%x\n", 10));
 put (sputf ("%X\n", 10));
-put (sputf ("%a\n", 10.5));
-put (sputf ("%A\n", 10.5));
 put (sputf ("%e\n", 10.5));
 put (sputf ("%E\n", 10.5));
 put (sputf ("%f\n", 10.5));
@@ -30340,8 +30270,6 @@ put (sputf ("%15d\n", 10));
 put (sputf ("%15o\n", 10));
 put (sputf ("%15x\n", 10));
 put (sputf ("%15X\n", 10));
-put (sputf ("%15a\n", 10.5));
-put (sputf ("%15A\n", 10.5));
 put (sputf ("%15e\n", 10.5));
 put (sputf ("%15E\n", 10.5));
 put (sputf ("%15f\n", 10.5));
@@ -30355,8 +30283,6 @@ put (sputf ("%-15d\n", 10));
 put (sputf ("%-15o\n", 10));
 put (sputf ("%-15x\n", 10));
 put (sputf ("%-15X\n", 10));
-put (sputf ("%-15a\n", 10.5));
-put (sputf ("%-15A\n", 10.5));
 put (sputf ("%-15e\n", 10.5));
 put (sputf ("%-15E\n", 10.5));
 put (sputf ("%-15f\n", 10.5));
@@ -30369,8 +30295,6 @@ put (sputf ("%-15s\n", "Abracadabra"));
 put (sputf ("%#o\n", 10));
 put (sputf ("%#x\n", 10));
 put (sputf ("%#X\n", 10));
-put (sputf ("%#a\n", 10.5));
-put (sputf ("%#A\n", 10.5));
 put (sputf ("%#e\n", 10.5));
 put (sputf ("%#E\n", 10.5));
 put (sputf ("%#f\n", 10.5));
@@ -30382,8 +30306,6 @@ put (sputf ("%015d\n", 10));
 put (sputf ("%015o\n", 10));
 put (sputf ("%015x\n", 10));
 put (sputf ("%015X\n", 10));
-put (sputf ("%015a\n", 10.5));
-put (sputf ("%015A\n", 10.5));
 put (sputf ("%015e\n", 10.5));
 put (sputf ("%015E\n", 10.5));
 put (sputf ("%015f\n", 10.5));
@@ -30392,8 +30314,6 @@ put (sputf ("%015g\n", 10.5));
 put (sputf ("%015G\n", 10.5));
 // flag <blank>
 put (sputf ("% 15d\n", 10));
-put (sputf ("% 15a\n", 10.5));
-put (sputf ("% 15A\n", 10.5));
 put (sputf ("% 15e\n", 10.5));
 put (sputf ("% 15E\n", 10.5));
 put (sputf ("% 15f\n", 10.5));
@@ -30402,8 +30322,6 @@ put (sputf ("% 15g\n", 10.5));
 put (sputf ("% 15G\n", 10.5));
 // flag +
 put (sputf ("%+15d\n", 10));
-put (sputf ("%+15a\n", 10.5));
-put (sputf ("%+15A\n", 10.5));
 put (sputf ("%+15e\n", 10.5));
 put (sputf ("%+15E\n", 10.5));
 put (sputf ("%+15f\n", 10.5));
@@ -30412,8 +30330,6 @@ put (sputf ("%+15g\n", 10.5));
 put (sputf ("%+15G\n", 10.5));
 // flag + and <blank> -> ignore blank
 put (sputf ("%+ 15d\n", 10));
-put (sputf ("%+ 15a\n", 10.5));
-put (sputf ("%+ 15A\n", 10.5));
 put (sputf ("%+ 15e\n", 10.5));
 put (sputf ("%+ 15E\n", 10.5));
 put (sputf ("%+ 15f\n", 10.5));
@@ -30425,8 +30341,6 @@ put (sputf ("%-015d\n", 10));
 put (sputf ("%-015o\n", 10));
 put (sputf ("%-015x\n", 10));
 put (sputf ("%-015X\n", 10));
-put (sputf ("%-015a\n", 10.5));
-put (sputf ("%-015A\n", 10.5));
 put (sputf ("%-015e\n", 10.5));
 put (sputf ("%-015E\n", 10.5));
 put (sputf ("%-015f\n", 10.5));
@@ -30438,8 +30352,6 @@ put (sputf ("%*d\n", 15, 10));
 put (sputf ("%*o\n", 15, 10));
 put (sputf ("%*x\n", 15, 10));
 put (sputf ("%*X\n", 15, 10));
-put (sputf ("%*a\n", 15, 10.5));
-put (sputf ("%*A\n", 15, 10.5));
 put (sputf ("%*e\n", 15, 10.5));
 put (sputf ("%*E\n", 15, 10.5));
 put (sputf ("%*f\n", 15, 10.5));
@@ -30453,8 +30365,6 @@ put (sputf ("%*d\n", -15, 10));
 put (sputf ("%*o\n", -15, 10));
 put (sputf ("%*x\n", -15, 10));
 put (sputf ("%*X\n", -15, 10));
-put (sputf ("%*a\n", -15, 10.5));
-put (sputf ("%*A\n", -15, 10.5));
 put (sputf ("%*e\n", -15, 10.5));
 put (sputf ("%*E\n", -15, 10.5));
 put (sputf ("%*f\n", -15, 10.5));
@@ -30468,8 +30378,6 @@ put (sputf ("%*d\n", 0, 10));
 put (sputf ("%*o\n", 0, 10));
 put (sputf ("%*x\n", 0, 10));
 put (sputf ("%*X\n", 0, 10));
-put (sputf ("%*a\n", 0, 10.5));
-put (sputf ("%*A\n", 0, 10.5));
 put (sputf ("%*e\n", 0, 10.5));
 put (sputf ("%*E\n", 0, 10.5));
 put (sputf ("%*f\n", 0, 10.5));
@@ -30483,8 +30391,6 @@ put (sputf ("%.0d\n", 10));
 put (sputf ("%.0o\n", 10));
 put (sputf ("%.0x\n", 10));
 put (sputf ("%.0X\n", 10));
-put (sputf ("%.0a\n", 10.5));
-put (sputf ("%.0A\n", 10.5));
 put (sputf ("%.0e\n", 10.5));
 put (sputf ("%.0E\n", 10.5));
 put (sputf ("%.0f\n", 10.5));
@@ -30497,8 +30403,6 @@ put (sputf ("%.d\n", 10));
 put (sputf ("%.o\n", 10));
 put (sputf ("%.x\n", 10));
 put (sputf ("%.X\n", 10));
-put (sputf ("%.a\n", 10.5));
-put (sputf ("%.A\n", 10.5));
 put (sputf ("%.e\n", 10.5));
 put (sputf ("%.E\n", 10.5));
 put (sputf ("%.f\n", 10.5));
@@ -30520,8 +30424,6 @@ put (sputf ("%.10d\n", 10));
 put (sputf ("%.10o\n", 10));
 put (sputf ("%.10x\n", 10));
 put (sputf ("%.10X\n", 10));
-put (sputf ("%.10a\n", 10.5));
-put (sputf ("%.10A\n", 10.5));
 put (sputf ("%.10e\n", 10.5));
 put (sputf ("%.10E\n", 10.5));
 put (sputf ("%.10f\n", 10.5));
@@ -30534,8 +30436,6 @@ put (sputf ("%.*d\n", 10, 10));
 put (sputf ("%.*o\n", 10, 10));
 put (sputf ("%.*x\n", 10, 10));
 put (sputf ("%.*X\n", 10, 10));
-put (sputf ("%.*a\n", 10, 10.5));
-put (sputf ("%.*A\n", 10, 10.5));
 put (sputf ("%.*e\n", 10, 10.5));
 put (sputf ("%.*E\n", 10, 10.5));
 put (sputf ("%.*f\n", 10, 10.5));
@@ -30548,8 +30448,6 @@ put (sputf ("%.*d\n", -10, 10));
 put (sputf ("%.*o\n", -10, 10));
 put (sputf ("%.*x\n", -10, 10));
 put (sputf ("%.*X\n", -10, 10));
-put (sputf ("%.*a\n", -10, 10.5));
-put (sputf ("%.*A\n", -10, 10.5));
 put (sputf ("%.*e\n", -10, 10.5));
 put (sputf ("%.*E\n", -10, 10.5));
 put (sputf ("%.*f\n", -10, 10.5));
@@ -30575,8 +30473,6 @@ TEST511
 12
 a
 A
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -30589,8 +30485,6 @@ Abracadabra
              12
               a
               A
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -30603,8 +30497,6 @@ Abracadabra
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -30616,8 +30508,6 @@ Abracadabra
 012
 0xa
 0XA
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -30628,8 +30518,6 @@ Abracadabra
 000000000000012
 00000000000000a
 00000000000000A
-0x00000001.5p+3
-0X00000001.5P+3
 0001.050000e+01
 0001.050000E+01
 00000010.500000
@@ -30637,8 +30525,6 @@ Abracadabra
 0000000000010.5
 0000000000010.5
              10
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -30646,8 +30532,6 @@ Abracadabra
            10.5
            10.5
             +10
-      +0x1.5p+3
-      +0X1.5P+3
   +1.050000e+01
   +1.050000E+01
      +10.500000
@@ -30655,8 +30539,6 @@ Abracadabra
           +10.5
           +10.5
             +10
-      +0x1.5p+3
-      +0X1.5P+3
   +1.050000e+01
   +1.050000E+01
      +10.500000
@@ -30667,8 +30549,6 @@ Abracadabra
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -30679,8 +30559,6 @@ A
              12
               a
               A
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -30693,8 +30571,6 @@ A
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -30707,8 +30583,6 @@ Abracadabra
 12
 a
 A
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -30721,8 +30595,6 @@ Abracadabra
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -30734,8 +30606,6 @@ A
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -30755,8 +30625,6 @@ A
 0000000012
 000000000a
 000000000A
-0x1.5000000000p+3
-0X1.5000000000P+3
 1.0500000000e+01
 1.0500000000E+01
 10.5000000000
@@ -30768,8 +30636,6 @@ Abracadabr
 0000000012
 000000000a
 000000000A
-0x1.5000000000p+3
-0X1.5000000000P+3
 1.0500000000e+01
 1.0500000000E+01
 10.5000000000
@@ -30781,8 +30647,6 @@ Abracadabr
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -30799,8 +30663,6 @@ A
 12
 a
 A
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -30813,8 +30675,6 @@ Abracadabra
              12
               a
               A
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -30827,8 +30687,6 @@ Abracadabra
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -30840,8 +30698,6 @@ Abracadabra
 012
 0xa
 0XA
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -30852,8 +30708,6 @@ Abracadabra
 000000000000012
 00000000000000a
 00000000000000A
-0x00000001.5p+3
-0X00000001.5P+3
 0001.050000e+01
 0001.050000E+01
 00000010.500000
@@ -30861,8 +30715,6 @@ Abracadabra
 0000000000010.5
 0000000000010.5
              10
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -30870,8 +30722,6 @@ Abracadabra
            10.5
            10.5
             +10
-      +0x1.5p+3
-      +0X1.5P+3
   +1.050000e+01
   +1.050000E+01
      +10.500000
@@ -30879,8 +30729,6 @@ Abracadabra
           +10.5
           +10.5
             +10
-      +0x1.5p+3
-      +0X1.5P+3
   +1.050000e+01
   +1.050000E+01
      +10.500000
@@ -30891,8 +30739,6 @@ Abracadabra
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -30903,8 +30749,6 @@ A
              12
               a
               A
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -30917,8 +30761,6 @@ A
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -30931,8 +30773,6 @@ Abracadabra
 12
 a
 A
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -30945,8 +30785,6 @@ Abracadabra
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -30958,8 +30796,6 @@ A
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -30979,8 +30815,6 @@ A
 0000000012
 000000000a
 000000000A
-0x1.5000000000p+3
-0X1.5000000000P+3
 1.0500000000e+01
 1.0500000000E+01
 10.5000000000
@@ -30992,8 +30826,6 @@ Abracadabr
 0000000012
 000000000a
 000000000A
-0x1.5000000000p+3
-0X1.5000000000P+3
 1.0500000000e+01
 1.0500000000E+01
 10.5000000000
@@ -31005,8 +30837,6 @@ Abracadabr
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -31023,8 +30853,6 @@ A
 12
 a
 A
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -31037,8 +30865,6 @@ Abracadabra
              12
               a
               A
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -31051,8 +30877,6 @@ Abracadabra
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -31064,8 +30888,6 @@ Abracadabra
 012
 0xa
 0XA
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -31076,8 +30898,6 @@ Abracadabra
 000000000000012
 00000000000000a
 00000000000000A
-0x00000001.5p+3
-0X00000001.5P+3
 0001.050000e+01
 0001.050000E+01
 00000010.500000
@@ -31085,8 +30905,6 @@ Abracadabra
 0000000000010.5
 0000000000010.5
              10
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -31094,8 +30912,6 @@ Abracadabra
            10.5
            10.5
             +10
-      +0x1.5p+3
-      +0X1.5P+3
   +1.050000e+01
   +1.050000E+01
      +10.500000
@@ -31103,8 +30919,6 @@ Abracadabra
           +10.5
           +10.5
             +10
-      +0x1.5p+3
-      +0X1.5P+3
   +1.050000e+01
   +1.050000E+01
      +10.500000
@@ -31115,8 +30929,6 @@ Abracadabra
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -31127,8 +30939,6 @@ A
              12
               a
               A
-       0x1.5p+3
-       0X1.5P+3
    1.050000e+01
    1.050000E+01
       10.500000
@@ -31141,8 +30951,6 @@ A
 12             
 a              
 A              
-0x1.5p+3       
-0X1.5P+3       
 1.050000e+01   
 1.050000E+01   
 10.500000      
@@ -31155,8 +30963,6 @@ Abracadabra
 12
 a
 A
-0x1.5p+3
-0X1.5P+3
 1.050000e+01
 1.050000E+01
 10.500000
@@ -31169,8 +30975,6 @@ Abracadabra
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -31182,8 +30986,6 @@ A
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -31203,8 +31005,6 @@ A
 0000000012
 000000000a
 000000000A
-0x1.5000000000p+3
-0X1.5000000000P+3
 1.0500000000e+01
 1.0500000000E+01
 10.5000000000
@@ -31216,8 +31016,6 @@ Abracadabr
 0000000012
 000000000a
 000000000A
-0x1.5000000000p+3
-0X1.5000000000P+3
 1.0500000000e+01
 1.0500000000E+01
 10.5000000000
@@ -31229,8 +31027,6 @@ Abracadabr
 12
 a
 A
-0x1p+3
-0X1P+3
 1e+01
 1E+01
 10
@@ -31245,6 +31041,580 @@ A
 %
 stop
 OUTPUT511
+                        result=ok
+                elif cat >$ftemp2 <<'OUTPUT511-1' && $CMP $stdout $ftemp2; then
+10
+12
+a
+A
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5
+10.5
+z
+Abracadabra
+             10
+             12
+              a
+              A
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+z              
+Abracadabra    
+012
+0xa
+0XA
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5000
+10.5000
+000000000000010
+000000000000012
+00000000000000a
+00000000000000A
+0001.050000e+01
+0001.050000E+01
+00000010.500000
+00001.05000F+01
+0000000000010.5
+0000000000010.5
+             10
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+            +10
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+   +1.05000F+01
+          +10.5
+          +10.5
+            +10
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+   +1.05000F+01
+          +10.5
+          +10.5
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+             10
+             12
+              a
+              A
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+z              
+Abracadabra    
+10
+12
+a
+A
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5
+10.5
+z
+Abracadabra
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+   10
+   12
+    a
+    A
+   10
+   12
+    a
+    A
+0000000010
+0000000012
+000000000a
+000000000A
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+1.050000000F+01
+10.5
+10.5
+Abracadabr
+0000000010
+0000000012
+000000000a
+000000000A
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+1.050000000F+01
+10.5
+10.5
+Abracadabr
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+
+
+
+
+%
+10
+12
+a
+A
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5
+10.5
+z
+Abracadabra
+             10
+             12
+              a
+              A
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+z              
+Abracadabra    
+012
+0xa
+0XA
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5000
+10.5000
+000000000000010
+000000000000012
+00000000000000a
+00000000000000A
+0001.050000e+01
+0001.050000E+01
+00000010.500000
+00001.05000F+01
+0000000000010.5
+0000000000010.5
+             10
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+            +10
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+   +1.05000F+01
+          +10.5
+          +10.5
+            +10
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+   +1.05000F+01
+          +10.5
+          +10.5
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+             10
+             12
+              a
+              A
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+z              
+Abracadabra    
+10
+12
+a
+A
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5
+10.5
+z
+Abracadabra
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+   10
+   12
+    a
+    A
+   10
+   12
+    a
+    A
+0000000010
+0000000012
+000000000a
+000000000A
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+1.050000000F+01
+10.5
+10.5
+Abracadabr
+0000000010
+0000000012
+000000000a
+000000000A
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+1.050000000F+01
+10.5
+10.5
+Abracadabr
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+
+
+
+
+%
+10
+12
+a
+A
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5
+10.5
+z
+Abracadabra
+             10
+             12
+              a
+              A
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+z              
+Abracadabra    
+012
+0xa
+0XA
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5000
+10.5000
+000000000000010
+000000000000012
+00000000000000a
+00000000000000A
+0001.050000e+01
+0001.050000E+01
+00000010.500000
+00001.05000F+01
+0000000000010.5
+0000000000010.5
+             10
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+            +10
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+   +1.05000F+01
+          +10.5
+          +10.5
+            +10
+  +1.050000e+01
+  +1.050000E+01
+     +10.500000
+   +1.05000F+01
+          +10.5
+          +10.5
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+             10
+             12
+              a
+              A
+   1.050000e+01
+   1.050000E+01
+      10.500000
+    1.05000F+01
+           10.5
+           10.5
+              z
+    Abracadabra
+10             
+12             
+a              
+A              
+1.050000e+01   
+1.050000E+01   
+10.500000      
+1.05000F+01    
+10.5           
+10.5           
+z              
+Abracadabra    
+10
+12
+a
+A
+1.050000e+01
+1.050000E+01
+10.500000
+1.05000F+01
+10.5
+10.5
+z
+Abracadabra
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+   10
+   12
+    a
+    A
+   10
+   12
+    a
+    A
+0000000010
+0000000012
+000000000a
+000000000A
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+1.050000000F+01
+10.5
+10.5
+Abracadabr
+0000000010
+0000000012
+000000000a
+000000000A
+1.0500000000e+01
+1.0500000000E+01
+10.5000000000
+1.050000000F+01
+10.5
+10.5
+Abracadabr
+10
+12
+a
+A
+1e+01
+1E+01
+10
+1F+01
+1e+01
+1E+01
+
+
+
+
+
+%
+stop
+OUTPUT511-1
                         result=ok
                 else
                         result=fail
@@ -31263,7 +31633,7 @@ TEST512
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST512-1'; then
+        elif $SCMP $stderr - <<'TEST512-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST512-1
                 result=ok
@@ -31281,7 +31651,7 @@ TEST513
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST513-1'; then
+        elif $SCMP $stderr - <<'TEST513-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST513-1
                 result=ok
@@ -31299,7 +31669,7 @@ TEST514
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST514-1'; then
+        elif $SCMP $stderr - <<'TEST514-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST514-1
                 result=ok
@@ -31317,7 +31687,7 @@ TEST515
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST515-1'; then
+        elif $SCMP $stderr - <<'TEST515-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST515-1
                 result=ok
@@ -31335,7 +31705,7 @@ TEST516
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST516-1'; then
+        elif $SCMP $stderr - <<'TEST516-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST516-1
                 result=ok
@@ -31353,7 +31723,7 @@ TEST517
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST517-1'; then
+        elif $SCMP $stderr - <<'TEST517-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST517-1
                 result=ok
@@ -31371,7 +31741,7 @@ TEST518
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST518-1'; then
+        elif $SCMP $stderr - <<'TEST518-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST518-1
                 result=ok
@@ -31389,7 +31759,7 @@ TEST519
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST519-1'; then
+        elif $SCMP $stderr - <<'TEST519-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST519-1
                 result=ok
@@ -31407,7 +31777,7 @@ TEST520
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST520-1'; then
+        elif $SCMP $stderr - <<'TEST520-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST520-1
                 result=ok
@@ -31425,7 +31795,7 @@ TEST521
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST521-1'; then
+        elif $SCMP $stderr - <<'TEST521-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST521-1
                 result=ok
@@ -31443,7 +31813,7 @@ TEST522
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST522-1'; then
+        elif $SCMP $stderr - <<'TEST522-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST522-1
                 result=ok
@@ -31461,7 +31831,7 @@ TEST523
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST523-1'; then
+        elif $SCMP $stderr - <<'TEST523-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST523-1
                 result=ok
@@ -31479,7 +31849,7 @@ TEST524
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST524-1'; then
+        elif $SCMP $stderr - <<'TEST524-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST524-1
                 result=ok
@@ -31497,7 +31867,7 @@ TEST525
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST525-1'; then
+        elif $SCMP $stderr - <<'TEST525-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST525-1
                 result=ok
@@ -31515,7 +31885,7 @@ TEST526
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST526-1'; then
+        elif $SCMP $stderr - <<'TEST526-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST526-1
                 result=ok
@@ -31533,7 +31903,7 @@ TEST527
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST527-1'; then
+        elif $SCMP $stderr - <<'TEST527-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST527-1
                 result=ok
@@ -31551,7 +31921,7 @@ TEST528
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST528-1'; then
+        elif $SCMP $stderr - <<'TEST528-1'; then
 test.d:1:8: run time error - invalid number of parameters of `sputf'
 TEST528-1
                 result=ok
@@ -31569,7 +31939,7 @@ TEST529
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST529-1'; then
+        elif $SCMP $stderr - <<'TEST529-1'; then
 test.d:1:8: run time error - invalid number of parameters of `sputf'
 TEST529-1
                 result=ok
@@ -31587,7 +31957,7 @@ TEST530
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST530-1'; then
+        elif $SCMP $stderr - <<'TEST530-1'; then
 test.d:1:8: run time error - invalid number of parameters of `sputf'
 TEST530-1
                 result=ok
@@ -31605,7 +31975,7 @@ TEST531
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST531-1'; then
+        elif $SCMP $stderr - <<'TEST531-1'; then
 test.d:1:8: run time error - invalid number of parameters of `sputf'
 TEST531-1
                 result=ok
@@ -31623,7 +31993,7 @@ TEST532
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST532-1'; then
+        elif $SCMP $stderr - <<'TEST532-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST532-1
                 result=ok
@@ -31641,7 +32011,7 @@ TEST533
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST533-1'; then
+        elif $SCMP $stderr - <<'TEST533-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST533-1
                 result=ok
@@ -31659,7 +32029,7 @@ TEST534
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST534-1'; then
+        elif $SCMP $stderr - <<'TEST534-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST534-1
                 result=ok
@@ -31677,7 +32047,7 @@ TEST535
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST535-1'; then
+        elif $SCMP $stderr - <<'TEST535-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST535-1
                 result=ok
@@ -31695,7 +32065,7 @@ TEST536
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST536-1'; then
+        elif $SCMP $stderr - <<'TEST536-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST536-1
                 result=ok
@@ -31713,7 +32083,7 @@ TEST537
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST537-1'; then
+        elif $SCMP $stderr - <<'TEST537-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST537-1
                 result=ok
@@ -31731,7 +32101,7 @@ TEST538
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST538-1'; then
+        elif $SCMP $stderr - <<'TEST538-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST538-1
                 result=ok
@@ -31749,7 +32119,7 @@ TEST539
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST539-1'; then
+        elif $SCMP $stderr - <<'TEST539-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST539-1
                 result=ok
@@ -31767,7 +32137,7 @@ TEST540
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST540-1'; then
+        elif $SCMP $stderr - <<'TEST540-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST540-1
                 result=ok
@@ -31785,7 +32155,7 @@ TEST541
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST541-1'; then
+        elif $SCMP $stderr - <<'TEST541-1'; then
 test.d:1:8: run time error - invalid number of parameters of `sputf'
 TEST541-1
                 result=ok
@@ -31803,7 +32173,7 @@ TEST542
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST542-1'; then
+        elif $SCMP $stderr - <<'TEST542-1'; then
 test.d:1:8: run time error - invalid number of parameters of `fputf'
 TEST542-1
                 result=ok
@@ -31821,7 +32191,7 @@ TEST543
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST543-1'; then
+        elif $SCMP $stderr - <<'TEST543-1'; then
 test.d:1:8: run time error - invalid parameter type of `sputf'
 TEST543-1
                 result=ok
@@ -31839,7 +32209,7 @@ TEST544
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST544-1'; then
+        elif $SCMP $stderr - <<'TEST544-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST544-1
                 result=ok
@@ -31857,7 +32227,7 @@ TEST545
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST545-1'; then
+        elif $SCMP $stderr - <<'TEST545-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST545-1
                 result=ok
@@ -31875,7 +32245,7 @@ TEST546
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST546-1'; then
+        elif $SCMP $stderr - <<'TEST546-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST546-1
                 result=ok
@@ -31893,7 +32263,7 @@ TEST547
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST547-1'; then
+        elif $SCMP $stderr - <<'TEST547-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST547-1
                 result=ok
@@ -31911,7 +32281,7 @@ TEST548
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST548-1'; then
+        elif $SCMP $stderr - <<'TEST548-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST548-1
                 result=ok
@@ -31929,7 +32299,7 @@ TEST549
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST549-1'; then
+        elif $SCMP $stderr - <<'TEST549-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST549-1
                 result=ok
@@ -31947,7 +32317,7 @@ TEST550
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST550-1'; then
+        elif $SCMP $stderr - <<'TEST550-1'; then
 test.d:1:8: no memory
 TEST550-1
                 result=ok
@@ -31965,7 +32335,7 @@ TEST551
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST551-1'; then
+        elif $SCMP $stderr - <<'TEST551-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST551-1
                 result=ok
@@ -31983,7 +32353,7 @@ TEST552
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST552-1'; then
+        elif $SCMP $stderr - <<'TEST552-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST552-1
                 result=ok
@@ -32001,7 +32371,7 @@ TEST553
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr; then
                 result=ok
-        elif $CMP $stderr - <<'TEST553-1'; then
+        elif $SCMP $stderr - <<'TEST553-1'; then
 test.d:1:8: run time error - invalid format in `sputf'
 TEST553-1
                 result=ok

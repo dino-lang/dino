@@ -450,7 +450,7 @@ _z_urandomm (int npars, val_t *vals)
 /* Function for implementing externals with static libraries.  See all
    externals name in mpz.d. */
 void *
-mpz_address (const char *name)
+gmp_address (const char *name)
 {
 #ifdef HAVE_GMP_H
   if (strcmp (name, "_z_create") == 0)

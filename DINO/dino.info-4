@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-8068/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-9683/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -55,70 +55,65 @@ may generate an exception declared in the class `syserror' (e.g. `eio',
           
                     conversion_specifier : 'd' | 'o' | 'x' | 'X'
                                          | 'e' | 'E' | 'f' | 'F'
-                                         | 'g' | 'G' | 'a' | 'A'
-                                         | 'c' | 's' | '%'
+                                         | 'g' | 'G' | 'c' | 's'
+                                         | '%'
 
      If the format syntax is wrong, exception `invfmt' is generated.
 
      Flag '#' means that the value should be converted into an
      alternative form.  It can be present only for conversion
-     specifiers 'o', 'x', 'X', 'e', 'E', 'f', 'F', 'g', 'G', 'a', and
-     'A'.  If the flag is used for conversion specifier 'o', the output
-     will be prefixed by '0'.  For 'x' and 'X' the output will be
-     prefixed by '0x' and '0X' correspondingly. For conversions 'a',
-     'A', 'e', 'E', 'f', 'F', 'g', and 'G' the output will always
-     contain a decimal point.  For conversions 'g' and 'G' it also
-     means that trailing zeros are not removed from the output as they
-     would be without the flag.  The following code using flag '#' in
-     format
-                   putf ("->%#o %#x %#a %#.0e %#.0f %#g\n",
-                         8, 10, 1., 2., 3., 4.);
+     specifiers 'o', 'x', 'X', 'e', 'E', 'f', 'F', 'g', and 'G'.  If
+     the flag is used for conversion specifier 'o', the output will be
+     prefixed by '0'.  For 'x' and 'X' the output will be prefixed by
+     '0x' and '0X' correspondingly. For conversions 'e', 'E', 'f', 'F',
+     'g', and 'G' the output will always contain a decimal point.  For
+     conversions 'g' and 'G' it also means that trailing zeros are not
+     removed from the output as they would be without the flag.  The
+     following code using flag '#' in format
+                   putf ("->%#o %#x %#.0e %#.0f %#g\n", 8, 10, 2., 3., 4.);
 
      will output
-                   ->010 0xa 0x1.p+0 2.e+00 3. 4.00000
+                   ->010 0xa 2.e+00 3. 4.00000
 
      Flag '0' means that the output value will be zero padded on the
      left. If both flags '0' and '-' appear, the flag '0' is ignored.
      It is also ignored for conversions 'd', 'o', 'x', and 'X' if a
      precision is given.  The flag is prohibited for conversions 'c'
      and 's'.  The following code using flag '0' in format
-                   putf ("->%04d %04x %012.2a %09.2e %05.2f %05.2g\n",
-                         8, 10, 1., 2., 3., 4.);
+                   putf ("->%04d %04x %09.2e %05.2f %05.2g\n", 8, 10, 2., 3., 4.);
 
      will output
-                   ->0008 000a 0x0001.00p+0 02.00e+00 03.00 00004
+                   ->0008 000a 02.00e+00 03.00 00004
 
      Flag '-' means that the output will be left adjusted on the field
      boundary.  (The default is right justification). Flag '-'
      overrides flag '0' if the both are given.  The following code
      using flag '-' in format
-                   putf ("->%-04d %-04x %-012.2a %-09.2e %-05.2f %-05.2g\n",
-                         8, 10, 1., 2., 3., 4.);
+                   putf ("->%-04d %-04x %-09.2e %-05.2f %-05.2g\n",
+                         8, 10, 2., 3., 4.);
 
      will output
-                   ->8    a    0x1.00p+0    2.00e+00  3.00  4
+                   ->8    a    2.00e+00  3.00  4
 
      Flag ' ' means that the output of a signed number will start with
      a blank for positives number.  The flag can be used only for
-     conversions 'd', 'a', 'A', 'e', 'E', 'f', 'F', 'g', and 'G'.  If
-     both flags ' ' and '+' appear, the flag ' ' is ignored.  The
-     following code using flag ' ' in format
-                   putf ("->% d % .2a % .2e % .2f % .2g\n",
-                         8, 1., 2., 3., 4.);
+     conversions 'd', 'e', 'E', 'f', 'F', 'g', and 'G'.  If both flags
+     ' ' and '+' appear, the flag ' ' is ignored.  The following code
+     using flag ' ' in format
+                   putf ("->% d % .2e % .2f % .2g\n", 8, 2., 3., 4.);
 
      will output
-                   -> 8  0x1.00p+0  2.00e+00  3.00  4
+                   -> 8  2.00e+00  3.00  4
 
      Flag '+' means that the output of a signed number will start with
      a plus for positives number.  The flag can be used only for
-     conversions 'd', 'a', 'A', 'e', 'E', 'f', 'F', 'g', and 'G'.  Flag
-     '+' overrides flag ' ' if both are given.  The following code
-     using flag '+' in format
-                   putf ("->%+d %+.2a %+.2e %+.2f %+.2g\n",
-                         8, 1., 2., 3., 4.);
+     conversions 'd', 'e', 'E', 'f', 'F', 'g', and 'G'.  Flag '+'
+     overrides flag ' ' if both are given.  The following code using
+     flag '+' in format
+                   putf ("->%+d %+.2e %+.2f %+.2g\n", 8, 2., 3., 4.);
 
      will output
-                   ->+8 +0x1.00p+0 +2.00e+00 +3.00 +4
+                   ->+8 +2.00e+00 +3.00 +4
 
      The width defines a minimum width of the output value.  If the
      output is smaller, it is padded with spaces (or zeros - see flag
@@ -140,13 +135,13 @@ may generate an exception declared in the class `syserror' (e.g. `eio',
      the period.  If the value of precision given by the parameter is
      negative, its value is believed to be zero too.  For conversions
      'd', 'o', 'x', and 'X' the precision means minimum number of
-     output digits.  For conversions 'a', 'A', 'e', 'E', 'f', and 'F'
-     it means the number of digits to appear after the decimal point.
-     For 'g' and 'G' it means the maximum number of significant digits.
-     For 's' it means the maximum number of characters to be output
-     from a string.  The following code using precision in format
+     output digits.  For conversions 'e', 'E', 'f', and 'F' it means
+     the number of digits to appear after the decimal point.  For 'g'
+     and 'G' it means the maximum number of significant digits.  For
+     's' it means the maximum number of characters to be output from a
+     string.  The following code using precision in format
                    putf ("->%.d %.0d %.5d %.0f %.0e %.2g<-\n",
-                         8, 8, 9, 1.6, 2.3, 3.53);
+                         8, 8, 9, 2.3, 3.53);
                    putf ("->%.2s %.0d %.*d %.*d<-\n", "long", 0, 5, 8, -5, 8);
 
      will output
@@ -191,18 +186,6 @@ may generate an exception declared in the class `syserror' (e.g. `eio',
      Trailing zeros are removed from the fractional part of the output.
      If all fractional part is zero, the decimal point is removed too.
 
-     Conversion 'a' and 'A' should be used to output floating point
-     values in hexadecimal form `[-]0[x|X]h.hhhh[p|P][+|-}d'.  For
-     conversion 'a' the prefix `0x', the exponent separator `p', and
-     the letters `abcdef' are used.  For 'A' the corresponding upper
-     case letters are used.  There is always one hexadecimal digit
-     before the decimal point, and the number of digits after it is
-     equal to the precision.  The default precision suffices for an
-     exact representation of the value if an exact representation in
-     base 2 exists and otherwise is sufficiently large to distinguish
-     all floating point values.  The digit before the decimal point is
-     always nonzero for normalized numbers.
-
      Conversion 'c' should be used to output a character value.
 
      Conversion 's' should be used to output strings.
@@ -212,13 +195,13 @@ may generate an exception declared in the class `syserror' (e.g. `eio',
      The following code using different conversions in format
                    putf ("->%% %c %s %d %o %x %X<-\n",
                          'c', "string", 7, 8, 20, 20);
-                   putf ("->%a %A %f %F<-\n", 1.25, 1.2, 1.5, 1.5);
+                   putf ("->%f %F<-\n", 1.5, 1.5);
                    putf ("->%e %E %g %G %g %G<-\n",
                          2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
 
      will output
                    ->% c string 7 10 14 14<-
-                   ->0x1.4p+0 0X1.3333333333333P+0 1.500000 1.500000<-
+                   ->1.500000 1.500000<-
                    ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
 
    * `fput (fileinstance, format, ...)'.  The function is analogous to

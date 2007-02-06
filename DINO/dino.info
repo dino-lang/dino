@@ -1,5 +1,5 @@
 This is dino.info, produced by makeinfo version 4.3 from
-/tmp/linuxdoc-dir-8068/sgmltmp.dino.info.2.
+/tmp/linuxdoc-dir-9683/sgmltmp.dino.info.2.
 
    \input texinfo
 
@@ -69,11 +69,11 @@ Node: Functions for access to file/directory information128223
 Node: Functions for work with directories132822
 Node: Functions for work with files-134403
 Node: File output functions138100
-Node: File input functions151381
-Node: Time functions155257
-Node: Functions for access to process information158264
-Node: Miscellaneous functions159772
-Node: Appendix A- Syntax of Dino169616
-Node: Appendix B- Implementation174234
+Node: File input functions150324
+Node: Time functions154200
+Node: Functions for access to process information157207
+Node: Miscellaneous functions158715
+Node: Appendix A- Syntax of Dino168559
+Node: Appendix B- Implementation173177
 
 End Tag Table
