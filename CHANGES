@@ -1,4 +1,4 @@
-19/01/2007: Version 0.996 of COCOM has been made.  The major
+10/02/2007: Version 0.996 of COCOM has been made.  The major
 difference with the previous version:
 
 * WIN32 port has been removed.  Use Cygnwin for installation under Windows.
@@ -13,6 +13,8 @@ difference with the previous version:
      o Adding format input/output to Dino.
 
      o Many bugs have been fixed.
+
+     o GMP package was added.
 
      o More tests have been added.
 

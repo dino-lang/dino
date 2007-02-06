@@ -19,11 +19,9 @@ and interpriter.
 
    The interpriter has been tested extensively only on the following
 platforms:
-       i386 under Linux
+       x86, x86_64, PPC, Itanium under Linux
+       x86, x86_64 under CygWin
        sparc under Solaris2.5
-       mips under IRIX4.x
-       pa-risc under HPUX10.x
-       powerpc under AIX4.2
 
   Differences between versions of DINO are described in file CHANGES.
 

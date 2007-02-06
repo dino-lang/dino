@@ -85,7 +85,7 @@ only_cocom_source_files =
 # COCOM only end
 
 # Additional files
-additional_files = COPYING COPYING.LIB configure install-sh yacc.exe
+additional_files = COPYING COPYING.LIB configure install-sh
 
 # COCOM only start
 only_cocom_additional_files = README INSTALL CHANGES
