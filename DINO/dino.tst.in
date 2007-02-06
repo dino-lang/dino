@@ -33662,6 +33662,9 @@ OUTPUT565
                 else
                         result=fail
                 fi
+       elif fgrep 'run time error - can not find external function' $stderr >/dev/null;then
+		echo GMP package is absent -- skip
+                result=ok
         else
                 result=fail
         fi
@@ -35131,6 +35134,9 @@ OUTPUT579
                 else
                         result=fail
                 fi
+	    elif fgrep 'run time error - can not find external function' $stderr >/dev/null;then
+		echo GMP package is absent -- skip
+                result=ok
 	    else
                 result=fail
 	    fi

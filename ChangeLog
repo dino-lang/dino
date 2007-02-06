@@ -1,5 +1,11 @@
 2007-02-06  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* AMMUNITION/errors++.tst.in, AMMUNITION/errors.tst.in: New
+	possible output for error 0.
+	* DINO/dino.tst.in: Ignore when gmp is not present.
+
+2007-02-06  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* DINO/compare.tst: Put parentheses around time in if.
 	Switch off ackermann for AWK.
 	* DINO/d_func.c (general_putf_call): Remove a and A formats.
