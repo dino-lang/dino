@@ -80,8 +80,11 @@ exec_prefix=@exec_prefix@
 # The directory for installation of `dino'.
 bindir=@bindir@
 
-# The directory for installation of dino program.
-libdir=@libdir@/dino-$(DINO_VERSION)
+# The root directory for installation of dino lib.
+libdir=@libdir@
+
+# The directory for installation of dino lib.
+dinolibdir=$(libdir)/dino-$(DINO_VERSION)
 
 # The directory for installation of man pages
 mandir=@mandir@
@@ -89,8 +92,11 @@ mandir=@mandir@
 # The directory for installation of `dino.1'
 man1dir=$(mandir)/man1
 
+# The root directory for installation of header files.
+includedir=@includedir@
+
 # The directory for installation of header files.
-includedir=@includedir@/dino-$(DINO_VERSION)
+dinoincludedir=$(includedir)/dino-$(DINO_VERSION)
 
 # Additional prefix used to install ammunition temporarily.  It is
 # necessary only for RPM.
@@ -112,7 +118,7 @@ AWK=@AWK@
 ETAGS=etags
 
 # Standard path for searching for DINO (included) programs and DINO library
-DINO_LIBRARY_DIRECTORY=\"$(libdir)\"
+DINO_LIBRARY_DIRECTORY=\"$(dinolibdir)\"
 
 # Command which make (shared) dino/external library:
 DINO_MAKELIB = @DINO_MAKELIB@
@@ -298,44 +304,47 @@ install: all
 	-mkdir -p $(DESTDIR)/$(bindir)
 	$(INSTALL) dino $(DESTDIR)/$(bindir)/dino-$(DINO_VERSION)
 	$(INSTALL) dino $(DESTDIR)/$(bindir)/dino
-	-mkdir -p $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(dino_lib) $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(gmp_lib) $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(mpi_lib) $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(ieee_lib) $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(ipcerr_lib) $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(socket_lib) $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(srcdir)/gmp.d $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(srcdir)/mpi.d $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(srcdir)/ieee.d $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(srcdir)/ipcerr.d $(DESTDIR)/$(libdir)
-	$(INSTALLDATA) $(srcdir)/socket.d $(DESTDIR)/$(libdir)
-	-mkdir -p $(DESTDIR)/$(includedir)
-	$(INSTALLDATA) d_extern.h $(DESTDIR)/$(includedir)
-	$(INSTALLDATA) d_config.h $(DESTDIR)/$(includedir)
-	$(INSTALLDATA) $(srcdir)/d_types.h $(DESTDIR)/$(includedir)
+	-mkdir -p $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(dino_lib) $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(gmp_lib) $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(mpi_lib) $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(ieee_lib) $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(ipcerr_lib) $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(socket_lib) $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(srcdir)/gmp.d $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(srcdir)/mpi.d $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(srcdir)/ieee.d $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(srcdir)/ipcerr.d $(DESTDIR)/$(dinolibdir)
+	$(INSTALLDATA) $(srcdir)/socket.d $(DESTDIR)/$(dinolibdir)
+	-mkdir -p $(DESTDIR)/$(dinoincludedir)
+	$(INSTALLDATA) d_extern.h $(DESTDIR)/$(dinoincludedir)
+	$(INSTALLDATA) d_config.h $(DESTDIR)/$(dinoincludedir)
+	$(INSTALLDATA) $(srcdir)/d_types.h $(DESTDIR)/$(dinoincludedir)
 	-mkdir -p $(DESTDIR)/$(man1dir)
 	$(INSTALLDATA) $(srcdir)/dino.1 $(DESTDIR)/$(man1dir)/dino.1
 
 # Delete the installed files and the installation directories.
 uninstall:
 	rm -f $(DESTDIR)/$(bindir)/dino
+	rm -f $(DESTDIR)/$(bindir)/dino-$(DINO_VERSION)
 	-rmdir $(DESTDIR)/$(bindir)
-	rm -f $(DESTDIR)/$(libdir)/$(dino_lib)
-	rm -f $(DESTDIR)/$(libdir)/$(gmp_lib)
-	rm -f $(DESTDIR)/$(libdir)/$(mpi_lib)
-	rm -f $(DESTDIR)/$(libdir)/$(ieee_lib)
-	rm -f $(DESTDIR)/$(libdir)/$(ipcerr_lib)
-	rm -f $(DESTDIR)/$(libdir)/$(socket_lib)
-	rm -f $(DESTDIR)/$(libdir)/gmp.d
-	rm -f $(DESTDIR)/$(libdir)/mpi.d
-	rm -f $(DESTDIR)/$(libdir)/ieee.d
-	rm -f $(DESTDIR)/$(libdir)/ipcerr.d
-	rm -f $(DESTDIR)/$(libdir)/socket.d
+	rm -f $(DESTDIR)/$(dinolibdir)/$(dino_lib)
+	rm -f $(DESTDIR)/$(dinolibdir)/$(gmp_lib)
+	rm -f $(DESTDIR)/$(dinolibdir)/$(mpi_lib)
+	rm -f $(DESTDIR)/$(dinolibdir)/$(ieee_lib)
+	rm -f $(DESTDIR)/$(dinolibdir)/$(ipcerr_lib)
+	rm -f $(DESTDIR)/$(dinolibdir)/$(socket_lib)
+	rm -f $(DESTDIR)/$(dinolibdir)/gmp.d
+	rm -f $(DESTDIR)/$(dinolibdir)/mpi.d
+	rm -f $(DESTDIR)/$(dinolibdir)/ieee.d
+	rm -f $(DESTDIR)/$(dinolibdir)/ipcerr.d
+	rm -f $(DESTDIR)/$(dinolibdir)/socket.d
+	-rmdir $(DESTDIR)/$(dinolibdir)
 	-rmdir $(DESTDIR)/$(libdir)
-	rm -f $(DESTDIR)/$(includedir)/d_extern.h
-	rm -f $(DESTDIR)/$(includedir)/d_config.h
-	rm -f $(DESTDIR)/$(includedir)/d_types.h
+	rm -f $(DESTDIR)/$(dinoincludedir)/d_extern.h
+	rm -f $(DESTDIR)/$(dinoincludedir)/d_config.h
+	rm -f $(DESTDIR)/$(dinoincludedir)/d_types.h
+	-rmdir $(DESTDIR)/$(dinoincludedir)
 	-rmdir $(DESTDIR)/$(includedir)
 	rm -f $(DESTDIR)/$(man1dir)/dino.1
 	-rmdir $(DESTDIR)/$(man1dir)
