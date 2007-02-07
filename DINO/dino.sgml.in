@@ -3185,23 +3185,22 @@ functions may generate an exception declared in the class <tt>syserror</tt>
           precision : '.' ['*' | <decimal number>]
 
           conversion_specifier : 'd' | 'o' | 'x' | 'X'
-                               | 'e' | 'E' | 'f' | 'F'
-                               | 'g' | 'G' | 'c' | 's'
-                               | '%'
+                               | 'e' | 'E' | 'f' | 'g'
+                               | 'G' | 'c' | 's' | '%'
        </verb></tscreen>
        If the format syntax is wrong, exception <tt>invfmt</tt> is
        generated.
 
        Flag '#' means that the value should be converted into an
        alternative form.  It can be present only for conversion
-       specifiers 'o', 'x', 'X', 'e', 'E', 'f', 'F', 'g', and 'G'.  If
-       the flag is used for conversion specifier 'o', the output will
-       be prefixed by '0'.  For 'x' and 'X' the output will be
-       prefixed by '0x' and '0X' correspondingly. For conversions 'e',
-       'E', 'f', 'F', 'g', and 'G' the output will always contain a
-       decimal point.  For conversions 'g' and 'G' it also means that
-       trailing zeros are not removed from the output as they would be
-       without the flag.  The following code using flag '#' in format
+       specifiers 'o', 'x', 'X', 'e', 'E', 'f', 'g', and 'G'.  If the
+       flag is used for conversion specifier 'o', the output will be
+       prefixed by '0'.  For 'x' and 'X' the output will be prefixed
+       by '0x' and '0X' correspondingly. For conversions 'e', 'E',
+       'f', 'g', and 'G' the output will always contain a decimal
+       point.  For conversions 'g' and 'G' it also means that trailing
+       zeros are not removed from the output as they would be without
+       the flag.  The following code using flag '#' in format
 <tscreen><verb>
          putf ("->%#o %#x %#.0e %#.0f %#g\n", 8, 10, 2., 3., 4.);
 </verb></tscreen>
@@ -3239,7 +3238,7 @@ functions may generate an exception declared in the class <tt>syserror</tt>
 
        Flag ' ' means that the output of a signed number will start
        with a blank for positives number.  The flag can be used only
-       for conversions 'd', 'e', 'E', 'f', 'F', 'g', and 'G'.  If both
+       for conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  If both
        flags ' ' and '+' appear, the flag ' ' is ignored.  The
        following code using flag ' ' in format
 <tscreen><verb>
@@ -3252,9 +3251,9 @@ functions may generate an exception declared in the class <tt>syserror</tt>
 
        Flag '+' means that the output of a signed number will start
        with a plus for positives number.  The flag can be used only
-       for conversions 'd', 'e', 'E', 'f', 'F', 'g', and 'G'.  Flag
-       '+' overrides flag ' ' if both are given.  The following code
-       using flag '+' in format
+       for conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  Flag '+'
+       overrides flag ' ' if both are given.  The following code using
+       flag '+' in format
 <tscreen><verb>
          putf ("->%+d %+.2e %+.2f %+.2g\n", 8, 2., 3., 4.);
 </verb></tscreen>
@@ -3287,9 +3286,9 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        used after the period.  If the value of precision given by the
        parameter is negative, its value is believed to be zero too.
        For conversions 'd', 'o', 'x', and 'X' the precision means
-       minimum number of output digits.  For conversions 'e', 'E',
-       'f', and 'F' it means the number of digits to appear after the
-       decimal point.  For 'g' and 'G' it means the maximum number of
+       minimum number of output digits.  For conversions 'e', 'E', and
+       'f' it means the number of digits to appear after the decimal
+       point.  For 'g' and 'G' it means the maximum number of
        significant digits.  For 's' it means the maximum number of
        characters to be output from a string.  The following code
        using precision in format
@@ -3317,9 +3316,9 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        on the left with zeros.  The default precision is 1.  When 0 is
        output with an explicit precision 0, the output is empty.
 
-       Conversions 'f' and 'F' should be used to output floating point
-       values.  The output value has a form <tt>[-]ddd.ddd</tt> where
-       the number of digits after the decimal point is given by the
+       Conversion 'f' should be used to output floating point values.
+       The output value has a form <tt>[-]ddd.ddd</tt> where the
+       number of digits after the decimal point is given by the
        precision specification.  The default precision value is 6.  If
        the precision is explicitly zero, no decimal-point character
        appears.
@@ -3335,8 +3334,8 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        exponent value is zero, the exponent is output as <tt>00</tt>.
 
        Conversions 'g' and 'G' should be used to output floating point
-       values in style 'f' or 'e' (or 'F' or 'E' for conversion 'G').
-       The precision defines the number of significant digits.  The
+       values in style 'f' or 'e' (or 'E' for conversion 'G').  The
+       precision defines the number of significant digits.  The
        default value of the precision is 6.  If the precision is zero,
        it is treated as 1.  Conversion 'e' is used if the exponent
        from the conversion is less than -4 or not less than the
@@ -3354,14 +3353,14 @@ functions may generate an exception declared in the class <tt>syserror</tt>
 <tscreen><verb>
          putf ("->%% %c %s %d %o %x %X<-\n",
                'c', "string", 7, 8, 20, 20);
-         putf ("->%f %F<-\n", 1.5, 1.5);
+         putf ("->%f<-\n", 1.5);
          putf ("->%e %E %g %G %g %G<-\n",
                2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
 </verb></tscreen>
        will output
 <tscreen><verb>
          ->% c string 7 10 14 14<-
-         ->1.500000 1.500000<-
+         ->1.500000<-
          ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
 </verb></tscreen>
 

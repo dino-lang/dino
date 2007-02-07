@@ -3887,8 +3887,8 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	val = INDEXED_VAL (ER_CTOP (), curr_par_num);
 	add = width + 5;
 	if (next == 'd' || next == 'o' || next == 'x' || next == 'X'
-	    || next == 'e' || next == 'E' || next == 'f' || next == 'F'
-	    || next == 'g' || next == 'G')
+	    || next == 'e' || next == 'E' || next == 'f' || next == 'g'
+	    || next == 'G')
 	  {
 	    if ((next == 'd' && alternate_flag)
 		|| ((next == 'o' || next == 'x' || next == 'X')

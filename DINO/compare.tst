@@ -14264,9 +14264,13 @@ END { for (i = NR; i >= 1; i--)
     print x[i]
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest <$input >$temp2 2>&1);then fgrep 'user ' $temp2;else echo FAILED;fi
+  echo
+  echo AWK might be too slow for this test.
+  echo
+
+#  echo AWK:
+#  if test "x$NECHO" != x;then $NECHO "   ";fi
+#  if (time $AWK -f $ftest <$input >$temp2 2>&1);then fgrep 'user ' $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -91805,9 +91809,13 @@ BEGIN {
     }
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest <$input >$temp2 2>&1);then fgrep user $temp2;else echo FAILED;fi
+  echo
+  echo AWK might be too slow for this test.
+  echo
+
+#  echo AWK:
+#  if test "x$NECHO" != x;then $NECHO "   ";fi
+#  if (time $AWK -f $ftest <$input >$temp2 2>&1);then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
