@@ -224,12 +224,6 @@ dist-copy: create-distdir doc
 	cp $(source) $(distdir)
 	for i in $(additional_files);do cp $(srcdir)/$$i $(distdir);done
 	for i in $(scheduler_files);do cp $(srcdir)/$$i $(distdir)/SCHEDULE;done
-	for i in SCHEDULE/cschedule/cschedule.dsw SCHEDULE/cschedule/cschedule.dsp;do\
-	  cp $(srcdir)/$$i $(distdir)/SCHEDULE/cschedule;\
-	done
-	for i in SCHEDULE/cppschedule/cppschedule.dsw SCHEDULE/cppschedule/cppschedule.dsp;do\
-	  cp $(srcdir)/$$i $(distdir)/SCHEDULE/cppschedule;\
-	done
 	for i in $(doc_files);do cp $(srcdir)/$$i $(distdir);done
 	chmod -R +w $(distdir)
 

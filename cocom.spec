@@ -1,11 +1,13 @@
 Summary: COCOM
 Name: cocom
-Version: 0.995
+Version: 0.996
 Release: 1
 Source0: %{name}-%{version}.tar.gz
 License: GPL and LGPL
 Group: Development/Tools
 BuildRoot: %{_builddir}/%{name}-root
+BuildRequires: gmp-devel
+Requires: gmp
 
 %description
 COCOM tool set oriented towards the creation of compilers,
@@ -28,11 +30,12 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%define dino_version 0.54
+%define dino_version 0.55
 
 %files
 %defattr(0644,root,root) 
 %attr(0555,root,root) /usr/bin/dino
+%attr(0555,root,root) /usr/bin/dino-%{dino_version}
 %attr(0555,root,root) /usr/bin/msta
 %attr(0555,root,root) /usr/bin/nona
 %attr(0555,root,root) /usr/bin/oka
@@ -54,6 +57,8 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/dino-%{dino_version}/ipcerr.so
 /usr/lib/dino-%{dino_version}/socket.d
 /usr/lib/dino-%{dino_version}/socket.so
+/usr/lib/dino-%{dino_version}/gmp.d
+/usr/lib/dino-%{dino_version}/gmp.so
 /usr/include/IEEE.h
 /usr/include/allocate.h
 /usr/include/arithm.h

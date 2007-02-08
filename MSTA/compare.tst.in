@@ -34,13 +34,13 @@
 
 LEX=@LEX@
 YACC=
-if type yacc|fgrep is; then
+if type yacc|fgrep /yacc; then
   YACC=yacc
-elif type byacc|fgrep is; then
+elif type byacc|fgrep /byacc; then
   YACC=byacc;
 fi
 BISON=
-if type bison|fgrep is; then
+if type bison|fgrep /bison; then
   BISON=bison
 fi
 MSTA=./msta

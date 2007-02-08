@@ -6,6 +6,8 @@ Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Development/Tools
 BuildRoot: %{_builddir}/%{name}-root
+BuildRequires: gmp-devel
+Requires: gmp
 
 %description
 DINO is oriented on the same domain of applications as famous
@@ -28,6 +30,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(0644,root,root) 
 %attr(0555,root,root) /usr/bin/dino
+%attr(0555,root,root) /usr/bin/dino-%{version}
 /usr/lib/dino-%{version}/ieee.d
 /usr/lib/dino-%{version}/ieee.so
 /usr/lib/dino-%{version}/libdino.a
@@ -37,6 +40,8 @@ rm -rf $RPM_BUILD_ROOT
 /usr/lib/dino-%{version}/ipcerr.so
 /usr/lib/dino-%{version}/socket.d
 /usr/lib/dino-%{version}/socket.so
+/usr/lib/dino-%{version}/gmp.d
+/usr/lib/dino-%{version}/gmp.so
 /usr/include/dino-%{version}/d_config.h
 /usr/include/dino-%{version}/d_extern.h
 /usr/include/dino-%{version}/d_types.h
