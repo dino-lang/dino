@@ -1,3 +1,10 @@
+2007-02-08  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/dino.html, DINO/dino-1.html, DINO/dino-2.html
+	DINO/dino-3.html, DINO/dino-4.html, DINO/dino-5.html
+	DINO/dino-6.html, DINO/dino-7.html, DINO/dino-9.html
+	DINO/dino-10.html: Change modification date.
+
 2007-02-07  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* cocom.spec (BuildRequires, Requires): New.
