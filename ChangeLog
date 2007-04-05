@@ -1,3 +1,34 @@
+2007-04-05  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* AMMUNITION/ammunition++.sgml.in, AMMUNITION/ammunition.sgml.in:
+	Add xor.
+	* AMMUNITION/ammunition++-10.html, AMMUNITION/ammunition++.dvi,
+	AMMUNITION/ammunition++.info, AMMUNITION/ammunition++.info-1,
+	AMMUNITION/ammunition++.info-2, AMMUNITION/ammunition++.info-3,
+	AMMUNITION/ammunition++.info-4, AMMUNITION/ammunition++.pdf,
+	AMMUNITION/ammunition++.ps, AMMUNITION/ammunition++.txt,
+	AMMUNITION/ammunition-10.html, AMMUNITION/ammunition.dvi,
+	AMMUNITION/ammunition.info, AMMUNITION/ammunition.info-1,
+	AMMUNITION/ammunition.info-2, AMMUNITION/ammunition.info-3,
+	AMMUNITION/ammunition.pdf, AMMUNITION/ammunition.ps,
+	AMMUNITION/ammunition.txt: Update.
+	* AMMUNITION/arithm++.tst.in, AMMUNITION/arithm.tst.in: Add tests
+	for xor.
+	* AMMUNITION/arithm.c (integer_xor, unsigned_integer_xor): New
+	functions.
+	* AMMUNITION/arithm.cpp (signed_integer::_xor_,
+	unsigned_integer::_xor_): New functions.
+	* AMMUNITION/arithm.h (integer_xor, unsigned_integer_xor): New
+	externals.
+	(_xor_): New static class functions.
+	(^): New class operators.
+	* DINO/d_errors.c (DERR_func_in_left_arrow_side,
+	DERR_class_in_left_arrow_side, DERR_there_is_not_such_decl,
+	DERR_decl_name_is_not_string): Remove.
+	* DINO/d_errors.h (): Ditto.
+	* DINO/mpi.c (mpi_xor, mpi_unsigned_xor): New functions.
+	* DINO/mpi.d (mpi_xor, mpi_unsigned_xor): New functions.
+
 2007-02-08  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/dino.test.in: simplify two tests for fp exceptions.

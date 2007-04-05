@@ -2273,22 +2273,31 @@ if test $result = ok -a $start_test_number -le 34; then
 
 main()
 {
-  char s[20], d[4];
+  char s[20], d1[4], d2[4];
 
-  unsigned_integer::from_string (4, "1348", d);
-  unsigned_integer::_not_ (4, d, d);
-  unsigned_integer::to_string (4, d, s);
+  unsigned_integer::from_string (4, "1348", d1);
+  unsigned_integer::from_string (4, "1348", d2);
+  unsigned_integer::_xor_ (4, d1, d2, d2);
+  unsigned_integer::to_string (4, d2, s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  unsigned_integer::from_string (4, "1348", d1);
+  unsigned_integer::from_string (4, "0", d2);
+  unsigned_integer::_xor_ (4, d1, d2, d2);
+  unsigned_integer::to_string (4, d2, s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  unsigned_integer::from_string (4, "1348", d1);
+  unsigned_integer::from_string (4, "4294967295", d2);
+  unsigned_integer::_xor_ (4, d1, d2, d2);
+  unsigned_integer::to_string (4, d2, s);
   if (strcmp (s, "4294965947") != 0)
     exit (1);
-  unsigned_integer::from_string (4, "0", d);
-  unsigned_integer::_not_ (4, d, d);
-  unsigned_integer::to_string (4, d, s);
-  if (strcmp (s, "4294967295") != 0)
-    exit (1);
-  unsigned_integer::from_string (4, "4294967295", d);
-  unsigned_integer::_not_ (4, d, d);
-  unsigned_integer::to_string (4, d, s);
-  if (strcmp (s, "0") != 0)
+  unsigned_integer::from_string (4, "1348", d1);
+  unsigned_integer::from_string (4, "96", d2);
+  unsigned_integer::_xor_ (4, d1, d2, d2);
+  unsigned_integer::to_string (4, d2, s);
+  if (strcmp (s, "1316") != 0)
     exit (1);
   exit (0);
 }
@@ -2318,22 +2327,31 @@ if test $result = ok -a $start_test_number -le 35; then
 
 main()
 {
-  char s[20], d[4];
+  char s[20], d1[4], d2[4];
 
-  signed_integer::from_string (4, "1348", d);
-  signed_integer::_not_ (4, d, d);
-  signed_integer::to_string (4, d, s);
+  signed_integer::from_string (4, "1348", d1);
+  signed_integer::from_string (4, "1348", d2);
+  signed_integer::_xor_ (4, d1, d2, d2);
+  signed_integer::to_string (4, d2, s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  signed_integer::from_string (4, "1348", d1);
+  signed_integer::from_string (4, "0", d2);
+  signed_integer::_xor_ (4, d1, d2, d2);
+  signed_integer::to_string (4, d2, s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  signed_integer::from_string (4, "1348", d1);
+  signed_integer::from_string (4, "-1", d2);
+  signed_integer::_xor_ (4, d1, d2, d2);
+  signed_integer::to_string (4, d2, s);
   if (strcmp (s, "-1349") != 0)
     exit (1);
-  signed_integer::from_string (4, "0", d);
-  signed_integer::_not_ (4, d, d);
-  signed_integer::to_string (4, d, s);
-  if (strcmp (s, "-1") != 0)
-    exit (1);
-  signed_integer::from_string (4, "-1", d);
-  signed_integer::_not_ (4, d, d);
-  signed_integer::to_string (4, d, s);
-  if (strcmp (s, "0") != 0)
+  signed_integer::from_string (4, "1348", d1);
+  signed_integer::from_string (4, "96", d2);
+  signed_integer::_xor_ (4, d1, d2, d2);
+  signed_integer::to_string (4, d2, s);
+  if (strcmp (s, "1316") != 0)
     exit (1);
   exit (0);
 }
@@ -2353,11 +2371,101 @@ TEST35
         fi
 fi
 
-#------------------ Templates ------------------------------------------
-
 # Test 36.
 if test $result = ok -a $start_test_number -le 36; then
         cat >$test_file <<'TEST36'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20], d[4];
+
+  unsigned_integer::from_string (4, "1348", d);
+  unsigned_integer::_not_ (4, d, d);
+  unsigned_integer::to_string (4, d, s);
+  if (strcmp (s, "4294965947") != 0)
+    exit (1);
+  unsigned_integer::from_string (4, "0", d);
+  unsigned_integer::_not_ (4, d, d);
+  unsigned_integer::to_string (4, d, s);
+  if (strcmp (s, "4294967295") != 0)
+    exit (1);
+  unsigned_integer::from_string (4, "4294967295", d);
+  unsigned_integer::_not_ (4, d, d);
+  unsigned_integer::to_string (4, d, s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  exit (0);
+}
+TEST36
+
+        echo test 36:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 37.
+if test $result = ok -a $start_test_number -le 37; then
+        cat >$test_file <<'TEST37'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20], d[4];
+
+  signed_integer::from_string (4, "1348", d);
+  signed_integer::_not_ (4, d, d);
+  signed_integer::to_string (4, d, s);
+  if (strcmp (s, "-1349") != 0)
+    exit (1);
+  signed_integer::from_string (4, "0", d);
+  signed_integer::_not_ (4, d, d);
+  signed_integer::to_string (4, d, s);
+  if (strcmp (s, "-1") != 0)
+    exit (1);
+  signed_integer::from_string (4, "-1", d);
+  signed_integer::_not_ (4, d, d);
+  signed_integer::to_string (4, d, s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  exit (0);
+}
+TEST37
+
+        echo test 37:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+#------------------ Templates ------------------------------------------
+
+# Test 38.
+if test $result = ok -a $start_test_number -le 38; then
+        cat >$test_file <<'TEST38'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -2504,9 +2612,9 @@ main()
     }
   exit (0);
 }
-TEST36
+TEST38
 
-        echo test 36:
+        echo test 38:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -2520,9 +2628,9 @@ TEST36
         fi
 fi
 
-# Test 37.
-if test $result = ok -a $start_test_number -le 37; then
-        cat >$test_file <<'TEST37'
+# Test 39.
+if test $result = ok -a $start_test_number -le 39; then
+        cat >$test_file <<'TEST39'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -2636,9 +2744,9 @@ main()
       }
   exit (0);
 }
-TEST37
+TEST39
 
-        echo test 37:
+        echo test 39:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -2652,9 +2760,9 @@ TEST37
         fi
 fi
 
-# Test 38.
-if test $result = ok -a $start_test_number -le 38; then
-        cat >$test_file <<'TEST38'
+# Test 40.
+if test $result = ok -a $start_test_number -le 40; then
+        cat >$test_file <<'TEST40'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -2743,9 +2851,9 @@ main()
     }
   exit (0);
 }
-TEST38
+TEST40
 
-        echo test 38:
+        echo test 40:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -2759,9 +2867,9 @@ TEST38
         fi
 fi
 
-# Test 39.
-if test $result = ok -a $start_test_number -le 39; then
-        cat >$test_file <<'TEST39'
+# Test 41.
+if test $result = ok -a $start_test_number -le 41; then
+        cat >$test_file <<'TEST41'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -2849,9 +2957,9 @@ main()
     }
   exit (0);
 }
-TEST39
+TEST41
 
-        echo test 39:
+        echo test 41:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -2865,9 +2973,9 @@ TEST39
         fi
 fi
 
-# Test 40.
-if test $result = ok -a $start_test_number -le 40; then
-        cat >$test_file <<'TEST40'
+# Test 42.
+if test $result = ok -a $start_test_number -le 42; then
+        cat >$test_file <<'TEST42'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -2956,9 +3064,9 @@ main()
     }
   exit (0);
 }
-TEST40
+TEST42
 
-        echo test 40:
+        echo test 42:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -2972,9 +3080,9 @@ TEST40
         fi
 fi
 
-# Test 41.
-if test $result = ok -a $start_test_number -le 41; then
-        cat >$test_file <<'TEST41'
+# Test 43.
+if test $result = ok -a $start_test_number -le 43; then
+        cat >$test_file <<'TEST43'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -3060,9 +3168,9 @@ main()
     }
   exit (0);
 }
-TEST41
+TEST43
 
-        echo test 41:
+        echo test 43:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3076,9 +3184,9 @@ TEST41
         fi
 fi
 
-# Test 42.
-if test $result = ok -a $start_test_number -le 42; then
-        cat >$test_file <<'TEST42'
+# Test 44.
+if test $result = ok -a $start_test_number -le 44; then
+        cat >$test_file <<'TEST44'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -3183,9 +3291,9 @@ main()
     }
   exit (0);
 }
-TEST42
+TEST44
 
-        echo test 42:
+        echo test 44:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3199,9 +3307,9 @@ TEST42
         fi
 fi
 
-# Test 43.
-if test $result = ok -a $start_test_number -le 43; then
-        cat >$test_file <<'TEST43'
+# Test 45.
+if test $result = ok -a $start_test_number -le 45; then
+        cat >$test_file <<'TEST45'
 
 #ifdef HAVE_CONFIG_H
 #include "cocom-config.h"
@@ -3290,9 +3398,9 @@ main()
     }
   exit (0);
 }
-TEST43
+TEST45
 
-        echo test 43:
+        echo test 45:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3306,9 +3414,9 @@ TEST43
         fi
 fi
 
-# Test 44.
-if test $result = ok -a $start_test_number -le 44; then
-        cat >$test_file <<'TEST44'
+# Test 46.
+if test $result = ok -a $start_test_number -le 46; then
+        cat >$test_file <<'TEST46'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3348,9 +3456,9 @@ main()
     }
   exit (0);
 }
-TEST44
+TEST46
 
-        echo test 44:
+        echo test 46:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3364,9 +3472,9 @@ TEST44
         fi
 fi
 
-# Test 45.
-if test $result = ok -a $start_test_number -le 45; then
-        cat >$test_file <<'TEST45'
+# Test 47.
+if test $result = ok -a $start_test_number -le 47; then
+        cat >$test_file <<'TEST47'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3398,9 +3506,9 @@ main()
     }
   exit (0);
 }
-TEST45
+TEST47
 
-        echo test 45:
+        echo test 47:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3414,9 +3522,9 @@ TEST45
         fi
 fi
 
-# Test 46.
-if test $result = ok -a $start_test_number -le 46; then
-        cat >$test_file <<'TEST46'
+# Test 48.
+if test $result = ok -a $start_test_number -le 48; then
+        cat >$test_file <<'TEST48'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3448,9 +3556,9 @@ main()
     }
   exit (0);
 }
-TEST46
+TEST48
 
-        echo test 46:
+        echo test 48:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3464,9 +3572,9 @@ TEST46
         fi
 fi
 
-# Test 47.
-if test $result = ok -a $start_test_number -le 47; then
-        cat >$test_file <<'TEST47'
+# Test 49.
+if test $result = ok -a $start_test_number -le 49; then
+        cat >$test_file <<'TEST49'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3504,9 +3612,9 @@ main()
     exit (1);
   exit (0);
 }
-TEST47
+TEST49
 
-        echo test 47:
+        echo test 49:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3520,9 +3628,9 @@ TEST47
         fi
 fi
 
-# Test 48.
-if test $result = ok -a $start_test_number -le 48; then
-        cat >$test_file <<'TEST48'
+# Test 50.
+if test $result = ok -a $start_test_number -le 50; then
+        cat >$test_file <<'TEST50'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3585,9 +3693,9 @@ main()
     exit (1);
   exit (0);
 }
-TEST48
+TEST50
 
-        echo test 48:
+        echo test 50:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3601,9 +3709,9 @@ TEST48
         fi
 fi
 
-# Test 49.
-if test $result = ok -a $start_test_number -le 49; then
-        cat >$test_file <<'TEST49'
+# Test 51.
+if test $result = ok -a $start_test_number -le 51; then
+        cat >$test_file <<'TEST51'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3640,9 +3748,9 @@ main()
     exit (1);
   exit (0);
 }
-TEST49
+TEST51
 
-        echo test 49:
+        echo test 51:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -3656,9 +3764,9 @@ TEST49
         fi
 fi
 
-# Test 50.
-if test $result = ok -a $start_test_number -le 50; then
-        cat >$test_file <<'TEST50'
+# Test 52.
+if test $result = ok -a $start_test_number -le 52; then
+        cat >$test_file <<'TEST52'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3719,84 +3827,6 @@ main()
     exit (1);
   exit (0);
 }
-TEST50
-
-        echo test 50:
-        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
-        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
-                echo '      ' $outfile
-                if $outfile; then
-                        result=ok
-                else
-                        result=fail
-                fi
-        else
-                result=fail
-        fi
-fi
-
-# Test 51.
-if test $result = ok -a $start_test_number -le 51; then
-        cat >$test_file <<'TEST51'
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "arithm.h"
-
-main()
-{
-  char s[20];
-  sint<4> d, e;
-
-  d.from_str ("-10");
-  e.from_str ("1348");
-  if (d == e)
-    exit (1);
-  d.from_str ("-1348");
-  e.from_str ("-1348");
-  if (!(d == e))
-    exit (1);
-  exit (0);
-}
-TEST51
-
-        echo test 51:
-        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
-        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
-                echo '      ' $outfile
-                if $outfile; then
-                        result=ok
-                else
-                        result=fail
-                fi
-        else
-                result=fail
-        fi
-fi
-
-# Test 52.
-if test $result = ok -a $start_test_number -le 52; then
-        cat >$test_file <<'TEST52'
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "arithm.h"
-
-main()
-{
-  char s[20];
-  unsint<4> d,e;
-
-  d.from_str ("10");
-  e.from_str ("1348");
-  if (d == e)
-    exit (1);
-  d.from_str ("1348");
-  e.from_str ("1348");
-  if (!(d == e))
-    exit (1);
-  exit (0);
-}
 TEST52
 
         echo test 52:
@@ -3825,15 +3855,14 @@ main()
 {
   char s[20];
   sint<4> d, e;
-  sint<4> c1 (-10), c2 (1348);
 
-  d = c1;
-  e = c2;
-  if (!(d != e))
+  d.from_str ("-10");
+  e.from_str ("1348");
+  if (d == e)
     exit (1);
   d.from_str ("-1348");
   e.from_str ("-1348");
-  if (d != e)
+  if (!(d == e))
     exit (1);
   exit (0);
 }
@@ -3864,16 +3893,15 @@ if test $result = ok -a $start_test_number -le 54; then
 main()
 {
   char s[20];
-  unsint<4> d, e;
-  unsint<4> c1 (10), c2 (1348);
+  unsint<4> d,e;
 
-  d = c1;
-  e = c2;
-  if (!(d != e))
+  d.from_str ("10");
+  e.from_str ("1348");
+  if (d == e)
     exit (1);
   d.from_str ("1348");
   e.from_str ("1348");
-  if (d != e)
+  if (!(d == e))
     exit (1);
   exit (0);
 }
@@ -3905,22 +3933,15 @@ main()
 {
   char s[20];
   sint<4> d, e;
+  sint<4> c1 (-10), c2 (1348);
 
-  d.from_str ("-10");
-  e.from_str ("1348");
-  if (d > e)
+  d = c1;
+  e = c2;
+  if (!(d != e))
     exit (1);
   d.from_str ("-1348");
   e.from_str ("-1348");
-  if (d > e)
-    exit (1);
-  d.from_str ("-1000000");
-  e.from_str ("-1348");
-  if (d > e)
-    exit (1);
-  d.from_str ("1000000");
-  e.from_str ("1348");
-  if (!( d >  e))
+  if (d != e)
     exit (1);
   exit (0);
 }
@@ -3952,18 +3973,15 @@ main()
 {
   char s[20];
   unsint<4> d, e;
+  unsint<4> c1 (10), c2 (1348);
 
-  d.from_str ("10");
-  e.from_str ("1348");
-  if (d > e)
+  d = c1;
+  e = c2;
+  if (!(d != e))
     exit (1);
   d.from_str ("1348");
   e.from_str ("1348");
-  if (d > e)
-    exit (1);
-  d.from_str ("1000000");
-  e.from_str ("1348");
-  if (!(d > e))
+  if (d != e)
     exit (1);
   exit (0);
 }
@@ -3998,19 +4016,19 @@ main()
 
   d.from_str ("-10");
   e.from_str ("1348");
-  if (!(d < e))
+  if (d > e)
     exit (1);
   d.from_str ("-1348");
   e.from_str ("-1348");
-  if (d < e)
+  if (d > e)
     exit (1);
   d.from_str ("-1000000");
   e.from_str ("-1348");
-  if (!(d < e))
+  if (d > e)
     exit (1);
   d.from_str ("1000000");
   e.from_str ("1348");
-  if (d < e)
+  if (!( d >  e))
     exit (1);
   exit (0);
 }
@@ -4045,15 +4063,15 @@ main()
 
   d.from_str ("10");
   e.from_str ("1348");
-  if (!(d < e))
+  if (d > e)
     exit (1);
   d.from_str ("1348");
   e.from_str ("1348");
-  if (d < e)
+  if (d > e)
     exit (1);
   d.from_str ("1000000");
   e.from_str ("1348");
-  if (d < e)
+  if (!(d > e))
     exit (1);
   exit (0);
 }
@@ -4088,19 +4106,19 @@ main()
 
   d.from_str ("-10");
   e.from_str ("1348");
-  if (d >= e)
+  if (!(d < e))
     exit (1);
   d.from_str ("-1348");
   e.from_str ("-1348");
-  if (!(d >= e))
+  if (d < e)
     exit (1);
   d.from_str ("-1000000");
   e.from_str ("-1348");
-  if (d >= e)
+  if (!(d < e))
     exit (1);
   d.from_str ("1000000");
   e.from_str ("1348");
-  if (!(d >= e))
+  if (d < e)
     exit (1);
   exit (0);
 }
@@ -4135,15 +4153,15 @@ main()
 
   d.from_str ("10");
   e.from_str ("1348");
-  if (d >= e)
+  if (!(d < e))
     exit (1);
   d.from_str ("1348");
   e.from_str ("1348");
-  if (!(d >= e))
+  if (d < e)
     exit (1);
   d.from_str ("1000000");
   e.from_str ("1348");
-  if (!(d >= e))
+  if (d < e)
     exit (1);
   exit (0);
 }
@@ -4178,19 +4196,19 @@ main()
 
   d.from_str ("-10");
   e.from_str ("1348");
-  if (!(d <= e))
+  if (d >= e)
     exit (1);
   d.from_str ("-1348");
   e.from_str ("-1348");
-  if (!(d <= e))
+  if (!(d >= e))
     exit (1);
   d.from_str ("-1000000");
   e.from_str ("-1348");
-  if (!(d <= e))
+  if (d >= e)
     exit (1);
   d.from_str ("1000000");
   e.from_str ("1348");
-  if (d <= e)
+  if (!(d >= e))
     exit (1);
   exit (0);
 }
@@ -4225,15 +4243,15 @@ main()
 
   d.from_str ("10");
   e.from_str ("1348");
-  if (!(d <= e))
+  if (d >= e)
     exit (1);
   d.from_str ("1348");
   e.from_str ("1348");
-  if (!(d <= e))
+  if (!(d >= e))
     exit (1);
   d.from_str ("1000000");
   e.from_str ("1348");
-  if (d <= e)
+  if (!(d >= e))
     exit (1);
   exit (0);
 }
@@ -4264,23 +4282,23 @@ if test $result = ok -a $start_test_number -le 63; then
 main()
 {
   char s[20];
-  unsint<2> c;
-  unsint<4> d, g;
-  unsint<6> h;
+  sint<4> d, e;
 
-  d.from_str ("70000");
-  new_size (d, c);
-  if (!integer::overflow_bit)
+  d.from_str ("-10");
+  e.from_str ("1348");
+  if (!(d <= e))
     exit (1);
-  d.from_str ("30000");
-  new_size (d, c);
-  c.to_str (s);
-  if (integer::overflow_bit || strcmp (s, "30000") != 0)
+  d.from_str ("-1348");
+  e.from_str ("-1348");
+  if (!(d <= e))
     exit (1);
-  g.from_str ("11230000");
-  new_size (g, h);
-  h.to_str (s);
-  if (integer::overflow_bit || strcmp (s, "11230000") != 0)
+  d.from_str ("-1000000");
+  e.from_str ("-1348");
+  if (!(d <= e))
+    exit (1);
+  d.from_str ("1000000");
+  e.from_str ("1348");
+  if (d <= e)
     exit (1);
   exit (0);
 }
@@ -4303,6 +4321,96 @@ fi
 # Test 64.
 if test $result = ok -a $start_test_number -le 64; then
         cat >$test_file <<'TEST64'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20];
+  unsint<4> d, e;
+
+  d.from_str ("10");
+  e.from_str ("1348");
+  if (!(d <= e))
+    exit (1);
+  d.from_str ("1348");
+  e.from_str ("1348");
+  if (!(d <= e))
+    exit (1);
+  d.from_str ("1000000");
+  e.from_str ("1348");
+  if (d <= e)
+    exit (1);
+  exit (0);
+}
+TEST64
+
+        echo test 64:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 65.
+if test $result = ok -a $start_test_number -le 65; then
+        cat >$test_file <<'TEST65'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20];
+  unsint<2> c;
+  unsint<4> d, g;
+  unsint<6> h;
+
+  d.from_str ("70000");
+  new_size (d, c);
+  if (!integer::overflow_bit)
+    exit (1);
+  d.from_str ("30000");
+  new_size (d, c);
+  c.to_str (s);
+  if (integer::overflow_bit || strcmp (s, "30000") != 0)
+    exit (1);
+  g.from_str ("11230000");
+  new_size (g, h);
+  h.to_str (s);
+  if (integer::overflow_bit || strcmp (s, "11230000") != 0)
+    exit (1);
+  exit (0);
+}
+TEST65
+
+        echo test 65:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 66.
+if test $result = ok -a $start_test_number -le 66; then
+        cat >$test_file <<'TEST66'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -4345,9 +4453,9 @@ main()
     exit (1);
   exit (0);
 }
-TEST64
+TEST66
 
-        echo test 64:
+        echo test 66:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile
@@ -4361,9 +4469,9 @@ TEST64
         fi
 fi
 
-# Test 65.
-if test $result = ok -a $start_test_number -le 65; then
-        cat >$test_file <<'TEST65'
+# Test 67.
+if test $result = ok -a $start_test_number -le 67; then
+        cat >$test_file <<'TEST67'
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -4397,116 +4505,6 @@ main()
   d2 = d1 | d2;
   d2.to_str (s);
   if (strcmp (s, "1380") != 0)
-    exit (1);
-  exit (0);
-}
-TEST65
-
-        echo test 65:
-        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
-        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
-                echo '      ' $outfile
-                if $outfile; then
-                        result=ok
-                else
-                        result=fail
-                fi
-        else
-                result=fail
-        fi
-fi
-
-# Test 66.
-if test $result = ok -a $start_test_number -le 66; then
-        cat >$test_file <<'TEST66'
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "arithm.h"
-
-main()
-{
-  char s[20];
-  sint<4> d1, d2;
-
-  d1.from_str ("1348");
-  d2.from_str ("1348");
-  d2 = d1 | d2;
-  d2.to_str (s);
-  if (strcmp (s, "1348") != 0)
-    exit (1);
-  d1.from_str ("1348");
-  d2.from_str ("0");
-  d2 = d1 | d2;
-  d2.to_str (s);
-  if (strcmp (s, "1348") != 0)
-    exit (1);
-  d1.from_str ("1348");
-  d2.from_str ("-1");
-  d2 = d1 | d2;
-  d2.to_str (s);
-  if (strcmp (s, "-1") != 0)
-    exit (1);
-  d1.from_str ("1348");
-  d2.from_str ("96");
-  d2 = d1 | d2;
-  d2.to_str (s);
-  if (strcmp (s, "1380") != 0)
-    exit (1);
-  exit (0);
-}
-TEST66
-
-        echo test 66:
-        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
-        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
-                echo '      ' $outfile
-                if $outfile; then
-                        result=ok
-                else
-                        result=fail
-                fi
-        else
-                result=fail
-        fi
-fi
-
-# Test 67.
-if test $result = ok -a $start_test_number -le 67; then
-        cat >$test_file <<'TEST67'
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "arithm.h"
-
-main()
-{
-  char s[20];
-  unsint<4> d1, d2;
-
-  d1.from_str ("1348");
-  d2.from_str ("1348");
-  d2 = d1 & d2;
-  d2.to_str (s);
-  if (strcmp (s, "1348") != 0)
-    exit (1);
-  d1.from_str ("1348");
-  d2.from_str ("0");
-  d2 = d1 & d2;
-  d2.to_str (s);
-  if (strcmp (s, "0") != 0)
-    exit (1);
-  d1.from_str ("1348");
-  d2.from_str ("4294967295");
-  d2 = d1 & d2;
-  d2.to_str (s);
-  if (strcmp (s, "1348") != 0)
-    exit (1);
-  d1.from_str ("1348");
-  d2.from_str ("96");
-  d2 = d1 & d2;
-  d2.to_str (s);
-  if (strcmp (s, "64") != 0)
     exit (1);
   exit (0);
 }
@@ -4541,27 +4539,27 @@ main()
 
   d1.from_str ("1348");
   d2.from_str ("1348");
-  d2 = d1 & d2;
+  d2 = d1 | d2;
   d2.to_str (s);
   if (strcmp (s, "1348") != 0)
     exit (1);
   d1.from_str ("1348");
   d2.from_str ("0");
-  d2 = d1 & d2;
-  d2.to_str (s);
-  if (strcmp (s, "0") != 0)
-    exit (1);
-  d1.from_str ("1348");
-  d2.from_str ("-1");
-  d2 = d1 & d2;
+  d2 = d1 | d2;
   d2.to_str (s);
   if (strcmp (s, "1348") != 0)
     exit (1);
   d1.from_str ("1348");
-  d2.from_str ("96");
-  d2 = d1 & d2;
+  d2.from_str ("-1");
+  d2 = d1 | d2;
   d2.to_str (s);
-  if (strcmp (s, "64") != 0)
+  if (strcmp (s, "-1") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("96");
+  d2 = d1 | d2;
+  d2.to_str (s);
+  if (strcmp (s, "1380") != 0)
     exit (1);
   exit (0);
 }
@@ -4592,22 +4590,31 @@ if test $result = ok -a $start_test_number -le 69; then
 main()
 {
   char s[20];
-  unsint<4> d;
+  unsint<4> d1, d2;
 
-  d.from_str ("1348");
-  d = ~d;
-  d.to_str (s);
-  if (strcmp (s, "4294965947") != 0)
+  d1.from_str ("1348");
+  d2.from_str ("1348");
+  d2 = d1 & d2;
+  d2.to_str (s);
+  if (strcmp (s, "1348") != 0)
     exit (1);
-  d.from_str ("0");
-  d = ~d;
-  d.to_str (s);
-  if (strcmp (s, "4294967295") != 0)
-    exit (1);
-  d.from_str ("4294967295");
-  d = ~d;
-  d.to_str (s);
+  d1.from_str ("1348");
+  d2.from_str ("0");
+  d2 = d1 & d2;
+  d2.to_str (s);
   if (strcmp (s, "0") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("4294967295");
+  d2 = d1 & d2;
+  d2.to_str (s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("96");
+  d2 = d1 & d2;
+  d2.to_str (s);
+  if (strcmp (s, "64") != 0)
     exit (1);
   exit (0);
 }
@@ -4638,6 +4645,217 @@ if test $result = ok -a $start_test_number -le 70; then
 main()
 {
   char s[20];
+  sint<4> d1, d2;
+
+  d1.from_str ("1348");
+  d2.from_str ("1348");
+  d2 = d1 & d2;
+  d2.to_str (s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("0");
+  d2 = d1 & d2;
+  d2.to_str (s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("-1");
+  d2 = d1 & d2;
+  d2.to_str (s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("96");
+  d2 = d1 & d2;
+  d2.to_str (s);
+  if (strcmp (s, "64") != 0)
+    exit (1);
+  exit (0);
+}
+TEST70
+
+        echo test 70:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 71.
+if test $result = ok -a $start_test_number -le 71; then
+        cat >$test_file <<'TEST71'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20];
+  unsint<4> d1, d2;
+
+  d1.from_str ("1348");
+  d2.from_str ("1348");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("0");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("4294967295");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "4294965947") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("96");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "1316") != 0)
+    exit (1);
+  exit (0);
+}
+TEST71
+
+        echo test 71:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 72.
+if test $result = ok -a $start_test_number -le 72; then
+        cat >$test_file <<'TEST72'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20];
+  sint<4> d1, d2;
+
+  d1.from_str ("1348");
+  d2.from_str ("1348");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("0");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("-1");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "-1349") != 0)
+    exit (1);
+  d1.from_str ("1348");
+  d2.from_str ("96");
+  d2 = d1 ^ d2;
+  d2.to_str (s);
+  if (strcmp (s, "1316") != 0)
+    exit (1);
+  exit (0);
+}
+TEST72
+
+        echo test 72:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 73.
+if test $result = ok -a $start_test_number -le 73; then
+        cat >$test_file <<'TEST73'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20];
+  unsint<4> d;
+
+  d.from_str ("1348");
+  d = ~d;
+  d.to_str (s);
+  if (strcmp (s, "4294965947") != 0)
+    exit (1);
+  d.from_str ("0");
+  d = ~d;
+  d.to_str (s);
+  if (strcmp (s, "4294967295") != 0)
+    exit (1);
+  d.from_str ("4294967295");
+  d = ~d;
+  d.to_str (s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  exit (0);
+}
+TEST73
+
+        echo test 73:
+        echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
+        if $CXX $CXX_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 74.
+if test $result = ok -a $start_test_number -le 74; then
+        cat >$test_file <<'TEST74'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20];
   sint<4> d;
 
   d.from_str ("1348");
@@ -4657,9 +4875,9 @@ main()
     exit (1);
   exit (0);
 }
-TEST70
+TEST74
 
-        echo test 70:
+        echo test 74:
         echo '      ' $CXX $CXX_options $test_file $addfiles -o $outfile
         if $CXX $CXX_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile

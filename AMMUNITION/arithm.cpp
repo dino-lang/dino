@@ -1238,6 +1238,32 @@ unsigned_integer::_and_ (int size, const void *op1, const void *op2,
 }
 
 
+/* This function makes bitwise `xor' of two integers of given size. */
+
+void
+signed_integer::_xor_ (int size, const void *op1, const void *op2,
+                       void *result)
+{
+  int byte_number;
+
+  assert (size > 0);
+  for (byte_number = 0; byte_number < size; byte_number++)
+    ((unsigned char *) result) [byte_number]
+      = ((unsigned char *) op1) [byte_number]
+        ^ ((unsigned char *) op2) [byte_number];
+}
+
+/* This function makes bitwise `xor' of two unsigned integers of given
+   size. */
+
+void
+unsigned_integer::_xor_ (int size, const void *op1, const void *op2,
+                         void *result)
+{
+  signed_integer::_xor_ (size, op1, op2, result);
+}
+
+
 /* This function makes bitwise `not' of integer of given size. */
 
 void

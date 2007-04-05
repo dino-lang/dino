@@ -306,24 +306,16 @@ char DERR_corrupted_environment_var []
   = "run time error - bad value of environment variable `%s'";
 char DERR_internal_error []
   = "run time error - internal error in `%s'";
-char DERR_func_in_left_arrow_side []
-  = "run time error - function is in left side of operation \"->\"";
-char DERR_class_in_left_arrow_side []
-  = "run time error - class is in left side of operation \"->\"";
 char DERR_func_as_variable []
   = "run time error - usage function as variable";
 char DERR_class_as_variable []
   = "run time error - usage class as variable";
 char DERR_value_is_not_class_instance_or_stack []
-  = "run time error - value is not class instance or stack (\".\" or \"->\")";
+  = "run time error - value is not class instance or stack (\".\")";
 char DERR_decl_is_absent_in_given_class_or_block []
   = "run time error - there is not such declaration in given class";
 char DERR_private_decl_access_from_outside_block []
   = "run time error - access to private decl `%s' from outside";
-char DERR_there_is_not_such_decl []
-  = "run time error - there is not such declaration (operation \"->\" or \"*\")";
-char DERR_decl_name_is_not_string []
-  = "run time error - decl name is not string (operation \"->\" or \"*\")";
 char DERR_immutable_vector_modification []
   = "run time error - attempt to modify immutable vector";
 char DERR_immutable_table_modification []

@@ -1144,14 +1144,16 @@ external definitions:
                           void *result)'
         </verb></tscreen>
         makes bitwise `or' of integers of given size.  There is
-        analogous function which implement bitwise `and':
+        analogous functions which implement bitwise `and' or `xor':
         <tscreen><verb>
-        `integer_and'.
+        `integer_and',
+        `integer_xor'.
         </verb></tscreen>
          Also there are equivalent functions
         <tscreen><verb>
         `unsigned_integer_or',
         `unsigned_integer_and',
+        `unsigned_integer_xor',
         </verb></tscreen>
         for unsigned integers.
 

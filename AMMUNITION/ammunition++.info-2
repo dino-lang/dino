@@ -1,5 +1,5 @@
-This is ammunition++.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.ammunition++13573.info.2.
+This is ammunition++.info, produced by makeinfo version 4.3 from
+/tmp/linuxdoc-dir-15721/sgmltmp.ammunition++.info.2.
 
    \input texinfo
 
@@ -30,19 +30,18 @@ represented by number of given size.
 
    The interface part of the abstract data is file `arithm.h'.  The
 implementation part is file `arithm.cpp'.  The maximum length of integer
-number is suggested to be not greater then
-`MAX_INTEGER_OPERAND_SIZE'.  The default value
-(128) of this macro can be redefined with corresponding C++ compiler
-option `-DMAX_INTEGER_OPERAND_SIZE=...'  during
-compilation of file `arithm.cpp'.  But in any case the minimal value of
-the macros will be 16.  The interface contains the following external
-definitions:
+number is suggested to be not greater then `MAX_INTEGER_OPERAND_SIZE'.
+The default value (128) of this macro can be redefined with
+corresponding C++ compiler option `-DMAX_INTEGER_OPERAND_SIZE=...'
+during compilation of file `arithm.cpp'.  But in any case the minimal
+value of the macros will be 16.  The interface contains the following
+external definitions:
 
 `Class `integer''
      is auxialiary.  It serves to describe common variables and
      functions for work with signed and unsigned integers (classes
-     `signed_integer' and `unsigned_integer').  The class
-     `integer' has the following members.
+     `signed_integer' and `unsigned_integer').  The class `integer' has
+     the following members.
     `Public static variable `overflow_bit''
           has only two values 0 or 1.  The value `1' corresponds to
           overflow.  The variable value are modified by all functions of
@@ -59,8 +58,7 @@ definitions:
           Originally reaction on all integer and unsigned integer
           overflow is equal to this function.  The function does
           nothing.  Reaction on overflow for integers or unsigned
-          integers is called after setting up variable
-          `overflow_bit'.
+          integers is called after setting up variable `overflow_bit'.
 
 `Classes `signed_integer' and `unsigned_integer''
      are sub-classes of the class `integer'.  The first class contains
@@ -114,8 +112,9 @@ definitions:
                                       void *result)'
 
           make bitwise `or' of integers of given size.  There are
-          analogous functions which implement bitwise `and':
-                          `_and_'.
+          analogous functions which implement bitwise `and' and `xor':
+                          `_and_',
+                          `_xor_'.
 
           Static public functions
                           `void _not_ (int size, const void *operand,
@@ -161,9 +160,8 @@ definitions:
           given base.  The base should be between 2 and 36 including
           them.  Digits more 9 are represented by 'a', 'b' etc.  Sign
           is present in result string only for negative numbers (it is
-          not possible for the function in class
-          `unsigned_integer').  The functions return value
-          `result'.
+          not possible for the function in class `unsigned_integer').
+          The functions return value `result'.
 
     `Static public functions `from_string''
                           `char *from_string (int  size, const char *operand,
@@ -172,12 +170,11 @@ definitions:
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (decimal ascii
           representation with possible sign `+' or `-' only for the
-          function in class `signed_integer') to given size
-          integer and return pointer to first non digit in the source
-          string.  If the string started with invalid integer
-          representation the result will be zero.  The functions fix
-          overflow when result can not be represented by number of
-          given size.
+          function in class `signed_integer') to given size integer and
+          return pointer to first non digit in the source string.  If
+          the string started with invalid integer representation the
+          result will be zero.  The functions fix overflow when result
+          can not be represented by number of given size.
 
     `Static public functions `from_based_string''
                           `char *from_based_string (int  size, const char *operand,
@@ -186,26 +183,25 @@ definitions:
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (ascii
           representation with given base and with possible sign `+' or
-          `-' only for the function in class `signed_integer') to
-          given size integer and return pointer to first non digit in
-          the source string.  The base should be between 2 and 36
-          including them.  Digits more 9 are represented by 'a' (or
-          'A'), 'b' (or 'B') etc.  If the string started with invalid
-          integer representation the result will be zero.  The
-          functions fix overflow when result can not be represented by
-          number of given size.
+          `-' only for the function in class `signed_integer') to given
+          size integer and return pointer to first non digit in the
+          source string.  The base should be between 2 and 36 including
+          them.  Digits more 9 are represented by 'a' (or 'A'), 'b' (or
+          'B') etc.  If the string started with invalid integer
+          representation the result will be zero.  The functions fix
+          overflow when result can not be represented by number of
+          given size.
 
 `Classes `sint' and `unsint''
-     Classes `signed_integer' and `unsigned_integer'
-     containing only static function are simply written in C style.
-     Object oriented implementation of integer arithmetic requires C++
-     template classes which is not supported all C++ compilers.
-     Therefore if you define macro `NO_TEMPLATE' before inclusion
-     of interface file, classes `sint' and `unsint' will be absent.
-     The classes is parameterized by size of integers (in bytes).  As
-     the classes are subclasses of `signed_integer' and
-     `unsigned_integer', you can members `overflow_bit',
-     `set_overflow_reaction' to work with arithmetic
+     Classes `signed_integer' and `unsigned_integer' containing only
+     static function are simply written in C style.  Object oriented
+     implementation of integer arithmetic requires C++ template classes
+     which is not supported all C++ compilers.  Therefore if you define
+     macro `NO_TEMPLATE' before inclusion of interface file, classes
+     `sint' and `unsint' will be absent.  The classes is parameterized
+     by size of integers (in bytes).  As the classes are subclasses of
+     `signed_integer' and `unsigned_integer', you can members
+     `overflow_bit', `set_overflow_reaction' to work with arithmetic
      overflow.  The classes have the following memebers:
     `Public constructors `sint', `unsint''
                           `sint (int value)', `sint (void)'
@@ -251,15 +247,16 @@ definitions:
           implement another operation (right shift)
                           `>>'.
 
-    `Public operators `[verbar]''
+    `Public operators `|''
                           `class sint<size> operator |
                                             (const class sint<size> &op)'
                           `class unsint<size> operator |
                                               (const class unsint<size> &op)'
 
           make bitwise `or' of integers.  There are analogous operators
-          which implement bitwise `and':
-                          `&'.
+          which implement bitwise `and' and `xor':
+                          `&',
+                          `^'.
 
           Public operators
                           `class sint<size> operator ~ (void)'
@@ -304,9 +301,9 @@ definitions:
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (decimal ascii
           representation with possible sign `+' or `-' only for the
-          function in class `signed_integer') to given integer
-          and return pointer to first non digit in the source string.
-          If the string started with invalid integer representation the
+          function in class `signed_integer') to given integer and
+          return pointer to first non digit in the source string.  If
+          the string started with invalid integer representation the
           result will be zero.  The functions fixe overflow when result
           can not be represented by number of given size.
 
@@ -316,11 +313,11 @@ definitions:
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (ascii
           representation with given base and with possible sign `+' or
-          `-' only for the function in class `signed_integer') to
-          given integer and return pointer to first non digit in the
-          source string.  The base should be between 2 and 36 including
-          them.  Digits more 9 are represented by 'a' (or 'A'), 'b' (or
-          'B') etc.  If the string started with invalid integer
+          `-' only for the function in class `signed_integer') to given
+          integer and return pointer to first non digit in the source
+          string.  The base should be between 2 and 36 including them.
+          Digits more 9 are represented by 'a' (or 'A'), 'b' (or 'B')
+          etc.  If the string started with invalid integer
           representation the result will be zero.  The functions fixe
           overflow when result can not be represented by number of
           given size.

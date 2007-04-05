@@ -1,5 +1,5 @@
-This is ammunition++.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.ammunition++13573.info.2.
+This is ammunition++.info, produced by makeinfo version 4.3 from
+/tmp/linuxdoc-dir-15721/sgmltmp.ammunition++.info.2.
 
    \input texinfo
 
@@ -180,7 +180,7 @@ interface contains the following objects:
      VLO when the object is created (with not given initial size).
      Original value of the macros is equal to 512.  This macro can be
      redefined in C++ compiler command line or with the aid of
-     directive `[num   ]undef' before including the interface file.
+     directive `#undef' before including the interface file.
 
 `Class `vlo''
      The class contains the following functions:
@@ -192,7 +192,7 @@ interface contains the following objects:
           to zero then the VLO initial allocated memory length is equal
           to `VLO_DEFAULT_LENGTH'.
 
-    `Public destructor `[nbsp  ]vlo''
+    `Public destructor ` vlo''
                             `~vlo (void)'
 
           is used for deleting the descritor of VLO and freeing memory
@@ -294,7 +294,7 @@ interface contains the following objects:
      segment size).  This is also minimal size of all segments.
      Original value of the macros is equal to 512.  This macro can be
      redefined in C++ compiler command line or with the aid of
-     directive `[num   ]undef' before including the interface file.
+     directive `#undef' before including the interface file.
 
 `Class `os''
      The class contains the following functions:
@@ -306,11 +306,10 @@ interface contains the following objects:
           Minimum size of memory segments which will be allocated for
           OS is given as the parameter.  If the parameter is absent the
           allocated memory segments length is equal to
-          `OS_DEFAULT_SEGMENT_LENGTH'.  But in any
-          case the segment length is always not less than maximum
-          alignment.
+          `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment
+          length is always not less than maximum alignment.
 
-    `Public destructor `[nbsp  ]os''
+    `Public destructor ` os''
                           `~os (void)'
 
           is used for deleting the descritor of OS and freeing memory
@@ -437,12 +436,11 @@ abstract data is file `hashtab.h'.  The implementation part is file
           creates hash table with length slightly longer than value of
           function parameter `size'.  Created hash table is initiated
           as empty (all the hash table entries are NULL).  The hash
-          table will use functions `hash_function',
-          `eq_function' given as the function parameters to
-          evaluate table element hash value and function to test on
-          equality of two table elements.
+          table will use functions `hash_function', `eq_function' given
+          as the function parameters to evaluate table element hash
+          value and function to test on equality of two table elements.
 
-    `Public destructor `[nbsp  ]hash_table''
+    `Public destructor ` hash_table''
                           `~hash_table (void)'
 
           deletes given hash table and frees memory allocated for it.
@@ -452,10 +450,9 @@ abstract data is file `hashtab.h'.  The implementation part is file
 
           makes the hash table empty.  If you need to remove all table
           elements, it is better to use this function than several
-          times function
-          `remove_element_from_entry'.  This
-          function does not change size of the table or clear
-          statistics about collisions.
+          times function `remove_element_from_entry'.  This function
+          does not change size of the table or clear statistics about
+          collisions.
 
     `Public function `find_entry''
                           `hash_table_entry_t *find_entry
@@ -468,19 +465,19 @@ abstract data is file `hashtab.h'.  The implementation part is file
           in the table).  The function parameter `reserve' is to be
           nonzero if the element is to be placed in the table.  The
           element should be inserted into the table entry before another
-          call of `find_hash_table_entry'.  The
-          table is expanded if occupancy (taking into account also
-          deleted elements) is more than 75%.  The occupancy of
-          the table after the expansion will be about 50%.
+          call of `find_hash_table_entry'.  The table is expanded if
+          occupancy (taking into account also deleted elements) is more
+          than 75%.  The occupancy of the table after the expansion
+          will be about 50%.
 
     `Public function `remove_element_from_entry''
                           `void remove_element_from_entry
                                    (hash_table_entry_t element)'
 
-          removes element from hash table_entry whose value is
-          given as the function parameter.  Hash table entry for given
-          value should be not empty (or deleted).  The hash table entry
-          value will be marked as deleted after the function call.
+          removes element from hash table_entry whose value is given as
+          the function parameter.  Hash table entry for given value
+          should be not empty (or deleted).  The hash table entry value
+          will be marked as deleted after the function call.
 
     `Public function `size''
                           `size_t size (void)'
@@ -517,15 +514,15 @@ account all included files is suggested.
 
    The strategy of the package usage can be follows.  Function
 `initiate' of class `positions' is called by the first.  After that
-function `start_file' of class `positions' is called when a file
-is opened for compilation as source or included file.  Members
-`line_number' and `column_number' of variable
-`current_position' are modified correspondingly during given
-file compilation.  The value of `current_position' can be stored
-into internal representation for usage for output messages on the
-following passes.  Function `finish_file' of class `positions'
-is called when a processed file is closed.  Function `finish' of class
-`positions' may be called after all processing a source file.
+function `start_file' of class `positions' is called when a file is
+opened for compilation as source or included file.  Members
+`line_number' and `column_number' of variable `current_position' are
+modified correspondingly during given file compilation.  The value of
+`current_position' can be stored into internal representation for usage
+for output messages on the following passes.  Function `finish_file' of
+class `positions' is called when a processed file is closed.  Function
+`finish' of class `positions' may be called after all processing a
+source file.
 
    The package uses packages `vlobject' and `objstack' which use package
 `allocate'.  The interface part of the package is file `position.h'.
@@ -563,10 +560,9 @@ the following objects:
      The class has not public constructors/destructors.  The class has
      the following members:
     `Static const member `no_position''
-          has value of type `position_t' has values
-          `line_number', `column_number' equals to zero
-          or `NULL'.  The value does not correspond to concrete file
-          position.
+          has value of type `position_t' has values `line_number',
+          `column_number' equals to zero or `NULL'.  The value does not
+          correspond to concrete file position.
 
     `Static member `current''
           has value which is current file position.
@@ -587,13 +583,12 @@ the following objects:
 
           save position in member variable `current' and sets up new
           values of members of `current'.  Values of members
-          `file_name', `line_number',
-          `column_number', and `path' become equal to the
-          function parameter value, 1, 0, and pointer to the saved
-          position.  Values of `current' during different calls of the
-          function must be different (e.g.  different columns or
-          lines), i.e. positions of different include-clauses must be
-          different.
+          `file_name', `line_number', `column_number', and `path'
+          become equal to the function parameter value, 1, 0, and
+          pointer to the saved position.  Values of `current' during
+          different calls of the function must be different (e.g.
+          different columns or lines), i.e. positions of different
+          include-clauses must be different.
 
     `Static public function `finish_file''
                           `void finish_file (void)'
@@ -607,9 +602,9 @@ the following objects:
                                                   position_t position_2)'
 
           compares two positions given by parameters of type
-          `position_t' and returns -1 (if the first position is
-          less than the second), 0 (if the first position is equal to
-          the second) or 1 (if the first position is greater than the
+          `position_t' and returns -1 (if the first position is less
+          than the second), 0 (if the first position is equal to the
+          second) or 1 (if the first position is greater than the
           second).  The order of positions is lexicographic.
 
 
@@ -630,12 +625,11 @@ use package `allocate'.  Therefore package `position' have to be
 initiated before any work with this package.  The interface part of the
 package is file `errors.h'.  The implementation part is file
 `errors.cpp'.  The maximum length of generated error message is
-suggested to be not greater then
-`MAX_ERROR_MESSAGE_LENGTH'.  The default value
-(150) of this macro can be redefined with corresponding C++ compiler
-option `-DMAX_ERROR_MESSAGE_LENGTH=...'  during
-compilation of file `errors.cpp'.  The interface contains only one
-class `errors'.  The class has the following members:
+suggested to be not greater then `MAX_ERROR_MESSAGE_LENGTH'.  The
+default value (150) of this macro can be redefined with corresponding
+C++ compiler option `-DMAX_ERROR_MESSAGE_LENGTH=...'  during compilation
+of file `errors.cpp'.  The interface contains only one class `errors'.
+The class has the following members:
 
 `Public functions `number_of_errors', `number_of_warnings''
                   `unsigned int number_of_errors (void)'
@@ -647,11 +641,10 @@ class `errors'.  The class has the following members:
 `Integer variable `maximum_number_of_errors''
      has value which is maximum number of errors which will be fixed.
      If an error is fixed with number equals to
-     `maximum_number_of_errors' then special fatal
-     error `fatal error - too many errors' with position of given error
-     is fixed instead of the error.  And all following errors are
-     ignored.  Zero value of the variable means that the special fatal
-     error will never fixed.
+     `maximum_number_of_errors' then special fatal error `fatal error -
+     too many errors' with position of given error is fixed instead of
+     the error.  And all following errors are ignored.  Zero value of
+     the variable means that the special fatal error will never fixed.
 
 `Public virtual function `fatal_error_function''
                   `void fatal_error_function (void)'
@@ -669,7 +662,7 @@ class `errors'.  The class has the following members:
      messages are output immediately.  Otherwise the compiler messages
      are stored until function `output' are called.
 
-`Public destructor `[nbsp  ]errors''
+`Public destructor ` errors''
                   `~errors (void)'
 
      frees all memory allocated during the class `errors' object work.
@@ -688,10 +681,9 @@ class `errors'.  The class has the following members:
 
      fixes error (fatal error if the first parameter value is nonzero)
      at the position given as the second parameter.  If the error is
-     fatal than functions `output' and
-     `*fatal_error_function' are called.  The diagnostic
-     messages are formed analogous to output of function `printf'.  For
-     example,
+     fatal than functions `output' and `*fatal_error_function' are
+     called.  The diagnostic messages are formed analogous to output of
+     function `printf'.  For example,
                      error (1, current_position, "fatal error - no memory");
 
 `Public function `warning''
@@ -705,10 +697,10 @@ class `errors'.  The class has the following members:
 
      When regime of immediately output of fixed message is on this
      function is analogous to the previous (except for incrementing
-     `number_of_warnings').  In opposite case the
-     appended message will be output with the most recent fixed error
-     or warning independently from value of the first parameter.  Of
-     course the previously fixed error or warning must exist.
+     `number_of_warnings').  In opposite case the appended message will
+     be output with the most recent fixed error or warning
+     independently from value of the first parameter.  Of course the
+     previously fixed error or warning must exist.
 
      For example, this function may be used for generation of messages
      of type
@@ -717,8 +709,8 @@ class `errors'.  The class has the following members:
      and then
                         `<file>:<line>:<position-1>: previous declaration'.
 
-     Description of function `output_error_function'
-     contains explanation why decremented position is output.
+     Description of function `output_error_function' contains
+     explanation why decremented position is output.
 
 `Public function `system_error''
                   `void system_error (int fatal_error_flag,
@@ -744,8 +736,8 @@ class `errors'.  The class has the following members:
 
      By default the function is oriented to output in Unix style
      according to GNU standard.  To output a listing the function
-     `output_error_function' should be changed.  The
-     default function output message in the following formats:
+     `output_error_function' should be changed.  The default function
+     output message in the following formats:
             MESSAGE                              (NULL file name)
             FILE_NAME:1: MESSAGE                 (zero line number)
             FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
@@ -782,13 +774,13 @@ operands.
 (or both) may be absent in the description.  First part contains
 option-arguments names of options which are in the second part.
 option-arguments names are separated by white space.  The second part
-starts with percents `%%' and contains any text in which
-description of options are placed.  Any description of option starts
-with character "' followed by character `-' and finishes by character
-`".  White spaces may precede option-argument name.  It means that the
-corresponding option has obligatory separate option-argument.  For
-example, the following may be a part of description of options of a
-pascal compiler command line.
+starts with percents `%%' and contains any text in which description of
+options are placed.  Any description of option starts with character "'
+followed by character `-' and finishes by character `".  White spaces
+may precede option-argument name.  It means that the corresponding
+option has obligatory separate option-argument.  For example, the
+following may be a part of description of options of a pascal compiler
+command line.
 
      dir xxx file
      %%
@@ -812,8 +804,7 @@ argument after given option in command line.
    The interface part of the abstract data is file `commline.h'.  The
 package uses package `vlobject' which use package `allocate'.  The
 implementation part is file `commline.cpp'.  The interface contains
-only one class `command_line'.  The class has the following
-members:
+only one class `command_line'.  The class has the following members:
 
 `Public constructor `command_line''
                     `command_line (int argc, char **argv,
@@ -823,8 +814,8 @@ members:
      The constructor processes command line description given as string
      parameter and command line itself given as two parameter `argc'
      and `argv'.  The function returns 0 through parameter
-     `correct_description_flag' if error in command line
-     description is fixed, otherwise returns 1 (it means success).
+     `correct_description_flag' if error in command line description is
+     fixed, otherwise returns 1 (it means success).
 
 `Public destructor `command_line''
                     `~command_line (void)'
@@ -834,9 +825,9 @@ members:
 `Public function `output_description''
                     `void output_description (void)'
 
-     outputs the second part (without `%%') of
-     description of options to stderr.  This function should be called
-     when it is necessary to show the program usage.
+     outputs the second part (without `%%') of description of options
+     to stderr.  This function should be called when it is necessary to
+     show the program usage.
 
 `Public function `next_operand''
                     `int next_operand (int flag_of_first)'
@@ -876,10 +867,10 @@ members:
      with option-argument differs from option in the command line (e.g.
      `-U' and `-Ufoo').  If the option in the command line description
      is found than the function sets up correspondingly the second
-     function parameter `option_has_argument'.  The case
-     of returned NULL and `*option_has_argument' equals
-     to TRUE means that given option must have option-argument but the
-     option has not option-argument in the command line.
+     function parameter `option_has_argument'.  The case of returned
+     NULL and `*option_has_argument' equals to TRUE means that given
+     option must have option-argument but the option has not
+     option-argument in the command line.
 
 `Public function `last_option_place''
                     `int last_option_place (const char *option_name)'

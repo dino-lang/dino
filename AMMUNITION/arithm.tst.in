@@ -2283,22 +2283,31 @@ if test $result = ok -a $start_test_number -le 34; then
 
 main()
 {
-  char s[20], d[4];
+  char s[20], d1[4], d2[4];
 
-  unsigned_integer_from_string (4, "1348", d);
-  unsigned_integer_not (4, d, d);
-  unsigned_integer_to_string (4, d, s);
+  unsigned_integer_from_string (4, "1348", d1);
+  unsigned_integer_from_string (4, "1348", d2);
+  unsigned_integer_xor (4, d1, d2, d2);
+  unsigned_integer_to_string (4, d2, s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  unsigned_integer_from_string (4, "1348", d1);
+  unsigned_integer_from_string (4, "0", d2);
+  unsigned_integer_xor (4, d1, d2, d2);
+  unsigned_integer_to_string (4, d2, s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  unsigned_integer_from_string (4, "1348", d1);
+  unsigned_integer_from_string (4, "4294967295", d2);
+  unsigned_integer_xor (4, d1, d2, d2);
+  unsigned_integer_to_string (4, d2, s);
   if (strcmp (s, "4294965947") != 0)
     exit (1);
-  unsigned_integer_from_string (4, "0", d);
-  unsigned_integer_not (4, d, d);
-  unsigned_integer_to_string (4, d, s);
-  if (strcmp (s, "4294967295") != 0)
-    exit (1);
-  unsigned_integer_from_string (4, "4294967295", d);
-  unsigned_integer_not (4, d, d);
-  unsigned_integer_to_string (4, d, s);
-  if (strcmp (s, "0") != 0)
+  unsigned_integer_from_string (4, "1348", d1);
+  unsigned_integer_from_string (4, "96", d2);
+  unsigned_integer_xor (4, d1, d2, d2);
+  unsigned_integer_to_string (4, d2, s);
+  if (strcmp (s, "1316") != 0)
     exit (1);
   exit (0);
 }
@@ -2328,6 +2337,105 @@ if test $result = ok -a $start_test_number -le 35; then
 
 main()
 {
+  char s[20], d1[4], d2[4];
+
+  integer_from_string (4, "1348", d1);
+  integer_from_string (4, "1348", d2);
+  integer_xor (4, d1, d2, d2);
+  integer_to_string (4, d2, s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  integer_from_string (4, "1348", d1);
+  integer_from_string (4, "0", d2);
+  integer_xor (4, d1, d2, d2);
+  integer_to_string (4, d2, s);
+  if (strcmp (s, "1348") != 0)
+    exit (1);
+  integer_from_string (4, "1348", d1);
+  integer_from_string (4, "-1", d2);
+  integer_xor (4, d1, d2, d2);
+  integer_to_string (4, d2, s);
+  if (strcmp (s, "-1349") != 0)
+    exit (1);
+  integer_from_string (4, "1348", d1);
+  integer_from_string (4, "96", d2);
+  integer_xor (4, d1, d2, d2);
+  integer_to_string (4, d2, s);
+  if (strcmp (s, "1316") != 0)
+    exit (1);
+  exit (0);
+}
+TEST35
+
+        echo test 35:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 36.
+if test $result = ok -a $start_test_number -le 36; then
+        cat >$test_file <<'TEST36'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
+  char s[20], d[4];
+
+  unsigned_integer_from_string (4, "1348", d);
+  unsigned_integer_not (4, d, d);
+  unsigned_integer_to_string (4, d, s);
+  if (strcmp (s, "4294965947") != 0)
+    exit (1);
+  unsigned_integer_from_string (4, "0", d);
+  unsigned_integer_not (4, d, d);
+  unsigned_integer_to_string (4, d, s);
+  if (strcmp (s, "4294967295") != 0)
+    exit (1);
+  unsigned_integer_from_string (4, "4294967295", d);
+  unsigned_integer_not (4, d, d);
+  unsigned_integer_to_string (4, d, s);
+  if (strcmp (s, "0") != 0)
+    exit (1);
+  exit (0);
+}
+TEST36
+
+        echo test 36:
+        echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
+        if $CC $CC_options $test_file $addfiles -o $outfile; then
+                echo '      ' $outfile
+                if $outfile; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 37.
+if test $result = ok -a $start_test_number -le 37; then
+        cat >$test_file <<'TEST37'
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "arithm.h"
+
+main()
+{
   char s[20], d[4];
 
   integer_from_string (4, "1348", d);
@@ -2347,9 +2455,9 @@ main()
     exit (1);
   exit (0);
 }
-TEST35
+TEST37
 
-        echo test 35:
+        echo test 37:
         echo '      ' $CC $CC_options $test_file $addfiles -o $outfile
         if $CC $CC_options $test_file $addfiles -o $outfile; then
                 echo '      ' $outfile

@@ -1,5 +1,5 @@
-This is ammunition.info, produced by makeinfo version 4.0 from
-/tmp/sgmltmp.ammunition13489.info.2.
+This is ammunition.info, produced by makeinfo version 4.3 from
+/tmp/linuxdoc-dir-15634/sgmltmp.ammunition.info.2.
 
    \input texinfo
 
@@ -166,10 +166,9 @@ tailoring) the object place is not changed.  To decrease number of
 changes of the object place the memory being allocated for the object
 is longer than the current object length.
 
-   Because arguments of all macros which return a result
-(`VLO_LENGTH', `VLO_BEGIN', `VLO_BOUND', and
-`VLO_END') may be evaluated many times no side-effects should be
-in the arguments.
+   Because arguments of all macros which return a result (`VLO_LENGTH',
+`VLO_BEGIN', `VLO_BOUND', and `VLO_END') may be evaluated many times no
+side-effects should be in the arguments.
 
    The package uses package `allocate'.  The interface part of the
 package is file `vlobject.h'.  Defining macro `NDEBUG' (e.g. by option
@@ -189,8 +188,8 @@ contains the following definitions and macros:
      has value which is default initial size of memory is allocated for
      VLO when the object is created (with zero initial size).  Original
      value of the macros is equal to 512.  This macro can be redefined
-     in C compiler command line or with the aid of directive `[num
-     ]undef' before any using the package macros.
+     in C compiler command line or with the aid of directive `#undef'
+     before any using the package macros.
 
 `Macro `VLO_CREATE''
                     `VLO_CREATE(vlo, initial_length)'
@@ -289,9 +288,8 @@ reallocation.  Therefore the top object may change its address.  But
 other objects never change address.
 
    Because arguments of all macros which return a result
-(`OS_TOP_LENGTH', `OS_TOP_BEGIN',
-`OS_TOP_BOUND', and `OS_TOP_END') may be
-evaluated many times no side-effects should be in the arguments.
+(`OS_TOP_LENGTH', `OS_TOP_BEGIN', `OS_TOP_BOUND', and `OS_TOP_END') may
+be evaluated many times no side-effects should be in the arguments.
 
    The package uses package `allocate'.  The interface part of the
 package is file `objstack.h'.  Defining macro `NDEBUG' (e.g.  by option
@@ -313,7 +311,7 @@ contains the following definitions and macros:
      segment size).  This is also minimal size of all segments.
      Original value of the macros is equal to 512.  This macro can be
      redefined in C compiler command line or with the aid of directive
-     `[num   ]undef' before any using the package macros.
+     `#undef' before any using the package macros.
 
 `Macro `OS_CREATE''
                   `OS_CREATE(os, initial_segment_length)'
@@ -323,8 +321,8 @@ contains the following definitions and macros:
      memory segments which will be allocated for OS is given as the
      second parameter.  If the second parameter is equal to zero the
      allocated memory segments length is equal to
-     `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case
-     the segment length is always not less than maximum alignment.
+     `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment length
+     is always not less than maximum alignment.
 
 `Macro `OS_DELETE''
                   `OS_DELETE(os)'
@@ -452,10 +450,9 @@ abstract data is file `hashtab.h'.  The implementation part is file
      creates and returns hash table with length slightly longer than
      value of function parameter `size'.  Created hash table is
      initiated as empty (all the hash table entries are NULL).  The
-     hash table will use functions `hash_function',
-     `eq_function' given as the function parameters to evaluate
-     table element hash value and function to test on equality of two
-     table elements.
+     hash table will use functions `hash_function', `eq_function' given
+     as the function parameters to evaluate table element hash value
+     and function to test on equality of two table elements.
 
 `Function `delete_hash_table''
                   `void delete_hash_table (hash_table_t htab)'
@@ -469,10 +466,9 @@ abstract data is file `hashtab.h'.  The implementation part is file
      makes hash table given as parameter `htab' empty.  Naturally the
      hash table must already exist.  If you need to remove all table
      elements, it is better to use this function than several times
-     function
-     `remove_element_from_hash_table_entry'.
-     This function does not change size of the table or clear
-     statistics about collisions.
+     function `remove_element_from_hash_table_entry'.  This function
+     does not change size of the table or clear statistics about
+     collisions.
 
 `Function `find_hash_table_entry''
                   `hash_table_entry_t *find_hash_table_entry
@@ -486,19 +482,18 @@ abstract data is file `hashtab.h'.  The implementation part is file
      table).  The function parameter `reserve' is to be nonzero if the
      element is to be placed in the table.  The element should be
      inserted into the table entry before another call of
-     `find_hash_table_entry'.  The table is
-     expanded if occupancy (taking into account also deleted elements)
-     is more than 75%.  The occupancy of the table after the
-     expansion will be about 50%.
+     `find_hash_table_entry'.  The table is expanded if occupancy
+     (taking into account also deleted elements) is more than 75%.  The
+     occupancy of the table after the expansion will be about 50%.
 
 `Function `remove_element_from_hash_table_entry''
                   `void remove_element_from_hash_table_entry
                         (hash_table_t htab, hash_table_entry_t element)'
 
-     removes element from hash table_entry whose value is given
-     as the function parameter.  Hash table entry for given value
-     should be not empty (or deleted).  The hash table entry value will
-     be marked as deleted after the function call.
+     removes element from hash table_entry whose value is given as the
+     function parameter.  Hash table entry for given value should be
+     not empty (or deleted).  The hash table entry value will be marked
+     as deleted after the function call.
 
 `Function `hash_table_size''
                   `size_t hash_table_size (hash_table_t htab)'
@@ -535,15 +530,14 @@ account all included files is suggested.
 
    The strategy of the package usage can be follows.  Function
 `initiate_positions' is called by the first.  After that function
-`start_file_position' is called when a file is opened for
-compilation as source or included file.  Members `line_number'
-and `column_number' of variable `current_position' are
-modified correspondingly during given file compilation.  The value of
-`current_position' can be stored into internal representation
-for usage for output messages on the following passes.  Function
-`finish_file_position' is called when a processed file is
-closed.  Function `finish_positions' may be called after all
-processing a source file.
+`start_file_position' is called when a file is opened for compilation
+as source or included file.  Members `line_number' and `column_number'
+of variable `current_position' are modified correspondingly during
+given file compilation.  The value of `current_position' can be stored
+into internal representation for usage for output messages on the
+following passes.  Function `finish_file_position' is called when a
+processed file is closed.  Function `finish_positions' may be called
+after all processing a source file.
 
    The package uses packages `vlobject' and `objstack' which use package
 `allocate'.  The interface part of the package is file `position.h'.
@@ -566,9 +560,9 @@ the following external definitions:
           file compilation.
 
 `Variable `no_position''
-     has value of type `position_t' has members with values
-     equals to zero or `NULL'.  The value does not correspond to
-     concrete file position.
+     has value of type `position_t' has members with values equals to
+     zero or `NULL'.  The value does not correspond to concrete file
+     position.
 
 `Variable `current_position''
      has value which is current file position.
@@ -596,14 +590,13 @@ the following external definitions:
                   `void start_file_position (const char *file_name)'
 
      copys position structure (by dynamic memory allocation) in
-     variable `current_position' and sets up new values of
-     members of `current_position'.  Values of members
-     `file_name', `line_number', `column_number',
-     and `path' become equal to the function parameter value, 1, 0, and
-     pointer to the copied structure.  Values of
-     `current_position' during different calls of the function
-     must be different (e.g.  different columns or lines), i.e.
-     positions of different include-clauses must be different.
+     variable `current_position' and sets up new values of members of
+     `current_position'.  Values of members `file_name', `line_number',
+     `column_number', and `path' become equal to the function parameter
+     value, 1, 0, and pointer to the copied structure.  Values of
+     `current_position' during different calls of the function must be
+     different (e.g.  different columns or lines), i.e. positions of
+     different include-clauses must be different.
 
 `Function `finish_file_position''
                   `void finish_file_position (void)'
@@ -616,11 +609,11 @@ the following external definitions:
                   `int compare_positions (position_t position_1,
                                           position_t position_2)'
 
-     compares two positions given by parameters of type
-     `position_t' and returns -1 (if the first position is less
-     than the second), 0 (if the first position is equal to the second)
-     or 1 (if the first position is greater than the second).  The
-     order of positions is lexicographic.
+     compares two positions given by parameters of type `position_t'
+     and returns -1 (if the first position is less than the second), 0
+     (if the first position is equal to the second) or 1 (if the first
+     position is greater than the second).  The order of positions is
+     lexicographic.
 
 
 File: ammunition.info,  Node: Package for output of compiler messages,  Next: Package for work with command line,  Prev: Package for work with source code positions,  Up: Top
@@ -640,12 +633,10 @@ use package `allocate'.  Therefore package `position' have to be
 initiated before any work with this package.  The interface part of the
 package is file `errors.h'.  The implementation part is file
 `errors.c'.  The maximum length of generated error message is suggested
-to be not greater then `MAX_ERROR_MESSAGE_LENGTH'.
-The default value (150) of this macro can be redefined with
-corresponding C compiler option
-`-DMAX_ERROR_MESSAGE_LENGTH=...'  during
-compilation of file `errors.c'.  The interface contains the following
-external definitions:
+to be not greater then `MAX_ERROR_MESSAGE_LENGTH'.  The default value
+(150) of this macro can be redefined with corresponding C compiler
+option `-DMAX_ERROR_MESSAGE_LENGTH=...'  during compilation of file
+`errors.c'.  The interface contains the following external definitions:
 
 `Integer variables `number_of_errors', `number_of_warnings''
      have values which are number of correspondingly errors and
@@ -654,16 +645,14 @@ external definitions:
 `Integer variable `maximum_number_of_errors''
      has value which is maximum number of errors which will be fixed.
      If an error is fixed with number equals to
-     `maximum_number_of_errors' then special fatal
-     error `fatal error - too many errors' with position of given error
-     is fixed instead of the error.  And all following errors are
-     ignored.  Zero value of the variable means that the special fatal
-     error will never fixed.
+     `maximum_number_of_errors' then special fatal error `fatal error -
+     too many errors' with position of given error is fixed instead of
+     the error.  And all following errors are ignored.  Zero value of
+     the variable means that the special fatal error will never fixed.
 
 `Integer constant `default_maximum_number_of_errors''
-     defines originally value of variable
-     `maximum_number_of_errors'.  The constant
-     value is `50'.
+     defines originally value of variable `maximum_number_of_errors'.
+     The constant value is `50'.
 
 `Variable `fatal_error_function''
      contains pointer to function without parameters which will be
@@ -673,9 +662,8 @@ external definitions:
 `Function `default_fatal_error_function''
                   `void default_fatal_error_function (void)'
 
-     defines originally value of variable
-     `fatal_error_function'.  The function only calls
-     `exit (1)'.
+     defines originally value of variable `fatal_error_function'.  The
+     function only calls `exit (1)'.
 
 `Function `initiate_errors''
                   `void initiate_errors (int immediate_output_flag)'
@@ -704,10 +692,9 @@ external definitions:
 
      fixes error (fatal error if the first parameter value is nonzero)
      at the position given as the second parameter.  If the error is
-     fatal than functions `output_errors' and
-     `*fatal_error_function' are called.  The diagnostic
-     messages are formed analogous to output of function `printf'.  For
-     example,
+     fatal than functions `output_errors' and `*fatal_error_function'
+     are called.  The diagnostic messages are formed analogous to
+     output of function `printf'.  For example,
                      error (1, current_position, "fatal error - no memory");
 
 `Function `warning''
@@ -721,10 +708,10 @@ external definitions:
 
      When regime of immediately output of fixed message is on this
      function is analogous to the previous (except for incrementing
-     variable `number_of_warnings').  In opposite case
-     the appended message will be output with the most recent fixed
-     error or warning independently from value of the first parameter.
-     Of course the previously fixed error or warning must exist.
+     variable `number_of_warnings').  In opposite case the appended
+     message will be output with the most recent fixed error or warning
+     independently from value of the first parameter.  Of course the
+     previously fixed error or warning must exist.
 
      For example, this function may be used for generation of messages
      of type
@@ -733,8 +720,7 @@ external definitions:
      and then
                         `<file>:<line>:<position-1>: previous declaration'.
 
-     Description of function
-     `default_output_error_function' contains
+     Description of function `default_output_error_function' contains
      explanation why decremented position is output.
 
 `Function `system_error''
@@ -761,11 +747,11 @@ external definitions:
                         (int appended_message_flag, position_t position,
                          const char *message)'
 
-     Originally value of variable `output_error_function'
-     is equal to this function.  The function is oriented to output in
-     Unix style according to GNU standard.  To output a listing the
-     value of variable `output_error_function' should be
-     changed.  The function output message in the following formats:
+     Originally value of variable `output_error_function' is equal to
+     this function.  The function is oriented to output in Unix style
+     according to GNU standard.  To output a listing the value of
+     variable `output_error_function' should be changed.  The function
+     output message in the following formats:
             MESSAGE                              (NULL file name)
             FILE_NAME:1: MESSAGE                 (zero line number)
             FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
@@ -802,13 +788,13 @@ operands.
 (or both) may be absent in the description.  First part contains
 option-arguments names of options which are in the second part.
 option-arguments names are separated by white space.  The second part
-starts with percents `%%' and contains any text in which
-description of options are placed.  Any description of option starts
-with character "' followed by character `-' and finishes by character
-`".  White spaces may precede option-argument name.  It means that the
-corresponding option has obligatory separate option-argument.  For
-example, the following may be a part of description of options of a
-pascal compiler command line.
+starts with percents `%%' and contains any text in which description of
+options are placed.  Any description of option starts with character "'
+followed by character `-' and finishes by character `".  White spaces
+may precede option-argument name.  It means that the corresponding
+option has obligatory separate option-argument.  For example, the
+following may be a part of description of options of a pascal compiler
+command line.
 
      dir xxx file
      %%
@@ -842,16 +828,16 @@ following external definitions:
      processes command line description given as string parameter and
      command line itself given as two parameter `argc' and `argv'.  The
      function also initiates variables `argument_vector' and
-     `argument_count' by parameters `argc' and `argv'.  The
-     function returns 0 if error in command line description is fixed,
-     otherwise returns 1 (it means success).
+     `argument_count' by parameters `argc' and `argv'.  The function
+     returns 0 if error in command line description is fixed, otherwise
+     returns 1 (it means success).
 
 `Function `output_command_line_description''
                     `void output_command_line_description (void)'
 
-     outputs the second part (without `%%') of
-     description of options to stderr.  This function should be called
-     when it is necessary to show the program usage.
+     outputs the second part (without `%%') of description of options
+     to stderr.  This function should be called when it is necessary to
+     show the program usage.
 
 `Function `next_operand''
                     `int next_operand (int flag_of_first)'
@@ -891,10 +877,10 @@ following external definitions:
      with option-argument differs from option in the command line (e.g.
      `-U' and `-Ufoo').  If the option in the command line description
      is found than the function sets up correspondingly the second
-     function parameter `option_has_argument'.  The case
-     of returned NULL and `*option_has_argument' equals
-     to TRUE means that given option must have option-argument but the
-     option has not option-argument in the command line.
+     function parameter `option_has_argument'.  The case of returned
+     NULL and `*option_has_argument' equals to TRUE means that given
+     option must have option-argument but the option has not
+     option-argument in the command line.
 
 `Function `last_option_place''
                     `int last_option_place (const char *option_name)'
@@ -913,8 +899,7 @@ following external definitions:
 
 `Variables `argument_count', `argument_vector''
      have analogous values as parameters `argc' and `argv' of function
-     `main'.  See also description of
-     `start_command_line_processing'.
+     `main'.  See also description of `start_command_line_processing'.
 
 
 File: ammunition.info,  Node: Package for work with bit strings,  Next: Package for machine-independent arbitrary precision integer arithmetic,  Prev: Package for work with command line,  Up: Top
@@ -939,9 +924,8 @@ following external definitions of macros and functions:
                     `BIT(start_byte, bit_displacement)'
 
      returns given bit value as integer value `0' or `1'.  There is
-     macro `SET_BIT (start_byte, bit_displacement,
-     bit) for changing value of a bit.  Parameter `bit' must have value
-     `0' or `1'.
+     macro `SET_BIT (start_byte, bit_displacement, bit) for changing
+     value of a bit.  Parameter `bit' must have value `0' or `1'.
 
 `Function `is_zero_bit_string''
                     `int is_zero_bit_string (const void *start_byte,

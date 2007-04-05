@@ -1144,9 +1144,10 @@ external definitions:
                        void *result)'
            
            make bitwise `or' of integers of given size.  There are
-           analogous functions which implement bitwise `and':
+           analogous functions which implement bitwise `and' and `xor':
            
-           `_and_'.
+           `_and_',
+           `_xor_'.
            
    
            Static public functions
@@ -1308,9 +1309,10 @@ external definitions:
                                (const class unsint<size> &op)'
            
            make bitwise `or' of integers.  There are analogous
-           operators which implement bitwise `and':
+           operators which implement bitwise `and' and `xor':
            
-           `&'.
+           `&',
+           `^'.
            
    
            Public operators

@@ -65,8 +65,8 @@ final class mpi_package () {
     mpi_multiply, mpi_unsigned_multiply, mpi_divide, mpi_unsigned_divide,
     mpi_remainder, mpi_unsigned_remainder,
     mpi_shift_right, mpi_unsigned_shift_right,
-    mpi_shift_left, mpi_unsigned_shift_left,
-    mpi_or, mpi_unsigned_or, mpi_and, mpi_unsigned_and,
+    mpi_shift_left, mpi_unsigned_shift_left, mpi_or, mpi_unsigned_or,
+    mpi_and, mpi_unsigned_and, mpi_xor, mpi_unsigned_xor,
     mpi_not, mpi_unsigned_not, mpi_eq, mpi_unsigned_eq,
     mpi_ne, mpi_unsigned_ne, mpi_gt, mpi_unsigned_gt, mpi_lt, mpi_unsigned_lt,
     mpi_ge, mpi_unsigned_ge, mpi_le, mpi_unsigned_le,
@@ -79,8 +79,8 @@ final class mpi_package () {
     mpi_divide(), mpi_unsigned_divide(),
     mpi_remainder(), mpi_unsigned_remainder(),
     mpi_shift_right(), mpi_unsigned_shift_right(),
-    mpi_shift_left(), mpi_unsigned_shift_left(),
-    mpi_or(), mpi_unsigned_or(), mpi_and(), mpi_unsigned_and(),
+    mpi_shift_left(), mpi_unsigned_shift_left(), mpi_or(), mpi_unsigned_or(),
+    mpi_and(), mpi_unsigned_and(), mpi_xor(), mpi_unsigned_xor(),
     mpi_not(), mpi_unsigned_not(), mpi_eq(), mpi_unsigned_eq(),
     mpi_ne(), mpi_unsigned_ne(), mpi_gt(), mpi_unsigned_gt(),
     mpi_lt(), mpi_unsigned_lt(), mpi_ge(), mpi_unsigned_ge(),
@@ -166,6 +166,14 @@ final class mpi_package () {
   func unsigned_and (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_and (op1, op2, new op1);
+  }
+  func xor (op1, op2) {
+    check2 (op1, op2);
+    return mpi_xor (op1, op2, new op1);
+  }
+  func unsigned_xor (op1, op2) {
+    check2 (op1, op2);
+    return mpi_unsigned_xor (op1, op2, new op1);
   }
   func not (op) {
     check (op);

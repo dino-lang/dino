@@ -269,6 +269,18 @@ mpi_unsigned_and (int npars, val_t *vals)
   return logical (npars, vals, unsigned_integer_and);
 }
 
+val_t
+mpi_xor (int npars, val_t *vals)
+{
+  return logical (npars, vals, integer_xor);
+}
+
+val_t
+mpi_unsigned_xor (int npars, val_t *vals)
+{
+  return logical (npars, vals, unsigned_integer_xor);
+}
+
 static void
 mpi_unary_op (int npars, val_t *vals, int_t *size,
 	      void **hidevalue, ER_node_t *res, void **res_hidevalue)
@@ -578,6 +590,10 @@ mpi_address (const char *name)
     return mpi_and;
   else if (strcmp (name, "mpi_unsigned_and") == 0)
     return mpi_unsigned_and;
+  else if (strcmp (name, "mpi_xor") == 0)
+    return mpi_xor;
+  else if (strcmp (name, "mpi_unsigned_xor") == 0)
+    return mpi_unsigned_xor;
   else if (strcmp (name, "mpi_not") == 0)
     return mpi_not;
   else if (strcmp (name, "mpi_unsigned_not") == 0)

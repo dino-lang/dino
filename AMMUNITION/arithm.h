@@ -98,6 +98,10 @@ extern void integer_and (int size, const void *op1,
                          const void *op2, void *result);
 extern void unsigned_integer_and (int size, const void *op1,
                                   const void *op2, void *result);
+extern void integer_xor (int size, const void *op1,
+                         const void *op2, void *result);
+extern void unsigned_integer_xor (int size, const void *op1,
+                                  const void *op2, void *result);
 extern void integer_not (int size, const void *operand, void *result);
 extern void unsigned_integer_not (int size, const void *operand, void *result);
 
@@ -179,6 +183,7 @@ public:
   
   static void _or_ (int size, const void *op1, const void *op2, void *result);
   static void _and_ (int size, const void *op1, const void *op2, void *result);
+  static void _xor_ (int size, const void *op1, const void *op2, void *result);
   static void _not_ (int size, const void *operand, void *result);
   
   static int eq (int size, const void *op1, const void *op2);
@@ -227,6 +232,7 @@ public:
   
   static void _or_ (int size, const void *op1, const void *op2, void *result);
   static void _and_ (int size, const void *op1, const void *op2, void *result);
+  static void _xor_ (int size, const void *op1, const void *op2, void *result);
   static void _not_ (int size, const void *operand, void *result);
   
   static int eq (int size, const void *op1, const void *op2);
@@ -369,6 +375,14 @@ public:
       class sint<size> result;
 
       _and_ (size, this->container, op.container, result.container);
+      return result;
+    }
+
+  inline class sint<size> operator ^ (const class sint<size> &op)
+    {
+      class sint<size> result;
+
+      _xor_ (size, this->container, op.container, result.container);
       return result;
     }
 
@@ -570,6 +584,14 @@ public:
       class unsint<size> result;
 
       _and_ (size, this->container, op.container, result.container);
+      return result;
+    }
+
+  inline class unsint<size> operator ^ (const class unsint<size> &op)
+    {
+      class unsint<size> result;
+
+      _xor_ (size, this->container, op.container, result.container);
       return result;
     }
 
