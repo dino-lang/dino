@@ -1006,8 +1006,9 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p)
 
 	ident = expr;
 	decl = find_decl (expr, current_scope);
+	SET_SOURCE_POSITION (expr);
 	if (decl == NULL)
-	  error (FALSE, source_position, ERR_undeclared_ident,
+ 	  error (FALSE, source_position, ERR_undeclared_ident,
 		 IR_ident_string (IR_unique_ident (ident)));
 	else
 	  {

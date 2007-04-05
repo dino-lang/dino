@@ -1,5 +1,10 @@
 2007-04-05  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* DINO/d_context.c (third_expr_processing): Set up position for
+	ident.
+
+2007-04-05  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* AMMUNITION/ammunition++.sgml.in, AMMUNITION/ammunition.sgml.in:
 	Add xor.
 	* AMMUNITION/ammunition++-10.html, AMMUNITION/ammunition++.dvi,
