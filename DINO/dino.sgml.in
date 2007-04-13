@@ -3502,45 +3502,45 @@ time.
            the current locale.
          <item><tt>%A</tt> - the full weekday name according to the
            current locale.
-         <item><tt>%%b</tt> - the abbreviated month name according to
+         <item><tt>%b</tt> - the abbreviated month name according to
            the current locale.
-         <item><tt>%%B</tt> - the full month name according to the
+         <item><tt>%B</tt> - the full month name according to the
            current locale.
-         <item><tt>%%c</tt> - the preferred date and time
+         <item><tt>%c</tt> - the preferred date and time
            representation for the current locale.
-         <item><tt>%%d</tt> - the day of the month as a decimal number
+         <item><tt>%d</tt> - the day of the month as a decimal number
            (range 01 to 31).
-         <item><tt>%%H</tt> - the hour as a decimal number using a
+         <item><tt>%H</tt> - the hour as a decimal number using a
            24-hour clock (range 00 to 23).
-         <item><tt>%%I</tt> - the hour as a decimal number using a
+         <item><tt>%I</tt> - the hour as a decimal number using a
            12-hour clock (range 01 to 12).
-         <item><tt>%%j</tt> - the day of the year as a decimal number
+         <item><tt>%j</tt> - the day of the year as a decimal number
            (range 001 to 366).
-         <item><tt>%%m</tt> - the month as a decimal number (range 01
+         <item><tt>%m</tt> - the month as a decimal number (range 01
            to 12).
-         <item><tt>%%M</tt> - the minute as a decimal number.
-         <item><tt>%%p</tt> - either `am' or `pm' according to the given time
+         <item><tt>%M</tt> - the minute as a decimal number.
+         <item><tt>%p</tt> - either `am' or `pm' according to the given time
            value, or the corresponding strings for the current locale.
-         <item><tt>%%S</tt> - the second as a decimal number.
-         <item><tt>%%U</tt> - the week number of the current year as a
+         <item><tt>%S</tt> - the second as a decimal number.
+         <item><tt>%U</tt> - the week number of the current year as a
            decimal number, starting with the first Sunday as the first
            day of the first week.
-         <item><tt>%%W</tt> - the week number of the current year as a
+         <item><tt>%W</tt> - the week number of the current year as a
            decimal number, starting with the first Monday as the first
            day of the first week.
-         <item><tt>%%w</tt> - the day of the week as a decimal, Sunday
+         <item><tt>%w</tt> - the day of the week as a decimal, Sunday
            being 0.
-         <item><tt>%%x</tt> - the preferred date representation for
+         <item><tt>%x</tt> - the preferred date representation for
            the current locale without the time.
-         <item><tt>%%X</tt> - the preferred time representation for
+         <item><tt>%X</tt> - the preferred time representation for
            the current locale without the date.
-         <item><tt>%%y</tt> - the year as a decimal number without a
+         <item><tt>%y</tt> - the year as a decimal number without a
            century (range 00 to 99).
-         <item><tt>%%Y</tt> - the year as a decimal number including
+         <item><tt>%Y</tt> - the year as a decimal number including
            the century.
-         <item><tt>%%Z</tt> - the time zone or the name or an
+         <item><tt>%Z</tt> - the time zone or the name or an
            abbreviation.
-         <item><tt>%%%</tt> - a literal `%' character.
+         <item><tt>%%</tt> - a literal `%' character.
          </itemize>
      </itemize>
 

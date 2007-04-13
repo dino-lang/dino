@@ -1,3 +1,11 @@
+2007-04-13  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/dino.sgml.in (strtime): %% -> %.
+	* DINO/dino-8.html, DINO/dino.dvi, DINO/dino.info,
+	DINO/dino.info-1, DINO/dino.info-2, DINO/dino.info-3,
+	DINO/dino.info-4, DINO/dino.pdf, DINO/dino.ps, DINO/dino.txt:
+	Update.
+	
 2007-04-05  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/d_context.c (third_expr_processing): Set up position for

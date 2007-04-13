@@ -3502,45 +3502,45 @@ time.
            the current locale.
          o %A - the full weekday name according to the
            current locale.
-         o %%b - the abbreviated month name according to
+         o %b - the abbreviated month name according to
            the current locale.
-         o %%B - the full month name according to the
+         o %B - the full month name according to the
            current locale.
-         o %%c - the preferred date and time
+         o %c - the preferred date and time
            representation for the current locale.
-         o %%d - the day of the month as a decimal number
+         o %d - the day of the month as a decimal number
            (range 01 to 31).
-         o %%H - the hour as a decimal number using a
+         o %H - the hour as a decimal number using a
            24-hour clock (range 00 to 23).
-         o %%I - the hour as a decimal number using a
+         o %I - the hour as a decimal number using a
            12-hour clock (range 01 to 12).
-         o %%j - the day of the year as a decimal number
+         o %j - the day of the year as a decimal number
            (range 001 to 366).
-         o %%m - the month as a decimal number (range 01
+         o %m - the month as a decimal number (range 01
            to 12).
-         o %%M - the minute as a decimal number.
-         o %%p - either `am' or `pm' according to the given time
+         o %M - the minute as a decimal number.
+         o %p - either `am' or `pm' according to the given time
            value, or the corresponding strings for the current locale.
-         o %%S - the second as a decimal number.
-         o %%U - the week number of the current year as a
+         o %S - the second as a decimal number.
+         o %U - the week number of the current year as a
            decimal number, starting with the first Sunday as the first
            day of the first week.
-         o %%W - the week number of the current year as a
+         o %W - the week number of the current year as a
            decimal number, starting with the first Monday as the first
            day of the first week.
-         o %%w - the day of the week as a decimal, Sunday
+         o %w - the day of the week as a decimal, Sunday
            being 0.
-         o %%x - the preferred date representation for
+         o %x - the preferred date representation for
            the current locale without the time.
-         o %%X - the preferred time representation for
+         o %X - the preferred time representation for
            the current locale without the date.
-         o %%y - the year as a decimal number without a
+         o %y - the year as a decimal number without a
            century (range 00 to 99).
-         o %%Y - the year as a decimal number including
+         o %Y - the year as a decimal number including
            the century.
-         o %%Z - the time zone or the name or an
+         o %Z - the time zone or the name or an
            abbreviation.
-         o %%% - a literal `%' character.
+         o %% - a literal `%' character.
          
      
 
