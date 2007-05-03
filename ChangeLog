@@ -1,3 +1,15 @@
+2007-05-03  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* MSTA/relation.c (minimal_derived_string_length_pass_number,
+	relation_FIRST_pass_number): Remove.
+	(dfs_nonterm_definitions, something_changed_p): New static
+	variables.
+	(nonterm_DFS): New function.
+	(set_nonterm_minimal_derived_string_length,
+	set_nonterm_relation_FIRST): Change result type.  Rewrite.
+	(evaluate_nonterminals_relation_FIRST,
+	evaluate_minimal_derived_string_length): Use iterative algorithm.
+	
 2007-04-13  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/dino.sgml.in (strtime): %% -> %.

@@ -48,33 +48,68 @@
 
 
 
-/* The following variable value is number of the pass to evaluate
-   minimal derived string length of a nonterminal. */
+/* The following variable is used for storing pointers to single
+   nonterminal definitions. */
 
-static int minimal_derived_string_length_pass_number;
+static vlo_t dfs_nonterm_definitions;
 
-/* Remember that the minimal derived string length of a nonterminal
-   may be fully evaluated on the previous passes. */
+/* This recursive function stores nonterminals in depth first
+   order.  */
 
-static int
+static void
+nonterm_DFS (IR_node_t single_nonterm_definition)
+{
+  IR_node_t current_canonical_rule;
+  IR_node_t current_right_hand_side_element;
+  IR_node_t current_single_definition;
+
+  if (! IR_process_nonterminal_on_its_process_pass (single_nonterm_definition))
+    return;
+  IR_set_process_nonterminal_on_its_process_pass (single_nonterm_definition,
+						  FALSE);
+  for (current_canonical_rule
+	 = IR_nonterm_canonical_rule_list (single_nonterm_definition);
+       current_canonical_rule != NULL;
+       current_canonical_rule
+	 = IR_next_nonterm_canonical_rule (current_canonical_rule))
+    {
+      for (current_right_hand_side_element
+	     = IR_right_hand_side (current_canonical_rule);
+           !IR_IS_OF_TYPE (current_right_hand_side_element,
+                           IR_NM_canonical_rule_end);
+           current_right_hand_side_element
+	   = IR_next_right_hand_side_element (current_right_hand_side_element))
+        {
+          current_single_definition
+            = IR_element_itself (current_right_hand_side_element);
+          if (IR_IS_OF_TYPE (current_single_definition,
+                             IR_NM_single_nonterm_definition))
+	    nonterm_DFS (current_single_definition);
+        }
+    }
+  VLO_ADD_MEMORY (dfs_nonterm_definitions, &single_nonterm_definition,
+		  sizeof (IR_node_t));
+}
+
+
+
+
+/* The following variable value is used to find that we got a stable
+   solution. */
+
+static int something_changed_p;
+
+/* The function evaluates minimal derivation length for
+   SINGLE_NONTERM_DEFINITION.  */
+
+static void
 set_nonterm_minimal_derived_string_length (IR_node_t single_nonterm_definition)
 {
   IR_node_t current_canonical_rule;
   IR_node_t current_right_hand_side_element;
   IR_node_t current_single_definition;
   int minimal_derived_string_length;
-  int recursive_nonterminal_was_processed;
 
-  recursive_nonterminal_was_processed
-    = (IR_pass_number (single_nonterm_definition)
-       == minimal_derived_string_length_pass_number);
-  if (!IR_process_nonterminal_on_its_process_pass (single_nonterm_definition)
-      || recursive_nonterminal_was_processed)
-    return recursive_nonterminal_was_processed;
-  IR_set_process_nonterminal_on_its_process_pass (single_nonterm_definition,
-                                                  FALSE);
-  IR_set_pass_number (single_nonterm_definition,
-                      minimal_derived_string_length_pass_number);
   for (current_canonical_rule
        = IR_nonterm_canonical_rule_list (single_nonterm_definition);
        current_canonical_rule != NULL;
@@ -94,11 +129,6 @@ set_nonterm_minimal_derived_string_length (IR_node_t single_nonterm_definition)
           if (IR_IS_OF_TYPE (current_single_definition,
                              IR_NM_single_nonterm_definition))
             {
-              if (IR_pass_number (current_single_definition)
-                  == minimal_derived_string_length_pass_number
-                  || set_nonterm_minimal_derived_string_length
-                     (current_single_definition))
-                recursive_nonterminal_was_processed = TRUE;
               if (IR_minimal_derived_string_length (current_single_definition)
                   < 0)
                 /* Do not process this recursive rule:
@@ -116,30 +146,19 @@ set_nonterm_minimal_derived_string_length (IR_node_t single_nonterm_definition)
           && (IR_minimal_derived_string_length (single_nonterm_definition) < 0
               || (IR_minimal_derived_string_length (single_nonterm_definition)
                   > minimal_derived_string_length)))
+	{
+	  something_changed_p = TRUE;
           IR_set_minimal_derived_string_length (single_nonterm_definition,
                                                 minimal_derived_string_length);
+	}
     }
-  if (recursive_nonterminal_was_processed)
-    /* Recursive nonterminal: process the nonterminal on the next
-       passes because it is possible that the nonterminal processing
-       pass has not been yet.  For example, this is neccessary for the
-       following situation:
-       s : ... a ... | ... a ...
-               |
-               |
-               v
-       a : ... s ... 
-       Here `a' is `single_nonterm_definition',
-       `s' is `current_single_definition'. */
-    IR_set_process_nonterminal_on_its_process_pass (single_nonterm_definition,
-                                                    TRUE);
-  return recursive_nonterminal_was_processed;
 }
 
 void
 evaluate_minimal_derived_string_length (void)
 {
   IR_node_t current_single_definition;
+  int i, length;
 
   for (current_single_definition = IR_single_definition_list (description);
        current_single_definition != NULL;
@@ -147,52 +166,47 @@ evaluate_minimal_derived_string_length (void)
        = IR_next_single_definition (current_single_definition))
     if (IR_IS_OF_TYPE (current_single_definition,
                        IR_NM_single_nonterm_definition))
-      {
-        IR_set_pass_number (current_single_definition, 0); 
-        IR_set_process_nonterminal_on_its_process_pass
-          (current_single_definition, TRUE);
-      }
-  for (minimal_derived_string_length_pass_number = 1,
-       current_single_definition = IR_single_definition_list (description);
-       current_single_definition != NULL;
-       minimal_derived_string_length_pass_number++,
-       current_single_definition
-       = IR_next_single_definition (current_single_definition))
-    if (IR_IS_OF_TYPE (current_single_definition,
-                       IR_NM_single_nonterm_definition))
-      set_nonterm_minimal_derived_string_length (current_single_definition);
+      IR_set_process_nonterminal_on_its_process_pass
+	(current_single_definition, TRUE);
+
+  VLO_CREATE (dfs_nonterm_definitions, 1000);
+  nonterm_DFS (IR_axiom_definition (description));
+  length = VLO_LENGTH (dfs_nonterm_definitions) / sizeof (IR_node_t);
+  for (;;)
+    {
+      something_changed_p = FALSE;
+      for (i = 0; i < length; i++)
+	{
+	  current_single_definition
+	    = ((IR_node_t *) VLO_BEGIN (dfs_nonterm_definitions)) [i];
+	  if (IR_IS_OF_TYPE (current_single_definition,
+			     IR_NM_single_nonterm_definition))
+	    set_nonterm_minimal_derived_string_length
+	      (current_single_definition);
+	}
+      if (! something_changed_p)
+	break;
+    }
+  VLO_DELETE (dfs_nonterm_definitions);
 }
 
 
 
-/* The following variable value is number of the pass to evaluate
-   relation FIRST of a nonterminal. */
+/* The function evaluates relation FIRST for
+   SINGLE_NONTERM_DEFINITION.  */
 
-static int relation_FIRST_pass_number;
-
-/* Remember that the relation FIRST of a nonterminal may be fully
-   evaluated on the previous passes. */
-
-static int
+static void
 set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
 {
   IR_node_t current_canonical_rule;
   IR_node_t current_right_hand_side_element;
-  context_t one_context_string_context;
+  context_t one_context_string_context, first_set;
   token_string_t token_string;
   int minimal_context_length;
   context_t temporary_context;
   IR_node_t current_single_definition;
-  int recursive_nonterminal_was_processed;
 
-  recursive_nonterminal_was_processed
-    = IR_pass_number (single_nonterm_definition) == relation_FIRST_pass_number;
-  if (!IR_process_nonterminal_on_its_process_pass (single_nonterm_definition)
-      || recursive_nonterminal_was_processed)
-    return recursive_nonterminal_was_processed;
-  IR_set_process_nonterminal_on_its_process_pass (single_nonterm_definition,
-                                                  FALSE);
-  IR_set_pass_number (single_nonterm_definition, relation_FIRST_pass_number);
+  first_set = get_null_context ();
   for (current_canonical_rule
        = IR_nonterm_canonical_rule_list (single_nonterm_definition);
        current_canonical_rule != NULL;
@@ -204,29 +218,25 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
       for (current_right_hand_side_element
            = IR_right_hand_side (current_canonical_rule);
            minimal_context_length < max_look_ahead_number
-           && !IR_IS_OF_TYPE (current_right_hand_side_element,
-                              IR_NM_canonical_rule_end);
+	     && !IR_IS_OF_TYPE (current_right_hand_side_element,
+				IR_NM_canonical_rule_end);
            current_right_hand_side_element
-           = IR_next_right_hand_side_element (current_right_hand_side_element))
+	   = IR_next_right_hand_side_element (current_right_hand_side_element))
         {
           current_single_definition
             = IR_element_itself (current_right_hand_side_element);
           if (IR_IS_OF_TYPE (current_single_definition,
                              IR_NM_single_nonterm_definition))
             {
-              if (IR_pass_number (current_single_definition)
-                  == relation_FIRST_pass_number
-                  || set_nonterm_relation_FIRST (current_single_definition))
-                recursive_nonterminal_was_processed = TRUE;
-              context_concat (temporary_context,
-                              IR_relation_FIRST (current_single_definition),
-                              max_look_ahead_number);
+	      context_concat (temporary_context,
+			      IR_relation_FIRST (current_single_definition),
+			      max_look_ahead_number);
               if (minimal_context_length == 0)
                 context_or (temporary_context,
                             IR_relation_FIRST (current_single_definition));
               minimal_context_length
                 += IR_minimal_derived_string_length
-                  (current_single_definition);
+                   (current_single_definition);
             }
           else
             {
@@ -244,31 +254,25 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
               minimal_context_length++;
             }
         }
-      context_or (IR_relation_FIRST (single_nonterm_definition),
-                  temporary_context);
+      if (current_canonical_rule
+	  == IR_nonterm_canonical_rule_list (single_nonterm_definition))
+	context_copy (first_set, temporary_context);
+      else
+	context_or (first_set, temporary_context);
       free_context (temporary_context);
     }
-  if (recursive_nonterminal_was_processed)
-    /* Recursive nonterminal: process the nonterminal on the next
-       passes because it is possible that the nonterminal processing
-       pass has not been yet.  For example, this is neccessary for the
-       following situation:
-                   s : ... a ... | ... a ...
-                           |
-                           |
-                           v
-                   a : ... s ... 
-       Here `a' is `single_nonterm_definition', `s' is
-       `current_single_definition'. */
-    IR_set_process_nonterminal_on_its_process_pass (single_nonterm_definition,
-                                                    TRUE);
-  return recursive_nonterminal_was_processed;
+  if (! context_eq (first_set, IR_relation_FIRST (single_nonterm_definition)))
+    {
+      context_copy (IR_relation_FIRST (single_nonterm_definition), first_set);
+      something_changed_p = TRUE;
+    }
 }
 
 void
 evaluate_nonterminals_relation_FIRST (void)
 {
   IR_node_t current_single_definition;
+  int i, length;
 
   for (current_single_definition = IR_single_definition_list (description);
        current_single_definition != NULL;
@@ -277,22 +281,31 @@ evaluate_nonterminals_relation_FIRST (void)
     if (IR_IS_OF_TYPE (current_single_definition,
                        IR_NM_single_nonterm_definition))
       {
-        IR_set_pass_number (current_single_definition, 0); 
-        IR_set_process_nonterminal_on_its_process_pass
-          (current_single_definition, TRUE);
-        if (IR_relation_FIRST (current_single_definition) == NULL)
-          IR_set_relation_FIRST (current_single_definition,
-                                 get_null_context ());
+	IR_set_process_nonterminal_on_its_process_pass
+	  (current_single_definition, TRUE);
+	if (IR_relation_FIRST (current_single_definition) == NULL)
+	  IR_set_relation_FIRST (current_single_definition,
+				 get_null_context ());
       }
-  for (relation_FIRST_pass_number = 1,
-       current_single_definition = IR_single_definition_list (description);
-       current_single_definition != NULL;
-       relation_FIRST_pass_number++,
-       current_single_definition
-       = IR_next_single_definition (current_single_definition))
-    if (IR_IS_OF_TYPE (current_single_definition,
-                       IR_NM_single_nonterm_definition))
-      set_nonterm_relation_FIRST (current_single_definition);
+
+  VLO_CREATE (dfs_nonterm_definitions, 1000);
+  nonterm_DFS (IR_axiom_definition (description));
+  length = VLO_LENGTH (dfs_nonterm_definitions) / sizeof (IR_node_t);
+  for (;;)
+    {
+      something_changed_p = FALSE;
+      for (i = 0; i < length; i++)
+	{
+	  current_single_definition
+	    = ((IR_node_t *) VLO_BEGIN (dfs_nonterm_definitions)) [i];
+	  if (IR_IS_OF_TYPE (current_single_definition,
+			     IR_NM_single_nonterm_definition))
+	    set_nonterm_relation_FIRST (current_single_definition);
+	}
+      if (! something_changed_p)
+	break;
+    }
+  VLO_DELETE (dfs_nonterm_definitions);
 }
 
 
