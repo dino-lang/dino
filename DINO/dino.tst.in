@@ -14595,7 +14595,7 @@ TEST131
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT131' && $CMP $stderr $ftemp2; then
-test.d:1:10: undeclared identifier `getppid'
+test.d:1:1: undeclared identifier `getppid'
 OUTPUT131
                         result=ok
                 else
@@ -20332,7 +20332,7 @@ TEST351
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT351' && $CMP $stderr $ftemp2; then
-test.d:2:8: function call is present in wait statement
+test.d:2:6: function call is present in wait statement
 OUTPUT351
                         result=ok
                 else
@@ -20364,9 +20364,9 @@ TEST352
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT352' && $CMP $stderr $ftemp2; then
 test.d:2:6: invalid type of if-expr
-test.d:4:7: invalid type of for-expr
-test.d:5:4: invalid type of wait-expr
-test.d:6:3: invalid type of foreach-table
+test.d:4:9: invalid type of for-expr
+test.d:5:6: invalid type of wait-expr
+test.d:6:5: invalid type of foreach-table
 test.d:8:7: invalid type of throw-expr
 test.d:10:6: syntax error
 OUTPUT352
@@ -21049,7 +21049,7 @@ TEST363
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT363' && $CMP $stderr $ftemp2; then
-test.d:2:13: invalid operand type table (...)
+test.d:2:15: invalid operand type table (...)
 OUTPUT363
                         result=ok
                 else
@@ -21092,7 +21092,7 @@ TEST365
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT365' && $CMP $stderr $ftemp2; then
-test.d:2:14: invalid operand type vector (...)
+test.d:2:16: invalid operand type vector (...)
 OUTPUT365
                         result=ok
                 else
@@ -22094,7 +22094,7 @@ TEST403
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT403' && $CMP $stderr $ftemp2; then
-test.d:9:9: there is not such declaration in a block
+test.d:9:7: there is not such declaration in a block
 OUTPUT403
                         result=ok
                 else
