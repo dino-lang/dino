@@ -1,5 +1,9 @@
 2007-05-03  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* MSTA/msta.tst.in: Add a new test.
+
+2007-05-03  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* DINO/dino.tst.in (tests 131, 351, 352, 363, 403): Fix error
 	position.
 

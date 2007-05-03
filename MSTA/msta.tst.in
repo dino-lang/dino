@@ -500,6 +500,43 @@ EOF9
     fi
 fi
 
+# Test 10.
+if test $result = ok -a $start_test_number -le 10; then
+    echo test 10: "H. Basten's grammar (generated a buggy parser)."
+    cat >$ygram <<'TEST10'
+%token a
+%token b
+%token c
+
+%%
+START : S
+;
+
+S : A C
+| B C b
+;
+
+C : c C b
+| c b
+;
+
+A : a
+;
+
+B : a
+;
+TEST10
+    result=fail
+    echo ./msta -la 9 -lr -full-lr-set -no-lalr-optimization -no-regular-optimization -no-error-conflict -no-error-reduce -lr-situation-context $ygram "2>$outputf"
+    if ./msta -la 9 -lr -full-lr-set -no-lalr-optimization -no-regular-optimization -no-error-conflict -no-error-reduce -lr-situation-context $ygram 2>$outputf && cmp $outputf - <<'EOF10'; then
+  Max look ahead is 9 tokens
+  Real look ahead is 9 tokens
+  5 reduce/reduce conflicts.
+EOF10
+      result=ok
+    fi
+fi
+
 # Final message
 
 if test $result = ok; then
