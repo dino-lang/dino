@@ -1,3 +1,12 @@
+2007-05-04  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* MSTA/ird.sprut (single_nonterm_definition): Add new field
+	next_iter_relation_FIRST.
+	* MSTA/relation.c (evaluate_minimal_derived_string_length,
+	evaluate_nonterminals_relation_FIRST): Use prev iteration values
+	of FIRST.
+	* MSTA/msta.tst.in: Add a new test.
+
 2007-05-03  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* MSTA/msta.tst.in: Add a new test.

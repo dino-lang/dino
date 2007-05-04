@@ -179,10 +179,8 @@ evaluate_minimal_derived_string_length (void)
 	{
 	  current_single_definition
 	    = ((IR_node_t *) VLO_BEGIN (dfs_nonterm_definitions)) [i];
-	  if (IR_IS_OF_TYPE (current_single_definition,
-			     IR_NM_single_nonterm_definition))
-	    set_nonterm_minimal_derived_string_length
-	      (current_single_definition);
+	  set_nonterm_minimal_derived_string_length
+	    (current_single_definition);
 	}
       if (! something_changed_p)
 	break;
@@ -261,11 +259,9 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
 	context_or (first_set, temporary_context);
       free_context (temporary_context);
     }
+  IR_set_next_iter_relation_FIRST (single_nonterm_definition, first_set);
   if (! context_eq (first_set, IR_relation_FIRST (single_nonterm_definition)))
-    {
-      context_copy (IR_relation_FIRST (single_nonterm_definition), first_set);
-      something_changed_p = TRUE;
-    }
+    something_changed_p = TRUE;
 }
 
 void
@@ -298,9 +294,18 @@ evaluate_nonterminals_relation_FIRST (void)
 	{
 	  current_single_definition
 	    = ((IR_node_t *) VLO_BEGIN (dfs_nonterm_definitions)) [i];
-	  if (IR_IS_OF_TYPE (current_single_definition,
-			     IR_NM_single_nonterm_definition))
-	    set_nonterm_relation_FIRST (current_single_definition);
+	  set_nonterm_relation_FIRST (current_single_definition);
+	}
+      for (i = 0; i < length; i++)
+	{
+	  current_single_definition
+	    = ((IR_node_t *) VLO_BEGIN (dfs_nonterm_definitions)) [i];
+	  context_copy
+	    (IR_relation_FIRST (current_single_definition),
+	     IR_next_iter_relation_FIRST (current_single_definition));
+	  free_context
+	    (IR_next_iter_relation_FIRST (current_single_definition));
+	  IR_set_next_iter_relation_FIRST (current_single_definition, NULL);
 	}
       if (! something_changed_p)
 	break;

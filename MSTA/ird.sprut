@@ -834,6 +834,9 @@ single_nonterm_definition
        given nonterminal.  Correspondence between the bit and the
        token string is defined by the token string order number. */
     relation_FIRST : context_t                       {$ = NULL;}
+    /* The following field is used temporarily to calculate the
+       relation FIRST  */
+    next_iter_relation_FIRST : context_t             {$ = NULL;}
     /* The following field is used to calculate grammar symbol
        relations. */
     process_nonterminal_on_its_process_pass : bool_t
