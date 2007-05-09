@@ -191,10 +191,10 @@ evaluate_minimal_derived_string_length (void)
 
 
 /* The function evaluates relation FIRST for
-   SINGLE_NONTERM_DEFINITION.  */
+   SINGLE_NONTERM_DEFINITION.  We calculate initial set if INIT_P.  */
 
 static void
-set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
+set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition, int init_p)
 {
   IR_node_t current_canonical_rule;
   IR_node_t current_right_hand_side_element;
@@ -226,6 +226,8 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
           if (IR_IS_OF_TYPE (current_single_definition,
                              IR_NM_single_nonterm_definition))
             {
+	      if (init_p)
+		break;
 	      context_concat (temporary_context,
 			      IR_relation_FIRST (current_single_definition),
 			      max_look_ahead_number);
@@ -252,7 +254,11 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
               minimal_context_length++;
             }
         }
-      if (current_canonical_rule
+      if (init_p && minimal_context_length < max_look_ahead_number
+	  && ! IR_IS_OF_TYPE (current_right_hand_side_element,
+			      IR_NM_canonical_rule_end))
+	;
+      else if (current_canonical_rule
 	  == IR_nonterm_canonical_rule_list (single_nonterm_definition))
 	context_copy (first_set, temporary_context);
       else
@@ -260,7 +266,8 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition)
       free_context (temporary_context);
     }
   IR_set_next_iter_relation_FIRST (single_nonterm_definition, first_set);
-  if (! context_eq (first_set, IR_relation_FIRST (single_nonterm_definition)))
+  if (init_p || ! context_eq (first_set,
+			      IR_relation_FIRST (single_nonterm_definition)))
     something_changed_p = TRUE;
 }
 
@@ -268,7 +275,7 @@ void
 evaluate_nonterminals_relation_FIRST (void)
 {
   IR_node_t current_single_definition;
-  int i, length;
+  int i, length, iter;
 
   for (current_single_definition = IR_single_definition_list (description);
        current_single_definition != NULL;
@@ -287,14 +294,14 @@ evaluate_nonterminals_relation_FIRST (void)
   VLO_CREATE (dfs_nonterm_definitions, 1000);
   nonterm_DFS (IR_axiom_definition (description));
   length = VLO_LENGTH (dfs_nonterm_definitions) / sizeof (IR_node_t);
-  for (;;)
+  for (iter = 0;; iter++)
     {
       something_changed_p = FALSE;
       for (i = 0; i < length; i++)
 	{
 	  current_single_definition
 	    = ((IR_node_t *) VLO_BEGIN (dfs_nonterm_definitions)) [i];
-	  set_nonterm_relation_FIRST (current_single_definition);
+	  set_nonterm_relation_FIRST (current_single_definition, iter == 0);
 	}
       for (i = 0; i < length; i++)
 	{

@@ -566,8 +566,42 @@ TEST11
     if ./msta -la 7 -lr -full-lr-set -no-lalr-optimization -no-regular-optimization -no-error-conflict -no-error-reduce -lr-situation-context $ygram 2>$outputf && cmp $outputf - <<'EOF11'; then
   Max look ahead is 7 tokens
   Real look ahead is 7 tokens
-  32638 shift/reduce conflicts.
+  27212 shift/reduce conflicts.
 EOF11
+      result=ok
+    fi
+fi
+
+# Test 12.
+if test $result = ok -a $start_test_number -le 12; then
+    echo test 12: "One more H. Basten's grammar (looping)."
+    cat >$ygram <<'TEST12'
+%token a
+%token b
+%token c
+%token d
+
+%%
+
+START : S ;
+
+S : B C | A B ;
+
+A : a | B A D ;
+
+B : b D | C C ;
+
+C : c | A B ;
+
+D : d ;
+TEST12
+    result=fail
+    echo ./msta -la 2 -lr -full-lr-set -no-lalr-optimization -no-regular-optimization -no-error-conflict -no-error-reduce -lr-situation-context $ygram "2>$outputf"
+    if ./msta -la 2 -lr -full-lr-set -no-lalr-optimization -no-regular-optimization -no-error-conflict -no-error-reduce -lr-situation-context $ygram 2>$outputf && cmp $outputf - <<'EOF12'; then
+  Max look ahead is 2 tokens
+  Real look ahead is 2 tokens
+  73 shift/reduce conflicts.
+EOF12
       result=ok
     fi
 fi

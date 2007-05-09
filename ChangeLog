@@ -1,3 +1,11 @@
+2007-05-08  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* MSTA/relation.c (set_nonterm_relation_FIRST): Add parameter
+	init_p and use it.
+	(evaluate_nonterminals_relation_FIRST): Use the new parameter.
+	* MSTA/msta.tst.in: Add a new test.  Change # conflicts for 11
+	test.
+
 2007-05-04  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* MSTA/ird.sprut (single_nonterm_definition): Add new field
