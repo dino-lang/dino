@@ -205,6 +205,7 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition, int init_p)
   IR_node_t current_single_definition;
 
   first_set = get_null_context ();
+  context_copy (first_set, IR_relation_FIRST (single_nonterm_definition));
   for (current_canonical_rule
        = IR_nonterm_canonical_rule_list (single_nonterm_definition);
        current_canonical_rule != NULL;
@@ -212,57 +213,72 @@ set_nonterm_relation_FIRST (IR_node_t single_nonterm_definition, int init_p)
        = IR_next_nonterm_canonical_rule (current_canonical_rule))
     {
       temporary_context = get_null_context ();
-      minimal_context_length = 0;
-      for (current_right_hand_side_element
-           = IR_right_hand_side (current_canonical_rule);
-           minimal_context_length < max_look_ahead_number
-	     && !IR_IS_OF_TYPE (current_right_hand_side_element,
-				IR_NM_canonical_rule_end);
-           current_right_hand_side_element
-	   = IR_next_right_hand_side_element (current_right_hand_side_element))
-        {
-          current_single_definition
-            = IR_element_itself (current_right_hand_side_element);
-          if (IR_IS_OF_TYPE (current_single_definition,
-                             IR_NM_single_nonterm_definition))
-            {
-	      if (init_p)
-		break;
-	      context_concat (temporary_context,
-			      IR_relation_FIRST (current_single_definition),
-			      max_look_ahead_number);
-              if (minimal_context_length == 0)
-                context_or (temporary_context,
-                            IR_relation_FIRST (current_single_definition));
-              minimal_context_length
-                += IR_minimal_derived_string_length
-                   (current_single_definition);
-            }
-          else
-            {
-              token_string
-                = get_new_token_string (&current_single_definition, 1);
-              one_context_string_context = get_null_context ();
-              set_context_element_value
-                (one_context_string_context, token_string, 1);
-              context_concat (temporary_context, one_context_string_context,
-                              max_look_ahead_number);
-              free_context (one_context_string_context);
-              if (minimal_context_length == 0)
-                set_context_element_value
-                  (temporary_context, token_string, 1);
-              minimal_context_length++;
-            }
-        }
-      if (init_p && minimal_context_length < max_look_ahead_number
-	  && ! IR_IS_OF_TYPE (current_right_hand_side_element,
-			      IR_NM_canonical_rule_end))
-	;
-      else if (current_canonical_rule
-	  == IR_nonterm_canonical_rule_list (single_nonterm_definition))
-	context_copy (first_set, temporary_context);
+      if (IR_IS_OF_TYPE (IR_right_hand_side (current_canonical_rule),
+			 IR_NM_canonical_rule_end))
+	{
+	  token_string = get_new_token_string (&current_single_definition, 0);
+	  set_context_element_value (temporary_context, token_string, 1);
+	  context_or (first_set, temporary_context);
+	}
       else
-	context_or (first_set, temporary_context);
+	{
+	  minimal_context_length = 0;
+	  for (current_right_hand_side_element
+		 = IR_right_hand_side (current_canonical_rule);
+	       minimal_context_length < max_look_ahead_number
+		 && !IR_IS_OF_TYPE (current_right_hand_side_element,
+				    IR_NM_canonical_rule_end);
+	       current_right_hand_side_element
+		 = IR_next_right_hand_side_element
+		   (current_right_hand_side_element))
+	    {
+	      current_single_definition
+		= IR_element_itself (current_right_hand_side_element);
+	      if (IR_IS_OF_TYPE (current_single_definition,
+				 IR_NM_single_nonterm_definition))
+		{
+		  if (init_p)
+		    break;
+		  if (current_right_hand_side_element
+		      == IR_right_hand_side (current_canonical_rule))
+		    context_copy
+		      (temporary_context,
+		       IR_relation_FIRST (current_single_definition));
+		  else
+		    context_concat
+		      (temporary_context,
+		       IR_relation_FIRST (current_single_definition),
+		       max_look_ahead_number);
+		  minimal_context_length
+		    += IR_minimal_derived_string_length
+		       (current_single_definition);
+		}
+	      else
+		{
+		  token_string
+		    = get_new_token_string (&current_single_definition, 1);
+		  one_context_string_context = get_null_context ();
+		  set_context_element_value
+		    (one_context_string_context, token_string, 1);
+		  if (current_right_hand_side_element
+		      == IR_right_hand_side (current_canonical_rule))
+		    context_copy (temporary_context,
+				  one_context_string_context);
+		  else
+		    context_concat (temporary_context,
+				    one_context_string_context,
+				    max_look_ahead_number);
+		  free_context (one_context_string_context);
+		  minimal_context_length++;
+		}
+	    }
+	  if (init_p && minimal_context_length < max_look_ahead_number
+	      && ! IR_IS_OF_TYPE (current_right_hand_side_element,
+				  IR_NM_canonical_rule_end))
+	    ;
+	  else
+	    context_or (first_set, temporary_context);
+	}
       free_context (temporary_context);
     }
   IR_set_next_iter_relation_FIRST (single_nonterm_definition, first_set);
@@ -335,7 +351,13 @@ set_FIRST_of_rule_tail (IR_node_t right_hand_side_element)
   int minimal_context_length;
 
   context = get_null_context ();
-  if (!IR_IS_OF_TYPE (right_hand_side_element, IR_NM_canonical_rule_end))
+  if (IR_IS_OF_TYPE (right_hand_side_element, IR_NM_canonical_rule_end))
+    {
+      token_string = get_new_token_string (&single_definition, 0);
+      set_context_element_value (context, token_string, 1);
+      minimal_context_length = 0;
+    }
+  else
     {
       single_definition = IR_element_itself (right_hand_side_element);
       if (IR_IS_OF_TYPE (single_definition, IR_NM_single_term_definition))
@@ -370,8 +392,6 @@ set_FIRST_of_rule_tail (IR_node_t right_hand_side_element)
               (next_right_hand_side_element);
         }
     }
-  else
-    minimal_context_length = 0;
   IR_set_minimal_FIRST_of_rule_tail_length (right_hand_side_element,
                                             minimal_context_length);
   IR_set_FIRST_of_rule_tail (right_hand_side_element,
@@ -428,11 +448,7 @@ FIRST_of_tail (IR_node_t right_hand_side_element, context_t context,
   minimal_context_length
     = IR_minimal_FIRST_of_rule_tail_length (right_hand_side_element);
   if (context != NULL && minimal_context_length < context_length)
-    {
-      context_concat (result, context, context_length);
-      if (minimal_context_length == 0)
-        context_or (result, context);
-    }
+    context_concat (result, context, context_length);
   if (context_length != max_look_ahead_number)
     {
       temp_context = result;

@@ -1,3 +1,19 @@
+2007-05-15  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* contexts.c (get_new_token_string): Change assert.
+	(token_string_length): Check pointer after length.
+	(output_token_string): Output empty.
+	(context_concat): Zero context if 2nd one is empty.
+	* descript.c (output_first_sets): New function.
+	* descript.h (output_first_sets): New prototype.
+	* gen.c (generate): Output first sets.
+	* lr.c (shorten_LR_situation_context_token_string): Don't output
+	token_string to stderr.
+	* relation.c (set_nonterm_relation_FIRST): Initiate the first set
+	from current iteration.  Rewrite with using <e>.
+	(set_FIRST_of_rule_tail): Add <e> for rule end.
+	(FIRST_of_tail): Use concat only.
+	
 2007-05-08  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* MSTA/relation.c (set_nonterm_relation_FIRST): Add parameter

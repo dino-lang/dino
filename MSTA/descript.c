@@ -260,6 +260,34 @@ output_grammar (void)
     }
 }
 
+void
+output_first_sets (void)
+{
+  IR_node_t current_single_definition;
+  vlo_t representation;
+
+  output_string (output_description_file, "FIRST sets:\n");
+  VLO_CREATE (representation, 100);
+  for (current_single_definition = IR_single_definition_list (description);
+       current_single_definition != NULL;
+       current_single_definition
+	 = IR_next_single_definition (current_single_definition))
+    if (IR_IS_OF_TYPE (current_single_definition,
+		       IR_NM_single_nonterm_definition))
+      {
+	VLO_NULLIFY (representation);
+	single_definition_representation (current_single_definition,
+					  &representation);
+	output_string (output_description_file, "  ");
+	output_string (output_description_file, VLO_BEGIN (representation));
+	output_string (output_description_file, ":");
+	output_context (output_description_file,
+			IR_relation_FIRST (current_single_definition));
+	output_string (output_description_file, "\n");
+      }
+  VLO_DELETE (representation);
+}
+
 static void
 output_conflicts (IR_node_t LR_set)
 {

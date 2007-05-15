@@ -1220,9 +1220,11 @@ shorten_LR_situation_context_token_string (token_string_t token_string)
   int current_token_string_length;
   token_string_t minimal_length_context_token_string_without_conflict;
 
+#if 0
   if (max_LR_situation_conflict_context_look_ahead
       != token_string_length (token_string))
     output_token_string (token_string, stderr);
+#endif
   assert (max_LR_situation_conflict_context_look_ahead
           == token_string_length (token_string));
   minimal_length_context_token_string_without_conflict = token_string;

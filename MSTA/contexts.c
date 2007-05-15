@@ -183,7 +183,7 @@ get_new_token_string (IR_node_t *tokens, int tokens_number)
   int token_string_length;
   IR_node_t empty;
 
-  assert (tokens_number > 0);
+  assert (tokens_number >= 0);
   empty = NULL;
   for (token_string_length = max_look_ahead_number;
        token_string_length != 0;
@@ -265,7 +265,7 @@ token_string_length (token_string_t token_string)
   length = 0;
   for (current_string_token_ptr = ((IR_node_t *) VLO_BEGIN (token_strings)
                                    + max_look_ahead_number * token_string);
-       *current_string_token_ptr != NULL && length != max_look_ahead_number;
+       length != max_look_ahead_number && *current_string_token_ptr != NULL;
        current_string_token_ptr++)
     length++;
   return length;
@@ -343,6 +343,11 @@ output_token_string (token_string_t token_string, FILE *f)
 
   string_token_ptr = ((IR_node_t *) VLO_BEGIN (token_strings)
                       + max_look_ahead_number * token_string);
+  if (*string_token_ptr == NULL)
+    {
+      output_string (f, " <e>");
+      return;
+    }
   token_string_length = max_look_ahead_number;
   first_token_flag = TRUE;
   while (token_string_length != 0 && *string_token_ptr != NULL)
@@ -731,12 +736,14 @@ context_concat (context_t context_1, context_t context_2,
                                maximum_result_token_string_length), 1);
                          }
                    }
-               if (new_token_string_flag)
-                 {
-                   bit_string_1 = VLO_BEGIN (context_1->bit_string);
-                   SET_BIT (bit_string_1 + bit_string_element_number_1,
-                            bits_number_1, 0);
-                 }
+	       if (! new_token_string_flag)
+		 {
+		   zero_context (context_1);
+		   return;
+		 }
+	       bit_string_1 = VLO_BEGIN (context_1->bit_string);
+	       SET_BIT (bit_string_1 + bit_string_element_number_1,
+			bits_number_1, 0);
              }
        }
 }

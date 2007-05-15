@@ -812,6 +812,11 @@ generate (void)
   fprintf (stderr, "  Max look ahead is %d %s\n", max_look_ahead_number,
            (max_look_ahead_number == 1 ? "token" : "tokens"));
   generate_parser_graph_representation ();
+  if (verbose_flag && (lr_flag || lr_situation_context_flag))
+    {
+      output_first_sets ();
+      output_string (output_description_file, "\n\f\n\n");
+    }
   fprintf (stderr, "  Real look ahead is %d %s\n", real_look_ahead_number,
            (real_look_ahead_number == 1 ? "token" : "tokens"));
   count_conflicts (&shift_reduce_conflicts_number,
