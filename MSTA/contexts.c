@@ -684,8 +684,13 @@ context_concat (context_t context_1, context_t context_2,
   int bit_string_element_number_1;
   int number_of_bit_string_elements_1;
   token_string_t token_string_1;
-  int new_token_string_flag;
+  context_t result;
 
+  if (it_is_zero_context (context_2))
+    {
+      zero_context (context_1);
+      return;
+    }
   bit_string_1 = VLO_BEGIN (context_1->bit_string);
   number_of_bit_string_elements_1
     = (unsigned) VLO_LENGTH (context_1->bit_string)
@@ -694,6 +699,7 @@ context_concat (context_t context_1, context_t context_2,
   number_of_bit_string_elements_2
     = (unsigned) VLO_LENGTH (context_2->bit_string)
       / sizeof (bit_string_element_t);
+  result = get_null_context ();
   for (bit_string_element_number_1 = 0;
        bit_string_element_number_1 < number_of_bit_string_elements_1;
        bit_string_element_number_1++)
@@ -709,8 +715,10 @@ context_concat (context_t context_1, context_t context_2,
                    * CHAR_BIT + bits_number_1;
                if (maximum_result_token_string_length
                    <= token_string_length (token_string_1))
-                 continue;
-               new_token_string_flag = FALSE;
+		 {
+		   set_context_element_value (result, token_string_1, 1);
+		   continue;
+		 }
                for (bit_string_element_number_2 = 0;
                     bit_string_element_number_2
                     < number_of_bit_string_elements_2;
@@ -724,28 +732,21 @@ context_concat (context_t context_1, context_t context_2,
                        if (BIT (bit_string_2 + bit_string_element_number_2,
                                 bits_number_2))
                          {
-                           new_token_string_flag = TRUE;
                            token_string_2
                              = bit_string_element_number_2
                                * sizeof (bit_string_element_t) * CHAR_BIT
                                  + bits_number_2;
                            set_context_element_value
-                             (context_1,
+                             (result,
                               token_string_concat
                               (token_string_1, token_string_2,
                                maximum_result_token_string_length), 1);
                          }
                    }
-	       if (! new_token_string_flag)
-		 {
-		   zero_context (context_1);
-		   return;
-		 }
-	       bit_string_1 = VLO_BEGIN (context_1->bit_string);
-	       SET_BIT (bit_string_1 + bit_string_element_number_1,
-			bits_number_1, 0);
              }
        }
+  context_copy (context_1, result);
+  free_context (result);
 }
 
 void

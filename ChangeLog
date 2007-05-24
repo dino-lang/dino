@@ -1,3 +1,8 @@
+2007-05-23  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* MSTA/msta.tst.in (test 11): Change conflicts number.
+	* MSTA/contexts.c (context_concat): Use temporary context.
+
 2007-05-15  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* contexts.c (get_new_token_string): Change assert.

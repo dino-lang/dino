@@ -566,7 +566,7 @@ TEST11
     if ./msta -la 7 -lr -full-lr-set -no-lalr-optimization -no-regular-optimization -no-error-conflict -no-error-reduce -lr-situation-context $ygram 2>$outputf && cmp $outputf - <<'EOF11'; then
   Max look ahead is 7 tokens
   Real look ahead is 7 tokens
-  27212 shift/reduce conflicts.
+  33878 shift/reduce conflicts.
 EOF11
       result=ok
     fi
