@@ -5,7 +5,7 @@
 .SH NAME
 dino \- the interpreter of the programming language DINO
 .SH SYNOPSIS
-.B dino [ -s -h size -Idirname -Lpath -p] (-c
+.B dino [ -s -t -h size -Idirname -Lpath -p] (-c
 .I program
 .B |
 .I program-file
@@ -36,6 +36,10 @@ additional memory after garbage collection.
 Output some statistics of interpreter work into stderr.  Statistics
 contain the maximal heap size, number of heap chunks, and number of
 collisions in hash tables which are used for the implementation of
+DINO tables.
+.IP -t
+Output information about call stack of the program into stderr for
+unprocessed exception or calling exit function.
 DINO tables.
 .IP -Idirname
 Define the directory in which Dino include files will be searched for.

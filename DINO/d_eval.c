@@ -32,6 +32,8 @@
 #include "d_runtab.h"
 #include "d_eval.h"
 #define USE_SWITCH
+/*#define DIRECT_THREADED direct threaded interpriter. */
+/*#define USE_SWITCHES switches at the end of each case. */
 
 
 /* The following is common code for find_context_by_scope. */
@@ -689,17 +691,26 @@ find_catch_pc (void)
   ER_node_t except;
   IR_node_t curr_scope;
   ER_node_t message;
+  struct trace_stack_elem elem;
 
   assert (ER_NODE_MODE (ctop) == ER_NM_instance);
   no_gc_flag = FALSE;
   except = ER_instance (ctop);
   temp_ref = NULL;
   EMPTY_TEMP_REF ();
+  if (trace_flag)
+    VLO_NULLIFY (trace_stack);
   for (; cstack != uppest_stack;)
     {
       block = ER_block_node (cstack);
       sync_flag = IR_block_saved_sync_flag (block);
       func_class = IR_func_class_ext (block);
+      if (trace_flag && func_class != NULL)
+	{
+	  elem.func_class = func_class;
+	  elem.pc = ER_call_pc (cstack);
+	  VLO_ADD_MEMORY (trace_stack, &elem, sizeof (elem));
+	}
       if (func_class != NULL && IR_NODE_MODE (func_class) == IR_NM_func
 	  && IR_thread_flag (func_class)
 	  && !delete_cprocess_during_exception ())
@@ -714,6 +725,8 @@ find_catch_pc (void)
 	  /* For catch deadlock.  The first catch statement is always
              block. */
 	  ER_set_process_status (cprocess, PS_READY);
+	  if (trace_flag)
+	    VLO_NULLIFY (trace_stack);
 	  return cpc;
 	}
       else if (cstack == NULL)
@@ -959,11 +972,10 @@ evaluate_code (void)
   int res;
   IR_node_mode_t node_mode;
 
-#if !defined (USE_SWITCH) && defined (__GNUC__)
+#if defined (DIRECT_THREADED) && defined (__GNUC__)
   static void *table [IR_NM__error];
   if (table [IR_NM_char] == NULL)
     {
-      table [IR_NM_char] = &&l_IR_NM_char;
       table [IR_NM_char] = &&l_IR_NM_char;
       table [IR_NM_int] = &&l_IR_NM_int;
       table [IR_NM_float] = &&l_IR_NM_float;
@@ -1075,6 +1087,7 @@ evaluate_code (void)
       table [IR_NM_return_without_result] = &&l_IR_NM_return_without_result;
       table [IR_NM_return_with_result] = &&l_IR_NM_return_with_result;
       table [IR_NM_wait_stmt] = &&l_IR_NM_wait_stmt;
+      table [IR_NM_wait_finish] = &&l_IR_NM_wait_finish;
       table [IR_NM_block] = &&l_IR_NM_block;
       table [IR_NM_throw] = &&l_IR_NM_throw;
       table [IR_NM_exception] = &&l_IR_NM_exception;
@@ -1084,6 +1097,7 @@ evaluate_code (void)
 	= &&l_IR_NM_lvalue_var_occurrence_and_val;
       table [IR_NM_local_lvalue_var_occurrence]
 	= &&l_IR_NM_local_lvalue_var_occurrence;
+      table [IR_NM_local_var_occurrence] = &&l_IR_NM_local_var_occurrence;
       table [IR_NM_local_lvalue_var_occurrence_and_val]
 	= &&l_IR_NM_local_lvalue_var_occurrence_and_val;
       table [IR_NM_external_var_occurrence]
@@ -1102,16 +1116,279 @@ evaluate_code (void)
       table [IR_NM_pop_func_call] = &&l_IR_NM_pop_func_call;
     }
 #define CASE(value) l_ ## value
-#define BREAK       continue
+#define BREAK       goto *table [node_mode = IR_NODE_MODE (IR_POINTER (cpc))]
+#elif defined (USE_SWITCHES)
+#define CASE(value) l_ ## value
+#define BREAK       switch (node_mode = IR_NODE_MODE (IR_POINTER (cpc))) \
+                      {							 \
+		      case IR_NM_char:					 \
+			goto l_IR_NM_char;				 \
+		      case IR_NM_int:					 \
+			goto l_IR_NM_int;				 \
+		      case IR_NM_float:					 \
+			goto l_IR_NM_float;				 \
+		      case IR_NM_hide_type:				 \
+			goto l_IR_NM_hide_type;				 \
+		      case IR_NM_hideblock_type:			 \
+			goto l_IR_NM_hideblock_type;			 \
+		      case IR_NM_char_type:				 \
+			goto l_IR_NM_char_type;				 \
+		      case IR_NM_int_type:				 \
+			goto l_IR_NM_int_type;				 \
+		      case IR_NM_float_type:				 \
+			goto l_IR_NM_float_type;			 \
+		      case IR_NM_vector_type:				 \
+			goto l_IR_NM_vector_type;			 \
+		      case IR_NM_table_type:				 \
+			goto l_IR_NM_table_type;			 \
+		      case IR_NM_func_type:				 \
+			goto l_IR_NM_func_type;				 \
+		      case IR_NM_thread_type:				 \
+			goto l_IR_NM_thread_type;			 \
+		      case IR_NM_class_type:				 \
+			goto l_IR_NM_class_type;			 \
+		      case IR_NM_stack_type:				 \
+			goto l_IR_NM_stack_type;			 \
+		      case IR_NM_process_type:				 \
+			goto l_IR_NM_process_type;			 \
+		      case IR_NM_instance_type:				 \
+			goto l_IR_NM_instance_type;			 \
+		      case IR_NM_type_type:				 \
+			goto l_IR_NM_type_type;				 \
+		      case IR_NM_string:				 \
+			goto l_IR_NM_string;				 \
+		      case IR_NM_nil:					 \
+			goto l_IR_NM_nil;				 \
+		      case IR_NM_period:				 \
+			goto l_IR_NM_period;				 \
+		      case IR_NM_lvalue_period:				 \
+			goto l_IR_NM_lvalue_period;			 \
+		      case IR_NM_lvalue_period_and_val:			 \
+			goto l_IR_NM_lvalue_period_and_val;	      	 \
+		      case IR_NM_no_testing_period:			 \
+			goto l_IR_NM_no_testing_period;			 \
+		      case IR_NM_lvalue_no_testing_period:		 \
+			goto l_IR_NM_lvalue_no_testing_period;		 \
+		      case IR_NM_lvalue_no_testing_period_and_val:	 \
+			goto l_IR_NM_lvalue_no_testing_period_and_val;	 \
+		      case IR_NM_logical_or:				 \
+			goto l_IR_NM_logical_or;			 \
+		      case IR_NM_logical_and:				 \
+			goto l_IR_NM_logical_and;			 \
+		      case IR_NM_logical_or_end:			 \
+			goto l_IR_NM_logical_or_end;			 \
+		      case IR_NM_logical_and_end:			 \
+			goto l_IR_NM_logical_and_end;			 \
+		      case IR_NM_in:					 \
+			goto l_IR_NM_in;				 \
+		      case IR_NM_not:					 \
+			goto l_IR_NM_not;				 \
+		      case IR_NM_bitwise_not:				 \
+			goto l_IR_NM_bitwise_not;			 \
+		      case IR_NM_eq:					 \
+			goto l_IR_NM_eq;				 \
+		      case IR_NM_ne:					 \
+			goto l_IR_NM_ne;				 \
+		      case IR_NM_identity:				 \
+			goto l_IR_NM_identity;				 \
+		      case IR_NM_unidentity:				 \
+			goto l_IR_NM_unidentity;			 \
+		      case IR_NM_lt:					 \
+			goto l_IR_NM_lt;				 \
+		      case IR_NM_ge:					 \
+			goto l_IR_NM_ge;				 \
+		      case IR_NM_gt:					 \
+			goto l_IR_NM_gt;				 \
+		      case IR_NM_le:					 \
+			goto l_IR_NM_le;				 \
+		      case IR_NM_unary_plus:				 \
+			goto l_IR_NM_unary_plus;			 \
+		      case IR_NM_unary_minus:				 \
+			goto l_IR_NM_unary_minus;			 \
+		      case IR_NM_length:				 \
+			goto l_IR_NM_length;				 \
+		      case IR_NM_const:					 \
+			goto l_IR_NM_const;				 \
+		      case IR_NM_new:					 \
+			goto l_IR_NM_new;				 \
+		      case IR_NM_typeof:				 \
+			goto l_IR_NM_typeof;				 \
+		      case IR_NM_charof:				 \
+			goto l_IR_NM_charof;				 \
+		      case IR_NM_intof:					 \
+			goto l_IR_NM_intof;				 \
+		      case IR_NM_floatof:				 \
+			goto l_IR_NM_floatof;				 \
+		      case IR_NM_format_vectorof:			 \
+			goto l_IR_NM_format_vectorof;			 \
+		      case IR_NM_vectorof:				 \
+			goto l_IR_NM_vectorof;				 \
+		      case IR_NM_tableof:				 \
+			goto l_IR_NM_tableof;				 \
+		      case IR_NM_funcof:				 \
+			goto l_IR_NM_funcof;				 \
+		      case IR_NM_threadof:				 \
+			goto l_IR_NM_threadof;				 \
+		      case IR_NM_classof:				 \
+			goto l_IR_NM_classof;				 \
+		      case IR_NM_cond:					 \
+			goto l_IR_NM_cond;				 \
+		      case IR_NM_cond_end:				 \
+			goto l_IR_NM_cond_end;				 \
+		      case IR_NM_par_assign_end:			 \
+			goto l_IR_NM_par_assign_end;			 \
+		      case IR_NM_vector:				 \
+			goto l_IR_NM_vector;				 \
+		      case IR_NM_table:					 \
+			goto l_IR_NM_table;				 \
+		      case IR_NM_index:					 \
+			goto l_IR_NM_index;				 \
+		      case IR_NM_lvalue_index:				 \
+			goto l_IR_NM_lvalue_index;			 \
+		      case IR_NM_lvalue_index_and_val:			 \
+			goto l_IR_NM_lvalue_index_and_val;		 \
+		      case IR_NM_key_index:				 \
+			goto l_IR_NM_key_index;				 \
+		      case IR_NM_lvalue_key_index:			 \
+			goto l_IR_NM_lvalue_key_index;			 \
+		      case IR_NM_lvalue_key_index_and_val:		 \
+			goto l_IR_NM_lvalue_key_index_and_val;		 \
+		      case IR_NM_class_func_thread_call:		 \
+			goto l_IR_NM_class_func_thread_call;		 \
+		      case IR_NM_mult:					 \
+			goto l_IR_NM_mult;				 \
+		      case IR_NM_div:					 \
+			goto l_IR_NM_div;				 \
+		      case IR_NM_mod:					 \
+			goto l_IR_NM_mod;				 \
+		      case IR_NM_plus:					 \
+			goto l_IR_NM_plus;				 \
+		      case IR_NM_minus:					 \
+			goto l_IR_NM_minus;				 \
+		      case IR_NM_concat:				 \
+			goto l_IR_NM_concat;				 \
+		      case IR_NM_lshift:				 \
+			goto l_IR_NM_lshift;				 \
+		      case IR_NM_rshift:				 \
+			goto l_IR_NM_rshift;				 \
+		      case IR_NM_ashift:				 \
+			goto l_IR_NM_ashift;				 \
+		      case IR_NM_and:					 \
+			goto l_IR_NM_and;				 \
+		      case IR_NM_xor:					 \
+			goto l_IR_NM_xor;				 \
+		      case IR_NM_or:					 \
+			goto l_IR_NM_or;				 \
+		      case IR_NM_mult_assign:				 \
+			goto l_IR_NM_mult_assign;			 \
+		      case IR_NM_div_assign:				 \
+			goto l_IR_NM_div_assign;			 \
+		      case IR_NM_rem_assign:				 \
+			goto l_IR_NM_rem_assign;			 \
+		      case IR_NM_plus_assign:				 \
+			goto l_IR_NM_plus_assign;			 \
+		      case IR_NM_minus_assign:				 \
+			goto l_IR_NM_minus_assign;			 \
+		      case IR_NM_concat_assign:				 \
+			goto l_IR_NM_concat_assign;			 \
+		      case IR_NM_lshift_assign:				 \
+			goto l_IR_NM_lshift_assign;			 \
+		      case IR_NM_rshift_assign:				 \
+			goto l_IR_NM_rshift_assign;			 \
+		      case IR_NM_ashift_assign:				 \
+			goto l_IR_NM_ashift_assign;			 \
+		      case IR_NM_and_assign:				 \
+			goto l_IR_NM_and_assign;			 \
+		      case IR_NM_xor_assign:				 \
+			goto l_IR_NM_xor_assign;			 \
+		      case IR_NM_or_assign:				 \
+			goto l_IR_NM_or_assign;				 \
+		      case IR_NM_assign:				 \
+			goto l_IR_NM_assign;				 \
+		      case IR_NM_swap:					 \
+			goto l_IR_NM_swap;				 \
+		      case IR_NM_var_assign:				 \
+			goto l_IR_NM_var_assign;			 \
+		      case IR_NM_par_assign:				 \
+			goto l_IR_NM_par_assign;			 \
+		      case IR_NM_par_assign_test:			 \
+			goto l_IR_NM_par_assign_test;			 \
+		      case IR_NM_procedure_call:			 \
+			goto l_IR_NM_procedure_call;			 \
+		      case IR_NM_if_stmt:				 \
+			goto l_IR_NM_if_stmt;				 \
+		      case IR_NM_for_stmt:				 \
+			goto l_IR_NM_for_stmt;				 \
+		      case IR_NM_foreach_start:				 \
+			goto l_IR_NM_foreach_start;			 \
+		      case IR_NM_foreach_next_iteration:		 \
+			goto l_IR_NM_foreach_next_iteration;		 \
+		      case IR_NM_foreach_stmt:				 \
+			goto l_IR_NM_foreach_stmt;			 \
+		      case IR_NM_break_stmt:				 \
+			goto l_IR_NM_break_stmt;			 \
+		      case IR_NM_continue_stmt:				 \
+			goto l_IR_NM_continue_stmt;			 \
+		      case IR_NM_block_finish:				 \
+			goto l_IR_NM_block_finish;			 \
+		      case IR_NM_return_without_result: 		 \
+			goto l_IR_NM_return_without_result;		 \
+                      case IR_NM_return_with_result:			 \
+			goto l_IR_NM_return_with_result;		 \
+		      case IR_NM_wait_stmt:				 \
+			goto l_IR_NM_wait_stmt;                          \
+		      case IR_NM_wait_finish:				 \
+			goto l_IR_NM_wait_finish;			 \
+		      case IR_NM_block:					 \
+			goto l_IR_NM_block;		                 \
+		      case IR_NM_throw:				      	 \
+			goto l_IR_NM_throw;				 \
+		      case IR_NM_exception:		       		 \
+			goto l_IR_NM_exception;				 \
+		      case IR_NM_var_occurrence:			 \
+			goto l_IR_NM_var_occurrence;			 \
+		      case IR_NM_lvalue_var_occurrence:			 \
+			goto l_IR_NM_lvalue_var_occurrence;              \
+		      case IR_NM_lvalue_var_occurrence_and_val:	         \
+			goto l_IR_NM_lvalue_var_occurrence_and_val;	 \
+		      case IR_NM_local_lvalue_var_occurrence:	       	 \
+			goto l_IR_NM_local_lvalue_var_occurrence;	 \
+		      case IR_NM_local_var_occurrence:			 \
+			goto l_IR_NM_local_var_occurrence;		 \
+		      case IR_NM_local_lvalue_var_occurrence_and_val:	 \
+			goto l_IR_NM_local_lvalue_var_occurrence_and_val;\
+		      case IR_NM_external_var_occurrence:	         \
+			goto l_IR_NM_external_var_occurrence;		 \
+		      case IR_NM_lvalue_external_var_occurrence:	 \
+			goto l_IR_NM_lvalue_external_var_occurrence;	 \
+		      case IR_NM_lvalue_external_var_occurrence_and_val: \
+			goto l_IR_NM_lvalue_external_var_occurrence_and_val;\
+		      case IR_NM_external_func_occurrence:		 \
+			goto l_IR_NM_external_func_occurrence;	     	 \
+		      case IR_NM_func_occurrence:			 \
+			goto l_IR_NM_func_occurrence;			 \
+		      case IR_NM_class_occurrence:			 \
+			goto l_IR_NM_class_occurrence;			 \
+		      case IR_NM_if_finish:				 \
+			goto l_IR_NM_if_finish;				 \
+		      case IR_NM_for_finish:		      		 \
+			goto l_IR_NM_for_finish;			 \
+		      case IR_NM_catches_finish:			 \
+			goto l_IR_NM_catches_finish;			 \
+		      case IR_NM_pop_func_call:			      	 \
+			goto l_IR_NM_pop_func_call;			 \
+                      }
 #else
 #define CASE(value) case value
 #define BREAK       break
 #endif
   for (;;)
     {
+#if defined (DIRECT_THREADED) && defined (__GNUC__)
       node_mode = IR_NODE_MODE (IR_POINTER (cpc));
-#if !defined (USE_SWITCH) && defined (__GNUC__)
       goto *table [node_mode];
+#elif defined (USE_SWITCHES)
+      BREAK;
 #else
       switch (node_mode = IR_NODE_MODE (IR_POINTER (cpc)))
 #endif
@@ -2712,7 +2989,8 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  QUANTUM_SWITCH_PROCESS;
 	  BREAK;
-#if defined (USE_SWITCH) || !defined (__GNUC__)
+#if ! defined (USE_SWITCHES) \
+    && (! defined (DIRECT_THREADED) || !defined (__GNUC__))
 	default:
 	  assert (FALSE);
 #endif

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
  <TITLE>The Programming Language DINO: Appendix B. Implementation</TITLE>
  <LINK HREF="dino-9.html" REL=previous>
  <LINK HREF="dino.html#toc10" REL=contents>
@@ -24,7 +24,7 @@ NAME
        dino - the interpreter of the programming language DINO
 
 SYNOPSIS
-       dino  [  -s  -h  size -Idirname -Lpath -p] (-c program | program-file )
+       dino  [ -s -t -h size -Idirname -Lpath -p] (-c program | program-file )
        dino-program-arguments
 
 DESCRIPTION
@@ -54,6 +54,10 @@ OPTIONS
               tics contain the maximal heap size, number of heap  chunks,  and
               number  of  collisions  in  hash  tables  which are used for the
               implementation of DINO tables.
+
+       -t     Output information about call stack of the program  into  stderr
+              for  unprocessed  exception  or  calling  exit  function.   DINO
+              tables.
 
        -Idirname
               Define the  directory  in  which  Dino  include  files  will  be

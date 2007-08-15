@@ -123,6 +123,15 @@ extern vlo_t heap_temp_refs;
 extern vlo_t temp_vlobj;
 extern vlo_t temp_vlobj2;
 
+/* Structure for storing info about called function/class.  */
+struct trace_stack_elem
+{
+  IR_node_t func_class;
+  pc_t pc; /* Pc of the call */
+};
+
+extern vlo_t trace_stack;
+
 extern ER_node_t cprocess;
 extern int_t context_number;
 extern int_t process_number;
@@ -224,7 +233,7 @@ heap_redir :: heap_vect_tab
 
 heap_stack
 %other
-  return_pc : pc_t
+  call_pc : pc_t
 ;
 
 heap_process

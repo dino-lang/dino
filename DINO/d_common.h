@@ -48,6 +48,7 @@ extern char **program_environment;
 extern position_t source_position;
 extern unsigned int heap_chunk_size;
 extern int statistics_flag;
+extern int trace_flag;
 extern int profile_flag;
 extern double start_time;
 extern int max_block_level;

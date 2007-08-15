@@ -3924,7 +3924,7 @@ NAME
        dino - the interpreter of the programming language DINO
 
 SYNOPSIS
-       dino  [  -s  -h  size -Idirname -Lpath -p] (-c program | program-file )
+       dino  [ -s -t -h size -Idirname -Lpath -p] (-c program | program-file )
        dino-program-arguments
 
 DESCRIPTION
@@ -3954,6 +3954,10 @@ OPTIONS
               tics contain the maximal heap size, number of heap  chunks,  and
               number  of  collisions  in  hash  tables  which are used for the
               implementation of DINO tables.
+
+       -t     Output information about call stack of the program  into  stderr
+              for  unprocessed  exception  or  calling  exit  function.   DINO
+              tables.
 
        -Idirname
               Define the  directory  in  which  Dino  include  files  will  be

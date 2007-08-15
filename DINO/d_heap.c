@@ -573,7 +573,7 @@ final_call_destroy_functions (void)
 	  ER_set_ctop (cstack, (char *) ctop);
 #endif
 	  SET_TOP;
-	  cpc = ER_return_pc (cstack);
+	  cpc = IR_next_pc (ER_call_pc (cstack));
 	  if (cprocess != NULL)
 	    ER_set_saved_cstack (cprocess, cstack);
 	}
@@ -1556,7 +1556,7 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
     }
 #endif
   ER_SET_MODE (stack, ER_NM_heap_stack);
-  ER_set_return_pc (stack, IR_next_pc (cpc));
+  ER_set_call_pc (stack, cpc);
   if (context != NULL && ER_NODE_MODE (context) != ER_NM_heap_instance)
     {
       func_class = IR_func_class_ext (ER_block_node (context));
@@ -1608,7 +1608,7 @@ heap_pop (void)
 
   if (func_class != NULL)
     {
-      cpc = ER_return_pc (stack);
+      cpc = IR_next_pc (ER_call_pc (stack));
 #if ! defined (NO_PROFILE) && !HAVE_SETITIMER
       if (profile_flag)
 	ticker_off (&IR_exec_time (func_class));

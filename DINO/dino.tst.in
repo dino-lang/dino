@@ -16846,7 +16846,7 @@ TEST214
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT214' && $CMP $stderr $ftemp2; then
-test.d:6:14: there is not such declaration in a block
+test.d:6:14: there is no such declaration in a block
 OUTPUT214
                         result=ok
                 else
@@ -16873,7 +16873,7 @@ TEST215
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT215' && $CMP $stderr $ftemp2; then
-test.d:6:14: run time error - there is not such declaration in given class
+test.d:6:14: run time error - there is no such declaration in given class
 OUTPUT215
                         result=ok
                 else
@@ -22065,7 +22065,7 @@ TEST402
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT402' && $CMP $stderr $ftemp2; then
-test.d:8:9: run time error - there is not such declaration in given class
+test.d:8:9: run time error - there is no such declaration in given class
 OUTPUT402
                         result=ok
                 else
@@ -22094,7 +22094,7 @@ TEST403
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT403' && $CMP $stderr $ftemp2; then
-test.d:9:7: there is not such declaration in a block
+test.d:9:7: there is no such declaration in a block
 OUTPUT403
                         result=ok
                 else
@@ -34951,6 +34951,159 @@ OUTPUT579
 	    else
                 result=fail
 	    fi
+        fi
+fi
+
+# Test 580.
+if test $result = ok -a $start_test_number -le 580; then
+	echo test 580: exit tracing
+        cat >$test_file <<'TEST580'
+func a () {
+  exit (0);
+}
+func b () {
+  a ();
+}
+func c (i) {
+  if (i == 0) b (); else c (i - 1);
+}
+class d () {
+  c (5);
+}
+d ();
+TEST580
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stderr $ftemp2
+                if cat >$ftemp2 <<'OUTPUT580' && $CMP $stderr $ftemp2; then
+test.d:5:6:calling a
+test.d:8:18:calling b
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:11:6:calling c
+test.d:13:4:calling d
+OUTPUT580
+                        result=ok
+                else
+                        result=fail
+                fi
+	else
+                result=fail
+        fi
+fi
+
+# Test 581.
+if test $result = ok -a $start_test_number -le 581; then
+	echo test 581: exception tracing
+        cat >$test_file <<'TEST581'
+func a () {
+  throw except ();
+}
+func b () {
+  a ();
+}
+func c (i) {
+  if (i == 0) b (); else c (i - 1);
+}
+class d () {
+  c (5);
+}
+d ();
+TEST581
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT581' && $CMP $stderr $ftemp2; then
+test.d:2:7: run time error - exception except has not been processed
+test.d:5:6:calling a
+test.d:8:18:calling b
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:8:29:calling c
+test.d:11:6:calling c
+test.d:13:4:calling d
+OUTPUT581
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 582.
+if test $result = ok -a $start_test_number -le 582; then
+	echo test 582: catched exception tracing
+        cat >$test_file <<'TEST582'
+func a () {
+  var i = 0;
+  i[10]=0;
+}
+func b () {
+  a ();
+}
+func c (i) {
+  if (i == 0) b (); else c (i - 1);
+}
+class d () {
+  c (5);
+}
+var i;
+for (i = 0; i < 10; i++) 
+  try {
+    d ();
+  } catch (except().error) {
+    putln ("got it: ", e.msg);
+  }
+TEST582
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT582' && $CMP $stdout $ftemp2; then
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+got it: run time error - index operation for non array
+OUTPUT582
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 583.
+if test $result = ok -a $start_test_number -le 583; then
+	echo test 583: normal exit tracing
+        cat >$test_file <<'TEST583'
+var i;
+for (i =0; i < 10; i++);
+TEST583
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT583' && $CMP $stdout $ftemp2; then
+OUTPUT583
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
         fi
 fi
 

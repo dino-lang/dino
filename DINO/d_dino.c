@@ -218,6 +218,8 @@ dino_finish (int code)
 
   if (code >= 0)
     final_call_destroy_functions ();
+  if (trace_flag)
+    print_trace_stack ();
 #ifndef NO_PROFILE
   if (code == 0 && profile_flag)
     print_profile (first_program_stmt);
@@ -440,6 +442,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-Idirname'  directory for searching for Dino programs\n"\
 "`-Ldirname'  Dino extern libraries\n"\
 "`-s'         output statistics to stderr\n"\
+"`-t'         output final trace to stderr\n"\
 "`-g'         generate C code\n"\
 "`-p'         output profile information into stderr\n"
 
@@ -448,6 +451,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 
 unsigned int heap_chunk_size;
 int statistics_flag;
+int trace_flag;
 int profile_flag;
 
 /* CYGWIN reports incorrect start time, we need this for correction of
@@ -491,6 +495,7 @@ dino_main (int argc, char *argv[], char *envp[])
     }
   heap_chunk_size = DEFAULT_HEAP_CHUNK_SIZE;
   statistics_flag = FALSE;
+  trace_flag = FALSE;
   profile_flag = FALSE;
   eval_long_jump_set_flag = FALSE;
   /* Process all command line options. */
@@ -510,6 +515,8 @@ dino_main (int argc, char *argv[], char *envp[])
 	command_line_program = argument_vector [i + 1];
       else if (strcmp (option, "-s") == 0)
 	statistics_flag = TRUE;
+      else if (strcmp (option, "-t") == 0)
+	trace_flag = TRUE;
       else if (strcmp (option, "-p") == 0)
 	{
 #ifdef NO_PROFILE

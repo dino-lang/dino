@@ -1,3 +1,38 @@
+2007-08-15  Vladimir Makarov  <vmakarov@users.sf.net>
+
+        * CHANGES, DINO-CHANGES: Added -t option.
+	* DINO/d_common.h (trace_flag): New external.
+	* DINO/d_dino.c (dino_finish). Call print_trace_stack.
+	(COMMAND_LINE_DESCRIPTION): Add option -t.
+	(trace_flag): New variable.
+	(dino_main): Initiate trace_flag.  Process -t.
+	* DINO/d_errors.c (ERR_decl_is_absent_in_a_block,
+	ERR_invalid_type_of_arrow_left_operand,
+	DERR_decl_is_absent_in_given_class_or_block): Fix typo.
+	* DINO/d_eval.c (find_catch_pc): Collect stack trace.
+	(evaluate_code): Add local_var_occurrence and wait_finish for the
+	label table.  Use goto instead of continue for DIRECT_THREADED.
+	Add USE_SWITCHES and the corresponding implementation.
+	* DINO/d_func.c (trace_stack): New variable.
+	(print_trace_stack): New function.
+	(exit_call): Collect stack trace.
+	(process_func_class_call): Use ER_call_pc instead of
+	ER_return_pc.
+	(initiate_funcs): Create trace_stack.
+	(finish_funcs): Delete trace_stack.
+	* DINO/d_func.h (print_trace_stack): New external.
+	* DINO/d_heap.c (final_call_destroy_functions, heap_push,
+	heap_pop): Use ER_call_pc instead of ER_return_pc.
+	* DINO/d_run.sprut (struct trace_stack_elem): New.
+	(trace_stack): New external.
+	* DINO/dino.tst.in (214, 402, 403): Fix typo in message.
+	(580-583): New tests for tracing.
+	* DINO/dino.1: Add -t.
+	* DINO/{dino.html, dino-[1-9].html, dino-10.html}, DINO/dino.dvi,
+	DINO/dino.info, DINO/dino.pdf, DINO/dino.ps, DINO/dino.txt:
+	Update.
+	* DINO/O/FE/lex.d: Add newline at the end of file.
+	
 2007-05-23  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/msta.tst.in (test 11): Change conflicts number.
@@ -19,7 +54,7 @@
 	(set_FIRST_of_rule_tail): Add <e> for rule end.
 	(FIRST_of_tail): Use concat only.
 	
-2007-05-08  Vladimir Makarov  <vmakarov@redhat.com>
+2007-05-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/relation.c (set_nonterm_relation_FIRST): Add parameter
 	init_p and use it.
@@ -27,7 +62,7 @@
 	* MSTA/msta.tst.in: Add a new test.  Change # conflicts for 11
 	test.
 
-2007-05-04  Vladimir Makarov  <vmakarov@redhat.com>
+2007-05-04  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/ird.sprut (single_nonterm_definition): Add new field
 	next_iter_relation_FIRST.
@@ -36,16 +71,16 @@
 	of FIRST.
 	* MSTA/msta.tst.in: Add a new test.
 
-2007-05-03  Vladimir Makarov  <vmakarov@redhat.com>
+2007-05-03  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/msta.tst.in: Add a new test.
 
-2007-05-03  Vladimir Makarov  <vmakarov@redhat.com>
+2007-05-03  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.tst.in (tests 131, 351, 352, 363, 403): Fix error
 	position.
 
-2007-05-03  Vladimir Makarov  <vmakarov@redhat.com>
+2007-05-03  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/relation.c (minimal_derived_string_length_pass_number,
 	relation_FIRST_pass_number): Remove.
@@ -57,7 +92,7 @@
 	(evaluate_nonterminals_relation_FIRST,
 	evaluate_minimal_derived_string_length): Use iterative algorithm.
 	
-2007-04-13  Vladimir Makarov  <vmakarov@redhat.com>
+2007-04-13  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.sgml.in (strtime): %% -> %.
 	* DINO/dino-8.html, DINO/dino.dvi, DINO/dino.info,
@@ -65,12 +100,12 @@
 	DINO/dino.info-4, DINO/dino.pdf, DINO/dino.ps, DINO/dino.txt:
 	Update.
 	
-2007-04-05  Vladimir Makarov  <vmakarov@redhat.com>
+2007-04-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_context.c (third_expr_processing): Set up position for
 	ident.
 
-2007-04-05  Vladimir Makarov  <vmakarov@redhat.com>
+2007-04-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/ammunition++.sgml.in, AMMUNITION/ammunition.sgml.in:
 	Add xor.
@@ -101,18 +136,18 @@
 	* DINO/mpi.c (mpi_xor, mpi_unsigned_xor): New functions.
 	* DINO/mpi.d (mpi_xor, mpi_unsigned_xor): New functions.
 
-2007-02-08  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.test.in: simplify two tests for fp exceptions.
 
-2007-02-08  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.html, DINO/dino-1.html, DINO/dino-2.html
 	DINO/dino-3.html, DINO/dino-4.html, DINO/dino-5.html
 	DINO/dino-6.html, DINO/dino-7.html, DINO/dino-9.html
 	DINO/dino-10.html: Change modification date.
 
-2007-02-07  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* cocom.spec (BuildRequires, Requires): New.
 	(Version, dino_version): Increase.
@@ -125,7 +160,7 @@
 	* MSTA/compare.tst.in: Don't fgrep with is.
 	* OKA/Makefile.in: Remove dsp and dsw files.
 	
-2007-02-07  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Don't run AWK for spell checker and reversing
 	a file.
@@ -137,26 +172,26 @@
 	DINO/dino.info-4, DINO/dino.pdf, DINO/dino.ps, DINO/dino.txt:
 	Update.
 	
-2007-02-07  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/Makefile.in (dinolibdir, dinoincludedir): Rename from
 	libdir and includedir.  Define through libdir and includedir.
 	(libdir, includedir): New.
 	(uninstall): Remove directories libdir and includedir. 
 
-2007-02-06  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-06  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO-README, README: Tested platforms.
 	* DINO-CHANGES, CHANGES: GMP package.
 	* Makefile.in (additional_files): Remove yacc.exe
 
-2007-02-06  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-06  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/errors++.tst.in, AMMUNITION/errors.tst.in: New
 	possible output for error 0.
 	* DINO/dino.tst.in: Ignore when gmp is not present.
 
-2007-02-06  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-06  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Put parentheses around time in if.
 	Switch off ackermann for AWK.
@@ -173,7 +208,7 @@
 	Update.
 	* DINO/gmp.c (mpz_address): Rename to gmp_address.
 
-2007-02-02  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-02  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* Makefile.in, AMMUNITION/allocate.c, AMMUNITION/allocate.cpp,
 	AMMUNITION/allocate.h, AMMUNITION/allocate.tst.in,
@@ -256,7 +291,7 @@
 	OKA/SCHEDULE/schedule++.tst.in, OKA/SCHEDULE/test.oka: Change
 	copyright year.
 
-2007-02-02  Vladimir Makarov  <vmakarov@redhat.com>
+2007-02-02  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.tst.in: New test for gmp.
 	* DINO/gmp.c: Add stdlib.h

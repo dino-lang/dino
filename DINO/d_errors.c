@@ -63,7 +63,7 @@ char ERR_extension_without_class_or_func []
   = "extension %s without extended func or class";
 char ERR_extension_of_final [] = "extension of final func/class `%s'";
 char ERR_decl_is_absent_in_a_block []
-  = "there is not such declaration in a block";
+  = "there is no such declaration in a block";
 char ERR_invalid_type_of_arrow_left_operand []
   = "left operand of arrow must be of string type";
 char ERR_invalid_type_of_deref_operand []
@@ -313,7 +313,7 @@ char DERR_class_as_variable []
 char DERR_value_is_not_class_instance_or_stack []
   = "run time error - value is not class instance or stack (\".\")";
 char DERR_decl_is_absent_in_given_class_or_block []
-  = "run time error - there is not such declaration in given class";
+  = "run time error - there is no such declaration in given class";
 char DERR_private_decl_access_from_outside_block []
   = "run time error - access to private decl `%s' from outside";
 char DERR_immutable_vector_modification []

@@ -5024,10 +5024,35 @@ system_call (int_t pars_number)
   INCREMENT_PC();
 }
 
+/* Array of pointers to functions/calls which will be reported in the
+   trace of calls.  */
+vlo_t trace_stack;
+
+/* Output info about stack trace.  */
+void
+print_trace_stack (void)
+{
+  struct trace_stack_elem *elem_ptr;
+  IR_node_t *func_class_ptr;
+
+  for (elem_ptr = VLO_BEGIN (trace_stack);
+       (char *) elem_ptr <= (char *) VLO_END (trace_stack);
+       elem_ptr++)
+    fprintf (stderr, "%s:%u:%u:calling %s\n",
+	     IR_pos (elem_ptr->pc).file_name,
+	     IR_pos (elem_ptr->pc).line_number,
+	     IR_pos (elem_ptr->pc).column_number,
+	     IR_ident_string (IR_unique_ident
+			      (IR_ident (elem_ptr->func_class))));
+}
+
 void
 exit_call (int_t pars_number)
 {
   int code;
+  IR_node_t func_class;
+  ER_node_t stack;
+  struct trace_stack_elem elem;
 
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
@@ -5036,6 +5061,22 @@ exit_call (int_t pars_number)
   if (ER_NODE_MODE (ctop) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameter_type, EXIT_NAME);
+  if (trace_flag)
+    {
+      VLO_NULLIFY (trace_stack);
+      
+      for (stack = cstack;
+	   stack != uppest_stack;
+	   stack = ER_prev_stack (stack))
+	{
+	  func_class = IR_func_class_ext (ER_block_node (stack));
+	  if (func_class == NULL)
+	    continue;
+	  elem.func_class = func_class;
+	  elem.pc = ER_call_pc (stack);
+	  VLO_ADD_MEMORY (trace_stack, &elem, sizeof (elem));
+	}
+    }
   dino_finish (ER_i (ctop));
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
@@ -5219,6 +5260,13 @@ process_func_class_call (int_t pars_number)
   if (ER_NODE_MODE (func_class_val) == ER_NM_func)
     {
       func_class = NO_TO_FUNC_CLASS (ER_func_no (func_class_val));
+#if 0
+      fprintf (stderr, "%s:%u:%u:calling %s\n",
+	       IR_pos (IR_POINTER (cpc)).file_name,
+	       IR_pos (IR_POINTER (cpc)).line_number,
+	       IR_pos (IR_POINTER (cpc)).column_number,
+	       IR_ident_string (IR_unique_ident (IR_ident (func_class))));
+#endif
       if (IR_NODE_MODE (func_class) == IR_NM_external_func)
 	call_external_func (pars_number, func_class);
       else if (IR_implementation_func (func_class) != NULL)
@@ -5285,7 +5333,7 @@ process_func_class_call (int_t pars_number)
 	      
 	      process = create_process (cpc, func_class,
 					ER_func_context (func_class_val));
-	      cpc = ER_return_pc (cstack);
+	      cpc = IR_next_pc (ER_call_pc (cstack));
 #ifndef NO_OPTIMIZE
 	      ER_set_ctop (cstack, (char *) ctop);
 #endif
@@ -5305,6 +5353,13 @@ process_func_class_call (int_t pars_number)
     {
       /* See also case with IR_NM_block_finish .*/
       func_class = NO_TO_FUNC_CLASS (ER_class_no (func_class_val));
+#if 0
+      fprintf (stderr, "%s:%u:%u:calling %s\n",
+	       IR_pos (IR_POINTER (cpc)).file_name,
+	       IR_pos (IR_POINTER (cpc)).line_number,
+	       IR_pos (IR_POINTER (cpc)).column_number,
+	       IR_ident_string (IR_unique_ident (IR_ident (func_class))));
+#endif
       instance = create_instance (pars_number);
       if (IR_simple_class_flag (func_class))
 	{
@@ -5335,6 +5390,8 @@ process_func_class_call (int_t pars_number)
 void
 initiate_funcs (void)
 {
+  if (trace_flag)
+    VLO_CREATE (trace_stack, 0);
   initiate_io ();
   initiate_regex_tab ();
 #ifdef FLOATING_NAN
@@ -5348,6 +5405,8 @@ finish_funcs (void)
 {
   finish_regex_tab ();
   finish_io ();
+  if (trace_flag)
+    VLO_DELETE (trace_stack);
 }
 
 

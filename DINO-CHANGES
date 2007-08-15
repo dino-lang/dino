@@ -1,3 +1,5 @@
+    o New option -t is added to print final call stack trace.
+
 10/02/2007: Version 0.55 of COCOM has been made.  The major
 difference with the previous version:
 
