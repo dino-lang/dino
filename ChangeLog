@@ -1,3 +1,8 @@
+2008-12-05  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Add scaling code code to CPU speed.  Add code
+	refactoring for Python 3.x.  Print only user time.
+
 2007-08-15  Vladimir Makarov  <vmakarov@users.sf.net>
 
         * CHANGES, DINO-CHANGES: Added -t option.
