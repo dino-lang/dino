@@ -85,7 +85,7 @@ fi
 echo '>>>> ' dino: `$DINO 2>&1|fgrep Version`
 
 speed() {
-  (time -p (i=0;while expr $i != 1000;do i=`expr $i + 1`;done)) 2>&1|fgrep user|$AWK '{print int ($2)}'
+  (time -p sh -c 'i=0;while expr $i != 200;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
 }
 
 s=`speed`
@@ -781,7 +781,7 @@ EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   $TCLSH $ftest $rep&
-  time $TCLSH $ftest $rep client 2>&1|fgrep user
+  (time $TCLSH $ftest $rep client) 2>&1|fgrep user
 fi
 
 #
@@ -816,7 +816,7 @@ echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 
   $DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest $rep&
-  time $DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest $rep client 2>&1|fgrep user
+  (time $DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest $rep client) 2>&1|fgrep user
 
 fi
 
@@ -14319,7 +14319,7 @@ print join("\n", reverse split(/\n/, <STDIN>)),"\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
+  if (time $PERL $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -14339,7 +14339,7 @@ EOF
   if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
+  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
   else
     echo FAILED;
   fi
@@ -14364,7 +14364,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
+  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -14383,7 +14383,7 @@ EOF
 
 #  echo AWK:
 #  if test "x$NECHO" != x;then $NECHO "   ";fi
-#  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
+#  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -14399,7 +14399,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
+if (time $DINO $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
 
 fi
 
@@ -14543,7 +14543,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep 'user ' $temp2;else echo FAILED;fi
+  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -14567,7 +14567,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+if (time $DINO $ftest $rep) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
 
 fi
 

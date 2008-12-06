@@ -1,3 +1,8 @@
+2008-12-06  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/compare.tst: Fix CPU speed scaling and printing only user
+	time for spell test.
+
 2008-12-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Add scaling code code to CPU speed.  Add code
