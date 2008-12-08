@@ -1,7 +1,15 @@
-2008-12-06  Vladimir Makarov  <vmakarov@redhat.com>
+2008-12-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
-	* DINO/compare.tst: Fix CPU speed scaling and printing only user
-	time for spell test.
+	* DINO/dino.sgml.in: Remove duplication in OperatorOrDelimeter.
+	Change rand description.
+
+	* DINO/dino.txt, DINO/dino-3.html, DINO/dino-8.html,
+	DINO/dino.dvi, DINO/dino.info, DINO/dino.pdf, DINO/dino.ps:
+	Update.
+
+2008-12-06  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Fix CPU speed scaling and printing only user time for spell test.
 
 2008-12-05  Vladimir Makarov  <vmakarov@users.sf.net>
 

@@ -2018,8 +2018,9 @@ sequence of pseudo-random integers to be returned by
 not given, the seed will be the result of calling function
 <CODE>time</CODE>.</LI>
 <LI><CODE>rand ()</CODE>.  The function returns a pseudo-random
-integer value.  If the function <CODE>srand</CODE> was not called
-before, 1 will be used as the seed value.</LI>
+floating point value between 0 and 1.  If the function
+<CODE>srand</CODE> was not called before, 1 will be used as the
+seed value.</LI>
 <LI><CODE>sput (...), sputln (...), sputf (format, ...)</CODE> The
 functions are analogous to functions put, putln, print, and
 println but they return the result string instead of output of

@@ -238,8 +238,8 @@ letters are considered to be distinct.
           OperatorOrDelimeter = "?" | ":" | "|" | "||" | "&" | "&&" | "^"
 	                      | "==" | "!=" | "===" | "!==" | "<" | ">"
 			      | "<=" | ">=" | "<<" | ">>" | ">>>" | "@"
-	                      | "+" | "-" | "/" | "*" | "%" | "!" | "+"
-                              | "-" | "~" | "#" | "(" | ")" | "[" | "]"
+	                      | "+" | "-" | "/" | "*" | "%" | "!"
+                              | "~" | "#" | "(" | ")" | "[" | "]"
 	                      | "{" | "}" | "." | "," | ";" | "="
 	                      | "*=" | "/=" | "%=" | "+=" | "-="
                               | "@=" | "<<=" | ">>=" | ">>>=" | "&="
@@ -3732,8 +3732,9 @@ There are the following miscellaneous functions:
        not given, the seed will be the result of calling function
        time.
      o rand ().  The function returns a pseudo-random
-       integer value.  If the function srand was not called
-       before, 1 will be used as the seed value.
+       floating point value between 0 and 1.  If the function
+       srand was not called before, 1 will be used as the
+       seed value.
      o sput (...), sputln (...), sputf (format, ...) The
        functions are analogous to functions put, putln, print, and
        println but they return the result string instead of output of
