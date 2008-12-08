@@ -14543,7 +14543,7 @@ BEGIN {
 EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
+  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -14567,7 +14567,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
+if (time $DINO $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 

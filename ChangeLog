@@ -1,5 +1,9 @@
 2008-12-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
+	* DINO/compare.tst: Fix a typ in fgrep user.
+
+2008-12-08  Vladimir Makarov  <vmakarov@users.sf.net>
+
 	* DINO/dino.sgml.in: Remove duplication in OperatorOrDelimeter.
 	Change rand description.
 
