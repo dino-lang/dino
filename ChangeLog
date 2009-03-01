@@ -1,3 +1,19 @@
+2009-03-01  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* configure.in: Use AC_CHECK_TYPES instead of AC_CHECK_TYPE.  Add
+	comments for AC_DEFINE.  Change -O2 to -O3 for CFLAGS and
+	CXXFLAGS.  Remove -finline-limit.
+	* acconfig.h: Remove.
+	* configure: Update.
+	* AMMUNITION/cocom-config.h.in: Update.
+	* AMMUNITION/sgramm.y (yyerror): Add const to parameter type.
+	* DINO/socket_int.c: Use HAVE_INET_ATON instead of HAVE_inet_aton.
+	* MSTA/fcalc.y: Include <string.h>.
+	* SPRUT/A_base.sprut (comment): Add const to argument type.
+	* SPRUT/gen.c (generate_spi): Remove usage standard macro
+	offsetof.
+	(output_node_names): Add const to the type.
+
 2008-12-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Fix a typ in fgrep user.

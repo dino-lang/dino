@@ -1,4 +1,5 @@
 %{
+#include <string.h>
 #include <math.h>  /* For math functions, cos(), sin(), etc. */
 
 /* Data type for links in the chain of symbols.      */

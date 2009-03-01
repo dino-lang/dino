@@ -38,14 +38,14 @@ AC_TYPE_GETGROUPS
 AC_CHECK_SIZEOF(char *)
 dnl There is no clock_t `sys/types.h', or `stdlib.h' or `stddef.h' on Linux
 dnl I think checking time.h will be sufficient.
-dnl AC_CHECK_TYPE(clock_t, long)
+dnl AC_CHECK_TYPES([clock_t], [], AC_DEFINE([clock_t], [long], []))
 
 AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>], [socklen_t l;], socklen=yes, socklen=no)
 AC_MSG_CHECKING([whether socklen_t was defined])
 if test $socklen = no; then
  AC_MSG_RESULT([no])
- AC_DEFINE(socklen_t, size_t)
+ AC_DEFINE([socklen_t], [size_t], [Define to `size_t' if socklen_t is not defined in <sys/socket.h>.])
 else
  AC_MSG_RESULT([yes])
 fi
@@ -164,15 +164,12 @@ esac
 
 if test "$GCC" = yes; then
   system=`uname -m`
+  CFLAGS="`echo $CFLAGS|sed s/-O2//` -O3"
+  CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O3"
   case $system in
 	i386*|i486*|i586*|i686*)
   	  CFLAGS="$CFLAGS -fomit-frame-pointer"
-          save=$CFLAGS
-          CFLAGS="-O2 -finline-limit=2000"
-          AC_TRY_RUN(int i;main(){exit(0);}, inline_limit=yes, inline_limit=)
-          if test "$inline_limit" = yes; then
-            CFLAGS="$save -finline-limit=2000"
-          fi
+  	  CXXFLAGS="$CXXFLAGS -fomit-frame-pointer"
           ;;
 	*)
 	  ;;
@@ -192,7 +189,7 @@ main () {struct in_addr i;inet_aton ("127.0.0.1", &i);return 0;}], inet_aton=yes
 AC_MSG_CHECKING([whether inet_aton was defined])
 if test $inet_aton = yes; then
  AC_MSG_RESULT([yes])
- AC_DEFINE(HAVE_INET_ATON)
+ AC_DEFINE([HAVE_INET_ATON], [], [inet_aton is present.])
 else
  AC_MSG_RESULT([no])
 fi

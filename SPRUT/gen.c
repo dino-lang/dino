@@ -3662,11 +3662,11 @@ static void
 output_node_names (void)
 {
   /* Extern definition for `IR_node_name' */
-  output_string (output_interface_file, "extern char *");
+  output_string (output_interface_file, "extern const char *");
   output_node_name_array_name (output_interface_file);
   output_string (output_interface_file, "[];\n\n");
   /* Declaration for `IR_node_name' */
-  output_string (output_implementation_file, "char *");
+  output_string (output_implementation_file, "const char *");
   output_node_name_array_name (output_implementation_file);
   output_string (output_implementation_file, "[] =\n{\n");
   traverse_node_types (output_node_name);
@@ -11727,18 +11727,11 @@ generate_spi (void)
   output_string (output_implementation_file, "\"\n\n");
   /* The following macro is output to interface file because it is
      used in modification of double fields in modification macros. */
-  output_string (output_interface_file, "#include <stddef.h>\n\n");
-  output_string (output_interface_file, "#ifdef offsetof\n#define ");
-  output_offsetof_macro_name (output_interface_file);
-  output_string (output_interface_file,
-                 "(type, field) offsetof (type, field)\n");
-  output_string (output_interface_file, "#else\n");
   output_string (output_interface_file, "#define ");
   output_offsetof_macro_name (output_interface_file);
   output_string
     (output_interface_file,
      "(type, field) ((char *)&((type *) 64)->field - (char *) 64)\n");
-  output_string (output_interface_file, "#endif\n");
   output_string (output_interface_file, "\n");
   output_start_code_insertions ();
   output_default_macros ();

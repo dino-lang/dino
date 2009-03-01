@@ -106,8 +106,8 @@ get_ip_address (char *name)
   addr_p = ip_addres_p (name);
   if (addr_p)
     {
-#if defined(HAVE_inet_aton)
-      if (inet_aton (name, &addr)) == 0)
+#if defined(HAVE_INET_ATON)
+      if (inet_aton (name, &addr) == 0)
 #else
       if ((addr.s_addr = inet_addr (name)) == -1)
 #endif

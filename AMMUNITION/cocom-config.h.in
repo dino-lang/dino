@@ -1,12 +1,7 @@
 /* AMMUNITION/cocom-config.h.in.  Generated from configure.in by autoheader.  */
-/* Define to `long' if <sys/types.h> doesn't define.  */
-#undef clock_t
 
-/* Define to `size_t' if socklen_t is not defined in <sys/socket.h>.  */
-#undef socklen_t
-
-/* Does inet_aton is present. */
-#undef HAVE_INET_ATON
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
 
 /* Define to the type of elements in the array set by `getgroups'. Usually
    this is either `int' or `gid_t'. */
@@ -32,6 +27,9 @@
 
 /* Define to 1 if you have the <gmp.h> header file. */
 #undef HAVE_GMP_H
+
+/* inet_aton is present. */
+#undef HAVE_INET_ATON
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -132,15 +130,23 @@
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
 
-/* The size of a `char *', as computed by sizeof. */
+/* The size of `char *', as computed by sizeof. */
 #undef SIZEOF_CHAR_P
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define to 1 if your processor stores words with the most significant byte
-   first (like Motorola and SPARC, unlike Intel and VAX). */
-#undef WORDS_BIGENDIAN
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
@@ -158,8 +164,11 @@
 #undef inline
 #endif
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
+
+/* Define to `size_t' if socklen_t is not defined in <sys/socket.h>. */
+#undef socklen_t
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t

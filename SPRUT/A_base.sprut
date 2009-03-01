@@ -30,7 +30,7 @@ typedef char *string_t;
 %local {
 static int is_null (IR_node_t node);
 
-static void comment (char *string);
+static void comment (const char *string);
 }
 
 %type integer_t string_t
@@ -71,6 +71,6 @@ is_null (IR_node_t node)
 }
 
 static void
-comment (char *string)
+comment (const char *string)
 {
 }
