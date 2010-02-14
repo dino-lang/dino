@@ -45,7 +45,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/include/dino-%{version}/d_config.h
 /usr/include/dino-%{version}/d_extern.h
 /usr/include/dino-%{version}/d_types.h
-%doc /usr/man/man1/dino.1*
+%doc /usr/share/man/man1/dino.1*
 %doc %attr(0555,root,root) CHANGES INSTALL README
 %doc DINO/dino.txt DINO/dino.ps DINO/dino.dvi
 %doc DINO/dino.info DINO/dino.info-1 DINO/dino.info-2

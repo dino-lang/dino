@@ -75,12 +75,12 @@ rm -rf $RPM_BUILD_ROOT
 /usr/include/dino-%{dino_version}/d_config.h
 /usr/include/dino-%{dino_version}/d_extern.h
 /usr/include/dino-%{dino_version}/d_types.h
-%doc /usr/man/man1/dino.1*
-%doc /usr/man/man1/msta.1*
-%doc /usr/man/man1/nona.1*
-%doc /usr/man/man1/oka.1*
-%doc /usr/man/man1/shilka.1*
-%doc /usr/man/man1/sprut.1*
+%doc /usr/share/man/man1/dino.1*
+%doc /usr/share/man/man1/msta.1*
+%doc /usr/share/man/man1/nona.1*
+%doc /usr/share/man/man1/oka.1*
+%doc /usr/share/man/man1/shilka.1*
+%doc /usr/share/man/man1/sprut.1*
 %doc %attr(0555,root,root) CHANGES INSTALL README cocom.txt cocom.dvi cocom.ps cocom.info cocom.html
 %doc AMMUNITION/ammunition.txt AMMUNITION/ammunition.ps
 %doc AMMUNITION/ammunition.dvi AMMUNITION/ammunition.info

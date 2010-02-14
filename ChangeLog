@@ -1,3 +1,7 @@
+2010-02-13  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* dino.spec, cocom.spec: Use /usr/share/man instead of /usr/man.
+
 2009-03-01  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* configure.in: Use AC_CHECK_TYPES instead of AC_CHECK_TYPE.  Add
