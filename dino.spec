@@ -46,11 +46,26 @@ rm -rf $RPM_BUILD_ROOT
 /usr/include/dino-%{version}/d_extern.h
 /usr/include/dino-%{version}/d_types.h
 %doc /usr/share/man/man1/dino.1*
-%doc %attr(0555,root,root) CHANGES INSTALL README
-%doc DINO/dino.txt DINO/dino.ps DINO/dino.dvi
-%doc DINO/dino.info DINO/dino.info-1 DINO/dino.info-2
-%doc DINO/dino.info-3 DINO/dino.info-4
-%doc DINO/dino.html DINO/dino-1.html DINO/dino-2.html
-%doc DINO/dino-3.html DINO/dino-4.html DINO/dino-5.html
-%doc DINO/dino-6.html DINO/dino-7.html
-%doc DINO/dino-8.html DINO/dino-9.html DINO/dino-10.html
+%doc /usr/share/doc/dino/CHANGES
+%doc /usr/share/doc/dino/README
+%doc /usr/share/doc/dino/copyright
+%doc /usr/share/doc/dino/dino.txt
+%doc /usr/share/doc/dino/dino.ps
+%doc /usr/share/doc/dino/dino.pdf
+%doc /usr/share/doc/dino/dino.dvi
+%doc /usr/share/doc/dino/dino.info
+%doc /usr/share/doc/dino/dino.info-1
+%doc /usr/share/doc/dino/dino.info-2
+%doc /usr/share/doc/dino/dino.info-3
+%doc /usr/share/doc/dino/dino.info-4
+%doc /usr/share/doc/dino/dino.html
+%doc /usr/share/doc/dino/dino-1.html
+%doc /usr/share/doc/dino/dino-2.html
+%doc /usr/share/doc/dino/dino-3.html
+%doc /usr/share/doc/dino/dino-4.html
+%doc /usr/share/doc/dino/dino-5.html
+%doc /usr/share/doc/dino/dino-6.html
+%doc /usr/share/doc/dino/dino-7.html
+%doc /usr/share/doc/dino/dino-8.html
+%doc /usr/share/doc/dino/dino-9.html
+%doc /usr/share/doc/dino/dino-10.html

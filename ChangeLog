@@ -1,5 +1,10 @@
 2010-04-09  Vladimir Makarov  <vmakarov@users.sf.net>
 
+	* cocom.spec: Remove removed doc files.
+	* dino.spec: Change doc files path.
+
+2010-04-09  Vladimir Makarov  <vmakarov@users.sf.net>
+
 	* Makefile.in: use INSTALL, INSTALLDATA, prefix, docdir.  Add
 	dino-copyright, cocom-copyright.  Install document files for cocom
 	and dino.  New entries rpm, deb, dinorpm, dinodeb.

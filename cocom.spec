@@ -82,7 +82,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/share/man/man1/shilka.1*
 %doc /usr/share/man/man1/sprut.1*
 %doc /usr/share/doc/cocom/CHANGES
-#%doc /usr/share/doc/cocom/INSTALL
 %doc /usr/share/doc/cocom/README
 %doc /usr/share/doc/cocom/copyright
 %doc /usr/share/doc/cocom/cocom.txt
@@ -96,9 +95,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/share/doc/cocom/ammunition.pdf
 %doc /usr/share/doc/cocom/ammunition.dvi
 %doc /usr/share/doc/cocom/ammunition.info
-#%doc /usr/share/doc/cocom/ammunition.info-1
-#%doc /usr/share/doc/cocom/ammunition.info-2
-#%doc /usr/share/doc/cocom/ammunition.info-3
 %doc /usr/share/doc/cocom/ammunition.html
 %doc /usr/share/doc/cocom/ammunition-1.html
 %doc /usr/share/doc/cocom/ammunition-2.html
@@ -118,9 +114,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/share/doc/cocom/ammunition++.pdf
 %doc /usr/share/doc/cocom/ammunition++.dvi
 %doc /usr/share/doc/cocom/ammunition++.info
-#%doc /usr/share/doc/cocom/ammunition++.info-1
-#%doc /usr/share/doc/cocom/ammunition++.info-2
-#%doc /usr/share/doc/cocom/ammunition++.info-3
 %doc /usr/share/doc/cocom/ammunition++.html
 %doc /usr/share/doc/cocom/ammunition++-1.html
 %doc /usr/share/doc/cocom/ammunition++-2.html
