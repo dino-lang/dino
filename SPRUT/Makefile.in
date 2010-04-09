@@ -88,6 +88,9 @@ mandir=@mandir@
 # The directory for installation of `sprut.1'
 man1dir=$(mandir)/man1
 
+# The directory for installation of documentation
+docdir=@docdir@/cocom
+
 # Additional prefix used to install ammunition temporarily.  It is
 # necessary only for RPM.
 DESTDIR=
@@ -634,6 +637,11 @@ install: all
 	$(INSTALLDATA) $(srcdir)/std_pos.sprut $(DESTDIR)/$(libdir)/std_pos.sprut
 	-mkdir -p $(DESTDIR)/$(man1dir)
 	$(INSTALLDATA) $(srcdir)/sprut.1 $(DESTDIR)/$(man1dir)/sprut.1
+	-mkdir -p $(DESTDIR)/$(docdir)
+	$(INSTALLDATA) $(srcdir)/sprut.txt $(srcdir)/sprut.info* \
+            $(srcdir)/sprut*.html \
+	    $(srcdir)/sprut.pdf $(srcdir)/sprut.dvi $(srcdir)/sprut.ps \
+            $(DESTDIR)/$(docdir)
 
 # Delete the installed files and the installation directories.
 uninstall:
@@ -648,6 +656,11 @@ uninstall:
 	rm -f $(DESTDIR)/$(man1dir)/sprut.1
 	-rmdir $(DESTDIR)/$(man1dir)
 	-rmdir $(DESTDIR)/$(mandir)
+	rm -f $(DESTDIR)/$(docdir)/sprut.txt $(DESTDIR)/$(docdir)/sprut.info* \
+             $(DESTDIR)/$(docdir)/sprut*.html \
+	    $(DESTDIR)/$(docdir)/sprut.pdf $(DESTDIR)/$(docdir)/sprut.dvi \
+            $(DESTDIR)/$(docdir)/sprut.ps
+	-rmdir $(DESTDIR)/$(docdir)
 
 # Deletion of object files of the translator, executable file `sprut' and also
 # deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'

@@ -1,7 +1,7 @@
-This is dino.info, produced by makeinfo version 4.11 from
-/tmp/linuxdoc-dir-31671/sgmltmp.dino.info.2.
+This is dino.info, produced by makeinfo version 4.13 from
+info file generated from .//dino.sgml by means of linuxdoc-tools.
 
-\input texinfo
+
 
 
 File: dino.info,  Node: Top,  Next: Introduction,  Up: (dir)
@@ -9,16 +9,16 @@ File: dino.info,  Node: Top,  Next: Introduction,  Up: (dir)
 The Programming Language DINO
 *****************************
 
-     Vladimir Makarov, `vmakarov@users.sourceforge.net'.
+     Vladimir Makarov, `vmakarov@users.sourceforge.net'. Edited by Serhei Makarov.
      Jan 25, 2006
-Edited by Serhei Makarov.
 
    This document describes the programming language DINO.
+
 
      History
      ==========
        Apr 29, 2001.  Documentation of all objects corresponding to Earley's
-                      parser was added.
+              parser was added.
 
        May 05, 2001.  Semantics of private declarations are changed slightly.
                       Earlier, they were accessible only by a separate
@@ -103,6 +103,7 @@ language with garbage collection.  Dino has possibilities of
 parallelism description and exception handling.  Dino is an extensible
 language with the possibility of dynamic loading of libraries written
 on other languages.  The high level structures of Dino are
+
    * heterogenous extensible vectors
 
    * extensible associative tables with the ability to delete table
@@ -154,9 +155,11 @@ within the symbols (except in comments, and blanks in strings).  White
 characters are ignored unless they are essential to separate two
 consecutive lexical symbols.  Upper- and lower-case letters are
 considered to be distinct.
-  1. An `identifier' is a sequence of letters and digits starting with
+
+  1. An _identifier_ is a sequence of letters and digits starting with
      a letter.  The underline is believed to be a valid letter in an
      identifier.
+
                     Ident = Letter {Letter | Digit}
 
                     Letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j"
@@ -172,12 +175,14 @@ considered to be distinct.
                     Digit = OctalDigit | "8" | "9"
 
      Examples:
+
                     line  line2  next_line  NextLine
 
-  2. `Numbers' are (unsigned) decimal integer or floating point
+  2. _Numbers_ are (unsigned) decimal integer or floating point
      numbers.  Numbers start with a digit.  Floating point numbers are
      distinguished by the presence of decimal point `.' or an exponent
      in the number.
+
                     Number = Integer | FloatingPointNumber
 
                     Integer = Digit {Digit}
@@ -188,36 +193,39 @@ considered to be distinct.
                     Exponent = ("e" | "E") [ "+" | "-" ] Digit { Digit }
 
      Examples:
+
                     10
                     100.
                     1e2
                     100.0E+0
 
-  3. A Dino `character constant' denotes an ASCII character.  The
+  3. A Dino _character constant_ denotes an ASCII character.  The
      following sequences starting with the backslash have a special
      meaning inside a Dino character constant:
-        * "\a'    -' ASCII character alert
 
-        * "\b'    -' ASCII character backspace
+        * `*\a*    -' ASCII character alert
 
-        * "\f'    -' ASCII character form feed
+        * `*\b*    -' ASCII character backspace
 
-        * "\n'    -' ASCII character new line
+        * `*\f*    -' ASCII character form feed
 
-        * "\r'    -' ASCII character carriage return
+        * `*\n*    -' ASCII character new line
 
-        * "\t'    -' ASCII character horizontal tab
+        * `*\r*    -' ASCII character carriage return
 
-        * "\v'    -' ASCII character vertical tab
+        * `*\t*    -' ASCII character horizontal tab
 
-        * "\code' -' ASCII character with given octal code
+        * `*\v*    -' ASCII character vertical tab
 
-        * "\char' -' ASCII character char for all remaining characters
+        * `*\code* -' ASCII character with given octal code
+
+        * `*\char* -' ASCII character char for all remaining characters
 
      To denote a single quote mark use the sequence `\".  The double
      quote mark can be represented either by `\"' or simply by `"'.  To
      represent a backslash inside the character constant, use two
      consecutive ASCII backslashes.
+
                     Character = "'" Char "'"
 
                     Char = <any ASCII character except for the single quote ',
@@ -230,27 +238,31 @@ considered to be distinct.
                     OctalEscapeSeq = "\" OctalDigit [ OctalDigit [ OctalDigit ] ]
 
      Examples:
+
                     'a'  '\''  '\\'  '\12'  '"'
 
-  4. A `string' is sequence of ASCII characters enclosed in double
+  4. A _string_ is sequence of ASCII characters enclosed in double
      quotes. There are the same sequences of ASCII characters with
      special meaning as in a character constant.  To denote a double
      quote mark use sequence `\"'.  The single quote mark can be
      represented either by `\" or simply by `".  To represent a
      backslash inside the character constant, use two consecutive ASCII
      backslashes.
+
                     String = '"' {Char} '"'
 
      Examples:
+
                     "This is Dino"  "Don't worry\n"
 
-  5. The remaining essential symbols are called `operators' and
-     `delimiters'.  Operators are used for forming expressions,
+  5. The remaining essential symbols are called _operators_ and
+     _delimiters_.  Operators are used for forming expressions,
      delimiters are used for forming syntax constructions.  There is a
      special kind of operators and delimiters which look like
      identifiers containing only lower-case letters.  They are reserved
      identifiers (keywords).  Keywords can not be used in the place of
      an identifier.
+
                     OperatorOrDelimeter = "?" | ":" | "|" | "||" | "&" | "&&" | "^"
                                         | "==" | "!=" | "===" | "!==" | "<" | ">"
                                         | "<=" | ">=" | "<<" | ">>" | ">>>" | "@"
@@ -270,11 +282,12 @@ considered to be distinct.
                             | "table" | "thread" | "throw" | "try" | "type"
                             | "var" | "vector" | "wait"
 
-  6. `Comments' are considered analogous to blanks on the syntax level
+  6. _Comments_ are considered analogous to blanks on the syntax level
      of the program.  There are two types of comments.  The first type
      is an arbitrary character sequence starting with `/*' and
      finishing with `*/'.  The second type of comment starts with `//'
      and finishes with the first line break or with the end of file.
+
                     Comment = "/*" <arbitrary char. sequence not containing pair */> "*/"
                             | "//" <arbitrary char. sequence finishing on line break>
 
@@ -289,6 +302,7 @@ identifier scope.  A block consists of executive statements and
 declarations and may contain nested blocks.  Each identifier used in a
 program should be declared in a declaration in the program, unless it
 is a predeclared identifier.
+
                Block = "{"  StmtList "}"
 
                StmtList = { Stmt }
@@ -300,6 +314,7 @@ is a predeclared identifier.
 properties of a declaration, such as whether it is a variable, a
 function, or a class.  The identifier is then used to refer to the
 associated declaration (more correctly with the declaration instance).
+
                Declaration = VarDeclarations
                            | AccessClause
                            | ExternDeclarations
@@ -315,7 +330,7 @@ identifier is possible.
 
    It is important to understand the notion of instantiation of the
 declaration.  This notion reflects program execution, not the static
-structure of program.  An instance exists in a `context'.  Actually, a
+structure of program.  An instance exists in a _context_.  Actually, a
 context is an execution environment consisting of the covering block
 instances and/or class objects.  A new instance of the block is created
 when execution of the block starts.  There may be more than one
@@ -332,6 +347,7 @@ context.
    Example: The following program illustrates a case when a reference to
 a block instance exists after its execution.  The program outputs the
 result 8.
+
                var i, f;
 
                for (i = 0; i < 10; i++)
@@ -345,24 +361,27 @@ result 8.
 
    Declaration is always either private or public.  Private declaration
 is accessible only inside the declaration scope or inside functions or
-classes which are declared as `friend' in the declaration block.  A
+classes which are declared as _friend_ in the declaration block.  A
 public declaration instance is always accessible when association (see
 below) of the identifier is successful.  By default, [instances of]
 declarations in a class block are public.  In all other places, the
 (instances of) declarations are private by default.  The following
 constructions are used for declaring an identifier to be public,
 private, or as friend:
+
                AccessClause = (public | private | friend) AccessList ";"
 
                AccessList = IDENT { "," IDENT }
 
    Examples:
+
                public param1, param2;
                private call_count;
                friend class2;
 
    Association of an identifier and the corresponding declaration
 instance is performed by the following rules:
+
    * The corresponding declaration instance is searched for a separate
      identifier occurrence in the instance of the block in which the
      identifier occurs.  If the latter failed, the declaration is
@@ -371,6 +390,7 @@ instance is performed by the following rules:
 
    * Declaration instance for an identifier in the following
      construction
+
                  designator.identifier
 
      is searched in the block instance (e.g. in a class object) whose
@@ -385,6 +405,7 @@ instance is performed by the following rules:
    The following identifiers are predeclared on the top level (in the
 implicit block covering the whole program).  They are described in more
 detail later in the report.
+
        anode          argv           atan2
        chdir          chgmod         chomod         chumod
        clock          close          cmpv           context
@@ -425,36 +446,43 @@ detail later in the report.
        tolower        toupper        trans
        version
 
-   The following identifiers are predeclared in the class `except'
+   The following identifiers are predeclared in the class _except_
 mentioned above.
+
        error
 
-   The following identifiers are predeclared in the class `error'
+   The following identifiers are predeclared in the class _error_
 mentioned above.
+
        deadlock
        invaccess      invcall        invenv         invindex
        invkey         invop
        signal         syncwait
 
-   The following identifiers are predeclared in the class `signal'
+   The following identifiers are predeclared in the class _signal_
 mentioned above.
+
        sigabrt        sigfpe         sigill         sigint
        sigsegv        sigterm
 
-   The following identifiers are predeclared in the class `invop'
+   The following identifiers are predeclared in the class _invop_
 mentioned above.
+
        optype         opvalue
 
-   The following identifiers are predeclared in the class `invindex'
+   The following identifiers are predeclared in the class _invindex_
 mentioned above.
+
        indexop        indextype      indexvalue
 
-   The following identifiers are predeclared in the class `invkey'
+   The following identifiers are predeclared in the class _invkey_
 mentioned above.
+
        keyop          keyvalue
 
-   The following identifiers are predeclared in the class `invcall'
+   The following identifiers are predeclared in the class _invcall_
 mentioned above.
+
        callop
        eof
        internal       invenvar       invextern      invfmt
@@ -462,8 +490,9 @@ mentioned above.
        parnumber      partype
        syncthreadcall syserror       systemcall
 
-   The following identifiers are predeclared in the class `syserror'
+   The following identifiers are predeclared in the class _syserror_
 mentioned above.
+
        eaccess        eagain         ebadf          ebusy
        echild         edeadlk        edom           eexist
        efault         efbig          eintr          einval
@@ -474,30 +503,35 @@ mentioned above.
        enxio          eperm          epipe          erange
        erofs          espipe         esrch          exdev
 
-   The following identifiers are predeclared in the class `systemcall'
+   The following identifiers are predeclared in the class _systemcall_
 mentioned above.
+
        noshell
        systemfail
 
-   The following identifiers are predeclared in the class `invparser'
+   The following identifiers are predeclared in the class _invparser_
 mentioned above.
+
        invgrammar     invtoken
        pmemory
 
-   The following identifiers are predeclared in the class `invregexp'
+   The following identifiers are predeclared in the class _invregexp_
 mentioned above.
+
        badpat
        ebrack         ectype         eend           eescape
        eparen         erange         esize          espace
        esubreg
 
-   The following identifiers are predeclared in the class `invextern'
+   The following identifiers are predeclared in the class _invextern_
 mentioned above.
+
        libclose
        noextern       noexternsupp
 
-   The following identifiers are predeclared in the class `invaccess'
+   The following identifiers are predeclared in the class _invaccess_
 mentioned above.
+
        accessop       accessvalue
        immutable
 
@@ -513,15 +547,16 @@ File: dino.info,  Node: Variable Declarations,  Next: External Declarations,  Up
 4.1 Variable Declarations
 =========================
 
-Dino is an imperative language. In other words it has `variables' which
+Dino is an imperative language. In other words it has _variables_ which
 are named containers of values.  A variable can contain any value.
 This means that DINO is a dynamically-typed language.  The declaration
 of a variable also may define the initial value of the variable.
 Assigning of the initial value to the variable instance is made after
 execution of the previous statements of the block.  By default the
-initial value of variables is the special value `nil'.  The value of
+initial value of variables is the special value *nil*.  The value of
 the variable can not be changed after its initialization if its
-declaration contains the keyword `final'.
+declaration contains the keyword *final*.
+
                VarDeclarations = var  VarParList ";"
 
                VarParList = VarPar { "," VarPar }
@@ -529,6 +564,7 @@ declaration contains the keyword `final'.
                VarPar = [final] IDENT [ "="  Expr]
 
    Examples:
+
                var i = 0, j, k;
                var final constant = 10, final nil_constant, l;
 
@@ -547,15 +583,17 @@ DINO SPI are not described here (some details are given in appendix B).
 As rule, the external functions and variables will be implemented as
 dynamically loaded libraries.  This is the powerful instrument of DINO
 extension.  The external functions and variables are declared after
-keyword `extern'.  An external function identifier is followed by `[]'.
+keyword *extern*.  An external function identifier is followed by `[]'.
 All external declarations (e.g. in different blocks) with the same
 identifier refer the the same external function or variable.
+
                ExternDeclarations = extern  ExternItem { "," ExternItem } ";"
 
                ExternItem = IDENT
                           | IDENT  "(" ")"
 
    Examples:
+
                extern function (), variable;
 
 
@@ -566,27 +604,27 @@ File: dino.info,  Node: Functions Classes Extensions,  Prev: External Declaratio
 
 A function/class declaration consists of a function/class header and a
 function/class block (body).  The header specifies the function
-identifier and `formal parameters'.  A function can return the result
-with the aid of the statement `return'.  If the result value after the
-keyword `return' is absent or the return statement is absent or is not
-executed, the function returns `nil' by default.  A class call returns
+identifier and _formal parameters_.  A function can return the result
+with the aid of the statement _return_.  If the result value after the
+keyword _return_ is absent or the return statement is absent or is not
+executed, the function returns *nil* by default.  A class call returns
 an object of the class which can be considered as a block instance of
 the class body.  The return-statement for classes must be without a
-result.  `Thread-functions' are analogous to general functions.  The
-difference is in that a new execution `thread' is created during the
+result.  _Thread-functions_ are analogous to general functions.  The
+difference is in that a new execution _thread_ is created during the
 thread-function call, the return-statement inside thread-function must
 be without an expression, and the thread-function returns the
 corresponding (execution) thread.  The execution thread finishes when
 the corresponding thread block finishes.  Execution threads are
-executed parallelly.  Originally only one thread (called the `main
-thread') exists in a DINO program.
+executed parallelly.  Originally only one thread (called the _main
+thread_) exists in a DINO program.
 
    The formal parameters are considered to be declared in a
-function/class block and to be initialized by values of `actual
-parameters' during a call of the function/class.  The function can be
-called with any number of `actual parameters'.  If the number of actual
+function/class block and to be initialized by values of _actual
+parameters_ during a call of the function/class.  The function can be
+called with any number of _actual parameters_.  If the number of actual
 parameters is less than the formal parameters number, the remaining
-formal parameters are initialized by the special value `nil'.
+formal parameters are initialized by the special value *nil*.
 Otherwise if the number of actual parameters is more than the number of
 formal parameters, the remaining actual parameter values are ignored.
 In order to process all actual parameters, you should place `...' at
@@ -599,7 +637,7 @@ taking the implicit parameter `args' into account), the value of `args'
 will be the empty vector.  The formal parameter can be initialized by a
 default value in a way analogous to variable initialization.  The
 initialization is made only when the corresponding actual parameter
-value is `nil'.
+value is *nil*.
 
    If a class contains a function with the name `destroy', the function
 will be called when the class object becomes garbage during the garbage
@@ -610,7 +648,7 @@ value, the garbage collector (or finishing the program) ignores the
 result value and does not pass actual parameters.  The single exception
 when the function `destroy' is not called by finishing the program is
 the case when memory can not be allocated more.  So the values of the
-parameters will be `nil' if the function is called by the garbage
+parameters will be *nil* if the function is called by the garbage
 collector (or finishing the program).  You may prevent removing the
 corresponding object in the function destroy by assigning the object to
 a variable.  It means that the function can be called several times
@@ -619,12 +657,13 @@ should also avoid creation of objects during the call of function
 `destroy' because it may result in increase of the heap.
 
    Instead of inheritance usually used in object-oriented languages,
-Dino supports `extension'.  This feature permits to modify
+Dino supports _extension_.  This feature permits to modify
 function/class behaviour.  All code inside an extension body is
 inserted at the end of body of the function/class declared with the
 same identifier in the same block in the same order as the extensions
-are placed in the block.  A function/class declared as `final' can not
+are placed in the block.  A function/class declared as _final_ can not
 be extended.
+
                FuncClassExtDeclaration = Header Block
 
                Header = [final] FuncThreadClass IDENT FormalParameters
@@ -641,9 +680,11 @@ be extended.
    Examples:
 
    The following is a parameterless class header:
+
                class stack ()
 
    The following is a class header with an initialization:
+
                class stack (max_height = var a = 1, b = 2;
 
      putln (a, " ", b);
@@ -668,6 +709,7 @@ be extended.
      100)
 
    The following is a function with a variable number of parameters:
+
                func print_args (...)
                  {
                    for (i = 0; i < #args; i++)
@@ -675,6 +717,7 @@ be extended.
                  }
 
    The following example illustrates the usage of extensions:
+
                 class point (x = 0, y = 0) {
                 }
                 ext point {
@@ -692,6 +735,7 @@ be extended.
                 }
 
    The following example is a class with the function `destroy':
+
                var objs_number = 0;
                class obj () {
                  private n, destroy;
@@ -701,6 +745,7 @@ be extended.
                }
 
    The following example illustrates threads:
+
                class buffer (length = 3) {
                  var b = [length:nil], first = 0, free = 0, empty = 1;
                  private b, first, free, length;
@@ -757,8 +802,8 @@ File: dino.info,  Node: Expressions,  Next: Executive statements,  Prev: Declara
 *************
 
 Expressions are constructs denoting rules of computation of a value
-from other values by the application of `operators'.  Expressions
-consist of `operands' and operators.  Parentheses may be used to
+from other values by the application of _operators_.  Expressions
+consist of _operands_ and operators.  Parentheses may be used to
 express specific associations of operators and operands.  Dino is a
 dynamic-typed language.  This means that a variable can store any Dino
 value.
@@ -776,7 +821,7 @@ File: dino.info,  Node: Types and Values,  Next: Designators,  Up: Expressions
 5.1 Types and Values
 ====================
 
-All Dino values are `first class values', i.e. they can be assigned to
+All Dino values are _first class values_, i.e. they can be assigned to
 a variable, can be passed as a parameter of a function/class, and can
 be returned by functions.  Operators require operands whose values are
 of given type and return the value of the result type.  Most values
@@ -784,9 +829,9 @@ have a representation in Dino.  When a value representation is
 encountered in an expression during the expression evaluation, the new
 value is generated.
 
-   There are values of `structured types', i.e. values which are built
-from other values.  The value of a structured type may be `mutable' or
-`immutable'.  A value or sub-value of a mutable value can be changed.
+   There are values of _structured types_, i.e. values which are built
+from other values.  The value of a structured type may be _mutable_ or
+_immutable_.  A value or sub-value of a mutable value can be changed.
 An immutable value can not be changed after its generation.  You can
 make a mutable value immutable as a side effect by applying the
 operator `final' (the table key is also made immutable as a side effect
@@ -795,10 +840,11 @@ operand value as the result.  If you try to change an immutable value,
 exception `immutable' is generated.  You can make a new mutable value
 as a side effect of applying operator `new'.  The operator returns a
 new value equal to the operand value.
+
                Expr = final  Expr
                     | new  Expr
 
-   Structured value types are also `shared value types'.  This notion
+   Structured value types are also _shared value types_.  This notion
 means that if two or more different variables (array elements or table
 elements or keys) refer to the same value and the value is changed
 through one variable, the value which is referred through the other
@@ -809,6 +855,7 @@ have the same structure (e.g. vectors with the same length) and the
 corresponding element values are the same.
 
    Examples:
+
                new 5
                new ['a', 'b', 'c']
                new "abc"
@@ -819,28 +866,33 @@ corresponding element values are the same.
                final {"key0" : 10, "key1" : 20}
 
    Dino has the following types of values:
-   * the special value `nil'.  This is the default value of all
+
+   * the special value _nil_.  This is the default value of all
      variables when a block starts.  The value is represented by the
-     keyword `nil'.
+     keyword *nil*.
+
                            Expr = nil
 
-   * `character' which represents ASCII characters.  For the
-     representation see `Character' in the section `Vocabulary and
-     Representation'.
+   * _character_ which represents ASCII characters.  For the
+     representation see `Character' in the section _Vocabulary and
+     Representation_.
+
                            Expr = CHARACTER
 
-   * `integer'.  For its representation see `Integer' in the section
-     `Vocabulary and Representation'.  It is always stored as a 32-bit
+   * _integer_.  For its representation see `Integer' in the section
+     _Vocabulary and Representation_.  It is always stored as a 32-bit
      integer value.
+
                            Expr = INTEGER
 
-   * `floating point number'.  For its representation see
-     `FloatingPointNumber' in section `Vocabulary and Representation'.
+   * _floating point number_.  For its representation see
+     `FloatingPointNumber' in section _Vocabulary and Representation_.
      It is always stored as an IEEE double (64-bit) floating point
      value.
+
                            Expr = FLOATINGPOINTNUMBER
 
-   * `vector'.  This is a structured shared type value.  A vector value
+   * _vector_.  This is a structured shared type value.  A vector value
      is represented by a list of values (or expressions) in brackets
      with optional repetitions of the vector elements preceded by `:'.
      The repetition value is converted into an integer value by
@@ -853,12 +905,14 @@ corresponding element values are the same.
      represents an immutable vector all of whose elements are
      characters in the string.  Elements of mutable vectors can be
      added to or removed from the vector (see predefined functions
-     `ins, insv, and del').
+     _ins, insv, and del_).
+
                            Expr = "["  ElistPartsList "]"
                                 | STRING
                            ElistPartsList = [ Expr [":" Expr ] {"," Expr [":" Expr ] } ]
 
      Examples:
+
                          "aaab"
                          ['a', 'a', 'a', 'b']
                          [3 : 'a', 'b']
@@ -867,55 +921,58 @@ corresponding element values are the same.
                          ['a', 10, 10.0, "abcd", {}]
                          []
 
-   * `table'.  This is a structured shared type value.  A table value
+   * _table_.  This is a structured shared type value.  A table value
      is represented by a list of key values (expression values) in
      figure parentheses `{' and `}' with optional element values with a
-     preceding `:'.  By default the element value is equal to `nil'.
+     preceding `:'.  By default the element value is equal to *nil*.
      It is not allowed to have elements with equal keys in a table.  If
      it is not true in a table constructor, exception `keyvalue' is
      generated.  Elements of tables are accessed by their keys.
      Elements of mutable tables can be added to or removed from the
      table correspondingly by assigning values and with the aid of the
-     function `del'.  The side effect of the table constructor
+     function _del_.  The side effect of the table constructor
      execution is that the keys become immutable.
+
                            Expr = "{"  ElistPartsList "}"
 
      Examples:
+
                          {'a', 'b', 10:[10]}
                          {'a' : nil, 'b' : nil, 10 : [10]}
                          {[10, 'a', {10}] : 10, [10] : {20:20}}
                          {}
 
-   * `function'.  Its value is represented by the function designator.
+   * _function_.  Its value is represented by the function designator.
      It is important to remember that the function is bound to a
      context.
 
-   * `thread-function'.  Its value is represented by the
+   * _thread-function_.  Its value is represented by the
      thread-function designator.  It is important to remember that the
      thread-function is bound to a context.
 
-   * `class'.  Its value is represented by the class designator.  It is
+   * _class_.  Its value is represented by the class designator.  It is
      important to remember that the class is bound to a context.
 
-   * `block instance'.  There is no Dino representation of such values.
+   * _block instance_.  There is no Dino representation of such values.
 
-   * `thread'.  There is no literal Dino representation of such values.
+   * _thread_.  There is no literal Dino representation of such values.
      A thread value is generated by calling a thread-function.
 
-   * `object'[class instance].  This is a structured shared type value.
+   * _object_[class instance].  This is a structured shared type value.
      There is no literal Dino representation of such values.  Objects
      are generated by calling classes.
 
-   * `hide value'.  A hide value can not be generated by a Dino code.
+   * _hide value_.  A hide value can not be generated by a Dino code.
      They are generated by external functions.
 
-   * `hide block'.  This value is analogous to a hide value.  The
+   * _hide block_.  This value is analogous to a hide value.  The
      differences are in that the size of a hide value is constrained by
      a C program pointer.  The size of q hideblock value has no such
      constraint.  Also a hideblock is of shared type.
 
-   * `type'.  The values of such types are returned by th special
+   * _type_.  The values of such types are returned by th special
      operator `type (expression)'.
+
                            Expr = char
                                 | int
                                 | float
@@ -932,7 +989,8 @@ corresponding element values are the same.
                                 | type
 
      There are the following type values:
-        * type of `nil'.  There is no value representing type of `nil'.
+
+        * type of *nil*.  There is no value representing type of *nil*.
           So use the construction `type (nil)' to get it.
 
         * type of characters.  The value is represented by the Dino
@@ -983,7 +1041,7 @@ File: dino.info,  Node: Designators,  Next: Calls,  Prev: Types and Values,  Up:
 5.2 Designators
 ===============
 
-There is a special Dino construction called a `designator'.  A
+There is a special Dino construction called a _designator_.  A
 designator refers for a vector or table element or for a declaration.
 If the designator refers to a vector or table element or for a variable
 declaration, it can stand in the left hand side of an assignment
@@ -992,9 +1050,11 @@ corresponding value is used (vector/table element value, variable
 value, function, thread-function, or class).  When the designator
 referring to table element stands up in the left hand side of an
 assignment statement, its key becomes immutable.
+
                Expr = Designator
 
    A designator referring to a vector element has the following syntax:
+
                Designator = DesignatorOrCall "["  Expr "]"
 
                DesignatorOrCall = Designator
@@ -1002,37 +1062,42 @@ assignment statement, its key becomes immutable.
 
    The value of the construction before the brackets must be a vector.
 Otherwise, the exception `indexop' is generated.  The value of
-expression in the brackets (so called the `index') is converted to
+expression in the brackets (so called the _index_) is converted to
 integer.  If this is not possible, exception `indextype' is generated.
 If the index is negative or greater than or equal to the vector length,
 the exception `indexvalue' is generated.  The value of the designator
 will be the vector element value with given index (the indexes starts
 with zero).  Examples:
+
                vect [1]
                vect ["1"]
                vect [1.0]
 
    A designator referring to a table element has the following syntax:
+
                Designator = DesignatorOrCall "{"  Expr "}"
 
    The value of the construction before the figure brackets must be a
 table.  Otherwise, the exception `keyop' is generated.  The value of
-expression in the figure brackets is called the `key'.  The value of
+expression in the figure brackets is called the _key_.  The value of
 the designator will be the table element value with the key which is
 equal to given key.  If the element with the given key is absent in the
 table, exception `keyvalue' is generated.  Examples:
+
                tab {'c'}
                tab {10}
                tab {"1"}
                tab {1.0}
 
    The remaining forms of designator refer to a declaration.  See
-section `Declarations and Scope Rules' for a description on how they
+section _Declarations and Scope Rules_ for a description on how they
 work.
+
                Designator = DesignatorOrCall "."  IDENT
                           | IDENT
 
    Examples:
+
                value
                value.f
 
@@ -1049,12 +1114,12 @@ be a function, thread-function, or class.  Otherwise, the exception
 body of the function, thread-function, or class is created.  The actual
 parameter values are assigned to the corresponding formal parameters.
 If the corresponding function, thread-function, or class has no default
-formal parameter `args' (see section `Declarations'), the remaining
+formal parameter `args' (see section _Declarations_), the remaining
 actual parameter values are ignored.  Otherwise, a vector whose
 elements are the remaining parameter values is created and assigned to
 the parameter `args'.  If there is no corresponding actual parameter
 for a formal parameter, the default parameter value (see section
-`Declarations') or the value `nil' is assigned to the formal parameter.
+_Declarations_) or the value *nil* is assigned to the formal parameter.
 Then statements in the block are executed.  If it is the call of a
 thread-function, a new execution thread is created, and the statements
 of the block is executed in the new thread.  The value of call of the
@@ -1067,7 +1132,8 @@ results in finishing the corresponding thread.  The return-statement in
 a thread-function or in class should be without an expression.  The
 call of a class returns the created object.  A function call returns
 the value of the expression in the executed return-statement.
-Otherwise, the function call returns the value `nil'.
+Otherwise, the function call returns the value *nil*.
+
                Expr = Call
 
                Call = Designator ActualParameters
@@ -1075,6 +1141,7 @@ Otherwise, the function call returns the value `nil'.
                ActualParameters = "("  [ Expr { "," Expr } ] ")"
 
    Examples:
+
                f ()
                f (10, 11, ni, [])
                obj.objf ()
@@ -1086,13 +1153,14 @@ File: dino.info,  Node: Operators,  Prev: Calls,  Up: Expressions
 =============
 
 Expressions consist of operands and operators.  The order in which
-operators are executed in an expression is defined by their `priority'
-and `associativity' of operators.  That means that the expression `a
+operators are executed in an expression is defined by their _priority_
+and _associativity_ of operators.  That means that the expression `a
 op1 b op2 c' when the operator `op2' has higher priority than `op1' is
 analogous to `a op1 (b op2 c)'.  Dino operators have analogous
 priorities to the ones in C language.  The following Dino operators are
 placed in the order of their priority (the higher the line on which the
 operator is placed, the higher its priority).
+
                !  #  ~  final  new
                *  /  %
                +  -
@@ -1113,6 +1181,7 @@ operator is placed, the higher its priority).
 that the expression `a op1 b op2 c' when operators `op1' and `op2' have
 the same priority is analogous to `[a op1 b] op2 c'.  Parentheses may
 be used to express specific associations of operators and operands.
+
                Expr = "(" Expr ")"
 
    Most of the Dino operators require the operands to be of given types.
@@ -1121,7 +1190,8 @@ needed may be made.  If after the possible conversions the operands are
 still not of necessary types, exception `optype' is generated (when
 something about exceptions in this case is not mentioned).  The
 following conversions may be made by default:
-   * `Integer conversion'.  If the operand is a character, its code
+
+   * _Integer conversion_.  If the operand is a character, its code
      becomes integer.  If the operand is a floating point number, its
      fractional part is thrown away and integral part becomes integer.
      If the operand is a vector of characters, the corresponding string
@@ -1133,7 +1203,7 @@ following conversions may be made by default:
      `syserrors.erange'may be generated.  In all remaining cases the
      results of conversion coincide with the operand.
 
-   * `Arithmetic conversion'.  Analogous to integer conversion except
+   * _Arithmetic conversion_.  Analogous to integer conversion except
      for that the conversion of float pointing number to integer is not
      made and if the string represents a floating point number (i.e.
      contains an exponent or fraction), the result will be the
@@ -1146,7 +1216,7 @@ following conversions may be made by default:
      result is a floating point number not represented by IEEE double
      format, the exception `syserrors.erange' may be generated.
 
-   * `String conversion'.  If the operand is a character, the result
+   * _String conversion_.  If the operand is a character, the result
      will be a new string (immutable vector of characters) with one
      element which is the character.  If the operand is an integer or a
      floating point number, the result will be a new string of
@@ -1166,9 +1236,9 @@ File: dino.info,  Node: Logical operators,  Next: Bit operators,  Up: Operators
 5.4.1 Logical operators
 -----------------------
 
-Logical operators produce the integer result 1 which means `true' or 0
-which means `false'.  Logical `or' `||' and logical `and' `&&' are
-`short circuit' operators.  That means that the second operand is
+Logical operators produce the integer result 1 which means _true_ or 0
+which means _false_.  Logical `or' `||' and logical `and' `&&' are
+_short circuit_ operators.  That means that the second operand is
 evaluated depending on the result of the first operand.  When the
 operands of the operators are evaluated, the arithmetic conversion is
 made.
@@ -1192,12 +1262,14 @@ result will be 1.  Otherwise, the result will be 0.
 element is in the table, the result will be 1.  Otherwise the result
 will be 0.  If the second operand is not a table, exception `keyop' is
 generated.
+
                Expr = Expr "||"  Expr
                     | Expr "&&"  Expr
                     | Expr in  Expr
                     | "!"  Expr
 
    Examples:
+
                !(type (i) == int && type (a) == table && i >= 0 && i < #a)
                k in t && t {k} == 0
                0.0  || another_try
@@ -1219,6 +1291,7 @@ logical right bit shift, and arithmetic (with sign extension) right bit
 shift of given number (the first operand) by given number of bits (the
 second operand).  The value of the second operand must be non-negative,
 otherwise the result is undefined.
+
                Expr = Expr "|"  Expr
                     | Expr "^"  Expr
                     | Expr "&"  Expr
@@ -1228,6 +1301,7 @@ otherwise the result is undefined.
                     | "~"  Expr
 
    Examples:
+
                (i >> shift) & mask
                i & ~mask | (value << shift) & mask
                i >>> 2
@@ -1248,7 +1322,7 @@ conversion is applied to the other operand before the comparison.
 Otherwise, standard arithmetic conversion is applied to the operands.
 The operators do not generate exceptions (but the conversions may).
 The operands are equal if they have the same type and equal values (see
-section `Types and Values').  For instances, functions and classes, the
+section _Types and Values_).  For instances, functions and classes, the
 equality requires also the same context.
 
    Operator identity `===' or unidentity `!==' returns 1 if the
@@ -1260,6 +1334,7 @@ operators `< > <= >='.  There is no exception if the operands after the
 conversion are of integer or floating point type.  So the operands
 should be characters, integers, floating point numbers, or strings
 representing integers or floating point numbers.
+
                Expr = Expr "=="  Expr
                     | Expr "!="  Expr
                     | Expr "==="  Expr
@@ -1270,6 +1345,7 @@ representing integers or floating point numbers.
                     | Expr ">="  Expr
 
    Examples:
+
                10 == 10
                10 === 10
                10 == 10.0
@@ -1295,6 +1371,7 @@ division, and evaluation of remainder.  Unary operator `-' denotes
 arithmetic negation.  The unary operator `+' is given for symmetry and
 it returns simply the operand after the conversion.  It can be used for
 conversion of a string into an integer or floating point number.
+
                Expr = Expr "+"  Expr
                     | Expr "-"  Expr
                     | Expr "*"  Expr
@@ -1304,6 +1381,7 @@ conversion of a string into an integer or floating point number.
                     | "-"  Expr
 
    Examples:
+
                +"0"
                +"10."
                +"1e1"
@@ -1379,15 +1457,16 @@ have integer keys equal to the corresponding vector indexes.
 
    If the operand of the operator `func' is a block instance of the
 body of a function, it returns the corresponding function.  Otherwise,
-it returns the value `nil'.  The operator never generates exceptions.
+it returns the value *nil*.  The operator never generates exceptions.
 
    If the operand of the operator `thread' is a thread, it returns the
-corresponding thread-function.  Otherwise, it returns the value `nil'.
+corresponding thread-function.  Otherwise, it returns the value *nil*.
 The operator never generates exceptions.
 
    If the operand of the operator `class' is an object, it returns the
-object's class.  Otherwise, it returns the value `nil'.  The operator
+object's class.  Otherwise, it returns the value *nil*.  The operator
 never generates exceptions.
+
                Expr = Expr "?"  Expr ":" Expr
                     | "#"  Expr
                     | Expr "@"  Expr
@@ -1402,6 +1481,7 @@ never generates exceptions.
                     | class "(" Expr ")"
 
    Examples:
+
                i < 10 ? i : 10
                #{"a", 'b'}
                #["a", 'b']
@@ -1423,7 +1503,7 @@ File: dino.info,  Node: Executive statements,  Next: Program,  Prev: Expressions
 6 Executive statements
 **********************
 
-Statements denote actions.  There are `simple' and `compound'
+Statements denote actions.  There are _simple_ and _compound_
 statements.  Simple statements do not consist of any parts that are
 statements themselves.  They are the assignment, procedure call,
 return, break, continue, throw, and the wait statements.  Analogous to
@@ -1455,9 +1535,11 @@ File: dino.info,  Node: Empty statement,  Next: Block-statement,  Up: Executive 
 
 There is also the empty statement in Dino.  It denotes no action.  The
 empty statement is included in Dino for convenience.
+
                ExecutiveStmt = ";"
 
    Example: Usage of an empty statement in a for-statement:
+
                for (i = 0; a[i] == 0; i++)
                  ;
 
@@ -1469,12 +1551,14 @@ File: dino.info,  Node: Block-statement,  Next: Assignment statements,  Prev: Em
 
 A block-statement is simply a block and can used to group statements
 into one statement and/or describe local declarations.  For details on
-how the block is executed see section `Declaration and Scope Rules'.
+how the block is executed see section _Declaration and Scope Rules_.
+
                ExecutiveStmt = BlockStmt
 
                BlockStmt = Block
 
    Example: Usage of a block-statement in a for-statement:
+
                sum = 0;
                for (i = 0; i < #a; i++)
                  {
@@ -1491,10 +1575,10 @@ File: dino.info,  Node: Assignment statements,  Next: Call-statement,  Prev: Blo
 
 Assignment-statements are used to change variable values or element
 values of a structured value which are referred through a designator
-(see sub-section `Designator' in section `Expressions'.  The designator
-can not denote a final variable (see section `Variable Declaration').
+(see sub-section _Designator_ in section _Expressions_.  The designator
+can not denote a final variable (see section _Variable Declaration_).
 You can not change the element value of an immutable value (see section
-`Types and Values').  In this case exception `immutable' is generated.
+_Types and Values_).  In this case exception `immutable' is generated.
 Assignment to a table element has a side effect, the element key
 becomes immutable.
 
@@ -1507,10 +1591,11 @@ Expr;', `Designator++;', `++Designator;', `Designator-;', and
 Designator op Expr;', `Designator = Designator + 1;', and `Designator =
 Designator - 1;'.  The only difference is in the fact that the
 designator is evaluated only once, not twice as in the analogous form.
-It is important to know if you have `side effects' in the statement.
+It is important to know if you have _side effects_ in the statement.
 
    A special construction `Designator <=> Designator;' swaps values of
 the designators.
+
                ExecutiveStmt = Designator Assign  Expr ";"
                              | Designator ("++" | "--")  ";"
                              | ("++" | "--")  Designator ";"
@@ -1530,6 +1615,7 @@ the designators.
                       | "|="
 
    Examples:
+
                v = [10, 20];
                i = 1;
                i++;
@@ -1545,11 +1631,13 @@ File: dino.info,  Node: Call-statement,  Next: If-statement,  Prev: Assignment s
 
 A call-statement is used to call a function, a thread-function, or a
 class.  It works analogous to the call in an expression (see
-sub-section `Calls' in section `Types and Values').  The single
+sub-section _Calls_ in section _Types and Values_).  The single
 difference is in that a call-statement throws away the call's result.
+
                ExecutiveStmt = Designator ActualParameters  ";"
 
    Examples:
+
                putln ("percent=" @ percent @ "%");
                newthread ();
 
@@ -1564,12 +1652,14 @@ expression after `if' is evaluated and arithmetic conversion is done to
 it.  The value should be an integer or a floating-point number,
 otherwise the exception `optype' is generated.  If the value is nonzero
 the first statement is executed, otherwise the statement after `else'
-is executed (if any).  The problem with `dangling else' is resolved
+is executed (if any).  The problem with _dangling else_ is resolved
 analogous to the C language - `else' is associated with the closest
 `if'.
+
                ExecutiveStmt = if  "(" Expr ")" Stmt [ else Stmt ]
 
    Examples:
+
                if (i < 0) i = 0;
                if (i < j) return -1; else if (i > 0) return 1; else return 0;
 
@@ -1581,9 +1671,10 @@ File: dino.info,  Node: For-statement,  Next: Foreach-statement,  Prev: If-state
 
 The Dino for-statement is analogous to the C language one.  The
 statement is executed in the following way.
+
   1. Execution of the first statement in the parentheses.
 
-  2. The expression (`for-guard') is evaluated and implicit arithmetic
+  2. The expression (_for-guard_) is evaluated and implicit arithmetic
      conversion is made.  The value should be an integer or a floating
      point number.  If this is not true, exception `optype' is
      generated.
@@ -1601,11 +1692,13 @@ semicolon can be omitted.  The for-statement also can be finished by
 execution of the statement `break' in the body.  The body can be
 finished by execution of statement `continue'.  In this case, the
 for-statement execution continues with the step 4.
+
                ExecutiveStmt = for  "("  Stmt ForGuardExpr ";"  Stmt ")" Stmt
 
                ForGuardExpr = [Expr]
 
    Examples:
+
                for (i = 0; i < 10; i++;) sum += v [i];
                for (i = 0; i < 10; i++) sum += v [i];
                for ({sum = 0; i = 0;} i < 10; i++) sum += v [i];
@@ -1624,9 +1717,11 @@ assigned to the designator.  The order in which the key values are
 assigned on each iteration is undefined.  One iteration can be finished
 with the aid of the statement `continue' and a foreach-statement can be
 finished by execution of statement `break'.
+
                ExecutiveStmt = for  "("  Designator in Expr ")" Stmt
 
    Examples:
+
                putln ("The table is");
                for (k in t) {
                  put ("key=");
@@ -1646,10 +1741,12 @@ execution of the closest-containing for- or foreach-statement covering
 the statement and to finish one iteration of the body of the for- or
 foreach-statement.  These statement can be used only inside a for- or
 foreach-statement.
+
                ExecutiveStmt = break ";"
                              | continue ";"
 
    Examples:
+
                for (i = 0; i < 10; i++) {
                   if (ind [i] < 0)
                     continue;
@@ -1671,10 +1768,12 @@ function, thread-function, or class covering the statement, so the
 return-statement can be placed only in a function, a function-thread,
 or a class.  The expression in a return-statement can be given only for
 functions.  In this case, the expression value will be the value of the
-function call (instead of the default result value `nil').
+function call (instead of the default result value *nil*).
+
                ExecutiveStmt = return  [ Expr ] ";"
 
    Examples:
+
                return;
                return [10, 2:0]
 
@@ -1690,9 +1789,11 @@ class `except' or an object of a class declared somewhere in
 predeclared class `except'.  If this is not true, exception `optype' is
 generated.  How exceptions are processed is described in the following
 section.
+
                ExecutiveStmt = throw  Expr ";"
 
    Examples:
+
                ext except {
                  ext error {
                    class myexcept (msg) {}
@@ -1712,7 +1813,7 @@ OS processes, by user interruptions, or by the user with the aid of a
 throw-statement.  Actually, the exceptions are represented by an object
 of the predeclared class `except' or by an object of a class declared
 inside the predeclared class `except'.  All predeclared exceptions are
-described in the section `Predeclared Identifiers'.  To detect and
+described in the section _Predeclared Identifiers_.  To detect and
 process exceptions, a try-block can be used.
 
    When an exception is generated, the closest-containing try-block
@@ -1733,6 +1834,7 @@ diagnostic message which is dependent on the generated exception.
    Blocks corresponding to catch list elements have a predeclared
 variable `e'.  When block execution starts, the variable contains the
 object representing the exception.
+
                ExecutiveStmt = TryBlockStmt
 
                TryBlockStmt = try Block { Catch }
@@ -1742,6 +1844,7 @@ object representing the exception.
                ExceptClassList = Expr { "," Expr }
 
    Examples:
+
                try {
                  var ln;
                  for (;;)
@@ -1775,9 +1878,11 @@ process synchronization.  In a critical region execution of
 wait-statement is prohibited (it results in generation of exception
 `syncwait').  Also thread calls inside a critical region result in
 generation exception `syncthreadcall'.
+
                ExecutiveStmt = wait  "(" Expr ")" Stmt
 
    Examples:
+
                wait (!empty);
 
 
@@ -1793,9 +1898,10 @@ execution of any statements all include-declarations are replaced by
 files whose base names are given by the strings.  It is made
 recursively, i.e.  the files themselves can contain other
 include-declarations.  There should be no infinite recursion in this.
-If `+' is present in the include-declaration, the file is inserted in
-any case.  Without `+' the file is inserted only if it has been yet not
+If *+* is present in the include-declaration, the file is inserted in
+any case.  Without *+* the file is inserted only if it has been yet not
 inserted into the block of the declaration.
+
                Program = StmtList
 
                IncludeDeclaration = include ["+"] STRING ";"
@@ -1803,6 +1909,7 @@ inserted into the block of the declaration.
    Examples:
 
    The following program outputs the first 24 Fibonachi numbers:
+
                // Recursive function to compute Fibonacci numbers
                func fibonacci (n)
                  {
@@ -1821,6 +1928,7 @@ inserted into the block of the declaration.
 
    The following program outputs the number of prime numbers less than
 8190:
+
                var i, prime, k, count, flags;
                var final SieveSize = 8190;
 
@@ -1846,6 +1954,7 @@ inserted into the block of the declaration.
 
    The following program outputs the number of occurrences of different
 numbers and identifiers in stdin:
+
                var i, key, voc = {};
                for (;;)
                  try {
@@ -1868,6 +1977,7 @@ numbers and identifiers in stdin:
                  putln (key[i], " : ", voc{key[i]});
 
    The following program uses the Dino package `mpi':
+
                include "mpi";
                var mpi1, mpi2;
                mpi1 = mpis.from_string(50, "1000000000000000000000000000000000000");
@@ -1881,7 +1991,7 @@ File: dino.info,  Node: Predeclared identifiers,  Next: Appendix A- Syntax of Di
 *************************
 
 Dino has quite a lot of predeclared identifiers.  The section
-`Declarations and Scope Rules' contains them in alphanumeric order.
+_Declarations and Scope Rules_ contains them in alphanumeric order.
 Here they are described according to the declaration category which
 they belongs to.
 
@@ -1917,6 +2027,7 @@ File: dino.info,  Node: Arguments and environment,  Next: Version,  Up: Predecla
 
 To access arguments to the program and the environment, the following
 variables can be used:
+
    * `argv'.  The variable value is an immutable vector whose elements
      are strings (immutable vectors of characters) representing
      arguments to the program (see implementation).
@@ -1946,9 +2057,10 @@ File: dino.info,  Node: Threads,  Next: Exceptions,  Prev: Version,  Up: Predecl
 
 To access some information about threads in Dino program, the following
 variables can be used.
+
    * `main_thread'.  The variable value is the main thread.  When the
-     program starts, there is only one thread which is called `the main
-     thread'.
+     program starts, there is only one thread which is called _the main
+     thread_.
 
    * `curr_thread'.  The variable value is the thread in which you
      reference the variable.
@@ -1966,6 +2078,7 @@ class declared inside class `except' or when it is necessary to refer
 to a class inside class `except', the following variables can be used.
 Instead of typing `catch (except().signal().sigint)', you could type
 `catch (signals.sigint)'.
+
    * `excepts'.  The variable value is an object of the class `except'.
 
    * `errors'.  The variable value is an object of the class
@@ -2014,6 +2127,7 @@ File: dino.info,  Node: Files,  Next: Miscellaneous variables,  Prev: Exceptions
 
 To output something into standard streams or to input something from
 the standard input stream, the following variables can be used:
+
    * `stdin'.  The variable value is an object of the class `file'
      which corresponds to the standard input stream.
 
@@ -2033,6 +2147,7 @@ File: dino.info,  Node: Miscellaneous variables,  Prev: Files,  Up: Predeclared 
 
 Values of the following variables are used by some predeclared
 functions:
+
    * `split_regex'.  The variable value is a string which represents
      regular expression which is used by the predeclared function
      `split' when the second parameter is not given.  The initial value
@@ -2088,8 +2203,10 @@ classes inside the class `error'. The class `error' and all classes
 inside the class has one parameter `msg' which contains a readable
 message about the exception.  The following classes are declared in the
 class `error':
+
    * `signal'.  Classes inside this class describe exceptions from
      receiving a signal from other OS processes.  They are
+
         * `sigint'.  This class describes the exception generated by
           the user's interrupt from the keyboard.
 
@@ -2112,6 +2229,7 @@ class `error':
 
    * `invop'.  Classes inside this class describe exceptions when
      operands of operations have an incorrect type or value.
+
         * `optype'.  This class describes that the operand of an
           operation is not of the required type (possibly after
           implicit conversions).
@@ -2122,6 +2240,7 @@ class `error':
 
    * `invindex'.  Classes inside this class describe exceptions in
      referring for a vector element.
+
         * `indextype'.  This class describes that the index is not of
           integer type (possibly after implicit integer conversion).
 
@@ -2133,6 +2252,7 @@ class `error':
 
    * `invkey'.  Classes inside this class describe exceptions in
      referring to a table element.
+
         * `keyvalue'.  This class describes that there is no such
           element in the table with the given key when we need the
           value of the element.  The exception does not occur when a
@@ -2144,6 +2264,7 @@ class `error':
 
    * `invcall'.  Classes inside this class describe exceptions in
      calling functions (mainly predeclared ones).
+
         * `callop'.  This class describes that we try to call something
           which is not a function, class, or thread-function.  The
           exception is also generated when you try to create a class
@@ -2175,6 +2296,7 @@ class `error':
           predeclared functions which call OS system functions.  Some
           exceptions are never generated but may be generated in the
           future on some OSes.
+
              * `eaccess'.  This describes the system error "Permission
                denied".
 
@@ -2281,6 +2403,7 @@ class `error':
 
         * `systemcall'.  Classes inside this class describe exceptions
           in calling the predeclared function `system'.
+
              * `noshell'.  This class describes the exception that the
                function `system' can not find the OS command
                interpreter (the shell).
@@ -2291,6 +2414,7 @@ class `error':
         * `invparser'.  Classes inside this class describe exceptions
           specific for calling functions of the predeclared class
           `parser' implementing the Earley parser.
+
              * `invgrammar'.  This class describes the exception that
                the Earley parser got a bad grammar, e.g. without rules,
                with loops in rules, with nonterminals unachievable from
@@ -2306,6 +2430,7 @@ class `error':
         * `invregexp'.  Classes inside this class describe exceptions
           specific for calling predeclared functions implementing
           regular expression pattern matching.
+
              * `ebrack'.  This class describes the exception that a
                regular expression has an unmatched bracket.
 
@@ -2341,6 +2466,7 @@ class `error':
         * `invextern'.  Classes inside this class describe exceptions
           in calling external functions or in accessing an external
           variable.
+
              * `noextern'.  This class describes the exception that the
                given external can not be find.
 
@@ -2421,6 +2547,7 @@ the Earley parser used in Dino has the following features:
 
    The following public functions and variables are declared in the
 class `parser':
+
    * `ambiguous_p'.  This public variable stores information about the
      last parsing.  A nonzero variable value means that during the last
      parsing on a given input the parser found that the grammar is
@@ -2438,8 +2565,9 @@ class `parser':
      The function can also generate exception `pmemory' if there is no
      memory for internal parser data.
 
-     The description is similiar to the `YACC' one.  It has the
+     The description is similiar to the _YACC_ one.  It has the
      following syntax:
+
                     file : file terms [';']
                          | file rule
                          | terms [';']
@@ -2479,7 +2607,7 @@ class `parser':
      by default.  Its code is always the ASCII code of the character
      constant.
 
-     Rules syntax is the same as `YACC' rule syntax.  The single
+     Rules syntax is the same as _YACC_ rule syntax.  The single
      difference is an optional translation construction starting with
      `#' right after each alternative.  The translation part could be a
      single number which means that the translation of the alternative
@@ -2505,8 +2633,8 @@ class `parser':
      tree, the grammar, parser sets, parser sets with all situations,
      situations with contexts.  The function returns the previously set
      up debug level.  Setting up a negative debug level results in
-     output of the translation for program `dot' of the graphic
-     visualization package `graphviz'.  The parameter should be an
+     output of the translation for program *dot* of the graphic
+     visualization package *graphviz*.  The parameter should be an
      integer after implicit integer conversion.  The function will
      generate exception `partype' if it is not true.
 
@@ -2559,30 +2687,31 @@ class `parser':
      value should be an array of objects of predeclared class `token'.
      If the parser recognizes a syntax error it calls the function
      given through parameter `error_func' with six parameters:
+
         * index of the token (in array `tokens') on which the syntax
           error occured.
 
-        * the error token itself.  It may be `nil' for end of file.
+        * the error token itself.  It may be *nil* for end of file.
 
         * index of the first token (in array `tokens') ignored due to
           error recovery.
 
-        * the first ignored token itself.  It may be `nil' for end of
+        * the first ignored token itself.  It may be *nil* for end of
           file.
 
         * index of the first token (in array `tokens') which is not
           ignored after error recovery.
 
-        * the first not ignored token itself.  It may be `nil' for end
+        * the first not ignored token itself.  It may be *nil* for end
           of file.
 
      If the parser works with switched off error recovery (see function
      `set_recovery', the third and fifth parameters will be negative
-     and forth and sixth parameter will be `nil'.
+     and forth and sixth parameter will be *nil*.
 
      The function returns an object of the predeclared class `anode'
      which is the root of the abtsract tree representing the
-     translation of the parser input.  The function returns `nil' only
+     translation of the parser input.  The function returns *nil* only
      if syntax error was occurred and error recovery was switched off.
      The function can generate exception `partype' if the parameter
      types are wrong or exception `invtoken_decl' if any of the input
@@ -2631,7 +2760,7 @@ meaning:
    * Error node which has reserved name `$error'.  This node exists in
      one exemplar (see description of variable `error_anode') and
      represents the translation of reserved grammar symbol `error'.
-     The value is public variable `transl' will be `nil' in this case.
+     The value is public variable `transl' will be *nil* in this case.
 
    * The empty node which has the reserved name `$nil'.  This node also
      exists in one exemplar (see description of variable `nil_anode')
@@ -2639,7 +2768,7 @@ meaning:
      did not describe a translation.  For example, in a grammar rule an
      abstract node refers for the translation of a nonterminal for
      which we do not produce a translation.  The value is public
-     variable of such class object will be `nil' in this case.
+     variable of such class object will be *nil* in this case.
 
    * Alternative node which has the reserved name `$alt'.  It
      represents all possible alternatives in the translation of the
@@ -2669,6 +2798,7 @@ Let us write a program which transforms an expression into postfix
 polish form.  Please, read the program comments to understand what the
 code does.  The program should output string `"abcda*+*+"' which is the
 postfix polish form of input string `"a+b*(c+d*a)"'.
+
                // The following is the expression grammar:
                var grammar = "E : E '+' T   # plus (0 2)\n\
                                 | T         # 0\n\
@@ -2743,13 +2873,14 @@ brackets `[' and `]' for the optional parameters in the description of
 the functions.
 
    Examples:  The following description
+
                strtime ([format [, time]])
 
    describes that the function can accept zero, one, or two parameters.
 If only one parameter is given, then this is parameter `format'.
 
    If something is not said about the returned result, the function
-returns the default value `nil'.
+returns the default value *nil*.
 
 * Menu:
 
@@ -2770,6 +2901,7 @@ The following functions make implicit arithmetic conversion of the
 parameters.  After the conversions the parameters are expected to be of
 integer or floating point type.  The result is always a floating point
 number.
+
    * `sqrt (x)'.  The function returns the square root of `x'.  The
      function generates the exception `edom' if `x' is negative.
 
@@ -2803,18 +2935,21 @@ File: dino.info,  Node: Pattern matching functions,  Next: File functions,  Prev
 8.3.2 Pattern matching functions
 --------------------------------
 
-Dino has the predeclared functions which are used for `pattern
-matching'.  The pattern is described by `regular expressions'
-(`regex').  The pattern has syntax of `extended' POSIX (1003.2) regular
+Dino has the predeclared functions which are used for _pattern
+matching_.  The pattern is described by _regular expressions_
+(_regex_).  The pattern has syntax of _extended_ POSIX (1003.2) regular
 expressions, i.e. the pattern has the following syntax:
+
                Regex = Branch {"|" Branch}
 
-   A regex matches anything that matches one of the `branches'.
+   A regex matches anything that matches one of the _branches_.
+
                Branch = {Piece}
 
-   A branch matches a match for the first `piece', followed by a match
+   A branch matches a match for the first _piece_, followed by a match
 for the second piece, etc.  If the pieces are omitted, the branch
 matches the null string.
+
                Piece = Atom ["*" | "+" | "?" | Bound]
 
                Bound = "{" Min ["," [Max]] "}" | "{" "," Max "}"
@@ -2823,12 +2958,12 @@ matches the null string.
 
                Max = <unsigned integer between 0 and 255 inclusive>
 
-   An `atom' followed by `*' matches a sequence of 0 or more matches of
+   An _atom_ followed by `*' matches a sequence of 0 or more matches of
 the atom.  An atom followed by `+' matches a sequence of 1 or more
 matches of the atom.  An atom followed by `?' matches a sequence of 0
 or 1 matches of the atom.
 
-   There is a more general construction (a `bound') for describing
+   There is a more general construction (a _bound_) for describing
 repetitions of an atom.  An atom followed by a bound containing only
 one integer `min' matches a sequence of exactly `min' matches of the
 atom.  An atom followed by a bound containing one integer `min' and a
@@ -2837,6 +2972,7 @@ followed by a bound containing a comma and one integer `Max' matches at
 most `Max' repetitions of the atom.  An atom followed by a bound
 containing two integers `min' and `max' matches a sequence of `min'
 through `max' (inclusive) matches of the atom.
+
                Atom = "(" Regex ")"
                     | "(" ")"
                     | "."
@@ -2873,6 +3009,7 @@ illegal to end a regular expression with `\'.  There is an exception
 which is not described by the atom syntax.  An `{' followed by a
 character other than a digit or comma is an ordinary character, not the
 beginning of a bound and matches the character `{'.
+
                BracketedList = "[" List "]"
 
                List = FirstChar ["-" Char] {Char ["-" Char]}
@@ -2898,14 +3035,14 @@ beginning of a bound and matches the character `{'.
                      | "upper"
                      | "xdigit"
 
-   An atom can be a bracket expression which is a `list' of characters
+   An atom can be a bracket expression which is a _list_ of characters
 enclosed in `[]'.  Usually it is used to match any single character
 from the list.  If the list begins with `^', it matches any single
 character (but see below) not in the list.  If two characters in the
-list are separated by `-', this is shorthand for the full `range' of
+list are separated by `-', this is shorthand for the full _range_ of
 characters between those two (inclusive) in the collating sequence of
 ASCII codes, e.g. `[0-9]' matches any decimal digit.  It is illegal for
-two ranges to share an `endpoint', e.g. `a-c-e'.
+two ranges to share an _endpoint_, e.g. `a-c-e'.
 
    There are exceptions which are not described by the atom syntax which
 is used to include a literal `]' in the list by making it the first
@@ -2918,6 +3055,7 @@ expression.
    A collating element is a name of a character class enclosed in `[:'
 and `:]'.  It denotes the list of all characters belonging to that
 class.  Standard character class names are:
+
             alnum       digit       punct
             alpha       graph       space
             blank       lower       upper
@@ -2932,6 +3070,7 @@ defined in Posix 1003.2: no particular limit is imposed on the length
 of the regular expression.
 
    There are the following Dino pattern matching functions:
+
    * `match (regex, string)'.  The function searches for the matching
      regular expression `regex' in `string'.  The both parameters
      should be strings after their implicit string conversion.  The
@@ -2946,7 +3085,7 @@ of the regular expression.
      subexpressions take priority over their component subexpressions.
      Match lengths are measured in characters, not collating elements.
      A null string is considered longer than no match at all.  If there
-     is no matching, the function returns the value `nil'.  Otherwise,
+     is no matching, the function returns the value *nil*.  Otherwise,
      the function returns a new mutable vector of integers.  The length
      of the vector is `2 * (N + 1)' where `N' is the number of atoms
      which are regular expressions in parentheses.  The first two
@@ -2959,9 +3098,11 @@ of the regular expression.
      one, and so on.  If there is no matching with a regular expression
      in parentheses, the corresponding vector elements will have
      negative values.  Example: The program
+
                     println (match ("()(a)((a)(a))", "baaab"));
 
      outputs
+
                     [1, 4, 1, 1, 1, 2, 2, 4, 2, 3, 3, 4]
 
    * `gmatch (regex, string[, flag])'.  The function searches for
@@ -2979,18 +3120,20 @@ of the regular expression.
      character of substring corresponding to all regular expression in
      the corresponding occurrences and the second element is index of
      the last character plus one.  If there is no one occurrence, the
-     function returns `nil'.  Example: The program
+     function returns *nil*.  Example: The program
+
                     println (gmatch ("aa", "aaaaa"));
                     println (gmatch ("aa", "aaaaa", 1));
 
      outputs
+
                     [0, 2, 2, 4]
                     [0, 2, 1, 3, 2, 4, 3, 5]
 
    * `sub (regex, string, subst)'.  The function searches for
      substrings matching the regular expression `regex' in `string'.
      All parameters should be string after implicit string conversion.
-     If there is no matching, the function returns the value `nil'.
+     If there is no matching, the function returns the value *nil*.
      Otherwise, the function returns a new mutable vector of characters
      in which the first substring matched has been changed to the string
      `subst'.  Within the replacement string `subst', the sequence
@@ -3017,20 +3160,25 @@ of the regular expression.
      expression is the null string, the function returns a new mutable
      vector with elements which are strings each containing one
      character of string.  Examples: The program
+
                     println (split ("aaa bbb ccc  ddd"));
 
      outputs
+
                     ["aaa", "bbb", "ccc", "ddd"]
 
      The program
+
                     println (split ("abcdef", ""));
 
      outputs
+
                     ["a", "b", "c", "d", "e", "f"]
 
 
    If the regular expression is incorrect, the functions generate one of
 the following predeclared exceptions (see predeclared classes):
+
    * `ebrack'.  Regular expression has unmatched bracket.
 
    * `invregexps.erange'.  Invalid use of range in regular expression.
@@ -3083,8 +3231,10 @@ the predeclared class `file') or the path name of a file represented by
 a string (the functions make implicit string conversion of the
 parameter).  The single exception to this is `isatty' which expects a
 file instance.
+
    * `ftype (fileinstance_or_filename)'.  The function returns one the
      following characters:
+
         * `'f".  A regular file.
 
         * `'d".  A directory.
@@ -3119,7 +3269,7 @@ file instance.
    * `fatime (fileinstance_or_filename)'.  The function returns integer
      value which is time of the last access to the file (directory).
      The time is measured in seconds since the fixed time (usually
-     since January 1, 1970).  See also `time functions'.
+     since January 1, 1970).  See also _time functions_.
 
    * `fmtime (fileinstance_or_filename)'.  Analogous to the previous
      functions but returns the time of the last modification.
@@ -3135,6 +3285,7 @@ file instance.
      (directory).  The string may contain the following characters (in
      the following order if the string contains more than one
      character):
+
         * `'s".  Sticky bit of the file (directory).
 
         * `'r".  Right to read.
@@ -3162,7 +3313,8 @@ file (directory) for different users.  The function expects two strings
 the file (directory).  The second one is the rights.  For instance, if
 the string contains a character 'r', this is right to read (see
 characters used to denote different rights in the description of the
-function `fumode').  The functions always return the value `nil'.
+function `fumode').  The functions always return the value *nil*.
+
    * `chumod (path, mode)'.  The function sets up rights for the file
      (directory) owner according to the given mode.
 
@@ -3183,6 +3335,7 @@ The following functions work with directories.  The functions may
 generate an exception declared in class syserror (e.g. `eaccess',
 `enametoolong', `enotdir' and so on) besides the standard `partype',
 `parnumber'.
+
    * `readdir (dirpath)'.  The function makes implicit string
      conversion of the parameter value which should be a string
      (directory path).  The function returns a new mutable vector with
@@ -3217,6 +3370,7 @@ files.  The functions may generate an exception declared in the class
 `syserror' (e.g. `eaccess', `enametoolong', `eisdir' and so on) besides
 the standard `partype', and `parnumber'.  The function `rename' can be
 used for renaming a directory, not only a file.
+
    * `rename (old_path, new_path)'.  The function renames the file
      (directory) given by its path name.  The old and new names are
      given by parameter values which should be strings after implicit
@@ -3227,7 +3381,7 @@ used for renaming a directory, not only a file.
      implicit string conversion.
 
    * `open (file_path, mode)'.  The function opens the file for work in
-     the given `mode', creates a new class `file' instance, associates
+     the given _mode_, creates a new class `file' instance, associates
      the opened file with the instance, and returns the instance.  The
      parameter values should be strings after implicit string
      conversions.  The first parameter value is a string representing
@@ -3283,9 +3437,10 @@ File: dino.info,  Node: File output functions,  Next: File input functions,  Pre
 .............................
 
 The following functions are used to output something into opened files.
-All the functions always return the value `nil'.  The functions may
+All the functions always return the value *nil*.  The functions may
 generate an exception declared in the class `syserror' (e.g. `eio',
 `enospc' and so on) besides the standard `partype', and `parnumber'.
+
    * `put (...)'.  All parameters should be strings after implicit
      string conversion.  The function outputs all strings into the
      standard output stream.
@@ -3314,6 +3469,7 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      precisions).  If it is not true, exception `partype' will be
      generated.  The format is subset of one of standard C function
      `printf' and has the following syntax:
+
                     format : <any character except %>
                            | '%' flags [width] [precision]
                                  conversion_specifier
@@ -3342,9 +3498,11 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      conversions 'g' and 'G' it also means that trailing zeros are not
      removed from the output as they would be without the flag.  The
      following code using flag '#' in format
+
                    putf ("->%#o %#x %#.0e %#.0f %#g\n", 8, 10, 2., 3., 4.);
 
      will output
+
                    ->010 0xa 2.e+00 3. 4.00000
 
      Flag '0' means that the output value will be zero padded on the
@@ -3352,19 +3510,23 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      It is also ignored for conversions 'd', 'o', 'x', and 'X' if a
      precision is given.  The flag is prohibited for conversions 'c'
      and 's'.  The following code using flag '0' in format
+
                    putf ("->%04d %04x %09.2e %05.2f %05.2g\n", 8, 10, 2., 3., 4.);
 
      will output
+
                    ->0008 000a 02.00e+00 03.00 00004
 
      Flag '-' means that the output will be left adjusted on the field
      boundary.  (The default is right justification). Flag '-'
      overrides flag '0' if the both are given.  The following code
      using flag '-' in format
+
                    putf ("->%-04d %-04x %-09.2e %-05.2f %-05.2g\n",
                          8, 10, 2., 3., 4.);
 
      will output
+
                    ->8    a    2.00e+00  3.00  4
 
      Flag ' ' means that the output of a signed number will start with
@@ -3372,9 +3534,11 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  If both flags ' '
      and '+' appear, the flag ' ' is ignored.  The following code using
      flag ' ' in format
+
                    putf ("->% d % .2e % .2f % .2g\n", 8, 2., 3., 4.);
 
      will output
+
                    -> 8  2.00e+00  3.00  4
 
      Flag '+' means that the output of a signed number will start with
@@ -3382,9 +3546,11 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      conversions 'd', 'e', 'E', 'f', 'g', and 'G'.  Flag '+' overrides
      flag ' ' if both are given.  The following code using flag '+' in
      format
+
                    putf ("->%+d %+.2e %+.2f %+.2g\n", 8, 2., 3., 4.);
 
      will output
+
                    ->+8 +2.00e+00 +3.00 +4
 
      The width defines a minimum width of the output value.  If the
@@ -3396,9 +3562,11 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      value of width given by the parameter is negative, flag '-' is
      believed to be given and the width is believed to be equal to
      zero.  The following code using width in format
+
                    putf ("->%5d %05d %-5d %*d %*d<-\n", 8, 9, 10, 5, 8, -5, 10);
 
      will output
+
                    ->    8 00009 10        8 10   <-
 
      The precision is prohibited for conversions 'c'.  If the number
@@ -3412,11 +3580,13 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      'G' it means the maximum number of significant digits.  For 's' it
      means the maximum number of characters to be output from a string.
      The following code using precision in format
+
                    putf ("->%.d %.0d %.5d %.0f %.0e %.2g<-\n",
                          8, 8, 9, 2.3, 3.53);
                    putf ("->%.2s %.0d %.*d %.*d<-\n", "long", 0, 5, 8, -5, 8);
 
      will output
+
                    ->8 8 00009 2 2e+00 3.5<-
                    ->lo  00008 8<-
 
@@ -3465,6 +3635,7 @@ generate an exception declared in the class `syserror' (e.g. `eio',
      Conversion '%' should be used to output `%'.
 
      The following code using different conversions in format
+
                    putf ("->%% %c %s %d %o %x %X<-\n",
                          'c', "string", 7, 8, 20, 20);
                    putf ("->%f<-\n", 1.5);
@@ -3472,6 +3643,7 @@ generate an exception declared in the class `syserror' (e.g. `eio',
                          2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
 
      will output
+
                    ->% c string 7 10 14 14<-
                    ->1.500000<-
                    ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
@@ -3523,10 +3695,11 @@ File: dino.info,  Node: File input functions,  Prev: File output functions,  Up:
 ............................
 
 The following functions are used to input something from opened files.
-All the functions always return the value `nil'.  The functions may
+All the functions always return the value *nil*.  The functions may
 generate an exception declared in the class `syserror' (e.g. `eio',
 `enospc' and so on) or `eof' besides the standard `partype', and
 `parnumber'.
+
    * `get ()'.  The function reads one character from standard input
      stream and returns it.  The function generates the exception `eof'
      if the function tries to read the end of file.
@@ -3600,6 +3773,7 @@ File: dino.info,  Node: Time functions,  Next: Functions for access to process i
 --------------------
 
 The following functions can be used to get information about real time.
+
    * `time ()'.  The function returns the time in seconds since the
      fixed time (usually since January 1, 1970).
 
@@ -3613,6 +3787,7 @@ The following functions can be used to get information about real time.
      same as in C library function `strftime'.  Here is an extraction
      from the OS function documentation.  The following format
      specifiers can be used in the format:
+
         * `%a' - the abbreviated weekday name according to the current
           locale.
 
@@ -3686,6 +3861,7 @@ behalf of the concrete user and group (so called effective
 identifiers).  The following functions return such information.  On
 some OSes the function may return string "Unknown" as a name if there
 are notions of user and group identifiers.
+
    * `getpid ()'.  The function returns an integer value which is the
      process ID of the current OS process.
 
@@ -3712,6 +3888,7 @@ File: dino.info,  Node: Miscellaneous functions,  Prev: Functions for access to 
 -----------------------------
 
 There are the following miscellaneous functions:
+
    * `max (v1, v2, ...)'.  The function searches for and returns the
      maximal value in all of its parameters.  The parameters should be
      of integer or floating point type after implicit arithmetic
@@ -3743,9 +3920,9 @@ There are the following miscellaneous functions:
      correspondence is taken.
 
    * `eltype (vect)'.  The function expects that the parameter value is
-     a vector.  The function returns `nil' if the vector is
+     a vector.  The function returns *nil* if the vector is
      heterogenous, otherwise the function returns the type of the
-     vector elements (type of `nil' if the vector is empty).
+     vector elements (type of *nil* if the vector is empty).
 
    * `keys (tab)'.  The function expects that the parameter value is a
      table.  The function returns a new mutable vector containing all
@@ -3753,7 +3930,7 @@ There are the following miscellaneous functions:
      undefined.
 
    * `context (par)'. The function returns the context (see section
-     `Declarations and Scope Rules') represented by a block instance or
+     _Declarations and Scope Rules_) represented by a block instance or
      an object for the given parameter value which should be a
      function, a class, a thread, a block instance, or an object.
 
@@ -3773,6 +3950,7 @@ There are the following miscellaneous functions:
      the function `inside' returns 0.  The following example
      illustrates the difference between checking with taking contexts
      into account and without it.
+
                     class c () {
                       class subc () {
                       }
@@ -4212,68 +4390,68 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 
 
 Tag Table:
-Node: Top120
+Node: Top127
 Node: Introduction2766
-Node: Syntax4067
-Node: Vocabulary and Representation4968
-Node: Declarations and Scope Rules11456
-Node: Variable Declarations20844
-Node: External Declarations21864
-Node: Functions Classes Extensions23116
-Node: Expressions30869
-Node: Types and Values31430
-Node: Designators40415
-Node: Calls42877
-Node: Operators44924
-Node: Logical operators48612
-Node: Bit operators50375
-Node: Comparison operators51496
-Node: Arithmetic operators53392
-Node: Miscellaneous operators54532
-Node: Executive statements59396
-Node: Empty statement60308
-Node: Block-statement60726
-Node: Assignment statements61444
-Node: Call-statement63687
-Node: If-statement64269
-Node: For-statement65099
-Node: Foreach-statement66566
-Node: Break- and continue-statement67574
-Node: Return-statement68426
-Node: Throw-statement69203
-Node: Try-block69987
-Node: Wait-statement72428
-Node: Program73511
-Node: Predeclared identifiers76928
-Node: Predeclared variables77395
-Node: Arguments and environment77807
-Node: Version78457
-Node: Threads78990
-Node: Exceptions79537
-Node: Files81186
-Node: Miscellaneous variables81893
-Node: Predeclared classes82622
-Node: File82972
-Node: Exception classes83428
-Node: Earley parser classes95392
-Node: Parser-95771
-Node: Token-106572
-Node: Anode-107251
-Node: Nil_anode and error_anode-109400
-Node: Example of Earley parser usage-109811
-Node: Predeclared functions112650
-Node: Mathematical functions113886
-Node: Pattern matching functions115467
-Node: File functions127621
-Node: Functions for access to file/directory information128054
-Node: Functions for work with directories132666
-Node: Functions for work with files-134260
-Node: File output functions137970
-Node: File input functions150060
-Node: Time functions153948
-Node: Functions for access to process information156944
-Node: Miscellaneous functions158461
-Node: Appendix A- Syntax of Dino168338
-Node: Appendix B- Implementation172815
+Node: Syntax4068
+Node: Vocabulary and Representation4969
+Node: Declarations and Scope Rules11478
+Node: Variable Declarations20887
+Node: External Declarations21909
+Node: Functions Classes Extensions23163
+Node: Expressions30923
+Node: Types and Values31484
+Node: Designators40482
+Node: Calls42951
+Node: Operators45000
+Node: Logical operators48691
+Node: Bit operators50456
+Node: Comparison operators51579
+Node: Arithmetic operators53477
+Node: Miscellaneous operators54619
+Node: Executive statements59485
+Node: Empty statement60397
+Node: Block-statement60817
+Node: Assignment statements61537
+Node: Call-statement63782
+Node: If-statement64366
+Node: For-statement65198
+Node: Foreach-statement66668
+Node: Break- and continue-statement67678
+Node: Return-statement68532
+Node: Throw-statement69311
+Node: Try-block70097
+Node: Wait-statement72540
+Node: Program73625
+Node: Predeclared identifiers77047
+Node: Predeclared variables77514
+Node: Arguments and environment77926
+Node: Version78577
+Node: Threads79110
+Node: Exceptions79658
+Node: Files81308
+Node: Miscellaneous variables82016
+Node: Predeclared classes82746
+Node: File83096
+Node: Exception classes83552
+Node: Earley parser classes95527
+Node: Parser-95906
+Node: Token-106710
+Node: Anode-107389
+Node: Nil_anode and error_anode-109538
+Node: Example of Earley parser usage-109949
+Node: Predeclared functions112789
+Node: Mathematical functions114026
+Node: Pattern matching functions115608
+Node: File functions127778
+Node: Functions for access to file/directory information128211
+Node: Functions for work with directories132827
+Node: Functions for work with files-134422
+Node: File output functions138133
+Node: File input functions150241
+Node: Time functions154130
+Node: Functions for access to process information157128
+Node: Miscellaneous functions158646
+Node: Appendix A- Syntax of Dino168525
+Node: Appendix B- Implementation173002
 
 End Tag Table

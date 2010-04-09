@@ -27727,8 +27727,8 @@ TEST496
      if uname | fgrep CYGWIN; then
         echo '      ' "$DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@  $test_file time >$stdout"
         if $DINO -L./ipcerr.dll -L./socket.dll -I@srcdir@ $test_file time >$stdout; then
-                echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout
-                if egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout; then
+                echo '      ' egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout
+                if egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout; then
                         result=ok
                 else
 			cat $stdout
@@ -27740,8 +27740,8 @@ TEST496
      else
         echo '      ' "$DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@  $test_file time >$stdout"
         if $DINO -L./ipcerr.@EXTERN_LIB_SUFFIX@ -L./socket.@EXTERN_LIB_SUFFIX@ -I@srcdir@ $test_file time >$stdout; then
-                echo '      ' egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout
-                if egrep '^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]' $stdout; then
+                echo '      ' egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout
+                if egrep '(^[A-Za-z]+ [A-Za-z]+[ ]+[0-9][0-9]? [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9])|(^[0-9][0-9] [A-Za-z]+ [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [A-Za-z0-9]+)' $stdout; then
                         result=ok
                 else
 			cat $stdout

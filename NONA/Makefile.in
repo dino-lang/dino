@@ -81,6 +81,9 @@ mandir=@mandir@
 # The directory for installation of `nona.1'
 man1dir=$(mandir)/man1
 
+# The directory for installation of documentation
+docdir=@docdir@/cocom
+
 # Additional prefix used to install ammunition temporarily.  It is
 # necessary only for RPM.
 DESTDIR=
@@ -168,6 +171,11 @@ install: all
 	$(INSTALL) nona $(DESTDIR)/$(bindir)/nona
 	-mkdir -p $(DESTDIR)/$(man1dir)
 	$(INSTALLDATA) $(srcdir)/nona.1 $(DESTDIR)/$(man1dir)/nona.1
+	-mkdir -p $(DESTDIR)/$(docdir)
+	$(INSTALLDATA) $(srcdir)/nona.txt $(srcdir)/nona.info* \
+            $(srcdir)/nona*.html \
+	    $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps \
+            $(DESTDIR)/$(docdir)
 
 # Delete the installed files and the installation directories.
 uninstall:
@@ -176,6 +184,11 @@ uninstall:
 	rm -f $(DESTDIR)/$(man1dir)/nona.1
 	-rmdir $(DESTDIR)/$(man1dir)
 	-rmdir $(DESTDIR)/$(mandir)
+	rm -f $(DESTDIR)/$(docdir)/nona.txt $(DESTDIR)/$(docdir)/nona.info* \
+            $(DESTDIR)/$(docdir)/nona*.html \
+	    $(DESTDIR)/$(docdir)/nona.pdf $(DESTDIR)/$(docdir)/nona.dvi \
+            $(DESTDIR)/$(docdir)/nona.ps
+	-rmdir $(DESTDIR)/$(docdir)
 
 # Deletion of object files of the translator, executable file `nona' and also
 # deletion of `ird.c' and `ird.h', and `yacc.c'

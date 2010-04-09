@@ -79,6 +79,9 @@ mandir=@mandir@
 # The directory for installation of `oka.1'
 man1dir=$(mandir)/man1
 
+# The directory for installation of documentation
+docdir=@docdir@/cocom
+
 # Additional prefix used to install ammunition temporarily.  It is
 # necessary only for RPM.
 DESTDIR=
@@ -175,6 +178,11 @@ install: all
 	$(INSTALL) oka $(DESTDIR)/$(bindir)/oka
 	-mkdir -p $(DESTDIR)/$(man1dir)
 	$(INSTALLDATA) $(srcdir)/oka.1 $(DESTDIR)/$(man1dir)/oka.1
+	-mkdir -p $(DESTDIR)/$(docdir)
+	$(INSTALLDATA) $(srcdir)/oka.txt $(srcdir)/oka.info* \
+            $(srcdir)/oka*.html \
+	    $(srcdir)/oka.pdf $(srcdir)/oka.dvi $(srcdir)/oka.ps \
+            $(DESTDIR)/$(docdir)
 
 # Delete the installed files and the installation directories.
 uninstall:
@@ -183,6 +191,11 @@ uninstall:
 	rm -f $(DESTDIR)/$(man1dir)/oka.1
 	-rmdir $(DESTDIR)/$(man1dir)
 	-rmdir $(DESTDIR)/$(mandir)
+	rm -f $(DESTDIR)/$(docdir)/oka.txt $(DESTDIR)/$(docdir)/oka.info* \
+            $(DESTDIR)/$(docdir)/oka*.html \
+	    $(DESTDIR)/$(docdir)/oka.pdf $(DESTDIR)/$(docdir)/oka.dvi \
+            $(DESTDIR)/$(docdir)/oka.ps
+	-rmdir $(DESTDIR)/$(docdir)
 
 # Deletion of object files of the translator, executable file `oka' and also
 # deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'.

@@ -81,51 +81,151 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/share/man/man1/oka.1*
 %doc /usr/share/man/man1/shilka.1*
 %doc /usr/share/man/man1/sprut.1*
-%doc %attr(0555,root,root) CHANGES INSTALL README cocom.txt cocom.dvi cocom.ps cocom.info cocom.html
-%doc AMMUNITION/ammunition.txt AMMUNITION/ammunition.ps
-%doc AMMUNITION/ammunition.dvi AMMUNITION/ammunition.info
-%doc AMMUNITION/ammunition.info-1 AMMUNITION/ammunition.info-2
-%doc AMMUNITION/ammunition.info-3
-%doc AMMUNITION/ammunition.html AMMUNITION/ammunition-1.html
-%doc AMMUNITION/ammunition-2.html AMMUNITION/ammunition-3.html
-%doc AMMUNITION/ammunition-4.html AMMUNITION/ammunition-5.html
-%doc AMMUNITION/ammunition-6.html AMMUNITION/ammunition-7.html
-%doc AMMUNITION/ammunition-8.html AMMUNITION/ammunition-9.html
-%doc AMMUNITION/ammunition-10.html AMMUNITION/ammunition-11.html
-%doc AMMUNITION/ammunition-12.html AMMUNITION/ammunition-13.html
-%doc AMMUNITION/ammunition++.txt AMMUNITION/ammunition++.ps
-%doc AMMUNITION/ammunition++.dvi
-%doc AMMUNITION/ammunition++.info AMMUNITION/ammunition++.info-1
-%doc AMMUNITION/ammunition++.info-2 AMMUNITION/ammunition++.info-3
-%doc AMMUNITION/ammunition++.html AMMUNITION/ammunition++-1.html
-%doc AMMUNITION/ammunition++-2.html AMMUNITION/ammunition++-3.html
-%doc AMMUNITION/ammunition++-4.html AMMUNITION/ammunition++-5.html
-%doc AMMUNITION/ammunition++-6.html AMMUNITION/ammunition++-7.html
-%doc AMMUNITION/ammunition++-8.html AMMUNITION/ammunition++-9.html
-%doc AMMUNITION/ammunition++-10.html AMMUNITION/ammunition++-11.html
-%doc AMMUNITION/ammunition++-12.html AMMUNITION/ammunition++-13.html
-%doc DINO/dino.txt DINO/dino.ps DINO/dino.dvi
-%doc DINO/dino.info DINO/dino.info-1 DINO/dino.info-2
-%doc DINO/dino.info-3 DINO/dino.info-4
-%doc DINO/dino.html DINO/dino-1.html DINO/dino-2.html
-%doc DINO/dino-3.html DINO/dino-4.html DINO/dino-5.html DINO/dino-6.html
-%doc DINO/dino-7.html DINO/dino-8.html DINO/dino-9.html DINO/dino-10.html
-%doc MSTA/msta.txt MSTA/msta.ps MSTA/msta.dvi
-%doc MSTA/msta.info MSTA/msta.info-1 MSTA/msta.info-2
-%doc MSTA/msta.html MSTA/msta-1.html MSTA/msta-2.html
-%doc MSTA/msta-3.html MSTA/msta-4.html MSTA/msta-5.html MSTA/msta-6.html
-%doc MSTA/msta-7.html MSTA/msta-8.html MSTA/msta-9.html
-%doc NONA/nona.txt NONA/nona.ps NONA/nona.dvi NONA/nona.info
-%doc NONA/nona.html NONA/nona-1.html NONA/nona-2.html NONA/nona-3.html
-%doc NONA/nona-4.html NONA/nona-5.html
-%doc OKA/oka.txt OKA/oka.ps OKA/oka.dvi OKA/oka.info
-%doc OKA/oka.html OKA/oka-1.html OKA/oka-2.html OKA/oka-3.html OKA/oka-4.html
-%doc OKA/oka-5.html OKA/oka-6.html OKA/oka-7.html OKA/oka-8.html OKA/oka-9.html
-%doc SHILKA/shilka.txt SHILKA/shilka.ps SHILKA/shilka.dvi SHILKA/shilka.info
-%doc SHILKA/shilka.html SHILKA/shilka-1.html SHILKA/shilka-2.html
-%doc SHILKA/shilka-3.html SHILKA/shilka-4.html SHILKA/shilka-5.html
-%doc SHILKA/shilka-6.html SHILKA/shilka-7.html SHILKA/shilka-8.html
-%doc SPRUT/sprut.txt SPRUT/sprut.ps SPRUT/sprut.dvi
-%doc SPRUT/sprut.info SPRUT/sprut.info-1 SPRUT/sprut.info-2
-%doc SPRUT/sprut.html SPRUT/sprut-1.html SPRUT/sprut-2.html SPRUT/sprut-3.html
-%doc SPRUT/sprut-4.html SPRUT/sprut-5.html
+%doc /usr/share/doc/cocom/CHANGES
+#%doc /usr/share/doc/cocom/INSTALL
+%doc /usr/share/doc/cocom/README
+%doc /usr/share/doc/cocom/copyright
+%doc /usr/share/doc/cocom/cocom.txt
+%doc /usr/share/doc/cocom/cocom.dvi
+%doc /usr/share/doc/cocom/cocom.ps
+%doc /usr/share/doc/cocom/cocom.pdf
+%doc /usr/share/doc/cocom/cocom.info
+%doc /usr/share/doc/cocom/cocom.html
+%doc /usr/share/doc/cocom/ammunition.txt
+%doc /usr/share/doc/cocom/ammunition.ps
+%doc /usr/share/doc/cocom/ammunition.pdf
+%doc /usr/share/doc/cocom/ammunition.dvi
+%doc /usr/share/doc/cocom/ammunition.info
+#%doc /usr/share/doc/cocom/ammunition.info-1
+#%doc /usr/share/doc/cocom/ammunition.info-2
+#%doc /usr/share/doc/cocom/ammunition.info-3
+%doc /usr/share/doc/cocom/ammunition.html
+%doc /usr/share/doc/cocom/ammunition-1.html
+%doc /usr/share/doc/cocom/ammunition-2.html
+%doc /usr/share/doc/cocom/ammunition-3.html
+%doc /usr/share/doc/cocom/ammunition-4.html
+%doc /usr/share/doc/cocom/ammunition-5.html
+%doc /usr/share/doc/cocom/ammunition-6.html
+%doc /usr/share/doc/cocom/ammunition-7.html
+%doc /usr/share/doc/cocom/ammunition-8.html
+%doc /usr/share/doc/cocom/ammunition-9.html
+%doc /usr/share/doc/cocom/ammunition-10.html
+%doc /usr/share/doc/cocom/ammunition-11.html
+%doc /usr/share/doc/cocom/ammunition-12.html
+%doc /usr/share/doc/cocom/ammunition-13.html
+%doc /usr/share/doc/cocom/ammunition++.txt
+%doc /usr/share/doc/cocom/ammunition++.ps
+%doc /usr/share/doc/cocom/ammunition++.pdf
+%doc /usr/share/doc/cocom/ammunition++.dvi
+%doc /usr/share/doc/cocom/ammunition++.info
+#%doc /usr/share/doc/cocom/ammunition++.info-1
+#%doc /usr/share/doc/cocom/ammunition++.info-2
+#%doc /usr/share/doc/cocom/ammunition++.info-3
+%doc /usr/share/doc/cocom/ammunition++.html
+%doc /usr/share/doc/cocom/ammunition++-1.html
+%doc /usr/share/doc/cocom/ammunition++-2.html
+%doc /usr/share/doc/cocom/ammunition++-3.html
+%doc /usr/share/doc/cocom/ammunition++-4.html
+%doc /usr/share/doc/cocom/ammunition++-5.html
+%doc /usr/share/doc/cocom/ammunition++-6.html
+%doc /usr/share/doc/cocom/ammunition++-7.html
+%doc /usr/share/doc/cocom/ammunition++-8.html
+%doc /usr/share/doc/cocom/ammunition++-9.html
+%doc /usr/share/doc/cocom/ammunition++-10.html
+%doc /usr/share/doc/cocom/ammunition++-11.html
+%doc /usr/share/doc/cocom/ammunition++-12.html
+%doc /usr/share/doc/cocom/ammunition++-13.html
+%doc /usr/share/doc/dino/README
+%doc /usr/share/doc/dino/CHANGES
+%doc /usr/share/doc/dino/copyright
+%doc /usr/share/doc/dino/dino.txt
+%doc /usr/share/doc/dino/dino.txt
+%doc /usr/share/doc/dino/dino.ps
+%doc /usr/share/doc/dino/dino.pdf
+%doc /usr/share/doc/dino/dino.dvi
+%doc /usr/share/doc/dino/dino.info
+%doc /usr/share/doc/dino/dino.info-1
+%doc /usr/share/doc/dino/dino.info-2
+%doc /usr/share/doc/dino/dino.info-3
+%doc /usr/share/doc/dino/dino.info-4
+%doc /usr/share/doc/dino/dino.html
+%doc /usr/share/doc/dino/dino-1.html
+%doc /usr/share/doc/dino/dino-2.html
+%doc /usr/share/doc/dino/dino-3.html
+%doc /usr/share/doc/dino/dino-4.html
+%doc /usr/share/doc/dino/dino-5.html
+%doc /usr/share/doc/dino/dino-6.html
+%doc /usr/share/doc/dino/dino-7.html
+%doc /usr/share/doc/dino/dino-8.html
+%doc /usr/share/doc/dino/dino-9.html
+%doc /usr/share/doc/dino/dino-10.html
+%doc /usr/share/doc/cocom/msta.txt
+%doc /usr/share/doc/cocom/msta.ps
+%doc /usr/share/doc/cocom/msta.pdf
+%doc /usr/share/doc/cocom/msta.dvi
+%doc /usr/share/doc/cocom/msta.info
+%doc /usr/share/doc/cocom/msta.info-1
+%doc /usr/share/doc/cocom/msta.info-2
+%doc /usr/share/doc/cocom/msta.html
+%doc /usr/share/doc/cocom/msta-1.html
+%doc /usr/share/doc/cocom/msta-2.html
+%doc /usr/share/doc/cocom/msta-3.html
+%doc /usr/share/doc/cocom/msta-4.html
+%doc /usr/share/doc/cocom/msta-5.html
+%doc /usr/share/doc/cocom/msta-6.html
+%doc /usr/share/doc/cocom/msta-7.html
+%doc /usr/share/doc/cocom/msta-8.html
+%doc /usr/share/doc/cocom/msta-9.html
+%doc /usr/share/doc/cocom/nona.txt
+%doc /usr/share/doc/cocom/nona.ps
+%doc /usr/share/doc/cocom/nona.pdf
+%doc /usr/share/doc/cocom/nona.dvi
+%doc /usr/share/doc/cocom/nona.info
+%doc /usr/share/doc/cocom/nona.html
+%doc /usr/share/doc/cocom/nona-1.html
+%doc /usr/share/doc/cocom/nona-2.html
+%doc /usr/share/doc/cocom/nona-3.html
+%doc /usr/share/doc/cocom/nona-4.html
+%doc /usr/share/doc/cocom/nona-5.html
+%doc /usr/share/doc/cocom/oka.txt
+%doc /usr/share/doc/cocom/oka.ps
+%doc /usr/share/doc/cocom/oka.pdf
+%doc /usr/share/doc/cocom/oka.dvi
+%doc /usr/share/doc/cocom/oka.info
+%doc /usr/share/doc/cocom/oka.html
+%doc /usr/share/doc/cocom/oka-1.html
+%doc /usr/share/doc/cocom/oka-2.html
+%doc /usr/share/doc/cocom/oka-3.html
+%doc /usr/share/doc/cocom/oka-4.html
+%doc /usr/share/doc/cocom/oka-5.html
+%doc /usr/share/doc/cocom/oka-6.html
+%doc /usr/share/doc/cocom/oka-7.html
+%doc /usr/share/doc/cocom/oka-8.html
+%doc /usr/share/doc/cocom/oka-9.html
+%doc /usr/share/doc/cocom/shilka.txt
+%doc /usr/share/doc/cocom/shilka.ps
+%doc /usr/share/doc/cocom/shilka.pdf
+%doc /usr/share/doc/cocom/shilka.dvi
+%doc /usr/share/doc/cocom/shilka.info
+%doc /usr/share/doc/cocom/shilka.html
+%doc /usr/share/doc/cocom/shilka-1.html
+%doc /usr/share/doc/cocom/shilka-2.html
+%doc /usr/share/doc/cocom/shilka-3.html
+%doc /usr/share/doc/cocom/shilka-4.html
+%doc /usr/share/doc/cocom/shilka-5.html
+%doc /usr/share/doc/cocom/shilka-6.html
+%doc /usr/share/doc/cocom/shilka-7.html
+%doc /usr/share/doc/cocom/shilka-8.html
+%doc /usr/share/doc/cocom/sprut.txt
+%doc /usr/share/doc/cocom/sprut.ps
+%doc /usr/share/doc/cocom/sprut.pdf
+%doc /usr/share/doc/cocom/sprut.dvi
+%doc /usr/share/doc/cocom/sprut.info
+%doc /usr/share/doc/cocom/sprut.info-1
+%doc /usr/share/doc/cocom/sprut.info-2
+%doc /usr/share/doc/cocom/sprut.html
+%doc /usr/share/doc/cocom/sprut-1.html
+%doc /usr/share/doc/cocom/sprut-2.html
+%doc /usr/share/doc/cocom/sprut-3.html
+%doc /usr/share/doc/cocom/sprut-4.html
+%doc /usr/share/doc/cocom/sprut-5.html

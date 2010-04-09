@@ -1,8 +1,0 @@
-#!/bin/sh
-if test $# -ne 1
-then
-	echo "Usage: sgml-postinfo info-file" 1>&2;
-	exit 1
-fi
-awk "{gsub (/\[percnt\]/,\"%\");gsub (/\[lcub  \]/,\"{\");gsub (/\[rcub  \]/,\"}\");gsub (/\[amp   \]/,\"\\\\&\");gsub (/\[lowbar\]/,\"_\");print}" $*
-exit 0

@@ -1,7 +1,7 @@
-This is nona.info, produced by makeinfo version 4.6 from
-/tmp/linuxdoc-dir-8769/sgmltmp.nona.info.2.
+This is nona.info, produced by makeinfo version 4.13 from
+info file generated from .//nona.sgml by means of linuxdoc-tools.
 
-   \input texinfo
+
 
 
 File: nona.info,  Node: Top,  Next: Introduction,  Up: (dir)
@@ -26,8 +26,8 @@ for solving code selection and possibly other back-end tasks).
 
 File: nona.info,  Node: Introduction,  Next: Code selector description language,  Prev: Top,  Up: Top
 
-Introduction
-************
+1 Introduction
+**************
 
 NONA is a translator of a code selector description (CS) into code for
 solving code selection and possibly other back-end tasks.  The code
@@ -71,8 +71,8 @@ elimination.
 
 File: nona.info,  Node: Code selector description language,  Next: Generated code,  Prev: Introduction,  Up: Top
 
-Code selector description language
-**********************************
+2 Code selector description language
+************************************
 
 An code selector description describes mainly tree patterns of low
 level internal representation with associated usage constraints, costs
@@ -90,11 +90,12 @@ may have attribute which is evaluated in actions.
 
 File: nona.info,  Node: Layout of code selector description,  Next: Declarations,  Up: Code selector description language
 
-Layout of code selector description
-===================================
+2.1 Layout of code selector description
+=======================================
 
 Code selector description structure has the following layout which is
 similar to one of YACC file.
+
           DECLARATIONS
           %%
           RULES
@@ -129,10 +130,11 @@ translator.
 
 File: nona.info,  Node: Declarations,  Next: Rules,  Prev: Layout of code selector description,  Up: Code selector description language
 
-Declarations
-============
+2.2 Declarations
+================
 
 The section of declarations may contain the following construction:
+
           %term <TYPE> IDENTIFIER ...
 
    All terminals must be defined in constructions of such kind (or in
@@ -141,12 +143,14 @@ repeatedly.  The identifier is a name of constant which represents mode
 of the low level internal representation node.  If the user needs usage
 of attributes of different types, the terminal attribute type can be
 given in this construction.  The union declaration can be used for this.
+
           %union {
             any thing that can go inside a `union' in C/C++
           }
 
    The last such construction in the declarations section specifies the
 entire collection of possible types for attribute values.  For example:
+
           %union {
             IR_node_t node;
             int number;
@@ -157,6 +161,7 @@ They are given by names `node' and `number'.  These names are used in
 the type and commutativeness declarations to instruct type of attribute
 for a terminal or nonterminal.  The type declarations has the following
 form:
+
           %type <TYPE> IDENTIFIER ...
 
    The construction can be used when union declaration is present.
@@ -164,6 +169,7 @@ Here `TYPE' is a name of type given in union declaration.  If the type
 of terminal or nonterminal is not given its type is believed to be
 `CS_TYPE' (see next section).  The identifier is one of terminal or
 nonterminal.  The construction
+
           %commutative <TYPE> TERMINAL_IDENTIFIER ...
 
    describes terminal and commutativeness of operator represented by
@@ -172,16 +178,17 @@ type.  For example, if the terminal `plus' is described as commutative
 then pattern `plus (register, constant)' simultaneously designates
 pattern `plus (constant, register)'.  There may be also the following
 constructions in the declaration section
+
           %local {
              C/C++ DECLARATIONS
           }
-     
+
           %import {
              C/C++ DECLARATION
           }
-     
+
           and
-     
+
           %export {
              C/C++ DECLARATION
           }
@@ -202,11 +209,12 @@ the same order as in the section of declarations.
 
 File: nona.info,  Node: Rules,  Prev: Declarations,  Up: Code selector description language
 
-Rules
-=====
+2.3 Rules
+=========
 
 The section of declarations is followed by section of rules .  A rule
 is described the following construction
+
           nonterminal : pattern cost %if constraint action
 
    The rule connects tree pattern with nonterminal.  Several tree
@@ -222,6 +230,7 @@ pattern will be never in a minimal cost cover if constraint value is
 equal to zero during testing the tree pattern as a candidate on
 inclusion into minimal cost cover.  For example, the following rule
 with constraint describes Am29k instruction CONST
+
           register : integer_constant [1]
                      %if [IR_value ($1) >=0 && IR_value ($1) < 256]
 
@@ -241,17 +250,20 @@ only that the cost is fulfilled after evaluation of constraint give
 nonzero result.  The action of the tree pattern which is a part of
 result minimal cost cover is fulfilled on the second bottom up pass.
 Tree pattern is given by one of the following forms:
+
           TERMINAL ( PATTERN , ...)
           TERMINAL
           NONTERMINAL
 
    For example, the following pattern describes Am29050 instruction DMSM
+
           double_addition (twin, double_multiplication (twin,
                                                         accumulator0))
 
    It should be remembered that each terminal must have fixed arity in
 all patterns.  It means that usage of the following patterns in a code
 selector description will be erroneous.
+
           integer_addition (register, register)
           integer_addition (register)
 
@@ -261,8 +273,8 @@ placed in Appendix 1.
 
 File: nona.info,  Node: Generated code,  Next: NONA Usage,  Prev: Code selector description language,  Up: Top
 
-Generated code
-**************
+3 Generated code
+****************
 
 A specification as described in the previous section is translated by
 code selector description translator (NONA) into code selector
@@ -280,11 +292,12 @@ and `.c' for C or `.cpp' for C++ (see option `-c++').
 
 File: nona.info,  Node: C Interface objects,  Next: C++ Interface objects,  Up: Generated code
 
-C Interface objects
-===================
+3.1 C Interface objects
+=======================
 
 C interface file of CS consists of the following definitions of
 generated type and functions:
+
   1. There is constant with nonterminal name and prefix `CSNT_' for
      each nonterminal.  `CSNT' is abbreviation of code selector
      description nonterminal.  The constants are defined as macros
@@ -296,6 +309,7 @@ generated type and functions:
      representation.  This macro can be redefined (only in a C
      declaration section which starts with `%import').  By default this
      macro is defined as follows:
+
                      #define CS_NODE           struct IR_node_struct *
 
   3. Macro `CS_TYPE' defines type of terminal and nonterminal
@@ -304,9 +318,11 @@ generated type and functions:
      already describes terminal and nonterminal attribute types because
      in this case the default macro definition is absent.  By default
      this macro is defined as follows:
+
                      #define CS_TYPE           CS_node
 
   4. Type `CS_node' is defined as follows:
+
                      typedef CS_NODE CS_node;
 
   5. Type `CS_cover' describes a minimal cost cover.  The values of
@@ -314,6 +330,7 @@ generated type and functions:
      function `CS_delete_cover'.
 
   6. Function
+
                   `CS_cover CS_find_cover (CS_node node)'
 
      makes the first bottom up pass on directed acyclic graph given by
@@ -325,12 +342,14 @@ generated type and functions:
      only once.
 
   7. Function
+
                   `int CS_it_is_axiom (CS_cover cover, int nonterminal)'
 
      returns 1 if there is a minimal cost cover for given nonterminal
      in given cover, 0 otherwise.
 
   8. Function
+
                   `CS_TYPE CS_traverse_cover (CS_cover cover, int nonterminal)'
 
      makes the second bottom up, left to right pass and fulfills
@@ -345,6 +364,7 @@ generated type and functions:
      given cover of a directed acyclic graph.
 
   9. Function
+
                   `void CS_delete_cover (CS_cover cover)'
 
      frees memory allocated to `cover' which was to be created by call
@@ -354,6 +374,7 @@ generated type and functions:
      use stack strategy of the memory allocation.
 
  10. Function
+
                   `void CS_start (void)'
 
      is to be called before any work with code selector description.
@@ -361,6 +382,7 @@ generated type and functions:
      management (see below).
 
  11. Function
+
                   `void CS_finish (void)'
 
      is to be last.  The function finishes code selector description
@@ -370,11 +392,12 @@ generated type and functions:
 
 File: nona.info,  Node: C++ Interface objects,  Next: Implementation file macros,  Prev: C Interface objects,  Up: Generated code
 
-C++ Interface objects
-=====================
+3.2 C++ Interface objects
+=========================
 
 C++ interface file (see option -c++) of CS consists of the following
 definitions of generated type and functions:
+
   1. There is constant with nonterminal name and prefix `CSNT_' for
      each nonterminal.  `CSNT' is abbreviation of code selector
      description nonterminal.  The constants are defined as macros
@@ -386,6 +409,7 @@ definitions of generated type and functions:
      representation.  This macro can be redefined (only in a C
      declaration section which starts with `%import').  By default this
      macro is defined as follows:
+
                      #define CS_NODE           struct IR_node_struct *
 
   3. Macro `CS_TYPE' defines type of terminal and nonterminal
@@ -394,9 +418,11 @@ definitions of generated type and functions:
      already describes terminal and nonterminal attribute types because
      in this case the default macro definition is absent.  By default
      this macro is defined as follows:
+
                      #define CS_TYPE           CS_node
 
   4. Type `CS_node' is defined as follows:
+
                      typedef CS_NODE CS_node;
 
   5. Type `CS_cover' describes a minimal cost cover.  It is pointer
@@ -405,7 +431,9 @@ definitions of generated type and functions:
      `CS_find_cover' and can be deleted by function
      `CS_traverse_cover'.  This class has the following friend
      functions:
+
        1. Function
+
                            `CS_cover CS_find_cover (CS_node node)'
 
           makes the first bottom up pass on directed acyclic graph
@@ -417,6 +445,7 @@ definitions of generated type and functions:
           directed acyclic graph (DAG) node is visited only once.
 
        2. Function
+
                            `void CS_start (void)'
 
           is to be called before any work with code selector
@@ -424,6 +453,7 @@ definitions of generated type and functions:
           description storage management (see below).
 
        3. Function
+
                            `void CS_finish (void)'
 
           is to be last.  The function finishes code selector
@@ -431,13 +461,16 @@ definitions of generated type and functions:
           `CS_start' can be called after this function call.
 
      This class has also the following class functions:
+
        1. Function
+
                            `int CS_it_is_axiom (int nonterminal)'
 
           returns 1 if there is a minimal cost cover for given
           nonterminal in given cover, 0 otherwise.
 
        2. Function
+
                            `CS_TYPE CS_traverse_cover (int nonterminal)'
 
           makes the second bottom up, left to right pass and fulfills
@@ -453,6 +486,7 @@ definitions of generated type and functions:
           of a directed acyclic graph.
 
        3. Function
+
                            `void CS_delete_cover (void)'
 
           frees memory allocated to the cover which was to be created
@@ -465,16 +499,18 @@ definitions of generated type and functions:
 
 File: nona.info,  Node: Implementation file macros,  Next: Storage management macros,  Prev: C++ Interface objects,  Up: Generated code
 
-Implementation file macros
-==========================
+3.3 Implementation file macros
+==============================
 
 CS implementation file uses the following macros generated by NONA.
 These macros can be redefined (in any C/C++ declaration section).
+
   1. Macro `CS_OPERATION(node)' must return value defined by a constant
      which represents mode of the low level internal representation
      node (see description of construction `%term').
 
   2. Macros
+
                   `CS_OPERAND_1_OF_1(node)',
                   `CS_OPERAND_1_OF_2(node)',
                   `CS_OPERAND_2_OF_2(node)', and so on.
@@ -486,6 +522,7 @@ These macros can be redefined (in any C/C++ declaration section).
      Macro of kind `CS_OPERAND_k_OF_n' defines k-th arc from the DAG
      node given as the macro argument which has `n' such arcs.  Let us
      consider tree pattern
+
                   `integer_plus (register, const8)'
 
      To access to children of node represented by terminal
@@ -493,6 +530,7 @@ These macros can be redefined (in any C/C++ declaration section).
      `CS_OPERAND_2_OF_2' will be used.
 
   3. Macros
+
                   `CS_STATE(node)',
                   `CS_SET_STATE(node, state)'
 
@@ -519,6 +557,7 @@ These macros can be redefined (in any C/C++ declaration section).
      message about the error.
 
    By default these macros are defined as follows:
+
          #define CS_OPERATION(node)        IR_NODE_MODE (node)
          #define CS_OPERAND_1_OF_1(node)   IR_operand (node)
          #define CS_OPERAND_1_OF_2(node)   IR_operand_1 (node)
@@ -535,8 +574,8 @@ These macros can be redefined (in any C/C++ declaration section).
 
 File: nona.info,  Node: Storage management macros,  Prev: Implementation file macros,  Up: Generated code
 
-Storage management macros
-=========================
+3.4 Storage management macros
+=============================
 
 NONA completely automatically generates macros of storage management
 for the cover.  Usually, the user does not have to care about it.  The
@@ -546,6 +585,7 @@ redefinition of one or more the following macros and placing them in a
 C declaration section.  But the user should know that all functions
 generated by NONA believe that the storage can not change its place
 after the allocation.
+
   1. Macros `CS_START_ALLOC()', `CS_FINISH_ALLOC()' are evaluated in
      functions correspondingly `CS_start' and `CS_finish' and are to be
      used to start and finish work with the storage manager.
@@ -556,6 +596,7 @@ after the allocation.
      being allocated or to point to memory being freed.
 
    By default these macros are defined as follows:
+
          #define CS_START_ALLOC()
          #define CS_FINISH_ALLOC()
          #define CS_ALLOC(ptr, size, ptr_type) \
@@ -565,57 +606,58 @@ after the allocation.
 
 File: nona.info,  Node: NONA Usage,  Next: Appendix 1 - Syntax of code selector description language,  Prev: Generated code,  Up: Top
 
-NONA Usage
-**********
+4 NONA Usage
+************
 
      NONA(1)                          User Manuals                          NONA(1)
-     
-     
-     
+
+
+
      NAME
             nona - code selector description translator
-     
+
      SYNOPSIS
             nona [ -c++ -v -debug -export -pprefix] specification-file
-     
-     
+
+
      DESCRIPTION
             Command  nona  translates  code  selector  description  (CS)  which  is
             described in specification file into code for  solving  code  selection
             (tree  matcher)  and  possibly other back-end tasks.  The specification
-            file must have suffix `.nona' determined by  CS  builds  cover  of  low
-            level  internal representation (which must be a directed acyclic graph)
-            by the tree patterns with minimal cost on the first bottom up pass  and
-            fulfills  actions associated with the choiced tree patterns on the sec-
-            ond bottom up pass.
-     
-     
+            file must have suffix ‘.nona’.
+              Tree matcher determined by CS builds cover of low level internal rep-
+            resentation  (which  must be a directed acyclic graph) by the tree pat-
+            terns with minimal cost on  the  first  bottom  up  pass  and  fulfills
+            actions  associated with the choiced tree patterns on the second bottom
+            up pass.
+
+
             Generated code consists of interface and  implementation  files  having
             the  same  names  as one of specification file and correspondingly suf-
-            fixes `.h' and `.c' (C code) or `.cpp' (C++ code).
-     
-            Full documentation of OKA is in OKA User's manual.
-     
+            fixes ‘.h’ and ‘.c’ (C code) or ‘.cpp’ (C++ code).
+
+            Full documentation of OKA is in OKA User’s manual.
+
      OPTIONS
             The options which are known for NONA are:
-     
+
             -c++   NONA generates C++ code instead of C code (default).
-     
+
             -v     NONA outputs statistic information to standard output stream.
-     
+
             -debug NONA outputs debugging information during execution of  function
-                   `CS_find_cover' and `CS_traverse_cover' (see generated code).
-     
+                   ‘CS_find_cover’ and ‘CS_traverse_cover’ (see generated code).
+
             -export
                    NONA generates macros defining identifiers of terminals as inte-
                    ger constants and inclusion of  their  in  the  interface  file.
                    Usually  the user himself declares the identifiers in a C decla-
                    rations section.
-     
+
             -pprefix
-                   NONA generates names starting with prefix  `prefix'  instead  of
-                   `CS'.
-     
+                   NONA generates names starting with prefix  ‘prefix’  instead  of
+                   ‘CS’.
+
      FILES
             file.nona
                    NONA specification file
@@ -625,49 +667,50 @@ NONA Usage
                    generated C++ implementation file
             file.h
                    generated interface file
-     
+
             There are no any temporary files used by NONA.
-     
+
      ENVIRONMENT
             There are no environment variables which affect NONA behavior.
-     
+
      DIAGNOSTICS
             NONA diagnostics is self-explanatory.
-     
+
      AUTHOR
             Vladimir N. Makarov, vmakarov@users.sourceforge.net
-     
+
      SEE ALSO
             msta(1), shilka(1), sprut(1), oka(1).  NONA manual.
-     
+
      BUGS
             Please, report bugs to cocom-bugs@lists.sourceforge.net.
-     
-     
-     
+
+
+
      COCOM                             5 Apr 2001                           NONA(1)
 
 
 File: nona.info,  Node: Appendix 1 - Syntax of code selector description language,  Prev: NONA Usage,  Up: Top
 
-Appendix 1 - Syntax of code selector description language
-*********************************************************
+5 Appendix 1 - Syntax of code selector description language
+***********************************************************
 
 YACC notation is used to describe full syntax of code selector
 description language.
+
        %token PERCENTS LEFT_PARENTHESIS RIGHT_PARENTHESIS
               LEFT_ANGLE_BRACKET RIGHT_ANGLE_BRACKET COMMA COLON SEMICOLON
               IDENTIFIER CODE_INSERTION EXPRESSION ADDITIONAL_C_CODE
-     
+
        %token COMMUTATIVE LOCAL IMPORT EXPORT UNION TERM TYPE IF
-     
+
        %start description
-     
+
        %%
-     
+
        description : declaration_part  PERCENTS  rule_list  ADDITIONAL_C_CODE
                    ;
-     
+
        declaration_part :
                         | declaration_part  commutative_declaration
                         | declaration_part  term_declaration
@@ -677,59 +720,59 @@ description language.
                         | declaration_part  EXPORT CODE_INSERTION
                         | declaration_part  UNION CODE_INSERTION
                         ;
-     
+
        term_declaration : TERM  optional_type
                         | term_declaration  term_identifier
                         ;
-     
+
        commutative_declaration : COMMUTATIVE  optional_type
                                | commutative_declaration  term_identifier
                                ;
-     
+
        type_declaration : TYPE  type
                         | type_declaration  term_or_nonterm_identifier
                         ;
-     
+
        optional_type :
                      | type
                      ;
-     
+
        type : LEFT_ANGLE_BRACKET  IDENTIFIER  RIGHT_ANGLE_BRACKET
             ;
-     
+
        rule_list :
                  | rule_list  rule
                  ;
-     
+
        rule : nonterm_identifier  COLON  pattern
               optional_cost  optional_constraint  optional_action  SEMICOLON
             ;
-     
+
        optional_action :
                        | CODE_INSERTION
                        ;
-     
+
        optional_constraint :
                            | IF  EXPRESSION
                            ;
-     
+
        optional_cost :
                      | EXPRESSION
                      ;
-     
+
        nonterm_identifier : IDENTIFIER
                           ;
-     
+
        term_identifier : IDENTIFIER
                        ;
-     
+
        term_or_nonterm_identifier : IDENTIFIER
                                   ;
-     
+
        pattern : IDENTIFIER  LEFT_PARENTHESIS  pattern_list  RIGHT_PARENTHESIS
                | term_or_nonterm_identifier
                ;
-     
+
        pattern_list : pattern
                     | pattern_list COMMA pattern
                     ;
@@ -737,18 +780,18 @@ description language.
 
 
 Tag Table:
-Node: Top121
-Node: Introduction645
-Node: Code selector description language2982
-Node: Layout of code selector description3637
-Node: Declarations5325
-Node: Rules8451
-Node: Generated code11462
-Node: C Interface objects12053
-Node: C++ Interface objects15978
-Node: Implementation file macros20419
-Node: Storage management macros23647
-Node: NONA Usage25062
-Node: Appendix 1 - Syntax of code selector description language28180
+Node: Top127
+Node: Introduction651
+Node: Code selector description language2992
+Node: Layout of code selector description3651
+Node: Declarations5348
+Node: Rules8473
+Node: Generated code11497
+Node: C Interface objects12092
+Node: C++ Interface objects16035
+Node: Implementation file macros20496
+Node: Storage management macros23737
+Node: NONA Usage25162
+Node: Appendix 1 - Syntax of code selector description language28225
 
 End Tag Table

@@ -1487,7 +1487,7 @@ SYNOPSIS
 
 
 DESCRIPTION
-       SPRUT (internal representation definition translator)  generates  stan-
+       SPRUT (internal representation definition translator)  generates  stan‐
        dard procedural interface ( SPI ) for work with internal representation
        which is described in specification file.  The specification file  must
        have suffix `.sprut' file is an extension (see language description) of
@@ -1524,29 +1524,29 @@ OPTIONS
               bigger.
 
        -flat-structure
-              SPRUT generates flat implementation of C/C++  structures  corre-
+              SPRUT generates flat implementation of C/C++  structures  corre‐
               sponding  to node types, i.e.  node type is represented by C/C++
               structure which  contains  members  corresponding  to  all  node
               fields  including  fields  declared in super types of given node
               type.  By default SPRUT generates the structures  which  contain
               only members corresponding to fields declared only in given node
-              type and member whose type is structure corresponding to immedi-
+              type and member whose type is structure corresponding to immedi‐
               ate  super type of given node type.  This considerably decreases
               number C/C++ declarations in interface file especially with many
               node types with multi-level inheritance.
 
        -fast  This  option forces to generate some tables as unpacked and as a
               consequence to speed up code for access to fields.   By  default
-              the   tables   are   generated   as  packed.   This  results  in
-              considerable memory economy.
+              the  tables  are generated as packed.  This results in consider‐
+              able memory economy.
 
        -long-node-size
-              IRTD generates many long tables which contain displacements rel-
+              IRTD generates many long tables which contain displacements rel‐
               ative  to  begin of C/C++ structures which implement node types.
               This option usage  forces  to  represent  the  displacements  as
               unsigned long.  As a consequence any size nodes can be used.  By
               default it is believed that size  of  structure  implementing  a
-              node  is represented by byte, i.e.  maximal size of C/C++ struc-
+              node  is represented by byte, i.e.  maximal size of C/C++ struc‐
               tures which implement nodes is supposed to be not  greater  than
               255  bytes  and  as a consequence much memory is economized.  It
               should be remember that function `IR_start' (see SPI)  generated
@@ -1566,7 +1566,7 @@ OPTIONS
        -debug SPRUT generates checking constraint determined by type  sub-type
               relations  in  node  field declaration in modification functions
               (see SPI).  Also other checks (e.g.  that a node has given field
-              and others) are fulfilled by SPI functions (but not macros) gen-
+              and others) are fulfilled by SPI functions (but not macros) gen‐
               erated under this option.
 
        -pprefix
@@ -1574,7 +1574,7 @@ OPTIONS
               objects.
 
        -no-line
-              SPRUT  does  not  generate files containing numbered line direc-
+              SPRUT  does  not  generate files containing numbered line direc‐
               tives.
 
        -all   SPRUT generates all SPI functions.  Its effect is equivalent  to
@@ -1590,27 +1590,27 @@ OPTIONS
        -free  SPRUT generates function for deletion of nodes (see SPI).
 
        -free-graph
-              SPRUT generates functions for deletion of graphs and nodes  (see
+              SPRUT  generates functions for deletion of graphs and nodes (see
               SPI).
 
        -copy  SPRUT generates function for copying nodes (see SPI).
 
        -copy-graph
-              SPRUT  generates  functions  for  copying  graphs and nodes (see
+              SPRUT generates functions for  copying  graphs  and  nodes  (see
               SPI).
 
-       -equal SPRUT generates function for  determination  of  nodes  equality
+       -equal SPRUT  generates  function  for  determination of nodes equality
               (see SPI).
 
        -equal-graph
-              SPRUT  generates functions for determination of nodes and graphs
+              SPRUT generates functions for determination of nodes and  graphs
               equality (see SPI).
 
-       -check SPRUT generates function  for  checking  node  constraints  (see
+       -check SPRUT  generates  function  for  checking  node constraints (see
               SPI).
 
        -check-graph
-              SPRUT  generates  functions  for  checking nodes and graphs con-
+              SPRUT generates functions for checking  nodes  and  graphs  con‐
               straints (see SPI).
 
        -print SPRUT generates function for printing nodes (see SPI).
@@ -1624,16 +1624,16 @@ OPTIONS
               SPRUT generates function for traversing graphs (see SPI).
 
        -reverse-traverse
-              SPRUT generates function  for  reverse  traversing  graphs  (see
+              SPRUT  generates  function  for  reverse  traversing graphs (see
               SPI).
 
        -transform
-              SPRUT  generates  functions for transforming acyclic graphs (see
+              SPRUT generates functions for transforming acyclic  graphs  (see
               SPI).
 
        -no-node-name
               SPRUT does not generate array containing node names (see SPI) if
-              it  is  not necessary.  For example, the array is necessary when
+              it is not necessary.  For example, the array is  necessary  when
               function for print of nodes are generated.
 
 FILES

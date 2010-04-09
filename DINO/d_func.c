@@ -2248,8 +2248,7 @@ chdir_call (int_t pars_number)
 {
   string_func_start (pars_number, CHDIR_NAME);
   errno = 0;
-  chdir (ER_pack_els (ER_vect (ctop)));
-  if (errno)
+  if (chdir (ER_pack_els (ER_vect (ctop))) < 0 && errno)
     process_system_errors (CHDIR_NAME);
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
@@ -4032,7 +4031,9 @@ getgroups_call (int_t pars_number)
   els_number = getgroups (0, NULL);
   VLO_NULLIFY (temp_vlobj);
   VLO_EXPAND (temp_vlobj, sizeof (GETGROUPS_T) * els_number);
-  getgroups (els_number, (GETGROUPS_T *) VLO_BEGIN (temp_vlobj));
+  if (getgroups (els_number, (GETGROUPS_T *) VLO_BEGIN (temp_vlobj)) < 0
+      && errno)
+    process_system_errors (GETGROUPS_NAME);
   for (grs_n = i = 0; i < els_number; i++)
     if (getgrgid (((GETGROUPS_T *) VLO_BEGIN (temp_vlobj)) [i]) != NULL)
       grs_n++;

@@ -16,13 +16,12 @@ translates code selector description (CS) which is
 described in specification file into code for solving code
 selection (tree matcher) and possibly other back-end tasks.  The
 specification file must have suffix
-.B `.nona'
-.  Tree matcher
-determined by CS builds cover of low level internal
-representation (which must be a directed acyclic graph) by the
-tree patterns with minimal cost on the first bottom up pass and
-fulfills actions associated with the choiced tree patterns on the
-second bottom up pass.
+.B `.nona'.
+  Tree matcher determined by CS builds cover of low level internal
+representation (which must be a directed acyclic graph) by the tree
+patterns with minimal cost on the first bottom up pass and fulfills
+actions associated with the choiced tree patterns on the second bottom
+up pass.
 
 .PP
 Generated code consists of interface and implementation files

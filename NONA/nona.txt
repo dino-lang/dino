@@ -580,15 +580,16 @@ DESCRIPTION
        Command  nona  translates  code  selector  description  (CS)  which  is
        described in specification file into code for  solving  code  selection
        (tree  matcher)  and  possibly other back-end tasks.  The specification
-       file must have suffix `.nona' determined by  CS  builds  cover  of  low
-       level  internal representation (which must be a directed acyclic graph)
-       by the tree patterns with minimal cost on the first bottom up pass  and
-       fulfills  actions associated with the choiced tree patterns on the sec-
-       ond bottom up pass.
+       file must have suffix `.nona'.
+         Tree matcher determined by CS builds cover of low level internal rep‐
+       resentation  (which  must be a directed acyclic graph) by the tree pat‐
+       terns with minimal cost on  the  first  bottom  up  pass  and  fulfills
+       actions  associated with the choiced tree patterns on the second bottom
+       up pass.
 
 
        Generated code consists of interface and  implementation  files  having
-       the  same  names  as one of specification file and correspondingly suf-
+       the  same  names  as one of specification file and correspondingly suf‐
        fixes `.h' and `.c' (C code) or `.cpp' (C++ code).
 
        Full documentation of OKA is in OKA User's manual.
@@ -604,9 +605,9 @@ OPTIONS
               `CS_find_cover' and `CS_traverse_cover' (see generated code).
 
        -export
-              NONA generates macros defining identifiers of terminals as inte-
+              NONA generates macros defining identifiers of terminals as inte‐
               ger constants and inclusion of  their  in  the  interface  file.
-              Usually  the user himself declares the identifiers in a C decla-
+              Usually  the user himself declares the identifiers in a C decla‐
               rations section.
 
        -pprefix

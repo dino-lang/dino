@@ -1,3 +1,37 @@
+2010-04-09  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* Makefile.in: use INSTALL, INSTALLDATA, prefix, docdir.  Add
+	dino-copyright, cocom-copyright.  Install document files for cocom
+	and dino.  New entries rpm, deb, dinorpm, dinodeb.
+	* dino-copyright, cocom-copyright, dino.dsc, cocom.dsc: New files.
+	* cocom.info: rebuild.
+	* cocom.spec: Change doc files.
+	* AMMUNITION/Makefile.in: Use docdir.  Install document files.
+	* DINO/Makefile.in: Ditto.
+	* MSTA/Makefile.in: Ditto.
+	* NONA/Makefile.in: Ditto.
+	* OKA/Makefile.in: Ditto.
+	* SHILKA/Makefile.in: Ditto.
+	* SPRUT/Makefile.in: Ditto.
+	* AMMUNITION/ammunition++.info, AMMUNITION/ammunition.info:
+	Rebuild.
+	* AMMUNITION/errors.c (default_output_error_function): Use fputs.
+	* AMMUNITION/errors.cpp (errors::output_error_function): Ditto.
+	* DINO/d_func.c (chdir_call): Check chdir return status.
+	(getgroups_call): Check getgroups return status.
+	* DINO/dino.info: rebuild.
+	* DINO/dino.tst.in (test 496): Change expected output.
+	* MSTA/msta.info, OKA/oka.info, SHILKA/shilka.info,
+	NONA/nona-{1-5}.html, NONA/nona.html, NONA/nona.dvi,
+	NONA/nona.info, NONA/nona.pdf, NONA/nona.ps, NONA/nona.txt,
+	SPRUT/sprut-{1-5}.html, SPRUT/sprut.html, SPRUT/sprut.dvi,
+	SPRUT/sprut.info, SPRUT/sprut.pdf, SPRUT/sprut.ps,
+	SPRUT/sprut.txt: Rebuild.
+	* NONA/nona.1, SPRUT/sprut.1: Minor changes to remove warnings.
+	* AMMUNITION/ammunition++.info-{1-4},
+	AMMUNITION/ammunition.info-{1-3}: Remove.
+	* cocom/cocom.info, cocom/sgml-info, cocom/sgml-postinfo: Remove.
+	
 2010-02-13  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* dino.spec, cocom.spec: Use /usr/share/man instead of /usr/man.

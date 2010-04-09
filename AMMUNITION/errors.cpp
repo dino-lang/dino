@@ -166,7 +166,7 @@ errors::output_error_function (int appended_message_flag, position_t
   position_t *position_ptr;
 
   if (position.file_name () == NULL)
-    fprintf (stderr, message);
+    fputs (message, stderr);
   else
     {
       assert (position.path () != NULL);

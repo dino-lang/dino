@@ -85,6 +85,9 @@ libdir=@libdir@
 # The directory for installation of header files.
 includedir=@includedir@
 
+# The directory for installation of documentation
+docdir=@docdir@/cocom
+
 # Utility for installing executables.
 INSTALL=@INSTALL@
 
@@ -331,6 +334,14 @@ install: all
 	$(INSTALLDATA) $(srcdir)/arithm.h $(DESTDIR)/$(includedir)/arithm.h
 	$(INSTALLDATA) $(srcdir)/IEEE.h $(DESTDIR)/$(includedir)/IEEE.h
 	$(INSTALLDATA) $(srcdir)/earley.h $(DESTDIR)/$(includedir)/earley.h
+	-mkdir -p $(DESTDIR)/$(docdir)
+	$(INSTALLDATA) $(srcdir)/ammunition.txt $(srcdir)/ammunition*.html\
+          $(srcdir)/ammunition.info* $(srcdir)/ammunition.pdf\
+          $(srcdir)/ammunition.dvi $(srcdir)/ammunition.ps\
+          $(srcdir)/ammunition++.txt $(srcdir)/ammunition++*.html\
+          $(srcdir)/ammunition++.info* $(srcdir)/ammunition++.pdf\
+          $(srcdir)/ammunition++.dvi $(srcdir)/ammunition++.ps\
+          $(DESTDIR)/$(docdir)
 
 # Delete the installed files and the installation directories.
 uninstall:
@@ -351,6 +362,19 @@ uninstall:
 	rm -f $(DESTDIR)/$(includedir)/IEEE.h
 	rm -f $(DESTDIR)/$(includedir)/earley.h
 	-rmdir $(DESTDIR)/$(includedir)
+	rm -f $(DESTDIR)/$(docdir)/ammunition.txt \
+          $(DESTDIR)/$(docdir)/ammunition*.html\
+          $(DESTDIR)/$(docdir)/ammunition.info*\
+          $(DESTDIR)/$(docdir)/ammunition.pdf\
+          $(DESTDIR)/$(docdir)/ammunition.dvi\
+          $(DESTDIR)/$(docdir)/ammunition.ps\
+          $(DESTDIR)/$(docdir)/ammunition++.txt\
+          $(DESTDIR)/$(docdir)/ammunition++*.html\
+          $(DESTDIR)/$(docdir)/ammunition++.info*\
+          $(DESTDIR)/$(docdir)/ammunition++.pdf\
+          $(DESTDIR)/$(docdir)/ammunition++.dvi\
+          $(DESTDIR)/$(docdir)/ammunition++.ps
+	-rmdir $(DESTDIR)/$(docdir)
 
 # Delete all temporary files and the libraries.
 clean:

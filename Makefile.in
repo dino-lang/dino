@@ -1,4 +1,3 @@
-#
 #   FILE NAME:   Makefile
 #
 #   Copyright (C) 1997-2007 Vladimir Makarov.
@@ -28,6 +27,9 @@
 #        on make command line:
 #            distdir     the subdirectory used for creation of compressed
 #                        distribution tar file
+#            prefix      common prefix for installation directories
+#            INSTALL     utility used for installing executables
+#            INSTALLDATA utility used for installing nonexecutables
 #            ETAGS       utility used for creation of COCOM tag table
 #
 #   MAKEFILE ENTRIES:
@@ -69,6 +71,12 @@ distdir = cocom-0.996
 # It is necessary only for RPM.
 DESTDIR=
 
+# Utility for installation `oka'.
+INSTALL=@INSTALL@
+
+# Utility for installing nonexecutables.
+INSTALLDATA=@INSTALL_DATA@
+
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file only for DINO.
 distdinodir = dino-0.55
@@ -85,13 +93,20 @@ only_cocom_source_files =
 # COCOM only end
 
 # Additional files
-additional_files = COPYING COPYING.LIB configure install-sh
+additional_files = COPYING COPYING.LIB configure install-sh dino-copyright
 
 # COCOM only start
-only_cocom_additional_files = README INSTALL CHANGES
+only_cocom_additional_files = README INSTALL CHANGES cocom-copyright
 # COCOM only end
 
 doc_files =
+
+# Common prefix for installation directories.
+# NOTE: this directory must exist when you start installation.
+prefix=@prefix@
+
+# The directory for installation of documentation
+docdir=@docdir@
 
 # Files which are not in distribution
 additional_rcs_files = configure.in acconfig.h
@@ -162,19 +177,45 @@ install: all
 	    (cd $$i; $(MAKE) DESTDIR=$(DESTDIR) install);\
 	  fi;\
 	done
+	-mkdir -p $(DESTDIR)/$(docdir)/cocom
+	$(INSTALLDATA) $(srcdir)/README $(srcdir)/CHANGES \
+            $(srcdir)/cocom.txt $(srcdir)/cocom*.html \
+            $(srcdir)/cocom.info $(srcdir)/cocom.pdf $(srcdir)/cocom.dvi \
+            $(srcdir)/cocom.ps $(DESTDIR)/$(docdir)/cocom
+	$(INSTALLDATA) $(srcdir)/cocom-copyright \
+            $(DESTDIR)/$(docdir)/cocom/copyright
 # COCOM only end
 	(cd DINO; $(MAKE) DESTDIR=$(DESTDIR) install)
+	-mkdir -p $(DESTDIR)/$(docdir)/dino
+	$(INSTALLDATA) $(srcdir)/CHANGES $(srcdir)/README \
+            $(DESTDIR)/$(docdir)/dino
+	$(INSTALLDATA) $(srcdir)/dino-copyright \
+            $(DESTDIR)/$(docdir)/dino/copyright
 
 # Delete the installed files and the installation directories.
 uninstall:
 # COCOM only start
+	rm -f $(DESTDIR)/$(docdir)/cocom/README\
+            $(DESTDIR)/$(docdir)/cocom/CHNAGES\
+            $(DESTDIR)/$(docdir)/cocom/cocom.txt\
+            $(DESTDIR)/$(docdir)/cocom/cocom*.html \
+	    $(DESTDIR)/$(docdir)/cocom/cocom.pdf\
+            $(DESTDIR)/$(docdir)/cocom/cocom.dvi\
+            $(DESTDIR)/$(docdir)/cocom/cocom.ps\
+            $(DESTDIR)/$(docdir)/cocom/copyright
+	-rmdir $(DESTDIR)/$(docdir)/cocom
 	for i in $(directories) $(only_cocom_directories);do\
 	  if test $$i != DINO; then\
             (cd $$i; $(MAKE) DESTDIR=$(DESTDIR) uninstall);\
 	  fi;\
 	done
 # COCOM only end
+	rm -f $(DESTDIR)/$(docdir)/dino/copyright
+	rm -f $(DESTDIR)/$(docdir)/dino/CHANGES
+	rm -f $(DESTDIR)/$(docdir)/dino/README
+	-rmdir $(DESTDIR)/$(docdir)/dino
 	(cd DINO; $(MAKE) DESTDIR=$(DESTDIR) uninstall)
+	-rmdir $(DESTDIR)/$(docdir)
 
 # Deletion of temporary (object) files.
 clean:
@@ -316,6 +357,50 @@ $(srcdir)/cocom.dvi $(srcdir)/cocom.pdf: $(srcdir)/cocom.sgml.in
 $(srcdir)/cocom.ps: $(srcdir)/cocom.dvi
 	dvips -o $@ $(srcdir)/cocom.dvi
 # COCOM only end
+
+# COCOM only start
+rpm: dist
+	rm -rf build-rpm && mkdir -p build-rpm/SOURCES
+	mv $(distdir).tar.gz build-rpm/SOURCES
+	rpmbuild -ba --define "_topdir `pwd`/build-rpm" $(srcdir)/cocom.spec
+	mv build-rpm/RPMS/*/cocom*.rpm .
+	rpm --resign cocom*.rpm
+
+deb: dist
+	rm -rf build-debian debian && mkdir -p build-debian debian/DEBIAN
+	(cd build-debian \
+	 && ../$(distdir)/configure --srcdir=../$(distdir) --prefix=/usr \
+	 && make && make DESTDIR=`pwd`/../debian install)
+	strip debian/usr/bin/* debian/usr/lib/*/*.so \
+	&& gzip --best debian/usr/share/man/man1/*.1 \
+	&& $(SED) "s/ARCH/$(ARCH)/" $(srcdir)/cocom.dsc > debian/DEBIAN/control \
+	&& fakeroot dpkg-deb --build debian \
+	&& rm -rf build-debian debian \
+	&& mv debian.deb $(distdir)_$(ARCH).deb \
+	&& lintian -X chg $(distdir)_$(ARCH).deb \
+	&& debsigs --sign=origin $(distdir)_$(ARCH).deb
+# COCOM only end
+
+dinorpm: distdino
+	rm -rf build-rpm && mkdir -p build-rpm/SOURCES
+	mv $(distdinodir).tar.gz build-rpm/SOURCES
+	rpmbuild -ba --define "_topdir `pwd`/build-rpm" $(srcdir)/dino.spec
+	mv build-rpm/RPMS/*/dino*.rpm .
+	rpm --resign dino*.rpm
+
+dinodeb: distdino
+	rm -rf build-debian debian && mkdir -p build-debian debian/DEBIAN
+	(cd build-debian \
+	 && ../$(distdinodir)/configure --srcdir=../$(distdinodir) --prefix=/usr \
+	 && make && make DESTDIR=`pwd`/../debian install)
+	strip debian/usr/bin/* debian/usr/lib/*/*.so \
+	&& gzip --best debian/usr/share/man/man1/*.1 \
+	&& $(SED) "s/ARCH/$(ARCH)/" $(srcdir)/dino.dsc > debian/DEBIAN/control \
+	&& fakeroot dpkg-deb --build debian \
+	&& rm -rf build-debian debian \
+	&& mv debian.deb $(distdinodir)_$(ARCH).deb \
+	&& lintian -X chg $(distdinodir)_$(ARCH).deb \
+	&& debsigs --sign=origin $(distdinodir)_$(ARCH).deb
 
 # Updating TAGS table for all COCOM sources.
 TAGS : make-TAGS

@@ -81,6 +81,9 @@ mandir=@mandir@
 # The directory for installation of `shilka.1'
 man1dir=$(mandir)/man1
 
+# The directory for installation of documentation
+docdir=@docdir@/cocom
+
 # Additional prefix used to install ammunition temporarily.  It is
 # necessary only for RPM.
 DESTDIR=
@@ -178,6 +181,11 @@ install: all
 	$(INSTALL) shilka $(DESTDIR)/$(bindir)/shilka
 	-mkdir -p $(DESTDIR)/$(man1dir)
 	$(INSTALLDATA) $(srcdir)/shilka.1 $(DESTDIR)/$(man1dir)/shilka.1
+	-mkdir -p $(DESTDIR)/$(docdir)
+	$(INSTALLDATA) $(srcdir)/shilka.txt $(srcdir)/shilka.info* \
+            $(srcdir)/shilka*.html \
+	    $(srcdir)/shilka.pdf $(srcdir)/shilka.dvi $(srcdir)/shilka.ps \
+            $(DESTDIR)/$(docdir)
 
 # Delete the installed files and the installation directories.
 uninstall:
@@ -186,6 +194,11 @@ uninstall:
 	rm -f $(DESTDIR)/$(man1dir)/shilka.1
 	-rmdir $(DESTDIR)/$(man1dir)
 	-rmdir $(DESTDIR)/$(mandir)
+	rm -f $(DESTDIR)/$(docdir)/shilka.txt $(DESTDIR)/$(docdir)/shilka.info*\
+            $(DESTDIR)/$(docdir)/shilka*.html\
+	    $(DESTDIR)/$(docdir)/shilka.pdf $(DESTDIR)/$(docdir)/shilka.dvi\
+            $(DESTDIR)/$(docdir)/shilka.ps
+	-rmdir $(DESTDIR)/$(docdir)
 
 # Deletion of object files of the translator, executable file `shilka' and also
 # deletion of `ird.c' and `ird.h' and also deletion of `yacc.c'.
