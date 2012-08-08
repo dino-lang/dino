@@ -1,3 +1,8 @@
+2012-08-07  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* configure.in: Check -Ofast.
+	* configure, cocom-config.h.in: Update.
+
 2010-04-09  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* cocom.spec: Remove removed doc files.

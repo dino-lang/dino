@@ -163,9 +163,23 @@ esac
 
 
 if test "$GCC" = yes; then
+  my_save_cflags="$CFLAGS"
+  CFLAGS=-Ofast
+  AC_MSG_CHECKING([whether CC supports -Ofast])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+      [AC_MSG_RESULT([yes])]
+      [fast=yes],
+      [AC_MSG_RESULT([no])]
+  )
+  CFLAGS="$my_save_cflags"
+  if test "$fast" = yes; then
+    CFLAGS="`echo $CFLAGS|sed s/-O2//` -Ofast"
+    CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -Ofast"
+  else
+    CFLAGS="`echo $CFLAGS|sed s/-O2//` -O3"
+    CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O3"
+  fi
   system=`uname -m`
-  CFLAGS="`echo $CFLAGS|sed s/-O2//` -O3"
-  CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O3"
   case $system in
 	i386*|i486*|i586*|i686*)
   	  CFLAGS="$CFLAGS -fomit-frame-pointer"
