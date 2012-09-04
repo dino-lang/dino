@@ -1,4 +1,28 @@
-2012-08-07  Vladimir Makarov  <vmakarov@redhat.com>
+2012-09-04  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* configure.in: Check -flto.
+	* configure: Update.
+	* DINO/d_main.c (main): Remove code inside #if 0.
+	* DINO/d_ir.sprut (if_stmt): New field common_part_pc.
+	* DINO/d_extern.sprut (func, class): Move field definitions
+	func_no and class_no upper.
+	* DINO/d_common.h (dump_flag): New external.
+	* DINO/d_dino.c (dump_flag): New.
+	(COMMAND_LINE_DESCRIPTION): Add description for -d.
+	(dino_main): Set up dump_flag.  Evaluate program if ! dump_flag.
+	* DINO/d_context.c (third_block_passing): Set up common_part_pc.
+	(go_through): Process block.
+	(fourth_block_passing): Process common_part_pc.
+	(print_indent, node_info_hash, node_info_eq, find_node_info): New
+	functions.
+	(initiate_node_tab, finish_node_tab, dump_code): Ditto.
+	(struct node_info): New.
+	(node_info, node_info_tab, node_info_os, current_node_num): New
+	static vars.
+	(last_goto_flag, curr_line_number): Ditto.
+	(test_context): Dump the IR code if dump_flag.
+
+2012-08-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* configure.in: Check -Ofast.
 	* configure, cocom-config.h.in: Update.
@@ -41,7 +65,7 @@
 	* AMMUNITION/ammunition++.info-{1-4},
 	AMMUNITION/ammunition.info-{1-3}: Remove.
 	* cocom/cocom.info, cocom/sgml-info, cocom/sgml-postinfo: Remove.
-	
+
 2010-02-13  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* dino.spec, cocom.spec: Use /usr/share/man instead of /usr/man.
@@ -118,13 +142,13 @@
 	DINO/dino.info, DINO/dino.pdf, DINO/dino.ps, DINO/dino.txt:
 	Update.
 	* DINO/O/FE/lex.d: Add newline at the end of file.
-	
+
 2007-05-23  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/msta.tst.in (test 11): Change conflicts number.
 	* MSTA/contexts.c (context_concat): Use temporary context.
 
-2007-05-15  Vladimir Makarov  <vmakarov@redhat.com>
+2007-05-15  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* contexts.c (get_new_token_string): Change assert.
 	(token_string_length): Check pointer after length.
@@ -139,7 +163,7 @@
 	from current iteration.  Rewrite with using <e>.
 	(set_FIRST_of_rule_tail): Add <e> for rule end.
 	(FIRST_of_tail): Use concat only.
-	
+
 2007-05-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/relation.c (set_nonterm_relation_FIRST): Add parameter
@@ -177,7 +201,7 @@
 	set_nonterm_relation_FIRST): Change result type.  Rewrite.
 	(evaluate_nonterminals_relation_FIRST,
 	evaluate_minimal_derived_string_length): Use iterative algorithm.
-	
+
 2007-04-13  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.sgml.in (strtime): %% -> %.
@@ -185,7 +209,7 @@
 	DINO/dino.info-1, DINO/dino.info-2, DINO/dino.info-3,
 	DINO/dino.info-4, DINO/dino.pdf, DINO/dino.ps, DINO/dino.txt:
 	Update.
-	
+
 2007-04-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_context.c (third_expr_processing): Set up position for
@@ -245,7 +269,7 @@
 	/usr/lib/dino-%{version}/gmp.so): New.
 	* MSTA/compare.tst.in: Don't fgrep with is.
 	* OKA/Makefile.in: Remove dsp and dsw files.
-	
+
 2007-02-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Don't run AWK for spell checker and reversing
@@ -257,7 +281,7 @@
 	DINO/dino.info-1, DINO/dino.info-2, DINO/dino.info-3,
 	DINO/dino.info-4, DINO/dino.pdf, DINO/dino.ps, DINO/dino.txt:
 	Update.
-	
+
 2007-02-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/Makefile.in (dinolibdir, dinoincludedir): Rename from
@@ -618,7 +642,7 @@
 	* SPRUT/sprut.{dsp,dsw}: Ditto.
 	* cocom/cocom.{c,dsp,dsw}: Ditto.
 	* dinolang/dinolang.{c,dsp,dsw}: Ditto.
-		
+	
 2005-01-17  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* CHANGES: Major changes since the last release.
@@ -725,7 +749,7 @@
 	Update.
 
 	* dino.spec, INSTALL, DINO-INSTALL: Change version.
-	
+
 2004-09-10  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* cocom.sgml.in: Add pdf.
@@ -744,7 +768,7 @@
 
         * armoury.html, msta.jpg, nona.jpg, oka.jpg, shilka.jpg,
 	sprut.jpg: Remove files.
-	
+
 	* Makefile.in: Remove references to the files.  Add pdf file
 	generation.  Recursive calls for doc.  Use linuxdoc.
 
@@ -752,23 +776,23 @@
 	generation.  Use linuxdoc.
 
 	* DINO/Makefile.in: Ditto.
-	
+
 	* MSTA/Makefile.in: Ditto.
-	
+
 	* NONA/Makefile.in: Ditto.
-	
+
 	* OKA/Makefile.in: Ditto.
-	
+
 	* SHILKA/Makefile.in: Ditto.
-	
+
 	* SPUT/Makefile.in: Ditto.
-	
+
 	* cocom.pdf, AMMUNITION/ammunition++.pdf,
 	AMMUNITION/ammunition.pdf, MSTA/msta.pdf, NONA/nona.pdf,
 	OKA/oka.pdf, SHILKA/shilka.pdf, SPRUT/sprut.pdf: New files.
 
 	* cocom.spec: Remove garbage at the end of file.
-	
+
 	* cocom.sgml.in: Remove russian armoury and reference to
 	armoury.html.
 
@@ -783,7 +807,7 @@
 
 	* MSTA/msta.dvi, MSTA/msta*.html, MSTA/msta.info, MSTA/msta.ps,
 	MSTA/msta.txt: Ditto.
-	
+
 	* NONA/nona.dvi, NONA/nona*.html, NONA/nona.info, NONA/nona.ps,
 	NONA/nona.txt: Ditto.
 
@@ -792,10 +816,10 @@
 
 	* SHILKA/shilka.dvi, SHILKA/shilka*.html, SHILKA/shilka.info,
 	SHILKA/shilka.ps, SHILKA/shilka.txt: Ditto.
-	
+
 	* SPRUT/sprut.dvi, SPRUT/sprut*.html, SPRUT/sprut.info,
 	SPRUT/sprut.ps, SPRUT/sprut.txt: Ditto.
-	
+
 2004-08-24  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (evaluate_code): Add code to use labels instead of
@@ -826,11 +850,11 @@
 	* MSTA/quality.tst.in: Define CXX and use it for C++ tests.
 
 	* MSTA/fcalc1.y: New file.
-	
+
 	* OKA/SCHEDULE/schedtst.c (main): Change return type.
 
 	* OKA/SCHEDULE/schedtst.cpp (main): Ditto.
-	
+
 2004-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/{arithm.c, arithm.cpp}
@@ -863,16 +887,16 @@
 	(265, 284): Change line in <environment>.
 	(495): Skip test for datagram socket.
 	(511-533): New tests for format output.
-	
+
 	* DINO/d_types.h: Remove test on 32 long and shorts.
 
         * DINO/dino.sgml.in: Add documenation for invfmt, putf, fputf,
 	sputf.
-	
+
 	* DINO/{dino.html, dino-4.html, dino-8.html, dino.dvi, dino.info,
 	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
 	dino.txt}: Update.
-	
+
 2003-12-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/O/FE/tree.d: Remove it.
@@ -907,7 +931,7 @@
 	opening file.
 	* DINO/O/LIB/error.d (simple_fatal): New function.
 	(warn): Add prefix to message.
-	
+
 2003-12-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/O/DEBUG: New directory.
@@ -917,7 +941,7 @@
 	com-scan, com-tree}: New files.
 	* DINO/O/DEBUG/{Exp.ob, Export.ob, Imp.ob, List.ob, Sieve.ob}: New
 	files.
-	
+
 2003-12-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/O: New directory.
@@ -939,7 +963,7 @@
 	immutable.
 
 	* DINO/dino.1: Remove apostrophes.
-	
+
 	* DINO/dino.sgml.in: Making immutable table key in assignment.
 
 	* DINO/dino.txt, DINO/dino.ps, DINO/dino.info*, DINO/dino.dvi,
@@ -955,14 +979,14 @@
 2003-09-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
         * configure.in: Check size of char *.
-	
+
 	* configure: Update.
 
 	* AMMUNITION/cocom-config.h.in: Add undef for SIZEOF_CHAR_P.
 
 	* AMMUNITION/earley.c (make_parse):  Add state to the stack even
 	if the situation position is zero.
-	
+
 	* AMMUNITION/{earley.tst.in, earley++.tst.in}: Add test for empty
 	rule with anode.
 
@@ -970,11 +994,11 @@
 	(initiate_blocks_table): Rename it onto initiate_run_tables.
 	(set_func_class_no): New function.
 	(finish_blocks_table): rename it onto finish_run_tables.
-	
+
 	* DINO/Makefile.in: Rename blocktab on runtab.
 
 	* DINO/dino.dsp: Rename blocktab on runtab.
-	
+
 	* DINO/d_common.h: Define SIZEOF_CHAR_P for WIN32.
 
 	* DINO/d_extern.sprut (func): Change field func onto func_no.
@@ -991,7 +1015,7 @@
 	(node_mode_2_type, destroy_instances, hash_val, eq_key):
 
 	* DINO/d_ir.sprut: (func_or_class, external_func): New field no.
-	
+
 	* DINO/d_context.c: Rename blocktab on runtab.
 	(second_block_passing): Set up func_class_no.
 
@@ -1004,7 +1028,7 @@
 	(execute_a_period_operation): Use field func_{class_}no instead of
 	func{class}.
 	(evaluate_code): Ditto.
-	
+
 2003-05-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.tst.in (test 41): Print used memory for linux.
@@ -1041,7 +1065,7 @@
 
 	* d_yacc.y: Use new field names actuals, proc_actuals, next_elist,
 	block_scope, access_ident_public_flag.
-	
+
         * d_extern.sprut (heap_obj): Add field immutable.
 	(immutable_obj, context): Remove them.
 	(heap_vect_tab, heap_hideblock): Inherit heap_obj.
@@ -1051,7 +1075,7 @@
 	* d_func.c (internal_inside_call): Use new field name block_scope.
 	(get_file, get_stat, create_instance, init_read_token,
 	int_earley_parse): Use new field name instance_class.
-	
+
 	* d_heap.c (heap_object_size, traverse_used_heap_object): Use new
 	field name instance_class.
 	(change_obj_refs): Use _ER_M_context_heap_obj instead of
@@ -1063,7 +1087,7 @@
 	(block_cprocess): Set up status as PS_STARTED if at least one
 	statement has been executed.
 	(process_quantum, executed_stmts_count): Make them signed.
-	
+
 	* d_context.c (first_expr_processing): Use new field names actuals
 	and next_elist.
 	(process_extension_block): Use new field name block_scope.
@@ -1090,9 +1114,9 @@
 	next_elist, for_body_pc, foreach_body_pc and new fields ch_val,
 	i_val, f_val, str_val.
 	(eval_error): use new field name instance_class.
-	
+
 2003-03-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
-	
+
 	* DINO/d_types.h (__infinity): Add missed ;
 
 2003-03-07  Vladimir Makarov  <vmakarov@users.sourceforge.net>
@@ -1110,7 +1134,7 @@
 	* DINO/d_run.sprut (FEW_REGISTERS): Define for x86.
 	(below_ctop): define as macros if FEW_REGISTERS is defined.
 	(SET_TOP, TOP_UP, TOP_DOWN): Make variants for FEW_REGISTERS.
-	
+
 	* DINO/d_heap.c (below_ctop): undefine if FEW_REGISTERS is defined.
 
 2003-01-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
@@ -1133,7 +1157,7 @@
 	* DINO/d_heap.c (remove_tab_el): Decrease number of elements too.
 
 	* DINO/dino.tst.in (507th test): New test for checking the bug.
-	
+
 2002-05-21  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* Makefile.in (distdir, distdinodir): Set up the new versions.
@@ -1155,11 +1179,11 @@
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* CHANGES, DINO-CHANGES: Update them.
-	
+
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/socket_int.c (h_errno): Check cywgin too.
-	
+
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* OKA/gen.c (unit_on_all_alternatives,
@@ -1171,14 +1195,14 @@
 	* DINO/dino.tst.in (78, 79, 81): Process ia64 output.
 
 	* DINO/socket.d (stream_server): Remove debuging output.
-	
+
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* OKA/oka.sgml.in: Add comments about checking automata of units
 	in exclusion and on reservation alternatives.
 
 	* OKA/{oka-2.html, oka.dvi, oka.info, oka.ps, oka.txt}: Update.
-	
+
 2002-05-17  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* OKA/oka.tst: New file.
@@ -1204,7 +1228,7 @@
 
 	* OKA/ird.sprut (single_unit_declaration): Add new fields
 	the_same_automaton_unit, the_same_automaton_message_reported_p.
-	
+
 2002-05-15  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.c (sit_number): Add the sit_number.
@@ -1277,7 +1301,7 @@
 	vlobject.tst.in}: Ditto.
 
 	* Makefile.in: Ditto.
-	
+
 2002-05-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_func.c (PATH_MAX): Define it for WIN32.
@@ -1294,13 +1318,13 @@
 
 	* AMMUNITION/earley.c (set_core_hash, parse_state_hash,
 	trans_visit_node_hash, reserv_mem_hash): Use size_t.
-	
+
 2002-05-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_heap.c (expand_vector): Fix bug with disp.
-	
+
 	* DINO/d_func.c (tree_heap_node_hash): Use size_t.
-	
+
 	* DINO/socket_int.c (h_errno): Check on macro.
 
 2002-05-10  Vladimir Makarov  <vmakarov@users.sourceforge.net>
@@ -1327,7 +1351,7 @@
 	* DINO/compare.tst: Use /dev/null as AWK input for startup test.
 
 	* cocom/cocom.dsw: Add projects ipcerr and socket.
-	
+
 2002-05-09  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/IEEE++.tst.in: Extend arrays for results.
@@ -1437,7 +1461,7 @@
 	(socket_address): Return addresses of external objects.
 
 	* dinolang/dinolang.dsw: Add socket project.
-	
+
 2002-05-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.c (earley_create_grammar): Initialize cost_p.
@@ -1470,7 +1494,7 @@
 
 	* DINO/{dino.dvi, dino.info*, dino.ps, dino.txt, dino.html,
 	dino-4.html}: Update.
-	
+
 2002-04-29  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in: New tests for getservbyname, getservbyport.
@@ -1491,7 +1515,7 @@
 	* DINO/socket_int.c: Add code for windows.
 	(_setservent, _getservent, _endservent): Remove them.
 	(_getservbyport, _getservbyname, form_servent): New functions.
-	
+
 2002-04-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (find_context_by_scope): Remove checking cached
@@ -1507,7 +1531,7 @@
 	`var_cached_container_tick'.
 
 	* DINO/dino.tst.in: Add test for the cashes in complicated cases.
-	
+
 2002-04-11  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_ir.sprut (ENVIRONMENT): Rename i into __i.
@@ -1520,13 +1544,13 @@
 
 	* dino.info, dino.info-1, dino.info-2, dino.info-3, dino.info-4,
 	dino.ps, dino.dvi, dino.txt, dino-8.html, dino-10.html: Update.
-	
+
 2002-03-31  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
         * DINO/dino.sgml.in: Edit it.
 
 	* DINO/dino.1: Ditto.
-	
+
 	* DINO/dino.html, DINO/dino-1.html, DINO/dino-2.html,
 	DINO/dino-3.html, DINO/dino-4.html, DINO/dino-5.html,
 	DINO/dino-6.html, DINO/dino-7.html, DINO/dino-8.html,
@@ -1548,7 +1572,7 @@
 	* DINO/dino.dvi, DINO/dino.info, DINO/dino.info-1,
 	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
 	DINO/dino.ps, DINO/dino.txt: Update.
-	
+
 	* DINO/dino.tst.in: Add tests for socket.
 
 2002-03-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
@@ -1587,7 +1611,7 @@
 	* DINO/d_main.c (get_library_search_function): Add code for ipcerr
 	and socket.
 	(ipcerr_address, socket_address): Add externals.
-	
+
 	* DINO/d_built.h (process_errno_call): New prototype.
 
 	* DINO/d_func.c (process_system_errors): Use strerror for
@@ -1637,7 +1661,7 @@
 	* DINO/ipcerr.d: New file.
 
 	* DINO/ipcerr_int.c: New file.
-	
+
 2002-03-18  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/earley.c (earley_set_lookahead_level): Check the
@@ -1674,7 +1698,7 @@
 	* DINO/{dino-10.html, dino-8.html, dino.dvi, dino.html, dino.info,
 	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
 	dino.txt): Update.
-	
+
 2002-03-15  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_func.c (int_earley_parse): Process case root==NULL.
@@ -1703,9 +1727,9 @@
 	always.
 
 	* AMMUNITION/earley.tst.in: Add test for right recursion.
-	
+
 	* AMMUNITION/earley++.tst.in: Ditto.
-	
+
 2002-03-08  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* d_heap.c (eq_vector): Fix typo in the 2nd argument of eq_val in
@@ -1720,9 +1744,9 @@
 	* DINO/socket.d: New file.
 
 	* DINO/socket_int.c: New file.
-	
+
 	* DINO/Makefile.in: Add building sockets module.
-	
+
 	* DINO/d_heap.c (move_object): Check that the tailored size is less
 	than the original one.
 	(compact_heap): Take moved stacks into account of checking the
@@ -1742,7 +1766,7 @@
 	value.
 
 	* DINO/compare.tst: Add Dino test for sockets.
-	
+
 2002-02-27  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in: Remove CR for test outputs under Cygwin.
@@ -1757,7 +1781,7 @@
 
 	* MSTA/anal.c (process_definition_list): Use
 	errro_single_definition instead of single_definition.
-	
+
 	* MSTA/gen-comm.h (error_single_definition): Remove it.
 
 	* MSTA/gen-comm.c (error_single_definition): Ditto.
@@ -1767,7 +1791,7 @@
 
 	* MSTA/la-trie.c (set_up_default_LR_situation_of_trie_level):
 	Don't make default for LR-set containing `... error .' too.
-	
+
 	* MSTA/lr.c (contains_error): New function.
 	(add_context_conflicts): Use error_conflict_flag and the function.
 
@@ -1873,7 +1897,7 @@
 
 	* MSTA/msta-3.html, MSTA/msta.dvi, MSTA/msta.ps, MSTA/msta.txt,
 	MSTA/msta.info*: Update.
-	
+
 2002-01-28  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* Makefile.in (additional_files): Add fcalc1.y.
@@ -1884,14 +1908,14 @@
 
 	* MSTA/common.c (yacc_error_recovery_flag): Rename it into
 	msta_error_recovery.
-	
+
 	* MSTA/main.c (COMMAND_LINE_DESCRIPTION_PART3, main): Rename
 	-no-yacc-error-recovery into -local-error-recovery.  Add new
 	option -minimal-error-recovery.  Make -yacc-error-recovery by
 	default.
-	
+
 	* MSTA/ird.sprut (LR_set): Add field it_is_errored_LR_set.
-	
+
 	* MSTA/regular.c (mark_semantic_pushed_LR_sets): Setup flag
 	it_is_errored_LR_set.
 
@@ -1944,7 +1968,7 @@
 	output_scanner_array_variables_allocatio,
 	output_parser_array_variables_allocation, output_free_arrays,
 	output_parser_itself): Add code for minimal error recovery.
-	
+
 	* MSTA/quality.tst.in: New tests 46 and 47 for minimal error
 	recovery.  Use option -local-error-recovery.
 
@@ -1964,7 +1988,7 @@
 	MSTA/msta.1, MSTA/msta.dvi, MSTA/msta.info, MSTA/msta.info-1,
 	MSTA/msta.info-2, MSTA/msta.ps, MSTA/msta.sgml.in, MSTA/msta.txt:
 	Update.
-	
+
 2001-12-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* d_built.h (int_earley_set_cost_flag): New prototype.
@@ -1977,7 +2001,7 @@
 	New macros.
 	(decls_table): New entries for nil_anode, error_anode,
 	int_earley_set_cost_flag.
-	
+
 	* d_func.c (int_earley_set_cost_flag): New function.
 	(tree_to_heap): Use nil_anode_decl and error_anode_decl.
 	(init_parse_alloc): Rename it into int_parse_alloc.
@@ -1992,7 +2016,7 @@
 	* dino.html, dino-4.html, dino-8.html,, dino.dvi, dino.info,
 	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
 	dino.txt: Update.
-	
+
 2001-12-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
         * earley.h (EARLEY_NIL_TRANSLATION_NUMBER, EARLEY_NEGATIVE COST):
@@ -2001,7 +2025,7 @@
 	(earley_set_cost_flag, set_cost_flag): New functions.
 	(earley_parse, parse): New parameter parse_free.
 	(read_rule): New parameter anode_cost.
-	
+
 	* earley.c (grammar): New member cost_p.
 	(parse_free): New global variable.
 	(rule): New member anode_cost.
@@ -2025,12 +2049,12 @@
 	(earley_parse): New parameter parse_free.
 	(read_rule): New parameter anode_cost.  Set up anode_cost.
 	(use_functions, use_description): Add the new parameters.
-	
+
         * earley.cpp (earley::read_grammar): New paarmeter anode_cost.
 	(earley::set_cost_flag): New function.
 	(earley::parse): New parmeter parse_free.
 	(use_functions, use_description): Add the new paremeters.
-	
+
 	* sgramm.y: Add rules for cost and empty nodes.
 	(srule): New member anode_cost.
 	(anode_cost): New global variable.
@@ -2040,14 +2064,14 @@
 	* earley.tst.in, earley++.tst.in: New shell variable srdcir.  Add
 	new parameters for (erley_)parse and read_rule.
 	(42-47): New tests for costs and empty nodes.
-	
+
 	* ammunition.sgml.in, ammunition++.sgml.in: Add building minimal
 	cost trees.  New grammar syntax for transaltion (cost and `-').
 	(macro EARLEY_NIL_TRANSLATION_NUMBER, macro EARLEY_NEGATIVE COST,
 	member cost, parameter anode_cost, function earley_set_cost_flag,
 	public function set_cost_flag, parameter parse_free): Describe
 	them.
-	
+
 	* ammunition.info, ammunition.info-1, ammunition.info-2,
 	ammunition.info-3, ammunition.info-4, ammunition.dvi,
 	ammunition.ps, ammunition.txt, ammunition-13.html,
@@ -2056,9 +2080,9 @@
 	ammunition.ps, ammunition.txt, ammunition-13.html: Update.
 
 	* cocom.sgml.in: Add building minimal cost trees.
-	
+
 	* cocom.dvi, cocom.html, cocom.info, cocom.ps, cocom.txt: Update.
-	
+
 2001-11-23  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/compare.tst: Check for failing tests.
@@ -2133,13 +2157,13 @@
 
 	* DINO/dino.tst.in (128, 314, 348-350): Change expected error
 	position.
-	
+
 	* DINO/dino.sgml.in: New function sput, sputln, sprint, sprintln.
 
 	* DINO/{dino-4.html, dino-8.html, dino.dvi, dino.html, dino.info,
 	dino.info-1, dino.info-2, dino.info-3, dino.info-4, dino.ps,
 	dino.txt: Update.
-	
+
 2001-11-16  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_built.h (sput_call, sputln_call, sprint_call,
@@ -2166,7 +2190,7 @@
 
 	* DINO/dino.tst.in: Add new tests for sput, sputln, sprint,
 	sprint.
-	
+
 2001-11-02  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in (258, 453): Use srdcir for include under
@@ -2177,39 +2201,39 @@
 2001-11-01  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/Makefile.in: Add all necessary for new file d_heap.c.
-	
+
 	* DINO/d_ir.sprut (destroy_unique_ident): New global variable.
 	(initiate_icode): Initiate the new variable.
-	
+
 	* DINO/d_blocktab.h (process_block_decl_ident): Rename it onto
 	process_block_decl_unique_ident.
 
 	* DINO/d_blocktab.c (process_block_decl_ident): Rename it onto
 	process_block_decl_unique_ident.
-	
+
 	* DINO/d_context.c (first_expr_processing): Use
 	`process_block_decl_unique_ident' instead of
 	`process_block_decl_ident'.
 	(test_context): Add processing for ident `destroy'.
-	
+
 	* DINO/d_extern.sprut (instance_state_t, instance_state): New type
 	and enumeration.
 	(heap_obj): Add field `state'.
-	
+
 	* DINO/d_heap.c: New file -- former part of d_run.sprut.  Add code
 	for implementing destroy.  Set up field `saved_cstack' for the
 	current process whenever cstack is changed.
-	
+
 	* DINO/d_func.c (create_instance): Set up field `state'.
 	(process_func_class_call): Set up field `saved_cstack' for the
 	current process.
-	
+
 	* DINO/d_run.sprut: Move all functions into d_heap.c.
-	
+
 	* DINO/dino.dsp: Add d_heap.c.
-	
+
 	* DINO/dino.tst.in: New test for destroy.
-	
+
 	* DINO/dino.sgml.in:  Add description of function destroy.
 
 	* DINO/{dino-4.html, dino.html, dino-10.html, dino.dvi,
@@ -2218,12 +2242,12 @@
 2001-10-27  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/dino.tst.in: Add new test for version.
-	
+
 2001-10-27  Vladimir N. Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_func.c (getgn, getegn, getgroups_call, fgn_call): Add
 	checking getgrgid on NULL.
-	
+
 	* DINO/d_eval.c (initiate_arguments): Rename it into
 	initiate_vars.  Add initializing varaibale version.
 	(evaluate_program): Use initiate_vars instead of
@@ -2246,7 +2270,7 @@
 
 	* DINO/d_func.c (process_func_class_call): Remove function test
 	call.
-	
+
 2001-10-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/Makefile.in (DINO_VERSION): New macro.
@@ -2312,7 +2336,7 @@
 
 	* DINO/dino.tst.in (test 356): Change output because of added
 	optimizations.
-	
+
 2001-10-18  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_func.c (del_call): Fix typo in the condition.
@@ -2326,7 +2350,7 @@
 
 	* DINO/dino.tst.in: Use new diagnostics in tests 466 and 469
 	(functions getf and fgetf).
-	
+
 2001-10-05  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
         * DINO/d_ir.sprut (ENVIRONMENT): Add definition of function rev.
@@ -2368,7 +2392,7 @@
 	allocation.
 
 	* DINO/d_yacc.y: Add transformation into vector with a format.
-	
+
 	* DINO/d_built.h (rev_call): New function definition.
 
 	* DINO/d_context.c (first_expr_processing, value_type,
@@ -2387,7 +2411,7 @@
 	DERR_format_conversion_to_vector_operand_type,
 	DERR_vector_conversion_format_type):  External definitions of the
 	new error messages.
-	
+
 	* DINO/d_errors.c (ERR_invalid_conversion_format_type,
 	DERR_format_conversion_to_vector_operand_type,
 	DERR_vector_conversion_format_type): The new error messages.
@@ -2397,7 +2421,7 @@
 	(evaluate): Ditto.  Add new parameter to call of heap_allocate.
 	Process format_vectorof.
 	(eval_error): Add new parameter to call of heap_allocate.
-	
+
 	* DINO/d_func.c (to_lower_upper, match_call, gmatch_call,
 	generall_sub_call, split_call, subv_call, cmpv_call): Add NULL
 	parameter to call of to_vect_string_conversion.
@@ -2419,7 +2443,7 @@
 
 	* DINO/dino.tst.in: New output for test # 362 because of new
 	hashing.
-	
+
 	* DINO/dino.sgml.in: Vector conversion with format.  New function
 	rev.  Function del, ins, insv now return the vector.  Function
 	getln is with parameter now.
@@ -2470,7 +2494,7 @@
 	* DINO/d_context.c (first_expr_processing, value_type,
 	third_expr_processing, fourth_expr_processing): Add processing
 	charof, intof, floatof.
-	
+
 	* DINO/d_run.sprut (try_heap_free): Return TRUE if heap piece has
 	been freed.
 	(heap_pop): Changed saved_cstack for current processor if the
@@ -2481,7 +2505,7 @@
 	temporally.
 
 	* Dino/Makefile.in: Fix typo.
-	
+
 	* DINO/dino.tst.in: Add tests for {char, int, float} (..).  Modify
 	output for system error `result too large'.
 
@@ -2498,16 +2522,16 @@
 
         * DINO/d_func.c (rcount_call): Rename it into gmatch.  Return
 	vector instead of the count.
-	
+
         * DINO/d_ir.sprut (RCOUNT_NAME, rcount_decl): Rename them into
 	GMATCH_NAME, gmatch_decl.
 
 	* DINO/d_run.sprut (temp_vlobj2): New global variable.
 	(initiate_heap): Create temp_vlobj2.
 	(finish_heap): Delete temp_vlobj2.
-	
+
 	* DINO/dino.tst.in: Test gmatch instead of rcount.
-	
+
 	* DINO/dino.sgml.in: Add description of function gmatch and
 	remove rcount.
 
@@ -2515,7 +2539,7 @@
 	DINO/dino.html, DINO/dino.info, DINO/dino.info-1,
 	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
 	DINO/dino.ps, DINO/dino.txt: Update.
-	
+
 2001-07-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_built.h (getf_call, fgetf_call): New prototypes.
@@ -2530,7 +2554,7 @@
 	(decls_table): Add entries for getf fgtef.
 
 	* DINO/dino.tst.in: Add tests for getf and fgetf.
-	
+
 	* DINO/dino.sgml.in: Add description of functions getf and
 	fgetf.
 
@@ -2538,7 +2562,7 @@
 	DINO/dino.html, DINO/dino.info, DINO/dino.info-1,
 	DINO/dino.info-2, DINO/dino.info-3, DINO/dino.info-4,
 	DINO/dino.ps, DINO/dino.txt: Update.
-	
+
 2001-07-13  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_common.h (HAVE_SETITIMER): Set up the default value.
@@ -2562,7 +2586,7 @@
 	(heap_push): Modify current_cached_container_tick.
 	(activate_given_process): Modify current_cached_container_tick
 	instead of calling clear_caches.
-	
+
 2001-07-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_eval.c (print_profile): Print GC time too.
@@ -2572,7 +2596,7 @@
 	(initiate_heap): Initiate them.
 	(gc): Set up and clear in_gc_p.
 	(profile_interrupt): Check that we are in GC.
-	
+
 2001-07-12  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_extern.sprut (create_pack_vector): New function prototype
@@ -2585,7 +2609,7 @@
 	(create_empty_string, create_string): Use create_pack_vector.
 	(external_address): Insert an external variable address in
 	external_vars only once.
-	
+
 	* DINO/d_conv.c (to_vect_string_conversion): Use create_string.
 
 	* DINO/d_eval.c (execute_concat_op): Use create_pack_vector and
@@ -2617,7 +2641,7 @@
 
 	* DINO/{dino-8.html, dino.dvi, dino.info*, dino.ps, dino.txt}:
 	Update.
-	
+
 2001-07-06  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* DINO/d_run.sprut (heap_object_size): Add processing hideblock.
@@ -2638,7 +2662,7 @@
 	IEEE_double_from_binary_string, IEEE_quad_from_binary_string): New
 	function prototypes.
 	(to_binary_string, from_binary_string): New C++ functions.
-	
+
         * AMMUNITION/IEEE.c (float_to_binary_string,
 	IEEE_to_binary_string, IEEE_single_to_binary_string,
 	IEEE_double_to_binary_string, IEEE_quad_to_binary_string,
@@ -2646,7 +2670,7 @@
 	IEEE_single_from_binary_string, IEEE_double_from_binary_string,
 	IEEE_quad_from_binary_string): New functions.
 	(float_to_string): Use local array to get the fraction string.
-	
+
         * AMMUNITION/IEEE.cpp (float_to_binary_string,
 	IEEE_to_binary_string, IEEE_single::to_binary_string,
 	IEEE_double::to_binary_string, IEEE_quad::to_binary_string,
@@ -2659,7 +2683,7 @@
 	external functions.
 
 	* AMMUNITION/IEEE++.tst.in: Ditto.
-	
+
 	* AMMUNITION/ammunition.sgml.in: Add description of the new macros
 	and the external functions.
 
@@ -2693,7 +2717,7 @@
 	for creation of keywords when -case.
 
 	* SHILKA/shilka.tst.in: Add Novikov's test.
-	
+
 2001-06-26  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* AMMUNITION/arithm.h (unsigned_integer_from_based_string): Fix
@@ -2750,13 +2774,13 @@
 	(mpi_address): Add new exported functions.
 
 	* DINO/dino.tst.in: Expand test for mpi.
-	
+
 	* DINO/dino.sgml.in: Add comment for match.
 
 	* DINO/dino-8.html, DINO/dino.dvi, DINO/dino.info,
 	DINO/dino.info-1, DINO/dino.info-2, DINO/dino.info-3,
 	DINO/dino.info-4, DINO/dino.ps, DINO/dino.txt: Update.
-	
+
 2001-06-22  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* d_built.h (rcount_call): New prototype.
@@ -2789,7 +2813,7 @@
 	mpi_to_based_string and mpi_from_based_string.
 	(to_based_string, from_based_string): New functions.
 	(to_string, from_string): Use them.
-	
+
 2001-06-20  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* arithm.c, arithm.cpp, arithm.h: Add new functions
@@ -2803,7 +2827,7 @@
 	string_to_unsigned_integer_without_overflow_reaction,
 	signed_integer::to_string, unsigned_integer::to_string): Modify
 	them.
-	
+
         * ammunition.sgml.in, ammunition.sgml.in: The new functions
 	documentation.
 
@@ -2811,7 +2835,7 @@
 	ammunition-10.html, ammunition++.txt, ammunition++.ps,
 	ammunition++.info*, ammunition++.dvi, ammunition++-10.html:
 	Update.
-	
+
 2001-06-19  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* sgml-txt: Fix bug with itemize inside enum.
@@ -2845,7 +2869,7 @@
 
 	* REGEX/Makefile.in REGEX/doc/Makefile.in REGEX/test/Makefile.in:
 	Removing some unnecessary entries.
-	
+
 2001-05-30  Vladimir Makarov  <vmakarov@users.sourceforge.net>
 
 	* cocom.html cocom.dvi cocom.txt cocom.ps cocom.info

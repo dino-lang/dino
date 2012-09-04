@@ -1643,6 +1643,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	    SET_PC (stmt);
 	    if_finish = create_node_with_pos (IR_NM_if_finish,
 					      source_position);
+	    IR_set_common_part_pc (stmt, PC (if_finish));
 	    third_block_passing (IR_if_part (stmt));
 	    if (current_pc == PC (stmt))
 	      if_part_begin_pc = PC (if_finish);
@@ -1958,6 +1959,11 @@ go_through (IR_node_t pc)
       case IR_NM_catches_finish:
         pc = IR_next_pc (pc);
         break;
+      case IR_NM_block:
+        if (!IR_simple_block_flag (pc))
+          return pc;
+        pc = IR_next_pc (pc);
+        break;
       case IR_NM_block_finish:
         if (!IR_simple_block_finish_flag (pc))
           return pc;
@@ -2158,6 +2164,7 @@ fourth_block_passing (IR_node_t first_level_stmt)
           fourth_block_passing (IR_if_part (stmt));
           fourth_block_passing (IR_else_part (stmt));
           IR_set_else_part_pc (stmt, go_through (IR_else_part_pc (stmt)));
+          IR_set_common_part_pc (stmt, go_through (IR_common_part_pc (stmt)));
           break;
 	case IR_NM_for_stmt:
           fourth_block_passing (IR_for_initial_stmt (stmt));
@@ -2223,6 +2230,463 @@ fourth_block_passing (IR_node_t first_level_stmt)
 }
 #endif
 
+/* Print INDENT spaces into stdout.  */
+static void
+print_indent (int indent)
+{
+  int i;
+
+  for (i = 0; i < indent; i++)
+    printf (" ");
+}
+
+/* Info about node used to dump the program code.  */
+struct node_info
+{
+  IR_node_t n; /* node itself */
+  bool_t traverse_flag; /* true if it was printed already */
+  int_t num; /* node number used for printing */
+};
+
+
+/* Temporary structure. */
+static struct node_info node_info;
+
+/* Hash table which implements the node info table. */
+static hash_table_t node_info_tab;
+/* This object stack contains elements of the table. */
+static os_t node_info_os;
+
+/* The last number used to enumerate the nodes.  */
+static int current_node_num;
+
+/* Hash of the node info. */
+static unsigned
+node_info_hash (hash_table_entry_t n)
+{
+  struct node_info *ni = ((struct node_info *) n);
+
+  return (size_t) ni->n;
+}
+
+/* Equality of nodes. */
+static int
+node_info_eq (hash_table_entry_t n1, hash_table_entry_t n2)
+{
+  struct node_info *ni1 = ((struct node_info *) n1);
+  struct node_info *ni2 = ((struct node_info *) n2);
+
+  return ni1->n == ni2->n;
+}
+
+/* Return the node info of node N.  Create and initialize if it is not
+   created yet.  */
+static struct node_info *
+find_node_info (IR_node_t n)
+{
+  hash_table_entry_t *entry;
+  struct node_info *ni;
+
+  node_info.n = n;
+  entry = find_hash_table_entry (node_info_tab, &node_info, FALSE);
+  if (*entry != NULL)
+    return *(struct node_info **) entry;
+  OS_TOP_EXPAND (node_info_os, sizeof (struct node_info));
+  ni = OS_TOP_BEGIN (node_info_os);
+  OS_TOP_FINISH (node_info_os);
+  ni->n = n;
+  ni->traverse_flag = FALSE;
+  ni->num = ++current_node_num;
+  *entry = ni;
+  return ni;
+}
+
+/* Create the node info table. */
+static void
+initiate_node_tab (void)
+{
+  OS_CREATE (node_info_os, 0);
+  node_info_tab = create_hash_table (400, node_info_hash, node_info_eq);
+  current_node_num = 0;
+}
+
+/* Delete the node info table. */
+static void
+finish_node_tab (void)
+{
+  delete_hash_table (node_info_tab);
+  OS_DELETE (node_info_os);
+}
+
+/* True if a goto was last printed. */
+static bool_t last_goto_flag;
+/* The line number of the last printed node. */
+static unsigned curr_line_number = 0;
+
+/* Print code from node CN to STOP (not including it) using
+   INDENT.  */
+static void
+dump_code (int indent, IR_node_t cn, IR_node_t stop)
+{
+  IR_node_mode_t node_mode;
+  IR_node_t cl, cf = NULL;
+  int first_p = TRUE;
+  struct node_info *ni;
+  bool_t line_flag;
+
+  for (; cn != stop;)
+    {
+      ni = find_node_info (cn);
+      if (ni->traverse_flag)
+	{
+	  if (! last_goto_flag)
+	    {
+	      print_indent (indent);
+	      printf ("       goto %d\n", ni->num);
+	    }
+	  last_goto_flag = TRUE;
+	  break;
+	}
+      ni->traverse_flag = TRUE;
+      if (! first_p && IR_pos (cn).file_name == ENVIRONMENT_PSEUDO_FILE_NAME)
+	{
+	  cn = IR_next_pc (cn);
+	  continue;
+	}
+      first_p = FALSE;
+      node_mode = IR_NODE_MODE (cn);
+      print_indent (indent);
+      printf ("%6d %s", ni->num, IR_node_name[node_mode]);
+      last_goto_flag = FALSE;
+      assert (indent >= 0);
+      if (curr_line_number != IR_pos (cn).line_number)
+	{
+	  curr_line_number = IR_pos (cn).line_number;
+	  printf ("(line=%u)", curr_line_number);
+	}
+      line_flag = TRUE;
+      switch (node_mode)
+	{
+	case IR_NM_char:
+	  printf ("(%x)", IR_ch_val (cn));
+	  if (isgraph (IR_ch_val (cn)))
+	    printf ("(%c -- %x)", IR_ch_val (cn), IR_ch_val (cn));
+	  else
+	    printf ("(%x)", IR_ch_val (cn));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_int:
+	  printf ("(%d)", IR_i_val (cn));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_float:
+	  printf ("(%g)", IR_f_val (cn));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_hide_type:
+	case IR_NM_hideblock_type:
+	case IR_NM_char_type:
+	case IR_NM_int_type:
+	case IR_NM_float_type:
+	case IR_NM_vector_type:
+	case IR_NM_table_type:
+	case IR_NM_func_type:
+	case IR_NM_thread_type:
+	case IR_NM_class_type:
+	case IR_NM_stack_type:
+	case IR_NM_process_type:
+	case IR_NM_instance_type:
+	case IR_NM_type_type:
+	case IR_NM_nil:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_string:
+	  {
+	    const char *s;
+
+	    printf ("(\"");
+	    for (s = IR_str_val (cn); *s != '\0'; s++)
+	      printf ("%s", get_ch_repr (*s));
+	    printf ("\")");
+	    cn = IR_next_pc (cn);
+	    break;
+	  }
+	case IR_NM_period:
+	case IR_NM_no_testing_period:
+	case IR_NM_lvalue_period:
+	case IR_NM_lvalue_no_testing_period:
+	case IR_NM_lvalue_period_and_val:
+	case IR_NM_lvalue_no_testing_period_and_val:
+	  printf ("(%s, block_decl_ident_num=%d)",
+		  IR_ident_string (IR_unique_ident (IR_right_operand (cn))),
+		  IR_right_block_decl_ident_number (cn));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_logical_or:
+	case IR_NM_logical_and:
+	  printf ("(%d)", find_node_info (IR_short_path_pc (cn))->num);
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_logical_or_end:
+	case IR_NM_logical_and_end:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_in:
+	case IR_NM_not:
+	case IR_NM_bitwise_not:
+	case IR_NM_eq:
+	case IR_NM_ne:
+	case IR_NM_identity:
+	case IR_NM_unidentity:
+	case IR_NM_lt:
+	case IR_NM_ge:
+	case IR_NM_gt:
+	case IR_NM_le:
+	case IR_NM_unary_plus:
+	case IR_NM_unary_minus:
+	case IR_NM_length:
+	case IR_NM_const:
+	case IR_NM_new:
+	case IR_NM_typeof:
+	case IR_NM_charof:
+	case IR_NM_intof:
+	case IR_NM_floatof:
+	case IR_NM_format_vectorof:
+	case IR_NM_vectorof:
+	case IR_NM_tableof:
+	case IR_NM_funcof:
+	case IR_NM_threadof:
+	case IR_NM_classof:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_cond:
+	  printf ("(false=%d)", find_node_info (IR_false_path_pc (cn)));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_cond_end:
+	case IR_NM_par_assign_end:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_vector:
+	case IR_NM_table:
+	  printf ("(parts=%d)", IR_parts_number (cn));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_index:
+	case IR_NM_lvalue_index:
+	case IR_NM_lvalue_index_and_val:
+	case IR_NM_key_index:
+	case IR_NM_lvalue_key_index:
+	case IR_NM_lvalue_key_index_and_val:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_class_func_thread_call:
+	  printf ("(pars=%d)",
+		  IR_class_func_thread_call_parameters_number (cn));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_mult:
+	case IR_NM_div:
+	case IR_NM_mod:
+	case IR_NM_plus:
+	case IR_NM_minus:
+	case IR_NM_concat:
+	case IR_NM_lshift:
+	case IR_NM_rshift:
+	case IR_NM_ashift:
+	case IR_NM_and:
+	case IR_NM_xor:
+	case IR_NM_or:
+	case IR_NM_mult_assign:
+	case IR_NM_div_assign:
+	case IR_NM_rem_assign:
+	case IR_NM_minus_assign:
+	case IR_NM_concat_assign:
+	case IR_NM_lshift_assign:
+	case IR_NM_rshift_assign:
+	case IR_NM_ashift_assign:
+	case IR_NM_and_assign:
+	case IR_NM_xor_assign:
+	case IR_NM_or_assign:
+	case IR_NM_plus_assign:
+	case IR_NM_assign:
+	case IR_NM_var_assign:
+	case IR_NM_par_assign:
+	case IR_NM_swap:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_par_assign_test:
+	  printf ("(skip=%d)",
+		  find_node_info (IR_skip_par_assign_path_pc (cn))->num);
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_procedure_call:
+	  printf ("(pars=%d)", IR_procedure_call_pars_number (cn));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_if_stmt:
+	  {
+	    IR_node_t cp;
+
+	    indent += 2;
+	    printf ("(else=%d)\n", find_node_info (IR_else_part_pc (cn))->num);
+	    cp = IR_common_part_pc (cn);
+	    find_node_info (cp)->traverse_flag = TRUE;
+	    dump_code (indent, IR_next_pc (cn), NULL);
+	    find_node_info (cp)->traverse_flag = FALSE;
+	    dump_code (indent, IR_else_part_pc (cn), cp);
+	    line_flag = FALSE;
+	    indent -= 2;
+	    cn = cp;
+	    break;
+	  }
+	case IR_NM_for_stmt:
+#ifndef NO_OPTIMIZE
+	  indent += 2;
+#endif
+	  printf ("(end=%d)\n", find_node_info (IR_next_pc (cn))->num);
+	  dump_code (indent, IR_for_body_pc (cn), NULL);
+	  line_flag = FALSE;
+#ifndef NO_OPTIMIZE
+	  indent -= 2;
+#endif
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_foreach_start:
+	  indent += 2;
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_foreach_next_iteration:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_foreach_stmt:
+	  printf ("(end=%d)\n", find_node_info (IR_next_pc (cn))->num);
+	  dump_code (indent, IR_foreach_body_pc (cn), NULL);
+	  line_flag = FALSE;
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_break_stmt:
+	case IR_NM_continue_stmt:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_block_finish:
+#ifndef NO_OPTIMIZE
+	  if (!IR_simple_block_finish_flag (cn))
+#endif
+	    indent -= 2;
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_return_without_result:
+	case IR_NM_return_with_result:
+	  cn = IR_next_pc (cn);
+	  break;
+
+	case IR_NM_wait_stmt:
+	  printf ("(guard_expr=%d)",
+		  find_node_info (IR_start_wait_guard_expr_pc (cn))->num);
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_wait_finish:
+          cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_block:
+#ifndef NO_OPTIMIZE
+	  if (!IR_simple_block_flag (cn))
+#endif
+	    {
+	      IR_node_t stmt;
+	      bool_t first_p = TRUE;
+
+	      indent += 2;
+	      for (stmt = IR_block_stmts (cn);
+		   stmt != NULL;
+		   stmt = IR_next_stmt (stmt))
+		if (IR_IS_OF_TYPE (stmt, IR_NM_func_or_class)
+		    && IR_pos (stmt).file_name != ENVIRONMENT_PSEUDO_FILE_NAME)
+		  {
+		    if (first_p)
+		      {
+			printf ("\n");
+			first_p = FALSE;
+		      }
+		    dump_code (indent, stmt, NULL);
+		  }
+	    }
+	  if ((cl = IR_catch_list_pc (cn)) == NULL)
+	    cn = IR_next_pc (cn);
+	  else
+	    {
+	      IR_node_t fn;
+
+	      for (fn = IR_next_pc (cn); fn != NULL; fn = IR_next_pc (fn))
+		if (IR_NODE_MODE (fn) == IR_NM_block_finish && IR_block (fn) == cn)
+		  break;
+	      assert (fn != NULL);
+	      printf ("(catch = %d)\n", find_node_info (cl)->num);
+	      cf = IR_next_pc (fn);
+	      dump_code (indent, IR_next_pc (cn), cf);
+	      line_flag = FALSE;
+	      cn = cl;
+	    }
+	  break;
+	case IR_NM_throw:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_exception:
+	  if ((cl = IR_catch_list_pc (cn)) == NULL)
+	    {
+	      cn = IR_next_pc (cn);
+	      cf = NULL;
+	    }
+	  else
+	    {
+	      printf ("(catch = %d)\n", find_node_info (cl)->num);
+	      dump_code (indent, IR_next_pc (cn), cf);
+	      line_flag = FALSE;
+	      cn = cl;
+	    }
+	  break;
+	case IR_NM_local_var_occurrence:
+	case IR_NM_local_lvalue_var_occurrence:
+	case IR_NM_local_lvalue_var_occurrence_and_val:
+	case IR_NM_var_occurrence:
+	case IR_NM_lvalue_var_occurrence:
+	case IR_NM_lvalue_var_occurrence_and_val:
+	case IR_NM_external_var_occurrence:
+	case IR_NM_lvalue_external_var_occurrence:
+	case IR_NM_lvalue_external_var_occurrence_and_val:
+	case IR_NM_external_func_occurrence:
+	case IR_NM_func_occurrence:
+	case IR_NM_class_occurrence:
+	  printf ("(%s)", IR_ident_string (IR_unique_ident
+					   (IR_ident (IR_decl (cn)))));
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_if_finish:
+	case IR_NM_for_finish:
+	case IR_NM_catches_finish:
+#ifdef NO_OPTIMIZE
+	  indent -= 2;
+#endif
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_pop_func_call:
+	  cn = IR_next_pc (cn);
+	  break;
+	case IR_NM_func:
+	case IR_NM_class:
+	  printf (" %s (%d%s)",
+		  IR_ident_string (IR_unique_ident (IR_ident (cn))),
+		  IR_parameters_number (cn), IR_args_flag (cn) ? ", ..." : "");
+	  cn = IR_next_stmt (cn);
+	default:
+	  assert (FALSE);
+	}
+      if (line_flag)
+	printf ("\n");
+    }
+}
+
 pc_t
 test_context (IR_node_t first_program_stmt_ptr)
 {
@@ -2258,6 +2722,13 @@ test_context (IR_node_t first_program_stmt_ptr)
 #ifndef NO_OPTIMIZE
   fourth_block_passing (first_program_stmt_ptr);
 #endif
+  if (number_of_errors == 0 && dump_flag)
+    {
+      initiate_node_tab ();
+      last_goto_flag = FALSE;
+      dump_code (0, first_program_stmt_ptr, NULL);
+      finish_node_tab ();
+    }
   /* Remember that first program stmt is always block (see grammar
      description on yacc). */
   return PC (first_program_stmt_ptr);

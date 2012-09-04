@@ -444,7 +444,8 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-s'         output statistics to stderr\n"\
 "`-t'         output final trace to stderr\n"\
 "`-g'         generate C code\n"\
-"`-p'         output profile information into stderr\n"
+"`-p'         output profile information into stderr\n"\
+"`-d'         dump program IR\n"
 
 #define DEFAULT_HEAP_CHUNK_SIZE  04000000 /* 1024 Kbytes */
 #define MINIMAL_HEAP_CHUNK_SIZE  0100000 /* 32  Kbytes */
@@ -453,6 +454,7 @@ unsigned int heap_chunk_size;
 int statistics_flag;
 int trace_flag;
 int profile_flag;
+int dump_flag;
 
 /* CYGWIN reports incorrect start time, we need this for correction of
    clock. */
@@ -497,6 +499,7 @@ dino_main (int argc, char *argv[], char *envp[])
   statistics_flag = FALSE;
   trace_flag = FALSE;
   profile_flag = FALSE;
+  dump_flag = FALSE;
   eval_long_jump_set_flag = FALSE;
   /* Process all command line options. */
   for (i = next_option (TRUE), okay = TRUE; i != 0; i = next_option (FALSE))
@@ -525,6 +528,8 @@ dino_main (int argc, char *argv[], char *envp[])
 	  profile_flag = TRUE;
 #endif
 	}
+      else if (strcmp (option, "-d") == 0)
+	dump_flag = TRUE;
       else if (strcmp (option, "-h") == 0)
 	{
 	  heap_chunk_size = atoi (argument_vector [i + 1]);
@@ -620,7 +625,7 @@ dino_main (int argc, char *argv[], char *envp[])
   if (first_program_stmt != NULL)
     program_start_pc = test_context (first_program_stmt);
   output_errors ();
-  if (number_of_errors == 0)
+  if (number_of_errors == 0 && ! dump_flag)
     {
       initiate_heap ();
       evaluate_program (program_start_pc);

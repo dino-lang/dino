@@ -115,14 +115,6 @@ main (int argc, char *argv[], char *envp[])
 	  exit (1);
 	}
       code = (*dino_func) (argc, argv, envp);
-#if 0
-      dlclose (handle);
-      if ((message = dlerror ()) != NULL)
-	{
-	  fprintf (stderr, "fatal error - %s\n", message);
-	  exit (1);
-	}
-#endif
       exit (code);
     }
   fprintf (stderr, "fatal error - can't find dino shared library %s\n",

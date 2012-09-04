@@ -490,15 +490,15 @@ instance :: val
 /*%final*/
 func :: val
 %other
-  func_context : context_heap_obj
   func_no : int_t
+  func_context : context_heap_obj
 ;
 
 /*%final*/
 class :: val
 %other
-  class_context : context_heap_obj
   class_no : int_t
+  class_context : context_heap_obj
 ;
 
 /*%final*/

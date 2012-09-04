@@ -50,6 +50,7 @@ extern unsigned int heap_chunk_size;
 extern int statistics_flag;
 extern int trace_flag;
 extern int profile_flag;
+extern int dump_flag;
 extern double start_time;
 extern int max_block_level;
 extern char *get_ch_repr (int ch);

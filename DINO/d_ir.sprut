@@ -1210,7 +1210,7 @@ IR_node_t destroy_unique_ident;
 ir_node :: %root
 %other
         /* The following field is set in context analyzer.  It is
-	   important place it here to have the same filed displacement
+	   important place it here to have the same field displacement
 	   for all nodes.  It is important for interpreter speed.  */
         /* The next executed node during usually sequential execution
            of the program */
@@ -1698,6 +1698,8 @@ if_stmt
 %other
         /* This member is used to control flow to else-part. */
         else_part_pc : generic_pos
+	/* First pc node common for the if- and else-parts. */
+	common_part_pc : generic_pos
 ;
 
 for_stmt
