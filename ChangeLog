@@ -1,5 +1,11 @@
 2012-09-04  Vladimir Makarov  <vmakarov@users.sf.net>
 
+	* DINO/d_eval.c (DIRECT_THREADED, USE_SWITCHES): Remove.
+	(evaluate_code): Remove code for DIRECT_THREADED and USE_SWITCHES.
+	Remove macros CASE and BREAK.
+
+2012-09-04  Vladimir Makarov  <vmakarov@users.sf.net>
+
 	* configure.in: Check -flto.
 	* configure: Update.
 	* DINO/d_main.c (main): Remove code inside #if 0.
