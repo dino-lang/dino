@@ -362,14 +362,6 @@ eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
   return TRUE;
 }
 
-/* The macro call value is real block vars number (see commentaries for
-   block_node).  Remember that class-constructor has only one
-   permanent var corresponding self-value. */
-#define REAL_BLOCK_VARS_NUMBER(block_node_ptr)\
-  (IR_func_class_ext (block_node_ptr) != NULL\
-   && IR_NODE_MODE (IR_func_class_ext (block_node_ptr)) == IR_NM_class\
-   ? 1 : IR_vars_number (block_node_ptr))
-
 /* The func returns size (in bytes) of the stack of the block node given
    as BLOCK_NODE_PTR. */
 #if INLINE
@@ -380,7 +372,7 @@ block_stack_size (IR_node_t block_node_ptr)
 {
   assert (block_node_ptr != NULL
           && IR_NODE_MODE (block_node_ptr) == IR_NM_block);
-  return ((REAL_BLOCK_VARS_NUMBER (block_node_ptr)
+  return ((real_block_vars_number (block_node_ptr)
 	   + IR_temporary_vars_number (block_node_ptr)) * sizeof (val_t)
 	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
 }
@@ -567,7 +559,7 @@ final_call_destroy_functions (void)
 	{
 	  block_node_ptr = ER_block_node (cstack);
 	  ctop = (ER_node_t) ((char *) ER_stack_vars (cstack)
-			      + REAL_BLOCK_VARS_NUMBER (block_node_ptr)
+			      + real_block_vars_number (block_node_ptr)
 			      * sizeof (val_t) - sizeof (val_t));
 #ifdef NO_OPTIMIZE
 	  ER_set_ctop (cstack, (char *) ctop);
@@ -1579,7 +1571,7 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
   ER_set_block_node (stack, block_node_ptr);
   ctop
      = (ER_node_t) ((char *) ER_stack_vars (stack)
-                    + REAL_BLOCK_VARS_NUMBER (block_node_ptr) * sizeof (val_t)
+                    + real_block_vars_number (block_node_ptr) * sizeof (val_t)
 	            - sizeof (val_t));
   /* Seting up mode of all permanent stack vars as nil. */
   for (curr_var = ER_stack_vars (stack);

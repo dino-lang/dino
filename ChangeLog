@@ -1,3 +1,70 @@
+2012-09-05  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* d_yacc.y (designator): Use designator and component instead of
+	left_operand and right_operand.
+
+	* d_heap.c (REAL_BLOCK_VARS_NUMBER): Remove.  Use
+	real_block_vars_number instead.
+
+	* d_ir.sprut: Remove multiple inheritance.
+	(real_block_vars_number): New function.
+	(ir_node): Make it abstract.  Move next_pc to ...
+	(generic_pos): ... here.
+	(expr): Make it inherited from generic_pos.
+	(designator, char, int, float, string, operation, nil): Make it
+	inherited from expr.
+	(ident): Make it inherited from designator.
+	(member_access): Remove.
+	(component_designator): New.
+	(index, key_index): Make it inherited from component_designator.
+	(period_designator): New.
+	(period, no_testing_period): Make it inherited from period_designator.
+	(type, vector_table, class_func_thread_call): Make it inherited
+	from expr.
+	(swap): Remove %abstract.
+	(stmt): Add const_flag.
+	(may_be_const_decl): Remove.
+	(external_decl): New.
+	(var):  Make it inherited from decl.
+	(external_var, external_func):  Make it inherited from
+	external_decl.
+	(lvalue_index, lvalue_index_and_val, lvalue_key_index): Make it
+	inherited from component_designator.
+	(lvalue_key_index_and_val): Ditto.
+	(lvalue_period, lvalue_period_and_val, lvalue_no_testing_period):
+	Make it inherited from period_designator.
+	(lvalue_no_testing_period_and_val): Ditto.
+	(decl_in_block): Remove.
+	(decl): Add decl_number_in_block.
+	(occurrence): Make it inherited from designator.
+	(var_occurrence, local_lvalue_var_occurrence): Make it inherited from occurence.
+	(local_lvalue_var_occurrence_and_val, lvalue_var_occurrence): Ditto.
+	(lvalue_var_occurrence_and_val, external_func_occurrence): Ditto.
+	(func_occurrence, class_occurrence): Ditto.
+	(external): Remove.
+	(external_decl): New.
+	(external_var, external_func): Make it inherited from
+	external_decl.
+
+	* DINO/d_context.c (current_scope): Rename to curr_scope.
+	(current_pc): Rename to curr_pc.
+	(first_expr_processing): Remove parameter and its processing.  Use
+	designator and component instead of left_operand and right_operand
+	for component designators.
+	(process_extension_block): Remove code temporary_vars_number.
+	(first_block_passing): Ditto.  Remove second argument for
+	first_expr_processing calls.
+	(curr_real_scope): New.
+	(START_TEMP_VARS_NUMBER): Rename to ADD_TEMP_VARS_NUMBER.
+	(second_expr_processing): New.
+	(second_block_passing): Call second_expr_processing.  Set up
+	curr_real_scope.
+	(third_expr_processing, fourth_expr_processing, dump_code): Use
+	designator and component instead of left_operand and right_operand
+	for component designators.
+	(current_node_num): Rename to curr_node_num.
+	(test_context): Initiate curr_real_scope.
+
 2012-09-04  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_eval.c (DIRECT_THREADED, USE_SWITCHES): Remove.

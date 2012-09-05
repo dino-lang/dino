@@ -419,28 +419,28 @@ pos :  {$$ = current_position;}
 designator : designator '[' pos expr ']'
        	       {
                  $$ = create_node_with_pos (IR_NM_index, $3);
-                 IR_set_left_operand ($$, $1);
-                 IR_set_right_operand ($$, $4);
+                 IR_set_designator ($$, $1);
+                 IR_set_component ($$, $4);
                }
            | designator '[' pos error sqbracket_stop
        	       /* The designator have to be vector. */
        	       {
                  $$ = create_node_with_pos (IR_NM_index, $3);
-                 IR_set_left_operand ($$, $1);
-                 IR_set_right_operand ($$, NULL);
+                 IR_set_designator ($$, $1);
+                 IR_set_component ($$, NULL);
                }
            | designator '{' pos expr '}'
        	       {
                  $$ = create_node_with_pos (IR_NM_key_index, $3);
-                 IR_set_left_operand ($$, $1);
-                 IR_set_right_operand ($$, $4);
+                 IR_set_designator ($$, $1);
+                 IR_set_component ($$, $4);
                }
            | designator '{' pos error stmt_stop
        	       /* The designator have to be table. */
        	       {
                  $$ = create_node_with_pos (IR_NM_key_index, $3);
-                 IR_set_left_operand ($$, $1);
-                 IR_set_right_operand ($$, NULL);
+                 IR_set_designator ($$, $1);
+                 IR_set_component ($$, NULL);
                }
            | designator actual_parameters
                {
@@ -453,8 +453,8 @@ designator : designator '[' pos expr ']'
            | designator '.' pos IDENT
        	       {
                  $$ = create_node_with_pos (IR_NM_period, $3);
-                 IR_set_left_operand ($$, $1);
-                 IR_set_right_operand ($$, $4);
+                 IR_set_designator ($$, $1);
+                 IR_set_component ($$, $4);
                }
            | IDENT     {$$ = $1;}
            ;
