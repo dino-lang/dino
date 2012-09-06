@@ -866,19 +866,19 @@ second_block_passing (IR_node_t first_level_stmt)
 	      if (IR_friend_flag (curr_access_ident))
 		{
 		  assert (!IR_access_ident_public_flag (curr_access_ident));
-		  decl = find_decl (IR_ident (curr_access_ident),
+		  decl = find_decl (IR_ident_in_clause (curr_access_ident),
 				    curr_scope);
 		  if (decl == NULL)
-		    error (FALSE, IR_pos (IR_ident (curr_access_ident)),
+		    error (FALSE, IR_pos (IR_ident_in_clause (curr_access_ident)),
 			   ERR_udenclared_ident_access_list,
 			   IR_ident_string (IR_unique_ident
-					    (IR_ident
+					    (IR_ident_in_clause
 					     (curr_access_ident))));
 		  else if (!IR_IS_OF_TYPE (decl, IR_NM_func_or_class))
-		    error (FALSE, IR_pos (IR_ident (curr_access_ident)),
+		    error (FALSE, IR_pos (IR_ident_in_clause (curr_access_ident)),
 			   ERR_invalid_friend,
 			   IR_ident_string (IR_unique_ident
-					    (IR_ident
+					    (IR_ident_in_clause
 					     (curr_access_ident))));
 		  else
 		    {
@@ -892,13 +892,13 @@ second_block_passing (IR_node_t first_level_stmt)
 		{
 		  assert (!IR_friend_flag (curr_access_ident));
 		  decl
-		    = find_decl_in_given_scope (IR_ident (curr_access_ident),
+		    = find_decl_in_given_scope (IR_ident_in_clause (curr_access_ident),
 						curr_scope);
 		  if (decl == NULL)
-		    error (FALSE, IR_pos (IR_ident (curr_access_ident)),
+		    error (FALSE, IR_pos (IR_ident_in_clause (curr_access_ident)),
 			   ERR_udenclared_ident_access_list,
 			   IR_ident_string (IR_unique_ident
-					    (IR_ident
+					    (IR_ident_in_clause
 					     (curr_access_ident))));
 		  else if (IR_access_ident (decl) == NULL)
 		    {
@@ -911,15 +911,15 @@ second_block_passing (IR_node_t first_level_stmt)
 			   != IR_access_ident_public_flag (IR_access_ident
 							   (decl)))
 		    {
-		      error (FALSE, IR_pos (IR_ident (curr_access_ident)),
+		      error (FALSE, IR_pos (IR_ident_in_clause (curr_access_ident)),
 			     ERR_contradicted_ident_access_list,
 			     IR_ident_string (IR_unique_ident
-					      (IR_ident (curr_access_ident))));
+					      (IR_ident_in_clause (curr_access_ident))));
 		      append_message
-			(IR_pos (IR_ident (IR_access_ident (decl))),
+			(IR_pos (IR_ident_in_clause (IR_access_ident (decl))),
 			 ERR_previous_access_location,
 			 IR_ident_string (IR_unique_ident
-					  (IR_ident (curr_access_ident))));
+					  (IR_ident_in_clause (curr_access_ident))));
 		    }
 		}
 	    curr_scope = saved_curr_scope;
@@ -2067,8 +2067,13 @@ third_block_passing (IR_node_t first_level_stmt)
 		       (IR_exception_class_expr (curr_except), FALSE));
 		    type_test (IR_exception_class_expr (curr_except),
 			       EVT_CLASS, ERR_invalid_catch_expr_type);
-		    IR_set_catch_list_pc (previous_node_catch_list_pc,
-					  IR_next_pc (catches_finish));
+		    if (IR_IS_OF_TYPE (previous_node_catch_list_pc,
+				       IR_NM_block))
+		      IR_set_catch_list_pc (previous_node_catch_list_pc,
+					    IR_next_pc (catches_finish));
+		    else
+		      IR_set_next_catch_list_pc (previous_node_catch_list_pc,
+						 IR_next_pc (catches_finish));
 		    SET_PC (curr_except);
 		    previous_node_catch_list_pc = curr_pc;
 		    if (IR_catch_block (curr_except) != NULL)
@@ -2381,8 +2386,8 @@ fourth_block_passing (IR_node_t first_level_stmt)
               {
                 fourth_expr_processing (IR_exception_class_expr (curr_except));
                 fourth_block_passing (IR_catch_block (curr_except));
-                IR_set_catch_list_pc
-                  (curr_except, go_through (IR_catch_list_pc (curr_except)));
+                IR_set_next_catch_list_pc
+                  (curr_except, go_through (IR_next_catch_list_pc (curr_except)));
 	      }
 	    break;
 	  }
@@ -2821,7 +2826,7 @@ dump_code (int indent, IR_node_t cn, IR_node_t stop)
 	  cn = IR_next_pc (cn);
 	  break;
 	case IR_NM_exception:
-	  if ((cl = IR_catch_list_pc (cn)) == NULL)
+	  if ((cl = IR_next_catch_list_pc (cn)) == NULL)
 	    {
 	      cn = IR_next_pc (cn);
 	      cf = NULL;

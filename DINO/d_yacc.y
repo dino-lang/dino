@@ -837,7 +837,7 @@ except_class_list : expr
 access_list : IDENT
                {
                  $$ = create_node (IR_NM_access_ident);
-                 IR_set_ident ($$, $1);
+                 IR_set_ident_in_clause ($$, $1);
 		 IR_set_access_ident_public_flag ($$, public_flag);
 		 IR_set_friend_flag ($$, friend_flag);
                  IR_set_next_access_ident ($$, $$);
@@ -854,7 +854,7 @@ access_list : IDENT
                    }
                  else
                    IR_set_next_access_ident ($$, $$);
-                 IR_set_ident ($$, $3);
+                 IR_set_ident_in_clause ($$, $3);
                }
      	    | error {$$ = NULL;}
      	    ;

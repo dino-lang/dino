@@ -2472,7 +2472,7 @@ evaluate_code (void)
 		/* Given catch does not correspond to the exception -- try
 		   the next catch. */
 		TOP_DOWN; /* class */
-		cpc = IR_catch_list_pc (cpc);
+		cpc = IR_next_catch_list_pc (cpc);
 		if (cpc == NULL)
 		  /* No more catches - go to covered try-blocks. */
 		  cpc = find_catch_pc ();

@@ -1,4 +1,17 @@
-2012-09-05  Vladimir Makarov  <vmakarov@redhat.com>
+2012-09-06  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_ir.sprut (access_ident): Rename ident into
+	ident_in_clause.
+	(exception): Rename catch_list_pc into next_catch_list_pc.
+	* DINO/d_yacc.y (access_list): Use ident_in_clause instead of
+	ident.
+	* DINO/d_eval.c (evaluate): Use next_catch_list_pc for exception.
+	* DINO/d_context.c (second_block_passing):  Use ident_in_clause
+	for access_ident.
+	(third_block_passing, fourth_block_passing, dump_code): Use
+	next_catch_list_pc for exception.
+
+2012-09-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* d_yacc.y (designator): Use designator and component instead of
 	left_operand and right_operand.

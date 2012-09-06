@@ -1413,7 +1413,7 @@ class_func_thread_call :: expr
 /* Identifier in a clause (public, private, or friend). */
 access_ident :: ir_node
 %other
-	ident : ident
+	ident_in_clause : ident
 	access_ident_public_flag : bool_t
 	friend_flag : bool_t
 	next_access_ident : access_ident
@@ -1799,7 +1799,7 @@ friend :: ir_node
 
 /* The node for making solution to catch given exception or not.  The
    flow is the following:
-           catch_list_pc                           catch_list_pc
+           catch_list_pc                        next_catch_list_pc
    try block ----------> class expr -> exception   ---------> class expr...
        |                                   | next_pc                ....
        |                                   V
@@ -1815,7 +1815,7 @@ exception
 %other
         /* This member is used to control flow when there is no catch
            for given exception. */
-        catch_list_pc : generic_pos
+        next_catch_list_pc : generic_pos
 ;
 
 decl
