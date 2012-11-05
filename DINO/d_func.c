@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -37,6 +37,8 @@
 #include <unistd.h>
 
 #define NEW_VECTOR
+
+#define below_ctop (IVAL (ctop, -1))
 
 static char *
 getun (void)
@@ -113,8 +115,8 @@ min_max_call (int_t pars_number, int min_flag)
 		DERR_parameters_number, (min_flag ? MIN_NAME : MAX_NAME));
   for (i = 0; i < pars_number; i++)
     {
-      implicit_arithmetic_conversion (i);
-      val = INDEXED_VAL (ER_CTOP (), -i);
+      implicit_arithmetic_conversion (IVAL (ctop, -i), -1);
+      val = IVAL (ER_CTOP (), -i);
       if (ER_NODE_MODE (val) != ER_NM_int && ER_NODE_MODE (val) != ER_NM_float)
 	eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 		    DERR_parameter_type, (min_flag ? MIN_NAME : MAX_NAME));
@@ -137,7 +139,7 @@ min_max_call (int_t pars_number, int min_flag)
 	       && (ER_f (val) < ER_f (res)) == min_flag)
 	res = val;
     }
-  *(val_t *) INDEXED_VAL (ER_CTOP (), -pars_number) = *(val_t *) res;
+  *(val_t *) IVAL (ER_CTOP (), -pars_number) = *(val_t *) res;
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
   SET_TOP;
@@ -167,7 +169,7 @@ to_lower_upper (int_t pars_number, int lower_flag)
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, name);
-  to_vect_string_conversion (ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
@@ -219,7 +221,7 @@ trans_call (int_t pars_number)
   if (pars_number != 3)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, TRANS_NAME);
-  to_vect_string_conversion (INDEXED_VAL (ER_CTOP (), -2), NULL);
+  to_vect_string_conversion (IVAL (ER_CTOP (), -2), NULL, -1);
   if (ER_NODE_MODE (ctop) == ER_NM_vect)
     {
       v = ER_vect (ctop);
@@ -236,7 +238,7 @@ trans_call (int_t pars_number)
 	pack_vector_if_possible (v);
       ER_set_vect (below_ctop, v);
     }
-  vect = INDEXED_VAL (ER_CTOP (), -2);
+  vect = IVAL (ER_CTOP (), -2);
   if (ER_NODE_MODE (vect) == ER_NM_vect)
     {
       v = ER_vect (vect);
@@ -275,7 +277,7 @@ trans_call (int_t pars_number)
     {
 #ifdef NEW_VECTOR
       memcpy (ER_pack_els (vect),
-	      ER_pack_els (ER_vect (INDEXED_VAL (ER_CTOP (), -2))), len);
+	      ER_pack_els (ER_vect (IVAL (ER_CTOP (), -2))), len);
 #endif
       for (i = 0; i < 256; i++)
 	map [i] = i;
@@ -319,7 +321,7 @@ eltype_call (int_t pars_number)
   else
     {
       ER_SET_MODE (ctop, ER_NM_type);
-      ER_set_type (ctop, node_mode_2_type (ER_pack_vect_el_type (vect)));
+      ER_set_type (ctop, ER_pack_vect_el_type (vect));
     }
   INCREMENT_PC();
 }
@@ -357,7 +359,7 @@ keys_call (int_t pars_number)
 	&& (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
 	    != ER_NM_deleted_entry))
       {
-	*(val_t *) INDEXED_VAL (ER_unpack_els (vect), index)
+	*(val_t *) IVAL (ER_unpack_els (vect), index)
 	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
 	index++;
       }
@@ -377,13 +379,15 @@ context_call (int_t pars_number)
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, CONTEXT_NAME);
-  val = INDEXED_VAL (ER_CTOP (), -pars_number + 1);
+  val = IVAL (ER_CTOP (), -pars_number + 1);
   if (ER_NODE_MODE (val) == ER_NM_instance)
     context = ER_context (ER_instance (val));
   else if (ER_NODE_MODE (val) == ER_NM_stack)
     context = ER_context (ER_stack (val));
   else if (ER_NODE_MODE (val) == ER_NM_func)
     context = ER_func_context (val);
+  else if (ER_NODE_MODE (val) == ER_NM_thread)
+    context = ER_thread_context (val);
   else if (ER_NODE_MODE (val) == ER_NM_class)
     context = ER_class_context (val);
   else if (ER_NODE_MODE (val) == ER_NM_process)
@@ -412,7 +416,8 @@ context_call (int_t pars_number)
 }
 
 int
-internal_inside_call (const char **message_ptr, int context_flag)
+internal_inside_call (const char **message_ptr, ER_node_t where, ER_node_t what,
+		      int context_flag)
 {
   ER_node_t block_context;
   ER_node_t func_class_2_context;
@@ -423,40 +428,50 @@ internal_inside_call (const char **message_ptr, int context_flag)
 
   *message_ptr = NULL;
   func_class = NULL;
-  if (ER_NODE_MODE (below_ctop) == ER_NM_instance)
+  if (ER_NODE_MODE (what) == ER_NM_instance)
     {
-      block_context = ER_instance (below_ctop);
+      block_context = ER_instance (what);
       block = ER_block_node (block_context);
     }
-  else if (ER_NODE_MODE (below_ctop) == ER_NM_stack)
+  else if (ER_NODE_MODE (what) == ER_NM_stack)
     {
-      block_context = ER_stack (below_ctop);
+      block_context = ER_stack (what);
       block = ER_block_node (block_context);
     }
-  else if (ER_NODE_MODE (below_ctop) == ER_NM_func)
+  else if (ER_NODE_MODE (what) == ER_NM_func)
     {
-      func_class = NO_TO_FUNC_CLASS (ER_func_no (below_ctop));
-      block_context = ER_func_context (below_ctop);
+      func_class = NO_TO_FUNC_CLASS (ER_func_no (what));
+      block_context = ER_func_context (what);
     }
-  else if (ER_NODE_MODE (below_ctop) == ER_NM_class)
+  else if (ER_NODE_MODE (what) == ER_NM_thread)
     {
-      func_class = NO_TO_FUNC_CLASS (ER_class_no (below_ctop));
-      block_context = ER_class_context (below_ctop);
+      func_class = NO_TO_FUNC_CLASS (ER_thread_no (what));
+      block_context = ER_thread_context (what);
+    }
+  else if (ER_NODE_MODE (what) == ER_NM_class)
+    {
+      func_class = NO_TO_FUNC_CLASS (ER_class_no (what));
+      block_context = ER_class_context (what);
     }
   else
     {
       *message_ptr = DERR_parameter_type;
       return 0;
     }
-  if (ER_IS_OF_TYPE (ctop, ER_NM_class))
+  if (ER_IS_OF_TYPE (where, ER_NM_class))
     {
-      func_class_2 = NO_TO_FUNC_CLASS (ER_class_no (ctop));
-      func_class_2_context = ER_class_context (ctop);
+      func_class_2 = NO_TO_FUNC_CLASS (ER_class_no (where));
+      func_class_2_context = ER_class_context (where);
     }
-  else if (ER_IS_OF_TYPE (ctop, ER_NM_func))
+  else if (ER_IS_OF_TYPE (where, ER_NM_func))
     {
-      func_class_2 = NO_TO_FUNC_CLASS (ER_func_no (ctop));
-      func_class_2_context = ER_func_context (ctop);
+      func_class_2 = NO_TO_FUNC_CLASS (ER_func_no (where));
+      func_class_2_context = ER_func_context (where);
+    }
+  else if (ER_IS_OF_TYPE (where, ER_NM_thread))
+    {
+      func_class_2 = NO_TO_FUNC_CLASS (ER_thread_no (where));
+      func_class_2_context = ER_thread_context (where);
     }
   else
     {
@@ -490,7 +505,7 @@ inside_call (int_t pars_number)
   flag = 0;
   if (pars_number == 3)
     {
-      implicit_int_conversion (0);
+      implicit_int_conversion (ctop, -1);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
 	eval_error (partype_decl, invcalls_decl,
 		    IR_pos (cpc), DERR_parameter_type, INSIDE_NAME);
@@ -498,7 +513,7 @@ inside_call (int_t pars_number)
       TOP_DOWN;
       pars_number--;
     }
-  result = internal_inside_call (&message, flag);
+  result = internal_inside_call (&message, ctop, below_ctop, flag);
   if (message != NULL)
     eval_error (partype_decl, invcalls_decl,
 		IR_pos (cpc), message, INSIDE_NAME);
@@ -680,8 +695,8 @@ match_call (int_t pars_number)
   if (pars_number != 2)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, MATCH_NAME);
-  to_vect_string_conversion (ctop, NULL);
-  to_vect_string_conversion (below_ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
+  to_vect_string_conversion (below_ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
@@ -775,7 +790,7 @@ gmatch_call (int_t pars_number)
   flag = 0;
   if (pars_number == 3)
     {
-      implicit_int_conversion (0);
+      implicit_int_conversion (ctop, -1);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
 	eval_error (partype_decl, invcalls_decl,
 		    IR_pos (cpc), DERR_parameter_type, GMATCH_NAME);
@@ -783,8 +798,8 @@ gmatch_call (int_t pars_number)
       TOP_DOWN;
       pars_number--;
     }
-  to_vect_string_conversion (ctop, NULL);
-  to_vect_string_conversion (below_ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
+  to_vect_string_conversion (below_ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
@@ -888,10 +903,10 @@ generall_sub_call (int_t pars_number, int global_flag)
     eval_error (parnumber_decl, invcalls_decl,
 		IR_pos (cpc), DERR_parameters_number,
 		global_flag ? GSUB_NAME : SUB_NAME);
-  to_vect_string_conversion (ctop, NULL);
-  to_vect_string_conversion (below_ctop, NULL);
-  regexp_val = INDEXED_VAL (ER_CTOP (), -2);
-  to_vect_string_conversion (regexp_val, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
+  to_vect_string_conversion (below_ctop, NULL, -1);
+  regexp_val = IVAL (ER_CTOP (), -2);
+  to_vect_string_conversion (regexp_val, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
@@ -1148,8 +1163,8 @@ split_call (int_t pars_number)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, SPLIT_NAME);
   if (pars_number != 1)
-    to_vect_string_conversion (below_ctop, NULL);
-  to_vect_string_conversion (ctop, NULL);
+    to_vect_string_conversion (below_ctop, NULL, -1);
+  to_vect_string_conversion (ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
@@ -1163,11 +1178,11 @@ split_call (int_t pars_number)
     split_regex = ER_pack_els (ER_vect (ctop));
   else
     {
-      split_var = INDEXED_VAL (ER_stack_vars (uppest_stack),
-			       IR_var_number_in_block (split_regex_decl));
-      to_vect_string_conversion (split_var, NULL);
-      split_var = INDEXED_VAL (ER_stack_vars (uppest_stack),
-			       IR_var_number_in_block (split_regex_decl));
+      split_var = IVAL (ER_stack_vars (uppest_stack),
+			IR_var_number_in_block (split_regex_decl));
+      to_vect_string_conversion (split_var, NULL, -1);
+      split_var = IVAL (ER_stack_vars (uppest_stack),
+			IR_var_number_in_block (split_regex_decl));
       if (ER_NODE_MODE (split_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (split_var)) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (ER_vect (split_var)) == ER_NM_char)
@@ -1385,16 +1400,16 @@ subv_call (int_t pars_number)
 		DERR_parameters_number, SUBV_NAME);
   if (pars_number == 2)
     {
-      to_vect_string_conversion (below_ctop, NULL);
-      implicit_int_conversion (0);
+      to_vect_string_conversion (below_ctop, NULL, -1);
+      implicit_int_conversion (ctop, -1);
     }
   else
     {
-      to_vect_string_conversion (INDEXED_VAL (ER_CTOP (), -2), NULL);
-      implicit_int_conversion (1);
-      implicit_int_conversion (0);
+      to_vect_string_conversion (IVAL (ER_CTOP (), -2), NULL, -1);
+      implicit_int_conversion (below_ctop, -1);
+      implicit_int_conversion (ctop, -1);
     }
-  if (ER_NODE_MODE (INDEXED_VAL (ER_CTOP (), -pars_number + 1))
+  if (ER_NODE_MODE (IVAL (ER_CTOP (), -pars_number + 1))
       != ER_NM_vect
       || ER_NODE_MODE (ctop) != ER_NM_int
       || pars_number == 3 && ER_NODE_MODE (below_ctop) != ER_NM_int)
@@ -1410,7 +1425,7 @@ subv_call (int_t pars_number)
       start = ER_i (ctop);
       length = -1;
     }
-  vect = ER_vect (INDEXED_VAL (ER_CTOP (), -pars_number + 1));
+  vect = ER_vect (IVAL (ER_CTOP (), -pars_number + 1));
   GO_THROUGH_REDIR (vect);
   vect_length = ER_els_number (vect);
   if (start < 0)
@@ -1477,8 +1492,8 @@ cmpv_call (int_t pars_number)
   if (pars_number != 2)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, CMPV_NAME);
-  to_vect_string_conversion (ctop, NULL);
-  to_vect_string_conversion (below_ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
+  to_vect_string_conversion (below_ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (below_ctop) != ER_NM_vect)
     eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
@@ -1497,7 +1512,7 @@ cmpv_call (int_t pars_number)
 	}
       else
 	{
-	  el = INDEXED_VAL (ER_unpack_els (vect1), i);
+	  el = IVAL (ER_unpack_els (vect1), i);
 	  el_type1 = ER_NODE_MODE (el);
 	  addr1
 	    = (char *) el + val_displ_table [ER_NODE_MODE ((ER_node_t) el)];
@@ -1509,7 +1524,7 @@ cmpv_call (int_t pars_number)
 	}
       else
 	{
-	  el = INDEXED_VAL (ER_unpack_els (vect2), i);
+	  el = IVAL (ER_unpack_els (vect2), i);
 	  el_type2 = ER_NODE_MODE (el);
 	  addr2
 	    = (char *) el + val_displ_table [ER_NODE_MODE ((ER_node_t) el)];
@@ -1546,7 +1561,7 @@ del_call (int_t pars_number)
   ER_node_t vect;
   ER_node_t tab;
       
-  val = INDEXED_VAL (ER_CTOP (), -pars_number + 1);
+  val = IVAL (ER_CTOP (), -pars_number + 1);
   if (pars_number < 2 || pars_number > 3
       || ER_NODE_MODE (val) == ER_NM_tab && pars_number != 2)
     eval_error (parnumber_decl, invcalls_decl,
@@ -1562,12 +1577,12 @@ del_call (int_t pars_number)
       size_t el_size;
       ER_node_mode_t el_type;
       
-      implicit_int_conversion (pars_number - 2);
-      start_val = INDEXED_VAL (ER_CTOP (), -pars_number + 2);
+      implicit_int_conversion (IVAL (ctop, -pars_number + 2), -1);
+      start_val = IVAL (ER_CTOP (), -pars_number + 2);
       if (pars_number == 3)
 	{
-	  implicit_int_conversion (0);
-	  length_val = INDEXED_VAL (ER_CTOP (), 0);
+	  implicit_int_conversion (ctop, -1);
+	  length_val = IVAL (ER_CTOP (), 0);
 	}
       else
 	length_val = NULL;
@@ -1637,7 +1652,7 @@ del_call (int_t pars_number)
       if (ER_immutable (tab))
 	eval_error (immutable_decl, invaccesses_decl, IR_pos (cpc),
 		    DERR_immutable_table_modification);
-      remove_tab_el (tab, INDEXED_VAL (ER_CTOP (), -pars_number + 2));
+      remove_tab_el (tab, IVAL (ER_CTOP (), -pars_number + 2));
     }
   else
     eval_error (partype_decl, invcalls_decl,
@@ -1673,12 +1688,12 @@ general_ins_call (int_t pars_number, int vector_flag)
     eval_error (parnumber_decl, invcalls_decl,
 		IR_pos (cpc), DERR_parameters_number,
 		(!vector_flag ? INS_NAME : INSV_NAME));
-  vect_val = INDEXED_VAL (ER_CTOP (), -pars_number + 1);
-  el_val = INDEXED_VAL (ER_CTOP (), -pars_number + 2);
+  vect_val = IVAL (ER_CTOP (), -pars_number + 1);
+  el_val = IVAL (ER_CTOP (), -pars_number + 2);
   if (pars_number == 3)
     {
-      implicit_int_conversion (0);
-      index_val = INDEXED_VAL (ER_CTOP (), 0);
+      implicit_int_conversion (ctop, -1);
+      index_val = IVAL (ER_CTOP (), 0);
     }
   else
     index_val = NULL;
@@ -1710,7 +1725,7 @@ general_ins_call (int_t pars_number, int vector_flag)
     {
       /* Remember about GC! */
       GET_TEMP_REF (1) = unpack_vector (GET_TEMP_REF (1));
-      el_val = INDEXED_VAL (ER_CTOP (), -pars_number + 2);
+      el_val = IVAL (ER_CTOP (), -pars_number + 2);
     }
   vect = GET_TEMP_REF (0);
   POP_TEMP_REF (1);
@@ -1730,7 +1745,7 @@ general_ins_call (int_t pars_number, int vector_flag)
   vect_length = ER_els_number (vect);
   /* Remember about GC! */
   vect = expand_vector (vect, vect_length + addition);
-  el_val = INDEXED_VAL (ER_CTOP (), -pars_number + 2);
+  el_val = IVAL (ER_CTOP (), -pars_number + 2);
   if (vector_flag)
     {
       el_vect = GET_TEMP_REF (0);
@@ -1776,10 +1791,9 @@ general_ins_call (int_t pars_number, int vector_flag)
   else
     {
       if (!vector_flag)
-	*(val_t *) INDEXED_VAL (ER_unpack_els (vect), index)
-	  = *(val_t *) el_val;
+	*(val_t *) IVAL (ER_unpack_els (vect), index) = *(val_t *) el_val;
       else
-	memcpy (INDEXED_VAL (ER_unpack_els (vect), index),
+	memcpy (IVAL (ER_unpack_els (vect), index),
 		ER_unpack_els (el_vect), addition * sizeof (val_t));
     }
   ER_set_els_number (vect, vect_length + addition);
@@ -1850,10 +1864,10 @@ rev_call (int_t pars_number)
 	{
 	  for (i = 0, j = vect_length - 1; i < j; i++, j--)
 	    {
-	      temp_val = *(val_t *) INDEXED_VAL (ER_unpack_els (vect), i);
-	      *(val_t *) INDEXED_VAL (ER_unpack_els (vect), i)
-		= *(val_t *) INDEXED_VAL (ER_unpack_els (vect), j);
-	      *(val_t *) INDEXED_VAL (ER_unpack_els (vect), j) = temp_val;
+	      temp_val = *(val_t *) IVAL (ER_unpack_els (vect), i);
+	      *(val_t *) IVAL (ER_unpack_els (vect), i)
+		= *(val_t *) IVAL (ER_unpack_els (vect), j);
+	      *(val_t *) IVAL (ER_unpack_els (vect), j) = temp_val;
 	    }
 	}
     }
@@ -1908,6 +1922,7 @@ array_sort_compare_function (const void *el1, const void *el2)
   else
     *(val_t *) ctop = *(val_t *) el2;
   call_func_class (2);
+  TOP_UP;
   if (ER_NODE_MODE (ctop) != ER_NM_int)
     eval_error (invresult_decl, invcalls_decl,
 		IR_pos (cpc), DERR_invalid_result, SORT_NAME);
@@ -1925,7 +1940,7 @@ sort_call (int_t pars_number)
   if (pars_number != 1 && pars_number != 2)
     eval_error (parnumber_decl, invcalls_decl,
 		IR_pos (cpc), DERR_parameters_number, SORT_NAME);
-  var = INDEXED_VAL (ER_CTOP (), -pars_number + 1);
+  var = IVAL (ER_CTOP (), -pars_number + 1);
   if (ER_NODE_MODE (var) == ER_NM_vect)
     {
       vect = ER_vect (var);
@@ -1965,9 +1980,6 @@ sort_call (int_t pars_number)
 	sorted_vect_el_type = ER_NM_val;
       else
 	sorted_vect_el_type = ER_pack_vect_el_type (vect);
-      /* ??? We could modify GC in order to do not change the array
-         location.  But now we have the simpler solution. */
-      no_gc_flag = TRUE;
       /* Pop all actual parameters. */
       DECR_CTOP (pars_number);
       SET_TOP;
@@ -1978,7 +1990,6 @@ sort_call (int_t pars_number)
 	      ? type_size_table [sorted_vect_el_type]
 	      : sizeof (val_t)),
 	     array_sort_compare_function);
-      no_gc_flag = FALSE;
       POP_TEMP_REF (1);
     }
   /* Place the result instead of the function. */
@@ -2029,15 +2040,15 @@ get_file (int_t pars_number, const char *function_name)
   ER_node_t var;
   ER_node_t instance;
 
-  var = INDEXED_VAL (ER_CTOP (), -pars_number + 1);
+  var = IVAL (ER_CTOP (), -pars_number + 1);
   if (!ER_IS_OF_TYPE (var, ER_NM_instance)
       || ER_instance_class (ER_instance (var)) != file_decl)
     eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameter_type, function_name);
   instance
-    = ER_instance ((ER_node_t) INDEXED_VAL (ER_CTOP (), -pars_number + 1));
-  return ER_hide (INDEXED_VAL (ER_instance_vars (instance),
-			       IR_var_number_in_block (file_ptr_decl)));
+    = ER_instance ((ER_node_t) IVAL (ER_CTOP (), -pars_number + 1));
+  return ER_hide (IVAL (ER_instance_vars (instance),
+			IR_var_number_in_block (file_ptr_decl)));
 }
 
 static void
@@ -2053,8 +2064,8 @@ place_file_instance (FILE *f)
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_instance);
   ER_set_instance (ctop, instance);
-  var = INDEXED_VAL (ER_instance_vars (ER_instance (ctop)),
-		     IR_var_number_in_block (file_ptr_decl));
+  var = IVAL (ER_instance_vars (ER_instance (ctop)),
+	      IR_var_number_in_block (file_ptr_decl));
   ER_SET_MODE (var, ER_NM_hide);
   ER_set_hide (var, f);
 }
@@ -2065,8 +2076,8 @@ two_strings_func_start (int_t pars_number, const char *function_name)
   if (pars_number != 2)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, function_name);
-  to_vect_string_conversion (ctop, NULL);
-  to_vect_string_conversion (below_ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
+  to_vect_string_conversion (below_ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
@@ -2099,7 +2110,7 @@ string_func_start (int_t pars_number, const char *function_name)
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, function_name);
-  to_vect_string_conversion (ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
@@ -2272,7 +2283,7 @@ get_stat (ER_node_t var, const char *function_name, struct stat *buf)
 	   && ER_instance_class (ER_instance (var)) == file_decl)
     result
       = fstat (fileno
-	       ((FILE *) ER_hide (INDEXED_VAL
+	       ((FILE *) ER_hide (IVAL
 				  (ER_instance_vars (ER_instance (var)),
 				   IR_var_number_in_block (file_ptr_decl)))),
 	       buf);
@@ -2523,8 +2534,8 @@ seek_call (int_t pars_number)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, SEEK_NAME);
   f = get_file (pars_number, SEEK_NAME);
-  implicit_arithmetic_conversion (1);
-  to_vect_string_conversion (ctop, NULL);
+  implicit_arithmetic_conversion (below_ctop, -1);
+  to_vect_string_conversion (ctop, NULL, -1);
   if (ER_NODE_MODE (below_ctop) != ER_NM_int
       || (ER_NODE_MODE (ctop) != ER_NM_char
 	  && (ER_NODE_MODE (ctop) != ER_NM_vect
@@ -2634,7 +2645,7 @@ print_val (ER_node_t val, int quote_flag)
       VLO_ADD_STRING (temp_vlobj, str);
       break;
     case ER_NM_vect:
-      to_vect_string_conversion (val, NULL);
+      to_vect_string_conversion (val, NULL, -1);
       vect = ER_vect (val);
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (vect) == ER_NM_char)
@@ -2656,7 +2667,7 @@ print_val (ER_node_t val, int quote_flag)
 	  VLO_ADD_STRING (temp_vlobj, "[");
 	  for (i = 0; i < ER_els_number (vect); i++)
 	    {
-	      print_val (INDEXED_VAL (ER_unpack_els (vect), i), TRUE);
+	      print_val (IVAL (ER_unpack_els (vect), i), TRUE);
 	      if (i < ER_els_number (vect) - 1)
 		VLO_ADD_STRING (temp_vlobj, ", ");
 	    }
@@ -2705,6 +2716,7 @@ print_val (ER_node_t val, int quote_flag)
       VLO_ADD_STRING (temp_vlobj, "}");
       break;
     case ER_NM_func:
+    case ER_NM_thread:
     case ER_NM_class:
       if (ER_NODE_MODE (val) == ER_NM_func)
 	{
@@ -2715,6 +2727,16 @@ print_val (ER_node_t val, int quote_flag)
 			  IR_ident_string
 			  (IR_unique_ident 
 			   (IR_ident (NO_TO_FUNC_CLASS (ER_func_no (val))))));
+	}
+      else if (ER_NODE_MODE (val) == ER_NM_thread)
+	{
+	  VLO_ADD_STRING (temp_vlobj, "thread ");
+	  if (print_context (ER_thread_context (val)))
+	    VLO_ADD_STRING (temp_vlobj, ".");
+	  VLO_ADD_STRING (temp_vlobj,
+			  IR_ident_string
+			  (IR_unique_ident 
+			   (IR_ident (NO_TO_FUNC_CLASS (ER_thread_no (val))))));
 	}
       else
 	{
@@ -2762,49 +2784,49 @@ print_val (ER_node_t val, int quote_flag)
     case ER_NM_type:
       switch (ER_type (val))
 	{
-	case ER_T_nil:
+	case ER_NM_nil:
 	  string = "type (nil)";
 	  break;
-	case ER_T_char:
+	case ER_NM_char:
 	  string = "char";
 	  break;
-	case ER_T_int:
+	case ER_NM_int:
 	  string = "int";
 	  break;
-	case ER_T_float:
+	case ER_NM_float:
 	  string = "float";
 	  break;
-	case ER_T_hide:
+	case ER_NM_hide:
 	  string = "hide";
 	  break;
-	case ER_T_hideblock:
+	case ER_NM_hideblock:
 	  string = "hideblock";
 	  break;
-	case ER_T_vector:
+	case ER_NM_vect:
 	  string = "vector";
 	  break;
-	case ER_T_table:
+	case ER_NM_tab:
 	  string = "table";
 	  break;
-	case ER_T_thread:
+	case ER_NM_thread:
 	  string = "thread";
 	  break;
-	case ER_T_func:
+	case ER_NM_func:
 	  string = "func";
 	  break;
-	case ER_T_class:
+	case ER_NM_class:
 	  string = "class";
 	  break;
-	case ER_T_instance:
+	case ER_NM_instance:
 	  string = "class ()";
 	  break;
-	case ER_T_stack:
+	case ER_NM_stack:
 	  string = "func ()";
 	  break;
-	case ER_T_process:
+	case ER_NM_process:
 	  string = "thread ()";
 	  break;
-	case ER_T_type:
+	case ER_NM_type:
 	  string = "type";
 	  break;
 	default:
@@ -2878,8 +2900,8 @@ general_put_call (FILE *f, int_t pars_number, int ln_flag,
   VLO_NULLIFY (temp_vlobj);
   for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
     {
-      var = INDEXED_VAL (ER_CTOP (), i);
-      to_vect_string_conversion (var, NULL);
+      var = IVAL (ER_CTOP (), i);
+      to_vect_string_conversion (var, NULL, -1);
       if (ER_NODE_MODE (var) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (var)) != ER_NM_heap_pack_vect
 	  || ER_pack_vect_el_type (ER_vect (var)) != ER_NM_char)
@@ -2951,7 +2973,7 @@ general_print_call (FILE *f, int_t pars_number, int quote_flag, int ln_flag,
     function_name = (ln_flag ? FPRINTLN_NAME : FPRINT_NAME);
   VLO_NULLIFY (temp_vlobj);
   for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
-    print_val (INDEXED_VAL (ER_CTOP (), i), quote_flag);
+    print_val (IVAL (ER_CTOP (), i), quote_flag);
   if (errno != 0)
     process_system_errors (function_name);
   if (ln_flag)
@@ -3026,16 +3048,11 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
 {
   ER_node_t vect;
   int ch;
-  int saved_no_gc_flag;
   size_t ch_n, els_number, i;
 
   VLO_NULLIFY (temp_vlobj);
   if (!ln_flag && as_lns_p)
-    {
-      VLO_NULLIFY (temp_vlobj2);
-      saved_no_gc_flag = no_gc_flag;
-      no_gc_flag = TRUE;
-    }
+    VLO_NULLIFY (temp_vlobj2);
   errno = 0;
   ch_n = 0;
   for (;;)
@@ -3069,7 +3086,6 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
       for (i = 0; i < els_number; i++)
 	((ER_node_t *) ER_pack_els (vect)) [i]
 	  = ((ER_node_t *) VLO_BEGIN (temp_vlobj2)) [i];
-      no_gc_flag = saved_no_gc_flag;
     }
   if (errno != 0)
     process_system_errors (func_name);
@@ -3114,7 +3130,7 @@ getf_call (int_t pars_number)
 		IR_pos (cpc), DERR_parameters_number, GETF_NAME);
   if (pars_number == 1)
     {
-      implicit_int_conversion (0);
+      implicit_int_conversion (ctop, -1);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
 	eval_error (partype_decl, invcalls_decl,
 		    IR_pos (cpc), DERR_parameter_type, GETF_NAME);
@@ -3155,7 +3171,7 @@ fgetf_call (int_t pars_number)
 
   if (pars_number == 2)
     {
-      implicit_int_conversion (0);
+      implicit_int_conversion (ctop, -1);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
 	eval_error (partype_decl, invcalls_decl,
 		    IR_pos (cpc), DERR_parameter_type, FGETF_NAME);
@@ -3492,7 +3508,7 @@ scanel (FILE *f, struct token token, const char *function_name, int ln_flag)
 	      {
 		TOP_UP;
 		*(val_t *) ctop = result;
-		implicit_int_conversion (0);
+		implicit_int_conversion (ctop, -1);
 		result = *(val_t *) ctop;
 		TOP_DOWN;
 		if (ER_NODE_MODE (ptr) != ER_NM_int)
@@ -3516,7 +3532,7 @@ scanel (FILE *f, struct token token, const char *function_name, int ln_flag)
 	    result = *(val_t *) ctop;
 	    TOP_DOWN;
 	    for (i = ER_els_number (vect); repeat > 0; i++, repeat--)
-	      *(val_t *) INDEXED_VAL (ER_unpack_els (vect), i) = result;
+	      *(val_t *) IVAL (ER_unpack_els (vect), i) = result;
 	    ER_set_els_number (vect, i);
 	    PUSH_TEMP_REF (vect);
 	    if (token.token_code == ',')
@@ -3724,8 +3740,8 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
   if (pars_number - start <= 0)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, function_name);
-  val = INDEXED_VAL (ER_CTOP (), -pars_number + 1 + start);
-  to_vect_string_conversion (val, NULL);
+  val = IVAL (ER_CTOP (), -pars_number + 1 + start);
+  to_vect_string_conversion (val, NULL, -1);
   if (ER_NODE_MODE (val) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
@@ -3792,7 +3808,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	    if (curr_par_num > 0)
 	      eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 			  DERR_parameters_number, function_name);
-	    val = INDEXED_VAL (ER_CTOP (), curr_par_num);
+	    val = IVAL (ER_CTOP (), curr_par_num);
 	    if (ER_NODE_MODE (val) != ER_NM_int)
 	      eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 			  DERR_parameter_type, function_name);
@@ -3818,7 +3834,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 		if (curr_par_num > 0)
 		  eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 			      DERR_parameters_number, function_name);
-		val = INDEXED_VAL (ER_CTOP (), curr_par_num);
+		val = IVAL (ER_CTOP (), curr_par_num);
 		if (ER_NODE_MODE (val) != ER_NM_int)
 		  eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 			      DERR_parameter_type, function_name);
@@ -3883,7 +3899,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	if (curr_par_num > 0)
 	  eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		      DERR_parameters_number, function_name);
-	val = INDEXED_VAL (ER_CTOP (), curr_par_num);
+	val = IVAL (ER_CTOP (), curr_par_num);
 	add = width + 5;
 	if (next == 'd' || next == 'o' || next == 'x' || next == 'X'
 	    || next == 'e' || next == 'E' || next == 'f' || next == 'g'
@@ -3938,7 +3954,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 			  DERR_invalid_format, function_name);
 	    *curr_fmt++ = 's';
 	    *curr_fmt++ = '\0';
-	    to_vect_string_conversion (val, NULL);
+	    to_vect_string_conversion (val, NULL, -1);
 	    if (ER_NODE_MODE (val) != ER_NM_vect
 		|| ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
 		|| ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
@@ -4082,7 +4098,7 @@ float_function_start (int_t pars_number, const char *function_name)
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, function_name);
-  implicit_arithmetic_conversion (0);
+  implicit_arithmetic_conversion (ctop, -1);
   if (ER_NODE_MODE (ctop) == ER_NM_int)
     {
       result = ER_i (ctop);
@@ -4106,14 +4122,14 @@ float_function_start2 (int_t pars_number, const char *function_name)
   if (pars_number != 2)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, function_name);
-  implicit_arithmetic_conversion (0);
+  implicit_arithmetic_conversion (ctop, -1);
   if (ER_NODE_MODE (ctop) == ER_NM_int)
     {
       result = ER_i (ctop);
       ER_SET_MODE (ctop, ER_NM_float);
       ER_set_f (ctop, result);
     }
-  implicit_arithmetic_conversion (1);
+  implicit_arithmetic_conversion (below_ctop, -1);
   if (ER_NODE_MODE (below_ctop) == ER_NM_int)
     {
       result = ER_i (below_ctop);
@@ -4229,7 +4245,7 @@ general_rand_call (int_t pars_number, int rand_flag)
 		(rand_flag ? RAND_NAME : SRAND_NAME));
   if (!rand_flag &&  pars_number == 1)
     {
-      implicit_arithmetic_conversion (0);
+      implicit_arithmetic_conversion (ctop, -1);
       if (ER_NODE_MODE (ctop) == ER_NM_float)
 	{
 	  seed = ER_f (ctop);
@@ -4526,7 +4542,7 @@ process_errno_call (int_t pars_number)
     name = "";
   else
     {
-      to_vect_string_conversion (ctop, NULL);
+      to_vect_string_conversion (ctop, NULL, -1);
       name = ER_pack_els (ER_vect (ctop));
     }
   if (errno)
@@ -4552,7 +4568,7 @@ readdir_call (int_t pars_number)
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, READDIR_NAME);
-  to_vect_string_conversion (ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
@@ -4627,7 +4643,7 @@ stat_start (int_t pars_number, const char *function_name, struct stat *buf)
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, function_name);
-  to_vect_string_conversion (ctop, NULL);
+  to_vect_string_conversion (ctop, NULL, -1);
   get_stat (ctop, function_name, buf);
 }
 
@@ -4876,7 +4892,7 @@ strtime_call (int_t pars_number)
 		DERR_parameters_number, STRTIME_NAME);
   if (pars_number == 2)
     {
-      implicit_int_conversion (0);
+      implicit_int_conversion (ctop, -1);
       if (ER_NODE_MODE (ctop) != ER_NM_int)
 	eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 		    DERR_parameter_type, STRTIME_NAME);
@@ -4887,7 +4903,7 @@ strtime_call (int_t pars_number)
   if (pars_number >= 1)
     {
       format_var = (pars_number == 1 ? ctop : below_ctop);
-      to_vect_string_conversion (format_var, NULL);
+      to_vect_string_conversion (format_var, NULL, -1);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (format_var)) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (ER_vect (format_var)) == ER_NM_char)
@@ -4898,9 +4914,9 @@ strtime_call (int_t pars_number)
     }
   else
     {
-      format_var = INDEXED_VAL (ER_stack_vars (uppest_stack),
-				IR_var_number_in_block (time_format_decl));
-      to_vect_string_conversion (format_var, NULL);
+      format_var = IVAL (ER_stack_vars (uppest_stack),
+			 IR_var_number_in_block (time_format_decl));
+      to_vect_string_conversion (format_var, NULL, -1);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (format_var)) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (ER_vect (format_var)) == ER_NM_char)
@@ -4969,7 +4985,8 @@ gc_call (int_t pars_number)
   /* Pop all actual parameters. */
   DECR_CTOP (pars_number);
   SET_TOP;
-  gc ();
+  GC_executed_stmts_count = executed_stmts_count;
+  GC ();
   /* Place the free memory instead of the function. */
   ER_SET_MODE (ctop, ER_NM_int);
   ER_set_i (ctop, free_heap_memory);
@@ -4989,12 +5006,12 @@ system_call (int_t pars_number)
 		DERR_parameters_number, SYSTEM_NAME);
   else
     {
-      val = INDEXED_VAL (ER_CTOP (), -pars_number + 1);
+      val = IVAL (ER_CTOP (), -pars_number + 1);
       if (ER_NODE_MODE (val) != ER_NM_vect)
 	error_flag = TRUE;
       else
 	{
-	  to_vect_string_conversion (val, NULL);
+	  to_vect_string_conversion (val, NULL, -1);
 	  vect = ER_vect (val);
 	  if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect
 	      || ER_pack_vect_el_type (vect) != ER_NM_char)
@@ -5058,7 +5075,7 @@ exit_call (int_t pars_number)
   if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameters_number, EXIT_NAME);
-  implicit_int_conversion (0);
+  implicit_int_conversion (ctop, -1);
   if (ER_NODE_MODE (ctop) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (cpc),
 		DERR_parameter_type, EXIT_NAME);
@@ -5102,22 +5119,22 @@ init_call (int_t pars_number)
   SET_TOP;
   /* ------ Initiations after execution of stmts before __init__ ----- */
   /* Set stdin, stdout, stderr. */
-  instance = ER_instance (INDEXED_VAL (ER_stack_vars (cstack),
-				       IR_var_number_in_block (stdin_decl)));
-  var = INDEXED_VAL (ER_instance_vars (instance),
-		     IR_var_number_in_block (file_ptr_decl));
+  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (stdin_decl));
+  instance = ER_instance (var);
+  var = IVAL (ER_instance_vars (instance),
+	      IR_var_number_in_block (file_ptr_decl));
   ER_SET_MODE (var, ER_NM_hide);
   ER_set_hide (var, stdin);
-  instance = ER_instance (INDEXED_VAL (ER_stack_vars (cstack),
-				       IR_var_number_in_block (stdout_decl)));
-  var = INDEXED_VAL (ER_instance_vars (instance),
-		     IR_var_number_in_block (file_ptr_decl));
+  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (stdout_decl));
+  instance = ER_instance (var);
+  var = IVAL (ER_instance_vars (instance),
+	      IR_var_number_in_block (file_ptr_decl));
   ER_SET_MODE (var, ER_NM_hide);
   ER_set_hide (var, stdout);
-  instance = ER_instance (INDEXED_VAL (ER_stack_vars (cstack),
-				       IR_var_number_in_block (stderr_decl)));
-  var = INDEXED_VAL (ER_instance_vars (instance),
-		     IR_var_number_in_block (file_ptr_decl));
+  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (stderr_decl));
+  instance = ER_instance (var);
+  var = IVAL (ER_instance_vars (instance),
+	      IR_var_number_in_block (file_ptr_decl));
   ER_SET_MODE (var, ER_NM_hide);
   ER_set_hide (var, stderr);
   /* ----- End of the initiations ----- */
@@ -5140,7 +5157,7 @@ call_external_func (int pars_number, IR_node_t func_node)
   vect = (ER_node_t) create_unpack_vector (pars_number);
   for (curr_actual = 0; curr_actual < pars_number; curr_actual++)
     {
-      val = INDEXED_VAL (ER_CTOP (), curr_actual - pars_number + 1);
+      val = IVAL (ER_CTOP (), curr_actual - pars_number + 1);
       if (ER_IS_OF_TYPE (val, ER_NM_vect))
 	{
 	  v = ER_vect (val);
@@ -5155,17 +5172,13 @@ call_external_func (int pars_number, IR_node_t func_node)
 	  GO_THROUGH_REDIR (tab);
 	  ER_set_tab (val, tab);
 	}
-      *(val_t *) INDEXED_VAL (ER_unpack_els (vect), curr_actual)
-	= *(val_t *) val;
+      *(val_t *) IVAL (ER_unpack_els (vect), curr_actual) = *(val_t *) val;
     }
   DECR_CTOP (pars_number);
   /* Pop all actual parameters. */
   SET_TOP;
-  no_gc_flag = TRUE;
-  *(val_t *) ctop = (*func) (pars_number,
-			     (val_t *) INDEXED_VAL (ER_unpack_els (vect),
-						    0));
-  no_gc_flag = FALSE;
+  *(val_t *) ctop
+    = (*func) (pars_number, (val_t *) IVAL (ER_unpack_els (vect), 0));
   INCREMENT_PC();
 }
 
@@ -5181,16 +5194,14 @@ create_instance (int_t pars_number)
   char *free;
   
   class = NO_TO_FUNC_CLASS (ER_class_no
-			    ((ER_node_t) INDEXED_VAL (ER_CTOP (),
-						      -pars_number)));
+			    ((ER_node_t) IVAL (ER_CTOP (), -pars_number)));
   instance = (ER_node_t) heap_allocate (instance_size (class), FALSE);
   ER_SET_MODE (instance, ER_NM_heap_instance);
   ER_set_instance_class (instance, class);
   ER_set_block_node (instance, IR_next_stmt (class));
   ER_set_immutable (instance, FALSE);
   /* Set Context chain. */
-  ER_set_context (instance, ER_class_context (INDEXED_VAL (ER_CTOP (),
-							   -pars_number)));
+  ER_set_context (instance, ER_class_context (IVAL (ER_CTOP (), -pars_number)));
   ER_set_context_number (instance, context_number);
   ER_set_state (instance, IS_initial);
   context_number++;
@@ -5200,7 +5211,7 @@ create_instance (int_t pars_number)
   /* Seting up mode of all permanent stack vars as nil. */
   for (curr_var = ER_instance_vars (instance);
        (char *) curr_var < free;
-       curr_var = INDEXED_VAL (curr_var, 1))
+       curr_var = IVAL (curr_var, 1))
     ER_SET_MODE (curr_var, ER_NM_nil);
   /* Push actual parameters except for args (but no more than
      formal parameters). */
@@ -5210,8 +5221,7 @@ create_instance (int_t pars_number)
 		      - (IR_args_flag (class) ? 1 : 0))
 	 && curr_actual < pars_number;
        curr_actual++, curr_par++)
-    *(val_t *) INDEXED_VAL (vars, curr_actual)
-      = *(val_t *) INDEXED_VAL (ER_CTOP (), curr_par);
+    *(val_t *) IVAL (vars, curr_actual) = *(val_t *) IVAL (ER_CTOP (), curr_par);
   if (IR_args_flag (class))
     {
       ER_node_t vect;
@@ -5225,16 +5235,15 @@ create_instance (int_t pars_number)
       instance = GET_TEMP_REF (0);
       POP_TEMP_REF (1);
       /* Args number */
-      ER_SET_MODE (INDEXED_VAL (ER_instance_vars (instance),
-				IR_parameters_number (class) - 1), ER_NM_vect);
-      ER_set_vect (INDEXED_VAL (ER_instance_vars (instance),
-				IR_parameters_number (class) - 1), vect);
+      ER_SET_MODE (IVAL (ER_instance_vars (instance),
+			 IR_parameters_number (class) - 1), ER_NM_vect);
+      ER_set_vect (IVAL (ER_instance_vars (instance),
+			 IR_parameters_number (class) - 1), vect);
       for (start = curr_actual;
 	   curr_actual < pars_number;
 	   curr_actual++)
-	*(val_t *) INDEXED_VAL (ER_unpack_els (vect), curr_actual - start)
-	  = *(val_t *) INDEXED_VAL (ER_CTOP (),
-				    curr_actual - pars_number + 1);
+	*(val_t *) IVAL (ER_unpack_els (vect), curr_actual - start)
+	  = *(val_t *) IVAL (ER_CTOP (), curr_actual - pars_number + 1);
     }
   /* Pop all actual parameters and class from current stack. */
   DECR_CTOP (pars_number + 1);
@@ -5256,28 +5265,31 @@ process_func_class_call (int_t pars_number)
   ER_node_t instance;
   ER_node_t vars, pars;
   int curr_par;
+  ER_node_mode_t mode;
 
-  func_class_val = INDEXED_VAL (ER_CTOP (), -pars_number);
-  if (ER_NODE_MODE (func_class_val) == ER_NM_func)
+  func_class_val = IVAL (ER_CTOP (), -pars_number);
+  mode = ER_NODE_MODE (func_class_val);
+  if (mode == ER_NM_func || mode == ER_NM_thread)
     {
-      func_class = NO_TO_FUNC_CLASS (ER_func_no (func_class_val));
-#if 0
-      fprintf (stderr, "%s:%u:%u:calling %s\n",
-	       IR_pos (IR_POINTER (cpc)).file_name,
-	       IR_pos (IR_POINTER (cpc)).line_number,
-	       IR_pos (IR_POINTER (cpc)).column_number,
-	       IR_ident_string (IR_unique_ident (IR_ident (func_class))));
-#endif
+      func_class = NO_TO_FUNC_CLASS (mode == ER_NM_func
+				     ? ER_func_no (func_class_val)
+				     : ER_thread_no (func_class_val));
       if (IR_NODE_MODE (func_class) == IR_NM_external_func)
-	call_external_func (pars_number, func_class);
+	{
+	  call_external_func (pars_number, func_class);
+	  TOP_DOWN;
+	}
       else if (IR_implementation_func (func_class) != NULL)
-	(*IR_implementation_func (func_class)) (pars_number);
+	{
+	  (*IR_implementation_func (func_class)) (pars_number);
+	  TOP_DOWN;
+	}
       else
 	{
 	  ER_node_t prev_stack;
 	  int args_p, num, formals_num;
 
-	  if (sync_flag && IR_thread_flag (func_class))
+	  if (sync_flag && mode == ER_NM_thread)
 	    /* We check it before creating a stack (see
 	       find_catch_pc).  */
 	    eval_error (syncthreadcall_decl, invcalls_decl, IR_pos (cpc),
@@ -5286,10 +5298,13 @@ process_func_class_call (int_t pars_number)
 	  assert (! IR_IS_OF_TYPE (func_class, IR_NM_external_func));
 	  real_func_call_pc = cpc;
 	  heap_push (IR_next_stmt (func_class),
-		     ER_func_context (func_class_val), pars_number);
+		     mode == ER_NM_func
+		     ? ER_func_context (func_class_val)
+		     : ER_thread_context (func_class_val),
+		     pars_number);
 	  /* The value may be changed because of GC. */
 	  prev_stack = ER_prev_stack (cstack);
-	  func_class_val = INDEXED_VAL (ER_ctop (prev_stack), -pars_number);
+	  func_class_val = IVAL (ER_ctop (prev_stack), -pars_number);
 	  /* Push actual parameters except for args (but no more than
 	     formal parameters). */
           vars = ER_stack_vars (cstack);
@@ -5299,8 +5314,8 @@ process_func_class_call (int_t pars_number)
 	  for (curr_actual = 0, curr_par = -pars_number + 1;
 	       curr_actual < num;
 	       curr_actual++, curr_par++)
-	    *(val_t *) INDEXED_VAL (vars, curr_actual)
-	      = *(val_t *) INDEXED_VAL (pars, curr_par);
+	    *(val_t *) IVAL (vars, curr_actual)
+	      = *(val_t *) IVAL (pars, curr_par);
 	  if (args_p)
 	    {
               ER_node_t vect;
@@ -5311,62 +5326,53 @@ process_func_class_call (int_t pars_number)
 	      else
 		vect = create_unpack_vector (pars_number - curr_actual);
 	      /* Args number */
-	      ER_SET_MODE (INDEXED_VAL (ER_stack_vars (cstack),	formals_num),
-                           ER_NM_vect);
-	      ER_set_vect (INDEXED_VAL (ER_stack_vars (cstack), formals_num),
-			   vect);
+	      ER_SET_MODE (IVAL (ER_stack_vars (cstack), formals_num),
+			   ER_NM_vect);
+	      ER_set_vect (IVAL (ER_stack_vars (cstack), formals_num), vect);
 	      /* The value may be changed because of GC. */
 	      prev_stack = ER_prev_stack (cstack);
+	      func_class_val = IVAL (ER_ctop (prev_stack), -pars_number);
 	      for (start = curr_actual;
                    curr_actual < pars_number;
 		   curr_actual++)
-		*(val_t *) INDEXED_VAL (ER_unpack_els (vect),
-                                        curr_actual - start)
-		  = *(val_t *) INDEXED_VAL (ER_ctop (prev_stack),
-                                            curr_actual - pars_number + 1);
+		*(val_t *) IVAL (ER_unpack_els (vect), curr_actual - start)
+		  = *(val_t *) IVAL (ER_ctop (prev_stack),
+				     curr_actual - pars_number + 1);
 	    }
 	  /* Pop all actual parameters and func from previous stack. */
 	  DECR_TOP (prev_stack, pars_number + 1);
 	  cpc = IR_next_pc (IR_next_stmt (func_class));
-	  if (IR_thread_flag (func_class))
+	  if (mode == ER_NM_thread)
 	    {
 	      ER_node_t process;
 	      
 	      process = create_process (cpc, func_class,
-					ER_func_context (func_class_val));
+					ER_thread_context (func_class_val));
 	      cpc = IR_next_pc (ER_call_pc (cstack));
-#ifndef NO_OPTIMIZE
 	      ER_set_ctop (cstack, (char *) ctop);
-#endif
 	      cstack = ER_prev_stack (cstack);
 	      ER_set_saved_cstack (cprocess, cstack);
-#ifndef NO_OPTIMIZE
+	      cvars = ER_stack_vars (cstack);
 	      ctop = (ER_node_t) ER_ctop (cstack);
-#endif
 	      SET_TOP;
 	      TOP_UP;
 	      ER_SET_MODE (ctop, ER_NM_process);
               ER_set_process (ctop, process);
+	      TOP_DOWN;
 	    }
 	}
     }
-  else if (ER_NODE_MODE (func_class_val) == ER_NM_class)
+  else if (mode == ER_NM_class)
     {
       /* See also case with IR_NM_block_finish .*/
       func_class = NO_TO_FUNC_CLASS (ER_class_no (func_class_val));
-#if 0
-      fprintf (stderr, "%s:%u:%u:calling %s\n",
-	       IR_pos (IR_POINTER (cpc)).file_name,
-	       IR_pos (IR_POINTER (cpc)).line_number,
-	       IR_pos (IR_POINTER (cpc)).column_number,
-	       IR_ident_string (IR_unique_ident (IR_ident (func_class))));
-#endif
       instance = create_instance (pars_number);
       if (IR_simple_class_flag (func_class))
 	{
 	  TOP_UP;
 	  ER_SET_MODE (ctop, ER_NM_instance);
 	  ER_set_instance (ctop, instance);
+	  TOP_DOWN;
 	  INCREMENT_PC ();
 	}
       else
@@ -5375,10 +5381,8 @@ process_func_class_call (int_t pars_number)
 	  heap_push (IR_next_stmt (func_class), GET_TEMP_REF (0), 1);
 	  /* Zeroth val of class block is always corresponding
 	     instance. */
-	  ER_SET_MODE (INDEXED_VAL (ER_stack_vars (cstack), 0),
-		       ER_NM_instance);
-	  ER_set_instance (INDEXED_VAL (ER_stack_vars (cstack), 0),
-			   GET_TEMP_REF (0));
+	  ER_SET_MODE (IVAL (ER_stack_vars (cstack), 0), ER_NM_instance);
+	  ER_set_instance (IVAL (ER_stack_vars (cstack), 0), GET_TEMP_REF (0));
 	  POP_TEMP_REF (1);
 	  cpc = IR_next_pc (IR_next_stmt (func_class));
 	}
@@ -5427,10 +5431,10 @@ int_earley_parse_grammar (int npars)
   ER_node_t par1, par2, par3, v;
   const char *name = "set_grammar";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -2);
-  implicit_arithmetic_conversion (1);
-  par2 = INDEXED_VAL (ER_CTOP (), -1);
-  par3 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -2);
+  implicit_arithmetic_conversion (below_ctop, -1);
+  par2 = IVAL (ER_CTOP (), -1);
+  par3 = IVAL (ER_CTOP (), 0);
   assert (npars == 3 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par3) == ER_NM_vect)
     {
@@ -5469,9 +5473,9 @@ int_earley_set_debug_level (int npars)
   ER_node_t par1, par2;
   const char *name = "set_debug";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -1);
-  implicit_arithmetic_conversion (0);
-  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (ctop, -1);
+  par2 = IVAL (ER_CTOP (), 0);
   assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
@@ -5494,9 +5498,9 @@ int_earley_set_one_parse_flag (int npars)
   ER_node_t par1, par2;
   const char *name = "set_one_parse";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -1);
-  implicit_arithmetic_conversion (0);
-  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (ctop, -1);
+  par2 = IVAL (ER_CTOP (), 0);
   assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
@@ -5519,9 +5523,9 @@ int_earley_set_lookahead_level (int npars)
   ER_node_t par1, par2;
   const char *name = "set_lookahead";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -1);
-  implicit_arithmetic_conversion (0);
-  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (ctop, -1);
+  par2 = IVAL (ER_CTOP (), 0);
   assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
@@ -5545,9 +5549,9 @@ int_earley_set_cost_flag (int npars)
   ER_node_t par1, par2;
   const char *name = "set_cost";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -1);
-  implicit_arithmetic_conversion (0);
-  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (ctop, -1);
+  par2 = IVAL (ER_CTOP (), 0);
   assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
@@ -5569,9 +5573,9 @@ int_earley_set_error_recovery_flag (int npars)
   ER_node_t par1, par2;
   const char *name = "set_recovery";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -1);
-  implicit_arithmetic_conversion (0);
-  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (ctop, -1);
+  par2 = IVAL (ER_CTOP (), 0);
   assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
@@ -5595,9 +5599,9 @@ int_earley_set_recovery_match (int npars)
   ER_node_t par1, par2;
   const char *name = "set_recovery_match";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -1);
-  implicit_arithmetic_conversion (0);
-  par2 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -1);
+  implicit_arithmetic_conversion (ctop, -1);
+  par2 = IVAL (ER_CTOP (), 0);
   assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_decl, invcalls_decl, IR_pos (real_func_call_pc),
@@ -5637,7 +5641,7 @@ init_read_token (void **attr)
 		"run time error (parse) -- invalid token #%d", curr_token);
   curr_token++;
   n = IR_var_number_in_block (code_decl);
-  code = INDEXED_VAL (ER_instance_vars (tok), n);
+  code = IVAL (ER_instance_vars (tok), n);
   if (ER_NODE_MODE (code) != ER_NM_int)
     eval_error (invtoken_decl, invparsers_decl, IR_pos (real_func_call_pc),
 		"run time error (parse) -- invalid code of token #%d",
@@ -5651,8 +5655,9 @@ static IR_node_t error_func;
 static ER_node_t error_func_context;
 
 /* The following function is interface to DINO error function.  We
-   need to provide at least 6 temporary variables (see trick for this
-   in environment). */
+   need to provide at least 7 temporary variables (see trick for this
+   in environment) for this function plus 4 vars for
+   int_earley_parse. */
 static void
 init_syntax_token (int err_tok_num, void *err_tok_attr,
 		   int start_ignored_tok_num, void *start_ignored_tok_attr,
@@ -5696,7 +5701,6 @@ init_syntax_token (int err_tok_num, void *err_tok_attr,
       ER_set_instance (ctop, start_recovered_tok_attr);
     }
   call_func_class (6);
-  TOP_DOWN; /* reject the result. */
 }
 
 struct tree_heap_node
@@ -5753,12 +5757,13 @@ tree_to_heap (struct earley_tree_node *root)
     {
     case EARLEY_NIL:
     case EARLEY_ERROR:
-      var = INDEXED_VAL (ER_stack_vars (uppest_stack),
-			 IR_var_number_in_block (root->type == EARLEY_NIL
-						 ? nil_anode_decl
-						 : error_anode_decl));
+      var = IVAL (ER_stack_vars (uppest_stack),
+		  IR_var_number_in_block (root->type == EARLEY_NIL
+					  ? nil_anode_decl : error_anode_decl));
       assert (ER_NODE_MODE (var) == ER_NM_instance);
       res = ER_instance (var);
+      DECR_CTOP (2);
+      SET_TOP;
       break;
     case EARLEY_TERM:
       name_vect = create_string ("$term");
@@ -5845,9 +5850,9 @@ int_earley_parse (int npars)
   ER_node_t instance, var;
   const char *name = "parse";
 
-  par1 = INDEXED_VAL (ER_CTOP (), -2);
-  par2 = INDEXED_VAL (ER_CTOP (), -1);
-  par3 = INDEXED_VAL (ER_CTOP (), 0);
+  par1 = IVAL (ER_CTOP (), -2);
+  par2 = IVAL (ER_CTOP (), -1);
+  par3 = IVAL (ER_CTOP (), 0);
   assert (npars == 3 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) == ER_NM_vect)
     {
@@ -5867,7 +5872,6 @@ int_earley_parse (int npars)
 		DERR_parameter_type, name);
   /* We switch off GC because the parser may call error function
      several times and parser has references to tokens in the heap. */
-  no_gc_flag = TRUE;
   tokens_vect = ER_vect (par2);
   curr_token = 0;
   error_func = NO_TO_FUNC_CLASS (ER_func_no (par3));
@@ -5882,7 +5886,6 @@ int_earley_parse (int npars)
 		       int_parse_alloc, NULL, &root, &ambiguous_p);
   if (code == EARLEY_NO_MEMORY)
     {
-      no_gc_flag = FALSE;
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
       eval_error (pmemory_decl, invparsers_decl, IR_pos (real_func_call_pc),
@@ -5890,7 +5893,6 @@ int_earley_parse (int npars)
     }
   else if (code == EARLEY_UNDEFINED_OR_BAD_GRAMMAR)
     {
-      no_gc_flag = FALSE;
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
       eval_error (invgrammar_decl, invparsers_decl, IR_pos (real_func_call_pc),
@@ -5898,7 +5900,6 @@ int_earley_parse (int npars)
     }
   else if (code == EARLEY_INVALID_TOKEN_CODE)
     {
-      no_gc_flag = FALSE;
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
       eval_error (invtoken_decl, invparsers_decl, IR_pos (real_func_call_pc),
@@ -5910,8 +5911,8 @@ int_earley_parse (int npars)
   instance = ER_context (cstack);
   assert (instance != NULL && ER_NODE_MODE (instance) == ER_NM_heap_instance
 	  && ER_instance_class (instance) == parser_decl);
-  var = INDEXED_VAL (ER_instance_vars (instance),
-		     IR_var_number_in_block (ambiguous_p_decl));
+  var = IVAL (ER_instance_vars (instance),
+	      IR_var_number_in_block (ambiguous_p_decl));
   ER_SET_MODE (var, ER_NM_int);
   ER_set_i (var, ambiguous_p);
   DECR_CTOP (npars);
@@ -5926,7 +5927,6 @@ int_earley_parse (int npars)
       ER_SET_MODE (ctop, ER_NM_instance);
       ER_set_instance (ctop, instance);
     }
-  no_gc_flag = FALSE;
   delete_hash_table (tree_heap_tab);
   OS_DELETE (tree_mem_os);
   INCREMENT_PC();

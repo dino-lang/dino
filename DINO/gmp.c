@@ -90,12 +90,9 @@ mpz_three_op (int npars, val_t *vals, void **hidevalue1, void **hidevalue2,
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
-  var1 = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))),
-		      1);
-  var2 = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 2))),
-		      1);
-  first_var
-    = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
+  var2 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 2))), 1);
+  first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *hidevalue1 = ER_hideblock_start (ER_hideblock (var1));
   *hidevalue2 = ER_hideblock_start (ER_hideblock (var2));
   *first_hidevalue = ER_hideblock_start (ER_hideblock (first_var));
@@ -112,10 +109,8 @@ mpz_two_op_ui (int npars, val_t *vals, void **hidevalue, int_t *ui,
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);
-  var1 = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))),
-		      1);
-  first_var
-    = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
+  first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *hidevalue = ER_hideblock_start (ER_hideblock (var1));
   *ui = ER_i ((ER_node_t) (vals + 2));
   *first_hidevalue = ER_hideblock_start (ER_hideblock (first_var));
@@ -130,10 +125,8 @@ mpz_two_op (int npars, val_t *vals, void **hidevalue, void **first_hidevalue)
   assert (npars == 2
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
-  var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))),
-		     1);
-  first_var
-    = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
+  first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *hidevalue = ER_hideblock_start (ER_hideblock (var));
   *first_hidevalue = ER_hideblock_start (ER_hideblock (first_var));
 }
@@ -146,8 +139,7 @@ mpz_one_op_ui (int npars, val_t *vals, int_t *ui, void **first_hidevalue)
   assert (npars == 2
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
-  first_var
-    = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *ui = ER_i ((ER_node_t) (vals + 1));
   *first_hidevalue = ER_hideblock_start (ER_hideblock (first_var));
 }
@@ -333,9 +325,8 @@ _z_set_str (int npars, val_t *vals)
   assert (npars == 2
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect);
-  var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))),
-		     1);
-  res_var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
+  res_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   mpz_set_str (*(mpz_t *) ER_hideblock_start (ER_hideblock (res_var)),
 	       ER_pack_els (ER_vect ((ER_node_t) (vals + 1))), 0);
   return return_nil ();
@@ -347,7 +338,7 @@ _z_get_si (int npars, val_t *vals)
   ER_node_t var;
 
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
-  var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   return return_int (mpz_get_si (*(mpz_t *)
 				 ER_hideblock_start (ER_hideblock (var))));
 }
@@ -358,7 +349,7 @@ _z_get_d (int npars, val_t *vals)
   ER_node_t var;
 
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
-  var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   return return_float (mpz_get_d (*(mpz_t *)
 				  ER_hideblock_start (ER_hideblock (var))));
 }

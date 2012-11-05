@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -213,7 +213,7 @@ extern IR_node_t temp_decl;
 extern IR_node_t temp_var_occurrence;
 extern IR_node_t destroy_unique_ident;
 
-#define IR_POINTER(v) ((IR_node_t)(v))
+#define IR_PTR(v) ((IR_node_t)(v))
 
 /* This is type definition of program counter.  All nodes (except for
    unique nodes and var_node, func_node, class_node) is
@@ -421,7 +421,7 @@ typedef IR_node_t pc_t;
   "  }\n"\
   "  func parse (tokens, error_func) {\n"\
   "    var __i; // Trick to guarantee temp. vars to call error_func\n"\
-  "    __i = 1 + 2 * (3 + 4 * (5 + 6 * 7));\n"\
+  "    __i = 1 + 2 * (3 + 4 * (5 + 6 * (7 + 8 * (9 + 10 * (11 + 12 * 13)))));\n"\
   "    return int_earley_parse (grammar, tokens, error_func);\n"\
   "  }\n"\
   "\n"\
@@ -1232,6 +1232,7 @@ generic_pos :: ir_node
         /* The next executed node during usually sequential execution
            of the program */
         next_pc : generic_pos
+	traverse_flag : bool_t {$ = FALSE;}
         pos : position_t
 ;
 
@@ -1333,17 +1334,20 @@ in, or, xor, and, eq, ne, identity, unidentity, lt, gt, le, ge,
 ;
 
 %abstract
-logical_binary_operation :: binary_operation
+logical_binary_operation :: unary_operation
+%other
+        cont_operand : expr
 ;
 
 logical_or, logical_and :: logical_binary_operation
 ;
 
 /* conditional expression */
-cond :: binary_operation
+cond :: expr
 %other
-   cond : expr
-   false_path_pc : generic_pos
+   cond_expr : expr
+   true_expr : expr
+   false_expr : expr
 ;
 
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
@@ -1351,13 +1355,25 @@ const, new, not, unary_plus, unary_minus, bitwise_not, length,
    funcof, threadof, classof :: unary_operation
 ;
 
-format_vectorof :: vectorof
-%other
-   format : expr
+format_vectorof :: binary_operation
 ;
 
+%abstract
+index_designator :: component_designator
+;
 
-index, key_index :: component_designator
+%abstract
+vec_index_designator :: index_designator
+;
+
+index :: vec_index_designator
+;
+
+%abstract
+key_index_designator :: index_designator
+;
+
+key_index :: key_index_designator
 ;
 
 %abstract
@@ -1447,7 +1463,7 @@ swap :: stmt
         swap_var2 : designator
 ;
 
-procedure_call :: stmt
+proc_call :: stmt
 %other
         /* See commentaries for func call node. */
         proc_expr : expr
@@ -1628,11 +1644,57 @@ unique_ident
         it_is_declared_in_block : bool_t
 ;
 
+component_designator
+%other
+        /* In what local variable the result should be put.  */
+        designator_result_num : int_t
+        /* Number of variable of the current stack which contains the
+	   left designator value.  */
+        designator_op_num : int_t
+;
+
+index_designator
+%other
+        /* Number of variable of the current stack which contains the
+	   index or key value.  */
+        component_op_num : int_t
+;
+
 period_designator
 %other
         /* Value of block_decl_ident_number of the corresponding
 	   unique_ident.  Used to speed up the access.  */
         right_block_decl_ident_number : integer_t
+;
+
+int
+%other
+        /* In what local variable the result should be put.  */
+        int_result_num : int_t
+;
+
+float
+%other
+        /* In what local variable the result should be put.  */
+        float_result_num : int_t
+;
+
+char
+%other
+        /* In what local variable the result should be put.  */
+        char_result_num : int_t
+;
+
+string
+%other
+        /* In what local variable the result should be put.  */
+        string_result_num : int_t
+;
+
+type
+%other
+        /* In what local variable the result should be put.  */
+        type_result_num : int_t
 ;
 
 expr
@@ -1641,19 +1703,35 @@ expr
         value_type : type_mask_t
 ;
 
-/* These nodes are analogous to previous nodes without `no_testing'
-   and created to mention that the evaluator may do not test
-   corresponding decl availability in the corresponding
-   class. */
-no_testing_period :: component_designator
+operation
+%other
+	/* Number of variable of the current stack which will contain
+	   the result.  It might be a real local variable or temporary
+	   variable.  */
+        result_num : int_t
 ;
 
-lvalue_index, lvalue_index_and_val, lvalue_key_index,
-  lvalue_key_index_and_val :: component_designator
+binary_operation
+%other
+        /* Number of variable of the current stack which contains the
+	   correspondingly left and right operand values.  */
+        left_op_num, right_op_num : int_t
 ;
 
-lvalue_period, lvalue_period_and_val, lvalue_no_testing_period,
-  lvalue_no_testing_period_and_val :: period_designator
+unary_operation
+%other
+        /* Number of variable of the current stack which contains the
+	   operand value.  */
+        op_num : int_t
+;
+
+lvalue_index, lvalue_index_and_val :: vec_index_designator
+;
+
+lvalue_key_index, lvalue_key_index_and_val :: key_index_designator
+;
+
+lvalue_period, lvalue_period_and_val :: period_designator
 ;
 
 logical_binary_operation
@@ -1665,6 +1743,25 @@ logical_binary_operation
 
 /* This is end of short circuit operation. */
 logical_or_end, logical_and_end :: generic_pos
+%other
+	/* Number of variable of the current stack which will contain
+	   the result.  It might be a real local variable or temporary
+	   variable.  It should be the same as result_num in the
+	   corresponding logical operation.  */
+        cont_result_num : int_t
+        /* Number of variable of the current stack which contains the
+	   right operand value of the logical operation.  */
+        cont_op_num : int_t
+;
+
+cond
+%other
+        false_path_pc : generic_pos
+	/* First pc node common for the if- and else-parts. */
+	cond_common_part_pc : generic_pos
+        /* Number of variable of the current stack which contains the
+	   cond value.  */
+        cond_op_num : int_t
 ;
 
 /* This is end of cond operation or parameter assign.  Do nothing, only used
@@ -1676,20 +1773,30 @@ cond_end, par_assign_end :: generic_pos
    par_assign par_assign_end' */
 par_assign_test :: generic_pos
 %other
+   /* Number of variable of the current stack which will contain the
+      parameter value before assigning.  */
+   par_num : int_t
    /* If the result of the parameter value is not nil then follow the
       path in the following field which refers for node
       par_assign_end. */
    skip_par_assign_path_pc : generic_pos
 ;
 
-/* Simply for pushing undefined value on the stack. */
 nil ::  expr
+%other
+        /* In what local variable the result should be put.  */
+        nil_result_num : int_t
 ;
 
 vector_table
 %other
         /* Number of elements in the list elist. */
         parts_number : integer_t
+        /* In what local variable the result should be put.  */
+	vec_tab_result_num : int_t
+        /* From what temporary local variable the vector/tab element
+	   pairs (correspondingly (n_vals,val)/(key,val)) start.  */
+        vec_tab_el_num : int_t
 ;
 
 elist_element
@@ -1700,12 +1807,49 @@ class_func_thread_call
 %other
         /* Number of elements in the list actuals. */
         class_func_thread_call_parameters_number : integer_t
+        /* From what temporary local variable function/class and the
+	   parameters start.  */
+        func_call_start_num : int_t
 ;
 
-procedure_call
+assign_stmt
+%other
+        /* Number of local variable where the container of the
+	   assignment var is stored.  The container for local_assign
+	   means the local variable itself. */
+	container_num : int_t
+        /* Number of local variable where index is stored.  It is not
+	   used for period, extern var, or local_assign.  */
+	index_num : int_t
+	/* Nonegative only for op-assignment.  In this case, it is a
+	   number of local temporary variable where lvalue value is
+	   stored.  */
+	lvalue_val_num : int_t
+        /* Number of local variable where the assignment expr value is
+	   stored.  */
+	expr_num : int_t
+;
+
+swap
+%other
+        /* Numbers of local variables where the containers of the
+	   swap vars are stored.  */
+	container_num1, container_num2 : int_t
+        /* Numbers of local variables where indexes are stored.  It is not
+	   used for period, extern var.  */
+	index_num1, index_num2 : int_t
+	/* Numbers of local temporary variables where lvalue values
+	   are stored.  */
+	lvalue_val_num1, lvalue_val_num2 : int_t
+;
+
+proc_call
 %other
         /* Number of elements in the list proc_actuals. */
-        procedure_call_pars_number : integer_t
+        proc_call_pars_number : integer_t
+        /* From what temporary local variable func/class and the
+	   parameters start.  */
+        proc_call_start_num : int_t
 ;
 
 if_stmt
@@ -1713,13 +1857,19 @@ if_stmt
         /* This member is used to control flow to else-part. */
         else_part_pc : generic_pos
 	/* First pc node common for the if- and else-parts. */
-	common_part_pc : generic_pos
+	if_common_part_pc : generic_pos
+        /* Number of variable of the current stack which contains the
+	   if cond value.  */
+        if_cond_num : int_t
 ;
 
 for_stmt
 %other
         /* This member is used to control flow into loop body. */
         for_body_pc : generic_pos
+        /* Number of variable of the current stack which contains the
+	   for cond value.  */
+        for_guard_num : int_t
 ;
 
 /* This node serves as test loop expr in interpreter.  The pc flows as
@@ -1734,6 +1884,16 @@ foreach_stmt
 %other
         /* This member is used to control flow into loop body. */
         foreach_body_pc : generic_pos
+        /* Number of variable of the current stack which contains the
+	   table value.  */
+        foreach_tab_num : int_t
+        /* Number of variables of the current stack containing
+           correspondingly container, index, and value of the foreach
+           designator.  Lvalue val is always in the temporary local
+           variable.  */
+        foreach_container_num : int_t
+        foreach_index_num : int_t
+        foreach_lvalue_val_num : int_t
 ;
 
 for_break_contintue
@@ -1743,11 +1903,28 @@ for_break_contintue
         number_of_surrounding_blocks : integer_t
 ;
 
+return_with_result
+%other
+        /* Number of variable of the current stack which contains the
+	   return expr value.  */
+        return_expr_num : int_t
+;
+
+throw
+%other
+        /* Number of variable of the current stack which contains the
+	   throw expr value.  */
+        throw_expr_num : int_t
+;
+
 wait_stmt
 %other
         /* The following program count refers to start of with guard
            expr.  This is needed for resuming processes. */
         start_wait_guard_expr_pc : generic_pos
+        /* Number of variable of the current stack which contain the
+	   guard expr value.  */
+        wait_guard_expr_num : int_t
 ;
 
 block
@@ -1816,6 +1993,10 @@ exception
         /* This member is used to control flow when there is no catch
            for given exception. */
         next_catch_list_pc : generic_pos
+        /* Number of variable of the current stack which contains the
+	   exception instance and class.  */
+        except_instance_num : int_t
+        except_class_num : int_t
 ;
 
 decl
@@ -1866,6 +2047,8 @@ var
 occurrence :: designator
 %other
         decl : decl /* always defined */
+        /* In what local variable(s) the result should be put.  */
+	occurrence_result_num : int_t
 ;
 
 /* The ident will changed by three following groups of nodes
@@ -1878,12 +2061,16 @@ external_var_occurrence,
   var_occurrence :: occurrence
 ;
 
+local_var_occurrence
+%other
+        /* Local variable stack slot number.  */
+	local_var_num : int_t
+;
+
 /* The following structure is representing lvalue var occurrence nodes. */
 lvalue_external_var_occurrence,
   lvalue_external_var_occurrence_and_val,
   /* reference for a variable in current stack, not in class.  */
-  local_lvalue_var_occurrence,
-  local_lvalue_var_occurrence_and_val,
   lvalue_var_occurrence,
   lvalue_var_occurrence_and_val :: occurrence
 ;
@@ -1919,10 +2106,6 @@ block_finish :: generic_pos
 /* There is one node for given try block which serves for finishing
    each catch block.  See comment for exception. */
 catches_finish :: generic_pos
-;
-
-/* This node serves for pop up func call in procedure call stmt. */
-pop_func_call :: generic_pos
 ;
 
 /* The following fields are taken from the corresponding unique nodes.
@@ -1999,7 +2182,7 @@ hash_func (hash_table_entry_t el_ptr)
   floating_t float_number;
   size_t i, size, hash_value;
 
-  node_ref = IR_POINTER (el_ptr);
+  node_ref = IR_PTR (el_ptr);
   mode = IR_NODE_MODE (node_ref);
   if (mode == IR_NM_var || mode == IR_NM_external_var
       || mode == IR_NM_external_func || mode == IR_NM_func
@@ -2055,8 +2238,8 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
   IR_node_mode_t mode1, mode2;
   int elements_are_equal;
 
-  node_ref1 = IR_POINTER (el1_ptr);
-  node_ref2 = IR_POINTER (el2_ptr);
+  node_ref1 = IR_PTR (el1_ptr);
+  node_ref2 = IR_PTR (el2_ptr);
   mode1 = IR_NODE_MODE (node_ref1);
   mode2 = IR_NODE_MODE (node_ref2);
   if ((mode1 == IR_NM_var || mode1 == IR_NM_external_var

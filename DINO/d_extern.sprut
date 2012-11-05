@@ -3,7 +3,7 @@
    described here. */
 
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,7 +29,7 @@
 /* Don't use -flat-structure for generation SPI from this description. */
 
 %type bool_t size_t hide_t char_t int_t unsigned_int_t floating_t char_ptr_t
-      instance_state_t IR_hidden_node_t ER_type_t ER_node_mode_t
+      instance_state_t IR_hidden_node_t ER_node_mode_t
       process_status_t stack_ptr_t
 
 %import {
@@ -77,27 +77,6 @@ typedef enum process_status process_status_t;
 
 typedef struct ER_node **stack_ptr_t;
 
-enum _ER_type
-{
-  ER_T_nil,
-  ER_T_hide,
-  ER_T_hideblock,
-  ER_T_char,
-  ER_T_int,
-  ER_T_float,
-  ER_T_vector,
-  ER_T_table,
-  ER_T_thread,
-  ER_T_func,
-  ER_T_class,
-  ER_T_instance,
-  ER_T_stack,
-  ER_T_process,
-  ER_T_type
-};
-
-typedef enum _ER_type ER_type_t;
-
 }
 
 %export {
@@ -122,9 +101,6 @@ typedef union
     _ER_process process;
     _ER_external_var_ref external_var_ref;
   } val_t;
-
-/* Return type of node representing value. */
-ER_type_t node_mode_2_type (ER_node_mode_t node_mode);
 
 /* Type of all external functions. */
 typedef val_t external_func_t (int, val_t *);
@@ -203,10 +179,10 @@ extern void *get_library_search_function (const char *name);
 #endif
 
 #if defined(NDEBUG)
-#define INDEXED_VAL(first_var, index)\
+#define IVAL(first_var, index)\
    ((ER_node_t) ((char *) (first_var) + (index) * (int) sizeof (val_t)))
 #else
-#define INDEXED_VAL(first_var, index)\
+#define IVAL(first_var, index)\
    _indexed_val ((ER_node_t) first_var, index)
 #endif
 
@@ -229,11 +205,7 @@ extern void *get_library_search_function (const char *name);
 #define DECR_TOP(stack, decr)\
    ER_set_ctop ((stack), ER_ctop (stack) - (decr) * (int) sizeof (val_t))
 
-#ifdef NO_OPTIMIZE
-#define DECR_CTOP(decr) DECR_TOP (cstack, decr)
-#else
-#define DECR_CTOP(decr) (ctop = INDEXED_VAL (ctop, -(decr)))
-#endif
+#define DECR_CTOP(decr) (ctop = IVAL (ctop, -(decr)))
 
 #ifndef NDEBUG
 size_t _alloc_size(size_t s);
@@ -461,7 +433,7 @@ float :: val
 /*%final*/
 type :: val
 %other
-  type : ER_type_t
+  type : ER_node_mode_t
 ;
 
 /*%final*/
@@ -492,6 +464,13 @@ func :: val
 %other
   func_no : int_t
   func_context : context_heap_obj
+;
+
+/*%final*/
+thread :: val
+%other
+  thread_no : int_t
+  thread_context : context_heap_obj
 ;
 
 /*%final*/

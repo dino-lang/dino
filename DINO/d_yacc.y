@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -130,21 +130,21 @@ set_flag   : {$$ = 1;}
 expr : expr '?' pos expr ':' expr
        	{
           $$ = create_node_with_pos (IR_NM_cond, $3);
-          IR_set_cond ($$, $1);
-          IR_set_left_operand ($$, $4);
-          IR_set_right_operand ($$, $6);
+          IR_set_cond_expr ($$, $1);
+          IR_set_true_expr ($$, $4);
+          IR_set_false_expr ($$, $6);
         }
      | expr LOGICAL_OR pos expr
        	{
           $$ = create_node_with_pos (IR_NM_logical_or, $3);
-          IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_operand ($$, $1);
+          IR_set_cont_operand ($$, $4);
         }
      | expr LOGICAL_AND pos expr
        	{
           $$ = create_node_with_pos (IR_NM_logical_and, $3);
-          IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_operand ($$, $1);
+          IR_set_cont_operand ($$, $4);
         }
      | expr IN pos expr
        	{
@@ -369,8 +369,8 @@ expr : expr '?' pos expr ':' expr
      | pos VECTOR '(' expr ',' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_format_vectorof, $1);
-          IR_set_operand ($$, $4);
-          IR_set_format ($$, $6);
+          IR_set_left_operand ($$, $4);
+          IR_set_right_operand ($$, $6);
         }
      | pos TABLE '(' expr ')'
        	{
@@ -647,8 +647,8 @@ executive_stmt :
         }
     | designator actual_parameters {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
-          $$ = create_node_with_pos (IR_NM_procedure_call,
-                                      actual_parameters_construction_pos);
+          $$ = create_node_with_pos (IR_NM_proc_call,
+				     actual_parameters_construction_pos);
        	 IR_set_proc_expr ($$, $1);
        	 IR_set_proc_actuals ($$, $2);
         }

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -24,10 +24,16 @@
 
 #include "d_run.h"
 
-extern void to_vect_string_conversion (ER_node_t var, const char *format);
-extern void implicit_arithmetic_conversion (int depth);
-extern void implicit_conversion_for_binary_arithmetic_op (void);
-extern void implicit_int_conversion (int depth);
-extern void implicit_conversion_for_binary_int_op (void);
+extern ER_node_t to_vect_string_conversion (ER_node_t var, const char *format,
+					    int tvar_num);
+extern ER_node_t implicit_arithmetic_conversion (ER_node_t op1, int tvar_num);
+extern void implicit_conversion_for_binary_arithmetic_op (ER_node_t op1,
+							  ER_node_t op2,
+							  ER_node_t *l,
+							  ER_node_t *r);
+extern ER_node_t implicit_int_conversion (ER_node_t op, int new_p);
+extern void implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
+						   ER_node_t *l, ER_node_t *r);
 extern void implicit_conversion_for_binary_string_op (void);
-extern void implicit_conversion_for_eq_op (void);
+extern void implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
+					   ER_node_t *l, ER_node_t *r);

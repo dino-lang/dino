@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -1163,10 +1163,8 @@ extract_mpi (int npars, val_t *vals, int_t *size)
   ER_node_t size_var;
 
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
-  var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)),
-		     1);
-  size_var = INDEXED_VAL (ER_instance_vars (ER_instance ((ER_node_t) vals)),
-			  0);
+  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
   assert (ER_NODE_MODE (var) == ER_NM_hideblock
 	  && ER_NODE_MODE (size_var) == ER_NM_int);
   *size = ER_i (size_var);

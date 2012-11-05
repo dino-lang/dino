@@ -1,3 +1,120 @@
+2012-11-05  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* AMMUNITION/earley.c (make_parse): Check stack on emptiness.
+	* DINO/d_dino.c: New flags -d and -dd.
+	(dino_main): Set up dump_flag.
+	* DINO/d_extern.sprut (ER_type_t, node_mode_2_type): Remove.
+	(INDEXED_VAL): Rename to IVAL.
+	(DECR_CTOP): Define only optimized version.
+	(type): Use ER_node_mode_t instead of ER_type_t.
+	(thread): New node.
+	* DINO/d_func.h (internal_inside_call): Change signature.
+	* DINO/d_func.c: Use IVAL instead of INDEXED_VAL.  Add parameter
+	to to_vect_string_conversion, implicit_int_conversion, and
+	implicit_arithmetic_conversion calls.  Don't use node_mode_2_type.
+	(below_ctop): Define.
+	(context_call): Process thread node.
+	(internal_inside_call): Ditto.  Add 2 parameters.
+	(inside_call): Add parameters to call of internal_inside_call.
+	(array_sort_compare_function): Remove TOP_UP.
+	(sort_call, general_get_ln_file_call, call_external_func): Do not
+	set up no_gc_flag.
+	(print_val): Process thread node.  Use node_mode instead of type.
+	(process_func_class_call): Process thread node.  Remove
+	non-otimized code.  Change code dealing with stack top.
+	(init_syntax_token, tree_to_heap): Change code dealing with stack
+	top.
+	(int_earley_parse): Do not set up no_gc_flag.
+	* DINO/d_conv.c: Use IVAL instead of INDEXED_VAL.  Don't setup
+	no_gc_flag.
+	(to_vect_string_conversion): Change signature.
+	(implicit_arithmetic_conversion): Ditto.
+	(implicit_conversion_for_binary_arithmetic_op): Ditto.
+	(implicit_int_conversion, implicit_conversion_for_binary_int_op): Ditto.
+	(implicit_eq_conversion, implicit_conversion_for_eq_op): Ditto.
+	* DINO/d_conv.h (to_vect_string_conversion): Change signature.
+	(implicit_arithmetic_conversion): Ditto.
+	(implicit_conversion_for_binary_arithmetic_op): Ditto.
+	(implicit_int_conversion, implicit_conversion_for_binary_int_op): Ditto.
+	(implicit_conversion_for_eq_op): Ditto.
+	* DINO/d_eval.c: Rewrite code for operand based IR.
+	* DINO/d_context.c: Rewrite for new IR.  Add code dump.
+	* DINO/d_heap.c (cvars): New.
+	(initiate_int_tables): Process thread node.
+	(node_mode_2_type, no_gc_flag): Remove.
+	(GC_executed_stmts_count): New.
+	(initiate_heap): Reset it.
+	(tvar_num1, tvar_num2, set_tvars): New.
+	(final_call_destroy_functions): Set cvars.  Call set_tvars.
+	Remove non-optimized code.
+	(heap_allocate): Don't call gc.  Setup GC_executed_stmts_count.
+	(traverse_used_var, change_val, change_var, change_obj_refs):
+	Process thread node.
+	(destroy_instances): Remove no_gc_flag code.
+	(gc): Rename to GC.  Set cvars.  Call set_tvars.
+	Reset GC_executed_stmts_count.
+	(heap_push, heap_pop, activate_given_process): Set cvars.  Call
+	set_tvars.  Remove non-optimized code.
+	(hash_val, hash_key, eq_key): Process thread node.
+	(find_tab_entry): Don't use stack.
+	(initiate_processes): Decrease process_quantum.
+	(interrupt): New.
+	* DINO/d_ir.sprut (IR_POINTER): Rename to IR_PTR.
+	(parse): Make more temps.
+	(generic_pos): New traverse_flag.
+	(logical_binary_operation): Inherit from unary_operation.
+	(cond): Inherit from expr.  New cond_expr, true_expr, false_expr.
+	Remove cond and false_path_pc.
+	(format_vectorof): Inherit from binary_operation.
+	(index_designator, vec_index_designator, key_index_designator):
+	New nodes.
+	(index): Inherit from vec_index_designator.
+	(key_index): Inherit from key_index_designator.
+	(procedure_call): Rename to proc_call.
+	(component_designator, index_designator): Add new members for op
+	and result nums.
+	(int, float, char, string, type, nil): Add new members for result
+	num.
+	(no_testing_period): Remove.
+	(operation): Add new members for result num.
+	(binary_operation, unary_operation): Add new members for op nums.
+	(lvalue_index, lvalue_index_and_val): Inherit from
+	vec_index_designator.
+	(lvalue_key_index, lvalue_key_index_and_val): Inherit from
+	key_index_designator.
+	(lvalue_period, lvalue_period_and_val): Inherit from
+	period_designator.
+	(logical_or_end, logical_and_end): New nodes.
+	(cond):
+	(par_assign_test): Ditto.
+	(vector_table, class_func_thread_call, assign_stmt, swap): Add new
+	members for op nums.
+	(proc_call, if_stmt, for_stmt, foreach_stmt, return_with_result):
+	Ditto.
+	(throw, wait_stmt, block, exception, occurrence): Ditto.
+	(local_var_occurrence): New.
+	(local_lvalue_var_occurrence): Remove.
+	(local_lvalue_var_occurrence_and_val, pop_func_call): Remove.
+	* DINO/d_run.sprut (cvars, tvar_num1, tvar_num2): New.
+	(below_ctop, no_gc_flag): Remove.
+	(GC_executed_stmts_count, interrupt): New.
+	(gc): Rename to GC.
+	(QUANTUM_SWITCH_PROCESS): Rename to INTERRUPT_CHECK and rewrite it
+	using interrupt.
+	* DINO/d_runtab.c (block_decl_idents_tables): Rename to
+	block_decl_tables.
+	* DINO/d_runtab.h (block_decl_idents_tables): Ditto.
+	(struct block_decl_idents_tables): Rename block_decls to
+	block_ident_decls.
+	* DINO/d_yacc.y: Use new member names of IR nodes.
+	* DINO/dino.tst.in (test 62): Change func to thread in expected
+	output.
+	(test 584, test 585): New tests for dump.
+	* DINO/gmp.c: Use IVAL instead of INDEXED_VAL.
+	* DINO/ieee_int.c: Ditto.
+	* DINO/mpi.c: Ditto.
+	* DINO/socket_int.c: Ditto.
+
 2012-09-06  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_ir.sprut (access_ident): Rename ident into

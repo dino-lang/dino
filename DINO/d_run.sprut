@@ -1,7 +1,7 @@
 /* This file contains execution (run-time) objects description. */
 
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -38,7 +38,7 @@
 
 %export {
 
-#define INCREMENT_PC() (cpc = IR_next_pc (IR_POINTER (cpc)))
+#define INCREMENT_PC() (cpc = IR_next_pc (cpc))
 
 /* The macro call returns optimal allocation size for vector elements.
    Remember vector can grow.  Remember also about string end char. */
@@ -49,17 +49,11 @@ extern int sync_flag;
 extern pc_t cpc;
 extern ER_node_t cstack;
 extern ER_node_t uppest_stack;
+extern ER_node_t cvars;
 extern ER_node_t ctop;
+extern int tvar_num1, tvar_num2;
 
-#define below_ctop (INDEXED_VAL (ctop, -1))
-
-#ifdef NO_OPTIMIZE
-#define ER_CTOP() ER_ctop (cstack)
-#else
 #define ER_CTOP() ctop
-#endif
-
-#ifdef NO_OPTIMIZE
 
 #define SET_TOP\
    do {\
@@ -77,25 +71,6 @@ extern ER_node_t ctop;
      DECR_CTOP (1);\
      ctop = (ER_node_t) ER_CTOP ();\
    } while (0)
-
-
-#else /* #ifdef NO_OPTIMIZE */
-
-#define SET_TOP\
-   do {\
-   } while (0)
-
-#define TOP_UP\
-   do {\
-     ctop = INDEXED_VAL (ctop, 1);\
-   } while (0)
-
-#define TOP_DOWN\
-   do {\
-     ctop = below_ctop;\
-   } while (0)
-
-#endif /* #ifdef NO_OPTIMIZE */
 
 extern ER_node_t temp_ref;
 extern vlo_t heap_temp_refs;
@@ -145,7 +120,6 @@ extern size_t val_displ_table [];
 
 extern void initiate_int_tables (void);
 
-extern int no_gc_flag;
 extern unsigned int gc_number;
 extern int free_gc_memory_percent;
 extern size_t heap_size;
@@ -168,11 +142,13 @@ extern integer_t all_interrupts_number;
 extern void profile_interrupt (void);
 #endif
 
+extern int GC_executed_stmts_count;
+
 extern void *heap_allocate (size_t size, int stack_p);
 extern void initiate_heap (void);
 extern void final_call_destroy_functions (void);
 extern void finish_heap (void);
-extern void gc (void);
+extern void GC (void);
 extern void heap_push (IR_node_t block_node_ptr, ER_node_t context,
 		       int offset);
 extern void heap_pop (void);
@@ -185,16 +161,17 @@ extern void initiate_tables (void);
 extern int executed_stmts_count;
 extern int process_quantum;
 
-/* Macro for possible switch the process.  Remeber cpc must be correct
-   for resuming the current process lately. */
-#define QUANTUM_SWITCH_PROCESS\
+/* Macro for possible switch the process or to do GC.  Remeber cpc
+   must be correct for resuming the current process lately. */
+#define INTERRUPT_CHECK\
   do {\
     if (++executed_stmts_count >= 0)\
-      block_cprocess (cpc, FALSE);\
+      interrupt (cpc);\
   } while (0)\
 
 extern ER_node_t create_process (pc_t start_process_pc, IR_node_t func,
 	                         ER_node_t func_context);
+extern void interrupt (pc_t first_resume_pc);
 extern void block_cprocess (pc_t first_resume_pc, int wait_stmt_flag);
 extern void delete_cprocess (void);
 extern int delete_cprocess_during_exception (void);

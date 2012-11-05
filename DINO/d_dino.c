@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -445,7 +445,8 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-t'         output final trace to stderr\n"\
 "`-g'         generate C code\n"\
 "`-p'         output profile information into stderr\n"\
-"`-d'         dump program IR\n"
+"`-d'         dump program IR\n"\
+"`-dd'        dump program IR with standard definitions\n"
 
 #define DEFAULT_HEAP_CHUNK_SIZE  04000000 /* 1024 Kbytes */
 #define MINIMAL_HEAP_CHUNK_SIZE  0100000 /* 32  Kbytes */
@@ -499,7 +500,7 @@ dino_main (int argc, char *argv[], char *envp[])
   statistics_flag = FALSE;
   trace_flag = FALSE;
   profile_flag = FALSE;
-  dump_flag = FALSE;
+  dump_flag = 0;
   eval_long_jump_set_flag = FALSE;
   /* Process all command line options. */
   for (i = next_option (TRUE), okay = TRUE; i != 0; i = next_option (FALSE))
@@ -529,7 +530,9 @@ dino_main (int argc, char *argv[], char *envp[])
 #endif
 	}
       else if (strcmp (option, "-d") == 0)
-	dump_flag = TRUE;
+	dump_flag = 1;
+      else if (strcmp (option, "-dd") == 0)
+	dump_flag = 2;
       else if (strcmp (option, "-h") == 0)
 	{
 	  heap_chunk_size = atoi (argument_vector [i + 1]);

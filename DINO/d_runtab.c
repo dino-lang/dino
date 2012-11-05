@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,15 +29,15 @@
 vlo_t func_class_tab;
 static int_t curr_func_class_no;
 
-struct block_decl_idents_tables block_decl_idents_tables;
+struct block_decl_tables block_decl_tables;
 
 /* This func is to be called only once before any work with this abstract
    data. */
 void
 initiate_run_tables (void)
 {
-  block_decl_idents_tables.idents_number = 0;
-  VLO_CREATE (block_decl_idents_tables.blocks_decls, 2000);
+  block_decl_tables.idents_number = 0;
+  VLO_CREATE (block_decl_tables.block_ident_decls, 2000);
   curr_func_class_no = 0;
   VLO_CREATE (func_class_tab, 800);
 }
@@ -67,7 +67,7 @@ new_block (void)
   
   new_block_number = BLOCKS_NUMBER ();
   VLO_CREATE (block_decls, 0);
-  VLO_ADD_MEMORY (block_decl_idents_tables.blocks_decls,
+  VLO_ADD_MEMORY (block_decl_tables.block_ident_decls,
 		  (char *) &block_decls, sizeof (vlo_t));
   return new_block_number;
 }
@@ -83,8 +83,8 @@ process_block_decl_unique_ident (IR_node_t unique_ident)
   if (IR_block_decl_ident_number (unique_ident) < 0)
     {
       IR_set_block_decl_ident_number
-	(unique_ident, block_decl_idents_tables.idents_number);
-      block_decl_idents_tables.idents_number++;
+	(unique_ident, block_decl_tables.idents_number);
+      block_decl_tables.idents_number++;
     }
 }
 
@@ -110,7 +110,7 @@ define_block_decl (IR_node_t decl, IR_node_t block_ref)
   if (block_decl_ident_number < 0)
     /* There is no access to identifier. */
     return;
-  table_ref = (&LV_BLOCK_DECLS_TABLE (block_number));
+  table_ref = (&LV_BLOCK_IDENT_DECLS_TABLE (block_number));
   if (VLO_LENGTH (*table_ref) <= block_decl_ident_number * sizeof (IR_node_t))
     for (i = VLO_LENGTH (*table_ref) / sizeof (IR_node_t);
 	 i <= block_decl_ident_number;
@@ -126,10 +126,10 @@ finish_run_tables (void)
   vlo_t *vlo_ref;
 
   VLO_DELETE (func_class_tab);
-  for (vlo_ref = VLO_BEGIN (block_decl_idents_tables.blocks_decls);
+  for (vlo_ref = VLO_BEGIN (block_decl_tables.block_ident_decls);
        (char *) vlo_ref
-	 <= (char *) VLO_END (block_decl_idents_tables.blocks_decls);
+	 <= (char *) VLO_END (block_decl_tables.block_ident_decls);
        vlo_ref++)
     VLO_DELETE (*vlo_ref);
-  VLO_DELETE (block_decl_idents_tables.blocks_decls);
+  VLO_DELETE (block_decl_tables.block_ident_decls);
 }

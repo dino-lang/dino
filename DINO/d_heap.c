@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -39,8 +39,10 @@ ER_node_t cstack;
 
 /* Pointer to the stack frame of the uppest block in which environment
    variables are placed. */
-
 ER_node_t uppest_stack;
+
+/* Start of the vars of cstack.  */
+ER_node_t cvars;
 
 /* Pointers to the var on the top and below the top of stack cstack.
    Don't use the variables during GC. */
@@ -94,6 +96,7 @@ initiate_int_tables (void)
     = type_size_table [ER_NM_instance] = type_size_table [ER_NM_process]
     = type_size_table [ER_NM_stack] = sizeof (ER_node_t);
   type_size_table [ER_NM_func] = sizeof (struct _ER_S_func);
+  type_size_table [ER_NM_thread] = sizeof (struct _ER_S_thread);
   type_size_table [ER_NM_class] = sizeof (struct _ER_S_class);
 
   for (i = 0; i <= ER_NM__error; i++)
@@ -121,6 +124,8 @@ initiate_int_tables (void)
     = (char *) &((_ER_process *) v)->_ER_S_process - (char *) v;
   val_displ_table [ER_NM_func]
     = (char *) &((_ER_func *) v)->_ER_S_func - (char *) v;
+  val_displ_table [ER_NM_thread]
+    = (char *) &((_ER_thread *) v)->_ER_S_thread - (char *) v;
   val_displ_table [ER_NM_class]
     = (char *) &((_ER_class *) v)->_ER_S_class - (char *) v;
   val_displ_table [ER_NM_stack]
@@ -167,49 +172,6 @@ in_heap_temp_refs (ER_node_t obj)
     if (GET_TEMP_REF (i) == obj)
       return TRUE;
   return FALSE;
-}
-
-
-
-/* Return type of node representing value. */
-ER_type_t
-node_mode_2_type (ER_node_mode_t node_mode)
-{
-  switch (node_mode)
-    {
-    case ER_NM_nil:
-      return ER_T_nil;
-    case ER_NM_hide:
-      return ER_T_hide;
-    case ER_NM_hideblock:
-      return ER_T_hideblock;
-    case ER_NM_char:
-      return ER_T_char;
-    case ER_NM_int:
-      return ER_T_int;
-    case ER_NM_float:
-      return ER_T_float;
-    case ER_NM_vect:
-      return ER_T_vector;
-    case ER_NM_tab:
-      return ER_T_table;
-    case ER_NM_func:
-      return (IR_IS_OF_TYPE (NO_TO_FUNC_CLASS (ER_func_no (ctop)), IR_NM_func)
-	      && IR_thread_flag (NO_TO_FUNC_CLASS (ER_func_no (ctop)))
-	      ? ER_T_thread : ER_T_func);
-    case ER_NM_class:
-      return ER_T_class;
-    case ER_NM_instance:
-      return ER_T_instance;
-    case ER_NM_stack:
-      return ER_T_stack;
-    case ER_NM_process:
-      return ER_T_process;
-    case ER_NM_type:
-      return ER_T_type;
-    default:
-      assert (FALSE);
-    }
 }
 
 
@@ -414,8 +376,6 @@ static vlo_t external_vars;
 /* Number of identifier `destroy'. */
 static int destroy_ident_number;
 
-/* Don't make GC.  We use this only for call of external functions. */
-int no_gc_flag;
 /* The number of made GC. */
 unsigned int gc_number;
 /* Average percent of free memory after all GCs. */
@@ -442,6 +402,10 @@ integer_t gc_interrupts_number;
 ticker_t gc_ticker;
 #endif
 #endif
+
+/* EXECUTED_STMTS_COUNT when we recognized that we need GC.  If it is
+   possitive we don't need GC.  */
+int GC_executed_stmts_count;
 
 /* Each heap object has unique number for hashing purpose. */
 static size_t unique_number;
@@ -510,8 +474,8 @@ initiate_heap ()
   CREATE_TEMP_REF ();
   VLO_CREATE (temp_vlobj, 256);
   VLO_CREATE (temp_vlobj2, 256);
-  no_gc_flag = FALSE;
   gc_number = 0;
+  GC_executed_stmts_count = 1;
   free_gc_memory_percent = 0;
   context_number = 0;
   in_gc_p = FALSE;
@@ -538,6 +502,21 @@ static void clean_heap_object_process_flag (void);
 static int mark_instances_need_destroying (int mark_dependent_p);
 static void destroy_instances (void);
 
+/* Numbers of the last and before the last temporary variables.  */
+int tvar_num1, tvar_num2;
+
+/* Set up tvar_num1 and tvar_num2 for block BLOCK_NODE_PTR.  */
+#if INLINE && !defined (SMALL_CODE)
+__inline__
+#endif
+static void
+set_tvars (IR_node_t block_node_ptr)
+{
+  tvar_num1 = (real_block_vars_number (block_node_ptr)
+	       + IR_temporary_vars_number (block_node_ptr) - 1);
+  tvar_num2 = tvar_num1 - 1;
+}
+
 /* Just call destroy functions. */
 void
 final_call_destroy_functions (void)
@@ -558,13 +537,12 @@ final_call_destroy_functions (void)
       if (cstack == uppest_stack)
 	{
 	  block_node_ptr = ER_block_node (cstack);
-	  ctop = (ER_node_t) ((char *) ER_stack_vars (cstack)
+	  cvars = ER_stack_vars (cstack);
+	  ctop = (ER_node_t) ((char *) cvars
 			      + real_block_vars_number (block_node_ptr)
 			      * sizeof (val_t) - sizeof (val_t));
-#ifdef NO_OPTIMIZE
-	  ER_set_ctop (cstack, (char *) ctop);
-#endif
 	  SET_TOP;
+	  set_tvars (block_node_ptr);
 	  cpc = IR_next_pc (ER_call_pc (cstack));
 	  if (cprocess != NULL)
 	    ER_set_saved_cstack (cprocess, cstack);
@@ -601,8 +579,10 @@ heap_allocate (size_t size, int stack_p)
   size = ALLOC_SIZE (size);
   if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free < size)
     {
-      if (!no_gc_flag)
-	gc ();
+      /* We need GC.  Flag this.  */
+      assert (executed_stmts_count <= 0);
+      GC_executed_stmts_count = executed_stmts_count;
+      executed_stmts_count = 0;
       if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free
 	  < size)
 	new_heap_chunk (size > heap_chunk_size ? size : heap_chunk_size);
@@ -621,9 +601,6 @@ heap_allocate (size_t size, int stack_p)
   free_heap_memory -= size;
   ER_SET_MODE ((ER_node_t) result, ER_NM_heap_instance);
   ER_set_unique_number ((ER_node_t) result, unique_number);
-#if 0
-  ER_SET_MODE ((ER_node_t) result, 0);
-#endif
   unique_number++;
   return result;
 }
@@ -683,8 +660,8 @@ instance_with_destroy (ER_node_t obj)
 
   if (ER_NODE_MODE (obj) != ER_NM_heap_instance)
     return FALSE;
-  decl = LV_BLOCK_DECL (IR_block_number (ER_block_node (obj)),
-			destroy_ident_number);
+  decl = LV_BLOCK_IDENT_DECL (IR_block_number (ER_block_node (obj)),
+			      destroy_ident_number);
   if (decl == NULL)
     return FALSE;
   return IR_IS_OF_TYPE (decl, IR_NM_func);
@@ -697,7 +674,6 @@ tailored_heap_object_size (ER_node_t obj)
   size_t size, el_size, head_size, all_els_size, optimal_size;
   ER_node_mode_t node_mode = ER_NODE_MODE (obj);
   
-#if 1
   if (node_mode == ER_NM_heap_pack_vect || node_mode == ER_NM_heap_unpack_vect)
     {
       size = ER_allocated_length (obj);
@@ -712,7 +688,6 @@ tailored_heap_object_size (ER_node_t obj)
 	size = optimal_size;
     }
   else
-#endif
     size = heap_object_size (obj);
   return ALLOC_SIZE (size);
 }
@@ -777,6 +752,9 @@ traverse_used_var (ER_node_t var)
     case ER_NM_func:
       traverse_used_heap_object (ER_func_context (var));
       return;
+    case ER_NM_thread:
+      traverse_used_heap_object (ER_thread_context (var));
+      return;
     case ER_NM_process:
       traverse_used_heap_object (ER_process (var));
       return;
@@ -826,6 +804,11 @@ traverse_used_heap_object (ER_node_t obj)
 	    traverse_used_heap_object
 	      (((struct _ER_S_func *) (ER_pack_els (obj) + i * el_size))
                ->func_context);
+	else if (el_type == ER_NM_thread)
+	  for (i = 0; i < ER_els_number (obj); i++)
+	    traverse_used_heap_object
+	      (((struct _ER_S_thread *) (ER_pack_els (obj) + i * el_size))
+               ->thread_context);
 	else if (el_type == ER_NM_class)
 	  for (i = 0; i < ER_els_number (obj); i++)
 	    traverse_used_heap_object
@@ -837,7 +820,7 @@ traverse_used_heap_object (ER_node_t obj)
       }
     case ER_NM_heap_unpack_vect:
       for (i = 0; i < ER_els_number (obj); i++)
-	traverse_used_var (INDEXED_VAL (ER_unpack_els (obj), i));
+	traverse_used_var (IVAL (ER_unpack_els (obj), i));
       return;
     case ER_NM_heap_tab:
       {
@@ -864,7 +847,7 @@ traverse_used_heap_object (ER_node_t obj)
 	traverse_used_heap_object (ER_context (obj));
 	vars_number = IR_vars_number (IR_next_stmt (ER_instance_class (obj)));
 	for (i = 0; i < vars_number; i++)
-	  traverse_used_var (INDEXED_VAL (ER_instance_vars (obj), i));
+	  traverse_used_var (IVAL (ER_instance_vars (obj), i));
 	return;
       }
     case ER_NM_heap_stack:
@@ -875,7 +858,7 @@ traverse_used_heap_object (ER_node_t obj)
 	traverse_used_heap_object (ER_context (obj));
 	for (var = ER_stack_vars (obj);
 	     (char *) var <= ER_ctop (obj);
-	     var = INDEXED_VAL (var, 1))
+	     var = IVAL (var, 1))
 	  traverse_used_var (var);
 	return;
       }
@@ -1060,6 +1043,7 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
     case ER_NM_process:
     case ER_NM_stack:
     case ER_NM_func:
+    case ER_NM_thread:
     case ER_NM_class:
       CHANGE_REF (*val_addr);
       return;
@@ -1098,6 +1082,9 @@ change_var (ER_node_t var)
       return;
     case ER_NM_func:
       CHANGE_REF (((_ER_func *) var)->_ER_S_func.func_context);
+      return;
+    case ER_NM_thread:
+      CHANGE_REF (((_ER_thread *) var)->_ER_S_thread.thread_context);
       return;
     case ER_NM_process:
       CHANGE_REF (((_ER_process *) var)->_ER_S_process.process);
@@ -1148,6 +1135,11 @@ change_obj_refs (ER_node_t obj)
 	      change_val (el_type,
 			  &((struct _ER_S_func *)
 			    (ER_pack_els (obj) + i * el_size))->func_context);
+	  else if (el_type == ER_NM_thread)
+	    for (i = 0; i < ER_els_number (obj); i++)
+	      change_val (el_type,
+			  &((struct _ER_S_thread *)
+			    (ER_pack_els (obj) + i * el_size))->thread_context);
 	  else if (el_type == ER_NM_class)
 	    for (i = 0; i < ER_els_number (obj); i++)
 	      change_val (el_type,
@@ -1159,7 +1151,7 @@ change_obj_refs (ER_node_t obj)
 	}
       case ER_NM_heap_unpack_vect:
 	for (i = 0; i < ER_els_number (obj); i++)
-	  change_var (INDEXED_VAL (ER_unpack_els (obj), i));
+	  change_var (IVAL (ER_unpack_els (obj), i));
 	break;
       case ER_NM_heap_tab:
 	{
@@ -1185,7 +1177,7 @@ change_obj_refs (ER_node_t obj)
 	  vars_number = IR_vars_number (IR_next_stmt
 					(ER_instance_class (obj)));
 	  for (i = 0; i < vars_number; i++)
-	    change_var (INDEXED_VAL (ER_instance_vars (obj), i));
+	    change_var (IVAL (ER_instance_vars (obj), i));
 	  break;
 	}
       case ER_NM_heap_stack:
@@ -1198,7 +1190,7 @@ change_obj_refs (ER_node_t obj)
 	  CHANGE_REF (((_ER_heap_stack *) obj)->_ER_S_heap_stack.prev_stack);
 	  for (var = ER_stack_vars (obj);
 	       (char *) var <= ER_ctop (obj);
-	       var = INDEXED_VAL (var, 1))
+	       var = IVAL (var, 1))
 	    change_var (var);
 	  diff = ((char *) ER_ctop (obj) - (char *) ER_stack_vars (obj));
 	  ((_ER_heap_stack *) obj)->_ER_S_heap_stack.ctop
@@ -1407,7 +1399,6 @@ destroy_instances (void)
   ER_node_t curr_obj;
   struct heap_chunk *curr_descr;
 
-  no_gc_flag = TRUE;
   for (curr_descr = VLO_BEGIN (heap_chunks);
        (char *) curr_descr <= (char *) VLO_END (heap_chunks);
        curr_descr++)
@@ -1418,8 +1409,8 @@ destroy_instances (void)
 	if (ER_NODE_MODE (curr_obj) == ER_NM_heap_instance
 	    && ER_state (curr_obj) == IS_to_be_destroyed)
 	  {
-	    decl = LV_BLOCK_DECL (IR_block_number (ER_block_node (curr_obj)),
-				  destroy_ident_number);
+	    decl = LV_BLOCK_IDENT_DECL (IR_block_number (ER_block_node (curr_obj)),
+					destroy_ident_number);
 	    TOP_UP;
 	    ER_SET_MODE (ctop, ER_NM_func);
 	    ER_set_func_context (ctop, curr_obj);
@@ -1433,10 +1424,8 @@ destroy_instances (void)
 	    call_func_class (0);
 	    temp_ref = GET_TEMP_REF (0);
 	    POP_TEMP_REF (1);
-	    TOP_DOWN;
 	  }
     }
-  no_gc_flag = FALSE;
 }
 
 /* Redirections never survive GC.  The unpacked vectors may be
@@ -1445,18 +1434,20 @@ destroy_instances (void)
    more than optimal one (see commentaries for variable heap_temp_refs
    again). */
 void
-gc (void)
+GC (void)
 {
   int flag;
 
+  /* Mark that we don't need GC anymore.  */
+  assert (GC_executed_stmts_count <= 0);
+  executed_stmts_count = GC_executed_stmts_count;
+  GC_executed_stmts_count = 1;
 #if !defined (NO_PROFILE) && !HAVE_SETITIMER
   if (profile_flag)
     ticker_on (&gc_ticker);
 #endif
   in_gc_p = TRUE;
-#ifndef NO_OPTIMIZE
   ER_set_ctop (cstack, (char *) ctop);
-#endif
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
@@ -1466,10 +1457,10 @@ gc (void)
   flag = define_new_heap_object_places ();
   change_refs ();
   compact_heap ();
-#ifndef NO_OPTIMIZE
+  cvars = ER_stack_vars (cstack);
   ctop = (ER_node_t) ER_ctop (cstack);
-#endif
   SET_TOP;
+  set_tvars (ER_block_node (cstack));
   gc_number++;
   free_gc_memory_percent
     = (free_gc_memory_percent * (gc_number - 1)
@@ -1563,26 +1554,23 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
   ER_set_context_number (stack, context_number);
   context_number++;
   ER_set_prev_stack (stack, cstack);
-#ifndef NO_OPTIMIZE
   if (cstack != NULL)
     ER_set_ctop (cstack, (char *) ctop);
-#endif
   cstack = stack;
   ER_set_block_node (stack, block_node_ptr);
+  cvars = ER_stack_vars (cstack);
   ctop
-     = (ER_node_t) ((char *) ER_stack_vars (stack)
+     = (ER_node_t) ((char *) cvars
                     + real_block_vars_number (block_node_ptr) * sizeof (val_t)
 	            - sizeof (val_t));
+  set_tvars (block_node_ptr);
   /* Seting up mode of all permanent stack vars as nil. */
   for (curr_var = ER_stack_vars (stack);
        curr_var <= ctop;
-       curr_var = INDEXED_VAL (curr_var, 1))
+       curr_var = IVAL (curr_var, 1))
     ER_SET_MODE (curr_var, ER_NM_nil);
   /* We set them only here because we need to set mode before.
      Remeber about possible field checking. */
-#ifdef NO_OPTIMIZE
-  ER_set_ctop (stack, (char *) ctop);
-#endif
   SET_TOP;
   if (cprocess != NULL)
     ER_set_saved_cstack (cprocess, cstack);
@@ -1606,19 +1594,19 @@ heap_pop (void)
 	ticker_off (&IR_exec_time (func_class));
 #endif
     }
-#ifndef NO_OPTIMIZE
   ER_set_ctop (cstack, (char *) ctop);
-#endif
   cstack = ER_prev_stack (cstack);
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
-#ifndef NO_OPTIMIZE
   if (cstack == NULL)
-    ctop = NULL;
+    cvars = ctop = NULL;
   else
-    ctop = (ER_node_t) ER_ctop (cstack);
-#endif
+    {
+      cvars = ER_stack_vars (cstack);
+      ctop = (ER_node_t) ER_ctop (cstack);
+      set_tvars (ER_block_node (cstack));
+    }
   if (! IR_extended_life_context_flag (block_node))
     try_heap_stack_free (stack, heap_object_size (stack));
   ER_set_saved_cstack (cprocess, cstack);
@@ -1794,10 +1782,10 @@ unpack_vector (ER_node_t vect)
 	{
 	  /* Use this order.  It is important when we have only one
              element. */
-	  memcpy ((char *) INDEXED_VAL (els, i) + displ,
+	  memcpy ((char *) IVAL (els, i) + displ,
 		  (char *) ER_pack_els (temp_ref) + i * el_size,
 		  el_size);
-	  ER_SET_MODE (INDEXED_VAL (els, i), el_type);
+	  ER_SET_MODE (IVAL (els, i), el_type);
 	  if (i == 0)
 	    break;
 	}
@@ -1833,11 +1821,10 @@ pack_vector_if_possible (ER_node_t unpack_vect)
   immutable = ER_immutable (unpack_vect);
   els_number = ER_els_number (unpack_vect);
   el_type = (els_number != 0
-	     ? ER_NODE_MODE (INDEXED_VAL (ER_unpack_els (unpack_vect), 0))
+	     ? ER_NODE_MODE (IVAL (ER_unpack_els (unpack_vect), 0))
 	     : ER_NM_nil);
   for (i = 0; i < els_number; i++)
-    if (ER_NODE_MODE (INDEXED_VAL (ER_unpack_els (unpack_vect), i))
-	!= el_type)
+    if (ER_NODE_MODE (IVAL (ER_unpack_els (unpack_vect), i)) != el_type)
       break;
   if (i >= els_number)
     {
@@ -1848,10 +1835,10 @@ pack_vector_if_possible (ER_node_t unpack_vect)
       ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
       els = ER_pack_els (pack_vect) - ER_disp (pack_vect);
       ER_SET_MODE (unpack_vect, ER_NM_heap_unpack_vect);
-      displ = val_displ (INDEXED_VAL (ER_unpack_els (unpack_vect), 0));
+      displ = val_displ (IVAL (ER_unpack_els (unpack_vect), 0));
       for (i = 0; i < els_number; i++)
 	memcpy (els + i * el_size,
-		(char *) INDEXED_VAL (ER_unpack_els (unpack_vect), i) + displ,
+		(char *) IVAL (ER_unpack_els (unpack_vect), i) + displ,
 		el_size);
       if (el_type == ER_NM_char)
 	els [els_number] = '\0';
@@ -2063,6 +2050,9 @@ hash_val (ER_node_t val)
     case ER_NM_func:
       return ((size_t) ER_func_no (val)
 	      + (size_t) ER_unique_number (ER_func_context (val)));
+    case ER_NM_thread:
+      return ((size_t) ER_thread_no (val)
+	      + (size_t) ER_unique_number (ER_thread_context (val)));
     case ER_NM_process:
       return (size_t) ER_unique_number (ER_process (val));
     case ER_NM_class:
@@ -2093,6 +2083,7 @@ hash_key (ER_node_t key)
     case ER_NM_type:
     case ER_NM_hide:
     case ER_NM_func:
+    case ER_NM_thread:
     case ER_NM_process:
     case ER_NM_class:
     case ER_NM_stack:
@@ -2151,7 +2142,7 @@ hash_key (ER_node_t key)
 	    
 	    for (hash = i = 0; i < ER_els_number (unpv); i++)
 	      {
-		el_hash = hash_val (INDEXED_VAL (ER_unpack_els (unpv), i));
+		el_hash = hash_val (IVAL (ER_unpack_els (unpv), i));
 		shift = 13 * i % (CHAR_BIT * sizeof (size_t));
 		hash += (el_hash << shift) | (el_hash >> shift);
 	      }
@@ -2172,8 +2163,7 @@ hash_key (ER_node_t key)
 	    if (ER_NODE_MODE (entry_key) != ER_NM_empty_entry
 		&& ER_NODE_MODE (entry_key) != ER_NM_deleted_entry)
 	      /* We need here associative operation. */
-	      hash += (hash_val (entry_key)
-		       + hash_val (INDEXED_VAL (entry_key, 1)));
+	      hash += (hash_val (entry_key) + hash_val (IVAL (entry_key, 1)));
 	  }
 	break;
       }
@@ -2183,8 +2173,8 @@ hash_key (ER_node_t key)
 					       (ER_instance (key))));
 	   i > 0; i--)
 	{
-	  el_hash = hash_val (INDEXED_VAL (ER_instance_vars
-					   (ER_instance (key)), i - 1));
+	  el_hash
+	    = hash_val (IVAL (ER_instance_vars (ER_instance (key)), i - 1));
 	  shift = 13 * i % (CHAR_BIT * sizeof (size_t));
 	  hash += (el_hash << shift) | (el_hash >> shift);
 	}
@@ -2234,6 +2224,9 @@ eq_key (ER_node_t entry_key, ER_node_t key)
     case ER_NM_func:
       return (ER_func_context (key) == ER_func_context (entry_key)
 	      && ER_func_no (key) == ER_func_no (entry_key));
+    case ER_NM_thread:
+      return (ER_thread_context (key) == ER_thread_context (entry_key)
+	      && ER_thread_no (key) == ER_thread_no (entry_key));
     case ER_NM_process:
       return ER_process (key) == ER_process (entry_key);
     case ER_NM_class:
@@ -2318,29 +2311,19 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
   ER_node_t entry_key;
   ER_node_t first_deleted_entry_key;
   size_t hash_value, secondary_hash_value;
-  int expand_p;
   int_t last_key_index;
   
-#if 1
   if ((last_key_index = ER_last_key_index (tab)) >= 0)
     {
       entry_key = INDEXED_ENTRY_KEY (ER_tab_els (tab), last_key_index);
       if (eq_key (entry_key, key))
 	return entry_key;
     }
-#endif
-  if (expand_p = (reserve
-		  && (ER_entries_number (tab)
-		      <= MINIMAL_TABLE_SIZE (ER_els_number (tab)
-					     + ER_deleted_els_number (tab)))))
-    {
-      TOP_UP;
-      *(val_t *)ctop = *(val_t *) key;
-      tab = expand_tab (tab);
-      /* Don't use key here!  If the key is in heap, the GC will
-         change its address. */
-      key = ctop;
-    }
+  if (reserve
+      && (ER_entries_number (tab)
+	  <= MINIMAL_TABLE_SIZE (ER_els_number (tab)
+				 + ER_deleted_els_number (tab))))
+    tab = expand_tab (tab);
   hash_value = hash_key (key);
   secondary_hash_value = 1 + hash_value % (ER_entries_number (tab) - 2);
   hash_value %= ER_entries_number (tab);
@@ -2380,8 +2363,6 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
         hash_value -= ER_entries_number (tab);
       tab_collisions++;
     }
-  if (expand_p)
-    TOP_DOWN;
   return entry_key;
 }
 
@@ -2554,9 +2535,9 @@ table_to_vector_conversion (ER_node_t tab)
 	&& (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
 	    != ER_NM_deleted_entry))
       {
-	*(val_t *) INDEXED_VAL (ER_unpack_els (vect), index)
+	*(val_t *) IVAL (ER_unpack_els (vect), index)
 	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-	*(val_t *) INDEXED_VAL (ER_unpack_els (vect), index + 1)
+	*(val_t *) IVAL (ER_unpack_els (vect), index + 1)
 	  = *(val_t *) INDEXED_ENTRY_VAL (ER_tab_els (tab), i);
 	index += 2;
       }
@@ -2567,7 +2548,7 @@ ER_node_t
 vector_to_table_conversion (ER_node_t vect)
 {
   size_t i, el_size_type;
-  ER_node_t tab;
+  ER_node_t tab, tvar;
   ER_node_t entry;
 
   GO_THROUGH_REDIR (vect);
@@ -2576,27 +2557,25 @@ vector_to_table_conversion (ER_node_t vect)
   tab = create_tab (ER_els_number (vect));
   vect = temp_ref;
   temp_ref = NULL;
-  TOP_UP;
+  tvar = IVAL (cvars, tvar_num1);
   for (i = 0; i < ER_els_number (vect); i++)
     {
-      ER_SET_MODE ((ER_node_t) ctop, ER_NM_int);
-      ER_set_i (ctop, i);
-      entry = find_tab_entry (tab, ctop, TRUE);
-      *(val_t *) entry = *(val_t *) ctop;
+      ER_SET_MODE ((ER_node_t) tvar, ER_NM_int);
+      ER_set_i (tvar, i);
+      entry = find_tab_entry (tab, tvar, TRUE);
+      *(val_t *) entry = *(val_t *) tvar;
       /* Integer is always immutable. */
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-	*((val_t *) entry + 1)
-	  = *(val_t *) INDEXED_VAL (ER_unpack_els (vect), i);
+	*((val_t *) entry + 1) = *(val_t *) IVAL (ER_unpack_els (vect), i);
       else
 	{
 	  el_size_type = type_size (ER_pack_vect_el_type (vect));
-	  ER_SET_MODE ((ER_node_t) ctop, ER_pack_vect_el_type (vect));
-	  memcpy ((char *) ctop + val_displ (ctop),
+	  ER_SET_MODE ((ER_node_t) tvar, ER_pack_vect_el_type (vect));
+	  memcpy ((char *) tvar + val_displ (tvar),
 		  ER_pack_els (vect) + i * el_size_type, el_size_type);
-	  *((val_t *) entry + 1) = *(val_t *) ctop;
+	  *((val_t *) entry + 1) = *(val_t *) tvar;
 	}
     }
-  TOP_DOWN;
   return tab;
 }
 
@@ -2686,21 +2665,19 @@ activate_given_process (ER_node_t process)
 #endif
   cprocess = process;
   cpc = ER_saved_pc (cprocess);
-#ifndef NO_OPTIMIZE
   if (cstack != NULL)
     ER_set_ctop (cstack, (char *) ctop);
-#endif
   cstack = ER_saved_cstack (cprocess);
-#ifndef NO_OPTIMIZE
+  cvars = ER_stack_vars (cstack);
   ctop = (ER_node_t) ER_ctop (cstack);
-#endif
+  set_tvars (ER_block_node (cstack));
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
   SET_TOP;
   ER_set_process_status (cprocess, PS_READY);
-  var = INDEXED_VAL (ER_stack_vars (uppest_stack),
-		     IR_var_number_in_block (curr_thread_decl));
+  var = IVAL (ER_stack_vars (uppest_stack),
+	      IR_var_number_in_block (curr_thread_decl));
   ER_SET_MODE (var, ER_NM_process);
   ER_set_process (var, cprocess);
 }
@@ -2796,11 +2773,27 @@ initiate_processes (pc_t start_pc)
 {
   cprocess = NULL;
   process_number = 0;
-  process_quantum = 1000;
+  process_quantum = 700;
   executed_stmts_count = -process_quantum;
   cprocess = create_process (start_pc, NULL, NULL);
   first_process_not_started = NULL;
   activate_process ();
+}
+
+
+
+/* Interrupt because of quantum expiring or GC is needed.  */
+void
+interrupt (pc_t first_resume_pc)
+{
+  if (GC_executed_stmts_count > 0)
+    block_cprocess (first_resume_pc, FALSE);
+  else
+    {
+      /* It is actually interrupt for GC.  */ 
+      executed_stmts_count = GC_executed_stmts_count;
+      GC ();
+    }
 }
 
 
@@ -2870,12 +2863,6 @@ external_address (IR_node_t decl)
 	  address = dlsym (handle, name);
 	  if (dlerror () == NULL)
 	    break;
-#if 0
-	  dlclose (handle);
-	  if (dlerror () != NULL)
-	    eval_error (libclose_decl, invexterns_decl, IR_pos (cpc),
-			DERR_library_close_error, *curr_libname_ptr);
-#endif
 	}
 #else
       for (curr_libname_ptr = libraries;

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -176,7 +176,7 @@ _gethostinfo (int npars, val_t *vals)
   ER_SET_MODE (var, ER_NM_vect);
   ER_set_vect (var, vect);
   /* aliases */
-  var = INDEXED_VAL (var, 1);
+  var = IVAL (var, 1);
   for (i = 0; he->h_aliases [i] != NULL; i++)
     ;
   if (i == 0)
@@ -188,7 +188,7 @@ _gethostinfo (int npars, val_t *vals)
   ER_SET_MODE (var, ER_NM_vect);
   ER_set_vect (var, vect);
   /* ipaddrs */
-  var = INDEXED_VAL (var, 1);
+  var = IVAL (var, 1);
   for (i = 0; he->h_addr_list [i] != NULL; i++)
     ;
   vect = (i == 0
@@ -225,7 +225,7 @@ form_servent (ER_node_t instance, struct servent *se)
   ER_SET_MODE (var, ER_NM_vect);
   ER_set_vect (var, vect);
   /* aliases */
-  var = INDEXED_VAL (var, 1);
+  var = IVAL (var, 1);
   for (i = 0; se->s_aliases [i] != NULL; i++)
     ;
   vect = (i == 0
@@ -235,11 +235,11 @@ form_servent (ER_node_t instance, struct servent *se)
   ER_SET_MODE (var, ER_NM_vect);
   ER_set_vect (var, vect);
   /* port */
-  var = INDEXED_VAL (var, 1);
+  var = IVAL (var, 1);
   ER_SET_MODE (var, ER_NM_int);
   ER_set_i (var, (int) ntohs ((unsigned short) se->s_port));
   /* protocol */
-  var = INDEXED_VAL (var, 1);
+  var = IVAL (var, 1);
   vect = create_string (se->s_proto);
   ER_SET_MODE (var, ER_NM_vect);
   ER_set_vect (var, vect);
@@ -259,11 +259,11 @@ _getservbyport (int npars, val_t *vals)
   instance = ER_instance ((ER_node_t) vals);
   var = ER_instance_vars (instance);
   /* port */
-  var = INDEXED_VAL (var, 2);
+  var = IVAL (var, 2);
   assert (ER_NODE_MODE (var) == ER_NM_int);
   port = ER_i (var);
   /* proto */
-  var = INDEXED_VAL (var, 1);
+  var = IVAL (var, 1);
   assert (ER_NODE_MODE (var) == ER_NM_vect);
   vect = ER_vect (var);
   assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
@@ -289,7 +289,7 @@ _getservbyname (int npars, val_t *vals)
   assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   name = ER_pack_els (vect);
   /* proto */
-  var = INDEXED_VAL (var, 3);
+  var = IVAL (var, 3);
   assert (ER_NODE_MODE (var) == ER_NM_vect);
   vect = ER_vect (var);
   assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
@@ -406,11 +406,11 @@ _recvfrom (int npars, val_t *vals)
       ER_SET_MODE (var, ER_NM_vect);
       ER_set_vect (var, vect);
       /* peer_addr */
-      var = INDEXED_VAL (var, 1);
+      var = IVAL (var, 1);
       ER_SET_MODE (var, ER_NM_vect);
       ER_set_vect (var, create_string (inet_ntoa (saddr.sin_addr)));
       /* port */
-      var = INDEXED_VAL (var, 1);
+      var = IVAL (var, 1);
       ER_SET_MODE (var, ER_NM_int);
       ER_set_i (var, ntohs (saddr.sin_port));
       ER_SET_MODE (res, ER_NM_instance);
@@ -490,13 +490,13 @@ _accept (int npars, val_t *vals)
   else
     {
       vect = create_unpack_vector (3);
-      var = INDEXED_VAL (ER_unpack_els (vect), 0);
+      var = IVAL (ER_unpack_els (vect), 0);
       ER_SET_MODE (var, ER_NM_int);
       ER_set_i (var, new_sd);
-      var = INDEXED_VAL (ER_unpack_els (vect), 1);
+      var = IVAL (ER_unpack_els (vect), 1);
       ER_SET_MODE (var, ER_NM_vect);
       ER_set_vect (var, create_string (inet_ntoa (saddr.sin_addr)));
-      var = INDEXED_VAL (ER_unpack_els (vect), 2);
+      var = IVAL (ER_unpack_els (vect), 2);
       ER_SET_MODE (var, ER_NM_int);
       ER_set_i (var, ntohs (saddr.sin_port));
       ER_SET_MODE (res, ER_NM_vect);

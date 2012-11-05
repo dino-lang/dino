@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2012 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -31,14 +31,13 @@
 #if INLINE && !defined (SMALL_CODE)
 __inline__
 #endif
-void
-to_vect_string_conversion (ER_node_t var, const char *format)
+ER_node_t
+to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
 {
   ER_node_mode_t mode;
   const char *representation;
   char str[1000];
-  ER_node_t vect;
-  int saved_no_gc_flag;
+  ER_node_t vect, tvar;
       
   mode = ER_NODE_MODE (var);
   if (mode == ER_NM_float || mode == ER_NM_int || mode == ER_NM_char)
@@ -64,13 +63,12 @@ to_vect_string_conversion (ER_node_t var, const char *format)
 	  representation = str;
 	}
       /* Remeber `var' may be changed in GC. */
-      saved_no_gc_flag = no_gc_flag;
-      no_gc_flag = TRUE;
       vect = create_string (representation);
-      no_gc_flag = saved_no_gc_flag;
-      ER_SET_MODE (var, ER_NM_vect);
-      ER_set_vect (var, vect);
-    }
+      tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
+      ER_SET_MODE (tvar, ER_NM_vect);
+      ER_set_vect (tvar, vect);
+      return tvar;
+  }
   else if (mode == ER_NM_vect)
     {
       vect = ER_vect (var);
@@ -84,196 +82,199 @@ to_vect_string_conversion (ER_node_t var, const char *format)
 		  && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char);
 	  sprintf (str, format, ER_pack_els (ER_vect (var)));
 	  /* Remeber `var' may be changed in GC. */
-	  saved_no_gc_flag = no_gc_flag;
-	  no_gc_flag = TRUE;
 	  vect = create_string (str);
-	  no_gc_flag = saved_no_gc_flag;
-	  ER_SET_MODE (var, ER_NM_vect);
-	  ER_set_vect (var, vect);
+	  tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
+	  ER_SET_MODE (tvar, ER_NM_vect);
+	  ER_set_vect (tvar, vect);
+	  return tvar;
 	}
     }
+  return var;
 }
 
 #if INLINE && !defined (SMALL_CODE)
 __inline__
 #endif
-static void
-implicit_var_arithmetic_conversion (ER_node_t var)
+ER_node_t
+implicit_arithmetic_conversion (ER_node_t var, int tvar_num)
 {
   int_t i;
   floating_t f;
+  ER_node_t tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
 
   if (ER_NODE_MODE (var) == ER_NM_char)
     {
       i = ER_ch (var);
-      ER_SET_MODE (var, ER_NM_int);
-      ER_set_i (var, i);
+      ER_SET_MODE (tvar, ER_NM_int);
+      ER_set_i (tvar, i);
+      return tvar;
     }
   else if (ER_NODE_MODE (var) == ER_NM_vect)
     {
-      to_vect_string_conversion (var, NULL);
-      if (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char)
+      tvar = to_vect_string_conversion (var, NULL, tvar_num);
+      if (ER_NODE_MODE (ER_vect (tvar)) == ER_NM_heap_pack_vect
+	  && ER_pack_vect_el_type (ER_vect (tvar)) == ER_NM_char)
 	{
-	  ER_node_t pack_vect = ER_vect (var);
+	  ER_node_t pack_vect = ER_vect (tvar);
 
 	  if (it_is_int_string (ER_pack_els (pack_vect)))
 	    {
 	      i = a2i (ER_pack_els (pack_vect));
 	      if (errno)
 		process_system_errors ("string-to-int conversion");
-	      ER_SET_MODE (var, ER_NM_int);
-	      ER_set_i (var, i);
+	      ER_SET_MODE (tvar, ER_NM_int);
+	      ER_set_i (tvar, i);
 	    }
 	  else
 	    {
 	      f = a2f (ER_pack_els (pack_vect));
 	      if (errno)
 		process_system_errors ("string-to-float conversion");
-	      ER_SET_MODE (var, ER_NM_float);
-	      ER_set_f (var, f);
+	      ER_SET_MODE (tvar, ER_NM_float);
+	      ER_set_f (tvar, f);
 	    }
+	  return tvar;
 	}
     }
-}
-
-#if INLINE && !defined (SMALL_CODE)
-__inline__
-#endif
-void
-implicit_arithmetic_conversion (int depth)
-{
-  implicit_var_arithmetic_conversion (INDEXED_VAL (ER_CTOP (), -depth));
+  return var;
 }
 
 void
-implicit_conversion_for_binary_arithmetic_op (void)
+implicit_conversion_for_binary_arithmetic_op (ER_node_t op1, ER_node_t op2,
+					      ER_node_t *l, ER_node_t *r)
 {
   int float0_p, float1_p;
   floating_t f;
+  ER_node_t tvar1 = IVAL (cvars, tvar_num1);
+  ER_node_t tvar2 = IVAL (cvars, tvar_num2);
 
-  if (! (float0_p = ER_NODE_MODE (ctop) == ER_NM_float)
-      && ER_NODE_MODE (ctop) != ER_NM_int)
-    implicit_arithmetic_conversion (0);
-  if (! (float1_p = ER_NODE_MODE (below_ctop) == ER_NM_float)
-      && ER_NODE_MODE (below_ctop) != ER_NM_int)
-    implicit_arithmetic_conversion (1);
-  if (float1_p && ER_NODE_MODE (ctop) == ER_NM_int)
+  *l = op1;
+  *r = op2;
+  if (! (float0_p = ER_NODE_MODE (op2) == ER_NM_float)
+      && ER_NODE_MODE (op2) != ER_NM_int)
+    *r = op2 = implicit_arithmetic_conversion (op2, tvar_num2);
+  if (! (float1_p = ER_NODE_MODE (op1) == ER_NM_float)
+      && ER_NODE_MODE (op1) != ER_NM_int)
+    *l = op1 = implicit_arithmetic_conversion (op1, tvar_num1);
+  if (float1_p && ER_NODE_MODE (op2) == ER_NM_int)
     {
-      f = ER_i (ctop);
-      ER_SET_MODE (ctop, ER_NM_float);
-      ER_set_f (ctop, f);
+      f = ER_i (op2);
+      ER_SET_MODE (tvar2, ER_NM_float);
+      ER_set_f (tvar2, f);
+      *r = tvar2;
     }
-  else if (float0_p && ER_NODE_MODE (below_ctop) == ER_NM_int)
+  else if (float0_p && ER_NODE_MODE (op1) == ER_NM_int)
     {
-      f = ER_i (below_ctop);
-      ER_SET_MODE (below_ctop, ER_NM_float);
-      ER_set_f (below_ctop, f);
+      f = ER_i (op1);
+      ER_SET_MODE (tvar1, ER_NM_float);
+      ER_set_f (tvar1, f);
+      *l = tvar1;
     }
 }
 
 #if INLINE && !defined (SMALL_CODE)
 __inline__
 #endif
-void
-implicit_int_conversion (int depth)
+ER_node_t
+implicit_int_conversion (ER_node_t op, int tvar_num)
 {
-  ER_node_t var;
   int_t i;
 
-  implicit_arithmetic_conversion (depth);
-  var = INDEXED_VAL (ER_CTOP (), -depth);
-  if (ER_NODE_MODE (var) == ER_NM_float)
+  op = implicit_arithmetic_conversion (op, tvar_num);
+  if (ER_NODE_MODE (op) == ER_NM_float)
     {
-      i = (int_t) ER_f (var);
-      ER_SET_MODE (var, ER_NM_int);
-      ER_set_i (var, i);
+      i = (int_t) ER_f (op);
+      ER_SET_MODE (op, ER_NM_int);
+      ER_set_i (op, i);
     }
+  return op;
 }
 
 void
-implicit_conversion_for_binary_int_op (void)
+implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
+				       ER_node_t *l, ER_node_t *r)
 {
-  implicit_int_conversion (0);
-  implicit_int_conversion (1);
+  *l = implicit_int_conversion (op1, tvar_num1);
+  *r = implicit_int_conversion (op2, tvar_num2);
 }
 
 #if INLINE && !defined (SMALL_CODE)
 __inline__
 #endif
-static void
-implicit_eq_conversion (int depth)
+static ER_node_t
+implicit_eq_conversion (ER_node_t op, int tvar_num)
 {
   int_t i;
-  ER_node_t var;
 
-  var = INDEXED_VAL (ER_CTOP (), -depth);
-  if (ER_NODE_MODE (var) == ER_NM_char)
+  if (ER_NODE_MODE (op) == ER_NM_char)
     {
-      i = ER_ch (var);
-      ER_SET_MODE (var, ER_NM_int);
-      ER_set_i (var, i);
+      i = ER_ch (op);
+      op = IVAL (cvars, tvar_num);
+      ER_SET_MODE (op, ER_NM_int);
+      ER_set_i (op, i);
     }
+  return op;
 }
 
 void
-implicit_conversion_for_eq_op (void)
+implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
+			       ER_node_t *l, ER_node_t *r)
 {
   int float_flag;
   int string_flag;
   ER_node_t vect;
   floating_t f;
 
-  if (ER_NODE_MODE (ctop) == ER_NM_vect)
+  if (ER_NODE_MODE (op2) == ER_NM_vect)
     {
-      vect = ER_vect (ctop);
+      vect = ER_vect (op2);
       GO_THROUGH_REDIR (vect);
-      ER_set_vect (ctop, vect);
+      ER_set_vect (op2, vect);
     }
-  if (ER_NODE_MODE (below_ctop) == ER_NM_vect)
+  if (ER_NODE_MODE (op1) == ER_NM_vect)
     {
-      vect = ER_vect (below_ctop);
+      vect = ER_vect (op1);
       GO_THROUGH_REDIR (vect);
-      ER_set_vect (below_ctop, vect);
+      ER_set_vect (op1, vect);
     }
-  string_flag = (ER_NODE_MODE (ctop) == ER_NM_vect
-		 && ER_NODE_MODE (ER_vect (ctop)) == ER_NM_heap_pack_vect
-		 && ER_pack_vect_el_type (ER_vect (ctop)) == ER_NM_char
-		 || ER_NODE_MODE (below_ctop) == ER_NM_vect
-		 && ER_NODE_MODE (ER_vect (below_ctop)) == ER_NM_heap_pack_vect
-		 && ER_pack_vect_el_type (ER_vect (below_ctop)) == ER_NM_char);
+  string_flag = (ER_NODE_MODE (op2) == ER_NM_vect
+		 && ER_NODE_MODE (ER_vect (op2)) == ER_NM_heap_pack_vect
+		 && ER_pack_vect_el_type (ER_vect (op2)) == ER_NM_char
+		 || ER_NODE_MODE (op1) == ER_NM_vect
+		 && ER_NODE_MODE (ER_vect (op1)) == ER_NM_heap_pack_vect
+		 && ER_pack_vect_el_type (ER_vect (op1)) == ER_NM_char);
   if (string_flag)
     {
-      to_vect_string_conversion (ctop, NULL);
-      to_vect_string_conversion (below_ctop, NULL);
+      *r = op2 = to_vect_string_conversion (op2, NULL, tvar_num2);
+      *l = op1 = to_vect_string_conversion (op1, NULL, tvar_num1);
     }
-  else if (ER_NODE_MODE (ctop) == ER_NM_vect
-	   && ER_NODE_MODE (below_ctop) == ER_NM_vect
-	   && (ER_NODE_MODE (ER_vect (ctop))
-	       != ER_NODE_MODE (ER_vect (below_ctop))))
+  else if (ER_NODE_MODE (op2) == ER_NM_vect
+	   && ER_NODE_MODE (op1) == ER_NM_vect
+	   && (ER_NODE_MODE (ER_vect (op2))
+	       != ER_NODE_MODE (ER_vect (op1))))
     {
-      if (ER_NODE_MODE (ER_vect (ctop)) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (ER_vect (ctop));
+      if (ER_NODE_MODE (ER_vect (op2)) == ER_NM_heap_unpack_vect)
+	pack_vector_if_possible (ER_vect (op2));
       else
-	pack_vector_if_possible (ER_vect (below_ctop));
+	pack_vector_if_possible (ER_vect (op1));
     }
   else
     {
-      implicit_eq_conversion (0);
-      implicit_eq_conversion (1);
-      float_flag = (ER_NODE_MODE (ctop) == ER_NM_float
-		    || ER_NODE_MODE (below_ctop) == ER_NM_float);
-      if (float_flag && ER_NODE_MODE (ctop) == ER_NM_int)
+      *r = op2 = implicit_eq_conversion (op2, tvar_num2);
+      *l = op1 = implicit_eq_conversion (op1, tvar_num1);
+      float_flag = (ER_NODE_MODE (op2) == ER_NM_float
+		    || ER_NODE_MODE (op1) == ER_NM_float);
+      if (float_flag && ER_NODE_MODE (op2) == ER_NM_int)
 	{
-	  f = ER_i (ctop);
-	  ER_SET_MODE (ctop, ER_NM_float);
-	  ER_set_f (ctop, f);
+	  f = ER_i (op2);
+	  ER_SET_MODE (op2, ER_NM_float);
+	  ER_set_f (op2, f);
 	}
-      else if (float_flag && ER_NODE_MODE (below_ctop) == ER_NM_int)
+      else if (float_flag && ER_NODE_MODE (op1) == ER_NM_int)
 	{
-	  f = ER_i (below_ctop);
-	  ER_SET_MODE (below_ctop, ER_NM_float);
-	  ER_set_f (below_ctop, f);
+	  f = ER_i (op1);
+	  ER_SET_MODE (op1, ER_NM_float);
+	  ER_set_f (op1, f);
 	}
     }
 }
