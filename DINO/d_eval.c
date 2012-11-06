@@ -663,8 +663,6 @@ find_catch_pc (ER_node_t instance)
 
   assert (ER_NODE_MODE (instance) == ER_NM_instance);
   except = ER_instance (instance);
-  temp_ref = NULL;
-  EMPTY_TEMP_REF ();
   if (trace_flag)
     VLO_NULLIFY (trace_stack);
   for (; cstack != uppest_stack;)
@@ -934,19 +932,9 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2)
 	  != ER_pack_vect_el_type (vect1)))
     {
       if (ER_NODE_MODE (vect2) == ER_NM_heap_pack_vect)
-	{
-	  PUSH_TEMP_REF (vect1);
-	  vect2 = unpack_vector (vect2);
-	  vect1 = GET_TEMP_REF (0);
-	  POP_TEMP_REF (1);
-	}
+	vect2 = unpack_vector (vect2);
       if (ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect)
-	{
-	  PUSH_TEMP_REF (vect2);
-	  vect1 = unpack_vector (vect1);
-	  vect2 = GET_TEMP_REF (0);
-	  POP_TEMP_REF (1);
-	}
+	vect1 = unpack_vector (vect1);
     }
   if (ER_NODE_MODE (vect2) == ER_NM_heap_pack_vect)
     {
@@ -965,14 +953,7 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2)
 	assert (FALSE);
       el_size = type_size_table [result_el_type];
       els_number = ER_els_number (vect2) + ER_els_number (vect1);
-      /* Do not change size & packing. */
-      PUSH_TEMP_REF (vect2);
-      PUSH_TEMP_REF (vect1);
       result = create_pack_vector (els_number, result_el_type);
-      /* Restore locals after allocation (remember GC). */
-      vect1 = GET_TEMP_REF (0);
-      vect2 = GET_TEMP_REF (1);
-      POP_TEMP_REF (2);
       if (ER_els_number (vect1) != 0)
 	memcpy (ER_pack_els (result), ER_pack_els (vect1),
 		ER_els_number (vect1) * el_size);
@@ -991,14 +972,7 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2)
       
       fprintf (stderr, "concat...");
       els_number = ER_els_number (vect2) + ER_els_number (vect1);
-      /* Do not change size & packing. */
-      PUSH_TEMP_REF (vect2);
-      PUSH_TEMP_REF (vect1);
       result = create_unpack_vector (els_number);
-      /* Restore after allocation (remeber about GC). */
-      vect1 = GET_TEMP_REF (0);
-      vect2 = GET_TEMP_REF (1);
-      POP_TEMP_REF (2);
       if (ER_els_number (vect1) != 0)
 	memcpy (ER_unpack_els (result), ER_unpack_els (vect1),
 		ER_els_number (vect1) * sizeof (val_t));
@@ -2044,7 +2018,6 @@ evaluate_code (void)
 	    DECR_CTOP (-2 * tab_els_number);
 	    SET_TOP;
 	    tab = create_tab (tab_els_number);
-	    PUSH_TEMP_REF (tab);
 	    op1 = IVAL (cvars, IR_vec_tab_el_num (IR_PTR (cpc)));
 	    for (elist = IR_elist (IR_PTR (cpc)), curr_tab_el_number = 0;
 		 curr_tab_el_number < 2 * tab_els_number;
@@ -2053,7 +2026,6 @@ evaluate_code (void)
 		entry = find_tab_entry (tab, IVAL (op1, curr_tab_el_number),
 					TRUE);
 		op1 = IVAL (cvars, IR_vec_tab_el_num (IR_PTR (cpc)));
-		tab = GET_TEMP_REF (0);
 		if (ER_NODE_MODE (entry) != ER_NM_empty_entry
 		    && ER_NODE_MODE (entry) != ER_NM_deleted_entry)
 		  eval_error (keyvalue_decl, invkeys_decl, IR_pos (elist),
@@ -2591,15 +2563,12 @@ evaluate_code (void)
 		INCREMENT_PC ();
 		assert (IR_PTR (cpc) != NULL
 			&& IR_IS_OF_TYPE (IR_PTR (cpc), IR_NM_block));
-		PUSH_TEMP_REF (exception);
 		TOP_DOWN; /* exception */
 		heap_push (IR_PTR (cpc), cstack, 1);
 		/* Zeroth val of catch block is always corresponding the
 		   exception. */
 		ER_SET_MODE (IVAL (ER_stack_vars (cstack), 0), ER_NM_instance);
-		ER_set_instance (IVAL (ER_stack_vars (cstack), 0),
-				 GET_TEMP_REF (0));
-		POP_TEMP_REF (1);
+		ER_set_instance (IVAL (ER_stack_vars (cstack), 0), exception);
 		cpc = IR_next_pc (IR_PTR (cpc));
 	      }
 	    else
@@ -2685,21 +2654,21 @@ static void
 initiate_vars (void)
 {
   ER_node_t var;
-  ER_node_t string;
+  ER_node_t vect, tab, string, string2;
   ER_node_t entry;
   val_t key;
   int i, j;
   
   /* Set argv. */
   if (program_arguments_number == 0)
-    PUSH_TEMP_REF (create_empty_vector ());
+    vect = create_empty_vector ();
   else
     {
-      PUSH_TEMP_REF (create_unpack_vector (program_arguments_number));
+      vect = create_unpack_vector (program_arguments_number);
       for (i = 0; i < program_arguments_number; i++)
 	{
 	  string = create_string (program_arguments [i]);
-	  var = IVAL (ER_unpack_els (GET_TEMP_REF (0)), i);
+	  var = IVAL (ER_unpack_els (vect), i);
 	  ER_SET_MODE (var, ER_NM_vect);
 	  ER_set_vect (var, string);
 	}
@@ -2707,13 +2676,12 @@ initiate_vars (void)
   assert (IR_scope (argv_decl) == ER_block_node (cstack));
   var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (argv_decl));
   ER_SET_MODE (var, ER_NM_vect);
-  ER_set_vect (var, GET_TEMP_REF (0));
-  ER_set_immutable (GET_TEMP_REF (0), TRUE);
-  POP_TEMP_REF (1);
+  ER_set_vect (var, vect);
+  ER_set_immutable (vect, TRUE);
   /* Set env. */
   for (i = 0; program_environment [i] != NULL; i++)
     ;
-  PUSH_TEMP_REF (create_tab (i));
+  tab = create_tab (i);
   for (i = 0; program_environment [i] != NULL; i++)
     {
       for (j = 0; program_environment [i][j] != '\0'; j++)
@@ -2723,29 +2691,27 @@ initiate_vars (void)
 	eval_error (invenv_decl, errors_decl,
 		    no_position, DERR_environment_corrupted);
       program_environment [i][j] = '\0';
-      PUSH_TEMP_REF (create_string (program_environment [i]));
+      string = create_string (program_environment [i]);
       program_environment [i][j] = '=';
-      PUSH_TEMP_REF (create_string (program_environment [i] + j + 1));
+      string2 = create_string (program_environment [i] + j + 1);
       ER_SET_MODE ((ER_node_t) &key, ER_NM_vect);
-      ER_set_vect ((ER_node_t) &key, GET_TEMP_REF (1));
-      entry = find_tab_entry (GET_TEMP_REF (2), (ER_node_t) &key, TRUE);
+      ER_set_vect ((ER_node_t) &key, string);
+      entry = find_tab_entry (tab, (ER_node_t) &key, TRUE);
       if (ER_NODE_MODE (entry) != ER_NM_empty_entry)
 	eval_error (invenv_decl, errors_decl,
 		    no_position, DERR_environment_corrupted);
       ER_SET_MODE (entry, ER_NM_vect);
-      ER_set_vect (entry, GET_TEMP_REF (1));
+      ER_set_vect (entry, string);
       make_immutable (entry);
       var = (ER_node_t) ((char *) entry + sizeof (val_t));
       ER_SET_MODE (var, ER_NM_vect);
-      ER_set_vect (var, GET_TEMP_REF (0));
-      POP_TEMP_REF (2);
+      ER_set_vect (var, string2);
    }
   assert (IR_scope (env_decl) == ER_block_node (cstack));
   var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (env_decl));
   ER_SET_MODE (var, ER_NM_tab);
-  ER_set_tab (var, GET_TEMP_REF (0));
-  ER_set_immutable (GET_TEMP_REF (0), TRUE);
-  POP_TEMP_REF (1);
+  ER_set_tab (var, tab);
+  ER_set_immutable (tab, TRUE);
   /* Set version */
   assert (IR_scope (version_decl) == ER_block_node (cstack));
   var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (version_decl));
@@ -2778,7 +2744,7 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
 {
   char message[MAX_EVAL_ERROR_MESSAGE_LENGTH + 1];
   va_list arguments;
-  ER_node_t error_instance;
+  ER_node_t error_instance, string;
 
   assert (eval_long_jump_set_flag);
   va_start (arguments, format);
@@ -2786,7 +2752,7 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
   va_end (arguments);
   assert (strlen (message) <= MAX_EVAL_ERROR_MESSAGE_LENGTH);
   exception_position = position;
-  PUSH_TEMP_REF (create_string (message));
+  string = create_string (message);
   error_instance = (ER_node_t) heap_allocate (instance_size (except_class),
 					      FALSE);
   ER_SET_MODE (error_instance, ER_NM_heap_instance);
@@ -2801,8 +2767,7 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
   context_number++;
   /* Zeroth variable is message in class `error' */
   ER_SET_MODE (IVAL (ER_instance_vars (error_instance), 0), ER_NM_vect);
-  ER_set_vect (IVAL (ER_instance_vars (error_instance), 0), GET_TEMP_REF (0));
-  POP_TEMP_REF (1);
+  ER_set_vect (IVAL (ER_instance_vars (error_instance), 0), string);
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_instance);
   ER_set_instance (ctop, error_instance);

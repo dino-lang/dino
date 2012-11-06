@@ -48,8 +48,6 @@ ER_node_t cvars;
    Don't use the variables during GC. */
 ER_node_t ctop;
 
-ER_node_t temp_ref;
-
 /* Pointers to a heap objects.  Garbage collector will change it
    correspondingly too.  If the pointer refers for vector, it can not
    be packed during GC or its size can not be changed. */
@@ -154,24 +152,6 @@ val_displ (ER_node_t var)
 {
   size_t res = val_displ_table [ER_NODE_MODE (var)];
   return res;
-}
-
-
-
-#if INLINE
-__inline__
-#endif
-static int
-in_heap_temp_refs (ER_node_t obj)
-{
-  int i;
-
-  if (temp_ref == obj)
-    return TRUE;
-  for (i = 0; i < TEMP_REFS_LENGTH (); i++)
-    if (GET_TEMP_REF (i) == obj)
-      return TRUE;
-  return FALSE;
 }
 
 
@@ -470,8 +450,6 @@ initiate_heap ()
   new_heap_chunk (heap_chunk_size);
   cstack = NULL;
   uppest_stack = NULL;
-  temp_ref = NULL;
-  CREATE_TEMP_REF ();
   VLO_CREATE (temp_vlobj, 256);
   VLO_CREATE (temp_vlobj2, 256);
   gc_number = 0;
@@ -560,7 +538,6 @@ finish_heap (void)
     FREE (curr_heap_chunk->chunk_start);
   VLO_DELETE (heap_chunks);
   VLO_DELETE (external_vars);
-  FINISH_TEMP_REF ();
   VLO_DELETE (temp_vlobj2);
   VLO_DELETE (temp_vlobj);
 }
@@ -920,9 +897,6 @@ mark_used_heap_objects (void)
   clean_heap_object_process_flag ();
   traverse_used_heap_object (cstack);
   traverse_used_heap_object (uppest_stack);
-  traverse_used_heap_object (temp_ref);
-  for (i = 0; i < TEMP_REFS_LENGTH (); i++)
-    traverse_used_heap_object (GET_TEMP_REF (i));
   for (i = 0; i < VLO_LENGTH (external_vars) / sizeof (void *); i++)
     traverse_used_var ((ER_node_t) ((void **) VLO_BEGIN (external_vars)) [i]);
   /* Current stack table is traversed with cprocess. */
@@ -948,11 +922,9 @@ define_new_heap_object (ER_node_t obj, struct heap_chunk **descr, char *place)
     }
   else if (ER_it_was_processed (obj))
     {
-      if (ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect
-	  && !in_heap_temp_refs (obj))
+      if (ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect)
 	pack_vector_if_possible (obj);
-      size = (!in_heap_temp_refs (obj)
-	      ? tailored_heap_object_size (obj) : heap_object_size (obj));
+      size = tailored_heap_object_size (obj);
       if (place + size > (*descr)->chunk_bound)
 	{
 	  (*descr)++;
@@ -1241,10 +1213,6 @@ change_refs (void)
     }
   CHANGE_REF (cstack);
   CHANGE_REF (uppest_stack);
-  CHANGE_VECT_TAB_REF (temp_ref);
-  /* `heap_temp_refs' may refer for a vector. */
-  for (i = 0; i < TEMP_REFS_LENGTH (); i++)
-    CHANGE_VECT_TAB_REF (GET_TEMP_REF (i));
   for (i = 0; i < VLO_LENGTH (external_vars) / sizeof (void *); i++)
     change_var ((ER_node_t) ((void **) VLO_BEGIN (external_vars)) [i]);
   CHANGE_REF (cprocess);
@@ -1265,9 +1233,7 @@ move_object (ER_node_t obj, struct heap_chunk **descr,
       /* Tailor vector size only here although tailoring has been
 	 taken into account in place value.  Remeber that temp
 	 refs are already set up to new places. */
-      tailored_size = (!in_heap_temp_refs ((ER_node_t) place)
-		       ? tailored_heap_object_size (obj)
-		       : heap_object_size (obj));
+      tailored_size = tailored_heap_object_size (obj);
       assert (tailored_size <= heap_object_size (obj));
       if (place + tailored_size > (*descr)->chunk_bound)
 	{
@@ -1418,12 +1384,7 @@ destroy_instances (void)
 	    /* We mark it before the call to prevent infinite loop if
 	       the exception occurs during the call. */
 	    ER_set_state (curr_obj, IS_destroyed);
-	    /* We might set temp_ref before heap allocation.  So save
-	       and restore it.  */
-	    PUSH_TEMP_REF (temp_ref);
 	    call_func_class (0);
-	    temp_ref = GET_TEMP_REF (0);
-	    POP_TEMP_REF (1);
 	  }
     }
 }
@@ -1517,11 +1478,7 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
   IR_node_t func_class;
 
   /* Remember about possible GC. */
-  assert (temp_ref == NULL);
-  temp_ref = context;
   stack = (ER_node_t) heap_allocate (block_stack_size (block_node_ptr), TRUE);
-  context = temp_ref;
-  temp_ref = NULL;
 #ifndef NO_PROFILE
   if (profile_flag)
     {
@@ -1695,6 +1652,7 @@ ER_node_t
 expand_vector (ER_node_t vect, size_t length)
 {
   size_t disp, allocated_length, prev_vect_allocated_length;
+  ER_node_t prev_vect;
 
   disp = ER_disp (vect);
   allocated_length = ER_allocated_length (vect);
@@ -1702,9 +1660,6 @@ expand_vector (ER_node_t vect, size_t length)
       && ER_pack_vect_el_type (vect) == ER_NM_char)
     length++; /* for trailing zero byte */
   length += disp;
-  /* For changing by GC. */
-  assert (temp_ref == NULL);
-  temp_ref = vect;
   prev_vect_allocated_length = allocated_length;
   if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
     {
@@ -1722,16 +1677,16 @@ expand_vector (ER_node_t vect, size_t length)
 			     * type_size (ER_pack_vect_el_type (vect))));
   if (allocated_length != prev_vect_allocated_length)
     {
+      prev_vect = vect;
       /* ???? don't allocate if can expand because of disp. */
       vect = heap_allocate (allocated_length, FALSE);
       /* After this, vect has the same unique_number. */
-      memcpy (vect, temp_ref, prev_vect_allocated_length);
+      memcpy (vect, prev_vect, prev_vect_allocated_length);
       ER_set_allocated_length (vect, allocated_length);
-      ER_SET_MODE (temp_ref, ER_NM_heap_redir);
-      ER_set_allocated_length (temp_ref, prev_vect_allocated_length);
-      ER_set_redir (temp_ref, vect);
+      ER_SET_MODE (prev_vect, ER_NM_heap_redir);
+      ER_set_allocated_length (prev_vect, prev_vect_allocated_length);
+      ER_set_redir (prev_vect, vect);
     }
-  temp_ref = NULL;
   return vect;
 }
 
@@ -1742,6 +1697,7 @@ unpack_vector (ER_node_t vect)
   size_t allocated_length;
   int immutable;
   size_t els_number;
+  ER_node_t prev_vect;
   ER_node_mode_t el_type;
   size_t el_size;
   size_t pack_vect_allocated_length;
@@ -1755,9 +1711,7 @@ unpack_vector (ER_node_t vect)
   els_number = ER_els_number (vect);
   el_type = ER_pack_vect_el_type (vect);
   el_size = type_size (el_type);
-  /* For changing by GC. */
-  assert (temp_ref == NULL);
-  temp_ref = vect;
+  prev_vect = vect;
   pack_vect_allocated_length = allocated_length;
   if (allocated_length - disp < (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
 				 + els_number * sizeof (val_t)))
@@ -1783,7 +1737,7 @@ unpack_vector (ER_node_t vect)
 	  /* Use this order.  It is important when we have only one
              element. */
 	  memcpy ((char *) IVAL (els, i) + displ,
-		  (char *) ER_pack_els (temp_ref) + i * el_size,
+		  (char *) ER_pack_els (prev_vect) + i * el_size,
 		  el_size);
 	  ER_SET_MODE (IVAL (els, i), el_type);
 	  if (i == 0)
@@ -1794,14 +1748,13 @@ unpack_vector (ER_node_t vect)
   ER_set_allocated_length (vect, allocated_length);
   ER_set_immutable (vect, immutable);
   ER_set_els_number (vect, els_number);
-  if (temp_ref != vect)
+  if (prev_vect != vect)
     {
-      ER_SET_MODE (temp_ref, ER_NM_heap_redir);
-      ER_set_allocated_length (temp_ref, pack_vect_allocated_length);
-      ER_set_redir (temp_ref, vect);
-      ER_set_unique_number (vect, ER_unique_number (temp_ref));
+      ER_SET_MODE (prev_vect, ER_NM_heap_redir);
+      ER_set_allocated_length (prev_vect, pack_vect_allocated_length);
+      ER_set_redir (prev_vect, vect);
+      ER_set_unique_number (vect, ER_unique_number (prev_vect));
     }
-  temp_ref = NULL;
   return vect;
 }
 
@@ -1892,12 +1845,8 @@ copy_vector (ER_node_t vect)
   
   GO_THROUGH_REDIR (vect);
   vect_size = ER_allocated_length (vect);
-  /* Do not change size or packing */
-  assert (temp_ref == NULL);
-  temp_ref = vect;
   new_vect = heap_allocate (vect_size, FALSE);
-  memcpy (new_vect, temp_ref, vect_size);
-  temp_ref = NULL;
+  memcpy (new_vect, vect, vect_size);
   ER_set_unique_number (new_vect, unique_number);
   unique_number++;
   ER_set_immutable (new_vect, FALSE);
@@ -2381,12 +2330,8 @@ expand_tab (ER_node_t tab)
 
   immutable = ER_immutable (tab);
   tab_expansions++;
-  assert (temp_ref == NULL);
-  temp_ref = tab;
   new_tab = create_tab (ER_els_number (tab));
   ER_set_immutable (new_tab, immutable);
-  tab = temp_ref;
-  temp_ref = NULL;
   assert (ER_allocated_length (new_tab) > ER_allocated_length (tab));
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
@@ -2449,11 +2394,7 @@ copy_tab (ER_node_t tab)
   size_t i;
 
   immutable = ER_immutable (tab);
-  assert (temp_ref == NULL);
-  temp_ref = tab;
   new_tab = create_tab (ER_els_number (tab));
-  tab = temp_ref;
-  temp_ref = NULL;
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
 	!= ER_NM_empty_entry
@@ -2521,14 +2462,10 @@ table_to_vector_conversion (ER_node_t tab)
 
   GO_THROUGH_REDIR (tab);
   index = 0;
-  assert (temp_ref == NULL);
-  temp_ref = tab;
   if (ER_els_number (tab) == 0)
     vect = create_empty_vector ();
   else
     vect = create_unpack_vector (ER_els_number (tab) * 2);
-  tab = temp_ref;
-  temp_ref = NULL;
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
 	!= ER_NM_empty_entry
@@ -2552,11 +2489,7 @@ vector_to_table_conversion (ER_node_t vect)
   ER_node_t entry;
 
   GO_THROUGH_REDIR (vect);
-  assert (temp_ref == NULL);
-  temp_ref = vect;
   tab = create_tab (ER_els_number (vect));
-  vect = temp_ref;
-  temp_ref = NULL;
   tvar = IVAL (cvars, tvar_num1);
   for (i = 0; i < ER_els_number (vect); i++)
     {

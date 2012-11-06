@@ -72,29 +72,6 @@ extern int tvar_num1, tvar_num2;
      ctop = (ER_node_t) ER_CTOP ();\
    } while (0)
 
-extern ER_node_t temp_ref;
-extern vlo_t heap_temp_refs;
-
-#define CREATE_TEMP_REF() VLO_CREATE (heap_temp_refs, 256)
-#define FINISH_TEMP_REF() VLO_DELETE (heap_temp_refs)
-#define EMPTY_TEMP_REF() VLO_NULLIFY (heap_temp_refs)
-
-#define PUSH_TEMP_REF(ref)\
- do\
-   {\
-     ER_node_t r = ref;\
-     VLO_ADD_MEMORY (heap_temp_refs, &r, sizeof (r));\
-   }\
- while (0)
-
-#define POP_TEMP_REF(n) VLO_SHORTEN (heap_temp_refs, (n) * sizeof (ER_node_t))
-
-#define GET_TEMP_REF(depth)\
-  (((ER_node_t *) VLO_BEGIN (heap_temp_refs))\
-   [VLO_LENGTH (heap_temp_refs) / sizeof (ER_node_t) - (depth) - 1])
-
-#define TEMP_REFS_LENGTH() (VLO_LENGTH (heap_temp_refs) / sizeof (ER_node_t))
-
 extern vlo_t temp_vlobj;
 extern vlo_t temp_vlobj2;
 

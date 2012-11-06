@@ -1,5 +1,27 @@
 2012-11-05  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* DINO/d_run.sprut (temp_ref, heap_temp_refs, TEMP_REFS_LENGTH):
+	Remove.
+	(CREATE_TEMP_REF, FINISH_TEMP_REF, EMPTY_TEMP_REF): Ditto.
+	(PUSH_TEMP_REF, POP_TEMP_REF, GET_TEMP_REF, TEMP_REFS_LENGTH):
+	Ditto.
+	* DINO/d_heap.c (temp_ref, in_heap_temp_refs): Remove.
+	(initiate_heap, mark_used_heap_objects, define_new_heap_object):
+	Do not use temp refs.
+	(change_refs, destroy_instances, move_object, heap_push): Ditto.
+	(expand_vector, unpack_vector, copy_vector, expand_tab, copy_tab): Ditto.
+	(table_to_vector_conversion, vector_to_table_conversion): Ditto.
+	* DINO/d_func.c (keys_call, match_call, general_sub_call): Ditto.
+	(split_call, subv_call, general_ins_call): Ditto.
+	(array_sort_compare_function, sort_call): Ditto.  Use stack for
+	context.
+	(scanel, readdir_call, create_instance, process_func_class_call):
+	Do not use temp refs.
+	* DINO/d_eval.c (find_catch_pc, execute_concat_op, evaluate_code)
+	(initiate_vars, eval_error): Ditto.
+
+2012-11-05  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* AMMUNITION/earley.c (make_parse): Check stack on emptiness.
 	* DINO/d_dino.c: New flags -d and -dd.
 	(dino_main): Set up dump_flag.
@@ -21,7 +43,7 @@
 	set up no_gc_flag.
 	(print_val): Process thread node.  Use node_mode instead of type.
 	(process_func_class_call): Process thread node.  Remove
-	non-otimized code.  Change code dealing with stack top.
+	non-optimized code.  Change code dealing with stack top.
 	(init_syntax_token, tree_to_heap): Change code dealing with stack
 	top.
 	(int_earley_parse): Do not set up no_gc_flag.
