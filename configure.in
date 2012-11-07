@@ -63,6 +63,8 @@ if test x$cocom_debug = x; then
 else
   C_DEBUG_DEFINE=
   START_SPRUT_OPTIONS=-debug
+  CFLAGS='-O0 -g'
+  CXXFLAGS='-O0 -g'
 fi
 
 AC_SUBST(DINO_GCC_FPIC)
@@ -162,7 +164,7 @@ case $system in
 esac
 
 
-if test "$GCC" = yes; then
+if test "$GCC" = yes && test x$cocom_debug = x; then
   my_save_cflags="$CFLAGS"
   CFLAGS=-Ofast
   AC_MSG_CHECKING([whether CC supports -Ofast])

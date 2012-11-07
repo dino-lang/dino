@@ -2477,13 +2477,14 @@ dump_code (int indent, IR_node_t cn, IR_node_t stop)
 	  break;
 	}
       ni->traverse_flag = TRUE;
-      if (dump_flag == 1
+      node_mode = IR_NODE_MODE (cn);
+      if ((node_mode != IR_NM_block || indent != 0)
+	  && dump_flag == 1
 	  && strcmp (IR_pos (cn).file_name, ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
 	{
 	  cn = IR_next_pc (cn);
 	  continue;
 	}
-      node_mode = IR_NODE_MODE (cn);
       if (node_mode == IR_NM_block_finish)
 	indent -= 2;
       print_indent (indent);

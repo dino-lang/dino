@@ -143,19 +143,25 @@ void
 implicit_conversion_for_binary_arithmetic_op (ER_node_t op1, ER_node_t op2,
 					      ER_node_t *l, ER_node_t *r)
 {
-  int float0_p, float1_p;
+  int float1_p, float2_p;
   floating_t f;
   ER_node_t tvar1 = IVAL (cvars, tvar_num1);
   ER_node_t tvar2 = IVAL (cvars, tvar_num2);
 
   *l = op1;
   *r = op2;
-  if (! (float0_p = ER_NODE_MODE (op2) == ER_NM_float)
+  if (! (float2_p = ER_NODE_MODE (op2) == ER_NM_float)
       && ER_NODE_MODE (op2) != ER_NM_int)
-    *r = op2 = implicit_arithmetic_conversion (op2, tvar_num2);
+    {
+      *r = op2 = implicit_arithmetic_conversion (op2, tvar_num2);
+      float2_p = ER_NODE_MODE (op2) == ER_NM_float;
+    }
   if (! (float1_p = ER_NODE_MODE (op1) == ER_NM_float)
       && ER_NODE_MODE (op1) != ER_NM_int)
-    *l = op1 = implicit_arithmetic_conversion (op1, tvar_num1);
+    {
+      *l = op1 = implicit_arithmetic_conversion (op1, tvar_num1);
+      float1_p = ER_NODE_MODE (op1) == ER_NM_float;
+    }
   if (float1_p && ER_NODE_MODE (op2) == ER_NM_int)
     {
       f = ER_i (op2);
@@ -163,7 +169,7 @@ implicit_conversion_for_binary_arithmetic_op (ER_node_t op1, ER_node_t op2,
       ER_set_f (tvar2, f);
       *r = tvar2;
     }
-  else if (float0_p && ER_NODE_MODE (op1) == ER_NM_int)
+  else if (float2_p && ER_NODE_MODE (op1) == ER_NM_int)
     {
       f = ER_i (op1);
       ER_SET_MODE (tvar1, ER_NM_float);

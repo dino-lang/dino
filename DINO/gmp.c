@@ -74,7 +74,7 @@ val_t
 _z_clear (int npars, val_t *vals)
 {
   assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
-  mpz_clear (* (mpz_t *) ER_hideblock_start ((ER_node_t) vals));
+  mpz_clear (* (mpz_t *) ER_hideblock_start (ER_hideblock ((ER_node_t) vals)));
   return return_nil ();
 }
 
@@ -320,12 +320,11 @@ _z_set (int npars, val_t *vals)
 val_t
 _z_set_str (int npars, val_t *vals)
 {
-  ER_node_t res_var, var;
+  ER_node_t res_var;
 
   assert (npars == 2
 	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect);
-  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
   res_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   mpz_set_str (*(mpz_t *) ER_hideblock_start (ER_hideblock (res_var)),
 	       ER_pack_els (ER_vect ((ER_node_t) (vals + 1))), 0);

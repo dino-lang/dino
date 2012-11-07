@@ -1,3 +1,21 @@
+2012-11-07  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* configure.in: Setup compiler flags for non-empty cocom_debug.
+	Don't change -O2 to -Ofast for non-empty cocom_debug.
+	* configure: Update.
+	* DINO/d_run.sput (ER_CTOP, SET_TOP): Remove.
+	(TOP_UP, TOP_DOWN): Simplify.
+	* DINO/d_heap.c: Remove SET_TOP.  Change ER_CTOP by ctop.
+	* DINO/d_func.c: Ditto.
+	* DINO/d_eval.c: Ditto.
+	(evaluate_code): Remove INTERRUPT_CHECK for return nodes.
+	* DINO/d_conv.c (implicit_conversion_for_binary_arithmetic_op):
+	Rename flags.  Update float flags.
+	* DINO/d_context.c (dump_code): Print block node.
+	* DINO/gmp.c (_z_clear): Fix typo.
+	(_z_set_str): Remove var and code dealing with that.
+	* DINO/dino.tst.in: Fix output for test 584.
+
 2012-11-05  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/d_run.sprut (temp_ref, heap_temp_refs, TEMP_REFS_LENGTH):

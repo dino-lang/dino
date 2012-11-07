@@ -35139,48 +35139,50 @@ TEST584
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT584' && $CMP $stdout $ftemp2; then
-    75 int(line=2): 26 <- (8190)
-    76 int(line=4): 32 <- (1)
-    77 plus: 32 <- 26 32
-    78 int: 33 <- (0)
-    79 vector: 31 <- (els=32, parts=1)
-    80 int(line=5): 30 <- (0)
-    81 int(line=6): 27 <- (0)
-    82 le: 32 <- 27 26
-    83 for_stmt: 32 (end=84)
-      85 int(line=7): 32 <- (1)
-      86 assign: 31(27) <- 32
-      87 int(line=6): 32 <- (1)
-      88 plus: 27 <- 27 32
-         goto 82
-    84 int(line=8): 27 <- (0)
-    89 le: 32 <- 27 26
-    90 for_stmt: 32 (end=91)
-      92 index(line=9): 32 <- 31 27
-      93 if_stmt: 32 (else=94)
-        95 plus(line=11): 32 <- 27 27
-        96 int: 33 <- (3)
-        97 plus: 28 <- 32 33
-        98 plus(line=12): 29 <- 27 28
-        99 int(line=13): 32 <- (1)
-       100 for_stmt: 32 (end=101)
-         102 gt(line=15): 32 <- 29 26
-         103 if_stmt: 32 (else=104)
-           105 break_stmt(line=16)
-           101 int(line=20): 32 <- (1)
-           106 plus: 30 <- 30 32
-               goto 94
-         104 int(line=17): 32 <- (0)
-         107 assign: 31(29) <- 32
-         108 plus(line=18): 29 <- 29 28
-             goto 99
-      94 int(line=8): 32 <- (1)
-     109 plus: 27 <- 27 32
-         goto 89
-    91 func_occurrence(line=23): 32 <- (println)
-   110 local_var_occurrence: 33 <- 30 (count)
-   111 proc_call: call (start=32) (pars=1)
-   112 block_finish
+     1 block(line=1): vars=32, tvars=4
+
+     178 int(line=2): 26 <- (8190)
+     179 int(line=4): 32 <- (1)
+     180 plus: 32 <- 26 32
+     181 int: 33 <- (0)
+     182 vector: 31 <- (els=32, parts=1)
+     183 int(line=5): 30 <- (0)
+     184 int(line=6): 27 <- (0)
+     185 le: 32 <- 27 26
+     186 for_stmt: 32 (end=187)
+       188 int(line=7): 32 <- (1)
+       189 assign: 31(27) <- 32
+       190 int(line=6): 32 <- (1)
+       191 plus: 27 <- 27 32
+           goto 185
+     187 int(line=8): 27 <- (0)
+     192 le: 32 <- 27 26
+     193 for_stmt: 32 (end=194)
+       195 index(line=9): 32 <- 31 27
+       196 if_stmt: 32 (else=197)
+         198 plus(line=11): 32 <- 27 27
+         199 int: 33 <- (3)
+         200 plus: 28 <- 32 33
+         201 plus(line=12): 29 <- 27 28
+         202 int(line=13): 32 <- (1)
+         203 for_stmt: 32 (end=204)
+           205 gt(line=15): 32 <- 29 26
+           206 if_stmt: 32 (else=207)
+             208 break_stmt(line=16)
+             204 int(line=20): 32 <- (1)
+             209 plus: 30 <- 30 32
+                 goto 197
+           207 int(line=17): 32 <- (0)
+           210 assign: 31(29) <- 32
+           211 plus(line=18): 29 <- 29 28
+               goto 202
+       197 int(line=8): 32 <- (1)
+       212 plus: 27 <- 27 32
+           goto 192
+     194 func_occurrence(line=23): 32 <- (println)
+     213 local_var_occurrence: 33 <- 30 (count)
+     214 proc_call: call (start=32) (pars=1)
+   215 block_finish
 OUTPUT584
                         result=ok
                 else

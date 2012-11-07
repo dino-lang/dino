@@ -519,7 +519,6 @@ final_call_destroy_functions (void)
 	  ctop = (ER_node_t) ((char *) cvars
 			      + real_block_vars_number (block_node_ptr)
 			      * sizeof (val_t) - sizeof (val_t));
-	  SET_TOP;
 	  set_tvars (block_node_ptr);
 	  cpc = IR_next_pc (ER_call_pc (cstack));
 	  if (cprocess != NULL)
@@ -1420,7 +1419,6 @@ GC (void)
   compact_heap ();
   cvars = ER_stack_vars (cstack);
   ctop = (ER_node_t) ER_ctop (cstack);
-  SET_TOP;
   set_tvars (ER_block_node (cstack));
   gc_number++;
   free_gc_memory_percent
@@ -1528,7 +1526,6 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
     ER_SET_MODE (curr_var, ER_NM_nil);
   /* We set them only here because we need to set mode before.
      Remeber about possible field checking. */
-  SET_TOP;
   if (cprocess != NULL)
     ER_set_saved_cstack (cprocess, cstack);
 }
@@ -1567,8 +1564,6 @@ heap_pop (void)
   if (! IR_extended_life_context_flag (block_node))
     try_heap_stack_free (stack, heap_object_size (stack));
   ER_set_saved_cstack (cprocess, cstack);
-  if (cstack != NULL)
-    SET_TOP;
 }
 
 
@@ -2607,7 +2602,6 @@ activate_given_process (ER_node_t process)
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
-  SET_TOP;
   ER_set_process_status (cprocess, PS_READY);
   var = IVAL (ER_stack_vars (uppest_stack),
 	      IR_var_number_in_block (curr_thread_decl));

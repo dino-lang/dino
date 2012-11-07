@@ -53,24 +53,8 @@ extern ER_node_t cvars;
 extern ER_node_t ctop;
 extern int tvar_num1, tvar_num2;
 
-#define ER_CTOP() ctop
-
-#define SET_TOP\
-   do {\
-     ctop = (ER_node_t) ER_CTOP ();\
-   } while (0)
-
-#define TOP_UP\
-   do {\
-     DECR_CTOP (-1);\
-     ctop = (ER_node_t) ER_CTOP ();\
-   } while (0)
-
-#define TOP_DOWN\
-   do {\
-     DECR_CTOP (1);\
-     ctop = (ER_node_t) ER_CTOP ();\
-   } while (0)
+#define TOP_UP   DECR_CTOP (-1)
+#define TOP_DOWN DECR_CTOP (1)
 
 extern vlo_t temp_vlobj;
 extern vlo_t temp_vlobj2;

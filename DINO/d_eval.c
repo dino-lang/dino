@@ -686,7 +686,6 @@ find_catch_pc (ER_node_t instance)
 	ctop = (ER_node_t) ((char *) cvars
 			    + real_block_vars_number (ER_block_node (cstack))
 			    * sizeof (val_t) - sizeof (val_t));
-      SET_TOP;
       cpc = IR_catch_list_pc (block);
       if (cpc != NULL)
 	{
@@ -1918,7 +1917,7 @@ evaluate_code (void)
 	  {
 	    /* If you make a change here, please look at DINO read
 	       functions. */
-	    ER_node_t vect;
+	    ER_node_t vect, saved_ctop;
 	    int_t vect_parts_number, curr_vect_part_number;
 	    int_t curr_vect_element_number;
 	    size_t el_size_type;
@@ -1931,9 +1930,9 @@ evaluate_code (void)
 	      vect = create_empty_vector ();
 	    else
 	      {
+		saved_ctop = ctop;
 		ctop = op1 = IVAL (cvars, IR_vec_tab_el_num (IR_PTR (cpc)));
 		DECR_CTOP (-2 * vect_parts_number);
-		SET_TOP;
 		els_number = 0;
 		for (curr_vect_part_number = 0;
 		     curr_vect_part_number < 2 * vect_parts_number;
@@ -1968,8 +1967,7 @@ evaluate_code (void)
 		else
 		  vect = create_unpack_vector (els_number);
 		op1 = IVAL (cvars, IR_vec_tab_el_num (IR_PTR (cpc)));
-		DECR_CTOP (2 * vect_parts_number);
-		SET_TOP;
+		ctop = saved_ctop;
 		for (curr_vect_element_number = 0,
 		       curr_vect_part_number = 0;
 		     curr_vect_part_number < 2 * vect_parts_number;
@@ -2008,15 +2006,15 @@ evaluate_code (void)
 	  }
 	case IR_NM_table:
 	  {
-	    ER_node_t tab;
+	    ER_node_t tab, saved_ctop;
 	    int_t tab_els_number, curr_tab_el_number;
 	    ER_node_t entry;
 	    IR_node_t elist;
 	    
 	    tab_els_number = IR_parts_number (IR_PTR (cpc));
+	    saved_ctop = ctop;
 	    ctop = IVAL (cvars, IR_vec_tab_el_num (IR_PTR (cpc)));
 	    DECR_CTOP (-2 * tab_els_number);
-	    SET_TOP;
 	    tab = create_tab (tab_els_number);
 	    op1 = IVAL (cvars, IR_vec_tab_el_num (IR_PTR (cpc)));
 	    for (elist = IR_elist (IR_PTR (cpc)), curr_tab_el_number = 0;
@@ -2038,8 +2036,7 @@ evaluate_code (void)
 				       ER_NM_val));
 		elist = IR_next_elist (elist);
 	      }
-	    DECR_CTOP (2 * tab_els_number);
-	    SET_TOP;
+	    ctop = saved_ctop;
 	    res = IVAL (cvars, IR_vec_tab_result_num (IR_PTR (cpc)));
 	    ER_SET_MODE (res, ER_NM_tab);
 	    ER_set_tab (res, tab);
@@ -2100,7 +2097,6 @@ evaluate_code (void)
 
 	    ctop = IVAL (cvars, IR_func_call_start_num (call));
 	    DECR_CTOP (-IR_class_func_thread_call_parameters_number (call));
-	    SET_TOP;
 	    process_func_class_call
 	      (IR_class_func_thread_call_parameters_number (call));
 	    break;
@@ -2289,7 +2285,6 @@ evaluate_code (void)
 	case IR_NM_proc_call:
 	  ctop = IVAL (cvars, IR_proc_call_start_num (IR_PTR (cpc)));
 	  DECR_CTOP (-IR_proc_call_pars_number (IR_PTR (cpc)));
-	  SET_TOP;
 	  process_func_class_call (IR_proc_call_pars_number (IR_PTR (cpc)));
 	  INTERRUPT_CHECK;
 	  break;
@@ -2460,7 +2455,12 @@ evaluate_code (void)
 		else
 		  assert (cstack != NULL);
 	      }
-	    INTERRUPT_CHECK;
+	    /* Do not put INTERRUPT here as the result is not on the
+	       top and possible GC called directly (or indirectly
+	       through thread switching) from INTERRUPT can make the
+	       result wrong.  Another solution could be adding a node
+	       to pop result as INTERRUPT should be the last statement
+	       executed for the node.  */
 	    break;
 	  }
 	case IR_NM_return_with_result:
@@ -2493,7 +2493,7 @@ evaluate_code (void)
 		heap_pop ();
 		assert (cstack != NULL);
 	      }
-	    INTERRUPT_CHECK;
+	    /* See comment for return_without_result.  */
 	    break;
 	  }
 	case IR_NM_wait_stmt:
