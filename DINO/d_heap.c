@@ -1641,46 +1641,71 @@ create_pack_vector (size_t els_number, ER_node_mode_t eltype)
   return pack_vect;
 }
 
-/* Make that vector contains room for el_number.  Return the vector
+/* Make vector VECT contains room for ELS_NUMBER.  Return the vector
    (may be with new place). */
 ER_node_t
-expand_vector (ER_node_t vect, size_t length)
+expand_vector (ER_node_t vect, size_t els_number)
 {
   size_t disp, allocated_length, prev_vect_allocated_length;
+  size_t el_length, header_length, vect_els_number;
+  const char *els;
   ER_node_t prev_vect;
 
   disp = ER_disp (vect);
+  vect_els_number = ER_els_number (vect);
   allocated_length = ER_allocated_length (vect);
   if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
       && ER_pack_vect_el_type (vect) == ER_NM_char)
-    length++; /* for trailing zero byte */
-  length += disp;
+    {
+      els_number++; /* for trailing zero byte */
+      vect_els_number++;
+    }
   prev_vect_allocated_length = allocated_length;
   if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
     {
-      if (allocated_length < (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
-			      + length * sizeof (val_t)))
-	allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
-			    + OPTIMAL_ELS_SIZE (length * sizeof (val_t)));
+      header_length = ALLOC_SIZE (sizeof (_ER_heap_unpack_vect));
+      els = (const char *) ER_unpack_els (vect);
+      el_length = sizeof (val_t);
     }
-  else if (allocated_length < (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-			       + length * type_size (ER_pack_vect_el_type
-						     (vect))))
-    allocated_length
-      = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-	 + OPTIMAL_ELS_SIZE (length
-			     * type_size (ER_pack_vect_el_type (vect))));
+  else 
+    {
+      header_length = ALLOC_SIZE (sizeof (_ER_heap_pack_vect));
+      els = ER_pack_els (vect);
+      el_length = type_size (ER_pack_vect_el_type (vect));
+    }
+  if (allocated_length < header_length + els_number * el_length)
+    allocated_length = (header_length
+			+ OPTIMAL_ELS_SIZE (els_number * el_length));
   if (allocated_length != prev_vect_allocated_length)
     {
       prev_vect = vect;
-      /* ???? don't allocate if can expand because of disp. */
       vect = heap_allocate (allocated_length, FALSE);
       /* After this, vect has the same unique_number. */
-      memcpy (vect, prev_vect, prev_vect_allocated_length);
+      if (disp == 0)
+	memcpy (vect, prev_vect, prev_vect_allocated_length);
+      else
+	{	
+	  memcpy (vect, prev_vect, header_length);
+	  /* Set it before getting els.  */
+	  ER_set_disp (vect, 0);
+	  memcpy (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect
+		  ? (char *) ER_unpack_els (vect) : (char *) ER_pack_els (vect),
+		  els, vect_els_number * el_length);
+	}
       ER_set_allocated_length (vect, allocated_length);
       ER_SET_MODE (prev_vect, ER_NM_heap_redir);
       ER_set_allocated_length (prev_vect, prev_vect_allocated_length);
       ER_set_redir (prev_vect, vect);
+    }
+  else if (allocated_length < header_length + els_number * el_length + disp)
+    {
+      assert (allocated_length >= header_length + els_number * el_length);
+      /* Set it before getting els.  */
+      ER_set_disp (vect, 0);
+      memmove (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect
+	       ? (char*) ER_unpack_els (vect) : (char *) ER_pack_els (vect),
+	       els, ER_els_number (vect) * el_length);
+      
     }
   return vect;
 }

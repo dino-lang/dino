@@ -1,5 +1,10 @@
 2012-11-07  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* DINO/d_heap.c (expand_vector): Rewrite.  Don't expand when disp
+	makes expansion possible.
+
+2012-11-07  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* configure.in: Setup compiler flags for non-empty cocom_debug.
 	Don't change -O2 to -Ofast for non-empty cocom_debug.
 	* configure: Update.
