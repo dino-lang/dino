@@ -33,15 +33,16 @@
 #
 
 script_file=$0
+prefix=`basename $script_file .tst`
 CXX='@CXX@'
 CXX_options='@CXXFLAGS@ @DEFS@ -I. -I@srcdir@/'
 source_addfiles='@srcdir@/allocate.cpp @srcdir@/vlobject.cpp @srcdir@/objstack.cpp @srcdir@/position.cpp @srcdir@/errors.cpp'
-addfiles='allocate.o vlobject.o objstack.o position.o errors.o'
-test_file=terrors.cpp
-temp_file=_temp.out
-temp2_file=_temp2.out
-temp3_file=_temp3.out
-outfile=./a.out
+addfiles="${prefix}_allocate.o ${prefix}_vlobject.o ${prefix}_objstack.o ${prefix}_position.o ${prefix}_errors.o"
+test_file=${prefix}_terrors.cpp
+temp_file=_${prefix}_temp.out
+temp2_file=_${prefix}_temp2.out
+temp3_file=_${prefix}_temp3.out
+outfile=./${prefix}_a.out
 cmp=cmp
 
 if test x$1 = x
@@ -59,13 +60,15 @@ fi
 
 # Compilation of addfiles
 
-echo '      ' $CXX $CXX_options -c $source_addfiles
-if $CXX $CXX_options -c $source_addfiles; then
+for i in $source_addfiles; do
+  echo '      ' $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o
+  if $CXX $CXX_options -c $i -o ${prefix}_`basename $i .cpp`.o; then
         result=ok
-else
+  else
         echo '***' $script_file: test is failed see file $test_file
         exit 1
-fi
+  fi
+done
 
 # Test 1.
 if test $result = ok -a $start_test_number -le 1; then

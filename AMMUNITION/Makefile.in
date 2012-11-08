@@ -286,32 +286,60 @@ sgramm.c: $(srcdir)/sgramm.y
 # Test the packages.
 test: test-c test-cpp
 
-test-c: IEEEtens.c
+test-c: IEEEtens.c allocate-tst vlobject-tst objstack-tst \
+        hashtab-tst commline-tst position-tst errors-tst \
+        ticker-tst bits-tst arithm-tst IEEE-tst earley-tst
+allocate-tst:
 	$(SHELL) allocate.tst
+vlobject-tst:
 	$(SHELL) vlobject.tst
+objstack-tst:
 	$(SHELL) objstack.tst
+hashtab-tst:
 	$(SHELL) hashtab.tst
+commline-tst:
 	$(SHELL) commline.tst
+position-tst:
 	$(SHELL) position.tst
-	-$(SHELL) errors.tst
+errors-tst:
+	$(SHELL) errors.tst
+ticker-tst:
 	$(SHELL) ticker.tst
+bits-tst:
 	$(SHELL) bits.tst
+arithm-tst:
 	$(SHELL) arithm.tst
+IEEE-tst:
 	$(SHELL) IEEE.tst
+earley-tst:
 	$(SHELL) earley.tst
 
-test-cpp:
+test-cpp: IEEEtens.c allocatecpp-tst vlobjectcpp-tst objstackcpp-tst \
+          hashtabcpp-tst commlinecpp-tst positioncpp-tst errorscpp-tst \
+          tickercpp-tst bitscpp-tst arithmcpp-tst IEEEcpp-tst earleycpp-tst
+allocatecpp-tst:
 	$(SHELL) allocate++.tst
+vlobjectcpp-tst:
 	$(SHELL) vlobject++.tst
+objstackcpp-tst:
 	$(SHELL) objstack++.tst
+hashtabcpp-tst:
 	$(SHELL) hashtab++.tst
+commlinecpp-tst:
 	$(SHELL) commline++.tst
+positioncpp-tst:
 	$(SHELL) position++.tst
-	-$(SHELL) errors++.tst
+errorscpp-tst:
+	$(SHELL) errors++.tst
+tickercpp-tst:
 	$(SHELL) ticker++.tst
+bitscpp-tst:
 	$(SHELL) bits++.tst
+arithmcpp-tst:
 	$(SHELL) arithm++.tst
+IEEEcpp-tst:
 	$(SHELL) IEEE++.tst
+earleycpp-tst:
 	$(SHELL) earley++.tst
 
 # Creation of installation directories and the library of reusable

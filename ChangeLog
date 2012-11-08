@@ -1,3 +1,8 @@
+2012-11-08  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* AMMUNITION/Makefile.in: Make entry for each test file run.
+	* AMMUNITION/*.tst.in: Generate uniq files.
+
 2012-11-07  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/d_heap.c (expand_vector): Rewrite.  Don't expand when disp
