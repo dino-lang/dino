@@ -1,4 +1,4 @@
-2012-11-22  Vladimir Makarov  <vmakarov@redhat.com>
+2012-11-22  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/Makefile.in (dino.txt, dino.html, dino.info, dino.pdf):
 	Make dependence on dino.sgml.tmp only.
@@ -16,17 +16,17 @@
 	Update.
 	* DINO/dino.tst.in: Changes swaps.
 
-2012-11-08  Vladimir Makarov  <vmakarov@redhat.com>
+2012-11-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/Makefile.in: Make entry for each test file run.
 	* AMMUNITION/*.tst.in: Generate uniq files.
 
-2012-11-07  Vladimir Makarov  <vmakarov@redhat.com>
+2012-11-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_heap.c (expand_vector): Rewrite.  Don't expand when disp
 	makes expansion possible.
 
-2012-11-07  Vladimir Makarov  <vmakarov@redhat.com>
+2012-11-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* configure.in: Setup compiler flags for non-empty cocom_debug.
 	Don't change -O2 to -Ofast for non-empty cocom_debug.
@@ -44,7 +44,7 @@
 	(_z_set_str): Remove var and code dealing with that.
 	* DINO/dino.tst.in: Fix output for test 584.
 
-2012-11-05  Vladimir Makarov  <vmakarov@redhat.com>
+2012-11-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_run.sprut (temp_ref, heap_temp_refs, TEMP_REFS_LENGTH):
 	Remove.
@@ -66,7 +66,7 @@
 	* DINO/d_eval.c (find_catch_pc, execute_concat_op, evaluate_code)
 	(initiate_vars, eval_error): Ditto.
 
-2012-11-05  Vladimir Makarov  <vmakarov@redhat.com>
+2012-11-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/earley.c (make_parse): Check stack on emptiness.
 	* DINO/d_dino.c: New flags -d and -dd.
