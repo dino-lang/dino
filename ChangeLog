@@ -1,3 +1,21 @@
+2012-11-22  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/Makefile.in (dino.txt, dino.html, dino.info, dino.pdf):
+	Make dependence on dino.sgml.tmp only.
+	(dino.info): Remove sgml-info and sgml-postinfo.
+	(dino.sgml.tmp): Remove escape sequences.
+	* DINO/d_context.c (first_block_passing, second_block_passing)
+	(third_block_passing, dump_code):  Remove swap.
+	(evaluate_code): Ditto.  Move code for string and nil.
+	* DINO/d_ir.sprut (swap): Remove.
+	* DINO/d_yacc.y: Ditto.
+	* DINO/dino.1: Fix typo.  Remove dlls.
+	* DINO/dino.sgml.in: Remove swap.
+	* DINO/dino.txt, DINO/dino*.html,
+	DINO/dino.dvi, DINO/dino.info, DINO/dino.pdf, DINO/dino.ps:
+	Update.
+	* DINO/dino.tst.in: Changes swaps.
+
 2012-11-08  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* AMMUNITION/Makefile.in: Make entry for each test file run.

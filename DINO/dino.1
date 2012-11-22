@@ -46,7 +46,7 @@ Define the directory in which Dino include files will be searched for.
 The order of searching in directories given with this option is the same
 as the one on the command line.
 .IP -Ldirname
-Define where to serach for external libraries (if shared or dll
+Define where to search for external libraries (if shared
 libraries are implemented on the system.  This is true for Linux,
 Solaris, Irix, OSF, and Windows) in which the Dino external variables and
 functions will be searched for.  The order of searching in libraries
@@ -72,10 +72,6 @@ the DINO file implementing multiple precision arithmetic.
 .RS
 the DINO shared library used for implementing MPI on some Unix systems.
 .RE
-.I mpi.dll
-.RS
-the DINO dll library used for implementing MPI on Windows systems.
-.RE
 .I ieee.d
 .RS
 the DINO file implementing IEEE standard floating point arithmetic.
@@ -83,10 +79,6 @@ the DINO file implementing IEEE standard floating point arithmetic.
 .I ieee.so
 .RS
 the DINO shared library used for implementing IEEE on some Unix systems.
-.RE
-.I ieee.dll
-.RS
-the DINO dll library used for implementing IEEE on Windows systems.
 .RE
 .I ipcerr.d
 .RS
@@ -97,10 +89,6 @@ used by socket.d.
 .RS
 the DINO shared library used for implementing IPCERR on some Unix systems.
 .RE
-.I ipcerr.dll
-.RS
-the DINO dll library used for implementing IPCERR on Windows systems.
-.RE
 .I socket.d
 .RS
 the DINO file implementing work with sockets.
@@ -108,10 +96,6 @@ the DINO file implementing work with sockets.
 .I socket.so
 .RS
 the DINO shared library used for implementing SOCKET on some Unix systems.
-.RE
-.I socket.dll
-.RS
-the DINO dll library used for implementing SOCKET on Windows systems.
 .RE
 There are no temporary files used by DINO.
 .SH ENVIRONMENT

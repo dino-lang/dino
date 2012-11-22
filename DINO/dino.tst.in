@@ -32725,7 +32725,9 @@ func fannkuch (n) {
 	for (flipscount = 0;; flipscount++) {
 	  k = perm [0];
 	  if (k == 0) break;
-	  for (i = (k + 1) / 2 - 1; i >= 0 ; i--)  perm [i] <=> perm [k - i];
+	  for (i = (k + 1) / 2 - 1; i >= 0 ; i--) {
+            t = perm [i]; perm [i] = perm [k - i]; perm[k - i] = t;
+          }
 	}
 
 	if (flipscount > maxflipscount) {
@@ -34397,29 +34399,29 @@ fi
 
 # Test 572.
 if test $result = ok -a $start_test_number -le 572; then
-	echo test 572: Swap statement.
+	echo test 572: Swap statement implementation.
         cat >$test_file <<'TEST572'
-var a = 1, b = 2;
+var t, a = 1, b = 2;
 
 putln (a, " ", b);
-a<=>b;
+t = a; a = b; b = t;
 putln (a, " ", b);
 
 var ar = [1, 2, 3];
 println (ar);
-ar[0]<=>ar[2];
+t = ar[0]; ar[0] = ar[2]; ar[2] = t;
 println (ar);
 
 class s (i) {}
 var c1 = s (0), c2 = s (3);
 putln (c1.i, ' ', c2.i);
-c1.i<=>c2.i;
+t = c1.i; c1.i = c2.i; c2.i = t;
 putln (c1.i, ' ', c2.i);
 
-var t = {"s" : 1, "t" : 2};
-putln (t{"s"}, ' ', t{"t"});
-t{"s"}<=>t{"t"};
-putln (t{"s"}, ' ', t{"t"});
+var tab = {"s" : 1, "t" : 2};
+putln (tab{"s"}, ' ', tab{"t"});
+t = tab{"s"}; tab{"s"} = tab{"t"}; tab{"t"} = t;
+putln (tab{"s"}, ' ', tab{"t"});
 TEST572
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then

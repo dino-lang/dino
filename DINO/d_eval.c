@@ -998,6 +998,11 @@ evaluate_code (void)
     {
       switch (node_mode = IR_NODE_MODE (IR_PTR (cpc)))
 	{
+	case IR_NM_nil:
+	  res = IVAL (cvars, IR_nil_result_num (IR_PTR (cpc)));
+	  ER_SET_MODE (res, ER_NM_nil);
+	  INCREMENT_PC ();
+	  break;
 	case IR_NM_char:
 	  res = IVAL (cvars, IR_char_result_num (IR_PTR (cpc)));
 	  ER_SET_MODE (res, ER_NM_char);
@@ -1015,6 +1020,17 @@ evaluate_code (void)
 	  ER_SET_MODE (res, ER_NM_float);
 	  ER_set_f (res, IR_f_val (IR_PTR (cpc)));
 	  INCREMENT_PC ();
+	  break;
+	case IR_NM_string:
+	  {
+	    ER_node_t vect;
+
+	    vect = create_string (IR_str_val (IR_PTR (cpc)));
+	    res = IVAL (cvars, IR_string_result_num (IR_PTR (cpc)));
+	    ER_SET_MODE (res, ER_NM_vect);
+	    ER_set_vect (res, vect);
+	    INCREMENT_PC ();
+	  }
 	  break;
 	case IR_NM_hide_type:
 	  res = IVAL (cvars, IR_type_result_num (IR_PTR (cpc)));
@@ -1098,22 +1114,6 @@ evaluate_code (void)
 	  res = IVAL (cvars, IR_type_result_num (IR_PTR (cpc)));
 	  ER_SET_MODE (res, ER_NM_type);
 	  ER_set_type (res, ER_NM_type);
-	  INCREMENT_PC ();
-	  break;
-	case IR_NM_string:
-	  {
-	    ER_node_t vect;
-
-	    vect = create_string (IR_str_val (IR_PTR (cpc)));
-	    res = IVAL (cvars, IR_string_result_num (IR_PTR (cpc)));
-	    ER_SET_MODE (res, ER_NM_vect);
-	    ER_set_vect (res, vect);
-	    INCREMENT_PC ();
-	  }
-	  break;
-	case IR_NM_nil:
-	  res = IVAL (cvars, IR_nil_result_num (IR_PTR (cpc)));
-	  ER_SET_MODE (res, ER_NM_nil);
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_period:
@@ -2255,20 +2255,6 @@ evaluate_code (void)
 	  store_designator_value (IVAL (cvars, IR_container_num (IR_PTR (cpc))),
 				  IVAL (cvars, IR_index_num (IR_PTR (cpc))),
 				  op1, IR_assignment_var (IR_PTR (cpc)));
-	  INCREMENT_PC ();
-	  INTERRUPT_CHECK;
-	  break;
-	case IR_NM_swap:
-	  store_designator_value
-	    (IVAL (cvars, IR_container_num1 (IR_PTR (cpc))),
-	     IVAL (cvars, IR_index_num1 (IR_PTR (cpc))),
-	     IVAL (cvars, IR_lvalue_val_num2 (IR_PTR (cpc))),
-	     IR_swap_var1 (IR_PTR (cpc)));
-	  store_designator_value
-	    (IVAL (cvars, IR_container_num2 (IR_PTR (cpc))),
-	     IVAL (cvars, IR_index_num2 (IR_PTR (cpc))),
-	     IVAL (cvars, IR_lvalue_val_num1 (IR_PTR (cpc))),
-	     IR_swap_var2 (IR_PTR (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;

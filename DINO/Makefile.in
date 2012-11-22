@@ -433,17 +433,17 @@ doc : dino.sgml.tmp $(srcdir)/dino.txt $(srcdir)/dino.html\
       $(srcdir)/dino.info $(srcdir)/dino.pdf $(srcdir)/dino.dvi $(srcdir)/dino.ps
 
 dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
-	nroff -man $(srcdir)/dino.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");print;}' > dino.tmp
+	nroff -man $(srcdir)/dino.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > dino.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "dino.tmp") > 0)\
                         print line;close("dino.tmp")}\
                  else print;}' $(srcdir)/dino.sgml.in > $@
 	rm -f dino.tmp
 
-$(srcdir)/dino.txt: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
+$(srcdir)/dino.txt: dino.sgml.tmp
 	$(srcdir)/../sgml-txt dino.sgml.tmp > $@
 	
-$(srcdir)/dino.html: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
+$(srcdir)/dino.html: dino.sgml.tmp
 	$(srcdir)/../sgml-html dino.sgml.tmp >dino.sgml
 	linuxdoc -B html --papersize=letter dino.sgml
 	if test -f dino-1.html;then\
@@ -453,12 +453,9 @@ $(srcdir)/dino.html: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
         fi
 	mv dino.html $(srcdir)/dino.html
 	
-$(srcdir)/dino.info: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
-	$(srcdir)/../sgml-info dino.sgml.tmp >dino.sgml
+$(srcdir)/dino.info: dino.sgml.tmp
+	cp dino.sgml.tmp dino.sgml
 	linuxdoc -B info --papersize=letter dino.sgml
-	for i in dino.info*;do\
-   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
-	done
 	if test -f dino.info-1;then\
 	  for i in dino.info-*;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -466,7 +463,7 @@ $(srcdir)/dino.info: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
         fi
 	mv dino.info $(srcdir)/dino.info
 	
-$(srcdir)/dino.dvi $(srcdir)/dino.pdf: $(srcdir)/dino.sgml.in $(srcdir)/dino.1
+$(srcdir)/dino.dvi $(srcdir)/dino.pdf: dino.sgml.tmp
 	$(srcdir)/../sgml-tex dino.sgml.tmp >dino.sgml
 	linuxdoc -B latex --papersize=letter dino.sgml
 	if test ! -f dino.dvi\

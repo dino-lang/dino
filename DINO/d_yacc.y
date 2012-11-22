@@ -82,7 +82,6 @@ static int add_include_file (const char *name);
        FINAL FLOAT FOR FRIEND FUNC HIDE HIDEBLOCK IF IN INT
        NEW NIL PUBLIC PRIVATE RETURN TABLE THREAD THROW TRY TYPE
        VAR VECTOR WAIT
-%token SWAP
 %token MULT_ASSIGN DIV_ASSIGN REM_ASSIGN PLUS_ASSIGN MINUS_ASSIGN CONCAT_ASSIGN
 %token LSHIFT_ASSIGN RSHIFT_ASSIGN ASHIFT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN
@@ -626,12 +625,6 @@ executive_stmt :
           $$ = create_node_with_pos ($2, $3);
           IR_set_assignment_var ($$, $1); 
           IR_set_assignment_expr ($$, $4);
-        }
-    | designator SWAP pos designator {$<flag>$ = $<flag>0;} end_simple_stmt
-       	{
-          $$ = create_node_with_pos (IR_NM_swap, $3);
-          IR_set_swap_var1 ($$, $1); 
-          IR_set_swap_var2 ($$, $4);
         }
     | designator incr_decr pos {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
@@ -1850,17 +1843,7 @@ int yylex (void)
           if (input_char == '=')
 	    {
 	      current_position.column_number++;
-              input_char = d_getc ();
-	      if (input_char == '>')
-		{
-		  current_position.column_number++;
-		  return SWAP;
-		}
-              else
-               {
-                 d_ungetc (input_char);
-                 return LE;
-               }
+	      return LE;
 	    }
           else if (input_char == '<')
             {

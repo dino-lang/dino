@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>The Programming Language DINO: Appendix B. Implementation</TITLE>
  <LINK HREF="dino-9.html" REL=previous>
  <LINK HREF="dino.html#toc10" REL=contents>
@@ -28,7 +28,7 @@ SYNOPSIS
        dino-program-arguments
 
 DESCRIPTION
-       dino interprets a program in the DINO programming language.   The  pro-
+       dino interprets a program in the DINO programming language.   The  pro‐
        gram file (and include files) must have the suffix .d
 
        The  description  of  DINO language is in the report of the Programming
@@ -38,19 +38,19 @@ OPTIONS
        The options which the DINO interpreter recognizes are:
 
        -c program
-              Execute the Dino program given on the command line as the  argu-
+              Execute the Dino program given on the command line as the  argu‐
               ment.
 
        -h number
-              Determine  the  size  of the heap chunks used by the DINO inter-
-              preter.  The size can be given in bytes (e.g. 32000),  in  kilo-
+              Determine  the  size  of the heap chunks used by the DINO inter‐
+              preter.  The size can be given in bytes (e.g. 32000),  in  kilo‐
               bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
               is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
               chunk.   It  allocates one additional chunk (as rule of the same
-              size) whenever there is no additional memory after garbage  col-
+              size) whenever there is no additional memory after garbage  col‐
               lection.
 
-       -s     Output some statistics of interpreter work into stderr.  Statis-
+       -s     Output some statistics of interpreter work into stderr.  Statis‐
               tics contain the maximal heap size, number of heap  chunks,  and
               number  of  collisions  in  hash  tables  which are used for the
               implementation of DINO tables.
@@ -65,9 +65,9 @@ OPTIONS
               this option is the same as the one on the command line.
 
        -Ldirname
-              Define where to serach for external libraries (if shared or  dll
+              Define  where  to  search  for  external  libraries  (if  shared
               libraries  are  implemented  on  the  system.   This is true for
-              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter-
+              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
               nal  variables and functions will be searched for.  The order of
               searching in libraries given with this option is the same as one
               on the command line.
@@ -86,39 +86,27 @@ FILES
        mpi.so
               the  DINO  shared library used for implementing MPI on some Unix
               systems.
-       mpi.dll
-              the DINO dll library used for implementing MPI on  Windows  sys-
-              tems.
        ieee.d
-              the  DINO  file implementing IEEE standard floating point arith-
+              the DINO file implementing IEEE standard floating  point  arith‐
               metic.
        ieee.so
-              the DINO shared library used for implementing IEEE on some  Unix
+              the  DINO shared library used for implementing IEEE on some Unix
               systems.
-       ieee.dll
-              the  DINO dll library used for implementing IEEE on Windows sys-
-              tems.
        ipcerr.d
               the DINO file definining  exceptions  of  ipc/network  software.
               This file is used by socket.d.
        ipcerr.so
               the  DINO  shared  library  used for implementing IPCERR on some
               Unix systems.
-       ipcerr.dll
-              the DINO dll library used for  implementing  IPCERR  on  Windows
-              systems.
        socket.d
               the DINO file implementing work with sockets.
        socket.so
-              the  DINO  shared  library  used for implementing SOCKET on some
+              the DINO shared library used for  implementing  SOCKET  on  some
               Unix systems.
-       socket.dll
-              the DINO dll library used for  implementing  SOCKET  on  Windows
-              systems.
        There are no temporary files used by DINO.
 
 ENVIRONMENT
-       There  are the following environment variables which affect DINO behav-
+       There  are the following environment variables which affect DINO behav‐
        ior:
 
        DINO_HOME

@@ -10,7 +10,7 @@ The Programming Language DINO
 *****************************
 
      Vladimir Makarov, `vmakarov@users.sourceforge.net'. Edited by Serhei Makarov.
-     Jan 25, 2006
+     Nov 21, 2012
 
    This document describes the programming language DINO.
 
@@ -73,6 +73,8 @@ The Programming Language DINO
        Jan 16, 2006.  New swap operation.
 
        Jan 25, 2006.  Add sync statement in wait-stmt
+
+       Nov 21, 2012.  Remove swap operation.
 
 * Menu:
 
@@ -271,7 +273,7 @@ considered to be distinct.
                                         | "{" | "}" | "." | "," | ";" | "="
                                         | "*=" | "/=" | "%=" | "+=" | "-="
                                         | "@=" | "<<=" | ">>=" | ">>>=" | "&="
-                                        | "^=" | "|=" | "++" | "--" | "..." | "<=>"
+                                        | "^=" | "|=" | "++" | "--" | "..."
                                         | Keyword
 
                     Keyword = "break" | "catch" | "char" | "class" | "continue"
@@ -685,28 +687,7 @@ be extended.
 
    The following is a class header with an initialization:
 
-               class stack (max_height = var a = 1, b = 2;
-
-     putln (a, " ", b);
-     a<=>b;
-     putln (a, " ", b);
-
-     var ar = [1, 2, 3];
-     println (ar);
-     ar[0]<=>ar[2];
-     println (ar);
-
-     class s (i) {}
-     var c1 = s (0), c2 = s (3);
-     putln (c1.i, ' ', c2.i);
-     c1.i<=>c2.i;
-     putln (c1.i, ' ', c2.i);
-
-     var t = {"s" : 1, "t" : 2};
-     putln (t{"s"}, ' ', t{"t"});
-     t{"s"}<=>t{"t"};
-     putln (t{"s"}, ' ', t{"t"});
-     100)
+               class stack (max_height = var a = 1, b = 2)
 
    The following is a function with a variable number of parameters:
 
@@ -1593,13 +1574,9 @@ Designator - 1;'.  The only difference is in the fact that the
 designator is evaluated only once, not twice as in the analogous form.
 It is important to know if you have _side effects_ in the statement.
 
-   A special construction `Designator <=> Designator;' swaps values of
-the designators.
-
                ExecutiveStmt = Designator Assign  Expr ";"
                              | Designator ("++" | "--")  ";"
                              | ("++" | "--")  Designator ";"
-                             | Designator <=> Designator ";"
                Assign = "="
                       | "*="
                       | "/="
@@ -1621,7 +1598,6 @@ the designators.
                i++;
                --i;
                i *= 20;
-               v [0] <=> v [1];
 
 
 File: dino.info,  Node: Call-statement,  Next: If-statement,  Prev: Assignment statements,  Up: Executive statements
@@ -4256,7 +4232,7 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             dino-program-arguments
 
      DESCRIPTION
-            dino interprets a program in the DINO programming language.   The  pro-
+            dino interprets a program in the DINO programming language.   The  pro‐
             gram file (and include files) must have the suffix .d
 
             The  description  of  DINO language is in the report of the Programming
@@ -4266,19 +4242,19 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             The options which the DINO interpreter recognizes are:
 
             -c program
-                   Execute the Dino program given on the command line as the  argu-
+                   Execute the Dino program given on the command line as the  argu‐
                    ment.
 
             -h number
-                   Determine  the  size  of the heap chunks used by the DINO inter-
-                   preter.  The size can be given in bytes (e.g. 32000),  in  kilo-
+                   Determine  the  size  of the heap chunks used by the DINO inter‐
+                   preter.  The size can be given in bytes (e.g. 32000),  in  kilo‐
                    bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
                    is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
                    chunk.   It  allocates one additional chunk (as rule of the same
-                   size) whenever there is no additional memory after garbage  col-
+                   size) whenever there is no additional memory after garbage  col‐
                    lection.
 
-            -s     Output some statistics of interpreter work into stderr.  Statis-
+            -s     Output some statistics of interpreter work into stderr.  Statis‐
                    tics contain the maximal heap size, number of heap  chunks,  and
                    number  of  collisions  in  hash  tables  which are used for the
                    implementation of DINO tables.
@@ -4293,9 +4269,9 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
                    this option is the same as the one on the command line.
 
             -Ldirname
-                   Define where to serach for external libraries (if shared or  dll
+                   Define  where  to  search  for  external  libraries  (if  shared
                    libraries  are  implemented  on  the  system.   This is true for
-                   Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter-
+                   Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
                    nal  variables and functions will be searched for.  The order of
                    searching in libraries given with this option is the same as one
                    on the command line.
@@ -4314,39 +4290,27 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
             mpi.so
                    the  DINO  shared library used for implementing MPI on some Unix
                    systems.
-            mpi.dll
-                   the DINO dll library used for implementing MPI on  Windows  sys-
-                   tems.
             ieee.d
-                   the  DINO  file implementing IEEE standard floating point arith-
+                   the DINO file implementing IEEE standard floating  point  arith‐
                    metic.
             ieee.so
-                   the DINO shared library used for implementing IEEE on some  Unix
+                   the  DINO shared library used for implementing IEEE on some Unix
                    systems.
-            ieee.dll
-                   the  DINO dll library used for implementing IEEE on Windows sys-
-                   tems.
             ipcerr.d
                    the DINO file definining  exceptions  of  ipc/network  software.
                    This file is used by socket.d.
             ipcerr.so
                    the  DINO  shared  library  used for implementing IPCERR on some
                    Unix systems.
-            ipcerr.dll
-                   the DINO dll library used for  implementing  IPCERR  on  Windows
-                   systems.
             socket.d
                    the DINO file implementing work with sockets.
             socket.so
-                   the  DINO  shared  library  used for implementing SOCKET on some
+                   the DINO shared library used for  implementing  SOCKET  on  some
                    Unix systems.
-            socket.dll
-                   the DINO dll library used for  implementing  SOCKET  on  Windows
-                   systems.
             There are no temporary files used by DINO.
 
      ENVIRONMENT
-            There  are the following environment variables which affect DINO behav-
+            There  are the following environment variables which affect DINO behav‐
             ior:
 
             DINO_HOME
@@ -4391,67 +4355,67 @@ File: dino.info,  Node: Appendix B- Implementation,  Prev: Appendix A- Syntax of
 
 Tag Table:
 Node: Top127
-Node: Introduction2766
-Node: Syntax4068
-Node: Vocabulary and Representation4969
-Node: Declarations and Scope Rules11478
-Node: Variable Declarations20887
-Node: External Declarations21909
-Node: Functions Classes Extensions23163
-Node: Expressions30923
-Node: Types and Values31484
-Node: Designators40482
-Node: Calls42951
-Node: Operators45000
-Node: Logical operators48691
-Node: Bit operators50456
-Node: Comparison operators51579
-Node: Arithmetic operators53477
-Node: Miscellaneous operators54619
-Node: Executive statements59485
-Node: Empty statement60397
-Node: Block-statement60817
-Node: Assignment statements61537
-Node: Call-statement63782
-Node: If-statement64366
-Node: For-statement65198
-Node: Foreach-statement66668
-Node: Break- and continue-statement67678
-Node: Return-statement68532
-Node: Throw-statement69311
-Node: Try-block70097
-Node: Wait-statement72540
-Node: Program73625
-Node: Predeclared identifiers77047
-Node: Predeclared variables77514
-Node: Arguments and environment77926
-Node: Version78577
-Node: Threads79110
-Node: Exceptions79658
-Node: Files81308
-Node: Miscellaneous variables82016
-Node: Predeclared classes82746
-Node: File83096
-Node: Exception classes83552
-Node: Earley parser classes95527
-Node: Parser-95906
-Node: Token-106710
-Node: Anode-107389
-Node: Nil_anode and error_anode-109538
-Node: Example of Earley parser usage-109949
-Node: Predeclared functions112789
-Node: Mathematical functions114026
-Node: Pattern matching functions115608
-Node: File functions127778
-Node: Functions for access to file/directory information128211
-Node: Functions for work with directories132827
-Node: Functions for work with files-134422
-Node: File output functions138133
-Node: File input functions150241
-Node: Time functions154130
-Node: Functions for access to process information157128
-Node: Miscellaneous functions158646
-Node: Appendix A- Syntax of Dino168525
-Node: Appendix B- Implementation173002
+Node: Introduction2812
+Node: Syntax4114
+Node: Vocabulary and Representation5015
+Node: Declarations and Scope Rules11516
+Node: Variable Declarations20925
+Node: External Declarations21947
+Node: Functions Classes Extensions23201
+Node: Expressions30550
+Node: Types and Values31111
+Node: Designators40109
+Node: Calls42578
+Node: Operators44627
+Node: Logical operators48318
+Node: Bit operators50083
+Node: Comparison operators51206
+Node: Arithmetic operators53104
+Node: Miscellaneous operators54246
+Node: Executive statements59112
+Node: Empty statement60024
+Node: Block-statement60444
+Node: Assignment statements61164
+Node: Call-statement63227
+Node: If-statement63811
+Node: For-statement64643
+Node: Foreach-statement66113
+Node: Break- and continue-statement67123
+Node: Return-statement67977
+Node: Throw-statement68756
+Node: Try-block69542
+Node: Wait-statement71985
+Node: Program73070
+Node: Predeclared identifiers76492
+Node: Predeclared variables76959
+Node: Arguments and environment77371
+Node: Version78022
+Node: Threads78555
+Node: Exceptions79103
+Node: Files80753
+Node: Miscellaneous variables81461
+Node: Predeclared classes82191
+Node: File82541
+Node: Exception classes82997
+Node: Earley parser classes94972
+Node: Parser-95351
+Node: Token-106155
+Node: Anode-106834
+Node: Nil_anode and error_anode-108983
+Node: Example of Earley parser usage-109394
+Node: Predeclared functions112234
+Node: Mathematical functions113471
+Node: Pattern matching functions115053
+Node: File functions127223
+Node: Functions for access to file/directory information127656
+Node: Functions for work with directories132272
+Node: Functions for work with files-133867
+Node: File output functions137578
+Node: File input functions149686
+Node: Time functions153575
+Node: Functions for access to process information156573
+Node: Miscellaneous functions158091
+Node: Appendix A- Syntax of Dino167970
+Node: Appendix B- Implementation172447
 
 End Tag Table

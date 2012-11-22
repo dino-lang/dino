@@ -359,10 +359,6 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  first_expr_processing (IR_assignment_var (stmt));
 	  first_expr_processing (IR_assignment_expr (stmt));
 	  break;
-	case IR_NM_swap:
-	  first_expr_processing (IR_swap_var1 (stmt));
-	  first_expr_processing (IR_swap_var2 (stmt));
-	  break;
 	case IR_NM_mult_assign:
 	case IR_NM_div_assign:
 	case IR_NM_rem_assign:
@@ -571,7 +567,6 @@ second_block_passing (IR_node_t first_level_stmt)
 	case IR_NM_assign:
 	case IR_NM_var_assign:
 	case IR_NM_par_assign:
-	case IR_NM_swap:
 	case IR_NM_mult_assign:
 	case IR_NM_div_assign:
 	case IR_NM_rem_assign:
@@ -1813,70 +1808,6 @@ third_block_passing (IR_node_t first_level_stmt)
 	    SET_PC (par_assign_end);
 	  }
 	  break;
-	case IR_NM_swap:
-	  var_result = -1;
-	  temp = third_expr_processing (IR_swap_var1 (stmt), FALSE,
-					&var_result, &temp_vars_num, TRUE);
-	  if (temp != NULL)
-	    IR_SET_MODE (temp,
-			 make_designator_lvalue (temp, ERR_non_variable_in_swap,
-						 TRUE));
-	  if (IR_NODE_MODE (stmt) != IR_NM_var_assign && temp != NULL
-	      && (IR_IS_OF_TYPE (temp, IR_NM_local_var_occurrence)
-		  || IR_IS_OF_TYPE (temp, IR_NM_lvalue_var_occurrence)
-		  || IR_IS_OF_TYPE (temp,
-				    IR_NM_lvalue_external_var_occurrence))
-	      && (IR_IS_OF_TYPE (IR_decl (temp), IR_NM_var)
-		  || IR_IS_OF_TYPE (IR_decl (temp), IR_NM_external_var))
-	      && IR_const_flag (IR_decl (temp)))
-	    error (FALSE, IR_pos (temp), ERR_const_swap,
-		   IR_ident_string (IR_unique_ident
-				    (IR_ident (IR_decl (temp)))));
-	  if (temp != NULL)
-	    {
-	      IR_set_swap_var1 (stmt, temp);
-	      /* In order not to generate 4 different swaps
-		 corresponding to different combinations of swap of
-		 local non-local variables, we use a general solution
-		 by representing local variables by nodes
-		 lvalue_var_occurrence_and_val.  */
-	      get_lvalue_and_val_location (temp, &temp_vars_num,
-					   &container_num, &index_num,
-					   &lvalue_val_num);
-	      IR_set_container_num1 (stmt, container_num);
-	      IR_set_index_num1 (stmt, index_num);
-	      IR_set_lvalue_val_num1 (stmt, lvalue_val_num);
-	    }
-	  result = -1;
-	  temp = third_expr_processing (IR_swap_var2 (stmt),
-					FALSE, &result, &temp_vars_num, TRUE);
-	  if (temp != NULL)
-	    IR_SET_MODE (temp,
-			 make_designator_lvalue (temp, ERR_non_variable_in_swap,
-						 TRUE));
-	  if (IR_NODE_MODE (stmt) != IR_NM_var_assign && temp != NULL
-	      && (IR_IS_OF_TYPE (temp, IR_NM_local_var_occurrence)
-		  || IR_IS_OF_TYPE (temp, IR_NM_lvalue_var_occurrence)
-		  || IR_IS_OF_TYPE (temp,
-				    IR_NM_lvalue_external_var_occurrence))
-	      && (IR_IS_OF_TYPE (IR_decl (temp), IR_NM_var)
-		  || IR_IS_OF_TYPE (IR_decl (temp), IR_NM_external_var))
-	      && IR_const_flag (IR_decl (temp)))
-	    error (FALSE, IR_pos (temp), ERR_const_swap,
-		   IR_ident_string (IR_unique_ident
-				    (IR_ident (IR_decl (temp)))));
-	  if (temp != NULL)
-	    {
-	      IR_set_swap_var2 (stmt, temp);
-	      get_lvalue_and_val_location (temp, &temp_vars_num,
-					   &container_num, &index_num,
-					   &lvalue_val_num);
-	      IR_set_container_num2 (stmt, container_num);
-	      IR_set_index_num2 (stmt, index_num);
-	      IR_set_lvalue_val_num2 (stmt, lvalue_val_num);
-	    }
-	  SET_PC (stmt);
-	  break;
 	case IR_NM_proc_call:
 	  {
 	    IR_node_t elist;
@@ -2661,13 +2592,6 @@ dump_code (int indent, IR_node_t cn, IR_node_t stop)
 	case IR_NM_par_assign:
 	  printf (": %d(%d) <- %d", IR_container_num (cn), IR_index_num (cn),
 		  IR_expr_num (cn));
-	  cn = IR_next_pc (cn);
-	  break;
-	case IR_NM_swap:
-	  printf (": %d[%d](val=%d) <-> %d[%d](val=%d)", IR_container_num1 (cn),
-		  IR_index_num1 (cn), IR_lvalue_val_num1 (cn),
-		  IR_container_num2 (cn),
-		  IR_index_num2 (cn), IR_lvalue_val_num2 (cn));
 	  cn = IR_next_pc (cn);
 	  break;
 	case IR_NM_par_assign_test:

@@ -6,7 +6,7 @@
 The Programming Language DINO
 Vladimir Makarov, vmakarov@users.sourceforge.net.
 Edited by Serhei Makarov.
-Jan 25, 2006
+Nov 21, 2012
 
 This document describes the programming language DINO.
 
@@ -72,6 +72,8 @@ History
   Jan 16, 2006.  New swap operation.
 
   Jan 25, 2006.  Add sync statement in wait-stmt
+
+  Nov 21, 2012.  Remove swap operation.
 
 
 
@@ -243,7 +245,7 @@ letters are considered to be distinct.
 	                      | "{" | "}" | "." | "," | ";" | "="
 	                      | "*=" | "/=" | "%=" | "+=" | "-="
                               | "@=" | "<<=" | ">>=" | ">>>=" | "&="
-	                      | "^=" | "|=" | "++" | "--" | "..." | "<=>"
+	                      | "^=" | "|=" | "++" | "--" | "..."
                               | Keyword
 
           Keyword = "break" | "catch" | "char" | "class" | "continue"
@@ -648,28 +650,7 @@ can not be extended.
 
         The following is a class header with an initialization:
 
-          class stack (max_height = var a = 1, b = 2;
-
-putln (a, " ", b);
-a<=>b;
-putln (a, " ", b);
-
-var ar = [1, 2, 3];
-println (ar);
-ar[0]<=>ar[2];
-println (ar);
-
-class s (i) {}
-var c1 = s (0), c2 = s (3);
-putln (c1.i, ' ', c2.i);
-c1.i<=>c2.i;
-putln (c1.i, ' ', c2.i);
-
-var t = {"s" : 1, "t" : 2};
-putln (t{"s"}, ' ', t{"t"});
-t{"s"}<=>t{"t"};
-putln (t{"s"}, ' ', t{"t"});
-100)
+          class stack (max_height = var a = 1, b = 2)
 
         The following is a function with a variable number of parameters:
 
@@ -1493,13 +1474,9 @@ difference is in the fact that the designator is evaluated only once,
 not twice as in the analogous form.  It is important to know if you
 have side effects in the statement.
 
-A special construction Designator <=> Designator; swaps values
-of the designators.
-
           ExecutiveStmt = Designator Assign  Expr ";"
                         | Designator ("++" | "--")  ";"
                         | ("++" | "--")  Designator ";"
-                        | Designator <=> Designator ";"
           Assign = "="
                  | "*="
                  | "/="
@@ -1521,7 +1498,6 @@ of the designators.
           i++;
           --i;
           i *= 20;
-          v [0] <=> v [1];
 
 
 6.4. Call-statement
@@ -3929,7 +3905,7 @@ SYNOPSIS
        dino-program-arguments
 
 DESCRIPTION
-       dino interprets a program in the DINO programming language.   The  pro-
+       dino interprets a program in the DINO programming language.   The  pro‐
        gram file (and include files) must have the suffix .d
 
        The  description  of  DINO language is in the report of the Programming
@@ -3939,19 +3915,19 @@ OPTIONS
        The options which the DINO interpreter recognizes are:
 
        -c program
-              Execute the Dino program given on the command line as the  argu-
+              Execute the Dino program given on the command line as the  argu‐
               ment.
 
        -h number
-              Determine  the  size  of the heap chunks used by the DINO inter-
-              preter.  The size can be given in bytes (e.g. 32000),  in  kilo-
+              Determine  the  size  of the heap chunks used by the DINO inter‐
+              preter.  The size can be given in bytes (e.g. 32000),  in  kilo‐
               bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
               is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
               chunk.   It  allocates one additional chunk (as rule of the same
-              size) whenever there is no additional memory after garbage  col-
+              size) whenever there is no additional memory after garbage  col‐
               lection.
 
-       -s     Output some statistics of interpreter work into stderr.  Statis-
+       -s     Output some statistics of interpreter work into stderr.  Statis‐
               tics contain the maximal heap size, number of heap  chunks,  and
               number  of  collisions  in  hash  tables  which are used for the
               implementation of DINO tables.
@@ -3966,9 +3942,9 @@ OPTIONS
               this option is the same as the one on the command line.
 
        -Ldirname
-              Define where to serach for external libraries (if shared or  dll
+              Define  where  to  search  for  external  libraries  (if  shared
               libraries  are  implemented  on  the  system.   This is true for
-              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter-
+              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
               nal  variables and functions will be searched for.  The order of
               searching in libraries given with this option is the same as one
               on the command line.
@@ -3987,39 +3963,27 @@ FILES
        mpi.so
               the  DINO  shared library used for implementing MPI on some Unix
               systems.
-       mpi.dll
-              the DINO dll library used for implementing MPI on  Windows  sys-
-              tems.
        ieee.d
-              the  DINO  file implementing IEEE standard floating point arith-
+              the DINO file implementing IEEE standard floating  point  arith‐
               metic.
        ieee.so
-              the DINO shared library used for implementing IEEE on some  Unix
+              the  DINO shared library used for implementing IEEE on some Unix
               systems.
-       ieee.dll
-              the  DINO dll library used for implementing IEEE on Windows sys-
-              tems.
        ipcerr.d
               the DINO file definining  exceptions  of  ipc/network  software.
               This file is used by socket.d.
        ipcerr.so
               the  DINO  shared  library  used for implementing IPCERR on some
               Unix systems.
-       ipcerr.dll
-              the DINO dll library used for  implementing  IPCERR  on  Windows
-              systems.
        socket.d
               the DINO file implementing work with sockets.
        socket.so
-              the  DINO  shared  library  used for implementing SOCKET on some
+              the DINO shared library used for  implementing  SOCKET  on  some
               Unix systems.
-       socket.dll
-              the DINO dll library used for  implementing  SOCKET  on  Windows
-              systems.
        There are no temporary files used by DINO.
 
 ENVIRONMENT
-       There  are the following environment variables which affect DINO behav-
+       There  are the following environment variables which affect DINO behav‐
        ior:
 
        DINO_HOME

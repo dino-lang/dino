@@ -1457,12 +1457,6 @@ rshift_assign, ashift_assign, and_assign, xor_assign, or_assign,
 var_assign, par_assign :: assign_stmt
 ;
 
-swap :: stmt
-%other
-        swap_var1 : designator
-        swap_var2 : designator
-;
-
 proc_call :: stmt
 %other
         /* See commentaries for func call node. */
@@ -1828,19 +1822,6 @@ assign_stmt
         /* Number of local variable where the assignment expr value is
 	   stored.  */
 	expr_num : int_t
-;
-
-swap
-%other
-        /* Numbers of local variables where the containers of the
-	   swap vars are stored.  */
-	container_num1, container_num2 : int_t
-        /* Numbers of local variables where indexes are stored.  It is not
-	   used for period, extern var.  */
-	index_num1, index_num2 : int_t
-	/* Numbers of local temporary variables where lvalue values
-	   are stored.  */
-	lvalue_val_num1, lvalue_val_num2 : int_t
 ;
 
 proc_call
