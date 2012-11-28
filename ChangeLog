@@ -1,6 +1,8 @@
 2012-11-28  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* CHANGES: Add changes in DINO (swap, faster interpriter).
+	* gmp.c, mpi.c, ieee_int.c, ipcerr_int.c, socket_int.c: Rename to
+	d_gmp.c, d_mpi.c, d_ieee.c, d_ipcerr.c, d_socket.c.
 	* DINO/Makefile.in (gmp.c, gmp.so, mpi.c, mpi.so): Rename to
 	d_gmp.c, d_gmp.so, d_mpi.c, d_mpi.so.
 	(ieee_int.c, ieee.so, ipcerr_int.c, ipcerr.so): Rename to
