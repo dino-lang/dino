@@ -83,7 +83,6 @@ typedef void (*implementation_func_t) (int_t pars_number);
 
 %export {
 
-
 /* These macros for storage management of DINO internal representation: */
 
 /* Start work with the storage manager -- see DINO documentation. */
@@ -1736,7 +1735,8 @@ logical_binary_operation
 ;
 
 /* This is end of short circuit operation. */
-logical_or_end, logical_and_end :: generic_pos
+%abstract
+logical_end :: generic_pos
 %other
 	/* Number of variable of the current stack which will contain
 	   the result.  It might be a real local variable or temporary
@@ -1746,6 +1746,9 @@ logical_or_end, logical_and_end :: generic_pos
         /* Number of variable of the current stack which contains the
 	   right operand value of the logical operation.  */
         cont_op_num : int_t
+;
+
+logical_or_end, logical_and_end :: logical_end
 ;
 
 cond

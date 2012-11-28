@@ -34,12 +34,6 @@ temp=__temp
 temp2=__temp2
 patchf=__patch
 
-refactor() {
-  if echo|$PYTHON -v 2>&1|fgrep Python|awk '{print $2}'|egrep ^3. >/dev/null;then echo Refactoring...;else return 0;fi
-  2to3 $1 2>/dev/null >$patchf
-  patch -p0 <$patchf >/dev/null 2>&1
-}
-
 if test x`echo -n` != "x-n";then
   NECHO="echo -n"
 else
@@ -65,6 +59,14 @@ else
   PYTHON=
 fi
 
+if python3 $ftest 2>/dev/null;then
+  PYTHON3=python3
+  echo '>>>> ' `echo|python3 -v 2>&1|fgrep Python`
+else
+  echo We have no python3
+  PYTHON3=
+fi
+
 if tclsh $ftest 2>/dev/null;then
   TCLSH=tclsh
   echo '>>>> ' TCL version is `echo 'puts $tcl_version'|tclsh`
@@ -81,11 +83,28 @@ else
   AWK=
 fi
 
+if lua $ftest 2>/dev/null;then
+  LUA=lua
+  echo '>>>> ' `echo|lua -v 2>&1|fgrep Lua`
+else
+  echo We have no lua
+  LUA=
+fi
+
+if ruby $ftest 2>/dev/null;then
+  RUBY=ruby
+  echo '>>>> ' `echo|ruby -v 2>&1|fgrep ruby`
+else
+  echo We have no ruby
+  RUBY=
+fi
+
+
 
 echo '>>>> ' dino: `$DINO 2>&1|fgrep Version`
 
 speed() {
-  (time -p sh -c 'i=0;while expr $i != 200;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
+  (time -p sh -c 'i=0;while expr $i != 100;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
 }
 
 s=`speed`
@@ -175,13 +194,33 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Brad Knotwell
+import sys
+
+def Ack(M, N):
+    if (not M):
+        return( N + 1 )
+    if (not N):
+        return( Ack(M-1, 1) )
+    return( Ack(M-1, Ack(M, N-1)) )
+
+def main():
+    NUM = int(sys.argv[1])
+    print ("Ack(3,%d): %d" % (NUM, Ack(3, NUM)))
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 echo
@@ -212,6 +251,55 @@ EOF
 #  echo AWK:
 #  if test "x$NECHO" != x;then $NECHO "   ";fi
 #  if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: ackermann.lua,v 1.5 2000/12/09 20:07:43 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+
+function Ack(M, N)
+    if (M == 0) then
+    return( N + 1 )
+    end
+    if (N == 0) then
+    return( Ack(M - 1, 1) )
+    end
+    return( Ack(M - 1, Ack(M, (N - 1))) )
+end
+
+NUM = tonumber((arg and arg[1])) or 1
+io.write("Ack(3,", NUM ,"): ", Ack(3,NUM), "\n")
+EOF
+
+echo LUA:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $LUA $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: ackermann.ruby,v 1.6 2000/11/27 03:39:25 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+def ack(m, n)
+    if m == 0 then
+    n + 1
+    elsif n == 0 then
+    ack(m - 1, 1)
+    else
+    ack(m - 1, ack(m, n - 1))
+    end
+end
+
+NUM = Integer(ARGV.shift || 1)
+print "Ack(3,", NUM, "): ", ack(3, NUM), "\n"
+EOF
+echo RUBY:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -289,13 +377,31 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+def main():
+    n = int(sys.argv[1])
+    x = n * [0]       
+    y = n * [0]
+    for i in range(0,n):
+        x[i] = i + 1
+    for k in range(0,1000):
+        for i in range(n-1,-1,-1):
+            y[i] = y[i] + x[i]
+    print(y[0], y[-1])
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -357,6 +463,60 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+n = tonumber((arg and arg[1])) or 1
+x = {}
+y = {}
+
+for i = 1, n do
+  x [i] = i + 1
+  y[i] = 0
+end
+for k = 1, 1000 do
+  for j = 1, n do
+    y [j] = y [j] + x [j]
+  end
+end
+
+io.write (y [1], " ", y [n], "\n");
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: ary3.ruby,v 1.1 2001/05/31 02:27:48 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+n = Integer(ARGV.shift || 1)
+
+i = 0
+x = Array.new(n)
+y = Array.new(n)
+last = n-1
+
+for i in 0 .. last
+    x[i] = i + 1
+    y[i] = 0
+end
+for k in 0 .. 999
+    last.step(0,-1) do |i|
+    y[i] += x[i]
+    end
+end
+
+puts "#{y[0]} #{y[last]}"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -468,13 +628,37 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys
+
+def main():
+    nl = nw = nc = 0
+    rl = sys.stdin.readlines
+    lines = rl(4096)
+
+    while lines:
+        nl += len(lines)
+        for line in lines:
+            nc += len(line)
+            nw += len(line.split())
+        lines = rl(4096)
+
+    print ("%d %d %d" % (nl, nw, nc))
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -538,6 +722,53 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: wc.lua,v 1.1 2001/05/14 16:33:47 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local cc,lc,wc = 0,0,0
+for line in io.lines() do
+  cc = cc + string.len(line)  -- count chars in the line
+  local _,t = string.gsub(line, "%S+", "")   -- count words in the line
+  wc = wc+t
+  lc = lc+1            -- count lines
+end
+cc = cc + lc   -- count the newlines as characters
+
+io.write(lc, " ", wc, " ", cc, "\n")
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: wc.ruby,v 1.5 2001/06/26 05:07:54 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+# with help from Paul Brannan
+
+nl = nw = nc = 0
+loop do
+  data = (STDIN.read(4096) or break) << (STDIN.gets || "")
+  nc += data.length
+  nl += data.count("\n")
+  ((data.strip! || data).tr!("\n", " ") || data).squeeze!
+  nw += data.count(" ") + 1
+end
+puts "#{nl} #{nw} #{nc}"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -723,13 +954,79 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys, os
+from socket import *
+
+DATA = b"Hello there sailor\n"
+bufferSize = len(DATA)
+
+def server_sock():
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind(('127.0.0.1', 0));
+    sock.listen(2)
+    return(sock)
+
+def get_port(sock):
+    host, port = sock.getsockname()
+    return(port)
+
+def client_sock(port):
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.connect(('127.0.0.1', port))
+    return(sock)
+
+def echo_client(n, port):
+    sock = client_sock(port)
+    sender,receiver = sock.send,sock.recv
+    for i in range(0,n):
+        sender(DATA)
+        ans = receiver(bufferSize)
+        while ans[-1] != ord(b'\n'):
+            ans = ans + receiver(bufferSize - len(ans))
+        if ans != DATA:
+            raise "client: \"%s\" ne \"%s\""
+    sock.close()
+
+def echo_server(n):
+    ssock = server_sock()
+    if os.fork() > 0:
+        # parent is server
+        csock, addr = ssock.accept()
+        n = 0
+        sender,receiver = csock.send,csock.recv
+        while 1:
+            dat = receiver(bufferSize)
+            if not dat: break
+            sender(dat)
+            n = n + len(dat)
+        print("server processed %d bytes" % n)
+        os.wait()
+    else:
+        # child is client
+        echo_client(n, get_port(ssock))
+
+def main():
+    n = int(sys.argv[1])
+    if n < 1:
+        n = 1
+    echo_server(n)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -784,7 +1081,55 @@ EOF
   (time $TCLSH $ftest $rep client) 2>&1|fgrep user
 fi
 
-#
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: echo.ruby,v 1.3 2001/05/08 08:08:41 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+require "socket"
+
+DATA = "Hello there sailor\n"
+
+def echo_client(n, port)
+    sock = TCPsocket.open('127.0.0.1', port)
+    n.times do
+    sock.write(DATA)
+    ans = sock.readline
+    if ans != DATA then
+        raise sprintf("client: \"%s\" \"%s\"", DATA, ans)
+    end
+    end
+    sock.close
+end
+
+
+def echo_server(n)
+    ssock = TCPserver.open('127.0.0.1', 0)
+    port = ssock.addr[1]
+    if pid = fork then
+    # parent is server
+    csock = ssock.accept
+    n = 0
+    while str = csock.gets
+        n += csock.write(str)
+    end
+    Process.wait
+        printf "server processed %d bytes\n", n
+    else
+    # child is client
+    echo_client(n, port)
+    end
+end
+
+echo_server(Integer(ARGV.shift || 1))
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 include "socket";
 if (#argv < 2) {
@@ -815,8 +1160,8 @@ EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 
-  $DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest $rep&
-  (time $DINO -I$srcdir -L./ipcerr.so -L./socket.so $ftest $rep client) 2>&1|fgrep user
+  $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep&
+  (time $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep client) 2>&1|fgrep user
 
 fi
 
@@ -971,13 +1316,9 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
 fi
 
 if test x$TCLSH != x; then
@@ -1045,6 +1386,137 @@ EOF
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: except.lua,v 1.1 2001/01/16 14:27:55 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+-- uses `call' to catch errors; return the error message
+-- (or nil if there are no errors)
+
+function try (f, arg)
+  local status, err = pcall(f, arg)
+  if not status then return err end
+end
+
+
+local HI = 0
+local LO = 0
+
+function some_function (n)
+  local res = try(hi_function, n)
+  if res then print("We shouldn't get here: " .. res) end
+end
+
+
+function hi_function (n)
+  local res = try(lo_function, n)
+  if res == "Hi_Exception" then HI = HI+1 
+  elseif res then error(res, 0)  -- rethrow
+  end
+end
+
+
+function lo_function (n)
+  local res = try(blowup, n)
+  if res == "Lo_Exception" then LO = LO+1 
+  elseif res then error(res, 0)  -- rethrow
+  end
+end
+
+
+function blowup (n)
+  if math.mod(n,2) ~= 0 then error("Lo_Exception", 0)
+  else error("Hi_Exception", 0)
+  end
+end
+
+
+N = (arg and arg[1]) or 1
+for i=1,N do
+  some_function(i)
+end
+
+print(string.format("Exceptions: HI=%d / LO=%d", HI, LO))
+
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: except.ruby,v 1.3 2000/10/07 08:41:43 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+$HI = 0
+$LO = 0
+NUM = Integer(ARGV[0] || 1)
+
+
+class Lo_Exception < Exception
+    def initialize(num)
+        @value = num
+        return self
+    end
+end
+
+class Hi_Exception < Exception
+    def initialize(num)
+        @value = num
+        return self
+    end
+end
+
+def some_function(num)
+    begin
+    hi_function(num)
+    rescue
+        print "We shouldn't get here, exception is: #{$!.type}\n"
+    end
+end
+
+def hi_function(num)
+    begin
+    lo_function(num)
+    rescue Hi_Exception
+    $HI = $HI + 1
+    end
+end
+
+def lo_function(num)
+    begin
+    blowup(num)
+    rescue Lo_Exception
+    $LO = $LO + 1
+    end
+end
+
+def blowup(num)
+    if num % 2 == 0
+    raise Lo_Exception.new(num)
+    else
+    raise Hi_Exception.new(num)
+    end
+end
+
+
+for iter in 1 .. NUM
+    some_function(iter)
+end
+print "Exceptions: HI=", $HI, " / LO=", $LO, "\n"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var HI = 0;
 var LO = 0;
@@ -1106,27 +1578,26 @@ fi
 if test $start_test_number -le 6; then
 
 ######################################################
-if test $factor -eq 1; then rep=26;elif test $factor -eq 10; then rep=30;else rep=34;fi
+if test $factor -eq 1; then rep=24;elif test $factor -eq 10; then rep=28;else rep=32;fi
 echo 
-echo "+++++ Test 6: Fibonacci Numbers (N=$rep):  +++++"
+echo "++++ Test #6 fibonacci (good test for recursive functions also: N=$rep):  ++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
-#!/usr/local/bin/perl
-# $Id$
-# http://www.bagley.org/~doug/shootout/
+sub fibonaci {
+    local ($x) = @_;
 
-use strict;
-use integer;
-
-# from Leif Stensson
-sub fib {
-    return $_[0] < 2 ? 1 : fib($_[0]-2) + fib($_[0]-1);
+    if ($x <= 1) {
+        return 1;
+    }
+    return (&fibonaci($x-1) + &fibonaci($x-2));
 }
 
 my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
-my $fib = fib($N);
-print "$fib\n";
+for ($i = 0; $i < $N; $i++) {
+  $x = &fibonaci($i);
+  print $i . " " .  $x . "\n";
+}
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -1135,92 +1606,134 @@ fi
 
 if test x$PYTHON != x; then
   cat <<'EOF' >$ftest
-#!/usr/local/bin/python
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
 import sys
 
-def fib(n):
-    if (n < 2):
-        return(1)
-    return( fib(n-2) + fib(n-1) )
+def fibonacci (n):
+     if n <= 1:
+        return 1
+     return (fibonacci(n-1) + fibonacci(n-2))
 
-def main():
-    N = int(sys.argv[1])
-    #sys.setrecursionlimit(3000)
-    print fib(N)
 
-main()
+fibnum = 0;
+N = int(sys.argv[1])
+for i in xrange (0,N):
+    fibnum = fibonacci(i)
+    print i, fibnum 
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+def fibonacci (n):
+     if n <= 1:
+        return 1
+     return (fibonacci(n-1) + fibonacci(n-2))
+
+
+fibnum = 0;
+N = int(sys.argv[1])
+for i in range (0,N):
+    fibnum = fibonacci(i)
+    print(i, fibnum) 
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
-#!/usr/local/bin/tclsh
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-# with help from: Kristoffer Lawson
-
-proc fib {n} {
-    if {$n < 2} {
-        return 1
-    } else {
-        return [expr {[fib [expr {$n-2}]] + [fib [expr {$n-1}]]}]
-    }
+proc fibonaci x {
+  if {$x <= 1} {
+    return 1
+  }
+  return [expr {[fibonaci [expr {$x-1}]] + [fibonaci [expr {$x-2}]]}]
 }
 
-set N [lindex $argv 0]
-if {$N < 1} { set N 1 }
-puts [fib $N]
+proc main {} {
+  global argv
+  set N [lindex $argv 0]
+  for {set i 0} {$i < $N} {incr i} {
+    set x [fibonaci $i]
+    puts "$i $x"
+  }
+}
+main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
-if test x$AWK != x; then
+if test x$LUA != x; then
   cat <<'EOF' >$ftest
-# $Id$
+function fibonacci (n)
+     if (n <= 1) then
+        return 1
+     end
+     return (fibonacci(n-1) + fibonacci(n-2))
+end
+
+fibnum = 0;
+NUM = tonumber((arg and arg[1])) or 1
+for i = 0, NUM do
+    fibnum = fibonacci (i)
+    io.write (i, fibnum, "\n") 
+end
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: fibo.ruby,v 1.2 2000/12/24 19:10:50 doug Exp $
 # http://www.bagley.org/~doug/shootout/
 
-function fib(n) {
-    if (n < 2) return(1);
-    return(fib(n-2) + fib(n-1));
-}
+def fib(n)
+    if n < 2 then
+    1
+    else
+    fib(n-2) + fib(n-1)
+    end
+end
 
-BEGIN {
-    n = (ARGV[1] < 1) ? 1 : ARGV[1];
-    printf("%d\n", fib(n));
-    exit;
-}
+N = Integer(ARGV.shift || 1)
+puts fib(N)
 EOF
-  echo AWK:
+  echo RUBY:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
+// Recursive function to compute Fibonacci numbers
 func fibonacci (n)
   {
-     if (n < 2) return 1;
-     return (fibonacci (n-2) + fibonacci (n-1));
+     if (n <= 1) return 1;
+     return (fibonacci(n-1) + fibonacci(n-2));
   }
 
-var n = argv [0] < 1 ? 1 : int (argv [0]);
-putln (fibonacci (n)); 
+var i, fibnum, n = int (argv [0]);
+
+fibnum = 0;
+for (i = 0; i <= n; i++) 
+  {
+    fibnum = fibonacci(i);
+    putln (i @ " " @ fibnum); 
+  }
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 
 fi
 
@@ -1282,13 +1795,34 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from from Gustavo Niemeyer
+
+import sys
+
+def main():
+    n = int(sys.argv[1])
+    X = {}
+    myhex = hex
+    for i in range(1,n+1):
+        X[myhex(i)[2:]] = i
+    c = 0
+    for i in range(n, 0, -1):
+        c = c + (repr(i) in X)
+    print (c)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1347,6 +1881,62 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: hash.lua,v 1.1 2000/12/10 00:48:41 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local n = tonumber((arg and arg[1]) or 1)
+
+local X={}
+for i=1,n do
+  X[string.format("%x", i)] = i
+end
+
+local c = 0
+
+for i=n,1,-1 do
+  if X[i..''] then c = c+1 end
+end
+
+print(c)
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: hash.ruby,v 1.2 2001/05/16 15:54:34 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+n = Integer(ARGV.shift || 1)
+
+X = {}
+for i in 1 .. n
+    X[sprintf("%x", i)] = 1
+end
+
+c = 0
+(n).step(1,-1) do |i|
+    if (X.has_key?(i.to_s)) then
+    c += 1
+    end
+end
+
+puts c
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1418,13 +2008,36 @@ for i in xrange(n):
 
 print hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999']
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Mark Baker
+
+import sys
+
+n = int(sys.argv[1])
+hash1 = {}
+for i in range(10000):
+    hash1['foo_' + repr(i)] = i
+
+hash2 = {}
+for i in range(n):
+    for k in list(hash1.keys()):
+        try:
+            hash2[k] = hash2[k] + hash1[k]
+        except KeyError:
+            hash2[k] = hash1[k]
+
+print(hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999'])
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1473,6 +2086,64 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: hash2.lua,v 1.2 2001/01/11 14:52:55 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local n = tonumber((arg and arg[1]) or 1)
+
+local hash1={}
+for i=1,10000 do
+    hash1["foo_"..i] = i
+end
+local hash2={}
+for i=1,n do
+  for k,v in pairs(hash1) do
+    hash2[k] = v + (hash2[k] or 0)
+  end
+end
+
+io.write(string.format("%d %d %d %d\n", hash1["foo_1"], hash1["foo_9999"],
+         hash2["foo_1"], hash2["foo_9999"]))
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: hash2.ruby,v 1.2 2001/05/16 16:17:08 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+n = Integer(ARGV.shift || 1)
+
+hash1 = {}
+for i in 0 .. 9999
+    hash1["foo_" << i.to_s] = i
+end
+
+hash2 = Hash.new(0)
+n.times do
+    for k in hash1.keys
+    hash2[k] += hash1[k]
+    end
+end
+
+printf "%d %d %d %d\n",
+    hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1638,13 +2309,74 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+import sys
+
+IM = 139968
+IA =   3877
+IC =  29573
+
+LAST = 42
+def gen_random(max):
+    global LAST
+    LAST = (LAST * IA + IC) % IM
+    return( (max * LAST) / IM )
+
+def heapsort(n, ra):
+    rra = i = j = 0
+    l = (n >> 1) + 1
+    ir = n
+
+    while (1):
+        if (l > 1):
+            l = l - 1
+            rra = ra[l]
+        else:
+            rra = ra[ir]
+            ra[ir] = ra[1]
+            ir = ir - 1
+            if (ir == 1):
+                ra[1] = rra
+                return
+        i = l
+        j = l << 1
+        while (j <= ir):
+            if ((j < ir) and (ra[j] < ra[j+1])):
+                j = j + 1
+            if (rra < ra[j]):
+                ra[i] = ra[j]
+                i = j
+                j = j + i
+            else:
+                j = ir + 1
+        ra[i] = rra
+
+def main():
+    N = int(sys.argv[1])
+    if N < 1:
+        N = 1
+
+    ary = list(range(N+1))
+    for i in range(1,N+1):
+        ary[i] = gen_random(1.0)
+
+    heapsort(N, ary)
+
+    print("%.10f" % ary[N])
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1785,6 +2517,138 @@ EOF
   if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+IM = 139968
+IA =   3877
+IC =  29573
+
+LAST = 42
+function gen_random(max)
+    LAST = (LAST * IA + IC) % IM
+    return( (max * LAST) / IM )
+end
+
+function heapsort(n, ra)
+    rra = 0; i = 0; j = 0
+    l = math.floor (n / 1) + 1
+    ir = n
+
+    while (1) do
+        if (l > 1) then
+            l = l - 1
+            rra = ra[l]
+        else
+            rra = ra[ir]
+            ra[ir] = ra[1]
+            ir = ir - 1
+            if (ir == 1) then
+                ra[1] = rra
+                return
+            end
+        end
+        i = l
+        j = l * 2
+        while (j <= ir) do
+            if ((j < ir) and (ra[j] < ra[j+1])) then
+                j = j + 1
+            end
+            if (rra < ra[j]) then
+                ra[i] = ra[j]
+                i = j
+                j = j + i
+            else
+                j = ir + 1
+            end
+        end
+        ra[i] = rra
+    end
+end
+
+function main()
+    N = tonumber((arg and arg[1])) or 1
+    if N < 1 then
+        N = 1
+    end
+    ary = {}
+    for i = 1, N do
+        ary[i] = gen_random(1.0)
+    end
+
+    heapsort(N, ary)
+
+    io.write (string.format ("%.10f", ary[N]), "\n")
+end
+
+main()
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: heapsort.ruby,v 1.7 2001/05/08 02:46:59 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+IM = 139968
+IA =   3877
+IC =  29573
+
+$last = 42.0
+def gen_random (max) (max * ($last = ($last * IA + IC) % IM)) / IM end
+
+def heapsort(n, ra)
+    j = i = rra = 0
+    l = (n >> 1) + 1
+    ir = n
+
+    while (1) do
+    if (l > 1) then
+        rra = ra[(l -= 1)]
+    else
+        rra = ra[ir]
+        ra[ir] = ra[1]
+        if ((ir -= 1) == 1) then
+        ra[1] = rra
+        return
+        end
+    end
+    i = l
+    j = l << 1
+    while (j <= ir) do
+        if ((j < ir) and (ra[j] < ra[j+1])) then
+        j += 1
+        end
+        if (rra < ra[j]) then
+        ra[i] = ra[j]
+        j += (i = j)
+        else
+        j = ir + 1
+        end
+    end
+    ra[i] = rra
+    end
+end
+
+N = Integer(ARGV.shift || 1)
+ary = []
+for i in 1 .. N
+    ary[i] = gen_random(1.0)
+end
+
+heapsort(N, ary)
+
+printf "%.10f\n", ary[N]
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -1853,7 +2717,7 @@ fi
 if test $start_test_number -le 10; then
 
 ######################################################
-rep=`expr $factor '*' 20`
+rep=`expr $factor '*' 5`
 echo 
 echo "+++++ Test #10: Hello: Start up time (N=$rep)+++++"
 
@@ -1874,13 +2738,20 @@ if test x$PYTHON != x; then
 
 print "hello world"
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) 2>&1|fgrep user
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+print ("hello world")
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON3 $ftest) 2>&1|fgrep user
 fi
 
 if test x$TCLSH != x; then
@@ -1903,6 +2774,24 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $AWK -f $ftest </dev/null ) 2>&1|fgrep user
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+print ("hello world")
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUA $ftest) 2>&1|fgrep user
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+puts "hello world"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) 2>&1|fgrep user
 fi
 
 cat <<'EOF' >$ftest
@@ -2020,13 +2909,59 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with improvements from Mark Baker
+
+import sys
+
+SIZE = 10000
+
+def test_lists():
+    Li1 = list (range(1, SIZE + 1))
+    Li2 = Li1[:]
+    Li3 = []
+
+    # remove each individual item from left side of Li2 and
+    # append to right side of Li3 (preserving order)
+    # 
+    # popping the first element is *expensive*
+    #
+    while Li2:
+        Li3.append(Li2.pop(0))   
+    #Li2.reverse()
+    #while Li2:
+    #    Li3.append(Li2.pop())
+    while Li3:
+        Li2.append(Li3.pop())
+    Li1.reverse()
+    if Li1[0] != SIZE:
+        return 0
+    if Li1 == Li2:
+        return len(Li1)
+    else:
+        return 0
+
+def main():
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+    while NUM > 0:
+        result = test_lists()
+        NUM = NUM - 1
+    print (result)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2109,6 +3044,179 @@ EOF
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: lists.lua,v 1.6 2001/01/13 22:04:18 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+--------------------------------------------------------------
+-- List module
+-- defines a prototipe for lists
+--------------------------------------------------------------
+
+List = {first = 0, last = -1}
+
+function List:new ()
+  local n = {}
+  self.__index = self
+  setmetatable(n, self)
+  return n
+end
+
+function List:length ()
+  return self.last - self.first + 1
+end
+
+function List:pushleft (value)
+  local first = self.first - 1
+  self.first = first
+  self[first] = value
+end
+
+function List:pushright (value)
+  local last = self.last + 1
+  self.last = last
+  self[last] = value
+end
+
+function List:popleft ()
+  local first = self.first
+  if first > self.last then error"list is empty" end
+  local value = self[first]
+  self[first] = nil  -- to allow collection
+  self.first = first+1
+  return value
+end
+
+function List:popright ()
+  local last = self.last
+  if self.first > last then error"list is empty" end
+  local value = self[last]
+  self[last] = nil  -- to allow collection
+  self.last = last-1
+  return value
+end
+
+function List:reverse ()
+  local i, j = self.first, self.last
+  while i<j do
+    self[i], self[j] = self[j], self[i]
+    i = i+1
+    j = j-1
+  end
+end
+
+function List:equal (otherlist)
+  if self:length() ~= otherlist:length() then return nil end
+  local diff = otherlist.first - self.first
+  for i1=self.first,self.last do
+    if self[i1] ~= otherlist[i1+diff] then return nil end
+  end
+  return 1
+end
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+-- Some tests
+
+function test ()
+  local SIZE = 10000
+  -- create a list with elements 1..SIZE
+  local l1 = List:new()
+  for i=1,SIZE do
+    l1:pushright(i)
+  end
+  -- creates a copy of l1
+  local l2 = l1:new()
+  -- remove each individual item from left side of l2 and
+  -- append to right side of l3 (preserving order)
+  local l3 = List:new()
+  while l2:length() > 0 do
+    l3:pushright(l2:popleft())  
+  end
+  -- remove each individual item from right side of l3 and
+  -- append to right side of l2 (reversing list)
+  while l3:length() > 0 do
+    l2:pushright(l3:popright())
+  end
+  -- reverse l1 in place
+  l1:reverse()
+  -- compare Li1 and Li2 for equality
+  -- and return length of the list
+  if not l1:equal(l2) then return nil
+  else return l1:length()
+  end
+end
+
+N = tonumber((arg and arg[1])) or 1
+for i=1, N do
+  result = test()
+end
+print(result)
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: lists.ruby,v 1.5 2000/11/27 03:39:25 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+NUM = Integer(ARGV.shift || 1)
+
+SIZE = 10000
+
+def test_lists()
+    # create a list of integers (Li1) from 1 to SIZE
+    li1 = (1..SIZE).to_a
+    # copy the list to li2 (not by individual items)
+    li2 = li1.dup
+    # remove each individual item from left side of li2 and
+    # append to right side of li3 (preserving order)
+    li3 = Array.new
+    while (not li2.empty?)
+    li3.push(li2.shift)
+    end
+    # li2 must now be empty
+    # remove each individual item from right side of li3 and
+    # append to right side of li2 (reversing list)
+    while (not li3.empty?)
+    li2.push(li3.pop)
+    end
+    # li3 must now be empty
+    # reverse li1 in place
+    li1.reverse!
+    # check that first item is now SIZE
+    if li1[0] != SIZE then
+    p "not SIZE"
+    return(0)
+    end
+    # compare li1 and li2 for equality
+    if li1 != li2 then
+    return(0)
+    end
+    # return the length of the list
+    return(li1.length)
+end
+
+for iter in 1 .. NUM
+    result = test_lists()
+end
+print result, "\n"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var SIZE = 10000;
 
@@ -2137,7 +3245,7 @@ func test_lists () {
     ins (Li2, Li3 [#Li3 - 1], -1);
     del (Li3, #Li3 - 1);
   }
-  rev (Li1);
+  Li1 = rev (Li1);
   if (Li1 [0] != SIZE)
     return 0;
   return (Li1 == Li2 ? #Li1 : 0);
@@ -2288,13 +3396,69 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python3
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+# This program based on the original from:
+# "The What, Why, Who, and Where of Python" By Aaron R. Watters
+# http://www.networkcomputing.com/unixworld/tutorial/005/005.html
+
+# modified to pass rows and cols, and avoid matrix size checks
+# and added one optimization to reduce subscripted references in
+# inner loop.
+
+import sys
+
+size = 30
+
+def mkmatrix(rows, cols):
+    count = 1
+    mx = [ None ] * rows
+    for i in range(rows):
+        mx[i] = [0] * cols
+        for j in range(cols):
+            mx[i][j] = count
+            count += 1
+    return mx
+
+def mmult(rows, cols, m1, m2):
+    m3 = [ None ] * rows
+    for i in range( rows ):
+        m3[i] = [0] * cols
+        for j in range( cols ):
+            val = 0
+            for k in range( cols ):
+                val += m1[i][k] * m2[k][j]
+            m3[i][j] = val
+    return m3
+
+def mxprint(m):
+    for i in range(size):
+        for j in range(size):
+            print (m[i][j])
+        print ("")
+
+def main():
+    iter = int(sys.argv[1])
+    m1 = mkmatrix(size, size)
+    m2 = mkmatrix(size, size)
+    for i in range(iter):
+        mm = mmult(size, size, m1, m2)
+    print (mm[0][0], mm[2][3], mm[3][2], mm[4][4])
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2373,6 +3537,113 @@ fi
 echo
 echo AWK is too slow for this test.
 echo
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: matrix.lua,v 1.2 2001/01/13 14:47:43 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local n = tonumber((arg and arg[1]) or 1)
+
+local size = 30
+
+function mkmatrix(rows, cols)
+  local count = 1
+  local mx = {}
+  for i=1,rows do
+    local row = {}
+    for j=1,cols do
+      row[j] = count
+      count = count + 1
+    end
+    mx[i] = row
+  end
+  return(mx)
+end
+
+function mmult(rows, cols, m1, m2)
+  local m3 = {}
+  for i=1,rows do
+    local m3i = {}
+    m3[i] = m3i
+    local m1i = m1[i]
+    for j=1,cols do
+      local rowj = 0
+      for k=1,cols do
+        rowj = rowj + m1i[k] * m2[k][j]
+      end
+      m3i[j] = rowj
+    end
+  end
+  return(m3)
+end
+
+local m1 = mkmatrix(size, size)
+local m2 = mkmatrix(size, size)
+for i=1,n do
+    mm = mmult(size, size, m1, m2)
+end
+io.write(string.format("%d %d %d %d\n", mm[1][1], mm[3][4], mm[4][3], mm[5][5]))
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: matrix.ruby,v 1.3 2001/05/16 16:38:55 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+n = Integer(ARGV.shift || 1)
+
+size = 30
+
+def mkmatrix(rows, cols)
+    count = 1
+    mx = Array.new(rows)
+    for i in 0 .. (rows - 1)
+    row = Array.new(cols, 0)
+    for j in 0 .. (cols - 1)
+        row[j] = count
+        count += 1
+    end
+    mx[i] = row
+    end
+    mx
+end
+
+def mmult(rows, cols, m1, m2)
+    m3 = Array.new(rows)
+    for i in 0 .. (rows - 1)
+    row = Array.new(cols, 0)
+    for j in 0 .. (cols - 1)
+        val = 0
+        for k in 0 .. (cols - 1)
+        val += m1[i][k] * m2[k][j]
+        end
+        row[j] = val
+    end
+    m3[i] = row
+    end
+    m3
+end
+
+m1 = mkmatrix(size, size)
+m2 = mkmatrix(size, size)
+mm = Array.new
+n.times do
+    mm = mmult(size, size, m1, m2)
+end
+puts "#{mm[0][0]} #{mm[2][3]} #{mm[3][2]} #{mm[4][4]}"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
 
 cat <<'EOF' >$ftest
 var size = 30;
@@ -2559,15 +3830,215 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
 fi
 
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+import sys
+
+class Toggle:
+    def __init__(self, start_state):
+        self.bool = start_state
+    def value(self):
+        return(self.bool)
+    def activate(self):
+        self.bool = not self.bool
+        return(self)
+
+class NthToggle(Toggle):
+    def __init__(self, start_state, max_counter):
+        Toggle.__init__(self, start_state)
+        self.count_max = max_counter
+        self.counter = 0
+    def activate(self):
+        self.counter = self.counter + 1
+        if (self.counter >= self.count_max):
+            self.bool = not self.bool
+            self.counter = 0
+        return(self)
+
+
+def main():
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+
+    val = 1
+    toggle = Toggle(val)
+    for i in range(0,NUM):
+        val = toggle.activate().value()
+    if val:
+        print ("true")
+    else:
+        print ("false")
+
+    val = 1
+    ntoggle = NthToggle(val, 3)
+    for i in range(0,NUM):
+        val = ntoggle.activate().value()
+    if val:
+        print ("true")
+    else:
+        print ("false")
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: methcall.lua,v 1.2 2000/12/24 22:04:51 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+--------------------------------------------------------------
+-- Toggle class
+--------------------------------------------------------------
+
+Toggle = {}
+
+function Toggle:value ()
+  return self.state
+end
+
+function Toggle:activate ()
+  self.state = not self.state
+  return self
+end
+
+function Toggle:new (start_state)
+  local o = {state = start_state}
+  self.__index =self
+  setmetatable(o, self)
+  return o
+end
+
+
+--------------------------------------------------------------
+-- NthToggle class
+--------------------------------------------------------------
+
+NthToggle = Toggle:new()
+
+function NthToggle:activate ()
+  self.counter = self.counter + 1
+  if self.counter >= self.count_max then
+    self.state = not self.state
+    self.counter = 0
+  end
+  return self
+end
+
+function NthToggle:new (start_state, max_counter)
+  local o = Toggle.new(self, start_state)
+  o.count_max = max_counter
+  o.counter = 0
+  return o
+end
+
+
+-----------------------------------------------------------
+-- main
+-----------------------------------------------------------
+
+function main ()
+  local N = tonumber((arg and arg[1])) or 1
+
+  local val = 1
+  local toggle = Toggle:new(val)
+  for i=1,N do
+    val = toggle:activate():value()
+  end
+  print(val and "true" or "false")
+    
+  val = 1
+  local ntoggle = NthToggle:new(val, 3)
+  for i=1,N do
+    val = ntoggle:activate():value()
+  end
+  print(val and "true" or "false")
+end
+
+main()
+
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: methcall.ruby,v 1.2 2000/12/24 22:04:51 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+class Toggle
+    def initialize(start_state)
+    @bool = start_state
+    self
+    end
+    def value()
+    @bool
+    end
+    def activate()
+    @bool = !@bool
+    self
+    end
+end
+
+class NthToggle < Toggle
+    def initialize(start_state, max_counter)
+    super(start_state)
+    @count_max = max_counter
+    @counter = 0
+    self
+    end
+    def activate()
+    @counter += 1
+    if (@counter >= @count_max) then
+        @bool = !@bool
+        @counter = 0
+    end
+    self
+    end
+end
+
+def main()
+    n = Integer(ARGV.shift || 1)
+
+    val = 1
+    toggle = Toggle.new(val)
+    n.times do
+    val = toggle.activate().value()
+    end
+    if val then puts "true" else puts "false" end
+
+    val = 1
+    ntoggle = NthToggle.new(val, 3)
+    n.times do
+    val = ntoggle.activate().value()
+    end
+    if val then puts "true" else puts "false" end
+end
+
+main()
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
 
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
@@ -2685,13 +4156,39 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Mark Baker
+
+import sys
+
+def main():
+    x = 0
+    iter = int(sys.argv[1])
+    if iter < 1:
+        iter = 1
+    
+    i_r = list (range(iter))
+    for a in i_r:
+        for b in i_r:
+            for c in i_r:
+                for d in i_r:
+                    for e in i_r:
+                        for f in i_r:
+                            x = x + 1
+    print (x)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2753,6 +4250,65 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: nestedloop.lua,v 1.2 2001/01/12 01:45:42 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local n = tonumber((arg and arg[1]) or 1)
+local x = 0
+for a=1,n do
+  for b=1,n do
+    for c=1,n do
+      for d=1,n do
+        for e=1,n do
+          for f=1,n do
+            x = x + 1
+          end
+        end
+      end
+    end
+  end
+end
+print(x)
+
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: nestedloop.ruby,v 1.2 2001/02/15 01:09:35 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+# from Avi Bryant
+
+n = Integer(ARGV.shift || 1)
+x = 0
+n.times do
+    n.times do
+    n.times do
+        n.times do
+        n.times do
+            n.times do
+            x += 1
+            end
+        end
+        end
+    end
+    end
+end
+puts x
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -2915,15 +4471,225 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
 fi
 
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+import sys
+
+class Toggle:
+    def __init__(self, start_state):
+        self.bool = start_state
+    def value(self):
+        return(self.bool)
+    def activate(self):
+        self.bool = not self.bool
+        return(self)
+
+class NthToggle(Toggle):
+    def __init__(self, start_state, max_counter):
+        Toggle.__init__(self, start_state)
+        self.count_max = max_counter
+        self.counter = 0
+    def activate(self):
+        self.counter = self.counter + 1
+        if (self.counter >= self.count_max):
+            self.bool = not self.bool
+            self.counter = 0
+        return(self)
+
+
+def main():
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+
+    toggle = Toggle(1)
+    for i in range(0,5):
+        if toggle.activate().value():
+            print("true")
+        else:
+            print("false")
+    for i in range(0,NUM):
+        toggle = Toggle(1)
+
+    print("")
+
+    ntoggle = NthToggle(1, 3)
+    for i in range(0,8):
+        if ntoggle.activate().value():
+            print("true")
+        else:
+            print("false")
+    for i in range(0,NUM):
+        ntoggle = NthToggle(1, 3)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: objinst.lua,v 1.3 2001/07/11 17:18:08 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+
+
+--------------------------------------------------------------
+-- Toggle class
+--------------------------------------------------------------
+
+Toggle = {}
+
+function Toggle:value ()
+  return self.state
+end
+
+function Toggle:activate ()
+  self.state = not self.state
+  return self
+end
+
+function Toggle:new (start_state)
+  local o = {state = start_state}
+  self.__index = self
+  setmetatable(o, self)
+  return o
+end
+
+
+--------------------------------------------------------------
+-- NthToggle class
+--------------------------------------------------------------
+
+NthToggle = Toggle:new()
+
+function NthToggle:activate ()
+  self.counter = self.counter + 1
+  if self.counter >= self.count_max then
+    self.state = not self.state
+    self.counter = 0
+  end
+  return self
+end
+
+function NthToggle:new (start_state, max_counter)
+  local o = Toggle.new(self, start_state)
+  o.count_max = max_counter
+  o.counter = 0
+  return o
+end
+
+
+-----------------------------------------------------------
+-- main
+-----------------------------------------------------------
+
+function main ()
+    local N = tonumber((arg and arg[1])) or 1
+    local toggle = Toggle:new(1)
+    for i=1,5 do
+      toggle:activate()
+      print(toggle:value() and "true" or "false")
+    end
+    for i=1,N do
+      toggle = Toggle:new(1)
+    end
+
+    print("")
+
+    local ntoggle = NthToggle:new(1, 3)
+    for i=1,8 do
+      ntoggle:activate()
+      print(toggle:value() and "true" or "false")
+    end
+    for i=1,N do
+      ntoggle = NthToggle:new(1, 3)
+    end
+end
+
+main()
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: objinst.ruby,v 1.2 2000/12/24 22:04:57 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+class Toggle
+    def initialize(start_state)
+    @bool = start_state
+    self
+    end
+    def value()
+    @bool
+    end
+    def activate()
+    @bool = !@bool
+    self
+    end
+end
+
+class NthToggle < Toggle
+    def initialize(start_state, max_counter)
+    super(start_state)
+    @count_max = max_counter
+    @counter = 0
+    self
+    end
+    def activate()
+    @counter += 1
+    if (@counter >= @count_max) then
+        @bool = !@bool
+        @counter = 0
+    end
+    self
+    end
+end
+
+def main()
+    n = Integer(ARGV.shift || 1)
+
+    toggle = Toggle.new(1)
+    5.times do
+    if toggle.activate().value() then puts "true" else puts "false" end
+    end
+    n.times do
+    toggle = Toggle.new(1)
+    end
+
+    puts
+
+    ntoggle = NthToggle.new(1, 3)
+    8.times do
+    if ntoggle.activate().value() then puts "true" else puts "false" end
+    end
+    n.times do
+    ntoggle = NthToggle.new(1, 3)
+    end
+end
+
+main()
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
 
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
@@ -3097,13 +4863,115 @@ def main(n):
     
 main(int(sys.argv[1]))
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python3
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+import sys
+from threading import * 
+
+access = Condition()
+count = 0
+consumed = 0
+produced = 0
+data = 0
+
+def consumer(n):
+    global count, data, consumed
+    while 1:
+        access.acquire()
+        while count == 0:
+            access.wait()
+        i = data
+        count = 0
+        access.notify()
+        access.release()
+        consumed += 1
+        if i == n:
+            break
+
+def producer(n):
+    global count, data, produced
+    for i in range(1,n+1):
+        access.acquire()
+        while count == 1:
+            access.wait()
+        data = i
+        count = 1
+        access.notify()
+        access.release()
+        produced += 1
+
+def main(n):
+    t1 = Thread(target=producer, args=(n,))
+    t2 = Thread(target=consumer, args=(n,))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    print (produced, consumed)
+    
+main(int(sys.argv[1]))
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: prodcons.ruby,v 1.2 2000/12/20 04:33:20 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+require 'thread'
+
+def main(n)
+    mutex = Mutex.new
+    access = ConditionVariable.new
+    count = data = consumed = produced = 0
+    consumer = Thread.new do
+    i = 0
+    loop do
+        mutex.synchronize {
+        while count == 0 do access.wait(mutex) end
+        i = data
+        count = 0
+        access.signal
+        }
+        consumed += 1
+        if i == n then break end
+    end
+    end
+    producer = Thread.new do
+    for i in 1 .. n do
+        mutex.synchronize {
+        while count == 1 do access.wait(mutex) end
+        data = i
+        count = 1
+        access.signal
+        }
+        produced += 1
+    end
+    end
+    producer.join
+    consumer.join
+    puts "#{produced} #{consumed}"
+end
+
+main(Integer(ARGV.shift || 1))
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -3212,13 +5080,42 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brent Burley
+
+import sys
+
+IM = 139968
+IA = 3877
+IC = 29573
+
+LAST = 42
+def gen_random(max):
+    global LAST
+    LAST = (LAST * IA + IC) % IM
+    return( (max * LAST) / IM )
+
+def main():
+    N = int(sys.argv[1])
+    if N < 1:
+        N = 1
+    gr = gen_random
+    for i in range(1,N):
+        gr(100.0)
+    print ("%.9f" % gr(100.0))
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3286,6 +5183,62 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: random.lua,v 1.12 2001/05/08 01:36:50 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local IM = 139968
+local IA = 3877
+local IC = 29573
+
+local LAST = 42
+local function gen_random(max)
+    LAST = math.mod((LAST * IA + IC), IM)
+    return( (max * LAST) / IM )
+end
+
+local N = tonumber((arg and arg[1])) or 1
+local result = 0
+for i=1, N do
+    result = gen_random(100)
+end
+io.write(string.format("%.9f\n", result))
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: random.ruby,v 1.13 2001/05/08 06:35:57 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+IM = 139968
+IA = 3877
+IC = 29573
+
+$last = 42.0
+def gen_random (max) (max * ($last = ($last * IA + IC) % IM)) / IM end
+
+N = Integer(ARGV.shift || 1)
+result = 0
+N.times do
+    result = gen_random(100.0)
+end
+printf "%.9f\n", result
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -3435,13 +5388,51 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+import sys, re
+
+def main():
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+
+    phones = sys.stdin.readlines()
+
+    rx = re.compile(
+        r'(?:^|[^\d\(])'
+        r'(?:\((\d\d\d)\)|(\d\d\d))'
+        r'[ ]'
+        r'(\d\d\d)'
+        r'[ -]'
+        r'(\d\d\d\d)'
+        r'\D'
+        )
+
+    findIt = rx.search
+    count = 0
+    for i in range(0,NUM):
+        for line in phones:
+            m = findIt(line)
+            if m:
+                g = m.group
+                num = "(" + (g(1) or g(2)) + ") " + g(3) + "-" + g(4)
+                if 0 == i:
+                    count = count + 1
+                    print ("%d: %s" % (count, num))
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3520,6 +5511,86 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: regexmatch.lua,v 1.4 2000/12/09 20:07:45 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local text = io.read("*a")
+
+-- make sure text does not start with a number
+text = "\n" .. text
+
+-- pattern is: not a digit, optional (, 3 digits, optional ),
+-- space, 3 digits, space or hyphen, 4 digits, not a digit
+local pattern = "%D(%(?)(%d%d%d)(%)?) (%d%d%d)[- ](%d%d%d%d)%f[%D]"
+
+local N = tonumber((arg and arg[1])) or 1
+local count = 0
+for i=N,1,-1 do
+  for open,area,close,exch,digits in string.gfind(text, pattern) do
+      if (open == '(') == (close == ')') then
+        local tel = "("..area..") "..exch.."-"..digits
+        if i == 1 then
+          count = count+1
+          io.write(count, ": ", tel, "\n")
+        end
+      end
+    end
+end
+
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: regexmatch.ruby,v 1.11 2001/07/02 04:26:31 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+re = Regexp.new(
+    '(?:^|[^\d\(])' +            # must be preceeded by non-digit
+    '(?:\((\d\d\d)\)|(\d\d\d))' +    # match 1 or 2: area code is 3 digits
+    '[ ]' +                # area code followed by one space
+    '(\d\d\d)' +            # match 3: prefix of 3 digits
+    '[ -]' +                # separator is either space or dash
+    '(\d\d\d\d)' +            # match 4: last 4 digits
+    '\D'                # must be followed by a non-digit
+)
+
+NUM = Integer(ARGV[0] || 1)
+
+phones = STDIN.readlines
+
+count = m = line = iter = 0
+for iter in 1..NUM
+    for line in phones
+    if m = re.match(line)
+        m1 = m[1];
+        if m1 == nil 
+            m1 = m[2];
+        end
+        num = '(' + m1 + ') ' + m[3] + '-' + m[4];
+        if iter == NUM
+        count += 1
+        puts "#{count}: #{num}"
+        end
+    end
+    end
+end
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -14319,7 +16390,7 @@ print join("\n", reverse split(/\n/, <STDIN>)),"\n";
 EOF
   echo PERL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
+  if (time $PERL $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON != x; then
@@ -14336,13 +16407,28 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Brad Knotwell
+# with help from Mark Baker
+
+def main():
+    from sys import stdin, stdout
+    w = stdin.readlines()
+    w.reverse()
+    stdout.writelines(w)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -14364,7 +16450,7 @@ main
 EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
+  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -14383,7 +16469,44 @@ EOF
 
 #  echo AWK:
 #  if test "x$NECHO" != x;then $NECHO "   ";fi
-#  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
+#  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/lua-- $Id: reversefile.lua,v 1.3 2001/05/14 01:52:38 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local lines = {}
+local nl = 0
+
+for l in io.lines() do
+    nl = nl + 1
+    lines[nl] = l
+end
+
+for i=nl,1,-1 do
+    io.write(lines[i], "\n")
+end
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: reversefile.ruby,v 1.2 2000/11/27 03:39:26 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+print STDIN.readlines().reverse()
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -14399,7 +16522,7 @@ main ();
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then fgrep '  user' $temp2;else echo FAILED;fi
+if (time $DINO $ftest <$input) >$temp2 2>&1;then egrep 'user[ 	]*[0-9]' $temp2;else echo FAILED;fi
 
 fi
 
@@ -14468,13 +16591,40 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python3 
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys
+
+def main():
+    NUM = int(sys.argv[1])
+    for foo in range(0,NUM):
+        flags = (8192+1) * [1]
+        count = 0
+        for i in range(2,8192+1):
+            if flags[i]:
+                # remove all multiples of prime: i
+                k = i + i
+                while k <= 8192:
+                    flags[k] = 0
+                    k = k + i
+                count = count + 1
+    print ("Count:", count)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -14544,6 +16694,76 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: sieve.lua,v 1.9 2001/05/06 04:37:45 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+--
+-- Roberto Ierusalimschy pointed out the for loop is much
+-- faster for our purposes here than using a while loop.
+
+function main(num)
+    local flags = {}
+    for num=1,num do
+      count = 0
+      for i=2,8192 do
+        flags[i] = true
+      end
+      for i=2,8192 do
+        if flags[i] then
+          for k=i+i, 8192, i do
+            flags[k] = false
+          end
+        count = count + 1    
+      end
+      end
+    end
+end
+
+NUM = tonumber((arg and arg[1])) or 1
+count = 0
+main(NUM)
+io.write("Count: ", count, "\n")
+
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: sieve.ruby,v 1.12 2001/05/06 04:37:45 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+NUM = Integer(ARGV.shift || 1)
+
+count = i = j = 0
+flags0 = Array.new(8192,1)
+
+NUM.times do
+    count = 0
+    flags = flags0.dup
+    for i in 2 .. 8192
+    next unless flags[i]
+    # remove all multiples of prime: i
+    (i*i).step(8192, i) do |j|
+        flags[j] = nil
+    end
+    count = count + 1
+    end
+end
+
+print "Count: ", count, "\n"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -91875,13 +94095,36 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python3
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+# From Fred Bremmer
+
+import sys
+
+def main():
+    dict = {}
+    for line in open("__temp"):
+        word = line[:-1]
+        if word: dict[word] = 1
+
+    for line in sys.stdin:
+        word = line[:-1]
+        if word:
+            if not (word in dict): print (word)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -91938,6 +94181,58 @@ EOF
 #  echo AWK:
 #  if test "x$NECHO" != x;then $NECHO "   ";fi
 #  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: spellcheck.lua,v 1.2 2001/01/23 01:30:42 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- based on code from Roberto Ierusalimschy
+
+df = assert (io.input ("__temp"), "Failed to open __temp")
+local dict = {}
+while 1 do
+  local line = io.read("*line")
+  if line == nil then break end
+  dict[line] = 1
+end
+io.close (df)
+
+while 1 do
+  local word = io.stdin:read("*line")
+  if word == nil then break end
+  if not dict[word] then print(word) end
+end
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: spellcheck.ruby,v 1.6 2001/01/23 01:30:42 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+dict = Hash.new
+file = open("__temp")
+while file.gets()
+    dict[$_.chomp!] = 1
+end
+file.close()
+
+count = word = 0
+while STDIN.gets()
+    unless dict.has_key? $_.chomp!
+    puts $_
+    end
+end
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -92590,13 +94885,73 @@ def main():
 main()
 
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python3
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+import sys, string, math, operator
+
+def main():
+    sum = 0
+    nums = []
+
+    nums = list(map(float, sys.stdin.readlines()))
+    for num in nums:
+      sum += num
+
+    n = len(nums)
+    mean = sum/n
+    average_deviation = 0
+    standard_deviation = 0
+    variance = 0
+    skew = 0
+    kurtosis = 0
+
+    for num in nums:
+        deviation = num - mean
+        average_deviation += abs(deviation)
+        variance += deviation**2;
+        skew += deviation**3;
+        kurtosis += deviation**4
+
+    average_deviation /= n
+    variance /= (n - 1)
+    standard_deviation = math.sqrt(variance)
+
+    if variance > 0.0:
+        skew /= (n * variance * standard_deviation)
+        kurtosis = kurtosis/(n * variance * variance) - 3.0
+
+    nums.sort()
+    mid = int (math.floor (n / 2))
+
+    if (n % 2) == 0:
+        median = (nums[mid] + nums[mid-1])/2
+    else:
+        median = nums[mid]
+
+    print("n:                  %d" % n)
+    print("median:             %f" % median)
+    print("mean:               %f" % mean)
+    print("average_deviation:  %f" % average_deviation)
+    print("standard_deviation: %f" % standard_deviation)
+    print("variance:           %f" % variance)
+    print("skew:               %f" % skew)
+    print("kurtosis:           %f" % kurtosis)
+
+main()
+
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -92661,6 +95016,134 @@ EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $TCLSH $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: moments.lua,v 1.2 2001/01/05 01:35:56 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local nums = {}
+local n = 0
+local sum = 0
+for line in io.lines() do
+  line = line+0        -- convert line to number
+  sum = sum + line
+  n = n + 1
+  nums[n] = line
+end
+
+local mean = sum/n
+
+local average_deviation, variance, skew, kurtosis = 0, 0, 0, 0
+
+for i = 1, n do
+  local deviation = nums[i] - mean
+  average_deviation = average_deviation + math.abs(deviation)
+  variance = variance + deviation^2
+  skew = skew + deviation^3
+  kurtosis = kurtosis + deviation^4
+end
+
+average_deviation = average_deviation/n
+variance = variance/(n-1)
+local standard_deviation = math.sqrt(variance)
+if variance ~= 0 then
+  skew = skew / (n * variance * standard_deviation)
+  kurtosis = kurtosis/(n * variance * variance) - 3.0
+end
+
+table.sort(nums)
+local mid = math.floor(n/2)
+local median
+if math.mod(n,2) == 1 then
+  median = nums[mid+1]
+else
+  median = (nums[mid] + nums[mid+1])/2
+end
+
+io.write(string.format("n:                  %d\n", n))
+io.write(string.format("median:             %f\n", median))
+io.write(string.format("mean:               %f\n", mean))
+io.write(string.format("average_deviation:  %f\n", average_deviation))
+io.write(string.format("standard_deviation: %f\n", standard_deviation))
+io.write(string.format("variance:           %f\n", variance))
+io.write(string.format("skew:               %f\n", skew))
+io.write(string.format("kurtosis:           %f\n", kurtosis))
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: moments.ruby,v 1.5 2001/01/05 01:35:56 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+# throw away unused parameter sent by benchmark framework
+ARGV.shift()
+
+sum = 0.0
+nums = []
+num = nil
+deviation = nil
+
+STDIN.readlines().each{|line|
+    num = Float(line)
+    nums << num
+    sum += num
+}
+n = nums.length()
+mean = sum/n;
+average_deviation = 0
+standard_deviation = 0
+variance = 0
+skew = 0
+kurtosis = 0
+
+nums.each{|num|
+    deviation = num - mean
+    average_deviation += deviation.abs()
+    variance += deviation**2;
+    skew += deviation**3;
+    kurtosis += deviation**4
+}
+average_deviation /= n
+variance /= (n - 1)
+standard_deviation = Math.sqrt(variance)
+
+if (variance > 0.0)
+    skew /= (n * variance * standard_deviation)
+    kurtosis = kurtosis/(n * variance * variance) - 3.0
+end
+
+nums.sort()
+mid = n / 2
+
+if (n % 2) == 0
+    median = (nums[mid] + nums[mid-1])/2
+else
+    median = nums[mid]
+end
+
+printf("n:                  %d\n", n)
+printf("median:             %f\n", median)
+printf("mean:               %f\n", mean)
+printf("average_deviation:  %f\n", average_deviation)
+printf("standard_deviation: %f\n", standard_deviation)
+printf("variance:           %f\n", variance)
+printf("skew:               %f\n", skew)
+printf("kurtosis:           %f\n", kurtosis)
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $RUBY $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -92766,13 +95249,85 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Brad Knotwell
+
+import sys,io
+
+def main():
+    n = int(sys.argv[1])
+    str = io.StringIO()
+    for i in range(0,n):
+        str.write('hello\n')
+
+    print (str.tell())
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: strcat.lua,v 1.2 2001/01/31 03:38:54 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+-- this version uses a custom string buffer
+
+------------------------------------------------------------------
+-- Buffer library
+------------------------------------------------------------------
+
+Buffer = {""}
+
+function Buffer:new ()
+  local new = {}
+  self.__index = self
+  setmetatable(new, self)
+  return new
+end
+
+function Buffer:add (s)
+  table.insert(self, s)    -- push 's' into the the stack
+  for i=table.getn(self)-1, 1, -1 do
+    if string.len(self[i]) > string.len(self[i+1]) then
+      break
+    end
+    self[i] = self[i] .. table.remove(self)
+  end
+end
+
+function Buffer:close ()
+  self[1] = table.concat(self)
+  return self[1]
+end
+
+
+------------------------------------------------------------------
+-- Test
+------------------------------------------------------------------
+
+local n = tonumber((arg and arg[1]) or 1)
+local buff = Buffer:new()
+for i=1,n do
+  buff:add("hello\n")
+end
+io.write(string.len(buff:close()), "\n")
+
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -92796,6 +95351,32 @@ EOF
 fi
 
 # AWK is too slow therefore it is disqualified.
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: strcat.ruby,v 1.2 2000/12/23 15:52:44 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+# Benedikt Rosenau suggested using
+#   str <<EOF EOF
+ "hello\n"
+# which is orders of magnitude faster than:
+#   str += "hello\n"
+
+n = Integer(ARGV.shift || 1)
+
+str = ''
+for i in 1 .. n
+    str << "hello\n"
+end
+puts str.length
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
 
 cat <<'EOF' >$ftest
 var i, n = argv [0] < 1 ? 1 : int (argv [0]);
@@ -93858,13 +96439,29 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Mark Baker
+
+import sys
+
+def main():
+    count = 0
+    for line in sys.stdin:
+        count = count + int(line)
+    print (count)
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -93898,6 +96495,45 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: sumcol.lua,v 1.2 2000/10/07 08:41:44 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local sum = 0
+for line in io.lines() do
+  sum = sum + line
+end
+print(sum)
+
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: sumcol.ruby,v 1.4 2001/01/04 20:09:24 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+# from: Mathieu Bouchard
+
+count = 0
+while STDIN.gets()
+    count += $_.to_i
+end
+puts count
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96745,13 +99381,58 @@ def main():
 
 main()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+#
+# adapted from Bill Lear's original python3 word frequency counter
+#
+# Joel Rosdahl suggested using translate table to speed up
+# word splitting.  That change alone sped this program up by
+# at least a factor of 3.
+#
+# with further speedups from Mark Baker
+
+import sys
+
+def main():
+    count = {}
+    i_r = list (map(chr, range(256)))
+
+    trans = [' '] * 256
+    o_a, o_z = ord('a'), (ord('z')+1)
+    trans[ord('A'):(ord('Z')+1)] = i_r[o_a:o_z]
+    trans[o_a:o_z] = i_r[o_a:o_z]
+    trans = ''.join(trans)
+
+    rl = sys.stdin.readlines
+
+    lines = rl(4095)
+    while lines:
+        for line in lines:
+            for word in line.translate(trans).split():
+                try:
+                    count[word] = count[word] + 1
+                except KeyError:
+                    count[word] = 1
+        lines = rl(4095)
+
+    l = list(zip(count.values(), count.keys()))
+    l.sort()
+    l.reverse()
+
+    print ('\n'.join(["%7s\t%s" % (count, word) for (count, word) in l]))
+
+main()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96817,6 +99498,72 @@ EOF
   if (time $AWK -f $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: wordfreq.lua,v 1.3 2000/12/21 03:20:30 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+-- this version reads 4K chunks of input at a time
+
+local words = {}   -- list of all words (for sorting)
+local count = {}   -- count occurrences of each word
+
+local BUFSIZE = 2^12
+
+while true do
+  local lines, rest = io.read(BUFSIZE, "*l")
+  if lines == nil then break end
+  lines = lines..(rest or '')    -- ensures whole lines
+  for w in string.gfind(string.lower(lines), "(%l+)") do
+    local cw = count[w]
+    if not cw then     -- first occurrence?
+      cw = 0
+      table.insert(words, w)
+    end
+    count[w] = cw + 1
+  end
+end
+
+table.sort(words, function (a,b)
+  return  count[a] > count[b]  or (count[a] == count[b] and a > b)
+end)
+
+for i=1,table.getn(words) do
+  local w = words[i]
+  io.write(string.format("%7d\t%s\n", count[w], w))
+end
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: wordfreq.ruby,v 1.9 2001/05/16 23:46:40 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+freq = Hash.new(0)
+loop {
+    data = (STDIN.read(4095) or break) << (STDIN.gets || "")
+    for word in data.downcase.tr_s('^A-Za-z',' ').split(' ')
+    freq[word] += 1
+    end
+}
+freq.delete("")
+
+lines = Array.new
+freq.each{|w,c| lines << sprintf("%7d\t%s\n", c, w) }
+print lines.sort.reverse
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest <$input) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 func cmp (el1, el2) {
   return cmpv (el1, el2);
@@ -96880,13 +99627,21 @@ import sys
 num = int(sys.argv[1])
 for i in xrange (0,num): i
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+num = int(sys.argv[1])
+for i in range (0,num): i
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96910,6 +99665,28 @@ EOF
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+local n = tonumber((arg and arg[1]) or 1)
+for a=1,n do
+end
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+n = Integer(ARGV.shift || 1)
+n.times do
+end
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96956,13 +99733,26 @@ def f():
 for i in xrange(0,num):
    f()
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+num = int(sys.argv[1])
+
+def f():
+   return
+
+for i in range(0,num):
+   f()
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96981,6 +99771,35 @@ EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+function f ()
+end
+local n = tonumber((arg and arg[1]) or 1)
+for a=1,n do
+  f ()
+end
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+def f()
+end
+
+n = Integer(ARGV.shift || 1)
+n.times do
+  f ()
+end
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97037,13 +99856,27 @@ def tak (x, y, z):
 N = int(sys.argv[1])
 print tak(N * 3, N * 2, N)
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+def tak (x, y, z):
+    if not(y < x):
+        return z
+    else:
+        return tak(tak(x-1, y, z), tak(y-1, z, x), tak(z-1, x, y))
+
+N = int(sys.argv[1])
+print (tak(N * 3, N * 2, N))
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97064,6 +99897,42 @@ EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+function tak (x, y, z)
+    if not(y < x) then
+        return z
+    else
+        return tak(tak(x-1, y, z), tak(y-1, z, x), tak(z-1, x, y))
+    end
+end
+
+N = tonumber((arg and arg[1]) or 1)
+print (tak(N * 3, N * 2, N))
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+def tak (x, y, z)
+    if not (y < x) then
+       z
+    else
+       tak(tak(x-1, y, z), tak(y-1, z, x), tak(z-1, x, y))
+    end
+end
+
+N = Integer(ARGV.shift || 1)
+print tak(N * 3, N * 2, N), "\n"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97132,13 +100001,31 @@ while n < N:
 
 print x
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+def fact(x):
+  if x <= 1:
+    return 1
+  return x * fact(x-1)
+
+n = 0
+N = int(sys.argv[1])
+while n < N:
+  x = fact(12)
+  n = n + 1
+
+print (x)
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97163,6 +100050,51 @@ EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+function fact(x)
+  if (x <= 1) then
+    return 1
+  end
+  return x * fact(x-1)
+end
+
+n = 0
+N = tonumber((arg and arg[1]) or 1)
+while (n < N) do
+  x = fact(12)
+  n = n + 1
+end
+print (x)
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+def fact(x)
+  if (x <= 1) then
+    1
+  else
+    x * fact(x-1)
+  end
+end
+
+N = Integer(ARGV.shift || 1)
+n = 0
+while (n < N) do
+  x = fact(12)
+  n = n + 1
+end
+print x
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97190,111 +100122,9 @@ fi
 if test $start_test_number -le 30; then
 
 ######################################################
-if test $factor -eq 1; then rep=24;elif test $factor -eq 10; then rep=28;else rep=32;fi
-echo 
-echo "++++ Test #30 fibonacci (good test for recursive functions also: N=$rep):  ++++"
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-sub fibonaci {
-    local ($x) = @_;
-
-    if ($x <= 1) {
-        return 1;
-    }
-    return (&fibonaci($x-1) + &fibonaci($x-2));
-}
-
-my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
-for ($i = 0; $i < $N; $i++) {
-  $x = &fibonaci($i);
-  print $i . " " .  $x . "\n";
-}
-EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-fi
-
-if test x$PYTHON != x; then
-  cat <<'EOF' >$ftest
-import sys
-
-def fibonacci (n):
-     if n <= 1:
-        return 1
-     return (fibonacci(n-1) + fibonacci(n-2))
-
-
-fibnum = 0;
-N = int(sys.argv[1])
-for i in xrange (0,N):
-    fibnum = fibonacci(i)
-    print i, fibnum 
-EOF
-  if refactor $ftest;then
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
-fi
-
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-proc fibonaci x {
-  if {$x <= 1} {
-    return 1
-  }
-  return [expr {[fibonaci [expr {$x-1}]] + [fibonaci [expr {$x-2}]]}]
-}
-
-proc main {} {
-  global argv
-  set N [lindex $argv 0]
-  for {set i 0} {$i < $N} {incr i} {
-    set x [fibonaci $i]
-    puts "$i $x"
-  }
-}
-main
-EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-fi
-
-cat <<'EOF' >$ftest
-// Recursive function to compute Fibonacci numbers
-func fibonacci (n)
-  {
-     if (n <= 1) return 1;
-     return (fibonacci(n-1) + fibonacci(n-2));
-  }
-
-var i, fibnum, n = int (argv [0]);
-
-fibnum = 0;
-for (i = 0; i <= n; i++) 
-  {
-    fibnum = fibonacci(i);
-    putln (i @ " " @ fibnum); 
-  }
-EOF
-echo DINO:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-
-fi
-
-# Test 31.
-if test $start_test_number -le 31; then
-
-######################################################
 rep=`expr $factor '*' 819`
 echo 
-echo "+++++ Test #31 sieve (usage of arrays not tables when possible N=$rep):  +++++"
+echo "+++++ Test #30 sieve (usage of arrays not tables when possible N=$rep):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97343,13 +100173,34 @@ for iter in range(10):
         count = count + 1
 print count
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+SieveSize = int(sys.argv[1])
+flags = {}
+for iter in range(10):
+  count = 0
+  for i in range(SieveSize + 1):
+    flags[i] = 1
+  for i in range(SieveSize + 1):
+    if flags[i]:
+        prime = i + i + 3
+        k = i + prime
+        while k <= SieveSize:
+            flags[k] = 0
+            k = k + prime
+        count = count + 1
+print (count)
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97418,28 +100269,72 @@ EOF
   if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+SieveSize = tonumber((arg and arg[1])) or 1
+flags = {}
+for iter=1,10 do
+  count = 0
+  for i=0, SieveSize do
+    flags[i] = true
+  end
+  for i=0,SieveSize do
+    if flags[i] then
+      prime = i + i + 3
+      for k=i+prime, SieveSize, prime do
+        flags[k] = false
+      end
+      count = count + 1    
+    end
+  end
+end
+io.write(count, "\n")
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+SieveSize = Integer(ARGV.shift || 1)
+flags0 = Array.new(SieveSize + 1, true)
+10.times do
+  $count = 0
+  flags = flags0.dup
+  for i in 0 .. SieveSize
+    if flags[i] then
+      prime = i + i + 3
+      k = i + prime
+      while k <= SieveSize do
+        flags[k] = false
+        k = k + prime
+      end
+      $count = $count + 1
+    end
+  end
+end
+print $count, "\n"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var SieveSize, i, prime, k, count, iter, flags;
 SieveSize = int (argv [0]);
 
-flags = [SieveSize + 1 : 0];
 for (iter = 0; iter < 10; iter++;)
   {
     count = 0;
-    for (i = 0; i <= SieveSize; i++)
-      flags[i] = 1;
+    flags = [SieveSize + 1 : 1];
     for (i = 0; i <= SieveSize; i++;)
       if (flags[i])
         {
           prime = i + i + 3;
-          k = i + prime;
-          for (;1;;)
-            {
-              if (k > SieveSize)
-                break;
-              flags[k] = 0;
-              k += prime;
-            }
+          for (k = i + prime; k <= SieveSize;k += prime)
+            flags[k] = 0;
           count++;
         }
   }
@@ -97451,13 +100346,13 @@ if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else 
 
 fi
 
-# Test 32.
-if test $start_test_number -le 32; then
+# Test 31.
+if test $start_test_number -le 31; then
 
 ######################################################
 rep=`expr $factor '*' 819`
 echo 
-echo "+++++ Test #32: sieve (usage of associative tables N=$rep):  +++++"
+echo "+++++ Test #31: sieve (usage of associative tables N=$rep):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97506,13 +100401,34 @@ for iter in range (10):
         count = count + 1
 print count
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+SieveSize = int(sys.argv[1])
+flags = {}
+for iter in range (10):
+  count = 0
+  for i in range (SieveSize + 1):
+    flags[i] = 1
+  for i in range (SieveSize + 1):
+    if flags[i]:
+        prime = i + i + 3
+        k = i + prime
+        while k <= SieveSize:
+            flags[k] = 0
+            k = k + prime
+        count = count + 1
+print (count)
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97581,6 +100497,34 @@ EOF
   if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+SieveSize = Integer(ARGV.shift || 1)
+flags = Hash.new()
+10.times do
+  $count = 0
+  for i in 0 .. SieveSize
+    flags[i] = true
+  end
+  for i in 0 .. SieveSize
+    if flags[i] then
+      prime = i + i + 3
+      k = i + prime
+      while k <= SieveSize do
+        flags[k] = false
+        k = k + prime
+      end
+      $count = $count + 1
+    end
+  end
+end
+print $count, "\n"
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var SieveSize, i, prime, k, count, iter, flags;
 SieveSize = int (argv [0]);
@@ -97595,14 +100539,8 @@ for (iter = 0; iter < 10; iter++;)
       if (flags{i})
         {
           prime = i + i + 3;
-          k = i + prime;
-          for (;1;;)
-            {
-              if (k > SieveSize)
-                break;
-              flags{k} = 0;
-              k += prime;
-            }
+          for (k = i + prime; k <= SieveSize;k += prime)
+            flags{k} = 0;
           count++;
         }
   }
@@ -97614,13 +100552,13 @@ if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else 
 
 fi
 
-# Test 33.
-if test $start_test_number -le 33; then
+# Test 32.
+if test $start_test_number -le 32; then
 
 ######################################################
 if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=70;else rep=200;fi
 echo 
-echo "+++ Test #33: matrix mult (usage of arrays not tables when possible N=$rep): +++"
+echo "+++ Test #32: Simple matrix mult (usage of arrays not tables when possible N=$rep): +++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97686,13 +100624,42 @@ for i in range (NUM):
 
 mmult (m1,m2)
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+def mmult(m1,m2):
+   m2rows,m2cols = len(m2),len(m2[0])
+   m1rows,m1cols = len(m1),len(m1[0])
+   if m1cols!= m2rows:
+      raise IndexError("matrices don't match");
+   result = [ None ] * m1rows
+   for i in range( m1rows ):
+      result[ i ] = [0] * m2cols
+      for j in range( m2cols ):
+         el = 0
+         for k in range( m1cols ):
+            el = el + m1[i][k]*m2[k][j]
+         result[i][j] = el
+   return result
+
+NUM = int(sys.argv[1])
+m1 = [None] * NUM
+m2 = [None] * NUM
+for i in range (NUM):
+  m1[i] = [1] * NUM
+  m2[i] = [1] * NUM
+
+mmult (m1,m2)
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97736,6 +100703,89 @@ EOF
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+n = tonumber((arg and arg[1]) or 1)
+
+function mmult(m1, m2)
+  m1rows = table.getn (m1); m2rows = table.getn (m2);
+  m1cols = table.getn (m1[1]); m2cols = table.getn (m2[1]);
+  if (m2cols ~= m2rows) then
+       print ("matrices don't match");
+       return;
+  end
+  result = {};
+  for i=1, m1rows do
+    result[i] = {}; tr = result[i];
+    for j=1, m2cols do
+      tr[j] = 0;
+    end
+    tm = m1[i];
+    for j=1, m2cols do
+      el = 0;
+      for k=1, m1cols do
+        el = el + tm[k]*m2[k][j];
+      end
+      tr[j] = el;
+    end
+  end
+  return result;
+end
+
+m1 = {}; m2 = {}
+for i=1,n do
+  row1 = {}; row2 = {}
+  for j=1,n do
+    row1[j] = 1; row2[j] = 1
+  end
+  m1[i] = row1; m2[i] = row2;
+end
+mmult(m1, m2)
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+n = Integer(ARGV.shift || 1)
+
+def mmult(m1, m2)
+  m1rows = m1.length; m2rows = m2.length;
+  m1cols = m1[0].length; m2cols = m2[0].length;
+  if (m2cols != m2rows) then
+       puts "matrices do not match\n";
+       return;
+  end
+  result = Array.new(m1rows, 0);
+  for i in 0 .. (m1rows - 1)
+    result [i] = Array.new(m2cols, 0)
+    tr = result[i]; tm = m1[i];
+    for j in 0 ..  (m2cols - 1)
+        el = 0;
+        for k in 0 .. (m1cols - 1)
+          el = el + tm[k]*m2[k][j]
+        end
+        tr[j] = el;
+    end
+  end
+  result
+end
+
+m1 = Array.new(n)
+m2 = Array.new(n)
+for i in 0 .. (n - 1)
+  m1[i] = Array.new(n, 1)
+  m2[i] = Array.new(n, 1)
+end
+mmult(m1, m2)
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var m1, m2;
 
@@ -97753,13 +100803,12 @@ func mmult (m1, m2)
   result = [m1rows:0];
   for (i=0; i < m1rows; i++) {
     result [i] = [m2cols:0];
-    tr = result [i];
+    tr = result[i]; tm = m1[i];
     for (j=0; j < m2cols; j++)
       {
         el = 0;
-        tm = m1[i];
         for (k=0; k < m1cols; k++)
-          el += tm [k]*m2[k][j];
+          el += tm[k]*m2[k][j];
         tr[j] = el;
       }
   }
@@ -97778,13 +100827,13 @@ if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else 
 
 fi
 
-# Test 34.
-if test $start_test_number -le 34; then
+# Test 33.
+if test $start_test_number -le 33; then
 
 ######################################################
 if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=70;else rep=200;fi
 echo 
-echo "+++++ Test #34: matrix mult (usage of associative tables N=$rep):  +++++"
+echo "+++++ Test #33: Simple matrix mult (usage of associative tables N=$rep):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97851,13 +100900,43 @@ for i in xrange (0,NUM):
 
 mmult (m1, NUM, NUM, m2, NUM, NUM)
 EOF
-  if refactor $ftest;then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
-  else
-    echo FAILED;
-  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+def mmult(m1,r1,c1,m2,r2,c2):
+   if c1 != r2:
+      raise IndexError("matrices don't match");
+   result = {}
+   for i in range( r1 ):
+      result[i] = {}
+      for j in range( c2 ):
+         el = 0
+         for k in range(c1):
+            el = el + m1[i][k]*m2[k][j]
+         result[i][j] = el
+   return result
+
+NUM = int(sys.argv[1])
+m1 = {}
+m2 = {}
+for i in range (0,NUM):
+  m1 [i] = {}
+  m2 [i] = {}
+  for j in range (0,NUM):
+    m1[i][j] = 1
+    m2[i][j] = 1
+
+mmult (m1, NUM, NUM, m2, NUM, NUM)
+EOF
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97899,6 +100978,96 @@ EOF
   echo TCL:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $TCLSH $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+n = tonumber((arg and arg[1]) or 1)
+
+function mmult(m1, m2)
+  m1rows = table.getn (m1); m2rows = table.getn (m2);
+  m1cols = table.getn (m1[1]); m2cols = table.getn (m2[1]);
+  if (m2cols ~= m2rows) then
+       print ("matrices don't match");
+       return;
+  end
+  result = {};
+  for i=1, m1rows do
+    result[i] = {}; tr = result[i];
+    for j=1, m2cols do
+      tr[j] = 0;
+    end
+    tm = m1[i];
+    for j=1, m2cols do
+      el = 0;
+      for k=1, m1cols do
+        el = el + tm[k]*m2[k][j];
+      end
+      tr[j] = el;
+    end
+  end
+  return result;
+end
+
+m1 = {}; m2 = {}
+for i=1,n do
+  row1 = {}; row2 = {}
+  for j=1,n do
+    row1[j] = 1; row2[j] = 1
+  end
+  m1[i] = row1; m2[i] = row2;
+end
+mmult(m1, m2)
+EOF
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+n = Integer(ARGV.shift || 1)
+
+def mmult(m1, m2)
+  m1rows = m1.length; m2rows = m2.length;
+  m1cols = m1[0].length; m2cols = m2[0].length;
+  if (m2cols != m2rows) then
+       puts "matrices do not match\n";
+       return;
+  end
+  result = Hash.new();
+  for i in 0 .. (m1rows - 1)
+    result[i] = Hash.new()
+    for j in 0 ..  (m2cols - 1)
+      result[i][j] = 0;
+    end
+    tr = result[i]; tm = m1[i];
+    for j in 0 ..  (m2cols - 1)
+        el = 0;
+        for k in 0 .. (m1cols - 1)
+          el = el + tm[k]*m2[k][j]
+        end
+        tr[j] = el;
+    end
+  end
+  result
+end
+
+m1 = Hash.new(n)
+m2 = Hash.new(n)
+for i in 0 .. (n - 1)
+  m1[i] = Hash.new()
+  m2[i] = Hash.new()
+  for j in 0 .. (n - 1)
+    m1[i][j] = 1;
+    m2[i][j] = 1;
+  end
+end
+mmult(m1, m2)
+EOF
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest $rep) >$temp2 2>&1;then fgrep user $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97947,13 +101116,13 @@ if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then fgrep user $temp2;else 
 
 fi
 
-# Test 35.
-if test $start_test_number -le 35; then
+# Test 34.
+if test $start_test_number -le 34; then
 
 ######################################################
 rep=`expr $factor '*' 10000`
 echo 
-echo "+++++ Test #35: compilation speed (simple program of $rep lines):  +++++"
+echo "+++++ Test #34: compilation speed (simple program of $rep lines):  +++++"
 
 if test x$PERL != x; then
   $DINO -c 'putln("$j = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("$i = $j;");' $rep > $ftest
@@ -97969,6 +101138,13 @@ if test x$PYTHON != x; then
   if (time $PYTHON $ftest) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
+if test x$PYTHON3 != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  echo PYTHON3:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYTHON3 $ftest) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
 if test x$TCLSH != x; then
   $DINO -c 'putln("set j 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("set i $j");' $rep > $ftest
   echo TCL:
@@ -97982,6 +101158,20 @@ if test x$AWK != x; then
   echo AWK:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $AWK -f $ftest </dev/null) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$LUA != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  echo LUA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $LUA $ftest) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  echo RUBY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $RUBY $ftest) >$temp2 2>&1;then fgrep user $temp2;else echo FAILED;fi
 fi
 
 $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest

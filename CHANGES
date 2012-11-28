@@ -1,6 +1,8 @@
 * Dino:
 
      o New option -t is added to print final call stack trace.
+     o Interpriter IC was improved.  It resulted in significant interpriter speedup.
+     o Swap operator was removed.
 
 10/02/2007: Version 0.996 of COCOM has been made.  The major
 difference with the previous version:
