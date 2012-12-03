@@ -137,7 +137,7 @@ RX = REGEX
 all:
 	for i in $(directories);do\
 	  if test $$i = DINO; then\
-	    (cd $(RX); make GCC_FPIC='@DINO_GCC_FPIC@' regex.o);\
+	    (cd $(RX); $(MAKE) GCC_FPIC='@DINO_GCC_FPIC@');\
           fi;\
 	  (cd $$i; $(MAKE));\
 	done

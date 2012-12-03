@@ -1,3 +1,23 @@
+2012-12-02  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* Makefile.in (all): Use macro MAKE.  Build all REGEX.
+	* configure.in: Comment code for no_shlib and
+	AC_CONFIG_SUBDIRS(REGEX).  Add macros from REGEX/configure.in.
+	Add REGEX/Makefile REGEX/doc/Makefile REGEX/test/Makefile to
+	output files.  Use CC for MAKELIB.  Add prefix d_ for libraries in
+	DINO_ADDITIONAL_LIBS.
+	* configure: Update.
+	* AMMUNITION/cocom-config.h: Update.
+	* DINO/d_eval.c (FIND_CONTEXT_BY_SCOPE): Remove.
+	(find_context_by_scope): Use only one variant.  Insert code from
+	FIND_CONTEXT_BY_SCOPE.
+	(EXECUTE_AR_OP, EXECUTE_INT_OP): Remove.
+	(i1, i2, f1, f2, ar_convert, int_convert): New.
+	(evaluate_code): Move assign case first.  Use new functions and variables.
+	* REGEX/Makefile.in (config.h): New entry.
+	(all): Add to all.
+	* REGEX/doc/Makefile.in (regex.texi): fix paths with srcdir.
+
 2012-11-28  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* CHANGES: Add changes in DINO (swap, faster interpriter).

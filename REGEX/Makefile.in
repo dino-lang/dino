@@ -44,11 +44,14 @@ SHELL = /bin/sh
 
 subdirs = doc test
 
-default all:: regex.o
+default all:: config.h regex.o
 .PHONY: default all
 
 regex.o: $(srcdir)/regex.c $(srcdir)/regex.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(DEFS) -I. -I$(srcdir) -c $(srcdir)/regex.c
+
+config.h: ../AMMUNITION/cocom-config.h
+	cp ../AMMUNITION/cocom-config.h config.h
 
 clean mostlyclean::
 	rm -f *.o

@@ -32,76 +32,43 @@
 #include "d_runtab.h"
 #include "d_eval.h"
 
-
-
-/* The following is common code for find_context_by_scope. */
-#define FIND_CONTEXT_BY_SCOPE						\
-  IR_node_t curr_scope;							\
-  IR_node_t func_class_ext;						\
-									\
-  for (container = cstack, curr_scope = ER_block_node (container);	\
-       _scope != curr_scope;						\
-       container = ER_context (container),				\
-	     curr_scope = ER_block_node (container))			\
-    ;									\
-  func_class_ext = IR_func_class_ext (_scope);				\
-  if (func_class_ext != NULL						\
-      && IR_IS_OF_TYPE (func_class_ext, IR_NM_class)			\
-      && (ER_block_node (container)					\
-	      == ER_block_node (ER_context (container))))		\
-    /* We are searching for from the class constructor and the		\
-	   current stack corresponds to the constructor stack (not to	\
-	   the class instance). */					\
-    container = ER_context (container);
-
-#if defined (NO_CONTAINER_CACHE) || !defined (__GNUC__)
-
 #if INLINE && !defined (SMALL_CODE)
 __inline__
 #endif
 static ER_node_t
-find_context_by_scope (IR_node_t _scope)
+find_context_by_scope (IR_node_t scope)
 {
   ER_node_t container;
-
+  IR_node_t curr_scope;
+  IR_node_t func_class_ext;
+  
 #ifndef NO_CONTAINER_CACHE
-  if (IR_cached_container_tick (_scope) == current_cached_container_tick)
+  if (IR_cached_container_tick (scope) == current_cached_container_tick)
     {
-      container = (ER_node_t) IR_cached_container_address (_scope);
+      container = (ER_node_t) IR_cached_container_address (scope);
       return container;
     }
 #endif
-  {
-    FIND_CONTEXT_BY_SCOPE
-  }
+  for (container = cstack, curr_scope = ER_block_node (container);
+       scope != curr_scope;
+       container = ER_context (container),
+	 curr_scope = ER_block_node (container))
+    ;
+  func_class_ext = IR_func_class_ext (scope);
+  if (func_class_ext != NULL
+      && IR_IS_OF_TYPE (func_class_ext, IR_NM_class)
+      && (ER_block_node (container)
+	  == ER_block_node (ER_context (container))))
+    /* We are searching for from the class constructor and the current
+       stack corresponds to the constructor stack (not to the class
+       instance). */
+    container = ER_context (container);
 #ifndef NO_CONTAINER_CACHE
-  IR_set_cached_container_address (_scope, (string_t) container);
-  IR_set_cached_container_tick (_scope, current_cached_container_tick);
+  IR_set_cached_container_address (scope, (string_t) container);
+  IR_set_cached_container_tick (scope, current_cached_container_tick);
 #endif
   return container;
 }
-
-#else
-
-/* The following code is very critical and gcc inliner is not good
-   now.  Therefore we use gcc extension for better code generation. */
-#define find_context_by_scope(scope)					\
-({									\
-  IR_node_t _scope = scope;						\
-  ER_node_t container;							\
-									\
-  if (IR_cached_container_tick (_scope) == current_cached_container_tick)\
-      container = (ER_node_t) IR_cached_container_address (_scope);	\
-  else									\
-    {									\
-      FIND_CONTEXT_BY_SCOPE						\
-      IR_set_cached_container_address (_scope, (string_t) container);	\
-      IR_set_cached_container_tick (_scope, current_cached_container_tick);\
-    }									\
-  container;								\
-})
-
-#endif
 
 #if INLINE && !defined (SMALL_CODE)
 __inline__
@@ -731,82 +698,66 @@ find_catch_pc (ER_node_t instance)
   return NULL; /* to prevent compiler diagnostic. */
 }
 
-/* The following macro is code for execution arithmethic operation OP
-   and reporting MSG if there are errors. */
-#define EXECUTE_AR_OP(OP, result, left, right, MSG)			  \
-  do                                                                      \
-    {                                                                     \
-      ER_node_t _l, _r, _res = result, _op1 = left, _op2 = right;	  \
-      int_t _i;								  \
-      floating_t _f;							  \
-      									  \
-      if (ER_NODE_MODE (_op2) == ER_NM_int                                \
-	  && ER_NODE_MODE (_op1) == ER_NM_int)			          \
-        {							          \
-          _i = ER_i (_op1) OP ER_i (_op2);			          \
-          ER_SET_MODE (_res, ER_NM_int);				  \
-	  ER_set_i (_res, _i);		       			          \
-        }							          \
-      else if (ER_NODE_MODE (_op2) == ER_NM_float                         \
-	       && ER_NODE_MODE (_op1) == ER_NM_float)                     \
-	{							          \
-	  _f = ER_f (_op1) OP ER_f (_op2);				  \
-          ER_SET_MODE (_res, ER_NM_float);			          \
-	  ER_set_f (_res, _f);				       	          \
-	}							          \
-      else                                                                \
-	{                                                              	  \
-	  implicit_conversion_for_binary_arithmetic_op			  \
-            (_op1, _op2, &_l, &_r);					  \
-	  if (ER_NODE_MODE (_r) != ER_NM_int                              \
-	      && ER_NODE_MODE (_r) != ER_NM_float                         \
-	      || ER_NODE_MODE (_l) != ER_NM_int                           \
-	      && ER_NODE_MODE (_l) != ER_NM_float)                        \
-	    eval_error (optype_decl, invops_decl, IR_pos (cpc), MSG);     \
-	  if (ER_NODE_MODE (_l) == ER_NM_int)				  \
-            {								  \
-	      _i = ER_i (_l) OP ER_i (_r);				  \
-	      ER_SET_MODE (_res, ER_NM_int);				  \
-	      ER_set_i (_res, _i);					  \
-	    }								  \
-	  else								  \
-	    {								  \
-	      _f = ER_f (_l) OP ER_f (_r);				  \
-	      ER_SET_MODE (_res, ER_NM_float);				  \
-	      ER_set_f (_res, _f);					  \
-	    }								  \
-	}                                                                 \
-    }                                                                     \
-  while (0)
+static int_t i1, i2;
+static floating_t f1, f2;
 
-/* The following macro is code for execution integer operation OP with
-   CAST and reporting MSG if there are errors. */
-#define EXECUTE_INT_OP(OP, CAST, result, left, right, MSG)              \
-  do                                                                    \
-    {                                                                   \
-      int_t _i;								\
-      ER_node_t _l, _r, _res = result, _op1 = left, _op2 = right;	\
-									\
-      if (ER_NODE_MODE (_op1) == ER_NM_int		       		\
-          && ER_NODE_MODE (_op2) == ER_NM_int)				\
-	{                                                               \
-	  _i = (CAST) ER_i (_op1) OP ER_i (_op2);	       		\
-	  ER_SET_MODE (_res, ER_NM_int);				\
-	  ER_set_i (_res, _i); 	       				        \
-	}								\
-      else								\
-        {								\
-	  implicit_conversion_for_binary_int_op (_op1, _op2, &_l, &_r);	\
-	  if (ER_NODE_MODE (_r) != ER_NM_int                            \
-	      || ER_NODE_MODE (_l) != ER_NM_int)                        \
-	    eval_error (optype_decl, invops_decl,                       \
-			IR_pos (cpc), MSG);                     	\
-	  _i = (CAST) ER_i (_l) OP ER_i (_r);		       		\
-	  ER_SET_MODE (_res, ER_NM_int);				\
-	  ER_set_i (_res, _i);   	       			        \
-	}                                                               \
-    }                                                                   \
-  while (0)
+#if INLINE && !defined (SMALL_CODE)
+__inline__
+#endif
+static int
+ar_convert (ER_node_t op1, ER_node_t op2, const char *msg)
+{
+  ER_node_t l, r;
+
+  if (ER_NODE_MODE (op1) == ER_NM_int && ER_NODE_MODE (op2) == ER_NM_int)
+    {
+      i1 = ER_i (op1);
+      i2 = ER_i (op2);
+      return TRUE;
+    }
+  if (ER_NODE_MODE (op1) == ER_NM_float && ER_NODE_MODE (op2) == ER_NM_float)
+    {
+      f1 = ER_f (op1);
+      f2 = ER_f (op2);
+      return FALSE;
+    }
+  implicit_conversion_for_binary_arithmetic_op (op1, op2, &l, &r);
+  if (ER_NODE_MODE (r) != ER_NM_int && ER_NODE_MODE (r) != ER_NM_float
+      || ER_NODE_MODE (l) != ER_NM_int && ER_NODE_MODE (l) != ER_NM_float)
+    eval_error (optype_decl, invops_decl, IR_pos (cpc), msg);
+  if (ER_NODE_MODE (l) == ER_NM_int)
+    {
+      i1 = ER_i (l);
+      i2 = ER_i (r);
+      return TRUE;
+    }
+  f1 = ER_f (l);
+  f2 = ER_f (r);
+  return FALSE;
+}
+
+#if INLINE && !defined (SMALL_CODE)
+__inline__
+#endif
+static void
+int_convert (ER_node_t op1, ER_node_t op2, const char *msg)
+{
+  ER_node_t l, r;
+
+  if (ER_NODE_MODE (op1) == ER_NM_int && ER_NODE_MODE (op2) == ER_NM_int)
+    {
+      i1 = ER_i (op1);
+      i2 = ER_i (op2);
+      return;
+    }
+  implicit_conversion_for_binary_int_op (op1, op2, &l, &r);
+  if (ER_NODE_MODE (r) != ER_NM_int && ER_NODE_MODE (r) != ER_NM_float
+      || ER_NODE_MODE (l) != ER_NM_int && ER_NODE_MODE (l) != ER_NM_float)
+    eval_error (optype_decl, invops_decl, IR_pos (cpc), msg);
+  i1 = ER_i (l);
+  i2 = ER_i (r);
+  return;
+}
 
 /* The following function implements division. */
 #if INLINE && !defined (SMALL_CODE)
@@ -998,6 +949,17 @@ evaluate_code (void)
     {
       switch (node_mode = IR_NODE_MODE (IR_PTR (cpc)))
 	{
+	case IR_NM_assign:
+	case IR_NM_var_assign:
+	case IR_NM_par_assign:
+	  op1 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	common_assign:
+	  store_designator_value (IVAL (cvars, IR_container_num (IR_PTR (cpc))),
+				  IVAL (cvars, IR_index_num (IR_PTR (cpc))),
+				  op1, IR_assignment_var (IR_PTR (cpc)));
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
 	case IR_NM_nil:
 	  res = IVAL (cvars, IR_nil_result_num (IR_PTR (cpc)));
 	  ER_SET_MODE (res, ER_NM_nil);
@@ -2102,10 +2064,19 @@ evaluate_code (void)
 	    break;
 	  }
 	case IR_NM_mult:
-	  EXECUTE_AR_OP (*, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			 IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			 IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			 DERR_mult_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  if (ar_convert (op1, op2, DERR_mult_operands_types))
+	    {
+	      ER_SET_MODE (res, ER_NM_int);
+	      ER_set_i (res, i1 * i2);
+	    }
+	  else
+	    {
+	      ER_SET_MODE (res, ER_NM_float);
+	      ER_set_f (res, f1 * f2);
+	    }
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_div:
@@ -2121,17 +2092,35 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_plus:
-	  EXECUTE_AR_OP (+, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			 IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			 IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			 DERR_plus_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  if (ar_convert (op1, op2, DERR_plus_operands_types))
+	    {
+	      ER_SET_MODE (res, ER_NM_int);
+	      ER_set_i (res, i1 + i2);
+	    }
+	  else
+	    {
+	      ER_SET_MODE (res, ER_NM_float);
+	      ER_set_f (res, f1 + f2);
+	    }
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_minus:
-	  EXECUTE_AR_OP (-, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			 IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			 IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			 DERR_minus_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  if (ar_convert (op1, op2, DERR_minus_operands_types))
+	    {
+	      ER_SET_MODE (res, ER_NM_int);
+	      ER_set_i (res, i1 - i2);
+	    }
+	  else
+	    {
+	      ER_SET_MODE (res, ER_NM_float);
+	      ER_set_f (res, f1 - f2);
+	    }
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_concat:
@@ -2141,52 +2130,73 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_lshift:
-	  EXECUTE_INT_OP (<<, int_t, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			  DERR_lshift_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  int_convert (op1, op2, DERR_lshift_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 << i2);
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_rshift:
-	  EXECUTE_INT_OP (<<, unsigned_int_t,
-			  IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			  DERR_rshift_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  int_convert (op1, op2, DERR_rshift_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, (unsigned_int_t) i1 >> i2);
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_ashift:
-	  EXECUTE_INT_OP (>>, int_t, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			  DERR_ashift_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  int_convert (op1, op2, DERR_ashift_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 >> i2);
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_and:
-	  EXECUTE_INT_OP (&, int_t, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			  DERR_and_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  int_convert (op1, op2, DERR_and_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 & i2);
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_xor:
-	  EXECUTE_INT_OP (^, int_t, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			  DERR_xor_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  int_convert (op1, op2, DERR_xor_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 ^ i2);
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_or:
-	  EXECUTE_INT_OP (|, int_t, IVAL (cvars, IR_result_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_left_op_num (IR_PTR (cpc))),
-			  IVAL (cvars, IR_right_op_num (IR_PTR (cpc))),
-			  DERR_or_operands_types);
+	  op1 = IVAL (cvars, IR_left_op_num (IR_PTR (cpc)));
+	  op2 = IVAL (cvars, IR_right_op_num (IR_PTR (cpc)));
+	  res = IVAL (cvars, IR_result_num (IR_PTR (cpc)));
+	  int_convert (op1, op2, DERR_or_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 | i2);
 	  INCREMENT_PC ();
 	  break;
 	case IR_NM_mult_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_AR_OP (*, op1, op1, IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_mult_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  if (ar_convert (op1, op2, DERR_mult_operands_types))
+	    {
+	      ER_SET_MODE (res, ER_NM_int);
+	      ER_set_i (res, i1 * i2);
+	    }
+	  else
+	    {
+	      ER_SET_MODE (res, ER_NM_float);
+	      ER_set_f (res, f1 * f2);
+	    }
 	  goto common_assign;
 	case IR_NM_div_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
@@ -2198,8 +2208,18 @@ evaluate_code (void)
 	  goto common_assign;
 	case IR_NM_minus_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_AR_OP (-, op1, op1, IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_minus_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  if (ar_convert (op1, op2, DERR_minus_operands_types))
+	    {
+	      ER_SET_MODE (res, ER_NM_int);
+	      ER_set_i (res, i1 - i2);
+	    }
+	  else
+	    {
+	      ER_SET_MODE (res, ER_NM_float);
+	      ER_set_f (res, f1 - f2);
+	    }
 	  goto common_assign;
 	case IR_NM_concat_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
@@ -2208,56 +2228,67 @@ evaluate_code (void)
 	  goto common_assign;
 	case IR_NM_lshift_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_INT_OP (<<, int_t, op1, op1,
-			 IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_lshift_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  int_convert (op1, op2, DERR_lshift_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 << i2);
 	  goto common_assign;
 	case IR_NM_rshift_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_INT_OP (<<, unsigned_int_t, op1, op1,
-			 IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_rshift_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  int_convert (op1, op2, DERR_rshift_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, (unsigned_int_t) i1 >> i2);
 	  goto common_assign;
 	case IR_NM_ashift_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_INT_OP (>>, int_t, op1, op1,
-			 IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_ashift_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  int_convert (op1, op2, DERR_ashift_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 >> i2);
 	  goto common_assign;
 	case IR_NM_and_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_INT_OP (&, int_t, op1, op1,
-			 IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_and_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  int_convert (op1, op2, DERR_and_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 & i2);
 	  goto common_assign;
 	case IR_NM_xor_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_INT_OP (^, int_t, op1, op1,
-			 IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_xor_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  int_convert (op1, op2, DERR_xor_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 ^ i2);
 	  goto common_assign;
 	case IR_NM_or_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_INT_OP (|, int_t, op1, op1,
-			 IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_or_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  int_convert (op1, op2, DERR_or_operands_types);
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i1 | i2);
 	  goto common_assign;
 	case IR_NM_plus_assign:
 	  op1 = IVAL (cvars, IR_lvalue_val_num (IR_PTR (cpc)));
-	  EXECUTE_AR_OP (+, op1, op1, IVAL (cvars, IR_expr_num (IR_PTR (cpc))),
-			 DERR_plus_operands_types);
+	  op2 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
+	  res = op1;
+	  if (ar_convert (op1, op2, DERR_plus_operands_types))
+	    {
+	      ER_SET_MODE (res, ER_NM_int);
+	      ER_set_i (res, i1 + i2);
+	    }
+	  else
+	    {
+	      ER_SET_MODE (res, ER_NM_float);
+	      ER_set_f (res, f1 + f2);
+	    }
 	  goto common_assign;
-	case IR_NM_assign:
-	case IR_NM_var_assign:
-	case IR_NM_par_assign:
-	  op1 = IVAL (cvars, IR_expr_num (IR_PTR (cpc)));
-	common_assign:
-	  store_designator_value (IVAL (cvars, IR_container_num (IR_PTR (cpc))),
-				  IVAL (cvars, IR_index_num (IR_PTR (cpc))),
-				  op1, IR_assignment_var (IR_PTR (cpc)));
-	  INCREMENT_PC ();
-	  INTERRUPT_CHECK;
-	  break;
 	case IR_NM_par_assign_test:
 	  op1 = IVAL (cvars, IR_par_num (IR_PTR (cpc)));
 	  if (ER_IS_OF_TYPE (op1, ER_NM_nil))

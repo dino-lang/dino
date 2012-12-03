@@ -36,8 +36,8 @@ default all: regex.info regex.dvi
 # We need to include some code from regex.h.
 regex.texi: xregex.texi
 	rm -f $@
-	gawk -f include.awk -vsource=../$(srcdir)/regex.h \
-	  <../$(srcdir)/doc/xregex.texi \
+	gawk -f include.awk -vsource=$(srcdir)/regex.h \
+	  < $(srcdir)/xregex.texi \
           | expand >$@
 	chmod a-w $@
 
