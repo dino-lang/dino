@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -109,7 +109,7 @@ memmove (void *s1, const void *s2, size_t n)
 {
   int i;
 
-  assert (n >= 0);
+  d_assert (n >= 0);
   if ((char *) s1 < (char *) s2 && (char *) s1 + n <= (char *) s2
       || (char *) s2 < (char *) s1 && (char *) s2 + n <= (char *) s1)
     return (void *) memcpy (s1, s2, n);
@@ -336,8 +336,7 @@ exception_action (int signal_number)
       /* Fall through */
 #endif 
     default:
-      assert (FALSE);
-      break;
+      d_unreachable ();
     }
   set_exception_action (signal_number);
   if (eval_long_jump_set_flag)
@@ -378,7 +377,7 @@ void add_dino_path (const char *prefix, const char *subdir,
   char bound;
   int len;
 
-  assert (prefix != NULL || subdir == NULL);
+  d_assert (prefix != NULL || subdir == NULL);
   if (prefix != NULL)
     {
       len = strlen (prefix);
@@ -556,7 +555,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	  VLO_ADD_MEMORY (libraries_vector, &string, sizeof (char *));
 	}
       else
-	assert (FALSE);
+	d_unreachable ();
     }
   if (command_line_program == NULL && number_of_operands () == 0)
     {

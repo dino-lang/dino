@@ -4586,8 +4586,8 @@ binary_string_to_float (const char *operand, int base, int *sign,
   leading_zero_flag = 1 /* TRUE */;
   binary_exponent = INTERNAL_FRACTION_SIZE * CHAR_BIT - 1;
   while ((isdigit (*operand) && *operand - '0' < base)
-	 || base == 16 && ((*operand >= 'a' && *operand <= 'f')
-			   || (*operand >= 'A' && *operand <= 'F')))
+	 || (base == 16 && ((*operand >= 'a' && *operand <= 'f')
+			    || (*operand >= 'A' && *operand <= 'F'))))
     {
       if (*operand != '0' || !leading_zero_flag)
         {
@@ -4619,8 +4619,8 @@ binary_string_to_float (const char *operand, int base, int *sign,
     {
       operand++;
       while ((isdigit (*operand) && *operand - '0' < base)
-	     || base == 16 && ((*operand >= 'a' && *operand <= 'f')
-			       || (*operand >= 'A' && *operand <= 'F')))
+	     || (base == 16 && ((*operand >= 'a' && *operand <= 'f')
+				|| (*operand >= 'A' && *operand <= 'F'))))
         {
           if (*operand != '0' || !leading_zero_flag)
             {

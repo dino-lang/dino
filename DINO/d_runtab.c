@@ -50,8 +50,8 @@ set_func_class_no (IR_node_t func_class)
   if (IR_no (func_class) >= 0)
     return;
   IR_set_no (func_class, curr_func_class_no);
-  assert (curr_func_class_no * sizeof (IR_node_t)
-	  == VLO_LENGTH (func_class_tab));
+  d_assert (curr_func_class_no * sizeof (IR_node_t)
+	    == VLO_LENGTH (func_class_tab));
   VLO_ADD_MEMORY (func_class_tab, &func_class, sizeof (IR_node_t));
   curr_func_class_no++;
 }

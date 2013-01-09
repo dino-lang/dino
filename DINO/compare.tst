@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 1997-2007 Vladimir Makarov.
+# Copyright (C) 1997-2013 Vladimir Makarov.
 # 
 # Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 # 
@@ -138,7 +138,7 @@ fi
 if test $start_test_number -le 1; then
 
 ######################################################
-if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=7;else rep=8;fi
+if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=7;else rep=9;fi
 echo 
 echo "+++++ Test #1 ackermann (good test for recursive functions N=$rep):  +++++"
 
@@ -322,7 +322,7 @@ fi
 if test $start_test_number -le 2; then
 
 ######################################################
-rep=`expr $factor '*' 70`
+rep=`expr $factor '*' 200`
 echo 
 echo "+++++ Test #2: Array access (N=$rep):  +++++"
 
@@ -520,15 +520,13 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-var i, j, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
 var x = [n:0], y = [n:0];
 
 for (i = 0; i < n; i++)
   x [i] = i + 1;
-for (k = 0; k < 1000; k++) {
-  for (j = n - 1; j >= 0; j--)
-    y [j] += x [j];
-}
+for (k = 0; k < 1000; k++)
+  y[:] += x[:];
 
 putln (y [0], " ", y [n - 1]);
 EOF
@@ -16530,7 +16528,7 @@ fi
 if test $start_test_number -le 20; then
 
 ######################################################
-rep=`expr $factor '*' 5`
+rep=`expr $factor '*' 10`
 echo 
 echo "+++++ Test #20: Sieve of Eratosthenes (N=$rep):  +++++"
 
@@ -16768,17 +16766,15 @@ fi
 
 cat <<'EOF' >$ftest
 func main () {
-  var i, j, k, count, n = argv [0] < 1 ? 1 : int (argv [0]);
-  var flags;
+  var i, count, n = argv [0] < 1 ? 1 : int (argv [0]);
+  var flags = [8193:0];
   for (; n >= 0; n--) {
-      count = 0;
-      flags = [8193:1];
-      for (i = 2; i <= 8192; i++) {
-        if (flags [i]) {
-          for (k = i + i; k <= 8192; k += i)
-            flags [k] = 0;
+    count = 0;
+    flags[:] = 1;
+    for (i = 2; i <= 8192; i++)
+      if (flags[i]) {
+          flags[i + i : 8193 : i] = 0;
           count++;
-        }
       }
   }
   putln ("Count: ", count);
@@ -95152,10 +95148,8 @@ func main () {
   var lns = getf (1);
   var nums = [#lns:0];
   
-  for (i = 0; i < #lns; i++) {
-    nums [i] = lns [i] + 0.0;
-    sum += nums [i];
-  }
+  nums[:] = lns[:] + 0.0;
+  sum = .+ nums[:];
   
   var n = #nums;
   var mean = sum / n;
@@ -99607,7 +99601,7 @@ fi
 if test $start_test_number -le 26; then
 
 ######################################################
-rep=`expr $factor '*' 200000`
+rep=`expr $factor '*' 1000000`
 echo "+++++ Test #26: Test Loop ($rep iteration loop with empty body): +++++"
 
 if test x$PERL != x; then
@@ -100122,7 +100116,7 @@ fi
 if test $start_test_number -le 30; then
 
 ######################################################
-rep=`expr $factor '*' 819`
+rep=`expr $factor '*' 8190`
 echo 
 echo "+++++ Test #30 sieve (usage of arrays not tables when possible N=$rep):  +++++"
 
@@ -100322,22 +100316,20 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-var SieveSize, i, prime, k, count, iter, flags;
+var SieveSize, i, prime, count, iter, flags;
 SieveSize = int (argv [0]);
 
-for (iter = 0; iter < 10; iter++;)
-  {
+flags = [SieveSize + 1 : 0];
+for (iter = 0; iter < 10; iter++) {
     count = 0;
-    flags = [SieveSize + 1 : 1];
-    for (i = 0; i <= SieveSize; i++;)
-      if (flags[i])
-        {
+    flags[:] = 1;
+    for (i = 0; i <= SieveSize; i++)
+      if (flags[i]) {
           prime = i + i + 3;
-          for (k = i + prime; k <= SieveSize;k += prime)
-            flags[k] = 0;
+          flags[i + prime : SieveSize + 1 : prime] = 0;
           count++;
-        }
-  }
+      }
+}
 putln (count);
 EOF
 echo DINO:
@@ -100350,7 +100342,7 @@ fi
 if test $start_test_number -le 31; then
 
 ######################################################
-rep=`expr $factor '*' 819`
+rep=`expr $factor '*' 8190`
 echo 
 echo "+++++ Test #31: sieve (usage of associative tables N=$rep):  +++++"
 

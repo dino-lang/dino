@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -82,11 +82,12 @@ static int add_include_file (const char *name);
        FINAL FLOAT FOR FRIEND FUNC HIDE HIDEBLOCK IF IN INT
        NEW NIL PUBLIC PRIVATE RETURN TABLE THREAD THROW TRY TYPE
        VAR VECTOR WAIT
-%token MULT_ASSIGN DIV_ASSIGN REM_ASSIGN PLUS_ASSIGN MINUS_ASSIGN CONCAT_ASSIGN
+%token MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN CONCAT_ASSIGN
 %token LSHIFT_ASSIGN RSHIFT_ASSIGN ASHIFT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN
 %token INCR DECR
 %token DOTS
+%token FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR
 %token INCLUDE INCLUSION END_OF_FILE END_OF_INCLUDE_FILE
 
 %nonassoc ':'
@@ -103,7 +104,7 @@ static int add_include_file (const char *name);
 %left '@'
 %left '+' '-'
 %left '*' '/' '%'
-%left '!' '#' '~' FINAL NEW
+%left '!' '#' '~' FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FINAL NEW
 
 %type <pos> pos
 %type <node_mode> assign
@@ -114,8 +115,8 @@ static int add_include_file (const char *name);
         	var_par stmt executive_stmt incr_decr for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
                 header declaration extern_list extern_item
-        	func_thread_class else_part expr_empty formal_parameters
-        	block stmt_list program inclusion
+        	func_thread_class else_part expr_empty opt_step
+                formal_parameters block stmt_list program inclusion
 %type <flag> clear_flag  set_flag  access  opt_final
 
 %start program
@@ -296,6 +297,31 @@ expr : expr '?' pos expr ':' expr
           $$ = create_node_with_pos (IR_NM_length, $2);
           IR_set_operand ($$, $3);
         }
+     | FOLD_PLUS pos expr
+       	{
+          $$ = create_node_with_pos (IR_NM_fold_plus, $2);
+          IR_set_operand ($$, $3);
+        }
+     | FOLD_MULT pos expr
+       	{
+          $$ = create_node_with_pos (IR_NM_fold_mult, $2);
+          IR_set_operand ($$, $3);
+        }
+     | FOLD_AND pos expr
+       	{
+          $$ = create_node_with_pos (IR_NM_fold_and, $2);
+          IR_set_operand ($$, $3);
+        }
+     | FOLD_XOR pos expr
+       	{
+          $$ = create_node_with_pos (IR_NM_fold_xor, $2);
+          IR_set_operand ($$, $3);
+        }
+     | FOLD_OR pos expr
+       	{
+          $$ = create_node_with_pos (IR_NM_fold_or, $2);
+          IR_set_operand ($$, $3);
+        }
      | FINAL pos expr
        	{
           $$ = create_node_with_pos (IR_NM_const, $2);
@@ -390,7 +416,7 @@ expr : expr '?' pos expr ':' expr
        	{
           $$ = create_node_with_pos (IR_NM_classof, $1);
           IR_set_operand ($$, $4);
-        }
+	  }
      ;
 
 /* Stop symbols:*/
@@ -420,6 +446,20 @@ designator : designator '[' pos expr ']'
                  $$ = create_node_with_pos (IR_NM_index, $3);
                  IR_set_designator ($$, $1);
                  IR_set_component ($$, $4);
+               }
+           | designator '[' pos expr_empty ':' pos expr_empty opt_step ']'
+       	       {
+                 $$ = create_node_with_pos (IR_NM_slice, $3);
+                 IR_set_designator ($$, $1);
+		 if ($4 == NULL)
+		   $4 = get_int_node (0, $6);
+                 IR_set_component ($$, $4);
+		 if ($7 == NULL)
+		   $7 = get_int_node (-1, $6);
+                 IR_set_bound ($$, $7);
+		 if ($8 == NULL)
+		   $8 = get_int_node (1, $6);
+                 IR_set_step ($$, $8);
                }
            | designator '[' pos error sqbracket_stop
        	       /* The designator have to be vector. */
@@ -604,7 +644,7 @@ stmt : executive_stmt
 assign : '='            {$$ = IR_NM_assign;}
        | MULT_ASSIGN    {$$ = IR_NM_mult_assign;}
        | DIV_ASSIGN     {$$ = IR_NM_div_assign;}
-       | REM_ASSIGN     {$$ = IR_NM_rem_assign;}
+       | MOD_ASSIGN     {$$ = IR_NM_mod_assign;}
        | PLUS_ASSIGN    {$$ = IR_NM_plus_assign;}
        | MINUS_ASSIGN   {$$ = IR_NM_minus_assign;}
        | CONCAT_ASSIGN  {$$ = IR_NM_concat_assign;}
@@ -1038,6 +1078,9 @@ else_part :                                    {$$ = NULL;}
 expr_empty :             {$$ = NULL;}
        	   | expr        {$$ = $1;}
        	   ;
+opt_step :           {$$ = NULL;}
+         | ':' expr  {$$ = $2;}
+         ;
 /* see commentaries for var_par_list. */
 formal_parameters : '(' clear_flag var_par_list_empty ')'
                        {
@@ -1351,7 +1394,7 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
 static void
 pop_istream_stack (void)
 {
-  assert (curr_istream_state.file_name != NULL);
+  d_assert (curr_istream_state.file_name != NULL);
   if (curr_istream_state.file != NULL)
     {
       fclose (curr_istream_state.file);
@@ -1386,7 +1429,7 @@ file_dir_name (const char *file_name)
   const char *curr_char_ptr;
   const char *result;
 
-  assert (file_name != NULL);
+  d_assert (file_name != NULL);
   for (curr_char_ptr = file_name, last_slash = NULL;
        *curr_char_ptr != '\0';
        curr_char_ptr++)
@@ -1412,7 +1455,7 @@ file_path_name (const char *directory_name, const char *file_name,
 {
   const char *result;
 
-  assert (directory_name != NULL);
+  d_assert (directory_name != NULL);
   IR_TOP_ADD_STRING (directory_name);
   if (strlen (directory_name) != 0
       && directory_name [strlen (directory_name) - 1] != '/')
@@ -1583,7 +1626,7 @@ d_getc (void)
     }
   else
     {
-      assert (command_line_program != NULL);
+      d_assert (command_line_program != NULL);
       result = command_line_program [curr_char_number];
       if (result == 0)
 	result = EOF;
@@ -1608,7 +1651,7 @@ d_ungetc (int ch)
      }
    else
      {
-       assert (command_line_program != NULL);
+       d_assert (command_line_program != NULL);
        if (curr_char_number != 0 && ch != EOF)
 	 curr_char_number--;
      }
@@ -2031,7 +2074,7 @@ int yylex (void)
           if (input_char == '=')
 	    {
 	      current_position.column_number++;
-	      return REM_ASSIGN;
+	      return MOD_ASSIGN;
 	    }
           else
             {
@@ -2098,7 +2141,32 @@ int yylex (void)
 		  return '.';
 		}
 	    }
-          else
+          else if (input_char == '+')
+	    {
+	      current_position.column_number++;
+	      return FOLD_PLUS;
+	    }
+          else if (input_char == '*')
+	    {
+	      current_position.column_number++;
+	      return FOLD_MULT;
+	    }
+          else if (input_char == '&')
+	    {
+	      current_position.column_number++;
+	      return FOLD_AND;
+	    }
+          else if (input_char == '^')
+	    {
+	      current_position.column_number++;
+	      return FOLD_XOR;
+	    }
+          else if (input_char == '|')
+	    {
+	      current_position.column_number++;
+	      return FOLD_OR;
+	    }
+	  else
             {
               d_ungetc (input_char);
               return '.';
@@ -2362,7 +2430,7 @@ finish_scanner_file (void)
 static void
 add_lexema_to_file (int lexema_code)
 {
-  assert (lexema_code >= 0);
+  d_assert (lexema_code >= 0);
   curr_istream_state.uninput_lexema_code = lexema_code;
 }
 
@@ -2407,7 +2475,7 @@ start_block (void)
 static void
 finish_block (void)
 {
-  assert (block_level > 0);
+  d_assert (block_level > 0);
   block_level--;
   if (block_level == 0)
     VLO_DELETE (include_file_names);
@@ -2434,7 +2502,7 @@ add_include_file (const char *name)
   char **names;
   int i;
 
-  assert (block_level > 0);
+  d_assert (block_level > 0);
   name = full_file_name (name);
   names = (char **) ((char *) VLO_END (include_file_names) + 1
 		     - sizeof (char *) * curr_block_include_file_names_number);

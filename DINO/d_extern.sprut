@@ -3,7 +3,7 @@
    described here. */
 
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -80,6 +80,19 @@ typedef struct ER_node **stack_ptr_t;
 }
 
 %export {
+
+#include <string.h>
+#include <assert.h>
+
+#define d_assert assert
+
+#ifdef __GNUC__
+#define __always__ __attribute__ ((__always_inline__))
+#else
+#define __always__
+#endif
+
+#define do_always_inline inline __always__
 
 /* Container for all kind of variables. */
 typedef union
@@ -235,8 +248,9 @@ ER_node_t _indexed_entry_val (ER_node_t first_entry, int index);
 int eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number);
 
 size_t instance_size (IR_hidden_node_t class);
-size_t type_size (ER_node_mode_t type);
-size_t val_displ (ER_node_t var);
+
+extern size_t type_size_table [];
+extern size_t val_displ_table [];
 
 ER_node_t create_hideblock (size_t length);
 
@@ -263,6 +277,34 @@ ER_node_t table_to_vector_conversion (ER_node_t tab);
 ER_node_t vector_to_table_conversion (ER_node_t vect);
 
 void make_immutable (ER_node_t obj);
+
+static void do_always_inline
+set_vect_dim (ER_node_t v, ER_node_t vect, int_t dim)
+{
+  ER_set_vect (v, vect);
+  ER_set_dim (v, dim);
+}
+
+static void do_always_inline
+set_packed_vect_el (ER_node_t vect, size_t i, ER_node_t vect_el)
+{
+#if 0
+  val_t val;
+  size_t el_size = type_size_table [ER_NM_vect];
+  size_t displ = val_displ_table [ER_NM_vect];
+#endif
+
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  d_assert (ER_NODE_MODE (vect_el) == ER_NM_heap_pack_vect
+	    || ER_NODE_MODE (vect_el) == ER_NM_heap_unpack_vect);
+#if 1
+  ((ER_node_t *) ER_pack_els (vect)) [i] = vect_el;
+#else
+  ER_SET_MODE ((ER_node_t) &val, ER_NM_vect);
+  set_vect_dim ((ER_node_t) &val, vect_el, 0);
+  memcpy (ER_pack_els (vect) + i * el_size, (char *) &val + displ, el_size);
+#endif
+}
 
 }
 
@@ -439,13 +481,14 @@ type :: val
 /*%final*/
 vect :: val
 %other
-  vect : heap_vect_tab
+  vect : heap_vect  /* This field should be placed first.  */
+  dim : int_t
 ;
 
 /*%final*/
 tab :: val
 %other
-  tab : heap_vect_tab
+  tab : heap_tab
 ;
 
 /* The following nodes can used only as key in table. */
@@ -504,3 +547,9 @@ external_var_ref :: val
 ;
 
 %%
+
+/*
+Local Variables:
+mode:c
+End:
+*/

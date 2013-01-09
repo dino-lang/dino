@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -27,7 +27,6 @@
 
 #include "d_extern.h"
 #include "arithm.h"
-#include <assert.h>
 
 static void
 mpi_binary_op (int npars, val_t *vals, int_t *size,
@@ -39,10 +38,10 @@ mpi_binary_op (int npars, val_t *vals, int_t *size,
   ER_node_t size_var;
   ER_node_t hideblock;
 
-  assert (npars == 3
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
+  d_assert (npars == 3
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
   var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   var2 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))),
 		      1);
@@ -172,10 +171,10 @@ mpi_par_op (int npars, val_t *vals, int_t *size, int_t *par, int size_is_par,
   ER_node_t size_var;
   ER_node_t hideblock;
 
-  assert (npars == 3
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int
-	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
+  d_assert (npars == 3
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
   var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *par = ER_i ((ER_node_t) (vals + 1));
   *res = ER_instance ((ER_node_t) (vals + 2));
@@ -286,9 +285,9 @@ mpi_unary_op (int npars, val_t *vals, int_t *size,
   ER_node_t size_var;
   ER_node_t hideblock;
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
   var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
   *size = ER_i (size_var);
@@ -333,9 +332,9 @@ mpi_cmp_op (int npars, val_t *vals, int_t *size,
   ER_node_t var2;
   ER_node_t size_var;
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
   var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   var2 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
   size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
@@ -468,9 +467,9 @@ to_based_string (int npars, val_t *vals,
   ER_node_t vect;
   char str [3 * MAX_INTEGER_SIZE];
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
   size = ER_i (size_var);
@@ -478,7 +477,7 @@ to_based_string (int npars, val_t *vals,
   (*func) (size, hidevalue, ER_i ((ER_node_t) (vals + 1)), str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 
@@ -500,14 +499,13 @@ from_based_string (int npars, val_t *vals,
 {
   int_t size;
   void *hideblock;
-  ER_node_t var, size_var;
+  ER_node_t size_var;
   ER_node_t mpi;
 
-  assert (npars == 3
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);
-  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
+  d_assert (npars == 3
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);
   size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 0);
   size = ER_i (size_var);
   hideblock = create_hideblock (size);

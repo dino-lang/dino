@@ -1,3 +1,204 @@
+2013-01-08  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* AMMUNITION/IEEE.c (binary_string_to_float): Additional
+	parentheses.
+	* DINO/compare.tst: Copyright 2013.
+	(test 1): Increase rep for fastest processor.
+	(test 2): Ditto. Use slices.
+	(test 20, test 30): Ditto.
+	(test 26, test 31):  Increase rep for fastest processor.
+	* DINO/d_common.h: Copyright 2013.
+	(__always__, do_inline, do_always_inline): New macros.
+	(ATTRIBUTE_UNUSED): New macro.
+	* DINO/d_context.c: Copyright 2013.  Use d_assert instead of
+	assert.  Rename rem_assign to mod_assign.  Use do_inline instead
+	of inline.  Use d_unreachable.
+	(check_slice): New function.
+	(first_expr_processing): Use check_slice.  Add cases for folding
+	operations and slice.
+	(include_decl): Check NULL file_name.
+	(first_block_passing): Use check_slice.
+	(second_block_passing): Check slice in foreach stmt.
+	(surrounding_class): Remove.
+	(value_type): Simplify.
+	(bin_slice_p, unary_slice_p): New functions.
+	(process_actuals, add_flatten_node_if_necessary): Ditto.
+	(third_expr_processing): Set value type for char, int, float,
+	string, nil, func occurrence, class occurrence, and type nodes.
+	Add a special decl for undeclared ident.  Set
+	extended_life_context_flag for curr_real_scope.  Permit slice
+	operands for the operands and set slice type for result when it is
+	necessary.  Add code for fold operations and slices.  Use
+	process_actuals.
+	(make_designator_lvalue): Add code for slices.
+	(make_slice_assign_mode, surrounding_func_block): New functions.
+	(third_block_passing): Process slices for assignment nodes.  Add
+	flatten nodes if necessary.  Use process_actuals.
+	(dump_code): Add code for fold operations, slices, slice
+	assignments, and flatten nodes.
+	* DINO/d_conv.c: Copyright 2013.  Use d_assert instead of assert.
+	Use do_inline instead of inline.
+	(to_vect_string_conversion): Use set_vect_dim.
+	(implicit_eq_conversion): Adittional parentheses.
+	* DINO/d_dino.c: Copyright 2013.  Use d_assert instead of assert.
+	Use d_unreachable.
+	* DINO/d_dino.h: Copyright 2013.
+	(d_assert, d_unreachable): New macros.
+	* DINO/d_errors.[ch]: Copyright 2013.
+	(ERR_period_ident_applied_to_slice): New.
+	(ERR_vector_element_access_applied_to_slice): New.
+	(ERR_table_element_access_applied_to_slice): New.
+	(ERR_call_applied_to_slice, ERR_slice_as_foreach_designator): New.
+	(ERR_invalid_fold_arithmetic_operation_operand_type): New.
+	(ERR_invalid_slice_start_type, ERR_invalid_slice_bound_type): New.
+	(ERR_invalid_slice_step_type): New.
+	(DERR_slice_start_is_not_int, DERR_slice_bound_is_not_int): New.
+	(DERR_slice_step_is_not_int): New.
+	(DERR_different_slice_operand_lengths): New.
+	(DERR_slice_operand_form, DERR_different_vec_operand_lengths):
+	New.
+	(DERR_vector_form_type): New.
+	* DINO/d_eval.c: Copyright 2013.  Use d_assert instead of assert.
+	Rename rem_assign to mod_assign.  Use do_inline instead of inline.
+	Use d_unreachable.
+	(load_packed_vector_element): New.
+	(load_vector_element_by_index): Use load_packed_vector_element.
+	(store_packed_vector_element): New.
+	(store_vector_element): Use store_packed_vector_element.
+	(load_given_designator_value): Remove.
+	(check_and_get_slice_info): New.
+	(process_slice_extract, slice_extract, process_slice_assign): New.
+	(slice_assign): New.
+	(op_i1, op_i2, op_f1, op_f2): New variables.
+	(ar_convert, int_convert, int_bin_op, float_bin_op, vect_bin_op):
+	New.
+	(ifunc, ffunc, icmpf, fcmpf): New macros.
+	(iplus, iminus, imult, idiv, imod, iand, ixor, ior, ilshift): New.
+	(irshift, iashift, ieq, ine, ilt, ile, igt, ige, iplus, fminus): New.
+	(fmult, fdiv, frem, feq, fne, flt, fle, fgt, fge): New.
+	(ifunc1, ffunc1, iffunc1): New macros.
+	(iunary_plus, iunary_minus, funary_plus, funary_minus, inot): New.
+	(fnot, ibitwise_not): New.
+	(execute_ar_op, execute_plus_op, execute_minus_op): New.
+	(execute_mult_op, execute_div_op, execute_mod_op, execute_int_op): New.
+	(execute_lshift_op, execute_rshift_op, execute_ashift_op): New.
+	(execute_and_op, execute_xor_op, execute_or_op): New.
+	(execute_concat_op): Move.  Add parameter and code for vector
+	oeprations.
+	(execute_in_op, execute_common_eq_ne_op, comp_op, execute_eq_op): New.
+	(execute_ne_op, execute_common_cmp_op, execute_lt_op): New.
+	(execute_ge_op, execute_gt_op, execute_le_op, execute_identity_op): New.
+	(execute_unary_ar_op, execute_not_op, execute_bitwise_not_op): New.
+	(execute_length_op, execute_new_op, execute_const_op): New.
+	(execute_typeof_op, execute_charof_op, execute_intof_op): New.
+	(execute_floatof_op, execute_vectorof_op, execute_tableof_op): New.
+	(execute_funcof_op, execute_threadof_op, execute_classof_op): New.
+	(get_left_operand, get_right_operand, int_pack_vect_op): New.
+	(float_pack_vect_op, char_pack_vect_cmp_op, int_pack_vect_cmp_op): New.
+	(float_pack_vect_cmp_op, process_binary_vect_op, get_dim): New.
+	(binary_vect_op, int_pack_vect_unary_op, float_pack_vect_unary_op): New.
+	(process_unary_vect_op, unary_vect_op, execute_pack_fold_op): New.
+	(process_fold_vect_op, fold_vect_op): New.
+	(evaluate_code): Add code for flatten node, fold vector
+	operations, slice operations, and slice assignments.  Use new
+	functions.
+	(initiate_vars, eval_error): Use set_vect_dim.
+	(profile_compare_function): Use ATTRIBUTE_UNUSED for time1 and
+	time2.
+	* DINO/d_extern.sprut: Include <string.h> and <assert.h>.
+	Copyright 2013.  Use d_assert instead of assert.  Rename
+	rem_assign to mod_assign.  Add mode for emacs.
+	(d_assert, __always__, do_always_inline): New macros.
+	(set_vect_dim, set_packed_vect_el): New.
+	(vect): Put dim after vect field.  Use heap_vect type.
+	(tab): Use heap_tab.
+	* DINO/d_func.c: Copyright 2013.  Use d_assert instead of assert.
+	Use d_unreachable.  Use do_inline for inline functions.
+	(to_lower_upper, trans_call, match_call, gmatch_call): Use set_vect_dim.
+	(generall_sub_call): Ditto.
+	(split_call): Ditto.  Use set_packed_vect_el.
+	(subv_call, del_call, general_ins_call, rev_call, sort_call): Use set_vect_dim.
+	(getcwd_call, finish_output): Ditto.
+	(general_get_ln_file_call): Ditto.  Use set_packed_vect_el.
+	(scanel, getgroups_call): Use set_vect_dim.
+	(readdir_call): Ditto.  Use set_packed_vect_el.
+	(fun_call, mode_finish, strtime_call, create_instance): Use
+	set_vect_dim.
+	(tree_to_heap): Ditto.
+	* DINO/d_gmp.c: Remove assert.h.  Copyright 2013.  Use d_assert
+	instead of assert.
+	(_z_get_str): Use set_vect_dim.
+	* DINO/d_heap.c: Copyright 2013.  Use d_assert instead of assert.
+	Use d_unreachable.  Use do_inline or do_always_inline for inline
+	functions.
+	(type_size): Remove.  Use type_size_table instead.
+	(change_val): Case for external_var_ref.
+	* DINO/d_ieee.c: Remove assert.h.  Copyright 2013.  Use d_assert
+	instead of assert.
+	(ieee_single_to_binary_string, ieee_single_to_string): Use
+	set_vect_dim.
+	(ieee_double_to_binary_string, ieee_double_to_string): Ditto.
+	(ieee_quad_to_binary_string, ieee_quad_to_string): Ditto.
+	* DINO/d_ipcerr.c: Remove assert.h.  Copyright 2013.  Use d_assert
+	instead of assert.
+	(set_ipc_os_error): Remove.
+	(set_ipc_err_vars): Use set_vect_dim.
+	* DINO/d_ir.sprut: Copyright 2013.  Use d_assert instead of
+	assert.  Use d_unreachable.  Use do_always_inline for inline
+	functions.  Add mode for emacs.
+	(enum expr_value_type): Add EVT_SLICE.
+	(EVT_INT_VECTOR_MASK, EVT_VECTOR_SLICE_MASK): New.
+	(EVT_TABLE_SLICE_MASK): New.
+	(EVT_NUMBER_VECTOR_SLICE_MASK): New.
+	(EVT_NUMBER_VECTOR_TABLE_SLICE_MASK): New.
+	(ENVIRONMENT): Add definitions of invslice, slicetype, sliceform,
+	invector, veclen, vecform, invslices, invectors.
+	(INVSLICE_NAME, SLICETYPE_NAME, SLICEFORM_NAME, INVECTOR_NAME):
+	New macros.
+	(VECLEN_NAME, VECFORM_NAME, INVSLICES_NAME, INVECTORS_NAME): Ditto.
+	(invslice_decl, slicetype_decl, sliceform_decl, invector_decl):
+	New definitions.
+	(veclen_decl, vecform_decl, invslices_decl, invectors_decl):
+	Ditto.
+	(fold_plus, fold_mult, fold_and, fold_xor, fold_or, slice): New
+	nodes.
+	(rem_assign): Rename to mod_assign.
+	(flatten, lvalue_slice, lvalue_slice_and_val, slice_assign_stmt):
+	New.
+	(slice_assign, mult_slice_assign, div_slice_assign): New.
+	(mod_slice_assign, plus_slice_assign, minus_slice_assign): New.
+	(concat_slice_assign, lshift_slice_assign, rshift_slice_assign): New.
+	(ashift_slice_assign, and_slice_assign, xor_slice_assign): New.
+	(or_slice_assign): New.
+	(decls_table): Add entries invslice, slicetype, sliceform,
+	invector, veclen, vecform, invslices, invectors.
+	* DINO/d_mpi.c: Remove assert.h.  Copyright 2013.  Use d_assert
+	instead of assert.
+	(to_based_string): Use set_vect_dim.
+	* DINO/d_run.sprut: Copyright 2013.  Add mode for emacs.
+	(type_size_table, val_displ_table): Remove.
+	* DINO/d_runtab.c: Copyright 2013.  Use d_assert instead of
+	assert.
+	* DINO/d_socket.c: Remove assert.h.  Add ctype.h and unistd.h.
+	Copyright 2013.  Use d_assert instead of assert.
+	(_gethostinfo, form_servent): Use set_vect_dim.  Use
+	set_packed_vect_el.
+	(_recvfrom, _accept): Use set_vect_dim.
+	* DINO/d_yacc.h: Copyright 2013.
+	(yyparse): Change prototype.
+	* DINO/d_yacc.y: Copyright 2013.  Use d_assert instead of assert.
+	(REM_ASSIGN): Rename to MOD_ASSIGN.
+	(FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR): New tokens.  Set
+	priority.
+	(expr): New rules for fold operations.
+	(designator): New rules for slices.
+	(opt_step): New nonterminal and rules for it.
+	(yylex): Return tokens for folding operations.
+	* DINO/dino.tst.in: Copyright 2013.
+	(265, 285): Modify line in error.
+	(584, 585): Modify debug output.
+	(586 - 604): New tests.
+
 2012-12-02  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* Makefile.in (all): Use macro MAKE.  Build all REGEX.

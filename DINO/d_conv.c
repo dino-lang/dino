@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -28,10 +28,7 @@
 
 /* The file contains functions for run-time conversion values. */
 
-#if INLINE && !defined (SMALL_CODE)
-__inline__
-#endif
-ER_node_t
+ER_node_t do_inline
 to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
 {
   ER_node_mode_t mode;
@@ -66,7 +63,7 @@ to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
       vect = create_string (representation);
       tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
       ER_SET_MODE (tvar, ER_NM_vect);
-      ER_set_vect (tvar, vect);
+      set_vect_dim (tvar, vect, 0);
       return tvar;
   }
   else if (mode == ER_NM_vect)
@@ -78,24 +75,21 @@ to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
 	pack_vector_if_possible (ER_vect (var));
       if (format != NULL)
 	{
-	  assert (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_vect
-		  && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char);
+	  d_assert (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_vect
+		    && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char);
 	  sprintf (str, format, ER_pack_els (ER_vect (var)));
 	  /* Remeber `var' may be changed in GC. */
 	  vect = create_string (str);
 	  tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
 	  ER_SET_MODE (tvar, ER_NM_vect);
-	  ER_set_vect (tvar, vect);
+	  set_vect_dim (tvar, vect, 0);
 	  return tvar;
 	}
     }
   return var;
 }
 
-#if INLINE && !defined (SMALL_CODE)
-__inline__
-#endif
-ER_node_t
+ER_node_t do_inline
 implicit_arithmetic_conversion (ER_node_t var, int tvar_num)
 {
   int_t i;
@@ -178,10 +172,7 @@ implicit_conversion_for_binary_arithmetic_op (ER_node_t op1, ER_node_t op2,
     }
 }
 
-#if INLINE && !defined (SMALL_CODE)
-__inline__
-#endif
-ER_node_t
+ER_node_t do_inline
 implicit_int_conversion (ER_node_t op, int tvar_num)
 {
   int_t i;
@@ -204,10 +195,7 @@ implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
   *r = implicit_int_conversion (op2, tvar_num2);
 }
 
-#if INLINE && !defined (SMALL_CODE)
-__inline__
-#endif
-static ER_node_t
+static ER_node_t do_inline
 implicit_eq_conversion (ER_node_t op, int tvar_num)
 {
   int_t i;
@@ -243,12 +231,12 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
       GO_THROUGH_REDIR (vect);
       ER_set_vect (op1, vect);
     }
-  string_flag = (ER_NODE_MODE (op2) == ER_NM_vect
-		 && ER_NODE_MODE (ER_vect (op2)) == ER_NM_heap_pack_vect
-		 && ER_pack_vect_el_type (ER_vect (op2)) == ER_NM_char
-		 || ER_NODE_MODE (op1) == ER_NM_vect
-		 && ER_NODE_MODE (ER_vect (op1)) == ER_NM_heap_pack_vect
-		 && ER_pack_vect_el_type (ER_vect (op1)) == ER_NM_char);
+  string_flag = ((ER_NODE_MODE (op2) == ER_NM_vect
+		  && ER_NODE_MODE (ER_vect (op2)) == ER_NM_heap_pack_vect
+		  && ER_pack_vect_el_type (ER_vect (op2)) == ER_NM_char)
+		  || (ER_NODE_MODE (op1) == ER_NM_vect
+		      && ER_NODE_MODE (ER_vect (op1)) == ER_NM_heap_pack_vect
+		      && ER_pack_vect_el_type (ER_vect (op1)) == ER_NM_char));
   if (string_flag)
     {
       *r = op2 = to_vect_string_conversion (op2, NULL, tvar_num2);

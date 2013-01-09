@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -28,5 +28,5 @@ extern IR_node_t first_program_stmt;
 
 extern void initiate_scanner (void);
 extern void start_scanner_file (const char *file_name, position_t error_pos);
-extern yyparse (void);
+extern int yyparse (void);
 extern void finish_scanner (void);

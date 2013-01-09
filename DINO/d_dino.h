@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -101,6 +101,10 @@
 #define assert(code) do { if (code == 0) abort ();} while (0)
 #endif
 #endif
+
+#define d_assert assert
+
+#define d_unreachable() abort ()
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

@@ -1,7 +1,7 @@
 /* This file contains execution (run-time) objects description. */
 
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -75,9 +75,6 @@ extern ER_node_t first_process_not_started;
 
 #define GO_THROUGH_REDIR(ref)\
  while (ER_NODE_MODE (ref) == ER_NM_heap_redir) (ref) = ER_redir (ref)
-
-extern size_t type_size_table [];
-extern size_t val_displ_table [];
 
 extern void initiate_int_tables (void);
 
@@ -179,3 +176,9 @@ heap_process
   /* Program counter which will be first after the resuming the process. */
   saved_pc : pc_t
 ;
+
+/*
+Local Variables:
+mode:c
+End:
+*/

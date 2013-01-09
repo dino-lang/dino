@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -32,8 +32,6 @@
 #include "gmp.h"
 #endif
 
-#include <assert.h>
-
 #ifdef HAVE_GMP_H
 static val_t
 return_hideblock (ER_node_t hideblock)
@@ -52,7 +50,7 @@ _z_create (int npars, val_t *vals)
   void *mpz;
   ER_node_t hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   hideblock = create_hideblock (sizeof (mpz_t));
   mpz = ER_hideblock_start (hideblock);
   mpz_init (mpz);
@@ -73,7 +71,7 @@ return_nil (void)
 val_t
 _z_clear (int npars, val_t *vals)
 {
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   mpz_clear (* (mpz_t *) ER_hideblock_start (ER_hideblock ((ER_node_t) vals)));
   return return_nil ();
 }
@@ -86,10 +84,10 @@ mpz_three_op (int npars, val_t *vals, void **hidevalue1, void **hidevalue2,
   ER_node_t var2;
   ER_node_t first_var;
 
-  assert (npars == 3
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
+  d_assert (npars == 3
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
   var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
   var2 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 2))), 1);
   first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
@@ -105,10 +103,10 @@ mpz_two_op_ui (int npars, val_t *vals, void **hidevalue, int_t *ui,
   ER_node_t var1;
   ER_node_t first_var;
 
-  assert (npars == 3
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);
+  d_assert (npars == 3
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);
   var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
   first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *hidevalue = ER_hideblock_start (ER_hideblock (var1));
@@ -122,9 +120,9 @@ mpz_two_op (int npars, val_t *vals, void **hidevalue, void **first_hidevalue)
   ER_node_t var;
   ER_node_t first_var;
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
   var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
   first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *hidevalue = ER_hideblock_start (ER_hideblock (var));
@@ -136,9 +134,9 @@ mpz_one_op_ui (int npars, val_t *vals, int_t *ui, void **first_hidevalue)
 {
   ER_node_t first_var;
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   first_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   *ui = ER_i ((ER_node_t) (vals + 1));
   *first_hidevalue = ER_hideblock_start (ER_hideblock (first_var));
@@ -322,9 +320,9 @@ _z_set_str (int npars, val_t *vals)
 {
   ER_node_t res_var;
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect);
   res_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   mpz_set_str (*(mpz_t *) ER_hideblock_start (ER_hideblock (res_var)),
 	       ER_pack_els (ER_vect ((ER_node_t) (vals + 1))), 0);
@@ -336,7 +334,7 @@ _z_get_si (int npars, val_t *vals)
 {
   ER_node_t var;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
   var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   return return_int (mpz_get_si (*(mpz_t *)
 				 ER_hideblock_start (ER_hideblock (var))));
@@ -347,7 +345,7 @@ _z_get_d (int npars, val_t *vals)
 {
   ER_node_t var;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
   var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   return return_float (mpz_get_d (*(mpz_t *)
 				  ER_hideblock_start (ER_hideblock (var))));
@@ -383,7 +381,7 @@ _z_get_str (int npars, val_t *vals)
   vect = create_string (start);
   free (start);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 

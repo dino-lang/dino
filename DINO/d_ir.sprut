@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -56,11 +56,14 @@ enum expr_value_type
   EVT_TABLE = 16,
   EVT_FUNC = 32,
   EVT_CLASS = 64,
-  EVT_TYPE = 128
+  EVT_TYPE = 128,
+  EVT_SLICE = 256
 };
 
 /* This is mask for number. */
 #define EVT_NUMBER_MASK (EVT_CHAR | EVT_INT | EVT_FLOAT)
+/* This is mask for int or vector. */
+#define EVT_INT_VECTOR_MASK (EVT_INT | EVT_VECTOR)
 /* This is mask for number or vector. */
 #define EVT_NUMBER_VECTOR_MASK (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VECTOR)
 /* This is mask for number, vector, or table. */
@@ -68,6 +71,15 @@ enum expr_value_type
    (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VECTOR  | EVT_TABLE)
 /* This is mask for number or string. */
 #define EVT_NUMBER_STRING_MASK EVT_NUMBER_VECTOR_MASK
+/* This is mask for vector or slice. */
+#define EVT_VECTOR_SLICE_MASK (EVT_VECTOR | EVT_SLICE)
+/* This is mask for table or slice. */
+#define EVT_TABLE_SLICE_MASK (EVT_TABLE | EVT_SLICE)
+/* This is mask for number, vector, or slice. */
+#define EVT_NUMBER_VECTOR_SLICE_MASK (EVT_NUMBER_VECTOR_MASK | EVT_SLICE)
+/* This is mask for number, vector, table, or slice. */
+#define EVT_NUMBER_VECTOR_TABLE_SLICE_MASK \
+  (EVT_NUMBER_VECTOR_TABLE_MASK | EVT_SLICE)
 
 typedef enum expr_value_type expr_value_type_t;
 
@@ -188,7 +200,7 @@ extern IR_node_t get_float_node (floating_t number_value, position_t pos);
 /* Return real block vars number (see commentaries for
    block_node).  Remember that class-constructor has only one
    permanent var corresponding self-value. */
-static inline
+static int do_always_inline
 real_block_vars_number (IR_node_t block_node_ptr)
 {
   return (IR_func_class_ext (block_node_ptr) != NULL
@@ -265,6 +277,14 @@ typedef IR_node_t pc_t;
   "      class indextype (msg) {}\n"\
   "      class indexvalue (msg) {}\n"\
   "      class indexop (msg) {}\n"\
+  "    }\n"\
+  "    class invslice (msg) {\n"\
+  "      class slicetype (msg) {}\n"\
+  "      class sliceform (msg) {}\n"\
+  "    }\n"\
+  "    class invector (msg) {\n"\
+  "      class veclen (msg) {}\n"\
+  "      class vecform (msg) {}\n"\
   "    }\n"\
   "    class invkey (msg) {\n"\
   "      class keyvalue (msg) {}\n"\
@@ -360,6 +380,8 @@ typedef IR_node_t pc_t;
   "var final signals = errors.signal (nil);\n"\
   "var final invops = errors.invop (nil);\n"\
   "var final invindexes = errors.invindex (nil);\n"\
+  "var final invslices = errors.invslice (nil);\n"\
+  "var final invectors = errors.invector (nil);\n"\
   "var final invkeys = errors.invkey (nil);\n"\
   "var final invcalls = errors.invcall (nil);\n"\
   "var final syserrors = invcalls.syserror (nil);\n"\
@@ -531,6 +553,24 @@ extern IR_node_t indexvalue_decl;
 
 #define INDEXOP_NAME "indexop"
 extern IR_node_t indexop_decl;
+
+#define INVSLICE_NAME "invslice"
+extern IR_node_t invslice_decl;
+
+#define SLICETYPE_NAME "slicetype"
+extern IR_node_t slicetype_decl;
+
+#define SLICEFORM_NAME "sliceform"
+extern IR_node_t sliceform_decl;
+
+#define INVECTOR_NAME "invector"
+extern IR_node_t invector_decl;
+
+#define VECLEN_NAME "veclen"
+extern IR_node_t veclen_decl;
+
+#define VECVALUE_NAME "vecform"
+extern IR_node_t vecform_decl;
 
 #define INVKEY_NAME "invkey"
 extern IR_node_t invkey_decl;
@@ -783,6 +823,12 @@ extern IR_node_t invops_decl;
 
 #define INVINDEXES_NAME "invindexes"
 extern IR_node_t invindexes_decl;
+
+#define INVSLICES_NAME "invslices"
+extern IR_node_t invslices_decl;
+
+#define INVECTORS_NAME "invectors"
+extern IR_node_t invectors_decl;
 
 #define INVKEYS_NAME "invkeys"
 extern IR_node_t invkeys_decl;
@@ -1350,8 +1396,9 @@ cond :: expr
 ;
 
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
-   typeof, charof, intof, floatof, vectorof, tableof,
-   funcof, threadof, classof :: unary_operation
+  fold_plus, fold_mult, fold_and, fold_xor, fold_or,
+  typeof, charof, intof, floatof, vectorof, tableof,
+  funcof, threadof, classof :: unary_operation
 ;
 
 format_vectorof :: binary_operation
@@ -1380,6 +1427,13 @@ period_designator :: component_designator
 ;
 
 period :: period_designator
+;
+
+/* component for slice is the slice start.  */
+slice :: index_designator
+%other
+        bound : expr
+        step : expr
 ;
 
 %abstract
@@ -1450,7 +1504,7 @@ assign_stmt :: stmt
 /* var_assign is an assign inside var-clause.  par_assign (or assign for
    parameter) if the parameter value is nil.  See also node
    par_assign_test. */
-assign, mult_assign, div_assign, rem_assign,
+assign, mult_assign, div_assign, mod_assign,
 plus_assign, minus_assign, concat_assign, lshift_assign,
 rshift_assign, ashift_assign, and_assign, xor_assign, or_assign,
 var_assign, par_assign :: assign_stmt
@@ -1649,7 +1703,7 @@ component_designator
 index_designator
 %other
         /* Number of variable of the current stack which contains the
-	   index or key value.  */
+	   index, key, or slice start value.  */
         component_op_num : int_t
 ;
 
@@ -1690,6 +1744,12 @@ type
         type_result_num : int_t
 ;
 
+flatten :: generic_pos
+%other
+        /* In what local variable the vector should be flattened is put.  */
+        flatten_vect_num : int_t
+;
+
 expr
 %other
 	/* Possible types of value of given operation. */
@@ -1722,6 +1782,9 @@ lvalue_index, lvalue_index_and_val :: vec_index_designator
 ;
 
 lvalue_key_index, lvalue_key_index_and_val :: key_index_designator
+;
+
+lvalue_slice, lvalue_slice_and_val :: slice
 ;
 
 lvalue_period, lvalue_period_and_val :: period_designator
@@ -1809,14 +1872,24 @@ class_func_thread_call
         func_call_start_num : int_t
 ;
 
+slice
+%other
+        /* Dimension of the slice.  In other words, how many triples
+	   (start, bound, step) is in the final slice.  */
+        dim : int_t {$ = 1;}
+;
+
 assign_stmt
 %other
         /* Number of local variable where the container of the
 	   assignment var is stored.  The container for local_assign
-	   means the local variable itself. */
+	   means the local variable itself.  The container for slice
+	   is the slice start (vector, and sequence of triples (start,
+	   bound, and step)).  */
 	container_num : int_t
-        /* Number of local variable where index is stored.  It is not
-	   used for period, extern var, or local_assign.  */
+        /* Number of local variable where index or slice dimension is
+	   stored.  It is not used for period, extern var, or
+	   local_assign.  */
 	index_num : int_t
 	/* Nonegative only for op-assignment.  In this case, it is a
 	   number of local temporary variable where lvalue value is
@@ -1825,6 +1898,16 @@ assign_stmt
         /* Number of local variable where the assignment expr value is
 	   stored.  */
 	expr_num : int_t
+;
+
+%abstract
+slice_assign_stmt :: assign_stmt
+;
+
+slice_assign, mult_slice_assign, div_slice_assign, mod_slice_assign,
+plus_slice_assign, minus_slice_assign, concat_slice_assign,
+lshift_slice_assign, rshift_slice_assign, ashift_slice_assign,
+and_slice_assign, xor_slice_assign, or_slice_assign :: slice_assign_stmt
 ;
 
 proc_call
@@ -2205,7 +2288,7 @@ hash_func (hash_table_entry_t el_ptr)
 	  size = strlen (chp);
 	}
       else
-	assert (FALSE);
+	d_unreachable ();
       for (hash_value = 0, i = 0; i < size; i++, chp++)
 	hash_value += (*chp);
     }
@@ -2260,7 +2343,7 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
 	      = strcmp (IR_string_value (node_ref1),
                         IR_string_value (node_ref2)) == 0;
 	  else
-	    assert (FALSE);
+	    d_unreachable ();
 	}
     }
   return elements_are_equal;
@@ -2393,7 +2476,7 @@ create_unique_ident_node (const char *str)
 IR_node_mode_t
 occurrence_mode (IR_node_t decl)
 {
-  assert (decl != NULL);
+  d_assert (decl != NULL);
   if (IR_NODE_MODE (decl) == IR_NM_var)
     return IR_NM_var_occurrence;
   else if (IR_NODE_MODE (decl) == IR_NM_external_var)
@@ -2405,7 +2488,7 @@ occurrence_mode (IR_node_t decl)
   else if (IR_NODE_MODE (decl) == IR_NM_class)
     return IR_NM_class_occurrence;
   else
-    assert (FALSE);
+    d_unreachable ();
   return IR_NM_var_occurrence; /* No warnings */
 }
 
@@ -2473,7 +2556,7 @@ find_decl (IR_node_t ident, IR_node_t scope)
 {
   IR_node_t decl;
 
-  assert (scope != NULL);
+  d_assert (scope != NULL);
   for (;;)
     {
       decl = find_decl_in_given_scope (ident, scope);
@@ -2494,10 +2577,10 @@ set_a_environment_declaration (IR_node_t *ptr, char *name,
   IR_node_t unique_ident;
 
   unique_ident = find_unique_ident (name);
-  assert (unique_ident != NULL);
+  d_assert (unique_ident != NULL);
   IR_set_unique_ident (temp_ident, unique_ident);
   *ptr = find_decl_in_given_scope (temp_ident, environment_scope);
-  assert (*ptr != NULL);
+  d_assert (*ptr != NULL);
   IR_set_implementation_func (*ptr, func);
 }
 
@@ -2519,6 +2602,12 @@ IR_node_t invindex_decl;
 IR_node_t indextype_decl;
 IR_node_t indexvalue_decl;
 IR_node_t indexop_decl;
+IR_node_t invslice_decl;
+IR_node_t slicetype_decl;
+IR_node_t sliceform_decl;
+IR_node_t invector_decl;
+IR_node_t veclen_decl;
+IR_node_t vecform_decl;
 IR_node_t invkey_decl;
 IR_node_t keyvalue_decl;
 IR_node_t keyop_decl;
@@ -2603,6 +2692,8 @@ IR_node_t errors_decl;
 IR_node_t signals_decl;
 IR_node_t invops_decl;
 IR_node_t invindexes_decl;
+IR_node_t invslices_decl;
+IR_node_t invectors_decl;
 IR_node_t invkeys_decl;
 IR_node_t syserrors_decl;
 IR_node_t invcalls_decl;
@@ -2767,6 +2858,12 @@ static struct decl_entry decls_table [] =
   {&indextype_decl, INDEXTYPE_NAME, &invindex_decl, NULL},
   {&indexvalue_decl, INDEXVALUE_NAME, &invindex_decl, NULL},
   {&indexop_decl, INDEXOP_NAME, &invindex_decl, NULL},
+  {&invslice_decl, INVSLICE_NAME, &error_decl, NULL},
+  {&slicetype_decl, SLICETYPE_NAME, &invslice_decl, NULL},
+  {&sliceform_decl, SLICEFORM_NAME, &invslice_decl, NULL},
+  {&invector_decl, INVECTOR_NAME, &error_decl, NULL},
+  {&veclen_decl, VECLEN_NAME, &invector_decl, NULL},
+  {&vecform_decl, VECVALUE_NAME, &invector_decl, NULL},
   {&invkey_decl, INVKEY_NAME, &error_decl, NULL},
   {&keyvalue_decl, KEYVALUE_NAME, &invkey_decl, NULL},
   {&keyop_decl, KEYOP_NAME, &invkey_decl, NULL},
@@ -2851,6 +2948,8 @@ static struct decl_entry decls_table [] =
   {&signals_decl, SIGNALS_NAME, NULL, NULL},
   {&invops_decl, INVOPS_NAME, NULL, NULL},
   {&invindexes_decl, INVINDEXES_NAME, NULL, NULL},
+  {&invslices_decl, INVSLICES_NAME, NULL, NULL},
+  {&invectors_decl, INVECTORS_NAME, NULL, NULL},
   {&invkeys_decl, INVKEYS_NAME, NULL, NULL},
   {&syserrors_decl, SYSERRORS_NAME, NULL, NULL},
   {&invcalls_decl, INVCALLS_NAME, NULL, NULL},
@@ -3143,3 +3242,9 @@ f2a (floating_t number)
   return result;
 }
 
+
+/*
+Local Variables:
+mode:c
+End:
+*/

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -28,7 +28,6 @@
 #include "d_extern.h"
 #include "arithm.h"
 #include "IEEE.h"
-#include <assert.h>
 #include <string.h>
 
 /* Reset, bits, round etc. initi single, float, double. */
@@ -69,7 +68,7 @@ return_nil (void)
 val_t
 ieee_set_trap_mask (int npars, val_t *vals)
 {
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   IEEE_set_trap_mask (ER_i ((ER_node_t) vals));
   return return_nil ();
 }
@@ -77,14 +76,14 @@ ieee_set_trap_mask (int npars, val_t *vals)
 val_t
 ieee_get_trap_mask (int npars, val_t *vals)
 {
-  assert (npars == 0);
+  d_assert (npars == 0);
   return return_int (IEEE_get_trap_mask ());
 }
 
 val_t
 ieee_set_sticky_status_bits (int npars, val_t *vals)
 {
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   IEEE_set_sticky_status_bits (ER_i ((ER_node_t) vals));
   return return_nil ();
 }
@@ -92,21 +91,21 @@ ieee_set_sticky_status_bits (int npars, val_t *vals)
 val_t
 ieee_get_sticky_status_bits (int npars, val_t *vals)
 {
-  assert (npars == 0);
+  d_assert (npars == 0);
   return return_int (IEEE_get_sticky_status_bits ());
 }
 
 val_t
 ieee_get_status_bits (int npars, val_t *vals)
 {
-  assert (npars == 0);
+  d_assert (npars == 0);
   return return_int (IEEE_get_status_bits ());
 }
 
 val_t
 ieee_set_round (int npars, val_t *vals)
 {
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   IEEE_set_round (ER_i ((ER_node_t) vals));
   return return_nil ();
 }
@@ -114,7 +113,7 @@ ieee_set_round (int npars, val_t *vals)
 val_t
 ieee_get_round (int npars, val_t *vals)
 {
-  assert (npars == 0);
+  d_assert (npars == 0);
   return return_int (IEEE_get_round ());
 }
 
@@ -124,7 +123,7 @@ ieee_single_positive_zero (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_positive_zero ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -137,7 +136,7 @@ ieee_double_positive_zero (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_positive_zero ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -150,7 +149,7 @@ ieee_quad_positive_zero (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_positive_zero ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -163,7 +162,7 @@ ieee_single_negative_zero (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_negative_zero ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -176,7 +175,7 @@ ieee_double_negative_zero (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_negative_zero ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -189,7 +188,7 @@ ieee_quad_negative_zero (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_negative_zero ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -202,7 +201,7 @@ ieee_single_nan (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_NaN ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -215,7 +214,7 @@ ieee_double_nan (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_NaN ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -228,7 +227,7 @@ ieee_quad_nan (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_NaN ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -241,7 +240,7 @@ ieee_single_trapping_nan (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_trapping_NaN ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -254,7 +253,7 @@ ieee_double_trapping_nan (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_trapping_NaN ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -267,7 +266,7 @@ ieee_quad_trapping_nan (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_trapping_NaN ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -280,7 +279,7 @@ ieee_single_positive_infinity (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_positive_infinity ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -293,7 +292,7 @@ ieee_double_positive_infinity (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_positive_infinity ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -306,7 +305,7 @@ ieee_quad_positive_infinity (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_positive_infinity ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -319,7 +318,7 @@ ieee_single_negative_infinity (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_negative_infinity ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -332,7 +331,7 @@ ieee_double_negative_infinity (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_negative_infinity ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -345,7 +344,7 @@ ieee_quad_negative_infinity (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_negative_infinity ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -358,7 +357,7 @@ ieee_single_positive_maximum (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_positive_maximum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -371,7 +370,7 @@ ieee_double_positive_maximum (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_positive_maximum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -384,7 +383,7 @@ ieee_quad_positive_maximum (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_positive_maximum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -397,7 +396,7 @@ ieee_single_negative_maximum (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_negative_maximum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -410,7 +409,7 @@ ieee_double_negative_maximum (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_negative_maximum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -423,7 +422,7 @@ ieee_quad_negative_maximum (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_negative_maximum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -436,7 +435,7 @@ ieee_single_positive_minimum (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_positive_minimum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -449,7 +448,7 @@ ieee_double_positive_minimum (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_positive_minimum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -462,7 +461,7 @@ ieee_quad_positive_minimum (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_positive_minimum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -475,7 +474,7 @@ ieee_single_negative_minimum (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_negative_minimum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -488,7 +487,7 @@ ieee_double_negative_minimum (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_double_negative_minimum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -501,7 +500,7 @@ ieee_quad_negative_minimum (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   res = IEEE_quad_negative_minimum ();
   hideblock = create_hideblock (sizeof (res));
   memcpy (ER_hideblock_start ((ER_node_t) hideblock), &res, sizeof (res));
@@ -511,7 +510,7 @@ ieee_quad_negative_minimum (int npars, val_t *vals)
 static void
 ieee_un_op (int npars, val_t *vals, void *value, int size)
 {
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (value, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)), size);
 }
 
@@ -734,9 +733,9 @@ ieee_is_quad_denormalized (int npars, val_t *vals)
 static void
 ieee_bin_op (int npars, val_t *vals, void *value1, void *value2, int size)
 {
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_hideblock);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_hideblock);
   memcpy (value1, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)), size);
   memcpy (value2, ER_hideblock_start (ER_hideblock ((ER_node_t) (vals + 1))),
 	  size);
@@ -1067,7 +1066,7 @@ ieee_single_to_double (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
   res = IEEE_single_to_double (temp);
@@ -1083,7 +1082,7 @@ ieee_single_to_quad (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
   res = IEEE_single_to_quad (temp);
@@ -1099,7 +1098,7 @@ ieee_double_to_single (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
   res = IEEE_double_to_single (temp);
@@ -1115,7 +1114,7 @@ ieee_double_to_quad (int npars, val_t *vals)
   IEEE_quad_t res;
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
   res = IEEE_double_to_quad (temp);
@@ -1131,7 +1130,7 @@ ieee_quad_to_single (int npars, val_t *vals)
   IEEE_float_t res;
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
   res = IEEE_quad_to_single (temp);
@@ -1147,7 +1146,7 @@ ieee_quad_to_double (int npars, val_t *vals)
   IEEE_double_t res;
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
   res = IEEE_quad_to_double (temp);
@@ -1162,11 +1161,11 @@ extract_mpi (int npars, val_t *vals, int_t *size)
   ER_node_t var;
   ER_node_t size_var;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
   var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
   size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
-  assert (ER_NODE_MODE (var) == ER_NM_hideblock
-	  && ER_NODE_MODE (size_var) == ER_NM_int);
+  d_assert (ER_NODE_MODE (var) == ER_NM_hideblock
+	    && ER_NODE_MODE (size_var) == ER_NM_int);
   *size = ER_i (size_var);
   return ER_hideblock_start (ER_hideblock (var));
 }
@@ -1192,7 +1191,7 @@ ieee_integer_from_single (int npars, val_t *vals)
   IEEE_float_t temp;
   void *hideblock;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   hideblock = extract_mpi (npars - 1, vals + 1, &size);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
@@ -1221,7 +1220,7 @@ ieee_integer_from_double (int npars, val_t *vals)
   IEEE_double_t temp;
   void *hideblock;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   hideblock = extract_mpi (npars - 1, vals + 1, &size);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
@@ -1250,7 +1249,7 @@ ieee_integer_from_quad (int npars, val_t *vals)
   IEEE_quad_t temp;
   void *hideblock;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   hideblock = extract_mpi (npars - 1, vals + 1, &size);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  sizeof (temp));
@@ -1268,16 +1267,16 @@ ieee_single_to_binary_string (int npars, val_t *vals)
   ER_node_t vect;
   char str [80];
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  IEEE_FLOAT_SIZE);
   base = ER_i ((ER_node_t) (vals + 1));
   IEEE_single_to_binary_string (temp, base, str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 
@@ -1290,14 +1289,14 @@ ieee_single_to_string (int npars, val_t *vals)
   ER_node_t vect;
   char str [80];
 
-  assert (npars == 1
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  IEEE_FLOAT_SIZE);
   IEEE_single_to_string (temp, str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 
@@ -1311,8 +1310,8 @@ ieee_double_to_binary_string (int npars, val_t *vals)
   ER_node_t vect;
   char str [80];
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  IEEE_DOUBLE_SIZE);
@@ -1320,7 +1319,7 @@ ieee_double_to_binary_string (int npars, val_t *vals)
   IEEE_double_to_binary_string (temp, base, str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 
@@ -1333,14 +1332,14 @@ ieee_double_to_string (int npars, val_t *vals)
   ER_node_t vect;
   char str [80];
 
-  assert (npars == 1
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  IEEE_DOUBLE_SIZE);
   IEEE_double_to_string (temp, str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 
@@ -1354,8 +1353,8 @@ ieee_quad_to_binary_string (int npars, val_t *vals)
   ER_node_t vect;
   char str [80];
 
-  assert (npars == 2
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
+  d_assert (npars == 2
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock
 	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  IEEE_QUAD_SIZE);
@@ -1363,7 +1362,7 @@ ieee_quad_to_binary_string (int npars, val_t *vals)
   IEEE_quad_to_binary_string (temp, base, str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 
@@ -1376,14 +1375,14 @@ ieee_quad_to_string (int npars, val_t *vals)
   ER_node_t vect;
   char str [80];
 
-  assert (npars == 1
-	  && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
+  d_assert (npars == 1
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_hideblock);
   memcpy (&temp, ER_hideblock_start (ER_hideblock ((ER_node_t) vals)),
 	  IEEE_QUAD_SIZE);
   IEEE_quad_to_string (temp, str);
   vect = create_string (str);
   ER_SET_MODE (res, ER_NM_vect);
-  ER_set_vect (res, vect);
+  set_vect_dim (res, vect, 0);
   return val;
 }
 
@@ -1393,7 +1392,7 @@ ieee_single_from_float (int npars, val_t *vals)
   void *hideblock;
   char str [40];
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float);
   sprintf (str, "%.20e", ER_f ((ER_node_t) vals));
   hideblock = create_hideblock (IEEE_FLOAT_SIZE);
   IEEE_single_from_string
@@ -1407,7 +1406,7 @@ ieee_double_from_float (int npars, val_t *vals)
   void *hideblock;
   char str [40];
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float);
   sprintf (str, "%.20e", ER_f ((ER_node_t) vals));
   hideblock = create_hideblock (IEEE_DOUBLE_SIZE);
   IEEE_double_from_string
@@ -1421,7 +1420,7 @@ ieee_quad_from_float (int npars, val_t *vals)
   void *hideblock;
   char str [40];
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_float);
   sprintf (str, "%.20e", ER_f ((ER_node_t) vals));
   hideblock = create_hideblock (IEEE_QUAD_SIZE);
   IEEE_quad_from_string
@@ -1435,8 +1434,8 @@ ieee_single_from_binary_string (int npars, val_t *vals)
   void *hideblock;
   int base;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   hideblock = create_hideblock (IEEE_FLOAT_SIZE);
   base = ER_i ((ER_node_t) (vals + 1));
   IEEE_single_from_binary_string
@@ -1450,7 +1449,7 @@ ieee_single_from_string (int npars, val_t *vals)
 {
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect);
   hideblock = create_hideblock (IEEE_FLOAT_SIZE);
   IEEE_single_from_string
     (ER_pack_els (ER_vect ((ER_node_t) vals)),
@@ -1464,8 +1463,8 @@ ieee_double_from_binary_string (int npars, val_t *vals)
   void *hideblock;
   int base;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   hideblock = create_hideblock (IEEE_DOUBLE_SIZE);
   base = ER_i ((ER_node_t) (vals + 1));
   IEEE_double_from_binary_string
@@ -1479,7 +1478,7 @@ ieee_double_from_string (int npars, val_t *vals)
 {
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect);
   hideblock = create_hideblock (IEEE_DOUBLE_SIZE);
   IEEE_double_from_string
     (ER_pack_els (ER_vect ((ER_node_t) vals)),
@@ -1493,8 +1492,8 @@ ieee_quad_from_binary_string (int npars, val_t *vals)
   void *hideblock;
   int base;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   hideblock = create_hideblock (IEEE_QUAD_SIZE);
   base = ER_i ((ER_node_t) (vals + 1));
   IEEE_quad_from_binary_string
@@ -1508,7 +1507,7 @@ ieee_quad_from_string (int npars, val_t *vals)
 {
   void *hideblock;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect);
   hideblock = create_hideblock (IEEE_QUAD_SIZE);
   IEEE_quad_from_string
     (ER_pack_els (ER_vect ((ER_node_t) vals)),
@@ -1519,7 +1518,7 @@ ieee_quad_from_string (int npars, val_t *vals)
 val_t
 ieee_reset (int npars, val_t *vals)
 {
-  assert (npars == 0);
+  d_assert (npars == 0);
   IEEE_reset ();
   return return_nil ();
 }

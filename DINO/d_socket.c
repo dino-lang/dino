@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,8 +29,8 @@
 #include "d_config.h"
 #endif
 #include "d_extern.h"
-#include <assert.h>
 #include <errno.h>
+#include <ctype.h>
 #include <string.h>
 
 #ifdef HAVE_SYS_SOCKET_H
@@ -39,6 +39,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #if !defined(__CYGWIN__)
@@ -147,8 +151,8 @@ _gethostinfo (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
   
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
   name = ER_pack_els (ER_vect ((ER_node_t) vals));
   addr = get_ip_address (name);
   if (addr == NULL)
@@ -174,7 +178,7 @@ _gethostinfo (int npars, val_t *vals)
   var = ER_instance_vars (instance);
   vect = create_string (he->h_name);
   ER_SET_MODE (var, ER_NM_vect);
-  ER_set_vect (var, vect);
+  set_vect_dim (var, vect, 0);
   /* aliases */
   var = IVAL (var, 1);
   for (i = 0; he->h_aliases [i] != NULL; i++)
@@ -184,9 +188,9 @@ _gethostinfo (int npars, val_t *vals)
   else
     vect = create_pack_vector (i, ER_NM_vect);
   for (i = 0; he->h_aliases [i] != NULL; i++)
-    ((ER_node_t *) ER_pack_els (vect)) [i] = create_string (he->h_aliases [i]);
+    set_packed_vect_el (vect, i, create_string (he->h_aliases [i]));
   ER_SET_MODE (var, ER_NM_vect);
-  ER_set_vect (var, vect);
+  set_vect_dim (var, vect, 0);
   /* ipaddrs */
   var = IVAL (var, 1);
   for (i = 0; he->h_addr_list [i] != NULL; i++)
@@ -196,11 +200,10 @@ _gethostinfo (int npars, val_t *vals)
   for (i = 0; he->h_addr_list [i] != NULL; i++)
     {
       memcpy (&addr->s_addr, he->h_addr_list [i], he->h_length);
-      ((ER_node_t *) ER_pack_els (vect)) [i]
-	= create_string (inet_ntoa (*addr));
+      set_packed_vect_el (vect, i, create_string (inet_ntoa (*addr)));
     }
   ER_SET_MODE (var, ER_NM_vect);
-  ER_set_vect (var, vect);
+  set_vect_dim (var, vect, 0);
   ER_SET_MODE (res, ER_NM_instance);
   ER_set_instance (res, instance);
   return val;
@@ -223,7 +226,7 @@ form_servent (ER_node_t instance, struct servent *se)
   var = ER_instance_vars (instance);
   vect = create_string (se->s_name);
   ER_SET_MODE (var, ER_NM_vect);
-  ER_set_vect (var, vect);
+  set_vect_dim (var, vect, 0);
   /* aliases */
   var = IVAL (var, 1);
   for (i = 0; se->s_aliases [i] != NULL; i++)
@@ -231,9 +234,9 @@ form_servent (ER_node_t instance, struct servent *se)
   vect = (i == 0
 	  ? create_empty_vector () : create_pack_vector (i, ER_NM_vect));
   for (i = 0; se->s_aliases [i] != NULL; i++)
-    ((ER_node_t *) ER_pack_els (vect)) [i] = create_string (se->s_aliases [i]);
+    set_packed_vect_el (vect, i, create_string (se->s_aliases [i]));
   ER_SET_MODE (var, ER_NM_vect);
-  ER_set_vect (var, vect);
+  set_vect_dim (var, vect, 0);
   /* port */
   var = IVAL (var, 1);
   ER_SET_MODE (var, ER_NM_int);
@@ -242,7 +245,7 @@ form_servent (ER_node_t instance, struct servent *se)
   var = IVAL (var, 1);
   vect = create_string (se->s_proto);
   ER_SET_MODE (var, ER_NM_vect);
-  ER_set_vect (var, vect);
+  set_vect_dim (var, vect, 0);
   ER_SET_MODE (res, ER_NM_instance);
   ER_set_instance (res, instance);
   return val;
@@ -255,18 +258,18 @@ _getservbyport (int npars, val_t *vals)
   int port;
   char *proto;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
   instance = ER_instance ((ER_node_t) vals);
   var = ER_instance_vars (instance);
   /* port */
   var = IVAL (var, 2);
-  assert (ER_NODE_MODE (var) == ER_NM_int);
+  d_assert (ER_NODE_MODE (var) == ER_NM_int);
   port = ER_i (var);
   /* proto */
   var = IVAL (var, 1);
-  assert (ER_NODE_MODE (var) == ER_NM_vect);
+  d_assert (ER_NODE_MODE (var) == ER_NM_vect);
   vect = ER_vect (var);
-  assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   proto = ER_pack_els (vect);
   ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
   ER_set_i ((ER_node_t) &_socket_errno, 0);
@@ -280,19 +283,19 @@ _getservbyname (int npars, val_t *vals)
   ER_node_t instance, var, vect;
   char *name, *proto;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
   instance = ER_instance ((ER_node_t) vals);
   /* name */
   var = ER_instance_vars (instance);
-  assert (ER_NODE_MODE (var) == ER_NM_vect);
+  d_assert (ER_NODE_MODE (var) == ER_NM_vect);
   vect = ER_vect (var);
-  assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   name = ER_pack_els (vect);
   /* proto */
   var = IVAL (var, 3);
-  assert (ER_NODE_MODE (var) == ER_NM_vect);
+  d_assert (ER_NODE_MODE (var) == ER_NM_vect);
   vect = ER_vect (var);
-  assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   proto = ER_pack_els (vect);
   ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
   ER_set_i ((ER_node_t) &_socket_errno, 0);
@@ -308,11 +311,11 @@ _sread (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   sd = ER_i ((ER_node_t) vals);
   len = ER_i ((ER_node_t) (vals + 1));
-  assert (len >= 0);
+  d_assert (len >= 0);
   vect = create_pack_vector (len + 1, ER_NM_char);
   ER_set_els_number (vect, 0);
   len = recv (sd, ER_pack_els (vect), len, 0);
@@ -332,7 +335,7 @@ _sread (int npars, val_t *vals)
       ((char *) ER_pack_els (vect)) [len] = '\0';
       ER_set_els_number (vect, len);
       ER_SET_MODE (res, ER_NM_vect);
-      ER_set_vect (res, vect);
+      set_vect_dim (res, vect, 0);
     }
   return val;
 }
@@ -345,8 +348,8 @@ _swrite (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect);
   sd = ER_i ((ER_node_t) vals);
   str = ER_pack_els (ER_vect ((ER_node_t) (vals + 1)));
   len = ER_els_number (ER_vect ((ER_node_t) (vals + 1)));
@@ -379,12 +382,12 @@ _recvfrom (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 3 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int
-	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
+  d_assert (npars == 3 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
   sd = ER_i ((ER_node_t) vals);
   len = ER_i ((ER_node_t) (vals + 1));
-  assert (len >= 0);
+  d_assert (len >= 0);
   vect = create_pack_vector (len + 1, ER_NM_char);
   ER_set_els_number (vect, 0);
   instance = ER_instance ((ER_node_t) (vals + 2));
@@ -404,11 +407,11 @@ _recvfrom (int npars, val_t *vals)
       ER_set_els_number (vect, len);
       var = ER_instance_vars (instance);
       ER_SET_MODE (var, ER_NM_vect);
-      ER_set_vect (var, vect);
+      set_vect_dim (var, vect, 0);
       /* peer_addr */
       var = IVAL (var, 1);
       ER_SET_MODE (var, ER_NM_vect);
-      ER_set_vect (var, create_string (inet_ntoa (saddr.sin_addr)));
+      set_vect_dim (var, create_string (inet_ntoa (saddr.sin_addr)), 0);
       /* port */
       var = IVAL (var, 1);
       ER_SET_MODE (var, ER_NM_int);
@@ -429,16 +432,16 @@ _sendto (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 4 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 3)) == ER_NM_int);
+  d_assert (npars == 4 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 3)) == ER_NM_int);
   sd = ER_i ((ER_node_t) vals);
   str = ER_pack_els (ER_vect ((ER_node_t) (vals + 1)));
   len = ER_els_number (ER_vect ((ER_node_t) (vals + 1)));
   addr = ER_pack_els (ER_vect ((ER_node_t) (vals + 2)));
   port = ER_i ((ER_node_t) (vals + 3));
-  assert (port >= 0);
+  d_assert (port >= 0);
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons (port);
   sin_addr_ptr = get_ip_address (addr);
@@ -478,7 +481,7 @@ _accept (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   sd = ER_i ((ER_node_t) vals);
   new_sd = accept (sd, (struct sockaddr *)&saddr, &addr_len);
   if (new_sd < 0)
@@ -495,12 +498,12 @@ _accept (int npars, val_t *vals)
       ER_set_i (var, new_sd);
       var = IVAL (ER_unpack_els (vect), 1);
       ER_SET_MODE (var, ER_NM_vect);
-      ER_set_vect (var, create_string (inet_ntoa (saddr.sin_addr)));
+      set_vect_dim (var, create_string (inet_ntoa (saddr.sin_addr)), 0);
       var = IVAL (ER_unpack_els (vect), 2);
       ER_SET_MODE (var, ER_NM_int);
       ER_set_i (var, ntohs (saddr.sin_port));
       ER_SET_MODE (res, ER_NM_vect);
-      ER_set_vect (res, vect);
+      set_vect_dim (res, vect, 0);
     }
   return val;
 }
@@ -515,8 +518,8 @@ _stream_client (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   sfd = socket (AF_INET, SOCK_STREAM, 0);
   if (sfd < 0)
     {
@@ -528,7 +531,7 @@ _stream_client (int npars, val_t *vals)
   /* connect */
   addr = ER_pack_els (ER_vect ((ER_node_t) vals));
   port = ER_i ((ER_node_t) (vals + 1));
-  assert (port >= 0);
+  d_assert (port >= 0);
   saddr.sin_family = AF_INET;
   saddr.sin_port = htons (port);
   sin_addr_ptr = get_ip_address (addr);
@@ -582,11 +585,11 @@ _stream_server (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
-	  && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
+  d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
   port = ER_i ((ER_node_t) vals);
   queue_len = ER_i ((ER_node_t) (vals + 1));
-  assert (port >= 0);
+  d_assert (port >= 0);
   sfd = socket (AF_INET, SOCK_STREAM, 0);
   if (sfd < 0)
     {
@@ -621,9 +624,9 @@ _dgram_server (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   port = ER_i ((ER_node_t) vals);
-  assert (port >= 0);
+  d_assert (port >= 0);
   sfd = socket (AF_INET, SOCK_DGRAM, 0);
   if (sfd < 0)
     {
@@ -656,7 +659,7 @@ _close_socket (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   sd = ER_i ((ER_node_t) vals);
   /* We just ignore the errors becuse our goal to free the descriptors
      in calling function destroy.  */
@@ -671,7 +674,7 @@ _socket_init (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
 
   ER_SET_MODE ((ER_node_t) &_socket_errno, ER_NM_int);
   ER_set_i ((ER_node_t) &_socket_errno, 0);
@@ -697,7 +700,7 @@ _socket_fin (int npars, val_t *vals)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
   ER_SET_MODE (res, ER_NM_nil);
   return val;
 }

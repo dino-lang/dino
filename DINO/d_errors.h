@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -42,6 +42,11 @@ extern char ERR_segment_access_violation_exception[];
 extern char ERR_repeated_decl[];
 extern char ERR_previous_decl_location[];
 extern char ERR_undeclared_ident[];
+extern char ERR_period_ident_applied_to_slice [];
+extern char ERR_vector_element_access_applied_to_slice [];
+extern char ERR_table_element_access_applied_to_slice [];
+extern char ERR_call_applied_to_slice [];
+extern char ERR_slice_as_foreach_designator[];
 extern char ERR_extension_without_class_or_func [];
 extern char ERR_extension_of_final [];
 extern char ERR_udenclared_ident_access_list [];
@@ -52,10 +57,10 @@ extern char ERR_decl_is_absent_in_a_block [];
 extern char ERR_invalid_type_of_arrow_left_operand [];
 extern char ERR_invalid_type_of_deref_operand [];
 extern char ERR_invalid_logical_operation_operand_type [];
-extern char ERR_invalid_comparison_operation_operand_type [];
 extern char ERR_invalid_order_comparison_operation_operand_type [];
 extern char ERR_invalid_concat_operation_operand_type [];
 extern char ERR_invalid_arithmetic_operation_operand_type [];
+extern char ERR_invalid_fold_arithmetic_operation_operand_type [];
 extern char ERR_invalid_repetition_type [];
 extern char ERR_invalid_length_operand_type [];
 extern char ERR_invalid_conversion_to_char_operand_type [];
@@ -68,6 +73,9 @@ extern char ERR_invalid_cond_type [];
 extern char ERR_invalid_vector_type [];
 extern char ERR_invalid_table_type [];
 extern char ERR_invalid_index_type [];
+extern char ERR_invalid_slice_start_type [];
+extern char ERR_invalid_slice_bound_type [];
+extern char ERR_invalid_slice_step_type [];
 extern char ERR_invalid_class_func_thread_designator [];
 extern char ERR_invalid_if_expr_type [];
 extern char ERR_invalid_for_guard_expr_type [];
@@ -135,6 +143,18 @@ extern char DERR_index_is_negative_number [];
 extern char DERR_index_is_greater_than_array_bound [];
 /* Index operation. */
 extern char DERR_index_operation_for_non_array [];
+/* Slice type. */
+extern char DERR_slice_start_is_not_int [];
+extern char DERR_slice_bound_is_not_int [];
+extern char DERR_slice_step_is_not_int [];
+/* Slice len. */
+extern char DERR_different_slice_operand_lengths [];
+/* Slice form. */
+extern char DERR_slice_operand_form [];
+/* Veclen. */
+extern char DERR_different_vec_operand_lengths [];
+/* Vecform. */
+extern char DERR_vector_form_type [];
 /* Key value. */
 extern char DERR_repeated_key [];
 extern char DERR_no_such_key [];

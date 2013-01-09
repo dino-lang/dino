@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -26,7 +26,6 @@
 #include "d_config.h"
 #endif /* #ifdef HAVE_CONFIG_H */
 #include "d_extern.h"
-#include <assert.h>
 #include <errno.h>
 
 val_t _eaddrinuse_no, _eaddrnotavail_no, _eafnosupport_no,
@@ -58,31 +57,16 @@ set_ipc_err_vars (int no, val_t *val_no, val_t *val_msg, const char *msg)
   ER_set_i ((ER_node_t) val_no, no);
   vect = create_string (msg);
   ER_SET_MODE ((ER_node_t) val_msg, ER_NM_vect);
-  ER_set_vect ((ER_node_t) val_msg, vect);
-}
-
-static void
-set_ipc_os_error (int no, const char *msg)
-{
-  ER_node_t vect, msg_vect;
-
-  vect = ER_vect ((ER_node_t) &_eos_specific_nos);
-  ((int_t *) ER_pack_els (vect)) [ER_els_number (vect)] = no;
-  ER_set_els_number (vect, ER_els_number (vect) + 1);
-  msg_vect = create_string (msg);
-  vect = ER_vect ((ER_node_t) &_eos_specific_msgs);
-  ((ER_node_t *) ER_pack_els (vect)) [ER_els_number (vect)] = msg_vect;
-  ER_set_els_number (vect, ER_els_number (vect) + 1);
+  set_vect_dim ((ER_node_t) val_msg, vect, 0);
 }
 
 val_t
 _ipc_err_init (int npars, val_t *vals)
 {
-  ER_node_t vect;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  assert (npars == 0);
+  d_assert (npars == 0);
 
 #if defined(EADDRINUSE)
   set_ipc_err_vars (EADDRINUSE, &_eaddrinuse_no, &_eaddrinuse_msg,

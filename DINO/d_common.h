@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -87,3 +87,24 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define INLINE 0
 #endif
 #endif
+
+#ifdef __GNUC__
+#define __always__ __attribute__ ((__always_inline__))
+#else
+#define __always__
+#endif
+
+#if INLINE && !defined (SMALL_CODE)
+#define do_inline inline __always__
+#else
+#define do_inline
+#endif
+
+#define do_always_inline inline __always__
+
+#ifdef __GNUC__
+#define ATTRIBUTE_UNUSED __attribute__ ((__unused__))
+#else
+#define ATTRIBUTE_UNUSED
+#endif
+

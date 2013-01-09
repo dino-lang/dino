@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -53,6 +53,14 @@ char ERR_previous_decl_location[]
 char ERR_undeclared_ident[] = "undeclared identifier `%s'";
 char ERR_udenclared_ident_access_list []
   = "there is no declaration for identifier `%s' in access list";
+char ERR_period_ident_applied_to_slice [] = "`.ident' is applied to slice";
+char ERR_vector_element_access_applied_to_slice []
+  = "`[...]' is applied to slice";
+char ERR_table_element_access_applied_to_slice []
+  = "`{...}' is applied to slice";
+char ERR_call_applied_to_slice [] = "call is applied to slice";
+char ERR_slice_as_foreach_designator []
+  = "vector slice is used as foreach-stmt designator";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
 char ERR_contradicted_ident_access_list []
@@ -69,15 +77,15 @@ char ERR_invalid_type_of_arrow_left_operand []
 char ERR_invalid_type_of_deref_operand []
   = "operand of unary `*' must be of string type";
 char ERR_invalid_logical_operation_operand_type []
-  = "invalid type of operand in logical operation (||, &&)";
-char ERR_invalid_comparison_operation_operand_type []
-  = "invalid type of operand in comparison operation (==, !=)";
+  = "invalid type of operand in logical operation (!, ||, &&)";
 char ERR_invalid_order_comparison_operation_operand_type []
   = "invalid type of operand in order comparison operation (<, >, <=, >=)";
 char ERR_invalid_concat_operation_operand_type []
   = "invalid type of operand in concat operation `@'";
 char ERR_invalid_arithmetic_operation_operand_type []
-  = "invalid operand type in (+, -, *, /, %, |, ^, &, <<, >>, >>>)";
+  = "invalid operand type in (+, -, *, /, %, |, ^, &, ~, <<, >>, >>>)";
+char ERR_invalid_fold_arithmetic_operation_operand_type []
+  = "invalid operand type in (.+, .*, .|, .^, .&)";
 char ERR_invalid_repetition_type []
   = "invalid type of repetition in vector (`[...]')";
 char ERR_invalid_length_operand_type []
@@ -101,7 +109,13 @@ char ERR_invalid_vector_type []
 char ERR_invalid_table_type []
   = "invalid type of table in table elements access (`{...}')";
 char ERR_invalid_index_type []
-  = "invalid type of index in  vector elements access (`[...]')";
+  = "invalid type of index in vector elements access (`[...]')";
+char ERR_invalid_slice_start_type []
+  = "invalid type of start in vector slice access (`[:]')";
+char ERR_invalid_slice_bound_type []
+  = "invalid type of bound in vector slice access (`[:]')";
+char ERR_invalid_slice_step_type []
+  = "invalid type of step in vector slice access (`[:]')";
 char ERR_invalid_class_func_thread_designator []
   = "invalid class, function, or thread designator in class or function call";
 char ERR_invalid_if_expr_type [] = "invalid type of if-expr";
@@ -155,7 +169,7 @@ char DERR_plus_operands_types []
 char DERR_minus_operands_types []
   = "run time error - invalid types of operands of binary operator \"-\"";
 char DERR_concat_operands_types []
-  = "run time error - invalid types of operands of operator \"#\"";
+  = "run time error - invalid types of operands of operator \"@\"";
 char DERR_mult_operands_types []
   = "run time error - invalid types of operands of operator \"*\"";
 char DERR_div_operands_types []
@@ -214,6 +228,20 @@ char DERR_index_is_greater_than_array_bound []
   = "run time error - index is greater than array bound";
 char DERR_index_operation_for_non_array []
   = "run time error - index operation for non array";
+char DERR_slice_start_is_not_int []
+  = "run time error - slice start is not intege (dimension = %d)";
+char DERR_slice_bound_is_not_int []
+  = "run time error - slice bound is not integer (dimension = %d)";
+char DERR_slice_step_is_not_int []
+  = "run time error - slice step is not integer (dimension = %d)";
+char DERR_different_slice_operand_lengths []
+  = "run time error - different lengths of slices %d vs %d (dimension = %d)";
+char DERR_slice_operand_form []
+  = "run time error - slice to wrongly formed vector (dimension = %d)";
+char DERR_different_vec_operand_lengths []
+  = "run time - different vector operand lengths: %d vs. %d (dimension = %d)";
+char DERR_vector_form_type []
+  = "run time error - wrong vector form for vector operation";
 char DERR_repeated_key []
   = "run time error - repeated key in the table  (`{...}')";
 char DERR_no_such_key []

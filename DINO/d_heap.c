@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -90,9 +90,10 @@ initiate_int_tables (void)
   type_size_table [ER_NM_int] = sizeof (int_t);
   type_size_table [ER_NM_float] = sizeof (floating_t);
   type_size_table [ER_NM_type] = sizeof (IR_node_mode_t);
-  type_size_table [ER_NM_vect] = type_size_table [ER_NM_tab]
+  type_size_table [ER_NM_tab]
     = type_size_table [ER_NM_instance] = type_size_table [ER_NM_process]
     = type_size_table [ER_NM_stack] = sizeof (ER_node_t);
+  type_size_table [ER_NM_vect] = sizeof (ER_node_t);
   type_size_table [ER_NM_func] = sizeof (struct _ER_S_func);
   type_size_table [ER_NM_thread] = sizeof (struct _ER_S_thread);
   type_size_table [ER_NM_class] = sizeof (struct _ER_S_class);
@@ -133,21 +134,7 @@ initiate_int_tables (void)
 
 
 /* See definitions of the corresponding nodes. */
-#if INLINE
-__inline__
-#endif
-size_t
-type_size (ER_node_mode_t type)
-{
-  size_t res = type_size_table [type];
-  return res;
-}
-
-/* See definitions of the corresponding nodes. */
-#if INLINE
-__inline__
-#endif
-size_t
+static size_t do_always_inline
 val_displ (ER_node_t var)
 {
   size_t res = val_displ_table [ER_NODE_MODE (var)];
@@ -170,7 +157,7 @@ _hideblock_start (ER_node_t hideblock)
 {
   char *res;
 
-  assert (ER_NODE_MODE (hideblock) == ER_NM_heap_hideblock);
+  d_assert (ER_NODE_MODE (hideblock) == ER_NM_heap_hideblock);
   res = (char *) hideblock + ALLOC_SIZE (sizeof (_ER_heap_hideblock));
   return res;
 }
@@ -180,7 +167,7 @@ _pack_els (ER_node_t vect)
 {
   char *res;
   
-  assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   res = ((char *) vect + ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
 	 + ER_disp (vect));
   return res;
@@ -191,7 +178,7 @@ _unpack_els (ER_node_t vect)
 {
   ER_node_t res;
   
-  assert (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect);
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect);
   res = (ER_node_t) ((char *) vect
 		     + ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
 		     + ER_disp (vect));
@@ -203,7 +190,7 @@ _tab_els (ER_node_t tab)
 {
   ER_node_t res;
 
-  assert (ER_NODE_MODE (tab) == ER_NM_heap_tab);
+  d_assert (ER_NODE_MODE (tab) == ER_NM_heap_tab);
   res = (ER_node_t) ((char *) tab + ALLOC_SIZE (sizeof (_ER_heap_tab)));
   return res;
 }
@@ -213,7 +200,7 @@ _instance_vars (ER_node_t instance)
 {
   ER_node_t res;
   
-  assert (ER_NODE_MODE (instance) == ER_NM_heap_instance);
+  d_assert (ER_NODE_MODE (instance) == ER_NM_heap_instance);
   res = (ER_node_t) ((char *) instance
 		     + ALLOC_SIZE (sizeof (_ER_heap_instance)));
   return res;
@@ -224,7 +211,7 @@ _stack_vars (ER_node_t stack)
 {
   ER_node_t res;
   
-  assert (ER_NODE_MODE (stack) == ER_NM_heap_stack);
+  d_assert (ER_NODE_MODE (stack) == ER_NM_heap_stack);
   res = (ER_node_t) ((char *) stack
 		     + ALLOC_SIZE (sizeof (_ER_heap_stack)));
   return res;
@@ -235,7 +222,7 @@ _stacks_table (ER_node_t process)
 {
   stack_ptr_t res;
   
-  assert (ER_NODE_MODE (process) == ER_NM_heap_process);
+  d_assert (ER_NODE_MODE (process) == ER_NM_heap_process);
   res = (stack_ptr_t) ((char *) process
 		       + ALLOC_SIZE (sizeof (_ER_heap_process)));
   return res;
@@ -273,13 +260,10 @@ _indexed_entry_val (ER_node_t first_entry, int index)
 
 
 
-#if INLINE
-__inline__
-#endif
-size_t
+size_t do_always_inline
 instance_size (IR_node_t class)
 {
-  assert (class != NULL && IR_NODE_MODE (class) == IR_NM_class);
+  d_assert (class != NULL && IR_NODE_MODE (class) == IR_NM_class);
   return (ALLOC_SIZE (sizeof (_ER_heap_instance))
 	  + sizeof (val_t) * IR_vars_number (IR_next_stmt (class)));
 }
@@ -298,7 +282,8 @@ eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
 	displ = val_displ ((ER_node_t) &val1_ptr [i]);
 	if (memcmp ((char *) &val1_ptr [i] + displ,
 		    (char *) &val2_ptr [i] + displ,
-		    type_size (ER_NODE_MODE ((ER_node_t) &val1_ptr [i]))) != 0)
+		    type_size_table [ER_NODE_MODE
+				     ((ER_node_t) &val1_ptr [i])]) != 0)
 	  return FALSE;
       }
   return TRUE;
@@ -306,14 +291,11 @@ eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
 
 /* The func returns size (in bytes) of the stack of the block node given
    as BLOCK_NODE_PTR. */
-#if INLINE
-__inline__
-#endif
-static size_t
+static size_t do_always_inline
 block_stack_size (IR_node_t block_node_ptr)
 {
-  assert (block_node_ptr != NULL
-          && IR_NODE_MODE (block_node_ptr) == IR_NM_block);
+  d_assert (block_node_ptr != NULL
+	    && IR_NODE_MODE (block_node_ptr) == IR_NM_block);
   return ((real_block_vars_number (block_node_ptr)
 	   + IR_temporary_vars_number (block_node_ptr)) * sizeof (val_t)
 	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
@@ -458,7 +440,7 @@ initiate_heap ()
   context_number = 0;
   in_gc_p = FALSE;
   destroy_ident_number = IR_block_decl_ident_number (destroy_unique_ident);
-  assert (destroy_ident_number >= 0);
+  d_assert (destroy_ident_number >= 0);
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick = 0;
 #endif
@@ -487,7 +469,7 @@ int tvar_num1, tvar_num2;
 #if INLINE && !defined (SMALL_CODE)
 __inline__
 #endif
-static void
+static void do_always_inline
 set_tvars (IR_node_t block_node_ptr)
 {
   tvar_num1 = (real_block_vars_number (block_node_ptr)
@@ -504,14 +486,14 @@ final_call_destroy_functions (void)
   if (uppest_stack == NULL)
     /* Heap is not initialized.  */
     return;
-  assert (curr_heap_chunk->chunk_start > (char *) uppest_stack
-	  || (char *) uppest_stack >= curr_heap_chunk->chunk_bound
-	  || (char *) uppest_stack < curr_heap_chunk->chunk_free
-	  || (char *) uppest_stack >= curr_heap_chunk->chunk_stack_top);
+  d_assert (curr_heap_chunk->chunk_start > (char *) uppest_stack
+	    || (char *) uppest_stack >= curr_heap_chunk->chunk_bound
+	    || (char *) uppest_stack < curr_heap_chunk->chunk_free
+	    || (char *) uppest_stack >= curr_heap_chunk->chunk_stack_top);
   clean_heap_object_process_flag ();
   if (mark_instances_need_destroying (FALSE))
     {
-      assert (cstack != NULL);
+      d_assert (cstack != NULL);
       if (cstack == uppest_stack)
 	{
 	  block_node_ptr = ER_block_node (cstack);
@@ -551,12 +533,12 @@ heap_allocate (size_t size, int stack_p)
 {
   void *result;
 
-  assert (size > 0);
+  d_assert (size > 0);
   size = ALLOC_SIZE (size);
   if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free < size)
     {
       /* We need GC.  Flag this.  */
-      assert (executed_stmts_count <= 0);
+      d_assert (executed_stmts_count <= 0);
       GC_executed_stmts_count = executed_stmts_count;
       executed_stmts_count = 0;
       if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free
@@ -573,7 +555,7 @@ heap_allocate (size_t size, int stack_p)
       result = curr_heap_chunk->chunk_free;
       curr_heap_chunk->chunk_free += size;
     }
-  assert (curr_heap_chunk->chunk_free <= curr_heap_chunk->chunk_stack_top);
+  d_assert (curr_heap_chunk->chunk_free <= curr_heap_chunk->chunk_stack_top);
   free_heap_memory -= size;
   ER_SET_MODE ((ER_node_t) result, ER_NM_heap_instance);
   ER_set_unique_number ((ER_node_t) result, unique_number);
@@ -581,10 +563,7 @@ heap_allocate (size_t size, int stack_p)
   return result;
 }
 
-#if INLINE
-__inline__
-#endif
-static size_t
+static size_t do_inline
 heap_object_size (ER_node_t obj)
 {
   size_t size = 1;
@@ -611,25 +590,19 @@ heap_object_size (ER_node_t obj)
 	      + ER_hideblock_length (obj));
       break;
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
   return ALLOC_SIZE (size);
 }
 
-#if INLINE
-__inline__
-#endif
-static void
+static void do_always_inline
 try_heap_stack_free (void *from, size_t size)
 {
   if (curr_heap_chunk->chunk_stack_top == (char *) from)
     curr_heap_chunk->chunk_stack_top += size;
 }
 
-#if INLINE
-__inline__
-#endif
-static int
+static int do_always_inline
 instance_with_destroy (ER_node_t obj)
 {
   IR_node_t decl;
@@ -654,7 +627,8 @@ tailored_heap_object_size (ER_node_t obj)
     {
       size = ER_allocated_length (obj);
       el_size = (node_mode == ER_NM_heap_pack_vect
-		 ? type_size (ER_pack_vect_el_type (obj)) : sizeof (val_t));
+		 ? type_size_table [ER_pack_vect_el_type (obj)]
+		 : sizeof (val_t));
       all_els_size = ER_els_number (obj) * el_size;
       head_size = ALLOC_SIZE (ER_node_size [node_mode]);
       optimal_size = (head_size + OPTIMAL_ELS_SIZE (all_els_size));
@@ -668,13 +642,10 @@ tailored_heap_object_size (ER_node_t obj)
   return ALLOC_SIZE (size);
 }
 
-#if INLINE
-__inline__
-#endif
-static ER_node_t 
+static ER_node_t do_always_inline
 next_heap_object (ER_node_t obj)
 {
-  assert (ER_it_was_processed (obj) == 0 || ER_it_was_processed (obj) == 1);
+  d_assert (ER_it_was_processed (obj) == 0 || ER_it_was_processed (obj) == 1);
   return (ER_node_t) ((char *) obj + heap_object_size (obj));
 }
 
@@ -743,7 +714,7 @@ traverse_used_var (ER_node_t var)
     case ER_NM_external_var_ref:
       return;
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
 }
 
@@ -768,7 +739,7 @@ traverse_used_heap_object (ER_node_t obj)
 	    || el_type == ER_NM_char || el_type == ER_NM_int
 	    || el_type == ER_NM_float || el_type == ER_NM_type)
 	  return;
-	el_size = type_size (el_type);
+	el_size = type_size_table [el_type];
 	if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
 	    || el_type == ER_NM_tab || el_type == ER_NM_instance
 	    || el_type == ER_NM_process || el_type == ER_NM_stack)
@@ -791,7 +762,7 @@ traverse_used_heap_object (ER_node_t obj)
 	      (((struct _ER_S_class *) (ER_pack_els (obj) + i * el_size))
                ->class_context);
 	else
-	  assert (FALSE);
+	  d_unreachable ();
 	return;
       }
     case ER_NM_heap_unpack_vect:
@@ -846,7 +817,7 @@ traverse_used_heap_object (ER_node_t obj)
       traverse_used_heap_object (ER_saved_cstack (obj));
       return;
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
 }
 
@@ -905,10 +876,7 @@ mark_used_heap_objects (void)
   return mark_instances_need_destroying (TRUE);
 }
 
-#if INLINE
-__inline__
-#endif
-static char *
+static do_inline char *
 define_new_heap_object (ER_node_t obj, struct heap_chunk **descr, char *place)
 {
   size_t size;
@@ -932,7 +900,7 @@ define_new_heap_object (ER_node_t obj, struct heap_chunk **descr, char *place)
       ER_set_new_place (obj, place);
       /* Packing will be only in compact_heap */
       place += size;
-      assert (place <= (*descr)->chunk_bound);
+      d_assert (place <= (*descr)->chunk_bound);
     }
   else
     ER_set_new_place (obj, NULL);
@@ -990,10 +958,7 @@ define_new_heap_object_places (void)
    vector. The type of the value is given in MODE.  Don't use SPRUT
    access macros here.  They can check the reference which will refer
    to correct object only after the heap compaction .*/
-#if INLINE
-__inline__
-#endif
-static void
+static void do_inline
 change_val (ER_node_mode_t mode, ER_node_t *val_addr)
 {
   switch (mode)
@@ -1018,8 +983,10 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
     case ER_NM_class:
       CHANGE_REF (*val_addr);
       return;
+    case ER_NM_external_var_ref:
+      return;
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
 }
 
@@ -1069,14 +1036,11 @@ change_var (ER_node_t var)
     case ER_NM_external_var_ref:
       return;
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
 }
 
-#if INLINE
-__inline__
-#endif
-static void
+static void do_inline
 change_obj_refs (ER_node_t obj)
 {
   size_t i;
@@ -1094,7 +1058,7 @@ change_obj_refs (ER_node_t obj)
 	      || el_type == ER_NM_char || el_type == ER_NM_int
 	      || el_type == ER_NM_float || el_type == ER_NM_type)
 	    break;
-	  el_size = type_size (el_type);
+	  el_size = type_size_table [el_type];
 	  if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
 	      || el_type == ER_NM_tab || el_type == ER_NM_instance
 	      || el_type == ER_NM_process || el_type == ER_NM_stack)
@@ -1117,7 +1081,7 @@ change_obj_refs (ER_node_t obj)
 			  &((struct _ER_S_class *)
 			    (ER_pack_els (obj) + i * el_size))->class_context);
 	  else
-	    assert (FALSE);
+	    d_unreachable ();
 	  break;
 	}
       case ER_NM_heap_unpack_vect:
@@ -1182,7 +1146,7 @@ change_obj_refs (ER_node_t obj)
 	break;
       default:
 	/* Redirections do not survive GC. */
-	assert (FALSE);
+	d_unreachable ();
       }
 }
 
@@ -1218,10 +1182,7 @@ change_refs (void)
   CHANGE_REF (first_process_not_started);
 }
 
-#if INLINE
-__inline__
-#endif
-static char *
+static do_inline char *
 move_object (ER_node_t obj, struct heap_chunk **descr,
 	     size_t *curr_heap_size, char *place)
 {
@@ -1233,7 +1194,7 @@ move_object (ER_node_t obj, struct heap_chunk **descr,
 	 taken into account in place value.  Remeber that temp
 	 refs are already set up to new places. */
       tailored_size = tailored_heap_object_size (obj);
-      assert (tailored_size <= heap_object_size (obj));
+      d_assert (tailored_size <= heap_object_size (obj));
       if (place + tailored_size > (*descr)->chunk_bound)
 	{
 	  /* Zero e.g. because we compare var as full structs. */
@@ -1254,11 +1215,11 @@ move_object (ER_node_t obj, struct heap_chunk **descr,
       if (ER_NODE_MODE (obj) == ER_NM_heap_pack_vect
 	  || ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect)
 	ER_set_allocated_length (obj, tailored_size);
-      assert (ER_new_place (obj) == place);
+      d_assert (ER_new_place (obj) == place);
       if (place != (char *) obj)
 	memmove (place, obj, tailored_size);
       place += tailored_size;
-      assert (place <= (*descr)->chunk_bound);
+      d_assert (place <= (*descr)->chunk_bound);
     }
   return place;
 }
@@ -1300,10 +1261,10 @@ compact_heap (void)
 	}
     }
   curr_heap_chunk = curr_place_descr;
-  assert ((char *) (curr_heap_chunk + 1) <= (char *) VLO_END (heap_chunks)
-	  || curr_heap_chunk->chunk_free + (curr_heap_chunk->chunk_bound
-					    - curr_heap_chunk->chunk_stack_top)
-	  >= new_place);
+  d_assert ((char *) (curr_heap_chunk + 1) <= (char *) VLO_END (heap_chunks)
+	    || curr_heap_chunk->chunk_free + (curr_heap_chunk->chunk_bound
+					      - curr_heap_chunk->chunk_stack_top)
+	    >= new_place);
   /* Zero e.g. because we compare var as full structs: */
   /* Possible situation when e.g. two chunks are compacted in one. */
   if (curr_heap_chunk->chunk_free >= new_place)
@@ -1399,7 +1360,7 @@ GC (void)
   int flag;
 
   /* Mark that we don't need GC anymore.  */
-  assert (GC_executed_stmts_count <= 0);
+  d_assert (GC_executed_stmts_count <= 0);
   executed_stmts_count = GC_executed_stmts_count;
   GC_executed_stmts_count = 1;
 #if !defined (NO_PROFILE) && !HAVE_SETITIMER
@@ -1630,7 +1591,8 @@ create_pack_vector (size_t els_number, ER_node_mode_t eltype)
   size_t allocated_length;
 
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_pack_vect))
-		      + OPTIMAL_ELS_SIZE (els_number * type_size (eltype)));
+		      + OPTIMAL_ELS_SIZE (els_number
+					  * type_size_table [eltype]));
   pack_vect = heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
   ER_set_pack_vect_el_type (pack_vect, eltype);
@@ -1671,7 +1633,7 @@ expand_vector (ER_node_t vect, size_t els_number)
     {
       header_length = ALLOC_SIZE (sizeof (_ER_heap_pack_vect));
       els = ER_pack_els (vect);
-      el_length = type_size (ER_pack_vect_el_type (vect));
+      el_length = type_size_table [ER_pack_vect_el_type (vect)];
     }
   if (allocated_length < header_length + els_number * el_length)
     allocated_length = (header_length
@@ -1699,7 +1661,7 @@ expand_vector (ER_node_t vect, size_t els_number)
     }
   else if (allocated_length < header_length + els_number * el_length + disp)
     {
-      assert (allocated_length >= header_length + els_number * el_length);
+      d_assert (allocated_length >= header_length + els_number * el_length);
       /* Set it before getting els.  */
       ER_set_disp (vect, 0);
       memmove (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect
@@ -1730,7 +1692,7 @@ unpack_vector (ER_node_t vect)
   immutable = ER_immutable (vect);
   els_number = ER_els_number (vect);
   el_type = ER_pack_vect_el_type (vect);
-  el_size = type_size (el_type);
+  el_size = type_size_table [el_type];
   prev_vect = vect;
   pack_vect_allocated_length = allocated_length;
   if (allocated_length - disp < (ALLOC_SIZE (sizeof (_ER_heap_unpack_vect))
@@ -1802,7 +1764,7 @@ pack_vector_if_possible (ER_node_t unpack_vect)
   if (i >= els_number)
     {
       /* Pack it */
-      el_size = type_size (el_type);
+      el_size = type_size_table [el_type];
       allocated_length = ER_allocated_length (unpack_vect);
       pack_vect = unpack_vect;
       ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
@@ -1838,7 +1800,7 @@ eq_vector (ER_node_t v1, ER_node_t v2)
     return (ER_pack_vect_el_type (v1) == ER_pack_vect_el_type (v2)
 	    && memcmp (ER_pack_els (v1), ER_pack_els (v2),
 		       ER_els_number (v1)
-		       * type_size (ER_pack_vect_el_type (v1))) == 0);
+		       * type_size_table [ER_pack_vect_el_type (v1)]) == 0);
   if (ER_NODE_MODE (v1) == ER_NM_heap_unpack_vect)
     pack_vector_if_possible (v1);
   if (ER_NODE_MODE (v2) == ER_NM_heap_unpack_vect)
@@ -1849,7 +1811,7 @@ eq_vector (ER_node_t v1, ER_node_t v2)
     return (ER_pack_vect_el_type (v1) == ER_pack_vect_el_type (v2)
 	    && memcmp (ER_pack_els (v1), ER_pack_els (v2),
 		       ER_els_number (v1)
-		       * type_size (ER_pack_vect_el_type (v1))) == 0);
+		       * type_size_table [ER_pack_vect_el_type (v1)]) == 0);
   else
     return eq_val ((val_t *) ER_unpack_els (v1), (val_t *) ER_unpack_els (v2),
 		   ER_els_number (v1));
@@ -1902,18 +1864,16 @@ create_string (const char *string)
 
 
 
-#if INLINE
-__inline__
-#endif
-int
+int do_always_inline
 eq_instance (ER_node_t i1, ER_node_t i2)
 {
   return (i1 == i2
-	  || ER_instance_class (i1) == ER_instance_class (i2)
-	  && ER_context (i1) == ER_context (i2)
-	  && eq_val ((val_t *) ER_instance_vars (i1),
-		     (val_t *) ER_instance_vars (i2),
-		     IR_vars_number (IR_next_stmt (ER_instance_class (i1)))));
+	  || (ER_instance_class (i1) == ER_instance_class (i2)
+	      && ER_context (i1) == ER_context (i2)
+	      && eq_val ((val_t *) ER_instance_vars (i1),
+			 (val_t *) ER_instance_vars (i2),
+			 IR_vars_number (IR_next_stmt
+					 (ER_instance_class (i1))))));
 }
 
 
@@ -1961,10 +1921,7 @@ eq_table (ER_node_t t1, ER_node_t t2)
   return TRUE;
 }
 
-#if INLINE
-__inline__
-#endif
-static size_t
+static size_t do_always_inline
 hash_ref (ER_node_t ref)
 {
   if (ref == NULL)
@@ -1972,10 +1929,7 @@ hash_ref (ER_node_t ref)
   return ER_unique_number (ref);
 }
 
-#if INLINE
-__inline__
-#endif
-static size_t
+static size_t do_inline
 hash_val (ER_node_t val)
 {
   size_t hash;
@@ -1983,7 +1937,7 @@ hash_val (ER_node_t val)
   size_t length;
   unsigned char *string;
 
-  assert (val != NULL);
+  d_assert (val != NULL);
   switch (ER_NODE_MODE (val))
     {
     case ER_NM_nil:
@@ -2030,7 +1984,7 @@ hash_val (ER_node_t val)
     case ER_NM_stack:
       return (size_t) ER_unique_number (ER_stack (val));
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
 }
 
@@ -2093,7 +2047,7 @@ hash_key (ER_node_t key)
 		
 		ER_SET_MODE (var_ref, ER_pack_vect_el_type (pv));
 		displ = val_displ (var_ref);
-		el_size = type_size (ER_pack_vect_el_type (pv));
+		el_size = type_size_table [ER_pack_vect_el_type (pv)];
 		for (hash = i = 0; i < ER_els_number (pv); i++)
 		  {
 		    memcpy ((char *) var_ref + displ,
@@ -2159,15 +2113,12 @@ hash_key (ER_node_t key)
 	}
       break;
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
   return hash;
 }
 
-#if INLINE
-__inline__
-#endif
-static int
+static int do_inline
 eq_key (ER_node_t entry_key, ER_node_t key)
 {
   if (ER_NODE_MODE (entry_key) != ER_NODE_MODE (key))
@@ -2204,7 +2155,7 @@ eq_key (ER_node_t entry_key, ER_node_t key)
     case ER_NM_stack:
       return ER_stack (key) == ER_stack (entry_key);
     default:
-      assert (FALSE);
+      d_unreachable ();
     }
   return FALSE; /* No warnings */
 }
@@ -2307,7 +2258,7 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
 	      ER_set_els_number (tab, ER_els_number (tab) + 1);
 	      if (first_deleted_entry_key != NULL)
 		{
-		  assert (ER_deleted_els_number (tab) > 0);
+		  d_assert (ER_deleted_els_number (tab) > 0);
 		  ER_set_deleted_els_number
 		    (tab, ER_deleted_els_number (tab) - 1);
 		  entry_key = first_deleted_entry_key;
@@ -2352,7 +2303,7 @@ expand_tab (ER_node_t tab)
   tab_expansions++;
   new_tab = create_tab (ER_els_number (tab));
   ER_set_immutable (new_tab, immutable);
-  assert (ER_allocated_length (new_tab) > ER_allocated_length (tab));
+  d_assert (ER_allocated_length (new_tab) > ER_allocated_length (tab));
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
 	!= ER_NM_empty_entry
@@ -2362,15 +2313,15 @@ expand_tab (ER_node_t tab)
         new_entry = find_tab_entry (new_tab,
 				    INDEXED_ENTRY_KEY (ER_tab_els (tab), i),
 				    TRUE);
-        assert (ER_NODE_MODE (new_entry) == ER_NM_empty_entry);
+        d_assert (ER_NODE_MODE (new_entry) == ER_NM_empty_entry);
         *(val_t *) new_entry
 	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
         ((val_t *) new_entry) [1]
 	  = *(val_t *) INDEXED_ENTRY_VAL (ER_tab_els (tab), i);
-	assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (ER_tab_els (tab), i),
-			       ER_NM_val));
-	assert (ER_IS_OF_TYPE ((ER_node_t) &((val_t *) new_entry) [1],
-			       ER_NM_val));
+	d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (ER_tab_els (tab), i),
+				 ER_NM_val));
+	d_assert (ER_IS_OF_TYPE ((ER_node_t) &((val_t *) new_entry) [1],
+				 ER_NM_val));
       }
   allocated_length = ER_allocated_length (tab);
   ER_SET_MODE (tab, ER_NM_heap_redir);
@@ -2396,7 +2347,7 @@ remove_tab_el (ER_node_t tab, ER_node_t key)
       || ER_NODE_MODE (entry_key) == ER_NM_deleted_entry)
     return FALSE;
   ER_SET_MODE (entry_key, ER_NM_deleted_entry);
-  assert (ER_els_number (tab) > 0);
+  d_assert (ER_els_number (tab) > 0);
   ER_set_els_number (tab, ER_els_number (tab) - 1);
   ER_set_deleted_els_number (tab, ER_deleted_els_number (tab) + 1);
   ER_set_last_key_index (tab, -1);
@@ -2410,10 +2361,8 @@ copy_tab (ER_node_t tab)
 {
   ER_node_t new_tab;
   ER_node_t new_entry;
-  int immutable;
   size_t i;
 
-  immutable = ER_immutable (tab);
   new_tab = create_tab (ER_els_number (tab));
   for (i = 0; i < ER_entries_number (tab); i++)
     if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
@@ -2424,15 +2373,15 @@ copy_tab (ER_node_t tab)
         new_entry = find_tab_entry (new_tab,
 				    INDEXED_ENTRY_KEY (ER_tab_els (tab), i),
 				    TRUE);
-        assert (ER_NODE_MODE (new_entry) == ER_NM_empty_entry);
+        d_assert (ER_NODE_MODE (new_entry) == ER_NM_empty_entry);
         *(val_t *) new_entry
 	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
         ((val_t *) new_entry) [1]
 	  = *(val_t *) INDEXED_ENTRY_VAL (ER_tab_els (tab), i);
-	assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (ER_tab_els (tab), i),
-			       ER_NM_val));
-	assert (ER_IS_OF_TYPE ((ER_node_t) &((val_t *) new_entry) [1],
-			       ER_NM_val));
+	d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (ER_tab_els (tab), i),
+				 ER_NM_val));
+	d_assert (ER_IS_OF_TYPE ((ER_node_t) &((val_t *) new_entry) [1],
+				 ER_NM_val));
       }
   return new_tab;
 }
@@ -2470,7 +2419,7 @@ find_next_key (ER_node_t tab, ER_node_t key)
 	  return key;
 	}
     }
-  assert (FALSE);
+  d_unreachable ();
   return NULL;
 }
 
@@ -2522,7 +2471,7 @@ vector_to_table_conversion (ER_node_t vect)
 	*((val_t *) entry + 1) = *(val_t *) IVAL (ER_unpack_els (vect), i);
       else
 	{
-	  el_size_type = type_size (ER_pack_vect_el_type (vect));
+	  el_size_type = type_size_table [ER_pack_vect_el_type (vect)];
 	  ER_SET_MODE ((ER_node_t) tvar, ER_pack_vect_el_type (vect));
 	  memcpy ((char *) tvar + val_displ (tvar),
 		  ER_pack_els (vect) + i * el_size_type, el_size_type);
@@ -2648,7 +2597,7 @@ activate_process (void)
 void
 block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
 {
-  assert (cprocess != NULL);
+  d_assert (cprocess != NULL);
   if (sync_flag)
     {
       executed_stmts_count = -process_quantum; /* start new quantum */
@@ -2660,7 +2609,7 @@ block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
     ER_set_process_status (cprocess, PS_STARTED);
   if (!wait_stmt_flag)
     {
-      assert (ER_process_status (cprocess) == PS_STARTED);
+      d_assert (ER_process_status (cprocess) == PS_STARTED);
       ER_set_process_status (cprocess, PS_BLOCKED_BY_QUANTUM_SWITCH);
       first_process_not_started = NULL;
     }
@@ -2674,7 +2623,7 @@ block_cprocess (pc_t first_resume_pc, int wait_stmt_flag)
 	}
       else
 	{
-	  assert (ER_process_status (cprocess) == PS_STARTED);
+	  d_assert (ER_process_status (cprocess) == PS_STARTED);
 	  ER_set_process_status (cprocess, PS_BLOCKED_BY_WAIT);
 	  first_process_not_started = NULL;
 	}
@@ -2750,6 +2699,7 @@ interrupt (pc_t first_resume_pc)
 
 
 
+#if ! defined(HAVE_DLOPEN) || defined(NO_EXTERN_SHLIB)
 static const char *
 lib_name (const char *path_name)
 {
@@ -2760,7 +2710,7 @@ lib_name (const char *path_name)
 #define MAX_LIB_NAME_LENGTH 200
   static char result [MAX_LIB_NAME_LENGTH];
 
-  assert (path_name != NULL);
+  d_assert (path_name != NULL);
   for (curr_char_ptr = path_name, name_start = path_name;
        *curr_char_ptr != '\0';
        curr_char_ptr++)
@@ -2781,6 +2731,7 @@ lib_name (const char *path_name)
   result [len] = '\0';
   return result;
 }
+#endif
 
 void *
 external_address (IR_node_t decl)
