@@ -1,4 +1,4 @@
-2013-03-22  Vladimir Makarov  <vmakarov@redhat.com>
+2013-03-22  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/Makefile.in, MSTA/Makefile.in, NONA/Makefile.in,
 	OKA/Makefile.in, SHILKA/Makefile.in, SPRUT/Makefile.in: Use
@@ -186,7 +186,7 @@
 	(584, 585): New dump output.
 	(605-621): New tests.
 
-2013-01-08  Vladimir Makarov  <vmakarov@redhat.com>
+2013-01-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/IEEE.c (binary_string_to_float): Additional
 	parentheses.
