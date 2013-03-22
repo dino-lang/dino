@@ -23,6 +23,9 @@
 */
 
 %%
+aclass   {return ACLASS;}
+afunc    {return AFUNC;}
+athread  {return ATHREAD;}
 break    {return BREAK;}
 catch    {return CATCH;}
 char     {return CHAR;}

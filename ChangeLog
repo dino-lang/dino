@@ -1,3 +1,191 @@
+2013-03-22  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* AMMUNITION/Makefile.in, MSTA/Makefile.in, NONA/Makefile.in,
+	OKA/Makefile.in, SHILKA/Makefile.in, SPRUT/Makefile.in: Use
+	-iquote.  Update dependecies.
+	* DINO/d_bc.sprut: New file.
+	* DINO/Makefile.in: Ditto.
+	(objects): Add d_bc.o.
+	(source): Add d_bc.sprut.
+	(d_bc.c, d_bc.h): New dependency.
+	(d_run.[ch], d_extern.[ch]): Use -flat-structure.
+	(depend): Add d_bc.[ch].
+	* DINO/compare.tst: Add tests for python3, lua, ruby.
+	* DINO/d_built.h (fold_call, filter_call, map_call): New
+	externals.
+	* DINO/d_common.h (bc_insns_num): New external.
+	* DINO/d_context.c: Include d_bc.h.
+	(for_finish): Change type.
+	(first_expr_processing): Change minus with constant onto plus with
+	constant.
+	(first_block_passing): Ditto for minus_assign.
+	(second_block_passing): Use set_func_class_id instead of
+	set_func_class_no.
+	(ADD_TEMP_VARS_NUMBER): Define as 0.
+	(PC): New Macro.
+	(SET_PC): Redefine.
+	(new_bc_node): New function.
+	(process_unary_op, process_binary_op)
+	(add_flatten_node_if_necessary)
+	(add_cond_flatten_node_if_necessary): Generate byte code.
+	(bc_decl_mode, create_bc_ident, add_move): New functions.
+	(process_actuals, third_expr_processing): Generate byte code.
+	Generate addi.
+	(make_designator, make_op_mode): Return byte code mode.
+	(make_slice_assign_mode): Ditto.  Rename to slice_assign_mode.
+	(add_local_var_occurrence): Rename.
+	(get_lvalue_and_val_location): Generate byte code.
+	(all_funcs_and_classes): New.
+	(third_block_passing): Generate byte code.  Generate addi.  Set
+	all_funcs_and_classes.
+	(struct node_info): Remove traverse_flag.  Add traverse_check,
+	subst.  Change type of n.
+	(find_node_info): Clear up all new fields.
+	(curr_traverse_check): New.
+	(initiate_node_tab): Use bc_insns_num for htab size.
+	(fourth_block_passing): Remove.
+	(go_through): Work on byte code. Make combining and unecessary
+	nodes removing.
+	(process_bc): New.
+	(dump_code): Print byte code.
+	(test_context): Initiate and finalize all_funcs_and_classes.  Call
+	process_bc.  Update curr_travers_check.  Return byte code.
+	* DINO/d_conv.c (to_vect_string_conversion): Change signature.
+	(implicit_arithmetic_conversion, implicit_int_conversion): Ditto.
+	(implicit_eq_conversion): Ditto.
+	(implicit_conversion_for_binary_arithmetic_op)
+	(implicit_conversion_for_binary_int_op)
+	(implicit_conversion_for_eq_op): Use static temp vars.
+	* DINO/d_conv.h (to_vect_string_conversion): Change signature.
+	(implicit_arithmetic_conversion, implicit_int_conversion): Ditto.
+	* DINO/d_dino.c (dino_finish): Print byte code size.
+	(dino_fatal_finish, exception_action): Use BC_pos.
+	(bc_insns_num): Declare.
+	* DINO/d_errors.c (DERR_slice_start_is_not_int): Fix typo.
+	* DINO/d_eval.c: Work on byte code.  Use {func,thread,class}_id
+	istead of ..._no.  Use BC_pos instead of IR_pos.  Use new versions
+	of conv functions.
+	(process_var_ref, process_var_ref_and_val)
+	(process_var_val): Use ident instead of decl.
+	(process_external_var_decl): New.
+	(process_external_var): Use process_external_var_decl.
+	(get_designator): Change signature.
+	(execute_a_period_operation): Use process_external_var_decl
+	instead of process_external_var.
+	(store_designator_value): Remove last parameter.
+	(INTERRUPT_CHECK): Move here.
+	(extract_op{1,2,3}): New.
+	(execute_btcmpinc, execute_btcmp): New.
+	(evaluate_code): Add zero and 255 case for better switch
+	generation.
+	(eval_error): Use parameter instead of ctop.
+	* DINO/d_extern.sprut (irid_t): New type.
+	(vect): Put dim first.
+	(func, thread, class): Use ...id instead of ...no.
+	* DINO/d_func.c: Use BC_pos instead of IR_pos.  Use new signature
+	for conversion functions.  Use FUNC_CLASS_ID and ID_TO_FUNC_CLASS
+	instead of FUNC_CLASS_NO and NO_TO_FUNC_CLASS.
+	(dino_compare_func_context): New.
+	(array_sort_compare_function): Use it.
+	(sort_call): Set it up.  Set/restore no_gc_p.
+	(fold_vect_el_type, fold_el_func, fold_initval, fold_function)
+	(process_fold_vect_op, fold_call): New.
+	(filter_vect_el_type, filter_el_func, filter_function)
+	(process_filter_vect_op, filter_call): New.
+	(map_vect_el_type, map_el_func, map_function)
+	(process_map_vect_op, map_call): New.
+	(process_func_class_call): Process tail calls.
+	* DINO/d_func.h (process_func_class_call): Add parameter.
+	* DINO/d_heap.c (initiate_int_tables, traverse_used_heap_object)
+	(change_var, change_obj_refs): Use flat structures.
+	(change_refs): Ditto.  Process temp refs.
+	(in_heap_temp_refs, no_gc_p): New.
+	(initiate_heap): Create temp refs.  Reset no_gc_p.
+	(tvar_num1, tvar_num2): Remove.
+	(set_tvars): Do nothing.
+	(final_call_destroy_functions): Use BC_next instead of IR_next_pc.
+	(finish_heap): Finish temp refs.
+	(mark_used_heap_objects, define_new_heap_object): Traverse temp refs.
+	(move_object): Process temp refs.
+	(destroy_instances): Use func_id.
+	(GC): Check no_gc_p.
+	(heap_pop): Use BC_next instead of IR_next_pc.  Use id instead of
+	no.
+	(eq_key): Use id instead of no.
+	(vector_to_table_conversion): Don;t use tvar.
+	(activate_process): Use BC_pos.
+	* DINO/d_ir.sprut (BC_hidden_node_t): New type.
+	(occurrence_mode, create_occurrence_node, temp_var_occurrence)
+	(IR_PTR, pc_t, PC): Remove.
+	(func parse): Change expression for reservation of temp vars.
+	(func fold, filter, map): Add.
+	(FOLD_NAME, fold_decl, FILTER_NAME, filter_decl, MAP_NAME)
+	(map_decl): New.
+	(generic_pos): Remove next_pc, traverse_flag.
+	(ident): Add decl.
+	(component_designator): Remove designator_result_num,
+	designator_op_num.
+	(index_designator): Remove component_op_num.
+	(int, float, char, string, type, flatten): Remove
+	{int,float,char,string,type}_result_num and flatten_vect_num.
+	(operation, binary_operation, unary_operation): Remove result_num,
+	left_op_num, right_op_num, op_num.
+	(lvalue_index, lvalue_index_and_val, lvalue_key_index)
+	(lvalue_key_index_and_val, lvalue_slice, lvalue_slice_and_val)
+	(lvalue_period, lvalue_period_and_val, logical_end)
+	(logical_or_end, logical_and_end, cond_end, par_assign_end)
+	(par_assign_test): Remove.
+	(logical_binary_operation, cond, nil): Remove short_path_pc,
+	false_path_pc, cond_common_path_pc, cond_op_num, nil_result_num.
+	(vector_table): Remove vec_tab_result_num, vec_tab_el_num.
+	(class_func_thread_call): Remove func_call_start_num.
+	(assign_stmt): Remove container_num, index_num, lvalue_val_num,
+	expr_num.
+	(slice_assign_stmt, slice_assign, mult_slice_assign)
+	(div_slice_assign, mod_slice_assign, plus_slice_assign)
+	(minus_slice_assign, concat_slice_assign, lshift_slice_assign)
+	(rshift_slice_assign, ashift_slice_assign, and_slice_assign)
+	(xor_slice_assign, or_slice_assign): Remove.
+	(proc_call, if_stmt, for_stmt): Remove proc_call_start_num,
+	else_part_pc, if_common_part_pc, if_cond_num. for_body_pc,
+	for_guard_num.
+	(foreach_stmt): Remove foreach_body_pc, foreach_tab_num,
+	foreach_container_num, foreach_index_num, foreach_lvalue_val_num.
+	(for_break_contintue, return_with_result, throw): Remove
+	number_of_surrounding_blocks, return_expr_num, throw_expr_num.
+	(wait_stmt): Remve start_wait_guard_expr_pc and if_common_part_pc.
+	(block): Add bc_block, block_end_pc.
+	(exception): Remove next_catch_list_pc, except_instance_num,
+	except_class_num.
+	(occurrence, external_var_occurrence, local_var_occurrence)
+	(var_occurrence lvalue_external_var_occurrence)
+	(lvalue_external_var_occurrence_and_val, lvalue_var_occurrence)
+	(lvalue_var_occurrence_and_val, external_func_occurrence)
+	(func_occurrence, class_occurrence, if_finish, for_finish)
+	(wait_finish, foreach_start, foreach_next_iteration, block_finish)
+	(catches_finish): Remove.
+	(char, int, float, string): Remove {ch,i,f,str}_val.
+	(decls_table): Add entries for fold, filter, map decls.
+	* DINO/d_kw.shilka (aclass, afunc, athread): New keywords.
+	* DINO/d_run.sprut: Include "d_bc.h" in import section.
+	(integer_t, string_t): New types.
+	(INCREMENT_PC): Redefine.
+	(CREATE_TEMP_REF, FINISH_TEMP_REF, EMPTY_TEMP_REF, PUSH_TEMP_REF)
+	(POP_TEMP_REF, GET_TEMP_REF, TEMP_REFS_LENGTH, no_gc_p)
+	(heap_temp_refs): New.
+	(INTERRUPT_CHECK): Move to d_eval.c
+	* DINO/d_runtab.h (FUNC_CLASS_NO, NO_TO_FUNC_CLASS)
+	(set_func_class_no): Rename to FUNC_CLASS_ID, ID_TO_FUNC_CLASS,
+	set_func_class_id.
+	* DINO/d_runtab.c (set_func_class_no, curr_func_class_no): Rename
+	to set_func_class_id, curr_func_class_id.
+	* DINO/d_yacc.y: Add anonymous funcs, threads, classes.
+	(process_header, process_formal_parameters, process_header_block)
+	(merge_additional_stmts, get_new_ident): New functions.
+	* DINO/dino.tst.in (568): Use tr instead of map.
+	(584, 585): New dump output.
+	(605-621): New tests.
+
 2013-01-08  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* AMMUNITION/IEEE.c (binary_string_to_float): Additional

@@ -91,6 +91,7 @@ typedef char *string_t;
 
 typedef void (*implementation_func_t) (int_t pars_number);
 
+typedef struct BC_node *BC_hidden_node_t;
 }
 
 %export {
@@ -182,8 +183,6 @@ extern IR_node_t create_unique_node_with_string (IR_node_mode_t m,
                                                  const char *str,
                                                  char **string_in_pool_ptr);
 extern IR_node_t create_unique_ident_node (const char *str);
-extern IR_node_mode_t occurrence_mode (IR_node_t decl);
-extern IR_node_t create_occurrence_node (IR_node_t decl, position_t pos, int);
 extern void initiate_icode (void);
 
 extern IR_node_t find_decl_in_given_scope (IR_node_t ident, IR_node_t scope);
@@ -221,26 +220,7 @@ extern IR_node_t temp_unique_char;
 extern IR_node_t temp_unique_string;
 extern IR_node_t temp_ident;
 extern IR_node_t temp_decl;
-extern IR_node_t temp_var_occurrence;
 extern IR_node_t destroy_unique_ident;
-
-#define IR_PTR(v) ((IR_node_t)(v))
-
-/* This is type definition of program counter.  All nodes (except for
-   unique nodes and var_node, func_node, class_node) is
-   chained by members (one or two) of such type.  Remember that
-   func may suspend the process therefore expr should be
-   also be chained by program counter.  If it is needed to execute the
-   following and its pc is NULL than it means that finishing current
-   process is needed.  There is process for block corresponding all
-   program and its finishing means that program exits. */
-
-typedef IR_node_t pc_t;
-
-/* Macros for transformation of given node reference to previously
-   mentioned type. */
-
-#define PC(v) ((pc_t)(v))
 
 /* This is trick (usage that IR_NODE_MODE is macro)!!!  Therefore the
    following macro must apply to node with the same structure as node
@@ -442,7 +422,7 @@ typedef IR_node_t pc_t;
   "  }\n"\
   "  func parse (tokens, error_func) {\n"\
   "    var __i; // Trick to guarantee temp. vars to call error_func\n"\
-  "    __i = 1 + 2 * (3 + 4 * (5 + 6 * (7 + 8 * (9 + 10 * (11 + 12 * 13)))));\n"\
+  "    __i = 1 ^ 2 & (3 ^ 4 & (5 ^ 6 & (7 ^ 8 & (9 ^ 10 & (11 ^ 12 & 13)))));\n"\
   "    return int_earley_parse (grammar, tokens, error_func);\n"\
   "  }\n"\
   "\n"\
@@ -498,6 +478,7 @@ typedef IR_node_t pc_t;
   "func getgn(){} func getegn(){} func getgroups(){}\n"\
   "func system(){}\n"\
   "func exit(){}\n"\
+  "func fold(){} func filter(){} func map(){}\n"\
   "func __init__() {} __init__();"
 
 /* The following must be defined in ENVIRONMENT (see above).  The
@@ -1233,6 +1214,15 @@ extern IR_node_t system_decl;
 #define EXIT_NAME "exit"
 extern IR_node_t exit_decl;
 
+#define FOLD_NAME "fold"
+extern IR_node_t fold_decl;
+
+#define FILTER_NAME "filter"
+extern IR_node_t filter_decl;
+
+#define MAP_NAME "map"
+extern IR_node_t map_decl;
+
 #define INIT_NAME "__init__"
 extern IR_node_t init_decl;
 
@@ -1254,13 +1244,12 @@ IR_node_t temp_unique_char;
 IR_node_t temp_unique_string;
 IR_node_t temp_ident;
 IR_node_t temp_decl;
-IR_node_t temp_var_occurrence;
 IR_node_t destroy_unique_ident;
 
 }
 
 %type char_t int_t floating_t string_t integer_t bool_t position_t type_mask_t
-      implementation_func_t ticker_t
+      implementation_func_t ticker_t BC_hidden_node_t
 
 %%
 
@@ -1274,10 +1263,6 @@ generic_pos :: ir_node
         /* The following field is set in context analyzer.  It is
 	   important place it here to have the same field displacement
 	   for all nodes.  It is important for interpreter speed.  */
-        /* The next executed node during usually sequential execution
-           of the program */
-        next_pc : generic_pos
-	traverse_flag : bool_t {$ = FALSE;}
         pos : position_t
 ;
 
@@ -1327,6 +1312,8 @@ ident :: designator
 %other
         unique_ident : unique_ident /* always defined */
 ;
+
+nil ::  expr;
 
 char :: expr
 %other
@@ -1677,6 +1664,11 @@ ext :: func_class_ext
 
 /************* The following part is set in context analyzer **************/
 
+ident
+%other
+        decl : decl
+;
+
 unique_ident
 %other
         /* If the following member is negative than the ident is
@@ -1691,63 +1683,11 @@ unique_ident
         it_is_declared_in_block : bool_t
 ;
 
-component_designator
-%other
-        /* In what local variable the result should be put.  */
-        designator_result_num : int_t
-        /* Number of variable of the current stack which contains the
-	   left designator value.  */
-        designator_op_num : int_t
-;
-
-index_designator
-%other
-        /* Number of variable of the current stack which contains the
-	   index, key, or slice start value.  */
-        component_op_num : int_t
-;
-
 period_designator
 %other
         /* Value of block_decl_ident_number of the corresponding
 	   unique_ident.  Used to speed up the access.  */
         right_block_decl_ident_number : integer_t
-;
-
-int
-%other
-        /* In what local variable the result should be put.  */
-        int_result_num : int_t
-;
-
-float
-%other
-        /* In what local variable the result should be put.  */
-        float_result_num : int_t
-;
-
-char
-%other
-        /* In what local variable the result should be put.  */
-        char_result_num : int_t
-;
-
-string
-%other
-        /* In what local variable the result should be put.  */
-        string_result_num : int_t
-;
-
-type
-%other
-        /* In what local variable the result should be put.  */
-        type_result_num : int_t
-;
-
-flatten :: generic_pos
-%other
-        /* In what local variable the vector should be flattened is put.  */
-        flatten_vect_num : int_t
 ;
 
 expr
@@ -1756,120 +1696,22 @@ expr
         value_type : type_mask_t
 ;
 
-operation
-%other
-	/* Number of variable of the current stack which will contain
-	   the result.  It might be a real local variable or temporary
-	   variable.  */
-        result_num : int_t
-;
-
-binary_operation
-%other
-        /* Number of variable of the current stack which contains the
-	   correspondingly left and right operand values.  */
-        left_op_num, right_op_num : int_t
-;
-
-unary_operation
-%other
-        /* Number of variable of the current stack which contains the
-	   operand value.  */
-        op_num : int_t
-;
-
-lvalue_index, lvalue_index_and_val :: vec_index_designator
-;
-
-lvalue_key_index, lvalue_key_index_and_val :: key_index_designator
-;
-
-lvalue_slice, lvalue_slice_and_val :: slice
-;
-
-lvalue_period, lvalue_period_and_val :: period_designator
-;
-
-logical_binary_operation
-%other
-   /* If the result of the logical operation is known here, then go to
-      node given by the following field. */
-   short_path_pc : generic_pos
-;
-
-/* This is end of short circuit operation. */
-%abstract
-logical_end :: generic_pos
-%other
-	/* Number of variable of the current stack which will contain
-	   the result.  It might be a real local variable or temporary
-	   variable.  It should be the same as result_num in the
-	   corresponding logical operation.  */
-        cont_result_num : int_t
-        /* Number of variable of the current stack which contains the
-	   right operand value of the logical operation.  */
-        cont_op_num : int_t
-;
-
-logical_or_end, logical_and_end :: logical_end
-;
-
 cond
 %other
-        false_path_pc : generic_pos
-	/* First pc node common for the if- and else-parts. */
-	cond_common_part_pc : generic_pos
-        /* Number of variable of the current stack which contains the
-	   cond value.  */
-        cond_op_num : int_t
-;
-
-/* This is end of cond operation or parameter assign.  Do nothing, only used
-   for simplicity of binding. */
-cond_end, par_assign_end :: generic_pos
-;
-
-/* The sequence `des expr par_assign' is changed by `des par_assign_test expr
-   par_assign par_assign_end' */
-par_assign_test :: generic_pos
-%other
-   /* Number of variable of the current stack which will contain the
-      parameter value before assigning.  */
-   par_num : int_t
-   /* If the result of the parameter value is not nil then follow the
-      path in the following field which refers for node
-      par_assign_end. */
-   skip_par_assign_path_pc : generic_pos
-;
-
-nil ::  expr
-%other
-        /* In what local variable the result should be put.  */
-        nil_result_num : int_t
+	/* First byte code node common for the if- and else-parts. */
+	cond_common_part_pc : BC_hidden_node_t
 ;
 
 vector_table
 %other
         /* Number of elements in the list elist. */
         parts_number : integer_t
-        /* In what local variable the result should be put.  */
-	vec_tab_result_num : int_t
-        /* From what temporary local variable the vector/tab element
-	   pairs (correspondingly (n_vals,val)/(key,val)) start.  */
-        vec_tab_el_num : int_t
-;
-
-elist_element
-        /* pc is not used. */
 ;
 
 class_func_thread_call
 %other
         /* Number of elements in the list actuals. */
         class_func_thread_call_parameters_number : integer_t
-        /* From what temporary local variable function/class and the
-	   parameters start.  */
-        func_call_start_num : int_t
 ;
 
 slice
@@ -1879,119 +1721,16 @@ slice
         dim : int_t {$ = 1;}
 ;
 
-assign_stmt
-%other
-        /* Number of local variable where the container of the
-	   assignment var is stored.  The container for local_assign
-	   means the local variable itself.  The container for slice
-	   is the slice start (vector, and sequence of triples (start,
-	   bound, and step)).  */
-	container_num : int_t
-        /* Number of local variable where index or slice dimension is
-	   stored.  It is not used for period, extern var, or
-	   local_assign.  */
-	index_num : int_t
-	/* Nonegative only for op-assignment.  In this case, it is a
-	   number of local temporary variable where lvalue value is
-	   stored.  */
-	lvalue_val_num : int_t
-        /* Number of local variable where the assignment expr value is
-	   stored.  */
-	expr_num : int_t
-;
-
-%abstract
-slice_assign_stmt :: assign_stmt
-;
-
-slice_assign, mult_slice_assign, div_slice_assign, mod_slice_assign,
-plus_slice_assign, minus_slice_assign, concat_slice_assign,
-lshift_slice_assign, rshift_slice_assign, ashift_slice_assign,
-and_slice_assign, xor_slice_assign, or_slice_assign :: slice_assign_stmt
-;
-
 proc_call
 %other
         /* Number of elements in the list proc_actuals. */
         proc_call_pars_number : integer_t
-        /* From what temporary local variable func/class and the
-	   parameters start.  */
-        proc_call_start_num : int_t
 ;
 
 if_stmt
 %other
-        /* This member is used to control flow to else-part. */
-        else_part_pc : generic_pos
 	/* First pc node common for the if- and else-parts. */
-	if_common_part_pc : generic_pos
-        /* Number of variable of the current stack which contains the
-	   if cond value.  */
-        if_cond_num : int_t
-;
-
-for_stmt
-%other
-        /* This member is used to control flow into loop body. */
-        for_body_pc : generic_pos
-        /* Number of variable of the current stack which contains the
-	   for cond value.  */
-        for_guard_num : int_t
-;
-
-/* This node serves as test loop expr in interpreter.  The pc flows as
-   following
-
-  foreach_start->foreach_designator->foreach_table->foreach_stmt->for_finish
-               ^                                       |
-               |                                       |: foreach_body_pc
-              foreach_next_iteration<--foreach_stmts<--
-*/
-foreach_stmt
-%other
-        /* This member is used to control flow into loop body. */
-        foreach_body_pc : generic_pos
-        /* Number of variable of the current stack which contains the
-	   table value.  */
-        foreach_tab_num : int_t
-        /* Number of variables of the current stack containing
-           correspondingly container, index, and value of the foreach
-           designator.  Lvalue val is always in the temporary local
-           variable.  */
-        foreach_container_num : int_t
-        foreach_index_num : int_t
-        foreach_lvalue_val_num : int_t
-;
-
-for_break_contintue
-%other
-        /* Number of non simple blocks inside corresponding for-stmt and
-           surrounding given break or continue stmt. */
-        number_of_surrounding_blocks : integer_t
-;
-
-return_with_result
-%other
-        /* Number of variable of the current stack which contains the
-	   return expr value.  */
-        return_expr_num : int_t
-;
-
-throw
-%other
-        /* Number of variable of the current stack which contains the
-	   throw expr value.  */
-        throw_expr_num : int_t
-;
-
-wait_stmt
-%other
-        /* The following program count refers to start of with guard
-           expr.  This is needed for resuming processes. */
-        start_wait_guard_expr_pc : generic_pos
-        /* Number of variable of the current stack which contain the
-	   guard expr value.  */
-        wait_guard_expr_num : int_t
+	if_common_part_pc : BC_hidden_node_t
 ;
 
 block
@@ -2030,6 +1769,10 @@ block
         extended_life_context_flag : bool_t {$ = FALSE;}
         /* The following is the list of friends of the block. */
         friends : friend {$ = NULL;}
+        bc_block : BC_hidden_node_t /* Byte code block */
+	/* First pc node common for the block and its exceptions. NULL
+	   if there are no expections.  */
+	block_end_pc : BC_hidden_node_t
 ;
 
 /* The following is a node of the list of friends of block (it means
@@ -2039,31 +1782,6 @@ friend :: ir_node
 %other
         friend_decl : decl
         next_friend : friend
-;
-
-/* The node for making solution to catch given exception or not.  The
-   flow is the following:
-           catch_list_pc                        next_catch_list_pc
-   try block ----------> class expr -> exception   ---------> class expr...
-       |                                   | next_pc                ....
-       |                                   V
-       |                                catch block                 ....
-       |                                   | next_pc                  |
-       |                                   V                          |
-        -----------------------------> catches_finish<----------------
-          next_pc                         | next_pc
-                                          V
-                                       
-*/
-exception
-%other
-        /* This member is used to control flow when there is no catch
-           for given exception. */
-        next_catch_list_pc : generic_pos
-        /* Number of variable of the current stack which contains the
-	   exception instance and class.  */
-        except_instance_num : int_t
-        except_class_num : int_t
 ;
 
 decl
@@ -2110,93 +1828,6 @@ var
         var_number_in_block : integer_t
 ;
 
-%abstract
-occurrence :: designator
-%other
-        decl : decl /* always defined */
-        /* In what local variable(s) the result should be put.  */
-	occurrence_result_num : int_t
-;
-
-/* The ident will changed by three following groups of nodes
-   (occurrences). */
-
-/* The following structure is representing var occurrence nodes. */
-external_var_occurrence,
-  /* reference for a variable in current stack, not in class.  */
-  local_var_occurrence,
-  var_occurrence :: occurrence
-;
-
-local_var_occurrence
-%other
-        /* Local variable stack slot number.  */
-	local_var_num : int_t
-;
-
-/* The following structure is representing lvalue var occurrence nodes. */
-lvalue_external_var_occurrence,
-  lvalue_external_var_occurrence_and_val,
-  /* reference for a variable in current stack, not in class.  */
-  lvalue_var_occurrence,
-  lvalue_var_occurrence_and_val :: occurrence
-;
-
-external_func_occurrence, func_occurrence, class_occurrence :: occurrence
-;
-
-/* This node does nothing in interpreter.  The node serves only for
-   connection of if- and else- parts. */
-if_finish :: generic_pos
-;
-
-/* This node does nothing in interpreter.  The node serves only for
-   connection of break stmt in for and foreach. */
-for_finish :: generic_pos
-;
-
-/* Finish wait statement.  */
-wait_finish :: generic_pos
-;
-
-/* See commentaries for foreach. */
-foreach_start, foreach_next_iteration :: generic_pos
-;
-
-/* This node serves for finishing a block. */
-block_finish :: generic_pos
-%other
-        block : block
-        simple_block_finish_flag : bool_t
-;
-
-/* There is one node for given try block which serves for finishing
-   each catch block.  See comment for exception. */
-catches_finish :: generic_pos
-;
-
-/* The following fields are taken from the corresponding unique nodes.
-   They are used to speed up the interpreter.  */
-char
-%other
-        ch_val : char_t
-;
-
-int
-%other
-        i_val : int_t
-;
-
-float
-%other
-        f_val : floating_t
-;
-
-string
-%other
-        str_val : string_t
-;
-
 /************* The following part is set in evaluator **************/
 
 func_or_class
@@ -2228,6 +1859,8 @@ block
 ;
 
 %%
+
+#define IR_PTR(p) ((IR_node_t) p)
 
 /* Funcs for work with code node hash table.  The table contains pointers
    to code nodes representing unique idents, values (cardinal, integer
@@ -2469,47 +2102,6 @@ create_unique_ident_node (const char *str)
   return ref;
 }
 
-/* The func returns occurrence mode (var occurrence and etc.) for 
-   corresponding DECL.  DECL must be only var, func
-   or class. */
-
-IR_node_mode_t
-occurrence_mode (IR_node_t decl)
-{
-  d_assert (decl != NULL);
-  if (IR_NODE_MODE (decl) == IR_NM_var)
-    return IR_NM_var_occurrence;
-  else if (IR_NODE_MODE (decl) == IR_NM_external_var)
-    return IR_NM_external_var_occurrence;
-  else if (IR_NODE_MODE (decl) == IR_NM_external_func)
-    return IR_NM_external_func_occurrence;
-  else if (IR_NODE_MODE (decl) == IR_NM_func)
-    return IR_NM_func_occurrence;
-  else if (IR_NODE_MODE (decl) == IR_NM_class)
-    return IR_NM_class_occurrence;
-  else
-    d_unreachable ();
-  return IR_NM_var_occurrence; /* No warnings */
-}
-
-/* The func creates occurrence_node (var, func or class) with
-   POS for corresponding DECL.  DECL must be only var,
-   func or class. */
-
-IR_node_t
-create_occurrence_node (IR_node_t decl, position_t pos, int local_p)
-{
-  IR_node_t occurrence_node;
-  IR_node_mode_t node_mode;
-
-  node_mode = occurrence_mode (decl);
-  if (node_mode == IR_NM_var_occurrence && local_p)
-    node_mode = IR_NM_local_var_occurrence;
-  occurrence_node = create_node_with_pos (node_mode, pos);
-  IR_set_decl (occurrence_node, decl);
-  return occurrence_node;
-}
-
 /* This func should be invoked only one before any work with intermediate
    code but after initiation of table.  The func creates standard
    environment. */
@@ -2525,7 +2117,6 @@ initiate_icode (void)
   temp_unique_string = IR_create_node (IR_NM_unique_string);
   temp_ident = IR_create_node (IR_NM_ident);
   temp_decl = IR_create_node (IR_NM_var);
-  temp_var_occurrence = IR_create_node (IR_NM_var_occurrence);
   destroy_unique_ident = create_unique_ident_node ("destroy");
 }
 
@@ -2828,6 +2419,9 @@ IR_node_t getegn_decl;
 IR_node_t getgroups_decl;
 IR_node_t system_decl;
 IR_node_t exit_decl;
+IR_node_t fold_decl;
+IR_node_t filter_decl;
+IR_node_t map_decl;
 IR_node_t init_decl;
 
 struct decl_entry
@@ -3093,6 +2687,9 @@ static struct decl_entry decls_table [] =
   {&getgroups_decl, GETGROUPS_NAME, NULL, getgroups_call},
   {&system_decl, SYSTEM_NAME, NULL, system_call},
   {&exit_decl, EXIT_NAME, NULL, exit_call},
+  {&fold_decl, FOLD_NAME, NULL, fold_call},
+  {&filter_decl, FILTER_NAME, NULL, filter_call},
+  {&map_decl, MAP_NAME, NULL, map_call},
   {&init_decl, INIT_NAME, NULL, init_call}
 };
 

@@ -28,17 +28,18 @@
 
 %extend d_extern
 
-%type pc_t
+%type pc_t integer_t string_t
 
 %import {
 
 #include "d_ir.h"
+#include "d_bc.h"
 
 }
 
 %export {
 
-#define INCREMENT_PC() (cpc = IR_next_pc (cpc))
+#define INCREMENT_PC() (cpc = BC_next (cpc))
 
 /* The macro call returns optimal allocation size for vector elements.
    Remember vector can grow.  Remember also about string end char. */
@@ -55,6 +56,28 @@ extern int tvar_num1, tvar_num2;
 
 #define TOP_UP   DECR_CTOP (-1)
 #define TOP_DOWN DECR_CTOP (1)
+
+extern vlo_t heap_temp_refs;
+
+#define CREATE_TEMP_REF() VLO_CREATE (heap_temp_refs, 256)
+#define FINISH_TEMP_REF() VLO_DELETE (heap_temp_refs)
+#define EMPTY_TEMP_REF() VLO_NULLIFY (heap_temp_refs)
+
+#define PUSH_TEMP_REF(ref)\
+ do\
+   {\
+     ER_node_t r = ref;\
+     VLO_ADD_MEMORY (heap_temp_refs, &r, sizeof (r));\
+   }\
+ while (0)
+
+#define POP_TEMP_REF(n) VLO_SHORTEN (heap_temp_refs, (n) * sizeof (ER_node_t))
+
+#define GET_TEMP_REF(depth)\
+  (((ER_node_t *) VLO_BEGIN (heap_temp_refs))\
+   [VLO_LENGTH (heap_temp_refs) / sizeof (ER_node_t) - (depth) - 1])
+
+#define TEMP_REFS_LENGTH() (VLO_LENGTH (heap_temp_refs) / sizeof (ER_node_t))
 
 extern vlo_t temp_vlobj;
 extern vlo_t temp_vlobj2;
@@ -101,6 +124,7 @@ extern void profile_interrupt (void);
 #endif
 
 extern int GC_executed_stmts_count;
+extern int no_gc_p;
 
 extern void *heap_allocate (size_t size, int stack_p);
 extern void initiate_heap (void);
@@ -118,14 +142,6 @@ extern void initiate_tables (void);
 
 extern int executed_stmts_count;
 extern int process_quantum;
-
-/* Macro for possible switch the process or to do GC.  Remeber cpc
-   must be correct for resuming the current process lately. */
-#define INTERRUPT_CHECK\
-  do {\
-    if (++executed_stmts_count >= 0)\
-      interrupt (cpc);\
-  } while (0)\
 
 extern ER_node_t create_process (pc_t start_process_pc, IR_node_t func,
 	                         ER_node_t func_context);

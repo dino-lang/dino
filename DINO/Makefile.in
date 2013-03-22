@@ -191,7 +191,7 @@ srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 
 # All object files of the syntax description translator:
-objects = d_errors.o d_ir.o d_run.o d_heap.o d_yacc.o d_runtab.o\
+objects = d_errors.o d_ir.o d_bc.o d_run.o d_heap.o d_yacc.o d_runtab.o\
 	  d_context.o d_conv.o d_func.o d_eval.o d_dino.o
 
 # ALL header files used by all source files of Dino self.
@@ -207,8 +207,9 @@ source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
          $(srcdir)/d_func.c $(srcdir)/d_conv.c\
          $(srcdir)/d_eval.c $(srcdir)/d_dino.c\
 	 $(srcdir)/d_aixdl.c $(srcdir)/d_main.c\
-         $(srcdir)/d_ir.sprut $(srcdir)/d_types.h $(srcdir)/d_extern.sprut\
-	 $(srcdir)/d_run.sprut $(srcdir)/d_heap.c $(srcdir)/d_kw.shilka\
+         $(srcdir)/d_ir.sprut $(srcdir)/d_bc.sprut $(srcdir)/d_types.h\
+         $(srcdir)/d_extern.sprut $(srcdir)/d_run.sprut $(srcdir)/d_heap.c\
+ 	 $(srcdir)/d_kw.shilka\
 	 $(srcdir)/d_gmp.c $(srcdir)/gmp.d\
 	 $(srcdir)/d_mpi.c $(srcdir)/mpi.d\
 	 $(srcdir)/d_ieee.c $(srcdir)/ieee.d\
@@ -275,13 +276,17 @@ d_ir.c d_ir.h : $(srcdir)/d_ir.sprut
 # Use -debug instead of -only-macro for debugging
 	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set $(srcdir)/d_ir.sprut
 
+d_bc.c d_bc.h : $(srcdir)/d_bc.sprut
+# Use -debug instead of -only-macro for debugging
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pBC_ -access -set $(srcdir)/d_bc.sprut
+
 d_run.c d_run.h : $(srcdir)/d_extern.sprut $(srcdir)/d_run.sprut
 # Use -debug instead of -only-macro for debugging
-	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set $(srcdir)/d_run.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set -flat-structure $(srcdir)/d_run.sprut
 
 d_extern.c d_extern.h : $(srcdir)/d_extern.sprut
 # Use -debug instead of -only-macro for debugging
-	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set $(srcdir)/d_extern.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pER_ -access -set -flat-structure $(srcdir)/d_extern.sprut
 	rm -f d_extern.c
 
 d_kw.c : $(srcdir)/d_kw.shilka
@@ -364,7 +369,7 @@ uninstall:
 	-rmdir $(DESTDIR)/$(docdir)
 
 # Deletion of object files of the translator, executable file `dino'
-# and also deletion of `d_ir.c', `d_ir.h', `d_extern.h',
+# and also deletion of `d_ir.c', `d_ir.h', `d_bc.c', `d_bc.h', `d_extern.h',
 # `d_run.c', `d_run.h' and also deletion of `d_kw.c' and `d_yacc.c'.
 clean :
 	rm -f $(objects) d_main.o $(dino_lib) $(gmp_lib) $(mpi_lib)\
@@ -372,7 +377,7 @@ clean :
                          d_gmp.o d_mpi.o arithm.o d_ieee.o IEEE.o bits.o\
                          d_ipcerr.o d_socket.o\
 			 dino\
-			 d_ir.c d_ir.h d_extern.h\
+			 d_ir.c d_ir.h d_bc.c d_bc.h d_extern.h\
 			 d_run.c d_run.h d_kw.c d_yacc.c
 
 # Deletion all not needed for distribution: the same as entry `clean'.
@@ -482,7 +487,7 @@ $(srcdir)/dino.ps: $(srcdir)/dino.dvi
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for DINO object files to the end of given file.
-depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
+depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
 	@echo ++++ Adding Makefile dependencies ++++
 	echo '# The following is generated with the aid of Makefile entry depend' >>$(srcdir)/Makefile.in
 	echo '#' >>$(srcdir)/Makefile.in
@@ -490,7 +495,7 @@ depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
 	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
 	echo '# Do not place anything below this line' >>Makefile.tmp
 	echo '#' >>Makefile.tmp
-	for i in d_ir.c d_run.c d_kw.c d_yacc.c\
+	for i in d_ir.c d_bc.c d_run.c d_kw.c d_yacc.c\
 	   $(srcdir)/../DINO/d_errors.c\
            $(srcdir)/../DINO/d_runtab.c $(srcdir)/../DINO/d_context.c\
            $(srcdir)/../DINO/d_conv.c $(srcdir)/../DINO/d_func.c\
@@ -503,11 +508,12 @@ depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
 	   $(srcdir)/../DINO/d_ipcerr.c\
 	   $(srcdir)/../DINO/d_socket.c\
            $(srcdir)/../AMMUNITION/IEEE.c $(srcdir)/../AMMUNITION/bits.c;do\
-	   gcc -MM -I- -I$(srcdir)/../DINO $(CFLAGS) $$i \
+	   gcc -MM -iquote -I$(srcdir)/../DINO $(CFLAGS) $$i \
                 | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
                 | $(SED) 's/\\./\\\\./'g` \
                 | $(SED) 's% \./% %g'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_ir\.h%d_ir.h%'\
+                | $(SED) 's%\$$(top_srcdir)/DINO/d_bc\.h%d_bc.h%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_run\.h%d_run.h%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_extern\.h%d_extern.h%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_kw\.c%d_kw.c%'\
@@ -537,261 +543,298 @@ depend : d_config.h d_ir.c d_ir.h d_run.c d_run.h d_kw.c d_yacc.c d_extern.h
 # The following is generated with the aid of Makefile entry depend
 # Do not place anything below this line
 #
-d_ir.o: d_ir.c d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  $(top_srcdir)/DINO/../DINO/d_built.h
+d_ir.o: d_ir.c d_ir.h $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/DINO/d_types.h \
+ $(top_srcdir)/DINO/d_built.h
 	$(CC) -c $(CFLAGS) -o $@ d_ir.c
-d_run.o: d_run.c d_run.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_config.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h
+d_bc.o: d_bc.c d_bc.h $(top_srcdir)/DINO/d_types.h \
+ d_config.h d_ir.h $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_run.h
+	$(CC) -c $(CFLAGS) -o $@ d_bc.c
+d_run.o: d_run.c d_run.h $(top_srcdir)/DINO/d_types.h \
+ d_config.h d_ir.h $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_bc.h
 	$(CC) -c $(CFLAGS) -o $@ d_run.c
 d_kw.o: d_kw.c
 	$(CC) -c $(CFLAGS) -o $@ d_kw.c
-d_yacc.o: d_yacc.c \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  $(top_srcdir)/DINO/../DINO/d_yacc.h d_kw.c
+d_yacc.o: d_yacc.c $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_ir.h \
+ $(top_srcdir)/DINO/d_types.h \
+ $(top_srcdir)/DINO/d_yacc.h d_kw.c
 	$(CC) -c $(CFLAGS) -o $@ d_yacc.c
-d_errors.o:  \
- $(top_srcdir)/DINO/../DINO/d_errors.c \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h
+d_errors.o: $(top_srcdir)/DINO/../DINO/d_errors.c \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/DINO/d_types.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_errors.c
-d_runtab.o:  \
- $(top_srcdir)/DINO/../DINO/d_runtab.c \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  $(top_srcdir)/DINO/../DINO/d_runtab.h
+d_runtab.o: $(top_srcdir)/DINO/../DINO/d_runtab.c \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/DINO/d_types.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_runtab.c
-d_context.o:  \
- $(top_srcdir)/DINO/../DINO/d_context.c \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  $(top_srcdir)/DINO/../DINO/d_runtab.h \
-  $(top_srcdir)/DINO/../DINO/d_context.h
+d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/DINO/d_types.h d_bc.h d_ir.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h \
+ $(top_srcdir)/DINO/../DINO/d_context.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_context.c
 d_conv.o: $(top_srcdir)/DINO/../DINO/d_conv.c \
-  $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_config.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h
+ $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_config.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_bc.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_conv.c
-d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c \
-  d_run.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_config.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h \
-  $(top_srcdir)/DINO/../DINO/d_built.h \
-  $(top_srcdir)/DINO/../DINO/d_conv.h \
-  $(top_srcdir)/DINO/../DINO/d_func.h \
-  $(top_srcdir)/DINO/../DINO/d_runtab.h \
-  $(top_srcdir)/REGEX/regex.h \
-  $(top_srcdir)/AMMUNITION/earley.h
+d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_config.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_bc.h \
+ $(top_srcdir)/DINO/../DINO/d_built.h \
+ $(top_srcdir)/DINO/../DINO/d_conv.h \
+ $(top_srcdir)/DINO/../DINO/d_func.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h \
+ $(top_srcdir)/REGEX/regex.h \
+ $(top_srcdir)/AMMUNITION/earley.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_func.c
 d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h \
-  $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_func.h \
-  $(top_srcdir)/DINO/../DINO/d_runtab.h \
-  $(top_srcdir)/DINO/../DINO/d_eval.h
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/DINO/d_errors.h d_bc.h \
+ $(top_srcdir)/DINO/../DINO/d_func.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h \
+ $(top_srcdir)/DINO/../DINO/d_eval.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_eval.c
-d_heap.o: $(top_srcdir)/DINO/../DINO/d_heap.c \
-  d_run.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_config.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h \
-  $(top_srcdir)/DINO/../DINO/d_runtab.h
+d_heap.o: $(top_srcdir)/DINO/../DINO/d_heap.c d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_config.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_bc.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_heap.c
 d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
-  $(top_srcdir)/AMMUNITION/commline.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_run.h $(top_srcdir)/DINO/../DINO/d_yacc.h \
-  $(top_srcdir)/DINO/../DINO/d_runtab.h \
-  $(top_srcdir)/DINO/../DINO/d_context.h \
-  $(top_srcdir)/DINO/../DINO/d_eval.h
+ $(top_srcdir)/AMMUNITION/commline.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/DINO/d_types.h d_run.h d_ir.h d_bc.h \
+ $(top_srcdir)/DINO/../DINO/d_yacc.h \
+ $(top_srcdir)/DINO/../DINO/d_runtab.h \
+ $(top_srcdir)/DINO/../DINO/d_context.h \
+ $(top_srcdir)/DINO/../DINO/d_eval.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_dino.c
 d_main.o: $(top_srcdir)/DINO/../DINO/d_main.c \
-  $(top_srcdir)/DINO/../DINO/d_dino.h \
-  d_config.h d_run.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h d_ir.h \
-  $(top_srcdir)/DINO/../DINO/d_common.h \
-  $(top_srcdir)/AMMUNITION/allocate.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/vlobject.h \
-  $(top_srcdir)/AMMUNITION/position.h \
-  $(top_srcdir)/AMMUNITION/hashtab.h \
-  $(top_srcdir)/AMMUNITION/ticker.h \
-  $(top_srcdir)/DINO/../DINO/d_errors.h \
-  $(top_srcdir)/AMMUNITION/errors.h \
-  $(top_srcdir)/AMMUNITION/objstack.h
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_ir.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_dino.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h d_bc.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_main.c
-d_gmp.o: $(top_srcdir)/DINO/../DINO/d_gmp.c \
-  d_extern.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_config.h
+d_gmp.o: $(top_srcdir)/DINO/../DINO/d_gmp.c d_extern.h \
+ $(top_srcdir)/DINO/d_types.h d_config.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_gmp.c
-d_mpi.o: $(top_srcdir)/DINO/../DINO/d_mpi.c \
-  d_extern.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/arithm.h \
-  ../AMMUNITION/cocom-config.h
+d_mpi.o: $(top_srcdir)/DINO/../DINO/d_mpi.c d_extern.h \
+ $(top_srcdir)/DINO/d_types.h d_config.h \
+ $(top_srcdir)/AMMUNITION/arithm.h \
+ ../AMMUNITION/cocom-config.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_mpi.c
-arithm.o:  \
- $(top_srcdir)/DINO/../AMMUNITION/arithm.c \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/arithm.h
+arithm.o: $(top_srcdir)/DINO/../AMMUNITION/arithm.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/DINO/../AMMUNITION/arithm.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../AMMUNITION/arithm.c
-d_ieee.o:  \
- $(top_srcdir)/DINO/../DINO/d_ieee.c \
-  d_extern.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h \
-  d_config.h \
-  $(top_srcdir)/AMMUNITION/arithm.h \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/IEEE.h
+d_ieee.o: $(top_srcdir)/DINO/../DINO/d_ieee.c d_extern.h \
+ $(top_srcdir)/DINO/d_types.h d_config.h \
+ $(top_srcdir)/AMMUNITION/arithm.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/IEEE.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_ieee.c
-d_ipcerr.o:  \
- $(top_srcdir)/DINO/../DINO/d_ipcerr.c \
-  d_config.h d_extern.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h
+d_ipcerr.o: $(top_srcdir)/DINO/../DINO/d_ipcerr.c \
+ d_config.h d_extern.h $(top_srcdir)/DINO/d_types.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_ipcerr.c
-d_socket.o:  \
- $(top_srcdir)/DINO/../DINO/d_socket.c \
-  d_config.h d_extern.h \
-  $(top_srcdir)/DINO/../DINO/d_types.h
+d_socket.o: $(top_srcdir)/DINO/../DINO/d_socket.c \
+ d_config.h d_extern.h $(top_srcdir)/DINO/d_types.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_socket.c
-IEEE.o:  \
- $(top_srcdir)/DINO/../AMMUNITION/IEEE.c \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/bits.h \
-  $(top_srcdir)/AMMUNITION/arithm.h \
-  $(top_srcdir)/AMMUNITION/IEEE.h \
-  $(top_srcdir)/AMMUNITION/IEEEtens.c
+IEEE.o: $(top_srcdir)/DINO/../AMMUNITION/IEEE.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/DINO/../AMMUNITION/bits.h \
+ $(top_srcdir)/DINO/../AMMUNITION/arithm.h \
+ $(top_srcdir)/DINO/../AMMUNITION/IEEE.h \
+ $(top_srcdir)/DINO/../AMMUNITION/IEEEtens.c
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../AMMUNITION/IEEE.c
-bits.o:  \
- $(top_srcdir)/DINO/../AMMUNITION/bits.c \
-  ../AMMUNITION/cocom-config.h \
-  $(top_srcdir)/AMMUNITION/bits.h
+bits.o: $(top_srcdir)/DINO/../AMMUNITION/bits.c \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/DINO/../AMMUNITION/bits.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../AMMUNITION/bits.c

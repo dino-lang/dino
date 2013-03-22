@@ -33717,7 +33717,7 @@ fi
 if test $result = ok -a $start_test_number -le 568; then
 	echo test 568: Reverse Complement from Language Shootout
         cat >$test_file <<'TEST568'
-var map =   "ACBDGHKMNSRUTWVYacbdghkmnsrutwvy";
+var tr =   "ACBDGHKMNSRUTWVYacbdghkmnsrutwvy";
 var subst = "TGVHCDMKNSYAAWBRTGVHCDMKNSYAAWBR";
 var line, seq = [];
 
@@ -33732,13 +33732,13 @@ try {
     line = getln ();
     if (line [0] != '>') insv (seq, line, -1);
     else {
-      output_seq (trans (rev (seq), map, subst));
+      output_seq (trans (rev (seq), tr, subst));
       del (seq, 0, -1); putln (line);
     }
   }
 } catch (invcalls.eof) {}
 
-output_seq (trans (rev (seq), map, subst));
+output_seq (trans (rev (seq), tr, subst));
 TEST568
         echo '      ' $DINO $test_file 1000 "2>$stderr"
         if $DINO $test_file 1000 <<'INPUT568' 2>$stderr >$stdout; then
@@ -35141,50 +35141,37 @@ TEST584
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT584' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=34, tvars=4
-
-     186 int(line=2): 28 <- (8190)
-     187 int(line=4): 34 <- (1)
-     188 plus: 34 <- 28 34
-     189 int: 35 <- (0)
-     190 vector: 33 <- (els=34, parts=1)
-     191 int(line=5): 32 <- (0)
-     192 int(line=6): 29 <- (0)
-     193 le: 34 <- 29 28
-     194 for_stmt: 34 (end=195)
-       196 int(line=7): 34 <- (1)
-       197 assign: 33(29) <- 34
-       198 int(line=6): 34 <- (1)
-       199 plus: 29 <- 29 34
-           goto 193
-     195 int(line=8): 29 <- (0)
-     200 le: 34 <- 29 28
-     201 for_stmt: 34 (end=202)
-       203 index(line=9): 34 <- 33[29]
-       204 if_stmt: 34 (else=205)
-         206 plus(line=11): 34 <- 29 29
-         207 int: 35 <- (3)
-         208 plus: 30 <- 34 35
-         209 plus(line=12): 31 <- 29 30
-         210 int(line=13): 34 <- (1)
-         211 for_stmt: 34 (end=212)
-           213 gt(line=15): 34 <- 31 28
-           214 if_stmt: 34 (else=215)
-             216 break_stmt(line=16)
-             212 int(line=20): 34 <- (1)
-             217 plus: 32 <- 32 34
-                 goto 205
-           215 int(line=17): 34 <- (0)
-           218 assign: 33(31) <- 34
-           219 plus(line=18): 31 <- 31 30
-               goto 210
-       205 int(line=8): 34 <- (1)
-       220 plus: 29 <- 29 34
-           goto 200
-     202 func_occurrence(line=23): 34 <- (println)
-     221 local_var_occurrence: 35 <- 32 (count)
-     222 proc_call: call (start=34) (pars=1)
-   223 block_finish
+     1 block(line=1): vars=34, tvars=2
+      83 ldi(line=2): 28 <- (8190)
+      84 addi(line=4): 34 <- 28 (1)
+      85 ldi: 35 <- (0)
+      86 vec: 33 <- (els=34, parts=1)
+      87 ldi(line=5): 32 <- (0)
+      88 ldi(line=6): 29 <- (0)
+      90 btle: 29 28 (temp_res=34) (true=92, false=91)
+        92 ldi(line=7): 34 <- (1)
+        93 st: 33(29) <- 34
+        95 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=92, false=91)
+      91 ldi(line=8): 29 <- (0)
+      97 btle: 29 28 (temp_res=34) (true=99, false=98)
+        99 ind(line=9): 34 <- 33[29]
+       100 bf: 34 (true=103, false=101)
+         101 add(line=11): 34 <- 29 29
+         107 addi: 30 <- 34 (3)
+         108 add(line=12): 31 <- 29 30
+         109 ldi(line=13): 34 <- (1)
+         110 bt: 34 (true=113, false=111)
+           113 btle(line=15): 31 28 (temp_res=34) (true=115, false=114)
+             114 out(line=16): of 0 blocks
+           115 ldi(line=17): 34 <- (0)
+           116 st: 33(31) <- 34
+           117 add(line=18): 31 <- 31 30
+               goto 109
+         111 addi(line=20): 32 <- 32 (1)
+       103 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=99, false=98)
+      98 func(line=23): 34 <- (println)
+     104 move: 35 <- 32 (count)
+     105 pcall: start=34 npars=1
 OUTPUT584
                         result=ok
                 else
@@ -35227,890 +35214,1093 @@ TEST585
         if $DINO -dd $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT585' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=34, tvars=4
-       2 class except (0)
-       3 block: vars=1, tvars=2
-         4 class(line=2) error (1)
-         5 block: vars=1, tvars=2
-           6 class(line=3) signal (1)
-           7 block: vars=1, tvars=2
-             8 class(line=4) sigint (1)
-             9 block: vars=1, tvars=2
-            10 block_finish
-            11 class(line=5) sigill (1)
-            12 block: vars=1, tvars=2
-            13 block_finish
-            14 class(line=6) sigabrt (1)
-            15 block: vars=1, tvars=2
-            16 block_finish
-            17 class(line=7) sigfpe (1)
-            18 block: vars=1, tvars=2
-            19 block_finish
-            20 class(line=8) sigterm (1)
-            21 block: vars=1, tvars=2
-            22 block_finish
-            23 class(line=9) sigsegv (1)
-            24 block: vars=1, tvars=2
-            25 block_finish
+     1 block(line=1): vars=34, tvars=2
+  class except (0)
+     118 block: vars=1, tvars=0
+    class error (1)
+       120 block(line=2): vars=1, tvars=0
+      class signal (1)
+         122 block(line=3): vars=1, tvars=0
+        class sigint (1)
+           124 block(line=4): vars=1, tvars=0
+           125 leave
 
-          26 block_finish
-          27 class(line=11) invenv (1)
-          28 block: vars=1, tvars=2
-          29 block_finish
-          30 class(line=12) invop (1)
-          31 block: vars=1, tvars=2
-            32 class(line=13) optype (1)
-            33 block: vars=1, tvars=2
-            34 block_finish
-            35 class(line=14) opvalue (1)
-            36 block: vars=1, tvars=2
-            37 block_finish
+        class sigill (1)
+           126 block(line=5): vars=1, tvars=0
+           127 leave
 
-          38 block_finish
-          39 class(line=16) invindex (1)
-          40 block: vars=1, tvars=2
-            41 class(line=17) indextype (1)
-            42 block: vars=1, tvars=2
-            43 block_finish
-            44 class(line=18) indexvalue (1)
-            45 block: vars=1, tvars=2
-            46 block_finish
-            47 class(line=19) indexop (1)
-            48 block: vars=1, tvars=2
-            49 block_finish
+        class sigabrt (1)
+           128 block(line=6): vars=1, tvars=0
+           129 leave
 
-          50 block_finish
-          51 class(line=21) invslice (1)
-          52 block: vars=1, tvars=2
-            53 class(line=22) slicetype (1)
-            54 block: vars=1, tvars=2
-            55 block_finish
-            56 class(line=23) sliceform (1)
-            57 block: vars=1, tvars=2
-            58 block_finish
+        class sigfpe (1)
+           130 block(line=7): vars=1, tvars=0
+           131 leave
 
-          59 block_finish
-          60 class(line=25) invector (1)
-          61 block: vars=1, tvars=2
-            62 class(line=26) veclen (1)
-            63 block: vars=1, tvars=2
-            64 block_finish
-            65 class(line=27) vecform (1)
-            66 block: vars=1, tvars=2
-            67 block_finish
+        class sigterm (1)
+           132 block(line=8): vars=1, tvars=0
+           133 leave
 
-          68 block_finish
-          69 class(line=29) invkey (1)
-          70 block: vars=1, tvars=2
-            71 class(line=30) keyvalue (1)
-            72 block: vars=1, tvars=2
-            73 block_finish
-            74 class(line=31) keyop (1)
-            75 block: vars=1, tvars=2
-            76 block_finish
+        class sigsegv (1)
+           134 block(line=9): vars=1, tvars=0
+           135 leave
 
-          77 block_finish
-          78 class(line=33) invcall (1)
-          79 block: vars=1, tvars=2
-            80 class(line=34) callop (1)
-            81 block: vars=1, tvars=2
-            82 block_finish
-            83 class(line=35) partype (1)
-            84 block: vars=1, tvars=2
-            85 block_finish
-            86 class(line=36) invresult (1)
-            87 block: vars=1, tvars=2
-            88 block_finish
-            89 class(line=37) invinput (1)
-            90 block: vars=1, tvars=2
-            91 block_finish
-            92 class(line=38) invfmt (1)
-            93 block: vars=1, tvars=2
-            94 block_finish
-            95 class(line=39) eof (1)
-            96 block: vars=1, tvars=2
-            97 block_finish
-            98 class(line=40) parnumber (1)
-            99 block: vars=1, tvars=2
-           100 block_finish
-           101 class(line=41) syncthreadcall (1)
-           102 block: vars=1, tvars=2
-           103 block_finish
-           104 class(line=42) syserror (1)
-           105 block: vars=1, tvars=2
-             106 class(line=43) eaccess (1)
-             107 block: vars=1, tvars=2
-             108 block_finish
-             109 class(line=44) eagain (1)
-             110 block: vars=1, tvars=2
-             111 block_finish
-             112 class(line=45) ebadf (1)
-             113 block: vars=1, tvars=2
-             114 block_finish
-             115 class(line=46) ebusy (1)
-             116 block: vars=1, tvars=2
-             117 block_finish
-             118 class(line=47) echild (1)
-             119 block: vars=1, tvars=2
-             120 block_finish
-             121 class(line=48) edeadlk (1)
-             122 block: vars=1, tvars=2
-             123 block_finish
-             124 class(line=49) edom (1)
-             125 block: vars=1, tvars=2
-             126 block_finish
-             127 class(line=50) eexist (1)
-             128 block: vars=1, tvars=2
-             129 block_finish
-             130 class(line=51) efault (1)
-             131 block: vars=1, tvars=2
-             132 block_finish
-             133 class(line=52) efbig (1)
-             134 block: vars=1, tvars=2
-             135 block_finish
-             136 class(line=53) eintr (1)
-             137 block: vars=1, tvars=2
-             138 block_finish
-             139 class(line=54) einval (1)
-             140 block: vars=1, tvars=2
-             141 block_finish
-             142 class(line=55) eio (1)
-             143 block: vars=1, tvars=2
-             144 block_finish
-             145 class(line=56) eisdir (1)
-             146 block: vars=1, tvars=2
-             147 block_finish
-             148 class(line=57) emfile (1)
-             149 block: vars=1, tvars=2
-             150 block_finish
-             151 class(line=58) emlink (1)
-             152 block: vars=1, tvars=2
-             153 block_finish
-             154 class(line=59) enametoolong (1)
-             155 block: vars=1, tvars=2
-             156 block_finish
-             157 class(line=60) enfile (1)
-             158 block: vars=1, tvars=2
-             159 block_finish
-             160 class(line=61) enodev (1)
-             161 block: vars=1, tvars=2
-             162 block_finish
-             163 class(line=62) enoent (1)
-             164 block: vars=1, tvars=2
-             165 block_finish
-             166 class(line=63) enoexec (1)
-             167 block: vars=1, tvars=2
-             168 block_finish
-             169 class(line=64) enolck (1)
-             170 block: vars=1, tvars=2
-             171 block_finish
-             172 class(line=65) enomem (1)
-             173 block: vars=1, tvars=2
-             174 block_finish
-             175 class(line=66) enospc (1)
-             176 block: vars=1, tvars=2
-             177 block_finish
-             178 class(line=67) enosys (1)
-             179 block: vars=1, tvars=2
-             180 block_finish
-             181 class(line=68) enotdir (1)
-             182 block: vars=1, tvars=2
-             183 block_finish
-             184 class(line=69) enotempty (1)
-             185 block: vars=1, tvars=2
-             186 block_finish
-             187 class(line=70) enotty (1)
-             188 block: vars=1, tvars=2
-             189 block_finish
-             190 class(line=71) enxio (1)
-             191 block: vars=1, tvars=2
-             192 block_finish
-             193 class(line=72) eperm (1)
-             194 block: vars=1, tvars=2
-             195 block_finish
-             196 class(line=73) epipe (1)
-             197 block: vars=1, tvars=2
-             198 block_finish
-             199 class(line=74) erange (1)
-             200 block: vars=1, tvars=2
-             201 block_finish
-             202 class(line=75) erofs (1)
-             203 block: vars=1, tvars=2
-             204 block_finish
-             205 class(line=76) espipe (1)
-             206 block: vars=1, tvars=2
-             207 block_finish
-             208 class(line=77) esrch (1)
-             209 block: vars=1, tvars=2
-             210 block_finish
-             211 class(line=78) exdev (1)
-             212 block: vars=1, tvars=2
-             213 block_finish
+         123 leave(line=3)
 
-           214 block_finish
-           215 class(line=80) systemcall (1)
-           216 block: vars=1, tvars=2
-             217 class(line=81) noshell (1)
-             218 block: vars=1, tvars=2
-             219 block_finish
-             220 class(line=82) systemfail (1)
-             221 block: vars=1, tvars=2
-             222 block_finish
+      class invenv (1)
+         136 block(line=11): vars=1, tvars=0
+         137 leave
 
-           223 block_finish
-           224 class(line=84) invregexp (1)
-           225 block: vars=1, tvars=2
-             226 class(line=85) ebrack (1)
-             227 block: vars=1, tvars=2
-             228 block_finish
-             229 class(line=86) erange (1)
-             230 block: vars=1, tvars=2
-             231 block_finish
-             232 class(line=87) ectype (1)
-             233 block: vars=1, tvars=2
-             234 block_finish
-             235 class(line=88) eparen (1)
-             236 block: vars=1, tvars=2
-             237 block_finish
-             238 class(line=89) esubreg (1)
-             239 block: vars=1, tvars=2
-             240 block_finish
-             241 class(line=90) eend (1)
-             242 block: vars=1, tvars=2
-             243 block_finish
-             244 class(line=91) eescape (1)
-             245 block: vars=1, tvars=2
-             246 block_finish
-             247 class(line=92) badpat (1)
-             248 block: vars=1, tvars=2
-             249 block_finish
-             250 class(line=93) esize (1)
-             251 block: vars=1, tvars=2
-             252 block_finish
-             253 class(line=94) espace (1)
-             254 block: vars=1, tvars=2
-             255 block_finish
+      class invop (1)
+         138 block(line=12): vars=1, tvars=0
+        class optype (1)
+           140 block(line=13): vars=1, tvars=0
+           141 leave
 
-           256 block_finish
-           257 class(line=96) invparser (1)
-           258 block: vars=1, tvars=2
-             259 class(line=97) invgrammar (1)
-             260 block: vars=1, tvars=2
-             261 block_finish
-             262 class(line=98) invtoken (1)
-             263 block: vars=1, tvars=2
-             264 block_finish
-             265 class(line=99) pmemory (1)
-             266 block: vars=1, tvars=2
-             267 block_finish
+        class opvalue (1)
+           142 block(line=14): vars=1, tvars=0
+           143 leave
 
-           268 block_finish
-           269 class(line=101) invextern (1)
-           270 block: vars=1, tvars=2
-             271 class(line=102) noextern (1)
-             272 block: vars=1, tvars=2
-             273 block_finish
-             274 class(line=103) libclose (1)
-             275 block: vars=1, tvars=2
-             276 block_finish
-             277 class(line=104) noexternsupp (1)
-             278 block: vars=1, tvars=2
-             279 block_finish
+         139 leave(line=12)
 
-           280 block_finish
-           281 class(line=106) invenvar (1)
-           282 block: vars=1, tvars=2
-           283 block_finish
-           284 class(line=107) internal (1)
-           285 block: vars=1, tvars=2
-           286 block_finish
+      class invindex (1)
+         144 block(line=16): vars=1, tvars=0
+        class indextype (1)
+           146 block(line=17): vars=1, tvars=0
+           147 leave
 
-         287 block_finish
-         288 class(line=109) invaccess (1)
-         289 block: vars=1, tvars=2
-           290 class(line=110) accessop (1)
-           291 block: vars=1, tvars=2
-           292 block_finish
-           293 class(line=111) accessvalue (1)
-           294 block: vars=1, tvars=2
-           295 block_finish
-           296 class(line=112) immutable (1)
-           297 block: vars=1, tvars=2
-           298 block_finish
+        class indexvalue (1)
+           148 block(line=18): vars=1, tvars=0
+           149 leave
 
-         299 block_finish
-         300 class(line=114) deadlock (1)
-         301 block: vars=1, tvars=2
-         302 block_finish
-         303 class(line=115) syncwait (1)
-         304 block: vars=1, tvars=2
-         305 block_finish
+        class indexop (1)
+           150 block(line=19): vars=1, tvars=0
+           151 leave
 
-       306 block_finish
+         145 leave(line=16)
 
-     307 block_finish
-     308 class(line=134) anode (2)
-     309 block: vars=1, tvars=2
-     310 block_finish
-     311 class(line=137) token (1)
-     312 block: vars=1, tvars=2
-     313 block_finish
-     314 class(line=140) parser (0)
-     315 block(line=141): vars=1, tvars=5
-       316 func(line=147) int_earley_parse_grammar (0)
-       317 block: vars=0, tvars=2
-       318 block_finish
-       319 func int_earley_set_debug_level (0)
-       320 block: vars=0, tvars=2
-       321 block_finish
-       322 func(line=149) int_earley_set_one_parse_flag (0)
-       323 block: vars=0, tvars=2
-       324 block_finish
-       325 func(line=151) int_earley_set_lookahead_level (0)
-       326 block: vars=0, tvars=2
-       327 block_finish
-       328 func(line=153) int_earley_set_cost_flag (0)
-       329 block: vars=0, tvars=2
-       330 block_finish
-       331 func(line=155) int_earley_set_error_recovery_flag (0)
-       332 block: vars=0, tvars=2
-       333 block_finish
-       334 func(line=157) int_earley_set_recovery_match (0)
-       335 block: vars=0, tvars=2
-       336 block_finish
-       337 func int_earley_parse (0)
-       338 block: vars=0, tvars=2
-       339 block_finish
-       340 func(line=159) int_earley_create_grammar (0)
-       341 block: vars=0, tvars=2
-       342 block_finish
-       343 func(line=162) set_grammar (2)
-       344 block: vars=2, tvars=6
-         345 func_occurrence(line=163): 2 <- (int_earley_parse_grammar)
-         346 var_occurrence: 3 <- (grammar)
-         347 local_var_occurrence: 4 <- 1 (strict_p)
-         348 local_var_occurrence: 5 <- 0 (descr)
-         349 proc_call: call (start=2) (pars=3)
-       350 block_finish
-       351 func(line=165) set_debug (1)
-       352 block: vars=1, tvars=5
-         353 func_occurrence(line=166): 1 <- (int_earley_set_debug_level)
-         354 var_occurrence: 2 <- (grammar)
-         355 local_var_occurrence: 3 <- 0 (level)
-         356 class_func_thread_call: call (start=1) (npars=2)
-         357 return_with_result: 1
-       358 block_finish
-       359 func(line=168) set_one_parse (1)
-       360 block: vars=1, tvars=5
-         361 func_occurrence(line=169): 1 <- (int_earley_set_one_parse_flag)
-         362 var_occurrence: 2 <- (grammar)
-         363 local_var_occurrence: 3 <- 0 (flag)
-         364 class_func_thread_call: call (start=1) (npars=2)
-         365 return_with_result: 1
-       366 block_finish
-       367 func(line=171) set_lookahead (1)
-       368 block: vars=1, tvars=5
-         369 func_occurrence(line=172): 1 <- (int_earley_set_lookahead_level)
-         370 var_occurrence: 2 <- (grammar)
-         371 local_var_occurrence: 3 <- 0 (flag)
-         372 class_func_thread_call: call (start=1) (npars=2)
-         373 return_with_result: 1
-       374 block_finish
-       375 func(line=174) set_cost (1)
-       376 block: vars=1, tvars=5
-         377 func_occurrence(line=175): 1 <- (int_earley_set_cost_flag)
-         378 var_occurrence: 2 <- (grammar)
-         379 local_var_occurrence: 3 <- 0 (flag)
-         380 class_func_thread_call: call (start=1) (npars=2)
-         381 return_with_result: 1
-       382 block_finish
-       383 func(line=177) set_recovery (1)
-       384 block: vars=1, tvars=5
-         385 func_occurrence(line=178): 1 <- (int_earley_set_error_recovery_flag)
-         386 var_occurrence: 2 <- (grammar)
-         387 local_var_occurrence: 3 <- 0 (flag)
-         388 class_func_thread_call: call (start=1) (npars=2)
-         389 return_with_result: 1
-       390 block_finish
-       391 func(line=180) set_recovery_match (1)
-       392 block: vars=1, tvars=5
-         393 func_occurrence(line=181): 1 <- (int_earley_set_recovery_match)
-         394 var_occurrence: 2 <- (grammar)
-         395 local_var_occurrence: 3 <- 0 (n_toks)
-         396 class_func_thread_call: call (start=1) (npars=2)
-         397 return_with_result: 1
-       398 block_finish
-       399 func(line=183) parse (2)
-       400 block: vars=3, tvars=15
-         401 int(line=185): 3 <- (1)
-         402 int: 4 <- (2)
-         403 int: 5 <- (3)
-         404 int: 6 <- (4)
-         405 int: 7 <- (5)
-         406 int: 8 <- (6)
-         407 int: 9 <- (7)
-         408 int: 10 <- (8)
-         409 int: 11 <- (9)
-         410 int: 12 <- (10)
-         411 int: 13 <- (11)
-         412 int: 14 <- (12)
-         413 int: 15 <- (13)
-         414 mult: 14 <- 14 15
-         415 plus: 13 <- 13 14
-         416 mult: 12 <- 12 13
-         417 plus: 11 <- 11 12
-         418 mult: 10 <- 10 11
-         419 plus: 9 <- 9 10
-         420 mult: 8 <- 8 9
-         421 plus: 7 <- 7 8
-         422 mult: 6 <- 6 7
-         423 plus: 5 <- 5 6
-         424 mult: 4 <- 4 5
-         425 plus: 2 <- 3 4
-         426 func_occurrence(line=186): 3 <- (int_earley_parse)
-         427 var_occurrence: 4 <- (grammar)
-         428 local_var_occurrence: 5 <- 0 (tokens)
-         429 local_var_occurrence: 6 <- 1 (error_func)
-         430 class_func_thread_call: call (start=3) (npars=3)
-         431 return_with_result: 3
-       432 block_finish
+      class invslice (1)
+         152 block(line=21): vars=1, tvars=0
+        class slicetype (1)
+           154 block(line=22): vars=1, tvars=0
+           155 leave
 
-       433 lvalue_var_occurrence(line=189): 1 <- (grammar)
-       434 func_occurrence: 3 <- (int_earley_create_grammar)
-       435 class_func_thread_call: call (start=3) (npars=0)
-       436 assign: 1(2) <- 3
-     437 block_finish
-     438 class(line=192) file (0)
-     439 block: vars=1, tvars=4
-       440 var_occurrence(line=194): 1 <- (__nogenerate__)
-       441 nil: 2 <- 
-       442 ne: 1 <- 1 2
-       443 if_stmt: 1 (else=444)
-         445 var_occurrence(line=195): 1 <- (invcalls)
-         446 period: 1 <- 1 (callop, block_decl_ident_num=52)
-         447 string(line=196): 2 <- ("File can be created only by functions open or popen")
-         448 class_func_thread_call: call (start=1) (npars=1)
-         449 throw(line=195): 1
-             goto 444
-     444 block_finish(line=196)
-     450 func(line=201) max (0)
-     451 block: vars=0, tvars=2
-     452 block_finish
-     453 func min (0)
-     454 block: vars=0, tvars=2
-     455 block_finish
-     456 func(line=202) tolower (0)
-     457 block: vars=0, tvars=2
-     458 block_finish
-     459 func toupper (0)
-     460 block: vars=0, tvars=2
-     461 block_finish
-     462 func trans (0)
-     463 block: vars=0, tvars=2
-     464 block_finish
-     465 func(line=203) eltype (0)
-     466 block: vars=0, tvars=2
-     467 block_finish
-     468 func(line=204) keys (0)
-     469 block: vars=0, tvars=2
-     470 block_finish
-     471 func(line=205) context (0)
-     472 block: vars=0, tvars=2
-     473 block_finish
-     474 func inside (0)
-     475 block: vars=0, tvars=2
-     476 block_finish
-     477 func(line=206) subv (0)
-     478 block: vars=0, tvars=2
-     479 block_finish
-     480 func cmpv (0)
-     481 block: vars=0, tvars=2
-     482 block_finish
-     483 func del (0)
-     484 block: vars=0, tvars=2
-     485 block_finish
-     486 func ins (0)
-     487 block: vars=0, tvars=2
-     488 block_finish
-     489 func insv (0)
-     490 block: vars=0, tvars=2
-     491 block_finish
-     492 func(line=207) rev (0)
-     493 block: vars=0, tvars=2
-     494 block_finish
-     495 func sort (0)
-     496 block: vars=0, tvars=2
-     497 block_finish
-     498 func(line=208) sqrt (0)
-     499 block: vars=0, tvars=2
-     500 block_finish
-     501 func exp (0)
-     502 block: vars=0, tvars=2
-     503 block_finish
-     504 func log (0)
-     505 block: vars=0, tvars=2
-     506 block_finish
-     507 func log10 (0)
-     508 block: vars=0, tvars=2
-     509 block_finish
-     510 func pow (0)
-     511 block: vars=0, tvars=2
-     512 block_finish
-     513 func(line=209) sin (0)
-     514 block: vars=0, tvars=2
-     515 block_finish
-     516 func cos (0)
-     517 block: vars=0, tvars=2
-     518 block_finish
-     519 func atan2 (0)
-     520 block: vars=0, tvars=2
-     521 block_finish
-     522 func(line=210) match (0)
-     523 block: vars=0, tvars=2
-     524 block_finish
-     525 func gmatch (0)
-     526 block: vars=0, tvars=2
-     527 block_finish
-     528 func sub (0)
-     529 block: vars=0, tvars=2
-     530 block_finish
-     531 func gsub (0)
-     532 block: vars=0, tvars=2
-     533 block_finish
-     534 func(line=211) split (0)
-     535 block: vars=0, tvars=2
-     536 block_finish
-     537 func(line=212) srand (0)
-     538 block: vars=0, tvars=2
-     539 block_finish
-     540 func rand (0)
-     541 block: vars=0, tvars=2
-     542 block_finish
-     543 func(line=213) __process_errno__ (0)
-     544 block: vars=0, tvars=2
-     545 block_finish
-     546 func(line=214) readdir (0)
-     547 block: vars=0, tvars=2
-     548 block_finish
-     549 func ftype (0)
-     550 block: vars=0, tvars=2
-     551 block_finish
-     552 func(line=215) fun (0)
-     553 block: vars=0, tvars=2
-     554 block_finish
-     555 func fgn (0)
-     556 block: vars=0, tvars=2
-     557 block_finish
-     558 func fsize (0)
-     559 block: vars=0, tvars=2
-     560 block_finish
-     561 func(line=216) fatime (0)
-     562 block: vars=0, tvars=2
-     563 block_finish
-     564 func fmtime (0)
-     565 block: vars=0, tvars=2
-     566 block_finish
-     567 func fctime (0)
-     568 block: vars=0, tvars=2
-     569 block_finish
-     570 func(line=217) fumode (0)
-     571 block: vars=0, tvars=2
-     572 block_finish
-     573 func fgmode (0)
-     574 block: vars=0, tvars=2
-     575 block_finish
-     576 func fomode (0)
-     577 block: vars=0, tvars=2
-     578 block_finish
-     579 func(line=218) time (0)
-     580 block: vars=0, tvars=2
-     581 block_finish
-     582 func(line=219) strtime (0)
-     583 block: vars=0, tvars=2
-     584 block_finish
-     585 func(line=220) clock (0)
-     586 block: vars=0, tvars=2
-     587 block_finish
-     588 func(line=221) gc (0)
-     589 block: vars=0, tvars=2
-     590 block_finish
-     591 func(line=222) rename (0)
-     592 block: vars=0, tvars=2
-     593 block_finish
-     594 func remove (0)
-     595 block: vars=0, tvars=2
-     596 block_finish
-     597 func(line=223) mkdir (0)
-     598 block: vars=0, tvars=2
-     599 block_finish
-     600 func rmdir (0)
-     601 block: vars=0, tvars=2
-     602 block_finish
-     603 func(line=224) getcwd (0)
-     604 block: vars=0, tvars=2
-     605 block_finish
-     606 func chdir (0)
-     607 block: vars=0, tvars=2
-     608 block_finish
-     609 func(line=225) chumod (0)
-     610 block: vars=0, tvars=2
-     611 block_finish
-     612 func chgmod (0)
-     613 block: vars=0, tvars=2
-     614 block_finish
-     615 func chomod (0)
-     616 block: vars=0, tvars=2
-     617 block_finish
-     618 func isatty (0)
-     619 block: vars=0, tvars=2
-     620 block_finish
-     621 func(line=226) open (0)
-     622 block: vars=0, tvars=2
-     623 block_finish
-     624 func close (0)
-     625 block: vars=0, tvars=2
-     626 block_finish
-     627 func flush (0)
-     628 block: vars=0, tvars=2
-     629 block_finish
-     630 func(line=227) popen (0)
-     631 block: vars=0, tvars=2
-     632 block_finish
-     633 func pclose (0)
-     634 block: vars=0, tvars=2
-     635 block_finish
-     636 func(line=228) tell (0)
-     637 block: vars=0, tvars=2
-     638 block_finish
-     639 func seek (0)
-     640 block: vars=0, tvars=2
-     641 block_finish
-     642 func(line=229) put (0)
-     643 block: vars=0, tvars=2
-     644 block_finish
-     645 func putln (0)
-     646 block: vars=0, tvars=2
-     647 block_finish
-     648 func(line=230) fput (0)
-     649 block: vars=0, tvars=2
-     650 block_finish
-     651 func fputln (0)
-     652 block: vars=0, tvars=2
-     653 block_finish
-     654 func sput (0)
-     655 block: vars=0, tvars=2
-     656 block_finish
-     657 func sputln (0)
-     658 block: vars=0, tvars=2
-     659 block_finish
-     660 func(line=231) putf (0)
-     661 block: vars=0, tvars=2
-     662 block_finish
-     663 func fputf (0)
-     664 block: vars=0, tvars=2
-     665 block_finish
-     666 func sputf (0)
-     667 block: vars=0, tvars=2
-     668 block_finish
-     669 func(line=232) print (0)
-     670 block: vars=0, tvars=2
-     671 block_finish
-     672 func println (0)
-     673 block: vars=0, tvars=2
-     674 block_finish
-     675 func(line=233) fprint (0)
-     676 block: vars=0, tvars=2
-     677 block_finish
-     678 func fprintln (0)
-     679 block: vars=0, tvars=2
-     680 block_finish
-     681 func sprint (0)
-     682 block: vars=0, tvars=2
-     683 block_finish
-     684 func sprintln (0)
-     685 block: vars=0, tvars=2
-     686 block_finish
-     687 func(line=234) get (0)
-     688 block: vars=0, tvars=2
-     689 block_finish
-     690 func getln (0)
-     691 block: vars=0, tvars=2
-     692 block_finish
-     693 func getf (0)
-     694 block: vars=0, tvars=2
-     695 block_finish
-     696 func(line=235) fget (0)
-     697 block: vars=0, tvars=2
-     698 block_finish
-     699 func fgetln (0)
-     700 block: vars=0, tvars=2
-     701 block_finish
-     702 func fgetf (0)
-     703 block: vars=0, tvars=2
-     704 block_finish
-     705 func(line=236) scan (0)
-     706 block: vars=0, tvars=2
-     707 block_finish
-     708 func scanln (0)
-     709 block: vars=0, tvars=2
-     710 block_finish
-     711 func fscan (0)
-     712 block: vars=0, tvars=2
-     713 block_finish
-     714 func fscanln (0)
-     715 block: vars=0, tvars=2
-     716 block_finish
-     717 func(line=237) getpid (0)
-     718 block: vars=0, tvars=2
-     719 block_finish
-     720 func getun (0)
-     721 block: vars=0, tvars=2
-     722 block_finish
-     723 func geteun (0)
-     724 block: vars=0, tvars=2
-     725 block_finish
-     726 func(line=238) getgn (0)
-     727 block: vars=0, tvars=2
-     728 block_finish
-     729 func getegn (0)
-     730 block: vars=0, tvars=2
-     731 block_finish
-     732 func getgroups (0)
-     733 block: vars=0, tvars=2
-     734 block_finish
-     735 func(line=239) system (0)
-     736 block: vars=0, tvars=2
-     737 block_finish
-     738 func(line=240) exit (0)
-     739 block: vars=0, tvars=2
-     740 block_finish
-     741 func(line=241) __init__ (0)
-     742 block: vars=0, tvars=2
-     743 block_finish
+        class sliceform (1)
+           156 block(line=23): vars=1, tvars=0
+           157 leave
 
-     744 class_occurrence(line=118): 34 <- (except)
-     745 class_func_thread_call: call (start=34) (npars=0)
-     746 local_var_occurrence: 0 <- 34 (excepts)
-     747 period(line=119): 34 <- 0 (error, block_decl_ident_num=4)
-     748 nil: 35 <- 
-     749 class_func_thread_call: call (start=34) (npars=1)
-     750 local_var_occurrence: 1 <- 34 (errors)
-     751 period(line=120): 34 <- 1 (signal, block_decl_ident_num=6)
-     752 nil: 35 <- 
-     753 class_func_thread_call: call (start=34) (npars=1)
-     754 local_var_occurrence: 2 <- 34 (signals)
-     755 period(line=121): 34 <- 1 (invop, block_decl_ident_num=8)
-     756 nil: 35 <- 
-     757 class_func_thread_call: call (start=34) (npars=1)
-     758 local_var_occurrence: 3 <- 34 (invops)
-     759 period(line=122): 34 <- 1 (invindex, block_decl_ident_num=10)
-     760 nil: 35 <- 
-     761 class_func_thread_call: call (start=34) (npars=1)
-     762 local_var_occurrence: 4 <- 34 (invindexes)
-     763 period(line=123): 34 <- 1 (invslice, block_decl_ident_num=12)
-     764 nil: 35 <- 
-     765 class_func_thread_call: call (start=34) (npars=1)
-     766 local_var_occurrence: 5 <- 34 (invslices)
-     767 period(line=124): 34 <- 1 (invector, block_decl_ident_num=14)
-     768 nil: 35 <- 
-     769 class_func_thread_call: call (start=34) (npars=1)
-     770 local_var_occurrence: 6 <- 34 (invectors)
-     771 period(line=125): 34 <- 1 (invkey, block_decl_ident_num=16)
-     772 nil: 35 <- 
-     773 class_func_thread_call: call (start=34) (npars=1)
-     774 local_var_occurrence: 7 <- 34 (invkeys)
-     775 period(line=126): 34 <- 1 (invcall, block_decl_ident_num=18)
-     776 nil: 35 <- 
-     777 class_func_thread_call: call (start=34) (npars=1)
-     778 local_var_occurrence: 8 <- 34 (invcalls)
-     779 period(line=127): 34 <- 8 (syserror, block_decl_ident_num=20)
-     780 nil: 35 <- 
-     781 class_func_thread_call: call (start=34) (npars=1)
-     782 local_var_occurrence: 9 <- 34 (syserrors)
-     783 period(line=128): 34 <- 8 (systemcall, block_decl_ident_num=22)
-     784 nil: 35 <- 
-     785 class_func_thread_call: call (start=34) (npars=1)
-     786 local_var_occurrence: 10 <- 34 (systemcalls)
-     787 period(line=129): 34 <- 8 (invregexp, block_decl_ident_num=24)
-     788 nil: 35 <- 
-     789 class_func_thread_call: call (start=34) (npars=1)
-     790 local_var_occurrence: 11 <- 34 (invregexps)
-     791 period(line=130): 34 <- 8 (invparser, block_decl_ident_num=26)
-     792 nil: 35 <- 
-     793 class_func_thread_call: call (start=34) (npars=1)
-     794 local_var_occurrence: 12 <- 34 (invparsers)
-     795 period(line=131): 34 <- 8 (invextern, block_decl_ident_num=28)
-     796 nil: 35 <- 
-     797 class_func_thread_call: call (start=34) (npars=1)
-     798 local_var_occurrence: 13 <- 34 (invexterns)
-     799 period(line=132): 34 <- 1 (invaccess, block_decl_ident_num=30)
-     800 nil: 35 <- 
-     801 class_func_thread_call: call (start=34) (npars=1)
-     802 local_var_occurrence: 14 <- 34 (invaccesses)
-     803 class_occurrence(line=138): 34 <- (anode)
-     804 string: 35 <- ("$nil")
-     805 class_func_thread_call: call (start=34) (npars=1)
-     806 local_var_occurrence: 20 <- 34 (nil_anode)
-     807 class_occurrence(line=139): 34 <- (anode)
-     808 string: 35 <- ("$error")
-     809 class_func_thread_call: call (start=34) (npars=1)
-     810 local_var_occurrence: 21 <- 34 (error_anode)
-     811 class_occurrence(line=197): 34 <- (file)
-     812 class_func_thread_call: call (start=34) (npars=0)
-     813 const: 22 <- 34
-     814 class_occurrence(line=198): 34 <- (file)
-     815 class_func_thread_call: call (start=34) (npars=0)
-     816 const: 23 <- 34
-     817 class_occurrence(line=199): 34 <- (file)
-     818 class_func_thread_call: call (start=34) (npars=0)
-     819 const: 24 <- 34
-     820 int(line=200): 25 <- (0)
-     821 string(line=211): 26 <- ("[ \t]+")
-     822 string(line=219): 27 <- ("%a %b %d %H:%M:%S %Z %Y")
-     823 func_occurrence(line=241): 34 <- (__init__)
-     824 proc_call: call (start=34) (pars=0)
-     825 int(line=2): 28 <- (8190)
-     826 int(line=4): 34 <- (1)
-     827 plus: 34 <- 28 34
-     828 int: 35 <- (0)
-     829 vector: 33 <- (els=34, parts=1)
-     830 int(line=5): 32 <- (0)
-     831 int(line=6): 29 <- (0)
-     832 le: 34 <- 29 28
-     833 for_stmt: 34 (end=834)
-       835 int(line=7): 34 <- (1)
-       836 assign: 33(29) <- 34
-       837 int(line=6): 34 <- (1)
-       838 plus: 29 <- 29 34
-           goto 832
-     834 int(line=8): 29 <- (0)
-     839 le: 34 <- 29 28
-     840 for_stmt: 34 (end=841)
-       842 index(line=9): 34 <- 33[29]
-       843 if_stmt: 34 (else=844)
-         845 plus(line=11): 34 <- 29 29
-         846 int: 35 <- (3)
-         847 plus: 30 <- 34 35
-         848 plus(line=12): 31 <- 29 30
-         849 int(line=13): 34 <- (1)
-         850 for_stmt: 34 (end=851)
-           852 gt(line=15): 34 <- 31 28
-           853 if_stmt: 34 (else=854)
-             855 break_stmt(line=16)
-             851 int(line=20): 34 <- (1)
-             856 plus: 32 <- 32 34
-                 goto 844
-           854 int(line=17): 34 <- (0)
-           857 assign: 33(31) <- 34
-           858 plus(line=18): 31 <- 31 30
-               goto 849
-       844 int(line=8): 34 <- (1)
-       859 plus: 29 <- 29 34
-           goto 839
-     841 func_occurrence(line=23): 34 <- (println)
-     860 local_var_occurrence: 35 <- 32 (count)
-     861 proc_call: call (start=34) (pars=1)
-   862 block_finish
+         153 leave(line=21)
+
+      class invector (1)
+         158 block(line=25): vars=1, tvars=0
+        class veclen (1)
+           160 block(line=26): vars=1, tvars=0
+           161 leave
+
+        class vecform (1)
+           162 block(line=27): vars=1, tvars=0
+           163 leave
+
+         159 leave(line=25)
+
+      class invkey (1)
+         164 block(line=29): vars=1, tvars=0
+        class keyvalue (1)
+           166 block(line=30): vars=1, tvars=0
+           167 leave
+
+        class keyop (1)
+           168 block(line=31): vars=1, tvars=0
+           169 leave
+
+         165 leave(line=29)
+
+      class invcall (1)
+         170 block(line=33): vars=1, tvars=0
+        class callop (1)
+           172 block(line=34): vars=1, tvars=0
+           173 leave
+
+        class partype (1)
+           174 block(line=35): vars=1, tvars=0
+           175 leave
+
+        class invresult (1)
+           176 block(line=36): vars=1, tvars=0
+           177 leave
+
+        class invinput (1)
+           178 block(line=37): vars=1, tvars=0
+           179 leave
+
+        class invfmt (1)
+           180 block(line=38): vars=1, tvars=0
+           181 leave
+
+        class eof (1)
+           182 block(line=39): vars=1, tvars=0
+           183 leave
+
+        class parnumber (1)
+           184 block(line=40): vars=1, tvars=0
+           185 leave
+
+        class syncthreadcall (1)
+           186 block(line=41): vars=1, tvars=0
+           187 leave
+
+        class syserror (1)
+           188 block(line=42): vars=1, tvars=0
+          class eaccess (1)
+             190 block(line=43): vars=1, tvars=0
+             191 leave
+
+          class eagain (1)
+             192 block(line=44): vars=1, tvars=0
+             193 leave
+
+          class ebadf (1)
+             194 block(line=45): vars=1, tvars=0
+             195 leave
+
+          class ebusy (1)
+             196 block(line=46): vars=1, tvars=0
+             197 leave
+
+          class echild (1)
+             198 block(line=47): vars=1, tvars=0
+             199 leave
+
+          class edeadlk (1)
+             200 block(line=48): vars=1, tvars=0
+             201 leave
+
+          class edom (1)
+             202 block(line=49): vars=1, tvars=0
+             203 leave
+
+          class eexist (1)
+             204 block(line=50): vars=1, tvars=0
+             205 leave
+
+          class efault (1)
+             206 block(line=51): vars=1, tvars=0
+             207 leave
+
+          class efbig (1)
+             208 block(line=52): vars=1, tvars=0
+             209 leave
+
+          class eintr (1)
+             210 block(line=53): vars=1, tvars=0
+             211 leave
+
+          class einval (1)
+             212 block(line=54): vars=1, tvars=0
+             213 leave
+
+          class eio (1)
+             214 block(line=55): vars=1, tvars=0
+             215 leave
+
+          class eisdir (1)
+             216 block(line=56): vars=1, tvars=0
+             217 leave
+
+          class emfile (1)
+             218 block(line=57): vars=1, tvars=0
+             219 leave
+
+          class emlink (1)
+             220 block(line=58): vars=1, tvars=0
+             221 leave
+
+          class enametoolong (1)
+             222 block(line=59): vars=1, tvars=0
+             223 leave
+
+          class enfile (1)
+             224 block(line=60): vars=1, tvars=0
+             225 leave
+
+          class enodev (1)
+             226 block(line=61): vars=1, tvars=0
+             227 leave
+
+          class enoent (1)
+             228 block(line=62): vars=1, tvars=0
+             229 leave
+
+          class enoexec (1)
+             230 block(line=63): vars=1, tvars=0
+             231 leave
+
+          class enolck (1)
+             232 block(line=64): vars=1, tvars=0
+             233 leave
+
+          class enomem (1)
+             234 block(line=65): vars=1, tvars=0
+             235 leave
+
+          class enospc (1)
+             236 block(line=66): vars=1, tvars=0
+             237 leave
+
+          class enosys (1)
+             238 block(line=67): vars=1, tvars=0
+             239 leave
+
+          class enotdir (1)
+             240 block(line=68): vars=1, tvars=0
+             241 leave
+
+          class enotempty (1)
+             242 block(line=69): vars=1, tvars=0
+             243 leave
+
+          class enotty (1)
+             244 block(line=70): vars=1, tvars=0
+             245 leave
+
+          class enxio (1)
+             246 block(line=71): vars=1, tvars=0
+             247 leave
+
+          class eperm (1)
+             248 block(line=72): vars=1, tvars=0
+             249 leave
+
+          class epipe (1)
+             250 block(line=73): vars=1, tvars=0
+             251 leave
+
+          class erange (1)
+             252 block(line=74): vars=1, tvars=0
+             253 leave
+
+          class erofs (1)
+             254 block(line=75): vars=1, tvars=0
+             255 leave
+
+          class espipe (1)
+             256 block(line=76): vars=1, tvars=0
+             257 leave
+
+          class esrch (1)
+             258 block(line=77): vars=1, tvars=0
+             259 leave
+
+          class exdev (1)
+             260 block(line=78): vars=1, tvars=0
+             261 leave
+
+           189 leave(line=42)
+
+        class systemcall (1)
+           262 block(line=80): vars=1, tvars=0
+          class noshell (1)
+             264 block(line=81): vars=1, tvars=0
+             265 leave
+
+          class systemfail (1)
+             266 block(line=82): vars=1, tvars=0
+             267 leave
+
+           263 leave(line=80)
+
+        class invregexp (1)
+           268 block(line=84): vars=1, tvars=0
+          class ebrack (1)
+             270 block(line=85): vars=1, tvars=0
+             271 leave
+
+          class erange (1)
+             272 block(line=86): vars=1, tvars=0
+             273 leave
+
+          class ectype (1)
+             274 block(line=87): vars=1, tvars=0
+             275 leave
+
+          class eparen (1)
+             276 block(line=88): vars=1, tvars=0
+             277 leave
+
+          class esubreg (1)
+             278 block(line=89): vars=1, tvars=0
+             279 leave
+
+          class eend (1)
+             280 block(line=90): vars=1, tvars=0
+             281 leave
+
+          class eescape (1)
+             282 block(line=91): vars=1, tvars=0
+             283 leave
+
+          class badpat (1)
+             284 block(line=92): vars=1, tvars=0
+             285 leave
+
+          class esize (1)
+             286 block(line=93): vars=1, tvars=0
+             287 leave
+
+          class espace (1)
+             288 block(line=94): vars=1, tvars=0
+             289 leave
+
+           269 leave(line=84)
+
+        class invparser (1)
+           290 block(line=96): vars=1, tvars=0
+          class invgrammar (1)
+             292 block(line=97): vars=1, tvars=0
+             293 leave
+
+          class invtoken (1)
+             294 block(line=98): vars=1, tvars=0
+             295 leave
+
+          class pmemory (1)
+             296 block(line=99): vars=1, tvars=0
+             297 leave
+
+           291 leave(line=96)
+
+        class invextern (1)
+           298 block(line=101): vars=1, tvars=0
+          class noextern (1)
+             300 block(line=102): vars=1, tvars=0
+             301 leave
+
+          class libclose (1)
+             302 block(line=103): vars=1, tvars=0
+             303 leave
+
+          class noexternsupp (1)
+             304 block(line=104): vars=1, tvars=0
+             305 leave
+
+           299 leave(line=101)
+
+        class invenvar (1)
+           306 block(line=106): vars=1, tvars=0
+           307 leave
+
+        class internal (1)
+           308 block(line=107): vars=1, tvars=0
+           309 leave
+
+         171 leave(line=33)
+
+      class invaccess (1)
+         310 block(line=109): vars=1, tvars=0
+        class accessop (1)
+           312 block(line=110): vars=1, tvars=0
+           313 leave
+
+        class accessvalue (1)
+           314 block(line=111): vars=1, tvars=0
+           315 leave
+
+        class immutable (1)
+           316 block(line=112): vars=1, tvars=0
+           317 leave
+
+         311 leave(line=109)
+
+      class deadlock (1)
+         318 block(line=114): vars=1, tvars=0
+         319 leave
+
+      class syncwait (1)
+         320 block(line=115): vars=1, tvars=0
+         321 leave
+
+       121 leave(line=2)
+
+     119 leave(line=1)
+
+  class anode (2)
+     322 block(line=134): vars=1, tvars=0
+     323 leave
+
+  class token (1)
+     324 block(line=137): vars=1, tvars=0
+     325 leave
+
+  class parser (0)
+     326 block(line=141): vars=1, tvars=3
+    func int_earley_parse_grammar (0)
+       332 block(line=147): vars=0, tvars=0
+       333 leave
+
+    func int_earley_set_debug_level (0)
+       334 block: vars=0, tvars=0
+       335 leave
+
+    func int_earley_set_one_parse_flag (0)
+       336 block(line=149): vars=0, tvars=0
+       337 leave
+
+    func int_earley_set_lookahead_level (0)
+       338 block(line=151): vars=0, tvars=0
+       339 leave
+
+    func int_earley_set_cost_flag (0)
+       340 block(line=153): vars=0, tvars=0
+       341 leave
+
+    func int_earley_set_error_recovery_flag (0)
+       342 block(line=155): vars=0, tvars=0
+       343 leave
+
+    func int_earley_set_recovery_match (0)
+       344 block(line=157): vars=0, tvars=0
+       345 leave
+
+    func int_earley_parse (0)
+       346 block: vars=0, tvars=0
+       347 leave
+
+    func int_earley_create_grammar (0)
+       348 block(line=159): vars=0, tvars=0
+       349 leave
+
+    func set_grammar (2)
+       350 block(line=162): vars=2, tvars=4
+         351 func(line=163): 2 <- (int_earley_parse_grammar)
+         352 var: 3 <- (grammar)
+         353 move: 4 <- 1 (strict_p)
+         354 move: 5 <- 0 (descr)
+         355 pcall: start=2 npars=3
+       356 leave(line=162)
+
+    func set_debug (1)
+       357 block(line=165): vars=1, tvars=3
+         358 func(line=166): 1 <- (int_earley_set_debug_level)
+         359 var: 2 <- (grammar)
+         360 move: 3 <- 0 (level)
+         361 tcall: start=1 npars=2
+         362 ret: 1
+       363 leave(line=165)
+
+    func set_one_parse (1)
+       364 block(line=168): vars=1, tvars=3
+         365 func(line=169): 1 <- (int_earley_set_one_parse_flag)
+         366 var: 2 <- (grammar)
+         367 move: 3 <- 0 (flag)
+         368 tcall: start=1 npars=2
+         369 ret: 1
+       370 leave(line=168)
+
+    func set_lookahead (1)
+       371 block(line=171): vars=1, tvars=3
+         372 func(line=172): 1 <- (int_earley_set_lookahead_level)
+         373 var: 2 <- (grammar)
+         374 move: 3 <- 0 (flag)
+         375 tcall: start=1 npars=2
+         376 ret: 1
+       377 leave(line=171)
+
+    func set_cost (1)
+       378 block(line=174): vars=1, tvars=3
+         379 func(line=175): 1 <- (int_earley_set_cost_flag)
+         380 var: 2 <- (grammar)
+         381 move: 3 <- 0 (flag)
+         382 tcall: start=1 npars=2
+         383 ret: 1
+       384 leave(line=174)
+
+    func set_recovery (1)
+       385 block(line=177): vars=1, tvars=3
+         386 func(line=178): 1 <- (int_earley_set_error_recovery_flag)
+         387 var: 2 <- (grammar)
+         388 move: 3 <- 0 (flag)
+         389 tcall: start=1 npars=2
+         390 ret: 1
+       391 leave(line=177)
+
+    func set_recovery_match (1)
+       392 block(line=180): vars=1, tvars=3
+         393 func(line=181): 1 <- (int_earley_set_recovery_match)
+         394 var: 2 <- (grammar)
+         395 move: 3 <- 0 (n_toks)
+         396 tcall: start=1 npars=2
+         397 ret: 1
+       398 leave(line=180)
+
+    func parse (2)
+       399 block(line=183): vars=3, tvars=13
+         400 ldi(line=185): 3 <- (1)
+         401 ldi: 4 <- (2)
+         402 ldi: 5 <- (3)
+         403 ldi: 6 <- (4)
+         404 ldi: 7 <- (5)
+         405 ldi: 8 <- (6)
+         406 ldi: 9 <- (7)
+         407 ldi: 10 <- (8)
+         408 ldi: 11 <- (9)
+         409 ldi: 12 <- (10)
+         410 ldi: 13 <- (11)
+         411 ldi: 14 <- (12)
+         412 ldi: 15 <- (13)
+         413 and: 14 <- 14 15
+         414 xor: 13 <- 13 14
+         415 and: 12 <- 12 13
+         416 xor: 11 <- 11 12
+         417 and: 10 <- 10 11
+         418 xor: 9 <- 9 10
+         419 and: 8 <- 8 9
+         420 xor: 7 <- 7 8
+         421 and: 6 <- 6 7
+         422 xor: 5 <- 5 6
+         423 and: 4 <- 4 5
+         424 xor: 2 <- 3 4
+         425 func(line=186): 3 <- (int_earley_parse)
+         426 var: 4 <- (grammar)
+         427 move: 5 <- 0 (tokens)
+         428 move: 6 <- 1 (error_func)
+         429 tcall: start=3 npars=3
+         430 ret: 3
+       431 leave(line=183)
+
+       327 lvar(line=189): 1 <- (grammar)
+       328 func: 3 <- (int_earley_create_grammar)
+       329 call: start=3 npars=0
+       330 st: 1(2) <- 3
+     331 leave(line=141)
+
+  class file (0)
+     432 block(line=192): vars=1, tvars=2
+       433 var(line=194): 1 <- (__nogenerate__)
+       434 ldnil: 2 <- 
+       436 bteq: 1 2 (temp_res=1) (true=438, false=437)
+         437 var(line=195): 1 <- (invcalls)
+         439 fld: 1 <- 1 (callop, block_decl_ident_num=52)
+         440 lds(line=196): 2 <- ("File can be created only by functions open or popen")
+         441 call: start=1 npars=1
+         442 throw(line=195): 1
+     438 leave(line=192)
+
+  func max (0)
+     443 block(line=201): vars=0, tvars=0
+     444 leave
+
+  func min (0)
+     445 block: vars=0, tvars=0
+     446 leave
+
+  func tolower (0)
+     447 block(line=202): vars=0, tvars=0
+     448 leave
+
+  func toupper (0)
+     449 block: vars=0, tvars=0
+     450 leave
+
+  func trans (0)
+     451 block: vars=0, tvars=0
+     452 leave
+
+  func eltype (0)
+     453 block(line=203): vars=0, tvars=0
+     454 leave
+
+  func keys (0)
+     455 block(line=204): vars=0, tvars=0
+     456 leave
+
+  func context (0)
+     457 block(line=205): vars=0, tvars=0
+     458 leave
+
+  func inside (0)
+     459 block: vars=0, tvars=0
+     460 leave
+
+  func subv (0)
+     461 block(line=206): vars=0, tvars=0
+     462 leave
+
+  func cmpv (0)
+     463 block: vars=0, tvars=0
+     464 leave
+
+  func del (0)
+     465 block: vars=0, tvars=0
+     466 leave
+
+  func ins (0)
+     467 block: vars=0, tvars=0
+     468 leave
+
+  func insv (0)
+     469 block: vars=0, tvars=0
+     470 leave
+
+  func rev (0)
+     471 block(line=207): vars=0, tvars=0
+     472 leave
+
+  func sort (0)
+     473 block: vars=0, tvars=0
+     474 leave
+
+  func sqrt (0)
+     475 block(line=208): vars=0, tvars=0
+     476 leave
+
+  func exp (0)
+     477 block: vars=0, tvars=0
+     478 leave
+
+  func log (0)
+     479 block: vars=0, tvars=0
+     480 leave
+
+  func log10 (0)
+     481 block: vars=0, tvars=0
+     482 leave
+
+  func pow (0)
+     483 block: vars=0, tvars=0
+     484 leave
+
+  func sin (0)
+     485 block(line=209): vars=0, tvars=0
+     486 leave
+
+  func cos (0)
+     487 block: vars=0, tvars=0
+     488 leave
+
+  func atan2 (0)
+     489 block: vars=0, tvars=0
+     490 leave
+
+  func match (0)
+     491 block(line=210): vars=0, tvars=0
+     492 leave
+
+  func gmatch (0)
+     493 block: vars=0, tvars=0
+     494 leave
+
+  func sub (0)
+     495 block: vars=0, tvars=0
+     496 leave
+
+  func gsub (0)
+     497 block: vars=0, tvars=0
+     498 leave
+
+  func split (0)
+     499 block(line=211): vars=0, tvars=0
+     500 leave
+
+  func srand (0)
+     501 block(line=212): vars=0, tvars=0
+     502 leave
+
+  func rand (0)
+     503 block: vars=0, tvars=0
+     504 leave
+
+  func __process_errno__ (0)
+     505 block(line=213): vars=0, tvars=0
+     506 leave
+
+  func readdir (0)
+     507 block(line=214): vars=0, tvars=0
+     508 leave
+
+  func ftype (0)
+     509 block: vars=0, tvars=0
+     510 leave
+
+  func fun (0)
+     511 block(line=215): vars=0, tvars=0
+     512 leave
+
+  func fgn (0)
+     513 block: vars=0, tvars=0
+     514 leave
+
+  func fsize (0)
+     515 block: vars=0, tvars=0
+     516 leave
+
+  func fatime (0)
+     517 block(line=216): vars=0, tvars=0
+     518 leave
+
+  func fmtime (0)
+     519 block: vars=0, tvars=0
+     520 leave
+
+  func fctime (0)
+     521 block: vars=0, tvars=0
+     522 leave
+
+  func fumode (0)
+     523 block(line=217): vars=0, tvars=0
+     524 leave
+
+  func fgmode (0)
+     525 block: vars=0, tvars=0
+     526 leave
+
+  func fomode (0)
+     527 block: vars=0, tvars=0
+     528 leave
+
+  func time (0)
+     529 block(line=218): vars=0, tvars=0
+     530 leave
+
+  func strtime (0)
+     531 block(line=219): vars=0, tvars=0
+     532 leave
+
+  func clock (0)
+     533 block(line=220): vars=0, tvars=0
+     534 leave
+
+  func gc (0)
+     535 block(line=221): vars=0, tvars=0
+     536 leave
+
+  func rename (0)
+     537 block(line=222): vars=0, tvars=0
+     538 leave
+
+  func remove (0)
+     539 block: vars=0, tvars=0
+     540 leave
+
+  func mkdir (0)
+     541 block(line=223): vars=0, tvars=0
+     542 leave
+
+  func rmdir (0)
+     543 block: vars=0, tvars=0
+     544 leave
+
+  func getcwd (0)
+     545 block(line=224): vars=0, tvars=0
+     546 leave
+
+  func chdir (0)
+     547 block: vars=0, tvars=0
+     548 leave
+
+  func chumod (0)
+     549 block(line=225): vars=0, tvars=0
+     550 leave
+
+  func chgmod (0)
+     551 block: vars=0, tvars=0
+     552 leave
+
+  func chomod (0)
+     553 block: vars=0, tvars=0
+     554 leave
+
+  func isatty (0)
+     555 block: vars=0, tvars=0
+     556 leave
+
+  func open (0)
+     557 block(line=226): vars=0, tvars=0
+     558 leave
+
+  func close (0)
+     559 block: vars=0, tvars=0
+     560 leave
+
+  func flush (0)
+     561 block: vars=0, tvars=0
+     562 leave
+
+  func popen (0)
+     563 block(line=227): vars=0, tvars=0
+     564 leave
+
+  func pclose (0)
+     565 block: vars=0, tvars=0
+     566 leave
+
+  func tell (0)
+     567 block(line=228): vars=0, tvars=0
+     568 leave
+
+  func seek (0)
+     569 block: vars=0, tvars=0
+     570 leave
+
+  func put (0)
+     571 block(line=229): vars=0, tvars=0
+     572 leave
+
+  func putln (0)
+     573 block: vars=0, tvars=0
+     574 leave
+
+  func fput (0)
+     575 block(line=230): vars=0, tvars=0
+     576 leave
+
+  func fputln (0)
+     577 block: vars=0, tvars=0
+     578 leave
+
+  func sput (0)
+     579 block: vars=0, tvars=0
+     580 leave
+
+  func sputln (0)
+     581 block: vars=0, tvars=0
+     582 leave
+
+  func putf (0)
+     583 block(line=231): vars=0, tvars=0
+     584 leave
+
+  func fputf (0)
+     585 block: vars=0, tvars=0
+     586 leave
+
+  func sputf (0)
+     587 block: vars=0, tvars=0
+     588 leave
+
+  func print (0)
+     589 block(line=232): vars=0, tvars=0
+     590 leave
+
+  func println (0)
+     591 block: vars=0, tvars=0
+     592 leave
+
+  func fprint (0)
+     593 block(line=233): vars=0, tvars=0
+     594 leave
+
+  func fprintln (0)
+     595 block: vars=0, tvars=0
+     596 leave
+
+  func sprint (0)
+     597 block: vars=0, tvars=0
+     598 leave
+
+  func sprintln (0)
+     599 block: vars=0, tvars=0
+     600 leave
+
+  func get (0)
+     601 block(line=234): vars=0, tvars=0
+     602 leave
+
+  func getln (0)
+     603 block: vars=0, tvars=0
+     604 leave
+
+  func getf (0)
+     605 block: vars=0, tvars=0
+     606 leave
+
+  func fget (0)
+     607 block(line=235): vars=0, tvars=0
+     608 leave
+
+  func fgetln (0)
+     609 block: vars=0, tvars=0
+     610 leave
+
+  func fgetf (0)
+     611 block: vars=0, tvars=0
+     612 leave
+
+  func scan (0)
+     613 block(line=236): vars=0, tvars=0
+     614 leave
+
+  func scanln (0)
+     615 block: vars=0, tvars=0
+     616 leave
+
+  func fscan (0)
+     617 block: vars=0, tvars=0
+     618 leave
+
+  func fscanln (0)
+     619 block: vars=0, tvars=0
+     620 leave
+
+  func getpid (0)
+     621 block(line=237): vars=0, tvars=0
+     622 leave
+
+  func getun (0)
+     623 block: vars=0, tvars=0
+     624 leave
+
+  func geteun (0)
+     625 block: vars=0, tvars=0
+     626 leave
+
+  func getgn (0)
+     627 block(line=238): vars=0, tvars=0
+     628 leave
+
+  func getegn (0)
+     629 block: vars=0, tvars=0
+     630 leave
+
+  func getgroups (0)
+     631 block: vars=0, tvars=0
+     632 leave
+
+  func system (0)
+     633 block(line=239): vars=0, tvars=0
+     634 leave
+
+  func exit (0)
+     635 block(line=240): vars=0, tvars=0
+     636 leave
+
+  func fold (0)
+     637 block(line=241): vars=0, tvars=0
+     638 leave
+
+  func filter (0)
+     639 block: vars=0, tvars=0
+     640 leave
+
+  func map (0)
+     641 block: vars=0, tvars=0
+     642 leave
+
+  func __init__ (0)
+     643 block(line=242): vars=0, tvars=0
+     644 leave
+
+       2 class(line=118): 34 <- (except)
+       3 call: start=34 npars=0
+       4 move: 0 <- 34 (excepts)
+       5 fld(line=119): 34 <- 0 (error, block_decl_ident_num=4)
+       6 ldnil: 35 <- 
+       7 call: start=34 npars=1
+       8 move: 1 <- 34 (errors)
+       9 fld(line=120): 34 <- 1 (signal, block_decl_ident_num=6)
+      10 ldnil: 35 <- 
+      11 call: start=34 npars=1
+      12 move: 2 <- 34 (signals)
+      13 fld(line=121): 34 <- 1 (invop, block_decl_ident_num=8)
+      14 ldnil: 35 <- 
+      15 call: start=34 npars=1
+      16 move: 3 <- 34 (invops)
+      17 fld(line=122): 34 <- 1 (invindex, block_decl_ident_num=10)
+      18 ldnil: 35 <- 
+      19 call: start=34 npars=1
+      20 move: 4 <- 34 (invindexes)
+      21 fld(line=123): 34 <- 1 (invslice, block_decl_ident_num=12)
+      22 ldnil: 35 <- 
+      23 call: start=34 npars=1
+      24 move: 5 <- 34 (invslices)
+      25 fld(line=124): 34 <- 1 (invector, block_decl_ident_num=14)
+      26 ldnil: 35 <- 
+      27 call: start=34 npars=1
+      28 move: 6 <- 34 (invectors)
+      29 fld(line=125): 34 <- 1 (invkey, block_decl_ident_num=16)
+      30 ldnil: 35 <- 
+      31 call: start=34 npars=1
+      32 move: 7 <- 34 (invkeys)
+      33 fld(line=126): 34 <- 1 (invcall, block_decl_ident_num=18)
+      34 ldnil: 35 <- 
+      35 call: start=34 npars=1
+      36 move: 8 <- 34 (invcalls)
+      37 fld(line=127): 34 <- 8 (syserror, block_decl_ident_num=20)
+      38 ldnil: 35 <- 
+      39 call: start=34 npars=1
+      40 move: 9 <- 34 (syserrors)
+      41 fld(line=128): 34 <- 8 (systemcall, block_decl_ident_num=22)
+      42 ldnil: 35 <- 
+      43 call: start=34 npars=1
+      44 move: 10 <- 34 (systemcalls)
+      45 fld(line=129): 34 <- 8 (invregexp, block_decl_ident_num=24)
+      46 ldnil: 35 <- 
+      47 call: start=34 npars=1
+      48 move: 11 <- 34 (invregexps)
+      49 fld(line=130): 34 <- 8 (invparser, block_decl_ident_num=26)
+      50 ldnil: 35 <- 
+      51 call: start=34 npars=1
+      52 move: 12 <- 34 (invparsers)
+      53 fld(line=131): 34 <- 8 (invextern, block_decl_ident_num=28)
+      54 ldnil: 35 <- 
+      55 call: start=34 npars=1
+      56 move: 13 <- 34 (invexterns)
+      57 fld(line=132): 34 <- 1 (invaccess, block_decl_ident_num=30)
+      58 ldnil: 35 <- 
+      59 call: start=34 npars=1
+      60 move: 14 <- 34 (invaccesses)
+      61 class(line=138): 34 <- (anode)
+      62 lds: 35 <- ("$nil")
+      63 call: start=34 npars=1
+      64 move: 20 <- 34 (nil_anode)
+      65 class(line=139): 34 <- (anode)
+      66 lds: 35 <- ("$error")
+      67 call: start=34 npars=1
+      68 move: 21 <- 34 (error_anode)
+      69 class(line=197): 34 <- (file)
+      70 call: start=34 npars=0
+      71 const: 22 <- 34
+      72 class(line=198): 34 <- (file)
+      73 call: start=34 npars=0
+      74 const: 23 <- 34
+      75 class(line=199): 34 <- (file)
+      76 call: start=34 npars=0
+      77 const: 24 <- 34
+      78 ldi(line=200): 25 <- (0)
+      79 lds(line=211): 26 <- ("[ \t]+")
+      80 lds(line=219): 27 <- ("%a %b %d %H:%M:%S %Z %Y")
+      81 func(line=242): 34 <- (__init__)
+      82 pcall: start=34 npars=0
+      83 ldi(line=2): 28 <- (8190)
+      84 addi(line=4): 34 <- 28 (1)
+      85 ldi: 35 <- (0)
+      86 vec: 33 <- (els=34, parts=1)
+      87 ldi(line=5): 32 <- (0)
+      88 ldi(line=6): 29 <- (0)
+      90 btle: 29 28 (temp_res=34) (true=92, false=91)
+        92 ldi(line=7): 34 <- (1)
+        93 st: 33(29) <- 34
+        95 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=92, false=91)
+      91 ldi(line=8): 29 <- (0)
+      97 btle: 29 28 (temp_res=34) (true=99, false=98)
+        99 ind(line=9): 34 <- 33[29]
+       100 bf: 34 (true=103, false=101)
+         101 add(line=11): 34 <- 29 29
+         107 addi: 30 <- 34 (3)
+         108 add(line=12): 31 <- 29 30
+         109 ldi(line=13): 34 <- (1)
+         110 bt: 34 (true=113, false=111)
+           113 btle(line=15): 31 28 (temp_res=34) (true=115, false=114)
+             114 out(line=16): of 0 blocks
+           115 ldi(line=17): 34 <- (0)
+           116 st: 33(31) <- 34
+           117 add(line=18): 31 <- 31 30
+               goto 109
+         111 addi(line=20): 32 <- 32 (1)
+       103 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=99, false=98)
+      98 func(line=23): 34 <- (println)
+     104 move: 35 <- 32 (count)
+     105 pcall: start=34 npars=1
+   106 leave(line=1)
 OUTPUT585
                         result=ok
                 else
@@ -37375,6 +37565,533 @@ OUTPUT604-2
                 else
                         result=fail
                 fi
+        fi
+fi
+
+# Test 605.
+if test $result = ok -a $start_test_number -le 605; then
+	echo test 605: Anonymous func/class/thread
+        cat >$test_file <<'TEST605'
+putln (afunc (a,b) {return a < b ? a : b;} (3, 5));
+afunc (a,b) {putln (a > b ? a : b);} (3, 5);
+var o = aclass (c) {};
+putln (o (42).c);
+athread () {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
+o = nil;
+TEST605
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT605' && $CMP $stdout $ftemp2; then
+3
+5
+42
+Wait... Continue
+OUTPUT605
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 606.
+if test $result = ok -a $start_test_number -le 606; then
+	echo test 606: Fold function
+        cat >$test_file <<'TEST606'
+var v = [1,2,3,4];
+println (fold (afunc (a, b) {return a + b;}, v[:], 0));
+println (fold (afunc (a, b) {return a * b;}, v[:], 1));
+var f = fold;
+println (f (afunc (a, b) {return a * b;}, v[:], 1));
+TEST606
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT606' && $CMP $stdout $ftemp2; then
+10
+24
+24
+OUTPUT606
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 607
+if test $result = ok -a $start_test_number -le 607; then
+	echo test 607: Wrong fold argument
+        cat >$test_file <<'TEST607'
+var v = [1,2,3,4];
+println (fold (afunc (a, b) {return a + b;}, nil, 0));
+TEST607
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT607' && $CMP $stderr $ftemp2; then
+test.d:2:15: run time error - invalid parameter type of `fold'
+OUTPUT607
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT607-2' && $CMP $stdout $ftemp2; then
+OUTPUT607-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 608.
+if test $result = ok -a $start_test_number -le 608; then
+	echo test 608: Filter function
+        cat >$test_file <<'TEST608'
+var i, v = [0, 1, -2, 3, -4];
+println (filter (afunc (a) {return a > 0;}, v[:]));
+v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+println (filter (afunc (a) {return a > 0;}, v[:][:]));
+for (i = 0; i < 1000; i++) {
+  v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
+  v = filter (afunc (a) {if (i % 100) gc ();return a > 0;}, v[:][:]);
+}
+println (v);
+TEST608
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT608' && $CMP $stdout $ftemp2; then
+[1, 3]
+[[1, 3], [5, 7, 9]]
+[[1.1, 3], [5, 7, 9]]
+OUTPUT608
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 609
+if test $result = ok -a $start_test_number -le 609; then
+	echo test 609: Wrong filter argument
+        cat >$test_file <<'TEST609'
+var v = [0, 1, -2, 3, -4];
+println (filter (afunc (a) {return a > 0;}, nil));
+TEST609
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT609' && $CMP $stderr $ftemp2; then
+test.d:2:17: run time error - invalid parameter type of `filter'
+OUTPUT609
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT609-2' && $CMP $stdout $ftemp2; then
+OUTPUT609-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 610
+if test $result = ok -a $start_test_number -le 610; then
+	echo test 610: Another wrong filter argument
+        cat >$test_file <<'TEST610'
+var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+println (filter (afunc (a) {return a > 0;}, v[:]));
+TEST610
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT610' && $CMP $stderr $ftemp2; then
+test.d:2:38: run time error - invalid types of operands of operator ">"
+OUTPUT610
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT610-2' && $CMP $stdout $ftemp2; then
+OUTPUT610-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 611
+if test $result = ok -a $start_test_number -le 611; then
+	echo test 611: Wrong filter function result
+        cat >$test_file <<'TEST611'
+var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+println (filter (afunc (a) {return nil;}, v[:][:]));
+TEST611
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT611' && $CMP $stderr $ftemp2; then
+test.d:2:17: run time error - invalid function result used by function `filter'
+OUTPUT611
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT611-2' && $CMP $stdout $ftemp2; then
+OUTPUT611-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 612.
+if test $result = ok -a $start_test_number -le 612; then
+	echo test 612: Map function
+        cat >$test_file <<'TEST612'
+var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+println (map (afunc (a) {return a < 0 ? nil : a;}, v[:][:]));
+for (i = 0; i < 1000; i++) {
+  v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
+  v = map (afunc (a) {if (i % 100) gc ();return a < 0 ? 0 : a;}, v[:][:]);
+}
+println (v);
+TEST612
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT612' && $CMP $stdout $ftemp2; then
+[[0, 1, nil, 3, nil], [5, nil, 7, nil, 9]]
+[[0, 1.1, 0, 3, 0], [5, 0, 7, 0, 9]]
+OUTPUT612
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 613
+if test $result = ok -a $start_test_number -le 613; then
+	echo test 613: Wrong map argument
+        cat >$test_file <<'TEST613'
+var v = [0, 1, -2, 3, -4];
+println (map (afunc (a) {return a > 0;}, nil));
+TEST613
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT613' && $CMP $stderr $ftemp2; then
+test.d:2:14: run time error - invalid parameter type of `map'
+OUTPUT613
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT613-2' && $CMP $stdout $ftemp2; then
+OUTPUT613-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 614
+if test $result = ok -a $start_test_number -le 614; then
+	echo test 614: Another wrong map argument
+        cat >$test_file <<'TEST614'
+var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+println (map (afunc (a) {return a > 0;}, v[:]));
+TEST614
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT614' && $CMP $stderr $ftemp2; then
+test.d:2:35: run time error - invalid types of operands of operator ">"
+OUTPUT614
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT614-2' && $CMP $stdout $ftemp2; then
+OUTPUT614-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 615.
+if test $result = ok -a $start_test_number -le 615; then
+	echo test 615: addi generation
+        cat >$test_file <<'TEST615'
+for (var i = 0; i < 1000; i--);
+TEST615
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT615' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=29, tvars=2
+      83 ldi: 28 <- (0)
+      84 ldi: 29 <- (1000)
+      86 btlt: 28 29 (temp_res=29) (true=88, false=87)
+        88 addi: 28 <- 28 (-1)
+           goto 84
+OUTPUT615
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 616.
+if test $result = ok -a $start_test_number -le 616; then
+	echo test 616: addi generation
+        cat >$test_file <<'TEST616'
+var i = 0;
+i++;
+i+=2;
+i=i+3;
+i=4+i;
+TEST616
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT616' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=29, tvars=2
+      83 ldi: 28 <- (0)
+      84 addi(line=2): 28 <- 28 (1)
+      85 addi(line=3): 28 <- 28 (2)
+      86 addi(line=4): 28 <- 28 (3)
+      87 addi(line=5): 28 <- 28 (4)
+OUTPUT616
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 617.
+if test $result = ok -a $start_test_number -le 617; then
+	echo test 617: btcmp generation
+        cat >$test_file <<'TEST617'
+var i = 0, k = 0;
+for (;i!=k;);
+for (;i==k;);
+for (;i<=k;);
+for (;i<k;);
+for (;i>=k;);
+for (;i>k;);
+TEST617
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT617' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=30, tvars=2
+      83 ldi: 28 <- (0)
+      84 ldi: 29 <- (0)
+      86 btne(line=2): 28 29 (temp_res=30) (true=86, false=88)
+      88 bteq(line=3): 28 29 (temp_res=30) (true=88, false=90)
+      90 btle(line=4): 28 29 (temp_res=30) (true=90, false=92)
+      92 btlt(line=5): 28 29 (temp_res=30) (true=92, false=94)
+      94 btge(line=6): 28 29 (temp_res=30) (true=94, false=96)
+      96 btgt(line=7): 28 29 (temp_res=30) (true=96, false=97)
+OUTPUT617
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 618.
+if test $result = ok -a $start_test_number -le 618; then
+	echo test 618: addi with neg. constant generation
+        cat >$test_file <<'TEST618'
+var i = 0;
+i--;
+i-=2;
+i=i-3;
+i=4-i;
+TEST618
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT618' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=29, tvars=2
+      83 ldi: 28 <- (0)
+      84 addi(line=2): 28 <- 28 (-1)
+      85 addi(line=3): 28 <- 28 (-2)
+      86 addi(line=4): 28 <- 28 (-3)
+      87 ldi(line=5): 29 <- (4)
+      88 sub: 28 <- 29 28
+OUTPUT618
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 619.
+if test $result = ok -a $start_test_number -le 619; then
+	echo test 619: no addi generation for slices
+        cat >$test_file <<'TEST619'
+var i = [10:0];
+i[:]++;
+i[:]=i[:]+1;
+TEST619
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT619' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=29, tvars=8
+      83 ldi: 29 <- (10)
+      84 ldi: 30 <- (0)
+      85 vec: 28 <- (els=29, parts=1)
+      86 move(line=2): 29 <- 28 (i)
+      87 ldi: 30 <- (0)
+      88 ldi: 31 <- (-1)
+      89 ldi: 32 <- (1)
+      90 lslv: 33 <- 29 (dim=1)
+      91 ldi: 34 <- (1)
+      92 add_slst: 29(dim=1) <- 33 op 34
+      93 move(line=3): 29 <- 28 (i)
+      94 ldi: 30 <- (0)
+      95 ldi: 31 <- (-1)
+      96 ldi: 32 <- (1)
+      97 move: 33 <- 28 (i)
+      98 ldi: 34 <- (0)
+      99 ldi: 35 <- (-1)
+     100 ldi: 36 <- (1)
+     101 sl: 33 <- 33 (dim=1)
+     102 ldi: 34 <- (1)
+     103 add: 33 <- 33 34
+     104 slst: 29(dim=1) <- 33
+OUTPUT619
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 620.
+if test $result = ok -a $start_test_number -le 620; then
+	echo test 620: btcmpinc generation
+        cat >$test_file <<'TEST620'
+var i = 0, k = 10, n= 1;
+for (;i!=k;i++)n++;
+for (;i==k;i++)n++;
+for (;i<=k;i++)n++;
+for (;i<k;i++)n++;
+for (;i>=k;i++)n++;
+for (;i>k;i++)n++;
+TEST620
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT620' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=31, tvars=2
+      83 ldi: 28 <- (0)
+      84 ldi: 29 <- (10)
+      85 ldi: 30 <- (1)
+      87 btne(line=2): 28 29 (temp_res=31) (true=89, false=92)
+        89 addi: 30 <- 30 (1)
+        91 btneinc: 28+(1) 29 (temp_res=31) (true=89, false=92)
+      92 bteq(line=3): 28 29 (temp_res=31) (true=94, false=97)
+        94 addi: 30 <- 30 (1)
+        96 bteqinc: 28+(1) 29 (temp_res=31) (true=94, false=97)
+      97 btle(line=4): 28 29 (temp_res=31) (true=99, false=102)
+        99 addi: 30 <- 30 (1)
+       101 btleinc: 28+(1) 29 (temp_res=31) (true=99, false=102)
+     102 btlt(line=5): 28 29 (temp_res=31) (true=104, false=107)
+       104 addi: 30 <- 30 (1)
+       106 btltinc: 28+(1) 29 (temp_res=31) (true=104, false=107)
+     107 btge(line=6): 28 29 (temp_res=31) (true=109, false=112)
+       109 addi: 30 <- 30 (1)
+       111 btgeinc: 28+(1) 29 (temp_res=31) (true=109, false=112)
+     112 btgt(line=7): 28 29 (temp_res=31) (true=114, false=113)
+       114 addi: 30 <- 30 (1)
+       116 btgtinc: 28+(1) 29 (temp_res=31) (true=114, false=113)
+OUTPUT620
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 621.
+if test $result = ok -a $start_test_number -le 621; then
+	echo test 621: bfcmp generation
+        cat >$test_file <<'TEST621'
+var i=1, b=5, n=0;
+if (i < b) n++;else n--;
+TEST621
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT621' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=31, tvars=2
+      83 ldi: 28 <- (1)
+      84 ldi: 29 <- (5)
+      85 ldi: 30 <- (0)
+      87 btge(line=2): 28 29 (temp_res=31) (true=89, false=88)
+        89 addi: 30 <- 30 (-1)
+           goto 90
+        88 addi: 30 <- 30 (1)
+OUTPUT621
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
         fi
 fi
 

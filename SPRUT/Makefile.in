@@ -783,7 +783,7 @@ depend : ird.c ird.h yacc.c
                  $(srcdir)/../SPRUT/tab.c yacc.c\
 	         $(srcdir)/../SPRUT/anal.c $(srcdir)/../SPRUT/gen.c\
                  $(srcdir)/../SPRUT/main.c;do\
-	   gcc -MM -I- -I$(srcdir)/../SPRUT $(CFLAGS) $$i\
+	   gcc -MM -iquote -I$(srcdir)/../SPRUT $(CFLAGS) $$i\
                 | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
                 | $(SED) 's/\\./\\\\./g'` \
                 | $(SED) 's% \./% %g'\
@@ -827,10 +827,13 @@ yacc.o: yacc.c ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/AMMUNITION/errors.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
- $(top_srcdir)/SPRUT/../SPRUT/common.h \
- $(top_srcdir)/SPRUT/../SPRUT/tab.h \
- $(top_srcdir)/SPRUT/../SPRUT/yacc.h
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/SPRUT/common.h ird.h \
+ $(top_srcdir)/SPRUT/tab.h \
+ $(top_srcdir)/SPRUT/yacc.h
 	$(CC) -c $(CFLAGS) -o $@ yacc.c
 anal.o: $(top_srcdir)/SPRUT/../SPRUT/anal.c \
  ../AMMUNITION/cocom-config.h \
@@ -838,7 +841,9 @@ anal.o: $(top_srcdir)/SPRUT/../SPRUT/anal.c \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/SPRUT/../SPRUT/common.h \
  $(top_srcdir)/SPRUT/../SPRUT/tab.h \
  $(top_srcdir)/SPRUT/../SPRUT/anal.h
@@ -847,9 +852,13 @@ gen.o: $(top_srcdir)/SPRUT/../SPRUT/gen.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/AMMUNITION/errors.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/SPRUT/../SPRUT/common.h \
  $(top_srcdir)/SPRUT/../SPRUT/tab.h \
  $(top_srcdir)/SPRUT/../SPRUT/gen.h
@@ -861,7 +870,11 @@ main.o: $(top_srcdir)/SPRUT/../SPRUT/main.c \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/SPRUT/../SPRUT/common.h \
  $(top_srcdir)/SPRUT/../SPRUT/tab.h \
  $(top_srcdir)/SPRUT/../SPRUT/yacc.h \

@@ -236,6 +236,7 @@ dino_finish (int code)
   if (statistics_flag && code == 0)
     {
       finish_heap ();
+      fprintf (stderr, "Created byte code insns - %d\n", bc_insns_num);
       size = heap_size;
       unit = 'b';
       if (size % 1024 == 0)
@@ -271,7 +272,7 @@ dino_fatal_finish (void)
 static void
 error_func_for_allocate (void)
 {
-  error (FALSE, IR_pos (cpc), ERR_no_memory);
+  error (FALSE, BC_pos (cpc), ERR_no_memory);
   dino_finish (-1);
 }
 
@@ -340,9 +341,9 @@ exception_action (int signal_number)
     }
   set_exception_action (signal_number);
   if (eval_long_jump_set_flag)
-    eval_error (class, signals_decl, IR_pos (cpc), message);
+    eval_error (class, signals_decl, BC_pos (cpc), message);
   else if (signal_number != SIGINT && signal_number != SIGTERM)
-    error (TRUE, IR_pos (cpc), message);
+    error (TRUE, BC_pos (cpc), message);
   else
     dino_finish (1);
 }
@@ -446,6 +447,8 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-p'         output profile information into stderr\n"\
 "`-d'         dump program IR\n"\
 "`-dd'        dump program IR with standard definitions\n"
+
+int bc_insns_num;
 
 #define DEFAULT_HEAP_CHUNK_SIZE  04000000 /* 1024 Kbytes */
 #define MINIMAL_HEAP_CHUNK_SIZE  0100000 /* 32  Kbytes */

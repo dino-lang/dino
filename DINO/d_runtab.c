@@ -27,7 +27,7 @@
 #include "d_runtab.h"
 
 vlo_t func_class_tab;
-static int_t curr_func_class_no;
+static int_t curr_func_class_id;
 
 struct block_decl_tables block_decl_tables;
 
@@ -38,22 +38,22 @@ initiate_run_tables (void)
 {
   block_decl_tables.idents_number = 0;
   VLO_CREATE (block_decl_tables.block_ident_decls, 2000);
-  curr_func_class_no = 0;
+  curr_func_class_id = 0;
   VLO_CREATE (func_class_tab, 800);
 }
 
 /* This func is to set up an order number and the corresponding table
    entry for FUNC_CLASS. */
 void
-set_func_class_no (IR_node_t func_class)
+set_func_class_id (IR_node_t func_class)
 {
   if (IR_no (func_class) >= 0)
     return;
-  IR_set_no (func_class, curr_func_class_no);
-  d_assert (curr_func_class_no * sizeof (IR_node_t)
+  IR_set_no (func_class, curr_func_class_id);
+  d_assert (curr_func_class_id * sizeof (IR_node_t)
 	    == VLO_LENGTH (func_class_tab));
   VLO_ADD_MEMORY (func_class_tab, &func_class, sizeof (IR_node_t));
-  curr_func_class_no++;
+  curr_func_class_id++;
 }
 
 /* The func creates new block decls idents table in this abstract data

@@ -28,13 +28,13 @@
 
 /* The file contains functions for run-time conversion values. */
 
-ER_node_t do_inline
-to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
+ER_node_t
+to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
 {
   ER_node_mode_t mode;
   const char *representation;
   char str[1000];
-  ER_node_t vect, tvar;
+  ER_node_t vect;
       
   mode = ER_NODE_MODE (var);
   if (mode == ER_NM_float || mode == ER_NM_int || mode == ER_NM_char)
@@ -61,7 +61,8 @@ to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
 	}
       /* Remeber `var' may be changed in GC. */
       vect = create_string (representation);
-      tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
+      if (tvar == NULL)
+	tvar = var;
       ER_SET_MODE (tvar, ER_NM_vect);
       set_vect_dim (tvar, vect, 0);
       return tvar;
@@ -80,7 +81,8 @@ to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
 	  sprintf (str, format, ER_pack_els (ER_vect (var)));
 	  /* Remeber `var' may be changed in GC. */
 	  vect = create_string (str);
-	  tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
+	  if (tvar == NULL)
+	    tvar = var;
 	  ER_SET_MODE (tvar, ER_NM_vect);
 	  set_vect_dim (tvar, vect, 0);
 	  return tvar;
@@ -90,12 +92,13 @@ to_vect_string_conversion (ER_node_t var, const char *format, int tvar_num)
 }
 
 ER_node_t do_inline
-implicit_arithmetic_conversion (ER_node_t var, int tvar_num)
+implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 {
   int_t i;
   floating_t f;
-  ER_node_t tvar = tvar_num < 0 ? var : IVAL (cvars, tvar_num);
 
+  if (tvar == NULL)
+    tvar = var;
   if (ER_NODE_MODE (var) == ER_NM_char)
     {
       i = ER_ch (var);
@@ -105,7 +108,7 @@ implicit_arithmetic_conversion (ER_node_t var, int tvar_num)
     }
   else if (ER_NODE_MODE (var) == ER_NM_vect)
     {
-      tvar = to_vect_string_conversion (var, NULL, tvar_num);
+      tvar = to_vect_string_conversion (var, NULL, tvar);
       if (ER_NODE_MODE (ER_vect (tvar)) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (ER_vect (tvar)) == ER_NM_char)
 	{
@@ -139,45 +142,44 @@ implicit_conversion_for_binary_arithmetic_op (ER_node_t op1, ER_node_t op2,
 {
   int float1_p, float2_p;
   floating_t f;
-  ER_node_t tvar1 = IVAL (cvars, tvar_num1);
-  ER_node_t tvar2 = IVAL (cvars, tvar_num2);
+  static val_t tvar1, tvar2;
 
   *l = op1;
   *r = op2;
   if (! (float2_p = ER_NODE_MODE (op2) == ER_NM_float)
       && ER_NODE_MODE (op2) != ER_NM_int)
     {
-      *r = op2 = implicit_arithmetic_conversion (op2, tvar_num2);
+      *r = op2 = implicit_arithmetic_conversion (op2, (ER_node_t) &tvar2);
       float2_p = ER_NODE_MODE (op2) == ER_NM_float;
     }
   if (! (float1_p = ER_NODE_MODE (op1) == ER_NM_float)
       && ER_NODE_MODE (op1) != ER_NM_int)
     {
-      *l = op1 = implicit_arithmetic_conversion (op1, tvar_num1);
+      *l = op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
       float1_p = ER_NODE_MODE (op1) == ER_NM_float;
     }
   if (float1_p && ER_NODE_MODE (op2) == ER_NM_int)
     {
       f = ER_i (op2);
-      ER_SET_MODE (tvar2, ER_NM_float);
-      ER_set_f (tvar2, f);
-      *r = tvar2;
+      ER_SET_MODE ((ER_node_t) &tvar2, ER_NM_float);
+      ER_set_f ((ER_node_t) &tvar2, f);
+      *r = (ER_node_t) &tvar2;
     }
   else if (float2_p && ER_NODE_MODE (op1) == ER_NM_int)
     {
       f = ER_i (op1);
-      ER_SET_MODE (tvar1, ER_NM_float);
-      ER_set_f (tvar1, f);
-      *l = tvar1;
+      ER_SET_MODE ((ER_node_t) &tvar1, ER_NM_float);
+      ER_set_f ((ER_node_t) &tvar1, f);
+      *l = (ER_node_t) &tvar1;
     }
 }
 
 ER_node_t do_inline
-implicit_int_conversion (ER_node_t op, int tvar_num)
+implicit_int_conversion (ER_node_t op, ER_node_t tvar)
 {
   int_t i;
 
-  op = implicit_arithmetic_conversion (op, tvar_num);
+  op = implicit_arithmetic_conversion (op, tvar);
   if (ER_NODE_MODE (op) == ER_NM_float)
     {
       i = (int_t) ER_f (op);
@@ -191,19 +193,21 @@ void
 implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
 				       ER_node_t *l, ER_node_t *r)
 {
-  *l = implicit_int_conversion (op1, tvar_num1);
-  *r = implicit_int_conversion (op2, tvar_num2);
+  static val_t tvar1, tvar2;
+
+  *l = implicit_int_conversion (op1, (ER_node_t) &tvar1);
+  *r = implicit_int_conversion (op2, (ER_node_t) &tvar2);
 }
 
 static ER_node_t do_inline
-implicit_eq_conversion (ER_node_t op, int tvar_num)
+implicit_eq_conversion (ER_node_t op, ER_node_t tvar)
 {
   int_t i;
 
   if (ER_NODE_MODE (op) == ER_NM_char)
     {
       i = ER_ch (op);
-      op = IVAL (cvars, tvar_num);
+      op = tvar;
       ER_SET_MODE (op, ER_NM_int);
       ER_set_i (op, i);
     }
@@ -218,6 +222,7 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
   int string_flag;
   ER_node_t vect;
   floating_t f;
+  static val_t tvar1, tvar2;
 
   if (ER_NODE_MODE (op2) == ER_NM_vect)
     {
@@ -239,8 +244,8 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
 		      && ER_pack_vect_el_type (ER_vect (op1)) == ER_NM_char));
   if (string_flag)
     {
-      *r = op2 = to_vect_string_conversion (op2, NULL, tvar_num2);
-      *l = op1 = to_vect_string_conversion (op1, NULL, tvar_num1);
+      *r = op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);
+      *l = op1 = to_vect_string_conversion (op1, NULL, (ER_node_t) &tvar1);
     }
   else if (ER_NODE_MODE (op2) == ER_NM_vect
 	   && ER_NODE_MODE (op1) == ER_NM_vect
@@ -254,8 +259,8 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
     }
   else
     {
-      *r = op2 = implicit_eq_conversion (op2, tvar_num2);
-      *l = op1 = implicit_eq_conversion (op1, tvar_num1);
+      *r = op2 = implicit_eq_conversion (op2, (ER_node_t) &tvar2);
+      *l = op1 = implicit_eq_conversion (op1, (ER_node_t) &tvar1);
       float_flag = (ER_NODE_MODE (op2) == ER_NM_float
 		    || ER_NODE_MODE (op1) == ER_NM_float);
       if (float_flag && ER_NODE_MODE (op2) == ER_NM_int)

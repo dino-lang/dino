@@ -122,6 +122,9 @@ extern void clock_call (int_t pars_number);
 extern void gc_call (int_t pars_number);
 extern void system_call (int_t pars_number);
 extern void exit_call (int_t pars_number);
+extern void fold_call (int_t pars_number);
+extern void filter_call (int_t pars_number);
+extern void map_call (int_t pars_number);
 extern void init_call (int_t pars_number);
 
 extern void int_earley_parse_grammar (int_t pars_number);

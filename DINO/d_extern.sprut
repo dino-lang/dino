@@ -29,7 +29,7 @@
 /* Don't use -flat-structure for generation SPI from this description. */
 
 %type bool_t size_t hide_t char_t int_t unsigned_int_t floating_t char_ptr_t
-      instance_state_t IR_hidden_node_t ER_node_mode_t
+      irid_t instance_state_t IR_hidden_node_t ER_node_mode_t
       process_status_t stack_ptr_t
 
 %import {
@@ -41,6 +41,8 @@ typedef void *hide_t;
 typedef struct IR_node *IR_hidden_node_t;
 
 typedef char *char_ptr_t;
+
+typedef int_t irid_t;
 
 /* This enumeration declares all possible states of of heap instance
    which contains function destroy.  Don't change it.  */
@@ -481,8 +483,8 @@ type :: val
 /*%final*/
 vect :: val
 %other
-  vect : heap_vect  /* This field should be placed first.  */
   dim : int_t
+  vect : heap_vect
 ;
 
 /*%final*/
@@ -505,21 +507,21 @@ instance :: val
 /*%final*/
 func :: val
 %other
-  func_no : int_t
+  func_id : irid_t
   func_context : context_heap_obj
 ;
 
 /*%final*/
 thread :: val
 %other
-  thread_no : int_t
+  thread_id : irid_t
   thread_context : context_heap_obj
 ;
 
 /*%final*/
 class :: val
 %other
-  class_no : int_t
+  class_id : irid_t
   class_context : context_heap_obj
 ;
 

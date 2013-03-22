@@ -229,7 +229,7 @@ char DERR_index_is_greater_than_array_bound []
 char DERR_index_operation_for_non_array []
   = "run time error - index operation for non array";
 char DERR_slice_start_is_not_int []
-  = "run time error - slice start is not intege (dimension = %d)";
+  = "run time error - slice start is not integer (dimension = %d)";
 char DERR_slice_bound_is_not_int []
   = "run time error - slice bound is not integer (dimension = %d)";
 char DERR_slice_step_is_not_int []

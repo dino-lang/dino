@@ -33,6 +33,7 @@
    it means empty program. */
 IR_node_t first_program_stmt;
 
+
 static IR_node_t merge_stmt_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_stmt_list (IR_node_t list);
 
@@ -42,10 +43,21 @@ static IR_node_t uncycle_access_list (IR_node_t list);
 static IR_node_t merge_exception_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_exception_list (IR_node_t list);
 
+static void process_header (IR_node_t decl, IR_node_t);
+static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
+static IR_node_t process_header_block (IR_node_t, IR_node_t);
+
+static IR_node_t merge_additional_stmts (IR_node_t);
+
 /* The following vars are used by yacc analyzer. */
 
 /* Pointer to block node which opens current scope. */
 static IR_node_t current_scope;
+
+/* Pointer to cycle list of stmts which should be included before the
+   current stmt.  They are generated from anonymous
+   functions/class/threads/classes in the current stmt.  */
+static IR_node_t additional_stmts;
 
 /* This var is used as second attribute of nonterminal actual_parameters.
    Its value is source pos of corresponding left parenthesis. Its
@@ -60,6 +72,9 @@ static int formal_parameter_args_flag;
 static int public_flag, friend_flag;
 
 static const char *full_file_name  (const char *extend_identifier);
+
+static IR_node_t get_new_ident (position_t);
+
 static void add_lexema_to_file (int lexema_code);
 static void finish_scanner_file (void);
 
@@ -78,7 +93,7 @@ static int add_include_file (const char *name);
    }
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
-%token BREAK CATCH CHAR CLASS CONTINUE ELSE EXT EXTERN
+%token ACLASS AFUNC ATHREAD BREAK CATCH CHAR CLASS CONTINUE ELSE EXT EXTERN
        FINAL FLOAT FOR FRIEND FUNC HIDE HIDEBLOCK IF IN INT
        NEW NIL PUBLIC PRIVATE RETURN TABLE THREAD THROW TRY TYPE
        VAR VECTOR WAIT
@@ -108,7 +123,7 @@ static int add_include_file (const char *name);
 
 %type <pos> pos
 %type <node_mode> assign
-%type <pointer> expr designator
+%type <pointer> afunc_thread_class aheader expr designator
                 elist_parts_list elist_parts_list_empty elist_part
                 expr_list expr_list_empty
             	actual_parameters access_list var_par_list var_par_list_empty
@@ -416,9 +431,29 @@ expr : expr '?' pos expr ':' expr
        	{
           $$ = create_node_with_pos (IR_NM_classof, $1);
           IR_set_operand ($$, $4);
-	  }
+	}
      ;
-
+aheader : afunc_thread_class { process_header ($1, get_new_ident (IR_pos ($1))); }
+          formal_parameters  { $$ = process_formal_parameters ($1, $3); }
+        ;
+afunc_thread_class : AFUNC pos
+                       {
+			 $$ = create_node_with_pos (IR_NM_func, $2);
+			 IR_set_thread_flag ($$, FALSE);
+			 IR_set_final_flag ($$, TRUE);
+		       }
+       	           | ATHREAD pos
+                       {
+			 $$ = create_node_with_pos (IR_NM_func, $2);
+			 IR_set_thread_flag ($$, TRUE);
+			 IR_set_final_flag ($$, TRUE);
+		       }
+       	           | ACLASS pos
+                       {
+			 $$ = create_node_with_pos (IR_NM_class, $2);
+			 IR_set_final_flag ($$, TRUE);
+		       }
+      	           ;
 /* Stop symbols:*/
 eof_stop : END_OF_FILE          {yychar = END_OF_FILE;}
          | END_OF_INCLUDE_FILE  {yychar = END_OF_INCLUDE_FILE;}
@@ -496,6 +531,13 @@ designator : designator '[' pos expr ']'
                  IR_set_component ($$, $4);
                }
            | IDENT     {$$ = $1;}
+           | aheader block
+               {
+		 additional_stmts
+		   = merge_stmt_lists (additional_stmts,
+				       process_header_block ($1, $2));
+		 $$ = IR_ident (IR_next_stmt (additional_stmts));
+	       }
            ;
 /* Attribute value is the last element of the cycle list.  The
    nonterminal with attribute of type flag must be before
@@ -682,8 +724,8 @@ executive_stmt :
        	{
           $$ = create_node_with_pos (IR_NM_proc_call,
 				     actual_parameters_construction_pos);
-       	 IR_set_proc_expr ($$, $1);
-       	 IR_set_proc_actuals ($$, $2);
+	  IR_set_proc_expr ($$, $1);
+	  IR_set_proc_actuals ($$, $2);
         }
     | IF pos '(' expr ')' {$<flag>$ = $<flag>0;} stmt else_part
        	{
@@ -907,15 +949,7 @@ declaration : VAR set_flag var_par_list {$<flag>$ = $<flag>0;} end_simple_stmt
             | EXTERN set_flag extern_list {$<flag>$ = $<flag>0;}
                 end_simple_stmt
                 {$$ = $3;}
-            | header block
-                {
-                  $$ = current_scope; /*i.e. block.*/
-                  IR_set_block_stmts
-                    ($$, uncycle_stmt_list (merge_stmt_lists ($1, $2)));
-       		  IR_set_access_list
-		    ($$, uncycle_access_list (IR_access_list ($$)));
-                  current_scope = IR_block_scope ($$);
-                } 
+            | header block { $$ = process_header_block ($1, $2); }
             | INCLUDE STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $2;
@@ -1000,39 +1034,8 @@ end_simple_stmt : ';'
                        yyerror ("syntax error");
                     }
                 ;
-header : func_thread_class IDENT
-       	   {
-             IR_node_t block;
-             
-             IR_set_scope ($1, current_scope);
-             IR_set_ident ($1, $2);
-             block = create_node_with_pos (IR_NM_block, no_position);
-             IR_set_next_stmt (block, $1);
-             IR_set_next_stmt ($1, block);
-             IR_set_func_class_ext (block, $1);
-             IR_set_block_scope (block, current_scope);
-	     IR_set_access_list (block, NULL);
-	     IR_set_exceptions (block, NULL);
-             /* This assignment is here for that formal parameters are
-                to be in corresponding block. */
-             current_scope = block;
-           }
-         formal_parameters
-           {
-             int var_par_list_length = 0;
-             IR_node_t current_decl = $4;
-             
-             if (current_decl != NULL)
-               do
-                 {
-                   var_par_list_length++;
-                   current_decl = IR_next_stmt (current_decl);
-                 }
-               while (current_decl != $4);
-             IR_set_parameters_number ($1, var_par_list_length);
-             IR_set_args_flag ($1, formal_parameter_args_flag);
-	     $$  = $4;
-           }
+header : func_thread_class IDENT { process_header ($1, $2); }
+         formal_parameters { $$ = process_formal_parameters ($1, $4); }
        | EXT pos IDENT
        	   {
              IR_node_t block;
@@ -1124,7 +1127,10 @@ block : '{' pos
       ;
 /* Attribute value is the last element of the cycle list. */
 stmt_list :                          	      {$$ = NULL;}
-          | stmt_list clear_flag stmt         {$$ = merge_stmt_lists ($1, $3);}
+          | stmt_list clear_flag stmt
+	      {
+		$$ = merge_stmt_lists ($1, merge_additional_stmts ($3));
+	      }
        	  | stmt_list error                   {$$ = $1;}
        	  ;
 program : pos
@@ -1136,6 +1142,7 @@ program : pos
 	      IR_set_access_list ($<pointer>$, NULL);
 	      IR_set_exceptions ($<pointer>$, NULL);
 	      start_block ();
+	      additional_stmts = NULL;
             }
           stmt_list
             {
@@ -1264,6 +1271,69 @@ uncycle_exception_list (IR_node_t list)
   first = IR_next_exception (list);
   IR_set_next_exception (list, NULL);
   return first;
+}
+
+/* Process function/thread/class header.  */
+static void
+process_header (IR_node_t decl, IR_node_t ident)
+{
+  IR_node_t block;
+  
+  IR_set_scope (decl, current_scope);
+  IR_set_ident (decl, ident);
+  block = create_node_with_pos (IR_NM_block, no_position);
+  IR_set_next_stmt (block, decl);
+  IR_set_next_stmt (decl, block);
+  IR_set_func_class_ext (block, decl);
+  IR_set_block_scope (block, current_scope);
+  IR_set_access_list (block, NULL);
+  IR_set_exceptions (block, NULL);
+  /* This assignment is here for that formal parameters are to be in
+     corresponding block. */
+  current_scope = block;
+}
+
+/* Process formal parameters PARS of func/thread/class DECL.  Return
+   the parameters.  */
+static IR_node_t
+process_formal_parameters (IR_node_t decl, IR_node_t pars)
+{
+  int var_par_list_length = 0;
+  IR_node_t current_decl = pars;
+  
+  if (current_decl != NULL)
+    do
+      {
+	var_par_list_length++;
+	current_decl = IR_next_stmt (current_decl);
+      }
+    while (current_decl != pars);
+  IR_set_parameters_number (decl, var_par_list_length);
+  IR_set_args_flag (decl, formal_parameter_args_flag);
+  return pars;
+}
+
+/* Process BLOCK of func/thread/class/ext HEADER decl.  Return the
+   block.  */
+static IR_node_t
+process_header_block (IR_node_t header, IR_node_t block)
+{
+  IR_node_t res = current_scope; /*i.e. block.*/
+
+  IR_set_block_stmts
+    (res, uncycle_stmt_list (merge_stmt_lists (header, block)));
+  IR_set_access_list (res, uncycle_access_list (IR_access_list (res)));
+  current_scope = IR_block_scope (res);
+  return res;
+}
+
+static IR_node_t
+merge_additional_stmts (IR_node_t list)
+{
+  IR_node_t res = merge_stmt_lists (additional_stmts, list);
+
+  additional_stmts = NULL;
+  return res;
 }
 
 
@@ -2383,6 +2453,27 @@ int yylex (void)
             }
         }
     }
+}
+
+static IR_node_t
+get_new_ident (position_t pos)
+{
+  IR_node_t ident, unique_ident;
+  char str [50]; /* Enough for integer representation.  */
+
+  VLO_NULLIFY (symbol_text);
+  VLO_ADD_STRING (symbol_text, "$");
+  VLO_ADD_STRING (symbol_text, pos.file_name);
+  VLO_ADD_STRING (symbol_text, ".");
+  sprintf (str, "%d", pos.line_number);
+  VLO_ADD_STRING (symbol_text, str);
+  VLO_ADD_STRING (symbol_text, ".");
+  sprintf (str, "%d", pos.column_number);
+  VLO_ADD_STRING (symbol_text, str);
+  unique_ident = create_unique_ident_node (VLO_BEGIN (symbol_text));
+  ident = create_node_with_pos (IR_NM_ident, pos);
+  IR_set_unique_ident (ident, unique_ident);
+  return ident;
 }
 
 /* The following function initiates internal state of the scanner.

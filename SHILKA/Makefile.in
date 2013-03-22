@@ -319,7 +319,7 @@ depend : ird.c ird.h yacc.c
                  $(srcdir)/../SHILKA/tab.c yacc.c\
                  $(srcdir)/../SHILKA/anal.c $(srcdir)/../SHILKA/gen.c\
                  $(srcdir)/../SHILKA/main.c;do\
-	   gcc -MM -I- -I$(srcdir)/../SHILKA $(CFLAGS) $$i\
+	   gcc -MM -iquote -I$(srcdir)/../SHILKA $(CFLAGS) $$i\
                 | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
                 | $(SED) 's/\\./\\\\./'g` \
                 | $(SED) 's% \./% %g'\
@@ -337,8 +337,7 @@ depend : ird.c ird.h yacc.c
 # The following is generated with the aid of Makefile entry depend
 # Do not place anything below this line
 #
-ird.o: ird.c ird.h \
- $(top_srcdir)/AMMUNITION/objstack.h \
+ird.o: ird.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h
@@ -364,10 +363,12 @@ yacc.o: yacc.c ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
- $(top_srcdir)/SHILKA/../SHILKA/common.h \
- $(top_srcdir)/SHILKA/../SHILKA/tab.h \
- $(top_srcdir)/SHILKA/../SHILKA/yacc.h
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/SHILKA/common.h ird.h \
+ $(top_srcdir)/SHILKA/tab.h \
+ $(top_srcdir)/SHILKA/yacc.h
 	$(CC) -c $(CFLAGS) -o $@ yacc.c
 anal.o: $(top_srcdir)/SHILKA/../SHILKA/anal.c \
  ../AMMUNITION/cocom-config.h \
@@ -375,7 +376,9 @@ anal.o: $(top_srcdir)/SHILKA/../SHILKA/anal.c \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/SHILKA/../SHILKA/common.h \
  $(top_srcdir)/SHILKA/../SHILKA/tab.h \
  $(top_srcdir)/SHILKA/../SHILKA/anal.h
@@ -400,8 +403,11 @@ main.o: $(top_srcdir)/SHILKA/../SHILKA/main.c \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/AMMUNITION/ticker.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/SHILKA/../SHILKA/common.h \
  $(top_srcdir)/SHILKA/../SHILKA/tab.h \
  $(top_srcdir)/SHILKA/../SHILKA/yacc.h \

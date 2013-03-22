@@ -46,6 +46,7 @@ extern int program_arguments_number;
 extern char **program_arguments;
 extern char **program_environment;
 extern position_t source_position;
+extern int bc_insns_num;
 extern unsigned int heap_chunk_size;
 extern int statistics_flag;
 extern int trace_flag;

@@ -130,8 +130,11 @@ fi
 if test x$2 != x; then
   PERL=
   PYTHON=
+  PYTHON3=
   TCLSH=
   AWK=
+  LUA=
+  RUBY=
 fi
 
 # Test 1.
@@ -1705,7 +1708,9 @@ def fib(n)
 end
 
 N = Integer(ARGV.shift || 1)
-puts fib(N)
+for i in 0..N do
+  print i, " "; puts fib(i)
+end
 EOF
   echo RUBY:
   if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -1714,20 +1719,18 @@ fi
 
 cat <<'EOF' >$ftest
 // Recursive function to compute Fibonacci numbers
-func fibonacci (n)
-  {
-     if (n <= 1) return 1;
-     return (fibonacci(n-1) + fibonacci(n-2));
-  }
+func fibonacci (n) {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
 
 var i, fibnum, n = int (argv [0]);
 
 fibnum = 0;
-for (i = 0; i <= n; i++) 
-  {
-    fibnum = fibonacci(i);
-    putln (i @ " " @ fibnum); 
-  }
+for (i = 0; i <= n; i++) {
+  fibnum = fibonacci(i);
+  putln (i @ " " @ fibnum); 
+}
 EOF
 echo DINO:
 if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -4313,12 +4316,12 @@ cat <<'EOF' >$ftest
 var n = argv [0] < 1 ? 1 : int (argv[0]);
 var a, b, c, d, e, f, x = 0;
 
-for (a = n; a > 0; a--)
-  for (b = n; b > 0; b--)
-    for (c = n; c > 0; c--)
-      for (d = n; d > 0; d--)
-        for (e = n; e > 0; e--)
-          for (f = n; f > 0; f--)
+for (a = 0; a < n; a++)
+  for (b = 0; b < n; b++)
+    for (c = 0; c < n; c++)
+      for (d = 0; d < n; d++)
+        for (e = 0; e < n; e++)
+          for (f = 0; f < n; f++)
             x++;
 putln (x);
 EOF
@@ -99788,7 +99791,7 @@ end
 
 n = Integer(ARGV.shift || 1)
 n.times do
-  f ()
+  f
 end
 EOF
   echo RUBY:

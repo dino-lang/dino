@@ -7,7 +7,7 @@
    future (see commentaries for func define_block_decl).*/
 
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2013 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -33,11 +33,11 @@
 extern vlo_t func_class_tab;
 
 #if SIZEOF_CHAR_P <= 4
-#define FUNC_CLASS_NO(fc)    ((int_t) (fc))
-#define NO_TO_FUNC_CLASS(no) ((IR_node_t) no)
+#define FUNC_CLASS_ID(fc)    ((irid_t) (fc))
+#define ID_TO_FUNC_CLASS(id) ((IR_node_t) (id))
 #else
-#define FUNC_CLASS_NO(fc)    (IR_no (fc))
-#define NO_TO_FUNC_CLASS(no) (((IR_node_t *) VLO_BEGIN (func_class_tab)) [no])
+#define FUNC_CLASS_ID(fc)    (IR_no (fc))
+#define ID_TO_FUNC_CLASS(id) (((IR_node_t *) VLO_BEGIN (func_class_tab)) [id])
 #endif
 
 struct block_decl_tables
@@ -82,7 +82,7 @@ extern struct block_decl_tables block_decl_tables;
    : NULL)
 
 extern void initiate_run_tables (void);
-extern void set_func_class_no (IR_node_t func_class);
+extern void set_func_class_id (IR_node_t func_class);
 extern int new_block (void);
 extern void process_block_decl_unique_ident (IR_node_t unique_ident);
 extern void define_block_decl (IR_node_t decl, IR_node_t block_ref);

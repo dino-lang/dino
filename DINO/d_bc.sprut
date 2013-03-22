@@ -1,0 +1,279 @@
+/* This file contains execution byte code description.  */
+
+/*
+   Copyright (C) 1997-2013 Vladimir Makarov.
+
+   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+
+   This file is part of interpreter of DINO.
+
+   This is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This software is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU CC; see the file COPYING.  If not, write to the Free
+   Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA.
+
+*/
+
+%type int_t floating_t string_t IR_hidden_node_t
+
+%import {
+
+#include "d_types.h"
+#include "d_ir.h"
+
+typedef char *string_t;
+typedef struct IR_node *IR_hidden_node_t;
+}
+
+%export {
+/* This is type definition of program counter.  All byte code nodes is
+   chained by members (one or two) of such type.  Remember that func
+   may suspend the process therefore any expr should be also be
+   chained by program counter.  If it is needed to execute the
+   following and its pc is NULL than it means that finishing current
+   process is needed.  There is process for block corresponding all
+   program and its finishing means that program exits.  */
+typedef BC_node_t pc_t;
+
+/* This is atrick (usage that BC_NODE_MODE is macro)!!!  Therefore the
+   following macro must apply to node with the same structure as node
+   with mode m. */
+#define BC_SET_MODE(v, m) (BC_NODE_MODE (v) = (m))
+
+/* Return source position of byte code BC.  */
+#define BC_pos(bc) IR_pos (BC_origin (bc))
+
+extern int ir2er_type (IR_node_mode_t);
+extern const char *er_type_name (int);
+}
+
+%%
+
+%abstract
+code :: %root
+%other
+        next : code
+        origin : IR_hidden_node_t
+;
+%abstract
+op1 :: code
+%other
+        op1 : int_t
+;
+%abstract
+op2 :: op1
+%other
+        op2 : int_t
+;
+%abstract
+op3 :: op2
+%other
+        op3 : int_t
+;
+%abstract
+op4 :: op3
+%other
+        op4 : int_t
+;
+%abstract
+br :: op1
+%other
+        pc : code
+;
+%abstract
+brs :: br
+%other
+	res : int_t
+;
+%abstract
+bcmp :: brs
+%other
+	bcmp_op2, bcmp_res : int_t
+;
+
+%abstract
+binc :: bcmp
+%other
+	binc_inc : int_t
+;
+
+ldnil :: op1; /* result place */
+flat :: op1; /* operand and result place */
+ldi, ldch, ldtp :: op2; /* result place, value as int  */
+condflat :: op3; /* actual and func places, func arg num as int */
+
+ldf :: op1 /* result place */
+%other
+        f : floating_t
+;
+
+lds :: op1 /* result place */
+%other
+        str : string_t;
+;
+
+pushi :: op1; /* push int onto stack */
+
+/* non-local / external var value / reference [and value].
+   Origin is the ident.  */
+var, lvar, lvarv, evar, levar, levarv :: op1; /* result place */
+
+ /* Origin is the ident.  */
+func, efunc, class :: op1; /* result place */
+
+/* op1 is result palce; op2 and op3 are container place and index/key place
+   or dim for slice.  */ 
+ind, lindv, key, lkeyv,
+  fld, lfld, lfldv, /* op3 is block decl ident number */
+  sl, lslv :: op3;
+
+const, new, not, plus, minus, bnot, length,
+ /* vector folding operation: */
+ fadd, fmult, fand, for, fxor,
+ tpof, chof, iof, fof, vecof, tabof,
+ funcof, threadof, classof :: op2; /* result and operand places */
+
+/* result and two operand places.  */
+fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
+  lsh, rsh, ash, concat, add, sub, mult, div, mod,
+  addi :: op3; /* non-slice insn where op3 is int constant */
+
+b :: code; /* unconditional branch to next */
+
+/* Branch when true, false, false (non-interrupt) and non-nil.
+   bt origin is for_stmt, bf is if_stmt, bfni is cond,
+   bfnil is par_assign.  */
+bt, bf, bfni, bfnil :: br; /* operand place and goto byte code ref.  */
+
+/* Branch and set: res <= op; goto (op or !op ? pc : next).
+   Origin is logical_or or logical_and.  */
+brts, brfs :: brs;
+
+/* combined for non-slice comparison: goto pc if(not) op1 cmp? bcmp_op2.
+   bcmp_res can be used as temporary.  */
+bteq, btne, btge, btlt, btle, btgt :: bcmp;
+
+/* op1 = op1 + inc; bcmp_res = op1 cmp bcmp_op2; bt bcmp_res
+   Inc is int.  All others are places.  */
+bteqinc, btneinc, btgeinc, btltinc, btleinc, btgtinc :: binc;
+
+/* Logical conversion.  Origin is logical_or or logical_and.  */
+lconv :: op2; /* result and operand places.  */
+
+/* This node serves as test loop expr in the interpreter.  The pc flows as
+   following
+
+  pushi 0 ->foreach designator calculation->table calc.->foreach->
+               ^                                            |
+               |                                            |: body_pc
+             pushi 1<-------------foreach_stmts<------------
+*/
+/* Table, container, element, foreach index lvalue places.
+   Origin is foreach-stmt.  */
+foreach :: op4
+%other
+	body_pc : code
+;
+
+vec, tab :: op3; /* result place, element parts start place, parts number */
+
+move :: op2; /* destination/source places, origin is rhs var ident.  */
+
+/* Assignments: */
+st :: op3; /* container, element, value places */
+slst :: op3; /* vector place, slice dimension as int, value place  */
+
+/* Assignment with operations: */
+/* container, element, expr, lvalue val places */
+mult_st, div_st, mod_st,
+  add_st, sub_st, concat_st, lsh_st,
+  rsh_st, ash_st, and_st, xor_st, or_st :: op4;
+
+/* Slice assignments: */
+/* container place, slice dimension as int, expr place, lvalue val place */
+mult_slst, div_slst, mod_slst,
+  add_slst, sub_slst, concat_slst, lsh_slst,
+  rsh_slst, ash_slst, and_slst, xor_slst, or_slst :: op4;
+
+out :: op1; /* # of surrounding blocks as int */
+
+/* (tail) (procedure) call: params start place, params number as int */
+call, tcall, pcall :: op2;
+
+leave :: code; /* block end (origin is the block) or return without value */
+ret :: op1; /* return with result: ret value place */
+throw :: op1;
+wait :: br;
+waitend :: code;
+
+/* The node for making solution to catch given exception or not.  The
+   flow is the following:
+              excepts                              next_except
+   try block ----------> class expr -> exception   ---------> class expr...
+       |                                   | next                   ....
+       |                                   V
+       |                                catch block                 ....
+       |                                   | next                     |
+       |                                   V                          |
+        -------------------------------> cend  <----------------------
+          next                             | next
+                                           V
+                                       
+*/
+except :: op2 /* except instance and class places */
+%other
+	next_except : code
+;
+
+block :: code
+%other
+	excepts : code /* exception list */
+;
+
+/* This byte code is used only during code generation.  Origin is
+   cond, for-stmt, foreach-stmt, if-stmt, par_assign, block for end of
+   exceptions.  It is removed before the execution.  */
+cend :: code;
+
+%%
+
+#include "d_run.h"
+int
+ir2er_type (IR_node_mode_t irnm)
+{
+  switch (irnm)
+    {
+    case IR_NM_char_type: return ER_NM_char;
+    case IR_NM_int_type: return ER_NM_int;
+    case IR_NM_float_type: return ER_NM_float;
+    case IR_NM_hide_type: return ER_NM_hide;
+    case IR_NM_hideblock_type: return ER_NM_hideblock;
+    case IR_NM_vector_type: return ER_NM_vect;
+    case IR_NM_table_type: return ER_NM_tab;
+    case IR_NM_thread_type: return ER_NM_thread;
+    case IR_NM_func_type: return ER_NM_func;
+    case IR_NM_class_type: return ER_NM_class;
+    case IR_NM_instance_type: return ER_NM_instance;
+    case IR_NM_stack_type: return ER_NM_stack;
+    case IR_NM_process_type: return ER_NM_process;
+    case IR_NM_type_type: return ER_NM_type;
+    default:
+      d_unreachable ();
+    }
+}
+
+const char *
+er_type_name (int t)
+{
+  return ER_node_name[t];
+}

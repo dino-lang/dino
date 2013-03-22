@@ -25,5 +25,5 @@
 extern int internal_inside_call (const char **message_ptr, ER_node_t where,
 				 ER_node_t what, int context_flag);
 extern void print_trace_stack (void);
-extern void process_func_class_call (int_t pars_number);
+extern void process_func_class_call (int_t pars_number, int tail_call_flag);
 extern void initiate_funcs (void);

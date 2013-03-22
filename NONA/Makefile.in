@@ -309,7 +309,7 @@ depend : ird.c ird.h yacc.c
 	for i in ird.c $(srcdir)/../NONA/common.c $(srcdir)/../NONA/tab.c\
                  yacc.c $(srcdir)/../NONA/anal.c $(srcdir)/../NONA/gen.c\
                  $(srcdir)/../NONA/main.c;do\
-	   gcc -MM -I- -I$(srcdir)/../NONA $(CFLAGS) $$i\
+	   gcc -MM -iquote -I$(srcdir)/../NONA $(CFLAGS) $$i\
                 | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
                 | $(SED) 's/\\./\\\\./'g` \
                 | $(SED) 's% \./% %g'\
@@ -327,8 +327,7 @@ depend : ird.c ird.h yacc.c
 # The following is generated with the aid of Makefile entry depend
 # Do not place anything below this line
 #
-ird.o: ird.c ird.h \
- $(top_srcdir)/AMMUNITION/objstack.h \
+ird.o: ird.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h
@@ -354,10 +353,12 @@ yacc.o: yacc.c ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
- $(top_srcdir)/NONA/../NONA/common.h \
- $(top_srcdir)/NONA/../NONA/tab.h \
- $(top_srcdir)/NONA/../NONA/yacc.h
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/NONA/common.h ird.h \
+ $(top_srcdir)/NONA/tab.h \
+ $(top_srcdir)/NONA/yacc.h
 	$(CC) -c $(CFLAGS) -o $@ yacc.c
 anal.o: $(top_srcdir)/NONA/../NONA/anal.c \
  ../AMMUNITION/cocom-config.h \
@@ -365,7 +366,10 @@ anal.o: $(top_srcdir)/NONA/../NONA/anal.c \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/NONA/../NONA/common.h \
  $(top_srcdir)/NONA/../NONA/tab.h \
  $(top_srcdir)/NONA/../NONA/anal.h
@@ -377,7 +381,9 @@ gen.o: $(top_srcdir)/NONA/../NONA/gen.c \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/NONA/../NONA/common.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/NONA/../NONA/gen.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/NONA/../NONA/gen.c
 main.o: $(top_srcdir)/NONA/../NONA/main.c \
@@ -387,7 +393,10 @@ main.o: $(top_srcdir)/NONA/../NONA/main.c \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/AMMUNITION/errors.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
- $(top_srcdir)/AMMUNITION/objstack.h ird.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/NONA/../NONA/common.h \
  $(top_srcdir)/NONA/../NONA/tab.h \
  $(top_srcdir)/NONA/../NONA/yacc.h \
