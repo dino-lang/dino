@@ -3568,15 +3568,61 @@ execute_btcmp (ER_node_t op1, ER_node_t op2,
   return res;
 }
 
+static ER_node_t do_always_inline
+execute_btcmpi (ER_node_t op1, int_t i,
+	       BC_node_mode_t cmp_nm, int icmp (int_t, int_t),
+	       int fcmp (floating_t, floating_t),
+	       void gencmp (BC_node_mode_t, ER_node_t, ER_node_t, ER_node_t, int))
+{
+  ER_node_t res;
+
+  if (ER_NODE_MODE (op1) == ER_NM_int)
+    {
+      if (icmp (ER_i (op1), i))
+	cpc = BC_pc (cpc);
+      else
+	INCREMENT_PC ();
+      INTERRUPT_CHECK;
+      return NULL;
+    }
+  res = IVAL (cvars, BC_bcmp_res (cpc));
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i);
+  comp_op (cmp_nm, res, op1, res, FALSE, icmp, fcmp, gencmp);
+  return res;
+}
+
+static int do_always_inline
+execute_cmpi (ER_node_t *res, ER_node_t *op1, ER_node_t *op2, int icmp (int_t, int_t))
+{
+  int_t i;
+  static val_t v;
+
+  extract_op2 (res, op1);
+  i = BC_op3 (cpc);
+  if (ER_NODE_MODE (*op1) == ER_NM_int)
+    {
+      ER_SET_MODE (*res, ER_NM_int);
+      ER_set_i (*res, icmp (ER_i (*op1), i));
+      INCREMENT_PC ();
+      return FALSE;
+    }
+  *op2 = (ER_node_t) &v;
+  ER_SET_MODE (*op2, ER_NM_int);
+  ER_set_i (*op2, i);
+  return TRUE;
+}
+
 static void
 evaluate_code (void)
 {
-  int cmp;
+  int cmp, tail_flag;
   int_t i;
   floating_t f;
   ER_node_t res, op1, op2, op3;
   BC_node_mode_t node_mode;
   val_t tvar1, v;
+  IR_node_t func;
 
   /* Check that all BC_node_mode_t can be stored in unsigned char.  */
   d_assert ((int) BC_NM__error < 256);
@@ -3743,13 +3789,23 @@ evaluate_code (void)
 	  break;
 	case BC_NM_eq:
 	  extract_op3 (&res, &op1, &op2);
+	common_eq:
 	  execute_eq_op (res, op1, op2, TRUE);
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_eqi:
+	  if (execute_cmpi (&res, &op1, &op2, ieq))
+	    goto common_eq;
+	  break;
 	case BC_NM_ne:
 	  extract_op3 (&res, &op1, &op2);
+	common_ne:
 	  execute_ne_op (res, op1, op2, TRUE);
 	  INCREMENT_PC ();
+	  break;
+	case BC_NM_nei:
+	  if (execute_cmpi (&res, &op1, &op2, ine))
+	    goto common_ne;
 	  break;
 	case BC_NM_id:
 	case BC_NM_unid:
@@ -3759,23 +3815,43 @@ evaluate_code (void)
 	  break;
 	case BC_NM_lt:
 	  extract_op3 (&res, &op1, &op2);
+	common_lt:
 	  execute_lt_op (res, op1, op2, TRUE);
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_lti:
+	  if (execute_cmpi (&res, &op1, &op2, ilt))
+	    goto common_lt;
+	  break;
 	case BC_NM_ge:
 	  extract_op3 (&res, &op1, &op2);
+	common_ge:
 	  execute_ge_op (res, op1, op2, TRUE);
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_gei:
+	  if (execute_cmpi (&res, &op1, &op2, ige))
+	    goto common_ge;
+	  break;
 	case BC_NM_gt:
 	  extract_op3 (&res, &op1, &op2);
+	common_gt:
 	  execute_gt_op (res, op1, op2, TRUE);
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_gti:
+	  if (execute_cmpi (&res, &op1, &op2, igt))
+	    goto common_gt;
+	  break;
 	case BC_NM_le:
 	  extract_op3 (&res, &op1, &op2);
+	common_le:
 	  execute_le_op (res, op1, op2, TRUE);
 	  INCREMENT_PC ();
+	  break;
+	case BC_NM_lei:
+	  if (execute_cmpi (&res, &op1, &op2, ile))
+	    goto common_le;
 	  break;
 	case BC_NM_plus:
 	  extract_op2 (&res, &op1);
@@ -4035,28 +4111,66 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_pcall:
+	case BC_NM_tpcall:
 	  extract_op1 (&op1);
-	  ctop = op1;
-	  DECR_CTOP (-BC_op2 (cpc));
-	  process_func_class_call (BC_op2 (cpc), FALSE);
+	  process_func_class_call (op1, BC_op2 (cpc),
+				   node_mode == BC_NM_tpcall);
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_ipcall:
+	case BC_NM_itpcall:
+	  op3 = find_context_by_scope (IR_scope (BC_func (cpc)));
+	  tail_flag = node_mode == BC_NM_itpcall;
+	  goto common_ipcall;
+	case BC_NM_cipcall:
+	case BC_NM_citpcall:
+	  op3 = cstack;
+	  tail_flag = node_mode == BC_NM_citpcall;
+	  goto common_ipcall;
+	case BC_NM_tipcall:
+	case BC_NM_titpcall:
+	  op3 = uppest_stack;
+	  tail_flag = node_mode == BC_NM_titpcall;
+	common_ipcall:
+	  extract_op1 (&op1);
+	  ctop = IVAL (op1, -1);
+	  /* We do not need func value here but we want it defined.  */
+	  ER_SET_MODE (op1, ER_NM_nil);
+	  process_imm_func_call ((val_t *) op1, BC_func (cpc), op3,
+				 BC_op2 (cpc), tail_flag);
 	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_call:
 	case BC_NM_tcall:
 	  extract_op1 (&op1);
-	  ctop = op1;
-	  DECR_CTOP (-BC_op2 (cpc));
-	  process_func_class_call (BC_op2 (cpc), node_mode == BC_NM_tcall);
+	  process_func_class_call (op1, BC_op2 (cpc), node_mode == BC_NM_tcall);
+	  break;
+	case BC_NM_icall:
+	case BC_NM_itcall:
+	  op3 = find_context_by_scope (IR_scope (BC_func (cpc)));
+	  tail_flag = node_mode == BC_NM_itcall;
+	  goto common_icall;
+	case BC_NM_cicall:
+	case BC_NM_citcall:
+	  op3 = cstack;
+	  tail_flag = node_mode == BC_NM_citcall;
+	  goto common_icall;
+	case BC_NM_ticall:
+	case BC_NM_titcall:
+	  op3 = uppest_stack;
+	  tail_flag = node_mode == BC_NM_titcall;
+	common_icall:
+	  extract_op1 (&op1);
+	  ctop = IVAL (op1, -1);
+	  /* We do not need func value here but we want it defined.  */
+	  ER_SET_MODE (op1, ER_NM_nil);
+	  process_imm_func_call ((val_t *) op1, BC_func (cpc), op3,
+				 BC_op2 (cpc), tail_flag);
 	  break;
 	case BC_NM_add:
 	  extract_op3 (&res, &op1, &op2);
 	common_plus:
 	  execute_plus_op (res, op1, op2, TRUE);
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_sub:
-	  extract_op3 (&res, &op1, &op2);
-	  execute_minus_op (res, op1, op2, TRUE);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_addi:
@@ -4076,6 +4190,11 @@ evaluate_code (void)
 	      ER_set_i (op2, i);
 	      goto common_plus;
 	    }
+	  break;
+	case BC_NM_sub:
+	  extract_op3 (&res, &op1, &op2);
+	  execute_minus_op (res, op1, op2, TRUE);
+	  INCREMENT_PC ();
 	  break;
 	case BC_NM_mult:
 	  extract_op3 (&res, &op1, &op2);
@@ -4324,6 +4443,48 @@ evaluate_code (void)
 	common_btgt:
 	  if ((op1 = execute_btcmp (op2, op3, BC_NM_gt, igt, fgt,
 				    execute_common_cmp_op)) != NULL)
+	    goto common_bt;
+	  break;
+	case BC_NM_bteqi:
+	  extract_op1 (&op2);
+	  i = BC_bcmp_op2 (cpc);
+	  if ((op1 = execute_btcmpi (op2, i, BC_NM_eq, ieq, feq,
+				     execute_common_cmp_op)) != NULL)
+	    goto common_bt;
+	  break;
+	case BC_NM_btnei:
+	  extract_op1 (&op2);
+	  i = BC_bcmp_op2 (cpc);
+	  if ((op1 = execute_btcmpi (op2, i, BC_NM_ne, ine, fne,
+				     execute_common_cmp_op)) != NULL)
+	    goto common_bt;
+	  break;
+	case BC_NM_btlti:
+	  extract_op1 (&op2);
+	  i = BC_bcmp_op2 (cpc);
+	  if ((op1 = execute_btcmpi (op2, i, BC_NM_lt, ilt, flt,
+				     execute_common_cmp_op)) != NULL)
+	    goto common_bt;
+	  break;
+	case BC_NM_btlei:
+	  extract_op1 (&op2);
+	  i = BC_bcmp_op2 (cpc);
+	  if ((op1 = execute_btcmpi (op2, i, BC_NM_le, ile, fle,
+				     execute_common_cmp_op)) != NULL)
+	    goto common_bt;
+	  break;
+	case BC_NM_btgti:
+	  extract_op1 (&op2);
+	  i = BC_bcmp_op2 (cpc);
+	  if ((op1 = execute_btcmpi (op2, i, BC_NM_gt, igt, fgt,
+				     execute_common_cmp_op)) != NULL)
+	    goto common_bt;
+	  break;
+	case BC_NM_btgei:
+	  extract_op1 (&op2);
+	  i = BC_bcmp_op2 (cpc);
+	  if ((op1 = execute_btcmpi (op2, i, BC_NM_ge, ige, fge,
+				     execute_common_cmp_op)) != NULL)
 	    goto common_bt;
 	  break;
 	case BC_NM_bt:
@@ -4763,7 +4924,8 @@ call_func_class (int_t pars_number)
   saved_next_pc = BC_next (cpc);
   BC_set_next (cpc, NULL);
   saved_process_number = ER_process_number (cprocess);
-  process_func_class_call (pars_number, FALSE);
+  DECR_CTOP (pars_number);
+  process_func_class_call (ctop, pars_number, FALSE);
   for (;;)
     {
       if (cpc != NULL)

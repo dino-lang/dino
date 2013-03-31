@@ -1726,7 +1726,6 @@ func fibonacci (n) {
 
 var i, fibnum, n = int (argv [0]);
 
-fibnum = 0;
 for (i = 0; i <= n; i++) {
   fibnum = fibonacci(i);
   putln (i @ " " @ fibnum); 
@@ -99933,13 +99932,12 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func tak (x, y, z)
-  {
-    if (y >= x)
-        return z;
-    else
-        return tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y));
-  }
+func tak (x, y, z) {
+  if (y >= x)
+    return z;
+  else
+    return tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y));
+}
 var n = int (argv [0]);
 putln (tak (n * 3, n * 2, n));
 EOF

@@ -100,11 +100,15 @@ bcmp :: brs
 %other
 	bcmp_op2, bcmp_res : int_t
 ;
-
 %abstract
 binc :: bcmp
 %other
 	binc_inc : int_t
+;
+%abstract
+imcall :: op2
+%other
+	func : IR_hidden_node_t
 ;
 
 ldnil :: op1; /* result place */
@@ -146,7 +150,7 @@ const, new, not, plus, minus, bnot, length,
 /* result and two operand places.  */
 fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
   lsh, rsh, ash, concat, add, sub, mult, div, mod,
-  addi :: op3; /* non-slice insn where op3 is int constant */
+  addi, eqi, nei, lti, gti, lei, gei :: op3; /* non-slice insns: op3 is int const */
 
 b :: code; /* unconditional branch to next */
 
@@ -162,6 +166,9 @@ brts, brfs :: brs;
 /* combined for non-slice comparison: goto pc if(not) op1 cmp? bcmp_op2.
    bcmp_res can be used as temporary.  */
 bteq, btne, btge, btlt, btle, btgt :: bcmp;
+
+/* As above but op3 as int const.  */
+bteqi, btnei, btgei, btlti, btlei, btgti :: bcmp;
 
 /* op1 = op1 + inc; bcmp_res = op1 cmp bcmp_op2; bt bcmp_res
    Inc is int.  All others are places.  */
@@ -207,8 +214,16 @@ mult_slst, div_slst, mod_slst,
 
 out :: op1; /* # of surrounding blocks as int */
 
-/* (tail) (procedure) call: params start place, params number as int */
-call, tcall, pcall :: op2;
+/* general calls: params start place, params number as int.
+   Letter t means tail call, letter p means procedure call.  */
+call, tcall, pcall, tpcall :: op2;
+
+/* immediate calls: params start place (first value is undefined),
+   params number as int, func decl.  First letter t or c means top stack or
+   current stack context, tcall means tail call.  */
+icall, itcall, ticall, titcall, cicall, citcall:: imcall;
+/* The same as previous ones but for procedure.  */
+ipcall, itpcall, tipcall, titpcall, cipcall, citpcall:: imcall;
 
 leave :: code; /* block end (origin is the block) or return without value */
 ret :: op1; /* return with result: ret value place */

@@ -1,3 +1,43 @@
+2013-03-31  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Change formating for fibonacci and tak.
+	* DINO/d_bc.sprut (imcall, eqi, nei, lti, gti, lei, gei, bteqi)
+	(btnei, btgei, btlti, btlei, btgti, tpcall, icall, itcall, ticall)
+	(titcall, cicall, citcall, ipcall, itpcall, tipcall, titpcall)
+	(cipcall, citpcall): New nodes.
+	* DINO/d_context.c (process_binary_op): New parameter rev_op_mode.
+	(process_actuals): Use func_decl instead of func_expr.
+	(third_expr_processing): Provide new argument for
+	process_binary_op.  Generate icalls for class_func_thread_call.
+	(third_block_passing): Generate ipcalls for proc_call.
+	(go_through): Generate bt<cmp>i.
+	(process_bc): Generate immediate tail proc calls.
+	(dump_code): Print all new nodes.
+	* DINO/d_eval.c (execute_btcmpi, execute_cmpi): New functions.
+	(evaluate_code): Process nodes.
+	(call_func_class): Don't change ctop.
+	* DINO/d_extern.sprut (context_heap_obj): New field
+	all_block_vars_num.
+	* DINO/d_func.c (create_instance): Add parameter.  Use setup_pars.
+	Don't change ctop.
+	(place_file_instance): Add argument to create_instance.
+	(reset_vars, setup_pars, process_func_call)
+	(process_imm_func_call): New functions.
+	(process_func_class_call): Add parameter.  Use process_func_call.
+	Change ctop fro external and implementation functions.  New
+	argument for create_instance.
+	(tree_to_heap): New argument for create_instance.
+	* DINO/d_func.h (process_imm_func_call): New prototype.
+	(process_func_class_call): Change signature.
+	* DINO/d_heap.c (block_stack_size): Rename to
+	new_block_stack_size.
+	(block_stack_size): New function.
+	(heap_push): Use new_block_stack_size instead of block_stack_size.
+	Set all_block_vars_num.  New negative treatment of offset.
+	* DINO/dino.1: Fix description of -t.
+	* DINO/dino.tst.in (580, 581, 584, 585, 615-620): Change output.
+	(622-625): New tests.
+
 2013-03-22  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/Makefile.in, MSTA/Makefile.in, NONA/Makefile.in,

@@ -34978,15 +34978,7 @@ TEST580
         if $DINO -t $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT580' && $CMP $stderr $ftemp2; then
-test.d:5:6:calling a
-test.d:8:18:calling b
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:11:6:calling c
-test.d:13:4:calling d
+test.d:13:4:calling a
 OUTPUT580
                         result=ok
                 else
@@ -35022,15 +35014,7 @@ TEST581
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT581' && $CMP $stderr $ftemp2; then
 test.d:2:7: run time error - exception except has not been processed
-test.d:5:6:calling a
-test.d:8:18:calling b
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:8:29:calling c
-test.d:11:6:calling c
-test.d:13:4:calling d
+test.d:13:4:calling a
 OUTPUT581
                         result=ok
                 else
@@ -35142,36 +35126,35 @@ TEST584
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT584' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=34, tvars=2
-      83 ldi(line=2): 28 <- (8190)
-      84 addi(line=4): 34 <- 28 (1)
-      85 ldi: 35 <- (0)
-      86 vec: 33 <- (els=34, parts=1)
-      87 ldi(line=5): 32 <- (0)
-      88 ldi(line=6): 29 <- (0)
-      90 btle: 29 28 (temp_res=34) (true=92, false=91)
-        92 ldi(line=7): 34 <- (1)
-        93 st: 33(29) <- 34
-        95 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=92, false=91)
-      91 ldi(line=8): 29 <- (0)
-      97 btle: 29 28 (temp_res=34) (true=99, false=98)
-        99 ind(line=9): 34 <- 33[29]
-       100 bf: 34 (true=103, false=101)
-         101 add(line=11): 34 <- 29 29
-         107 addi: 30 <- 34 (3)
-         108 add(line=12): 31 <- 29 30
-         109 ldi(line=13): 34 <- (1)
-         110 bt: 34 (true=113, false=111)
-           113 btle(line=15): 31 28 (temp_res=34) (true=115, false=114)
-             114 out(line=16): of 0 blocks
-           115 ldi(line=17): 34 <- (0)
-           116 st: 33(31) <- 34
-           117 add(line=18): 31 <- 31 30
-               goto 109
-         111 addi(line=20): 32 <- 32 (1)
-       103 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=99, false=98)
-      98 func(line=23): 34 <- (println)
-     104 move: 35 <- 32 (count)
-     105 pcall: start=34 npars=1
+      82 ldi(line=2): 28 <- (8190)
+      83 addi(line=4): 34 <- 28 (1)
+      84 ldi: 35 <- (0)
+      85 vec: 33 <- (els=34, parts=1)
+      86 ldi(line=5): 32 <- (0)
+      87 ldi(line=6): 29 <- (0)
+      89 btle: 29 28 (temp_res=34) (true=91, false=90)
+        91 ldi(line=7): 34 <- (1)
+        92 st: 33(29) <- 34
+        94 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=91, false=90)
+      90 ldi(line=8): 29 <- (0)
+      96 btle: 29 28 (temp_res=34) (true=98, false=97)
+        98 ind(line=9): 34 <- 33[29]
+        99 bf: 34 (true=102, false=100)
+         100 add(line=11): 34 <- 29 29
+         105 addi: 30 <- 34 (3)
+         106 add(line=12): 31 <- 29 30
+         107 ldi(line=13): 34 <- (1)
+         108 bt: 34 (true=111, false=109)
+           111 btle(line=15): 31 28 (temp_res=34) (true=113, false=112)
+             112 out(line=16): of 0 blocks
+           113 ldi(line=17): 34 <- (0)
+           114 st: 33(31) <- 34
+           115 add(line=18): 31 <- 31 30
+               goto 107
+         109 addi(line=20): 32 <- 32 (1)
+       102 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=98, false=97)
+      97 move(line=23): 35 <- 32 (count)
+     103 tipcall println: start=34 npars=1
 OUTPUT584
                         result=ok
                 else
@@ -35216,978 +35199,969 @@ TEST585
                 if cat >$ftemp2 <<'OUTPUT585' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=34, tvars=2
   class except (0)
-     118 block: vars=1, tvars=0
+     116 block: vars=1, tvars=0
     class error (1)
-       120 block(line=2): vars=1, tvars=0
+       118 block(line=2): vars=1, tvars=0
       class signal (1)
-         122 block(line=3): vars=1, tvars=0
+         120 block(line=3): vars=1, tvars=0
         class sigint (1)
-           124 block(line=4): vars=1, tvars=0
-           125 leave
+           122 block(line=4): vars=1, tvars=0
+           123 leave
 
         class sigill (1)
-           126 block(line=5): vars=1, tvars=0
-           127 leave
+           124 block(line=5): vars=1, tvars=0
+           125 leave
 
         class sigabrt (1)
-           128 block(line=6): vars=1, tvars=0
-           129 leave
+           126 block(line=6): vars=1, tvars=0
+           127 leave
 
         class sigfpe (1)
-           130 block(line=7): vars=1, tvars=0
-           131 leave
+           128 block(line=7): vars=1, tvars=0
+           129 leave
 
         class sigterm (1)
-           132 block(line=8): vars=1, tvars=0
-           133 leave
+           130 block(line=8): vars=1, tvars=0
+           131 leave
 
         class sigsegv (1)
-           134 block(line=9): vars=1, tvars=0
-           135 leave
+           132 block(line=9): vars=1, tvars=0
+           133 leave
 
-         123 leave(line=3)
+         121 leave(line=3)
 
       class invenv (1)
-         136 block(line=11): vars=1, tvars=0
-         137 leave
+         134 block(line=11): vars=1, tvars=0
+         135 leave
 
       class invop (1)
-         138 block(line=12): vars=1, tvars=0
+         136 block(line=12): vars=1, tvars=0
         class optype (1)
-           140 block(line=13): vars=1, tvars=0
-           141 leave
+           138 block(line=13): vars=1, tvars=0
+           139 leave
 
         class opvalue (1)
-           142 block(line=14): vars=1, tvars=0
-           143 leave
+           140 block(line=14): vars=1, tvars=0
+           141 leave
 
-         139 leave(line=12)
+         137 leave(line=12)
 
       class invindex (1)
-         144 block(line=16): vars=1, tvars=0
+         142 block(line=16): vars=1, tvars=0
         class indextype (1)
-           146 block(line=17): vars=1, tvars=0
-           147 leave
+           144 block(line=17): vars=1, tvars=0
+           145 leave
 
         class indexvalue (1)
-           148 block(line=18): vars=1, tvars=0
-           149 leave
+           146 block(line=18): vars=1, tvars=0
+           147 leave
 
         class indexop (1)
-           150 block(line=19): vars=1, tvars=0
-           151 leave
+           148 block(line=19): vars=1, tvars=0
+           149 leave
 
-         145 leave(line=16)
+         143 leave(line=16)
 
       class invslice (1)
-         152 block(line=21): vars=1, tvars=0
+         150 block(line=21): vars=1, tvars=0
         class slicetype (1)
-           154 block(line=22): vars=1, tvars=0
-           155 leave
+           152 block(line=22): vars=1, tvars=0
+           153 leave
 
         class sliceform (1)
-           156 block(line=23): vars=1, tvars=0
-           157 leave
+           154 block(line=23): vars=1, tvars=0
+           155 leave
 
-         153 leave(line=21)
+         151 leave(line=21)
 
       class invector (1)
-         158 block(line=25): vars=1, tvars=0
+         156 block(line=25): vars=1, tvars=0
         class veclen (1)
-           160 block(line=26): vars=1, tvars=0
-           161 leave
+           158 block(line=26): vars=1, tvars=0
+           159 leave
 
         class vecform (1)
-           162 block(line=27): vars=1, tvars=0
-           163 leave
+           160 block(line=27): vars=1, tvars=0
+           161 leave
 
-         159 leave(line=25)
+         157 leave(line=25)
 
       class invkey (1)
-         164 block(line=29): vars=1, tvars=0
+         162 block(line=29): vars=1, tvars=0
         class keyvalue (1)
-           166 block(line=30): vars=1, tvars=0
-           167 leave
+           164 block(line=30): vars=1, tvars=0
+           165 leave
 
         class keyop (1)
-           168 block(line=31): vars=1, tvars=0
-           169 leave
+           166 block(line=31): vars=1, tvars=0
+           167 leave
 
-         165 leave(line=29)
+         163 leave(line=29)
 
       class invcall (1)
-         170 block(line=33): vars=1, tvars=0
+         168 block(line=33): vars=1, tvars=0
         class callop (1)
-           172 block(line=34): vars=1, tvars=0
-           173 leave
+           170 block(line=34): vars=1, tvars=0
+           171 leave
 
         class partype (1)
-           174 block(line=35): vars=1, tvars=0
-           175 leave
+           172 block(line=35): vars=1, tvars=0
+           173 leave
 
         class invresult (1)
-           176 block(line=36): vars=1, tvars=0
-           177 leave
+           174 block(line=36): vars=1, tvars=0
+           175 leave
 
         class invinput (1)
-           178 block(line=37): vars=1, tvars=0
-           179 leave
+           176 block(line=37): vars=1, tvars=0
+           177 leave
 
         class invfmt (1)
-           180 block(line=38): vars=1, tvars=0
-           181 leave
+           178 block(line=38): vars=1, tvars=0
+           179 leave
 
         class eof (1)
-           182 block(line=39): vars=1, tvars=0
-           183 leave
+           180 block(line=39): vars=1, tvars=0
+           181 leave
 
         class parnumber (1)
-           184 block(line=40): vars=1, tvars=0
-           185 leave
+           182 block(line=40): vars=1, tvars=0
+           183 leave
 
         class syncthreadcall (1)
-           186 block(line=41): vars=1, tvars=0
-           187 leave
+           184 block(line=41): vars=1, tvars=0
+           185 leave
 
         class syserror (1)
-           188 block(line=42): vars=1, tvars=0
+           186 block(line=42): vars=1, tvars=0
           class eaccess (1)
-             190 block(line=43): vars=1, tvars=0
-             191 leave
+             188 block(line=43): vars=1, tvars=0
+             189 leave
 
           class eagain (1)
-             192 block(line=44): vars=1, tvars=0
-             193 leave
+             190 block(line=44): vars=1, tvars=0
+             191 leave
 
           class ebadf (1)
-             194 block(line=45): vars=1, tvars=0
-             195 leave
+             192 block(line=45): vars=1, tvars=0
+             193 leave
 
           class ebusy (1)
-             196 block(line=46): vars=1, tvars=0
-             197 leave
+             194 block(line=46): vars=1, tvars=0
+             195 leave
 
           class echild (1)
-             198 block(line=47): vars=1, tvars=0
-             199 leave
+             196 block(line=47): vars=1, tvars=0
+             197 leave
 
           class edeadlk (1)
-             200 block(line=48): vars=1, tvars=0
-             201 leave
+             198 block(line=48): vars=1, tvars=0
+             199 leave
 
           class edom (1)
-             202 block(line=49): vars=1, tvars=0
-             203 leave
+             200 block(line=49): vars=1, tvars=0
+             201 leave
 
           class eexist (1)
-             204 block(line=50): vars=1, tvars=0
-             205 leave
+             202 block(line=50): vars=1, tvars=0
+             203 leave
 
           class efault (1)
-             206 block(line=51): vars=1, tvars=0
-             207 leave
+             204 block(line=51): vars=1, tvars=0
+             205 leave
 
           class efbig (1)
-             208 block(line=52): vars=1, tvars=0
-             209 leave
+             206 block(line=52): vars=1, tvars=0
+             207 leave
 
           class eintr (1)
-             210 block(line=53): vars=1, tvars=0
-             211 leave
+             208 block(line=53): vars=1, tvars=0
+             209 leave
 
           class einval (1)
-             212 block(line=54): vars=1, tvars=0
-             213 leave
+             210 block(line=54): vars=1, tvars=0
+             211 leave
 
           class eio (1)
-             214 block(line=55): vars=1, tvars=0
-             215 leave
+             212 block(line=55): vars=1, tvars=0
+             213 leave
 
           class eisdir (1)
-             216 block(line=56): vars=1, tvars=0
-             217 leave
+             214 block(line=56): vars=1, tvars=0
+             215 leave
 
           class emfile (1)
-             218 block(line=57): vars=1, tvars=0
-             219 leave
+             216 block(line=57): vars=1, tvars=0
+             217 leave
 
           class emlink (1)
-             220 block(line=58): vars=1, tvars=0
-             221 leave
+             218 block(line=58): vars=1, tvars=0
+             219 leave
 
           class enametoolong (1)
-             222 block(line=59): vars=1, tvars=0
-             223 leave
+             220 block(line=59): vars=1, tvars=0
+             221 leave
 
           class enfile (1)
-             224 block(line=60): vars=1, tvars=0
-             225 leave
+             222 block(line=60): vars=1, tvars=0
+             223 leave
 
           class enodev (1)
-             226 block(line=61): vars=1, tvars=0
-             227 leave
+             224 block(line=61): vars=1, tvars=0
+             225 leave
 
           class enoent (1)
-             228 block(line=62): vars=1, tvars=0
-             229 leave
+             226 block(line=62): vars=1, tvars=0
+             227 leave
 
           class enoexec (1)
-             230 block(line=63): vars=1, tvars=0
-             231 leave
+             228 block(line=63): vars=1, tvars=0
+             229 leave
 
           class enolck (1)
-             232 block(line=64): vars=1, tvars=0
-             233 leave
+             230 block(line=64): vars=1, tvars=0
+             231 leave
 
           class enomem (1)
-             234 block(line=65): vars=1, tvars=0
-             235 leave
+             232 block(line=65): vars=1, tvars=0
+             233 leave
 
           class enospc (1)
-             236 block(line=66): vars=1, tvars=0
-             237 leave
+             234 block(line=66): vars=1, tvars=0
+             235 leave
 
           class enosys (1)
-             238 block(line=67): vars=1, tvars=0
-             239 leave
+             236 block(line=67): vars=1, tvars=0
+             237 leave
 
           class enotdir (1)
-             240 block(line=68): vars=1, tvars=0
-             241 leave
+             238 block(line=68): vars=1, tvars=0
+             239 leave
 
           class enotempty (1)
-             242 block(line=69): vars=1, tvars=0
-             243 leave
+             240 block(line=69): vars=1, tvars=0
+             241 leave
 
           class enotty (1)
-             244 block(line=70): vars=1, tvars=0
-             245 leave
+             242 block(line=70): vars=1, tvars=0
+             243 leave
 
           class enxio (1)
-             246 block(line=71): vars=1, tvars=0
-             247 leave
+             244 block(line=71): vars=1, tvars=0
+             245 leave
 
           class eperm (1)
-             248 block(line=72): vars=1, tvars=0
-             249 leave
+             246 block(line=72): vars=1, tvars=0
+             247 leave
 
           class epipe (1)
-             250 block(line=73): vars=1, tvars=0
+             248 block(line=73): vars=1, tvars=0
+             249 leave
+
+          class erange (1)
+             250 block(line=74): vars=1, tvars=0
              251 leave
 
-          class erange (1)
-             252 block(line=74): vars=1, tvars=0
+          class erofs (1)
+             252 block(line=75): vars=1, tvars=0
              253 leave
 
-          class erofs (1)
-             254 block(line=75): vars=1, tvars=0
+          class espipe (1)
+             254 block(line=76): vars=1, tvars=0
              255 leave
 
-          class espipe (1)
-             256 block(line=76): vars=1, tvars=0
+          class esrch (1)
+             256 block(line=77): vars=1, tvars=0
              257 leave
 
-          class esrch (1)
-             258 block(line=77): vars=1, tvars=0
+          class exdev (1)
+             258 block(line=78): vars=1, tvars=0
              259 leave
 
-          class exdev (1)
-             260 block(line=78): vars=1, tvars=0
-             261 leave
-
-           189 leave(line=42)
+           187 leave(line=42)
 
         class systemcall (1)
-           262 block(line=80): vars=1, tvars=0
+           260 block(line=80): vars=1, tvars=0
           class noshell (1)
-             264 block(line=81): vars=1, tvars=0
-             265 leave
+             262 block(line=81): vars=1, tvars=0
+             263 leave
 
           class systemfail (1)
-             266 block(line=82): vars=1, tvars=0
-             267 leave
+             264 block(line=82): vars=1, tvars=0
+             265 leave
 
-           263 leave(line=80)
+           261 leave(line=80)
 
         class invregexp (1)
-           268 block(line=84): vars=1, tvars=0
+           266 block(line=84): vars=1, tvars=0
           class ebrack (1)
-             270 block(line=85): vars=1, tvars=0
-             271 leave
+             268 block(line=85): vars=1, tvars=0
+             269 leave
 
           class erange (1)
-             272 block(line=86): vars=1, tvars=0
-             273 leave
+             270 block(line=86): vars=1, tvars=0
+             271 leave
 
           class ectype (1)
-             274 block(line=87): vars=1, tvars=0
-             275 leave
+             272 block(line=87): vars=1, tvars=0
+             273 leave
 
           class eparen (1)
-             276 block(line=88): vars=1, tvars=0
-             277 leave
+             274 block(line=88): vars=1, tvars=0
+             275 leave
 
           class esubreg (1)
-             278 block(line=89): vars=1, tvars=0
-             279 leave
+             276 block(line=89): vars=1, tvars=0
+             277 leave
 
           class eend (1)
-             280 block(line=90): vars=1, tvars=0
-             281 leave
+             278 block(line=90): vars=1, tvars=0
+             279 leave
 
           class eescape (1)
-             282 block(line=91): vars=1, tvars=0
-             283 leave
+             280 block(line=91): vars=1, tvars=0
+             281 leave
 
           class badpat (1)
-             284 block(line=92): vars=1, tvars=0
-             285 leave
+             282 block(line=92): vars=1, tvars=0
+             283 leave
 
           class esize (1)
-             286 block(line=93): vars=1, tvars=0
-             287 leave
+             284 block(line=93): vars=1, tvars=0
+             285 leave
 
           class espace (1)
-             288 block(line=94): vars=1, tvars=0
-             289 leave
+             286 block(line=94): vars=1, tvars=0
+             287 leave
 
-           269 leave(line=84)
+           267 leave(line=84)
 
         class invparser (1)
-           290 block(line=96): vars=1, tvars=0
+           288 block(line=96): vars=1, tvars=0
           class invgrammar (1)
-             292 block(line=97): vars=1, tvars=0
-             293 leave
+             290 block(line=97): vars=1, tvars=0
+             291 leave
 
           class invtoken (1)
-             294 block(line=98): vars=1, tvars=0
-             295 leave
+             292 block(line=98): vars=1, tvars=0
+             293 leave
 
           class pmemory (1)
-             296 block(line=99): vars=1, tvars=0
-             297 leave
+             294 block(line=99): vars=1, tvars=0
+             295 leave
 
-           291 leave(line=96)
+           289 leave(line=96)
 
         class invextern (1)
-           298 block(line=101): vars=1, tvars=0
+           296 block(line=101): vars=1, tvars=0
           class noextern (1)
-             300 block(line=102): vars=1, tvars=0
-             301 leave
+             298 block(line=102): vars=1, tvars=0
+             299 leave
 
           class libclose (1)
-             302 block(line=103): vars=1, tvars=0
-             303 leave
+             300 block(line=103): vars=1, tvars=0
+             301 leave
 
           class noexternsupp (1)
-             304 block(line=104): vars=1, tvars=0
-             305 leave
+             302 block(line=104): vars=1, tvars=0
+             303 leave
 
-           299 leave(line=101)
+           297 leave(line=101)
 
         class invenvar (1)
-           306 block(line=106): vars=1, tvars=0
-           307 leave
+           304 block(line=106): vars=1, tvars=0
+           305 leave
 
         class internal (1)
-           308 block(line=107): vars=1, tvars=0
-           309 leave
+           306 block(line=107): vars=1, tvars=0
+           307 leave
 
-         171 leave(line=33)
+         169 leave(line=33)
 
       class invaccess (1)
-         310 block(line=109): vars=1, tvars=0
+         308 block(line=109): vars=1, tvars=0
         class accessop (1)
-           312 block(line=110): vars=1, tvars=0
-           313 leave
+           310 block(line=110): vars=1, tvars=0
+           311 leave
 
         class accessvalue (1)
-           314 block(line=111): vars=1, tvars=0
-           315 leave
+           312 block(line=111): vars=1, tvars=0
+           313 leave
 
         class immutable (1)
-           316 block(line=112): vars=1, tvars=0
-           317 leave
+           314 block(line=112): vars=1, tvars=0
+           315 leave
 
-         311 leave(line=109)
+         309 leave(line=109)
 
       class deadlock (1)
-         318 block(line=114): vars=1, tvars=0
-         319 leave
+         316 block(line=114): vars=1, tvars=0
+         317 leave
 
       class syncwait (1)
-         320 block(line=115): vars=1, tvars=0
-         321 leave
+         318 block(line=115): vars=1, tvars=0
+         319 leave
 
-       121 leave(line=2)
+       119 leave(line=2)
 
-     119 leave(line=1)
+     117 leave(line=1)
 
   class anode (2)
-     322 block(line=134): vars=1, tvars=0
-     323 leave
+     320 block(line=134): vars=1, tvars=0
+     321 leave
 
   class token (1)
-     324 block(line=137): vars=1, tvars=0
-     325 leave
+     322 block(line=137): vars=1, tvars=0
+     323 leave
 
   class parser (0)
-     326 block(line=141): vars=1, tvars=3
+     324 block(line=141): vars=1, tvars=3
     func int_earley_parse_grammar (0)
-       332 block(line=147): vars=0, tvars=0
-       333 leave
+       329 block(line=147): vars=0, tvars=0
+       330 leave
 
     func int_earley_set_debug_level (0)
-       334 block: vars=0, tvars=0
-       335 leave
+       331 block: vars=0, tvars=0
+       332 leave
 
     func int_earley_set_one_parse_flag (0)
-       336 block(line=149): vars=0, tvars=0
-       337 leave
+       333 block(line=149): vars=0, tvars=0
+       334 leave
 
     func int_earley_set_lookahead_level (0)
-       338 block(line=151): vars=0, tvars=0
-       339 leave
+       335 block(line=151): vars=0, tvars=0
+       336 leave
 
     func int_earley_set_cost_flag (0)
-       340 block(line=153): vars=0, tvars=0
-       341 leave
+       337 block(line=153): vars=0, tvars=0
+       338 leave
 
     func int_earley_set_error_recovery_flag (0)
-       342 block(line=155): vars=0, tvars=0
-       343 leave
+       339 block(line=155): vars=0, tvars=0
+       340 leave
 
     func int_earley_set_recovery_match (0)
-       344 block(line=157): vars=0, tvars=0
-       345 leave
+       341 block(line=157): vars=0, tvars=0
+       342 leave
 
     func int_earley_parse (0)
-       346 block: vars=0, tvars=0
-       347 leave
+       343 block: vars=0, tvars=0
+       344 leave
 
     func int_earley_create_grammar (0)
-       348 block(line=159): vars=0, tvars=0
-       349 leave
+       345 block(line=159): vars=0, tvars=0
+       346 leave
 
     func set_grammar (2)
-       350 block(line=162): vars=2, tvars=4
-         351 func(line=163): 2 <- (int_earley_parse_grammar)
-         352 var: 3 <- (grammar)
-         353 move: 4 <- 1 (strict_p)
-         354 move: 5 <- 0 (descr)
-         355 pcall: start=2 npars=3
-       356 leave(line=162)
+       347 block(line=162): vars=2, tvars=4
+         348 var(line=163): 3 <- (grammar)
+         349 move: 4 <- 1 (strict_p)
+         350 move: 5 <- 0 (descr)
+         351 ipcall int_earley_parse_grammar: start=2 npars=3
+       352 leave(line=162)
 
     func set_debug (1)
-       357 block(line=165): vars=1, tvars=3
-         358 func(line=166): 1 <- (int_earley_set_debug_level)
-         359 var: 2 <- (grammar)
-         360 move: 3 <- 0 (level)
-         361 tcall: start=1 npars=2
-         362 ret: 1
-       363 leave(line=165)
+       353 block(line=165): vars=1, tvars=3
+         354 var(line=166): 2 <- (grammar)
+         355 move: 3 <- 0 (level)
+         356 icall int_earley_set_debug_level: start=1 npars=2
+         357 ret: 1
+       358 leave(line=165)
 
     func set_one_parse (1)
-       364 block(line=168): vars=1, tvars=3
-         365 func(line=169): 1 <- (int_earley_set_one_parse_flag)
-         366 var: 2 <- (grammar)
-         367 move: 3 <- 0 (flag)
-         368 tcall: start=1 npars=2
-         369 ret: 1
-       370 leave(line=168)
+       359 block(line=168): vars=1, tvars=3
+         360 var(line=169): 2 <- (grammar)
+         361 move: 3 <- 0 (flag)
+         362 icall int_earley_set_one_parse_flag: start=1 npars=2
+         363 ret: 1
+       364 leave(line=168)
 
     func set_lookahead (1)
-       371 block(line=171): vars=1, tvars=3
-         372 func(line=172): 1 <- (int_earley_set_lookahead_level)
-         373 var: 2 <- (grammar)
-         374 move: 3 <- 0 (flag)
-         375 tcall: start=1 npars=2
-         376 ret: 1
-       377 leave(line=171)
+       365 block(line=171): vars=1, tvars=3
+         366 var(line=172): 2 <- (grammar)
+         367 move: 3 <- 0 (flag)
+         368 icall int_earley_set_lookahead_level: start=1 npars=2
+         369 ret: 1
+       370 leave(line=171)
 
     func set_cost (1)
-       378 block(line=174): vars=1, tvars=3
-         379 func(line=175): 1 <- (int_earley_set_cost_flag)
-         380 var: 2 <- (grammar)
-         381 move: 3 <- 0 (flag)
-         382 tcall: start=1 npars=2
-         383 ret: 1
-       384 leave(line=174)
+       371 block(line=174): vars=1, tvars=3
+         372 var(line=175): 2 <- (grammar)
+         373 move: 3 <- 0 (flag)
+         374 icall int_earley_set_cost_flag: start=1 npars=2
+         375 ret: 1
+       376 leave(line=174)
 
     func set_recovery (1)
-       385 block(line=177): vars=1, tvars=3
-         386 func(line=178): 1 <- (int_earley_set_error_recovery_flag)
-         387 var: 2 <- (grammar)
-         388 move: 3 <- 0 (flag)
-         389 tcall: start=1 npars=2
-         390 ret: 1
-       391 leave(line=177)
+       377 block(line=177): vars=1, tvars=3
+         378 var(line=178): 2 <- (grammar)
+         379 move: 3 <- 0 (flag)
+         380 icall int_earley_set_error_recovery_flag: start=1 npars=2
+         381 ret: 1
+       382 leave(line=177)
 
     func set_recovery_match (1)
-       392 block(line=180): vars=1, tvars=3
-         393 func(line=181): 1 <- (int_earley_set_recovery_match)
-         394 var: 2 <- (grammar)
-         395 move: 3 <- 0 (n_toks)
-         396 tcall: start=1 npars=2
-         397 ret: 1
-       398 leave(line=180)
+       383 block(line=180): vars=1, tvars=3
+         384 var(line=181): 2 <- (grammar)
+         385 move: 3 <- 0 (n_toks)
+         386 icall int_earley_set_recovery_match: start=1 npars=2
+         387 ret: 1
+       388 leave(line=180)
 
     func parse (2)
-       399 block(line=183): vars=3, tvars=13
-         400 ldi(line=185): 3 <- (1)
-         401 ldi: 4 <- (2)
-         402 ldi: 5 <- (3)
-         403 ldi: 6 <- (4)
-         404 ldi: 7 <- (5)
-         405 ldi: 8 <- (6)
-         406 ldi: 9 <- (7)
-         407 ldi: 10 <- (8)
-         408 ldi: 11 <- (9)
-         409 ldi: 12 <- (10)
-         410 ldi: 13 <- (11)
-         411 ldi: 14 <- (12)
-         412 ldi: 15 <- (13)
-         413 and: 14 <- 14 15
-         414 xor: 13 <- 13 14
-         415 and: 12 <- 12 13
-         416 xor: 11 <- 11 12
-         417 and: 10 <- 10 11
-         418 xor: 9 <- 9 10
-         419 and: 8 <- 8 9
-         420 xor: 7 <- 7 8
-         421 and: 6 <- 6 7
-         422 xor: 5 <- 5 6
-         423 and: 4 <- 4 5
-         424 xor: 2 <- 3 4
-         425 func(line=186): 3 <- (int_earley_parse)
-         426 var: 4 <- (grammar)
-         427 move: 5 <- 0 (tokens)
-         428 move: 6 <- 1 (error_func)
-         429 tcall: start=3 npars=3
-         430 ret: 3
-       431 leave(line=183)
+       389 block(line=183): vars=3, tvars=13
+         390 ldi(line=185): 3 <- (1)
+         391 ldi: 4 <- (2)
+         392 ldi: 5 <- (3)
+         393 ldi: 6 <- (4)
+         394 ldi: 7 <- (5)
+         395 ldi: 8 <- (6)
+         396 ldi: 9 <- (7)
+         397 ldi: 10 <- (8)
+         398 ldi: 11 <- (9)
+         399 ldi: 12 <- (10)
+         400 ldi: 13 <- (11)
+         401 ldi: 14 <- (12)
+         402 ldi: 15 <- (13)
+         403 and: 14 <- 14 15
+         404 xor: 13 <- 13 14
+         405 and: 12 <- 12 13
+         406 xor: 11 <- 11 12
+         407 and: 10 <- 10 11
+         408 xor: 9 <- 9 10
+         409 and: 8 <- 8 9
+         410 xor: 7 <- 7 8
+         411 and: 6 <- 6 7
+         412 xor: 5 <- 5 6
+         413 and: 4 <- 4 5
+         414 xor: 2 <- 3 4
+         415 var(line=186): 4 <- (grammar)
+         416 move: 5 <- 0 (tokens)
+         417 move: 6 <- 1 (error_func)
+         418 icall int_earley_parse: start=3 npars=3
+         419 ret: 3
+       420 leave(line=183)
 
-       327 lvar(line=189): 1 <- (grammar)
-       328 func: 3 <- (int_earley_create_grammar)
-       329 call: start=3 npars=0
-       330 st: 1(2) <- 3
-     331 leave(line=141)
+       325 lvar(line=189): 1 <- (grammar)
+       326 cicall int_earley_create_grammar: start=3 npars=0
+       327 st: 1(2) <- 3
+     328 leave(line=141)
 
   class file (0)
-     432 block(line=192): vars=1, tvars=2
-       433 var(line=194): 1 <- (__nogenerate__)
-       434 ldnil: 2 <- 
-       436 bteq: 1 2 (temp_res=1) (true=438, false=437)
-         437 var(line=195): 1 <- (invcalls)
-         439 fld: 1 <- 1 (callop, block_decl_ident_num=52)
-         440 lds(line=196): 2 <- ("File can be created only by functions open or popen")
-         441 call: start=1 npars=1
-         442 throw(line=195): 1
-     438 leave(line=192)
+     421 block(line=192): vars=1, tvars=2
+       422 var(line=194): 1 <- (__nogenerate__)
+       423 ldnil: 2 <- 
+       425 bteq: 1 2 (temp_res=1) (true=427, false=426)
+         426 var(line=195): 1 <- (invcalls)
+         428 fld: 1 <- 1 (callop, block_decl_ident_num=52)
+         429 lds(line=196): 2 <- ("File can be created only by functions open or popen")
+         430 call: start=1 npars=1
+         431 throw(line=195): 1
+     427 leave(line=192)
 
   func max (0)
-     443 block(line=201): vars=0, tvars=0
-     444 leave
+     432 block(line=201): vars=0, tvars=0
+     433 leave
 
   func min (0)
-     445 block: vars=0, tvars=0
-     446 leave
+     434 block: vars=0, tvars=0
+     435 leave
 
   func tolower (0)
-     447 block(line=202): vars=0, tvars=0
-     448 leave
+     436 block(line=202): vars=0, tvars=0
+     437 leave
 
   func toupper (0)
-     449 block: vars=0, tvars=0
-     450 leave
+     438 block: vars=0, tvars=0
+     439 leave
 
   func trans (0)
-     451 block: vars=0, tvars=0
-     452 leave
+     440 block: vars=0, tvars=0
+     441 leave
 
   func eltype (0)
-     453 block(line=203): vars=0, tvars=0
-     454 leave
+     442 block(line=203): vars=0, tvars=0
+     443 leave
 
   func keys (0)
-     455 block(line=204): vars=0, tvars=0
-     456 leave
+     444 block(line=204): vars=0, tvars=0
+     445 leave
 
   func context (0)
-     457 block(line=205): vars=0, tvars=0
-     458 leave
+     446 block(line=205): vars=0, tvars=0
+     447 leave
 
   func inside (0)
-     459 block: vars=0, tvars=0
-     460 leave
+     448 block: vars=0, tvars=0
+     449 leave
 
   func subv (0)
-     461 block(line=206): vars=0, tvars=0
-     462 leave
+     450 block(line=206): vars=0, tvars=0
+     451 leave
 
   func cmpv (0)
-     463 block: vars=0, tvars=0
-     464 leave
+     452 block: vars=0, tvars=0
+     453 leave
 
   func del (0)
-     465 block: vars=0, tvars=0
-     466 leave
+     454 block: vars=0, tvars=0
+     455 leave
 
   func ins (0)
-     467 block: vars=0, tvars=0
-     468 leave
+     456 block: vars=0, tvars=0
+     457 leave
 
   func insv (0)
-     469 block: vars=0, tvars=0
-     470 leave
+     458 block: vars=0, tvars=0
+     459 leave
 
   func rev (0)
-     471 block(line=207): vars=0, tvars=0
-     472 leave
+     460 block(line=207): vars=0, tvars=0
+     461 leave
 
   func sort (0)
-     473 block: vars=0, tvars=0
-     474 leave
+     462 block: vars=0, tvars=0
+     463 leave
 
   func sqrt (0)
-     475 block(line=208): vars=0, tvars=0
-     476 leave
+     464 block(line=208): vars=0, tvars=0
+     465 leave
 
   func exp (0)
-     477 block: vars=0, tvars=0
-     478 leave
+     466 block: vars=0, tvars=0
+     467 leave
 
   func log (0)
-     479 block: vars=0, tvars=0
-     480 leave
+     468 block: vars=0, tvars=0
+     469 leave
 
   func log10 (0)
-     481 block: vars=0, tvars=0
-     482 leave
+     470 block: vars=0, tvars=0
+     471 leave
 
   func pow (0)
-     483 block: vars=0, tvars=0
-     484 leave
+     472 block: vars=0, tvars=0
+     473 leave
 
   func sin (0)
-     485 block(line=209): vars=0, tvars=0
-     486 leave
+     474 block(line=209): vars=0, tvars=0
+     475 leave
 
   func cos (0)
-     487 block: vars=0, tvars=0
-     488 leave
+     476 block: vars=0, tvars=0
+     477 leave
 
   func atan2 (0)
-     489 block: vars=0, tvars=0
-     490 leave
+     478 block: vars=0, tvars=0
+     479 leave
 
   func match (0)
-     491 block(line=210): vars=0, tvars=0
-     492 leave
+     480 block(line=210): vars=0, tvars=0
+     481 leave
 
   func gmatch (0)
-     493 block: vars=0, tvars=0
-     494 leave
+     482 block: vars=0, tvars=0
+     483 leave
 
   func sub (0)
-     495 block: vars=0, tvars=0
-     496 leave
+     484 block: vars=0, tvars=0
+     485 leave
 
   func gsub (0)
-     497 block: vars=0, tvars=0
-     498 leave
+     486 block: vars=0, tvars=0
+     487 leave
 
   func split (0)
-     499 block(line=211): vars=0, tvars=0
-     500 leave
+     488 block(line=211): vars=0, tvars=0
+     489 leave
 
   func srand (0)
-     501 block(line=212): vars=0, tvars=0
-     502 leave
+     490 block(line=212): vars=0, tvars=0
+     491 leave
 
   func rand (0)
-     503 block: vars=0, tvars=0
-     504 leave
+     492 block: vars=0, tvars=0
+     493 leave
 
   func __process_errno__ (0)
-     505 block(line=213): vars=0, tvars=0
-     506 leave
+     494 block(line=213): vars=0, tvars=0
+     495 leave
 
   func readdir (0)
-     507 block(line=214): vars=0, tvars=0
-     508 leave
+     496 block(line=214): vars=0, tvars=0
+     497 leave
 
   func ftype (0)
-     509 block: vars=0, tvars=0
-     510 leave
+     498 block: vars=0, tvars=0
+     499 leave
 
   func fun (0)
-     511 block(line=215): vars=0, tvars=0
-     512 leave
+     500 block(line=215): vars=0, tvars=0
+     501 leave
 
   func fgn (0)
-     513 block: vars=0, tvars=0
-     514 leave
+     502 block: vars=0, tvars=0
+     503 leave
 
   func fsize (0)
-     515 block: vars=0, tvars=0
-     516 leave
+     504 block: vars=0, tvars=0
+     505 leave
 
   func fatime (0)
-     517 block(line=216): vars=0, tvars=0
-     518 leave
+     506 block(line=216): vars=0, tvars=0
+     507 leave
 
   func fmtime (0)
-     519 block: vars=0, tvars=0
-     520 leave
+     508 block: vars=0, tvars=0
+     509 leave
 
   func fctime (0)
-     521 block: vars=0, tvars=0
-     522 leave
+     510 block: vars=0, tvars=0
+     511 leave
 
   func fumode (0)
-     523 block(line=217): vars=0, tvars=0
-     524 leave
+     512 block(line=217): vars=0, tvars=0
+     513 leave
 
   func fgmode (0)
-     525 block: vars=0, tvars=0
-     526 leave
+     514 block: vars=0, tvars=0
+     515 leave
 
   func fomode (0)
-     527 block: vars=0, tvars=0
-     528 leave
+     516 block: vars=0, tvars=0
+     517 leave
 
   func time (0)
-     529 block(line=218): vars=0, tvars=0
-     530 leave
+     518 block(line=218): vars=0, tvars=0
+     519 leave
 
   func strtime (0)
-     531 block(line=219): vars=0, tvars=0
-     532 leave
+     520 block(line=219): vars=0, tvars=0
+     521 leave
 
   func clock (0)
-     533 block(line=220): vars=0, tvars=0
-     534 leave
+     522 block(line=220): vars=0, tvars=0
+     523 leave
 
   func gc (0)
-     535 block(line=221): vars=0, tvars=0
-     536 leave
+     524 block(line=221): vars=0, tvars=0
+     525 leave
 
   func rename (0)
-     537 block(line=222): vars=0, tvars=0
-     538 leave
+     526 block(line=222): vars=0, tvars=0
+     527 leave
 
   func remove (0)
-     539 block: vars=0, tvars=0
-     540 leave
+     528 block: vars=0, tvars=0
+     529 leave
 
   func mkdir (0)
-     541 block(line=223): vars=0, tvars=0
-     542 leave
+     530 block(line=223): vars=0, tvars=0
+     531 leave
 
   func rmdir (0)
-     543 block: vars=0, tvars=0
-     544 leave
+     532 block: vars=0, tvars=0
+     533 leave
 
   func getcwd (0)
-     545 block(line=224): vars=0, tvars=0
-     546 leave
+     534 block(line=224): vars=0, tvars=0
+     535 leave
 
   func chdir (0)
-     547 block: vars=0, tvars=0
-     548 leave
+     536 block: vars=0, tvars=0
+     537 leave
 
   func chumod (0)
-     549 block(line=225): vars=0, tvars=0
-     550 leave
+     538 block(line=225): vars=0, tvars=0
+     539 leave
 
   func chgmod (0)
-     551 block: vars=0, tvars=0
-     552 leave
+     540 block: vars=0, tvars=0
+     541 leave
 
   func chomod (0)
-     553 block: vars=0, tvars=0
-     554 leave
+     542 block: vars=0, tvars=0
+     543 leave
 
   func isatty (0)
-     555 block: vars=0, tvars=0
-     556 leave
+     544 block: vars=0, tvars=0
+     545 leave
 
   func open (0)
-     557 block(line=226): vars=0, tvars=0
-     558 leave
+     546 block(line=226): vars=0, tvars=0
+     547 leave
 
   func close (0)
-     559 block: vars=0, tvars=0
-     560 leave
+     548 block: vars=0, tvars=0
+     549 leave
 
   func flush (0)
-     561 block: vars=0, tvars=0
-     562 leave
+     550 block: vars=0, tvars=0
+     551 leave
 
   func popen (0)
-     563 block(line=227): vars=0, tvars=0
-     564 leave
+     552 block(line=227): vars=0, tvars=0
+     553 leave
 
   func pclose (0)
-     565 block: vars=0, tvars=0
-     566 leave
+     554 block: vars=0, tvars=0
+     555 leave
 
   func tell (0)
-     567 block(line=228): vars=0, tvars=0
-     568 leave
+     556 block(line=228): vars=0, tvars=0
+     557 leave
 
   func seek (0)
-     569 block: vars=0, tvars=0
-     570 leave
+     558 block: vars=0, tvars=0
+     559 leave
 
   func put (0)
-     571 block(line=229): vars=0, tvars=0
-     572 leave
+     560 block(line=229): vars=0, tvars=0
+     561 leave
 
   func putln (0)
-     573 block: vars=0, tvars=0
-     574 leave
+     562 block: vars=0, tvars=0
+     563 leave
 
   func fput (0)
-     575 block(line=230): vars=0, tvars=0
-     576 leave
+     564 block(line=230): vars=0, tvars=0
+     565 leave
 
   func fputln (0)
-     577 block: vars=0, tvars=0
-     578 leave
+     566 block: vars=0, tvars=0
+     567 leave
 
   func sput (0)
-     579 block: vars=0, tvars=0
-     580 leave
+     568 block: vars=0, tvars=0
+     569 leave
 
   func sputln (0)
-     581 block: vars=0, tvars=0
-     582 leave
+     570 block: vars=0, tvars=0
+     571 leave
 
   func putf (0)
-     583 block(line=231): vars=0, tvars=0
-     584 leave
+     572 block(line=231): vars=0, tvars=0
+     573 leave
 
   func fputf (0)
-     585 block: vars=0, tvars=0
-     586 leave
+     574 block: vars=0, tvars=0
+     575 leave
 
   func sputf (0)
-     587 block: vars=0, tvars=0
-     588 leave
+     576 block: vars=0, tvars=0
+     577 leave
 
   func print (0)
-     589 block(line=232): vars=0, tvars=0
-     590 leave
+     578 block(line=232): vars=0, tvars=0
+     579 leave
 
   func println (0)
-     591 block: vars=0, tvars=0
-     592 leave
+     580 block: vars=0, tvars=0
+     581 leave
 
   func fprint (0)
-     593 block(line=233): vars=0, tvars=0
-     594 leave
+     582 block(line=233): vars=0, tvars=0
+     583 leave
 
   func fprintln (0)
-     595 block: vars=0, tvars=0
-     596 leave
+     584 block: vars=0, tvars=0
+     585 leave
 
   func sprint (0)
-     597 block: vars=0, tvars=0
-     598 leave
+     586 block: vars=0, tvars=0
+     587 leave
 
   func sprintln (0)
-     599 block: vars=0, tvars=0
-     600 leave
+     588 block: vars=0, tvars=0
+     589 leave
 
   func get (0)
-     601 block(line=234): vars=0, tvars=0
-     602 leave
+     590 block(line=234): vars=0, tvars=0
+     591 leave
 
   func getln (0)
-     603 block: vars=0, tvars=0
-     604 leave
+     592 block: vars=0, tvars=0
+     593 leave
 
   func getf (0)
-     605 block: vars=0, tvars=0
-     606 leave
+     594 block: vars=0, tvars=0
+     595 leave
 
   func fget (0)
-     607 block(line=235): vars=0, tvars=0
-     608 leave
+     596 block(line=235): vars=0, tvars=0
+     597 leave
 
   func fgetln (0)
-     609 block: vars=0, tvars=0
-     610 leave
+     598 block: vars=0, tvars=0
+     599 leave
 
   func fgetf (0)
-     611 block: vars=0, tvars=0
-     612 leave
+     600 block: vars=0, tvars=0
+     601 leave
 
   func scan (0)
-     613 block(line=236): vars=0, tvars=0
-     614 leave
+     602 block(line=236): vars=0, tvars=0
+     603 leave
 
   func scanln (0)
-     615 block: vars=0, tvars=0
-     616 leave
+     604 block: vars=0, tvars=0
+     605 leave
 
   func fscan (0)
-     617 block: vars=0, tvars=0
-     618 leave
+     606 block: vars=0, tvars=0
+     607 leave
 
   func fscanln (0)
-     619 block: vars=0, tvars=0
-     620 leave
+     608 block: vars=0, tvars=0
+     609 leave
 
   func getpid (0)
-     621 block(line=237): vars=0, tvars=0
-     622 leave
+     610 block(line=237): vars=0, tvars=0
+     611 leave
 
   func getun (0)
-     623 block: vars=0, tvars=0
-     624 leave
+     612 block: vars=0, tvars=0
+     613 leave
 
   func geteun (0)
-     625 block: vars=0, tvars=0
-     626 leave
+     614 block: vars=0, tvars=0
+     615 leave
 
   func getgn (0)
-     627 block(line=238): vars=0, tvars=0
-     628 leave
+     616 block(line=238): vars=0, tvars=0
+     617 leave
 
   func getegn (0)
-     629 block: vars=0, tvars=0
-     630 leave
+     618 block: vars=0, tvars=0
+     619 leave
 
   func getgroups (0)
-     631 block: vars=0, tvars=0
-     632 leave
+     620 block: vars=0, tvars=0
+     621 leave
 
   func system (0)
-     633 block(line=239): vars=0, tvars=0
-     634 leave
+     622 block(line=239): vars=0, tvars=0
+     623 leave
 
   func exit (0)
-     635 block(line=240): vars=0, tvars=0
-     636 leave
+     624 block(line=240): vars=0, tvars=0
+     625 leave
 
   func fold (0)
-     637 block(line=241): vars=0, tvars=0
-     638 leave
+     626 block(line=241): vars=0, tvars=0
+     627 leave
 
   func filter (0)
-     639 block: vars=0, tvars=0
-     640 leave
+     628 block: vars=0, tvars=0
+     629 leave
 
   func map (0)
-     641 block: vars=0, tvars=0
-     642 leave
+     630 block: vars=0, tvars=0
+     631 leave
 
   func __init__ (0)
-     643 block(line=242): vars=0, tvars=0
-     644 leave
+     632 block(line=242): vars=0, tvars=0
+     633 leave
 
        2 class(line=118): 34 <- (except)
        3 call: start=34 npars=0
@@ -36268,39 +36242,37 @@ TEST585
       78 ldi(line=200): 25 <- (0)
       79 lds(line=211): 26 <- ("[ \t]+")
       80 lds(line=219): 27 <- ("%a %b %d %H:%M:%S %Z %Y")
-      81 func(line=242): 34 <- (__init__)
-      82 pcall: start=34 npars=0
-      83 ldi(line=2): 28 <- (8190)
-      84 addi(line=4): 34 <- 28 (1)
-      85 ldi: 35 <- (0)
-      86 vec: 33 <- (els=34, parts=1)
-      87 ldi(line=5): 32 <- (0)
-      88 ldi(line=6): 29 <- (0)
-      90 btle: 29 28 (temp_res=34) (true=92, false=91)
-        92 ldi(line=7): 34 <- (1)
-        93 st: 33(29) <- 34
-        95 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=92, false=91)
-      91 ldi(line=8): 29 <- (0)
-      97 btle: 29 28 (temp_res=34) (true=99, false=98)
-        99 ind(line=9): 34 <- 33[29]
-       100 bf: 34 (true=103, false=101)
-         101 add(line=11): 34 <- 29 29
-         107 addi: 30 <- 34 (3)
-         108 add(line=12): 31 <- 29 30
-         109 ldi(line=13): 34 <- (1)
-         110 bt: 34 (true=113, false=111)
-           113 btle(line=15): 31 28 (temp_res=34) (true=115, false=114)
-             114 out(line=16): of 0 blocks
-           115 ldi(line=17): 34 <- (0)
-           116 st: 33(31) <- 34
-           117 add(line=18): 31 <- 31 30
-               goto 109
-         111 addi(line=20): 32 <- 32 (1)
-       103 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=99, false=98)
-      98 func(line=23): 34 <- (println)
-     104 move: 35 <- 32 (count)
-     105 pcall: start=34 npars=1
-   106 leave(line=1)
+      81 tipcall(line=242) __init__: start=34 npars=0
+      82 ldi(line=2): 28 <- (8190)
+      83 addi(line=4): 34 <- 28 (1)
+      84 ldi: 35 <- (0)
+      85 vec: 33 <- (els=34, parts=1)
+      86 ldi(line=5): 32 <- (0)
+      87 ldi(line=6): 29 <- (0)
+      89 btle: 29 28 (temp_res=34) (true=91, false=90)
+        91 ldi(line=7): 34 <- (1)
+        92 st: 33(29) <- 34
+        94 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=91, false=90)
+      90 ldi(line=8): 29 <- (0)
+      96 btle: 29 28 (temp_res=34) (true=98, false=97)
+        98 ind(line=9): 34 <- 33[29]
+        99 bf: 34 (true=102, false=100)
+         100 add(line=11): 34 <- 29 29
+         105 addi: 30 <- 34 (3)
+         106 add(line=12): 31 <- 29 30
+         107 ldi(line=13): 34 <- (1)
+         108 bt: 34 (true=111, false=109)
+           111 btle(line=15): 31 28 (temp_res=34) (true=113, false=112)
+             112 out(line=16): of 0 blocks
+           113 ldi(line=17): 34 <- (0)
+           114 st: 33(31) <- 34
+           115 add(line=18): 31 <- 31 30
+               goto 107
+         109 addi(line=20): 32 <- 32 (1)
+       102 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=98, false=97)
+      97 move(line=23): 35 <- 32 (count)
+     103 tipcall println: start=34 npars=1
+   104 leave(line=1)
 OUTPUT585
                         result=ok
                 else
@@ -37862,10 +37834,9 @@ TEST615
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT615' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=29, tvars=2
-      83 ldi: 28 <- (0)
-      84 ldi: 29 <- (1000)
-      86 btlt: 28 29 (temp_res=29) (true=88, false=87)
-        88 addi: 28 <- 28 (-1)
+      82 ldi: 28 <- (0)
+      84 btlti: 28 (1000) (temp_res=29) (true=86, false=85)
+        86 addi: 28 <- 28 (-1)
            goto 84
 OUTPUT615
                         result=ok
@@ -37892,11 +37863,11 @@ TEST616
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT616' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=29, tvars=2
-      83 ldi: 28 <- (0)
-      84 addi(line=2): 28 <- 28 (1)
-      85 addi(line=3): 28 <- 28 (2)
-      86 addi(line=4): 28 <- 28 (3)
-      87 addi(line=5): 28 <- 28 (4)
+      82 ldi: 28 <- (0)
+      83 addi(line=2): 28 <- 28 (1)
+      84 addi(line=3): 28 <- 28 (2)
+      85 addi(line=4): 28 <- 28 (3)
+      86 addi(line=5): 28 <- 28 (4)
 OUTPUT616
                         result=ok
                 else
@@ -37924,14 +37895,14 @@ TEST617
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT617' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=30, tvars=2
-      83 ldi: 28 <- (0)
-      84 ldi: 29 <- (0)
-      86 btne(line=2): 28 29 (temp_res=30) (true=86, false=88)
-      88 bteq(line=3): 28 29 (temp_res=30) (true=88, false=90)
-      90 btle(line=4): 28 29 (temp_res=30) (true=90, false=92)
-      92 btlt(line=5): 28 29 (temp_res=30) (true=92, false=94)
-      94 btge(line=6): 28 29 (temp_res=30) (true=94, false=96)
-      96 btgt(line=7): 28 29 (temp_res=30) (true=96, false=97)
+      82 ldi: 28 <- (0)
+      83 ldi: 29 <- (0)
+      85 btne(line=2): 28 29 (temp_res=30) (true=85, false=87)
+      87 bteq(line=3): 28 29 (temp_res=30) (true=87, false=89)
+      89 btle(line=4): 28 29 (temp_res=30) (true=89, false=91)
+      91 btlt(line=5): 28 29 (temp_res=30) (true=91, false=93)
+      93 btge(line=6): 28 29 (temp_res=30) (true=93, false=95)
+      95 btgt(line=7): 28 29 (temp_res=30) (true=95, false=96)
 OUTPUT617
                         result=ok
                 else
@@ -37957,12 +37928,12 @@ TEST618
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT618' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=29, tvars=2
-      83 ldi: 28 <- (0)
-      84 addi(line=2): 28 <- 28 (-1)
-      85 addi(line=3): 28 <- 28 (-2)
-      86 addi(line=4): 28 <- 28 (-3)
-      87 ldi(line=5): 29 <- (4)
-      88 sub: 28 <- 29 28
+      82 ldi: 28 <- (0)
+      83 addi(line=2): 28 <- 28 (-1)
+      84 addi(line=3): 28 <- 28 (-2)
+      85 addi(line=4): 28 <- 28 (-3)
+      86 ldi(line=5): 29 <- (4)
+      87 sub: 28 <- 29 28
 OUTPUT618
                         result=ok
                 else
@@ -37986,28 +37957,28 @@ TEST619
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT619' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=29, tvars=8
-      83 ldi: 29 <- (10)
-      84 ldi: 30 <- (0)
-      85 vec: 28 <- (els=29, parts=1)
-      86 move(line=2): 29 <- 28 (i)
-      87 ldi: 30 <- (0)
-      88 ldi: 31 <- (-1)
-      89 ldi: 32 <- (1)
-      90 lslv: 33 <- 29 (dim=1)
-      91 ldi: 34 <- (1)
-      92 add_slst: 29(dim=1) <- 33 op 34
-      93 move(line=3): 29 <- 28 (i)
-      94 ldi: 30 <- (0)
-      95 ldi: 31 <- (-1)
-      96 ldi: 32 <- (1)
-      97 move: 33 <- 28 (i)
-      98 ldi: 34 <- (0)
-      99 ldi: 35 <- (-1)
-     100 ldi: 36 <- (1)
-     101 sl: 33 <- 33 (dim=1)
-     102 ldi: 34 <- (1)
-     103 add: 33 <- 33 34
-     104 slst: 29(dim=1) <- 33
+      82 ldi: 29 <- (10)
+      83 ldi: 30 <- (0)
+      84 vec: 28 <- (els=29, parts=1)
+      85 move(line=2): 29 <- 28 (i)
+      86 ldi: 30 <- (0)
+      87 ldi: 31 <- (-1)
+      88 ldi: 32 <- (1)
+      89 lslv: 33 <- 29 (dim=1)
+      90 ldi: 34 <- (1)
+      91 add_slst: 29(dim=1) <- 33 op 34
+      92 move(line=3): 29 <- 28 (i)
+      93 ldi: 30 <- (0)
+      94 ldi: 31 <- (-1)
+      95 ldi: 32 <- (1)
+      96 move: 33 <- 28 (i)
+      97 ldi: 34 <- (0)
+      98 ldi: 35 <- (-1)
+      99 ldi: 36 <- (1)
+     100 sl: 33 <- 33 (dim=1)
+     101 ldi: 34 <- (1)
+     102 add: 33 <- 33 34
+     103 slst: 29(dim=1) <- 33
 OUTPUT619
                         result=ok
                 else
@@ -38035,27 +38006,27 @@ TEST620
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT620' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=31, tvars=2
-      83 ldi: 28 <- (0)
-      84 ldi: 29 <- (10)
-      85 ldi: 30 <- (1)
-      87 btne(line=2): 28 29 (temp_res=31) (true=89, false=92)
-        89 addi: 30 <- 30 (1)
-        91 btneinc: 28+(1) 29 (temp_res=31) (true=89, false=92)
-      92 bteq(line=3): 28 29 (temp_res=31) (true=94, false=97)
-        94 addi: 30 <- 30 (1)
-        96 bteqinc: 28+(1) 29 (temp_res=31) (true=94, false=97)
-      97 btle(line=4): 28 29 (temp_res=31) (true=99, false=102)
-        99 addi: 30 <- 30 (1)
-       101 btleinc: 28+(1) 29 (temp_res=31) (true=99, false=102)
-     102 btlt(line=5): 28 29 (temp_res=31) (true=104, false=107)
-       104 addi: 30 <- 30 (1)
-       106 btltinc: 28+(1) 29 (temp_res=31) (true=104, false=107)
-     107 btge(line=6): 28 29 (temp_res=31) (true=109, false=112)
-       109 addi: 30 <- 30 (1)
-       111 btgeinc: 28+(1) 29 (temp_res=31) (true=109, false=112)
-     112 btgt(line=7): 28 29 (temp_res=31) (true=114, false=113)
-       114 addi: 30 <- 30 (1)
-       116 btgtinc: 28+(1) 29 (temp_res=31) (true=114, false=113)
+      82 ldi: 28 <- (0)
+      83 ldi: 29 <- (10)
+      84 ldi: 30 <- (1)
+      86 btne(line=2): 28 29 (temp_res=31) (true=88, false=91)
+        88 addi: 30 <- 30 (1)
+        90 btneinc: 28+(1) 29 (temp_res=31) (true=88, false=91)
+      91 bteq(line=3): 28 29 (temp_res=31) (true=93, false=96)
+        93 addi: 30 <- 30 (1)
+        95 bteqinc: 28+(1) 29 (temp_res=31) (true=93, false=96)
+      96 btle(line=4): 28 29 (temp_res=31) (true=98, false=101)
+        98 addi: 30 <- 30 (1)
+       100 btleinc: 28+(1) 29 (temp_res=31) (true=98, false=101)
+     101 btlt(line=5): 28 29 (temp_res=31) (true=103, false=106)
+       103 addi: 30 <- 30 (1)
+       105 btltinc: 28+(1) 29 (temp_res=31) (true=103, false=106)
+     106 btge(line=6): 28 29 (temp_res=31) (true=108, false=111)
+       108 addi: 30 <- 30 (1)
+       110 btgeinc: 28+(1) 29 (temp_res=31) (true=108, false=111)
+     111 btgt(line=7): 28 29 (temp_res=31) (true=113, false=112)
+       113 addi: 30 <- 30 (1)
+       115 btgtinc: 28+(1) 29 (temp_res=31) (true=113, false=112)
 OUTPUT620
                         result=ok
                 else
@@ -38078,14 +38049,195 @@ TEST621
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT621' && $CMP $stdout $ftemp2; then
      1 block(line=1): vars=31, tvars=2
-      83 ldi: 28 <- (1)
-      84 ldi: 29 <- (5)
-      85 ldi: 30 <- (0)
-      87 btge(line=2): 28 29 (temp_res=31) (true=89, false=88)
-        89 addi: 30 <- 30 (-1)
-           goto 90
-        88 addi: 30 <- 30 (1)
+      82 ldi: 28 <- (1)
+      83 ldi: 29 <- (5)
+      84 ldi: 30 <- (0)
+      86 btge(line=2): 28 29 (temp_res=31) (true=88, false=87)
+        88 addi: 30 <- 30 (-1)
+           goto 89
+        87 addi: 30 <- 30 (1)
 OUTPUT621
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 622.
+if test $result = ok -a $start_test_number -le 622; then
+	echo test 622: Call tail optimization
+        cat >$test_file <<'TEST622'
+func odd (n) {
+  if (n == 0) return 0;
+  return even (n - 1);
+}
+
+func even (n) {
+  if (n == 0) return 1;
+  return odd (n - 1);
+}
+
+putln ("odd  (10000000) = ", odd (10000000));
+putln ("even (10000000) = ", even (10000000));
+TEST622
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT622' && $CMP $stdout $ftemp2; then
+odd  (10000000) = 0
+even (10000000) = 1
+OUTPUT622
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 623.
+if test $result = ok -a $start_test_number -le 623; then
+	echo test 623: Immediate call generation
+        cat >$test_file <<'TEST623'
+func f () {
+  func h () {
+  }
+  func g () {
+     h ();
+  }
+  g ();
+}
+f();
+TEST623
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT623' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=28, tvars=2
+  func f (0)
+     602 block: vars=0, tvars=1
+    func h (0)
+       605 block(line=2): vars=0, tvars=0
+       606 leave
+
+    func g (0)
+       607 block(line=4): vars=0, tvars=1
+         608 itpcall(line=5) h: start=0 npars=0
+       609 leave(line=4)
+
+       603 citpcall(line=7) g: start=0 npars=0
+     604 leave(line=1)
+
+      82 titpcall(line=9) f: start=28 npars=0
+OUTPUT623
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 624.
+if test $result = ok -a $start_test_number -le 624; then
+	echo test 624: Branch and compare with immediate generation
+        cat >$test_file <<'TEST624'
+var i = 0;
+if (i < 1) i++;
+if (i > 1) i++;
+if (i <= 1) i++;
+if (i >= 1) i++;
+if (i == 1) i++;
+if (i != 1) i++;
+if (2 < i) i++;
+if (2 > i) i++;
+if (2 <= i) i++;
+if (2 >= i) i++;
+if (2 == i) i++;
+if (2 != i) i++;
+TEST624
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT624' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=29, tvars=2
+      82 ldi: 28 <- (0)
+      84 btgei(line=2): 28 (1) (temp_res=29) (true=87, false=85)
+        85 addi: 28 <- 28 (1)
+      87 btlei(line=3): 28 (1) (temp_res=29) (true=90, false=88)
+        88 addi: 28 <- 28 (1)
+      90 btgti(line=4): 28 (1) (temp_res=29) (true=93, false=91)
+        91 addi: 28 <- 28 (1)
+      93 btlti(line=5): 28 (1) (temp_res=29) (true=96, false=94)
+        94 addi: 28 <- 28 (1)
+      96 btnei(line=6): 28 (1) (temp_res=29) (true=99, false=97)
+        97 addi: 28 <- 28 (1)
+      99 bteqi(line=7): 28 (1) (temp_res=29) (true=102, false=100)
+       100 addi: 28 <- 28 (1)
+     102 btlti(line=8): 28 (2) (temp_res=29) (true=105, false=103)
+       103 addi: 28 <- 28 (1)
+     105 btgti(line=9): 28 (2) (temp_res=29) (true=108, false=106)
+       106 addi: 28 <- 28 (1)
+     108 btlei(line=10): 28 (2) (temp_res=29) (true=111, false=109)
+       109 addi: 28 <- 28 (1)
+     111 btgei(line=11): 28 (2) (temp_res=29) (true=114, false=112)
+       112 addi: 28 <- 28 (1)
+     114 btnei(line=12): 28 (2) (temp_res=29) (true=117, false=115)
+       115 addi: 28 <- 28 (1)
+     117 bteqi(line=13): 28 (2) (temp_res=29) (true=119, false=118)
+       118 addi: 28 <- 28 (1)
+OUTPUT624
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 625.
+if test $result = ok -a $start_test_number -le 625; then
+	echo test 625: Compare with immediate generation
+        cat >$test_file <<'TEST625'
+var i = 0;
+i = i < 1;
+i = i > 1;
+i = i <= 1;
+i = i >= 1;
+i = i == 1;
+i = i != 1;
+i = 2 < i;
+i = 2 > i;
+i = 2 <= i;
+i = 2 >= i;
+i = 2 == i;
+i = 2 != i;
+TEST625
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT625' && $CMP $stdout $ftemp2; then
+     1 block(line=1): vars=29, tvars=2
+      82 ldi: 28 <- (0)
+      83 lti(line=2): 28 <- 28 (1)
+      84 gti(line=3): 28 <- 28 (1)
+      85 lei(line=4): 28 <- 28 (1)
+      86 gei(line=5): 28 <- 28 (1)
+      87 eqi(line=6): 28 <- 28 (1)
+      88 nei(line=7): 28 <- 28 (1)
+      89 gei(line=8): 28 <- 28 (2)
+      90 lei(line=9): 28 <- 28 (2)
+      91 gti(line=10): 28 <- 28 (2)
+      92 lti(line=11): 28 <- 28 (2)
+      93 eqi(line=12): 28 <- 28 (2)
+      94 nei(line=13): 28 <- 28 (2)
+OUTPUT625
                         result=ok
                 else
                         result=fail

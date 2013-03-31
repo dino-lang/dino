@@ -294,12 +294,21 @@ eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
 /* The func returns size (in bytes) of the stack of the block node given
    as BLOCK_NODE_PTR. */
 static size_t do_always_inline
-block_stack_size (IR_node_t block_node_ptr)
+new_block_stack_size (IR_node_t block_node_ptr)
 {
   d_assert (block_node_ptr != NULL
 	    && IR_NODE_MODE (block_node_ptr) == IR_NM_block);
   return ((real_block_vars_number (block_node_ptr)
 	   + IR_temporary_vars_number (block_node_ptr)) * sizeof (val_t)
+	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
+}
+
+/* The func returns size (in bytes) of the stack of BLOCK. */
+static size_t do_always_inline
+block_stack_size (ER_node_t block)
+{
+  d_assert (ER_NODE_MODE (block) == ER_NM_heap_stack);
+  return (ER_all_block_vars_num (block) * sizeof (val_t)
 	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
 }
 
@@ -581,7 +590,7 @@ heap_object_size (ER_node_t obj)
       size = instance_size (ER_instance_class (obj));
       break;
     case ER_NM_heap_stack:
-      size = block_stack_size (ER_block_node (obj));
+      size = block_stack_size (obj);
       break;
     case ER_NM_heap_process:
       size = ALLOC_SIZE (sizeof (_ER_heap_process));
@@ -1436,8 +1445,9 @@ profile_interrupt (void)
    stack header and vars) of the block given as BLOCK_NODE_PTR.  The
    func initiates all fields of stack and returns pointer to it.  The
    func also sets up value of cstack.  The func sets up mode of all
-   permanent stack vars as ER_NM_NIL. Usually, CONTEXT is the same as
-   CSTACK.  But in complex cases, the chain `context' contains the
+   permanent stack vars as ER_NM_NIL starting from offset.  If offset
+   is negative, stack vars are not set.  Usually, CONTEXT is the same
+   as CSTACK.  But in complex cases, the chain `context' contains the
    chain `prev_stack' except for class constructors stacks (the heap
    instance is used in this case). */
 void
@@ -1446,9 +1456,11 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
   ER_node_t stack;
   ER_node_t curr_var;
   IR_node_t func_class;
+  int vars_num;
 
   /* Remember about possible GC. */
-  stack = (ER_node_t) heap_allocate (block_stack_size (block_node_ptr), TRUE);
+  stack = (ER_node_t) heap_allocate (new_block_stack_size (block_node_ptr),
+				     TRUE);
 #ifndef NO_PROFILE
   if (profile_flag)
     {
@@ -1485,17 +1497,18 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
     ER_set_ctop (cstack, (char *) ctop);
   cstack = stack;
   ER_set_block_node (stack, block_node_ptr);
+  vars_num = real_block_vars_number (block_node_ptr);
+  ER_set_all_block_vars_num
+    (stack, vars_num + IR_temporary_vars_number (block_node_ptr));
   cvars = ER_stack_vars (cstack);
-  ctop
-     = (ER_node_t) ((char *) cvars
-                    + real_block_vars_number (block_node_ptr) * sizeof (val_t)
-	            - sizeof (val_t));
+  ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
   set_tvars (block_node_ptr);
-  /* Seting up mode of all permanent stack vars as nil. */
-  for (curr_var = IVAL (cvars, offset);
-       curr_var <= ctop;
-       curr_var = IVAL (curr_var, 1))
-    ER_SET_MODE (curr_var, ER_NM_nil);
+  if (offset >= 0)
+    /* Seting up mode of all permanent stack vars as nil. */
+    for (curr_var = IVAL (cvars, offset);
+	 curr_var <= ctop;
+	 curr_var = IVAL (curr_var, 1))
+      ER_SET_MODE (curr_var, ER_NM_nil);
   /* We set them only here because we need to set mode before.
      Remeber about possible field checking. */
   if (cprocess != NULL)

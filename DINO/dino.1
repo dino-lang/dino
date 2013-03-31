@@ -39,8 +39,9 @@ collisions in hash tables which are used for the implementation of
 DINO tables.
 .IP -t
 Output information about call stack of the program into stderr for
-unprocessed exception or calling exit function.
-DINO tables.
+unprocessed exception or calling exit function.  This output sometimes
+can be different from what people would expect because of tail call
+elimination.
 .IP -Idirname
 Define the directory in which Dino include files will be searched for.
 The order of searching in directories given with this option is the same

@@ -100,7 +100,7 @@ extern clock_t clock (void);
 
 #include "regex.h"
 
-static ER_node_t create_instance (int_t pars_number);
+static ER_node_t create_instance (val_t *call_start, int_t pars_number);
 
 
 static void
@@ -2000,11 +2000,14 @@ place_file_instance (FILE *f)
 {
   ER_node_t var;
   ER_node_t instance;
+  ER_node_t start;
 
-  ER_SET_MODE (ctop, ER_NM_class);
-  ER_set_class_id (ctop, FUNC_CLASS_ID (file_decl));
-  ER_set_class_context (ctop, uppest_stack);
-  instance = create_instance (0);
+  start = ctop;
+  ER_SET_MODE (start, ER_NM_class);
+  ER_set_class_id (start, FUNC_CLASS_ID (file_decl));
+  ER_set_class_context (start, uppest_stack);
+  TOP_DOWN;
+  instance = create_instance ((val_t *) start, 0);
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_instance);
   ER_set_instance (ctop, instance);
@@ -5456,188 +5459,171 @@ call_external_func (int pars_number, IR_node_t func_node)
   INCREMENT_PC();
 }
 
-static ER_node_t
-create_instance (int_t pars_number)
+/* Set up variable FROM to BOUND (no including) to nil.  */
+static void do_always_inline
+reset_vars (ER_node_t from, ER_node_t bound)
 {
-  size_t curr_actual;
+  for (; from < bound; from = IVAL (from, 1))
+    ER_SET_MODE (from, ER_NM_nil);
+}
+
+/* Set up formal parameters starting with VARS of FUNC_CLASS from
+   actual parameters starting with ACTUAL_START.  Initialize rest of
+   VARS_NUMBER vars by NIL.  */
+static void do_always_inline
+setup_pars (IR_node_t func_class, int actuals_num,
+	    ER_node_t vars, val_t *actual_start, int vars_number)
+{
+  int i, args_p, copies_num, formals_num;
+
+  args_p = IR_args_flag (func_class);
+  formals_num = IR_parameters_number (func_class) - (args_p ? 1 : 0);
+  copies_num = (formals_num < actuals_num ? formals_num : actuals_num);
+  if (actuals_num < copies_num)
+    copies_num = actuals_num;
+  /* Transfer actuals.  */
+  for (i = 0; i < copies_num; i++)
+    *(val_t *) IVAL (vars, i) = *actual_start++;
+  /* Reset rest of variables.  */
+  reset_vars ((ER_node_t) ((val_t *) vars + copies_num),
+	      (ER_node_t) ((val_t *) vars + vars_number));
+  if (args_p)
+    {
+      ER_node_t vect;
+      int nargs = actuals_num - copies_num;
+      
+      if (nargs == 0)
+	vect = create_empty_vector ();
+      else
+	vect = (ER_node_t) create_unpack_vector (nargs);
+      /* Args number */
+      ER_SET_MODE (IVAL (vars, formals_num), ER_NM_vect);
+      set_vect_dim (IVAL (vars, formals_num), vect, 0);
+      for (i = 0; i < nargs; i++)
+	*(val_t *) IVAL (ER_unpack_els (vect), i) = *actual_start++;
+    }
+}
+
+static ER_node_t do_always_inline
+create_instance (val_t *call_start, int_t actuals_num)
+{
   IR_node_t class; 
   ER_node_t instance;
-  ER_node_t curr_var;
-  ER_node_t vars;
-  int curr_par;
-  char *free;
   
-  class = ID_TO_FUNC_CLASS (ER_class_id
-			    ((ER_node_t) IVAL (ctop, -pars_number)));
+  class = ID_TO_FUNC_CLASS (ER_class_id ((ER_node_t) call_start));
   instance = (ER_node_t) heap_allocate (instance_size (class), FALSE);
   ER_SET_MODE (instance, ER_NM_heap_instance);
   ER_set_instance_class (instance, class);
   ER_set_block_node (instance, IR_next_stmt (class));
   ER_set_immutable (instance, FALSE);
   /* Set Context chain. */
-  ER_set_context (instance, ER_class_context (IVAL (ctop, -pars_number)));
+  ER_set_context (instance, ER_class_context ((ER_node_t) call_start));
   ER_set_context_number (instance, context_number);
   ER_set_state (instance, IS_initial);
   context_number++;
-  /* Initialize object variables. */
-  free = ((char *) ER_instance_vars (instance)
-          + IR_vars_number (IR_next_stmt (class)) * sizeof (val_t));
-  /* Seting up mode of all permanent stack vars as nil. */
-  for (curr_var = ER_instance_vars (instance);
-       (char *) curr_var < free;
-       curr_var = IVAL (curr_var, 1))
-    ER_SET_MODE (curr_var, ER_NM_nil);
-  /* Push actual parameters except for args (but no more than
-     formal parameters). */
-  vars = ER_instance_vars (instance);
-  for (curr_actual = 0, curr_par = -pars_number + 1;
-       curr_actual < (IR_parameters_number (class)
-		      - (IR_args_flag (class) ? 1 : 0))
-	 && curr_actual < pars_number;
-       curr_actual++, curr_par++)
-    *(val_t *) IVAL (vars, curr_actual) = *(val_t *) IVAL (ctop, curr_par);
-  if (IR_args_flag (class))
-    {
-      ER_node_t vect;
-      size_t start;
-      
-      if (pars_number == curr_actual)
-	vect = create_empty_vector ();
-      else
-	vect = (ER_node_t) create_unpack_vector (pars_number - curr_actual);
-      /* Args number */
-      ER_SET_MODE (IVAL (ER_instance_vars (instance),
-			 IR_parameters_number (class) - 1), ER_NM_vect);
-      set_vect_dim (IVAL (ER_instance_vars (instance),
-			 IR_parameters_number (class) - 1), vect, 0);
-      for (start = curr_actual;
-	   curr_actual < pars_number;
-	   curr_actual++)
-	*(val_t *) IVAL (ER_unpack_els (vect), curr_actual - start)
-	  = *(val_t *) IVAL (ctop, curr_actual - pars_number + 1);
-    }
-  /* Pop all actual parameters and class from current stack. */
-  DECR_CTOP (pars_number + 1);
+  setup_pars (class, actuals_num, ER_instance_vars (instance),
+	      call_start + 1, IR_vars_number (IR_next_stmt (class)));
   return instance;
 }
 
-/* The following varibale is PC of the last call of real DINO function
+/* The following variable is PC of the last call of real DINO function
    (not external or implementation function).  It is used to
    diagnostic of earley parser functions. */
 static pc_t real_func_call_pc;
 
-void
-process_func_class_call (int_t pars_number, int tail_flag)
+/* Function processing tail (if TAIL_FLAG) call of function FUNC with
+   CONTEXT with ACTUALS_NUM params starting with CALL_START + 1.  */
+static void do_always_inline
+process_func_call (val_t *call_start, IR_node_t func, ER_node_t context,
+		   int actuals_num, int tail_flag)
 {
-  size_t curr_actual;
+  IR_node_t block_node_ptr = IR_next_stmt (func);
+  int vars_number = real_block_vars_number (block_node_ptr);
+
+  real_func_call_pc = cpc;
+  d_assert (! IR_IS_OF_TYPE (func, IR_NM_external_func));
+  if (tail_flag && ! IR_extended_life_context_flag (block_node_ptr)
+      && context != cstack && cstack != uppest_stack
+      && (block_node_ptr == ER_block_node (cstack)
+	  || (ER_all_block_vars_num (cstack)
+	      >= vars_number + IR_temporary_vars_number (block_node_ptr))))
+    {
+      ER_set_context (cstack, context);
+      ER_set_block_node (cstack, block_node_ptr);
+      ctop = IVAL (cvars, vars_number - 1);
+    }
+  else
+    heap_push (IR_next_stmt (func), context, -1);
+  setup_pars (func, actuals_num, cvars, call_start + 1, vars_number);
+  cpc = BC_next (IR_bc_block (block_node_ptr));
+}
+
+/* The same as previous but also process implementation functions.  */
+void do_always_inline
+process_imm_func_call (val_t *call_start, IR_node_t func, ER_node_t context,
+		       int actuals_num, int tail_flag)
+{
+  if (IR_implementation_func (func) != NULL)
+    {
+      DECR_CTOP (-actuals_num - 1);
+      (*IR_implementation_func (func)) (actuals_num);
+      TOP_DOWN;
+    }
+  else
+    process_func_call (call_start, func, context, actuals_num, tail_flag);
+}
+
+/* A general function processing tail (if TAIL_FLAG) func/thread/class
+   call of func with ACTUALS_NUM par maters starting with
+   CALL_START.  */
+void
+process_func_class_call (ER_node_t call_start, int_t actuals_num, int tail_flag)
+{
   IR_node_t func_class;
-  ER_node_t func_class_val;
+  ER_node_t func_class_val, context;
   ER_node_t instance;
-  ER_node_t vars, pars;
-  int curr_par;
   ER_node_mode_t mode;
 
-  func_class_val = IVAL (ctop, -pars_number);
-  mode = ER_NODE_MODE (func_class_val);
+  ctop = IVAL (call_start, -1);
+  mode = ER_NODE_MODE (call_start);
   if (mode == ER_NM_func || mode == ER_NM_thread)
     {
       func_class = ID_TO_FUNC_CLASS (mode == ER_NM_func
-				     ? ER_func_id (func_class_val)
-				     : ER_thread_id (func_class_val));
+				     ? ER_func_id (call_start)
+				     : ER_thread_id (call_start));
       if (IR_NODE_MODE (func_class) == IR_NM_external_func)
 	{
-	  call_external_func (pars_number, func_class);
+	  DECR_CTOP (-actuals_num - 1);
+	  call_external_func (actuals_num, func_class);
 	  TOP_DOWN;
 	}
       else if (IR_implementation_func (func_class) != NULL)
 	{
-	  (*IR_implementation_func (func_class)) (pars_number);
+	  DECR_CTOP (-actuals_num - 1);
+	  (*IR_implementation_func (func_class)) (actuals_num);
 	  TOP_DOWN;
 	}
       else
 	{
-	  ER_node_t prev_stack;
-	  int args_p, num, formals_num;
-
-	  if (sync_flag && mode == ER_NM_thread)
-	    /* We check it before creating a stack (see
-	       find_catch_pc).  */
-	    eval_error (syncthreadcall_decl, invcalls_decl, BC_pos (cpc),
-			DERR_thread_call_in_sync_stmt);
-	  args_p = IR_args_flag (func_class);
-	  if (tail_flag && ! args_p
-	      && func_class == IR_func_class_ext (ER_block_node (cstack))
-	      && ! IR_extended_life_context_flag (ER_block_node (cstack)))
+	  if (mode == ER_NM_func)
+	    context = ER_func_context (call_start);
+	  else
 	    {
-	      ER_node_t curr_var;
-
-	      memmove (IVAL (ER_stack_vars (cstack), 0), IVAL (ctop, -pars_number + 1),
-		       pars_number * sizeof (val_t));
-	      ctop
-		= (ER_node_t) ((char *) cvars
-			       + real_block_vars_number (IR_next_stmt (func_class))
-			       * sizeof (val_t)
-			       - sizeof (val_t));
-	      for (curr_var = IVAL (ER_stack_vars (cstack), pars_number);
-		   curr_var <= ctop;
-		   curr_var = IVAL (curr_var, 1))
-		ER_SET_MODE (curr_var, ER_NM_nil);
-	      cpc = BC_next (IR_bc_block (IR_next_stmt (func_class)));
-	      return;
+	      if (sync_flag)
+		/* We check it before creating a stack (see
+		   find_catch_pc).  */
+		eval_error (syncthreadcall_decl, invcalls_decl, BC_pos (cpc),
+			    DERR_thread_call_in_sync_stmt);
+	      context = ER_thread_context (call_start);
 	    }
-	  d_assert (! IR_IS_OF_TYPE (func_class, IR_NM_external_func));
-	  real_func_call_pc = cpc;
-	  heap_push (IR_next_stmt (func_class),
-		     mode == ER_NM_func
-		     ? ER_func_context (func_class_val)
-		     : ER_thread_context (func_class_val),
-		     pars_number);
-	  /* The value may be changed because of GC. */
-	  prev_stack = ER_prev_stack (cstack);
-	  func_class_val = IVAL (ER_ctop (prev_stack), -pars_number);
-	  /* Push actual parameters except for args (but no more than
-	     formal parameters). */
-          vars = ER_stack_vars (cstack);
-          pars = (ER_node_t) ER_ctop (prev_stack);
-	  formals_num = IR_parameters_number (func_class) - (args_p ? 1 : 0);
-	  num = (formals_num < pars_number ? formals_num : pars_number);
-	  for (curr_actual = 0, curr_par = -pars_number + 1;
-	       curr_actual < num;
-	       curr_actual++, curr_par++)
-	    *(val_t *) IVAL (vars, curr_actual)
-	      = *(val_t *) IVAL (pars, curr_par);
-	  if (args_p)
-	    {
-              ER_node_t vect;
-	      size_t start;
-	      
-	      if (pars_number == curr_actual)
-		vect = create_empty_vector ();
-	      else
-		vect = create_unpack_vector (pars_number - curr_actual);
-	      /* Args number */
-	      ER_SET_MODE (IVAL (ER_stack_vars (cstack), formals_num),
-			   ER_NM_vect);
-	      set_vect_dim (IVAL (ER_stack_vars (cstack), formals_num), vect, 0);
-	      /* The value may be changed because of GC. */
-	      prev_stack = ER_prev_stack (cstack);
-	      func_class_val = IVAL (ER_ctop (prev_stack), -pars_number);
-	      for (start = curr_actual;
-                   curr_actual < pars_number;
-		   curr_actual++)
-		*(val_t *) IVAL (ER_unpack_els (vect), curr_actual - start)
-		  = *(val_t *) IVAL (ER_ctop (prev_stack),
-				     curr_actual - pars_number + 1);
-	    }
-	  /* Pop all actual parameters and func from previous stack. */
-	  DECR_TOP (prev_stack, pars_number + 1);
-	  cpc = BC_next (IR_bc_block (IR_next_stmt (func_class)));
+	  process_func_call ((val_t *) call_start, func_class, context,
+			     actuals_num, tail_flag);
 	  if (mode == ER_NM_thread)
 	    {
 	      ER_node_t process;
 	      
 	      process = create_process (cpc, func_class,
-					ER_thread_context (func_class_val));
+					ER_thread_context (call_start));
 	      cpc = BC_next (ER_call_pc (cstack));
 	      ER_set_ctop (cstack, (char *) ctop);
 	      cstack = ER_prev_stack (cstack);
@@ -5654,8 +5640,8 @@ process_func_class_call (int_t pars_number, int tail_flag)
   else if (mode == ER_NM_class)
     {
       /* See also case with IR_NM_block_finish .*/
-      func_class = ID_TO_FUNC_CLASS (ER_class_id (func_class_val));
-      instance = create_instance (pars_number);
+      func_class = ID_TO_FUNC_CLASS (ER_class_id (call_start));
+      instance = create_instance ((val_t *) call_start, actuals_num);
       if (IR_simple_class_flag (func_class))
 	{
 	  TOP_UP;
@@ -6052,7 +6038,8 @@ tree_to_heap (struct earley_tree_node *root)
       d_assert (ER_NODE_MODE ((ER_node_t) root->val.term.attr)
 		== ER_NM_heap_instance);
       ER_set_instance (ctop, root->val.term.attr);
-      res = create_instance (2);
+      DECR_CTOP (3);
+      res = create_instance ((val_t *) IVAL (ctop, 1), 2);
       break;
     case EARLEY_ANODE:
       name_vect = create_string (root->val.anode.name);
@@ -6065,7 +6052,8 @@ tree_to_heap (struct earley_tree_node *root)
       TOP_UP;
       ER_SET_MODE (ctop, ER_NM_vect);
       set_vect_dim (ctop, vect, 0);
-      res = create_instance (2);
+      DECR_CTOP (3);
+      res = create_instance ((val_t *) IVAL (ctop, 1), 2);
       break;
     case EARLEY_ALT:
       name_vect = create_string ("$alt");
@@ -6078,7 +6066,8 @@ tree_to_heap (struct earley_tree_node *root)
       TOP_UP;
       ER_SET_MODE (ctop, ER_NM_vect);
       set_vect_dim (ctop, vect, 0);
-      res = create_instance (2);
+      DECR_CTOP (3);
+      res = create_instance ((val_t *) IVAL (ctop, 1), 2);
       break;
     default:
       d_unreachable ();

@@ -384,6 +384,8 @@ context_heap_obj :: heap_obj
   context : context_heap_obj
   block_node : IR_hidden_node_t /* Pointer to corresponding block node. */
   context_number : int_t        /* Unique number */
+  /* May contains more vars than it is really necessary for the block.  */
+  all_block_vars_num : int_t
 ;
 
 /* Instance of a class. */
