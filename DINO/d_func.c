@@ -2990,14 +2990,17 @@ fgetf_call (int_t pars_number)
 {
   int flag = 0;
 
-  if (pars_number != 2)
+  if (pars_number == 2)
+    {
+      implicit_int_conversion (ctop, NULL);
+      if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
+	eval_error (partype_decl, invcalls_decl,
+		    BC_pos (cpc), DERR_parameter_type, FGETF_NAME);
+      flag = ER_i (ctop);
+    }
+  else if (pars_number != 1)
     eval_error (parnumber_decl, invcalls_decl,
 		BC_pos (cpc), DERR_parameters_number, FGETF_NAME);
-  implicit_int_conversion (ctop, NULL);
-  if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, FGETF_NAME);
-  flag = ER_i (ctop);
   general_get_ln_file_call (get_file (pars_number, FGETF_NAME),
 			    TRUE, FALSE, flag != 0, FGETF_NAME);
 }

@@ -1,5 +1,9 @@
 2013-04-04  Vladimir Makarov  <vmakarov@users.sf.net>
 
+	* DINO/d_func.c (fgetf_call): Fix the code.
+
+2013-04-04  Vladimir Makarov  <vmakarov@users.sf.net>
+
 	* DINO/compare.tst: Make brief output for DINO only.
 	* DINO/d_context.c (third_expr_processing): Use less slots for
 	icalls.
