@@ -609,7 +609,10 @@ static void do_always_inline
 try_heap_stack_free (void *from, size_t size)
 {
   if (curr_heap_chunk->chunk_stack_top == (char *) from)
-    curr_heap_chunk->chunk_stack_top += size;
+    {
+      curr_heap_chunk->chunk_stack_top += size;
+      free_heap_memory += size;
+    }
 }
 
 static int do_always_inline
@@ -1355,14 +1358,10 @@ destroy_instances (void)
 	  {
 	    decl = LV_BLOCK_IDENT_DECL (IR_block_number (ER_block_node (curr_obj)),
 					destroy_ident_number);
-	    TOP_UP;
-	    ER_SET_MODE (ctop, ER_NM_func);
-	    ER_set_func_context (ctop, curr_obj);
-	    ER_set_func_id (ctop, FUNC_CLASS_ID (decl));
 	    /* We mark it before the call to prevent infinite loop if
 	       the exception occurs during the call. */
 	    ER_set_state (curr_obj, IS_destroyed);
-	    call_func_class (0);
+	    call_func_class (decl, curr_obj, 0);
 	  }
     }
 }
@@ -1704,9 +1703,9 @@ unpack_vector (ER_node_t vect)
   int immutable;
   size_t els_number;
   ER_node_t prev_vect;
-  ER_node_mode_t el_type;
-  size_t el_size;
   size_t pack_vect_allocated_length;
+  size_t el_size;
+  ER_node_mode_t el_type;
   size_t displ;
   size_t i, disp;
   val_t temp_var;
@@ -1740,12 +1739,14 @@ unpack_vector (ER_node_t vect)
       ER_SET_MODE (vect, mode);
       for (i = els_number - 1; ; i--)
 	{
-	  /* Use this order.  It is important when we have only one
+	  /* Use this order!!!  It is important when we have only one
              element. */
 	  memcpy ((char *) IVAL (els, i) + displ,
 		  (char *) ER_pack_els (prev_vect) + i * el_size,
 		  el_size);
 	  ER_SET_MODE (IVAL (els, i), el_type);
+	  if (el_type == ER_NM_vect)
+	    ER_set_dim (IVAL (els, i), 0);
 	  if (i == 0)
 	    break;
 	}
@@ -2074,6 +2075,8 @@ hash_key (ER_node_t key)
 		el_size = type_size_table [ER_pack_vect_el_type (pv)];
 		for (hash = i = 0; i < ER_els_number (pv); i++)
 		  {
+		    /* We don't care about setting dimension for
+		       vectors here as it is not used by hash_val.  */
 		    memcpy ((char *) var_ref + displ,
 			    (char *) ER_pack_els (pv) + i * el_size,
 			    el_size);
@@ -2477,7 +2480,7 @@ table_to_vector_conversion (ER_node_t tab)
 ER_node_t
 vector_to_table_conversion (ER_node_t vect)
 {
-  size_t i, el_size_type;
+  size_t i;
   ER_node_t entry;
   val_t val;
   ER_node_t tab, tvar = (ER_node_t) &val;
@@ -2495,11 +2498,15 @@ vector_to_table_conversion (ER_node_t vect)
 	*((val_t *) entry + 1) = *(val_t *) IVAL (ER_unpack_els (vect), i);
       else
 	{
-	  el_size_type = type_size_table [ER_pack_vect_el_type (vect)];
-	  ER_SET_MODE ((ER_node_t) tvar, ER_pack_vect_el_type (vect));
-	  memcpy ((char *) tvar + val_displ (tvar),
-		  ER_pack_els (vect) + i * el_size_type, el_size_type);
-	  *((val_t *) entry + 1) = *(val_t *) tvar;
+	  ER_node_t v = (ER_node_t) ((val_t *) entry + 1);
+	  ER_node_mode_t el_type = ER_pack_vect_el_type (vect);
+	  size_t el_type_size = type_size_table [el_type];
+
+	  ER_SET_MODE (v, el_type);
+	  memcpy ((char *) v + val_displ (v),
+		  ER_pack_els (vect) + i * el_type_size, el_type_size);
+	  if (el_type == ER_NM_vect)
+	    ER_set_dim (v, 0);
 	}
     }
   return tab;

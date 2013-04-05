@@ -1,3 +1,25 @@
+2013-04-04  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Make brief output for DINO only.
+	* DINO/d_context.c (third_expr_processing): Use less slots for
+	icalls.
+	(third_block_passing): Use less slots for ipcalls.
+	* DINO/d_func.c: Remove INCREMENT_PC and ctop decreasing in all
+	implementation functions.  Add arguments to call_func_class calls.
+	(func_result): New.  Use it in implementaion functions.
+	({fold, filter, map}_dim): New.  Use it in the corresponding
+	functions.
+	(process_imm_func_call): Call INCREMENT_PC and decrease ctop after
+	an implementation function.
+	(process_func_class_call): Ditto.
+	* DINO/d_heap.c (try_heap_stack_free): Update free_heap_memory.
+	(destroy_instances): Add arguments for call_func_class.
+	(unpack_vector, vector_to_table_conversion): Set dimension.
+	* DINO/d_eval.c (evalaute_code): Don't reset function slot for
+	icalls/ipcalls.
+	* DINO/d_run.sprut (call_func_class): Change prototype.
+	* dino.tst.in (584, 585): Update output.
+
 2013-03-31  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Change formating for fibonacci and tak.

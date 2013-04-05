@@ -155,7 +155,7 @@ extern void *external_address (IR_node_t decl);
 
 extern void process_system_errors (const char *function_name);
 
-extern void call_func_class (int_t pars_number);
+extern void call_func_class (IR_node_t func, ER_node_t context, int_t pars_number);
 
 
 #ifdef __GNUC__

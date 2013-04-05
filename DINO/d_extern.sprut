@@ -290,22 +290,10 @@ set_vect_dim (ER_node_t v, ER_node_t vect, int_t dim)
 static void do_always_inline
 set_packed_vect_el (ER_node_t vect, size_t i, ER_node_t vect_el)
 {
-#if 0
-  val_t val;
-  size_t el_size = type_size_table [ER_NM_vect];
-  size_t displ = val_displ_table [ER_NM_vect];
-#endif
-
   d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   d_assert (ER_NODE_MODE (vect_el) == ER_NM_heap_pack_vect
 	    || ER_NODE_MODE (vect_el) == ER_NM_heap_unpack_vect);
-#if 1
   ((ER_node_t *) ER_pack_els (vect)) [i] = vect_el;
-#else
-  ER_SET_MODE ((ER_node_t) &val, ER_NM_vect);
-  set_vect_dim ((ER_node_t) &val, vect_el, 0);
-  memcpy (ER_pack_els (vect) + i * el_size, (char *) &val + displ, el_size);
-#endif
 }
 
 }
@@ -401,7 +389,7 @@ heap_stack :: context_heap_obj
   /* The stack which will be after execution code in the stack.  Chain
      `context' contains the chain `prev_stack'.  But between
      prev_stack - cstack may be additional environments (stacks or
-     instances. */
+     instances). */
   prev_stack : heap_stack
   /* Pointer to the last temporary var of the block at the
      current time.  We use char_ptr_t to prevent the checking. */

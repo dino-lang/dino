@@ -4134,8 +4134,6 @@ evaluate_code (void)
 	common_ipcall:
 	  extract_op1 (&op1);
 	  ctop = IVAL (op1, -1);
-	  /* We do not need func value here but we want it defined.  */
-	  ER_SET_MODE (op1, ER_NM_nil);
 	  process_imm_func_call ((val_t *) op1, BC_func (cpc), op3,
 				 BC_op2 (cpc), tail_flag);
 	  INTERRUPT_CHECK;
@@ -4162,8 +4160,6 @@ evaluate_code (void)
 	common_icall:
 	  extract_op1 (&op1);
 	  ctop = IVAL (op1, -1);
-	  /* We do not need func value here but we want it defined.  */
-	  ER_SET_MODE (op1, ER_NM_nil);
 	  process_imm_func_call ((val_t *) op1, BC_func (cpc), op3,
 				 BC_op2 (cpc), tail_flag);
 	  break;
@@ -4914,7 +4910,7 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
 }
 
 void
-call_func_class (int_t pars_number)
+call_func_class (IR_node_t func, ER_node_t context, int_t pars_number)
 {
   pc_t saved_cpc;
   pc_t saved_next_pc;
@@ -4925,7 +4921,8 @@ call_func_class (int_t pars_number)
   BC_set_next (cpc, NULL);
   saved_process_number = ER_process_number (cprocess);
   DECR_CTOP (pars_number);
-  process_func_class_call (ctop, pars_number, FALSE);
+  process_imm_func_call ((val_t *) IVAL (ctop, 1), func, context,
+			 pars_number, FALSE);
   for (;;)
     {
       if (cpc != NULL)

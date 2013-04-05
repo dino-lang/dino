@@ -35153,7 +35153,7 @@ TEST584
                goto 107
          109 addi(line=20): 32 <- 32 (1)
        102 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=98, false=97)
-      97 move(line=23): 35 <- 32 (count)
+      97 move(line=23): 34 <- 32 (count)
      103 tipcall println: start=34 npars=1
 OUTPUT584
                         result=ok
@@ -35653,57 +35653,57 @@ TEST585
        346 leave
 
     func set_grammar (2)
-       347 block(line=162): vars=2, tvars=4
-         348 var(line=163): 3 <- (grammar)
-         349 move: 4 <- 1 (strict_p)
-         350 move: 5 <- 0 (descr)
+       347 block(line=162): vars=2, tvars=3
+         348 var(line=163): 2 <- (grammar)
+         349 move: 3 <- 1 (strict_p)
+         350 move: 4 <- 0 (descr)
          351 ipcall int_earley_parse_grammar: start=2 npars=3
        352 leave(line=162)
 
     func set_debug (1)
-       353 block(line=165): vars=1, tvars=3
-         354 var(line=166): 2 <- (grammar)
-         355 move: 3 <- 0 (level)
+       353 block(line=165): vars=1, tvars=2
+         354 var(line=166): 1 <- (grammar)
+         355 move: 2 <- 0 (level)
          356 icall int_earley_set_debug_level: start=1 npars=2
          357 ret: 1
        358 leave(line=165)
 
     func set_one_parse (1)
-       359 block(line=168): vars=1, tvars=3
-         360 var(line=169): 2 <- (grammar)
-         361 move: 3 <- 0 (flag)
+       359 block(line=168): vars=1, tvars=2
+         360 var(line=169): 1 <- (grammar)
+         361 move: 2 <- 0 (flag)
          362 icall int_earley_set_one_parse_flag: start=1 npars=2
          363 ret: 1
        364 leave(line=168)
 
     func set_lookahead (1)
-       365 block(line=171): vars=1, tvars=3
-         366 var(line=172): 2 <- (grammar)
-         367 move: 3 <- 0 (flag)
+       365 block(line=171): vars=1, tvars=2
+         366 var(line=172): 1 <- (grammar)
+         367 move: 2 <- 0 (flag)
          368 icall int_earley_set_lookahead_level: start=1 npars=2
          369 ret: 1
        370 leave(line=171)
 
     func set_cost (1)
-       371 block(line=174): vars=1, tvars=3
-         372 var(line=175): 2 <- (grammar)
-         373 move: 3 <- 0 (flag)
+       371 block(line=174): vars=1, tvars=2
+         372 var(line=175): 1 <- (grammar)
+         373 move: 2 <- 0 (flag)
          374 icall int_earley_set_cost_flag: start=1 npars=2
          375 ret: 1
        376 leave(line=174)
 
     func set_recovery (1)
-       377 block(line=177): vars=1, tvars=3
-         378 var(line=178): 2 <- (grammar)
-         379 move: 3 <- 0 (flag)
+       377 block(line=177): vars=1, tvars=2
+         378 var(line=178): 1 <- (grammar)
+         379 move: 2 <- 0 (flag)
          380 icall int_earley_set_error_recovery_flag: start=1 npars=2
          381 ret: 1
        382 leave(line=177)
 
     func set_recovery_match (1)
-       383 block(line=180): vars=1, tvars=3
-         384 var(line=181): 2 <- (grammar)
-         385 move: 3 <- 0 (n_toks)
+       383 block(line=180): vars=1, tvars=2
+         384 var(line=181): 1 <- (grammar)
+         385 move: 2 <- 0 (n_toks)
          386 icall int_earley_set_recovery_match: start=1 npars=2
          387 ret: 1
        388 leave(line=180)
@@ -35735,9 +35735,9 @@ TEST585
          412 xor: 5 <- 5 6
          413 and: 4 <- 4 5
          414 xor: 2 <- 3 4
-         415 var(line=186): 4 <- (grammar)
-         416 move: 5 <- 0 (tokens)
-         417 move: 6 <- 1 (error_func)
+         415 var(line=186): 3 <- (grammar)
+         416 move: 4 <- 0 (tokens)
+         417 move: 5 <- 1 (error_func)
          418 icall int_earley_parse: start=3 npars=3
          419 ret: 3
        420 leave(line=183)
@@ -36270,7 +36270,7 @@ TEST585
                goto 107
          109 addi(line=20): 32 <- 32 (1)
        102 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=98, false=97)
-      97 move(line=23): 35 <- 32 (count)
+      97 move(line=23): 34 <- 32 (count)
      103 tipcall println: start=34 npars=1
    104 leave(line=1)
 OUTPUT585

@@ -1780,6 +1780,8 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	    && ! IR_thread_flag (IR_decl (BC_origin (curr_pc))))
 	  {
 	    /* Remove load func value.  */
+	    d_assert (func_op_num - curr_vars_number + 1 == temp_vars_num);
+	    temp_vars_num--;
 	    func_decl = IR_decl (BC_origin (curr_pc));
 	    curr_pc = prev_pc;
 	    prev_pc = saved_prev_pc;
@@ -1793,6 +1795,8 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	  bc = new_bc_node (BC_NM_call, expr);
 	else
 	  {
+	    if (pars_num == 0)
+	      get_temp_stack_slot (&temp_vars_num); /* for result */
 	    bc = new_bc_node (IR_block_scope (IR_scope (func_decl)) == NULL
 			      ? BC_NM_ticall
 			      : IR_scope (func_decl) == curr_real_scope
@@ -2238,6 +2242,8 @@ third_block_passing (IR_node_t first_level_stmt)
 		&& ! IR_thread_flag (IR_decl (BC_origin (curr_pc))))
 	      {
 		/* Remove load func value.  */
+		d_assert (func_op_num - curr_vars_number + 1 == temp_vars_num);
+		temp_vars_num--;
 		func_decl = IR_decl (BC_origin (curr_pc));
 		curr_pc = prev_pc;
 		prev_pc = saved_prev_pc;
@@ -2249,6 +2255,8 @@ third_block_passing (IR_node_t first_level_stmt)
 	      bc = new_bc_node (BC_NM_pcall, stmt);
 	    else
 	      {
+		if (pars_num == 0)
+		  get_temp_stack_slot (&temp_vars_num); /* for result */
 		bc = new_bc_node (IR_block_scope (IR_scope (func_decl)) == NULL
 				  ? BC_NM_tipcall
 				  : IR_scope (func_decl) == curr_real_scope
