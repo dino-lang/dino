@@ -90,6 +90,7 @@ extern char ERR_const_swap [];
 extern char ERR_non_variable_in_foreach [];
 extern char ERR_continue_is_not_in_loop [];
 extern char ERR_break_is_not_in_loop [];
+extern char ERR_this_outside_func_class_ext [];
 extern char ERR_return_outside_func_class_ext [];
 extern char ERR_return_with_result_in_class [];
 extern char ERR_return_with_result_in_thread [];
@@ -98,6 +99,8 @@ extern char ERR_function_call_in_wait_stmt [];
 /* Invalid environment. */
 extern char DERR_environment_corrupted[];
 /* Operand types. */
+extern char DERR_identity_operands_types [];
+extern char DERR_eq_operands_types [];
 extern char DERR_logical_or_operands_types [];
 extern char DERR_logical_and_operands_types [];
 extern char DERR_cond_operand_type [];
@@ -175,6 +178,8 @@ extern char DERR_invalid_format [];
 extern char DERR_eof_occured [];
 /* Parameter number. */
 extern char DERR_parameters_number [];
+extern char DERR_too_few_actual_parameters [];
+extern char DERR_too_many_actual_parameters [];
 /* System errors. */
 extern char DERR_eaccess [];
 extern char DERR_eagain [];
@@ -244,6 +249,7 @@ extern char DERR_func_as_variable [];
 extern char DERR_class_as_variable [];
 extern char DERR_value_is_not_class_instance_or_stack [];
 extern char DERR_decl_is_absent_in_given_class_or_block [];
+extern char DERR_undefined_value_access [];
 extern char DERR_private_decl_access_from_outside_block [];
 /* Immutable. */
 extern char DERR_immutable_vector_modification [];

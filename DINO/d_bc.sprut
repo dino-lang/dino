@@ -59,6 +59,8 @@ extern const char *er_type_name (int);
 
 %%
 
+/* Remember: alsways use right abstract node when operands are immediate.  */
+
 %abstract
 code :: %root
 %other
@@ -71,9 +73,18 @@ op1 :: code
         op1 : int_t
 ;
 %abstract
+op1i :: op1 /* op1 is int const */
+;
+%abstract
 op2 :: op1
 %other
         op2 : int_t
+;
+%abstract
+op2i :: op2 /* op2 is int const */
+;
+%abstract
+op2i12 :: op2 /* op1 and op2 are int const */
 ;
 %abstract
 op3 :: op2
@@ -81,9 +92,23 @@ op3 :: op2
         op3 : int_t
 ;
 %abstract
+op3i :: op3 /* op3 is int const */
+;
+%abstract
+op3i2 :: op3 /* op2 is int const */
+;
+%abstract
 op4 :: op3
 %other
         op4 : int_t
+;
+%abstract
+op4i2 :: op3 /* op2 is int const */
+;
+%abstract
+brid :: code
+%other
+        brid_pc : code
 ;
 %abstract
 br :: op1
@@ -100,21 +125,26 @@ bcmp :: brs
 %other
 	bcmp_op2, bcmp_res : int_t
 ;
+%abstract  /* bcmp_op2 as int const.  */
+bcmpi :: bcmp
+;
 %abstract
 binc :: bcmp
 %other
 	binc_inc : int_t
 ;
 %abstract
-imcall :: op2
+imcall :: op2i
 %other
 	func : IR_hidden_node_t
 ;
+%abstract
+impcall, imfcall :: imcall /* procedure or function call  */
+;
 
-ldnil :: op1; /* result place */
+ldnil, ldthis :: op1; /* result place */
 flat :: op1; /* operand and result place */
-ldi, ldch, ldtp :: op2; /* result place, value as int  */
-condflat :: op3; /* actual and func places, func arg num as int */
+ldi, ldch, ldtp :: op2i; /* result place, value as int  */
 
 ldf :: op1 /* result place */
 %other
@@ -149,15 +179,17 @@ const, new, not, plus, minus, bnot, length,
 
 /* result and two operand places.  */
 fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
-  lsh, rsh, ash, concat, add, sub, mult, div, mod,
-  addi, eqi, nei, lti, gti, lei, gei :: op3; /* non-slice insns: op3 is int const */
+  lsh, rsh, ash, concat, add, sub, mult, div, mod :: op3;
+addi, eqi, nei, lti, gti, lei, gei :: op3i; /* non-slice insns */
 
 b :: code; /* unconditional branch to next */
 
+btdef :: brid;  /* skip if the origin identfier defined.  */
+
 /* Branch when true, false, false (non-interrupt) and non-nil.
    bt origin is for_stmt, bf is if_stmt, bfni is cond,
-   bfnil is par_assign.  */
-bt, bf, bfni, bfnil :: br; /* operand place and goto byte code ref.  */
+   btdef is par_assign.  */
+bt, bf, bfni :: br; /* operand place and goto byte code ref.  */
 
 /* Branch and set: res <= op; goto (op or !op ? pc : next).
    Origin is logical_or or logical_and.  */
@@ -167,8 +199,7 @@ brts, brfs :: brs;
    bcmp_res can be used as temporary.  */
 bteq, btne, btge, btlt, btle, btgt :: bcmp;
 
-/* As above but op3 as int const.  */
-bteqi, btnei, btgei, btlti, btlei, btgti :: bcmp;
+bteqi, btnei, btgei, btlti, btlei, btgti :: bcmpi;
 
 /* op1 = op1 + inc; bcmp_res = op1 cmp bcmp_op2; bt bcmp_res
    Inc is int.  All others are places.  */
@@ -198,7 +229,7 @@ move :: op2; /* destination/source places, origin is rhs var ident.  */
 
 /* Assignments: */
 st :: op3; /* container, element, value places */
-slst :: op3; /* vector place, slice dimension as int, value place  */
+slst :: op3i2; /* vector place, slice dimension as int, value place  */
 
 /* Assignment with operations: */
 /* container, element, expr, lvalue val places */
@@ -210,20 +241,20 @@ mult_st, div_st, mod_st,
 /* container place, slice dimension as int, expr place, lvalue val place */
 mult_slst, div_slst, mod_slst,
   add_slst, sub_slst, concat_slst, lsh_slst,
-  rsh_slst, ash_slst, and_slst, xor_slst, or_slst :: op4;
+  rsh_slst, ash_slst, and_slst, xor_slst, or_slst :: op4i2;
 
-out :: op1; /* # of surrounding blocks as int */
+out :: op1i; /* # of surrounding blocks as int */
 
 /* general calls: params start place, params number as int.
    Letter t means tail call, letter p means procedure call.  */
-call, tcall, pcall, tpcall :: op2;
+call, tcall, pcall, tpcall :: op2i;
 
 /* immediate calls: params start place (first value is undefined),
    params number as int, func decl.  First letter t or c means top stack or
    current stack context, tcall means tail call.  */
-icall, itcall, ticall, titcall, cicall, citcall:: imcall;
+icall, itcall, ticall, titcall, cicall, citcall:: imfcall;
 /* The same as previous ones but for procedure.  */
-ipcall, itpcall, tipcall, titpcall, cipcall, citpcall:: imcall;
+ipcall, itpcall, tipcall, titpcall, cipcall, citpcall:: impcall;
 
 leave :: code; /* block end (origin is the block) or return without value */
 ret :: op1; /* return with result: ret value place */
@@ -255,6 +286,13 @@ block :: code
 	excepts : code /* exception list */
 ;
 
+/* The following 3 nodes are Result of function inlining:  */
+bstart :: op2i12;     /* op1 is npars, op2 is nvars.  */
+/* op1 is stack top increase/decrease.  Suffix p and f means
+   proc call and func call (with undef result).  */
+pbend, fbend :: op1i;
+bret :: op2i;         /* op1 is result place, op2 is stack top decrease.  */
+
 /* This byte code is used only during code generation.  Origin is
    cond, for-stmt, foreach-stmt, if-stmt, par_assign, block for end of
    exceptions.  It is removed before the execution.  */
@@ -278,7 +316,7 @@ ir2er_type (IR_node_mode_t irnm)
     case IR_NM_thread_type: return ER_NM_thread;
     case IR_NM_func_type: return ER_NM_func;
     case IR_NM_class_type: return ER_NM_class;
-    case IR_NM_instance_type: return ER_NM_instance;
+    case IR_NM_instance_type: return ER_NM_stack;
     case IR_NM_stack_type: return ER_NM_stack;
     case IR_NM_process_type: return ER_NM_process;
     case IR_NM_type_type: return ER_NM_type;

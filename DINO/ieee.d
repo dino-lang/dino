@@ -26,9 +26,9 @@ include "mpi";
 
 ext except {
   class ieee_except () {
-    class optype (msg) {}
-    class opvalue (msg) {}
-    class round_value (msg) {}
+    class optype () {}
+    class opvalue () {}
+    class round_value () {}
     class invalid_operation () {}
     class reserved_operand () {}
     class overflow () {}
@@ -51,12 +51,12 @@ final class __ieee_package () {
   }
 
   // The following can be used to form trap mask.
-  var final inv = 1; // invalid operation
-  var final ro = 2;  // reserved operand
-  var final ofl = 4; // overflow
-  var final ufl = 8; // underflow
-  var final imp = 16;// imprecise result
-  var final dz = 32; // divide by zero
+  val inv = 1; // invalid operation
+  val ro = 2;  // reserved operand
+  val ofl = 4; // overflow
+  val ufl = 8; // underflow
+  val imp = 16;// imprecise result
+  val dz = 32; // divide by zero
 
   func process_except () {
     var status_bits = get_status_bits ();
@@ -77,10 +77,10 @@ final class __ieee_package () {
   }
   
   // The following are possible values of `round'.
-  var final rn = 0; // round to nearest
-  var final rni = 1;// round to positive inifinity
-  var final rpi = 2;// round to negative inifinity
-  var final rz = 3; // round to zero
+  val rn = 0; // round to nearest
+  val rni = 1;// round to positive inifinity
+  val rpi = 2;// round to negative inifinity
+  val rz = 3; // round to zero
 
   public rn, rpi, rni, rz;
 
@@ -128,7 +128,7 @@ final class __ieee_package () {
   func reset () {ieee_reset ();}
 
   // Single precision floating point numbers (32 bits):
-  final class single (str) {
+  final class single (str = nil) {
     private value; var value;
     
     friend double, quad;
@@ -312,7 +312,7 @@ final class __ieee_package () {
   }
 
   // Double precision floating point numbers (64 bits):
-  final class double (str) {
+  final class double (str = nil) {
     private value; var value;
     
     friend single, quad;
@@ -496,7 +496,7 @@ final class __ieee_package () {
   }
 
   // Quad precision floating point numbers (128 bits):
-  final class quad (str) {
+  final class quad (str = nil) {
     private value; var value;
     
     friend single, double;

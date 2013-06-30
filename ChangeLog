@@ -1,3 +1,111 @@
+2013-06-29  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/compare.tst: Add PyPy, SCALA, and JavaScript.  Increase
+	factor for ackermann, heapsort, random, function, fact, matrix
+	mult.  Change it for count lines.  Decrease actor for compile
+	speed.
+	* DINO/d_bc.sprut (op1i, op2i, op2i12, op3i, op3i2, op4i2, bcmpi)
+	(impcall, imfcall, ldthis, btdef, bstart, pbend, fbend, bret):
+	New.
+	(condflat, bfnil): Remove.
+	(ldi, ldch, ldtp, addi, eqi, nei, lti, gti, lei, gei): Use new
+	nodes.
+	(bteqi, btnei, btgei, btlti, btlei, btgt, slsti, rsh_slst)
+	(ash_slst, and_slst, xor_slst, or_slst, out, call, tcall, pcall)
+	(tpcall, icall, itcall, ticall, titcall, cicall, citcall, ipcall)
+	(itpcall, tipcall, titpcall, cipcall, citpcall): Ditto.
+	(ir2er_type): Return stack instead of instance.
+	* DINO/d_context.c (first_expr_processing): Process this.
+	(add_cond_flatten_node_if_necessary): Remove.
+	(process_actuals): Don't call add_cond_flatten_node_if_necessary.
+	(third_expr_processing): Process this.  Generate btdef instead of
+	bfnil.  Set extended_life_context_flag.
+	(max_traverse_check, init_traverse_check, next_traverse_check):
+	New.
+	(traverse_bc, process_imcall, inc_nops): New.
+	(process_bc): Use traverse_bc.
+	(copy_bc_node, get_subst, curr_imcall, process_inlined_bc_node)
+	(inline_func_block): New.
+	(inline_imcall, incall_subst): New.
+	(inline_bc): New.
+	(dump_code): Add code for new nodes and fields.
+	(test_context): Make top block as extended life one.  Add code for
+	inline opts and switch it off.
+	* DINO/d_errors.c (ERR_this_outside_func_class_ext)
+	(DERR_identity_operands_types, DERR_eq_operands_types)
+	(DERR_too_few_actual_parameters, DERR_too_many_actual_parameters)
+	(DERR_undefined_value_access): New.
+	* DINO/d_errors.h (ERR_this_outside_func_class_ext)
+	(DERR_identity_operands_types, DERR_eq_operands_types)
+	(DERR_too_few_actual_parameters, DERR_too_many_actual_parameters)
+	(DERR_undefined_value_access): New.
+	* DINO/d_eval.c (find_context_by_scope, process_var_ref)
+	(process_var_ref_and_val, ): Use the same code for class instance.
+	(get_var_val_ref): New.
+	(process_var_val): Use get_var_val_ref.
+	(process_external_var_decl): Check undef value.
+	(execute_a_period_operation): Use stack instead of instance.  Use
+	the same code for class instance.  Speedup switch.
+	(check_vector_index): Make do_always_inline.  Speedup switch.
+	Remove case for instance.
+	(store_designator_value): Use store_vector_element.  Use stack
+	instead of instance.
+	(process_slice_extractm, process_slice_assign): Remove instance.
+	(process_slice_assign): Use stack instead of instance.
+	(execute_common_eq_ne_op, execute_identity_op): Ditto.  Process
+	undef.
+	(execute_funcof_op, execute_classof_op): Use stack instead of
+	instance.
+	(evaluate_code): Add code for ldthis, btdef, bstart, pbend, fbend,
+	bret.  Remove code for condflat, bfnil.  Use stack instead of
+	instance.
+	(eval_error): Use stack instead of instance.
+	(evaluate_program): Add assert.
+	* DINO/d_extern.sprut: Use stack_state_t, stack_vars, stack_size,
+	eq_stack instead of instance_state_t, instance_vars,
+	instance_size, eq_instance.
+	(hidden_pc_t, _stack_func_class): New.
+	(heap_instance, instance): Remove.
+	(heap_stack): Add call_pc and saved_pc.
+	(undef): New.
+	* DINO/d_func.c: Use stack instead of instance.  Use undef for
+	undefined func result.
+	(create_instance): Rename to create_class_stack.  Use stack
+	instead of instance.
+	(place_file_instance): Add parameter.
+	(fold_call, filter_call, map_call): Process one more parameter.
+	(init_call): Pass new parameter to place_file_instance.
+	(setup_pars): Check pars number.
+	* DINO/d_gmp.c, DINO/d_ieee.c, DINO/d_mpi.c, DINO/d_socket.c: Use
+	stack instead of instance.
+	* DINO/d_heap.c: Use stack instead of instance.  Add code for
+	undef.
+	(_instance_vars, instance_size): Remove.
+	(shrink_block_stack_size): New.
+	(new_block_stack_size): Use it.
+	(heap_allocate): Do GC for only 16 or more chanks.
+	(shrink_stack): New.
+	(stack_for_shrink_p): New.
+	(tailored_heap_object_size): Use it.
+	(next_heap_object): Remove assert.
+	(move_object): Set up all_block_vars_num.
+	* DINO/d_ir.sprut: Use stack instead of instance.
+	(real_block_vars_number): Redefine.
+	(ENVIRONMENT): Remove ().  Use val instead of var.
+	(this): New.
+	(var): Add parr_assign_flag.
+	(func_or_class): Add min_actual_parameters_number.
+	* DINO/d_kw.shilka: Add this and val.
+	* DINO/d_run.sprut (pc_t, integer_t, string_t): Remove.
+	(ER_instance_p): New.
+	(heap_stack, heap_process): Remove.
+	* DINO/d_yacc.y: Add new rules for this and val.
+	(process_var_decl): New.
+	* DINO/dino.sgml.in: Describe undef value.
+	* DINO/dino.tst.in: Remove () for func/class.  Use val.  New dump
+	files.  New test for actual numbers, undef values.
+	* DINO/ieee.d, DINO/socket.d: Use val.
+
 2013-04-04  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_func.c (fgetf_call): Fix the code.

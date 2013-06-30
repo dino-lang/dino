@@ -1161,9 +1161,9 @@ extract_mpi (int npars, val_t *vals, int_t *size)
   ER_node_t var;
   ER_node_t size_var;
 
-  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
-  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
-  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack);
+  var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 1);
+  size_var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 0);
   d_assert (ER_NODE_MODE (var) == ER_NM_hideblock
 	    && ER_NODE_MODE (size_var) == ER_NM_int);
   *size = ER_i (size_var);

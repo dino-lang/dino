@@ -29,8 +29,8 @@
 /* Don't use -flat-structure for generation SPI from this description. */
 
 %type bool_t size_t hide_t char_t int_t unsigned_int_t floating_t char_ptr_t
-      irid_t instance_state_t IR_hidden_node_t ER_node_mode_t
-      process_status_t stack_ptr_t
+      irid_t stack_state_t IR_hidden_node_t ER_node_mode_t
+      process_status_t stack_ptr_t hidden_pc_t
 
 %import {
 
@@ -40,20 +40,22 @@ typedef void *hide_t;
 
 typedef struct IR_node *IR_hidden_node_t;
 
+typedef struct BC_node *hidden_pc_t;
+
 typedef char *char_ptr_t;
 
 typedef int_t irid_t;
 
-/* This enumeration declares all possible states of of heap instance
+/* This enumeration declares all possible states of of heap stack
    which contains function destroy.  Don't change it.  */
-enum instance_state
+enum stack_state
 {
   IS_initial = 0,
   IS_to_be_destroyed,
   IS_destroyed
 };
 
-typedef enum instance_state instance_state_t;
+typedef enum stack_state stack_state_t;
 
 /* This enumeration declares all possible states of process. */
 enum process_status
@@ -99,6 +101,7 @@ typedef struct ER_node **stack_ptr_t;
 /* Container for all kind of variables. */
 typedef union
   {
+    _ER_undef undef;
     _ER_nil nil;
     _ER_hide hide;
     _ER_hideblock hideblock;
@@ -110,7 +113,7 @@ typedef union
     _ER_tab tab;
     _ER_empty_entry ee;
     _ER_deleted_entry de;
-    _ER_instance inst;
+    _ER_stack stack;
     _ER_func func;
     _ER_class cl;
     _ER_process process;
@@ -138,7 +141,7 @@ extern void *get_library_search_function (const char *name);
 #if defined(NDEBUG)
 /* The macro call value is size of memory allocated for the heap
    object with size S accounting for aligning. */
-#define ALLOC_SIZE(s) (((s)+MAX_ALIGNMENT-1)/MAX_ALIGNMENT*MAX_ALIGNMENT)
+#define ALLOC_SIZE(s) ((((s)+MAX_ALIGNMENT-1)/MAX_ALIGNMENT)*MAX_ALIGNMENT)
 #else
 #define ALLOC_SIZE(s) _alloc_size (s)
 #endif
@@ -173,17 +176,17 @@ extern void *get_library_search_function (const char *name);
 #endif
 
 #if defined(NDEBUG)
-#define ER_instance_vars(instance)\
-  ((ER_node_t) ((char *) (instance) + ALLOC_SIZE (sizeof (_ER_heap_instance))))
-#else
-#define ER_instance_vars(instance) _instance_vars (instance)
-#endif
-
-#if defined(NDEBUG)
 #define ER_stack_vars(stack)\
   ((ER_node_t) ((char *) (stack) + ALLOC_SIZE (sizeof (_ER_heap_stack))))
 #else
 #define ER_stack_vars(stack) _stack_vars (stack)
+#endif
+
+#if defined(NDEBUG)
+#define ER_stack_func_class(stack)\
+  (IR_func_class_ext (ER_block_node (stack)))
+#else
+#define ER_stack_func_class(stack) _stack_func_class (stack)
 #endif
 
 #if defined(NDEBUG)
@@ -198,7 +201,7 @@ extern void *get_library_search_function (const char *name);
    ((ER_node_t) ((char *) (first_var) + (index) * (int) sizeof (val_t)))
 #else
 #define IVAL(first_var, index)\
-   _indexed_val ((ER_node_t) first_var, index)
+  _indexed_val ((ER_node_t) (first_var), index)
 #endif
 
 #if defined(NDEBUG)
@@ -233,9 +236,9 @@ ER_node_t _unpack_els (ER_node_t vect);
 
 ER_node_t _tab_els (ER_node_t tab);
 
-ER_node_t _instance_vars (ER_node_t instance);
-
 ER_node_t _stack_vars (ER_node_t stack);
+
+IR_hidden_node_t _stack_func_class (ER_node_t stack);
 
 stack_ptr_t _stacks_table (ER_node_t process);
 
@@ -249,7 +252,7 @@ ER_node_t _indexed_entry_val (ER_node_t first_entry, int index);
 
 int eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number);
 
-size_t instance_size (IR_hidden_node_t class);
+size_t stack_size (ER_node_t stack);
 
 extern size_t type_size_table [];
 extern size_t val_displ_table [];
@@ -267,7 +270,7 @@ ER_node_t copy_vector (ER_node_t vect);
 extern ER_node_t create_empty_string (size_t min_length);
 extern ER_node_t create_string (const char *string);
 
-int eq_instance (ER_node_t i1, ER_node_t i2);
+int eq_stack (ER_node_t i1, ER_node_t i2);
 
 int eq_table (ER_node_t t1, ER_node_t t2);
 ER_node_t create_tab (size_t size);
@@ -309,12 +312,12 @@ set_packed_vect_el (ER_node_t vect, size_t i, ER_node_t vect_el)
 heap_obj :: %root
 %other
   /* Is it immutable object (immutable object can not be changed).
-     The filed is used fo vectors, tables, instances, and
+     The filed is used fo vectors, tables, stacks, and
      hideblocks. */
   immutable : bool_t
   /* These three members are used during garbage collection. */
   it_was_processed : bool_t
-  state : instance_state_t
+  state : stack_state_t
   new_place : char_ptr_t
   unique_number : size_t
 ;
@@ -353,12 +356,12 @@ heap_unpack_vect :: heap_vect
 /* Table. */
 heap_tab :: heap_vect_tab
 %other
-  entries_number : size_t /* number of all entries in the table */
-  /* Current number of deleted elements in the table */
-  deleted_els_number : size_t
   /* Index of the last access key or -1 if undefined.  It is used to
      speed up the repeated access.  */
   last_key_index : int_t
+  entries_number : size_t /* number of all entries in the table */
+  /* Current number of deleted elements in the table */
+  deleted_els_number : size_t
   /* The first entry is placed immediately after this node in the
      heap. */
 ;
@@ -367,20 +370,13 @@ heap_tab :: heap_vect_tab
 %abstract
 context_heap_obj :: heap_obj
 %other
+  context_number : int_t        /* Unique number */
+  /* May contains more vars than it is really necessary for the block.  */
+  all_block_vars_num : int_t
   /* Context in which the variables are searched for.  See also
      comment for heap_process. */
   context : context_heap_obj
   block_node : IR_hidden_node_t /* Pointer to corresponding block node. */
-  context_number : int_t        /* Unique number */
-  /* May contains more vars than it is really necessary for the block.  */
-  all_block_vars_num : int_t
-;
-
-/* Instance of a class. */
-heap_instance :: context_heap_obj
-%other
-  instance_class : IR_hidden_node_t /* Pointer to corresponding class decl. */
-  /* The first var is placed immediately after this node in the heap. */
 ;
 
 /* Stack of a block. */
@@ -388,12 +384,12 @@ heap_stack :: context_heap_obj
 %other
   /* The stack which will be after execution code in the stack.  Chain
      `context' contains the chain `prev_stack'.  But between
-     prev_stack - cstack may be additional environments (stacks or
-     instances). */
+     prev_stack - cstack may be additional environments (stacks). */
   prev_stack : heap_stack
   /* Pointer to the last temporary var of the block at the
      current time.  We use char_ptr_t to prevent the checking. */
   ctop : char_ptr_t
+  call_pc : hidden_pc_t
   /* The first var is placed immediately after this node in the heap.
      Temporary vars are placed after all permanent vars. */
 ;
@@ -413,6 +409,8 @@ heap_process :: context_heap_obj
   saved_cstack : heap_stack
   /* Unique process number. */
   process_number : int_t
+  /* Program counter which will be first after the resuming the process. */
+  saved_pc : hidden_pc_t
 ;
 
 heap_hideblock :: heap_obj
@@ -428,6 +426,10 @@ heap_hideblock :: heap_obj
    part of heap objects. */
 %abstract
 val :: %root
+;
+
+/*%final*/
+undef :: val
 ;
 
 /*%final*/
@@ -486,12 +488,6 @@ tab :: val
 /* The following nodes can used only as key in table. */
 /*%final*/
 empty_entry, deleted_entry :: val
-;
-
-/*%final*/
-instance :: val
-%other
-  instance : heap_instance
 ;
 
 /*%final*/

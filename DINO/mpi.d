@@ -35,10 +35,10 @@ final class mpi_package () {
   var mpi_excepts = excepts.mpi_except ();
   // if you change the value, please change it in mpi.c and check
   // maximal value in arithm.c.
-  var final max_mpi_size = 128;
+  val max_mpi_size = 128;
   var mpi_ignore_overflow = 0;
   
-  final class mpi (final size) { // The order of vars is important for mpi.c
+  final class mpi (val size) { // The order of vars is important for mpi.c
     private value; var value;
     if (type (size) != int)
       throw mpi_excepts.mpi_type ();

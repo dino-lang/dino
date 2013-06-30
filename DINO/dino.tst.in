@@ -106,7 +106,7 @@ fi
 if test $result = ok -a $start_test_number -le 3; then
 	echo test 3
         cat >$test_file <<'TEST3'
-func f (){}
+func f {}
 var i;
 for (i = 0; i < 100000;i++)
  f ();
@@ -123,7 +123,7 @@ fi
 if test $result = ok -a $start_test_number -le 4; then
 	echo test 4
         cat >$test_file <<'TEST4'
-func f() {
+func f {
   {
     return 10;
   }
@@ -152,8 +152,8 @@ fi
 if test $result = ok -a $start_test_number -le 5; then
 	echo test 5
         cat >$test_file <<'TEST5'
-func f () {}
-class c () {}
+func f {}
+class c {}
 
 putln ("0:", "abc" === "abc");
 putln ("1:", 'c' === 'c');
@@ -236,7 +236,7 @@ fi
 if test $result = ok -a $start_test_number -le 6; then
 	echo test 6
         cat >$test_file <<'TEST6'
-func f () {}
+func f {}
 putln ("0:", f === 10);
 TEST6
         echo '      ' $DINO $test_file "2>$stderr"
@@ -258,7 +258,7 @@ fi
 if test $result = ok -a $start_test_number -le 7; then
 	echo test 7
         cat >$test_file <<'TEST7'
-class c () {}
+class c {}
 putln ("0:", c === 10);
 TEST7
         echo '      ' $DINO $test_file "2>$stderr"
@@ -280,7 +280,7 @@ fi
 if test $result = ok -a $start_test_number -le 8; then
 	echo test 8
         cat >$test_file <<'TEST8'
-class c () {}
+class c {}
 putln ("0:", c () === 10);
 TEST8
         echo '      ' $DINO $test_file "2>$stderr"
@@ -302,15 +302,17 @@ fi
 if test $result = ok -a $start_test_number -le 9; then
 	echo test 9
         cat >$test_file <<'TEST9'
-var i;
+var i = nil;
 putln ("1:", i == nil);
 putln ("0:", i != nil);
 putln ("1:", i === nil);
 putln ("0:", i !== nil);
-func f () {}
-putln ("1:", f () == nil);
-func g () {return;}
-putln ("1:", f () == nil);
+func f {}
+try {putln ("1:", f () == nil);}
+catch (invops.optype) {putln ("1:1");}
+func g {return;}
+try {putln ("1:", f () == nil);}
+catch (invops.optype) {putln ("1:1");}
 var t;
 t = {"e"};
 putln ("1:", t{"e"} == nil);
@@ -361,8 +363,8 @@ fi
 if test $result = ok -a $start_test_number -le 11; then
 	echo test 11
         cat >$test_file <<'TEST11'
-func f() {putln ("eval false");return 0;}
-func t() {putln ("eval true");return 1;}
+func f {putln ("eval false");return 0;}
+func t {putln ("eval true");return 1;}
 
 var i;
 putln ("++test false and true");
@@ -485,7 +487,7 @@ println (s, ns);
 
 class c()
 {
-  var i;
+  var i = nil;
 }
 var o, no;
 o = final c ();
@@ -669,8 +671,8 @@ if test $result = ok -a $start_test_number -le 20; then
 class c(p) {
   var i;
   i = 1;
-  func f () {putln ("i=", i);}
-  func g () {putln ("p=", p);}
+  func f {putln ("i=", i);}
+  func g {putln ("p=", p);}
   func f1 (i) {putln ("i=", i);}
   func g1 (p) {putln ("p=", p);}
 }
@@ -706,7 +708,7 @@ if test $result = ok -a $start_test_number -le 21; then
 class c(p) {
   var i;
   class cc(p) {
-    func f () {putln (p);}
+    func f {putln (p);}
   }
   i = 10;
 }
@@ -840,7 +842,6 @@ func t (a, ...)
     putln ("args[", i, "]=", args[i]);
 }
 
-t ();
 t (10);
 t (10, 1);
 t (10, 1, 2);
@@ -850,7 +851,6 @@ TEST25
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT25' && $CMP $stdout $ftemp2; then
-****
 ****
 a = 10
 ****
@@ -879,8 +879,8 @@ fi
 if test $result = ok -a $start_test_number -le 26; then
 	echo test 26
         cat >$test_file <<'TEST26'
-func f () {}
-class c () {}
+func f {}
+class c {}
 
 putln ("1:", "10" == "10");
 putln ("1:", 10 == 10);
@@ -941,7 +941,7 @@ fi
 if test $result = ok -a $start_test_number -le 27; then
 	echo test 27
         cat >$test_file <<'TEST27'
-func f () {}
+func f {}
 var r;
 r = f == 10;
 putln ("0:", r);
@@ -965,7 +965,7 @@ fi
 if test $result = ok -a $start_test_number -le 28; then
 	echo test 28
         cat >$test_file <<'TEST28'
-class c () {}
+class c {}
 var r;
 r = c == 10;
 putln ("0:", r);
@@ -989,7 +989,7 @@ fi
 if test $result = ok -a $start_test_number -le 29; then
 	echo test 29
         cat >$test_file <<'TEST29'
-class c () {}
+class c {}
 var r;
 r = c () == 10;
 putln ("0:", r);
@@ -1256,14 +1256,14 @@ print ('c');put (" ");
 println ("ssss");
 println (["aaa", "bbb", "ccc"]);
 println (["v1", {"key":"val", {"key1":"val1"}}]);
-func f () {}
+func f {}
 println (f);
-class c () {}
+class c {}
 println (c);
 println (c ());
 var stop;
 stop = 0;
-thread t () {wait (stop);}
+thread t {wait (stop);}
 println (t());
 wait (1) stop = 1;
 
@@ -1346,14 +1346,14 @@ fi
 if test $result = ok -a $start_test_number -le 37; then
 	echo test 37
         cat >$test_file <<'TEST37'
-thread t1 () {
+thread t1 {
   var i;
   for (i = 0; i < 1000; i++)
      if (i % 100 == 0)
        putln ("thread 1 ", i);
 }
 
-thread t2 () {
+thread t2 {
   var i;
   for (i = 0; i < 1000; i++)
      if (i % 100 == 0)
@@ -11887,11 +11887,11 @@ if test $result = ok -a $start_test_number -le 51; then
         cat >$test_file <<'TEST51'
 var i;
 i = 0;
-func f ()
+func f
 {
    var i;
 
-   func g () {i = 20; return i;}
+   func g {i = 20; return i;}
    i = 10;
    return g;
 }
@@ -11955,15 +11955,15 @@ fi
 if test $result = ok -a $start_test_number -le 53; then
 	echo test 53
         cat >$test_file <<'TEST53'
-class c() {
-  class sc() {
-     class ssc() {
+class c {
+  class sc {
+     class ssc {
      }
   }
 }
-func f () {
-  class sc () {
-    func g () {}
+func f {
+  class sc {
+    func g {}
   }
   return sc ();
 }
@@ -12051,7 +12051,7 @@ if test $result = ok -a $start_test_number -le 55; then
 	echo test 55
         cat >$test_file <<'TEST55'
 ext f {putln ("hello, world # 1");}
-func f () {putln ("hello, world # 0");}
+func f {putln ("hello, world # 0");}
 ext f {putln ("hello, world # 2");}
 ext f {putln ("hello, world # 3");}
 f();
@@ -12085,7 +12085,7 @@ class c (p)
 }
 
 ext c {
-  func f () {println (i);println (p);}
+  func f {println (i);println (p);}
 }
 
 c (20).f();
@@ -12114,7 +12114,7 @@ class c (p)
 {
   var i;
   i = 10;
-  func f () {}
+  func f {}
 }
 
 ext c {
@@ -12147,12 +12147,12 @@ class p (p)
 {
   var i;
   i = 10;
-  func f () {}
+  func f {}
 }
 
 ext p {
   class c (p) {
-   func f () {println (i);println (p);}
+   func f {println (i);println (p);}
   } 
 }
 
@@ -12182,7 +12182,7 @@ var ff;
 {
   var i;
   i = 10;
-  func f () {return i;}
+  func f {return i;}
   ff = f;
 }
 println (ff ());
@@ -12265,7 +12265,7 @@ fi
 if test $result = ok -a $start_test_number -le 61; then
 	echo test 61
         cat >$test_file <<'TEST61'
-class c () {
+class c {
 };
 
 var i;
@@ -12294,7 +12294,7 @@ if test $result = ok -a $start_test_number -le 62; then
 	echo test 62
         cat >$test_file <<'TEST62'
 var f;
-thread t () {
+thread t {
   wait (f != nil);
 }
 var p;
@@ -12326,8 +12326,8 @@ if test $result = ok -a $start_test_number -le 63; then
 	echo test 63
         cat >$test_file <<'TEST63'
 var i;
-func f () {
-   class c () {
+func f {
+   class c {
    }
    i = c ();
 }
@@ -12380,7 +12380,7 @@ if test $result = ok -a $start_test_number -le 65; then
         cat >$test_file <<'TEST65'
 {
   var i;
-  func f () {
+  func f {
      class c (){
        class c (){
        }
@@ -12425,7 +12425,7 @@ var i;
 {
   var l;
   public l;
-  class c () {};
+  class c {};
   i = c();
   l = 10;
 }
@@ -12436,7 +12436,7 @@ func f ()
 {
   var l;
   public l;
-  class c () {};
+  class c {};
   i = c();
   l = 20;
 }
@@ -12447,7 +12447,7 @@ println (context (i).l);
 func fp (l)
 {
   public l;
-  class c () {};
+  class c {};
   i = c();
 }
 
@@ -12457,7 +12457,7 @@ println (context (i).l);
 class c ()
 {
   var l;
-  class cc () {};
+  class cc {};
   i = cc();
   l = 40;
 }
@@ -12467,7 +12467,7 @@ println (context (i).l);
 
 class cp (l)
 {
-  class cc () {};
+  class cc {};
   i = cc();
 }
 
@@ -12477,7 +12477,7 @@ println (context (i).l);
 {
   var l;
   public l;
-  func f () {};
+  func f {};
   i = f;
   l = 60;
 }
@@ -12487,7 +12487,7 @@ println (context (i).l);
 {
   var l;
   public l;
-  class c () {};
+  class c {};
   i = c;
   l = 70;
 }
@@ -12497,7 +12497,7 @@ println (context (i).l);
 {
   var l;
   public l;
-  thread t () { wait (l);};
+  thread t { wait (l);};
   i = t ();
   try {wait (1) l = 0;}
 }
@@ -12536,7 +12536,7 @@ var ci;
 {
   public i;
   var i;
-  class c () {
+  class c {
   }
   ci = c ();
   i = 0;
@@ -12590,15 +12590,15 @@ fi
 if test $result = ok -a $start_test_number -le 69; then
 	echo test 69
         cat >$test_file <<'TEST69'
-func e () {putln ("e");return 100;}
-func f (p = e (), i) {
+func e {putln ("e");return 100;}
+func f (i, p = e ()) {
   putln (p, " ", i);
 }
 
 var i;
 for (i = 0; i < 10; i++) {
-  f (i, 20);
-  f (nil, 20);
+  f (20, i);
+  f (20);
 }
 TEST69
         echo '      ' $DINO $test_file "2>$stderr"
@@ -12649,15 +12649,15 @@ fi
 if test $result = ok -a $start_test_number -le 70; then
 	echo test 70
         cat >$test_file <<'TEST70'
-func e () {putln ("e");return 100;}
-class c (p = e (), i) {
+func e {putln ("e");return 100;}
+class c (i, p = e ()) {
   putln (p, " ", i);
 }
 
 var i;
 for (i = 0; i < 10; i++) {
-  c (i, 20);
-  c (nil, 20);
+  c (20, i);
+  c (20);
 }
 TEST70
         echo '      ' $DINO $test_file "2>$stderr"
@@ -12710,13 +12710,13 @@ if test $result = ok -a $start_test_number -le 71; then
         cat >$test_file <<'TEST71'
 var fp, c;
 {
-  class cc () {
-    class c1 () {
+  class cc {
+    class c1 {
     }
-    func f () {
+    func f {
     }
     {
-      func f () {}
+      func f {}
       fp = f;
     }
   }
@@ -13369,7 +13369,7 @@ fi
 if test $result = ok -a $start_test_number -le 88; then
 	echo test 88
         cat >$test_file <<'TEST88'
-var final i;
+val i;
 i = 10;
 putln(i);
 TEST88
@@ -13392,7 +13392,7 @@ fi
 if test $result = ok -a $start_test_number -le 89; then
 	echo test 89
         cat >$test_file <<'TEST89'
-func f (final i)
+func f (val i)
 {
   i = 10;
   putln(i);
@@ -13418,14 +13418,14 @@ fi
 if test $result = ok -a $start_test_number -le 90; then
 	echo test 90
         cat >$test_file <<'TEST90'
-var final i = 10; putln(i);
-func f (final i = 10)
+val i = 10; putln(i);
+func f (val i = 10)
 {
   putln(i);
 }
 f (1);
 f ();
-class c (final i = 100)
+class c (val i = 100)
 {
   putln(i);
 }
@@ -13455,7 +13455,7 @@ fi
 if test $result = ok -a $start_test_number -le 91; then
 	echo test 91
         cat >$test_file <<'TEST91'
-final func f () {putln ("hello, world # 0");}
+final func f {putln ("hello, world # 0");}
 f();
 TEST91
         echo '      ' $DINO $test_file "2>$stderr"
@@ -13509,7 +13509,7 @@ class c (p)
 {
   var i;
   i = 10;
-  final func f () {}
+  final func f {}
 }
 
 ext c {
@@ -13538,7 +13538,7 @@ fi
 if test $result = ok -a $start_test_number -le 94; then
 	echo test 94
         cat >$test_file <<'TEST94'
-final func f () {putln ("hello, world # 0");}
+final func f {putln ("hello, world # 0");}
 ext f {putln ("hello, world # 1");}
 TEST94
         echo '      ' $DINO $test_file "2>$stderr"
@@ -13561,7 +13561,7 @@ if test $result = ok -a $start_test_number -le 95; then
 	echo test 95
         cat >$test_file <<'TEST95'
 ext f {putln ("hello, world # 1");}
-final func f () {putln ("hello, world # 0");}
+final func f {putln ("hello, world # 0");}
 TEST95
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -13589,7 +13589,7 @@ final class c (p)
 }
 
 ext c {
-  func f () {putln (i);putln (p);}
+  func f {putln (i);putln (p);}
 }
 
 c (20).f();
@@ -13614,7 +13614,7 @@ if test $result = ok -a $start_test_number -le 97; then
 	echo test 97
         cat >$test_file <<'TEST97'
 ext c {
-  func f () {putln (i);putln (p);}
+  func f {putln (i);putln (p);}
 }
 
 final class c (p)
@@ -13648,7 +13648,7 @@ class c (p)
 {
   var i;
   i = 10;
-  final func f () {}
+  final func f {}
 }
 
 ext c {
@@ -13876,7 +13876,7 @@ TEST107
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT107' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `time'
+test.d:1:7: run time error - invalid number of actual parameters for `time'
 OUTPUT107
                         result=ok
                 else
@@ -13897,7 +13897,7 @@ TEST108
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT108' && $CMP $stderr $ftemp2; then
-test.d:1:10: run time error - invalid number of parameters of `strtime'
+test.d:1:10: run time error - invalid number of actual parameters for `strtime'
 OUTPUT108
                         result=ok
                 else
@@ -14008,7 +14008,7 @@ TEST113
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT113' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `clock'
+test.d:1:8: run time error - invalid number of actual parameters for `clock'
 OUTPUT113
                         result=ok
                 else
@@ -14394,7 +14394,7 @@ TEST122
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT122' && $CMP $stderr $ftemp2; then
-test.d:1:32: run time error - invalid number of parameters of `sort'
+test.d:1:32: run time error - invalid number of actual parameters for `sort'
 OUTPUT122
                         result=ok
                 else
@@ -14415,7 +14415,7 @@ TEST123
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT123' && $CMP $stderr $ftemp2; then
-test.d:1:32: run time error - invalid number of parameters of `sort'
+test.d:1:32: run time error - invalid number of actual parameters for `sort'
 OUTPUT123
                         result=ok
                 else
@@ -14574,7 +14574,7 @@ TEST130
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT130' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `getpid'
+test.d:1:9: run time error - invalid number of actual parameters for `getpid'
 OUTPUT130
                         result=ok
                 else
@@ -14616,7 +14616,7 @@ TEST132
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT132' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `getun'
+test.d:1:8: run time error - invalid number of actual parameters for `getun'
 OUTPUT132
                         result=ok
                 else
@@ -14637,7 +14637,7 @@ TEST133
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT133' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `geteun'
+test.d:1:9: run time error - invalid number of actual parameters for `geteun'
 OUTPUT133
                         result=ok
                 else
@@ -14658,7 +14658,7 @@ TEST134
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT134' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `getgn'
+test.d:1:8: run time error - invalid number of actual parameters for `getgn'
 OUTPUT134
                         result=ok
                 else
@@ -14679,7 +14679,7 @@ TEST135
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT135' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `getegn'
+test.d:1:9: run time error - invalid number of actual parameters for `getegn'
 OUTPUT135
                         result=ok
                 else
@@ -14727,7 +14727,7 @@ TEST137
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT137' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `ftype'
+test.d:1:8: run time error - invalid number of actual parameters for `ftype'
 OUTPUT137
                         result=ok
                 else
@@ -14748,7 +14748,7 @@ TEST138
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT138' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `ftype'
+test.d:1:8: run time error - invalid number of actual parameters for `ftype'
 OUTPUT138
                         result=ok
                 else
@@ -14810,7 +14810,7 @@ TEST141
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT141' && $CMP $stderr $ftemp2; then
-test.d:1:12: run time error - invalid number of parameters of `getgroups'
+test.d:1:12: run time error - invalid number of actual parameters for `getgroups'
 OUTPUT141
                         result=ok
                 else
@@ -14855,7 +14855,7 @@ TEST143
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT143' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of parameters of `gc'
+test.d:1:5: run time error - invalid number of actual parameters for `gc'
 OUTPUT143
                         result=ok
                 else
@@ -14941,7 +14941,7 @@ TEST147
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT147' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `fatime'
+test.d:1:9: run time error - invalid number of actual parameters for `fatime'
 OUTPUT147
                         result=ok
                 else
@@ -15151,7 +15151,7 @@ TEST155
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT155' && $CMP $stderr $ftemp2; then
-test.d:1:14: run time error - invalid number of parameters of `get'
+test.d:1:14: run time error - invalid number of actual parameters for `get'
 OUTPUT155
                         result=ok
                 else
@@ -15172,7 +15172,7 @@ TEST156
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT156' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of parameters of `fget'
+test.d:1:15: run time error - invalid number of actual parameters for `fget'
 OUTPUT156
                         result=ok
                 else
@@ -15309,7 +15309,7 @@ TEST162
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT162' && $CMP $stderr $ftemp2; then
-test.d:1:16: run time error - invalid number of parameters of `getln'
+test.d:1:16: run time error - invalid number of actual parameters for `getln'
 OUTPUT162
                         result=ok
                 else
@@ -15330,7 +15330,7 @@ TEST163
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT163' && $CMP $stderr $ftemp2; then
-test.d:1:17: run time error - invalid number of parameters of `fgetln'
+test.d:1:17: run time error - invalid number of actual parameters for `fgetln'
 OUTPUT163
                         result=ok
                 else
@@ -15581,7 +15581,7 @@ TEST170
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT170' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `scan'
+test.d:1:7: run time error - invalid number of actual parameters for `scan'
 OUTPUT170
                         result=ok
                 else
@@ -15602,7 +15602,7 @@ TEST171
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT171' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `scanln'
+test.d:1:9: run time error - invalid number of actual parameters for `scanln'
 OUTPUT171
                         result=ok
                 else
@@ -15623,7 +15623,7 @@ TEST172
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT172' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `fscan'
+test.d:1:8: run time error - invalid number of actual parameters for `fscan'
 OUTPUT172
                         result=ok
                 else
@@ -15644,7 +15644,7 @@ TEST173
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT173' && $CMP $stderr $ftemp2; then
-test.d:1:10: run time error - invalid number of parameters of `fscanln'
+test.d:1:10: run time error - invalid number of actual parameters for `fscanln'
 OUTPUT173
                         result=ok
                 else
@@ -16218,11 +16218,11 @@ fi
 if test $result = ok -a $start_test_number -le 189; then
 	echo test 189
         cat >$test_file <<'TEST189'
-thread t1() {
+thread t1 {
   put ("thread 1: ");print (curr_thread); put (" "); println (main_thread);
 }
 
-thread t2() {
+thread t2 {
   put ("thread 2: ");print (curr_thread); put (" "); println (main_thread);
 }
 
@@ -16321,7 +16321,7 @@ TEST192
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT192' && $CMP $stderr $ftemp2; then
-test.d:5:7: run time error - invalid parameter type of `close'
+test.d:5:7: run time error - undefined `f' value access
 OUTPUT192
                         result=ok
                 else
@@ -16342,7 +16342,7 @@ TEST193
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT193' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of parameters of `open'
+test.d:1:15: run time error - invalid number of actual parameters for `open'
 OUTPUT193
                         result=ok
                 else
@@ -16405,7 +16405,7 @@ TEST196
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT196' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `close'
+test.d:1:8: run time error - invalid number of actual parameters for `close'
 OUTPUT196
                         result=ok
                 else
@@ -16447,7 +16447,7 @@ TEST198
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT198' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `flush'
+test.d:1:8: run time error - invalid number of actual parameters for `flush'
 OUTPUT198
                         result=ok
                 else
@@ -16519,7 +16519,7 @@ TEST201
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT201' && $CMP $stderr $ftemp2; then
-test.d:1:16: run time error - invalid number of parameters of `popen'
+test.d:1:16: run time error - invalid number of actual parameters for `popen'
 OUTPUT201
                         result=ok
                 else
@@ -16640,7 +16640,7 @@ TEST206
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT206' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `pclose'
+test.d:1:9: run time error - invalid number of actual parameters for `pclose'
 OUTPUT206
                         result=ok
                 else
@@ -16707,7 +16707,7 @@ TEST209
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT209' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `eltype'
+test.d:1:9: run time error - invalid number of actual parameters for `eltype'
 OUTPUT209
                         result=ok
                 else
@@ -16742,7 +16742,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 211
         cat >$test_file <<'TEST211'
-class c() {
+class c {
 var i = 10;
 }
 var i=c();
@@ -16780,7 +16780,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 212
         cat >$test_file <<'TEST212'
-class c() {
+class c {
 var i = 10;
 }
 var i=c();
@@ -16806,7 +16806,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 213
         cat >$test_file <<'TEST213'
-class c() {
+class c {
 var i = 10;
 }
 var i=c();
@@ -16833,7 +16833,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 214
         cat >$test_file <<'TEST214'
-class c() {
+class c {
 var i = 10;
 }
 var i=c();
@@ -16860,7 +16860,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 215
         cat >$test_file <<'TEST215'
-class c() {
+class c {
 var i = 10;
 }
 var i=c();
@@ -16918,7 +16918,7 @@ TEST217
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT217' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `remove'
+test.d:1:9: run time error - invalid number of actual parameters for `remove'
 OUTPUT217
                         result=ok
                 else
@@ -16988,7 +16988,7 @@ TEST220
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT220' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `rename'
+test.d:1:9: run time error - invalid number of actual parameters for `rename'
 OUTPUT220
                         result=ok
                 else
@@ -17052,7 +17052,7 @@ TEST223
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT223' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `mkdir'
+test.d:1:8: run time error - invalid number of actual parameters for `mkdir'
 OUTPUT223
                         result=ok
                 else
@@ -17117,7 +17117,7 @@ TEST226
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT226' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `rmdir'
+test.d:1:8: run time error - invalid number of actual parameters for `rmdir'
 OUTPUT226
                         result=ok
                 else
@@ -17186,7 +17186,7 @@ TEST229
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT229' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `getcwd'
+test.d:1:9: run time error - invalid number of actual parameters for `getcwd'
 OUTPUT229
                         result=ok
                 else
@@ -17236,7 +17236,7 @@ TEST231
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT231' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `chdir'
+test.d:1:8: run time error - invalid number of actual parameters for `chdir'
 OUTPUT231
                         result=ok
                 else
@@ -17361,7 +17361,7 @@ TEST237
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT237' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `isatty'
+test.d:1:9: run time error - invalid number of actual parameters for `isatty'
 OUTPUT237
                         result=ok
                 else
@@ -17443,7 +17443,7 @@ TEST240
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT240' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `chumod'
+test.d:1:9: run time error - invalid number of actual parameters for `chumod'
 OUTPUT240
                         result=ok
                 else
@@ -17554,7 +17554,7 @@ TEST244
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT244' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `chgmod'
+test.d:1:9: run time error - invalid number of actual parameters for `chgmod'
 OUTPUT244
                         result=ok
                 else
@@ -17665,7 +17665,7 @@ TEST248
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT248' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `chomod'
+test.d:1:9: run time error - invalid number of actual parameters for `chomod'
 OUTPUT248
                         result=ok
                 else
@@ -17815,7 +17815,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 254
         cat >$test_file <<'TEST254'
-func f() {}
+func f {}
 *("f") = 10;
 TEST254
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -17838,7 +17838,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 255
         cat >$test_file <<'TEST255'
-class c() {}
+class c {}
 *("c") = 10;
 TEST255
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -17863,7 +17863,7 @@ if false; then
         cat >$test_file <<'TEST256'
 class c()
 {
-    func f () {}
+    func f {}
 }
 var i = c();
 ("i")->f = 10;
@@ -17890,7 +17890,7 @@ if false; then
         cat >$test_file <<'TEST257'
 class c()
 {
-    class c () {}
+    class c {}
 }
 var i = c();
 ("i")->c = 10;
@@ -18302,7 +18302,7 @@ fi
 if test $result = ok -a $start_test_number -le 261; then
 	echo test 261
         cat >$test_file <<'TEST261'
-class c () {
+class c {
   var i;
   private i;
   i = 0;
@@ -18334,7 +18334,7 @@ if test $result = ok -a $start_test_number -le 262; then
 var ci;
 {
   var i;
-  class c () {
+  class c {
   }
   ci = c ();
   i = 0;
@@ -18461,7 +18461,7 @@ TEST267
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT267' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `atan2'
+test.d:1:8: run time error - invalid number of actual parameters for `atan2'
 OUTPUT267
                         result=ok
                 else
@@ -18503,7 +18503,7 @@ TEST269
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT269' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `atan2'
+test.d:1:8: run time error - invalid number of actual parameters for `atan2'
 OUTPUT269
                         result=ok
                 else
@@ -18524,7 +18524,7 @@ TEST270
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT270' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `atan2'
+test.d:1:8: run time error - invalid number of actual parameters for `atan2'
 OUTPUT270
                         result=ok
                 else
@@ -18564,7 +18564,7 @@ fi
 if test $result = ok -a $start_test_number -le 272; then
 	echo test 272
         cat >$test_file <<'TEST272'
-class c () {
+class c {
   {
     return 10;
   }
@@ -18601,7 +18601,7 @@ TEST273
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT273' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `cos'
+test.d:1:6: run time error - invalid number of actual parameters for `cos'
 OUTPUT273
                         result=ok
                 else
@@ -18643,7 +18643,7 @@ TEST275
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT275' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `del'
+test.d:1:6: run time error - invalid number of actual parameters for `del'
 OUTPUT275
                         result=ok
                 else
@@ -18708,7 +18708,7 @@ TEST278
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT278' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `del'
+test.d:1:6: run time error - invalid number of actual parameters for `del'
 OUTPUT278
                         result=ok
                 else
@@ -18750,7 +18750,7 @@ TEST280
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT280' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `del'
+test.d:1:6: run time error - invalid number of actual parameters for `del'
 OUTPUT280
                         result=ok
                 else
@@ -18772,7 +18772,7 @@ TEST281
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT281' && $CMP $stderr $ftemp2; then
-test.d:2:15: run time error - invalid number of parameters of `del'
+test.d:2:15: run time error - invalid number of actual parameters for `del'
 OUTPUT281
                         result=ok
                 else
@@ -18880,7 +18880,7 @@ TEST286
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT286' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `ins'
+test.d:1:6: run time error - invalid number of actual parameters for `ins'
 OUTPUT286
                         result=ok
                 else
@@ -18923,7 +18923,7 @@ TEST288
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT288' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `ins'
+test.d:1:6: run time error - invalid number of actual parameters for `ins'
 OUTPUT288
                         result=ok
                 else
@@ -18965,7 +18965,7 @@ TEST290
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT290' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `ins'
+test.d:1:6: run time error - invalid number of actual parameters for `ins'
 OUTPUT290
                         result=ok
                 else
@@ -19008,7 +19008,7 @@ TEST292
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT292' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `insv'
+test.d:1:7: run time error - invalid number of actual parameters for `insv'
 OUTPUT292
                         result=ok
                 else
@@ -19051,7 +19051,7 @@ TEST294
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT294' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `insv'
+test.d:1:7: run time error - invalid number of actual parameters for `insv'
 OUTPUT294
                         result=ok
                 else
@@ -19093,7 +19093,7 @@ TEST296
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT296' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `insv'
+test.d:1:7: run time error - invalid number of actual parameters for `insv'
 OUTPUT296
                         result=ok
                 else
@@ -19151,7 +19151,7 @@ if test $result = ok -a $start_test_number -le 299; then
 	echo test 299
         cat >$test_file <<'TEST299'
 func f () {}
-class c () {
+class c {
   ext f {}
 }
 TEST299
@@ -19182,7 +19182,7 @@ TEST300
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT300' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `fput'
+test.d:1:7: run time error - invalid number of actual parameters for `fput'
 OUTPUT300
                         result=ok
                 else
@@ -19293,7 +19293,7 @@ TEST305
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT305' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `inside'
+test.d:1:9: run time error - invalid number of actual parameters for `inside'
 OUTPUT305
                         result=ok
                 else
@@ -19306,7 +19306,7 @@ fi
 if test $result = ok -a $start_test_number -le 306; then
 	echo test 306
         cat >$test_file <<'TEST306'
-class c () {}
+class c {}
 inside ("", c);
 TEST306
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -19328,7 +19328,7 @@ fi
 if test $result = ok -a $start_test_number -le 307; then
 	echo test 307
         cat >$test_file <<'TEST307'
-class c () {}
+class c {}
 inside (c,"");
 TEST307
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -19358,7 +19358,7 @@ TEST308
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT308' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `match'
+test.d:1:8: run time error - invalid number of actual parameters for `match'
 OUTPUT308
                         result=ok
                 else
@@ -19541,7 +19541,7 @@ TEST316
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT316' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `rand'
+test.d:1:7: run time error - invalid number of actual parameters for `rand'
 OUTPUT316
                         result=ok
                 else
@@ -19562,7 +19562,7 @@ TEST317
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT317' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `rand'
+test.d:1:7: run time error - invalid number of actual parameters for `rand'
 OUTPUT317
                         result=ok
                 else
@@ -19583,7 +19583,7 @@ TEST318
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT318' && $CMP $stderr $ftemp2; then
-test.d:1:10: run time error - invalid number of parameters of `readdir'
+test.d:1:10: run time error - invalid number of actual parameters for `readdir'
 OUTPUT318
                         result=ok
                 else
@@ -19604,7 +19604,7 @@ TEST319
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT319' && $CMP $stderr $ftemp2; then
-test.d:1:10: run time error - invalid number of parameters of `readdir'
+test.d:1:10: run time error - invalid number of actual parameters for `readdir'
 OUTPUT319
                         result=ok
                 else
@@ -19638,8 +19638,8 @@ fi
 if test $result = ok -a $start_test_number -le 321; then
 	echo test 321
         cat >$test_file <<'TEST321'
-func f () {putln ("aa";return 1;}
-func g () {putln ("aa";return 1;}
+func f {putln ("aa";return 1;}
+func g {putln ("aa";return 1;}
 TEST321
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19647,8 +19647,8 @@ TEST321
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT321' && $CMP $stderr $ftemp2; then
-test.d:1:23: syntax error
-test.d:2:22: syntax error
+test.d:1:20: syntax error
+test.d:2:19: syntax error
 OUTPUT321
                         result=ok
                 else
@@ -19661,7 +19661,7 @@ fi
 if test $result = ok -a $start_test_number -le 322; then
 	echo test 322
         cat >$test_file <<'TEST322'
-func f () {}
+func f {}
 f = 1;
 TEST322
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -19683,7 +19683,7 @@ fi
 if test $result = ok -a $start_test_number -le 323; then
 	echo test 323
         cat >$test_file <<'TEST323'
-func f () {}
+func f {}
 var t;
 t = {};
 for (f in t);
@@ -19707,8 +19707,8 @@ fi
 if test $result = ok -a $start_test_number -le 324; then
 	echo test 324
         cat >$test_file <<'TEST324'
-class c() {
-  func f () {}
+class c {
+  func f {}
 }
 var o;
 o = c();
@@ -19733,8 +19733,8 @@ fi
 if test $result = ok -a $start_test_number -le 325; then
 	echo test 325
         cat >$test_file <<'TEST325'
-class c() {
-  func f () {}
+class c {
+  func f {}
 }
 var o, t;
 o = c();
@@ -19760,8 +19760,8 @@ fi
 if test $result = ok -a $start_test_number -le 326; then
 	echo test 326
         cat >$test_file <<'TEST326'
-class c() {
-  class f () {}
+class c {
+  class f {}
 }
 var o;
 o = c();
@@ -19786,8 +19786,8 @@ fi
 if test $result = ok -a $start_test_number -le 327; then
 	echo test 327
         cat >$test_file <<'TEST327'
-class c() {
-  class f () {}
+class c {
+  class f {}
 }
 var o, t;
 o = c();
@@ -19821,7 +19821,7 @@ TEST328
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT328' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `sin'
+test.d:1:6: run time error - invalid number of actual parameters for `sin'
 OUTPUT328
                         result=ok
                 else
@@ -19863,7 +19863,7 @@ TEST330
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT330' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `split'
+test.d:1:8: run time error - invalid number of actual parameters for `split'
 OUTPUT330
                         result=ok
                 else
@@ -19884,7 +19884,7 @@ TEST331
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT331' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `split'
+test.d:1:8: run time error - invalid number of actual parameters for `split'
 OUTPUT331
                         result=ok
                 else
@@ -19947,7 +19947,7 @@ TEST334
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT334' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of parameters of `srand'
+test.d:1:8: run time error - invalid number of actual parameters for `srand'
 OUTPUT334
                         result=ok
                 else
@@ -19989,7 +19989,7 @@ TEST336
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT336' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `sub'
+test.d:1:6: run time error - invalid number of actual parameters for `sub'
 OUTPUT336
                         result=ok
                 else
@@ -20010,7 +20010,7 @@ TEST337
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT337' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `sub'
+test.d:1:6: run time error - invalid number of actual parameters for `sub'
 OUTPUT337
                         result=ok
                 else
@@ -20094,7 +20094,7 @@ TEST341
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT341' && $CMP $stderr $ftemp2; then
-test.d:1:16: run time error - invalid number of parameters of `system'
+test.d:1:16: run time error - invalid number of actual parameters for `system'
 OUTPUT341
                         result=ok
                 else
@@ -20199,7 +20199,7 @@ fi
 if test $result = ok -a $start_test_number -le 346; then
 	echo test 346
         cat >$test_file <<'TEST346'
-thread f () {
+thread f {
   return 10;
 }
 
@@ -20226,7 +20226,7 @@ fi
 if test $result = ok -a $start_test_number -le 347; then
 	echo test 347
         cat >$test_file <<'TEST347'
-thread f () {
+thread f {
   {
     return 10;
   }
@@ -20276,7 +20276,7 @@ fi
 if test $result = ok -a $start_test_number -le 349; then
 	echo test 349
         cat >$test_file <<'TEST349'
-thread t () { wait (0);}
+thread t { wait (0);}
 var p;
 p = t ();
 wait (0);
@@ -20287,7 +20287,7 @@ TEST349
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT349' && $CMP $stderr $ftemp2; then
-test.d:1:21: run time error - process deadlock
+test.d:1:18: run time error - process deadlock
 OUTPUT349
                         result=ok
                 else
@@ -20300,7 +20300,7 @@ fi
 if test $result = ok -a $start_test_number -le 350; then
 	echo test 350
         cat >$test_file <<'TEST350'
-thread t () { wait (0);}
+thread t { wait (0);}
 var p;
 p = t ();
 TEST350
@@ -20310,7 +20310,7 @@ TEST350
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT350' && $CMP $stderr $ftemp2; then
-test.d:1:21: run time error - process deadlock
+test.d:1:18: run time error - process deadlock
 OUTPUT350
                         result=ok
                 else
@@ -20442,14 +20442,14 @@ func waitfor (n, t){
     }
 }
 
-thread output() {
+thread output {
   waitfor ("output", 2.0);
   putln ("output 1");
   waitfor ("output", 4.0);
   putln ("output 2");
 }
 
-thread move () {
+thread move {
    waitfor ("move", 1.0);
    putln ("move 1");
    waitfor ("move", 3.0);
@@ -20519,7 +20519,7 @@ class back_leg(side){
   var angle;
   angle = 1.0;
 
-  func step () {
+  func step {
     var start;
     putln ("step ", ctime);
     start = ctime;
@@ -21040,7 +21040,7 @@ fi
 if test $result = ok -a $start_test_number -le 363; then
 	echo test 363
         cat >$test_file <<'TEST363'
-func f () {}
+func f {}
 var v = table (f);
 TEST363
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -21083,7 +21083,7 @@ fi
 if test $result = ok -a $start_test_number -le 365; then
 	echo test 365
         cat >$test_file <<'TEST365'
-func f () {}
+func f {}
 var v = vector (f);
 TEST365
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -21180,7 +21180,7 @@ TEST369
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT369' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of parameters of `keys'
+test.d:1:15: run time error - invalid number of actual parameters for `keys'
 OUTPUT369
                         result=ok
                 else
@@ -21236,7 +21236,7 @@ TEST371
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT371' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `cmpv'
+test.d:1:7: run time error - invalid number of actual parameters for `cmpv'
 OUTPUT371
                         result=ok
                 else
@@ -21313,7 +21313,7 @@ TEST374
         if $DINO $test_file 2>$stderr >$stdout <<'INPUT374' ; then
 
 var i, prime, k, count, iter, flags;
-var final SieveSize = 8190;
+val SieveSize = 8190;
 
 flags = [SieveSize + 1 : 0];
 for (iter = 0; iter < 10; iter++;)
@@ -21348,7 +21348,6 @@ INPUT374
 SieveSize : 5
 break : 1
 count : 4
-final : 1
 flags : 5
 for : 4
 i : 12
@@ -21357,7 +21356,8 @@ iter : 4
 k : 5
 prime : 4
 putln : 1
-var : 2
+val : 1
+var : 1
 OUTPUT374
                         result=ok
                 else
@@ -21439,7 +21439,7 @@ TEST376
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT376' && $CMP $stderr $ftemp2; then
-test.d:1:10: run time error - invalid number of parameters of `tolower'
+test.d:1:10: run time error - invalid number of actual parameters for `tolower'
 OUTPUT376
                         result=ok
                 else
@@ -21481,7 +21481,7 @@ TEST378
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT378' && $CMP $stderr $ftemp2; then
-test.d:1:10: run time error - invalid number of parameters of `tolower'
+test.d:1:10: run time error - invalid number of actual parameters for `tolower'
 OUTPUT378
                         result=ok
                 else
@@ -21614,7 +21614,7 @@ TEST382
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT382' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `subv'
+test.d:1:7: run time error - invalid number of actual parameters for `subv'
 OUTPUT382
                         result=ok
                 else
@@ -21635,7 +21635,7 @@ TEST383
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT383' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `subv'
+test.d:1:7: run time error - invalid number of actual parameters for `subv'
 OUTPUT383
                         result=ok
                 else
@@ -21677,7 +21677,7 @@ TEST385
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT385' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `subv'
+test.d:1:7: run time error - invalid number of actual parameters for `subv'
 OUTPUT385
                         result=ok
                 else
@@ -21806,7 +21806,7 @@ TEST391
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT391' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `exit'
+test.d:1:7: run time error - invalid number of actual parameters for `exit'
 OUTPUT391
                         result=ok
                 else
@@ -21827,7 +21827,7 @@ TEST392
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT392' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of parameters of `exit'
+test.d:1:7: run time error - invalid number of actual parameters for `exit'
 OUTPUT392
                         result=ok
                 else
@@ -21902,7 +21902,7 @@ TEST395
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT395' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `max'
+test.d:1:6: run time error - invalid number of actual parameters for `max'
 OUTPUT395
                         result=ok
                 else
@@ -21923,7 +21923,7 @@ TEST396
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT396' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `min'
+test.d:1:6: run time error - invalid number of actual parameters for `min'
 OUTPUT396
                         result=ok
                 else
@@ -21944,7 +21944,7 @@ TEST397
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT397' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `max'
+test.d:1:6: run time error - invalid number of actual parameters for `max'
 OUTPUT397
                         result=ok
                 else
@@ -21965,7 +21965,7 @@ TEST398
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT398' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of parameters of `min'
+test.d:1:6: run time error - invalid number of actual parameters for `min'
 OUTPUT398
                         result=ok
                 else
@@ -22158,7 +22158,7 @@ TEST406
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT406' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `inside'
+test.d:1:9: run time error - invalid number of actual parameters for `inside'
 OUTPUT406
                         result=ok
                 else
@@ -22179,7 +22179,7 @@ TEST407
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT407' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of parameters of `inside'
+test.d:1:9: run time error - invalid number of actual parameters for `inside'
 OUTPUT407
                         result=ok
                 else
@@ -22192,7 +22192,7 @@ fi
 if test $result = ok -a $start_test_number -le 408; then
 	echo test 408
         cat >$test_file <<'TEST408'
-class c() {}
+class c {}
 inside (c, c, nil);
 TEST408
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -22214,7 +22214,7 @@ fi
 if test $result = ok -a $start_test_number -le 409; then
 	echo test 409
         cat >$test_file <<'TEST409'
-class c() {}
+class c {}
 inside (c, c());
 TEST409
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -25227,7 +25227,7 @@ fi
 if test $result = ok -a $start_test_number -le 450; then
 	echo test 450: More parameter exception.
         cat >$test_file <<'TEST450'
-class c1 () {friend g; var a; private a;}
+class c1 {friend g; var a; private a;}
 TEST450
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -25235,7 +25235,7 @@ TEST450
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT450' && $CMP $stderr $ftemp2; then
-test.d:1:21: there is no declaration for identifier `g' in access list
+test.d:1:18: there is no declaration for identifier `g' in access list
 OUTPUT450
                         result=ok
                 else
@@ -25248,7 +25248,7 @@ fi
 if test $result = ok -a $start_test_number -le 451; then
 	echo test 451: More parameter exception.
         cat >$test_file <<'TEST451'
-class c1 () {friend g; var a; private a;}
+class c1 {friend g; var a; private a;}
 var g;
 TEST451
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -25257,7 +25257,7 @@ TEST451
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT451' && $CMP $stderr $ftemp2; then
-test.d:1:21: friend identifier `g' is neither function nor class
+test.d:1:18: friend identifier `g' is neither function nor class
 OUTPUT451
                         result=ok
                 else
@@ -25270,9 +25270,9 @@ fi
 if test $result = ok -a $start_test_number -le 452; then
 	echo test 452
         cat >$test_file <<'TEST452'
-class c1 () {friend c2; var a = 10; private a;}
+class c1 {friend c2; var a = 10; private a;}
 var i1 = c1 ();
-class c2 () {var a; a = i1.a;}
+class c2 {var a; a = i1.a;}
 var i2 = c2 ();
 putln (i2.a);
 TEST452
@@ -26635,7 +26635,7 @@ TEST458
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST458-1'; then
-test.d:1:9: run time error - invalid number of parameters of `gmatch'
+test.d:1:9: run time error - invalid number of actual parameters for `gmatch'
 TEST458-1
                 result=ok
         else
@@ -26819,7 +26819,7 @@ TEST467
         else
                 echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT467' && $CMP $stderr $ftemp2; then
-test.d:1:16: run time error - invalid number of parameters of `fgetf'
+test.d:1:16: run time error - invalid number of actual parameters for `fgetf'
 OUTPUT467
                         result=ok
                 else
@@ -27204,13 +27204,13 @@ if test $result = ok -a $start_test_number -le 485; then
 	echo test 485
         cat >$test_file <<'TEST485'
 var objs_number = 0;
-class obj () {
+class obj {
   private n, destroy;
   var n = objs_number;
   objs_number++;
   putln ("creating ", n);
   private destroy;
-  func destroy () {objs_number--; putln ("destroying ", n);}
+  func destroy {objs_number--; putln ("destroying ", n);}
 }
 
 var i;
@@ -27285,14 +27285,14 @@ put (sprint ('c'));put (" ");
 put (sprintln ("ssss"));
 put (sprintln (["aaa", "bbb", "ccc"]));
 put (sprintln (["v1", {"key":"val", {"key1":"val1"}}]));
-func f () {}
+func f {}
 put (sprintln (f));
-class c () {}
+class c {}
 put (sprintln (c));
 put (sprintln (c ()));
 var stop;
 stop = 0;
-thread t () {wait (stop);}
+thread t {wait (stop);}
 put (sprintln (t()));
 wait (1) stop = 1;
 TEST486
@@ -27802,7 +27802,7 @@ if test $result = ok -a $start_test_number -le 498; then
 	echo test 498: Contexts and internal caches.
         cat >$test_file <<'TEST498'
 class a (i, n) {
-  func ex () {
+  func ex {
     putln ("before = ", i);
     if (n != nil) n.ex ();
     putln ("after = ", i);
@@ -27953,9 +27953,9 @@ fi
 if test $result = ok -a $start_test_number -le 502; then
 	echo test 502: Final destroying by implicit program finish.
         cat >$test_file <<'TEST502'
-class c () {
+class c {
   putln ("creating instance");
-  func destroy () {putln ("destroying instance");}
+  func destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -27980,9 +27980,9 @@ fi
 if test $result = ok -a $start_test_number -le 503; then
 	echo test 503: Final destroying by zero exit.
         cat >$test_file <<'TEST503'
-class c () {
+class c {
   putln ("creating instance");
-  func destroy () {putln ("destroying instance");}
+  func destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -28008,9 +28008,9 @@ fi
 if test $result = ok -a $start_test_number -le 504; then
 	echo test 504: Final destroying by nonzero exit.
         cat >$test_file <<'TEST504'
-class c () {
+class c {
   putln ("creating instance");
-  func destroy () {putln ("destroying instance");}
+  func destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -28036,9 +28036,9 @@ fi
 if test $result = ok -a $start_test_number -le 505; then
 	echo test 505: Final destroying by throw.
         cat >$test_file <<'TEST505'
-class c () {
+class c {
   putln ("creating instance");
-  func destroy () {putln ("destroying instance");}
+  func destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -28093,7 +28093,7 @@ func parse_program_anode (program_anode, local_dumpfl = 1) {
   }
   if (dumpfl) putln ("& Entering translation phase.");
   intermediate_view =
-  parse_instruction_anode (program_anode.transl[0], dumpfl);
+  parse_instruction_anode (program_anode.transl[0]);
   // If we parsed a block, we return it as the object program so as to
   // have a bit of efficiency.
   if (intermediate_view. name == "block")
@@ -28661,7 +28661,7 @@ func check_block (block) {
    easier to put in separate functions. */
 // When an anode that is not supposed to turn up turns up, we finish
 // with a diagnostic message.
-func bad_anode () {
+func bad_anode {
   fatal_error ("Grammar 'grip.g' corrupted or internal error.");
 }
 // For flattening recursive lists. This is so easily encoded in functional
@@ -29018,7 +29018,7 @@ class expression (){
 ** a vector of instructions, and vartable, a table of component cells.       **
 ** This class also contains a virtual machine capable of executing the code. **
 ******************************************************************************/
-class prog () {
+class prog {
   var exec = []; // The executable code.
   var vartable = new {};
   // The environment, statically derived during translation.
@@ -29126,7 +29126,7 @@ class prog () {
     ** do, and executes the corresponding procedure       **
     ** needed to do the job.                              **
     *******************************************************/
-    func execinstr (currinstr, dumpfl, edumpfl) {
+    func execinstr (currinstr, dumpfl, edumpfl = 0) {
       // Dumping for instructions :
       if (dumpfl) { putln ("@ Executing of instruction #",
                            instr + 1, ", value:");
@@ -29216,7 +29216,7 @@ TEST506d
 ext token { // For encoding of identifiers, etc.
   var value, type0, line_num, char_num;
 }
-class grip_parser () {
+class grip_parser {
   // The grip_parser class, using the Earley parser.
   var grammar, source_code; // Grammar is the Earley Parser code.
   include "scanner"; // Lexical analysis.
@@ -29636,7 +29636,7 @@ func add_seq (str) {
   }
 }
 
-func build_start_seqs () {
+func build_start_seqs {
   var i, j;
 
   for (i = 0; i < #ts; i++) {
@@ -31733,7 +31733,7 @@ TEST528
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST528-1'; then
-test.d:1:8: run time error - invalid number of parameters of `sputf'
+test.d:1:8: run time error - invalid number of actual parameters for `sputf'
 TEST528-1
                 result=ok
         else
@@ -31751,7 +31751,7 @@ TEST529
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST529-1'; then
-test.d:1:8: run time error - invalid number of parameters of `sputf'
+test.d:1:8: run time error - invalid number of actual parameters for `sputf'
 TEST529-1
                 result=ok
         else
@@ -31769,7 +31769,7 @@ TEST530
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST530-1'; then
-test.d:1:8: run time error - invalid number of parameters of `sputf'
+test.d:1:8: run time error - invalid number of actual parameters for `sputf'
 TEST530-1
                 result=ok
         else
@@ -31787,7 +31787,7 @@ TEST531
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST531-1'; then
-test.d:1:8: run time error - invalid number of parameters of `sputf'
+test.d:1:8: run time error - invalid number of actual parameters for `sputf'
 TEST531-1
                 result=ok
         else
@@ -31967,7 +31967,7 @@ TEST541
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST541-1'; then
-test.d:1:8: run time error - invalid number of parameters of `sputf'
+test.d:1:8: run time error - invalid number of actual parameters for `sputf'
 TEST541-1
                 result=ok
         else
@@ -31985,7 +31985,7 @@ TEST542
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST542-1'; then
-test.d:1:8: run time error - invalid number of parameters of `fputf'
+test.d:1:8: run time error - invalid number of actual parameters for `fputf'
 TEST542-1
                 result=ok
         else
@@ -32285,13 +32285,13 @@ fi
 if test $result = ok -a $start_test_number -le 555; then
 	echo test 555: Chameneos from Language Shootout
         cat >$test_file <<'TEST555'
-var final blue = 0, final red = 1, final yellow = 2, final faded = 3;
+val blue = 0, red = 1, yellow = 2, faded = 3;
 var colors = [blue, red, yellow, blue], N = int (#argv < 1 ? 10 : argv [0]);
 var first = nil, second = nil;
 
 // Create a very social creature.
 class creature (my_color, creatures_met = 0) {
-  thread be () {
+  thread be {
     for (;my_color != faded;) {
       var other;
 
@@ -32352,7 +32352,7 @@ var N = int (#argv < 1 ? 10 : argv [0]);
 var cont_p = 1, i, t, first = nil, last = nil, count = 0;
 
 class thread_node (next = nil, n = -1) {
-  thread start () {
+  thread start {
     for (; cont_p;) {
       wait (n >= 0 || ! cont_p);
       if (next != nil) {next.n = n + 1; n = -1;}
@@ -32395,7 +32395,7 @@ var N = int (#argv < 1 ? 10 : argv [0]);
 var cont_p = 1, i, t, first = nil, last = nil, count = 0;
 
 class thread_node (next = nil, n = -1) {
-  thread start () {
+  thread start {
     for (; cont_p;) {
       wait (n >= 0 || ! cont_p);
       if (next != nil) {next.n = n + 1; n = -1;}
@@ -32856,7 +32856,7 @@ func frequency (seq, k) {
   putln ();
 }
 
-func readseq () {
+func readseq {
   var c, line, lines = [];
 
   try {
@@ -33318,7 +33318,7 @@ include "gmp";
 
 var k = 0, z = [mpzs.mpz (1), mpzs.mpz (0), mpzs.mpz (0), mpzs.mpz (1)];
 
-func next_digit () {
+func next_digit {
   var y;
 
   for (;;) {
@@ -33332,7 +33332,7 @@ func next_digit () {
   }
 }
 
-func next_lft () {
+func next_lft {
   k++;
   return [mpzs.mpz (k), mpzs.mpz (4 * k + 2),
 	  mpzs.mpz (0), mpzs.mpz (2 * k + 1)];
@@ -34449,7 +34449,7 @@ fi
 if test $result = ok -a $start_test_number -le 573; then
 	echo test 573: Health from Language Shootout.
         cat >$test_file <<'TEST573'
-class queue () {
+class queue {
   class node (item, next) {}
   var first = nil, last = nil;
 
@@ -34469,18 +34469,18 @@ class queue () {
     if (last === c) last = p;
   }
 
-  func Clear() { first = nil; last = nil; }
+  func Clear { first = nil; last = nil; }
 }
 
 class Patient (remainingTime = 0, hospitalTime = 0, hospitalVisits = 0) {}
 
-var final LEVELS = 5, final DISTRICTS = 4;
+val LEVELS = 5, DISTRICTS = 4;
 
 class HealthcareRegion (level, s) {
   var districts = [DISTRICTS : nil];
   var localHospital = Hospital (level == LEVELS, level, s);
 
-  func TransferPatients () {
+  func TransferPatients {
     var i, n;
     
     for (i = #districts - 1; i >= 0; i--)
@@ -34492,7 +34492,7 @@ class HealthcareRegion (level, s) {
     return localHospital.transfers;
   }
 
-  func AccumulateTotals () {
+  func AccumulateTotals {
     var i, t = Totals ();
 
     for (i = #districts - 1; i >= 0; i--)
@@ -34503,7 +34503,7 @@ class HealthcareRegion (level, s) {
     return t;
   }
 
-  func TreatmentQueue () { return localHospital.treatment; }
+  func TreatmentQueue { return localHospital.treatment; }
 }
 
 func CreateRegion (level, seed1, seed2) {
@@ -34523,7 +34523,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
   var treatment = queue (), transfers = queue ();
   var discharged = Totals ();
 
-  func TriageExaminationTreatment () {
+  func TriageExaminationTreatment {
     DischargePatients ();
     TreatOrTransferPatients ();
     TriagePatients ();
@@ -34551,7 +34551,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     }
   }
   
-  func DischargePatients () {
+  func DischargePatients {
     var n, p;
     
     for (n = treatment.first; n != nil; n = n.next) {
@@ -34564,7 +34564,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     }
   }
 
-  func TreatOrTransferPatients () {
+  func TreatOrTransferPatients {
     var p, n;
 
     transfers.Clear ();
@@ -34584,7 +34584,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     }
   }
 
-  func TriagePatients () {
+  func TriagePatients {
     var p, n;
 
     for (n = triage.first; n != nil; n = n.next) {
@@ -34600,7 +34600,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     }
   }
 
-  var final IM = 139968, final IA = 3877, final IC = 29573;
+  val IM = 139968, IA = 3877, IC = 29573;
 
   func genRandom (max) {
     seed = (seed * IA + IC) % IM;
@@ -34608,7 +34608,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
   }
 }
 
-class Totals () {
+class Totals {
   var patients = 0, hospitalTime = 0, hospitalVisits = 0;
 
   func PlusTotal (t) {
@@ -34668,7 +34668,7 @@ if test $result = ok -a $start_test_number -le 574; then
 	echo test 574: Sync-statement
         cat >$test_file <<'TEST574'
 var f = 1;
-thread t () {
+thread t {
   wait (1) {
     var i;
 
@@ -34713,7 +34713,7 @@ if test $result = ok -a $start_test_number -le 575; then
         cat >$test_file <<'TEST575'
 var flag = 0;
 
-thread f () {
+thread f {
   wait (1) {
     wait (flag);
     flag = 0;
@@ -34746,7 +34746,7 @@ if test $result = ok -a $start_test_number -le 576; then
         cat >$test_file <<'TEST576'
 var flag = 0;
 
-thread f () {
+thread f {
   try {
     wait (1) wait (flag);
   } catch (errors.syncwait) {
@@ -34782,7 +34782,7 @@ if test $result = ok -a $start_test_number -le 577; then
         cat >$test_file <<'TEST577'
 var flag = 0;
 
-thread f () {
+thread f {
 }
 
 wait (1) f ();
@@ -34809,7 +34809,7 @@ if test $result = ok -a $start_test_number -le 578; then
         cat >$test_file <<'TEST578'
 var flag = 0;
 
-thread f () {
+thread f {
 }
 
 try {
@@ -34960,16 +34960,16 @@ fi
 if test $result = ok -a $start_test_number -le 580; then
 	echo test 580: exit tracing
         cat >$test_file <<'TEST580'
-func a () {
+func a {
   exit (0);
 }
-func b () {
+func b {
   a ();
 }
 func c (i) {
   if (i == 0) b (); else c (i - 1);
 }
-class d () {
+class d {
   c (5);
 }
 d ();
@@ -34978,7 +34978,8 @@ TEST580
         if $DINO -t $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT580' && $CMP $stderr $ftemp2; then
-test.d:13:4:calling a
+test.d:11:6:calling a
+test.d:13:4:calling d
 OUTPUT580
                         result=ok
                 else
@@ -34993,16 +34994,16 @@ fi
 if test $result = ok -a $start_test_number -le 581; then
 	echo test 581: exception tracing
         cat >$test_file <<'TEST581'
-func a () {
+func a {
   throw except ();
 }
-func b () {
+func b {
   a ();
 }
 func c (i) {
   if (i == 0) b (); else c (i - 1);
 }
-class d () {
+class d {
   c (5);
 }
 d ();
@@ -35014,7 +35015,8 @@ TEST581
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT581' && $CMP $stderr $ftemp2; then
 test.d:2:7: run time error - exception except has not been processed
-test.d:13:4:calling a
+test.d:11:6:calling a
+test.d:13:4:calling d
 OUTPUT581
                         result=ok
                 else
@@ -35027,17 +35029,17 @@ fi
 if test $result = ok -a $start_test_number -le 582; then
 	echo test 582: catched exception tracing
         cat >$test_file <<'TEST582'
-func a () {
+func a {
   var i = 0;
   i[10]=0;
 }
-func b () {
+func b {
   a ();
 }
 func c (i) {
   if (i == 0) b (); else c (i - 1);
 }
-class d () {
+class d {
   c (5);
 }
 var i;
@@ -35125,36 +35127,36 @@ TEST584
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT584' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=34, tvars=2
-      82 ldi(line=2): 28 <- (8190)
-      83 addi(line=4): 34 <- 28 (1)
-      84 ldi: 35 <- (0)
-      85 vec: 33 <- (els=34, parts=1)
-      86 ldi(line=5): 32 <- (0)
-      87 ldi(line=6): 29 <- (0)
-      89 btle: 29 28 (temp_res=34) (true=91, false=90)
-        91 ldi(line=7): 34 <- (1)
-        92 st: 33(29) <- 34
-        94 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=91, false=90)
-      90 ldi(line=8): 29 <- (0)
-      96 btle: 29 28 (temp_res=34) (true=98, false=97)
-        98 ind(line=9): 34 <- 33[29]
-        99 bf: 34 (true=102, false=100)
-         100 add(line=11): 34 <- 29 29
-         105 addi: 30 <- 34 (3)
-         106 add(line=12): 31 <- 29 30
-         107 ldi(line=13): 34 <- (1)
-         108 bt: 34 (true=111, false=109)
-           111 btle(line=15): 31 28 (temp_res=34) (true=113, false=112)
-             112 out(line=16): of 0 blocks
-           113 ldi(line=17): 34 <- (0)
-           114 st: 33(31) <- 34
-           115 add(line=18): 31 <- 31 30
-               goto 107
-         109 addi(line=20): 32 <- 32 (1)
-       102 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=98, false=97)
-      97 move(line=23): 34 <- 32 (count)
-     103 tipcall println: start=34 npars=1
+     1 block(line=1): vars=33, tvars=3
+      60 ldi(line=2): 27 <- (8190)
+      61 addi(line=4): 33 <- 27 (1)
+      62 ldi: 34 <- (0)
+      63 vec: 32 <- (els=33, parts=1)
+      64 ldi(line=5): 31 <- (0)
+      65 ldi(line=6): 28 <- (0)
+      67 btle: 28 27 (temp_res=33) (true=69, false=68)
+        69 ldi(line=7): 33 <- (1)
+        70 st: 32(28) <- 33
+        72 btleinc(line=6): 28+(1) 27 (temp_res=33) (true=69, false=68)
+      68 ldi(line=8): 28 <- (0)
+      74 btle: 28 27 (temp_res=33) (true=76, false=75)
+        76 ind(line=9): 33 <- 32[28]
+        77 bf: 33 (true=80, false=78)
+          78 add(line=11): 33 <- 28 28
+          83 addi: 29 <- 33 (3)
+          84 add(line=12): 30 <- 28 29
+          85 ldi(line=13): 33 <- (1)
+          86 bt: 33 (true=89, false=87)
+            89 btle(line=15): 30 27 (temp_res=33) (true=91, false=90)
+              90 out(line=16): of 0 blocks
+            91 ldi(line=17): 33 <- (0)
+            92 st: 32(30) <- 33
+            93 add(line=18): 30 <- 30 29
+               goto 85
+          87 addi(line=20): 31 <- 31 (1)
+        80 btleinc(line=8): 28+(1) 27 (temp_res=33) (true=76, false=75)
+      75 move(line=23): 33 <- 31 (count)
+      81 tipcall println: start=33 npars=1
 OUTPUT584
                         result=ok
                 else
@@ -35197,1082 +35199,1461 @@ TEST585
         if $DINO -dd $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT585' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=34, tvars=2
+     1 block(line=1): vars=33, tvars=3
   class except (0)
-     116 block: vars=1, tvars=0
+      94 block: vars=0, tvars=0, ext.
     class error (1)
-       118 block(line=2): vars=1, tvars=0
+        96 block(line=2): vars=1, tvars=3, ext.
       class signal (1)
-         120 block(line=3): vars=1, tvars=0
+         102 block(line=3): vars=1, tvars=3, ext.
         class sigint (1)
-           122 block(line=4): vars=1, tvars=0
-           123 leave
+           108 block(line=4): vars=1, tvars=3, ext.
+             109 btdef: msg? (true=111, false=110)
+             110 lvar: 1 <- (msg)
+             112 ldnil: 3 <- 
+             113 st: 1(2) <- 3
+           111 leave
 
         class sigill (1)
-           124 block(line=5): vars=1, tvars=0
-           125 leave
+           114 block(line=5): vars=1, tvars=3, ext.
+             115 btdef: msg? (true=117, false=116)
+             116 lvar: 1 <- (msg)
+             118 ldnil: 3 <- 
+             119 st: 1(2) <- 3
+           117 leave
 
         class sigabrt (1)
-           126 block(line=6): vars=1, tvars=0
-           127 leave
+           120 block(line=6): vars=1, tvars=3, ext.
+             121 btdef: msg? (true=123, false=122)
+             122 lvar: 1 <- (msg)
+             124 ldnil: 3 <- 
+             125 st: 1(2) <- 3
+           123 leave
 
         class sigfpe (1)
-           128 block(line=7): vars=1, tvars=0
+           126 block(line=7): vars=1, tvars=3, ext.
+             127 btdef: msg? (true=129, false=128)
+             128 lvar: 1 <- (msg)
+             130 ldnil: 3 <- 
+             131 st: 1(2) <- 3
            129 leave
 
         class sigterm (1)
-           130 block(line=8): vars=1, tvars=0
-           131 leave
+           132 block(line=8): vars=1, tvars=3, ext.
+             133 btdef: msg? (true=135, false=134)
+             134 lvar: 1 <- (msg)
+             136 ldnil: 3 <- 
+             137 st: 1(2) <- 3
+           135 leave
 
         class sigsegv (1)
-           132 block(line=9): vars=1, tvars=0
-           133 leave
-
-         121 leave(line=3)
-
-      class invenv (1)
-         134 block(line=11): vars=1, tvars=0
-         135 leave
-
-      class invop (1)
-         136 block(line=12): vars=1, tvars=0
-        class optype (1)
-           138 block(line=13): vars=1, tvars=0
-           139 leave
-
-        class opvalue (1)
-           140 block(line=14): vars=1, tvars=0
+           138 block(line=9): vars=1, tvars=3, ext.
+             139 btdef: msg? (true=141, false=140)
+             140 lvar: 1 <- (msg)
+             142 ldnil: 3 <- 
+             143 st: 1(2) <- 3
            141 leave
 
-         137 leave(line=12)
+           103 btdef(line=3): msg? (true=105, false=104)
+           104 lvar: 1 <- (msg)
+           106 ldnil: 3 <- 
+           107 st: 1(2) <- 3
+         105 leave
 
-      class invindex (1)
-         142 block(line=16): vars=1, tvars=0
-        class indextype (1)
-           144 block(line=17): vars=1, tvars=0
-           145 leave
+      class invenv (1)
+         144 block(line=11): vars=1, tvars=3, ext.
+           145 btdef: msg? (true=147, false=146)
+           146 lvar: 1 <- (msg)
+           148 ldnil: 3 <- 
+           149 st: 1(2) <- 3
+         147 leave
 
-        class indexvalue (1)
-           146 block(line=18): vars=1, tvars=0
-           147 leave
-
-        class indexop (1)
-           148 block(line=19): vars=1, tvars=0
-           149 leave
-
-         143 leave(line=16)
-
-      class invslice (1)
-         150 block(line=21): vars=1, tvars=0
-        class slicetype (1)
-           152 block(line=22): vars=1, tvars=0
-           153 leave
-
-        class sliceform (1)
-           154 block(line=23): vars=1, tvars=0
-           155 leave
-
-         151 leave(line=21)
-
-      class invector (1)
-         156 block(line=25): vars=1, tvars=0
-        class veclen (1)
-           158 block(line=26): vars=1, tvars=0
+      class invop (1)
+         150 block(line=12): vars=1, tvars=3, ext.
+        class optype (1)
+           156 block(line=13): vars=1, tvars=3, ext.
+             157 btdef: msg? (true=159, false=158)
+             158 lvar: 1 <- (msg)
+             160 ldnil: 3 <- 
+             161 st: 1(2) <- 3
            159 leave
 
-        class vecform (1)
-           160 block(line=27): vars=1, tvars=0
-           161 leave
-
-         157 leave(line=25)
-
-      class invkey (1)
-         162 block(line=29): vars=1, tvars=0
-        class keyvalue (1)
-           164 block(line=30): vars=1, tvars=0
+        class opvalue (1)
+           162 block(line=14): vars=1, tvars=3, ext.
+             163 btdef: msg? (true=165, false=164)
+             164 lvar: 1 <- (msg)
+             166 ldnil: 3 <- 
+             167 st: 1(2) <- 3
            165 leave
 
-        class keyop (1)
-           166 block(line=31): vars=1, tvars=0
-           167 leave
+           151 btdef(line=12): msg? (true=153, false=152)
+           152 lvar: 1 <- (msg)
+           154 ldnil: 3 <- 
+           155 st: 1(2) <- 3
+         153 leave
 
-         163 leave(line=29)
-
-      class invcall (1)
-         168 block(line=33): vars=1, tvars=0
-        class callop (1)
-           170 block(line=34): vars=1, tvars=0
-           171 leave
-
-        class partype (1)
-           172 block(line=35): vars=1, tvars=0
-           173 leave
-
-        class invresult (1)
-           174 block(line=36): vars=1, tvars=0
-           175 leave
-
-        class invinput (1)
-           176 block(line=37): vars=1, tvars=0
+      class invindex (1)
+         168 block(line=16): vars=1, tvars=3, ext.
+        class indextype (1)
+           174 block(line=17): vars=1, tvars=3, ext.
+             175 btdef: msg? (true=177, false=176)
+             176 lvar: 1 <- (msg)
+             178 ldnil: 3 <- 
+             179 st: 1(2) <- 3
            177 leave
 
-        class invfmt (1)
-           178 block(line=38): vars=1, tvars=0
-           179 leave
-
-        class eof (1)
-           180 block(line=39): vars=1, tvars=0
-           181 leave
-
-        class parnumber (1)
-           182 block(line=40): vars=1, tvars=0
+        class indexvalue (1)
+           180 block(line=18): vars=1, tvars=3, ext.
+             181 btdef: msg? (true=183, false=182)
+             182 lvar: 1 <- (msg)
+             184 ldnil: 3 <- 
+             185 st: 1(2) <- 3
            183 leave
 
+        class indexop (1)
+           186 block(line=19): vars=1, tvars=3, ext.
+             187 btdef: msg? (true=189, false=188)
+             188 lvar: 1 <- (msg)
+             190 ldnil: 3 <- 
+             191 st: 1(2) <- 3
+           189 leave
+
+           169 btdef(line=16): msg? (true=171, false=170)
+           170 lvar: 1 <- (msg)
+           172 ldnil: 3 <- 
+           173 st: 1(2) <- 3
+         171 leave
+
+      class invslice (1)
+         192 block(line=21): vars=1, tvars=3, ext.
+        class slicetype (1)
+           198 block(line=22): vars=1, tvars=3, ext.
+             199 btdef: msg? (true=201, false=200)
+             200 lvar: 1 <- (msg)
+             202 ldnil: 3 <- 
+             203 st: 1(2) <- 3
+           201 leave
+
+        class sliceform (1)
+           204 block(line=23): vars=1, tvars=3, ext.
+             205 btdef: msg? (true=207, false=206)
+             206 lvar: 1 <- (msg)
+             208 ldnil: 3 <- 
+             209 st: 1(2) <- 3
+           207 leave
+
+           193 btdef(line=21): msg? (true=195, false=194)
+           194 lvar: 1 <- (msg)
+           196 ldnil: 3 <- 
+           197 st: 1(2) <- 3
+         195 leave
+
+      class invector (1)
+         210 block(line=25): vars=1, tvars=3, ext.
+        class veclen (1)
+           216 block(line=26): vars=1, tvars=3, ext.
+             217 btdef: msg? (true=219, false=218)
+             218 lvar: 1 <- (msg)
+             220 ldnil: 3 <- 
+             221 st: 1(2) <- 3
+           219 leave
+
+        class vecform (1)
+           222 block(line=27): vars=1, tvars=3, ext.
+             223 btdef: msg? (true=225, false=224)
+             224 lvar: 1 <- (msg)
+             226 ldnil: 3 <- 
+             227 st: 1(2) <- 3
+           225 leave
+
+           211 btdef(line=25): msg? (true=213, false=212)
+           212 lvar: 1 <- (msg)
+           214 ldnil: 3 <- 
+           215 st: 1(2) <- 3
+         213 leave
+
+      class invkey (1)
+         228 block(line=29): vars=1, tvars=3, ext.
+        class keyvalue (1)
+           234 block(line=30): vars=1, tvars=3, ext.
+             235 btdef: msg? (true=237, false=236)
+             236 lvar: 1 <- (msg)
+             238 ldnil: 3 <- 
+             239 st: 1(2) <- 3
+           237 leave
+
+        class keyop (1)
+           240 block(line=31): vars=1, tvars=3, ext.
+             241 btdef: msg? (true=243, false=242)
+             242 lvar: 1 <- (msg)
+             244 ldnil: 3 <- 
+             245 st: 1(2) <- 3
+           243 leave
+
+           229 btdef(line=29): msg? (true=231, false=230)
+           230 lvar: 1 <- (msg)
+           232 ldnil: 3 <- 
+           233 st: 1(2) <- 3
+         231 leave
+
+      class invcall (1)
+         246 block(line=33): vars=1, tvars=3, ext.
+        class callop (1)
+           252 block(line=34): vars=1, tvars=3, ext.
+             253 btdef: msg? (true=255, false=254)
+             254 lvar: 1 <- (msg)
+             256 ldnil: 3 <- 
+             257 st: 1(2) <- 3
+           255 leave
+
+        class partype (1)
+           258 block(line=35): vars=1, tvars=3, ext.
+             259 btdef: msg? (true=261, false=260)
+             260 lvar: 1 <- (msg)
+             262 ldnil: 3 <- 
+             263 st: 1(2) <- 3
+           261 leave
+
+        class invresult (1)
+           264 block(line=36): vars=1, tvars=3, ext.
+             265 btdef: msg? (true=267, false=266)
+             266 lvar: 1 <- (msg)
+             268 ldnil: 3 <- 
+             269 st: 1(2) <- 3
+           267 leave
+
+        class invinput (1)
+           270 block(line=37): vars=1, tvars=3, ext.
+             271 btdef: msg? (true=273, false=272)
+             272 lvar: 1 <- (msg)
+             274 ldnil: 3 <- 
+             275 st: 1(2) <- 3
+           273 leave
+
+        class invfmt (1)
+           276 block(line=38): vars=1, tvars=3, ext.
+             277 btdef: msg? (true=279, false=278)
+             278 lvar: 1 <- (msg)
+             280 ldnil: 3 <- 
+             281 st: 1(2) <- 3
+           279 leave
+
+        class eof (1)
+           282 block(line=39): vars=1, tvars=3, ext.
+             283 btdef: msg? (true=285, false=284)
+             284 lvar: 1 <- (msg)
+             286 ldnil: 3 <- 
+             287 st: 1(2) <- 3
+           285 leave
+
+        class parnumber (1)
+           288 block(line=40): vars=1, tvars=3, ext.
+             289 btdef: msg? (true=291, false=290)
+             290 lvar: 1 <- (msg)
+             292 ldnil: 3 <- 
+             293 st: 1(2) <- 3
+           291 leave
+
         class syncthreadcall (1)
-           184 block(line=41): vars=1, tvars=0
-           185 leave
+           294 block(line=41): vars=1, tvars=3, ext.
+             295 btdef: msg? (true=297, false=296)
+             296 lvar: 1 <- (msg)
+             298 ldnil: 3 <- 
+             299 st: 1(2) <- 3
+           297 leave
 
         class syserror (1)
-           186 block(line=42): vars=1, tvars=0
+           300 block(line=42): vars=1, tvars=3, ext.
           class eaccess (1)
-             188 block(line=43): vars=1, tvars=0
-             189 leave
+             306 block(line=43): vars=1, tvars=3, ext.
+               307 btdef: msg? (true=309, false=308)
+               308 lvar: 1 <- (msg)
+               310 ldnil: 3 <- 
+               311 st: 1(2) <- 3
+             309 leave
 
           class eagain (1)
-             190 block(line=44): vars=1, tvars=0
-             191 leave
+             312 block(line=44): vars=1, tvars=3, ext.
+               313 btdef: msg? (true=315, false=314)
+               314 lvar: 1 <- (msg)
+               316 ldnil: 3 <- 
+               317 st: 1(2) <- 3
+             315 leave
 
           class ebadf (1)
-             192 block(line=45): vars=1, tvars=0
-             193 leave
+             318 block(line=45): vars=1, tvars=3, ext.
+               319 btdef: msg? (true=321, false=320)
+               320 lvar: 1 <- (msg)
+               322 ldnil: 3 <- 
+               323 st: 1(2) <- 3
+             321 leave
 
           class ebusy (1)
-             194 block(line=46): vars=1, tvars=0
-             195 leave
+             324 block(line=46): vars=1, tvars=3, ext.
+               325 btdef: msg? (true=327, false=326)
+               326 lvar: 1 <- (msg)
+               328 ldnil: 3 <- 
+               329 st: 1(2) <- 3
+             327 leave
 
           class echild (1)
-             196 block(line=47): vars=1, tvars=0
-             197 leave
+             330 block(line=47): vars=1, tvars=3, ext.
+               331 btdef: msg? (true=333, false=332)
+               332 lvar: 1 <- (msg)
+               334 ldnil: 3 <- 
+               335 st: 1(2) <- 3
+             333 leave
 
           class edeadlk (1)
-             198 block(line=48): vars=1, tvars=0
-             199 leave
+             336 block(line=48): vars=1, tvars=3, ext.
+               337 btdef: msg? (true=339, false=338)
+               338 lvar: 1 <- (msg)
+               340 ldnil: 3 <- 
+               341 st: 1(2) <- 3
+             339 leave
 
           class edom (1)
-             200 block(line=49): vars=1, tvars=0
-             201 leave
+             342 block(line=49): vars=1, tvars=3, ext.
+               343 btdef: msg? (true=345, false=344)
+               344 lvar: 1 <- (msg)
+               346 ldnil: 3 <- 
+               347 st: 1(2) <- 3
+             345 leave
 
           class eexist (1)
-             202 block(line=50): vars=1, tvars=0
-             203 leave
+             348 block(line=50): vars=1, tvars=3, ext.
+               349 btdef: msg? (true=351, false=350)
+               350 lvar: 1 <- (msg)
+               352 ldnil: 3 <- 
+               353 st: 1(2) <- 3
+             351 leave
 
           class efault (1)
-             204 block(line=51): vars=1, tvars=0
-             205 leave
+             354 block(line=51): vars=1, tvars=3, ext.
+               355 btdef: msg? (true=357, false=356)
+               356 lvar: 1 <- (msg)
+               358 ldnil: 3 <- 
+               359 st: 1(2) <- 3
+             357 leave
 
           class efbig (1)
-             206 block(line=52): vars=1, tvars=0
-             207 leave
+             360 block(line=52): vars=1, tvars=3, ext.
+               361 btdef: msg? (true=363, false=362)
+               362 lvar: 1 <- (msg)
+               364 ldnil: 3 <- 
+               365 st: 1(2) <- 3
+             363 leave
 
           class eintr (1)
-             208 block(line=53): vars=1, tvars=0
-             209 leave
+             366 block(line=53): vars=1, tvars=3, ext.
+               367 btdef: msg? (true=369, false=368)
+               368 lvar: 1 <- (msg)
+               370 ldnil: 3 <- 
+               371 st: 1(2) <- 3
+             369 leave
 
           class einval (1)
-             210 block(line=54): vars=1, tvars=0
-             211 leave
+             372 block(line=54): vars=1, tvars=3, ext.
+               373 btdef: msg? (true=375, false=374)
+               374 lvar: 1 <- (msg)
+               376 ldnil: 3 <- 
+               377 st: 1(2) <- 3
+             375 leave
 
           class eio (1)
-             212 block(line=55): vars=1, tvars=0
-             213 leave
+             378 block(line=55): vars=1, tvars=3, ext.
+               379 btdef: msg? (true=381, false=380)
+               380 lvar: 1 <- (msg)
+               382 ldnil: 3 <- 
+               383 st: 1(2) <- 3
+             381 leave
 
           class eisdir (1)
-             214 block(line=56): vars=1, tvars=0
-             215 leave
+             384 block(line=56): vars=1, tvars=3, ext.
+               385 btdef: msg? (true=387, false=386)
+               386 lvar: 1 <- (msg)
+               388 ldnil: 3 <- 
+               389 st: 1(2) <- 3
+             387 leave
 
           class emfile (1)
-             216 block(line=57): vars=1, tvars=0
-             217 leave
+             390 block(line=57): vars=1, tvars=3, ext.
+               391 btdef: msg? (true=393, false=392)
+               392 lvar: 1 <- (msg)
+               394 ldnil: 3 <- 
+               395 st: 1(2) <- 3
+             393 leave
 
           class emlink (1)
-             218 block(line=58): vars=1, tvars=0
-             219 leave
+             396 block(line=58): vars=1, tvars=3, ext.
+               397 btdef: msg? (true=399, false=398)
+               398 lvar: 1 <- (msg)
+               400 ldnil: 3 <- 
+               401 st: 1(2) <- 3
+             399 leave
 
           class enametoolong (1)
-             220 block(line=59): vars=1, tvars=0
-             221 leave
+             402 block(line=59): vars=1, tvars=3, ext.
+               403 btdef: msg? (true=405, false=404)
+               404 lvar: 1 <- (msg)
+               406 ldnil: 3 <- 
+               407 st: 1(2) <- 3
+             405 leave
 
           class enfile (1)
-             222 block(line=60): vars=1, tvars=0
-             223 leave
+             408 block(line=60): vars=1, tvars=3, ext.
+               409 btdef: msg? (true=411, false=410)
+               410 lvar: 1 <- (msg)
+               412 ldnil: 3 <- 
+               413 st: 1(2) <- 3
+             411 leave
 
           class enodev (1)
-             224 block(line=61): vars=1, tvars=0
-             225 leave
+             414 block(line=61): vars=1, tvars=3, ext.
+               415 btdef: msg? (true=417, false=416)
+               416 lvar: 1 <- (msg)
+               418 ldnil: 3 <- 
+               419 st: 1(2) <- 3
+             417 leave
 
           class enoent (1)
-             226 block(line=62): vars=1, tvars=0
-             227 leave
+             420 block(line=62): vars=1, tvars=3, ext.
+               421 btdef: msg? (true=423, false=422)
+               422 lvar: 1 <- (msg)
+               424 ldnil: 3 <- 
+               425 st: 1(2) <- 3
+             423 leave
 
           class enoexec (1)
-             228 block(line=63): vars=1, tvars=0
-             229 leave
+             426 block(line=63): vars=1, tvars=3, ext.
+               427 btdef: msg? (true=429, false=428)
+               428 lvar: 1 <- (msg)
+               430 ldnil: 3 <- 
+               431 st: 1(2) <- 3
+             429 leave
 
           class enolck (1)
-             230 block(line=64): vars=1, tvars=0
-             231 leave
+             432 block(line=64): vars=1, tvars=3, ext.
+               433 btdef: msg? (true=435, false=434)
+               434 lvar: 1 <- (msg)
+               436 ldnil: 3 <- 
+               437 st: 1(2) <- 3
+             435 leave
 
           class enomem (1)
-             232 block(line=65): vars=1, tvars=0
-             233 leave
+             438 block(line=65): vars=1, tvars=3, ext.
+               439 btdef: msg? (true=441, false=440)
+               440 lvar: 1 <- (msg)
+               442 ldnil: 3 <- 
+               443 st: 1(2) <- 3
+             441 leave
 
           class enospc (1)
-             234 block(line=66): vars=1, tvars=0
-             235 leave
+             444 block(line=66): vars=1, tvars=3, ext.
+               445 btdef: msg? (true=447, false=446)
+               446 lvar: 1 <- (msg)
+               448 ldnil: 3 <- 
+               449 st: 1(2) <- 3
+             447 leave
 
           class enosys (1)
-             236 block(line=67): vars=1, tvars=0
-             237 leave
+             450 block(line=67): vars=1, tvars=3, ext.
+               451 btdef: msg? (true=453, false=452)
+               452 lvar: 1 <- (msg)
+               454 ldnil: 3 <- 
+               455 st: 1(2) <- 3
+             453 leave
 
           class enotdir (1)
-             238 block(line=68): vars=1, tvars=0
-             239 leave
+             456 block(line=68): vars=1, tvars=3, ext.
+               457 btdef: msg? (true=459, false=458)
+               458 lvar: 1 <- (msg)
+               460 ldnil: 3 <- 
+               461 st: 1(2) <- 3
+             459 leave
 
           class enotempty (1)
-             240 block(line=69): vars=1, tvars=0
-             241 leave
+             462 block(line=69): vars=1, tvars=3, ext.
+               463 btdef: msg? (true=465, false=464)
+               464 lvar: 1 <- (msg)
+               466 ldnil: 3 <- 
+               467 st: 1(2) <- 3
+             465 leave
 
           class enotty (1)
-             242 block(line=70): vars=1, tvars=0
-             243 leave
+             468 block(line=70): vars=1, tvars=3, ext.
+               469 btdef: msg? (true=471, false=470)
+               470 lvar: 1 <- (msg)
+               472 ldnil: 3 <- 
+               473 st: 1(2) <- 3
+             471 leave
 
           class enxio (1)
-             244 block(line=71): vars=1, tvars=0
-             245 leave
+             474 block(line=71): vars=1, tvars=3, ext.
+               475 btdef: msg? (true=477, false=476)
+               476 lvar: 1 <- (msg)
+               478 ldnil: 3 <- 
+               479 st: 1(2) <- 3
+             477 leave
 
           class eperm (1)
-             246 block(line=72): vars=1, tvars=0
-             247 leave
+             480 block(line=72): vars=1, tvars=3, ext.
+               481 btdef: msg? (true=483, false=482)
+               482 lvar: 1 <- (msg)
+               484 ldnil: 3 <- 
+               485 st: 1(2) <- 3
+             483 leave
 
           class epipe (1)
-             248 block(line=73): vars=1, tvars=0
-             249 leave
+             486 block(line=73): vars=1, tvars=3, ext.
+               487 btdef: msg? (true=489, false=488)
+               488 lvar: 1 <- (msg)
+               490 ldnil: 3 <- 
+               491 st: 1(2) <- 3
+             489 leave
 
           class erange (1)
-             250 block(line=74): vars=1, tvars=0
-             251 leave
+             492 block(line=74): vars=1, tvars=3, ext.
+               493 btdef: msg? (true=495, false=494)
+               494 lvar: 1 <- (msg)
+               496 ldnil: 3 <- 
+               497 st: 1(2) <- 3
+             495 leave
 
           class erofs (1)
-             252 block(line=75): vars=1, tvars=0
-             253 leave
+             498 block(line=75): vars=1, tvars=3, ext.
+               499 btdef: msg? (true=501, false=500)
+               500 lvar: 1 <- (msg)
+               502 ldnil: 3 <- 
+               503 st: 1(2) <- 3
+             501 leave
 
           class espipe (1)
-             254 block(line=76): vars=1, tvars=0
-             255 leave
+             504 block(line=76): vars=1, tvars=3, ext.
+               505 btdef: msg? (true=507, false=506)
+               506 lvar: 1 <- (msg)
+               508 ldnil: 3 <- 
+               509 st: 1(2) <- 3
+             507 leave
 
           class esrch (1)
-             256 block(line=77): vars=1, tvars=0
-             257 leave
+             510 block(line=77): vars=1, tvars=3, ext.
+               511 btdef: msg? (true=513, false=512)
+               512 lvar: 1 <- (msg)
+               514 ldnil: 3 <- 
+               515 st: 1(2) <- 3
+             513 leave
 
           class exdev (1)
-             258 block(line=78): vars=1, tvars=0
-             259 leave
+             516 block(line=78): vars=1, tvars=3, ext.
+               517 btdef: msg? (true=519, false=518)
+               518 lvar: 1 <- (msg)
+               520 ldnil: 3 <- 
+               521 st: 1(2) <- 3
+             519 leave
 
-           187 leave(line=42)
+             301 btdef(line=42): msg? (true=303, false=302)
+             302 lvar: 1 <- (msg)
+             304 ldnil: 3 <- 
+             305 st: 1(2) <- 3
+           303 leave
 
         class systemcall (1)
-           260 block(line=80): vars=1, tvars=0
+           522 block(line=80): vars=1, tvars=3, ext.
           class noshell (1)
-             262 block(line=81): vars=1, tvars=0
-             263 leave
+             528 block(line=81): vars=1, tvars=3, ext.
+               529 btdef: msg? (true=531, false=530)
+               530 lvar: 1 <- (msg)
+               532 ldnil: 3 <- 
+               533 st: 1(2) <- 3
+             531 leave
 
           class systemfail (1)
-             264 block(line=82): vars=1, tvars=0
-             265 leave
+             534 block(line=82): vars=1, tvars=3, ext.
+               535 btdef: msg? (true=537, false=536)
+               536 lvar: 1 <- (msg)
+               538 ldnil: 3 <- 
+               539 st: 1(2) <- 3
+             537 leave
 
-           261 leave(line=80)
+             523 btdef(line=80): msg? (true=525, false=524)
+             524 lvar: 1 <- (msg)
+             526 ldnil: 3 <- 
+             527 st: 1(2) <- 3
+           525 leave
 
         class invregexp (1)
-           266 block(line=84): vars=1, tvars=0
+           540 block(line=84): vars=1, tvars=3, ext.
           class ebrack (1)
-             268 block(line=85): vars=1, tvars=0
-             269 leave
+             546 block(line=85): vars=1, tvars=3, ext.
+               547 btdef: msg? (true=549, false=548)
+               548 lvar: 1 <- (msg)
+               550 ldnil: 3 <- 
+               551 st: 1(2) <- 3
+             549 leave
 
           class erange (1)
-             270 block(line=86): vars=1, tvars=0
-             271 leave
+             552 block(line=86): vars=1, tvars=3, ext.
+               553 btdef: msg? (true=555, false=554)
+               554 lvar: 1 <- (msg)
+               556 ldnil: 3 <- 
+               557 st: 1(2) <- 3
+             555 leave
 
           class ectype (1)
-             272 block(line=87): vars=1, tvars=0
-             273 leave
+             558 block(line=87): vars=1, tvars=3, ext.
+               559 btdef: msg? (true=561, false=560)
+               560 lvar: 1 <- (msg)
+               562 ldnil: 3 <- 
+               563 st: 1(2) <- 3
+             561 leave
 
           class eparen (1)
-             274 block(line=88): vars=1, tvars=0
-             275 leave
+             564 block(line=88): vars=1, tvars=3, ext.
+               565 btdef: msg? (true=567, false=566)
+               566 lvar: 1 <- (msg)
+               568 ldnil: 3 <- 
+               569 st: 1(2) <- 3
+             567 leave
 
           class esubreg (1)
-             276 block(line=89): vars=1, tvars=0
-             277 leave
+             570 block(line=89): vars=1, tvars=3, ext.
+               571 btdef: msg? (true=573, false=572)
+               572 lvar: 1 <- (msg)
+               574 ldnil: 3 <- 
+               575 st: 1(2) <- 3
+             573 leave
 
           class eend (1)
-             278 block(line=90): vars=1, tvars=0
-             279 leave
+             576 block(line=90): vars=1, tvars=3, ext.
+               577 btdef: msg? (true=579, false=578)
+               578 lvar: 1 <- (msg)
+               580 ldnil: 3 <- 
+               581 st: 1(2) <- 3
+             579 leave
 
           class eescape (1)
-             280 block(line=91): vars=1, tvars=0
-             281 leave
+             582 block(line=91): vars=1, tvars=3, ext.
+               583 btdef: msg? (true=585, false=584)
+               584 lvar: 1 <- (msg)
+               586 ldnil: 3 <- 
+               587 st: 1(2) <- 3
+             585 leave
 
           class badpat (1)
-             282 block(line=92): vars=1, tvars=0
-             283 leave
+             588 block(line=92): vars=1, tvars=3, ext.
+               589 btdef: msg? (true=591, false=590)
+               590 lvar: 1 <- (msg)
+               592 ldnil: 3 <- 
+               593 st: 1(2) <- 3
+             591 leave
 
           class esize (1)
-             284 block(line=93): vars=1, tvars=0
-             285 leave
+             594 block(line=93): vars=1, tvars=3, ext.
+               595 btdef: msg? (true=597, false=596)
+               596 lvar: 1 <- (msg)
+               598 ldnil: 3 <- 
+               599 st: 1(2) <- 3
+             597 leave
 
           class espace (1)
-             286 block(line=94): vars=1, tvars=0
-             287 leave
+             600 block(line=94): vars=1, tvars=3, ext.
+               601 btdef: msg? (true=603, false=602)
+               602 lvar: 1 <- (msg)
+               604 ldnil: 3 <- 
+               605 st: 1(2) <- 3
+             603 leave
 
-           267 leave(line=84)
+             541 btdef(line=84): msg? (true=543, false=542)
+             542 lvar: 1 <- (msg)
+             544 ldnil: 3 <- 
+             545 st: 1(2) <- 3
+           543 leave
 
         class invparser (1)
-           288 block(line=96): vars=1, tvars=0
+           606 block(line=96): vars=1, tvars=3, ext.
           class invgrammar (1)
-             290 block(line=97): vars=1, tvars=0
-             291 leave
+             612 block(line=97): vars=1, tvars=3, ext.
+               613 btdef: msg? (true=615, false=614)
+               614 lvar: 1 <- (msg)
+               616 ldnil: 3 <- 
+               617 st: 1(2) <- 3
+             615 leave
 
           class invtoken (1)
-             292 block(line=98): vars=1, tvars=0
-             293 leave
+             618 block(line=98): vars=1, tvars=3, ext.
+               619 btdef: msg? (true=621, false=620)
+               620 lvar: 1 <- (msg)
+               622 ldnil: 3 <- 
+               623 st: 1(2) <- 3
+             621 leave
 
           class pmemory (1)
-             294 block(line=99): vars=1, tvars=0
-             295 leave
+             624 block(line=99): vars=1, tvars=3, ext.
+               625 btdef: msg? (true=627, false=626)
+               626 lvar: 1 <- (msg)
+               628 ldnil: 3 <- 
+               629 st: 1(2) <- 3
+             627 leave
 
-           289 leave(line=96)
+             607 btdef(line=96): msg? (true=609, false=608)
+             608 lvar: 1 <- (msg)
+             610 ldnil: 3 <- 
+             611 st: 1(2) <- 3
+           609 leave
 
         class invextern (1)
-           296 block(line=101): vars=1, tvars=0
+           630 block(line=101): vars=1, tvars=3, ext.
           class noextern (1)
-             298 block(line=102): vars=1, tvars=0
-             299 leave
+             636 block(line=102): vars=1, tvars=3, ext.
+               637 btdef: msg? (true=639, false=638)
+               638 lvar: 1 <- (msg)
+               640 ldnil: 3 <- 
+               641 st: 1(2) <- 3
+             639 leave
 
           class libclose (1)
-             300 block(line=103): vars=1, tvars=0
-             301 leave
+             642 block(line=103): vars=1, tvars=3, ext.
+               643 btdef: msg? (true=645, false=644)
+               644 lvar: 1 <- (msg)
+               646 ldnil: 3 <- 
+               647 st: 1(2) <- 3
+             645 leave
 
           class noexternsupp (1)
-             302 block(line=104): vars=1, tvars=0
-             303 leave
+             648 block(line=104): vars=1, tvars=3, ext.
+               649 btdef: msg? (true=651, false=650)
+               650 lvar: 1 <- (msg)
+               652 ldnil: 3 <- 
+               653 st: 1(2) <- 3
+             651 leave
 
-           297 leave(line=101)
+             631 btdef(line=101): msg? (true=633, false=632)
+             632 lvar: 1 <- (msg)
+             634 ldnil: 3 <- 
+             635 st: 1(2) <- 3
+           633 leave
 
         class invenvar (1)
-           304 block(line=106): vars=1, tvars=0
-           305 leave
+           654 block(line=106): vars=1, tvars=3, ext.
+             655 btdef: msg? (true=657, false=656)
+             656 lvar: 1 <- (msg)
+             658 ldnil: 3 <- 
+             659 st: 1(2) <- 3
+           657 leave
 
         class internal (1)
-           306 block(line=107): vars=1, tvars=0
-           307 leave
+           660 block(line=107): vars=1, tvars=3, ext.
+             661 btdef: msg? (true=663, false=662)
+             662 lvar: 1 <- (msg)
+             664 ldnil: 3 <- 
+             665 st: 1(2) <- 3
+           663 leave
 
-         169 leave(line=33)
+           247 btdef(line=33): msg? (true=249, false=248)
+           248 lvar: 1 <- (msg)
+           250 ldnil: 3 <- 
+           251 st: 1(2) <- 3
+         249 leave
 
       class invaccess (1)
-         308 block(line=109): vars=1, tvars=0
+         666 block(line=109): vars=1, tvars=3, ext.
         class accessop (1)
-           310 block(line=110): vars=1, tvars=0
-           311 leave
+           672 block(line=110): vars=1, tvars=3, ext.
+             673 btdef: msg? (true=675, false=674)
+             674 lvar: 1 <- (msg)
+             676 ldnil: 3 <- 
+             677 st: 1(2) <- 3
+           675 leave
 
         class accessvalue (1)
-           312 block(line=111): vars=1, tvars=0
-           313 leave
+           678 block(line=111): vars=1, tvars=3, ext.
+             679 btdef: msg? (true=681, false=680)
+             680 lvar: 1 <- (msg)
+             682 ldnil: 3 <- 
+             683 st: 1(2) <- 3
+           681 leave
 
         class immutable (1)
-           314 block(line=112): vars=1, tvars=0
-           315 leave
+           684 block(line=112): vars=1, tvars=3, ext.
+             685 btdef: msg? (true=687, false=686)
+             686 lvar: 1 <- (msg)
+             688 ldnil: 3 <- 
+             689 st: 1(2) <- 3
+           687 leave
 
-         309 leave(line=109)
+           667 btdef(line=109): msg? (true=669, false=668)
+           668 lvar: 1 <- (msg)
+           670 ldnil: 3 <- 
+           671 st: 1(2) <- 3
+         669 leave
 
       class deadlock (1)
-         316 block(line=114): vars=1, tvars=0
-         317 leave
+         690 block(line=114): vars=1, tvars=3, ext.
+           691 btdef: msg? (true=693, false=692)
+           692 lvar: 1 <- (msg)
+           694 ldnil: 3 <- 
+           695 st: 1(2) <- 3
+         693 leave
 
       class syncwait (1)
-         318 block(line=115): vars=1, tvars=0
-         319 leave
+         696 block(line=115): vars=1, tvars=3, ext.
+           697 btdef: msg? (true=699, false=698)
+           698 lvar: 1 <- (msg)
+           700 ldnil: 3 <- 
+           701 st: 1(2) <- 3
+         699 leave
 
-       119 leave(line=2)
+          97 btdef(line=2): msg? (true=99, false=98)
+          98 lvar: 1 <- (msg)
+         100 ldnil: 3 <- 
+         101 st: 1(2) <- 3
+        99 leave
 
-     117 leave(line=1)
+      95 leave(line=1)
 
   class anode (2)
-     320 block(line=134): vars=1, tvars=0
-     321 leave
+     702 block(line=134): vars=2, tvars=0, ext.
+     703 leave
 
   class token (1)
-     322 block(line=137): vars=1, tvars=0
-     323 leave
+     704 block(line=137): vars=1, tvars=0, ext.
+     705 leave
 
   class parser (0)
-     324 block(line=141): vars=1, tvars=3
+     706 block(line=141): vars=2, tvars=3, ext.
     func int_earley_parse_grammar (0)
-       329 block(line=147): vars=0, tvars=0
-       330 leave
+       711 block(line=147): vars=0, tvars=0
+       712 leave
 
     func int_earley_set_debug_level (0)
-       331 block: vars=0, tvars=0
-       332 leave
+       713 block: vars=0, tvars=0
+       714 leave
 
     func int_earley_set_one_parse_flag (0)
-       333 block(line=149): vars=0, tvars=0
-       334 leave
+       715 block(line=149): vars=0, tvars=0
+       716 leave
 
     func int_earley_set_lookahead_level (0)
-       335 block(line=151): vars=0, tvars=0
-       336 leave
+       717 block(line=151): vars=0, tvars=0
+       718 leave
 
     func int_earley_set_cost_flag (0)
-       337 block(line=153): vars=0, tvars=0
-       338 leave
+       719 block(line=153): vars=0, tvars=0
+       720 leave
 
     func int_earley_set_error_recovery_flag (0)
-       339 block(line=155): vars=0, tvars=0
-       340 leave
+       721 block(line=155): vars=0, tvars=0
+       722 leave
 
     func int_earley_set_recovery_match (0)
-       341 block(line=157): vars=0, tvars=0
-       342 leave
+       723 block(line=157): vars=0, tvars=0
+       724 leave
 
     func int_earley_parse (0)
-       343 block: vars=0, tvars=0
-       344 leave
+       725 block: vars=0, tvars=0
+       726 leave
 
     func int_earley_create_grammar (0)
-       345 block(line=159): vars=0, tvars=0
-       346 leave
+       727 block(line=159): vars=0, tvars=0
+       728 leave
 
     func set_grammar (2)
-       347 block(line=162): vars=2, tvars=3
-         348 var(line=163): 2 <- (grammar)
-         349 move: 3 <- 1 (strict_p)
-         350 move: 4 <- 0 (descr)
-         351 ipcall int_earley_parse_grammar: start=2 npars=3
-       352 leave(line=162)
+       729 block(line=162): vars=2, tvars=3
+         730 var(line=163): 2 <- (grammar)
+         731 move: 3 <- 1 (strict_p)
+         732 move: 4 <- 0 (descr)
+         733 ipcall int_earley_parse_grammar: start=2 npars=3
+       734 leave(line=162)
 
     func set_debug (1)
-       353 block(line=165): vars=1, tvars=2
-         354 var(line=166): 1 <- (grammar)
-         355 move: 2 <- 0 (level)
-         356 icall int_earley_set_debug_level: start=1 npars=2
-         357 ret: 1
-       358 leave(line=165)
+       735 block(line=165): vars=1, tvars=2
+         736 var(line=166): 1 <- (grammar)
+         737 move: 2 <- 0 (level)
+         738 icall int_earley_set_debug_level: start=1 npars=2
+         739 ret: 1
+       740 leave(line=165)
 
     func set_one_parse (1)
-       359 block(line=168): vars=1, tvars=2
-         360 var(line=169): 1 <- (grammar)
-         361 move: 2 <- 0 (flag)
-         362 icall int_earley_set_one_parse_flag: start=1 npars=2
-         363 ret: 1
-       364 leave(line=168)
+       741 block(line=168): vars=1, tvars=2
+         742 var(line=169): 1 <- (grammar)
+         743 move: 2 <- 0 (flag)
+         744 icall int_earley_set_one_parse_flag: start=1 npars=2
+         745 ret: 1
+       746 leave(line=168)
 
     func set_lookahead (1)
-       365 block(line=171): vars=1, tvars=2
-         366 var(line=172): 1 <- (grammar)
-         367 move: 2 <- 0 (flag)
-         368 icall int_earley_set_lookahead_level: start=1 npars=2
-         369 ret: 1
-       370 leave(line=171)
+       747 block(line=171): vars=1, tvars=2
+         748 var(line=172): 1 <- (grammar)
+         749 move: 2 <- 0 (flag)
+         750 icall int_earley_set_lookahead_level: start=1 npars=2
+         751 ret: 1
+       752 leave(line=171)
 
     func set_cost (1)
-       371 block(line=174): vars=1, tvars=2
-         372 var(line=175): 1 <- (grammar)
-         373 move: 2 <- 0 (flag)
-         374 icall int_earley_set_cost_flag: start=1 npars=2
-         375 ret: 1
-       376 leave(line=174)
+       753 block(line=174): vars=1, tvars=2
+         754 var(line=175): 1 <- (grammar)
+         755 move: 2 <- 0 (flag)
+         756 icall int_earley_set_cost_flag: start=1 npars=2
+         757 ret: 1
+       758 leave(line=174)
 
     func set_recovery (1)
-       377 block(line=177): vars=1, tvars=2
-         378 var(line=178): 1 <- (grammar)
-         379 move: 2 <- 0 (flag)
-         380 icall int_earley_set_error_recovery_flag: start=1 npars=2
-         381 ret: 1
-       382 leave(line=177)
+       759 block(line=177): vars=1, tvars=2
+         760 var(line=178): 1 <- (grammar)
+         761 move: 2 <- 0 (flag)
+         762 icall int_earley_set_error_recovery_flag: start=1 npars=2
+         763 ret: 1
+       764 leave(line=177)
 
     func set_recovery_match (1)
-       383 block(line=180): vars=1, tvars=2
-         384 var(line=181): 1 <- (grammar)
-         385 move: 2 <- 0 (n_toks)
-         386 icall int_earley_set_recovery_match: start=1 npars=2
-         387 ret: 1
-       388 leave(line=180)
+       765 block(line=180): vars=1, tvars=2
+         766 var(line=181): 1 <- (grammar)
+         767 move: 2 <- 0 (n_toks)
+         768 icall int_earley_set_recovery_match: start=1 npars=2
+         769 ret: 1
+       770 leave(line=180)
 
     func parse (2)
-       389 block(line=183): vars=3, tvars=13
-         390 ldi(line=185): 3 <- (1)
-         391 ldi: 4 <- (2)
-         392 ldi: 5 <- (3)
-         393 ldi: 6 <- (4)
-         394 ldi: 7 <- (5)
-         395 ldi: 8 <- (6)
-         396 ldi: 9 <- (7)
-         397 ldi: 10 <- (8)
-         398 ldi: 11 <- (9)
-         399 ldi: 12 <- (10)
-         400 ldi: 13 <- (11)
-         401 ldi: 14 <- (12)
-         402 ldi: 15 <- (13)
-         403 and: 14 <- 14 15
-         404 xor: 13 <- 13 14
-         405 and: 12 <- 12 13
-         406 xor: 11 <- 11 12
-         407 and: 10 <- 10 11
-         408 xor: 9 <- 9 10
-         409 and: 8 <- 8 9
-         410 xor: 7 <- 7 8
-         411 and: 6 <- 6 7
-         412 xor: 5 <- 5 6
-         413 and: 4 <- 4 5
-         414 xor: 2 <- 3 4
-         415 var(line=186): 3 <- (grammar)
-         416 move: 4 <- 0 (tokens)
-         417 move: 5 <- 1 (error_func)
-         418 icall int_earley_parse: start=3 npars=3
-         419 ret: 3
-       420 leave(line=183)
+       771 block(line=183): vars=3, tvars=13
+         772 ldi(line=185): 3 <- (1)
+         773 ldi: 4 <- (2)
+         774 ldi: 5 <- (3)
+         775 ldi: 6 <- (4)
+         776 ldi: 7 <- (5)
+         777 ldi: 8 <- (6)
+         778 ldi: 9 <- (7)
+         779 ldi: 10 <- (8)
+         780 ldi: 11 <- (9)
+         781 ldi: 12 <- (10)
+         782 ldi: 13 <- (11)
+         783 ldi: 14 <- (12)
+         784 ldi: 15 <- (13)
+         785 and: 14 <- 14 15
+         786 xor: 13 <- 13 14
+         787 and: 12 <- 12 13
+         788 xor: 11 <- 11 12
+         789 and: 10 <- 10 11
+         790 xor: 9 <- 9 10
+         791 and: 8 <- 8 9
+         792 xor: 7 <- 7 8
+         793 and: 6 <- 6 7
+         794 xor: 5 <- 5 6
+         795 and: 4 <- 4 5
+         796 xor: 2 <- 3 4
+         797 var(line=186): 3 <- (grammar)
+         798 move: 4 <- 0 (tokens)
+         799 move: 5 <- 1 (error_func)
+         800 icall int_earley_parse: start=3 npars=3
+         801 ret: 3
+       802 leave(line=183)
 
-       325 lvar(line=189): 1 <- (grammar)
-       326 cicall int_earley_create_grammar: start=3 npars=0
-       327 st: 1(2) <- 3
-     328 leave(line=141)
+       707 lvar(line=189): 2 <- (grammar)
+       708 cicall int_earley_create_grammar: start=4 npars=0
+       709 st: 2(3) <- 4
+     710 leave(line=141)
 
   class file (0)
-     421 block(line=192): vars=1, tvars=2
-       422 var(line=194): 1 <- (__nogenerate__)
-       423 ldnil: 2 <- 
-       425 bteq: 1 2 (temp_res=1) (true=427, false=426)
-         426 var(line=195): 1 <- (invcalls)
-         428 fld: 1 <- 1 (callop, block_decl_ident_num=52)
-         429 lds(line=196): 2 <- ("File can be created only by functions open or popen")
-         430 call: start=1 npars=1
-         431 throw(line=195): 1
-     427 leave(line=192)
+     803 block(line=192): vars=1, tvars=2, ext.
+       804 var(line=194): 1 <- (invcalls)
+       805 fld: 1 <- 1 (callop, block_decl_ident_num=53)
+       806 lds(line=195): 2 <- ("File can be created only by functions open or popen")
+       807 call: start=1 npars=1
+       808 throw(line=194): 1
+     809 leave(line=192)
 
   func max (0)
-     432 block(line=201): vars=0, tvars=0
-     433 leave
+     810 block(line=199): vars=0, tvars=0
+     811 leave
 
   func min (0)
-     434 block: vars=0, tvars=0
-     435 leave
+     812 block: vars=0, tvars=0
+     813 leave
 
   func tolower (0)
-     436 block(line=202): vars=0, tvars=0
-     437 leave
+     814 block(line=200): vars=0, tvars=0
+     815 leave
 
   func toupper (0)
-     438 block: vars=0, tvars=0
-     439 leave
+     816 block: vars=0, tvars=0
+     817 leave
 
   func trans (0)
-     440 block: vars=0, tvars=0
-     441 leave
+     818 block: vars=0, tvars=0
+     819 leave
 
   func eltype (0)
-     442 block(line=203): vars=0, tvars=0
-     443 leave
+     820 block(line=201): vars=0, tvars=0
+     821 leave
 
   func keys (0)
-     444 block(line=204): vars=0, tvars=0
-     445 leave
+     822 block(line=202): vars=0, tvars=0
+     823 leave
 
   func context (0)
-     446 block(line=205): vars=0, tvars=0
-     447 leave
+     824 block(line=203): vars=0, tvars=0
+     825 leave
 
   func inside (0)
-     448 block: vars=0, tvars=0
-     449 leave
+     826 block: vars=0, tvars=0
+     827 leave
 
   func subv (0)
-     450 block(line=206): vars=0, tvars=0
-     451 leave
+     828 block(line=204): vars=0, tvars=0
+     829 leave
 
   func cmpv (0)
-     452 block: vars=0, tvars=0
-     453 leave
+     830 block: vars=0, tvars=0
+     831 leave
 
   func del (0)
-     454 block: vars=0, tvars=0
-     455 leave
+     832 block: vars=0, tvars=0
+     833 leave
 
   func ins (0)
-     456 block: vars=0, tvars=0
-     457 leave
+     834 block: vars=0, tvars=0
+     835 leave
 
   func insv (0)
-     458 block: vars=0, tvars=0
-     459 leave
+     836 block: vars=0, tvars=0
+     837 leave
 
   func rev (0)
-     460 block(line=207): vars=0, tvars=0
-     461 leave
+     838 block(line=205): vars=0, tvars=0
+     839 leave
 
   func sort (0)
-     462 block: vars=0, tvars=0
-     463 leave
+     840 block: vars=0, tvars=0
+     841 leave
 
   func sqrt (0)
-     464 block(line=208): vars=0, tvars=0
-     465 leave
+     842 block(line=206): vars=0, tvars=0
+     843 leave
 
   func exp (0)
-     466 block: vars=0, tvars=0
-     467 leave
+     844 block: vars=0, tvars=0
+     845 leave
 
   func log (0)
-     468 block: vars=0, tvars=0
-     469 leave
+     846 block: vars=0, tvars=0
+     847 leave
 
   func log10 (0)
-     470 block: vars=0, tvars=0
-     471 leave
+     848 block: vars=0, tvars=0
+     849 leave
 
   func pow (0)
-     472 block: vars=0, tvars=0
-     473 leave
+     850 block: vars=0, tvars=0
+     851 leave
 
   func sin (0)
-     474 block(line=209): vars=0, tvars=0
-     475 leave
+     852 block(line=207): vars=0, tvars=0
+     853 leave
 
   func cos (0)
-     476 block: vars=0, tvars=0
-     477 leave
+     854 block: vars=0, tvars=0
+     855 leave
 
   func atan2 (0)
-     478 block: vars=0, tvars=0
-     479 leave
+     856 block: vars=0, tvars=0
+     857 leave
 
   func match (0)
-     480 block(line=210): vars=0, tvars=0
-     481 leave
+     858 block(line=208): vars=0, tvars=0
+     859 leave
 
   func gmatch (0)
-     482 block: vars=0, tvars=0
-     483 leave
+     860 block: vars=0, tvars=0
+     861 leave
 
   func sub (0)
-     484 block: vars=0, tvars=0
-     485 leave
+     862 block: vars=0, tvars=0
+     863 leave
 
   func gsub (0)
-     486 block: vars=0, tvars=0
-     487 leave
+     864 block: vars=0, tvars=0
+     865 leave
 
   func split (0)
-     488 block(line=211): vars=0, tvars=0
-     489 leave
+     866 block(line=209): vars=0, tvars=0
+     867 leave
 
   func srand (0)
-     490 block(line=212): vars=0, tvars=0
-     491 leave
+     868 block(line=210): vars=0, tvars=0
+     869 leave
 
   func rand (0)
-     492 block: vars=0, tvars=0
-     493 leave
+     870 block: vars=0, tvars=0
+     871 leave
 
   func __process_errno__ (0)
-     494 block(line=213): vars=0, tvars=0
-     495 leave
+     872 block(line=211): vars=0, tvars=0
+     873 leave
 
   func readdir (0)
-     496 block(line=214): vars=0, tvars=0
-     497 leave
+     874 block(line=212): vars=0, tvars=0
+     875 leave
 
   func ftype (0)
-     498 block: vars=0, tvars=0
-     499 leave
+     876 block: vars=0, tvars=0
+     877 leave
 
   func fun (0)
-     500 block(line=215): vars=0, tvars=0
-     501 leave
+     878 block(line=213): vars=0, tvars=0
+     879 leave
 
   func fgn (0)
-     502 block: vars=0, tvars=0
-     503 leave
+     880 block: vars=0, tvars=0
+     881 leave
 
   func fsize (0)
-     504 block: vars=0, tvars=0
-     505 leave
+     882 block: vars=0, tvars=0
+     883 leave
 
   func fatime (0)
-     506 block(line=216): vars=0, tvars=0
-     507 leave
+     884 block(line=214): vars=0, tvars=0
+     885 leave
 
   func fmtime (0)
-     508 block: vars=0, tvars=0
-     509 leave
+     886 block: vars=0, tvars=0
+     887 leave
 
   func fctime (0)
-     510 block: vars=0, tvars=0
-     511 leave
+     888 block: vars=0, tvars=0
+     889 leave
 
   func fumode (0)
-     512 block(line=217): vars=0, tvars=0
-     513 leave
+     890 block(line=215): vars=0, tvars=0
+     891 leave
 
   func fgmode (0)
-     514 block: vars=0, tvars=0
-     515 leave
+     892 block: vars=0, tvars=0
+     893 leave
 
   func fomode (0)
-     516 block: vars=0, tvars=0
-     517 leave
+     894 block: vars=0, tvars=0
+     895 leave
 
   func time (0)
-     518 block(line=218): vars=0, tvars=0
-     519 leave
+     896 block(line=216): vars=0, tvars=0
+     897 leave
 
   func strtime (0)
-     520 block(line=219): vars=0, tvars=0
-     521 leave
+     898 block(line=217): vars=0, tvars=0
+     899 leave
 
   func clock (0)
-     522 block(line=220): vars=0, tvars=0
-     523 leave
+     900 block(line=218): vars=0, tvars=0
+     901 leave
 
   func gc (0)
-     524 block(line=221): vars=0, tvars=0
-     525 leave
+     902 block(line=219): vars=0, tvars=0
+     903 leave
 
   func rename (0)
-     526 block(line=222): vars=0, tvars=0
-     527 leave
+     904 block(line=220): vars=0, tvars=0
+     905 leave
 
   func remove (0)
-     528 block: vars=0, tvars=0
-     529 leave
+     906 block: vars=0, tvars=0
+     907 leave
 
   func mkdir (0)
-     530 block(line=223): vars=0, tvars=0
-     531 leave
+     908 block(line=221): vars=0, tvars=0
+     909 leave
 
   func rmdir (0)
-     532 block: vars=0, tvars=0
-     533 leave
+     910 block: vars=0, tvars=0
+     911 leave
 
   func getcwd (0)
-     534 block(line=224): vars=0, tvars=0
-     535 leave
+     912 block(line=222): vars=0, tvars=0
+     913 leave
 
   func chdir (0)
-     536 block: vars=0, tvars=0
-     537 leave
+     914 block: vars=0, tvars=0
+     915 leave
 
   func chumod (0)
-     538 block(line=225): vars=0, tvars=0
-     539 leave
+     916 block(line=223): vars=0, tvars=0
+     917 leave
 
   func chgmod (0)
-     540 block: vars=0, tvars=0
-     541 leave
+     918 block: vars=0, tvars=0
+     919 leave
 
   func chomod (0)
-     542 block: vars=0, tvars=0
-     543 leave
+     920 block: vars=0, tvars=0
+     921 leave
 
   func isatty (0)
-     544 block: vars=0, tvars=0
-     545 leave
+     922 block: vars=0, tvars=0
+     923 leave
 
   func open (0)
-     546 block(line=226): vars=0, tvars=0
-     547 leave
+     924 block(line=224): vars=0, tvars=0
+     925 leave
 
   func close (0)
-     548 block: vars=0, tvars=0
-     549 leave
+     926 block: vars=0, tvars=0
+     927 leave
 
   func flush (0)
-     550 block: vars=0, tvars=0
-     551 leave
+     928 block: vars=0, tvars=0
+     929 leave
 
   func popen (0)
-     552 block(line=227): vars=0, tvars=0
-     553 leave
+     930 block(line=225): vars=0, tvars=0
+     931 leave
 
   func pclose (0)
-     554 block: vars=0, tvars=0
-     555 leave
+     932 block: vars=0, tvars=0
+     933 leave
 
   func tell (0)
-     556 block(line=228): vars=0, tvars=0
-     557 leave
+     934 block(line=226): vars=0, tvars=0
+     935 leave
 
   func seek (0)
-     558 block: vars=0, tvars=0
-     559 leave
+     936 block: vars=0, tvars=0
+     937 leave
 
   func put (0)
-     560 block(line=229): vars=0, tvars=0
-     561 leave
+     938 block(line=227): vars=0, tvars=0
+     939 leave
 
   func putln (0)
-     562 block: vars=0, tvars=0
-     563 leave
+     940 block: vars=0, tvars=0
+     941 leave
 
   func fput (0)
-     564 block(line=230): vars=0, tvars=0
-     565 leave
+     942 block(line=228): vars=0, tvars=0
+     943 leave
 
   func fputln (0)
-     566 block: vars=0, tvars=0
-     567 leave
+     944 block: vars=0, tvars=0
+     945 leave
 
   func sput (0)
-     568 block: vars=0, tvars=0
-     569 leave
+     946 block: vars=0, tvars=0
+     947 leave
 
   func sputln (0)
-     570 block: vars=0, tvars=0
-     571 leave
+     948 block: vars=0, tvars=0
+     949 leave
 
   func putf (0)
-     572 block(line=231): vars=0, tvars=0
-     573 leave
+     950 block(line=229): vars=0, tvars=0
+     951 leave
 
   func fputf (0)
-     574 block: vars=0, tvars=0
-     575 leave
+     952 block: vars=0, tvars=0
+     953 leave
 
   func sputf (0)
-     576 block: vars=0, tvars=0
-     577 leave
+     954 block: vars=0, tvars=0
+     955 leave
 
   func print (0)
-     578 block(line=232): vars=0, tvars=0
-     579 leave
+     956 block(line=230): vars=0, tvars=0
+     957 leave
 
   func println (0)
-     580 block: vars=0, tvars=0
-     581 leave
+     958 block: vars=0, tvars=0
+     959 leave
 
   func fprint (0)
-     582 block(line=233): vars=0, tvars=0
-     583 leave
+     960 block(line=231): vars=0, tvars=0
+     961 leave
 
   func fprintln (0)
-     584 block: vars=0, tvars=0
-     585 leave
+     962 block: vars=0, tvars=0
+     963 leave
 
   func sprint (0)
-     586 block: vars=0, tvars=0
-     587 leave
+     964 block: vars=0, tvars=0
+     965 leave
 
   func sprintln (0)
-     588 block: vars=0, tvars=0
-     589 leave
+     966 block: vars=0, tvars=0
+     967 leave
 
   func get (0)
-     590 block(line=234): vars=0, tvars=0
-     591 leave
+     968 block(line=232): vars=0, tvars=0
+     969 leave
 
   func getln (0)
-     592 block: vars=0, tvars=0
-     593 leave
+     970 block: vars=0, tvars=0
+     971 leave
 
   func getf (0)
-     594 block: vars=0, tvars=0
-     595 leave
+     972 block: vars=0, tvars=0
+     973 leave
 
   func fget (0)
-     596 block(line=235): vars=0, tvars=0
-     597 leave
+     974 block(line=233): vars=0, tvars=0
+     975 leave
 
   func fgetln (0)
-     598 block: vars=0, tvars=0
-     599 leave
+     976 block: vars=0, tvars=0
+     977 leave
 
   func fgetf (0)
-     600 block: vars=0, tvars=0
-     601 leave
+     978 block: vars=0, tvars=0
+     979 leave
 
   func scan (0)
-     602 block(line=236): vars=0, tvars=0
-     603 leave
+     980 block(line=234): vars=0, tvars=0
+     981 leave
 
   func scanln (0)
-     604 block: vars=0, tvars=0
-     605 leave
+     982 block: vars=0, tvars=0
+     983 leave
 
   func fscan (0)
-     606 block: vars=0, tvars=0
-     607 leave
+     984 block: vars=0, tvars=0
+     985 leave
 
   func fscanln (0)
-     608 block: vars=0, tvars=0
-     609 leave
+     986 block: vars=0, tvars=0
+     987 leave
 
   func getpid (0)
-     610 block(line=237): vars=0, tvars=0
-     611 leave
+     988 block(line=235): vars=0, tvars=0
+     989 leave
 
   func getun (0)
-     612 block: vars=0, tvars=0
-     613 leave
+     990 block: vars=0, tvars=0
+     991 leave
 
   func geteun (0)
-     614 block: vars=0, tvars=0
-     615 leave
+     992 block: vars=0, tvars=0
+     993 leave
 
   func getgn (0)
-     616 block(line=238): vars=0, tvars=0
-     617 leave
+     994 block(line=236): vars=0, tvars=0
+     995 leave
 
   func getegn (0)
-     618 block: vars=0, tvars=0
-     619 leave
+     996 block: vars=0, tvars=0
+     997 leave
 
   func getgroups (0)
-     620 block: vars=0, tvars=0
-     621 leave
+     998 block: vars=0, tvars=0
+     999 leave
 
   func system (0)
-     622 block(line=239): vars=0, tvars=0
-     623 leave
+    1000 block(line=237): vars=0, tvars=0
+    1001 leave
 
   func exit (0)
-     624 block(line=240): vars=0, tvars=0
-     625 leave
+    1002 block(line=238): vars=0, tvars=0
+    1003 leave
 
   func fold (0)
-     626 block(line=241): vars=0, tvars=0
-     627 leave
+    1004 block(line=239): vars=0, tvars=0
+    1005 leave
 
   func filter (0)
-     628 block: vars=0, tvars=0
-     629 leave
+    1006 block: vars=0, tvars=0
+    1007 leave
 
   func map (0)
-     630 block: vars=0, tvars=0
-     631 leave
+    1008 block: vars=0, tvars=0
+    1009 leave
 
   func __init__ (0)
-     632 block(line=242): vars=0, tvars=0
-     633 leave
+    1010 block(line=240): vars=0, tvars=0
+    1011 leave
 
-       2 class(line=118): 34 <- (except)
-       3 call: start=34 npars=0
-       4 move: 0 <- 34 (excepts)
-       5 fld(line=119): 34 <- 0 (error, block_decl_ident_num=4)
-       6 ldnil: 35 <- 
-       7 call: start=34 npars=1
-       8 move: 1 <- 34 (errors)
-       9 fld(line=120): 34 <- 1 (signal, block_decl_ident_num=6)
-      10 ldnil: 35 <- 
-      11 call: start=34 npars=1
-      12 move: 2 <- 34 (signals)
-      13 fld(line=121): 34 <- 1 (invop, block_decl_ident_num=8)
-      14 ldnil: 35 <- 
-      15 call: start=34 npars=1
-      16 move: 3 <- 34 (invops)
-      17 fld(line=122): 34 <- 1 (invindex, block_decl_ident_num=10)
-      18 ldnil: 35 <- 
-      19 call: start=34 npars=1
-      20 move: 4 <- 34 (invindexes)
-      21 fld(line=123): 34 <- 1 (invslice, block_decl_ident_num=12)
-      22 ldnil: 35 <- 
-      23 call: start=34 npars=1
-      24 move: 5 <- 34 (invslices)
-      25 fld(line=124): 34 <- 1 (invector, block_decl_ident_num=14)
-      26 ldnil: 35 <- 
-      27 call: start=34 npars=1
-      28 move: 6 <- 34 (invectors)
-      29 fld(line=125): 34 <- 1 (invkey, block_decl_ident_num=16)
-      30 ldnil: 35 <- 
-      31 call: start=34 npars=1
-      32 move: 7 <- 34 (invkeys)
-      33 fld(line=126): 34 <- 1 (invcall, block_decl_ident_num=18)
-      34 ldnil: 35 <- 
-      35 call: start=34 npars=1
-      36 move: 8 <- 34 (invcalls)
-      37 fld(line=127): 34 <- 8 (syserror, block_decl_ident_num=20)
-      38 ldnil: 35 <- 
-      39 call: start=34 npars=1
-      40 move: 9 <- 34 (syserrors)
-      41 fld(line=128): 34 <- 8 (systemcall, block_decl_ident_num=22)
-      42 ldnil: 35 <- 
-      43 call: start=34 npars=1
-      44 move: 10 <- 34 (systemcalls)
-      45 fld(line=129): 34 <- 8 (invregexp, block_decl_ident_num=24)
-      46 ldnil: 35 <- 
-      47 call: start=34 npars=1
-      48 move: 11 <- 34 (invregexps)
-      49 fld(line=130): 34 <- 8 (invparser, block_decl_ident_num=26)
-      50 ldnil: 35 <- 
-      51 call: start=34 npars=1
-      52 move: 12 <- 34 (invparsers)
-      53 fld(line=131): 34 <- 8 (invextern, block_decl_ident_num=28)
+       2 class(line=118): 33 <- (except)
+       3 call: start=33 npars=0
+       4 move: 0 <- 33 (excepts)
+       5 fld(line=119): 33 <- 0 (error, block_decl_ident_num=5)
+       6 call: start=33 npars=0
+       7 move: 1 <- 33 (errors)
+       8 fld(line=120): 33 <- 1 (signal, block_decl_ident_num=7)
+       9 call: start=33 npars=0
+      10 move: 2 <- 33 (signals)
+      11 fld(line=121): 33 <- 1 (invop, block_decl_ident_num=9)
+      12 call: start=33 npars=0
+      13 move: 3 <- 33 (invops)
+      14 fld(line=122): 33 <- 1 (invindex, block_decl_ident_num=11)
+      15 call: start=33 npars=0
+      16 move: 4 <- 33 (invindexes)
+      17 fld(line=123): 33 <- 1 (invslice, block_decl_ident_num=13)
+      18 call: start=33 npars=0
+      19 move: 5 <- 33 (invslices)
+      20 fld(line=124): 33 <- 1 (invector, block_decl_ident_num=15)
+      21 call: start=33 npars=0
+      22 move: 6 <- 33 (invectors)
+      23 fld(line=125): 33 <- 1 (invkey, block_decl_ident_num=17)
+      24 call: start=33 npars=0
+      25 move: 7 <- 33 (invkeys)
+      26 fld(line=126): 33 <- 1 (invcall, block_decl_ident_num=19)
+      27 call: start=33 npars=0
+      28 move: 8 <- 33 (invcalls)
+      29 fld(line=127): 33 <- 8 (syserror, block_decl_ident_num=21)
+      30 call: start=33 npars=0
+      31 move: 9 <- 33 (syserrors)
+      32 fld(line=128): 33 <- 8 (systemcall, block_decl_ident_num=23)
+      33 call: start=33 npars=0
+      34 move: 10 <- 33 (systemcalls)
+      35 fld(line=129): 33 <- 8 (invregexp, block_decl_ident_num=25)
+      36 call: start=33 npars=0
+      37 move: 11 <- 33 (invregexps)
+      38 fld(line=130): 33 <- 8 (invparser, block_decl_ident_num=27)
+      39 call: start=33 npars=0
+      40 move: 12 <- 33 (invparsers)
+      41 fld(line=131): 33 <- 8 (invextern, block_decl_ident_num=29)
+      42 call: start=33 npars=0
+      43 move: 13 <- 33 (invexterns)
+      44 fld(line=132): 33 <- 1 (invaccess, block_decl_ident_num=31)
+      45 call: start=33 npars=0
+      46 move: 14 <- 33 (invaccesses)
+      47 class(line=138): 33 <- (anode)
+      48 lds: 34 <- ("$nil")
+      49 ldnil: 35 <- 
+      50 call: start=33 npars=2
+      51 move: 20 <- 33 (nil_anode)
+      52 class(line=139): 33 <- (anode)
+      53 lds: 34 <- ("$error")
       54 ldnil: 35 <- 
-      55 call: start=34 npars=1
-      56 move: 13 <- 34 (invexterns)
-      57 fld(line=132): 34 <- 1 (invaccess, block_decl_ident_num=30)
-      58 ldnil: 35 <- 
-      59 call: start=34 npars=1
-      60 move: 14 <- 34 (invaccesses)
-      61 class(line=138): 34 <- (anode)
-      62 lds: 35 <- ("$nil")
-      63 call: start=34 npars=1
-      64 move: 20 <- 34 (nil_anode)
-      65 class(line=139): 34 <- (anode)
-      66 lds: 35 <- ("$error")
-      67 call: start=34 npars=1
-      68 move: 21 <- 34 (error_anode)
-      69 class(line=197): 34 <- (file)
-      70 call: start=34 npars=0
-      71 const: 22 <- 34
-      72 class(line=198): 34 <- (file)
-      73 call: start=34 npars=0
-      74 const: 23 <- 34
-      75 class(line=199): 34 <- (file)
-      76 call: start=34 npars=0
-      77 const: 24 <- 34
-      78 ldi(line=200): 25 <- (0)
-      79 lds(line=211): 26 <- ("[ \t]+")
-      80 lds(line=219): 27 <- ("%a %b %d %H:%M:%S %Z %Y")
-      81 tipcall(line=242) __init__: start=34 npars=0
-      82 ldi(line=2): 28 <- (8190)
-      83 addi(line=4): 34 <- 28 (1)
-      84 ldi: 35 <- (0)
-      85 vec: 33 <- (els=34, parts=1)
-      86 ldi(line=5): 32 <- (0)
-      87 ldi(line=6): 29 <- (0)
-      89 btle: 29 28 (temp_res=34) (true=91, false=90)
-        91 ldi(line=7): 34 <- (1)
-        92 st: 33(29) <- 34
-        94 btleinc(line=6): 29+(1) 28 (temp_res=34) (true=91, false=90)
-      90 ldi(line=8): 29 <- (0)
-      96 btle: 29 28 (temp_res=34) (true=98, false=97)
-        98 ind(line=9): 34 <- 33[29]
-        99 bf: 34 (true=102, false=100)
-         100 add(line=11): 34 <- 29 29
-         105 addi: 30 <- 34 (3)
-         106 add(line=12): 31 <- 29 30
-         107 ldi(line=13): 34 <- (1)
-         108 bt: 34 (true=111, false=109)
-           111 btle(line=15): 31 28 (temp_res=34) (true=113, false=112)
-             112 out(line=16): of 0 blocks
-           113 ldi(line=17): 34 <- (0)
-           114 st: 33(31) <- 34
-           115 add(line=18): 31 <- 31 30
-               goto 107
-         109 addi(line=20): 32 <- 32 (1)
-       102 btleinc(line=8): 29+(1) 28 (temp_res=34) (true=98, false=97)
-      97 move(line=23): 34 <- 32 (count)
-     103 tipcall println: start=34 npars=1
-   104 leave(line=1)
+      55 call: start=33 npars=2
+      56 move: 21 <- 33 (error_anode)
+      57 lds(line=209): 25 <- ("[ \t]+")
+      58 lds(line=217): 26 <- ("%a %b %d %H:%M:%S %Z %Y")
+      59 tipcall(line=240) __init__: start=33 npars=0
+      60 ldi(line=2): 27 <- (8190)
+      61 addi(line=4): 33 <- 27 (1)
+      62 ldi: 34 <- (0)
+      63 vec: 32 <- (els=33, parts=1)
+      64 ldi(line=5): 31 <- (0)
+      65 ldi(line=6): 28 <- (0)
+      67 btle: 28 27 (temp_res=33) (true=69, false=68)
+        69 ldi(line=7): 33 <- (1)
+        70 st: 32(28) <- 33
+        72 btleinc(line=6): 28+(1) 27 (temp_res=33) (true=69, false=68)
+      68 ldi(line=8): 28 <- (0)
+      74 btle: 28 27 (temp_res=33) (true=76, false=75)
+        76 ind(line=9): 33 <- 32[28]
+        77 bf: 33 (true=80, false=78)
+          78 add(line=11): 33 <- 28 28
+          83 addi: 29 <- 33 (3)
+          84 add(line=12): 30 <- 28 29
+          85 ldi(line=13): 33 <- (1)
+          86 bt: 33 (true=89, false=87)
+            89 btle(line=15): 30 27 (temp_res=33) (true=91, false=90)
+              90 out(line=16): of 0 blocks
+            91 ldi(line=17): 33 <- (0)
+            92 st: 32(30) <- 33
+            93 add(line=18): 30 <- 30 29
+               goto 85
+          87 addi(line=20): 31 <- 31 (1)
+        80 btleinc(line=8): 28+(1) 27 (temp_res=33) (true=76, false=75)
+      75 move(line=23): 33 <- 31 (count)
+      81 tipcall println: start=33 npars=1
+    82 leave(line=1)
 OUTPUT585
                         result=ok
                 else
@@ -37249,11 +37630,11 @@ fi
 if test $result = ok -a $start_test_number -le 595; then
 	echo test 595: Different vector unary operations 4
         cat >$test_file <<'TEST595'
-var ct;
-thread t () {ct = curr_thread;}
-class c() {}
-func f () {class fc () {};return fc();}
-func main () {
+var ct = nil;
+thread t {ct = curr_thread;}
+class c {}
+func f {class fc {};return fc();}
+func main {
   var i, one = 1, two = 2, three = 3;
   for (i = 0; i < 2; i++) {
     var v1 = [3:one, 3:two, 3:three];
@@ -37324,10 +37705,10 @@ fi
 if test $result = ok -a $start_test_number -le 597; then
 	echo test 597: A bug with extended life block
         cat >$test_file <<'TEST597'
-var o;
-thread t () {class tc () {}; o = tc ();}
-func f () {class fc () {};return fc();}
-func main () {
+var o = nil;
+thread t {class tc {}; o = tc ();}
+func f {class fc {};return fc();}
+func main {
   var one, two;
   one = context (f()); t (); wait (o != nil); two = context (o);
   println (one, two);
@@ -37548,7 +37929,7 @@ putln (afunc (a,b) {return a < b ? a : b;} (3, 5));
 afunc (a,b) {putln (a > b ? a : b);} (3, 5);
 var o = aclass (c) {};
 putln (o (42).c);
-athread () {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
+athread {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
 o = nil;
 TEST605
         echo '      ' $DINO -t $test_file "2>$stderr"
@@ -37629,12 +38010,12 @@ if test $result = ok -a $start_test_number -le 608; then
 	echo test 608: Filter function
         cat >$test_file <<'TEST608'
 var i, v = [0, 1, -2, 3, -4];
-println (filter (afunc (a) {return a > 0;}, v[:]));
+println (filter (afunc (a) {return a > 0;}, v));
 v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afunc (a) {return a > 0;}, v[:][:]));
+println (filter (afunc (a) {return a > 0;}, v, 2));
 for (i = 0; i < 1000; i++) {
   v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
-  v = filter (afunc (a) {if (i % 100) gc ();return a > 0;}, v[:][:]);
+  v = filter (afunc (a) {if (i % 100) gc ();return a > 0;}, v, 2);
 }
 println (v);
 TEST608
@@ -37688,7 +38069,7 @@ if test $result = ok -a $start_test_number -le 610; then
 	echo test 610: Another wrong filter argument
         cat >$test_file <<'TEST610'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afunc (a) {return a > 0;}, v[:]));
+println (filter (afunc (a) {return a > 0;}, v));
 TEST610
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -37716,7 +38097,7 @@ if test $result = ok -a $start_test_number -le 611; then
 	echo test 611: Wrong filter function result
         cat >$test_file <<'TEST611'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afunc (a) {return nil;}, v[:][:]));
+println (filter (afunc (a) {return nil;}, v, 2));
 TEST611
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -37744,10 +38125,10 @@ if test $result = ok -a $start_test_number -le 612; then
 	echo test 612: Map function
         cat >$test_file <<'TEST612'
 var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (map (afunc (a) {return a < 0 ? nil : a;}, v[:][:]));
+println (map (afunc (a) {return a < 0 ? nil : a;}, v, 2));
 for (i = 0; i < 1000; i++) {
   v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
-  v = map (afunc (a) {if (i % 100) gc ();return a < 0 ? 0 : a;}, v[:][:]);
+  v = map (afunc (a) {if (i % 100) gc ();return a < 0 ? 0 : a;}, v, 2);
 }
 println (v);
 TEST612
@@ -37800,7 +38181,7 @@ if test $result = ok -a $start_test_number -le 614; then
 	echo test 614: Another wrong map argument
         cat >$test_file <<'TEST614'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (map (afunc (a) {return a > 0;}, v[:]));
+println (map (afunc (a) {return a > 0;}, v));
 TEST614
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -37833,11 +38214,11 @@ TEST615
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT615' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=29, tvars=2
-      82 ldi: 28 <- (0)
-      84 btlti: 28 (1000) (temp_res=29) (true=86, false=85)
-        86 addi: 28 <- 28 (-1)
-           goto 84
+     1 block(line=1): vars=28, tvars=3
+      60 ldi: 27 <- (0)
+      62 btlti: 27 (1000) (temp_res=28) (true=64, false=63)
+        64 addi: 27 <- 27 (-1)
+           goto 62
 OUTPUT615
                         result=ok
                 else
@@ -37862,12 +38243,12 @@ TEST616
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT616' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=29, tvars=2
-      82 ldi: 28 <- (0)
-      83 addi(line=2): 28 <- 28 (1)
-      84 addi(line=3): 28 <- 28 (2)
-      85 addi(line=4): 28 <- 28 (3)
-      86 addi(line=5): 28 <- 28 (4)
+     1 block(line=1): vars=28, tvars=3
+      60 ldi: 27 <- (0)
+      61 addi(line=2): 27 <- 27 (1)
+      62 addi(line=3): 27 <- 27 (2)
+      63 addi(line=4): 27 <- 27 (3)
+      64 addi(line=5): 27 <- 27 (4)
 OUTPUT616
                         result=ok
                 else
@@ -37894,15 +38275,15 @@ TEST617
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT617' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=30, tvars=2
-      82 ldi: 28 <- (0)
-      83 ldi: 29 <- (0)
-      85 btne(line=2): 28 29 (temp_res=30) (true=85, false=87)
-      87 bteq(line=3): 28 29 (temp_res=30) (true=87, false=89)
-      89 btle(line=4): 28 29 (temp_res=30) (true=89, false=91)
-      91 btlt(line=5): 28 29 (temp_res=30) (true=91, false=93)
-      93 btge(line=6): 28 29 (temp_res=30) (true=93, false=95)
-      95 btgt(line=7): 28 29 (temp_res=30) (true=95, false=96)
+     1 block(line=1): vars=29, tvars=3
+      60 ldi: 27 <- (0)
+      61 ldi: 28 <- (0)
+      63 btne(line=2): 27 28 (temp_res=29) (true=63, false=65)
+      65 bteq(line=3): 27 28 (temp_res=29) (true=65, false=67)
+      67 btle(line=4): 27 28 (temp_res=29) (true=67, false=69)
+      69 btlt(line=5): 27 28 (temp_res=29) (true=69, false=71)
+      71 btge(line=6): 27 28 (temp_res=29) (true=71, false=73)
+      73 btgt(line=7): 27 28 (temp_res=29) (true=73, false=74)
 OUTPUT617
                         result=ok
                 else
@@ -37927,13 +38308,13 @@ TEST618
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT618' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=29, tvars=2
-      82 ldi: 28 <- (0)
-      83 addi(line=2): 28 <- 28 (-1)
-      84 addi(line=3): 28 <- 28 (-2)
-      85 addi(line=4): 28 <- 28 (-3)
-      86 ldi(line=5): 29 <- (4)
-      87 sub: 28 <- 29 28
+     1 block(line=1): vars=28, tvars=3
+      60 ldi: 27 <- (0)
+      61 addi(line=2): 27 <- 27 (-1)
+      62 addi(line=3): 27 <- 27 (-2)
+      63 addi(line=4): 27 <- 27 (-3)
+      64 ldi(line=5): 28 <- (4)
+      65 sub: 27 <- 28 27
 OUTPUT618
                         result=ok
                 else
@@ -37956,29 +38337,29 @@ TEST619
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT619' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=29, tvars=8
-      82 ldi: 29 <- (10)
-      83 ldi: 30 <- (0)
-      84 vec: 28 <- (els=29, parts=1)
-      85 move(line=2): 29 <- 28 (i)
-      86 ldi: 30 <- (0)
-      87 ldi: 31 <- (-1)
-      88 ldi: 32 <- (1)
-      89 lslv: 33 <- 29 (dim=1)
-      90 ldi: 34 <- (1)
-      91 add_slst: 29(dim=1) <- 33 op 34
-      92 move(line=3): 29 <- 28 (i)
-      93 ldi: 30 <- (0)
-      94 ldi: 31 <- (-1)
-      95 ldi: 32 <- (1)
-      96 move: 33 <- 28 (i)
-      97 ldi: 34 <- (0)
-      98 ldi: 35 <- (-1)
-      99 ldi: 36 <- (1)
-     100 sl: 33 <- 33 (dim=1)
-     101 ldi: 34 <- (1)
-     102 add: 33 <- 33 34
-     103 slst: 29(dim=1) <- 33
+     1 block(line=1): vars=28, tvars=8
+      60 ldi: 28 <- (10)
+      61 ldi: 29 <- (0)
+      62 vec: 27 <- (els=28, parts=1)
+      63 move(line=2): 28 <- 27 (i)
+      64 ldi: 29 <- (0)
+      65 ldi: 30 <- (-1)
+      66 ldi: 31 <- (1)
+      67 lslv: 32 <- 28 (dim=1)
+      68 ldi: 33 <- (1)
+      69 add_slst: 28(dim=1) <- 32 op 33
+      70 move(line=3): 28 <- 27 (i)
+      71 ldi: 29 <- (0)
+      72 ldi: 30 <- (-1)
+      73 ldi: 31 <- (1)
+      74 move: 32 <- 27 (i)
+      75 ldi: 33 <- (0)
+      76 ldi: 34 <- (-1)
+      77 ldi: 35 <- (1)
+      78 sl: 32 <- 32 (dim=1)
+      79 ldi: 33 <- (1)
+      80 add: 32 <- 32 33
+      81 slst: 28(dim=1) <- 32
 OUTPUT619
                         result=ok
                 else
@@ -38005,28 +38386,28 @@ TEST620
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT620' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=31, tvars=2
-      82 ldi: 28 <- (0)
-      83 ldi: 29 <- (10)
-      84 ldi: 30 <- (1)
-      86 btne(line=2): 28 29 (temp_res=31) (true=88, false=91)
-        88 addi: 30 <- 30 (1)
-        90 btneinc: 28+(1) 29 (temp_res=31) (true=88, false=91)
-      91 bteq(line=3): 28 29 (temp_res=31) (true=93, false=96)
-        93 addi: 30 <- 30 (1)
-        95 bteqinc: 28+(1) 29 (temp_res=31) (true=93, false=96)
-      96 btle(line=4): 28 29 (temp_res=31) (true=98, false=101)
-        98 addi: 30 <- 30 (1)
-       100 btleinc: 28+(1) 29 (temp_res=31) (true=98, false=101)
-     101 btlt(line=5): 28 29 (temp_res=31) (true=103, false=106)
-       103 addi: 30 <- 30 (1)
-       105 btltinc: 28+(1) 29 (temp_res=31) (true=103, false=106)
-     106 btge(line=6): 28 29 (temp_res=31) (true=108, false=111)
-       108 addi: 30 <- 30 (1)
-       110 btgeinc: 28+(1) 29 (temp_res=31) (true=108, false=111)
-     111 btgt(line=7): 28 29 (temp_res=31) (true=113, false=112)
-       113 addi: 30 <- 30 (1)
-       115 btgtinc: 28+(1) 29 (temp_res=31) (true=113, false=112)
+     1 block(line=1): vars=30, tvars=3
+      60 ldi: 27 <- (0)
+      61 ldi: 28 <- (10)
+      62 ldi: 29 <- (1)
+      64 btne(line=2): 27 28 (temp_res=30) (true=66, false=69)
+        66 addi: 29 <- 29 (1)
+        68 btneinc: 27+(1) 28 (temp_res=30) (true=66, false=69)
+      69 bteq(line=3): 27 28 (temp_res=30) (true=71, false=74)
+        71 addi: 29 <- 29 (1)
+        73 bteqinc: 27+(1) 28 (temp_res=30) (true=71, false=74)
+      74 btle(line=4): 27 28 (temp_res=30) (true=76, false=79)
+        76 addi: 29 <- 29 (1)
+        78 btleinc: 27+(1) 28 (temp_res=30) (true=76, false=79)
+      79 btlt(line=5): 27 28 (temp_res=30) (true=81, false=84)
+        81 addi: 29 <- 29 (1)
+        83 btltinc: 27+(1) 28 (temp_res=30) (true=81, false=84)
+      84 btge(line=6): 27 28 (temp_res=30) (true=86, false=89)
+        86 addi: 29 <- 29 (1)
+        88 btgeinc: 27+(1) 28 (temp_res=30) (true=86, false=89)
+      89 btgt(line=7): 27 28 (temp_res=30) (true=91, false=90)
+        91 addi: 29 <- 29 (1)
+        93 btgtinc: 27+(1) 28 (temp_res=30) (true=91, false=90)
 OUTPUT620
                         result=ok
                 else
@@ -38048,14 +38429,14 @@ TEST621
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT621' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=31, tvars=2
-      82 ldi: 28 <- (1)
-      83 ldi: 29 <- (5)
-      84 ldi: 30 <- (0)
-      86 btge(line=2): 28 29 (temp_res=31) (true=88, false=87)
-        88 addi: 30 <- 30 (-1)
-           goto 89
-        87 addi: 30 <- 30 (1)
+     1 block(line=1): vars=30, tvars=3
+      60 ldi: 27 <- (1)
+      61 ldi: 28 <- (5)
+      62 ldi: 29 <- (0)
+      64 btge(line=2): 27 28 (temp_res=30) (true=66, false=65)
+        66 addi: 29 <- 29 (-1)
+           goto 67
+        65 addi: 29 <- 29 (1)
 OUTPUT621
                         result=ok
                 else
@@ -38103,10 +38484,10 @@ fi
 if test $result = ok -a $start_test_number -le 623; then
 	echo test 623: Immediate call generation
         cat >$test_file <<'TEST623'
-func f () {
-  func h () {
+func f {
+  func h {
   }
-  func g () {
+  func g {
      h ();
   }
   g ();
@@ -38117,22 +38498,22 @@ TEST623
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT623' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=28, tvars=2
+     1 block(line=1): vars=27, tvars=3
   func f (0)
-     602 block: vars=0, tvars=1
+     980 block: vars=0, tvars=1
     func h (0)
-       605 block(line=2): vars=0, tvars=0
-       606 leave
+       983 block(line=2): vars=0, tvars=0
+       984 leave
 
     func g (0)
-       607 block(line=4): vars=0, tvars=1
-         608 itpcall(line=5) h: start=0 npars=0
-       609 leave(line=4)
+       985 block(line=4): vars=0, tvars=1
+         986 itpcall(line=5) h: start=0 npars=0
+       987 leave(line=4)
 
-       603 citpcall(line=7) g: start=0 npars=0
-     604 leave(line=1)
+       981 citpcall(line=7) g: start=0 npars=0
+     982 leave(line=1)
 
-      82 titpcall(line=9) f: start=28 npars=0
+      60 titpcall(line=9) f: start=27 npars=0
 OUTPUT623
                         result=ok
                 else
@@ -38165,32 +38546,32 @@ TEST624
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT624' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=29, tvars=2
-      82 ldi: 28 <- (0)
-      84 btgei(line=2): 28 (1) (temp_res=29) (true=87, false=85)
-        85 addi: 28 <- 28 (1)
-      87 btlei(line=3): 28 (1) (temp_res=29) (true=90, false=88)
-        88 addi: 28 <- 28 (1)
-      90 btgti(line=4): 28 (1) (temp_res=29) (true=93, false=91)
-        91 addi: 28 <- 28 (1)
-      93 btlti(line=5): 28 (1) (temp_res=29) (true=96, false=94)
-        94 addi: 28 <- 28 (1)
-      96 btnei(line=6): 28 (1) (temp_res=29) (true=99, false=97)
-        97 addi: 28 <- 28 (1)
-      99 bteqi(line=7): 28 (1) (temp_res=29) (true=102, false=100)
-       100 addi: 28 <- 28 (1)
-     102 btlti(line=8): 28 (2) (temp_res=29) (true=105, false=103)
-       103 addi: 28 <- 28 (1)
-     105 btgti(line=9): 28 (2) (temp_res=29) (true=108, false=106)
-       106 addi: 28 <- 28 (1)
-     108 btlei(line=10): 28 (2) (temp_res=29) (true=111, false=109)
-       109 addi: 28 <- 28 (1)
-     111 btgei(line=11): 28 (2) (temp_res=29) (true=114, false=112)
-       112 addi: 28 <- 28 (1)
-     114 btnei(line=12): 28 (2) (temp_res=29) (true=117, false=115)
-       115 addi: 28 <- 28 (1)
-     117 bteqi(line=13): 28 (2) (temp_res=29) (true=119, false=118)
-       118 addi: 28 <- 28 (1)
+     1 block(line=1): vars=28, tvars=3
+      60 ldi: 27 <- (0)
+      62 btgei(line=2): 27 (1) (temp_res=28) (true=65, false=63)
+        63 addi: 27 <- 27 (1)
+      65 btlei(line=3): 27 (1) (temp_res=28) (true=68, false=66)
+        66 addi: 27 <- 27 (1)
+      68 btgti(line=4): 27 (1) (temp_res=28) (true=71, false=69)
+        69 addi: 27 <- 27 (1)
+      71 btlti(line=5): 27 (1) (temp_res=28) (true=74, false=72)
+        72 addi: 27 <- 27 (1)
+      74 btnei(line=6): 27 (1) (temp_res=28) (true=77, false=75)
+        75 addi: 27 <- 27 (1)
+      77 bteqi(line=7): 27 (1) (temp_res=28) (true=80, false=78)
+        78 addi: 27 <- 27 (1)
+      80 btlti(line=8): 27 (2) (temp_res=28) (true=83, false=81)
+        81 addi: 27 <- 27 (1)
+      83 btgti(line=9): 27 (2) (temp_res=28) (true=86, false=84)
+        84 addi: 27 <- 27 (1)
+      86 btlei(line=10): 27 (2) (temp_res=28) (true=89, false=87)
+        87 addi: 27 <- 27 (1)
+      89 btgei(line=11): 27 (2) (temp_res=28) (true=92, false=90)
+        90 addi: 27 <- 27 (1)
+      92 btnei(line=12): 27 (2) (temp_res=28) (true=95, false=93)
+        93 addi: 27 <- 27 (1)
+      95 bteqi(line=13): 27 (2) (temp_res=28) (true=97, false=96)
+        96 addi: 27 <- 27 (1)
 OUTPUT624
                         result=ok
                 else
@@ -38223,21 +38604,330 @@ TEST625
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT625' && $CMP $stdout $ftemp2; then
-     1 block(line=1): vars=29, tvars=2
-      82 ldi: 28 <- (0)
-      83 lti(line=2): 28 <- 28 (1)
-      84 gti(line=3): 28 <- 28 (1)
-      85 lei(line=4): 28 <- 28 (1)
-      86 gei(line=5): 28 <- 28 (1)
-      87 eqi(line=6): 28 <- 28 (1)
-      88 nei(line=7): 28 <- 28 (1)
-      89 gei(line=8): 28 <- 28 (2)
-      90 lei(line=9): 28 <- 28 (2)
-      91 gti(line=10): 28 <- 28 (2)
-      92 lti(line=11): 28 <- 28 (2)
-      93 eqi(line=12): 28 <- 28 (2)
-      94 nei(line=13): 28 <- 28 (2)
+     1 block(line=1): vars=28, tvars=3
+      60 ldi: 27 <- (0)
+      61 lti(line=2): 27 <- 27 (1)
+      62 gti(line=3): 27 <- 27 (1)
+      63 lei(line=4): 27 <- 27 (1)
+      64 gei(line=5): 27 <- 27 (1)
+      65 eqi(line=6): 27 <- 27 (1)
+      66 nei(line=7): 27 <- 27 (1)
+      67 gei(line=8): 27 <- 27 (2)
+      68 lei(line=9): 27 <- 27 (2)
+      69 gti(line=10): 27 <- 27 (2)
+      70 lti(line=11): 27 <- 27 (2)
+      71 eqi(line=12): 27 <- 27 (2)
+      72 nei(line=13): 27 <- 27 (2)
 OUTPUT625
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 626
+if test $result = ok -a $start_test_number -le 626; then
+	echo test 626: Too few actuals
+        cat >$test_file <<'TEST626'
+func f (a, b) {
+}
+
+f(1);
+TEST626
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT626' && $CMP $stderr $ftemp2; then
+test.d:4:2: run time error - too few actual parameters for `f'
+OUTPUT626
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT626-2' && $CMP $stdout $ftemp2; then
+OUTPUT626-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 627
+if test $result = ok -a $start_test_number -le 627; then
+	echo test 627: Too amny actuals
+        cat >$test_file <<'TEST627'
+func f {
+}
+
+f(1);
+TEST627
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT627' && $CMP $stderr $ftemp2; then
+test.d:4:2: run time error - too many actual parameters for `f'
+OUTPUT627
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT627-2' && $CMP $stdout $ftemp2; then
+OUTPUT627-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 628
+if test $result = ok -a $start_test_number -le 628; then
+	echo test 628: Too few actuals when ... is present
+        cat >$test_file <<'TEST628'
+func f (a, ...) {
+}
+
+f ();
+TEST628
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT628' && $CMP $stderr $ftemp2; then
+test.d:4:3: run time error - too few actual parameters for `f'
+OUTPUT628
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT628-2' && $CMP $stdout $ftemp2; then
+OUTPUT628-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 629
+if test $result = ok -a $start_test_number -le 629; then
+	echo test 629: Undefined comparison values
+        cat >$test_file <<'TEST629'
+var i;
+println (i == 10);
+TEST629
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT629' && $CMP $stderr $ftemp2; then
+test.d:2:13: run time error - invalid types of operands of operator "==" or "!="
+OUTPUT629
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT629-2' && $CMP $stdout $ftemp2; then
+OUTPUT629-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 630
+if test $result = ok -a $start_test_number -le 630; then
+	echo test 630: Undefined identity values
+        cat >$test_file <<'TEST630'
+var i;
+println (i !== 10);
+TEST630
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT630' && $CMP $stderr $ftemp2; then
+test.d:2:14: run time error - invalid types of operands of operator "===" or "!=="
+OUTPUT630
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT630-2' && $CMP $stdout $ftemp2; then
+OUTPUT630-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 631
+if test $result = ok -a $start_test_number -le 631; then
+	echo test 631: Undefined local values
+        cat >$test_file <<'TEST631'
+var i, j = i;
+TEST631
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT631' && $CMP $stderr $ftemp2; then
+test.d:1:8: run time error - undefined `j' value access
+OUTPUT631
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT631-2' && $CMP $stdout $ftemp2; then
+OUTPUT631-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 632
+if test $result = ok -a $start_test_number -le 632; then
+	echo test 632: Undefined object values
+        cat >$test_file <<'TEST632'
+class c { var i;}
+println (c().i);
+TEST632
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT632' && $CMP $stderr $ftemp2; then
+test.d:2:13: run time error - undefined `i' value access
+OUTPUT632
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT632-2' && $CMP $stdout $ftemp2; then
+OUTPUT632-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 633
+if test $result = ok -a $start_test_number -le 633; then
+	echo test 633: Undefined global values
+        cat >$test_file <<'TEST633'
+var i;
+func f {
+  return i;
+}
+
+f();
+TEST633
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT633' && $CMP $stderr $ftemp2; then
+test.d:3:9: run time error - undefined `i' value access
+OUTPUT633
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT633-2' && $CMP $stdout $ftemp2; then
+OUTPUT633-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 634
+if test $result = ok -a $start_test_number -le 634; then
+	echo test 634: This not in func/block/ext
+        cat >$test_file <<'TEST634'
+var i = this;
+TEST634
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT634' && $CMP $stderr $ftemp2; then
+test.d:1:13: this is not in function, class, or extension
+OUTPUT634
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT634-2' && $CMP $stdout $ftemp2; then
+OUTPUT634-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 635.
+if test $result = ok -a $start_test_number -le 635; then
+	echo test 635: This in func/class/extension
+        cat >$test_file <<'TEST635'
+var i; func f {i = this;}
+class c {i = this;}
+thread t {i = this;}
+TEST635
+        echo '      ' $DINO $test_file "2>$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT635' && $CMP $stdout $ftemp2; then
+OUTPUT635
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 636.
+if test $result = ok -a $start_test_number -le 636; then
+	echo test 636: Correct this value in func/class/extension
+        cat >$test_file <<'TEST636'
+var i; func f {i = this;} f (); putln (inside (i, f));
+class c {i = this;} c (); putln (inside (i, c));
+var s = 0; func t {i = this; s = 1;} t (); wait (s == 1); putln (inside (i, t));
+class c1 {} ext c1 {i=this;} c1 (); putln (inside (i, c1));
+TEST636
+        echo '      ' $DINO $test_file "2>$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT636' && $CMP $stdout $ftemp2; then
+1
+1
+1
+1
+OUTPUT636
                         result=ok
                 else
                         result=fail

@@ -152,7 +152,7 @@ _gethostinfo (int npars, val_t *vals)
   ER_node_t res = (ER_node_t) &val;
   
   d_assert (npars == 2 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_stack);
   name = ER_pack_els (ER_vect ((ER_node_t) vals));
   addr = get_ip_address (name);
   if (addr == NULL)
@@ -173,9 +173,9 @@ _gethostinfo (int npars, val_t *vals)
       ER_SET_MODE (res, ER_NM_nil);
       return val;
     }
-  instance = ER_instance ((ER_node_t) (vals + 1));
+  instance = ER_stack ((ER_node_t) (vals + 1));
   /* hostname */
-  var = ER_instance_vars (instance);
+  var = ER_stack_vars (instance);
   vect = create_string (he->h_name);
   ER_SET_MODE (var, ER_NM_vect);
   set_vect_dim (var, vect, 0);
@@ -204,8 +204,8 @@ _gethostinfo (int npars, val_t *vals)
     }
   ER_SET_MODE (var, ER_NM_vect);
   set_vect_dim (var, vect, 0);
-  ER_SET_MODE (res, ER_NM_instance);
-  ER_set_instance (res, instance);
+  ER_SET_MODE (res, ER_NM_stack);
+  ER_set_stack (res, instance);
   return val;
 }
 
@@ -223,7 +223,7 @@ form_servent (ER_node_t instance, struct servent *se)
       return val;
     }
   /* name */
-  var = ER_instance_vars (instance);
+  var = ER_stack_vars (instance);
   vect = create_string (se->s_name);
   ER_SET_MODE (var, ER_NM_vect);
   set_vect_dim (var, vect, 0);
@@ -246,8 +246,8 @@ form_servent (ER_node_t instance, struct servent *se)
   vect = create_string (se->s_proto);
   ER_SET_MODE (var, ER_NM_vect);
   set_vect_dim (var, vect, 0);
-  ER_SET_MODE (res, ER_NM_instance);
-  ER_set_instance (res, instance);
+  ER_SET_MODE (res, ER_NM_stack);
+  ER_set_stack (res, instance);
   return val;
 }
 
@@ -258,9 +258,9 @@ _getservbyport (int npars, val_t *vals)
   int port;
   char *proto;
 
-  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
-  instance = ER_instance ((ER_node_t) vals);
-  var = ER_instance_vars (instance);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack);
+  instance = ER_stack ((ER_node_t) vals);
+  var = ER_stack_vars (instance);
   /* port */
   var = IVAL (var, 2);
   d_assert (ER_NODE_MODE (var) == ER_NM_int);
@@ -283,10 +283,10 @@ _getservbyname (int npars, val_t *vals)
   ER_node_t instance, var, vect;
   char *name, *proto;
 
-  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance);
-  instance = ER_instance ((ER_node_t) vals);
+  d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack);
+  instance = ER_stack ((ER_node_t) vals);
   /* name */
-  var = ER_instance_vars (instance);
+  var = ER_stack_vars (instance);
   d_assert (ER_NODE_MODE (var) == ER_NM_vect);
   vect = ER_vect (var);
   d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
@@ -384,13 +384,13 @@ _recvfrom (int npars, val_t *vals)
 
   d_assert (npars == 3 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int
 	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int
-	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_stack);
   sd = ER_i ((ER_node_t) vals);
   len = ER_i ((ER_node_t) (vals + 1));
   d_assert (len >= 0);
   vect = create_pack_vector (len + 1, ER_NM_char);
   ER_set_els_number (vect, 0);
-  instance = ER_instance ((ER_node_t) (vals + 2));
+  instance = ER_stack ((ER_node_t) (vals + 2));
   from_len = sizeof (struct sockaddr_in);
   len = recvfrom (sd, ER_pack_els (vect), len, 0, (struct sockaddr *) &saddr,
 		  &from_len);
@@ -405,7 +405,7 @@ _recvfrom (int npars, val_t *vals)
       /* str */
       ((char *) ER_pack_els (vect)) [len] = '\0';
       ER_set_els_number (vect, len);
-      var = ER_instance_vars (instance);
+      var = ER_stack_vars (instance);
       ER_SET_MODE (var, ER_NM_vect);
       set_vect_dim (var, vect, 0);
       /* peer_addr */
@@ -416,8 +416,8 @@ _recvfrom (int npars, val_t *vals)
       var = IVAL (var, 1);
       ER_SET_MODE (var, ER_NM_int);
       ER_set_i (var, ntohs (saddr.sin_port));
-      ER_SET_MODE (res, ER_NM_instance);
-      ER_set_instance (res, instance);
+      ER_SET_MODE (res, ER_NM_stack);
+      ER_set_stack (res, instance);
     }
   return val;
 }

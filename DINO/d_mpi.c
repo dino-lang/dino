@@ -39,20 +39,20 @@ mpi_binary_op (int npars, val_t *vals, int_t *size,
   ER_node_t hideblock;
 
   d_assert (npars == 3
-	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
-	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
-  var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
-  var2 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))),
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_stack
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_stack);
+  var1 = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 1);
+  var2 = IVAL (ER_stack_vars (ER_stack ((ER_node_t) (vals + 1))),
 		      1);
-  *res = ER_instance ((ER_node_t) (vals + 2));
-  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
+  *res = ER_stack ((ER_node_t) (vals + 2));
+  size_var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 0);
   *size = ER_i (size_var);
   hideblock = create_hideblock (*size);
   *res_hidevalue = ER_hideblock_start (hideblock);
   /* Size is already set up. */
-  ER_SET_MODE (IVAL (ER_instance_vars (*res), 1), ER_NM_hideblock);
-  ER_set_hideblock (IVAL (ER_instance_vars (*res), 1), hideblock);
+  ER_SET_MODE (IVAL (ER_stack_vars (*res), 1), ER_NM_hideblock);
+  ER_set_hideblock (IVAL (ER_stack_vars (*res), 1), hideblock);
   *hidevalue1 = ER_hideblock_start (ER_hideblock (var1));
   *hidevalue2 = ER_hideblock_start (ER_hideblock (var2));
 }
@@ -63,8 +63,8 @@ return_mpi (ER_node_t mpi)
   val_t val;
   ER_node_t res = (ER_node_t) &val;
 
-  ER_SET_MODE (res, ER_NM_instance);
-  ER_set_instance (res, mpi);
+  ER_SET_MODE (res, ER_NM_stack);
+  ER_set_stack (res, mpi);
   return val;
 }
 
@@ -172,20 +172,20 @@ mpi_par_op (int npars, val_t *vals, int_t *size, int_t *par, int size_is_par,
   ER_node_t hideblock;
 
   d_assert (npars == 3
-	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack
 	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int
-	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_instance);
-  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
+	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_stack);
+  var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 1);
   *par = ER_i ((ER_node_t) (vals + 1));
-  *res = ER_instance ((ER_node_t) (vals + 2));
-  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
+  *res = ER_stack ((ER_node_t) (vals + 2));
+  size_var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 0);
   *size = ER_i (size_var);
   hideblock = create_hideblock (size_is_par ? *par : *size);
   *res_hidevalue = ER_hideblock_start (hideblock);
   /* Size is already set up. */
-  ER_SET_MODE (IVAL (ER_instance_vars (*res), 1), ER_NM_hideblock);
-  ER_set_hideblock (IVAL (ER_instance_vars (*res), 1), hideblock);
-  ER_set_i (IVAL (ER_instance_vars (*res), 0), (size_is_par ? *par : *size));
+  ER_SET_MODE (IVAL (ER_stack_vars (*res), 1), ER_NM_hideblock);
+  ER_set_hideblock (IVAL (ER_stack_vars (*res), 1), hideblock);
+  ER_set_i (IVAL (ER_stack_vars (*res), 0), (size_is_par ? *par : *size));
   *hidevalue = ER_hideblock_start (ER_hideblock (var));
 }
 
@@ -286,17 +286,17 @@ mpi_unary_op (int npars, val_t *vals, int_t *size,
   ER_node_t hideblock;
 
   d_assert (npars == 2
-	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
-  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
-  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_stack);
+  var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 1);
+  size_var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 0);
   *size = ER_i (size_var);
   hideblock = create_hideblock (*size);
   *res_hidevalue = ER_hideblock_start (hideblock);
-  *res = ER_instance ((ER_node_t) (vals + 1));
+  *res = ER_stack ((ER_node_t) (vals + 1));
   /* Size is already set up. */
-  ER_SET_MODE (IVAL (ER_instance_vars (*res), 1), ER_NM_hideblock);
-  ER_set_hideblock (IVAL (ER_instance_vars (*res), 1), hideblock);
+  ER_SET_MODE (IVAL (ER_stack_vars (*res), 1), ER_NM_hideblock);
+  ER_set_hideblock (IVAL (ER_stack_vars (*res), 1), hideblock);
   *hidevalue = ER_hideblock_start (ER_hideblock (var));
 }
 
@@ -333,11 +333,11 @@ mpi_cmp_op (int npars, val_t *vals, int_t *size,
   ER_node_t size_var;
 
   d_assert (npars == 2
-	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
-	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance);
-  var1 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
-  var2 = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 1);
-  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_stack);
+  var1 = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 1);
+  var2 = IVAL (ER_stack_vars (ER_stack ((ER_node_t) (vals + 1))), 1);
+  size_var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 0);
   *size = ER_i (size_var);
   *hidevalue1 = ER_hideblock_start (ER_hideblock (var1));
   *hidevalue2 = ER_hideblock_start (ER_hideblock (var2));
@@ -468,10 +468,10 @@ to_based_string (int npars, val_t *vals,
   char str [3 * MAX_INTEGER_SIZE];
 
   d_assert (npars == 2
-	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_stack
 	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_int);
-  var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 1);
-  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) vals)), 0);
+  var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 1);
+  size_var = IVAL (ER_stack_vars (ER_stack ((ER_node_t) vals)), 0);
   size = ER_i (size_var);
   hidevalue = ER_hideblock_start (ER_hideblock (var));
   (*func) (size, hidevalue, ER_i ((ER_node_t) (vals + 1)), str);
@@ -504,19 +504,19 @@ from_based_string (int npars, val_t *vals,
 
   d_assert (npars == 3
 	    && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_vect
-	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_instance
+	    && ER_NODE_MODE ((ER_node_t) (vals + 1)) == ER_NM_stack
 	    && ER_NODE_MODE ((ER_node_t) (vals + 2)) == ER_NM_int);
-  size_var = IVAL (ER_instance_vars (ER_instance ((ER_node_t) (vals + 1))), 0);
+  mpi = ER_stack ((ER_node_t) (vals + 1));
+  size_var = IVAL (ER_stack_vars (mpi), 0);
   size = ER_i (size_var);
   hideblock = create_hideblock (size);
   (*func) (size, ER_pack_els (ER_vect ((ER_node_t) vals)),
 	   ER_i ((ER_node_t) (vals + 2)),
 	   ER_hideblock_start ((ER_node_t) hideblock));
   check_overflow ();
-  mpi = ER_instance ((ER_node_t) (vals + 1));
   /* Size is already set up. */
-  ER_SET_MODE (IVAL (ER_instance_vars (mpi), 1), ER_NM_hideblock);
-  ER_set_hideblock (IVAL (ER_instance_vars (mpi), 1), hideblock);
+  ER_SET_MODE (IVAL (ER_stack_vars (mpi), 1), ER_NM_hideblock);
+  ER_set_hideblock (IVAL (ER_stack_vars (mpi), 1), hideblock);
   return return_mpi (mpi);
 }
 

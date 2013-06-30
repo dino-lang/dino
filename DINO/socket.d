@@ -26,9 +26,9 @@ include "ipcerr";
 
 ext except {
   class socket_except () {
-    class optype (msg) {}
-    class opvalue (msg) {}
-    class eof (msg) {}
+    class optype () {}
+    class opvalue () {}
+    class eof () {}
   }
   ext error {
     class socket_error () {
@@ -69,13 +69,13 @@ final class __socket_package () {
   }
 
   // If you change it, change code of _gethostinfo too.
-  class host_info (final name, final aliases, final ipaddrs) {}
+  class host_info (val name, val aliases, val ipaddrs) {}
 
   func gethostinfo (str) {
     if (str == nil) str = "";
     else if (type (str) != vector || eltype (str) != char)
       throw socket_excepts.optype ();
-    var h = host_info  ();
+    var h = host_info  (nil, nil, nil);
     h = _gethostinfo (str, h);
     if (h == nil)
       generate_socket_exception ();
@@ -83,7 +83,7 @@ final class __socket_package () {
   }
 
   // If you change it, change code of _getservbyname, _getservbyport too.
-  class serv_info (final name, final aliases, final port, final proto) {}
+  class serv_info (val name, val aliases, val port, val proto) {}
 
   func getservbyport (port, proto) {
     var s;
@@ -123,7 +123,7 @@ final class __socket_package () {
   class datagram (str, peer_addr, port) {}
   private datagram;
 
-  var proxy_sfd; private proxy_sfd;
+  var proxy_sfd = nil; private proxy_sfd;
 
   class stream_client (peer_addr, port) {
     var sfd; private sfd;

@@ -26,7 +26,7 @@
 # (http://www.bagley.org/~doug/shootout)
 #
 
-DINO=./dino
+DINO='./dino'
 srcdir=`dirname $0`
 ftest=__ftest.d
 input=__input
@@ -67,6 +67,14 @@ else
   PYTHON3=
 fi
 
+if pypy $ftest 2>/dev/null;then
+  PYPY=pypy
+  echo '>>>> ' `pypy --version 2>&1|fgrep PyPy`
+else
+  echo We have no pypy
+  PYPY=
+fi
+
 if tclsh $ftest 2>/dev/null;then
   TCLSH=tclsh
   echo '>>>> ' TCL version is `echo 'puts $tcl_version'|tclsh`
@@ -99,7 +107,21 @@ else
   RUBY=
 fi
 
+if echo 'println ()' | scala >/dev/null 2>&1;then
+  SCALA=scala
+  echo '>>>> ' `echo|scala -version 2>&1|fgrep Scala`
+else
+  echo We have no scala
+  SCALA=
+fi
 
+if echo 'print ()' | js >/dev/null 2>&1;then
+  JS=js
+  echo '>>>> ' `js -h 2>&1|fgrep JavaScript-C`
+else
+  echo We have no JavaScript
+  JS=
+fi
 
 echo '>>>> ' dino: `$DINO 2>&1|fgrep Version`
 
@@ -133,10 +155,13 @@ if test x$dino_only != x; then
   PERL=
   PYTHON=
   PYTHON3=
+  PYPY=
   TCLSH=
   AWK=
   LUA=
   RUBY=
+  SCALA=
+  JS=
 fi
 
 Announce_DINO() {
@@ -161,7 +186,7 @@ print_time() {
 if test $start_test_number -le 1; then
 
 ######################################################
-if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=7;else rep=9;fi
+if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=8;else rep=10;fi
 Announce_Test "+++++ Test #1 ackermann (good test for recursive functions N=$rep):  +++++"
 
 if test x$PERL != x; then
@@ -219,6 +244,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -326,6 +355,40 @@ if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def ack (m:Int, n:Int):Int =
+  if (m==0) n+1
+  else if (n==0) ack (m-1,1)
+  else ack (m-1, ack(m,n-1))
+
+val n = args(0).toInt
+println ("Ack(3,", n, "): ", ack (3, n))
+EOF
+echo SCALA:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function ack (m, n) {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+var n = arguments [0] < 1 ? 1 : arguments [0];
+print ("Ack(3,", n, "): ", ack (3, n));
+EOF
+echo JS:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+echo JS -m:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 func ack (m, n) {
     if (m == 0) return n + 1;
@@ -403,6 +466,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -542,6 +609,47 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val n = args (0).toInt
+val x = Array.fill[Int](n)(0);
+val y = Array.fill[Int](n)(0);
+
+for (i <- 0 to n - 1)
+  x(i) = i + 1;
+for (j <- 1 to 1000)
+  for (i <- 0 to n - 1)
+    y(i) += x(i);
+
+println (y(0), y(n - 1));
+EOF
+echo SCALA:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, k, n = arguments [0] < 1 ? 1 : arguments [0];
+var x = new Array(), y = new Array ();
+
+for (i = 0; i < n; i++) {
+  x[i] = i + 1; y[i] = 0;
+}
+for (k = 0; k < 1000; k++)
+  for (i = 0; i < n; i++)
+    y[i] += x[i];
+
+print (y [0], " ", y [n - 1]);
+EOF
+echo JS:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+echo JS -m:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
 var x = [n:0], y = [n:0];
@@ -563,7 +671,7 @@ fi
 if test $start_test_number -le 3; then
 
 ######################################################
-rep=`expr $factor '*' 200`
+rep=`expr $factor '/' 7`
 Announce_Test "+++++ Test #3:  Count lines/words/chars (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -597,7 +705,7 @@ EOF
 rm -f $input; touch $input
 
 i=0
-while test $i -lt $rep;do cat $temp >>$input; i=`expr $i + 1`;done
+while test $i -lt $rep;do cat $temp >>$input; cp $input $temp; i=`expr $i + 1`;done
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -651,6 +759,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -789,6 +901,29 @@ EOF
   echo RUBY:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+var nl = 0; var nw = 0; var nc = 0; var l = 0
+var v: Array[String] = Array ()
+val r = "[ \t]+".r
+for (line <- Source.stdin.getLines()) {
+  nl += 1
+  v = r.split (line)
+  println (v.deep)
+  l = v.length
+  nw += l
+  if (v(l - 1).length == 0) nw -= 1
+  if (v(0).length == 0) nw -= 1
+  nc += line.length + 1
+}
+println (nl, nw, nc)
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -976,6 +1111,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -1337,6 +1476,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1535,6 +1678,58 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+var HI = 0
+var LO = 0
+
+class Hi_exception (value:Int) extends Exception {}
+class Lo_exception (value:Int) extends Exception {}
+
+def some_function (num:Int) = {
+  try { 
+    hi_function (num)
+  } catch {
+    case x:Exception => println ("We shouldn't get here")
+  }
+}
+
+def hi_function (num:Int) = {
+  try {
+    lo_function (num)
+  } catch {
+    case x:Hi_exception => HI += 1
+  }
+}
+
+def lo_function (num:Int) = {
+  try {
+    blowup (num)
+  } catch {
+    case x:Lo_exception => LO += 1
+  }
+}
+
+
+def blowup (num:Int) = { 
+  throw if ((num & 1) != 0) new Lo_exception (num) else new Hi_exception (num)
+}
+
+def main () = {
+  val num = args(0).toInt
+
+  for (i <- num - 1 to 0 by -1)
+    some_function (i)
+  println ("Exceptions: HI=", HI, " / LO=", LO)
+}
+
+main ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var HI = 0;
 var LO = 0;
@@ -1575,7 +1770,7 @@ func blowup (num) {
   throw ((num & 1) ? excepts.Lo_exception (num) : excepts.Hi_exception (num));
 }
 
-func main () {
+func main {
   var i, num = int (argv [0]);
 
   if (num < 1) num = 1;
@@ -1597,7 +1792,7 @@ if test $start_test_number -le 6; then
 
 ######################################################
 if test $factor -eq 1; then rep=24;elif test $factor -eq 10; then rep=28;else rep=32;fi
-Announce_Test "+++++ Test #6 fibonacci (good test for recursive funcs: N=$rep):  +++++"
+Announce_Test "+++++ Test #6: fibonacci (good test for recursive funcs: N=$rep):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1640,6 +1835,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -1733,6 +1932,40 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def fib (n:Int):Int = if (n < 2) 1 else fib (n - 2) + fib (n - 1)
+
+var x = 0; val n = args(0).toInt
+for (i <- 0 to n) {x = fib (n); println (x)}
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function fibonacci (n) {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = arguments [0];
+
+for (i = 0; i <= n; i++) {
+  fibnum = fibonacci(i);
+  print (i, " ", fibnum); 
+}
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 // Recursive function to compute Fibonacci numbers
 func fibonacci (n) {
@@ -1813,6 +2046,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -1954,6 +2191,43 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+var c = 0; val n = args(0).toInt;
+var x : Map[String, Int] = Map ();
+
+for (i <- 1 to n)
+ x += (Integer.toHexString (i) -> i);
+for (i <- n to 1 by -1)
+ if (x.contains (Integer.toHexString (i)))
+   c += 1;
+println (c);
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, c = 0, n = arguments [0] < 1 ? 1 : arguments [0];
+var x = new Array();
+
+for (i = 1; i <= n; i++)
+ x[i.toString (16)] = i.toString (16);
+for (i = n; i > 0; i--)
+ if (i.toString (16) in x)
+   c++;
+print (c);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m$ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
 var f = "%x", x = {};
@@ -1961,7 +2235,7 @@ var f = "%x", x = {};
 for (i = 1; i <= n; i++)
  x {vector (i, f)} = i;
 for (i = n; i > 0; i--)
- if (vector (i) in x)
+ if (vector (i, f) in x)
    c++;
 putln (c);
 EOF
@@ -2025,6 +2299,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -2160,6 +2438,54 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val n = args(0).toInt;
+var hash1 = scala.collection.mutable.HashMap.empty[String, Int];
+
+for (i <- 0 to 10000 - 1)
+  hash1 += ("foo_" + i.toString -> i);
+
+var hash2 = scala.collection.mutable.HashMap.empty[String, Int];
+for (i <- 0 to n - 1)
+  hash1.foreach (p => if (hash2.contains (p._1))
+                      hash2(p._1) = hash2(p._1) + hash1(p._1)
+                      else hash2(p._1) = hash1(p._1))
+
+println (hash1 ("foo_1"), " ", hash1 ("foo_9999"), " ",
+         hash2 ("foo_1"), " ", hash2 ("foo_9999"));
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, n = arguments[0];
+var hash1 = new Array ();
+
+for (i = 0; i < 10000; i++)
+  hash1 ["foo_" + i] = i;
+
+var k, hash2 = new Array ();
+for (k in hash1)
+  hash2 [k] = 0;
+for (i = 0 ; i < n; i++)
+  for (k in hash1)
+    hash2 [k] += hash1 [k];
+
+print (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var i, n = int (argv[0]);
 var hash1 = {};
@@ -2168,13 +2494,11 @@ for (i = 0; i < 10000; i++)
   hash1 {vector (i, "foo_%d")} = i;
 
 var k, hash2 = {};
+for (k in hash1)
+  hash2 {k} = 0;
 for (i = 0 ; i < n; i++)
   for (k in hash1)
-    try {
-      hash2 {k} += hash1 {k};
-    } catch (except) {
-      hash2 {k} = hash1 {k};
-    }
+    hash2 {k} += hash1 {k};
 
 putln (hash1 {"foo_1"}, " ", hash1 {"foo_9999"}, " ",
        hash2 {"foo_1"}, " ", hash2 {"foo_9999"});
@@ -2189,7 +2513,7 @@ fi
 if test $start_test_number -le 9; then
 
 ######################################################
-rep=`expr $factor '*' 2000`
+rep=`expr $factor '*' 5000`
 Announce_Test "+++++ Test #9: Heapsort (N=$rep):  +++++"
 
 if test x$PERL != x; then
@@ -2325,6 +2649,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -2662,6 +2990,137 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val IM = 139968
+val IA = 3877
+val IC = 29573
+var LAST = 42
+
+def gen_random (max: Double): Double = {
+  LAST = (LAST * IA + IC) % IM;
+  (max * LAST) / IM;
+}
+
+def heapsort (n : Int, ra : Array[Double]) : Unit = {
+  var rra = 0.0; var i = 0; var j = 0;
+  var l = (n >> 1) + 1;
+  var ir = n;
+
+  while (true) {
+    if (l > 1) {
+      l = l - 1
+      rra = ra (l)
+    } else {
+      rra = ra (ir)
+      ra (ir) = ra (1)
+      ir = ir - 1
+      if (ir == 1) {
+        ra (1) = rra
+        return
+      }
+    }
+    i = l
+    j = l << 1
+    while (j <= ir) {
+      if (j < ir && ra (j) < ra (j + 1)) j = j + 1
+      if (rra < ra (j)) {
+        ra (i) = ra (j)
+        i = j
+        j = j + i
+      } else
+        j = ir + 1
+    }
+    ra (i) = rra
+  }
+}
+
+def main () = {
+  val n = args(0).toInt
+  val ary = Array.fill[Double](n + 1)(0.0)
+
+  for (i <- 1 to n)
+    ary(i) = gen_random (1.0)
+  
+  heapsort (n, ary)
+  
+  println (ary(n))
+}
+
+main ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+function gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return (max * LAST) / IM;
+}
+
+function heapsort (n, ra) {
+  var rra = 0, i = 0, j = 0;
+  var l = (n/ 2) + 1;
+  var ir = n;
+
+  for (;;) {
+    if (l > 1) {
+      l--;
+      rra = ra [l];
+    } else {
+      rra = ra [ir];
+      ra [ir] = ra [1];
+      ir--;
+      if (ir == 1) {
+        ra [1] = rra;
+        return;
+      }
+    }
+    i = l;
+    j = l << 1;
+    for (; j <= ir; ) {
+      if (j < ir && ra [j] < ra [j + 1]) j++;
+      if (rra < ra [j]) {
+        ra [i] = ra [j];
+        i = j;
+        j = j + i;
+      } else
+        j = ir + 1;
+    }
+    ra [i] = rra;
+  }
+}
+
+function main (n) {
+  var i;
+  var ary = new Array ();
+
+  for (i = 1; i <= n; i++)
+    ary [i] = gen_random (1.0);
+  
+  heapsort (n, ary);
+  
+  print (ary[n].toFixed(10));
+}
+
+main (arguments [0] < 1 ? 1 : arguments [0]);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -2706,7 +3165,7 @@ func heapsort (n, ra) {
   }
 }
 
-func main () {
+func main {
   var i, n = (argv [0] < 1) ? 1 : int (argv [0]);
   var ary = [n + 1 : 0];
 
@@ -2753,6 +3212,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) 2>&1|print_time
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYPY $ftest) 2>&1|print_time
 fi
 
 if test x$PYTHON3 != x; then
@@ -2804,6 +3267,27 @@ EOF
   echo RUBY:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) 2>&1|print_time
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+println ("hello world")
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $SCALA $ftest) 2>&1|print_time
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+print ("hello world");
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS $ftest) 2>&1|print_time
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -m $ftest) 2>&1|print_time
 fi
 
 cat <<'EOF' >$ftest
@@ -2923,6 +3407,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -3228,10 +3716,54 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.collection.mutable.ArrayBuffer
+val SIZE = 10000
+
+def test_lists (): Int = {
+  var Li1 = (1 to SIZE).toBuffer
+  var Li3: ArrayBuffer[Int] = new ArrayBuffer (0)
+
+  var Li2 = Li1.clone
+  // remove each individual item from left side of li2 and
+  // append to right side of li3 (preserving order)
+  while (Li2.length != 0) {
+    Li3 += Li2 (0)
+    Li2.trimStart(1)
+  }
+  // Li2 must now be empty
+  // remove each individual item from right side of Li3 and
+  // append to right side of Li2 (reversing list)
+  while (Li3.length != 0) {
+    Li2 += Li3.last
+    Li3.trimEnd (1)
+  }
+  Li1 = Li1.reverse
+  if (Li1.head != SIZE)
+    return 0
+  if (Li1.equals (Li2)) Li1.length else 0
+}
+
+def main() = {
+  var result = 0;
+  val n = args(0).toInt
+  for (i <- 1 to n)
+    result = test_lists ()
+  println (result)
+}
+
+main ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var SIZE = 10000;
 
-func test_lists () {
+func test_lists {
   var i, Li1 = [SIZE : 0];
 
   // create a list of integers (Li1) from 1 to SIZE
@@ -3409,6 +3941,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -3657,6 +4193,113 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val size = 30
+
+def mkmatrix (rows : Int, cols : Int) = {
+  var count: Int = 1
+  var tm: Array[Int] = Array (0);
+  var mx: Array[Array[Int]] = Array.fill(rows, cols)(1);
+
+  for (i <- 0 to rows - 1) {
+    tm = mx (i)
+    for (j <- 0 to cols - 1) {
+      tm (j) = count
+      count += 1
+    }
+  }
+  mx
+}
+
+def mmult (rows : Int, cols : Int, m1: Array[Array[Int]], m2: Array[Array[Int]]) = {
+  var v = 0
+  var tm: Array[Int] = Array (0);
+  var m3: Array[Array[Int]] = Array.fill(rows, cols)(1)
+
+  for (i <- 0 to rows - 1)
+    for (j <- 0 to cols - 1) {
+       v = 0
+       tm = m1 (i)
+       for (k <- 0 to cols - 1)
+         v += tm (k) * m2 (k)(j)
+       m3 (i)(j) = v
+    }
+  m3
+}
+
+def main () = {
+  var mm: Array[Array[Int]] = Array.fill(0,0)(0);
+  var iter = args(0).toInt
+
+  val m1 = mkmatrix (size, size)
+  val m2 = mkmatrix (size, size)
+  for (i <- 1 to iter)
+     mm = mmult (size, size, m1, m2)
+  println (mm (0)(0), mm (2)(3), mm (3)(2), mm (4)(4))
+}
+main ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var size = 30;
+
+function mkmatrix (rows, cols) {
+  var i, j, count = 1;
+  var tm, mx = new Array ();
+
+  for (i = 0; i < rows; i++) {
+    mx [i] = new Array ();
+    tm = mx [i];
+    for (j = 0; j < cols; j++) {
+      tm [j] = count;
+      count++;
+    }
+  }
+  return mx;
+}
+
+function mmult (rows, cols, m1, m2) {
+  var i, j, k, sum, tm, m3 = new Array ();
+
+  for (i = 0; i < rows; i++) {
+    m3 [i] = new Array ();
+    for (j = 0; j < cols; j++) {
+       sum = 0;
+       tm = m1 [i];
+       for (k = 0; k < cols; k++)
+         sum += tm [k] * m2 [k][j];
+       m3 [i][j] = sum;
+    }
+  }
+  return m3;
+}
+
+function main (iter) {
+  var m1, m2, mm;
+  var i;
+
+  m1 = mkmatrix (size, size);
+  m2 = mkmatrix (size, size);
+  for (i = 0; i < iter; i++)
+     mm = mmult (size, size, m1, m2);
+  print (mm [0][0], mm [2][3], mm [3][2], mm [4][4]);
+}
+main (arguments [0] < 1 ? 1 : arguments [0]);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var size = 30;
 
@@ -3676,22 +4319,22 @@ func mkmatrix (rows, cols) {
 }
 
 func mmult (rows, cols, m1, m2) {
-  var i, j, k, val, tm, m3 = [rows:1];
+  var i, j, k, sum, tm, m3 = [rows:1];
 
   for (i = 0; i < rows; i++) {
     m3 [i] = [cols:1];
     for (j = 0; j < cols; j++) {
-       val = 0;
+       sum = 0;
        tm = m1 [i];
        for (k = 0; k < cols; k++)
-         val += tm [k] * m2 [k][j];
-       m3 [i][j] = val;
+         sum += tm [k] * m2 [k][j];
+       m3 [i][j] = sum;
     }
   }
   return m3;
 }
 
-func main () {
+func main {
   var m1, m2, mm;
   var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
 
@@ -3844,6 +4487,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -4051,18 +4698,65 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+class Toggle (start_state: Boolean) {
+  var bool = start_state
+  def value () = bool
+  def activate () = {bool = !bool }
+}
+
+class NthToggle (start_state: Boolean, max_counter: Int) extends Toggle (start_state) {
+    var count_max = max_counter
+    var counter = 0
+    override def activate () = {
+      counter += 1
+      if (counter >= count_max) {
+        bool = !bool
+        counter = 0
+      }
+    }
+}
+
+def main () {
+  val NUM = args(0).toInt
+  var v = true
+
+  val toggle = new Toggle (v)
+  for (i <- 1 to NUM) {
+    toggle.activate ()
+    v = toggle.value ()
+  }
+  println (if (v) "true" else "false")
+
+  v = true
+  var ntoggle = new NthToggle (v, 3)
+  for (i <- 1 to NUM) {
+    ntoggle.activate ()
+    v = ntoggle.value ()
+  }
+  println (if (v) "true" else "false")
+}
+
+main()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
   var bool = start_state;
-  func value () { return bool; }
-  func activate () { bool = !bool; }
+  func value { return bool; }
+  func activate { bool = !bool; }
 }
 
 ext Toggle {
   class NthToggle (max_counter) {
     var count_max = max_counter;
     var counter = 0;
-    func activate () {
+    func activate {
       counter++;
       if (counter >= count_max) {
         bool = !bool;
@@ -4072,24 +4766,24 @@ ext Toggle {
   }
 }
 
-func main () {
+func main {
   var NUM = argv [0] < 1 ? 1 : int (argv [0]);
-  var i, val = 1;
+  var i, v = 1;
 
-  var toggle = Toggle (val);
+  var toggle = Toggle (v);
   for (i = 1; i <= NUM; i++) {
     toggle.activate ();
-    val = toggle.value ();
+    v = toggle.value ();
   }
-  putln (val ? "true" : "false");
+  putln (v ? "true" : "false");
 
-  val = 1;
-  var ntoggle = Toggle (val).NthToggle (3);
+  v = 1;
+  var ntoggle = Toggle (v).NthToggle (3);
   for (i = 1; i <= NUM; i++) {
     ntoggle.activate ();
-    val = ntoggle.value ();
+    v = ntoggle.value ();
   }
-  putln (val ? "true" : "false");
+  putln (v ? "true" : "false");
 }
 
 main();
@@ -4169,6 +4863,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -4319,6 +5017,46 @@ EOF
   echo RUBY:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val N = args (0).toInt
+var x = 0
+for (i <- 1 to N)
+  for (j <- 1 to N)
+    for (k <- 1 to N)
+      for (l <- 1 to N)
+        for (m <- 1 to N)
+          for (n <- 1 to N)
+            x += 1
+println (x)
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var n = arguments [0] < 1 ? 1 : arguments[0];
+var a, b, c, d, e, f, x = 0;
+
+for (a = 0; a < n; a++)
+  for (b = 0; b < n; b++)
+    for (c = 0; c < n; c++)
+      for (d = 0; d < n; d++)
+        for (e = 0; e < n; e++)
+          for (f = 0; f < n; f++)
+            x++;
+print (x);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -4483,6 +5221,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -4700,18 +5442,67 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+class Toggle (start_state: Boolean) {
+  var bool = start_state
+  def value () = bool
+  def activate () = {bool = !bool }
+}
+
+class NthToggle (start_state: Boolean, max_counter: Int) extends Toggle (start_state) {
+    var count_max = max_counter
+    var counter = 0
+    override def activate () = {
+      counter += 1
+      if (counter >= count_max) {
+        bool = !bool
+        counter = 0
+      }
+    }
+}
+
+def main () {
+  val NUM = args(0).toInt
+
+  var toggle = new Toggle (true)
+  for (i <- 1 to 5) {
+    toggle.activate ()
+    println (if (toggle.value ()) "true" else "false")
+  }
+  for (i <- 1 to NUM)
+   toggle = new Toggle (true);
+
+  println ()
+
+  var ntoggle = new NthToggle (true, 3)
+  for (i <- 1 to 8) {
+    ntoggle.activate ()
+    println (if (ntoggle.value ()) "true" else "false")
+  }
+  for (i <- 1 to NUM)
+    ntoggle = new NthToggle (true, 3);
+}
+
+main()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
   var bool = start_state;
-  func value () { return bool; }
-  func activate () { bool = !bool; }
+  func value { return bool; }
+  func activate { bool = !bool; }
 }
 
 ext Toggle {
   class NthToggle (max_counter) {
     var count_max = max_counter;
     var counter = 0;
-    func activate () {
+    func activate {
       counter++;
       if (counter >= count_max) {
         bool = !bool;
@@ -4721,7 +5512,7 @@ ext Toggle {
   }
 }
 
-func main () {
+func main {
   var NUM = argv [0] < 1 ? 1 : int (argv [0]);
   var i;
 
@@ -4874,6 +5665,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -5034,7 +5829,7 @@ fi
 if test $start_test_number -le 17; then
 
 ######################################################
-rep=`expr $factor '*' 50000`
+rep=`expr $factor '*' 300000`
 Announce_Test "+++++ Test #17: Random Number Generator (N=$rep):  +++++"
 
 if test x$PERL != x; then
@@ -5090,6 +5885,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -5248,6 +6047,53 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val IM = 139968
+val IA = 3877
+val IC = 29573
+var LAST = 42
+
+def gen_random (max: Double): Double = {
+  LAST = (LAST * IA + IC) % IM
+  max * LAST / IM
+}
+
+val n = args(0).toInt
+for (i <- 1 to n)
+  gen_random (100)
+println (gen_random (100.0))
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+function gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return max * LAST / IM;
+}
+
+var n = (arguments [0] < 1 ? 1 : arguments [0]) - 1;
+for (; n; n--)
+  gen_random (100);
+print (gen_random (100.0).toFixed(9));
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -5397,6 +6243,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -5599,8 +6449,43 @@ EOF
   if (time $RUBY $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+import scala.collection.mutable.ArrayBuffer
+val area = "([0-9][0-9][0-9]|\\([0-9][0-9][0-9]\\))";
+val exch = "([0-9][0-9][0-9])";
+val last = "([0-9][0-9][0-9][0-9])";
+val re = ("^[^0-9\\(]*" + area + " " + exch + "[ -]" + last + "[^0-9]*$").r;
+
+val NUM = args(0).toInt
+
+val phones: ArrayBuffer[String] = new ArrayBuffer (0)
+for (line <- Source.stdin.getLines()) phones += line
+
+var count = 0
+for (iter <- 1 to NUM) {
+    for (i <- 0 to phones.length - 1) {
+      re findFirstIn phones(i) match {
+        case Some (re (m1, m2, m3)) => {
+          val num = (if (m1(0) == '(') m1 else "(" + m1 + ") ") + m2 + "-" + m3
+          if (iter == NUM) {
+            count += 1
+            println (count.toString + ": " + num)
+          }
+        }
+        case None => None
+      }
+    }
+}
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func main () {
+func main {
   var n = (argv [0] < 1) ? 1 : int (argv [0]);
   var ln, lno = 0, phones = [];
   
@@ -16415,6 +17300,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -16514,8 +17403,21 @@ EOF
   if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+import scala.collection.mutable.ArrayBuffer
+val B: ArrayBuffer[String] = new ArrayBuffer (0)
+for (line <- Source.stdin.getLines()) B += line
+for (i <- B.length - 1 to 0 by -1) println (B(i))
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func main () {
+func main {
   var i, lns;
   
   lns = getf (1);
@@ -16598,6 +17500,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -16770,8 +17676,64 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def main () = {
+  var prime = 0
+  var count = 0
+  val n = args(0).toInt
+  var flags = Array.fill[Boolean](8193)(false)
+
+  for (iter <- 1 to n) {
+    count = 0
+    for (i <- 0 to 8192)
+      flags(i) = true
+    for (i <- 2 to 8192)
+      if (flags(i)) {
+          for (j <- i + i to 8192 by i)    
+            flags(j) = false
+          count += 1
+      }
+  }
+  println (count)
+}
+main ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function main (n) {
+  var i, k, count;
+  var flags = new Array ();
+  for (; n >= 0; n--) {
+    count = 0;
+    for (i = 0; i <= 8192; i++)
+      flags[i] = 1;
+    for (i = 2; i <= 8192; i++)
+      if (flags[i]) {
+          for (k = i + i; k <= 8192; k += i)
+            flags[k] = 0;
+          count++;
+      }
+  }
+  print ("Count: ", count);
+}
+main (arguments [0] < 1 ? 1 : arguments [0]);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func main () {
+func main {
   var i, count, n = argv [0] < 1 ? 1 : int (argv [0]);
   var flags = [8193:0];
   for (; n >= 0; n--) {
@@ -94099,6 +95061,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -94236,8 +95202,32 @@ EOF
   if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+import scala.collection.mutable.ArrayBuffer
+def main () = {
+  val B: ArrayBuffer[String] = new ArrayBuffer (0)
+  var dict = scala.collection.mutable.HashMap.empty[String, Boolean];
+  
+  for (line <- Source.fromFile("__temp").getLines()) B += line;
+  for (i <- 0 to B.length - 1) dict (B(i)) = true
+  
+  B.clear
+  for (line <- Source.stdin.getLines()) B += line;
+  for (i <- 0 to B.length - 1)
+    if (!dict.contains(B(i)))
+      println (B(i))
+}
+main ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func main () {
+func main {
   var f, i, words, dict = {};
   
   f = open ("__temp", "r");
@@ -94888,6 +95878,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -95146,8 +96140,67 @@ EOF
 if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+import scala.collection.mutable.ArrayBuffer
+def main () = {
+  var sum = 0.0
+  val nums: ArrayBuffer[Double] = new ArrayBuffer (0)
+  for (line <- Source.stdin.getLines()) nums += line.toDouble
+
+  sum = nums.fold (0.0) ((x,y) => x + y)
+  
+  val n = nums.length
+  val mean = sum / n
+  var average_deviation = 0.0
+  var standard_deviation = 0.0
+  var variance = 0.0
+  var skew = 0.0
+  var kurtosis = 0.0
+  var deviation = 0.0; var pow2 = 0.0
+  
+  for (i <- 0 to n - 1) {
+    deviation = nums(i) - mean
+    average_deviation += (if (deviation < 0.0) -deviation else deviation)
+    pow2 = deviation * deviation
+    variance += pow2
+    skew += deviation * pow2
+    kurtosis += pow2 * pow2
+  }
+  average_deviation /= n
+  variance /= (n - 1)
+  standard_deviation = math.sqrt (variance)
+  
+  if (variance > 0.0) {
+    skew /= (n * variance * standard_deviation)
+    kurtosis = kurtosis / (n * variance * variance) - 3.0
+  }
+  val a = nums.toArray
+  scala.util.Sorting.quickSort (a)
+  println (n,a.deep)
+  val mid = n / 2
+  
+  val median = if (n % 2 == 0) (a(mid) + a(mid - 1)) / 2 else a(mid)
+  
+  println ("n:                  " + n.toString)
+  println ("median:             " + "%f" format median)
+  println ("mean:               " + "%f" format mean)
+  println ("average_deviation:  " + "%f" format average_deviation)
+  println ("standard_deviation: " + "%f" format standard_deviation)
+  println ("variance:           " + "%f" format variance)
+  println ("skew:               " + "%f" format skew)
+  println ("kurtosis:           " + "%f" format kurtosis)
+}
+main()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func main () {
+func main {
   var i, sum = 0.0;
   var lns = getf (1);
   var nums = [#lns:0];
@@ -95249,6 +96302,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -95373,6 +96430,42 @@ EOF
   echo RUBY:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.collection.mutable.StringBuilder
+val n = args(0).toInt;
+
+val str = new StringBuilder ("");
+val add = "hello\n";
+for (i <- 1 to n)
+  str.append (add);
+
+println (str.length);
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, n = arguments [0] < 1 ? 1 : arguments [0];
+
+var str = "";
+var add = "hello\n";
+for (i = 0; i < n; i++)
+  str += add;
+
+print (str.length);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -96438,6 +97531,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -96532,8 +97629,21 @@ EOF
   if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+var count = 0;
+for (line <- Source.stdin.getLines())
+  count += line.toInt
+println (count)
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func main () {
+func main {
   var count = 0;
   
   for (;;)
@@ -99379,6 +100489,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -99559,12 +100673,41 @@ EOF
   if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+def main () = {
+  val freq = scala.collection.mutable.HashMap.empty[String, Int]
+  val rw = "[^a-zA-z]+".r
+  var v: Array[String] = Array ()
+  var word: String = ""
+
+  for (line <- Source.stdin.getLines()) {
+      v = rw.split (line.toLowerCase)
+      for (i <- 0 to v.length - 1) {
+        word = v(i)
+        if (freq.contains (word)) freq (word) += 1 else freq(word) = 1
+      }
+  }
+  val words = freq.keys.toArray
+  util.Sorting.quickSort (words)
+  for (i <- 0 to words.size - 1)
+    println (freq (words (i)).toString + "\t" + words(i))
+}
+
+main ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 func cmp (el1, el2) {
   return cmpv (el1, el2);
 }
 
-func main () {
+func main {
   var i, ln, v, word, freq = {};
   var rw = "[^[:alpha:]]+";
 
@@ -99577,7 +100720,7 @@ func main () {
           word = v [i];
           freq {word}++;
         } catch (errors.invkey) {
-          freq {word} = 0;
+          freq {word} = 1;
         }
     } catch (invcalls.eof) {
       break;
@@ -99625,6 +100768,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -99684,6 +100831,30 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val n = args(0).toInt
+for (i <- 0 to n) {}
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, n;
+n = arguments [0];
+for (i=0; i < n;i++);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var i, n;
 n = int (argv [0]);
@@ -99699,7 +100870,7 @@ fi
 if test $start_test_number -le 27; then
 
 ######################################################
-rep=`expr $factor '*' 100000`
+rep=`expr $factor '*' 300000`
 Announce_Test "+++++ Test #27: Function ($rep empty func calls w/out params):  +++++"
 
 if test x$PERL != x; then
@@ -99730,6 +100901,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -99796,8 +100971,35 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def f() = {}
+
+val n = args(0).toInt
+for (i <- 1 to n) f ()
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function f () {}
+var i, n;
+n = arguments [0];
+for (i = 0; i < n; i++) f();
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func f () {}
+func f {}
 var i, n;
 n = int (argv [0]);
 for (i = 0; i < n; i++) f();
@@ -99852,6 +101054,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -99928,6 +101134,38 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def tak (x: Int, y: Int, z: Int): Int =
+  if (y >= x) z
+  else tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y))
+val n = args(0).toInt
+println (tak (n * 3, n * 2, n))
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function tak (x, y, z) {
+  if (y >= x)
+    return z;
+  else
+    return tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y));
+}
+var n = arguments [0];
+print (tak (n * 3, n * 2, n));
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 func tak (x, y, z) {
   if (y >= x)
@@ -99948,7 +101186,7 @@ fi
 if test $start_test_number -le 29; then
 
 ######################################################
-rep=`expr $factor '*' 5000`
+rep=`expr $factor '*' 50000`
 Announce_Test "+++++ Test #29: fact (good test for recursive functions: N=$rep):  +++++"
 
 if test x$PERL != x; then
@@ -99995,6 +101233,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -100088,9 +101330,44 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def fact (n:Int):Int = if (n <= 1) 1 else n * fact (n - 1)
+
+var x = 0; val n = args(0).toInt
+for (i <- 1 to n) x = fact (12)
+println (x)
+EOF
+echo SCALA:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function fact (x) {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+var i, x, n = arguments [0];
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+print (x);
+EOF
+echo JS:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+echo JS -m:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $JS -m $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
-func fact (x)
-{
+func fact (x) {
   if (x <= 1)
     return 1;
   return x * fact (x-1);
@@ -100166,6 +101443,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -100311,6 +101592,60 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+var prime = 0
+var count = 0
+val SieveSize = args(0).toInt
+var flags = Array.fill[Boolean](SieveSize + 1)(false)
+
+for (iter <- 0 to 10) {
+    count = 0
+    for (i <- 0 to SieveSize)
+      flags(i) = true;
+    for (i <- 0 to SieveSize)
+      if (flags(i)) {
+          prime = i + i + 3
+          for (j <- i + prime to SieveSize by prime)    
+            flags(j) = false;
+          count += 1;
+      }
+}
+println (count)
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var SieveSize, i, k, prime, count, iter;
+var flags = new Array ();
+SieveSize = arguments [0];
+
+for (iter = 0; iter < 10; iter++) {
+  count = 0;
+  for (i = 0; i <= SieveSize; i++)
+    flags[i] = 1;
+  for (i = 0; i <= SieveSize; i++)
+    if (flags[i]) {
+      prime = i + i + 3;
+      for (k = i + prime; k <= SieveSize; k += prime)
+        flags[k] = 0;
+      count++;
+    }
+}
+print (count);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var SieveSize, i, prime, count, iter, flags;
 SieveSize = int (argv [0]);
@@ -100391,6 +101726,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -100512,6 +101851,60 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+var prime = 0
+var count = 0
+val SieveSize = args(0).toInt
+var flags = scala.collection.mutable.HashMap.empty[Int, Boolean];
+
+for (iter <- 0 to 10) {
+    count = 0
+    for (i <- 0 to SieveSize)
+      flags(i) = true;
+    for (i <- 0 to SieveSize)
+      if (flags(i)) {
+          prime = i + i + 3
+          for (j <- i + prime to SieveSize by prime)  
+            flags(j) = false;
+          count += 1;
+      }
+}
+println (count)
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var SieveSize, i, k, prime, count, iter;
+var flags = new Array ();
+SieveSize = arguments [0];
+
+for (iter = 0; iter < 10; iter++) {
+  count = 0;
+  for (i = 0; i <= SieveSize; i++)
+    flags[i] = 1;
+  for (i = 0; i <= SieveSize; i++)
+    if (flags[i]) {
+      prime = i + i + 3;
+      for (k = i + prime; k <= SieveSize; k += prime)
+        flags[k] = 0;
+      count++;
+    }
+}
+print (count);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var SieveSize, i, prime, k, count, iter, flags;
 SieveSize = int (argv [0]);
@@ -100543,7 +101936,7 @@ fi
 if test $start_test_number -le 32; then
 
 ######################################################
-if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=70;else rep=200;fi
+if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=100;else rep=300;fi
 Announce_Test "+++++ Test #32: Matrix mult (use arrays when possible N=$rep): +++++"
 
 if test x$PERL != x; then
@@ -100613,6 +102006,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -100772,6 +102169,93 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def mmult (m1: Array[Array[Int]], m2: Array[Array[Int]]): Unit = {
+  val m1rows = m1.length
+  val m1cols = m1(0).length
+  val m2rows = m2.length
+  val m2cols = m2(0).length
+
+  if (m2cols != m2rows)
+    {
+       println ("matrices don't match");
+       return;
+    }
+
+  var el = 0
+  var result: Array[Array[Int]] = Array.fill(m1rows, m2cols)(0)
+
+  for (i <- 0 to m1rows - 1) {
+    val tm: Array[Int] = m1(i)
+    for (j <- 0 to m2cols - 1) {
+       el = 0
+       for (k <- 0 to m1cols - 1)
+         el += tm(k) * m2(k)(j)
+       result(i)(j) = el
+    }
+  }
+}
+
+var n = args(0).toInt;
+
+val m1: Array[Array[Int]] = Array.fill(n, n)(1)
+val m2: Array[Array[Int]] = Array.fill(n, n)(1)
+mmult (m1, m2);
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var m1 = new Array (), m2 = new Array ();
+
+function mmult (m1, m2)
+{
+  var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
+
+  m1rows = m1.length; m2rows = m2.length;
+  m1cols = m1[0].length; m2cols = m2[0].length;
+  if (m2cols != m2rows) {
+       print ("matrices don't match");
+       return;
+  }
+  
+  result = new Array ();
+  for (i=0; i < m1rows; i++) {
+    result [i] = new Array ();
+    tr = result[i]; tm = m1[i];
+    for (j = 0; j < m2cols; j++)
+      {
+        el = 0;
+        for (k=0; k < m1cols; k++)
+          el += tm[k]*m2[k][j];
+        tr[j] = el;
+      }
+  }
+  return result;
+}
+
+var i, j, n = arguments [0];
+
+for (i=0; i < n; i++) {
+  m1[i] = new Array (); m2[i] = new Array ();
+  for (j=0; j < n; j++) {
+    m1[i][j] = 1; m2[i][j] = 1;
+  }
+}
+mmult (m1, m2);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var m1, m2;
 
@@ -100888,6 +102372,10 @@ EOF
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -101055,6 +102543,100 @@ EOF
   if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.collection.mutable.HashMap
+def mmult (m1:HashMap[Int, HashMap[Int,Int]], m2:HashMap[Int, HashMap[Int,Int]]): Unit = {
+  val m1rows = m1.size
+  val m1cols = m1(0).size
+  val m2rows = m2.size
+  val m2cols = m2(0).size
+
+  if (m2cols != m2rows)
+    {
+       println ("matrices don't match");
+       return;
+    }
+
+  var el = 0
+  val result = HashMap.empty[Int, HashMap[Int, Int]];
+
+  for (i <- 0 to m1rows - 1) {
+    result += (i -> HashMap.empty[Int, Int])
+    val tm = m1(i)
+    for (j <- 0 to m2cols - 1) {
+       el = 0
+       for (k <- 0 to m1cols - 1)
+         el += tm(k) * m2(k)(j)
+       result(i) += (j -> el)
+    }
+  }
+}
+
+var n = args(0).toInt;
+
+val m1 = HashMap.empty[Int, HashMap[Int, Int]];
+for (i <- 0 to n - 1) {
+  m1 += (i -> HashMap.empty[Int, Int])
+  for (j <- 0 to n - 1)
+    m1(i) += (j -> 2)
+}
+val m2 = m1.clone
+mmult (m1, m2)
+EOF
+  echo SCALA:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var m1 = new Array (), m2 = new Array ();
+
+function mmult (m1, m2)
+{
+  var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
+
+  m1rows = m1.length; m2rows = m2.length;
+  m1cols = m1[0].length; m2cols = m2[0].length;
+  if (m2cols != m2rows) {
+       print ("matrices don't match");
+       return;
+  }
+  
+  result = new Array ();
+  for (i=0; i < m1rows; i++) {
+    result [i] = new Array ();
+    tr = result[i]; tm = m1[i];
+    for (j = 0; j < m2cols; j++)
+      {
+        el = 0;
+        for (k=0; k < m1cols; k++)
+          el += tm[k]*m2[k][j];
+        tr[j] = el;
+      }
+  }
+  return result;
+}
+
+var i, j, n = arguments [0];
+
+for (i=0; i < n; i++) {
+  m1[i] = new Array (); m2[i] = new Array ();
+  for (j=0; j < n; j++) {
+    m1[i][j] = 1; m2[i][j] = 1;
+  }
+}
+mmult (m1, m2);
+EOF
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var m1, m2;
 
@@ -101105,7 +102687,7 @@ fi
 if test $start_test_number -le 34; then
 
 ######################################################
-rep=`expr $factor '*' 10000`
+rep=`expr $factor '*' 8000`
 Announce_Test "+++++ Test #34: compile speed (simple program of $rep lines):  +++++"
 
 if test x$PERL != x; then
@@ -101120,6 +102702,10 @@ if test x$PYTHON != x; then
   echo PYTHON:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $PYTHON $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+  echo PYPY:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $PYPY $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -101156,6 +102742,21 @@ if test x$RUBY != x; then
   echo RUBY:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $RUBY $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  echo Scala:
+  echo '  ' Scala can not take even 10000 lines file
+fi
+
+if test x$JS != x; then
+  $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
+  echo JS:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  echo JS -m:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $JS -m $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest

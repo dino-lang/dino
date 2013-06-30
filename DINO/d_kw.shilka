@@ -52,9 +52,11 @@ private  {return PRIVATE;}
 return   {return RETURN;}
 table    {return TABLE;}
 thread   {return THREAD;}
+this     {return THIS;}
 throw    {return THROW;}
 try      {return TRY;}
 type     {return TYPE;}
+val      {return VAL;}
 var      {return VAR;}
 vector   {return VECTOR;}
 wait     {return WAIT;}

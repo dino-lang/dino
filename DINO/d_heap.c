@@ -84,6 +84,7 @@ initiate_int_tables (void)
 
   for (i = 0; i <= ER_NM__error; i++)
     type_size_table [i] = 0;
+  type_size_table [ER_NM_undef] = 0;
   type_size_table [ER_NM_nil] = 0;
   type_size_table [ER_NM_hide] = sizeof (hide_t);
   type_size_table [ER_NM_char] = sizeof (char_t);
@@ -91,7 +92,7 @@ initiate_int_tables (void)
   type_size_table [ER_NM_float] = sizeof (floating_t);
   type_size_table [ER_NM_type] = sizeof (IR_node_mode_t);
   type_size_table [ER_NM_tab]
-    = type_size_table [ER_NM_instance] = type_size_table [ER_NM_process]
+    = type_size_table [ER_NM_process]
     = type_size_table [ER_NM_stack] = sizeof (ER_node_t);
   type_size_table [ER_NM_vect] = sizeof (ER_node_t);
   type_size_table [ER_NM_func] = sizeof (_ER_func);
@@ -100,6 +101,7 @@ initiate_int_tables (void)
 
   for (i = 0; i <= ER_NM__error; i++)
     val_displ_table [i] = 0;
+  val_displ_table [ER_NM_undef] = 0;
   val_displ_table [ER_NM_nil] = 0;
   val_displ_table [ER_NM_hide] = (char *) &((_ER_hide *) v)->hide - (char *) v;
   val_displ_table [ER_NM_hideblock]
@@ -110,8 +112,6 @@ initiate_int_tables (void)
   val_displ_table [ER_NM_type] = (char *) &((_ER_type *) v)->type - (char *) v;
   val_displ_table [ER_NM_vect] = (char *) &((_ER_vect *) v)->vect - (char *) v;
   val_displ_table [ER_NM_tab] = (char *) &((_ER_tab *) v)->tab - (char *) v;
-  val_displ_table [ER_NM_instance]
-    = (char *) &((_ER_instance *) v)->instance - (char *) v;
   val_displ_table [ER_NM_process]
     = (char *) &((_ER_process *) v)->process - (char *) v;
   val_displ_table [ER_NM_func]
@@ -198,17 +198,6 @@ _tab_els (ER_node_t tab)
 }
 
 ER_node_t
-_instance_vars (ER_node_t instance)
-{
-  ER_node_t res;
-  
-  d_assert (ER_NODE_MODE (instance) == ER_NM_heap_instance);
-  res = (ER_node_t) ((char *) instance
-		     + ALLOC_SIZE (sizeof (_ER_heap_instance)));
-  return res;
-}
-
-ER_node_t
 _stack_vars (ER_node_t stack)
 {
   ER_node_t res;
@@ -217,6 +206,13 @@ _stack_vars (ER_node_t stack)
   res = (ER_node_t) ((char *) stack
 		     + ALLOC_SIZE (sizeof (_ER_heap_stack)));
   return res;
+}
+
+IR_node_t
+_stack_func_class (ER_node_t stack)
+{
+  d_assert (ER_NODE_MODE (stack) == ER_NM_heap_stack);
+  return IR_func_class_ext (ER_block_node (stack));
 }
 
 stack_ptr_t
@@ -262,14 +258,6 @@ _indexed_entry_val (ER_node_t first_entry, int index)
 
 
 
-size_t do_always_inline
-instance_size (IR_node_t class)
-{
-  d_assert (class != NULL && IR_NODE_MODE (class) == IR_NM_class);
-  return (ALLOC_SIZE (sizeof (_ER_heap_instance))
-	  + sizeof (val_t) * IR_vars_number (IR_next_stmt (class)));
-}
-
 int
 eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
 {
@@ -291,6 +279,16 @@ eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
   return TRUE;
 }
 
+/* Minimal stack size of BLOCK_NODE_PTR.  */
+static size_t do_always_inline
+shrink_block_stack_size (IR_node_t block_node_ptr)
+{
+  d_assert (block_node_ptr != NULL
+	    && IR_NODE_MODE (block_node_ptr) == IR_NM_block);
+  return (real_block_vars_number (block_node_ptr) * sizeof (val_t)
+	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
+}
+
 /* The func returns size (in bytes) of the stack of the block node given
    as BLOCK_NODE_PTR. */
 static size_t do_always_inline
@@ -298,17 +296,16 @@ new_block_stack_size (IR_node_t block_node_ptr)
 {
   d_assert (block_node_ptr != NULL
 	    && IR_NODE_MODE (block_node_ptr) == IR_NM_block);
-  return ((real_block_vars_number (block_node_ptr)
-	   + IR_temporary_vars_number (block_node_ptr)) * sizeof (val_t)
-	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
+  return (shrink_block_stack_size (block_node_ptr)
+	  + IR_temporary_vars_number (block_node_ptr) * sizeof (val_t));
 }
 
-/* The func returns size (in bytes) of the stack of BLOCK. */
-static size_t do_always_inline
-block_stack_size (ER_node_t block)
+/* The func returns size (in bytes) of the STACK. */
+size_t do_always_inline
+stack_size (ER_node_t stack)
 {
-  d_assert (ER_NODE_MODE (block) == ER_NM_heap_stack);
-  return (ER_all_block_vars_num (block) * sizeof (val_t)
+  d_assert (ER_NODE_MODE (stack) == ER_NM_heap_stack);
+  return (ER_all_block_vars_num (stack) * sizeof (val_t)
 	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
 }
 
@@ -474,8 +471,8 @@ initiate_heap ()
 
 /* Some forward declarations. */
 static void clean_heap_object_process_flag (void);
-static int mark_instances_need_destroying (int mark_dependent_p);
-static void destroy_instances (void);
+static int mark_stacks_need_destroying (int mark_dependent_p);
+static void destroy_stacks (void);
 
 /* Set up tvar_num1 and tvar_num2 for block BLOCK_NODE_PTR.  */
 #if INLINE && !defined (SMALL_CODE)
@@ -500,7 +497,7 @@ final_call_destroy_functions (void)
 	    || (char *) uppest_stack < curr_heap_chunk->chunk_free
 	    || (char *) uppest_stack >= curr_heap_chunk->chunk_stack_top);
   clean_heap_object_process_flag ();
-  if (mark_instances_need_destroying (FALSE))
+  if (mark_stacks_need_destroying (FALSE))
     {
       d_assert (cstack != NULL);
       if (cstack == uppest_stack)
@@ -515,7 +512,7 @@ final_call_destroy_functions (void)
 	  if (cprocess != NULL)
 	    ER_set_saved_cstack (cprocess, cstack);
 	}
-      destroy_instances ();
+      destroy_stacks ();
     }
 }
 
@@ -549,8 +546,11 @@ heap_allocate (size_t size, int stack_p)
     {
       /* We need GC.  Flag this.  */
       d_assert (executed_stmts_count <= 0);
-      GC_executed_stmts_count = executed_stmts_count;
-      executed_stmts_count = 0;
+      if (heap_chunks_number >= 16)
+	{
+	  GC_executed_stmts_count = executed_stmts_count;
+	  executed_stmts_count = 0;
+	}
       if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free
 	  < size)
 	new_heap_chunk (size > heap_chunk_size ? size : heap_chunk_size);
@@ -567,7 +567,7 @@ heap_allocate (size_t size, int stack_p)
     }
   d_assert (curr_heap_chunk->chunk_free <= curr_heap_chunk->chunk_stack_top);
   free_heap_memory -= size;
-  ER_SET_MODE ((ER_node_t) result, ER_NM_heap_instance);
+  ER_SET_MODE ((ER_node_t) result, ER_NM_heap_stack);
   ER_set_unique_number ((ER_node_t) result, unique_number);
   unique_number++;
   return result;
@@ -586,11 +586,8 @@ heap_object_size (ER_node_t obj)
     case ER_NM_heap_redir:
       size = ER_allocated_length (obj);
       break;
-    case ER_NM_heap_instance:
-      size = instance_size (ER_instance_class (obj));
-      break;
     case ER_NM_heap_stack:
-      size = block_stack_size (obj);
+      size = stack_size (obj);
       break;
     case ER_NM_heap_process:
       size = ALLOC_SIZE (sizeof (_ER_heap_process));
@@ -615,12 +612,38 @@ try_heap_stack_free (void *from, size_t size)
     }
 }
 
+/* Make stack smaller (containing no temps).  */
+static void do_always_inline
+shrink_stack (ER_node_t stack)
+{
+  size_t size;
+  IR_node_t block = ER_block_node (stack);
+  
+  d_assert (IR_extended_life_context_flag (block));
+  size = heap_object_size (stack);
+  if (curr_heap_chunk->chunk_free != (char *) stack + size)
+    /* Mark it for shrinkage during GC.  */
+    ER_set_prev_stack (stack, NULL);
+  else
+    {
+      size -= ALLOC_SIZE (shrink_block_stack_size (block));
+      ER_set_all_block_vars_num (stack, real_block_vars_number (block));
+      d_assert (stack_size (stack) == shrink_block_stack_size (block));
+      curr_heap_chunk->chunk_free -= size;
+      free_heap_memory += size;
+    }
+  /* We need it for correct changing refs during GC.  */
+  ER_set_ctop (stack,
+	       (char *) ((val_t *) ER_stack_vars (stack)
+			 + real_block_vars_number (block) - 1));
+}
+
 static int do_always_inline
-instance_with_destroy (ER_node_t obj)
+stack_with_destroy (ER_node_t obj)
 {
   IR_node_t decl;
 
-  if (ER_NODE_MODE (obj) != ER_NM_heap_instance)
+  if (ER_NODE_MODE (obj) != ER_NM_heap_stack)
     return FALSE;
   decl = LV_BLOCK_IDENT_DECL (IR_block_number (ER_block_node (obj)),
 			      destroy_ident_number);
@@ -629,6 +652,14 @@ instance_with_destroy (ER_node_t obj)
   return IR_IS_OF_TYPE (decl, IR_NM_func);
 }
 
+/* Return true if it is a stack needing shrinkage.  */
+static int do_always_inline
+stack_for_shrink_p (ER_node_t stack)
+{
+  return (ER_NODE_MODE (stack) == ER_NM_heap_stack
+	  && ER_prev_stack (stack) == NULL
+	  && IR_extended_life_context_flag (ER_block_node (stack)));
+}
 
 static size_t
 tailored_heap_object_size (ER_node_t obj)
@@ -650,6 +681,8 @@ tailored_heap_object_size (ER_node_t obj)
       if (size > optimal_size)
 	size = optimal_size;
     }
+  else if (stack_for_shrink_p (obj))
+    size = shrink_block_stack_size (ER_block_node (obj));
   else
     size = heap_object_size (obj);
   return ALLOC_SIZE (size);
@@ -658,14 +691,15 @@ tailored_heap_object_size (ER_node_t obj)
 static ER_node_t do_always_inline
 next_heap_object (ER_node_t obj)
 {
-  d_assert (ER_it_was_processed (obj) == 0 || ER_it_was_processed (obj) == 1);
+  /* ER_it_was_processed (obj) might be not 0 or 1 here when we create
+     objects during destroying.  */
   return (ER_node_t) ((char *) obj + heap_object_size (obj));
 }
 
 static void
 clean_heap_object_process_flag (void)
 {
-  ER_node_t curr_obj;
+  ER_node_t curr_obj, p;
   struct heap_chunk *curr_descr;
 
   for (curr_descr = VLO_BEGIN (heap_chunks);
@@ -674,7 +708,7 @@ clean_heap_object_process_flag (void)
     {
       for (curr_obj = (ER_node_t) curr_descr->chunk_start;
 	   (char *) curr_obj < curr_descr->chunk_free;
-	   curr_obj = next_heap_object (curr_obj))
+	   p = curr_obj, curr_obj = next_heap_object (curr_obj))
 	ER_set_it_was_processed (curr_obj, FALSE);
       for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
 	   (char *) curr_obj < curr_descr->chunk_bound;
@@ -690,6 +724,7 @@ traverse_used_var (ER_node_t var)
 {
   switch (ER_NODE_MODE (var))
     {
+    case ER_NM_undef:
     case ER_NM_nil:
     case ER_NM_hide:
     case ER_NM_char:
@@ -705,9 +740,6 @@ traverse_used_var (ER_node_t var)
       return;
     case ER_NM_tab:
       traverse_used_heap_object (ER_tab (var));
-      return;
-    case ER_NM_instance:
-      traverse_used_heap_object (ER_instance (var));
       return;
     case ER_NM_func:
       traverse_used_heap_object (ER_func_context (var));
@@ -748,13 +780,14 @@ traverse_used_heap_object (ER_node_t obj)
 	ER_node_mode_t el_type = ER_pack_vect_el_type (obj);
 	size_t el_size;
 	
-	if (el_type == ER_NM_nil || el_type == ER_NM_hide
+	if (el_type == ER_NM_undef || el_type == ER_NM_nil
+	    || el_type == ER_NM_hide
 	    || el_type == ER_NM_char || el_type == ER_NM_int
 	    || el_type == ER_NM_float || el_type == ER_NM_type)
 	  return;
 	el_size = type_size_table [el_type];
 	if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
-	    || el_type == ER_NM_tab || el_type == ER_NM_instance
+	    || el_type == ER_NM_tab 
 	    || el_type == ER_NM_process || el_type == ER_NM_stack)
 	  for (i = 0; i < ER_els_number (obj); i++)
 	    traverse_used_heap_object
@@ -800,23 +833,13 @@ traverse_used_heap_object (ER_node_t obj)
     case ER_NM_heap_redir:
       traverse_used_heap_object (ER_redir (obj));
       return;
-    case ER_NM_heap_instance:
-      {
-	int vars_number;
-	
-	traverse_used_heap_object (ER_context (obj));
-	vars_number = IR_vars_number (IR_next_stmt (ER_instance_class (obj)));
-	for (i = 0; i < vars_number; i++)
-	  traverse_used_var (IVAL (ER_instance_vars (obj), i));
-	return;
-      }
     case ER_NM_heap_stack:
       {
 	ER_node_t var;
 	
 	traverse_used_heap_object (ER_prev_stack (obj));
 	traverse_used_heap_object (ER_context (obj));
-	for (var = ER_stack_vars (obj);
+	for (var = ER_stack_vars (obj); /* !!! */
 	     (char *) var <= ER_ctop (obj);
 	     var = IVAL (var, 1))
 	  traverse_used_var (var);
@@ -834,10 +857,10 @@ traverse_used_heap_object (ER_node_t obj)
     }
 }
 
-/* Return true if there are objects to be destroyed.  Mark objects
-   achieved from instance to be destroyed if MARK_DEPENDENT_P.  */
+/* Return true if there are objects to be destroyed.  Mark stacks
+   achieved from stack to be destroyed if MARK_DEPENDENT_P.  */
 static int
-mark_instances_need_destroying (int mark_dependent_p)
+mark_stacks_need_destroying (int mark_dependent_p)
 {
   ER_node_t curr_obj;
   struct heap_chunk *curr_descr;
@@ -850,7 +873,7 @@ mark_instances_need_destroying (int mark_dependent_p)
       for (curr_obj = (ER_node_t) curr_descr->chunk_start;
 	   (char *) curr_obj < curr_descr->chunk_free;
 	   curr_obj = next_heap_object (curr_obj))
-	if (!ER_it_was_processed (curr_obj) && instance_with_destroy (curr_obj)
+	if (!ER_it_was_processed (curr_obj) && stack_with_destroy (curr_obj)
 	    && ER_state (curr_obj) != IS_destroyed)
 	  {
 	    ER_set_state (curr_obj, IS_to_be_destroyed);
@@ -865,8 +888,7 @@ mark_instances_need_destroying (int mark_dependent_p)
 	for (curr_obj = (ER_node_t) curr_descr->chunk_start;
 	     (char *) curr_obj < curr_descr->chunk_free;
 	     curr_obj = next_heap_object (curr_obj))
-	  if (ER_NODE_MODE (curr_obj) == ER_NM_heap_instance
-	      && ER_state (curr_obj) == IS_to_be_destroyed)
+	  if (ER_state (curr_obj) == IS_to_be_destroyed)
 	    traverse_used_heap_object (curr_obj);
       }
   return result;
@@ -887,8 +909,8 @@ mark_used_heap_objects (void)
   /* Current stack table is traversed with cprocess. */
   traverse_used_heap_object (cprocess);
   traverse_used_heap_object (first_process_not_started);
-  /* Traverse all instances which needs to be destroyed. */
-  return mark_instances_need_destroying (TRUE);
+  /* Traverse all stacks which needs to be destroyed. */
+  return mark_stacks_need_destroying (TRUE);
 }
 
 static do_inline char *
@@ -981,6 +1003,7 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
 {
   switch (mode)
     {
+    case ER_NM_undef:
     case ER_NM_nil:
     case ER_NM_hide:
     case ER_NM_char:
@@ -993,7 +1016,6 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
       CHANGE_VECT_TAB_REF (*val_addr);
       return;
     case ER_NM_hideblock:
-    case ER_NM_instance:
     case ER_NM_process:
     case ER_NM_stack:
     case ER_NM_func:
@@ -1017,6 +1039,7 @@ change_var (ER_node_t var)
 {
   switch (ER_NODE_MODE (var))
     {
+    case ER_NM_undef:
     case ER_NM_nil:
     case ER_NM_hide:
     case ER_NM_char:
@@ -1032,9 +1055,6 @@ change_var (ER_node_t var)
       return;
     case ER_NM_hideblock:
       CHANGE_REF (((_ER_hideblock *) var)->hideblock);
-      return;
-    case ER_NM_instance:
-      CHANGE_REF (((_ER_instance *) var)->instance);
       return;
     case ER_NM_func:
       CHANGE_REF (((_ER_func *) var)->func_context);
@@ -1072,13 +1092,13 @@ change_obj_refs (ER_node_t obj)
 	  size_t el_size;
 	  
 	  el_type = ER_pack_vect_el_type (obj);
-	  if (el_type == ER_NM_nil || el_type == ER_NM_hide
+	  if (el_type == ER_NM_undef || el_type == ER_NM_nil || el_type == ER_NM_hide
 	      || el_type == ER_NM_char || el_type == ER_NM_int
 	      || el_type == ER_NM_float || el_type == ER_NM_type)
 	    break;
 	  el_size = type_size_table [el_type];
 	  if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
-	      || el_type == ER_NM_tab || el_type == ER_NM_instance
+	      || el_type == ER_NM_tab
 	      || el_type == ER_NM_process || el_type == ER_NM_stack)
 	    for (i = 0; i < ER_els_number (obj); i++)
 	      change_val (el_type,
@@ -1119,18 +1139,6 @@ change_obj_refs (ER_node_t obj)
 	      change_var (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
 	      change_var (INDEXED_ENTRY_VAL (ER_tab_els (obj), i));
 	    }
-	  break;
-	}
-      case ER_NM_heap_instance:
-	{
-	  int vars_number;
-	  
-	  CHANGE_REF (((_ER_heap_instance *) obj)
-		      ->_ER_M_context_heap_obj.context);
-	  vars_number = IR_vars_number (IR_next_stmt
-					(ER_instance_class (obj)));
-	  for (i = 0; i < vars_number; i++)
-	    change_var (IVAL (ER_instance_vars (obj), i));
 	  break;
 	}
       case ER_NM_heap_stack:
@@ -1236,6 +1244,9 @@ move_object (ER_node_t obj, struct heap_chunk **descr,
       if (ER_NODE_MODE (obj) == ER_NM_heap_pack_vect
 	  || ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect)
 	ER_set_allocated_length (obj, tailored_size);
+      else if (stack_for_shrink_p (obj))
+	ER_set_all_block_vars_num
+	  (obj, real_block_vars_number (ER_block_node (obj)));
       d_assert (ER_new_place (obj) == place);
       if (place != (char *) obj)
 	memmove (place, obj, tailored_size);
@@ -1340,7 +1351,7 @@ compare_chunks (const void *chunk1, const void *chunk2)
 }
 
 static void
-destroy_instances (void)
+destroy_stacks (void)
 {
   IR_node_t decl;
   ER_node_t curr_obj;
@@ -1353,7 +1364,7 @@ destroy_instances (void)
       for (curr_obj = (ER_node_t) curr_descr->chunk_start;
 	   (char *) curr_obj < curr_descr->chunk_free;
 	   curr_obj = next_heap_object (curr_obj))
-	if (ER_NODE_MODE (curr_obj) == ER_NM_heap_instance
+	if (ER_NODE_MODE (curr_obj) == ER_NM_heap_stack
 	    && ER_state (curr_obj) == IS_to_be_destroyed)
 	  {
 	    decl = LV_BLOCK_IDENT_DECL (IR_block_number (ER_block_node (curr_obj)),
@@ -1410,7 +1421,7 @@ GC (void)
     ticker_on (&gc_ticker);
 #endif
   if (flag)
-    destroy_instances ();
+    destroy_stacks ();
 }
 
 
@@ -1444,26 +1455,23 @@ profile_interrupt (void)
    stack header and vars) of the block given as BLOCK_NODE_PTR.  The
    func initiates all fields of stack and returns pointer to it.  The
    func also sets up value of cstack.  The func sets up mode of all
-   permanent stack vars as ER_NM_NIL starting from offset.  If offset
-   is negative, stack vars are not set.  Usually, CONTEXT is the same
-   as CSTACK.  But in complex cases, the chain `context' contains the
-   chain `prev_stack' except for class constructors stacks (the heap
-   instance is used in this case). */
+   permanent stack vars as ER_NM_undef starting from offset.  If offset
+   is negative, stack vars are not set. */
 void
 heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
 {
   ER_node_t stack;
   ER_node_t curr_var;
-  IR_node_t func_class;
+  IR_node_t func_class = IR_func_class_ext (block_node_ptr);
   int vars_num;
 
   /* Remember about possible GC. */
-  stack = (ER_node_t) heap_allocate (new_block_stack_size (block_node_ptr),
-				     TRUE);
+  stack = ((ER_node_t)
+	   heap_allocate (new_block_stack_size (block_node_ptr),
+			  ! IR_extended_life_context_flag (block_node_ptr)));
 #ifndef NO_PROFILE
   if (profile_flag)
     {
-      func_class = IR_func_class_ext (block_node_ptr);
       if (func_class != NULL)
 	{
 #if !HAVE_SETITIMER
@@ -1478,19 +1486,14 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
 #endif
   ER_SET_MODE (stack, ER_NM_heap_stack);
   ER_set_call_pc (stack, cpc);
-  if (context != NULL && ER_NODE_MODE (context) != ER_NM_heap_instance)
-    {
-      func_class = IR_func_class_ext (ER_block_node (context));
-      if (func_class != NULL && IR_IS_OF_TYPE (func_class, IR_NM_class))
-	/* Remove class constructor from the context. */
-	context = ER_context (context);
-    }
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
   ER_set_context (stack, context);
   ER_set_context_number (stack, context_number);
   context_number++;
+  ER_set_immutable (stack, FALSE);
+  ER_set_state (stack, IS_initial);
   ER_set_prev_stack (stack, cstack);
   if (cstack != NULL)
     ER_set_ctop (cstack, (char *) ctop);
@@ -1503,11 +1506,11 @@ heap_push (IR_node_t block_node_ptr, ER_node_t context, int offset)
   ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
   set_tvars (block_node_ptr);
   if (offset >= 0)
-    /* Seting up mode of all permanent stack vars as nil. */
+    /* Seting up mode of all permanent stack vars as undef. */
     for (curr_var = IVAL (cvars, offset);
 	 curr_var <= ctop;
 	 curr_var = IVAL (curr_var, 1))
-      ER_SET_MODE (curr_var, ER_NM_nil);
+      ER_SET_MODE (curr_var, ER_NM_undef);
   /* We set them only here because we need to set mode before.
      Remeber about possible field checking. */
   if (cprocess != NULL)
@@ -1547,6 +1550,8 @@ heap_pop (void)
     }
   if (! IR_extended_life_context_flag (block_node))
     try_heap_stack_free (stack, heap_object_size (stack));
+  else
+    shrink_stack (stack);
   ER_set_saved_cstack (cprocess, cstack);
 }
 
@@ -1890,15 +1895,14 @@ create_string (const char *string)
 
 
 int do_always_inline
-eq_instance (ER_node_t i1, ER_node_t i2)
+eq_stack (ER_node_t i1, ER_node_t i2)
 {
   return (i1 == i2
-	  || (ER_instance_class (i1) == ER_instance_class (i2)
-	      && ER_context (i1) == ER_context (i2)
-	      && eq_val ((val_t *) ER_instance_vars (i1),
-			 (val_t *) ER_instance_vars (i2),
-			 IR_vars_number (IR_next_stmt
-					 (ER_instance_class (i1))))));
+	  || (ER_block_node (i1) == ER_block_node (i2)
+	      && ER_context (i1) == ER_context (i2) /* !!! */
+	      && eq_val ((val_t *) ER_stack_vars (i1),
+			 (val_t *) ER_stack_vars (i2),
+			 (val_t *) ER_ctop (i1) - (val_t *) ER_stack_vars (i1) + 1)));
 }
 
 
@@ -1993,8 +1997,6 @@ hash_val (ER_node_t val)
       return (size_t) ER_unique_number (ER_vect (val));
     case ER_NM_tab:
       return (size_t) ER_unique_number (ER_tab (val));
-    case ER_NM_instance:
-      return (size_t) ER_unique_number (ER_instance (val));
     case ER_NM_func:
       return ((size_t) ER_func_id (val)
 	      + (size_t) ER_unique_number (ER_func_context (val)));
@@ -2034,7 +2036,6 @@ hash_key (ER_node_t key)
     case ER_NM_thread:
     case ER_NM_process:
     case ER_NM_class:
-    case ER_NM_stack:
       hash = hash_val (key);
       break;
     case ER_NM_vect:
@@ -2117,18 +2118,20 @@ hash_key (ER_node_t key)
 	  }
 	break;
       }
-    case ER_NM_instance:
-      for (hash = 0,
-	     i = IR_vars_number (IR_next_stmt (ER_instance_class
-					       (ER_instance (key))));
-	   i > 0; i--)
-	{
-	  el_hash
-	    = hash_val (IVAL (ER_instance_vars (ER_instance (key)), i - 1));
-	  shift = 13 * i % (CHAR_BIT * sizeof (size_t));
-	  hash += (el_hash << shift) | (el_hash >> shift);
-	}
-      break;
+    case ER_NM_stack:
+      {
+	ER_node_t var;
+
+	for (i = hash = 0, var = ER_stack_vars (ER_stack (key));
+	     (char *) var <= ER_ctop (ER_stack (key));
+	     var = IVAL (var, 1), i++)
+	  {
+	    el_hash = hash_val (var);
+	    shift = 13 * i % (CHAR_BIT * sizeof (size_t));
+	    hash += (el_hash << shift) | (el_hash >> shift);
+	  }
+	break;
+      }
     case ER_NM_hideblock:
       string = (unsigned char *) ER_hideblock_start (ER_hideblock (key));
       length = ER_hideblock_length (ER_hideblock (key));
@@ -2166,8 +2169,6 @@ eq_key (ER_node_t entry_key, ER_node_t key)
       return eq_vector (ER_vect (key), ER_vect (entry_key));
     case ER_NM_tab:
       return eq_table (ER_tab (key), ER_tab (entry_key));
-    case ER_NM_instance:
-      return eq_instance (ER_instance (key), ER_instance (entry_key));
     case ER_NM_func:
       return (ER_func_context (key) == ER_func_context (entry_key)
 	      && ER_func_id (key) == ER_func_id (entry_key));
@@ -2180,7 +2181,7 @@ eq_key (ER_node_t entry_key, ER_node_t key)
       return (ER_class_context (key) == ER_class_context (entry_key)
 	      && ER_class_id (key) == ER_class_id (entry_key));
     case ER_NM_stack:
-      return ER_stack (key) == ER_stack (entry_key);
+      return eq_stack (ER_stack (key), ER_stack (entry_key));
     default:
       d_unreachable ();
     }
@@ -2533,8 +2534,8 @@ make_immutable (ER_node_t obj)
       GO_THROUGH_REDIR (tab);
       ER_set_immutable (tab, TRUE);
     }
-  else if (ER_NODE_MODE (obj) == ER_NM_instance)
-    ER_set_immutable (ER_instance (obj), TRUE);
+  else if (ER_NODE_MODE (obj) == ER_NM_stack)
+    ER_set_immutable (ER_stack (obj), TRUE);
 }
 
 

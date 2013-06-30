@@ -28,8 +28,6 @@
 
 %extend d_extern
 
-%type pc_t integer_t string_t
-
 %import {
 
 #include "d_ir.h"
@@ -98,6 +96,10 @@ extern ER_node_t first_process_not_started;
 
 #define GO_THROUGH_REDIR(ref)\
  while (ER_NODE_MODE (ref) == ER_NM_heap_redir) (ref) = ER_redir (ref)
+
+#define ER_instance_p(stack) \
+  (IR_func_class_ext (ER_block_node (stack)) != NULL \
+   && IR_NODE_MODE (IR_func_class_ext (ER_block_node (stack))) == IR_NM_class)
 
 extern void initiate_int_tables (void);
 
@@ -182,16 +184,8 @@ heap_redir :: heap_vect_tab
   redir : heap_vect_tab /* referenced object */
 ;
 
-heap_stack
-%other
-  call_pc : pc_t
-;
-
-heap_process
-%other
-  /* Program counter which will be first after the resuming the process. */
-  saved_pc : pc_t
-;
+/* Don't add fields for nodes here as we have different structures in
+   the interpriter and in the external functions.  */
 
 /*
 Local Variables:

@@ -43,6 +43,10 @@ static IR_node_t uncycle_access_list (IR_node_t list);
 static IR_node_t merge_exception_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_exception_list (IR_node_t list);
 
+static IR_node_t
+process_var_decl (IR_node_t ident, position_t ident_pos, int val_flag,
+		  IR_node_t expr, position_t expr_pos, IR_node_mode_t assign);
+
 static void process_header (IR_node_t decl, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
 static IR_node_t process_header_block (IR_node_t, IR_node_t);
@@ -88,15 +92,15 @@ static int add_include_file (const char *name);
   {
     IR_node_t pointer;
     position_t pos;
-    int flag;
+    int flag; /* 0 - var/table, 1 - val/vector */
     IR_node_mode_t node_mode;
    }
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
 %token ACLASS AFUNC ATHREAD BREAK CATCH CHAR CLASS CONTINUE ELSE EXT EXTERN
        FINAL FLOAT FOR FRIEND FUNC HIDE HIDEBLOCK IF IN INT
-       NEW NIL PUBLIC PRIVATE RETURN TABLE THREAD THROW TRY TYPE
-       VAR VECTOR WAIT
+       NEW NIL PUBLIC PRIVATE RETURN TABLE THIS THREAD THROW TRY TYPE
+       VAL VAR VECTOR WAIT
 %token MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN CONCAT_ASSIGN
 %token LSHIFT_ASSIGN RSHIFT_ASSIGN ASHIFT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN
@@ -125,14 +129,15 @@ static int add_include_file (const char *name);
 %type <node_mode> assign
 %type <pointer> afunc_thread_class aheader expr designator
                 elist_parts_list elist_parts_list_empty elist_part
-                expr_list expr_list_empty
-            	actual_parameters access_list var_par_list var_par_list_empty
-        	var_par stmt executive_stmt incr_decr for_guard_expr
+                expr_list expr_list_empty actual_parameters access_list
+                val_var_list val_var
+                stmt executive_stmt incr_decr for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
                 header declaration extern_list extern_item
         	func_thread_class else_part expr_empty opt_step
+                par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
-%type <flag> clear_flag  set_flag  access  opt_final
+%type <flag> clear_flag  set_flag  access  opt_final  par_kind
 
 %start program
 
@@ -432,6 +437,7 @@ expr : expr '?' pos expr ':' expr
           $$ = create_node_with_pos (IR_NM_classof, $1);
           IR_set_operand ($$, $4);
 	}
+     | pos THIS { $$ = create_node_with_pos (IR_NM_this, $1); } 
      ;
 aheader : afunc_thread_class { process_header ($1, get_new_ident (IR_pos ($1))); }
           formal_parameters  { $$ = process_formal_parameters ($1, $3); }
@@ -620,58 +626,38 @@ expr_list : pos expr
           ;
 /* Attribute value is cyclic list of stmts corresponding to var decls
    with the pointer to the last element.  The attribute before
-   var_par_list must be flag of that this is in var decl (not
+   val_var_list must be flag of that this is in var decl (not
    parameters). */
-var_par_list : var_par   {$$ = $1;}
-       	     | var_par_list ',' {$<flag>$ = $<flag>0;} var_par
+val_var_list : val_var   {$$ = $1;}
+             | val_var_list ',' {$<flag>$ = $<flag>0;} val_var
        	         {
-		   $$ = $4;
-                   if ($1 != NULL)
-                     {
-		       IR_node_t first;
-
-		       first = IR_next_stmt ($$);
-                       IR_set_next_stmt ($$, IR_next_stmt ($1));
-                       IR_set_next_stmt ($1, first);
-                     }
-                 }
+	           $$ = $4;
+	           if ($1 != NULL)
+	     	 {
+	     	   IR_node_t first;
+	     	   
+	     	   first = IR_next_stmt ($$);
+	     	   IR_set_next_stmt ($$, IR_next_stmt ($1));
+	     	   IR_set_next_stmt ($1, first);
+	     	 }
+	         }
        	     | error {$$ = NULL;}
        	     ;
 /* Attribute value is cyclic list of stmts corresponding to var decl
    (and possibly assignment stmt) with the pointer to the last
-   element.  The attribute before var_par_list must be flag of that
-   this is in var decl (not parameters). */
-var_par : opt_final IDENT pos
+   element.  The attribute before val_var_list must be flag of
+   that this is in var decl (not parameters). */
+val_var : IDENT pos
             {
-              $$ = create_node_with_pos (IR_NM_var, $3);
-              IR_set_scope ($$, current_scope);
-              IR_set_ident ($$, $2);
-              IR_set_next_stmt ($$, $$);
-	      IR_set_const_flag ($$, $1);
+	      $$ = process_var_decl ($1, $2, $<flag>0,
+				     NULL, $2, IR_NM_var_assign);
 	    }
-        | opt_final IDENT pos '=' pos expr
+        | IDENT pos '=' pos expr
             {
-	      IR_node_t assign;
-
-              $$ = create_node_with_pos (IR_NM_var, $3);
-              IR_set_scope ($$, current_scope);
-              IR_set_ident ($$, $2);
-	      IR_set_const_flag ($$, $1);
-	      assign = create_node_with_pos (($<flag>0
-					      ? IR_NM_var_assign
-					      : IR_NM_par_assign),
-					     $5);
-	      IR_set_assignment_var (assign, $2);
-	      IR_set_assignment_expr (assign, $6);
-	      IR_set_next_stmt ($$, assign);
-	      IR_set_next_stmt (assign, $$);
-	      $$ = assign;
+	      $$ = process_var_decl ($1, $2, $<flag>0,
+				     $5, $4, IR_NM_var_assign);
 	    }
         ;
-/* see commentaries for var_par_list. */
-var_par_list_empty :              {$$ = NULL;} 
-       	           | var_par_list {$$ = $1;}
-       	           ;
 /* Attribute value is cyclic list of stmts corresponding to stmt
    (declaration). */
 stmt : executive_stmt
@@ -937,8 +923,10 @@ access_list : IDENT
    the pointer to last element.  Class (function) declaration is
    represented by two stmt nodes: class (function) node and block
    node. */
-declaration : VAR set_flag var_par_list {$<flag>$ = $<flag>0;} end_simple_stmt
-                {$$ = $3;}
+declaration : VAL set_flag val_var_list {$<flag>$ = $<flag>0;}
+                end_simple_stmt {$$ = $3;}
+            | VAR clear_flag val_var_list {$<flag>$ = $<flag>0;}
+                end_simple_stmt {$$ = $3;}
             | access access_list {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  IR_set_access_list (current_scope,
@@ -1084,25 +1072,58 @@ expr_empty :             {$$ = NULL;}
 opt_step :           {$$ = NULL;}
          | ':' expr  {$$ = $2;}
          ;
-/* see commentaries for var_par_list. */
-formal_parameters : '(' clear_flag var_par_list_empty ')'
+/* Attribute value is cyclic list of stmts corresponding to par decls
+   with the pointer to the last element.  */
+par_list : par   {$$ = $1;}
+         | par_list ',' par
+       	     {
+	       $$ = $3;
+	       if ($1 != NULL)
+	 	 {
+	 	   IR_node_t first;
+	 	   
+	 	   first = IR_next_stmt ($$);
+	 	   IR_set_next_stmt ($$, IR_next_stmt ($1));
+	 	   IR_set_next_stmt ($1, first);
+	 	 }
+	     }
+       	 | error {$$ = NULL;}
+       	 ;
+par_kind :      {$$ = 0;}
+         | VAL  {$$ = 1;}
+         | VAR  {$$ = 0;}
+         ;
+par : par_kind IDENT pos
+        {
+	  $$ = process_var_decl ($2, $3, $1, NULL, $3, IR_NM_par_assign);
+        }
+    | par_kind IDENT pos '=' pos expr
+        {
+	  $$ = process_var_decl ($2, $3, $1, $6, $5, IR_NM_par_assign);
+        }
+    ;
+par_list_empty :          {$$ = NULL;} 
+       	       | par_list {$$ = $1;}
+       	       ;
+formal_parameters :    {formal_parameter_args_flag = FALSE; $$ = NULL;}  
+                  | '(' par_list_empty ')'
                        {
                          formal_parameter_args_flag = FALSE;
-			 $$ = $3;
+			 $$ = $2;
 		       }
-       	          | '(' clear_flag var_par_list ',' DOTS pos ')'
+       	          | '(' par_list ',' DOTS pos ')'
                        {
 			 formal_parameter_args_flag = TRUE;
-			 $$ = create_node_with_pos (IR_NM_var, $6);
-			 if ($3 != NULL)
+			 $$ = create_node_with_pos (IR_NM_var, $5);
+			 if ($2 != NULL)
 			   {
-			     IR_set_next_stmt ($$, IR_next_stmt ($3));
-			     IR_set_next_stmt ($3, $$);
+			     IR_set_next_stmt ($$, IR_next_stmt ($2));
+			     IR_set_next_stmt ($2, $$);
 			   }
 			 else
 			   IR_set_next_stmt ($$, $$);
 			 IR_set_scope ($$, current_scope);
-			 IR_set_ident ($$, get_ident_node (ARGS_NAME, $6));
+			 IR_set_ident ($$, get_ident_node (ARGS_NAME, $5));
 		       }
        	          | '(' DOTS pos ')'
                        {
@@ -1273,6 +1294,34 @@ uncycle_exception_list (IR_node_t list)
   return first;
 }
 
+/* Create variable IDENT with IDENT_POS and VAL_FLAG.  If EXPR is not
+   null, create also assignment with AMODE of EXPR with EXPR_POS to
+   the variable.  Create cyclic list of the node(s) and return the
+   last one.  */
+static IR_node_t
+process_var_decl (IR_node_t ident, position_t ident_pos, int val_flag,
+		  IR_node_t expr, position_t expr_pos, IR_node_mode_t assign)
+{
+  IR_node_t res = create_node_with_pos (IR_NM_var, ident_pos);
+
+  IR_set_scope (res, current_scope);
+  IR_set_ident (res, ident);
+  IR_set_const_flag (res, val_flag);
+  if (expr == NULL)
+    IR_set_next_stmt (res, res);
+  else
+    {
+      IR_node_t init = create_node_with_pos (assign, expr_pos);
+
+      IR_set_assignment_var (init, ident);
+      IR_set_assignment_expr (init, expr);
+      IR_set_next_stmt (res, init);
+      IR_set_next_stmt (init, res);
+      res = init;
+    }
+  return res;
+}
+
 /* Process function/thread/class header.  */
 static void
 process_header (IR_node_t decl, IR_node_t ident)
@@ -1298,17 +1347,26 @@ process_header (IR_node_t decl, IR_node_t ident)
 static IR_node_t
 process_formal_parameters (IR_node_t decl, IR_node_t pars)
 {
-  int var_par_list_length = 0;
+  int val_var_list_length = 0;
+  int min_actual_parameters_number = -1;
   IR_node_t current_decl = pars;
   
   if (current_decl != NULL)
     do
       {
-	var_par_list_length++;
+	if (IR_IS_OF_TYPE (current_decl, IR_NM_var))
+	  val_var_list_length++;
+	else if (min_actual_parameters_number < 0)
+	  /* That is a first parameter assignment.  */
+	  min_actual_parameters_number = val_var_list_length;
 	current_decl = IR_next_stmt (current_decl);
       }
     while (current_decl != pars);
-  IR_set_parameters_number (decl, var_par_list_length);
+  IR_set_parameters_number (decl, val_var_list_length);
+  if (min_actual_parameters_number < 0)
+    min_actual_parameters_number
+      = val_var_list_length - (formal_parameter_args_flag ? 1 : 0);
+  IR_set_min_actual_parameters_number (decl, min_actual_parameters_number);
   IR_set_args_flag (decl, formal_parameter_args_flag);
   return pars;
 }

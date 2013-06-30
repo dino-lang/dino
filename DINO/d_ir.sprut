@@ -197,14 +197,11 @@ extern IR_node_t get_float_node (floating_t number_value, position_t pos);
 #define ARGS_NAME "args"
 
 /* Return real block vars number (see commentaries for
-   block_node).  Remember that class-constructor has only one
-   permanent var corresponding self-value. */
+   block_node). */
 static int do_always_inline
 real_block_vars_number (IR_node_t block_node_ptr)
 {
-  return (IR_func_class_ext (block_node_ptr) != NULL
-	  && IR_NODE_MODE (IR_func_class_ext (block_node_ptr)) == IR_NM_class
-	  ? 1 : IR_vars_number (block_node_ptr));
+  return IR_vars_number (block_node_ptr);
 }
 
 
@@ -239,144 +236,144 @@ extern IR_node_t destroy_unique_ident;
    parsing. */
 #define ENVIRONMENT \
   "class except () { \n"\
-  "  class error (msg){\n"\
-  "    class signal (msg) {\n"\
-  "      class sigint (msg) {}\n"\
-  "      class sigill (msg) {}\n"\
-  "      class sigabrt (msg) {}\n"\
-  "      class sigfpe (msg) {}\n"\
-  "      class sigterm (msg) {}\n"\
-  "      class sigsegv (msg) {}\n"\
+  "  class error (msg = nil){\n"\
+  "    class signal (msg = nil) {\n"\
+  "      class sigint (msg = nil) {}\n"\
+  "      class sigill (msg = nil) {}\n"\
+  "      class sigabrt (msg = nil) {}\n"\
+  "      class sigfpe (msg = nil) {}\n"\
+  "      class sigterm (msg = nil) {}\n"\
+  "      class sigsegv (msg = nil) {}\n"\
   "    }\n"\
-  "    class invenv (msg) {}\n"\
-  "    class invop (msg) {\n"\
-  "      class optype (msg) {}\n"\
-  "      class opvalue (msg) {}\n"\
+  "    class invenv (msg = nil) {}\n"\
+  "    class invop (msg = nil) {\n"\
+  "      class optype (msg = nil) {}\n"\
+  "      class opvalue (msg = nil) {}\n"\
   "    }\n"\
-  "    class invindex (msg) {\n"\
-  "      class indextype (msg) {}\n"\
-  "      class indexvalue (msg) {}\n"\
-  "      class indexop (msg) {}\n"\
+  "    class invindex (msg = nil) {\n"\
+  "      class indextype (msg = nil) {}\n"\
+  "      class indexvalue (msg = nil) {}\n"\
+  "      class indexop (msg = nil) {}\n"\
   "    }\n"\
-  "    class invslice (msg) {\n"\
-  "      class slicetype (msg) {}\n"\
-  "      class sliceform (msg) {}\n"\
+  "    class invslice (msg = nil) {\n"\
+  "      class slicetype (msg = nil) {}\n"\
+  "      class sliceform (msg = nil) {}\n"\
   "    }\n"\
-  "    class invector (msg) {\n"\
-  "      class veclen (msg) {}\n"\
-  "      class vecform (msg) {}\n"\
+  "    class invector (msg = nil) {\n"\
+  "      class veclen (msg = nil) {}\n"\
+  "      class vecform (msg = nil) {}\n"\
   "    }\n"\
-  "    class invkey (msg) {\n"\
-  "      class keyvalue (msg) {}\n"\
-  "      class keyop (msg) {}\n"\
+  "    class invkey (msg = nil) {\n"\
+  "      class keyvalue (msg = nil) {}\n"\
+  "      class keyop (msg = nil) {}\n"\
   "    }\n"\
-  "    class invcall (msg) {\n"\
-  "      class callop (msg) {}\n"\
-  "      class partype (msg) {}\n"\
-  "      class invresult (msg) {}\n"\
-  "      class invinput (msg) {}\n"\
-  "      class invfmt (msg) {}\n"\
-  "      class eof (msg) {}\n"\
-  "      class parnumber (msg) {}\n"\
-  "      class syncthreadcall (msg) {}\n"\
-  "      class syserror (msg) {\n"\
-  "        class eaccess (msg) {}\n"\
-  "        class eagain (msg) {}\n"\
-  "        class ebadf (msg) {}\n"\
-  "        class ebusy (msg) {}\n"\
-  "        class echild (msg) {}\n"\
-  "        class edeadlk (msg) {}\n"\
-  "        class edom (msg) {}\n"\
-  "        class eexist (msg) {}\n"\
-  "        class efault (msg) {}\n"\
-  "        class efbig (msg) {}\n"\
-  "        class eintr (msg) {}\n"\
-  "        class einval (msg) {}\n"\
-  "        class eio (msg) {}\n"\
-  "        class eisdir (msg) {}\n"\
-  "        class emfile (msg) {}\n"\
-  "        class emlink (msg) {}\n"\
-  "        class enametoolong (msg) {}\n"\
-  "        class enfile (msg) {}\n"\
-  "        class enodev (msg) {}\n"\
-  "        class enoent (msg) {}\n"\
-  "        class enoexec (msg) {}\n"\
-  "        class enolck (msg) {}\n"\
-  "        class enomem (msg) {}\n"\
-  "        class enospc (msg) {}\n"\
-  "        class enosys (msg) {}\n"\
-  "        class enotdir (msg) {}\n"\
-  "        class enotempty (msg) {}\n"\
-  "        class enotty (msg) {}\n"\
-  "        class enxio (msg) {}\n"\
-  "        class eperm (msg) {}\n"\
-  "        class epipe (msg) {}\n"\
-  "        class erange (msg) {}\n"\
-  "        class erofs (msg) {}\n"\
-  "        class espipe (msg) {}\n"\
-  "        class esrch (msg) {}\n"\
-  "        class exdev (msg) {}\n"\
+  "    class invcall (msg = nil) {\n"\
+  "      class callop (msg = nil) {}\n"\
+  "      class partype (msg = nil) {}\n"\
+  "      class invresult (msg = nil) {}\n"\
+  "      class invinput (msg = nil) {}\n"\
+  "      class invfmt (msg = nil) {}\n"\
+  "      class eof (msg = nil) {}\n"\
+  "      class parnumber (msg = nil) {}\n"\
+  "      class syncthreadcall (msg = nil) {}\n"\
+  "      class syserror (msg = nil) {\n"\
+  "        class eaccess (msg = nil) {}\n"\
+  "        class eagain (msg = nil) {}\n"\
+  "        class ebadf (msg = nil) {}\n"\
+  "        class ebusy (msg = nil) {}\n"\
+  "        class echild (msg = nil) {}\n"\
+  "        class edeadlk (msg = nil) {}\n"\
+  "        class edom (msg = nil) {}\n"\
+  "        class eexist (msg = nil) {}\n"\
+  "        class efault (msg = nil) {}\n"\
+  "        class efbig (msg = nil) {}\n"\
+  "        class eintr (msg = nil) {}\n"\
+  "        class einval (msg = nil) {}\n"\
+  "        class eio (msg = nil) {}\n"\
+  "        class eisdir (msg = nil) {}\n"\
+  "        class emfile (msg = nil) {}\n"\
+  "        class emlink (msg = nil) {}\n"\
+  "        class enametoolong (msg = nil) {}\n"\
+  "        class enfile (msg = nil) {}\n"\
+  "        class enodev (msg = nil) {}\n"\
+  "        class enoent (msg = nil) {}\n"\
+  "        class enoexec (msg = nil) {}\n"\
+  "        class enolck (msg = nil) {}\n"\
+  "        class enomem (msg = nil) {}\n"\
+  "        class enospc (msg = nil) {}\n"\
+  "        class enosys (msg = nil) {}\n"\
+  "        class enotdir (msg = nil) {}\n"\
+  "        class enotempty (msg = nil) {}\n"\
+  "        class enotty (msg = nil) {}\n"\
+  "        class enxio (msg = nil) {}\n"\
+  "        class eperm (msg = nil) {}\n"\
+  "        class epipe (msg = nil) {}\n"\
+  "        class erange (msg = nil) {}\n"\
+  "        class erofs (msg = nil) {}\n"\
+  "        class espipe (msg = nil) {}\n"\
+  "        class esrch (msg = nil) {}\n"\
+  "        class exdev (msg = nil) {}\n"\
   "      }\n"\
-  "      class systemcall (msg) {\n"\
-  "        class noshell (msg) {}\n"\
-  "        class systemfail (msg) {}\n"\
+  "      class systemcall (msg = nil) {\n"\
+  "        class noshell (msg = nil) {}\n"\
+  "        class systemfail (msg = nil) {}\n"\
   "      }\n"\
-  "      class invregexp (msg) {\n"\
-  "        class ebrack (msg) {}\n"\
-  "        class erange (msg) {}\n"\
-  "        class ectype (msg) {}\n"\
-  "        class eparen (msg) {}\n"\
-  "        class esubreg (msg) {}\n"\
-  "        class eend (msg) {}\n"\
-  "        class eescape (msg) {}\n"\
-  "        class badpat (msg) {}\n"\
-  "        class esize (msg) {}\n"\
-  "        class espace (msg) {}\n"\
+  "      class invregexp (msg = nil) {\n"\
+  "        class ebrack (msg = nil) {}\n"\
+  "        class erange (msg = nil) {}\n"\
+  "        class ectype (msg = nil) {}\n"\
+  "        class eparen (msg = nil) {}\n"\
+  "        class esubreg (msg = nil) {}\n"\
+  "        class eend (msg = nil) {}\n"\
+  "        class eescape (msg = nil) {}\n"\
+  "        class badpat (msg = nil) {}\n"\
+  "        class esize (msg = nil) {}\n"\
+  "        class espace (msg = nil) {}\n"\
   "      }\n"\
-  "      class invparser (msg) {\n"\
-  "        class invgrammar (msg) {}\n"\
-  "        class invtoken (msgs) {}\n"\
-  "        class pmemory (msgs) {}\n"\
+  "      class invparser (msg = nil) {\n"\
+  "        class invgrammar (msg = nil) {}\n"\
+  "        class invtoken (msg = nil) {}\n"\
+  "        class pmemory (msg = nil) {}\n"\
   "      }\n"\
-  "      class invextern (msg) {\n"\
-  "        class noextern (msg) {}\n"\
-  "        class libclose (msg) {}\n"\
-  "        class noexternsupp (msg) {}\n"\
+  "      class invextern (msg = nil) {\n"\
+  "        class noextern (msg = nil) {}\n"\
+  "        class libclose (msg = nil) {}\n"\
+  "        class noexternsupp (msg = nil) {}\n"\
   "      }\n"\
-  "      class invenvar (msg) {}\n"\
-  "      class internal (msg) {}\n"\
+  "      class invenvar (msg = nil) {}\n"\
+  "      class internal (msg = nil) {}\n"\
   "    }\n"\
-  "    class invaccess (msg) {\n"\
-  "      class accessop (msg) {}\n"\
-  "      class accessvalue (msg) {}\n"\
-  "      class immutable (msg) {}\n"\
+  "    class invaccess (msg = nil) {\n"\
+  "      class accessop (msg = nil) {}\n"\
+  "      class accessvalue (msg = nil) {}\n"\
+  "      class immutable (msg = nil) {}\n"\
   "    }\n"\
-  "    class deadlock (msg) {}\n"\
-  "    class syncwait (msg) {}\n"\
+  "    class deadlock (msg = nil) {}\n"\
+  "    class syncwait (msg = nil) {}\n"\
   "  }\n"\
   "}\n"\
-  "var final excepts = except ();\n"\
-  "var final errors = excepts.error (nil);\n"\
-  "var final signals = errors.signal (nil);\n"\
-  "var final invops = errors.invop (nil);\n"\
-  "var final invindexes = errors.invindex (nil);\n"\
-  "var final invslices = errors.invslice (nil);\n"\
-  "var final invectors = errors.invector (nil);\n"\
-  "var final invkeys = errors.invkey (nil);\n"\
-  "var final invcalls = errors.invcall (nil);\n"\
-  "var final syserrors = invcalls.syserror (nil);\n"\
-  "var final systemcalls = invcalls.systemcall (nil);\n"\
-  "var final invregexps = invcalls.invregexp (nil);\n"\
-  "var final invparsers = invcalls.invparser (nil);\n"\
-  "var final invexterns = invcalls.invextern (nil);\n"\
-  "var final invaccesses = errors.invaccess (nil);\n"\
-  "var argv, env, final version, final main_thread, final curr_thread;\n"\
+  "val excepts = except ();\n"\
+  "val errors = excepts.error ();\n"\
+  "val signals = errors.signal ();\n"\
+  "val invops = errors.invop ();\n"\
+  "val invindexes = errors.invindex ();\n"\
+  "val invslices = errors.invslice ();\n"\
+  "val invectors = errors.invector ();\n"\
+  "val invkeys = errors.invkey ();\n"\
+  "val invcalls = errors.invcall ();\n"\
+  "val syserrors = invcalls.syserror ();\n"\
+  "val systemcalls = invcalls.systemcall ();\n"\
+  "val invregexps = invcalls.invregexp ();\n"\
+  "val invparsers = invcalls.invparser ();\n"\
+  "val invexterns = invcalls.invextern ();\n"\
+  "val invaccesses = errors.invaccess ();\n"\
+  "var argv, env; val version, main_thread, curr_thread;\n"\
   "class anode (name, transl) {\n"\
   "  public name, transl;\n"\
   "}\n"\
   "class token (code) {public code;}\n"\
-  "var final nil_anode = anode (\"$nil\");\n"\
-  "var final error_anode = anode (\"$error\");\n"\
+  "val nil_anode = anode (\"$nil\", nil);\n"\
+  "val error_anode = anode (\"$error\", nil);\n"\
   "final class parser ()\n"\
   "{\n"\
   "  var ambiguous_p;\n"\
@@ -431,13 +428,11 @@ extern IR_node_t destroy_unique_ident;
   "// Do not place any code inside file (it is only for internal purposes)\n"\
   "final class file (){\n"\
   "  private file_ptr; var file_ptr;\n"\
-  "  if (__nogenerate__ != nil)\n"\
-  "    throw invcalls.callop\n"\
-  "            (\"File can be created only by functions open or popen\");}\n"\
-  "var stdin = final file ();\n"\
-  "var stdout = final file ();\n"\
-  "var stderr = final file ();\n"\
-  "var final __nogenerate__ = 0;\n"\
+  "  throw invcalls.callop\n"\
+  "    (\"File can be created only by functions open or popen\");}\n"\
+  "val stdin;\n"\
+  "val stdout;\n"\
+  "val stderr;\n"\
   "func max (){} func min (){}\n"\
   "func tolower (){} func toupper (){} func trans (){}\n"\
   "func eltype (){}\n"\
@@ -1423,6 +1418,9 @@ slice :: index_designator
         step : expr
 ;
 
+this :: expr
+;
+
 %abstract
 type :: expr
 ;
@@ -1431,7 +1429,7 @@ type :: expr
    only in the evaluator.  Actually there is no nodes `nil_type'. */
 nil_type, hide_type, hideblock_type, char_type, int_type, float_type,
    vector_type, table_type,
-   func_type, thread_type, class_type, stack_type, process_type, instance_type,
+   func_type, thread_type, class_type, stack_type, instance_type, process_type,
    type_type :: type
 ;
 
@@ -1611,6 +1609,10 @@ external_decl :: decl
 /* The following node represents formal parameter of funcs and classes
    too. */
 var :: decl
+%other
+	/* Flag of that this var is created from a formal parameter
+	   with default value. */
+        par_assign_flag : bool_t {$ = FALSE;}
 ;
 
 /* The following node represents external variable declaration. */
@@ -1638,6 +1640,10 @@ func_or_class :: func_class_ext
            parameters are the start vars in the func block.  The
            number takes into account variable for `...' too. */
         parameters_number : integer_t
+        /* Number of minimal actual parameters for the func.  It is
+	   actually number of first formal parameters without default
+	   value. */
+        min_actual_parameters_number : integer_t
 	/* Flag of that args must be defined.  In order words ... is
            used. */
 	args_flag : bool_t
@@ -1765,7 +1771,7 @@ block
              o Check only function/class inside the block.
              o Check that vector whose element is the function class
                is assigned to, passed as parameter, returned as
-               function result or became as vector/table element.. */
+               function result or became as vector/table element. */
         extended_life_context_flag : bool_t {$ = FALSE;}
         /* The following is the list of friends of the block. */
         friends : friend {$ = NULL;}
@@ -1820,11 +1826,7 @@ decl
 var
 %other
         /* Number (0, ...) of the var (only immediatly placed) in
-           block vars.  The numeration of vars in func starts with 0.
-           The class-constructor block has only one permanent var
-           storing self value of the corresponding class_instance.
-           The following value is number of class_instance var
-           corresponding give node. */
+           block vars.  The numeration of vars in func starts with 0. */
         var_number_in_block : integer_t
 ;
 

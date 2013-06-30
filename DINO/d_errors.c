@@ -135,6 +135,8 @@ char ERR_continue_is_not_in_loop []
   = "statement continue is not in for-statement";
 char ERR_break_is_not_in_loop []
   = "statement break is not in for-statement";
+char ERR_this_outside_func_class_ext []
+  = "this is not in function, class, or extension";
 char ERR_return_outside_func_class_ext []
   = "statement return is not in function, class, or extension";
 char ERR_return_with_result_in_class []
@@ -146,6 +148,10 @@ char ERR_function_call_in_wait_stmt []
 
 char DERR_environment_corrupted[]
   = "run time error - environment has been corrupted";
+char DERR_identity_operands_types []
+  = "run time error - invalid types of operands of operator \"===\" or \"!==\"";
+char DERR_eq_operands_types []
+  = "run time error - invalid types of operands of operator \"==\" or \"!=\"";
 char DERR_logical_or_operands_types []
   = "run time error - invalid types of operands of operator \"||\"";
 char DERR_logical_and_operands_types []
@@ -262,7 +268,11 @@ char DERR_invalid_format [] = "run time error - invalid format in `%s'";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []
-  = "run time error - invalid number of parameters of `%s'";
+  = "run time error - invalid number of actual parameters for `%s'";
+char DERR_too_few_actual_parameters []
+  = "run time error - too few actual parameters for `%s'";
+char DERR_too_many_actual_parameters []
+  = "run time error - too many actual parameters for `%s'";
 char DERR_eaccess [] = "system error - permission denied: `%s'";
 char DERR_eagain [] = "system error - resource temporarily unavailable: `%s'";
 char DERR_ebadf [] = "system error - bad file descriptor: `%s'";
@@ -342,6 +352,8 @@ char DERR_value_is_not_class_instance_or_stack []
   = "run time error - value is not class instance or stack (\".\")";
 char DERR_decl_is_absent_in_given_class_or_block []
   = "run time error - there is no such declaration in given class";
+char DERR_undefined_value_access []
+  = "run time error - undefined `%s' value access";
 char DERR_private_decl_access_from_outside_block []
   = "run time error - access to private decl `%s' from outside";
 char DERR_immutable_vector_modification []
