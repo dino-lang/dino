@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -26,7 +26,6 @@
 #include "d_built.h"
 #include "d_conv.h"
 #include "d_func.h"
-#include "d_runtab.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -114,14 +113,14 @@ min_max_call (int_t pars_number, int min_flag)
   int_t i;
 
   if (pars_number < 2)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, (min_flag ? MIN_NAME : MAX_NAME));
   for (i = 0; i < pars_number; i++)
     {
       implicit_arithmetic_conversion (IVAL (ctop, -i), NULL);
       val = IVAL (ctop, -i);
       if (ER_NODE_MODE (val) != ER_NM_int && ER_NODE_MODE (val) != ER_NM_float)
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, (min_flag ? MIN_NAME : MAX_NAME));
       if (i == 0)
 	res = val;
@@ -166,18 +165,18 @@ to_lower_upper (int_t pars_number, int lower_flag)
   size_t len;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, name);
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, name);
   vect = ER_vect (ctop);
 #ifndef NEW_VECTOR
   if (ER_immutable (ER_vect (ctop)))
-    eval_error (immutable_decl, invaccesses_decl, BC_pos (cpc),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_cpos (),
 		DERR_immutable_vector_modification);
 #endif
   len = strlen (ER_pack_els (vect));
@@ -206,7 +205,7 @@ tolower_call (int_t pars_number)
 }
 
 void
-trans_call (int_t pars_number)
+transliterate_call (int_t pars_number)
 {
   ER_node_t vect, v;
   char *str, *subst, map [256];
@@ -214,8 +213,8 @@ trans_call (int_t pars_number)
   size_t len;
 
   if (pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
-		DERR_parameters_number, TRANS_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_parameters_number, TRANSLITERATE_NAME);
   to_vect_string_conversion (IVAL (ctop, -2), NULL, NULL);
   if (ER_NODE_MODE (ctop) == ER_NM_vect)
     {
@@ -255,12 +254,12 @@ trans_call (int_t pars_number)
       || (ER_els_number (ER_vect (vect)) != 0
 	  && (ER_NODE_MODE (ER_vect (vect)) != ER_NM_heap_pack_vect
 	      || ER_pack_vect_el_type (ER_vect (vect)) != ER_NM_char)))
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
-		DERR_parameter_type, TRANS_NAME);
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_parameter_type, TRANSLITERATE_NAME);
   vect = ER_vect (vect);
 #ifndef NEW_VECTOR
   if (ER_immutable (vect))
-    eval_error (immutable_decl, invaccesses_decl, BC_pos (cpc),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_cpos (),
 		DERR_immutable_vector_modification);
 #endif
   len = ER_els_number (vect);
@@ -294,10 +293,10 @@ eltype_call (int_t pars_number)
   ER_node_t vect;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, ELTYPE_NAME);
   if (ER_NODE_MODE (ctop) != ER_NM_vect)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, ELTYPE_NAME);
   vect = ER_vect (ctop);
   GO_THROUGH_REDIR (vect);
@@ -321,10 +320,10 @@ keys_call (int_t pars_number)
   size_t i, index;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, KEYS_NAME);
   if (ER_NODE_MODE (ctop) != ER_NM_tab)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, KEYS_NAME);
   tab = ER_tab (ctop);
   GO_THROUGH_REDIR (tab);
@@ -357,21 +356,17 @@ context_call (int_t pars_number)
   ER_node_t context;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, CONTEXT_NAME);
   val = IVAL (ctop, -pars_number + 1);
   if (ER_NODE_MODE (val) == ER_NM_stack)
     context = ER_context (ER_stack (val));
-  else if (ER_NODE_MODE (val) == ER_NM_func)
-    context = ER_func_context (val);
-  else if (ER_NODE_MODE (val) == ER_NM_thread)
-    context = ER_thread_context (val);
-  else if (ER_NODE_MODE (val) == ER_NM_class)
-    context = ER_class_context (val);
+  else if (ER_NODE_MODE (val) == ER_NM_code)
+    context = ER_code_context (val);
   else if (ER_NODE_MODE (val) == ER_NM_process)
     context = ER_context (ER_process (val));
   else
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, CONTEXT_NAME);
   /* Place the result instead of the function. */
   if (context == NULL)
@@ -388,71 +383,49 @@ int
 internal_inside_call (const char **message_ptr, ER_node_t where, ER_node_t what,
 		      int context_flag)
 {
-  ER_node_t block_context;
-  ER_node_t func_class_2_context;
-  IR_node_t func_class;
-  IR_node_t func_class_2;
-  IR_node_t block;
+  ER_node_t code_context;
+  ER_node_t code_2_context;
+  BC_node_t code;
+  BC_node_t code_2;
   int result;
 
   *message_ptr = NULL;
-  func_class = NULL;
+  code = NULL;
   if (ER_NODE_MODE (what) == ER_NM_stack)
     {
-      block_context = ER_stack (what);
-      block = ER_block_node (block_context);
+      code_context = ER_stack (what);
+      code = ER_block_node (code_context);
     }
-  else if (ER_NODE_MODE (what) == ER_NM_func)
+  else if (ER_NODE_MODE (what) == ER_NM_code)
     {
-      func_class = ID_TO_FUNC_CLASS (ER_func_id (what));
-      block_context = ER_func_context (what);
-    }
-  else if (ER_NODE_MODE (what) == ER_NM_thread)
-    {
-      func_class = ID_TO_FUNC_CLASS (ER_thread_id (what));
-      block_context = ER_thread_context (what);
-    }
-  else if (ER_NODE_MODE (what) == ER_NM_class)
-    {
-      func_class = ID_TO_FUNC_CLASS (ER_class_id (what));
-      block_context = ER_class_context (what);
+      code = ID_TO_CODE (ER_code_id (what));
+      code_context = ER_code_context (what);
     }
   else
     {
       *message_ptr = DERR_parameter_type;
       return 0;
     }
-  if (ER_IS_OF_TYPE (where, ER_NM_class))
+  if (ER_IS_OF_TYPE (where, ER_NM_code))
     {
-      func_class_2 = ID_TO_FUNC_CLASS (ER_class_id (where));
-      func_class_2_context = ER_class_context (where);
-    }
-  else if (ER_IS_OF_TYPE (where, ER_NM_func))
-    {
-      func_class_2 = ID_TO_FUNC_CLASS (ER_func_id (where));
-      func_class_2_context = ER_func_context (where);
-    }
-  else if (ER_IS_OF_TYPE (where, ER_NM_thread))
-    {
-      func_class_2 = ID_TO_FUNC_CLASS (ER_thread_id (where));
-      func_class_2_context = ER_thread_context (where);
+      code_2 = ID_TO_CODE (ER_code_id (where));
+      code_2_context = ER_code_context (where);
     }
   else
     {
       *message_ptr = DERR_parameter_type;
       return 0;
     }
-  result = (func_class == func_class_2
-	    && (!context_flag || block_context == func_class_2_context));
-  if (func_class != NULL)
-    block = IR_scope (func_class);
-  for (; !result && block != NULL;
-       block = IR_block_scope (block),
-	 block_context = ER_context (block_context))
-    if (IR_func_class_ext (block) == func_class_2
+  result = (code == code_2
+	    && (!context_flag || code_context == code_2_context));
+  if (code != NULL && ER_NODE_MODE (what) == ER_NM_code)
+    code = BC_scope (code);
+  for (; !result && code != NULL;
+       code = BC_scope (code), code_context = ER_context (code_context))
+    if (code == code_2
 	&& (!context_flag
-	    || ER_context (block_context) == func_class_2_context))
-	result = 1;
+	    || ER_context (code_context) == code_2_context))
+      result = 1;
   return result;
 }
 
@@ -464,22 +437,22 @@ inside_call (int_t pars_number)
   int flag;
 
   if (pars_number != 2 && pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, INSIDE_NAME);
   flag = 0;
   if (pars_number == 3)
     {
       implicit_int_conversion (ctop, NULL);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, INSIDE_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, INSIDE_NAME);
       flag = ER_i (ctop);
     }
   result = internal_inside_call (&message, IVAL (ctop, 2 - pars_number),
 				 IVAL (ctop, 1 - pars_number), flag);
   if (message != NULL)
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), message, INSIDE_NAME);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), message, INSIDE_NAME);
   ER_SET_MODE (func_result, ER_NM_int);
   ER_set_i (func_result, result);
 }
@@ -488,41 +461,41 @@ static void
 process_regcomp_errors (int code, const char *function_name)
 {
   if (code == REG_EBRACK)
-    eval_error (ebrack_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (ebrack_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_ebrack, function_name);
   else if (code == REG_ERANGE)
-    eval_error (reg_erange_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (reg_erange_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_erange, function_name);
   else if (code == REG_ECTYPE)
-    eval_error (ectype_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (ectype_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_ectype, function_name);
   else if (code == REG_EPAREN)
-    eval_error (eparen_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (eparen_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_eparen, function_name);
   else if (code == REG_ESUBREG)
-    eval_error (esubreg_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (esubreg_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_esubreg, function_name);
   else if (code == REG_EEND)
-    eval_error (eend_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (eend_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_eend, function_name);
   else if (code == REG_EESCAPE)
-    eval_error (eescape_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (eescape_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_eescape, function_name);
   else if (code == REG_BADPAT || code == REG_BADRPT
 	   || code == REG_BADBR || code == REG_EBRACE)
     /* We use badpat because I can not find badrpt, badbr, ebrace
        diagnostics for POSIX in GNU Regex. */
-    eval_error (badpat_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (badpat_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_badpat, function_name);
   else if (code == REG_ESIZE)
-    eval_error (esize_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (esize_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_esize, function_name);
   else if (code == REG_ESPACE)
-    eval_error (espace_decl, invregexps_decl, BC_pos (cpc),
+    eval_error (espace_bc_decl, invregexps_bc_decl, get_cpos (),
 		DERR_reg_espace, function_name);
   else
     /* Internall error: may be something else. */
-    eval_error (internal_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (internal_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_internal_error, function_name);
 }
 
@@ -652,7 +625,7 @@ match_call (int_t pars_number)
   int code;
 
   if (pars_number != 2)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, MATCH_NAME);
   to_vect_string_conversion (ctop, NULL, NULL);
   to_vect_string_conversion (below_ctop, NULL, NULL);
@@ -662,8 +635,8 @@ match_call (int_t pars_number)
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, MATCH_NAME);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, MATCH_NAME);
   code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
   if (code != 0)
     process_regcomp_errors (code, MATCH_NAME);
@@ -732,15 +705,15 @@ gmatch_call (int_t pars_number)
   const char *start;
 
   if (pars_number != 2 && pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, GMATCH_NAME);
   flag = 0;
   if (pars_number == 3)
     {
       implicit_int_conversion (ctop, NULL);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, GMATCH_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, GMATCH_NAME);
       flag = ER_i (ctop);
     }
   par1 = IVAL (ctop, 1 - pars_number);
@@ -753,8 +726,8 @@ gmatch_call (int_t pars_number)
       || ER_NODE_MODE (par1) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par1)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (par1)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, GMATCH_NAME);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, GMATCH_NAME);
   code = find_regex (ER_pack_els (ER_vect (par1)), &reg);
   if (code != 0)
     process_regcomp_errors (code, GMATCH_NAME);
@@ -843,8 +816,8 @@ generall_sub_call (int_t pars_number, int global_flag)
   int code;
 
   if (pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number,
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number,
 		global_flag ? GSUB_NAME : SUB_NAME);
   to_vect_string_conversion (ctop, NULL, NULL);
   to_vect_string_conversion (below_ctop, NULL, NULL);
@@ -859,7 +832,7 @@ generall_sub_call (int_t pars_number, int global_flag)
       || ER_NODE_MODE (regexp_val) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (regexp_val)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (regexp_val)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, global_flag ? GSUB_NAME : SUB_NAME);
   code = find_regex (ER_pack_els (ER_vect (regexp_val)), &reg);
   if (code != 0)
@@ -1094,7 +1067,7 @@ split_call (int_t pars_number)
   int code;
 
   if (pars_number != 1 && pars_number != 2)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, SPLIT_NAME);
   if (pars_number != 1)
     to_vect_string_conversion (below_ctop, NULL, NULL);
@@ -1106,24 +1079,24 @@ split_call (int_t pars_number)
 	  && (ER_NODE_MODE (below_ctop) != ER_NM_vect
 	      || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
 	      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)))
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, SPLIT_NAME);
   if (pars_number == 2)
     split_regex = ER_pack_els (ER_vect (ctop));
   else
     {
       split_var = IVAL (ER_stack_vars (uppest_stack),
-			IR_var_number_in_block (split_regex_decl));
+			BC_var_num (split_regex_bc_decl));
       to_vect_string_conversion (split_var, NULL, NULL);
       split_var = IVAL (ER_stack_vars (uppest_stack),
-			IR_var_number_in_block (split_regex_decl));
+			BC_var_num (split_regex_bc_decl));
       if (ER_NODE_MODE (split_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (split_var)) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (ER_vect (split_var)) == ER_NM_char)
         split_regex = ER_pack_els (ER_vect (split_var));
       else
-	eval_error (invenvar_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_corrupted_environment_var,
+	eval_error (invenvar_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_corrupted_environment_var,
 		    SPLIT_REGEX_NAME);
     }
   code = find_regex (split_regex, &reg);
@@ -1313,7 +1286,7 @@ subv_call (int_t pars_number)
   ER_node_mode_t el_type;
 
   if (pars_number < 2 || pars_number > 3)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, SUBV_NAME);
   if (pars_number == 2)
     {
@@ -1329,7 +1302,7 @@ subv_call (int_t pars_number)
   if (ER_NODE_MODE (IVAL (ctop, -pars_number + 1)) != ER_NM_vect
       || ER_NODE_MODE (ctop) != ER_NM_int
       || (pars_number == 3 && ER_NODE_MODE (below_ctop) != ER_NM_int))
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, SUBV_NAME);
   if (pars_number == 3)
     {
@@ -1397,13 +1370,13 @@ cmpv_call (int_t pars_number)
   ER_node_t el;
 
   if (pars_number != 2)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, CMPV_NAME);
   to_vect_string_conversion (ctop, NULL, 0);
   to_vect_string_conversion (below_ctop, NULL, 0);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (below_ctop) != ER_NM_vect)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, CMPV_NAME);
   vect1 = ER_vect (below_ctop);
   GO_THROUGH_REDIR (vect1);
@@ -1439,7 +1412,7 @@ cmpv_call (int_t pars_number)
       if (el_type1 != el_type2
 	  || (el_type1 != ER_NM_float
 	      && el_type1 != ER_NM_int && el_type1 != ER_NM_char))
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, CMPV_NAME);
       res = compare_elements (el_type1, addr1, addr2);
       if (res)
@@ -1467,8 +1440,8 @@ del_call (int_t pars_number)
   val = IVAL (ctop, -pars_number + 1);
   if (pars_number < 2 || pars_number > 3
       || (ER_NODE_MODE (val) == ER_NM_tab && pars_number != 2))
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, DEL_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, DEL_NAME);
   mode = ER_NODE_MODE (val);
   if (mode == ER_NM_vect)
     {
@@ -1491,7 +1464,7 @@ del_call (int_t pars_number)
 	length_val = NULL;
       if (ER_NODE_MODE (start_val) != ER_NM_int
 	  || (length_val != NULL && ER_NODE_MODE (length_val) != ER_NM_int))
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, DEL_NAME);
       start = ER_i (start_val);
       if (length_val != NULL)
@@ -1501,7 +1474,7 @@ del_call (int_t pars_number)
       vect = ER_vect (val);
       GO_THROUGH_REDIR (vect);
       if (ER_immutable (vect))
-	eval_error (immutable_decl, invaccesses_decl, BC_pos (cpc),
+	eval_error (immutable_bc_decl, invaccesses_bc_decl, get_cpos (),
 		    DERR_immutable_vector_modification);
       vect_length = ER_els_number (vect);
       if (start < 0)
@@ -1553,13 +1526,13 @@ del_call (int_t pars_number)
       tab = ER_tab (val);
       GO_THROUGH_REDIR (tab);
       if (ER_immutable (tab))
-	eval_error (immutable_decl, invaccesses_decl, BC_pos (cpc),
+	eval_error (immutable_bc_decl, invaccesses_bc_decl, get_cpos (),
 		    DERR_immutable_table_modification);
       remove_tab_el (tab, IVAL (ctop, -pars_number + 2));
     }
   else
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, DEL_NAME);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, DEL_NAME);
   /* Place the result instead of the function. */
   ER_SET_MODE (func_result, mode);
   if (mode == ER_NM_tab)
@@ -1584,8 +1557,8 @@ general_ins_call (int_t pars_number, int vector_flag)
   int_t index;
 
   if (pars_number != 2  && pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number,
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number,
 		(!vector_flag ? INS_NAME : INSV_NAME));
   vect_val = IVAL (ctop, -pars_number + 1);
   el_val = IVAL (ctop, -pars_number + 2);
@@ -1599,7 +1572,7 @@ general_ins_call (int_t pars_number, int vector_flag)
   if (ER_NODE_MODE (vect_val) != ER_NM_vect
       || (vector_flag && ER_NODE_MODE (el_val) != ER_NM_vect)
       || (index_val != NULL && ER_NODE_MODE (index_val) != ER_NM_int))
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, (vector_flag ? INSV_NAME : INS_NAME));
   if (index_val != NULL)
     index = ER_i (index_val);
@@ -1614,7 +1587,7 @@ general_ins_call (int_t pars_number, int vector_flag)
       addition = ER_els_number (el_vect);
     }
   if (ER_immutable (vect))
-    eval_error (immutable_decl, invaccesses_decl, BC_pos (cpc),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_cpos (),
 		DERR_immutable_vector_modification);
   if (vector_flag && ER_NODE_MODE (el_vect) == ER_NM_heap_pack_vect
       && (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect
@@ -1715,10 +1688,10 @@ rev_call (int_t pars_number)
   char temp_el [sizeof (floating_t) * 8];
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, REV_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, REV_NAME);
   if (ER_NODE_MODE (ctop) != ER_NM_vect)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, REV_NAME);
   vect = ER_vect (ctop);
   GO_THROUGH_REDIR (vect);
@@ -1726,7 +1699,7 @@ rev_call (int_t pars_number)
   vect = copy_vector (vect);
 #else
   if (ER_immutable (vect))
-    eval_error (immutable_decl, invaccesses_decl, BC_pos (cpc),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_cpos (),
 		DERR_immutable_vector_modification);
 #endif
   vect_length = ER_els_number (vect);
@@ -1772,8 +1745,8 @@ homogeneous_array_sort_compare_function (const void *el1, const void *el2)
   return compare_elements (sorted_vect_el_type, el1, el2);
 }
 
-static IR_node_t dino_compare_func;
-static ER_node_t dino_compare_func_context;
+static BC_node_t dino_compare_func_block;
+static ER_node_t dino_compare_func_block_context;
 
 static int
 array_sort_compare_function (const void *el1, const void *el2)
@@ -1803,11 +1776,11 @@ array_sort_compare_function (const void *el1, const void *el2)
     }
   else
     *(val_t *) ctop = *(val_t *) el2;
-  call_func_class (dino_compare_func, dino_compare_func_context, 2);
+  call_func_class (dino_compare_func_block, dino_compare_func_block_context, 2);
   TOP_UP;
   if (ER_NODE_MODE (ctop) != ER_NM_int)
-    eval_error (invresult_decl, invcalls_decl,
-		BC_pos (cpc), DERR_invalid_result, SORT_NAME);
+    eval_error (invresult_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_invalid_result, SORT_NAME);
   res = ER_i (ctop);
   TOP_DOWN;
   return res;
@@ -1821,8 +1794,8 @@ sort_call (int_t pars_number)
   ptrdiff_t offset = (char *) func_result - (char *) cstack;
 
   if (pars_number != 1 && pars_number != 2)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, SORT_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, SORT_NAME);
   var = IVAL (ctop, -pars_number + 1);
   if (ER_NODE_MODE (var) == ER_NM_vect)
     {
@@ -1839,7 +1812,7 @@ sort_call (int_t pars_number)
 	  || (ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
 	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_int
 	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_float))
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, SORT_NAME);
       vect = copy_vector (ER_vect (ctop));
       sorted_vect_el_type = ER_pack_vect_el_type (vect);
@@ -1851,13 +1824,12 @@ sort_call (int_t pars_number)
     {
       ER_node_t context;
 
-      if (ER_NODE_MODE (below_ctop) != ER_NM_vect
-	  || ER_NODE_MODE (ctop) != ER_NM_func)
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+      if (ER_NODE_MODE (below_ctop) != ER_NM_vect || ! func_p (ctop))
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, SORT_NAME);
       vect = copy_vector (ER_vect (below_ctop));
-      dino_compare_func_context = ER_func_context (ctop);
-      dino_compare_func = ID_TO_FUNC_CLASS (ER_func_id (ctop));
+      dino_compare_func_block_context = ER_code_context (ctop);
+      dino_compare_func_block = ID_TO_CODE (ER_code_id (ctop));
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	sorted_vect_el_type = ER_NM_val;
       else
@@ -1884,33 +1856,23 @@ sort_call (int_t pars_number)
 static int
 print_context (ER_node_t context)
 {
-  IR_node_t block;
-  IR_node_t func_class;
+  BC_node_t block;
+  string_t ident;
   char str [100];
 
   if (context == NULL || ER_context (context) == NULL)
     /* We ignore the uppest implicit block. */
     return FALSE;
   block = ER_block_node (context);
-  func_class = IR_func_class_ext (block);
+  ident = (BC_NODE_MODE (block) == BC_NM_block
+	   ? NULL : BC_ident (BC_fdecl (block)));
   if (print_context (ER_context (context)))
     VLO_ADD_STRING (temp_vlobj, ".");
-  if (func_class == NULL)
+  if (ident == NULL)
     VLO_ADD_STRING (temp_vlobj, "{}");
-  else if (IR_IS_OF_TYPE (func_class, IR_NM_func))
-    {
-      VLO_ADD_STRING
-	(temp_vlobj,
-	 IR_ident_string (IR_unique_ident (IR_ident (func_class))));
-      sprintf (str, "(%ld)", (long int) ER_context_number (context));
-      VLO_ADD_STRING (temp_vlobj, str);
-    }
   else
     {
-      d_assert (IR_IS_OF_TYPE (func_class, IR_NM_class));
-      VLO_ADD_STRING
-	(temp_vlobj,
-	 IR_ident_string (IR_unique_ident (IR_ident (func_class))));
+      VLO_ADD_STRING (temp_vlobj, ident);
       sprintf (str, "(%ld)", (long int) ER_context_number (context));
       VLO_ADD_STRING (temp_vlobj, str);
     }
@@ -1925,13 +1887,12 @@ get_file (int_t pars_number, const char *function_name)
 
   var = IVAL (ctop, -pars_number + 1);
   if (!ER_IS_OF_TYPE (var, ER_NM_stack)
-      || ER_stack_func_class (ER_stack (var)) != file_decl)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+      || ER_stack_block (ER_stack (var)) != file_bc_decl)
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, function_name);
-  instance
-    = ER_stack ((ER_node_t) IVAL (ctop, -pars_number + 1));
+  instance = ER_stack ((ER_node_t) IVAL (ctop, -pars_number + 1));
   return ER_hide (IVAL (ER_stack_vars (instance),
-			IR_var_number_in_block (file_ptr_decl)));
+			BC_var_num (file_ptr_bc_decl)));
 }
 
 static void
@@ -1940,14 +1901,13 @@ place_file_instance (FILE *f, ER_node_t result)
   ER_node_t var;
   ER_node_t instance;
 
-  ER_SET_MODE (result, ER_NM_class);
-  ER_set_class_id (result, FUNC_CLASS_ID (file_decl));
-  ER_set_class_context (result, uppest_stack);
+  ER_SET_MODE (result, ER_NM_code);
+  ER_set_code_id (result, CODE_ID (file_bc_decl));
+  ER_set_code_context (result, uppest_stack);
   instance = create_class_stack ((val_t *) result, 0, TRUE);
   ER_SET_MODE (result, ER_NM_stack);
   ER_set_stack (result, instance);
-  var = IVAL (ER_stack_vars (ER_stack (result)),
-	      IR_var_number_in_block (file_ptr_decl));
+  var = IVAL (ER_stack_vars (ER_stack (result)), BC_var_num (file_ptr_bc_decl));
   ER_SET_MODE (var, ER_NM_hide);
   ER_set_hide (var, f);
 }
@@ -1956,7 +1916,7 @@ static void
 two_strings_func_start (int_t pars_number, const char *function_name)
 {
   if (pars_number != 2)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   to_vect_string_conversion (ctop, NULL, NULL);
   to_vect_string_conversion (below_ctop, NULL, NULL);
@@ -1966,8 +1926,8 @@ two_strings_func_start (int_t pars_number, const char *function_name)
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, function_name);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, function_name);
 }
 
 void
@@ -1986,14 +1946,14 @@ static void
 string_func_start (int_t pars_number, const char *function_name)
 {
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, function_name);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, function_name);
 }
 
 void
@@ -2104,7 +2064,7 @@ getcwd_call (int_t pars_number)
   char buf [PATH_MAX + 1], *str;
 
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, GETCWD_NAME);
   errno = 0;
   str = getcwd (buf, PATH_MAX);
@@ -2138,16 +2098,14 @@ get_stat (ER_node_t var, const char *function_name, struct stat *buf)
       && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char)
     result = stat (ER_pack_els (ER_vect (var)), buf);
   else if (ER_IS_OF_TYPE (var, ER_NM_stack)
-	   && ER_stack_func_class (ER_stack (var)) == file_decl)
+	   && ER_stack_block (ER_stack (var)) == file_bc_decl)
     result
-      = fstat (fileno
-	       ((FILE *) ER_hide (IVAL
-				  (ER_stack_vars (ER_stack (var)),
-				   IR_var_number_in_block (file_ptr_decl)))),
+      = fstat (fileno ((FILE *) ER_hide (IVAL (ER_stack_vars (ER_stack (var)),
+					       BC_var_num (file_ptr_bc_decl)))),
 	       buf);
   else
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, function_name);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, function_name);
   if (result < 0)
     process_system_errors (function_name);
 }
@@ -2227,7 +2185,7 @@ static FILE *
 file_start (int_t pars_number, const char *function_name)
 {
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   return get_file (pars_number, function_name);
 }
@@ -2256,7 +2214,7 @@ open_call (int_t pars_number)
   if (errno)
     process_system_errors (OPEN_NAME);
   else if (f == NULL)
-    eval_error (einval_decl, invcalls_decl, BC_pos (cpc), DERR_einval,
+    eval_error (einval_bc_decl, invcalls_bc_decl, get_cpos (), DERR_einval,
 		OPEN_NAME);
   /* Place the result instead of the function. */
   place_file_instance (f, func_result);
@@ -2282,7 +2240,7 @@ flush_call (int_t pars_number)
   FILE *f;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, FLUSH_NAME);
   f = get_file (pars_number, FLUSH_NAME);
   errno = 0;
@@ -2336,7 +2294,7 @@ tell_call (int_t pars_number)
   int_t pos;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, TELL_NAME);
   f = get_file (pars_number, TELL_NAME);
   errno = 0;
@@ -2357,7 +2315,7 @@ seek_call (int_t pars_number)
   int ch;
 
   if (pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, SEEK_NAME);
   f = get_file (pars_number, SEEK_NAME);
   implicit_arithmetic_conversion (below_ctop, NULL);
@@ -2367,7 +2325,7 @@ seek_call (int_t pars_number)
 	  && (ER_NODE_MODE (ctop) != ER_NM_vect
 	      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
 	      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)))
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, SEEK_NAME);
   pos = ER_i (below_ctop);
   if (ER_NODE_MODE (ctop) == ER_NM_char)
@@ -2394,7 +2352,7 @@ seek_call (int_t pars_number)
     whence = 2;
 #endif
   else
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, SEEK_NAME);
   errno = 0;
   fseek (f, pos, whence);
@@ -2415,7 +2373,7 @@ print_ch (int ch)
 static void
 print_val (ER_node_t val, int quote_flag)
 {
-  IR_node_t func_class;
+  BC_node_t code;
   ER_node_t vect;
   ER_node_t tab;
   ER_node_t key;
@@ -2539,50 +2497,35 @@ print_val (ER_node_t val, int quote_flag)
 	}
       VLO_ADD_STRING (temp_vlobj, "}");
       break;
-    case ER_NM_func:
-    case ER_NM_thread:
-    case ER_NM_class:
-      if (ER_NODE_MODE (val) == ER_NM_func)
-	{
-	  VLO_ADD_STRING (temp_vlobj, "func ");
-	  if (print_context (ER_func_context (val)))
-	    VLO_ADD_STRING (temp_vlobj, ".");
-	  VLO_ADD_STRING (temp_vlobj,
-			  IR_ident_string
-			  (IR_unique_ident 
-			   (IR_ident (ID_TO_FUNC_CLASS (ER_func_id (val))))));
-	}
-      else if (ER_NODE_MODE (val) == ER_NM_thread)
-	{
-	  VLO_ADD_STRING (temp_vlobj, "thread ");
-	  if (print_context (ER_thread_context (val)))
-	    VLO_ADD_STRING (temp_vlobj, ".");
-	  VLO_ADD_STRING (temp_vlobj,
-			  IR_ident_string
-			  (IR_unique_ident 
-			   (IR_ident (ID_TO_FUNC_CLASS (ER_thread_id (val))))));
-	}
-      else
-	{
-	  VLO_ADD_STRING (temp_vlobj, "class ");
-	  if (print_context (ER_class_context (val)))
-	    VLO_ADD_STRING (temp_vlobj, ".");
-	  VLO_ADD_STRING (temp_vlobj,
-			  IR_ident_string
-			  (IR_unique_ident 
-			   (IR_ident (ID_TO_FUNC_CLASS (ER_class_id (val))))));
-	}
+    case ER_NM_code:
+      code = ID_TO_CODE (ER_code_id (val));
+      if (BC_NODE_MODE (code) == BC_NM_block)
+	;
+      else if (BC_func_p (code))
+	VLO_ADD_STRING (temp_vlobj, "func ");
+      else if (BC_class_p (code))
+	VLO_ADD_STRING (temp_vlobj, "class ");
+      else if (BC_thread_p (code))
+	VLO_ADD_STRING (temp_vlobj, "thread ");
+      if (print_context (ER_code_context (val)))
+	VLO_ADD_STRING (temp_vlobj, ".");
+      if (BC_NODE_MODE (code) == BC_NM_fblock)
+	VLO_ADD_STRING (temp_vlobj, BC_ident (BC_fdecl (code)));
       break;
     case ER_NM_stack:
-      if (ER_instance_p (ER_stack (val)))
-	VLO_ADD_STRING (temp_vlobj, "instance ");
-      else
-	VLO_ADD_STRING (temp_vlobj, "stack ");
-      /* Context may be uppest block stack. */
-      print_context (ER_stack (val));
-      break;
+      {
+	BC_node_t block = ER_block_node (ER_stack (val));
+	
+	if (BC_NODE_MODE (block) == BC_NM_fblock && BC_class_p (block))
+	  VLO_ADD_STRING (temp_vlobj, "instance ");
+	else
+	  VLO_ADD_STRING (temp_vlobj, "stack ");
+	/* Context may be uppest block stack. */
+	print_context (ER_stack (val));
+	break;
+      }
     case ER_NM_process:
-      if (ER_thread_func (ER_process (val)) == NULL)
+      if (ER_process_block (ER_process (val)) == NULL) /* ??? */
 	VLO_ADD_STRING (temp_vlobj, "main thread");
       else
 	{
@@ -2591,9 +2534,8 @@ print_val (ER_node_t val, int quote_flag)
 	  for (stack = ER_saved_cstack (ER_process (val));
 	       stack != NULL;
 	       stack = ER_prev_stack (stack))
-	    if (ER_stack_func_class (stack) != NULL
-		&& IR_IS_OF_TYPE (ER_stack_func_class (stack), IR_NM_func)
-		&& IR_thread_flag (ER_stack_func_class (stack)))
+	    if (BC_NODE_MODE (ER_stack_block (stack)) == BC_NM_fblock
+		&& BC_thread_p (ER_stack_block (stack)))
 	      break;
 	  sprintf (str, "thread %ld ",
 		   (long int) ER_process_number (ER_process (val)));
@@ -2629,14 +2571,8 @@ print_val (ER_node_t val, int quote_flag)
 	case ER_NM_tab:
 	  string = "table";
 	  break;
-	case ER_NM_thread:
-	  string = "thread";
-	  break;
-	case ER_NM_func:
-	  string = "func";
-	  break;
-	case ER_NM_class:
-	  string = "class";
+	case ER_NM_code:
+	  string = "code";
 	  break;
 	case ER_NM_stack:
 	  string = "func ()";
@@ -2661,8 +2597,8 @@ static FILE *
 file_function_call_start (int_t pars_number, const char *function_name)
 {
   if (pars_number == 0)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, function_name);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, function_name);
   return get_file (pars_number, function_name);
 }
 
@@ -2719,7 +2655,7 @@ general_put_call (FILE *f, int_t pars_number, int ln_flag,
       if (ER_NODE_MODE (var) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (var)) != ER_NM_heap_pack_vect
 	  || ER_pack_vect_el_type (ER_vect (var)) != ER_NM_char)
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, function_name);
       VLO_ADD_STRING (temp_vlobj, ER_pack_els (ER_vect (var)));
     }
@@ -2845,7 +2781,7 @@ general_get_call (FILE *f, int file_flag)
   if (errno != 0)
     process_system_errors (file_flag ? FGET_NAME : GET_NAME);
   if (ch == EOF)
-    eval_error (eof_decl, invcalls_decl, BC_pos (cpc), DERR_eof_occured,
+    eval_error (eof_bc_decl, invcalls_bc_decl, get_cpos (), DERR_eof_occured,
 		file_flag ? FGET_NAME : GET_NAME);
   /* Place the result instead of the function. */
   ER_SET_MODE (func_result, ER_NM_char);
@@ -2901,7 +2837,7 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
     process_system_errors (func_name);
   /* ??? */
   if (ch == EOF && ch_n == 0)
-    eval_error (eof_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (eof_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_eof_occured, func_name);
   /* Place the result instead of the function. */
   ER_SET_MODE (func_result, ER_NM_vect);
@@ -2912,8 +2848,8 @@ void
 get_call (int_t pars_number)
 {
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, GET_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, GET_NAME);
   general_get_call (stdin, FALSE);
 }
 
@@ -2921,8 +2857,8 @@ void
 getln_call (int_t pars_number)
 {
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, GETLN_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, GETLN_NAME);
   general_get_ln_file_call (stdin, FALSE, TRUE, FALSE, GETLN_NAME);
 }
 
@@ -2932,14 +2868,14 @@ getf_call (int_t pars_number)
   int flag = 0;
 
   if (pars_number > 1)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, GETF_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, GETF_NAME);
   if (pars_number == 1)
     {
       implicit_int_conversion (ctop, NULL);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, GETF_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, GETF_NAME);
       flag = ER_i (ctop);
     }
   general_get_ln_file_call (stdin, FALSE, FALSE, flag != 0, GETF_NAME);
@@ -2949,8 +2885,8 @@ static FILE *
 fget_function_call_start (int_t pars_number, const char *function_name)
 {
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, function_name);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, function_name);
   return get_file (pars_number, function_name);
 }
 
@@ -2977,13 +2913,13 @@ fgetf_call (int_t pars_number)
     {
       implicit_int_conversion (ctop, NULL);
       if (!ER_IS_OF_TYPE (ctop, ER_NM_int))
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, FGETF_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, FGETF_NAME);
       flag = ER_i (ctop);
     }
   else if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, FGETF_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, FGETF_NAME);
   general_get_ln_file_call (get_file (pars_number, FGETF_NAME),
 			    TRUE, FALSE, flag != 0, FGETF_NAME);
 }
@@ -3088,7 +3024,7 @@ invinput_error (FILE *f, const char *function_name, int ln_flag)
 	curr_char = fgetc (f);
       }
     while (curr_char != EOF && curr_char != '\n');
-  eval_error (invinput_decl, invcalls_decl, BC_pos (cpc),
+  eval_error (invinput_bc_decl, invcalls_bc_decl, get_cpos (),
 	      DERR_invalid_input, function_name);
 }
 
@@ -3393,7 +3329,7 @@ general_scan_call (FILE *f, int file_flag, int ln_flag)
   errno = 0;
   token = get_token (f, function_name, ln_flag);
   if (token.token_code == EOF)
-    eval_error (eof_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (eof_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_eof_occured, function_name);
   val = scanel (f, token, function_name, ln_flag);
   /* Skip input to the of line. */
@@ -3413,8 +3349,8 @@ void
 scan_call (int_t pars_number)
 {
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, SCAN_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, SCAN_NAME);
   general_scan_call (stdin, FALSE, FALSE);
 }
 
@@ -3422,8 +3358,8 @@ void
 scanln_call (int_t pars_number)
 {
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, SCANLN_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, SCANLN_NAME);
   general_scan_call (stdin, FALSE, TRUE);
 }
 
@@ -3453,7 +3389,7 @@ static void
 function_without_par (int_t pars_number, const char *function_name)
 {
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
 }
 
@@ -3502,14 +3438,14 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
       start = 1;
     }
   if (pars_number - start <= 0)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   val = IVAL (ctop, -pars_number + 1 + start);
   to_vect_string_conversion (val, NULL, NULL);
   if (ER_NODE_MODE (val) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, function_name);
   fmt = ER_pack_els (ER_vect (val));
   VLO_NULLIFY (temp_vlobj);
@@ -3559,7 +3495,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 		else
 		  width = -1;
 		if (width < 0)
-		  eval_error (invfmt_decl, invcalls_decl, BC_pos (cpc),
+		  eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
 			      DERR_invalid_format, function_name);
 		next = *++ptr;
 	      }
@@ -3570,11 +3506,11 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	  {
 	    width_flag = TRUE;
 	    if (curr_par_num > 0)
-	      eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_parameters_number, function_name);
 	    val = IVAL (ctop, curr_par_num);
 	    if (ER_NODE_MODE (val) != ER_NM_int)
-	      eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_parameter_type, function_name);
 	    width = ER_i (val);
 	    if (width < 0)
@@ -3596,11 +3532,11 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	    if (next == '*')
 	      {
 		if (curr_par_num > 0)
-		  eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+		  eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 			      DERR_parameters_number, function_name);
 		val = IVAL (ctop, curr_par_num);
 		if (ER_NODE_MODE (val) != ER_NM_int)
-		  eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+		  eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 			      DERR_parameter_type, function_name);
 		precision = ER_i (val);
 		if (precision < 0)
@@ -3622,7 +3558,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 		    else
 		      precision = -1;
 		    if (precision < 0)
-		      eval_error (invfmt_decl, invcalls_decl, BC_pos (cpc),
+		      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
 				  DERR_invalid_format, function_name);
 		    next = *++ptr;
 		  }
@@ -3655,13 +3591,13 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	  {
 	    if (alternate_flag || zero_flag || left_adjust_flag
 		|| blank_flag || plus_flag || width_flag || precision_flag)
-	      eval_error (invfmt_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_invalid_format, function_name);
 	    VLO_ADD_BYTE (temp_vlobj, '%');
 	    continue;
 	  }
 	if (curr_par_num > 0)
-	  eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+	  eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		      DERR_parameters_number, function_name);
 	val = IVAL (ctop, curr_par_num);
 	add = width + 5;
@@ -3672,7 +3608,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	    if ((next == 'd' && alternate_flag)
 		|| ((next == 'o' || next == 'x' || next == 'X')
 		    && (blank_flag || plus_flag)))
-	      eval_error (invfmt_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_invalid_format, function_name);
 	    curr_fmt += sprintf (curr_fmt, "%c", next);
 	    add += 100;
@@ -3680,7 +3616,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	    if (next == 'd' || next == 'o' || next == 'x' || next == 'X')
 	      {
 		if (ER_NODE_MODE (val) != ER_NM_int)
-		  eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+		  eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 			      DERR_parameter_type, function_name);
 		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
 			       ER_i (val));
@@ -3688,7 +3624,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	    else
 	      {
 		if (ER_NODE_MODE (val) != ER_NM_float)
-		  eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+		  eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 			      DERR_parameter_type, function_name);
 		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
 			       ER_f (val));
@@ -3698,7 +3634,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	  {
 	    if (alternate_flag || zero_flag || blank_flag || plus_flag
 		|| precision_flag)
-	      eval_error (invfmt_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_invalid_format, function_name);
 	    
 	    *curr_fmt++ = 'c';
@@ -3706,7 +3642,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	    add += 10;
 	    VLO_EXPAND (temp_vlobj, add);
 	    if (ER_NODE_MODE (val) != ER_NM_char)
-	      eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_parameter_type, function_name);
 	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
 			   ER_ch (val));
@@ -3714,7 +3650,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	else if (next == 's')
 	  {
 	    if (alternate_flag || zero_flag || blank_flag || plus_flag)
-	      eval_error (invfmt_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_invalid_format, function_name);
 	    *curr_fmt++ = 's';
 	    *curr_fmt++ = '\0';
@@ -3722,7 +3658,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 	    if (ER_NODE_MODE (val) != ER_NM_vect
 		|| ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
 		|| ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
-	      eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	      eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 			  DERR_parameter_type, function_name);
 	    str = ER_pack_els (ER_vect (val));
 	    add += strlen (str) + 10;
@@ -3731,14 +3667,14 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 			   str);
 	  }
 	else
-	  eval_error (invfmt_decl, invcalls_decl, BC_pos (cpc),
+	  eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
 		      DERR_invalid_format, function_name);
 	curr_par_num++;
 	d_assert (out < add);
 	VLO_SHORTEN (temp_vlobj, add - out);
       }
   if (curr_par_num != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   VLO_ADD_BYTE (temp_vlobj, '\0');
   if (errno != 0)
@@ -3801,7 +3737,7 @@ getgroups_call (int_t pars_number)
   size_t i;
 
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, GETGROUPS_NAME);
 #if defined(HAVE_GETGROUPS)
   els_number = getgroups (0, NULL);
@@ -3851,7 +3787,7 @@ float_function_start (int_t pars_number, const char *function_name)
   floating_t result;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   implicit_arithmetic_conversion (ctop, NULL);
   if (ER_NODE_MODE (ctop) == ER_NM_int)
@@ -3861,8 +3797,8 @@ float_function_start (int_t pars_number, const char *function_name)
       ER_set_f (ctop, result);
     }
   if (ER_NODE_MODE (ctop) != ER_NM_float)
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, function_name);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, function_name);
   errno = 0;
 }
 
@@ -3872,7 +3808,7 @@ float_function_start2 (int_t pars_number, const char *function_name)
   floating_t result;
 
   if (pars_number != 2)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   implicit_arithmetic_conversion (ctop, NULL);
   if (ER_NODE_MODE (ctop) == ER_NM_int)
@@ -3890,8 +3826,8 @@ float_function_start2 (int_t pars_number, const char *function_name)
     }
   if (ER_NODE_MODE (ctop) != ER_NM_float
       || ER_NODE_MODE (below_ctop) != ER_NM_float)
-    eval_error (partype_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameter_type, function_name);
+    eval_error (partype_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameter_type, function_name);
   errno = 0;
 }
 
@@ -3987,8 +3923,8 @@ general_rand_call (int_t pars_number, int rand_flag)
   int_t seed;
 
   if ((rand_flag && pars_number != 0) || (! rand_flag && pars_number > 1))
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number,
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number,
 		(rand_flag ? RAND_NAME : SRAND_NAME));
   if (!rand_flag &&  pars_number == 1)
     {
@@ -4002,7 +3938,7 @@ general_rand_call (int_t pars_number, int rand_flag)
       else if (ER_NODE_MODE (ctop) == ER_NM_int)
 	seed = ER_i (ctop);
       else
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, SRAND_NAME);
     }
   if (rand_flag)
@@ -4041,115 +3977,115 @@ process_system_errors (const char *function_name)
 #ifdef EACCES
     case EACCES:
       /* Permission denied. */
-      eval_error (eaccess_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (eaccess_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_eaccess, function_name);
       break;
 #endif
 #ifdef EAGAIN
     case EAGAIN:
-      eval_error (eagain_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (eagain_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_eagain, function_name);
       break;
 #endif
 #ifdef EBADF
     case EBADF:
-      eval_error (ebadf_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (ebadf_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_ebadf, function_name);
       break;
 #endif
 #ifdef EBUSY
     case EBUSY:
-      eval_error (ebusy_decl, syserrors_decl, BC_pos (cpc), DERR_ebusy,
+      eval_error (ebusy_bc_decl, syserrors_bc_decl, get_cpos (), DERR_ebusy,
 		  function_name);
       break;
 #endif
 #ifdef ECHILD
     case ECHILD:
-      eval_error (echild_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (echild_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_echild, function_name);
       break;
 #endif
 #ifdef EDEADLK
     case EDEADLK:
-      eval_error (edeadlk_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (edeadlk_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_edeadlk, function_name);
       break;
 #endif
 #ifdef EDOM
     case EDOM:
-      eval_error (edom_decl, syserrors_decl, BC_pos (cpc), DERR_edom,
+      eval_error (edom_bc_decl, syserrors_bc_decl, get_cpos (), DERR_edom,
 		  function_name);
       break;
 #endif
 #ifdef EEXIST
     case EEXIST:
-      eval_error (eexist_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (eexist_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_eexist, function_name);
       break;
 #endif
 #ifdef EFAULT
     case EFAULT:
-      eval_error (efault_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (efault_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_efault, function_name);
       break;
 #endif
 #ifdef EFBIG
     case EFBIG:
-      eval_error (efbig_decl, syserrors_decl, BC_pos (cpc), DERR_efbig,
+      eval_error (efbig_bc_decl, syserrors_bc_decl, get_cpos (), DERR_efbig,
 		  function_name);
       break;
 #endif
 #ifdef EINTR
     case EINTR:
-      eval_error (eintr_decl, syserrors_decl, BC_pos (cpc), DERR_eintr,
+      eval_error (eintr_bc_decl, syserrors_bc_decl, get_cpos (), DERR_eintr,
 		  function_name);
       break;
 #endif
 #ifdef EINVAL
     case EINVAL:
-      eval_error (einval_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (einval_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_einval, function_name);
       break;
 #endif
 #ifdef EIO
     case EIO:
-      eval_error (eio_decl, syserrors_decl, BC_pos (cpc), DERR_eio,
+      eval_error (eio_bc_decl, syserrors_bc_decl, get_cpos (), DERR_eio,
 		  function_name);
       break;
 #endif
 #ifdef EISDIR
     case EISDIR:
-      eval_error (eisdir_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (eisdir_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_eisdir, function_name);
       break;
 #endif
 #ifdef EMFILE
     case EMFILE:
-      eval_error (emfile_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (emfile_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_emfile, function_name);
       break;
 #endif
 #ifdef EMLINK
     case EMLINK:
-      eval_error (emlink_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (emlink_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_emlink, function_name);
       break;
 #endif
 #ifdef ENAMETOOLONG
     case ENAMETOOLONG:
-      eval_error (enametoolong_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enametoolong_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enametoolong, function_name);
       break;
 #endif
 #ifdef ENFILE
     case ENFILE:
-      eval_error (enfile_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enfile_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enfile, function_name);
       break;
 #endif
 #ifdef ENODEV
     case ENODEV:
-      eval_error (enodev_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enodev_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enodev, function_name);
       break;
 #endif
@@ -4157,106 +4093,106 @@ process_system_errors (const char *function_name)
     case ENOENT:
       /* File or directory does not exist, or directory name is an empty
 	 string. */
-      eval_error (enoent_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enoent_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enoent, function_name);
       break;
 #endif
 #ifdef ENOEXEC
     case ENOEXEC:
-      eval_error (enoexec_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enoexec_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enoexec, function_name);
       break;
 #endif
 #ifdef ENOLCK
     case ENOLCK:
-      eval_error (enolck_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enolck_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enolck, function_name);
       break;
 #endif
 #ifdef ENOMEM
     case ENOMEM:
-      eval_error (enomem_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enomem_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enomem, function_name);
       break;
 #endif
 #ifdef ENOSPC
     case ENOSPC:
-      eval_error (enospc_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enospc_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enospc, function_name);
       break;
 #endif
 #ifdef ENOSYS
     case ENOSYS:
-      eval_error (enosys_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enosys_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enosys, function_name);
       break;
 #endif
 #ifdef ENOTDIR
     case ENOTDIR:
       /* This is not a directory. */
-      eval_error (enotdir_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enotdir_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enotdir, function_name);
       break;
 #endif
 #ifdef ENOTEMPTY
 #if defined(EEXIST) && EEXIST!=ENOTEMPTY
     case ENOTEMPTY:
-      eval_error (enotempty_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enotempty_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enotempty, function_name);
       break;
 #endif
 #endif
 #ifdef ENOTTY
     case ENOTTY:
-      eval_error (enotty_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (enotty_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_enotty, function_name);
       break;
 #endif
 #ifdef ENXIO
     case ENXIO:
-      eval_error (enxio_decl, syserrors_decl, BC_pos (cpc), DERR_enxio,
+      eval_error (enxio_bc_decl, syserrors_bc_decl, get_cpos (), DERR_enxio,
 		  function_name);
       break;
 #endif
 #ifdef EPERM
     case EPERM:
-      eval_error (eperm_decl, syserrors_decl, BC_pos (cpc), DERR_eperm,
+      eval_error (eperm_bc_decl, syserrors_bc_decl, get_cpos (), DERR_eperm,
 		  function_name);
       break;
 #endif
 #ifdef EPIPE
     case EPIPE:
-      eval_error (epipe_decl, syserrors_decl, BC_pos (cpc), DERR_epipe,
+      eval_error (epipe_bc_decl, syserrors_bc_decl, get_cpos (), DERR_epipe,
 		  function_name);
       break;
 #endif
 #ifdef ERANGE
     case ERANGE:
-      eval_error (erange_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (erange_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_erange, function_name);
       break;
 #endif
 #ifdef EROFS
     case EROFS:
-      eval_error (erofs_decl, syserrors_decl, BC_pos (cpc), DERR_erofs,
+      eval_error (erofs_bc_decl, syserrors_bc_decl, get_cpos (), DERR_erofs,
 		  function_name);
       break;
 #endif
 #ifdef ESPIPE
     case ESPIPE:
-      eval_error (espipe_decl, syserrors_decl, BC_pos (cpc),
+      eval_error (espipe_bc_decl, syserrors_bc_decl, get_cpos (),
 		  DERR_espipe, function_name);
       break;
 #endif
 #ifdef ESRCH
     case ESRCH:
-      eval_error (esrch_decl, syserrors_decl, BC_pos (cpc), DERR_esrch,
+      eval_error (esrch_bc_decl, syserrors_bc_decl, get_cpos (), DERR_esrch,
 		  function_name);
       break;
 #endif
 #ifdef EXDEV
     case EXDEV:
-      eval_error (exdev_decl, syserrors_decl, BC_pos (cpc), DERR_exdev,
+      eval_error (exdev_bc_decl, syserrors_bc_decl, get_cpos (), DERR_exdev,
 		  function_name);
       break;
 #endif
@@ -4264,7 +4200,7 @@ process_system_errors (const char *function_name)
       /* We don't care does strerror exist or not because it is for
          errors.c. */
       d_assert (errno > 0);
-      eval_error (syserror_decl, invcalls_decl, BC_pos (cpc),
+      eval_error (syserror_bc_decl, invcalls_bc_decl, get_cpos (),
 		  strerror (errno), function_name);
       break;
     }
@@ -4278,7 +4214,7 @@ process_errno_call (int_t pars_number)
   const char *name;
 
   if (pars_number > 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, PROCESS_ERRNO_NAME);
   if (pars_number == 0)
     name = "";
@@ -4303,13 +4239,13 @@ readdir_call (int_t pars_number)
   size_t dir_files_number;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, READDIR_NAME);
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, READDIR_NAME);
   dir = opendir (ER_pack_els (ER_vect (ctop)));
   if (dir == NULL)
@@ -4322,11 +4258,11 @@ readdir_call (int_t pars_number)
       if (errno != 0)
 	/* Internall error: EBADF, EFAULT, EINVAL, ENOENT, ENOTDIR and
            may be something else. */
-	eval_error (internal_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (internal_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_internal_error, READDIR_NAME);
       if (closedir (dir) != 0)
 	/* Internall error: EBADF and may be something else. */
-	eval_error (internal_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (internal_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_internal_error, READDIR_NAME);
       dir = opendir (ER_pack_els (ER_vect (ctop)));
       if (dir == NULL)
@@ -4346,7 +4282,7 @@ readdir_call (int_t pars_number)
 	      if (errno != 0)
 		/* Internall error: EBADF, EFAULT, EINVAL, ENOENT,
 		   ENOTDIR and may be something else. */
-		eval_error (internal_decl, invcalls_decl, BC_pos (cpc),
+		eval_error (internal_bc_decl, invcalls_bc_decl, get_cpos (),
 			    DERR_internal_error, READDIR_NAME);
 	      if (dirent == NULL)
 		break;
@@ -4356,7 +4292,7 @@ readdir_call (int_t pars_number)
 	    }
 	  if (closedir (dir) != 0)
 	    /* Internall error: EBADF and may be something else. */
-	    eval_error (internal_decl, invcalls_decl, BC_pos (cpc),
+	    eval_error (internal_bc_decl, invcalls_bc_decl, get_cpos (),
 			DERR_internal_error, READDIR_NAME);
 	}
     }
@@ -4369,7 +4305,7 @@ static void
 stat_start (int_t pars_number, const char *function_name, struct stat *buf)
 {
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
   to_vect_string_conversion (ctop, NULL, NULL);
   get_stat (ctop, function_name, buf);
@@ -4572,7 +4508,7 @@ time_call (int_t pars_number)
   time_t t;
 
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, TIME_NAME);
   t = time (NULL);
   ER_SET_MODE (func_result, ER_NM_int);
@@ -4592,13 +4528,13 @@ strtime_call (int_t pars_number)
   size_t max;
 
   if (pars_number > 2)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, STRTIME_NAME);
   if (pars_number == 2)
     {
       implicit_int_conversion (ctop, NULL);
       if (ER_NODE_MODE (ctop) != ER_NM_int)
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, STRTIME_NAME);
       t = ER_i (ctop);
     }
@@ -4613,21 +4549,21 @@ strtime_call (int_t pars_number)
 	  && ER_pack_vect_el_type (ER_vect (format_var)) == ER_NM_char)
 	format = ER_pack_els (ER_vect (format_var));
       else
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, STRTIME_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, STRTIME_NAME);
     }
   else
     {
       format_var = IVAL (ER_stack_vars (uppest_stack),
-			 IR_var_number_in_block (time_format_decl));
+			 BC_var_num (time_format_bc_decl));
       to_vect_string_conversion (format_var, NULL, NULL);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (format_var)) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (ER_vect (format_var)) == ER_NM_char)
 	format = ER_pack_els (ER_vect (format_var));
       else
-	eval_error (invenvar_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_corrupted_environment_var,
+	eval_error (invenvar_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_corrupted_environment_var,
 		    TIME_FORMAT_NAME);
     }
   tm = localtime (&t);
@@ -4665,7 +4601,7 @@ clock_call (int_t pars_number)
   floating_t secs;
 
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, CLOCK_NAME);
   secs = (floating_t) (clock () - start_time) / CLOCKS_PER_SECOND;
   ER_SET_MODE (func_result, ER_NM_float);
@@ -4678,8 +4614,8 @@ gc_call (int_t pars_number)
   ptrdiff_t offset;
 
   if (pars_number != 0)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, GC_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, GC_NAME);
   GC_executed_stmts_count = executed_stmts_count;
   offset = (char *) func_result - (char *) cstack;
   GC ();
@@ -4698,7 +4634,7 @@ system_call (int_t pars_number)
   ER_node_t vect;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, SYSTEM_NAME);
   else
     {
@@ -4716,17 +4652,17 @@ system_call (int_t pars_number)
 	    {
 	      code = system ((char *) ER_pack_els (vect));
 	      if (code == 127)
-		eval_error (noshell_decl, systemcalls_decl,
-			    BC_pos (cpc), DERR_no_shell, SYSTEM_NAME);
+		eval_error (noshell_bc_decl, systemcalls_bc_decl,
+			    get_cpos (), DERR_no_shell, SYSTEM_NAME);
 	      else if (code < 0)
-		eval_error (systemfail_decl, systemcalls_decl,
-			    BC_pos (cpc), DERR_other_fail_in_system_call,
+		eval_error (systemfail_bc_decl, systemcalls_bc_decl,
+			    get_cpos (), DERR_other_fail_in_system_call,
 			    SYSTEM_NAME);
 	      error_flag = FALSE;
 	    }
 	}
       if (error_flag)
-	eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, SYSTEM_NAME);
     }
   /* Place the result instead of the function. */
@@ -4748,27 +4684,26 @@ print_trace_stack (void)
        (char *) elem_ptr <= (char *) VLO_END (trace_stack);
        elem_ptr++)
     fprintf (stderr, "%s:%u:%u:calling %s\n",
-	     BC_pos (elem_ptr->pc).file_name,
-	     BC_pos (elem_ptr->pc).line_number,
-	     BC_pos (elem_ptr->pc).column_number,
-	     IR_ident_string (IR_unique_ident
-			      (IR_ident (elem_ptr->func_class))));
+	     get_pos (elem_ptr->pc).file_name,
+	     get_pos (elem_ptr->pc).line_number,
+	     get_pos (elem_ptr->pc).column_number,
+	     BC_ident (BC_fdecl (elem_ptr->block)));
 }
 
 void
 exit_call (int_t pars_number)
 {
   int code;
-  IR_node_t func_class;
+  BC_node_t block;
   ER_node_t stack;
   struct trace_stack_elem elem;
 
   if (pars_number != 1)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, EXIT_NAME);
   implicit_int_conversion (ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_int)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, EXIT_NAME);
   if (trace_flag)
     {
@@ -4778,10 +4713,10 @@ exit_call (int_t pars_number)
 	   stack != uppest_stack;
 	   stack = ER_prev_stack (stack))
 	{
-	  func_class = ER_stack_func_class (stack);
-	  if (func_class == NULL)
+	  block = ER_block_node (stack);
+	  if (BC_NODE_MODE (block) == BC_NM_block)
 	    continue;
-	  elem.func_class = func_class;
+	  elem.block = block;
 	  elem.pc = ER_call_pc (stack);
 	  VLO_ADD_MEMORY (trace_stack, &elem, sizeof (elem));
 	}
@@ -4796,7 +4731,7 @@ exit_call (int_t pars_number)
    array, fold element function, the current result of the fold
    operation, and fold vector dimension.  */
 static ER_node_mode_t fold_vect_el_type;
-static IR_node_t fold_el_func;
+static BC_node_t fold_el_func_block;
 static val_t fold_initval;
 static int_t fold_dim;
 
@@ -4820,7 +4755,7 @@ fold_function (const void *el)
       if (fold_vect_el_type == ER_NM_vect)
 	ER_set_dim (ctop, 0);
     }
-  call_func_class (fold_el_func, context, 2);
+  call_func_class (fold_el_func_block, context, 2);
   TOP_UP;
   fold_initval = *(val_t *) ctop;
   TOP_DOWN;
@@ -4843,7 +4778,7 @@ process_fold_vect_op (ER_node_t op, int_t dim, int_t depth)
     fold_vect_el_type = ER_NM_val;
   if (dim > 1 && ER_NODE_MODE (op) == ER_NM_heap_pack_vect
       && fold_vect_el_type != ER_NM_vect)
-    eval_error (vecform_decl, invectors_decl, BC_pos (cpc),
+    eval_error (vecform_bc_decl, invectors_bc_decl, get_cpos (),
 		DERR_vector_form_type, depth);
   PUSH_TEMP_REF (op);
   for (i = 0; i < len; i++)
@@ -4864,7 +4799,7 @@ process_fold_vect_op (ER_node_t op, int_t dim, int_t depth)
 	  if (dim == 1)
 	    fold_function (v);
 	  else if (ER_NODE_MODE (v) != ER_NM_vect)
-	    eval_error (vecform_decl, invectors_decl, BC_pos (cpc),
+	    eval_error (vecform_bc_decl, invectors_bc_decl, get_cpos (),
 			DERR_vector_form_type, depth);
 	  else
 	    process_fold_vect_op (ER_vect (v), dim - 1, depth + 1);
@@ -4882,12 +4817,12 @@ fold_call (int_t pars_number)
   int func_result_offset;
 
   if (pars_number != 3 && pars_number != 4)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, FOLD_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, FOLD_NAME);
   par1 = IVAL (ctop, -pars_number + 1);
   par2 = IVAL (ctop, -pars_number + 2);
-  if (ER_NODE_MODE (par1) != ER_NM_func || ER_NODE_MODE (par2) != ER_NM_vect)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+  if (! func_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, FOLD_NAME);
   func_result_offset = (val_t *) func_result - (val_t *) cvars;
   vect = ER_vect (par2);
@@ -4899,8 +4834,8 @@ fold_call (int_t pars_number)
       ER_node_t dim_par = IVAL (ctop, -pars_number + 4);
       implicit_int_conversion (dim_par, NULL);
       if (!ER_IS_OF_TYPE (dim_par, ER_NM_int))
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, FOLD_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, FOLD_NAME);
       fold_dim = ER_i (dim_par);
     }
   if (fold_dim <= 0)
@@ -4910,8 +4845,8 @@ fold_call (int_t pars_number)
       GO_THROUGH_REDIR (vect);
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	pack_vector_if_possible (vect);
-      context = ER_func_context (par1);
-      fold_el_func = ID_TO_FUNC_CLASS (ER_func_id (par1));
+      context = ER_code_context (par1);
+      fold_el_func_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
       process_fold_vect_op (vect, fold_dim, 1);
       POP_TEMP_REF (1);
@@ -4924,7 +4859,7 @@ fold_call (int_t pars_number)
 /* The following variables contain type of the elements of
    filtered array, filter element function, and vector dimension  */
 static ER_node_mode_t filter_vect_el_type;
-static IR_node_t filter_el_func;
+static BC_node_t filter_el_func_block;
 static int_t filter_dim;
 
 static int
@@ -4945,11 +4880,11 @@ filter_function (const void *el)
       if (filter_vect_el_type == ER_NM_vect)
 	ER_set_dim (ctop, 0);
     }
-  call_func_class (filter_el_func, context, 1);
+  call_func_class (filter_el_func_block, context, 1);
   TOP_UP;
   if (ER_NODE_MODE (ctop) != ER_NM_int)
-    eval_error (invresult_decl, invcalls_decl,
-		BC_pos (cpc), DERR_invalid_result, FILTER_NAME);
+    eval_error (invresult_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_invalid_result, FILTER_NAME);
   res = ER_i (ctop) != 0;
   TOP_DOWN;
   return res;
@@ -4970,7 +4905,7 @@ process_filter_vect_op (ER_node_t op, int_t dim, int_t depth)
     filter_vect_el_type = ER_NM_val;
   if (dim > 1 && ER_NODE_MODE (op) == ER_NM_heap_pack_vect
       && filter_vect_el_type != ER_NM_vect)
-    eval_error (vecform_decl, invectors_decl, BC_pos (cpc),
+    eval_error (vecform_bc_decl, invectors_bc_decl, get_cpos (),
 		DERR_vector_form_type, depth);
   if (dim > 1)
     result = create_pack_vector (len, ER_NM_vect);
@@ -4990,7 +4925,7 @@ process_filter_vect_op (ER_node_t op, int_t dim, int_t depth)
 	    el = process_filter_vect_op (((ER_node_t *) ER_pack_els (op)) [i],
 					 dim - 1, depth + 1);
 	  else if (ER_NODE_MODE (IVAL (ER_unpack_els (op), i)) != ER_NM_vect)
-	    eval_error (vecform_decl, invectors_decl, BC_pos (cpc),
+	    eval_error (vecform_bc_decl, invectors_bc_decl, get_cpos (),
 			DERR_vector_form_type, depth);
 	  else
 	    el = process_filter_vect_op (ER_vect (IVAL (ER_unpack_els (op), i)),
@@ -5043,12 +4978,12 @@ filter_call (int_t pars_number)
   int func_result_offset;
 
   if (pars_number != 2 && pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, FILTER_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, FILTER_NAME);
   par1 = IVAL (ctop, -pars_number + 1);
   par2 = IVAL (ctop, -pars_number + 2);
-  if (ER_NODE_MODE (par1) != ER_NM_func || ER_NODE_MODE (par2) != ER_NM_vect)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+  if (! func_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, FILTER_NAME);
   func_result_offset = (val_t *) func_result - (val_t *) cvars;
   vect = ER_vect (par2);
@@ -5059,8 +4994,8 @@ filter_call (int_t pars_number)
       ER_node_t dim_par = IVAL (ctop, -pars_number + 3);
       implicit_int_conversion (dim_par, NULL);
       if (!ER_IS_OF_TYPE (dim_par, ER_NM_int))
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, FILTER_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, FILTER_NAME);
       filter_dim = ER_i (dim_par);
     }
   if (filter_dim <= 0)
@@ -5070,8 +5005,8 @@ filter_call (int_t pars_number)
       GO_THROUGH_REDIR (vect);
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	pack_vector_if_possible (vect);
-      context = ER_func_context (par1);
-      filter_el_func = ID_TO_FUNC_CLASS (ER_func_id (par1));
+      context = ER_code_context (par1);
+      filter_el_func_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
       vect = process_filter_vect_op (vect, filter_dim, 1);
       POP_TEMP_REF (1);
@@ -5085,7 +5020,7 @@ filter_call (int_t pars_number)
 /* The following variables contain type of the elements of mapped
    array, map element function, and map vector dimension.  */
 static ER_node_mode_t map_vect_el_type;
-static IR_node_t map_el_func;
+static BC_node_t map_el_func_block;
 static int_t map_dim;
 
 static void
@@ -5106,7 +5041,7 @@ map_function (const void *el)
       if (map_vect_el_type == ER_NM_vect)
 	ER_set_dim (ctop, 0);
     }
-  call_func_class (map_el_func, context, 1);
+  call_func_class (map_el_func_block, context, 1);
   TOP_UP;
 }
 
@@ -5125,7 +5060,7 @@ process_map_vect_op (ER_node_t op, int_t dim, int_t depth)
     map_vect_el_type = ER_NM_val;
   if (dim > 1 && ER_NODE_MODE (op) == ER_NM_heap_pack_vect
       && map_vect_el_type != ER_NM_vect)
-    eval_error (vecform_decl, invectors_decl, BC_pos (cpc),
+    eval_error (vecform_bc_decl, invectors_bc_decl, get_cpos (),
 		DERR_vector_form_type, depth);
   if (dim == 1)
     result = create_unpack_vector (len);
@@ -5154,7 +5089,7 @@ process_map_vect_op (ER_node_t op, int_t dim, int_t depth)
 	    el = process_map_vect_op (((ER_node_t *) ER_pack_els (op)) [i],
 				      dim - 1, depth + 1);
 	  else if (ER_NODE_MODE (IVAL (ER_unpack_els (op), i)) != ER_NM_vect)
-	    eval_error (vecform_decl, invectors_decl, BC_pos (cpc),
+	    eval_error (vecform_bc_decl, invectors_bc_decl, get_cpos (),
 			DERR_vector_form_type, depth);
 	  else
 	    el = process_map_vect_op (ER_vect (IVAL (ER_unpack_els (op), i)),
@@ -5179,12 +5114,12 @@ map_call (int_t pars_number)
   int func_result_offset;
 
   if (pars_number != 2 && pars_number != 3)
-    eval_error (parnumber_decl, invcalls_decl,
-		BC_pos (cpc), DERR_parameters_number, MAP_NAME);
+    eval_error (parnumber_bc_decl, invcalls_bc_decl,
+		get_cpos (), DERR_parameters_number, MAP_NAME);
   par1 = IVAL (ctop, -pars_number + 1);
   par2 = IVAL (ctop, -pars_number + 2);
-  if (ER_NODE_MODE (par1) != ER_NM_func || ER_NODE_MODE (par2) != ER_NM_vect)
-    eval_error (partype_decl, invcalls_decl, BC_pos (cpc),
+  if (! func_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, MAP_NAME);
   func_result_offset = (val_t *) func_result - (val_t *) cvars;
   vect = ER_vect (par2);
@@ -5195,8 +5130,8 @@ map_call (int_t pars_number)
       ER_node_t dim_par = IVAL (ctop, -pars_number + 3);
       implicit_int_conversion (dim_par, NULL);
       if (!ER_IS_OF_TYPE (dim_par, ER_NM_int))
-	eval_error (partype_decl, invcalls_decl,
-		    BC_pos (cpc), DERR_parameter_type, MAP_NAME);
+	eval_error (partype_bc_decl, invcalls_bc_decl,
+		    get_cpos (), DERR_parameter_type, MAP_NAME);
       map_dim = ER_i (dim_par);
     }
   if (map_dim <= 0)
@@ -5206,8 +5141,8 @@ map_call (int_t pars_number)
       GO_THROUGH_REDIR (vect);
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	pack_vector_if_possible (vect);
-      context = ER_func_context (par1);
-      map_el_func = ID_TO_FUNC_CLASS (ER_func_id (par1));
+      context = ER_code_context (par1);
+      map_el_func_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
       vect = process_map_vect_op (vect, map_dim, 1);
       POP_TEMP_REF (1);
@@ -5216,6 +5151,99 @@ map_call (int_t pars_number)
   func_result = IVAL (cvars, func_result_offset);
   ER_SET_MODE (func_result, ER_NM_vect);
   set_vect_dim (func_result, vect, 0);
+}
+
+/* Implement matrix transposition.  */
+void
+transpose_call (int_t pars_number)
+{
+  ER_node_t vect, row, col, res, res_el;
+  size_t i, j, nrows, ncols, el_size, displ;
+  const char *pack_els;
+  char *res_pack_els;
+  ER_node_mode_t res_eltp = ER_NM__error, eltp;
+
+  if (pars_number != 1)
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_parameters_number, TRANSPOSE_NAME);
+  if (ER_NODE_MODE (ctop) != ER_NM_vect)
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_parameter_type, TRANSPOSE_NAME);
+  vect = ER_vect (ctop);
+  GO_THROUGH_REDIR (vect);
+  if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
+    pack_vector_if_possible (vect);
+  nrows = ER_els_number (vect);
+  if (nrows == 0 || ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect
+      || ER_pack_vect_el_type (vect) != ER_NM_vect)
+    eval_error (matrixform_bc_decl, invectors_bc_decl, get_cpos (),
+		DERR_matrix_form_type, TRANSPOSE_NAME);
+  pack_els = ER_pack_els (vect);
+  for (i = 0; i < nrows; i++)
+    {
+      row = ((ER_node_t *) pack_els) [i];
+      GO_THROUGH_REDIR (row);
+      eltp = (ER_NODE_MODE (row) == ER_NM_heap_pack_vect
+	      ? ER_pack_vect_el_type (row) : ER_NM__error);
+      if (i == 0)
+	{
+	  ncols = ER_els_number (row);
+	  res_eltp = eltp;
+	}
+      else if (ncols != ER_els_number (row))
+	eval_error (matrixform_bc_decl, invectors_bc_decl,
+		    get_cpos (),
+		    DERR_matrix_form_type, TRANSPOSE_NAME);
+      else if (eltp != res_eltp)
+	res_eltp = ER_NM__error;
+    }
+  if (ncols == 0)
+    eval_error (matrixform_bc_decl, invectors_bc_decl,
+		get_cpos (),
+		DERR_matrix_form_type, TRANSPOSE_NAME);
+  res = create_pack_vector (ncols, ER_NM_vect);
+  res_pack_els = ER_pack_els (res);
+  for (i = 0; i < ncols; i++)
+    ((ER_node_t *) res_pack_els) [i]
+      = (res_eltp != ER_NM__error
+	 ? create_pack_vector (nrows, res_eltp)
+	 : create_unpack_vector (nrows));
+  for (i = 0; i < nrows; i++)
+    {
+      row = ((ER_node_t *) pack_els) [i];
+      GO_THROUGH_REDIR (row);
+      for (j = 0; j < ncols; j++)
+	{
+	  col = ((ER_node_t *) res_pack_els) [j];
+	  if (res_eltp != ER_NM__error)
+	    {
+	      d_assert (ER_NODE_MODE (row) == ER_NM_heap_pack_vect
+			&& ER_NODE_MODE (col) == ER_NM_heap_pack_vect);
+	      el_size = type_size_table [res_eltp];
+	      memcpy ((char *) ER_pack_els (col) + i * el_size,
+		      (char *) ER_pack_els (row) + j * el_size, el_size);
+	    }
+	  else if (ER_NODE_MODE (row) == ER_NM_heap_pack_vect)
+	    {
+	      d_assert (ER_NODE_MODE (col) == ER_NM_heap_unpack_vect);
+	      eltp = ER_pack_vect_el_type (row);
+	      el_size = type_size_table [eltp];
+	      res_el = IVAL (ER_unpack_els (col), i);
+	      ER_SET_MODE (res_el, eltp);
+	      displ = val_displ_table[eltp];
+	      memcpy ((char *) res_el + displ,
+		      (char *) ER_pack_els (row) + j * el_size, el_size);
+	    }
+	  else
+	    {
+	      d_assert (ER_NODE_MODE (col) == ER_NM_heap_unpack_vect);
+	      ((val_t *) ER_unpack_els (col))[i]
+		= ((val_t *) ER_unpack_els (row))[j];
+	    }
+	}
+    }
+  ER_SET_MODE (func_result, ER_NM_vect);
+  set_vect_dim (func_result, res, 0);
 }
 
 /* This function is a trick to fullfil initiations after execution of
@@ -5229,11 +5257,11 @@ init_call (int_t pars_number)
   d_assert (pars_number == 0);
   /* ------ Initiations after execution of stmts before __init__ ----- */
   /* Set stdin, stdout, stderr. */
-  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (stdin_decl));
+  var = IVAL (ER_stack_vars (cstack), BC_var_num (stdin_bc_decl));
   place_file_instance (stdin, var);
-  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (stdout_decl));
+  var = IVAL (ER_stack_vars (cstack), BC_var_num (stdout_bc_decl));
   place_file_instance (stdout, var);
-  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (stderr_decl));
+  var = IVAL (ER_stack_vars (cstack), BC_var_num (stderr_bc_decl));
   place_file_instance (stderr, var);
   /* ----- End of the initiations ----- */
   /* Place the result instead of the function. */
@@ -5241,7 +5269,7 @@ init_call (int_t pars_number)
 }
 
 static void
-call_external_func (int pars_number, IR_node_t func_node)
+call_external_func (int pars_number, BC_node_t fdecl)
 {
   external_func_t *func;
   ER_node_t vect;
@@ -5250,7 +5278,7 @@ call_external_func (int pars_number, IR_node_t func_node)
   ER_node_t tab;
   int curr_actual;
 
-  func = external_address (func_node);
+  func = external_address (fdecl);
   vect = (ER_node_t) create_unpack_vector (pars_number);
   for (curr_actual = 0; curr_actual < pars_number; curr_actual++)
     {
@@ -5286,27 +5314,25 @@ reset_vars (ER_node_t from, ER_node_t bound)
     ER_SET_MODE (from, ER_NM_undef);
 }
 
-/* Set up formal parameters starting with VARS of FUNC_CLASS from
+/* Set up formal parameters starting with VARS of BLOCK from
    actual parameters starting with ACTUAL_START.  Check correct number
    of actual parameters.  Initialize rest of VARS_NUMBER vars by
    NIL.  */
 static void do_always_inline
-setup_pars (IR_node_t func_class, int actuals_num,
+setup_pars (BC_node_t block, int actuals_num,
 	    ER_node_t vars, val_t *actual_start, int vars_number)
 {
   int i, args_p, copies_num, formals_num, min_actuals_num;
 
-  args_p = IR_args_flag (func_class);
-  formals_num = IR_parameters_number (func_class) - (args_p ? 1 : 0);
-  min_actuals_num = IR_min_actual_parameters_number (func_class);
+  args_p = BC_args_p (block);
+  formals_num = BC_pars_num (block) - (args_p ? 1 : 0);
+  min_actuals_num = BC_min_pars_num (block);
   if (actuals_num < min_actuals_num)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
-		DERR_too_few_actual_parameters,
-		IR_ident_string (IR_unique_ident (IR_ident (func_class))));
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_too_few_actual_parameters, BC_ident (BC_fdecl (block)));
   else if (actuals_num > formals_num && ! args_p)
-    eval_error (parnumber_decl, invcalls_decl, BC_pos (cpc),
-		DERR_too_many_actual_parameters,
-		IR_ident_string (IR_unique_ident (IR_ident (func_class))));
+    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_too_many_actual_parameters, BC_ident (BC_fdecl (block)));
   copies_num = (formals_num < actuals_num ? formals_num : actuals_num);
   /* Transfer actuals.  */
   for (i = 0; i < copies_num; i++)
@@ -5334,14 +5360,14 @@ setup_pars (IR_node_t func_class, int actuals_num,
 static ER_node_t do_always_inline
 create_class_stack (val_t *call_start, int_t actuals_num, int simple_p)
 {
-  IR_node_t class; 
+  BC_node_t class_block;
   ER_node_t stack;
   pc_t saved_cpc = cpc;
 
-  class = ID_TO_FUNC_CLASS (ER_class_id ((ER_node_t) call_start));
-  heap_push (IR_next_stmt (class), ER_class_context ((ER_node_t) call_start), -1);
-  setup_pars (class, actuals_num, ER_stack_vars (cstack),
-	      call_start + 1, IR_vars_number (IR_next_stmt (class)));
+  class_block = ID_TO_CODE (ER_code_id ((ER_node_t) call_start));
+  heap_push (class_block, ER_code_context ((ER_node_t) call_start), -1);
+  setup_pars (class_block, actuals_num, ER_stack_vars (cstack),
+	      call_start + 1, BC_vars_num (class_block));
   stack = cstack;
   if (simple_p)
     {
@@ -5356,51 +5382,109 @@ create_class_stack (val_t *call_start, int_t actuals_num, int simple_p)
    diagnostic of earley parser functions. */
 static pc_t real_func_call_pc;
 
-/* Function processing tail (if TAIL_FLAG) call of function FUNC with
+/* Function processing tail (if TAIL_FLAG) call of function CODE with
    CONTEXT with ACTUALS_NUM params starting with PAR_START.  */
 static void do_always_inline
-process_func_call (val_t *par_start, IR_node_t func, ER_node_t context,
+process_func_call (val_t *par_start, BC_node_t code, ER_node_t context,
 		   int actuals_num, int tail_flag)
 {
-  IR_node_t block_node_ptr = IR_next_stmt (func);
-  int vars_number = real_block_vars_number (block_node_ptr);
-
+  BC_node_t block = code;
+  int vars_number = real_block_vars_number (block);
+  
+  if (BC_thread_p (code) && sync_flag)
+    /* We check it before creating a stack (see
+       find_catch_pc).  */
+    eval_error (syncthreadcall_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_thread_call_in_sync_stmt);
   real_func_call_pc = cpc;
-  d_assert (! IR_IS_OF_TYPE (func, IR_NM_external_func));
-  if (tail_flag && ! IR_extended_life_context_flag (ER_block_node (cstack))
+  d_assert (BC_NODE_MODE (code) == BC_NM_fblock
+	    && BC_implementation_func (code) == NULL);
+  if (tail_flag && ! BC_ext_life_p (ER_block_node (cstack))
       && context != cstack && cstack != uppest_stack
       /* We should not worry about extending stack.  Finally in the
 	 chain of calls of different functions we have a function
 	 block big enough to contain all subsequent tail calls.  */
-      && (ER_all_block_vars_num (cstack)
-	  >= vars_number + IR_temporary_vars_number (block_node_ptr)))
+      && (ER_all_block_vars_num (cstack) >= vars_number + BC_tvars_num (block)))
     {
       ER_set_context (cstack, context);
-      ER_set_block_node (cstack, block_node_ptr);
+      ER_set_block_node (cstack, block);
       ctop = IVAL (cvars, vars_number - 1);
     }
   else
-    heap_push (IR_next_stmt (func), context, -1);
-  setup_pars (func, actuals_num, cvars, par_start, vars_number);
-  cpc = BC_next (IR_bc_block (block_node_ptr));
+    heap_push (block, context, -1);
+  setup_pars (block, actuals_num, cvars, par_start, vars_number);
+  cpc = BC_next (block);
+  if (BC_thread_p (code))
+    {
+      ER_node_t process;
+      
+      process = create_process (cpc, code, context);
+      cpc = BC_next (ER_call_pc (cstack));
+      ER_set_ctop (cstack, (char *) ctop);
+      cstack = ER_prev_stack (cstack);
+      ER_set_saved_cstack (cprocess, cstack);
+      cvars = ER_stack_vars (cstack);
+      ctop = (ER_node_t) ER_ctop (cstack);
+      TOP_UP;
+      ER_SET_MODE (ctop, ER_NM_process);
+      ER_set_process (ctop, process);
+      TOP_DOWN;
+    }
 }
 
 /* The same as previous but also process implementation functions.  */
 void do_always_inline
-process_imm_func_call (val_t *call_start, IR_node_t func, ER_node_t context,
+process_imm_func_call (val_t *call_start, BC_node_t code, ER_node_t context,
 		       int actuals_num, int tail_flag)
 {
-  if (IR_implementation_func (func) != NULL)
+  int vars_number = real_block_vars_number (code);
+  int i;
+  
+  d_assert (BC_NODE_MODE (code) == BC_NM_fblock
+	    && BC_implementation_func (code) == NULL
+	    && ! BC_thread_p (code) && ! BC_args_p (code)
+	    && actuals_num == BC_pars_num (code));
+  real_func_call_pc = cpc;
+  if (tail_flag && ! BC_ext_life_p (ER_block_node (cstack))
+      && context != cstack && cstack != uppest_stack
+      /* We should not worry about extending stack.  Finally in the
+	 chain of calls of different functions we have a function
+	 block big enough to contain all subsequent tail calls.  */
+      && (ER_all_block_vars_num (cstack) >= vars_number + BC_tvars_num (code)))
     {
-      func_result = IVAL (ctop, 1);
-      DECR_CTOP (-actuals_num);
-      (*IR_implementation_func (func)) (actuals_num);
-      DECR_CTOP (actuals_num);
-      INCREMENT_PC ();
+      ER_set_context (cstack, context);
+      ER_set_block_node (cstack, code);
+      ctop = IVAL (cvars, vars_number - 1);
     }
-  else
-    process_func_call (call_start, func, context, actuals_num, tail_flag);
+  else if (heap_push_or_set_res (code, context, call_start))
+    {
+      INCREMENT_PC ();
+      return;
+    }
+  /* Transfer actuals.  */
+  for (i = 0; i < actuals_num; i++)
+    *(val_t *) IVAL (cvars, i) = *call_start++;
+  /* Reset rest of variables.  */
+  reset_vars ((ER_node_t) ((val_t *) cvars + actuals_num),
+	      (ER_node_t) ((val_t *) cvars + vars_number));
+  cpc = BC_next (code);
 }
+
+void do_always_inline
+process_imm_ifunc_call (BC_node_t code, int actuals_num)
+{
+  implementation_func_t ifunc;
+
+  d_assert (BC_NODE_MODE (code) == BC_NM_fblock);
+  ifunc = BC_implementation_func (code);
+  d_assert (ifunc != NULL);
+  func_result = IVAL (ctop, 1);
+  DECR_CTOP (-actuals_num);
+  (*ifunc) (actuals_num);
+  DECR_CTOP (actuals_num);
+  INCREMENT_PC ();
+}
+
 
 /* A general function processing tail (if TAIL_FLAG) func/thread/class
    call of func with ACTUALS_NUM par maters starting with
@@ -5408,73 +5492,39 @@ process_imm_func_call (val_t *call_start, IR_node_t func, ER_node_t context,
 void
 process_func_class_call (ER_node_t call_start, int_t actuals_num, int tail_flag)
 {
-  IR_node_t func_class;
+  BC_node_t code;
+  implementation_func_t ifunc;
   ER_node_t func_class_val, context;
   ER_node_t instance;
-  ER_node_mode_t mode;
+  BC_node_mode_t mode;
 
   ctop = IVAL (call_start, -1);
-  mode = ER_NODE_MODE (call_start);
-  if (mode == ER_NM_func || mode == ER_NM_thread)
+  if (ER_NODE_MODE (call_start) == ER_NM_efunc)
     {
-      func_class = ID_TO_FUNC_CLASS (mode == ER_NM_func
-				     ? ER_func_id (call_start)
-				     : ER_thread_id (call_start));
-      if (IR_NODE_MODE (func_class) == IR_NM_external_func)
-	{
-	  DECR_CTOP (-actuals_num - 1);
-	  call_external_func (actuals_num, func_class);
-	  TOP_DOWN;
-	}
-      else if (IR_implementation_func (func_class) != NULL)
-	{
-	  func_result = IVAL (ctop, 1);
-	  DECR_CTOP (-actuals_num - 1);
-	  (*IR_implementation_func (func_class)) (actuals_num);
-	  DECR_CTOP (actuals_num + 1);
-	  INCREMENT_PC ();
-	}
-      else
-	{
-	  if (mode == ER_NM_func)
-	    context = ER_func_context (call_start);
-	  else
-	    {
-	      if (sync_flag)
-		/* We check it before creating a stack (see
-		   find_catch_pc).  */
-		eval_error (syncthreadcall_decl, invcalls_decl, BC_pos (cpc),
-			    DERR_thread_call_in_sync_stmt);
-	      context = ER_thread_context (call_start);
-	    }
-	  process_func_call ((val_t *) call_start + 1, func_class, context,
-			     actuals_num, tail_flag);
-	  if (mode == ER_NM_thread)
-	    {
-	      ER_node_t process;
-	      
-	      process = create_process (cpc, func_class,
-					ER_thread_context (call_start));
-	      cpc = BC_next (ER_call_pc (cstack));
-	      ER_set_ctop (cstack, (char *) ctop);
-	      cstack = ER_prev_stack (cstack);
-	      ER_set_saved_cstack (cprocess, cstack);
-	      cvars = ER_stack_vars (cstack);
-	      ctop = (ER_node_t) ER_ctop (cstack);
-	      TOP_UP;
-	      ER_SET_MODE (ctop, ER_NM_process);
-              ER_set_process (ctop, process);
-	      TOP_DOWN;
-	    }
-	}
+      d_assert (! tail_flag);
+      DECR_CTOP (-actuals_num - 1);
+      call_external_func (actuals_num, ER_efdecl (call_start));
+      TOP_DOWN;
+      return;
     }
-  else if (mode == ER_NM_class)
+  code = ID_TO_CODE (ER_code_id (call_start));
+  mode = BC_NODE_MODE (code);
+  if (ER_NODE_MODE (call_start) != ER_NM_code)
+    eval_error (callop_bc_decl, invcalls_bc_decl, get_cpos (),
+		DERR_none_class_or_func_before_left_bracket);
+  else if ((ifunc = BC_implementation_func (code)) != NULL)
     {
-      /* See also case with IR_NM_block_finish .*/
-      func_class = ID_TO_FUNC_CLASS (ER_class_id (call_start));
+      func_result = IVAL (ctop, 1);
+      DECR_CTOP (-actuals_num - 1);
+      (*ifunc) (actuals_num);
+      DECR_CTOP (actuals_num + 1);
+      INCREMENT_PC ();
+    }
+  else if (BC_class_p (code))
+    {
       instance = create_class_stack ((val_t *) call_start, actuals_num,
-				     IR_simple_class_flag (func_class));
-      if (IR_simple_class_flag (func_class))
+				     BC_simple_p (code));
+      if (BC_simple_p (code))
 	{
 	  TOP_UP;
 	  ER_SET_MODE (ctop, ER_NM_stack);
@@ -5483,11 +5533,14 @@ process_func_class_call (ER_node_t call_start, int_t actuals_num, int tail_flag)
 	  INCREMENT_PC ();
 	}
       else
-	cpc = BC_next (IR_bc_block (IR_next_stmt (func_class)));
+	cpc = BC_next (code);
     }
   else
-    eval_error (callop_decl, invcalls_decl, BC_pos (cpc),
-		DERR_none_class_or_func_before_left_bracket);
+    {
+      context = ER_code_context (call_start);
+      process_func_call ((val_t *) call_start + 1, code, context,
+			 actuals_num, tail_flag);
+    }
 }
 
 void
@@ -5545,15 +5598,15 @@ int_earley_parse_grammar (int npars)
   if (ER_NODE_MODE (par2) != ER_NM_int || ER_NODE_MODE (par3) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par3)) != ER_NM_heap_pack_vect
       || ER_pack_vect_el_type (ER_vect (par3)) != ER_NM_char)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   g = (struct grammar *) ER_hide (par1);
   code = earley_parse_grammar (g, ER_i (par2), ER_pack_els (ER_vect (par3)));
   if (code == EARLEY_NO_MEMORY)
-    eval_error (pmemory_decl, invparsers_decl, BC_pos (real_func_call_pc),
+    eval_error (pmemory_bc_decl, invparsers_bc_decl, get_pos (real_func_call_pc),
 		"run time error (%s) -- no parser memory", name);
   else if (code != 0)
-    eval_error (invgrammar_decl, invparsers_decl, BC_pos (real_func_call_pc),
+    eval_error (invgrammar_bc_decl, invparsers_bc_decl, get_pos (real_func_call_pc),
 		"run time error (%s) -- %s", name, earley_error_message (g));
   /* Returned value should be ignored. */
   ER_SET_MODE (func_result, ER_NM_undef);
@@ -5573,7 +5626,7 @@ int_earley_set_debug_level (int npars)
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   i = earley_set_debug_level ((struct grammar *) ER_hide (par1),
 			      ER_i (par2));
@@ -5595,7 +5648,7 @@ int_earley_set_one_parse_flag (int npars)
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   i = earley_set_one_parse_flag ((struct grammar *) ER_hide (par1),
 				 ER_i (par2));
@@ -5617,7 +5670,7 @@ int_earley_set_lookahead_level (int npars)
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   i = ER_i (par2);
   i = earley_set_lookahead_level ((struct grammar *) ER_hide (par1),
@@ -5640,7 +5693,7 @@ int_earley_set_cost_flag (int npars)
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   i = earley_set_cost_flag ((struct grammar *) ER_hide (par1), ER_i (par2));
   ER_SET_MODE (func_result, ER_NM_int);
@@ -5661,7 +5714,7 @@ int_earley_set_error_recovery_flag (int npars)
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   i = earley_set_error_recovery_flag ((struct grammar *)
 				      ER_hide (par1),
@@ -5684,7 +5737,7 @@ int_earley_set_recovery_match (int npars)
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   i = earley_set_recovery_match ((struct grammar *) ER_hide (par1),
 				 ER_i (par2));
@@ -5713,14 +5766,14 @@ init_read_token (void **attr)
   if ((unsigned_int_t) curr_token >= ER_els_number (tokens_vect))
     return -1;
   tok = *attr = ((ER_node_t *) ER_pack_els (tokens_vect)) [curr_token];
-  if (ER_stack_func_class (tok) != token_decl)
-    eval_error (invtoken_decl, invparsers_decl, BC_pos (real_func_call_pc),
+  if (ER_stack_block (tok) != token_bc_decl)
+    eval_error (invtoken_bc_decl, invparsers_bc_decl, get_pos (real_func_call_pc),
 		"run time error (parse) -- invalid token #%d", curr_token);
   curr_token++;
-  n = IR_var_number_in_block (code_decl);
+  n = BC_var_num (code_bc_decl);
   code = IVAL (ER_stack_vars (tok), n);
   if (ER_NODE_MODE (code) != ER_NM_int)
-    eval_error (invtoken_decl, invparsers_decl, BC_pos (real_func_call_pc),
+    eval_error (invtoken_bc_decl, invparsers_bc_decl, get_pos (real_func_call_pc),
 		"run time error (parse) -- invalid code of token #%d",
 		curr_token - 1);
   return ER_i (code);
@@ -5728,8 +5781,8 @@ init_read_token (void **attr)
 
 /* The following is DINO error function called by parser and its
    context. */
-static IR_node_t error_func;
-static ER_node_t error_func_context;
+static BC_node_t error_func_block;
+static ER_node_t error_func_block_context;
 
 /* The following function is interface to DINO error function.  We
    need to provide at least 6 temporary variables (see trick for this
@@ -5773,7 +5826,7 @@ init_syntax_token (int err_tok_num, void *err_tok_attr,
       ER_SET_MODE (ctop, ER_NM_stack);
       ER_set_stack (ctop, start_recovered_tok_attr);
     }
-  call_func_class (error_func, error_func_context, 6);
+  call_func_class (error_func_block, error_func_block_context, 6);
 }
 
 struct tree_heap_node
@@ -5821,9 +5874,9 @@ tree_to_heap (struct earley_tree_node *root)
   if (*entry != NULL)
     return ((struct tree_heap_node *) *entry)->heap_node;
   TOP_UP;
-  ER_SET_MODE (ctop, ER_NM_class);
-  ER_set_class_id (ctop, FUNC_CLASS_ID (anode_decl));
-  ER_set_class_context (ctop, uppest_stack);
+  ER_SET_MODE (ctop, ER_NM_code);
+  ER_set_code_id (ctop, CODE_ID (anode_bc_decl));
+  ER_set_code_context (ctop, uppest_stack);
   TOP_UP;
   ER_SET_MODE (ctop, ER_NM_vect);
   switch (root->type)
@@ -5831,8 +5884,8 @@ tree_to_heap (struct earley_tree_node *root)
     case EARLEY_NIL:
     case EARLEY_ERROR:
       var = IVAL (ER_stack_vars (uppest_stack),
-		  IR_var_number_in_block (root->type == EARLEY_NIL
-					  ? nil_anode_decl : error_anode_decl));
+		  BC_var_num (root->type == EARLEY_NIL
+			      ? nil_anode_bc_decl : error_anode_bc_decl));
       d_assert (ER_NODE_MODE (var) == ER_NM_stack);
       res = ER_stack (var);
       DECR_CTOP (2);
@@ -5942,16 +5995,16 @@ int_earley_parse (int npars)
       || (ER_NODE_MODE (ER_vect (par2))
 	  != ER_NM_heap_pack_vect)
       || (ER_pack_vect_el_type (ER_vect (par2)) != ER_NM_stack)
-      || ER_NODE_MODE (par3) != ER_NM_func)
-    eval_error (partype_decl, invcalls_decl, BC_pos (real_func_call_pc),
+      || ! func_p (par3))
+    eval_error (partype_bc_decl, invcalls_bc_decl, get_pos (real_func_call_pc),
 		DERR_parameter_type, name);
   func_result_offset = (val_t *) func_result - (val_t *) cvars;
   /* We switch off GC because the parser may call error function
      several times and parser has references to tokens in the heap. */
   tokens_vect = ER_vect (par2);
   curr_token = 0;
-  error_func = ID_TO_FUNC_CLASS (ER_func_id (par3));
-  error_func_context = ER_func_context (par3);
+  error_func_block = ID_TO_CODE (ER_code_id (par3));
+  error_func_block_context = ER_code_context (par3);
   g = (struct grammar *) ER_hide (par1);
   OS_CREATE (tree_mem_os, 0);
   tree_heap_tab = create_hash_table (2 * ER_els_number (tokens_vect)
@@ -5964,21 +6017,21 @@ int_earley_parse (int npars)
     {
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
-      eval_error (pmemory_decl, invparsers_decl, BC_pos (real_func_call_pc),
+      eval_error (pmemory_bc_decl, invparsers_bc_decl, get_pos (real_func_call_pc),
 		  "run time error (%s) -- no parser memory", name);
     }
   else if (code == EARLEY_UNDEFINED_OR_BAD_GRAMMAR)
     {
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
-      eval_error (invgrammar_decl, invparsers_decl, BC_pos (real_func_call_pc),
+      eval_error (invgrammar_bc_decl, invparsers_bc_decl, get_pos (real_func_call_pc),
 		  "run time error (%s) -- %s", name, earley_error_message (g));
     }
   else if (code == EARLEY_INVALID_TOKEN_CODE)
     {
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
-      eval_error (invtoken_decl, invparsers_decl, BC_pos (real_func_call_pc),
+      eval_error (invtoken_bc_decl, invparsers_bc_decl, get_pos (real_func_call_pc),
 		  "run time error (%s) -- %s", name, earley_error_message (g));
     }
   else
@@ -5986,9 +6039,8 @@ int_earley_parse (int npars)
   /* Set up ambiguous_p. */
   instance = ER_context (cstack);
   d_assert (instance != NULL && ER_NODE_MODE (instance) == ER_NM_heap_stack
-	    && ER_stack_func_class (instance) == parser_decl);
-  var = IVAL (ER_stack_vars (instance),
-	      IR_var_number_in_block (ambiguous_p_decl));
+	    && ER_stack_block (instance) == parser_bc_decl);
+  var = IVAL (ER_stack_vars (instance), BC_var_num (ambiguous_p_bc_decl));
   ER_SET_MODE (var, ER_NM_int);
   ER_set_i (var, ambiguous_p);
   func_result = IVAL (cvars, func_result_offset);
@@ -6015,7 +6067,8 @@ int_earley_create_grammar (int npars)
   d_assert (npars == 0);
   g = earley_create_grammar ();
   if (g == NULL)
-    eval_error (pmemory_decl, invparsers_decl, BC_pos (real_func_call_pc),
+    eval_error (pmemory_bc_decl, invparsers_bc_decl,
+		get_pos (real_func_call_pc),
 		"run time error (parser) -- no parser memory");
   ER_SET_MODE (func_result, ER_NM_hide);
   ER_set_hide (func_result, g);

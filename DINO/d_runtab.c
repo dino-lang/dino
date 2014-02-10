@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2012 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -23,44 +23,28 @@
 */
 
 #include "d_common.h"
-#include "d_ir.h"
+#include "d_bc.h"
 #include "d_runtab.h"
 
-vlo_t func_class_tab;
-static int_t curr_func_class_id;
+/* Table of all blocks.  */
+vlo_t block_tab;
 
 struct block_decl_tables block_decl_tables;
 
-/* This func is to be called only once before any work with this abstract
-   data. */
+/* This func is to be called only once before any work with this
+   abstract data. */
 void
 initiate_run_tables (void)
 {
-  block_decl_tables.idents_number = 0;
   VLO_CREATE (block_decl_tables.block_ident_decls, 2000);
-  curr_func_class_id = 0;
-  VLO_CREATE (func_class_tab, 800);
+#ifdef BLOCK_TAB
+  VLO_CREATE (block_tab, 800);
+#endif
 }
 
-/* This func is to set up an order number and the corresponding table
-   entry for FUNC_CLASS. */
+/* The func creates new block decls idents table in this abstract data. */
 void
-set_func_class_id (IR_node_t func_class)
-{
-  if (IR_no (func_class) >= 0)
-    return;
-  IR_set_no (func_class, curr_func_class_id);
-  d_assert (curr_func_class_id * sizeof (IR_node_t)
-	    == VLO_LENGTH (func_class_tab));
-  VLO_ADD_MEMORY (func_class_tab, &func_class, sizeof (IR_node_t));
-  curr_func_class_id++;
-}
-
-/* The func creates new block decls idents table in this abstract data
-   and returns order number (0, ...) of this table (of block in other
-   words). */
-int
-new_block (void)
+set_block_number (BC_node_t block)
 {
   int new_block_number;
   vlo_t block_decls;
@@ -69,55 +53,39 @@ new_block (void)
   VLO_CREATE (block_decls, 0);
   VLO_ADD_MEMORY (block_decl_tables.block_ident_decls,
 		  (char *) &block_decls, sizeof (vlo_t));
-  return new_block_number;
-}
-
-/* The func processes ident used for access to block decl.
-   If IDENT is not processed early then set up its (more accurately
-   corresponding unique_ident_node) member
-   block_decl_ident_number and block decls idents
-   tables will contain element for IDENT (it is to be not NULL). */
-void
-process_block_decl_unique_ident (IR_node_t unique_ident)
-{
-  if (IR_block_decl_ident_number (unique_ident) < 0)
-    {
-      IR_set_block_decl_ident_number
-	(unique_ident, block_decl_tables.idents_number);
-      block_decl_tables.idents_number++;
-    }
+  BC_set_block_number (block, new_block_number);
+  assert (new_block_number * sizeof (BC_node_t)
+	  == VLO_LENGTH (block_tab));
+  VLO_ADD_MEMORY (block_tab, &block, sizeof (BC_node_t));
 }
 
 /* The func sets up elements values of block decls idents tables for
-   given DECL (in block BLOCK_REF).  Both values are to be not NULL.
-   The sequence of the abstract data funcs calls may be described
-   regular expr:
+   given DECL in BLOCK.  Both values are to be not NULL.  The sequence
+   of the abstract data funcs calls may be described regular expr:
    initiate_run_tables
       (
-       (new_block | process_block_decl_unique_ident)*
+       set_block_number
        define_block_decl*
       )* */
 void
-define_block_decl (IR_node_t decl, IR_node_t block_ref)
+define_block_decl (BC_node_t decl, BC_node_t block)
 {
-  IR_node_t null = NULL;
+  BC_node_t null = NULL;
   vlo_t *table_ref;
-  int block_number, block_decl_ident_number, i;
+  int block_number, decl_ident_num, i;
 
-  block_number = IR_block_number (block_ref);
-  block_decl_ident_number
-    = (IR_block_decl_ident_number (IR_unique_ident (IR_ident (decl))));
-  if (block_decl_ident_number < 0)
+  block_number = BC_block_number (block);
+  decl_ident_num = BC_ident_num (decl);
+  if (decl_ident_num < 0)
     /* There is no access to identifier. */
     return;
   table_ref = (&LV_BLOCK_IDENT_DECLS_TABLE (block_number));
-  if (VLO_LENGTH (*table_ref) <= block_decl_ident_number * sizeof (IR_node_t))
-    for (i = VLO_LENGTH (*table_ref) / sizeof (IR_node_t);
-	 i <= block_decl_ident_number;
+  if (VLO_LENGTH (*table_ref) <= decl_ident_num * sizeof (BC_node_t))
+    for (i = VLO_LENGTH (*table_ref) / sizeof (BC_node_t);
+	 i <= decl_ident_num;
 	 i++)
-      VLO_ADD_MEMORY (*table_ref, (char *)&null, sizeof (IR_node_t));
-  ((IR_node_t *) VLO_BEGIN (*table_ref)) [block_decl_ident_number] = decl;
-  IR_set_it_is_declared_in_block (IR_unique_ident (IR_ident (decl)), TRUE);
+      VLO_ADD_MEMORY (*table_ref, (char *)&null, sizeof (BC_node_t));
+  ((BC_node_t *) VLO_BEGIN (*table_ref)) [decl_ident_num] = decl;
 }
 
 void
@@ -125,7 +93,7 @@ finish_run_tables (void)
 {
   vlo_t *vlo_ref;
 
-  VLO_DELETE (func_class_tab);
+  VLO_DELETE (block_tab);
   for (vlo_ref = VLO_BEGIN (block_decl_tables.block_ident_decls);
        (char *) vlo_ref
 	 <= (char *) VLO_END (block_decl_tables.block_ident_decls);

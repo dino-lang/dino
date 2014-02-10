@@ -1432,10 +1432,6 @@ static struct istream_state curr_istream_state;
    See package `vl-object'. */
 static vlo_t istream_stack;
 
-/* The following value is used if previous_char does not contain an
-   input char */
-#define EMPTY_PREVIOUS_CHAR (-2000)
-
 /* The following variable is used for storing '\r'. */
 static int previous_char;
 
@@ -1509,7 +1505,7 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
 	system_error (TRUE, error_pos, "fatal error -- `%s': ", 
 		      curr_istream_state.file_name);
     }
-  previous_char = EMPTY_PREVIOUS_CHAR;
+  previous_char = NOT_A_CHAR;
   start_file_position (curr_istream_state.file_name);
   curr_istream_state.uninput_lexema_code = (-1);
 }
@@ -1740,7 +1736,7 @@ d_getc (void)
       else
 	{
 	  result = previous_char;
-	  previous_char = EMPTY_PREVIOUS_CHAR;
+	  previous_char = NOT_A_CHAR;
 	}
       if (result == '\r')
 	{
@@ -1788,88 +1784,6 @@ d_ungetc (int ch)
 /* Var length string used by func yylval for text presentation of the
    symbol. */
 static vlo_t symbol_text;
-
-/* The func reads one code (may be composited from some characters)
-   using C language conventions.  It is supposed that the current
-   character is not end marker (string or character constant).  The
-   func returns the code value or negative number if error is fixed.
-   After the call the current char is first char after the code or the
-   same as before call if error was fixed.  Position is position of
-   the char will be read next.  Parameter INPUT_CHAR is current input
-   char (the next chars may be read by d_getc ()).  If the code is
-   symbol string breaking TRUE is passed through parameter
-   correct_newln.  This case is error and the error must be processed
-   after the call if character constant is processed. */
-static int get_string_code (int input_char, int *correct_newln)
-{
-  int character_code;
-
-  /* `current_position' corresponds position right after `input_char'
-     here. */
-  if (input_char == EOF || input_char == '\n')
-    {
-      current_position.column_number--;
-      d_ungetc (input_char);
-      return (-1);
-    }
-  *correct_newln = FALSE;
-  if (input_char == '\\')
-    {
-      input_char = d_getc ();
-      current_position.column_number++;
-      if (input_char == 'n')
-        input_char = '\n';
-      else if (input_char == 't')
-        input_char = '\t';
-      else if (input_char == 'v')
-	input_char = '\v';
-      else if (input_char == 'a')
-        input_char = '\a';
-      else if (input_char == 'b')
-        input_char = '\b';
-      else if (input_char == 'r')
-        input_char = '\r';
-      else if (input_char == 'f')
-        input_char = '\f';
-      else if (input_char == '\\' || input_char == '\'' || input_char == '\"')
-        ;
-      else if (input_char == '\n')
-        {
-	  current_position.column_number = 1;
-	  current_position.line_number++;
-          *correct_newln = TRUE;
-        }
-      else if (isdigit (input_char) && input_char != '8' && input_char != '9')
-	{
-	  character_code = VALUE_OF_DIGIT (input_char);
-	  input_char = d_getc ();
-	  if (!isdigit (input_char) || input_char == '8' || input_char == '9')
-	    d_ungetc (input_char);
-	  else
-	    {
-	      current_position.column_number++;
-	      character_code
-		= (character_code * 8 + VALUE_OF_DIGIT (input_char));
-	      input_char = d_getc ();
-	      if (!isdigit (input_char)
-		  || input_char == '8' || input_char == '9')
-		d_ungetc (input_char);
-	      else
-		{
-		  character_code
-		    = (character_code * 8 + VALUE_OF_DIGIT (input_char));
-		  current_position.column_number++;
-		}
-
-	    }
-	  input_char = character_code;
-      }
-    }
-  return input_char;
-}
-
-/* Determine positions for the tabs. */
-#define TAB_STOP 8
 
 /* The following func recognizes next source symbol from the input
    file, returns its code, modifies var current_position so that its
@@ -2334,7 +2248,8 @@ int yylex (void)
 	      }
             else
               {
-                input_char = get_string_code (input_char, &correct_newln);
+                input_char = read_string_code (input_char, &correct_newln,
+					       d_getc, d_ungetc);
                 if (input_char < 0 || correct_newln)
 		  {
 		    current_position.column_number--;
@@ -2377,7 +2292,8 @@ int yylex (void)
 		current_position.column_number++;
                 if (input_char == '\"')
                   break;
-                input_char = get_string_code (input_char, &correct_newln);
+                input_char = read_string_code (input_char, &correct_newln,
+					       d_getc, d_ungetc);
                 if (input_char < 0)
                   {
                     error (FALSE, current_position, ERR_string_end_absence);

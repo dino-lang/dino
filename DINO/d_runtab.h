@@ -1,13 +1,13 @@
-/* The file implements func class table (Number->func_class and
-   func_class -> Number) and abstract data block_decl_tables.
-   This abstract data mainly serves for access to block decl nodes by
-   block_number and block_decl_ident_number (see commentaries for
-   block_node and unique_ident_node).  The abstract data is designed
-   and implemented for implementation dynamic load another file in the
-   future (see commentaries for func define_block_decl).*/
+/* The file implements block table (Number->func_class and
+   func_class -> Number) and abstract data block_decl_tables.  This
+   abstract data mainly serves for access to block decl nodes by
+   block_number and decl_ident_number (see commentaries for
+   block and decl).  The abstract data is designed and implemented for
+   implementation dynamic load another file in the future (see
+   commentaries for func define_block_decl).  */
 
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -30,14 +30,19 @@
 
 */
 
-extern vlo_t func_class_tab;
+#if SIZEOF_CHAR_P > 4
+#define BLOCK_TAB 1
+#endif
 
-#if SIZEOF_CHAR_P <= 4
-#define FUNC_CLASS_ID(fc)    ((irid_t) (fc))
-#define ID_TO_FUNC_CLASS(id) ((IR_node_t) (id))
+extern vlo_t block_tab;
+
+#ifdef BLOCK_TAB
+
+#define CODE_ID(bl)          (BC_block_number (bl))
+#define ID_TO_CODE(id)       (((BC_node_t *) VLO_BEGIN (block_tab)) [id])
 #else
-#define FUNC_CLASS_ID(fc)    (IR_no (fc))
-#define ID_TO_FUNC_CLASS(id) (((IR_node_t *) VLO_BEGIN (func_class_tab)) [id])
+#define CODE_ID(bl)          ((in_t) (bl))
+#define ID_TO_CODE(id)       ((BC_node_t) (id))
 #endif
 
 struct block_decl_tables
@@ -45,11 +50,6 @@ struct block_decl_tables
   /* The following VLO contains VLO'es in which the pointers to block
      decls stored by unique ident numbers. */
   vlo_t block_ident_decls;
-  /* The value of following var is modified by func
-     process_block_decl_unique_ident.  As the result of this the value is
-     maximal number of idents used for access to decls of blocks after
-     processing all stmts. */
-  int idents_number;
 };
 
 extern struct block_decl_tables block_decl_tables;
@@ -75,15 +75,13 @@ extern struct block_decl_tables block_decl_tables;
    order of abstract data operations calls is to be correct (see
    commentaries for func define_block_decl). */
 #define LV_BLOCK_IDENT_DECL(block_number, block_decl_ident_number)\
-  (block_decl_ident_number * sizeof (IR_node_t)\
+  (block_decl_ident_number * sizeof (BC_node_t)\
    < VLO_LENGTH (LV_BLOCK_IDENT_DECLS_TABLE (block_number))\
-   ? (((IR_node_t *) VLO_BEGIN (LV_BLOCK_IDENT_DECLS_TABLE (block_number)))\
+   ? (((BC_node_t *) VLO_BEGIN (LV_BLOCK_IDENT_DECLS_TABLE (block_number)))\
       [block_decl_ident_number])\
    : NULL)
 
 extern void initiate_run_tables (void);
-extern void set_func_class_id (IR_node_t func_class);
-extern int new_block (void);
-extern void process_block_decl_unique_ident (IR_node_t unique_ident);
-extern void define_block_decl (IR_node_t decl, IR_node_t block_ref);
+extern void set_block_number (BC_node_t block);
+extern void define_block_decl (BC_node_t decl, BC_node_t block);
 extern void finish_run_tables (void);

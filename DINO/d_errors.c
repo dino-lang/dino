@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -77,7 +77,7 @@ char ERR_invalid_type_of_arrow_left_operand []
 char ERR_invalid_type_of_deref_operand []
   = "operand of unary `*' must be of string type";
 char ERR_invalid_logical_operation_operand_type []
-  = "invalid type of operand in logical operation (!, ||, &&)";
+  = "invalid type of operand in logical operation";
 char ERR_invalid_order_comparison_operation_operand_type []
   = "invalid type of operand in order comparison operation (<, >, <=, >=)";
 char ERR_invalid_concat_operation_operand_type []
@@ -146,12 +146,29 @@ char ERR_return_with_result_in_thread []
 char ERR_function_call_in_wait_stmt []
   = "function call is present in wait statement";
 
+/* Byte code specific errors:  */
+char ERR_byte_code_should_start_with_label []
+  = "byte code should start with label";
+char ERR_byte_code_should_have_name [] = "byte code should have name";
+char ERR_byte_code_field_should_have_name []
+  = "byte code field should have name";
+char ERR_byte_code_field_should_be_followed_by_eq []
+  = "byte code field should be followed by eq";
+char ERR_unknown_byte_code_node [] = "unknown byte code node %s";
+char ERR_unknown_byte_code_field [] = "unknown byte code field";
+char ERR_wrong_byte_code_field_value [] = "wrong byte code field value";
+char ERR_undefined_byte_code_field [] = "undefined byte code field %s";
+char ERR_node_has_no_such_field [] = "byte code node has no field %s";
+
+/* Execution errors:  */
 char DERR_environment_corrupted[]
   = "run time error - environment has been corrupted";
 char DERR_identity_operands_types []
   = "run time error - invalid types of operands of operator \"===\" or \"!==\"";
 char DERR_eq_operands_types []
   = "run time error - invalid types of operands of operator \"==\" or \"!=\"";
+char DERR_logical_operands_types []
+  = "run time error - invalid types of operands of operator";
 char DERR_logical_or_operands_types []
   = "run time error - invalid types of operands of operator \"||\"";
 char DERR_logical_and_operands_types []
@@ -248,8 +265,10 @@ char DERR_different_vec_operand_lengths []
   = "run time - different vector operand lengths: %d vs. %d (dimension = %d)";
 char DERR_vector_form_type []
   = "run time error - wrong vector form for vector operation";
+char DERR_matrix_form_type []
+  = "run time error - wrong matrix form for matrix operation `%s'";
 char DERR_repeated_key []
-  = "run time error - repeated key in the table  (`{...}')";
+  = "run time error - repeated key #%d in the table  (`{...}')";
 char DERR_no_such_key []
   = "run time error - no such key in table";
 char DERR_key_index_operation_for_non_table []
@@ -356,6 +375,8 @@ char DERR_undefined_value_access []
   = "run time error - undefined `%s' value access";
 char DERR_private_decl_access_from_outside_block []
   = "run time error - access to private decl `%s' from outside";
+char DERR_undefined_class_or_func []
+  = "run time error - undefined class or function";
 char DERR_immutable_vector_modification []
   = "run time error - attempt to modify immutable vector";
 char DERR_immutable_table_modification []

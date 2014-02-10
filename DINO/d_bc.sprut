@@ -1,7 +1,7 @@
 /* This file contains execution byte code description.  */
 
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -24,15 +24,18 @@
 
 */
 
-%type int_t floating_t string_t IR_hidden_node_t
+%type position_t int_t floating_t string_t bool_t implementation_func_t ticker_t
+      ER_hidden_node_t
 
 %import {
 
-#include "d_types.h"
-#include "d_ir.h"
+#include "d_common.h"
 
-typedef char *string_t;
-typedef struct IR_node *IR_hidden_node_t;
+typedef struct ER_node *ER_hidden_node_t;
+
+typedef const char *string_t;
+typedef void (*implementation_func_t) (int_t pars_number);
+
 }
 
 %export {
@@ -45,32 +48,911 @@ typedef struct IR_node *IR_hidden_node_t;
    program and its finishing means that program exits.  */
 typedef BC_node_t pc_t;
 
-/* This is atrick (usage that BC_NODE_MODE is macro)!!!  Therefore the
-   following macro must apply to node with the same structure as node
-   with mode m. */
+/* This is a trick (usage that BC_NODE_MODE is macro)!!!  Therefore
+   the following macro must apply to node with the same structure as
+   node with mode m. */
 #define BC_SET_MODE(v, m) (BC_NODE_MODE (v) = (m))
 
-/* Return source position of byte code BC.  */
-#define BC_pos(bc) IR_pos (BC_origin (bc))
+typedef void (*implementation_func_t) (int_t pars_number);
 
-extern int ir2er_type (IR_node_mode_t);
-extern const char *er_type_name (int);
+/* Return real block vars number (see commentaries for
+   block_node). */
+static int do_always_inline
+real_block_vars_number (BC_node_t block_node_ptr)
+{
+  return BC_vars_num (block_node_ptr);
+}
+
+
+extern BC_node_t first_program_bc;
+
+/* Unique number for identifier destroy.  */
+#define DESTROY_IDENT_NUMBER 0
+
+#define EXCEPT_NAME "except"
+extern BC_node_t except_bc_decl;
+
+#define ERROR_NAME "error"
+extern BC_node_t error_bc_decl;
+
+#define SIGNAL_NAME "signal"
+extern BC_node_t signal_bc_decl;
+
+#define SIGINT_NAME "sigint"
+extern BC_node_t sigint_bc_decl;
+
+#define SIGILL_NAME "sigill"
+extern BC_node_t sigill_bc_decl;
+
+#define SIGABRT_NAME "sigabrt"
+extern BC_node_t sigabrt_bc_decl;
+
+#define SIGFPE_NAME "sigfpe"
+extern BC_node_t sigfpe_bc_decl;
+
+#define SIGTERM_NAME "sigterm"
+extern BC_node_t sigterm_bc_decl;
+
+#define SIGSEGV_NAME "sigsegv"
+extern BC_node_t sigsegv_bc_decl;
+
+#define INVENV_NAME "invenv"
+extern BC_node_t invenv_bc_decl;
+
+#define INVOP_NAME "invop"
+extern BC_node_t invop_bc_decl;
+
+#define OPTYPE_NAME "optype"
+extern BC_node_t optype_bc_decl;
+
+#define OPVALUE_NAME "opvalue"
+extern BC_node_t opvalue_bc_decl;
+
+#define INVINDEX_NAME "invindex"
+extern BC_node_t invindex_bc_decl;
+
+#define INDEXTYPE_NAME "indextype"
+extern BC_node_t indextype_bc_decl;
+
+#define INDEXVALUE_NAME "indexvalue"
+extern BC_node_t indexvalue_bc_decl;
+
+#define INDEXOP_NAME "indexop"
+extern BC_node_t indexop_bc_decl;
+
+#define INVSLICE_NAME "invslice"
+extern BC_node_t invslice_bc_decl;
+
+#define SLICETYPE_NAME "slicetype"
+extern BC_node_t slicetype_bc_decl;
+
+#define SLICEFORM_NAME "sliceform"
+extern BC_node_t sliceform_bc_decl;
+
+#define INVECTOR_NAME "invector"
+extern BC_node_t invector_bc_decl;
+
+#define VECLEN_NAME "veclen"
+extern BC_node_t veclen_bc_decl;
+
+#define VECVALUE_NAME "vecform"
+extern BC_node_t vecform_bc_decl;
+
+#define MATRIXVALUE_NAME "matrixform"
+extern BC_node_t matrixform_bc_decl;
+
+#define INVKEY_NAME "invkey"
+extern BC_node_t invkey_bc_decl;
+
+#define KEYVALUE_NAME "keyvalue"
+extern BC_node_t keyvalue_bc_decl;
+
+#define KEYOP_NAME "keyop"
+extern BC_node_t keyop_bc_decl;
+
+#define INVCALL_NAME "invcall"
+extern BC_node_t invcall_bc_decl;
+
+#define CALLOP_NAME "callop"
+extern BC_node_t callop_bc_decl;
+
+#define PARTYPE_NAME "partype"
+extern BC_node_t partype_bc_decl;
+
+#define INVRESULT_NAME "invresult"
+extern BC_node_t invresult_bc_decl;
+
+#define INVINPUT_NAME "invinput"
+extern BC_node_t invinput_bc_decl;
+
+#define INVFMT_NAME "invfmt"
+extern BC_node_t invfmt_bc_decl;
+
+#define EOF_NAME "eof"
+extern BC_node_t eof_bc_decl;
+
+#define PARNUMBER_NAME "parnumber"
+extern BC_node_t parnumber_bc_decl;
+
+#define SYNCTHREADCALL_NAME "syncthreadcall"
+extern BC_node_t syncthreadcall_bc_decl;
+
+#define SYSERROR_NAME "syserror"
+extern BC_node_t syserror_bc_decl;
+
+#define EACCESS_NAME "eaccess"
+extern BC_node_t eaccess_bc_decl;
+
+#define EAGAIN_NAME "eagain"
+extern BC_node_t eagain_bc_decl;
+
+#define EBADF_NAME "ebadf"
+extern BC_node_t ebadf_bc_decl;
+
+#define EBUSY_NAME "ebusy"
+extern BC_node_t ebusy_bc_decl;
+
+#define ECHILD_NAME "echild"
+extern BC_node_t echild_bc_decl;
+
+#define EDEADLK_NAME "edeadlk"
+extern BC_node_t edeadlk_bc_decl;
+
+#define EDOM_NAME "edom"
+extern BC_node_t edom_bc_decl;
+
+#define EEXIST_NAME "eexist"
+extern BC_node_t eexist_bc_decl;
+
+#define EFAULT_NAME "efault"
+extern BC_node_t efault_bc_decl;
+
+#define EFBIG_NAME "efbig"
+extern BC_node_t efbig_bc_decl;
+
+#define EINTR_NAME "eintr"
+extern BC_node_t eintr_bc_decl;
+
+#define EINVAL_NAME "einval"
+extern BC_node_t einval_bc_decl;
+
+#define EIO_NAME "eio"
+extern BC_node_t eio_bc_decl;
+
+#define EISDIR_NAME "eisdir"
+extern BC_node_t eisdir_bc_decl;
+
+#define EMFILE_NAME "emfile"
+extern BC_node_t emfile_bc_decl;
+
+#define EMLINK_NAME "emlink"
+extern BC_node_t emlink_bc_decl;
+
+#define ENAMETOOLONG_NAME "enametoolong"
+extern BC_node_t enametoolong_bc_decl;
+
+#define ENFILE_NAME "enfile"
+extern BC_node_t enfile_bc_decl;
+
+#define ENODEV_NAME "enodev"
+extern BC_node_t enodev_bc_decl;
+
+#define ENOENT_NAME "enoent"
+extern BC_node_t enoent_bc_decl;
+
+#define ENOEXEC_NAME "enoexec"
+extern BC_node_t enoexec_bc_decl;
+
+#define ENOLCK_NAME "enolck"
+extern BC_node_t enolck_bc_decl;
+
+#define ENOMEM_NAME "enomem"
+extern BC_node_t enomem_bc_decl;
+
+#define ENOSPC_NAME "enospc"
+extern BC_node_t enospc_bc_decl;
+
+#define ENOSYS_NAME "enosys"
+extern BC_node_t enosys_bc_decl;
+
+#define ENOTDIR_NAME "enotdir"
+extern BC_node_t enotdir_bc_decl;
+
+#define ENOTEMPTY_NAME "enotempty"
+extern BC_node_t enotempty_bc_decl;
+
+#define ENOTTY_NAME "enotty"
+extern BC_node_t enotty_bc_decl;
+
+#define ENXIO_NAME "enxio"
+extern BC_node_t enxio_bc_decl;
+
+#define EPERM_NAME "eperm"
+extern BC_node_t eperm_bc_decl;
+
+#define EPIPE_NAME "epipe"
+extern BC_node_t epipe_bc_decl;
+
+#define ERANGE_NAME "erange"
+extern BC_node_t erange_bc_decl;
+
+#define EROFS_NAME "erofs"
+extern BC_node_t erofs_bc_decl;
+
+#define ESPIPE_NAME "espipe"
+extern BC_node_t espipe_bc_decl;
+
+#define ESRCH_NAME "esrch"
+extern BC_node_t esrch_bc_decl;
+
+#define EXDEV_NAME "exdev"
+extern BC_node_t exdev_bc_decl;
+
+#define SYSTEMCALL_NAME "systemcall"
+extern BC_node_t systemcall_bc_decl;
+
+#define NOSHELL_NAME "noshell"
+extern BC_node_t noshell_bc_decl;
+
+#define SYSTEMFAIL_NAME "systemfail"
+extern BC_node_t systemfail_bc_decl;
+
+#define INVREGEXP_NAME "invregexp"
+extern BC_node_t invregexp_bc_decl;
+
+#define EBRACK_NAME "ebrack"
+extern BC_node_t ebrack_bc_decl;
+
+#define REG_ERANGE_NAME "erange"
+extern BC_node_t reg_erange_bc_decl;
+
+#define ECTYPE_NAME "ectype"
+extern BC_node_t ectype_bc_decl;
+
+#define EPAREN_NAME "eparen"
+extern BC_node_t eparen_bc_decl;
+
+#define ESUBREG_NAME "esubreg"
+extern BC_node_t esubreg_bc_decl;
+
+#define EEND_NAME "eend"
+extern BC_node_t eend_bc_decl;
+
+#define EESCAPE_NAME "eescape"
+extern BC_node_t eescape_bc_decl;
+
+#define BADPAT_NAME "badpat"
+extern BC_node_t badpat_bc_decl;
+
+#define ESIZE_NAME "esize"
+extern BC_node_t esize_bc_decl;
+
+#define ESPACE_NAME "espace"
+extern BC_node_t espace_bc_decl;
+
+#define INVPARSER_NAME "invparser"
+extern BC_node_t invparser_bc_decl;
+
+#define INVGRAMMAR_NAME "invgrammar"
+extern BC_node_t invgrammar_bc_decl;
+
+#define INVTOKEN_NAME "invtoken"
+extern BC_node_t invtoken_bc_decl;
+
+#define PMEMORY_NAME "pmemory"
+extern BC_node_t pmemory_bc_decl;
+
+#define INVEXTERN_NAME "invextern"
+extern BC_node_t invextern_bc_decl;
+
+#define NOEXTERN_NAME "noextern"
+extern BC_node_t noextern_bc_decl;
+
+#define LIBCLOSE_NAME "libclose"
+extern BC_node_t libclose_bc_decl;
+
+#define NOEXTERNSUPP_NAME "noexternsupp"
+extern BC_node_t noexternsupp_bc_decl;
+
+#define INVENVAR_NAME "invenvar"
+extern BC_node_t invenvar_bc_decl;
+
+#define INTERNAL_NAME "internal"
+extern BC_node_t internal_bc_decl;
+
+#define INVACCESS_NAME "invaccess"
+extern BC_node_t invaccess_bc_decl;
+
+#define ACCESSOP_NAME "accessop"
+extern BC_node_t accessop_bc_decl;
+
+#define ACCESSVALUE_NAME "accessvalue"
+extern BC_node_t accessvalue_bc_decl;
+
+#define IMMUTABLE_NAME "immutable"
+extern BC_node_t immutable_bc_decl;
+
+#define DEADLOCK_NAME "deadlock"
+extern BC_node_t deadlock_bc_decl;
+
+#define SYNCWAIT_NAME "syncwait"
+extern BC_node_t syncwait_bc_decl;
+
+#define EXCEPTS_NAME "excepts"
+extern BC_node_t excepts_bc_decl;
+
+#define ERRORS_NAME "errors"
+extern BC_node_t errors_bc_decl;
+
+#define SIGNALS_NAME "signals"
+extern BC_node_t signals_bc_decl;
+
+#define INVOPS_NAME "invops"
+extern BC_node_t invops_bc_decl;
+
+#define INVINDEXES_NAME "invindexes"
+extern BC_node_t invindexes_bc_decl;
+
+#define INVSLICES_NAME "invslices"
+extern BC_node_t invslices_bc_decl;
+
+#define INVECTORS_NAME "invectors"
+extern BC_node_t invectors_bc_decl;
+
+#define INVKEYS_NAME "invkeys"
+extern BC_node_t invkeys_bc_decl;
+
+#define INVCALLS_NAME "invcalls"
+extern BC_node_t invcalls_bc_decl;
+
+#define SYSERRORS_NAME "syserrors"
+extern BC_node_t syserrors_bc_decl;
+
+#define SYSTEMCALLS_NAME "systemcalls"
+extern BC_node_t systemcalls_bc_decl;
+
+#define INVREGEXPS_NAME "invregexps"
+extern BC_node_t invregexps_bc_decl;
+
+#define INVPARSERS_NAME "invparsers"
+extern BC_node_t invparsers_bc_decl;
+
+#define INVEXTERNS_NAME "invexterns"
+extern BC_node_t invexterns_bc_decl;
+
+#define INVACCESSES_NAME "invaccesses"
+extern BC_node_t invaccesses_bc_decl;
+
+#define ARGV_NAME "argv"
+extern BC_node_t argv_bc_decl;
+
+#define ENV_NAME "env"
+extern BC_node_t env_bc_decl;
+
+#define VERSION_NAME "version"
+extern BC_node_t version_bc_decl;
+
+#define MAIN_THREAD_NAME "main_thread"
+extern BC_node_t main_thread_bc_decl;
+
+#define CURR_THREAD_NAME "curr_thread"
+extern BC_node_t curr_thread_bc_decl;
+
+#define ANODE_NAME "anode"
+extern BC_node_t anode_bc_decl;
+
+#define TOKEN_NAME "token"
+extern BC_node_t token_bc_decl;
+
+#define CODE_NAME "code"
+extern BC_node_t code_bc_decl;
+
+#define NIL_ANODE_NAME "nil_anode"
+extern BC_node_t nil_anode_bc_decl;
+
+#define ERROR_ANODE_NAME "error_anode"
+extern BC_node_t error_anode_bc_decl;
+
+#define PARSER_NAME "parser"
+extern BC_node_t parser_bc_decl;
+
+#define AMBIGUOUS_P_NAME "ambiguous_p"
+extern BC_node_t ambiguous_p_bc_decl;
+
+#define INT_EARLEY_PARSE_GRAMMAR_NAME "int_earley_parse_grammar"
+extern BC_node_t int_earley_parse_grammar_bc_decl;
+
+#define INT_EARLEY_SET_DEBUG_LEVEL_NAME "int_earley_set_debug_level"
+extern BC_node_t int_earley_set_debug_level_bc_decl;
+
+#define INT_EARLEY_SET_ONE_PARSE_FLAG_NAME "int_earley_set_one_parse_flag"
+extern BC_node_t int_earley_set_one_parse_flag_bc_decl;
+
+#define INT_EARLEY_SET_LOOKAHEAD_LEVEL_NAME "int_earley_set_lookahead_level"
+extern BC_node_t int_earley_set_lookahead_level_bc_decl;
+
+#define INT_EARLEY_SET_COST_FLAG_NAME "int_earley_set_cost_flag"
+extern BC_node_t int_earley_set_cost_flag_bc_decl;
+
+#define INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME \
+  "int_earley_set_error_recovery_flag"
+extern BC_node_t int_earley_set_error_recovery_flag_bc_decl;
+
+#define INT_EARLEY_SET_RECOVERY_MATCH_NAME "int_earley_set_recovery_match"
+extern BC_node_t int_earley_set_recovery_match_bc_decl;
+
+#define INT_EARLEY_PARSE_NAME "int_earley_parse"
+extern BC_node_t int_earley_parse_bc_decl;
+
+#define INT_EARLEY_CREATE_GRAMMAR_NAME "int_earley_create_grammar"
+extern BC_node_t int_earley_create_grammar_bc_decl;
+
+#define FILE_NAME "file"
+extern BC_node_t file_bc_decl;
+
+#define FILE_PTR_NAME "file_ptr"
+extern BC_node_t file_ptr_bc_decl;
+
+#define STDIN_NAME "stdin"
+extern BC_node_t stdin_bc_decl;
+
+#define STDOUT_NAME "stdout"
+extern BC_node_t stdout_bc_decl;
+
+#define STDERR_NAME "stderr"
+extern BC_node_t stderr_bc_decl;
+
+#define MAX_NAME "max"
+extern BC_node_t max_bc_decl;
+
+#define MIN_NAME "min"
+extern BC_node_t min_bc_decl;
+
+#define TOLOWER_NAME "tolower"
+extern BC_node_t tolower_bc_decl;
+
+#define TOUPPER_NAME "toupper"
+extern BC_node_t toupper_bc_decl;
+
+#define TRANSLITERATE_NAME "transliterate"
+extern BC_node_t transliterate_bc_decl;
+
+#define ELTYPE_NAME "eltype"
+extern BC_node_t eltype_bc_decl;
+
+#define KEYS_NAME "keys"
+extern BC_node_t keys_bc_decl;
+
+#define CONTEXT_NAME "context"
+extern BC_node_t context_bc_decl;
+
+#define INSIDE_NAME "inside"
+extern BC_node_t inside_bc_decl;
+
+#define SUBV_NAME "subv"
+extern BC_node_t subv_bc_decl;
+
+#define CMPV_NAME "cmpv"
+extern BC_node_t cmpv_bc_decl;
+
+#define DEL_NAME "del"
+extern BC_node_t del_bc_decl;
+
+#define INS_NAME "ins"
+extern BC_node_t ins_bc_decl;
+
+#define INSV_NAME "insv"
+extern BC_node_t insv_bc_decl;
+
+#define REV_NAME "rev"
+extern BC_node_t rev_bc_decl;
+
+#define SORT_NAME "sort"
+extern BC_node_t sort_bc_decl;
+
+#define SQRT_NAME "sqrt"
+extern BC_node_t sqrt_bc_decl;
+
+#define EXP_NAME "exp"
+extern BC_node_t exp_bc_decl;
+
+#define LOG_NAME "log"
+extern BC_node_t log_bc_decl;
+
+#define LOG10_NAME "log10"
+extern BC_node_t log10_bc_decl;
+
+#define POW_NAME "pow"
+extern BC_node_t pow_bc_decl;
+
+#define SIN_NAME "sin"
+extern BC_node_t sin_bc_decl;
+
+#define COS_NAME "cos"
+extern BC_node_t cos_bc_decl;
+
+#define ATAN2_NAME "atan2"
+extern BC_node_t atan2_bc_decl;
+
+#define MATCH_NAME "match"
+extern BC_node_t match_bc_decl;
+
+#define GMATCH_NAME "gmatch"
+extern BC_node_t gmatch_bc_decl;
+
+#define SUB_NAME "sub"
+extern BC_node_t sub_bc_decl;
+
+#define GSUB_NAME "gsub"
+extern BC_node_t gsub_bc_decl;
+
+#define SPLIT_NAME "split"
+extern BC_node_t split_bc_decl;
+
+#define SPLIT_REGEX_NAME "split_regex"
+extern BC_node_t split_regex_bc_decl;
+
+#define SRAND_NAME "srand"
+extern BC_node_t srand_bc_decl;
+
+#define RAND_NAME "rand"
+extern BC_node_t rand_bc_decl;
+
+#define PROCESS_ERRNO_NAME "__process_errno__"
+extern BC_node_t process_errno_bc_decl;
+
+#define READDIR_NAME "readdir"
+extern BC_node_t readdir_bc_decl;
+
+#define FTYPE_NAME "ftype"
+extern BC_node_t ftype_bc_decl;
+
+#define FUN_NAME "fun"
+extern BC_node_t fun_bc_decl;
+
+#define FGN_NAME "fgn"
+extern BC_node_t fgn_bc_decl;
+
+#define FSIZE_NAME "fsize"
+extern BC_node_t fsize_bc_decl;
+
+#define FATIME_NAME "fatime"
+extern BC_node_t fatime_bc_decl;
+
+#define FMTIME_NAME "fmtime"
+extern BC_node_t fmtime_bc_decl;
+
+#define FCTIME_NAME "fctime"
+extern BC_node_t fctime_bc_decl;
+
+#define FUMODE_NAME "fumode"
+extern BC_node_t fumode_bc_decl;
+
+#define FGMODE_NAME "fgmode"
+extern BC_node_t fgmode_bc_decl;
+
+#define FOMODE_NAME "fomode"
+extern BC_node_t fomode_bc_decl;
+
+#define TIME_NAME "time"
+extern BC_node_t time_bc_decl;
+
+#define STRTIME_NAME "strtime"
+extern BC_node_t strtime_bc_decl;
+
+#define TIME_FORMAT_NAME "time_format"
+extern BC_node_t time_format_bc_decl;
+
+#define CLOCK_NAME "clock"
+extern BC_node_t clock_bc_decl;
+
+#define GC_NAME "gc"
+extern BC_node_t gc_bc_decl;
+
+#define RENAME_NAME "rename"
+extern BC_node_t rename_bc_decl;
+
+#define REMOVE_NAME "remove"
+extern BC_node_t remove_bc_decl;
+
+#define MKDIR_NAME "mkdir"
+extern BC_node_t mkdir_bc_decl;
+
+#define RMDIR_NAME "rmdir"
+extern BC_node_t rmdir_bc_decl;
+
+#define GETCWD_NAME "getcwd"
+extern BC_node_t getcwd_bc_decl;
+
+#define CHDIR_NAME "chdir"
+extern BC_node_t chdir_bc_decl;
+
+#define CHUMOD_NAME "chumod"
+extern BC_node_t chumod_bc_decl;
+
+#define CHGMOD_NAME "chgmod"
+extern BC_node_t chgmod_bc_decl;
+
+#define CHOMOD_NAME "chomod"
+extern BC_node_t chomod_bc_decl;
+
+#define ISATTY_NAME "isatty"
+extern BC_node_t isatty_bc_decl;
+
+#define OPEN_NAME "open"
+extern BC_node_t open_bc_decl;
+
+#define CLOSE_NAME "close"
+extern BC_node_t close_bc_decl;
+
+#define FLUSH_NAME "flush"
+extern BC_node_t flush_bc_decl;
+
+#define POPEN_NAME "popen"
+extern BC_node_t popen_bc_decl;
+
+#define PCLOSE_NAME "pclose"
+extern BC_node_t pclose_bc_decl;
+
+#define TELL_NAME "tell"
+extern BC_node_t tell_bc_decl;
+
+#define SEEK_NAME "seek"
+extern BC_node_t seek_bc_decl;
+
+#define PUT_NAME "put"
+extern BC_node_t put_bc_decl;
+
+#define PUTLN_NAME "putln"
+extern BC_node_t putln_bc_decl;
+
+#define FPUT_NAME "fput"
+extern BC_node_t fput_bc_decl;
+
+#define FPUTLN_NAME "fputln"
+extern BC_node_t fputln_bc_decl;
+
+#define SPUT_NAME "sput"
+extern BC_node_t sput_bc_decl;
+
+#define SPUTLN_NAME "sputln"
+extern BC_node_t sputln_bc_decl;
+
+#define PUTF_NAME "putf"
+extern BC_node_t putf_bc_decl;
+
+#define FPUTF_NAME "fputf"
+extern BC_node_t fputf_bc_decl;
+
+#define SPUTF_NAME "sputf"
+extern BC_node_t sputf_bc_decl;
+
+#define PRINT_NAME "print"
+extern BC_node_t print_bc_decl;
+
+#define PRINTLN_NAME "println"
+extern BC_node_t println_bc_decl;
+
+#define FPRINT_NAME "fprint"
+extern BC_node_t fprint_bc_decl;
+
+#define FPRINTLN_NAME "fprintln"
+extern BC_node_t fprintln_bc_decl;
+
+#define SPRINT_NAME "sprint"
+extern BC_node_t sprint_bc_decl;
+
+#define SPRINTLN_NAME "sprintln"
+extern BC_node_t sprintln_bc_decl;
+
+#define GET_NAME "get"
+extern BC_node_t get_bc_decl;
+
+#define GETLN_NAME "getln"
+extern BC_node_t getln_bc_decl;
+
+#define GETF_NAME "getf"
+extern BC_node_t getf_bc_decl;
+
+#define FGET_NAME "fget"
+extern BC_node_t fget_bc_decl;
+
+#define FGETLN_NAME "fgetln"
+extern BC_node_t fgetln_bc_decl;
+
+#define FGETF_NAME "fgetf"
+extern BC_node_t fgetf_bc_decl;
+
+#define SCAN_NAME "scan"
+extern BC_node_t scan_bc_decl;
+
+#define SCANLN_NAME "scanln"
+extern BC_node_t scanln_bc_decl;
+
+#define FSCAN_NAME "fscan"
+extern BC_node_t fscan_bc_decl;
+
+#define FSCANLN_NAME "fscanln"
+extern BC_node_t fscanln_bc_decl;
+
+#define GETPID_NAME "getpid"
+extern BC_node_t getpid_bc_decl;
+
+#define GETPGID_NAME "getpgid"
+extern BC_node_t getpgid_bc_decl;
+
+#define GETUN_NAME "getun"
+extern BC_node_t getun_bc_decl;
+
+#define GETEUN_NAME "geteun"
+extern BC_node_t geteun_bc_decl;
+
+#define GETGN_NAME "getgn"
+extern BC_node_t getgn_bc_decl;
+
+#define GETEGN_NAME "getegn"
+extern BC_node_t getegn_bc_decl;
+
+#define GETGROUPS_NAME "getgroups"
+extern BC_node_t getgroups_bc_decl;
+
+#define SYSTEM_NAME "system"
+extern BC_node_t system_bc_decl;
+
+#define EXIT_NAME "exit"
+extern BC_node_t exit_bc_decl;
+
+#define FOLD_NAME "fold"
+extern BC_node_t fold_bc_decl;
+
+#define FILTER_NAME "filter"
+extern BC_node_t filter_bc_decl;
+
+#define MAP_NAME "map"
+extern BC_node_t map_bc_decl;
+
+#define TRANSPOSE_NAME "transpose"
+extern BC_node_t transpose_bc_decl;
+
+#define INIT_NAME "__init__"
+extern BC_node_t init_bc_decl;
+
+extern BC_node_t attach_info (BC_node_t);
+extern void enumerate_infoed_bcode (BC_node_t, int_t *, int_t *);
+extern void init_env_decl_processing (void);
+extern int all_env_decls_processed_p (void);
+extern void process_env_decl (BC_node_t);
+extern void prepare_block (BC_node_t);
+
 }
 
 %%
 
+/* For any change here, correspondent changes in d_bcread.c
+   d_bc[fn].shilka should be also done.  */
+
 /* Remember: alsways use right abstract node when operands are immediate.  */
 
-%abstract
-code :: %root
+icode :: %root /* A common node for evaluation */
+;
+
+/* Positions:  */
+source :: icode
 %other
-        next : code
-        origin : IR_hidden_node_t
+        pos : position_t
+;
+source2 :: source
+%other
+        /* alternative position, e.g. variable position for a store or
+	   operand position for an operator.  */
+        pos2 : position_t
+;
+source3 :: source2
+%other
+        /* another alternative position, e.g. 2nd operand position for
+	   an operator.  */
+        pos3 : position_t
+;
+
+/* Declarations. */
+%abstract
+decl :: source
+%other
+        decl_num : int_t /* unique decl number */
+        ident : string_t
+        ident_num : int_t
+	decl_scope : block
+        next_decl : decl /* next decl in the same scope */
+        public_p : bool_t
+;
+vdecl :: decl /* var decl */
+%other
+        var_num : int_t
+;
+fdecl :: decl /* fblock decl */
+%other
+	fblock : fblock
 ;
 %abstract
-op1 :: code
+edecl :: decl /* external decl */
+%other
+	address : string_t {$ = NULL;} /* defined during evaluation only.  */
+;
+evdecl, efdecl :: edecl
+;
+
+friend :: icode
+%other
+	friend : block
+        next_friend : friend
+;
+
+%abstract
+bcode :: icode
+%other
+        next : bcode
+        /* It is an info node before evaluation and source node during
+	   the evaluation.  */
+        info : %root
+;
+
+/* The block flow in except presence is the following:
+
+              excepts                              next_except
+   try block ----------> class expr -->  except ---------> class expr...
+       |                                   | next                   ....
+       |                                   V
+       |                                catch block                 ....
+       |                                   | next                     |
+       |                                   V                          |
+        ------------------------------->  nop  <----------------------
+          next                             | next
+                                           V
+                                       
+*/
+block :: bcode
+%other
+	scope : block
+        block_number : int_t /* defined at the start of evaluation */
+	excepts : bcode  /* exception list */
+        decls : decl {$ = NULL;}
+        friends : friend
+        vars_num : int_t /* if it is negative than it is a simple block */
+        tvars_num : int_t
+        ext_life_p : bool_t
+        /* The following fields are used and defined only during evaluation  */
+        saved_sync_p : bool_t
+        /* The following field is cached address of container for the
+           current block.  The cached value is not defined if
+           cached_container_tick is not equal to the current value. */
+	cached_container_address : string_t
+	cached_container_tick : int_t {$ = -1;}
+        /* The following fields are used and defined only during evaluation  */
+        calls_number : int_t {$ = 0;}
+	free_stacks : ER_hidden_node_t {$ = NULL;}
+;
+fblock :: block
+%other
+        fdecl : fdecl
+        func_p, class_p, thread_p, args_p : bool_t
+        simple_p, pure_func_p : bool_t
+        pars_num, min_pars_num : int_t
+        /* The following fields are used and defined only during evaluation  */
+        implementation_func : implementation_func_t {$ = NULL;}
+	/* Time of function (class body) execution.  Defined if the
+	   previous field is not zero. */
+        exec_time : ticker_t
+        interrupts_number : int_t
+;
+%abstract
+op1 :: bcode
 %other
         op1 : int_t
+;
+%abstract
+op1_decl :: op1
+%other
+        decl : decl
 ;
 %abstract
 op1i :: op1 /* op1 is int const */
@@ -103,17 +985,12 @@ op4 :: op3
         op4 : int_t
 ;
 %abstract
-op4i2 :: op3 /* op2 is int const */
-;
-%abstract
-brid :: code
-%other
-        brid_pc : code
+op4i2 :: op4 /* op2 is int const */
 ;
 %abstract
 br :: op1
 %other
-        pc : code
+        pc : bcode
 ;
 %abstract
 brs :: br
@@ -121,7 +998,7 @@ brs :: br
 	res : int_t
 ;
 %abstract
-bcmp :: brs
+bcmp :: br
 %other
 	bcmp_op2, bcmp_res : int_t
 ;
@@ -136,7 +1013,7 @@ binc :: bcmp
 %abstract
 imcall :: op2i
 %other
-	func : IR_hidden_node_t
+	cfblock : fblock
 ;
 %abstract
 impcall, imfcall :: imcall /* procedure or function call  */
@@ -159,40 +1036,52 @@ lds :: op1 /* result place */
 pushi :: op1; /* push int onto stack */
 
 /* non-local / external var value / reference [and value].
-   Origin is the ident.  */
-var, lvar, lvarv, evar, levar, levarv :: op1; /* result place */
+   Decl is vdecl (var, lvar, lvarv), evdecl (evar, levar, levarv)  */
+var, lvar, lvarv, evar, levar, levarv :: op1_decl; /* result place */
 
- /* Origin is the ident.  */
-func, efunc, class :: op1; /* result place */
+func, efunc, class :: op1_decl; /* result place, fdecl/efdecl */
 
-/* op1 is result palce; op2 and op3 are container place and index/key place
+/* op1 is result place; op2 and op3 are container place and index/key place
    or dim for slice.  */ 
 ind, lindv, key, lkeyv,
-  fld, lfld, lfldv, /* op3 is block decl ident number */
   sl, lslv :: op3;
 
+%abstract
+field :: op3
+%other
+	fldid : string_t  /* field identifier  */
+;
+/* op1 is result place; op2 is container place and op3 is block decl
+   ident number */	
+fld, lfld, lfldv :: field;
+
 const, new, not, plus, minus, bnot, length,
- /* vector folding operation: */
- fadd, fmult, fand, for, fxor,
  tpof, chof, iof, fof, vecof, tabof,
  funcof, threadof, classof :: op2; /* result and operand places */
+
+/* vector folding operation (info is source2: pos2 is an operand one): */
+%abstract
+fold_op :: op2
+;
+fadd, fmult, fand, for, fxor :: fold_op
+;
 
 /* result and two operand places.  */
 fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
   lsh, rsh, ash, concat, add, sub, mult, div, mod :: op3;
 addi, eqi, nei, lti, gti, lei, gei :: op3i; /* non-slice insns */
 
-b :: code; /* unconditional branch to next */
+b :: bcode; /* unconditional branch to next */
 
-btdef :: brid;  /* skip if the origin identfier defined.  */
+btdef :: br;  /* skip if op1 is defined.  */
 
 /* Branch when true, false, false (non-interrupt) and non-nil.
-   bt origin is for_stmt, bf is if_stmt, bfni is cond,
+   bt info is for_stmt, bf is if_stmt, bfni is cond,
    btdef is par_assign.  */
 bt, bf, bfni :: br; /* operand place and goto byte code ref.  */
 
 /* Branch and set: res <= op; goto (op or !op ? pc : next).
-   Origin is logical_or or logical_and.  */
+   Created logical_or (brts) or logical_and (brfs).  */
 brts, brfs :: brs;
 
 /* combined for non-slice comparison: goto pc if(not) op1 cmp? bcmp_op2.
@@ -205,7 +1094,7 @@ bteqi, btnei, btgei, btlti, btlei, btgti :: bcmpi;
    Inc is int.  All others are places.  */
 bteqinc, btneinc, btgeinc, btltinc, btleinc, btgtinc :: binc;
 
-/* Logical conversion.  Origin is logical_or or logical_and.  */
+/* Logical conversion created from a number.  */
 lconv :: op2; /* result and operand places.  */
 
 /* This node serves as test loop expr in the interpreter.  The pc flows as
@@ -217,18 +1106,22 @@ lconv :: op2; /* result and operand places.  */
              pushi 1<-------------foreach_stmts<------------
 */
 /* Table, container, element, foreach index lvalue places.
-   Origin is foreach-stmt.  */
+   Info is source2 (pos is position of foreach-stmt, pos2
+   is the designator position.  */
 foreach :: op4
 %other
-	body_pc : code
+	body_pc : bcode
 ;
 
 vec, tab :: op3; /* result place, element parts start place, parts number */
 
-move :: op2; /* destination/source places, origin is rhs var ident.  */
-
+move :: op2 /* destination/source places.  */
+%other
+        rhs_decl : decl /* rhs variable/function */
+;
 /* Assignments: */
-st :: op3; /* container, element, value places */
+/* vect/tab/stack/external store: container, element, value places */
+stv, stt, sts, ste :: op3;
 slst :: op3i2; /* vector place, slice dimension as int, value place  */
 
 /* Assignment with operations: */
@@ -250,83 +1143,708 @@ out :: op1i; /* # of surrounding blocks as int */
 call, tcall, pcall, tpcall :: op2i;
 
 /* immediate calls: params start place (first value is undefined),
-   params number as int, func decl.  First letter t or c means top stack or
+   params number as int, func decl.  Immidiate implementation function
+   call is ibcall.  For others: first letter t or c means top stack or
    current stack context, tcall means tail call.  */
-icall, itcall, ticall, titcall, cicall, citcall:: imfcall;
+ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imfcall;
 /* The same as previous ones but for procedure.  */
-ipcall, itpcall, tipcall, titpcall, cipcall, citpcall:: impcall;
+ibpcall, ipcall, itpcall, tipcall, titpcall, cipcall, citpcall:: impcall;
 
-leave :: code; /* block end (origin is the block) or return without value */
+/* sleave is simple block leave.  position is block end or return
+   without value.  */
+leave, sleave :: bcode;
+
+/* Analogous to leave but it is always the last code in the block
+   statement chain. */
+bend :: bcode
+%other
+	block : block
+;
+
 ret :: op1; /* return with result: ret value place */
 throw :: op1;
 wait :: br;
-waitend :: code;
+waitend :: bcode;
 
-/* The node for making solution to catch given exception or not.  The
-   flow is the following:
-              excepts                              next_except
-   try block ----------> class expr -> exception   ---------> class expr...
-       |                                   | next                   ....
-       |                                   V
-       |                                catch block                 ....
-       |                                   | next                     |
-       |                                   V                          |
-        -------------------------------> cend  <----------------------
-          next                             | next
-                                           V
-                                       
-*/
 except :: op2 /* except instance and class places */
 %other
-	next_except : code
+	next_except : bcode
 ;
 
-block :: code
+/* This byte code is used only during code generation.  Info is info
+   of the corresponding cond, for-stmt, foreach-stmt, if-stmt,
+   par_assign, block for end of exceptions.  It is removed before the
+   execution.  */
+nop :: bcode;
+
+/* ---- Nodes used only for generation and optimizations ---- */
+/* Before interpretation itself we use the following node for storing
+   info about byte code for different optimizations.  Infos chain all
+   byte code (icode) for each fdecl and the top block.  */
+info :: %root
 %other
-	excepts : code /* exception list */
+        source : source /* The corresponding byte code source node */
+        next_info : info {$ = NULL;}
+        prev_info : info {$ = NULL;}
+        bc : icode /* The corresponding byte code */
+        subst : icode /* used for optimizations  */
+        idn : int_t /* Info identifier number */
+	reachable_p : bool_t
 ;
-
-/* The following 3 nodes are Result of function inlining:  */
-bstart :: op2i12;     /* op1 is npars, op2 is nvars.  */
-/* op1 is stack top increase/decrease.  Suffix p and f means
-   proc call and func call (with undef result).  */
-pbend, fbend :: op1i;
-bret :: op2i;         /* op1 is result place, op2 is stack top decrease.  */
-
-/* This byte code is used only during code generation.  Origin is
-   cond, for-stmt, foreach-stmt, if-stmt, par_assign, block for end of
-   exceptions.  It is removed before the execution.  */
-cend :: code;
 
 %%
 
-#include "d_run.h"
-int
-ir2er_type (IR_node_mode_t irnm)
+#include "d_built.h"
+
+/* Remember that first program byetcode is always block. */
+BC_node_t first_program_bc;
+
+/* Create and add info to NODE.  It can be done only once.  Return the
+   info node. */
+BC_node_t
+attach_info (BC_node_t node)
 {
-  switch (irnm)
-    {
-    case IR_NM_char_type: return ER_NM_char;
-    case IR_NM_int_type: return ER_NM_int;
-    case IR_NM_float_type: return ER_NM_float;
-    case IR_NM_hide_type: return ER_NM_hide;
-    case IR_NM_hideblock_type: return ER_NM_hideblock;
-    case IR_NM_vector_type: return ER_NM_vect;
-    case IR_NM_table_type: return ER_NM_tab;
-    case IR_NM_thread_type: return ER_NM_thread;
-    case IR_NM_func_type: return ER_NM_func;
-    case IR_NM_class_type: return ER_NM_class;
-    case IR_NM_instance_type: return ER_NM_stack;
-    case IR_NM_stack_type: return ER_NM_stack;
-    case IR_NM_process_type: return ER_NM_process;
-    case IR_NM_type_type: return ER_NM_type;
-    default:
-      d_unreachable ();
-    }
+  BC_node_t info = BC_create_node (BC_NM_info);
+  
+  BC_set_source (info, BC_info (node));
+  d_assert (BC_info (node) != NULL
+	    && BC_IS_OF_TYPE (BC_info (node), BC_NM_source));
+  BC_set_info (node, info);
+  BC_set_bc (info, node);
+  BC_set_prev_info (info, NULL);
+  BC_set_next_info (info, NULL);
+  return info;
 }
 
-const char *
-er_type_name (int t)
+/* Enumerate infos of BLOCK starting with *CURR_IDN and decls starting
+   with *CURR_DECL_NUM.  Update *CURR_IDN and *CURR_DECL_NUM. */
+void
+enumerate_infoed_bcode (BC_node_t block, int_t *curr_idn, int *curr_decl_num)
 {
-  return ER_node_name[t];
+  BC_node_t bc_decl, info, bc;
+  int info_p;
+
+  info = BC_info (block);
+  d_assert (BC_IS_OF_TYPE (block, BC_NM_block)
+	    && BC_IS_OF_TYPE (info, BC_NM_info));
+  info_p = BC_IS_OF_TYPE (block, BC_NM_fblock) || BC_scope (block) == NULL;
+  if (info_p)
+    {
+      BC_set_idn (info, *curr_idn);
+      (*curr_idn)++;
+    }
+  for (bc_decl = BC_decls (block);
+       bc_decl != NULL;
+       bc_decl = BC_next_decl (bc_decl))
+    {
+      d_assert (BC_ident (bc_decl) != NULL);
+      BC_set_decl_num (bc_decl, *curr_decl_num);
+      (*curr_decl_num)++;
+      if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl))
+	enumerate_infoed_bcode (BC_fblock (bc_decl), curr_idn, curr_decl_num);
+    }
+  if (info_p)
+    for (info = BC_next_info (info); info != NULL; info = BC_next_info (info))
+      {
+	bc = BC_bc (info);
+	if (BC_NODE_MODE (bc) == BC_NM_block)
+	  enumerate_infoed_bcode (bc, curr_idn, curr_decl_num);
+	BC_set_idn (info, *curr_idn);
+	(*curr_idn)++;
+      }
+}
+
+/* See comments for ENVIRONMENT. */
+BC_node_t except_bc_decl;
+BC_node_t error_bc_decl;
+BC_node_t signal_bc_decl;
+BC_node_t sigint_bc_decl;
+BC_node_t sigill_bc_decl;
+BC_node_t sigabrt_bc_decl;
+BC_node_t sigfpe_bc_decl;
+BC_node_t sigterm_bc_decl;
+BC_node_t sigsegv_bc_decl;
+BC_node_t invenv_bc_decl;
+BC_node_t invop_bc_decl;
+BC_node_t optype_bc_decl;
+BC_node_t opvalue_bc_decl;
+BC_node_t invindex_bc_decl;
+BC_node_t indextype_bc_decl;
+BC_node_t indexvalue_bc_decl;
+BC_node_t indexop_bc_decl;
+BC_node_t invslice_bc_decl;
+BC_node_t slicetype_bc_decl;
+BC_node_t sliceform_bc_decl;
+BC_node_t invector_bc_decl;
+BC_node_t veclen_bc_decl;
+BC_node_t vecform_bc_decl;
+BC_node_t matrixform_bc_decl;
+BC_node_t invkey_bc_decl;
+BC_node_t keyvalue_bc_decl;
+BC_node_t keyop_bc_decl;
+BC_node_t invcall_bc_decl;
+BC_node_t callop_bc_decl;
+BC_node_t partype_bc_decl;
+BC_node_t invresult_bc_decl;
+BC_node_t invinput_bc_decl;
+BC_node_t invfmt_bc_decl;
+BC_node_t eof_bc_decl;
+BC_node_t parnumber_bc_decl;
+BC_node_t syncthreadcall_bc_decl;
+BC_node_t syserror_bc_decl;
+BC_node_t eaccess_bc_decl;
+BC_node_t eagain_bc_decl;
+BC_node_t ebadf_bc_decl;
+BC_node_t ebusy_bc_decl;
+BC_node_t echild_bc_decl;
+BC_node_t edeadlk_bc_decl;
+BC_node_t edom_bc_decl;
+BC_node_t eexist_bc_decl;
+BC_node_t efault_bc_decl;
+BC_node_t efbig_bc_decl;
+BC_node_t eintr_bc_decl;
+BC_node_t einval_bc_decl;
+BC_node_t eio_bc_decl;
+BC_node_t eisdir_bc_decl;
+BC_node_t emfile_bc_decl;
+BC_node_t emlink_bc_decl;
+BC_node_t enametoolong_bc_decl;
+BC_node_t enfile_bc_decl;
+BC_node_t enodev_bc_decl;
+BC_node_t enoent_bc_decl;
+BC_node_t enoexec_bc_decl;
+BC_node_t enolck_bc_decl;
+BC_node_t enomem_bc_decl;
+BC_node_t enospc_bc_decl;
+BC_node_t enosys_bc_decl;
+BC_node_t enotdir_bc_decl;
+BC_node_t enotempty_bc_decl;
+BC_node_t enotty_bc_decl;
+BC_node_t enxio_bc_decl;
+BC_node_t eperm_bc_decl;
+BC_node_t epipe_bc_decl;
+BC_node_t erange_bc_decl;
+BC_node_t erofs_bc_decl;
+BC_node_t espipe_bc_decl;
+BC_node_t esrch_bc_decl;
+BC_node_t exdev_bc_decl;
+BC_node_t invextern_bc_decl;
+BC_node_t noextern_bc_decl;
+BC_node_t libclose_bc_decl;
+BC_node_t noexternsupp_bc_decl;
+BC_node_t invenvar_bc_decl;
+BC_node_t internal_bc_decl;
+BC_node_t systemcall_bc_decl;
+BC_node_t noshell_bc_decl;
+BC_node_t systemfail_bc_decl;
+BC_node_t invregexp_bc_decl;
+BC_node_t ebrack_bc_decl;
+BC_node_t reg_erange_bc_decl;
+BC_node_t ectype_bc_decl;
+BC_node_t eparen_bc_decl;
+BC_node_t esubreg_bc_decl;
+BC_node_t eend_bc_decl;
+BC_node_t eescape_bc_decl;
+BC_node_t badpat_bc_decl;
+BC_node_t esize_bc_decl;
+BC_node_t espace_bc_decl;
+BC_node_t invparser_bc_decl;
+BC_node_t invgrammar_bc_decl;
+BC_node_t invtoken_bc_decl;
+BC_node_t pmemory_bc_decl;
+BC_node_t invaccess_bc_decl;
+BC_node_t accessop_bc_decl;
+BC_node_t accessvalue_bc_decl;
+BC_node_t immutable_bc_decl;
+BC_node_t deadlock_bc_decl;
+BC_node_t syncwait_bc_decl;
+BC_node_t excepts_bc_decl;
+BC_node_t errors_bc_decl;
+BC_node_t signals_bc_decl;
+BC_node_t invops_bc_decl;
+BC_node_t invindexes_bc_decl;
+BC_node_t invslices_bc_decl;
+BC_node_t invectors_bc_decl;
+BC_node_t invkeys_bc_decl;
+BC_node_t syserrors_bc_decl;
+BC_node_t invcalls_bc_decl;
+BC_node_t systemcalls_bc_decl;
+BC_node_t invregexps_bc_decl;
+BC_node_t invparsers_bc_decl;
+BC_node_t invexterns_bc_decl;
+BC_node_t invaccesses_bc_decl;
+BC_node_t argv_bc_decl;
+BC_node_t env_bc_decl;
+BC_node_t version_bc_decl;
+BC_node_t main_thread_bc_decl;
+BC_node_t curr_thread_bc_decl;
+BC_node_t anode_bc_decl;
+BC_node_t token_bc_decl;
+BC_node_t code_bc_decl;
+BC_node_t nil_anode_bc_decl;
+BC_node_t error_anode_bc_decl;
+BC_node_t parser_bc_decl;
+BC_node_t ambiguous_p_bc_decl;
+BC_node_t int_earley_parse_grammar_bc_decl;
+BC_node_t int_earley_set_debug_level_bc_decl;
+BC_node_t int_earley_set_one_parse_flag_bc_decl;
+BC_node_t int_earley_set_lookahead_level_bc_decl;
+BC_node_t int_earley_set_cost_flag_bc_decl;
+BC_node_t int_earley_set_error_recovery_flag_bc_decl;
+BC_node_t int_earley_set_recovery_match_bc_decl;
+BC_node_t int_earley_parse_bc_decl;
+BC_node_t int_earley_create_grammar_bc_decl;
+BC_node_t file_bc_decl;
+BC_node_t file_ptr_bc_decl;
+BC_node_t stdin_bc_decl;
+BC_node_t stdout_bc_decl;
+BC_node_t stderr_bc_decl;
+BC_node_t min_bc_decl;
+BC_node_t max_bc_decl;
+BC_node_t tolower_bc_decl;
+BC_node_t toupper_bc_decl;
+BC_node_t transliterate_bc_decl;
+BC_node_t eltype_bc_decl;
+BC_node_t keys_bc_decl;
+BC_node_t context_bc_decl;
+BC_node_t inside_bc_decl;
+BC_node_t subv_bc_decl;
+BC_node_t cmpv_bc_decl;
+BC_node_t del_bc_decl;
+BC_node_t ins_bc_decl;
+BC_node_t insv_bc_decl;
+BC_node_t rev_bc_decl;
+BC_node_t sort_bc_decl;
+BC_node_t sqrt_bc_decl;
+BC_node_t exp_bc_decl;
+BC_node_t log_bc_decl;
+BC_node_t log10_bc_decl;
+BC_node_t pow_bc_decl;
+BC_node_t sin_bc_decl;
+BC_node_t cos_bc_decl;
+BC_node_t atan2_bc_decl;
+BC_node_t match_bc_decl;
+BC_node_t gmatch_bc_decl;
+BC_node_t sub_bc_decl;
+BC_node_t gsub_bc_decl;
+BC_node_t split_bc_decl;
+BC_node_t split_regex_bc_decl;
+BC_node_t srand_bc_decl;
+BC_node_t rand_bc_decl;
+BC_node_t process_errno_bc_decl;
+BC_node_t readdir_bc_decl;
+BC_node_t ftype_bc_decl;
+BC_node_t fun_bc_decl;
+BC_node_t fgn_bc_decl;
+BC_node_t fsize_bc_decl;
+BC_node_t fatime_bc_decl;
+BC_node_t fmtime_bc_decl;
+BC_node_t fctime_bc_decl;
+BC_node_t fumode_bc_decl;
+BC_node_t fgmode_bc_decl;
+BC_node_t fomode_bc_decl;
+BC_node_t time_bc_decl;
+BC_node_t strtime_bc_decl;
+BC_node_t time_format_bc_decl;
+BC_node_t clock_bc_decl;
+BC_node_t gc_bc_decl;
+BC_node_t rename_bc_decl;
+BC_node_t remove_bc_decl;
+BC_node_t mkdir_bc_decl;
+BC_node_t rmdir_bc_decl;
+BC_node_t getcwd_bc_decl;
+BC_node_t chdir_bc_decl;
+BC_node_t chumod_bc_decl;
+BC_node_t chgmod_bc_decl;
+BC_node_t chomod_bc_decl;
+BC_node_t isatty_bc_decl;
+BC_node_t open_bc_decl;
+BC_node_t close_bc_decl;
+BC_node_t flush_bc_decl;
+BC_node_t popen_bc_decl;
+BC_node_t pclose_bc_decl;
+BC_node_t tell_bc_decl;
+BC_node_t seek_bc_decl;
+BC_node_t put_bc_decl;
+BC_node_t putln_bc_decl;
+BC_node_t fput_bc_decl;
+BC_node_t fputln_bc_decl;
+BC_node_t sput_bc_decl;
+BC_node_t sputln_bc_decl;
+BC_node_t putf_bc_decl;
+BC_node_t fputf_bc_decl;
+BC_node_t sputf_bc_decl;
+BC_node_t print_bc_decl;
+BC_node_t println_bc_decl;
+BC_node_t fprint_bc_decl;
+BC_node_t fprintln_bc_decl;
+BC_node_t sprint_bc_decl;
+BC_node_t sprintln_bc_decl;
+BC_node_t get_bc_decl;
+BC_node_t getln_bc_decl;
+BC_node_t getf_bc_decl;
+BC_node_t fget_bc_decl;
+BC_node_t fgetln_bc_decl;
+BC_node_t fgetf_bc_decl;
+BC_node_t scan_bc_decl;
+BC_node_t scanln_bc_decl;
+BC_node_t fscan_bc_decl;
+BC_node_t fscanln_bc_decl;
+BC_node_t getpid_bc_decl;
+BC_node_t getpgid_bc_decl;
+BC_node_t getun_bc_decl;
+BC_node_t geteun_bc_decl;
+BC_node_t getgn_bc_decl;
+BC_node_t getegn_bc_decl;
+BC_node_t getgroups_bc_decl;
+BC_node_t system_bc_decl;
+BC_node_t exit_bc_decl;
+BC_node_t fold_bc_decl;
+BC_node_t filter_bc_decl;
+BC_node_t map_bc_decl;
+BC_node_t transpose_bc_decl;
+BC_node_t init_bc_decl;
+
+struct bc_decl_entry
+{
+  BC_node_t *decl_ptr;
+  const char *name;
+  BC_node_t *scope_ptr;
+  implementation_func_t func_ptr;
+};
+
+
+/* The table should contains entries ordered as corresponding decls in
+   ENVIRONMENT (see file d_ir.sprut).  Otherwise, we will have
+   corrupted byte code message.  */
+static struct bc_decl_entry bc_decls_table [] =
+{
+  {&except_bc_decl, EXCEPT_NAME, NULL, NULL},
+  {&error_bc_decl, ERROR_NAME, &except_bc_decl, NULL},
+  {&signal_bc_decl, SIGNAL_NAME, &error_bc_decl, NULL},
+  {&sigint_bc_decl, SIGINT_NAME, &signal_bc_decl, NULL},
+  {&sigill_bc_decl, SIGILL_NAME, &signal_bc_decl, NULL},
+  {&sigabrt_bc_decl, SIGABRT_NAME, &signal_bc_decl, NULL},
+  {&sigfpe_bc_decl, SIGFPE_NAME, &signal_bc_decl, NULL},
+  {&sigterm_bc_decl, SIGTERM_NAME, &signal_bc_decl, NULL},
+  {&sigsegv_bc_decl, SIGSEGV_NAME, &signal_bc_decl, NULL},
+  {&invenv_bc_decl, INVENV_NAME, &error_bc_decl, NULL},
+  {&invop_bc_decl, INVOP_NAME, &error_bc_decl, NULL},
+  {&optype_bc_decl, OPTYPE_NAME, &invop_bc_decl, NULL},
+  {&opvalue_bc_decl, OPVALUE_NAME, &invop_bc_decl, NULL},
+  {&invindex_bc_decl, INVINDEX_NAME, &error_bc_decl, NULL},
+  {&indextype_bc_decl, INDEXTYPE_NAME, &invindex_bc_decl, NULL},
+  {&indexvalue_bc_decl, INDEXVALUE_NAME, &invindex_bc_decl, NULL},
+  {&indexop_bc_decl, INDEXOP_NAME, &invindex_bc_decl, NULL},
+  {&invslice_bc_decl, INVSLICE_NAME, &error_bc_decl, NULL},
+  {&slicetype_bc_decl, SLICETYPE_NAME, &invslice_bc_decl, NULL},
+  {&sliceform_bc_decl, SLICEFORM_NAME, &invslice_bc_decl, NULL},
+  {&invector_bc_decl, INVECTOR_NAME, &error_bc_decl, NULL},
+  {&veclen_bc_decl, VECLEN_NAME, &invector_bc_decl, NULL},
+  {&vecform_bc_decl, VECVALUE_NAME, &invector_bc_decl, NULL},
+  {&matrixform_bc_decl, MATRIXVALUE_NAME, &invector_bc_decl, NULL},
+  {&invkey_bc_decl, INVKEY_NAME, &error_bc_decl, NULL},
+  {&keyvalue_bc_decl, KEYVALUE_NAME, &invkey_bc_decl, NULL},
+  {&keyop_bc_decl, KEYOP_NAME, &invkey_bc_decl, NULL},
+  {&invcall_bc_decl, INVCALL_NAME, &error_bc_decl, NULL},
+  {&callop_bc_decl, CALLOP_NAME, &invcall_bc_decl, NULL},
+  {&partype_bc_decl, PARTYPE_NAME, &invcall_bc_decl, NULL},
+  {&invresult_bc_decl, INVRESULT_NAME, &invcall_bc_decl, NULL},
+  {&invinput_bc_decl, INVINPUT_NAME, &invcall_bc_decl, NULL},
+  {&invfmt_bc_decl, INVFMT_NAME, &invcall_bc_decl, NULL},
+  {&eof_bc_decl, EOF_NAME, &invcall_bc_decl, NULL},
+  {&parnumber_bc_decl, PARNUMBER_NAME, &invcall_bc_decl, NULL},
+  {&syncthreadcall_bc_decl, SYNCTHREADCALL_NAME, &invcall_bc_decl, NULL},
+  {&syserror_bc_decl, SYSERROR_NAME, &invcall_bc_decl, NULL},
+  {&eaccess_bc_decl, EACCESS_NAME, &syserror_bc_decl, NULL},
+  {&eagain_bc_decl, EAGAIN_NAME, &syserror_bc_decl, NULL},
+  {&ebadf_bc_decl, EBADF_NAME, &syserror_bc_decl, NULL},
+  {&ebusy_bc_decl, EBUSY_NAME, &syserror_bc_decl, NULL},
+  {&echild_bc_decl, ECHILD_NAME, &syserror_bc_decl, NULL},
+  {&edeadlk_bc_decl, EDEADLK_NAME, &syserror_bc_decl, NULL},
+  {&edom_bc_decl, EDOM_NAME, &syserror_bc_decl, NULL},
+  {&eexist_bc_decl, EEXIST_NAME, &syserror_bc_decl, NULL},
+  {&efault_bc_decl, EFAULT_NAME, &syserror_bc_decl, NULL},
+  {&efbig_bc_decl, EFBIG_NAME, &syserror_bc_decl, NULL},
+  {&eintr_bc_decl, EINTR_NAME, &syserror_bc_decl, NULL},
+  {&einval_bc_decl, EINVAL_NAME, &syserror_bc_decl, NULL},
+  {&eio_bc_decl, EIO_NAME, &syserror_bc_decl, NULL},
+  {&eisdir_bc_decl, EISDIR_NAME, &syserror_bc_decl, NULL},
+  {&emfile_bc_decl, EMFILE_NAME, &syserror_bc_decl, NULL},
+  {&emlink_bc_decl, EMLINK_NAME, &syserror_bc_decl, NULL},
+  {&enametoolong_bc_decl, ENAMETOOLONG_NAME, &syserror_bc_decl, NULL},
+  {&enfile_bc_decl, ENFILE_NAME, &syserror_bc_decl, NULL},
+  {&enodev_bc_decl, ENODEV_NAME, &syserror_bc_decl, NULL},
+  {&enoent_bc_decl, ENOENT_NAME, &syserror_bc_decl, NULL},
+  {&enoexec_bc_decl, ENOEXEC_NAME, &syserror_bc_decl, NULL},
+  {&enolck_bc_decl, ENOLCK_NAME, &syserror_bc_decl, NULL},
+  {&enomem_bc_decl, ENOMEM_NAME, &syserror_bc_decl, NULL},
+  {&enospc_bc_decl, ENOSPC_NAME, &syserror_bc_decl, NULL},
+  {&enosys_bc_decl, ENOSYS_NAME, &syserror_bc_decl, NULL},
+  {&enotdir_bc_decl, ENOTDIR_NAME, &syserror_bc_decl, NULL},
+  {&enotempty_bc_decl, ENOTEMPTY_NAME, &syserror_bc_decl, NULL},
+  {&enotty_bc_decl, ENOTTY_NAME, &syserror_bc_decl, NULL},
+  {&enxio_bc_decl, ENXIO_NAME, &syserror_bc_decl, NULL},
+  {&eperm_bc_decl, EPERM_NAME, &syserror_bc_decl, NULL},
+  {&epipe_bc_decl, EPIPE_NAME, &syserror_bc_decl, NULL},
+  {&erange_bc_decl, ERANGE_NAME, &syserror_bc_decl, NULL},
+  {&erofs_bc_decl, EROFS_NAME, &syserror_bc_decl, NULL},
+  {&espipe_bc_decl, ESPIPE_NAME, &syserror_bc_decl, NULL},
+  {&esrch_bc_decl, ESRCH_NAME, &syserror_bc_decl, NULL},
+  {&exdev_bc_decl, EXDEV_NAME, &syserror_bc_decl, NULL},
+  {&systemcall_bc_decl, SYSTEMCALL_NAME, &invcall_bc_decl, NULL},
+  {&noshell_bc_decl, NOSHELL_NAME, &systemcall_bc_decl, NULL},
+  {&systemfail_bc_decl, SYSTEMFAIL_NAME, &systemcall_bc_decl, NULL},
+  {&invregexp_bc_decl, INVREGEXP_NAME, &invcall_bc_decl, NULL},
+  {&ebrack_bc_decl, EBRACK_NAME, &invregexp_bc_decl, NULL},
+  {&reg_erange_bc_decl, REG_ERANGE_NAME, &invregexp_bc_decl, NULL},
+  {&ectype_bc_decl, ECTYPE_NAME, &invregexp_bc_decl, NULL},
+  {&eparen_bc_decl, EPAREN_NAME, &invregexp_bc_decl, NULL},
+  {&esubreg_bc_decl, ESUBREG_NAME, &invregexp_bc_decl, NULL},
+  {&eend_bc_decl, EEND_NAME, &invregexp_bc_decl, NULL},
+  {&eescape_bc_decl, EESCAPE_NAME, &invregexp_bc_decl, NULL},
+  {&badpat_bc_decl, BADPAT_NAME, &invregexp_bc_decl, NULL},
+  {&esize_bc_decl, ESIZE_NAME, &invregexp_bc_decl, NULL},
+  {&espace_bc_decl, ESPACE_NAME, &invregexp_bc_decl, NULL},
+  {&invparser_bc_decl, INVPARSER_NAME, &invcall_bc_decl, NULL},
+  {&invgrammar_bc_decl, INVGRAMMAR_NAME, &invparser_bc_decl, NULL},
+  {&invtoken_bc_decl, INVTOKEN_NAME, &invparser_bc_decl, NULL},
+  {&pmemory_bc_decl, PMEMORY_NAME, &invparser_bc_decl, NULL},
+  {&invextern_bc_decl, INVEXTERN_NAME, &invcall_bc_decl, NULL},
+  {&noextern_bc_decl, NOEXTERN_NAME, &invextern_bc_decl, NULL},
+  {&libclose_bc_decl, LIBCLOSE_NAME, &invextern_bc_decl, NULL},
+  {&noexternsupp_bc_decl, NOEXTERNSUPP_NAME, &invextern_bc_decl, NULL},
+  {&invenvar_bc_decl, INVENVAR_NAME, &invcall_bc_decl, NULL},
+  {&internal_bc_decl, INTERNAL_NAME, &invcall_bc_decl, NULL},
+  {&invaccess_bc_decl, INVACCESS_NAME, &error_bc_decl, NULL},
+  {&accessop_bc_decl, ACCESSOP_NAME, &invaccess_bc_decl, NULL},
+  {&accessvalue_bc_decl, ACCESSVALUE_NAME, &invaccess_bc_decl, NULL},
+  {&immutable_bc_decl, IMMUTABLE_NAME, &invaccess_bc_decl, NULL},
+  {&deadlock_bc_decl, DEADLOCK_NAME, &error_bc_decl, NULL},
+  {&syncwait_bc_decl, SYNCWAIT_NAME, &error_bc_decl, NULL},
+  {&excepts_bc_decl, EXCEPTS_NAME, NULL, NULL},
+  {&errors_bc_decl, ERRORS_NAME, NULL, NULL},
+  {&signals_bc_decl, SIGNALS_NAME, NULL, NULL},
+  {&invops_bc_decl, INVOPS_NAME, NULL, NULL},
+  {&invindexes_bc_decl, INVINDEXES_NAME, NULL, NULL},
+  {&invslices_bc_decl, INVSLICES_NAME, NULL, NULL},
+  {&invectors_bc_decl, INVECTORS_NAME, NULL, NULL},
+  {&invkeys_bc_decl, INVKEYS_NAME, NULL, NULL},
+  {&invcalls_bc_decl, INVCALLS_NAME, NULL, NULL},
+  {&syserrors_bc_decl, SYSERRORS_NAME, NULL, NULL},
+  {&systemcalls_bc_decl, SYSTEMCALLS_NAME, NULL, NULL},
+  {&invregexps_bc_decl, INVREGEXPS_NAME, NULL, NULL},
+  {&invparsers_bc_decl, INVPARSERS_NAME, NULL, NULL},
+  {&invexterns_bc_decl, INVEXTERNS_NAME, NULL, NULL},
+  {&invaccesses_bc_decl, INVACCESSES_NAME, NULL, NULL},
+  {&argv_bc_decl, ARGV_NAME, NULL, NULL},
+  {&env_bc_decl, ENV_NAME, NULL, NULL},
+  {&version_bc_decl, VERSION_NAME, NULL, NULL},
+  {&main_thread_bc_decl, MAIN_THREAD_NAME, NULL, NULL},
+  {&curr_thread_bc_decl, CURR_THREAD_NAME, NULL, NULL},
+  {&anode_bc_decl, ANODE_NAME, NULL, NULL},
+  {&token_bc_decl, TOKEN_NAME, NULL, NULL},
+  {&code_bc_decl, CODE_NAME, &token_bc_decl, NULL},
+  {&nil_anode_bc_decl, NIL_ANODE_NAME, NULL, NULL},
+  {&error_anode_bc_decl, ERROR_ANODE_NAME, NULL, NULL},
+  {&parser_bc_decl, PARSER_NAME, NULL, NULL},
+  {&ambiguous_p_bc_decl, AMBIGUOUS_P_NAME, &parser_bc_decl, NULL},
+  {&int_earley_parse_grammar_bc_decl, INT_EARLEY_PARSE_GRAMMAR_NAME,
+   &parser_bc_decl, int_earley_parse_grammar},
+  {&int_earley_set_debug_level_bc_decl, INT_EARLEY_SET_DEBUG_LEVEL_NAME,
+   &parser_bc_decl, int_earley_set_debug_level},
+  {&int_earley_set_one_parse_flag_bc_decl, INT_EARLEY_SET_ONE_PARSE_FLAG_NAME,
+   &parser_bc_decl, int_earley_set_one_parse_flag},
+  {&int_earley_set_lookahead_level_bc_decl, INT_EARLEY_SET_LOOKAHEAD_LEVEL_NAME,
+   &parser_bc_decl, int_earley_set_lookahead_level},
+  {&int_earley_set_cost_flag_bc_decl, INT_EARLEY_SET_COST_FLAG_NAME,
+   &parser_bc_decl, int_earley_set_cost_flag},
+  {&int_earley_set_error_recovery_flag_bc_decl,
+   INT_EARLEY_SET_ERROR_RECOVERY_FLAG_NAME, &parser_bc_decl,
+   int_earley_set_error_recovery_flag},
+  {&int_earley_set_recovery_match_bc_decl, INT_EARLEY_SET_RECOVERY_MATCH_NAME,
+   &parser_bc_decl, int_earley_set_recovery_match},
+  {&int_earley_parse_bc_decl, INT_EARLEY_PARSE_NAME,
+   &parser_bc_decl, int_earley_parse},
+  {&int_earley_create_grammar_bc_decl, INT_EARLEY_CREATE_GRAMMAR_NAME,
+   &parser_bc_decl, int_earley_create_grammar},
+  {&file_bc_decl, FILE_NAME, NULL, NULL},
+  {&file_ptr_bc_decl, FILE_PTR_NAME, &file_bc_decl, NULL},
+  {&stdin_bc_decl, STDIN_NAME, NULL, NULL},
+  {&stdout_bc_decl, STDOUT_NAME, NULL, NULL},
+  {&stderr_bc_decl, STDERR_NAME, NULL, NULL},
+  {&max_bc_decl, MAX_NAME, NULL, max_call},
+  {&min_bc_decl, MIN_NAME, NULL, min_call},
+  {&tolower_bc_decl, TOLOWER_NAME, NULL, tolower_call},
+  {&toupper_bc_decl, TOUPPER_NAME, NULL, toupper_call},
+  {&transliterate_bc_decl, TRANSLITERATE_NAME, NULL, transliterate_call},
+  {&eltype_bc_decl, ELTYPE_NAME, NULL, eltype_call},
+  {&keys_bc_decl, KEYS_NAME, NULL, keys_call},
+  {&context_bc_decl, CONTEXT_NAME, NULL, context_call},
+  {&inside_bc_decl, INSIDE_NAME, NULL, inside_call},
+  {&subv_bc_decl, SUBV_NAME, NULL, subv_call},
+  {&cmpv_bc_decl, CMPV_NAME, NULL, cmpv_call},
+  {&del_bc_decl, DEL_NAME, NULL, del_call},
+  {&ins_bc_decl, INS_NAME, NULL, ins_call},
+  {&insv_bc_decl, INSV_NAME, NULL, insv_call},
+  {&rev_bc_decl, REV_NAME, NULL, rev_call},
+  {&sort_bc_decl, SORT_NAME, NULL, sort_call},
+  {&sqrt_bc_decl, SQRT_NAME, NULL, sqrt_call},
+  {&exp_bc_decl, EXP_NAME, NULL, exp_call},
+  {&log_bc_decl, LOG_NAME, NULL, log_call},
+  {&log10_bc_decl, LOG10_NAME, NULL, log10_call},
+  {&pow_bc_decl, POW_NAME, NULL, pow_call},
+  {&sin_bc_decl, SIN_NAME, NULL, sin_call},
+  {&cos_bc_decl, COS_NAME, NULL, cos_call},
+  {&atan2_bc_decl, ATAN2_NAME, NULL, atan2_call},
+  {&match_bc_decl, MATCH_NAME, NULL, match_call},
+  {&gmatch_bc_decl, GMATCH_NAME, NULL, gmatch_call},
+  {&sub_bc_decl, SUB_NAME, NULL, sub_call},
+  {&gsub_bc_decl, GSUB_NAME, NULL, gsub_call},
+  {&split_bc_decl, SPLIT_NAME, NULL, split_call},
+  {&split_regex_bc_decl, SPLIT_REGEX_NAME, NULL, NULL},
+  {&srand_bc_decl, SRAND_NAME, NULL, srand_call},
+  {&rand_bc_decl, RAND_NAME, NULL, rand_call},
+  {&process_errno_bc_decl, PROCESS_ERRNO_NAME, NULL, process_errno_call},
+  {&readdir_bc_decl, READDIR_NAME, NULL, readdir_call},
+  {&ftype_bc_decl, FTYPE_NAME, NULL, ftype_call},
+  {&fun_bc_decl, FUN_NAME, NULL, fun_call},
+  {&fgn_bc_decl, FGN_NAME, NULL, fgn_call},
+  {&fsize_bc_decl, FSIZE_NAME, NULL, fsize_call},
+  {&fatime_bc_decl, FATIME_NAME, NULL, fatime_call},
+  {&fmtime_bc_decl, FMTIME_NAME, NULL, fmtime_call},
+  {&fctime_bc_decl, FCTIME_NAME, NULL, fctime_call},
+  {&fumode_bc_decl, FUMODE_NAME, NULL, fumode_call},
+  {&fgmode_bc_decl, FGMODE_NAME, NULL, fgmode_call},
+  {&fomode_bc_decl, FOMODE_NAME, NULL, fomode_call},
+  {&time_bc_decl, TIME_NAME, NULL, time_call},
+  {&strtime_bc_decl, STRTIME_NAME, NULL, strtime_call},
+  {&time_format_bc_decl, TIME_FORMAT_NAME, NULL, NULL},
+  {&clock_bc_decl, CLOCK_NAME, NULL, clock_call},
+  {&gc_bc_decl, GC_NAME, NULL, gc_call},
+  {&rename_bc_decl, RENAME_NAME, NULL, rename_call},
+  {&remove_bc_decl, REMOVE_NAME, NULL, remove_call},
+  {&mkdir_bc_decl, MKDIR_NAME, NULL, mkdir_call},
+  {&rmdir_bc_decl, RMDIR_NAME, NULL, rmdir_call},
+  {&getcwd_bc_decl, GETCWD_NAME, NULL, getcwd_call},
+  {&chdir_bc_decl, CHDIR_NAME, NULL, chdir_call},
+  {&chumod_bc_decl, CHUMOD_NAME, NULL, chumod_call},
+  {&chgmod_bc_decl, CHGMOD_NAME, NULL, chgmod_call},
+  {&chomod_bc_decl, CHOMOD_NAME, NULL, chomod_call},
+  {&isatty_bc_decl, ISATTY_NAME, NULL, isatty_call},
+  {&open_bc_decl, OPEN_NAME, NULL, open_call},
+  {&close_bc_decl, CLOSE_NAME, NULL, close_call},
+  {&flush_bc_decl, FLUSH_NAME, NULL, flush_call},
+  {&popen_bc_decl, POPEN_NAME, NULL, popen_call},
+  {&pclose_bc_decl, PCLOSE_NAME, NULL, pclose_call},
+  {&tell_bc_decl, TELL_NAME, NULL, tell_call},
+  {&seek_bc_decl, SEEK_NAME, NULL, seek_call},
+  {&put_bc_decl, PUT_NAME, NULL, put_call},
+  {&putln_bc_decl, PUTLN_NAME, NULL, putln_call},
+  {&fput_bc_decl, FPUT_NAME, NULL, fput_call},
+  {&fputln_bc_decl, FPUTLN_NAME, NULL, fputln_call},
+  {&sput_bc_decl, SPUT_NAME, NULL, sput_call},
+  {&sputln_bc_decl, SPUTLN_NAME, NULL, sputln_call},
+  {&putf_bc_decl, PUTF_NAME, NULL, putf_call},
+  {&fputf_bc_decl, FPUTF_NAME, NULL, fputf_call},
+  {&sputf_bc_decl, SPUTF_NAME, NULL, sputf_call},
+  {&print_bc_decl, PRINT_NAME, NULL, print_call},
+  {&println_bc_decl, PRINTLN_NAME, NULL, println_call},
+  {&fprint_bc_decl, FPRINT_NAME, NULL, fprint_call},
+  {&fprintln_bc_decl, FPRINTLN_NAME, NULL, fprintln_call},
+  {&sprint_bc_decl, SPRINT_NAME, NULL, sprint_call},
+  {&sprintln_bc_decl, SPRINTLN_NAME, NULL, sprintln_call},
+  {&get_bc_decl, GET_NAME, NULL, get_call},
+  {&getln_bc_decl, GETLN_NAME, NULL, getln_call},
+  {&getf_bc_decl, GETF_NAME, NULL, getf_call},
+  {&fget_bc_decl, FGET_NAME, NULL, fget_call},
+  {&fgetln_bc_decl, FGETLN_NAME, NULL, fgetln_call},
+  {&fgetf_bc_decl, FGETF_NAME, NULL, fgetf_call},
+  {&scan_bc_decl, SCAN_NAME, NULL, scan_call},
+  {&scanln_bc_decl, SCANLN_NAME, NULL, scanln_call},
+  {&fscan_bc_decl, FSCAN_NAME, NULL, fscan_call},
+  {&fscanln_bc_decl, FSCANLN_NAME, NULL, fscanln_call},
+  {&getpid_bc_decl, GETPID_NAME, NULL, getpid_call},
+  {&getun_bc_decl, GETUN_NAME, NULL, getun_call},
+  {&geteun_bc_decl, GETEUN_NAME, NULL, geteun_call},
+  {&getgn_bc_decl, GETGN_NAME, NULL, getgn_call},
+  {&getegn_bc_decl, GETEGN_NAME, NULL, getegn_call},
+  {&getgroups_bc_decl, GETGROUPS_NAME, NULL, getgroups_call},
+  {&system_bc_decl, SYSTEM_NAME, NULL, system_call},
+  {&exit_bc_decl, EXIT_NAME, NULL, exit_call},
+  {&fold_bc_decl, FOLD_NAME, NULL, fold_call},
+  {&filter_bc_decl, FILTER_NAME, NULL, filter_call},
+  {&map_bc_decl, MAP_NAME, NULL, map_call},
+  {&transpose_bc_decl, TRANSPOSE_NAME, NULL, transpose_call},
+  {&init_bc_decl, INIT_NAME, NULL, init_call}
+};
+
+static int curr_decl_entry_num;
+
+void
+init_env_decl_processing (void)
+{
+  curr_decl_entry_num = 0;
+}
+
+int
+all_env_decls_processed_p (void)
+{
+  return (curr_decl_entry_num
+	  >= sizeof (bc_decls_table) / sizeof (bc_decls_table [0]));
+}
+
+void
+process_env_decl (BC_node_t decl)
+{
+  string_t ident;
+  BC_node_t *scope_ptr;
+
+  if (all_env_decls_processed_p ())
+    return;
+  if ((ident = BC_ident (decl)) == NULL
+      || strcmp (ident, bc_decls_table[curr_decl_entry_num].name) != 0)
+    return;
+  scope_ptr = bc_decls_table[curr_decl_entry_num].scope_ptr;
+  /* NULL ptr means uppest level block.  */
+  if (scope_ptr == NULL && BC_decl_scope (decl) != first_program_bc)
+    return;
+  if (scope_ptr != NULL && BC_decl_scope (decl) != *scope_ptr)
+    return;
+  if (BC_IS_OF_TYPE (decl, BC_NM_fdecl))
+    decl = BC_fblock (decl);
+  *bc_decls_table[curr_decl_entry_num].decl_ptr = decl;
+  if (BC_IS_OF_TYPE (decl, BC_NM_fblock))
+    BC_set_implementation_func (decl, bc_decls_table[curr_decl_entry_num].func_ptr);
+  curr_decl_entry_num++;
+}
+
+/* Prepare infoed block for execution: set up block decl and
+   environment declaration in BLOCK and remove info nodes. */
+void
+prepare_block (BC_node_t block)
+{
+  BC_node_t bc_decl, info, bc, next_info;
+
+  d_assert (BC_IS_OF_TYPE (block, BC_NM_block));
+  set_block_number (block);
+  for (bc_decl = BC_decls (block);
+       bc_decl != NULL;
+       bc_decl = BC_next_decl (bc_decl))
+    {
+      d_assert (BC_ident (bc_decl) != NULL);
+      define_block_decl (bc_decl, block);
+      process_env_decl (bc_decl);
+      if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl))
+	prepare_block (BC_fblock (bc_decl));
+    }
+  if (BC_IS_OF_TYPE (block, BC_NM_fblock) || BC_scope (block) == NULL)
+    for (info = BC_info (block); info != NULL; info = next_info)
+      {
+	bc = BC_bc (info);
+	if (BC_NODE_MODE (bc) == BC_NM_block && bc != block)
+	  prepare_block (bc);
+	next_info = BC_next_info (info);
+	BC_set_info (bc, BC_source (info));
+      }
 }

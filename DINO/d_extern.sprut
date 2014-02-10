@@ -3,7 +3,7 @@
    described here. */
 
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,7 +29,7 @@
 /* Don't use -flat-structure for generation SPI from this description. */
 
 %type bool_t size_t hide_t char_t int_t unsigned_int_t floating_t char_ptr_t
-      irid_t stack_state_t IR_hidden_node_t ER_node_mode_t
+      bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t
       process_status_t stack_ptr_t hidden_pc_t
 
 %import {
@@ -38,13 +38,13 @@
 
 typedef void *hide_t;
 
-typedef struct IR_node *IR_hidden_node_t;
+typedef struct BC_node *BC_hidden_node_t;
 
 typedef struct BC_node *hidden_pc_t;
 
 typedef char *char_ptr_t;
 
-typedef int_t irid_t;
+typedef int_t bcid_t;
 
 /* This enumeration declares all possible states of of heap stack
    which contains function destroy.  Don't change it.  */
@@ -114,8 +114,6 @@ typedef union
     _ER_empty_entry ee;
     _ER_deleted_entry de;
     _ER_stack stack;
-    _ER_func func;
-    _ER_class cl;
     _ER_process process;
     _ER_external_var_ref external_var_ref;
   } val_t;
@@ -183,10 +181,9 @@ extern void *get_library_search_function (const char *name);
 #endif
 
 #if defined(NDEBUG)
-#define ER_stack_func_class(stack)\
-  (IR_func_class_ext (ER_block_node (stack)))
+#define ER_stack_block(stack) ER_block_node (stack)
 #else
-#define ER_stack_func_class(stack) _stack_func_class (stack)
+#define ER_stack_block(stack) _stack_block (stack)
 #endif
 
 #if defined(NDEBUG)
@@ -238,7 +235,7 @@ ER_node_t _tab_els (ER_node_t tab);
 
 ER_node_t _stack_vars (ER_node_t stack);
 
-IR_hidden_node_t _stack_func_class (ER_node_t stack);
+BC_hidden_node_t _stack_block (ER_node_t stack);
 
 stack_ptr_t _stacks_table (ER_node_t process);
 
@@ -376,7 +373,7 @@ context_heap_obj :: heap_obj
   /* Context in which the variables are searched for.  See also
      comment for heap_process. */
   context : context_heap_obj
-  block_node : IR_hidden_node_t /* Pointer to corresponding block node. */
+  block_node : BC_hidden_node_t /* Pointer to corresponding block node. */
 ;
 
 /* Stack of a block. */
@@ -398,8 +395,7 @@ heap_process :: context_heap_obj
 %other
   /* Here context is context of the function (thread) which is called
      during process creation. */
-  /* The following is NULL for the main process. */
-  thread_func : IR_hidden_node_t
+  process_block : BC_hidden_node_t
   process_status : process_status_t
   /* Pointer to the process which immediatelly started this process. */
   father : heap_process
@@ -491,24 +487,16 @@ empty_entry, deleted_entry :: val
 ;
 
 /*%final*/
-func :: val
+code :: val /* func/class blocks, imlementation funcs */
 %other
-  func_id : irid_t
-  func_context : context_heap_obj
+  code_id : bcid_t
+  code_context : context_heap_obj
 ;
 
 /*%final*/
-thread :: val
+efunc :: val /* external function */
 %other
-  thread_id : irid_t
-  thread_context : context_heap_obj
-;
-
-/*%final*/
-class :: val
-%other
-  class_id : irid_t
-  class_context : context_heap_obj
+  efdecl : BC_hidden_node_t
 ;
 
 /*%final*/

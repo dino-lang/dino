@@ -2,7 +2,7 @@
    environment functions. */
 
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,7 +29,7 @@ extern void min_call (int_t pars_number);
 extern void max_call (int_t pars_number);
 extern void tolower_call (int_t pars_number);
 extern void toupper_call (int_t pars_number);
-extern void trans_call (int_t pars_number);
+extern void transliterate_call (int_t pars_number);
 extern void eltype_call (int_t pars_number);
 extern void keys_call (int_t pars_number);
 extern void context_call (int_t pars_number);
@@ -125,6 +125,7 @@ extern void exit_call (int_t pars_number);
 extern void fold_call (int_t pars_number);
 extern void filter_call (int_t pars_number);
 extern void map_call (int_t pars_number);
+extern void transpose_call (int_t pars_number);
 extern void init_call (int_t pars_number);
 
 extern void int_earley_parse_grammar (int_t pars_number);

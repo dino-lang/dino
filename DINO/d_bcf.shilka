@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2014 Vladimir Makarov.
+   Copyright (C) 2013-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -22,18 +22,60 @@
 
 */
 
-#include "d_run.h"
+%%
 
-extern ER_node_t to_vect_string_conversion (ER_node_t var, const char *format,
-					    ER_node_t tvar);
-extern ER_node_t implicit_arithmetic_conversion (ER_node_t op1, ER_node_t tvar);
-extern void implicit_conversion_for_binary_arithmetic_op (ER_node_t op1,
-							  ER_node_t op2,
-							  ER_node_t *l,
-							  ER_node_t *r);
-extern ER_node_t implicit_int_conversion (ER_node_t op, ER_node_t tvar);
-extern void implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
-						   ER_node_t *l, ER_node_t *r);
-extern void implicit_conversion_for_binary_string_op (void);
-extern void implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
-					   ER_node_t *l, ER_node_t *r);
+fn
+fn2
+fn3
+ln
+ln2
+ln3
+pos
+pos2
+pos3
+decl_num
+ident
+ident_num
+decl_scope
+public_p
+var_num
+fblock
+friend
+next
+scope
+vars_num
+tvars_num
+excepts
+ext_life_p
+fdecl
+func_p
+class_p
+thread_p
+args_p
+simple_p
+pure_func_p
+pars_num
+min_pars_num
+op1
+decl
+op2
+op3
+op4
+pc
+res
+bcmp_op2
+bcmp_res
+binc_inc
+cfblock
+next_except
+f
+str
+/*tvar_num*/
+fldid
+body_pc
+rhs_decl
+block
+
+%%
+
+#define FIELD_BOUND (FR_block + 1)

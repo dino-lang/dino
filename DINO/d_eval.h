@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -24,4 +24,4 @@
 
 extern int eval_long_jump_set_flag;
 extern void evaluate_program (pc_t program_start_pc);
-extern void print_profile (IR_node_t first_level_stmt);
+extern void print_profile (BC_node_t block);

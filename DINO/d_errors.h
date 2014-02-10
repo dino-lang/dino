@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -96,11 +96,22 @@ extern char ERR_return_with_result_in_class [];
 extern char ERR_return_with_result_in_thread [];
 extern char ERR_function_call_in_wait_stmt [];
 
+extern char ERR_byte_code_should_start_with_label [];
+extern char ERR_byte_code_should_have_name [];
+extern char ERR_byte_code_field_should_have_name [];
+extern char ERR_byte_code_field_should_be_followed_by_eq [];
+extern char ERR_unknown_byte_code_node [];
+extern char ERR_unknown_byte_code_field [];
+extern char ERR_wrong_byte_code_field_value [];
+extern char ERR_undefined_byte_code_field [];
+extern char ERR_node_has_no_such_field [];
+
 /* Invalid environment. */
 extern char DERR_environment_corrupted[];
 /* Operand types. */
 extern char DERR_identity_operands_types [];
 extern char DERR_eq_operands_types [];
+extern char DERR_logical_operands_types [];
 extern char DERR_logical_or_operands_types [];
 extern char DERR_logical_and_operands_types [];
 extern char DERR_cond_operand_type [];
@@ -158,6 +169,7 @@ extern char DERR_slice_operand_form [];
 extern char DERR_different_vec_operand_lengths [];
 /* Vecform. */
 extern char DERR_vector_form_type [];
+extern char DERR_matrix_form_type [];
 /* Key value. */
 extern char DERR_repeated_key [];
 extern char DERR_no_such_key [];
@@ -166,6 +178,7 @@ extern char DERR_key_index_operation_for_non_table [];
 extern char DERR_in_table_operand_type [];
 /* Call operation. */
 extern char DERR_none_class_or_func_before_left_bracket [];
+extern char DERR_undefined_class_or_func [];
 /* Parameter type. */
 extern char DERR_parameter_type [];
 /* Invalid result. */
@@ -251,6 +264,8 @@ extern char DERR_value_is_not_class_instance_or_stack [];
 extern char DERR_decl_is_absent_in_given_class_or_block [];
 extern char DERR_undefined_value_access [];
 extern char DERR_private_decl_access_from_outside_block [];
+/* Accessvalue. */
+extern char DERR_undefined_class_or_func [];
 /* Immutable. */
 extern char DERR_immutable_vector_modification [];
 extern char DERR_immutable_table_modification [];

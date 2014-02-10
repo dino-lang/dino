@@ -1,0 +1,198 @@
+/*
+   Copyright (C) 2014 Vladimir Makarov.
+
+   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+
+   This file is part of interpreter of DINO.
+
+   This is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This software is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU CC; see the file COPYING.  If not, write to the Free
+   Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA.
+
+*/
+
+%type BC_node_mode_t
+
+%%
+vdecl		{return BC_NM_vdecl;}
+fdecl		{return BC_NM_fdecl;}
+evdecl		{return BC_NM_evdecl;}
+efdecl		{return BC_NM_efdecl;}
+block		{return BC_NM_block;}
+fblock		{return BC_NM_fblock;}
+ldnil		{return BC_NM_ldnil;}
+ldthis		{return BC_NM_ldthis;}
+flat		{return BC_NM_flat;}
+ldi		{return BC_NM_ldi;}
+ldch		{return BC_NM_ldch;}
+ldtp		{return BC_NM_ldtp;}
+ldf		{return BC_NM_ldf;}
+lds		{return BC_NM_lds;}
+pushi		{return BC_NM_pushi;}
+var		{return BC_NM_var;}
+/*tvar		{return BC_NM_tvar;}*/
+lvar		{return BC_NM_lvar;}
+lvarv		{return BC_NM_lvarv;}
+evar		{return BC_NM_evar;}
+levar		{return BC_NM_levar;}
+levarv		{return BC_NM_levarv;}
+func		{return BC_NM_func;}
+efunc		{return BC_NM_efunc;}
+class		{return BC_NM_class;}
+ind		{return BC_NM_ind;}
+lindv		{return BC_NM_lindv;}
+key		{return BC_NM_key;}
+lkeyv		{return BC_NM_lkeyv;}
+sl		{return BC_NM_sl;}
+lslv		{return BC_NM_lslv;}
+fld		{return BC_NM_fld;}
+lfld		{return BC_NM_lfld;}
+lfldv		{return BC_NM_lfldv;}
+const		{return BC_NM_const;}
+new		{return BC_NM_new;}
+not		{return BC_NM_not;}
+plus		{return BC_NM_plus;}
+minus		{return BC_NM_minus;}
+bnot		{return BC_NM_bnot;}
+length		{return BC_NM_length;}
+fadd		{return BC_NM_fadd;}
+fmult		{return BC_NM_fmult;}
+fand		{return BC_NM_fand;}
+for		{return BC_NM_for;}
+fxor		{return BC_NM_fxor;}
+tpof		{return BC_NM_tpof;}
+chof		{return BC_NM_chof;}
+iof		{return BC_NM_iof;}
+fof		{return BC_NM_fof;}
+vecof		{return BC_NM_vecof;}
+tabof		{return BC_NM_tabof;}
+funcof		{return BC_NM_funcof;}
+threadof	{return BC_NM_threadof;}
+classof		{return BC_NM_classof;}
+fmtvecof	{return BC_NM_fmtvecof;}
+in		{return BC_NM_in;}
+or		{return BC_NM_or;}
+xor		{return BC_NM_xor;}
+and		{return BC_NM_and;}
+eq		{return BC_NM_eq;}
+ne		{return BC_NM_ne;}
+id		{return BC_NM_id;}
+unid		{return BC_NM_unid;}
+lt		{return BC_NM_lt;}
+gt		{return BC_NM_gt;}
+le		{return BC_NM_le;}
+ge		{return BC_NM_ge;}
+lsh		{return BC_NM_lsh;}
+rsh		{return BC_NM_rsh;}
+ash		{return BC_NM_ash;}
+concat		{return BC_NM_concat;}
+add		{return BC_NM_add;}
+sub		{return BC_NM_sub;}
+mult		{return BC_NM_mult;}
+div		{return BC_NM_div;}
+mod		{return BC_NM_mod;}
+addi		{return BC_NM_addi;}
+eqi		{return BC_NM_eqi;}
+nei		{return BC_NM_nei;}
+lti		{return BC_NM_lti;}
+gti		{return BC_NM_gti;}
+lei		{return BC_NM_lei;}
+gei		{return BC_NM_gei;}
+b		{return BC_NM_b;}
+btdef		{return BC_NM_btdef;}
+bt		{return BC_NM_bt;}
+bf		{return BC_NM_bf;}
+bfni		{return BC_NM_bfni;}
+brts		{return BC_NM_brts;}
+brfs		{return BC_NM_brfs;}
+bteq		{return BC_NM_bteq;}
+btne		{return BC_NM_btne;}
+btge		{return BC_NM_btge;}
+btlt		{return BC_NM_btlt;}
+btle		{return BC_NM_btle;}
+btgt		{return BC_NM_btgt;}
+bteqi		{return BC_NM_bteqi;}
+btnei		{return BC_NM_btnei;}
+btgei		{return BC_NM_btgei;}
+btlti		{return BC_NM_btlti;}
+btlei		{return BC_NM_btlei;}
+btgti		{return BC_NM_btgti;}
+bteqinc		{return BC_NM_bteqinc;}
+btneinc		{return BC_NM_btneinc;}
+btgeinc		{return BC_NM_btgeinc;}
+btltinc		{return BC_NM_btltinc;}
+btleinc		{return BC_NM_btleinc;}
+btgtinc		{return BC_NM_btgtinc;}
+lconv		{return BC_NM_lconv;}
+foreach		{return BC_NM_foreach;}
+vec		{return BC_NM_vec;}
+tab		{return BC_NM_tab;}
+move		{return BC_NM_move;}
+stv		{return BC_NM_stv;}
+stt		{return BC_NM_stt;}
+sts		{return BC_NM_sts;}
+ste		{return BC_NM_ste;}
+slst		{return BC_NM_slst;}
+mult_st		{return BC_NM_mult_st;}
+div_st		{return BC_NM_div_st;}
+mod_st		{return BC_NM_mod_st;}
+add_st		{return BC_NM_add_st;}
+sub_st		{return BC_NM_sub_st;}
+concat_st	{return BC_NM_concat_st;}
+lsh_st		{return BC_NM_lsh_st;}
+rsh_st		{return BC_NM_rsh_st;}
+ash_st		{return BC_NM_ash_st;}
+and_st		{return BC_NM_and_st;}
+xor_st		{return BC_NM_xor_st;}
+or_st		{return BC_NM_or_st;}
+mult_slst	{return BC_NM_mult_slst;}
+div_slst	{return BC_NM_div_slst;}
+mod_slst	{return BC_NM_mod_slst;}
+add_slst	{return BC_NM_add_slst;}
+sub_slst	{return BC_NM_sub_slst;}
+concat_slst	{return BC_NM_concat_slst;}
+lsh_slst	{return BC_NM_lsh_slst;}
+rsh_slst	{return BC_NM_rsh_slst;}
+ash_slst	{return BC_NM_ash_slst;}
+and_slst	{return BC_NM_and_slst;}
+xor_slst	{return BC_NM_xor_slst;}
+or_slst		{return BC_NM_or_slst;}
+out		{return BC_NM_out;}
+call		{return BC_NM_call;}
+tcall		{return BC_NM_tcall;}
+pcall		{return BC_NM_pcall;}
+tpcall		{return BC_NM_tpcall;}
+ibcall		{return BC_NM_ibcall;}
+icall		{return BC_NM_icall;}
+itcall		{return BC_NM_itcall;}
+ticall		{return BC_NM_ticall;}
+titcall		{return BC_NM_titcall;}
+cicall		{return BC_NM_cicall;}
+citcall		{return BC_NM_citcall;}
+ibpcall		{return BC_NM_ibpcall;}
+ipcall		{return BC_NM_ipcall;}
+itpcall		{return BC_NM_itpcall;}
+tipcall		{return BC_NM_tipcall;}
+titpcall	{return BC_NM_titpcall;}
+cipcall		{return BC_NM_cipcall;}
+citpcall	{return BC_NM_citpcall;}
+leave		{return BC_NM_leave;}
+sleave		{return BC_NM_sleave;}
+bend		{return BC_NM_bend;}
+ret		{return BC_NM_ret;}
+throw		{return BC_NM_throw;}
+wait		{return BC_NM_wait;}
+waitend		{return BC_NM_waitend;}
+except		{return BC_NM_except;}
+%other {return 0;}

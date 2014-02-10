@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,10 +29,18 @@
 #include "position.h"
 #include "hashtab.h"
 #include "ticker.h"
+#include "bits.h"
 #include "d_errors.h"
+#include "d_types.h"
 
 #define FALSE 0
 #define TRUE 1
+
+/* Determine positions for the tabs. */
+#define TAB_STOP 8
+
+/* The following value is used as a variable value which is not char.  */
+#define NOT_A_CHAR (-2000)
 
 /* Macros return value of digit CH.  Macros is undefined for non digit. */
 
@@ -42,19 +50,26 @@
 extern const char **include_path_directories;
 extern const char **libraries;
 extern char *command_line_program;
+extern FILE *input_dump_file;
 extern int program_arguments_number;
 extern char **program_arguments;
 extern char **program_environment;
 extern position_t source_position;
-extern int bc_insns_num;
+extern int bc_nodes_num;
 extern unsigned int heap_chunk_size;
 extern int statistics_flag;
 extern int trace_flag;
 extern int profile_flag;
 extern int dump_flag;
 extern double start_time;
-extern int max_block_level;
+extern int it_is_int_string (const char *str);
+extern int_t a2i (const char *str);
+extern floating_t a2f (const char *str);
+extern const char *i2a (int_t number);
+extern const char *f2a (floating_t number);
 extern char *get_ch_repr (int ch);
+extern int read_string_code (int input_char, int *correct_newln,
+			     int d_getc (void), void d_ungetc (int));
 extern void dino_finish (int code);
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))

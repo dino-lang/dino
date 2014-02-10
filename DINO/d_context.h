@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -22,4 +22,4 @@
 
 */
 
-extern pc_t test_context (IR_node_t first_program_stmt_ptr);
+extern void test_context (IR_node_t first_program_stmt_ptr);

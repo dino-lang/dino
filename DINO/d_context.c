@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -25,20 +25,28 @@
 #include "d_common.h"
 #include "d_ir.h"
 #include "d_bc.h"
-#include "d_runtab.h"
+#include "d_run.h"
 #include "d_context.h"
+#include "d_bcio.h"
 
 /* Pointer to block node which opens current scope. */
 static IR_node_t curr_scope;
 
-/* Current and previous program counter.  This value is used to
-   connect commands for interpreter (see comments for typedef
-   pc_t). */
+/* Pointer to block node which opens current scope. */
+static BC_node_t curr_bc_scope;
+
+/* Current and previous program counter.  The values are used to
+   connect byte code commands for interpreter (see comments for
+   typedef pc_t). */
 static pc_t curr_pc, prev_pc;
 
-/* Program counter of starting new iteration of current for stmt.
-   This value is used to connect continue stmt. */
-static pc_t start_next_iteration_pc;
+/* The current info node.  The value is used to form byte code
+   chain.  */
+static BC_node_t curr_info;
+
+/* Byte code starting new iteration of current for stmt.  This value is
+   used to connect continue stmt. */
+static BC_node_t start_next_iteration;
 
 /* Program counter of finishing of current for stmt.
    This value is for_finish node and is used to connect break stmt.
@@ -63,11 +71,9 @@ check_slice (IR_node_t pos_node, IR_node_t des, const char *msg)
 }
 
 /* The following recursive func passes (correctly setting up
-   SOURCE_POSITION) EXPR (it may be NULL) and processes idents in
-   operations PERIOD.  See also commentaries for abstract data
-   block_decl_tables.  The func also sets up members
-   parts_number and class_func_thread_call_parameters_number in vector
-   node (table node) and class_func_thread_call node. */
+   SOURCE_POSITION) EXPR (it may be NULL) sets up members parts_number
+   and class_func_thread_call_parameters_number in vector node (table
+   node) and class_func_thread_call node. */
 static void
 first_expr_processing (IR_node_t expr)
 {
@@ -114,8 +120,6 @@ first_expr_processing (IR_node_t expr)
 
 	ident = expr;
 	expr = find_decl (expr, curr_scope);
-	if (expr != NULL && IR_scope (expr) != NULL)
-	  process_block_decl_unique_ident (IR_unique_ident (ident));
 	break;
       }
     case IR_NM_period:
@@ -123,15 +127,6 @@ first_expr_processing (IR_node_t expr)
       first_expr_processing (IR_designator (expr));
       check_slice (expr, IR_designator (expr),
 		   ERR_period_ident_applied_to_slice);
-      if (IR_component (expr) != NULL)
-	{
-	  process_block_decl_unique_ident
-	    (IR_unique_ident (IR_component (expr)));
-	  IR_set_right_block_decl_ident_number
-	    (expr,
-	     IR_block_decl_ident_number (IR_unique_ident
-					 (IR_component (expr))));
-	}
       break;
     case IR_NM_logical_or:
     case IR_NM_logical_and:
@@ -379,21 +374,19 @@ process_extension_block (IR_node_t ext_block, IR_node_t origin_block,
    been found. */
 static vlo_t possible_table_extensions;
 
-/* This recursive func passes all stmts and exprs (correctly
-   setting up SOURCE_POSITION and curr_scope (before first call of
-   the func curr_scope is to be NULL)) on the same
-   stmt nesting level, includes decls into the hash table, sets up
-   decl block_level of any block node, sets up
-   decl_number_in_block, increases decls_number and
-   vars_number of the block in which the decl (var) is
-   immediately placed, processes idents in operations PERIOD
-   create class decls idents table for new class decl
-   (see also commentaries for corresponding abstract data) and sets up
-   member proc_call_pars_number in proc_call node.
-   The funcs also fixes repeated decl error.
-   FIRST_LEVEL_STMT (it may be NULL) is first stmt of the processed
-   stmt nesting level.  CURR_BLOCK_LEVEL is number of blocks which
-   contain given stmt list.
+/* The following value is maximal number of IR_block_level. */
+static int max_block_level;
+
+/* This recursive func passes all stmts and exprs (correctly setting
+   up SOURCE_POSITION and curr_scope (before first call of the func
+   curr_scope is to be NULL)) on the same stmt nesting level, includes
+   decls into the hash table, sets up decl block_level of any block
+   node, sets up decl_number_in_block, increases decls_number and
+   vars_number of the block in which the decl (var) is immediately
+   placed, and sets up member proc_call_pars_number in proc_call node.
+   The funcs also fixes repeated decl error.  FIRST_LEVEL_STMT (it may
+   be NULL) is first stmt of the processed stmt nesting level.
+   CURR_BLOCK_LEVEL is number of blocks which contain given stmt list.
    The function also removes extensions (moving its statements into
    the extended func or class) and their blocks from the statement
    list.  Therefore the function returns new first_level_stmt which is
@@ -528,11 +521,6 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	      (stmt, first_block_passing (IR_block_stmts (stmt),
 					  curr_block_level + 1));
 	    curr_scope = saved_curr_scope;
-	    IR_set_block_number (stmt, new_block ());
-	    if (IR_func_class_ext (stmt) == NULL
-		&& IR_decls_number (stmt) == 0
-		&& IR_exceptions (stmt) == NULL)
-	      IR_set_simple_block_flag (stmt, TRUE);
 	    for (curr_except = IR_exceptions (stmt);
 		 curr_except != NULL;
 		 curr_except = IR_next_exception (curr_except))
@@ -623,15 +611,10 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 }
 
 /* This recursive func passes (correctly setting up SOURCE_POSITION,
-   curr_scope and curr_real_scope (before first call of the
-   func to both are to be NULL)) all stmts on the same stmt nesting
-   level and sets up elements values of class decls idents tables (see
-   also commentaries for corresponding abstract data).
-   FIRST_LEVEL_STMT (it may be NULL) is the first stmt of the
-   processed stmt nesting level.
-   
-   The function also processes access lists, sets up public_flag
-   for declarations, and sets up func class table.  */
+   curr_scope and curr_real_scope (before first call of the func to
+   both are to be NULL)) all stmts on the same stmt nesting level and
+   processes access lists, sets up public_flag for declarations, and
+   sets up func class table.  */
 static void
 second_block_passing (IR_node_t first_level_stmt)
 {
@@ -781,8 +764,6 @@ second_block_passing (IR_node_t first_level_stmt)
 	case IR_NM_external_func:
 	case IR_NM_func:
 	case IR_NM_class:
-	  set_func_class_id (stmt);
-	  /* FALL THROUGH  */
 	case IR_NM_var:
 	case IR_NM_external_var:
 	  {
@@ -790,7 +771,8 @@ second_block_passing (IR_node_t first_level_stmt)
 
 	    block = IR_scope (stmt);
 	    d_assert (block != NULL && IR_NODE_MODE (block) == IR_NM_block);
-	    define_block_decl (stmt, block);
+	    IR_set_it_is_declared_in_block (IR_unique_ident (IR_ident (stmt)),
+					    TRUE);
 	    break;
 	  }
 	default:
@@ -838,18 +820,43 @@ static int curr_vars_number;
 /* Number of additional variables for different purpose. */
 #define ADD_TEMP_VARS_NUMBER 0
 
-/* Make pc_t value from byte code NODE.  */
-#define PC(node) ((pc_t) node)
+/* Link INFO to the info chain.  It should be not chained before.  */
+static void inline
+link_info (BC_node_t info)
+{
+  d_assert (info != NULL && BC_IS_OF_TYPE (info, BC_NM_info)
+	    && BC_prev_info (info) == NULL && BC_next_info (info) == NULL);
+  if (curr_info != NULL)
+    BC_set_next_info (curr_info, info);
+  BC_set_prev_info (info, curr_info);
+  curr_info = info;
+}
 
-/* This macro is used to connect byte code commands for interpreter
-   (see comments for typedef pc_t) into chain by members next. */
-#define SET_PC(node)\
-   do {\
-     prev_pc = curr_pc;\
-     if (curr_pc != NULL)\
-       BC_set_next (curr_pc, node);\
-     curr_pc = node;\
-   } while (0)
+/* Unlink the last info node.  */
+static void inline
+unlink_last_info (void)
+{
+  BC_node_t prev_info;
+
+  d_assert (curr_info != NULL);
+  prev_info = BC_prev_info (curr_info);
+  BC_set_next_info (curr_info, NULL);
+  BC_set_prev_info (curr_info, NULL);
+  curr_info = prev_info;
+  BC_set_next_info (curr_info, NULL);
+}
+
+/* Add NODE with info to the generated byte code.  It can be done only
+   once for the NODE.  */
+static void inline
+add_to_bcode (BC_node_t node)
+{
+  link_info (BC_info (node));
+  prev_pc = curr_pc;
+  if (curr_pc != NULL)
+    BC_set_next (curr_pc, node);
+  curr_pc = node;
+}
 
 /* See comments for the function third_expr_processing.  This variable
    is used for searching for side effects in wait stmt expression. */
@@ -877,19 +884,79 @@ setup_result_var_number (int *result, int *temp_vars_num)
   return res;
 }
 
+/* Remove INFO from the list of infos.  It could be done several times
+   safely.  */
+static inline void
+unlink_info (BC_node_t info)
+{
+  BC_node_t prev, next;
+
+  prev = BC_prev_info (info);
+  next = BC_next_info (info);
+  if (prev != NULL)
+    BC_set_next_info (prev, next);
+  if (next != NULL)
+    BC_set_prev_info (next, prev);
+  BC_set_next_info (info, NULL);
+  BC_set_prev_info (info, NULL);
+}
+
+/* Insert INFO into the info list BEFOE. */
+static inline void
+insert_info (BC_node_t info, BC_node_t before)
+{
+  BC_node_t next;
+
+  d_assert (before != NULL);
+  next = BC_next_info (before);
+  BC_set_next_info (before, info);
+  if (next != NULL)
+    BC_set_prev_info (next, info);
+  BC_set_next_info (info, next);
+  BC_set_prev_info (info, before);
+}
+
+/* Create and return new source bcode node with BNM and POS.  */
 static BC_node_t do_inline
-new_bc_node (BC_node_mode_t bnm, IR_node_t origin)
+new_bc_node (BC_node_mode_t bnm, position_t pos)
 {
   BC_node_t res = BC_create_node (bnm);
 
-  bc_insns_num++;
-  BC_set_origin (res, origin);
+  bc_nodes_num++;
+  BC_set_pos (res, pos);
+  return res;
+}
+
+/* Create and return new non-source bcode node with BNM and info
+   ORIGIN.  Attach the info node.  */
+static BC_node_t do_inline
+new_bc_code (BC_node_mode_t bnm, BC_node_t origin)
+{
+  BC_node_t res = BC_create_node (bnm);
+
+  bc_nodes_num++;
+  BC_set_info (res, origin);
+  attach_info (res);
+  return res;
+}
+
+/* Create and return new non-source bcode node with BNM.  Create
+   source node with position from ORIGIN and attach the info node.  */
+static BC_node_t do_inline
+new_bc_code_with_src (BC_node_mode_t bnm, IR_node_t origin)
+{
+  BC_node_t res = BC_create_node (bnm);
+
+  bc_nodes_num++;
+  BC_set_info (res, new_bc_node (BC_NM_source, IR_pos (origin)));
+  attach_info (res);
   return res;
 }
 
 static IR_node_t
 third_expr_processing (IR_node_t expr, int func_class_assign_p,
-		       int *result, int *curr_temp_vars_num, int lvalue_p);
+		       int *result, int *curr_temp_vars_num, int lvalue_p,
+		       BC_node_t false_pc, BC_node_t true_pc, int next_false_p);
 
 static void do_inline
 process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
@@ -897,13 +964,13 @@ process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
   int op_result = -1;
   int temp_vars_num = *curr_temp_vars_num;
   BC_node_mode_t bc_node_mode;
-  BC_node_t bc;
+  BC_node_t bc, src;
 
   SET_SOURCE_POSITION (op);
   op_result = -1;
   IR_set_operand (op, third_expr_processing (IR_operand (op), FALSE,
 					     &op_result, &temp_vars_num,
-					     FALSE));
+					     FALSE, NULL, NULL, FALSE));
   switch (IR_NODE_MODE (op))
     {
     case IR_NM_not: bc_node_mode = BC_NM_not; break;
@@ -930,10 +997,15 @@ process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
     default:
       d_unreachable ();
     }
-  bc = new_bc_node (bc_node_mode, op);
+  src = new_bc_node (BC_NM_source2, IR_pos (op));
+  if (IR_operand (op) != NULL)
+    BC_set_pos2 (src, IR_pos (IR_operand (op)));
+  else
+    BC_set_pos2 (src, IR_pos (op));
+  bc = new_bc_code (bc_node_mode, src);
   BC_set_op2 (bc, op_result);
   BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
-  SET_PC (bc);
+  add_to_bcode (bc);
 }
 
 /* Return true if at least one operand of L and R is a slice.  */
@@ -963,25 +1035,29 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
   int l_op_result = -1, r_op_result = -1;
   int temp_vars_num = *curr_temp_vars_num;
   BC_node_mode_t bc_node_mode;
-  BC_node_t bc;
+  BC_node_t bc, src;
   IR_node_t l = IR_left_operand (op), r = IR_right_operand (op);
 
   SET_SOURCE_POSITION (op);
   skip_left_p = skip_right_p = FALSE;
+  src = new_bc_node (BC_NM_source3, IR_pos (op));
+  BC_set_pos2 (src, IR_pos (op));
+  BC_set_pos3 (src, IR_pos (op));
   if (new_op_mode != BC_NM__error)
     {
       if (l != NULL && IR_IS_OF_TYPE (l, IR_NM_int))
 	{
 	  IR_set_right_operand
 	    (op, third_expr_processing (r, FALSE,
-					&r_op_result, &temp_vars_num, FALSE));
+					&r_op_result, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	  skip_right_p = TRUE;
 	  if (unary_slice_p (IR_right_operand (op)))
 	    ;
 	  else
 	    {
 	      skip_left_p = TRUE;
-	      bc = new_bc_node (rev_op_mode, op);
+	      bc = new_bc_code (rev_op_mode, src);
 	      BC_set_op3 (bc, IR_int_value (IR_unique_int (l)));
 	      BC_set_op2 (bc, r_op_result);
 	    }
@@ -990,19 +1066,24 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
 	{
 	  IR_set_left_operand
 	    (op, third_expr_processing (l, FALSE,
-					&l_op_result, &temp_vars_num, FALSE));
+					&l_op_result, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	  skip_left_p = TRUE;
 	  if (unary_slice_p (IR_left_operand (op)))
 	    ;
 	  else
 	    {
 	      skip_right_p = TRUE;
-	      bc = new_bc_node (new_op_mode, op);
+	      bc = new_bc_code (new_op_mode, src);
 	      BC_set_op3 (bc, IR_int_value (IR_unique_int (r)));
 	      BC_set_op2 (bc, l_op_result);
 	    }
 	}
     }
+  if (IR_left_operand (op) != NULL)
+    BC_set_pos2 (src, IR_pos (IR_left_operand (op)));
+  if (IR_right_operand (op) != NULL)
+    BC_set_pos3 (src, IR_pos (IR_right_operand (op)));
   if (! skip_left_p || ! skip_right_p)
     {
       switch (IR_NODE_MODE (op))
@@ -1032,20 +1113,22 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
 	default:
 	  d_unreachable ();
 	}
-      bc = new_bc_node (bc_node_mode, op);
       if (! skip_left_p)
 	IR_set_left_operand
 	  (op, third_expr_processing (l, FALSE,
-				      &l_op_result, &temp_vars_num, FALSE));
-      BC_set_op2 (bc, l_op_result);
+				      &l_op_result, &temp_vars_num, FALSE,
+				      NULL, NULL, FALSE));
       if (! skip_right_p)
 	IR_set_right_operand
 	  (op, third_expr_processing (r, FALSE,
-				      &r_op_result, &temp_vars_num, FALSE));
+				      &r_op_result, &temp_vars_num, FALSE,
+				      NULL, NULL, FALSE));
+      bc = new_bc_code (bc_node_mode, src);
+      BC_set_op2 (bc, l_op_result);
       BC_set_op3 (bc, r_op_result);
     }
   BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
-  SET_PC (bc);
+  add_to_bcode (bc);
 }
 
 /* Check EXPR whose value in OP_NUM for a slice and, if it is so, add
@@ -1057,9 +1140,10 @@ add_flatten_node_if_necessary (IR_node_t expr, int op_num)
 
   if (expr != NULL && IR_value_type (expr) == EVT_SLICE)
     {
-      flat = new_bc_node (BC_NM_flat, expr);
+      flat = new_bc_code (BC_NM_flat,
+			  new_bc_node (BC_NM_source, IR_pos (expr)));
       BC_set_op1 (flat, op_num);
-      SET_PC (flat);
+      add_to_bcode (flat);
     }
 }
 
@@ -1075,7 +1159,7 @@ bc_decl_mode (IR_node_t decl)
     return BC_NM_evar;
   else if (IR_NODE_MODE (decl) == IR_NM_external_func)
     return BC_NM_efunc;
-  else if (IR_NODE_MODE (decl) == IR_NM_func)
+  else if (IR_NODE_MODE (decl) == IR_NM_func) // ??? ifunc
     return BC_NM_func;
   else if (IR_NODE_MODE (decl) == IR_NM_class)
     return BC_NM_class;
@@ -1084,17 +1168,77 @@ bc_decl_mode (IR_node_t decl)
   return BC_NM_var; /* No warnings */
 }
 
+/* The last used number to enumerate unique indentifiers.  */
+static int last_uniq_ident_num;
+/* The last used number to enumerate decls.  */
+static int last_decl_num;
+
+/* Setup and return BLOCK_DECL_IDENT_NUMBER for UNIQUE_IDENT.  */
+static int
+get_block_decl_ident_number (IR_node_t unique_ident)
+{
+  if (IR_block_decl_ident_number (unique_ident) >= 0)
+    return IR_block_decl_ident_number (unique_ident);
+  if (destroy_unique_ident == unique_ident)
+    IR_set_block_decl_ident_number (unique_ident, DESTROY_IDENT_NUMBER);
+  else
+    {
+      last_uniq_ident_num++;
+      IR_set_block_decl_ident_number (unique_ident, last_uniq_ident_num);
+    }
+  return IR_block_decl_ident_number (unique_ident);
+}
+
+/* The func returns byte code decl node for corresponding DECL.  DECL
+   must be only var, func or class. */
+static BC_node_t
+get_bcode_decl (IR_node_t decl)
+{
+  BC_node_t bc_decl, bc_block;
+  IR_node_t unique_ident;
+
+  d_assert (decl != NULL);
+  if ((bc_decl = IR_bc_decl (decl)) != NULL)
+    return bc_decl;
+  if (IR_NODE_MODE (decl) == IR_NM_var)
+    {
+      bc_decl = new_bc_node (BC_NM_vdecl, IR_pos (decl));
+      BC_set_var_num (bc_decl, IR_var_number_in_block (decl));
+    }
+  else if (IR_NODE_MODE (decl) == IR_NM_external_var)
+    bc_decl = new_bc_node (BC_NM_evdecl, IR_pos (decl));
+  else if (IR_NODE_MODE (decl) == IR_NM_external_func)
+    bc_decl = new_bc_node (BC_NM_efdecl, IR_pos (decl));
+  else if (IR_NODE_MODE (decl) == IR_NM_func)
+    bc_decl = new_bc_node (BC_NM_fdecl, IR_pos (decl));
+  else if (IR_NODE_MODE (decl) == IR_NM_class)
+    bc_decl = new_bc_node (BC_NM_fdecl, IR_pos (decl));
+  else
+    d_unreachable ();
+  last_decl_num++;
+  BC_set_decl_num (bc_decl, last_decl_num);
+  unique_ident = IR_unique_ident (IR_ident (decl));
+  BC_set_ident (bc_decl, IR_ident_string (unique_ident));
+  BC_set_ident_num (bc_decl, get_block_decl_ident_number (unique_ident));
+  bc_block = IR_bc_block (IR_scope (decl));
+  d_assert (bc_block != NULL);
+  BC_set_decl_scope (bc_decl, bc_block);
+  BC_set_public_p (bc_decl, IR_public_flag (decl));
+  IR_set_bc_decl (decl, bc_decl);
+  return bc_decl;
+}
+
 /* The func creates bc_decl_node (var, func or class) for
    corresponding DECL.  DECL must be only var, func or class. */
 static BC_node_t
 create_bc_ident (IR_node_t ident)
 {
-  BC_node_t bc_ident;
-  BC_node_mode_t node_mode;
+  IR_node_t decl = IR_decl (ident);
+  BC_node_t bc, bc_decl = get_bcode_decl (decl);
 
-  node_mode = bc_decl_mode (IR_decl (ident));
-  bc_ident = new_bc_node (node_mode, ident);
-  return bc_ident;
+  bc = new_bc_code_with_src (bc_decl_mode (decl), ident);
+  BC_set_decl (bc, bc_decl);
+  return bc;
 }
 
 /* Process actual parameters ACTUALS and add flatten nodes if
@@ -1113,98 +1257,151 @@ process_actuals (IR_node_t func_decl, int func_op_num,
       SET_SOURCE_POSITION (elist);
       par_num = *temp_vars_num + curr_vars_number;
       IR_set_expr (elist, third_expr_processing (IR_expr (elist), TRUE,
-						 NULL, temp_vars_num, FALSE));
+						 NULL, temp_vars_num, FALSE,
+						 NULL, NULL, FALSE));
       add_flatten_node_if_necessary (IR_expr (elist), par_num);
     }
   return n;
 }
 
-/* Add move of VAR (source) to the pc chain.  Define VAR_NUM and
-   RESULT_NUM for the move.  */
+/* Add move of var/function DECL with position of POS_NODE to the pc
+   chain.  Define VAR_NUM and RESULT_NUM for the move.  */
 static void
-add_move (IR_node_t ident, int result_num, int var_num)
+add_move (IR_node_t pos_node, BC_node_t decl, int result_num, int var_num)
 {
-  BC_node_t bc = new_bc_node (BC_NM_move, ident);
+  BC_node_t bc = new_bc_code_with_src (BC_NM_move, pos_node);
 
   BC_set_op1 (bc, result_num);
   BC_set_op2 (bc, var_num);
-  SET_PC (bc);
+  BC_set_rhs_decl (bc, decl);
+  add_to_bcode (bc);
 }
 
+/* Return ER type of corresponding IR type given by IRNM.  */
+static int
+ir2er_type (IR_node_mode_t irnm)
+{
+  switch (irnm)
+    {
+    case IR_NM_char_type: return ER_NM_char;
+    case IR_NM_int_type: return ER_NM_int;
+    case IR_NM_float_type: return ER_NM_float;
+    case IR_NM_hide_type: return ER_NM_hide;
+    case IR_NM_hideblock_type: return ER_NM_hideblock;
+    case IR_NM_vector_type: return ER_NM_vect;
+    case IR_NM_table_type: return ER_NM_tab;
+    case IR_NM_thread_type:
+    case IR_NM_func_type:
+    case IR_NM_class_type:
+      return ER_NM_code;
+    case IR_NM_instance_type: return ER_NM_stack;
+    case IR_NM_stack_type: return ER_NM_stack;
+    case IR_NM_process_type: return ER_NM_process;
+    case IR_NM_type_type: return ER_NM_type;
+    default:
+      d_unreachable ();
+    }
+}
+
+/* Get fblock of func class declaration FUNC_DECL.  Create if it was
+   not created yet.  */
+static inline BC_node_t
+get_fblock (IR_node_t func_decl)
+{
+  BC_node_t bc, fdecl;
+  IR_node_t block = IR_next_stmt (func_decl);
+  
+  d_assert (block != NULL && IR_IS_OF_TYPE (block, IR_NM_block));
+  if ((bc = IR_bc_block (block)) == NULL)
+    {
+      fdecl = get_bcode_decl (func_decl);
+      bc = new_bc_code_with_src (BC_NM_fblock, block);
+      BC_set_decls (bc, NULL);
+      BC_set_fblock (fdecl, bc);
+      BC_set_fdecl (bc, fdecl);
+      IR_set_bc_decl (func_decl, fdecl);
+      IR_set_bc_block (block, bc);
+    }
+  return bc;
+}
+
+
 /* The following recursive func passes (correctly setting up
-   SOURCE_POSITION) EXPR (it may be NULL) and
-   changes idents on corresponding decls occurrences
-   according to languge visibility rules.
-   Also the func tests that ident in period operations is
-   defined in any class.
-   Therefore the func returns pointer to (possibly)
-   modified expr.  See also commentaries for abstract data
-   block_decl_tables. 
-   The func also tests operands types in operation.
-   The func creates chain by member next_pc to evaluate the processed 
-   expr.  The chain forms polish postfix order.
+   SOURCE_POSITION) EXPR (it may be NULL) and changes idents on
+   corresponding decls occurrences according to languge visibility
+   rules.  Also the func tests that ident in period operations is
+   defined in any class.  Therefore the func returns pointer to
+   (possibly) modified expr.  See also commentaries for abstract data
+   block_decl_tables.  The func also tests operands types in
+   operation.  The func creates chain by member next to evaluate the
+   processed expr.  The chain forms polish postfix order.
 
    The function sets up flag THERE_IS_FUNCTION_CALL_IN_EXPR if there
    is a function call in EXPR.  Otherwise, the function does not
    change the variable value.
 
    The function also sets up flag extended_life_context depending on
-   func_class_assign_p (see comment for field
-   extended_life_context). */
+   func_class_assign_p.
+
+   When we translate logical condition use FALSE_PC, TRUE_PC, and
+   NEXT_FALSE_PC.  */
 
 static IR_node_t
 third_expr_processing (IR_node_t expr, int func_class_assign_p,
-		       int *result, int *curr_temp_vars_num, int lvalue_p)
+		       int *result, int *curr_temp_vars_num, int lvalue_p,
+		       BC_node_t false_pc, BC_node_t true_pc, int next_false_p)
 {
   BC_node_t bc;
   IR_node_mode_t node_mode;
   IR_node_t l, r;
   int temp_vars_num = *curr_temp_vars_num;
 
+  d_assert ((false_pc != NULL && true_pc != NULL)
+	    || (false_pc == NULL && true_pc == NULL));
   if (expr == NULL)
     return expr;
   node_mode = IR_NODE_MODE (expr);
   switch (node_mode)
     {
     case IR_NM_char:
-      bc = new_bc_node (BC_NM_ldch, expr);
+      bc = new_bc_code_with_src (BC_NM_ldch, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       BC_set_op2 (bc, IR_char_value (IR_unique_char (expr)));
       IR_set_value_type (expr, EVT_CHAR);
-      SET_PC (bc);
+      add_to_bcode (bc);
       break;
     case IR_NM_int:
-      bc = new_bc_node (BC_NM_ldi, expr);
+      bc = new_bc_code_with_src (BC_NM_ldi, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       BC_set_op2 (bc, IR_int_value (IR_unique_int (expr)));
       IR_set_value_type (expr, EVT_INT);
-      SET_PC (bc);
+      add_to_bcode (bc);
       break;
     case IR_NM_float:
-      bc = new_bc_node (BC_NM_ldf, expr);
+      bc = new_bc_code_with_src (BC_NM_ldf, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       BC_set_f (bc, IR_float_value (IR_unique_float (expr)));
       IR_set_value_type (expr, EVT_FLOAT);
-      SET_PC (bc);
+      add_to_bcode (bc);
       break;
     case IR_NM_string:
-      bc = new_bc_node (BC_NM_lds, expr);
+      bc = new_bc_code_with_src (BC_NM_lds, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       BC_set_str (bc, IR_string_value (IR_unique_string (expr)));
       IR_set_value_type (expr, EVT_VECTOR);
-      SET_PC (bc);
+      add_to_bcode (bc);
       break;
     case IR_NM_nil:
-      bc = new_bc_node (BC_NM_ldnil, expr);
+      bc = new_bc_code_with_src (BC_NM_ldnil, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       IR_set_value_type (expr, EVT_UNKNOWN);
-      SET_PC (bc);
+      add_to_bcode (bc);
       break;
     case IR_NM_this:
-      bc = new_bc_node (BC_NM_ldthis, expr);
+      bc = new_bc_code_with_src (BC_NM_ldthis, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       IR_set_value_type (expr, EVT_UNKNOWN);
-      SET_PC (bc);
+      add_to_bcode (bc);
       break;
     case IR_NM_char_type:
     case IR_NM_int_type:
@@ -1220,11 +1417,11 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
     case IR_NM_process_type:
     case IR_NM_instance_type:
     case IR_NM_type_type:
-      bc = new_bc_node (BC_NM_ldtp, expr);
+      bc = new_bc_code_with_src (BC_NM_ldtp, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       BC_set_op2 (bc, ir2er_type (node_mode));
       IR_set_value_type (expr, EVT_TYPE);
-      SET_PC (bc);
+      add_to_bcode (bc);
       break;
     case IR_NM_ident:
       {
@@ -1248,18 +1445,26 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	else if (IR_pos (decl).file_name == NULL)
 	  return NULL; /* no_position.  */
 	if (IR_NODE_MODE (decl) == IR_NM_var
-	    && curr_real_scope == IR_scope (decl)
-	    && (IR_func_class_ext (curr_real_scope) == NULL
-		|| ! IR_IS_OF_TYPE (IR_func_class_ext (curr_real_scope),
-				    IR_NM_class)))
+	    && curr_real_scope == IR_scope (decl))
 	  {
 	    /* local var */
 	    if (result == NULL)
-	      add_move (ident,
+	      add_move (ident, get_bcode_decl (decl),
 			setup_result_var_number (result, curr_temp_vars_num),
 			IR_var_number_in_block (decl));
 	    else
 	      *result = IR_var_number_in_block (decl);
+	  }
+	else if (IR_NODE_MODE (decl) == IR_NM_var
+		 && IR_block_scope (IR_scope (decl)) == NULL)
+	  {
+	    /* global var */
+	    if (result == NULL)
+	      add_move (ident, get_bcode_decl (decl),
+			setup_result_var_number (result, curr_temp_vars_num),
+			-IR_var_number_in_block (decl) - 1);
+	    else
+	      *result = -IR_var_number_in_block (decl) - 1;
 	  }
 	else
 	  {
@@ -1268,7 +1473,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	      {
 		BC_set_op1
 		  (bc, setup_result_var_number (result, curr_temp_vars_num));
-		SET_PC (bc);
+		add_to_bcode (bc);
 	      }
 	    else
 	      {
@@ -1278,7 +1483,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 		BC_set_op1
 		  (bc, setup_result_var_number (result, curr_temp_vars_num));
 		get_temp_stack_slot (curr_temp_vars_num);
-		SET_PC (bc);
+		add_to_bcode (bc);
 	      }
 	  }
 	if (IR_NODE_MODE (decl) == IR_NM_func)
@@ -1288,9 +1493,14 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	else
 	  IR_set_value_type (expr, EVT_UNKNOWN);
 	if (func_class_assign_p
+	    /* This is not the highest level block.  */
+	    && IR_block_scope (curr_real_scope) != NULL
 	    && (IR_IS_OF_TYPE (decl, IR_NM_func)
 		|| IR_IS_OF_TYPE (decl, IR_NM_class)))
-	  IR_set_extended_life_context_flag (curr_real_scope, TRUE);
+	  {
+	    IR_set_extended_life_context_flag (curr_real_scope, TRUE);
+	    BC_set_ext_life_p (IR_bc_block (curr_real_scope), TRUE);
+	  }
 	break;
       }
     case IR_NM_period:
@@ -1299,10 +1509,13 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 
 	d_assert (! lvalue_p || result == NULL || *result < 0);
 	SET_SOURCE_POSITION (expr);
-	bc = new_bc_node (BC_NM_fld, expr);
+	bc = new_bc_code_with_src (BC_NM_fld, expr); // ??? should be decl
+	BC_set_fldid (bc,
+		      IR_ident_string (IR_unique_ident (IR_component (expr))));
 	IR_set_designator
 	  (expr, third_expr_processing (IR_designator (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE));
+					&op_result, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	BC_set_op2 (bc, op_result);
 	if (lvalue_p)
 	  {
@@ -1312,8 +1525,10 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	else
 	  BC_set_op1
 	    (bc, setup_result_var_number (result, curr_temp_vars_num));
-	BC_set_op3 (bc, IR_right_block_decl_ident_number (expr));
-	SET_PC (bc);
+	d_assert (IR_IS_OF_TYPE (IR_component (expr), IR_NM_ident));
+	BC_set_op3 (bc, get_block_decl_ident_number (IR_unique_ident
+						     (IR_component (expr))));
+	add_to_bcode (bc);
 	d_assert (IR_component (expr) != NULL
 		  && IR_NODE_MODE (IR_component (expr)) == IR_NM_ident);
 	if (IR_designator (expr) != NULL)
@@ -1329,40 +1544,72 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
       {
 	BC_node_t lconv;
 	int op_result;
+	BC_node_t nop;
 
+	bc = lconv = nop = NULL;
 	SET_SOURCE_POSITION (expr);
 	op_result = (result == NULL ? -1 : *result);
+	if (false_pc != NULL)
+	  nop = new_bc_code_with_src (BC_NM_nop, expr);
 	IR_set_operand
-	  (expr, third_expr_processing (IR_operand (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE));
-	bc = new_bc_node (node_mode == IR_NM_logical_or ? BC_NM_brts : BC_NM_brfs,
-			  expr);
-	BC_set_op1 (bc, op_result);
-	BC_set_res (bc, setup_result_var_number (result, curr_temp_vars_num));
-	SET_PC (bc);
-	lconv = new_bc_node (BC_NM_lconv, expr);
-        BC_set_pc (bc, lconv);
-	op_result = (result == NULL ? -1 : *result);
+	  (expr,
+	   third_expr_processing
+	   (IR_operand (expr), FALSE, &op_result, &temp_vars_num, FALSE,
+	    node_mode == IR_NM_logical_or ? nop : false_pc,
+	    node_mode == IR_NM_logical_or ? true_pc : nop,
+	    node_mode == IR_NM_logical_or));
+	if (false_pc != NULL)
+	  add_to_bcode (nop);
+	else
+	  {
+	    bc = new_bc_code_with_src (node_mode == IR_NM_logical_or
+				       ? BC_NM_brts : BC_NM_brfs,
+				       expr);
+	    BC_set_op1 (bc, op_result);
+	    BC_set_res (bc, setup_result_var_number (result, curr_temp_vars_num));
+	    add_to_bcode (bc);
+	    lconv = new_bc_code_with_src (BC_NM_lconv, expr);
+	    BC_set_pc (bc, lconv);
+	  }
 	temp_vars_num = *curr_temp_vars_num;
+	op_result = (result == NULL ? -1 : *result);
 	IR_set_cont_operand
 	  (expr, third_expr_processing (IR_cont_operand (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE));
-	BC_set_op2 (lconv, op_result);
-	BC_set_op1 (lconv, BC_op1 (bc));
-	type_test (IR_operand (expr), EVT_NUMBER_STRING_MASK,
-		   ERR_invalid_logical_operation_operand_type);
-	type_test (IR_cont_operand (expr), EVT_NUMBER_STRING_MASK,
-		   ERR_invalid_logical_operation_operand_type);
+					&op_result, &temp_vars_num, FALSE,
+					false_pc, true_pc, FALSE));
+	if (false_pc == NULL)
+	  {
+	    BC_set_op2 (lconv, op_result);
+	    BC_set_op1 (lconv, BC_op1 (bc));
+	    type_test (IR_operand (expr), EVT_NUMBER_STRING_MASK,
+		       ERR_invalid_logical_operation_operand_type);
+	    type_test (IR_cont_operand (expr), EVT_NUMBER_STRING_MASK,
+		       ERR_invalid_logical_operation_operand_type);
+	    add_to_bcode (lconv);
+	  }
+	false_pc = true_pc = NULL;
 	IR_set_value_type (expr, EVT_INT);
-	SET_PC (lconv);
       }
       break;
     case IR_NM_not:
-      process_unary_op (expr, result, curr_temp_vars_num);
-      l = IR_operand (expr);
-      type_test (l, EVT_NUMBER_VECTOR_SLICE_MASK,
-		 ERR_invalid_logical_operation_operand_type);
-      IR_set_value_type (expr, unary_slice_p (l) ? EVT_SLICE : EVT_INT);
+      if (false_pc != NULL)
+	{
+	  int op_result = (result == NULL ? -1 : *result);
+
+	  third_expr_processing (IR_operand (expr), func_class_assign_p,
+				 &op_result, curr_temp_vars_num, lvalue_p,
+				 true_pc, false_pc, TRUE);
+	  IR_set_value_type (expr, EVT_INT);
+	  false_pc = true_pc = NULL;
+	}
+      else
+	{
+	  process_unary_op (expr, result, curr_temp_vars_num);
+	  l = IR_operand (expr);
+	  type_test (l, EVT_NUMBER_VECTOR_SLICE_MASK,
+		     ERR_invalid_logical_operation_operand_type);
+	  IR_set_value_type (expr, unary_slice_p (l) ? EVT_SLICE : EVT_INT);
+	}
       break;
     case IR_NM_eq:
       process_binary_op (expr, result, curr_temp_vars_num,
@@ -1382,19 +1629,19 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
       break;
     case IR_NM_lt:
       process_binary_op (expr, result, curr_temp_vars_num,
-			 BC_NM_lti, BC_NM_gei);
+			 BC_NM_lti, BC_NM_gti);
       goto common_cmp;
     case IR_NM_gt:
       process_binary_op (expr, result, curr_temp_vars_num,
-			 BC_NM_gti, BC_NM_lei);
+			 BC_NM_gti, BC_NM_lti);
       goto common_cmp;
     case IR_NM_le:
       process_binary_op (expr, result, curr_temp_vars_num,
-			 BC_NM_lei, BC_NM_gti);
+			 BC_NM_lei, BC_NM_gei);
       goto common_cmp;
     case IR_NM_ge:
       process_binary_op (expr, result, curr_temp_vars_num,
-			 BC_NM_gei, BC_NM_lti);
+			 BC_NM_gei, BC_NM_lei);
     common_cmp:
       l = IR_left_operand (expr); r = IR_right_operand (expr);
       type_test (l, EVT_NUMBER_VECTOR_SLICE_MASK,
@@ -1580,38 +1827,35 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
       break;
     case IR_NM_cond:
       {
-	BC_node_t cend;
-        pc_t true_path_begin_pc, saved_prev_pc;
+	BC_node_t nop, true_path_end;
 	int op_result;
 
         SET_SOURCE_POSITION (expr);
 	op_result = -1;
         IR_set_cond_expr
 	  (expr, third_expr_processing (IR_cond_expr (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE));
-	bc = new_bc_node (BC_NM_bfni, expr);
+					&op_result, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
+	bc = new_bc_code_with_src (BC_NM_bfni, expr);
 	BC_set_op1 (bc, op_result);
-	saved_prev_pc = curr_pc;
-	SET_PC (bc);
-	cend = new_bc_node (BC_NM_cend, expr);
-	IR_set_cond_common_part_pc (expr, cend);
+	add_to_bcode (bc);
+	nop = new_bc_code_with_src (BC_NM_nop, expr);
 	temp_vars_num = *curr_temp_vars_num;
 	/* Put it on stack.  */
         IR_set_true_expr
 	  (expr, third_expr_processing (IR_true_expr (expr),
 					func_class_assign_p,
-					NULL, &temp_vars_num, FALSE));
+					NULL, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	d_assert (temp_vars_num = *curr_temp_vars_num + 1);
-	SET_PC (cend);
-	true_path_begin_pc = BC_next (bc);
-	prev_pc = saved_prev_pc;
-        curr_pc = PC (bc);
+	true_path_end = BC_bc (curr_info);
 	temp_vars_num = *curr_temp_vars_num;
 	/* Put it on stack.  */
         IR_set_false_expr
 	  (expr, third_expr_processing (IR_false_expr (expr),
 					func_class_assign_p,
-					NULL, &temp_vars_num, FALSE));
+					NULL, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	if (result != NULL)
 	  *result = -1;
 	setup_result_var_number (result, curr_temp_vars_num);
@@ -1619,9 +1863,9 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	d_assert (result == NULL
 		  || (*result + 1 == temp_vars_num + curr_vars_number
 		      && *curr_temp_vars_num == temp_vars_num));
-	SET_PC (cend);
-	BC_set_pc (bc, BC_next (bc));
-        BC_set_next (bc, true_path_begin_pc);
+	add_to_bcode (nop);
+	BC_set_pc (bc, BC_next (true_path_end));
+	BC_set_next (true_path_end, BC_bc (curr_info));
         type_test (IR_cond_expr (expr), EVT_NUMBER_STRING_MASK,
 		   ERR_invalid_cond_type);
         IR_set_value_type (expr,
@@ -1636,8 +1880,9 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	IR_node_t elist;
 	
 	SET_SOURCE_POSITION (expr);
-	bc = new_bc_node (node_mode == IR_NM_vector ? BC_NM_vec : BC_NM_tab,
-			  expr);
+	bc = new_bc_code_with_src (node_mode == IR_NM_vector
+				   ? BC_NM_vec : BC_NM_tab,
+				   expr);
 	BC_set_op2 (bc, *curr_temp_vars_num + curr_vars_number);
 	BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
 	for (elist = IR_elist (expr);
@@ -1649,19 +1894,20 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	    IR_set_repetition_key
 	      (elist,
 	       third_expr_processing (IR_repetition_key (elist), FALSE,
-				      NULL, &temp_vars_num, FALSE));
+				      NULL, &temp_vars_num, FALSE, NULL, NULL, FALSE));
             if (node_mode == IR_NM_vector)
               type_test (IR_repetition_key (elist), EVT_NUMBER_STRING_MASK,
                          ERR_invalid_repetition_type);
 	    IR_set_expr
 	      (elist, third_expr_processing (IR_expr (elist), TRUE,
-					     NULL, &temp_vars_num, FALSE));
+					     NULL, &temp_vars_num, FALSE,
+					     NULL, NULL, FALSE));
 	  }
 	BC_set_op3 (bc, n);
 	IR_set_value_type (expr,
 			   node_mode == IR_NM_vector
 			   ? EVT_VECTOR : EVT_TABLE);
-	SET_PC (bc);
+	add_to_bcode (bc);
 	break; 
       }
     case IR_NM_index:
@@ -1671,18 +1917,21 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 
 	d_assert (! lvalue_p || result == NULL || *result < 0);
 	SET_SOURCE_POSITION (expr);
-	bc = new_bc_node (node_mode == IR_NM_index ? BC_NM_ind : BC_NM_key,
-			  expr);
+	bc = new_bc_code_with_src (node_mode == IR_NM_index
+				   ? BC_NM_ind : BC_NM_key,
+				   expr);
 	IR_set_designator
 	  (expr, third_expr_processing (IR_designator (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE));
+					&op_result, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	BC_set_op2 (bc, op_result);
 	if (lvalue_p)
 	  *curr_temp_vars_num = temp_vars_num;
 	op_result = -1;
 	IR_set_component
 	  (expr, third_expr_processing (IR_component (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE));
+					&op_result, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	BC_set_op3 (bc, op_result);
 	if (lvalue_p)
 	  {
@@ -1691,7 +1940,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	  }
 	else
 	  BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
-	SET_PC (bc);
+	add_to_bcode (bc);
 	if (node_mode == IR_NM_index)
 	  {
 	    type_test (IR_designator (expr), EVT_VECTOR_SLICE_MASK,
@@ -1710,31 +1959,36 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 
 	d_assert (! lvalue_p || result == NULL || *result < 0);
 	SET_SOURCE_POSITION (expr);
-	bc = new_bc_node (BC_NM_sl, expr);
+	bc = new_bc_code_with_src (BC_NM_sl, expr);
 	if (des != NULL)
 	  {
 	    BC_set_op3 (bc, 1); /* dimension */
 	    BC_set_op2 (bc, temp_vars_num + curr_vars_number);
 	    des = third_expr_processing (des, FALSE, NULL, &temp_vars_num,
-					 IR_IS_OF_TYPE (des, IR_NM_slice));
+					 IR_IS_OF_TYPE (des, IR_NM_slice),
+					 NULL, NULL, FALSE);
 	    if (des != NULL && IR_IS_OF_TYPE (des, IR_NM_slice))
 	      {
 		d_assert (BC_NODE_MODE (curr_pc) == BC_NM_sl);
 		BC_set_op3 (bc, BC_op3 (curr_pc) + 1); /* dimension */
 		BC_set_op2 (bc, BC_op2 (curr_pc));
 		curr_pc = prev_pc;
+		curr_info = BC_prev_info (curr_info);
 	      }
 	  }
 	IR_set_designator (expr, des);
 	IR_set_component
 	  (expr, third_expr_processing (IR_component (expr), FALSE,
-					NULL, &temp_vars_num, FALSE));
+					NULL, &temp_vars_num, FALSE
+					, NULL, NULL, FALSE));
 	IR_set_bound
 	  (expr, third_expr_processing (IR_bound (expr), FALSE,
-					NULL, &temp_vars_num, FALSE));
+					NULL, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	IR_set_step
 	  (expr, third_expr_processing (IR_step (expr), FALSE,
-					NULL, &temp_vars_num, FALSE));
+					NULL, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	if (lvalue_p)
 	  {
 	    BC_set_op1 (bc, -1);
@@ -1742,7 +1996,7 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	  }
 	else
 	  BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
-	SET_PC (bc);
+	add_to_bcode (bc);
 	type_test (IR_designator (expr), EVT_VECTOR_SLICE_MASK,
 		   ERR_invalid_vector_type);
 	type_test (IR_component (expr), EVT_NUMBER_STRING_MASK,
@@ -1759,45 +2013,65 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
 	int pars_num, func_op_num;
 	pc_t saved_prev_pc;
 	IR_node_t elist, flatten, func_decl = NULL;
-
+	int general_p = TRUE, env_p = FALSE, top_p = FALSE;
+	    
 	there_is_function_call_in_expr = TRUE;
 	SET_SOURCE_POSITION (expr);
 	func_op_num = temp_vars_num + curr_vars_number;
 	saved_prev_pc = curr_pc;
 	IR_set_func_expr
 	  (expr, third_expr_processing (IR_func_expr (expr), FALSE,
-					NULL, &temp_vars_num, FALSE));
-	if (BC_NODE_MODE (curr_pc) == BC_NM_func
-	    && ! IR_thread_flag (IR_decl (BC_origin (curr_pc))))
+					NULL, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
+	if (BC_NODE_MODE (curr_pc) == BC_NM_func)
 	  {
-	    /* Remove load func value.  */
-	    d_assert (func_op_num - curr_vars_number + 1 == temp_vars_num);
-	    temp_vars_num--;
-	    func_decl = IR_decl (BC_origin (curr_pc));
-	    curr_pc = prev_pc;
-	    prev_pc = saved_prev_pc;
+	    d_assert (IR_NODE_MODE (IR_func_expr (expr)) == IR_NM_ident);
+	    func_decl = IR_decl (IR_func_expr (expr));
+	    env_p = strcmp (IR_pos (func_decl).file_name,
+			    ENVIRONMENT_PSEUDO_FILE_NAME) == 0;
+	    top_p = IR_block_scope (IR_scope (func_decl)) == NULL;
+	    general_p = ((! env_p
+			  && (IR_args_flag (func_decl)
+			      || (IR_IS_OF_TYPE (func_decl, IR_NM_func)
+				  && IR_thread_flag (func_decl))
+			      || (IR_class_func_thread_call_parameters_number (expr)
+				  != IR_parameters_number (func_decl))))
+			 || (env_p && ! top_p));
+	    if (! general_p)
+	      {
+		/* Remove load func value.  */
+		d_assert (func_op_num - curr_vars_number + 1
+			  == temp_vars_num);
+		temp_vars_num--;
+		curr_pc = prev_pc;
+		prev_pc = saved_prev_pc;
+		curr_info = BC_prev_info (curr_info);
+	      }
 	  }
 	pars_num = process_actuals (func_decl, func_op_num,
 				    IR_actuals (expr), &temp_vars_num);
 	if (result != NULL)
 	  *result = -1;
 	setup_result_var_number (result, curr_temp_vars_num);
-	if (func_decl == NULL)
-	  bc = new_bc_node (BC_NM_call, expr);
+	if (general_p)
+	  bc = new_bc_code_with_src (BC_NM_call, expr);
 	else
 	  {
+	    d_assert (!env_p || top_p);
 	    if (pars_num == 0)
 	      get_temp_stack_slot (&temp_vars_num); /* for result */
-	    bc = new_bc_node (IR_block_scope (IR_scope (func_decl)) == NULL
-			      ? BC_NM_ticall
-			      : IR_scope (func_decl) == curr_real_scope
-			      ? BC_NM_cicall : BC_NM_icall,
-			      expr);
-	    BC_set_func (bc, func_decl);
+	    bc = new_bc_code_with_src (env_p
+				       ? BC_NM_ibcall
+				       : top_p
+				       ?  BC_NM_ticall
+				       : IR_scope (func_decl) == curr_real_scope
+				       ? BC_NM_cicall : BC_NM_icall,
+				       expr);
+	    BC_set_cfblock (bc, get_fblock (func_decl));
 	  }
 	BC_set_op1 (bc, func_op_num);
 	BC_set_op2 (bc, pars_num);
-	SET_PC (bc);
+	add_to_bcode (bc);
 	if (!IT_IS_OF_TYPE (IR_func_expr (expr), EVT_FUNC)
 	    && !IT_IS_OF_TYPE (IR_func_expr (expr), EVT_CLASS))
 	  error (FALSE, source_position,
@@ -1807,6 +2081,38 @@ third_expr_processing (IR_node_t expr, int func_class_assign_p,
       }
     default:
       d_unreachable ();
+    }
+  if (false_pc != NULL)
+    {
+      int op_result = setup_result_var_number (node_mode != IR_NM_ident
+					       ? result : NULL,
+					       curr_temp_vars_num);
+
+      if (IR_value_type (expr) != EVT_INT)
+	{
+	  bc = new_bc_code_with_src (BC_NM_lconv, expr);
+	  BC_set_op1 (bc, op_result);
+	  BC_set_op2 (bc, *result);
+	  add_to_bcode (bc);
+	  type_test (expr, EVT_NUMBER_VECTOR_SLICE_MASK,
+		     ERR_invalid_logical_operation_operand_type);
+	  IR_set_value_type (expr, EVT_INT);
+	}
+      if (next_false_p)
+	{
+	  bc = new_bc_code_with_src (BC_NM_bt, expr);
+	  BC_set_pc (bc, true_pc);
+	  BC_set_next (bc, false_pc);
+	}
+      else
+	{
+	  bc = new_bc_code_with_src (BC_NM_bf, expr);
+	  BC_set_pc (bc, false_pc);
+	  BC_set_next (bc, true_pc);
+	}
+      BC_set_op1 (bc, op_result);
+      add_to_bcode (bc);
+      curr_pc = NULL;
     }
   return expr;
 }
@@ -1843,7 +2149,7 @@ make_designator_lvalue (BC_node_t designator, const char *error_message,
     case BC_NM_evar:
       return (val_p ? BC_NM_levarv : BC_NM_lvar);
     default:
-      error (FALSE, IR_pos (BC_origin (designator)), error_message);
+      error (FALSE, BC_pos (BC_source (BC_info (designator))), error_message);
       return BC_NODE_MODE (designator);
     }
 }
@@ -1915,13 +2221,15 @@ get_lvalue_and_val_location (BC_node_t designator, IR_node_t ir_des,
 			     int *temp_vars_num, int *container_num,
 			     int *index_num, int *lvalue_val_num)
 {
-  BC_node_t bc;
+  BC_node_t bc, bc_decl;
   
   if (designator == NULL)
     {
       d_assert (ir_des != NULL && IR_IS_OF_TYPE (ir_des, IR_NM_ident));
-      bc = new_bc_node (BC_NM_lvarv, ir_des);
-      SET_PC (bc);
+      bc_decl = get_bcode_decl (IR_decl (ir_des));
+      bc = new_bc_code (BC_NM_lvarv, bc_decl);
+      BC_set_decl (bc, bc_decl);
+      add_to_bcode (bc);
       BC_set_op1 (bc, get_temp_stack_slot (temp_vars_num));
       *container_num = BC_op1 (bc);
       *index_num = get_temp_stack_slot (temp_vars_num);
@@ -1967,6 +2275,22 @@ surrounding_func_block (IR_node_t scope)
   return NULL;
 }
 
+/* Add BC_DECL to cycle decl list of BC_BLOCK.  */
+static void inline
+add_decl_to_block (BC_node_t bc_decl, BC_node_t bc_block)
+{
+  BC_node_t last;
+
+  if ((last = BC_decls (bc_block)) == NULL)
+    BC_set_next_decl (bc_decl, bc_decl);
+  else
+    {
+      BC_set_next_decl (bc_decl, BC_next_decl (last));
+      BC_set_next_decl (last, bc_decl);
+    }
+  BC_set_decls (bc_block, bc_decl);
+}
+
 /* All declarations of funcs and classes with blocks.  */
 static vlo_t all_funcs_and_classes;
 
@@ -1987,7 +2311,7 @@ static vlo_t all_funcs_and_classes;
 static void
 third_block_passing (IR_node_t first_level_stmt)
 {
-  BC_node_t bc, var_bc, before_pc;
+  BC_node_t bc, var_bc, before_pc, src;
   BC_node_mode_t bc_node_mode, var_mode;
   IR_node_t stmt;
   IR_node_t op, temp;
@@ -2003,7 +2327,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	{
 	case IR_NM_assign:
 	case IR_NM_var_assign:
-	  bc_node_mode = BC_NM_st;
+	  bc_node_mode = BC_NM_sts;
 	  goto common_assign;
 	case IR_NM_mult_assign:
 	  bc_node_mode = BC_NM_mult_st;
@@ -2043,8 +2367,11 @@ third_block_passing (IR_node_t first_level_stmt)
 	common_assign:
 	  var_result = -1;
 	  before_pc = curr_pc;
+	  src = new_bc_node (BC_NM_source2, IR_pos (stmt));
+	  BC_set_pos2 (src, IR_pos (stmt));
 	  temp = third_expr_processing (IR_assignment_var (stmt), FALSE,
-					&var_result, &temp_vars_num, TRUE);
+					&var_result, &temp_vars_num, TRUE,
+					NULL, NULL, FALSE);
 	  if (temp != NULL)
 	    IR_set_assignment_var (stmt, temp);
 	  var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
@@ -2052,8 +2379,18 @@ third_block_passing (IR_node_t first_level_stmt)
 	  val_p = stmt_mode != IR_NM_assign && stmt_mode != IR_NM_var_assign;
 	  if (temp != NULL && var_bc != NULL)
 	    {
-	      bc = new_bc_node (bc_node_mode, stmt);
 	      var_mode = BC_NODE_MODE (var_bc);
+	      if (bc_node_mode == BC_NM_sts)
+		{
+		  if (IR_IS_OF_TYPE (temp, IR_NM_index))
+		    bc_node_mode = BC_NM_stv;
+		  else if (IR_IS_OF_TYPE (temp, IR_NM_key_index))
+		    bc_node_mode = BC_NM_stt;
+		  else if (var_mode == BC_NM_evar)
+		    bc_node_mode = BC_NM_ste;
+		}
+	      bc = new_bc_code (bc_node_mode, src);
+	      BC_set_pos2 (src, IR_pos (IR_assignment_var (stmt)));
 	      BC_SET_MODE (var_bc,
 			   make_designator_lvalue
 			   (var_bc, ERR_non_variable_in_assignment, val_p));
@@ -2067,7 +2404,7 @@ third_block_passing (IR_node_t first_level_stmt)
 	      else if (var_mode == BC_NM_var || var_mode == BC_NM_evar)
 		{
 		  BC_set_op1 (bc, BC_op1 (var_bc));
-		  BC_set_op2 (bc, BC_op1 (var_bc) + 1);
+		  BC_set_op2 (bc, BC_op1 (var_bc) + 1); /* not used */
 		}
 	      if (val_p && (var_mode == BC_NM_var || var_mode == BC_NM_evar))
 		BC_set_op4 (bc, get_temp_stack_slot (&temp_vars_num));
@@ -2093,7 +2430,10 @@ third_block_passing (IR_node_t first_level_stmt)
 	      if (! val_p && (var_mode == BC_NM_ind
 			      || var_mode == BC_NM_sl
 			      || var_mode == BC_NM_key))
-		curr_pc = prev_pc;
+		{
+		  curr_pc = prev_pc;
+		  curr_info = BC_prev_info (curr_info);
+		}
 	    }
 	  if (stmt_mode != IR_NM_var_assign && temp != NULL
 	      && IR_IS_OF_TYPE (temp, IR_NM_ident)
@@ -2113,11 +2453,12 @@ third_block_passing (IR_node_t first_level_stmt)
 	      IR_set_assignment_expr
 		(stmt,
 		 third_expr_processing (IR_assignment_expr (stmt), TRUE,
-					&result, &temp_vars_num, FALSE));
+					&result, &temp_vars_num, FALSE,
+					NULL, NULL, FALSE));
 	      BC_set_op3 (bc, result);
 	      if (temp != NULL && ! IR_IS_OF_TYPE (temp, IR_NM_slice))
 		add_flatten_node_if_necessary (temp, result);
-	      SET_PC (bc);
+	      add_to_bcode (bc);
 	    }
 	  else /* assignment to the local var.  */
 	    {
@@ -2128,9 +2469,17 @@ third_block_passing (IR_node_t first_level_stmt)
 		  IR_set_assignment_expr
 		    (stmt,
 		     third_expr_processing (val, TRUE,
-					    &result, &temp_vars_num, FALSE));
+					    &result, &temp_vars_num, FALSE,
+					    NULL, NULL, FALSE));
 		  if (temp != NULL && result != var_result)
-		    add_move (temp, var_result, result);
+		    {
+		      IR_node_t ident = IR_assignment_expr (stmt);
+
+		      if (! IR_IS_OF_TYPE (ident, IR_NM_ident))
+			ident = temp;
+		      add_move (stmt, get_bcode_decl (IR_decl (ident)),
+				var_result, result);
+		    }
 		}
 	      else
 		{
@@ -2140,7 +2489,7 @@ third_block_passing (IR_node_t first_level_stmt)
 		      && IR_IS_OF_TYPE (val, IR_NM_int)
 		      && temp != NULL && ! IR_IS_OF_TYPE (temp, IR_NM_slice))
 		    {
-		      bc = new_bc_node (BC_NM_addi, stmt);
+		      bc = new_bc_code (BC_NM_addi, src);
 		      BC_set_op3 (bc, IR_int_value (IR_unique_int (val)));
 		      BC_set_op2 (bc, var_result);
 		    }
@@ -2149,14 +2498,17 @@ third_block_passing (IR_node_t first_level_stmt)
 		      IR_set_assignment_expr
 			(stmt,
 			 third_expr_processing (val, TRUE,
-						&result, &temp_vars_num, FALSE));
+						&result, &temp_vars_num, FALSE,
+						NULL, NULL, FALSE));
 		      /* Generate op (var_result, var_result, result).  */
-		      bc = new_bc_node (make_op_mode (stmt), stmt);
+		      bc = new_bc_code (make_op_mode (stmt), src);
 		      BC_set_op2 (bc, var_result);
 		      BC_set_op3 (bc, result);
 		    }
+		  if (IR_assignment_var (stmt) != NULL)
+		    BC_set_pos2 (src, IR_pos (IR_assignment_var (stmt)));
 		  BC_set_op1 (bc, var_result);
-		  SET_PC (bc);
+		  add_to_bcode (bc);
 		}
 	      if (temp != NULL && ! IR_IS_OF_TYPE (temp, IR_NM_slice))
 		add_flatten_node_if_necessary (val, var_result);
@@ -2169,7 +2521,8 @@ third_block_passing (IR_node_t first_level_stmt)
 	    var_result = -1;
 	    before_pc = curr_pc;
 	    temp = third_expr_processing (IR_assignment_var (stmt), FALSE,
-					  &var_result, &temp_vars_num, FALSE);
+					  &var_result, &temp_vars_num, FALSE,
+					  NULL, NULL, FALSE);
 	    if (temp != NULL)
 	      {
 		d_assert (IR_IS_OF_TYPE (temp, IR_NM_ident));
@@ -2181,11 +2534,15 @@ third_block_passing (IR_node_t first_level_stmt)
 			   && var_result >= 0 && temp_vars_num == 0)
 			  || var_bc != NULL));
 	    if (var_bc != NULL)
-	      curr_pc = prev_pc; /* Remove var.  */
-	    bc = new_bc_node (BC_NM_btdef, IR_assignment_var (stmt));
-	    aend_bc = new_bc_node (BC_NM_cend, stmt);
-	    BC_set_brid_pc (bc, aend_bc);
-	    SET_PC (bc);
+	      {
+		curr_pc = prev_pc; /* Remove var.  */
+		curr_info = BC_prev_info (curr_info);
+	      }
+	    bc = new_bc_code_with_src (BC_NM_btdef, IR_assignment_var (stmt));
+	    BC_set_op1 (bc, var_result);
+	    aend_bc = new_bc_code_with_src (BC_NM_nop, stmt);
+	    BC_set_pc (bc, aend_bc);
+	    add_to_bcode (bc);
 	    temp_vars_num = 0;
 	    lvalue_bc = NULL;
 	    if (temp != NULL)
@@ -2195,32 +2552,38 @@ third_block_passing (IR_node_t first_level_stmt)
 		else
 		  {
 		    result = -1;
-		    lvalue_bc
-		      = (new_bc_node
-			 (make_designator_lvalue
-			  (var_bc, ERR_non_variable_in_assignment,
-			   FALSE), temp));
+		    bc_node_mode
+		      = make_designator_lvalue (var_bc,
+						ERR_non_variable_in_assignment,
+						FALSE);
+		    if (IR_IS_OF_TYPE (temp, IR_NM_ident))
+		      lvalue_bc	= new_bc_code (bc_node_mode,
+					       get_bcode_decl (IR_decl (temp)));
+		    else
+		      lvalue_bc = new_bc_code_with_src (bc_node_mode, temp);
+		    BC_set_decl (lvalue_bc, BC_decl (var_bc));
 		    /* We need two stack slots for lvalue var occurrence.  */
 		    BC_set_op1 (lvalue_bc, get_temp_stack_slot (&temp_vars_num));
 		    get_temp_stack_slot (&temp_vars_num);
-		    SET_PC (lvalue_bc);
+		    add_to_bcode (lvalue_bc);
 		  }
 	      }
 	    IR_set_assignment_expr
 	      (stmt, third_expr_processing (IR_assignment_expr (stmt), TRUE,
-					    &result, &temp_vars_num, FALSE));
+					    &result, &temp_vars_num, FALSE,
+					    NULL, NULL, FALSE));
 	    add_flatten_node_if_necessary (IR_assignment_expr (stmt), result);
 	    if (lvalue_bc != NULL)
 	      {
-		st_bc = new_bc_node (BC_NM_st, stmt);
+		st_bc = new_bc_code_with_src (BC_NM_sts, stmt);
 		BC_set_op1 (st_bc, BC_op1 (lvalue_bc));
 		BC_set_op2 (st_bc, BC_op1 (lvalue_bc) + 1);
 		BC_set_op3 (st_bc, result);
-		SET_PC (st_bc);
+		add_to_bcode (st_bc);
 	      }
 	    else if (result != var_result)
-	      add_move (temp, var_result, result);
-	    SET_PC (aend_bc);
+	      add_move (stmt, get_bcode_decl (IR_decl (temp)), var_result, result);
+	    add_to_bcode (aend_bc);
 	  }
 	  break;
 	case IR_NM_proc_call:
@@ -2228,146 +2591,150 @@ third_block_passing (IR_node_t first_level_stmt)
 	    int pars_num, func_op_num = temp_vars_num + curr_vars_number;
 	    pc_t saved_prev_pc;
 	    IR_node_t func_decl = NULL;
+	    int general_p = TRUE, env_p = FALSE, top_p = FALSE;
 
 	    saved_prev_pc = curr_pc;
 	    IR_set_proc_expr
 	      (stmt, third_expr_processing (IR_proc_expr (stmt), FALSE,
-					    NULL, &temp_vars_num, FALSE));
-	    if (BC_NODE_MODE (curr_pc) == BC_NM_func
-		&& ! IR_thread_flag (IR_decl (BC_origin (curr_pc))))
+					    NULL, &temp_vars_num, FALSE,
+					    NULL, NULL, FALSE));
+	    if (BC_NODE_MODE (curr_pc) == BC_NM_func)
 	      {
-		/* Remove load func value.  */
-		d_assert (func_op_num - curr_vars_number + 1 == temp_vars_num);
-		temp_vars_num--;
-		func_decl = IR_decl (BC_origin (curr_pc));
-		curr_pc = prev_pc;
-		prev_pc = saved_prev_pc;
+		d_assert (IR_NODE_MODE (IR_proc_expr (stmt)) == IR_NM_ident);
+		func_decl = IR_decl (IR_proc_expr (stmt));
+		env_p = strcmp (IR_pos (func_decl).file_name,
+				ENVIRONMENT_PSEUDO_FILE_NAME) == 0;
+		top_p = IR_block_scope (IR_scope (func_decl)) == NULL;
+		general_p = ((! env_p
+			      && (IR_args_flag (func_decl)
+				  || (IR_IS_OF_TYPE (func_decl, IR_NM_func)
+				      && IR_thread_flag (func_decl))
+				  || (IR_proc_call_pars_number (stmt)
+				      != IR_parameters_number (func_decl))))
+			     || (env_p && ! top_p));
+		if (! general_p)
+		  {
+		    /* Remove load func value.  */
+		    d_assert (func_op_num - curr_vars_number + 1
+			      == temp_vars_num);
+		    temp_vars_num--;
+		    curr_pc = prev_pc;
+		    prev_pc = saved_prev_pc;
+		    curr_info = BC_prev_info (curr_info);
+		  }
 	      }
 	    pars_num = process_actuals (func_decl, func_op_num,
 					IR_proc_actuals (stmt),
 					&temp_vars_num);
-	    if (func_decl == NULL)
-	      bc = new_bc_node (BC_NM_pcall, stmt);
+	    if (general_p)
+	      bc = new_bc_code_with_src (BC_NM_pcall, stmt);
 	    else
 	      {
+		d_assert (!env_p || top_p);
 		if (pars_num == 0)
 		  get_temp_stack_slot (&temp_vars_num); /* for result */
-		bc = new_bc_node (IR_block_scope (IR_scope (func_decl)) == NULL
-				  ? BC_NM_tipcall
-				  : IR_scope (func_decl) == curr_real_scope
-				  ? BC_NM_cipcall : BC_NM_ipcall,
-				  stmt);
-		BC_set_func (bc, func_decl);
+		bc = new_bc_code_with_src (env_p
+					   ? BC_NM_ibpcall
+					   : top_p
+					   ? BC_NM_tipcall
+					   : IR_scope (func_decl) == curr_real_scope
+					   ? BC_NM_cipcall : BC_NM_ipcall,
+					   stmt);
+		BC_set_cfblock (bc, get_fblock (func_decl));
 	      }
 	    BC_set_op1 (bc, func_op_num);
 	    BC_set_op2 (bc, pars_num);
-	    SET_PC (bc);
+	    add_to_bcode (bc);
 	  }
 	  break;  
 	case IR_NM_if_stmt:
 	  {
-	    BC_node_t if_finish;
-	    pc_t if_part_begin_pc, saved_prev_pc;
+	    BC_node_t if_finish, if_part_end_info;
+	    BC_node_t false_pc = new_bc_code_with_src (BC_NM_nop, stmt);
+	    BC_node_t true_pc = new_bc_code_with_src (BC_NM_nop, stmt);
 	    
 	    result = -1;
 	    IR_set_if_expr
 	      (stmt, third_expr_processing (IR_if_expr (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE));
-	    bc = new_bc_node (BC_NM_bf, stmt);
-	    BC_set_op1 (bc, result);
-	    type_test (IR_if_expr (stmt), EVT_NUMBER_STRING_MASK,
-		       ERR_invalid_if_expr_type);
-	    saved_prev_pc = curr_pc;
-	    SET_PC (bc);
-	    if_finish = new_bc_node (BC_NM_cend, stmt);
-	    IR_set_if_common_part_pc (stmt, if_finish);
+					    &result, &temp_vars_num, FALSE,
+					    false_pc, true_pc, FALSE));
+	    add_to_bcode (true_pc);
+	    if_finish = new_bc_code_with_src (BC_NM_nop, stmt);
 	    third_block_passing (IR_if_part (stmt));
-	    SET_PC (if_finish);
-	    if_part_begin_pc = BC_next (bc);
-	    prev_pc = saved_prev_pc;
-	    curr_pc = PC (bc);
+	    if_part_end_info = curr_info;
+	    add_to_bcode (false_pc);
 	    third_block_passing (IR_else_part (stmt));
-	    SET_PC (if_finish);
-	    BC_set_pc (bc, BC_next (bc));
-	    BC_set_next (bc, if_part_begin_pc);
+	    add_to_bcode (if_finish);
+	    bc = BC_bc (if_part_end_info);
+	    if (BC_NODE_MODE (bc) != BC_NM_out) 
+	      /* It is not a break or continue  */
+	      BC_set_next (bc, BC_bc (curr_info));
 	    break;
 	  }
 	case IR_NM_for_stmt:
 	  {
-	    pc_t before_guard_expr;
-	    pc_t for_iterate_start, for_iterate_finish;
-	    pc_t saved_start_next_iteration_pc, saved_for_finish;
+	    BC_node_t before_guard_expr, initial_end;
+	    BC_node_t saved_start_next_iteration, saved_for_finish;
 	    int saved_number_of_surrounding_blocks;
 	    
 	    saved_number_of_surrounding_blocks = number_of_surrounding_blocks;
 	    number_of_surrounding_blocks = 0;
-	    saved_start_next_iteration_pc = start_next_iteration_pc;
+	    saved_start_next_iteration = start_next_iteration;
 	    saved_for_finish = for_finish;
 	    third_block_passing (IR_for_initial_stmt (stmt));
-	    d_assert (curr_pc != NULL);
-	    before_guard_expr = curr_pc;
+	    initial_end = BC_bc (curr_info);
+	    start_next_iteration = new_bc_code_with_src (BC_NM_nop, stmt);
+	    for_finish = new_bc_code_with_src (BC_NM_nop, stmt);
+	    add_to_bcode (start_next_iteration);
+	    third_block_passing (IR_for_stmts (stmt));
+	    third_block_passing (IR_for_iterate_stmt (stmt));
+	    d_assert (curr_info != NULL);
+	    before_guard_expr = BC_bc (curr_info);
 	    result = -1;
 	    IR_set_for_guard_expr
 	      (stmt, third_expr_processing (IR_for_guard_expr (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE));
-	    bc = new_bc_node (BC_NM_bt, stmt);
-	    BC_set_op1 (bc, result);
+					    &result, &temp_vars_num, FALSE,
+					    for_finish, start_next_iteration,
+					    TRUE));
 	    type_test (IR_for_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_for_guard_expr_type);
-	    SET_PC (bc);
-	    third_block_passing (IR_for_iterate_stmt (stmt));
-	    for_iterate_start = BC_next (bc);
-	    for_iterate_finish = curr_pc;
-	    if (for_iterate_finish != PC (bc))
-	      {
-		/* There is break (although it is semantically invalid). */
-		if (for_iterate_finish != NULL) 
-		  BC_set_next (for_iterate_finish, BC_next (before_guard_expr));
-		start_next_iteration_pc = for_iterate_start;
-	      }
-	    else
-	      start_next_iteration_pc = BC_next (before_guard_expr);
-	    for_finish = new_bc_node (BC_NM_cend, stmt);
-	    curr_pc = PC (bc);
-	    third_block_passing (IR_for_stmts (stmt));
-	    /* The following guard is needed because the last stmt
-	       may be break or continue. */
-	    if (curr_pc != NULL)
-	      BC_set_next (curr_pc, start_next_iteration_pc);
-	    BC_set_pc (bc, BC_next (bc));
-	    curr_pc = PC (bc);
-	    SET_PC (for_finish);
+	    add_to_bcode (for_finish);
+	    BC_set_next (initial_end, BC_next (before_guard_expr));
 	    number_of_surrounding_blocks = saved_number_of_surrounding_blocks;
-	    start_next_iteration_pc = saved_start_next_iteration_pc;
+	    start_next_iteration = saved_start_next_iteration;
 	    for_finish = saved_for_finish;
 	    break;
 	  }
 	case IR_NM_foreach_stmt:
 	  {
-	    BC_node_t foreach_start;
-	    BC_node_t foreach_next_iteration;
-	    pc_t before_in_expr;
-	    pc_t saved_start_next_iteration_pc, saved_for_finish;
+	    BC_node_t src, before_in_expr;
+	    BC_node_t saved_start_next_iteration, saved_for_finish;
 	    int saved_number_of_surrounding_blocks;
 	    
 	    saved_number_of_surrounding_blocks = number_of_surrounding_blocks;
 	    number_of_surrounding_blocks = 0;
-	    saved_start_next_iteration_pc = start_next_iteration_pc;
+	    saved_start_next_iteration = start_next_iteration;
 	    saved_for_finish = for_finish;
-	    foreach_start = new_bc_node (BC_NM_pushi, stmt);
-	    BC_set_op1 (foreach_start, 0);
-	    SET_PC (foreach_start);
-	    before_in_expr = curr_pc;
+	    src = new_bc_node (BC_NM_source2, IR_pos (stmt));
+	    if (IR_foreach_designator (stmt) != NULL)
+	      BC_set_pos2 (src, IR_pos (IR_foreach_designator (stmt)));
+	    else
+	      BC_set_pos2 (src, IR_pos (stmt));
+	    bc = new_bc_code (BC_NM_pushi, src);
+	    BC_set_op1 (bc, 0);
+	    add_to_bcode (bc);
+	    before_in_expr = BC_bc (curr_info);
 	    var_result = -1;
 	    /* We need one stack slot for a flag set up by
-	       foreach_start and foreach_next_iteration node
+	       foreach_start and start_next_iteration node
 	       execution.  */
 	    temp_vars_num++;
 	    before_pc = curr_pc;
 	    temp = third_expr_processing (IR_foreach_designator (stmt), FALSE,
-					  &var_result, &temp_vars_num, TRUE);
+					  &var_result, &temp_vars_num, TRUE,
+					  NULL, NULL, FALSE);
 	    var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
-	    bc = new_bc_node (BC_NM_foreach, stmt);
+	    bc = new_bc_code (BC_NM_foreach, src);
 	    if (var_bc != NULL)
 	      BC_SET_MODE (var_bc,
 			   make_designator_lvalue
@@ -2389,26 +2756,23 @@ third_block_passing (IR_node_t first_level_stmt)
 	    result = -1;
 	    IR_set_foreach_table
 	      (stmt, third_expr_processing (IR_foreach_table (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE));
+					    &result, &temp_vars_num, FALSE,
+					    NULL, NULL, FALSE));
 	    BC_set_op1 (bc, result);
 	    type_test (IR_foreach_table (stmt), EVT_TABLE,
 		       ERR_invalid_foreach_table_type);
-	    SET_PC (bc);
-	    foreach_next_iteration = new_bc_node (BC_NM_pushi, stmt);
-	    BC_set_op1 (foreach_next_iteration, 1);
-	    BC_set_next (foreach_next_iteration, BC_next (before_in_expr));
-	    start_next_iteration_pc = PC (foreach_next_iteration);
-	    for_finish = new_bc_node (BC_NM_cend, stmt);
+	    add_to_bcode (bc);
+	    start_next_iteration = new_bc_code (BC_NM_pushi, src);
+	    BC_set_op1 (start_next_iteration, 1);
+	    for_finish = new_bc_code (BC_NM_nop, src);
 	    third_block_passing (IR_foreach_stmts (stmt));
-	    /* The following guard is needed because the last stmt may
-	       be break or continue. */
-	    if (curr_pc != NULL)
-	      BC_set_next (curr_pc, start_next_iteration_pc);
+	    add_to_bcode (start_next_iteration);
+	    add_to_bcode (for_finish);
+	    BC_set_next (start_next_iteration, BC_next (before_in_expr));
 	    BC_set_body_pc (bc, BC_next (bc));
-	    curr_pc = PC (bc);
-	    SET_PC (for_finish);
+	    BC_set_next (bc, for_finish);
 	    number_of_surrounding_blocks = saved_number_of_surrounding_blocks;
-	    start_next_iteration_pc = saved_start_next_iteration_pc;
+	    start_next_iteration = saved_start_next_iteration;
 	    for_finish = saved_for_finish;
 	    break;
 	  }
@@ -2420,13 +2784,13 @@ third_block_passing (IR_node_t first_level_stmt)
 		   ? ERR_continue_is_not_in_loop : ERR_break_is_not_in_loop);
 	  else
 	    {
-	      bc = new_bc_node (BC_NM_out, stmt);
-	      SET_PC (bc);
+	      bc = new_bc_code_with_src (BC_NM_out, stmt);
+	      add_to_bcode (bc);
 	      BC_set_op1 (bc, number_of_surrounding_blocks);
 	      if (stmt_mode == IR_NM_continue_stmt)
-		SET_PC (start_next_iteration_pc);
+		BC_set_next (bc, start_next_iteration);
 	      else
-		SET_PC (for_finish);
+		BC_set_next (bc, for_finish);
 	      curr_pc = NULL;
 	    }
 	  break;
@@ -2442,8 +2806,8 @@ third_block_passing (IR_node_t first_level_stmt)
 		     ERR_return_outside_func_class_ext);
 	    else if (stmt_mode == IR_NM_return_without_result)
 	      {
-		bc = new_bc_node (BC_NM_leave, stmt);
-		SET_PC (bc);
+		bc = new_bc_code_with_src (BC_NM_leave, stmt);
+		add_to_bcode (bc);
 	      }
 	    else
 	      {
@@ -2458,9 +2822,10 @@ third_block_passing (IR_node_t first_level_stmt)
 		IR_set_returned_expr
 		  (stmt,
 		   third_expr_processing (IR_returned_expr (stmt), TRUE,
-					  &result, &temp_vars_num, FALSE));
+					  &result, &temp_vars_num, FALSE,
+					  NULL, NULL, FALSE));
 		add_flatten_node_if_necessary (IR_returned_expr (stmt), result);
-		bc = new_bc_node (BC_NM_ret, stmt);
+		bc = new_bc_code_with_src (BC_NM_ret, stmt);
 		BC_set_op1 (bc, result);
 		/* Check tail call.  */
 		if (curr_pc != NULL)
@@ -2477,13 +2842,15 @@ third_block_passing (IR_node_t first_level_stmt)
 		    else
 		      bc_mode = BC_NODE_MODE (curr_pc);
 		    if (BC_NODE_MODE (curr_pc) != bc_mode
-			&& IR_block_scope (curr_real_scope) != NULL
-			&& IR_implementation_func (BC_func (curr_pc)) == NULL
-			&& ! IR_IS_OF_TYPE (BC_func (curr_pc),
-					    IR_NM_external_func))
-		      BC_SET_MODE (curr_pc, bc_mode);
+			&& IR_block_scope (curr_real_scope) != NULL)
+		      {
+			
+			d_assert (BC_IS_OF_TYPE (BC_cfblock (curr_pc),
+						 BC_NM_fblock));
+			BC_SET_MODE (curr_pc, bc_mode);
+		      }
 		  }
-		SET_PC (bc);
+		add_to_bcode (bc);
 	      }
 	    break;
 	  }
@@ -2496,29 +2863,31 @@ third_block_passing (IR_node_t first_level_stmt)
 	    result = -1;
 	    IR_set_wait_guard_expr
 	      (stmt, third_expr_processing (IR_wait_guard_expr (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE));
-	    bc = new_bc_node (BC_NM_wait, stmt);
+					    &result, &temp_vars_num, FALSE,
+					    NULL, NULL, FALSE));
+	    bc = new_bc_code_with_src (BC_NM_wait, stmt);
 	    BC_set_op1 (bc, result);
 	    type_test (IR_wait_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_wait_guard_expr_type);
 	    if (there_is_function_call_in_expr)
 	      error (FALSE, source_position, ERR_function_call_in_wait_stmt);
 	    BC_set_pc (bc, BC_next (before_wait_guard_expr));
-	    SET_PC (bc);
-	    wait_finish = new_bc_node (BC_NM_waitend, stmt);
+	    add_to_bcode (bc);
+	    wait_finish = new_bc_code_with_src (BC_NM_waitend, stmt);
 	    third_block_passing (IR_wait_stmt (stmt));
-	    SET_PC (wait_finish);
+	    add_to_bcode (wait_finish);
 	    break;
 	  }
 	case IR_NM_throw:
-	  bc = new_bc_node (BC_NM_throw, stmt);
+	  bc = new_bc_code_with_src (BC_NM_throw, stmt);
 	  BC_set_op1 (bc, temp_vars_num + curr_vars_number);
 	  IR_set_throw_expr
 	    (stmt, third_expr_processing (IR_throw_expr (stmt), FALSE,
-					  NULL, &temp_vars_num, FALSE));
+					  NULL, &temp_vars_num, FALSE,
+					  NULL, NULL, FALSE));
 	  type_test (IR_throw_expr (stmt), EVT_UNKNOWN,
 		     ERR_invalid_throw_expr_type);
-	  SET_PC (bc);
+	  add_to_bcode (bc);
 	  break;
 	case IR_NM_block:
 	  {
@@ -2527,52 +2896,106 @@ third_block_passing (IR_node_t first_level_stmt)
 	    int saved_curr_vars_number = curr_vars_number;
 	    IR_node_t curr_except;
 	    pc_t saved_curr_pc = curr_pc;
+	    BC_node_t saved_curr_info = curr_info;
 	    pc_t block_finish;
 	    pc_t catches_finish;
 	    pc_t previous_node_catch_list_pc;
-	    IR_node_t func_class;
-	    BC_node_t except_bc, last_except_with_block;
+	    IR_node_t func_class, friend;
+	    BC_node_t except_bc, last_except_with_block, bc_block;
+	    int simple_block_flag = FALSE;
 
 	    curr_scope = stmt;
-	    bc = new_bc_node (BC_NM_block, stmt);
-	    IR_set_bc_block (stmt, bc);
-	    if ((func_class = IR_func_class_ext (stmt)) != NULL)
+	    func_class = IR_func_class_ext (stmt);
+	    if (func_class == NULL)
 	      {
-		/* Class instance lives after the constrictor finish.  */
-		if (IR_IS_OF_TYPE (func_class, IR_NM_class))
-		  IR_set_extended_life_context_flag (stmt, TRUE);
-		curr_pc = PC (bc);
+		bc = new_bc_code (BC_NM_block,
+				  new_bc_node (BC_NM_source, IR_pos (stmt)));
+		if (IR_decls_number (stmt) == 0
+		    && IR_exceptions (stmt) == NULL)
+		  simple_block_flag = TRUE;
+		BC_set_ext_life_p (bc, IR_extended_life_context_flag (stmt));
+		BC_set_scope (bc, curr_bc_scope);
+		IR_set_bc_block (stmt, bc);
 	      }
 	    else
-	      SET_PC (bc);
-	    if (! IR_simple_block_flag (stmt))
+	      {
+		bc = get_fblock (func_class);
+		BC_set_scope (bc, curr_bc_scope);
+		BC_set_simple_p (bc, FALSE);
+		BC_set_func_p (bc,
+			       IR_IS_OF_TYPE (func_class, IR_NM_func)
+			       && ! IR_thread_flag (func_class));
+		BC_set_class_p (bc, IR_IS_OF_TYPE (func_class, IR_NM_class));
+		BC_set_thread_p (bc,
+				 IR_IS_OF_TYPE (func_class, IR_NM_func)
+				 && IR_thread_flag (func_class));
+		BC_set_args_p (bc, IR_args_flag (func_class));
+		BC_set_pars_num (bc, IR_parameters_number (func_class));
+		BC_set_min_pars_num
+		  (bc, IR_min_actual_parameters_number (func_class));
+		BC_set_ext_life_p (bc,
+				   (IR_IS_OF_TYPE (func_class, IR_NM_class)
+				    || IR_thread_flag (func_class)
+				    || IR_extended_life_context_flag (stmt)));
+	      }
+	    add_to_bcode (bc);
+	    curr_bc_scope = bc;
+	    BC_set_friends (bc, NULL); /* ??? */
+	    for (friend = IR_friends (stmt);
+		 friend != NULL;
+		 friend = IR_next_friend (friend))
+	      {
+		BC_node_t bc_friend = BC_create_node (BC_NM_friend);
+
+		BC_set_friend (bc_friend, get_fblock (IR_friend_decl (friend)));
+		BC_set_next_friend (bc_friend, BC_friends (bc));
+		BC_set_friends (bc, bc_friend);
+	      }
+	    if (! simple_block_flag)
 	      {
  		curr_real_scope = stmt;
-		curr_vars_number = real_block_vars_number (stmt);
+		curr_vars_number = IR_vars_number (stmt);
 		number_of_surrounding_blocks++;
 	      }
 	    third_block_passing (IR_block_stmts (stmt));
+	    if (func_class == NULL && saved_curr_scope != NULL)
+	      block_finish = new_bc_code (simple_block_flag
+					  ? BC_NM_sleave : BC_NM_leave,
+					  new_bc_node (BC_NM_source,
+						       source_position));
+	    else
+	      {
+		/* Function or the implicit top block.  */
+		block_finish = new_bc_code (BC_NM_bend,
+					    new_bc_node (BC_NM_source,
+							 source_position));
+		BC_set_block (block_finish, curr_bc_scope);
+	      }
+	    add_to_bcode (block_finish);
 	    curr_scope = saved_curr_scope;
-	    if (! IR_simple_block_flag (stmt))
+	    curr_bc_scope = BC_scope (bc);
+	    if (! simple_block_flag)
 	      {
 		number_of_surrounding_blocks--;
 		curr_real_scope = saved_curr_real_scope;
 		curr_vars_number = saved_curr_vars_number;
 	      }
-	    block_finish = PC (new_bc_node (BC_NM_leave, stmt));
-	    SET_PC (block_finish);
 	    if (func_class != NULL && IR_IS_OF_TYPE (func_class, IR_NM_class)
-		&& BC_IS_OF_TYPE (BC_next (bc), BC_NM_leave))
-	      IR_set_simple_class_flag (func_class, TRUE);
+		&& (BC_IS_OF_TYPE (BC_next (bc), BC_NM_leave)
+		    || BC_IS_OF_TYPE (BC_next (bc), BC_NM_bend)))
+	      BC_set_simple_p (bc, TRUE);
 	    BC_set_excepts (bc, NULL);
-	    IR_set_block_end_pc (stmt, NULL);
 	    if (func_class != NULL)
-	      curr_pc = saved_curr_pc;
+	      {
+		curr_pc = saved_curr_pc;
+		curr_info = saved_curr_info;
+	      }
 	    else if (IR_exceptions (stmt) != NULL)
 	      {
-		catches_finish = PC (new_bc_node (BC_NM_cend, stmt));
-		previous_node_catch_list_pc = PC (bc); /* block */
-		SET_PC (catches_finish);
+		catches_finish = new_bc_code_with_src (BC_NM_nop, stmt);
+		previous_node_catch_list_pc = bc; /* block */
+		add_to_bcode (catches_finish);
+		unlink_last_info ();
 		last_except_with_block = NULL;
 		for (curr_except = IR_exceptions (stmt);
 		     curr_except != NULL;
@@ -2585,7 +3008,7 @@ third_block_passing (IR_node_t first_level_stmt)
 						BC_NM_except));
 		    result = -1;
 		    temp_vars_num = 0;
-		    except_bc = new_bc_node (BC_NM_except, curr_except);
+		    except_bc = new_bc_code_with_src (BC_NM_except, curr_except);
 		    /* The exception instance in the first local
 		       temporary variable.  */
 		    BC_set_op1 (except_bc,
@@ -2594,7 +3017,8 @@ third_block_passing (IR_node_t first_level_stmt)
 		      (curr_except,
 		       third_expr_processing
 		       (IR_exception_class_expr (curr_except),
-			FALSE, &result, &temp_vars_num, FALSE));
+			FALSE, &result, &temp_vars_num, FALSE,
+			NULL, NULL, FALSE));
 		    BC_set_op2 (except_bc, result);
 		    type_test (IR_exception_class_expr (curr_except),
 			       EVT_CLASS, ERR_invalid_catch_expr_type);
@@ -2605,13 +3029,14 @@ third_block_passing (IR_node_t first_level_stmt)
 		    else
 		      BC_set_next_except (previous_node_catch_list_pc,
 					  BC_next (catches_finish));
-		    SET_PC (except_bc);
+		    add_to_bcode (except_bc);
 		    previous_node_catch_list_pc = curr_pc;
 		    if (IR_catch_block (curr_except) != NULL)
 		      {
 			last_except_with_block = except_bc;
 			third_block_passing (IR_catch_block (curr_except));
-			SET_PC (catches_finish);
+			add_to_bcode (catches_finish);
+			unlink_last_info ();
 		      }
 		    else
 		      {
@@ -2622,13 +3047,27 @@ third_block_passing (IR_node_t first_level_stmt)
 		      }
 		  }
 		d_assert (curr_pc == catches_finish);
-		IR_set_block_end_pc (stmt, catches_finish);
 		BC_set_next (catches_finish, NULL);
+		link_info (BC_info (catches_finish));
 	      }
-	    if (!IR_simple_block_flag (stmt))
-	      IR_set_temporary_vars_number
-		(stmt,
-		 IR_temporary_vars_number (stmt) + ADD_TEMP_VARS_NUMBER);
+	    if (simple_block_flag)
+	      BC_set_vars_num (bc, -1);
+	    else
+	      {
+		IR_set_temporary_vars_number
+		  (stmt,
+		   IR_temporary_vars_number (stmt) + ADD_TEMP_VARS_NUMBER);
+		BC_set_vars_num (bc, IR_vars_number (stmt));
+	      }
+	    BC_set_tvars_num (bc, IR_temporary_vars_number (stmt));
+	    /* Uncycle decls: */
+	    if (BC_decls (bc) != NULL)
+	      {
+		BC_node_t first = BC_next_decl (BC_decls (bc));
+
+		BC_set_next_decl (BC_decls (bc), NULL);
+		BC_set_decls (bc, first);
+	      }
 	    break;
 	  }
 	case IR_NM_func:
@@ -2642,10 +3081,16 @@ third_block_passing (IR_node_t first_level_stmt)
 	common_decl:
 	  {
 	    IR_node_t block;
-	    
+	    BC_node_t bc_block, bc_decl;
+
 	    block = IR_scope (stmt);
 	    d_assert (block != NULL && IR_NODE_MODE (block) == IR_NM_block);
-	    define_block_decl (stmt, block);
+	    IR_set_it_is_declared_in_block (IR_unique_ident (IR_ident (stmt)),
+					    TRUE);
+	    /* Add decl to the block */
+	    bc_block = IR_bc_block (block);
+	    bc_decl = get_bcode_decl (stmt);
+	    add_decl_to_block (bc_decl, bc_block);
 	    if (stmt_mode == IR_NM_class
 		&& (block = surrounding_func_block (block)) != NULL)
 	      /* Objects created from the class inside a function will
@@ -2659,165 +3104,61 @@ third_block_passing (IR_node_t first_level_stmt)
     }
 }
 
-
-
-/* Info about node used to dump the program code.  */
-struct node_info
+static inline int
+nop_p (BC_node_t bc)
 {
-  int traverse_check; /* check used to find repeated processing. */
-  int_t num; /* node number used for printing */
-  BC_node_t n; /* node itself */
-  BC_node_t subst; /* substitution.  */
-};
-
-/* Current value for traverse check.  */
-static int curr_traverse_check;
-/* Max value used for traverse check so far.  */
-static int max_traverse_check;
-
-/* Initiate traversing.  */
-static inline
-init_traverse_check (void)
-{
-  curr_traverse_check = max_traverse_check = 1;
-}
-
-/* Be ready for next traversing.  */
-static inline
-next_traverse_check (void)
-{
-  max_traverse_check++;
-  curr_traverse_check = max_traverse_check;
-}
-
-/* Temporary structure. */
-static struct node_info node_info;
-
-/* Hash table which implements the node info table. */
-static hash_table_t node_info_tab;
-/* This object stack contains elements of the table. */
-static os_t node_info_os;
-
-/* The last number used to enumerate the nodes.  */
-static int curr_node_num;
-
-/* Hash of the node info. */
-static unsigned
-node_info_hash (hash_table_entry_t n)
-{
-  struct node_info *ni = ((struct node_info *) n);
-
-  return (size_t) ni->n;
-}
-
-/* Equality of nodes. */
-static int
-node_info_eq (hash_table_entry_t n1, hash_table_entry_t n2)
-{
-  struct node_info *ni1 = ((struct node_info *) n1);
-  struct node_info *ni2 = ((struct node_info *) n2);
-
-  return ni1->n == ni2->n;
-}
-
-/* Return the node info of node N.  Create and initialize if it is not
-   created yet.  */
-static struct node_info *
-find_node_info (BC_node_t n)
-{
-  hash_table_entry_t *entry;
-  struct node_info *ni;
-
-  node_info.n = n;
-  entry = find_hash_table_entry (node_info_tab, &node_info, TRUE);
-  if (*entry != NULL)
-    return *(struct node_info **) entry;
-  OS_TOP_EXPAND (node_info_os, sizeof (struct node_info));
-  ni = OS_TOP_BEGIN (node_info_os);
-  OS_TOP_FINISH (node_info_os);
-  ni->n = n;
-  ni->traverse_check = 0;
-  ni->subst = NULL;
-  ni->num = ++curr_node_num;
-  *entry = ni;
-  return ni;
-}
-
-/* Create the node info table. */
-static void
-initiate_node_tab (void)
-{
-  OS_CREATE (node_info_os, 0);
-  node_info_tab = create_hash_table (3 * bc_insns_num / 2, node_info_hash,
-				     node_info_eq);
-  curr_node_num = 0;
-}
-
-/* Delete the node info table. */
-static void
-finish_node_tab (void)
-{
-  delete_hash_table (node_info_tab);
-  OS_DELETE (node_info_os);
+  if (BC_NODE_MODE (bc) == BC_NM_nop)
+    return TRUE;
+  else if (BC_NODE_MODE (bc) == BC_NM_block && BC_vars_num (bc) < 0)
+    return TRUE;
+  else if (BC_NODE_MODE (bc) == BC_NM_sleave)
+    return TRUE;
+  return FALSE;
 }
 
 /* The following function passes through nodes unnecessary for
-   execution.  Update {cond, if}_common_part_pc fields.  Also do insn
-   combining.  */
+   execution.  Also do byte code combining.  */
 static BC_node_t
-go_through (BC_node_t start_pc)
+go_through (BC_node_t start_bc)
 {
   BC_node_mode_t node_mode;
-  BC_node_t skip_end_pc, first_pc, second_pc, pc, next_pc;
-  IR_node_t stmt;
+  BC_node_t first_bc, second_bc, bc, next_bc, info;
   int bt_p, op1 = -1;
-  struct node_info *ni;
 
-  if (start_pc == NULL)
+  if (start_bc == NULL)
     return NULL;
-  for (pc = start_pc; pc != NULL; pc = BC_next (pc))
-    if (BC_NODE_MODE (pc) == BC_NM_cend)
-      ;
-    else if (BC_NODE_MODE (pc) == BC_NM_block
-	     || BC_NODE_MODE (pc) == BC_NM_leave)
-      {
-	stmt = BC_origin (pc);
-        if (! IR_IS_OF_TYPE (stmt, IR_NM_block)
-	    || ! IR_simple_block_flag (stmt))
-	  break;
-      }
-    else
-      break;
-  if (pc == NULL)
+  for (bc = start_bc; bc != NULL && nop_p (bc); bc = BC_next (bc))
+    ;
+  if (bc == NULL)
     return NULL;
-  ni = find_node_info (pc);
-  if (ni->subst != NULL)
-    return ni->subst;
-  skip_end_pc = second_pc = first_pc = pc;
-  if (BC_NODE_MODE (first_pc) == BC_NM_addi
-      && BC_op1 (first_pc) == BC_op2 (first_pc))
+  info = BC_info (bc);
+  if (BC_subst (info) != NULL)
+    return BC_subst (info);
+  second_bc = first_bc = bc;
+  if (BC_NODE_MODE (first_bc) == BC_NM_addi
+      && BC_op1 (first_bc) == BC_op2 (first_bc))
     {
-      op1 = BC_op1 (first_pc);
-      second_pc = BC_next (first_pc);
-      if (second_pc == NULL
-	  || (next_pc = BC_next (second_pc)) == NULL
-	  || BC_NODE_MODE (next_pc) != BC_NM_bt
-	  || BC_NODE_MODE (second_pc) == BC_NM_eqi
-	  || BC_NODE_MODE (second_pc) == BC_NM_nei
-	  || BC_NODE_MODE (second_pc) == BC_NM_gei
-	  || BC_NODE_MODE (second_pc) == BC_NM_lti
-	  || BC_NODE_MODE (second_pc) == BC_NM_lei
-	  || BC_NODE_MODE (second_pc) == BC_NM_gti)
+      op1 = BC_op1 (first_bc);
+      second_bc = BC_next (first_bc);
+      if (second_bc == NULL
+	  || (next_bc = BC_next (second_bc)) == NULL
+	  || BC_NODE_MODE (next_bc) != BC_NM_bt
+	  || BC_NODE_MODE (second_bc) == BC_NM_eqi
+	  || BC_NODE_MODE (second_bc) == BC_NM_nei
+	  || BC_NODE_MODE (second_bc) == BC_NM_gei
+	  || BC_NODE_MODE (second_bc) == BC_NM_lti
+	  || BC_NODE_MODE (second_bc) == BC_NM_lei
+	  || BC_NODE_MODE (second_bc) == BC_NM_gti)
 	{
 	  op1 = -1;
-	  second_pc = first_pc;
+	  second_bc = first_bc;
 	}
     }
   node_mode = BC_NM__error;
-  if ((next_pc = BC_next (second_pc)) != NULL
-      && ((bt_p = BC_NODE_MODE (next_pc) == BC_NM_bt)
-	  || BC_NODE_MODE (next_pc) == BC_NM_bf))
-    switch (BC_NODE_MODE (second_pc))
+  if ((next_bc = BC_next (second_bc)) != NULL
+      && ((bt_p = BC_NODE_MODE (next_bc) == BC_NM_bt)
+	  || BC_NODE_MODE (next_bc) == BC_NM_bf))
+    switch (BC_NODE_MODE (second_bc))
       {
       case BC_NM_eq:
 	node_mode = op1 >= 0 ? BC_NM_bteqinc : bt_p ? BC_NM_bteq : BC_NM_btne;
@@ -2857,101 +3198,33 @@ go_through (BC_node_t start_pc)
 	break;
       }
   if (node_mode != BC_NM__error
-      && (op1 < 0 || BC_op2 (second_pc) == op1)
-      && BC_op1 (second_pc) >= real_block_vars_number (curr_scope)
-      && ! unary_slice_p (BC_origin (second_pc)))
+      && (op1 < 0 || BC_op2 (second_bc) == op1)
+      && BC_op1 (second_bc) >= IR_vars_number (curr_scope))
     {
-      pc = new_bc_node (node_mode, BC_origin (next_pc));
+      bc = new_bc_code (node_mode, BC_source (BC_info (next_bc)));
+      insert_info (BC_info (bc), info);
       if (op1 >= 0)
-	BC_set_binc_inc (pc, BC_op3 (first_pc));
-      BC_set_op1 (pc, BC_op2 (second_pc));
-      BC_set_bcmp_op2 (pc, BC_op3 (second_pc));
-      BC_set_bcmp_res (pc, BC_op1 (second_pc));
-      BC_set_next (pc, BC_next (next_pc) == first_pc ? pc : BC_next (next_pc));
-      BC_set_pc (pc, BC_pc (next_pc) == first_pc ? pc : BC_pc (next_pc));
+	BC_set_binc_inc (bc, BC_op3 (first_bc));
+      BC_set_op1 (bc, BC_op2 (second_bc));
+      BC_set_bcmp_op2 (bc, BC_op3 (second_bc));
+      BC_set_bcmp_res (bc, BC_op1 (second_bc));
+      BC_set_next (bc, BC_next (next_bc) == first_bc ? bc : BC_next (next_bc));
+      BC_set_pc (bc, BC_pc (next_bc) == first_bc ? bc : BC_pc (next_bc));
     }
-  for (; start_pc != skip_end_pc; start_pc = BC_next (start_pc))
-    if (BC_NODE_MODE (start_pc) == BC_NM_cend)
-      {
-	stmt = BC_origin (start_pc);
-	if (IR_IS_OF_TYPE (stmt, IR_NM_if_stmt))
-	  IR_set_if_common_part_pc (stmt, pc);
-	else if (IR_IS_OF_TYPE (stmt, IR_NM_cond))
-	  IR_set_cond_common_part_pc (stmt, pc);
-	else if (IR_IS_OF_TYPE (stmt, IR_NM_block))
-	  IR_set_block_end_pc (stmt, pc);
-      }
-  ni->subst = pc;
-  return pc;
-}
-
-/* Process node BC (if it is not processed yet) and all its
-   successors.  Changing program counters by MODIFY_PC and processing
-   nodes by process_node.  */
-static BC_node_t
-traverse_bc (BC_node_t bc, BC_node_t stop,
-	     BC_node_t (*modify_pc) (BC_node_t),
-	     BC_node_t (*process_node) (BC_node_t, struct node_info *))
-{
-  BC_node_t next_pc, first = NULL;
-  struct node_info *ni;
-
-  while (bc != stop)
-    {
-      ni = find_node_info (bc);
-      if (ni->traverse_check == curr_traverse_check)
-	return first;
-      ni->traverse_check = curr_traverse_check;
-      if (process_node != NULL)
-	bc = process_node (bc, ni);
-      if (first == NULL)
-	first = bc;
-      if (modify_pc != NULL)
-	BC_set_next (bc, modify_pc (BC_next (bc)));
-      if (BC_IS_OF_TYPE (bc, BC_NM_br))
-	{
-	  if (modify_pc != NULL)
-	    BC_set_pc (bc, modify_pc (BC_pc (bc)));
-	  traverse_bc (BC_pc (bc), stop, modify_pc, process_node);
-	}
-      else if (BC_IS_OF_TYPE (bc, BC_NM_brid))
-	{
-	  if (modify_pc != NULL)
-	    BC_set_brid_pc (bc, modify_pc (BC_brid_pc (bc)));
-	  traverse_bc (BC_brid_pc (bc), stop, modify_pc, process_node);
-	}
-      else if (BC_IS_OF_TYPE (bc, BC_NM_block))
-	{
-	  if (modify_pc != NULL)
-	    BC_set_excepts (bc, modify_pc (BC_excepts (bc)));
-	  traverse_bc (BC_excepts (bc), stop, modify_pc, process_node);
-	}
-      else if (BC_IS_OF_TYPE (bc, BC_NM_except))
-	{
-	  if (modify_pc != NULL)
-	    BC_set_next_except (bc, modify_pc (BC_next_except (bc)));
-	  traverse_bc (BC_next_except (bc), stop, modify_pc, process_node);
-	}
-      else if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
-	{
-	  if (modify_pc != NULL)
-	    BC_set_body_pc (bc, modify_pc (BC_body_pc (bc)));
-	  traverse_bc (BC_body_pc (bc), stop, modify_pc, process_node);
-	}
-      bc = BC_next (bc);
-    }
-  return first;
+  BC_set_subst (info, bc);
+  return bc;
 }
 
 /* Modify call BC to tail calls if it is possible.  */
-static BC_node_t
-process_imcall (BC_node_t bc, struct node_info *ni)
+static void
+process_imcall (BC_node_t bc)
 {
   BC_node_t next_pc;
 
   if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
       && (next_pc = BC_next (bc)) != NULL
-      && BC_NODE_MODE (next_pc) == BC_NM_leave)
+      && (BC_NODE_MODE (next_pc) == BC_NM_leave
+	  || BC_NODE_MODE (next_pc) == BC_NM_bend))
     {
       BC_node_mode_t bc_mode;
       
@@ -2963,758 +3236,94 @@ process_imcall (BC_node_t bc, struct node_info *ni)
 	bc_mode = BC_NM_citpcall;
       else
 	bc_mode = BC_NM__error;
-      if (bc_mode != BC_NM__error
-	  && IR_implementation_func (BC_func (bc)) == NULL
-	  && ! IR_IS_OF_TYPE (BC_func (bc), IR_NM_external_func))
-	BC_SET_MODE (bc, bc_mode);
+      if (bc_mode != BC_NM__error)
+	{
+	  d_assert (BC_IS_OF_TYPE (BC_cfblock (bc), BC_NM_fblock));
+	  BC_SET_MODE (bc, bc_mode);
+	}
     }
-  return bc;
+}
+
+/* Mark info of any reachable code from BC.  */
+static void
+mark_reachable_info (BC_node_t bc)
+{
+  BC_node_t info;
+
+  for (; bc != NULL; bc = BC_next (bc))
+    {
+      info = BC_info (bc);
+      if (BC_reachable_p (info))
+	return;
+      BC_set_reachable_p (info, TRUE);
+      if (BC_IS_OF_TYPE (bc, BC_NM_br))
+	mark_reachable_info (BC_pc (bc));
+      if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
+	mark_reachable_info (BC_body_pc (bc));
+      if (BC_IS_OF_TYPE (bc, BC_NM_block))
+	mark_reachable_info (BC_excepts (bc));
+      if (BC_IS_OF_TYPE (bc, BC_NM_except))
+	mark_reachable_info (BC_next_except (bc));
+    }
 }
 
 /* Process nodes from START generating tail calls, removing
    uneccessary nodes, and combining byte code insns.  */
 static void
 process_bc (BC_node_t start)
-{
-  traverse_bc (start, NULL, go_through, process_imcall);
-}
+{ 
+  int last_uniq_ident_num;
+  BC_node_t info, bc, next, next_info;
 
-/* Increment operand locations of BC by INC.  */
-static void
-inc_nops (BC_node_t bc, int_t inc)
-{
-  if (BC_IS_OF_TYPE (bc, BC_NM_op1))
+  for (info = BC_info (start); info != NULL; info = BC_next_info (info))
     {
-      if (! BC_IS_OF_TYPE (bc, BC_NM_op1i)
-	  && ! BC_IS_OF_TYPE (bc, BC_NM_op2i12))
-	BC_set_op1 (bc, BC_op1 (bc) + inc);
-      if (BC_IS_OF_TYPE (bc, BC_NM_op2)
-	  && ! BC_IS_OF_TYPE (bc, BC_NM_op2i12)
-	  && ! BC_IS_OF_TYPE (bc, BC_NM_op2i)
-	  && ! BC_IS_OF_TYPE (bc, BC_NM_op3i2)
-	  && ! BC_IS_OF_TYPE (bc, BC_NM_op4i2))
-	BC_set_op2 (bc, BC_op2 (bc) + inc);
-      if (BC_IS_OF_TYPE (bc, BC_NM_op3) && ! BC_IS_OF_TYPE (bc, BC_NM_op3i))
-	BC_set_op3 (bc, BC_op3 (bc) + inc);
-      if (BC_IS_OF_TYPE (bc, BC_NM_op4))
-	BC_set_op2 (bc, BC_op4 (bc) + inc);
-      if (BC_IS_OF_TYPE (bc, BC_NM_brs))
+      BC_set_subst (info, NULL);
+      BC_set_reachable_p (info, FALSE);
+    }
+  for (info = BC_info (start); info != NULL; info = BC_next_info (info))
+    {
+      bc = BC_bc (info);
+      if ((next = BC_next (bc)) != NULL)
+	BC_set_next (bc, go_through (next));
+      if (BC_IS_OF_TYPE (bc, BC_NM_br) && (next = BC_pc (bc)) != NULL)
+	BC_set_pc (bc, go_through (next));
+      if (BC_IS_OF_TYPE (bc, BC_NM_foreach)
+	  && (next = BC_body_pc (bc)) != NULL)
+	BC_set_body_pc (bc, go_through (next));
+      if (BC_IS_OF_TYPE (bc, BC_NM_block)
+	  && (next = BC_excepts (bc)) != NULL)
+	BC_set_excepts (bc, go_through (next));
+      if (BC_IS_OF_TYPE (bc, BC_NM_except)
+	  && (next = BC_next_except (bc)) != NULL)
+	BC_set_next_except (bc, go_through (next));
+      process_imcall (bc);
+    }
+  mark_reachable_info (start);
+  /* Remove unreachable infos.  Setup unqiue ident numbers.  */
+  last_uniq_ident_num = DESTROY_IDENT_NUMBER;
+  for (info = BC_info (start); info != NULL; info = next_info)
+    {
+      next_info = BC_next_info (info);
+      if (! BC_reachable_p (info))
 	{
-	  BC_set_res (bc, BC_res (bc) + inc);
-	  if (BC_IS_OF_TYPE (bc, BC_NM_bcmp))
-	    {
-	      if (! BC_IS_OF_TYPE (bc, BC_NM_bcmpi))
-		BC_set_bcmp_op2 (bc, BC_bcmp_op2 (bc) + inc);
-	      BC_set_bcmp_res (bc, BC_bcmp_res (bc) + inc);
-	    }
-	}
-    }
-}
-
-/* Make copy of BC and set up subst of the correspoding node info
-   NI.  */
-static BC_node_t
-copy_bc_node (BC_node_t bc, struct node_info *ni)
-{
-  BC_node_t copy = BC_create_node (BC_NODE_MODE (bc));
-
-  d_assert (ni->n == bc);
-  memcpy (copy, bc, BC_node_size[BC_NODE_MODE (bc)]);
-  ni->subst = copy;
-  return bc;
-}
-
-/* Return copy of BC.  */
-static BC_node_t
-get_subst (BC_node_t bc)
-{
-  return find_node_info (bc)->subst;
-}
-
-/* Current call for inlining.  */
-static BC_node_t curr_imcall;
-
-/* Modify call BC to tail calls if it is possible.  */
-static BC_node_t
-process_inlined_bc_node (BC_node_t bc, struct node_info *ni)
-{
-  BC_node_t old_bc = bc;
-  BC_node_t cont = BC_next (curr_imcall);
-
-  if (BC_IS_OF_TYPE (bc, BC_NM_block) && BC_origin (bc) == curr_scope)
-    {
-      int temp_vars_num, inlined_vars_num;
-
-      bc = BC_create_node (BC_NM_bstart);
-      BC_set_op1 (bc, BC_op2 (curr_imcall));
-      BC_set_op2 (bc, IR_vars_number (curr_scope));
-      BC_set_next (bc, BC_next (old_bc));
-      temp_vars_num = IR_temporary_vars_number (curr_real_scope);
-      inlined_vars_num = (BC_op1 (curr_imcall) /* pars start */
-			  + IR_vars_number (curr_scope)
-			  + IR_temporary_vars_number (curr_scope)
-			  - IR_vars_number (curr_real_scope));
-      if (temp_vars_num < inlined_vars_num)
-	IR_set_temporary_vars_number (curr_real_scope, inlined_vars_num);
-    }
-  else if (BC_IS_OF_TYPE (bc, BC_NM_leave) && BC_origin (bc) == curr_scope)
-    {
-      bc = BC_create_node (BC_IS_OF_TYPE (curr_imcall, BC_NM_impcall)
-			   ? BC_NM_pbend : BC_NM_fbend);
-      BC_set_op1 (bc, IR_vars_number (curr_scope));
-      BC_set_next (bc, cont);
-    }
-  else if (BC_IS_OF_TYPE (bc, BC_NM_ret))
-    {
-      bc = BC_create_node (BC_NM_bret);
-      BC_set_op1 (bc, BC_op1 (old_bc));
-      BC_set_op2 (bc, IR_vars_number (curr_scope));
-      BC_set_next (bc, cont);
-    }
-  else if (BC_IS_OF_TYPE (bc, BC_NM_out))
-    {
-    }
-  else if (BC_IS_OF_TYPE (bc, BC_NM_var))
-    {
-      bc = BC_create_node (BC_NM_move);
-      BC_set_op1 (bc, BC_op1 (old_bc));
-      BC_set_op2 (bc,
-		  IR_var_number_in_block (IR_decl (BC_origin (old_bc)))
-		  - BC_op1 (curr_imcall));
-      BC_set_next (bc, BC_next (old_bc));
-    }
-  else if (BC_IS_OF_TYPE (bc, BC_NM_lvar)
-	   || BC_IS_OF_TYPE (bc, BC_NM_lvarv))
-    {
-    }
-  if (old_bc != bc)
-    BC_set_origin (bc, BC_origin (old_bc));
-  else
-    {
-      BC_node_t copy = BC_create_node (BC_NODE_MODE (bc));
-      
-      memcpy (copy, bc, BC_node_size[BC_NODE_MODE (bc)]);
-      bc = copy;
-    }
-  d_assert (ni->n == old_bc);
-  ni->subst = bc;
-  inc_nops (bc, BC_op1 (curr_imcall));
-  return bc;
-}
-
-/* Inline block of calling IMCALL.  */
-static BC_node_t
-inline_func_block (BC_node_t imcall)
-{
-  BC_node_t saved_imcall;
-  BC_node_t bc, next_pc;
-  IR_node_t func = BC_func (imcall);
-  BC_node_t cont = BC_next (imcall);
-
-  curr_scope = IR_next_stmt (func);
-  bc = IR_bc_block (curr_scope);
-  next_traverse_check ();
-  saved_imcall = curr_imcall;
-  curr_imcall = imcall;
-  bc = traverse_bc (bc, cont, NULL, process_inlined_bc_node);
-  next_traverse_check ();
-  curr_imcall = imcall;
-  find_node_info (cont)->subst = cont;
-  traverse_bc (bc, cont, get_subst, NULL);
-  curr_imcall = saved_imcall;
-  return bc;
-}
-
-/* Make inlining for BC if it is an immediate call.  */
-static BC_node_t
-inline_imcall (BC_node_t bc, struct node_info *ni)
-{
-  int saved_check;
-  BC_node_t imcall;
-
-  if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
-      && *IR_pos (BC_func (bc)).file_name != '<')
-    {
-      saved_check = curr_traverse_check;
-      imcall = bc;
-      bc = inline_func_block (imcall);
-      find_node_info (imcall)->subst = bc;
-      curr_traverse_check = saved_check;
-    }
-  return bc;
-}
-
-/* Make BC substitution for PC if it was inlined imcall.  */
-static BC_node_t
-imcall_subst (BC_node_t pc)
-{
-  struct node_info *ni;
-
-  
-  if (pc == NULL)
-    return NULL;
-  if (BC_NODE_MODE (pc) != BC_NM_bstart
-      && BC_NODE_MODE (pc) != BC_NM_pbend
-      && BC_NODE_MODE (pc) != BC_NM_fbend
-      && (!BC_IS_OF_TYPE (pc, BC_NM_imcall)
-	  || *IR_pos (BC_func (pc)).file_name == '<'))
-    return pc;
-  ni = find_node_info (pc);
-  if (ni->subst != NULL)
-    pc = ni->subst;
-  if (BC_NODE_MODE (pc) == BC_NM_bstart && BC_op1 (pc) == 0 && BC_op2 (pc) == 0)
-    pc = BC_next (pc);
-  if ((BC_NODE_MODE (pc) == BC_NM_pbend || BC_NODE_MODE (pc) == BC_NM_fbend)
-      && BC_op1 (pc) == 0)
-    pc = BC_next (pc);
-  return pc;
-}
-
-/* Process nodes from START generating tail calls, removing
-   uneccessary nodes, and combining byte code insns.  */
-static void
-inline_bc (BC_node_t start)
-{
-  next_traverse_check ();
-  curr_real_scope = curr_scope;
-  traverse_bc (start, NULL, NULL, inline_imcall);
-  next_traverse_check ();
-  traverse_bc (start, NULL, imcall_subst, NULL);
-}
-
-/* Print INDENT spaces into stdout.  */
-static void
-print_indent (int indent)
-{
-  int i;
-
-  for (i = 0; i < indent; i++)
-    printf (" ");
-}
-
-/* True if a goto was last printed. */
-static bool_t last_goto_flag;
-/* The line number of the last printed node. */
-static unsigned curr_line_number = 0;
-
-/* Print code from node CN to STOP (not including it) using
-   INDENT.  */
-static void
-dump_code (int indent, BC_node_t cn, BC_node_t stop)
-{
-  BC_node_mode_t node_mode;
-  BC_node_t cl, cf = NULL;
-  struct node_info *ni;
-  bool_t line_flag;
-
-  for (; cn != stop;)
-    {
-      ni = find_node_info (cn);
-      if (ni->traverse_check == curr_traverse_check)
-	{
-	  if (! last_goto_flag)
-	    {
-	      print_indent (indent);
-	      printf ("       goto %d\n", ni->num);
-	    }
-	  last_goto_flag = TRUE;
-	  break;
-	}
-      ni->traverse_check = curr_traverse_check;
-      node_mode = BC_NODE_MODE (cn);
-      if ((node_mode != BC_NM_block || indent != 0)
-	  && dump_flag == 1
-	  && strcmp (IR_pos (BC_origin (cn)).file_name,
-		     ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
-	{
-	  cn = BC_next (cn);
+	  unlink_info (info);
 	  continue;
 	}
-      if (node_mode == BC_NM_leave)
-	indent -= 2;
-      print_indent (indent);
-      printf ("%6d %s", ni->num, BC_node_name[node_mode]);
-      last_goto_flag = FALSE;
-      d_assert (indent >= 0);
-      if (curr_line_number != IR_pos (BC_origin (cn)).line_number)
-	{
-	  curr_line_number = IR_pos (BC_origin (cn)).line_number;
-	  printf ("(line=%u)", curr_line_number);
-	}
-      line_flag = TRUE;
-      switch (node_mode)
-	{
-	case BC_NM_cend: /* For debugging purposes */
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_ldch:
-	  printf (": %d <- ", BC_op1 (cn));
-	  printf ("(%x)", BC_op2 (cn));
-	  if (isgraph (BC_op2 (cn)))
-	    printf ("(%c -- %x)", BC_op2 (cn), BC_op2 (cn));
-	  else
-	    printf ("(%x)", BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_ldi:
-	  printf (": %d <- ", BC_op1 (cn));
-	  printf ("(%d)", BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_ldf:
-	  printf (": %d <- ", BC_op1 (cn));
-	  printf ("(%g)", BC_f (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_ldtp:
-	  printf (": %d <- %s", BC_op1 (cn), er_type_name (BC_op2 (cn)));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_ldnil:
-	case BC_NM_ldthis:
-	  printf (": %d <- ", BC_op1 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_lds:
-	  {
-	    const char *s;
-
-	    printf (": %d <- ", BC_op1 (cn));
-	    printf ("(\"");
-	    for (s = BC_str (cn); *s != '\0'; s++)
-	      printf ("%s", get_ch_repr (*s));
-	    printf ("\")");
-	    cn = BC_next (cn);
-	    break;
-	  }
-	case BC_NM_fld:
-	case BC_NM_lfld:
-	case BC_NM_lfldv:
-	  printf (": %d <- %d (%s, block_decl_ident_num=%d)",
-		  BC_op1 (cn), BC_op2 (cn),
-		  IR_ident_string (IR_unique_ident
-				   (IR_component (BC_origin (cn)))),
- 		  BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_brts:
-	case BC_NM_brfs:
-	  {
-	    struct node_info *fni = find_node_info (BC_next (cn));
-	    struct node_info *tni = find_node_info (BC_pc (cn));
-
-	    printf (": %d <- %d (true = %d, false = %d)",
-		    BC_res (cn), BC_op1 (cn), tni->num, fni->num);
-	    cn = BC_next (cn);
-	  }
-	  break;
-	case BC_NM_lconv:
-	  printf (": %d <- %d", BC_op1 (cn), BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_not:
-	case BC_NM_bnot:
-	case BC_NM_plus:
-	case BC_NM_minus:
-	case BC_NM_length:
-	case BC_NM_fadd:
-	case BC_NM_fmult:
-	case BC_NM_fand:
-	case BC_NM_fxor:
-	case BC_NM_for:
-	case BC_NM_const:
-	case BC_NM_new:
-	case BC_NM_tpof:
-	case BC_NM_chof:
-	case BC_NM_iof:
-	case BC_NM_fof:
-	case BC_NM_vecof:
-	case BC_NM_tabof:
-	case BC_NM_funcof:
-	case BC_NM_threadof:
-	case BC_NM_classof:
-	  printf (": %d <- %d", BC_op1 (cn), BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_vec:
-	case BC_NM_tab:
-	  printf (": %d <- (els=%d, parts=%d)",
-		  BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_flat:
-	  printf (": %d", BC_op1 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_call:
-	case BC_NM_pcall:
-	case BC_NM_tcall:
-	case BC_NM_tpcall:
-	  printf (": start=%d npars=%d", BC_op1 (cn), BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_ind:
-	case BC_NM_lindv:
-	  printf (": %d <- %d[%d]", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_icall:
-	case BC_NM_itcall:
-	case BC_NM_ticall:
-	case BC_NM_titcall:
-	case BC_NM_cicall:
-	case BC_NM_citcall:
-	case BC_NM_ipcall:
-	case BC_NM_itpcall:
-	case BC_NM_tipcall:
-	case BC_NM_titpcall:
-	case BC_NM_cipcall:
-	case BC_NM_citpcall:
-	  printf (" %s: start=%d npars=%d",
-		  IR_ident_string (IR_unique_ident (IR_ident (BC_func (cn)))),
-		  BC_op1 (cn), BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_sl:
-	case BC_NM_lslv:
-	  printf (": %d <- %d (dim=%d)", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_key:
-	case BC_NM_lkeyv:
-	  printf (": %d <- %d{%d}", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_in:
-	case BC_NM_eq:
-	case BC_NM_ne:
-	case BC_NM_id:
-	case BC_NM_unid:
-	case BC_NM_lt:
-	case BC_NM_ge:
-	case BC_NM_gt:
-	case BC_NM_le:
-	case BC_NM_mult:
-	case BC_NM_div:
-	case BC_NM_mod:
-	case BC_NM_add:
-	case BC_NM_sub:
-	case BC_NM_concat:
-	case BC_NM_lsh:
-	case BC_NM_rsh:
-	case BC_NM_ash:
-	case BC_NM_and:
-	case BC_NM_xor:
-	case BC_NM_or:
-	case BC_NM_fmtvecof:
-	  printf (": %d <- %d %d", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_eqi:
-	case BC_NM_nei:
-	case BC_NM_lei:
-	case BC_NM_gei:
-	case BC_NM_gti:
-	case BC_NM_lti:
-	  printf (": %d <- %d (%d)", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_addi:
-	  printf (": %d <- %d (%d)", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_mult_st:
-	case BC_NM_div_st:
-	case BC_NM_mod_st:
-	case BC_NM_sub_st:
-	case BC_NM_concat_st:
-	case BC_NM_lsh_st:
-	case BC_NM_rsh_st:
-	case BC_NM_ash_st:
-	case BC_NM_and_st:
-	case BC_NM_xor_st:
-	case BC_NM_or_st:
-	case BC_NM_add_st:
-	  printf (": %d(%d) <- %d op %d", BC_op1 (cn), BC_op2 (cn),
-		  BC_op4 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_st:
-	  printf (": %d(%d) <- %d", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_slst:
-	  printf (": %d(dim=%d) <- %d", BC_op1 (cn), BC_op2 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_mult_slst:
-	case BC_NM_div_slst:
-	case BC_NM_mod_slst:
-	case BC_NM_sub_slst:
-	case BC_NM_concat_slst:
-	case BC_NM_lsh_slst:
-	case BC_NM_rsh_slst:
-	case BC_NM_ash_slst:
-	case BC_NM_and_slst:
-	case BC_NM_xor_slst:
-	case BC_NM_or_slst:
-	case BC_NM_add_slst:
-	  printf (": %d(dim=%d) <- %d op %d", BC_op1 (cn),
-		  BC_op2 (cn), BC_op4 (cn), BC_op3 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_btdef:
-	  {
-	    struct node_info *fni = find_node_info (BC_next (cn));
-	    struct node_info *tni = find_node_info (BC_brid_pc (cn));
-
-	    printf (": %s? (true=%d, false=%d)",
-		    IR_ident_string (IR_unique_ident (BC_origin (cn))),
-		    tni->num, fni->num);
-	    cn = BC_next (cn);
-	    last_goto_flag = TRUE;
-	  }
-	  break;
-	case BC_NM_bf: /* if_stmt */
-	case BC_NM_bfni: /* cond */
-	  {
-	    IR_node_t irn;
-	    BC_node_t cp;
-	    struct node_info *fni = find_node_info (BC_next (cn));
-	    struct node_info *tni = find_node_info (BC_pc (cn));
-
-	    indent += 2;
-	    printf (": %d (true=%d, false=%d)\n", BC_op1 (cn),
-		    tni->num, fni->num);
-	    irn = BC_origin (cn);
-	    if (IR_NODE_MODE (irn) == IR_NM_if_stmt)
-	      cp = IR_if_common_part_pc (irn);
-	    else
-	      cp = IR_cond_common_part_pc (irn);
-	    dump_code (indent, BC_next (cn), cp);
-	    if (BC_pc (cn) != cp)
-	      {
-		print_indent (indent);
-		printf ("       goto %d\n", find_node_info (cp)->num);
-	      }
-	    dump_code (indent, BC_pc (cn), cp);
-	    line_flag = FALSE;
-	    indent -= 2;
-	    cn = cp;
-	    break;
-	  }
-	case BC_NM_bteq:
-	case BC_NM_btne:
-	case BC_NM_btle:
-	case BC_NM_btgt:
-	case BC_NM_btge:
-	case BC_NM_btlt:
-	  printf (": %d %d (temp_res=%d)",
-		  BC_op1 (cn), BC_bcmp_op2 (cn), BC_bcmp_res (cn),
-		  find_node_info (BC_pc (cn))->num);
-	  goto common_bt;
-	case BC_NM_bteqi:
-	case BC_NM_btnei:
-	case BC_NM_btlei:
-	case BC_NM_btgti:
-	case BC_NM_btgei:
-	case BC_NM_btlti:
-	  printf (": %d (%d) (temp_res=%d)",
-		  BC_op1 (cn), BC_bcmp_op2 (cn), BC_bcmp_res (cn),
-		  find_node_info (BC_pc (cn))->num);
-	  goto common_bt;
-	case BC_NM_bteqinc:
-	case BC_NM_btneinc:
-	case BC_NM_btleinc:
-	case BC_NM_btgtinc:
-	case BC_NM_btgeinc:
-	case BC_NM_btltinc:
-	  printf (": %d+(%d) %d (temp_res=%d)",
-		  BC_op1 (cn), BC_binc_inc (cn),
-		  BC_bcmp_op2 (cn), BC_bcmp_res (cn));
-	  goto common_bt;
-	case BC_NM_bt:
-	  printf (": %d", BC_op1 (cn));
-	common_bt:
-	  {
-	    IR_node_t irn;
-	    BC_node_t cp;
-	    struct node_info *fni = find_node_info (BC_next (cn));
-	    struct node_info *tni = find_node_info (BC_pc (cn));
-
-	    printf (" (true=%d, false=%d)\n", tni->num, fni->num);
-	    last_goto_flag = TRUE;
-	    indent += 2;
-	    irn = BC_origin (cn);
-	    if (IR_NODE_MODE (irn) == IR_NM_if_stmt)
-	      {
-		cp = IR_if_common_part_pc (irn);
-		dump_code (indent, BC_pc (cn), cp);
-		if (BC_pc (cn) != cp)
-		  {
-		    print_indent (indent);
-		    printf ("       goto %d\n", find_node_info (cp)->num);
-		  }
-		dump_code (indent, BC_next (cn), cp);
-		cn = cp;
-	      }
-	    else
-	      {
-		dump_code (indent, BC_pc (cn), BC_next (cn));
-		cn = BC_next (cn);
-	      }
-	    line_flag = FALSE;
-	    indent -= 2;
-	  }
-	  break;
-	case BC_NM_pushi: /* foreach start/foreach next iteration */
-	  if (BC_op1 (cn) == 0)
-	    indent += 2; /* foreach start */
-	  printf (": (%d)", BC_op1 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_foreach:
-	  printf (": %d(%d) (val=%d) in %d (end=%d)\n",
-		  BC_op2 (cn), BC_op3 (cn), BC_op4 (cn), BC_op1 (cn),
-		  find_node_info (BC_next (cn))->num);
-	  /* It is finishing on code already traversed.  */
-	  dump_code (indent, BC_body_pc (cn), NULL);
-	  line_flag = FALSE;
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_out:
-	  printf (": of %d blocks", BC_op1 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_leave:
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_ret:
-	  printf (": %d", BC_op1 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_wait:
-	  printf (": %d (guard expr start=%d)", BC_op1 (cn),
-		  find_node_info (BC_pc (cn))->num);
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_waitend:
-          cn = BC_next (cn);
-	  break;
-	case BC_NM_block:
-	  {
-	    IR_node_t block_stmt, stmt;
-
-	    block_stmt = BC_origin (cn);
-	    d_assert (! IR_simple_block_flag (block_stmt));
-	    printf (": vars=%d, tvars=%d%s", real_block_vars_number (block_stmt),
-		    IR_temporary_vars_number (block_stmt),
-		    IR_extended_life_context_flag (block_stmt) ? ", ext." : "");
-	    indent += 2;
-	    for (stmt = IR_block_stmts (block_stmt);
-		 stmt != NULL;
-		 stmt = IR_next_stmt (stmt))
-	      if (IR_IS_OF_TYPE (stmt, IR_NM_func_or_class)
-		  && (dump_flag > 1
-		      || strcmp (IR_pos (stmt).file_name,
-				 ENVIRONMENT_PSEUDO_FILE_NAME) != 0))
-		{
-		  printf ("\n");
-		  print_indent (indent);
-		  printf ("%s %s (%d%s)\n",
-			  IR_IS_OF_TYPE (stmt, IR_NM_func) ? "func" : "class",
-			  IR_ident_string (IR_unique_ident (IR_ident (stmt))),
-			  IR_parameters_number (stmt),
-			  IR_args_flag (stmt) ? ", ..." : "");
-		  dump_code (indent, IR_bc_block (IR_next_stmt (stmt)), NULL);
-		}
-	    if ((cl = BC_excepts (cn)) == NULL)
-	      cn = BC_next (cn);
-	    else
-	      {
-		BC_node_t fn;
-		
-		fn = IR_block_end_pc (block_stmt);
-		d_assert (fn != NULL);
-		printf ("(except = %d)\n", find_node_info (cl)->num);
-		cf = BC_next (fn);
-		dump_code (indent, BC_next (cn), cf);
-		line_flag = FALSE;
-		cn = cl;
-	      }
-	    break;
-	  }
-	case BC_NM_bstart:
-	  printf (": npars=%d, nvars=%d", BC_op1 (cn), BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_pbend:
-	case BC_NM_fbend:
-	  printf (": npops=%d", BC_op1 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_bret:
-	  printf (": ret=%d, npops=%d", BC_op1 (cn), BC_op2 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_throw:
-	  printf (": %d", BC_op1 (cn));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_except:
-	  printf (": %d inside %d ", BC_op1 (cn), BC_op2 (cn));
-	  if ((cl = BC_next_except (cn)) == NULL)
-	    {
-	      cn = BC_next (cn);
-	      cf = NULL;
-	    }
-	  else
-	    {
-	      printf ("(catch = %d)\n", find_node_info (cl)->num);
-	      dump_code (indent, BC_next (cn), cf);
-	      line_flag = FALSE;
-	      cn = cl;
-	    }
-	  break;
-	case BC_NM_var:
-	case BC_NM_lvar:
-	case BC_NM_lvarv:
-	case BC_NM_evar:
-	case BC_NM_levar:
-	case BC_NM_levarv:
-	case BC_NM_efunc:
-	case BC_NM_func:
-	case BC_NM_class:
-	  printf (": %d <- (%s)", BC_op1 (cn),
-		  IR_ident_string (IR_unique_ident (BC_origin (cn))));
-	  cn = BC_next (cn);
-	  break;
-	case BC_NM_move:
-	  printf (": %d <- %d (%s)", BC_op1 (cn), BC_op2 (cn),
-		  IR_ident_string (IR_unique_ident (BC_origin (cn))));
-	  cn = BC_next (cn);
-	  break;
-	default:
-	  /* Other nodes should not occur here.  */
-	  d_unreachable ();
-	}
-      if (line_flag)
-	printf ("\n");
-      if (node_mode == BC_NM_out)
-	return;
     }
 }
 
-pc_t
+/* Process semantics of IR starting with FIRST_PROGRAM_STMT_PTR and
+   generate byte code.  */
+void
 test_context (IR_node_t first_program_stmt_ptr)
 {
   IR_node_t *node_ptr;
   IR_node_t decl;
 
-  bc_insns_num = 0;
+  bc_nodes_num = 0;
   curr_scope = NULL;
+  max_block_level = 0;
   VLO_CREATE (possible_table_extensions, 0);
-  process_block_decl_unique_ident (destroy_unique_ident);
   first_program_stmt_ptr = first_block_passing (first_program_stmt_ptr, 0);
   /* Check that there are no extensions in the table. */
   for (node_ptr = (IR_node_t *) VLO_BEGIN (possible_table_extensions);
@@ -3730,23 +3339,25 @@ test_context (IR_node_t first_program_stmt_ptr)
   VLO_DELETE (possible_table_extensions);
   /* first_block_passing include declarations into table.  The
      environment scope is the first stmt (which is always block). */
-  set_environment_declarations (first_program_stmt_ptr);
   curr_scope = curr_real_scope = NULL;
   second_block_passing (first_program_stmt_ptr);
   curr_scope = NULL;
+  curr_bc_scope = NULL;
+  curr_info = NULL;
   prev_pc = curr_pc = NULL;
   for_finish = NULL;
   VLO_CREATE (all_funcs_and_classes, 0);
+  last_decl_num = 0;
   third_block_passing (first_program_stmt_ptr);
   /* Never shrink the top block and always put it into stack area.  */
   IR_set_extended_life_context_flag (first_program_stmt_ptr, FALSE);
   if (number_of_errors == 0)
     {
-      initiate_node_tab ();
-      init_traverse_check ();
+      last_uniq_ident_num = DESTROY_IDENT_NUMBER;
+      first_program_bc = IR_bc_block (first_program_stmt_ptr);
       /* Some optimizations: */
       curr_scope = first_program_stmt_ptr;
-      process_bc (IR_bc_block (curr_scope));
+      process_bc (first_program_bc);
       for (node_ptr = (IR_node_t *) VLO_BEGIN (all_funcs_and_classes);
 	   (char *) node_ptr <= (char *) VLO_END (all_funcs_and_classes);
 	   node_ptr++)
@@ -3754,28 +3365,6 @@ test_context (IR_node_t first_program_stmt_ptr)
 	  curr_scope = IR_next_stmt (*node_ptr);
 	  process_bc (IR_bc_block (curr_scope));
 	}
-#if 0
-      /* Inline optimizations: */
-     curr_scope = first_program_stmt_ptr;
-      inline_bc (IR_bc_block (curr_scope));
-      for (node_ptr = (IR_node_t *) VLO_BEGIN (all_funcs_and_classes);
-	   (char *) node_ptr <= (char *) VLO_END (all_funcs_and_classes);
-	   node_ptr++)
-	{
-	  curr_scope = IR_next_stmt (*node_ptr);
-	  inline_bc (IR_bc_block (curr_scope));
-	}
-#endif
-      if (dump_flag)
-	{
-	  last_goto_flag = FALSE;
-	  next_traverse_check ();
-	  dump_code (0, IR_bc_block (first_program_stmt_ptr), NULL);
-	}
-      finish_node_tab ();
     }
   VLO_DELETE (all_funcs_and_classes);
-  /* Remember that first program stmt is always block (see grammar
-     description on yacc). */
-  return PC (IR_bc_block (first_program_stmt_ptr));
 }

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,20 +29,18 @@
 #include "d_conv.h"
 #include "d_func.h"
 #include "d_run.h"
-#include "d_runtab.h"
 #include "d_eval.h"
 
-
 static ER_node_t do_inline
-find_context_by_scope (IR_node_t scope)
+find_context_by_scope (BC_node_t scope)
 {
   ER_node_t container;
-  IR_node_t curr_scope;
+  BC_node_t curr_scope;
 
 #ifndef NO_CONTAINER_CACHE
-  if (IR_cached_container_tick (scope) == current_cached_container_tick)
+  if (BC_cached_container_tick (scope) == current_cached_container_tick)
     {
-      container = (ER_node_t) IR_cached_container_address (scope);
+      container = (ER_node_t) BC_cached_container_address (scope);
       return container;
     }
 #endif
@@ -52,34 +50,17 @@ find_context_by_scope (IR_node_t scope)
 	 curr_scope = ER_block_node (container))
     ;
 #ifndef NO_CONTAINER_CACHE
-  IR_set_cached_container_address (scope, (string_t) container);
-  IR_set_cached_container_tick (scope, current_cached_container_tick);
+  BC_set_cached_container_address (scope, (string_t) container);
+  BC_set_cached_container_tick (scope, current_cached_container_tick);
 #endif
   return container;
 }
 
 static void do_inline
-process_var_ref (ER_node_t res, IR_node_t ident)
+process_var_ref_and_val (ER_node_t res, BC_node_t vdecl, int val_too_p)
 {
-  IR_node_t decl = IR_decl (ident);
-  IR_node_t scope = IR_scope (decl);
-  int var_number_in_block = IR_var_number_in_block (decl);
-  ER_node_t container;
-
-  container = find_context_by_scope (scope);
-  d_assert (ER_NODE_MODE (container) == ER_NM_heap_stack);
-  ER_SET_MODE (res, ER_NM_stack);
-  ER_set_stack (res, container);
-  ER_SET_MODE (IVAL (res, 1), ER_NM_int);
-  ER_set_i (IVAL (res, 1), var_number_in_block);
-}
-
-static void do_inline
-process_var_ref_and_val (ER_node_t res, IR_node_t ident, int val_too_p)
-{
-  IR_node_t decl = IR_decl (ident);
-  IR_node_t scope = IR_scope (decl);
-  int var_number_in_block = IR_var_number_in_block (decl);
+  BC_node_t scope = BC_decl_scope (vdecl);
+  int var_number_in_block = BC_var_num (vdecl);
   ER_node_t container;
 
   container = find_context_by_scope (scope);
@@ -94,11 +75,11 @@ process_var_ref_and_val (ER_node_t res, IR_node_t ident, int val_too_p)
 }
 
 static ER_node_t do_inline
-get_var_val_ref (IR_node_t ident)
+get_var_val_ref (BC_node_t vdecl)
 {
-  IR_node_t decl = IR_decl (ident);
-  int var_number_in_block = IR_var_number_in_block (decl);
-  IR_node_t scope = IR_scope (decl);
+  int var_number_in_block = BC_var_num (vdecl);
+
+  BC_node_t scope = BC_decl_scope (vdecl);
   ER_node_t container;
 
   container = find_context_by_scope (scope);
@@ -106,25 +87,25 @@ get_var_val_ref (IR_node_t ident)
 }
 
 static void do_inline
-process_var_val (ER_node_t res, IR_node_t ident)
+process_var_val (ER_node_t res, BC_node_t vdecl)
 {
   ER_node_t ref;
 
-  ref = get_var_val_ref (ident);
+  ref = get_var_val_ref (vdecl);
   if (ER_NODE_MODE (ref) == ER_NM_undef)
-    eval_error (accessop_decl, invaccesses_decl,
-		IR_pos (BC_origin (cpc)), DERR_undefined_value_access,
-		IR_ident_string (IR_unique_ident (ident)));
+    eval_error (accessop_bc_decl, invaccesses_bc_decl,
+		get_cpos (), DERR_undefined_value_access,
+		BC_ident (vdecl));
   *(val_t *) res = *(val_t *) ref;
 }
 
 static void do_inline
-process_external_var_decl (ER_node_t res, IR_node_t decl,
-			   int lvalue_p, int val_too_p)
+process_external_var (ER_node_t res, BC_node_t evdecl,
+		      int lvalue_p, int val_too_p)
 {
   void *addr;
   
-  addr = external_address (decl);
+  addr = external_address (evdecl);
   if (lvalue_p)
     {
       ER_SET_MODE (res, ER_NM_external_var_ref);
@@ -133,67 +114,58 @@ process_external_var_decl (ER_node_t res, IR_node_t decl,
       if (val_too_p)
 	{
 	  if (ER_NODE_MODE ((ER_node_t) addr) == ER_NM_undef)
-	    eval_error (accessop_decl, invaccesses_decl,
-			IR_pos (BC_origin (cpc)), DERR_undefined_value_access,
-			IR_ident_string (IR_unique_ident (IR_ident (decl))));
+	    eval_error (accessop_bc_decl, invaccesses_bc_decl,
+			get_cpos (), DERR_undefined_value_access,
+			BC_ident (evdecl));
 	  *(val_t *) IVAL (res, 2) = *(val_t *) addr;
 	}
     }
   else if (ER_NODE_MODE ((ER_node_t) addr) == ER_NM_undef)
-    eval_error (accessop_decl, invaccesses_decl,
-		IR_pos (BC_origin (cpc)), DERR_undefined_value_access,
-		IR_ident_string (IR_unique_ident (IR_ident (decl))));
+    eval_error (accessop_bc_decl, invaccesses_bc_decl,
+		get_cpos (), DERR_undefined_value_access,
+		BC_ident (evdecl));
   else
     *(val_t *) res = *(val_t *) addr;
 }
 
-static void do_inline
-process_external_var (ER_node_t res, IR_node_t ident,
-		      int lvalue_p, int val_too_p)
+static position_t
+get_designator_pos (void)
 {
-  process_external_var_decl (res, IR_decl (ident), lvalue_p, val_too_p);
-}
+  BC_node_t info = BC_info (cpc);
 
-static IR_node_t
-get_designator (void)
-{
-  IR_node_t stmt = BC_origin (cpc);
-
-  if (IR_IS_OF_TYPE (stmt, IR_NM_foreach_stmt))
-    return IR_foreach_designator (stmt);
-  else if (IR_IS_OF_TYPE (stmt, IR_NM_assign_stmt))
-    return IR_assignment_var (stmt);
+  if (BC_IS_OF_TYPE (info, BC_NM_source2))
+    return BC_pos2 (info);
   else
-    return stmt;
+    return BC_pos (info);
 }
 
 static void do_inline
-check_member_access (IR_node_t decl, IR_node_t block)
+check_member_access (BC_node_t decl, BC_node_t fblock)
 {
-  if (!IR_public_flag (decl))
+  if (!BC_public_p (decl))
     {
-      IR_node_t curr_block, friend;
+      BC_node_t curr_block, friend;
 
       /* ??? Is it worth to make it more effective (e.g. bit tables). */
       for (curr_block = ER_block_node (cstack);
 	   curr_block != NULL;
-	   curr_block = IR_block_scope (curr_block))
-	if (curr_block == block)
+	   curr_block = BC_scope (curr_block))
+	if (curr_block == fblock)
 	  break;
 	else
 	  {
-	    for (friend = IR_friends (block);
+	    for (friend = BC_friends (fblock);
 		 friend != NULL;
-		 friend = IR_next_friend (friend))
-	      if (IR_friend_decl (friend) == IR_func_class_ext (curr_block))
+		 friend = BC_next_friend (friend))
+	      if (BC_friend (friend) == curr_block)
 		break;
 	    if (friend != NULL)
 	      break;
 	  }
       if (curr_block == NULL)
-	eval_error (accessop_decl, invaccesses_decl, IR_pos (get_designator ()),
+	eval_error (accessop_bc_decl, invaccesses_bc_decl, get_designator_pos (),
 		    DERR_private_decl_access_from_outside_block,
-		    IR_ident_string (IR_unique_ident (IR_ident (decl))));
+		    BC_ident (decl));
     }
 }
 
@@ -201,14 +173,14 @@ static void do_inline
 execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 			    ER_node_t op, int lvalue_p, int lvalue_val_p)
 {
-  IR_node_t decl;
-  IR_node_t block;
+  BC_node_t decl;
+  BC_node_t block;
   ER_node_t container, val;
 
   if (ER_NODE_MODE (op) == ER_NM_stack)
     container = ER_stack (op);
   else
-    eval_error (accessop_decl, invaccesses_decl, BC_pos (cpc),
+    eval_error (accessop_bc_decl, invaccesses_bc_decl, get_cpos (),
 		DERR_value_is_not_class_instance_or_stack);
   decl = NULL;
   for (;;)
@@ -216,21 +188,23 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
       d_assert (container != NULL);
       block = ER_block_node (container);
       if (block_decl_ident_number >= 0)
-	decl = LV_BLOCK_IDENT_DECL (IR_block_number (block),
+	decl = LV_BLOCK_IDENT_DECL (BC_block_number (block),
 				    block_decl_ident_number);
-      if (decl != NULL || ! ER_instance_p (container))
+      if (decl != NULL
+	  || BC_NODE_MODE (block) != BC_NM_fblock || ! BC_class_p (block))
 	break;
       container = ER_context (container);
-      if (! ER_instance_p (container))
+      if (BC_NODE_MODE (ER_block_node (container)) != BC_NM_fblock
+	  || ! BC_class_p (ER_block_node (container)))
 	break;
     }
   if (decl == NULL)
-    eval_error (accessop_decl, invaccesses_decl, BC_pos (cpc),
+    eval_error (accessop_bc_decl, invaccesses_bc_decl, get_cpos (),
 		DERR_decl_is_absent_in_given_class_or_block);
   else
     check_member_access (decl, block);
 
-  switch ((unsigned char) IR_NODE_MODE (decl))
+  switch ((unsigned char) BC_NODE_MODE (decl))
     {
 #ifdef __GNUC__
 	  /* This is a trick to make switch faster by removing range
@@ -239,7 +213,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
     case 255:
       abort ();
 #endif
-    case IR_NM_var:
+    case BC_NM_vdecl:
       val = NULL;
       if (! lvalue_p)
 	val = res;
@@ -248,50 +222,41 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 	  ER_SET_MODE (res, ER_NM_stack);
 	  ER_set_stack (res, container);
 	  ER_SET_MODE (IVAL (res, 1), ER_NM_int);
-	  ER_set_i (IVAL (res, 1), IR_var_number_in_block (decl));
+	  ER_set_i (IVAL (res, 1), BC_var_num (decl));
 	  if (lvalue_val_p)
 	    val = IVAL (res, 2);
 	}
       if (val != NULL)
 	{
-	  ER_node_t ref = IVAL (ER_stack_vars (container),
-				IR_var_number_in_block (decl));
+	  ER_node_t ref = IVAL (ER_stack_vars (container), BC_var_num (decl));
 	  
 	  if (ER_NODE_MODE (ref) == ER_NM_undef)
-	    eval_error (accessop_decl, invaccesses_decl,
-			IR_pos (BC_origin (cpc)), DERR_undefined_value_access,
-			IR_ident_string (IR_unique_ident (IR_ident (decl))));
+	    eval_error (accessop_bc_decl, invaccesses_bc_decl,
+			get_cpos (), DERR_undefined_value_access,
+			BC_ident (decl));
 	  *(val_t *) val = *(val_t *) ref;
 	}
       break;
-    case IR_NM_external_var:
-      process_external_var_decl (res, decl, lvalue_p, lvalue_val_p);
+    case BC_NM_evdecl:
+      process_external_var (res, decl, lvalue_p, lvalue_val_p);
       break;
-    case IR_NM_external_func:
-    case IR_NM_func:
+    case BC_NM_fdecl:
+      decl = BC_fblock (decl);
       if (lvalue_p)
-	eval_error (accessop_decl, invaccesses_decl,
-		    BC_pos (cpc), DERR_func_as_variable);
-      if (IR_thread_flag (decl))
-	{
-	  ER_SET_MODE (res, ER_NM_thread);
-	  ER_set_thread_context (res, container);
-	  ER_set_thread_id (res, FUNC_CLASS_ID (decl));
-	}
-      else
-	{
-	  ER_SET_MODE (res, ER_NM_func);
-	  ER_set_func_context (res, container);
-	  ER_set_func_id (res, FUNC_CLASS_ID (decl));
-	}
+	eval_error (accessop_bc_decl, invaccesses_bc_decl,
+		    get_cpos (),
+		    BC_NODE_MODE (decl) == BC_NM_fblock && BC_class_p (decl)
+		    ? DERR_class_as_variable : DERR_func_as_variable);
+      ER_SET_MODE (res, ER_NM_code);
+      ER_set_code_context (res, container);
+      ER_set_code_id (res, CODE_ID (decl));
       break;
-    case IR_NM_class:
+    case BC_NM_efdecl:
       if (lvalue_p)
-	eval_error (accessop_decl, invaccesses_decl,
-		    BC_pos (cpc), DERR_class_as_variable);
-      ER_SET_MODE (res, ER_NM_class);
-      ER_set_class_context (res, container);
-      ER_set_class_id (res, FUNC_CLASS_ID (decl));
+	eval_error (accessop_bc_decl, invaccesses_bc_decl,
+		    get_cpos (), DERR_func_as_variable);
+      ER_SET_MODE (res, ER_NM_efunc);
+      ER_set_efdecl (res, decl);
       break;
     default:
       d_unreachable ();
@@ -304,18 +269,18 @@ check_vector_index (ER_node_t vect, ER_node_t index)
   int_t index_value;
 
   if (ER_NODE_MODE (index) != ER_NM_int)
-    eval_error (indextype_decl, invindexes_decl,
-		BC_pos (cpc), DERR_index_is_not_int);
+    eval_error (indextype_bc_decl, invindexes_bc_decl,
+		get_cpos (), DERR_index_is_not_int);
   index_value = ER_i (index);
   if (index_value < 0
       || (unsigned_int_t) index_value >= ER_els_number (vect))
     {
       if (index_value < 0)
-	eval_error (indexvalue_decl, invindexes_decl,
-		    IR_pos (get_designator ()), DERR_index_is_negative_number);
+	eval_error (indexvalue_bc_decl, invindexes_bc_decl,
+		    get_designator_pos (), DERR_index_is_negative_number);
       else
-	eval_error (indexvalue_decl, invindexes_decl,
-		    IR_pos (get_designator ()),
+	eval_error (indexvalue_bc_decl, invindexes_bc_decl,
+		    get_designator_pos (),
 		    DERR_index_is_greater_than_array_bound);
     }
   return index_value;
@@ -355,7 +320,7 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
       ER_set_f (to, ((floating_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_type:
-      ER_set_type (to, ((IR_node_mode_t *) ER_pack_els (vect)) [index_val]);
+      ER_set_type (to, ((ER_node_mode_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_vect:
       set_vect_dim (to, ((ER_node_t *) ER_pack_els (vect)) [index_val], 0);
@@ -370,9 +335,7 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
     case ER_NM_stack:
       ER_set_stack (to, ((ER_node_t *) ER_pack_els (vect)) [index_val]);
       break;
-    case ER_NM_func:
-    case ER_NM_thread:
-    case ER_NM_class:
+    case ER_NM_code:
       el_type_size = type_size_table [el_type];
       memcpy ((char *) to + val_displ_table [ER_NODE_MODE (to)],
 	      ER_pack_els (vect) + index_val * el_type_size,
@@ -433,8 +396,7 @@ store_packed_vector_element (ER_node_t vect, int_t index_val, ER_node_t val)
       ((floating_t *) ER_pack_els (vect)) [index_val] = ER_f (val);
       break;
     case ER_NM_type:
-      ((IR_node_mode_t *) ER_pack_els (vect)) [index_val]
-	= ER_type (val);
+      ((ER_node_mode_t *) ER_pack_els (vect)) [index_val] = ER_type (val);
       break;
     case ER_NM_vect:
       set_packed_vect_el (vect, index_val, ER_vect (val));
@@ -448,9 +410,7 @@ store_packed_vector_element (ER_node_t vect, int_t index_val, ER_node_t val)
     case ER_NM_stack:
       ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_stack (val);
       break;
-    case ER_NM_func:
-    case ER_NM_thread:
-    case ER_NM_class:
+    case ER_NM_code:
       el_type_size = type_size_table [el_type];
       memcpy (ER_pack_els (vect) + index_val * el_type_size,
 	      (char *) val + val_displ_table [ER_NODE_MODE (val)],
@@ -470,7 +430,7 @@ store_vector_element (ER_node_t vect, ER_node_t index, ER_node_t val)
   GO_THROUGH_REDIR (vect);
   pack_flag = ER_NODE_MODE (vect) == ER_NM_heap_pack_vect;
   if (ER_immutable (vect))
-    eval_error (immutable_decl, invaccesses_decl, IR_pos (get_designator ()),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   index_val = check_vector_index (vect, index);
   if (pack_flag && ER_pack_vect_el_type (vect) != ER_NODE_MODE (val))
@@ -493,7 +453,7 @@ load_table_element_by_key (ER_node_t to, ER_node_t tab, ER_node_t key)
   entry = find_tab_entry (tab, key, FALSE);
   if (ER_NODE_MODE (entry) == ER_NM_empty_entry
       || ER_NODE_MODE (entry) == ER_NM_deleted_entry)
-    eval_error (keyvalue_decl, invkeys_decl, BC_pos (cpc),
+    eval_error (keyvalue_bc_decl, invkeys_bc_decl, get_cpos (),
 		DERR_no_such_key);
   *(val_t *) to = *(val_t *) INDEXED_ENTRY_VAL (entry, 0);
   d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0), ER_NM_val));
@@ -506,7 +466,7 @@ store_table_element (ER_node_t tab, ER_node_t index, ER_node_t val)
 
   GO_THROUGH_REDIR (tab);
   if (ER_immutable (tab))
-    eval_error (immutable_decl, invaccesses_decl, IR_pos (get_designator ()),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
 		DERR_immutable_table_modification);
   entry = find_tab_entry (tab, index, TRUE);
   *(val_t *) entry = *(val_t *) index;
@@ -516,41 +476,56 @@ store_table_element (ER_node_t tab, ER_node_t index, ER_node_t val)
 }
 
 static void do_inline
+store_stack_element (ER_node_t stack, ER_node_t index, ER_node_t val)
+{
+  if (ER_immutable (stack))
+    eval_error (immutable_bc_decl, invaccesses_bc_decl,
+		get_designator_pos (), DERR_immutable_instance_modification);
+  *(val_t *) IVAL (ER_stack_vars (stack), ER_i (index)) = *(val_t *) val;
+}
+
+/* Used only for op store when check is done for lvalue value.  */
+static void do_inline
 store_designator_value (ER_node_t container, ER_node_t index, ER_node_t val)
 {
-  IR_node_t des;
-
   if (ER_NODE_MODE (container) == ER_NM_stack)
-    {
-      if (ER_immutable (ER_stack (container)))
-	eval_error (immutable_decl, invaccesses_decl,
-		    IR_pos (get_designator ()),
-		    DERR_immutable_instance_modification);
-      *(val_t *) IVAL (ER_stack_vars (ER_stack (container)), ER_i (index))
-	= *(val_t *) val;
-    }
+    store_stack_element (ER_stack (container), index, val);
   else if (ER_NODE_MODE (container) == ER_NM_vect)
     store_vector_element (ER_vect (container), index, val);
   else if (ER_NODE_MODE (container) == ER_NM_tab)
     store_table_element (ER_tab (container), index, val);
   else if (ER_NODE_MODE (container) == ER_NM_external_var_ref)
     *(val_t *) ER_external_var_ref (container) = *(val_t *) val;
-  else
-    {
-      des = get_designator ();
-      if (IR_IS_OF_TYPE (des, IR_NM_vec_index_designator))
-	eval_error (indexop_decl, invindexes_decl, IR_pos (des),
-		    DERR_index_operation_for_non_array);
-      else if (IR_IS_OF_TYPE (des, IR_NM_key_index_designator))
-	eval_error (keyop_decl, invkeys_decl, IR_pos (des),
-		    DERR_key_index_operation_for_non_table);
-      else if (IR_IS_OF_TYPE (des, IR_NM_period_designator))
-	eval_error (accessop_decl, invaccesses_decl, IR_pos (des),
-		    DERR_value_is_not_class_instance_or_stack);
-      d_unreachable ();
-    }
+  else /* The check is done for lvalue value.  */
+    d_unreachable ();
 }
 
+static void do_inline
+store_vect_designator_value (ER_node_t vect, ER_node_t index, ER_node_t val)
+{
+  if (ER_NODE_MODE (vect) != ER_NM_vect)
+    eval_error (indexop_bc_decl, invindexes_bc_decl, get_designator_pos (),
+		DERR_index_operation_for_non_array);
+  store_vector_element (ER_vect (vect), index, val);
+}
+
+static void do_inline
+store_tab_designator_value (ER_node_t tab, ER_node_t index, ER_node_t val)
+{
+  if (ER_NODE_MODE (tab) != ER_NM_tab)
+    eval_error (keyop_bc_decl, invkeys_bc_decl, get_designator_pos (),
+		DERR_key_index_operation_for_non_table);
+  store_table_element (ER_tab (tab), index, val);
+}
+
+static void do_inline
+store_stack_designator_value (ER_node_t stack, ER_node_t index, ER_node_t val)
+{
+  if (ER_NODE_MODE (stack) != ER_NM_stack)
+    eval_error (accessop_bc_decl, invaccesses_bc_decl, get_designator_pos (),
+		DERR_value_is_not_class_instance_or_stack);
+  store_stack_element (ER_stack (stack), index, val);
+}
 
 /* Return and check slice characteristics (start, bound, step and
    result len) of a slice on DEPTH whose start starts with
@@ -563,13 +538,13 @@ check_and_get_slice_info (ER_node_t start_val, unsigned_int_t vec_len,
   int_t start0, bound0, step0, niter0, abs_step;
 
   if (ER_NODE_MODE (IVAL (start_val, 0)) != ER_NM_int)
-    eval_error (slicetype_decl, invslices_decl, IR_pos (get_designator ()),
+    eval_error (slicetype_bc_decl, invslices_bc_decl, get_designator_pos (),
 		DERR_slice_start_is_not_int, depth);
   if (ER_NODE_MODE (IVAL (start_val, 1)) != ER_NM_int)
-    eval_error (slicetype_decl, invslices_decl,	IR_pos (get_designator ()),
+    eval_error (slicetype_bc_decl, invslices_bc_decl,	get_designator_pos (),
 		DERR_slice_bound_is_not_int, depth);
   if (ER_NODE_MODE (IVAL (start_val, 2)) != ER_NM_int)
-    eval_error (slicetype_decl, invslices_decl,	IR_pos (get_designator ()),
+    eval_error (slicetype_bc_decl, invslices_bc_decl,	get_designator_pos (),
 		DERR_slice_step_is_not_int, depth);
   start0 = ER_i (IVAL (start_val, 0));
   bound0 = ER_i (IVAL (start_val, 1));
@@ -616,7 +591,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
   vect1 = container1;
   GO_THROUGH_REDIR (vect1);
   if (ER_immutable (vect1))
-    eval_error (immutable_decl, invaccesses_decl, IR_pos (get_designator ()),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   pack_flag1 = ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect;
   len1 = ER_els_number (vect1);
@@ -652,8 +627,8 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      break;
 	    case ER_NM_type:
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
-		((IR_node_mode_t *) pack_els) [i]
-		  = ((IR_node_mode_t *) pack_els1) [i1];
+		((ER_node_mode_t *) pack_els) [i]
+		  = ((ER_node_mode_t *) pack_els1) [i1];
 	      break;
 	    case ER_NM_vect:
 	    case ER_NM_tab:
@@ -662,9 +637,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
 		((ER_node_t *) pack_els) [i] = ((ER_node_t *) pack_els1) [i1];
 	      break;
-	    case ER_NM_func:
-	    case ER_NM_thread:
-	    case ER_NM_class:
+	    case ER_NM_code:
 	      {
 		size_t el_type_size1 = type_size_table [el_type1];
 
@@ -694,7 +667,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
       else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
-	eval_error (sliceform_decl, invslices_decl, IR_pos (get_designator ()),
+	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els1 = ER_pack_els (vect1);
@@ -716,8 +689,8 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	    {
 	      v1 = IVAL (unpack_els1, i1);
 	      if (ER_NODE_MODE (v1) != ER_NM_vect)
-		eval_error (sliceform_decl, invslices_decl,
-			    IR_pos (get_designator ()),
+		eval_error (sliceform_bc_decl, invslices_bc_decl,
+			    get_designator_pos (),
 			    DERR_slice_operand_form, depth);
 	      v1 = ER_vect (v1);
 	      p = process_slice_extract (v1, IVAL (start_val1, 3), dim1,
@@ -738,7 +711,7 @@ slice_extract (ER_node_t res, ER_node_t container, int_t dim)
   ER_node_t vect;
 
   if (ER_NODE_MODE (container) != ER_NM_vect)
-    eval_error (sliceform_decl, invslices_decl,	IR_pos (get_designator ()),
+    eval_error (sliceform_bc_decl, invslices_bc_decl,	get_designator_pos (),
 		DERR_slice_operand_form, 1);
   vect = process_slice_extract (ER_vect (container),
 				IVAL (container, 1), dim, 1);
@@ -768,7 +741,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
   vect1 = container1;
   GO_THROUGH_REDIR (vect1);
   if (ER_immutable (vect1))
-    eval_error (immutable_decl, invaccesses_decl, IR_pos (get_designator ()),
+    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   pack_flag1 = ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect;
   len1 = ER_els_number (vect1);
@@ -783,7 +756,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       
     }
   if (dim2 != 0 && niter1 != niter2)
-    eval_error (optype_decl, invops_decl, IR_pos (get_designator ()),
+    eval_error (optype_bc_decl, invops_bc_decl, get_designator_pos (),
 		DERR_different_slice_operand_lengths, niter1, niter2, depth);
   if (dim1 == 1 && dim2 == 0)
     {
@@ -813,7 +786,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      break;
 	    case ER_NM_type:
 	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((IR_node_mode_t *) pack_els1) [i1] = ER_type (container2);
+		((ER_node_mode_t *) pack_els1) [i1] = ER_type (container2);
 	      break;
 	    case ER_NM_vect:
 	      v2 = ER_vect (container2);
@@ -830,9 +803,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      for (i1 = start1; i1 != bound1; i1 += step1)
 		((ER_node_t *) pack_els1) [i1] = v2;
 	      break;
-	    case ER_NM_func:
-	    case ER_NM_thread:
-	    case ER_NM_class:
+	    case ER_NM_code:
 	      {
 		size_t el_type_size1 = type_size_table [el_type1];
 		char *v = ((char *) container2
@@ -904,8 +875,8 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      break;
 	    case ER_NM_type:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
-		((IR_node_mode_t *) pack_els1) [i1]
-		  = ((IR_node_mode_t *) pack_els2) [i2];
+		((ER_node_mode_t *) pack_els1) [i1]
+		  = ((ER_node_mode_t *) pack_els2) [i2];
 	      break;
 	    case ER_NM_vect:
 	    case ER_NM_tab:
@@ -914,9 +885,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
 		((ER_node_t *) pack_els1) [i1] = ((ER_node_t *) pack_els2) [i2];
 	      break;
-	    case ER_NM_func:
-	    case ER_NM_thread:
-	    case ER_NM_class:
+	    case ER_NM_code:
 	      {
 		size_t el_type_size1 = type_size_table [el_type1];
 		for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
@@ -944,7 +913,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
       else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
-	eval_error (sliceform_decl, invslices_decl, IR_pos (get_designator ()),
+	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els1 = ER_pack_els (vect1);
@@ -966,8 +935,8 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		{
 		  v1 = IVAL (unpack_els1, i1);
 		  if (ER_NODE_MODE (v1) != ER_NM_vect)
-		    eval_error (sliceform_decl, invslices_decl,
-				IR_pos (get_designator ()),
+		    eval_error (sliceform_bc_decl, invslices_bc_decl,
+				get_designator_pos (),
 				DERR_slice_operand_form, depth);
 		  v1 = ER_vect (v1);
 		}
@@ -982,14 +951,14 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
       else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
-	eval_error (sliceform_decl, invslices_decl, IR_pos (get_designator ()),
+	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els1 = ER_pack_els (vect1);
       if (! pack_flag2)
 	unpack_els2 = ER_unpack_els (vect2);
       else if (dim2 > 1 && ER_pack_vect_el_type (vect2) != ER_NM_vect)
-	eval_error (sliceform_decl, invslices_decl, IR_pos (get_designator ()),
+	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els2 = ER_pack_els (vect2);
@@ -1013,8 +982,8 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		{
 		  v1 = IVAL (unpack_els1, i1);
 		  if (ER_NODE_MODE (v1) != ER_NM_vect)
-		    eval_error (sliceform_decl, invslices_decl,
-				IR_pos (get_designator ()),
+		    eval_error (sliceform_bc_decl, invslices_bc_decl,
+				get_designator_pos (),
 				DERR_slice_operand_form, depth);
 		  v1 = ER_vect (v1);
 		}
@@ -1024,8 +993,8 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		{
 		  v2 = IVAL (unpack_els2, i2);
 		  if (ER_NODE_MODE (v2) != ER_NM_vect)
-		    eval_error (sliceform_decl, invslices_decl,
-				IR_pos (get_designator ()),
+		    eval_error (sliceform_bc_decl, invslices_bc_decl,
+				get_designator_pos (),
 				DERR_slice_operand_form, depth);
 		  v2 = ER_vect (v2);
 		}
@@ -1043,8 +1012,8 @@ slice_assign (ER_node_t container, int_t dim, ER_node_t val)
   int_t val_dim = 0;
 
   if (ER_NODE_MODE (container) != ER_NM_vect)
-    eval_error (sliceform_decl, invslices_decl,
-		IR_pos (get_designator ()), DERR_slice_operand_form, 1);
+    eval_error (sliceform_bc_decl, invslices_bc_decl,
+		get_designator_pos (), DERR_slice_operand_form, 1);
   if (ER_NODE_MODE (val) == ER_NM_vect)
     {
       val_dim = ER_dim (val);
@@ -1062,7 +1031,7 @@ static pc_t
 find_catch_pc (ER_node_t except)
 {
   BC_node_t block;
-  IR_node_t func_class, curr_scope, block_stmt;
+  BC_node_t curr_scope;
   ER_node_t message;
   struct trace_stack_elem elem;
 
@@ -1070,21 +1039,19 @@ find_catch_pc (ER_node_t except)
     VLO_NULLIFY (trace_stack);
   for (; cstack != uppest_stack;)
     {
-      block_stmt = ER_block_node (cstack);
-      block = IR_bc_block (block_stmt);
-      sync_flag = IR_block_saved_sync_flag (block_stmt);
-      func_class = IR_func_class_ext (block_stmt);
-      if (trace_flag && func_class != NULL)
+      block = ER_block_node (cstack);
+      sync_flag = BC_saved_sync_p (block);
+      if (trace_flag && BC_NODE_MODE (block) != BC_NM_block)
 	{
-	  elem.func_class = func_class;
+	  elem.block = block;
 	  elem.pc = ER_call_pc (cstack);
 	  VLO_ADD_MEMORY (trace_stack, &elem, sizeof (elem));
 	}
-      if (func_class != NULL && IR_NODE_MODE (func_class) == IR_NM_func
-	  && IR_thread_flag (func_class)
-	  && !delete_cprocess_during_exception ())
-	break;
-      heap_pop ();
+      if (BC_NODE_MODE (block) == BC_NM_fblock && BC_thread_p (block))
+	/* It can change cstack.  */
+	delete_cprocess_during_exception ();
+      if (cstack != uppest_stack)
+	heap_pop ();
       /* Set up ctop as it should be for any statement begin.  */
       if (cstack != NULL)
 	ctop = (ER_node_t) ((char *) cvars
@@ -1108,8 +1075,8 @@ find_catch_pc (ER_node_t except)
     }
   for (curr_scope = ER_block_node (except);
        curr_scope != NULL;
-       curr_scope = IR_block_scope (curr_scope))
-    if (IR_func_class_ext (curr_scope) == error_decl)
+       curr_scope = BC_scope (curr_scope))
+    if (curr_scope == error_bc_decl)
       break;
   message = IVAL (ER_stack_vars (except), 0);
   if (curr_scope != NULL && ER_NODE_MODE (message) == ER_NM_vect)
@@ -1125,11 +1092,10 @@ find_catch_pc (ER_node_t except)
 	/* No return after error. */
 	error (TRUE, exception_position, ER_pack_els (vect));
     }
-  if (ER_stack_func_class (except) != sigint_decl
-      && ER_stack_func_class (except) != sigterm_decl)
+  if (ER_block_node (except) != sigint_bc_decl
+      && ER_block_node (except) != sigterm_bc_decl)
     error (TRUE, exception_position, DERR_unprocessed_exception,
-	   IR_ident_string (IR_unique_ident
-			    (IR_ident (ER_stack_func_class (except)))));
+	   BC_ident (BC_fdecl (ER_block_node (except))));
   else
     dino_finish (1);
   return NULL; /* to prevent compiler diagnostic. */
@@ -1149,7 +1115,7 @@ ar_convert (ER_node_t op1, ER_node_t op2, const char *msg)
   implicit_conversion_for_binary_arithmetic_op (op1, op2, &l, &r);
   if ((ER_NODE_MODE (r) != ER_NM_int && ER_NODE_MODE (r) != ER_NM_float)
       || (ER_NODE_MODE (l) != ER_NM_int && ER_NODE_MODE (l) != ER_NM_float))
-    eval_error (optype_decl, invops_decl, BC_pos (cpc), msg);
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), msg);
   if (ER_NODE_MODE (l) == ER_NM_int)
     {
       op_i1 = ER_i (l);
@@ -1170,7 +1136,7 @@ int_convert (ER_node_t op1, ER_node_t op2, const char *msg)
 
   implicit_conversion_for_binary_int_op (op1, op2, &l, &r);
   if (ER_NODE_MODE (r) != ER_NM_int || ER_NODE_MODE (l) != ER_NM_int)
-    eval_error (optype_decl, invops_decl, BC_pos (cpc), msg);
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), msg);
   op_i1 = ER_i (l);
   op_i2 = ER_i (r);
   return;
@@ -1401,8 +1367,8 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
   op1 = to_vect_string_conversion (op1, NULL, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op2) != ER_NM_vect
       || ER_NODE_MODE (op1) != ER_NM_vect)
-    eval_error (optype_decl, invops_decl,
-		BC_pos (cpc), DERR_concat_operands_types);
+    eval_error (optype_bc_decl, invops_bc_decl,
+		get_cpos (), DERR_concat_operands_types);
   vect1 = ER_vect (op1);
   vect2 = ER_vect (op2);
   if (ER_NODE_MODE (vect2) != ER_NODE_MODE (vect1)
@@ -1477,8 +1443,8 @@ execute_in_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
       return;
     }
   if (ER_NODE_MODE (op2) != ER_NM_tab)
-    eval_error (keyop_decl, invkeys_decl,
-		BC_pos (cpc), DERR_in_table_operand_type);
+    eval_error (keyop_bc_decl, invkeys_bc_decl,
+		get_cpos (), DERR_in_table_operand_type);
   tab = ER_tab (op2);
   GO_THROUGH_REDIR (tab);
   entry = find_tab_entry (tab, op1, FALSE);
@@ -1507,7 +1473,7 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
   if (ER_NODE_MODE (r) != ER_NODE_MODE (l))
     {
       if (ER_NODE_MODE (l) == ER_NM_undef || ER_NODE_MODE (r) == ER_NM_undef)
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_eq_operands_types);
       cmp = 0;
     }
@@ -1517,12 +1483,12 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
 #ifdef __GNUC__
 	/* This is a trick to make switch faster by removing range
 	   comparison.  */
-    case 0:
-    case 255:
-      abort ();
+      case 0:
+      case 255:
+	abort ();
 #endif
       case ER_NM_undef:
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_eq_operands_types);
 	break;
       case ER_NM_nil:
@@ -1555,20 +1521,17 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
       case ER_NM_tab:
 	cmp = eq_table (ER_tab (r), ER_tab (l));
 	break;
-      case ER_NM_func:
-	cmp = (ER_func_id (r) == ER_func_id (l)
-	       && (ER_func_context (r) == ER_func_context (l)));
+      case ER_NM_code:
+	cmp = (ER_code_id (r) == ER_code_id (l)
+	       && (ER_code_context (r) == ER_code_context (l)));
 	break;
-      case ER_NM_thread:
-	cmp = (ER_thread_id (r) == ER_thread_id (l)
-	       && (ER_thread_context (r) == ER_thread_context (l)));
+      case ER_NM_efunc:
+	/* Different definitions of one external function are not
+	   equal.  */
+	cmp = ER_efdecl (r) == ER_efdecl (l);
 	break;
       case ER_NM_process:
 	cmp = ER_process (r) == ER_process (l);
-	break;
-      case ER_NM_class:
-	cmp = (ER_class_id (r) == ER_class_id (l)
-	       && (ER_class_context (r) == ER_class_context (l)));
 	break;
       case ER_NM_stack:
 	cmp = eq_stack (ER_stack (r), ER_stack (l));
@@ -1635,7 +1598,7 @@ execute_common_cmp_op (BC_node_mode_t oper, ER_node_t res,
   implicit_conversion_for_binary_arithmetic_op (op1, op2, &l, &r);
   if ((ER_NODE_MODE (r) != ER_NM_int && ER_NODE_MODE (r) != ER_NM_float)
       || (ER_NODE_MODE (l) != ER_NM_int && ER_NODE_MODE (l) != ER_NM_float))
-    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		(oper == BC_NM_lt ? DERR_lt_operands_types
 		 : (oper == BC_NM_gt ? DERR_gt_operands_types
 		    : (oper == BC_NM_le ? DERR_le_operands_types
@@ -1696,7 +1659,7 @@ execute_identity_op (int identity_p,
     {
       if (ER_NODE_MODE (op1) == ER_NM_undef
 	  || ER_NODE_MODE (op2) == ER_NM_undef)
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_identity_operands_types);
       cmp = FALSE;
     }
@@ -1704,7 +1667,7 @@ execute_identity_op (int identity_p,
     switch (ER_NODE_MODE (op1))
       {
       case ER_NM_undef:
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_identity_operands_types);
 	break;
       case ER_NM_nil:
@@ -1748,20 +1711,17 @@ execute_identity_op (int identity_p,
 	  cmp = tab1 == tab2;
 	}
 	break;
-      case ER_NM_func:
+      case ER_NM_code:
 	/* We don't check the context here. */
-	cmp = (ER_func_id (op1) == ER_func_id (op2));
+	cmp = (ER_code_id (op1) == ER_code_id (op2));
 	break;
-      case ER_NM_thread:
-	/* We don't check the context here. */
-	cmp = (ER_thread_id (op1) == ER_thread_id (op2));
+      case ER_NM_efunc:
+	/* Different definitions of one external function are not
+	   identical.  */
+	cmp = (ER_efdecl (op1) == ER_efdecl (op2));
 	break;
       case ER_NM_process:
 	cmp = ER_process (op1) == ER_process (op2);
-	break;
-      case ER_NM_class:
-	/* We don't check the context here. */
-	cmp = ER_class_id (op1) == ER_class_id (op2);
 	break;
       case ER_NM_stack:
 	cmp = ER_stack (op1) == ER_stack (op2);
@@ -1800,7 +1760,7 @@ execute_unary_ar_op (ER_node_t res, ER_node_t op1, int vect_p,
   op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_int
       && ER_NODE_MODE (op1) != ER_NM_float)
-    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		err_message);
   if (ER_NODE_MODE (op1) == ER_NM_int)
     {
@@ -1840,7 +1800,7 @@ execute_not_op (ER_node_t res, ER_node_t op1, int vect_p)
   op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_int
       && ER_NODE_MODE (op1) != ER_NM_float)
-    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		DERR_not_operand_type);
   if (ER_NODE_MODE (op1) == ER_NM_int)
     i = inot (ER_i (op1));
@@ -1867,7 +1827,7 @@ execute_bitwise_not_op (ER_node_t res, ER_node_t op1, int vect_p)
 	}
       op1 = implicit_int_conversion (op1, (ER_node_t) &tvar1);
       if (ER_NODE_MODE (op1) != ER_NM_int)
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_bitwise_not_operand_type);
       i = ibitwise_not (ER_i (op1));
     }
@@ -1888,8 +1848,8 @@ execute_length_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = to_vect_string_conversion (op1, NULL, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_vect && ER_NODE_MODE (op1) != ER_NM_tab)
-    eval_error (optype_decl, invops_decl,
-		BC_pos (cpc), DERR_length_operand_type);
+    eval_error (optype_bc_decl, invops_bc_decl,
+		get_cpos (), DERR_length_operand_type);
   if (ER_NODE_MODE (op1) == ER_NM_vect)
     {
       ER_node_t vect = ER_vect (op1);
@@ -1968,7 +1928,7 @@ execute_const_op (ER_node_t res, ER_node_t op1, int vect_p)
 static void do_always_inline
 execute_typeof_op (ER_node_t res, ER_node_t op1, int vect_p)
 {
-  IR_node_mode_t type;
+  BC_node_mode_t type;
 
   if (vect_p && vect_unary_op (op1))
     {
@@ -1993,7 +1953,7 @@ execute_charof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = implicit_int_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_int)
-    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		DERR_conversion_to_char_operand_type);
   if (ER_i (op1) > MAX_CHAR || ER_i (op1) < 0)
     {
@@ -2020,7 +1980,7 @@ execute_intof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = implicit_int_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_int)
-    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		DERR_conversion_to_int_operand_type);
   i = ER_i (op1);
   ER_SET_MODE (res, ER_NM_int);
@@ -2044,7 +2004,7 @@ execute_floatof_op (ER_node_t res, ER_node_t op1, int vect_p)
   else if (ER_NODE_MODE (op1) == ER_NM_float)
     f = ER_f (op1);
   else
-    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		DERR_conversion_to_float_operand_type);
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
@@ -2077,13 +2037,13 @@ execute_vectorof_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 	  && ER_NODE_MODE (op1) != ER_NM_float
 	  && (ER_NODE_MODE (ER_vect (op1)) != ER_NM_heap_pack_vect
 	      || ER_pack_vect_el_type (ER_vect (op1)) != ER_NM_char))
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_format_conversion_to_vector_operand_type);
       op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);
       if (ER_NODE_MODE (op2) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (op2)) != ER_NM_heap_pack_vect
 	  || ER_pack_vect_el_type (ER_vect (op2)) != ER_NM_char)
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_vector_conversion_format_type);
       op1 = to_vect_string_conversion (op1, ER_pack_els (ER_vect (op2)),
 				       (ER_node_t) &tvar1);
@@ -2098,7 +2058,7 @@ execute_vectorof_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
   else if (ER_NODE_MODE (op1) == ER_NM_tab) 
     vect = table_to_vector_conversion (ER_tab (op1));
   else
-    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		DERR_conversion_to_vector_operand_type);
   ER_SET_MODE (res, ER_NM_vect);
   set_vect_dim (res, vect, 0);
@@ -2123,7 +2083,7 @@ execute_tableof_op (ER_node_t res, ER_node_t op1, int vect_p)
       if (ER_NODE_MODE (op1) == ER_NM_vect)
 	tab = vector_to_table_conversion (ER_vect (op1));
       else
-	eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_conversion_to_table_operand_type);
     }
   ER_SET_MODE (res, ER_NM_tab);
@@ -2133,7 +2093,7 @@ execute_tableof_op (ER_node_t res, ER_node_t op1, int vect_p)
 static void do_always_inline
 execute_funcof_op (ER_node_t res, ER_node_t op1, int vect_p)
 {
-  IR_node_t func_class;
+  BC_node_t block;
 
   if (vect_p && vect_unary_op (op1))
     {
@@ -2141,16 +2101,15 @@ execute_funcof_op (ER_node_t res, ER_node_t op1, int vect_p)
       return;
     }
   if (ER_NODE_MODE (op1) == ER_NM_stack
-      && (func_class = ER_stack_func_class (ER_stack (op1))) != NULL
-      && IR_NODE_MODE (func_class) == IR_NM_func
-      && !IR_thread_flag (func_class))
+      && (block = ER_block_node (ER_stack (op1))) != NULL
+      && BC_func_p (block))
     {
       ER_node_t stack;
       
       stack = ER_stack (op1);
-      ER_SET_MODE (res, ER_NM_func);
-      ER_set_func_id (res, FUNC_CLASS_ID (func_class));
-      ER_set_func_context (res, ER_context (stack));
+      ER_SET_MODE (res, ER_NM_code);
+      ER_set_code_id (res, CODE_ID (block));
+      ER_set_code_context (res, ER_context (stack));
     }
   else
     ER_SET_MODE (res, ER_NM_nil);
@@ -2165,14 +2124,14 @@ execute_threadof_op (ER_node_t res, ER_node_t op1, int vect_p)
       return;
     }
   if (ER_NODE_MODE (op1) == ER_NM_process
-      && ER_thread_func (ER_process (op1)) != NULL)
+      && ER_process_block (ER_process (op1)) != NULL)
     {
       ER_node_t process;
       
       process = ER_process (op1);
-      ER_SET_MODE (res, ER_NM_thread);
-      ER_set_thread_id (res, FUNC_CLASS_ID (ER_thread_func (process)));
-      ER_set_thread_context (res, ER_context (process));
+      ER_SET_MODE (res, ER_NM_code);
+      ER_set_code_id (res, CODE_ID (ER_process_block (process)));
+      ER_set_code_context (res, ER_context (process));
     }
   else
     ER_SET_MODE (res, ER_NM_nil);
@@ -2189,35 +2148,39 @@ execute_classof_op (ER_node_t res, ER_node_t op1, int vect_p)
   if (ER_NODE_MODE (op1) == ER_NM_stack)
     {
       ER_node_t instance;
-      IR_node_t instance_class;
+      BC_node_t block;
       
       instance = ER_stack (op1);
-      if (! ER_instance_p (instance))
+      block = ER_block_node (instance);
+      if (block == NULL || ! BC_class_p (block))
 	ER_SET_MODE (res, ER_NM_nil);
       else
 	{
-	  ER_SET_MODE (res, ER_NM_class);
-	  instance_class = ER_stack_func_class (instance);
-	  ER_set_class_id (res, FUNC_CLASS_ID (instance_class));
-	  ER_set_class_context (res, ER_context (instance));
+	  ER_SET_MODE (res, ER_NM_code);
+	  ER_set_code_id (res, CODE_ID (block));
+	  ER_set_code_context (res, ER_context (instance));
 	}
     }
   else
     ER_SET_MODE (res, ER_NM_nil);
 }
 
-static IR_node_t do_always_inline
-get_left_operand (IR_node_t op)
+static position_t
+get_left_operand_pos (void)
 {
-  return (IR_IS_OF_TYPE (op, IR_NM_assign_stmt)
-	  ? IR_assignment_var (op) : IR_left_operand (op));
+  BC_node_t info = BC_info (cpc);
+
+  d_assert (BC_IS_OF_TYPE (info, BC_NM_source2));
+  return BC_pos2 (info);
 }
 
-static IR_node_t do_always_inline
-get_right_operand (IR_node_t op)
+static position_t
+get_right_operand_pos (void)
 {
-  return (IR_IS_OF_TYPE (op, IR_NM_assign_stmt)
-	  ? IR_assignment_expr (op) : IR_right_operand (op));
+  BC_node_t info = BC_info (cpc);
+
+  d_assert (BC_IS_OF_TYPE (info, BC_NM_source3));
+  return BC_pos3 (info);
 }
 
 /* Execute LEN integer operations IOP of packed array elements
@@ -2414,7 +2377,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	  el_type2 = ER_NM__error;
 	}
       if (len1 != len2)
-	eval_error (veclen_decl, invectors_decl, BC_pos (cpc),
+	eval_error (veclen_bc_decl, invectors_bc_decl, get_cpos (),
 		    DERR_different_vec_operand_lengths, len1, len2, depth);
     }
   if (dim1 > 1)
@@ -2424,14 +2387,12 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
       /* Process recursively  */
       dim1--;
       if (pack_flag1 && el_type1 != ER_NM_vect)
-	eval_error (vecform_decl, invectors_decl,
-		    IR_pos (get_left_operand (BC_origin (cpc))),
+	eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
 		    DERR_vector_form_type, depth);
       if (! scalar_p2)
 	{
 	  if (pack_flag2 && el_type2 != ER_NM_vect)
-	    eval_error (vecform_decl, invectors_decl,
-			IR_pos (get_right_operand (BC_origin (cpc))),
+	    eval_error (vecform_bc_decl, invectors_bc_decl, get_right_operand_pos (),
 			DERR_vector_form_type, depth);
 	  dim2--;
 	}
@@ -2445,8 +2406,8 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	    {
 	      v1 = IVAL (unpack_els1, i);
 	      if (ER_NODE_MODE (v1) != ER_NM_vect)
-		eval_error (vecform_decl, invectors_decl,
-			    IR_pos (get_left_operand (BC_origin (cpc))),
+		eval_error (vecform_bc_decl, invectors_bc_decl,
+			    get_left_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v1 = ER_vect (v1);
 	    }
@@ -2458,8 +2419,8 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	    {
 	      v2 = IVAL (unpack_els2, i);
 	      if (ER_NODE_MODE (v2) != ER_NM_vect)
-		eval_error (vecform_decl, invectors_decl,
-			    IR_pos (get_right_operand (BC_origin (cpc))),
+		eval_error (vecform_bc_decl, invectors_bc_decl,
+			    get_right_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v2 = ER_vect (v2);
 	    }
@@ -3064,16 +3025,14 @@ binary_vect_op (ER_node_t res, ER_node_t op1, ER_node_t op2)
   if (ER_NODE_MODE (op1) == ER_NM_vect)
     op1 = ER_vect (op1);
   else
-    eval_error (vecform_decl, invectors_decl,
-		IR_pos (get_left_operand (BC_origin (cpc))),
+    eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
 		DERR_vector_form_type, 1);
   if (dim2 != 0)
     {
       if (ER_NODE_MODE (op2) == ER_NM_vect)
 	op2 = ER_vect (op2);
       else
-	eval_error (vecform_decl, invectors_decl,
-		    IR_pos (get_right_operand (BC_origin (cpc))),
+	eval_error (vecform_bc_decl, invectors_bc_decl, get_right_operand_pos (),
 		    DERR_vector_form_type, 1);
     }
   vect = process_binary_vect_op (rev_p, op1, dim1, op2, dim2, 1);
@@ -3141,8 +3100,7 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
       /* Process recursively  */
       dim--;
       if (pack_flag && el_type != ER_NM_vect)
-	eval_error (vecform_decl, invectors_decl,
-		    IR_pos (get_left_operand (BC_origin (cpc))),
+	eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
 		    DERR_vector_form_type, depth);
       res = create_pack_vector (len, ER_NM_vect);
       ER_set_els_number (res, 0);
@@ -3154,8 +3112,8 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 	    {
 	      v = IVAL (unpack_els, i);
 	      if (ER_NODE_MODE (v) != ER_NM_vect)
-		eval_error (vecform_decl, invectors_decl,
-			    IR_pos (get_left_operand (BC_origin (cpc))),
+		eval_error (vecform_bc_decl, invectors_bc_decl,
+			    get_left_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v = ER_vect (v);
 	    }
@@ -3299,8 +3257,7 @@ unary_vect_op (ER_node_t res, ER_node_t op)
   if (ER_NODE_MODE (op) == ER_NM_vect)
     op = ER_vect (op);
   else
-    eval_error (vecform_decl, invectors_decl,
-		IR_pos (get_left_operand (BC_origin (cpc))),
+    eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
 		DERR_vector_form_type, 1);
   vect = process_unary_vect_op (op, dim, 1);
   ER_SET_MODE (res, ER_NM_vect);
@@ -3388,8 +3345,7 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
       /* Process recursively  */
       dim--;
       if (pack_flag && el_type != ER_NM_vect)
-	eval_error (vecform_decl, invectors_decl,
-		    IR_pos (get_left_operand (BC_origin (cpc))),
+	eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
 		    DERR_vector_form_type, depth);
       for (i = 0; i < len; i++)
 	{
@@ -3399,8 +3355,8 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
 	    {
 	      v = IVAL (unpack_els, i);
 	      if (ER_NODE_MODE (v) != ER_NM_vect)
-		eval_error (vecform_decl, invectors_decl,
-			    IR_pos (get_left_operand (BC_origin (cpc))),
+		eval_error (vecform_bc_decl, invectors_bc_decl,
+			    get_left_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v = ER_vect (v);
 	    }
@@ -3475,9 +3431,8 @@ fold_vect_op (ER_node_t res, ER_node_t op)
   if (ER_NODE_MODE (op) == ER_NM_vect && dim > 0)
     op = ER_vect (op);
   else
-    eval_error (vecform_decl, invectors_decl,
-		IR_pos (IR_operand (BC_origin (cpc))),
-		DERR_vector_form_type, 1);
+    eval_error (vecform_bc_decl, invectors_bc_decl,
+		BC_pos2 (BC_info (cpc)), DERR_vector_form_type, 1);
   ER_SET_MODE (res, ER_NM_int);
   switch (BC_NODE_MODE (cpc))
     {
@@ -3507,24 +3462,34 @@ fold_vect_op (ER_node_t res, ER_node_t op)
     }				       			\
   } while (0)
 
+/* Return I-th vars.  If i is non-negative, it is local variable.
+   Negative numbers encode global vars.  */
+static ER_node_t do_always_inline
+get_op (int_t i)
+{
+  return i >= 0 ? IVAL (cvars, i) : IVAL (tvars, -i - 1);
+}
+
 static int do_always_inline
 extract_op1 (ER_node_t *op1)
 {
-  *op1 = IVAL (cvars, BC_op1 (cpc));
+  *op1 = get_op (BC_op1 (cpc));
 }
 
 static int do_always_inline
 extract_op2 (ER_node_t *op1, ER_node_t *op2)
 {
   extract_op1 (op1);
-  *op2 = IVAL (cvars, BC_op2 (cpc));
+  *op2 = get_op (BC_op2 (cpc));
 }
 
 static int do_always_inline
 extract_op3 (ER_node_t *op1, ER_node_t *op2, ER_node_t *op3)
 {
+  int_t i = BC_op3 (cpc);
+
   extract_op2 (op1, op2);
-  *op3 = IVAL (cvars, BC_op3 (cpc));
+  *op3 = get_op (BC_op3 (cpc));
 }
 
 static ER_node_t do_always_inline
@@ -3575,7 +3540,7 @@ execute_btcmp (ER_node_t op1, ER_node_t op2,
       INTERRUPT_CHECK;
       return NULL;
     }
-  res = IVAL (cvars, BC_bcmp_res (cpc));
+  res = get_op (BC_bcmp_res (cpc));
   comp_op (cmp_nm, res, op1, op2, FALSE, icmp, fcmp, gencmp);
   return res;
 }
@@ -3597,7 +3562,7 @@ execute_btcmpi (ER_node_t op1, int_t i,
       INTERRUPT_CHECK;
       return NULL;
     }
-  res = IVAL (cvars, BC_bcmp_res (cpc));
+  res = get_op (BC_bcmp_res (cpc));
   ER_SET_MODE (res, ER_NM_int);
   ER_set_i (res, i);
   comp_op (cmp_nm, res, op1, res, FALSE, icmp, fcmp, gencmp);
@@ -3634,7 +3599,6 @@ evaluate_code (void)
   ER_node_t res, op1, op2, op3;
   BC_node_mode_t node_mode;
   val_t tvar1, v;
-  IR_node_t func;
 
   /* Check that all BC_node_mode_t can be stored in unsigned char.  */
   d_assert ((int) BC_NM__error < 256);
@@ -3650,11 +3614,31 @@ evaluate_code (void)
 	case 255:
 	  abort ();
 #endif
-	case BC_NM_st:
-	  op2 = IVAL (cvars, BC_op3 (cpc));
-	common_st:
+	case BC_NM_stv:
+	  op2 = get_op (BC_op3 (cpc));
 	  extract_op2 (&res, &op1);
-	  store_designator_value (res, op1, op2);
+	  store_vect_designator_value (res, op1, op2);
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_stt:
+	  op2 = get_op (BC_op3 (cpc));
+	  extract_op2 (&res, &op1);
+	  store_tab_designator_value (res, op1, op2);
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_sts:
+	  op2 = get_op (BC_op3 (cpc));
+	  extract_op2 (&res, &op1);
+	  store_stack_designator_value (res, op1, op2);
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_ste:
+	  op2 = get_op (BC_op3 (cpc));
+	  extract_op1 (&res);
+	  *(val_t *) ER_external_var_ref (res) = *(val_t *) op2;
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
@@ -3666,7 +3650,7 @@ evaluate_code (void)
 	case BC_NM_ldthis:
 	  {
 	    ER_node_t stack;
-	    IR_node_t block_node, func;
+	    BC_node_t block_node;
 
 	    extract_op1 (&res);
 	    ER_SET_MODE (res, ER_NM_stack);
@@ -3674,9 +3658,8 @@ evaluate_code (void)
 	      {
 		d_assert (stack != NULL);
 		block_node = ER_block_node (stack);
-		func = IR_func_class_ext (block_node);
 
-		if (func != NULL)
+		if (BC_NODE_MODE (block_node) == BC_NM_fblock)
 		  {
 		    ER_set_stack (res, stack);
 		    break;
@@ -3737,7 +3720,7 @@ evaluate_code (void)
 	case BC_NM_brts:
 	case BC_NM_brfs:
 	  extract_op1 (&op1);
-	  res = IVAL (cvars, BC_res (cpc));
+	  res = get_op (BC_res (cpc));
 #ifndef SMALL_CODE
 	  if (ER_NODE_MODE (op1) == ER_NM_int)
 	    cmp = ER_i (op1) != 0;
@@ -3747,8 +3730,8 @@ evaluate_code (void)
 	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
 	      if (ER_NODE_MODE (op1) != ER_NM_int
 		  && ER_NODE_MODE (op1) != ER_NM_float)
-		eval_error (optype_decl, invops_decl, BC_pos (cpc),
-			    IR_NODE_MODE (BC_origin (cpc)) == IR_NM_logical_or
+		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+			    node_mode == BC_NM_brts
 			    ? DERR_logical_or_operands_types
 			    : DERR_logical_and_operands_types);
 	      if (ER_NODE_MODE (op1) == ER_NM_int)
@@ -3774,10 +3757,8 @@ evaluate_code (void)
 	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
 	      if (ER_NODE_MODE (op1) != ER_NM_int
 		  && ER_NODE_MODE (op1) != ER_NM_float)
-		eval_error (optype_decl, invops_decl, BC_pos (cpc),
-			    IR_NODE_MODE (BC_origin (cpc)) == IR_NM_logical_or
-			    ? DERR_logical_or_operands_types
-			    : DERR_logical_and_operands_types);
+		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+			    DERR_logical_operands_types);
 	      if (ER_NODE_MODE (op1) == ER_NM_int)
 		cmp = ER_i (op1) != 0;
 	      else
@@ -3984,8 +3965,8 @@ evaluate_code (void)
 					     NULL);
 		    if (ER_NODE_MODE (IVAL (op1, curr_vect_part_number))
 			!= ER_NM_int)
-		      eval_error (optype_decl, invops_decl,
-				  BC_pos (cpc),
+		      eval_error (optype_bc_decl, invops_bc_decl,
+				  get_cpos (),
 				  DERR_elist_repetition_type);
 		    else if (ER_i (IVAL (op1, curr_vect_part_number)) > 0)
 		      els_number += ER_i (IVAL (op1, curr_vect_part_number));
@@ -4050,7 +4031,6 @@ evaluate_code (void)
 	    ER_node_t tab, saved_ctop;
 	    int_t tab_els_number, curr_tab_el_number;
 	    ER_node_t entry;
-	    IR_node_t elist;
 	    
 	    extract_op2 (&res, &op1);
 	    tab_els_number = BC_op3 (cpc);
@@ -4058,7 +4038,7 @@ evaluate_code (void)
 	    ctop = op1;
 	    DECR_CTOP (-2 * tab_els_number);
 	    tab = create_tab (tab_els_number);
-	    for (elist = IR_elist (BC_origin (cpc)), curr_tab_el_number = 0;
+	    for (curr_tab_el_number = 0;
 		 curr_tab_el_number < 2 * tab_els_number;
 		 curr_tab_el_number += 2)
 	      {
@@ -4066,15 +4046,15 @@ evaluate_code (void)
 					TRUE);
 		if (ER_NODE_MODE (entry) != ER_NM_empty_entry
 		    && ER_NODE_MODE (entry) != ER_NM_deleted_entry)
-		  eval_error (keyvalue_decl, invkeys_decl,
-			      IR_pos (elist), DERR_repeated_key);
+		  eval_error (keyvalue_bc_decl, invkeys_bc_decl,
+			      get_cpos (), DERR_repeated_key,
+			      curr_tab_el_number);
 		*(val_t *) entry = *(val_t *) IVAL (op1, curr_tab_el_number);
 		make_immutable (entry);
 		*((val_t *) entry + 1)
 		  = *(val_t *) IVAL (op1, curr_tab_el_number + 1);
 		d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0),
 					 ER_NM_val));
-		elist = IR_next_elist (elist);
 	      }
 	    ctop = saved_ctop;
 	    ER_SET_MODE (res, ER_NM_tab);
@@ -4085,7 +4065,7 @@ evaluate_code (void)
 	case BC_NM_ind:
 	  extract_op3 (&res, &op1, &op2);
 	  if (ER_NODE_MODE (op1) != ER_NM_vect)
-	    eval_error (indexop_decl, invindexes_decl, BC_pos (cpc),
+	    eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
 			DERR_index_operation_for_non_array);
 #ifndef SMALL_CODE
 	  if (ER_NODE_MODE (op2) != ER_NM_int)
@@ -4097,7 +4077,7 @@ evaluate_code (void)
 	case BC_NM_key:
 	  extract_op3 (&res, &op1, &op2);
 	  if (ER_NODE_MODE (op1) != ER_NM_tab)
-	    eval_error (keyop_decl, invkeys_decl, BC_pos (cpc),
+	    eval_error (keyop_bc_decl, invkeys_bc_decl, get_cpos (),
 			DERR_key_index_operation_for_non_table);
 	  load_table_element_by_key (res, ER_tab (op1), op2);
 	  INCREMENT_PC ();
@@ -4110,7 +4090,7 @@ evaluate_code (void)
 	case BC_NM_lindv:
 	  extract_op3 (&res, &op1, &op2);
 	  if (ER_NODE_MODE (op1) != ER_NM_vect)
-	    eval_error (indexop_decl, invindexes_decl, BC_pos (cpc),
+	    eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
 			DERR_index_operation_for_non_array);
 #ifndef SMALL_CODE
 	  if (ER_NODE_MODE (op2) != ER_NM_int)
@@ -4122,7 +4102,7 @@ evaluate_code (void)
 	case BC_NM_lkeyv:
 	  extract_op3 (&res, &op1, &op2);
 	  if (ER_NODE_MODE (op1) != ER_NM_tab)
-	    eval_error (keyop_decl, invkeys_decl, BC_pos (cpc),
+	    eval_error (keyop_bc_decl, invkeys_bc_decl, get_cpos (),
 			DERR_key_index_operation_for_non_table);
 	  load_table_element_by_key (res, ER_tab (op1), op2);
 	  INCREMENT_PC ();
@@ -4143,7 +4123,7 @@ evaluate_code (void)
 	  break;
 	case BC_NM_ipcall:
 	case BC_NM_itpcall:
-	  op3 = find_context_by_scope (IR_scope (BC_func (cpc)));
+	  op3 = find_context_by_scope (BC_scope (BC_cfblock (cpc)));
 	  tail_flag = node_mode == BC_NM_itpcall;
 	  goto common_ipcall;
 	case BC_NM_cipcall:
@@ -4158,8 +4138,14 @@ evaluate_code (void)
 	common_ipcall:
 	  extract_op1 (&op1);
 	  ctop = IVAL (op1, -1);
-	  process_imm_func_call ((val_t *) op1, BC_func (cpc), op3,
+	  process_imm_func_call ((val_t *) op1, BC_cfblock (cpc), op3,
 				 BC_op2 (cpc), tail_flag);
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_ibpcall:
+	  extract_op1 (&op1);
+	  ctop = IVAL (op1, -1);
+	  process_imm_ifunc_call (BC_cfblock (cpc), BC_op2 (cpc));
 	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_call:
@@ -4169,7 +4155,7 @@ evaluate_code (void)
 	  break;
 	case BC_NM_icall:
 	case BC_NM_itcall:
-	  op3 = find_context_by_scope (IR_scope (BC_func (cpc)));
+	  op3 = find_context_by_scope (BC_scope (BC_cfblock (cpc)));
 	  tail_flag = node_mode == BC_NM_itcall;
 	  goto common_icall;
 	case BC_NM_cicall:
@@ -4184,8 +4170,13 @@ evaluate_code (void)
 	common_icall:
 	  extract_op1 (&op1);
 	  ctop = IVAL (op1, -1);
-	  process_imm_func_call ((val_t *) op1, BC_func (cpc), op3,
+	  process_imm_func_call ((val_t *) op1, BC_cfblock (cpc), op3,
 				 BC_op2 (cpc), tail_flag);
+	  break;
+	case BC_NM_ibcall:
+	  extract_op1 (&op1);
+	  ctop = IVAL (op1, -1);
+	  process_imm_ifunc_call (BC_cfblock (cpc), BC_op2 (cpc));
 	  break;
 	case BC_NM_add:
 	  extract_op3 (&res, &op1, &op2);
@@ -4267,53 +4258,58 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_add_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_plus_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_plus_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_sub_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_minus_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_minus_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_mult_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_mult_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_mult_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_div_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_div_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_div_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_mod_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_mod_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_mod_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_concat_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_concat_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_concat_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_lsh_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_lshift_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_lshift_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_rsh_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_rshift_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_rshift_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_ash_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_ashift_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_ashift_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_and_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_and_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_and_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_xor_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_xor_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_xor_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	  goto common_op_st;
 	case BC_NM_or_st:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  execute_or_op (op2, op2, IVAL (cvars, BC_op3 (cpc)), TRUE);
-	  goto common_st;
+	  op2 = get_op (BC_op4 (cpc));
+	  execute_or_op (op2, op2, get_op (BC_op3 (cpc)), TRUE);
+	common_op_st:
+	  extract_op2 (&res, &op1);
+	  store_designator_value (res, op1, op2);
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
 	case BC_NM_mult_slst:
 	case BC_NM_div_slst:
 	case BC_NM_mod_slst:
@@ -4326,11 +4322,11 @@ evaluate_code (void)
 	case BC_NM_and_slst:
 	case BC_NM_xor_slst:
 	case BC_NM_or_slst:
-	  op2 = IVAL (cvars, BC_op4 (cpc));
-	  binary_vect_op (op2, op2, IVAL (cvars, BC_op3 (cpc)));
+	  op2 = get_op (BC_op4 (cpc));
+	  binary_vect_op (op2, op2, get_op (BC_op3 (cpc)));
 	  goto common_slst;
 	case BC_NM_slst:
-	  op2 = IVAL (cvars, BC_op3 (cpc));
+	  op2 = get_op (BC_op3 (cpc));
 	common_slst:
 	  extract_op1 (&res);
 	  slice_assign (res, BC_op2 (cpc), op2);
@@ -4342,13 +4338,13 @@ evaluate_code (void)
 	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_btdef: /* Branch if defined  */
-	  op1 = get_var_val_ref (BC_origin (cpc));
+	  extract_op1 (&op1);
 	  if (ER_NODE_MODE (op1) == ER_NM_undef)
 	    {
 	      INCREMENT_PC ();
 	      break;
 	    }
-	  cpc = BC_brid_pc (cpc);
+	  cpc = BC_pc (cpc);
 	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_bf:
@@ -4368,7 +4364,7 @@ evaluate_code (void)
 	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
 	      if (ER_NODE_MODE (op1) != ER_NM_int
 		  && ER_NODE_MODE (op1) != ER_NM_float)
-		eval_error (optype_decl, invops_decl, BC_pos (cpc),
+		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 			    node_mode == BC_NM_bf
 			    ? DERR_invalid_if_expr_type
 			    : DERR_cond_operand_type);
@@ -4383,43 +4379,43 @@ evaluate_code (void)
 	  break;
 	case BC_NM_bteqinc:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	  if (execute_btcmpinc (op2, op3, ieq, feq) != NULL)
 	    goto common_bteq;
 	  break;
 	case BC_NM_btneinc:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	  if (execute_btcmpinc (op2, op3, ine, fne) != NULL)
 	    goto common_btne;
 	  break;
 	case BC_NM_btgeinc:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	  if (execute_btcmpinc (op2, op3, ige, fge) != NULL)
 	    goto common_btge;
 	  break;
 	case BC_NM_btltinc:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	  if (execute_btcmpinc (op2, op3, ilt, flt) != NULL)
 	    goto common_btlt;
 	  break;
 	case BC_NM_btleinc:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	  if (execute_btcmpinc (op2, op3, ile, fle) != NULL)
 	    goto common_btle;
 	  break;
 	case BC_NM_btgtinc:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	  if (execute_btcmpinc (op2, op3, igt, fgt) != NULL)
 	    goto common_btgt;
 	  break;
 	case BC_NM_bteq:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	common_bteq:
 	  if ((op1 = execute_btcmp (op2, op3, BC_NM_eq, ieq, feq,
 				    execute_common_eq_ne_op)) != NULL)
@@ -4427,7 +4423,7 @@ evaluate_code (void)
 	  break;
 	case BC_NM_btne:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	common_btne:
 	  if ((op1 = execute_btcmp (op2, op3, BC_NM_ne, ine, fne,
 				    execute_common_eq_ne_op)) != NULL)
@@ -4435,7 +4431,7 @@ evaluate_code (void)
 	  break;
 	case BC_NM_btge:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	common_btge:
 	  if ((op1 = execute_btcmp (op2, op3, BC_NM_ge, ige, fge,
 				    execute_common_cmp_op)) != NULL)
@@ -4443,7 +4439,7 @@ evaluate_code (void)
 	  break;
 	case BC_NM_btlt:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	common_btlt:
 	  if ((op1 = execute_btcmp (op2, op3, BC_NM_lt, ilt, flt,
 				    execute_common_cmp_op)) != NULL)
@@ -4451,7 +4447,7 @@ evaluate_code (void)
 	  break;
 	case BC_NM_btle:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	common_btle:
 	  if ((op1 = execute_btcmp (op2, op3, BC_NM_le, ile, fle,
 				    execute_common_cmp_op)) != NULL)
@@ -4459,7 +4455,7 @@ evaluate_code (void)
 	  break;
 	case BC_NM_btgt:
 	  extract_op1 (&op2);
-	  op3 = IVAL (cvars, BC_bcmp_op2 (cpc));
+	  op3 = get_op (BC_bcmp_op2 (cpc));
 	common_btgt:
 	  if ((op1 = execute_btcmp (op2, op3, BC_NM_gt, igt, fgt,
 				    execute_common_cmp_op)) != NULL)
@@ -4524,7 +4520,7 @@ evaluate_code (void)
 	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
 	      if (ER_NODE_MODE (op1) != ER_NM_int
 		  && ER_NODE_MODE (op1) != ER_NM_float)
-		eval_error (optype_decl, invops_decl, BC_pos (cpc),
+		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 			    DERR_invalid_for_guard_expr_type);
 	      if ((ER_NODE_MODE (op1) == ER_NM_int && ER_i (op1) != 0)
 		  || (ER_NODE_MODE (op1) == ER_NM_float && ER_f (op1) != 0.0))
@@ -4549,11 +4545,11 @@ evaluate_code (void)
 	    next_iteration_flag = ER_i (ctop);
 	    TOP_DOWN;
 	    if (ER_NODE_MODE (tv) != ER_NM_tab)
-	      eval_error (keyop_decl, invkeys_decl, BC_pos (cpc),
+	      eval_error (keyop_bc_decl, invkeys_bc_decl, get_cpos (),
 			  DERR_in_table_operand_type);
 	    tab = ER_tab (tv);
 	    GO_THROUGH_REDIR (tab);
-	    res = IVAL (cvars, BC_op4 (cpc));
+	    res = get_op (BC_op4 (cpc));
 	    if (next_iteration_flag)
 	      *(val_t *) res = *(val_t *) find_next_key (tab, res);
 	    else
@@ -4580,27 +4576,27 @@ evaluate_code (void)
 	    break;
 	  }
 	case BC_NM_leave:
+	case BC_NM_bend:
 	  {
-	    IR_node_t block_node, func_class;
+	    BC_node_t block_node;
 	    
 	    for (;;)
 	      {
 		block_node = ER_block_node (cstack);
-		sync_flag = IR_block_saved_sync_flag (block_node);
-		func_class = IR_func_class_ext (block_node);
-		if (func_class != NULL)
+		d_assert (node_mode != BC_NM_bend
+			  || BC_block (cpc) == block_node);
+		sync_flag = BC_saved_sync_p (block_node);
+		if (BC_NODE_MODE (block_node) == BC_NM_fblock)
 		  {
-		    if (IR_NODE_MODE (func_class) == IR_NM_func)
+		    if (BC_func_p (block_node))
+		      ER_SET_MODE (IVAL (ER_ctop (ER_prev_stack (cstack)), 1),
+				   ER_NM_undef);
+		    else if (BC_thread_p (block_node))
 		      {
-			if (IR_thread_flag (func_class))
-			  {
-			    delete_cprocess ();
-			    break;
-			  }
-			ER_SET_MODE (IVAL (ER_ctop (ER_prev_stack (cstack)), 1),
-				     ER_NM_undef);
+			delete_cprocess ();
+			break;
 		      }
-		    else if (IR_NODE_MODE (func_class) == IR_NM_class)
+		    else if (BC_class_p (block_node))
 		      {
 			ER_node_t res = IVAL (ER_ctop (ER_prev_stack (cstack)), 1);
 
@@ -4616,8 +4612,9 @@ evaluate_code (void)
 		  }
 		else if (cstack == uppest_stack)
 		  return;
+		d_assert (BC_vars_num (block_node) >= 0);
 		heap_pop ();
-		if (func_class == NULL)
+		if (BC_NODE_MODE (block_node) == BC_NM_block)
 		  {
 		    INCREMENT_PC ();
 		    INTERRUPT_CHECK;
@@ -4636,21 +4633,19 @@ evaluate_code (void)
 	  }
 	case BC_NM_ret:
 	  {
-	    IR_node_t block_node, func;
+	    BC_node_t block_node;
 	    
 	    extract_op1 (&res);
 	    for (;;)
 	      {
 		block_node = ER_block_node (cstack);
-		sync_flag = IR_block_saved_sync_flag (block_node);
-		func = IR_func_class_ext (block_node);
-		if (func != NULL)
+		sync_flag = BC_saved_sync_p (block_node);
+		if (BC_NODE_MODE (block_node) == BC_NM_fblock)
 		  {
-		    if (IR_NODE_MODE (func) == IR_NM_func)
+		    if (BC_func_p (block_node))
 		      {
 			/* There is no GC since the return execution
 			   start. */
-			d_assert (!IR_thread_flag (func));
 			*(val_t *) IVAL (ER_ctop (ER_prev_stack (cstack)), 1)
 			  = *(val_t *) res;
 		      }
@@ -4667,42 +4662,15 @@ evaluate_code (void)
 	    /* See comment for leave.  */
 	    break;
 	  }
-	case BC_NM_bstart:
-	  {
-	    int_t npars = BC_op1 (cpc);
-	    int_t nvars = BC_op2 (cpc);
-
-	    op1 = ctop;
-	    DECR_CTOP (-nvars);
-	    for (i = npars + 1; i <= nvars; i++)
-	      ER_SET_MODE (IVAL (op1, i), ER_NM_undef);
-	    INCREMENT_PC ();
-	  }
-	  break;
-	case BC_NM_pbend:
-	  DECR_CTOP (BC_op1 (cpc));
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fbend:
-	  DECR_CTOP (BC_op1 (cpc));
-	  ER_SET_MODE (IVAL (ctop, 1), ER_NM_undef);
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_bret:
-	  extract_op1 (&res);
-	  DECR_CTOP (BC_op2 (cpc));
-	  *(val_t *) IVAL (ctop, 1) = *(val_t *) res;
-	  INCREMENT_PC ();
-	  break;
 	case BC_NM_wait:
 	  if (sync_flag)
-	    eval_error (syncwait_decl, errors_decl, BC_pos (cpc),
+	    eval_error (syncwait_bc_decl, errors_bc_decl, get_cpos (),
 			DERR_wait_in_sync_stmt);
 	  extract_op1 (&op1);
 	  op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
 	  if (ER_NODE_MODE (op1) != ER_NM_int
 	      && ER_NODE_MODE (op1) != ER_NM_float)
-	    eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 			DERR_invalid_wait_guard_expr_type);
 	  if ((ER_NODE_MODE (op1) == ER_NM_int && ER_i (op1) == 0)
 	      || (ER_NODE_MODE (op1) == ER_NM_float && ER_f (op1) == 0.0))
@@ -4719,9 +4687,10 @@ evaluate_code (void)
 	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_block:
-	  heap_push (BC_origin (cpc), cstack, 0);
-	  IR_set_block_saved_sync_flag (BC_origin (cpc), sync_flag);
-	  INCREMENT_PC ();
+	  d_assert (BC_vars_num (cpc) >= 0);
+	  heap_push (cpc, cstack, 0);
+	  BC_set_saved_sync_p (cpc, sync_flag);
+	  cpc = BC_next (cpc);
 	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_throw:
@@ -4729,15 +4698,15 @@ evaluate_code (void)
 	    const char *message;
 	    
 	    op2 = (ER_node_t) &tvar1;
-	    ER_SET_MODE (op2, ER_NM_class);
-	    ER_set_class_id (op2, FUNC_CLASS_ID (except_decl));
-	    ER_set_class_context (op2, uppest_stack);
-	    op1 = IVAL (cvars, BC_op1 (cpc));
+	    ER_SET_MODE (op2, ER_NM_code);
+	    ER_set_code_id (op2, CODE_ID (except_bc_decl));
+	    ER_set_code_context (op2, uppest_stack);
+	    op1 = get_op (BC_op1 (cpc));
 	    if (!ER_IS_OF_TYPE (op1, ER_NM_stack)
 		|| !internal_inside_call (&message, op2, op1, FALSE))
-	      eval_error (optype_decl, invops_decl, BC_pos (cpc),
+	      eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 			  DERR_no_exception_after_throw);
-	    exception_position = BC_pos (cpc);
+	    exception_position = get_cpos ();
 	    cpc = find_catch_pc (ER_stack (op1));
 	  }
 	  break;
@@ -4749,14 +4718,14 @@ evaluate_code (void)
 	    extract_op2 (&op1, &op2);
 	    d_assert (ER_IS_OF_TYPE (op1, ER_NM_stack));
 	    exception = ER_stack (op1);
-	    if (ER_IS_OF_TYPE (op2, ER_NM_class)
+	    if (ER_IS_OF_TYPE (op2, ER_NM_code)
 		&& internal_inside_call (&message, op2, op1, FALSE))
 	      {
 		INCREMENT_PC ();
 		d_assert (cpc != NULL
 			  && BC_IS_OF_TYPE (cpc, BC_NM_block));
 		TOP_DOWN; /* exception */
-		heap_push (BC_origin (cpc), cstack, 1);
+		heap_push (cpc, cstack, 1);
 		/* Zeroth val of catch block is always corresponding the
 		   exception. */
 		ER_SET_MODE (IVAL (ER_stack_vars (cstack), 0), ER_NM_stack);
@@ -4779,64 +4748,63 @@ evaluate_code (void)
 	case BC_NM_move:
 	  extract_op2 (&res, &op1);
 	  if (ER_NODE_MODE (op1) == ER_NM_undef)
-	    eval_error (accessop_decl, invaccesses_decl,
-			IR_pos (BC_origin (cpc)), DERR_undefined_value_access,
-			IR_ident_string (IR_unique_ident (BC_origin (cpc))));
+	    eval_error (accessop_bc_decl, invaccesses_bc_decl,
+			get_cpos (), DERR_undefined_value_access,
+			BC_ident (BC_rhs_decl (cpc)));
 	  *(val_t *) res = *(val_t *) op1;
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_var:
 	  extract_op1 (&res);
-	  process_var_val (res, BC_origin (cpc));
+	  process_var_val (res, BC_decl (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_lvar:
 	case BC_NM_lvarv:
 	  extract_op1 (&res);
-	  process_var_ref_and_val (res, BC_origin (cpc), node_mode != BC_NM_lvar);
+	  process_var_ref_and_val (res, BC_decl (cpc), node_mode != BC_NM_lvar);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_evar:
 	case BC_NM_levar:
 	case BC_NM_levarv:
 	  extract_op1 (&res);
-	  process_external_var (res, BC_origin (cpc),
+	  process_external_var (res, BC_decl (cpc),
 				node_mode != BC_NM_evar,
 				node_mode == BC_NM_levarv);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_efunc:
-	case BC_NM_func:
 	  {
-	    IR_node_t decl = IR_decl (BC_origin (cpc));
+	    BC_node_t decl = BC_decl (cpc);
 	    
 	    extract_op1 (&res);
-	    if (node_mode == BC_NM_func && IR_thread_flag (decl))
-	      {
-		ER_SET_MODE (res, ER_NM_thread);
-		ER_set_thread_id (res, FUNC_CLASS_ID (decl));
-		ER_set_thread_context (res, find_context_by_scope (IR_scope (decl)));
-	      }
-	    else
-	      {
-		ER_SET_MODE (res, ER_NM_func);
-		ER_set_func_id (res, FUNC_CLASS_ID (decl));
-		ER_set_func_context (res, find_context_by_scope (IR_scope (decl)));
-	      }
+	    ER_SET_MODE (res, ER_NM_efunc);
+	    ER_set_efdecl (res, decl);
 	    INCREMENT_PC ();
 	    break;
 	  }
+	case BC_NM_func:
 	case BC_NM_class:
 	  {
-	    IR_node_t decl = IR_decl (BC_origin (cpc));
+	    BC_node_t fblock, decl = BC_decl (cpc);
 	    
+	    d_assert (BC_NODE_MODE (decl) == BC_NM_fdecl);
 	    extract_op1 (&res);
-	    ER_SET_MODE (res, ER_NM_class);
-	    ER_set_class_id (res, FUNC_CLASS_ID (decl));
-	    ER_set_class_context (res, find_context_by_scope (IR_scope (decl)));
+	    ER_SET_MODE (res, ER_NM_code);
+	    fblock = BC_fblock (decl);
+	    if (fblock == NULL)
+	      eval_error (accessvalue_bc_decl, invaccess_bc_decl, get_cpos (),
+			  DERR_undefined_class_or_func);
+	    ER_set_code_id (res, CODE_ID (fblock));
+	    ER_set_code_context
+	      (res, find_context_by_scope (BC_decl_scope (decl)));
 	    INCREMENT_PC ();
 	    break;
 	  }
+	case BC_NM_nop: /* for debugging.  */
+	  INCREMENT_PC ();
+	  break;
 	default:
 	  d_unreachable ();
 	}
@@ -4866,8 +4834,8 @@ initiate_vars (void)
 	  set_vect_dim (var, string, 0);
 	}
     }
-  d_assert (IR_scope (argv_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (argv_decl));
+  d_assert (BC_decl_scope (argv_bc_decl) == ER_block_node (cstack));
+  var = IVAL (ER_stack_vars (cstack), BC_var_num (argv_bc_decl));
   ER_SET_MODE (var, ER_NM_vect);
   set_vect_dim (var, vect, 0);
   ER_set_immutable (vect, TRUE);
@@ -4881,7 +4849,7 @@ initiate_vars (void)
 	if (program_environment [i][j] == '=')
 	  break;
       if (program_environment [i][j] == '\0')
-	eval_error (invenv_decl, errors_decl,
+	eval_error (invenv_bc_decl, errors_bc_decl,
 		    no_position, DERR_environment_corrupted);
       program_environment [i][j] = '\0';
       string = create_string (program_environment [i]);
@@ -4891,7 +4859,7 @@ initiate_vars (void)
       set_vect_dim ((ER_node_t) &key, string, 0);
       entry = find_tab_entry (tab, (ER_node_t) &key, TRUE);
       if (ER_NODE_MODE (entry) != ER_NM_empty_entry)
-	eval_error (invenv_decl, errors_decl,
+	eval_error (invenv_bc_decl, errors_bc_decl,
 		    no_position, DERR_environment_corrupted);
       ER_SET_MODE (entry, ER_NM_vect);
       set_vect_dim (entry, string, 0);
@@ -4900,25 +4868,25 @@ initiate_vars (void)
       ER_SET_MODE (var, ER_NM_vect);
       set_vect_dim (var, string2, 0);
    }
-  d_assert (IR_scope (env_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (env_decl));
+  d_assert (BC_decl_scope (env_bc_decl) == ER_block_node (cstack));
+  var = IVAL (ER_stack_vars (cstack), BC_var_num (env_bc_decl));
   ER_SET_MODE (var, ER_NM_tab);
   ER_set_tab (var, tab);
   ER_set_immutable (tab, TRUE);
   /* Set version */
-  d_assert (IR_scope (version_decl) == ER_block_node (cstack));
-  var = IVAL (ER_stack_vars (cstack), IR_var_number_in_block (version_decl));
+  d_assert (BC_decl_scope (version_bc_decl) == ER_block_node (cstack));
+  var = IVAL (ER_stack_vars (cstack), BC_var_num (version_bc_decl));
   ER_SET_MODE (var, ER_NM_float);
   ER_set_f (var, DINO_VERSION);
   /* Set main_thread, curr_thread */
-  d_assert (IR_scope (main_thread_decl) == ER_block_node (cstack));
+  d_assert (BC_decl_scope (main_thread_bc_decl) == ER_block_node (cstack));
   var = IVAL (ER_stack_vars (cstack),
-	      IR_var_number_in_block (main_thread_decl));
+	      BC_var_num (main_thread_bc_decl));
   ER_SET_MODE (var, ER_NM_process);
   ER_set_process (var, cprocess);
-  d_assert (IR_scope (curr_thread_decl) == ER_block_node (cstack));
+  d_assert (BC_decl_scope (curr_thread_bc_decl) == ER_block_node (cstack));
   var = IVAL (ER_stack_vars (cstack),
-	      IR_var_number_in_block (curr_thread_decl));
+	      BC_var_num (curr_thread_bc_decl));
   ER_SET_MODE (var, ER_NM_process);
   ER_set_process (var, cprocess);
 }
@@ -4932,7 +4900,7 @@ static jmp_buf eval_longjump_buff;
 #define MAX_EVAL_ERROR_MESSAGE_LENGTH 300
 
 void
-eval_error (IR_node_t except_class, IR_node_t context_var,
+eval_error (BC_node_t except_class_block, BC_node_t context_var,
 	    position_t position, const char *format, ...)
 {
   char message[MAX_EVAL_ERROR_MESSAGE_LENGTH + 1];
@@ -4946,9 +4914,9 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
   d_assert (strlen (message) <= MAX_EVAL_ERROR_MESSAGE_LENGTH);
   exception_position = position;
   string = create_string (message);
-  heap_push (IR_next_stmt (except_class),
+  heap_push (except_class_block,
 	     ER_stack (IVAL (ER_stack_vars (uppest_stack),
-			     IR_var_number_in_block (context_var))), -1);
+			     BC_var_num (context_var))), -1);
   error_instance = cstack;
   heap_pop ();
   /* Zeroth variable is message in class `error' */
@@ -4959,7 +4927,7 @@ eval_error (IR_node_t except_class, IR_node_t context_var,
 }
 
 void
-call_func_class (IR_node_t func, ER_node_t context, int_t pars_number)
+call_func_class (BC_node_t code, ER_node_t context, int_t pars_number)
 {
   pc_t saved_cpc;
   pc_t saved_next_pc;
@@ -4970,8 +4938,11 @@ call_func_class (IR_node_t func, ER_node_t context, int_t pars_number)
   BC_set_next (cpc, NULL);
   saved_process_number = ER_process_number (cprocess);
   DECR_CTOP (pars_number);
-  process_imm_func_call ((val_t *) IVAL (ctop, 1), func, context,
-			 pars_number, FALSE);
+  if (BC_implementation_func (code) != NULL)
+    process_imm_ifunc_call (code, pars_number);
+  else
+    process_imm_func_call ((val_t *) IVAL (ctop, 1), code, context,
+			   pars_number, FALSE);
   for (;;)
     {
       if (cpc != NULL)
@@ -4997,10 +4968,11 @@ evaluate_program (pc_t start_pc)
   initiate_funcs ();
   sync_flag = FALSE;
   cpc = start_pc;
-  d_assert (! IR_extended_life_context_flag (BC_origin (cpc)));
-  heap_push (BC_origin (cpc), NULL, 0);
+  d_assert (! BC_ext_life_p (cpc));
+  heap_push (cpc, NULL, 0);
   /* Initialized standard variables. */
   uppest_stack = cstack;
+  tvars = ER_stack_vars (uppest_stack);
   initiate_processes (cpc);
   INCREMENT_PC ();
   initiate_vars ();
@@ -5037,52 +5009,19 @@ static vlo_t profile_funcs;
 /* The following recursive function collects functions which will be
    reported in profile. */
 static void
-collect_profile (IR_node_t first_level_stmt)
+collect_profile (BC_node_t block)
 {
-  IR_node_t stmt;
+  BC_node_t decl, fblock;
 
-  for (stmt = first_level_stmt;
-       stmt != NULL;
-       stmt = IR_next_stmt (stmt))
-    {
-      switch (IR_NODE_MODE (stmt))
-	{
-	case IR_NM_if_stmt:
-	  collect_profile (IR_if_part (stmt));
-	  collect_profile (IR_else_part (stmt));
-	  break;
-	case IR_NM_for_stmt:
-	  collect_profile (IR_for_initial_stmt (stmt));
-	  collect_profile (IR_for_iterate_stmt (stmt));
-	  collect_profile (IR_for_stmts (stmt));
-	  break;
-	case IR_NM_foreach_stmt:
-	  collect_profile (IR_foreach_stmts (stmt));
-	  break;
-	case IR_NM_block:
-	  {
-	    IR_node_t curr_except;
-
-	    collect_profile (IR_block_stmts (stmt));
-	    for (curr_except = IR_exceptions (stmt);
-		 curr_except != NULL;
-		 curr_except = IR_next_exception (curr_except))
-	      if (IR_catch_block (curr_except) != NULL)
-		collect_profile (IR_catch_block (curr_except));
-	    break;
-	  }
-	case IR_NM_func:
-	case IR_NM_class:
-	  if (IR_calls_number (stmt) != 0
-	      && strcmp (IR_pos (stmt).file_name,
-			 ENVIRONMENT_PSEUDO_FILE_NAME) != 0)
-	    VLO_ADD_MEMORY (profile_funcs, &stmt, sizeof (stmt));
-	  break;
-	default:
-	  /* Do nothing */
-	  break;
-	}
-    }
+  for (decl = BC_decls (block); decl != NULL; decl = BC_next_decl (decl))
+    if (BC_IS_OF_TYPE (decl, BC_NM_fdecl)
+	&& strcmp (BC_pos (decl).file_name,
+		   ENVIRONMENT_PSEUDO_FILE_NAME) != 0)
+      {
+	fblock = BC_fblock (decl);
+	VLO_ADD_MEMORY (profile_funcs, &fblock, sizeof (decl));
+	collect_profile (fblock);
+      }
 }
 
 /* The following comparison function is used to sort collected
@@ -5090,15 +5029,15 @@ collect_profile (IR_node_t first_level_stmt)
 static int
 profile_compare_function (const void *el1, const void *el2)
 {
-  IR_node_t func1 = *(IR_node_t *) el1;
-  IR_node_t func2 = *(IR_node_t *) el2;
+  BC_node_t func1 = *(BC_node_t *) el1;
+  BC_node_t func2 = *(BC_node_t *) el2;
   double time1 ATTRIBUTE_UNUSED, time2 ATTRIBUTE_UNUSED;
 
 #if HAVE_SETITIMER
-  return IR_interrupts_number (func2) - IR_interrupts_number (func1);
+  return BC_interrupts_number (func2) - BC_interrupts_number (func1);
 #else
-  time1 = active_time (IR_exec_time (func1));
-  time2 = active_time (IR_exec_time (func2));
+  time1 = active_time (BC_exec_time (func1));
+  time2 = active_time (BC_exec_time (func2));
   
   if (time1 < time2)
     return 1;
@@ -5111,9 +5050,9 @@ profile_compare_function (const void *el1, const void *el2)
 
 /* The following function prints execition profile. */
 void
-print_profile (IR_node_t first_level_stmt)
+print_profile (BC_node_t block)
 {
-  IR_node_t *func_ptr;
+  BC_node_t *func_ptr;
   double all_time = active_time (all_time_ticker);
   double func_time;
 #if !HAVE_SETITIMER
@@ -5122,9 +5061,9 @@ print_profile (IR_node_t first_level_stmt)
 	
   ticker_off (&all_time_ticker);
   VLO_CREATE (profile_funcs, 0);
-  collect_profile (first_level_stmt);
+  collect_profile (block);
   qsort (VLO_BEGIN (profile_funcs),
-	 VLO_LENGTH (profile_funcs) / sizeof (IR_node_t), sizeof (IR_node_t),
+	 VLO_LENGTH (profile_funcs) / sizeof (BC_node_t), sizeof (BC_node_t),
 	 profile_compare_function);
   fprintf
     (stderr,
@@ -5134,12 +5073,14 @@ print_profile (IR_node_t first_level_stmt)
      "\n** Calls *** Time **** Name **************************************\n"
 #endif
      );
-  for (func_ptr = (IR_node_t *) VLO_BEGIN (profile_funcs);
+  for (func_ptr = (BC_node_t *) VLO_BEGIN (profile_funcs);
        (char *) func_ptr <= (char *) VLO_END (profile_funcs);
        func_ptr++)
     {
+      BC_node_t fdecl = BC_fdecl (*func_ptr);
+
 #if !HAVE_SETITIMER
-      func_time = active_time (IR_exec_time (*func_ptr));
+      func_time = active_time (BC_exec_time (*func_ptr));
       if (gc_number != 0 && gc_time != 0.0 && gc_time > func_time)
 	{
 	  fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
@@ -5149,10 +5090,10 @@ print_profile (IR_node_t first_level_stmt)
 #else
       func_time = (all_interrupts_number == 0
 		   ? 0.0
-		   : (all_time * IR_interrupts_number (*func_ptr)
+		   : (all_time * BC_interrupts_number (*func_ptr)
 		      / all_interrupts_number));
       if (gc_interrupts_number != 0
-	  && gc_interrupts_number > IR_interrupts_number (*func_ptr))
+	  && gc_interrupts_number > BC_interrupts_number (*func_ptr))
 	{
 	  fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
 		   gc_number,
@@ -5162,9 +5103,8 @@ print_profile (IR_node_t first_level_stmt)
 	
 #endif
       fprintf (stderr, "%8d %8.2f  --  %s: \"%s\": %d\n",
-	       IR_calls_number (*func_ptr), func_time,
-	       IR_ident_string (IR_unique_ident (IR_ident (*func_ptr))),
-	       IR_pos (*func_ptr).file_name, IR_pos (*func_ptr).line_number);
+	       BC_calls_number (*func_ptr), func_time, BC_ident (fdecl),
+	       BC_pos (fdecl).file_name, BC_pos (fdecl).line_number);
     }
 #if !HAVE_SETITIMER
   if (gc_number != 0 && gc_time != 0.0)

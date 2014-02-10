@@ -1,7 +1,7 @@
 /* This file contains execution (run-time) objects description. */
 
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -30,8 +30,8 @@
 
 %import {
 
-#include "d_ir.h"
 #include "d_bc.h"
+#include "d_runtab.h"
 
 }
 
@@ -48,9 +48,25 @@ extern int sync_flag;
 extern pc_t cpc;
 extern ER_node_t cstack;
 extern ER_node_t uppest_stack;
+extern ER_node_t tvars;
 extern ER_node_t cvars;
 extern ER_node_t ctop;
 extern int tvar_num1, tvar_num2;
+
+/* Return source position of byte code BC.  */
+static position_t do_always_inline
+get_pos (BC_node_t bc)
+{
+  d_assert (BC_IS_OF_TYPE (bc, BC_NM_bcode));
+  return BC_pos (BC_info (bc));
+}
+
+/* Return source position of current executed byte code.  */
+static position_t do_always_inline
+get_cpos (void)
+{
+  return get_pos (cpc);
+}
 
 #define TOP_UP   DECR_CTOP (-1)
 #define TOP_DOWN DECR_CTOP (1)
@@ -83,7 +99,7 @@ extern vlo_t temp_vlobj2;
 /* Structure for storing info about called function/class.  */
 struct trace_stack_elem
 {
-  IR_node_t func_class;
+  BC_node_t block;
   pc_t pc; /* Pc of the call */
 };
 
@@ -97,9 +113,17 @@ extern ER_node_t first_process_not_started;
 #define GO_THROUGH_REDIR(ref)\
  while (ER_NODE_MODE (ref) == ER_NM_heap_redir) (ref) = ER_redir (ref)
 
-#define ER_instance_p(stack) \
-  (IR_func_class_ext (ER_block_node (stack)) != NULL \
-   && IR_NODE_MODE (IR_func_class_ext (ER_block_node (stack))) == IR_NM_class)
+/* Return true if it is non-external function.  */
+static inline
+int func_p (ER_node_t val)
+{
+  BC_node_t code;
+
+  if (ER_NODE_MODE (val) != ER_NM_code)
+    return FALSE;
+  code = ID_TO_CODE (ER_code_id (val));
+  return BC_func_p (code);
+}
 
 extern void initiate_int_tables (void);
 
@@ -114,14 +138,14 @@ extern int current_cached_container_tick;
 #endif
 #ifndef NO_PROFILE
 #if HAVE_SETITIMER
-extern integer_t gc_interrupts_number;
+extern int_t gc_interrupts_number;
 #else
 extern ticker_t gc_ticker;
 #endif
 #endif
 
 #if ! defined (NO_PROFILE) && HAVE_SETITIMER
-extern integer_t all_interrupts_number; 
+extern int_t all_interrupts_number; 
 extern void profile_interrupt (void);
 #endif
 
@@ -133,8 +157,10 @@ extern void initiate_heap (void);
 extern void final_call_destroy_functions (void);
 extern void finish_heap (void);
 extern void GC (void);
-extern void heap_push (IR_node_t block_node_ptr, ER_node_t context,
+extern void heap_push (BC_node_t block_node_ptr, ER_node_t context,
 		       int offset);
+extern int heap_push_or_set_res (BC_node_t code, ER_node_t context,
+				 val_t *call_start);
 extern void heap_pop (void);
 
 extern unsigned int tab_collisions;
@@ -145,7 +171,7 @@ extern void initiate_tables (void);
 extern int executed_stmts_count;
 extern int process_quantum;
 
-extern ER_node_t create_process (pc_t start_process_pc, IR_node_t func,
+extern ER_node_t create_process (pc_t start_process_pc, BC_node_t func,
 	                         ER_node_t func_context);
 extern void interrupt (pc_t first_resume_pc);
 extern void block_cprocess (pc_t first_resume_pc, int wait_stmt_flag);
@@ -153,21 +179,24 @@ extern void delete_cprocess (void);
 extern int delete_cprocess_during_exception (void);
 extern void initiate_processes (pc_t start_pc);
 
-extern void *external_address (IR_node_t decl);
+extern void *external_address (BC_node_t decl);
 
 extern void process_system_errors (const char *function_name);
 
-extern void call_func_class (IR_node_t func, ER_node_t context, int_t pars_number);
+extern void call_func_class (BC_node_t func, ER_node_t context, int_t pars_number);
 
 
 #ifdef __GNUC__
-extern void eval_error (IR_node_t error_decl, IR_node_t context_var,
+extern void eval_error (BC_node_t error_decl, BC_node_t context_var,
 			position_t position,
 		        const char *format, ...) __attribute__ ((noreturn));
 #else
-extern void eval_error (IR_node_t error_decl, IR_node_t context_var,
+extern void eval_error (BC_node_t error_decl, BC_node_t context_var,
 			position_t position, const char *format, ...);
 #endif
+
+extern const char *er_type_name (int);
+
 }
 
 %%
@@ -186,6 +215,16 @@ heap_redir :: heap_vect_tab
 
 /* Don't add fields for nodes here as we have different structures in
    the interpriter and in the external functions.  */
+
+%%
+
+/* Return name of ER type T.  */
+const char *
+er_type_name (int t)
+{
+  return ER_node_name[t];
+}
+
 
 /*
 Local Variables:

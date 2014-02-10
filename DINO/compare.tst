@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 1997-2013 Vladimir Makarov.
+# Copyright (C) 1997-2014 Vladimir Makarov.
 # 
 # Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 # 
@@ -165,14 +165,14 @@ if test x$dino_only != x; then
 fi
 
 Announce_DINO() {
-    if test x$dino_only = x; then echo DINO:;fi
+    if test x$dino_only = x; then echo DINO$1:;fi
 }
 
 Announce_Test() {
     if test x$dino_only = x || test "x$NECHO" = x; then echo $*
     else
-       s=`$NECHO -n $*|sed "s/: +++++/:/"`
-       $NECHO -n $s
+       s=`$NECHO -n "$*"|sed "s/:  +++++/:/"`
+       $NECHO -n "$s"
        l=`expr length "$s"`
        while test $l -le 67; do $NECHO " "; l=`expr $l + 1`; done
     fi
@@ -187,7 +187,7 @@ if test $start_test_number -le 1; then
 
 ######################################################
 if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=8;else rep=10;fi
-Announce_Test "+++++ Test #1 ackermann (good test for recursive functions N=$rep):  +++++"
+Announce_Test "+++++ Test #1: ackermann (good test for recursive functions N=$rep):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -657,11 +657,30 @@ var x = [n:0], y = [n:0];
 for (i = 0; i < n; i++)
   x [i] = i + 1;
 for (k = 0; k < 1000; k++)
-  y[:] += x[:];
+  for (i = 0; i < n; i++)
+    y[i] += x[i];
 
 putln (y [0], " ", y [n - 1]);
 EOF
 Announce_DINO
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+if test x$dino_only != x; then
+  Announce_Test "+++++          Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+var x = [n:0], y = [n:0];
+
+for (i = 0; i < n; i++)
+  x [i] = i + 1;
+for (k = 0; k < 1000; k++)
+  y[:] += x[:];
+
+putln (y [0], " ", y [n - 1]);
+EOF
+Announce_DINO " (Slice Variant)"
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
@@ -672,7 +691,7 @@ if test $start_test_number -le 3; then
 
 ######################################################
 rep=`expr $factor '/' 7`
-Announce_Test "+++++ Test #3:  Count lines/words/chars (N=$rep):  +++++"
+Announce_Test "+++++ Test #3: Count lines/words/chars (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
 Subject:      Re: Who was Izchak Miller?
@@ -1897,7 +1916,7 @@ end
 
 fibnum = 0;
 NUM = tonumber((arg and arg[1])) or 1
-for i = 0, NUM do
+for i = 0, NUM - 1 do
     fibnum = fibonacci (i)
     io.write (i, fibnum, "\n") 
 end
@@ -1923,7 +1942,7 @@ def fib(n)
 end
 
 N = Integer(ARGV.shift || 1)
-for i in 0..N do
+for i in 0..N-1 do
   print i, " "; puts fib(i)
 end
 EOF
@@ -1937,7 +1956,7 @@ if test x$SCALA != x; then
 def fib (n:Int):Int = if (n < 2) 1 else fib (n - 2) + fib (n - 1)
 
 var x = 0; val n = args(0).toInt
-for (i <- 0 to n) {x = fib (n); println (x)}
+for (i <- 0 to n - 1) {x = fib (n); println (x)}
 EOF
   echo SCALA:
   if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -1953,7 +1972,7 @@ function fibonacci (n) {
 
 var i, fibnum, n = arguments [0];
 
-for (i = 0; i <= n; i++) {
+for (i = 0; i < n; i++) {
   fibnum = fibonacci(i);
   print (i, " ", fibnum); 
 }
@@ -1975,7 +1994,7 @@ func fibonacci (n) {
 
 var i, fibnum, n = int (argv [0]);
 
-for (i = 0; i <= n; i++) {
+for (i = 0; i < n; i++) {
   fibnum = fibonacci(i);
   putln (i @ " " @ fibnum); 
 }
@@ -3814,7 +3833,7 @@ if test $start_test_number -le 12; then
 
 ######################################################
 rep=`expr $factor '*' 3`
-Announce_Test "+++++ Test #12: Matrix Multiplication (N=$rep):  +++++"
+Announce_Test "+++++ Test #12: Matrix Multiplication (N=30, Iter=$rep):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -4347,6 +4366,57 @@ func main {
 main ();
 EOF
 Announce_DINO
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+if test x$dino_only != x; then
+  Announce_Test "+++++           Transpose and Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var size = 30;
+
+func mkmatrix (rows, cols) {
+  var i, j, count = 1;
+  var tm, mx = [rows:1];
+
+  for (i = 0; i < rows; i++) {
+    mx [i] = [cols:1];
+    tm = mx [i];
+    for (j = 0; j < cols; j++) {
+      tm [j] = count;
+      count++;
+    }
+  }
+  return mx;
+}
+
+func mmult (rows, cols, m1, m2) {
+  var i, j, tm, m3 = [rows:1];
+
+  m2 = transpose (m2);
+  for (i = 0; i < rows; i++) {
+    m3 [i] = [cols:1];
+    for (j = 0; j < cols; j++) {
+       tm = m1 [i];
+       m3 [i][j] = .+ (tm[:] * m2[j][:]);;
+    }
+  }
+  return m3;
+}
+
+func main {
+  var m1, m2, mm;
+  var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
+
+  m1 = mkmatrix (size, size);
+  m2 = mkmatrix (size, size);
+  for (i = 0; i < iter; i++)
+     mm = mmult (size, size, m1, m2);
+  putln (mm [0][0], ' ', mm [2][3], ' ', mm [3][2], ' ', mm [4][4]);
+}
+main ();
+EOF
+Announce_DINO " (Transpose and Slice Variant)"
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
@@ -17734,6 +17804,32 @@ fi
 
 cat <<'EOF' >$ftest
 func main {
+  var i, k, count, n = argv [0] < 1 ? 1 : int (argv [0]);
+  var flags = [8193:0];
+  for (; n >= 0; n--) {
+    count = 0;
+    for (i = 0; i <= 8192; i++)
+      flags[i] = 1;
+    for (i = 2; i <= 8192; i++)
+      if (flags[i]) {
+        for (k = i + i; k <= 8192; k += i)
+	  flags[k] = 0;
+        count++;
+      }
+  }
+  putln ("Count: ", count);
+}
+main ();
+EOF
+Announce_DINO
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+if test x$dino_only != x; then
+  Announce_Test "+++++           Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+func main {
   var i, count, n = argv [0] < 1 ? 1 : int (argv [0]);
   var flags = [8193:0];
   for (; n >= 0; n--) {
@@ -17749,7 +17845,7 @@ func main {
 }
 main ();
 EOF
-Announce_DINO
+Announce_DINO " (Slice Variant)"
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
@@ -100746,7 +100842,7 @@ if test $start_test_number -le 26; then
 
 ######################################################
 rep=`expr $factor '*' 1000000`
-Announce_Test "+++++ Test #26: Test Loop ($rep iteration with empty body): +++++"
+Announce_Test "+++++ Test #26: Test Loop ($rep iteration with empty body):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -101647,6 +101743,32 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
+var SieveSize, i, k, prime, count, iter, flags;
+SieveSize = int (argv [0]);
+
+flags = [SieveSize + 1 : 0];
+for (iter = 0; iter < 10; iter++) {
+    count = 0;
+    for (i = 0; i <= SieveSize; i++)
+      flags[i] = 1;
+    for (i = 0; i <= SieveSize; i++)
+      if (flags[i]) {
+          prime = i + i + 3;
+          for (k = i + prime; k <= SieveSize; k += prime)
+            flags[k] = 0;
+          count++;
+      }
+}
+putln (count);
+EOF
+Announce_DINO
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+if test x$dino_only != x; then
+  Announce_Test "+++++           Slice Variant:"
+fi
+cat <<'EOF' >$ftest
 var SieveSize, i, prime, count, iter, flags;
 SieveSize = int (argv [0]);
 
@@ -101663,7 +101785,7 @@ for (iter = 0; iter < 10; iter++) {
 }
 putln (count);
 EOF
-Announce_DINO
+Announce_DINO " (Slice Variant)"
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
@@ -101937,7 +102059,7 @@ if test $start_test_number -le 32; then
 
 ######################################################
 if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=100;else rep=300;fi
-Announce_Test "+++++ Test #32: Matrix mult (use arrays when possible N=$rep): +++++"
+Announce_Test "+++++ Test #32: Matrix mult (use arrays when possible N=$rep):  +++++"
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -102292,6 +102414,44 @@ m2 = [n:[n:1]];
 mmult (m1, m2);
 EOF
 Announce_DINO
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+
+if test x$dino_only != x; then
+  Announce_Test "+++++           Transpose and Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var m1, m2;
+
+func mmult (m1, m2)
+{
+  var i, j, m1rows, m1cols, m2rows, m2cols, result, tm, tr;
+
+  m1rows = #m1; m2rows = #m2;
+  m1cols = #m1[0]; m2cols = #m2[0];
+  if (m2cols != m2rows)
+    {
+       println ("matrices don't match");
+       return;
+    }
+  result = [m1rows:0];
+  m2 = transpose (m2);
+  for (i=0; i < m1rows; i++) {
+    result [i] = [m2cols:0];
+    tr = result[i]; tm = m1[i];
+    for (j=0; j < m2cols; j++)
+      tr[j] = .+ (tm[:] * m2[j][:]);
+  }
+  return result;
+}
+
+var n = int (argv [0]);
+
+m1 = [n:[n:1]];
+m2 = [n:[n:1]];
+mmult (m1, m2);
+EOF
+Announce_DINO " (Transpose and Slice Variant)"
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 

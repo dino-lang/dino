@@ -1,3 +1,196 @@
+2014-02-09  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/d_bcio.c, DINO/d_bcio.h, DINO/d_bcn.shilka,
+	DINO/d_bcf.shilka; New files.
+	* DINO/Makefile.in: Add d_bcio.[ch], d_bcn.shilka, and
+	d_bcf.shilka.  Update dependencies.
+	* DINO/compare.tst: Make pretty priniting for DINO only tests.
+	Add normal and slice variants for some tests.  Remove last
+	iteration for Lua, Scala, and Dino.
+	* DINO/d_bc.sprut: Finish node descriptions.
+	(position_t, bool_t, implementation_func_t): New types.
+	(ticker_t, ER_hidden_node_t): Ditto.
+	(IR_hidden_node_t): Remove.
+	(implementation_func_t, real_block_vars_number): Move from d_ir.sprut.
+	(DESTROY_IDENT_NUMBER, first_program_bc): New.
+	(EXCEPT_NAME, ..., MAP_NAME, INIT_NAME): Move from d_ir.sprut.
+	Rename TRANS_NAME to TRANSLITERATE_NAME.
+	(except_bc_decl, ..., map_bc_decl, init_bc_decl): New.  Use
+	transliterate_bc_decl.
+	(TRANSPOSE_NAME, transpose_bc_decl): New.
+	(attach_info, enumerate_infoed_bcode, init_env_decl_processing): New.
+	(all_env_decls_processed_p, process_env_decl, prepare_block): New.
+	(ir2er_type): Move to d_context.c
+	(er_type_name): Move d_run.sprut.
+	(struct bc_decl_entry, bc_decls_table): Make it from decl_entry
+	and decls_table of d_ir.sprut.  Add entry from transpose.  Rename
+	trans into transliterate.
+	(curr_decl_entry_num): New static.
+	* DINO/d_built.h (trans_call): Rename to transliterate_call.
+	(transpose_call): New.
+	* DINO/d_common.h: Include "bits.h" and "d_types.h".
+	(TAB_STOP): Move from d_yacc.y.
+	(NOT_A_CHAR): Ditto.  Rename from EMPTY_PREVIOUS_CHAR.
+	(input_dump_file): New.
+	(bc_nodes_num): Rename from bc_insns_num.
+	(max_block_level): Move to d_context.c.
+	(it_is_int_string, a2i, a2f, i2a, f2a): Move from d_ir.sprut.
+	(read_string): New.
+	* DINO/d_context.h (test_context): Return nothing.
+	* DINO/d_context.c: Include d_run.h and d_bcio.h.  Remove
+	d_runtab.h.
+	(curr_bc_scope, curr_info): New.
+	(start_next_iteration_pc): Rename to start_next_iteration.
+	(first_expr_processing): Don't call
+	process_block_decl_unique_ident and
+	IR_set_right_block_decl_ident_number.
+	(max_block_level): New static.
+	(first_block_passing): Don't call IR_set_block_number and
+	IR_set_simple_block_flag.
+	(second_block_passing): Don't call set_func_class_id and
+	define_block_decl.  Set up it_is_declared_in_block.
+	(PC, SET_PC): Remove.
+	(link_info, unlink_last_info, add_to_bcode, unlink_info): New.
+	(unlink_info, new_bc_node, new_bc_code): New.
+	(new_bc_code_with_src): Rename from new_bc_node.  Use new
+	functions.
+	(process_unary_op, process_binary_op): Use the new functions.
+	Setup 3 positions.
+	(add_flatten_node_if_necessary): Use the new functions.
+	(last_uniq_ident_num, last_decl_num, get_block_decl_ident_number):
+	New.
+	(get_bcode_decl): New.
+	(create_bc_ident): Use the new function.
+	(add_move): Ditto.  Change parameters.
+	(ir2er_type): Move from d_bc.sprut.
+	(get_fblock): New.
+	(third_expr_processing): Add three parameters and code for condition
+	translation.  Use the new functions.  Generate bcode.  Use
+	negative numbers for access to top-level vars.
+	(get_lvalue_and_val_location): Use the new functions.
+	(add_decl_to_block): New.
+	(third_block_passin): Use the new functions.
+	(struct node_info, curr_traverse_check, max_traverse_check):
+	Remove.
+	(init_traverse_check, next_traverse_check): Ditto.
+	(node_info, node_info_tab, node_info_os, curr_node_num): Ditto.
+	(node_info_hash, node_info_eq, find_node_info, initiate_node_tab): Ditto.
+	(finish_node_tab, traverse_bc, inc_nops, copy_bc_node): Ditto.
+	(get_subst, curr_imcall, process_inlined_bc_node): Ditto.
+	(inline_func_block, inline_imcall, imcall_subst, inline_bc): Ditto.
+	(nop_p, mark_reachable_info): New.
+	(go_through): Rewrite using bcode info.
+	(process_imcall): Ditto.  Remove parameter.
+	(print_indent, curr_line_number, dump_code): Move to d_bcio.c.
+	(process_bc): Rewrite.  Use mark_reachable_info.
+	(test_context): Return nothing.  Initiate new global/static vars.
+	Don't call process_block_decl_unique_ident,
+	set_environment_declarations.  Remove code for inlining and dump
+	code.
+	* DINO/d_dino.c: Remove d_runtab.h.  Include d_bcio.h.
+	(it_is_int_string, a2i, a2f, i2a, f2a): Move from d_ir.sprut.
+	(input_dump_file, read_string): New.
+	(dino_finish): Call finish_read_bc.
+	(error_func_for_allocate): Use get_cpos.
+	(exception_action): Use bcode.
+	(COMMAND_LINE_DESCRIPTION): Remove -dd.  Add -i dump.
+	(bc_insns_num): Rename to bc_nodes_num.
+	(int max_block_level): Remove.
+	(dino_main): Process the new option.  Call initial_read_bc,
+	read_bc_program, enumerate_infoed_bcode, dump_code,
+	init_env_decl_processing, prepare_block, all_env_decls_processed_p
+	if necessary.
+	* DINO/d_errors.h (ERR_byte_code_should_start_with_label): New.
+	(ERR_byte_code_should_have_name): New.
+	(ERR_byte_code_field_should_have_name): New.
+	(ERR_byte_code_field_should_be_followed_by_eq): New.
+	(ERR_unknown_byte_code_node, ERR_unknown_byte_code_field): New.
+	(ERR_wrong_byte_code_field_value, ERR_undefined_byte_code_field):
+	New.
+	(ERR_node_has_no_such_field): New.
+	(DERR_logical_operands_types, DERR_matrix_form_type): New.
+	(DERR_undefined_class_or_func, DERR_undefined_class_or_func): New.
+	* DINO/d_error.c (ERR_byte_code_should_start_with_label): New.
+	(ERR_byte_code_should_have_name): New.
+	(ERR_byte_code_field_should_have_name): New.
+	(ERR_byte_code_field_should_be_followed_by_eq): New.
+	(ERR_unknown_byte_code_node, ERR_unknown_byte_code_field): New.
+	(ERR_wrong_byte_code_field_value, ERR_undefined_byte_code_field):
+	New.
+	(ERR_node_has_no_such_field): New.
+	(DERR_logical_operands_types, DERR_matrix_form_type): New.
+	(DERR_undefined_class_or_func, DERR_undefined_class_or_func): New.
+	* DINO/d_eval.c: Remove d_runtab.h.  Use bcode for decls.  Use
+	ER_NM_code instead of ER_NM_func, ER_NM_thread, ER_NM_class.
+	(process_var_ref, process_external_var_decl): Remove.
+	(get_designator_pos): Use instead of get_designator.
+	(store_stack_element): New.
+	(store_designator_value): Use store_stack_element.
+	(store_vect_designator_value, store_tab_designator_value): New.
+	(store_stack_designator_value): New.
+	(get_op): New.
+	(extract_op1, extract_op2, extract_op3): Use get_op.
+	(execute_btcmp, execute_btcmpi): Ditto.
+	(evaluate_code): Implement new bcode stv, stt, sts, ste, ibcall,
+	ibpcall, bend, nop.  Remove bstart, pbend, fbend, bret.
+	(call_func_class): Use .process_imm_ifunc_call
+	* DINO/d_extern.sprut: Use bcode instead IR nodes.
+	(heap_process): Use process_block instead of thread_func.
+	(code): Rename from func, thread, class.
+	* DINO/d_func.c: Remove d_runtab.h.  Use bcode instead of IR.  Use
+	code instead func, thread, class.
+	(process_imm_func_call): Use heap_push_or_set_res.
+	(transpose_call, process_imm_ifunc_call): New functions.
+	* DINO/d_func.h (process_imm_ifunc_call): New.
+	* DINO/d_heap.c: Remove d_runtab.h.  Use bcode instead of IR.
+	(tvars): New.
+	(initiate_int_tables): Use code instead func, thread, class.
+	(destroy_ident_number, set_tvars): Remove.
+	(mark_used_heap_objects, change_refs): Process free_stacks.
+	(GC): Set up tvars.
+	(update_profile): New.
+	(heap_push): Use update_profile.
+	(STACK_REUSE_THRESHOLD, heap_push_without_profile_update): New.
+	(heap_push): Use heap_push_without_profile_update.
+	(heap_push_or_set_res): New.  Use free_stacks.
+	(heap_pop): Update free_stacks.  Save the result for pure
+	function.
+	(int_hash_val): New.
+	(hash_val): Use it.
+	(START_TABLE_SIZE): Make it 300 minimum.
+	* DINO/d_ir.sprut: Remove d_types.h and d_built.h.
+	(it_is_int_string, a2i, a2f, i2a, f2a): Move to d_dino.c.
+	(implementation_func_t, real_block_vars_number): Move to
+	d_bc.sprut.
+	(ENVIRONMENT): Add matrixform, transpose.  Rename trans to
+	transliterate.
+	(EXCEPT_NAME, ..., MAP_NAME, INIT_NAME): Move to d_bc.sprut.
+	(right_block_decl_ident_number, cond_common_part_pc): Remove the
+	fields.
+	(if_common_part_pc, simple_block_flag, block_end_pc): Ditto.
+	(bc_decl): New field.
+	(set_a_environment_declaration): Remove.
+	(except_decl, ..., ): Remove.
+	(struct decl_entry, decl_entry decls_table): Move d_bc.sprut.
+	* DINO/d_run.sprut: Remove d_ir.h.  Include d_runtab.h.  Use bcode
+	instead of IR.
+	(tvars, get_pos, get_cpos, func_p, heap_push_or_set_res): New.
+	(er_type_name): New.
+	(ER_instance_p): Remove.
+	* DINO/d_runtab.c: Use bcode instead of IR.
+	(set_func_class_id): Rename to set_block_number.
+	(process_block_decl_unique_ident): Remove.
+	(process_block_decl_unique_ident): Remove.
+	* DINO/d_runtab.h: Use code instead func, thread, class.
+	(struct block_decl_tables): Remove idents_number.
+	(process_block_decl_unique_ident): Remove.
+	* DINO/d_yacc.y (EMPTY_PREVIOUS_CHAR): Remove.  Use NOT_A_CHAR
+	instead.
+	(get_string_code): Remove.  Use read_string_code instead.
+	(TAB_STOP): Move to d_common.h.
+	* DINO/dino.tst.in: New tests 637-643.  Fix expected outputs ofr
+	some tests.
+
 2013-06-29  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/compare.tst: Add PyPy, SCALA, and JavaScript.  Increase

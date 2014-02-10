@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -28,8 +28,8 @@
 #include "d_ir.h"
 #include "d_run.h"
 #include "d_yacc.h"
-#include "d_runtab.h"
 #include "d_context.h"
+#include "d_bcio.h"
 #include "d_eval.h"
 
 #ifdef HAVE_TIME_H
@@ -126,6 +126,81 @@ memmove (void *s1, const void *s2, size_t n)
 
 
 
+/* This page contains functions for transformation to/from string. */
+
+int
+it_is_int_string (const char *str)
+{
+  for (; *str != '\0'; str++)
+    if (!isdigit (*str))
+      return FALSE;
+  return TRUE;
+}
+
+/* The function returns int_t value for character number
+   representation.  It always change the value of ERRNO. */
+int_t
+a2i (const char *str)
+{
+  int_t res;
+  long int l;
+
+  errno = 0;
+#ifdef HAVE_STRTOL
+  l = strtol (str, (char **) NULL, 10);
+  res = l;
+#ifdef ERANGE
+  if (res != l)
+    errno = ERANGE;
+#endif
+#else
+  res = atoi (str);
+#endif
+  return res;
+}
+
+/* The function returns floating_t value for character number
+   representation.  It always change the value of ERRNO. */
+floating_t
+a2f (const char *str)
+{
+  double d;
+  floating_t res;
+
+  errno = 0;
+#ifdef HAVE_STRTOD
+  d = strtod (str, (char **) NULL);
+  res = d;
+#ifdef ERANGE
+  if (res != d)
+    errno = ERANGE;
+#endif
+#else
+  res = atof (str);
+#endif
+  return res;
+}
+
+/* Convert int NUMBER into string and return it.  */
+const char *
+i2a (int_t number)
+{
+  static char result [30];
+  sprintf (result, "%ld", (long int) number);
+  return result;
+}
+
+/* Convert float NUMBER into string and return it.  */
+extern const char *
+f2a (floating_t number)
+{
+  static char result [30];
+  sprintf (result, "%g", number);
+  return result;
+}
+
+
+
 /* The following value is array of directories in which we search
    for DINO programs. */
 const char **include_path_directories;
@@ -144,6 +219,11 @@ static vlo_t libraries_vector;
    given on the command line.  In this case its value is the
    program. */
 char *command_line_program = NULL;
+
+/* The value of the following var is not NULL when the program is
+   given by dump file on the command line.  In this case its value is
+   the dump file. */
+FILE *input_dump_file = NULL;
 
 /* The following variable values is number of dino program arguments,
    arguments themselves, and environment. */
@@ -210,6 +290,88 @@ get_ch_repr (int ch)
   return str;
 }
 
+/* The func reads one code (may be composited from some characters)
+   using C language conventions.  It is supposed that the current
+   character is not end marker (string or character constant).  The
+   func returns the code value or negative number if error is fixed.
+   After the call the current char is first char after the code or the
+   same as before call if error was fixed.  Position is position of
+   the char will be read next.  Parameter INPUT_CHAR is current input
+   char (the next chars may be read by d_getc () and undoing it by
+   d_ungetc).  If the code is symbol string breaking TRUE is passed
+   through parameter correct_newln.  This case is error and the error
+   must be processed after the call if character constant is
+   processed. */
+int
+read_string_code (int input_char, int *correct_newln,
+		  int d_getc (void), void d_ungetc (int))
+{
+  int character_code;
+
+  /* `current_position' corresponds position right after `input_char'
+     here. */
+  if (input_char == EOF || input_char == '\n')
+    {
+      current_position.column_number--;
+      d_ungetc (input_char);
+      return (-1);
+    }
+  *correct_newln = FALSE;
+  if (input_char == '\\')
+    {
+      input_char = d_getc ();
+      current_position.column_number++;
+      if (input_char == 'n')
+        input_char = '\n';
+      else if (input_char == 't')
+        input_char = '\t';
+      else if (input_char == 'v')
+	input_char = '\v';
+      else if (input_char == 'a')
+        input_char = '\a';
+      else if (input_char == 'b')
+        input_char = '\b';
+      else if (input_char == 'r')
+        input_char = '\r';
+      else if (input_char == 'f')
+        input_char = '\f';
+      else if (input_char == '\\' || input_char == '\'' || input_char == '\"')
+        ;
+      else if (input_char == '\n')
+        {
+	  current_position.column_number = 1;
+	  current_position.line_number++;
+          *correct_newln = TRUE;
+        }
+      else if (isdigit (input_char) && input_char != '8' && input_char != '9')
+	{
+	  character_code = VALUE_OF_DIGIT (input_char);
+	  input_char = d_getc ();
+	  if (!isdigit (input_char) || input_char == '8' || input_char == '9')
+	    d_ungetc (input_char);
+	  else
+	    {
+	      current_position.column_number++;
+	      character_code
+		= (character_code * 8 + VALUE_OF_DIGIT (input_char));
+	      input_char = d_getc ();
+	      if (!isdigit (input_char)
+		  || input_char == '8' || input_char == '9')
+		d_ungetc (input_char);
+	      else
+		{
+		  character_code
+		    = (character_code * 8 + VALUE_OF_DIGIT (input_char));
+		  current_position.column_number++;
+		}
+
+	    }
+	  input_char = character_code;
+      }
+    }
+  return input_char;
+}
+
 void
 dino_finish (int code)
 {
@@ -222,7 +384,7 @@ dino_finish (int code)
     print_trace_stack ();
 #ifndef NO_PROFILE
   if (code == 0 && profile_flag)
-    print_profile (first_program_stmt);
+    print_profile (first_program_bc);
 #endif
   finish_run_tables ();
   IR_stop ();
@@ -233,10 +395,12 @@ dino_finish (int code)
   finish_positions ();
   VLO_DELETE (include_path_directories_vector);
   VLO_DELETE (libraries_vector);
+  if (input_dump_file != NULL)
+    finish_read_bc ();
   if (statistics_flag && code == 0)
     {
       finish_heap ();
-      fprintf (stderr, "Created byte code insns - %d\n", bc_insns_num);
+      fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
       size = heap_size;
       unit = 'b';
       if (size % 1024 == 0)
@@ -272,7 +436,7 @@ dino_fatal_finish (void)
 static void
 error_func_for_allocate (void)
 {
-  error (FALSE, BC_pos (cpc), ERR_no_memory);
+  error (FALSE, get_cpos (), ERR_no_memory);
   dino_finish (-1);
 }
 
@@ -298,33 +462,33 @@ static void set_exception_action (int signal_number);
 static void
 exception_action (int signal_number)
 {
-  IR_node_t class;
+  BC_node_t class;
   const char *message;
 
   switch (signal_number)
     {
     case SIGINT:
-      class = sigint_decl;
+      class = sigint_bc_decl;
       message = ERR_interrupt_exception;
       break;
     case SIGILL:
-      class = sigill_decl;
+      class = sigill_bc_decl;
       message = ERR_illegal_instruction_exception;
       break;
     case SIGABRT:
-      class = sigabrt_decl;
+      class = sigabrt_bc_decl;
       message = ERR_abort_exception;
       break;
     case SIGFPE:
-      class = sigfpe_decl;
+      class = sigfpe_bc_decl;
       message = ERR_floating_point_exception;
       break;
     case SIGTERM:
-      class = sigterm_decl;
+      class = sigterm_bc_decl;
       message = ERR_termination_exception;
       break;
     case SIGSEGV:
-      class = sigsegv_decl;
+      class = sigsegv_bc_decl;
       message = ERR_segment_access_violation_exception;
       break;
 #if ! defined (NO_PROFILE) && HAVE_SETITIMER
@@ -341,9 +505,9 @@ exception_action (int signal_number)
     }
   set_exception_action (signal_number);
   if (eval_long_jump_set_flag)
-    eval_error (class, signals_decl, BC_pos (cpc), message);
+    eval_error (class, signals_bc_decl, get_cpos (), message);
   else if (signal_number != SIGINT && signal_number != SIGTERM)
-    error (TRUE, BC_pos (cpc), message);
+    error (TRUE, get_cpos (), message);
   else
     dino_finish (1);
 }
@@ -433,7 +597,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 }
 
 #define COMMAND_LINE_DESCRIPTION \
-"program size dirname\n"\
+"program size dirname dump\n"\
 "%%\n"\
 "command line: dino [option ...] [program-file] arguments\n"\
 "\n"\
@@ -446,9 +610,9 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-g'         generate C code\n"\
 "`-p'         output profile information into stderr\n"\
 "`-d'         dump program IR\n"\
-"`-dd'        dump program IR with standard definitions\n"
+"`-i dump'    read IR instead of program\n"
 
-int bc_insns_num;
+int bc_nodes_num;
 
 #define DEFAULT_HEAP_CHUNK_SIZE  04000000 /* 1024 Kbytes */
 #define MINIMAL_HEAP_CHUNK_SIZE  0100000 /* 32  Kbytes */
@@ -463,23 +627,18 @@ int dump_flag;
    clock. */
 double start_time;
 
-/* The following value is maximal number of IR_block_level. */
-int max_block_level;
-
 int
 dino_main (int argc, char *argv[], char *envp[])
 {
-  pc_t program_start_pc;
   int okay, option_has_argument, i, ch;
   int flag_of_first;
   char *option;
-  const char *input_file_name;
+  const char *input_file_name, *input_dump = NULL;
   const char *string;
   const char *home;
   int code;
 
   start_time = clock ();
-  max_block_level = 0;
   if ((code = setjmp (exit_longjump_buff)) != 0)
     return (code < 0 ? 0 : code);
   dino_start ();
@@ -502,7 +661,7 @@ dino_main (int argc, char *argv[], char *envp[])
   statistics_flag = FALSE;
   trace_flag = FALSE;
   profile_flag = FALSE;
-  dump_flag = 0;
+  dump_flag = FALSE;
   eval_long_jump_set_flag = FALSE;
   /* Process all command line options. */
   for (i = next_option (TRUE), okay = TRUE; i != 0; i = next_option (FALSE))
@@ -532,9 +691,9 @@ dino_main (int argc, char *argv[], char *envp[])
 #endif
 	}
       else if (strcmp (option, "-d") == 0)
-	dump_flag = 1;
-      else if (strcmp (option, "-dd") == 0)
-	dump_flag = 2;
+	dump_flag = TRUE;
+      else if (strcmp (option, "-i") == 0)
+	input_dump = argument_vector [i + 1];
       else if (strcmp (option, "-h") == 0)
 	{
 	  heap_chunk_size = atoi (argument_vector [i + 1]);
@@ -560,13 +719,28 @@ dino_main (int argc, char *argv[], char *envp[])
       else
 	d_unreachable ();
     }
-  if (command_line_program == NULL && number_of_operands () == 0)
+  if (command_line_program == NULL && input_dump == NULL
+      && number_of_operands () == 0)
     {
       fprintf (stderr,
 	       "dino: program itself or dino file must be on command line\n");
       okay = FALSE;
     }
-  else if (command_line_program == NULL)
+  else if (input_dump != NULL)
+    {
+      program_arguments_number = number_of_operands ();
+      flag_of_first = TRUE;
+      input_dump_file = fopen (input_dump, "rb");
+      if (input_dump_file == NULL)
+	system_error (TRUE, no_position, "fatal error -- `%s': ", 
+		      input_dump);
+    }
+  else if (command_line_program != NULL)
+    {
+      program_arguments_number = number_of_operands ();
+      flag_of_first = TRUE;
+    }
+  else
     {
       input_file_name = argument_vector [next_operand (TRUE)];
       flag_of_first = FALSE;
@@ -578,11 +752,6 @@ dino_main (int argc, char *argv[], char *envp[])
                    STANDARD_INPUT_FILE_SUFFIX);
           okay = FALSE;
         }
-    }
-  else
-    {
-      program_arguments_number = number_of_operands ();
-      flag_of_first = TRUE;
     }
   home = getenv (DINO_HOME_NAME_VARIABLE);
   /* Include dirs: */
@@ -614,26 +783,54 @@ dino_main (int argc, char *argv[], char *envp[])
     }
   program_arguments [i] = NULL;
   program_environment = envp;
-  set_exception_action (SIGINT);
-  set_exception_action (SIGILL);
-  set_exception_action (SIGABRT);
-  set_exception_action (SIGFPE);
-  set_exception_action (SIGTERM);
-  set_exception_action (SIGSEGV);
-#if ! defined (NO_PROFILE) && defined (HAVE_SETITIMER)
-  if (profile_flag)
-    set_exception_action (SIGVTALRM);
-#endif
-  start_scanner_file
-    ((command_line_program == NULL ? input_file_name : ""), no_position);
-  yyparse ();
-  if (first_program_stmt != NULL)
-    program_start_pc = test_context (first_program_stmt);
-  output_errors ();
-  if (number_of_errors == 0 && ! dump_flag)
+  first_program_bc = NULL;
+  if (input_dump_file != NULL)
     {
-      initiate_heap ();
-      evaluate_program (program_start_pc);
+      initiate_read_bc ();
+      read_bc_program (input_dump, input_dump_file, dump_flag);
+    }
+  else
+    {
+      start_scanner_file
+	((command_line_program == NULL ? input_file_name : ""), no_position);
+      yyparse ();
+      if (first_program_stmt != NULL)
+	test_context (first_program_stmt);
+    }
+  output_errors ();
+  if (number_of_errors == 0 && first_program_bc != NULL)
+    {
+      if (dump_flag)
+	{
+	  int_t idn = 0, decl_num = 0;
+	  enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
+	  dump_code (BC_info (first_program_bc), 0);
+	}
+      else
+	{
+	  if (input_dump_file == NULL)
+	    {
+	      init_env_decl_processing ();
+	      prepare_block (first_program_bc);
+	    }
+	  if (! all_env_decls_processed_p ())
+	    {
+	      fprintf (stderr, "fatal error - byte code corrupted\n");
+	      exit (1);
+	    }
+	  set_exception_action (SIGINT);
+	  set_exception_action (SIGILL);
+	  set_exception_action (SIGABRT);
+	  set_exception_action (SIGFPE);
+	  set_exception_action (SIGTERM);
+	  set_exception_action (SIGSEGV);
+#if ! defined (NO_PROFILE) && defined (HAVE_SETITIMER)
+	  if (profile_flag)
+	    set_exception_action (SIGVTALRM);
+#endif
+	  initiate_heap ();
+	  evaluate_program (first_program_bc);
+	}
     }
   dino_finish (number_of_errors != 0);
 }
