@@ -22,6 +22,7 @@
 
 */
 
+#include <stdarg.h>
 #include "d_dino.h"
 
 #include "allocate.h"
@@ -49,7 +50,7 @@
 
 extern const char **include_path_directories;
 extern const char **libraries;
-extern char *command_line_program;
+extern const char *command_line_program;
 extern FILE *input_dump_file;
 extern int program_arguments_number;
 extern char **program_arguments;
@@ -57,6 +58,7 @@ extern char **program_environment;
 extern position_t source_position;
 extern int bc_nodes_num;
 extern unsigned int heap_chunk_size;
+extern int repl_flag;
 extern int statistics_flag;
 extern int trace_flag;
 extern int profile_flag;
@@ -70,6 +72,12 @@ extern const char *f2a (floating_t number);
 extern char *get_ch_repr (int ch);
 extern int read_string_code (int input_char, int *correct_newln,
 			     int d_getc (void), void d_ungetc (int));
+extern void print_cont_prompt (void);
+extern void print_stmt_cont_prompt (void);
+extern void d_verror (int fatal_error_flag, position_t position,
+		      const char *format, va_list ap);
+extern void d_error (int fatal_error_flag, position_t position,
+		     const char *format, ...);
 extern void dino_finish (int code);
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))

@@ -75,6 +75,8 @@ History
 
   Nov 21, 2012.  Remove swap operation.
 
+  Apr 23, 2013.  Undefined values.
+
 
 
 1. Introduction
@@ -520,9 +522,10 @@ can contain any value.  This means that DINO is a dynamically-typed
 language.  The declaration of a variable also may define the initial
 value of the variable.  Assigning of the initial value to the variable
 instance is made after execution of the previous statements of the
-block.  By default the initial value of variables is the special value
-nil.  The value of the variable can not be changed after its
-initialization if its declaration contains the keyword final.
+block.  By default the initial value of variables is undefined.
+Nothing can be done with this.  This value even can be stored.  The
+value of the variable can not be changed after its initialization if
+its declaration contains the keyword final.
 
           VarDeclarations = var  VarParList ";"
 
@@ -569,9 +572,9 @@ function/class block (body).  The header specifies the function
 identifier and formal parameters.  A function can return the
 result with the aid of the statement return.  If the result
 value after the keyword return is absent or the return
-statement is absent or is not executed, the function returns
-nil by default.  A class call returns an object of the class
-which can be considered as a block instance of the class body.  The
+statement is absent or is not executed, the function result is
+undefined.  A class call returns an object of the class which can be
+considered as a block instance of the class body.  The
 return-statement for classes must be without a result.
 Thread-functions are analogous to general functions.  The
 difference is in that a new execution thread is created
@@ -601,13 +604,13 @@ parameter args into account), the value of args will
 be the empty vector.  The formal parameter can be initialized by a
 default value in a way analogous to variable initialization.  The
 initialization is made only when the corresponding actual parameter
-value is nil.
+value is undefined.
 
 If a class contains a function with the name destroy, the
 function will be called when the class object becomes garbage during
 the garbage collection process or at the end of the program.  The
 function can also be called explicitly if it is declared as public.
-You should be remember that although the function may have parameters
+You should remember that although the function may have parameters
 and return a value, the garbage collector (or finishing the program)
 ignores the result value and does not pass actual parameters.  The
 single exception when the function destroy is not called by
@@ -799,8 +802,7 @@ and the corresponding element values are the same.
 
 Dino has the following types of values:
           
-          o the special value nil.  This is the default
-            value of all variables when a block starts.  The value is
+          o the special value nil.  The value is
             represented by the keyword nil.
 
                  Expr = nil
@@ -1041,13 +1043,13 @@ actual parameter values are ignored.  Otherwise, a vector whose
 elements are the remaining parameter values is created and assigned to
 the parameter args.  If there is no corresponding actual
 parameter for a formal parameter, the default parameter value (see
-section Declarations) or the value nil is assigned
-to the formal parameter.  Then statements in the block are executed.
-If it is the call of a thread-function, a new execution thread is
-created, and the statements of the block is executed in the new
-thread.  The value of call of the thread-function is the corresponding
-thread.  It is returned before starting the execution of statements in
-the new thread.
+section Declarations) is assigned to the formal parameter.
+Otherwise, the value is undefined. Then statements in the block are
+executed.  If it is the call of a thread-function, a new execution
+thread is created, and the statements of the block is executed in the
+new thread.  The value of call of the thread-function is the
+corresponding thread.  It is returned before starting the execution of
+statements in the new thread.
 
 Execution of the body is finished by reaching the block end or by
 execution of a return-statement.  Finishing of the thread-function
@@ -1055,7 +1057,7 @@ results in finishing the corresponding thread.  The return-statement
 in a thread-function or in class should be without an expression.  The
 call of a class returns the created object.  A function call returns
 the value of the expression in the executed return-statement.
-Otherwise, the function call returns the value nil.
+Otherwise, the function return value is undefined.
 
           Expr = Call
 
@@ -1625,8 +1627,7 @@ function, thread-function, or class covering the statement, so the
 return-statement can be placed only in a function, a function-thread,
 or a class.  The expression in a return-statement can be given only
 for functions.  In this case, the expression value will be the value
-of the function call (instead of the default result value
-nil).
+of the function call (instead of undefined value).
 
           ExecutiveStmt = return  [ Expr ] ";"
 
@@ -2595,7 +2596,7 @@ the optional parameters in the description of the functions.
         parameter format.
 
 If something is not said about the returned result, the function
-returns the default value nil.
+return value is undefined.
 
 8.3.1. Mathematical functions
 
@@ -2946,7 +2947,8 @@ instance.
        o 'S'.  A socket.
        
        Under some OSes the function never returns some of the
-       characters (e.g. 'c' or 'b').
+       characters (e.g. 'c' or 'b').  The function may return nil if
+       it can not categorize the file as above.
      o fun (fileinstance_or_filename).  The function
        returns new string representing name of owner of the file
        (directory).  Under some OSes the function may return the new
@@ -3003,8 +3005,8 @@ strings (after implicit string conversion).  The first one is the path
 name of the file (directory).  The second one is the rights.  For
 instance, if the string contains a character 'r', this is right to
 read (see characters used to denote different rights in the
-description of the function fumode).  The functions always
-return the value nil.
+description of the function fumode).  The function return
+values are always undefined.
      
      o chumod (path, mode).  The function sets up rights
        for the file (directory) owner according to the given mode.
@@ -3115,7 +3117,7 @@ renaming a directory, not only a file.
 8.3.3.4. File output functions
 
 The following functions are used to output something into opened
-files.  All the functions always return the value nil.  The
+files.  All the function return values are undefined.  The
 functions may generate an exception declared in the class syserror
 (e.g. eio, enospc and so on) besides the standard
 partype, and parnumber.
@@ -3387,8 +3389,7 @@ partype, and parnumber.
 8.3.3.5. File input functions
 
 The following functions are used to input something from opened files.
-All the functions always return the value nil.  The functions
-may generate an exception declared in the class syserror
+The functions may generate an exception declared in the class syserror
 (e.g. eio, enospc and so on) or eof besides
 the standard partype, and parnumber.
      
@@ -3933,24 +3934,25 @@ OPTIONS
               implementation of DINO tables.
 
        -t     Output information about call stack of the program  into  stderr
-              for  unprocessed  exception  or  calling  exit  function.   DINO
-              tables.
+              for unprocessed exception or calling exit function.  This output
+              sometimes can be different from what people would expect because
+              of tail call elimination.
 
        -Idirname
-              Define the  directory  in  which  Dino  include  files  will  be
-              searched  for.  The order of searching in directories given with
+              Define  the  directory  in  which  Dino  include  files  will be
+              searched for.  The order of searching in directories given  with
               this option is the same as the one on the command line.
 
        -Ldirname
               Define  where  to  search  for  external  libraries  (if  shared
-              libraries  are  implemented  on  the  system.   This is true for
+              libraries are implemented on  the  system.   This  is  true  for
               Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
-              nal  variables and functions will be searched for.  The order of
+              nal variables and functions will be searched for.  The order  of
               searching in libraries given with this option is the same as one
               on the command line.
 
-       -p     Output  profile  information  into  stderr.  Profile information
-              contains the number of calls and execution times of  all  called
+       -p     Output profile information  into  stderr.   Profile  information
+              contains  the  number of calls and execution times of all called
               functions and classes.
 
 FILES
@@ -3961,54 +3963,54 @@ FILES
        mpi.d
               the DINO file implementing multiple precision arithmetic.
        mpi.so
-              the  DINO  shared library used for implementing MPI on some Unix
+              the DINO shared library used for implementing MPI on  some  Unix
               systems.
        ieee.d
-              the DINO file implementing IEEE standard floating  point  arith‐
+              the  DINO  file implementing IEEE standard floating point arith‐
               metic.
        ieee.so
-              the  DINO shared library used for implementing IEEE on some Unix
+              the DINO shared library used for implementing IEEE on some  Unix
               systems.
        ipcerr.d
-              the DINO file definining  exceptions  of  ipc/network  software.
+              the  DINO  file  definining  exceptions of ipc/network software.
               This file is used by socket.d.
        ipcerr.so
-              the  DINO  shared  library  used for implementing IPCERR on some
+              the DINO shared library used for  implementing  IPCERR  on  some
               Unix systems.
        socket.d
               the DINO file implementing work with sockets.
        socket.so
-              the DINO shared library used for  implementing  SOCKET  on  some
+              the  DINO  shared  library  used for implementing SOCKET on some
               Unix systems.
        There are no temporary files used by DINO.
 
 ENVIRONMENT
-       There  are the following environment variables which affect DINO behav‐
+       There are the following environment variables which affect DINO  behav‐
        ior:
 
        DINO_HOME
-              If not null, it defines the places of the dino shared  libraries
+              If  not null, it defines the places of the dino shared libraries
               (such a library may be only on some Unix systems including Linux
-              and  Solaris),  include  files,  and  dino   standard   external
-              libraries.   The  places  are defined as the subdirectory lib in
-              directory given by the environment variable value.   You  should
-              define  the variable value on Windows if you installed the files
+              and   Solaris),   include  files,  and  dino  standard  external
+              libraries.  The places are defined as the  subdirectory  lib  in
+              directory  given  by the environment variable value.  You should
+              define the variable value on Windows if you installed the  files
               in a directory other than C:\dino\lib
 
        DINO_PATH
-              If not null, it defines the places of dino  include-files.   The
-              value  of the variable has more priority than DINO_HOME but less
+              If  not  null, it defines the places of dino include-files.  The
+              value of the variable has more priority than DINO_HOME but  less
               priority than values given through -I options.
 
        DINO_LIB
-              If not null, it defines places of dino shared library,  if  any.
-              The   value  of  variable  has  more  priority  than  DINO_HOME.
+              If  not  null, it defines places of dino shared library, if any.
+              The  value  of  variable  has  more  priority  than   DINO_HOME.
               DINO_EXTERN_LIBS.
 
        DINO_EXTERN_LIBS
-              If not null,  it  defines  paths  of  additional  Dino  external
-              libraries.   The  libraries should be separated by ":" (on Unix)
-              or ";" (on Windows).  The value has less  priority  than  values
+              If  not  null,  it  defines  paths  of  additional Dino external
+              libraries.  The libraries should be separated by ":"  (on  Unix)
+              or  ";"  (on  Windows).  The value has less priority than values
               given in -L options.
 
 DIAGNOSTICS

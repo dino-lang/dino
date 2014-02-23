@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -44,16 +44,12 @@ var socket_excepts = excepts.socket_except ();
 var socket_errors = errors.socket_error ();
 
 final class __socket_package () {
-  extern _socket_errno, _socket_invalid_address, _socket_host_not_found,
-    _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
-    _gethostinfo (), _getservbyport (), _getservbyname (),
-    _socket_init (), _socket_fin ();
-  private _socket_errno, _socket_invalid_address, _socket_host_not_found,
-    _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
-    _gethostinfo, _getservbyport, _getservbyname, _socket_init, _socket_fin,
-    host_info, serv_info;
+  extern -_socket_errno, -_socket_invalid_address, -_socket_host_not_found,
+    -_socket_no_address, -_socket_no_recovery, -_socket_try_again, -_socket_eof,
+    -_gethostinfo (), -_getservbyport (), -_getservbyname (),
+    -_socket_init (), -_socket_fin ();
 
-  func generate_socket_exception () {
+  func -generate_socket_exception () {
     if (_socket_errno <= 0) throw socket_excepts.eof ();
     else if (_socket_errno == _socket_eof) throw socket_excepts.eof ();
     else if (_socket_errno in ipc_errs.n2e) throw ipc_errs.n2e {_socket_errno};
@@ -110,23 +106,17 @@ final class __socket_package () {
     return s;
   }
 
-  private generate_socket_exception;
-
-  extern _sread (), _swrite (), _recvfrom (), _sendto (), _accept (),
-    _stream_client (), _dgram_client (), _stream_server (), _dgram_server (),
-    _close_socket ();
-  private _sread, _swrite, _recvfrom, _sendto, _accept,
-    _stream_client, _dgram_client, _stream_server, _dgram_server,
-    _close_socket;
+  extern -_sread (), -_swrite (), -_recvfrom (), -_sendto (), -_accept (),
+    -_stream_client (), -_dgram_client (), -_stream_server (), -_dgram_server (),
+    -_close_socket ();
 
   // If you change it, change code of _recvfrom too.
-  class datagram (str, peer_addr, port) {}
-  private datagram;
+  class -datagram (str, peer_addr, port) {}
 
-  var proxy_sfd = nil; private proxy_sfd;
+  var -proxy_sfd = nil;
 
   class stream_client (peer_addr, port) {
-    var sfd; private sfd;
+    var -sfd;
 
     func read (len) {
       if (type (len) != int)
@@ -145,8 +135,7 @@ final class __socket_package () {
       return nb;
     }
 
-    private destroy;
-    func destroy () {if (sfd != nil) _close_socket (sfd);}
+    func -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (peer_addr) != vector || eltype (peer_addr) != char
         || type (port) != int)
@@ -158,7 +147,7 @@ final class __socket_package () {
   }
 
   class dgram_client () {
-    var sfd; private sfd;
+    var -sfd;
 
     func recvfrom (len) {
       if (type (len) != int)
@@ -183,8 +172,7 @@ final class __socket_package () {
       return nb;
     }
 
-    private destroy;
-    func destroy () {if (sfd != nil) _close_socket (sfd);}
+    func -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     sfd = _dgram_client ();
     if (sfd == nil)
@@ -192,7 +180,7 @@ final class __socket_package () {
   }
 
   class stream_server (port, queue_len) { // bind
-    var sfd; private sfd;
+    var -sfd;
 
     func accept () {
       var v = _accept (sfd);
@@ -202,8 +190,7 @@ final class __socket_package () {
       return stream_client (v [1], v [2]);
     }
 
-    private destroy;
-    func destroy () {if (sfd != nil) _close_socket (sfd);}
+    func -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_excepts.optype ();
@@ -215,7 +202,7 @@ final class __socket_package () {
   }
 
   class dgram_server (port) {
-    var sfd; private sfd;
+    var -sfd;
 
     func recvfrom (len) {
       if (type (len) != int)
@@ -240,8 +227,7 @@ final class __socket_package () {
       return nb;
     }
 
-    private destroy;
-    func destroy () {if (sfd != nil) _close_socket (sfd);}
+    func -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_excepts.optype ();
@@ -250,8 +236,7 @@ final class __socket_package () {
       generate_socket_exception ();
   }
 
-  private destroy;
-  func destroy () {_socket_fin ();}
+  func -destroy () {_socket_fin ();}
 
   _socket_init ();
 }

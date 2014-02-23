@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C interface: Package for output of compiler messages</TITLE>
  <LINK HREF="ammunition-8.html" REL=next>
  <LINK HREF="ammunition-6.html" REL=previous>
@@ -32,10 +32,12 @@ of file `errors.c'.  The interface contains the following external
 definitions:</P>
 <P>
 <DL>
-<DT><B>Integer variables `number_of_errors', `number_of_warnings'</B><DD><P>have values which are number of correspondingly errors and
+<DT><B>Integer variables `number_of_errors', `number_of_warnings'</B><DD>
+<P>have values which are number of correspondingly errors and
 warnings fixed after the most recent package initiation.</P>
 
-<DT><B>Integer variable `maximum_number_of_errors'</B><DD><P>has value which is maximum number of errors which will be
+<DT><B>Integer variable `maximum_number_of_errors'</B><DD>
+<P>has value which is maximum number of errors which will be
 fixed.  If an error is fixed with number equals to
 `maximum_number_of_errors' then special fatal error `fatal
 error -- too many errors' with position of given error is
@@ -43,14 +45,17 @@ fixed instead of the error.  And all following errors are
 ignored.  Zero value of the variable means that the special
 fatal error will never fixed.</P>
 
-<DT><B>Integer constant `default_maximum_number_of_errors'</B><DD><P>defines originally value of variable
+<DT><B>Integer constant `default_maximum_number_of_errors'</B><DD>
+<P>defines originally value of variable
 `maximum_number_of_errors'.  The constant value is `50'.</P>
 
-<DT><B>Variable `fatal_error_function'</B><DD><P>contains pointer to function without parameters which will be
+<DT><B>Variable `fatal_error_function'</B><DD>
+<P>contains pointer to function without parameters which will be
 called after fixing a fatal error.  The fatal error function
 is suggested to do not return the control back.</P>
 
-<DT><B>Function `default_fatal_error_function'</B><DD><P>
+<DT><B>Function `default_fatal_error_function'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void default_fatal_error_function (void)'
@@ -61,7 +66,8 @@ is suggested to do not return the control back.</P>
 defines originally value of variable `fatal_error_function'.
 The function only calls `exit (1)'.</P>
 
-<DT><B>Function `initiate_errors'</B><DD><P>
+<DT><B>Function `initiate_errors'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void initiate_errors (int immediate_output_flag)'
@@ -74,7 +80,8 @@ If the parameter value is nonzero than all fixed messages are
 output immediately.  Otherwise the compiler messages are
 stored until function `output_errors' are called.</P>
 
-<DT><B>Function `finish_errors'</B><DD><P>
+<DT><B>Function `finish_errors'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void finish_errors (void)'
@@ -84,7 +91,8 @@ stored until function `output_errors' are called.</P>
 
 frees all memory allocated during package work.</P>
 
-<DT><B>Function `output_errors'</B><DD><P>
+<DT><B>Function `output_errors'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void output_errors (void)'
@@ -97,7 +105,8 @@ outputs ones, and deletes ones.  Appended messages will be
 output after corresponding error or warning.  This function
 should be used only in regime of storing messages.</P>
 
-<DT><B>Function `error'</B><DD><P>
+<DT><B>Function `error'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -122,7 +131,8 @@ example,
 </CODE></BLOCKQUOTE>
 </P>
 
-<DT><B>Function `warning'</B><DD><P>
+<DT><B>Function `warning'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void warning (position_t position, const char *format, ...)'
@@ -132,7 +142,8 @@ example,
 
 is analogous to the previous but is used to fix a warning.</P>
 
-<DT><B>Function `append_message'</B><DD><P>
+<DT><B>Function `append_message'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void append_message (position_t position,
@@ -167,7 +178,8 @@ and then
 Description of function `default_output_error_function'
 contains explanation why decremented position is output.</P>
 
-<DT><B>Function `system_error'</B><DD><P>
+<DT><B>Function `system_error'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void system_error (int fatal_error_flag,
@@ -192,11 +204,13 @@ call may be used when a file is not opened</P>
 </CODE></BLOCKQUOTE>
 </P>
 
-<DT><B>Variable `output_error_function'</B><DD><P>contains pointer to function which is used to output error
+<DT><B>Variable `output_error_function'</B><DD>
+<P>contains pointer to function which is used to output error
 message.  The function has three parameters -- flag of
 appended message, message position and message itself.</P>
 
-<DT><B>Function `default_output_error_function'</B><DD><P>
+<DT><B>Function `default_output_error_function'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void default_output_error_function
@@ -216,7 +230,7 @@ The function output message in the following formats:
   MESSAGE                              (NULL file name)
   FILE_NAME:1: MESSAGE                 (zero line number)
   FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
-  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER-1: MESSAGE  (all other cases)
+  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER: MESSAGE  (all other cases)
         
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -227,9 +241,7 @@ given message is not appended message and corresponds to file
 different from one of previous output error.  This message
 reflects path of the message position (see package
 `position'), i.e.  reflects positions of corresponding
-include-clauses.  Decremented column number is output in order
-to be in concordance with editor Emacs in which positions
-start with 0.</P>
+include-clauses.</P>
 </DL>
 </P>
 

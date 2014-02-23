@@ -189,7 +189,7 @@ static position_t previous_output_position;
   MESSAGE                              (for position with NULL file name)
   FILE_NAME:1: MESSAGE                 (for position with zero line number)
   FILE_NAME:LINE_NUMBER: MESSAGE       (for position with zero column number)
-  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER-1: MESSAGE   (for all other cases)
+  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER: MESSAGE   (for all other cases)
      After that the function outputs newline.  The function also outputs
    additional messages `in file processed from...'  if given message
    is not appended message and corresponds to file different from one
@@ -231,7 +231,7 @@ default_output_error_function (int appended_message_flag, position_t
               else
                 fprintf (stderr, " from %s:%u:%u:", position_ptr->file_name,
                          position_ptr->line_number,
-                         position_ptr->column_number - 1);
+                         position_ptr->column_number);
               position_ptr = position_ptr->path;
               if (position_ptr->path != NULL)
                 fputc (',', stderr);
@@ -249,7 +249,7 @@ default_output_error_function (int appended_message_flag, position_t
                  position.line_number, message);
       else
         fprintf (stderr, "%s:%u:%u: %s", position.file_name,
-                 position.line_number, position.column_number - 1, message);
+                 position.line_number, position.column_number, message);
       if (!appended_message_flag)
         previous_output_position = position;
     }

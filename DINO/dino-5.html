@@ -75,8 +75,7 @@ and the corresponding element values are the same.</P>
 </P>
 <P>Dino has the following types of values:
 <UL>
-<LI>the special value <EM>nil</EM>.  This is the default
-value of all variables when a block starts.  The value is
+<LI>the special value <EM>nil</EM>.  The value is
 represented by the keyword <B>nil</B>.
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -369,20 +368,20 @@ actual parameter values are ignored.  Otherwise, a vector whose
 elements are the remaining parameter values is created and assigned to
 the parameter <CODE>args</CODE>.  If there is no corresponding actual
 parameter for a formal parameter, the default parameter value (see
-section <EM>Declarations</EM>) or the value <B>nil</B> is assigned
-to the formal parameter.  Then statements in the block are executed.
-If it is the call of a thread-function, a new execution thread is
-created, and the statements of the block is executed in the new
-thread.  The value of call of the thread-function is the corresponding
-thread.  It is returned before starting the execution of statements in
-the new thread.</P>
+section <EM>Declarations</EM>) is assigned to the formal parameter.
+Otherwise, the value is undefined. Then statements in the block are
+executed.  If it is the call of a thread-function, a new execution
+thread is created, and the statements of the block is executed in the
+new thread.  The value of call of the thread-function is the
+corresponding thread.  It is returned before starting the execution of
+statements in the new thread.</P>
 <P>Execution of the body is finished by reaching the block end or by
 execution of a return-statement.  Finishing of the thread-function
 results in finishing the corresponding thread.  The return-statement
 in a thread-function or in class should be without an expression.  The
 call of a class returns the created object.  A function call returns
 the value of the expression in the executed return-statement.
-Otherwise, the function call returns the value <B>nil</B>.
+Otherwise, the function return value is undefined.
 <BLOCKQUOTE><CODE>
 <PRE>
           Expr = Call

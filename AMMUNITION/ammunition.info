@@ -1,5 +1,5 @@
-This is ammunition.info, produced by makeinfo version 4.13 from
-info file generated from .//ammunition.sgml by means of linuxdoc-tools.
+This is ammunition.info, produced by makeinfo version 5.1 from
+sgmltmp.ammunition.2.texi.
 
 
 
@@ -37,49 +37,48 @@ File: ammunition.info,  Node: Introduction,  Next: Package for allocating memory
 1 Introduction
 **************
 
-This document describes ammunition (reusable packages written in
-C/C++).  The packages are oriented towards creation of compiler and
-cross-compiler.  Currently there are the following packages (their
-names and tasks):
+This document describes ammunition (reusable packages written in C/C++).
+The packages are oriented towards creation of compiler and
+cross-compiler.  Currently there are the following packages (their names
+and tasks):
 
-`allocate'
+'allocate'
      allocating and freeing memory with fixing some allocation errors
 
-`vlobject'
+'vlobject'
      work with variable length objects
 
-`objstack'
+'objstack'
      work with stacks of objects
 
-`hashtab'
+'hashtab'
      work with hash tables
 
-`position'
+'position'
      work with source code positions
 
-`errors'
+'errors'
      output of compiler messages
 
-`commline'
+'commline'
      work with command line
 
-`bits'
+'bits'
      work with bit strings
 
-`arithm'
-     implementing host machine-independently arbitrary precision
-     integer numbers arithmetic
+'arithm'
+     implementing host machine-independently arbitrary precision integer
+     numbers arithmetic
 
-`IEEE'
+'IEEE'
      implementing host machine-independently IEEE floating point
      arithmetic
 
-`ticker'
+'ticker'
      timer
 
-`earley'
+'earley'
      Earley parser
-
 
 
 File: ammunition.info,  Node: Package for allocating memory with fixing some allocation errors,  Next: Package for work with variable length objects,  Prev: Introduction,  Up: Top
@@ -87,71 +86,75 @@ File: ammunition.info,  Node: Package for allocating memory with fixing some all
 2 Package for allocating memory with fixing some allocation errors
 ******************************************************************
 
-Developing modern compilers it is necessary to avoid arbitrary limits
-on the length or number of any data structure by allocating all data
-structures dynamically.  Here the package `allocate' which implements
-allocation and freeing memory with automatic fixing allocation errors
-is suggested.
+Developing modern compilers it is necessary to avoid arbitrary limits on
+the length or number of any data structure by allocating all data
+structures dynamically.  Here the package 'allocate' which implements
+allocation and freeing memory with automatic fixing allocation errors is
+suggested.
 
-   The package automatically calls action on situation `no memory'.  The
+   The package automatically calls action on situation 'no memory'.  The
 action never returns control back because after calling function which
-processes allocation error the function `abort' is always called.
+processes allocation error the function 'abort' is always called.
 Therefore the function which processes allocation error should not
 return control back.
 
-   The interface part of the package is file `allocate.h'.  Defining
-macro `NDEBUG' (e.g. by option `-D' in C compiler command line) before
-the package macros usage disables fixing some internal errors and
-errors of usage of the package.  The implementation part is file
-`allocate.c'.  The interface contains the following external
-definitions and macros:
+   The interface part of the package is file 'allocate.h'.  Defining
+macro 'NDEBUG' (e.g.  by option '-D' in C compiler command line) before
+the package macros usage disables fixing some internal errors and errors
+of usage of the package.  The implementation part is file 'allocate.c'.
+The interface contains the following external definitions and macros:
 
-`Function `change_allocation_error_function''
+'Function `change_allocation_error_function''
+
                   `void change_allocation_error_function
                         (void (*error_function) (void))) (void)'
 
-     is used for changing up action on the situation `no memory'.  The
-     function also returns former function which was early action on
-     the situation `no memory'.
+     is used for changing up action on the situation 'no memory'.  The
+     function also returns former function which was early action on the
+     situation 'no memory'.
 
-`Function `default_allocation_error_function''
+'Function `default_allocation_error_function''
+
                   `void default_allocation_error_function (void)'
 
-     is default action of the package on the situation `no memory'.
-     This action consists of output message `*** no memory ***' to
-     standard error stream and calling function `exit' with code equals
+     is default action of the package on the situation 'no memory'.
+     This action consists of output message '*** no memory ***' to
+     standard error stream and calling function 'exit' with code equals
      to 1.
 
-`Macro `MALLOC''
+'Macro `MALLOC''
+
                   `MALLOC(ptr, size)'
 
-     is analogous to ANSI C library function `malloc'.  But the macro
+     is analogous to ANSI C library function 'malloc'.  But the macro
      has two parameters.  The first is pointer variable which is set up
      by address of allocated memory.  The second is size of needed
      memory.
 
-`Macro `CALLOC''
+'Macro `CALLOC''
+
                   `CALLOC(ptr, nel, size)'
 
-     is analogous to ANSI C library function `calloc'.  But the macro
+     is analogous to ANSI C library function 'calloc'.  But the macro
      has three parameters.  The first is pointer variable which is set
      up by address of allocated memory.  The last two parameters have
-     the same sense as in standard function `calloc'.
+     the same sense as in standard function 'calloc'.
 
-`Macro `FREE''
+'Macro `FREE''
+
                   `FREE(ptr)'
 
-     is analogous to ANSI C library function `free' but can accept nil
+     is analogous to ANSI C library function 'free' but can accept nil
      pointer value.  In this case macro does nothing.
 
-`Macro `REALLOC''
+'Macro `REALLOC''
+
                   `REALLOC(new, old, size)'
 
-     is analogous to ANSI C library function `realloc' but has three
-     parameters.  The first parameter is variable which is set up by
-     new address of reallocated memory.  The second is old address of
+     is analogous to ANSI C library function 'realloc' but has three
+     parameters.  The first parameter is variable which is set up by new
+     address of reallocated memory.  The second is old address of
      reallocated memory.  And third is new size of reallocated memory.
-
 
 
 File: ammunition.info,  Node: Package for work with variable length objects,  Next: Package for work with stacks of objects,  Prev: Package for allocating memory with fixing some allocation errors,  Up: Top
@@ -159,118 +162,128 @@ File: ammunition.info,  Node: Package for work with variable length objects,  Ne
 3 Package for work with variable length objects
 ***********************************************
 
-The package `vlobject' implements work with variable length object
-(VLO) and uses package `allocate'.  Any number of bytes may be added to
-and removed from the end of VLO.  If it is needed the memory allocated
-for storing variable length object may be expanded possibly with
-changing the object place.  But between any additions of the bytes (or
-tailoring) the object place is not changed.  To decrease number of
-changes of the object place the memory being allocated for the object
-is longer than the current object length.
+The package 'vlobject' implements work with variable length object (VLO)
+and uses package 'allocate'.  Any number of bytes may be added to and
+removed from the end of VLO. If it is needed the memory allocated for
+storing variable length object may be expanded possibly with changing
+the object place.  But between any additions of the bytes (or tailoring)
+the object place is not changed.  To decrease number of changes of the
+object place the memory being allocated for the object is longer than
+the current object length.
 
-   Because arguments of all macros which return a result (`VLO_LENGTH',
-`VLO_BEGIN', `VLO_BOUND', and `VLO_END') may be evaluated many times no
+   Because arguments of all macros which return a result ('VLO_LENGTH',
+'VLO_BEGIN', 'VLO_BOUND', and 'VLO_END') may be evaluated many times no
 side-effects should be in the arguments.
 
-   The package uses package `allocate'.  The interface part of the
-package is file `vlobject.h'.  Defining macro `NDEBUG' (e.g. by option
-`-D' in C compiler command line) before the package macros usage
-disables fixing some internal errors and errors of usage of the
-package.  The implementation part is file `vlobject.c'.  The interface
-contains the following definitions and macros:
+   The package uses package 'allocate'.  The interface part of the
+package is file 'vlobject.h'.  Defining macro 'NDEBUG' (e.g.  by option
+'-D' in C compiler command line) before the package macros usage
+disables fixing some internal errors and errors of usage of the package.
+The implementation part is file 'vlobject.c'.  The interface contains
+the following definitions and macros:
 
-`Type `vlo_t''
+'Type `vlo_t''
      describes a descriptor of variable length object.  All work with
      variable length object is executed by the following macros through
      the descriptors.  Structure (implementation) of this type is not
      needed for using variable length object.  But it should remember
      that work with the object through several descriptors is not safe.
 
-`Macro `VLO_DEFAULT_LENGTH''
+'Macro `VLO_DEFAULT_LENGTH''
      has value which is default initial size of memory is allocated for
      VLO when the object is created (with zero initial size).  Original
      value of the macros is equal to 512.  This macro can be redefined
-     in C compiler command line or with the aid of directive `#undef'
+     in C compiler command line or with the aid of directive '#undef'
      before any using the package macros.
 
-`Macro `VLO_CREATE''
+'Macro `VLO_CREATE''
+
                     `VLO_CREATE(vlo, initial_length)'
 
      is used for creation of VLO with initial zero length.  Initial
      memory allocated for VLO whose descriptor is given as the first
      macro parameter is given as the second parameter.  If the second
-     parameter is equal to zero then the initial allocated memory
-     length is equal to `VLO_DEFAULT_LENGTH'.
+     parameter is equal to zero then the initial allocated memory length
+     is equal to 'VLO_DEFAULT_LENGTH'.
 
-``VLO_DELETE''
+'`VLO_DELETE''
+
                     `VLO_DELETE(vlo)'
 
-     is used for freeing memory used by VLO whose descriptor is given
-     as the macro parameter.
+     is used for freeing memory used by VLO whose descriptor is given as
+     the macro parameter.
 
-`Macro `VLO_NULLIFY''
+'Macro `VLO_NULLIFY''
+
                     `VLO_NULLIFY(vlo)'
 
      makes that length of VLO whose descriptor is given as the macro
      parameter will be equal to zero (but memory for VLO is not freed
      and not reallocated).
 
-`Macro `VLO_TAILOR''
+'Macro `VLO_TAILOR''
+
                     `VLO_TAILOR(vlo)'
 
      makes that length of memory allocated for VLO whose descriptor is
      given as the macro parameter becomes equal to VLO length.
 
-`Macro `VLO_LENGTH''
+'Macro `VLO_LENGTH''
+
                     `VLO_LENGTH(vlo)'
 
      returns current length of VLO whose descriptor is given as the
      macro parameter.
 
-`Macros `VLO_BEGIN', `VLO_END', `VLO_BOUND''
+'Macros `VLO_BEGIN', `VLO_END', `VLO_BOUND''
+
                     `VLO_BEGIN(vlo)', `VLO_END(vlo)', `VLO_BOUND(vlo)'
 
-     return pointer (of type `void *') to correspondingly the first,
-     the last byte of VLO whose descriptor is given as the macros
-     parameter, and pointer to the last byte plus one.  Remember that
-     the object may change own place after any addition.
+     return pointer (of type 'void *') to correspondingly the first, the
+     last byte of VLO whose descriptor is given as the macros parameter,
+     and pointer to the last byte plus one.  Remember that the object
+     may change own place after any addition.
 
-`Macro `VLO_SHORTEN''
+'Macro `VLO_SHORTEN''
+
                     `VLO_SHORTEN(vlo, n)'
 
      removes n bytes from the end of VLO whose descriptor is given as
      the first parameter.  VLO is nullified if its length is less than
      n.
 
-`Macro `VLO_EXPAND''
+'Macro `VLO_EXPAND''
+
                     `VLO_EXPAND(vlo, length)'
 
      increases length of VLO whose descriptor is given as the first
      parameter on number of bytes given as the second parameter.  The
      values of bytes added to the end of VLO will be not defined.
 
-`Macro `VLO_ADD_BYTE''
+'Macro `VLO_ADD_BYTE''
+
                     `VLO_ADD_BYTE(vlo, b)'
 
      adds byte given as the second parameter to the end of VLO whose
      descriptor is given as the first parameter.
 
-`Macro `VLO_ADD_MEMORY''
+'Macro `VLO_ADD_MEMORY''
+
                     `VLO_ADD_MEMORY(vlo, str, length)'
 
      adds memory starting with address given as the second macro
      parameter and with length given as the third parameter to the end
      of VLO whose descriptor is given as the first parameter.
 
-`Macro `VLO_ADD_STRING''
+'Macro `VLO_ADD_STRING''
+
                     `VLO_ADD_STRING(vlo, str)'
 
      adds C string (with end marker 0) given as the second macro
      parameter to the end of VLO whose descriptor is given as the first
-     parameter.  Before the addition the macro deletes last character
-     of the VLO.  The last character is suggested to be C string end
-     marker 0.
-
+     parameter.  Before the addition the macro deletes last character of
+     the VLO. The last character is suggested to be C string end marker
+     0.
 
 
 File: ammunition.info,  Node: Package for work with stacks of objects,  Next: Package for work with hash tables,  Prev: Package for work with variable length objects,  Up: Top
@@ -278,45 +291,46 @@ File: ammunition.info,  Node: Package for work with stacks of objects,  Next: Pa
 4 Package for work with stacks of objects
 *****************************************
 
-The package `objstack' is based on package `allocate' and implements
-efficient work with stacks of objects (OS).  Work with the object on
-the stack top is analogous to one with a variable length object.  One
+The package 'objstack' is based on package 'allocate' and implements
+efficient work with stacks of objects (OS). Work with the object on the
+stack top is analogous to one with a variable length object.  One
 motivation for the package is the problem of growing char strings in
 symbol tables.  Memory for OS is allocated by segments.  A segment may
 contain more one objects.  The most recently allocated segment contains
-object on the top of OS.  If there is not sufficient free memory for
-the top object than new segment is created and the top object is
-transferred into the new segment, i.e. there is not any memory
-reallocation.  Therefore the top object may change its address.  But
-other objects never change address.
+object on the top of OS. If there is not sufficient free memory for the
+top object than new segment is created and the top object is transferred
+into the new segment, i.e.  there is not any memory reallocation.
+Therefore the top object may change its address.  But other objects
+never change address.
 
    Because arguments of all macros which return a result
-(`OS_TOP_LENGTH', `OS_TOP_BEGIN', `OS_TOP_BOUND', and `OS_TOP_END') may
+('OS_TOP_LENGTH', 'OS_TOP_BEGIN', 'OS_TOP_BOUND', and 'OS_TOP_END') may
 be evaluated many times no side-effects should be in the arguments.
 
-   The package uses package `allocate'.  The interface part of the
-package is file `objstack.h'.  Defining macro `NDEBUG' (e.g.  by option
-`-D' in C compiler command line) before the package macros usage
-disables fixing some internal errors and errors of usage of the
-package.  The implementation part is file `objstack.c'.  The interface
-contains the following definitions and macros:
+   The package uses package 'allocate'.  The interface part of the
+package is file 'objstack.h'.  Defining macro 'NDEBUG' (e.g.  by option
+'-D' in C compiler command line) before the package macros usage
+disables fixing some internal errors and errors of usage of the package.
+The implementation part is file 'objstack.c'.  The interface contains
+the following definitions and macros:
 
-`Type `os_t''
-     describes a descriptor of stack of objects.  All work with stack
-     of objects is executed by the following macros through the
-     descriptors.  Structure (implementation) of this type is not
-     needed for using stack of objects.  But it should remember that
-     work with the stack through several descriptors is not safe.
+'Type `os_t''
+     describes a descriptor of stack of objects.  All work with stack of
+     objects is executed by the following macros through the
+     descriptors.  Structure (implementation) of this type is not needed
+     for using stack of objects.  But it should remember that work with
+     the stack through several descriptors is not safe.
 
-`Macro `OS_DEFAULT_SEGMENT_LENGTH''
+'Macro `OS_DEFAULT_SEGMENT_LENGTH''
      has value which is default size of memory segments which will be
      allocated for OS when the stack is created (with zero initial
      segment size).  This is also minimal size of all segments.
      Original value of the macros is equal to 512.  This macro can be
      redefined in C compiler command line or with the aid of directive
-     `#undef' before any using the package macros.
+     '#undef' before any using the package macros.
 
-`Macro `OS_CREATE''
+'Macro `OS_CREATE''
+
                   `OS_CREATE(os, initial_segment_length)'
 
      creates OS which contains the single zero length object.  OS
@@ -324,43 +338,49 @@ contains the following definitions and macros:
      memory segments which will be allocated for OS is given as the
      second parameter.  If the second parameter is equal to zero the
      allocated memory segments length is equal to
-     `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment length
-     is always not less than maximum alignment.
+     'OS_DEFAULT_SEGMENT_LENGTH'. But in any case the segment length is
+     always not less than maximum alignment.
 
-`Macro `OS_DELETE''
+'Macro `OS_DELETE''
+
                   `OS_DELETE(os)'
 
-     is used for freeing all memory used by OS whose descriptor is
-     given as the macro parameter.
+     is used for freeing all memory used by OS whose descriptor is given
+     as the macro parameter.
 
-`Macro `OS_EMPTY''
+'Macro `OS_EMPTY''
+
                   `OS_EMPTY(os)'
 
      is used for removing all objects and freeing all memory allocated
      for OS except for the first segment.
 
-`Macro `OS_TOP_FINISH''
+'Macro `OS_TOP_FINISH''
+
                   `OS_TOP_FINISH(os)'
 
      creates new variable length object with initial zero length on the
      top of OS whose descriptor is given as the macro parameter.  The
      work (analogous to one with variable length object) with object
-     which was on the top of OS is finished, i.e. the object will never
+     which was on the top of OS is finished, i.e.  the object will never
      more change address.
 
-`Macro `OS_TOP_NULLIFY''
+'Macro `OS_TOP_NULLIFY''
+
                   `OS_TOP_NULLIFY(os)'
 
      makes that length of variable length object on the top of OS whose
      descriptor is given as the macro parameter will be equal to zero.
 
-`Macro `OS_TOP_LENGTH''
+'Macro `OS_TOP_LENGTH''
+
                   `OS_TOP_LENGTH(os)'
 
      returns current length of variable length object on the top of OS
      whose descriptor is given as the macro parameter.
 
-`Macros `OS_TOP_BEGIN', `OS_TOP_END', `OS_TOP_BOUND''
+'Macros `OS_TOP_BEGIN', `OS_TOP_END', `OS_TOP_BOUND''
+
                   `OS_TOP_BEGIN(os)', `OS_TOP_END(os)', `OS_TOP_BOUND(os)'
 
      return pointer to correspondingly the first and the last byte of
@@ -369,29 +389,33 @@ contains the following definitions and macros:
      Remember that the top object may change own place after any
      addition.
 
-`Macro `OS_TOP_SHORTEN''
+'Macro `OS_TOP_SHORTEN''
+
                   `OS_TOP_SHORTEN(os, n)'
 
      removes n bytes from the end of variable length object on the top
      of OS whose descriptor is given as the first parameter.  The top
      variable length object is nullified if its length is less than n.
 
-`Macro `OS_TOP_EXPAND''
+'Macro `OS_TOP_EXPAND''
+
                   `OS_TOP_EXPAND(os, length)'
 
      increases length of variable length object on the top of OS whose
-     descriptor is given as the first parameter on number of bytes
-     given as the second parameter.  The values of bytes added to the
-     end of variable length object on the top of OS will be not defined.
+     descriptor is given as the first parameter on number of bytes given
+     as the second parameter.  The values of bytes added to the end of
+     variable length object on the top of OS will be not defined.
 
-`Macro `OS_TOP_ADD_BYTE''
+'Macro `OS_TOP_ADD_BYTE''
+
                   `OS_TOP_ADD_BYTE(os, b)'
 
      adds byte given as the second parameter to the end of variable
      length object on the top of OS whose descriptor is given as the
      first parameter.
 
-`Macro `OS_TOP_ADD_MEMORY''
+'Macro `OS_TOP_ADD_MEMORY''
+
                   `OS_TOP_ADD_MEMORY(os, str, length)'
 
      adds memory starting with address given as the second macro
@@ -399,7 +423,8 @@ contains the following definitions and macros:
      of variable length object on the top of OS whose descriptor is
      given as the first parameter.
 
-`Macro `OS_TOP_ADD_STRING''
+'Macro `OS_TOP_ADD_STRING''
+
                   `OS_TOP_ADD_STRING(os, str)'
 
      adds C string (with end marker 0) given as the second macro
@@ -409,17 +434,16 @@ contains the following definitions and macros:
      length object.  The last character is suggested to be C string end
      marker 0.
 
-
 
 File: ammunition.info,  Node: Package for work with hash tables,  Next: Package for work with source code positions,  Prev: Package for work with stacks of objects,  Up: Top
 
 5 Package for work with hash tables
 ***********************************
 
-The most compilers use search structures.  Here the package `hashtab'
+The most compilers use search structures.  Here the package 'hashtab'
 which implements expandable hash tables is suggested.  This abstract
 data implements features analogous to ones of public domain functions
-`hsearch', `hcreate' and `hdestroy'.  The goal of the abstract data
+'hsearch', 'hcreate' and 'hdestroy'.  The goal of the abstract data
 creation is to implement additional needed features.  The abstract data
 permits to work simultaneously with several expandable hash tables.
 Besides insertion and search of elements the elements from the hash
@@ -432,19 +456,20 @@ from Knuth's book "The art of computer programming".  Hash table is
 expanded by creation of new hash table and transferring elements from
 the old table to the new table.
 
-   The package uses package `allocate'.  The interface part of the
-abstract data is file `hashtab.h'.  The implementation part is file
-`hashtab.c'.  The interface contains the following external definitions:
+   The package uses package 'allocate'.  The interface part of the
+abstract data is file 'hashtab.h'.  The implementation part is file
+'hashtab.c'.  The interface contains the following external definitions:
 
-`Type `hash_table_entry_t''
-     is described as `void *' and represents hash table element type.
-     Empty entries have value `NULL'.
+'Type `hash_table_entry_t''
+     is described as 'void *' and represents hash table element type.
+     Empty entries have value 'NULL'.
 
-`Type `hash_table_t''
+'Type `hash_table_t''
      describes hash table itself.  All work with hash table should be
      executed only through functions mentioned below.
 
-`Function `create_hash_table''
+'Function `create_hash_table''
+
                   `hash_table_t create_hash_table
                      (size_t size,
                       unsigned (*hash_function) (hash_table_entry_t el_ptr),
@@ -452,75 +477,82 @@ abstract data is file `hashtab.h'.  The implementation part is file
                                           hash_table_entry_t el2_ptr))'
 
      creates and returns hash table with length slightly longer than
-     value of function parameter `size'.  Created hash table is
-     initiated as empty (all the hash table entries are NULL).  The
-     hash table will use functions `hash_function', `eq_function' given
-     as the function parameters to evaluate table element hash value
-     and function to test on equality of two table elements.
+     value of function parameter 'size'.  Created hash table is
+     initiated as empty (all the hash table entries are NULL). The hash
+     table will use functions 'hash_function', 'eq_function' given as
+     the function parameters to evaluate table element hash value and
+     function to test on equality of two table elements.
 
-`Function `delete_hash_table''
+'Function `delete_hash_table''
+
                   `void delete_hash_table (hash_table_t htab)'
 
-     frees memory allocated for hash table given as parameter `htab'.
+     frees memory allocated for hash table given as parameter 'htab'.
      Naturally the hash table must already exist.
 
-`Function `empty_hash_table''
+'Function `empty_hash_table''
+
                   `void empty_hash_table  (hash_table_t htab)'
 
-     makes hash table given as parameter `htab' empty.  Naturally the
+     makes hash table given as parameter 'htab' empty.  Naturally the
      hash table must already exist.  If you need to remove all table
      elements, it is better to use this function than several times
-     function `remove_element_from_hash_table_entry'.  This function
+     function 'remove_element_from_hash_table_entry'.  This function
      does not change size of the table or clear statistics about
      collisions.
 
-`Function `find_hash_table_entry''
+'Function `find_hash_table_entry''
+
                   `hash_table_entry_t *find_hash_table_entry
                                        (hash_table_t htab,
                                         hash_table_entry_t element,
                                         int reserve)'
 
-     searches for hash table entry which contains element equal to
-     value of the function parameter `element' or empty entry in which
-     `element' can be placed (if the element does not exist in the
-     table).  The function parameter `reserve' is to be nonzero if the
+     searches for hash table entry which contains element equal to value
+     of the function parameter 'element' or empty entry in which
+     'element' can be placed (if the element does not exist in the
+     table).  The function parameter 'reserve' is to be nonzero if the
      element is to be placed in the table.  The element should be
      inserted into the table entry before another call of
-     `find_hash_table_entry'.  The table is expanded if occupancy
+     'find_hash_table_entry'.  The table is expanded if occupancy
      (taking into account also deleted elements) is more than 75%.  The
      occupancy of the table after the expansion will be about 50%.
 
-`Function `remove_element_from_hash_table_entry''
+'Function `remove_element_from_hash_table_entry''
+
                   `void remove_element_from_hash_table_entry
                         (hash_table_t htab, hash_table_entry_t element)'
 
      removes element from hash table_entry whose value is given as the
-     function parameter.  Hash table entry for given value should be
-     not empty (or deleted).  The hash table entry value will be marked
-     as deleted after the function call.
+     function parameter.  Hash table entry for given value should be not
+     empty (or deleted).  The hash table entry value will be marked as
+     deleted after the function call.
 
-`Function `hash_table_size''
+'Function `hash_table_size''
+
                   `size_t hash_table_size (hash_table_t htab)'
 
      returns current size of given hash table.
 
-`Function `hash_table_elements_number''
+'Function `hash_table_elements_number''
+
                   `size_t hash_table_elements_number (hash_table_t htab)'
 
      returns current number of elements in given hash table.
 
-`Function `hash_table_collisions''
+'Function `hash_table_collisions''
+
                   `int hash_table_collisions (hash_table_t htab)'
 
      returns number of of percents of fixed collisions during all work
      with given hash table.
 
-`Function `all_hash_table_collisions''
+'Function `all_hash_table_collisions''
+
                   `int all_hash_table_collisions (void)'
 
      returns number of of percents of fixed collisions during all work
      with all hash tables.
-
 
 
 File: ammunition.info,  Node: Package for work with source code positions,  Next: Package for output of compiler messages,  Prev: Package for work with hash tables,  Up: Top
@@ -528,63 +560,65 @@ File: ammunition.info,  Node: Package for work with source code positions,  Next
 6 Package for work with source code positions
 *********************************************
 
-The compilers often use internal representation which stores source
-code positions.  Here package `position' which serves to support
-information about source positions of compiled files taking into
-account all included files is suggested.
+The compilers often use internal representation which stores source code
+positions.  Here package 'position' which serves to support information
+about source positions of compiled files taking into account all
+included files is suggested.
 
    The strategy of the package usage can be follows.  Function
-`initiate_positions' is called by the first.  After that function
-`start_file_position' is called when a file is opened for compilation
-as source or included file.  Members `line_number' and `column_number'
-of variable `current_position' are modified correspondingly during
-given file compilation.  The value of `current_position' can be stored
-into internal representation for usage for output messages on the
-following passes.  Function `finish_file_position' is called when a
-processed file is closed.  Function `finish_positions' may be called
-after all processing a source file.
+'initiate_positions' is called by the first.  After that function
+'start_file_position' is called when a file is opened for compilation as
+source or included file.  Members 'line_number' and 'column_number' of
+variable 'current_position' are modified correspondingly during given
+file compilation.  The value of 'current_position' can be stored into
+internal representation for usage for output messages on the following
+passes.  Function 'finish_file_position' is called when a processed file
+is closed.  Function 'finish_positions' may be called after all
+processing a source file.
 
-   The package uses packages `vlobject' and `objstack' which use package
-`allocate'.  The interface part of the package is file `position.h'.
-The implementation part is file `position.c'.  The interface contains
+   The package uses packages 'vlobject' and 'objstack' which use package
+'allocate'.  The interface part of the package is file 'position.h'.
+The implementation part is file 'position.c'.  The interface contains
 the following external definitions:
 
-`Type `position_t''
+'Type `position_t''
      is structure which describes a file position.  The structure has
      the following members:
 
-    `Member `file_name''
+     'Member `file_name''
           is name of file to which given position belongs.
 
-    `Members `line_number', `column_number''
+     'Members `line_number', `column_number''
           are source line and column corresponding to given position.
 
-    `Member `path''
-          is pointer to another position structure representing
-          position of include-clause which caused immediately given
-          file compilation.
+     'Member `path''
+          is pointer to another position structure representing position
+          of include-clause which caused immediately given file
+          compilation.
 
-
-`Variable `no_position''
-     has value of type `position_t' has members with values equals to
-     zero or `NULL'.  The value does not correspond to concrete file
+'Variable `no_position''
+     has value of type 'position_t' has members with values equals to
+     zero or 'NULL'. The value does not correspond to concrete file
      position.
 
-`Variable `current_position''
+'Variable `current_position''
      has value which is current file position.
 
-`Function `initiate_positions''
+'Function `initiate_positions''
+
                   `void initiate_positions (void)'
 
-     initiates the package.  Value of variable `current_position'
-     becomes equal to `no_position'.
+     initiates the package.  Value of variable 'current_position'
+     becomes equal to 'no_position'.
 
-`Function `finish_position''
+'Function `finish_position''
+
                   `void finish_positions (void)'
 
      frees all memory allocated during package work.
 
-`Function `position_file_inclusion_level''
+'Function `position_file_inclusion_level''
+
                   `int position_file_inclusion_level (position_t position)'
 
      returns level of inclusion of file of position given as the
@@ -592,35 +626,37 @@ the following external definitions:
      positions corresponding non-included files and for positions which
      does not correspond to concrete file.
 
-`Function `start_file_position''
+'Function `start_file_position''
+
                   `void start_file_position (const char *file_name)'
 
-     copys position structure (by dynamic memory allocation) in
-     variable `current_position' and sets up new values of members of
-     `current_position'.  Values of members `file_name', `line_number',
-     `column_number', and `path' become equal to the function parameter
+     copys position structure (by dynamic memory allocation) in variable
+     'current_position' and sets up new values of members of
+     'current_position'.  Values of members 'file_name', 'line_number',
+     'column_number', and 'path' become equal to the function parameter
      value, 1, 0, and pointer to the copied structure.  Values of
-     `current_position' during different calls of the function must be
-     different (e.g.  different columns or lines), i.e. positions of
+     'current_position' during different calls of the function must be
+     different (e.g.  different columns or lines), i.e.  positions of
      different include-clauses must be different.
 
-`Function `finish_file_position''
+'Function `finish_file_position''
+
                   `void finish_file_position (void)'
 
-     recovers previous value of variable `current_position', more
+     recovers previous value of variable 'current_position', more
      exactly sets up the variable by structure to which the variable
-     member `path' refers.
+     member 'path' refers.
 
-`Function `compare_positions''
+'Function `compare_positions''
+
                   `int compare_positions (position_t position_1,
                                           position_t position_2)'
 
-     compares two positions given by parameters of type `position_t'
-     and returns -1 (if the first position is less than the second), 0
-     (if the first position is equal to the second) or 1 (if the first
+     compares two positions given by parameters of type 'position_t' and
+     returns -1 (if the first position is less than the second), 0 (if
+     the first position is equal to the second) or 1 (if the first
      position is greater than the second).  The order of positions is
      lexicographic.
-
 
 
 File: ammunition.info,  Node: Package for output of compiler messages,  Next: Package for work with command line,  Prev: Package for work with source code positions,  Up: Top
@@ -628,96 +664,103 @@ File: ammunition.info,  Node: Package for output of compiler messages,  Next: Pa
 7 Package for output of compiler messages
 *****************************************
 
-The most of compilers report error messages for incorrect program.
-Here the package `errors' which serves to output one-pass or multi-pass
+The most of compilers report error messages for incorrect program.  Here
+the package 'errors' which serves to output one-pass or multi-pass
 compiler messages of various modes (errors, warnings, fatal, system
 errors and appended messages) in Unix style or for traditional listing
 is suggested.  The package also permits adequate error reporting for
 included files.
 
-   The package uses packages `vlobject', `objstack', `position' which
-use package `allocate'.  Therefore package `position' have to be
+   The package uses packages 'vlobject', 'objstack', 'position' which
+use package 'allocate'.  Therefore package 'position' have to be
 initiated before any work with this package.  The interface part of the
-package is file `errors.h'.  The implementation part is file
-`errors.c'.  The maximum length of generated error message is suggested
-to be not greater then `MAX_ERROR_MESSAGE_LENGTH'.  The default value
-(150) of this macro can be redefined with corresponding C compiler
-option `-DMAX_ERROR_MESSAGE_LENGTH=...'  during compilation of file
-`errors.c'.  The interface contains the following external definitions:
+package is file 'errors.h'.  The implementation part is file 'errors.c'.
+The maximum length of generated error message is suggested to be not
+greater then 'MAX_ERROR_MESSAGE_LENGTH'. The default value (150) of this
+macro can be redefined with corresponding C compiler option
+'-DMAX_ERROR_MESSAGE_LENGTH=...'  during compilation of file 'errors.c'.
+The interface contains the following external definitions:
 
-`Integer variables `number_of_errors', `number_of_warnings''
-     have values which are number of correspondingly errors and
-     warnings fixed after the most recent package initiation.
+'Integer variables `number_of_errors', `number_of_warnings''
+     have values which are number of correspondingly errors and warnings
+     fixed after the most recent package initiation.
 
-`Integer variable `maximum_number_of_errors''
+'Integer variable `maximum_number_of_errors''
      has value which is maximum number of errors which will be fixed.
      If an error is fixed with number equals to
-     `maximum_number_of_errors' then special fatal error `fatal error -
+     'maximum_number_of_errors' then special fatal error 'fatal error -
      too many errors' with position of given error is fixed instead of
      the error.  And all following errors are ignored.  Zero value of
      the variable means that the special fatal error will never fixed.
 
-`Integer constant `default_maximum_number_of_errors''
-     defines originally value of variable `maximum_number_of_errors'.
-     The constant value is `50'.
+'Integer constant `default_maximum_number_of_errors''
+     defines originally value of variable 'maximum_number_of_errors'.
+     The constant value is '50'.
 
-`Variable `fatal_error_function''
+'Variable `fatal_error_function''
      contains pointer to function without parameters which will be
      called after fixing a fatal error.  The fatal error function is
      suggested to do not return the control back.
 
-`Function `default_fatal_error_function''
+'Function `default_fatal_error_function''
+
                   `void default_fatal_error_function (void)'
 
-     defines originally value of variable `fatal_error_function'.  The
-     function only calls `exit (1)'.
+     defines originally value of variable 'fatal_error_function'.  The
+     function only calls 'exit (1)'.
 
-`Function `initiate_errors''
+'Function `initiate_errors''
+
                   `void initiate_errors (int immediate_output_flag)'
 
      initiates the package in regime depending on parameter value.  If
      the parameter value is nonzero than all fixed messages are output
      immediately.  Otherwise the compiler messages are stored until
-     function `output_errors' are called.
+     function 'output_errors' are called.
 
-`Function `finish_errors''
+'Function `finish_errors''
+
                   `void finish_errors (void)'
 
      frees all memory allocated during package work.
 
-`Function `output_errors''
+'Function `output_errors''
+
                   `void output_errors (void)'
 
      sorts (stable sorting) all fixed messages by their positions,
      outputs ones, and deletes ones.  Appended messages will be output
-     after corresponding error or warning.  This function should be
-     used only in regime of storing messages.
+     after corresponding error or warning.  This function should be used
+     only in regime of storing messages.
 
-`Function `error''
+'Function `error''
+
 
                        `void error (int fatal_error_flag, position_t
                                     position, const char *format, ...)'
 
      fixes error (fatal error if the first parameter value is nonzero)
      at the position given as the second parameter.  If the error is
-     fatal than functions `output_errors' and `*fatal_error_function'
-     are called.  The diagnostic messages are formed analogous to
-     output of function `printf'.  For example,
+     fatal than functions 'output_errors' and '*fatal_error_function'
+     are called.  The diagnostic messages are formed analogous to output
+     of function 'printf'.  For example,
 
                      error (1, current_position, "fatal error - no memory");
 
-`Function `warning''
+'Function `warning''
+
                   `void warning (position_t position, const char *format, ...)'
 
      is analogous to the previous but is used to fix a warning.
 
-`Function `append_message''
+'Function `append_message''
+
                   `void append_message (position_t position,
                                         const char *format, ...)'
 
      When regime of immediately output of fixed message is on this
      function is analogous to the previous (except for incrementing
-     variable `number_of_warnings').  In opposite case the appended
+     variable 'number_of_warnings').  In opposite case the appended
      message will be output with the most recent fixed error or warning
      independently from value of the first parameter.  Of course the
      previously fixed error or warning must exist.
@@ -731,53 +774,52 @@ option `-DMAX_ERROR_MESSAGE_LENGTH=...'  during compilation of file
 
                         `<file>:<line>:<position-1>: previous declaration'.
 
-     Description of function `default_output_error_function' contains
+     Description of function 'default_output_error_function' contains
      explanation why decremented position is output.
 
-`Function `system_error''
+'Function `system_error''
+
                   `void system_error (int fatal_error_flag,
                                       position_t position,
                                       const char *format, ...)'
 
-     is analogous to function `error' but serves to fix a system error.
+     is analogous to function 'error' but serves to fix a system error.
      The current system message without head blanks (given by standard
-     function `strerror') is placed after the message formed by the
+     function 'strerror') is placed after the message formed by the
      function parameters.  For example, the following call may be used
      when a file is not opened
 
                        system_error  (1, current_position,
                                       "fatal error - %s:", new_file_name);
 
-`Variable `output_error_function''
-     contains pointer to function which is used to output error
-     message.  The function has three parameters - flag of appended
-     message, message position and message itself.
+'Variable `output_error_function''
+     contains pointer to function which is used to output error message.
+     The function has three parameters - flag of appended message,
+     message position and message itself.
 
-`Function `default_output_error_function''
+'Function `default_output_error_function''
+
                   `void default_output_error_function
                         (int appended_message_flag, position_t position,
                          const char *message)'
 
-     Originally value of variable `output_error_function' is equal to
+     Originally value of variable 'output_error_function' is equal to
      this function.  The function is oriented to output in Unix style
      according to GNU standard.  To output a listing the value of
-     variable `output_error_function' should be changed.  The function
+     variable 'output_error_function' should be changed.  The function
      output message in the following formats:
 
             MESSAGE                              (NULL file name)
             FILE_NAME:1: MESSAGE                 (zero line number)
             FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
-            FILE_NAME:LINE_NUMBER:COLUMN_NUMBER-1: MESSAGE  (all other cases)
+            FILE_NAME:LINE_NUMBER:COLUMN_NUMBER: MESSAGE  (all other cases)
 
-     After that the function outputs newline.  The function also
-     outputs additional messages `in file processed from ...'  if given
-     message is not appended message and corresponds to file different
-     from one of previous output error.  This message reflects path of
-     the message position (see package `position'), i.e.  reflects
-     positions of corresponding include-clauses.  Decremented column
-     number is output in order to be in concordance with editor Emacs
-     in which positions start with 0.
-
+     After that the function outputs newline.  The function also outputs
+     additional messages 'in file processed from ...'  if given message
+     is not appended message and corresponds to file different from one
+     of previous output error.  This message reflects path of the
+     message position (see package 'position'), i.e.  reflects positions
+     of corresponding include-clauses.
 
 
 File: ammunition.info,  Node: Package for work with command line,  Next: Package for work with bit strings,  Prev: Package for output of compiler messages,  Up: Top
@@ -785,25 +827,25 @@ File: ammunition.info,  Node: Package for work with command line,  Next: Package
 8 Package for work with command line
 ************************************
 
-To make easy process of command line, here abstract data `commline' is
+To make easy process of command line, here abstract data 'commline' is
 suggested.  This abstract data implements features analogous to ones of
-public domain function `getopt'.  The goal of the abstract data
-creation is to use more readable language of command line description
-and to use command line description as help output of program.
+public domain function 'getopt'.  The goal of the abstract data creation
+is to use more readable language of command line description and to use
+command line description as help output of program.
 
-   POSIX terminology concerning command line is used here.  Command
-line is divided into command name and arguments.  The arguments are
+   POSIX terminology concerning command line is used here.  Command line
+is divided into command name and arguments.  The arguments are
 subdivided into options, option-arguments and operands.  Option starts
-with `-'.  All arguments after first `-' in command line are treated as
+with '-'.  All arguments after first '-' in command line are treated as
 operands.
 
    The description of command line is made up from two parts.  Any part
 (or both) may be absent in the description.  First part contains
 option-arguments names of options which are in the second part.
 option-arguments names are separated by white space.  The second part
-starts with percents `%%' and contains any text in which description of
+starts with percents '%%' and contains any text in which description of
 options are placed.  Any description of option starts with character "'
-followed by character `-' and finishes by character `".  White spaces
+followed by character '-' and finishes by character '".  White spaces
 may precede option-argument name.  It means that the corresponding
 option has obligatory separate option-argument.  For example, the
 following may be a part of description of options of a pascal compiler
@@ -823,97 +865,103 @@ command line.
      `-w'      no warnings generation
                     Star * marks defaults
 
-   In this example options with names `-I', `-l', `-L' and `-o' have
-option-arguments but only option with name `-o' has separate
-option-argument, i.e. option-argument which is represented by separate
+   In this example options with names '-I', '-l', '-L' and '-o' have
+option-arguments but only option with name '-o' has separate
+option-argument, i.e.  option-argument which is represented by separate
 argument after given option in command line.
 
-   The interface part of the abstract data is file `commline.h'.  The
-package uses package `vlobject' which use package `allocate'.  The
-implementation part is file `commline.c'.  The interface contains the
+   The interface part of the abstract data is file 'commline.h'.  The
+package uses package 'vlobject' which use package 'allocate'.  The
+implementation part is file 'commline.c'.  The interface contains the
 following external definitions:
 
-`Function'
+'Function'
+
                     `int start_command_line_processing
                          (int argc, char **argv, const char *description)'
 
      must be called before any work with abstract data.  The function
      processes command line description given as string parameter and
-     command line itself given as two parameter `argc' and `argv'.  The
-     function also initiates variables `argument_vector' and
-     `argument_count' by parameters `argc' and `argv'.  The function
+     command line itself given as two parameter 'argc' and 'argv'.  The
+     function also initiates variables 'argument_vector' and
+     'argument_count' by parameters 'argc' and 'argv'.  The function
      returns 0 if error in command line description is fixed, otherwise
      returns 1 (it means success).
 
-`Function `output_command_line_description''
+'Function `output_command_line_description''
+
                     `void output_command_line_description (void)'
 
-     outputs the second part (without `%%') of description of options
-     to stderr.  This function should be called when it is necessary to
+     outputs the second part (without '%%') of description of options to
+     stderr.  This function should be called when it is necessary to
      show the program usage.
 
-`Function `next_operand''
+'Function `next_operand''
+
                     `int next_operand (int flag_of_first)'
 
      returns command line argument number of next operand if the
      function parameter is nonzero.  Otherwise the function returns
      number of the first operand in the command line.  The function
      returns 0 if all operands are already processed.  Returned number
-     may be used as index of array `argument_vector' to access
+     may be used as index of array 'argument_vector' to access
      corresponding operand.
 
-`Function `number_of_operands''
+'Function `number_of_operands''
+
                     `int number_of_operands (void)'
 
      returns number of operands in the command line.
 
-`Function `next_option''
+'Function `next_option''
+
                     `int next_option (int flag_of_first)'
 
-     returns command line argument number of next option if the
-     function parameter is nonzero.  Otherwise the function returns
-     number of the first option in the command line.  The function
-     returns 0 if all options are already processed.  Returned number
-     may be used as index of array `argument_vector' to access
-     corresponding option.
+     returns command line argument number of next option if the function
+     parameter is nonzero.  Otherwise the function returns number of the
+     first option in the command line.  The function returns 0 if all
+     options are already processed.  Returned number may be used as
+     index of array 'argument_vector' to access corresponding option.
 
-`Function `option_characteristics''
+'Function `option_characteristics''
+
                     `char *option_characteristics (int argument_number,
                                                    int *option_has_argument)'
 
      returns pointer to option name which describes the command line
-     argument with number `argument_number' given as the first
-     parameter of the function.  The function returns NULL if the
-     corresponding option in the command line description is not found
-     or an option described as with option-argument has not
-     option-argument in the command line.  Remember that option name
-     with option-argument differs from option in the command line (e.g.
-     `-U' and `-Ufoo').  If the option in the command line description
-     is found than the function sets up correspondingly the second
-     function parameter `option_has_argument'.  The case of returned
-     NULL and `*option_has_argument' equals to TRUE means that given
-     option must have option-argument but the option has not
-     option-argument in the command line.
+     argument with number 'argument_number' given as the first parameter
+     of the function.  The function returns NULL if the corresponding
+     option in the command line description is not found or an option
+     described as with option-argument has not option-argument in the
+     command line.  Remember that option name with option-argument
+     differs from option in the command line (e.g.  '-U' and '-Ufoo').
+     If the option in the command line description is found than the
+     function sets up correspondingly the second function parameter
+     'option_has_argument'.  The case of returned NULL and
+     '*option_has_argument' equals to TRUE means that given option must
+     have option-argument but the option has not option-argument in the
+     command line.
 
-`Function `last_option_place''
+'Function `last_option_place''
+
                     `int last_option_place (const char *option_name)'
 
-     returns number of last option with given option name in the
-     command line.  The function returns 0 if the option is absent in
-     the command line.
+     returns number of last option with given option name in the command
+     line.  The function returns 0 if the option is absent in the
+     command line.
 
-`Function `option_argument''
+'Function `option_argument''
+
                     `char *option_argument (const char *option_name)'
 
-     returns pointer to argument of last option in the command line
-     with given option name.  The function returns NULL if the option
-     is absent in the command line.  The function must be called only
-     for options which have argument separated by white spaces.
+     returns pointer to argument of last option in the command line with
+     given option name.  The function returns NULL if the option is
+     absent in the command line.  The function must be called only for
+     options which have argument separated by white spaces.
 
-`Variables `argument_count', `argument_vector''
-     have analogous values as parameters `argc' and `argv' of function
-     `main'.  See also description of `start_command_line_processing'.
-
+'Variables `argument_count', `argument_vector''
+     have analogous values as parameters 'argc' and 'argv' of function
+     'main'.  See also description of 'start_command_line_processing'.
 
 
 File: ammunition.info,  Node: Package for work with bit strings,  Next: Package for machine-independent arbitrary precision integer arithmetic,  Prev: Package for work with command line,  Up: Top
@@ -922,7 +970,7 @@ File: ammunition.info,  Node: Package for work with bit strings,  Next: Package 
 ***********************************
 
 The package for work with bit strings is used to implement package
-`IEEE'.  But of course the package can be used for solving other tasks.
+'IEEE'. But of course the package can be used for solving other tasks.
 
    Here a bit is given by address (start address) of byte from which
 counting bits starts and its displacement which is any non negative
@@ -930,34 +978,38 @@ number of bit from the start address.  The most significant bit of the
 start address byte has number 0.  The bit string is given by its first
 bit and its length in bits.
 
-   The interface part of the package is file `bits.h'.  The
-implementation part is file `bits.c'.  The interface contains the
+   The interface part of the package is file 'bits.h'.  The
+implementation part is file 'bits.c'.  The interface contains the
 following external definitions of macros and functions:
 
-`Macro `BIT''
+'Macro `BIT''
+
                     `BIT(start_byte, bit_displacement)'
 
-     returns given bit value as integer value `0' or `1'.  There is
-     macro `SET_BIT (start_byte, bit_displacement, bit) for changing
-     value of a bit.  Parameter `bit' must have value `0' or `1'.
+     returns given bit value as integer value '0' or '1'.  There is
+     macro 'SET_BIT (start_byte, bit_displacement, bit) for changing
+     value of a bit.  Parameter 'bit' must have value '0' or '1'.
 
-`Function `is_zero_bit_string''
+'Function `is_zero_bit_string''
+
                     `int is_zero_bit_string (const void *start_byte,
                                              int bit_displacement,
                                              int bit_length)'
 
-     returns `1' if given bit string contains only zero value bits, 0
+     returns '1' if given bit string contains only zero value bits, 0
      otherwise.
 
-`Function `bit_string_set''
+'Function `bit_string_set''
+
                     `void bit_string_set (void *start_byte, int
                                           bit_displacement, int bit,
                                           int bit_length)'
 
      sets up new value of all bits of given bit string.  This function
-     is bit string analog of standard C function `memset'.
+     is bit string analog of standard C function 'memset'.
 
-`Function `bit_string_copy''
+'Function `bit_string_copy''
+
                     `void bit_string_copy (void *to, int to_bit_displacement,
                                            const void *from,
                                            int from_bit_displacement,
@@ -965,9 +1017,10 @@ following external definitions of macros and functions:
 
      copys a bit string to another bit string.  The bit strings must be
      nonoverlapped.  This function is bit string analog of standard C
-     function `memcpy'.
+     function 'memcpy'.
 
-`Function `bit_string_move''
+'Function `bit_string_move''
+
                     void bit_string_move (void *to, int to_bit_displacement,
                                           const void *from,
                                           int from_bit_displacement,
@@ -975,19 +1028,19 @@ following external definitions of macros and functions:
 
      copys a bit string to another bit string.  The bit strings can be
      overlapped.  This function is bit string analog of standard C
-     function `memmove'.
+     function 'memmove'.
 
-`Function `bit_string_comparison''
+'Function `bit_string_comparison''
+
                     `int bit_string_comparison
                          (const void *str1, int bit_displacement1,
                           const void *str2, int bit_displacement2,
                           int bit_length)'
 
      returns 0 if the bit strings are equal, 1 if the first bit string
-     is greater than the second, -1 if the first bit string is less
-     than the second.  This function is bit string analog of standard C
-     function `memcmp'.
-
+     is greater than the second, -1 if the first bit string is less than
+     the second.  This function is bit string analog of standard C
+     function 'memcmp'.
 
 
 File: ammunition.info,  Node: Package for machine-independent arbitrary precision integer arithmetic,  Next: Package for machine-independent IEEE floating point arithmetic,  Prev: Package for work with bit strings,  Up: Top
@@ -995,51 +1048,51 @@ File: ammunition.info,  Node: Package for machine-independent arbitrary precisio
 10 Package for machine-independent arbitrary precision integer arithmetic
 *************************************************************************
 
-Abstract data `arithm' may be used for implementation of a
+Abstract data 'arithm' may be used for implementation of a
 cross-compiler.  This abstract data implements arbitrary precision
 integer and unsigned integer number arithmetic by machine independent
 way.  The implementation of the package functions are not sufficiently
 efficient in order to use for run-time.  The package functions are
 oriented to implement constant-folding in compilers.  This package is
 necessary because host machine may not support such arithmetic for
-target machine.  For example, VAX does not support does not support
-more 32-bits integer numbers arithmetic.
+target machine.  For example, VAX does not support does not support more
+32-bits integer numbers arithmetic.
 
    The numbers in packages are represented by bytes in big endian mode,
 negative integer numbers are represented in complementary code.  All
-sizes are given in bytes and must be positive.  Results of executions
-of all functions can coincide with a operand(s).  All functions of
+sizes are given in bytes and must be positive.  Results of executions of
+all functions can coincide with a operand(s).  All functions of
 addition, subtraction, multiplication, division, evaluation of
-remainder, shift, changing size and transformation of string into
-number fix overflow.  The overflow is fixed when result can not be
-represented by number of given size.
+remainder, shift, changing size and transformation of string into number
+fix overflow.  The overflow is fixed when result can not be represented
+by number of given size.
 
-   The interface part of the abstract data is file `arithm.h'.  The
-implementation part is file `arithm.c'.  The maximum length of integer
-number is suggested to be not greater then `MAX_INTEGER_OPERAND_SIZE'.
+   The interface part of the abstract data is file 'arithm.h'.  The
+implementation part is file 'arithm.c'.  The maximum length of integer
+number is suggested to be not greater then 'MAX_INTEGER_OPERAND_SIZE'.
 The default value (128) of this macro can be redefined with
-corresponding C compiler option `-DMAX_INTEGER_OPERAND_SIZE=...'
-during compilation of file `arithm.c'.  But in any case the minimal
-value of the macros will be 16.  The interface contains the following
-external definitions:
+corresponding C compiler option '-DMAX_INTEGER_OPERAND_SIZE=...'  during
+compilation of file 'arithm.c'.  But in any case the minimal value of
+the macros will be 16.  The interface contains the following external
+definitions:
 
-`Variable `overflow_bit''
-     has only two values 0 or 1.  The value `1' corresponds to
-     overflow.  The variable value are modified by all functions of
-     addition, subtract, multiplication, division, evaluation of
-     remainder, shift, changing size and transformation of string into
-     number.
+'Variable `overflow_bit''
+     has only two values 0 or 1.  The value '1' corresponds to overflow.
+     The variable value are modified by all functions of addition,
+     subtract, multiplication, division, evaluation of remainder, shift,
+     changing size and transformation of string into number.
 
-`Variable `const unsigned char *zero_constant''
+'Variable `const unsigned char *zero_constant''
      represents zero (unsigned) integer of any size.
 
-`Function `void default_arithmetic_overflow_reaction (void)''
-     Originally reaction on all integer and unsigned integer overflow
-     is equal to this function.  The function does nothing.  Reaction
-     on overflow for integers or unsigned integers is called after
-     setting up variable `overflow_bit'.
+'Function `void default_arithmetic_overflow_reaction (void)''
+     Originally reaction on all integer and unsigned integer overflow is
+     equal to this function.  The function does nothing.  Reaction on
+     overflow for integers or unsigned integers is called after setting
+     up variable 'overflow_bit'.
 
-`Function `set_integer_overflow_reaction''
+'Function `set_integer_overflow_reaction''
+
                   `void (*set_integer_overflow_reaction
                           (void (*function) (void))) (void)'
 
@@ -1050,7 +1103,8 @@ external definitions:
 
      for unsigned integer overflow.
 
-`Function `integer_maximum''
+'Function `integer_maximum''
+
                   `void integer_maximum   (int  size,  void  *result)'
 
      creates given size (in bytes) maximal integer constant which is
@@ -1060,7 +1114,8 @@ external definitions:
                   `integer_minimum' and
                   `unsigned_integer_maximum'.
 
-`Function `add_integer''
+'Function `add_integer''
+
                   `void add_integer (int size,
                                      const void *op1, const void *op2,
                                      void *result)'
@@ -1084,30 +1139,32 @@ external definitions:
 
      for unsigned integers.
 
-`Function `integer_shift_left''
+'Function `integer_shift_left''
+
                   `void  integer_shift_left (int size,  const void *operand,
                                              int bits, void *result)'
 
      makes left shift of integer of given size on given number of bits.
      If number of bits is negative the function makes shift to right
      actually.  The function fixes overflow when result can not be
-     represented by number of given size, i.e. in other words the
+     represented by number of given size, i.e.  in other words the
      opposite shift (to right) results in number not equal to source
      operand.  There are analogous functions which implement another
      integer operation
 
                   `integer_shift_right'.
-      Also there are analogous functions
+     Also there are analogous functions
 
                   `unsigned_integer_shift_left' and
                   `unsigned_integer_shift_right' for unsigned integers.
 
-`Function `integer_or''
+'Function `integer_or''
+
                   `void integer_or (int size, const void *op1, const void *op2,
                                     void *result)'
 
-     makes bitwise `or' of integers of given size.  There is analogous
-     functions which implement bitwise `and' or `xor':
+     makes bitwise 'or' of integers of given size.  There is analogous
+     functions which implement bitwise 'and' or 'xor':
 
                   `integer_and',
                   `integer_xor'.
@@ -1125,12 +1182,13 @@ external definitions:
                   `void integer_not (int size, const void *operand,
                                      void *result)'
 
-     makes bitwise `not' of integer of given size.  There is equivalent
+     makes bitwise 'not' of integer of given size.  There is equivalent
      function for unsigned integer:
 
                   `unsigned_integer_not'.
 
-`Function `eq_integer''
+'Function `eq_integer''
+
                   `int eq_integer (int size, const void *op1, const void *op2)'
 
      compares two integers of given size on equality and returns 1 or 0
@@ -1154,83 +1212,85 @@ external definitions:
 
      for unsigned integers.
 
-`Function `change_integer_size''
+'Function `change_integer_size''
+
                   `void  change_integer_size (int operand_size,
                                               const  void *operand,
                                               int result_size, void *result)'
 
      changes size of integer.  The function fixes overflow when result
-     can not be represented by number of given size.  There is
-     analogous function
+     can not be represented by number of given size.  There is analogous
+     function
 
                   `change_unsigned_integer_size'
 
      for unsigned integers.
 
-`Function `integer_to_string''
+'Function `integer_to_string''
+
                   `char *integer_to_string (int  size, const void *operand,
                                             char *result)'
 
      transforms integer of given size to decimal ascii representation.
      Sign is present in result string only for negative numbers.  The
-     function returns value `result'.  There is analogous function
+     function returns value 'result'.  There is analogous function
 
                   `unsigned_integer_to_string'
 
      for unsigned integers.
 
-`Function `integer_to_based_string''
+'Function `integer_to_based_string''
+
                   `char *integer_to_based_string (int  size, const void *operand,
                                                   int base, char *result)'
 
-     transforms integer of given size to ascii representation with
-     given base.  The base should be between 2 and 36 including them.
-     Digits more 9 are represented by 'a', 'b' etc.  Sign is present in
-     result string only for negative numbers.  The function returns
-     value `result'.  There is analogous function
+     transforms integer of given size to ascii representation with given
+     base.  The base should be between 2 and 36 including them.  Digits
+     more 9 are represented by 'a', 'b' etc.  Sign is present in result
+     string only for negative numbers.  The function returns value
+     'result'.  There is analogous function
 
                   `unsigned_integer_to_based_string'
 
      for unsigned integers.
 
-`Function `integer_from_string''
+'Function `integer_from_string''
+
                   `char *integer_from_string (int  size, const char *operand,
                                               void *result)'
 
-     skips all white spaces at the begin of source string and
-     transforms the tail of the source string (decimal ascii
-     representation with possible sign `+' or `-') to given size
-     integer and returns pointer to first non digit in the source
-     string.  If the string started with invalid integer representation
-     the result will be zero.  The function fixes overflow when result
-     can not be represented by number of given size.  There is
-     analogous function
+     skips all white spaces at the begin of source string and transforms
+     the tail of the source string (decimal ascii representation with
+     possible sign '+' or '-') to given size integer and returns pointer
+     to first non digit in the source string.  If the string started
+     with invalid integer representation the result will be zero.  The
+     function fixes overflow when result can not be represented by
+     number of given size.  There is analogous function
 
                   `unsigned_integer_from_string'
 
-     for unsigned integers.  But sign `+' is believed to be not part of
+     for unsigned integers.  But sign '+' is believed to be not part of
      unsigned integer.
 
-`Function `integer_from_based_string''
+'Function `integer_from_based_string''
+
                   `char *integer_from_based_string (int  size, const char *operand,
                                                     int base, void *result)'
 
-     skips all white spaces at the begin of source string and
-     transforms the tail of the source string (ascii representation
-     with given base and with possible sign `+' or `-') to given size
-     integer and returns pointer to first non digit in the source
-     string.  The base should be between 2 and 36 including them.
-     Digits more 9 are represented by 'a' (or 'A'), 'b' (or 'B') etc.
-     If the string started with invalid integer representation the
-     result will be zero.  The function fixes overflow when result can
-     not be represented by number of given size.  There is analogous
-     function
+     skips all white spaces at the begin of source string and transforms
+     the tail of the source string (ascii representation with given base
+     and with possible sign '+' or '-') to given size integer and
+     returns pointer to first non digit in the source string.  The base
+     should be between 2 and 36 including them.  Digits more 9 are
+     represented by 'a' (or 'A'), 'b' (or 'B') etc.  If the string
+     started with invalid integer representation the result will be
+     zero.  The function fixes overflow when result can not be
+     represented by number of given size.  There is analogous function
 
                   `unsigned_integer_from_based_string'
 
-     for unsigned integers.  But sign `+' is believed to be not part of
+     for unsigned integers.  But sign '+' is believed to be not part of
      unsigned integer.
-
 
 
 File: ammunition.info,  Node: Package for machine-independent IEEE floating point arithmetic,  Next: Ticker package,  Prev: Package for machine-independent arbitrary precision integer arithmetic,  Up: Top
@@ -1238,17 +1298,17 @@ File: ammunition.info,  Node: Package for machine-independent IEEE floating poin
 11 Package for machine-independent IEEE floating point arithmetic
 *****************************************************************
 
-Abstract data `IEEE' may be used for implementation of a
-cross-compiler.  This abstract data implements IEEE floating point
-arithmetic by machine independent way with the aid of package `arithm'.
-This abstract data is necessary because host machine may not support
-such arithmetic for target machine.  For example, VAX does not support
-IEEE floating point arithmetic.  The floating point numbers are
-represented by bytes in big endian mode.  The implementation of the
-package functions are not sufficiently efficient in order to use for
-run-time.  The package functions are oriented to implement
-constant-folding in compilers.  All integer sizes (see transformation
-functions) are given in bytes and must be positive.
+Abstract data 'IEEE' may be used for implementation of a cross-compiler.
+This abstract data implements IEEE floating point arithmetic by machine
+independent way with the aid of package 'arithm'.  This abstract data is
+necessary because host machine may not support such arithmetic for
+target machine.  For example, VAX does not support IEEE floating point
+arithmetic.  The floating point numbers are represented by bytes in big
+endian mode.  The implementation of the package functions are not
+sufficiently efficient in order to use for run-time.  The package
+functions are oriented to implement constant-folding in compilers.  All
+integer sizes (see transformation functions) are given in bytes and must
+be positive.
 
    Functions of addition, subtraction, multiplication, division,
 conversion floating point numbers of different formats can fix input
@@ -1256,11 +1316,11 @@ exceptions.  If an operand of such operation is trapping (signal) not a
 number then invalid operation and reserved operand exceptions are fixed
 and the result is (quiet) NaN, otherwise if an operand is (quiet) NaN
 then only reserved operand exception is fixed and the result is (quiet)
-NaN.  Operation specific processing the rest of special case values of
+NaN. Operation specific processing the rest of special case values of
 operands is placed with description of the operation.  In general case
 the function can fix output exceptions and produces results for
-exception according to the following table.  The result and status for
-a given exceptional operation are determined by the highest priority
+exception according to the following table.  The result and status for a
+given exceptional operation are determined by the highest priority
 exception.  If, for example, an operation produces both overflow and
 imprecise result exceptions, the overflow exception, having higher
 priority, determines the behavior of the operation.  The behavior of
@@ -1295,41 +1355,41 @@ table.
                   |unmasked imprecise exception   |Rounded|IEEE_IMP
                   |                               |result |
 
-   The package uses package `bits'.  The interface part of the abstract
-data is file `IEEE.h'.  The implementation part is file `IEEE.c'.  The
+   The package uses package 'bits'.  The interface part of the abstract
+data is file 'IEEE.h'.  The implementation part is file 'IEEE.c'.  The
 interface contains the following external definitions:
 
-`Macros `IEEE_FLOAT_SIZE', `IEEE_DOUBLE_SIZE', `IEEE_QUAD_SIZE''
+'Macros `IEEE_FLOAT_SIZE', `IEEE_DOUBLE_SIZE', `IEEE_QUAD_SIZE''
      have values which are sizes of IEEE single, double, and quad
-     precision floating point numbers (`4', `8', and `16'
+     precision floating point numbers ('4', '8', and '16'
      correspondingly).
 
-`Macros `MAX_SINGLE_10_STRING_LENGTH','
-     `MAX_DOUBLE_10_STRING_LENGTH', `MAX_QUAD_10_STRING_LENGTH' have
+'Macros `MAX_SINGLE_10_STRING_LENGTH','
+     'MAX_DOUBLE_10_STRING_LENGTH', 'MAX_QUAD_10_STRING_LENGTH' have
      values which are maximal length of string generated by functions
      creating decimal ascii representation of IEEE floats (see functions
      IEEE_single_to_string, IEEE_doublele_to_string, and
      IEEE_quad_to_string).
 
-`Macros `MAX_SINGLE_16_STRING_LENGTH','
-     `MAX_DOUBLE_16_STRING_LENGTH', `MAX_QUAD_16_STRING_LENGTH',
-     `MAX_SINGLE_8_STRING_LENGTH', `MAX_DOUBLE_8_STRING_LENGTH',
-     `MAX_QUAD_8_STRING_LENGTH', `MAX_SINGLE_4_STRING_LENGTH',
-     `MAX_DOUBLE_4_STRING_LENGTH', `MAX_QUAD_4_STRING_LENGTH',
-     `MAX_SINGLE_2_STRING_LENGTH', `MAX_DOUBLE_2_STRING_LENGTH',
-     `MAX_QUAD_2_STRING_LENGTH' have values which are maximal length of
+'Macros `MAX_SINGLE_16_STRING_LENGTH','
+     'MAX_DOUBLE_16_STRING_LENGTH', 'MAX_QUAD_16_STRING_LENGTH',
+     'MAX_SINGLE_8_STRING_LENGTH', 'MAX_DOUBLE_8_STRING_LENGTH',
+     'MAX_QUAD_8_STRING_LENGTH', 'MAX_SINGLE_4_STRING_LENGTH',
+     'MAX_DOUBLE_4_STRING_LENGTH', 'MAX_QUAD_4_STRING_LENGTH',
+     'MAX_SINGLE_2_STRING_LENGTH', 'MAX_DOUBLE_2_STRING_LENGTH',
+     'MAX_QUAD_2_STRING_LENGTH' have values which are maximal length of
      string generated by functions creating binary ascii representation
      of IEEE floats with given base (see functions
      IEEE_single_to_binary_string, IEEE_doublele_to_binary_string, and
      IEEE_quad_to_binary_string).
 
-`Types `IEEE_float_t', `IEEE_double_t', and `IEEE_quad_t''
+'Types `IEEE_float_t', `IEEE_double_t', and `IEEE_quad_t''
      represent correspondingly IEEE single precision, double, and quad
-     precision floating point numbers.  The size of these type are
-     equal to `IEEE_FLOAT_SIZE', `IEEE_DOUBLE_SIZE', and
-     `IEEE_QUAD_SIZE'.
+     precision floating point numbers.  The size of these type are equal
+     to 'IEEE_FLOAT_SIZE', 'IEEE_DOUBLE_SIZE', and 'IEEE_QUAD_SIZE'.
 
-`Function `IEEE_reset''
+'Function `IEEE_reset''
+
                   `void IEEE_reset (void)'
 
      and to separate bits in mask returned by functions
@@ -1338,7 +1398,8 @@ interface contains the following external definitions:
                   `IEEE_get_status_bits', and
                   `IEEE_get_trap_mask'.
 
-`Function `IEEE_get_trap_mask''
+'Function `IEEE_get_trap_mask''
+
                   `int IEEE_get_trap_mask (void)'
 
      returns exceptions trap mask.  Function
@@ -1353,7 +1414,8 @@ interface contains the following external definitions:
      mask is zero.  Remember that more one exception may be occurred
      simultaneously.
 
-`Function `IEEE_set_sticky_status_bits''
+'Function `IEEE_set_sticky_status_bits''
+
                   `int IEEE_set_sticky_status_bits (int mask)'
 
      changes sticky status bits and returns the previous bits.
@@ -1367,16 +1429,17 @@ interface contains the following external definitions:
      whether a floating point exception trap is taken or not.  Initial
      values of sticky status bits are zero.
 
-`Function `IEEE_get_status_bits''
+'Function `IEEE_get_status_bits''
+
                   `int IEEE_get_status_bits (void)'
 
-     returns mask of status bits.  It is supposed that the function
-     will be used in trap on an floating point exception.  Status bits
-     are updated regardless of the current exception trap mask only
-     when a floating point exception trap is taken.  Initial values of
-     status bits are zero.
+     returns mask of status bits.  It is supposed that the function will
+     be used in trap on an floating point exception.  Status bits are
+     updated regardless of the current exception trap mask only when a
+     floating point exception trap is taken.  Initial values of status
+     bits are zero.
 
-`Constants `IEEE_RN', `IEEE_RM', `IEEE_RP', `IEEE_RZ''
+'Constants `IEEE_RN', `IEEE_RM', `IEEE_RP', `IEEE_RZ''
      defines rounding control (round to nearest representable number,
      round toward minus infinity, round toward plus infinity, round
      toward zero).
@@ -1409,7 +1472,8 @@ interface contains the following external definitions:
      which returns current mode.  Initial rounding mode is round to
      nearest.
 
-`Function `default_floating_point_exception_trap''
+'Function `default_floating_point_exception_trap''
+
                   `void default_floating_point_exception_trap (void)'
 
      Originally reaction on occurred trap on an unmasked floating point
@@ -1417,14 +1481,16 @@ interface contains the following external definitions:
      All occurred exceptions can be found in the trap with the aid of
      status bits.
 
-`Function `IEEE_set_floating_point_exception_trap''
+'Function `IEEE_set_floating_point_exception_trap''
+
                   `void (*IEEE_set_floating_point_exception_trap
                           (void (*function) (void))) (void)'
 
-     sets up trap on an unmasked exception.  Function given as
-     parameter simulates floating point exception trap.
+     sets up trap on an unmasked exception.  Function given as parameter
+     simulates floating point exception trap.
 
-`Function `IEEE_positive_zero''
+'Function `IEEE_positive_zero''
+
                   `IEEE_float_t IEEE_positive_zero (void)'
 
      returns positive single precision zero constant.  There are
@@ -1451,15 +1517,16 @@ interface contains the following external definitions:
      According to the IEEE standard NaN (and trapping NaN) can be
      represented by more one bit string.  But all functions of the
      package generate and use only one its representation created by
-     function `IEEE_NaN' (and `IEEE_trapping_NaN', `IEEE_double_NaN',
-     `IEEE_double_trapping_NaN', `IEEE_quad_NaN',
-     `IEEE_quad_trapping_NaN').  A (quiet) NaN does not cause an
-     Invalid Operation exception and can be reported as an operation
-     result.  A trapping NaN causes an Invalid Operation exception if
-     used as in input operand to floating point operation.  Trapping
-     NaN can not be reported as an operation result.
+     function 'IEEE_NaN' (and 'IEEE_trapping_NaN', 'IEEE_double_NaN',
+     'IEEE_double_trapping_NaN', 'IEEE_quad_NaN',
+     'IEEE_quad_trapping_NaN'). A (quiet) NaN does not cause an Invalid
+     Operation exception and can be reported as an operation result.  A
+     trapping NaN causes an Invalid Operation exception if used as in
+     input operand to floating point operation.  Trapping NaN can not be
+     reported as an operation result.
 
-`Function `IEEE_is_positive_zero''
+'Function `IEEE_is_positive_zero''
+
                   `int IEEE_is_positive_zero (IEEE_float single_float)'
 
      returns 1 if given number is positive single precision zero
@@ -1496,20 +1563,21 @@ interface contains the following external definitions:
                   `IEEE_is_quad_positive_minimum',
                   `IEEE_is_quad_negative_minimum'.
 
-     In spite of that all functions of the package generate and use
-     only one its representation created by function `IEEE_NaN' (or
-     `IEEE_trapping_NaN', or `IEEE_double_NaN', or
-     `IEEE_double_trapping_NaN', or `IEEE_quad_NaN', or
-     `IEEE_quad_trapping_NaN').  The function `IEEE_is_NaN' (and
-     `IEEE_trapping_NaN', and `IEEE_double_NaN', and
-     `IEEE_double_trapping_NaN', and `IEEE_quad_NaN', and
-     `IEEE_quad_trapping_NaN') determines any representation of NaN.
+     In spite of that all functions of the package generate and use only
+     one its representation created by function 'IEEE_NaN' (or
+     'IEEE_trapping_NaN', or 'IEEE_double_NaN', or
+     'IEEE_double_trapping_NaN', or 'IEEE_quad_NaN', or
+     'IEEE_quad_trapping_NaN'). The function 'IEEE_is_NaN' (and
+     'IEEE_trapping_NaN', and 'IEEE_double_NaN', and
+     'IEEE_double_trapping_NaN', and 'IEEE_quad_NaN', and
+     'IEEE_quad_trapping_NaN') determines any representation of NaN.
 
-`Function `IEEE_is_normalized''
+'Function `IEEE_is_normalized''
+
                   `int IEEE_is_normalized (IEEE_float_t single_float)'
 
-     returns TRUE if single precision number is normalized (special
-     case values are not normalized).  There is analogous function
+     returns TRUE if single precision number is normalized (special case
+     values are not normalized).  There is analogous function
 
                   `IEEE_is_denormalized'
 
@@ -1523,7 +1591,8 @@ interface contains the following external definitions:
 
      for doubles and quads.
 
-`Function `IEEE_add_single''
+'Function `IEEE_add_single''
+
                   `IEEE_float_t IEEE_add_single (IEEE_float_t single1,
                                                  IEEE_float_t single2)'
 
@@ -1577,8 +1646,8 @@ interface contains the following external definitions:
                              |    none     |    none      |
 
      Results and input exceptions for operands of special cases values
-     (except for NaNs) are described for multiplication by the
-     following table
+     (except for NaNs) are described for multiplication by the following
+     table
 
                   first  |         second operand
                   operand|---------------------------------------------------
@@ -1615,7 +1684,8 @@ interface contains the following external definitions:
                   Others |   (+-)0     |   (+-)0     |   (+-)Inf   |
                          |   none      |    none     |   IEEE_DZ   |
 
-`Function `IEEE_eq_single''
+'Function `IEEE_eq_single''
+
                   `int IEEE_eq_single (IEEE_float_t single1,
                                        IEEE_float_t single2)'
 
@@ -1675,7 +1745,8 @@ interface contains the following external definitions:
                   Others |   FALSE     |   FALSE      |
                          |  IEEE_INV   |  IEEE_INV    |
 
-`Transformation  functions'
+'Transformation functions'
+
                   `IEEE_double_t IEEE_single_to_double
                                  (IEEE_float_t single_float)',
 
@@ -1734,13 +1805,13 @@ interface contains the following external definitions:
                          void *unsigned_integer)'.
 
      Actually no one output exceptions occur during transformation of
-     single precision floating point number to double and quad
-     precision number or of double precision floating point number to
-     quad precision number.  No input exceptions occur during
-     transformation of integer numbers to floating point numbers.
-     Results and input exceptions for operand of special cases values
-     (and for NaNs) are described for conversion floating point number
-     to integer by the following table
+     single precision floating point number to double and quad precision
+     number or of double precision floating point number to quad
+     precision number.  No input exceptions occur during transformation
+     of integer numbers to floating point numbers.  Results and input
+     exceptions for operand of special cases values (and for NaNs) are
+     described for conversion floating point number to integer by the
+     following table
 
                               Operand     | Result & Exception
                             --------------|-------------------
@@ -1781,10 +1852,11 @@ interface contains the following external definitions:
                                           |
 
      Results and exceptions for NaNs during transformation of floating
-     point numbers to (unsigned) integers are differed from the ones
-     for operations of addition, multiplication and so on.
+     point numbers to (unsigned) integers are differed from the ones for
+     operations of addition, multiplication and so on.
 
-`Function `IEEE_single_to_string''
+'Function `IEEE_single_to_string''
+
                   `char *IEEE_single_to_string (IEEE_float_t single_float,
                                                 char *result)'
 
@@ -1792,8 +1864,8 @@ interface contains the following external definitions:
      obligatory integer part (1 digit), fractional part (of constant
      length), and optional exponent.  Signs minus are present if it is
      needed.  The special cases IEEE floating point values are
-     represented by strings `SNaN', `QNaN', `+Inf', `-Inf', `+0', and
-     `-0'.  The function returns value `result'.  There are analogous
+     represented by strings 'SNaN', 'QNaN', '+Inf', '-Inf', '+0', and
+     '-0'.  The function returns value 'result'.  There are analogous
      functions
 
                   `IEEE_string_to_double'
@@ -1805,20 +1877,22 @@ interface contains the following external definitions:
      digits for double precision number, and 36 for quad precision
      number.
 
-`Function `IEEE_single_to_binary_string''
+'Function `IEEE_single_to_binary_string''
+
                   `char *IEEE_single_to_binary_string (IEEE_float_t single_float,
                                                        int base, char *result)'
+
 
      The function is analogous to IEEE_single_to_string but transforms
      float number into to binary ascii representation with obligatory
      integer part (1 digit) of given base, optional fractional part of
      given base, and optional binary exponent (decimal number giving
-     power of 2).  The binary exponent starts with character `p'
-     instead of `e'.  Signs minus are present if it is needed.  The
-     special cases IEEE floating point values are represented by
-     strings `SNaN', `QNaN', `+Inf', `-Inf', `+0', and `-0'.  The
-     function returns value `result'.  Value of parameter base should
-     be 2, 4, 8, or 16.  There are analogous functions
+     power of 2).  The binary exponent starts with character 'p' instead
+     of 'e'.  Signs minus are present if it is needed.  The special
+     cases IEEE floating point values are represented by strings 'SNaN',
+     'QNaN', '+Inf', '-Inf', '+0', and '-0'.  The function returns value
+     'result'.  Value of parameter base should be 2, 4, 8, or 16.  There
+     are analogous functions
 
                   `IEEE_string_to_binary_double'
                   `IEEE_string_to_binary_quad'
@@ -1826,22 +1900,23 @@ interface contains the following external definitions:
      for doubles and quads.  Current round mode does not affect the
      resultant ascii representation.
 
-`Function `IEEE_single_from_string''
+'Function `IEEE_single_from_string''
+
                   `char *IEEE_single_from_string (const char *operand,
                                                   IEEE_float_t *result)'
 
-     skips all white spaces at the begin of source string and
-     transforms tail of the source string to single precision floating
-     point number.  The number must correspond the following syntax
+     skips all white spaces at the begin of source string and transforms
+     tail of the source string to single precision floating point
+     number.  The number must correspond the following syntax
 
                      ['+' | '-'] [<decimal digits>] [ '.' [<decimal digits>] ]
                           [ ('e' | 'E') ['+' | '-'] <decimal digits>]
 
-     or must be the following strings `SNaN', `QNaN', `+Inf', `-Inf',
-     `+0', or `-0'.  The function returns pointer to first character in
+     or must be the following strings 'SNaN', 'QNaN', '+Inf', '-Inf',
+     '+0', or '-0'.  The function returns pointer to first character in
      the source string after read floating point number.  If the string
-     does not correspond floating point number syntax the result will
-     be zero and function returns the source string.
+     does not correspond floating point number syntax the result will be
+     zero and function returns the source string.
 
      The function can fix output exceptions as described above.  There
      are analogous functions
@@ -1850,21 +1925,22 @@ interface contains the following external definitions:
                   `IEEE_quad_from_string'
 
      for doubles and quads.  Current round mode may affect resultant
-     floating point number.  It is guaranteed that transformation `IEEE
+     floating point number.  It is guaranteed that transformation 'IEEE
      floating point number -> string -> IEEE floating point number'
      results in the same IEEE floating point number if round to nearest
-     mode is used.  But the reverse transformation `string with 9 (or
-     17 or 36) digits -> IEEE floating point number -> string' may
-     results in different digits of the fractions in ascii
-     representation because a floating point number may represent
-     several such strings with differences in the least significant
-     digit.  But the ascii representations are identical when functions
-     `IEEE_single_from_string', `IEEE_double_from_string',
-     `IEEE_quad_from_string' do not fix imprecise result exception or
+     mode is used.  But the reverse transformation 'string with 9 (or 17
+     or 36) digits -> IEEE floating point number -> string' may results
+     in different digits of the fractions in ascii representation
+     because a floating point number may represent several such strings
+     with differences in the least significant digit.  But the ascii
+     representations are identical when functions
+     'IEEE_single_from_string', 'IEEE_double_from_string',
+     'IEEE_quad_from_string' do not fix imprecise result exception or
      less than 9 (or 17 or 36) digits of the fractions in the ascii
      representations are compared.
 
-`Function `IEEE_single_from_binary_string''
+'Function `IEEE_single_from_binary_string''
+
                   `char *IEEE_single_from_binary_string (const char *operand,
                                                          int base,
                                                          IEEE_float_t *result)'
@@ -1876,12 +1952,12 @@ interface contains the following external definitions:
                      ['+' | '-'] [<digits less base>] [ '.' [<digits less base>] ]
                           [ ('p' | 'P') ['+' | '-'] <decimal digits>]
 
-     or must be the following strings `SNaN', `QNaN', `+Inf', `-Inf',
-     `+0', or `-0'.  The function returns pointer to first character in
+     or must be the following strings 'SNaN', 'QNaN', '+Inf', '-Inf',
+     '+0', or '-0'.  The function returns pointer to first character in
      the source string after read floating point number.  If the string
-     does not correspond floating point number syntax the result will
-     be zero and function returns the source string.  The exponent
-     (after character `p' or `P') defines power of two.
+     does not correspond floating point number syntax the result will be
+     zero and function returns the source string.  The exponent (after
+     character 'p' or 'P') defines power of two.
 
      The function can fix output exceptions as described above.  There
      are analogous functions
@@ -1892,10 +1968,9 @@ interface contains the following external definitions:
      for doubles and quads.  Current round mode can affect resultant
      floating point number if there are too many given digits.
 
-
    Important note: All items (they contains word quad or QUAD in their
-names) relative to IEEE 128 bits floating point numbers are defined
-only when macro `IEEE_QUAD' is defined.  By default `IEEE_QUAD' is not
+names) relative to IEEE 128 bits floating point numbers are defined only
+when macro 'IEEE_QUAD' is defined.  By default 'IEEE_QUAD' is not
 defined.  It is made because supporting IEEE 18-bits numbers requires
 more 100Kb memory.
 
@@ -1905,46 +1980,50 @@ File: ammunition.info,  Node: Ticker package,  Next: Earley parser,  Prev: Packa
 12 Ticker package
 *****************
 
-The package `ticker' implements a timer.  Timer can be activated or can
+The package 'ticker' implements a timer.  Timer can be activated or can
 be stopped.  The timer accumulates execution time only when it is in
-active state.  The interface part of the package is file `ticker.h'.
-The implementation part is file `ticker.c'.  The interface contains the
+active state.  The interface part of the package is file 'ticker.h'.
+The implementation part is file 'ticker.c'.  The interface contains the
 following external definitions and macros:
 
-`Type `ticker_t''
-     describes a timer.  Knowledge of structure (implementation) of
-     this type is not needed for using timer.
+'Type `ticker_t''
+     describes a timer.  Knowledge of structure (implementation) of this
+     type is not needed for using timer.
 
-`Function `create_ticker''
+'Function `create_ticker''
+
                     `ticker_t create_ticker (void)'
 
      returns new timer.  The state of the timer is active.  This
      function call must to be the first for given timer.
 
-`Function `ticker_off''
+'Function `ticker_off''
+
                     `void ticker_off (ticker_t *ticker)'
 
      stops the timer given as the first parameter.
 
-`Function `ticker_on''
+'Function `ticker_on''
+
                     `void ticker_on (ticker_t *ticker)'
 
      activates the timer given as the first parameter.
 
-`Public function `active_time''
+'Public function `active_time''
+
                     `double active_time (ticker_t ticker)'
 
      returns time in seconds as double float value in which given timer
      was active.
 
-`Public function `active_time_string''
+'Public function `active_time_string''
+
                     `const char *active_time_string (void)'
 
-     returns string representation of time in seconds in which the
-     timer given as the function parameter was active.  Remember that
-     this function must be the single in a C++ expression because the
-     string is stored in a static variable of the function.
-
+     returns string representation of time in seconds in which the timer
+     given as the function parameter was active.  Remember that this
+     function must be the single in a C++ expression because the string
+     is stored in a static variable of the function.
 
 
 File: ammunition.info,  Node: Earley parser,  Prev: Ticker package,  Up: Top
@@ -1952,252 +2031,242 @@ File: ammunition.info,  Node: Earley parser,  Prev: Ticker package,  Up: Top
 13 Earley parser
 ****************
 
-The package `earley' implements earley parser.  The earley parser
+The package 'earley' implements earley parser.  The earley parser
 implementation has the following features:
 
    * It is sufficiently fast and does not require much memory.  This is
-     the fastest implementation of Earley parser which I know.  The
-     main design goal is to achieve speed and memory requirements which
-     are necessary to use it in prototype compilers and language
-     processors.  It parses 30K lines of C program per second on 500
-     MHz Pentium III and allocates about 5Mb memory for 10K line C
-     program.
-
+     the fastest implementation of Earley parser which I know.  The main
+     design goal is to achieve speed and memory requirements which are
+     necessary to use it in prototype compilers and language processors.
+     It parses 30K lines of C program per second on 500 MHz Pentium III
+     and allocates about 5Mb memory for 10K line C program.
    * It makes simple syntax directed translation.  So an abstract tree
      is already the output of Earley parser.
-
-   * It can parse input described by an ambiguous grammar.  In this
-     case the parse result can be an abstract tree or all possible
-     abstract trees.  Moreover it produces the compact representation
-     of all possible parse trees by using DAG instead of real trees.
-     This feature can be used to parse natural language sentences.
-
+   * It can parse input described by an ambiguous grammar.  In this case
+     the parse result can be an abstract tree or all possible abstract
+     trees.  Moreover it produces the compact representation of all
+     possible parse trees by using DAG instead of real trees.  This
+     feature can be used to parse natural language sentences.
    * It can parse input described by an ambiguous grammar according to
      the abstract node costs.  In this case the parse result can be an
      minimal cost abstract tree or all possible minimal cost abstract
      trees.  This feature can be used to code selection task in
      compilers.
-
    * It can make syntax error recovery.  Moreover its error recovery
      algorithms finds error recovery with minimal number of ignored
      tokens.  It permits to implement parsers with very good error
      recovery and reporting.
-
    * It has fast startup.  There is no practically delay between
      processing grammar and start of parsing.
-
    * It has flexible interface.  The input grammar can be given by
      YACC-like description or providing functions returning terminals
      and rules.
-
    * It has good debugging features.  It can print huge amount of
      information about grammar, parsing, error recovery, translation.
      You can even output the result translation in form for a graphic
      visualization program.
 
-   The interface part of the parser is file `earley.h'.  The
-implementation part is file `earley.c'.  The interface contains the
+   The interface part of the parser is file 'earley.h'.  The
+implementation part is file 'earley.c'.  The interface contains the
 following external definitions and macros:
 
-`Struct `grammar''
+'Struct `grammar''
      describes a grammar.  Knowledge of structure (implementation) of
      this type is not visible and not needed for using the parser.
 
-`Macro `EARLEY_NIL_TRANSLATION_NUMBER''
+'Macro `EARLEY_NIL_TRANSLATION_NUMBER''
      is reserved to be designation of empty node for translation.
 
-`Macro `EARLEY_NO_MEMORY''
+'Macro `EARLEY_NO_MEMORY''
      is error code of the parser.  The parser functions return the code
      when parser can not allocate enough memory for its work.
 
-`Macro `EARLEY_UNDEFINED_OR_BAD_GRAMMAR''
+'Macro `EARLEY_UNDEFINED_OR_BAD_GRAMMAR''
      is error code of the parser.  The parser functions return the code
      when we call parsing without defining grammar or call parsing for
      bad defined grammar.
 
-`Macro `EARLEY_DESCRIPTION_SYNTAX_ERROR_CODE''
-     is error code of the parser.  The code is returned when the
-     grammar is defined by description and there is syntax error in the
+'Macro `EARLEY_DESCRIPTION_SYNTAX_ERROR_CODE''
+     is error code of the parser.  The code is returned when the grammar
+     is defined by description and there is syntax error in the
      description.
 
-`Macro `EARLEY_FIXED_NAME_USAGE''
-     is error code of the parser.  The code is returned when the
-     grammar uses reserved names for terminals and nonterminals.  There
-     are two reserved names `$S' (for axiom) and `$eof' for end of file
-     (input end marker).  The parser adds these symbols and rules with
-     these symbols to the grammar given by user.  So user should not
-     use these names in his grammar.
+'Macro `EARLEY_FIXED_NAME_USAGE''
+     is error code of the parser.  The code is returned when the grammar
+     uses reserved names for terminals and nonterminals.  There are two
+     reserved names '$S' (for axiom) and '$eof' for end of file (input
+     end marker).  The parser adds these symbols and rules with these
+     symbols to the grammar given by user.  So user should not use these
+     names in his grammar.
 
-`Macro `EARLEY_REPEATED_TERM_DECL''
-     is error code of the parser.  The code is returned when the
-     grammar contains several declarations of terminals with the same
-     name.
+'Macro `EARLEY_REPEATED_TERM_DECL''
+     is error code of the parser.  The code is returned when the grammar
+     contains several declarations of terminals with the same name.
 
-`Macro `EARLEY_NEGATIVE_TERM_CODE''
-     is error code of the parser.  The code is returned when the
-     grammar terminal is described with negative code.
+'Macro `EARLEY_NEGATIVE_TERM_CODE''
+     is error code of the parser.  The code is returned when the grammar
+     terminal is described with negative code.
 
-`Macro `EARLEY_REPEATED_TERM_CODE''
+'Macro `EARLEY_REPEATED_TERM_CODE''
      is error code of the parser.  The code is returned when the two or
      more grammar terminals are described with the same code.
 
-`Macro `EARLEY_NO_RULES''
-     is error code of the parser.  The code is returned when the
-     grammar given by user has no rules.
+'Macro `EARLEY_NO_RULES''
+     is error code of the parser.  The code is returned when the grammar
+     given by user has no rules.
 
-`Macro `EARLEY_TERM_IN_RULE_LHS''
+'Macro `EARLEY_TERM_IN_RULE_LHS''
      is error code of the parser.  The code is returned when grammar
      rule given by user contains terminal in left hand side of the rule.
 
-`Macro `EARLEY_INCORRECT_TRANSLATION''
+'Macro `EARLEY_INCORRECT_TRANSLATION''
      is error code of the parser.  The code is returned when grammar
      rule translation is not correct.  The single reason for this is
      translation of the rule consists of translations of more one
      symbols in the right hand side of the rule without forming an
      abstract tree node.
 
-`Macro `EARLEY_NEGATIVE COST''
+'Macro `EARLEY_NEGATIVE COST''
      is error code of the parser.  The code is returned when abstract
      node has a negative cost.
 
-`Macro `EARLEY_INCORRECT_SYMBOL_NUMBER''
+'Macro `EARLEY_INCORRECT_SYMBOL_NUMBER''
      is error code of the parser.  The code is returned when grammar
      rule translation contains incorrect symbol number which should be
      nonnegative number less than rule right hand side length.
 
-`Macro `EARLEY_UNACCESSIBLE_NONTERM''
+'Macro `EARLEY_UNACCESSIBLE_NONTERM''
      is error code of the parser.  The code is returned when there is
      grammar nonterminal which can not be derived from axiom.
 
-`Macro `EARLEY_NONTERM_DERIVATION''
+'Macro `EARLEY_NONTERM_DERIVATION''
      is error code of the parser.  The code is returned when there is
      grammar nonterminal which can not derive a terminal string.
 
-`Macro `EARLEY_LOOP_NONTERM''
+'Macro `EARLEY_LOOP_NONTERM''
      is error code of the parser.  The code is returned when there is
      grammar nonterminal which can derive only itself.  The parser does
      not work with such grammars.
 
-`Macro `EARLEY_INVALID_TOKEN_CODE''
+'Macro `EARLEY_INVALID_TOKEN_CODE''
      is error code of the parser.  The code is returned when the parser
      got input token whose code is different from all grammar terminal
      codes.
 
-`Enumeration `earley_tree_node_type''
+'Enumeration `earley_tree_node_type''
      describes all possible nodes of abstract tree representing the
      translation.  There are the following enumeration constants:
 
-    ``EARLEY_NIL''
+     '`EARLEY_NIL''
           the corresponding node represents empty translations.
 
-    ``EARLEY_ERROR''
+     '`EARLEY_ERROR''
           the corresponding node represents translation of special
-          terminal `error' (see error recovery).
+          terminal 'error' (see error recovery).
 
-    ``EARLEY_TERM''
+     '`EARLEY_TERM''
           the corresponding node represents translation of a terminal.
 
-    ``EARLEY_ANODE''
+     '`EARLEY_ANODE''
           the corresponding node represents an abstract node.
 
-    ``EARLEY_ALT''
+     '`EARLEY_ALT''
           the corresponding node represents an alternative of the
           translation.  Such nodes creates only when there are two or
           more possible translations.  It means that the grammar is
           ambiguous.
 
+'Structure `earley_tree_node''
+     represents node of the translation.  The nodes refer for each other
+     forming DAG (direct acyclic graph) in general case.  The main
+     reason of generating DAG is that some input fragments may have the
+     same translation, when there are several parsings of input (which
+     is possible only for ambiguous grammars).  But DAG may be created
+     even for unambigous grammar because some nodes (empty and error
+     nodes) exist only in one exemplar.  When such nodes are not
+     created, the translation nodes forms a tree.  This structure has
+     the following members:
 
-`Structure `earley_tree_node''
-     represents node of the translation.  The nodes refer for each
-     other forming DAG (direct acyclic graph) in general case.  The
-     main reason of generating DAG is that some input fragments may
-     have the same translation, when there are several parsings of
-     input (which is possible only for ambiguous grammars).  But DAG
-     may be created even for unambigous grammar because some nodes
-     (empty and error nodes) exist only in one exemplar.  When such
-     nodes are not created, the translation nodes forms a tree.  This
-     structure has the following members:
-
-    `Member `type' of type `enum earley_tree_node_type''
+     'Member `type' of type `enum earley_tree_node_type''
           representing type of the translation node.
 
-    `Union `val''
+     'Union `val''
           Depending on the translation node type, one of the union
-          members `nil', `error', `term', `anode', and `alt' of the
+          members 'nil', 'error', 'term', 'anode', and 'alt' of the
           structure types described below is used to represent the
           translation node.
 
-
-`Structure `earley_nil''
+'Structure `earley_nil''
      represents empty node.  It has no members.  Actually the
-     translation is DAG (not tree) in general case.  The empty and
-     error nodes are present only in one exemplar.
+     translation is DAG (not tree) in general case.  The empty and error
+     nodes are present only in one exemplar.
 
-`Structure `earley_error''
-     represents translation of special terminal `error'.  It has no
+'Structure `earley_error''
+     represents translation of special terminal 'error'.  It has no
      members.  The error node exists only in one exemplar.
 
-`Structure `earley_term''
+'Structure `earley_term''
      represents translation of terminals.  It has the following two
      members:
 
-    `Integer member `code''
+     'Integer member `code''
           representing code of the corresponding terminal.
 
-    `Member `attr' of type `* void''
+     'Member `attr' of type `* void''
           is reference for the attribute of the corresponding terminal.
 
-
-`Structure `earley_anode''
+'Structure `earley_anode''
      represents abstract node.  It has the following two members:
 
-    `Member `name' of type `const char *''
+     'Member `name' of type `const char *''
           representing name of anode as it given in the corresponding
           rule translation.
 
-    `Member `cost' of type `int''
+     'Member `cost' of type `int''
           representing cost of the node plus costs of all children if
           the cost flag is set up.  Otherwise, the value is cost of the
           abstract node itself.
 
-    `Member `children' of type `struct earley_tree_node **''
-          is array of nodes representing the translations of the
-          symbols given in the rule with the abstract node.
+     'Member `children' of type `struct earley_tree_node **''
+          is array of nodes representing the translations of the symbols
+          given in the rule with the abstract node.
 
+'Structure `earley_alt''
+     represents an alternative of the translation.  It has the following
+     two members:
 
-`Structure `earley_alt''
-     represents an alternative of the translation.  It has the
-     following two members:
-
-    `Member `node' of type `struct earley_tree_node *''
+     'Member `node' of type `struct earley_tree_node *''
           representing alternative translation.
 
-    `Member `next' of type `struct earley_tree_node *''
+     'Member `next' of type `struct earley_tree_node *''
           is reference for the next alternative of translation.
 
+'Function `earley_create_grammar''
 
-`Function `earley_create_grammar''
                     `struct grammar *earley_create_grammar (void)'
 
      should be called the first.  It actually creates an earley parser
      with undefined grammar.  You can use two or more parsers
-     simultaneously.  The function returns `NULL' if there is no memory.
+     simultaneously.  The function returns 'NULL' if there is no memory.
 
-`Function `earley_error_code''
+'Function `earley_error_code''
+
                     `int earley_error_code (struct grammar *g)'
 
      returns the last occurred error code (see the possible error codes
      above) for given parser.  If the function returns zero, no error
      was found so far.
 
-`Function `earley_error_message''
+'Function `earley_error_message''
+
                     `const char *earley_error_message (struct grammar *g)'
 
      returns detail message about last occurred error.  The message
      always corresponds to the last error code returned the previous
      function.
 
-`Function `earley_read_grammar''
+'Function `earley_read_grammar''
+
                     `int earley_read_grammar (struct grammar *g, int strict_p,
                                               const char *(*read_terminal) (int *code),
                                               const char *(*read_rule)
@@ -2209,55 +2278,56 @@ following external definitions and macros:
      is one of two functions which tunes the parser to given grammar.
      The grammar is read with the aid functions given as parameters.
 
-     `read_terminal' is function for reading terminals.  This function
-     is called before function `read_rule'.  The function should return
+     'read_terminal' is function for reading terminals.  This function
+     is called before function 'read_rule'.  The function should return
      the name and the code of the next terminal.  If all terminals have
-     been read the function returns NULL.  The terminal code should be
+     been read the function returns NULL. The terminal code should be
      nonnegative.
 
-     `read_rule' is function called to read the next rule.  This
-     function is called after function `read_terminal'.  The function
+     'read_rule' is function called to read the next rule.  This
+     function is called after function 'read_terminal'.  The function
      should return the name of nonterminal in the left hand side of the
      rule and array of names of symbols in the right hand side of the
-     rule (the array end marker should be `NULL').  If all rules have
-     been read, the function returns `NULL'.  All symbol with name
-     which was not provided function `read_terminal' are considered to
-     be nonterminals.  The function also returns translation given by
+     rule (the array end marker should be 'NULL'). If all rules have
+     been read, the function returns 'NULL'. All symbol with name which
+     was not provided function 'read_terminal' are considered to be
+     nonterminals.  The function also returns translation given by
      abstract node name and its fields which will be translation of
-     symbols (with indexes given in array given by parameter `transl')
-     in the right hand side of the rule.  All indexes in `transl'
-     should be different (so the translation of a symbol can not be
-     represented twice).  The end marker of the array should be a
-     negative value.  There is a reserved value of the translation
-     symbol number denoting empty node.  It is value defined by macro
-     `EARLEY_NIL_TRANSLATION_NUMBER'.  If parameter `transl' is `NULL'
-     or contains only the end marker, translations of the rule will be
-     empty node.  If `abs_node' is `NULL', abstract node is not
-     created.  In this case `transl' should be null or contain at most
-     one element.  This means that the translation of the rule will be
+     symbols (with indexes given in array given by parameter 'transl')
+     in the right hand side of the rule.  All indexes in 'transl' should
+     be different (so the translation of a symbol can not be represented
+     twice).  The end marker of the array should be a negative value.
+     There is a reserved value of the translation symbol number denoting
+     empty node.  It is value defined by macro
+     'EARLEY_NIL_TRANSLATION_NUMBER'. If parameter 'transl' is 'NULL' or
+     contains only the end marker, translations of the rule will be
+     empty node.  If 'abs_node' is 'NULL', abstract node is not created.
+     In this case 'transl' should be null or contain at most one
+     element.  This means that the translation of the rule will be
      correspondingly empty node or the translation of the symbol in the
-     right hand side given by the single array element. The cost of the
-     abstract node if given is passed through parameter `anode_cost'.
-     If `abs_node' is not `NULL', the cost should be greater or equal
-     to zero.  Otherwise the cost is ignored.
+     right hand side given by the single array element.  The cost of the
+     abstract node if given is passed through parameter 'anode_cost'.
+     If 'abs_node' is not 'NULL', the cost should be greater or equal to
+     zero.  Otherwise the cost is ignored.
 
-     There is reserved terminal `error' which is used to mark start
+     There is reserved terminal 'error' which is used to mark start
      point of error recovery.
 
-     Nonzero parameter `strict_p' value means more strict checking the
-     grammar.  In this case, all nonterminals will be checked on
-     ability to derive a terminal string instead of only checking axiom
-     for this.
+     Nonzero parameter 'strict_p' value means more strict checking the
+     grammar.  In this case, all nonterminals will be checked on ability
+     to derive a terminal string instead of only checking axiom for
+     this.
 
-     The function returns zero if it is all ok.  Otherwise, the
-     function returns the error code occured.
+     The function returns zero if it is all ok.  Otherwise, the function
+     returns the error code occured.
 
-`Function `earley_parse_grammar''
+'Function `earley_parse_grammar''
+
                     `int earley_parse_grammar (struct grammar *g, int strict_p,
                                                const char *description)'
 
      is another function which tunes the parser to given grammar.  The
-     grammar is given by string `description'.  The description is
+     grammar is given by string 'description'.  The description is
      similiar YACC one.  It has the following syntax:
 
                        file : file terms [';']
@@ -2292,30 +2362,31 @@ following external definitions and macros:
      Terminal declaration section describes name of terminals and their
      codes.  Terminal code is optional.  If it is omitted, the terminal
      code will the next free code starting with 256.  You can declare
-     terminal several times (the single condition its code should be
-     the same).
+     terminal several times (the single condition its code should be the
+     same).
 
      Character constant present in the rules is a terminal described by
      default.  Its code is always code of the character constant.
 
      Rules syntax is the same as YACC rule syntax.  The single
      difference is an optional translation construction starting with
-     `#' right after each alternative.  The translation part could be a
+     '#' right after each alternative.  The translation part could be a
      single number which means that the translation of the alternative
      will be the translation of the symbol with given number (symbol
      numbers in alternative starts with 0).  Or the translation can be
-     empty or `-' which mean empty node.  Or the translation can be
-     abstract node with given name, optional cost, and with fields
-     whose values are the translations of the alternative symbols with
-     numbers given in parentheses after the abstract node name.  You
-     can use `-' in abstract node to show that empty node should be used
-     in this place.  If the cost is absent it is believed to be one.
-     The cost of terminal, error node, and empty node is always zero.
+     empty or '-' which mean empty node.  Or the translation can be
+     abstract node with given name, optional cost, and with fields whose
+     values are the translations of the alternative symbols with numbers
+     given in parentheses after the abstract node name.  You can use '-'
+     in abstract node to show that empty node should be used in this
+     place.  If the cost is absent it is believed to be one.  The cost
+     of terminal, error node, and empty node is always zero.
 
-     There is reserved terminal `error' which is used to mark start
+     There is reserved terminal 'error' which is used to mark start
      point of error recovery.
 
-`Function `earley_set_lookahead_level''
+'Function `earley_set_lookahead_level''
+
                     `int earley_set_lookahead_level (struct grammar *grammar,
                                                      int level)'
 
@@ -2331,30 +2402,33 @@ following external definitions and macros:
      level value is negative, zero is used instead of it.  If the value
      is greater than two, two is used in this case.
 
-`Function `earley_set_debug_level''
+'Function `earley_set_debug_level''
+
                     `int earley_set_debug_level (struct grammar *grammar,
                                                  int level)'
 
-     sets up level of debugging information output to `stderr'.  The
-     more level, the more information is output.  The default value is
-     0 (no output).  The debugging information includes statistics,
-     result translation tree, grammar, parser sets, parser sets with
-     all situations, situations with contexts. The function returns the
+     sets up level of debugging information output to 'stderr'.  The
+     more level, the more information is output.  The default value is 0
+     (no output).  The debugging information includes statistics, result
+     translation tree, grammar, parser sets, parser sets with all
+     situations, situations with contexts.  The function returns the
      previously set up debug level.  Setting up negative debug level
-     results in output of translation for program `dot' of graphic
-     visualization package `graphviz'.
+     results in output of translation for program 'dot' of graphic
+     visualization package 'graphviz'.
 
-`Function `earley_set_one_parse_flag''
+'Function `earley_set_one_parse_flag''
+
                     `int earley_set_one_parse_flag (struct grammar *grammar,
                                                     int flag)'
 
      sets up building only one translation tree (parameter value 0) or
      all parse trees for ambiguous grammar for which several parsings
-     are possible.  For unambiguous grammar the flag does not affect
-     the result.  The default value is 1.  The function returns the
+     are possible.  For unambiguous grammar the flag does not affect the
+     result.  The default value is 1.  The function returns the
      previously used flag value.
 
-`Function `earley_set_cost_flag''
+'Function `earley_set_cost_flag''
+
                     `int earley_set_cost_flag (struct grammar *grammar, int flag)'
 
      sets up building only translation tree (trees if we set up
@@ -2362,17 +2436,19 @@ following external definitions and macros:
      the flag does not affect the result.  The default value is 0.  The
      function returns the previously used flag value.
 
-`Function `earley_set_error_recovery_flag''
+'Function `earley_set_error_recovery_flag''
+
                     `int earley_set_error_recovery_flag (struct grammar *grammar,
                                                          int flag)'
 
      sets up internal flag whose nonzero value means making error
-     recovery if syntax error occurred.  Otherwise, syntax error
-     results in finishing parsing (although function `syntax_error' in
-     function `earley_parse' will be called once).  The default value
-     is 1. The function returns the previously used flag value.
+     recovery if syntax error occurred.  Otherwise, syntax error results
+     in finishing parsing (although function 'syntax_error' in function
+     'earley_parse' will be called once).  The default value is 1.  The
+     function returns the previously used flag value.
 
-`Function `earley_set_recovery_match''
+'Function `earley_set_recovery_match''
+
                     `int earley_set_recovery_match (struct grammar *grammar,
                                                     int n_toks)'
 
@@ -2381,7 +2457,8 @@ following external definitions and macros:
      default value is 3.  The function returns the previously used flag
      value.
 
-`Function `earley_parse''
+'Function `earley_parse''
+
                     `int earley_parse (struct grammar *grammar,
                                        int (*read_token) (void **attr),
                                        void (*syntax_error)
@@ -2397,67 +2474,66 @@ following external definitions and macros:
 
      is major parser function.  It parses input according the grammar.
      The function returns the error code (which can be also returned by
-     `earley_error_code').  If the code is zero, the function will also
-     return root of the parse tree through parameter `root'.  The tree
-     representing the translation.  Value passed through `root' will be
-     `NULL' only if syntax error was occurred and error recovery was
+     'earley_error_code').  If the code is zero, the function will also
+     return root of the parse tree through parameter 'root'.  The tree
+     representing the translation.  Value passed through 'root' will be
+     'NULL' only if syntax error was occurred and error recovery was
      switched off.  The function sets up flag passed by parameter
-     `ambiguous_p' if we found that the grammar is ambiguous (it works
+     'ambiguous_p' if we found that the grammar is ambiguous (it works
      even we asked only one parse tree without alternatives).
 
-     Function `read_token' provides input tokens.  It returns code the
+     Function 'read_token' provides input tokens.  It returns code the
      next input token and its attribute.  If the function returns
      negative value we've read all tokens.
 
-     Function `syntax_error' called when synatctic error has been
-     found.  It may print an error message about syntax error which
-     occurred on token with number `err_tok_num' and attribute
-     `err_tok_attr'.  The following four parameters describes made
-     error recovery which ignored tokens starting with token given by
-     3rd and 4th parameters.  The first token which was not ignored is
-     described by the last parameters.  If the number of ignored tokens
-     is zero, the all parameters describes the same token.  If the
-     error recovery is switched off (see comments for
-     `earley_set_error_recovery_flag'), the third and the fifth
-     parameters will be negative and the forth and the sixth parameters
-     will be `NULL'.
+     Function 'syntax_error' called when synatctic error has been found.
+     It may print an error message about syntax error which occurred on
+     token with number 'err_tok_num' and attribute 'err_tok_attr'.  The
+     following four parameters describes made error recovery which
+     ignored tokens starting with token given by 3rd and 4th parameters.
+     The first token which was not ignored is described by the last
+     parameters.  If the number of ignored tokens is zero, the all
+     parameters describes the same token.  If the error recovery is
+     switched off (see comments for 'earley_set_error_recovery_flag'),
+     the third and the fifth parameters will be negative and the forth
+     and the sixth parameters will be 'NULL'.
 
-     Function `parse_alloc' is used by Earley parser to allocate memory
+     Function 'parse_alloc' is used by Earley parser to allocate memory
      for parse tree representation (translation).  After calling
-     `earley_free_grammar' we free all memory allocated for the parser.
+     'earley_free_grammar' we free all memory allocated for the parser.
      At this point it is convenient to free all memory but parse tree.
-     Therefore we require the following function.  So the caller will
-     be responsible to allocate and free memory for parse tree
+     Therefore we require the following function.  So the caller will be
+     responsible to allocate and free memory for parse tree
      representation (translation).  But the caller should not free the
-     memory until `earley_free_grammar' is called for the parser.  The
+     memory until 'earley_free_grammar' is called for the parser.  The
      function may be called even during reading the grammar not only
-     during the parsing.  Function `parse_free' is used by the parser
-     to free memory allocated by `parse_alloc'.  If it is `NULL', the
+     during the parsing.  Function 'parse_free' is used by the parser to
+     free memory allocated by 'parse_alloc'.  If it is 'NULL', the
      memory is not freed.
 
-`Function `earley_free_grammar''
+'Function `earley_free_grammar''
+
                     `void earley_free_grammar (struct grammar *grammar)'
 
-     frees all memory allocated for the parser.  This function should
-     be called the last for given parser.
-
+     frees all memory allocated for the parser.  This function should be
+     called the last for given parser.
 
 
 
 Tag Table:
-Node: Top139
-Node: Introduction1027
-Node: Package for allocating memory with fixing some allocation errors2048
-Node: Package for work with variable length objects5113
-Node: Package for work with stacks of objects10070
-Node: Package for work with hash tables16084
-Node: Package for work with source code positions21182
-Node: Package for output of compiler messages25396
-Node: Package for work with command line32566
-Node: Package for work with bit strings39120
-Node: Package for machine-independent arbitrary precision integer arithmetic42390
-Node: Package for machine-independent IEEE floating point arithmetic52425
-Node: Ticker package84909
-Node: Earley parser86580
+Node: Top107
+Node: Introduction995
+Node: Package for allocating memory with fixing some allocation errors2014
+Node: Package for work with variable length objects5084
+Node: Package for work with stacks of objects10049
+Node: Package for work with hash tables16071
+Node: Package for work with source code positions21176
+Node: Package for output of compiler messages25397
+Node: Package for work with command line32442
+Node: Package for work with bit strings38999
+Node: Package for machine-independent arbitrary precision integer arithmetic42273
+Node: Package for machine-independent IEEE floating point arithmetic52306
+Node: Ticker package84798
+Node: Earley parser86473
 
 End Tag Table

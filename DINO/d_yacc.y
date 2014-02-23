@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -33,27 +33,32 @@
    it means empty program. */
 IR_node_t first_program_stmt;
 
+static int yyerror (const char *message);
 
 static IR_node_t merge_stmt_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_stmt_list (IR_node_t list);
 
-static IR_node_t merge_access_lists (IR_node_t list1, IR_node_t list2);
-static IR_node_t uncycle_access_list (IR_node_t list);
+static IR_node_t merge_friend_lists (IR_node_t list1, IR_node_t list2);
+static IR_node_t uncycle_friend_list (IR_node_t list);
 
 static IR_node_t merge_exception_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_exception_list (IR_node_t list);
 
 static IR_node_t
-process_var_decl (IR_node_t ident, position_t ident_pos, int val_flag,
-		  IR_node_t expr, position_t expr_pos, IR_node_mode_t assign);
+process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
+                  int val_flag, IR_node_t expr, position_t expr_pos,
+                  IR_node_mode_t assign);
 
-static void process_header (IR_node_t decl, IR_node_t);
+static void process_header (int create_block_p, IR_node_t decl, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
 static IR_node_t process_header_block (IR_node_t, IR_node_t);
 
 static IR_node_t merge_additional_stmts (IR_node_t);
 
 /* The following vars are used by yacc analyzer. */
+
+/* True when we can process typed statements in REPL.  */
+static int repl_process_flag;
 
 /* Pointer to block node which opens current scope. */
 static IR_node_t current_scope;
@@ -72,9 +77,6 @@ static position_t actual_parameters_construction_pos;
    Its value is flag of variable number parameters (usage of ...). */
 static int formal_parameter_args_flag;
 
-/* These vars are used as attributes of nonterminal `access'. */
-static int public_flag, friend_flag;
-
 static const char *full_file_name  (const char *extend_identifier);
 
 static IR_node_t get_new_ident (position_t);
@@ -86,28 +88,34 @@ static void start_block (void);
 static void finish_block (void);
 static int add_include_file (const char *name);
 
+static int repl_can_process_p (void);
+
 %}
 
 %union
   {
     IR_node_t pointer;
     position_t pos;
-    int flag; /* 0 - var/table, 1 - val/vector */
-    IR_node_mode_t node_mode;
+    int flag; /* FALSE - var/table, TRUE - val/vector */
+    access_val_t access;
    }
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
-%token ACLASS AFUNC ATHREAD BREAK CATCH CHAR CLASS CONTINUE ELSE EXT EXTERN
-       FINAL FLOAT FOR FRIEND FUNC HIDE HIDEBLOCK IF IN INT
-       NEW NIL PUBLIC PRIVATE RETURN TABLE THIS THREAD THROW TRY TYPE
+%token <pos> ACLASS AFUNC ATHREAD BREAK CATCH CHAR CLASS CONTINUE
+       ELSE EXT EXTERN FINAL FLOAT FOR FRIEND FUNC HIDE HIDEBLOCK IF IN INT
+       NEW NIL RETURN TABLE THIS THREAD THROW TRY TYPE
        VAL VAR VECTOR WAIT
-%token MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN CONCAT_ASSIGN
-%token LSHIFT_ASSIGN RSHIFT_ASSIGN ASHIFT_ASSIGN AND_ASSIGN
-%token XOR_ASSIGN OR_ASSIGN
-%token INCR DECR
-%token DOTS
-%token FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR
-%token INCLUDE INCLUSION END_OF_FILE END_OF_INCLUDE_FILE
+%token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
+             LSHIFT RSHIFT ASHIFT
+%token <pos> MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN
+%token <pos> CONCAT_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN ASHIFT_ASSIGN AND_ASSIGN
+%token <pos> XOR_ASSIGN OR_ASSIGN
+%token <pos> INCR DECR
+%token <pos> DOTS
+%token <pos> FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR
+%token <pos> INCLUDE INCLUSION END_OF_FILE END_OF_INCLUDE_FILE
+%token <pos> '?' ':' '|' '^' '&' '<' '>' '@' '+' '-' '*' '/' '%' '!' '~' '#'
+%token <pos> '(' ')' '[' ']' '{' '}' ';' '.' ',' '='
 
 %nonassoc ':'
 %nonassoc '?'
@@ -126,18 +134,18 @@ static int add_include_file (const char *name);
 %left '!' '#' '~' FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FINAL NEW
 
 %type <pos> pos
-%type <node_mode> assign
 %type <pointer> afunc_thread_class aheader expr designator
                 elist_parts_list elist_parts_list_empty elist_part
-                expr_list expr_list_empty actual_parameters access_list
+                expr_list expr_list_empty actual_parameters friend_list
                 val_var_list val_var
-                stmt executive_stmt incr_decr for_guard_expr
+                assign stmt executive_stmt incr_decr for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
                 header declaration extern_list extern_item
         	func_thread_class else_part expr_empty opt_step
                 par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
-%type <flag> clear_flag  set_flag  access  opt_final  par_kind
+%type <flag> clear_flag  set_flag  opt_final  par_kind
+%type <access> access
 
 %start program
 
@@ -147,316 +155,337 @@ clear_flag : {$$ = 0;}
            ;
 set_flag   : {$$ = 1;}
            ;
-expr : expr '?' pos expr ':' expr
+expr : expr '?' expr ':' expr
        	{
-          $$ = create_node_with_pos (IR_NM_cond, $3);
+          $$ = create_node_with_pos (IR_NM_cond, $2);
           IR_set_cond_expr ($$, $1);
-          IR_set_true_expr ($$, $4);
-          IR_set_false_expr ($$, $6);
+          IR_set_true_expr ($$, $3);
+          IR_set_false_expr ($$, $5);
         }
-     | expr LOGICAL_OR pos expr
+     | expr LOGICAL_OR expr
        	{
-          $$ = create_node_with_pos (IR_NM_logical_or, $3);
+          $$ = create_node_with_pos (IR_NM_logical_or, $2);
           IR_set_operand ($$, $1);
-          IR_set_cont_operand ($$, $4);
+          IR_set_cont_operand ($$, $3);
         }
-     | expr LOGICAL_AND pos expr
+     | expr LOGICAL_AND expr
        	{
-          $$ = create_node_with_pos (IR_NM_logical_and, $3);
+          $$ = create_node_with_pos (IR_NM_logical_and, $2);
           IR_set_operand ($$, $1);
-          IR_set_cont_operand ($$, $4);
+          IR_set_cont_operand ($$, $3);
         }
-     | expr IN pos expr
+     | expr IN expr
        	{
-          $$ = create_node_with_pos (IR_NM_in, $3);
+          $$ = create_node_with_pos (IR_NM_in, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '|' pos expr
+     | expr '|' expr
        	{
-          $$ = create_node_with_pos (IR_NM_or, $3);
+          $$ = create_node_with_pos (IR_NM_or, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '^' pos expr
+     | expr '^' expr
        	{
-          $$ = create_node_with_pos (IR_NM_xor, $3);
+          $$ = create_node_with_pos (IR_NM_xor, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '&' pos expr 
+     | expr '&' expr 
        	{
-          $$ = create_node_with_pos (IR_NM_and, $3);
+          $$ = create_node_with_pos (IR_NM_and, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr EQ pos expr  
+     | expr EQ expr  
        	{
-          $$ = create_node_with_pos (IR_NM_eq, $3);
+          $$ = create_node_with_pos (IR_NM_eq, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr NE pos expr  
+     | expr NE expr  
        	{
-          $$ = create_node_with_pos (IR_NM_ne, $3);
+          $$ = create_node_with_pos (IR_NM_ne, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr IDENTITY pos expr  
+     | expr IDENTITY expr  
        	{
-          $$ = create_node_with_pos (IR_NM_identity, $3);
+          $$ = create_node_with_pos (IR_NM_identity, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr UNIDENTITY pos expr  
+     | expr UNIDENTITY expr  
        	 {
-           $$ = create_node_with_pos (IR_NM_unidentity, $3);
+           $$ = create_node_with_pos (IR_NM_unidentity, $2);
            IR_set_left_operand ($$, $1);
-           IR_set_right_operand ($$, $4);
+           IR_set_right_operand ($$, $3);
          }
-     | expr '<' pos expr
+     | expr '<' expr
        	{
-          $$ = create_node_with_pos (IR_NM_lt, $3);
+          $$ = create_node_with_pos (IR_NM_lt, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '>' pos expr  
+     | expr '>' expr  
        	{
-          $$ = create_node_with_pos (IR_NM_gt, $3);
+          $$ = create_node_with_pos (IR_NM_gt, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         } 
-     | expr LE pos expr
+     | expr LE expr
        	{
-          $$ = create_node_with_pos (IR_NM_le, $3);
+          $$ = create_node_with_pos (IR_NM_le, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr GE pos expr 
+     | expr GE expr 
        	{
-          $$ = create_node_with_pos (IR_NM_ge, $3);
+          $$ = create_node_with_pos (IR_NM_ge, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr LSHIFT pos expr
+     | expr LSHIFT expr
        	{
-          $$ = create_node_with_pos (IR_NM_lshift, $3);
+          $$ = create_node_with_pos (IR_NM_lshift, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr RSHIFT pos expr
+     | expr RSHIFT expr
        	{
-          $$ = create_node_with_pos (IR_NM_rshift, $3);
+          $$ = create_node_with_pos (IR_NM_rshift, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr ASHIFT pos expr
+     | expr ASHIFT expr
        	{
-          $$ = create_node_with_pos (IR_NM_ashift, $3);
+          $$ = create_node_with_pos (IR_NM_ashift, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '@' pos expr
+     | expr '@' expr
        	{
-          $$ = create_node_with_pos (IR_NM_concat, $3);
+          $$ = create_node_with_pos (IR_NM_concat, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '+' pos expr
+     | expr '+' expr
        	{
-          $$ = create_node_with_pos (IR_NM_plus, $3);
+          $$ = create_node_with_pos (IR_NM_plus, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '-' pos expr
+     | expr '-' expr
        	{
-          $$ = create_node_with_pos (IR_NM_minus, $3);
+          $$ = create_node_with_pos (IR_NM_minus, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '*' pos expr
+     | expr '*' expr
        	{
-          $$ = create_node_with_pos (IR_NM_mult, $3);
+          $$ = create_node_with_pos (IR_NM_mult, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '/' pos expr
+     | expr '/' expr
        	{
-          $$ = create_node_with_pos (IR_NM_div, $3);
+          $$ = create_node_with_pos (IR_NM_div, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | expr '%' pos expr
+     | expr '%' expr
        	{
-          $$ = create_node_with_pos (IR_NM_mod, $3);
+          $$ = create_node_with_pos (IR_NM_mod, $2);
           IR_set_left_operand ($$, $1);
-          IR_set_right_operand ($$, $4);
+          IR_set_right_operand ($$, $3);
         }
-     | '!' pos expr
+     | '!' expr
        	{
-          $$ = create_node_with_pos (IR_NM_not, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_not, $1);
+          IR_set_operand ($$, $2);
         }
-     | '+' pos expr %prec '!'
+     | '+' expr %prec '!'
        	{
-          $$ = create_node_with_pos (IR_NM_unary_plus, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_unary_plus, $1);
+          IR_set_operand ($$, $2);
         }
-     | '-' pos expr %prec '!'
+     | '-' expr %prec '!'
        	{
-          $$ = create_node_with_pos (IR_NM_unary_minus, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_unary_minus, $1);
+          IR_set_operand ($$, $2);
         }
-     | '~' pos expr
+     | '~' expr
        	{
-          $$ = create_node_with_pos (IR_NM_bitwise_not, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_bitwise_not, $1);
+          IR_set_operand ($$, $2);
         }
-     | '#' pos expr
+     | '#' expr
        	{
-          $$ = create_node_with_pos (IR_NM_length, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_length, $1);
+          IR_set_operand ($$, $2);
         }
-     | FOLD_PLUS pos expr
+     | FOLD_PLUS expr
        	{
-          $$ = create_node_with_pos (IR_NM_fold_plus, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_fold_plus, $1);
+          IR_set_operand ($$, $2);
         }
-     | FOLD_MULT pos expr
+     | FOLD_MULT expr
        	{
-          $$ = create_node_with_pos (IR_NM_fold_mult, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_fold_mult, $1);
+          IR_set_operand ($$, $2);
         }
-     | FOLD_AND pos expr
+     | FOLD_AND expr
        	{
-          $$ = create_node_with_pos (IR_NM_fold_and, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_fold_and, $1);
+          IR_set_operand ($$, $2);
         }
-     | FOLD_XOR pos expr
+     | FOLD_XOR expr
        	{
-          $$ = create_node_with_pos (IR_NM_fold_xor, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_fold_xor, $1);
+          IR_set_operand ($$, $2);
         }
-     | FOLD_OR pos expr
+     | FOLD_OR expr
        	{
-          $$ = create_node_with_pos (IR_NM_fold_or, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_fold_or, $1);
+          IR_set_operand ($$, $2);
         }
-     | FINAL pos expr
+     | FINAL expr
        	{
-          $$ = create_node_with_pos (IR_NM_const, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_const, $1);
+          IR_set_operand ($$, $2);
         }
-     | NEW pos expr
+     | NEW expr
        	{
-          $$ = create_node_with_pos (IR_NM_new, $2);
-          IR_set_operand ($$, $3);
+          $$ = create_node_with_pos (IR_NM_new, $1);
+          IR_set_operand ($$, $2);
         }
      | designator    {$$ = $1;}
      | NUMBER        {$$ = $1;}
      | CHARACTER     {$$ = $1;}
-     | pos NIL       {$$ = create_node_with_pos (IR_NM_nil, $1);}
+     | NIL           {$$ = create_node_with_pos (IR_NM_nil, $1);}
      | '(' expr ')'  {$$ = $2;}
-     | '(' error bracket_stop    {$$ = NULL;}
-     | '[' pos set_flag elist_parts_list_empty ']'
+     | '(' error
+          {
+	    if (repl_flag)
+	      YYABORT;
+          }
+        bracket_stop
+	  {
+	    $$ = NULL;
+	  }
+     | '[' set_flag elist_parts_list_empty ']'
       	{
-          $$ = create_node_with_pos (IR_NM_vector, $2);
-          IR_set_elist ($$, $4);
+          $$ = create_node_with_pos (IR_NM_vector, $1);
+          IR_set_elist ($$, $3);
         }
-     | '[' error sqbracket_stop  {$$ = NULL;}
-     | '{' pos clear_flag elist_parts_list_empty '}'
+     | '[' error
+          {
+	    if (repl_flag)
+	      YYABORT;
+	  }
+        sqbracket_stop
+	  {
+	    $$ = NULL;
+	  }
+     | '{' clear_flag elist_parts_list_empty '}'
       	{
-          $$ = create_node_with_pos (IR_NM_table, $2);
-          IR_set_elist ($$, $4);
+          $$ = create_node_with_pos (IR_NM_table, $1);
+          IR_set_elist ($$, $3);
         }
-     | '{' error stmt_stop  {$$ = NULL;}
-     | STRING            {$$ = $1;}
-     | pos CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
-     | pos INT           {$$ = create_node_with_pos (IR_NM_int_type, $1);}
-     | pos FLOAT         {$$ = create_node_with_pos (IR_NM_float_type, $1);}
-     | pos HIDE          {$$ = create_node_with_pos (IR_NM_hide_type, $1);}
-     | pos HIDEBLOCK     {$$ = create_node_with_pos (IR_NM_hideblock_type,
+     | '{' error
+          {
+	    if (repl_flag)
+	      YYABORT;
+	  }
+       stmt_stop  {$$ = NULL;}
+     | STRING        {$$ = $1;}
+     | CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
+     | INT           {$$ = create_node_with_pos (IR_NM_int_type, $1);}
+     | FLOAT         {$$ = create_node_with_pos (IR_NM_float_type, $1);}
+     | HIDE          {$$ = create_node_with_pos (IR_NM_hide_type, $1);}
+     | HIDEBLOCK     {$$ = create_node_with_pos (IR_NM_hideblock_type,
 						     $1);}
-     | pos VECTOR        {$$ = create_node_with_pos (IR_NM_vector_type, $1);}
-     | pos TABLE         {$$ = create_node_with_pos (IR_NM_table_type, $1);}
-     | pos FUNC          {$$ = create_node_with_pos (IR_NM_func_type, $1);}
-     | pos THREAD        {$$ = create_node_with_pos (IR_NM_thread_type, $1);}
-     | pos CLASS         {$$ = create_node_with_pos (IR_NM_class_type, $1);}
-     | pos FUNC '(' ')'  {$$ = create_node_with_pos (IR_NM_stack_type, $1);}
-     | pos THREAD '(' ')'{$$ = create_node_with_pos (IR_NM_process_type, $1);}
-     | pos CLASS '(' ')' {$$ = create_node_with_pos (IR_NM_instance_type, $1);}
-     | pos TYPE          {$$ = create_node_with_pos (IR_NM_type_type, $1);}
-     | pos TYPE '(' expr ')'
+     | VECTOR        {$$ = create_node_with_pos (IR_NM_vector_type, $1);}
+     | TABLE         {$$ = create_node_with_pos (IR_NM_table_type, $1);}
+     | FUNC          {$$ = create_node_with_pos (IR_NM_func_type, $1);}
+     | THREAD        {$$ = create_node_with_pos (IR_NM_thread_type, $1);}
+     | CLASS         {$$ = create_node_with_pos (IR_NM_class_type, $1);}
+     | FUNC '(' ')'  {$$ = create_node_with_pos (IR_NM_stack_type, $1);}
+     | THREAD '(' ')'{$$ = create_node_with_pos (IR_NM_process_type, $1);}
+     | CLASS '(' ')' {$$ = create_node_with_pos (IR_NM_instance_type, $1);}
+     | TYPE          {$$ = create_node_with_pos (IR_NM_type_type, $1);}
+     | TYPE '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_typeof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos CHAR '(' expr ')'
+     | CHAR '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_charof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos INT '(' expr ')'
+     | INT '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_intof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos FLOAT '(' expr ')'
+     | FLOAT '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_floatof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos VECTOR '(' expr ')'
+     | VECTOR '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_vectorof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos VECTOR '(' expr ',' expr ')'
+     | VECTOR '(' expr ',' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_format_vectorof, $1);
-          IR_set_left_operand ($$, $4);
-          IR_set_right_operand ($$, $6);
+          IR_set_left_operand ($$, $3);
+          IR_set_right_operand ($$, $5);
         }
-     | pos TABLE '(' expr ')'
+     | TABLE '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_tableof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos FUNC '(' expr ')'
+     | FUNC '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_funcof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos THREAD '(' expr ')'
+     | THREAD '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_threadof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
         }
-     | pos CLASS '(' expr ')'
+     | CLASS '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_classof, $1);
-          IR_set_operand ($$, $4);
+          IR_set_operand ($$, $3);
 	}
-     | pos THIS { $$ = create_node_with_pos (IR_NM_this, $1); } 
+     | THIS { $$ = create_node_with_pos (IR_NM_this, $1); } 
      ;
-aheader : afunc_thread_class { process_header ($1, get_new_ident (IR_pos ($1))); }
+aheader : afunc_thread_class { process_header (TRUE, $1, get_new_ident (IR_pos ($1))); }
           formal_parameters  { $$ = process_formal_parameters ($1, $3); }
         ;
-afunc_thread_class : AFUNC pos
+afunc_thread_class : AFUNC
                        {
-			 $$ = create_node_with_pos (IR_NM_func, $2);
+			 $$ = create_node_with_pos (IR_NM_func, $1);
 			 IR_set_thread_flag ($$, FALSE);
 			 IR_set_final_flag ($$, TRUE);
 		       }
-       	           | ATHREAD pos
+       	           | ATHREAD
                        {
-			 $$ = create_node_with_pos (IR_NM_func, $2);
+			 $$ = create_node_with_pos (IR_NM_func, $1);
 			 IR_set_thread_flag ($$, TRUE);
 			 IR_set_final_flag ($$, TRUE);
 		       }
-       	           | ACLASS pos
+       	           | ACLASS
                        {
-			 $$ = create_node_with_pos (IR_NM_class, $2);
+			 $$ = create_node_with_pos (IR_NM_class, $1);
 			 IR_set_final_flag ($$, TRUE);
 		       }
       	           ;
@@ -482,43 +511,53 @@ stmt_stop : eof_stop
           ;
 pos :  {$$ = current_position;}
     ;
-designator : designator '[' pos expr ']'
+designator : designator '[' expr ']'
        	       {
-                 $$ = create_node_with_pos (IR_NM_index, $3);
+                 $$ = create_node_with_pos (IR_NM_index, $2);
                  IR_set_designator ($$, $1);
-                 IR_set_component ($$, $4);
+                 IR_set_component ($$, $3);
                }
-           | designator '[' pos expr_empty ':' pos expr_empty opt_step ']'
+           | designator '[' expr_empty ':' expr_empty opt_step ']'
        	       {
-                 $$ = create_node_with_pos (IR_NM_slice, $3);
+                 $$ = create_node_with_pos (IR_NM_slice, $2);
                  IR_set_designator ($$, $1);
-		 if ($4 == NULL)
-		   $4 = get_int_node (0, $6);
-                 IR_set_component ($$, $4);
-		 if ($7 == NULL)
-		   $7 = get_int_node (-1, $6);
-                 IR_set_bound ($$, $7);
-		 if ($8 == NULL)
-		   $8 = get_int_node (1, $6);
-                 IR_set_step ($$, $8);
+		 if ($3 == NULL)
+		   $3 = get_int_node (0, $4);
+                 IR_set_component ($$, $3);
+		 if ($5 == NULL)
+		   $5 = get_int_node (-1, $4);
+                 IR_set_bound ($$, $5);
+		 if ($6 == NULL)
+		   $6 = get_int_node (1, $7);
+                 IR_set_step ($$, $6);
                }
-           | designator '[' pos error sqbracket_stop
+           | designator '[' error
+	       {
+		 if (repl_flag)
+		   YYABORT;
+	       }
+	     sqbracket_stop
        	       /* The designator have to be vector. */
        	       {
-                 $$ = create_node_with_pos (IR_NM_index, $3);
+                 $$ = create_node_with_pos (IR_NM_index, $2);
                  IR_set_designator ($$, $1);
                  IR_set_component ($$, NULL);
                }
-           | designator '{' pos expr '}'
+           | designator '{' expr '}'
        	       {
-                 $$ = create_node_with_pos (IR_NM_key_index, $3);
+                 $$ = create_node_with_pos (IR_NM_key_index, $2);
                  IR_set_designator ($$, $1);
-                 IR_set_component ($$, $4);
+                 IR_set_component ($$, $3);
                }
-           | designator '{' pos error stmt_stop
+           | designator '{' error
+	       {
+		 if (repl_flag)
+		   YYABORT;
+	       }
+	     stmt_stop
        	       /* The designator have to be table. */
        	       {
-                 $$ = create_node_with_pos (IR_NM_key_index, $3);
+                 $$ = create_node_with_pos (IR_NM_key_index, $2);
                  IR_set_designator ($$, $1);
                  IR_set_component ($$, NULL);
                }
@@ -530,11 +569,11 @@ designator : designator '[' pos expr ']'
 		 IR_set_func_expr ($$, $1);
 		 IR_set_actuals ($$, $2);
 	       }
-           | designator '.' pos IDENT
+           | designator '.' IDENT
        	       {
-                 $$ = create_node_with_pos (IR_NM_period, $3);
+                 $$ = create_node_with_pos (IR_NM_period, $2);
                  IR_set_designator ($$, $1);
-                 IR_set_component ($$, $4);
+                 IR_set_component ($$, $3);
                }
            | IDENT     {$$ = $1;}
            | aheader block
@@ -596,15 +635,27 @@ elist_parts_list_empty :      {$$ = NULL;}
 /* This nonterminal has second attributes:
    var actual_parameters_construction_pos (see commentaries for
    the var). */
-actual_parameters : '(' pos expr_list_empty ')'
-       		       {actual_parameters_construction_pos = $2; $$ = $3;}
-       	          | '(' pos error bracket_stop
-       		       {actual_parameters_construction_pos = $2; $$ = NULL;}
+actual_parameters : '(' expr_list_empty ')'
+       		       {
+			 actual_parameters_construction_pos = $1;
+			 $$ = $2;
+		       }
+       	          | '(' error
+		      {
+			if (repl_flag)
+			  YYABORT;
+		      }
+		    bracket_stop
+       		      {
+			actual_parameters_construction_pos = $1;
+			$$ = NULL;
+		      }
        	          ;
 expr_list_empty :           {$$ = NULL;}
        	        | expr_list
                     {
-		      $$ = IR_next_elist ($1); IR_set_next_elist ($1, NULL);
+		      $$ = IR_next_elist ($1);
+		      IR_set_next_elist ($1, NULL);
 		    }
        	        ;
 /* Attribute value is the last element of the cycle list. */
@@ -615,15 +666,19 @@ expr_list : pos expr
 	        IR_set_repetition_key ($$, NULL);
                 IR_set_next_elist ($$, $$);
               }
-          | expr_list ',' pos expr
+          | expr_list ',' expr
               {
-                $$ = create_node_with_pos (IR_NM_elist_element, $3);
+                $$ = create_node_with_pos (IR_NM_elist_element, $2);
      	        IR_set_repetition_key ($$, NULL);
-                IR_set_expr ($$, $4);
+                IR_set_expr ($$, $3);
                 IR_set_next_elist ($$, IR_next_elist ($1));
                 IR_set_next_elist ($1, $$);
               }
           ;
+access :      { $$ = DEFAULT_ACCESS; }
+       | '-'  { $$ = PRIVATE_ACCESS; }
+       | '+'  { $$ = PUBLIC_ACCESS; }
+       ;
 /* Attribute value is cyclic list of stmts corresponding to var decls
    with the pointer to the last element.  The attribute before
    val_var_list must be flag of that this is in var decl (not
@@ -633,77 +688,103 @@ val_var_list : val_var   {$$ = $1;}
        	         {
 	           $$ = $4;
 	           if ($1 != NULL)
-	     	 {
-	     	   IR_node_t first;
+	     	     {
+		       IR_node_t first;
 	     	   
-	     	   first = IR_next_stmt ($$);
-	     	   IR_set_next_stmt ($$, IR_next_stmt ($1));
-	     	   IR_set_next_stmt ($1, first);
-	     	 }
+		       first = IR_next_stmt ($$);
+		       IR_set_next_stmt ($$, IR_next_stmt ($1));
+		       IR_set_next_stmt ($1, first);
+		     }
 	         }
-       	     | error {$$ = NULL;}
+       	     | error
+	         {
+		   if (repl_flag)
+		     YYABORT;
+		   $$ = NULL;
+		 }
        	     ;
 /* Attribute value is cyclic list of stmts corresponding to var decl
    (and possibly assignment stmt) with the pointer to the last
    element.  The attribute before val_var_list must be flag of
    that this is in var decl (not parameters). */
-val_var : IDENT pos
+val_var : access IDENT
             {
-	      $$ = process_var_decl ($1, $2, $<flag>0,
-				     NULL, $2, IR_NM_var_assign);
+	      $$ = process_var_decl ($1, $2, IR_pos ($2), $<flag>0,
+				     NULL, IR_pos ($2), IR_NM_var_assign);
 	    }
-        | IDENT pos '=' pos expr
+        | access IDENT '=' expr
             {
-	      $$ = process_var_decl ($1, $2, $<flag>0,
-				     $5, $4, IR_NM_var_assign);
+	      $$ = process_var_decl ($1, $2, IR_pos ($2), $<flag>0,
+				     $4, $3, IR_NM_var_assign);
 	    }
         ;
 /* Attribute value is cyclic list of stmts corresponding to stmt
    (declaration). */
 stmt : executive_stmt
-                    {
-                      if ($1 != NULL)
-                        IR_set_next_stmt ($1, $1);
-                      $$ = $1; 
-                    }
+         {
+           if ($1 != NULL)
+             IR_set_next_stmt ($1, $1);
+           $$ = $1; 
+         }
      | declaration        {$$ = $1;}
-     | error stmt_stop    {$$ = NULL;}
+     | error
+         {
+	   if (repl_flag)
+	     YYABORT;
+	 }
+       stmt_stop
+         {
+	   $$ = NULL;
+	 }
      ;
-assign : '='            {$$ = IR_NM_assign;}
-       | MULT_ASSIGN    {$$ = IR_NM_mult_assign;}
-       | DIV_ASSIGN     {$$ = IR_NM_div_assign;}
-       | MOD_ASSIGN     {$$ = IR_NM_mod_assign;}
-       | PLUS_ASSIGN    {$$ = IR_NM_plus_assign;}
-       | MINUS_ASSIGN   {$$ = IR_NM_minus_assign;}
-       | CONCAT_ASSIGN  {$$ = IR_NM_concat_assign;}
-       | LSHIFT_ASSIGN  {$$ = IR_NM_lshift_assign;}
-       | RSHIFT_ASSIGN  {$$ = IR_NM_rshift_assign;}
-       | ASHIFT_ASSIGN  {$$ = IR_NM_ashift_assign;}
-       | AND_ASSIGN     {$$ = IR_NM_and_assign;}
-       | XOR_ASSIGN     {$$ = IR_NM_xor_assign;}
-       | OR_ASSIGN      {$$ = IR_NM_or_assign;}
+assign : '='
+           {$$ = create_node_with_pos (IR_NM_assign, $1);}
+       | MULT_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_mult_assign, $1);}
+       | DIV_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_div_assign, $1);}
+       | MOD_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_mod_assign, $1);}
+       | PLUS_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_plus_assign, $1);}
+       | MINUS_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_minus_assign, $1);}
+       | CONCAT_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_concat_assign, $1);}
+       | LSHIFT_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_lshift_assign, $1);}
+       | RSHIFT_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_rshift_assign, $1);}
+       | ASHIFT_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_ashift_assign, $1);}
+       | AND_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_and_assign, $1);}
+       | XOR_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_xor_assign, $1);}
+       | OR_ASSIGN
+           {$$ = create_node_with_pos (IR_NM_or_assign, $1);}
        ;
-incr_decr : INCR {$$ = get_int_node (1, source_position);}
-          | DECR {$$ = get_int_node (-1, source_position);}
+incr_decr : INCR {$$ = get_int_node (1, $1);}
+          | DECR {$$ = get_int_node (-1, $1);}
           ;
 executive_stmt :
       {$<flag>$ = $<flag>0;} end_simple_stmt      {$$ = NULL;}
-    | designator assign pos expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | designator assign expr {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
-          $$ = create_node_with_pos ($2, $3);
-          IR_set_assignment_var ($$, $1); 
-          IR_set_assignment_expr ($$, $4);
+          $$ = $2;
+          IR_set_assignment_var ($$, $1);
+          IR_set_assignment_expr ($$, $3);
         }
-    | designator incr_decr pos {$<flag>$ = $<flag>0;} end_simple_stmt
+    | designator incr_decr {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
-          $$ = create_node_with_pos (IR_NM_plus_assign, $3);
+          $$ = create_node_with_pos (IR_NM_plus_assign, IR_pos ($2));
           IR_set_assignment_var ($$, $1); 
           IR_set_assignment_expr ($$, $2);
         }
-    | incr_decr pos designator {$<flag>$ = $<flag>0;} end_simple_stmt
+    | incr_decr designator {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
-          $$ = create_node_with_pos (IR_NM_plus_assign, $2);
-          IR_set_assignment_var ($$, $3); 
+          $$ = create_node_with_pos (IR_NM_plus_assign, IR_pos ($1));
+          IR_set_assignment_var ($$, $2); 
           IR_set_assignment_expr ($$, $1);
         }
     | designator actual_parameters {$<flag>$ = $<flag>0;} end_simple_stmt
@@ -713,73 +794,88 @@ executive_stmt :
 	  IR_set_proc_expr ($$, $1);
 	  IR_set_proc_actuals ($$, $2);
         }
-    | IF pos '(' expr ')' {$<flag>$ = $<flag>0;} stmt else_part
+    | IF '(' expr ')' {$<flag>$ = $<flag>0;} stmt else_part
        	{
-          $$ = create_node_with_pos (IR_NM_if_stmt, $2);
-          IR_set_if_expr ($$, $4);
-          IR_set_if_part ($$, uncycle_stmt_list ($7));
-          IR_set_else_part ($$, $8);
+          $$ = create_node_with_pos (IR_NM_if_stmt, $1);
+          IR_set_if_expr ($$, $3);
+          IR_set_if_part ($$, uncycle_stmt_list ($6));
+          IR_set_else_part ($$, $7);
         }
-    | IF pos '(' error bracket_stop {$<flag>$ = $<flag>0;} stmt else_part
+    | IF '(' error
+        {
+	  if (repl_flag)
+	    YYABORT;
+        }
+      bracket_stop {$<flag>$ = $<flag>0;} stmt else_part
        	{
-          $$ = create_node_with_pos (IR_NM_if_stmt, $2);
+          $$ = create_node_with_pos (IR_NM_if_stmt, $1);
           IR_set_if_expr ($$, NULL);
           IR_set_if_part ($$, uncycle_stmt_list ($7));
           IR_set_else_part ($$, $8);
         }
-    | FOR pos '(' clear_flag stmt for_guard_expr ';' set_flag stmt ')'
+    | FOR '(' clear_flag stmt for_guard_expr ';' set_flag stmt ')'
         {$<flag>$ = $<flag>0;} stmt
        	{
-          $$ = create_node_with_pos (IR_NM_for_stmt, $2);
-          IR_set_for_initial_stmt ($$, uncycle_stmt_list ($5));
-          IR_set_for_guard_expr ($$, $6);
-          IR_set_for_iterate_stmt ($$, uncycle_stmt_list ($9));
-          IR_set_for_stmts ($$, uncycle_stmt_list ($12));
+          $$ = create_node_with_pos (IR_NM_for_stmt, $1);
+          IR_set_for_initial_stmt ($$, uncycle_stmt_list ($4));
+          IR_set_for_guard_expr ($$, $5);
+          IR_set_for_iterate_stmt ($$, uncycle_stmt_list ($8));
+          IR_set_for_stmts ($$, uncycle_stmt_list ($11));
         }
-    | FOR pos '(' clear_flag designator IN expr ')'
+    | FOR '(' clear_flag designator IN expr ')'
         {$<flag>$ = $<flag>0;} stmt
        	{
-          $$ = create_node_with_pos (IR_NM_foreach_stmt, $2);
-          IR_set_foreach_designator ($$, $5);
-          IR_set_foreach_table ($$, $7);
-          IR_set_foreach_stmts ($$, uncycle_stmt_list ($10));
+          $$ = create_node_with_pos (IR_NM_foreach_stmt, $1);
+          IR_set_foreach_designator ($$, $4);
+          IR_set_foreach_table ($$, $6);
+          IR_set_foreach_stmts ($$, uncycle_stmt_list ($9));
         }
-    | FOR pos '(' error bracket_stop {$<flag>$ = $<flag>0;} stmt
+    | FOR '(' error
+        {
+	  if (repl_flag)
+	    YYABORT;
+	}
+      bracket_stop {$<flag>$ = $<flag>0;} stmt
        	{
-          $$ = create_node_with_pos (IR_NM_for_stmt, $2);
+          $$ = create_node_with_pos (IR_NM_for_stmt, $1);
           IR_set_for_initial_stmt ($$, NULL);
           IR_set_for_guard_expr ($$, NULL);
           IR_set_for_iterate_stmt ($$, NULL);
           IR_set_foreach_stmts ($$, uncycle_stmt_list ($7));
         }
-    | BREAK pos {$<flag>$ = $<flag>0;} end_simple_stmt
-        {$$ = create_node_with_pos (IR_NM_break_stmt, $2);}
-    | CONTINUE pos {$<flag>$ = $<flag>0;} end_simple_stmt
- 	{$$ = create_node_with_pos (IR_NM_continue_stmt, $2);}
-    | RETURN pos expr_empty {$<flag>$ = $<flag>0;} end_simple_stmt
+    | BREAK {$<flag>$ = $<flag>0;} end_simple_stmt
+        {$$ = create_node_with_pos (IR_NM_break_stmt, $1);}
+    | CONTINUE {$<flag>$ = $<flag>0;} end_simple_stmt
+        {$$ = create_node_with_pos (IR_NM_continue_stmt, $1);}
+    | RETURN expr_empty {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
-          if ($3 == NULL)
-            $$ = create_node_with_pos (IR_NM_return_without_result, $2);
+          if ($2 == NULL)
+            $$ = create_node_with_pos (IR_NM_return_without_result, $1);
           else
             {
-              $$ = create_node_with_pos (IR_NM_return_with_result, $2);
-              IR_set_returned_expr ($$, $3);
+              $$ = create_node_with_pos (IR_NM_return_with_result, $1);
+              IR_set_returned_expr ($$, $2);
             }
        	}
-    | THROW pos expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | THROW expr {$<flag>$ = $<flag>0;} end_simple_stmt
        	{
-          $$ = create_node_with_pos (IR_NM_throw, $2);
-          IR_set_throw_expr ($$, $3); 
+          $$ = create_node_with_pos (IR_NM_throw, $1);
+          IR_set_throw_expr ($$, $2); 
         }
-    | WAIT pos '(' expr ')' {$<flag>$ = $<flag>0;} stmt
+    | WAIT '(' expr ')' {$<flag>$ = $<flag>0;} stmt
        	{
-          $$ = create_node_with_pos (IR_NM_wait_stmt, $2);
-          IR_set_wait_guard_expr ($$, $4);
-          IR_set_wait_stmt ($$, uncycle_stmt_list ($7));
+          $$ = create_node_with_pos (IR_NM_wait_stmt, $1);
+          IR_set_wait_guard_expr ($$, $3);
+          IR_set_wait_stmt ($$, uncycle_stmt_list ($6));
         }
-    | WAIT pos '(' error bracket_stop {$<flag>$ = $<flag>0;} stmt
+    | WAIT '(' error
+        {
+	  if (repl_flag)
+	    YYABORT;
+	}
+      bracket_stop {$<flag>$ = $<flag>0;} stmt
        	{
-          $$ = create_node_with_pos (IR_NM_wait_stmt, $2);
+          $$ = create_node_with_pos (IR_NM_wait_stmt, $1);
           IR_set_wait_guard_expr ($$, NULL);
           IR_set_wait_stmt ($$, uncycle_stmt_list ($7));
         }
@@ -793,7 +889,7 @@ block_stmt :    {
                   $<pointer>$ = create_node_with_pos (IR_NM_block,
 	                                              no_position);
                   IR_set_func_class_ext ($<pointer>$, NULL);
-                  IR_set_access_list ($<pointer>$, NULL);
+                  IR_set_friend_list ($<pointer>$, NULL);
                   IR_set_block_scope ($<pointer>$, current_scope);
                   current_scope = $<pointer>$;
 		  IR_set_exceptions ($<pointer>$, NULL);
@@ -802,8 +898,8 @@ block_stmt :    {
        		{
                   $$ = $<pointer>1;
        		  IR_set_block_stmts ($$, uncycle_stmt_list ($2));
-       		  IR_set_access_list
-		    ($$, uncycle_access_list (IR_access_list ($$)));
+       		  IR_set_friend_list
+		    ($$, uncycle_friend_list (IR_friend_list ($$)));
        		  current_scope = IR_block_scope ($$);
                 }
            ;
@@ -811,7 +907,7 @@ try_block_stmt :    {
 	              $<pointer>$ = create_node_with_pos (IR_NM_block,
 							  no_position);
 		      IR_set_func_class_ext ($<pointer>$, NULL);
-		      IR_set_access_list ($<pointer>$, NULL);
+		      IR_set_friend_list ($<pointer>$, NULL);
 		      IR_set_block_scope ($<pointer>$, current_scope);
 		      current_scope = $<pointer>$;
 		      IR_set_exceptions ($<pointer>$, NULL);
@@ -820,8 +916,8 @@ try_block_stmt :    {
        		    {
 		      $<pointer>$ = $<pointer>1;
 		      IR_set_block_stmts ($<pointer>$, uncycle_stmt_list ($3));
-		      IR_set_access_list
-			($<pointer>$, uncycle_access_list (IR_access_list
+		      IR_set_friend_list
+			($<pointer>$, uncycle_friend_list (IR_friend_list
 							   ($<pointer>$)));
 		      current_scope = IR_block_scope ($<pointer>$);
 		    }
@@ -846,12 +942,12 @@ catch : CATCH  '(' except_class_list ')'
             $<pointer>$ = create_node_with_pos (IR_NM_block,
 	                                        no_position);
             IR_set_func_class_ext ($<pointer>$, NULL);
-            IR_set_access_list ($<pointer>$, NULL);
+            IR_set_friend_list ($<pointer>$, NULL);
             IR_set_block_scope ($<pointer>$, current_scope);
             current_scope = $<pointer>$;
 	    IR_set_exceptions ($<pointer>$, NULL);
 	    /* Add variable for catched exception. */
-	    $<pointer>$ = create_node_with_pos (IR_NM_var, current_position);
+	    $<pointer>$ = create_node_with_pos (IR_NM_var, $4);
 	    IR_set_next_stmt ($<pointer>$, $<pointer>$);
 	    IR_set_scope ($<pointer>$, current_scope);
 	    IR_set_ident ($<pointer>$, get_ident_node (CATCH_EXCEPTION_NAME,
@@ -862,29 +958,38 @@ catch : CATCH  '(' except_class_list ')'
 	    IR_set_block_stmts (current_scope,
 				uncycle_stmt_list (merge_stmt_lists
 						   ($<pointer>5, $6)));
-	    IR_set_access_list
+	    IR_set_friend_list
 	      (current_scope,
-	       uncycle_access_list (IR_access_list (current_scope)));
+	       uncycle_friend_list (IR_friend_list (current_scope)));
 	    $$ = $3;
 	    IR_set_catch_block (IR_next_exception ($3), current_scope);
 	    current_scope = IR_block_scope (current_scope);
 	  }
-      | error {$$ = NULL;}
+      | error
+        {
+	  if (repl_flag)
+	    YYABORT;
+	  $$ = NULL;
+	}
       ;
 /* Attribute value is cyclic list of exceptions with the pointer to
    the last one. */
 except_class_list : expr
                       {
-			$$ = create_node_with_pos (IR_NM_exception,
-						   current_position);
+			position_t pos = current_position;
+			pos.column_number--;
+
+			$$ = create_node_with_pos (IR_NM_exception, pos);
 			IR_set_exception_class_expr ($$, $1);
 			IR_set_catch_block ($$, NULL);
 			IR_set_next_exception ($$, $$);
 		      }
                   | except_class_list ',' expr
                       {
-			$$ = create_node_with_pos (IR_NM_exception,
-						   current_position);
+			position_t pos = current_position;
+			pos.column_number--;
+
+			$$ = create_node_with_pos (IR_NM_exception, pos);
 			IR_set_exception_class_expr ($$, $3);
 			IR_set_catch_block ($$, NULL);
 			IR_set_next_exception ($$, IR_next_exception ($1));
@@ -892,32 +997,31 @@ except_class_list : expr
 		      }
                   ;
 /* Attribute value is cyclic list of ident in clause with the pointer
-   to the last one.  The rules also uses attributes in variables
-   public_flag, friend_flag (it is possible because there are no
-   nested access list declarations. */
-access_list : IDENT
+   to the last one. */
+friend_list : IDENT
                {
-                 $$ = create_node (IR_NM_access_ident);
+                 $$ = create_node (IR_NM_friend_ident);
                  IR_set_ident_in_clause ($$, $1);
-		 IR_set_access_ident_public_flag ($$, public_flag);
-		 IR_set_friend_flag ($$, friend_flag);
-                 IR_set_next_access_ident ($$, $$);
+                 IR_set_next_friend_ident ($$, $$);
                }
-     	    | access_list ',' IDENT
-     	       {
-                 $$ = create_node (IR_NM_access_ident);
-		 IR_set_access_ident_public_flag ($$, public_flag);
-		 IR_set_friend_flag ($$, friend_flag);
-                 if ($1 != NULL)
-                   {
-                     IR_set_next_access_ident ($$, IR_next_access_ident ($1));
-                     IR_set_next_access_ident ($1, $$);
-                   }
-                 else
-                   IR_set_next_access_ident ($$, $$);
-                 IR_set_ident_in_clause ($$, $3);
-               }
-     	    | error {$$ = NULL;}
+     	    | friend_list ',' IDENT
+     	        {
+		  $$ = create_node (IR_NM_friend_ident);
+		  if ($1 != NULL)
+		    {
+		      IR_set_next_friend_ident ($$, IR_next_friend_ident ($1));
+		      IR_set_next_friend_ident ($1, $$);
+		    }
+		  else
+		    IR_set_next_friend_ident ($$, $$);
+		  IR_set_ident_in_clause ($$, $3);
+		}
+     	    | error
+	        {
+		  if (repl_flag)
+		    YYABORT;
+		  $$ = NULL;
+		}
      	    ;
 /* Attribute value is cyclic list of stmts corresponding to decls with
    the pointer to last element.  Class (function) declaration is
@@ -927,17 +1031,29 @@ declaration : VAL set_flag val_var_list {$<flag>$ = $<flag>0;}
                 end_simple_stmt {$$ = $3;}
             | VAR clear_flag val_var_list {$<flag>$ = $<flag>0;}
                 end_simple_stmt {$$ = $3;}
-            | access access_list {$<flag>$ = $<flag>0;} end_simple_stmt
+            | FRIEND friend_list {$<flag>$ = $<flag>0;}
+                end_simple_stmt
                 {
-		  IR_set_access_list (current_scope,
-				      merge_access_lists
-				      (IR_access_list (current_scope), $2));
+		  IR_set_friend_list (current_scope,
+				      merge_friend_lists
+				      (IR_friend_list (current_scope), $2));
 		  $$ = NULL;
 		}
-            | EXTERN set_flag extern_list {$<flag>$ = $<flag>0;}
+            | EXTERN clear_flag extern_list {$<flag>$ = $<flag>0;}
                 end_simple_stmt
                 {$$ = $3;}
             | header block { $$ = process_header_block ($1, $2); }
+            | func_thread_class access IDENT
+                {
+		  IR_set_pos ($1, IR_pos ($3));
+		  $<flag>$ = $<flag>0;
+                }
+              end_simple_stmt
+    	        {
+		  process_header (FALSE, $1, $3);
+		  IR_set_access ($1, $2);
+		  $$ = $1;
+		}
             | INCLUDE STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $2;
@@ -960,11 +1076,6 @@ declaration : VAL set_flag val_var_list {$<flag>$ = $<flag>0;}
                   $$ = $7;
                 }
             ;
-/* Access has two attributes in variables `public_flag' and `friend_flag'. */
-access : PUBLIC  {public_flag = TRUE; friend_flag = FALSE;}
-       | PRIVATE {public_flag = FALSE; friend_flag = FALSE;}
-       | FRIEND  {public_flag = FALSE; friend_flag = TRUE;}
-       ;
 extern_list : extern_item {$$ = $1;}
             | extern_list ',' {$<flag>$ = $<flag>0;} extern_item
                 {
@@ -979,19 +1090,21 @@ extern_list : extern_item {$$ = $1;}
                      }
                 }
             ;
-extern_item : IDENT pos
+extern_item : access IDENT
                 {
-		  $$ = create_node_with_pos (IR_NM_external_var, $2);
+		  $$ = create_node_with_pos (IR_NM_external_var, IR_pos ($2));
 		  IR_set_scope ($$, current_scope);
-		  IR_set_ident ($$, $1);
+		  IR_set_ident ($$, $2);
 		  IR_set_next_stmt ($$, $$);
+		  IR_set_access ($$, $1);
                 }
-            | IDENT pos '(' ')'
+            | access IDENT '(' ')'
                 {
-		  $$ = create_node_with_pos (IR_NM_external_func, $2);
+		  $$ = create_node_with_pos (IR_NM_external_func, IR_pos ($2));
 		  IR_set_scope ($$, current_scope);
-		  IR_set_ident ($$, $1);
+		  IR_set_ident ($$, $2);
 		  IR_set_next_stmt ($$, $$);
+		  IR_set_access ($$, $1);
                 }
             ;
 inclusion :   {$$ = NULL;}
@@ -1019,44 +1132,53 @@ end_simple_stmt : ';'
                       if ($<flag>0)
                         yychar = ')';
 		      else if (!YYRECOVERING ())
-                       yyerror ("syntax error");
+			{
+			  yyerror ("syntax error");
+			  if (repl_flag)
+			    YYABORT;
+			}
                     }
                 ;
-header : func_thread_class IDENT { process_header ($1, $2); }
-         formal_parameters { $$ = process_formal_parameters ($1, $4); }
-       | EXT pos IDENT
+header : func_thread_class access IDENT
+           {
+	     IR_set_pos ($1, IR_pos ($3));
+	     IR_set_access ($1, $2);
+	     process_header (TRUE, $1, $3);
+	   }
+         formal_parameters { $$ = process_formal_parameters ($1, $5); }
+       | EXT IDENT
        	   {
              IR_node_t block;
              
-	     $$ = create_node_with_pos (IR_NM_ext, $2);
+	     $$ = create_node_with_pos (IR_NM_ext, IR_pos ($2));
              IR_set_scope ($$, current_scope);
-             IR_set_ident ($$, $3);
+             IR_set_ident ($$, $2);
              block = create_node_with_pos (IR_NM_block, no_position);
              IR_set_next_stmt (block, $$);
              IR_set_next_stmt ($$, block);
              IR_set_func_class_ext (block, $$);
-	     IR_set_access_list (block, NULL);
+	     IR_set_friend_list (block, NULL);
              IR_set_block_scope (block, current_scope);
 	     IR_set_exceptions (block, NULL);
              current_scope = block;
 	     $$ = NULL; /* Formal parameters list. */
            }
        ;
-func_thread_class : opt_final FUNC pos
+func_thread_class : opt_final FUNC
                       {
-			$$ = create_node_with_pos (IR_NM_func, $3);
+			$$ = create_node (IR_NM_func);
 			IR_set_thread_flag ($$, FALSE);
 			IR_set_final_flag ($$, $1);
 		      }
-       	          | opt_final THREAD pos
+       	          | opt_final THREAD
                       {
-                        $$ = create_node_with_pos (IR_NM_func, $3);
+                        $$ = create_node (IR_NM_func);
 			IR_set_thread_flag ($$, TRUE);
 			IR_set_final_flag ($$, $1);
 		      }
-       	          | opt_final CLASS pos
+       	          | opt_final CLASS
                       {
-			$$ = create_node_with_pos (IR_NM_class, $3);
+			$$ = create_node (IR_NM_class);
 			IR_set_final_flag ($$, $1);
 		      }
       	          ;
@@ -1087,19 +1209,26 @@ par_list : par   {$$ = $1;}
 	 	   IR_set_next_stmt ($1, first);
 	 	 }
 	     }
-       	 | error {$$ = NULL;}
+       	 | error
+	     {
+	       if (repl_flag)
+		 YYABORT;
+	       $$ = NULL;
+	     }
        	 ;
 par_kind :      {$$ = 0;}
          | VAL  {$$ = 1;}
          | VAR  {$$ = 0;}
          ;
-par : par_kind IDENT pos
+par : par_kind access IDENT
         {
-	  $$ = process_var_decl ($2, $3, $1, NULL, $3, IR_NM_par_assign);
+	  $$ = process_var_decl ($2, $3, IR_pos ($3), $1,
+				 NULL, IR_pos ($3), IR_NM_par_assign);
         }
-    | par_kind IDENT pos '=' pos expr
+    | par_kind access IDENT '=' expr
         {
-	  $$ = process_var_decl ($2, $3, $1, $6, $5, IR_NM_par_assign);
+	  $$ = process_var_decl ($2, $3, IR_pos ($3), $1, $5,
+				 $4, IR_NM_par_assign);
         }
     ;
 par_list_empty :          {$$ = NULL;} 
@@ -1111,10 +1240,10 @@ formal_parameters :    {formal_parameter_args_flag = FALSE; $$ = NULL;}
                          formal_parameter_args_flag = FALSE;
 			 $$ = $2;
 		       }
-       	          | '(' par_list ',' DOTS pos ')'
+       	          | '(' par_list ',' DOTS ')'
                        {
 			 formal_parameter_args_flag = TRUE;
-			 $$ = create_node_with_pos (IR_NM_var, $5);
+			 $$ = create_node_with_pos (IR_NM_var, $4);
 			 if ($2 != NULL)
 			   {
 			     IR_set_next_stmt ($$, IR_next_stmt ($2));
@@ -1123,26 +1252,26 @@ formal_parameters :    {formal_parameter_args_flag = FALSE; $$ = NULL;}
 			 else
 			   IR_set_next_stmt ($$, $$);
 			 IR_set_scope ($$, current_scope);
-			 IR_set_ident ($$, get_ident_node (ARGS_NAME, $5));
+			 IR_set_ident ($$, get_ident_node (ARGS_NAME, $4));
 		       }
-       	          | '(' DOTS pos ')'
+       	          | '(' DOTS ')'
                        {
 			 formal_parameter_args_flag = TRUE;
-			 $$ = create_node_with_pos (IR_NM_var, $3);
+			 $$ = create_node_with_pos (IR_NM_var, $2);
 			 IR_set_scope ($$, current_scope);
-			 IR_set_ident ($$,  get_ident_node (ARGS_NAME, $3));
+			 IR_set_ident ($$,  get_ident_node (ARGS_NAME, $2));
 			 IR_set_next_stmt ($$, $$);
 		       }
        	          ;
 /* See comments for stmt_list. */
-block : '{' pos
+block : '{'
              {
 	       start_block ();
 	     }
          stmt_list '}'
              {
-               IR_set_pos (current_scope, $2);
-               $$ = $4;
+               IR_set_pos (current_scope, $1);
+               $$ = $3;
 	       finish_block ();
              }
       ;
@@ -1151,29 +1280,28 @@ stmt_list :                          	      {$$ = NULL;}
           | stmt_list clear_flag stmt
 	      {
 		$$ = merge_stmt_lists ($1, merge_additional_stmts ($3));
+		repl_process_flag = repl_can_process_p ();
 	      }
-       	  | stmt_list error                   {$$ = $1;}
+       	  | stmt_list error
+	      {
+		if (repl_flag)
+		  YYABORT;
+		$$ = $1;
+	      }
        	  ;
-program : pos
-            {
-              current_scope = $<pointer>$
-                = create_node_with_pos (IR_NM_block, $1);
-              IR_set_next_stmt ($<pointer>$, NULL);
-              IR_set_func_class_ext ($<pointer>$, NULL);
-	      IR_set_access_list ($<pointer>$, NULL);
-	      IR_set_exceptions ($<pointer>$, NULL);
-	      start_block ();
-	      additional_stmts = NULL;
+program :   {
+	      repl_process_flag = FALSE;
+	      IR_set_friend_list (current_scope, NULL);
+	      IR_set_next_stmt (current_scope, NULL);
             }
           stmt_list
             {
-              first_program_stmt = $<pointer>2;
+              first_program_stmt = current_scope;
               IR_set_block_stmts (first_program_stmt,
-                                  uncycle_stmt_list ($3));
-	      IR_set_access_list
-		(first_program_stmt,
-		 uncycle_access_list (IR_access_list (first_program_stmt)));
-	      finish_block ();
+                                  uncycle_stmt_list ($2));
+	      IR_set_friend_list
+		(current_scope,
+		 uncycle_friend_list (IR_friend_list (current_scope)));
             }
           END_OF_FILE
             {
@@ -1181,6 +1309,26 @@ program : pos
 	    }
         ;
 %%
+
+/* True if we did not print syntax error yet.  We can not leave
+   yyparse by longjmp as we need to finalize some data.  We leave
+   YYABORT in most cases but it is guaranted for all yyerors
+   calls. Spurious subsequent syntax errors should be suppressed for
+   better experience in REPL.  */
+static int first_error_p;
+
+/* This func is called by yacc parser and for fatal error
+   reporting. */
+static int
+yyerror (const char *message)
+{
+   if (! repl_flag || first_error_p)
+    d_error (FALSE, source_position, "%s", message);
+  first_error_p = FALSE;
+  return 0; /* No warnings */
+}
+
+
 
 /* Merging two cyclic lists into one cyclic list. */
 static IR_node_t
@@ -1222,7 +1370,7 @@ uncycle_stmt_list (IR_node_t list)
 
 /* Merging two cyclic lists into one cyclic list. */
 static IR_node_t
-merge_access_lists (IR_node_t list1, IR_node_t list2)
+merge_friend_lists (IR_node_t list1, IR_node_t list2)
 {
   IR_node_t result;
 
@@ -1231,9 +1379,9 @@ merge_access_lists (IR_node_t list1, IR_node_t list2)
       {
         IR_node_t first;
         
-        first = IR_next_access_ident (list2);
-        IR_set_next_access_ident (list2, IR_next_access_ident (list1));
-        IR_set_next_access_ident (list1, first);
+        first = IR_next_friend_ident (list2);
+        IR_set_next_friend_ident (list2, IR_next_friend_ident (list1));
+        IR_set_next_friend_ident (list1, first);
       }
     result = list2;
   }
@@ -1245,14 +1393,14 @@ merge_access_lists (IR_node_t list1, IR_node_t list2)
 /* Make normal list from cycle ident list with the pointer to the last
    stmt. */
 static IR_node_t
-uncycle_access_list (IR_node_t list)
+uncycle_friend_list (IR_node_t list)
 {
   IR_node_t first;
 
   if (list == NULL)
     return list;
-  first = IR_next_access_ident (list);
-  IR_set_next_access_ident (list, NULL);
+  first = IR_next_friend_ident (list);
+  IR_set_next_friend_ident (list, NULL);
   return first;
 }
 
@@ -1299,11 +1447,13 @@ uncycle_exception_list (IR_node_t list)
    the variable.  Create cyclic list of the node(s) and return the
    last one.  */
 static IR_node_t
-process_var_decl (IR_node_t ident, position_t ident_pos, int val_flag,
-		  IR_node_t expr, position_t expr_pos, IR_node_mode_t assign)
+process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
+		  int val_flag, IR_node_t expr, position_t expr_pos,
+		  IR_node_mode_t assign)
 {
   IR_node_t res = create_node_with_pos (IR_NM_var, ident_pos);
 
+  IR_set_access (res, access);
   IR_set_scope (res, current_scope);
   IR_set_ident (res, ident);
   IR_set_const_flag (res, val_flag);
@@ -1324,18 +1474,25 @@ process_var_decl (IR_node_t ident, position_t ident_pos, int val_flag,
 
 /* Process function/thread/class header.  */
 static void
-process_header (IR_node_t decl, IR_node_t ident)
+process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
 {
   IR_node_t block;
   
   IR_set_scope (decl, current_scope);
   IR_set_ident (decl, ident);
+  if (! create_block_p)
+    {
+      IR_set_next_stmt (decl, decl);
+      IR_set_forward_decl_flag (decl, TRUE);
+      return;
+    }
   block = create_node_with_pos (IR_NM_block, no_position);
+  IR_set_forward_decl_flag (decl, FALSE);
   IR_set_next_stmt (block, decl);
   IR_set_next_stmt (decl, block);
   IR_set_func_class_ext (block, decl);
   IR_set_block_scope (block, current_scope);
-  IR_set_access_list (block, NULL);
+  IR_set_friend_list (block, NULL);
   IR_set_exceptions (block, NULL);
   /* This assignment is here for that formal parameters are to be in
      corresponding block. */
@@ -1380,7 +1537,7 @@ process_header_block (IR_node_t header, IR_node_t block)
 
   IR_set_block_stmts
     (res, uncycle_stmt_list (merge_stmt_lists (header, block)));
-  IR_set_access_list (res, uncycle_access_list (IR_access_list (res)));
+  IR_set_friend_list (res, uncycle_friend_list (IR_friend_list (res)));
   current_scope = IR_block_scope (res);
   return res;
 }
@@ -1396,6 +1553,66 @@ merge_additional_stmts (IR_node_t list)
 
 
 
+/* This page contains abstracr data for reading, storing and
+   retrieving lines.  */
+
+/* Container for pointers to read lines.  */
+static vlo_t lines_vec;
+
+/* Container for read lines themself.  */
+static os_t lines;
+
+/* Initiate the abstract data.  */
+static void
+initiate_lines (void)
+{
+  VLO_CREATE (lines_vec, 0);
+  OS_CREATE (lines, 0);
+}
+
+/* Read next line from file, store it, and return it.  The non-empty
+   read line will always have NL at its end.  The trailing `\r' is
+   removed.  The empty line means reaching EOF. */
+static const char *
+read_line (FILE *f)
+{
+  int c;
+  const char *ln;
+
+  while ((c = getc (f)) != EOF && c != '\n')
+    OS_TOP_ADD_BYTE (lines, c);
+  if (c != EOF || OS_TOP_LENGTH (lines) > 0)
+    {
+      if (OS_TOP_LENGTH (lines) > 0 && *((char *) OS_TOP_END (lines)) =='\r')
+	OS_TOP_SHORTEN (lines, 1);
+      OS_TOP_ADD_BYTE (lines, '\n');
+    }
+  OS_TOP_ADD_BYTE (lines, '\0');
+  ln = OS_TOP_BEGIN (lines);
+  OS_TOP_FINISH (lines);
+  VLO_ADD_MEMORY (lines_vec, &ln, sizeof (char  *));
+  return ln;
+}
+
+/* Return N-th read line.  */
+const char *
+get_read_line (int n)
+{
+  d_assert (n >= 0 && VLO_LENGTH (lines_vec) > n * sizeof (char *));
+  return ((char **)VLO_BEGIN (lines_vec)) [n];
+}
+
+/* Finish the abstract data.  */
+static void
+finish_lines (void)
+{
+  OS_DELETE (lines);
+  VLO_DELETE (lines_vec);
+}
+
+
+
+
 /* This page contains abstract data `istream_stack'.  This abstract
    data opens and closes included files saves and restores scanner
    states corresponding to processed files. */
@@ -1407,15 +1624,16 @@ struct istream_state
 {
   /* The following member is defined only for
      `curr_istream_state'. And its value NULL when the current input
-     stream is undefined or command line. */
+     stream is undefined, command line, or REPL stdin.  */
   FILE *file;
   /* File name of given input stream. Null if the current input stream
      is undefined.  Empty string if the current input stream is
-     command line. */
+     command line or stdin in case of REPL. */
   const char *file_name;
   /* Current position in file corresponding to given input stream.
      The following member is defined only for structures in the input
-     stream stack and if it is not command line stream. */
+     stream stack and if it is not command line stream or REPL
+     stdin. */
   long file_pos;
   /* The following member contains parameter value of the function
      `add_lexema_to_file' after immediately call of this
@@ -1481,7 +1699,8 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
       /* The current stream is defined. */
       if (*curr_istream_state.file_name != '\0')
 	{
-	  /* The current stream is not command line. */
+	  /* The current stream is not command line or REPL stdin. */
+	  d_assert (curr_istream_state.file != stdin);
 	  curr_istream_state.file_pos = ftell (curr_istream_state.file);
 	  fclose (curr_istream_state.file);
 	  curr_istream_state.file = NULL;
@@ -1499,12 +1718,14 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
   curr_istream_state.file = NULL;
   if (*new_file_name != '\0')
     {
-      /* The current stream is not commad line. */
+      /* The current stream is not commad line or REPL stdin. */
       curr_istream_state.file = fopen (new_file_name, "rb");
       if (curr_istream_state.file == NULL)
 	system_error (TRUE, error_pos, "fatal error -- `%s': ", 
 		      curr_istream_state.file_name);
     }
+  else if (repl_flag)
+    command_line_program = ""; /* To read line when we need it. */
   previous_char = NOT_A_CHAR;
   start_file_position (curr_istream_state.file_name);
   curr_istream_state.uninput_lexema_code = (-1);
@@ -1521,6 +1742,8 @@ pop_istream_stack (void)
   d_assert (curr_istream_state.file_name != NULL);
   if (curr_istream_state.file != NULL)
     {
+      d_assert (istream_stack_height () == 0
+		|| curr_istream_state.file != stdin);
       fclose (curr_istream_state.file);
       curr_istream_state.file = NULL;
     }
@@ -1532,7 +1755,7 @@ pop_istream_stack (void)
       VLO_SHORTEN (istream_stack, sizeof (struct istream_state));
       if (*curr_istream_state.file_name != '\0')
 	{
-	  /* It is not command line stream. */
+	  /* It is not command line stream or REPL stdin. */
 	  curr_istream_state.file = fopen (curr_istream_state.file_name, "rb");
 	  if (curr_istream_state.file == NULL
 	      || fseek (curr_istream_state.file,
@@ -1716,6 +1939,10 @@ static position_t after_environment_position;
    the command line string. */
 static int curr_char_number;
 
+/* True if we did not see non-blank chars yet for the current REPL
+   bunch of stmts.  */
+static int first_repl_empty_line_p;
+
 /* Getc for dino.  Replacing "\r\n" onto "\n". */
 static int
 d_getc (void)
@@ -1726,8 +1953,13 @@ d_getc (void)
     {
       result = *environment++;
       if (*environment == 0)
-	/* Restore the position. */
-	current_position = after_environment_position;
+	{
+	  /* Restore the position. */
+	  current_position = after_environment_position;
+	  if (result == '\n')
+	    /* It will be incremented back. */
+	    current_position.line_number--;
+	}
     }
   else if (curr_istream_state.file != NULL)
     {
@@ -1752,6 +1984,25 @@ d_getc (void)
     {
       d_assert (command_line_program != NULL);
       result = command_line_program [curr_char_number];
+      if (repl_flag && result == 0)
+	{
+	  command_line_program = read_line (stdin);
+	  if (first_repl_empty_line_p)
+	    {
+	      int c;
+
+	      for (curr_char_number = 0;
+		   (c = command_line_program [curr_char_number]) == ' '
+		    || c == '\t' || c == '\n' || c == '\r' || c == 'f';
+		   curr_char_number++)
+		;
+	      first_repl_empty_line_p = c == '\0';
+	      /* Don't reuse curr_char_number value, we need to process
+		 positions correctly.  */
+	    }
+	  curr_char_number = 0;
+	  result = *command_line_program;
+	}
       if (result == 0)
 	result = EOF;
       else
@@ -1781,6 +2032,24 @@ d_ungetc (int ch)
      }
 }
 
+/* Used by REPL to skip the all line.  */
+void
+skip_line_rest (void)
+{
+  int c;
+
+  d_assert (repl_flag && *environment == 0);
+  /* Close all include files.  */
+  while (istream_stack_height () != 0)
+    {
+      previous_char = NOT_A_CHAR;
+      pop_istream_stack ();
+    }
+  command_line_program = "";
+  curr_char_number = 0;
+  current_position.line_number++;
+}
+
 /* Var length string used by func yylval for text presentation of the
    symbol. */
 static vlo_t symbol_text;
@@ -1797,12 +2066,14 @@ int yylex (void)
 {
   int input_char;
   int number_of_successive_error_characters;
-  
+  int last_repl_process_flag = repl_process_flag;
+
+  repl_process_flag = FALSE;
   if (curr_istream_state.uninput_lexema_code >= 0)
     {
       int result;
       
-      source_position = current_position;
+      yylval.pos = source_position = current_position;
       result = curr_istream_state.uninput_lexema_code;
       curr_istream_state.uninput_lexema_code = (-1);
       return result;
@@ -1827,12 +2098,24 @@ int yylex (void)
         case '\n':
           current_position.column_number = 1;
           current_position.line_number++;
+	  if (repl_flag)
+	    {
+	      if (last_repl_process_flag)
+		return END_OF_FILE;
+	      if (*environment == 0)
+		{
+		  if (first_repl_empty_line_p)
+		    print_stmt_prompt ();
+		  else
+		    print_stmt_cont_prompt ();
+		}
+	    }
           break;
         case '\r':
           current_position.column_number++;
           break;
         case '~':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -1846,7 +2129,7 @@ int yylex (void)
               return '~';
             }
         case '+':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '+')
@@ -1865,7 +2148,7 @@ int yylex (void)
               return '+';
             }
         case '-':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '-')
@@ -1884,7 +2167,7 @@ int yylex (void)
               return '-';
             }
         case '=':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -1908,7 +2191,7 @@ int yylex (void)
 	      return '=';
             }
         case '@':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -1922,7 +2205,7 @@ int yylex (void)
               return '@';
             }
         case '<':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -1951,7 +2234,7 @@ int yylex (void)
               return '<';
             }
         case '>':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -1995,7 +2278,7 @@ int yylex (void)
               return '>';
             }
         case '*':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -2009,7 +2292,7 @@ int yylex (void)
               return '*';
             }
         case '/':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -2072,7 +2355,7 @@ int yylex (void)
               return '/';
             }
         case '&':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '&')
@@ -2091,7 +2374,7 @@ int yylex (void)
               return '&';
             }
         case '|':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '|')
@@ -2110,7 +2393,7 @@ int yylex (void)
               return '|';
             }
         case '%':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -2124,7 +2407,7 @@ int yylex (void)
               return '%';
             }
         case '^':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -2138,7 +2421,7 @@ int yylex (void)
               return '^';
             }
         case '!':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '=')
@@ -2162,7 +2445,7 @@ int yylex (void)
               return '!';
             }
         case '.':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           input_char = d_getc ();
           if (input_char == '.')
@@ -2224,11 +2507,11 @@ int yylex (void)
         case '{':
         case '}':
         case '#':
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           current_position.column_number++;
           return input_char;
         case EOF:
-	  source_position = current_position;
+	  yylval.pos = source_position = current_position;
           return (istream_stack_height () == 0
 		  ? END_OF_FILE : END_OF_INCLUDE_FILE);
         case '\'':
@@ -2326,7 +2609,7 @@ int yylex (void)
             {
               int keyword;
               
-	      source_position = current_position;
+	      yylval.pos = source_position = current_position;
               /* Ident recognition. */
               do
                 {
@@ -2456,6 +2739,8 @@ get_new_ident (position_t pos)
 void
 initiate_scanner (void)
 {
+  if (repl_flag)
+    initiate_lines ();
   initiate_istream_stack ();
   curr_char_number = 0;
   environment = ENVIRONMENT;
@@ -2503,6 +2788,8 @@ add_lexema_to_file (int lexema_code)
 void
 finish_scanner (void)
 {
+  if (repl_flag)
+    finish_lines ();
   finish_istream_stack ();
 }
 
@@ -2579,6 +2866,44 @@ add_include_file (const char *name)
   VLO_ADD_MEMORY (include_file_names, &name, sizeof (name));
   curr_block_include_file_names_number++;
   return TRUE;
+}
+
+/* Return true if we can evaluate parsed stmnts in REPL.  */
+static int
+repl_can_process_p (void)
+{
+  return (repl_flag && block_level == 1
+	  /* To exclude include files */
+	  && istream_stack_height () == 0
+	  /* To process all environment at once.  Environment[0] is \n
+	     in case of finishing environment.  */
+	  && (*environment == '\0' || environment[1] == '\0'));
+}
+
+
+
+void
+initiate_parser (void)
+{
+  current_scope = create_node_with_pos (IR_NM_block, current_position);
+  IR_set_func_class_ext (current_scope, NULL);
+  IR_set_exceptions (current_scope, NULL);
+  start_block ();
+  additional_stmts = NULL;
+  first_error_p = TRUE;
+}
+
+void
+initiate_new_parser_REPL_stmts (void)
+{
+  d_assert (repl_flag);
+  first_error_p = first_repl_empty_line_p = TRUE;
+}
+
+void
+finish_parser (void)
+{
+  finish_block ();
 }
 
 /*

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2005, 2006 Vladimir Makarov.
+   Copyright (C) 2005-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -33,31 +33,26 @@ ext except {
 final class mpz_package () {
   var gmp_excepts = excepts.gmp_except ();
 
-  extern _z_create(), _z_clear(), _z_set(), _z_set_str(), _z_get_si(),
-         _z_get_d(), _z_get_str(), _z_set_bit(), _z_clr_bit(), _z_tst_bit(),
-         _z_add(), _z_sub(), _z_neg(), _z_abs(), _z_mul(), _z_tdiv_q(),
-         _z_tdiv_r(), _z_pow_ui(), _z_root(), _z_cmp(), _z_ior(), _z_xor(),
-         _z_and(), _z_com(), _z_urandomm();
-  private _z_create, _z_clear, _z_set, _z_set_str, _z_get_si, _z_get_d,
-          _z_get_str, _z_set_bit, _z_clr_bit, _z_tst_bit, _z_add, _z_sub,
-          _z_neg, _z_abs, _z_mul, _z_tdiv_q, _z_tdiv_r, _z_cmp, _z_pow_ui,
-          _z_root, _z_ior, _z_xor, _z_and, _z_com, _z_urandomm;
-  private check, check2, check_ui;
+  extern -_z_create(), -_z_clear(), -_z_set(), -_z_set_str(), -_z_get_si(),
+         -_z_get_d(), -_z_get_str(), -_z_set_bit(), -_z_clr_bit(), -_z_tst_bit(),
+         -_z_add(), -_z_sub(), -_z_neg(), -_z_abs(), -_z_mul(), -_z_tdiv_q(),
+         -_z_tdiv_r(), -_z_pow_ui(), -_z_root(), -_z_cmp(), -_z_ior(), -_z_xor(),
+         -_z_and(), -_z_com(), -_z_urandomm();
 
   final class mpz (i) {
-    private mpz_val; var mpz_val;
+    var -mpz_val;
     if (type (i) != int) throw gmp_excepts.gmp_param_val ();
     mpz_val = _z_create (i);
     func destroy () { _z_clear (mpz_val); }
   }
-  func check_ui (n) {
+  func -check_ui (n) {
     if (type (n) != int || n < 0) throw gmp_excepts.gmp_param_val ();
   }
-  func check (op) {
+  func -check (op) {
     if (type (op) != class () || ! inside (op, mpz_package))
       throw gmp_excepts.gmp_type ();
   }
-  func check2 (op1, op2) {
+  func -check2 (op1, op2) {
     if (type (op1) != class () || ! inside (op1, mpz_package)
 	|| type (op2) != class () || ! inside (op2, mpz_package))
       throw gmp_excepts.gmp_type ();

@@ -279,14 +279,20 @@ eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
   return TRUE;
 }
 
+/* Stack size with NVARS variables.  */
+static size_t do_always_inline
+vars_stack_size (int_t nvars)
+{
+  return nvars * sizeof (val_t) + ALLOC_SIZE (sizeof (_ER_heap_stack));
+}
+
 /* Minimal stack size of BLOCK_NODE.  */
 static size_t do_always_inline
 shrink_block_stack_size (BC_node_t block_node)
 {
   d_assert (block_node != NULL
 	    && BC_IS_OF_TYPE (block_node, BC_NM_block));
-  return (real_block_vars_number (block_node) * sizeof (val_t)
-	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
+  return vars_stack_size (real_block_vars_number (block_node));
 }
 
 /* The func returns size (in bytes) of the stack of the block node given
@@ -296,7 +302,7 @@ new_block_stack_size (BC_node_t block_node)
 {
   d_assert (block_node != NULL
 	    && BC_IS_OF_TYPE (block_node, BC_NM_block));
-  return (shrink_block_stack_size (block_node)
+  return (vars_stack_size (real_block_vars_number (block_node))
 	  + BC_tvars_num (block_node) * sizeof (val_t));
 }
 
@@ -1452,6 +1458,38 @@ update_profile (BC_node_t block_node)
   return calls_number;
 }
 
+/* Make the current stack vars starting with OFFSET undefined.  */
+static void do_always_inline
+make_cvars_undefined (int_t offset)
+{
+  ER_node_t curr_var;
+
+  if (offset >= 0)
+    /* Seting up mode of all permanent stack vars as undef. */
+    for (curr_var = IVAL (cvars, offset);
+	 curr_var <= ctop;
+	 curr_var = IVAL (curr_var, 1))
+      ER_SET_MODE (curr_var, ER_NM_undef);
+}
+
+/* Make STACK with VARS_NUM as the current stack.  Make vars starting
+   with OFFSET undefined. */
+static void do_always_inline
+setup_new_cstack (ER_node_t stack, int_t vars_num, int_t offset)
+{
+  d_assert (real_block_vars_number (ER_block_node (stack)) == vars_num);
+  if (cstack != NULL)
+    ER_set_ctop (cstack, (char *) ctop);
+  cstack = stack;
+  cvars = ER_stack_vars (cstack);
+  ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
+  make_cvars_undefined (offset);
+  /* We set them only here because we need to set mode before.
+     Remeber about possible field checking. */
+  if (cprocess != NULL)
+    ER_set_saved_cstack (cprocess, cstack);
+}
+
 /* Minimum number of calls after which we reuse stacks.  */
 #define STACK_REUSE_THRESHOLD 100
 
@@ -1467,7 +1505,6 @@ heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
 				  int offset, int_t calls_number)
 {
   ER_node_t stack;
-  ER_node_t curr_var;
   int vars_num;
 
   vars_num = real_block_vars_number (block_node);
@@ -1496,21 +1533,7 @@ heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
   ER_set_call_pc (stack, cpc);
   ER_set_context (stack, context);
   ER_set_prev_stack (stack, cstack);
-  if (cstack != NULL)
-    ER_set_ctop (cstack, (char *) ctop);
-  cstack = stack;
-  cvars = ER_stack_vars (cstack);
-  ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
-  if (offset >= 0)
-    /* Seting up mode of all permanent stack vars as undef. */
-    for (curr_var = IVAL (cvars, offset);
-	 curr_var <= ctop;
-	 curr_var = IVAL (curr_var, 1))
-      ER_SET_MODE (curr_var, ER_NM_undef);
-  /* We set them only here because we need to set mode before.
-     Remeber about possible field checking. */
-  if (cprocess != NULL)
-    ER_set_saved_cstack (cprocess, cstack);
+  setup_new_cstack (stack, vars_num, offset);
 }
 
 /* As the above function but also update profile info.  */
@@ -1595,6 +1618,55 @@ heap_pop (void)
 	}
     }
   ER_set_saved_cstack (cprocess, cstack);
+}
+
+/* Number of vars in previous version of the top block.  */
+static int_t previous_uppest_stack_vars_num;
+
+/* Create the uppest stack from its BLOCK_NODE.  */
+void
+create_uppest_stack (BC_node_t block_node)
+{
+  heap_push (block_node, NULL, 0);
+  uppest_stack = cstack;
+  tvars = ER_stack_vars (uppest_stack);
+  previous_uppest_stack_vars_num = real_block_vars_number (block_node);
+}
+
+/* Expand the uppest stack if necessary.  The current stack should the
+   existing uppest stack.  */
+void
+expand_uppest_stack (void)
+{
+  BC_node_t block_node;
+  int_t vars_num, tvars_num, new_all_block_vars;
+  ER_node_t stack;
+  
+  d_assert
+    (cstack == uppest_stack
+     && cprocess == ER_process (IVAL (ER_stack_vars (cstack),
+				      BC_var_num (main_thread_bc_decl))));
+  block_node = ER_block_node (uppest_stack);
+  vars_num = real_block_vars_number (block_node);
+  d_assert (previous_uppest_stack_vars_num <= vars_num);
+  tvars_num = BC_tvars_num (block_node);
+  if (ER_all_block_vars_num (uppest_stack) >= vars_num + tvars_num)
+    {
+      ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
+      make_cvars_undefined (previous_uppest_stack_vars_num);
+      previous_uppest_stack_vars_num = vars_num;
+      return;
+    }
+  new_all_block_vars = 2 * (vars_num + tvars_num);
+  stack = ((ER_node_t)
+	   heap_allocate (vars_stack_size (new_all_block_vars),
+			  ! BC_ext_life_p (block_node)));
+  memcpy (stack, uppest_stack, shrink_block_stack_size (block_node));
+  ER_set_all_block_vars_num (stack, new_all_block_vars);
+  setup_new_cstack (stack, vars_num, previous_uppest_stack_vars_num);
+  previous_uppest_stack_vars_num = vars_num;
+  uppest_stack = cstack;
+  tvars = cvars;
 }
 
 

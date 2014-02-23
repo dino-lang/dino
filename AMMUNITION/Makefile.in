@@ -492,12 +492,9 @@ $(srcdir)/ammunition.html: $(srcdir)/ammunition.sgml.in
         fi
 	mv ammunition.html $(srcdir)/ammunition.html
 	
-$(srcdir)/ammunition.info: $(srcdir)/ammunition.sgml.in
-	$(srcdir)/../sgml-info ammunition.sgml.tmp >ammunition.sgml
+$(srcdir)/ammunition.info: ammunition.sgml.tmp
+	cp ammunition.sgml.tmp ammunition.sgml
 	linuxdoc -B info --papersize=letter ammunition.sgml
-	for i in ammunition.info*;do\
-   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
-	done
 	if test -f ammunition.info-1;then\
 	  for i in ammunition.info-*;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -538,12 +535,9 @@ $(srcdir)/ammunition++.html: $(srcdir)/ammunition++.sgml.in
         fi
 	mv ammunition++.html $(srcdir)/ammunition++.html
 	
-$(srcdir)/ammunition++.info: $(srcdir)/ammunition++.sgml.in
-	$(srcdir)/../sgml-info ammunition++.sgml.tmp >ammunition++.sgml
+$(srcdir)/ammunition++.info: ammunition++.sgml.tmp
+	cp ammunition++.sgml.tmp ammunition++.sgml
 	linuxdoc -B info --papersize=letter ammunition++.sgml
-	for i in ammunition++.info*;do\
-	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
-	done
 	if test -f ammunition++.info-1;then\
 	  for i in ammunition++.info-*;do\
    	    mv $$i $(srcdir)/$$i;\

@@ -83,6 +83,16 @@ typedef int integer_t;
 typedef const char *string_t;
 
 typedef struct BC_node *BC_hidden_node_t;
+
+enum access_val
+{
+  PRIVATE_ACCESS,
+  PUBLIC_ACCESS,
+  DEFAULT_ACCESS
+};
+
+typedef enum access_val access_val_t;
+
 }
 
 %export {
@@ -215,7 +225,8 @@ extern IR_node_t destroy_unique_ident;
 
 /* The following macro value is standard environment which is parsed
    before the program. The last character must be a space for correct
-   parsing. */
+   parsing.  The last character of the string *should* be \n.  That is
+   important for correct work OF REPL. */
 #define ENVIRONMENT \
   "class except () { \n"\
   "  class error (msg = nil){\n"\
@@ -351,33 +362,22 @@ extern IR_node_t destroy_unique_ident;
   "val invexterns = invcalls.invextern ();\n"\
   "val invaccesses = errors.invaccess ();\n"\
   "var argv, env; val version, main_thread, curr_thread;\n"\
-  "class anode (name, transl) {\n"\
-  "  public name, transl;\n"\
-  "}\n"\
-  "class token (code) {public code;}\n"\
+  "class anode (name, transl) {}\n"\
+  "class token (code) {}\n"\
   "val nil_anode = anode (\"$nil\", nil);\n"\
   "val error_anode = anode (\"$error\", nil);\n"\
   "final class parser ()\n"\
   "{\n"\
   "  var ambiguous_p;\n"\
-  "  public ambiguous_p;\n"\
-  "  var grammar;\n"\
-  "  private grammar;\n"\
+  "  var -grammar;\n"\
   "\n"\
-  "  func int_earley_parse_grammar(){} func int_earley_set_debug_level(){}\n"\
-  "  private int_earley_parse_grammar, int_earley_set_debug_level;\n"\
-  "  func int_earley_set_one_parse_flag (){}\n"\
-  "  private int_earley_set_one_parse_flag;\n"\
-  "  func int_earley_set_lookahead_level (){}\n"\
-  "  private int_earley_set_lookahead_level;\n"\
-  "  func int_earley_set_cost_flag (){}\n"\
-  "  private int_earley_set_cost_flag;\n"\
-  "  func int_earley_set_error_recovery_flag () {}\n"\
-  "  private int_earley_set_error_recovery_flag;\n"\
-  "  func int_earley_set_recovery_match (){} func int_earley_parse (){}\n"\
-  "  private int_earley_set_recovery_match, int_earley_parse;\n"\
-  "  func int_earley_create_grammar (){}\n"\
-  "  private int_earley_create_grammar;\n"\
+  "  func -int_earley_parse_grammar(){} func -int_earley_set_debug_level(){}\n"\
+  "  func -int_earley_set_one_parse_flag (){}\n"\
+  "  func -int_earley_set_lookahead_level (){}\n"\
+  "  func -int_earley_set_cost_flag (){}\n"\
+  "  func -int_earley_set_error_recovery_flag () {}\n"\
+  "  func -int_earley_set_recovery_match (){} func -int_earley_parse (){}\n"\
+  "  func -int_earley_create_grammar (){}\n"\
   "\n"\
   "  func set_grammar (descr, strict_p) {\n"\
   "    int_earley_parse_grammar (grammar, strict_p, descr);\n"\
@@ -410,7 +410,7 @@ extern IR_node_t destroy_unique_ident;
   "}\n"\
   "// Do not place any code inside file (it is only for internal purposes)\n"\
   "final class file (){\n"\
-  "  private file_ptr; var file_ptr;\n"\
+  "  var -file_ptr;\n"\
   "  throw invcalls.callop\n"\
   "    (\"File can be created only by functions open or popen\");}\n"\
   "val stdin;\n"\
@@ -458,7 +458,7 @@ extern IR_node_t destroy_unique_ident;
   "func exit(){}\n"\
   "func fold(){} func filter(){} func map(){}\n"\
   "func transpose(){}\n"\
-  "func __init__() {} __init__();"
+  "func __init__() {} __init__();\n"
 }
 
 %local {
@@ -481,7 +481,7 @@ IR_node_t destroy_unique_ident;
 }
 
 %type char_t int_t floating_t string_t integer_t bool_t position_t type_mask_t
-      ticker_t BC_hidden_node_t
+      ticker_t BC_hidden_node_t access_val_t
 
 %%
 
@@ -701,13 +701,11 @@ class_func_thread_call :: expr
         actuals : elist_element
 ;
 
-/* Identifier in a clause (public, private, or friend). */
-access_ident :: ir_node
+/* Identifier in a friend clause. */
+friend_ident :: ir_node
 %other
 	ident_in_clause : ident
-	access_ident_public_flag : bool_t
-	friend_flag : bool_t
-	next_access_ident : access_ident
+	next_friend_ident : friend_ident
 ;
 
 %abstract
@@ -810,9 +808,8 @@ block :: stmt
         /* Reference to corresponding func or class (NULL for
            separate block) or extension (only before the evaluation). */
         func_class_ext : func_class_ext
-        /* Lists of identifiers in public, private, and friend
-           clauses. */
-        access_list : access_ident
+        /* Lists of identifiers in friend clauses. */
+        friend_list : friend_ident
         /* The list of exceptions for TRY block, NULL for simple
            block. */
         exceptions : exception
@@ -832,6 +829,7 @@ decl :: stmt
 %other
         scope : block
         ident : ident
+	access : access_val_t
 	/* Flag of that this (external) var is constant (can not be
 	   changed). */
 	const_flag : bool_t
@@ -869,7 +867,8 @@ func_class_ext :: decl
 
 %abstract
 func_or_class :: func_class_ext
-        /* The next stmt is always corresponding block node. */
+        /* The next stmt is always corresponding block node if it is
+	   not forward declaration. */
 %other
         /* Number of parameters of the func.  The formal
            parameters are the start vars in the func block.  The
@@ -884,6 +883,8 @@ func_or_class :: func_class_ext
 	args_flag : bool_t
 	/* Flag of that this is final (can not be extended). */
 	final_flag : bool_t
+        /* TRUE if it is a just forward declaration. */
+        forward_decl_flag : bool_t
 ;
 
 /* The first nodes in corresponding block is func parameter
@@ -959,19 +960,17 @@ block
 %other
         /* Number of all blocks which contain given block. */
         block_level : integer_t
-        /* Number of all decls immediately placed in given block. */
-        decls_number : integer_t
         /* Number of vars immediately placed in given block. */
-        vars_number : integer_t
+        vars_number : integer_t {$ = 0;}
         /* Number of temporary vars needed for expr
            evaluation in given block. */
-        temporary_vars_number : integer_t
-        /* Order number (0, ...) of the class in set of all program
-           classes. */
-        block_number : integer_t
+        temporary_vars_number : integer_t {$ = 0;}
         /* See the following comment.  The field value is NULL if the
 	   corresponding block is not try-block. */
         catch_list_pc : generic_pos
+        /* The following flag is TRUE if the block contains a
+	   declaration. */
+        decls_flag : bool_t {$ = FALSE;}
         /* The following flag is TRUE if an instance of the block may
            be used after block execution finish.  It is possibly if
            there is a function or class value is assigned to variable,
@@ -1001,10 +1000,9 @@ friend :: ir_node
 
 decl
 %other
-	public_flag : bool_t
-        /* The following field is the first access ident if the decl
-           ident is in an access clause. */
-	access_ident : access_ident
+        /* The following field is the first friend ident if the decl
+           ident is in an friend clause. */
+	friend_ident : friend_ident
         bc_decl : BC_hidden_node_t {$ = NULL;} /* Byte code decl */
 ;
 
@@ -1024,13 +1022,6 @@ external_func
 %other
 	/* Order number of the external function.  */
 	no : int_t {$ = -1;}
-;
-
-decl
-%other
-        /* Number (0, ...) of the var (only immediatly placed) in
-           block decls. */
-        decl_number_in_block : integer_t
 ;
 
 var
@@ -1256,8 +1247,8 @@ create_node (IR_node_mode_t mode)
   return IR_create_node (mode);
 }
 
-/* Allocate memory for node with given mode and initiate its common members
-   MODE and POS. */
+/* Allocate memory for node with given mode and initiate its common
+   members MODE and POS. */
 
 IR_node_t
 create_node_with_pos (IR_node_mode_t mode, position_t pos)

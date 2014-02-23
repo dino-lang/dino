@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with bit strings</TITLE>
  <LINK HREF="ammunition++-10.html" REL=next>
  <LINK HREF="ammunition++-8.html" REL=previous>
@@ -28,7 +28,8 @@ class `bits' without public constructors and destructors.  The class
 contains the following members:</P>
 <P>
 <DL>
-<DT><B>Static public function `bit'</B><DD><P>
+<DT><B>Static public function `bit'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int bit (const void *start_byte, int bit_displacement)'
@@ -49,7 +50,8 @@ is static public function `set_bit'
 for changing value of a bit.  Parameter `bit' must have value
 `0' or `1'.</P>
 
-<DT><B>Static public function `is_zero_bit_string'</B><DD><P>
+<DT><B>Static public function `is_zero_bit_string'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int is_zero_bit_string (const void *start_byte,
@@ -62,7 +64,8 @@ for changing value of a bit.  Parameter `bit' must have value
 returns `1' if given bit string contains only zero value
 bits, 0 otherwise.</P>
 
-<DT><B>Static public function `bit_string_set'</B><DD><P>
+<DT><B>Static public function `bit_string_set'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `void bit_string_set (void *start_byte, int
@@ -76,7 +79,8 @@ sets up new value of all bits of given bit string.  This
 function is bit string analog of standard C++ function
 `memset'.</P>
 
-<DT><B>Static public function `bit_string_copy'</B><DD><P>
+<DT><B>Static public function `bit_string_copy'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `void bit_string_copy (void *to, int to_bit_displacement,
@@ -91,7 +95,8 @@ copys a bit string to another bit string.  The bit strings
 must be nonoverlapped.  This function is bit string analog
 of standard C++ function `memcpy'.</P>
 
-<DT><B>Static public function `bit_string_move'</B><DD><P>
+<DT><B>Static public function `bit_string_move'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           void bit_string_move (void *to, int to_bit_displacement,
@@ -106,7 +111,8 @@ copys a bit string to another bit string.  The bit strings
 can be overlapped.  This function is bit string analog of
 standard C++ function `memmove'.</P>
 
-<DT><B>Static public function `bit_string_comparison'</B><DD><P>
+<DT><B>Static public function `bit_string_comparison'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int bit_string_comparison

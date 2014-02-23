@@ -48,11 +48,15 @@ char ERR_segment_access_violation_exception[]
   = "segment access violation";
 
 char ERR_repeated_decl[] = "repeated declaration for identifier `%s'";
+char ERR_forward_and_matched_decls_are_different_entities[]
+  = "forward and matched declarations of `%s' are different entities";
+char ERR_forward_and_matched_decls_have_different_attrs[]
+  = "forward and matched decls of `%s' have different access/final attributes";
 char ERR_previous_decl_location[]
   = "(previous declaration of identifier `%s')";
 char ERR_undeclared_ident[] = "undeclared identifier `%s'";
-char ERR_udenclared_ident_access_list []
-  = "there is no declaration for identifier `%s' in access list";
+char ERR_udenclared_ident_friend_list []
+  = "there is no declaration for identifier `%s' in friend list";
 char ERR_period_ident_applied_to_slice [] = "`.ident' is applied to slice";
 char ERR_vector_element_access_applied_to_slice []
   = "`[...]' is applied to slice";
@@ -63,12 +67,12 @@ char ERR_slice_as_foreach_designator []
   = "vector slice is used as foreach-stmt designator";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
-char ERR_contradicted_ident_access_list []
-  = "identifier `%s' is declared as public and private";
-char ERR_previous_access_location []
-  = "previous place of identifier `%s' in access list";
-char ERR_extension_without_class_or_func []
-  = "extension %s without extended func or class";
+char ERR_extension_before_extended []
+  = "extension `%s' before extended func or class";
+char ERR_extension_of_non_func_class_ext []
+  = "extension `%s' of non func/class";
+char ERR_extension_of_forward_declaration []
+  = "extension `%s' of forward declaration of func/class";
 char ERR_extension_of_final [] = "extension of final func/class `%s'";
 char ERR_decl_is_absent_in_a_block []
   = "there is no such declaration in a block";
@@ -386,12 +390,3 @@ char DERR_immutable_instance_modification []
 char DERR_deadlock [] = "run time error - process deadlock";
 char DERR_unprocessed_exception []
   = "run time error - exception %s has not been processed";
-
-/* This func is called by yacc parser and for fatal error
-   reporting. */
-int
-yyerror (const char *message)
-{
-  error (FALSE, source_position, "%s", message);
-  return 0; /* No warnings */
-}

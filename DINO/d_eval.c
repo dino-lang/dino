@@ -1027,6 +1027,8 @@ slice_assign (ER_node_t container, int_t dim, ER_node_t val)
    occurrence. */
 static position_t exception_position;
 
+/* Find PC to process EXCEPT.  If it is not found, finish program or
+   return NULL in case of REPL.  */
 static pc_t
 find_catch_pc (ER_node_t except)
 {
@@ -1090,15 +1092,17 @@ find_catch_pc (ER_node_t except)
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
 	  && ER_pack_vect_el_type (vect) == ER_NM_char)
 	/* No return after error. */
-	error (TRUE, exception_position, ER_pack_els (vect));
+	d_error (! repl_flag, exception_position, ER_pack_els (vect));
     }
-  if (ER_block_node (except) != sigint_bc_decl
-      && ER_block_node (except) != sigterm_bc_decl)
-    error (TRUE, exception_position, DERR_unprocessed_exception,
-	   BC_ident (BC_fdecl (ER_block_node (except))));
-  else
-    dino_finish (1);
-  return NULL; /* to prevent compiler diagnostic. */
+  if (! repl_flag)
+    {
+      if (ER_block_node (except) != sigint_bc_decl
+	  && ER_block_node (except) != sigterm_bc_decl)
+	d_error (TRUE, exception_position, DERR_unprocessed_exception,
+		 BC_ident (BC_fdecl (ER_block_node (except))));
+      dino_finish (1);
+    }
+  return NULL;
 }
 
 /* Temporary variables used as result of conversion functions.  */
@@ -4708,6 +4712,8 @@ evaluate_code (void)
 			  DERR_no_exception_after_throw);
 	    exception_position = get_cpos ();
 	    cpc = find_catch_pc (ER_stack (op1));
+	    if (cpc == NULL)
+	      return;
 	  }
 	  break;
 	case BC_NM_except:
@@ -4741,6 +4747,8 @@ evaluate_code (void)
 		  {
 		    /* No more catches - go to covered try-blocks. */
 		    cpc = find_catch_pc (ER_stack (op1));
+		    if (cpc == NULL)
+		      return;
 		  }
 	      }
 	  }
@@ -4958,44 +4966,62 @@ call_func_class (BC_node_t code, ER_node_t context, int_t pars_number)
 
 static ticker_t all_time_ticker;
 
+/* Evaluate top level block START_PC.  Initiate data if INIT_P.
+   Otherwise, reuse the already created data.  */
 void
-evaluate_program (pc_t start_pc)
+evaluate_program (pc_t start_pc, int init_p, int last_p)
 {
   /* The first statement is always block. */
   d_assert (start_pc != NULL && BC_NODE_MODE (start_pc) == BC_NM_block);
-  initiate_int_tables ();
-  initiate_tables ();
-  initiate_funcs ();
-  sync_flag = FALSE;
   cpc = start_pc;
   d_assert (! BC_ext_life_p (cpc));
-  heap_push (cpc, NULL, 0);
-  /* Initialized standard variables. */
-  uppest_stack = cstack;
-  tvars = ER_stack_vars (uppest_stack);
-  initiate_processes (cpc);
-  INCREMENT_PC ();
-  initiate_vars ();
-#ifndef NO_PROFILE
-  if (profile_flag)
+  if (! init_p)
+    expand_uppest_stack ();
+  else
     {
-      struct itimerval itimer;
-
-      all_time_ticker = create_ticker ();
+      initiate_heap ();
+      initiate_int_tables ();
+      initiate_tables ();
+      initiate_funcs ();
+      sync_flag = FALSE;
+      create_uppest_stack (cpc);
+      initiate_processes (cpc);
+      /* Initialized standard variables.  It should be after
+	 initiate_process to set up main thread var.  */
+      initiate_vars ();
+#ifndef NO_PROFILE
+      if (profile_flag)
+	{
+	  struct itimerval itimer;
+      
+	  all_time_ticker = create_ticker ();
 #if HAVE_SETITIMER
-      itimer.it_value.tv_sec = itimer.it_interval.tv_sec = 0;
-      itimer.it_value.tv_usec = itimer.it_interval.tv_usec = 1;
-      if (setitimer (ITIMER_VIRTUAL, &itimer, NULL))
-	abort ();
+	  itimer.it_value.tv_sec = itimer.it_interval.tv_sec = 0;
+	  itimer.it_value.tv_usec = itimer.it_interval.tv_usec = 1;
+	  if (setitimer (ITIMER_VIRTUAL, &itimer, NULL))
+	    abort ();
+#endif
+	}
 #endif
     }
-#endif
+  INCREMENT_PC ();
   while (setjmp (eval_longjump_buff))
     ;
+  if (cpc == NULL)
+    {
+      /* Uncatched exception in REPL. */
+      d_assert (repl_flag);
+      return;
+    }
   eval_long_jump_set_flag = TRUE;
   for (;;)
     {
       evaluate_code ();
+      if (repl_flag && ! last_p && cstack == uppest_stack)
+	{
+	  eval_long_jump_set_flag = FALSE;
+	  return;
+	}
       delete_cprocess ();
     }
   d_unreachable ();

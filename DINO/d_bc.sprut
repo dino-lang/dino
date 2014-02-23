@@ -57,7 +57,7 @@ typedef void (*implementation_func_t) (int_t pars_number);
 
 /* Return real block vars number (see commentaries for
    block_node). */
-static int do_always_inline
+static int_t do_always_inline
 real_block_vars_number (BC_node_t block_node_ptr)
 {
   return BC_vars_num (block_node_ptr);

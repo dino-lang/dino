@@ -783,7 +783,7 @@ definitions:
   MESSAGE                              (NULL file name)
   FILE_NAME:1: MESSAGE                 (zero line number)
   FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
-  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER-1: MESSAGE  (all other cases)
+  FILE_NAME:LINE_NUMBER:COLUMN_NUMBER: MESSAGE  (all other cases)
         
         After that the function outputs newline.  The function also
         outputs additional messages `in file processed from ...'  if
@@ -791,9 +791,7 @@ definitions:
         different from one of previous output error.  This message
         reflects path of the message position (see package
         `position'), i.e.  reflects positions of corresponding
-        include-clauses.  Decremented column number is output in order
-        to be in concordance with editor Emacs in which positions
-        start with 0.
+        include-clauses.
      
 
 8. Package for work with command line

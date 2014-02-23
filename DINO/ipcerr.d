@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -64,47 +64,27 @@ ext except {
 }
 
 class ipc_err () {
-  extern _eaddrinuse_no, _eaddrnotavail_no, _eafnosupport_no,
-    _ealready_no, _econnaborted_no, _econnrefused_no, _econnreset_no,
-    _edestaddrreq_no, _ehostdown_no, _ehostunreach_no, _einprogress_no,
-    _eisconn_no, _emsgsize_no, _enetdown_no, _enetreset_no,
-    _enetunreach_no, _enobufs_no, _enoprotoopt_no, _enosr_no,
-    _enotconn_no, _enotsock_no, _eopnotsupp_no, _epfnosupport_no,
-    _eprotonosupport_no, _eprototype_no, _eremoterelease_no,
-    _eshutdown_no, _esocktnosupport_no, _etimedout_no, _etoomanyrefs_no,
-    _ewouldblock_no, _eos_specific_nos;
+  extern -_eaddrinuse_no, -_eaddrnotavail_no, -_eafnosupport_no,
+    -_ealready_no, -_econnaborted_no, -_econnrefused_no, -_econnreset_no,
+    -_edestaddrreq_no, -_ehostdown_no, -_ehostunreach_no, -_einprogress_no,
+    -_eisconn_no, -_emsgsize_no, -_enetdown_no, -_enetreset_no,
+    -_enetunreach_no, -_enobufs_no, -_enoprotoopt_no, -_enosr_no,
+    -_enotconn_no, -_enotsock_no, -_eopnotsupp_no, -_epfnosupport_no,
+    -_eprotonosupport_no, -_eprototype_no, -_eremoterelease_no,
+    -_eshutdown_no, -_esocktnosupport_no, -_etimedout_no, -_etoomanyrefs_no,
+    -_ewouldblock_no, -_eos_specific_nos;
 
-  private _eaddrinuse_no, _eaddrnotavail_no, _eafnosupport_no,
-    _ealready_no, _econnaborted_no, _econnrefused_no, _econnreset_no,
-    _edestaddrreq_no, _ehostdown_no, _ehostunreach_no, _einprogress_no,
-    _eisconn_no, _emsgsize_no, _enetdown_no, _enetreset_no,
-    _enetunreach_no, _enobufs_no, _enoprotoopt_no, _enosr_no,
-    _enotconn_no, _enotsock_no, _eopnotsupp_no, _epfnosupport_no,
-    _eprotonosupport_no, _eprototype_no, _eremoterelease_no,
-    _eshutdown_no, _esocktnosupport_no, _etimedout_no, _etoomanyrefs_no,
-    _ewouldblock_no, _eos_specific_nos;
+  extern -_eaddrinuse_msg, -_eaddrnotavail_msg, -_eafnosupport_msg,
+    -_ealready_msg, -_econnaborted_msg, -_econnrefused_msg, -_econnreset_msg,
+    -_edestaddrreq_msg, -_ehostdown_msg, -_ehostunreach_msg, -_einprogress_msg,
+    -_eisconn_msg, -_emsgsize_msg, -_enetdown_msg, -_enetreset_msg,
+    -_enetunreach_msg, -_enobufs_msg, -_enoprotoopt_msg, -_enosr_msg,
+    -_enotconn_msg, -_enotsock_msg, -_eopnotsupp_msg, -_epfnosupport_msg,
+    -_eprotonosupport_msg, -_eprototype_msg, -_eremoterelease_msg,
+    -_eshutdown_msg, -_esocktnosupport_msg, -_etimedout_msg, -_etoomanyrefs_msg,
+    -_ewouldblock_msg, -_eos_specific_msgs;
 
-  extern _eaddrinuse_msg, _eaddrnotavail_msg, _eafnosupport_msg,
-    _ealready_msg, _econnaborted_msg, _econnrefused_msg, _econnreset_msg,
-    _edestaddrreq_msg, _ehostdown_msg, _ehostunreach_msg, _einprogress_msg,
-    _eisconn_msg, _emsgsize_msg, _enetdown_msg, _enetreset_msg,
-    _enetunreach_msg, _enobufs_msg, _enoprotoopt_msg, _enosr_msg,
-    _enotconn_msg, _enotsock_msg, _eopnotsupp_msg, _epfnosupport_msg,
-    _eprotonosupport_msg, _eprototype_msg, _eremoterelease_msg,
-    _eshutdown_msg, _esocktnosupport_msg, _etimedout_msg, _etoomanyrefs_msg,
-    _ewouldblock_msg, _eos_specific_msgs;
-
-  private _eaddrinuse_msg, _eaddrnotavail_msg, _eafnosupport_msg,
-    _ealready_msg, _econnaborted_msg, _econnrefused_msg, _econnreset_msg,
-    _edestaddrreq_msg, _ehostdown_msg, _ehostunreach_msg, _einprogress_msg,
-    _eisconn_msg, _emsgsize_msg, _enetdown_msg, _enetreset_msg,
-    _enetunreach_msg, _enobufs_msg, _enoprotoopt_msg, _enosr_msg,
-    _enotconn_msg, _enotsock_msg, _eopnotsupp_msg, _epfnosupport_msg,
-    _eprotonosupport_msg, _eprototype_msg, _eremoterelease_msg,
-    _eshutdown_msg, _esocktnosupport_msg, _etimedout_msg, _etoomanyrefs_msg,
-    _ewouldblock_msg, _eos_specific_msgs;
-
-  extern _ipc_err_init (); private _ipc_err_init;
+  extern -_ipc_err_init ();
   _ipc_err_init ();
 
   // table no -> ipc exception

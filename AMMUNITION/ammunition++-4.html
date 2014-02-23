@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with stacks of objects</TITLE>
  <LINK HREF="ammunition++-5.html" REL=next>
  <LINK HREF="ammunition++-3.html" REL=previous>
@@ -33,12 +33,14 @@ usage of the package.  The implementation part is file `objstack.cpp'.
 The interface contains the following objects:</P>
 <P>
 <DL>
-<DT><B>Type `os_t'</B><DD><P>describes a descriptor of stack of objects.  The type is
+<DT><B>Type `os_t'</B><DD>
+<P>describes a descriptor of stack of objects.  The type is
 simply synonym of `class os'.  All work with stack of objects
 is executed through the descriptors.  It should remember that
 work with the stack through several descriptors is not safe.</P>
 
-<DT><B>Macro `OS_DEFAULT_SEGMENT_LENGTH'</B><DD><P>has value which is default size of memory segments which will
+<DT><B>Macro `OS_DEFAULT_SEGMENT_LENGTH'</B><DD>
+<P>has value which is default size of memory segments which will
 be allocated for OS when the stack is created (with not given
 initial segment size).  This is also minimal size of all
 segments.  Original value of the macros is equal to 512.  This
@@ -46,9 +48,11 @@ macro can be redefined in C++ compiler command line or with
 the aid of directive `#undef' before including the interface
 file.</P>
 
-<DT><B>Class `os'</B><DD><P>The class contains the following functions:
+<DT><B>Class `os'</B><DD>
+<P>The class contains the following functions:
 <DL>
-<DT><B>Public constructor `os'</B><DD><P>
+<DT><B>Public constructor `os'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `os (size_t initial_segment_length
@@ -64,7 +68,8 @@ the allocated memory segments length is equal to
 `OS_DEFAULT_SEGMENT_LENGTH'.  But in any case the segment
 length is always not less than maximum alignment.</P>
 
-<DT><B>Public destructor `&nbsp;os'</B><DD><P>
+<DT><B>Public destructor `&nbsp;os'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `~os (void)'
@@ -75,7 +80,8 @@ length is always not less than maximum alignment.</P>
 is used for deleting the descritor of OS and freeing
 memory used by the OS.</P>
 
-<DT><B>Public function `empty'</B><DD><P>
+<DT><B>Public function `empty'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void empty (void)'
@@ -86,7 +92,8 @@ memory used by the OS.</P>
 is used for removing all objects on OS and freeing all
 memory allocated for OS except for the first segment.</P>
 
-<DT><B>Public function `top_finish'</B><DD><P>
+<DT><B>Public function `top_finish'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void top_finish (void)'
@@ -100,7 +107,8 @@ to one with variable length object) with object which was
 on the top of OS is finished, i.e. the object will never
 more change address.</P>
 
-<DT><B>Public function `top_nullify'</B><DD><P>
+<DT><B>Public function `top_nullify'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void top_nullify (void)'
@@ -111,7 +119,8 @@ more change address.</P>
 makes that length of variable length object on the top of
 OS of given descriptor will be equal to zero.</P>
 
-<DT><B>Public function `top_length'</B><DD><P>
+<DT><B>Public function `top_length'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `size_t top_length (os)'
@@ -122,7 +131,8 @@ OS of given descriptor will be equal to zero.</P>
 returns current length of variable length object on the top of
 OS of given descriptor.</P>
 
-<DT><B>Public functions `top_begin', `top_end', `top_bound'</B><DD><P>
+<DT><B>Public functions `top_begin', `top_end', `top_bound'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void *top_begin (void)', `void *top_end (void)',
@@ -137,7 +147,8 @@ descriptor, and pointer to the last byte plus one.
 Remember that the top object may change own place after any
 addition.</P>
 
-<DT><B>Public function `top_shorten'</B><DD><P>
+<DT><B>Public function `top_shorten'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void top_shorten (size_t n)'
@@ -149,7 +160,8 @@ removes n bytes from the end of variable length object on
 the top of OS of given descriptor.  The top variable length
 object is nullified if its length is less than n.</P>
 
-<DT><B>Public function `top_expand'</B><DD><P>
+<DT><B>Public function `top_expand'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void top_expand (size_t length)'
@@ -163,7 +175,8 @@ parameter.  The values of bytes added to the end of
 variable length object on the top of OS will be not
 defined.</P>
 
-<DT><B>Public function `top_add_byte'</B><DD><P>
+<DT><B>Public function `top_add_byte'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void top_add_byte (int b)'
@@ -174,7 +187,8 @@ defined.</P>
 adds byte given as the parameter to the end of variable
 length object on the top of OS of given descriptor.</P>
 
-<DT><B>Public function `top_add_memory'</B><DD><P>
+<DT><B>Public function `top_add_memory'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void top_add_memory (void *str, size_t length)'
@@ -187,7 +201,8 @@ parameter and with length given as the second parameter to
 the end of variable length object on the top of OS of given
 descriptor.</P>
 
-<DT><B>Public function `top_add_string'</B><DD><P>
+<DT><B>Public function `top_add_string'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void top_add_string (const char *str)'

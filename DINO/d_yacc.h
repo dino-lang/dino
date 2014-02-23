@@ -28,5 +28,10 @@ extern IR_node_t first_program_stmt;
 
 extern void initiate_scanner (void);
 extern void start_scanner_file (const char *file_name, position_t error_pos);
+extern const char *get_read_line (int n);
+extern void skip_line_rest ();
 extern int yyparse (void);
 extern void finish_scanner (void);
+extern void initiate_parser (void);
+extern void initiate_new_parser_REPL_stmts (void);
+extern void finish_parser (void);

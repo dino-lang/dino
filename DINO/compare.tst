@@ -1758,11 +1758,16 @@ ext except {
   class Lo_exception (value) {}
 }
 
-func some_function (num) {
-  try { 
-    hi_function (num);
-  } catch (except) {
-    fputln (stderr, "We shouldn't get here (", e.value , ")");
+func blowup (num) { 
+  throw ((num & 1) ? excepts.Lo_exception (num) : excepts.Hi_exception (num));
+}
+
+func lo_function (num) {
+  try {
+    blowup (num);
+  } catch (excepts.Lo_exception) {
+    LO++;
+    //    putln ("Lo_exception occurred, value:", e.value);
   }
 }
 
@@ -1775,18 +1780,12 @@ func hi_function (num) {
   }
 }
 
-func lo_function (num) {
-  try {
-    blowup (num);
-  } catch (excepts.Lo_exception) {
-    LO++;
-    //    putln ("Lo_exception occurred, value:", e.value);
+func some_function (num) {
+  try { 
+    hi_function (num);
+  } catch (except) {
+    fputln (stderr, "We shouldn't get here (", e.value , ")");
   }
-}
-
-
-func blowup (num) { 
-  throw ((num & 1) ? excepts.Lo_exception (num) : excepts.Hi_exception (num));
 }
 
 func main {

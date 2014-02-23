@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C interface: Package for work with variable length objects</TITLE>
  <LINK HREF="ammunition-4.html" REL=next>
  <LINK HREF="ammunition-2.html" REL=previous>
@@ -33,21 +33,24 @@ package.  The implementation part is file `vlobject.c'.  The interface
 contains the following definitions and macros:</P>
 <P>
 <DL>
-<DT><B>Type `vlo_t'</B><DD><P>describes a descriptor of variable length object.  All work
+<DT><B>Type `vlo_t'</B><DD>
+<P>describes a descriptor of variable length object.  All work
 with variable length object is executed by the following
 macros through the descriptors.  Structure (implementation)
 of this type is not needed for using variable length object.
 But it should remember that work with the object through
 several descriptors is not safe.</P>
 
-<DT><B>Macro `VLO_DEFAULT_LENGTH'</B><DD><P>has value which is default initial size of memory is
+<DT><B>Macro `VLO_DEFAULT_LENGTH'</B><DD>
+<P>has value which is default initial size of memory is
 allocated for VLO when the object is created (with zero
 initial size).  Original value of the macros is equal to
 512.  This macro can be redefined in C compiler command line
 or with the aid of directive `#undef' before any using
 the package macros.</P>
 
-<DT><B>Macro `VLO_CREATE'</B><DD><P>
+<DT><B>Macro `VLO_CREATE'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_CREATE(vlo, initial_length)'
@@ -62,7 +65,8 @@ parameter.  If the second parameter is equal to zero then
 the initial allocated memory length is equal to
 `VLO_DEFAULT_LENGTH'.</P>
 
-<DT><B>`VLO_DELETE'</B><DD><P>
+<DT><B>`VLO_DELETE'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_DELETE(vlo)'
@@ -73,7 +77,8 @@ the initial allocated memory length is equal to
 is used for freeing memory used by VLO whose descriptor is
 given as the macro parameter.</P>
 
-<DT><B>Macro `VLO_NULLIFY'</B><DD><P>
+<DT><B>Macro `VLO_NULLIFY'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_NULLIFY(vlo)'
@@ -85,7 +90,8 @@ makes that length of VLO whose descriptor is given as the
 macro parameter will be equal to zero (but memory for VLO is
 not freed and not reallocated).</P>
 
-<DT><B>Macro `VLO_TAILOR'</B><DD><P>
+<DT><B>Macro `VLO_TAILOR'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_TAILOR(vlo)'
@@ -97,7 +103,8 @@ makes that length of memory allocated for VLO whose
 descriptor is given as the macro parameter becomes equal to
 VLO length.</P>
 
-<DT><B>Macro `VLO_LENGTH'</B><DD><P>
+<DT><B>Macro `VLO_LENGTH'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_LENGTH(vlo)'
@@ -108,7 +115,8 @@ VLO length.</P>
 returns current length of VLO whose descriptor is given as
 the macro parameter.</P>
 
-<DT><B>Macros `VLO_BEGIN', `VLO_END', `VLO_BOUND'</B><DD><P>
+<DT><B>Macros `VLO_BEGIN', `VLO_END', `VLO_BOUND'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_BEGIN(vlo)', `VLO_END(vlo)', `VLO_BOUND(vlo)'
@@ -122,7 +130,8 @@ macros parameter, and pointer to the last byte plus one.
 Remember that the object may change own place after any
 addition.</P>
 
-<DT><B>Macro `VLO_SHORTEN'</B><DD><P>
+<DT><B>Macro `VLO_SHORTEN'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_SHORTEN(vlo, n)'
@@ -134,7 +143,8 @@ removes n bytes from the end of VLO whose descriptor is
 given as the first parameter.  VLO is nullified if its
 length is less than n.</P>
 
-<DT><B>Macro `VLO_EXPAND'</B><DD><P>
+<DT><B>Macro `VLO_EXPAND'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_EXPAND(vlo, length)'
@@ -147,7 +157,8 @@ first parameter on number of bytes given as the second
 parameter.  The values of bytes added to the end of VLO will
 be not defined.</P>
 
-<DT><B>Macro `VLO_ADD_BYTE'</B><DD><P>
+<DT><B>Macro `VLO_ADD_BYTE'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_ADD_BYTE(vlo, b)'
@@ -158,7 +169,8 @@ be not defined.</P>
 adds byte given as the second parameter to the end of VLO
 whose descriptor is given as the first parameter.</P>
 
-<DT><B>Macro `VLO_ADD_MEMORY'</B><DD><P>
+<DT><B>Macro `VLO_ADD_MEMORY'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_ADD_MEMORY(vlo, str, length)'
@@ -171,7 +183,8 @@ parameter and with length given as the third parameter to
 the end of VLO whose descriptor is given as the first
 parameter.</P>
 
-<DT><B>Macro `VLO_ADD_STRING'</B><DD><P>
+<DT><B>Macro `VLO_ADD_STRING'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `VLO_ADD_STRING(vlo, str)'

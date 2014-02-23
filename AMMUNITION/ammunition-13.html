@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C interface: Earley parser</TITLE>
  <LINK HREF="ammunition-12.html" REL=previous>
  <LINK HREF="ammunition.html#toc13" REL=contents>
@@ -63,100 +63,125 @@ visualization program.</LI>
 implementation part is file `earley.c'.  The interface contains the
 following external definitions and macros:
 <DL>
-<DT><B>Struct `grammar'</B><DD><P>describes a grammar.  Knowledge of structure
+<DT><B>Struct `grammar'</B><DD>
+<P>describes a grammar.  Knowledge of structure
 (implementation) of this type is not visible and not needed
 for using the parser.</P>
 
-<DT><B>Macro `EARLEY_NIL_TRANSLATION_NUMBER'</B><DD><P>is reserved to be designation of empty node for translation.</P>
+<DT><B>Macro `EARLEY_NIL_TRANSLATION_NUMBER'</B><DD>
+<P>is reserved to be designation of empty node for translation.</P>
 
-<DT><B>Macro `EARLEY_NO_MEMORY'</B><DD><P>is error code of the parser.  The parser functions return
+<DT><B>Macro `EARLEY_NO_MEMORY'</B><DD>
+<P>is error code of the parser.  The parser functions return
 the code when parser can not allocate enough memory for its
 work.</P>
 
-<DT><B>Macro `EARLEY_UNDEFINED_OR_BAD_GRAMMAR'</B><DD><P>is error code of the parser.  The parser functions return
+<DT><B>Macro `EARLEY_UNDEFINED_OR_BAD_GRAMMAR'</B><DD>
+<P>is error code of the parser.  The parser functions return
 the code when we call parsing without defining grammar or
 call parsing for bad defined grammar.</P>
 
-<DT><B>Macro `EARLEY_DESCRIPTION_SYNTAX_ERROR_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
+<DT><B>Macro `EARLEY_DESCRIPTION_SYNTAX_ERROR_CODE'</B><DD>
+<P>is error code of the parser.  The code is returned when the
 grammar is defined by description and there is syntax error
 in the description.</P>
 
-<DT><B>Macro `EARLEY_FIXED_NAME_USAGE'</B><DD><P>is error code of the parser.  The code is returned when the
+<DT><B>Macro `EARLEY_FIXED_NAME_USAGE'</B><DD>
+<P>is error code of the parser.  The code is returned when the
 grammar uses reserved names for terminals and nonterminals.
 There are two reserved names `$S' (for axiom) and `$eof' for
 end of file (input end marker).  The parser adds these
 symbols and rules with these symbols to the grammar given by
 user.  So user should not use these names in his grammar.</P>
 
-<DT><B>Macro `EARLEY_REPEATED_TERM_DECL'</B><DD><P>is error code of the parser.  The code is returned when the
+<DT><B>Macro `EARLEY_REPEATED_TERM_DECL'</B><DD>
+<P>is error code of the parser.  The code is returned when the
 grammar contains several declarations of terminals with the
 same name.</P>
 
-<DT><B>Macro `EARLEY_NEGATIVE_TERM_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
+<DT><B>Macro `EARLEY_NEGATIVE_TERM_CODE'</B><DD>
+<P>is error code of the parser.  The code is returned when the
 grammar terminal is described with negative code.</P>
 
-<DT><B>Macro `EARLEY_REPEATED_TERM_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
+<DT><B>Macro `EARLEY_REPEATED_TERM_CODE'</B><DD>
+<P>is error code of the parser.  The code is returned when the
 two or more grammar terminals are described with the same
 code.</P>
 
-<DT><B>Macro `EARLEY_NO_RULES'</B><DD><P>is error code of the parser.  The code is returned when the
+<DT><B>Macro `EARLEY_NO_RULES'</B><DD>
+<P>is error code of the parser.  The code is returned when the
 grammar given by user has no rules.</P>
 
-<DT><B>Macro `EARLEY_TERM_IN_RULE_LHS'</B><DD><P>is error code of the parser.  The code is returned when
+<DT><B>Macro `EARLEY_TERM_IN_RULE_LHS'</B><DD>
+<P>is error code of the parser.  The code is returned when
 grammar rule given by user contains terminal in left hand
 side of the rule.</P>
 
-<DT><B>Macro `EARLEY_INCORRECT_TRANSLATION'</B><DD><P>is error code of the parser.  The code is returned when
+<DT><B>Macro `EARLEY_INCORRECT_TRANSLATION'</B><DD>
+<P>is error code of the parser.  The code is returned when
 grammar rule translation is not correct.  The single reason
 for this is translation of the rule consists of translations
 of more one symbols in the right hand side of the rule
 without forming an abstract tree node.</P>
 
-<DT><B>Macro `EARLEY_NEGATIVE COST'</B><DD><P>is error code of the parser.  The code is returned when
+<DT><B>Macro `EARLEY_NEGATIVE COST'</B><DD>
+<P>is error code of the parser.  The code is returned when
 abstract node has a negative cost.</P>
 
-<DT><B>Macro `EARLEY_INCORRECT_SYMBOL_NUMBER'</B><DD><P>is error code of the parser.  The code is returned when
+<DT><B>Macro `EARLEY_INCORRECT_SYMBOL_NUMBER'</B><DD>
+<P>is error code of the parser.  The code is returned when
 grammar rule translation contains incorrect symbol number
 which should be nonnegative number less than rule right hand
 side length.</P>
 
-<DT><B>Macro `EARLEY_UNACCESSIBLE_NONTERM'</B><DD><P>is error code of the parser.  The code is returned when
+<DT><B>Macro `EARLEY_UNACCESSIBLE_NONTERM'</B><DD>
+<P>is error code of the parser.  The code is returned when
 there is grammar nonterminal which can not be derived from
 axiom.</P>
 
-<DT><B>Macro `EARLEY_NONTERM_DERIVATION'</B><DD><P>is error code of the parser.  The code is returned when
+<DT><B>Macro `EARLEY_NONTERM_DERIVATION'</B><DD>
+<P>is error code of the parser.  The code is returned when
 there is grammar nonterminal which can not derive a terminal
 string.</P>
 
-<DT><B>Macro `EARLEY_LOOP_NONTERM'</B><DD><P>is error code of the parser.  The code is returned when
+<DT><B>Macro `EARLEY_LOOP_NONTERM'</B><DD>
+<P>is error code of the parser.  The code is returned when
 there is grammar nonterminal which can derive only itself.
 The parser does not work with such grammars.</P>
 
-<DT><B>Macro `EARLEY_INVALID_TOKEN_CODE'</B><DD><P>is error code of the parser.  The code is returned when the
+<DT><B>Macro `EARLEY_INVALID_TOKEN_CODE'</B><DD>
+<P>is error code of the parser.  The code is returned when the
 parser got input token whose code is different from all
 grammar terminal codes.</P>
 
-<DT><B>Enumeration `earley_tree_node_type'</B><DD><P>describes all possible nodes of abstract tree representing
+<DT><B>Enumeration `earley_tree_node_type'</B><DD>
+<P>describes all possible nodes of abstract tree representing
 the translation.  There are the following enumeration
 constants:
 <DL>
-<DT><B>`EARLEY_NIL'</B><DD><P>the corresponding node represents empty translations.</P>
+<DT><B>`EARLEY_NIL'</B><DD>
+<P>the corresponding node represents empty translations.</P>
 
-<DT><B>`EARLEY_ERROR'</B><DD><P>the corresponding node represents translation of
+<DT><B>`EARLEY_ERROR'</B><DD>
+<P>the corresponding node represents translation of
 special terminal `error' (see error recovery).</P>
 
-<DT><B>`EARLEY_TERM'</B><DD><P>the corresponding node represents translation of
+<DT><B>`EARLEY_TERM'</B><DD>
+<P>the corresponding node represents translation of
 a terminal.</P>
 
-<DT><B>`EARLEY_ANODE'</B><DD><P>the corresponding node represents an abstract node.</P>
+<DT><B>`EARLEY_ANODE'</B><DD>
+<P>the corresponding node represents an abstract node.</P>
 
-<DT><B>`EARLEY_ALT'</B><DD><P>the corresponding node represents an alternative of the
+<DT><B>`EARLEY_ALT'</B><DD>
+<P>the corresponding node represents an alternative of the
 translation.  Such nodes creates only when there are
 two or more possible translations.  It means that the
 grammar is ambiguous.</P>
 </DL>
 </P>
-<DT><B>Structure `earley_tree_node'</B><DD><P>represents node of the translation.  The nodes refer for
+<DT><B>Structure `earley_tree_node'</B><DD>
+<P>represents node of the translation.  The nodes refer for
 each other forming DAG (direct acyclic graph) in general
 case.  The main reason of generating DAG is that some input
 fragments may have the same translation, when there are
@@ -167,52 +192,67 @@ nodes) exist only in one exemplar.  When such nodes are not
 created, the translation nodes forms a tree.  This structure
 has the following members:
 <DL>
-<DT><B>Member `type' of type `enum earley_tree_node_type'</B><DD><P>representing type of the translation node.</P>
+<DT><B>Member `type' of type `enum earley_tree_node_type'</B><DD>
+<P>representing type of the translation node.</P>
 
-<DT><B>Union `val'</B><DD><P>Depending on the translation node type, one of the
+<DT><B>Union `val'</B><DD>
+<P>Depending on the translation node type, one of the
 union members `nil', `error', `term', `anode', and
 `alt' of the structure types described below is used to
 represent the translation node.</P>
 </DL>
 </P>
-<DT><B>Structure `earley_nil'</B><DD><P>represents empty node.  It has no members.  Actually the
+<DT><B>Structure `earley_nil'</B><DD>
+<P>represents empty node.  It has no members.  Actually the
 translation is DAG (not tree) in general case.  The empty
 and error nodes are present only in one exemplar.</P>
 
-<DT><B>Structure `earley_error'</B><DD><P>represents translation of special terminal `error'.  It has
+<DT><B>Structure `earley_error'</B><DD>
+<P>represents translation of special terminal `error'.  It has
 no members.  The error node exists only in one exemplar.</P>
 
-<DT><B>Structure `earley_term'</B><DD><P>represents translation of terminals.  It has
+<DT><B>Structure `earley_term'</B><DD>
+<P>represents translation of terminals.  It has
 the following two members:
 <DL>
-<DT><B>Integer member `code'</B><DD><P>representing code of the corresponding terminal.</P>
+<DT><B>Integer member `code'</B><DD>
+<P>representing code of the corresponding terminal.</P>
 
-<DT><B>Member `attr' of type `* void'</B><DD><P>is reference for the attribute of the corresponding
+<DT><B>Member `attr' of type `* void'</B><DD>
+<P>is reference for the attribute of the corresponding
 terminal.</P>
 </DL>
 </P>
-<DT><B>Structure `earley_anode'</B><DD><P>represents abstract node.  It has the following two members:
+<DT><B>Structure `earley_anode'</B><DD>
+<P>represents abstract node.  It has the following two members:
 <DL>
-<DT><B>Member `name' of type `const char *'</B><DD><P>representing name of anode as it given in the
+<DT><B>Member `name' of type `const char *'</B><DD>
+<P>representing name of anode as it given in the
 corresponding rule translation.</P>
 
-<DT><B>Member `cost' of type `int'</B><DD><P>representing cost of the node plus costs of all
+<DT><B>Member `cost' of type `int'</B><DD>
+<P>representing cost of the node plus costs of all
 children if the cost flag is set up.  Otherwise, the
 value is cost of the abstract node itself.</P>
 
-<DT><B>Member `children' of type `struct earley_tree_node **'</B><DD><P>is array of nodes representing the translations of the
+<DT><B>Member `children' of type `struct earley_tree_node **'</B><DD>
+<P>is array of nodes representing the translations of the
 symbols given in the rule with the abstract node.</P>
 </DL>
 </P>
-<DT><B>Structure `earley_alt'</B><DD><P>represents an alternative of the translation.  It has the
+<DT><B>Structure `earley_alt'</B><DD>
+<P>represents an alternative of the translation.  It has the
 following two members:
 <DL>
-<DT><B>Member `node' of type `struct earley_tree_node *'</B><DD><P>representing alternative translation.</P>
+<DT><B>Member `node' of type `struct earley_tree_node *'</B><DD>
+<P>representing alternative translation.</P>
 
-<DT><B>Member `next' of type `struct earley_tree_node *'</B><DD><P>is reference for the next alternative of translation.</P>
+<DT><B>Member `next' of type `struct earley_tree_node *'</B><DD>
+<P>is reference for the next alternative of translation.</P>
 </DL>
 </P>
-<DT><B>Function `earley_create_grammar'</B><DD><P>
+<DT><B>Function `earley_create_grammar'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `struct grammar *earley_create_grammar (void)'
@@ -225,7 +265,8 @@ parser with undefined grammar.  You can use two or more
 parsers simultaneously.  The function returns `NULL' if
 there is no memory.</P>
 
-<DT><B>Function `earley_error_code'</B><DD><P>
+<DT><B>Function `earley_error_code'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_error_code (struct grammar *g)'
@@ -237,7 +278,8 @@ returns the last occurred error code (see the possible error
 codes above) for given parser.  If the function returns
 zero, no error was found so far.</P>
 
-<DT><B>Function `earley_error_message'</B><DD><P>
+<DT><B>Function `earley_error_message'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `const char *earley_error_message (struct grammar *g)'
@@ -249,7 +291,8 @@ returns detail message about last occurred error.  The
 message always corresponds to the last error code returned
 the previous function.</P>
 
-<DT><B>Function `earley_read_grammar'</B><DD><P>
+<DT><B>Function `earley_read_grammar'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_read_grammar (struct grammar *g, int strict_p,
@@ -308,7 +351,8 @@ checking axiom for this.</P>
 <P>The function returns zero if it is all ok.  Otherwise, the
 function returns the error code occured.</P>
 
-<DT><B>Function `earley_parse_grammar'</B><DD><P>
+<DT><B>Function `earley_parse_grammar'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_parse_grammar (struct grammar *g, int strict_p,
@@ -380,7 +424,8 @@ always zero.</P>
 <P>There is reserved terminal `error' which is used to mark
 start point of error recovery.</P>
 
-<DT><B>Function `earley_set_lookahead_level'</B><DD><P>
+<DT><B>Function `earley_set_lookahead_level'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_set_lookahead_level (struct grammar *grammar,
@@ -402,7 +447,8 @@ function returns the previously set up level.  If the level
 value is negative, zero is used instead of it.  If the value
 is greater than two, two is used in this case.</P>
 
-<DT><B>Function `earley_set_debug_level'</B><DD><P>
+<DT><B>Function `earley_set_debug_level'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_set_debug_level (struct grammar *grammar,
@@ -421,7 +467,8 @@ level.  Setting up negative debug level results in output of
 translation for program `dot' of graphic visualization
 package `graphviz'.</P>
 
-<DT><B>Function `earley_set_one_parse_flag'</B><DD><P>
+<DT><B>Function `earley_set_one_parse_flag'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_set_one_parse_flag (struct grammar *grammar,
@@ -436,7 +483,8 @@ several parsings are possible.  For unambiguous grammar the
 flag does not affect the result.  The default value is 1.
 The function returns the previously used flag value.</P>
 
-<DT><B>Function `earley_set_cost_flag'</B><DD><P>
+<DT><B>Function `earley_set_cost_flag'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_set_cost_flag (struct grammar *grammar, int flag)'
@@ -450,7 +498,8 @@ grammar the flag does not affect the result.  The default
 value is 0.  The function returns the previously used flag
 value.</P>
 
-<DT><B>Function `earley_set_error_recovery_flag'</B><DD><P>
+<DT><B>Function `earley_set_error_recovery_flag'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_set_error_recovery_flag (struct grammar *grammar,
@@ -466,7 +515,8 @@ results in finishing parsing (although function
 once).  The default value is 1. The function returns the
 previously used flag value.</P>
 
-<DT><B>Function `earley_set_recovery_match'</B><DD><P>
+<DT><B>Function `earley_set_recovery_match'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_set_recovery_match (struct grammar *grammar,
@@ -480,7 +530,8 @@ tokens should be successfully shifted to finish error
 recovery.  The default value is 3.  The function returns the
 previously used flag value.</P>
 
-<DT><B>Function `earley_parse'</B><DD><P>
+<DT><B>Function `earley_parse'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `int earley_parse (struct grammar *grammar,
@@ -539,7 +590,8 @@ only during the parsing.  Function `parse_free' is used by
 the parser to free memory allocated by `parse_alloc'.  If it
 is `NULL', the memory is not freed.</P>
 
-<DT><B>Function `earley_free_grammar'</B><DD><P>
+<DT><B>Function `earley_free_grammar'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
           `void earley_free_grammar (struct grammar *grammar)'

@@ -22,4 +22,6 @@
 
 */
 
-extern void test_context (IR_node_t first_program_stmt_ptr);
+extern void test_context (IR_node_t first_program_stmt_ptr, int first_p);
+extern void initiate_context (void);
+extern void finish_context (void);

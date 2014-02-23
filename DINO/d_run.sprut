@@ -162,6 +162,8 @@ extern void heap_push (BC_node_t block_node_ptr, ER_node_t context,
 extern int heap_push_or_set_res (BC_node_t code, ER_node_t context,
 				 val_t *call_start);
 extern void heap_pop (void);
+extern void create_uppest_stack (BC_node_t block_node);
+extern void expand_uppest_stack (void);
 
 extern unsigned int tab_collisions;
 extern unsigned int tab_expansions;

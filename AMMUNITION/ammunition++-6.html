@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with source code positions</TITLE>
  <LINK HREF="ammunition++-7.html" REL=next>
  <LINK HREF="ammunition++-5.html" REL=previous>
@@ -35,14 +35,17 @@ The implementation part is file `position.cpp'.  The interface contains
 the following objects:</P>
 <P>
 <DL>
-<DT><B>Type `position_t'</B><DD><P>is simply `class position' describes a file position.  The
+<DT><B>Type `position_t'</B><DD>
+<P>is simply `class position' describes a file position.  The
 class has the following members:</P>
 <P>
 <DL>
-<DT><B>Public members `line_number', `column_number'</B><DD><P>are source line and column corresponding to given
+<DT><B>Public members `line_number', `column_number'</B><DD>
+<P>are source line and column corresponding to given
 position.</P>
 
-<DT><B>Public function `file_name'</B><DD><P>
+<DT><B>Public function `file_name'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
                `const char *file_name (void)'
@@ -52,7 +55,8 @@ position.</P>
 
 returns name of file to which given position belongs.</P>
 
-<DT><B>Public function `path'</B><DD><P>
+<DT><B>Public function `path'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
                `class position *path (void)'
@@ -64,7 +68,8 @@ is pointer to another position class object
 representing position of a include-clause which caused
 immediately given file compilation.</P>
 
-<DT><B>Public function `path'</B><DD><P>
+<DT><B>Public function `path'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
                `int file_inclusion_level (void)'
@@ -79,16 +84,20 @@ which does not correspond to concrete file.</P>
 </DL>
 </P>
 
-<DT><B>Class `positions'</B><DD><P>The class has not public constructors/destructors.  The class
+<DT><B>Class `positions'</B><DD>
+<P>The class has not public constructors/destructors.  The class
 has the following members:
 <DL>
-<DT><B>Static const member `no_position'</B><DD><P>has value of type `position_t' has values `line_number',
+<DT><B>Static const member `no_position'</B><DD>
+<P>has value of type `position_t' has values `line_number',
 `column_number' equals to zero or `NULL'.  The value does not
 correspond to concrete file position.</P>
 
-<DT><B>Static member `current'</B><DD><P>has value which is current file position.</P>
+<DT><B>Static member `current'</B><DD>
+<P>has value which is current file position.</P>
 
-<DT><B>Static public function `initiate'</B><DD><P>
+<DT><B>Static public function `initiate'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void initiate (void)'
@@ -99,7 +108,8 @@ correspond to concrete file position.</P>
 initiates the package.  Value of variable `current' becomes
 equal to `no_position'.</P>
 
-<DT><B>Static public function `finish'</B><DD><P>
+<DT><B>Static public function `finish'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void finish (void)'
@@ -109,7 +119,8 @@ equal to `no_position'.</P>
 
 frees all memory allocated during package work.</P>
 
-<DT><B>Static public function `start_file'</B><DD><P>
+<DT><B>Static public function `start_file'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void start_file (const char *file_name)'
@@ -126,7 +137,8 @@ different calls of the function must be different (e.g.
 different columns or lines), i.e. positions of different
 include-clauses must be different.</P>
 
-<DT><B>Static public function `finish_file'</B><DD><P>
+<DT><B>Static public function `finish_file'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `void finish_file (void)'
@@ -138,7 +150,8 @@ restores previous value of the member `current', more
 exactly sets up the member by position to which the
 member `path' refers.</P>
 
-<DT><B>Static public Function `compare'</B><DD><P>
+<DT><B>Static public Function `compare'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `int compare_positions (position_t position_1,

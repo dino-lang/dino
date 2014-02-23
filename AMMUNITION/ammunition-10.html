@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C interface: Package for machine-independent arbitrary precision integer arithmetic</TITLE>
  <LINK HREF="ammunition-11.html" REL=next>
  <LINK HREF="ammunition-9.html" REL=previous>
@@ -41,20 +41,24 @@ value of the macros will be 16.  The interface contains the following
 external definitions:</P>
 <P>
 <DL>
-<DT><B>Variable `overflow_bit'</B><DD><P>has only two values 0 or 1.  The value `1' corresponds to
+<DT><B>Variable `overflow_bit'</B><DD>
+<P>has only two values 0 or 1.  The value `1' corresponds to
 overflow.  The variable value are modified by all functions of
 addition, subtract, multiplication, division, evaluation of
 remainder, shift, changing size and transformation of string
 into number.</P>
 
-<DT><B>Variable `const unsigned char *zero_constant'</B><DD><P>represents zero (unsigned) integer of any size.</P>
+<DT><B>Variable `const unsigned char *zero_constant'</B><DD>
+<P>represents zero (unsigned) integer of any size.</P>
 
-<DT><B>Function `void default_arithmetic_overflow_reaction (void)'</B><DD><P>Originally reaction on all integer and unsigned integer
+<DT><B>Function `void default_arithmetic_overflow_reaction (void)'</B><DD>
+<P>Originally reaction on all integer and unsigned integer
 overflow is equal to this function.  The function does
 nothing.  Reaction on overflow for integers or unsigned
 integers is called after setting up variable `overflow_bit'.</P>
 
-<DT><B>Function `set_integer_overflow_reaction'</B><DD><P>
+<DT><B>Function `set_integer_overflow_reaction'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void (*set_integer_overflow_reaction
@@ -74,7 +78,8 @@ overflow reaction function.  There is analogous function
 
 for unsigned integer overflow.</P>
 
-<DT><B>Function `integer_maximum'</B><DD><P>
+<DT><B>Function `integer_maximum'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void integer_maximum   (int  size,  void  *result)'
@@ -94,7 +99,8 @@ parameter.  There is analogous function
 </CODE></BLOCKQUOTE>
 </P>
 
-<DT><B>Function `add_integer'</B><DD><P>
+<DT><B>Function `add_integer'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void add_integer (int size,
@@ -131,7 +137,8 @@ Also there are analogous functions
 
 for unsigned integers.</P>
 
-<DT><B>Function `integer_shift_left'</B><DD><P>
+<DT><B>Function `integer_shift_left'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void  integer_shift_left (int size,  const void *operand,
@@ -163,7 +170,8 @@ analogous functions
 </CODE></BLOCKQUOTE>
 </P>
 
-<DT><B>Function `integer_or'</B><DD><P>
+<DT><B>Function `integer_or'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void integer_or (int size, const void *op1, const void *op2,
@@ -212,7 +220,8 @@ equivalent function for unsigned integer:
 </CODE></BLOCKQUOTE>
 </P>
 
-<DT><B>Function `eq_integer'</B><DD><P>
+<DT><B>Function `eq_integer'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `int eq_integer (int size, const void *op1, const void *op2)'
@@ -249,7 +258,8 @@ Also there are analogous functions
 
 for unsigned integers.</P>
 
-<DT><B>Function `change_integer_size'</B><DD><P>
+<DT><B>Function `change_integer_size'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `void  change_integer_size (int operand_size,
@@ -271,7 +281,8 @@ is analogous function
 
 for unsigned integers.</P>
 
-<DT><B>Function `integer_to_string'</B><DD><P>
+<DT><B>Function `integer_to_string'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `char *integer_to_string (int  size, const void *operand,
@@ -293,7 +304,8 @@ is analogous function
 
 for unsigned integers.</P>
 
-<DT><B>Function `integer_to_based_string'</B><DD><P>
+<DT><B>Function `integer_to_based_string'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `char *integer_to_based_string (int  size, const void *operand,
@@ -316,7 +328,8 @@ function returns value `result'.  There is analogous function
 
 for unsigned integers.</P>
 
-<DT><B>Function `integer_from_string'</B><DD><P>
+<DT><B>Function `integer_from_string'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `char *integer_from_string (int  size, const char *operand,
@@ -343,7 +356,8 @@ size.  There is analogous function
 for unsigned integers.  But sign `+' is believed to be not
 part of unsigned integer.</P>
 
-<DT><B>Function `integer_from_based_string'</B><DD><P>
+<DT><B>Function `integer_from_based_string'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `char *integer_from_based_string (int  size, const char *operand,

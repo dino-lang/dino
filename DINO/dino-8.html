@@ -800,7 +800,7 @@ describes that the function can accept zero, one, or two
 parameters.  If only one parameter is given, then this is
 parameter <CODE>format</CODE>.</P>
 <P>If something is not said about the returned result, the function
-returns the default value <B>nil</B>.</P>
+return value is undefined.</P>
 
 <H3>Mathematical functions</H3>
 
@@ -1191,7 +1191,8 @@ returns one the following characters:
 </UL>
 
 Under some OSes the function never returns some of the
-characters (e.g. 'c' or 'b').</LI>
+characters (e.g. 'c' or 'b').  The function may return nil if
+it can not categorize the file as above.</LI>
 <LI><CODE>fun (fileinstance_or_filename)</CODE>.  The function
 returns new string representing name of owner of the file
 (directory).  Under some OSes the function may return the new
@@ -1250,8 +1251,8 @@ strings (after implicit string conversion).  The first one is the path
 name of the file (directory).  The second one is the rights.  For
 instance, if the string contains a character 'r', this is right to
 read (see characters used to denote different rights in the
-description of the function <CODE>fumode</CODE>).  The functions always
-return the value <B>nil</B>.
+description of the function <CODE>fumode</CODE>).  The function return
+values are always undefined.
 <UL>
 <LI><CODE>chumod (path, mode)</CODE>.  The function sets up rights
 for the file (directory) owner according to the given mode.</LI>
@@ -1365,7 +1366,7 @@ the end-of-file, respectively).</LI>
 <H3>File output functions</H3>
 
 <P>The following functions are used to output something into opened
-files.  All the functions always return the value <B>nil</B>.  The
+files.  All the function return values are undefined.  The
 functions may generate an exception declared in the class <CODE>syserror</CODE>
 (e.g. <CODE>eio</CODE>, <CODE>enospc</CODE> and so on) besides the standard
 <CODE>partype</CODE>, and <CODE>parnumber</CODE>.
@@ -1690,8 +1691,7 @@ of all the parameters.</LI>
 <H3>File input functions</H3>
 
 <P>The following functions are used to input something from opened files.
-All the functions always return the value <B>nil</B>.  The functions
-may generate an exception declared in the class <CODE>syserror</CODE>
+The functions may generate an exception declared in the class <CODE>syserror</CODE>
 (e.g. <CODE>eio</CODE>, <CODE>enospc</CODE> and so on) or <CODE>eof</CODE> besides
 the standard <CODE>partype</CODE>, and <CODE>parnumber</CODE>.
 <UL>

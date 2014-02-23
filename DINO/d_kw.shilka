@@ -47,8 +47,6 @@ include  {return INCLUDE;}
 int      {return INT;}
 new      {return NEW;}
 nil      {return NIL;}
-public   {return PUBLIC;}
-private  {return PRIVATE;}
 return   {return RETURN;}
 table    {return TABLE;}
 thread   {return THREAD;}

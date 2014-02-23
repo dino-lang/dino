@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>Ammunition (Reusable packages) - C++ interface: Package for work with variable length objects</TITLE>
  <LINK HREF="ammunition++-4.html" REL=next>
  <LINK HREF="ammunition++-2.html" REL=previous>
@@ -30,22 +30,26 @@ usage of the package.  The implementation part is file `vlobject.cpp'.
 The interface contains the following objects:</P>
 <P>
 <DL>
-<DT><B>Type `vlo_t'</B><DD><P>describes a descriptor variable length object.  The type is
+<DT><B>Type `vlo_t'</B><DD>
+<P>describes a descriptor variable length object.  The type is
 simply synonym of `class vlo'.  All work with stack of
 objects is executed through the descriptors.  It should
 remember that work with the object through several
 descriptors is not safe.</P>
 
-<DT><B>Macro `VLO_DEFAULT_LENGTH'</B><DD><P>has value which is default initial size of memory is
+<DT><B>Macro `VLO_DEFAULT_LENGTH'</B><DD>
+<P>has value which is default initial size of memory is
 allocated for VLO when the object is created (with not given
 initial size).  Original value of the macros is equal to
 512.  This macro can be redefined in C++ compiler command
 line or with the aid of directive `#undef' before including
 the interface file.</P>
 
-<DT><B>Class `vlo'</B><DD><P>The class contains the following functions:
+<DT><B>Class `vlo'</B><DD>
+<P>The class contains the following functions:
 <DL>
-<DT><B>Public constructor `vlo'</B><DD><P>
+<DT><B>Public constructor `vlo'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `vlo (size_t initial_length = VLO_DEFAULT_LENGTH)'
@@ -58,7 +62,8 @@ zero length.  If the parameter value is absent, the value
 is equal to zero then the VLO initial allocated memory
 length is equal to `VLO_DEFAULT_LENGTH'.</P>
 
-<DT><B>Public destructor `&nbsp;vlo'</B><DD><P>
+<DT><B>Public destructor `&nbsp;vlo'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `~vlo (void)'
@@ -69,7 +74,8 @@ length is equal to `VLO_DEFAULT_LENGTH'.</P>
 is used for deleting the descritor of VLO and freeing
 memory used by the VLO.</P>
 
-<DT><B>Public function `nullify'</B><DD><P>
+<DT><B>Public function `nullify'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void nullify (void)'
@@ -81,7 +87,8 @@ makes that length of VLO of given descriptor will be
 equal to zero (but memory for VLO is not freed and not
 reallocated).</P>
 
-<DT><B>Public function `tailor'</B><DD><P>
+<DT><B>Public function `tailor'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void tailor (void)'
@@ -92,7 +99,8 @@ reallocated).</P>
 makes that length of memory allocated for VLO of given
 descriptor becomes equal to VLO length.</P>
 
-<DT><B>Public function `length'</B><DD><P>
+<DT><B>Public function `length'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `size_t length (void)'
@@ -102,7 +110,8 @@ descriptor becomes equal to VLO length.</P>
 
 returns current length of VLO of given descriptor.</P>
 
-<DT><B>Public functions `begin', `end', `bound'</B><DD><P>
+<DT><B>Public functions `begin', `end', `bound'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void *begin(void)', `void *end(void)', `void *bound(void)'
@@ -115,7 +124,8 @@ first, the last byte of VLO of given descriptor, and
 pointer to the last byte plus one.  Remember that the
 object may change own place after any addition.</P>
 
-<DT><B>Public function `shorten'</B><DD><P>
+<DT><B>Public function `shorten'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void shorten (size_t n)'
@@ -126,7 +136,8 @@ object may change own place after any addition.</P>
 removes n bytes from the end of VLO of given descriptor.
 VLO is nullified if its length is less than n.</P>
 
-<DT><B>Public function `expand'</B><DD><P>
+<DT><B>Public function `expand'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void expand (size_t length)'
@@ -138,7 +149,8 @@ increases length of VLO of given descriptor on number of
 bytes given as the parameter.  The values of bytes added
 to the end of VLO will be not defined.</P>
 
-<DT><B>Public function `add_byte'</B><DD><P>
+<DT><B>Public function `add_byte'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void add_byte (int b)'
@@ -149,7 +161,8 @@ to the end of VLO will be not defined.</P>
 adds byte given as the parameter to the end of VLO of
 given descriptor.</P>
 
-<DT><B>Public function `add_memory'</B><DD><P>
+<DT><B>Public function `add_memory'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void add_memory (void *str, size_t length)'
@@ -161,7 +174,8 @@ adds memory starting with address given as the first macro
 parameter and with length given as the second parameter to
 the end of VLO of given descriptor.</P>
 
-<DT><B>Public function `add_string'</B><DD><P>
+<DT><B>Public function `add_string'</B><DD>
+<P>
 <BLOCKQUOTE><CODE>
 <PRE>
              `void add_string (const char *str)'

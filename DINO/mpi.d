@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -39,54 +39,41 @@ final class mpi_package () {
   var mpi_ignore_overflow = 0;
   
   final class mpi (val size) { // The order of vars is important for mpi.c
-    private value; var value;
+    var -value;
     if (type (size) != int)
       throw mpi_excepts.mpi_type ();
     if (size < 1 || size > max_mpi_size)
       throw mpi_excepts.mpi_size ();
   }
-  private check, check2, check_overflow;
-  func check (op) {
+  func -check (op) {
     if (type (op) != class () || !inside (op, mpi_package))
       throw mpi_excepts.mpi_type();
   }
-  func check2 (op1, op2) {
+  func -check2 (op1, op2) {
     check (op1); check (op2);
     if (op1.size != op2.size)
       throw mpi_excepts.mpi_unequal_size();
   }
   extern mpi_overflow;
-  func check_overflow (op) {
+  func -check_overflow (op) {
     if (mpi_overflow && !mpi_ignore_overflow)
       throw mpi_excepts.mpi_overflow();
     return op;
   }
-  private mpi_add, mpi_unsigned_add, mpi_subtract, mpi_unsigned_subtract,
-    mpi_multiply, mpi_unsigned_multiply, mpi_divide, mpi_unsigned_divide,
-    mpi_remainder, mpi_unsigned_remainder,
-    mpi_shift_right, mpi_unsigned_shift_right,
-    mpi_shift_left, mpi_unsigned_shift_left, mpi_or, mpi_unsigned_or,
-    mpi_and, mpi_unsigned_and, mpi_xor, mpi_unsigned_xor,
-    mpi_not, mpi_unsigned_not, mpi_eq, mpi_unsigned_eq,
-    mpi_ne, mpi_unsigned_ne, mpi_gt, mpi_unsigned_gt, mpi_lt, mpi_unsigned_lt,
-    mpi_ge, mpi_unsigned_ge, mpi_le, mpi_unsigned_le,
-    mpi_change_size, mpi_unsigned_change_size,
-    mpi_to_based_string, mpi_unsigned_to_based_string,
-    mpi_from_based_string, mpi_unsigned_from_based_string;
-  extern mpi_add(), mpi_unsigned_add(),
-    mpi_subtract(), mpi_unsigned_subtract(),
-    mpi_multiply(), mpi_unsigned_multiply(),
-    mpi_divide(), mpi_unsigned_divide(),
-    mpi_remainder(), mpi_unsigned_remainder(),
-    mpi_shift_right(), mpi_unsigned_shift_right(),
-    mpi_shift_left(), mpi_unsigned_shift_left(), mpi_or(), mpi_unsigned_or(),
-    mpi_and(), mpi_unsigned_and(), mpi_xor(), mpi_unsigned_xor(),
-    mpi_not(), mpi_unsigned_not(), mpi_eq(), mpi_unsigned_eq(),
-    mpi_ne(), mpi_unsigned_ne(), mpi_gt(), mpi_unsigned_gt(),
-    mpi_lt(), mpi_unsigned_lt(), mpi_ge(), mpi_unsigned_ge(),
-    mpi_le(), mpi_unsigned_le(), mpi_change_size(), mpi_unsigned_change_size(),
-    mpi_to_based_string(), mpi_unsigned_to_based_string(),
-    mpi_from_based_string(), mpi_unsigned_from_based_string();
+  extern -mpi_add(), -mpi_unsigned_add(),
+    -mpi_subtract(), -mpi_unsigned_subtract(),
+    -mpi_multiply(), -mpi_unsigned_multiply(),
+    -mpi_divide(), -mpi_unsigned_divide(),
+    -mpi_remainder(), -mpi_unsigned_remainder(),
+    -mpi_shift_right(), -mpi_unsigned_shift_right(),
+    -mpi_shift_left(), -mpi_unsigned_shift_left(), -mpi_or(), -mpi_unsigned_or(),
+    -mpi_and(), -mpi_unsigned_and(), -mpi_xor(), -mpi_unsigned_xor(),
+    -mpi_not(), -mpi_unsigned_not(), -mpi_eq(), -mpi_unsigned_eq(),
+    -mpi_ne(), -mpi_unsigned_ne(), -mpi_gt(), -mpi_unsigned_gt(),
+    -mpi_lt(), -mpi_unsigned_lt(), -mpi_ge(), -mpi_unsigned_ge(),
+    -mpi_le(), -mpi_unsigned_le(), -mpi_change_size(), -mpi_unsigned_change_size(),
+    -mpi_to_based_string(), -mpi_unsigned_to_based_string(),
+    -mpi_from_based_string(), -mpi_unsigned_from_based_string();
   func add (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_add (op1, op2, new op1));

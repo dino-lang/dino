@@ -1,3 +1,137 @@
+2014-02-23  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* AMMUNITION/Makefile.in (ammunition.info, ammunition++.info): Use
+	DINO approach.
+	* AMMUNITION/errors.c (default_output_error_function): Change
+	column number output.
+	* AMMUNITION/errors.cpp (output_error_function): Ditto.
+	* AMMUNITION/ammunition[++].sgml.in: Document it.
+	* AMMUNITION/ammunition[++]-{1-13}.html: Update.
+	* AMMUNITION/ammunition[++].{html,dvi,ps,pdf,txt,info): Ditto.
+	* AMMUNITION/errors[++].tst.in: Ditto.
+	* DINO/compare.tst: Add forward declarations or rearrange if it is
+	necessary.
+	* DINO/d_bc.sprut (real_block_vars_number): Return int_t.
+	* DINO/d_common.h: Include stdarg.h.
+	(repl_flag): New extern.
+	(print_cont_prompt, print_stmt_cont_prompt): Ditto.
+	(d_verror, d_error): Ditto.
+	* DINO/d_context.c: Include setjmp.h.
+	(include_decl): Move up.
+	(context_exit_longjump_buff): New.
+	(cont_err, cont_err_start, cont_err_finish): Ditto.
+	(process_friend_list): Ditto.
+	(possible_table_extensions): Remove.
+	(check_slice): Use new error funcs.
+	(first_expr_processing, first_block_passing): Ditto.  Move some
+	code from second pass funcs.  Permit redeclarations.
+	(second_block_passing, second_expr_processing): Remove.
+	(second_block_passing, second_expr_processing): Rename to
+	second_block_passing, second_expr_processing.  Add code for
+	processing forward decls.  Use new error funcs.
+	(test_context): Add parameter.  Modify for REPL.
+	(initiate_context, finish_context): New.
+	* DINO/d_context.h (initiate_context, finish_context): New
+	externs.
+	(test_context): Add an argument.
+	* DINO/d_dino.c (dino_start): Initiate errors for immediate output
+	for REPL.
+	(exception_action): Do not finish for REPL.
+	(COMMAND_LINE_DESCRIPTION): Change -h to -m.  New option -h.
+	(repl_flag): New.
+	(set_signal_actions): New.
+	(REPL_PROMPT, REPL_CONT_PROMPT, ERROR_PREFIX): New.
+	(print_stmt_prompt, print_stmt_cont_prompt, d_verror, d_error):
+	New.
+	(dino_main): Add code for REPL.  Add new initiations and
+	finializations functions.  Process new -h option.  Use
+	set_signale_action.
+	* DINO/d_errors.c
+	(ERR_forward_and_matched_decls_are_different_entities): New.
+	(ERR_forward_and_matched_decls_have_different_attrs): New.
+	(ERR_udenclared_ident_access_list): Remove.
+	(ERR_udenclared_ident_friend_list): New.
+	(ERR_contradicted_ident_access_list): Remove.
+	(ERR_previous_access_location): Remove.
+	(ERR_extension_before_extended): New.
+	(ERR_extension_of_non_func_class_ext): New.
+	(ERR_extension_of_forward_declaration): New.
+	(ERR_extension_without_class_or_func): Remove.
+	(yyerror): Move to d_yacc.y.
+	* DINO/d_errors.h
+ 	(ERR_forward_and_matched_decls_are_different_entities): New.
+	(ERR_forward_and_matched_decls_have_different_attrs): New.
+	(ERR_udenclared_ident_access_list): Remove.
+	(ERR_udenclared_ident_friend_list): New.
+	(ERR_contradicted_ident_access_list): Remove.
+	(ERR_previous_access_location): Remove.
+	(ERR_extension_before_extended): New.
+	(ERR_extension_of_non_func_class_ext): New.
+	(ERR_extension_of_forward_declaration): New.
+	(ERR_extension_without_class_or_func): Remove.
+	* DINO/d_eval.c (find_catch_pc): Use d_error.  Modify for REPL.
+	(evaluate_code): Process NULL from find_catch_pc.
+	(evaluate_program): Add two parameters.  Modify to process new
+	parameters and modify for REPL.
+	* DINO/d_eval.h (evaluate_program): Add two parameters.
+	* DINO/d_heap.c (vars_stack_size): New.
+	(shrink_block_stack_size, new_block_stack_size): Use it.
+	(make_cvars_undefined, setup_new_cstack): New.
+	(heap_push_without_profile_update): Use setup_new_cstask.
+	(previous_uppest_stack_vars_num, create_uppest_stack): New.
+	(expand_uppest_stack): New.
+	* DINO/d_ir.sprut (enum access_val, access_val_t): New
+	(ENVIRONMENT): Remove public, private.  Add NL at the end.
+	(access_ident): Remove.
+	(friend_ident): New.
+	(block): Remove access_list, add friend_list.
+	(decl): Add access.
+	(func_or_class): Add forward_decl_flag.
+	(block): Remove decls_number, block_number.  Add
+	temporary_vars_number, decls_flag.
+	(decl): Remove public_flag, access_ident, decl_number_in_block.
+	Add friend_ident.
+	* DINO/d_kw.shilka (public, private): Remove.
+	* DINO/d_run.sprut (create_uppest_stack, expand_uppest_stack):
+	New.
+	* DINO/d_yacc.h: Add positions for untyped tokens.  Use the
+	positions.  Remove pos nonterminal where possible.  Add forward
+	decls.  Add earlier YYABORT for errors for REPL.
+	(get_read_line, skip_line_rest): New.
+	(yyerror): Move from d_errors.c
+	(merge_access_lists, uncycle_access_list): Remove.
+	(merge_friend_lists, uncycle_friend_list): New.
+	(process_var_decl): Add access parameter.
+	(repl_process_flag): New.
+	(public_flag, friend_flag): Remove.
+	(repl_can_process_p): New.
+	(assign): Use pointer attribute.  Create nodes in the assign rules.
+	(access): Use access attribute.  Add rules for access.
+	(program): Don't create the uppest block.
+	(first_error_p): New.
+	(yyerror): Move from d_errors.c.  Modify it.
+	(process_header): Add parameter.  Clear forward_decl_flag.
+	(lines_vec, lines, initaite_lines, read_line, get_read_line): New.
+	(finish_line, first_repl_empty_line_p): New.
+	(d_getc): Modify for REPL.
+	(skip_line_rest): New.
+	(yylex): Add code for REPL on NL.  Set up position attribute of
+	the tokens.
+	(initiate_scanner, finish_scanner): Add code for REPL.
+	(initiate_parser, finish_parser): New.
+	(initiate_new_parser_REPL_stmts): New.
+	* DINO/dino.tst.in: Remove tests for redeclaration errors.  Add
+	tests for forward declaration and redeclarations.  Change expected
+	positions.  Add tests for REPL.
+	* DINO/gmp.d: Remove private clauses.
+	* DINO/ieee.d: Ditto.  Add forward decls.
+	* DINO/ipcerr.d: Ditto.
+	* DINO/mpi.d: Ditto.
+	* DINO/socket.d; Ditto.
+	* DINO/dino.{txt, ps, pdf, info, html, dvi}: Update for undefined
+	values.
+	* DINO/dino-{4-6,8,q0}.html: Ditto.
+
 2014-02-09  Vladimir Makarov  <vmakarov@redhat.com>
 
 	* DINO/d_bcio.c, DINO/d_bcio.h, DINO/d_bcn.shilka,

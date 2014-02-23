@@ -40,6 +40,8 @@ extern char ERR_termination_exception[];
 extern char ERR_segment_access_violation_exception[];
 
 extern char ERR_repeated_decl[];
+extern char ERR_forward_and_matched_decls_are_different_entities[];
+extern char ERR_forward_and_matched_decls_have_different_attrs[];
 extern char ERR_previous_decl_location[];
 extern char ERR_undeclared_ident[];
 extern char ERR_period_ident_applied_to_slice [];
@@ -47,12 +49,12 @@ extern char ERR_vector_element_access_applied_to_slice [];
 extern char ERR_table_element_access_applied_to_slice [];
 extern char ERR_call_applied_to_slice [];
 extern char ERR_slice_as_foreach_designator[];
-extern char ERR_extension_without_class_or_func [];
+extern char ERR_extension_before_extended [];
+extern char ERR_extension_of_non_func_class_ext [];
+extern char ERR_extension_of_forward_declaration [];
 extern char ERR_extension_of_final [];
-extern char ERR_udenclared_ident_access_list [];
+extern char ERR_udenclared_ident_friend_list [];
 extern char ERR_invalid_friend [];
-extern char ERR_contradicted_ident_access_list [];
-extern char ERR_previous_access_location [];
 extern char ERR_decl_is_absent_in_a_block [];
 extern char ERR_invalid_type_of_arrow_left_operand [];
 extern char ERR_invalid_type_of_deref_operand [];
@@ -274,5 +276,3 @@ extern char DERR_immutable_instance_modification [];
 extern char DERR_deadlock [];
 /* Not catched. */
 extern char DERR_unprocessed_exception [];
-
-extern int yyerror (const char *message);

@@ -218,7 +218,7 @@ static vlo_t libraries_vector;
 /* The value of the following var is not NULL when the program is
    given on the command line.  In this case its value is the
    program. */
-char *command_line_program = NULL;
+const char *command_line_program = NULL;
 
 /* The value of the following var is not NULL when the program is
    given by dump file on the command line.  In this case its value is
@@ -445,7 +445,8 @@ dino_start (void)
 {
   change_allocation_error_function (error_func_for_allocate);
   initiate_positions ();
-  initiate_errors (FALSE);
+  /* Output errors immediately for REPL.  */
+  initiate_errors (repl_flag);
   fatal_error_function = dino_fatal_finish;
   initiate_table ();
   initiate_icode (); /* only after initiate table */
@@ -507,9 +508,11 @@ exception_action (int signal_number)
   if (eval_long_jump_set_flag)
     eval_error (class, signals_bc_decl, get_cpos (), message);
   else if (signal_number != SIGINT && signal_number != SIGTERM)
-    error (TRUE, get_cpos (), message);
-  else
+    error (! repl_flag, get_cpos (), message);
+  else if (! repl_flag)
     dino_finish (1);
+  d_assert (repl_flag);
+  fputs ("\n", stdout);
 }
 
 /* The following func sets up signal handler of an exception. */
@@ -601,8 +604,9 @@ void add_dino_path (const char *prefix, const char *subdir,
 "%%\n"\
 "command line: dino [option ...] [program-file] arguments\n"\
 "\n"\
+"`-h'         help\n"\
 "`-c program' execute program\n"\
-"`-h size'    set heap chunk size (1m - default, 1000k, or 1000000)\n"\
+"`-m size'    set heap chunk size (1m - default, 1000k, or 1000000)\n"\
 "`-Idirname'  directory for searching for Dino programs\n"\
 "`-Ldirname'  Dino extern libraries\n"\
 "`-s'         output statistics to stderr\n"\
@@ -618,6 +622,7 @@ int bc_nodes_num;
 #define MINIMAL_HEAP_CHUNK_SIZE  0100000 /* 32  Kbytes */
 
 unsigned int heap_chunk_size;
+int repl_flag;
 int statistics_flag;
 int trace_flag;
 int profile_flag;
@@ -626,6 +631,81 @@ int dump_flag;
 /* CYGWIN reports incorrect start time, we need this for correction of
    clock. */
 double start_time;
+
+static void
+set_signal_actions (void)
+{
+  set_exception_action (SIGINT);
+  set_exception_action (SIGILL);
+  set_exception_action (SIGABRT);
+  set_exception_action (SIGFPE);
+  set_exception_action (SIGTERM);
+  set_exception_action (SIGSEGV);
+#if ! defined (NO_PROFILE) && defined (HAVE_SETITIMER)
+  if (profile_flag)
+    set_exception_action (SIGVTALRM);
+#endif
+}
+
+/* Prompts used in REPL for starting new stmt, for continue type
+   the stmt, and prefix used for error output.  */
+#define REPL_PROMPT      "dino> "
+#define REPL_CONT_PROMPT "    | "
+#define ERROR_PREFIX     "      "
+
+/* Two functions for printing prompts.  */
+void
+print_stmt_prompt (void)
+{
+  fputs (REPL_PROMPT, stdout);
+  fflush (stdout);
+}
+
+void
+print_stmt_cont_prompt (void)
+{
+  fputs (REPL_CONT_PROMPT, stdout);
+  fflush (stdout);
+}
+
+/* Common functions used for output all error messages.  */
+void
+d_verror (int fatal_error_flag, position_t position,
+	  const char *format, va_list ap)
+{
+#define MAX_MESSAGE_LEN 100
+  static char message[MAX_MESSAGE_LEN];
+
+  vsnprintf (message, MAX_MESSAGE_LEN, format, ap);
+  if (repl_flag)
+    fprintf (stderr, "%s", ERROR_PREFIX);
+  if (! repl_flag)
+    error (fatal_error_flag, position, "%s", message);
+  else if(*position.file_name != '\0')
+    error (FALSE, position, "%s", message);
+  else
+    {
+      int i;
+      const char *ln = get_read_line (position.line_number - 1);
+      
+      fprintf (stderr, "%s%s", ln, ERROR_PREFIX);
+      for (i = 1; i < position.column_number; i++)
+	fprintf (stderr, " ");
+      fprintf (stderr, "^\n%s%s\n", ERROR_PREFIX, message);
+      number_of_errors++;
+    }
+}
+
+void
+d_error (int fatal_error_flag, position_t position,
+	 const char *format, ...)
+{
+  va_list arguments;
+
+  va_start (arguments, format);
+  d_verror (fatal_error_flag, position, format, arguments);
+  va_end (arguments);
+}
 
 int
 dino_main (int argc, char *argv[], char *envp[])
@@ -641,7 +721,6 @@ dino_main (int argc, char *argv[], char *envp[])
   start_time = clock ();
   if ((code = setjmp (exit_longjump_buff)) != 0)
     return (code < 0 ? 0 : code);
-  dino_start ();
 #ifndef NDEBUG
   if (!start_command_line_processing (argc, argv, COMMAND_LINE_DESCRIPTION))
     {
@@ -651,12 +730,8 @@ dino_main (int argc, char *argv[], char *envp[])
 #else
   start_command_line_processing (argc, argv, COMMAND_LINE_DESCRIPTION);
 #endif
-  if (argument_count == 1)
-    {
-      fprintf (stderr, "Version %.2f\n", DINO_VERSION);
-      output_command_line_description ();
-      dino_finish (1);
-    }
+  repl_flag = argument_count == 1;
+  dino_start ();
   heap_chunk_size = DEFAULT_HEAP_CHUNK_SIZE;
   statistics_flag = FALSE;
   trace_flag = FALSE;
@@ -676,6 +751,12 @@ dino_main (int argc, char *argv[], char *envp[])
 	    fprintf (stderr, "dino: unknown flag `%s'\n", argument_vector[i]);
 	  okay = FALSE;
 	}
+      else if (strcmp (option, "-h") == 0)
+	{
+	  fprintf (stderr, "Version %.2f\n", DINO_VERSION);
+	  output_command_line_description ();
+	  dino_finish (1);
+	}
       else if (strcmp (option, "-c") == 0)
 	command_line_program = argument_vector [i + 1];
       else if (strcmp (option, "-s") == 0)
@@ -694,7 +775,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	dump_flag = TRUE;
       else if (strcmp (option, "-i") == 0)
 	input_dump = argument_vector [i + 1];
-      else if (strcmp (option, "-h") == 0)
+      else if (strcmp (option, "-m") == 0)
 	{
 	  heap_chunk_size = atoi (argument_vector [i + 1]);
 	  ch = get_first_nondigit (argument_vector [i + 1]);
@@ -719,13 +800,8 @@ dino_main (int argc, char *argv[], char *envp[])
       else
 	d_unreachable ();
     }
-  if (command_line_program == NULL && input_dump == NULL
-      && number_of_operands () == 0)
-    {
-      fprintf (stderr,
-	       "dino: program itself or dino file must be on command line\n");
-      okay = FALSE;
-    }
+  if (repl_flag)
+    ;
   else if (input_dump != NULL)
     {
       program_arguments_number = number_of_operands ();
@@ -739,6 +815,12 @@ dino_main (int argc, char *argv[], char *envp[])
     {
       program_arguments_number = number_of_operands ();
       flag_of_first = TRUE;
+    }
+  else if (number_of_operands () == 0)
+    {
+      fprintf (stderr,
+	       "dino: program itself or dino file must be on command line\n");
+      okay = FALSE;
     }
   else
     {
@@ -784,52 +866,99 @@ dino_main (int argc, char *argv[], char *envp[])
   program_arguments [i] = NULL;
   program_environment = envp;
   first_program_bc = NULL;
-  if (input_dump_file != NULL)
+  if (repl_flag)
     {
-      initiate_read_bc ();
-      read_bc_program (input_dump, input_dump_file, dump_flag);
-    }
-  else
-    {
-      start_scanner_file
-	((command_line_program == NULL ? input_file_name : ""), no_position);
-      yyparse ();
-      if (first_program_stmt != NULL)
-	test_context (first_program_stmt);
-    }
-  output_errors ();
-  if (number_of_errors == 0 && first_program_bc != NULL)
-    {
-      if (dump_flag)
+      int first_p;
+
+      printf ("Dino (version %.2f)\n", DINO_VERSION);
+      printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");
+      start_scanner_file ("", no_position);
+      initiate_parser ();
+      initiate_context ();
+      set_signal_actions ();
+      for (first_p = TRUE;; first_p = FALSE)
 	{
-	  int_t idn = 0, decl_num = 0;
-	  enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
-	  dump_code (BC_info (first_program_bc), 0);
+	  int last_p;
+
+	  number_of_errors = 0;
+	  /* Skip prompt for environment code. */
+	  if (! first_p)
+	    {
+	      fputs (REPL_PROMPT, stdout);
+	      fflush (stdout);
+	    }
+	  initiate_new_parser_REPL_stmts ();
+	  if (yyparse ())
+	    skip_line_rest ();
+	  last_p = feof (stdin);
+	  if (last_p)
+	    fputs ("\n", stdout);
+	  if (number_of_errors == 0 && first_program_stmt != NULL)
+	    test_context (first_program_stmt, first_p);
+	  if (last_p)
+	    {
+	      finish_context ();
+	      finish_parser ();
+	    }
+	  d_assert (! first_p || number_of_errors == 0);
+	  if (number_of_errors == 0 && first_program_bc != NULL)
+	    {
+	      if (first_p)
+		init_env_decl_processing ();
+	      prepare_block (first_program_bc);
+	      evaluate_program (first_program_bc, first_p, last_p);
+	      d_assert (!last_p);
+	    }
+	  else if (last_p)
+	    break;
+	}
+    }
+  else 
+    {
+      if (input_dump_file != NULL)
+	{
+	  initiate_read_bc ();
+	  read_bc_program (input_dump, input_dump_file, dump_flag);
 	}
       else
 	{
-	  if (input_dump_file == NULL)
+	  start_scanner_file
+	    ((command_line_program == NULL ? input_file_name : ""), no_position);
+	  initiate_parser ();
+	  yyparse ();
+	  finish_parser ();
+	  if (first_program_stmt != NULL)
 	    {
-	      init_env_decl_processing ();
-	      prepare_block (first_program_bc);
+	      initiate_context ();
+	      test_context (first_program_stmt, TRUE);
+	      finish_context ();
 	    }
-	  if (! all_env_decls_processed_p ())
+	}
+      output_errors ();
+      if (number_of_errors == 0 && first_program_bc != NULL)
+	{
+	  if (dump_flag)
 	    {
-	      fprintf (stderr, "fatal error - byte code corrupted\n");
-	      exit (1);
+	      int_t idn = 0, decl_num = 0;
+	      enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
+	      dump_code (BC_info (first_program_bc), 0);
 	    }
-	  set_exception_action (SIGINT);
-	  set_exception_action (SIGILL);
-	  set_exception_action (SIGABRT);
-	  set_exception_action (SIGFPE);
-	  set_exception_action (SIGTERM);
-	  set_exception_action (SIGSEGV);
-#if ! defined (NO_PROFILE) && defined (HAVE_SETITIMER)
-	  if (profile_flag)
-	    set_exception_action (SIGVTALRM);
-#endif
-	  initiate_heap ();
-	  evaluate_program (first_program_bc);
+	  else
+	    {
+	      if (input_dump_file == NULL)
+		{
+		  init_env_decl_processing ();
+		  prepare_block (first_program_bc);
+		}
+	      if (! all_env_decls_processed_p ())
+		{
+		  fprintf (stderr, "fatal error - byte code corrupted\n");
+		  exit (1);
+		}
+	      set_signal_actions ();
+	      evaluate_program (first_program_bc, TRUE, TRUE);
+	      d_unreachable ();
+	    }
 	}
     }
   dino_finish (number_of_errors != 0);
