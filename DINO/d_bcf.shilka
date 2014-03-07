@@ -48,12 +48,12 @@ tvars_num
 excepts
 ext_life_p
 fdecl
-func_p
+fun_p
 class_p
 thread_p
 args_p
 simple_p
-pure_func_p
+pure_fun_p
 pars_num
 min_pars_num
 op1
@@ -70,10 +70,10 @@ cfblock
 next_except
 f
 str
-/*tvar_num*/
 fldid
 body_pc
 rhs_decl
+ret_decl
 block
 
 %%

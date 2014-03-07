@@ -207,7 +207,7 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_fof:
 	case BC_NM_vecof:
 	case BC_NM_tabof:
-	case BC_NM_funcof:
+	case BC_NM_funof:
 	case BC_NM_threadof:
 	case BC_NM_classof:
 	  printf (" op1=%d op2=%d // %d <- %d", BC_op1 (bc), BC_op2 (bc),
@@ -228,9 +228,7 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op1 (bc), BC_op1 (bc), BC_op1 (bc));
 	  break;
 	case BC_NM_call:
-	case BC_NM_pcall:
 	case BC_NM_tcall:
-	case BC_NM_tpcall:
 	  printf (" op1=%d op2=%d // call (start=%d) (npars=%d)",
 		  BC_op1 (bc), BC_op2 (bc), BC_op1 (bc), BC_op2 (bc));
 	  break;
@@ -247,24 +245,12 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_titcall:
 	case BC_NM_cicall:
 	case BC_NM_citcall:
-	case BC_NM_ipcall:
-	case BC_NM_ibpcall:
-	case BC_NM_itpcall:
-	case BC_NM_tipcall:
-	case BC_NM_titpcall:
-	case BC_NM_cipcall:
-	case BC_NM_citpcall:
 	  printf (" cfblock=%d op1=%d op2=%d",
 		  BC_idn (BC_info (BC_cfblock (bc))),
 		  BC_op1 (bc), BC_op2 (bc));
 	  break;
 	case BC_NM_sl:
 	case BC_NM_lslv:
-	  printf (" op1=%d op2=%d op3=%d",
-		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
-	  break;
-	case BC_NM_key:
-	case BC_NM_lkeyv:
 	  printf (" op1=%d op2=%d op3=%d",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
 	  break;
@@ -324,8 +310,7 @@ dump_code (BC_node_t infos, int indent)
 	  printf (" op1=%d op2=%d op3=%d op4=%d", BC_op1 (bc), BC_op2 (bc),
 		  BC_op3 (bc), BC_op4 (bc));
 	  break;
-	case BC_NM_stv:
-	case BC_NM_stt:
+	case BC_NM_stvt:
 	case BC_NM_sts:
 	  printf (" op1=%d op2=%d op3=%d",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
@@ -430,6 +415,9 @@ dump_code (BC_node_t infos, int indent)
 	  break;
 	case BC_NM_ret:
 	  printf (" op1=%d", BC_op1 (bc));
+	  if (BC_ret_decl (bc) != NULL)
+	    printf (" ret_decl=%d // ident=%s", BC_decl_num (BC_ret_decl (bc)),
+		    BC_ident (BC_ret_decl (bc)));
 	  break;
 	case BC_NM_wait:
 	  printf (" op1=%d pc=%d",
@@ -451,8 +439,8 @@ dump_code (BC_node_t infos, int indent)
 		str = BC_ident (fdecl);
 		d_assert (BC_IS_OF_TYPE (bc, BC_NM_fblock));
 		printf (" fdecl=%d", BC_decl_num (fdecl));
-		if (BC_func_p (bc))
-		  printf (" func_p=1");
+		if (BC_fun_p (bc))
+		  printf (" fun_p=1");
 		if (BC_class_p (bc))
 		  printf (" class_p=1");
 		if (BC_thread_p (bc))
@@ -462,7 +450,7 @@ dump_code (BC_node_t infos, int indent)
 		if (BC_simple_p (bc))
 		  printf (" simple_p=1");
 		if (BC_simple_p (bc))
-		  printf (" pure_func_p=1");
+		  printf (" pure_fun_p=1");
 		if (BC_pars_num (bc) != 0)
 		  printf (" pars_num=%d", BC_pars_num (bc));
 		if (BC_min_pars_num (bc) != 0)
@@ -525,8 +513,8 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_evar:
 	case BC_NM_levar:
 	case BC_NM_levarv:
-	case BC_NM_efunc:
-	case BC_NM_func:
+	case BC_NM_efun:
+	case BC_NM_fun:
 	case BC_NM_class:
 	  printf (" op1=%d decl=%d // %s", BC_op1 (bc),
 		  BC_decl_num (BC_decl (bc)), BC_ident (BC_decl (bc)));
@@ -866,15 +854,15 @@ get_token (void)
 static const char *fn, *fn2, *fn3;
 static int_t ln, ln2, ln3, pos, pos2, pos3, decl_num;
 static int_t public_p, ext_life_p;
-static int_t func_p, class_p, thread_p, args_p, simple_p, pure_func_p;
+static int_t fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p;
 static int_t pars_num, min_pars_num;
 
 /* Init fields which may have a default value. */
 static void
 init_fields (void)
 {
-  public_p = ext_life_p = func_p = class_p
-    = thread_p = args_p = simple_p = pure_func_p = 0;
+  public_p = ext_life_p = fun_p = class_p
+    = thread_p = args_p = simple_p = pure_fun_p = 0;
   pars_num = min_pars_num = 0;
 }
 
@@ -1202,9 +1190,9 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
 	      break;
-	    case FR_func_p:
+	    case FR_fun_p:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
-	      func_p = token_attr.i;
+	      fun_p = token_attr.i;
 	      break;
 	    case FR_class_p:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
@@ -1222,9 +1210,9 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
 	      simple_p = token_attr.i;
 	      break;
-	    case FR_pure_func_p:
+	    case FR_pure_fun_p:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
-	      pure_func_p = token_attr.i;
+	      pure_fun_p = token_attr.i;
 	      break;
 	    case FR_pars_num:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
@@ -1290,18 +1278,16 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_lds, D_STRING)) goto fail;
 	      BC_set_str (curr_node, token_attr.str);
 	      break;
-#if 0
-	    case FR_tvar_num:
-	      if (check_fld (BC_NM_tvar, D_INT)) goto fail;
-	      BC_set_tvar_num (curr_node, token_attr.i);
-	      break;
-#endif
 	    case FR_fldid:
 	      if (check_fld (BC_NM_field, D_IDENT)) goto fail;
 	      BC_set_fldid (curr_node, token_attr.str);
 	      break;
 	    case FR_body_pc:
 	      if (check_fld (BC_NM_foreach, D_INT)) goto fail;
+	      store_curr_ptr_fld (); 
+	      break;
+	    case FR_ret_decl:
+	      if (check_fld (BC_NM_ret, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
 	      break;
 	    case FR_rhs_decl:
@@ -1388,9 +1374,6 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_imcall, FR_cfblock, "cfblock");
       check_fld_set (BC_NM_ldf, FR_f, "f");
       check_fld_set (BC_NM_lds, FR_str, "str");
-#if 0
-      check_fld_set (BC_NM_tvar, FR_tvar_num, "tvar_num");
-#endif
       check_fld_set (BC_NM_field, FR_fldid, "fldid");
       check_fld_set (BC_NM_foreach, FR_body_pc, "body_pc");
       check_fld_set (BC_NM_move, FR_rhs_decl, "rhs_decl");
@@ -1439,15 +1422,18 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	}
       if (BC_IS_OF_TYPE (curr_node, BC_NM_fblock))
 	{
-	  BC_set_func_p (curr_node, func_p != 0);
+	  BC_set_fun_p (curr_node, fun_p != 0);
 	  BC_set_class_p (curr_node, class_p != 0);
 	  BC_set_thread_p (curr_node, thread_p != 0);
 	  BC_set_args_p (curr_node, args_p != 0);
 	  BC_set_simple_p (curr_node, simple_p != 0);
-	  BC_set_pure_func_p (curr_node, pure_func_p != 0);
+	  BC_set_pure_fun_p (curr_node, pure_fun_p != 0);
 	  BC_set_pars_num (curr_node, pars_num);
 	  BC_set_min_pars_num (curr_node, min_pars_num);
 	}
+      if (BC_IS_OF_TYPE (curr_node, BC_NM_ret)
+	  && ! BIT (curr_fld_presence, FR_ret_decl))
+	BC_set_ret_decl (curr_node, NULL);
       if (BC_IS_OF_TYPE (curr_node, BC_NM_except)
 	  && ! BIT (curr_fld_presence, FR_next_except))
 	BC_set_next_except (curr_node, NULL);
@@ -1527,6 +1513,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	case FR_rhs_decl:
 	  ptr = get_decl (fld->fld_val);
 	  BC_set_rhs_decl (fld->node, ptr);
+	  break;
+	case FR_ret_decl:
+	  ptr = get_decl (fld->fld_val);
+	  BC_set_ret_decl (fld->node, ptr);
 	  break;
 	case FR_block:
 	  ptr = get_bcode (fld->fld_val);

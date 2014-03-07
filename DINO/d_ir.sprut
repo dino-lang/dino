@@ -45,9 +45,9 @@ enum expr_value_type
   EVT_CHAR = 1,
   EVT_INT = 2,
   EVT_FLOAT = 4,
-  EVT_VECTOR = 8,
-  EVT_TABLE = 16,
-  EVT_FUNC = 32,
+  EVT_VEC = 8,
+  EVT_TAB = 16,
+  EVT_FUN = 32,
   EVT_CLASS = 64,
   EVT_TYPE = 128,
   EVT_SLICE = 256
@@ -55,24 +55,26 @@ enum expr_value_type
 
 /* This is mask for number. */
 #define EVT_NUMBER_MASK (EVT_CHAR | EVT_INT | EVT_FLOAT)
-/* This is mask for int or vector. */
-#define EVT_INT_VECTOR_MASK (EVT_INT | EVT_VECTOR)
-/* This is mask for number or vector. */
-#define EVT_NUMBER_VECTOR_MASK (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VECTOR)
-/* This is mask for number, vector, or table. */
-#define EVT_NUMBER_VECTOR_TABLE_MASK\
-   (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VECTOR  | EVT_TABLE)
+/* This is mask for int or vec. */
+#define EVT_INT_VEC_MASK (EVT_INT | EVT_VEC)
+/* This is mask for number or vec. */
+#define EVT_NUMBER_VEC_MASK (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VEC)
+/* This is mask for number, vec, or tab. */
+#define EVT_NUMBER_VEC_TAB_MASK\
+   (EVT_CHAR | EVT_INT | EVT_FLOAT | EVT_VEC  | EVT_TAB)
 /* This is mask for number or string. */
-#define EVT_NUMBER_STRING_MASK EVT_NUMBER_VECTOR_MASK
-/* This is mask for vector or slice. */
-#define EVT_VECTOR_SLICE_MASK (EVT_VECTOR | EVT_SLICE)
-/* This is mask for table or slice. */
-#define EVT_TABLE_SLICE_MASK (EVT_TABLE | EVT_SLICE)
-/* This is mask for number, vector, or slice. */
-#define EVT_NUMBER_VECTOR_SLICE_MASK (EVT_NUMBER_VECTOR_MASK | EVT_SLICE)
-/* This is mask for number, vector, table, or slice. */
-#define EVT_NUMBER_VECTOR_TABLE_SLICE_MASK \
-  (EVT_NUMBER_VECTOR_TABLE_MASK | EVT_SLICE)
+#define EVT_NUMBER_STRING_MASK EVT_NUMBER_VEC_MASK
+/* This is mask for vec or slice. */
+#define EVT_VEC_SLICE_MASK (EVT_VEC | EVT_SLICE)
+/* This is mask for tab or slice. */
+#define EVT_TAB_SLICE_MASK (EVT_TAB | EVT_SLICE)
+/* This is mask for vec, tab or slice. */
+#define EVT_VEC_TAB_SLICE_MASK (EVT_VEC | EVT_TAB | EVT_SLICE)
+/* This is mask for number, vec, or slice. */
+#define EVT_NUMBER_VEC_SLICE_MASK (EVT_NUMBER_VEC_MASK | EVT_SLICE)
+/* This is mask for number, vec, tab, or slice. */
+#define EVT_NUMBER_VEC_TAB_SLICE_MASK \
+  (EVT_NUMBER_VEC_TAB_MASK | EVT_SLICE)
 
 typedef enum expr_value_type expr_value_type_t;
 
@@ -371,39 +373,39 @@ extern IR_node_t destroy_unique_ident;
   "  var ambiguous_p;\n"\
   "  var -grammar;\n"\
   "\n"\
-  "  func -int_earley_parse_grammar(){} func -int_earley_set_debug_level(){}\n"\
-  "  func -int_earley_set_one_parse_flag (){}\n"\
-  "  func -int_earley_set_lookahead_level (){}\n"\
-  "  func -int_earley_set_cost_flag (){}\n"\
-  "  func -int_earley_set_error_recovery_flag () {}\n"\
-  "  func -int_earley_set_recovery_match (){} func -int_earley_parse (){}\n"\
-  "  func -int_earley_create_grammar (){}\n"\
+  "  fun -int_earley_parse_grammar(){} fun -int_earley_set_debug_level(){}\n"\
+  "  fun -int_earley_set_one_parse_flag (){}\n"\
+  "  fun -int_earley_set_lookahead_level (){}\n"\
+  "  fun -int_earley_set_cost_flag (){}\n"\
+  "  fun -int_earley_set_error_recovery_flag () {}\n"\
+  "  fun -int_earley_set_recovery_match (){} fun -int_earley_parse (){}\n"\
+  "  fun -int_earley_create_grammar (){}\n"\
   "\n"\
-  "  func set_grammar (descr, strict_p) {\n"\
+  "  fun set_grammar (descr, strict_p) {\n"\
   "    int_earley_parse_grammar (grammar, strict_p, descr);\n"\
   "  }\n"\
-  "  func set_debug (level) {\n"\
+  "  fun set_debug (level) {\n"\
   "    return int_earley_set_debug_level (grammar, level);\n"\
   "  }\n"\
-  "  func set_one_parse (flag) {\n"\
+  "  fun set_one_parse (flag) {\n"\
   "    return int_earley_set_one_parse_flag (grammar, flag);\n"\
   "  }\n"\
-  "  func set_lookahead (flag) {\n"\
+  "  fun set_lookahead (flag) {\n"\
   "    return int_earley_set_lookahead_level (grammar, flag);\n"\
   "  }\n"\
-  "  func set_cost (flag) {\n"\
+  "  fun set_cost (flag) {\n"\
   "    return int_earley_set_cost_flag (grammar, flag);\n"\
   "  }\n"\
-  "  func set_recovery (flag) {\n"\
+  "  fun set_recovery (flag) {\n"\
   "    return int_earley_set_error_recovery_flag (grammar, flag);\n"\
   "  }\n"\
-  "  func set_recovery_match (n_toks) {\n"\
+  "  fun set_recovery_match (n_toks) {\n"\
   "    return int_earley_set_recovery_match (grammar, n_toks);\n"\
   "  }\n"\
-  "  func parse (tokens, error_func) {\n"\
-  "    var __i; // Trick to guarantee temp. vars to call error_func\n"\
+  "  fun parse (tokens, error_fun) {\n"\
+  "    var __i; // Trick to guarantee temp. vars to call error_fun\n"\
   "    __i = 1 ^ 2 & (3 ^ 4 & (5 ^ 6 & (7 ^ 8 & (9 ^ 10 & (11 ^ 12 & 13)))));\n"\
-  "    return int_earley_parse (grammar, tokens, error_func);\n"\
+  "    return int_earley_parse (grammar, tokens, error_fun);\n"\
   "  }\n"\
   "\n"\
   "  grammar = int_earley_create_grammar ();\n"\
@@ -416,49 +418,49 @@ extern IR_node_t destroy_unique_ident;
   "val stdin;\n"\
   "val stdout;\n"\
   "val stderr;\n"\
-  "func max (){} func min (){}\n"\
-  "func tolower (){} func toupper (){} func transliterate (){}\n"\
-  "func eltype (){}\n"\
-  "func keys (){}\n"\
-  "func context (){} func inside (){}\n"\
-  "func subv(){} func cmpv(){} func del(){} func ins(){}  func insv(){}\n"\
-  "func rev(){} func sort(){}\n"\
-  "func sqrt (){} func exp (){} func log (){} func log10(){} func pow(){} \n"\
-  "func sin(){} func cos(){} func atan2(){} \n"\
-  "func match(){} func gmatch(){} func sub(){} func gsub(){}\n"\
-  "func split(){} var split_regex = \"[ \t]+\";\n"\
-  "func srand(){} func rand(){} \n"\
-  "func __process_errno__() {} \n"\
-  "func readdir(){} func ftype () {}\n"\
-  "func fun(){} func fgn () {} func fsize(){}\n"\
-  "func fatime() {} func fmtime(){} func fctime () {}\n"\
-  "func fumode() {} func fgmode(){} func fomode () {}\n"\
-  "func time(){}\n"\
-  "func strtime() {} var time_format = \"%a %b %d %H:%M:%S %Z %Y\";\n"\
-  "func clock(){}\n"\
-  "func gc() {} \n"\
-  "func rename() {} func remove(){}\n"\
-  "func mkdir() {} func rmdir(){}\n"\
-  "func getcwd() {} func chdir(){}\n"\
-  "func chumod() {} func chgmod() {} func chomod() {} func isatty(){}\n"\
-  "func open() {} func close(){} func flush(){}\n"\
-  "func popen() {} func pclose(){}\n"\
-  "func tell() {} func seek() {}\n"\
-  "func put(){} func putln(){}\n"\
-  "func fput(){} func fputln(){} func sput(){} func sputln(){}\n"\
-  "func putf (){} func fputf (){} func sputf (){}\n"\
-  "func print(){} func println(){}\n"\
-  "func fprint(){} func fprintln(){} func sprint(){} func sprintln(){}\n"\
-  "func get(){} func getln(){} func getf(){}\n"\
-  "func fget(){} func fgetln(){} func fgetf(){}\n"\
-  "func scan(){} func scanln(){} func fscan(){} func fscanln(){}\n"\
-  "func getpid(){} func getun(){} func geteun(){}\n"\
-  "func getgn(){} func getegn(){} func getgroups(){}\n"\
-  "func system(){}\n"\
-  "func exit(){}\n"\
-  "func fold(){} func filter(){} func map(){}\n"\
-  "func transpose(){}\n"\
-  "func __init__() {} __init__();\n"
+  "fun max (){} fun min (){}\n"\
+  "fun tolower (){} fun toupper (){} fun transliterate (){}\n"\
+  "fun eltype (){}\n"\
+  "fun keys (){}\n"\
+  "fun context (){} fun inside (){}\n"\
+  "fun subv(){} fun cmpv(){} fun del(){} fun ins(){}  fun insv(){}\n"\
+  "fun rev(){} fun sort(){}\n"\
+  "fun sqrt (){} fun exp (){} fun log (){} fun log10(){} fun pow(){} \n"\
+  "fun sin(){} fun cos(){} fun atan2(){} \n"\
+  "fun match(){} fun gmatch(){} fun sub(){} fun gsub(){}\n"\
+  "fun split(){} var split_regex = \"[ \t]+\";\n"\
+  "fun srand(){} fun rand(){} \n"\
+  "fun __process_errno__() {} \n"\
+  "fun readdir(){} fun ftype () {}\n"\
+  "fun fuidn(){} fun fgrpn () {} fun fsize(){}\n"\
+  "fun fatime() {} fun fmtime(){} fun fctime () {}\n"\
+  "fun fumode() {} fun fgmode(){} fun fomode () {}\n"\
+  "fun time(){}\n"\
+  "fun strtime() {} var time_format = \"%a %b %d %H:%M:%S %Z %Y\";\n"\
+  "fun clock(){}\n"\
+  "fun gc() {} \n"\
+  "fun rename() {} fun remove(){}\n"\
+  "fun mkdir() {} fun rmdir(){}\n"\
+  "fun getcwd() {} fun chdir(){}\n"\
+  "fun chumod() {} fun chgmod() {} fun chomod() {} fun isatty(){}\n"\
+  "fun open() {} fun close(){} fun flush(){}\n"\
+  "fun popen() {} fun pclose(){}\n"\
+  "fun tell() {} fun seek() {}\n"\
+  "fun put(){} fun putln(){}\n"\
+  "fun fput(){} fun fputln(){} fun sput(){} fun sputln(){}\n"\
+  "fun putf (){} fun fputf (){} fun sputf (){}\n"\
+  "fun print(){} fun println(){}\n"\
+  "fun fprint(){} fun fprintln(){} fun sprint(){} fun sprintln(){}\n"\
+  "fun get(){} fun getln(){} fun getf(){}\n"\
+  "fun fget(){} fun fgetln(){} fun fgetf(){}\n"\
+  "fun scan(){} fun scanln(){} fun fscan(){} fun fscanln(){}\n"\
+  "fun getpid(){} fun getun(){} fun geteun(){}\n"\
+  "fun getgn(){} fun getegn(){} fun getgroups(){}\n"\
+  "fun system(){}\n"\
+  "fun exit(){}\n"\
+  "fun fold(){} fun filter(){} fun map(){}\n"\
+  "fun transpose(){}\n"\
+  "fun __init__() {} __init__();\n"
 }
 
 %local {
@@ -616,29 +618,18 @@ cond :: expr
 
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
   fold_plus, fold_mult, fold_and, fold_xor, fold_or,
-  typeof, charof, intof, floatof, vectorof, tableof,
-  funcof, threadof, classof :: unary_operation
+  typeof, charof, intof, floatof, vecof, tabof,
+  funof, threadof, classof :: unary_operation
 ;
 
-format_vectorof :: binary_operation
+format_vecof :: binary_operation
 ;
 
 %abstract
 index_designator :: component_designator
 ;
 
-%abstract
-vec_index_designator :: index_designator
-;
-
-index :: vec_index_designator
-;
-
-%abstract
-key_index_designator :: index_designator
-;
-
-key_index :: key_index_designator
+index :: index_designator
 ;
 
 %abstract
@@ -665,20 +656,19 @@ type :: expr
 /* The following nodes represent different types.  Type of nil is used
    only in the evaluator.  Actually there is no nodes `nil_type'. */
 nil_type, hide_type, hideblock_type, char_type, int_type, float_type,
-   vector_type, table_type,
-   func_type, thread_type, class_type, stack_type, instance_type, process_type,
+   vec_type, tab_type, fun_type, stack_type, process_type,
    type_type :: type
 ;
 
-/* The following structure represents vector, table construction
+/* The following structure represents vec, tab construction
    nodes. */
 %abstract
-vector_table :: expr
+vec_tab :: expr
 %other
         elist : elist_element
 ;
 
-vector, table ::  vector_table
+vec, tab ::  vec_tab
 ;
 
 /* The following structure is representing expr list element
@@ -692,10 +682,10 @@ elist_element :: generic_pos
         next_elist : elist_element
 ;
 
-class_func_thread_call :: expr
+class_fun_thread_call :: expr
 %other
-        /* Reference to expr that defines the called func. */
-        func_expr : expr
+        /* Reference to expr that defines the called fun. */
+        fun_expr : expr
         /* The following member refers to expr list representing
            actual parameter node. */
         actuals : elist_element
@@ -730,11 +720,10 @@ rshift_assign, ashift_assign, and_assign, xor_assign, or_assign,
 var_assign, par_assign :: assign_stmt
 ;
 
-proc_call :: stmt
+expr_stmt :: stmt
 %other
-        /* See commentaries for func call node. */
-        proc_expr : expr
-        proc_actuals : elist_element
+        /* See commentaries for fun call node. */
+        stmt_expr : expr
 ;
 
 if_stmt :: stmt
@@ -760,10 +749,10 @@ for_stmt :: stmt
 
 foreach_stmt :: stmt
 %other
-        /* Reference to designator left to `in'.*/
+        /* Reference to designator left to `:'.*/
         foreach_designator : designator
-        /* Reference to table right to `in'.*/
-        foreach_table : expr
+        /* Reference to tab right to `:'.*/
+        foreach_tab : expr
         /* Reference to stmts in given for-stmt. */
         foreach_stmts : stmt
 ;
@@ -805,9 +794,9 @@ block :: stmt
         block_scope : block
         /* Reference to stmts in given block. */
         block_stmts : stmt
-        /* Reference to corresponding func or class (NULL for
+        /* Reference to corresponding fun or class (NULL for
            separate block) or extension (only before the evaluation). */
-        func_class_ext : func_class_ext
+        fun_class_ext : fun_class_ext
         /* Lists of identifiers in friend clauses. */
         friend_list : friend_ident
         /* The list of exceptions for TRY block, NULL for simple
@@ -858,23 +847,23 @@ pub :: decl
 ;
 
 /* The following node represents external function declaration. */
-external_func :: external_decl
+external_fun :: external_decl
 ;
 
 %abstract
-func_class_ext :: decl
+fun_class_ext :: decl
 ;
 
 %abstract
-func_or_class :: func_class_ext
+fun_or_class :: fun_class_ext
         /* The next stmt is always corresponding block node if it is
 	   not forward declaration. */
 %other
-        /* Number of parameters of the func.  The formal
-           parameters are the start vars in the func block.  The
+        /* Number of parameters of the fun.  The formal
+           parameters are the start vars in the fun block.  The
            number takes into account variable for `...' too. */
         parameters_number : integer_t
-        /* Number of minimal actual parameters for the func.  It is
+        /* Number of minimal actual parameters for the fun.  It is
 	   actually number of first formal parameters without default
 	   value. */
         min_actual_parameters_number : integer_t
@@ -887,21 +876,21 @@ func_or_class :: func_class_ext
         forward_decl_flag : bool_t
 ;
 
-/* The first nodes in corresponding block is func parameter
+/* The first nodes in corresponding block is fun parameter
    represented by var nodes.  Its scope is this block. */
-func :: func_or_class
+fun :: fun_or_class
 %other
 	/* Thrue if this true. */
 	thread_flag : bool_t
 ;
 
-/* See commentaries for func node. */
-class :: func_or_class
+/* See commentaries for fun node. */
+class :: fun_or_class
 ;
 
 /* Extensions are absent during evaluation and the most of context
    analysis. */
-ext :: func_class_ext
+ext :: fun_class_ext
 ;
 
 /************* The following part is set in context analyzer **************/
@@ -931,16 +920,16 @@ expr
         value_type : type_mask_t
 ;
 
-vector_table
+vec_tab
 %other
         /* Number of elements in the list elist. */
         parts_number : integer_t
 ;
 
-class_func_thread_call
+class_fun_thread_call
 %other
         /* Number of elements in the list actuals. */
-        class_func_thread_call_parameters_number : integer_t
+        class_fun_thread_call_parameters_number : integer_t
 ;
 
 slice
@@ -948,12 +937,6 @@ slice
         /* Dimension of the slice.  In other words, how many triples
 	   (start, bound, step) is in the final slice.  */
         dim : int_t {$ = 1;}
-;
-
-proc_call
-%other
-        /* Number of elements in the list proc_actuals. */
-        proc_call_pars_number : integer_t
 ;
 
 block
@@ -975,14 +958,14 @@ block
            be used after block execution finish.  It is possibly if
            there is a function or class value is assigned to variable,
            passed as parameter, returned as function result or became
-           as vector/table element.  This flag is used to solve can we
+           as vec/tab element.  This flag is used to solve can we
            try to pop block instance after its execution and as
            consequence to decrease number of GC.  We could be more
            accurate in several ways:
              o Check only function/class inside the block.
-             o Check that vector whose element is the function class
+             o Check that vec whose element is the function class
                is assigned to, passed as parameter, returned as
-               function result or became as vector/table element. */
+               function result or became as vec/tab element. */
         extended_life_context_flag : bool_t {$ = FALSE;}
         /* The following is the list of friends of the block. */
         friends : friend {$ = NULL;}
@@ -1006,7 +989,7 @@ decl
         bc_decl : BC_hidden_node_t {$ = NULL;} /* Byte code decl */
 ;
 
-func_or_class
+fun_or_class
 %other
 	/* Order number of the function or class.  */
 	no : int_t {$ = -1;}
@@ -1018,7 +1001,7 @@ class
         simple_class_flag : bool_t {$ = FALSE;}
 ;
 
-external_func
+external_fun
 %other
 	/* Order number of the external function.  */
 	no : int_t {$ = -1;}
@@ -1027,13 +1010,13 @@ external_func
 var
 %other
         /* Number (0, ...) of the var (only immediatly placed) in
-           block vars.  The numeration of vars in func starts with 0. */
+           block vars.  The numeration of vars in fun starts with 0. */
         var_number_in_block : integer_t
 ;
 
 /************* The following part is set in evaluator **************/
 
-func_or_class
+fun_or_class
 %other
         /* Number of function/class calls. */
         calls_number : integer_t {$ = 0;}
@@ -1089,7 +1072,7 @@ hash_func (hash_table_entry_t el_ptr)
   node_ref = IR_PTR (el_ptr);
   mode = IR_NODE_MODE (node_ref);
   if (mode == IR_NM_var || mode == IR_NM_external_var
-      || mode == IR_NM_external_func || mode == IR_NM_func
+      || mode == IR_NM_external_fun || mode == IR_NM_fun
       || mode == IR_NM_class || mode == IR_NM_ext)
     hash_value
       = ((unsigned) (long) IR_scope (node_ref)
@@ -1147,10 +1130,10 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
   mode1 = IR_NODE_MODE (node_ref1);
   mode2 = IR_NODE_MODE (node_ref2);
   if ((mode1 == IR_NM_var || mode1 == IR_NM_external_var
-       || mode1 == IR_NM_external_func || mode1 == IR_NM_func
+       || mode1 == IR_NM_external_fun || mode1 == IR_NM_fun
        || mode1 == IR_NM_class || mode1 == IR_NM_ext)
       && (mode2 == IR_NM_var || mode2 == IR_NM_external_var
-	  || mode2 == IR_NM_external_func || mode2 == IR_NM_func
+	  || mode2 == IR_NM_external_fun || mode2 == IR_NM_fun
 	  || mode2 == IR_NM_class || mode2 == IR_NM_ext))
     elements_are_equal
       = (IR_scope (node_ref1) == IR_scope (node_ref2)
@@ -1211,7 +1194,7 @@ find_table_entry (IR_node_t ref, int reserve)
 {
   return
     (IR_node_t *) find_hash_table_entry (node_hash_table,
-					  (hash_table_entry_t) ref, reserve);
+					 (hash_table_entry_t) ref, reserve);
 }
 
 /* Include node starting with REF to the code node hash table.  If node with

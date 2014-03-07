@@ -45,17 +45,17 @@ final class mpi_package () {
     if (size < 1 || size > max_mpi_size)
       throw mpi_excepts.mpi_size ();
   }
-  func -check (op) {
-    if (type (op) != class () || !inside (op, mpi_package))
+  fun -check (op) {
+    if (type (op) != obj || !inside (op, mpi_package))
       throw mpi_excepts.mpi_type();
   }
-  func -check2 (op1, op2) {
+  fun -check2 (op1, op2) {
     check (op1); check (op2);
     if (op1.size != op2.size)
       throw mpi_excepts.mpi_unequal_size();
   }
   extern mpi_overflow;
-  func -check_overflow (op) {
+  fun -check_overflow (op) {
     if (mpi_overflow && !mpi_ignore_overflow)
       throw mpi_excepts.mpi_overflow();
     return op;
@@ -74,151 +74,151 @@ final class mpi_package () {
     -mpi_le(), -mpi_unsigned_le(), -mpi_change_size(), -mpi_unsigned_change_size(),
     -mpi_to_based_string(), -mpi_unsigned_to_based_string(),
     -mpi_from_based_string(), -mpi_unsigned_from_based_string();
-  func add (op1, op2) { // Overflow is possible
+  fun add (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_add (op1, op2, new op1));
   }
-  func unsigned_add (op1, op2) { // Overflow is possible
+  fun unsigned_add (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_unsigned_add (op1, op2, new op1));
   }
-  func subtract (op1, op2) { // Overflow is possible
+  fun subtract (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_subtract (op1, op2, new op1));
   }
-  func unsigned_subtract (op1, op2) { // Overflow is possible
+  fun unsigned_subtract (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_unsigned_subtract (op1, op2, new op1));
   }
-  func multiply (op1, op2) { // Overflow is possible
+  fun multiply (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_multiply (op1, op2, new op1));
   }
-  func unsigned_multiply (op1, op2) { // Overflow is possible
+  fun unsigned_multiply (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_unsigned_multiply (op1, op2, new op1));
   }
-  func divide (op1, op2) { // Overflow is possible
+  fun divide (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_divide (op1, op2, new op1));
   }
-  func unsigned_divide (op1, op2) { // Overflow is possible
+  fun unsigned_divide (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_unsigned_divide (op1, op2, new op1));
   }
-  func remainder (op1, op2) { // Overflow is possible
+  fun remainder (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_remainder (op1, op2, new op1));
   }
-  func unsigned_remainder (op1, op2) { // Overflow is possible
+  fun unsigned_remainder (op1, op2) { // Overflow is possible
     check2 (op1, op2);
     return check_overflow (mpi_unsigned_remainder (op1, op2, new op1));
   }
-  func shift_right (op, shift) {
+  fun shift_right (op, shift) {
     check (op);
     if (type (shift) != int)
       throw mpi_excepts.mpi_type();
     return mpi_shift_right (op, shift, new op);
   }
-  func unsigned_shift_right (op, shift) {
+  fun unsigned_shift_right (op, shift) {
     check (op);
     if (type (shift) != int)
       throw mpi_excepts.mpi_type();
     return mpi_unsigned_shift_right (op, shift, new op);
   }
-  func shift_left (op, shift) { // Overflow is possible
+  fun shift_left (op, shift) { // Overflow is possible
     check (op);
     if (type (shift) != int)
       throw mpi_excepts.mpi_type();
     return check_overflow (mpi_shift_left (op, shift, new op));
   }
-  func unsigned_shift_left (op, shift) { // Overflow is possible
+  fun unsigned_shift_left (op, shift) { // Overflow is possible
     check (op);
     if (type (shift) != int)
       throw mpi_excepts.mpi_type();
     return check_overflow (mpi_unsigned_shift_left (op, shift, new op));
   }
-  func or (op1, op2) {
+  fun or (op1, op2) {
     check2 (op1, op2);
     return mpi_or (op1, op2, new op1);
   }
-  func unsigned_or (op1, op2) {
+  fun unsigned_or (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_or (op1, op2, new op1);
   }
-  func and (op1, op2) {
+  fun and (op1, op2) {
     check2 (op1, op2);
     return mpi_and (op1, op2, new op1);
   }
-  func unsigned_and (op1, op2) {
+  fun unsigned_and (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_and (op1, op2, new op1);
   }
-  func xor (op1, op2) {
+  fun xor (op1, op2) {
     check2 (op1, op2);
     return mpi_xor (op1, op2, new op1);
   }
-  func unsigned_xor (op1, op2) {
+  fun unsigned_xor (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_xor (op1, op2, new op1);
   }
-  func not (op) {
+  fun not (op) {
     check (op);
     return mpi_not (op, new op);
   }
-  func unsigned_not (op) {
+  fun unsigned_not (op) {
     check (op);
     return mpi_unsigned_not (op, new op);
   }
-  func eq (op1, op2) {
+  fun eq (op1, op2) {
     check2 (op1, op2);
     return mpi_eq (op1, op2);
   }
-  func unsigned_eq (op1, op2) {
+  fun unsigned_eq (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_eq (op1, op2);
   }
-  func ne (op1, op2) {
+  fun ne (op1, op2) {
     check2 (op1, op2);
     return mpi_ne (op1, op2);
   }
-  func unsigned_ne (op1, op2) {
+  fun unsigned_ne (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_ne (op1, op2);
   }
-  func gt (op1, op2) {
+  fun gt (op1, op2) {
     check2 (op1, op2);
     return mpi_gt (op1, op2);
   }
-  func unsigned_gt (op1, op2) {
+  fun unsigned_gt (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_gt (op1, op2);
   }
-  func lt (op1, op2) {
+  fun lt (op1, op2) {
     check2 (op1, op2);
     return mpi_lt (op1, op2);
   }
-  func unsigned_lt (op1, op2) {
+  fun unsigned_lt (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_lt (op1, op2);
   }
-  func ge (op1, op2) {
+  fun ge (op1, op2) {
     check2 (op1, op2);
     return mpi_ge (op1, op2);
   }
-  func unsigned_ge (op1, op2) {
+  fun unsigned_ge (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_ge (op1, op2);
   }
-  func le (op1, op2) {
+  fun le (op1, op2) {
     check2 (op1, op2);
     return mpi_le (op1, op2);
   }
-  func unsigned_le (op1, op2) {
+  fun unsigned_le (op1, op2) {
     check2 (op1, op2);
     return mpi_unsigned_le (op1, op2);
   }
-  func change_size (op, new_size) { // Overflow is possible
+  fun change_size (op, new_size) { // Overflow is possible
     check (op);
     if (type (new_size) != int)
       throw mpi_excepts.mpi_type();
@@ -226,7 +226,7 @@ final class mpi_package () {
       throw mpi_excepts.mpi_size();
     return check_overflow (mpi_change_size (op, new_size, new op));
   }
-  func unsigned_change_size (op, new_size) { // Overflow is possible
+  fun unsigned_change_size (op, new_size) { // Overflow is possible
     check (op);
     if (type (new_size) != int)
       throw mpi_excepts.mpi_type();
@@ -234,7 +234,7 @@ final class mpi_package () {
       throw mpi_excepts.mpi_size();
     return check_overflow (mpi_unsigned_change_size (op, new_size, new op));
   }
-  func to_based_string (op, base) {
+  fun to_based_string (op, base) {
     if (type (base) != int)
       throw mpi_excepts.mpi_type();
     if (base < 2 || base > 16)
@@ -242,7 +242,7 @@ final class mpi_package () {
     check (op);
     return mpi_to_based_string (op, base);
   }
-  func unsigned_to_based_string (op, base) {
+  fun unsigned_to_based_string (op, base) {
     if (type (base) != int)
       throw mpi_excepts.mpi_type();
     if (base < 2 || base > 16)
@@ -250,15 +250,15 @@ final class mpi_package () {
     check (op);
     return mpi_unsigned_to_based_string (op, base);
   }
-  func to_string (op) {
+  fun to_string (op) {
     return to_based_string (op, 10);
   }
-  func unsigned_to_string (op) {
+  fun unsigned_to_string (op) {
     return unsigned_to_based_string (op, 10);
   }
-  func from_based_string (size, string, base) { // Overflow is possible
+  fun from_based_string (size, string, base) { // Overflow is possible
     if (type (size) != int || type (base) != int
-        || type (string) != vector ||  eltype (string) != char)
+        || type (string) != vec ||  eltype (string) != char)
       throw mpi_excepts.mpi_type();
     if (size < 1 || size > max_mpi_size)
       throw mpi_excepts.mpi_size();
@@ -266,9 +266,9 @@ final class mpi_package () {
       throw mpi_excepts.mpi_base();
     return check_overflow (mpi_from_based_string (string, mpi (size), base));
   }
-  func unsigned_from_based_string (size, string, base) { // Overflow is poss.
+  fun unsigned_from_based_string (size, string, base) { // Overflow is poss.
     if (type (size) != int || type (base) != int
-        || type (string) != vector ||  eltype (string) != char)
+        || type (string) != vec ||  eltype (string) != char)
       throw mpi_excepts.mpi_type();
     if (size < 1 || size > max_mpi_size)
       throw mpi_excepts.mpi_size();
@@ -277,10 +277,10 @@ final class mpi_package () {
     return check_overflow (mpi_unsigned_from_based_string (string, mpi (size),
 							   base));
   }
-  func from_string (size, string) {
+  fun from_string (size, string) {
     return from_based_string (size, string, 10);
   }
-  func unsigned_from_string (size, string) {
+  fun unsigned_from_string (size, string) {
     return unsigned_from_based_string (size, string, 10);
   }
 }

@@ -119,7 +119,7 @@ typedef union
   } val_t;
 
 /* Type of all external functions. */
-typedef val_t external_func_t (int, val_t *);
+typedef val_t external_fun_t (int, val_t *);
 
 /* This function must be used only when dynamic libarary is not
    implemented.  In this case, provide get_library_search_function
@@ -487,14 +487,14 @@ empty_entry, deleted_entry :: val
 ;
 
 /*%final*/
-code :: val /* func/class blocks, imlementation funcs */
+code :: val /* fun/class blocks, imlementation funcs */
 %other
   code_id : bcid_t
   code_context : context_heap_obj
 ;
 
 /*%final*/
-efunc :: val /* external function */
+efun :: val /* external function */
 %other
   efdecl : BC_hidden_node_t
 ;

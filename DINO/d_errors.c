@@ -58,22 +58,20 @@ char ERR_undeclared_ident[] = "undeclared identifier `%s'";
 char ERR_udenclared_ident_friend_list []
   = "there is no declaration for identifier `%s' in friend list";
 char ERR_period_ident_applied_to_slice [] = "`.ident' is applied to slice";
-char ERR_vector_element_access_applied_to_slice []
+char ERR_vec_tab_element_access_applied_to_slice []
   = "`[...]' is applied to slice";
-char ERR_table_element_access_applied_to_slice []
-  = "`{...}' is applied to slice";
 char ERR_call_applied_to_slice [] = "call is applied to slice";
 char ERR_slice_as_foreach_designator []
   = "vector slice is used as foreach-stmt designator";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
 char ERR_extension_before_extended []
-  = "extension `%s' before extended func or class";
-char ERR_extension_of_non_func_class_ext []
-  = "extension `%s' of non func/class";
+  = "extension `%s' before extended fun or class";
+char ERR_extension_of_non_fun_class_ext []
+  = "extension `%s' of non fun/class";
 char ERR_extension_of_forward_declaration []
-  = "extension `%s' of forward declaration of func/class";
-char ERR_extension_of_final [] = "extension of final func/class `%s'";
+  = "extension `%s' of forward declaration of fun/class";
+char ERR_extension_of_final [] = "extension of final fun/class `%s'";
 char ERR_decl_is_absent_in_a_block []
   = "there is no such declaration in a block";
 char ERR_invalid_type_of_arrow_left_operand []
@@ -101,26 +99,26 @@ char ERR_invalid_conversion_to_int_operand_type []
 char ERR_invalid_conversion_to_float_operand_type []
   = "invalid operand type in float (...)";
 char ERR_invalid_conversion_to_vector_operand_type []
-  = "invalid operand type vector (...)";
+  = "invalid operand type vec (...)";
 char ERR_invalid_conversion_format_type []
-  = "invalid format type in vector (...)";
+  = "invalid format type in vec (...)";
 char ERR_invalid_conversion_to_table_operand_type []
-  = "invalid operand type table (...)";
+  = "invalid operand type tab (...)";
 char ERR_invalid_cond_type []
   = "invalid conition type in conditional expression (`...?...:...')";
-char ERR_invalid_vector_type []
-  = "invalid type of vector in vector elements access (`[...]')";
-char ERR_invalid_table_type []
-  = "invalid type of table in table elements access (`{...}')";
-char ERR_invalid_index_type []
-  = "invalid type of index in vector elements access (`[...]')";
+char ERR_invalid_vec_slice_type []
+  = "invalid type of vector in slice access (`[...]')";
+char ERR_invalid_vec_tab_type []
+  = "invalid type of vec/tab in elements access (`[...]')";
+char ERR_invalid_tab_type []
+  = "invalid type of table in table elements access `in'";
 char ERR_invalid_slice_start_type []
   = "invalid type of start in vector slice access (`[:]')";
 char ERR_invalid_slice_bound_type []
   = "invalid type of bound in vector slice access (`[:]')";
 char ERR_invalid_slice_step_type []
   = "invalid type of step in vector slice access (`[:]')";
-char ERR_invalid_class_func_thread_designator []
+char ERR_invalid_class_fun_thread_designator []
   = "invalid class, function, or thread designator in class or function call";
 char ERR_invalid_if_expr_type [] = "invalid type of if-expr";
 char ERR_invalid_for_guard_expr_type [] = "invalid type of for-expr";
@@ -134,14 +132,14 @@ char ERR_non_variable_in_swap [] = "non variable in swap statement";
 char ERR_const_assignment [] = "constant `%s' in assignment statement";
 char ERR_const_swap [] = "constant `%s' in swap statement";
 char ERR_non_variable_in_foreach []
-  = "non variable in for-stmt left to `in'";
+  = "non variable in foreach-stmt left to `:'";
 char ERR_continue_is_not_in_loop []
   = "statement continue is not in for-statement";
 char ERR_break_is_not_in_loop []
   = "statement break is not in for-statement";
-char ERR_this_outside_func_class_ext []
+char ERR_this_outside_fun_class_ext []
   = "this is not in function, class, or extension";
-char ERR_return_outside_func_class_ext []
+char ERR_return_outside_fun_class_ext []
   = "statement return is not in function, class, or extension";
 char ERR_return_with_result_in_class []
   = "statement return with result is in class";
@@ -228,13 +226,13 @@ char DERR_conversion_to_int_operand_type []
 char DERR_conversion_to_float_operand_type []
   = "run time error - invalid type of operand of float (...)";
 char DERR_conversion_to_vector_operand_type []
-  = "run time error - invalid type of operand of vector (...)";
+  = "run time error - invalid type of operand of vec (...)";
 char DERR_format_conversion_to_vector_operand_type []
-  = "run time error - invalid type of operand of format vector (...)";
+  = "run time error - invalid type of operand of format vec (...)";
 char DERR_vector_conversion_format_type []
-  = "run time error - invalid type of format of vector (...)";
+  = "run time error - invalid type of format of vec (...)";
 char DERR_conversion_to_table_operand_type []
-  = "run time error - invalid type of operand of table (...)";
+  = "run time error - invalid type of operand of tab (...)";
 char DERR_elist_repetition_type []
   = "run time error - invalid type of repetition";
 char DERR_invalid_if_expr_type []
@@ -253,8 +251,8 @@ char DERR_index_is_negative_number []
   = "run time error - index is negative number";
 char DERR_index_is_greater_than_array_bound []
   = "run time error - index is greater than array bound";
-char DERR_index_operation_for_non_array []
-  = "run time error - index operation for non array";
+char DERR_index_operation_for_non_vec_tab []
+  = "run time error - index operation for non vector or table";
 char DERR_slice_start_is_not_int []
   = "run time error - slice start is not integer (dimension = %d)";
 char DERR_slice_bound_is_not_int []
@@ -272,14 +270,11 @@ char DERR_vector_form_type []
 char DERR_matrix_form_type []
   = "run time error - wrong matrix form for matrix operation `%s'";
 char DERR_repeated_key []
-  = "run time error - repeated key #%d in the table  (`{...}')";
+  = "run time error - repeated key #%d in the table  (`tab [...]')";
 char DERR_no_such_key []
   = "run time error - no such key in table";
-char DERR_key_index_operation_for_non_table []
-  = "run time error - key index operation for non table";
-char DERR_in_table_operand_type []
-  = "run time error - non table right to `in'";
-char DERR_none_class_or_func_before_left_bracket []
+char DERR_in_table_operand_type [] = "run time error - non table right to `:'";
+char DERR_none_class_or_fun_before_left_bracket []
   = "run time error - none class or function is before \"(\"";
 char DERR_parameter_type []
   = "run time error - invalid parameter type of `%s'";
@@ -367,7 +362,7 @@ char DERR_corrupted_environment_var []
   = "run time error - bad value of environment variable `%s'";
 char DERR_internal_error []
   = "run time error - internal error in `%s'";
-char DERR_func_as_variable []
+char DERR_fun_as_variable []
   = "run time error - usage function as variable";
 char DERR_class_as_variable []
   = "run time error - usage class as variable";
@@ -379,7 +374,7 @@ char DERR_undefined_value_access []
   = "run time error - undefined `%s' value access";
 char DERR_private_decl_access_from_outside_block []
   = "run time error - access to private decl `%s' from outside";
-char DERR_undefined_class_or_func []
+char DERR_undefined_class_or_fun []
   = "run time error - undefined class or function";
 char DERR_immutable_vector_modification []
   = "run time error - attempt to modify immutable vector";

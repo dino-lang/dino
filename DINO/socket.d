@@ -49,10 +49,10 @@ final class __socket_package () {
     -_gethostinfo (), -_getservbyport (), -_getservbyname (),
     -_socket_init (), -_socket_fin ();
 
-  func -generate_socket_exception () {
+  fun -generate_socket_exception () {
     if (_socket_errno <= 0) throw socket_excepts.eof ();
     else if (_socket_errno == _socket_eof) throw socket_excepts.eof ();
-    else if (_socket_errno in ipc_errs.n2e) throw ipc_errs.n2e {_socket_errno};
+    else if (_socket_errno in ipc_errs.n2e) throw ipc_errs.n2e [_socket_errno];
     else if (_socket_errno == _socket_invalid_address)
       throw socket_errors.invalid_address ();
     else if (_socket_errno == _socket_host_not_found)
@@ -67,9 +67,9 @@ final class __socket_package () {
   // If you change it, change code of _gethostinfo too.
   class host_info (val name, val aliases, val ipaddrs) {}
 
-  func gethostinfo (str) {
+  fun gethostinfo (str) {
     if (str == nil) str = "";
-    else if (type (str) != vector || eltype (str) != char)
+    else if (type (str) != vec || eltype (str) != char)
       throw socket_excepts.optype ();
     var h = host_info  (nil, nil, nil);
     h = _gethostinfo (str, h);
@@ -81,10 +81,10 @@ final class __socket_package () {
   // If you change it, change code of _getservbyname, _getservbyport too.
   class serv_info (val name, val aliases, val port, val proto) {}
 
-  func getservbyport (port, proto) {
+  fun getservbyport (port, proto) {
     var s;
 
-    if (type (proto) != vector || eltype (proto) != char || type (port) != int)
+    if (type (proto) != vec || eltype (proto) != char || type (port) != int)
       throw socket_excepts.optype ();
     s = serv_info  (nil, nil, port, proto);
     s = _getservbyport (s);
@@ -93,11 +93,11 @@ final class __socket_package () {
     return s;
   }
 
-  func getservbyname (name, proto) {
+  fun getservbyname (name, proto) {
     var s;
 
-    if (type (proto) != vector || eltype (proto) != char
-	|| type (name) != vector || eltype (name) != char)
+    if (type (proto) != vec || eltype (proto) != char
+	|| type (name) != vec || eltype (name) != char)
       throw socket_excepts.optype ();
     s = serv_info  (name, nil, nil, proto);
     s = _getservbyname (s);
@@ -118,7 +118,7 @@ final class __socket_package () {
   class stream_client (peer_addr, port) {
     var -sfd;
 
-    func read (len) {
+    fun read (len) {
       if (type (len) != int)
         throw socket_excepts.optype ();
       else if (len < 0)
@@ -128,16 +128,16 @@ final class __socket_package () {
         generate_socket_exception ();
       return str;
     }
-    func write (str) {
+    fun write (str) {
       var nb = _swrite (sfd, str);
       if (nb == nil)
         generate_socket_exception ();
       return nb;
     }
 
-    func -destroy () {if (sfd != nil) _close_socket (sfd);}
+    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
 
-    if (type (peer_addr) != vector || eltype (peer_addr) != char
+    if (type (peer_addr) != vec || eltype (peer_addr) != char
         || type (port) != int)
       throw socket_excepts.optype ();
     sfd = (proxy_sfd == nil ? _stream_client (peer_addr, port) : proxy_sfd);
@@ -149,7 +149,7 @@ final class __socket_package () {
   class dgram_client () {
     var -sfd;
 
-    func recvfrom (len) {
+    fun recvfrom (len) {
       if (type (len) != int)
         throw socket_excepts.optype ();
       else if (len < 0)
@@ -159,9 +159,9 @@ final class __socket_package () {
         generate_socket_exception ();
       return dg;
     }
-    func sendto (str, peer_addr, port) {
-      if (type (str) != vector || eltype (str) != char
-	  || type (peer_addr) != vector || eltype (peer_addr) != char
+    fun sendto (str, peer_addr, port) {
+      if (type (str) != vec || eltype (str) != char
+	  || type (peer_addr) != vec || eltype (peer_addr) != char
           || type (port) != int)
         throw socket_excepts.optype ();
       else if (port < 0)
@@ -172,7 +172,7 @@ final class __socket_package () {
       return nb;
     }
 
-    func -destroy () {if (sfd != nil) _close_socket (sfd);}
+    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     sfd = _dgram_client ();
     if (sfd == nil)
@@ -182,7 +182,7 @@ final class __socket_package () {
   class stream_server (port, queue_len) { // bind
     var -sfd;
 
-    func accept () {
+    fun accept () {
       var v = _accept (sfd);
       if (v == nil)
         generate_socket_exception ();
@@ -190,7 +190,7 @@ final class __socket_package () {
       return stream_client (v [1], v [2]);
     }
 
-    func -destroy () {if (sfd != nil) _close_socket (sfd);}
+    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_excepts.optype ();
@@ -204,7 +204,7 @@ final class __socket_package () {
   class dgram_server (port) {
     var -sfd;
 
-    func recvfrom (len) {
+    fun recvfrom (len) {
       if (type (len) != int)
         throw socket_excepts.optype ();
     	else if (len < 0)
@@ -214,9 +214,9 @@ final class __socket_package () {
         generate_socket_exception ();
       return dg;
     }
-    func sendto (str, peer_addr, port) {
-      if (type (str) != vector || eltype (str) != char
-	  || type (peer_addr) != vector || eltype (peer_addr) != char
+    fun sendto (str, peer_addr, port) {
+      if (type (str) != vec || eltype (str) != char
+	  || type (peer_addr) != vec || eltype (peer_addr) != char
           || type (port) != int)
         throw socket_excepts.optype ();
       else if (port < 0)
@@ -227,7 +227,7 @@ final class __socket_package () {
       return nb;
     }
 
-    func -destroy () {if (sfd != nil) _close_socket (sfd);}
+    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_excepts.optype ();
@@ -236,7 +236,7 @@ final class __socket_package () {
       generate_socket_exception ();
   }
 
-  func -destroy () {_socket_fin ();}
+  fun -destroy () {_socket_fin ();}
 
   _socket_init ();
 }

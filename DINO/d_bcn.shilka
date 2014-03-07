@@ -47,13 +47,11 @@ lvarv		{return BC_NM_lvarv;}
 evar		{return BC_NM_evar;}
 levar		{return BC_NM_levar;}
 levarv		{return BC_NM_levarv;}
-func		{return BC_NM_func;}
-efunc		{return BC_NM_efunc;}
+fun		{return BC_NM_fun;}
+efun		{return BC_NM_efun;}
 class		{return BC_NM_class;}
 ind		{return BC_NM_ind;}
 lindv		{return BC_NM_lindv;}
-key		{return BC_NM_key;}
-lkeyv		{return BC_NM_lkeyv;}
 sl		{return BC_NM_sl;}
 lslv		{return BC_NM_lslv;}
 fld		{return BC_NM_fld;}
@@ -77,7 +75,7 @@ iof		{return BC_NM_iof;}
 fof		{return BC_NM_fof;}
 vecof		{return BC_NM_vecof;}
 tabof		{return BC_NM_tabof;}
-funcof		{return BC_NM_funcof;}
+funof		{return BC_NM_funof;}
 threadof	{return BC_NM_threadof;}
 classof		{return BC_NM_classof;}
 fmtvecof	{return BC_NM_fmtvecof;}
@@ -139,8 +137,7 @@ foreach		{return BC_NM_foreach;}
 vec		{return BC_NM_vec;}
 tab		{return BC_NM_tab;}
 move		{return BC_NM_move;}
-stv		{return BC_NM_stv;}
-stt		{return BC_NM_stt;}
+stvt		{return BC_NM_stvt;}
 sts		{return BC_NM_sts;}
 ste		{return BC_NM_ste;}
 slst		{return BC_NM_slst;}
@@ -171,8 +168,6 @@ or_slst		{return BC_NM_or_slst;}
 out		{return BC_NM_out;}
 call		{return BC_NM_call;}
 tcall		{return BC_NM_tcall;}
-pcall		{return BC_NM_pcall;}
-tpcall		{return BC_NM_tpcall;}
 ibcall		{return BC_NM_ibcall;}
 icall		{return BC_NM_icall;}
 itcall		{return BC_NM_itcall;}
@@ -180,13 +175,6 @@ ticall		{return BC_NM_ticall;}
 titcall		{return BC_NM_titcall;}
 cicall		{return BC_NM_cicall;}
 citcall		{return BC_NM_citcall;}
-ibpcall		{return BC_NM_ibpcall;}
-ipcall		{return BC_NM_ipcall;}
-itpcall		{return BC_NM_itpcall;}
-tipcall		{return BC_NM_tipcall;}
-titpcall	{return BC_NM_titpcall;}
-cipcall		{return BC_NM_cipcall;}
-citpcall	{return BC_NM_citpcall;}
 leave		{return BC_NM_leave;}
 sleave		{return BC_NM_sleave;}
 bend		{return BC_NM_bend;}

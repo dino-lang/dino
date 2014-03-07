@@ -24,12 +24,13 @@
 
 %%
 aclass   {return ACLASS;}
-afunc    {return AFUNC;}
+afun     {return AFUN;}
 athread  {return ATHREAD;}
 break    {return BREAK;}
 catch    {return CATCH;}
 char     {return CHAR;}
 class    {return CLASS;}
+closure  {return CLOSURE;}
 continue {return CONTINUE;}
 ext      {return EXT;}
 extern   {return EXTERN;}
@@ -38,7 +39,7 @@ final    {return FINAL;}
 float    {return FLOAT;}
 for      {return FOR;}
 friend   {return FRIEND;}
-func     {return FUNC;}
+fun    {return FUN;}
 hide     {return HIDE;}
 hideblock{return HIDEBLOCK;}
 if       {return IF;}
@@ -47,8 +48,10 @@ include  {return INCLUDE;}
 int      {return INT;}
 new      {return NEW;}
 nil      {return NIL;}
+obj      {return OBJ;}
+process  {return PROCESS;}
 return   {return RETURN;}
-table    {return TABLE;}
+tab      {return TAB;}
 thread   {return THREAD;}
 this     {return THIS;}
 throw    {return THROW;}
@@ -56,6 +59,6 @@ try      {return TRY;}
 type     {return TYPE;}
 val      {return VAL;}
 var      {return VAR;}
-vector   {return VECTOR;}
+vec      {return VEC;}
 wait     {return WAIT;}
 %other   {return 0;}

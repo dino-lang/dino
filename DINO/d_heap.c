@@ -96,7 +96,7 @@ initiate_int_tables (void)
     = type_size_table [ER_NM_stack] = sizeof (ER_node_t);
   type_size_table [ER_NM_vect] = sizeof (ER_node_t);
   type_size_table [ER_NM_code] = sizeof (_ER_code);
-  type_size_table [ER_NM_efunc] = sizeof (BC_node_t);
+  type_size_table [ER_NM_efun] = sizeof (BC_node_t);
 
   for (i = 0; i <= ER_NM__error; i++)
     val_displ_table [i] = 0;
@@ -114,8 +114,8 @@ initiate_int_tables (void)
   val_displ_table [ER_NM_process]
     = (char *) &((_ER_process *) v)->process - (char *) v;
   val_displ_table [ER_NM_code] = 0;
-  val_displ_table [ER_NM_efunc]
-    = (char *) &((_ER_efunc *) v)->efdecl - (char *) v;
+  val_displ_table [ER_NM_efun]
+    = (char *) &((_ER_efun *) v)->efdecl - (char *) v;
   val_displ_table [ER_NM_stack]
     = (char *) &((_ER_stack *) v)->stack - (char *) v;
 }
@@ -736,7 +736,7 @@ traverse_used_var (ER_node_t var)
     case ER_NM_code:
       traverse_used_heap_object (ER_code_context (var));
       return;
-    case ER_NM_efunc:
+    case ER_NM_efun:
       return;
     case ER_NM_process:
       traverse_used_heap_object (ER_process (var));
@@ -785,7 +785,7 @@ traverse_used_heap_object (ER_node_t obj)
 	    traverse_used_heap_object
 	      (((_ER_code *) (ER_pack_els (obj) + i * el_size))
                ->code_context);
-	else if (el_type == ER_NM_efunc)
+	else if (el_type == ER_NM_efun)
 	  ;
 	else
 	  d_unreachable ();
@@ -997,7 +997,7 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
     case ER_NM_int:
     case ER_NM_float:
     case ER_NM_type:
-    case ER_NM_efunc:
+    case ER_NM_efun:
       return;
     case ER_NM_vect:
     case ER_NM_tab:
@@ -1032,7 +1032,7 @@ change_var (ER_node_t var)
     case ER_NM_int:
     case ER_NM_float:
     case ER_NM_type:
-    case ER_NM_efunc:
+    case ER_NM_efun:
       return;
     case ER_NM_vect:
       CHANGE_VECT_TAB_REF (((_ER_vect *) var)->vect);
@@ -1089,7 +1089,7 @@ change_obj_refs (ER_node_t obj)
 	      change_val (el_type,
 			  &((_ER_code *)
 			    (ER_pack_els (obj) + i * el_size))->code_context);
-	  else if (el_type == ER_NM_efunc)
+	  else if (el_type == ER_NM_efun)
 	    ;
 	  else
 	    d_unreachable ();
@@ -1354,7 +1354,7 @@ destroy_stacks (void)
 	    /* We mark it before the call to prevent infinite loop if
 	       the exception occurs during the call. */
 	    ER_set_state (curr_obj, IS_destroyed);
-	    call_func_class (BC_fblock (decl), curr_obj, 0);
+	    call_fun_class (BC_fblock (decl), curr_obj, 0);
 	  }
     }
 }
@@ -1557,7 +1557,7 @@ heap_push_or_set_res (BC_node_t block_node, ER_node_t context,
   d_assert (BC_NODE_MODE (block_node) == BC_NM_fblock);
   calls_number = update_profile (block_node);
   if ((stack = BC_free_stacks (block_node)) != NULL
-      && BC_pure_func_p (block_node)
+      && BC_pure_fun_p (block_node)
       && eq_val ((val_t *) ER_stack_vars (stack), call_start,
 		 BC_pars_num (block_node)))
     {
@@ -1608,7 +1608,7 @@ heap_pop (void)
       ER_set_prev_stack (stack, BC_free_stacks (block_node));
       BC_set_free_stacks (block_node, stack);
       if (BC_NODE_MODE (block_node) == BC_NM_fblock
-	  && BC_pure_func_p (block_node))
+	  && BC_pure_fun_p (block_node))
 	{
 	  /* Saving the result.  */
 	  ER_node_t res = IVAL (ER_stack_vars (stack),
@@ -2122,7 +2122,7 @@ hash_val (ER_node_t val)
     case ER_NM_code:
       return ((size_t) ER_code_id (val)
 	      + (size_t) ER_unique_number (ER_code_context (val)));
-    case ER_NM_efunc:
+    case ER_NM_efun:
       return (size_t) ER_efdecl (val);
     case ER_NM_process:
       return (size_t) ER_unique_number (ER_process (val));
@@ -2151,7 +2151,7 @@ hash_key (ER_node_t key)
     case ER_NM_type:
     case ER_NM_hide:
     case ER_NM_code:
-    case ER_NM_efunc:
+    case ER_NM_efun:
     case ER_NM_process:
       hash = hash_val (key);
       break;
@@ -2289,7 +2289,7 @@ eq_key (ER_node_t entry_key, ER_node_t key)
     case ER_NM_code:
       return (ER_code_context (key) == ER_code_context (entry_key)
 	      && ER_code_id (key) == ER_code_id (entry_key));
-    case ER_NM_efunc:
+    case ER_NM_efun:
       return ER_efdecl (key) == ER_efdecl (entry_key);
     case ER_NM_process:
       return ER_process (key) == ER_process (entry_key);
@@ -2661,14 +2661,14 @@ make_immutable (ER_node_t obj)
 
 
 ER_node_t
-create_process (pc_t start_process_pc, BC_node_t block, ER_node_t func_context)
+create_process (pc_t start_process_pc, BC_node_t block, ER_node_t fun_context)
 {
   ER_node_t process;
 
   process = (ER_node_t) heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_process)),
 				       FALSE);
   ER_SET_MODE (process, ER_NM_heap_process);
-  ER_set_context (process, func_context);
+  ER_set_context (process, fun_context);
   ER_set_context_number (process, context_number);
   context_number++;
   ER_set_process_block (process, block);
@@ -2894,7 +2894,7 @@ external_address (BC_node_t decl)
 
   name = BC_ident (decl);
   if (BC_address (decl) != NULL)
-    address = (external_func_t *) BC_address (decl);
+    address = (external_fun_t *) BC_address (decl);
   else
     {
 #if defined(HAVE_DLOPEN) && !defined(NO_EXTERN_SHLIB)

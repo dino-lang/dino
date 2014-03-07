@@ -5570,6 +5570,9 @@ yynext_error:
         = ((IR_node_t *) VLO_BEGIN (reduce_LR_situations_vector)) [i];
       if (current_LR_situation != NULL)
         {
+	  current_LR_set = IR_LR_set (current_LR_situation);
+	  assert (IR_it_is_pushed_LR_set (current_LR_set)
+		  || regular_optimization_flag);
           if (first_reduce_flag)
             {
               /* /* reduces * / */
@@ -5616,12 +5619,12 @@ yynext_error:
               (canonical_rule, NULL);
           popped_states_number
             = pushed_LR_sets_or_attributes_number_on_path
-              (IR_LR_set (current_LR_situation), rule_length, FALSE);
+              (current_LR_set, rule_length, FALSE);
           /* pushing and decrementing */
           output_states_stack_top_decrement (popped_states_number);
           popped_attributes_number
             = pushed_LR_sets_or_attributes_number_on_path
-              (IR_LR_set (current_LR_situation), rule_length, TRUE);
+              (current_LR_set, rule_length, TRUE);
           output_attributes_stack_top_decrement (popped_attributes_number);
           /* yystate = yygoto [yygbase[*yystates_top] + <nonterm>]; */
           output_string (f, "          ");
@@ -5637,8 +5640,7 @@ yynext_error:
                                  (IR_left_hand_side (canonical_rule)),
                                  0);
           output_string (f, "];\n");
-          LR_set_target = get_a_target (IR_LR_set (current_LR_situation),
-                                        canonical_rule);
+          LR_set_target = get_a_target (current_LR_set, canonical_rule);
           output_pushing
             (LR_set_target, popped_states_number < 1,
              popped_attributes_number < 1

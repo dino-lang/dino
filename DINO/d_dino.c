@@ -372,20 +372,25 @@ read_string_code (int input_char, int *correct_newln,
   return input_char;
 }
 
+static int evaluated_p;
+
 void
 dino_finish (int code)
 {
   char unit;
   int size;
 
-  if (code >= 0)
-    final_call_destroy_functions ();
-  if (trace_flag)
-    print_trace_stack ();
+  if (evaluated_p)
+    {
+      if (code >= 0)
+	final_call_destroy_functions ();
+      if (trace_flag)
+	print_trace_stack ();
 #ifndef NO_PROFILE
-  if (code == 0 && profile_flag)
-    print_profile (first_program_bc);
+      if (code == 0 && profile_flag)
+	print_profile (first_program_bc);
 #endif
+    }
   finish_run_tables ();
   IR_stop ();
   delete_table ();
@@ -455,6 +460,7 @@ dino_start (void)
   VLO_CREATE (include_path_directories_vector, 0);
   VLO_CREATE (libraries_vector, 0);
   initiate_run_tables ();
+  evaluated_p = FALSE;
 }
 
 static void set_exception_action (int signal_number);
@@ -906,6 +912,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	      if (first_p)
 		init_env_decl_processing ();
 	      prepare_block (first_program_bc);
+	      evaluated_p = TRUE;
 	      evaluate_program (first_program_bc, first_p, last_p);
 	      d_assert (!last_p);
 	    }
@@ -956,6 +963,7 @@ dino_main (int argc, char *argv[], char *envp[])
 		  exit (1);
 		}
 	      set_signal_actions ();
+	      evaluated_p = TRUE;
 	      evaluate_program (first_program_bc, TRUE, TRUE);
 	      d_unreachable ();
 	    }

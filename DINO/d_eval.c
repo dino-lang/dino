@@ -246,7 +246,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 	eval_error (accessop_bc_decl, invaccesses_bc_decl,
 		    get_cpos (),
 		    BC_NODE_MODE (decl) == BC_NM_fblock && BC_class_p (decl)
-		    ? DERR_class_as_variable : DERR_func_as_variable);
+		    ? DERR_class_as_variable : DERR_fun_as_variable);
       ER_SET_MODE (res, ER_NM_code);
       ER_set_code_context (res, container);
       ER_set_code_id (res, CODE_ID (decl));
@@ -254,8 +254,8 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
     case BC_NM_efdecl:
       if (lvalue_p)
 	eval_error (accessop_bc_decl, invaccesses_bc_decl,
-		    get_cpos (), DERR_func_as_variable);
-      ER_SET_MODE (res, ER_NM_efunc);
+		    get_cpos (), DERR_fun_as_variable);
+      ER_SET_MODE (res, ER_NM_efun);
       ER_set_efdecl (res, decl);
       break;
     default:
@@ -501,21 +501,15 @@ store_designator_value (ER_node_t container, ER_node_t index, ER_node_t val)
 }
 
 static void do_inline
-store_vect_designator_value (ER_node_t vect, ER_node_t index, ER_node_t val)
+store_vect_tab_designator_value (ER_node_t vec_tab, ER_node_t index, ER_node_t val)
 {
-  if (ER_NODE_MODE (vect) != ER_NM_vect)
+  if (ER_NODE_MODE (vec_tab) == ER_NM_vect)
+    store_vector_element (ER_vect (vec_tab), index, val);
+  else if (ER_NODE_MODE (vec_tab) == ER_NM_tab)
+    store_table_element (ER_tab (vec_tab), index, val);
+  else
     eval_error (indexop_bc_decl, invindexes_bc_decl, get_designator_pos (),
-		DERR_index_operation_for_non_array);
-  store_vector_element (ER_vect (vect), index, val);
-}
-
-static void do_inline
-store_tab_designator_value (ER_node_t tab, ER_node_t index, ER_node_t val)
-{
-  if (ER_NODE_MODE (tab) != ER_NM_tab)
-    eval_error (keyop_bc_decl, invkeys_bc_decl, get_designator_pos (),
-		DERR_key_index_operation_for_non_table);
-  store_table_element (ER_tab (tab), index, val);
+		DERR_index_operation_for_non_vec_tab);
 }
 
 static void do_inline
@@ -1529,7 +1523,7 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
 	cmp = (ER_code_id (r) == ER_code_id (l)
 	       && (ER_code_context (r) == ER_code_context (l)));
 	break;
-      case ER_NM_efunc:
+      case ER_NM_efun:
 	/* Different definitions of one external function are not
 	   equal.  */
 	cmp = ER_efdecl (r) == ER_efdecl (l);
@@ -1719,7 +1713,7 @@ execute_identity_op (int identity_p,
 	/* We don't check the context here. */
 	cmp = (ER_code_id (op1) == ER_code_id (op2));
 	break;
-      case ER_NM_efunc:
+      case ER_NM_efun:
 	/* Different definitions of one external function are not
 	   identical.  */
 	cmp = (ER_efdecl (op1) == ER_efdecl (op2));
@@ -2095,7 +2089,7 @@ execute_tableof_op (ER_node_t res, ER_node_t op1, int vect_p)
 }
 
 static void do_always_inline
-execute_funcof_op (ER_node_t res, ER_node_t op1, int vect_p)
+execute_funof_op (ER_node_t res, ER_node_t op1, int vect_p)
 {
   BC_node_t block;
 
@@ -2106,7 +2100,7 @@ execute_funcof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   if (ER_NODE_MODE (op1) == ER_NM_stack
       && (block = ER_block_node (ER_stack (op1))) != NULL
-      && BC_func_p (block))
+      && BC_fun_p (block))
     {
       ER_node_t stack;
       
@@ -3231,8 +3225,8 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 	case BC_NM_tabof:
 	  execute_tableof_op (el_res, el, FALSE);
 	  break;
-	case BC_NM_funcof:
-	  execute_funcof_op (el_res, el, FALSE);
+	case BC_NM_funof:
+	  execute_funof_op (el_res, el, FALSE);
 	  break;
 	case BC_NM_threadof:
 	  execute_threadof_op (el_res, el, FALSE);
@@ -3618,17 +3612,10 @@ evaluate_code (void)
 	case 255:
 	  abort ();
 #endif
-	case BC_NM_stv:
+	case BC_NM_stvt:
 	  op2 = get_op (BC_op3 (cpc));
 	  extract_op2 (&res, &op1);
-	  store_vect_designator_value (res, op1, op2);
-	  INCREMENT_PC ();
-	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_stt:
-	  op2 = get_op (BC_op3 (cpc));
-	  extract_op2 (&res, &op1);
-	  store_tab_designator_value (res, op1, op2);
+	  store_vect_tab_designator_value (res, op1, op2);
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
@@ -3924,9 +3911,9 @@ evaluate_code (void)
 	  execute_tableof_op (res, op1, TRUE);
 	  INCREMENT_PC ();
 	  break;
-	case BC_NM_funcof:
+	case BC_NM_funof:
 	  extract_op2 (&res, &op1);
-	  execute_funcof_op (res, op1, TRUE);
+	  execute_funof_op (res, op1, TRUE);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_threadof:
@@ -4067,48 +4054,26 @@ evaluate_code (void)
 	    break;
 	  }
 	case BC_NM_ind:
+	case BC_NM_lindv:
 	  extract_op3 (&res, &op1, &op2);
-	  if (ER_NODE_MODE (op1) != ER_NM_vect)
-	    eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
-			DERR_index_operation_for_non_array);
+	  if (ER_NODE_MODE (op1) == ER_NM_vect)
+	    {
 #ifndef SMALL_CODE
-	  if (ER_NODE_MODE (op2) != ER_NM_int)
+	      if (ER_NODE_MODE (op2) != ER_NM_int)
 #endif
-	    op2 = implicit_int_conversion (op2, (ER_node_t) &tvar1);
-	  load_vector_element_by_index (res, ER_vect (op1), op2);
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_key:
-	  extract_op3 (&res, &op1, &op2);
-	  if (ER_NODE_MODE (op1) != ER_NM_tab)
-	    eval_error (keyop_bc_decl, invkeys_bc_decl, get_cpos (),
-			DERR_key_index_operation_for_non_table);
-	  load_table_element_by_key (res, ER_tab (op1), op2);
+		op2 = implicit_int_conversion (op2, (ER_node_t) &tvar1);
+	      load_vector_element_by_index (res, ER_vect (op1), op2);
+	    }
+	  else if (ER_NODE_MODE (op1) == ER_NM_tab)
+	    load_table_element_by_key (res, ER_tab (op1), op2);
+	  else
+	    eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
+			DERR_index_operation_for_non_vec_tab);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_sl:
 	  extract_op2 (&res, &op1);
 	  slice_extract (res, op1, BC_op3 (cpc));
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lindv:
-	  extract_op3 (&res, &op1, &op2);
-	  if (ER_NODE_MODE (op1) != ER_NM_vect)
-	    eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
-			DERR_index_operation_for_non_array);
-#ifndef SMALL_CODE
-	  if (ER_NODE_MODE (op2) != ER_NM_int)
-#endif
-	    op2 = implicit_int_conversion (op2, (ER_node_t) &tvar1);
-	  load_vector_element_by_index (res, ER_vect (op1), op2);
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lkeyv:
-	  extract_op3 (&res, &op1, &op2);
-	  if (ER_NODE_MODE (op1) != ER_NM_tab)
-	    eval_error (keyop_bc_decl, invkeys_bc_decl, get_cpos (),
-			DERR_key_index_operation_for_non_table);
-	  load_table_element_by_key (res, ER_tab (op1), op2);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_lslv:
@@ -4118,44 +4083,10 @@ evaluate_code (void)
 	  slice_extract (res, op1, BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
-	case BC_NM_pcall:
-	case BC_NM_tpcall:
-	  extract_op1 (&op1);
-	  process_func_class_call (op1, BC_op2 (cpc),
-				   node_mode == BC_NM_tpcall);
-	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ipcall:
-	case BC_NM_itpcall:
-	  op3 = find_context_by_scope (BC_scope (BC_cfblock (cpc)));
-	  tail_flag = node_mode == BC_NM_itpcall;
-	  goto common_ipcall;
-	case BC_NM_cipcall:
-	case BC_NM_citpcall:
-	  op3 = cstack;
-	  tail_flag = node_mode == BC_NM_citpcall;
-	  goto common_ipcall;
-	case BC_NM_tipcall:
-	case BC_NM_titpcall:
-	  op3 = uppest_stack;
-	  tail_flag = node_mode == BC_NM_titpcall;
-	common_ipcall:
-	  extract_op1 (&op1);
-	  ctop = IVAL (op1, -1);
-	  process_imm_func_call ((val_t *) op1, BC_cfblock (cpc), op3,
-				 BC_op2 (cpc), tail_flag);
-	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibpcall:
-	  extract_op1 (&op1);
-	  ctop = IVAL (op1, -1);
-	  process_imm_ifunc_call (BC_cfblock (cpc), BC_op2 (cpc));
-	  INTERRUPT_CHECK;
-	  break;
 	case BC_NM_call:
 	case BC_NM_tcall:
 	  extract_op1 (&op1);
-	  process_func_class_call (op1, BC_op2 (cpc), node_mode == BC_NM_tcall);
+	  process_fun_class_call (op1, BC_op2 (cpc), node_mode == BC_NM_tcall);
 	  break;
 	case BC_NM_icall:
 	case BC_NM_itcall:
@@ -4174,13 +4105,13 @@ evaluate_code (void)
 	common_icall:
 	  extract_op1 (&op1);
 	  ctop = IVAL (op1, -1);
-	  process_imm_func_call ((val_t *) op1, BC_cfblock (cpc), op3,
-				 BC_op2 (cpc), tail_flag);
+	  process_imm_fun_call ((val_t *) op1, BC_cfblock (cpc), op3,
+				BC_op2 (cpc), tail_flag);
 	  break;
 	case BC_NM_ibcall:
 	  extract_op1 (&op1);
 	  ctop = IVAL (op1, -1);
-	  process_imm_ifunc_call (BC_cfblock (cpc), BC_op2 (cpc));
+	  process_imm_ifun_call (BC_cfblock (cpc), BC_op2 (cpc));
 	  break;
 	case BC_NM_add:
 	  extract_op3 (&res, &op1, &op2);
@@ -4592,7 +4523,7 @@ evaluate_code (void)
 		sync_flag = BC_saved_sync_p (block_node);
 		if (BC_NODE_MODE (block_node) == BC_NM_fblock)
 		  {
-		    if (BC_func_p (block_node))
+		    if (BC_fun_p (block_node))
 		      ER_SET_MODE (IVAL (ER_ctop (ER_prev_stack (cstack)), 1),
 				   ER_NM_undef);
 		    else if (BC_thread_p (block_node))
@@ -4646,10 +4577,17 @@ evaluate_code (void)
 		sync_flag = BC_saved_sync_p (block_node);
 		if (BC_NODE_MODE (block_node) == BC_NM_fblock)
 		  {
-		    if (BC_func_p (block_node))
+		    if (BC_fun_p (block_node))
 		      {
 			/* There is no GC since the return execution
 			   start. */
+			if (ER_NODE_MODE (res) == ER_NM_undef)
+			  {
+			    d_assert (BC_ret_decl (cpc) != NULL);
+			    eval_error (accessop_bc_decl, invaccesses_bc_decl,
+					get_cpos (), DERR_undefined_value_access,
+					BC_ident (BC_ret_decl (cpc)));
+			  }
 			*(val_t *) IVAL (ER_ctop (ER_prev_stack (cstack)), 1)
 			  = *(val_t *) res;
 		      }
@@ -4782,17 +4720,17 @@ evaluate_code (void)
 				node_mode == BC_NM_levarv);
 	  INCREMENT_PC ();
 	  break;
-	case BC_NM_efunc:
+	case BC_NM_efun:
 	  {
 	    BC_node_t decl = BC_decl (cpc);
 	    
 	    extract_op1 (&res);
-	    ER_SET_MODE (res, ER_NM_efunc);
+	    ER_SET_MODE (res, ER_NM_efun);
 	    ER_set_efdecl (res, decl);
 	    INCREMENT_PC ();
 	    break;
 	  }
-	case BC_NM_func:
+	case BC_NM_fun:
 	case BC_NM_class:
 	  {
 	    BC_node_t fblock, decl = BC_decl (cpc);
@@ -4803,14 +4741,20 @@ evaluate_code (void)
 	    fblock = BC_fblock (decl);
 	    if (fblock == NULL)
 	      eval_error (accessvalue_bc_decl, invaccess_bc_decl, get_cpos (),
-			  DERR_undefined_class_or_func);
+			  DERR_undefined_class_or_fun);
 	    ER_set_code_id (res, CODE_ID (fblock));
 	    ER_set_code_context
 	      (res, find_context_by_scope (BC_decl_scope (decl)));
 	    INCREMENT_PC ();
 	    break;
 	  }
-	case BC_NM_nop: /* for debugging.  */
+	case BC_NM_rpr:
+	case BC_NM_rpr_def:
+	  extract_op1 (&res);
+	  repl_print (res, node_mode == BC_NM_rpr_def);
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_nop: /* for DINO developing purposes only.  */
 	  INCREMENT_PC ();
 	  break;
 	default:
@@ -4935,7 +4879,7 @@ eval_error (BC_node_t except_class_block, BC_node_t context_var,
 }
 
 void
-call_func_class (BC_node_t code, ER_node_t context, int_t pars_number)
+call_fun_class (BC_node_t code, ER_node_t context, int_t pars_number)
 {
   pc_t saved_cpc;
   pc_t saved_next_pc;
@@ -4946,11 +4890,11 @@ call_func_class (BC_node_t code, ER_node_t context, int_t pars_number)
   BC_set_next (cpc, NULL);
   saved_process_number = ER_process_number (cprocess);
   DECR_CTOP (pars_number);
-  if (BC_implementation_func (code) != NULL)
-    process_imm_ifunc_call (code, pars_number);
+  if (BC_implementation_fun (code) != NULL)
+    process_imm_ifun_call (code, pars_number);
   else
-    process_imm_func_call ((val_t *) IVAL (ctop, 1), code, context,
-			   pars_number, FALSE);
+    process_imm_fun_call ((val_t *) IVAL (ctop, 1), code, context,
+			  pars_number, FALSE);
   for (;;)
     {
       if (cpc != NULL)
@@ -5078,9 +5022,9 @@ profile_compare_function (const void *el1, const void *el2)
 void
 print_profile (BC_node_t block)
 {
-  BC_node_t *func_ptr;
+  BC_node_t *fun_ptr;
   double all_time = active_time (all_time_ticker);
-  double func_time;
+  double fun_time;
 #if !HAVE_SETITIMER
   double gc_time = active_time (gc_ticker);
 #endif
@@ -5099,27 +5043,27 @@ print_profile (BC_node_t block)
      "\n** Calls *** Time **** Name **************************************\n"
 #endif
      );
-  for (func_ptr = (BC_node_t *) VLO_BEGIN (profile_funcs);
-       (char *) func_ptr <= (char *) VLO_END (profile_funcs);
-       func_ptr++)
+  for (fun_ptr = (BC_node_t *) VLO_BEGIN (profile_funcs);
+       (char *) fun_ptr <= (char *) VLO_END (profile_funcs);
+       fun_ptr++)
     {
-      BC_node_t fdecl = BC_fdecl (*func_ptr);
+      BC_node_t fdecl = BC_fdecl (*fun_ptr);
 
 #if !HAVE_SETITIMER
-      func_time = active_time (BC_exec_time (*func_ptr));
-      if (gc_number != 0 && gc_time != 0.0 && gc_time > func_time)
+      fun_time = active_time (BC_exec_time (*fun_ptr));
+      if (gc_number != 0 && gc_time != 0.0 && gc_time > fun_time)
 	{
 	  fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
 		   gc_number, gc_time);
 	  gc_time = 0.0;
 	}
 #else
-      func_time = (all_interrupts_number == 0
-		   ? 0.0
-		   : (all_time * BC_interrupts_number (*func_ptr)
-		      / all_interrupts_number));
+      fun_time = (all_interrupts_number == 0
+		  ? 0.0
+		  : (all_time * BC_interrupts_number (*fun_ptr)
+		     / all_interrupts_number));
       if (gc_interrupts_number != 0
-	  && gc_interrupts_number > BC_interrupts_number (*func_ptr))
+	  && gc_interrupts_number > BC_interrupts_number (*fun_ptr))
 	{
 	  fprintf (stderr, "%8u %8.2f  --  * garbage collection *\n",
 		   gc_number,
@@ -5129,7 +5073,7 @@ print_profile (BC_node_t block)
 	
 #endif
       fprintf (stderr, "%8d %8.2f  --  %s: \"%s\": %d\n",
-	       BC_calls_number (*func_ptr), func_time, BC_ident (fdecl),
+	       BC_calls_number (*fun_ptr), fun_time, BC_ident (fdecl),
 	       BC_pos (fdecl).file_name, BC_pos (fdecl).line_number);
     }
 #if !HAVE_SETITIMER

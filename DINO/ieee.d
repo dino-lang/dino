@@ -48,8 +48,8 @@ final class __ieee_package () {
   var ieee_excepts = excepts.ieee_except ();
   var ignore_excepts = 0;
 
-  func -check_mpi (op) {
-    if (type (op) != class () || !inside (op, mpi_package))
+  fun -check_mpi (op) {
+    if (type (op) != obj || !inside (op, mpi_package))
       throw ieee_excepts.optype ();
   }
 
@@ -61,9 +61,9 @@ final class __ieee_package () {
   val imp = 16;// imprecise result
   val dz = 32; // divide by zero
 
-  func get_status_bits;
+  fun get_status_bits;
 
-  func -process_except () {
+  fun -process_except () {
     var status_bits = get_status_bits ();
     if (ignore_excepts)
       return;
@@ -93,28 +93,28 @@ final class __ieee_package () {
     -ieee_get_status_bits (), -ieee_set_round (), -ieee_get_round (),
     -ieee_reset ();
 
-  func set_trap_mask (mask) {
+  fun set_trap_mask (mask) {
     // 1 means that there will be no corresponding exception fixed.
     if (type (mask) != int)
       throw ieee_excepts.optype ();
     ieee_set_trap_mask (mask);
   }
 
-  func get_trap_mask () {return ieee_get_trap_mask ();}
+  fun get_trap_mask () {return ieee_get_trap_mask ();}
 
-  func set_sticky_status_bits (mask) {
+  fun set_sticky_status_bits (mask) {
     if (type (mask) != int)
       throw ieee_excepts.optype ();
     ieee_set_sticky_status_bits (mask);
   }
 
   // only bits corresponding to masked exceptions fixed are set up.
-  func get_sticky_status_bits () {return ieee_get_sticky_status_bits ();}
+  fun get_sticky_status_bits () {return ieee_get_sticky_status_bits ();}
 
   // Return exceptions fixed independently from trap mask
-  func get_status_bits () {return ieee_get_status_bits ();}
+  fun get_status_bits () {return ieee_get_status_bits ();}
 
-  func set_round (r) {
+  fun set_round (r) {
     if (type (r) != int)
       throw ieee_excepts.optype ();
     if (r < 0 || r > 3)
@@ -122,10 +122,10 @@ final class __ieee_package () {
     ieee_set_round (r);
   }
 
-  func get_round () {return ieee_get_round ();}
+  fun get_round () {return ieee_get_round ();}
   
   // Reset package state.
-  func reset () {ieee_reset ();}
+  fun reset () {ieee_reset ();}
 
   final class double;
   final class quad;
@@ -136,8 +136,8 @@ final class __ieee_package () {
     
     friend double, quad;
 
-    func +check (op) {
-      if (type (op) != class () || !inside (op, ieees.single))
+    fun +check (op) {
+      if (type (op) != obj || !inside (op, ieees.single))
         throw ieee_excepts.optype ();
     }
 
@@ -160,131 +160,131 @@ final class __ieee_package () {
       -ieee_single_from_binary_string (), -ieee_single_from_string (),
       -ieee_single_from_float ();
 
-    func pzero () {value = ieee_single_positive_zero ();}
-    func nzero () {value = ieee_single_negative_zero ();}
-    func nan () {value = ieee_single_nan ();}
-    func trap_nan () {value = ieee_single_trapping_nan ();}
-    func pinfinity () {value = ieee_single_positive_infinity ();}
-    func ninfinity () {value = ieee_single_negative_infinity ();}
-    func pmax () {value = ieee_single_positive_maximum ();}
-    func nmax () {value = ieee_single_negative_maximum ();}
-    func pmin () {value = ieee_single_positive_minimum ();}
-    func nmin () {value = ieee_single_negative_minimum ();}
+    fun pzero () {value = ieee_single_positive_zero ();}
+    fun nzero () {value = ieee_single_negative_zero ();}
+    fun nan () {value = ieee_single_nan ();}
+    fun trap_nan () {value = ieee_single_trapping_nan ();}
+    fun pinfinity () {value = ieee_single_positive_infinity ();}
+    fun ninfinity () {value = ieee_single_negative_infinity ();}
+    fun pmax () {value = ieee_single_positive_maximum ();}
+    fun nmax () {value = ieee_single_negative_maximum ();}
+    fun pmin () {value = ieee_single_positive_minimum ();}
+    fun nmin () {value = ieee_single_negative_minimum ();}
 
-    func is_pzero () {return ieee_is_single_positive_zero (value);}
-    func is_nzero () {return ieee_is_single_negative_zero (value);}
-    func is_nan () {return ieee_is_single_nan (value);}
-    func is_trap_nan () {return ieee_is_single_trapping_nan (value);}
-    func is_pinfinity () {return ieee_is_single_positive_infinity (value);}
-    func is_ninfinity () {return ieee_is_single_negative_infinity (value);}
+    fun is_pzero () {return ieee_is_single_positive_zero (value);}
+    fun is_nzero () {return ieee_is_single_negative_zero (value);}
+    fun is_nan () {return ieee_is_single_nan (value);}
+    fun is_trap_nan () {return ieee_is_single_trapping_nan (value);}
+    fun is_pinfinity () {return ieee_is_single_positive_infinity (value);}
+    fun is_ninfinity () {return ieee_is_single_negative_infinity (value);}
 
-    func is_normalized () {return ieee_is_single_normalized (value);}
-    func is_denormalized () {return ieee_is_single_denormalized (value);}
+    fun is_normalized () {return ieee_is_single_normalized (value);}
+    fun is_denormalized () {return ieee_is_single_denormalized (value);}
 
-    func add (op) {// May generate exception
+    fun add (op) {// May generate exception
       check (op);
       var result = single ();
       result.value = ieee_add_single (value, op.value);
       process_except ();
       return result;
     }
-    func subtract (op) {// May generate exception
+    fun subtract (op) {// May generate exception
       check (op);
       var result = single ();
       result.value = ieee_subtract_single (value, op.value);
       process_except ();
       return result;
     }
-    func multiply (op) {// May generate exception
+    fun multiply (op) {// May generate exception
       check (op);
       var result = single ();
       result.value = ieee_multiply_single (value, op.value);
       process_except ();
       return result;
     }
-    func divide (op) {// May generate exception
+    fun divide (op) {// May generate exception
       check (op);
       var result = single ();
       result.value = ieee_divide_single (value, op.value);
       process_except ();
       return result;
     }
-    func eq (op) {// May generate exception
+    fun eq (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_eq_single (value, op.value);
     }
-    func ne (op) {// May generate exception
+    fun ne (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_ne_single (value, op.value);
     }
-    func lt (op) {// May generate exception
+    fun lt (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_lt_single (value, op.value);
     }
-    func gt (op) {// May generate exception
+    fun gt (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_gt_single (value, op.value);
     }
-    func le (op) {// May generate exception
+    fun le (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_le_single (value, op.value);
     }
-    func ge (op) {// May generate exception
+    fun ge (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_ge_single (value, op.value);
     }
-    func to_double () {// May generate exception
+    fun to_double () {// May generate exception
       var result = double ();
       result.value = ieee_single_to_double (value);
       process_except ();
       return result;
     }
-    func to_quad () {// May generate exception
+    fun to_quad () {// May generate exception
       var result = quad ();
       result.value = ieee_single_to_quad (value);
       process_except ();
       return result;
     }
-    func from_mpi (op) {// May generate exception
+    fun from_mpi (op) {// May generate exception
       check_mpi (op);
       value = ieee_single_from_integer (op);
       process_except ();
     }
-    func to_mpi (size) {// May generate exception
+    fun to_mpi (size) {// May generate exception
       var result = mpis.from_string (size, "0");
       ieee_integer_from_single (value, result);
       process_except ();
       return result;
     }
-    func to_binary_string (base) {// May generate exception
+    fun to_binary_string (base) {// May generate exception
       if (type (base) != int)
 	throw ieee_excepts.optype ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
  	throw ieee_excepts.opvalue ();
       return ieee_single_to_binary_string (value, base);
     }
-    func to_string () {return ieee_single_to_string (value);}
-    func from_binary_string (str, base) {// May generate exception
-      if (type (str) != vector || eltype (str) != char || type (base) != int)
+    fun to_string () {return ieee_single_to_string (value);}
+    fun from_binary_string (str, base) {// May generate exception
+      if (type (str) != vec || eltype (str) != char || type (base) != int)
 	throw ieee_excepts.optype ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
  	throw ieee_excepts.opvalue ();
       value = ieee_single_from_binary_string (str, base);
       process_except ();
     }
-    func from_string (str) {// May generate exception
-      if (type (str) != vector || eltype (str) != char)
+    fun from_string (str) {// May generate exception
+      if (type (str) != vec || eltype (str) != char)
 	throw ieee_excepts.optype ();
       value = ieee_single_from_string (str);
       process_except ();
     }
-    func from_float (f) {
+    fun from_float (f) {
       if (type (f) != float)
 	throw ieee_excepts.optype ();
       value = ieee_single_from_float (f);
@@ -302,8 +302,8 @@ final class __ieee_package () {
     
     friend single, quad;
 
-    func -check (op) {
-      if (type (op) != class () || !inside (op, ieees.double))
+    fun -check (op) {
+      if (type (op) != obj || !inside (op, ieees.double))
         throw ieee_excepts.optype ();
     }
 
@@ -326,131 +326,131 @@ final class __ieee_package () {
       -ieee_double_from_binary_string (), -ieee_double_from_string (),
       -ieee_double_from_float ();
 
-    func pzero () {value = ieee_double_positive_zero ();}
-    func nzero () {value = ieee_double_negative_zero ();}
-    func nan () {value = ieee_double_nan ();}
-    func trap_nan () {value = ieee_double_trapping_nan ();}
-    func pinfinity () {value = ieee_double_positive_infinity ();}
-    func ninfinity () {value = ieee_double_negative_infinity ();}
-    func pmax () {value = ieee_double_positive_maximum ();}
-    func nmax () {value = ieee_double_negative_maximum ();}
-    func pmin () {value = ieee_double_positive_minimum ();}
-    func nmin () {value = ieee_double_negative_minimum ();}
+    fun pzero () {value = ieee_double_positive_zero ();}
+    fun nzero () {value = ieee_double_negative_zero ();}
+    fun nan () {value = ieee_double_nan ();}
+    fun trap_nan () {value = ieee_double_trapping_nan ();}
+    fun pinfinity () {value = ieee_double_positive_infinity ();}
+    fun ninfinity () {value = ieee_double_negative_infinity ();}
+    fun pmax () {value = ieee_double_positive_maximum ();}
+    fun nmax () {value = ieee_double_negative_maximum ();}
+    fun pmin () {value = ieee_double_positive_minimum ();}
+    fun nmin () {value = ieee_double_negative_minimum ();}
 
-    func is_pzero () {return ieee_is_double_positive_zero (value);}
-    func is_nzero () {return ieee_is_double_negative_zero (value);}
-    func is_nan () {return ieee_is_double_nan (value);}
-    func is_trap_nan () {return ieee_is_double_trapping_nan (value);}
-    func is_pinfinity () {return ieee_is_double_positive_infinity (value);}
-    func is_ninfinity () {return ieee_is_double_negative_infinity (value);}
+    fun is_pzero () {return ieee_is_double_positive_zero (value);}
+    fun is_nzero () {return ieee_is_double_negative_zero (value);}
+    fun is_nan () {return ieee_is_double_nan (value);}
+    fun is_trap_nan () {return ieee_is_double_trapping_nan (value);}
+    fun is_pinfinity () {return ieee_is_double_positive_infinity (value);}
+    fun is_ninfinity () {return ieee_is_double_negative_infinity (value);}
 
-    func is_normalized () {return ieee_is_double_normalized (value);}
-    func is_denormalized () {return ieee_is_double_denormalized (value);}
+    fun is_normalized () {return ieee_is_double_normalized (value);}
+    fun is_denormalized () {return ieee_is_double_denormalized (value);}
 
-    func add (op) {// May generate exception
+    fun add (op) {// May generate exception
       check (op);
       var result = double ();
       result.value = ieee_add_double (value, op.value);
       process_except ();
       return result;
     }
-    func subtract (op) {// May generate exception
+    fun subtract (op) {// May generate exception
       check (op);
       var result = double ();
       result.value = ieee_subtract_double (value, op.value);
       process_except ();
       return result;
     }
-    func multiply (op) {// May generate exception
+    fun multiply (op) {// May generate exception
       check (op);
       var result = double ();
       result.value = ieee_multiply_double (value, op.value);
       process_except ();
       return result;
     }
-    func divide (op) {// May generate exception
+    fun divide (op) {// May generate exception
       check (op);
       var result = double ();
       result.value = ieee_divide_double (value, op.value);
       process_except ();
       return result;
     }
-    func eq (op) {// May generate exception
+    fun eq (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_eq_double (value, op.value);
     }
-    func ne (op) {// May generate exception
+    fun ne (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_ne_double (value, op.value);
     }
-    func lt (op) {// May generate exception
+    fun lt (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_lt_double (value, op.value);
     }
-    func gt (op) {// May generate exception
+    fun gt (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_gt_double (value, op.value);
     }
-    func le (op) {// May generate exception
+    fun le (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_le_double (value, op.value);
     }
-    func ge (op) {// May generate exception
+    fun ge (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_ge_double (value, op.value);
     }
-    func to_single () {// May generate exception
+    fun to_single () {// May generate exception
       var result = single ();
       result.value = ieee_double_to_single (value);
       process_except ();
       return result;
     }
-    func to_quad () {// May generate exception
+    fun to_quad () {// May generate exception
       var result = quad ();
       result.value = ieee_double_to_quad (value);
       process_except ();
       return result;
     }
-    func from_mpi (op) {// May generate exception
+    fun from_mpi (op) {// May generate exception
       check_mpi (op);
       value = ieee_double_from_integer (op);
       process_except ();
     }
-    func to_mpi (size) {// May generate exception
+    fun to_mpi (size) {// May generate exception
       var result = mpis.from_string (size, "0");
       ieee_integer_from_double (value, result);
       process_except ();
       return result;
     }
-    func to_binary_string (base) {// May generate exception
+    fun to_binary_string (base) {// May generate exception
       if (type (base) != int)
 	throw ieee_excepts.optype ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
  	throw ieee_excepts.opvalue ();
       return ieee_double_to_binary_string (value, base);
     }
-    func to_string () {return ieee_double_to_string (value);}
-    func from_binary_string (str, base) {// May generate exception
-      if (type (str) != vector || eltype (str) != char || type (base) != int)
+    fun to_string () {return ieee_double_to_string (value);}
+    fun from_binary_string (str, base) {// May generate exception
+      if (type (str) != vec || eltype (str) != char || type (base) != int)
 	throw ieee_excepts.optype ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
  	throw ieee_excepts.opvalue ();
       value = ieee_double_from_binary_string (str, base);
       process_except ();
     }
-    func from_string (str) {// May generate exception
-      if (type (str) != vector || eltype (str) != char)
+    fun from_string (str) {// May generate exception
+      if (type (str) != vec || eltype (str) != char)
 	throw ieee_excepts.optype ();
       value = ieee_double_from_string (str);
       process_except ();
     }
-    func from_float (f) {
+    fun from_float (f) {
       if (type (f) != float)
 	throw ieee_excepts.optype ();
       value = ieee_double_from_float (f);
@@ -468,8 +468,8 @@ final class __ieee_package () {
     
     friend single, double;
 
-    func -check (op) {
-      if (type (op) != class () || !inside (op, ieees.quad))
+    fun -check (op) {
+      if (type (op) != obj || !inside (op, ieees.quad))
         throw ieee_excepts.optype ();
     }
 
@@ -492,131 +492,131 @@ final class __ieee_package () {
       -ieee_quad_from_binary_string (), -ieee_quad_from_string (),
       -ieee_quad_from_float ();
 
-    func pzero () {value = ieee_quad_positive_zero ();}
-    func nzero () {value = ieee_quad_negative_zero ();}
-    func nan () {value = ieee_quad_nan ();}
-    func trap_nan () {value = ieee_quad_trapping_nan ();}
-    func pinfinity () {value = ieee_quad_positive_infinity ();}
-    func ninfinity () {value = ieee_quad_negative_infinity ();}
-    func pmax () {value = ieee_quad_positive_maximum ();}
-    func nmax () {value = ieee_quad_negative_maximum ();}
-    func pmin () {value = ieee_quad_positive_minimum ();}
-    func nmin () {value = ieee_quad_negative_minimum ();}
+    fun pzero () {value = ieee_quad_positive_zero ();}
+    fun nzero () {value = ieee_quad_negative_zero ();}
+    fun nan () {value = ieee_quad_nan ();}
+    fun trap_nan () {value = ieee_quad_trapping_nan ();}
+    fun pinfinity () {value = ieee_quad_positive_infinity ();}
+    fun ninfinity () {value = ieee_quad_negative_infinity ();}
+    fun pmax () {value = ieee_quad_positive_maximum ();}
+    fun nmax () {value = ieee_quad_negative_maximum ();}
+    fun pmin () {value = ieee_quad_positive_minimum ();}
+    fun nmin () {value = ieee_quad_negative_minimum ();}
 
-    func is_pzero () {return ieee_is_quad_positive_zero (value);}
-    func is_nzero () {return ieee_is_quad_negative_zero (value);}
-    func is_nan () {return ieee_is_quad_nan (value);}
-    func is_trap_nan () {return ieee_is_quad_trapping_nan (value);}
-    func is_pinfinity () {return ieee_is_quad_positive_infinity (value);}
-    func is_ninfinity () {return ieee_is_quad_negative_infinity (value);}
+    fun is_pzero () {return ieee_is_quad_positive_zero (value);}
+    fun is_nzero () {return ieee_is_quad_negative_zero (value);}
+    fun is_nan () {return ieee_is_quad_nan (value);}
+    fun is_trap_nan () {return ieee_is_quad_trapping_nan (value);}
+    fun is_pinfinity () {return ieee_is_quad_positive_infinity (value);}
+    fun is_ninfinity () {return ieee_is_quad_negative_infinity (value);}
 
-    func is_normalized () {return ieee_is_quad_normalized (value);}
-    func is_denormalized () {return ieee_is_quad_denormalized (value);}
+    fun is_normalized () {return ieee_is_quad_normalized (value);}
+    fun is_denormalized () {return ieee_is_quad_denormalized (value);}
 
-    func add (op) {// May generate exception
+    fun add (op) {// May generate exception
       check (op);
       var result = quad ();
       result.value = ieee_add_quad (value, op.value);
       process_except ();
       return result;
     }
-    func subtract (op) {// May generate exception
+    fun subtract (op) {// May generate exception
       check (op);
       var result = quad ();
       result.value = ieee_subtract_quad (value, op.value);
       process_except ();
       return result;
     }
-    func multiply (op) {// May generate exception
+    fun multiply (op) {// May generate exception
       check (op);
       var result = quad ();
       result.value = ieee_multiply_quad (value, op.value);
       process_except ();
       return result;
     }
-    func divide (op) {// May generate exception
+    fun divide (op) {// May generate exception
       check (op);
       var result = quad ();
       result.value = ieee_divide_quad (value, op.value);
       process_except ();
       return result;
     }
-    func eq (op) {// May generate exception
+    fun eq (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_eq_quad (value, op.value);
     }
-    func ne (op) {// May generate exception
+    fun ne (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_ne_quad (value, op.value);
     }
-    func lt (op) {// May generate exception
+    fun lt (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_lt_quad (value, op.value);
     }
-    func gt (op) {// May generate exception
+    fun gt (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_gt_quad (value, op.value);
     }
-    func le (op) {// May generate exception
+    fun le (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_le_quad (value, op.value);
     }
-    func ge (op) {// May generate exception
+    fun ge (op) {// May generate exception
       check (op);
       process_except ();
       return ieee_ge_quad (value, op.value);
     }
-    func to_single () {// May generate exception
+    fun to_single () {// May generate exception
       var result = single ();
       result.value = ieee_quad_to_single (value);
       process_except ();
       return result;
     }
-    func to_double () {// May generate exception
+    fun to_double () {// May generate exception
       var result = double ();
       result.value = ieee_quad_to_double (value);
       process_except ();
       return result;
     }
-    func from_mpi (op) {// May generate exception
+    fun from_mpi (op) {// May generate exception
       check_mpi (op);
       value = ieee_quad_from_integer (op);
       process_except ();
     }
-    func to_mpi (size) {// May generate exception
+    fun to_mpi (size) {// May generate exception
       var result = mpis.from_string (size, "0");
       ieee_integer_from_quad (value, result);
       process_except ();
       return result;
     }
-    func to_binary_string (base) {// May generate exception
+    fun to_binary_string (base) {// May generate exception
       if (type (base) != int)
 	throw ieee_excepts.optype ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
  	throw ieee_excepts.opvalue ();
       return ieee_quad_to_binary_string (value, base);
     }
-    func to_string () {return ieee_quad_to_string (value);}
-    func from_binary_string (str, base) {// May generate exception
-      if (type (str) != vector || eltype (str) != char || type (base) != int)
+    fun to_string () {return ieee_quad_to_string (value);}
+    fun from_binary_string (str, base) {// May generate exception
+      if (type (str) != vec || eltype (str) != char || type (base) != int)
 	throw ieee_excepts.optype ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
  	throw ieee_excepts.opvalue ();
       value = ieee_quad_from_binary_string (str, base);
       process_except ();
     }
-    func from_string (str) {// May generate exception
-      if (type (str) != vector || eltype (str) != char)
+    fun from_string (str) {// May generate exception
+      if (type (str) != vec || eltype (str) != char)
 	throw ieee_excepts.optype ();
       value = ieee_quad_from_string (str);
       process_except ();
     }
-    func from_float (f) {
+    fun from_float (f) {
       if (type (f) != float)
 	throw ieee_excepts.optype ();
       value = ieee_quad_from_float (f);

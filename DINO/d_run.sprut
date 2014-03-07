@@ -115,14 +115,14 @@ extern ER_node_t first_process_not_started;
 
 /* Return true if it is non-external function.  */
 static inline
-int func_p (ER_node_t val)
+int fun_p (ER_node_t val)
 {
   BC_node_t code;
 
   if (ER_NODE_MODE (val) != ER_NM_code)
     return FALSE;
   code = ID_TO_CODE (ER_code_id (val));
-  return BC_func_p (code);
+  return BC_fun_p (code);
 }
 
 extern void initiate_int_tables (void);
@@ -173,8 +173,8 @@ extern void initiate_tables (void);
 extern int executed_stmts_count;
 extern int process_quantum;
 
-extern ER_node_t create_process (pc_t start_process_pc, BC_node_t func,
-	                         ER_node_t func_context);
+extern ER_node_t create_process (pc_t start_process_pc, BC_node_t fun,
+	                         ER_node_t fun_context);
 extern void interrupt (pc_t first_resume_pc);
 extern void block_cprocess (pc_t first_resume_pc, int wait_stmt_flag);
 extern void delete_cprocess (void);
@@ -185,7 +185,7 @@ extern void *external_address (BC_node_t decl);
 
 extern void process_system_errors (const char *function_name);
 
-extern void call_func_class (BC_node_t func, ER_node_t context, int_t pars_number);
+extern void call_fun_class (BC_node_t fun, ER_node_t context, int_t pars_number);
 
 
 #ifdef __GNUC__

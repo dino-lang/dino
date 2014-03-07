@@ -24,7 +24,7 @@
 
 */
 
-%type position_t int_t floating_t string_t bool_t implementation_func_t ticker_t
+%type position_t int_t floating_t string_t bool_t implementation_fun_t ticker_t
       ER_hidden_node_t
 
 %import {
@@ -34,7 +34,7 @@
 typedef struct ER_node *ER_hidden_node_t;
 
 typedef const char *string_t;
-typedef void (*implementation_func_t) (int_t pars_number);
+typedef void (*implementation_fun_t) (int_t pars_number);
 
 }
 
@@ -53,7 +53,7 @@ typedef BC_node_t pc_t;
    node with mode m. */
 #define BC_SET_MODE(v, m) (BC_NODE_MODE (v) = (m))
 
-typedef void (*implementation_func_t) (int_t pars_number);
+typedef void (*implementation_fun_t) (int_t pars_number);
 
 /* Return real block vars number (see commentaries for
    block_node). */
@@ -607,11 +607,11 @@ extern BC_node_t readdir_bc_decl;
 #define FTYPE_NAME "ftype"
 extern BC_node_t ftype_bc_decl;
 
-#define FUN_NAME "fun"
+#define FUIDN_NAME "fuidn"
 extern BC_node_t fun_bc_decl;
 
-#define FGN_NAME "fgn"
-extern BC_node_t fgn_bc_decl;
+#define FGRPN_NAME "fgrpn"
+extern BC_node_t fgrpn_bc_decl;
 
 #define FSIZE_NAME "fsize"
 extern BC_node_t fsize_bc_decl;
@@ -934,11 +934,11 @@ block :: bcode
 fblock :: block
 %other
         fdecl : fdecl
-        func_p, class_p, thread_p, args_p : bool_t
-        simple_p, pure_func_p : bool_t
+        fun_p, class_p, thread_p, args_p : bool_t
+        simple_p, pure_fun_p : bool_t
         pars_num, min_pars_num : int_t
         /* The following fields are used and defined only during evaluation  */
-        implementation_func : implementation_func_t {$ = NULL;}
+        implementation_fun : implementation_fun_t {$ = NULL;}
 	/* Time of function (class body) execution.  Defined if the
 	   previous field is not zero. */
         exec_time : ticker_t
@@ -1015,9 +1015,6 @@ imcall :: op2i
 %other
 	cfblock : fblock
 ;
-%abstract
-impcall, imfcall :: imcall /* procedure or function call  */
-;
 
 ldnil, ldthis :: op1; /* result place */
 flat :: op1; /* operand and result place */
@@ -1039,7 +1036,7 @@ pushi :: op1; /* push int onto stack */
    Decl is vdecl (var, lvar, lvarv), evdecl (evar, levar, levarv)  */
 var, lvar, lvarv, evar, levar, levarv :: op1_decl; /* result place */
 
-func, efunc, class :: op1_decl; /* result place, fdecl/efdecl */
+fun, efun, class :: op1_decl; /* result place, fdecl/efdecl */
 
 /* op1 is result place; op2 and op3 are container place and index/key place
    or dim for slice.  */ 
@@ -1057,7 +1054,7 @@ fld, lfld, lfldv :: field;
 
 const, new, not, plus, minus, bnot, length,
  tpof, chof, iof, fof, vecof, tabof,
- funcof, threadof, classof :: op2; /* result and operand places */
+ funof, threadof, classof :: op2; /* result and operand places */
 
 /* vector folding operation (info is source2: pos2 is an operand one): */
 %abstract
@@ -1120,8 +1117,8 @@ move :: op2 /* destination/source places.  */
         rhs_decl : decl /* rhs variable/function */
 ;
 /* Assignments: */
-/* vect/tab/stack/external store: container, element, value places */
-stv, stt, sts, ste :: op3;
+/* vec or tab, stack, external store: container, element, value places */
+stvt, sts, ste :: op3;
 slst :: op3i2; /* vector place, slice dimension as int, value place  */
 
 /* Assignment with operations: */
@@ -1139,16 +1136,14 @@ mult_slst, div_slst, mod_slst,
 out :: op1i; /* # of surrounding blocks as int */
 
 /* general calls: params start place, params number as int.
-   Letter t means tail call, letter p means procedure call.  */
-call, tcall, pcall, tpcall :: op2i;
+   Letter t means tail call.  */
+call, tcall :: op2i;
 
 /* immediate calls: params start place (first value is undefined),
-   params number as int, func decl.  Immidiate implementation function
+   params number as int, fun decl.  Immidiate implementation function
    call is ibcall.  For others: first letter t or c means top stack or
    current stack context, tcall means tail call.  */
-ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imfcall;
-/* The same as previous ones but for procedure.  */
-ibpcall, ipcall, itpcall, tipcall, titpcall, cipcall, citpcall:: impcall;
+ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imcall;
 
 /* sleave is simple block leave.  position is block end or return
    without value.  */
@@ -1161,7 +1156,10 @@ bend :: bcode
 	block : block
 ;
 
-ret :: op1; /* return with result: ret value place */
+ret :: op1  /* return with result: ret value place */
+%other
+        ret_decl : decl /* no-null if ident in the return. */
+;
 throw :: op1;
 wait :: br;
 waitend :: bcode;
@@ -1176,6 +1174,12 @@ except :: op2 /* except instance and class places */
    par_assign, block for end of exceptions.  It is removed before the
    execution.  */
 nop :: bcode;
+
+/* This code represents printing expr in REPL.  It is never output or
+   input.  Code rpr_def never prints undefined values (e.g. proc call
+   results).  */
+rpr, rpr_def :: op1
+;
 
 /* ---- Nodes used only for generation and optimizations ---- */
 /* Before interpretation itself we use the following node for storing
@@ -1434,8 +1438,8 @@ BC_node_t rand_bc_decl;
 BC_node_t process_errno_bc_decl;
 BC_node_t readdir_bc_decl;
 BC_node_t ftype_bc_decl;
-BC_node_t fun_bc_decl;
-BC_node_t fgn_bc_decl;
+BC_node_t fuidn_bc_decl;
+BC_node_t fgrpn_bc_decl;
 BC_node_t fsize_bc_decl;
 BC_node_t fatime_bc_decl;
 BC_node_t fmtime_bc_decl;
@@ -1510,7 +1514,7 @@ struct bc_decl_entry
   BC_node_t *decl_ptr;
   const char *name;
   BC_node_t *scope_ptr;
-  implementation_func_t func_ptr;
+  implementation_fun_t fun_ptr;
 };
 
 
@@ -1708,8 +1712,8 @@ static struct bc_decl_entry bc_decls_table [] =
   {&process_errno_bc_decl, PROCESS_ERRNO_NAME, NULL, process_errno_call},
   {&readdir_bc_decl, READDIR_NAME, NULL, readdir_call},
   {&ftype_bc_decl, FTYPE_NAME, NULL, ftype_call},
-  {&fun_bc_decl, FUN_NAME, NULL, fun_call},
-  {&fgn_bc_decl, FGN_NAME, NULL, fgn_call},
+  {&fuidn_bc_decl, FUIDN_NAME, NULL, fuidn_call},
+  {&fgrpn_bc_decl, FGRPN_NAME, NULL, fgrpn_call},
   {&fsize_bc_decl, FSIZE_NAME, NULL, fsize_call},
   {&fatime_bc_decl, FATIME_NAME, NULL, fatime_call},
   {&fmtime_bc_decl, FMTIME_NAME, NULL, fmtime_call},
@@ -1815,7 +1819,7 @@ process_env_decl (BC_node_t decl)
     decl = BC_fblock (decl);
   *bc_decls_table[curr_decl_entry_num].decl_ptr = decl;
   if (BC_IS_OF_TYPE (decl, BC_NM_fblock))
-    BC_set_implementation_func (decl, bc_decls_table[curr_decl_entry_num].func_ptr);
+    BC_set_implementation_fun (decl, bc_decls_table[curr_decl_entry_num].fun_ptr);
   curr_decl_entry_num++;
 }
 

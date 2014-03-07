@@ -45,12 +45,11 @@ extern char ERR_forward_and_matched_decls_have_different_attrs[];
 extern char ERR_previous_decl_location[];
 extern char ERR_undeclared_ident[];
 extern char ERR_period_ident_applied_to_slice [];
-extern char ERR_vector_element_access_applied_to_slice [];
-extern char ERR_table_element_access_applied_to_slice [];
+extern char ERR_vec_tab_element_access_applied_to_slice [];
 extern char ERR_call_applied_to_slice [];
 extern char ERR_slice_as_foreach_designator[];
 extern char ERR_extension_before_extended [];
-extern char ERR_extension_of_non_func_class_ext [];
+extern char ERR_extension_of_non_fun_class_ext [];
 extern char ERR_extension_of_forward_declaration [];
 extern char ERR_extension_of_final [];
 extern char ERR_udenclared_ident_friend_list [];
@@ -72,13 +71,13 @@ extern char ERR_invalid_conversion_to_vector_operand_type [];
 extern char ERR_invalid_conversion_format_type [];
 extern char ERR_invalid_conversion_to_table_operand_type [];
 extern char ERR_invalid_cond_type [];
-extern char ERR_invalid_vector_type [];
-extern char ERR_invalid_table_type [];
-extern char ERR_invalid_index_type [];
+extern char ERR_invalid_vec_slice_type [];
+extern char ERR_invalid_vec_tab_type [];
+extern char ERR_invalid_tab_type [];
 extern char ERR_invalid_slice_start_type [];
 extern char ERR_invalid_slice_bound_type [];
 extern char ERR_invalid_slice_step_type [];
-extern char ERR_invalid_class_func_thread_designator [];
+extern char ERR_invalid_class_fun_thread_designator [];
 extern char ERR_invalid_if_expr_type [];
 extern char ERR_invalid_for_guard_expr_type [];
 extern char ERR_invalid_wait_guard_expr_type [];
@@ -92,8 +91,8 @@ extern char ERR_const_swap [];
 extern char ERR_non_variable_in_foreach [];
 extern char ERR_continue_is_not_in_loop [];
 extern char ERR_break_is_not_in_loop [];
-extern char ERR_this_outside_func_class_ext [];
-extern char ERR_return_outside_func_class_ext [];
+extern char ERR_this_outside_fun_class_ext [];
+extern char ERR_return_outside_fun_class_ext [];
 extern char ERR_return_with_result_in_class [];
 extern char ERR_return_with_result_in_thread [];
 extern char ERR_function_call_in_wait_stmt [];
@@ -158,7 +157,7 @@ extern char DERR_index_is_not_int [];
 extern char DERR_index_is_negative_number [];
 extern char DERR_index_is_greater_than_array_bound [];
 /* Index operation. */
-extern char DERR_index_operation_for_non_array [];
+extern char DERR_index_operation_for_non_vec_tab [];
 /* Slice type. */
 extern char DERR_slice_start_is_not_int [];
 extern char DERR_slice_bound_is_not_int [];
@@ -176,11 +175,10 @@ extern char DERR_matrix_form_type [];
 extern char DERR_repeated_key [];
 extern char DERR_no_such_key [];
 /* Key operation. */
-extern char DERR_key_index_operation_for_non_table [];
 extern char DERR_in_table_operand_type [];
 /* Call operation. */
-extern char DERR_none_class_or_func_before_left_bracket [];
-extern char DERR_undefined_class_or_func [];
+extern char DERR_none_class_or_fun_before_left_bracket [];
+extern char DERR_undefined_class_or_fun [];
 /* Parameter type. */
 extern char DERR_parameter_type [];
 /* Invalid result. */
@@ -254,20 +252,20 @@ extern char DERR_no_such_external [];
 /* Error when closing librabry. */
 extern char DERR_library_close_error [];
 /* No external function support. */
-extern char DERR_no_support_extern_funcs [];
+extern char DERR_no_support_extern_funs [];
 /* Corrupted environment variable. */
 extern char DERR_corrupted_environment_var [];
 /* Internal error in system function calls. */
 extern char DERR_internal_error [];
 /* Accessop. */
-extern char DERR_func_as_variable [];
+extern char DERR_fun_as_variable [];
 extern char DERR_class_as_variable [];
 extern char DERR_value_is_not_class_instance_or_stack [];
 extern char DERR_decl_is_absent_in_given_class_or_block [];
 extern char DERR_undefined_value_access [];
 extern char DERR_private_decl_access_from_outside_block [];
 /* Accessvalue. */
-extern char DERR_undefined_class_or_func [];
+extern char DERR_undefined_class_or_fun [];
 /* Immutable. */
 extern char DERR_immutable_vector_modification [];
 extern char DERR_immutable_table_modification [];

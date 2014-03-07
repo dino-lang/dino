@@ -1443,10 +1443,10 @@ INPUT41-1
                   echo '      ' cmp $temp_file $temp3_file
                   if cat >$temp3_file <<'INPUT41-2' && cmp $temp_file $temp3_file; then
 
+43 all allocated trie nodes
 34 keywords, 34 different keyword names
 4.5 average keywords length, 4.5 weighted average keywords length
 3800 achieved trie cost, 3200 minimal cost, 118 % ratio
-
 INPUT41-2
                     echo '      ' $CC -I. $output_file1 -o $fexec "2>$temp_file"
                     if $CC -I. $output_file1 -o $fexec 2>$temp_file; then

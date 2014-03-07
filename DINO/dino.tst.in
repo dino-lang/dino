@@ -106,7 +106,7 @@ fi
 if test $result = ok -a $start_test_number -le 3; then
 	echo test 3
         cat >$test_file <<'TEST3'
-func f {}
+fun f {}
 var i;
 for (i = 0; i < 100000;i++)
  f ();
@@ -123,7 +123,7 @@ fi
 if test $result = ok -a $start_test_number -le 4; then
 	echo test 4
         cat >$test_file <<'TEST4'
-func f {
+fun f {
   {
     return 10;
   }
@@ -152,7 +152,7 @@ fi
 if test $result = ok -a $start_test_number -le 5; then
 	echo test 5
         cat >$test_file <<'TEST5'
-func f {}
+fun f {}
 class c {}
 
 putln ("0:", "abc" === "abc");
@@ -236,7 +236,7 @@ fi
 if test $result = ok -a $start_test_number -le 6; then
 	echo test 6
         cat >$test_file <<'TEST6'
-func f {}
+fun f {}
 putln ("0:", f === 10);
 TEST6
         echo '      ' $DINO $test_file "2>$stderr"
@@ -307,15 +307,15 @@ putln ("1:", i == nil);
 putln ("0:", i != nil);
 putln ("1:", i === nil);
 putln ("0:", i !== nil);
-func f {}
+fun f {}
 try {putln ("1:", f () == nil);}
 catch (invops.optype) {putln ("1:1");}
-func g {return;}
+fun g {return;}
 try {putln ("1:", f () == nil);}
 catch (invops.optype) {putln ("1:1");}
 var t;
-t = {"e"};
-putln ("1:", t{"e"} == nil);
+t = tab ["e"];
+putln ("1:", t["e"] == nil);
 TEST9
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -363,8 +363,8 @@ fi
 if test $result = ok -a $start_test_number -le 11; then
 	echo test 11
         cat >$test_file <<'TEST11'
-func f {putln ("eval false");return 0;}
-func t {putln ("eval true");return 1;}
+fun f {putln ("eval false");return 0;}
+fun t {putln ("eval true");return 1;}
 
 var i;
 putln ("++test false and true");
@@ -414,7 +414,7 @@ fi
 if test $result = ok -a $start_test_number -le 12; then
 	echo test 12
         cat >$test_file <<'TEST12'
-func fact (x)
+fun fact (x)
 {
   if (x <= 1)
     return 1;
@@ -474,13 +474,13 @@ ns = new s;
 ns[1] = "b";
 println (s,ns);
 
-s = {"a"};
+s = tab ["a"];
 ns = new s;
-ns{"a"} = "b";
+ns["a"] = "b";
 println (s,ns);
 
 s = ['a'];
-t = {s:"a"};
+t = tab [s:"a"];
 ns = new s;
 ns[0] = 'b';
 println (s, ns);
@@ -503,7 +503,7 @@ TEST14
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT14' && $CMP $stdout $ftemp2; then
 "aaaa"['a', "b", 'a', 'a']
-{"a":nil}{"a":"b"}
+tab ["a":nil]tab ["a":"b"]
 "a""b"
 nil10
 OUTPUT14
@@ -541,7 +541,7 @@ fi
 if test $result = ok -a $start_test_number -le 16; then
 	echo test 16
         cat >$test_file <<'TEST16'
-func tak (x, y, z)
+fun tak (x, y, z)
   {
     if (y >= x)
         return z;
@@ -570,16 +570,16 @@ if test $result = ok -a $start_test_number -le 17; then
 	echo test 17
         cat >$test_file <<'TEST17'
 var i, t;
-t = {"e":10, 10:11};
-putln (t{"e"});
-putln (t{10});
+t = tab ["e":10, 10:11];
+putln (t["e"]);
+putln (t[10]);
 putln ("e in t - 1:", "e" in t);
 putln ("10 in t - 1:", 10 in t);
 putln ("11 in t - 0:", 11 in t);
-t = {"e":10, "f":11, "g":12, "h":13};
-for (i in t) putln (i);
-t = {"e", "f", "g", "h"};
-for (i in t) putln (i);
+t = tab ["e":10, "f":11, "g":12, "h":13];
+for (i: t) putln (i);
+t = tab ["e", "f", "g", "h"];
+for (i: t) putln (i);
 TEST17
         echo '      ' $DINO $test_file "2>$stderr" ">$ftemp2" '&&' sort $ftemp2 ">$stdout"
         if $DINO $test_file 2>$stderr >$ftemp2 && sort $ftemp2 >$stdout; then
@@ -613,11 +613,11 @@ if test $result = ok -a $start_test_number -le 18; then
 	echo test 18
         cat >$test_file <<'TEST18'
 var t;
-t = {};
-t{"e"} = 10;
-t{10} = 11;
-putln (t{"e"});
-putln (t{10});
+t = tab [];
+t["e"] = 10;
+t[10] = 11;
+putln (t["e"]);
+putln (t[10]);
 TEST18
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -671,10 +671,10 @@ if test $result = ok -a $start_test_number -le 20; then
 class c(p) {
   var i;
   i = 1;
-  func f {putln ("i=", i);}
-  func g {putln ("p=", p);}
-  func f1 (i) {putln ("i=", i);}
-  func g1 (p) {putln ("p=", p);}
+  fun f {putln ("i=", i);}
+  fun g {putln ("p=", p);}
+  fun f1 (i) {putln ("i=", i);}
+  fun g1 (p) {putln ("p=", p);}
 }
 var i;
 i = c(10);
@@ -708,7 +708,7 @@ if test $result = ok -a $start_test_number -le 21; then
 class c(p) {
   var i;
   class cc(p) {
-    func f {putln (p);}
+    fun f {putln (p);}
   }
   i = 10;
 }
@@ -822,16 +822,16 @@ fi
 if test $result = ok -a $start_test_number -le 25; then
 	echo test 25
         cat >$test_file <<'TEST25'
-func f (args)
+fun f (args)
 {
 }
 
-func g (a)
+fun g (a)
 {
   var args;
 }
 
-func t (a, ...)
+fun t (a, ...)
 {
   var i;
 
@@ -879,7 +879,7 @@ fi
 if test $result = ok -a $start_test_number -le 26; then
 	echo test 26
         cat >$test_file <<'TEST26'
-func f {}
+fun f {}
 class c {}
 
 putln ("1:", "10" == "10");
@@ -941,7 +941,7 @@ fi
 if test $result = ok -a $start_test_number -le 27; then
 	echo test 27
         cat >$test_file <<'TEST27'
-func f {}
+fun f {}
 var r;
 r = f == 10;
 putln ("0:", r);
@@ -1255,8 +1255,8 @@ print (10.2e10);put (" ");
 print ('c');put (" ");
 println ("ssss");
 println (["aaa", "bbb", "ccc"]);
-println (["v1", {"key":"val", {"key1":"val1"}}]);
-func f {}
+println (["v1", tab ["key":"val", tab ["key1":"val1"]]]);
+fun f {}
 println (f);
 class c {}
 println (c);
@@ -1275,8 +1275,8 @@ TEST35
                 if cat >$ftemp2 <<'OUTPUT35' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+11 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {"key":"val", {"key1":"val1"}:nil}]
-func f
+["v1", tab ["key":"val", tab ["key1":"val1"]:nil]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -1285,8 +1285,8 @@ OUTPUT35
                 elif cat >$ftemp2 <<'OUTPUT35-1' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+011 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {"key":"val", {"key1":"val1"}:nil}]
-func f
+["v1", tab ["key":"val", tab ["key1":"val1"]:nil]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -1295,8 +1295,8 @@ OUTPUT35-1
                 elif cat >$ftemp2 <<'OUTPUT35-2' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+11 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {{"key1":"val1"}:nil, "key":"val"}]
-func f
+["v1", tab [tab ["key1":"val1"]:nil, "key":"val"]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -1305,8 +1305,8 @@ OUTPUT35-2
                 elif cat >$ftemp2 <<'OUTPUT35-3' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+011 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {{"key1":"val1"}:nil, "key":"val"}]
-func f
+["v1", tab [tab ["key1":"val1"]:nil, "key":"val"]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -1517,7 +1517,7 @@ v = new "123456"; del (v, 2, 2); putln (v);
 v = new "123456"; del (v, -2, 2); putln (v);
 // table
 var t;
-t = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6}; del (t, 2); println (t);
+t = tab [1:1, 2:2, 3:3, 4:4, 5:5, 6:6]; del (t, 2); println (t);
 //
 var i, iter;
 for (iter = 0; iter < 1000; iter++)
@@ -1549,7 +1549,7 @@ TEST41
 []
 1256
 3456
-{1:1, 3:3, 4:4, 5:5, 6:6}
+tab [1:1, 3:3, 4:4, 5:5, 6:6]
 []
 OUTPUT41
                         result=ok
@@ -11748,12 +11748,12 @@ SieveSize = 8190;
 
 for (iter = 0; iter < 10; iter++;)
   {
-    flags = {};
+    flags = tab [];
     count = 0;
     for (i = 0; i <= SieveSize; i++)
-      flags{i} = 1;
+      flags[i] = 1;
     for (i = 0; i <= SieveSize; i++;)
-      if (flags{i})
+      if (flags[i])
         {
           prime = i + i + 3;
           k = i + prime;
@@ -11761,7 +11761,7 @@ for (iter = 0; iter < 10; iter++;)
             {
 	      if (k > SieveSize)
                 break;
-              flags{k} = 0;
+              flags[k] = 0;
               k += prime;
             }
           count++;
@@ -11790,7 +11790,7 @@ if test $result = ok -a $start_test_number -le 49; then
         cat >$test_file <<'TEST49'
 var m1, m2;
 
-func mmult (m1, m2)
+fun mmult (m1, m2)
 {
   var i, j, k, m1rows, m1cols, m2rows, m2cols, result;
 
@@ -11833,24 +11833,24 @@ if test $result = ok -a $start_test_number -le 50; then
         cat >$test_file <<'TEST50'
 var m1, m2;
 
-func mmult (m1, m2)
+fun mmult (m1, m2)
 {
   var i, j, k, m1rows, m1cols, m2rows, m2cols, result;
 
   m1rows = #m1; m2rows = #m2;
-  m1cols = #m1{0}; m2cols = #m2{0};
+  m1cols = #m1[0]; m2cols = #m2[0];
   if (m2cols != m2rows)
     {
        println ("matrices don't match");
        return;
     }
-  result = {};
+  result = tab [];
   for (i=0; i < m1rows; i++) {
-    result{i} = {};
+    result[i] = tab [];
     for (j=0; j < m2cols; j++) {
-      result{i}{j} = 0;
+      result[i][j] = 0;
       for (k=0; k < m1cols; k++)
-        result{i}{j} += m1{i}{k}*m2{k}{j};
+        result[i][j] += m1[i][k]*m2[k][j];
     }
   }
   return result;
@@ -11858,11 +11858,11 @@ func mmult (m1, m2)
 
 var i, j;
 
-m1 = {};
+m1 = tab [];
 for (i = 0;i < 100; i++) {
-  m1{i} = {};
+  m1[i] = tab [];
   for (j = 0;j < 100; j++)
-    m1{i}{j} = 2;
+    m1[i][j] = 2;
 }
 m2 = m1;
 mmult (m1, m2);
@@ -11887,11 +11887,11 @@ if test $result = ok -a $start_test_number -le 51; then
         cat >$test_file <<'TEST51'
 var i;
 i = 0;
-func f
+fun f
 {
    var i;
 
-   func g {i = 20; return i;}
+   fun g {i = 20; return i;}
    i = 10;
    return g;
 }
@@ -11961,9 +11961,9 @@ class c {
      }
   }
 }
-func f {
+fun f {
   class sc {
-    func g {}
+    fun g {}
   }
   return sc ();
 }
@@ -11976,7 +11976,7 @@ TEST53
                 echo '      ' $CMP - $ftemp
                 if cat >$ftemp2 <<'OUTPUT53' && $CMP $ftemp $ftemp2; then
 class c().sc().ssc
-func f().sc().g
+fun f().sc().g
 OUTPUT53
                         result=ok
                 else
@@ -11992,7 +11992,7 @@ if test $result = ok -a $start_test_number -le 54; then
 	echo test 54
         cat >$test_file <<'TEST54'
 // Recursive function to compute Fibonacci numbers
-func fibonacci (n)
+fun fibonacci (n)
   {
      if (n <= 1) return 1;
      return (fibonacci(n-1) + fibonacci(n-2));
@@ -12050,7 +12050,7 @@ fi
 if test $result = ok -a $start_test_number -le 55; then
 	echo test 55
         cat >$test_file <<'TEST55'
-func f {putln ("hello, world # 0");}
+fun f {putln ("hello, world # 0");}
 ext f {putln ("hello, world # 1");}
 ext f {putln ("hello, world # 2");}
 ext f {putln ("hello, world # 3");}
@@ -12085,7 +12085,7 @@ class c (p)
 }
 
 ext c {
-  func f {println (i);println (p);}
+  fun f {println (i);println (p);}
 }
 
 c (20).f();
@@ -12114,7 +12114,7 @@ class c (p)
 {
   var i;
   i = 10;
-  func f {}
+  fun f {}
 }
 
 ext c {
@@ -12147,12 +12147,12 @@ class p (p)
 {
   var i;
   i = 10;
-  func f {}
+  fun f {}
 }
 
 ext p {
   class c (p) {
-   func f {println (i);println (p);}
+   fun f {println (i);println (p);}
   } 
 }
 
@@ -12182,7 +12182,7 @@ var ff;
 {
   var i;
   i = 10;
-  func f {return i;}
+  fun f {return i;}
   ff = f;
 }
 println (ff ());
@@ -12211,8 +12211,8 @@ println (type ('a'));
 println (type (10));
 println (type (10.0));
 println (type ([]));
-println (type ({}));
-func f ()
+println (type (tab []));
+fun f ()
 {
 }
 println (type (f));
@@ -12244,12 +12244,12 @@ int
 float
 vector
 table
-func
-thread
-class
-class ()
-thread ()
-func ()
+closure
+closure
+closure
+obj
+process
+obj
 type
 OUTPUT60
                         result=ok
@@ -12326,21 +12326,21 @@ if test $result = ok -a $start_test_number -le 63; then
 	echo test 63
         cat >$test_file <<'TEST63'
 var i;
-func f {
+fun f {
    class c {
    }
    i = c ();
 }
 
 f ();
-println (func (context (i)));
-println (func (10));
+println (fun (context (i)));
+println (fun (10));
 TEST63
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT63' && $CMP $stdout $ftemp2; then
-func f
+fun f
 nil
 OUTPUT63
                         result=ok
@@ -12380,7 +12380,7 @@ if test $result = ok -a $start_test_number -le 65; then
         cat >$test_file <<'TEST65'
 {
   var i;
-  func f {
+  fun f {
      class c (){
        class c (){
        }
@@ -12431,7 +12431,7 @@ var i;
 
 println (context (i).l);
 
-func f ()
+fun f ()
 {
   var +l;
   class c {};
@@ -12442,7 +12442,7 @@ func f ()
 f ();
 println (context (i).l);
 
-func fp (+l)
+fun fp (+l)
 {
   class c {};
   i = c();
@@ -12473,7 +12473,7 @@ println (context (i).l);
 
 {
   var +l;
-  func f {};
+  fun f {};
   i = f;
   l = 60;
 }
@@ -12583,8 +12583,8 @@ fi
 if test $result = ok -a $start_test_number -le 69; then
 	echo test 69
         cat >$test_file <<'TEST69'
-func e {putln ("e");return 100;}
-func f (i, p = e ()) {
+fun e {putln ("e");return 100;}
+fun f (i, p = e ()) {
   putln (p, " ", i);
 }
 
@@ -12642,7 +12642,7 @@ fi
 if test $result = ok -a $start_test_number -le 70; then
 	echo test 70
         cat >$test_file <<'TEST70'
-func e {putln ("e");return 100;}
+fun e {putln ("e");return 100;}
 class c (i, p = e ()) {
   putln (p, " ", i);
 }
@@ -12706,10 +12706,10 @@ var fp, c;
   class cc {
     class c1 {
     }
-    func f {
+    fun f {
     }
     {
-      func f {}
+      fun f {}
       fp = f;
     }
   }
@@ -13055,7 +13055,7 @@ TEST76
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT76' && $CMP $stderr $ftemp2; then
-test.d:2:2: run time error - index operation for non array
+test.d:2:2: run time error - index operation for non vector or table
 OUTPUT76
                         result=ok
                 else
@@ -13079,7 +13079,7 @@ TEST77
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT77' && $CMP $stdout $ftemp2; then
-got it: run time error - index operation for non array
+got it: run time error - index operation for non vector or table
 OUTPUT77
                         result=ok
                 else
@@ -13169,7 +13169,7 @@ fi
 if test $result = ok -a $start_test_number -le 80; then
 	echo test 80: Forward and matched declarations
 	cat >$test_file <<'TEST80'
-func f;
+fun f;
 class f () {}
 TEST80
 	echo '      ' $DINO $test_file "2>$stderr"
@@ -13179,7 +13179,7 @@ TEST80
 	    echo '      ' $CMP - $stderr
 	    if cat >$ftemp2 <<'OUTPUT80' && $CMP $stderr $ftemp2; then
 test.d:2:7: forward and matched declarations of `f' are different entities
-test.d:1:6: (previous declaration of identifier `f')
+test.d:1:5: (previous declaration of identifier `f')
 OUTPUT80
 		    result=ok
 	    else
@@ -13384,7 +13384,7 @@ fi
 if test $result = ok -a $start_test_number -le 89; then
 	echo test 89
         cat >$test_file <<'TEST89'
-func f (val i)
+fun f (val i)
 {
   i = 10;
   putln(i);
@@ -13411,7 +13411,7 @@ if test $result = ok -a $start_test_number -le 90; then
 	echo test 90
         cat >$test_file <<'TEST90'
 val i = 10; putln(i);
-func f (val i = 10)
+fun f (val i = 10)
 {
   putln(i);
 }
@@ -13447,7 +13447,7 @@ fi
 if test $result = ok -a $start_test_number -le 91; then
 	echo test 91
         cat >$test_file <<'TEST91'
-final func f {putln ("hello, world # 0");}
+final fun f {putln ("hello, world # 0");}
 f();
 TEST91
         echo '      ' $DINO $test_file "2>$stderr"
@@ -13501,7 +13501,7 @@ class c (p)
 {
   var i;
   i = 10;
-  final func f {}
+  final fun f {}
 }
 
 ext c {
@@ -13530,7 +13530,7 @@ fi
 if test $result = ok -a $start_test_number -le 94; then
 	echo test 94
         cat >$test_file <<'TEST94'
-final func f {putln ("hello, world # 0");}
+final fun f {putln ("hello, world # 0");}
 ext f {putln ("hello, world # 1");}
 TEST94
         echo '      ' $DINO $test_file "2>$stderr"
@@ -13539,7 +13539,7 @@ TEST94
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT94' && $CMP $stderr $ftemp2; then
-test.d:2:5: extension of final func/class `f'
+test.d:2:5: extension of final fun/class `f'
 OUTPUT94
                         result=ok
                 else
@@ -13552,7 +13552,7 @@ fi
 if test $result = ok -a $start_test_number -le 95; then
 	echo test 95
         cat >$test_file <<'TEST95'
-final func f {putln ("hello, world # 0");}
+final fun f {putln ("hello, world # 0");}
 ext f {putln ("hello, world # 1");}
 TEST95
         echo '      ' $DINO $test_file "2>$stderr"
@@ -13561,7 +13561,7 @@ TEST95
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT95' && $CMP $stderr $ftemp2; then
-test.d:2:5: extension of final func/class `f'
+test.d:2:5: extension of final fun/class `f'
 OUTPUT95
                         result=ok
                 else
@@ -13581,7 +13581,7 @@ final class c (p)
 }
 
 ext c {
-  func f {putln (i);putln (p);}
+  fun f {putln (i);putln (p);}
 }
 
 c (20).f();
@@ -13592,7 +13592,7 @@ TEST96
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT96' && $CMP $stderr $ftemp2; then
-test.d:7:5: extension of final func/class `c'
+test.d:7:5: extension of final fun/class `c'
 OUTPUT96
                         result=ok
                 else
@@ -13612,7 +13612,7 @@ final class c (p)
 }
 
 ext c {
-  func f {putln (i);putln (p);}
+  fun f {putln (i);putln (p);}
 }
 
 c (20).f();
@@ -13623,7 +13623,7 @@ TEST97
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT97' && $CMP $stderr $ftemp2; then
-test.d:7:5: extension of final func/class `c'
+test.d:7:5: extension of final fun/class `c'
 OUTPUT97
                         result=ok
                 else
@@ -13640,7 +13640,7 @@ class c (p)
 {
   var i;
   i = 10;
-  final func f {}
+  final fun f {}
 }
 
 ext c {
@@ -13655,7 +13655,7 @@ TEST98
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT98' && $CMP $stderr $ftemp2; then
-test.d:9:7: extension of final func/class `f'
+test.d:9:7: extension of final fun/class `f'
 OUTPUT98
                         result=ok
                 else
@@ -14315,7 +14315,7 @@ TEST120
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT120' && $CMP $stdout $ftemp2; then
 1
-class ()
+obj
 type
 hide
 type
@@ -14339,7 +14339,7 @@ v = [4.0, 2.0, 1.0, 3.0]; println (sort (v)); println (v);
 v = ['4', '2', '1', '3']; println (sort (v)); println (v);
 v = "5132"; println (sort (v)); println (v);
 
-func c(i,j) {
+fun c(i,j) {
   if (i < j)
     return -1;
   else if (i == j)
@@ -14504,7 +14504,7 @@ fi
 if test $result = ok -a $start_test_number -le 128; then
 	echo test 128
         cat >$test_file <<'TEST128'
-func c (i, j) {return nil;}
+fun c (i, j) {return nil;}
 var v = [2, 1]; println (sort (v, c));
 TEST128
         echo '      ' $DINO $test_file "2>$stderr"
@@ -14860,8 +14860,8 @@ fi
 if test $result = ok -a $start_test_number -le 144; then
 	echo test 144
         cat >$test_file <<'TEST144'
-put (fun ("test.d"));
-put (" ", fgn ("test.d"));
+put (fuidn ("test.d"));
+put (" ", fgrpn ("test.d"));
 putln (" ", fsize ("test.d"));
 TEST144
         echo '      ' $DINO $test_file "2>$stderr"
@@ -14968,9 +14968,9 @@ if test $result = ok -a $start_test_number -le 149; then
 	echo test 149
         cat >$test_file <<'TEST149'
 var i,t;
-t = {};
+t = tab [];
 for (i = 0; i < 10000; i++)
-  t {i} = -i;
+  t [i] = -i;
 TEST149
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -15461,9 +15461,9 @@ TEST169
 [2:2]
 [2:[2]]
 [2,2.2, 2:[10, 'c', "aaa", 10.7]]
-{}
-{10, 2:"10"}
-{[2,5]:{1:5, 5}, 10:[10, 'c']}
+tab []
+tab [10, 2:"10"]
+tab [[2,5]:tab [1:5, 5], 10:[10, 'c']]
 [2,3] [3,2]
 [2, a
 [3,3]
@@ -15481,9 +15481,9 @@ INPUT169
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{}
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab []
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15502,9 +15502,9 @@ OUTPUT169
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{}
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab []
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15523,9 +15523,9 @@ OUTPUT169-2
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{}
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab []
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15544,9 +15544,9 @@ OUTPUT169-3
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{}
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab []
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15701,7 +15701,7 @@ TEST176
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout <<'INPUT176' ; then
 'c'"aaaaa"1000 10e+10[][2][2:2][2:[2]][2,2.2, 2:[10, 'c', "aaa", 10.7]]
-{10, 2:"10"}{[2,5]:{1:5, 5}, 10:[10, 'c']}[2,3] [3,2] [3,3]
+tab [10, 2:"10"]tab [[2,5]:tab [1:5, 5], 10:[10, 'c']][2,3] [3,2] [3,3]
 INPUT176
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT176' && $CMP $stdout $ftemp2; then
@@ -15714,8 +15714,8 @@ INPUT176
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -15732,8 +15732,8 @@ OUTPUT176
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -15750,8 +15750,8 @@ OUTPUT176-2
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -15768,8 +15768,8 @@ OUTPUT176-3
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -15808,8 +15808,8 @@ TEST177
 [2:2]
 [2:[2]]
 [2,2.2, 2:[10, 'c', "aaa", 10.7]]
-{10, 2:"10"}
-{[2,5]:{1:5, 5}, 10:[10, 'c']}
+tab [10, 2:"10"]
+tab [[2,5]:tab [1:5, 5], 10:[10, 'c']]
 [2,3] [3,2]
 [2, a
 [3,3]
@@ -15826,8 +15826,8 @@ INPUT177
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15844,8 +15844,8 @@ OUTPUT177
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15862,8 +15862,8 @@ OUTPUT177-2
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15880,8 +15880,8 @@ OUTPUT177-3
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 catch invalid input
 [3, 3]
@@ -15912,7 +15912,7 @@ TEST178
         echo '      ' "$DINO $test_file 2>$stderr"
 	cat >$ftemp  <<'INPUT178'
 'c'"aaaaa"1000 10e+10[][2][2:2][2:[2]][2,2.2, 2:[10, 'c', "aaa", 10.7]]
-{10, 2:"10"}{[2,5]:{1:5, 5}, 10:[10, 'c']}[2,3] [3,2] [3,3]
+tab [10, 2:"10"]tab [[2,5]:tab [1:5, 5], 10:[10, 'c']][2,3] [3,2] [3,3]
 INPUT178
         if $DINO $test_file 2>$stderr >$stdout ; then
                 echo '      ' $CMP $stdout $ftemp2
@@ -15926,8 +15926,8 @@ INPUT178
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -15944,8 +15944,8 @@ OUTPUT178
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{10:[10, 'c'], [2, 5]:{1:5, 5:5}}
+tab [2:"10", 10:10]
+tab [10:[10, 'c'], [2, 5]:tab [1:5, 5:5]]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -15962,8 +15962,8 @@ OUTPUT178-2
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -15980,8 +15980,8 @@ OUTPUT178-3
 [2, 2]
 [[2], [2]]
 [2, 2.2, [10, 'c', "aaa", 10.7], [10, 'c', "aaa", 10.7]]
-{2:"10", 10:10}
-{[2, 5]:{1:5, 5:5}, 10:[10, 'c']}
+tab [2:"10", 10:10]
+tab [[2, 5]:tab [1:5, 5:5], 10:[10, 'c']]
 [2, 3]
 [3, 2]
 [3, 3]
@@ -17713,7 +17713,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 251
         cat >$test_file <<'TEST251'
-func f ()
+fun f ()
 {
   putln ("call f");
 }
@@ -17807,7 +17807,7 @@ if false; then
 # Removed deprecated operations.
 	echo test 254
         cat >$test_file <<'TEST254'
-func f {}
+fun f {}
 *("f") = 10;
 TEST254
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -17855,7 +17855,7 @@ if false; then
         cat >$test_file <<'TEST256'
 class c()
 {
-    func f {}
+    fun f {}
 }
 var i = c();
 ("i")->f = 10;
@@ -18246,10 +18246,10 @@ if test $result = ok -a $start_test_number -le 259; then
 	echo test 259: Redefinitions
         cat >$test_file <<'TEST259'
 val i = 10;
-func f { return i;}
+fun f { return i;}
 val i = 20;
 putln (f ());
-func f { return i;}
+fun f { return i;}
 putln (f ());
 TEST259
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -18273,9 +18273,9 @@ if test $result = ok -a $start_test_number -le 260; then
 	echo test 260: Redefinitions
         cat >$test_file <<'TEST260'
 val i = 10;
-func f { return 10;}
+fun f { return 10;}
 val i = 20;
-func f2 { return i + f ();}
+fun f2 { return i + f ();}
 putln (f2 ());
 TEST260
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -18355,8 +18355,8 @@ fi
 if test $result = ok -a $start_test_number -le 263; then
 	echo test 263: Forward and matched decl access
         cat >$test_file <<'TEST263'
-func f;
-func +f () {}
+fun f;
+fun +f () {}
 TEST263
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18364,8 +18364,8 @@ TEST263
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT263' && $CMP $stderr $ftemp2; then
-test.d:2:7: forward and matched decls of `f' have different access/final attributes
-test.d:1:6: (previous declaration of identifier `f')
+test.d:2:6: forward and matched decls of `f' have different access/final attributes
+test.d:1:5: (previous declaration of identifier `f')
 OUTPUT263
                         result=ok
                 else
@@ -18401,9 +18401,9 @@ fi
 if test $result = ok -a $start_test_number -le 265; then
 	echo test 265
         cat >$test_file <<'TEST265'
-func f;
-func +f;
-func f() {}
+fun f;
+fun +f;
+fun f() {}
 TEST265
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18411,10 +18411,10 @@ TEST265
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT265' && $CMP $stderr $ftemp2; then
-test.d:2:7: forward and matched decls of `f' have different access/final attributes
-test.d:1:6: (previous declaration of identifier `f')
-test.d:3:6: forward and matched decls of `f' have different access/final attributes
-test.d:2:7: (previous declaration of identifier `f')
+test.d:2:6: forward and matched decls of `f' have different access/final attributes
+test.d:1:5: (previous declaration of identifier `f')
+test.d:3:5: forward and matched decls of `f' have different access/final attributes
+test.d:2:6: (previous declaration of identifier `f')
 OUTPUT265
                         result=ok
                 else
@@ -18469,7 +18469,7 @@ fi
 if test $result = ok -a $start_test_number -le 268; then
 	echo test 268
         cat >$test_file <<'TEST268'
-atan2 ({}, 10);
+atan2 (tab [], 10);
 TEST268
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18609,7 +18609,7 @@ fi
 if test $result = ok -a $start_test_number -le 274; then
 	echo test 274
         cat >$test_file <<'TEST274'
-cos ({});
+cos (tab []);
 TEST274
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18674,7 +18674,7 @@ if test $result = ok -a $start_test_number -le 277; then
 	echo test 277
         cat >$test_file <<'TEST277'
 var t;
-t = final {1, 2, 3, 4, 5, 6}; del (t, 1);
+t = final tab [1, 2, 3, 4, 5, 6]; del (t, 1);
 TEST277
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18682,7 +18682,7 @@ TEST277
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT277' && $CMP $stderr $ftemp2; then
-test.d:2:35: run time error - attempt to modify immutable table
+test.d:2:39: run time error - attempt to modify immutable table
 OUTPUT277
                         result=ok
                 else
@@ -18759,7 +18759,7 @@ if test $result = ok -a $start_test_number -le 281; then
 	echo test 281
         cat >$test_file <<'TEST281'
 var t;
-t = {10}; del (t, 10, 10);
+t = tab [10]; del (t, 10, 10);
 TEST281
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18767,7 +18767,7 @@ TEST281
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT281' && $CMP $stderr $ftemp2; then
-test.d:2:15: run time error - invalid number of actual parameters for `del'
+test.d:2:19: run time error - invalid number of actual parameters for `del'
 OUTPUT281
                         result=ok
                 else
@@ -18781,7 +18781,7 @@ if test $result = ok -a $start_test_number -le 282; then
 	echo test 282
         cat >$test_file <<'TEST282'
 var v;
-v = []; del (v, {});
+v = []; del (v, tab []);
 TEST282
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18803,7 +18803,7 @@ if test $result = ok -a $start_test_number -le 283; then
 	echo test 283
         cat >$test_file <<'TEST283'
 var v;
-v = []; del (v, 0, {});
+v = []; del (v, 0, tab []);
 TEST283
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18833,7 +18833,7 @@ TEST284
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT284' && $CMP $stderr $ftemp2; then
-test.d:1:5: extension `c' before extended func or class
+test.d:1:5: extension `c' before extended fun or class
 OUTPUT284
                         result=ok
                 else
@@ -18846,7 +18846,7 @@ fi
 if test $result = ok -a $start_test_number -le 285; then
 	echo test 285
         cat >$test_file <<'TEST285'
-env {"PATH"} = "abracadabra";
+env ["PATH"] = "abracadabra";
 TEST285
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18974,7 +18974,7 @@ if test $result = ok -a $start_test_number -le 291; then
 	echo test 291
         cat >$test_file <<'TEST291'
 var v;
-v = []; ins (v, 1, {});
+v = []; ins (v, 1, tab []);
 TEST291
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19102,7 +19102,7 @@ if test $result = ok -a $start_test_number -le 297; then
 	echo test 297
         cat >$test_file <<'TEST297'
 var v;
-v = []; insv (v, [1], {});
+v = []; insv (v, [1], tab []);
 TEST297
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19145,7 +19145,7 @@ fi
 if test $result = ok -a $start_test_number -le 299; then
 	echo test 299
         cat >$test_file <<'TEST299'
-func f () {}
+fun f () {}
 class c {
   ext f {}
 }
@@ -19156,7 +19156,7 @@ TEST299
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT299' && $CMP $stderr $ftemp2; then
-test.d:3:7: extension `f' before extended func or class
+test.d:3:7: extension `f' before extended fun or class
 OUTPUT299
                         result=ok
                 else
@@ -19209,7 +19209,7 @@ fi
 
 # Test 302.
 if test $result = ok -a $start_test_number -le 302; then
-	echo test 302: Extension of non func/class
+	echo test 302: Extension of non fun/class
         cat >$test_file <<'TEST302'
 var c;
 ext c {};
@@ -19220,7 +19220,7 @@ TEST302
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT302' && $CMP $stderr $ftemp2; then
-test.d:2:5: extension `c' of non func/class
+test.d:2:5: extension `c' of non fun/class
 OUTPUT302
                         result=ok
                 else
@@ -19242,7 +19242,7 @@ TEST303
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT303' && $CMP $stderr $ftemp2; then
-test.d:2:5: extension `c' of forward declaration of func/class
+test.d:2:5: extension `c' of forward declaration of fun/class
 OUTPUT303
                         result=ok
                 else
@@ -19255,9 +19255,9 @@ fi
 if test $result = ok -a $start_test_number -le 304; then
 	echo test 304: Forward declaration for recursion
         cat >$test_file <<'TEST304'
-func even;
-func odd (i) { if (i == 0) return 0; return even (i - 1);}
-func even (i) { if (i == 0) return 1; return odd (i - 1);}
+fun even;
+fun odd (i) { if (i == 0) return 0; return even (i - 1);}
+fun even (i) { if (i == 0) return 1; return odd (i - 1);}
 putln (odd (10));
 TEST304
         echo '      ' $DINO $test_file "2>$stderr"
@@ -19431,8 +19431,8 @@ if test $result = ok -a $start_test_number -le 312; then
 	echo test 312
         cat >$test_file <<'TEST312'
 var s;
-s = final {"a"};
-s{"a"} = "b";
+s = final tab["a"];
+s["a"] = "b";
 TEST312
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19455,7 +19455,7 @@ if test $result = ok -a $start_test_number -le 313; then
         cat >$test_file <<'TEST313'
 var s, t;
 s = ['a'];
-t = {s:"a"};
+t = tab [s:"a"];
 s[0] = 'b';
 TEST313
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -19632,8 +19632,8 @@ fi
 if test $result = ok -a $start_test_number -le 321; then
 	echo test 321
         cat >$test_file <<'TEST321'
-func f {putln ("aa";return 1;}
-func g {putln ("aa";return 1;}
+fun f {putln ("aa";return 1;}
+fun g {putln ("aa";return 1;}
 TEST321
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19641,8 +19641,8 @@ TEST321
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT321' && $CMP $stderr $ftemp2; then
-test.d:1:20: syntax error
-test.d:2:20: syntax error
+test.d:1:19: syntax error
+test.d:2:19: syntax error
 OUTPUT321
                         result=ok
                 else
@@ -19655,7 +19655,7 @@ fi
 if test $result = ok -a $start_test_number -le 322; then
 	echo test 322
         cat >$test_file <<'TEST322'
-func f {}
+fun f {}
 f = 1;
 TEST322
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -19677,10 +19677,10 @@ fi
 if test $result = ok -a $start_test_number -le 323; then
 	echo test 323
         cat >$test_file <<'TEST323'
-func f {}
+fun f {}
 var t;
-t = {};
-for (f in t);
+t = tab [];
+for (f: t);
 TEST323
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19688,7 +19688,7 @@ TEST323
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT323' && $CMP $stderr $ftemp2; then
-test.d:4:6: non variable in for-stmt left to `in'
+test.d:4:6: non variable in foreach-stmt left to `:'
 OUTPUT323
                         result=ok
                 else
@@ -19702,7 +19702,7 @@ if test $result = ok -a $start_test_number -le 324; then
 	echo test 324
         cat >$test_file <<'TEST324'
 class c {
-  func f {}
+  fun f {}
 }
 var o;
 o = c();
@@ -19728,12 +19728,12 @@ if test $result = ok -a $start_test_number -le 325; then
 	echo test 325
         cat >$test_file <<'TEST325'
 class c {
-  func f {}
+  fun f {}
 }
 var o, t;
 o = c();
-t = {};
-for (o.f in t);
+t = tab [];
+for (o.f: t);
 TEST325
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19785,8 +19785,8 @@ class c {
 }
 var o, t;
 o = c();
-t = {};
-for (o.f in t);
+t = tab [];
+for (o.f: t);
 TEST327
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19828,7 +19828,7 @@ fi
 if test $result = ok -a $start_test_number -le 329; then
 	echo test 329
         cat >$test_file <<'TEST329'
-sin ({});
+sin (tab []);
 TEST329
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19954,7 +19954,7 @@ fi
 if test $result = ok -a $start_test_number -le 335; then
 	echo test 335
         cat >$test_file <<'TEST335'
-srand ({});
+srand (tab []);
 TEST335
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20102,8 +20102,8 @@ if test $result = ok -a $start_test_number -le 342; then
 	echo test 342
         cat >$test_file <<'TEST342'
 var t;
-t = {};
-putln (t{10});
+t = tab [];
+putln (t[10]);
 TEST342
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20134,7 +20134,7 @@ TEST343
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT343' && $CMP $stderr $ftemp2; then
-test.d:3:11: run time error - non table right to `in'
+test.d:3:11: run time error - non table right to `:'
 OUTPUT343
                         result=ok
                 else
@@ -20149,7 +20149,7 @@ if test $result = ok -a $start_test_number -le 344; then
         cat >$test_file <<'TEST344'
 var t;
 t = [];
-putln (t{10});
+putln (t[10]);
 TEST344
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20157,7 +20157,7 @@ TEST344
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT344' && $CMP $stderr $ftemp2; then
-test.d:3:9: run time error - key index operation for non table
+test.d:3:9: run time error - index is greater than array bound
 OUTPUT344
                         result=ok
                 else
@@ -20172,7 +20172,7 @@ if test $result = ok -a $start_test_number -le 345; then
         cat >$test_file <<'TEST345'
 var i,t;
 t = [];
-for (i in t) putln ("wrong");
+for (i: t) putln ("wrong");
 TEST345
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20180,7 +20180,7 @@ TEST345
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT345' && $CMP $stderr $ftemp2; then
-test.d:3:1: run time error - non table right to `in'
+test.d:3:1: run time error - non table right to `:'
 OUTPUT345
                         result=ok
                 else
@@ -20281,7 +20281,7 @@ TEST349
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT349' && $CMP $stderr $ftemp2; then
-test.d:1:18: run time error - process deadlock
+test.d:4:7: run time error - process deadlock
 OUTPUT349
                         result=ok
                 else
@@ -20317,7 +20317,7 @@ fi
 if test $result = ok -a $start_test_number -le 351; then
 	echo test 351
         cat >$test_file <<'TEST351'
-func f() {return 1;}
+fun f() {return 1;}
 wait (f());
 TEST351
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -20340,11 +20340,11 @@ if test $result = ok -a $start_test_number -le 352; then
 	echo test 352
         cat >$test_file <<'TEST352'
 class c(){}
-if ({}) {}
+if (tab []) {}
 var i;
 for (i=0;c;i++) {}
 wait (c);
-for (i in 10) {}
+for (i: 10) {}
 try {
   throw 1;
 }
@@ -20406,8 +20406,8 @@ TEST354
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT354' && $CMP $stderr $ftemp2; then
-test.d:2:7: syntax error
-test.d:2:13: syntax error
+test.d:2:8: syntax error
+test.d:2:23: syntax error
 OUTPUT354
                         result=ok
                 else
@@ -20423,7 +20423,7 @@ if test $result = ok -a $start_test_number -le 355; then
 var ctime;
 ctime = 0.0;
 
-func waitfor (n, t){
+fun waitfor (n, t){
   var cont;
   wait (1) cont = 1;
   putln (n, " waitfor ", t, " ctime ", ctime);
@@ -20489,14 +20489,14 @@ var X,Y,Z;
 X = [1.0,0.0,0.0];
 Y = [0.0,1.0,0.0];
 Z = [0.0,0.0,1.0];
-func fulfill (){ putln ("FULFILL");}
-func publish (){ putln ("PUBLISH");}
-func rotate (what, axis, angle){
+fun fulfill (){ putln ("FULFILL");}
+fun publish (){ putln ("PUBLISH");}
+fun rotate (what, axis, angle){
   putln ("ROTATE ", what, " ",
          axis [0], " ", axis [1], " ", axis [2], " ", angle);
 }
 
-func waitfor (n, t){
+fun waitfor (n, t){
   var cont;
   wait (1) cont = 1;
   putln ("waitfor ", n, " ", t, " ctime ", ctime);
@@ -20513,7 +20513,7 @@ class back_leg(side){
   var angle;
   angle = 1.0;
 
-  func step {
+  fun step {
     var start;
     putln ("step ", ctime);
     start = ctime;
@@ -20861,8 +20861,8 @@ if test $result = ok -a $start_test_number -le 357; then
         cat >$test_file <<'TEST357'
 var k;
 //putln ("#env=", #env);
-for (k in env)
-  putln (k, "=", env {k});
+for (k: env)
+  putln (k, "=", env [k]);
 TEST357
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20983,35 +20983,35 @@ fi
 if test $result = ok -a $start_test_number -le 362; then
 	echo test 362
         cat >$test_file <<'TEST362'
-println (table ([]));
-println (table ([5:10]));
-println (table (101));
-println (table ('c'));
-println (table (10.1));
-println (table ([5:10, "c"]));
-println (table ({}));
-println (table ({"a":10.0, 10:5}));
-println (vector ({}));
-println (vector ({"e":5, "g": 6}));
-println (vector (101));
-println (vector ('c'));
-println (vector (10.1));
-println (vector ([]));
-println (vector ("abcd"));
-println (vector ([3:3]));
+println (tab ([]));
+println (tab ([5:10]));
+println (tab (101));
+println (tab ('c'));
+println (tab (10.1));
+println (tab ([5:10, "c"]));
+println (tab (tab []));
+println (tab (tab ["a":10.0, 10:5]));
+println (vec (tab []));
+println (vec (tab ["e":5, "g": 6]));
+println (vec (101));
+println (vec ('c'));
+println (vec (10.1));
+println (vec ([]));
+println (vec ("abcd"));
+println (vec ([3:3]));
 TEST362
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT362' && $CMP $stdout $ftemp2; then
-{}
-{0:10, 1:10, 2:10, 3:10, 4:10}
-{0:'1', 1:'0', 2:'1'}
-{0:'c'}
-{0:'1', 1:'0', 2:'.', 3:'1'}
-{0:10, 1:10, 2:10, 3:10, 4:10, 5:"c"}
-{}
-{10:5, "a":10}
+tab []
+tab [0:10, 1:10, 2:10, 3:10, 4:10]
+tab [0:'1', 1:'0', 2:'1']
+tab [0:'c']
+tab [0:'1', 1:'0', 2:'.', 3:'1']
+tab [0:10, 1:10, 2:10, 3:10, 4:10, 5:"c"]
+tab []
+tab [10:5, "a":10]
 []
 ["e", 5, "g", 6]
 "101"
@@ -21034,8 +21034,8 @@ fi
 if test $result = ok -a $start_test_number -le 363; then
 	echo test 363
         cat >$test_file <<'TEST363'
-func f {}
-var v = table (f);
+fun f {}
+var v = tab (f);
 TEST363
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21043,7 +21043,7 @@ TEST363
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT363' && $CMP $stderr $ftemp2; then
-test.d:2:16: invalid operand type table (...)
+test.d:2:14: invalid operand type tab (...)
 OUTPUT363
                         result=ok
                 else
@@ -21056,7 +21056,7 @@ fi
 if test $result = ok -a $start_test_number -le 364; then
 	echo test 364
         cat >$test_file <<'TEST364'
-var v = table (nil);
+var v = tab (nil);
 TEST364
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21064,7 +21064,7 @@ TEST364
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT364' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid type of operand of table (...)
+test.d:1:9: run time error - invalid type of operand of tab (...)
 OUTPUT364
                         result=ok
                 else
@@ -21077,8 +21077,8 @@ fi
 if test $result = ok -a $start_test_number -le 365; then
 	echo test 365
         cat >$test_file <<'TEST365'
-func f {}
-var v = vector (f);
+fun f {}
+var v = vec (f);
 TEST365
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21086,7 +21086,7 @@ TEST365
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT365' && $CMP $stderr $ftemp2; then
-test.d:2:17: invalid operand type vector (...)
+test.d:2:14: invalid operand type vec (...)
 OUTPUT365
                         result=ok
                 else
@@ -21099,7 +21099,7 @@ fi
 if test $result = ok -a $start_test_number -le 366; then
 	echo test 366
         cat >$test_file <<'TEST366'
-var v = vector (nil);
+var v = vec (nil);
 TEST366
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21107,7 +21107,7 @@ TEST366
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT366' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid type of operand of vector (...)
+test.d:1:9: run time error - invalid type of operand of vec (...)
 OUTPUT366
                         result=ok
                 else
@@ -21120,9 +21120,9 @@ fi
 if test $result = ok -a $start_test_number -le 367; then
 	echo test 367
         cat >$test_file <<'TEST367'
-println (keys ({}));
-println (keys ({8:5, 7:7}));
-println (keys ({"a":5, "ha":7}));
+println (keys (tab []));
+println (keys (tab [8:5, 7:7]));
+println (keys (tab ["a":5, "ha":7]));
 TEST367
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21285,7 +21285,7 @@ fi
 if test $result = ok -a $start_test_number -le 374; then
 	echo test 374
         cat >$test_file <<'TEST374'
-var i, key, voc = {};
+var i, key, voc = tab [];
 for (;;)
   try {
     var ln, a;
@@ -21295,13 +21295,13 @@ for (;;)
       continue;
     a = split (ln, "[^[:alnum:]]");
     for (i = 0; i < #a; i++)
-      voc {a[i]} = (a[i] in voc ? voc {a[i]} + 1 : 1);
+      voc [a[i]] = (a[i] in voc ? voc [a[i]] + 1 : 1);
   } catch (invcalls.eof) {
     break;
   }
 key = sort (keys (voc), cmpv);
 for (i = 0; i < #key; i++)
-  putln (key[i], " : ", voc{key[i]});
+  putln (key[i], " : ", voc[key[i]]);
 TEST374
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout <<'INPUT374' ; then
@@ -21685,7 +21685,7 @@ if test $result = ok -a $start_test_number -le 386; then
 	echo test 386
         cat >$test_file <<'TEST386'
 var t;
-t = {10}; subv (t, 10, 10);
+t = tab [10]; subv (t, 10, 10);
 TEST386
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21693,7 +21693,7 @@ TEST386
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT386' && $CMP $stderr $ftemp2; then
-test.d:2:16: run time error - invalid parameter type of `subv'
+test.d:2:20: run time error - invalid parameter type of `subv'
 OUTPUT386
                         result=ok
                 else
@@ -21707,7 +21707,7 @@ if test $result = ok -a $start_test_number -le 387; then
 	echo test 387
         cat >$test_file <<'TEST387'
 var v;
-v = []; subv (v, {});
+v = []; subv (v, tab []);
 TEST387
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -21729,7 +21729,7 @@ if test $result = ok -a $start_test_number -le 388; then
 	echo test 388
         cat >$test_file <<'TEST388'
 var v;
-v = []; subv (v, 0, {});
+v = []; subv (v, 0, tab []);
 TEST388
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -22044,7 +22044,7 @@ fi
 if test $result = ok -a $start_test_number -le 402; then
 	echo test 402
         cat >$test_file <<'TEST402'
-func f (par) {
+fun f (par) {
   class sc (i) {
   }
   return sc;
@@ -22254,7 +22254,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22264,7 +22264,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -22341,7 +22341,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22396,7 +22396,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22406,7 +22406,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -22485,7 +22485,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22541,7 +22541,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22596,7 +22596,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22644,7 +22644,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22700,7 +22700,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22754,7 +22754,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22808,7 +22808,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22857,7 +22857,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22911,7 +22911,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -22965,7 +22965,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23020,7 +23020,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23075,7 +23075,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23128,7 +23128,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23138,7 +23138,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23205,7 +23205,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23215,7 +23215,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23288,7 +23288,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23298,7 +23298,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23368,7 +23368,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23378,7 +23378,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23453,7 +23453,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23463,7 +23463,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23571,7 +23571,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23581,7 +23581,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23646,7 +23646,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23656,7 +23656,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23727,7 +23727,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23737,7 +23737,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23819,7 +23819,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23829,7 +23829,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23907,7 +23907,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -23917,7 +23917,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -23993,7 +23993,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24003,7 +24003,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -24118,7 +24118,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24128,7 +24128,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -24309,7 +24309,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24319,7 +24319,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -24435,7 +24435,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24445,7 +24445,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -24581,7 +24581,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24633,7 +24633,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24686,7 +24686,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24740,7 +24740,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24796,7 +24796,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24852,7 +24852,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24908,7 +24908,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -24964,7 +24964,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -25020,7 +25020,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -25076,7 +25076,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -25132,7 +25132,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -25191,7 +25191,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -26961,7 +26961,7 @@ fi
 if test $result = ok -a $start_test_number -le 474; then
 	echo test 474
         cat >$test_file <<'TEST474'
-println (char ({}));
+println (char (tab []));
 TEST474
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -27045,7 +27045,7 @@ fi
 if test $result = ok -a $start_test_number -le 478; then
 	echo test 478
         cat >$test_file <<'TEST478'
-println (int ({}));
+println (int (tab []));
 TEST478
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -27108,7 +27108,7 @@ fi
 if test $result = ok -a $start_test_number -le 481; then
 	echo test 481
         cat >$test_file <<'TEST481'
-println (float ({}));
+println (float (tab []));
 TEST481
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -27199,16 +27199,16 @@ if test $result = ok -a $start_test_number -le 485; then
 	echo test 485
         cat >$test_file <<'TEST485'
 var objs_number = 0;
-class obj {
+class object {
   var -n = objs_number;
   objs_number++;
   putln ("creating ", n);
-  func -destroy {objs_number--; putln ("destroying ", n);}
+  fun -destroy {objs_number--; putln ("destroying ", n);}
 }
 
 var i;
 for (i = 0; i < 20; i++)
-  obj ();
+  object ();
 gc ();
 putln (objs_number);
 TEST485
@@ -27277,8 +27277,8 @@ put (sprint (10.2e10));put (" ");
 put (sprint ('c'));put (" ");
 put (sprintln ("ssss"));
 put (sprintln (["aaa", "bbb", "ccc"]));
-put (sprintln (["v1", {"key":"val", {"key1":"val1"}}]));
-func f {}
+put (sprintln (["v1", tab ["key":"val", tab ["key1":"val1"]]]));
+fun f {}
 put (sprintln (f));
 class c {}
 put (sprintln (c));
@@ -27296,8 +27296,8 @@ TEST486
                 if cat >$ftemp2 <<'OUTPUT486' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+11 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {"key":"val", {"key1":"val1"}:nil}]
-func f
+["v1", tab ["key":"val", tab ["key1":"val1"]:nil]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -27306,8 +27306,8 @@ OUTPUT486
                 elif cat >$ftemp2 <<'OUTPUT486-1' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+011 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {"key":"val", {"key1":"val1"}:nil}]
-func f
+["v1", tab ["key":"val", tab ["key1":"val1"]:nil]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -27316,8 +27316,8 @@ OUTPUT486-1
                 elif cat >$ftemp2 <<'OUTPUT486-2' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+11 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {{"key1":"val1"}:nil, "key":"val"}]
-func f
+["v1", tab [tab ["key1":"val1"]:nil, "key":"val"]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -27326,8 +27326,8 @@ OUTPUT486-2
                 elif cat >$ftemp2 <<'OUTPUT486-3' && $CMP $ftemp $ftemp2; then
 nil 10 1.02e+011 'c' "ssss"
 ["aaa", "bbb", "ccc"]
-["v1", {{"key1":"val1"}:nil, "key":"val"}]
-func f
+["v1", tab [tab ["key1":"val1"]:nil, "key":"val"]]
+fun f
 class c
 instance c()
 thread 1 t()
@@ -27439,7 +27439,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -27497,7 +27497,7 @@ for (i = 0; i < #str; i++) {
   inp [i].order = i;
 }
 
-func error (err_tok_num, err_tok,
+fun error (err_tok_num, err_tok,
             start_ignored_tok_num, start_ignored_tok_attr,
 	    start_recovered_tok_num, start_recovered_tok) {
   put ("syntax error on token #", err_tok_num, " (", err_tok.code, ")");
@@ -27507,7 +27507,7 @@ func error (err_tok_num, err_tok,
 
 var root = p.parse (inp, error);
 
-func pr (r, ind) {
+fun pr (r, ind) {
   var i, n = r.name;
 
   for (i = 0; i < ind; i++)
@@ -27795,7 +27795,7 @@ if test $result = ok -a $start_test_number -le 498; then
 	echo test 498: Contexts and internal caches.
         cat >$test_file <<'TEST498'
 class a (i, n) {
-  func ex {
+  fun ex {
     putln ("before = ", i);
     if (n != nil) n.ex ();
     putln ("after = ", i);
@@ -27948,7 +27948,7 @@ if test $result = ok -a $start_test_number -le 502; then
         cat >$test_file <<'TEST502'
 class c {
   putln ("creating instance");
-  func destroy {putln ("destroying instance");}
+  fun destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -27975,7 +27975,7 @@ if test $result = ok -a $start_test_number -le 503; then
         cat >$test_file <<'TEST503'
 class c {
   putln ("creating instance");
-  func destroy {putln ("destroying instance");}
+  fun destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -28003,7 +28003,7 @@ if test $result = ok -a $start_test_number -le 504; then
         cat >$test_file <<'TEST504'
 class c {
   putln ("creating instance");
-  func destroy {putln ("destroying instance");}
+  fun destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -28031,7 +28031,7 @@ if test $result = ok -a $start_test_number -le 505; then
         cat >$test_file <<'TEST505'
 class c {
   putln ("creating instance");
-  func destroy {putln ("destroying instance");}
+  fun destroy {putln ("destroying instance");}
 }
 
 var i = c ();
@@ -28074,11 +28074,11 @@ if test $result = ok -a $start_test_number -le 506; then
 ***********************************************************/
 // For elaborate dumpings:
 var dumpfl = 0;
-func bad_anode; func parse_instruction_anode; func check_block;
-func parse_expression_anode; func flatten;
+fun bad_anode; fun parse_instruction_anode; fun check_block;
+fun parse_expression_anode; fun flatten;
 // Here is the function to parse a program anode. It is very trivial and
 // is included for the client's convenience.
-func parse_program_anode (program_anode, local_dumpfl = 1) {
+fun parse_program_anode (program_anode, local_dumpfl = 1) {
   // Initialize the dumpings.
   dumpfl = local_dumpfl;
   var object_program = prog (), intermediate_view;
@@ -28105,7 +28105,7 @@ func parse_program_anode (program_anode, local_dumpfl = 1) {
   return object_program;
 }
 /* The function parse_instruction_anode() is used to parse an instruction. */
-func parse_instruction_anode (instruction_anode) {
+fun parse_instruction_anode (instruction_anode) {
   // We declare a variable to work on the result, which is an object of class
   // instr().
   if (dumpfl) {
@@ -28145,7 +28145,7 @@ func parse_instruction_anode (instruction_anode) {
     // Process the declarations:
     if (dumpfl) putln ("@ Processing declarations...");
     var declarations = flatten (instruction_anode.transl[0], 2),
-    current_identifier_declared_flag = new {};
+    current_identifier_declared_flag = new tab[];
     for (var current_declaration_processed = 0;
          current_declaration_processed < #declarations;
          current_declaration_processed++) {
@@ -28196,15 +28196,15 @@ func parse_instruction_anode (instruction_anode) {
           error ("Attempt to declare an identifier twice.");
         }
         result.args [0].vartable
-        {identifiers_on_wait [current_identifier_processing]
-        . transl [0].transl} = new current_specification_analysis;
+        [identifiers_on_wait [current_identifier_processing]
+        . transl [0].transl] = new current_specification_analysis;
         // Now we make a note of the fact that we have just declared the
         // identifier to solve the fact that the semantic checker that is
         // applied later to the block has no way of knowing that we attempted
         // to declare an identifier twice, so we check it right now.
         current_identifier_declared_flag
-        {identifiers_on_wait
-        [current_identifier_processing].transl [0].transl} = 1;
+        [identifiers_on_wait
+        [current_identifier_processing].transl [0].transl] = 1;
       }
     }
     // In case we stumble on a wrong node.
@@ -28222,12 +28222,12 @@ func parse_instruction_anode (instruction_anode) {
       if (dumpfl)
         putln ("* Conversion of ",
                sprint (current_declaration));
-      if (type (current_declaration) == class ()) {
+      if (type (current_declaration) == obj) {
         if (dumpfl)
           putln ("* Conversion worthy to ",
                  sprint (current_declaration.value));
-        result.args [0].vartable {current_declaration.value} =
-        result.args [0].vartable {current_declaration};
+        result.args [0].vartable [current_declaration.value] =
+        result.args [0].vartable [current_declaration];
         result.args [0].vartable =
         del (result.args [0].vartable, current_declaration);
       } else if (dumpfl) putln ("* Conversion unworthy.");
@@ -28247,24 +28247,24 @@ func parse_instruction_anode (instruction_anode) {
       [parse_instruction_anode (instructions [current_instruction_number].
                                transl [0])];
     }
-    func redeclare_block;
+    fun redeclare_block;
     // Now we must declare the configuration of variables here for the
     // other blocks.
     if (dumpfl) putln ("@ Redeclaring underlying blocks...");
     result.args [0] = redeclare_block (result.args [0]);
-    func redeclare_block (block) {
-      func do_redeclaration (block_to_redeclare) {
+    fun redeclare_block (block) {
+      fun do_redeclaration (block_to_redeclare) {
         // We have a block we need to define with synchronized variables.
         var current_identifier_processed_key;
-        for (current_identifier_processed_key in block.vartable)
+        for (current_identifier_processed_key: block.vartable)
           if (!(current_identifier_processed_key
 	        in block_to_redeclare.vartable)) {
-            block_to_redeclare.vartable {current_identifier_processed_key} =
-            block.vartable {current_identifier_processed_key};
+            block_to_redeclare.vartable [current_identifier_processed_key] =
+            block.vartable [current_identifier_processed_key];
           }
           redeclare_block (block_to_redeclare);
       }
-      func do_instruction (instr) {
+      fun do_instruction (instr) {
         if (instr.name == "block") {
           do_redeclaration (instr.args [0]);
         } else if (instr.name == "for") {
@@ -28382,7 +28382,7 @@ func parse_instruction_anode (instruction_anode) {
   return result; // Now the result is returned.
 }
 
-func parse_expression_anode (expression_anode) {
+fun parse_expression_anode (expression_anode) {
   /* This function parses an expression node into an object of
      class expression(). It can take both a factor and an expression. */
   if (dumpfl) {
@@ -28498,11 +28498,11 @@ func parse_expression_anode (expression_anode) {
        **************************************************/
 // The function to check a block does nothing but introduce a name scope for
 // its two internal functions and call check_instruction() for each statement.
-func check_block (block) {
-  func check_expression;
+fun check_block (block) {
+  fun check_expression;
   /* check_block() has two internal functions that work on an instruction
      (check_instruction()) and expression (check_expression()). */
-  func check_instruction (instruction) {
+  fun check_instruction (instruction) {
     /* Most of the commands just cause invocations of other functions,
        but assignment finds four important semantic errors (see #2-5). */
     // Most important parts first this time.
@@ -28517,8 +28517,8 @@ func check_block (block) {
         /* If these would have appeared after the conditional, !keyvalue would
            be generated, which is undesirable. */
         /* Now, we may check for error #3. */
-//        if (type (block.vartable {instruction.args [0].value}.value)
-//            == vector 
+//        if (type (block.vartable [instruction.args [0].value].value)
+//            == vec 
 //            && instruction.args [1].opr == "num" &&
 //            int (instruction.args [1].opa1.value) == 0) {
 //          put (program_file, ":", instruction.args [0].line_num, ":",
@@ -28527,14 +28527,14 @@ func check_block (block) {
 //        }
 //        /* Lastly, error #4 must be checked. "elsif" is used for efficiency. */
 //        else
-        if (type (block.vartable {instruction.args [0].value}.value) !=
-                 vector &&
+        if (type (block.vartable [instruction.args [0].value].value) !=
+                 vec &&
                  instruction.args [1].opr != "num" &&
                  int (instruction.args [1].opa1.value) != 0) {
           put (program_file, ":", instruction.args [0].line_num, ":",
                instruction.args [0].char_num, ": ");
           error ("Attempt to reference element of scalar value.");
-        } else if (block.vartable {instruction.args [0].value}.type0 ==
+        } else if (block.vartable [instruction.args [0].value].type0 ==
                    "constant") {
           put (program_file, ":", instruction.args [0].line_num, ":",
                instruction.args [0].char_num, ": ");
@@ -28591,7 +28591,7 @@ func check_block (block) {
   }
   /* This function is used to check an expression and replace all tokens with
      corresponding values. */
-  func check_expression (expression) {
+  fun check_expression (expression) {
     /* Let us discuss the values that we need to check. Our errors
        shall be found all in one operator: var. Its internal representation
        is as follows:
@@ -28619,15 +28619,15 @@ func check_block (block) {
         error ("No such variable declared.");
       } else {
         /* Check for error #3. */
-//        if (type (block.vartable {expression.opa1.value}.value) == vector &&
+//        if (type (block.vartable [expression.opa1.value].value) == vec &&
 //            expression.opa2.opr == "num" &&
 //            int (expression.opa2.opa1.value) == 0) {
 //          put (program_file, ":", expression.opa1.line_num, ":0: ");
 //          error ("Structured value in scalar context.");
 //        }
 //        else
-          if (type (block.vartable {expression.opa1.value}.value) !=
-                 vector &&
+          if (type (block.vartable [expression.opa1.value].value) !=
+                 vec &&
                  expression.opa2.opr != "num" &&
                  int (expression.opa2.opa1.value) != 0) {
           put (program_file, ":", expression.opa1.value, ":0: ");
@@ -28658,13 +28658,13 @@ func check_block (block) {
    easier to put in separate functions. */
 // When an anode that is not supposed to turn up turns up, we finish
 // with a diagnostic message.
-func bad_anode {
+fun bad_anode {
   fatal_error ("Grammar 'grip.g' corrupted or internal error.");
 }
 // For flattening recursive lists. This is so easily encoded in functional
 // programming languages like ML! Wish I could use it here, but the SPI
 // doesn't allow it.
-func flatten (list_anode_to_flatten, next_num) {
+fun flatten (list_anode_to_flatten, next_num) {
   if (dumpfl) {
     putln ("@ Executing flatten operation with:");
     println (list_anode_to_flatten.transl);
@@ -28682,7 +28682,7 @@ TEST506
    and if it isn't zero, call abend(). */
 var global_errfl = 0;
 
-func error (message, ...) {
+fun error (message, ...) {
   putln ("Error : ", message); // Print a general description of the problem.
   // Do any dumping necessary to roughly locate the problem.
   if (#args != 0)
@@ -28693,7 +28693,7 @@ func error (message, ...) {
 }
 
 // For fatal errors :
-func fatal_error (message, ...) {
+fun fatal_error (message, ...) {
   putln ("Fatal Error : ", message);
   if (#args != 0)
     for (var i = 0; i < #args; i++)
@@ -28705,14 +28705,14 @@ func fatal_error (message, ...) {
 
 // To assist with abnormal endings.
 
-func abend (message) {
+fun abend (message) {
   putln (global_errfl, message, "error" @ (global_errfl == 1 ? "." : "s."));
   exit (2);
 }
 
 // To print out abstract nodes in a readable manner:
 
-func print_anode (node_to_print, tablevel = 0, tabchar = ' ') {
+fun print_anode (node_to_print, tablevel = 0, tabchar = ' ') {
   for (var i = 0; i < tablevel; i++) put (tabchar);
   put (node_to_print.name, " ");
   if (node_to_print.name == "$nil") println ();
@@ -28731,7 +28731,7 @@ func print_anode (node_to_print, tablevel = 0, tabchar = ' ') {
 
 // For printing objects of class expr().
 
-func print_expression (expr, tablevel = 0, tabchar = ' ') {
+fun print_expression (expr, tablevel = 0, tabchar = ' ') {
   for (var i = 0; i < tablevel; i++) put (tabchar);
   if (expr == nil) return;
   if (expr.opr == "num") putln (sprint (expr.opa1), " : ", sprint (expr.opa2));
@@ -28752,18 +28752,18 @@ func print_expression (expr, tablevel = 0, tabchar = ' ') {
   }
 }
 // This function is used to print an instruction:
-func print_instruction (instruction, tablevel = 0, tabchar = ' ') {
+fun print_instruction (instruction, tablevel = 0, tabchar = ' ') {
   for (var i = 0; i < tablevel; i++) put (tabchar);
   if (instruction.name == "empty") putln ("-");
   else {
     put (instruction.name, " ");
     if (instruction.name == "block") {
       putln ("{");
-      for (i in instruction.args [0].vartable) {
+      for (i: instruction.args [0].vartable) {
         for (var j = 0; j < tablevel + 2; j++) put (tabchar);
-        putln ("$", sprint (i), " : ", instruction.args [0].vartable {i}.type0,
-               instruction.args [0].vartable {i}.arrfl ?
-               " [" @ instruction.args [0].vartable {i}.arrfl @ "]" : "");
+        putln ("$", sprint (i), " : ", instruction.args [0].vartable [i].type0,
+               instruction.args [0].vartable [i].arrfl ?
+               " [" @ instruction.args [0].vartable [i].arrfl @ "]" : "");
       }
       for (i = 0; i < #instruction.args [0].exec; i++)
         print_instruction (instruction.args [0].exec [i],
@@ -29019,20 +29019,20 @@ class expression (){
 ******************************************************************************/
 class prog {
   var exec = []; // The executable code.
-  var vartable = new {};
+  var vartable = new tab [];
   // The environment, statically derived during translation.
-  func eval (expr, dumpfl = 0) { // The expression evaluator.
+  fun eval (expr, dumpfl = 0) { // The expression evaluator.
     var res; // The result is retained for debugging purposes.
     if (dumpfl) putln ("@ Initiating expression evaluator.");
-    func ovrlap (type1, type2) // A function to derive the type of the result. 
+    fun ovrlap (type1, type2) // A function to derive the type of the result. 
       { return type1 == "real" || type2 == "real" ? "real" : "integer"; }
     if (expr.opr == "num") res = component(expr.opa1,expr.opa2);
                            /* Expression is a single constant */
     else if (expr.opr == "var") {
       var index = eval (expr.opa2, dumpfl).value;
 
-      res = vartable {expr.opa1};
-      if (type (res.value) == vector) {
+      res = vartable [expr.opa1];
+      if (type (res.value) == vec) {
 	//        println (index, "--", #res.value);
 	if (index < 1 || index > #res.value) {
 	  error ("Runtime error : Array index out of bounds.");
@@ -29105,15 +29105,15 @@ class prog {
   ** itself, eval(), and execute() to evaluate expressions, or use      **
   ** structures.                                                        **
   ***********************************************************************/
-  func execute (dumpfl, strdumpfl, edumpfl) {
+  fun execute (dumpfl, strdumpfl, edumpfl) {
     if (dumpfl) putln ("& Entering execution phase.");
     // Dumping for blocks :
     if (dumpfl) {
       putln ("* Preliminary dumping of variables for this block:\n",
-             vartable != {} ?
+             vartable != tab [] ?
              sprint (vartable) : "", "\n"); 
     }
-    func execinstr;
+    fun execinstr;
     for (var instr = 0; instr < #exec; instr++) {
       // Sequentially perform statements.
       execinstr (exec [instr], strdumpfl, edumpfl); 
@@ -29126,7 +29126,7 @@ class prog {
     ** do, and executes the corresponding procedure       **
     ** needed to do the job.                              **
     *******************************************************/
-    func execinstr (currinstr, dumpfl, edumpfl = 0) {
+    fun execinstr (currinstr, dumpfl, edumpfl = 0) {
       // Dumping for instructions :
       if (dumpfl) { putln ("@ Executing of instruction #",
                            instr + 1, ", value:");
@@ -29167,10 +29167,10 @@ class prog {
              index = eval (currinstr.args [1], edumpfl).value,
              ourtype;
          // Ourtype is for real <- int compatibility.
-         if (vartable  {currinstr.args [0]}.type0 == "real") ourtype = "real";
+         if (vartable  [currinstr.args [0]].type0 == "real") ourtype = "real";
          else ourtype = "integer";
-         var target = vartable {currinstr.args [0]};
-         if (type (target.value) != vector) {
+         var target = vartable [currinstr.args [0]];
+         if (type (target.value) != vec) {
            // Is this an array? If no :
           target.value = (ourtype == "real"
 			  ? float (res. value) : int (res. value));
@@ -29181,7 +29181,7 @@ class prog {
            }
            target.value [index - 1] = res.value;
          }
-         vartable {currinstr.args [0]}.type0 = ourtype;
+         vartable [currinstr.args [0]].type0 = ourtype;
        } else if (currinstr.name == "block") { // The compound statement.
          currinstr.args [0].execute (dumpfl, dumpfl, edumpfl);
        } else if (currinstr.name == "put") { // Output statement.
@@ -29228,7 +29228,7 @@ TEST506e
  ** The scanner() function does lexical analysis, i.e. finding   **
  ** numbers, and returns a vector of tokens ready for parsing.   **
  *****************************************************************/
-func scanner (code) {
+fun scanner (code) {
   var tokens = [],
   /* Array that will later be translated to tokens and returned,
      which will be called the "token stream". */
@@ -29239,33 +29239,33 @@ func scanner (code) {
                       accumulation stream is empty.
   */
   /* Next come two important tables to increase parsing efficiency. */
-  character = final {':' : 5,
-                     '<' : 13,
-                     '>' : 14,
-                     '(' : 15,
-                     ')' : 16,
-                     '{' : 17,
-                     '}' : 18,
-                     '[' : 19,
-                     ']' : 20,
-                     '+' : 21,
-                     '-' : 22,
-                     '*' : 23,
-                     '/' : 24,
-                     '&' : 25,
-                     '|' : 26,
-                     '!' : 27,
-                     ';' : 28,
-                     '=' : 29,
-                     ' ' : 30}, // For encoding special characters.
-  keyword = final {"program" : 4,
-                   "constant" : 6,
-                   "integer" : 7,
-                   "real" : 8,
-                   "for" : 10,
-                   "cond" : 9,
-                   "else" : 12,
-                   "put" : 11}, // For encoding keywords.
+  character = final tab [':' : 5,
+                         '<' : 13,
+                         '>' : 14,
+                         '(' : 15,
+                         ')' : 16,
+                         '{' : 17,
+                         '}' : 18,
+                         '[' : 19,
+                         ']' : 20,
+                         '+' : 21,
+                         '-' : 22,
+                         '*' : 23,
+                         '/' : 24,
+                         '&' : 25,
+                         '|' : 26,
+                         '!' : 27,
+                         ';' : 28,
+                         '=' : 29,
+                         ' ' : 30], // For encoding special characters.
+  keyword = final tab ["program" : 4,
+                       "constant" : 6,
+                       "integer" : 7,
+                       "real" : 8,
+                       "for" : 10,
+                      "cond" : 9,
+                      "else" : 12,
+                      "put" : 11], // For encoding keywords.
   char0, /* Counter for the loop that follows. */
   lx = 0,
   lnn = 1; // For retaining the line number of a token.
@@ -29351,7 +29351,7 @@ func scanner (code) {
         var temp;
         if (del (tokens[lx], 0, 1) in keyword) {
           // Translate it into a keyword token if it's a keyword.
-          temp = token(keyword{tokens[lx]});
+          temp = token(keyword[tokens[lx]]);
           // Look it up in the keyword table.
           temp.type0 = 'K';
           // Give it type "K".
@@ -29383,7 +29383,7 @@ func scanner (code) {
         lx++;
         continue;
       } else {
-        var temp = token(character {tokens[lx]});
+        var temp = token(character [tokens[lx]]);
         temp.type0 = 'C';
         temp.value = tokens[lx];
         tokens[lx] = temp;
@@ -29405,13 +29405,13 @@ TEST506f
  ** block needs to do is analyze args and determine the parameters to    **
  ** this method.                                                         **
  *************************************************************************/
-func parse_file (program_file, debug_level, verbose_flag) {
+fun parse_file (program_file, debug_level, verbose_flag) {
   if (verbose_flag) putln ("& Entering parsing phase.");
   var token_vector,
   outside = except (). error (). invcall (). syserror(); // To save typing.
   /* The following function is called by the parser to
      do any error messaging. */
-  func syntax_error (error_token_index,
+  fun syntax_error (error_token_index,
                      error_token_value,
                      first_ignored_token_index,
                      first_ignored_token_value,
@@ -29438,7 +29438,7 @@ func parse_file (program_file, debug_level, verbose_flag) {
   }
   // The next few lines install the grammar.
   try { // In case we can't find the file.
-    var tape = open (env {"GRAMMARPATH"},"read");
+    var tape = open (env ["GRAMMARPATH"],"read");
     grammar = fgetf (tape);
     close (tape);
   } catch (outside. eaccess,
@@ -29601,21 +29601,21 @@ if test $result = ok -a $start_test_number -le 507; then
         cat >$test_file <<'TEST507'
 var ts = ["MII", "MI;I", "MMI", "M;MI", "MFI", "MMF", "BBB", "MBB",
 	  "MIB", "MMB", "MFB", "MIb", "MMb", "MFb"];
-var seq = {}, ignore = {}, useq;
+var seq = tab [], ignore = tab [], useq;
 
-func add_transl (seq, s, t) {
+fun add_transl (seq, s, t) {
   var i;
 
   if (s in seq) {
-    for (i = 0; i < #seq {s}; i++)
-      if (seq {s} [i] == t)
+    for (i = 0; i < #seq [s]; i++)
+      if (seq [s] [i] == t)
 	return;
-    seq {s} = seq {s} @ [t];
+    seq [s] = seq [s] @ [t];
   } else
-    seq {s} = [t];
+    seq [s] = [t];
 }
 
-func add_seq (str) {
+fun add_seq (str) {
   var start, i, j, s;
   start = 0;
   for (i = 0; i < #str; i++)
@@ -29635,7 +29635,7 @@ func add_seq (str) {
   }
 }
 
-func build_start_seqs {
+fun build_start_seqs {
   var i, j;
 
   for (i = 0; i < #ts; i++) {
@@ -29647,7 +29647,7 @@ func build_start_seqs {
   }
 }
 
-func subscr_divide (s) {
+fun subscr_divide (s) {
   var v = [nil, nil], k, m = 0, i = 0, f = 0, b = 0, nopb = 0;
   
   for (k = 0; k < #s; k++)
@@ -29678,17 +29678,17 @@ func subscr_divide (s) {
   return v;
 }
 
-func build_all_seqs (seq) {
+fun build_all_seqs (seq) {
   var i, j, v, cont, p, s;
 
   for (;;) {
     cont = 0;
-    v = vector (seq);
+    v = vec (seq);
     for (i = 0; i < #v; i += 2) {
       s = v [i];
       p = subscr_divide (s);
       if (p [1] != nil) {
-	ignore {s} = nil;
+	ignore [s] = nil;
 	del (seq, s);
 	add_transl (seq, p[0], p [1][0] != 't' ? p[1] : "");
 	if (p [1][0] != 't') {
@@ -29771,8 +29771,8 @@ fi
 if test $result = ok -a $start_test_number -le 510; then
 	echo test 510: Checking that return is in function/class/ext.
         cat >$test_file <<'TEST510'
-var k = "aaa", t = {};
-t {k} = 10;
+var k = "aaa", t = tab [];
+t [k] = 10;
 k [1] = 'b';
 TEST510
         echo '      ' $DINO $test_file "2>$stderr"
@@ -32194,7 +32194,7 @@ fi
 if test $result = ok -a $start_test_number -le 553; then
 	echo test 553: Ackermann from Language Shootout
         cat >$test_file <<'TEST553'
-func Ack (m, n) {
+fun Ack (m, n) {
   if (m == 0) return n + 1;
   if (n == 0) return Ack (m - 1, 1);
   return Ack (m - 1, Ack (m, n - 1));
@@ -32225,7 +32225,7 @@ if test $result = ok -a $start_test_number -le 554; then
         cat >$test_file <<'TEST554'
 class node (item, left, right) {}
 
-func BottomUpTree (item, depth) {
+fun BottomUpTree (item, depth) {
   if (depth <= 0) return item;
   var i = item + item;
 
@@ -32233,8 +32233,8 @@ func BottomUpTree (item, depth) {
   return node (item, BottomUpTree (i - 1, depth), BottomUpTree (i, depth));
 }
 
-func ItemCheck (tree) {
-  return (type (tree) != class ()
+fun ItemCheck (tree) {
+  return (type (tree) != obj
 	  ? tree : tree.item + ItemCheck (tree.left) - ItemCheck (tree.right));
 }
 
@@ -32435,7 +32435,7 @@ if test $result = ok -a $start_test_number -le 558; then
         cat >$test_file <<'TEST558'
 var IM = 139968, IA = 3877, IC = 29573, Last = 42;
 
-func random (max) {
+fun random (max) {
   Last = (Last * IA + IC) % IM;
   return (max * Last) / IM;
 }
@@ -32444,7 +32444,7 @@ class freq (c, p) {}
 
 // Weighted selection from alphabet
 
-func makeCumulative (a) {
+fun makeCumulative (a) {
   var i, cp = 0, len = #a;
 
    for (i = 0; i < len; i++) {
@@ -32452,7 +32452,7 @@ func makeCumulative (a) {
    }
 }
 
-func selectRandom (a) {
+fun selectRandom (a) {
   var i, len = #a, r = random (1.0);
 
   for (i = 0; i < len; i++)
@@ -32462,7 +32462,7 @@ func selectRandom (a) {
 
 // Generate and write FASTA format
 
-func makeRandomFasta (id, desc, a, n) {
+fun makeRandomFasta (id, desc, a, n) {
   var i, m, length = 60;
 
   putln (">", id, " ", desc);
@@ -32474,7 +32474,7 @@ func makeRandomFasta (id, desc, a, n) {
   }
 }
 
-func makeRepeatFasta (id, desc, s, n) {
+fun makeRepeatFasta (id, desc, s, n) {
   var i, m, todo = n, length = 60, k = 0, kn = #s;
 
   putln (">", id, " ", desc);
@@ -32707,7 +32707,7 @@ fi
 if test $result = ok -a $start_test_number -le 559; then
 	echo test 559: Fannkuch from Language Shootout
         cat >$test_file <<'TEST559'
-func fannkuch (n) {
+fun fannkuch (n) {
    var perm, maxperm, perm1 = [n : 0], count = [n : 0];
    var i, k, t, flipscount, maxflipscount = 0, m = n - 1, r = n, check = 0;
 
@@ -32821,41 +32821,41 @@ fi
 if test $result = ok -a $start_test_number -le 561; then
 	echo test 561: K-nucleotide from Language Shootout
         cat >$test_file <<'TEST561'
-func kfrequency (seq, freq, k, frame) {
+fun kfrequency (seq, freq, k, frame) {
   var i, c, stop = #seq - k + 1;
 
   for (i = frame; i < stop; i += k) {
     c = subv (seq, i, k);
-    if (c in freq) freq {c}++;
-    else freq {c} = 1;
+    if (c in freq) freq [c]++;
+    else freq [c] = 1;
   }
 }
 
-func count (seq, frag) {
-  var frame, k = #frag, freq = {};
+fun count (seq, frag) {
+  var frame, k = #frag, freq = tab [];
 
   for (frame = 0; frame < k; frame++) kfrequency (seq, freq, k, frame);
-  putln (frag in freq ? freq {frag} : 0, "\t", frag);
+  putln (frag in freq ? freq [frag] : 0, "\t", frag);
 }
 
-func frequency (seq, k) {
-  var i, c, sum, frame, freq = {}, sfreq = [];
-  func freq_cmp (el1, el2) {
-    return freq {el2} - freq {el1};
+fun frequency (seq, k) {
+  var i, c, sum, frame, freq = tab [], sfreq = [];
+  fun freq_cmp (el1, el2) {
+    return freq [el2] - freq [el1];
   }
 
   for (frame = 0; frame < k; frame++) kfrequency (seq, freq, k, frame);
-  for (c in freq) ins (sfreq, c, -1);
+  for (c: freq) ins (sfreq, c, -1);
   sfreq = sort (sfreq, freq_cmp);
   sum = #seq - k + 1;
   for (i = 0; i < #sfreq; i++) {
     c = sfreq [i];
-    putf ("%s %0.3f\n", c, (freq {c} * 100.) / sum);
+    putf ("%s %0.3f\n", c, (freq [c] * 100.) / sum);
   }
   putln ();
 }
 
-func readseq {
+fun readseq {
   var c, line, lines = [];
 
   try {
@@ -33141,7 +33141,7 @@ var Neptune = body (1.53796971148509165e+01,
 
 var Sun = body (0., 0., 0., 0., 0., 0., SOLAR_MASS);
 
-func advance (bodies, dt) {
+fun advance (bodies, dt) {
   var i, j;
 
   for (i = 0; i < #bodies; i++) {
@@ -33168,7 +33168,7 @@ func advance (bodies, dt) {
   }
 }
 
-func energy (bodies) {
+fun energy (bodies) {
   var i, j, e = 0.;
 
   for (i = 0; i < #bodies; i++) {
@@ -33187,7 +33187,7 @@ func energy (bodies) {
   return e;
 }
 
-func offsetMomentum (b) {
+fun offsetMomentum (b) {
   var i, px = 0., py = 0., pz = 0.;
 
   for (i = 0; i < #b; i++) {
@@ -33231,7 +33231,7 @@ fi
 if test $result = ok -a $start_test_number -le 563; then
 	echo test 563: Nsieve from Language Shootout
         cat >$test_file <<'TEST563'
-func nsieve (m) {
+fun nsieve (m) {
   var i, k, flags = [m + 1 : 1], count = 0;
   
   for (i = 2; i <= m; i++)
@@ -33272,7 +33272,7 @@ if test $result = ok -a $start_test_number -le 564; then
         cat >$test_file <<'TEST564'
 var power = 5, precision = 1 << power, mask = precision - 1;
 
-func nsieve (m) {
+fun nsieve (m) {
   var i, k, cm = (m + precision) / precision, flags = [cm : ~0], count = 0;
   
   for (i = 2; i <= m; i++)
@@ -33317,9 +33317,9 @@ include "gmp";
 
 var k = 0, z = [mpzs.mpz (1), mpzs.mpz (0), mpzs.mpz (0), mpzs.mpz (1)];
 
-func extract_digit; func compose; func next_lft;
+fun extract_digit; fun compose; fun next_lft;
 
-func next_digit {
+fun next_digit {
   var y;
 
   for (;;) {
@@ -33333,20 +33333,20 @@ func next_digit {
   }
 }
 
-func next_lft {
+fun next_lft {
   k++;
   return [mpzs.mpz (k), mpzs.mpz (4 * k + 2),
 	  mpzs.mpz (0), mpzs.mpz (2 * k + 1)];
 }
 
-func extract_digit (x) {
+fun extract_digit (x) {
   var xx = mpzs.mpz (x);
 
   return mpzs.get_i (mpzs.div (mpzs.add (mpzs.mul (z [0], xx), z [1]),
 			       mpzs.add (mpzs.mul (z [2], xx), z [3])));
 }
 
-func compose (z, w) {
+fun compose (z, w) {
   return [mpzs.add (mpzs.mul (z [0], w [0]), mpzs.mul (z [1], w [2])),
 	  mpzs.add (mpzs.mul (z [0], w [1]), mpzs.mul (z [1], w [3])),
 	  mpzs.add (mpzs.mul (z [2], w [0]), mpzs.mul (z [3], w [2])),
@@ -33488,7 +33488,7 @@ fi
 if test $result = ok -a $start_test_number -le 566; then
 	echo test 566: Random from Language Shootout
         cat >$test_file <<'TEST567'
-var c, i, vec, seq = getf (), ilen = #seq;
+var c, i, v, seq = getf (), ilen = #seq;
 
 seq = gsub (">[^\n]+\n|\n", seq, "");
 
@@ -33500,18 +33500,18 @@ var variants = ["agggtaaa|tttaccct", "[cgt]gggtaaa|tttaccc[acg]",
 		"agggtaa[cgt]|[acg]ttaccct"];
 
 for (i = 0; i < #variants; i++) {
-  vec = gmatch (variants [i], seq);
-  putln (variants [i], " ", vec == nil ? 0 : #vec / 2);
+  v = gmatch (variants [i], seq);
+  putln (variants [i], " ", v == nil ? 0 : #v / 2);
 }
 
-var subst = {
+var subst = tab [
   "B" : "(c|g|t)", "D" : "(a|g|t)", "H" : "(a|c|t)", "K" : "(g|t)",
   "M" : "(a|c)", "N" : "(a|c|g|t)", "R" : "(a|g)", "S" : "(c|g)",
   "V" : "(a|c|g)", "W" : "(a|t)", "Y" : "(c|t)"
-};
+];
 
-for (c in subst)
-  seq = gsub (c, seq, subst {c});
+for (c: subst)
+  seq = gsub (c, seq, subst [c]);
 
 putln ("\n", ilen, "\n", clen, "\n", #seq);
 TEST567
@@ -33722,7 +33722,7 @@ var tr =   "ACBDGHKMNSRUTWVYacbdghkmnsrutwvy";
 var subst = "TGVHCDMKNSYAAWBRTGVHCDMKNSYAAWBR";
 var line, seq = [];
 
-func output_seq (seq) {
+fun output_seq (seq) {
   var i;
 
   for (i = 0; i < #seq; i += 60) putln (subv (seq, i, 60));
@@ -34102,9 +34102,9 @@ fi
 if test $result = ok -a $start_test_number -le 569; then
 	echo test 569: Spectral Norm from Language Shootout
         cat >$test_file <<'TEST569'
-func A (i, j) { return 1.0 / ((i + j) * (i + j + 1) / 2 + i + 1); }
+fun A (i, j) { return 1.0 / ((i + j) * (i + j + 1) / 2 + i + 1); }
 
-func Av (n, v) {
+fun Av (n, v) {
    var i, j, Av = [n : 0.0];
 
    for (i = 0; i < n; i++)
@@ -34112,7 +34112,7 @@ func Av (n, v) {
    return Av;
 }
 
-func Atv (n, v) {
+fun Atv (n, v) {
    var i, j, Atv = [n : 0.0];
 
    for (i = 0; i < n; i++)
@@ -34120,7 +34120,7 @@ func Atv (n, v) {
    return Atv;
 }
 
-func AtAv (n, v) {return Atv (n, Av (n, v));}
+fun AtAv (n, v) {return Atv (n, Av (n, v));}
 
 var n = int (#argv < 1 ? 100 : argv [0]);
 var i, u = [n : 1.0], v = [n : 0.0], vBv = 0.0, vv = 0.0;
@@ -34375,7 +34375,7 @@ fi
 if test $result = ok -a $start_test_number -le 571; then
 	echo test 571: Takfp Language Shootout
         cat >$test_file <<'TEST571'
-func Tak (x, y, z) {
+fun Tak (x, y, z) {
   if (y >= x) return z;
   return Tak (Tak (x - 1.0, y, z), Tak (y - 1.0, z, x), Tak (z -1.0, x, y));
 }
@@ -34419,10 +34419,10 @@ putln (c1.i, ' ', c2.i);
 t = c1.i; c1.i = c2.i; c2.i = t;
 putln (c1.i, ' ', c2.i);
 
-var tab = {"s" : 1, "t" : 2};
-putln (tab{"s"}, ' ', tab{"t"});
-t = tab{"s"}; tab{"s"} = tab{"t"}; tab{"t"} = t;
-putln (tab{"s"}, ' ', tab{"t"});
+var tbl = tab ["s" : 1, "t" : 2];
+putln (tbl["s"], ' ', tbl["t"]);
+t = tbl["s"]; tbl["s"] = tbl["t"]; tbl["t"] = t;
+putln (tbl["s"], ' ', tbl["t"]);
 TEST572
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -34454,14 +34454,14 @@ class queue {
   class node (item, next) {}
   var first = nil, last = nil;
 
-  func Add (o) {
+  fun Add (o) {
     var a = node (o, nil);
 
     if (first == nil) first = a; else last.next = a;
     last = a;
   }
   
-  func Remove (o) {
+  fun Remove (o) {
     var c, p = nil;
 
     for (c = first; c != nil && c.item !== o; c = c.next) p = c;
@@ -34470,7 +34470,7 @@ class queue {
     if (last === c) last = p;
   }
 
-  func Clear { first = nil; last = nil; }
+  fun Clear { first = nil; last = nil; }
 }
 
 class Patient (remainingTime = 0, hospitalTime = 0, hospitalVisits = 0) {}
@@ -34483,7 +34483,7 @@ class HealthcareRegion (level, s) {
   var districts = [DISTRICTS : nil];
   var localHospital = Hospital (level == LEVELS, level, s);
 
-  func TransferPatients {
+  fun TransferPatients {
     var i, n;
     
     for (i = #districts - 1; i >= 0; i--)
@@ -34495,7 +34495,7 @@ class HealthcareRegion (level, s) {
     return localHospital.transfers;
   }
 
-  func AccumulateTotals {
+  fun AccumulateTotals {
     var i, t = Totals ();
 
     for (i = #districts - 1; i >= 0; i--)
@@ -34506,10 +34506,10 @@ class HealthcareRegion (level, s) {
     return t;
   }
 
-  func TreatmentQueue { return localHospital.treatment; }
+  fun TreatmentQueue { return localHospital.treatment; }
 }
 
-func CreateRegion (level, seed1, seed2) {
+fun CreateRegion (level, seed1, seed2) {
   var i, r = nil;
   
   if(level > 0) {
@@ -34526,10 +34526,10 @@ class Hospital (hasNoRegionalHospital, level, seed) {
   var treatment = queue (), transfers = queue ();
   var discharged = Totals ();
 
-  func DischargePatients; func TreatOrTransferPatients; func TriagePatients;
-  func genRandom; func NewArrival;
+  fun DischargePatients; fun TreatOrTransferPatients; fun TriagePatients;
+  fun genRandom; fun NewArrival;
 
-  func TriageExaminationTreatment {
+  fun TriageExaminationTreatment {
     DischargePatients ();
     TreatOrTransferPatients ();
     TriagePatients ();
@@ -34537,7 +34537,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     if (genRandom (1.0) > 0.7) NewArrival (Patient ());
   }
   
-  func AccumulateTotals (t) {
+  fun AccumulateTotals (t) {
     var n;
     
     for (n = triage.first; n != nil; n = n.next) t.PlusPatient (n.item);
@@ -34546,7 +34546,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     t.PlusTotal (discharged);
   }
   
-  func NewArrival (p) {
+  fun NewArrival (p) {
     p.hospitalVisits++;
     if (availableStaff == 0) triage.Add (p);
     else {
@@ -34557,7 +34557,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     }
   }
   
-  func DischargePatients {
+  fun DischargePatients {
     var n, p;
     
     for (n = treatment.first; n != nil; n = n.next) {
@@ -34570,7 +34570,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     }
   }
 
-  func TreatOrTransferPatients {
+  fun TreatOrTransferPatients {
     var p, n;
 
     transfers.Clear ();
@@ -34590,7 +34590,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
     }
   }
 
-  func TriagePatients {
+  fun TriagePatients {
     var p, n;
 
     for (n = triage.first; n != nil; n = n.next) {
@@ -34608,7 +34608,7 @@ class Hospital (hasNoRegionalHospital, level, seed) {
 
   val IM = 139968, IA = 3877, IC = 29573;
 
-  func genRandom (max) {
+  fun genRandom (max) {
     seed = (seed * IA + IC) % IM;
     return max * seed / IM ;
   }
@@ -34617,13 +34617,13 @@ class Hospital (hasNoRegionalHospital, level, seed) {
 class Totals {
   var patients = 0, hospitalTime = 0, hospitalVisits = 0;
 
-  func PlusTotal (t) {
+  fun PlusTotal (t) {
     patients += t.patients;
     hospitalTime += t.hospitalTime;
     hospitalVisits += t.hospitalVisits;
   }
 
-   func PlusPatient (p) {
+   fun PlusPatient (p) {
      patients++;
      hospitalTime += p.hospitalTime;
      hospitalVisits += p.hospitalVisits;
@@ -34966,13 +34966,13 @@ fi
 if test $result = ok -a $start_test_number -le 580; then
 	echo test 580: exit tracing
         cat >$test_file <<'TEST580'
-func a {
+fun a {
   exit (0);
 }
-func b {
+fun b {
   a ();
 }
-func c (i) {
+fun c (i) {
   if (i == 0) b (); else c (i - 1);
 }
 class d {
@@ -35000,13 +35000,13 @@ fi
 if test $result = ok -a $start_test_number -le 581; then
 	echo test 581: exception tracing
         cat >$test_file <<'TEST581'
-func a {
+fun a {
   throw except ();
 }
-func b {
+fun b {
   a ();
 }
-func c (i) {
+fun c (i) {
   if (i == 0) b (); else c (i - 1);
 }
 class d {
@@ -35035,14 +35035,14 @@ fi
 if test $result = ok -a $start_test_number -le 582; then
 	echo test 582: catched exception tracing
         cat >$test_file <<'TEST582'
-func a {
+fun a {
   var i = 0;
   i[10]=0;
 }
-func b {
+fun b {
   a ();
 }
-func c (i) {
+fun c (i) {
   if (i == 0) b (); else c (i - 1);
 }
 class d {
@@ -35060,16 +35060,16 @@ TEST582
         if $DINO -t $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT582' && $CMP $stdout $ftemp2; then
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
-got it: run time error - index operation for non array
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
+got it: run time error - index operation for non vector or table
 OUTPUT582
                         result=ok
                 else
@@ -35135,7 +35135,7 @@ TEST584
                 if cat >$ftemp2 <<'OUTPUT584' && $CMP $stdout $ftemp2; then
      0 block fn="<environment>" ln=1 pos=1 next=730 vars_num=33 tvars_num=3 // ident=(null)
        0 fdecl pos=7 ident=except ident_num=1 decl_scope=0 fblock=1
-       1 fblock pos=17 next=410 fdecl=0 class_p=1 simple_p=1 pure_func_p=1 scope=0 vars_num=0 tvars_num=0 ext_life_p=1 // ident=except
+       1 fblock pos=17 next=410 fdecl=0 class_p=1 simple_p=1 pure_fun_p=1 scope=0 vars_num=0 tvars_num=0 ext_life_p=1 // ident=except
          1 fdecl ln=2 pos=9 ident=error ident_num=2 decl_scope=1 public_p=1 fblock=2
          2 fblock pos=26 next=407 fdecl=1 class_p=1 pars_num=1 scope=1 vars_num=1 tvars_num=0 ext_life_p=1 // ident=error
            2 vdecl pos=16 ident=msg ident_num=3 decl_scope=2 public_p=1 var_num=0
@@ -35873,13 +35873,13 @@ TEST584
      223 vdecl pos=29 ident=main_thread ident_num=122 decl_scope=0 var_num=18
      224 vdecl pos=42 ident=curr_thread ident_num=123 decl_scope=0 var_num=19
      225 fdecl ln=135 pos=7 ident=anode ident_num=124 decl_scope=0 fblock=411
-     411 fblock pos=28 next=412 fdecl=225 class_p=1 simple_p=1 pure_func_p=1 pars_num=2 min_pars_num=2 scope=0 vars_num=2 tvars_num=0 ext_life_p=1 // ident=anode
+     411 fblock pos=28 next=412 fdecl=225 class_p=1 simple_p=1 pure_fun_p=1 pars_num=2 min_pars_num=2 scope=0 vars_num=2 tvars_num=0 ext_life_p=1 // ident=anode
        226 vdecl pos=14 ident=name ident_num=125 decl_scope=411 public_p=1 var_num=0
        227 vdecl pos=20 ident=transl ident_num=126 decl_scope=411 public_p=1 var_num=1
 
        412 bend pos=20 block=411
      228 fdecl ln=136 pos=7 ident=token ident_num=127 decl_scope=0 fblock=413
-     413 fblock pos=20 next=414 fdecl=228 class_p=1 simple_p=1 pure_func_p=1 pars_num=1 min_pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 // ident=token
+     413 fblock pos=20 next=414 fdecl=228 class_p=1 simple_p=1 pure_fun_p=1 pars_num=1 min_pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 // ident=token
        229 vdecl pos=14 ident=code ident_num=128 decl_scope=413 public_p=1 var_num=0
 
        414 bend pos=14 block=413
@@ -35889,117 +35889,117 @@ TEST584
      415 fblock ln=140 pos=1 next=516 fdecl=232 class_p=1 scope=0 vars_num=2 tvars_num=1 ext_life_p=1 // ident=parser
        233 vdecl ln=141 pos=7 ident=ambiguous_p ident_num=132 decl_scope=415 public_p=1 var_num=0
        234 vdecl ln=142 pos=8 ident=grammar ident_num=133 decl_scope=415 var_num=1
-       235 fdecl ln=144 pos=9 ident=int_earley_parse_grammar ident_num=134 decl_scope=415 fblock=416
-       416 fblock pos=35 fdecl=235 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_parse_grammar
+       235 fdecl ln=144 pos=8 ident=int_earley_parse_grammar ident_num=134 decl_scope=415 fblock=416
+       416 fblock pos=34 fdecl=235 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_parse_grammar
 
-         417 bend pos=35 block=416
-       236 fdecl pos=44 ident=int_earley_set_debug_level ident_num=135 decl_scope=415 fblock=418
-       418 fblock pos=72 fdecl=236 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_debug_level
+         417 bend pos=34 block=416
+       236 fdecl pos=42 ident=int_earley_set_debug_level ident_num=135 decl_scope=415 fblock=418
+       418 fblock pos=70 fdecl=236 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_debug_level
 
-         419 bend pos=72 block=418
-       237 fdecl ln=145 pos=9 ident=int_earley_set_one_parse_flag ident_num=136 decl_scope=415 fblock=420
-       420 fblock pos=41 fdecl=237 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_one_parse_flag
+         419 bend pos=70 block=418
+       237 fdecl ln=145 pos=8 ident=int_earley_set_one_parse_flag ident_num=136 decl_scope=415 fblock=420
+       420 fblock pos=40 fdecl=237 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_one_parse_flag
 
-         421 bend pos=41 block=420
-       238 fdecl ln=146 pos=9 ident=int_earley_set_lookahead_level ident_num=137 decl_scope=415 fblock=422
-       422 fblock pos=42 fdecl=238 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_lookahead_level
+         421 bend pos=40 block=420
+       238 fdecl ln=146 pos=8 ident=int_earley_set_lookahead_level ident_num=137 decl_scope=415 fblock=422
+       422 fblock pos=41 fdecl=238 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_lookahead_level
 
-         423 bend pos=42 block=422
-       239 fdecl ln=147 pos=9 ident=int_earley_set_cost_flag ident_num=138 decl_scope=415 fblock=424
-       424 fblock pos=36 fdecl=239 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_cost_flag
+         423 bend pos=41 block=422
+       239 fdecl ln=147 pos=8 ident=int_earley_set_cost_flag ident_num=138 decl_scope=415 fblock=424
+       424 fblock pos=35 fdecl=239 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_cost_flag
 
-         425 bend pos=36 block=424
-       240 fdecl ln=148 pos=9 ident=int_earley_set_error_recovery_flag ident_num=139 decl_scope=415 fblock=426
-       426 fblock pos=47 fdecl=240 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_error_recovery_flag
+         425 bend pos=35 block=424
+       240 fdecl ln=148 pos=8 ident=int_earley_set_error_recovery_flag ident_num=139 decl_scope=415 fblock=426
+       426 fblock pos=46 fdecl=240 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_error_recovery_flag
 
-         427 bend pos=47 block=426
-       241 fdecl ln=149 pos=9 ident=int_earley_set_recovery_match ident_num=140 decl_scope=415 fblock=428
-       428 fblock pos=41 fdecl=241 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_recovery_match
+         427 bend pos=46 block=426
+       241 fdecl ln=149 pos=8 ident=int_earley_set_recovery_match ident_num=140 decl_scope=415 fblock=428
+       428 fblock pos=40 fdecl=241 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_set_recovery_match
 
-         429 bend pos=41 block=428
-       242 fdecl pos=50 ident=int_earley_parse ident_num=141 decl_scope=415 fblock=430
-       430 fblock pos=69 fdecl=242 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_parse
+         429 bend pos=40 block=428
+       242 fdecl pos=48 ident=int_earley_parse ident_num=141 decl_scope=415 fblock=430
+       430 fblock pos=67 fdecl=242 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_parse
 
-         431 bend pos=69 block=430
-       243 fdecl ln=150 pos=9 ident=int_earley_create_grammar ident_num=142 decl_scope=415 fblock=432
-       432 fblock pos=37 fdecl=243 func_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_create_grammar
+         431 bend pos=67 block=430
+       243 fdecl ln=150 pos=8 ident=int_earley_create_grammar ident_num=142 decl_scope=415 fblock=432
+       432 fblock pos=36 fdecl=243 fun_p=1 scope=415 vars_num=0 tvars_num=0 // ident=int_earley_create_grammar
 
-         433 bend pos=37 block=432
-       244 fdecl ln=152 pos=8 ident=set_grammar ident_num=143 decl_scope=415 public_p=1 fblock=434
-       434 fblock pos=38 next=435 fdecl=244 func_p=1 pars_num=2 min_pars_num=2 scope=415 vars_num=2 tvars_num=4 // ident=set_grammar
-         245 vdecl pos=21 ident=descr ident_num=144 decl_scope=434 var_num=0
-         246 vdecl pos=28 ident=strict_p ident_num=145 decl_scope=434 var_num=1
+         433 bend pos=36 block=432
+       244 fdecl ln=152 pos=7 ident=set_grammar ident_num=143 decl_scope=415 public_p=1 fblock=434
+       434 fblock pos=37 next=435 fdecl=244 fun_p=1 pars_num=2 min_pars_num=2 scope=415 vars_num=2 tvars_num=4 // ident=set_grammar
+         245 vdecl pos=20 ident=descr ident_num=144 decl_scope=434 var_num=0
+         246 vdecl pos=27 ident=strict_p ident_num=145 decl_scope=434 var_num=1
 
-         435 func ln=153 pos=5 op1=2 decl=235 // int_earley_parse_grammar
+         435 fun ln=153 pos=5 op1=2 decl=235 // int_earley_parse_grammar
          436 var pos=31 op1=3 decl=234 // grammar
          437 move pos=40 op1=4 op2=1 rhs_decl=246 // 4 (strict_p) <- 1
          438 move pos=50 op1=5 op2=0 rhs_decl=245 // 5 (descr) <- 0
-         439 pcall pos=30 op1=2 op2=3 // call (start=2) (npars=3)
+         439 call pos=30 op1=2 op2=3 // call (start=2) (npars=3)
          440 bend pos=50 block=434
-       247 fdecl ln=155 pos=8 ident=set_debug ident_num=146 decl_scope=415 public_p=1 fblock=441
-       441 fblock pos=26 next=442 fdecl=247 func_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_debug
-         248 vdecl pos=19 ident=level ident_num=147 decl_scope=441 var_num=0
+       247 fdecl ln=155 pos=7 ident=set_debug ident_num=146 decl_scope=415 public_p=1 fblock=441
+       441 fblock pos=25 next=442 fdecl=247 fun_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_debug
+         248 vdecl pos=18 ident=level ident_num=147 decl_scope=441 var_num=0
 
-         442 func ln=156 pos=12 op1=1 decl=236 // int_earley_set_debug_level
+         442 fun ln=156 pos=12 op1=1 decl=236 // int_earley_set_debug_level
          443 var pos=40 op1=2 decl=234 // grammar
          444 move pos=49 op1=3 op2=0 rhs_decl=248 // 3 (level) <- 0
          445 call pos=39 op1=1 op2=2 // call (start=1) (npars=2)
          446 ret pos=5 op1=1
          447 bend pos=49 block=441
-       249 fdecl ln=158 pos=8 ident=set_one_parse ident_num=148 decl_scope=415 public_p=1 fblock=448
-       448 fblock pos=29 next=449 fdecl=249 func_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_one_parse
-         250 vdecl pos=23 ident=flag ident_num=149 decl_scope=448 var_num=0
+       249 fdecl ln=158 pos=7 ident=set_one_parse ident_num=148 decl_scope=415 public_p=1 fblock=448
+       448 fblock pos=28 next=449 fdecl=249 fun_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_one_parse
+         250 vdecl pos=22 ident=flag ident_num=149 decl_scope=448 var_num=0
 
-         449 func ln=159 pos=12 op1=1 decl=237 // int_earley_set_one_parse_flag
+         449 fun ln=159 pos=12 op1=1 decl=237 // int_earley_set_one_parse_flag
          450 var pos=43 op1=2 decl=234 // grammar
          451 move pos=52 op1=3 op2=0 rhs_decl=250 // 3 (flag) <- 0
          452 call pos=42 op1=1 op2=2 // call (start=1) (npars=2)
          453 ret pos=5 op1=1
          454 bend pos=52 block=448
-       251 fdecl ln=161 pos=8 ident=set_lookahead ident_num=150 decl_scope=415 public_p=1 fblock=455
-       455 fblock pos=29 next=456 fdecl=251 func_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_lookahead
-         252 vdecl pos=23 ident=flag ident_num=149 decl_scope=455 var_num=0
+       251 fdecl ln=161 pos=7 ident=set_lookahead ident_num=150 decl_scope=415 public_p=1 fblock=455
+       455 fblock pos=28 next=456 fdecl=251 fun_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_lookahead
+         252 vdecl pos=22 ident=flag ident_num=149 decl_scope=455 var_num=0
 
-         456 func ln=162 pos=12 op1=1 decl=238 // int_earley_set_lookahead_level
+         456 fun ln=162 pos=12 op1=1 decl=238 // int_earley_set_lookahead_level
          457 var pos=44 op1=2 decl=234 // grammar
          458 move pos=53 op1=3 op2=0 rhs_decl=252 // 3 (flag) <- 0
          459 call pos=43 op1=1 op2=2 // call (start=1) (npars=2)
          460 ret pos=5 op1=1
          461 bend pos=53 block=455
-       253 fdecl ln=164 pos=8 ident=set_cost ident_num=151 decl_scope=415 public_p=1 fblock=462
-       462 fblock pos=24 next=463 fdecl=253 func_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_cost
-         254 vdecl pos=18 ident=flag ident_num=149 decl_scope=462 var_num=0
+       253 fdecl ln=164 pos=7 ident=set_cost ident_num=151 decl_scope=415 public_p=1 fblock=462
+       462 fblock pos=23 next=463 fdecl=253 fun_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_cost
+         254 vdecl pos=17 ident=flag ident_num=149 decl_scope=462 var_num=0
 
-         463 func ln=165 pos=12 op1=1 decl=239 // int_earley_set_cost_flag
+         463 fun ln=165 pos=12 op1=1 decl=239 // int_earley_set_cost_flag
          464 var pos=38 op1=2 decl=234 // grammar
          465 move pos=47 op1=3 op2=0 rhs_decl=254 // 3 (flag) <- 0
          466 call pos=37 op1=1 op2=2 // call (start=1) (npars=2)
          467 ret pos=5 op1=1
          468 bend pos=47 block=462
-       255 fdecl ln=167 pos=8 ident=set_recovery ident_num=152 decl_scope=415 public_p=1 fblock=469
-       469 fblock pos=28 next=470 fdecl=255 func_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_recovery
-         256 vdecl pos=22 ident=flag ident_num=149 decl_scope=469 var_num=0
+       255 fdecl ln=167 pos=7 ident=set_recovery ident_num=152 decl_scope=415 public_p=1 fblock=469
+       469 fblock pos=27 next=470 fdecl=255 fun_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_recovery
+         256 vdecl pos=21 ident=flag ident_num=149 decl_scope=469 var_num=0
 
-         470 func ln=168 pos=12 op1=1 decl=240 // int_earley_set_error_recovery_flag
+         470 fun ln=168 pos=12 op1=1 decl=240 // int_earley_set_error_recovery_flag
          471 var pos=48 op1=2 decl=234 // grammar
          472 move pos=57 op1=3 op2=0 rhs_decl=256 // 3 (flag) <- 0
          473 call pos=47 op1=1 op2=2 // call (start=1) (npars=2)
          474 ret pos=5 op1=1
          475 bend pos=57 block=469
-       257 fdecl ln=170 pos=8 ident=set_recovery_match ident_num=153 decl_scope=415 public_p=1 fblock=476
-       476 fblock pos=36 next=477 fdecl=257 func_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_recovery_match
-         258 vdecl pos=28 ident=n_toks ident_num=154 decl_scope=476 var_num=0
+       257 fdecl ln=170 pos=7 ident=set_recovery_match ident_num=153 decl_scope=415 public_p=1 fblock=476
+       476 fblock pos=35 next=477 fdecl=257 fun_p=1 pars_num=1 min_pars_num=1 scope=415 vars_num=1 tvars_num=3 // ident=set_recovery_match
+         258 vdecl pos=27 ident=n_toks ident_num=154 decl_scope=476 var_num=0
 
-         477 func ln=171 pos=12 op1=1 decl=241 // int_earley_set_recovery_match
+         477 fun ln=171 pos=12 op1=1 decl=241 // int_earley_set_recovery_match
          478 var pos=43 op1=2 decl=234 // grammar
          479 move pos=52 op1=3 op2=0 rhs_decl=258 // 3 (n_toks) <- 0
          480 call pos=42 op1=1 op2=2 // call (start=1) (npars=2)
          481 ret pos=5 op1=1
          482 bend pos=52 block=476
-       259 fdecl ln=173 pos=8 ident=parse ident_num=155 decl_scope=415 public_p=1 fblock=483
-       483 fblock pos=35 next=484 fdecl=259 func_p=1 pars_num=2 min_pars_num=2 scope=415 vars_num=3 tvars_num=13 // ident=parse
-         260 vdecl pos=15 ident=tokens ident_num=156 decl_scope=483 var_num=0
-         261 vdecl pos=23 ident=error_func ident_num=157 decl_scope=483 var_num=1
+       259 fdecl ln=173 pos=7 ident=parse ident_num=155 decl_scope=415 public_p=1 fblock=483
+       483 fblock pos=33 next=484 fdecl=259 fun_p=1 pars_num=2 min_pars_num=2 scope=415 vars_num=3 tvars_num=13 // ident=parse
+         260 vdecl pos=14 ident=tokens ident_num=156 decl_scope=483 var_num=0
+         261 vdecl pos=22 ident=error_fun ident_num=157 decl_scope=483 var_num=1
          262 vdecl ln=174 pos=9 ident=__i ident_num=158 decl_scope=483 var_num=2
 
          484 ldi ln=175 pos=11 op1=3 op2=1 // 3 <- i1
@@ -36027,15 +36027,15 @@ TEST584
          506 xor pos=22 pos2=20 pos3=26 op1=5 op2=5 op3=6 // 5 <- 5 op 6
          507 and pos=17 pos2=15 pos3=22 op1=4 op2=4 op3=5 // 4 <- 4 op 5
          508 xor pos=13 pos2=11 pos3=17 op1=2 op2=3 op3=4 // 2 <- 3 op 4
-         509 func ln=176 pos=12 op1=3 decl=242 // int_earley_parse
+         509 fun ln=176 pos=12 op1=3 decl=242 // int_earley_parse
          510 var pos=30 op1=4 decl=234 // grammar
          511 move pos=39 op1=5 op2=0 rhs_decl=260 // 5 (tokens) <- 0
-         512 move pos=47 op1=6 op2=1 rhs_decl=261 // 6 (error_func) <- 1
+         512 move pos=47 op1=6 op2=1 rhs_decl=261 // 6 (error_fun) <- 1
          513 call pos=29 op1=3 op2=3 // call (start=3) (npars=3)
          514 ret pos=5 op1=3
          515 bend pos=47 block=483
 
-       516 func ln=179 pos=13 op1=2 decl=243 // int_earley_create_grammar
+       516 fun ln=179 pos=13 op1=2 decl=243 // int_earley_create_grammar
        517 call pos=39 op1=2 op2=0 // call (start=2) (npars=0)
        518 move pos=11 op1=1 op2=2 rhs_decl=234 // 1 (grammar) <- 2
        519 bend pos=13 block=415
@@ -36051,416 +36051,416 @@ TEST584
      265 vdecl ln=186 pos=5 ident=stdin ident_num=161 decl_scope=0 var_num=22
      266 vdecl ln=187 pos=5 ident=stdout ident_num=162 decl_scope=0 var_num=23
      267 vdecl ln=188 pos=5 ident=stderr ident_num=163 decl_scope=0 var_num=24
-     268 fdecl ln=189 pos=6 ident=max ident_num=164 decl_scope=0 fblock=526
-     526 fblock pos=12 fdecl=268 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=max
-
-       527 bend pos=12 block=526
-     269 fdecl pos=20 ident=min ident_num=165 decl_scope=0 fblock=528
-     528 fblock pos=26 fdecl=269 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=min
-
-       529 bend pos=26 block=528
-     270 fdecl ln=190 pos=6 ident=tolower ident_num=166 decl_scope=0 fblock=530
-     530 fblock pos=16 fdecl=270 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tolower
-
-       531 bend pos=16 block=530
-     271 fdecl pos=24 ident=toupper ident_num=167 decl_scope=0 fblock=532
-     532 fblock pos=34 fdecl=271 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=toupper
-
-       533 bend pos=34 block=532
-     272 fdecl pos=42 ident=transliterate ident_num=168 decl_scope=0 fblock=534
-     534 fblock pos=58 fdecl=272 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transliterate
-
-       535 bend pos=58 block=534
-     273 fdecl ln=191 pos=6 ident=eltype ident_num=169 decl_scope=0 fblock=536
-     536 fblock pos=15 fdecl=273 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=eltype
-
-       537 bend pos=15 block=536
-     274 fdecl ln=192 pos=6 ident=keys ident_num=170 decl_scope=0 fblock=538
-     538 fblock pos=13 fdecl=274 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=keys
-
-       539 bend pos=13 block=538
-     275 fdecl ln=193 pos=6 ident=context ident_num=171 decl_scope=0 fblock=540
-     540 fblock pos=16 fdecl=275 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=context
-
-       541 bend pos=16 block=540
-     276 fdecl pos=24 ident=inside ident_num=172 decl_scope=0 fblock=542
-     542 fblock pos=33 fdecl=276 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=inside
-
-       543 bend pos=33 block=542
-     277 fdecl ln=194 pos=6 ident=subv ident_num=173 decl_scope=0 fblock=544
-     544 fblock pos=12 fdecl=277 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=subv
-
-       545 bend pos=12 block=544
-     278 fdecl pos=20 ident=cmpv ident_num=174 decl_scope=0 fblock=546
-     546 fblock pos=26 fdecl=278 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cmpv
-
-       547 bend pos=26 block=546
-     279 fdecl pos=34 ident=del ident_num=175 decl_scope=0 fblock=548
-     548 fblock pos=39 fdecl=279 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=del
-
-       549 bend pos=39 block=548
-     280 fdecl pos=47 ident=ins ident_num=176 decl_scope=0 fblock=550
-     550 fblock pos=52 fdecl=280 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ins
-
-       551 bend pos=52 block=550
-     281 fdecl pos=61 ident=insv ident_num=177 decl_scope=0 fblock=552
-     552 fblock pos=67 fdecl=281 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=insv
-
-       553 bend pos=67 block=552
-     282 fdecl ln=195 pos=6 ident=rev ident_num=178 decl_scope=0 fblock=554
-     554 fblock pos=11 fdecl=282 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rev
-
-       555 bend pos=11 block=554
-     283 fdecl pos=19 ident=sort ident_num=179 decl_scope=0 fblock=556
-     556 fblock pos=25 fdecl=283 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sort
-
-       557 bend pos=25 block=556
-     284 fdecl ln=196 pos=6 ident=sqrt ident_num=180 decl_scope=0 fblock=558
-     558 fblock pos=13 fdecl=284 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sqrt
-
-       559 bend pos=13 block=558
-     285 fdecl pos=21 ident=exp ident_num=181 decl_scope=0 fblock=560
-     560 fblock pos=27 fdecl=285 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exp
-
-       561 bend pos=27 block=560
-     286 fdecl pos=35 ident=log ident_num=182 decl_scope=0 fblock=562
-     562 fblock pos=41 fdecl=286 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log
-
-       563 bend pos=41 block=562
-     287 fdecl pos=49 ident=log10 ident_num=183 decl_scope=0 fblock=564
-     564 fblock pos=56 fdecl=287 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log10
-
-       565 bend pos=56 block=564
-     288 fdecl pos=64 ident=pow ident_num=184 decl_scope=0 fblock=566
-     566 fblock pos=69 fdecl=288 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pow
-
-       567 bend pos=69 block=566
-     289 fdecl ln=197 pos=6 ident=sin ident_num=185 decl_scope=0 fblock=568
-     568 fblock pos=11 fdecl=289 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sin
-
-       569 bend pos=11 block=568
-     290 fdecl pos=19 ident=cos ident_num=186 decl_scope=0 fblock=570
-     570 fblock pos=24 fdecl=290 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cos
-
-       571 bend pos=24 block=570
-     291 fdecl pos=32 ident=atan2 ident_num=187 decl_scope=0 fblock=572
-     572 fblock pos=39 fdecl=291 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=atan2
-
-       573 bend pos=39 block=572
-     292 fdecl ln=198 pos=6 ident=match ident_num=188 decl_scope=0 fblock=574
-     574 fblock pos=13 fdecl=292 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=match
-
-       575 bend pos=13 block=574
-     293 fdecl pos=21 ident=gmatch ident_num=189 decl_scope=0 fblock=576
-     576 fblock pos=29 fdecl=293 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gmatch
-
-       577 bend pos=29 block=576
-     294 fdecl pos=37 ident=sub ident_num=190 decl_scope=0 fblock=578
-     578 fblock pos=42 fdecl=294 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sub
-
-       579 bend pos=42 block=578
-     295 fdecl pos=50 ident=gsub ident_num=191 decl_scope=0 fblock=580
-     580 fblock pos=56 fdecl=295 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gsub
-
-       581 bend pos=56 block=580
-     296 fdecl ln=199 pos=6 ident=split ident_num=192 decl_scope=0 fblock=582
-     582 fblock pos=13 fdecl=296 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=split
-
-       583 bend pos=13 block=582
-     297 vdecl pos=20 ident=split_regex ident_num=193 decl_scope=0 var_num=25
-     298 fdecl ln=200 pos=6 ident=srand ident_num=194 decl_scope=0 fblock=584
-     584 fblock pos=13 fdecl=298 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=srand
-
-       585 bend pos=13 block=584
-     299 fdecl pos=21 ident=rand ident_num=195 decl_scope=0 fblock=586
-     586 fblock pos=27 fdecl=299 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rand
-
-       587 bend pos=27 block=586
-     300 fdecl ln=201 pos=6 ident=__process_errno__ ident_num=196 decl_scope=0 fblock=588
-     588 fblock pos=26 fdecl=300 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__process_errno__
-
-       589 bend pos=26 block=588
-     301 fdecl ln=202 pos=6 ident=readdir ident_num=197 decl_scope=0 fblock=590
-     590 fblock pos=15 fdecl=301 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=readdir
-
-       591 bend pos=15 block=590
-     302 fdecl pos=23 ident=ftype ident_num=198 decl_scope=0 fblock=592
-     592 fblock pos=32 fdecl=302 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ftype
-
-       593 bend pos=32 block=592
-     303 fdecl ln=203 pos=6 ident=fun ident_num=199 decl_scope=0 fblock=594
-     594 fblock pos=11 fdecl=303 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fun
-
-       595 bend pos=11 block=594
-     304 fdecl pos=19 ident=fgn ident_num=200 decl_scope=0 fblock=596
-     596 fblock pos=26 fdecl=304 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgn
-
-       597 bend pos=26 block=596
-     305 fdecl pos=34 ident=fsize ident_num=201 decl_scope=0 fblock=598
-     598 fblock pos=41 fdecl=305 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fsize
-
-       599 bend pos=41 block=598
-     306 fdecl ln=204 pos=6 ident=fatime ident_num=202 decl_scope=0 fblock=600
-     600 fblock pos=15 fdecl=306 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fatime
-
-       601 bend pos=15 block=600
-     307 fdecl pos=23 ident=fmtime ident_num=203 decl_scope=0 fblock=602
-     602 fblock pos=31 fdecl=307 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fmtime
-
-       603 bend pos=31 block=602
-     308 fdecl pos=39 ident=fctime ident_num=204 decl_scope=0 fblock=604
-     604 fblock pos=49 fdecl=308 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fctime
-
-       605 bend pos=49 block=604
-     309 fdecl ln=205 pos=6 ident=fumode ident_num=205 decl_scope=0 fblock=606
-     606 fblock pos=15 fdecl=309 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fumode
-
-       607 bend pos=15 block=606
-     310 fdecl pos=23 ident=fgmode ident_num=206 decl_scope=0 fblock=608
-     608 fblock pos=31 fdecl=310 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgmode
-
-       609 bend pos=31 block=608
-     311 fdecl pos=39 ident=fomode ident_num=207 decl_scope=0 fblock=610
-     610 fblock pos=49 fdecl=311 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fomode
-
-       611 bend pos=49 block=610
-     312 fdecl ln=206 pos=6 ident=time ident_num=208 decl_scope=0 fblock=612
-     612 fblock pos=12 fdecl=312 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=time
-
-       613 bend pos=12 block=612
-     313 fdecl ln=207 pos=6 ident=strtime ident_num=209 decl_scope=0 fblock=614
-     614 fblock pos=16 fdecl=313 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=strtime
-
-       615 bend pos=16 block=614
-     314 vdecl pos=23 ident=time_format ident_num=210 decl_scope=0 var_num=26
-     315 fdecl ln=208 pos=6 ident=clock ident_num=211 decl_scope=0 fblock=616
-     616 fblock pos=13 fdecl=315 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=clock
-
-       617 bend pos=13 block=616
-     316 fdecl ln=209 pos=6 ident=gc ident_num=212 decl_scope=0 fblock=618
-     618 fblock pos=11 fdecl=316 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gc
-
-       619 bend pos=11 block=618
-     317 fdecl ln=210 pos=6 ident=rename ident_num=213 decl_scope=0 fblock=620
-     620 fblock pos=15 fdecl=317 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rename
-
-       621 bend pos=15 block=620
-     318 fdecl pos=23 ident=remove ident_num=214 decl_scope=0 fblock=622
-     622 fblock pos=31 fdecl=318 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=remove
-
-       623 bend pos=31 block=622
-     319 fdecl ln=211 pos=6 ident=mkdir ident_num=215 decl_scope=0 fblock=624
-     624 fblock pos=14 fdecl=319 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=mkdir
-
-       625 bend pos=14 block=624
-     320 fdecl pos=22 ident=rmdir ident_num=216 decl_scope=0 fblock=626
-     626 fblock pos=29 fdecl=320 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rmdir
-
-       627 bend pos=29 block=626
-     321 fdecl ln=212 pos=6 ident=getcwd ident_num=217 decl_scope=0 fblock=628
-     628 fblock pos=15 fdecl=321 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getcwd
-
-       629 bend pos=15 block=628
-     322 fdecl pos=23 ident=chdir ident_num=218 decl_scope=0 fblock=630
-     630 fblock pos=30 fdecl=322 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chdir
-
-       631 bend pos=30 block=630
-     323 fdecl ln=213 pos=6 ident=chumod ident_num=219 decl_scope=0 fblock=632
-     632 fblock pos=15 fdecl=323 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chumod
-
-       633 bend pos=15 block=632
-     324 fdecl pos=23 ident=chgmod ident_num=220 decl_scope=0 fblock=634
-     634 fblock pos=32 fdecl=324 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chgmod
-
-       635 bend pos=32 block=634
-     325 fdecl pos=40 ident=chomod ident_num=221 decl_scope=0 fblock=636
-     636 fblock pos=49 fdecl=325 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chomod
-
-       637 bend pos=49 block=636
-     326 fdecl pos=57 ident=isatty ident_num=222 decl_scope=0 fblock=638
-     638 fblock pos=65 fdecl=326 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isatty
-
-       639 bend pos=65 block=638
-     327 fdecl ln=214 pos=6 ident=open ident_num=223 decl_scope=0 fblock=640
-     640 fblock pos=13 fdecl=327 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=open
-
-       641 bend pos=13 block=640
-     328 fdecl pos=21 ident=close ident_num=224 decl_scope=0 fblock=642
-     642 fblock pos=28 fdecl=328 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=close
-
-       643 bend pos=28 block=642
-     329 fdecl pos=36 ident=flush ident_num=225 decl_scope=0 fblock=644
-     644 fblock pos=43 fdecl=329 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=flush
-
-       645 bend pos=43 block=644
-     330 fdecl ln=215 pos=6 ident=popen ident_num=226 decl_scope=0 fblock=646
-     646 fblock pos=14 fdecl=330 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=popen
-
-       647 bend pos=14 block=646
-     331 fdecl pos=22 ident=pclose ident_num=227 decl_scope=0 fblock=648
-     648 fblock pos=30 fdecl=331 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pclose
-
-       649 bend pos=30 block=648
-     332 fdecl ln=216 pos=6 ident=tell ident_num=228 decl_scope=0 fblock=650
-     650 fblock pos=13 fdecl=332 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tell
-
-       651 bend pos=13 block=650
-     333 fdecl pos=21 ident=seek ident_num=229 decl_scope=0 fblock=652
-     652 fblock pos=28 fdecl=333 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=seek
-
-       653 bend pos=28 block=652
-     334 fdecl ln=217 pos=6 ident=put ident_num=230 decl_scope=0 fblock=654
-     654 fblock pos=11 fdecl=334 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=put
-
-       655 bend pos=11 block=654
-     335 fdecl pos=19 ident=putln ident_num=231 decl_scope=0 fblock=656
-     656 fblock pos=26 fdecl=335 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putln
-
-       657 bend pos=26 block=656
-     336 fdecl ln=218 pos=6 ident=fput ident_num=232 decl_scope=0 fblock=658
-     658 fblock pos=12 fdecl=336 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fput
-
-       659 bend pos=12 block=658
-     337 fdecl pos=20 ident=fputln ident_num=233 decl_scope=0 fblock=660
-     660 fblock pos=28 fdecl=337 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputln
-
-       661 bend pos=28 block=660
-     338 fdecl pos=36 ident=sput ident_num=234 decl_scope=0 fblock=662
-     662 fblock pos=42 fdecl=338 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sput
-
-       663 bend pos=42 block=662
-     339 fdecl pos=50 ident=sputln ident_num=235 decl_scope=0 fblock=664
-     664 fblock pos=58 fdecl=339 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputln
-
-       665 bend pos=58 block=664
-     340 fdecl ln=219 pos=6 ident=putf ident_num=236 decl_scope=0 fblock=666
-     666 fblock pos=13 fdecl=340 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putf
-
-       667 bend pos=13 block=666
-     341 fdecl pos=21 ident=fputf ident_num=237 decl_scope=0 fblock=668
-     668 fblock pos=29 fdecl=341 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputf
-
-       669 bend pos=29 block=668
-     342 fdecl pos=37 ident=sputf ident_num=238 decl_scope=0 fblock=670
-     670 fblock pos=45 fdecl=342 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputf
-
-       671 bend pos=45 block=670
-     343 fdecl ln=220 pos=6 ident=print ident_num=239 decl_scope=0 fblock=672
-     672 fblock pos=13 fdecl=343 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=print
-
-       673 bend pos=13 block=672
-     344 fdecl pos=21 ident=println ident_num=240 decl_scope=0 fblock=674
-     674 fblock pos=30 fdecl=344 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=println
-
-       675 bend pos=30 block=674
-     345 fdecl ln=221 pos=6 ident=fprint ident_num=241 decl_scope=0 fblock=676
-     676 fblock pos=14 fdecl=345 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprint
-
-       677 bend pos=14 block=676
-     346 fdecl pos=22 ident=fprintln ident_num=242 decl_scope=0 fblock=678
-     678 fblock pos=32 fdecl=346 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprintln
-
-       679 bend pos=32 block=678
-     347 fdecl pos=40 ident=sprint ident_num=243 decl_scope=0 fblock=680
-     680 fblock pos=48 fdecl=347 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprint
-
-       681 bend pos=48 block=680
-     348 fdecl pos=56 ident=sprintln ident_num=244 decl_scope=0 fblock=682
-     682 fblock pos=66 fdecl=348 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprintln
-
-       683 bend pos=66 block=682
-     349 fdecl ln=222 pos=6 ident=get ident_num=245 decl_scope=0 fblock=684
-     684 fblock pos=11 fdecl=349 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=get
-
-       685 bend pos=11 block=684
-     350 fdecl pos=19 ident=getln ident_num=246 decl_scope=0 fblock=686
-     686 fblock pos=26 fdecl=350 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getln
-
-       687 bend pos=26 block=686
-     351 fdecl pos=34 ident=getf ident_num=247 decl_scope=0 fblock=688
-     688 fblock pos=40 fdecl=351 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getf
-
-       689 bend pos=40 block=688
-     352 fdecl ln=223 pos=6 ident=fget ident_num=248 decl_scope=0 fblock=690
-     690 fblock pos=12 fdecl=352 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fget
-
-       691 bend pos=12 block=690
-     353 fdecl pos=20 ident=fgetln ident_num=249 decl_scope=0 fblock=692
-     692 fblock pos=28 fdecl=353 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetln
-
-       693 bend pos=28 block=692
-     354 fdecl pos=36 ident=fgetf ident_num=250 decl_scope=0 fblock=694
-     694 fblock pos=43 fdecl=354 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetf
-
-       695 bend pos=43 block=694
-     355 fdecl ln=224 pos=6 ident=scan ident_num=251 decl_scope=0 fblock=696
-     696 fblock pos=12 fdecl=355 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scan
-
-       697 bend pos=12 block=696
-     356 fdecl pos=20 ident=scanln ident_num=252 decl_scope=0 fblock=698
-     698 fblock pos=28 fdecl=356 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scanln
-
-       699 bend pos=28 block=698
-     357 fdecl pos=36 ident=fscan ident_num=253 decl_scope=0 fblock=700
-     700 fblock pos=43 fdecl=357 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscan
-
-       701 bend pos=43 block=700
-     358 fdecl pos=51 ident=fscanln ident_num=254 decl_scope=0 fblock=702
-     702 fblock pos=60 fdecl=358 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscanln
-
-       703 bend pos=60 block=702
-     359 fdecl ln=225 pos=6 ident=getpid ident_num=255 decl_scope=0 fblock=704
-     704 fblock pos=14 fdecl=359 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getpid
-
-       705 bend pos=14 block=704
-     360 fdecl pos=22 ident=getun ident_num=256 decl_scope=0 fblock=706
-     706 fblock pos=29 fdecl=360 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getun
-
-       707 bend pos=29 block=706
-     361 fdecl pos=37 ident=geteun ident_num=257 decl_scope=0 fblock=708
-     708 fblock pos=45 fdecl=361 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=geteun
-
-       709 bend pos=45 block=708
-     362 fdecl ln=226 pos=6 ident=getgn ident_num=258 decl_scope=0 fblock=710
-     710 fblock pos=13 fdecl=362 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgn
-
-       711 bend pos=13 block=710
-     363 fdecl pos=21 ident=getegn ident_num=259 decl_scope=0 fblock=712
-     712 fblock pos=29 fdecl=363 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getegn
-
-       713 bend pos=29 block=712
-     364 fdecl pos=37 ident=getgroups ident_num=260 decl_scope=0 fblock=714
-     714 fblock pos=48 fdecl=364 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgroups
-
-       715 bend pos=48 block=714
-     365 fdecl ln=227 pos=6 ident=system ident_num=261 decl_scope=0 fblock=716
-     716 fblock pos=14 fdecl=365 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=system
-
-       717 bend pos=14 block=716
-     366 fdecl ln=228 pos=6 ident=exit ident_num=262 decl_scope=0 fblock=718
-     718 fblock pos=12 fdecl=366 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exit
-
-       719 bend pos=12 block=718
-     367 fdecl ln=229 pos=6 ident=fold ident_num=263 decl_scope=0 fblock=720
-     720 fblock pos=12 fdecl=367 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fold
-
-       721 bend pos=12 block=720
-     368 fdecl pos=20 ident=filter ident_num=264 decl_scope=0 fblock=722
-     722 fblock pos=28 fdecl=368 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=filter
-
-       723 bend pos=28 block=722
-     369 fdecl pos=36 ident=map ident_num=265 decl_scope=0 fblock=724
-     724 fblock pos=41 fdecl=369 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=map
-
-       725 bend pos=41 block=724
-     370 fdecl ln=230 pos=6 ident=transpose ident_num=266 decl_scope=0 fblock=726
-     726 fblock pos=17 fdecl=370 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transpose
-
-       727 bend pos=17 block=726
-     371 fdecl ln=231 pos=6 ident=__init__ ident_num=267 decl_scope=0 fblock=728
-     728 fblock pos=17 fdecl=371 func_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__init__
-
-       729 bend pos=17 block=728
+     268 fdecl ln=189 pos=5 ident=max ident_num=164 decl_scope=0 fblock=526
+     526 fblock pos=11 fdecl=268 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=max
+
+       527 bend pos=11 block=526
+     269 fdecl pos=18 ident=min ident_num=165 decl_scope=0 fblock=528
+     528 fblock pos=24 fdecl=269 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=min
+
+       529 bend pos=24 block=528
+     270 fdecl ln=190 pos=5 ident=tolower ident_num=166 decl_scope=0 fblock=530
+     530 fblock pos=15 fdecl=270 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tolower
+
+       531 bend pos=15 block=530
+     271 fdecl pos=22 ident=toupper ident_num=167 decl_scope=0 fblock=532
+     532 fblock pos=32 fdecl=271 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=toupper
+
+       533 bend pos=32 block=532
+     272 fdecl pos=39 ident=transliterate ident_num=168 decl_scope=0 fblock=534
+     534 fblock pos=55 fdecl=272 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transliterate
+
+       535 bend pos=55 block=534
+     273 fdecl ln=191 pos=5 ident=eltype ident_num=169 decl_scope=0 fblock=536
+     536 fblock pos=14 fdecl=273 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=eltype
+
+       537 bend pos=14 block=536
+     274 fdecl ln=192 pos=5 ident=keys ident_num=170 decl_scope=0 fblock=538
+     538 fblock pos=12 fdecl=274 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=keys
+
+       539 bend pos=12 block=538
+     275 fdecl ln=193 pos=5 ident=context ident_num=171 decl_scope=0 fblock=540
+     540 fblock pos=15 fdecl=275 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=context
+
+       541 bend pos=15 block=540
+     276 fdecl pos=22 ident=inside ident_num=172 decl_scope=0 fblock=542
+     542 fblock pos=31 fdecl=276 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=inside
+
+       543 bend pos=31 block=542
+     277 fdecl ln=194 pos=5 ident=subv ident_num=173 decl_scope=0 fblock=544
+     544 fblock pos=11 fdecl=277 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=subv
+
+       545 bend pos=11 block=544
+     278 fdecl pos=18 ident=cmpv ident_num=174 decl_scope=0 fblock=546
+     546 fblock pos=24 fdecl=278 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cmpv
+
+       547 bend pos=24 block=546
+     279 fdecl pos=31 ident=del ident_num=175 decl_scope=0 fblock=548
+     548 fblock pos=36 fdecl=279 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=del
+
+       549 bend pos=36 block=548
+     280 fdecl pos=43 ident=ins ident_num=176 decl_scope=0 fblock=550
+     550 fblock pos=48 fdecl=280 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ins
+
+       551 bend pos=48 block=550
+     281 fdecl pos=56 ident=insv ident_num=177 decl_scope=0 fblock=552
+     552 fblock pos=62 fdecl=281 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=insv
+
+       553 bend pos=62 block=552
+     282 fdecl ln=195 pos=5 ident=rev ident_num=178 decl_scope=0 fblock=554
+     554 fblock pos=10 fdecl=282 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rev
+
+       555 bend pos=10 block=554
+     283 fdecl pos=17 ident=sort ident_num=179 decl_scope=0 fblock=556
+     556 fblock pos=23 fdecl=283 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sort
+
+       557 bend pos=23 block=556
+     284 fdecl ln=196 pos=5 ident=sqrt ident_num=180 decl_scope=0 fblock=558
+     558 fblock pos=12 fdecl=284 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sqrt
+
+       559 bend pos=12 block=558
+     285 fdecl pos=19 ident=exp ident_num=181 decl_scope=0 fblock=560
+     560 fblock pos=25 fdecl=285 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exp
+
+       561 bend pos=25 block=560
+     286 fdecl pos=32 ident=log ident_num=182 decl_scope=0 fblock=562
+     562 fblock pos=38 fdecl=286 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log
+
+       563 bend pos=38 block=562
+     287 fdecl pos=45 ident=log10 ident_num=183 decl_scope=0 fblock=564
+     564 fblock pos=52 fdecl=287 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log10
+
+       565 bend pos=52 block=564
+     288 fdecl pos=59 ident=pow ident_num=184 decl_scope=0 fblock=566
+     566 fblock pos=64 fdecl=288 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pow
+
+       567 bend pos=64 block=566
+     289 fdecl ln=197 pos=5 ident=sin ident_num=185 decl_scope=0 fblock=568
+     568 fblock pos=10 fdecl=289 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sin
+
+       569 bend pos=10 block=568
+     290 fdecl pos=17 ident=cos ident_num=186 decl_scope=0 fblock=570
+     570 fblock pos=22 fdecl=290 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cos
+
+       571 bend pos=22 block=570
+     291 fdecl pos=29 ident=atan2 ident_num=187 decl_scope=0 fblock=572
+     572 fblock pos=36 fdecl=291 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=atan2
+
+       573 bend pos=36 block=572
+     292 fdecl ln=198 pos=5 ident=match ident_num=188 decl_scope=0 fblock=574
+     574 fblock pos=12 fdecl=292 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=match
+
+       575 bend pos=12 block=574
+     293 fdecl pos=19 ident=gmatch ident_num=189 decl_scope=0 fblock=576
+     576 fblock pos=27 fdecl=293 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gmatch
+
+       577 bend pos=27 block=576
+     294 fdecl pos=34 ident=sub ident_num=190 decl_scope=0 fblock=578
+     578 fblock pos=39 fdecl=294 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sub
+
+       579 bend pos=39 block=578
+     295 fdecl pos=46 ident=gsub ident_num=191 decl_scope=0 fblock=580
+     580 fblock pos=52 fdecl=295 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gsub
+
+       581 bend pos=52 block=580
+     296 fdecl ln=199 pos=5 ident=split ident_num=192 decl_scope=0 fblock=582
+     582 fblock pos=12 fdecl=296 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=split
+
+       583 bend pos=12 block=582
+     297 vdecl pos=19 ident=split_regex ident_num=193 decl_scope=0 var_num=25
+     298 fdecl ln=200 pos=5 ident=srand ident_num=194 decl_scope=0 fblock=584
+     584 fblock pos=12 fdecl=298 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=srand
+
+       585 bend pos=12 block=584
+     299 fdecl pos=19 ident=rand ident_num=195 decl_scope=0 fblock=586
+     586 fblock pos=25 fdecl=299 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rand
+
+       587 bend pos=25 block=586
+     300 fdecl ln=201 pos=5 ident=__process_errno__ ident_num=196 decl_scope=0 fblock=588
+     588 fblock pos=25 fdecl=300 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__process_errno__
+
+       589 bend pos=25 block=588
+     301 fdecl ln=202 pos=5 ident=readdir ident_num=197 decl_scope=0 fblock=590
+     590 fblock pos=14 fdecl=301 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=readdir
+
+       591 bend pos=14 block=590
+     302 fdecl pos=21 ident=ftype ident_num=198 decl_scope=0 fblock=592
+     592 fblock pos=30 fdecl=302 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ftype
+
+       593 bend pos=30 block=592
+     303 fdecl ln=203 pos=5 ident=fuidn ident_num=199 decl_scope=0 fblock=594
+     594 fblock pos=12 fdecl=303 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fuidn
+
+       595 bend pos=12 block=594
+     304 fdecl pos=19 ident=fgrpn ident_num=200 decl_scope=0 fblock=596
+     596 fblock pos=28 fdecl=304 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgrpn
+
+       597 bend pos=28 block=596
+     305 fdecl pos=35 ident=fsize ident_num=201 decl_scope=0 fblock=598
+     598 fblock pos=42 fdecl=305 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fsize
+
+       599 bend pos=42 block=598
+     306 fdecl ln=204 pos=5 ident=fatime ident_num=202 decl_scope=0 fblock=600
+     600 fblock pos=14 fdecl=306 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fatime
+
+       601 bend pos=14 block=600
+     307 fdecl pos=21 ident=fmtime ident_num=203 decl_scope=0 fblock=602
+     602 fblock pos=29 fdecl=307 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fmtime
+
+       603 bend pos=29 block=602
+     308 fdecl pos=36 ident=fctime ident_num=204 decl_scope=0 fblock=604
+     604 fblock pos=46 fdecl=308 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fctime
+
+       605 bend pos=46 block=604
+     309 fdecl ln=205 pos=5 ident=fumode ident_num=205 decl_scope=0 fblock=606
+     606 fblock pos=14 fdecl=309 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fumode
+
+       607 bend pos=14 block=606
+     310 fdecl pos=21 ident=fgmode ident_num=206 decl_scope=0 fblock=608
+     608 fblock pos=29 fdecl=310 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgmode
+
+       609 bend pos=29 block=608
+     311 fdecl pos=36 ident=fomode ident_num=207 decl_scope=0 fblock=610
+     610 fblock pos=46 fdecl=311 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fomode
+
+       611 bend pos=46 block=610
+     312 fdecl ln=206 pos=5 ident=time ident_num=208 decl_scope=0 fblock=612
+     612 fblock pos=11 fdecl=312 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=time
+
+       613 bend pos=11 block=612
+     313 fdecl ln=207 pos=5 ident=strtime ident_num=209 decl_scope=0 fblock=614
+     614 fblock pos=15 fdecl=313 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=strtime
+
+       615 bend pos=15 block=614
+     314 vdecl pos=22 ident=time_format ident_num=210 decl_scope=0 var_num=26
+     315 fdecl ln=208 pos=5 ident=clock ident_num=211 decl_scope=0 fblock=616
+     616 fblock pos=12 fdecl=315 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=clock
+
+       617 bend pos=12 block=616
+     316 fdecl ln=209 pos=5 ident=gc ident_num=212 decl_scope=0 fblock=618
+     618 fblock pos=10 fdecl=316 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gc
+
+       619 bend pos=10 block=618
+     317 fdecl ln=210 pos=5 ident=rename ident_num=213 decl_scope=0 fblock=620
+     620 fblock pos=14 fdecl=317 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rename
+
+       621 bend pos=14 block=620
+     318 fdecl pos=21 ident=remove ident_num=214 decl_scope=0 fblock=622
+     622 fblock pos=29 fdecl=318 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=remove
+
+       623 bend pos=29 block=622
+     319 fdecl ln=211 pos=5 ident=mkdir ident_num=215 decl_scope=0 fblock=624
+     624 fblock pos=13 fdecl=319 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=mkdir
+
+       625 bend pos=13 block=624
+     320 fdecl pos=20 ident=rmdir ident_num=216 decl_scope=0 fblock=626
+     626 fblock pos=27 fdecl=320 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rmdir
+
+       627 bend pos=27 block=626
+     321 fdecl ln=212 pos=5 ident=getcwd ident_num=217 decl_scope=0 fblock=628
+     628 fblock pos=14 fdecl=321 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getcwd
+
+       629 bend pos=14 block=628
+     322 fdecl pos=21 ident=chdir ident_num=218 decl_scope=0 fblock=630
+     630 fblock pos=28 fdecl=322 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chdir
+
+       631 bend pos=28 block=630
+     323 fdecl ln=213 pos=5 ident=chumod ident_num=219 decl_scope=0 fblock=632
+     632 fblock pos=14 fdecl=323 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chumod
+
+       633 bend pos=14 block=632
+     324 fdecl pos=21 ident=chgmod ident_num=220 decl_scope=0 fblock=634
+     634 fblock pos=30 fdecl=324 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chgmod
+
+       635 bend pos=30 block=634
+     325 fdecl pos=37 ident=chomod ident_num=221 decl_scope=0 fblock=636
+     636 fblock pos=46 fdecl=325 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chomod
+
+       637 bend pos=46 block=636
+     326 fdecl pos=53 ident=isatty ident_num=222 decl_scope=0 fblock=638
+     638 fblock pos=61 fdecl=326 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isatty
+
+       639 bend pos=61 block=638
+     327 fdecl ln=214 pos=5 ident=open ident_num=223 decl_scope=0 fblock=640
+     640 fblock pos=12 fdecl=327 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=open
+
+       641 bend pos=12 block=640
+     328 fdecl pos=19 ident=close ident_num=224 decl_scope=0 fblock=642
+     642 fblock pos=26 fdecl=328 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=close
+
+       643 bend pos=26 block=642
+     329 fdecl pos=33 ident=flush ident_num=225 decl_scope=0 fblock=644
+     644 fblock pos=40 fdecl=329 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=flush
+
+       645 bend pos=40 block=644
+     330 fdecl ln=215 pos=5 ident=popen ident_num=226 decl_scope=0 fblock=646
+     646 fblock pos=13 fdecl=330 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=popen
+
+       647 bend pos=13 block=646
+     331 fdecl pos=20 ident=pclose ident_num=227 decl_scope=0 fblock=648
+     648 fblock pos=28 fdecl=331 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pclose
+
+       649 bend pos=28 block=648
+     332 fdecl ln=216 pos=5 ident=tell ident_num=228 decl_scope=0 fblock=650
+     650 fblock pos=12 fdecl=332 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tell
+
+       651 bend pos=12 block=650
+     333 fdecl pos=19 ident=seek ident_num=229 decl_scope=0 fblock=652
+     652 fblock pos=26 fdecl=333 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=seek
+
+       653 bend pos=26 block=652
+     334 fdecl ln=217 pos=5 ident=put ident_num=230 decl_scope=0 fblock=654
+     654 fblock pos=10 fdecl=334 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=put
+
+       655 bend pos=10 block=654
+     335 fdecl pos=17 ident=putln ident_num=231 decl_scope=0 fblock=656
+     656 fblock pos=24 fdecl=335 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putln
+
+       657 bend pos=24 block=656
+     336 fdecl ln=218 pos=5 ident=fput ident_num=232 decl_scope=0 fblock=658
+     658 fblock pos=11 fdecl=336 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fput
+
+       659 bend pos=11 block=658
+     337 fdecl pos=18 ident=fputln ident_num=233 decl_scope=0 fblock=660
+     660 fblock pos=26 fdecl=337 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputln
+
+       661 bend pos=26 block=660
+     338 fdecl pos=33 ident=sput ident_num=234 decl_scope=0 fblock=662
+     662 fblock pos=39 fdecl=338 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sput
+
+       663 bend pos=39 block=662
+     339 fdecl pos=46 ident=sputln ident_num=235 decl_scope=0 fblock=664
+     664 fblock pos=54 fdecl=339 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputln
+
+       665 bend pos=54 block=664
+     340 fdecl ln=219 pos=5 ident=putf ident_num=236 decl_scope=0 fblock=666
+     666 fblock pos=12 fdecl=340 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putf
+
+       667 bend pos=12 block=666
+     341 fdecl pos=19 ident=fputf ident_num=237 decl_scope=0 fblock=668
+     668 fblock pos=27 fdecl=341 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputf
+
+       669 bend pos=27 block=668
+     342 fdecl pos=34 ident=sputf ident_num=238 decl_scope=0 fblock=670
+     670 fblock pos=42 fdecl=342 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputf
+
+       671 bend pos=42 block=670
+     343 fdecl ln=220 pos=5 ident=print ident_num=239 decl_scope=0 fblock=672
+     672 fblock pos=12 fdecl=343 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=print
+
+       673 bend pos=12 block=672
+     344 fdecl pos=19 ident=println ident_num=240 decl_scope=0 fblock=674
+     674 fblock pos=28 fdecl=344 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=println
+
+       675 bend pos=28 block=674
+     345 fdecl ln=221 pos=5 ident=fprint ident_num=241 decl_scope=0 fblock=676
+     676 fblock pos=13 fdecl=345 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprint
+
+       677 bend pos=13 block=676
+     346 fdecl pos=20 ident=fprintln ident_num=242 decl_scope=0 fblock=678
+     678 fblock pos=30 fdecl=346 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprintln
+
+       679 bend pos=30 block=678
+     347 fdecl pos=37 ident=sprint ident_num=243 decl_scope=0 fblock=680
+     680 fblock pos=45 fdecl=347 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprint
+
+       681 bend pos=45 block=680
+     348 fdecl pos=52 ident=sprintln ident_num=244 decl_scope=0 fblock=682
+     682 fblock pos=62 fdecl=348 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprintln
+
+       683 bend pos=62 block=682
+     349 fdecl ln=222 pos=5 ident=get ident_num=245 decl_scope=0 fblock=684
+     684 fblock pos=10 fdecl=349 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=get
+
+       685 bend pos=10 block=684
+     350 fdecl pos=17 ident=getln ident_num=246 decl_scope=0 fblock=686
+     686 fblock pos=24 fdecl=350 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getln
+
+       687 bend pos=24 block=686
+     351 fdecl pos=31 ident=getf ident_num=247 decl_scope=0 fblock=688
+     688 fblock pos=37 fdecl=351 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getf
+
+       689 bend pos=37 block=688
+     352 fdecl ln=223 pos=5 ident=fget ident_num=248 decl_scope=0 fblock=690
+     690 fblock pos=11 fdecl=352 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fget
+
+       691 bend pos=11 block=690
+     353 fdecl pos=18 ident=fgetln ident_num=249 decl_scope=0 fblock=692
+     692 fblock pos=26 fdecl=353 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetln
+
+       693 bend pos=26 block=692
+     354 fdecl pos=33 ident=fgetf ident_num=250 decl_scope=0 fblock=694
+     694 fblock pos=40 fdecl=354 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetf
+
+       695 bend pos=40 block=694
+     355 fdecl ln=224 pos=5 ident=scan ident_num=251 decl_scope=0 fblock=696
+     696 fblock pos=11 fdecl=355 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scan
+
+       697 bend pos=11 block=696
+     356 fdecl pos=18 ident=scanln ident_num=252 decl_scope=0 fblock=698
+     698 fblock pos=26 fdecl=356 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scanln
+
+       699 bend pos=26 block=698
+     357 fdecl pos=33 ident=fscan ident_num=253 decl_scope=0 fblock=700
+     700 fblock pos=40 fdecl=357 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscan
+
+       701 bend pos=40 block=700
+     358 fdecl pos=47 ident=fscanln ident_num=254 decl_scope=0 fblock=702
+     702 fblock pos=56 fdecl=358 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscanln
+
+       703 bend pos=56 block=702
+     359 fdecl ln=225 pos=5 ident=getpid ident_num=255 decl_scope=0 fblock=704
+     704 fblock pos=13 fdecl=359 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getpid
+
+       705 bend pos=13 block=704
+     360 fdecl pos=20 ident=getun ident_num=256 decl_scope=0 fblock=706
+     706 fblock pos=27 fdecl=360 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getun
+
+       707 bend pos=27 block=706
+     361 fdecl pos=34 ident=geteun ident_num=257 decl_scope=0 fblock=708
+     708 fblock pos=42 fdecl=361 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=geteun
+
+       709 bend pos=42 block=708
+     362 fdecl ln=226 pos=5 ident=getgn ident_num=258 decl_scope=0 fblock=710
+     710 fblock pos=12 fdecl=362 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgn
+
+       711 bend pos=12 block=710
+     363 fdecl pos=19 ident=getegn ident_num=259 decl_scope=0 fblock=712
+     712 fblock pos=27 fdecl=363 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getegn
+
+       713 bend pos=27 block=712
+     364 fdecl pos=34 ident=getgroups ident_num=260 decl_scope=0 fblock=714
+     714 fblock pos=45 fdecl=364 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgroups
+
+       715 bend pos=45 block=714
+     365 fdecl ln=227 pos=5 ident=system ident_num=261 decl_scope=0 fblock=716
+     716 fblock pos=13 fdecl=365 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=system
+
+       717 bend pos=13 block=716
+     366 fdecl ln=228 pos=5 ident=exit ident_num=262 decl_scope=0 fblock=718
+     718 fblock pos=11 fdecl=366 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exit
+
+       719 bend pos=11 block=718
+     367 fdecl ln=229 pos=5 ident=fold ident_num=263 decl_scope=0 fblock=720
+     720 fblock pos=11 fdecl=367 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fold
+
+       721 bend pos=11 block=720
+     368 fdecl pos=18 ident=filter ident_num=264 decl_scope=0 fblock=722
+     722 fblock pos=26 fdecl=368 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=filter
+
+       723 bend pos=26 block=722
+     369 fdecl pos=33 ident=map ident_num=265 decl_scope=0 fblock=724
+     724 fblock pos=38 fdecl=369 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=map
+
+       725 bend pos=38 block=724
+     370 fdecl ln=230 pos=5 ident=transpose ident_num=266 decl_scope=0 fblock=726
+     726 fblock pos=16 fdecl=370 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transpose
+
+       727 bend pos=16 block=726
+     371 fdecl ln=231 pos=5 ident=__init__ ident_num=267 decl_scope=0 fblock=728
+     728 fblock pos=16 fdecl=371 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__init__
+
+       729 bend pos=16 block=728
 //-----------------------test.d---------------------------
      372 vdecl fn="test.d" ln=1 pos=5 ident=SieveSize ident_num=268 decl_scope=0 var_num=27
      373 vdecl pos=16 ident=i ident_num=269 decl_scope=0 var_num=28
@@ -36525,9 +36525,9 @@ TEST584
      782 ldnil pos=36 op1=35 // 35 <- nil
      783 call pos=25 op1=33 op2=2 // call (start=33) (npars=2)
      784 move pos=17 op1=21 op2=33 rhs_decl=231 // 21 (error_anode) <- 33
-     785 lds ln=199 pos=34 op1=25 str="[ \t]+" // 25 <- string
-     786 lds ln=207 pos=37 op1=26 str="%a %b %d %H:%M:%S %Z %Y" // 26 <- string
-     787 ibpcall ln=231 pos=28 cfblock=728 op1=33 op2=0
+     785 lds ln=199 pos=33 op1=25 str="[ \t]+" // 25 <- string
+     786 lds ln=207 pos=36 op1=26 str="%a %b %d %H:%M:%S %Z %Y" // 26 <- string
+     787 ibcall ln=231 pos=27 cfblock=728 op1=33 op2=0
 //-----------------------test.d----------------------------
      788 ldi fn="test.d" ln=2 pos=13 op1=27 op2=8190 // 27 <- i8190
      789 addi ln=4 pos=20 pos2=10 pos3=22 op1=33 op2=27 op3=1 // 33 <- 27 + i1
@@ -36536,7 +36536,7 @@ TEST584
      792 ldi ln=5 pos=9 op1=31 op2=0 // 31 <- i0
      793 ldi ln=6 pos=10 next=797 op1=28 op2=0 // 28 <- i0
      794 ldi ln=7 pos=14 op1=33 op2=1 // 33 <- i1
-     795 stv pos=12 pos2=8 op1=32 op2=28 op3=33
+     795 stvt pos=12 pos2=8 op1=32 op2=28 op3=33
      796 btleinc ln=6 pos=15 next=798 op1=28 binc_inc=1 bcmp_op2=27 bcmp_res=33 pc=794 // goto 794 if 33 <- (28 += i1) cmp 27
      797 btle pos=15 op1=28 bcmp_op2=27 bcmp_res=33 pc=794 // goto 794 if 33 <- 28 cmp 27
      798 ldi ln=8 pos=10 next=814 op1=28 op2=0 // 28 <- i0
@@ -36549,7 +36549,7 @@ TEST584
      805 btle ln=15 pos=21 op1=30 bcmp_op2=27 bcmp_res=33 pc=807 // goto 807 if 33 <- 30 cmp 27
      806 out ln=16 pos=13 next=812 op1=0
      807 ldi ln=17 pos=22 op1=33 op2=0 // 33 <- i0
-     808 stv pos=20 pos2=16 op1=32 op2=30 op3=33
+     808 stvt pos=20 pos2=16 op1=32 op2=30 op3=33
      809 add ln=18 pos=13 pos2=11 op1=30 op2=30 op3=29 // 30 <- 30 op 29
      810 ldi ln=13 pos=13 op1=33 op2=1 // 33 <- i1
      811 bt pos=13 op1=33 pc=805 // goto 805 if 33
@@ -36557,7 +36557,7 @@ TEST584
      813 btleinc ln=8 pos=15 next=815 op1=28 binc_inc=1 bcmp_op2=27 bcmp_res=33 pc=799 // goto 799 if 33 <- (28 += i1) cmp 27
      814 btle pos=15 op1=28 bcmp_op2=27 bcmp_res=33 pc=799 // goto 799 if 33 <- 28 cmp 27
      815 move ln=23 pos=10 op1=33 op2=31 rhs_decl=376 // 33 (count) <- 31
-     816 ibpcall pos=9 cfblock=674 op1=33 op2=1
+     816 ibcall pos=9 cfblock=674 op1=33 op2=1
      817 bend pos=10 block=0
 OUTPUT584
                         result=ok
@@ -36575,7 +36575,7 @@ if test $result = ok -a $start_test_number -le 585; then
         cat >$test_file <<'TEST585'
 class node (item, left, right) {}
 
-func BottomUpTree (item, depth) {
+fun BottomUpTree (item, depth) {
   if (depth <= 0) return item;
   var i = item + item;
 
@@ -36583,8 +36583,8 @@ func BottomUpTree (item, depth) {
   return node (item, BottomUpTree (i - 1, depth), BottomUpTree (i, depth));
 }
 
-func ItemCheck (tree) {
-  return (type (tree) != class ()
+fun ItemCheck (tree) {
+  return (type (tree) != obj
 	  ? tree : tree.item + ItemCheck (tree.left) - ItemCheck (tree.right));
 }
 
@@ -36633,7 +36633,7 @@ if test $result = ok -a $start_test_number -le 586; then
         cat >$test_file <<'TEST586'
 var i, two = 2, three = 3, m = -32;
 for (i = 0; i < 2; i++) {
-  var v1 = [10:two], v2 = [10:three], v3 = [10:m], v4 = [5:{two}, 5:{three}], t={two};
+  var v1 = [10:two], v2 = [10:three], v3 = [10:m], v4 = [5:tab [two], 5:tab [three]], t=tab[two];
   println ("+", v1[:] + v2[:]);
   println ("-", v1[:] - v2[:]);
   println ("*", v1[:] * v2[:]);
@@ -36842,7 +36842,7 @@ if test $result = ok -a $start_test_number -le 587; then
 var i, two = 2, three = 3, m = -32;
 for (i = 0; i < 2; i++) {
   var v1 = [10:two, nil], v2 = [10:three], v3 = [10:m, nil];
-  var v4 = [5:{two}, 5:{three}], t={two};
+  var v4 = [5:tab [two], 5:tab [three]], t=tab [two];
 
   println ("+", v1[0:10] + v2[:]);
   println ("-", v1[0:10] - v2[:]);
@@ -36991,7 +36991,7 @@ if test $result = ok -a $start_test_number -le 588; then
 var i, two = 2, three = 3, m = -32;
 for (i = 0; i < 2; i++) {
   var v1 = [10:two, nil], v2 = [10:three], v3 = [10:m, nil];
-  var v4 = [5:{two}, 5:{three}], t={two};
+  var v4 = [5:tab [two], 5:tab [three]], t=tab [two];
 
   println ("+", v1[0:10] + v2[:]);
   println ("-", v1[0:10] - v2[:]);
@@ -37140,7 +37140,7 @@ if test $result = ok -a $start_test_number -le 589; then
 var i, two = 2, three = 3, m = -32;
 for (i = 0; i < 2; i++) {
   var v1 = [10:two, nil], v2 = [10:three, 0.5], v3 = [10:m, nil];
-  var v4 = [5:{two}, 5:{three}], t={two};
+  var v4 = [5:tab [two], 5:tab [three]], t=tab [two];
 
   println ("+", v1[0:10] + v2[:10]);
   println ("-", v1[0:10] - v2[:10]);
@@ -37596,12 +37596,12 @@ if test $result = ok -a $start_test_number -le 595; then
 var ct = nil;
 thread t {ct = curr_thread;}
 class c {}
-func f {class fc {};return fc();}
-func main {
+fun f {class fc {};return fc();}
+fun main {
   var i, one = 1, two = 2, three = 3;
   for (i = 0; i < 2; i++) {
     var v1 = [3:one, 3:two, 3:three];
-    println ("func()", func (v1[:]));
+    println ("func()", fun (v1[:]));
     println ("thread()", thread (v1[:]));
     println ("class()", class (v1[:]));
     putln ("--------------------------------");
@@ -37618,7 +37618,7 @@ TEST595
 "thread()"[nil, nil, nil, nil, nil, nil, nil, nil, nil]
 "class()"[nil, nil, nil, nil, nil, nil, nil, nil, nil]
 --------------------------------
-"func()"[func f, func f, func f, nil, nil, nil, nil, nil, nil]
+"func()"[fun f, fun f, fun f, nil, nil, nil, nil, nil, nil]
 "thread()"[nil, nil, nil, thread t, thread t, thread t, nil, nil, nil]
 "class()"[nil, nil, nil, nil, nil, nil, class c, class c, class c]
 --------------------------------
@@ -37670,8 +37670,8 @@ if test $result = ok -a $start_test_number -le 597; then
         cat >$test_file <<'TEST597'
 var o = nil;
 thread t {class tc {}; o = tc ();}
-func f {class fc {};return fc();}
-func main {
+fun f {class fc {};return fc();}
+fun main {
   var one, two;
   one = context (f()); t (); wait (o != nil); two = context (o);
   println (one, two);
@@ -37700,21 +37700,21 @@ if test $result = ok -a $start_test_number -le 598; then
         cat >$test_file <<'TEST598'
 var i, two = 2, v1 = [5:"ab"];
 for (i = 0; i < 2; i++) {
-  println ("vector()", vector (v1[:]));
-  println ("table()", table (v1[:]));
+  println ("vec()", vec (v1[:]));
+  println ("tab()", tab (v1[:]));
   putln ("--------------------------------");
-  v1 = [{1:2}, {3:4}, {5:6}];
+  v1 = [tab [1:2], tab [3:4], tab [5:6]];
 }
 TEST598
         echo '      ' $DINO -t $test_file "2>$stderr"
         if $DINO -t $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT598' && $CMP $stdout $ftemp2; then
-"vector()"["ab", "ab", "ab", "ab", "ab"]
-"table()"[{0:'a', 1:'b'}, {0:'a', 1:'b'}, {0:'a', 1:'b'}, {0:'a', 1:'b'}, {0:'a', 1:'b'}]
+"vec()"["ab", "ab", "ab", "ab", "ab"]
+"tab()"[tab [0:'a', 1:'b'], tab [0:'a', 1:'b'], tab [0:'a', 1:'b'], tab [0:'a', 1:'b'], tab [0:'a', 1:'b']]
 --------------------------------
-"vector()"[[1, 2], [3, 4], [5, 6]]
-"table()"[{1:2}, {3:4}, {5:6}]
+"vec()"[[1, 2], [3, 4], [5, 6]]
+"tab()"[tab [1:2], tab [3:4], tab [5:6]]
 --------------------------------
 OUTPUT598
                         result=ok
@@ -37731,9 +37731,9 @@ if test $result = ok -a $start_test_number -le 599; then
 	echo test 599: Different format vector operations
         cat >$test_file <<'TEST599'
 var v1=[1.2, 2.3, 3.4, 4.5], v2=["%.3e", "%.5e", "%g", "%+g"];
-println (vector (v1[:], "%g"));
-println (vector (4.5, v2[:]));
-println (vector (v1[:], v2[:]));
+println (vec (v1[:], "%g"));
+println (vec (4.5, v2[:]));
+println (vec (v1[:], v2[:]));
 TEST599
         echo '      ' $DINO -t $test_file "2>$stderr"
         if $DINO -t $test_file 2>$stderr >$stdout; then
@@ -37888,8 +37888,8 @@ fi
 if test $result = ok -a $start_test_number -le 605; then
 	echo test 605: Anonymous func/class/thread
         cat >$test_file <<'TEST605'
-putln (afunc (a,b) {return a < b ? a : b;} (3, 5));
-afunc (a,b) {putln (a > b ? a : b);} (3, 5);
+putln (afun (a,b) {return a < b ? a : b;} (3, 5));
+afun (a,b) {putln (a > b ? a : b);} (3, 5);
 var o = aclass (c) {};
 putln (o (42).c);
 athread {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
@@ -37918,10 +37918,10 @@ if test $result = ok -a $start_test_number -le 606; then
 	echo test 606: Fold function
         cat >$test_file <<'TEST606'
 var v = [1,2,3,4];
-println (fold (afunc (a, b) {return a + b;}, v[:], 0));
-println (fold (afunc (a, b) {return a * b;}, v[:], 1));
+println (fold (afun (a, b) {return a + b;}, v[:], 0));
+println (fold (afun (a, b) {return a * b;}, v[:], 1));
 var f = fold;
-println (f (afunc (a, b) {return a * b;}, v[:], 1));
+println (f (afun (a, b) {return a * b;}, v[:], 1));
 TEST606
         echo '      ' $DINO -t $test_file "2>$stderr"
         if $DINO -t $test_file 2>$stderr >$stdout; then
@@ -37945,7 +37945,7 @@ if test $result = ok -a $start_test_number -le 607; then
 	echo test 607: Wrong fold argument
         cat >$test_file <<'TEST607'
 var v = [1,2,3,4];
-println (fold (afunc (a, b) {return a + b;}, nil, 0));
+println (fold (afun (a, b) {return a + b;}, nil, 0));
 TEST607
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -37973,12 +37973,12 @@ if test $result = ok -a $start_test_number -le 608; then
 	echo test 608: Filter function
         cat >$test_file <<'TEST608'
 var i, v = [0, 1, -2, 3, -4];
-println (filter (afunc (a) {return a > 0;}, v));
+println (filter (afun (a) {return a > 0;}, v));
 v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afunc (a) {return a > 0;}, v, 2));
+println (filter (afun (a) {return a > 0;}, v, 2));
 for (i = 0; i < 1000; i++) {
   v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
-  v = filter (afunc (a) {if (i % 100) gc ();return a > 0;}, v, 2);
+  v = filter (afun (a) {if (i % 100) gc ();return a > 0;}, v, 2);
 }
 println (v);
 TEST608
@@ -38004,7 +38004,7 @@ if test $result = ok -a $start_test_number -le 609; then
 	echo test 609: Wrong filter argument
         cat >$test_file <<'TEST609'
 var v = [0, 1, -2, 3, -4];
-println (filter (afunc (a) {return a > 0;}, nil));
+println (filter (afun (a) {return a > 0;}, nil));
 TEST609
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38032,7 +38032,7 @@ if test $result = ok -a $start_test_number -le 610; then
 	echo test 610: Another wrong filter argument
         cat >$test_file <<'TEST610'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afunc (a) {return a > 0;}, v));
+println (filter (afun (a) {return a > 0;}, v));
 TEST610
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38040,7 +38040,7 @@ TEST610
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT610' && $CMP $stderr $ftemp2; then
-test.d:2:38: run time error - invalid types of operands of operator ">"
+test.d:2:37: run time error - invalid types of operands of operator ">"
 OUTPUT610
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT610-2' && $CMP $stdout $ftemp2; then
@@ -38060,7 +38060,7 @@ if test $result = ok -a $start_test_number -le 611; then
 	echo test 611: Wrong filter function result
         cat >$test_file <<'TEST611'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afunc (a) {return nil;}, v, 2));
+println (filter (afun (a) {return nil;}, v, 2));
 TEST611
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38088,10 +38088,10 @@ if test $result = ok -a $start_test_number -le 612; then
 	echo test 612: Map function
         cat >$test_file <<'TEST612'
 var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (map (afunc (a) {return a < 0 ? nil : a;}, v, 2));
+println (map (afun (a) {return a < 0 ? nil : a;}, v, 2));
 for (i = 0; i < 1000; i++) {
   v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
-  v = map (afunc (a) {if (i % 100) gc ();return a < 0 ? 0 : a;}, v, 2);
+  v = map (afun (a) {if (i % 100) gc ();return a < 0 ? 0 : a;}, v, 2);
 }
 println (v);
 TEST612
@@ -38116,7 +38116,7 @@ if test $result = ok -a $start_test_number -le 613; then
 	echo test 613: Wrong map argument
         cat >$test_file <<'TEST613'
 var v = [0, 1, -2, 3, -4];
-println (map (afunc (a) {return a > 0;}, nil));
+println (map (afun (a) {return a > 0;}, nil));
 TEST613
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38144,7 +38144,7 @@ if test $result = ok -a $start_test_number -le 614; then
 	echo test 614: Another wrong map argument
         cat >$test_file <<'TEST614'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (map (afunc (a) {return a > 0;}, v));
+println (map (afun (a) {return a > 0;}, v));
 TEST614
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38152,7 +38152,7 @@ TEST614
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT614' && $CMP $stderr $ftemp2; then
-test.d:2:35: run time error - invalid types of operands of operator ">"
+test.d:2:34: run time error - invalid types of operands of operator ">"
 OUTPUT614
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT614-2' && $CMP $stdout $ftemp2; then
@@ -38327,13 +38327,13 @@ fi
 if test $result = ok -a $start_test_number -le 622; then
 	echo test 622: Call tail optimization
         cat >$test_file <<'TEST622'
-func even;
-func odd (n) {
+fun even;
+fun odd (n) {
   if (n == 0) return 0;
   return even (n - 1);
 }
 
-func even (n) {
+fun even (n) {
   if (n == 0) return 1;
   return odd (n - 1);
 }
@@ -38361,10 +38361,10 @@ fi
 if test $result = ok -a $start_test_number -le 623; then
 	echo test 623: Immediate call generation
         cat >$test_file <<'TEST623'
-func f {
-  func h {
+fun f {
+  fun h {
   }
-  func g {
+  fun g {
      h ();
   }
   g ();
@@ -38374,7 +38374,7 @@ TEST623
         echo '      ' $DINO -d $test_file "2>$stdout"
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' fgrep  $stdout itpcall '&&' fgrep citpcall $stdout '&&' fgrep titpcall $stdout
-                if (fgrep itpcall $stdout && fgrep citpcall $stdout && fgrep titpcall $stdout) > /dev/null; then
+                if (fgrep itcall $stdout && fgrep citcall $stdout && fgrep titcall $stdout) > /dev/null; then
                         result=ok
                 else
                         result=fail
@@ -38450,7 +38450,7 @@ fi
 if test $result = ok -a $start_test_number -le 626; then
 	echo test 626: Too few actuals
         cat >$test_file <<'TEST626'
-func f (a, b) {
+fun f (a, b) {
 }
 
 f(1);
@@ -38480,7 +38480,7 @@ fi
 if test $result = ok -a $start_test_number -le 627; then
 	echo test 627: Too many actuals
         cat >$test_file <<'TEST627'
-func f {
+fun f {
 }
 
 f(1);
@@ -38510,7 +38510,7 @@ fi
 if test $result = ok -a $start_test_number -le 628; then
 	echo test 628: Too few actuals when ... is present
         cat >$test_file <<'TEST628'
-func f (a, ...) {
+fun f (a, ...) {
 }
 
 f ();
@@ -38652,7 +38652,7 @@ if test $result = ok -a $start_test_number -le 633; then
 	echo test 633: Undefined global values
         cat >$test_file <<'TEST633'
 var i;
-func f {
+fun f {
   return i;
 }
 
@@ -38664,7 +38664,7 @@ TEST633
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT633' && $CMP $stderr $ftemp2; then
-test.d:3:9: run time error - undefined `i' value access
+test.d:3:3: run time error - undefined `i' value access
 OUTPUT633
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT633-2' && $CMP $stdout $ftemp2; then
@@ -38710,7 +38710,7 @@ fi
 if test $result = ok -a $start_test_number -le 635; then
 	echo test 635: This in func/class/extension
         cat >$test_file <<'TEST635'
-var i; func f {i = this;}
+var i; fun f {i = this;}
 class c {i = this;}
 thread t {i = this;}
 TEST635
@@ -38732,9 +38732,9 @@ fi
 if test $result = ok -a $start_test_number -le 636; then
 	echo test 636: Correct this value in func/class/extension
         cat >$test_file <<'TEST636'
-var i; func f {i = this;} f (); putln (inside (i, f));
+var i; fun f {i = this;} f (); putln (inside (i, f));
 class c {i = this;} c (); putln (inside (i, c));
-var s = 0; func t {i = this; s = 1;} t (); wait (s == 1); putln (inside (i, t));
+var s = 0; fun t {i = this; s = 1;} t (); wait (s == 1); putln (inside (i, t));
 class c1 {} ext c1 {i=this;} c1 (); putln (inside (i, c1));
 TEST636
         echo '      ' $DINO $test_file "2>$stdout"
@@ -38959,7 +38959,7 @@ fi
 if test $result = ok -a $start_test_number -le 644; then
 	echo test 644: REPL correct program
         cat >$test_file <<'TEST644'
-func fact (x)
+fun fact (x)
 {
   if (x <= 1)
     return 1;
@@ -39027,11 +39027,11 @@ fi
 if test $result = ok -a $start_test_number -le 646; then
 	echo test 646: REPL context error
         cat >$test_file <<'TEST646'
-final func f;
-func f{}
+final fun f;
+fun f{}
 putln ("Right");
-final func f;
-func f{}
+final fun f;
+fun f{}
 putln ("Right again");
 throw 1;
 putln ("One more: right");
@@ -39041,18 +39041,18 @@ TEST646
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT646' && $CMP $stdout $ftemp2; then
 Use "exit(<int>);" or Ctrl-D to exit
-dino> dino>       func f{}
-           ^
+dino> dino>       fun f{}
+          ^
       forward and matched decls of `f' have different access/final attributes
-      final func f;
-                 ^
+      final fun f;
+                ^
       (previous declaration of identifier `f')
 dino> Right
-dino> dino>       func f{}
-           ^
+dino> dino>       fun f{}
+          ^
       forward and matched decls of `f' have different access/final attributes
-      final func f;
-                 ^
+      final fun f;
+                ^
       (previous declaration of identifier `f')
 dino> Right again
 dino>       throw 1;
@@ -39100,6 +39100,69 @@ dino>       val i = 5/0;
 dino> One more: right
 dino> 
 OUTPUT647
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 648.
+if test $result = ok -a $start_test_number -le 648; then
+	echo test 648: REPL printing
+        cat >$test_file <<'TEST648'
+fun fact (x) {
+  if (x <= 1) {
+    x;
+    return 1;
+  }
+  return x * fact (x-1);
+}
+
+var i, x, n = 2;
+for (i = 0; i < n; i++)
+  fact (8);
+TEST648
+        echo '      ' $DINO "<" $test_file "2>&1 | fgrep -v version >$stdout"
+        if $DINO < $test_file 2>&1 | fgrep -v version >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT648' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino>     |     |     |     |     |     | dino> dino> dino>     | 1
+40320
+1
+40320
+dino> 
+OUTPUT648
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 649.
+if test $result = ok -a $start_test_number -le 649; then
+	echo test 649: REPL printing long vectors and tables
+        cat >$test_file <<'TEST649'
+[49:1, 50: 2.0];
+[100:1];
+tab [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50];
+TEST649
+        echo '      ' $DINO "<" $test_file "2>&1 | fgrep -v version >$stdout"
+        if $DINO < $test_file 2>&1 | fgrep -v version >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT649' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino> [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, ...]
+dino> [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...]
+dino> tab [0:nil, 1:nil, 2:nil, 3:nil, 4:nil, 5:nil, 6:nil, 7:nil, 8:nil, 9:nil, 10:nil, 11:nil, 12:nil, 13:nil, 14:nil, 15:nil, 16:nil, 17:nil, 18:nil, 19:nil, 20:nil, 21:nil, 22:nil, 23:nil, 24:nil, 25:nil, 26:nil, 27:nil, 28:nil, 29:nil, 30:nil, 31:nil, 32:nil, 33:nil, 34:nil, 35:nil, 36:nil, 37:nil, 38:nil, 39:nil, 40:nil, 41:nil, 42:nil, 43:nil, 44:nil, 45:nil, 46:nil, 47:nil, 48:nil, 49:nil, ...]
+dino> 
+OUTPUT649
                         result=ok
                 else
                         result=fail

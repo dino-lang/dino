@@ -88,77 +88,77 @@ class ipc_err () {
   _ipc_err_init ();
 
   // table no -> ipc exception
-  var n2e = {};
+  var n2e = tab [];
 
   if (_eaddrinuse_no > 0)
-    n2e {_eaddrinuse_no} = syserrors.eaddrinuse (_eaddrinuse_msg);
+    n2e [_eaddrinuse_no] = syserrors.eaddrinuse (_eaddrinuse_msg);
   if (_eaddrnotavail_no > 0)
-    n2e {_eaddrnotavail_no} = syserrors.eaddrnotavail (_eaddrnotavail_msg);
+    n2e [_eaddrnotavail_no] = syserrors.eaddrnotavail (_eaddrnotavail_msg);
   if (_eafnosupport_no > 0)
-    n2e {_eafnosupport_no} = syserrors.eafnosupport (_eafnosupport_msg);
+    n2e [_eafnosupport_no] = syserrors.eafnosupport (_eafnosupport_msg);
   if (_ealready_no > 0)
-    n2e {_ealready_no} = syserrors.ealready (_ealready_msg);
+    n2e [_ealready_no] = syserrors.ealready (_ealready_msg);
   if (_econnaborted_no > 0)
-    n2e {_econnaborted_no} = syserrors.econnaborted (_econnaborted_msg);
+    n2e [_econnaborted_no] = syserrors.econnaborted (_econnaborted_msg);
   if (_econnrefused_no > 0)
-    n2e {_econnrefused_no} = syserrors.econnrefused (_econnrefused_msg);
+    n2e [_econnrefused_no] = syserrors.econnrefused (_econnrefused_msg);
   if (_econnreset_no > 0)
-    n2e {_econnreset_no} = syserrors.econnreset (_econnreset_msg);
+    n2e [_econnreset_no] = syserrors.econnreset (_econnreset_msg);
   if (_edestaddrreq_no > 0)
-    n2e {_edestaddrreq_no} = syserrors.edestaddrreq (_edestaddrreq_msg);
+    n2e [_edestaddrreq_no] = syserrors.edestaddrreq (_edestaddrreq_msg);
   if (_ehostdown_no > 0)
-    n2e {_ehostdown_no} = syserrors.ehostdown (_ehostdown_msg);
+    n2e [_ehostdown_no] = syserrors.ehostdown (_ehostdown_msg);
   if (_ehostunreach_no > 0)
-    n2e {_ehostunreach_no} = syserrors.ehostunreach (_ehostunreach_msg);
+    n2e [_ehostunreach_no] = syserrors.ehostunreach (_ehostunreach_msg);
   if (_einprogress_no > 0)
-    n2e {_einprogress_no} = syserrors.einprogress (_einprogress_msg);
+    n2e [_einprogress_no] = syserrors.einprogress (_einprogress_msg);
   if (_eisconn_no > 0)
-    n2e {_eisconn_no} = syserrors.eisconn (_eisconn_msg);
+    n2e [_eisconn_no] = syserrors.eisconn (_eisconn_msg);
   if (_emsgsize_no > 0)
-    n2e {_emsgsize_no} = syserrors.emsgsize (_emsgsize_msg);
+    n2e [_emsgsize_no] = syserrors.emsgsize (_emsgsize_msg);
   if (_enetdown_no > 0)
-    n2e {_enetdown_no} = syserrors.enetdown (_enetdown_msg);
+    n2e [_enetdown_no] = syserrors.enetdown (_enetdown_msg);
   if (_enetreset_no > 0)
-    n2e {_enetreset_no} = syserrors.enetreset (_enetreset_msg);
+    n2e [_enetreset_no] = syserrors.enetreset (_enetreset_msg);
   if (_enetunreach_no > 0)
-    n2e {_enetunreach_no} = syserrors.enetunreach (_enetunreach_msg);
+    n2e [_enetunreach_no] = syserrors.enetunreach (_enetunreach_msg);
   if (_enobufs_no > 0)
-    n2e {_enobufs_no} = syserrors.enobufs (_enobufs_msg);
+    n2e [_enobufs_no] = syserrors.enobufs (_enobufs_msg);
   if (_enoprotoopt_no > 0)
-    n2e {_enoprotoopt_no} = syserrors.enoprotoopt (_enoprotoopt_msg);
+    n2e [_enoprotoopt_no] = syserrors.enoprotoopt (_enoprotoopt_msg);
   if (_enosr_no > 0)
-    n2e {_enosr_no} = syserrors.enosr (_enosr_msg);
+    n2e [_enosr_no] = syserrors.enosr (_enosr_msg);
   if (_enotconn_no > 0)
-    n2e {_enotconn_no} = syserrors.enotconn (_enotconn_msg);
+    n2e [_enotconn_no] = syserrors.enotconn (_enotconn_msg);
   if (_enotsock_no > 0)
-    n2e {_enotsock_no} = syserrors.enotsock (_enotsock_msg);
+    n2e [_enotsock_no] = syserrors.enotsock (_enotsock_msg);
   if (_eopnotsupp_no > 0)
-    n2e {_eopnotsupp_no} = syserrors.eopnotsupp (_eopnotsupp_msg);
+    n2e [_eopnotsupp_no] = syserrors.eopnotsupp (_eopnotsupp_msg);
   if (_epfnosupport_no > 0)
-    n2e {_epfnosupport_no} = syserrors.epfnosupport (_epfnosupport_msg);
+    n2e [_epfnosupport_no] = syserrors.epfnosupport (_epfnosupport_msg);
   if (_eprotonosupport_no > 0)
-    n2e {_eprotonosupport_no}
+    n2e [_eprotonosupport_no]
       = syserrors.eprotonosupport (_eprotonosupport_msg);
   if (_eprototype_no > 0)
-    n2e {_eprototype_no} = syserrors.eprototype (_eprototype_msg);
+    n2e [_eprototype_no] = syserrors.eprototype (_eprototype_msg);
   if (_eremoterelease_no > 0)
-    n2e {_eremoterelease_no} = syserrors.eremoterelease (_eremoterelease_msg);
+    n2e [_eremoterelease_no] = syserrors.eremoterelease (_eremoterelease_msg);
   if (_eshutdown_no > 0)
-    n2e {_eshutdown_no} = syserrors.eshutdown (_eshutdown_msg);
+    n2e [_eshutdown_no] = syserrors.eshutdown (_eshutdown_msg);
   if (_esocktnosupport_no > 0)
-    n2e {_esocktnosupport_no}
+    n2e [_esocktnosupport_no]
       = syserrors.esocktnosupport (_esocktnosupport_msg);
   if (_etimedout_no > 0)
-    n2e {_etimedout_no} = syserrors.etimedout (_etimedout_msg);
+    n2e [_etimedout_no] = syserrors.etimedout (_etimedout_msg);
   if (_etoomanyrefs_no > 0)
-    n2e {_etoomanyrefs_no} = syserrors.etoomanyrefs (_etoomanyrefs_msg);
+    n2e [_etoomanyrefs_no] = syserrors.etoomanyrefs (_etoomanyrefs_msg);
   if (_ewouldblock_no > 0)
-    n2e {_ewouldblock_no} = syserrors.ewouldblock (_ewouldblock_msg);
+    n2e [_ewouldblock_no] = syserrors.ewouldblock (_ewouldblock_msg);
 
   var i;
   if (_eos_specific_nos != nil)
     for (i = 0; i < #_eos_specific_nos; i++)
-      n2e {_eos_specific_nos [i]}
+      n2e [_eos_specific_nos [i]]
 	 = syserrors.eos_specific (_eos_specific_msgs [i]);
 }
 

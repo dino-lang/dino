@@ -1,4 +1,101 @@
-2014-02-23  Vladimir Makarov  <vmakarov@redhat.com>
+2014-03-07  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* MSTA/parser.c (output_switch): Use current_LR_set.
+	* MSTA/msta.tst.in (test 2): Change expected error position
+	output.
+	* MSTA/quality.tst.in (test 41): Change expected SHILKA output.
+	* DINO/socket.d: Use fun and vec instead of func and vector.
+	* DINO/mpi.d: Ditto.
+	* DINO/gmp.d: Ditto.
+	* DINO/ipcerr.d: Ditto.  Transform tables and access to them.
+	* DINO/dino.tst.in: Ditto.  Use closure, obj, and process for
+	types.  Add tests for printing in REPL.
+	* DINO/d_yacc.y: Use FUN, AFUN, VEC, and TAB instead of FUNC,
+	AFUNC, VECTOR, and TABLE.  Use CLOSURE, OBJ, PROCESS.  Add
+	priorities for TAB, CHAR, INT, FLOAT, VEC, TYPE, '(', '[', '.'.
+	Remove opt_final, add fun_thread_class_start.  Make designator
+	part of expr.  Change syntax for tables and its access.  Make expr
+	a statement.  Remove procedure call.  Change syntax foreach-stmt,
+	* DINO/d_runtab.h (CODE_ID): Fix typo.
+	* DINO/d_run.sprut: Use fun instead of func.
+	* DINO/d_kw.shilka (closure, obj, process): Add.
+	(func, afunc, table, vector): Rename to fun, afun, tab, vec.
+	* DINO/d_ir.sprut: Use fun, vec, and tab instead of func,
+	afunc, vector, and table.
+	(EVT_NUMBER_VEC_TAB_MASK, EVT_NUMBER_VEC_TAB_SLICE_MASK): New.
+	(ENVIRONMENT): Change func to fun.  Rename fun and fgn into fuidn
+	and fgrpn.
+	(vec_index_designator, key_index_designator, key_index): Remove.
+	(thread_type, class_type, instance_type, proc_call): Remove.
+	(expr_stmt): New.
+	* DINO/d_heap.c: Use efun instead of efunc and fun instead of
+	func.
+	* DINO/d_func.h: Use fun instead of func.
+	(repl_print): New.
+	* DINO/d_func.c: Ditto.
+	(MAX_REPL_PRINTED_ELEMENTS): New.
+	(print_val): Add parameter.  Print only MAX_REPL_PRINTED_ELEMENTS
+	elements for table and vector.  Print undef.
+	(repl_print): New.
+	(F_TAB): New.
+	(get_token): Return F_TAB too.
+	(scanel): Change syntax for input table.
+	* DINO/d_extern.sprut: Use fun instead of func.
+	* DINO/d_eval.c: Use efun instead of efunc and fun instead of
+	func.
+	(store_vect_designator_value, store_tab_designator_value): Merge
+	and rename to store_vect_tab_designator_value.
+	(evaluate_code): Merge BC_NM_stv and BC_NM_stt into BC_NM_stvt.
+	Process table too to ind, lindv.  Remove BC_NM_key and
+	BC_NM_lkeyv.  Remove processing pcall, tpcall, ipcall, itpcall,
+	cipcall, citpcall, tipcall, titcall, ibcall.  Check return of
+	undef value.  Add processing rpr and rpr_def.
+	* DINO/d_errors.[ch]: Use fun, vec, and tab instead of func,
+	afunc, vector, and table.
+	(ERR_vector_element_access_applied_to_slice)
+	(ERR_table_element_access_applied_to_slice): Merge into
+	ERR_vec_tab_element_access_applied_to_slice.
+	(DERR_key_index_operation_for_non_table): Remove.
+	* DINO/d_dino.c (evaluated_p): New.
+	(dino_finish): Use it to guard calls of destroy, profile and trace
+	print functions.
+	(dino_start). Reset evaluated_p.
+	(dino_main): Set it.
+	* DINO/d_context.c: Use fun, vec, and tab instead of func, vector,
+	and table.  Remove processing IR_NM_proc_call, IR_NM_key_index,
+	IR_NM_thread_type, IR_NM_class_type, and IR_NM_instance_type and
+	add processing IR_NM_expr_stmt.  Modify processing IR_NM_index to
+	accept table.
+	(process_imcall): Use icall, ticall, cicall instead of ipcall,
+	tipcall, cipcall.
+	* DINO/d_built.h: Rename fun and fgn into fuidn and fgrpn.
+	* DINO/compare.tst (speed): Increase test loop to 200 iterations.
+	Use fun, vec, and tab instead of func, vector, and table.  Modify
+	tables and access to them including foreach loop.
+	* DINO/d_bc.sprut: Use fun, vec, and tab instead of func, vector,
+	and table. Rename fun and fgn into fuidn and fgrpn.
+	(impcall, imfcall, stv, stt): Remove.
+	(stvt): New.
+	(pcall, tpcall, ibpcall, ipcall, itpcall, tipcall, titpcall)
+	(cipcall, citpcall): Remove.
+	(ret): Add field ret_decl.
+	(rpr, rpr_def): New.
+	* DINO/d_bcf.shilka (func_p, pure_func_p): Rename to fun_p,
+	pure_fun_p.
+	(ret_decl): Add.
+	* DINO/d_bcio.c: Use fun, efun, vec, and tab instead of func,
+	efunc, vector, and table.
+	(dump_code): Remove processing pcall, tpcall, ibpcall, ipcall,
+	itpcall, tipcall, titpcall, key, lkeyv, stv, stt.  Add processing
+	stvt and ret_decl field.
+	(read_bc_program): Process ret_decl field.
+	* DINO/d_bcn.shilka: Use fun, efun, vec, and tab instead of func,
+	efunc, vector, and table.
+	(pcall, tpcall, ibpcall, ipcall, itpcall, tipcall, titpcall, key)
+	(lkeyv, stv, stt): Remove.
+	(stvt): Add.
+
+2014-02-23  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/Makefile.in (ammunition.info, ammunition++.info): Use
 	DINO approach.
@@ -132,7 +229,7 @@
 	values.
 	* DINO/dino-{4-6,8,q0}.html: Ditto.
 
-2014-02-09  Vladimir Makarov  <vmakarov@redhat.com>
+2014-02-09  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_bcio.c, DINO/d_bcio.h, DINO/d_bcn.shilka,
 	DINO/d_bcf.shilka; New files.
@@ -325,7 +422,7 @@
 	* DINO/dino.tst.in: New tests 637-643.  Fix expected outputs ofr
 	some tests.
 
-2013-06-29  Vladimir Makarov  <vmakarov@redhat.com>
+2013-06-29  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Add PyPy, SCALA, and JavaScript.  Increase
 	factor for ackermann, heapsort, random, function, fact, matrix

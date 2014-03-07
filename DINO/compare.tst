@@ -123,10 +123,10 @@ else
   JS=
 fi
 
-echo '>>>> ' dino: `$DINO 2>&1|fgrep Version`
+echo '>>>> ' dino: `$DINO -h 2>&1|fgrep Version`
 
 speed() {
-  (time -p sh -c 'i=0;while expr $i != 100;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
+  (time -p sh -c 'i=0;while expr $i != 200;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
 }
 
 s=`speed`
@@ -390,7 +390,7 @@ if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror
 fi
 
 cat <<'EOF' >$ftest
-func ack (m, n) {
+fun ack (m, n) {
     if (m == 0) return n + 1;
     if (n == 0) return ack (m - 1, 1);
     return ack (m - 1, ack (m, (n - 1)));
@@ -1758,11 +1758,11 @@ ext except {
   class Lo_exception (value) {}
 }
 
-func blowup (num) { 
+fun blowup (num) { 
   throw ((num & 1) ? excepts.Lo_exception (num) : excepts.Hi_exception (num));
 }
 
-func lo_function (num) {
+fun lo_function (num) {
   try {
     blowup (num);
   } catch (excepts.Lo_exception) {
@@ -1771,7 +1771,7 @@ func lo_function (num) {
   }
 }
 
-func hi_function (num) {
+fun hi_function (num) {
   try {
     lo_function (num);
   } catch (excepts.Hi_exception) {
@@ -1780,7 +1780,7 @@ func hi_function (num) {
   }
 }
 
-func some_function (num) {
+fun some_function (num) {
   try { 
     hi_function (num);
   } catch (except) {
@@ -1788,7 +1788,7 @@ func some_function (num) {
   }
 }
 
-func main {
+fun main {
   var i, num = int (argv [0]);
 
   if (num < 1) num = 1;
@@ -1986,7 +1986,7 @@ fi
 
 cat <<'EOF' >$ftest
 // Recursive function to compute Fibonacci numbers
-func fibonacci (n) {
+fun fibonacci (n) {
   if (n <= 1) return 1;
   return (fibonacci(n-1) + fibonacci(n-2));
 }
@@ -2248,12 +2248,12 @@ fi
 
 cat <<'EOF' >$ftest
 var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
-var f = "%x", x = {};
+var f = "%x", x = tab [];
 
 for (i = 1; i <= n; i++)
- x {vector (i, f)} = i;
+ x [vec (i, f)] = i;
 for (i = n; i > 0; i--)
- if (vector (i, f) in x)
+ if (vec (i, f) in x)
    c++;
 putln (c);
 EOF
@@ -2506,20 +2506,20 @@ fi
 
 cat <<'EOF' >$ftest
 var i, n = int (argv[0]);
-var hash1 = {};
+var hash1 = tab [];
 
 for (i = 0; i < 10000; i++)
-  hash1 {vector (i, "foo_%d")} = i;
+  hash1 [vec (i, "foo_%d")] = i;
 
-var k, hash2 = {};
-for (k in hash1)
-  hash2 {k} = 0;
+var k, hash2 = tab [];
+for (k: hash1)
+  hash2 [k] = 0;
 for (i = 0 ; i < n; i++)
-  for (k in hash1)
-    hash2 {k} += hash1 {k};
+  for (k: hash1)
+    hash2 [k] += hash1 [k];
 
-putln (hash1 {"foo_1"}, " ", hash1 {"foo_9999"}, " ",
-       hash2 {"foo_1"}, " ", hash2 {"foo_9999"});
+putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
 EOF
 Announce_DINO
 if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -3145,12 +3145,12 @@ var IA = 3877;
 var IC = 29573;
 var LAST = 42;
 
-func gen_random (max) {
+fun gen_random (max) {
   LAST = (LAST * IA + IC) % IM;
   return (max * LAST) / IM;
 }
 
-func heapsort (n, ra) {
+fun heapsort (n, ra) {
   var rra = 0, i = 0, j = 0;
   var l = (n >> 1) + 1;
   var ir = n;
@@ -3183,7 +3183,7 @@ func heapsort (n, ra) {
   }
 }
 
-func main {
+fun main {
   var i, n = (argv [0] < 1) ? 1 : int (argv [0]);
   var ary = [n + 1 : 0];
 
@@ -3192,7 +3192,7 @@ func main {
   
   heapsort (n, ary);
   
-  putln (vector (ary[n], "%.10f"));
+  putln (vec (ary[n], "%.10f"));
 }
 
 main ();
@@ -3781,7 +3781,7 @@ fi
 cat <<'EOF' >$ftest
 var SIZE = 10000;
 
-func test_lists {
+fun test_lists {
   var i, Li1 = [SIZE : 0];
 
   // create a list of integers (Li1) from 1 to SIZE
@@ -3812,7 +3812,7 @@ func test_lists {
   return (Li1 == Li2 ? #Li1 : 0);
 }
 
-func main() {
+fun main() {
   var result, NUM;
   for (NUM = argv [0] < 1 ? 1 : int (argv [0]); NUM > 0; NUM--)
     result = test_lists ();
@@ -4321,7 +4321,7 @@ fi
 cat <<'EOF' >$ftest
 var size = 30;
 
-func mkmatrix (rows, cols) {
+fun mkmatrix (rows, cols) {
   var i, j, count = 1;
   var tm, mx = [rows:1];
 
@@ -4336,7 +4336,7 @@ func mkmatrix (rows, cols) {
   return mx;
 }
 
-func mmult (rows, cols, m1, m2) {
+fun mmult (rows, cols, m1, m2) {
   var i, j, k, sum, tm, m3 = [rows:1];
 
   for (i = 0; i < rows; i++) {
@@ -4352,7 +4352,7 @@ func mmult (rows, cols, m1, m2) {
   return m3;
 }
 
-func main {
+fun main {
   var m1, m2, mm;
   var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
 
@@ -4374,7 +4374,7 @@ fi
 cat <<'EOF' >$ftest
 var size = 30;
 
-func mkmatrix (rows, cols) {
+fun mkmatrix (rows, cols) {
   var i, j, count = 1;
   var tm, mx = [rows:1];
 
@@ -4389,7 +4389,7 @@ func mkmatrix (rows, cols) {
   return mx;
 }
 
-func mmult (rows, cols, m1, m2) {
+fun mmult (rows, cols, m1, m2) {
   var i, j, tm, m3 = [rows:1];
 
   m2 = transpose (m2);
@@ -4403,7 +4403,7 @@ func mmult (rows, cols, m1, m2) {
   return m3;
 }
 
-func main {
+fun main {
   var m1, m2, mm;
   var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
 
@@ -4817,15 +4817,15 @@ fi
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
   var bool = start_state;
-  func value { return bool; }
-  func activate { bool = !bool; }
+  fun value { return bool; }
+  fun activate { bool = !bool; }
 }
 
 ext Toggle {
   class NthToggle (max_counter) {
     var count_max = max_counter;
     var counter = 0;
-    func activate {
+    fun activate {
       counter++;
       if (counter >= count_max) {
         bool = !bool;
@@ -4835,7 +4835,7 @@ ext Toggle {
   }
 }
 
-func main {
+fun main {
   var NUM = argv [0] < 1 ? 1 : int (argv [0]);
   var i, v = 1;
 
@@ -5563,15 +5563,15 @@ fi
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
   var bool = start_state;
-  func value { return bool; }
-  func activate { bool = !bool; }
+  fun value { return bool; }
+  fun activate { bool = !bool; }
 }
 
 ext Toggle {
   class NthToggle (max_counter) {
     var count_max = max_counter;
     var counter = 0;
-    func activate {
+    fun activate {
       counter++;
       if (counter >= count_max) {
         bool = !bool;
@@ -5581,7 +5581,7 @@ ext Toggle {
   }
 }
 
-func main {
+fun main {
   var NUM = argv [0] < 1 ? 1 : int (argv [0]);
   var i;
 
@@ -5879,7 +5879,7 @@ thread producer (n) {
   producer_finish = 1;
 }
 
-func main (n) {
+fun main (n) {
     producer (n);
     consumer (n);
     wait (consumer_finish && producer_finish);
@@ -6169,7 +6169,7 @@ var IA = 3877;
 var IC = 29573;
 var LAST = 42;
 
-func gen_random (max) {
+fun gen_random (max) {
   LAST = (LAST * IA + IC) % IM;
   return max * LAST / IM;
 }
@@ -6177,7 +6177,7 @@ func gen_random (max) {
 var n = (argv [0] < 1 ? 1 : argv [0]) - 1;
 for (; n; n--)
   gen_random (100);
-putln (vector (gen_random (100.0), "%.9f"));
+putln (vec (gen_random (100.0), "%.9f"));
 EOF
 Announce_DINO
 if test "x$NECHO" != x;then $NECHO "   ";fi
@@ -6554,7 +6554,7 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func main {
+fun main {
   var n = (argv [0] < 1) ? 1 : int (argv [0]);
   var ln, lno = 0, phones = [];
   
@@ -17486,7 +17486,7 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func main {
+fun main {
   var i, lns;
   
   lns = getf (1);
@@ -17802,7 +17802,7 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func main {
+fun main {
   var i, k, count, n = argv [0] < 1 ? 1 : int (argv [0]);
   var flags = [8193:0];
   for (; n >= 0; n--) {
@@ -17828,7 +17828,7 @@ if test x$dino_only != x; then
   Announce_Test "+++++           Slice Variant:"
 fi
 cat <<'EOF' >$ftest
-func main {
+fun main {
   var i, count, n = argv [0] < 1 ? 1 : int (argv [0]);
   var flags = [8193:0];
   for (; n >= 0; n--) {
@@ -95322,14 +95322,14 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func main {
-  var f, i, words, dict = {};
+fun main {
+  var f, i, words, dict = tab [];
   
   f = open ("__temp", "r");
   words = fgetf (f, 1);
   close (f);
   for (i = 0; i < #words; i++)
-    dict {words [i]} = 1;
+    dict [words [i]] = 1;
   
   words = getf (1);
   for (i = 0; i < #words; i++)
@@ -96295,7 +96295,7 @@ if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FA
 fi
 
 cat <<'EOF' >$ftest
-func main {
+fun main {
   var i, sum = 0.0;
   var lns = getf (1);
   var nums = [#lns:0];
@@ -96335,13 +96335,13 @@ func main {
   var median = (n % 2 == 0 ? (nums [mid] + nums [mid - 1]) / 2 : nums [mid]);
   
   putln ("n:                  ", n);
-  putln ("median:             ", vector (median, "%f"));
-  putln ("mean:               ", vector (mean, "%f"));
-  putln ("average_deviation:  ", vector (average_deviation, "%f"));
-  putln ("standard_deviation: ", vector (standard_deviation, "%f"));
-  putln ("variance:           ", vector (variance, "%f"));
-  putln ("skew:               ", vector (skew, "%f"));
-  putln ("kurtosis:           ", vector (kurtosis, "%f"));
+  putln ("median:             ", vec (median, "%f"));
+  putln ("mean:               ", vec (mean, "%f"));
+  putln ("average_deviation:  ", vec (average_deviation, "%f"));
+  putln ("standard_deviation: ", vec (standard_deviation, "%f"));
+  putln ("variance:           ", vec (variance, "%f"));
+  putln ("skew:               ", vec (skew, "%f"));
+  putln ("kurtosis:           ", vec (kurtosis, "%f"));
 }
 main();
 EOF
@@ -97738,7 +97738,7 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func main {
+fun main {
   var count = 0;
   
   for (;;)
@@ -100798,12 +100798,12 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func cmp (el1, el2) {
+fun cmp (el1, el2) {
   return cmpv (el1, el2);
 }
 
-func main {
-  var i, ln, v, word, freq = {};
+fun main {
+  var i, ln, v, word, freq = tab [];
   var rw = "[^[:alpha:]]+";
 
   for (;;)
@@ -100813,19 +100813,19 @@ func main {
       for (i = 0; i < #v; i++)
         try {
           word = v [i];
-          freq {word}++;
+          freq [word]++;
         } catch (errors.invkey) {
-          freq {word} = 1;
+          freq [word] = 1;
         }
     } catch (invcalls.eof) {
       break;
     }
-  v = vector (freq);
+  v = vec (freq);
   var words = [#v / 2 : 0];
   for (i = 0; i < #v; i += 2) words [i / 2] = v [i];
   words = sort (words, cmp);
   for (i = 0; i < #words; i++)
-    putln (freq {words [i]}, "\t", words [i]);
+    putln (freq [words [i]], "\t", words [i]);
 }
 
 main ();
@@ -101094,7 +101094,7 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func f {}
+fun f {}
 var i, n;
 n = int (argv [0]);
 for (i = 0; i < n; i++) f();
@@ -101262,7 +101262,7 @@ EOF
 fi
 
 cat <<'EOF' >$ftest
-func tak (x, y, z) {
+fun tak (x, y, z) {
   if (y >= x)
     return z;
   else
@@ -101462,7 +101462,7 @@ if (time $JS -m $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else
 fi
 
 cat <<'EOF' >$ftest
-func fact (x) {
+fun fact (x) {
   if (x <= 1)
     return 1;
   return x * fact (x-1);
@@ -102030,18 +102030,18 @@ cat <<'EOF' >$ftest
 var SieveSize, i, prime, k, count, iter, flags;
 SieveSize = int (argv [0]);
 
-flags = {};
+flags = tab [];
 for (iter = 0; iter < 10; iter++;)
   {
     count = 0;
     for (i = 0; i <= SieveSize; i++)
-      flags{i} = 1;
+      flags[i] = 1;
     for (i = 0; i <= SieveSize; i++;)
-      if (flags{i})
+      if (flags[i])
         {
           prime = i + i + 3;
           for (k = i + prime; k <= SieveSize;k += prime)
-            flags{k} = 0;
+            flags[k] = 0;
           count++;
         }
   }
@@ -102380,7 +102380,7 @@ fi
 cat <<'EOF' >$ftest
 var m1, m2;
 
-func mmult (m1, m2)
+fun mmult (m1, m2)
 {
   var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
 
@@ -102422,7 +102422,7 @@ fi
 cat <<'EOF' >$ftest
 var m1, m2;
 
-func mmult (m1, m2)
+fun mmult (m1, m2)
 {
   var i, j, m1rows, m1cols, m2rows, m2cols, result, tm, tr;
 
@@ -102799,27 +102799,27 @@ fi
 cat <<'EOF' >$ftest
 var m1, m2;
 
-func mmult (m1, m2)
+fun mmult (m1, m2)
 {
   var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
 
   m1rows = #m1; m2rows = #m2;
-  m1cols = #m1{0}; m2cols = #m2{0};
+  m1cols = #m1[0]; m2cols = #m2[0];
   if (m2cols != m2rows)
     {
        println ("matrices don't match");
        return;
     }
-  result = {};
+  result = tab [];
   for (i=0; i < m1rows; i++) {
-    result{i} = {};
-    tr = result{i};
+    result[i] = tab [];
+    tr = result[i];
     for (j=0; j < m2cols; j++) {
       el = 0;
-      tm = m1{i};
+      tm = m1[i];
       for (k=0; k < m1cols; k++)
-        el += tm{k}*m2{k}{j};
-      tr{j} = el;
+        el += tm[k]*m2[k][j];
+      tr[j] = el;
     }
   }
   return result;
@@ -102827,11 +102827,11 @@ func mmult (m1, m2)
 
 var i, j, n = int (argv [0]);
 
-m1 = {};
+m1 = tab [];
 for (i = 0;i < n; i++) {
-  m1{i} = {};
+  m1[i] = tab [];
   for (j = 0;j < n; j++)
-    m1{i}{j} = 2;
+    m1[i][j] = 2;
 }
 m2 = m1;
 mmult (m1, m2);
