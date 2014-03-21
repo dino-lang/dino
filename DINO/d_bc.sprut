@@ -24,8 +24,8 @@
 
 */
 
-%type position_t int_t floating_t string_t bool_t implementation_fun_t ticker_t
-      ER_hidden_node_t
+%type position_t int_t gmp_t floating_t string_t bool_t implementation_fun_t
+      ticker_t ER_hidden_node_t
 
 %import {
 
@@ -39,6 +39,14 @@ typedef void (*implementation_fun_t) (int_t pars_number);
 }
 
 %export {
+
+#if defined(NDEBUG)
+#define BC_mpz_ptr(s) (&BC_gmp_(s).mpz)
+#else
+#define BC_mpz_ptr(s) \
+  (BC_gmp_(s), &((_BC_ldl *) s)->_BC_S_ldl.gmp_.mpz)
+#endif
+
 /* This is type definition of program counter.  All byte code nodes is
    chained by members (one or two) of such type.  Remember that func
    may suspend the process therefore any expr should be also be
@@ -1020,6 +1028,12 @@ ldnil, ldthis :: op1; /* result place */
 flat :: op1; /* operand and result place */
 ldi, ldch, ldtp :: op2i; /* result place, value as int  */
 
+ldl :: op1 /* result place */
+%other
+	/* Don't use directly gmp_ for performance reasons.  Only use
+	   BC_mpz_ptr instead.  */
+        gmp_ : gmp_t
+;
 ldf :: op1 /* result place */
 %other
         f : floating_t
@@ -1053,7 +1067,7 @@ field :: op3
 fld, lfld, lfldv :: field;
 
 const, new, not, plus, minus, bnot, length,
- tpof, chof, iof, fof, vecof, tabof,
+ tpof, chof, iof, lof, fof, vecof, tabof,
  funof, threadof, classof :: op2; /* result and operand places */
 
 /* vector folding operation (info is source2: pos2 is an operand one): */
@@ -1145,15 +1159,19 @@ call, tcall :: op2i;
    current stack context, tcall means tail call.  */
 ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imcall;
 
-/* sleave is simple block leave.  position is block end or return
-   without value.  */
-leave, sleave :: bcode;
+/* sbend is simple block leave (at the end of the simple block).
+   position is block end or return without value.  */
+leave, sbend :: bcode;
 
 /* Analogous to leave but it is always the last code in the block
    statement chain. */
 bend :: bcode
 %other
 	block : block
+;
+
+/* Function block end.  */
+fbend :: bend
 ;
 
 ret :: op1  /* return with result: ret value place */
@@ -1852,3 +1870,9 @@ prepare_block (BC_node_t block)
 	BC_set_info (bc, BC_source (info));
       }
 }
+
+/*
+Local Variables:
+mode:c
+End:
+*/

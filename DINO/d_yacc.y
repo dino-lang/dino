@@ -103,7 +103,7 @@ static int repl_can_process_p (void);
 %token <pointer> NUMBER CHARACTER STRING IDENT
 %token <pos> ACLASS AFUN ATHREAD BREAK CATCH CHAR CLASS CLOSURE CONTINUE
        ELSE EXT EXTERN FINAL FLOAT FOR FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       NEW NIL OBJ PROCESS RETURN TAB THIS THREAD THROW TRY TYPE
+       LONG NEW NIL OBJ PROCESS RETURN TAB THIS THREAD THROW TRY TYPE
        VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
@@ -134,7 +134,7 @@ static int repl_can_process_p (void);
 %left '!' '#' '~' FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FINAL NEW
 /* For resolution of conflicts: `TAB .' and `TAB . [' or `TAB . (',
    and `CHAR .' and `CHAR. (' etc.  */
-%nonassoc TAB CHAR INT FLOAT VEC TYPE
+%nonassoc TAB CHAR INT LONG FLOAT VEC TYPE
 %left '(' '[' '.'
 
 %type <pos> pos
@@ -413,6 +413,7 @@ expr : expr '?' expr ':' expr
      | STRING        {$$ = $1;}
      | CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
      | INT           {$$ = create_node_with_pos (IR_NM_int_type, $1);}
+     | LONG          {$$ = create_node_with_pos (IR_NM_long_type, $1);}
      | FLOAT         {$$ = create_node_with_pos (IR_NM_float_type, $1);}
      | HIDE          {$$ = create_node_with_pos (IR_NM_hide_type, $1);}
      | HIDEBLOCK     {$$ = create_node_with_pos (IR_NM_hideblock_type, $1);}
@@ -435,6 +436,11 @@ expr : expr '?' expr ':' expr
      | INT '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_intof, $1);
+          IR_set_operand ($$, $3);
+        }
+     | LONG '(' expr ')'
+       	{
+          $$ = create_node_with_pos (IR_NM_longof, $1);
           IR_set_operand ($$, $3);
         }
      | FLOAT '(' expr ')'
@@ -2621,65 +2627,55 @@ int yylex (void)
           else if (isdigit (input_char))
             {
               /* Recognition numbers. */
-	      int float_flag = FALSE;
+	      enum read_number_code err_code;
+	      int read_ch_num, float_p, long_p, base;
+	      const char *result;
 
 	      source_position = current_position;
-              do
-                {
-                  /* `current_position' corresponds to `input_char' here. */
-                  current_position.column_number++;
-                  VLO_ADD_BYTE (symbol_text, input_char);
-                  input_char = d_getc ();
-                }
-              while (isdigit (input_char));
-              if (input_char == '.')
-                {
-                  float_flag = TRUE;
-                  do
-                    {
-		      /* `current_position' corresponds to
-                         `input_char' here. */
-		      current_position.column_number++;
-	              VLO_ADD_BYTE (symbol_text, input_char);
-                      input_char = d_getc ();
-                    }
-	          while (isdigit (input_char));
-                }
-              if (input_char == 'e' || input_char == 'E')
-                {
-		  float_flag = TRUE;
-		  current_position.column_number++;
-                  input_char = d_getc ();
-		  if (input_char != '+' && input_char != '-'
-		      && !isdigit (input_char))
-                    error (FALSE, current_position, ERR_exponent_absence);
+	      current_position.column_number++;
+	      err_code = read_number (input_char, d_getc, d_ungetc, &read_ch_num,
+				      &result, &base, &float_p, &long_p);
+	      if (err_code == ABSENT_EXPONENT)
+		{
+		  error (FALSE, source_position, ERR_exponent_absence);
+		  yylval.pointer = get_float_node (0.0, source_position);
+		}
+	      else if (err_code == NON_DECIMAL_FLOAT)
+		{
+		  error (FALSE, source_position,
+			 ERR_float_value_not_in_decimal_base);
+		  yylval.pointer = get_float_node (0.0, source_position);
+		}
+	      else if (err_code == WRONG_OCTAL_INT)
+		{
+		  error (FALSE, source_position, ERR_octal_int_value);
+		  yylval.pointer = get_int_node (0, source_position);
+		}
+	      else
+		{
+		  d_assert (err_code == NUMBER_OK);
+		  if (long_p)
+		    yylval.pointer = get_long_node (result,
+						    source_position, base);
 		  else
-                    {
-		      VLO_ADD_BYTE (symbol_text, 'e');
-		      do
+		    {
+		      if (float_p)
 			{
-			  /* `current_position' corresponds to
-                             `input_char' here. */
-			  current_position.column_number++;
-			  VLO_ADD_BYTE (symbol_text, input_char);
-			  input_char = d_getc ();
+			  yylval.pointer
+			    = get_float_node (a2f (result), source_position);
+			  if (errno)
+			    error (FALSE, source_position, ERR_float_value);
 			}
-		      while (isdigit (input_char));
-                    }
-                }
-	      VLO_ADD_BYTE (symbol_text, '\0');
-              d_ungetc (input_char);
-	      if (float_flag)
-		yylval.pointer
-		  = get_float_node (a2f (VLO_BEGIN (symbol_text)),
-				    source_position);
-              else
-		yylval.pointer
-		  = get_int_node (a2i (VLO_BEGIN (symbol_text)),
-				  source_position);
-	      if (errno)
-                error (FALSE, current_position,
-		       (float_flag ? ERR_float_value : ERR_int_value));
+		      else
+			{
+			  yylval.pointer
+			    = get_int_node (a2i (result, base), source_position);
+			  if (errno)
+			    error (FALSE, source_position, ERR_int_value);
+			}
+		    }
+		}
+	      current_position.column_number += read_ch_num;
               return NUMBER;
             }
           else

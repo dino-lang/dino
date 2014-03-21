@@ -29,6 +29,7 @@
 #include "arithm.h"
 #include "IEEE.h"
 #include <string.h>
+#include <stdio.h>
 
 /* Reset, bits, round etc. initi single, float, double. */
 

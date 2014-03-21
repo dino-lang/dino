@@ -22,7 +22,11 @@
 
 */
 
+#ifndef D_COMMON_H
+#define D_COMMON_H 1
+
 #include <stdarg.h>
+#include <stdio.h>
 #include "d_dino.h"
 
 #include "allocate.h"
@@ -56,6 +60,7 @@ extern int program_arguments_number;
 extern char **program_arguments;
 extern char **program_environment;
 extern position_t source_position;
+extern size_t gmp_memory_size;
 extern int bc_nodes_num;
 extern unsigned int heap_chunk_size;
 extern int repl_flag;
@@ -64,14 +69,33 @@ extern int trace_flag;
 extern int profile_flag;
 extern int dump_flag;
 extern double start_time;
-extern int it_is_int_string (const char *str);
-extern int_t a2i (const char *str);
+extern int_t a2i (const char *str, int base);
 extern floating_t a2f (const char *str);
 extern const char *i2a (int_t number);
 extern const char *f2a (floating_t number);
+extern const char *mpz2a (mpz_t number, int base, int upper_case_p);
+extern int mpz_ok_for_int_p (mpz_t number);
+extern int_t mpz2i (mpz_t number);
+extern void i2mpz (mpz_t mpz, int_t i);
+extern void f2mpz (mpz_t mpz, floating_t f);
+
+extern size_t hash_mpz (mpz_t mpz);
 extern char *get_ch_repr (int ch);
 extern int read_string_code (int input_char, int *correct_newln,
 			     int d_getc (void), void d_ungetc (int));
+enum read_number_code
+{
+  NUMBER_OK,
+  NON_DECIMAL_FLOAT,
+  ABSENT_EXPONENT,
+  WRONG_OCTAL_INT,
+};
+
+extern enum read_number_code
+read_number (int curr_ch, int get_ch (void), void unget_ch (int),
+	     int *read_ch_num, const char **result, int *base,
+	     int *float_p, int *long_p);
+
 extern void print_cont_prompt (void);
 extern void print_stmt_cont_prompt (void);
 extern void d_verror (int fatal_error_flag, position_t position,
@@ -132,3 +156,4 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define ATTRIBUTE_UNUSED
 #endif
 
+#endif

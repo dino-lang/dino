@@ -141,11 +141,13 @@ first_expr_processing (IR_node_t expr)
     {
     case IR_NM_char:
     case IR_NM_int:
+    case IR_NM_long:
     case IR_NM_float:
     case IR_NM_string:
     case IR_NM_nil:
     case IR_NM_char_type:
     case IR_NM_int_type:
+    case IR_NM_long_type:
     case IR_NM_float_type:
     case IR_NM_hide_type:
     case IR_NM_hideblock_type:
@@ -256,6 +258,7 @@ first_expr_processing (IR_node_t expr)
     case IR_NM_typeof:
     case IR_NM_charof:
     case IR_NM_intof:
+    case IR_NM_longof:
     case IR_NM_floatof:
     case IR_NM_vecof:
     case IR_NM_tabof:
@@ -915,6 +918,7 @@ process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
     case IR_NM_typeof: bc_node_mode = BC_NM_tpof; break;
     case IR_NM_charof: bc_node_mode = BC_NM_chof; break;
     case IR_NM_intof: bc_node_mode = BC_NM_iof; break;
+    case IR_NM_longof: bc_node_mode = BC_NM_lof; break;
     case IR_NM_floatof: bc_node_mode = BC_NM_fof; break;
     case IR_NM_vecof: bc_node_mode = BC_NM_vecof; break;
     case IR_NM_tabof: bc_node_mode = BC_NM_tabof; break;
@@ -1214,6 +1218,7 @@ ir2er_type (IR_node_mode_t irnm)
     {
     case IR_NM_char_type: return ER_NM_char;
     case IR_NM_int_type: return ER_NM_int;
+    case IR_NM_long_type: return ER_NM_long;
     case IR_NM_float_type: return ER_NM_float;
     case IR_NM_hide_type: return ER_NM_hide;
     case IR_NM_hideblock_type: return ER_NM_hideblock;
@@ -1302,6 +1307,14 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       IR_set_value_type (expr, EVT_INT);
       add_to_bcode (bc);
       break;
+    case IR_NM_long:
+      bc = new_bc_code_with_src (BC_NM_ldl, expr);
+      BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
+      mpz_init (*BC_mpz_ptr (bc));
+      mpz_set (*BC_mpz_ptr (bc), *IR_mpz_ptr (IR_unique_long (expr)));
+      IR_set_value_type (expr, EVT_INT);
+      add_to_bcode (bc);
+      break;
     case IR_NM_float:
       bc = new_bc_code_with_src (BC_NM_ldf, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
@@ -1330,6 +1343,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       break;
     case IR_NM_char_type:
     case IR_NM_int_type:
+    case IR_NM_long_type:
     case IR_NM_float_type:
     case IR_NM_hide_type:
     case IR_NM_hideblock_type:
@@ -1691,10 +1705,13 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       IR_set_value_type (expr, unary_slice_p (l) ? EVT_SLICE : EVT_CHAR);
       break;
     case IR_NM_intof:
+    case IR_NM_longof:
       process_unary_op (expr, result, curr_temp_vars_num);
       l = IR_operand (expr);
       type_test (l, EVT_NUMBER_VEC_SLICE_MASK,
-		 ERR_invalid_conversion_to_int_operand_type);
+		 node_mode == IR_NM_intof
+		 ? ERR_invalid_conversion_to_int_operand_type
+		 : ERR_invalid_conversion_to_long_operand_type);
       IR_set_value_type (expr, unary_slice_p (l) ? EVT_SLICE : EVT_INT);
       break;
     case IR_NM_floatof:
@@ -2825,15 +2842,16 @@ second_block_passing (IR_node_t first_level_stmt)
 		number_of_surrounding_blocks++;
 	      }
 	    second_block_passing (IR_block_stmts (stmt));
-	    if (fun_class == NULL && saved_curr_scope != NULL)
-	      block_finish = new_bc_code (simple_block_flag
-					  ? BC_NM_sleave : BC_NM_leave,
+	    if (fun_class == NULL && saved_curr_scope != NULL
+		&& simple_block_flag)
+	      block_finish = new_bc_code (BC_NM_sbend,
 					  new_bc_node (BC_NM_source,
 						       source_position));
 	    else
 	      {
 		/* Function or the implicit top block.  */
-		block_finish = new_bc_code (BC_NM_bend,
+		block_finish = new_bc_code (fun_class == NULL
+					    ? BC_NM_bend : BC_NM_fbend,
 					    new_bc_node (BC_NM_source,
 							 source_position));
 		BC_set_block (block_finish, curr_bc_scope);
@@ -2849,7 +2867,7 @@ second_block_passing (IR_node_t first_level_stmt)
 	      }
 	    if (fun_class != NULL && IR_IS_OF_TYPE (fun_class, IR_NM_class)
 		&& (BC_IS_OF_TYPE (BC_next (bc), BC_NM_leave)
-		    || BC_IS_OF_TYPE (BC_next (bc), BC_NM_bend)))
+		    || BC_IS_OF_TYPE (BC_next (bc), BC_NM_fbend)))
 	      BC_set_simple_p (bc, TRUE);
 	    BC_set_excepts (bc, NULL);
 	    if (fun_class != NULL)
@@ -2979,7 +2997,7 @@ nop_p (BC_node_t bc)
     return TRUE;
   else if (BC_NODE_MODE (bc) == BC_NM_block && BC_vars_num (bc) < 0)
     return TRUE;
-  else if (BC_NODE_MODE (bc) == BC_NM_sleave)
+  else if (BC_NODE_MODE (bc) == BC_NM_sbend)
     return TRUE;
   return FALSE;
 }
@@ -3092,7 +3110,7 @@ process_imcall (BC_node_t bc)
   if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
       && (next_pc = BC_next (bc)) != NULL
       && (BC_NODE_MODE (next_pc) == BC_NM_leave
-	  || BC_NODE_MODE (next_pc) == BC_NM_bend))
+	  || BC_NODE_MODE (next_pc) == BC_NM_fbend))
     {
       BC_node_mode_t bc_mode;
       

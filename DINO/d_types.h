@@ -36,7 +36,15 @@
 #endif
 #endif /* #ifdef HAVE_CONFIG_H */
 
-#include <stdio.h>
+#include <gmp.h>
+
+#if __GNU_MP__ < 2
+#error Too old GMP package
+#endif
+
+/* Type mpz_t is an one element array and array can not field type in
+   SPRUT.  Therefore we use a wrap up type.  */
+typedef struct { mpz_t mpz;} gmp_t;
 
 #ifdef HAVE_LIMITS_H
 #include <limits.h>

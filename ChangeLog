@@ -1,3 +1,146 @@
+2014-03-21  Vladimir N Makarov  <vmakarov@users.sf.net>
+
+	* AMMUNITION/position.h (struct _position_struct): Use const for
+	path.
+	* AMMUNITION/position.c (position_file_inclusion_level): Use const
+	for current_psoition_ref.
+	* DINO/Makefile.in: Remove d_gmp.[co] and gmp.d.  Update
+	dependencies.
+	* DINO/d_bc.sprut: Add emacs mode.
+	(gmp_t): New type.
+	(BC_mpz_ptr): New macro.
+	(ldl, lof, fbend): New nodes.
+	(sleave): Rename to sbend.
+	* DINO/d_bcn.shilka (ldl, lof, fbend): New nodes.
+	(sleave): Rename to sbend.
+	* DINO/d_bcf.shilka (mpz): New field.
+	* DINO/d_bcio.c (dump_code): Process new nodes.
+	(enum token): Add D_LONG.
+	(mpz_attr): New static.
+	(get_token): Process longs.
+	(read_bc_program): Process new fields and nodes. Make positions
+	flat (path field).
+	* DINO/d_common.h: Make sure that it processed only once.  Include
+	stdio.h.
+	(gmp_memory_size, mpz2a, mpz2i, i2mpz, f2mpz, hash_mpz): New
+	externals.
+	(it_is_int_string): Remove.
+	(a2i): Add parameter.
+	(enum read_number_code): New.
+	(read_number): New external.
+	* DINO/d_context.c (first_expr_processing): Process IR_NM_long,
+	IR_NM_longof, and IR_NM_long_type.
+	(second_expr_processing): Ditto.
+	(process_unary_op): Process IR_NM_longof.
+	(ir2er_type): Process IR_NM_long_type.
+	(second_block_passing): Gneerate sbend and fbend.
+	(nop_p): Use sbend instead of sleave.
+	(process_imcall): Use fbend instead of bend.
+	* DINO/d_conv.c (form_format_string): New.
+	(to_vect_string_conversion): Process long.  Use the new function.
+	(vindex, vnumber, vgetc, vungetc): New.
+	(implicit_arithmetic_conversion): Use read_number and the new
+	functions and vars.
+	(implicit_only_int_conversion): New.
+	(implicit_only_long_conversion): Ditto.
+	(implicit_only_float_conversion): Ditto.
+	(implicit_conversion_for_binary_arithmetic_op): Use the new
+	functions.
+	(implicit_int_conversion): Ditto.
+	(implicit_float_conversion, implicit_long_conversion): New.
+	(implicit_conversion_for_binary_int_op): Use the new functions.
+	(implicit_conversion_for_eq_op): Ditto.
+	* DINO/d_conv.h (form_format_stringe): New.
+	(implicit_float_conversion, implicit_long_conversion): Ditto.
+	* DINO/d_dino.c (it_is_int_string): Remove.
+	(a2i): Add base parameter.  Always use strtoll.
+	(repr_vlobj, mpz2a, mpz_ok_for_int_p, mpz2i, i2mpz, f2mpz): New.
+	(hash_mpz, number_text, read_number): Ditto.
+	(gmp_memory_size, gmp_alloc, gmp_realloc, gmp_free): Ditto.
+	(get_size_repr): Ditto.
+	(dino_finish): Call finish_icode.  Delete number_text and
+	repr_vlobj.  Use get_size_repr.  Print GMP memory size.
+	(dino_start): Call mp_set_memory_functions.  Create number_text
+	and repr_vlobj.
+	* DINO/d_dino.h: Remove stdio.h.
+	* DINO/d_errors.c (ERR_octal_int_value): New.
+	(ERR_float_value_not_in_decimal_base): Ditto.
+	(ERR_invalid_conversion_to_long_operand_type): Ditto.
+	(DERR_long_is_too_big_for_conversion_to_int): Ditto.
+	(DERR_conversion_to_long_operand_type): Ditto.
+	* DINO/d_errors.h (ERR_octal_int_value): New.
+	(ERR_float_value_not_in_decimal_base): Ditto.
+	(ERR_invalid_conversion_to_long_operand_type): Ditto.
+	(DERR_long_is_too_big_for_conversion_to_int): Ditto.
+	(DERR_conversion_to_long_operand_type): Ditto.
+	* DINO/d_eval.c (load_packed_vector_element): Process ER_NM_long.
+	(store_packed_vector_element): Ditto.
+	(process_slice_extract, process_slice_assign): Ditto.
+	(op_i1, op_i2, op_f1, op_f2, ar_convert, int_convert): Remove.
+	(long_bin_op, lbop, lfunc, lplus, lminus, lmult, lidiv, limod):
+	New.
+	(lcmpf, leq, lne, llt, lle, lgt, lge): New.
+	(lfunc1, ilfunc1, linary_minus, lunary_plus, lnot): New.
+	(execute_ar_op): Add paramter lop.  Process longs.
+	(execute_plus_op, execute_minus_op, execute_mult_op): Pass
+	paramter to execute_arr_op.
+	(execute_div_op, execute_mod_op): Ditto.
+	(execute_int_op): Don't use int_convert.
+	(execute_common_eq_ne_op, execute_common_cmp_op): Process longs.
+	(execute_identity_op, execute_not_op): Ditto.
+	(execute_unary_ar_op): Add paramter lop.  Process longs.
+	(execute_bitwise_not_op): Rearrange code.
+	(execute_longof_op): New.
+	(process_unary_vect_op): Pass paramter to execute_unary_arr_op.
+	(execute_btcmpinc): Remove fcmp.
+	(evaluate_code): Process new nodes and longs.  Remove arg in
+	execute_btcmpinc calls.  Pass new argument to execute_unary_ar_op.
+	Make specialized code for leave, bend, fbend.
+	* DINO/d_extern.sprut: Add missed extern.
+	(gmp_t): New type.
+	(val_t): New member l.
+	(ER_mpz_ptr): New.
+	(heap_gmp, long): New nodes.
+	* DINO/d_func.c (print_val): Process long.
+	(F_LONG, number_file, n_getc, n_ungetc): New.
+	(get_token): Use read_number and the new functions.
+	(scanel): Process F_LONG.
+	(general_putf_call): Use form_format_string.
+	(process_fun_class_call): Evaluate code and mode later.
+	* DINO/d_heap.c (initiate_int_tables): Process long.
+	(del_heap_chunks): Don't modify free_heap_memory.
+	(heap_allocate): Check gmp_memory_size to start GC.
+	(heap_object_size): Process heap_gmp.
+	(traverse_used_var, change_val, change_var): Process long.
+	(traverse_used_heap_object, change_obj_refs): Process long and
+	heap_gmp.
+	(move_object): Rename to move_or_destroy_object.  Clear gmps.
+	(GC): Add assert on free_gc_memory_percent.
+	(create_gmp, copy_gmp): New.
+	(hash_val, hash_key, eq_key): Process long.
+	* DINO/d_ieee.c: Include stdio.h.
+	* DINO/d_ir.sprut (IR_mpz_ptr, finish_icode, get_long_node): New.
+	(temp_unique_long): New.
+	(gmp_t): New type.
+	(unique_long, long, longof, long_type): New nodes.
+	(hash_func, compare_func): Process unique_long.
+	(initiate_icode): Create temp_unique_long.
+	* DINO/d_kw.shilka (long): New.
+	* DINO/d_types.h: Include gmp.
+	(gmp_t): New.
+	* DINO/d_yacc.y: Add longs.
+	(yylex): Use read_number.
+	* DINO/dino.tst.in: Change expected error positions for numbers.
+	(497): Expect also connection timed out.
+	(565): Use longs instead of gmp package.
+	(584): Change expected dump.
+	(579): Use longs instead of gmps.
+	(623): Add code for tail recursion.  Fix print for fgrep.
+	(650-665): New tests.
+	* configure: Update.
+	* configure.in: Check __gmpz_init instead of mpz_add.
+	* DINO/gmp.d, DINO/d_gmp.c: Remove.
+
 2014-03-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* MSTA/parser.c (output_switch): Use current_LR_set.

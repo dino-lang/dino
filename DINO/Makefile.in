@@ -141,7 +141,6 @@ dino_lib=$(dino_lib_name).$(dino_lib_suffix)
 # configure.in too.  If libraries will be static, add code also in
 # get_library_search_function (file d_main.c).
 extern_lib_suffix=@EXTERN_LIB_SUFFIX@
-gmp_lib=d_gmp.$(extern_lib_suffix)
 mpi_lib=d_mpi.$(extern_lib_suffix)
 ieee_lib=d_ieee.$(extern_lib_suffix)
 ipcerr_lib=d_ipcerr.$(extern_lib_suffix)
@@ -149,8 +148,8 @@ socket_lib=d_socket.$(extern_lib_suffix)
 
 # Libraries (separted by ":") which will be searched by default for
 # DINO externals in STANDARD_DINO_LIB_DIRECTORY or in $DINO_HOME.
-DINO_EXTERN_LIBS=$(gmp_lib) $(mpi_lib) $(ieee_lib) $(ipcerr_lib) $(socket_lib)
-DINO_EXTERN_LIBS_PATH=\"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib):$(gmp_lib)\"
+DINO_EXTERN_LIBS=$(mpi_lib) $(ieee_lib) $(ipcerr_lib) $(socket_lib)
+DINO_EXTERN_LIBS_PATH=\"$(mpi_lib):$(ieee_lib):$(ipcerr_lib):$(socket_lib)\"
 
 # Value of macro STANDARD_DINO_LIB_NAME
 DINO_LIB_NAME=\"$(dino_lib)\"
@@ -210,7 +209,6 @@ source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
          $(srcdir)/d_ir.sprut $(srcdir)/d_bc.sprut $(srcdir)/d_types.h\
          $(srcdir)/d_extern.sprut $(srcdir)/d_run.sprut $(srcdir)/d_heap.c\
  	 $(srcdir)/d_kw.shilka $(srcdir)/d_bcn.shilka $(srcdir)/d_bcf.shilka\
-	 $(srcdir)/d_gmp.c $(srcdir)/gmp.d\
 	 $(srcdir)/d_mpi.c $(srcdir)/mpi.d\
 	 $(srcdir)/d_ieee.c $(srcdir)/ieee.d\
 	 $(srcdir)/d_ipcerr.c $(srcdir)/ipcerr.d\
@@ -246,11 +244,6 @@ $(dino_lib): $(objects) $(ammunition)
 	rm -f $(dino_lib)
 	$(SHELL) -c "$(DINO_MAKELIB) $(objects) ../REGEX/regex.o $(ammunition)" $(dino_lib)
 	$(SHELL) -c "$(DINO_AFTER_MAKELIB)" $(dino_lib)
-
-$(gmp_lib): d_gmp.o
-	rm -f $(gmp_lib)
-	$(SHELL) -c "$(EXTERN_MAKELIB) d_gmp.o" $(gmp_lib)
-	$(SHELL) -c "$(EXTERN_AFTER_MAKELIB)" $(gmp_lib)
 
 $(mpi_lib): d_mpi.o arithm.o
 	rm -f $(mpi_lib)
@@ -320,12 +313,10 @@ install: all
 	$(INSTALL) dino $(DESTDIR)/$(bindir)/dino
 	-mkdir -p $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(dino_lib) $(DESTDIR)/$(dinolibdir)
-	$(INSTALLDATA) $(gmp_lib) $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(mpi_lib) $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(ieee_lib) $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(ipcerr_lib) $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(socket_lib) $(DESTDIR)/$(dinolibdir)
-	$(INSTALLDATA) $(srcdir)/gmp.d $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(srcdir)/mpi.d $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(srcdir)/ieee.d $(DESTDIR)/$(dinolibdir)
 	$(INSTALLDATA) $(srcdir)/ipcerr.d $(DESTDIR)/$(dinolibdir)
@@ -348,12 +339,10 @@ uninstall:
 	rm -f $(DESTDIR)/$(bindir)/dino-$(DINO_VERSION)
 	-rmdir $(DESTDIR)/$(bindir)
 	rm -f $(DESTDIR)/$(dinolibdir)/$(dino_lib)
-	rm -f $(DESTDIR)/$(dinolibdir)/$(gmp_lib)
 	rm -f $(DESTDIR)/$(dinolibdir)/$(mpi_lib)
 	rm -f $(DESTDIR)/$(dinolibdir)/$(ieee_lib)
 	rm -f $(DESTDIR)/$(dinolibdir)/$(ipcerr_lib)
 	rm -f $(DESTDIR)/$(dinolibdir)/$(socket_lib)
-	rm -f $(DESTDIR)/$(dinolibdir)/gmp.d
 	rm -f $(DESTDIR)/$(dinolibdir)/mpi.d
 	rm -f $(DESTDIR)/$(dinolibdir)/ieee.d
 	rm -f $(DESTDIR)/$(dinolibdir)/ipcerr.d
@@ -379,9 +368,9 @@ uninstall:
 # `d_run.c', `d_run.h' and also deletion of `d_kw.c', `d_bcn.c'm `d_bcf.c',
 # and `d_yacc.c'.
 clean :
-	rm -f $(objects) d_main.o $(dino_lib) $(gmp_lib) $(mpi_lib)\
+	rm -f $(objects) d_main.o $(dino_lib) $(mpi_lib)\
                          $(ieee_lib) $(ipcerr_lib) $(socket_lib)\
-                         d_gmp.o d_mpi.o arithm.o d_ieee.o IEEE.o bits.o\
+                         d_mpi.o arithm.o d_ieee.o IEEE.o bits.o\
                          d_ipcerr.o d_socket.o\
 			 dino\
 			 d_ir.c d_ir.h d_bc.c d_bc.h d_extern.h\
@@ -510,7 +499,6 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
 	   $(srcdir)/../DINO/d_eval.c $(srcdir)/../DINO/d_heap.c\
 	   $(srcdir)/../DINO/d_dino.c\
 	   $(srcdir)/../DINO/d_main.c\
-           $(srcdir)/../DINO/d_gmp.c\
 	   $(srcdir)/../DINO/d_mpi.c $(srcdir)/../AMMUNITION/arithm.c\
 	   $(srcdir)/../DINO/d_ieee.c\
 	   $(srcdir)/../DINO/d_ipcerr.c\
@@ -530,9 +518,7 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
                 | $(SED) 's%\$$(top_srcdir)/AMMUNITION/cocom-config\.h%../AMMUNITION/cocom-config.h%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_config\.h%../DINO/d_config.h%'\
                          >>Makefile.tmp;\
-	   if test $$i = $(srcdir)/../DINO/d_gmp.c;then \
-		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
-	   elif test $$i = $(srcdir)/../DINO/d_mpi.c -o $$i = $(srcdir)/../AMMUNITION/arithm.c;then \
+	   if test $$i = $(srcdir)/../DINO/d_mpi.c -o $$i = $(srcdir)/../AMMUNITION/arithm.c;then \
 		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
 	   elif test $$i = $(srcdir)/../DINO/d_ieee.c; then\
 		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
@@ -648,10 +634,7 @@ d_errors.o: $(top_srcdir)/DINO/../DINO/d_errors.c \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_ir.h \
- $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h \
- $(top_srcdir)/DINO/d_errors.h \
- $(top_srcdir)/DINO/d_types.h
+ $(top_srcdir)/DINO/d_common.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_errors.c
 d_runtab.o: $(top_srcdir)/DINO/../DINO/d_runtab.c \
  $(top_srcdir)/DINO/../DINO/d_common.h \
@@ -671,9 +654,6 @@ d_runtab.o: $(top_srcdir)/DINO/../DINO/d_runtab.c \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h \
- $(top_srcdir)/DINO/d_errors.h \
- $(top_srcdir)/DINO/d_types.h \
  $(top_srcdir)/DINO/../DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_runtab.c
 d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
@@ -693,10 +673,7 @@ d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_ir.h \
- $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h \
- $(top_srcdir)/DINO/d_errors.h \
- $(top_srcdir)/DINO/d_types.h d_bc.h d_run.h \
+ $(top_srcdir)/DINO/d_common.h d_bc.h d_run.h \
  $(top_srcdir)/DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_context.h \
@@ -719,10 +696,7 @@ d_bcio.o: $(top_srcdir)/DINO/../DINO/d_bcio.c \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_bc.h \
- $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h \
- $(top_srcdir)/DINO/d_errors.h \
- $(top_srcdir)/DINO/d_types.h d_bcn.c d_bcf.c \
+ $(top_srcdir)/DINO/d_common.h d_bcn.c d_bcf.c \
  $(top_srcdir)/DINO/../DINO/d_bcio.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_bcio.c
 d_conv.o: $(top_srcdir)/DINO/../DINO/d_conv.c \
@@ -745,10 +719,7 @@ d_conv.o: $(top_srcdir)/DINO/../DINO/d_conv.c \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/d_types.h \
  $(top_srcdir)/DINO/d_runtab.h \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h \
- $(top_srcdir)/DINO/../DINO/d_errors.h \
- $(top_srcdir)/DINO/../DINO/d_types.h
+ $(top_srcdir)/DINO/../DINO/d_common.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_conv.c
 d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c d_run.h \
  $(top_srcdir)/DINO/d_types.h d_config.h d_bc.h \
@@ -795,9 +766,6 @@ d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
  $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
  $(top_srcdir)/DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h \
- $(top_srcdir)/DINO/d_errors.h \
- $(top_srcdir)/DINO/d_types.h \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_func.h \
  $(top_srcdir)/DINO/../DINO/d_eval.h
@@ -840,10 +808,7 @@ d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_ir.h \
- $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h \
- $(top_srcdir)/DINO/d_errors.h \
- $(top_srcdir)/DINO/d_types.h d_run.h \
+ $(top_srcdir)/DINO/d_common.h d_run.h \
  $(top_srcdir)/DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_yacc.h \
@@ -872,9 +837,6 @@ d_main.o: $(top_srcdir)/DINO/../DINO/d_main.c \
  $(top_srcdir)/DINO/d_types.h \
  $(top_srcdir)/DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_main.c
-d_gmp.o: $(top_srcdir)/DINO/../DINO/d_gmp.c d_extern.h \
- $(top_srcdir)/DINO/d_types.h d_config.h
-	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_gmp.c
 d_mpi.o: $(top_srcdir)/DINO/../DINO/d_mpi.c d_extern.h \
  $(top_srcdir)/DINO/d_types.h d_config.h \
  $(top_srcdir)/AMMUNITION/arithm.h \

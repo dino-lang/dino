@@ -27,11 +27,12 @@ AC_ALLOCA
 AC_CONST
 
 dnl Checks for libraries.
-AC_CHECK_LIB(gmp, mpz_add, found=yes,found=no)
+AC_CHECK_LIB(gmp, __gmpz_init, found=yes,found=no)
 if test $found = yes; then
-AC_CHECK_LIB(gmp, mpz_add)
+  AC_CHECK_LIB(gmp, __gmpz_init)
 else
-AC_CHECK_LIB(gmp, __gmpz_add)
+  echo +++DINO requires gmp library -- Good bye.
+  exit 1
 fi
 AC_CHECK_LIB(m, log)
 AC_CHECK_LIB(dl, dlopen)
@@ -267,7 +268,7 @@ if test x$no_extern_shlib != x; then
   EXTERN_LIB_SUFFIX=a
   EXTERN_MAKELIB="ar rc \\\$\$0"
   EXTERN_AFTER_MAKELIB="$RANLIB \\\$\$0;echo \\\$\$0"
-  DINO_ADDITIONAL_LIBS="$DINO_ADDITIONAL_LIBS d_mpi.$EXTERN_LIB_SUFFIX d_ieee.$EXTERN_LIB_SUFFIX d_ipcerr.$EXTERN_LIB_SUFFIX d_socket.$EXTERN_LIB_SUFFIX d_gmp.$EXTERN_LIB_SUFFIX"
+  DINO_ADDITIONAL_LIBS="$DINO_ADDITIONAL_LIBS d_mpi.$EXTERN_LIB_SUFFIX d_ieee.$EXTERN_LIB_SUFFIX d_ipcerr.$EXTERN_LIB_SUFFIX d_socket.$EXTERN_LIB_SUFFIX"
 else
   echo +++We will use shared library for externals
 fi

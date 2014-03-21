@@ -24,6 +24,8 @@
 
 #include "d_run.h"
 
+extern void form_format_string (const char *fmt, ER_node_t pars, int n_pars,
+				const char *name);
 extern ER_node_t to_vect_string_conversion (ER_node_t var, const char *format,
 					    ER_node_t tvar);
 extern ER_node_t implicit_arithmetic_conversion (ER_node_t op1, ER_node_t tvar);
@@ -32,6 +34,8 @@ extern void implicit_conversion_for_binary_arithmetic_op (ER_node_t op1,
 							  ER_node_t *l,
 							  ER_node_t *r);
 extern ER_node_t implicit_int_conversion (ER_node_t op, ER_node_t tvar);
+extern ER_node_t implicit_float_conversion (ER_node_t op, ER_node_t tvar);
+extern ER_node_t implicit_long_conversion (ER_node_t op, ER_node_t tvar);
 extern void implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
 						   ER_node_t *l, ER_node_t *r);
 extern void implicit_conversion_for_binary_string_op (void);

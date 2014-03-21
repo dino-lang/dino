@@ -89,6 +89,7 @@ initiate_int_tables (void)
   type_size_table [ER_NM_hide] = sizeof (hide_t);
   type_size_table [ER_NM_char] = sizeof (char_t);
   type_size_table [ER_NM_int] = sizeof (int_t);
+  type_size_table [ER_NM_long] = sizeof (ER_node_t);
   type_size_table [ER_NM_float] = sizeof (floating_t);
   type_size_table [ER_NM_type] = sizeof (ER_node_mode_t);
   type_size_table [ER_NM_tab]
@@ -107,6 +108,7 @@ initiate_int_tables (void)
     = (char *) &((_ER_hideblock *) v)->hideblock - (char *) v;
   val_displ_table [ER_NM_char] = (char *) &((_ER_char *) v)->ch - (char *) v;
   val_displ_table [ER_NM_int] = (char *) &((_ER_int *) v)->i - (char *) v;
+  val_displ_table [ER_NM_long] = (char *) &((_ER_long *) v)->l - (char *) v;
   val_displ_table [ER_NM_float] = (char *) &((_ER_float *) v)->f - (char *) v;
   val_displ_table [ER_NM_type] = (char *) &((_ER_type *) v)->type - (char *) v;
   val_displ_table [ER_NM_vect] = (char *) &((_ER_vect *) v)->vect - (char *) v;
@@ -418,8 +420,6 @@ del_heap_chunks (int number_saved_chunks)
       curr_heap_chunk = &((struct heap_chunk *) VLO_BEGIN (heap_chunks)) [i];
       FREE (curr_heap_chunk->chunk_start);
       heap_chunks_number--;
-      free_heap_memory
-	-= curr_heap_chunk->chunk_bound - curr_heap_chunk->chunk_start;
       heap_size
 	-= curr_heap_chunk->chunk_bound - curr_heap_chunk->chunk_start;
     }
@@ -538,7 +538,7 @@ heap_allocate (size_t size, int stack_p)
     {
       /* We need GC.  Flag this.  */
       d_assert (executed_stmts_count <= 0);
-      if (heap_chunks_number >= 16)
+      if (heap_chunks_number >= 16 || gmp_memory_size > 10000000)
 	{
 	  GC_executed_stmts_count = executed_stmts_count;
 	  executed_stmts_count = 0;
@@ -587,6 +587,9 @@ heap_object_size (ER_node_t obj)
     case ER_NM_heap_hideblock:
       size = (ALLOC_SIZE (sizeof (_ER_heap_hideblock))
 	      + ER_hideblock_length (obj));
+      break;
+    case ER_NM_heap_gmp:
+      size = ALLOC_SIZE (sizeof (_ER_heap_gmp));
       break;
     default:
       d_unreachable ();
@@ -724,6 +727,9 @@ traverse_used_var (ER_node_t var)
     case ER_NM_float:
     case ER_NM_type:
       return;
+    case ER_NM_long:
+      traverse_used_heap_object (ER_l (var));
+      return;
     case ER_NM_hideblock:
       traverse_used_heap_object (ER_hideblock (var));
       return;
@@ -762,6 +768,7 @@ traverse_used_heap_object (ER_node_t obj)
   switch (ER_NODE_MODE (obj))
     {
     case ER_NM_heap_hideblock:
+    case ER_NM_heap_gmp:
       return;
     case ER_NM_heap_pack_vect:
       {
@@ -774,8 +781,8 @@ traverse_used_heap_object (ER_node_t obj)
 	    || el_type == ER_NM_float || el_type == ER_NM_type)
 	  return;
 	el_size = type_size_table [el_type];
-	if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
-	    || el_type == ER_NM_tab 
+	if (el_type == ER_NM_hideblock || el_type == ER_NM_long
+	    || el_type == ER_NM_vect || el_type == ER_NM_tab 
 	    || el_type == ER_NM_process || el_type == ER_NM_stack)
 	  for (i = 0; i < ER_els_number (obj); i++)
 	    traverse_used_heap_object
@@ -984,7 +991,7 @@ define_new_heap_object_places (void)
 /* The function changes one value with given VAL_ADDR of packed
    vector. The type of the value is given in MODE.  Don't use SPRUT
    access macros here.  They can check the reference which will refer
-   to correct object only after the heap compaction .*/
+   to correct object only after the heap compaction. */
 static void do_inline
 change_val (ER_node_mode_t mode, ER_node_t *val_addr)
 {
@@ -1003,6 +1010,7 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
     case ER_NM_tab:
       CHANGE_VECT_TAB_REF (*val_addr);
       return;
+    case ER_NM_long:
     case ER_NM_hideblock:
     case ER_NM_process:
     case ER_NM_stack:
@@ -1019,7 +1027,7 @@ change_val (ER_node_mode_t mode, ER_node_t *val_addr)
 /* The function changes variable VAR value if it refers to a heap
    object.  Don't use SPRUT access macros here.  They can check the
    reference which will refer to correct object only after the heap
-   compaction .*/
+   compaction. */
 static void
 change_var (ER_node_t var)
 {
@@ -1039,6 +1047,9 @@ change_var (ER_node_t var)
       return;
     case ER_NM_tab:
       CHANGE_VECT_TAB_REF (((_ER_tab *) var)->tab);
+      return;
+    case ER_NM_long:
+      CHANGE_REF (((_ER_long *) var)->l);
       return;
     case ER_NM_hideblock:
       CHANGE_REF (((_ER_hideblock *) var)->hideblock);
@@ -1078,8 +1089,8 @@ change_obj_refs (ER_node_t obj)
 	      || el_type == ER_NM_float || el_type == ER_NM_type)
 	    break;
 	  el_size = type_size_table [el_type];
-	  if (el_type == ER_NM_hideblock || el_type == ER_NM_vect
-	      || el_type == ER_NM_tab
+	  if (el_type == ER_NM_hideblock || el_type == ER_NM_long
+	      || el_type == ER_NM_vect || el_type == ER_NM_tab
 	      || el_type == ER_NM_process || el_type == ER_NM_stack)
 	    for (i = 0; i < ER_els_number (obj); i++)
 	      change_val (el_type,
@@ -1139,6 +1150,7 @@ change_obj_refs (ER_node_t obj)
 	CHANGE_REF (((_ER_heap_process *) obj)->next);
 	CHANGE_REF (((_ER_heap_process *) obj)->saved_cstack);
 	break;
+      case ER_NM_heap_gmp:
       case ER_NM_heap_hideblock:
 	break;
       default:
@@ -1192,12 +1204,17 @@ change_refs (void)
 }
 
 static do_inline char *
-move_object (ER_node_t obj, struct heap_chunk **descr,
-	     size_t *curr_heap_size, char *place)
+move_or_destroy_object (ER_node_t obj, struct heap_chunk **descr,
+			size_t *curr_heap_size, char *place)
 {
   size_t tailored_size;
 
-  if (ER_it_was_processed (obj))
+  if (! ER_it_was_processed (obj))
+    {
+      if (ER_NODE_MODE (obj) == ER_NM_heap_gmp)
+	mpz_clear (*ER_mpz_ptr (obj));
+    }
+  else
     {
       /* Tailor vector size only here although tailoring has been
 	 taken into account in place value.  Remeber that temp
@@ -1262,16 +1279,16 @@ compact_heap (void)
 	   curr_obj = next_obj)
 	{
 	  next_obj = next_heap_object (curr_obj);
-	  new_place = move_object (curr_obj, &curr_place_descr,
-				   &curr_heap_size, new_place);
+	  new_place = move_or_destroy_object (curr_obj, &curr_place_descr,
+					      &curr_heap_size, new_place);
 	}
       for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
 	   (char *) curr_obj < curr_descr->chunk_bound;
 	   curr_obj = next_obj)
 	{
 	  next_obj = next_heap_object (curr_obj);
-	  new_place = move_object (curr_obj, &curr_place_descr,
-				   &curr_heap_size, new_place);
+	  new_place = move_or_destroy_object (curr_obj, &curr_place_descr,
+					      &curr_heap_size, new_place);
 	}
     }
   curr_heap_chunk = curr_place_descr;
@@ -1396,7 +1413,8 @@ GC (void)
   gc_number++;
   free_gc_memory_percent
     = (free_gc_memory_percent * (gc_number - 1)
-       + 100 * free_heap_memory / heap_size) / gc_number;
+       + (100 * free_heap_memory) / heap_size) / gc_number;
+  d_assert (free_gc_memory_percent < 100);
   in_gc_p = FALSE;
 #if !defined (NO_PROFILE) && !HAVE_SETITIMER
   if (profile_flag)
@@ -1683,6 +1701,27 @@ create_hideblock (size_t length)
   ER_set_immutable (hideblock, FALSE);
   ER_set_hideblock_length (hideblock, length);
   return hideblock;
+}
+
+ER_node_t
+create_gmp (void)
+{
+  ER_node_t gmp;
+
+  gmp = heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_gmp)), FALSE);
+  ER_SET_MODE (gmp, ER_NM_heap_gmp);
+  ER_set_immutable (gmp, FALSE);
+  mpz_init (*ER_mpz_ptr (gmp));
+  return gmp;
+}
+
+ER_node_t
+copy_gmp (ER_node_t gmp)
+{
+  ER_node_t res = create_gmp ();
+
+  mpz_set (*ER_mpz_ptr (res), *ER_mpz_ptr (gmp));
+  return res;
 }
 
 
@@ -2113,6 +2152,8 @@ hash_val (ER_node_t val)
       return (size_t) ER_type (val);
     case ER_NM_hide:
       return (size_t) ER_hide (val);
+    case ER_NM_long:
+      return hash_mpz (*ER_mpz_ptr (ER_l (val)));
     case ER_NM_hideblock:
       return (size_t) ER_unique_number (ER_hideblock (val));
     case ER_NM_vect:
@@ -2147,6 +2188,7 @@ hash_key (ER_node_t key)
     case ER_NM_nil:
     case ER_NM_char:
     case ER_NM_int:
+    case ER_NM_long:
     case ER_NM_float:
     case ER_NM_type:
     case ER_NM_hide:
@@ -2278,6 +2320,9 @@ eq_key (ER_node_t entry_key, ER_node_t key)
       return ER_ch (key) == ER_ch (entry_key);
     case ER_NM_int:
       return ER_i (key) == ER_i (entry_key);
+    case ER_NM_long:
+      return mpz_cmp (*ER_mpz_ptr (ER_l (key)),
+		      *ER_mpz_ptr (ER_l (entry_key))) == 0;
     case ER_NM_float:
       return ER_f (key) == ER_f (entry_key);
     case ER_NM_type:

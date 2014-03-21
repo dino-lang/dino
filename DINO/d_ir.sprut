@@ -99,6 +99,13 @@ typedef enum access_val access_val_t;
 
 %export {
 
+#if defined(NDEBUG)
+#define IR_mpz_ptr(s) (&IR_gmp_(s).mpz)
+#else
+#define IR_mpz_ptr(s) \
+  (IR_gmp_(s), &((_IR_unique_long *) s)->_IR_S_unique_long.gmp_.mpz)
+#endif
+
 /* These macros for storage management of DINO internal representation: */
 
 /* Start work with the storage manager -- see DINO documentation. */
@@ -187,6 +194,7 @@ extern IR_node_t create_unique_node_with_string (IR_node_mode_t m,
                                                  char **string_in_pool_ptr);
 extern IR_node_t create_unique_ident_node (const char *str);
 extern void initiate_icode (void);
+extern void finish_icode (void);
 
 extern IR_node_t find_decl_in_given_scope (IR_node_t ident, IR_node_t scope);
 extern IR_node_t find_decl (IR_node_t ident, IR_node_t scope);
@@ -194,6 +202,7 @@ extern void set_environment_declarations (IR_node_t environment_scope);
 
 extern IR_node_t get_ident_node (char *name, position_t pos);
 extern IR_node_t get_int_node (int_t number_value, position_t pos);
+ extern IR_node_t get_long_node (const char *repr, position_t pos, int base);
 extern IR_node_t get_float_node (floating_t number_value, position_t pos);
 
 /* Variable name for the rest parameter values (...). */
@@ -206,6 +215,7 @@ extern IR_node_t get_float_node (floating_t number_value, position_t pos);
 
 extern IR_node_t temp_unique_ident;
 extern IR_node_t temp_unique_int;
+extern IR_node_t temp_unique_long;
 extern IR_node_t temp_unique_float;
 extern IR_node_t temp_unique_char;
 extern IR_node_t temp_unique_string;
@@ -473,6 +483,7 @@ os_t irp;
 
 IR_node_t temp_unique_ident;
 IR_node_t temp_unique_int;
+IR_node_t temp_unique_long;
 IR_node_t temp_unique_float;
 IR_node_t temp_unique_char;
 IR_node_t temp_unique_string;
@@ -482,8 +493,8 @@ IR_node_t destroy_unique_ident;
 
 }
 
-%type char_t int_t floating_t string_t integer_t bool_t position_t type_mask_t
-      ticker_t BC_hidden_node_t access_val_t
+%type char_t int_t gmp_t floating_t string_t integer_t bool_t position_t
+      type_mask_t ticker_t BC_hidden_node_t access_val_t
 
 %%
 
@@ -513,6 +524,12 @@ unique_char :: ir_node
 unique_int :: ir_node
 %other
         int_value : int_t
+;
+
+unique_long :: ir_node
+%other
+        /* Don't use directly gmp_, only use IR_mpz_ptr instead.  */
+        gmp_ : gmp_t
 ;
 
 unique_float :: ir_node
@@ -557,6 +574,11 @@ char :: expr
 int :: expr
 %other
         unique_int : unique_int /* always defined */
+;
+
+long :: expr
+%other
+        unique_long : unique_long /* always defined */
 ;
 
 float :: expr
@@ -618,7 +640,7 @@ cond :: expr
 
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
   fold_plus, fold_mult, fold_and, fold_xor, fold_or,
-  typeof, charof, intof, floatof, vecof, tabof,
+  typeof, charof, intof, longof, floatof, vecof, tabof,
   funof, threadof, classof :: unary_operation
 ;
 
@@ -655,7 +677,7 @@ type :: expr
 
 /* The following nodes represent different types.  Type of nil is used
    only in the evaluator.  Actually there is no nodes `nil_type'. */
-nil_type, hide_type, hideblock_type, char_type, int_type, float_type,
+nil_type, hide_type, hideblock_type, char_type, int_type, long_type, float_type,
    vec_type, tab_type, fun_type, stack_type, process_type,
    type_type :: type
 ;
@@ -1077,6 +1099,8 @@ hash_func (hash_table_entry_t el_ptr)
     hash_value
       = ((unsigned) (long) IR_scope (node_ref)
 	 + (unsigned) (long) IR_GET_UNIQUE_IDENT (IR_ident (node_ref)));
+  else if (mode == IR_NM_unique_long)
+    hash_value = hash_mpz (*IR_mpz_ptr (node_ref));
   else
     {
       if (mode == IR_NM_unique_char)
@@ -1155,6 +1179,9 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
 	  else if (mode1 == IR_NM_unique_int)
 	    elements_are_equal
 	      = (IR_int_value (node_ref1) == IR_int_value (node_ref2));
+	  else if (mode1 == IR_NM_unique_long)
+	    elements_are_equal
+	      = mpz_cmp (*IR_mpz_ptr (node_ref1), *IR_mpz_ptr (node_ref2)) == 0;
 	  else if (mode1 == IR_NM_unique_float)
 	    elements_are_equal
 	      = (IR_float_value (node_ref1) == IR_float_value (node_ref2));
@@ -1299,12 +1326,18 @@ initiate_icode (void)
   IR_start ();
   temp_unique_ident = IR_create_node (IR_NM_unique_ident);
   temp_unique_int = IR_create_node (IR_NM_unique_int);
+  temp_unique_long = IR_create_node (IR_NM_unique_long);
   temp_unique_float = IR_create_node (IR_NM_unique_float);
   temp_unique_char = IR_create_node (IR_NM_unique_char);
   temp_unique_string = IR_create_node (IR_NM_unique_string);
   temp_ident = IR_create_node (IR_NM_ident);
   temp_decl = IR_create_node (IR_NM_var);
   destroy_unique_ident = create_unique_ident_node ("destroy");
+}
+
+void
+finish_icode (void)
+{
 }
 
 
@@ -1377,6 +1410,28 @@ get_int_node (int_t number_value, position_t pos)
     }
   result = create_node_with_pos (IR_NM_int, pos);
   IR_set_unique_int (result, unique_number_value_node);
+  return result;
+}
+
+/* Return new long node with given representation REP in BASE and
+   POS. */
+IR_node_t
+get_long_node (const char *rep, position_t pos, int base)
+{
+  IR_node_t result;
+  IR_node_t unique_number_value_node;
+
+  mpz_init_set_str (*IR_mpz_ptr (temp_unique_long), rep, base);
+  unique_number_value_node = *find_table_entry (temp_unique_long, FALSE);
+  if (unique_number_value_node == NULL)
+    {
+      unique_number_value_node = create_node (IR_NM_unique_long);
+      mpz_init_set_str (*IR_mpz_ptr (unique_number_value_node), rep, base);
+      include_to_table (unique_number_value_node);
+    }
+  mpz_clear (*IR_mpz_ptr (temp_unique_long));
+  result = create_node_with_pos (IR_NM_long, pos);
+  IR_set_unique_long (result, unique_number_value_node);
   return result;
 }
 

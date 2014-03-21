@@ -34,6 +34,8 @@
 char ERR_no_memory[] = "no memory";
 char ERR_invalid_char_constant[] = "invalid character constant";
 char ERR_invalid_input_char[] = "invalid symbol";
+char ERR_octal_int_value[] = "octal int with non-octal digit";
+char ERR_float_value_not_in_decimal_base[] = "float is not in decimal base";
 char ERR_float_value[] = "too big or too small floating point value";
 char ERR_int_value[] = "too big integer value";
 char ERR_string_end_absence[] = "string end is absent";
@@ -96,6 +98,8 @@ char ERR_invalid_conversion_to_char_operand_type []
   = "invalid operand type in char (...)";
 char ERR_invalid_conversion_to_int_operand_type []
   = "invalid operand type in int (...)";
+char ERR_invalid_conversion_to_long_operand_type []
+  = "invalid operand type in long (...)";
 char ERR_invalid_conversion_to_float_operand_type []
   = "invalid operand type in float (...)";
 char ERR_invalid_conversion_to_vector_operand_type []
@@ -223,6 +227,10 @@ char DERR_conversion_to_char_operand_type []
   = "run time error - invalid type of operand of char (...)";
 char DERR_conversion_to_int_operand_type []
   = "run time error - invalid type of operand of int (...)";
+char DERR_long_is_too_big_for_conversion_to_int []
+  = "run time error - long is too big for conversion to int";
+char DERR_conversion_to_long_operand_type []
+  = "run time error - invalid type of operand of long (...)";
 char DERR_conversion_to_float_operand_type []
   = "run time error - invalid type of operand of float (...)";
 char DERR_conversion_to_vector_operand_type []

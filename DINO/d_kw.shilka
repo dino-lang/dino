@@ -39,13 +39,14 @@ final    {return FINAL;}
 float    {return FLOAT;}
 for      {return FOR;}
 friend   {return FRIEND;}
-fun    {return FUN;}
+fun      {return FUN;}
 hide     {return HIDE;}
 hideblock{return HIDEBLOCK;}
 if       {return IF;}
 in       {return IN;}
 include  {return INCLUDE;}
 int      {return INT;}
+long     {return LONG;}
 new      {return NEW;}
 nil      {return NIL;}
 obj      {return OBJ;}

@@ -319,6 +319,9 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
     case ER_NM_float:
       ER_set_f (to, ((floating_t *) ER_pack_els (vect)) [index_val]);
       break;
+    case ER_NM_long:
+      ER_set_l (to, ((ER_node_t *) ER_pack_els (vect)) [index_val]);
+      break;
     case ER_NM_type:
       ER_set_type (to, ((ER_node_mode_t *) ER_pack_els (vect)) [index_val]);
       break;
@@ -394,6 +397,9 @@ store_packed_vector_element (ER_node_t vect, int_t index_val, ER_node_t val)
       break;
     case ER_NM_float:
       ((floating_t *) ER_pack_els (vect)) [index_val] = ER_f (val);
+      break;
+    case ER_NM_long:
+      ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_l (val);
       break;
     case ER_NM_type:
       ((ER_node_mode_t *) ER_pack_els (vect)) [index_val] = ER_type (val);
@@ -624,6 +630,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		((ER_node_mode_t *) pack_els) [i]
 		  = ((ER_node_mode_t *) pack_els1) [i1];
 	      break;
+	    case ER_NM_long:
 	    case ER_NM_vect:
 	    case ER_NM_tab:
 	    case ER_NM_process:
@@ -778,6 +785,10 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      for (i1 = start1; i1 != bound1; i1 += step1)
 		((floating_t *) pack_els1) [i1] = ER_f (container2);
 	      break;
+	    case ER_NM_long:
+	      for (i1 = start1; i1 != bound1; i1 += step1)
+		((ER_node_t *) pack_els1) [i1] = ER_l (container2);
+	      break;
 	    case ER_NM_type:
 	      for (i1 = start1; i1 != bound1; i1 += step1)
 		((ER_node_mode_t *) pack_els1) [i1] = ER_type (container2);
@@ -866,6 +877,10 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
 		((floating_t *) pack_els1) [i1]
 		  = ((floating_t *) pack_els2) [i2];
+	      break;
+	    case ER_NM_long:
+	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
+		((ER_node_t *) pack_els1) [i1] = ((ER_node_t *) pack_els2) [i2];
 	      break;
 	    case ER_NM_type:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
@@ -1099,49 +1114,8 @@ find_catch_pc (ER_node_t except)
   return NULL;
 }
 
-/* Temporary variables used as result of conversion functions.  */
-static int_t op_i1, op_i2;
-static floating_t op_f1, op_f2;
-
-/* Do arithmetic conversion of OP1 and OP2.  Use MSG in case of
-   error.  */
-static int do_inline
-ar_convert (ER_node_t op1, ER_node_t op2, const char *msg)
-{
-  ER_node_t l, r;
-
-  implicit_conversion_for_binary_arithmetic_op (op1, op2, &l, &r);
-  if ((ER_NODE_MODE (r) != ER_NM_int && ER_NODE_MODE (r) != ER_NM_float)
-      || (ER_NODE_MODE (l) != ER_NM_int && ER_NODE_MODE (l) != ER_NM_float))
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), msg);
-  if (ER_NODE_MODE (l) == ER_NM_int)
-    {
-      op_i1 = ER_i (l);
-      op_i2 = ER_i (r);
-      return TRUE;
-    }
-  op_f1 = ER_f (l);
-  op_f2 = ER_f (r);
-  return FALSE;
-}
-
-/* Do integer conversion of OP1 and OP2.  Use MSG in case of
-   error.  */
-static void do_inline
-int_convert (ER_node_t op1, ER_node_t op2, const char *msg)
-{
-  ER_node_t l, r;
-
-  implicit_conversion_for_binary_int_op (op1, op2, &l, &r);
-  if (ER_NODE_MODE (r) != ER_NM_int || ER_NODE_MODE (l) != ER_NM_int)
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), msg);
-  op_i1 = ER_i (l);
-  op_i2 = ER_i (r);
-  return;
-}
-
 /* The following three functions return TRUE if OP1 and OP2 are
-   correspondingly int, float, or slice type.  */
+   correspondingly int, float, long, or slice type.  */
 static int do_always_inline
 int_bin_op (ER_node_t op1, ER_node_t op2)
 {
@@ -1152,6 +1126,12 @@ static int do_always_inline
 float_bin_op (ER_node_t op1, ER_node_t op2)
 {
   return ER_NODE_MODE (op1) == ER_NM_float && ER_NODE_MODE (op2) == ER_NM_float;
+}
+
+static int do_always_inline
+long_bin_op (ER_node_t op1, ER_node_t op2)
+{
+  return ER_NODE_MODE (op1) == ER_NM_long && ER_NODE_MODE (op2) == ER_NM_long;
 }
 
 static int do_always_inline
@@ -1198,6 +1178,29 @@ fcmpf (fle) { return a <= b;}
 fcmpf (fgt) { return a > b;}
 fcmpf (fge) { return a >= b;}
 
+static do_always_inline ER_node_t
+lbop (ER_node_t a, ER_node_t b, void mpzf (mpz_t, const mpz_t, const mpz_t)) {
+  ER_node_t res = create_gmp ();
+
+  mpzf (*ER_mpz_ptr (res), *ER_mpz_ptr (a), *ER_mpz_ptr (b));
+  return res;
+}
+
+#define lfunc(name) static do_always_inline ER_node_t name (ER_node_t a, ER_node_t b)
+lfunc (lplus) { return lbop (a, b, mpz_add);}
+lfunc (lminus) { return lbop (a, b, mpz_sub);}
+lfunc (lmult) { return lbop (a, b, mpz_mul);}
+lfunc (lidiv) { return lbop (a, b, mpz_tdiv_q);}
+lfunc (limod) { return lbop (a, b, mpz_tdiv_r);}
+
+#define lcmpf(name) static do_always_inline int name (ER_node_t a, ER_node_t b)
+lcmpf (leq) { return mpz_cmp (*ER_mpz_ptr (a), *ER_mpz_ptr (b)) == 0;}
+lcmpf (lne) { return mpz_cmp (*ER_mpz_ptr (a), *ER_mpz_ptr (b)) != 0;}
+lcmpf (llt) { return mpz_cmp (*ER_mpz_ptr (a), *ER_mpz_ptr (b)) < 0;}
+lcmpf (lle) { return mpz_cmp (*ER_mpz_ptr (a), *ER_mpz_ptr (b)) <= 0;}
+lcmpf (lgt) { return mpz_cmp (*ER_mpz_ptr (a), *ER_mpz_ptr (b)) > 0;}
+lcmpf (lge) { return mpz_cmp (*ER_mpz_ptr (a), *ER_mpz_ptr (b)) >= 0;}
+
 /* Return true if OP1 is a slice.  */
 static int do_always_inline
 vect_unary_op (ER_node_t op1)
@@ -1212,6 +1215,8 @@ static void unary_vect_op (ER_node_t, ER_node_t);
 #define ifunc1(name) static do_always_inline int_t name (int_t a)
 #define ffunc1(name) static do_always_inline floating_t name (floating_t a)
 #define iffunc1(name) static do_always_inline int_t name (floating_t a)
+#define lfunc1(name) static do_always_inline ER_node_t name (ER_node_t a)
+#define ilfunc1(name) static do_always_inline int_t name (ER_node_t a)
 ifunc1 (iunary_plus) { return a;}
 ifunc1 (iunary_minus) { return -a;}
 ffunc1 (funary_plus) { return a;}
@@ -1220,13 +1225,25 @@ ifunc1 (inot) { return a == 0;}
 iffunc1 (fnot) { return a == 0.0;}
 ifunc1 (ibitwise_not) { return ~a;}
 
+lfunc1 (lunary_minus)
+{
+  ER_node_t res = create_gmp ();
+
+  mpz_neg (*ER_mpz_ptr (res), *ER_mpz_ptr (a));
+  return res;
+}
+
+lfunc1 (lunary_plus) {return copy_gmp (a);}
+ilfunc1 (lnot) { return mpz_sgn (*ER_mpz_ptr (a)) == 0; }
+
 /* Do arithmetic operations using iop or fop on OP1 and OP2.  Put
    result into RES.  Use MSG in case of error.  Check and do vector
    operations if VECT_P.  */
 static void do_always_inline
 execute_ar_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
 	       const char *err_message, int_t iop (int_t, int_t),
-	       floating_t fop (floating_t, floating_t))
+	       floating_t fop (floating_t, floating_t),
+	       ER_node_t lop (ER_node_t, ER_node_t))
 {
   if (int_bin_op (op1, op2))
     {
@@ -1240,15 +1257,34 @@ execute_ar_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
     }
   else if (vect_p && vect_bin_op (op1, op2))
     binary_vect_op (res, op1, op2);
-  else if (ar_convert (op1, op2, err_message))
-    {
-      ER_SET_MODE (res, ER_NM_int);
-      ER_set_i (res, iop (op_i1, op_i2));
-    }
   else
     {
-      ER_SET_MODE (res, ER_NM_float);
-      ER_set_f (res, fop (op_f1, op_f2));
+      ER_node_t l, r;
+
+      implicit_conversion_for_binary_arithmetic_op (op1, op2, &l, &r);
+      if (int_bin_op (l, r))
+	{
+	  int_t op_i1 = ER_i (l), op_i2 = ER_i (r);
+
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, iop (op_i1, op_i2));
+	}
+      else if (float_bin_op (l, r))
+	{
+	  floating_t op_f1 = ER_f (l), op_f2 = ER_f (r);
+
+	  ER_SET_MODE (res, ER_NM_float);
+	  ER_set_f (res, fop (op_f1, op_f2));
+	}
+      else if (long_bin_op (l, r))
+	{
+	  ER_node_t op1 = ER_l (l), op2 = ER_l (r);
+
+	  ER_SET_MODE (res, ER_NM_long);
+	  ER_set_l (res, lop (op1, op2));
+	}
+      else
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), err_message);
     }
 }
 
@@ -1259,35 +1295,35 @@ static void do_inline
 execute_plus_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_plus_operands_types,
-		 iplus, fplus);
+		 iplus, fplus, lplus);
 }
 
 static void do_inline
 execute_minus_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_minus_operands_types,
-		 iminus, fminus);
+		 iminus, fminus, lminus);
 }
 
 static void do_inline
 execute_mult_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_mult_operands_types,
-		 imult, fmult);
+		 imult, fmult, lmult);
 }
 
 static void do_inline
 execute_div_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_div_operands_types,
-		 idiv, fdiv);
+		 idiv, fdiv, lidiv);
 }
 
 static void do_inline
 execute_mod_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_mod_operands_types,
-		 imod, frem);
+		 imod, frem, limod);
 }
 
 /* Do integer operations using iop on OP1 and OP2.  Put result into
@@ -1306,9 +1342,18 @@ execute_int_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
     binary_vect_op (res, op1, op2);
   else 
     {
-      int_convert (op1, op2, err_message);
-      ER_SET_MODE (res, ER_NM_int);
-      ER_set_i (res, iop (op_i1, op_i2));
+      ER_node_t l, r;
+
+      implicit_conversion_for_binary_int_op (op1, op2, &l, &r);
+      if (int_bin_op (l, r))
+	{
+	  int_t op_i1 = ER_i (l), op_i2 = ER_i (r);
+
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, iop (op_i1, op_i2));
+	}
+      else
+	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), err_message);
     }
 }
 
@@ -1510,6 +1555,9 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
       case ER_NM_float:
 	cmp = ER_f (r) == ER_f (l);
 	break;
+      case ER_NM_long:
+        cmp = leq (ER_l (r), ER_l (l));
+	break;
       case ER_NM_type:
 	cmp = ER_type (r) == ER_type (l);
 	break;
@@ -1594,23 +1642,27 @@ execute_common_cmp_op (BC_node_mode_t oper, ER_node_t res,
       return;
     }
   implicit_conversion_for_binary_arithmetic_op (op1, op2, &l, &r);
-  if ((ER_NODE_MODE (r) != ER_NM_int && ER_NODE_MODE (r) != ER_NM_float)
-      || (ER_NODE_MODE (l) != ER_NM_int && ER_NODE_MODE (l) != ER_NM_float))
+  if (int_bin_op (l, r))
+    cmp = (oper == BC_NM_lt ? ER_i (l) < ER_i (r)
+	   : (oper == BC_NM_gt ? ER_i (l) > ER_i (r)
+	      : (oper == BC_NM_le ? ER_i (l) <= ER_i (r)
+		 : ER_i (l) >= ER_i (r))));
+  else if (float_bin_op (l, r))
+    cmp = (oper == BC_NM_lt ? ER_f (l) < ER_f (r)
+	   : (oper == BC_NM_gt ? ER_f (l) > ER_f (r)
+	      : (oper == BC_NM_le ? ER_f (l) <= ER_f (r)
+		 : ER_f (l) >= ER_f (r))));
+  else if (long_bin_op (l, r))
+    cmp = (oper == BC_NM_lt ? llt (ER_l (l), ER_l (r))
+	   : (oper == BC_NM_gt ? lgt (ER_l (l), ER_l (r))
+	      : (oper == BC_NM_le ? lle (ER_l (l), ER_l (r))
+		 : lge (ER_l (l), ER_l (r)))));
+  else
     eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		(oper == BC_NM_lt ? DERR_lt_operands_types
 		 : (oper == BC_NM_gt ? DERR_gt_operands_types
 		    : (oper == BC_NM_le ? DERR_le_operands_types
 		       : DERR_ge_operands_types))));
-  if (ER_NODE_MODE (l) == ER_NM_int)
-    cmp = (oper == BC_NM_lt ? ER_i (l) < ER_i (r)
-	   : (oper == BC_NM_gt ? ER_i (l) > ER_i (r)
-	      : (oper == BC_NM_le ? ER_i (l) <= ER_i (r)
-		 : ER_i (l) >= ER_i (r))));
-  else
-    cmp = (oper == BC_NM_lt ? ER_f (l) < ER_f (r)
-	   : (oper == BC_NM_gt ? ER_f (l) > ER_f (r)
-	      : (oper == BC_NM_le ? ER_f (l) <= ER_f (r)
-		 : ER_f (l) >= ER_f (r))));
   ER_SET_MODE (res, ER_NM_int);
   ER_set_i (res, cmp);
 }
@@ -1686,6 +1738,9 @@ execute_identity_op (int identity_p,
       case ER_NM_float:
 	cmp = ER_f (op1) == ER_f (op2);
 	break;
+      case ER_NM_long:
+	cmp = mpz_cmp (*ER_mpz_ptr (ER_l (op1)), *ER_mpz_ptr (ER_l (op2))) == 0;
+	break;
       case ER_NM_type:
 	cmp = ER_type (op1) == ER_type (op2);
 	break;
@@ -1737,7 +1792,8 @@ execute_identity_op (int identity_p,
 static void do_always_inline
 execute_unary_ar_op (ER_node_t res, ER_node_t op1, int vect_p,
 		     const char *err_message, int_t iop (int_t),
-		     floating_t fop (floating_t))
+		     floating_t fop (floating_t),
+		     ER_node_t lop (ER_node_t))
 {
   int_t i;
   floating_t f;
@@ -1756,22 +1812,27 @@ execute_unary_ar_op (ER_node_t res, ER_node_t op1, int vect_p,
       return;
     }
   op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-  if (ER_NODE_MODE (op1) != ER_NM_int
-      && ER_NODE_MODE (op1) != ER_NM_float)
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		err_message);
   if (ER_NODE_MODE (op1) == ER_NM_int)
     {
       i = iop (ER_i (op1));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i);
     }
-  else
+  else if (ER_NODE_MODE (op1) == ER_NM_float)
     {
       f = fop (ER_f (op1));
       ER_SET_MODE (res, ER_NM_float);
       ER_set_f (res, f);
     }
+  else if (ER_NODE_MODE (op1) == ER_NM_long)
+    {
+      ER_node_t l = lop (ER_l (op1));
+      ER_SET_MODE (res, ER_NM_long);
+      ER_set_l (res, l);
+    }
+  else
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+		err_message);
 }
 
 /* The following different functions to implement unary
@@ -1796,14 +1857,15 @@ execute_not_op (ER_node_t res, ER_node_t op1, int vect_p)
       return;
     }
   op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-  if (ER_NODE_MODE (op1) != ER_NM_int
-      && ER_NODE_MODE (op1) != ER_NM_float)
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		DERR_not_operand_type);
   if (ER_NODE_MODE (op1) == ER_NM_int)
     i = inot (ER_i (op1));
-  else
+  else if (ER_NODE_MODE (op1) == ER_NM_float)
     i = fnot (ER_f (op1));
+  else if (ER_NODE_MODE (op1) == ER_NM_long)
+    i = lnot (ER_l (op1));
+  else
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+		DERR_not_operand_type);
   ER_SET_MODE (res, ER_NM_int);
   ER_set_i (res, i);
 }
@@ -1815,7 +1877,11 @@ execute_bitwise_not_op (ER_node_t res, ER_node_t op1, int vect_p)
   val_t tvar1;
 
   if (ER_NODE_MODE (op1) == ER_NM_int)
-    i = ibitwise_not (ER_i (op1));
+    {
+      i = ibitwise_not (ER_i (op1));
+      ER_SET_MODE (res, ER_NM_int);
+      ER_set_i (res, i);
+    }
   else
     {
       if (vect_p && vect_unary_op (op1))
@@ -1824,13 +1890,16 @@ execute_bitwise_not_op (ER_node_t res, ER_node_t op1, int vect_p)
 	  return;
 	}
       op1 = implicit_int_conversion (op1, (ER_node_t) &tvar1);
-      if (ER_NODE_MODE (op1) != ER_NM_int)
+      if (ER_NODE_MODE (op1) == ER_NM_int)
+	{
+	  i = ibitwise_not (ER_i (op1));
+	  ER_SET_MODE (res, ER_NM_int);
+	  ER_set_i (res, i);
+	}
+      else
 	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		    DERR_bitwise_not_operand_type);
-      i = ibitwise_not (ER_i (op1));
     }
-  ER_SET_MODE (res, ER_NM_int);
-  ER_set_i (res, i);
 }
 
 static void do_always_inline
@@ -1986,6 +2055,26 @@ execute_intof_op (ER_node_t res, ER_node_t op1, int vect_p)
 }
 
 static void do_always_inline
+execute_longof_op (ER_node_t res, ER_node_t op1, int vect_p)
+{
+  ER_node_t l;
+  val_t tvar1;
+
+  if (vect_p && vect_unary_op (op1))
+    {
+      unary_vect_op (res, op1);
+      return;
+    }
+  op1 = implicit_long_conversion (op1, (ER_node_t) &tvar1);
+  if (ER_NODE_MODE (op1) != ER_NM_long)
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+		DERR_conversion_to_long_operand_type);
+  l = ER_l (op1);
+  ER_SET_MODE (res, ER_NM_long);
+  ER_set_l (res, copy_gmp (l));
+}
+
+static void do_always_inline
 execute_floatof_op (ER_node_t res, ER_node_t op1, int vect_p)
 {
   floating_t f;
@@ -1996,14 +2085,11 @@ execute_floatof_op (ER_node_t res, ER_node_t op1, int vect_p)
       unary_vect_op (res, op1);
       return;
     }
-  op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-  if (ER_NODE_MODE (op1) == ER_NM_int)
-    f = ER_i (op1);
-  else if (ER_NODE_MODE (op1) == ER_NM_float)
-    f = ER_f (op1);
-  else
+  op1 = implicit_float_conversion (op1, (ER_node_t) &tvar1);
+  if (ER_NODE_MODE (op1) != ER_NM_float)
     eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 		DERR_conversion_to_float_operand_type);
+  f = ER_f (op1);
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
 }
@@ -3192,11 +3278,11 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 	  break;
 	case BC_NM_plus:
 	  execute_unary_ar_op (el_res, el, FALSE, DERR_unary_plus_operand_type,
-			       iunary_plus, funary_plus);
+			       iunary_plus, funary_plus, lunary_plus);
 	  break;
 	case BC_NM_minus:
 	  execute_unary_ar_op (el_res, el, FALSE, DERR_unary_minus_operand_type,
-			       iunary_minus, funary_minus);
+			       iunary_minus, funary_minus, lunary_minus);
 	  break;
 	case BC_NM_length:
 	  execute_length_op (el_res, el, FALSE);
@@ -3215,6 +3301,9 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 	  break;
 	case BC_NM_iof:
 	  execute_intof_op (el_res, el, FALSE);
+	  break;
+	case BC_NM_lof:
+	  execute_longof_op (el_res, el, FALSE);
 	  break;
 	case BC_NM_fof:
 	  execute_floatof_op (el_res, el, FALSE);
@@ -3262,7 +3351,7 @@ unary_vect_op (ER_node_t res, ER_node_t op)
   set_vect_dim (res, vect, dim);
 }
 
-/* Implement folding operation using IOP, FOP, or GENOP on packed
+/* Implement folding operation using IOP, FOP, LOP, or GENOP on packed
    vector PACK_VECT of length LEN with elements type EL_TYPE.  Use
    INITVAL as initial value for folding.  Put result into RES.  */
 static void do_always_inline
@@ -3491,8 +3580,7 @@ extract_op3 (ER_node_t *op1, ER_node_t *op2, ER_node_t *op3)
 }
 
 static ER_node_t do_always_inline
-execute_btcmpinc (ER_node_t op1, ER_node_t op2,
-		  int icmp (int_t, int_t), int fcmp (floating_t, floating_t))
+execute_btcmpinc (ER_node_t op1, ER_node_t op2, int icmp (int_t, int_t))
 {
   ER_node_t res;
   int_t i;
@@ -3596,6 +3684,7 @@ evaluate_code (void)
   floating_t f;
   ER_node_t res, op1, op2, op3;
   BC_node_mode_t node_mode;
+  BC_node_t bc_node;
   val_t tvar1, v;
 
   /* Check that all BC_node_mode_t can be stored in unsigned char.  */
@@ -3671,6 +3760,18 @@ evaluate_code (void)
 	  ER_set_i (res, BC_op2 (cpc));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_ldl:
+	  {
+	    ER_node_t heap_gmp;
+
+	    extract_op1 (&res);
+	    ER_SET_MODE (res, ER_NM_long);
+	    heap_gmp = create_gmp ();
+	    ER_set_l (res, heap_gmp);
+	    mpz_set (*ER_mpz_ptr (heap_gmp), *BC_mpz_ptr (cpc));
+	    INCREMENT_PC ();
+	    break;
+	  }
 	case BC_NM_ldf:
 	  extract_op1 (&res);
 	  ER_SET_MODE (res, ER_NM_float);
@@ -3852,13 +3953,13 @@ evaluate_code (void)
 	case BC_NM_plus:
 	  extract_op2 (&res, &op1);
 	  execute_unary_ar_op (res, op1, TRUE, DERR_unary_plus_operand_type,
-			       iunary_plus, funary_plus);
+			       iunary_plus, funary_plus, lunary_plus);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_minus:
 	  extract_op2 (&res, &op1);
 	  execute_unary_ar_op (res, op1, TRUE, DERR_unary_minus_operand_type,
-			       iunary_minus, funary_minus);
+			       iunary_minus, funary_minus, lunary_minus);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_length:
@@ -3889,6 +3990,11 @@ evaluate_code (void)
 	case BC_NM_iof:
 	  extract_op2 (&res, &op1);
 	  execute_intof_op (res, op1, TRUE);
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_lof:
+	  extract_op2 (&res, &op1);
+	  execute_longof_op (res, op1, TRUE);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_fof:
@@ -4315,37 +4421,37 @@ evaluate_code (void)
 	case BC_NM_bteqinc:
 	  extract_op1 (&op2);
 	  op3 = get_op (BC_bcmp_op2 (cpc));
-	  if (execute_btcmpinc (op2, op3, ieq, feq) != NULL)
+	  if (execute_btcmpinc (op2, op3, ieq) != NULL)
 	    goto common_bteq;
 	  break;
 	case BC_NM_btneinc:
 	  extract_op1 (&op2);
 	  op3 = get_op (BC_bcmp_op2 (cpc));
-	  if (execute_btcmpinc (op2, op3, ine, fne) != NULL)
+	  if (execute_btcmpinc (op2, op3, ine) != NULL)
 	    goto common_btne;
 	  break;
 	case BC_NM_btgeinc:
 	  extract_op1 (&op2);
 	  op3 = get_op (BC_bcmp_op2 (cpc));
-	  if (execute_btcmpinc (op2, op3, ige, fge) != NULL)
+	  if (execute_btcmpinc (op2, op3, ige) != NULL)
 	    goto common_btge;
 	  break;
 	case BC_NM_btltinc:
 	  extract_op1 (&op2);
 	  op3 = get_op (BC_bcmp_op2 (cpc));
-	  if (execute_btcmpinc (op2, op3, ilt, flt) != NULL)
+	  if (execute_btcmpinc (op2, op3, ilt) != NULL)
 	    goto common_btlt;
 	  break;
 	case BC_NM_btleinc:
 	  extract_op1 (&op2);
 	  op3 = get_op (BC_bcmp_op2 (cpc));
-	  if (execute_btcmpinc (op2, op3, ile, fle) != NULL)
+	  if (execute_btcmpinc (op2, op3, ile) != NULL)
 	    goto common_btle;
 	  break;
 	case BC_NM_btgtinc:
 	  extract_op1 (&op2);
 	  op3 = get_op (BC_bcmp_op2 (cpc));
-	  if (execute_btcmpinc (op2, op3, igt, fgt) != NULL)
+	  if (execute_btcmpinc (op2, op3, igt) != NULL)
 	    goto common_btgt;
 	  break;
 	case BC_NM_bteq:
@@ -4454,11 +4560,14 @@ evaluate_code (void)
 	    {
 	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
 	      if (ER_NODE_MODE (op1) != ER_NM_int
-		  && ER_NODE_MODE (op1) != ER_NM_float)
+		  && ER_NODE_MODE (op1) != ER_NM_float
+		  && ER_NODE_MODE (op1) != ER_NM_long)
 		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
 			    DERR_invalid_for_guard_expr_type);
 	      if ((ER_NODE_MODE (op1) == ER_NM_int && ER_i (op1) != 0)
-		  || (ER_NODE_MODE (op1) == ER_NM_float && ER_f (op1) != 0.0))
+		  || (ER_NODE_MODE (op1) == ER_NM_float && ER_f (op1) != 0.0)
+		  || (ER_NODE_MODE (op1) == ER_NM_long
+		      && mpz_sgn (*ER_mpz_ptr (ER_l (op1))) != 0))
 		cpc = BC_pc (cpc);
 	      else
 		INCREMENT_PC ();
@@ -4510,100 +4619,95 @@ evaluate_code (void)
 	    INTERRUPT_CHECK;
 	    break;
 	  }
-	case BC_NM_leave:
 	case BC_NM_bend:
-	  {
-	    BC_node_t block_node;
-	    
-	    for (;;)
-	      {
-		block_node = ER_block_node (cstack);
-		d_assert (node_mode != BC_NM_bend
-			  || BC_block (cpc) == block_node);
-		sync_flag = BC_saved_sync_p (block_node);
-		if (BC_NODE_MODE (block_node) == BC_NM_fblock)
-		  {
-		    if (BC_fun_p (block_node))
-		      ER_SET_MODE (IVAL (ER_ctop (ER_prev_stack (cstack)), 1),
-				   ER_NM_undef);
-		    else if (BC_thread_p (block_node))
-		      {
-			delete_cprocess ();
-			break;
-		      }
-		    else if (BC_class_p (block_node))
-		      {
-			ER_node_t res = IVAL (ER_ctop (ER_prev_stack (cstack)), 1);
-
-			ER_SET_MODE (res, ER_NM_stack);
-			ER_set_stack (res, cstack);
-		      }
-		    else
-		      d_unreachable ();
-		    heap_pop ();
-		    if (cpc == NULL)
-		      return;
-		    break;
-		  }
-		else if (cstack == uppest_stack)
-		  return;
-		d_assert (BC_vars_num (block_node) >= 0);
-		heap_pop ();
-		if (BC_NODE_MODE (block_node) == BC_NM_block)
-		  {
-		    INCREMENT_PC ();
-		    INTERRUPT_CHECK;
-		    break;
-		  }
-		else
-		  d_assert (cstack != NULL);
-	      }
-	    /* Do not put INTERRUPT here as the result is not on the
-	       top and possible GC called directly (or indirectly
-	       through thread switching) from INTERRUPT can make the
-	       result wrong.  Another solution could be adding a node
-	       to pop result as INTERRUPT should be the last statement
-	       executed for the node.  */
-	    break;
-	  }
+	  bc_node = ER_block_node (cstack);
+	  d_assert (BC_block (cpc) == bc_node);
+	  sync_flag = BC_saved_sync_p (bc_node);
+	  if (cstack == uppest_stack)
+	    return;
+	  d_assert (BC_vars_num (bc_node) >= 0);
+	  heap_pop ();
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_leave:
+	  for (;;)
+	    {
+	      bc_node = ER_block_node (cstack);
+	      sync_flag = BC_saved_sync_p (bc_node);
+	      if (BC_NODE_MODE (bc_node) == BC_NM_fblock)
+		goto fblock_end;
+	      d_assert (BC_NODE_MODE (bc_node) == BC_NM_block
+			&& cstack != uppest_stack);
+	      d_assert (BC_vars_num (bc_node) >= 0);
+	      heap_pop ();
+	    }
+	  break;
+	case BC_NM_fbend:
+	  bc_node = ER_block_node (cstack);
+	  
+	  d_assert (BC_block (cpc) == bc_node);
+	  sync_flag = BC_saved_sync_p (bc_node);
+	  d_assert (BC_NODE_MODE (bc_node) == BC_NM_fblock);
+	  
+	fblock_end:
+	  if (BC_fun_p (bc_node))
+	    ER_SET_MODE (IVAL (ER_ctop (ER_prev_stack (cstack)), 1),
+			 ER_NM_undef);
+	  else if (BC_thread_p (bc_node))
+	    {
+	      delete_cprocess ();
+	      break;
+	    }
+	  else if (BC_class_p (bc_node))
+	    {
+	      ER_node_t res = IVAL (ER_ctop (ER_prev_stack (cstack)), 1);
+	      
+	      ER_SET_MODE (res, ER_NM_stack);
+	      ER_set_stack (res, cstack);
+	    }
+	  else
+	    d_unreachable ();
+	  heap_pop ();
+	  if (cpc == NULL)
+	    return;
+	  /* Do not put INTERRUPT here as the result is not on the top
+	     and possible GC called directly (or indirectly through
+	     thread switching) from INTERRUPT can make the result
+	     wrong.  Another solution could be adding a node to pop
+	     result as INTERRUPT should be the last statement executed
+	     for the node.  */
+	  break;
 	case BC_NM_ret:
-	  {
-	    BC_node_t block_node;
-	    
-	    extract_op1 (&res);
-	    for (;;)
-	      {
-		block_node = ER_block_node (cstack);
-		sync_flag = BC_saved_sync_p (block_node);
-		if (BC_NODE_MODE (block_node) == BC_NM_fblock)
-		  {
-		    if (BC_fun_p (block_node))
-		      {
-			/* There is no GC since the return execution
-			   start. */
-			if (ER_NODE_MODE (res) == ER_NM_undef)
-			  {
-			    d_assert (BC_ret_decl (cpc) != NULL);
-			    eval_error (accessop_bc_decl, invaccesses_bc_decl,
-					get_cpos (), DERR_undefined_value_access,
-					BC_ident (BC_ret_decl (cpc)));
-			  }
-			*(val_t *) IVAL (ER_ctop (ER_prev_stack (cstack)), 1)
-			  = *(val_t *) res;
-		      }
-		    else
-		      d_unreachable ();
-		    heap_pop ();
-		    if (cpc == NULL)
-		      return;
-		    break;
-		  }
-		heap_pop ();
-		d_assert (cstack != NULL);
-	      }
-	    /* See comment for leave.  */
-	    break;
-	  }
+	  extract_op1 (&res);
+	  for (;;)
+	    {
+	      bc_node = ER_block_node (cstack);
+	      sync_flag = BC_saved_sync_p (bc_node);
+	      if (BC_NODE_MODE (bc_node) == BC_NM_fblock)
+		{
+		  d_assert (BC_fun_p (bc_node));
+		  /* There is no GC since the return execution
+		     start. */
+		  if (ER_NODE_MODE (res) == ER_NM_undef)
+		    {
+		      d_assert (BC_ret_decl (cpc) != NULL);
+		      eval_error (accessop_bc_decl, invaccesses_bc_decl,
+				  get_cpos (), DERR_undefined_value_access,
+				  BC_ident (BC_ret_decl (cpc)));
+		    }
+		  *(val_t *) IVAL (ER_ctop (ER_prev_stack (cstack)), 1)
+		    = *(val_t *) res;
+		  heap_pop ();
+		  if (cpc == NULL)
+		    return;
+		  break;
+		}
+	      heap_pop ();
+	      d_assert (cstack != NULL);
+	    }
+	  /* See comment for fbend.  */
+	  break;
 	case BC_NM_wait:
 	  if (sync_flag)
 	    eval_error (syncwait_bc_decl, errors_bc_decl, get_cpos (),

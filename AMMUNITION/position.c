@@ -157,7 +157,7 @@ int
 position_file_inclusion_level (position_t position)
 {
   int level;
-  position_t *current_position_ref;
+  const position_t *current_position_ref;
 
   level = 0;
   for (current_position_ref = &position;

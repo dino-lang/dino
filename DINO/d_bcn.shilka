@@ -35,6 +35,7 @@ ldnil		{return BC_NM_ldnil;}
 ldthis		{return BC_NM_ldthis;}
 flat		{return BC_NM_flat;}
 ldi		{return BC_NM_ldi;}
+ldl		{return BC_NM_ldl;}
 ldch		{return BC_NM_ldch;}
 ldtp		{return BC_NM_ldtp;}
 ldf		{return BC_NM_ldf;}
@@ -72,6 +73,7 @@ fxor		{return BC_NM_fxor;}
 tpof		{return BC_NM_tpof;}
 chof		{return BC_NM_chof;}
 iof		{return BC_NM_iof;}
+lof		{return BC_NM_lof;}
 fof		{return BC_NM_fof;}
 vecof		{return BC_NM_vecof;}
 tabof		{return BC_NM_tabof;}
@@ -176,8 +178,9 @@ titcall		{return BC_NM_titcall;}
 cicall		{return BC_NM_cicall;}
 citcall		{return BC_NM_citcall;}
 leave		{return BC_NM_leave;}
-sleave		{return BC_NM_sleave;}
+sbend		{return BC_NM_sbend;}
 bend		{return BC_NM_bend;}
+fbend		{return BC_NM_fbend;}
 ret		{return BC_NM_ret;}
 throw		{return BC_NM_throw;}
 wait		{return BC_NM_wait;}

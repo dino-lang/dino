@@ -2423,6 +2423,14 @@ print_val (ER_node_t val, int quote_flag, int full_p)
       sprintf (str, "%d", ER_i (val));
       VLO_ADD_STRING (temp_vlobj, str);
       break;
+    case ER_NM_long:
+      {
+	ER_node_t heap_mpz = ER_l (val);
+	
+	VLO_ADD_STRING (temp_vlobj, mpz2a (*ER_mpz_ptr (heap_mpz), 10, FALSE));
+	VLO_ADD_STRING (temp_vlobj, "l");
+      }
+      break;
     case ER_NM_float:
       sprintf (str, "%g", ER_f (val));
       VLO_ADD_STRING (temp_vlobj, str);
@@ -2959,8 +2967,9 @@ fgetf_call (int_t pars_number)
 #define F_CHAR   256
 #define F_INT    257
 #define F_FLOAT  258
-#define F_STRING 259
-#define F_TAB    260
+#define F_LONG   259
+#define F_STRING 260
+#define F_TAB    261
 
 struct token
 {
@@ -2970,6 +2979,7 @@ struct token
     char_t ch;
     int_t i;
     floating_t f;
+    ER_node_t gmp;
     string_t str;
   } val;
 };
@@ -3060,6 +3070,11 @@ invinput_error (FILE *f, const char *function_name, int ln_flag)
   eval_error (invinput_bc_decl, invcalls_bc_decl, get_cpos (),
 	      DERR_invalid_input, function_name);
 }
+
+/* Used by read_number.  */
+static FILE *number_file;
+static int n_getc (void) { return fgetc (number_file); }
+static void n_ungetc (int c) { ungetc (c, number_file); }
 
 /* The following function is analogous to `yylex' in Dino scanner.  If
    `yylex' is changed, please modify this function too. */
@@ -3158,58 +3173,45 @@ get_token (FILE *f, const char *function_name, int ln_flag)
 		|| ((curr_char == '-' || curr_char == '+')
 		    && isdigit (next_char)))
 	      {
-		/* Recognition numbers. */
-		result.token_code = F_INT;
-		do
-		  {
-		    VLO_ADD_BYTE (el_text, curr_char);
-		    curr_char = fgetc (f);
-		  }
-		while (isdigit (curr_char));
-		if (curr_char == '.')
-		  {
-		    result.token_code = F_FLOAT;
-		    do
-		      {
-			VLO_ADD_BYTE (el_text, curr_char);
-			curr_char = fgetc (f);
-		      }
-		    while (isdigit (curr_char));
-		  }
-		if (curr_char == 'e' || curr_char == 'E')
-		  {
-		    result.token_code = F_FLOAT;
-		    curr_char = fgetc (f);
-		    if (curr_char != '+' && curr_char != '-'
-			&& !isdigit (curr_char))
-		      {
-			if (ln_flag && curr_char == '\n')
-			  ungetc (curr_char, f);
-			invinput_error (f, function_name, ln_flag);
-		      }
-		    else
-		      {
-			VLO_ADD_BYTE (el_text, 'e');
-			do
-			  {
-			    VLO_ADD_BYTE (el_text, curr_char);
-			    curr_char = fgetc (f);
-			  }
-			while (isdigit (curr_char));
-		      }
-		  }
-		VLO_ADD_BYTE (el_text, '\0');
-		ungetc (curr_char, f);
+		enum read_number_code err_code;
+		int read_ch_num, float_p, long_p, base;
+		const char *repr;
+
+		number_file = f;
+		err_code = read_number (curr_char, n_getc, n_ungetc,
+					&read_ch_num, &repr, &base,
+					&float_p, &long_p);
 		if (errno)
 		  process_system_errors (function_name);
-		if (result.token_code == F_FLOAT)
-		  result.val.f = a2f (VLO_BEGIN (el_text));
+		if (err_code != NUMBER_OK)
+		  {
+		    curr_char = fgetc (f);
+		    if (ln_flag && curr_char == '\n')
+		      ungetc (curr_char, f);
+		    invinput_error (f, function_name, ln_flag);
+		  }
+		else if (long_p)
+		  {
+		    ER_node_t gmp = create_gmp ();
+
+		    result.token_code = F_LONG;
+		    mpz_set_str (*ER_mpz_ptr (gmp), repr, base);
+		    result.val.gmp = gmp;
+		  }
+		else if (float_p)
+		  {
+		    result.token_code = F_FLOAT;
+		    result.val.f = a2f (repr);
+		    if (errno)
+		      process_system_errors ("string-to-float conversion");
+		  }
 		else
-		  result.val.i = a2i (VLO_BEGIN (el_text));
-		if (errno)
-		  process_system_errors (result.token_code == F_FLOAT
-					 ? "string-to-float conversion"
-					 : "string-to-int conversion");
+		  {
+		    result.token_code = F_INT;
+		    result.val.i = a2i (repr, base);
+		    if (errno)
+		      process_system_errors ("string-to-int conversion");
+		  }
 		return result;
 	      }
 	    else
@@ -3225,6 +3227,7 @@ get_token (FILE *f, const char *function_name, int ln_flag)
       element : char
               | integer-value
               | float-value
+              | long-value
               | string
               | '[' [list] ']'
               | tab '[' [list] ']'
@@ -3253,6 +3256,10 @@ scanel (FILE *f, struct token token, const char *function_name, int ln_flag)
     case F_FLOAT:
       ER_SET_MODE (ptr, ER_NM_float);
       ER_set_f (ptr, token.val.f);
+      return result;
+    case F_LONG:
+      ER_SET_MODE (ptr, ER_NM_long);
+      ER_set_l (ptr, token.val.gmp);
       return result;
     case F_STRING:
       {
@@ -3459,14 +3466,9 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
 {
   const char *function_name;
   ER_node_t val;
-  const char *fmt, *ptr, *str;
-  char *curr_fmt, res_fmt [100];
-  int start, curr_par_num, width, precision, add, out;
-  int alternate_flag, zero_flag, left_adjust_flag;
-  int blank_flag, plus_flag, width_flag, precision_flag;
-  char next;
+  const char *fmt;
+  int start;
 
-  errno = 0;
   start = 0;
   if (param_type == NO_FILE)
     {
@@ -3491,237 +3493,8 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
     eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameter_type, function_name);
   fmt = ER_pack_els (ER_vect (val));
-  VLO_NULLIFY (temp_vlobj);
-  curr_par_num = -pars_number + 2 + start;
-  for (ptr = fmt; *ptr != '\0'; ptr++)
-    if (*ptr != '%')
-      VLO_ADD_BYTE (temp_vlobj, *ptr);
-    else
-      {
-	alternate_flag = zero_flag = left_adjust_flag = FALSE;
-	blank_flag = plus_flag = FALSE;
-	for (;;)
-	  {
-	    next = *++ptr;
-	    if (next == '#')
-	      alternate_flag = TRUE;
-	    else if (next == '0')
-	      zero_flag = TRUE;
-	    else if (next == '-')
-	      left_adjust_flag = TRUE;
-	    else if (next == ' ')
-	      blank_flag = TRUE;
-	    else if (next == '+')
-	      plus_flag = TRUE;
-	    else
-	      {
-		ptr--;
-		break;
-	      }
-	  }
-	next = *++ptr;
-	width = 0;
-	width_flag = FALSE;
-	if (next >= '1' && next <= '9')
-	  {
-	    width_flag = TRUE;
-	    do
-	      {
-		if (width <= MAX_INT / 10)
-		  {
-		    width *= 10;
-		    if (width <= MAX_INT - (next - '0'))
-		      width += next - '0';
-		    else
-		      width = -1;
-		  }
-		else
-		  width = -1;
-		if (width < 0)
-		  eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
-			      DERR_invalid_format, function_name);
-		next = *++ptr;
-	      }
-	    while (next >= '0' && next <= '9');
-	    ptr--;
-	  }
-	else if (next == '*')
-	  {
-	    width_flag = TRUE;
-	    if (curr_par_num > 0)
-	      eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_parameters_number, function_name);
-	    val = IVAL (ctop, curr_par_num);
-	    if (ER_NODE_MODE (val) != ER_NM_int)
-	      eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_parameter_type, function_name);
-	    width = ER_i (val);
-	    if (width < 0)
-	      {
-		left_adjust_flag = TRUE;
-		width = -width;
-	      }
-	    curr_par_num++;
-	  }
-	else
-	  ptr--;
-	next = *++ptr;
-	precision = 0;
-	precision_flag = FALSE;
-	if (next == '.')
-	  {
-	    precision_flag = TRUE;
-	    next = *++ptr;
-	    if (next == '*')
-	      {
-		if (curr_par_num > 0)
-		  eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
-			      DERR_parameters_number, function_name);
-		val = IVAL (ctop, curr_par_num);
-		if (ER_NODE_MODE (val) != ER_NM_int)
-		  eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
-			      DERR_parameter_type, function_name);
-		precision = ER_i (val);
-		if (precision < 0)
-		  precision = 0;
-		curr_par_num++;
-	      }
-	    else if (next >= '0' && next <= '9')
-	      {
-		do
-		  {
-		    if (precision <= MAX_INT / 10)
-		      {
-			precision *= 10;
-			if (precision <= MAX_INT - (next - '0'))
-			  precision += next - '0';
-			else
-			  precision = -1;
-		      }
-		    else
-		      precision = -1;
-		    if (precision < 0)
-		      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
-				  DERR_invalid_format, function_name);
-		    next = *++ptr;
-		  }
-		while (next >= '0' && next <= '9');
-		ptr--;
-	      }
-	    else
-	      ptr--;
-	  }
-	else
-	  ptr--;
-	next = *++ptr;
-	curr_fmt = res_fmt;;
-	*curr_fmt++ = '%';
-	if (alternate_flag)
-	  *curr_fmt++ = '#';
-	if (zero_flag)
-	  *curr_fmt++ = '0';
-	if (left_adjust_flag)
-	  *curr_fmt++ = '-';
-	if (blank_flag)
-	  *curr_fmt++ = ' ';
-	if (plus_flag)
-	  *curr_fmt++ = '+';
-	if (width_flag && width != 0)
-	  curr_fmt += sprintf (curr_fmt, "%d", width);
-	if (precision_flag)
-	  curr_fmt += sprintf (curr_fmt, ".%d", precision);
-	if (next == '%')
-	  {
-	    if (alternate_flag || zero_flag || left_adjust_flag
-		|| blank_flag || plus_flag || width_flag || precision_flag)
-	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_invalid_format, function_name);
-	    VLO_ADD_BYTE (temp_vlobj, '%');
-	    continue;
-	  }
-	if (curr_par_num > 0)
-	  eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
-		      DERR_parameters_number, function_name);
-	val = IVAL (ctop, curr_par_num);
-	add = width + 5;
-	if (next == 'd' || next == 'o' || next == 'x' || next == 'X'
-	    || next == 'e' || next == 'E' || next == 'f' || next == 'g'
-	    || next == 'G')
-	  {
-	    if ((next == 'd' && alternate_flag)
-		|| ((next == 'o' || next == 'x' || next == 'X')
-		    && (blank_flag || plus_flag)))
-	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_invalid_format, function_name);
-	    curr_fmt += sprintf (curr_fmt, "%c", next);
-	    add += 100;
-	    VLO_EXPAND (temp_vlobj, add);
-	    if (next == 'd' || next == 'o' || next == 'x' || next == 'X')
-	      {
-		if (ER_NODE_MODE (val) != ER_NM_int)
-		  eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
-			      DERR_parameter_type, function_name);
-		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
-			       ER_i (val));
-	      }
-	    else
-	      {
-		if (ER_NODE_MODE (val) != ER_NM_float)
-		  eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
-			      DERR_parameter_type, function_name);
-		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
-			       ER_f (val));
-	      }
-	  }
-	else if (next == 'c')
-	  {
-	    if (alternate_flag || zero_flag || blank_flag || plus_flag
-		|| precision_flag)
-	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_invalid_format, function_name);
-	    
-	    *curr_fmt++ = 'c';
-	    *curr_fmt++ = '\0';
-	    add += 10;
-	    VLO_EXPAND (temp_vlobj, add);
-	    if (ER_NODE_MODE (val) != ER_NM_char)
-	      eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_parameter_type, function_name);
-	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
-			   ER_ch (val));
-	  }
-	else if (next == 's')
-	  {
-	    if (alternate_flag || zero_flag || blank_flag || plus_flag)
-	      eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_invalid_format, function_name);
-	    *curr_fmt++ = 's';
-	    *curr_fmt++ = '\0';
-	    to_vect_string_conversion (val, NULL, NULL);
-	    if (ER_NODE_MODE (val) != ER_NM_vect
-		|| ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
-		|| ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
-	      eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
-			  DERR_parameter_type, function_name);
-	    str = ER_pack_els (ER_vect (val));
-	    add += strlen (str) + 10;
-	    VLO_EXPAND (temp_vlobj, add);
-	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
-			   str);
-	  }
-	else
-	  eval_error (invfmt_bc_decl, invcalls_bc_decl, get_cpos (),
-		      DERR_invalid_format, function_name);
-	curr_par_num++;
-	d_assert (out < add);
-	VLO_SHORTEN (temp_vlobj, add - out);
-      }
-  if (curr_par_num != 1)
-    eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
-		DERR_parameters_number, function_name);
-  VLO_ADD_BYTE (temp_vlobj, '\0');
-  if (errno != 0)
-    process_system_errors (function_name);
+  form_format_string (fmt, IVAL (ctop, -pars_number + 2 + start),
+		      pars_number - 1 - start, function_name);
   finish_output (f, pars_number);
 }
 
@@ -5550,12 +5323,12 @@ process_fun_class_call (ER_node_t call_start, int_t actuals_num, int tail_flag)
       TOP_DOWN;
       return;
     }
-  code = ID_TO_CODE (ER_code_id (call_start));
-  mode = BC_NODE_MODE (code);
   if (ER_NODE_MODE (call_start) != ER_NM_code)
     eval_error (callop_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_none_class_or_fun_before_left_bracket);
-  else if ((ifunc = BC_implementation_fun (code)) != NULL)
+  code = ID_TO_CODE (ER_code_id (call_start));
+  mode = BC_NODE_MODE (code);
+  if ((ifunc = BC_implementation_fun (code)) != NULL)
     {
       fun_result = IVAL (ctop, 1);
       DECR_CTOP (-actuals_num - 1);

@@ -155,6 +155,11 @@ dump_code (BC_node_t infos, int indent)
 	  printf (" op1=%d op2=%d // %d <- i%d", BC_op1 (bc), BC_op2 (bc),
 		  BC_op1 (bc), BC_op2 (bc));
 	  break;
+	case BC_NM_ldl:
+	  printf (" op1=%d mpz=", BC_op1 (bc));
+	  mpz_out_str (stdout, 10, *BC_mpz_ptr (bc));
+	  printf ("l");
+	  break;
 	case BC_NM_ldf:
 	  printf (" op1=%d f=%g // %d <- f%g", BC_op1 (bc), BC_f (bc),
 		  BC_op1 (bc), BC_f (bc));
@@ -204,6 +209,7 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_tpof:
 	case BC_NM_chof:
 	case BC_NM_iof:
+	case BC_NM_lof:
 	case BC_NM_fof:
 	case BC_NM_vecof:
 	case BC_NM_tabof:
@@ -402,14 +408,16 @@ dump_code (BC_node_t infos, int indent)
 	  break;
 	  /* This is for debugging purposes when some opts are switched
 	     off as they are always on. */
-	case BC_NM_sleave:
+	case BC_NM_sbend:
 	case BC_NM_leave:
 	  if (BC_next_info (info) == NULL)
 	    printf (" block=%d", BC_idn (BC_info (BC_block (bc))));
 	  indent -= 2;
 	  break;
 	case BC_NM_bend:
-	  d_assert (BC_next_info (info) == NULL);
+	case BC_NM_fbend:
+	  d_assert (BC_next_info (info) == NULL
+		    || ! BC_IS_OF_TYPE (BC_block (bc), BC_NM_fblock));
 	  printf (" block=%d", BC_idn (BC_info (BC_block (bc))));
 	  indent -= 2;
 	  break;
@@ -549,6 +557,7 @@ enum token
   D_EQ,
   D_IDENT,
   D_INT,
+  D_LONG,
   D_FLOAT,
   D_STRING
 };
@@ -560,6 +569,9 @@ static union
   floating_t f;
   const char *str;
 } token_attr;
+
+/* We keep it here as it needs initialization/finalization only once.  */
+static mpz_t mpz_attr;
 
 /* Last read token and its position. */
 static enum token curr_token;
@@ -786,7 +798,7 @@ get_token (void)
           else if (input_char == '-' || isdigit (input_char))
             {
               /* Recognition numbers. */
-	      int float_flag = FALSE;
+	      int float_flag = FALSE, long_flag = FALSE;
 
 	      curr_token_position = current_position;
               do
@@ -832,16 +844,29 @@ get_token (void)
 		      while (isdigit (input_char));
                     }
                 }
+	      else if (! float_flag && (input_char == 'l' || input_char == 'L'))
+		{
+		  long_flag = TRUE;
+		  current_position.column_number++;
+                  input_char = bc_getc ();
+		}
 	      VLO_ADD_BYTE (symbol_text, '\0');
               bc_ungetc (input_char);
 	      if (float_flag)
 		token_attr.f = a2f (VLO_BEGIN (symbol_text));
-              else
-		token_attr.i= a2i (VLO_BEGIN (symbol_text));
+              else if (! long_flag)
+		token_attr.i= a2i (VLO_BEGIN (symbol_text), 10);
+	      else
+		mpz_init_set_str (mpz_attr, VLO_BEGIN (symbol_text), 10);
 	      if (errno)
-                error (FALSE, current_position,
-		       (float_flag ? ERR_float_value : ERR_int_value));
-              return curr_token = (float_flag ? D_FLOAT : D_INT);
+		{
+		  d_assert (! long_flag);
+		  error (FALSE, current_position,
+			 (float_flag ? ERR_float_value : ERR_int_value));
+		}
+              return curr_token = (float_flag ? D_FLOAT
+				   : long_flag ? D_LONG
+				   : D_INT);
             }
           else
 	    error (FALSE, current_position, ERR_invalid_input_char);
@@ -999,7 +1024,7 @@ get_decl (int label)
      label : D_INT
      nodename : D_IDENT
      field : D_IDENT '=' value
-     value : D_INT | D_FLOAT | D_IDENT | D_STRING
+     value : D_INT | D_LONG | D_FLOAT | D_IDENT | D_STRING
 
    Some fields are not obligatory as they have a default value.  Some
    fields represent nodes different from node where they present
@@ -1021,6 +1046,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 
   start_file_position (file_name);
   input_file = inpf;
+  mpz_init (mpz_attr);
   VLO_CREATE (env_decls, 1024);
   VLO_CREATE (ptr_flds, 4096);
   VLO_CREATE (bcode_map, 2048);
@@ -1270,6 +1296,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_except, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
 	      break;
+	    case FR_mpz:
+	      if (check_fld (BC_NM_ldl, D_LONG)) goto fail;
+	      mpz_set (*BC_mpz_ptr (curr_node), mpz_attr);
+	      break;
 	    case FR_f:
 	      if (check_fld (BC_NM_ldf, D_FLOAT)) goto fail;
 	      BC_set_f (curr_node, token_attr.f);
@@ -1307,7 +1337,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       /* Set up next. */
       if (prev_node != NULL
 	  && BC_IS_OF_TYPE (curr_node, BC_NM_bcode)
-	  && ! BC_IS_OF_TYPE (prev_node, BC_NM_bend))
+	  && ! BC_IS_OF_TYPE (prev_node, BC_NM_fbend))
 	BC_set_next (prev_node, curr_node);
       if (BIT (curr_fld_presence, FR_next))
 	prev_node = NULL;
@@ -1330,6 +1360,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	{
 	  position_t p;
 
+	  p.path = &no_position;
 	  p.file_name = (BIT (curr_fld_presence, FR_fn3) ? fn3 : fn);
 	  p.line_number = (BIT (curr_fld_presence, FR_ln3) ? ln3 : ln);;
 	  p.column_number = pos3;
@@ -1339,6 +1370,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	{
 	  position_t p;
 
+	  p.path = &no_position;
 	  p.file_name = (BIT (curr_fld_presence, FR_fn2) ? fn2 : fn);
 	  p.line_number = (BIT (curr_fld_presence, FR_ln2) ? ln2 : ln);
 	  p.column_number = pos2;
@@ -1348,6 +1380,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	{
 	  position_t p;
 
+	  p.path = &no_position;
 	  p.file_name = fn; p.line_number = ln; p.column_number = pos;
 	  BC_set_pos (source_node, p);
 	}
@@ -1398,7 +1431,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 		BC_set_next_info (prev_info, curr_info);
 	      prev_info = curr_info;
 	    }
-	  if (BC_IS_OF_TYPE (curr_node, BC_NM_bend))
+	  if (BC_IS_OF_TYPE (curr_node, BC_NM_fbend))
 	    {
 	      d_assert (VLO_LENGTH (block_infos) != 0);
 	      prev_info = ((BC_node_t *) VLO_BOUND (block_infos))[-1];
@@ -1541,6 +1574,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       process_env_decl (*decl_ptr);
     }
   VLO_DELETE (env_decls);
+  mpz_clear (mpz_attr);
 }
 
 /* Initiate data structures for reading byte code. */

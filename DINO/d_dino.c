@@ -128,33 +128,25 @@ memmove (void *s1, const void *s2, size_t n)
 
 /* This page contains functions for transformation to/from string. */
 
-int
-it_is_int_string (const char *str)
-{
-  for (; *str != '\0'; str++)
-    if (!isdigit (*str))
-      return FALSE;
-  return TRUE;
-}
-
 /* The function returns int_t value for character number
-   representation.  It always change the value of ERRNO. */
+   representation in BASE.  It always change the value of ERRNO. */
 int_t
-a2i (const char *str)
+a2i (const char *str, int base)
 {
   int_t res;
   long int l;
 
+  d_assert (base == 8 || base == 10 || base == 16);
   errno = 0;
 #ifdef HAVE_STRTOL
-  l = strtol (str, (char **) NULL, 10);
+  l = strtol (str, (char **) NULL, base);
   res = l;
 #ifdef ERANGE
   if (res != l)
     errno = ERANGE;
 #endif
 #else
-  res = atoi (str);
+#error  The system is too old: strtol is required.
 #endif
   return res;
 }
@@ -186,17 +178,79 @@ const char *
 i2a (int_t number)
 {
   static char result [30];
+
   sprintf (result, "%ld", (long int) number);
   return result;
 }
 
 /* Convert float NUMBER into string and return it.  */
-extern const char *
+const char *
 f2a (floating_t number)
 {
   static char result [30];
+
   sprintf (result, "%g", number);
   return result;
+}
+
+
+static vlo_t repr_vlobj;
+
+/* Convert mpz NUMBER into string of BASE using upper cases if
+   UPPER_CASE_P and return it.  */
+const char *
+mpz2a (mpz_t number, int base, int upper_case_p)
+{
+  int n = mpz_sizeinbase (number, base) + 2;
+  char *str;
+
+  VLO_NULLIFY (repr_vlobj);
+  VLO_EXPAND (repr_vlobj, n);
+  mpz_get_str (VLO_BEGIN (repr_vlobj), base, number);
+  if (upper_case_p)
+    for (str = VLO_BEGIN (repr_vlobj); *str != 0; str++)
+      *str = toupper (*str);
+  return VLO_BEGIN (repr_vlobj);
+}
+
+int
+mpz_ok_for_int_p (mpz_t number)
+{
+  d_assert (sizeof (int) == sizeof (int_t));
+  return mpz_fits_sint_p (number);
+}
+
+int_t
+mpz2i (mpz_t number)
+{
+  d_assert (mpz_fits_sint_p (number));
+  return mpz_get_si (number);
+}
+
+void
+i2mpz (mpz_t mpz, int_t i)
+{
+  d_assert (sizeof (int) == sizeof (int_t));
+  mpz_set_si (mpz, i);
+}
+
+void
+f2mpz (mpz_t mpz, floating_t f)
+{
+  mpz_set_d (mpz, f);
+}
+
+/* It is gmp implementation depended function.  It might be rewriten
+   lately.  */
+size_t
+hash_mpz (mpz_t mpz)
+{
+  mp_limb_t res = 0;
+  size_t i, size = mpz_size (mpz);
+
+  for (i = 0; i < size; i++)
+    res += mpz->_mp_d[i] & GMP_NUMB_MASK;
+  return (size_t) res;
 }
 
 
@@ -372,6 +426,164 @@ read_string_code (int input_char, int *correct_newln,
   return input_char;
 }
 
+static vlo_t number_text;
+
+/* Read number using GET_CH and UNGET_CH and already read character C.
+   It should be guaranted that the input has a righ prefix
+   (+|-)?[0-9].  Return read character number, number representation
+   (0x or 0X prefix is removed), base, float and long flag through
+   READ_CH_NUM, RESULT, BASE, FLOAT_P, LONG_P.  Return error code.  If
+   the number is not ok only READ_CH_NUM should be defined.  */
+enum read_number_code
+read_number (int c, int get_ch (void), void unget_ch (int), int *read_ch_num,
+	     const char **result, int *base, int *float_p, int *long_p)
+{
+  enum read_number_code err_code = NUMBER_OK;
+  int dec_p, hex_p, hex_char_p;
+
+  VLO_NULLIFY (number_text);
+  *read_ch_num = 0;
+  *base = 10;
+  *float_p = *long_p = FALSE;
+  if (c == '+' || c == '-')
+    {
+      VLO_ADD_BYTE (number_text, c);
+      c = get_ch ();
+      (*read_ch_num)++;
+    }
+  d_assert ('0' <= c && c <= '9');
+  if (c == '0')
+    {
+      c = get_ch ();
+      (*read_ch_num)++;
+      if (c != 'x' && c != 'X')
+	{
+	  *base = 8;
+	  unget_ch (c);
+	  (*read_ch_num)--;
+	  c = '0';
+	}
+      else
+	{
+	  c = get_ch ();
+	  (*read_ch_num)++;
+	  *base = 16;
+	}
+    }
+  dec_p = hex_p = FALSE;
+  for (;;)
+    {
+      VLO_ADD_BYTE (number_text, c);
+      c = get_ch ();
+      (*read_ch_num)++;
+      if (c == '8' || c == '9')
+	dec_p = TRUE;
+      hex_char_p = (('a' <= c && c <= 'f')
+		    || ('A' <= c && c <= 'F'));
+      if (! isdigit (c) && (*base != 16 || ! hex_char_p))
+	break;
+      if (hex_char_p)
+	hex_p = TRUE;
+    }
+  d_assert (*base == 16 || ! hex_p);
+  if (c == '.')
+    {
+      *float_p = TRUE;
+      do
+	{
+	  VLO_ADD_BYTE (number_text, c);
+	  c = get_ch ();
+	  (*read_ch_num)++;
+	}
+      while (isdigit (c));
+    }
+  if (c == 'e' || c == 'E')
+    {
+      *float_p = TRUE;
+      c = get_ch ();
+      (*read_ch_num)++;
+      if (c != '+' && c != '-' && !isdigit (c))
+	err_code = ABSENT_EXPONENT;
+      else
+	{
+	  VLO_ADD_BYTE (number_text, 'e');
+	  do
+	    {
+	      VLO_ADD_BYTE (number_text, c);
+	      c = get_ch ();
+	      (*read_ch_num)++;
+	    }
+	  while (isdigit (c));
+	}
+    }
+  else if (! *float_p && (c == 'l' || c == 'L'))
+    {
+      *long_p = TRUE;
+      c = get_ch ();
+      (*read_ch_num)++;
+    }
+  VLO_ADD_BYTE (number_text, '\0');
+  unget_ch (c);
+  (*read_ch_num)--;
+  if (*float_p)
+    {
+      if (*base == 16)
+	err_code = NON_DECIMAL_FLOAT;
+    }
+  else if (*base == 8 && dec_p)
+    err_code = WRONG_OCTAL_INT;
+  *result = VLO_BEGIN (number_text);
+  return err_code;
+}
+
+size_t gmp_memory_size;
+
+static void *
+gmp_alloc (size_t alloc_size)
+{
+  void *res;
+
+  gmp_memory_size += alloc_size;
+  MALLOC (res, alloc_size);
+  return res;
+}
+
+static void *
+gmp_realloc (void *ptr, size_t old_size, size_t new_size)
+{
+  void *res;
+
+  gmp_memory_size += new_size;
+  gmp_memory_size -= old_size;
+  REALLOC (res, ptr, new_size);
+  return res;
+}
+
+static void
+gmp_free (void *ptr, size_t size)
+{
+  d_assert (gmp_memory_size >= size);
+  gmp_memory_size -= size;
+  FREE (ptr);
+}
+
+static size_t
+get_size_repr (size_t size, char *unit)
+{
+  *unit = 'b';
+  if (size % 1024 == 0 || size > 16 * 1024)
+    {
+      *unit = 'k';
+      size /= 1024;
+    }
+  if (size % 1024 == 0 || size > 16 * 1024)
+    {
+      *unit = 'm';
+      size /= 1024;
+    }
+  return size;
+}
+
 static int evaluated_p;
 
 void
@@ -394,10 +606,13 @@ dino_finish (int code)
   finish_run_tables ();
   IR_stop ();
   delete_table ();
+  finish_icode ();
   finish_scanner ();
   output_errors ();
   finish_errors ();
   finish_positions ();
+  VLO_DELETE (number_text);
+  VLO_DELETE (repr_vlobj);
   VLO_DELETE (include_path_directories_vector);
   VLO_DELETE (libraries_vector);
   if (input_dump_file != NULL)
@@ -406,20 +621,11 @@ dino_finish (int code)
     {
       finish_heap ();
       fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
-      size = heap_size;
-      unit = 'b';
-      if (size % 1024 == 0)
-	{
-	  unit = 'k';
-	  size /= 1024;
-	}
-      if (size % 1024 == 0)
-	{
-	  unit = 'm';
-	  size /= 1024;
-	}
-      fprintf (stderr, "Heap size - %d%c, heap chunks - %d\n",
+      size = get_size_repr (heap_size, &unit);
+      fprintf (stderr, "Heap size - %d%c, heap chunks - %d",
 	       size, unit, heap_chunks_number);
+      size = get_size_repr (gmp_memory_size, &unit);
+      fprintf (stderr, ", GMP size - %d%c\n", size, unit);
       if (gc_number != 0)
 	fprintf (stderr,
 		 "GC - %d times, average free memory after GC - %d%%\n",
@@ -449,6 +655,8 @@ static void
 dino_start (void)
 {
   change_allocation_error_function (error_func_for_allocate);
+  gmp_memory_size = 0;
+  mp_set_memory_functions (gmp_alloc, gmp_realloc, gmp_free);
   initiate_positions ();
   /* Output errors immediately for REPL.  */
   initiate_errors (repl_flag);
@@ -459,6 +667,8 @@ dino_start (void)
   source_position = no_position;
   VLO_CREATE (include_path_directories_vector, 0);
   VLO_CREATE (libraries_vector, 0);
+  VLO_CREATE (repr_vlobj, 0);
+  VLO_CREATE (number_text, 0);
   initiate_run_tables ();
   evaluated_p = FALSE;
 }

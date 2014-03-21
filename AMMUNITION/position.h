@@ -54,7 +54,7 @@ struct _position_struct
   unsigned int column_number;
   /* Pointer to another position structure representing position
      of include-clause which caused immediately given file compilation */
-  struct _position_struct *path;
+  const struct _position_struct *path;
 };
 
 typedef struct _position_struct position_t;
