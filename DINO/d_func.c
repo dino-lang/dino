@@ -108,9 +108,9 @@ static ER_node_t create_class_stack (val_t *call_start, int_t pars_number,
 static void
 min_max_call (int_t pars_number, int min_flag)
 {
-  ER_node_t res;
-  ER_node_t val;
+  ER_node_t val, r, v;
   int_t i;
+  val_t res;
 
   if (pars_number < 2)
     eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
@@ -119,29 +119,43 @@ min_max_call (int_t pars_number, int min_flag)
     {
       implicit_arithmetic_conversion (IVAL (ctop, -i), NULL);
       val = IVAL (ctop, -i);
-      if (ER_NODE_MODE (val) != ER_NM_int && ER_NODE_MODE (val) != ER_NM_float)
+      if (ER_NODE_MODE (val) != ER_NM_int && ER_NODE_MODE (val) != ER_NM_long
+	  && ER_NODE_MODE (val) != ER_NM_float)
 	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, (min_flag ? MIN_NAME : MAX_NAME));
       if (i == 0)
-	res = val;
-      else if (ER_NODE_MODE (val) == ER_NM_int
-	       && ER_NODE_MODE (res) == ER_NM_int
-	       && (ER_i (val) < ER_i (res)) == min_flag)
-	res = val;
-      else if (ER_NODE_MODE (val) == ER_NM_float
-	       && ER_NODE_MODE (res) == ER_NM_int
-	       && (ER_f (val) < ER_i (res)) == min_flag)
-	res = val;
-      else if (ER_NODE_MODE (val) == ER_NM_int
-	       && ER_NODE_MODE (res) == ER_NM_float
-	       && (ER_i (val) < ER_f (res)) == min_flag)
-	res = val;
-      else if (ER_NODE_MODE (val) == ER_NM_float
-	       && ER_NODE_MODE (res) == ER_NM_float
-	       && (ER_f (val) < ER_f (res)) == min_flag)
-	res = val;
+	{
+	  res = *(val_t *) val;
+	  continue;
+	}
+      if (ER_NODE_MODE (val) == ER_NODE_MODE ((ER_node_t) &res))
+	{
+	  r = (ER_node_t) &res;
+	  v = val;
+	}
+      else
+	{
+	  implicit_conversion_for_binary_arithmetic_op
+	    ((ER_node_t) &res, val, &r, &v);
+	  d_assert (ER_NODE_MODE (r) != ER_NM_int
+		    && ER_NODE_MODE (v) != ER_NM_int);
+	}
+      d_assert (ER_NODE_MODE (r) == ER_NODE_MODE (v));
+      if (ER_NODE_MODE (v) == ER_NM_int)
+	{
+	  if ((ER_i (v) < ER_i (r)) == min_flag)
+	    res = *(val_t *) val;
+	}
+      else if (ER_NODE_MODE (v) == ER_NM_long)
+	{
+	  if ((mpz_cmp (*ER_mpz_ptr (ER_l (v)),
+			*ER_mpz_ptr (ER_l (r))) < 0) == min_flag)
+	    res = *(val_t *) val;
+	}
+      else if ((ER_f (v) < ER_f (r)) == min_flag)
+	res = *(val_t *) val;
     }
-  *(val_t *) fun_result = *(val_t *) res;
+  *(val_t *) fun_result = res;
 }
 
 void
@@ -1262,6 +1276,12 @@ compare_elements (ER_node_mode_t el_type, const void *el1, const void *el2)
 	return 0;
       else
 	return 1;
+    case ER_NM_long:
+      {
+	int i = mpz_cmp (*ER_mpz_ptr (*(ER_node_t *) el1),
+			 *ER_mpz_ptr (*(ER_node_t *) el2));
+	return (i < 0 ? -1 : i > 0 ? 1 : 0);
+      }
     case ER_NM_float:
       if (*(floating_t *) el1 < *(floating_t *) el2)
 	return -1;
@@ -1411,7 +1431,9 @@ cmpv_call (int_t pars_number)
 	}
       if (el_type1 != el_type2
 	  || (el_type1 != ER_NM_float
-	      && el_type1 != ER_NM_int && el_type1 != ER_NM_char))
+	      && el_type1 != ER_NM_int
+	      && el_type1 != ER_NM_char
+	      && el_type1 != ER_NM_long))
 	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, CMPV_NAME);
       res = compare_elements (el_type1, addr1, addr2);
@@ -1778,6 +1800,7 @@ array_sort_compare_function (const void *el1, const void *el2)
     *(val_t *) ctop = *(val_t *) el2;
   call_fun_class (dino_compare_fun_block, dino_compare_fun_block_context, 2);
   TOP_UP;
+  implicit_int_conversion (ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_int)
     eval_error (invresult_bc_decl, invcalls_bc_decl,
 		get_cpos (), DERR_invalid_result, SORT_NAME);
@@ -1811,6 +1834,7 @@ sort_call (int_t pars_number)
 	  || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
 	  || (ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
 	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_int
+	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_long
 	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_float))
 	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
 		    DERR_parameter_type, SORT_NAME);
@@ -2581,6 +2605,9 @@ print_val (ER_node_t val, int quote_flag, int full_p)
 	  break;
 	case ER_NM_int:
 	  string = "int";
+	  break;
+	case ER_NM_long:
+	  string = "long";
 	  break;
 	case ER_NM_float:
 	  string = "float";
@@ -3605,13 +3632,7 @@ float_function_start (int_t pars_number, const char *function_name)
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
-  implicit_arithmetic_conversion (ctop, NULL);
-  if (ER_NODE_MODE (ctop) == ER_NM_int)
-    {
-      result = ER_i (ctop);
-      ER_SET_MODE (ctop, ER_NM_float);
-      ER_set_f (ctop, result);
-    }
+  implicit_float_conversion (ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_float)
     eval_error (partype_bc_decl, invcalls_bc_decl,
 		get_cpos (), DERR_parameter_type, function_name);
@@ -3626,20 +3647,8 @@ float_function_start2 (int_t pars_number, const char *function_name)
   if (pars_number != 2)
     eval_error (parnumber_bc_decl, invcalls_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
-  implicit_arithmetic_conversion (ctop, NULL);
-  if (ER_NODE_MODE (ctop) == ER_NM_int)
-    {
-      result = ER_i (ctop);
-      ER_SET_MODE (ctop, ER_NM_float);
-      ER_set_f (ctop, result);
-    }
-  implicit_arithmetic_conversion (below_ctop, NULL);
-  if (ER_NODE_MODE (below_ctop) == ER_NM_int)
-    {
-      result = ER_i (below_ctop);
-      ER_SET_MODE (below_ctop, ER_NM_float);
-      ER_set_f (below_ctop, result);
-    }
+  implicit_float_conversion (ctop, NULL);
+  implicit_float_conversion (below_ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_float
       || ER_NODE_MODE (below_ctop) != ER_NM_float)
     eval_error (partype_bc_decl, invcalls_bc_decl,
@@ -3744,14 +3753,8 @@ general_rand_call (int_t pars_number, int rand_flag)
 		(rand_flag ? RAND_NAME : SRAND_NAME));
   if (!rand_flag &&  pars_number == 1)
     {
-      implicit_arithmetic_conversion (ctop, NULL);
-      if (ER_NODE_MODE (ctop) == ER_NM_float)
-	{
-	  seed = ER_f (ctop);
-	  ER_SET_MODE (ctop, ER_NM_int);
-	  ER_set_i (ctop, seed);
-	}
-      else if (ER_NODE_MODE (ctop) == ER_NM_int)
+      implicit_int_conversion (ctop, NULL);
+      if (ER_NODE_MODE (ctop) == ER_NM_int)
 	seed = ER_i (ctop);
       else
 	eval_error (partype_bc_decl, invcalls_bc_decl, get_cpos (),
@@ -4698,6 +4701,7 @@ filter_function (const void *el)
     }
   call_fun_class (filter_el_fun_block, context, 1);
   TOP_UP;
+  implicit_int_conversion (ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_int)
     eval_error (invresult_bc_decl, invcalls_bc_decl,
 		get_cpos (), DERR_invalid_result, FILTER_NAME);
@@ -5399,8 +5403,8 @@ int_earley_parse_grammar (int npars)
   const char *name = "set_grammar";
 
   par1 = IVAL (ctop, -2);
-  implicit_arithmetic_conversion (below_ctop, NULL);
-  par2 = IVAL (ctop, -1);
+  implicit_int_conversion (below_ctop, NULL);
+  par2 = below_ctop;
   par3 = IVAL (ctop, 0);
   d_assert (npars == 3 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par3) == ER_NM_vect)
@@ -5438,7 +5442,7 @@ int_earley_set_debug_level (int npars)
   const char *name = "set_debug";
 
   par1 = IVAL (ctop, -1);
-  implicit_arithmetic_conversion (ctop, NULL);
+  implicit_int_conversion (ctop, NULL);
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
@@ -5460,7 +5464,7 @@ int_earley_set_one_parse_flag (int npars)
   const char *name = "set_one_parse";
 
   par1 = IVAL (ctop, -1);
-  implicit_arithmetic_conversion (ctop, NULL);
+  implicit_int_conversion (ctop, NULL);
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
@@ -5482,7 +5486,7 @@ int_earley_set_lookahead_level (int npars)
   const char *name = "set_lookahead";
 
   par1 = IVAL (ctop, -1);
-  implicit_arithmetic_conversion (ctop, NULL);
+  implicit_int_conversion (ctop, NULL);
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
@@ -5505,7 +5509,7 @@ int_earley_set_cost_flag (int npars)
   const char *name = "set_cost";
 
   par1 = IVAL (ctop, -1);
-  implicit_arithmetic_conversion (ctop, NULL);
+  implicit_int_conversion (ctop, NULL);
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
@@ -5526,7 +5530,7 @@ int_earley_set_error_recovery_flag (int npars)
   const char *name = "set_recovery";
 
   par1 = IVAL (ctop, -1);
-  implicit_arithmetic_conversion (ctop, NULL);
+  implicit_int_conversion (ctop, NULL);
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)
@@ -5549,7 +5553,7 @@ int_earley_set_recovery_match (int npars)
   const char *name = "set_recovery_match";
 
   par1 = IVAL (ctop, -1);
-  implicit_arithmetic_conversion (ctop, NULL);
+  implicit_int_conversion (ctop, NULL);
   par2 = IVAL (ctop, 0);
   d_assert (npars == 2 && ER_NODE_MODE (par1) == ER_NM_hide);
   if (ER_NODE_MODE (par2) != ER_NM_int)

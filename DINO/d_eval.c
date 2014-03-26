@@ -267,10 +267,15 @@ static int_t do_always_inline
 check_vector_index (ER_node_t vect, ER_node_t index)
 {
   int_t index_value;
+  val_t tvar;
 
   if (ER_NODE_MODE (index) != ER_NM_int)
-    eval_error (indextype_bc_decl, invindexes_bc_decl,
-		get_cpos (), DERR_index_is_not_int);
+    {
+      index = implicit_int_conversion (index, (ER_node_t) &tvar);
+      if (ER_NODE_MODE (index) != ER_NM_int)
+	eval_error (indextype_bc_decl, invindexes_bc_decl,
+		    get_cpos (), DERR_index_is_not_int);
+    }
   index_value = ER_i (index);
   if (index_value < 0
       || (unsigned_int_t) index_value >= ER_els_number (vect))
@@ -2118,6 +2123,7 @@ execute_vectorof_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
     {
       if (ER_NODE_MODE (op1) != ER_NM_char
 	  && ER_NODE_MODE (op1) != ER_NM_int
+	  && ER_NODE_MODE (op1) != ER_NM_long
 	  && ER_NODE_MODE (op1) != ER_NM_float
 	  && (ER_NODE_MODE (ER_vect (op1)) != ER_NM_heap_pack_vect
 	      || ER_pack_vect_el_type (ER_vect (op1)) != ER_NM_char))
@@ -3589,7 +3595,7 @@ execute_btcmpinc (ER_node_t op1, ER_node_t op2, int icmp (int_t, int_t))
   i = BC_binc_inc (cpc);
   if (ER_NODE_MODE (op1) == ER_NM_int)
     {
-      i = ER_i (op1) + i;
+      i += ER_i (op1);
       ER_set_i (op1, i);
       if (ER_NODE_MODE (op2) == ER_NM_int)
 	{
@@ -3676,16 +3682,31 @@ execute_cmpi (ER_node_t *res, ER_node_t *op1, ER_node_t *op2, int icmp (int_t, i
   return TRUE;
 }
 
+static int do_always_inline
+non_zero_p (ER_node_t op, const char *msg)
+{
+  val_t tvar;
+
+  op = implicit_arithmetic_conversion (op, (ER_node_t) &tvar);
+  if (ER_NODE_MODE (op) == ER_NM_int)
+    return ER_i (op) != 0;
+  else if (ER_NODE_MODE (op) == ER_NM_float)
+    return ER_f (op) != 0.0;
+  else if (ER_NODE_MODE (op) == ER_NM_long)
+    return mpz_sgn (*ER_mpz_ptr (ER_l (op))) != 0;
+  else
+    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), msg);
+}
+
 static void
 evaluate_code (void)
 {
-  int cmp, tail_flag;
+  int tail_flag;
   int_t i;
-  floating_t f;
   ER_node_t res, op1, op2, op3;
   BC_node_mode_t node_mode;
   BC_node_t bc_node;
-  val_t tvar1, v;
+  val_t v;
 
   /* Check that all BC_node_mode_t can be stored in unsigned char.  */
   d_assert ((int) BC_NM__error < 256);
@@ -3811,55 +3832,43 @@ evaluate_code (void)
 	  break;
 	case BC_NM_brts:
 	case BC_NM_brfs:
-	  extract_op1 (&op1);
-	  res = get_op (BC_res (cpc));
+	  {
+	    int true_p;
+
+	    extract_op1 (&op1);
+	    res = get_op (BC_res (cpc));
 #ifndef SMALL_CODE
-	  if (ER_NODE_MODE (op1) == ER_NM_int)
-	    cmp = ER_i (op1) != 0;
-	  else
+	    if (ER_NODE_MODE (op1) == ER_NM_int)
+	      true_p = ER_i (op1) != 0;
+	    else
 #endif
-	    {
-	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-	      if (ER_NODE_MODE (op1) != ER_NM_int
-		  && ER_NODE_MODE (op1) != ER_NM_float)
-		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-			    node_mode == BC_NM_brts
-			    ? DERR_logical_or_operands_types
-			    : DERR_logical_and_operands_types);
-	      if (ER_NODE_MODE (op1) == ER_NM_int)
-		cmp = ER_i (op1) != 0;
-	      else
-		cmp = ER_f (op1) != 0.0;
-	    }
-	  ER_SET_MODE (res, ER_NM_int);
-	  ER_set_i (res, cmp);
-	  if (cmp == (node_mode == BC_NM_brts))
-	    cpc = BC_pc (cpc);
-	  else
-	    INCREMENT_PC ();
-	  break;
+	      true_p = non_zero_p (op1, node_mode == BC_NM_brts
+				   ? DERR_logical_or_operands_types
+				   : DERR_logical_and_operands_types);
+	    ER_SET_MODE (res, ER_NM_int);
+	    ER_set_i (res, true_p);
+	    if (true_p == (node_mode == BC_NM_brts))
+	      cpc = BC_pc (cpc);
+	    else
+	      INCREMENT_PC ();
+	    break;
+	  }
 	case BC_NM_lconv:
-	  extract_op2 (&res, &op1);
+	  {
+	    int true_p;
+
+	    extract_op2 (&res, &op1);
 #ifndef SMALL_CODE
-	  if (ER_NODE_MODE (op1) == ER_NM_int)
-	    cmp = ER_i (op1) != 0;
-	  else
+	    if (ER_NODE_MODE (op1) == ER_NM_int)
+	      true_p = ER_i (op1) != 0;
+	    else
 #endif
-	    {
-	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-	      if (ER_NODE_MODE (op1) != ER_NM_int
-		  && ER_NODE_MODE (op1) != ER_NM_float)
-		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-			    DERR_logical_operands_types);
-	      if (ER_NODE_MODE (op1) == ER_NM_int)
-		cmp = ER_i (op1) != 0;
-	      else
-		cmp = ER_f (op1) != 0.0;
-	    }
-	  ER_SET_MODE (res, ER_NM_int);
-	  ER_set_i (res, cmp);
-	  INCREMENT_PC ();
-	  break;
+	      true_p = non_zero_p (op1, DERR_logical_operands_types);
+	    ER_SET_MODE (res, ER_NM_int);
+	    ER_set_i (res, true_p);
+	    INCREMENT_PC ();
+	    break;
+	  }
 	case BC_NM_in:
 	  extract_op3 (&res, &op1, &op2);
 	  execute_in_op (res, op1, op2, TRUE);
@@ -4161,22 +4170,23 @@ evaluate_code (void)
 	  }
 	case BC_NM_ind:
 	case BC_NM_lindv:
-	  extract_op3 (&res, &op1, &op2);
-	  if (ER_NODE_MODE (op1) == ER_NM_vect)
-	    {
-#ifndef SMALL_CODE
-	      if (ER_NODE_MODE (op2) != ER_NM_int)
-#endif
+	  {
+	    val_t tvar1;
+
+	    extract_op3 (&res, &op1, &op2);
+	    if (ER_NODE_MODE (op1) == ER_NM_vect)
+	      {
 		op2 = implicit_int_conversion (op2, (ER_node_t) &tvar1);
-	      load_vector_element_by_index (res, ER_vect (op1), op2);
-	    }
-	  else if (ER_NODE_MODE (op1) == ER_NM_tab)
-	    load_table_element_by_key (res, ER_tab (op1), op2);
-	  else
-	    eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
-			DERR_index_operation_for_non_vec_tab);
-	  INCREMENT_PC ();
-	  break;
+		load_vector_element_by_index (res, ER_vect (op1), op2);
+	      }
+	    else if (ER_NODE_MODE (op1) == ER_NM_tab)
+	      load_table_element_by_key (res, ER_tab (op1), op2);
+	    else
+	      eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
+			  DERR_index_operation_for_non_vec_tab);
+	    INCREMENT_PC ();
+	    break;
+	  }
 	case BC_NM_sl:
 	  extract_op2 (&res, &op1);
 	  slice_extract (res, op1, BC_op3 (cpc));
@@ -4402,15 +4412,10 @@ evaluate_code (void)
 	  else
 #endif
 	    {
-	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-	      if (ER_NODE_MODE (op1) != ER_NM_int
-		  && ER_NODE_MODE (op1) != ER_NM_float)
-		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-			    node_mode == BC_NM_bf
-			    ? DERR_invalid_if_expr_type
-			    : DERR_cond_operand_type);
-	      if ((ER_NODE_MODE (op1) == ER_NM_int && ER_i (op1) == 0)
-		  || (ER_NODE_MODE (op1) == ER_NM_float && ER_f (op1) == 0.0))
+	      int true_p = non_zero_p (op1, node_mode == BC_NM_bf
+				       ? DERR_invalid_if_expr_type
+				       : DERR_cond_operand_type);
+	      if (! true_p)
 		cpc = BC_pc (cpc);
 	      else
 		INCREMENT_PC ();
@@ -4558,16 +4563,9 @@ evaluate_code (void)
 	  else
 #endif
 	    {
-	      op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-	      if (ER_NODE_MODE (op1) != ER_NM_int
-		  && ER_NODE_MODE (op1) != ER_NM_float
-		  && ER_NODE_MODE (op1) != ER_NM_long)
-		eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-			    DERR_invalid_for_guard_expr_type);
-	      if ((ER_NODE_MODE (op1) == ER_NM_int && ER_i (op1) != 0)
-		  || (ER_NODE_MODE (op1) == ER_NM_float && ER_f (op1) != 0.0)
-		  || (ER_NODE_MODE (op1) == ER_NM_long
-		      && mpz_sgn (*ER_mpz_ptr (ER_l (op1))) != 0))
+	      int true_p = non_zero_p (op1, DERR_invalid_for_guard_expr_type);
+
+	      if (true_p)
 		cpc = BC_pc (cpc);
 	      else
 		INCREMENT_PC ();
@@ -4709,24 +4707,23 @@ evaluate_code (void)
 	  /* See comment for fbend.  */
 	  break;
 	case BC_NM_wait:
-	  if (sync_flag)
-	    eval_error (syncwait_bc_decl, errors_bc_decl, get_cpos (),
-			DERR_wait_in_sync_stmt);
-	  extract_op1 (&op1);
-	  op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
-	  if (ER_NODE_MODE (op1) != ER_NM_int
-	      && ER_NODE_MODE (op1) != ER_NM_float)
-	    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-			DERR_invalid_wait_guard_expr_type);
-	  if ((ER_NODE_MODE (op1) == ER_NM_int && ER_i (op1) == 0)
-	      || (ER_NODE_MODE (op1) == ER_NM_float && ER_f (op1) == 0.0))
-	    block_cprocess (BC_pc (cpc), TRUE);
-	  else
-	    {
-	      INCREMENT_PC ();
-	      sync_flag = TRUE;
-	    }
-	  break;
+	  {
+	    int true_p;
+
+	    if (sync_flag)
+	      eval_error (syncwait_bc_decl, errors_bc_decl, get_cpos (),
+			  DERR_wait_in_sync_stmt);
+	    extract_op1 (&op1);
+	    true_p = non_zero_p (op1, DERR_invalid_wait_guard_expr_type);
+	    if (! true_p)
+	      block_cprocess (BC_pc (cpc), TRUE);
+	    else
+	      {
+		INCREMENT_PC ();
+		sync_flag = TRUE;
+	      }
+	    break;
+	  }
 	case BC_NM_waitend:
           sync_flag = FALSE;
           INCREMENT_PC ();
@@ -4742,7 +4739,8 @@ evaluate_code (void)
 	case BC_NM_throw:
 	  {
 	    const char *message;
-	    
+	    val_t tvar1;
+
 	    op2 = (ER_node_t) &tvar1;
 	    ER_SET_MODE (op2, ER_NM_code);
 	    ER_set_code_id (op2, CODE_ID (except_bc_decl));

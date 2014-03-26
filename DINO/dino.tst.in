@@ -44372,6 +44372,77 @@ OUTPUT665
         fi
 fi
 
+# Test 666.
+if test $result = ok -a $start_test_number -le 666; then
+	echo test 666: Long min/max and sort
+        cat >$test_file <<'TEST666'
+println (min (10L, 1, -2l));
+println (max (10L, 1, -2l));
+println (min (10L, -5, -2l));
+println (max (10L, 15, -2l));
+println (min (10L, 1.5, -2l));
+println (max (10L, 1.5, -2l));
+println (min (10L, -5.5, -2l));
+println (max (10L, 15.5, -2l));
+println (sort ([10L, 5L, 2L, 7L]));
+TEST666
+        echo '      ' $DINO $test_file " >$stdout 2>&1"
+        if $DINO $test_file >$stdout 2>&1; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT666' && $CMP $stdout $ftemp2; then
+-2l
+10l
+-5
+15
+-2l
+10l
+-5.5
+15.5
+[2l, 5l, 7l, 10l]
+OUTPUT666
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 667.
+if test $result = ok -a $start_test_number -le 667; then
+	echo test 667: Long as logical and index
+        cat >$test_file <<'TEST667'
+var v = [1, 2];
+println (v[1l]);
+v[1l] = 4; println (v);
+v[1l] += 5.5; println (v);
+println (1l ? 0 : 2);
+var c = 1l;
+if (!c || c && c) println (1); else println (0);
+var v = [2L:3];
+println (v);
+TEST667
+        echo '      ' $DINO $test_file " >$stdout 2>&1"
+        if $DINO $test_file >$stdout 2>&1; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT667' && $CMP $stdout $ftemp2; then
+2
+[1, 4]
+[1, 9.5]
+0
+1
+[3, 3]
+OUTPUT667
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

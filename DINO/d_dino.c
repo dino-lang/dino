@@ -536,7 +536,7 @@ read_number (int c, int get_ch (void), void unget_ch (int), int *read_ch_num,
   return err_code;
 }
 
-size_t gmp_memory_size;
+size_t gmp_memory_size, max_gmp_memory_size;
 
 static void *
 gmp_alloc (size_t alloc_size)
@@ -544,6 +544,8 @@ gmp_alloc (size_t alloc_size)
   void *res;
 
   gmp_memory_size += alloc_size;
+  if (max_gmp_memory_size < gmp_memory_size)
+    max_gmp_memory_size = gmp_memory_size;
   MALLOC (res, alloc_size);
   return res;
 }
@@ -555,6 +557,8 @@ gmp_realloc (void *ptr, size_t old_size, size_t new_size)
 
   gmp_memory_size += new_size;
   gmp_memory_size -= old_size;
+  if (max_gmp_memory_size < gmp_memory_size)
+    max_gmp_memory_size = gmp_memory_size;
   REALLOC (res, ptr, new_size);
   return res;
 }
@@ -589,8 +593,8 @@ static int evaluated_p;
 void
 dino_finish (int code)
 {
-  char unit;
-  int size;
+  char unit, unit2;
+  int size, size2;
 
   if (evaluated_p)
     {
@@ -622,10 +626,14 @@ dino_finish (int code)
       finish_heap ();
       fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
       size = get_size_repr (heap_size, &unit);
-      fprintf (stderr, "Heap size - %d%c, heap chunks - %d",
-	       size, unit, heap_chunks_number);
+      size2 = get_size_repr (max_heap_size, &unit2);
+      fprintf (stderr, "Heap size - %d%c (max %d%c), heap chunks - %d (max %d)\n",
+	       size, unit, size2, unit2,
+	       heap_chunks_number, max_heap_chunks_number);
       size = get_size_repr (gmp_memory_size, &unit);
-      fprintf (stderr, ", GMP size - %d%c\n", size, unit);
+      size2 = get_size_repr (max_gmp_memory_size, &unit2);
+      fprintf (stderr, "Long ints size - %d%c (max %d%c), max pool long ints - %d\n",
+	       size, unit, size2, unit2, max_pool_gmps_number);
       if (gc_number != 0)
 	fprintf (stderr,
 		 "GC - %d times, average free memory after GC - %d%%\n",
@@ -655,7 +663,7 @@ static void
 dino_start (void)
 {
   change_allocation_error_function (error_func_for_allocate);
-  gmp_memory_size = 0;
+  max_gmp_memory_size = gmp_memory_size = 0;
   mp_set_memory_functions (gmp_alloc, gmp_realloc, gmp_free);
   initiate_positions ();
   /* Output errors immediately for REPL.  */

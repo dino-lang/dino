@@ -129,9 +129,10 @@ extern void initiate_int_tables (void);
 
 extern unsigned int gc_number;
 extern int free_gc_memory_percent;
-extern size_t heap_size;
+extern size_t heap_size, max_heap_size;
 extern size_t free_heap_memory;
-extern int heap_chunks_number;
+extern int heap_chunks_number, max_heap_chunks_number;
+extern int max_pool_gmps_number;
 extern int in_gc_p;
 #ifndef NO_CONTAINER_CACHE
 extern int current_cached_container_tick;

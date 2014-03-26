@@ -1,3 +1,43 @@
+2014-03-26  Vladimir N Makarov  <vmakarov@users.sf.net>
+
+	* DINO/dino.tst.in: Add 2 new tests with long.
+	* DINO/d_run.sprut (max_heap_size, max_heap_chunks_number): New.
+	(max_pool_gmps_number): Ditto.
+	* DINO/d_heap.c (free_gms, max_pool_gmps_number, gmp_pool_size):
+	New.
+	(free_gmp, init_gmp, initiate_gmps, finish_gmps): New.
+	(create_gmp): Use init_gmp.
+	(max_heap_size, max_heap_chunks_number): New.
+	(new_heap_chunk): Update max_heap_size and max_heap_chunks_number.
+	(initiate_heap): Call initiate_gmps.  Reset max_heap_size and
+	max_heap_chunks_number.
+	(finish_heap): Call finish_gmps.
+	(heap_allocate): Check gmp memory size too for GC.
+	(move_or_destroy_object): Use free_gmp.
+	* DINO/d_func.c (min_max_call): Add long processing.
+	(compare_elements): Ditto.
+	(cmpv_call): Ditto.
+	(array_sort_compare_function): Call implicit_int_conversion.
+	(sort_call): Add long processing.
+	(print_val): Print long type.
+	(float_function_start, float_function_start2): Use
+	implicit_float_convrsion.
+	(general_rand_call, filter_function, int_earley_parse_grammar):
+	Use implicit_int_conversion.
+	(int_earley_set_debug_level, int_earley_set_one_parse_flag):
+	Ditto.
+	(int_earley_set_lookahead_level, int_earley_set_cost_flag): Ditto.
+	(int_earley_set_error_recovery_flag): Ditto.
+	(int_earley_set_error_recovery_match): Ditto.
+	* DINO/d_dino.c (max_gmp_memory_size): New.
+	(gmp_alloc, gmp_realloc): Update max_gmp_memory_size.
+	(dino_finish): Print statistics for max values.
+	(dino_start): Initialize max_gmp_memory_size.
+	(check_vector_index): Call implicit_int_conversion.
+	(non_zero_p): New.
+	(evaluate_code): Use non_zero_p.  Reorgonze some code checking for
+	errors.
+
 2014-03-21  Vladimir N Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/position.h (struct _position_struct): Use const for
