@@ -1,3 +1,17 @@
+2014-03-27  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_run.sprut (max_pool_gmps_number): Remove.
+	* DINO/d_bcn.shilka: Remove commented tvar.
+	* DINO/d_dino.c (dino_finish): Don't print max pool long ints.
+	* DINO/d_heap.c (free_gmps, max_pool_gmps_number, gmp_pool_size):
+	Remove.
+	(free_gmp, init_gmp, initiate_gmps, finish_gmps): Remove.
+	(create_gmp): Use mpz_init.
+	(initiate_heap, finish_heap): Don't call
+	initiate_gmps/finish_gmps.
+	(heap_allocate): Update allocs_after_GC.  Check gmp_memory_size.
+	(move_or_destroy_object): Use mpz_clear.
+
 2014-03-26  Vladimir N Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.tst.in: Add 2 new tests with long.

@@ -42,7 +42,6 @@ ldf		{return BC_NM_ldf;}
 lds		{return BC_NM_lds;}
 pushi		{return BC_NM_pushi;}
 var		{return BC_NM_var;}
-/*tvar		{return BC_NM_tvar;}*/
 lvar		{return BC_NM_lvar;}
 lvarv		{return BC_NM_lvarv;}
 evar		{return BC_NM_evar;}

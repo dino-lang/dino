@@ -317,40 +317,6 @@ stack_size (ER_node_t stack)
 	  + ALLOC_SIZE (sizeof (_ER_heap_stack)));
 }
 
-
-
-static vlo_t free_gmps;
-int max_pool_gmps_number;
-static size_t gmp_pool_size;
-
-static void
-free_gmp (mpz_t *mpz)
-{
-  if (VLO_LENGTH (free_gmps) >= heap_chunk_size)
-    mpz_clear (*mpz);
-  else
-    {
-      gmp_pool_size += mpz_size (*mpz);
-      VLO_ADD_MEMORY (free_gmps, mpz, sizeof (mpz_t));
-      if (max_pool_gmps_number < VLO_LENGTH (free_gmps) / sizeof (mpz_t))
-	max_pool_gmps_number = VLO_LENGTH (free_gmps) / sizeof (mpz_t);
-    }
-}
-
-static void
-init_gmp (mpz_t *res)
-{
-  if (VLO_LENGTH (free_gmps) == 0)
-    {
-      mpz_init (*res);
-      return;
-    }
-  memcpy (res, ((mpz_t *) VLO_BOUND (free_gmps))[-1], sizeof (mpz_t));
-  VLO_SHORTEN (free_gmps, sizeof (mpz_t));
-  d_assert (gmp_pool_size >= mpz_size (*res));
-  gmp_pool_size -= mpz_size (*res);
-}
-
 ER_node_t
 create_gmp (void)
 {
@@ -359,7 +325,7 @@ create_gmp (void)
   gmp = heap_allocate (ALLOC_SIZE (sizeof (_ER_heap_gmp)), FALSE);
   ER_SET_MODE (gmp, ER_NM_heap_gmp);
   ER_set_immutable (gmp, FALSE);
-  init_gmp (ER_mpz_ptr (gmp));
+  mpz_init (*ER_mpz_ptr (gmp));
   return gmp;
 }
 
@@ -370,26 +336,6 @@ copy_gmp (ER_node_t gmp)
 
   mpz_set (*ER_mpz_ptr (res), *ER_mpz_ptr (gmp));
   return res;
-}
-
-static void
-initiate_gmps (void)
-{
-  VLO_CREATE (free_gmps, 0);
-  max_pool_gmps_number = 0;
-  gmp_pool_size = 0;
-}
-
-static void
-finish_gmps (void)
-{
-  mpz_t *ptr;
-
-  for (ptr = (mpz_t *) VLO_BEGIN (free_gmps);
-       ptr < (mpz_t *) VLO_BOUND (free_gmps);
-       ptr++)
-    mpz_clear (*ptr);
-  VLO_DELETE (free_gmps);
 }
 
 
@@ -522,7 +468,6 @@ initiate_heap ()
   max_heap_size = heap_size = 0;
   heap_chunks_number = max_heap_chunks_number = 0;
   free_heap_memory = 0;
-  initiate_gmps ();
   new_heap_chunk (heap_chunk_size);
   cstack = NULL;
   uppest_stack = NULL;
@@ -591,7 +536,6 @@ final_call_destroy_functions (void)
 void
 finish_heap (void)
 {
-  finish_gmps ();
   for (curr_heap_chunk = VLO_BEGIN (heap_chunks);
        (char *) curr_heap_chunk <= (char *) VLO_END (heap_chunks);
        curr_heap_chunk++)
@@ -612,23 +556,31 @@ void *
 heap_allocate (size_t size, int stack_p)
 {
   void *result;
+  static int allocs_after_GC = 0;
 
   d_assert (size > 0);
   size = ALLOC_SIZE (size);
+  allocs_after_GC++;
   if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free < size)
     {
       /* We need GC.  Flag this.  */
       d_assert (executed_stmts_count <= 0);
-      if (heap_chunks_number >= 16
-	  || gmp_memory_size > 16 * heap_chunk_size + gmp_pool_size)
+      if (heap_chunks_number >= 16)
 	{
 	  GC_executed_stmts_count = executed_stmts_count;
 	  executed_stmts_count = 0;
+	  allocs_after_GC = 0;
 	}
       if (curr_heap_chunk->chunk_stack_top - curr_heap_chunk->chunk_free
 	  < size)
 	new_heap_chunk (size > heap_chunk_size ? size : heap_chunk_size);
     }
+ else if (allocs_after_GC > 1000 && gmp_memory_size > 16 * heap_chunk_size)
+   {
+     GC_executed_stmts_count = executed_stmts_count;
+     executed_stmts_count = 0;
+     allocs_after_GC = 0;
+   }
   if (stack_p)
     {
       curr_heap_chunk->chunk_stack_top -= size;
@@ -1294,7 +1246,7 @@ move_or_destroy_object (ER_node_t obj, struct heap_chunk **descr,
   if (! ER_it_was_processed (obj))
     {
       if (ER_NODE_MODE (obj) == ER_NM_heap_gmp)
-	free_gmp (ER_mpz_ptr (obj));
+	mpz_clear (*ER_mpz_ptr (obj));
     }
   else
     {
