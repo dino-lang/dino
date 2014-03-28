@@ -25,6 +25,11 @@
 # The most scripts are taken from The Great Computer Language Shootout
 # (http://www.bagley.org/~doug/shootout)
 #
+# Environment variables to control the script:
+# o SKIP_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS}
+# o DINO_ONLY - it can be overwitten by the following:
+# o DO_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS}
+#
 
 DINO='./dino'
 srcdir=`dirname $0`
@@ -43,7 +48,7 @@ fi
 cat <<EOF >$ftest
 EOF
 
-if perl $ftest 2>/dev/null;then
+if test x$SKIP_PERL = x && perl $ftest 2>/dev/null;then
   PERL=perl
   echo '>>>> ' `perl -v 2>&1|fgrep 'This is'`
 else
@@ -51,7 +56,7 @@ else
   PERL=
 fi
 
-if python $ftest 2>/dev/null;then
+if test x$SKIP_PYTHON = x && python $ftest 2>/dev/null;then
   PYTHON=python
   echo '>>>> ' `echo|python -v 2>&1|fgrep Python`
 else
@@ -59,7 +64,7 @@ else
   PYTHON=
 fi
 
-if python3 $ftest 2>/dev/null;then
+if test x$SKIP_PYTHON3 = x && python3 $ftest 2>/dev/null;then
   PYTHON3=python3
   echo '>>>> ' `echo|python3 -v 2>&1|fgrep Python`
 else
@@ -67,7 +72,7 @@ else
   PYTHON3=
 fi
 
-if pypy $ftest 2>/dev/null;then
+if test x$SKIP_PYPY = x && pypy $ftest 2>/dev/null;then
   PYPY=pypy
   echo '>>>> ' `pypy --version 2>&1|fgrep PyPy`
 else
@@ -75,7 +80,7 @@ else
   PYPY=
 fi
 
-if tclsh $ftest 2>/dev/null;then
+if test x$SKIP_TCLSH = x && tclsh $ftest 2>/dev/null;then
   TCLSH=tclsh
   echo '>>>> ' TCL version is `echo 'puts $tcl_version'|tclsh`
 else
@@ -83,7 +88,7 @@ else
   TCLSH=
 fi
 
-if awk -f $ftest 2>/dev/null </dev/null;then
+if test x$SKIP_AWK = x && awk -f $ftest 2>/dev/null </dev/null;then
   AWK=awk
   echo '>>>> ' `echo|awk --version 2>&1|fgrep wk`
 else
@@ -91,7 +96,7 @@ else
   AWK=
 fi
 
-if lua $ftest 2>/dev/null;then
+if test x$SKIP_LUA = x && lua $ftest 2>/dev/null;then
   LUA=lua
   echo '>>>> ' `echo|lua -v 2>&1|fgrep Lua`
 else
@@ -99,7 +104,7 @@ else
   LUA=
 fi
 
-if ruby $ftest 2>/dev/null;then
+if test x$SKIP_RUBY = x && ruby $ftest 2>/dev/null;then
   RUBY=ruby
   echo '>>>> ' `echo|ruby -v 2>&1|fgrep ruby`
 else
@@ -107,7 +112,7 @@ else
   RUBY=
 fi
 
-if echo 'println ()' | scala >/dev/null 2>&1;then
+if test x$SKIP_SCALA = x && echo 'println ()' | scala >/dev/null 2>&1;then
   SCALA=scala
   echo '>>>> ' `echo|scala -version 2>&1|fgrep Scala`
 else
@@ -115,7 +120,7 @@ else
   SCALA=
 fi
 
-if echo 'print ()' | js >/dev/null 2>&1;then
+if test x$SKIP_JS = x && echo 'print ()' | js >/dev/null 2>&1;then
   JS=js
   echo '>>>> ' `js -h 2>&1|fgrep JavaScript-C`
 else
@@ -150,26 +155,31 @@ else
 fi
 
 
-dino_only=$2
-if test x$dino_only != x; then
-  PERL=
-  PYTHON=
-  PYTHON3=
-  PYPY=
-  TCLSH=
-  AWK=
-  LUA=
-  RUBY=
-  SCALA=
-  JS=
+if test x$DINO_ONLY != x; then
+  if test x$DO_PERL = x;then PERL="";fi
+  if test x$DO_PYTHON = x;then PYTHON="";fi
+  if test x$DO_PYTHON3 = x;then PYTHON3="";fi
+  if test x$DO_PYPY = x;then PYPY="";fi
+  if test x$DO_TCSLH = x;then TCLSH="";fi
+  if test x$DO_AWK = x;then AWK="";fi
+  if test x$DO_LUA = x;then LUA="";fi
+  if test x$DO_RUBY = x;then RUBY="";fi
+  if test x$DO_SCALA = x;then SCALA="";fi
+  if test x$DO_JS = x;then JS="";fi
+
+  if test x$PERL != x || test x$PYTHON != x || test x$PYPY != x || test x$PYTHON3 != x \
+     || test x$TCLSH != x || test x$AWK != x || test x$LUA != x || test x$RUBY != x \
+     || test x$SCALA != x || test x$JS != x;then
+    DINO_ONLY="";
+  fi
 fi
 
 Announce_DINO() {
-    if test x$dino_only = x; then echo DINO$1:;fi
+    if test x$DINO_ONLY = x; then echo DINO$1:;fi
 }
 
 Announce_Test() {
-    if test x$dino_only = x || test "x$NECHO" = x; then echo $*
+    if test x$DINO_ONLY = x || test "x$NECHO" = x; then echo $*
     else
        s=`$NECHO -n "$*"|sed "s/:  +++++/:/"`
        $NECHO -n "$s"
@@ -222,7 +232,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # from Brad Knotwell
@@ -241,13 +251,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -443,7 +457,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with help from Brad Knotwell
@@ -463,13 +477,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -666,7 +684,7 @@ Announce_DINO
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
-if test x$dino_only != x; then
+if test x$DINO_ONLY != x; then
   Announce_Test "+++++          Slice Variant:"
 fi
 cat <<'EOF' >$ftest
@@ -752,7 +770,7 @@ EOF
   if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with help from Brad Knotwell
@@ -775,13 +793,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -1062,7 +1084,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with help from Brad Knotwell
@@ -1127,13 +1149,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -1428,7 +1454,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 
@@ -1492,13 +1518,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$TCLSH != x; then
@@ -1609,7 +1639,7 @@ end
 
 
 function blowup (n)
-  if math.mod(n,2) ~= 0 then error("Lo_Exception", 0)
+  if n % 2 ~= 0 then error("Lo_Exception", 0)
   else error("Hi_Exception", 0)
   end
 end
@@ -1834,7 +1864,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -1850,13 +1880,17 @@ for i in xrange (0,N):
     fibnum = fibonacci(i)
     print i, fibnum 
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -2040,7 +2074,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with help from from Gustavo Niemeyer
@@ -2061,13 +2095,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -2292,7 +2330,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # from Mark Baker
@@ -2314,13 +2352,17 @@ for i in xrange(n):
 
 print hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999']
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -2604,7 +2646,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 
@@ -2664,13 +2706,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -3221,19 +3267,23 @@ EOF
   (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PERL $ftest) 2>&1|print_time
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 
 print "hello world"
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) 2>&1|print_time
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) 2>&1|print_time
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYPY $ftest) 2>&1|print_time
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYPY $ftest) 2>&1|print_time
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -3377,7 +3427,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with improvements from Mark Baker
@@ -3422,13 +3472,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -3901,7 +3955,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/python
 # $Id$
@@ -3956,13 +4010,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -4368,7 +4426,7 @@ Announce_DINO
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
-if test x$dino_only != x; then
+if test x$DINO_ONLY != x; then
   Announce_Test "+++++           Transpose and Slice Variant:"
 fi
 cat <<'EOF' >$ftest
@@ -4500,7 +4558,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 
@@ -4553,13 +4611,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -4904,7 +4966,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with help from Mark Baker
@@ -4929,13 +4991,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -5232,7 +5298,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 
@@ -5287,13 +5353,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -5679,7 +5749,7 @@ echo
 #  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/python
 # $Id$
@@ -5731,13 +5801,17 @@ def main(n):
     
 main(int(sys.argv[1]))
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -5923,7 +5997,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with help from Brent Burley
@@ -5951,13 +6025,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -6062,8 +6140,6 @@ fi
 
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
-
-
 -- $Id: random.lua,v 1.12 2001/05/08 01:36:50 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
 -- contributed by Roberto Ierusalimschy
@@ -6074,7 +6150,7 @@ local IC = 29573
 
 local LAST = 42
 local function gen_random(max)
-    LAST = math.mod((LAST * IA + IC), IM)
+    LAST = (LAST * IA + IC) % IM
     return( (max * LAST) / IM )
 end
 
@@ -6272,7 +6348,7 @@ EOF
   if (time $PERL $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 
@@ -6309,13 +6385,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -6440,8 +6520,6 @@ fi
 
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
-
-
 -- $Id: regexmatch.lua,v 1.4 2000/12/09 20:07:45 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
 -- contributed by Roberto Ierusalimschy
@@ -6458,7 +6536,7 @@ local pattern = "%D(%(?)(%d%d%d)(%)?) (%d%d%d)[- ](%d%d%d%d)%f[%D]"
 local N = tonumber((arg and arg[1])) or 1
 local count = 0
 for i=N,1,-1 do
-  for open,area,close,exch,digits in string.gfind(text, pattern) do
+  for open,area,close,exch,digits in string.gmatch(text, pattern) do
       if (open == '(') == (close == ')') then
         local tel = "("..area..") "..exch.."-"..digits
         if i == 1 then
@@ -17352,7 +17430,7 @@ EOF
   if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # from Brad Knotwell
@@ -17366,13 +17444,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -17540,7 +17622,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/python 
 # $Id$
@@ -17566,13 +17648,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -17824,7 +17910,7 @@ Announce_DINO
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
-if test x$dino_only != x; then
+if test x$DINO_ONLY != x; then
   Announce_Test "+++++           Slice Variant:"
 fi
 cat <<'EOF' >$ftest
@@ -95131,7 +95217,7 @@ EOF
   if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/python
 # $Id$
@@ -95153,13 +95239,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -95911,7 +96001,7 @@ EOF
   if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/python
 # $Id$
@@ -95970,13 +96060,17 @@ def main():
 main()
 
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -96148,7 +96242,7 @@ end
 table.sort(nums)
 local mid = math.floor(n/2)
 local median
-if math.mod(n,2) == 1 then
+if n % 2 == 1 then
   median = nums[mid+1]
 else
   median = (nums[mid] + nums[mid+1])/2
@@ -96377,7 +96471,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # from Brad Knotwell
@@ -96394,13 +96488,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -96448,7 +96546,7 @@ end
 
 function Buffer:add (s)
   table.insert(self, s)    -- push 's' into the the stack
-  for i=table.getn(self)-1, 1, -1 do
+  for i=#self-1, 1, -1 do
     if string.len(self[i]) > string.len(self[i+1]) then
       break
     end
@@ -97608,7 +97706,7 @@ EOF
   if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 # with help from Mark Baker
@@ -97623,13 +97721,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -100537,7 +100639,7 @@ EOF
   if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 #
@@ -100581,13 +100683,17 @@ def main():
 
 main()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -100719,7 +100825,7 @@ while true do
   local lines, rest = io.read(BUFSIZE, "*l")
   if lines == nil then break end
   lines = lines..(rest or '')    -- ensures whole lines
-  for w in string.gfind(string.lower(lines), "(%l+)") do
+  for w in string.gmatch(string.lower(lines), "(%l+)") do
     local cw = count[w]
     if not cw then     -- first occurrence?
       cw = 0
@@ -100733,7 +100839,7 @@ table.sort(words, function (a,b)
   return  count[a] > count[b]  or (count[a] == count[b] and a > b)
 end)
 
-for i=1,table.getn(words) do
+for i=1,#words do
   local w = words[i]
   io.write(string.format("%7d\t%s\n", count[w], w))
 end
@@ -100853,20 +100959,24 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
 num = int(sys.argv[1])
 for i in xrange (0,num): i
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -100981,7 +101091,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -100993,13 +101103,17 @@ def f():
 for i in xrange(0,num):
    f()
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -101133,7 +101247,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -101146,13 +101260,17 @@ def tak (x, y, z):
 N = int(sys.argv[1])
 print tak(N * 3, N * 2, N)
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -101308,7 +101426,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -101325,13 +101443,17 @@ while n < N:
 
 print x
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -101515,7 +101637,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -101535,13 +101657,17 @@ for iter in range(10):
         count = count + 1
 print count
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -101764,7 +101890,7 @@ Announce_DINO
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
-if test x$dino_only != x; then
+if test x$DINO_ONLY != x; then
   Announce_Test "+++++           Slice Variant:"
 fi
 cat <<'EOF' >$ftest
@@ -101824,7 +101950,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -101844,13 +101970,17 @@ for iter in range (10):
         count = count + 1
 print count
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -102096,7 +102226,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -102124,13 +102254,17 @@ for i in range (NUM):
 
 mmult (m1,m2)
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -102212,8 +102346,8 @@ if test x$LUA != x; then
 n = tonumber((arg and arg[1]) or 1)
 
 function mmult(m1, m2)
-  m1rows = table.getn (m1); m2rows = table.getn (m2);
-  m1cols = table.getn (m1[1]); m2cols = table.getn (m2[1]);
+  m1rows = #m1; m2rows = #m2;
+  m1cols = #m1[1]; m2cols = #m2[1];
   if (m2cols ~= m2rows) then
        print ("matrices don't match");
        return;
@@ -102416,7 +102550,7 @@ Announce_DINO
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
-if test x$dino_only != x; then
+if test x$DINO_ONLY != x; then
   Announce_Test "+++++           Transpose and Slice Variant:"
 fi
 cat <<'EOF' >$ftest
@@ -102499,7 +102633,7 @@ EOF
   if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 import sys
 
@@ -102528,13 +102662,17 @@ for i in xrange (0,NUM):
 
 mmult (m1, NUM, NUM, m2, NUM, NUM)
 EOF
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then
@@ -102617,8 +102755,8 @@ if test x$LUA != x; then
 n = tonumber((arg and arg[1]) or 1)
 
 function mmult(m1, m2)
-  m1rows = table.getn (m1); m2rows = table.getn (m2);
-  m1cols = table.getn (m1[1]); m2cols = table.getn (m2[1]);
+  m1rows = #m1; m2rows = #m2;
+  m1cols = #m1[1]; m2cols = #m2[1];
   if (m2cols ~= m2rows) then
        print ("matrices don't match");
        return;
@@ -102856,15 +102994,19 @@ if test x$PERL != x; then
   if (time $PERL $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
-if test x$PYTHON != x; then
+if test x$PYTHON != x || test x$PYPY != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  echo PYTHON:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYTHON != x; then
+    echo PYTHON:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYTHON $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 
-  echo PYPY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYPY $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if test x$PYPY != x; then
+    echo PYPY:
+    if test "x$NECHO" != x;then $NECHO "   ";fi
+    if (time $PYPY $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  fi
 fi
 
 if test x$PYTHON3 != x; then

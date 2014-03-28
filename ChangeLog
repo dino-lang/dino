@@ -1,3 +1,9 @@
+2014-03-28  Vladimir N Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Add new environment variables DINO_ONLY,
+	SKIP_*, DO_* to control the script.  Separate PYTHON and PYPY.
+	Fix failed LUA tests.
+
 2014-03-27  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_run.sprut (max_pool_gmps_number): Remove.
