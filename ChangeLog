@@ -1,3 +1,7 @@
+2014-03-31  Vladimir N Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Add tests for OCAML.
+
 2014-03-28  Vladimir N Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Add new environment variables DINO_ONLY,

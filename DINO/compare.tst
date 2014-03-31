@@ -26,9 +26,9 @@
 # (http://www.bagley.org/~doug/shootout)
 #
 # Environment variables to control the script:
-# o SKIP_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS}
+# o SKIP_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS,OCAML}
 # o DINO_ONLY - it can be overwitten by the following:
-# o DO_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS}
+# o DO_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS,OCAML}
 #
 
 DINO='./dino'
@@ -128,6 +128,14 @@ else
   JS=
 fi
 
+if test x$SKIP_OCAML = x && echo 'print ()' | js >/dev/null 2>&1;then
+  OCAML=ocaml
+  echo '>>>> ' `ocaml < /dev/null|fgrep ersion`
+else
+  echo We have no JavaScript
+  OCAML=
+fi
+
 echo '>>>> ' dino: `$DINO -h 2>&1|fgrep Version`
 
 speed() {
@@ -166,10 +174,11 @@ if test x$DINO_ONLY != x; then
   if test x$DO_RUBY = x;then RUBY="";fi
   if test x$DO_SCALA = x;then SCALA="";fi
   if test x$DO_JS = x;then JS="";fi
+  if test x$DO_OCAML = x;then OCAML="";fi
 
   if test x$PERL != x || test x$PYTHON != x || test x$PYPY != x || test x$PYTHON3 != x \
      || test x$TCLSH != x || test x$AWK != x || test x$LUA != x || test x$RUBY != x \
-     || test x$SCALA != x || test x$JS != x;then
+     || test x$SCALA != x || test x$JS != x || test x$OCAML != x;then
     DINO_ONLY="";
   fi
 fi
@@ -401,6 +410,31 @@ if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $t
 echo JS -m:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: ackermann.ocaml,v 1.9 2001/01/08 02:56:48 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+
+let rec ack m n =
+  if m = 0 then n + 1
+  else if n = 0 then ack (m - 1) 1
+  else ack (m - 1) (ack m (n - 1))
+
+let _ =
+  let arg =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  Printf.printf "Ack(3,%d): %d\n" arg (ack 3 arg)
+EOF
+echo OCAML:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -666,6 +700,36 @@ if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $t
 echo JS -m:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: ary3.ocaml,v 1.1 2001/05/31 02:27:48 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let last = n-1
+  and x = Array.make n 0
+  and y = Array.make n 0 in
+  for i = 0 to last do
+    x.(i) <- (i + 1)
+  done;
+  for k = 0 to 999 do
+    for i = last downto 0 do
+      y.(i) <- (x.(i) + y.(i))
+    done
+  done;
+  Printf.printf "%d %d\n" y.(0) y.(last)
+EOF
+echo OCAML:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -965,6 +1029,54 @@ EOF
   echo SCALA:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: wc.ocaml,v 1.7 2001/05/25 22:33:22 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * based on code by Cuihtlauac ALVARADO and Markus Mottl
+ *)
+
+let nl = ref 0
+let nw = ref 0
+let nc = ref 0
+let max = 4096
+let buf = String.create max
+
+let readblock scanfun =
+  let nread = input stdin buf 0 max in
+  if nread = 0 then () else
+  begin nc := !nc + nread; scanfun 0 nread end
+
+
+let rec scan_out_of_word i n =
+  if i < n then
+    match buf.[i] with
+    | '\n'     -> incr nl; scan_out_of_word (i+1) n
+    | ' '|'\t' ->          scan_out_of_word (i+1) n
+    | _        -> incr nw; scan_in_word (i+1) n
+  else
+    readblock scan_out_of_word
+
+and scan_in_word i n =
+  if i < n then
+    match buf.[i] with
+    | '\n'     -> incr nl; scan_out_of_word (i+1) n
+    | ' '|'\t' ->          scan_out_of_word (i+1) n
+    | _        ->          scan_in_word (i+1) n
+  else
+    readblock scan_in_word
+
+
+let _ =
+  scan_out_of_word 0 0;
+  Printf.printf "%d %d %d\n" !nl !nw !nc
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -1779,6 +1891,41 @@ EOF
   if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: except.ocaml,v 1.6 2001/07/28 21:52:57 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ * and Mark Baker
+ *)
+
+exception HiException of int
+exception LoException of int
+
+let hi = ref 0
+let lo = ref 0
+
+let blowup n =
+  if n mod 2 = 0 then raise (LoException n)
+  else raise (HiException n)
+
+let lo_fun n = try blowup n with LoException _ -> incr lo
+let hi_fun n = try lo_fun n with HiException _ -> incr hi
+
+let some_fun n =
+  try hi_fun n with exc -> print_endline "Should not get here."; raise exc
+
+let _ =
+  let n = if Array.length Sys.argv > 1 then int_of_string Sys.argv.(1) else 1 in
+  for i = 1 to n do some_fun i done;
+  Printf.printf "Exceptions: HI=%d / LO=%d\n" !hi !lo
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var HI = 0;
 var LO = 0;
@@ -2016,6 +2163,29 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: fibo.ocaml,v 1.3 2001/01/08 03:01:50 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ *)
+
+let rec fib n =
+  if n < 2 then 1
+  else fib (n - 2) + fib (n - 1)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  for i = 0 to n-1 do fib i done;
+  Printf.printf "%d\n" (fib n)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -2284,6 +2454,47 @@ EOF
   if (time $JS -m$ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: hash.ocaml,v 1.4 2001/01/08 03:02:47 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let hexdigits =  [| '0'; '1'; '2'; '3'; '4'; '5'; '6'; '7';
+                    '8'; '9'; 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; |]
+
+let buf = String.create 32
+
+let rec hexstring_of_int n idx len =
+  if n <= 0 then String.sub buf idx len
+  else begin
+    let new_idx = idx - 1
+    and new_len = len + 1 in
+    String.set buf new_idx hexdigits.(n land 15);
+    hexstring_of_int (n lsr 4) new_idx new_len
+  end
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let hx = Hashtbl.create n in
+  for i = 1 to n do
+    Hashtbl.add hx (hexstring_of_int i 32 0) true
+  done;
+  let c = ref 0 in
+  for i = n downto 1 do
+    if Hashtbl.mem hx (string_of_int i) then incr c
+  done;
+  Printf.printf "%d\n" !c
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
 var f = "%x", x = tab [];
@@ -2544,6 +2755,42 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: hash2.ocaml,v 1.3 2001/01/08 13:21:09 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1
+  and hash1 = Hashtbl.create 10000 in
+  for i = 0 to 9999 do
+    Hashtbl.add hash1 ("foo_" ^ string_of_int i) (ref i)
+  done;
+  let hash2 = Hashtbl.create 10000 in
+  let update_hash2 k v =
+    try
+      let valref = Hashtbl.find hash2 k in
+      valref := !valref + !v
+    with Not_found -> Hashtbl.add hash2 k (ref !v) in
+  for i = 1 to n do
+    Hashtbl.iter update_hash2 hash1
+  done;
+  Printf.printf "%d %d %d %d\n"
+    !(Hashtbl.find hash1 "foo_1")
+    !(Hashtbl.find hash1 "foo_9999")
+    !(Hashtbl.find hash2 "foo_1")
+    !(Hashtbl.find hash2 "foo_9999")
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -3185,6 +3432,75 @@ EOF
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: heapsort.ocaml,v 1.9 2001/05/08 02:46:59 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let im = 139968
+let ia =   3877
+let ic =  29573
+let last = ref 42
+
+let gen_random max =
+  last := (!last * ia + ic) mod im;
+  max *. float_of_int !last /. float_of_int im
+
+let heapsort n ra =
+  let l = ref ((n lsr 1) + 1)
+  and rra = ref 0.0
+  and i = ref 0
+  and j = ref 0
+  and ir = ref n in
+  try
+    while true do
+      if !l > 1 then begin
+        decr l;
+        rra := ra.(!l)
+      end
+      else begin
+        rra := ra.(!ir);
+        ra.(!ir) <- ra.(1);
+        decr ir;
+        if !ir = 1 then begin
+          ra.(1) <- !rra;
+          raise Exit
+        end
+      end;
+      i := !l;
+      j := !l lsl 1;
+      while !j <= !ir do
+        if !j < !ir && ra.(!j) < ra.(!j+1) then incr j;
+        if !rra < ra.(!j) then begin
+          ra.(!i) <- ra.(!j);
+          i := !j;
+          j := !j + !i
+        end
+        else j := !ir + 1;
+      done;
+      ra.(!i) <- !rra;
+    done
+  with Exit -> ()
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let ary = Array.make (n + 1) 0.0 in
+  for i = 1 to n do
+     ary.(i) <- gen_random 1.0
+  done;
+  heapsort n ary;
+  Printf.printf "%.10f\n" ary.(n)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -3356,6 +3672,20 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -m $ftest) 2>&1|print_time
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: hello.ocaml,v 1.1 2001/06/17 22:00:34 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ *)
+
+let _ = print_endline "hello world"
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $OCAML $ftest) 2>&1|print_time
 fi
 
 cat <<'EOF' >$ftest
@@ -3830,6 +4160,178 @@ EOF
   echo SCALA:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: lists.ocaml,v 1.9 2001/01/31 02:12:48 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * from Benedict Rosenau
+ *)
+
+module Deque:
+  sig
+    type 'a t
+    exception Empty
+
+    val make: int -> 'a -> 'a t
+    val iota: int -> int t
+
+    val is_empty: 'a t -> bool
+    val equal: 'a t -> 'a t -> bool
+    val length: 'a t -> int
+    val nth: 'a t -> int -> 'a
+
+    val push_front: 'a -> 'a t -> unit
+    val push_back: 'a t -> 'a -> unit
+
+    val take_front: 'a t -> 'a
+    val take_back: 'a t -> 'a
+
+    val copy: 'a t -> 'a t
+    val reverse: 'a t -> 'a t
+  end =
+struct
+  type 'a t = {mutable size: int;
+               mutable first: int;
+               mutable last: int;
+               mutable field: 'a array;
+               fill: 'a}
+
+  exception Empty
+
+  let make n dummy =
+    let n = max n 0 in
+    let nplus = max 1 n in
+    {size = nplus;
+     first = nplus lsr 1;
+     last = (nplus lsr 1) - 1;
+     field = Array.make nplus dummy;
+     fill = dummy}
+
+  let iota i =
+    let i = max 0 i in
+    let iplus = max 1 i in
+    {size = iplus;
+     first = 0;
+     last = i - 1;
+     field = Array.init iplus (fun n -> n + 1);
+     fill = i}
+
+  let length buf = buf.last - buf.first + 1
+
+  let is_empty buf = buf.last < buf.first
+
+  let rec array_eq arr1 off1 arr2 off2 = function
+    | 0 -> true
+    | n ->
+        if arr1.(off1) <> arr2.(off2) then false
+        else array_eq arr1 (off1 + 1) arr2 (off2 + 1) (n - 1)
+
+  let equal buf1 buf2 =
+    let len = length buf1 in
+    if len <> length buf2 then false
+    else array_eq buf1.field buf1.first buf2.field buf2.first len
+
+  let nth buf n =
+    if n < 0 or n >= length buf then failwith "nth";
+    buf.field.(buf.first + n)
+
+  let double_shift buf = 
+    let new_size = buf.size lsl 1
+    and len = length buf in
+    let new_first = (new_size - len) lsr 1 
+    and new_field = Array.make new_size buf.fill in
+    Array.blit buf.field buf.first new_field new_first len;
+    buf.size <- new_size;
+    buf.field <- new_field;
+    buf.first <- new_first;
+    buf.last <- new_first + len - 1
+
+  let push_front elem buf =
+    if buf.first = 0 then double_shift buf;
+    let new_first = buf.first - 1 in
+    buf.field.(new_first) <- elem;
+    buf.first <- new_first
+
+  let push_back buf elem =
+    if buf.last = buf.size - 1 then double_shift buf;
+    let new_last = buf.last + 1 in
+    buf.field.(new_last) <- elem;
+    buf.last <- new_last
+
+  let take_front buf =
+    if is_empty buf then raise Empty;
+    let old_first = buf.first in
+    buf.first <- old_first + 1;
+    buf.field.(old_first)
+
+  let take_back buf =
+    if is_empty buf then raise Empty;
+    let old_last = buf.last in
+    buf.last <- old_last - 1;
+    buf.field.(old_last)
+
+  let copy buf =
+    let len = length buf in
+    let new_buf = make len buf.fill in
+    Array.blit buf.field buf.first new_buf.field 0 len;
+    new_buf.first <- 0;
+    new_buf.last <- len - 1;
+    new_buf
+
+  let reverse buf =
+    let len = length buf 
+    and fst = buf.first
+    and fld = buf.field in
+    let new_buf = make len buf.fill in
+    let new_fld = new_buf.field in
+    for i = 0 to len - 1 do
+      new_fld.(len - i - 1) <- fld.(fst + i)
+    done;
+    new_buf.first <- 0;
+    new_buf.last <- len - 1;
+    new_buf
+end
+
+
+open Deque
+
+let empty () = iota 0
+
+let size = 10000
+
+let test_lists () =
+  let d1 = iota size in
+  let d2 = copy d1
+  and d3 = empty () in
+
+  for i = 1 to length d2 do
+    push_back d3 (take_front d2)
+  done;
+  for i = 1 to length d3 do
+    push_back d2 (take_back d3)
+  done;
+  let d1 = reverse d1 in
+  if size <> nth d1 0 then failwith "First test failed";
+  if length d1 <> length d2 then failwith "Second test failed";
+  if not (equal d1 d2) then failwith "Third test failed";
+  length d1
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1
+  and result = ref 0 in
+  for i = 1 to n do
+    result := test_lists ()
+  done;
+  Printf.printf "%d\n" !result
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -4376,6 +4878,61 @@ EOF
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: matrix.ocaml,v 1.7 2001/01/14 13:47:41 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * from Markus Mottl
+ *)
+
+let size = 30
+
+let mkmatrix rows cols =
+  let count = ref 1
+  and last_col = cols - 1
+  and m = Array.make_matrix rows cols 0 in
+  for i = 0 to rows - 1 do
+    let mi = m.(i) in
+    for j = 0 to last_col do
+      mi.(j) <- !count;
+      incr count
+    done;
+  done;
+  m
+
+let rec inner_loop k v m1i m2 j =
+  if k < 0 then v
+  else inner_loop (k - 1) (v + m1i.(k) * m2.(k).(j)) m1i m2 j
+
+let mmult rows cols m1 m2 m3 =
+  let last_col = cols - 1
+  and last_row = rows - 1 in
+  for i = 0 to last_row do
+    let m1i = m1.(i) and m3i = m3.(i) in
+    for j = 0 to last_col do
+      m3i.(j) <- inner_loop last_row 0 m1i m2 j
+    done;
+  done
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1
+  and m1 = mkmatrix size size
+  and m2 = mkmatrix size size
+  and m3 = Array.make_matrix size size 0 in
+  for i = 1 to n - 1 do
+    mmult size size m1 m2 m3
+  done;
+  mmult size size m1 m2 m3;
+  Printf.printf "%d %d %d %d\n" m3.(0).(0) m3.(2).(3) m3.(3).(2) m3.(4).(4)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var size = 30;
 
@@ -4876,6 +5433,60 @@ EOF
   if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: methcall.ocaml,v 1.6 2001/01/08 03:08:35 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * from: Benedikt Rosenau
+ * with contributions from Markus Mottl
+ *)
+
+let print_bool b = print_endline (string_of_bool b)
+
+class toggle start_state = object (self)
+  val mutable state = start_state
+
+  method value = state
+  method activate = state <- not state; self
+end
+
+class nth_toggle start_state max_counter = object (self)
+  inherit toggle start_state
+
+  val count_max = max_counter
+  val mutable counter = 0
+
+  method activate =
+    counter <- counter + 1;
+    if counter >= count_max
+    then begin
+      state <- not state;
+      counter <- 0
+    end;
+    self
+end
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let tog = new toggle true in
+  for i = 2 to n do
+    ignore tog#activate#value
+  done;
+  print_bool tog#activate#value;
+  let ntog = new nth_toggle true 3 in
+  for i = 2 to n do
+    ignore ntog#activate#value
+  done;
+  print_bool ntog#activate#value
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
   var bool = start_state;
@@ -5192,6 +5803,31 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: nestedloop.ocaml,v 1.7 2001/06/27 11:37:53 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * based on code from Florian Hars and Markus Mottl
+ *)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let rec loopF x = function 0 -> x | i -> loopF (x+1) (i-1) in
+  let rec loopE x = function 0 -> x | i -> loopE (loopF x n) (i-1) in
+  let rec loopD x = function 0 -> x | i -> loopD (loopE x n) (i-1) in
+  let rec loopC x = function 0 -> x | i -> loopC (loopD x n) (i-1) in
+  let rec loopB x = function 0 -> x | i -> loopB (loopC x n) (i-1) in
+  let rec loopA x = function 0 -> x | i -> loopA (loopB x n) (i-1) in
+  Printf.printf "%d\n" (loopA 0 n)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -5628,6 +6264,51 @@ EOF
   echo SCALA:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: objinst.ocaml,v 1.8 2001/07/28 21:52:59 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * from: Benedikt Rosenau
+ * with contributions from Markus Mottl
+ *)
+
+class toggle start_state = object (self)
+  val mutable state = start_state
+
+  method value = state
+  method activate = state <- not state; self
+end
+
+class nth_toggle start_state max_counter = object (self)
+  inherit toggle start_state
+
+  val count_max = max_counter
+  val mutable counter = 0
+
+  method activate =
+    counter <- counter + 1;
+    if counter >= count_max then begin
+      state <- not state;
+      counter <- 0
+    end;
+    self
+end
+
+let n = if Array.length Sys.argv > 1 then int_of_string Sys.argv.(1) else 1
+let tog = new toggle true;;
+for i = 1 to 5 do Printf.printf "%b\n" tog#activate#value done;
+for i = 1 to n do ignore (new toggle true) done;
+print_newline ();
+let ntog = new nth_toggle true 3 in
+for i = 1 to 8 do Printf.printf "%b\n" ntog#activate#value done;
+for i = 1 to n do ignore (new nth_toggle true 3) done
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -6237,6 +6918,38 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: random.ocaml,v 1.10 2001/07/26 01:33:45 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let im = 139968
+let ia = 3877
+let ic = 29573
+let last_ref = ref 42
+
+let gen_random max =
+  let new_last = (!last_ref * ia + ic) mod im in
+  last_ref := new_last;
+  max *. float_of_int new_last /. float im
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let rec loop i =
+    let r = gen_random 100.0 in
+    if i > 1 then loop (i-1) else r in
+  Printf.printf "%.9f\n" (loop n)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -17567,6 +18280,55 @@ EOF
   if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: reversefile.ocaml,v 1.11 2001/01/27 13:59:47 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ *)
+
+
+
+
+
+
+
+let size = 10000
+
+let rec lect stack buf pos free =
+  let nrd = input stdin buf pos free in
+  if nrd = 0 then stack,buf,pos 
+  else if nrd = free then 
+    lect (buf :: stack) (String.create size) 0 size 
+  else lect stack buf (pos+nrd) (free-nrd)
+
+let output_buf (buf,len) = output stdout buf 0 len
+
+let rec rev_write tail stack buf len pos =
+  if pos = 0 then
+    match stack with 
+    | [] -> output stdout buf 0 len; List.iter output_buf tail
+    | topbuf :: stack -> 
+    let toplen = String.length topbuf in 
+    rev_write ((buf,len) :: tail) stack topbuf toplen toplen
+  else if buf.[pos-1] = '\n' then
+    begin
+      output stdout buf pos (len-pos);
+      List.iter output_buf tail;
+      rev_write [] stack buf pos (pos-1)
+    end
+  else rev_write tail stack buf len (pos-1)
+    
+let main =
+  let stack,buf,length = 
+    lect [] (String.create size) 0 size in
+  rev_write [] stack buf length length
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 fun main {
   var i, lns;
@@ -17885,6 +18647,46 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: sieve.ocaml,v 1.10 2001/06/10 04:12:44 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * based on code from Markus Mottl
+ *)
+
+let flags = String.make 8193 'f'
+
+let rec inner_loop k i =
+  if k < 8193 then begin
+    flags.[k] <- 'f';
+    inner_loop (k + i) i
+  end
+
+let rec middle_loop i cnt =
+  if i < 8193 then
+    if flags.[i] = 't' then begin
+      inner_loop (i + i) i;
+      middle_loop (i + 1) (cnt + 1) end
+    else middle_loop (i + 1) cnt
+  else cnt
+
+let _ =
+  let num =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1
+  and cnt = ref 0 in
+  for iter = 1 to num do
+    for i = 2 to 8192 do flags.[i] <- 't' done;
+    cnt := middle_loop 2 0;
+  done;
+  Printf.printf "Count: %d\n" !cnt
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -95411,6 +96213,28 @@ EOF
   if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: spellcheck.ocaml,v 1.7 2001/07/28 21:52:59 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let dict = Hashtbl.create 40000 and ic = open_in "__temp" in
+try while true do Hashtbl.add dict (input_line ic) true done
+with End_of_file -> close_in ic;
+let rec loop () =
+  let word = input_line stdin in
+  if not (Hashtbl.mem dict word) then print_endline word;
+  loop () in
+try loop () with End_of_file -> ()
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 fun main {
   var f, i, words, dict = tab [];
@@ -96388,6 +97212,89 @@ EOF
 if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: moments.ocaml,v 1.9 2001/05/20 16:43:13 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let _ =
+  let n = ref 0
+  and num = ref 0.0
+  and sum = ref 0.0
+  and mean = ref 0.0
+  and average_deviation = ref 0.0
+  and standard_deviation = ref 0.0
+  and variance = ref 0.0
+  and skew = ref 0.0
+  and kurtosis = ref 0.0
+  and deviation = ref 0.0
+  and size = ref 4096 in
+  let nums_in = ref (Array.create !size 0.0) in
+
+  try
+    while true do
+      num := read_float ();
+      !nums_in.(!n) <- !num;
+      sum := !sum +. !num;
+      incr n;
+      if !n = !size then begin
+    nums_in := Array.append !nums_in (Array.create !size 0.0);
+    size := !size * 2
+      end
+    done
+  with End_of_file -> ();
+
+  let nums = Array.create !n 0.0 in
+  Array.blit !nums_in 0 nums 0 !n;
+
+  let n_float = float_of_int !n in
+  mean := !sum /. n_float;
+
+  for i = 0 to !n - 1 do
+    deviation := nums.(i) -. !mean;
+    average_deviation := !average_deviation +. abs_float !deviation;
+    let dev2 = !deviation *. !deviation in
+    variance := !variance +. dev2;
+    let dev3 = dev2 *. !deviation in
+    skew := !skew +. dev3;
+    let dev4 = dev3 *. !deviation in
+    kurtosis := !kurtosis +. dev4;
+  done;
+
+  average_deviation := !average_deviation /. n_float;
+  variance := !variance /. float_of_int (!n - 1);
+  standard_deviation := sqrt !variance;
+
+  if !variance > 0.0 then begin
+    skew := !skew /. n_float /. !variance /. !standard_deviation;
+    kurtosis := !kurtosis /. n_float /. !variance /. !variance -. 3.0;
+  end;
+
+  Array.stable_sort compare nums;
+
+  let mid = !n lsr 1 in
+
+  let median =
+    if !n mod 2 = 1 then nums.(mid)
+    else (nums.(mid) +. nums.(mid - 1)) /. 2.0 in
+
+  Printf.printf "n:                  %d\n" !n;
+  Printf.printf "median:             %f\n" median;
+  Printf.printf "mean:               %f\n" !mean;
+  Printf.printf "average_deviation:  %f\n" !average_deviation;
+  Printf.printf "standard_deviation: %f\n" !standard_deviation;
+  Printf.printf "variance:           %f\n" !variance;
+  Printf.printf "skew:               %f\n" !skew;
+  Printf.printf "kurtosis:           %f\n" !kurtosis
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 fun main {
   var i, sum = 0.0;
@@ -96659,6 +97566,29 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: strcat.ocaml,v 1.6 2001/05/02 05:55:22 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * from: Benedikt Rosenau
+ *)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let buf = Buffer.create 0 in
+  for i = 1 to n do
+    Buffer.add_string buf "hello\n"
+  done;
+  Printf.printf "%d\n" (Buffer.length buf);
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -97837,6 +98767,23 @@ EOF
   echo SCALA:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: sumcol.ocaml,v 1.6 2001/01/14 15:26:28 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * from Markus Mottl
+ *)
+
+let sum = ref 0
+let rec loop () = sum := !sum + read_int (); loop ()
+let _ = try loop () with End_of_file -> Printf.printf "%d\n" !sum
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -100903,6 +101850,54 @@ EOF
   if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: wordfreq.ocaml,v 1.8 2001/05/26 01:48:48 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ *)
+
+let max = 4096
+let buf = String.create max
+let count = Hashtbl.create 75000
+let wbuf = Buffer.create 64
+
+let rec scan_words i n inword =
+  if i < n then
+    let c = buf.[i] in
+    if 'a' <= c && c <= 'z' then begin
+      Buffer.add_char wbuf c;
+      scan_words (i+1) n true
+    end
+    else if 'A' <= c && c <= 'Z' then begin
+      Buffer.add_char wbuf (Char.unsafe_chr(Char.code c + 32));
+      scan_words (i+1) n true
+    end
+    else if inword then begin
+      let word = Buffer.contents wbuf in
+      begin try incr (Hashtbl.find count word)
+      with Not_found -> Hashtbl.add count word (ref 1) end;
+      Buffer.clear wbuf;
+      scan_words (i+1) n false
+    end else
+      scan_words (i+1) n false
+  else
+    let nread = input stdin buf 0 max in
+    if nread = 0 then () else scan_words 0 nread inword
+
+let _ =
+  scan_words 0 0 false;
+  let out_lines = ref [] in
+  let to_list l w c =
+    l := (Printf.sprintf "%7d\t%s" !c w) :: !l in
+  Hashtbl.iter (to_list out_lines) count;
+  List.iter print_endline (List.sort (fun a b -> compare b a) !out_lines)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 fun cmp (el1, el2) {
   return cmpv (el1, el2);
@@ -101060,6 +102055,20 @@ EOF
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let rec loop x = function 0 -> x | i -> loop (x+1) (i-1) in
+  (loop 0 n)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var i, n;
 n = int (argv [0]);
@@ -101205,6 +102214,21 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let f () = 1
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  for i = 0 to n-1 do f done;
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -101377,6 +102401,22 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let rec tak x y z =
+  if y >= x then z else tak (tak (x-1) y z) (tak (y-1) z x) (tak (z-1) x y)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  Printf.printf "%d\n" (tak (n * 3) (n * 2) n)
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -101581,6 +102621,23 @@ if (time $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fg
 echo JS -m:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $JS -m $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let rec fact x = if x <= 1 then 1 else x * fact (x-1)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1
+  and r = ref 0 in
+  for i = 0 to (n-1) do r := fact 12;done;
+  Printf.printf "%d\n" !r
+EOF
+echo OCAML:
+if test "x$NECHO" != x;then $NECHO "   ";fi
+if (time $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -101865,6 +102922,39 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let sievesize = try int_of_string Sys.argv.(1) with Invalid_argument _ -> 1
+
+let flags = String.make (sievesize + 1) 'f'
+
+let rec inner_loop k i =
+  if k <= sievesize then begin
+    flags.[k] <- 'f';
+    inner_loop (k + i) i
+  end
+
+let rec middle_loop i cnt =
+  if i <= sievesize then
+    if flags.[i] = 't' then begin
+      inner_loop (3 * i + 3) (i + i + 3);
+      middle_loop (i + 1) (cnt + 1) end
+    else middle_loop (i + 1) cnt
+  else cnt
+
+let _ =
+  let cnt = ref 0 in
+  for iter = 1 to 10 do
+    for i = 0 to sievesize do flags.[i] <- 't'; done;
+    cnt := middle_loop 0 0;
+  done;
+  Printf.printf "%d\n" !cnt
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -102154,6 +103244,39 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let sievesize = try int_of_string Sys.argv.(1) with Invalid_argument _ -> 1
+
+let flags = Hashtbl.create (sievesize + 1)
+
+let rec inner_loop k i =
+  if k <= sievesize then begin
+    Hashtbl.add flags k 'f';
+    inner_loop (k + i) i
+  end
+
+let rec middle_loop i cnt =
+  if i <= sievesize then
+    if Hashtbl.find flags (i) = 't' then begin
+      inner_loop (3 * i + 3) (i + i + 3);
+      middle_loop (i + 1) (cnt + 1) end
+    else middle_loop (i + 1) cnt
+  else cnt
+
+let _ =
+  let cnt = ref 0 in
+  for iter = 1 to 10 do
+    for i = 0 to sievesize do Hashtbl.add flags (i) ('t'); done;
+    cnt := middle_loop 0 0;
+  done;
+  Printf.printf "%d\n" !cnt
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -102509,6 +103632,38 @@ EOF
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let mkmatrix rows cols = Array.make_matrix rows cols 1
+
+let rec inner_loop k v m1i m2 j =
+  if k < 0 then v
+  else inner_loop (k - 1) (v + m1i.(k) * m2.(k).(j)) m1i m2 j
+
+let mmult rows cols m1 m2 m3 =
+  let last_col = cols - 1
+  and last_row = rows - 1 in
+  for i = 0 to last_row do
+    let m1i = m1.(i) and m3i = m3.(i) in
+    for j = 0 to last_col do
+      m3i.(j) <- inner_loop last_row 0 m1i m2 j
+    done;
+  done
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let m1 = mkmatrix n n
+  and m2 = mkmatrix n n
+  and m3 = Array.make_matrix n n 0 in
+  mmult n n m1 m2 m3
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 cat <<'EOF' >$ftest
@@ -102934,6 +104089,48 @@ EOF
   if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let mkmatrix rows cols v = 
+  let m = Hashtbl.create rows in
+  for i = 0 to rows do
+      let r = Hashtbl.create cols in
+        for j = 0 to cols do
+          Hashtbl.add r j v
+        done;
+      Hashtbl.add m i r
+  done;
+  m
+
+let rec inner_loop k v m1i m2 j =
+  if k < 0 then v
+  else inner_loop (k - 1) (v + (Hashtbl.find m1i k) *
+                           (Hashtbl.find (Hashtbl.find m2 k)  j)) m1i m2 j
+
+let mmult rows cols m1 m2 m3 =
+  let last_col = cols - 1
+  and last_row = rows - 1 in
+  for i = 0 to last_row do
+    let m1i = Hashtbl.find m1 (i) and m3i = Hashtbl.find m3 (i) in
+    for j = 0 to last_col do
+      Hashtbl.add m3i j (inner_loop last_row 0 m1i m2 j)
+    done;
+  done
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let m1 = mkmatrix n n 1
+  and m2 = mkmatrix n n 1
+  and m3 = mkmatrix n n 0 in
+  mmult n n m1 m2 m3
+EOF
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+fi
+
 cat <<'EOF' >$ftest
 var m1, m2;
 
@@ -103058,6 +104255,13 @@ if test x$JS != x; then
   echo JS -m:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS -m $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  $DINO -c 'putln("let j = 1;;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("let i = j;;");' $rep > $ftest
+  echo OCAML:
+  if test "x$NECHO" != x;then $NECHO "   ";fi
+  if (time $OCAML $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
