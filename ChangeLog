@@ -1,3 +1,45 @@
+2014-04-03  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_ir.sprut (foreach_stmt): Rename foreach_designator to
+	foreach_index_designator.  Add foreach_value_designator,
+	foreach_tab_place and foreach_search_start_place.
+	* DINO/d_yacc.y: Add foreach with value designator.
+	* DINO/d_bcf.shilka (vcontainer, vindex): New.
+	* DINO/d_bc.sprut (pushi): Remove.
+	(foreach_val): New node.
+	* DINO/d_bcio.c (dump_code): Remove pushi.  Add foreach_val.
+	(read_bc_program): Process vcontainer and vindex.
+	* DINO/d_bcn.shilka (pushi): Remove.
+	(foreach_val): Add.
+	* DINO/d_context.c (foreach_vars, initiate_foreach_vars): New.
+	(start_block_foreach_vars, finish_block_foreach_vars): Ditto.
+	(get_new_foreach_var, free_foreach_var, finish_foreach_vars):
+	Ditto.
+	(first_block_passing): Process foreach_value_designator.  Set up
+	tab_place and search_start_place using get_new_foreach_var.  Free
+	them using free_foreach_var.  Call start_block_foreach_vars and
+	finish_block_foreach_vars.
+	(get_lvalue_and_val_location): Rename to get_lvalue_location.
+	Remove last argument.  Use lvar instead of lvarv and lfld instead
+	of lfldv.  Remove last ind and key.
+	(second_block_passing): Process foreach_value_designator.  Set up
+	the right position.  Call make_designator_lvalue with FALSE.
+	Calculate tab out of loop.  Don't generate pushi.  Generate
+	foreach_val when necessary.  Use tab_place and search_start_place.
+	(initiate_context): Call initiate_foreach_vars.
+	(finish_context): Call finish_foreach_vars.
+	* DINO/d_errors.[ch] (ERR_slice_as_foreach_designator): Rename to
+	ERR_slice_as_foreach_index_designator.
+	(ERR_slice_as_foreach_value_designator): New.
+	(ERR_non_variable_in_foreach): Rename to
+	ERR_non_variable_in_foreach_index.
+	(ERR_non_variable_in_foreach_value): New.
+	* DINO/d_eval.c (evaluate_code): Remove pushi.  Add foreach_val.
+	* DINO/d_extern.sprut (find_next_key): Change last parameter.
+	* DINO/d_heap.c (find_next_key): Ditto.
+	* DINO/dino.tst.in: New tests for foreach-stmt.
+	* DINO/compare.tst: Use foreach with value variable.
+
 2014-03-31  Vladimir N Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Add tests for OCAML.

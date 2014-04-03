@@ -63,8 +63,10 @@ char ERR_period_ident_applied_to_slice [] = "`.ident' is applied to slice";
 char ERR_vec_tab_element_access_applied_to_slice []
   = "`[...]' is applied to slice";
 char ERR_call_applied_to_slice [] = "call is applied to slice";
-char ERR_slice_as_foreach_designator []
-  = "vector slice is used as foreach-stmt designator";
+char ERR_slice_as_foreach_index_designator []
+  = "vector slice is used as foreach-stmt index_designator";
+char ERR_slice_as_foreach_value_designator []
+  = "vector slice is used as foreach-stmt value designator";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
 char ERR_extension_before_extended []
@@ -135,8 +137,10 @@ char ERR_non_variable_in_assignment []
 char ERR_non_variable_in_swap [] = "non variable in swap statement";
 char ERR_const_assignment [] = "constant `%s' in assignment statement";
 char ERR_const_swap [] = "constant `%s' in swap statement";
-char ERR_non_variable_in_foreach []
-  = "non variable in foreach-stmt left to `:'";
+char ERR_non_variable_in_foreach_index []
+  = "non variable in foreach-stmt index designator";
+char ERR_non_variable_in_foreach_value []
+  = "non variable in foreach-stmt value designator";
 char ERR_continue_is_not_in_loop []
   = "statement continue is not in for-statement";
 char ERR_break_is_not_in_loop []

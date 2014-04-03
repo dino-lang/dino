@@ -1044,8 +1044,6 @@ lds :: op1 /* result place */
         str : string_t;
 ;
 
-pushi :: op1; /* push int onto stack */
-
 /* non-local / external var value / reference [and value].
    Decl is vdecl (var, lvar, lvarv), evdecl (evar, levar, levarv)  */
 var, lvar, lvarv, evar, levar, levarv :: op1_decl; /* result place */
@@ -1054,8 +1052,7 @@ fun, efun, class :: op1_decl; /* result place, fdecl/efdecl */
 
 /* op1 is result place; op2 and op3 are container place and index/key place
    or dim for slice.  */ 
-ind, lindv, key, lkeyv,
-  sl, lslv :: op3;
+ind, lindv, key, lkeyv, sl, lslv :: op3;
 
 %abstract
 field :: op3
@@ -1111,17 +1108,26 @@ lconv :: op2; /* result and operand places.  */
 /* This node serves as test loop expr in the interpreter.  The pc flows as
    following
 
-  pushi 0 ->foreach designator calculation->table calc.->foreach->
+  pushi 0 ->foreach designator(s) calculation->table calc.->foreach->
                ^                                            |
                |                                            |: body_pc
              pushi 1<-------------foreach_stmts<------------
 */
-/* Table, container, element, foreach index lvalue places.
+/* Table, container, element, foreach search start places.
    Info is source2 (pos is position of foreach-stmt, pos2
-   is the designator position.  */
+   is the index designator position).  */
 foreach :: op4
 %other
 	body_pc : bcode
+;
+
+/* Variant of for-each with value designator.  Info is source3 (pos is
+   position of foreach-stmt, pos2 is the index designator position,
+   pos3 is the value designator position).  */
+foreach_val :: foreach
+%other
+	/* container and element places  */
+	vcontainer, vindex: int_t
 ;
 
 vec, tab :: op3; /* result place, element parts start place, parts number */

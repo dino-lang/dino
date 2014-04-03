@@ -40,7 +40,6 @@ ldch		{return BC_NM_ldch;}
 ldtp		{return BC_NM_ldtp;}
 ldf		{return BC_NM_ldf;}
 lds		{return BC_NM_lds;}
-pushi		{return BC_NM_pushi;}
 var		{return BC_NM_var;}
 lvar		{return BC_NM_lvar;}
 lvarv		{return BC_NM_lvarv;}
@@ -135,6 +134,7 @@ btleinc		{return BC_NM_btleinc;}
 btgtinc		{return BC_NM_btgtinc;}
 lconv		{return BC_NM_lconv;}
 foreach		{return BC_NM_foreach;}
+foreach_val	{return BC_NM_foreach_val;}
 vec		{return BC_NM_vec;}
 tab		{return BC_NM_tab;}
 move		{return BC_NM_move;}

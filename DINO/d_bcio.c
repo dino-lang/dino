@@ -395,12 +395,15 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op1 (bc), BC_idn (BC_info (BC_pc (bc))),
 		  BC_idn (BC_info (BC_pc (bc))), BC_op1 (bc));
 	  break;
-	case BC_NM_pushi: /* foreach start/foreach next iteration */
-	  printf (" op1=%d // push i%d", BC_op1 (bc), BC_op1 (bc));
-	  break;
 	case BC_NM_foreach:
 	  printf (" op1=%d op2=%d op3=%d op4=%d body_pc=%d",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc),
+		  BC_idn (BC_info (BC_body_pc (bc))));
+	  break;
+	case BC_NM_foreach_val:
+	  printf (" op1=%d op2=%d op3=%d op4=%d vcontainer=%d vindex=%d body_pc=%d",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc),
+		  BC_vcontainer (bc), BC_vindex (bc),
 		  BC_idn (BC_info (BC_body_pc (bc))));
 	  break;
 	case BC_NM_out:
@@ -1316,6 +1319,14 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_foreach, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
 	      break;
+	    case FR_vcontainer:
+	      if (check_fld (BC_NM_foreach_val, D_INT)) goto fail;
+	      BC_set_vcontainer (curr_node, token_attr.i);
+	      break;
+	    case FR_vindex:
+	      if (check_fld (BC_NM_foreach_val, D_INT)) goto fail;
+	      BC_set_vindex (curr_node, token_attr.i);
+	      break;
 	    case FR_ret_decl:
 	      if (check_fld (BC_NM_ret, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
@@ -1411,6 +1422,8 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_foreach, FR_body_pc, "body_pc");
       check_fld_set (BC_NM_move, FR_rhs_decl, "rhs_decl");
       check_fld_set (BC_NM_bend, FR_block, "block");
+      check_fld_set (BC_NM_foreach_val, FR_vcontainer, "vcontainer");
+      check_fld_set (BC_NM_foreach_val, FR_vindex, "vindex");
       /* Link infos: */
       if (info_p)
 	{

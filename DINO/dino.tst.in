@@ -19688,7 +19688,7 @@ TEST323
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT323' && $CMP $stderr $ftemp2; then
-test.d:4:6: non variable in foreach-stmt left to `:'
+test.d:4:6: non variable in foreach-stmt index designator
 OUTPUT323
                         result=ok
                 else
@@ -20360,7 +20360,7 @@ TEST352
 test.d:2:5: invalid type of operand in logical operation
 test.d:4:10: invalid type of operand in logical operation
 test.d:5:7: invalid type of wait-expr
-test.d:6:6: invalid type of foreach-table
+test.d:6:9: invalid type of foreach-table
 test.d:8:3: invalid type of throw-expr
 test.d:10:7: syntax error
 OUTPUT352
@@ -44434,6 +44434,112 @@ TEST667
 1
 [3, 3]
 OUTPUT667
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 668.
+if test $result = ok -a $start_test_number -le 668; then
+	echo test 668: Non-variable in foreach value
+        cat >$test_file <<'TEST668'
+fun f {}
+var i, t = tab [];
+for (i, f: t);
+TEST668
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT668' && $CMP $stderr $ftemp2; then
+test.d:3:9: non variable in foreach-stmt value designator
+OUTPUT668
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 669.
+if test $result = ok -a $start_test_number -le 669; then
+	echo test 669: Slice as index and value designator in foreach
+        cat >$test_file <<'TEST669'
+var iv = [10:1], vv = [10:2], t = tab[10:10];
+for (iv[:], vv[1:2]: t);
+TEST669
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT669' && $CMP $stderr $ftemp2; then
+test.d:2:8: vector slice is used as foreach-stmt index_designator
+test.d:2:15: vector slice is used as foreach-stmt value designator
+OUTPUT669
+                        result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 670.
+if test $result = ok -a $start_test_number -le 670; then
+	echo test 670: Foreach with value variable
+        cat >$test_file <<'TEST670'
+var i, v, t = tab[1:"a", 10: "b", 100:"c"];
+for (i, v: t) putln (i, ":", v);
+putln (i, " ", v);
+TEST670
+        echo '      ' $DINO $test_file " >$stdout 2>&1"
+        if $DINO $test_file >$stdout 2>&1; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT670' && $CMP $stdout $ftemp2; then
+1:a
+10:b
+100:c
+100 c
+OUTPUT670
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 671.
+if test $result = ok -a $start_test_number -le 671; then
+	echo test 671: Foreach with composite index and value variables
+        cat >$test_file <<'TEST671'
+var i=[1], v=tab[1], t = tab[1:"a", 10: "b", 100:"c"];
+for (i[0], v[1]: t) putln (i[0], ":", v[1]);
+putln (i[0], " ", v[1]);
+class c (f) {};
+var o = c ("n");
+for (i[0], o.f: t) putln (i[0], ":", o.f);
+putln (i[0], " ", o.f);
+TEST671
+        echo '      ' $DINO $test_file " >$stdout 2>&1"
+        if $DINO $test_file >$stdout 2>&1; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT671' && $CMP $stdout $ftemp2; then
+1:a
+10:b
+100:c
+100 c
+1:a
+10:b
+100:c
+100 c
+OUTPUT671
                         result=ok
                 else
                         result=fail

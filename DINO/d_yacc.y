@@ -811,9 +811,19 @@ executive_stmt :
         {$<flag>$ = $<flag>0;} stmt
        	{
           $$ = create_node_with_pos (IR_NM_foreach_stmt, $1);
-          IR_set_foreach_designator ($$, $4);
+          IR_set_foreach_index_designator ($$, $4);
+          IR_set_foreach_value_designator ($$, NULL);
           IR_set_foreach_tab ($$, $6);
           IR_set_foreach_stmts ($$, uncycle_stmt_list ($9));
+        }
+    | FOR '(' clear_flag designator ',' designator ':' expr ')'
+        {$<flag>$ = $<flag>0;} stmt
+       	{
+          $$ = create_node_with_pos (IR_NM_foreach_stmt, $1);
+          IR_set_foreach_index_designator ($$, $4);
+          IR_set_foreach_value_designator ($$, $6);
+          IR_set_foreach_tab ($$, $8);
+          IR_set_foreach_stmts ($$, uncycle_stmt_list ($11));
         }
     | FOR '(' error
         {

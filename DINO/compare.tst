@@ -2800,12 +2800,12 @@ var hash1 = tab [];
 for (i = 0; i < 10000; i++)
   hash1 [vec (i, "foo_%d")] = i;
 
-var k, hash2 = tab [];
+var k, v, hash2 = tab [];
 for (k: hash1)
   hash2 [k] = 0;
 for (i = 0 ; i < n; i++)
-  for (k: hash1)
-    hash2 [k] += hash1 [k];
+  for (k, v: hash1)
+    hash2 [k] += v;
 
 putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
        hash2 ["foo_1"], " ", hash2 ["foo_9999"]);

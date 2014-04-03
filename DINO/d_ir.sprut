@@ -771,8 +771,10 @@ for_stmt :: stmt
 
 foreach_stmt :: stmt
 %other
-        /* Reference to designator left to `:'.*/
-        foreach_designator : designator
+        /* Reference to index designator. */
+        foreach_index_designator : designator
+        /* Reference to value designator, NULL if absent.  */
+        foreach_value_designator : designator
         /* Reference to tab right to `:'.*/
         foreach_tab : expr
         /* Reference to stmts in given for-stmt. */
@@ -959,6 +961,14 @@ slice
         /* Dimension of the slice.  In other words, how many triples
 	   (start, bound, step) is in the final slice.  */
         dim : int_t {$ = 1;}
+;
+
+foreach_stmt
+%other
+        /* holder for calculated table and current table search
+	   start. */
+        foreach_tab_place : int_t
+        foreach_search_start_place : int_t
 ;
 
 block

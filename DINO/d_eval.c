@@ -4572,34 +4572,33 @@ evaluate_code (void)
 	    }
 	  INTERRUPT_CHECK;
 	  break;
-	case BC_NM_pushi:
-	  TOP_UP;
-	  ER_SET_MODE (ctop, ER_NM_int);
-	  ER_set_i (ctop, BC_op1 (cpc));
-	  INCREMENT_PC ();
-	  break;
+	case BC_NM_foreach_val:
 	case BC_NM_foreach:
 	  {
-	    int next_iteration_flag;
 	    ER_node_t tab, tv;
+	    val_t *k;
 
 	    extract_op3 (&tv, &op1, &op2);
-	    next_iteration_flag = ER_i (ctop);
-	    TOP_DOWN;
 	    if (ER_NODE_MODE (tv) != ER_NM_tab)
 	      eval_error (keyop_bc_decl, invkeys_bc_decl, get_cpos (),
 			  DERR_in_table_operand_type);
 	    tab = ER_tab (tv);
 	    GO_THROUGH_REDIR (tab);
 	    res = get_op (BC_op4 (cpc));
-	    if (next_iteration_flag)
-	      *(val_t *) res = *(val_t *) find_next_key (tab, res);
-	    else
-	      *(val_t *) res = *(val_t *) find_next_key (tab, NULL);
-	    if (ER_NODE_MODE (res) != ER_NM_empty_entry
-		&& ER_NODE_MODE (res) != ER_NM_deleted_entry)
+	    k = (val_t *) find_next_key (tab, ER_i (res));
+	    if (ER_NODE_MODE ((ER_node_t) k) != ER_NM_empty_entry
+		&& ER_NODE_MODE ((ER_node_t) k) != ER_NM_deleted_entry)
 	      {
-		store_designator_value (op1, op2, res);
+		ER_set_i (res, (k - (val_t *) ER_tab_els (tab)) / 2 + 1);
+		if (node_mode == BC_NM_foreach_val)
+		  {
+		    ER_node_t container = get_op (BC_vcontainer (cpc));
+		    ER_node_t index = get_op (BC_vindex (cpc));
+
+		    store_designator_value (container, index,
+					    (ER_node_t) (k + 1));
+		  }
+		store_designator_value (op1, op2, (ER_node_t) k);
 		cpc = BC_body_pc (cpc);
 	      }
 	    else

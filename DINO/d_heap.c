@@ -2595,16 +2595,11 @@ copy_tab (ER_node_t tab)
 /* The function returns the next key in TAB after given one or the
    first key if KEY == NULL. */
 ER_node_t
-find_next_key (ER_node_t tab, ER_node_t key)
+find_next_key (ER_node_t tab, int_t start)
 {
-  size_t start;
   size_t i;
-  
-  if (key == NULL)
-    start = 0;
-  else
-    start = ((val_t *) find_tab_entry (tab, key, FALSE)
-	     - (val_t *) ER_tab_els (tab)) / 2 + 1;
+  ER_node_t key;
+
   for (i = start; i < ER_entries_number (tab); i++)
     {
       key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);

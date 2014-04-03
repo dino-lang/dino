@@ -100,6 +100,63 @@ cont_err_finish (position_t pos, const char *format, const char *str)
     }
 }
 
+
+static vlo_t foreach_vars;
+
+static void
+initiate_foreach_vars (void)
+{
+  VLO_CREATE (foreach_vars, 0);
+}
+
+static void
+start_block_foreach_vars (void)
+{
+  int m1 = -1;
+
+  VLO_ADD_MEMORY (foreach_vars, &m1, sizeof (int));
+}
+
+static void
+finish_block_foreach_vars (void)
+{
+  while (VLO_LENGTH (foreach_vars) > 0
+	 && ((int *) VLO_BOUND (foreach_vars))[-1] >= 0)
+    VLO_SHORTEN (foreach_vars, sizeof (int));
+  if (VLO_LENGTH (foreach_vars) > 0)
+    VLO_SHORTEN (foreach_vars, sizeof (int));
+}
+
+static int
+get_new_foreach_var (void)
+{
+  int res;
+
+  if (VLO_LENGTH (foreach_vars) > 0
+      && (res = ((int *) VLO_BOUND (foreach_vars))[-1]) >= 0)
+    {
+      VLO_SHORTEN (foreach_vars, sizeof (int));
+      return res;
+    }
+  res = IR_vars_number (curr_scope);
+  IR_set_vars_number (curr_scope, res + 1);
+  return res;
+}
+
+static void
+free_foreach_var (int var_num)
+{
+  VLO_ADD_MEMORY (foreach_vars, &var_num, sizeof (int));
+}
+
+static void
+finish_foreach_vars (void)
+{
+  VLO_DELETE (foreach_vars);
+}
+
+
+
 /* Report error MSG if DES is a slice.  Use position of POS_NODE for
    this.  */
 static void
@@ -525,18 +582,32 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  break;
 	case IR_NM_foreach_stmt:
 	  {
-	    IR_node_t des = IR_foreach_designator (stmt);
+	    IR_node_t index_des = IR_foreach_index_designator (stmt);
+	    IR_node_t value_des = IR_foreach_value_designator (stmt);
 
-	    first_expr_processing (des);
-	    if (des != NULL && IR_IS_OF_TYPE (des, IR_NM_slice))
+	    first_expr_processing (index_des);
+	    if (index_des != NULL && IR_IS_OF_TYPE (index_des, IR_NM_slice))
 	      {
-		IR_set_foreach_designator (stmt, NULL);
-		cont_err (IR_pos (des), ERR_slice_as_foreach_designator);
+		IR_set_foreach_index_designator (stmt, NULL);
+		cont_err (IR_pos (index_des), ERR_slice_as_foreach_index_designator);
 	      }
+	    if (value_des != NULL)
+	      {
+		first_expr_processing (value_des);
+		if (value_des != NULL && IR_IS_OF_TYPE (value_des, IR_NM_slice))
+		  {
+		    IR_set_foreach_value_designator (stmt, NULL);
+		    cont_err (IR_pos (value_des), ERR_slice_as_foreach_value_designator);
+		  }
+	      }
+	    IR_set_foreach_tab_place (stmt, get_new_foreach_var ());
+	    IR_set_foreach_search_start_place (stmt, get_new_foreach_var ());
 	    first_expr_processing (IR_foreach_tab (stmt));
 	    IR_set_foreach_stmts (stmt,
 				  first_block_passing (IR_foreach_stmts (stmt),
 						       curr_block_level));
+	    free_foreach_var (IR_foreach_search_start_place (stmt));
+	    free_foreach_var (IR_foreach_tab_place (stmt));
 	    break;
 	  }
 	case IR_NM_break_stmt:
@@ -566,9 +637,11 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    IR_set_block_level (stmt, curr_block_level);
 	    if (max_block_level < curr_block_level)
 	      max_block_level = curr_block_level;
+	    start_block_foreach_vars ();
 	    IR_set_block_stmts
 	      (stmt, first_block_passing (IR_block_stmts (stmt),
 					  curr_block_level + 1));
+	    finish_block_foreach_vars ();
 	    public_flag = (IR_fun_class_ext (curr_scope) != NULL
 			   && IR_IS_OF_TYPE (IR_fun_class_ext (curr_scope),
 					     IR_NM_class));
@@ -2132,14 +2205,13 @@ find_covered_fun_class_ext (IR_node_t scope)
 }
 
 
-/* Return location and lvalue (through CONTAINER_NUM, INDEX_NUM, and
-   LVALUE_VAL_NUM) of a lvalue and value DESIGNATOR.  If the
-   designator is local var occurrence, create first corresponding
-   lvarv node and add it to the pc chain.  */
+/* Return location (through CONTAINER_NUM and INDEX_NUM) of a lvalue
+   DESIGNATOR.  If the designator is local var occurrence, create
+   first corresponding lvarv node and add it to the pc chain.  */
 static void
-get_lvalue_and_val_location (BC_node_t designator, IR_node_t ir_des,
-			     int *temp_vars_num, int *container_num,
-			     int *index_num, int *lvalue_val_num)
+get_lvalue_location (BC_node_t designator, IR_node_t ir_des,
+		     int *temp_vars_num, int *container_num,
+		     int *index_num)
 {
   BC_node_t bc, bc_decl;
   
@@ -2147,34 +2219,33 @@ get_lvalue_and_val_location (BC_node_t designator, IR_node_t ir_des,
     {
       d_assert (ir_des != NULL && IR_IS_OF_TYPE (ir_des, IR_NM_ident));
       bc_decl = get_bcode_decl (IR_decl (ir_des));
-      bc = new_bc_code (BC_NM_lvarv, bc_decl);
+      bc = new_bc_code (BC_NM_lvar, bc_decl);
       BC_set_decl (bc, bc_decl);
       add_to_bcode (bc);
       BC_set_op1 (bc, get_temp_stack_slot (temp_vars_num));
       *container_num = BC_op1 (bc);
       *index_num = get_temp_stack_slot (temp_vars_num);
-      *lvalue_val_num = get_temp_stack_slot (temp_vars_num);
     }
-  else if (BC_IS_OF_TYPE (designator, BC_NM_lindv)
-	   || BC_IS_OF_TYPE (designator, BC_NM_lkeyv))
+  else if (BC_IS_OF_TYPE (designator, BC_NM_ind)
+	   || BC_IS_OF_TYPE (designator, BC_NM_key))
     {
+      /* Remove the bc code: */
+      d_assert (curr_pc == designator);
+      curr_pc = prev_pc;
+      curr_info = BC_prev_info (curr_info);
       *container_num = BC_op2 (designator);
       *index_num = BC_op3 (designator);
-      *lvalue_val_num = get_temp_stack_slot (temp_vars_num);
-      BC_set_op1 (designator, *lvalue_val_num);
     }
-  else if (BC_IS_OF_TYPE (designator, BC_NM_lfldv))
+  else if (BC_IS_OF_TYPE (designator, BC_NM_lfld))
     {
       BC_set_op1 (designator, get_temp_stack_slot (temp_vars_num));
       *container_num = BC_op1 (designator);
       *index_num = get_temp_stack_slot (temp_vars_num);
-      *lvalue_val_num = get_temp_stack_slot (temp_vars_num);
     }
   else
     {
       *container_num = BC_op1 (designator);
       *index_num = BC_op1 (designator) + 1;
-      *lvalue_val_num = get_temp_stack_slot (temp_vars_num);
     }
 }
 
@@ -2238,7 +2309,7 @@ second_block_passing (IR_node_t first_level_stmt)
   IR_node_t op, temp;
   IR_node_mode_t stmt_mode;
   int result, var_result, temp_vars_num, val_p;
-  int container_num, index_num, lvalue_val_num;
+  int container_num, index_num;
 
   for (stmt = first_level_stmt; stmt != NULL; stmt = IR_next_stmt (stmt))
     {
@@ -2586,69 +2657,104 @@ second_block_passing (IR_node_t first_level_stmt)
 	  }
 	case IR_NM_foreach_stmt:
 	  {
-	    BC_node_t src, before_in_expr;
+	    BC_node_t src, before_loop_start, ldi_bc;
 	    BC_node_t saved_start_next_iteration, saved_for_finish;
 	    int saved_number_of_surrounding_blocks;
-	    
+	    IR_node_t val_des = IR_foreach_value_designator (stmt);
+	    IR_node_t tab = IR_foreach_tab (stmt);
+
 	    saved_number_of_surrounding_blocks = number_of_surrounding_blocks;
 	    number_of_surrounding_blocks = 0;
 	    saved_start_next_iteration = start_next_iteration;
 	    saved_for_finish = for_finish;
-	    src = new_bc_node (BC_NM_source2, IR_pos (stmt));
-	    if (IR_foreach_designator (stmt) != NULL)
-	      BC_set_pos2 (src, IR_pos (IR_foreach_designator (stmt)));
+	    result = IR_foreach_tab_place (stmt);
+	    IR_set_foreach_tab
+	      (stmt, second_expr_processing (tab, FALSE,
+					    &result, &temp_vars_num, FALSE,
+					    NULL, NULL, FALSE));
+	    if (tab != NULL)
+	      source_position = IR_pos (tab);
+	    type_test (tab, EVT_TAB, ERR_invalid_foreach_table_type);
+	    src = new_bc_node (val_des == NULL ? BC_NM_source2 : BC_NM_source3,
+			       IR_pos (stmt));
+	    if (IR_foreach_index_designator (stmt) != NULL)
+	      BC_set_pos2 (src, IR_pos (IR_foreach_index_designator (stmt)));
 	    else
 	      BC_set_pos2 (src, IR_pos (stmt));
-	    bc = new_bc_code (BC_NM_pushi, src);
-	    BC_set_op1 (bc, 0);
-	    add_to_bcode (bc);
-	    before_in_expr = BC_bc (curr_info);
+	    if (val_des != NULL)
+	      BC_set_pos3 (src, IR_pos (val_des));
+	    ldi_bc = new_bc_code (BC_NM_ldi, src);
+	    BC_set_op1 (ldi_bc, IR_foreach_search_start_place (stmt));
+	    BC_set_op2 (ldi_bc, 0);
+	    add_to_bcode (ldi_bc);
+	    before_loop_start = BC_bc (curr_info);
 	    var_result = -1;
-	    /* We need one stack slot for a flag set up by
-	       foreach_start and start_next_iteration node
-	       execution.  */
-	    temp_vars_num++;
 	    before_pc = curr_pc;
-	    temp = second_expr_processing (IR_foreach_designator (stmt), FALSE,
-					  &var_result, &temp_vars_num, TRUE,
-					  NULL, NULL, FALSE);
+	    temp = second_expr_processing (IR_foreach_index_designator (stmt), FALSE,
+					   &var_result, &temp_vars_num, TRUE,
+					   NULL, NULL, FALSE);
 	    var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
-	    bc = new_bc_code (BC_NM_foreach, src);
+	    bc = new_bc_code (val_des == NULL
+			      ? BC_NM_foreach : BC_NM_foreach_val, src);
+	    BC_set_op1 (bc, result);
+	    BC_set_op4 (bc, BC_op1 (ldi_bc));
+	    if (temp != NULL)
+	      source_position = IR_pos (temp);
 	    if (var_bc != NULL)
 	      BC_SET_MODE (var_bc,
 			   make_designator_lvalue
-			   (var_bc, ERR_non_variable_in_foreach, TRUE));
+			   (var_bc, ERR_non_variable_in_foreach_index, FALSE));
 	    if (temp != NULL)
 	      {
-		IR_set_foreach_designator (stmt, temp);
+		IR_set_foreach_index_designator (stmt, temp);
 		/* In order not to generate different foreach_stmt
 		   corresponding to local non-local variables, we use
 		   a general solution by representing local variables
 		   by nodes lvalue_var_occurrence_and_val.  */
-		get_lvalue_and_val_location (var_bc, temp, &temp_vars_num,
-					     &container_num, &index_num,
-					     &lvalue_val_num);
+		get_lvalue_location (var_bc, temp, &temp_vars_num,
+				     &container_num, &index_num);
 		BC_set_op2 (bc, container_num);
 		BC_set_op3 (bc, index_num);
-		BC_set_op4 (bc, lvalue_val_num);
 	      }
-	    result = -1;
-	    IR_set_foreach_tab
-	      (stmt, second_expr_processing (IR_foreach_tab (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE,
-					    NULL, NULL, FALSE));
-	    BC_set_op1 (bc, result);
-	    type_test (IR_foreach_tab (stmt), EVT_TAB,
-		       ERR_invalid_foreach_table_type);
+	    before_pc = curr_pc;
+	    if (val_des != NULL)
+	      {
+		var_result = -1;
+		temp = second_expr_processing (val_des, FALSE,
+					       &var_result, &temp_vars_num, TRUE,
+					       NULL, NULL, FALSE);
+		var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
+		if (temp != NULL)
+		  source_position = IR_pos (temp);
+		if (var_bc != NULL)
+		  BC_SET_MODE
+		    (var_bc,
+		     make_designator_lvalue
+		     (var_bc, ERR_non_variable_in_foreach_value, FALSE));
+		if (temp != NULL)
+		  {
+		    IR_set_foreach_value_designator (stmt, temp);
+		    /* In order not to generate different foreach_stmt
+		       corresponding to local non-local variables, we
+		       use a general solution by representing local
+		       variables by nodes
+		       lvalue_var_occurrence_and_val.  */
+		    get_lvalue_location (var_bc, temp, &temp_vars_num,
+					 &container_num, &index_num);
+		    BC_set_vcontainer (bc, container_num);
+		    BC_set_vindex (bc, index_num);
+		  }
+	      }
 	    add_to_bcode (bc);
-	    start_next_iteration = new_bc_code (BC_NM_pushi, src);
-	    BC_set_op1 (start_next_iteration, 1);
+	    start_next_iteration = BC_next (before_loop_start);
 	    for_finish = new_bc_code (BC_NM_nop, src);
 	    second_block_passing (IR_foreach_stmts (stmt));
-	    add_to_bcode (start_next_iteration);
+	    before_pc = curr_pc;
 	    add_to_bcode (for_finish);
-	    BC_set_next (start_next_iteration, BC_next (before_in_expr));
-	    BC_set_body_pc (bc, BC_next (bc));
+	    BC_set_body_pc (bc,
+			    BC_next (bc) != for_finish
+			    ? BC_next (bc) : start_next_iteration);
+	    BC_set_next (before_pc, start_next_iteration);
 	    BC_set_next (bc, for_finish);
 	    number_of_surrounding_blocks = saved_number_of_surrounding_blocks;
 	    start_next_iteration = saved_start_next_iteration;
@@ -3262,10 +3368,12 @@ initiate_context (void)
   VLO_CREATE (all_funs_and_classes, 0);
   last_uniq_ident_num = DESTROY_IDENT_NUMBER;
   last_decl_num = 0;
+  initiate_foreach_vars ();
 }
 
 void
 finish_context (void)
 {
+  finish_foreach_vars ();
   VLO_DELETE (all_funs_and_classes);
 }

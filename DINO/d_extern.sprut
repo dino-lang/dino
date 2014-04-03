@@ -283,7 +283,7 @@ extern ER_node_t create_tab (size_t size);
 extern ER_node_t find_tab_entry (ER_node_t tab, ER_node_t key, int reserve);
 extern int remove_tab_el (ER_node_t tab, ER_node_t key);
 extern ER_node_t copy_tab (ER_node_t tab);
-extern ER_node_t find_next_key (ER_node_t tab, ER_node_t key);
+extern ER_node_t find_next_key (ER_node_t tab, int_t start);
 extern ER_node_t table_to_vector_conversion (ER_node_t tab);
 extern ER_node_t vector_to_table_conversion (ER_node_t vect);
 
