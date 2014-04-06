@@ -128,11 +128,11 @@ else
   JS=
 fi
 
-if test x$SKIP_OCAML = x && echo 'print ()' | js >/dev/null 2>&1;then
+if test x$SKIP_OCAML = x && echo 'print ()' | ocaml >/dev/null 2>&1;then
   OCAML=ocaml
   echo '>>>> ' `ocaml < /dev/null|fgrep ersion`
 else
-  echo We have no JavaScript
+  echo We have no OCAML
   OCAML=
 fi
 

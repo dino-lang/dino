@@ -1,3 +1,7 @@
+2014-04-06  Vladimir N Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Fix code finding OCAML.
+
 2014-04-03  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_ir.sprut (foreach_stmt): Rename foreach_designator to
