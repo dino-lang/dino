@@ -24,24 +24,16 @@
 
 include "ipcerr";
 
-ext except {
-  class socket_except () {
-    class optype () {}
-    class opvalue () {}
-    class eof () {}
-  }
-  ext error {
-    class socket_error () {
-      class invalid_address (msg) {}
-      class host_not_found (msg) {}
-      class no_address (msg) {}
-      class no_recovery (msg) {}
-    }
-  }
-}
+class socket_except () {use except;}
+class socket_optype_except () {use socket_except;}
+class socket_opvalue_except () {use socket_except;}
+class socket_eof_except () {use socket_except;}
 
-var socket_excepts = excepts.socket_except ();
-var socket_errors = errors.socket_error ();
+class socket_error (msg = nil) {use error former msg;}
+class socket_invalid_address_error (msg = nil) {use socket_error former msg;}
+class socket_host_not_found_error (msg = nil) {use socket_error former msg;}
+class socket_no_address_error (msg = nil) {use socket_error former msg;}
+class socket_no_recovery_error (msg = nil) {use socket_error former msg;}
 
 final class __socket_package () {
   extern -_socket_errno, -_socket_invalid_address, -_socket_host_not_found,
@@ -50,17 +42,17 @@ final class __socket_package () {
     -_socket_init (), -_socket_fin ();
 
   fun -generate_socket_exception () {
-    if (_socket_errno <= 0) throw socket_excepts.eof ();
-    else if (_socket_errno == _socket_eof) throw socket_excepts.eof ();
+    if (_socket_errno <= 0) throw socket_eof_except ();
+    else if (_socket_errno == _socket_eof) throw socket_eof_except ();
     else if (_socket_errno in ipc_errs.n2e) throw ipc_errs.n2e [_socket_errno];
     else if (_socket_errno == _socket_invalid_address)
-      throw socket_errors.invalid_address ();
+      throw socket_invalid_address_error ();
     else if (_socket_errno == _socket_host_not_found)
-      throw socket_errors.host_not_found ("host is unknown");
+      throw socket_host_not_found_error ("host is unknown");
     else if (_socket_errno == _socket_no_address)
-      throw socket_errors.no_address ("does not have an IP address");
+      throw socket_no_address_error ("does not have an IP address");
     else if (_socket_errno == _socket_no_recovery)
-      throw socket_errors.no_recovery ("non-recoverable name server error");
+      throw socket_no_recovery_error ("non-recoverable name server error");
     else __process_errno__ ("generate_socket_exception");
   }
 
@@ -70,7 +62,7 @@ final class __socket_package () {
   fun gethostinfo (str) {
     if (str == nil) str = "";
     else if (type (str) != vec || eltype (str) != char)
-      throw socket_excepts.optype ();
+      throw socket_optype_except ();
     var h = host_info  (nil, nil, nil);
     h = _gethostinfo (str, h);
     if (h == nil)
@@ -85,7 +77,7 @@ final class __socket_package () {
     var s;
 
     if (type (proto) != vec || eltype (proto) != char || type (port) != int)
-      throw socket_excepts.optype ();
+      throw socket_optype_except ();
     s = serv_info  (nil, nil, port, proto);
     s = _getservbyport (s);
     if (s == nil && _socket_errno != 0)
@@ -98,7 +90,7 @@ final class __socket_package () {
 
     if (type (proto) != vec || eltype (proto) != char
 	|| type (name) != vec || eltype (name) != char)
-      throw socket_excepts.optype ();
+      throw socket_optype_except ();
     s = serv_info  (name, nil, nil, proto);
     s = _getservbyname (s);
     if (s == nil && _socket_errno != 0)
@@ -120,9 +112,9 @@ final class __socket_package () {
 
     fun read (len) {
       if (type (len) != int)
-        throw socket_excepts.optype ();
+        throw socket_optype_except ();
       else if (len < 0)
-        throw socket_excepts.opvalue ();
+        throw socket_opvalue_except ();
       var str = _sread (sfd, len);
       if (str == nil)
         generate_socket_exception ();
@@ -139,7 +131,7 @@ final class __socket_package () {
 
     if (type (peer_addr) != vec || eltype (peer_addr) != char
         || type (port) != int)
-      throw socket_excepts.optype ();
+      throw socket_optype_except ();
     sfd = (proxy_sfd == nil ? _stream_client (peer_addr, port) : proxy_sfd);
     proxy_sfd = nil;
     if (sfd == nil)
@@ -151,9 +143,9 @@ final class __socket_package () {
 
     fun recvfrom (len) {
       if (type (len) != int)
-        throw socket_excepts.optype ();
+        throw socket_optype_except ();
       else if (len < 0)
-        throw socket_excepts.opvalue ();
+        throw socket_opvalue_except ();
       var dg = _recvfrom (sfd, len, datagram ());
       if (dg == nil)
         generate_socket_exception ();
@@ -163,9 +155,9 @@ final class __socket_package () {
       if (type (str) != vec || eltype (str) != char
 	  || type (peer_addr) != vec || eltype (peer_addr) != char
           || type (port) != int)
-        throw socket_excepts.optype ();
+        throw socket_optype_except ();
       else if (port < 0)
-        throw socket_excepts.opvalue ();
+        throw socket_opvalue_except ();
       var nb = _sendto (sfd, str, peer_addr, port);
       if (nb == nil)
         generate_socket_exception ();
@@ -193,9 +185,9 @@ final class __socket_package () {
     fun -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
-      throw socket_excepts.optype ();
+      throw socket_optype_except ();
     if (type (queue_len) != int)
-      throw socket_excepts.optype ();
+      throw socket_optype_except ();
     sfd = _stream_server (port, queue_len);
     if (sfd == nil)
       generate_socket_exception ();
@@ -206,9 +198,9 @@ final class __socket_package () {
 
     fun recvfrom (len) {
       if (type (len) != int)
-        throw socket_excepts.optype ();
+        throw socket_optype_except ();
     	else if (len < 0)
-        throw socket_excepts.opvalue ();
+        throw socket_opvalue_except ();
       var dg = _recvfrom (sfd, len, datagram ());
       if (dg == nil)
         generate_socket_exception ();
@@ -218,9 +210,9 @@ final class __socket_package () {
       if (type (str) != vec || eltype (str) != char
 	  || type (peer_addr) != vec || eltype (peer_addr) != char
           || type (port) != int)
-        throw socket_excepts.optype ();
+        throw socket_optype_except ();
       else if (port < 0)
-        throw socket_excepts.opvalue ();
+        throw socket_opvalue_except ();
       var nb = _sendto (sfd, str, peer_addr, port);
       if (nb == nil)
         generate_socket_exception ();
@@ -230,7 +222,7 @@ final class __socket_package () {
     fun -destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
-      throw socket_excepts.optype ();
+      throw socket_optype_except ();
     sfd = _dgram_server (port);
     if (sfd == nil)
       generate_socket_exception ();

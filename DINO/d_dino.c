@@ -730,7 +730,7 @@ exception_action (int signal_number)
     }
   set_exception_action (signal_number);
   if (eval_long_jump_set_flag)
-    eval_error (class, signals_bc_decl, get_cpos (), message);
+    eval_error (class, get_cpos (), message);
   else if (signal_number != SIGINT && signal_number != SIGTERM)
     error (! repl_flag, get_cpos (), message);
   else if (! repl_flag)

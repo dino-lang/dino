@@ -1,3 +1,135 @@
+2014-05-21  Vladimir N Makarov  <vmakarov@users.sf.net>
+
+	* AMMUNITION/position.c: Fix typo in a comment.
+	* DINO/Makefile.in (d_ir.[ch], d_bc.[ch]): Add -copy option for
+	SPRUT.
+	* DINO/compare.tst: Use js -j instead of js -m.  Fix tests using
+	exceptions and extensions.
+	* DINO/dino.tst.in: Fix tests using exceptions and extensions.
+	Add tests for uses, abstract fun/class class, checking 'out 0',
+	bugs in break/continue.
+	* DINO/d_yacc.y (merge_use_item_lists, uncycle_use_item_list):
+	New.
+	(use_use_prefix): New.
+	(USE, FORMER, LATER): Add tokens.
+	(EXT): Remove token.
+	(use_clause_list, use_item, use_item_list, alias_opt): New
+	non-terms.
+	(block_stmt, try_block, catch): Use create_empty_block.
+	(declaration): Add rule for use.
+	(header): Remove rule for extension.
+	(process_header, initiate_parser): Use create_empty_block.
+	* DINO/d_ir.sprut: Rename fun_class_ext to fun_class.
+	(create_emty_block): New.
+	(ENVIRONMENT): Use use-clause for exceptions.  Add isa.  Remove
+	excepts, errors, signals, invops, invindexes, invslices,
+	invectors, invkeys, invcalls, syserrors, systemcalls, invregexps,
+	invparsers, invexterns, invaccesses.
+	(pub, ext): Remove nodes.
+	(use, use_item, former_item, later_item, decl_redir): New nodes.
+        (block): Add block_uses field.
+	(block_use): New node.
+	(decl): Add fileds origin_decl, use_clause, redir_to_subst, alias_flag.
+	(func_or_class): Remove field no.  Add field fdecl_bc_block.
+	(hash_func, compare_func): Remove IR_NM_ext.
+	(create_empty_block): New function.
+	* DINO/d_kw.shilka (ext): Remove.
+	(use, former, later): Add.
+	* DINO/d_run.sprut (get_another_block_decl): New.
+	(eval_error): Remove 2nd param.
+	* DINO/d_context.c: Rename fun_class_ext to fun_class.
+	(include_decl): Remove IR_NM_ext.
+	(process_extension_block): Remove.
+	(max_block_level): Move up.
+	(copied_redirs, update_copied_redirs): New.
+	(make_flat_redirs, use_items, curr_use_items_start): New.
+	(use_item_cmp, find_use_item_index, check_matching): New.
+	(set_next_stmt, add_to_stmt, make_alias, process_use_clause): New.
+	(copy_fun_class_attrs, process_redecl_after, add_block_use): New.
+	(first_block_passing): Use set_block_level.  Process later items.
+	Call make_flat_redirs.  Move setting access attributes to decl
+	processing.  Rewrite decl processing.  Remove IR_NM_ext and add
+	IR_NM_use and IR_NM_decl_redir processing.
+	(decl_subst, initiate_decl_subst, set_decl_subst, get_decl_subst): New.
+	(finish_decl_subst, set_new_decl_num): New.
+	(get_bcode_decl): Use set_new_decl_num.
+	(copy_bcode): New.
+	(get_fblock): Copy origin_decl if any.  Create fdecl bc block if
+	there is not any.
+	(all_funs_and_classes): Rename to all_fblocks.
+	(bc_copies, copy_and_link_bcode, copy_bc_block): New.
+	(copy_fun_bc_block): New.
+	(second_block_passing): Copy fun class bcode if it is a decl
+	copy.  Process decl_redir.
+	(curr_bc_block): New.
+	(nop_p): Add 'out 0'.
+	(process_bc): Set up curr_bc_block.
+	(test_context): Don't set up curr_scope for process_bc.
+	(initiate_context): Call initiate_decl_subst.  Create use_items,
+	copied_redirs, and bc_copies.
+	(finish_context): Call finish_decl_subst.  Delete use_items,
+	copied_redirs, and bc_copies.
+	* DINO/d_bc.sprut (MSG_NAME, msg_bc_dec, ANSTRCALL_NAME): New.
+	(abstrcall_bc_decl, ISA_NAME, isa_bc_decl): Ditto.
+	({EXCEPTS,ERRORS,SIGNALS,INVOPS,INVINDEXES,INVSLICES}_NAME): Remove.
+	({INVECTORS,INVKEYS,INVCALLS,SYSERRORS,SYSTEMCALLS}_NAME): Ditto.
+	({INVREGEXPS,INVPARSERS,INVEXTERNS,INVACCESSES}_NAME): Ditto.
+	({excepts,errors,signals,invops,invindexes,invslices}_bc_decl): Remove.
+	({invectors,invkeys,invcalls,syserrors,systemcalls}_bc_decl): Ditto.
+	({invregexps,invparsers,invexterns,invaccesses}_bc_decl): Ditto.
+	(use): New node.
+	(block): New field uses.
+	(bc_decls_table): Remove entries for removed decls and add entries
+	for new decls.  Setup context for exceptions to NULL.
+	(prepare_block): Check fblock is not NULL.
+	* DINO/d_bcf.shilka (use): New.
+	* DINO/d_bcio.c (dump_code): Print fblock uses.
+	(read_bc_program): Process FR_use.  Fix check_fld call for
+	FR_friend.
+	* DINO/d_built.h (isa_call): New.Rename fun and fgn into fuidn and fgrpn.-
+	* DINO/d_conv.c: Remove 2nd param in eval_error calls.
+	* DINO/d_dino.c: Ditto.
+	* DINO/d_heap.c: Ditto.
+	* DINO/d_eval.c: Ditto.
+	(execute_a_period_operation): Check fdecl without block.
+	(find_catch_pc): Use internal_isa_call and
+	get_another_block_decl.
+	(eval_error): Use just uppest_stack.
+	* DINO/d_func.c: Remove 2nd param in eval_error calls.
+	(internal_isa_call, isa_call): New.
+	(init_read_token): Use internal_isa_call and
+	get_another_block_decl.
+	(get_fblock_pc): New.
+	(process_fun_call, process_imm_fun_call, process_fun_class_call):
+	Use get_fblock_pc.
+	* DINO/d_errors.[ch]: Fix typo in
+	ERR_undeclared_ident_friend_list.
+	(ERR_extension_before_extended): Remove.
+	(ERR_extension_of_non_fun_class_ext): Remove.
+	(ERR_extension_of_forward_declaration): Ditto.
+	(ERR_extension_of_final): Ditto.
+	(ERR_use_before_definition, ERR_use_of_non_fun_class): New.
+	(ERR_use_of_forward_declaration, ERR_use_of_final): New.
+	(ERR_use_of_class_inside_the_class): New.
+	(ERR_repeated_use_item_ident_occurence_in_use): New.
+	(ERR_previous_use_item_ident_location): New.
+	(ERR_undefined_use_item_ident): New.
+	(ERR_used_decl_not_mentioned_in_former_redefines_prev_one): New.
+	(ERR_alias_redefines_prev_one): New.
+	(ERR_alias_redefinition): New.
+	(ERR_ident_in_former_has_no_prev_decl): New.
+	(ERR_used_decl_redefinition_not_mentioned_in_later): New.
+	(ERR_here_is_corresponding_use_clause): New.
+	(ERR_ident_in_former_item_is_not_declared_before_use): New.
+	(ERR_ident_in_later_item_is_not_declared_after_use): New.
+	(ERR_this_outside_fun_class_ext): Rename to ERR_this_outside_fun_class.
+	(ERR_return_outside_fun_class_ext): Rename to
+	ERR_return_outside_fun_class.
+	(DERR_unfinished_fun_class_call): New.
+	(DERR_undefined_class_or_fun): Add parameter.
+	* DINO/{ieee.d, mpi.d, ipcerr.d, socket.d}: Rewrite exceptions.
+	* DINO/d_socket.c (_accept): Set up addr_len.
+
 2014-04-06  Vladimir N Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Fix code finding OCAML.

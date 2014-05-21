@@ -407,9 +407,9 @@ EOF
 echo JS:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-echo JS -m:
+echo JS -j:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -697,9 +697,9 @@ EOF
 echo JS:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-echo JS -m:
+echo JS -j:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -1091,7 +1091,7 @@ try {
     nw += (#v [l - 1] == 0 ? l - 1 : l);
     nl++;
   }
-} catch (invcalls.eof) {
+} catch (eof) {
   putln (nl, " ", nw, " ", nc);
   exit (0);
 }
@@ -1455,7 +1455,7 @@ if (#argv < 2) {
     for (;;) {
       str = cl.read (64); l+= #str; cl.write (str);
     }
-  } catch (socket_excepts.eof) {
+  } catch (socket_eof_except) {
     putln ("i got ", l, " bytes");
   }
 } else {
@@ -1930,30 +1930,26 @@ cat <<'EOF' >$ftest
 var HI = 0;
 var LO = 0;
 
-ext except {
-  class Hi_exception (value) {}
-  class Lo_exception (value) {}
-}
+class Hi_exception (value) {use except;}
+class Lo_exception (value) {use except;}
 
 fun blowup (num) { 
-  throw ((num & 1) ? excepts.Lo_exception (num) : excepts.Hi_exception (num));
+  throw ((num & 1) ? Lo_exception (num) : Hi_exception (num));
 }
 
 fun lo_function (num) {
   try {
     blowup (num);
-  } catch (excepts.Lo_exception) {
+  } catch (Lo_exception) {
     LO++;
-    //    putln ("Lo_exception occurred, value:", e.value);
   }
 }
 
 fun hi_function (num) {
   try {
     lo_function (num);
-  } catch (excepts.Hi_exception) {
+  } catch (Hi_exception) {
     HI++;
-    //    putln ("Hi_exception occurred, value:", e.value);
   }
 }
 
@@ -2160,9 +2156,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -2449,9 +2445,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m$ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j$ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -2752,9 +2748,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -3427,9 +3423,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -3669,9 +3665,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS $ftest) 2>&1|print_time
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -m $ftest) 2>&1|print_time
+  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -j $ftest) 2>&1|print_time
 fi
 
 if test x$OCAML != x; then
@@ -4873,9 +4869,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -5489,21 +5485,23 @@ fi
 
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
-  var bool = start_state;
+  var bool;
+  fun init {bool = start_state;}
   fun value { return bool; }
   fun activate { bool = !bool; }
+  init ();
 }
 
-ext Toggle {
-  class NthToggle (max_counter) {
-    var count_max = max_counter;
-    var counter = 0;
-    fun activate {
-      counter++;
-      if (counter >= count_max) {
-        bool = !bool;
-        counter = 0;
-      }
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
     }
   }
 }
@@ -5520,7 +5518,7 @@ fun main {
   putln (v ? "true" : "false");
 
   v = 1;
-  var ntoggle = Toggle (v).NthToggle (3);
+  var ntoggle = NthToggle (v, 3);
   for (i = 1; i <= NUM; i++) {
     ntoggle.activate ();
     v = ntoggle.value ();
@@ -5800,9 +5798,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -6313,21 +6311,23 @@ fi
 
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
-  var bool = start_state;
+  var bool;
+  fun init {bool = start_state;}
   fun value { return bool; }
   fun activate { bool = !bool; }
+  init ();
 }
 
-ext Toggle {
-  class NthToggle (max_counter) {
-    var count_max = max_counter;
-    var counter = 0;
-    fun activate {
-      counter++;
-      if (counter >= count_max) {
-        bool = !bool;
-        counter = 0;
-      }
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
     }
   }
 }
@@ -6346,13 +6346,13 @@ fun main {
 
   putln ();
 
-  var ntoggle = Toggle (1).NthToggle (3);
+  var ntoggle = NthToggle (1, 3);
   for (i = 1; i <= 8; i++) {
     ntoggle.activate ();
     putln (ntoggle.value () ? "true" : "false");
   }
   for (i = 1; i <= NUM; i++)
-    ntoggle = Toggle (1).NthToggle (3);
+    ntoggle = NthToggle (1, 3);
 }
 
 main();
@@ -6915,9 +6915,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -18644,9 +18644,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -97563,9 +97563,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -98793,7 +98793,7 @@ fun main {
   for (;;)
     try {
       count += scan ();
-    } catch (invcalls.eof) {
+    } catch (eof) {
       break;
     }
   putln (count);
@@ -101915,10 +101915,10 @@ fun main {
         try {
           word = v [i];
           freq [word]++;
-        } catch (errors.invkey) {
+        } catch (invkey) {
           freq [word] = 1;
         }
-    } catch (invcalls.eof) {
+    } catch (eof) {
       break;
     }
   v = vec (freq);
@@ -102050,9 +102050,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102211,9 +102211,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102398,9 +102398,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102618,9 +102618,9 @@ EOF
 echo JS:
 if test "x$NECHO" != x;then $NECHO "   ";fi
 if (time $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-echo JS -m:
+echo JS -j:
 if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS -m $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+if (time $JS -j $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102919,9 +102919,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -103241,9 +103241,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -103629,9 +103629,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -104084,9 +104084,9 @@ EOF
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -104252,9 +104252,9 @@ if test x$JS != x; then
   echo JS:
   if test "x$NECHO" != x;then $NECHO "   ";fi
   if (time $JS $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-  echo JS -m:
+  echo JS -j:
   if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -m $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  if (time $JS -j $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 fi
 
 if test x$OCAML != x; then

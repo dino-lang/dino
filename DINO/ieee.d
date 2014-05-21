@@ -24,19 +24,16 @@
 
 include "mpi";
 
-ext except {
-  class ieee_except () {
-    class optype () {}
-    class opvalue () {}
-    class round_value () {}
-    class invalid_operation () {}
-    class reserved_operand () {}
-    class overflow () {}
-    class underflow () {}
-    class imprecise_result () {}
-    class zero_division () {}
-  }
-}
+class ieee_except () {use except;}
+class ieee_optype_except () {use ieee_except;}
+class ieee_opvalue_except () {use ieee_except;}
+class ieee_round_value_except () {use ieee_except;}
+class ieee_invalid_operation_except () {use ieee_except;}
+class ieee_reserved_operand_except () {use ieee_except;}
+class ieee_overflow_except () {use ieee_except;}
+class ieee_underflow_except () {use ieee_except;}
+class ieee_imprecise_result_except () {use ieee_except;}
+class ieee_zero_division_except () {use ieee_except;}
 
 final class __ieee_package;
 
@@ -45,12 +42,11 @@ var ieees = __ieee_package ();
 // Only one instance of the class should be. Do not call the class.
 // Use only instance `ieees' (see below).
 final class __ieee_package () {
-  var ieee_excepts = excepts.ieee_except ();
   var ignore_excepts = 0;
 
   fun -check_mpi (op) {
     if (type (op) != obj || !inside (op, mpi_package))
-      throw ieee_excepts.optype ();
+      throw ieee_optype_except ();
   }
 
   // The following can be used to form trap mask.
@@ -68,17 +64,17 @@ final class __ieee_package () {
     if (ignore_excepts)
       return;
     if (status_bits & inv)
-      throw ieee_excepts.invalid_operation ();
+      throw ieee_invalid_operation_except ();
     else if (status_bits & ro)
-      throw ieee_excepts.reserved_operand ();
+      throw ieee_reserved_operand_except ();
     else if (status_bits & ofl)
-      throw ieee_excepts.overflow ();
+      throw ieee_overflow_except ();
     else if (status_bits & ufl)
-      throw ieee_excepts.underflow ();
+      throw ieee_underflow_except ();
     else if (status_bits & imp)
-      throw ieee_excepts.imprecise_result ();
+      throw ieee_imprecise_result_except ();
     else if (status_bits & dz)
-      throw ieee_excepts.zero_division ();
+      throw ieee_zero_division_except ();
   }
   
   // The following are possible values of `round'.
@@ -96,7 +92,7 @@ final class __ieee_package () {
   fun set_trap_mask (mask) {
     // 1 means that there will be no corresponding exception fixed.
     if (type (mask) != int)
-      throw ieee_excepts.optype ();
+      throw ieee_optype_except ();
     ieee_set_trap_mask (mask);
   }
 
@@ -104,7 +100,7 @@ final class __ieee_package () {
 
   fun set_sticky_status_bits (mask) {
     if (type (mask) != int)
-      throw ieee_excepts.optype ();
+      throw ieee_optype_except ();
     ieee_set_sticky_status_bits (mask);
   }
 
@@ -116,9 +112,9 @@ final class __ieee_package () {
 
   fun set_round (r) {
     if (type (r) != int)
-      throw ieee_excepts.optype ();
+      throw ieee_optype_except ();
     if (r < 0 || r > 3)
-      throw ieee_excepts.round_value();
+      throw ieee_round_value_except();
     ieee_set_round (r);
   }
 
@@ -138,7 +134,7 @@ final class __ieee_package () {
 
     fun +check (op) {
       if (type (op) != obj || !inside (op, ieees.single))
-        throw ieee_excepts.optype ();
+        throw ieee_optype_except ();
     }
 
     extern -ieee_single_positive_zero (), -ieee_single_negative_zero (),
@@ -264,29 +260,29 @@ final class __ieee_package () {
     }
     fun to_binary_string (base) {// May generate exception
       if (type (base) != int)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
- 	throw ieee_excepts.opvalue ();
+ 	throw ieee_opvalue_except ();
       return ieee_single_to_binary_string (value, base);
     }
     fun to_string () {return ieee_single_to_string (value);}
     fun from_binary_string (str, base) {// May generate exception
       if (type (str) != vec || eltype (str) != char || type (base) != int)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
- 	throw ieee_excepts.opvalue ();
+ 	throw ieee_opvalue_except ();
       value = ieee_single_from_binary_string (str, base);
       process_except ();
     }
     fun from_string (str) {// May generate exception
       if (type (str) != vec || eltype (str) != char)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       value = ieee_single_from_string (str);
       process_except ();
     }
     fun from_float (f) {
       if (type (f) != float)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       value = ieee_single_from_float (f);
       process_except ();
     }
@@ -304,7 +300,7 @@ final class __ieee_package () {
 
     fun -check (op) {
       if (type (op) != obj || !inside (op, ieees.double))
-        throw ieee_excepts.optype ();
+        throw ieee_optype_except ();
     }
 
     extern -ieee_double_positive_zero (), -ieee_double_negative_zero (),
@@ -430,29 +426,29 @@ final class __ieee_package () {
     }
     fun to_binary_string (base) {// May generate exception
       if (type (base) != int)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
- 	throw ieee_excepts.opvalue ();
+ 	throw ieee_opvalue_except ();
       return ieee_double_to_binary_string (value, base);
     }
     fun to_string () {return ieee_double_to_string (value);}
     fun from_binary_string (str, base) {// May generate exception
       if (type (str) != vec || eltype (str) != char || type (base) != int)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
- 	throw ieee_excepts.opvalue ();
+ 	throw ieee_opvalue_except ();
       value = ieee_double_from_binary_string (str, base);
       process_except ();
     }
     fun from_string (str) {// May generate exception
       if (type (str) != vec || eltype (str) != char)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       value = ieee_double_from_string (str);
       process_except ();
     }
     fun from_float (f) {
       if (type (f) != float)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       value = ieee_double_from_float (f);
       process_except ();
     }
@@ -470,7 +466,7 @@ final class __ieee_package () {
 
     fun -check (op) {
       if (type (op) != obj || !inside (op, ieees.quad))
-        throw ieee_excepts.optype ();
+        throw ieee_optype_except ();
     }
 
     extern -ieee_quad_positive_zero (), -ieee_quad_negative_zero (),
@@ -596,29 +592,29 @@ final class __ieee_package () {
     }
     fun to_binary_string (base) {// May generate exception
       if (type (base) != int)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
- 	throw ieee_excepts.opvalue ();
+ 	throw ieee_opvalue_except ();
       return ieee_quad_to_binary_string (value, base);
     }
     fun to_string () {return ieee_quad_to_string (value);}
     fun from_binary_string (str, base) {// May generate exception
       if (type (str) != vec || eltype (str) != char || type (base) != int)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       if (base != 2 && base != 4 && base != 8 &&  base != 16)
- 	throw ieee_excepts.opvalue ();
+ 	throw ieee_opvalue_except ();
       value = ieee_quad_from_binary_string (str, base);
       process_except ();
     }
     fun from_string (str) {// May generate exception
       if (type (str) != vec || eltype (str) != char)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       value = ieee_quad_from_string (str);
       process_except ();
     }
     fun from_float (f) {
       if (type (f) != float)
-	throw ieee_excepts.optype ();
+	throw ieee_optype_except ();
       value = ieee_quad_from_float (f);
       process_except ();
     }

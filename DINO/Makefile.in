@@ -267,11 +267,11 @@ $(socket_lib): d_socket.o
 
 d_ir.c d_ir.h : $(srcdir)/d_ir.sprut
 # Use -debug instead of -only-macro for debugging
-	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set $(srcdir)/d_ir.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -access -set -copy $(srcdir)/d_ir.sprut
 
 d_bc.c d_bc.h : $(srcdir)/d_bc.sprut
 # Use -debug instead of -only-macro for debugging
-	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pBC_ -access -set $(srcdir)/d_bc.sprut
+	../SPRUT/sprut @START_SPRUT_OPTIONS@ -pBC_ -access -set -copy $(srcdir)/d_bc.sprut
 
 d_run.c d_run.h : $(srcdir)/d_extern.sprut $(srcdir)/d_run.sprut
 # Use -debug instead of -only-macro for debugging

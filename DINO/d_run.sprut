@@ -53,6 +53,13 @@ extern ER_node_t cvars;
 extern ER_node_t ctop;
 extern int tvar_num1, tvar_num2;
 
+static BC_node_t do_always_inline
+get_another_block_decl (BC_node_t block, BC_node_t decl)
+{
+  return LV_BLOCK_IDENT_DECL (BC_block_number (block),
+			      BC_ident_num (decl));
+}
+
 /* Return source position of byte code BC.  */
 static position_t do_always_inline
 get_pos (BC_node_t bc)
@@ -189,12 +196,11 @@ extern void call_fun_class (BC_node_t fun, ER_node_t context, int_t pars_number)
 
 
 #ifdef __GNUC__
-extern void eval_error (BC_node_t error_decl, BC_node_t context_var,
-			position_t position,
+extern void eval_error (BC_node_t error_decl, position_t position,
 		        const char *format, ...) __attribute__ ((noreturn));
 #else
-extern void eval_error (BC_node_t error_decl, BC_node_t context_var,
-			position_t position, const char *format, ...);
+extern void eval_error (BC_node_t error_decl, position_t position,
+			const char *format, ...);
 #endif
 
 extern const char *er_type_name (int);

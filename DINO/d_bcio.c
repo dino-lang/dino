@@ -439,7 +439,7 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_fblock:
 	case BC_NM_block:
 	  {
-	    BC_node_t friend, bc_decl;
+	    BC_node_t friend, use, bc_decl;
 	    const char *str = NULL;
 
 	    indent += 2;
@@ -478,6 +478,8 @@ dump_code (BC_node_t infos, int indent)
 		 friend != NULL;
 		 friend = BC_next_friend (friend))
 	      printf (" friend=%d", BC_idn (BC_info (BC_friend (friend))));
+	    for (use = BC_uses (bc); use != NULL; use = BC_next_use (use))
+	      printf (" use=%d", BC_idn (BC_info (BC_use (use))));
 	    printf (" // ident=%s\n", str);
 	    for (bc_decl = BC_decls (bc);
 		 bc_decl != NULL;
@@ -1031,7 +1033,7 @@ get_decl (int label)
 
    Some fields are not obligatory as they have a default value.  Some
    fields represent nodes different from node where they present
-   (e.g. position fields, friend fields).  Position fields have
+   (e.g. position fields, friend/use fields).  Position fields have
    default values from previous read node.
 
    Create info nodes if INFO_P.
@@ -1188,7 +1190,11 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      store_curr_ptr_fld (); 
 	      break;
 	    case FR_friend:
-	      if (check_fld (BC_NM_friend, D_INT)) goto fail;
+	      if (check_fld (BC_NM_block, D_INT)) goto fail;
+	      store_curr_ptr_fld ();
+	      break;
+	    case FR_use:
+	      if (check_fld (BC_NM_block, D_INT)) goto fail;
 	      store_curr_ptr_fld ();
 	      break;
 	    case FR_next:
@@ -1491,7 +1497,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
   if (info_p)
     VLO_DELETE (block_infos);
   /* Set up pointer fields.  Process them in reverse order to connect
-     friends and decls in the right order. */
+     friends, uses, and decls in the right order. */
   for (fld = (struct ptr_fld *) VLO_BOUND (ptr_flds) - 1;
        fld >= (struct ptr_fld *) VLO_BEGIN (ptr_flds);
        fld--)
@@ -1538,6 +1544,16 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	    BC_set_friend (friend, ptr);
 	    BC_set_next_friend (friend, BC_friends (fld->node));
 	    BC_set_friends (fld->node, friend);
+	    break;
+	  }
+	case FR_use:
+	  {
+	    BC_node_t use = BC_create_node (BC_NM_use);
+
+	    ptr = get_bcode (fld->fld_val);
+	    BC_set_use (use, ptr);
+	    BC_set_next_use (use, BC_uses (fld->node));
+	    BC_set_uses (fld->node, use);
 	    break;
 	  }
 	case FR_pc:

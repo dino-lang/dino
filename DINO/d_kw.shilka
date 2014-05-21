@@ -32,12 +32,12 @@ char     {return CHAR;}
 class    {return CLASS;}
 closure  {return CLOSURE;}
 continue {return CONTINUE;}
-ext      {return EXT;}
 extern   {return EXTERN;}
 else     {return ELSE;}
 final    {return FINAL;}
 float    {return FLOAT;}
 for      {return FOR;}
+former   {return FORMER;}
 friend   {return FRIEND;}
 fun      {return FUN;}
 hide     {return HIDE;}
@@ -46,6 +46,7 @@ if       {return IF;}
 in       {return IN;}
 include  {return INCLUDE;}
 int      {return INT;}
+later    {return LATER;}
 long     {return LONG;}
 new      {return NEW;}
 nil      {return NIL;}
@@ -58,6 +59,7 @@ this     {return THIS;}
 throw    {return THROW;}
 try      {return TRY;}
 type     {return TYPE;}
+use      {return USE;}
 val      {return VAL;}
 var      {return VAR;}
 vec      {return VEC;}

@@ -83,6 +83,9 @@ extern BC_node_t except_bc_decl;
 #define ERROR_NAME "error"
 extern BC_node_t error_bc_decl;
 
+#define MSG_NAME "msg"
+extern BC_node_t msg_bc_decl;
+
 #define SIGNAL_NAME "signal"
 extern BC_node_t signal_bc_decl;
 
@@ -160,6 +163,9 @@ extern BC_node_t keyop_bc_decl;
 
 #define INVCALL_NAME "invcall"
 extern BC_node_t invcall_bc_decl;
+
+#define ABSTRCALL_NAME "abstrcall"
+extern BC_node_t abstrcall_bc_decl;
 
 #define CALLOP_NAME "callop"
 extern BC_node_t callop_bc_decl;
@@ -386,51 +392,6 @@ extern BC_node_t deadlock_bc_decl;
 #define SYNCWAIT_NAME "syncwait"
 extern BC_node_t syncwait_bc_decl;
 
-#define EXCEPTS_NAME "excepts"
-extern BC_node_t excepts_bc_decl;
-
-#define ERRORS_NAME "errors"
-extern BC_node_t errors_bc_decl;
-
-#define SIGNALS_NAME "signals"
-extern BC_node_t signals_bc_decl;
-
-#define INVOPS_NAME "invops"
-extern BC_node_t invops_bc_decl;
-
-#define INVINDEXES_NAME "invindexes"
-extern BC_node_t invindexes_bc_decl;
-
-#define INVSLICES_NAME "invslices"
-extern BC_node_t invslices_bc_decl;
-
-#define INVECTORS_NAME "invectors"
-extern BC_node_t invectors_bc_decl;
-
-#define INVKEYS_NAME "invkeys"
-extern BC_node_t invkeys_bc_decl;
-
-#define INVCALLS_NAME "invcalls"
-extern BC_node_t invcalls_bc_decl;
-
-#define SYSERRORS_NAME "syserrors"
-extern BC_node_t syserrors_bc_decl;
-
-#define SYSTEMCALLS_NAME "systemcalls"
-extern BC_node_t systemcalls_bc_decl;
-
-#define INVREGEXPS_NAME "invregexps"
-extern BC_node_t invregexps_bc_decl;
-
-#define INVPARSERS_NAME "invparsers"
-extern BC_node_t invparsers_bc_decl;
-
-#define INVEXTERNS_NAME "invexterns"
-extern BC_node_t invexterns_bc_decl;
-
-#define INVACCESSES_NAME "invaccesses"
-extern BC_node_t invaccesses_bc_decl;
-
 #define ARGV_NAME "argv"
 extern BC_node_t argv_bc_decl;
 
@@ -536,6 +497,9 @@ extern BC_node_t context_bc_decl;
 
 #define INSIDE_NAME "inside"
 extern BC_node_t inside_bc_decl;
+
+#define ISA_NAME "isa"
+extern BC_node_t isa_bc_decl;
 
 #define SUBV_NAME "subv"
 extern BC_node_t subv_bc_decl;
@@ -836,8 +800,9 @@ extern void prepare_block (BC_node_t);
 
 %%
 
-/* For any change here, correspondent changes in d_bcread.c
-   d_bc[fn].shilka should be also done.  */
+/* !!!For any change here, correspondent changes in d_bcread.c,
+   d_bc[fn].shilka, and d_context.c::copy_fun_bc_block should be also
+   done.  */
 
 /* Remember: alsways use right abstract node when operands are immediate.  */
 
@@ -895,6 +860,12 @@ friend :: icode
         next_friend : friend
 ;
 
+use :: icode
+%other
+	use : block
+        next_use : use
+;
+
 %abstract
 bcode :: icode
 %other
@@ -925,6 +896,7 @@ block :: bcode
 	excepts : bcode  /* exception list */
         decls : decl {$ = NULL;}
         friends : friend
+        uses : use
         vars_num : int_t /* if it is negative than it is a simple block */
         tvars_num : int_t
         ext_life_p : bool_t
@@ -1285,6 +1257,7 @@ enumerate_infoed_bcode (BC_node_t block, int_t *curr_idn, int *curr_decl_num)
 /* See comments for ENVIRONMENT. */
 BC_node_t except_bc_decl;
 BC_node_t error_bc_decl;
+BC_node_t msg_bc_decl;
 BC_node_t signal_bc_decl;
 BC_node_t sigint_bc_decl;
 BC_node_t sigill_bc_decl;
@@ -1311,6 +1284,7 @@ BC_node_t invkey_bc_decl;
 BC_node_t keyvalue_bc_decl;
 BC_node_t keyop_bc_decl;
 BC_node_t invcall_bc_decl;
+BC_node_t abstrcall_bc_decl;
 BC_node_t callop_bc_decl;
 BC_node_t partype_bc_decl;
 BC_node_t invresult_bc_decl;
@@ -1386,21 +1360,6 @@ BC_node_t accessvalue_bc_decl;
 BC_node_t immutable_bc_decl;
 BC_node_t deadlock_bc_decl;
 BC_node_t syncwait_bc_decl;
-BC_node_t excepts_bc_decl;
-BC_node_t errors_bc_decl;
-BC_node_t signals_bc_decl;
-BC_node_t invops_bc_decl;
-BC_node_t invindexes_bc_decl;
-BC_node_t invslices_bc_decl;
-BC_node_t invectors_bc_decl;
-BC_node_t invkeys_bc_decl;
-BC_node_t syserrors_bc_decl;
-BC_node_t invcalls_bc_decl;
-BC_node_t systemcalls_bc_decl;
-BC_node_t invregexps_bc_decl;
-BC_node_t invparsers_bc_decl;
-BC_node_t invexterns_bc_decl;
-BC_node_t invaccesses_bc_decl;
 BC_node_t argv_bc_decl;
 BC_node_t env_bc_decl;
 BC_node_t version_bc_decl;
@@ -1436,6 +1395,7 @@ BC_node_t eltype_bc_decl;
 BC_node_t keys_bc_decl;
 BC_node_t context_bc_decl;
 BC_node_t inside_bc_decl;
+BC_node_t isa_bc_decl;
 BC_node_t subv_bc_decl;
 BC_node_t cmpv_bc_decl;
 BC_node_t del_bc_decl;
@@ -1548,123 +1508,110 @@ struct bc_decl_entry
 static struct bc_decl_entry bc_decls_table [] =
 {
   {&except_bc_decl, EXCEPT_NAME, NULL, NULL},
-  {&error_bc_decl, ERROR_NAME, &except_bc_decl, NULL},
-  {&signal_bc_decl, SIGNAL_NAME, &error_bc_decl, NULL},
-  {&sigint_bc_decl, SIGINT_NAME, &signal_bc_decl, NULL},
-  {&sigill_bc_decl, SIGILL_NAME, &signal_bc_decl, NULL},
-  {&sigabrt_bc_decl, SIGABRT_NAME, &signal_bc_decl, NULL},
-  {&sigfpe_bc_decl, SIGFPE_NAME, &signal_bc_decl, NULL},
-  {&sigterm_bc_decl, SIGTERM_NAME, &signal_bc_decl, NULL},
-  {&sigsegv_bc_decl, SIGSEGV_NAME, &signal_bc_decl, NULL},
-  {&invenv_bc_decl, INVENV_NAME, &error_bc_decl, NULL},
-  {&invop_bc_decl, INVOP_NAME, &error_bc_decl, NULL},
-  {&optype_bc_decl, OPTYPE_NAME, &invop_bc_decl, NULL},
-  {&opvalue_bc_decl, OPVALUE_NAME, &invop_bc_decl, NULL},
-  {&invindex_bc_decl, INVINDEX_NAME, &error_bc_decl, NULL},
-  {&indextype_bc_decl, INDEXTYPE_NAME, &invindex_bc_decl, NULL},
-  {&indexvalue_bc_decl, INDEXVALUE_NAME, &invindex_bc_decl, NULL},
-  {&indexop_bc_decl, INDEXOP_NAME, &invindex_bc_decl, NULL},
-  {&invslice_bc_decl, INVSLICE_NAME, &error_bc_decl, NULL},
-  {&slicetype_bc_decl, SLICETYPE_NAME, &invslice_bc_decl, NULL},
-  {&sliceform_bc_decl, SLICEFORM_NAME, &invslice_bc_decl, NULL},
-  {&invector_bc_decl, INVECTOR_NAME, &error_bc_decl, NULL},
-  {&veclen_bc_decl, VECLEN_NAME, &invector_bc_decl, NULL},
-  {&vecform_bc_decl, VECVALUE_NAME, &invector_bc_decl, NULL},
-  {&matrixform_bc_decl, MATRIXVALUE_NAME, &invector_bc_decl, NULL},
-  {&invkey_bc_decl, INVKEY_NAME, &error_bc_decl, NULL},
-  {&keyvalue_bc_decl, KEYVALUE_NAME, &invkey_bc_decl, NULL},
-  {&keyop_bc_decl, KEYOP_NAME, &invkey_bc_decl, NULL},
-  {&invcall_bc_decl, INVCALL_NAME, &error_bc_decl, NULL},
-  {&callop_bc_decl, CALLOP_NAME, &invcall_bc_decl, NULL},
-  {&partype_bc_decl, PARTYPE_NAME, &invcall_bc_decl, NULL},
-  {&invresult_bc_decl, INVRESULT_NAME, &invcall_bc_decl, NULL},
-  {&invinput_bc_decl, INVINPUT_NAME, &invcall_bc_decl, NULL},
-  {&invfmt_bc_decl, INVFMT_NAME, &invcall_bc_decl, NULL},
-  {&eof_bc_decl, EOF_NAME, &invcall_bc_decl, NULL},
-  {&parnumber_bc_decl, PARNUMBER_NAME, &invcall_bc_decl, NULL},
-  {&syncthreadcall_bc_decl, SYNCTHREADCALL_NAME, &invcall_bc_decl, NULL},
-  {&syserror_bc_decl, SYSERROR_NAME, &invcall_bc_decl, NULL},
-  {&eaccess_bc_decl, EACCESS_NAME, &syserror_bc_decl, NULL},
-  {&eagain_bc_decl, EAGAIN_NAME, &syserror_bc_decl, NULL},
-  {&ebadf_bc_decl, EBADF_NAME, &syserror_bc_decl, NULL},
-  {&ebusy_bc_decl, EBUSY_NAME, &syserror_bc_decl, NULL},
-  {&echild_bc_decl, ECHILD_NAME, &syserror_bc_decl, NULL},
-  {&edeadlk_bc_decl, EDEADLK_NAME, &syserror_bc_decl, NULL},
-  {&edom_bc_decl, EDOM_NAME, &syserror_bc_decl, NULL},
-  {&eexist_bc_decl, EEXIST_NAME, &syserror_bc_decl, NULL},
-  {&efault_bc_decl, EFAULT_NAME, &syserror_bc_decl, NULL},
-  {&efbig_bc_decl, EFBIG_NAME, &syserror_bc_decl, NULL},
-  {&eintr_bc_decl, EINTR_NAME, &syserror_bc_decl, NULL},
-  {&einval_bc_decl, EINVAL_NAME, &syserror_bc_decl, NULL},
-  {&eio_bc_decl, EIO_NAME, &syserror_bc_decl, NULL},
-  {&eisdir_bc_decl, EISDIR_NAME, &syserror_bc_decl, NULL},
-  {&emfile_bc_decl, EMFILE_NAME, &syserror_bc_decl, NULL},
-  {&emlink_bc_decl, EMLINK_NAME, &syserror_bc_decl, NULL},
-  {&enametoolong_bc_decl, ENAMETOOLONG_NAME, &syserror_bc_decl, NULL},
-  {&enfile_bc_decl, ENFILE_NAME, &syserror_bc_decl, NULL},
-  {&enodev_bc_decl, ENODEV_NAME, &syserror_bc_decl, NULL},
-  {&enoent_bc_decl, ENOENT_NAME, &syserror_bc_decl, NULL},
-  {&enoexec_bc_decl, ENOEXEC_NAME, &syserror_bc_decl, NULL},
-  {&enolck_bc_decl, ENOLCK_NAME, &syserror_bc_decl, NULL},
-  {&enomem_bc_decl, ENOMEM_NAME, &syserror_bc_decl, NULL},
-  {&enospc_bc_decl, ENOSPC_NAME, &syserror_bc_decl, NULL},
-  {&enosys_bc_decl, ENOSYS_NAME, &syserror_bc_decl, NULL},
-  {&enotdir_bc_decl, ENOTDIR_NAME, &syserror_bc_decl, NULL},
-  {&enotempty_bc_decl, ENOTEMPTY_NAME, &syserror_bc_decl, NULL},
-  {&enotty_bc_decl, ENOTTY_NAME, &syserror_bc_decl, NULL},
-  {&enxio_bc_decl, ENXIO_NAME, &syserror_bc_decl, NULL},
-  {&eperm_bc_decl, EPERM_NAME, &syserror_bc_decl, NULL},
-  {&epipe_bc_decl, EPIPE_NAME, &syserror_bc_decl, NULL},
-  {&erange_bc_decl, ERANGE_NAME, &syserror_bc_decl, NULL},
-  {&erofs_bc_decl, EROFS_NAME, &syserror_bc_decl, NULL},
-  {&espipe_bc_decl, ESPIPE_NAME, &syserror_bc_decl, NULL},
-  {&esrch_bc_decl, ESRCH_NAME, &syserror_bc_decl, NULL},
-  {&exdev_bc_decl, EXDEV_NAME, &syserror_bc_decl, NULL},
-  {&systemcall_bc_decl, SYSTEMCALL_NAME, &invcall_bc_decl, NULL},
-  {&noshell_bc_decl, NOSHELL_NAME, &systemcall_bc_decl, NULL},
-  {&systemfail_bc_decl, SYSTEMFAIL_NAME, &systemcall_bc_decl, NULL},
-  {&invregexp_bc_decl, INVREGEXP_NAME, &invcall_bc_decl, NULL},
-  {&ebrack_bc_decl, EBRACK_NAME, &invregexp_bc_decl, NULL},
-  {&reg_erange_bc_decl, REG_ERANGE_NAME, &invregexp_bc_decl, NULL},
-  {&ectype_bc_decl, ECTYPE_NAME, &invregexp_bc_decl, NULL},
-  {&eparen_bc_decl, EPAREN_NAME, &invregexp_bc_decl, NULL},
-  {&esubreg_bc_decl, ESUBREG_NAME, &invregexp_bc_decl, NULL},
-  {&eend_bc_decl, EEND_NAME, &invregexp_bc_decl, NULL},
-  {&eescape_bc_decl, EESCAPE_NAME, &invregexp_bc_decl, NULL},
-  {&badpat_bc_decl, BADPAT_NAME, &invregexp_bc_decl, NULL},
-  {&esize_bc_decl, ESIZE_NAME, &invregexp_bc_decl, NULL},
-  {&espace_bc_decl, ESPACE_NAME, &invregexp_bc_decl, NULL},
-  {&invparser_bc_decl, INVPARSER_NAME, &invcall_bc_decl, NULL},
-  {&invgrammar_bc_decl, INVGRAMMAR_NAME, &invparser_bc_decl, NULL},
-  {&invtoken_bc_decl, INVTOKEN_NAME, &invparser_bc_decl, NULL},
-  {&pmemory_bc_decl, PMEMORY_NAME, &invparser_bc_decl, NULL},
-  {&invextern_bc_decl, INVEXTERN_NAME, &invcall_bc_decl, NULL},
-  {&noextern_bc_decl, NOEXTERN_NAME, &invextern_bc_decl, NULL},
-  {&libclose_bc_decl, LIBCLOSE_NAME, &invextern_bc_decl, NULL},
-  {&noexternsupp_bc_decl, NOEXTERNSUPP_NAME, &invextern_bc_decl, NULL},
-  {&invenvar_bc_decl, INVENVAR_NAME, &invcall_bc_decl, NULL},
-  {&internal_bc_decl, INTERNAL_NAME, &invcall_bc_decl, NULL},
-  {&invaccess_bc_decl, INVACCESS_NAME, &error_bc_decl, NULL},
-  {&accessop_bc_decl, ACCESSOP_NAME, &invaccess_bc_decl, NULL},
-  {&accessvalue_bc_decl, ACCESSVALUE_NAME, &invaccess_bc_decl, NULL},
-  {&immutable_bc_decl, IMMUTABLE_NAME, &invaccess_bc_decl, NULL},
-  {&deadlock_bc_decl, DEADLOCK_NAME, &error_bc_decl, NULL},
-  {&syncwait_bc_decl, SYNCWAIT_NAME, &error_bc_decl, NULL},
-  {&excepts_bc_decl, EXCEPTS_NAME, NULL, NULL},
-  {&errors_bc_decl, ERRORS_NAME, NULL, NULL},
-  {&signals_bc_decl, SIGNALS_NAME, NULL, NULL},
-  {&invops_bc_decl, INVOPS_NAME, NULL, NULL},
-  {&invindexes_bc_decl, INVINDEXES_NAME, NULL, NULL},
-  {&invslices_bc_decl, INVSLICES_NAME, NULL, NULL},
-  {&invectors_bc_decl, INVECTORS_NAME, NULL, NULL},
-  {&invkeys_bc_decl, INVKEYS_NAME, NULL, NULL},
-  {&invcalls_bc_decl, INVCALLS_NAME, NULL, NULL},
-  {&syserrors_bc_decl, SYSERRORS_NAME, NULL, NULL},
-  {&systemcalls_bc_decl, SYSTEMCALLS_NAME, NULL, NULL},
-  {&invregexps_bc_decl, INVREGEXPS_NAME, NULL, NULL},
-  {&invparsers_bc_decl, INVPARSERS_NAME, NULL, NULL},
-  {&invexterns_bc_decl, INVEXTERNS_NAME, NULL, NULL},
-  {&invaccesses_bc_decl, INVACCESSES_NAME, NULL, NULL},
+  {&error_bc_decl, ERROR_NAME, NULL, NULL},
+  {&msg_bc_decl, MSG_NAME, &error_bc_decl, NULL},
+  {&signal_bc_decl, SIGNAL_NAME, NULL, NULL},
+  {&sigint_bc_decl, SIGINT_NAME, NULL, NULL},
+  {&sigill_bc_decl, SIGILL_NAME, NULL, NULL},
+  {&sigabrt_bc_decl, SIGABRT_NAME, NULL, NULL},
+  {&sigfpe_bc_decl, SIGFPE_NAME, NULL, NULL},
+  {&sigterm_bc_decl, SIGTERM_NAME, NULL, NULL},
+  {&sigsegv_bc_decl, SIGSEGV_NAME, NULL, NULL},
+  {&invenv_bc_decl, INVENV_NAME, NULL, NULL},
+  {&invop_bc_decl, INVOP_NAME, NULL, NULL},
+  {&optype_bc_decl, OPTYPE_NAME, NULL, NULL},
+  {&opvalue_bc_decl, OPVALUE_NAME, NULL, NULL},
+  {&invindex_bc_decl, INVINDEX_NAME, NULL, NULL},
+  {&indextype_bc_decl, INDEXTYPE_NAME, NULL, NULL},
+  {&indexvalue_bc_decl, INDEXVALUE_NAME, NULL, NULL},
+  {&indexop_bc_decl, INDEXOP_NAME, NULL, NULL},
+  {&invslice_bc_decl, INVSLICE_NAME, NULL, NULL},
+  {&slicetype_bc_decl, SLICETYPE_NAME, NULL, NULL},
+  {&sliceform_bc_decl, SLICEFORM_NAME, NULL, NULL},
+  {&invector_bc_decl, INVECTOR_NAME, NULL, NULL},
+  {&veclen_bc_decl, VECLEN_NAME, NULL, NULL},
+  {&vecform_bc_decl, VECVALUE_NAME, NULL, NULL},
+  {&matrixform_bc_decl, MATRIXVALUE_NAME, NULL, NULL},
+  {&invkey_bc_decl, INVKEY_NAME, NULL, NULL},
+  {&keyvalue_bc_decl, KEYVALUE_NAME, NULL, NULL},
+  {&keyop_bc_decl, KEYOP_NAME, NULL, NULL},
+  {&invcall_bc_decl, INVCALL_NAME, NULL, NULL},
+  {&abstrcall_bc_decl, ABSTRCALL_NAME, NULL, NULL},
+  {&callop_bc_decl, CALLOP_NAME, NULL, NULL},
+  {&partype_bc_decl, PARTYPE_NAME, NULL, NULL},
+  {&invresult_bc_decl, INVRESULT_NAME, NULL, NULL},
+  {&invinput_bc_decl, INVINPUT_NAME, NULL, NULL},
+  {&invfmt_bc_decl, INVFMT_NAME, NULL, NULL},
+  {&eof_bc_decl, EOF_NAME, NULL, NULL},
+  {&parnumber_bc_decl, PARNUMBER_NAME, NULL, NULL},
+  {&syncthreadcall_bc_decl, SYNCTHREADCALL_NAME, NULL, NULL},
+  {&syserror_bc_decl, SYSERROR_NAME, NULL, NULL},
+  {&eaccess_bc_decl, EACCESS_NAME, NULL, NULL},
+  {&eagain_bc_decl, EAGAIN_NAME, NULL, NULL},
+  {&ebadf_bc_decl, EBADF_NAME, NULL, NULL},
+  {&ebusy_bc_decl, EBUSY_NAME, NULL, NULL},
+  {&echild_bc_decl, ECHILD_NAME, NULL, NULL},
+  {&edeadlk_bc_decl, EDEADLK_NAME, NULL, NULL},
+  {&edom_bc_decl, EDOM_NAME, NULL, NULL},
+  {&eexist_bc_decl, EEXIST_NAME, NULL, NULL},
+  {&efault_bc_decl, EFAULT_NAME, NULL, NULL},
+  {&efbig_bc_decl, EFBIG_NAME, NULL, NULL},
+  {&eintr_bc_decl, EINTR_NAME, NULL, NULL},
+  {&einval_bc_decl, EINVAL_NAME, NULL, NULL},
+  {&eio_bc_decl, EIO_NAME, NULL, NULL},
+  {&eisdir_bc_decl, EISDIR_NAME, NULL, NULL},
+  {&emfile_bc_decl, EMFILE_NAME, NULL, NULL},
+  {&emlink_bc_decl, EMLINK_NAME, NULL, NULL},
+  {&enametoolong_bc_decl, ENAMETOOLONG_NAME, NULL, NULL},
+  {&enfile_bc_decl, ENFILE_NAME, NULL, NULL},
+  {&enodev_bc_decl, ENODEV_NAME, NULL, NULL},
+  {&enoent_bc_decl, ENOENT_NAME, NULL, NULL},
+  {&enoexec_bc_decl, ENOEXEC_NAME, NULL, NULL},
+  {&enolck_bc_decl, ENOLCK_NAME, NULL, NULL},
+  {&enomem_bc_decl, ENOMEM_NAME, NULL, NULL},
+  {&enospc_bc_decl, ENOSPC_NAME, NULL, NULL},
+  {&enosys_bc_decl, ENOSYS_NAME, NULL, NULL},
+  {&enotdir_bc_decl, ENOTDIR_NAME, NULL, NULL},
+  {&enotempty_bc_decl, ENOTEMPTY_NAME, NULL, NULL},
+  {&enotty_bc_decl, ENOTTY_NAME, NULL, NULL},
+  {&enxio_bc_decl, ENXIO_NAME, NULL, NULL},
+  {&eperm_bc_decl, EPERM_NAME, NULL, NULL},
+  {&epipe_bc_decl, EPIPE_NAME, NULL, NULL},
+  {&erange_bc_decl, ERANGE_NAME, NULL, NULL},
+  {&erofs_bc_decl, EROFS_NAME, NULL, NULL},
+  {&espipe_bc_decl, ESPIPE_NAME, NULL, NULL},
+  {&esrch_bc_decl, ESRCH_NAME, NULL, NULL},
+  {&exdev_bc_decl, EXDEV_NAME, NULL, NULL},
+  {&systemcall_bc_decl, SYSTEMCALL_NAME, NULL, NULL},
+  {&noshell_bc_decl, NOSHELL_NAME, NULL, NULL},
+  {&systemfail_bc_decl, SYSTEMFAIL_NAME, NULL, NULL},
+  {&invregexp_bc_decl, INVREGEXP_NAME, NULL, NULL},
+  {&ebrack_bc_decl, EBRACK_NAME, NULL, NULL},
+  {&reg_erange_bc_decl, REG_ERANGE_NAME, NULL, NULL},
+  {&ectype_bc_decl, ECTYPE_NAME, NULL, NULL},
+  {&eparen_bc_decl, EPAREN_NAME, NULL, NULL},
+  {&esubreg_bc_decl, ESUBREG_NAME, NULL, NULL},
+  {&eend_bc_decl, EEND_NAME, NULL, NULL},
+  {&eescape_bc_decl, EESCAPE_NAME, NULL, NULL},
+  {&badpat_bc_decl, BADPAT_NAME, NULL, NULL},
+  {&esize_bc_decl, ESIZE_NAME, NULL, NULL},
+  {&espace_bc_decl, ESPACE_NAME, NULL, NULL},
+  {&invparser_bc_decl, INVPARSER_NAME, NULL, NULL},
+  {&invgrammar_bc_decl, INVGRAMMAR_NAME, NULL, NULL},
+  {&invtoken_bc_decl, INVTOKEN_NAME, NULL, NULL},
+  {&pmemory_bc_decl, PMEMORY_NAME, NULL, NULL},
+  {&invextern_bc_decl, INVEXTERN_NAME, NULL, NULL},
+  {&noextern_bc_decl, NOEXTERN_NAME, NULL, NULL},
+  {&libclose_bc_decl, LIBCLOSE_NAME, NULL, NULL},
+  {&noexternsupp_bc_decl, NOEXTERNSUPP_NAME, NULL, NULL},
+  {&invenvar_bc_decl, INVENVAR_NAME, NULL, NULL},
+  {&internal_bc_decl, INTERNAL_NAME, NULL, NULL},
+  {&invaccess_bc_decl, INVACCESS_NAME, NULL, NULL},
+  {&accessop_bc_decl, ACCESSOP_NAME, NULL, NULL},
+  {&accessvalue_bc_decl, ACCESSVALUE_NAME, NULL, NULL},
+  {&immutable_bc_decl, IMMUTABLE_NAME, NULL, NULL},
+  {&deadlock_bc_decl, DEADLOCK_NAME, NULL, NULL},
+  {&syncwait_bc_decl, SYNCWAIT_NAME, NULL, NULL},
   {&argv_bc_decl, ARGV_NAME, NULL, NULL},
   {&env_bc_decl, ENV_NAME, NULL, NULL},
   {&version_bc_decl, VERSION_NAME, NULL, NULL},
@@ -1710,6 +1657,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&keys_bc_decl, KEYS_NAME, NULL, keys_call},
   {&context_bc_decl, CONTEXT_NAME, NULL, context_call},
   {&inside_bc_decl, INSIDE_NAME, NULL, inside_call},
+  {&isa_bc_decl, ISA_NAME, NULL, isa_call},
   {&subv_bc_decl, SUBV_NAME, NULL, subv_call},
   {&cmpv_bc_decl, CMPV_NAME, NULL, cmpv_call},
   {&del_bc_decl, DEL_NAME, NULL, del_call},
@@ -1863,8 +1811,11 @@ prepare_block (BC_node_t block)
       d_assert (BC_ident (bc_decl) != NULL);
       define_block_decl (bc_decl, block);
       process_env_decl (bc_decl);
-      if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl))
-	prepare_block (BC_fblock (bc_decl));
+      if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl)
+	  /* It might be in REPL when only forward decl has been
+	     processed.  */
+	  && (bc = BC_fblock (bc_decl)) != NULL)
+	prepare_block (bc);
     }
   if (BC_IS_OF_TYPE (block, BC_NM_fblock) || BC_scope (block) == NULL)
     for (info = BC_info (block); info != NULL; info = next_info)

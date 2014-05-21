@@ -25,6 +25,8 @@
 extern void repl_print (ER_node_t val, int def_p);
 extern int internal_inside_call (const char **message_ptr, ER_node_t where,
 				 ER_node_t what, int context_flag);
+extern int internal_isa_call (const char **message_ptr, ER_node_t where,
+			      ER_node_t what);
 extern void print_trace_stack (void);
 extern void process_imm_fun_call (val_t *call_start, BC_node_t code,
 				  ER_node_t context, int actuals_num,

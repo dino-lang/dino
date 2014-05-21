@@ -179,7 +179,7 @@ include_decl (IR_node_t decl)
 
   table_entry = find_table_entry (decl, TRUE);
   result = *table_entry;
-  if (!IR_IS_OF_TYPE (decl, IR_NM_ext) && IR_pos (decl).file_name != NULL)
+  if (IR_pos (decl).file_name != NULL)
     IR_set_decls_flag (IR_scope (decl), TRUE);
   *table_entry = decl;
   return result;
@@ -220,10 +220,10 @@ first_expr_processing (IR_node_t expr)
 	IR_node_t scope;
 
 	for (scope = curr_scope; scope != NULL; scope = IR_block_scope (scope))
-	  if (IR_fun_class_ext (scope) != NULL)
+	  if (IR_fun_class (scope) != NULL)
 	    break;
 	if (scope == NULL)
-	  cont_err (IR_pos (expr), ERR_this_outside_fun_class_ext);
+	  cont_err (IR_pos (expr), ERR_this_outside_fun_class);
 	else
 	  IR_set_extended_life_context_flag (curr_scope, TRUE);
 	break;
@@ -408,7 +408,7 @@ process_friend_list (IR_node_t block)
       decl = find_decl (IR_ident_in_clause (curr_friend_ident),	scope);
       if (decl == NULL)
 	cont_err (IR_pos (IR_ident_in_clause (curr_friend_ident)),
-		  ERR_udenclared_ident_friend_list,
+		  ERR_undeclared_ident_friend_list,
 		  IR_ident_string (IR_unique_ident
 				   (IR_ident_in_clause
 				    (curr_friend_ident))));
@@ -428,65 +428,531 @@ process_friend_list (IR_node_t block)
     }
 }
 
-/* The function removes EXT_BLOCK by processing and moving its stmts
-   into the corresponding ORIGIN_BLOCK. */
-static void
-process_extension_block (IR_node_t ext_block, IR_node_t origin_block)
-{
-  IR_node_t curr_stmt;
-  IR_node_t saved_curr_scope;
-  IR_node_t first_stmt;
-  IR_node_t last_block_stmt;
-  IR_node_t first_friend_ident;
-  IR_node_t last_friend_ident;
-  int public_flag;
-
-  first_stmt = IR_block_stmts (ext_block);
-  /* Change scope of decls & blocks in the extension. */
-  public_flag = (IR_fun_class_ext (origin_block) != NULL
-		 && IR_IS_OF_TYPE (IR_fun_class_ext (origin_block),
-				   IR_NM_class));
-  for (curr_stmt = first_stmt;
-       curr_stmt != NULL;
-       curr_stmt = IR_next_stmt (curr_stmt))
-    if (IR_IS_OF_TYPE (curr_stmt, IR_NM_decl))
-      {
-	IR_set_scope (curr_stmt, origin_block);
-	if (IR_access (curr_stmt) == DEFAULT_ACCESS)
-	  IR_set_access (curr_stmt,
-			 public_flag ? PUBLIC_ACCESS : PRIVATE_ACCESS);
-      }
-    else if (IR_IS_OF_TYPE (curr_stmt, IR_NM_block))
-      IR_set_block_scope (curr_stmt, origin_block);
-  /* Process the extension block. */
-  saved_curr_scope = curr_scope;
-  curr_scope = origin_block;
-  first_stmt = first_block_passing (first_stmt,
-				    IR_block_level (origin_block) + 1);
-  process_friend_list (ext_block);
-  curr_scope = saved_curr_scope;
-  /* Insert the extension block stmts at the end of the
-     origin_block. */
-  for (last_block_stmt = IR_block_stmts (origin_block);
-       last_block_stmt != NULL
-	 && IR_next_stmt (last_block_stmt) != NULL;
-       last_block_stmt = IR_next_stmt (last_block_stmt))
-    ;
-  if (last_block_stmt == NULL)
-    IR_set_block_stmts (origin_block, first_stmt);
-  else
-    IR_set_next_stmt (last_block_stmt, first_stmt);
-  /* Check final. */
-  if (IR_IS_OF_TYPE (IR_fun_class_ext (origin_block), IR_NM_fun_or_class)
-      && IR_final_flag (IR_fun_class_ext (origin_block)))
-    cont_err (IR_pos (IR_ident (IR_fun_class_ext (ext_block))),
-	      ERR_extension_of_final,
-	      IR_ident_string (IR_unique_ident
-			       (IR_ident (IR_fun_class_ext (origin_block)))));
-}
-
 /* The following value is maximal number of IR_block_level. */
 static int max_block_level;
+
+/* Set LEVEL for BLOCK and update MAX_BLOCK_LEVEL if necessary.  */
+static void
+set_block_level (IR_node_t block, int level)
+{
+  IR_set_block_level (block, level);
+  if (max_block_level < level)
+    max_block_level = level;
+}
+
+/* Copied redirs created during processing use-clauses for unfinished
+   block processing.  */
+static vlo_t copied_redirs;
+
+/* Update field TO of copied redirs starting with index START.  */
+static void
+update_copied_redirs (int start)
+{
+  int i, n;
+  IR_node_t *redirs, redir, old, new;
+
+  n = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
+  redirs = (IR_node_t *) VLO_BEGIN (copied_redirs);
+  /* Update to field of copied redirs.  */
+  for (i = start; i < n; i++)
+    {
+      redir = redirs[i];
+      old = IR_to (redir);
+      IR_set_to (redir, IR_redir_to_subst (old));
+    }
+}
+
+/* Make copied redirs starting with index START flat.  It means make
+   redirs not refering for other redirs.  Update redir_origin too for
+   non-flat redirs.  */
+static void
+make_flat_redirs (int start)
+{
+  int i, n;
+  IR_node_t *redirs, redir, to;
+
+  n = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
+  redirs = (IR_node_t *) VLO_BEGIN (copied_redirs);
+  /* Update to field of copied redirs.  */
+  for (i = start; i < n; i++)
+    {
+      redir = redirs[i];
+      to = IR_to (redir);
+      if (! IR_IS_OF_TYPE (to, IR_NM_decl_redir))
+	continue;
+      IR_set_redir_origin (redir, IR_redir_origin (to));
+      to = IR_to (to);
+      d_assert (! IR_IS_OF_TYPE (to, IR_NM_decl_redir));
+      IR_set_to (redir, to);
+    }
+}
+
+/* Use items for currently processed use clause.  */
+static vlo_t use_items;
+/* Start of use items in the previous container for the current
+   block.  */
+static size_t curr_use_items_start;
+
+/* Use items comparison for their sorting.  */
+static int
+use_item_cmp (const void *p1, const void *p2)
+{
+  int diff;
+  const IR_node_t i1 = *(const IR_node_t *) p1, i2 = *(const IR_node_t *) p2;
+  const char *id1 = IR_ident_string (IR_unique_ident (IR_use_item_ident (i1)));
+  const char *id2 = IR_ident_string (IR_unique_ident (IR_use_item_ident (i2)));
+
+  if ((diff = strcmp (id1, id2)) != 0)
+    return diff;
+  /* It means item from the same use-clause will be together.  */
+  return compare_positions (IR_pos (i1), IR_pos (i2));
+}
+
+/* Binary search of an item with IDENT and USE_CLAUSE (if it is not
+   NULL) in sorted use_items.  Return index of first item with IDENT
+   and USE_CLAUSE or -1 if there is no any such item. */
+static long int
+find_use_item_index (IR_node_t ident, IR_node_t use_clause)
+{
+  long int l, r, m;
+  int cmp;
+  IR_node_t item, muid;
+  IR_node_t uid = IR_unique_ident (ident);
+  const char *ms, *s = IR_ident_string (uid);
+
+  l = curr_use_items_start;
+  r = VLO_LENGTH (use_items) / sizeof (IR_node_t) - 1;
+  while (l <= r)
+    {
+      m = (l + r) / 2;
+      item = ((IR_node_t *) VLO_BEGIN (use_items)) [m];
+      muid = IR_unique_ident (IR_use_item_ident (item));
+      ms = IR_ident_string (muid);
+      if ((cmp = strcmp (s, ms)) == 0)
+	{
+	  /* Find the very first item in USE_ITEMS with UID.  */
+	  for (m--; l <= m; m--)
+	    {
+	      item = ((IR_node_t *) VLO_BEGIN (use_items)) [m];
+	      if (uid != IR_unique_ident (IR_use_item_ident (item)))
+		break;
+	    }
+	  if (use_clause == NULL)
+	    return m + 1;
+	  /* Find the very first item in USE_ITEMS with UID and
+	     USE_CLAUSE.  */
+	  for (m++; m <= r; m++)
+	    {
+	      item = ((IR_node_t *) VLO_BEGIN (use_items)) [m];
+	      if (uid != IR_unique_ident (IR_use_item_ident (item)))
+		return -1;
+	      if (IR_item_use_clause (item) == use_clause)
+		return m;
+	    }
+	  return -1;
+	}
+      else if (cmp < 0)
+	r = m - 1;
+      else
+	l = m + 1;
+    }
+  return -1;
+}
+
+/* Check that PREV_DECL and DECL are matching.  Return TRUE if
+   everything is ok.  Otherwise, print error and return FALSE.  */
+static int
+check_matching (IR_node_t prev_decl, IR_node_t decl)
+{
+  if (IR_NODE_MODE (decl) != IR_NODE_MODE (prev_decl)
+      || (IR_NODE_MODE (decl) == IR_NM_fun
+	  && IR_thread_flag (prev_decl) != IR_thread_flag (decl)))
+    {
+      cont_err_start
+	(IR_pos (decl),
+	 ERR_forward_and_matched_decls_are_different_entities,
+	 IR_ident_string (IR_unique_ident (IR_ident (decl))));
+      cont_err_finish
+	(IR_pos (IR_ident (prev_decl)),
+	 ERR_previous_decl_location,
+	 IR_ident_string (IR_unique_ident (IR_ident (decl))));
+      return FALSE;
+    }
+  if ((IR_IS_OF_TYPE (decl, IR_NM_fun_class)
+       && IR_final_flag (prev_decl) != IR_final_flag (decl))
+      || IR_access (prev_decl) != IR_access (decl))
+    {
+      cont_err_start
+	(IR_pos (IR_ident (decl)),
+	 ERR_forward_and_matched_decls_have_different_attrs,
+	 IR_ident_string (IR_unique_ident (IR_ident (decl))));
+      cont_err_finish
+	(IR_pos (IR_ident (prev_decl)),
+	 ERR_previous_decl_location,
+	 IR_ident_string (IR_unique_ident (IR_ident (decl))));
+      return FALSE;
+    }
+  /* ??? Should we check parameters too. */
+  return TRUE;
+}
+
+/* Set up next_stmt of STMT to NEXT and forward_prev of NEXT if
+   necessary.  Don't use IR_next_stmt directly in this file.  */
+static void
+set_next_stmt (IR_node_t stmt, IR_node_t next)
+{
+  IR_set_next_stmt (stmt, next);
+  if (next != NULL
+      && IR_IS_OF_TYPE (next, IR_NM_fun_or_class)
+      && IR_forward_decl_flag (next))
+    IR_set_forward_prev (next, stmt);
+}
+
+/* Add STMTS to statement TO.  If TO is NULL, set up FIRST to
+   STMTS.  */
+static void
+add_to_stmt (IR_node_t stmts, IR_node_t to, IR_node_t *first)
+{
+  if (to == NULL)
+    *first = stmts;
+  else
+    set_next_stmt (to, stmts);
+}
+
+/* Create and add alias (if necessary) for ITEM from ORIG_DECL
+   processing USE_CLAUSE where last stmt is LAST, and first stmt is
+   *RES.  Check that the alias does not redefine a previous
+   definition.  Return the new last stmt.  */
+static IR_node_t
+make_alias (IR_node_t item, IR_node_t orig_decl, IR_node_t use_clause,
+	    IR_node_t last, IR_node_t *res)
+{
+  IR_node_t ident, decl, copy;
+
+  if ((ident = IR_alias (item)) != NULL)
+    {
+      decl = find_decl_in_given_scope (ident, curr_scope);
+      if (decl != NULL
+	  && (! IR_alias_flag (decl) || IR_use_clause (decl) != use_clause))
+	{
+	  cont_err_start (IR_pos (use_clause), ERR_alias_redefines_prev_one,
+			  IR_ident_string (IR_unique_ident (ident)));
+	  cont_err_finish (IR_pos (IR_ident (decl)),
+			   ERR_previous_decl_location,
+			   IR_ident_string (IR_unique_ident (ident)));
+	}
+      else
+	{
+	  copy = IR_copy_node (orig_decl);
+	  IR_set_alias_flag (copy, TRUE);
+	  IR_set_ident (copy, ident);
+	  IR_set_redir_to_subst (orig_decl, copy);
+	  IR_set_use_clause (copy, use_clause);
+	  IR_set_scope (copy, curr_scope);
+	  IR_set_origin_decl (copy, orig_decl);
+	  add_to_stmt (copy, last, res); last = copy;
+	}
+    }
+  return last;
+}
+
+/* The function processes USE_CLAUSE which refers to ORIGIN_BLOCK
+   copying the original block decls and setting NEXT_STMT as their
+   tail.  Return the copied decls.  Here are some more details:
+   o Check that idents in the use items are unique.  Remove
+     duplications and already redefined items from previous
+     use-clauses in the block.
+   o Check that the use ident is declared as finished fun/class in
+     upper scopes.
+   o Check that if there is an ident definition before the use and the
+     definition in the used fun/class, the ident is represented in a
+     former item.
+   o Check that the definition before the use clause and all the
+     corresponding used definitions are matched.  Do not copy the used
+     definitions in this case.  Put redir instead of the copy.
+     Setup redefine_flag of the corresponding former item.
+   o When copying decl, setup origin_decl, scope, and use_clause of
+     the copy.
+   o When copying fun/decl, do not copy the block.  If the fun/decl is
+     mentioned in an later item, don't make the decl copy, just put a
+     new redir and chain it to all redirs of the corresponding item.
+   o Check that all idents in former items have declaration before the
+     use clause (through the item redefine_flag).
+   o Remove all former items at the end of function. */
+static IR_node_t
+process_use_clause (IR_node_t use_clause, IR_node_t origin_block,
+		    IR_node_t next_stmt)
+{
+  IR_node_t block, item, *item_ptr, *res_item_ptr;
+  IR_node_t ident, decl, stmt, res, last, copy, redir;
+  int err_p, n, start;
+
+  /* Collect items:  */
+  for (item = IR_use_items (use_clause);
+       item != NULL;
+       item = IR_next_use_item (item))
+    {
+      IR_set_item_use_clause (item, use_clause);
+      VLO_ADD_MEMORY (use_items, &item, sizeof (IR_node_t));
+    }
+  qsort ((IR_node_t *) VLO_BEGIN (use_items) + curr_use_items_start,
+	 VLO_LENGTH (use_items) / sizeof (IR_node_t) - curr_use_items_start,
+	 sizeof (IR_node_t), use_item_cmp);
+  /* Check repeated identifier occurence and set up decls references,
+     remove duplicates and already bound later items.  */
+  for (n = 0, res_item_ptr = item_ptr = ((IR_node_t *) VLO_BEGIN (use_items)
+					 + curr_use_items_start);
+       item_ptr < (IR_node_t *) VLO_BOUND (use_items);
+       item_ptr++)
+    if (IR_redefine_flag (*item_ptr))
+      {
+	/* It could be only later items as we remove former items at
+	   the function end.  */
+	d_assert (IR_IS_OF_TYPE (*item_ptr, IR_NM_later_item));
+	n++;
+      }
+    else if ((item_ptr + 1) < (IR_node_t *) VLO_BOUND (use_items)
+	     && ! IR_redefine_flag (item_ptr[1])
+	     && (IR_item_use_clause (item_ptr[0])
+		 == IR_item_use_clause (item_ptr[1]))
+	     && (IR_unique_ident (IR_use_item_ident (item_ptr[0]))
+		 == IR_unique_ident (IR_use_item_ident (item_ptr[1]))))
+      {
+	n++;
+	if (! err_p)
+	  {
+	    err_p = TRUE;
+	    cont_err_start
+	      (IR_pos (IR_use_item_ident (*item_ptr)),
+	       ERR_repeated_use_item_ident_occurence_in_use,
+	       IR_ident_string (IR_unique_ident
+				(IR_use_item_ident (*item_ptr))));
+	    cont_err_finish
+	      (IR_pos (IR_use_item_ident (item_ptr[1])),
+	       ERR_previous_use_item_ident_location,
+	       IR_ident_string (IR_unique_ident
+				(IR_use_item_ident (item_ptr[1]))));
+	  }
+      }
+    else
+      {
+	err_p = FALSE;
+	*res_item_ptr++ = *item_ptr;
+	ident = IR_use_item_ident (*item_ptr);
+	decl = find_decl_in_given_scope (ident, origin_block);
+	if (decl == NULL)
+	  cont_err (IR_pos (ident), ERR_undefined_use_item_ident,
+		    IR_ident_string (IR_unique_ident (ident)));
+      }
+  VLO_SHORTEN (use_items, n * sizeof (IR_node_t));
+  start = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
+  /* Copy and insert the oirginal block declarations.  */
+  for (res = last = NULL, stmt = IR_block_stmts (origin_block);
+       stmt != NULL;
+       stmt = IR_next_stmt (stmt))
+    if (IR_IS_OF_TYPE (stmt, IR_NM_decl_redir))
+      {
+	copy = IR_copy_node (stmt);
+	add_to_stmt (copy, last, &res); last = copy;
+	VLO_ADD_MEMORY (copied_redirs, &copy, sizeof (IR_node_t));
+      }
+    else if (IR_IS_OF_TYPE (stmt, IR_NM_decl))
+      {
+	ident = IR_ident (stmt);
+	decl = find_decl_in_given_scope (ident, curr_scope);
+	n = find_use_item_index (ident, use_clause);
+	item = n < 0 ? NULL : ((IR_node_t *) VLO_BEGIN (use_items)) [n];
+	if (decl != NULL && IR_use_clause (decl) != use_clause)
+	  {
+	    if (item == NULL || ! IR_IS_OF_TYPE (item, IR_NM_former_item))
+	      {
+		cont_err_start
+		  (IR_pos (use_clause),
+		   ERR_used_decl_not_mentioned_in_former_redefines_prev_one,
+		   IR_ident_string (IR_unique_ident (ident)));
+		cont_err_finish (IR_pos (IR_ident (decl)),
+				 ERR_previous_decl_location,
+				 IR_ident_string (IR_unique_ident (ident)));
+	      }
+	    else
+	      {
+		check_matching (decl, stmt);
+		IR_set_redefine_flag (item, TRUE);
+		/* Put redir instead of used decl.  */
+		redir = create_node_with_pos (IR_NM_decl_redir, IR_pos (stmt));
+		IR_set_redir_to_subst (stmt, redir);
+		IR_set_to (redir, decl);
+		IR_set_redir_origin (redir, stmt);
+		IR_set_next_redir (redir, NULL);
+		add_to_stmt (redir, last, &res); last = redir;
+		last = make_alias (item, stmt, use_clause, last, &res);
+	      }
+	    continue;
+	  }
+	if (item != NULL && IR_IS_OF_TYPE (item, IR_NM_later_item))
+	  {
+	    redir = create_node_with_pos (IR_NM_decl_redir, IR_pos (stmt));
+	    IR_set_redir_to_subst (stmt, redir);
+	    IR_set_redir_origin (redir, stmt);
+	    IR_set_next_redir (redir, IR_redirs (item));
+	    IR_set_redirs (item, redir);
+	    add_to_stmt (redir, last, &res); last = redir;
+	    last = make_alias (item, stmt, use_clause, last, &res);
+	  }
+	else
+	  {
+	    copy = IR_copy_node (stmt);
+	    IR_set_redir_to_subst (stmt, copy);
+	    IR_set_use_clause (copy, use_clause);
+	    IR_set_scope (copy, curr_scope);
+	    IR_set_origin_decl (copy, stmt);
+	    add_to_stmt (copy, last, &res); last = copy;
+	  }
+      }
+  if (last != NULL)
+    set_next_stmt (last, next_stmt);
+  /* Check that all former items are bound and remove all former
+     items.  */
+  for (n = 0, res_item_ptr = item_ptr = ((IR_node_t *) VLO_BEGIN (use_items)
+					 + curr_use_items_start);
+       item_ptr < (IR_node_t *) VLO_BOUND (use_items);
+       item_ptr++)
+    if (! IR_IS_OF_TYPE (*item_ptr, IR_NM_former_item))
+      *res_item_ptr++ = *item_ptr;
+    else
+      {
+	n++;
+	if (! IR_redefine_flag (*item_ptr))
+	  cont_err (IR_pos (IR_use_item_ident (*item_ptr)),
+		    ERR_ident_in_former_item_is_not_declared_before_use,
+		    IR_ident_string (IR_unique_ident
+				     (IR_use_item_ident (*item_ptr))));
+      }
+  VLO_SHORTEN (use_items, n * sizeof (IR_node_t));
+  update_copied_redirs (start);
+  return res;
+}
+
+/* Copy attributes of non-forward fun/class decl FROM to fun/class
+   decl TO.  */
+static void
+copy_fun_class_attrs (IR_node_t to, IR_node_t from)
+{
+  IR_node_t next_stmt = IR_next_stmt (from);
+
+  d_assert (IR_IS_OF_TYPE (to, IR_NM_fun_or_class)
+	    && IR_IS_OF_TYPE (from, IR_NM_fun_or_class)
+	    && ! IR_forward_decl_flag (from)
+	    && next_stmt != NULL && IR_NODE_MODE (next_stmt) == IR_NM_block);
+  IR_set_forward_decl_flag (to, FALSE); /* Make it non-forward */
+  IR_set_parameters_number (to, IR_parameters_number (from));
+  IR_set_min_actual_parameters_number
+    (to, IR_min_actual_parameters_number (from));
+  IR_set_args_flag (to, IR_args_flag (from));
+  IR_set_fun_class (next_stmt, to);
+}
+
+/* Process CURR_DECL whose previous and next statement are PREV_STMT
+   and NEXT_STMT (in a chain starting with FIRST_STMT) and whose
+   previous decl with the same identifier is PREV_DECL (may be NULL).
+   Update redefine_flag for the corresponding item if any.  We do
+   nothing when PREV_DECL is in the same use clause (or the both are
+   from an used clause).  Return FALSE when nothing is done, TRUE
+   otherwise.  The process consists of
+
+   o Check that ident of redefinition in given fun/class of the used
+     definition is mentioned in an later item of an use clause
+     already processed in the current block.
+   o Check that the definition and the redefinition are matched.
+   o Set field TO of the corresponding redirs created for the later
+     item to CURR_DECL.
+   o Update CURR_DECL, NEXT_STMT, and FIRST_STMT
+
+  Before the function execution we have only unique, not processed,
+  later items in USE_ITEMS for the current block.  */
+static int
+process_redecl_after (IR_node_t prev_decl, IR_node_t prev_stmt,
+		      IR_node_t *curr_decl, IR_node_t *next_stmt,
+		      IR_node_t *first_stmt)
+{
+  long int n;
+  IR_node_t id = IR_ident (*curr_decl);
+  IR_node_t uid = IR_unique_ident (id);
+  IR_node_t item, redir;
+
+  d_assert (IR_IS_OF_TYPE (*curr_decl, IR_NM_decl)
+	    && (prev_decl == NULL
+		|| (IR_IS_OF_TYPE (prev_decl, IR_NM_decl)
+		    && uid == IR_unique_ident (IR_ident (prev_decl)))));
+  if (prev_decl != NULL
+      && ((IR_alias_flag (prev_decl) && ! IR_alias_flag (*curr_decl))
+	  || IR_use_clause (prev_decl) != IR_use_clause (*curr_decl)))
+    {
+      cont_err_start (IR_pos (id), ERR_alias_redefinition,
+		      IR_ident_string (uid));
+      cont_err_finish (IR_pos (IR_ident (prev_decl)),
+		       ERR_previous_decl_location, IR_ident_string (uid));
+      return TRUE;
+    }
+
+  n = find_use_item_index (id, NULL);
+  if (n >= 0)
+    {
+      /* Set up field 'to' of the unbound later use items.  */
+      for (; n * sizeof (IR_node_t) < VLO_LENGTH (use_items); n++)
+	{
+	  item = ((IR_node_t *) VLO_BEGIN (use_items)) [n];
+	  d_assert (IR_IS_OF_TYPE (item, IR_NM_later_item));
+	  if (uid != IR_unique_ident (IR_use_item_ident (item)))
+	    break;
+	  if (IR_redefine_flag (item))
+	    continue;
+	  IR_set_redefine_flag (item, TRUE);
+	  for (redir = IR_redirs (item);
+	       redir != NULL;
+	       redir = IR_next_redir (redir))
+	    if (check_matching (IR_redir_origin (redir), *curr_decl))
+	      IR_set_to (redir, *curr_decl);
+	}
+    }
+  if (prev_decl == NULL
+      || IR_use_clause (prev_decl) == IR_use_clause (*curr_decl))
+    return FALSE;
+  /* We can not have prev_decl and decl from different use-clauses or
+     from orginal scope and from an use-clause correspondingly.
+     Function process_use_clause guarantees it.  */
+  d_assert (IR_use_clause (prev_decl) != NULL
+	    && IR_use_clause (*curr_decl) == NULL);
+  cont_err_start
+    (IR_pos (IR_ident (*curr_decl)),
+     ERR_used_decl_redefinition_not_mentioned_in_later, IR_ident_string (uid));
+  cont_err_finish (IR_pos (IR_use_clause (prev_decl)),
+		   ERR_here_is_corresponding_use_clause, IR_ident_string (uid));
+  return TRUE;
+}
+
+/* Add DECL to the current block.  Add also all uses of DECL block
+   recursively. */
+static void
+add_block_use (IR_node_t decl)
+{
+  IR_node_t use, block;
+
+  d_assert (IR_IS_OF_TYPE (decl, IR_NM_fun_class));
+  block = IR_next_stmt (decl);
+  d_assert (block != NULL && IR_IS_OF_TYPE (block, IR_NM_block));
+  for (use = IR_block_uses (curr_scope);
+       use != NULL;
+       use = IR_next_block_use (use))
+    if (IR_use_decl (use) == decl)
+      return; /* Already there  */
+  use = create_node (IR_NM_block_use);
+  IR_set_use_decl (use, decl);
+  IR_set_next_block_use (use, IR_block_uses (curr_scope));
+  IR_set_block_uses (curr_scope, use);
+  for (use = IR_block_uses (block); use != NULL; use = IR_next_block_use (use))
+    add_block_use (IR_use_decl (use));
+}
 
 /* This recursive func passes all stmts and exprs (correctly setting
    up SOURCE_POSITION and curr_scope (before first call of the func
@@ -497,11 +963,7 @@ static int max_block_level;
    decls with default access.  The funcs also fixes repeated decl
    error.  FIRST_LEVEL_STMT (it may be NULL) is first stmt of the
    processed stmt nesting level.  CURR_BLOCK_LEVEL is number of blocks
-   which contain given stmt list.  The function also removes
-   extensions (moving its statements into the extended func or class)
-   and their blocks from the statement list.  Therefore the function
-   returns new first_level_stmt which is different from the original
-   one oly if an extension is the first in the list. */
+   which contain given stmt list.  Return the result stmt list.  */
 static IR_node_t
 first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 {
@@ -629,28 +1091,21 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_block:
 	  {
 	    IR_node_t saved_curr_scope = curr_scope;
+	    int saved_curr_use_items_start = curr_use_items_start;
+	    int copied_redirs_start;
 	    IR_node_t curr_stmt;
 	    IR_node_t curr_except;
-	    int public_flag;
+	    IR_node_t *item_ptr;
 
+	    copied_redirs_start = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
+	    curr_use_items_start = VLO_LENGTH (use_items) / sizeof (IR_node_t);
 	    curr_scope = stmt;
-	    IR_set_block_level (stmt, curr_block_level);
-	    if (max_block_level < curr_block_level)
-	      max_block_level = curr_block_level;
+	    set_block_level (stmt, curr_block_level);
 	    start_block_foreach_vars ();
 	    IR_set_block_stmts
 	      (stmt, first_block_passing (IR_block_stmts (stmt),
 					  curr_block_level + 1));
 	    finish_block_foreach_vars ();
-	    public_flag = (IR_fun_class_ext (curr_scope) != NULL
-			   && IR_IS_OF_TYPE (IR_fun_class_ext (curr_scope),
-					     IR_NM_class));
-	    for (curr_stmt = IR_block_stmts (stmt); curr_stmt != NULL;
-		 curr_stmt = IR_next_stmt (curr_stmt))
-	      if (IR_IS_OF_TYPE (curr_stmt, IR_NM_decl)
-		  && IR_access (curr_stmt) == DEFAULT_ACCESS)
-		IR_set_access (curr_stmt,
-			       public_flag ? PUBLIC_ACCESS : PRIVATE_ACCESS);
 	    process_friend_list (stmt);
 	    curr_scope = saved_curr_scope;
 	    for (curr_except = IR_exceptions (stmt);
@@ -664,6 +1119,30 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		     first_block_passing (IR_catch_block (curr_except),
 					  curr_block_level));
 	      }
+	    /* Check that all idents in later items have corresponding
+	       definitions after the use clauses in the block. */
+	    for (item_ptr = ((IR_node_t *) VLO_BEGIN (use_items)
+			     + curr_use_items_start);
+		 item_ptr < (IR_node_t *) VLO_BOUND (use_items);
+		 item_ptr++)
+	      {
+		d_assert (IR_IS_OF_TYPE (*item_ptr, IR_NM_later_item));
+		if (! IR_redefine_flag (*item_ptr))
+		  cont_err (IR_pos (IR_use_item_ident (*item_ptr)),
+			    ERR_ident_in_later_item_is_not_declared_after_use,
+			    IR_ident_string (IR_unique_ident
+					     (IR_use_item_ident (*item_ptr))));
+	      }
+	    make_flat_redirs (copied_redirs_start);
+	    /* Restore use items and redirs state as it was before the
+	       block. */
+	    VLO_SHORTEN (use_items,
+			 VLO_LENGTH (use_items)
+			 - curr_use_items_start * sizeof (IR_node_t));
+	    curr_use_items_start = saved_curr_use_items_start;
+	    VLO_SHORTEN (copied_redirs,
+			 VLO_LENGTH (copied_redirs)
+			 - copied_redirs_start * sizeof (IR_node_t));
 	    break;
 	  }
 	case IR_NM_fun:
@@ -672,112 +1151,126 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_external_var:
 	case IR_NM_external_fun:
 	  {
-	    IR_node_t block, prev_decl;
+	    IR_node_t block, prev_decl, redir, ident = IR_ident (stmt);
 
-	    prev_decl = include_decl (stmt);
+	    IR_set_it_is_declared_in_block (IR_unique_ident (ident), TRUE);
+	    if (IR_access (stmt) == DEFAULT_ACCESS)
+	      IR_set_access
+		(stmt,
+		 IR_fun_class (curr_scope) != NULL
+		 && IR_IS_OF_TYPE (IR_fun_class (curr_scope), IR_NM_class)
+		 ? PUBLIC_ACCESS : PRIVATE_ACCESS);
+	    if (IR_IS_OF_TYPE (stmt, IR_NM_fun_or_class)
+		&& IR_forward_decl_flag (stmt))
+	      IR_set_forward_prev (stmt, prev_stmt);
 	    block = IR_scope (stmt);
 	    d_assert (block != NULL && IR_NODE_MODE (block) == IR_NM_block);
+	    prev_decl = find_decl_in_given_scope (ident, block);
+	    if (process_redecl_after (prev_decl, prev_stmt, &stmt, &next_stmt,
+				      &first_level_stmt))
+	      break;
+	    d_assert (prev_decl == NULL
+		      || IR_use_clause (prev_decl) == IR_use_clause (stmt));
 	    if (node_mode == IR_NM_var)
 	      {
 		IR_set_var_number_in_block (stmt, IR_vars_number (block));
 		IR_set_vars_number (block, IR_vars_number (block) + 1);
+		include_decl (stmt); /* Redefinition */
 	      }
-	    else if (prev_decl != NULL
-		     && IR_IS_OF_TYPE (prev_decl, IR_NM_fun_or_class)
-		     && IR_forward_decl_flag (prev_decl))
+	    else if (prev_decl == NULL
+		     || ! IR_IS_OF_TYPE (prev_decl, IR_NM_fun_or_class)
+		     || ! IR_forward_decl_flag (prev_decl))
 	      {
-		if (node_mode != IR_NODE_MODE (prev_decl)
-		    || (node_mode == IR_NM_fun
-			&& IR_thread_flag (prev_decl) != IR_thread_flag (stmt)))
-		  {
-		    cont_err_start
-		      (IR_pos (stmt),
-		       ERR_forward_and_matched_decls_are_different_entities,
-		       IR_ident_string (IR_unique_ident (IR_ident (stmt))));
-		    cont_err_finish
-		      (IR_pos (IR_ident (prev_decl)),
-		       ERR_previous_decl_location,
-		       IR_ident_string (IR_unique_ident (IR_ident (stmt))));
-		  }
-		else if (IR_final_flag (prev_decl) != IR_final_flag (stmt)
-			 || IR_access (prev_decl) != IR_access (stmt))
-		  {
-		    cont_err_start
-		      (IR_pos (IR_ident (stmt)),
-		       ERR_forward_and_matched_decls_have_different_attrs,
-		       IR_ident_string (IR_unique_ident (IR_ident (stmt))));
-		    cont_err_finish
-		      (IR_pos (IR_ident (prev_decl)),
-		       ERR_previous_decl_location,
-		       IR_ident_string (IR_unique_ident (IR_ident (stmt))));
-		  }
-		else if (IR_forward_decl_flag (stmt))
-		  include_decl (prev_decl);
-		else
-		  {
-		    
-		    d_assert (IR_NODE_MODE (next_stmt) == IR_NM_block);
-		    IR_set_forward_decl_flag (prev_decl, FALSE);
-		    IR_set_parameters_number
-		      (prev_decl, IR_parameters_number (stmt));
-		    IR_set_min_actual_parameters_number
-		      (prev_decl, IR_min_actual_parameters_number (stmt));
-		    IR_set_args_flag (prev_decl, IR_args_flag (stmt));
-		    IR_set_fun_class_ext (next_stmt, prev_decl);
-		    include_decl (prev_decl);
-		    /* Remove the curr decl and insert the forward decl: */
-		    if (prev_stmt == NULL)
-		      first_level_stmt = prev_decl;
-		    else
-		      IR_set_next_stmt (prev_stmt, prev_decl);
-		    IR_set_next_stmt (prev_decl, next_stmt);
-		    IR_set_next_stmt (stmt, NULL);
-		  }
+		/* First ident occurrence or redefinition: */
+		include_decl (stmt);
 	      }
-	    IR_set_it_is_declared_in_block (IR_unique_ident (IR_ident (stmt)),
-					    TRUE);
-	    if (IR_IS_OF_TYPE (stmt, IR_NM_fun_or_class)
-		&& IR_forward_decl_flag (stmt))
+	    else if (! check_matching (prev_decl, stmt))
+	      ;
+	    else if (IR_forward_decl_flag (stmt))
+	      /* Two forward declarations. */
+	      ;
+	    else
 	      {
-		/* Remove from stmt chain.  */
-		if (prev_stmt == NULL)
-		  first_level_stmt = next_stmt;
-		else
-		  IR_set_next_stmt (prev_stmt, next_stmt);
-		IR_set_next_stmt (stmt, NULL);
-		stmt = prev_stmt;
+		IR_node_t prev;
+
+		/* A forward fun/class decl followed by non-forward one
+		   with definition.  Change the curr decl on the prev
+		   decl. */
+		d_assert (next_stmt != NULL
+			  && IR_IS_OF_TYPE (next_stmt, IR_NM_block));
+		redir = create_node_with_pos (IR_NM_decl_redir, IR_pos (prev_decl));
+		IR_set_redir_origin (redir, prev_decl);
+		IR_set_to (redir, prev_decl);
+		IR_set_next_redir (redir, NULL);
+		set_next_stmt (redir, IR_next_stmt (prev_decl));
+		prev = IR_forward_prev (prev_decl);
+		add_to_stmt (redir, prev, &first_level_stmt);
+		if (prev_stmt == prev_decl)
+		  prev_stmt = redir;
+		copy_fun_class_attrs (prev_decl, stmt);
+		/* Prev decl is not forward anymore.  */
+		IR_set_forward_prev (prev_decl, NULL);
+		IR_set_fun_class (next_stmt, prev_decl);
+		add_to_stmt (prev_decl, prev_stmt, &first_level_stmt);
+		set_next_stmt (prev_decl, next_stmt);
+		set_next_stmt (stmt, NULL);
+		stmt = prev_decl;
 	      }
 	    break;
 	  }
-	case IR_NM_ext:
+	case IR_NM_use:
 	  {
-	    IR_node_t decl;
+	    IR_node_t decl, subst = next_stmt;
+	    IR_node_t scope, ident = IR_use_ident (stmt);
 
-	    decl = *(IR_node_t *) find_table_entry (stmt, FALSE);
+	    decl = find_decl (ident, curr_scope);
 	    if (decl == NULL)
-	      cont_err (IR_pos (stmt), ERR_extension_before_extended,
-			IR_ident_string (IR_unique_ident (IR_ident (stmt))));
-	    else if (! IR_IS_OF_TYPE (decl, IR_NM_fun_class_ext))
+	      cont_err (IR_pos (stmt), ERR_use_before_definition,
+			IR_ident_string (IR_unique_ident (ident)));
+	    else if (! IR_IS_OF_TYPE (decl, IR_NM_fun_class))
 	      cont_err (IR_pos (stmt),
-			ERR_extension_of_non_fun_class_ext,
-			IR_ident_string (IR_unique_ident (IR_ident (stmt))));
+			ERR_use_of_non_fun_class,
+			IR_ident_string (IR_unique_ident (ident)));
 	    else if (IR_forward_decl_flag (decl))
 	      cont_err (IR_pos (stmt),
-			ERR_extension_of_forward_declaration,
-			IR_ident_string (IR_unique_ident (IR_ident (stmt))));
+			ERR_use_of_forward_declaration,
+			IR_ident_string (IR_unique_ident (ident)));
+	    else if (IR_final_flag (decl))
+	      cont_err (IR_pos (stmt), ERR_use_of_final,
+			IR_ident_string (IR_unique_ident (ident)));
 	    else
-	      process_extension_block (next_stmt, IR_next_stmt (decl));
-	    /* Skip subsequent processing of the extension block
-	       becuase we've processed it already. */
-	    next_stmt = IR_next_stmt (next_stmt);
-	    stmt = prev_stmt;
-	    /* Remove extension and its block from the chain of
-	       stmts. See epilog of the loop. */
+	      {
+		for (scope = curr_scope;
+		     scope != NULL;
+		     scope = IR_block_scope (scope))
+		  if (IR_fun_class (scope) == decl)
+		    {
+		      cont_err (IR_pos (ident),
+				ERR_use_of_class_inside_the_class,
+				IR_ident_string (IR_unique_ident (ident)));
+		      break;
+		    }
+		if (scope == NULL)
+		  {
+		    subst = process_use_clause (stmt, IR_next_stmt (decl),
+						next_stmt);
+		    add_block_use (decl);
+		  }
+	      }
+	    /* Remove the use-clasue from the chain of stmts. See
+	       epilog of the loop. */
 	    if (prev_stmt == NULL)
-	      first_level_stmt = next_stmt;
+	      first_level_stmt = subst == NULL ? next_stmt : subst;
 	    else
-	      IR_set_next_stmt (prev_stmt, next_stmt);
+	      set_next_stmt (prev_stmt, subst);
+	    /* Process the inserted decls. */
+	    stmt = prev_stmt;
+	    if (subst != NULL)
+	      /* The used clause might be empty.  */
+	      next_stmt = subst;
 	  }
+	  break;
+	case IR_NM_decl_redir:
 	  break;
 	default:
 	  d_unreachable ();
@@ -1174,10 +1667,58 @@ bc_decl_mode (IR_node_t decl)
   return BC_NM_var; /* No warnings */
 }
 
+/* Decl substitutions: map orginal decl num -> decl substitution.  */
+static vlo_t decl_subst;
+
+/* Initiate work with decl substitutions.  */
+static void
+initiate_decl_subst (void)
+{
+  VLO_CREATE (decl_subst, 1<<14);
+}
+
+/* Set up substitution SUBST for DECL.  */
+static void
+set_decl_subst (BC_node_t decl, BC_node_t subst)
+{
+  int_t decl_num = BC_decl_num (decl);
+  BC_node_t null = NULL;
+
+  while (VLO_LENGTH (decl_subst) <= decl_num * sizeof (BC_node_t))
+    VLO_ADD_MEMORY (decl_subst, &null, sizeof (null));
+  ((BC_node_t *) VLO_BEGIN (decl_subst))[decl_num] = subst;
+}
+
+/* Return the substitution of DECL if any or NULL otherwise.  */
+static BC_node_t
+get_decl_subst (BC_node_t decl)
+{
+  int_t decl_num = BC_decl_num (decl);
+
+  if (VLO_LENGTH (decl_subst) <= decl_num * sizeof (BC_node_t))
+    return NULL;
+  return ((BC_node_t *) VLO_BEGIN (decl_subst))[decl_num];
+}
+
+/* Finish work with decl substitutions.  */
+static void
+finish_decl_subst (void)
+{
+  VLO_DELETE (decl_subst);
+}
+
 /* The last used number to enumerate unique indentifiers.  */
 static int last_uniq_ident_num;
 /* The last used number to enumerate decls.  */
 static int last_decl_num;
+
+/* Set unique decl_num for BC_DECL.  */
+static void
+set_new_decl_num (BC_node_t bc_decl)
+{
+  last_decl_num++;
+  BC_set_decl_num (bc_decl, last_decl_num);
+}
 
 /* Setup and return BLOCK_DECL_IDENT_NUMBER for UNIQUE_IDENT.  */
 static int
@@ -1221,8 +1762,7 @@ get_bcode_decl (IR_node_t decl)
     bc_decl = new_bc_node (BC_NM_fdecl, IR_pos (decl));
   else
     d_unreachable ();
-  last_decl_num++;
-  BC_set_decl_num (bc_decl, last_decl_num);
+  set_new_decl_num (bc_decl);
   unique_ident = IR_unique_ident (IR_ident (decl));
   BC_set_ident (bc_decl, IR_ident_string (unique_ident));
   BC_set_ident_num (bc_decl, get_block_decl_ident_number (unique_ident));
@@ -1306,24 +1846,60 @@ ir2er_type (IR_node_mode_t irnm)
     }
 }
 
-/* Get fblock of func class declaration FUN_DECL.  Create if it was
-   not created yet.  */
+/* Create and return copy of a bcode ORIGIN_BCODE.  It also creates a
+   copy of info node.  */
+static BC_node_t
+copy_bcode (BC_node_t origin_bcode)
+{
+  BC_node_t bc = BC_copy_node (origin_bcode);
+  BC_node_t info = BC_copy_node (BC_info (bc));
+
+  BC_set_info (bc, info);
+  BC_set_bc (info, bc);
+  BC_set_prev_info (info, NULL);
+  BC_set_next_info (info, NULL);
+  return bc;
+}
+
+/* All funcs and classes blocks.  */
+static vlo_t all_fblocks;
+
+/* Get fblock of func class declaration FUN_DECL.  Create (or copy the
+   origin fblock) if it was not created yet.  */
 static inline BC_node_t
 get_fblock (IR_node_t fun_decl)
 {
-  BC_node_t bc, fdecl;
-  IR_node_t block = IR_next_stmt (fun_decl);
+  BC_node_t bc, fdecl, info;
+  IR_node_t src, origin, block = IR_next_stmt (fun_decl);
   
-  d_assert (block != NULL && IR_IS_OF_TYPE (block, IR_NM_block));
-  if ((bc = IR_bc_block (block)) == NULL)
+  src = block;
+  if (block == NULL || ! IR_IS_OF_TYPE (block, IR_NM_block)
+      || IR_fun_class (block) != fun_decl)
+    {
+      /* Its is a forward declaration or used declaration. */
+      d_assert (IR_forward_decl_flag (fun_decl)
+		|| IR_origin_decl (fun_decl) != NULL);
+      src = fun_decl;
+    }
+  if ((bc = IR_fdecl_bc_block (fun_decl)) == NULL)
     {
       fdecl = get_bcode_decl (fun_decl);
-      bc = new_bc_code_with_src (BC_NM_fblock, block);
-      BC_set_decls (bc, NULL);
-      BC_set_fblock (fdecl, bc);
-      BC_set_fdecl (bc, fdecl);
       IR_set_bc_decl (fun_decl, fdecl);
-      IR_set_bc_block (block, bc);
+      if ((origin = IR_origin_decl (fun_decl)) == NULL)
+	bc = new_bc_code_with_src (BC_NM_fblock, src);
+      else
+	{
+	  bc = copy_bcode (IR_fdecl_bc_block (origin));
+	  BC_set_source (BC_info (bc),
+			 new_bc_node (BC_NM_source, IR_pos (src)));
+	}
+      VLO_ADD_MEMORY (all_fblocks, &bc, sizeof (bc));
+      BC_set_fblock (fdecl, bc);
+      IR_set_fdecl_bc_block (fun_decl, bc);
+      if (src == block)
+	IR_set_bc_block (block, bc);
+      BC_set_decls (bc, NULL);
+      BC_set_fdecl (bc, fdecl);
     }
   return bc;
 }
@@ -2193,13 +2769,15 @@ slice_assign_mode (BC_node_t assign)
     }
 }
 
+/* Find and return first fun block covering block SCOPE.  A block
+   always covers itself.  */
 static IR_node_t
-find_covered_fun_class_ext (IR_node_t scope)
+find_covered_fun_class (IR_node_t scope)
 {
-  while (scope != NULL && IR_fun_class_ext (scope) == NULL)
+  while (scope != NULL && IR_fun_class (scope) == NULL)
     scope = IR_block_scope (scope);
   if (scope != NULL)
-    return IR_fun_class_ext (scope);
+    return IR_fun_class (scope);
   else
     return NULL;
 }
@@ -2255,13 +2833,12 @@ get_lvalue_location (BC_node_t designator, IR_node_t ir_des,
 static IR_node_t
 surrounding_fun_block (IR_node_t scope)
 {
-  IR_node_t fun_class_ext;
+  IR_node_t fun_class;
 
   for (; scope != NULL; scope = IR_block_scope (scope))
     {
-      fun_class_ext = IR_fun_class_ext (scope);
-      if (fun_class_ext != NULL
-	  && IR_NODE_MODE (fun_class_ext) == IR_NM_fun)
+      fun_class = IR_fun_class (scope);
+      if (fun_class != NULL && IR_NODE_MODE (fun_class) == IR_NM_fun)
 	return scope;
     }
   return NULL;
@@ -2283,8 +2860,145 @@ add_decl_to_block (BC_node_t bc_decl, BC_node_t bc_block)
   BC_set_decls (bc_block, bc_decl);
 }
 
-/* All declarations of funcs and classes with blocks.  */
-static vlo_t all_funs_and_classes;
+/* All BC copies created during copy_fun_bc_block.  */
+static vlo_t bc_copies;
+
+/* Make a copy of bcode BC, link it to the current chain, put it into
+   bc_copies, and set up it as substituation of BC.  */
+static void
+copy_and_link_bcode (BC_node_t bc)
+{
+  BC_node_t new_bc;
+
+  new_bc = copy_bcode (bc);
+  BC_set_subst (BC_info (bc), new_bc);
+  link_info (BC_info (new_bc));
+  VLO_ADD_MEMORY (bc_copies, &new_bc, sizeof (new_bc));
+}
+
+/* Make a copy of bcode and decls of ORIGIN_BC_BLOCK and add it to
+   BC_BLOCK.  It is done without changing BC fields.  */
+static void
+copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block)
+{
+  BC_node_t info, bc, bc_decl, last_bc_decl, origin_bc_decl;
+  BC_node_t saved_curr_info = curr_info;
+  int level = 0;
+
+  BC_set_subst (BC_info (origin_bc_block), bc_block);
+  curr_info = NULL;
+  link_info (BC_info (bc_block));
+  VLO_ADD_MEMORY (bc_copies, &bc_block, sizeof (bc_block));
+  /* Make bcode copy:  */
+  for (info = BC_next_info (BC_info (origin_bc_block));;
+       info = BC_next_info (info))
+    {
+      bc = BC_bc (info);
+      copy_and_link_bcode (bc);
+      if (BC_IS_OF_TYPE (bc, BC_NM_block))
+	level++;
+      else if (BC_IS_OF_TYPE (bc, BC_NM_bend))
+	{
+	  if (level == 0)
+	    break;
+	  level--;
+	}
+    }
+  d_assert (BC_IS_OF_TYPE (bc, BC_NM_fbend));
+  /* Make decls copy:  */
+  for (last_bc_decl = NULL, origin_bc_decl = BC_decls (origin_bc_block);
+       origin_bc_decl != NULL;
+       origin_bc_decl = BC_next_decl (origin_bc_decl))
+    {
+      bc_decl = BC_copy_node (origin_bc_decl);
+      set_new_decl_num (bc_decl);
+      set_decl_subst (origin_bc_decl, bc_decl);
+      VLO_ADD_MEMORY (bc_copies, &bc_decl, sizeof (bc_decl));
+      if (last_bc_decl == NULL)
+	BC_set_decls (bc_block, bc_decl);
+      else
+	BC_set_next_decl (last_bc_decl, bc_decl);
+      last_bc_decl = bc_decl;
+      if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl))
+	{
+	  bc = copy_bcode (BC_fblock (origin_bc_decl));
+	  BC_set_fblock (bc_decl, bc);
+	  BC_set_fdecl (bc, bc_decl);
+	  VLO_ADD_MEMORY (all_fblocks, &bc, sizeof (bc));
+	  copy_bc_block (BC_fblock (origin_bc_decl), bc);
+	}
+    }
+  curr_info = saved_curr_info;
+}
+
+/* Make copy of ORIGIN_FUN BC and add it to FUN.  Change all necessary
+   fields in the copied nodes.  This function is very sensitive to
+   changes BC description.  So modify it approprietly after BC
+   description changes.  */
+static void
+copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
+{
+  BC_node_t bc_block, fv, info, bc, *bc_ptr;
+  
+  VLO_NULLIFY (bc_copies);
+  bc = get_fblock (fun);
+  BC_set_scope (bc, curr_bc_scope);
+  bc_block = IR_fdecl_bc_block (original_fun);
+  copy_bc_block (bc_block, bc);
+  /* Modify fields of copied nodes correspondingly.  */
+  for (bc_ptr = (BC_node_t *) VLO_BEGIN (bc_copies);
+       bc_ptr < (BC_node_t *) VLO_BOUND (bc_copies);
+       bc_ptr++)
+    {
+      bc = *bc_ptr;
+      if (BC_IS_OF_TYPE (bc, BC_NM_bcode) && (fv = BC_next (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_next (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_decl) && (fv = BC_decl_scope (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_decl_scope (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_block))
+	{
+	  if ((fv = BC_scope (bc)) != NULL
+	      && (fv = BC_subst (BC_info (fv))) != NULL)
+	    BC_set_scope (bc, fv);
+	  if ((fv = BC_excepts (bc)) != NULL
+	      && (fv = BC_subst (BC_info (fv))) != NULL)
+	    BC_set_excepts (bc, fv);
+	  if ((fv = BC_friends (bc)) != NULL
+	      && (fv = BC_subst (BC_info (fv))) != NULL)
+	    BC_set_friends (bc, fv);
+	  if ((fv = BC_uses (bc)) != NULL
+	      && (fv = BC_subst (BC_info (fv))) != NULL)
+	    BC_set_uses (bc, fv);
+	}
+      if (BC_IS_OF_TYPE (bc, BC_NM_fdecl) && (fv = BC_fblock (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_fblock (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_op1_decl) && (fv = BC_decl (bc)) != NULL
+	  && (fv = get_decl_subst (fv)) != NULL)
+	BC_set_decl (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_br) && (fv = BC_pc (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_pc (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_imcall) && (fv = BC_cfblock (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_cfblock (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_foreach) && (fv = BC_body_pc (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_body_pc (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_move) && (fv = BC_rhs_decl (bc)) != NULL
+	  && (fv = get_decl_subst (fv)) != NULL)
+	BC_set_rhs_decl (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_ret) && (fv = BC_ret_decl (bc)) != NULL
+	  && (fv = get_decl_subst (fv)) != NULL)
+	BC_set_ret_decl (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_bend) && (fv = BC_block (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_block (bc, fv);
+      
+    }
+}
 
 /* This recursive func passes (correctly setting up SOURCE_POSITION
    and curr_scope (before first call of the func curr_scope is to be
@@ -2293,7 +3007,7 @@ static vlo_t all_funs_and_classes;
    for corresponding abstract data).  FIRST_LEVEL_STMT (it may be
    NULL) is first stmt of the processed stmt nesting level.  
 
-   The func collects all funcs and classes in all_funs_and_classes.
+   The func collects all funcs and classes blocks in all_fblocks.
 
    The func creates the byte code for execution of the processed
    stmts.
@@ -2305,14 +3019,15 @@ second_block_passing (IR_node_t first_level_stmt)
 {
   BC_node_t bc, var_bc, before_pc, src;
   BC_node_mode_t bc_node_mode, var_mode;
-  IR_node_t stmt;
+  IR_node_t stmt, next_stmt, decl;
   IR_node_t op, temp;
   IR_node_mode_t stmt_mode;
   int result, var_result, temp_vars_num, val_p;
   int container_num, index_num;
 
-  for (stmt = first_level_stmt; stmt != NULL; stmt = IR_next_stmt (stmt))
+  for (stmt = first_level_stmt; stmt != NULL; stmt = next_stmt)
     {
+      next_stmt = IR_next_stmt (stmt);
       temp_vars_num = 0;
       SET_SOURCE_POSITION (stmt);
       switch (stmt_mode = IR_NODE_MODE (stmt))
@@ -2623,7 +3338,7 @@ second_block_passing (IR_node_t first_level_stmt)
 	  }
 	case IR_NM_for_stmt:
 	  {
-	    BC_node_t before_guard_expr, initial_end;
+	    BC_node_t before_guard_expr, before_body, initial_end;
 	    BC_node_t saved_start_next_iteration, saved_for_finish;
 	    int saved_number_of_surrounding_blocks;
 	    
@@ -2634,9 +3349,11 @@ second_block_passing (IR_node_t first_level_stmt)
 	    second_block_passing (IR_for_initial_stmt (stmt));
 	    initial_end = BC_bc (curr_info);
 	    start_next_iteration = new_bc_code_with_src (BC_NM_nop, stmt);
+	    before_body = new_bc_code_with_src (BC_NM_nop, stmt);
 	    for_finish = new_bc_code_with_src (BC_NM_nop, stmt);
-	    add_to_bcode (start_next_iteration);
+	    add_to_bcode (before_body);
 	    second_block_passing (IR_for_stmts (stmt));
+	    add_to_bcode (start_next_iteration);
 	    second_block_passing (IR_for_iterate_stmt (stmt));
 	    d_assert (curr_info != NULL);
 	    before_guard_expr = BC_bc (curr_info);
@@ -2644,7 +3361,7 @@ second_block_passing (IR_node_t first_level_stmt)
 	    IR_set_for_guard_expr
 	      (stmt, second_expr_processing (IR_for_guard_expr (stmt), FALSE,
 					    &result, &temp_vars_num, FALSE,
-					    for_finish, start_next_iteration,
+					    for_finish, before_body,
 					    TRUE));
 	    type_test (IR_for_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_for_guard_expr_type);
@@ -2782,13 +3499,13 @@ second_block_passing (IR_node_t first_level_stmt)
 	case IR_NM_return_without_result:
 	case IR_NM_return_with_result:
 	  {
-	    IR_node_t fun_class_ext;
+	    IR_node_t fun_class;
 	    BC_node_mode_t bc_mode;
 
-	    fun_class_ext = find_covered_fun_class_ext (curr_scope);
-	    if (fun_class_ext == NULL)
+	    fun_class = find_covered_fun_class (curr_scope);
+	    if (fun_class == NULL)
 	      cont_err (source_position,
-			ERR_return_outside_fun_class_ext);
+			ERR_return_outside_fun_class);
 	    else if (stmt_mode == IR_NM_return_without_result)
 	      {
 		bc = new_bc_code_with_src (BC_NM_leave, stmt);
@@ -2796,11 +3513,11 @@ second_block_passing (IR_node_t first_level_stmt)
 	      }
 	    else
 	      {
-		if (IR_IS_OF_TYPE (fun_class_ext, IR_NM_class))
+		if (IR_IS_OF_TYPE (fun_class, IR_NM_class))
 		  cont_err (source_position,
 			    ERR_return_with_result_in_class);
-		else if (IR_IS_OF_TYPE (fun_class_ext, IR_NM_fun)
-			 && IR_thread_flag (fun_class_ext))
+		else if (IR_IS_OF_TYPE (fun_class, IR_NM_fun)
+			 && IR_thread_flag (fun_class))
 		  cont_err (source_position,
 			    ERR_return_with_result_in_thread);
 		result = -1;
@@ -2813,7 +3530,8 @@ second_block_passing (IR_node_t first_level_stmt)
 		bc = new_bc_code_with_src (BC_NM_ret, stmt);
 		BC_set_op1 (bc, result);
 		BC_set_ret_decl (bc, NULL);
-		if (IR_IS_OF_TYPE (IR_returned_expr (stmt), IR_NM_ident))
+		if (IR_returned_expr (stmt) != NULL
+		    && IR_IS_OF_TYPE (IR_returned_expr (stmt), IR_NM_ident))
 		  BC_set_ret_decl
 		    (bc, get_bcode_decl (IR_decl (IR_returned_expr (stmt))));
 		/* Check tail call.  */
@@ -2889,12 +3607,12 @@ second_block_passing (IR_node_t first_level_stmt)
 	    pc_t block_finish;
 	    pc_t catches_finish;
 	    pc_t previous_node_catch_list_pc;
-	    IR_node_t fun_class, friend;
+	    IR_node_t fun_class, friend, use;
 	    BC_node_t except_bc, last_except_with_block, bc_block;
 	    int simple_block_flag = FALSE;
 
 	    curr_scope = stmt;
-	    fun_class = IR_fun_class_ext (stmt);
+	    fun_class = IR_fun_class (stmt);
 	    if (fun_class == NULL)
 	      {
 		if ((bc = IR_bc_block (stmt)) == NULL)
@@ -2930,7 +3648,7 @@ second_block_passing (IR_node_t first_level_stmt)
 	      }
 	    add_to_bcode (bc);
 	    curr_bc_scope = bc;
-	    BC_set_friends (bc, NULL); /* ??? */
+	    BC_set_friends (bc, NULL);
 	    for (friend = IR_friends (stmt);
 		 friend != NULL;
 		 friend = IR_next_friend (friend))
@@ -2940,6 +3658,17 @@ second_block_passing (IR_node_t first_level_stmt)
 		BC_set_friend (bc_friend, get_fblock (IR_friend_decl (friend)));
 		BC_set_next_friend (bc_friend, BC_friends (bc));
 		BC_set_friends (bc, bc_friend);
+	      }
+	    BC_set_uses (bc, NULL);
+	    for (use = IR_block_uses (stmt);
+		 use != NULL;
+		 use = IR_next_block_use (use))
+	      {
+		BC_node_t bc_use = BC_create_node (BC_NM_use);
+
+		BC_set_use (bc_use, get_fblock (IR_use_decl (use)));
+		BC_set_next_use (bc_use, BC_uses (bc));
+		BC_set_uses (bc, bc_use);
 	      }
 	    if (! simple_block_flag)
 	      {
@@ -3064,38 +3793,62 @@ second_block_passing (IR_node_t first_level_stmt)
 	  }
 	case IR_NM_fun:
 	case IR_NM_class:
-	  if (IR_next_stmt (stmt) != NULL)
-	    VLO_ADD_MEMORY (all_funs_and_classes, &stmt, sizeof (stmt));
-	  goto common_decl;
 	case IR_NM_var:
 	case IR_NM_external_var:
 	case IR_NM_external_fun:
-	common_decl:
 	  {
-	    IR_node_t block;
+	    IR_node_t block, curr_decl = stmt;
+	    IR_node_mode_t curr_decl_mode = stmt_mode;
 	    BC_node_t bc_block, bc_decl;
-
-	    block = IR_scope (stmt);
+	    
+	    block = IR_scope (curr_decl);
 	    d_assert (block != NULL && IR_NODE_MODE (block) == IR_NM_block);
-	    IR_set_it_is_declared_in_block (IR_unique_ident (IR_ident (stmt)),
+	    IR_set_it_is_declared_in_block (IR_unique_ident (IR_ident (curr_decl)),
 					    TRUE);
 	    /* Add decl to the block */
 	    bc_block = IR_bc_block (block);
-	    bc_decl = get_bcode_decl (stmt);
+	    bc_decl = get_bcode_decl (curr_decl);
 	    add_decl_to_block (bc_decl, bc_block);
-	    if (stmt_mode == IR_NM_class
+	    if (curr_decl_mode == IR_NM_class
 		&& (block = surrounding_fun_block (block)) != NULL)
 	      /* Objects created from the class inside a function will
 		 need the function context.  */
 	      IR_set_extended_life_context_flag (block, TRUE);
+	    if ((decl = IR_origin_decl (curr_decl)) != NULL)
+	      {
+		set_decl_subst (IR_bc_decl (decl), bc_decl);
+		d_assert (IR_use_clause (curr_decl) != NULL);
+		if (IR_IS_OF_TYPE (decl, IR_NM_fun_or_class))
+		  {
+		    BC_set_subst (BC_info (get_fblock (decl)),
+				  get_fblock (curr_decl));
+		    copy_fun_bc_block (stmt, decl);
+		  }
+	      }
 	    break;
 	  }
+	case IR_NM_decl_redir:
+	  {
+	    IR_node_t curr_decl = IR_to (stmt);
+	    IR_node_t origin = IR_redir_origin (stmt);
+	    BC_node_t bc_decl = get_bcode_decl (curr_decl);
+
+	    set_decl_subst (IR_bc_decl (origin), bc_decl);
+	    if (IR_IS_OF_TYPE (origin, IR_NM_fun_or_class))
+	      BC_set_subst (BC_info (get_fblock (origin)),
+			    get_fblock (curr_decl));
+	  }
+	  break;
 	default:
 	  d_unreachable ();
 	}
     }
 }
 
+/* Currently processed fun block (and top-level block).  */
+static BC_node_t curr_bc_block;
+
+/* Return TRUE if the execution of BC does actually nothing.  */
 static inline int
 nop_p (BC_node_t bc)
 {
@@ -3104,6 +3857,8 @@ nop_p (BC_node_t bc)
   else if (BC_NODE_MODE (bc) == BC_NM_block && BC_vars_num (bc) < 0)
     return TRUE;
   else if (BC_NODE_MODE (bc) == BC_NM_sbend)
+    return TRUE;
+  else if (BC_NODE_MODE (bc) == BC_NM_out && BC_op1 (bc) == 0)
     return TRUE;
   return FALSE;
 }
@@ -3191,7 +3946,7 @@ go_through (BC_node_t start_bc)
       }
   if (node_mode != BC_NM__error
       && (op1 < 0 || BC_op2 (second_bc) == op1)
-      && BC_op1 (second_bc) >= IR_vars_number (curr_scope))
+      && BC_op1 (second_bc) >= BC_vars_num (curr_bc_block))
     {
       bc = new_bc_code (node_mode, BC_source (BC_info (next_bc)));
       insert_info (BC_info (bc), info);
@@ -3266,7 +4021,8 @@ process_bc (BC_node_t start)
 { 
   int last_uniq_ident_num;
   BC_node_t info, bc, next, next_info;
-
+  
+  curr_bc_block = start;
   for (info = BC_info (start); info != NULL; info = BC_next_info (info))
     {
       BC_set_subst (info, NULL);
@@ -3297,10 +4053,7 @@ process_bc (BC_node_t start)
     {
       next_info = BC_next_info (info);
       if (! BC_reachable_p (info))
-	{
-	  unlink_info (info);
-	  continue;
-	}
+	unlink_info (info);
     }
 }
 
@@ -3309,7 +4062,7 @@ process_bc (BC_node_t start)
 void
 test_context (IR_node_t first_program_stmt_ptr, int first_p)
 {
-  IR_node_t *node_ptr;
+  BC_node_t *bc_ptr;
 
   if (setjmp (context_exit_longjump_buff) != 0)
     return;
@@ -3322,7 +4075,7 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
   curr_info = NULL;
   prev_pc = curr_pc = NULL;
   for_finish = NULL;
-  VLO_NULLIFY (all_funs_and_classes);
+  VLO_NULLIFY (all_fblocks);
   if (! first_p)
     {
       BC_node_t bc_block = IR_bc_block (first_program_stmt_ptr);
@@ -3348,15 +4101,11 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
     {
       first_program_bc = IR_bc_block (first_program_stmt_ptr);
       /* Some optimizations: */
-      curr_scope = first_program_stmt_ptr;
       process_bc (first_program_bc);
-      for (node_ptr = (IR_node_t *) VLO_BEGIN (all_funs_and_classes);
-	   (char *) node_ptr <= (char *) VLO_END (all_funs_and_classes);
-	   node_ptr++)
-	{
-	  curr_scope = IR_next_stmt (*node_ptr);
-	  process_bc (IR_bc_block (curr_scope));
-	}
+      for (bc_ptr = (BC_node_t *) VLO_BEGIN (all_fblocks);
+	   bc_ptr < (BC_node_t *) VLO_BOUND (all_fblocks);
+	   bc_ptr++)
+	process_bc (*bc_ptr);
     }
 }
 
@@ -3365,7 +4114,12 @@ initiate_context (void)
 {
   bc_nodes_num = 0;
   max_block_level = 0;
-  VLO_CREATE (all_funs_and_classes, 0);
+  VLO_CREATE (all_fblocks, 0);
+  curr_use_items_start = 0;
+  VLO_CREATE (use_items, 0);
+  VLO_CREATE (copied_redirs, 0);
+  VLO_CREATE (bc_copies, 0);
+  initiate_decl_subst ();
   last_uniq_ident_num = DESTROY_IDENT_NUMBER;
   last_decl_num = 0;
   initiate_foreach_vars ();
@@ -3375,5 +4129,9 @@ void
 finish_context (void)
 {
   finish_foreach_vars ();
-  VLO_DELETE (all_funs_and_classes);
+  finish_decl_subst ();
+  VLO_DELETE (bc_copies);
+  VLO_DELETE (use_items);
+  VLO_DELETE (copied_redirs);
+  VLO_DELETE (all_fblocks);
 }

@@ -22,17 +22,14 @@
 
 */
 
-ext except {
-  class mpi_except () {
-    class mpi_type (msg) {}
-    class mpi_size () {}
-    class mpi_base () {}
-    class mpi_unequal_size () {}
-    class mpi_overflow () {}
-  }
-}
+class mpi_except () {use except;}
+class mpi_type_except () {use mpi_except;}
+class mpi_size_except () {use mpi_except;}
+class mpi_base_except () {use mpi_except;}
+class mpi_unequal_size_except () {use mpi_except;}
+class mpi_overflow_except () {use mpi_except;}
+
 final class mpi_package () {
-  var mpi_excepts = excepts.mpi_except ();
   // if you change the value, please change it in mpi.c and check
   // maximal value in arithm.c.
   val max_mpi_size = 128;
@@ -41,23 +38,23 @@ final class mpi_package () {
   final class mpi (val size) { // The order of vars is important for mpi.c
     var -value;
     if (type (size) != int)
-      throw mpi_excepts.mpi_type ();
+      throw mpi_type_except ();
     if (size < 1 || size > max_mpi_size)
-      throw mpi_excepts.mpi_size ();
+      throw mpi_size_except ();
   }
   fun -check (op) {
     if (type (op) != obj || !inside (op, mpi_package))
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
   }
   fun -check2 (op1, op2) {
     check (op1); check (op2);
     if (op1.size != op2.size)
-      throw mpi_excepts.mpi_unequal_size();
+      throw mpi_unequal_size_except();
   }
   extern mpi_overflow;
   fun -check_overflow (op) {
     if (mpi_overflow && !mpi_ignore_overflow)
-      throw mpi_excepts.mpi_overflow();
+      throw mpi_overflow_except();
     return op;
   }
   extern -mpi_add(), -mpi_unsigned_add(),
@@ -117,25 +114,25 @@ final class mpi_package () {
   fun shift_right (op, shift) {
     check (op);
     if (type (shift) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     return mpi_shift_right (op, shift, new op);
   }
   fun unsigned_shift_right (op, shift) {
     check (op);
     if (type (shift) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     return mpi_unsigned_shift_right (op, shift, new op);
   }
   fun shift_left (op, shift) { // Overflow is possible
     check (op);
     if (type (shift) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     return check_overflow (mpi_shift_left (op, shift, new op));
   }
   fun unsigned_shift_left (op, shift) { // Overflow is possible
     check (op);
     if (type (shift) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     return check_overflow (mpi_unsigned_shift_left (op, shift, new op));
   }
   fun or (op1, op2) {
@@ -221,32 +218,32 @@ final class mpi_package () {
   fun change_size (op, new_size) { // Overflow is possible
     check (op);
     if (type (new_size) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     if (new_size < 1 || new_size > max_mpi_size)
-      throw mpi_excepts.mpi_size();
+      throw mpi_size_except();
     return check_overflow (mpi_change_size (op, new_size, new op));
   }
   fun unsigned_change_size (op, new_size) { // Overflow is possible
     check (op);
     if (type (new_size) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     if (new_size < 1 || new_size > max_mpi_size)
-      throw mpi_excepts.mpi_size();
+      throw mpi_size_except();
     return check_overflow (mpi_unsigned_change_size (op, new_size, new op));
   }
   fun to_based_string (op, base) {
     if (type (base) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     if (base < 2 || base > 16)
-      throw mpi_excepts.mpi_base();
+      throw mpi_base_except();
     check (op);
     return mpi_to_based_string (op, base);
   }
   fun unsigned_to_based_string (op, base) {
     if (type (base) != int)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     if (base < 2 || base > 16)
-      throw mpi_excepts.mpi_base();
+      throw mpi_base_except();
     check (op);
     return mpi_unsigned_to_based_string (op, base);
   }
@@ -259,21 +256,21 @@ final class mpi_package () {
   fun from_based_string (size, string, base) { // Overflow is possible
     if (type (size) != int || type (base) != int
         || type (string) != vec ||  eltype (string) != char)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     if (size < 1 || size > max_mpi_size)
-      throw mpi_excepts.mpi_size();
+      throw mpi_size_except();
     if (base < 2 || base > 16)
-      throw mpi_excepts.mpi_base();
+      throw mpi_base_except();
     return check_overflow (mpi_from_based_string (string, mpi (size), base));
   }
   fun unsigned_from_based_string (size, string, base) { // Overflow is poss.
     if (type (size) != int || type (base) != int
         || type (string) != vec ||  eltype (string) != char)
-      throw mpi_excepts.mpi_type();
+      throw mpi_type_except();
     if (size < 1 || size > max_mpi_size)
-      throw mpi_excepts.mpi_size();
+      throw mpi_size_except();
     if (base < 2 || base > 16)
-      throw mpi_excepts.mpi_base();
+      throw mpi_base_except();
     return check_overflow (mpi_unsigned_from_based_string (string, mpi (size),
 							   base));
   }

@@ -183,7 +183,7 @@ form_position_vector (vlo_t *vector, const position_t *position_ptr)
 }
 
 /* The following function compares two positions.  The order of
-   positions is lexicographic.  Tthe function returns -1 (if the first
+   positions is lexicographic.  The function returns -1 (if the first
    position is less than the second), 0 (if the first position is
    equal to the second) or 1 (if the first position is greater than
    the second). */

@@ -41,6 +41,9 @@ static IR_node_t uncycle_stmt_list (IR_node_t list);
 static IR_node_t merge_friend_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_friend_list (IR_node_t list);
 
+static IR_node_t merge_use_item_lists (IR_node_t list1, IR_node_t list2);
+static IR_node_t uncycle_use_item_list (IR_node_t list);
+
 static IR_node_t merge_exception_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_exception_list (IR_node_t list);
 
@@ -102,9 +105,9 @@ static int repl_can_process_p (void);
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
 %token <pos> ACLASS AFUN ATHREAD BREAK CATCH CHAR CLASS CLOSURE CONTINUE
-       ELSE EXT EXTERN FINAL FLOAT FOR FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG NEW NIL OBJ PROCESS RETURN TAB THIS THREAD THROW TRY TYPE
-       VAL VAR VEC WAIT
+       ELSE EXTERN FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
+       LONG LATER NEW NIL OBJ PROCESS RETURN TAB THIS THREAD THROW TRY TYPE
+       USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
 %token <pos> MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN
@@ -144,7 +147,8 @@ static int repl_can_process_p (void);
                 val_var_list val_var
                 assign stmt executive_stmt incr_decr for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
-                header declaration extern_list extern_item
+                header declaration use_clause_list
+                use_item_list use_item alias_opt extern_list extern_item
         	fun_thread_class fun_thread_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
@@ -881,13 +885,8 @@ for_guard_expr :      {$$ = get_int_node (1, source_position);}
                | expr {$$ = $1;}
                ;
 block_stmt :    {
-                  $<pointer>$ = create_node_with_pos (IR_NM_block,
-	                                              no_position);
-                  IR_set_fun_class_ext ($<pointer>$, NULL);
-                  IR_set_friend_list ($<pointer>$, NULL);
-                  IR_set_block_scope ($<pointer>$, current_scope);
+                  $<pointer>$ = create_empty_block (current_scope);
                   current_scope = $<pointer>$;
-		  IR_set_exceptions ($<pointer>$, NULL);
                 }
        	      block
        		{
@@ -899,13 +898,8 @@ block_stmt :    {
                 }
            ;
 try_block_stmt :    {
-	              $<pointer>$ = create_node_with_pos (IR_NM_block,
-							  no_position);
-		      IR_set_fun_class_ext ($<pointer>$, NULL);
-		      IR_set_friend_list ($<pointer>$, NULL);
-		      IR_set_block_scope ($<pointer>$, current_scope);
+                      $<pointer>$ = create_empty_block (current_scope);
 		      current_scope = $<pointer>$;
-		      IR_set_exceptions ($<pointer>$, NULL);
                     }
                  TRY block
        		    {
@@ -934,13 +928,8 @@ catch_list :                           {$$ = NULL;}
    the last one. */
 catch : CATCH  '(' except_class_list ')'
           {
-            $<pointer>$ = create_node_with_pos (IR_NM_block,
-	                                        no_position);
-            IR_set_fun_class_ext ($<pointer>$, NULL);
-            IR_set_friend_list ($<pointer>$, NULL);
-            IR_set_block_scope ($<pointer>$, current_scope);
+            $<pointer>$ = create_empty_block (current_scope);
             current_scope = $<pointer>$;
-	    IR_set_exceptions ($<pointer>$, NULL);
 	    /* Add variable for catched exception. */
 	    $<pointer>$ = create_node_with_pos (IR_NM_var, $4);
 	    IR_set_next_stmt ($<pointer>$, $<pointer>$);
@@ -1070,7 +1059,41 @@ declaration : VAL set_flag val_var_list {$<flag>$ = $<flag>0;}
                 {
                   $$ = $7;
                 }
+            | USE IDENT use_clause_list {$<flag>$ = $<flag>0;} end_simple_stmt
+                {
+		  $$ = create_node_with_pos (IR_NM_use, IR_pos ($2));
+		  IR_set_next_stmt ($$, $$);
+                  IR_set_use_ident ($$, $2);
+		  IR_set_use_items ($$, uncycle_use_item_list ($3));
+	        }
             ;
+use_clause_list :   {$$ = NULL;}
+                | use_clause_list use_item_list
+                    {
+		      $$ = merge_use_item_lists ($1, $2);
+		    }
+                ;
+use_item_list : FORMER set_flag   use_item { $$ = $3; }
+              | LATER  clear_flag use_item { $$ = $3; }
+              | use_item_list ','
+                  {$<flag>$ = IR_NODE_MODE ($1) == IR_NM_former_item;} use_item
+                  {
+                    $$ = merge_use_item_lists ($1, $4);
+	          }
+              ;
+use_item : IDENT alias_opt
+             {
+	       $$ = create_node_with_pos ($<flag>0
+					  ? IR_NM_former_item : IR_NM_later_item,
+					  IR_pos ($1));
+	       IR_set_use_item_ident ($$, $1);
+	       IR_set_next_use_item ($$, $$);
+	       IR_set_alias ($$, $2);
+	     }
+         ;
+alias_opt :  { $$ = NULL; }
+          | '(' IDENT ')'  { $$ = $2; }
+          ;
 extern_list : extern_item {$$ = $1;}
             | extern_list ',' {$<flag>$ = $<flag>0;} extern_item
                 {
@@ -1141,23 +1164,6 @@ header : fun_thread_class_start access IDENT
 	     process_header (TRUE, $1, $3);
 	   }
          formal_parameters { $$ = process_formal_parameters ($1, $5); }
-       | EXT IDENT
-       	   {
-             IR_node_t block;
-             
-	     $$ = create_node_with_pos (IR_NM_ext, IR_pos ($2));
-             IR_set_scope ($$, current_scope);
-             IR_set_ident ($$, $2);
-             block = create_node_with_pos (IR_NM_block, no_position);
-             IR_set_next_stmt (block, $$);
-             IR_set_next_stmt ($$, block);
-             IR_set_fun_class_ext (block, $$);
-	     IR_set_friend_list (block, NULL);
-             IR_set_block_scope (block, current_scope);
-	     IR_set_exceptions (block, NULL);
-             current_scope = block;
-	     $$ = NULL; /* Formal parameters list. */
-           }
        ;
 fun_thread_class_start : fun_thread_class
                            {
@@ -1405,6 +1411,44 @@ uncycle_friend_list (IR_node_t list)
 
 /* Merging two cyclic lists into one cyclic list. */
 static IR_node_t
+merge_use_item_lists (IR_node_t list1, IR_node_t list2)
+{
+  IR_node_t result;
+
+  if (list2 != NULL) {
+    if (list1 != NULL)
+      {
+        IR_node_t first;
+        
+        first = IR_next_use_item (list2);
+        IR_set_next_use_item (list2, IR_next_use_item (list1));
+        IR_set_next_use_item (list1, first);
+      }
+    result = list2;
+  }
+  else
+    result = list1;
+  return result;
+}
+
+/* Make normal list from cycle item list with the pointer to the
+   last item list. */
+static IR_node_t
+uncycle_use_item_list (IR_node_t list)
+{
+  IR_node_t first;
+
+  if (list == NULL)
+    return list;
+  first = IR_next_use_item (list);
+  IR_set_next_use_item (list, NULL);
+  return first;
+}
+
+
+
+/* Merging two cyclic lists into one cyclic list. */
+static IR_node_t
 merge_exception_lists (IR_node_t list1, IR_node_t list2)
 {
   IR_node_t result;
@@ -1483,14 +1527,11 @@ process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
       IR_set_forward_decl_flag (decl, TRUE);
       return;
     }
-  block = create_node_with_pos (IR_NM_block, no_position);
+  block = create_empty_block (current_scope);
   IR_set_forward_decl_flag (decl, FALSE);
   IR_set_next_stmt (block, decl);
   IR_set_next_stmt (decl, block);
-  IR_set_fun_class_ext (block, decl);
-  IR_set_block_scope (block, current_scope);
-  IR_set_friend_list (block, NULL);
-  IR_set_exceptions (block, NULL);
+  IR_set_fun_class (block, decl);
   /* This assignment is here for that formal parameters are to be in
      corresponding block. */
   current_scope = block;
@@ -2872,9 +2913,7 @@ repl_can_process_p (void)
 void
 initiate_parser (void)
 {
-  current_scope = create_node_with_pos (IR_NM_block, current_position);
-  IR_set_fun_class_ext (current_scope, NULL);
-  IR_set_exceptions (current_scope, NULL);
+  current_scope = create_empty_block (NULL);
   start_block ();
   additional_stmts = NULL;
   first_error_p = TRUE;

@@ -34,6 +34,7 @@ extern void eltype_call (int_t pars_number);
 extern void keys_call (int_t pars_number);
 extern void context_call (int_t pars_number);
 extern void inside_call (int_t pars_number);
+extern void isa_call (int_t pars_number);
 extern void match_call (int_t pars_number);
 extern void gmatch_call (int_t pars_number);
 extern void sub_call (int_t pars_number);

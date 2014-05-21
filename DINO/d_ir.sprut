@@ -193,6 +193,7 @@ extern IR_node_t create_unique_node_with_string (IR_node_mode_t m,
                                                  const char *str,
                                                  char **string_in_pool_ptr);
 extern IR_node_t create_unique_ident_node (const char *str);
+extern IR_node_t create_empty_block (IR_node_t scope);
 extern void initiate_icode (void);
 extern void finish_icode (void);
 
@@ -240,139 +241,110 @@ extern IR_node_t destroy_unique_ident;
    parsing.  The last character of the string *should* be \n.  That is
    important for correct work OF REPL. */
 #define ENVIRONMENT \
-  "class except () { \n"\
-  "  class error (msg = nil){\n"\
-  "    class signal (msg = nil) {\n"\
-  "      class sigint (msg = nil) {}\n"\
-  "      class sigill (msg = nil) {}\n"\
-  "      class sigabrt (msg = nil) {}\n"\
-  "      class sigfpe (msg = nil) {}\n"\
-  "      class sigterm (msg = nil) {}\n"\
-  "      class sigsegv (msg = nil) {}\n"\
-  "    }\n"\
-  "    class invenv (msg = nil) {}\n"\
-  "    class invop (msg = nil) {\n"\
-  "      class optype (msg = nil) {}\n"\
-  "      class opvalue (msg = nil) {}\n"\
-  "    }\n"\
-  "    class invindex (msg = nil) {\n"\
-  "      class indextype (msg = nil) {}\n"\
-  "      class indexvalue (msg = nil) {}\n"\
-  "      class indexop (msg = nil) {}\n"\
-  "    }\n"\
-  "    class invslice (msg = nil) {\n"\
-  "      class slicetype (msg = nil) {}\n"\
-  "      class sliceform (msg = nil) {}\n"\
-  "    }\n"\
-  "    class invector (msg = nil) {\n"\
-  "      class veclen (msg = nil) {}\n"\
-  "      class vecform (msg = nil) {}\n"\
-  "      class matrixform (msg = nil) {}\n"\
-  "    }\n"\
-  "    class invkey (msg = nil) {\n"\
-  "      class keyvalue (msg = nil) {}\n"\
-  "      class keyop (msg = nil) {}\n"\
-  "    }\n"\
-  "    class invcall (msg = nil) {\n"\
-  "      class callop (msg = nil) {}\n"\
-  "      class partype (msg = nil) {}\n"\
-  "      class invresult (msg = nil) {}\n"\
-  "      class invinput (msg = nil) {}\n"\
-  "      class invfmt (msg = nil) {}\n"\
-  "      class eof (msg = nil) {}\n"\
-  "      class parnumber (msg = nil) {}\n"\
-  "      class syncthreadcall (msg = nil) {}\n"\
-  "      class syserror (msg = nil) {\n"\
-  "        class eaccess (msg = nil) {}\n"\
-  "        class eagain (msg = nil) {}\n"\
-  "        class ebadf (msg = nil) {}\n"\
-  "        class ebusy (msg = nil) {}\n"\
-  "        class echild (msg = nil) {}\n"\
-  "        class edeadlk (msg = nil) {}\n"\
-  "        class edom (msg = nil) {}\n"\
-  "        class eexist (msg = nil) {}\n"\
-  "        class efault (msg = nil) {}\n"\
-  "        class efbig (msg = nil) {}\n"\
-  "        class eintr (msg = nil) {}\n"\
-  "        class einval (msg = nil) {}\n"\
-  "        class eio (msg = nil) {}\n"\
-  "        class eisdir (msg = nil) {}\n"\
-  "        class emfile (msg = nil) {}\n"\
-  "        class emlink (msg = nil) {}\n"\
-  "        class enametoolong (msg = nil) {}\n"\
-  "        class enfile (msg = nil) {}\n"\
-  "        class enodev (msg = nil) {}\n"\
-  "        class enoent (msg = nil) {}\n"\
-  "        class enoexec (msg = nil) {}\n"\
-  "        class enolck (msg = nil) {}\n"\
-  "        class enomem (msg = nil) {}\n"\
-  "        class enospc (msg = nil) {}\n"\
-  "        class enosys (msg = nil) {}\n"\
-  "        class enotdir (msg = nil) {}\n"\
-  "        class enotempty (msg = nil) {}\n"\
-  "        class enotty (msg = nil) {}\n"\
-  "        class enxio (msg = nil) {}\n"\
-  "        class eperm (msg = nil) {}\n"\
-  "        class epipe (msg = nil) {}\n"\
-  "        class erange (msg = nil) {}\n"\
-  "        class erofs (msg = nil) {}\n"\
-  "        class espipe (msg = nil) {}\n"\
-  "        class esrch (msg = nil) {}\n"\
-  "        class exdev (msg = nil) {}\n"\
-  "      }\n"\
-  "      class systemcall (msg = nil) {\n"\
-  "        class noshell (msg = nil) {}\n"\
-  "        class systemfail (msg = nil) {}\n"\
-  "      }\n"\
-  "      class invregexp (msg = nil) {\n"\
-  "        class ebrack (msg = nil) {}\n"\
-  "        class erange (msg = nil) {}\n"\
-  "        class ectype (msg = nil) {}\n"\
-  "        class eparen (msg = nil) {}\n"\
-  "        class esubreg (msg = nil) {}\n"\
-  "        class eend (msg = nil) {}\n"\
-  "        class eescape (msg = nil) {}\n"\
-  "        class badpat (msg = nil) {}\n"\
-  "        class esize (msg = nil) {}\n"\
-  "        class espace (msg = nil) {}\n"\
-  "      }\n"\
-  "      class invparser (msg = nil) {\n"\
-  "        class invgrammar (msg = nil) {}\n"\
-  "        class invtoken (msg = nil) {}\n"\
-  "        class pmemory (msg = nil) {}\n"\
-  "      }\n"\
-  "      class invextern (msg = nil) {\n"\
-  "        class noextern (msg = nil) {}\n"\
-  "        class libclose (msg = nil) {}\n"\
-  "        class noexternsupp (msg = nil) {}\n"\
-  "      }\n"\
-  "      class invenvar (msg = nil) {}\n"\
-  "      class internal (msg = nil) {}\n"\
-  "    }\n"\
-  "    class invaccess (msg = nil) {\n"\
-  "      class accessop (msg = nil) {}\n"\
-  "      class accessvalue (msg = nil) {}\n"\
-  "      class immutable (msg = nil) {}\n"\
-  "    }\n"\
-  "    class deadlock (msg = nil) {}\n"\
-  "    class syncwait (msg = nil) {}\n"\
-  "  }\n"\
-  "}\n"\
-  "val excepts = except ();\n"\
-  "val errors = excepts.error ();\n"\
-  "val signals = errors.signal ();\n"\
-  "val invops = errors.invop ();\n"\
-  "val invindexes = errors.invindex ();\n"\
-  "val invslices = errors.invslice ();\n"\
-  "val invectors = errors.invector ();\n"\
-  "val invkeys = errors.invkey ();\n"\
-  "val invcalls = errors.invcall ();\n"\
-  "val syserrors = invcalls.syserror ();\n"\
-  "val systemcalls = invcalls.systemcall ();\n"\
-  "val invregexps = invcalls.invregexp ();\n"\
-  "val invparsers = invcalls.invparser ();\n"\
-  "val invexterns = invcalls.invextern ();\n"\
-  "val invaccesses = errors.invaccess ();\n"\
+  "class except () {}\n"\
+  " class error (msg = nil) {use except;}\n"\
+  "  class signal (msg = nil) {use error former msg;}\n"\
+  "   class sigint (msg = nil) {use signal former msg;}\n"\
+  "   class sigill (msg = nil) {use signal former msg;}\n"\
+  "   class sigabrt (msg = nil) {use signal former msg;}\n"\
+  "   class sigfpe (msg = nil) {use signal former msg;}\n"\
+  "   class sigterm (msg = nil) {use signal former msg;}\n"\
+  "   class sigsegv (msg = nil) {use signal former msg;}\n"\
+  "  class invenv (msg = nil) {use error former msg;}\n"\
+  "  class invop (msg = nil) {use error former msg;}\n"\
+  "   class optype (msg = nil) {use invop former msg;}\n"\
+  "   class opvalue (msg = nil) {use invop former msg;}\n"\
+  "  class invindex (msg = nil) {use error former msg;}\n"\
+  "   class indextype (msg = nil) {use invindex former msg;}\n"\
+  "   class indexvalue (msg = nil) {use invindex former msg;}\n"\
+  "   class indexop (msg = nil) {use invindex former msg;}\n"\
+  "  class invslice (msg = nil) {use error former msg;}\n"\
+  "   class slicetype (msg = nil) {use invslice former msg;}\n"\
+  "   class sliceform (msg = nil) {use invslice former msg;}\n"\
+  "  class invector (msg = nil) {use error former msg;}\n"\
+  "   class veclen (msg = nil) {use invector former msg;}\n"\
+  "   class vecform (msg = nil) {use invector former msg;}\n"\
+  "   class matrixform (msg = nil) {use invector former msg;}\n"\
+  "  class invkey (msg = nil) {use error former msg;}\n"\
+  "   class keyvalue (msg = nil) {use invkey former msg;}\n"\
+  "   class keyop (msg = nil) {use invkey former msg;}\n"\
+  "  class invcall (msg = nil) {use error former msg;}\n"\
+  "   class abstrcall (msg = nil) {use invcall former msg;}\n"\
+  "   class callop (msg = nil) {use invcall former msg;}\n"\
+  "   class partype (msg = nil) {use invcall former msg;}\n"\
+  "   class invresult (msg = nil) {use invcall former msg;}\n"\
+  "   class invinput (msg = nil) {use invcall former msg;}\n"\
+  "   class invfmt (msg = nil) {use invcall former msg;}\n"\
+  "   class eof (msg = nil) {use invcall former msg;}\n"\
+  "   class parnumber (msg = nil) {use invcall former msg;}\n"\
+  "   class syncthreadcall (msg = nil) {use invcall former msg;}\n"\
+  "   class syserror (msg = nil) {use invcall former msg;}\n"\
+  "    class eaccess (msg = nil) {use syserror former msg;}\n"\
+  "    class eagain (msg = nil) {use syserror former msg;}\n"\
+  "    class ebadf (msg = nil) {use syserror former msg;}\n"\
+  "    class ebusy (msg = nil) {use syserror former msg;}\n"\
+  "    class echild (msg = nil) {use syserror former msg;}\n"\
+  "    class edeadlk (msg = nil) {use syserror former msg;}\n"\
+  "    class edom (msg = nil) {use syserror former msg;}\n"\
+  "    class eexist (msg = nil) {use syserror former msg;}\n"\
+  "    class efault (msg = nil) {use syserror former msg;}\n"\
+  "    class efbig (msg = nil) {use syserror former msg;}\n"\
+  "    class eintr (msg = nil) {use syserror former msg;}\n"\
+  "    class einval (msg = nil) {use syserror former msg;}\n"\
+  "    class eio (msg = nil) {use syserror former msg;}\n"\
+  "    class eisdir (msg = nil) {use syserror former msg;}\n"\
+  "    class emfile (msg = nil) {use syserror former msg;}\n"\
+  "    class emlink (msg = nil) {use syserror former msg;}\n"\
+  "    class enametoolong (msg = nil) {use syserror former msg;}\n"\
+  "    class enfile (msg = nil) {use syserror former msg;}\n"\
+  "    class enodev (msg = nil) {use syserror former msg;}\n"\
+  "    class enoent (msg = nil) {use syserror former msg;}\n"\
+  "    class enoexec (msg = nil) {use syserror former msg;}\n"\
+  "    class enolck (msg = nil) {use syserror former msg;}\n"\
+  "    class enomem (msg = nil) {use syserror former msg;}\n"\
+  "    class enospc (msg = nil) {use syserror former msg;}\n"\
+  "    class enosys (msg = nil) {use syserror former msg;}\n"\
+  "    class enotdir (msg = nil) {use syserror former msg;}\n"\
+  "    class enotempty (msg = nil) {use syserror former msg;}\n"\
+  "    class enotty (msg = nil) {use syserror former msg;}\n"\
+  "    class enxio (msg = nil) {use syserror former msg;}\n"\
+  "    class eperm (msg = nil) {use syserror former msg;}\n"\
+  "    class epipe (msg = nil) {use syserror former msg;}\n"\
+  "    class erange (msg = nil) {use syserror former msg;}\n"\
+  "    class erofs (msg = nil) {use syserror former msg;}\n"\
+  "    class espipe (msg = nil) {use syserror former msg;}\n"\
+  "    class esrch (msg = nil) {use syserror former msg;}\n"\
+  "    class exdev (msg = nil) {use syserror former msg;}\n"\
+  "   class systemcall (msg = nil) {use invcall former msg;}\n"\
+  "    class noshell (msg = nil) {use systemcall former msg;}\n"\
+  "    class systemfail (msg = nil) {use systemcall former msg;}\n"\
+  "   class invregexp (msg = nil) {use invcall former msg;}\n"\
+  "    class ebrack (msg = nil) {use invregexp former msg;}\n"\
+  "    class erange (msg = nil) {use invregexp former msg;}\n"\
+  "    class ectype (msg = nil) {use invregexp former msg;}\n"\
+  "    class eparen (msg = nil) {use invregexp former msg;}\n"\
+  "    class esubreg (msg = nil) {use invregexp former msg;}\n"\
+  "    class eend (msg = nil) {use invregexp former msg;}\n"\
+  "    class eescape (msg = nil) {use invregexp former msg;}\n"\
+  "    class badpat (msg = nil) {use invregexp former msg;}\n"\
+  "    class esize (msg = nil) {use invregexp former msg;}\n"\
+  "    class espace (msg = nil) {use invregexp former msg;}\n"\
+  "   class invparser (msg = nil) {use invcall former msg;}\n"\
+  "    class invgrammar (msg = nil) {use invparser former msg;}\n"\
+  "    class invtoken (msg = nil) {use invparser former msg;}\n"\
+  "    class pmemory (msg = nil) {use invparser former msg;}\n"\
+  "   class invextern (msg = nil) {use invcall former msg;}\n"\
+  "    class noextern (msg = nil) {use invextern former msg;}\n"\
+  "    class libclose (msg = nil) {use invextern former msg;}\n"\
+  "    class noexternsupp (msg = nil) {use invextern former msg;}\n"\
+  "   class invenvar (msg = nil) {use invcall former msg;}\n"\
+  "   class internal (msg = nil) {use invcall former msg;}\n"\
+  "  class invaccess (msg = nil) {use error former msg;}\n"\
+  "   class accessop (msg = nil) {use invaccess former msg;}\n"\
+  "   class accessvalue (msg = nil) {use invaccess former msg;}\n"\
+  "   class immutable (msg = nil) {use invaccess former msg;}\n"\
+  "  class deadlock (msg = nil) {use error former msg;}\n"\
+  "  class syncwait (msg = nil) {use error former msg;}\n"\
   "var argv, env; val version, main_thread, curr_thread;\n"\
   "class anode (name, transl) {}\n"\
   "class token (code) {}\n"\
@@ -423,7 +395,7 @@ extern IR_node_t destroy_unique_ident;
   "// Do not place any code inside file (it is only for internal purposes)\n"\
   "final class file (){\n"\
   "  var -file_ptr;\n"\
-  "  throw invcalls.callop\n"\
+  "  throw callop\n"\
   "    (\"File can be created only by functions open or popen\");}\n"\
   "val stdin;\n"\
   "val stdout;\n"\
@@ -432,7 +404,7 @@ extern IR_node_t destroy_unique_ident;
   "fun tolower (){} fun toupper (){} fun transliterate (){}\n"\
   "fun eltype (){}\n"\
   "fun keys (){}\n"\
-  "fun context (){} fun inside (){}\n"\
+  "fun context (){} fun inside (){} fun isa (){}\n"\
   "fun subv(){} fun cmpv(){} fun del(){} fun ins(){}  fun insv(){}\n"\
   "fun rev(){} fun sort(){}\n"\
   "fun sqrt (){} fun exp (){} fun log (){} fun log10(){} fun pow(){} \n"\
@@ -818,9 +790,9 @@ block :: stmt
         block_scope : block
         /* Reference to stmts in given block. */
         block_stmts : stmt
-        /* Reference to corresponding fun or class (NULL for
-           separate block) or extension (only before the evaluation). */
-        fun_class_ext : fun_class_ext
+        /* Reference to corresponding fun or class (NULL for separate
+           block). */
+        fun_class : fun_class
         /* Lists of identifiers in friend clauses. */
         friend_list : friend_ident
         /* The list of exceptions for TRY block, NULL for simple
@@ -865,21 +837,16 @@ var :: decl
 external_var :: external_decl
 ;
 
-/* The following node represents formal parameter of funcs and classes
-   too. */
-pub :: decl
-;
-
 /* The following node represents external function declaration. */
 external_fun :: external_decl
 ;
 
 %abstract
-fun_class_ext :: decl
+fun_class :: decl
 ;
 
 %abstract
-fun_or_class :: fun_class_ext
+fun_or_class :: fun_class
         /* The next stmt is always corresponding block node if it is
 	   not forward declaration. */
 %other
@@ -912,9 +879,20 @@ fun :: fun_or_class
 class :: fun_or_class
 ;
 
-/* Extensions are absent during evaluation and the most of context
-   analysis. */
-ext :: fun_class_ext
+use :: stmt
+%other
+	use_ident : ident
+        use_items : use_item
+;
+%abstract
+use_item :: generic_pos
+%other
+	use_item_ident : ident
+        next_use_item : use_item
+	alias : ident
+;
+
+former_item, later_item :: use_item
 ;
 
 /************* The following part is set in context analyzer **************/
@@ -1001,6 +979,8 @@ block
         extended_life_context_flag : bool_t {$ = FALSE;}
         /* The following is the list of friends of the block. */
         friends : friend {$ = NULL;}
+        /* The following is the list of uses of the block. */
+        block_uses : block_use {$ = NULL;}
         bc_block : BC_hidden_node_t {$ = NULL;} /* Byte code block */
 ;
 
@@ -1013,18 +993,47 @@ friend :: ir_node
         next_friend : friend
 ;
 
+/* The following is a node of the list of uses of block (it means that
+   the use (all blocks inside it) can have access to the block private
+   declarations). */
+block_use :: ir_node
+%other
+        use_decl : decl
+        next_block_use : block_use
+;
+
 decl
 %other
         /* The following field is the first friend ident if the decl
            ident is in an friend clause. */
 	friend_ident : friend_ident
+        /* Non-null if given declaration is a copy of the original
+	   one created by processing an use-clause. */
+        origin_decl : decl {$ = NULL;}
+        /* The declaration copied from the original declaration during
+           processing use-clause refers for the use clause.  */
+        use_clause : use {$ = NULL;}
+        /* Used to change field TO of copied redirs. The field value
+	   can be a decl or temporarily another redir.  */
+        redir_to_subst : stmt {$ = NULL;}
+        /* True if it is a renamed definition from an use-clause.  */
+        alias_flag : bool_t {$ = FALSE;}
         bc_decl : BC_hidden_node_t {$ = NULL;} /* Byte code decl */
+        
 ;
 
 fun_or_class
 %other
-	/* Order number of the function or class.  */
-	no : int_t {$ = -1;}
+        /* Previous statement.  It is defined and used only for
+	   forward decls.  */
+        forward_prev : stmt
+        /* Byte code block of the func/class.  It is the same as the
+           byte code of the fun/class block if the func/class has it.
+           In case forward declaration without definition we have no
+           corresponidng block and the field is the only way to access
+           the byte code block.  Calling such function will generate
+           an exception during the program evaluation. */
+        fdecl_bc_block : BC_hidden_node_t {$ = NULL;}
 ;
 
 class
@@ -1044,6 +1053,37 @@ var
         /* Number (0, ...) of the var (only immediatly placed) in
            block vars.  The numeration of vars in fun starts with 0. */
         var_number_in_block : integer_t
+;
+
+use_item
+%other
+        /* Use-clause which is origin of the item.  */
+        item_use_clause : use {$ = NULL;}
+        /* Flag of used decls for this item were redefined. */
+        redefine_flag : bool_t {$ = FALSE;}
+;
+
+later_item
+%other
+        /* List of all redirs for given item. */
+        redirs : decl_redir {$ = NULL;}
+;
+
+/* It used during generation of BC for blocks with use-clauses in
+   cases rewriting decls afterwards to setup BC substituion in a right
+   place.  It is also used for forward declaration in order to process
+   them correctly if they are used. */
+decl_redir :: stmt
+%other
+        /* Reference in given scope for definition or temporarily
+	   another redir. */
+	to : stmt
+        /* Reference for original used declaration which is
+	   substituted by given redirection.  */
+        redir_origin : decl
+        /* All redirs for a later use item are chained by the following
+	   field.  */
+        next_redir : decl_redir
 ;
 
 /************* The following part is set in evaluator **************/
@@ -1104,8 +1144,7 @@ hash_func (hash_table_entry_t el_ptr)
   node_ref = IR_PTR (el_ptr);
   mode = IR_NODE_MODE (node_ref);
   if (mode == IR_NM_var || mode == IR_NM_external_var
-      || mode == IR_NM_external_fun || mode == IR_NM_fun
-      || mode == IR_NM_class || mode == IR_NM_ext)
+      || mode == IR_NM_external_fun || mode == IR_NM_fun || mode == IR_NM_class)
     hash_value
       = ((unsigned) (long) IR_scope (node_ref)
 	 + (unsigned) (long) IR_GET_UNIQUE_IDENT (IR_ident (node_ref)));
@@ -1165,10 +1204,10 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
   mode2 = IR_NODE_MODE (node_ref2);
   if ((mode1 == IR_NM_var || mode1 == IR_NM_external_var
        || mode1 == IR_NM_external_fun || mode1 == IR_NM_fun
-       || mode1 == IR_NM_class || mode1 == IR_NM_ext)
+       || mode1 == IR_NM_class)
       && (mode2 == IR_NM_var || mode2 == IR_NM_external_var
 	  || mode2 == IR_NM_external_fun || mode2 == IR_NM_fun
-	  || mode2 == IR_NM_class || mode2 == IR_NM_ext))
+	  || mode2 == IR_NM_class))
     elements_are_equal
       = (IR_scope (node_ref1) == IR_scope (node_ref2)
 	 && (IR_GET_UNIQUE_IDENT (IR_ident (node_ref1))
@@ -1324,6 +1363,18 @@ create_unique_ident_node (const char *str)
       include_to_table (ref);
     }
   return ref;
+}
+
+/* Create and return new empty block in SCOPE.  */
+IR_node_t
+create_empty_block (IR_node_t scope)
+{
+  IR_node_t block = create_node_with_pos (IR_NM_block, no_position);
+  IR_set_fun_class (block, NULL);
+  IR_set_friend_list (block, NULL);
+  IR_set_block_scope (block, scope);
+  IR_set_exceptions (block, NULL);
+  return block;
 }
 
 /* This func should be invoked only one before any work with intermediate

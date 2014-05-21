@@ -57,7 +57,7 @@ char ERR_forward_and_matched_decls_have_different_attrs[]
 char ERR_previous_decl_location[]
   = "(previous declaration of identifier `%s')";
 char ERR_undeclared_ident[] = "undeclared identifier `%s'";
-char ERR_udenclared_ident_friend_list []
+char ERR_undeclared_ident_friend_list []
   = "there is no declaration for identifier `%s' in friend list";
 char ERR_period_ident_applied_to_slice [] = "`.ident' is applied to slice";
 char ERR_vec_tab_element_access_applied_to_slice []
@@ -69,13 +69,33 @@ char ERR_slice_as_foreach_value_designator []
   = "vector slice is used as foreach-stmt value designator";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
-char ERR_extension_before_extended []
-  = "extension `%s' before extended fun or class";
-char ERR_extension_of_non_fun_class_ext []
-  = "extension `%s' of non fun/class";
-char ERR_extension_of_forward_declaration []
-  = "extension `%s' of forward declaration of fun/class";
-char ERR_extension_of_final [] = "extension of final fun/class `%s'";
+char ERR_use_before_definition [] = "use `%s' before defined fun or class";
+char ERR_use_of_non_fun_class [] = "use of non fun/class `%s'";
+char ERR_use_of_forward_declaration []
+  = "use of forward declaration of fun/class `%s'";
+char ERR_use_of_final [] = "use of final fun/class `%s'";
+char ERR_use_of_class_inside_the_class []
+  = "use of fun/class `%s' inside the fun/class";
+char ERR_repeated_use_item_ident_occurence_in_use []
+  = "repeated occurrence of identifier `%s' in use items";
+char ERR_previous_use_item_ident_location []
+  = "(previous occurrence of identifier `%s')";
+char ERR_undefined_use_item_ident []
+  = "identifier `%s' is not found in the corresponding class/fun";
+char ERR_used_decl_not_mentioned_in_former_redefines_prev_one []
+  = "used decl redefines previous `%s' and is not mentioned in former item";
+char ERR_alias_redefines_prev_one [] = "alias redefines previous `%s'";
+char ERR_alias_redefinition [] = "alias `%s' is redefined";
+char ERR_ident_in_former_has_no_prev_decl []
+  = "ident `%s' in former item has no previous decl";
+char ERR_used_decl_redefinition_not_mentioned_in_later []
+  = "`%s' redefines an used decl not mentioned in later item";
+char ERR_here_is_corresponding_use_clause []
+  = "here is the corresponding use clause for `%s'";
+char ERR_ident_in_former_item_is_not_declared_before_use []
+  = "`%s' mentioned in former item is not declared before the use-clause";
+char ERR_ident_in_later_item_is_not_declared_after_use []
+  = "`%s' mentioned in later item is not declared after the use-clause";
 char ERR_decl_is_absent_in_a_block []
   = "there is no such declaration in a block";
 char ERR_invalid_type_of_arrow_left_operand []
@@ -145,10 +165,9 @@ char ERR_continue_is_not_in_loop []
   = "statement continue is not in for-statement";
 char ERR_break_is_not_in_loop []
   = "statement break is not in for-statement";
-char ERR_this_outside_fun_class_ext []
-  = "this is not in function, class, or extension";
-char ERR_return_outside_fun_class_ext []
-  = "statement return is not in function, class, or extension";
+char ERR_this_outside_fun_class [] = "this is not in function or class";
+char ERR_return_outside_fun_class []
+  = "statement return is not in function or class";
 char ERR_return_with_result_in_class []
   = "statement return with result is in class";
 char ERR_return_with_result_in_thread []
@@ -286,6 +305,8 @@ char DERR_repeated_key []
 char DERR_no_such_key []
   = "run time error - no such key in table";
 char DERR_in_table_operand_type [] = "run time error - non table right to `:'";
+char DERR_unfinished_fun_class_call []
+  = "run time error - unfinished fun/class `%s' call";
 char DERR_none_class_or_fun_before_left_bracket []
   = "run time error - none class or function is before \"(\"";
 char DERR_parameter_type []
@@ -387,7 +408,7 @@ char DERR_undefined_value_access []
 char DERR_private_decl_access_from_outside_block []
   = "run time error - access to private decl `%s' from outside";
 char DERR_undefined_class_or_fun []
-  = "run time error - undefined class or function";
+  = "run time error - undefined class or function `%s'";
 char DERR_immutable_vector_modification []
   = "run time error - attempt to modify immutable vector";
 char DERR_immutable_table_modification []

@@ -2793,8 +2793,7 @@ activate_process (void)
 {
   activate_given_process (ER_next (cprocess));
   if (first_process_not_started == cprocess)
-    eval_error (deadlock_bc_decl, errors_bc_decl, get_cpos (),
-		DERR_deadlock);
+    eval_error (deadlock_bc_decl, get_cpos (), DERR_deadlock);
   executed_stmts_count = -process_quantum; /* start new quantum */
 }
 
@@ -2988,8 +2987,7 @@ external_address (BC_node_t decl)
 	}
 #endif
       if (*curr_libname_ptr == NULL)
-	eval_error (noextern_bc_decl, invexterns_bc_decl, get_cpos (),
-		    DERR_no_such_external, name);
+	eval_error (noextern_bc_decl, get_cpos (), DERR_no_such_external, name);
     }
   BC_set_address (decl, address);
   if (BC_IS_OF_TYPE (decl, BC_NM_evdecl))

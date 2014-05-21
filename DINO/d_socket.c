@@ -483,6 +483,7 @@ _accept (int npars, val_t *vals)
 
   d_assert (npars == 1 && ER_NODE_MODE ((ER_node_t) vals) == ER_NM_int);
   sd = ER_i ((ER_node_t) vals);
+  addr_len = sizeof (struct sockaddr_in);
   new_sd = accept (sd, (struct sockaddr *)&saddr, &addr_len);
   if (new_sd < 0)
     {

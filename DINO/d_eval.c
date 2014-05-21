@@ -93,8 +93,7 @@ process_var_val (ER_node_t res, BC_node_t vdecl)
 
   ref = get_var_val_ref (vdecl);
   if (ER_NODE_MODE (ref) == ER_NM_undef)
-    eval_error (accessop_bc_decl, invaccesses_bc_decl,
-		get_cpos (), DERR_undefined_value_access,
+    eval_error (accessop_bc_decl, get_cpos (), DERR_undefined_value_access,
 		BC_ident (vdecl));
   *(val_t *) res = *(val_t *) ref;
 }
@@ -114,15 +113,13 @@ process_external_var (ER_node_t res, BC_node_t evdecl,
       if (val_too_p)
 	{
 	  if (ER_NODE_MODE ((ER_node_t) addr) == ER_NM_undef)
-	    eval_error (accessop_bc_decl, invaccesses_bc_decl,
-			get_cpos (), DERR_undefined_value_access,
-			BC_ident (evdecl));
+	    eval_error (accessop_bc_decl, get_cpos (),
+			DERR_undefined_value_access, BC_ident (evdecl));
 	  *(val_t *) IVAL (res, 2) = *(val_t *) addr;
 	}
     }
   else if (ER_NODE_MODE ((ER_node_t) addr) == ER_NM_undef)
-    eval_error (accessop_bc_decl, invaccesses_bc_decl,
-		get_cpos (), DERR_undefined_value_access,
+    eval_error (accessop_bc_decl, get_cpos (), DERR_undefined_value_access,
 		BC_ident (evdecl));
   else
     *(val_t *) res = *(val_t *) addr;
@@ -163,7 +160,7 @@ check_member_access (BC_node_t decl, BC_node_t fblock)
 	      break;
 	  }
       if (curr_block == NULL)
-	eval_error (accessop_bc_decl, invaccesses_bc_decl, get_designator_pos (),
+	eval_error (accessop_bc_decl, get_designator_pos (),
 		    DERR_private_decl_access_from_outside_block,
 		    BC_ident (decl));
     }
@@ -180,7 +177,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
   if (ER_NODE_MODE (op) == ER_NM_stack)
     container = ER_stack (op);
   else
-    eval_error (accessop_bc_decl, invaccesses_bc_decl, get_cpos (),
+    eval_error (accessop_bc_decl, get_cpos (),
 		DERR_value_is_not_class_instance_or_stack);
   decl = NULL;
   for (;;)
@@ -199,7 +196,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 	break;
     }
   if (decl == NULL)
-    eval_error (accessop_bc_decl, invaccesses_bc_decl, get_cpos (),
+    eval_error (accessop_bc_decl, get_cpos (),
 		DERR_decl_is_absent_in_given_class_or_block);
   else
     check_member_access (decl, block);
@@ -231,9 +228,8 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 	  ER_node_t ref = IVAL (ER_stack_vars (container), BC_var_num (decl));
 	  
 	  if (ER_NODE_MODE (ref) == ER_NM_undef)
-	    eval_error (accessop_bc_decl, invaccesses_bc_decl,
-			get_cpos (), DERR_undefined_value_access,
-			BC_ident (decl));
+	    eval_error (accessop_bc_decl, get_cpos (),
+			DERR_undefined_value_access, BC_ident (decl));
 	  *(val_t *) val = *(val_t *) ref;
 	}
       break;
@@ -241,20 +237,25 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
       process_external_var (res, decl, lvalue_p, lvalue_val_p);
       break;
     case BC_NM_fdecl:
-      decl = BC_fblock (decl);
-      if (lvalue_p)
-	eval_error (accessop_bc_decl, invaccesses_bc_decl,
-		    get_cpos (),
-		    BC_NODE_MODE (decl) == BC_NM_fblock && BC_class_p (decl)
-		    ? DERR_class_as_variable : DERR_fun_as_variable);
-      ER_SET_MODE (res, ER_NM_code);
-      ER_set_code_context (res, container);
-      ER_set_code_id (res, CODE_ID (decl));
+      {
+	BC_node_t fblock = BC_fblock (decl);
+
+	if (fblock == NULL)
+	  eval_error (accessvalue_bc_decl, get_cpos (),
+		      DERR_undefined_class_or_fun, BC_ident (decl));
+	if (lvalue_p)
+	  eval_error
+	    (accessop_bc_decl, get_cpos (),
+	     BC_NODE_MODE (fblock) == BC_NM_fblock && BC_class_p (fblock)
+	     ? DERR_class_as_variable : DERR_fun_as_variable);
+	ER_SET_MODE (res, ER_NM_code);
+	ER_set_code_context (res, container);
+	ER_set_code_id (res, CODE_ID (fblock));
+      }
       break;
     case BC_NM_efdecl:
       if (lvalue_p)
-	eval_error (accessop_bc_decl, invaccesses_bc_decl,
-		    get_cpos (), DERR_fun_as_variable);
+	eval_error (accessop_bc_decl, get_cpos (), DERR_fun_as_variable);
       ER_SET_MODE (res, ER_NM_efun);
       ER_set_efdecl (res, decl);
       break;
@@ -273,19 +274,17 @@ check_vector_index (ER_node_t vect, ER_node_t index)
     {
       index = implicit_int_conversion (index, (ER_node_t) &tvar);
       if (ER_NODE_MODE (index) != ER_NM_int)
-	eval_error (indextype_bc_decl, invindexes_bc_decl,
-		    get_cpos (), DERR_index_is_not_int);
+	eval_error (indextype_bc_decl, get_cpos (), DERR_index_is_not_int);
     }
   index_value = ER_i (index);
   if (index_value < 0
       || (unsigned_int_t) index_value >= ER_els_number (vect))
     {
       if (index_value < 0)
-	eval_error (indexvalue_bc_decl, invindexes_bc_decl,
+	eval_error (indexvalue_bc_decl,
 		    get_designator_pos (), DERR_index_is_negative_number);
       else
-	eval_error (indexvalue_bc_decl, invindexes_bc_decl,
-		    get_designator_pos (),
+	eval_error (indexvalue_bc_decl, get_designator_pos (),
 		    DERR_index_is_greater_than_array_bound);
     }
   return index_value;
@@ -441,7 +440,7 @@ store_vector_element (ER_node_t vect, ER_node_t index, ER_node_t val)
   GO_THROUGH_REDIR (vect);
   pack_flag = ER_NODE_MODE (vect) == ER_NM_heap_pack_vect;
   if (ER_immutable (vect))
-    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
+    eval_error (immutable_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   index_val = check_vector_index (vect, index);
   if (pack_flag && ER_pack_vect_el_type (vect) != ER_NODE_MODE (val))
@@ -464,8 +463,7 @@ load_table_element_by_key (ER_node_t to, ER_node_t tab, ER_node_t key)
   entry = find_tab_entry (tab, key, FALSE);
   if (ER_NODE_MODE (entry) == ER_NM_empty_entry
       || ER_NODE_MODE (entry) == ER_NM_deleted_entry)
-    eval_error (keyvalue_bc_decl, invkeys_bc_decl, get_cpos (),
-		DERR_no_such_key);
+    eval_error (keyvalue_bc_decl, get_cpos (), DERR_no_such_key);
   *(val_t *) to = *(val_t *) INDEXED_ENTRY_VAL (entry, 0);
   d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0), ER_NM_val));
 }
@@ -477,7 +475,7 @@ store_table_element (ER_node_t tab, ER_node_t index, ER_node_t val)
 
   GO_THROUGH_REDIR (tab);
   if (ER_immutable (tab))
-    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
+    eval_error (immutable_bc_decl, get_designator_pos (),
 		DERR_immutable_table_modification);
   entry = find_tab_entry (tab, index, TRUE);
   *(val_t *) entry = *(val_t *) index;
@@ -490,7 +488,7 @@ static void do_inline
 store_stack_element (ER_node_t stack, ER_node_t index, ER_node_t val)
 {
   if (ER_immutable (stack))
-    eval_error (immutable_bc_decl, invaccesses_bc_decl,
+    eval_error (immutable_bc_decl,
 		get_designator_pos (), DERR_immutable_instance_modification);
   *(val_t *) IVAL (ER_stack_vars (stack), ER_i (index)) = *(val_t *) val;
 }
@@ -519,7 +517,7 @@ store_vect_tab_designator_value (ER_node_t vec_tab, ER_node_t index, ER_node_t v
   else if (ER_NODE_MODE (vec_tab) == ER_NM_tab)
     store_table_element (ER_tab (vec_tab), index, val);
   else
-    eval_error (indexop_bc_decl, invindexes_bc_decl, get_designator_pos (),
+    eval_error (indexop_bc_decl, get_designator_pos (),
 		DERR_index_operation_for_non_vec_tab);
 }
 
@@ -527,7 +525,7 @@ static void do_inline
 store_stack_designator_value (ER_node_t stack, ER_node_t index, ER_node_t val)
 {
   if (ER_NODE_MODE (stack) != ER_NM_stack)
-    eval_error (accessop_bc_decl, invaccesses_bc_decl, get_designator_pos (),
+    eval_error (accessop_bc_decl, get_designator_pos (),
 		DERR_value_is_not_class_instance_or_stack);
   store_stack_element (ER_stack (stack), index, val);
 }
@@ -543,13 +541,13 @@ check_and_get_slice_info (ER_node_t start_val, unsigned_int_t vec_len,
   int_t start0, bound0, step0, niter0, abs_step;
 
   if (ER_NODE_MODE (IVAL (start_val, 0)) != ER_NM_int)
-    eval_error (slicetype_bc_decl, invslices_bc_decl, get_designator_pos (),
+    eval_error (slicetype_bc_decl, get_designator_pos (),
 		DERR_slice_start_is_not_int, depth);
   if (ER_NODE_MODE (IVAL (start_val, 1)) != ER_NM_int)
-    eval_error (slicetype_bc_decl, invslices_bc_decl,	get_designator_pos (),
+    eval_error (slicetype_bc_decl,	get_designator_pos (),
 		DERR_slice_bound_is_not_int, depth);
   if (ER_NODE_MODE (IVAL (start_val, 2)) != ER_NM_int)
-    eval_error (slicetype_bc_decl, invslices_bc_decl,	get_designator_pos (),
+    eval_error (slicetype_bc_decl, get_designator_pos (),
 		DERR_slice_step_is_not_int, depth);
   start0 = ER_i (IVAL (start_val, 0));
   bound0 = ER_i (IVAL (start_val, 1));
@@ -596,7 +594,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
   vect1 = container1;
   GO_THROUGH_REDIR (vect1);
   if (ER_immutable (vect1))
-    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
+    eval_error (immutable_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   pack_flag1 = ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect;
   len1 = ER_els_number (vect1);
@@ -673,7 +671,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
       else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
-	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
+	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els1 = ER_pack_els (vect1);
@@ -695,8 +693,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	    {
 	      v1 = IVAL (unpack_els1, i1);
 	      if (ER_NODE_MODE (v1) != ER_NM_vect)
-		eval_error (sliceform_bc_decl, invslices_bc_decl,
-			    get_designator_pos (),
+		eval_error (sliceform_bc_decl, get_designator_pos (),
 			    DERR_slice_operand_form, depth);
 	      v1 = ER_vect (v1);
 	      p = process_slice_extract (v1, IVAL (start_val1, 3), dim1,
@@ -717,7 +714,7 @@ slice_extract (ER_node_t res, ER_node_t container, int_t dim)
   ER_node_t vect;
 
   if (ER_NODE_MODE (container) != ER_NM_vect)
-    eval_error (sliceform_bc_decl, invslices_bc_decl,	get_designator_pos (),
+    eval_error (sliceform_bc_decl, get_designator_pos (),
 		DERR_slice_operand_form, 1);
   vect = process_slice_extract (ER_vect (container),
 				IVAL (container, 1), dim, 1);
@@ -747,7 +744,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
   vect1 = container1;
   GO_THROUGH_REDIR (vect1);
   if (ER_immutable (vect1))
-    eval_error (immutable_bc_decl, invaccesses_bc_decl, get_designator_pos (),
+    eval_error (immutable_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   pack_flag1 = ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect;
   len1 = ER_els_number (vect1);
@@ -762,7 +759,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       
     }
   if (dim2 != 0 && niter1 != niter2)
-    eval_error (optype_bc_decl, invops_bc_decl, get_designator_pos (),
+    eval_error (optype_bc_decl, get_designator_pos (),
 		DERR_different_slice_operand_lengths, niter1, niter2, depth);
   if (dim1 == 1 && dim2 == 0)
     {
@@ -927,7 +924,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
       else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
-	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
+	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els1 = ER_pack_els (vect1);
@@ -949,8 +946,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		{
 		  v1 = IVAL (unpack_els1, i1);
 		  if (ER_NODE_MODE (v1) != ER_NM_vect)
-		    eval_error (sliceform_bc_decl, invslices_bc_decl,
-				get_designator_pos (),
+		    eval_error (sliceform_bc_decl, get_designator_pos (),
 				DERR_slice_operand_form, depth);
 		  v1 = ER_vect (v1);
 		}
@@ -965,14 +961,14 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
       else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
-	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
+	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els1 = ER_pack_els (vect1);
       if (! pack_flag2)
 	unpack_els2 = ER_unpack_els (vect2);
       else if (dim2 > 1 && ER_pack_vect_el_type (vect2) != ER_NM_vect)
-	eval_error (sliceform_bc_decl, invslices_bc_decl, get_designator_pos (),
+	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els2 = ER_pack_els (vect2);
@@ -996,8 +992,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		{
 		  v1 = IVAL (unpack_els1, i1);
 		  if (ER_NODE_MODE (v1) != ER_NM_vect)
-		    eval_error (sliceform_bc_decl, invslices_bc_decl,
-				get_designator_pos (),
+		    eval_error (sliceform_bc_decl, get_designator_pos (),
 				DERR_slice_operand_form, depth);
 		  v1 = ER_vect (v1);
 		}
@@ -1007,8 +1002,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		{
 		  v2 = IVAL (unpack_els2, i2);
 		  if (ER_NODE_MODE (v2) != ER_NM_vect)
-		    eval_error (sliceform_bc_decl, invslices_bc_decl,
-				get_designator_pos (),
+		    eval_error (sliceform_bc_decl, get_designator_pos (),
 				DERR_slice_operand_form, depth);
 		  v2 = ER_vect (v2);
 		}
@@ -1026,8 +1020,8 @@ slice_assign (ER_node_t container, int_t dim, ER_node_t val)
   int_t val_dim = 0;
 
   if (ER_NODE_MODE (container) != ER_NM_vect)
-    eval_error (sliceform_bc_decl, invslices_bc_decl,
-		get_designator_pos (), DERR_slice_operand_form, 1);
+    eval_error (sliceform_bc_decl, get_designator_pos (),
+		DERR_slice_operand_form, 1);
   if (ER_NODE_MODE (val) == ER_NM_vect)
     {
       val_dim = ER_dim (val);
@@ -1047,9 +1041,9 @@ static pc_t
 find_catch_pc (ER_node_t except)
 {
   BC_node_t block;
-  BC_node_t curr_scope;
   ER_node_t message;
   struct trace_stack_elem elem;
+  val_t v1, v2;
 
   if (trace_flag)
     VLO_NULLIFY (trace_stack);
@@ -1089,24 +1083,30 @@ find_catch_pc (ER_node_t except)
       else if (cstack == NULL)
 	break;
     }
-  for (curr_scope = ER_block_node (except);
-       curr_scope != NULL;
-       curr_scope = BC_scope (curr_scope))
-    if (curr_scope == error_bc_decl)
-      break;
-  message = IVAL (ER_stack_vars (except), 0);
-  if (curr_scope != NULL && ER_NODE_MODE (message) == ER_NM_vect)
+  ER_SET_MODE ((ER_node_t) &v1, ER_NM_stack);
+  ER_set_stack ((ER_node_t) &v1, except);
+  ER_SET_MODE ((ER_node_t) &v2, ER_NM_code);
+  ER_set_code_id ((ER_node_t) &v2, CODE_ID (error_bc_decl));
+  if (internal_isa_call (NULL, (ER_node_t) &v2, (ER_node_t) &v1))
     {
-      ER_node_t vect;
+      BC_node_t decl = get_another_block_decl (ER_block_node (except),
+					       msg_bc_decl);
 
-      vect = ER_vect (message);
-      GO_THROUGH_REDIR (vect);
-      if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect)
-	pack_vector_if_possible (vect);
-      if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (vect) == ER_NM_char)
-	/* No return after error. */
-	d_error (! repl_flag, exception_position, ER_pack_els (vect));
+      d_assert (BC_NODE_MODE (decl) == BC_NM_vdecl);
+      message = IVAL (ER_stack_vars (except), BC_var_num (decl));
+      if (ER_NODE_MODE (message) == ER_NM_vect)
+	{
+	  ER_node_t vect;
+	  
+	  vect = ER_vect (message);
+	  GO_THROUGH_REDIR (vect);
+	  if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect)
+	    pack_vector_if_possible (vect);
+	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
+	      && ER_pack_vect_el_type (vect) == ER_NM_char)
+	    /* No return after error. */
+	    d_error (! repl_flag, exception_position, ER_pack_els (vect));
+	}
     }
   if (! repl_flag)
     {
@@ -1289,7 +1289,7 @@ execute_ar_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
 	  ER_set_l (res, lop (op1, op2));
 	}
       else
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), err_message);
+	eval_error (optype_bc_decl, get_cpos (), err_message);
     }
 }
 
@@ -1358,7 +1358,7 @@ execute_int_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
 	  ER_set_i (res, iop (op_i1, op_i2));
 	}
       else
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), err_message);
+	eval_error (optype_bc_decl, get_cpos (), err_message);
     }
 }
 
@@ -1415,8 +1415,7 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
   op1 = to_vect_string_conversion (op1, NULL, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op2) != ER_NM_vect
       || ER_NODE_MODE (op1) != ER_NM_vect)
-    eval_error (optype_bc_decl, invops_bc_decl,
-		get_cpos (), DERR_concat_operands_types);
+    eval_error (optype_bc_decl,	get_cpos (), DERR_concat_operands_types);
   vect1 = ER_vect (op1);
   vect2 = ER_vect (op2);
   if (ER_NODE_MODE (vect2) != ER_NODE_MODE (vect1)
@@ -1463,7 +1462,6 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
     {
       ER_node_t result;
       
-      fprintf (stderr, "concat...");
       els_number = ER_els_number (vect2) + ER_els_number (vect1);
       result = create_unpack_vector (els_number);
       if (ER_els_number (vect1) != 0)
@@ -1491,8 +1489,7 @@ execute_in_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
       return;
     }
   if (ER_NODE_MODE (op2) != ER_NM_tab)
-    eval_error (keyop_bc_decl, invkeys_bc_decl,
-		get_cpos (), DERR_in_table_operand_type);
+    eval_error (keyop_bc_decl, get_cpos (), DERR_in_table_operand_type);
   tab = ER_tab (op2);
   GO_THROUGH_REDIR (tab);
   entry = find_tab_entry (tab, op1, FALSE);
@@ -1521,8 +1518,7 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
   if (ER_NODE_MODE (r) != ER_NODE_MODE (l))
     {
       if (ER_NODE_MODE (l) == ER_NM_undef || ER_NODE_MODE (r) == ER_NM_undef)
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		    DERR_eq_operands_types);
+	eval_error (optype_bc_decl, get_cpos (), DERR_eq_operands_types);
       cmp = 0;
     }
   else
@@ -1536,8 +1532,7 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
 	abort ();
 #endif
       case ER_NM_undef:
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		    DERR_eq_operands_types);
+	eval_error (optype_bc_decl, get_cpos (), DERR_eq_operands_types);
 	break;
       case ER_NM_nil:
 	cmp = 1;
@@ -1663,7 +1658,7 @@ execute_common_cmp_op (BC_node_mode_t oper, ER_node_t res,
 	      : (oper == BC_NM_le ? lle (ER_l (l), ER_l (r))
 		 : lge (ER_l (l), ER_l (r)))));
   else
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+    eval_error (optype_bc_decl, get_cpos (),
 		(oper == BC_NM_lt ? DERR_lt_operands_types
 		 : (oper == BC_NM_gt ? DERR_gt_operands_types
 		    : (oper == BC_NM_le ? DERR_le_operands_types
@@ -1714,16 +1709,14 @@ execute_identity_op (int identity_p,
     {
       if (ER_NODE_MODE (op1) == ER_NM_undef
 	  || ER_NODE_MODE (op2) == ER_NM_undef)
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		    DERR_identity_operands_types);
+	eval_error (optype_bc_decl, get_cpos (), DERR_identity_operands_types);
       cmp = FALSE;
     }
   else
     switch (ER_NODE_MODE (op1))
       {
       case ER_NM_undef:
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		    DERR_identity_operands_types);
+	eval_error (optype_bc_decl, get_cpos (), DERR_identity_operands_types);
 	break;
       case ER_NM_nil:
 	cmp = 1;
@@ -1836,8 +1829,7 @@ execute_unary_ar_op (ER_node_t res, ER_node_t op1, int vect_p,
       ER_set_l (res, l);
     }
   else
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		err_message);
+    eval_error (optype_bc_decl, get_cpos (), err_message);
 }
 
 /* The following different functions to implement unary
@@ -1869,8 +1861,7 @@ execute_not_op (ER_node_t res, ER_node_t op1, int vect_p)
   else if (ER_NODE_MODE (op1) == ER_NM_long)
     i = lnot (ER_l (op1));
   else
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		DERR_not_operand_type);
+    eval_error (optype_bc_decl, get_cpos (), DERR_not_operand_type);
   ER_SET_MODE (res, ER_NM_int);
   ER_set_i (res, i);
 }
@@ -1902,8 +1893,7 @@ execute_bitwise_not_op (ER_node_t res, ER_node_t op1, int vect_p)
 	  ER_set_i (res, i);
 	}
       else
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		    DERR_bitwise_not_operand_type);
+	eval_error (optype_bc_decl, get_cpos (), DERR_bitwise_not_operand_type);
     }
 }
 
@@ -1920,8 +1910,7 @@ execute_length_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = to_vect_string_conversion (op1, NULL, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_vect && ER_NODE_MODE (op1) != ER_NM_tab)
-    eval_error (optype_bc_decl, invops_bc_decl,
-		get_cpos (), DERR_length_operand_type);
+    eval_error (optype_bc_decl,	get_cpos (), DERR_length_operand_type);
   if (ER_NODE_MODE (op1) == ER_NM_vect)
     {
       ER_node_t vect = ER_vect (op1);
@@ -2025,7 +2014,7 @@ execute_charof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = implicit_int_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_int)
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+    eval_error (optype_bc_decl, get_cpos (),
 		DERR_conversion_to_char_operand_type);
   if (ER_i (op1) > MAX_CHAR || ER_i (op1) < 0)
     {
@@ -2052,8 +2041,7 @@ execute_intof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = implicit_int_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_int)
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
-		DERR_conversion_to_int_operand_type);
+    eval_error (optype_bc_decl, get_cpos (), DERR_conversion_to_int_operand_type);
   i = ER_i (op1);
   ER_SET_MODE (res, ER_NM_int);
   ER_set_i (res, i);
@@ -2072,7 +2060,7 @@ execute_longof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = implicit_long_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_long)
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+    eval_error (optype_bc_decl, get_cpos (),
 		DERR_conversion_to_long_operand_type);
   l = ER_l (op1);
   ER_SET_MODE (res, ER_NM_long);
@@ -2092,7 +2080,7 @@ execute_floatof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = implicit_float_conversion (op1, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op1) != ER_NM_float)
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+    eval_error (optype_bc_decl, get_cpos (),
 		DERR_conversion_to_float_operand_type);
   f = ER_f (op1);
   ER_SET_MODE (res, ER_NM_float);
@@ -2127,13 +2115,13 @@ execute_vectorof_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 	  && ER_NODE_MODE (op1) != ER_NM_float
 	  && (ER_NODE_MODE (ER_vect (op1)) != ER_NM_heap_pack_vect
 	      || ER_pack_vect_el_type (ER_vect (op1)) != ER_NM_char))
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+	eval_error (optype_bc_decl, get_cpos (),
 		    DERR_format_conversion_to_vector_operand_type);
       op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);
       if (ER_NODE_MODE (op2) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (op2)) != ER_NM_heap_pack_vect
 	  || ER_pack_vect_el_type (ER_vect (op2)) != ER_NM_char)
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+	eval_error (optype_bc_decl, get_cpos (),
 		    DERR_vector_conversion_format_type);
       op1 = to_vect_string_conversion (op1, ER_pack_els (ER_vect (op2)),
 				       (ER_node_t) &tvar1);
@@ -2148,7 +2136,7 @@ execute_vectorof_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
   else if (ER_NODE_MODE (op1) == ER_NM_tab) 
     vect = table_to_vector_conversion (ER_tab (op1));
   else
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+    eval_error (optype_bc_decl, get_cpos (),
 		DERR_conversion_to_vector_operand_type);
   ER_SET_MODE (res, ER_NM_vect);
   set_vect_dim (res, vect, 0);
@@ -2173,7 +2161,7 @@ execute_tableof_op (ER_node_t res, ER_node_t op1, int vect_p)
       if (ER_NODE_MODE (op1) == ER_NM_vect)
 	tab = vector_to_table_conversion (ER_vect (op1));
       else
-	eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+	eval_error (optype_bc_decl, get_cpos (),
 		    DERR_conversion_to_table_operand_type);
     }
   ER_SET_MODE (res, ER_NM_tab);
@@ -2467,7 +2455,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	  el_type2 = ER_NM__error;
 	}
       if (len1 != len2)
-	eval_error (veclen_bc_decl, invectors_bc_decl, get_cpos (),
+	eval_error (veclen_bc_decl, get_cpos (),
 		    DERR_different_vec_operand_lengths, len1, len2, depth);
     }
   if (dim1 > 1)
@@ -2477,12 +2465,12 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
       /* Process recursively  */
       dim1--;
       if (pack_flag1 && el_type1 != ER_NM_vect)
-	eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
+	eval_error (vecform_bc_decl, get_left_operand_pos (),
 		    DERR_vector_form_type, depth);
       if (! scalar_p2)
 	{
 	  if (pack_flag2 && el_type2 != ER_NM_vect)
-	    eval_error (vecform_bc_decl, invectors_bc_decl, get_right_operand_pos (),
+	    eval_error (vecform_bc_decl, get_right_operand_pos (),
 			DERR_vector_form_type, depth);
 	  dim2--;
 	}
@@ -2496,8 +2484,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	    {
 	      v1 = IVAL (unpack_els1, i);
 	      if (ER_NODE_MODE (v1) != ER_NM_vect)
-		eval_error (vecform_bc_decl, invectors_bc_decl,
-			    get_left_operand_pos (),
+		eval_error (vecform_bc_decl, get_left_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v1 = ER_vect (v1);
 	    }
@@ -2509,8 +2496,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	    {
 	      v2 = IVAL (unpack_els2, i);
 	      if (ER_NODE_MODE (v2) != ER_NM_vect)
-		eval_error (vecform_bc_decl, invectors_bc_decl,
-			    get_right_operand_pos (),
+		eval_error (vecform_bc_decl, get_right_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v2 = ER_vect (v2);
 	    }
@@ -3115,14 +3101,14 @@ binary_vect_op (ER_node_t res, ER_node_t op1, ER_node_t op2)
   if (ER_NODE_MODE (op1) == ER_NM_vect)
     op1 = ER_vect (op1);
   else
-    eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
+    eval_error (vecform_bc_decl, get_left_operand_pos (),
 		DERR_vector_form_type, 1);
   if (dim2 != 0)
     {
       if (ER_NODE_MODE (op2) == ER_NM_vect)
 	op2 = ER_vect (op2);
       else
-	eval_error (vecform_bc_decl, invectors_bc_decl, get_right_operand_pos (),
+	eval_error (vecform_bc_decl, get_right_operand_pos (),
 		    DERR_vector_form_type, 1);
     }
   vect = process_binary_vect_op (rev_p, op1, dim1, op2, dim2, 1);
@@ -3190,7 +3176,7 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
       /* Process recursively  */
       dim--;
       if (pack_flag && el_type != ER_NM_vect)
-	eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
+	eval_error (vecform_bc_decl, get_left_operand_pos (),
 		    DERR_vector_form_type, depth);
       res = create_pack_vector (len, ER_NM_vect);
       ER_set_els_number (res, 0);
@@ -3202,8 +3188,7 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 	    {
 	      v = IVAL (unpack_els, i);
 	      if (ER_NODE_MODE (v) != ER_NM_vect)
-		eval_error (vecform_bc_decl, invectors_bc_decl,
-			    get_left_operand_pos (),
+		eval_error (vecform_bc_decl, get_left_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v = ER_vect (v);
 	    }
@@ -3350,7 +3335,7 @@ unary_vect_op (ER_node_t res, ER_node_t op)
   if (ER_NODE_MODE (op) == ER_NM_vect)
     op = ER_vect (op);
   else
-    eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
+    eval_error (vecform_bc_decl, get_left_operand_pos (),
 		DERR_vector_form_type, 1);
   vect = process_unary_vect_op (op, dim, 1);
   ER_SET_MODE (res, ER_NM_vect);
@@ -3438,7 +3423,7 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
       /* Process recursively  */
       dim--;
       if (pack_flag && el_type != ER_NM_vect)
-	eval_error (vecform_bc_decl, invectors_bc_decl, get_left_operand_pos (),
+	eval_error (vecform_bc_decl, get_left_operand_pos (),
 		    DERR_vector_form_type, depth);
       for (i = 0; i < len; i++)
 	{
@@ -3448,8 +3433,7 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
 	    {
 	      v = IVAL (unpack_els, i);
 	      if (ER_NODE_MODE (v) != ER_NM_vect)
-		eval_error (vecform_bc_decl, invectors_bc_decl,
-			    get_left_operand_pos (),
+		eval_error (vecform_bc_decl, get_left_operand_pos (),
 			    DERR_vector_form_type, depth);
 	      v = ER_vect (v);
 	    }
@@ -3524,7 +3508,7 @@ fold_vect_op (ER_node_t res, ER_node_t op)
   if (ER_NODE_MODE (op) == ER_NM_vect && dim > 0)
     op = ER_vect (op);
   else
-    eval_error (vecform_bc_decl, invectors_bc_decl,
+    eval_error (vecform_bc_decl,
 		BC_pos2 (BC_info (cpc)), DERR_vector_form_type, 1);
   ER_SET_MODE (res, ER_NM_int);
   switch (BC_NODE_MODE (cpc))
@@ -3643,7 +3627,8 @@ execute_btcmpi (ER_node_t op1, int_t i,
 	       int fcmp (floating_t, floating_t),
 	       void gencmp (BC_node_mode_t, ER_node_t, ER_node_t, ER_node_t, int))
 {
-  ER_node_t res;
+  ER_node_t res, op2;
+  static val_t v;
 
   if (ER_NODE_MODE (op1) == ER_NM_int)
     {
@@ -3655,9 +3640,10 @@ execute_btcmpi (ER_node_t op1, int_t i,
       return NULL;
     }
   res = get_op (BC_bcmp_res (cpc));
-  ER_SET_MODE (res, ER_NM_int);
-  ER_set_i (res, i);
-  comp_op (cmp_nm, res, op1, res, FALSE, icmp, fcmp, gencmp);
+  op2 = (ER_node_t) &v;
+  ER_SET_MODE (op2, ER_NM_int);
+  ER_set_i (op2, i);
+  comp_op (cmp_nm, res, op1, op2, FALSE, icmp, fcmp, gencmp);
   return res;
 }
 
@@ -3695,7 +3681,7 @@ non_zero_p (ER_node_t op, const char *msg)
   else if (ER_NODE_MODE (op) == ER_NM_long)
     return mpz_sgn (*ER_mpz_ptr (ER_l (op))) != 0;
   else
-    eval_error (optype_bc_decl, invops_bc_decl, get_cpos (), msg);
+    eval_error (optype_bc_decl, get_cpos (), msg);
 }
 
 static void
@@ -4071,8 +4057,7 @@ evaluate_code (void)
 					     NULL);
 		    if (ER_NODE_MODE (IVAL (op1, curr_vect_part_number))
 			!= ER_NM_int)
-		      eval_error (optype_bc_decl, invops_bc_decl,
-				  get_cpos (),
+		      eval_error (optype_bc_decl, get_cpos (),
 				  DERR_elist_repetition_type);
 		    else if (ER_i (IVAL (op1, curr_vect_part_number)) > 0)
 		      els_number += ER_i (IVAL (op1, curr_vect_part_number));
@@ -4152,8 +4137,7 @@ evaluate_code (void)
 					TRUE);
 		if (ER_NODE_MODE (entry) != ER_NM_empty_entry
 		    && ER_NODE_MODE (entry) != ER_NM_deleted_entry)
-		  eval_error (keyvalue_bc_decl, invkeys_bc_decl,
-			      get_cpos (), DERR_repeated_key,
+		  eval_error (keyvalue_bc_decl, get_cpos (), DERR_repeated_key,
 			      curr_tab_el_number);
 		*(val_t *) entry = *(val_t *) IVAL (op1, curr_tab_el_number);
 		make_immutable (entry);
@@ -4182,7 +4166,7 @@ evaluate_code (void)
 	    else if (ER_NODE_MODE (op1) == ER_NM_tab)
 	      load_table_element_by_key (res, ER_tab (op1), op2);
 	    else
-	      eval_error (indexop_bc_decl, invindexes_bc_decl, get_cpos (),
+	      eval_error (indexop_bc_decl, get_cpos (),
 			  DERR_index_operation_for_non_vec_tab);
 	    INCREMENT_PC ();
 	    break;
@@ -4511,14 +4495,14 @@ evaluate_code (void)
 	  extract_op1 (&op2);
 	  i = BC_bcmp_op2 (cpc);
 	  if ((op1 = execute_btcmpi (op2, i, BC_NM_eq, ieq, feq,
-				     execute_common_cmp_op)) != NULL)
+				     execute_common_eq_ne_op)) != NULL)
 	    goto common_bt;
 	  break;
 	case BC_NM_btnei:
 	  extract_op1 (&op2);
 	  i = BC_bcmp_op2 (cpc);
 	  if ((op1 = execute_btcmpi (op2, i, BC_NM_ne, ine, fne,
-				     execute_common_cmp_op)) != NULL)
+				     execute_common_eq_ne_op)) != NULL)
 	    goto common_bt;
 	  break;
 	case BC_NM_btlti:
@@ -4580,7 +4564,7 @@ evaluate_code (void)
 
 	    extract_op3 (&tv, &op1, &op2);
 	    if (ER_NODE_MODE (tv) != ER_NM_tab)
-	      eval_error (keyop_bc_decl, invkeys_bc_decl, get_cpos (),
+	      eval_error (keyop_bc_decl, get_cpos (),
 			  DERR_in_table_operand_type);
 	    tab = ER_tab (tv);
 	    GO_THROUGH_REDIR (tab);
@@ -4689,8 +4673,8 @@ evaluate_code (void)
 		  if (ER_NODE_MODE (res) == ER_NM_undef)
 		    {
 		      d_assert (BC_ret_decl (cpc) != NULL);
-		      eval_error (accessop_bc_decl, invaccesses_bc_decl,
-				  get_cpos (), DERR_undefined_value_access,
+		      eval_error (accessop_bc_decl, get_cpos (),
+				  DERR_undefined_value_access,
 				  BC_ident (BC_ret_decl (cpc)));
 		    }
 		  *(val_t *) IVAL (ER_ctop (ER_prev_stack (cstack)), 1)
@@ -4710,8 +4694,7 @@ evaluate_code (void)
 	    int true_p;
 
 	    if (sync_flag)
-	      eval_error (syncwait_bc_decl, errors_bc_decl, get_cpos (),
-			  DERR_wait_in_sync_stmt);
+	      eval_error (syncwait_bc_decl, get_cpos (), DERR_wait_in_sync_stmt);
 	    extract_op1 (&op1);
 	    true_p = non_zero_p (op1, DERR_invalid_wait_guard_expr_type);
 	    if (! true_p)
@@ -4745,9 +4728,9 @@ evaluate_code (void)
 	    ER_set_code_id (op2, CODE_ID (except_bc_decl));
 	    ER_set_code_context (op2, uppest_stack);
 	    op1 = get_op (BC_op1 (cpc));
-	    if (!ER_IS_OF_TYPE (op1, ER_NM_stack)
-		|| !internal_inside_call (&message, op2, op1, FALSE))
-	      eval_error (optype_bc_decl, invops_bc_decl, get_cpos (),
+	    if (! ER_IS_OF_TYPE (op1, ER_NM_stack)
+		|| ! internal_isa_call (&message, op2, op1))
+	      eval_error (optype_bc_decl, get_cpos (),
 			  DERR_no_exception_after_throw);
 	    exception_position = get_cpos ();
 	    cpc = find_catch_pc (ER_stack (op1));
@@ -4764,7 +4747,7 @@ evaluate_code (void)
 	    d_assert (ER_IS_OF_TYPE (op1, ER_NM_stack));
 	    exception = ER_stack (op1);
 	    if (ER_IS_OF_TYPE (op2, ER_NM_code)
-		&& internal_inside_call (&message, op2, op1, FALSE))
+		&& internal_isa_call (&message, op2, op1))
 	      {
 		INCREMENT_PC ();
 		d_assert (cpc != NULL
@@ -4795,8 +4778,8 @@ evaluate_code (void)
 	case BC_NM_move:
 	  extract_op2 (&res, &op1);
 	  if (ER_NODE_MODE (op1) == ER_NM_undef)
-	    eval_error (accessop_bc_decl, invaccesses_bc_decl,
-			get_cpos (), DERR_undefined_value_access,
+	    eval_error (accessop_bc_decl, get_cpos (),
+			DERR_undefined_value_access,
 			BC_ident (BC_rhs_decl (cpc)));
 	  *(val_t *) res = *(val_t *) op1;
 	  INCREMENT_PC ();
@@ -4841,8 +4824,8 @@ evaluate_code (void)
 	    ER_SET_MODE (res, ER_NM_code);
 	    fblock = BC_fblock (decl);
 	    if (fblock == NULL)
-	      eval_error (accessvalue_bc_decl, invaccess_bc_decl, get_cpos (),
-			  DERR_undefined_class_or_fun);
+	      eval_error (accessvalue_bc_decl, get_cpos (),
+			  DERR_undefined_class_or_fun, BC_ident (decl));
 	    ER_set_code_id (res, CODE_ID (fblock));
 	    ER_set_code_context
 	      (res, find_context_by_scope (BC_decl_scope (decl)));
@@ -4902,8 +4885,7 @@ initiate_vars (void)
 	if (program_environment [i][j] == '=')
 	  break;
       if (program_environment [i][j] == '\0')
-	eval_error (invenv_bc_decl, errors_bc_decl,
-		    no_position, DERR_environment_corrupted);
+	eval_error (invenv_bc_decl, no_position, DERR_environment_corrupted);
       program_environment [i][j] = '\0';
       string = create_string (program_environment [i]);
       program_environment [i][j] = '=';
@@ -4912,8 +4894,7 @@ initiate_vars (void)
       set_vect_dim ((ER_node_t) &key, string, 0);
       entry = find_tab_entry (tab, (ER_node_t) &key, TRUE);
       if (ER_NODE_MODE (entry) != ER_NM_empty_entry)
-	eval_error (invenv_bc_decl, errors_bc_decl,
-		    no_position, DERR_environment_corrupted);
+	eval_error (invenv_bc_decl, no_position, DERR_environment_corrupted);
       ER_SET_MODE (entry, ER_NM_vect);
       set_vect_dim (entry, string, 0);
       make_immutable (entry);
@@ -4953,7 +4934,7 @@ static jmp_buf eval_longjump_buff;
 #define MAX_EVAL_ERROR_MESSAGE_LENGTH 300
 
 void
-eval_error (BC_node_t except_class_block, BC_node_t context_var,
+eval_error (BC_node_t except_class_block,
 	    position_t position, const char *format, ...)
 {
   char message[MAX_EVAL_ERROR_MESSAGE_LENGTH + 1];
@@ -4967,9 +4948,7 @@ eval_error (BC_node_t except_class_block, BC_node_t context_var,
   d_assert (strlen (message) <= MAX_EVAL_ERROR_MESSAGE_LENGTH);
   exception_position = position;
   string = create_string (message);
-  heap_push (except_class_block,
-	     ER_stack (IVAL (ER_stack_vars (uppest_stack),
-			     BC_var_num (context_var))), -1);
+  heap_push (except_class_block, uppest_stack, -1);
   error_instance = cstack;
   heap_pop ();
   /* Zeroth variable is message in class `error' */
