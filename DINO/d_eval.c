@@ -298,7 +298,7 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
   size_t el_type_size;
 
   d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
-  el_type = ER_pack_vect_el_type (vect);
+  el_type = ER_pack_vect_el_mode (vect);
   ER_SET_MODE (to, el_type);
   switch ((unsigned char) el_type)
     {
@@ -377,7 +377,7 @@ store_packed_vector_element (ER_node_t vect, int_t index_val, ER_node_t val)
   size_t el_type_size;
   
   d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
-  el_type = ER_pack_vect_el_type (vect);
+  el_type = ER_pack_vect_el_mode (vect);
   d_assert (ER_NODE_MODE (val) == el_type);
   switch ((unsigned char) el_type)
     {
@@ -443,7 +443,7 @@ store_vector_element (ER_node_t vect, ER_node_t index, ER_node_t val)
     eval_error (immutable_bc_decl, get_designator_pos (),
 		DERR_immutable_vector_modification);
   index_val = check_vector_index (vect, index);
-  if (pack_flag && ER_pack_vect_el_type (vect) != ER_NODE_MODE (val))
+  if (pack_flag && ER_pack_vect_el_mode (vect) != ER_NODE_MODE (val))
     {
       vect = unpack_vector (vect);
       pack_flag = FALSE;
@@ -605,7 +605,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (pack_flag1)
 	{
 	  pack_els1 = ER_pack_els (vect1);
-	  el_type1 = ER_pack_vect_el_type (vect1);
+	  el_type1 = ER_pack_vect_el_mode (vect1);
 	  vect = create_pack_vector (niter1, el_type1);
 	  pack_els = ER_pack_els (vect);
 	  switch (el_type1)
@@ -670,7 +670,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       d_assert (dim1 > 1);
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
-      else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
+      else if (dim1 > 1 && ER_pack_vect_el_mode (vect1) != ER_NM_vect)
 	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
@@ -763,10 +763,10 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 		DERR_different_slice_operand_lengths, niter1, niter2, depth);
   if (dim1 == 1 && dim2 == 0)
     {
-      if (pack_flag1 && ER_pack_vect_el_type (vect1) == ER_NODE_MODE (container2))
+      if (pack_flag1 && ER_pack_vect_el_mode (vect1) == ER_NODE_MODE (container2))
 	{
 	  pack_els1 = ER_pack_els (vect1);
-	  el_type1 = ER_pack_vect_el_type (vect1);
+	  el_type1 = ER_pack_vect_el_mode (vect1);
 	  switch (el_type1)
 	    {
 	    case ER_NM_nil:
@@ -846,7 +846,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	  vect2 = unpack_vector (vect2);
 	}
       if (pack_flag1
-	  && ER_pack_vect_el_type (vect1) != ER_pack_vect_el_type (vect2))
+	  && ER_pack_vect_el_mode (vect1) != ER_pack_vect_el_mode (vect2))
 	{
 	  d_assert (pack_flag2);
 	  pack_flag1 = pack_flag2 = FALSE;
@@ -856,9 +856,9 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       if (pack_flag1)
 	{
 	  pack_els1 = ER_pack_els (vect1);
-	  el_type1 = ER_pack_vect_el_type (vect1);
+	  el_type1 = ER_pack_vect_el_mode (vect1);
 	  pack_els2 = ER_pack_els (vect2);
-	  d_assert (el_type1 == ER_pack_vect_el_type (vect2));
+	  d_assert (el_type1 == ER_pack_vect_el_mode (vect2));
 	  switch (el_type1)
 	    {
 	    case ER_NM_nil:
@@ -923,7 +923,7 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       d_assert (dim1 > 1);
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
-      else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
+      else if (dim1 > 1 && ER_pack_vect_el_mode (vect1) != ER_NM_vect)
 	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
@@ -960,14 +960,14 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
       d_assert (dim1 > 1 && dim2 > 0);
       if (! pack_flag1)
 	unpack_els1 = ER_unpack_els (vect1);
-      else if (dim1 > 1 && ER_pack_vect_el_type (vect1) != ER_NM_vect)
+      else if (dim1 > 1 && ER_pack_vect_el_mode (vect1) != ER_NM_vect)
 	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
 	pack_els1 = ER_pack_els (vect1);
       if (! pack_flag2)
 	unpack_els2 = ER_unpack_els (vect2);
-      else if (dim2 > 1 && ER_pack_vect_el_type (vect2) != ER_NM_vect)
+      else if (dim2 > 1 && ER_pack_vect_el_mode (vect2) != ER_NM_vect)
 	eval_error (sliceform_bc_decl, get_designator_pos (),
 		    DERR_slice_operand_form, depth);
       else
@@ -1103,7 +1103,7 @@ find_catch_pc (ER_node_t except)
 	  if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect)
 	    pack_vector_if_possible (vect);
 	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	      && ER_pack_vect_el_type (vect) == ER_NM_char)
+	      && ER_pack_vect_el_mode (vect) == ER_NM_char)
 	    /* No return after error. */
 	    d_error (! repl_flag, exception_position, ER_pack_els (vect));
 	}
@@ -1420,8 +1420,8 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
   vect2 = ER_vect (op2);
   if (ER_NODE_MODE (vect2) != ER_NODE_MODE (vect1)
       || (ER_NODE_MODE (vect2) == ER_NM_heap_pack_vect
-	  && (ER_pack_vect_el_type (vect2)
-	      != ER_pack_vect_el_type (vect1))))
+	  && (ER_pack_vect_el_mode (vect2)
+	      != ER_pack_vect_el_mode (vect1))))
     {
       if (ER_NODE_MODE (vect2) == ER_NM_heap_pack_vect)
 	vect2 = unpack_vector (vect2);
@@ -1434,13 +1434,13 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
       size_t el_size;
       ER_node_t result;
       
-      if (ER_pack_vect_el_type (vect2) == ER_NM_nil)
-	result_el_type = ER_pack_vect_el_type (vect1);
-      else if (ER_pack_vect_el_type (vect1) == ER_NM_nil)
-	result_el_type = ER_pack_vect_el_type (vect2);
-      else if (ER_pack_vect_el_type (vect2)
-	       == ER_pack_vect_el_type (vect1))
-	result_el_type = ER_pack_vect_el_type (vect2);
+      if (ER_pack_vect_el_mode (vect2) == ER_NM_nil)
+	result_el_type = ER_pack_vect_el_mode (vect1);
+      else if (ER_pack_vect_el_mode (vect1) == ER_NM_nil)
+	result_el_type = ER_pack_vect_el_mode (vect2);
+      else if (ER_pack_vect_el_mode (vect2)
+	       == ER_pack_vect_el_mode (vect1))
+	result_el_type = ER_pack_vect_el_mode (vect2);
       else
 	d_unreachable ();
       el_size = type_size_table [result_el_type];
@@ -1989,14 +1989,16 @@ execute_const_op (ER_node_t res, ER_node_t op1, int vect_p)
 static void do_always_inline
 execute_typeof_op (ER_node_t res, ER_node_t op1, int vect_p)
 {
-  BC_node_mode_t type;
+  type_val_t type;
 
   if (vect_p && vect_unary_op (op1))
     {
       unary_vect_op (res, op1);
       return;
     }
-  type = ER_NODE_MODE (op1);
+  type = mode_to_type (ER_NODE_MODE (op1));
+  if (type == type_fun)
+    type = code_type (ID_TO_CODE (ER_code_id (op1)));
   ER_SET_MODE (res, ER_NM_type);
   ER_set_type (res, type);
 }
@@ -2114,13 +2116,13 @@ execute_vectorof_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 	  && ER_NODE_MODE (op1) != ER_NM_long
 	  && ER_NODE_MODE (op1) != ER_NM_float
 	  && (ER_NODE_MODE (ER_vect (op1)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_type (ER_vect (op1)) != ER_NM_char))
+	      || ER_pack_vect_el_mode (ER_vect (op1)) != ER_NM_char))
 	eval_error (optype_bc_decl, get_cpos (),
 		    DERR_format_conversion_to_vector_operand_type);
       op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);
       if (ER_NODE_MODE (op2) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (op2)) != ER_NM_heap_pack_vect
-	  || ER_pack_vect_el_type (ER_vect (op2)) != ER_NM_char)
+	  || ER_pack_vect_el_mode (ER_vect (op2)) != ER_NM_char)
 	eval_error (optype_bc_decl, get_cpos (),
 		    DERR_vector_conversion_format_type);
       op1 = to_vect_string_conversion (op1, ER_pack_els (ER_vect (op2)),
@@ -2166,81 +2168,6 @@ execute_tableof_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   ER_SET_MODE (res, ER_NM_tab);
   ER_set_tab (res, tab);
-}
-
-static void do_always_inline
-execute_funof_op (ER_node_t res, ER_node_t op1, int vect_p)
-{
-  BC_node_t block;
-
-  if (vect_p && vect_unary_op (op1))
-    {
-      unary_vect_op (res, op1);
-      return;
-    }
-  if (ER_NODE_MODE (op1) == ER_NM_stack
-      && (block = ER_block_node (ER_stack (op1))) != NULL
-      && BC_fun_p (block))
-    {
-      ER_node_t stack;
-      
-      stack = ER_stack (op1);
-      ER_SET_MODE (res, ER_NM_code);
-      ER_set_code_id (res, CODE_ID (block));
-      ER_set_code_context (res, ER_context (stack));
-    }
-  else
-    ER_SET_MODE (res, ER_NM_nil);
-}
-
-static void do_always_inline
-execute_threadof_op (ER_node_t res, ER_node_t op1, int vect_p)
-{
-  if (vect_p && vect_unary_op (op1))
-    {
-      unary_vect_op (res, op1);
-      return;
-    }
-  if (ER_NODE_MODE (op1) == ER_NM_process
-      && ER_process_block (ER_process (op1)) != NULL)
-    {
-      ER_node_t process;
-      
-      process = ER_process (op1);
-      ER_SET_MODE (res, ER_NM_code);
-      ER_set_code_id (res, CODE_ID (ER_process_block (process)));
-      ER_set_code_context (res, ER_context (process));
-    }
-  else
-    ER_SET_MODE (res, ER_NM_nil);
-}
-
-static void do_always_inline
-execute_classof_op (ER_node_t res, ER_node_t op1, int vect_p)
-{
-  if (vect_p && vect_unary_op (op1))
-    {
-      unary_vect_op (res, op1);
-      return;
-    }
-  if (ER_NODE_MODE (op1) == ER_NM_stack)
-    {
-      ER_node_t instance;
-      BC_node_t block;
-      
-      instance = ER_stack (op1);
-      block = ER_block_node (instance);
-      if (block == NULL || ! BC_class_p (block))
-	ER_SET_MODE (res, ER_NM_nil);
-      else
-	{
-	  ER_SET_MODE (res, ER_NM_code);
-	  ER_set_code_id (res, CODE_ID (block));
-	  ER_set_code_context (res, ER_context (instance));
-	}
-    }
-  else
-    ER_SET_MODE (res, ER_NM_nil);
 }
 
 static position_t
@@ -2424,7 +2351,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
     {
       pack_flag1 = TRUE;
       pack_els1 = ER_pack_els (op1);
-      el_type1 = ER_pack_vect_el_type (op1);
+      el_type1 = ER_pack_vect_el_mode (op1);
     }
   else
     {
@@ -2446,7 +2373,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	{
 	  pack_flag2 = TRUE;
 	  pack_els2 = ER_pack_els (op2);
-	  el_type2 = ER_pack_vect_el_type (op2);
+	  el_type2 = ER_pack_vect_el_mode (op2);
 	}
       else
 	{
@@ -3161,7 +3088,7 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
     {
       pack_flag = TRUE;
       pack_els = ER_pack_els (op);
-      el_type = ER_pack_vect_el_type (op);
+      el_type = ER_pack_vect_el_mode (op);
     }
   else
     {
@@ -3305,15 +3232,6 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 	case BC_NM_tabof:
 	  execute_tableof_op (el_res, el, FALSE);
 	  break;
-	case BC_NM_funof:
-	  execute_funof_op (el_res, el, FALSE);
-	  break;
-	case BC_NM_threadof:
-	  execute_threadof_op (el_res, el, FALSE);
-	  break;
-	case BC_NM_classof:
-	  execute_classof_op (el_res, el, FALSE);
-	  break;
 	default:
 	  d_unreachable ();
 	}
@@ -3410,7 +3328,7 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
     {
       pack_flag = TRUE;
       pack_els = ER_pack_els (op);
-      el_type = ER_pack_vect_el_type (op);
+      el_type = ER_pack_vect_el_mode (op);
     }
   else
     {
@@ -4010,21 +3928,6 @@ evaluate_code (void)
 	case BC_NM_tabof:
 	  extract_op2 (&res, &op1);
 	  execute_tableof_op (res, op1, TRUE);
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_funof:
-	  extract_op2 (&res, &op1);
-	  execute_funof_op (res, op1, TRUE);
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_threadof:
-	  extract_op2 (&res, &op1);
-	  execute_threadof_op (res, op1, TRUE);
-	  INCREMENT_PC ();
-	  break;
-	case BC_NM_classof:
-	  extract_op2 (&res, &op1);
-	  execute_classof_op (res, op1, TRUE);
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_vec:

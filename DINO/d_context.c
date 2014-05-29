@@ -211,6 +211,8 @@ first_expr_processing (IR_node_t expr)
     case IR_NM_vec_type:
     case IR_NM_tab_type:
     case IR_NM_fun_type:
+    case IR_NM_class_type:
+    case IR_NM_thread_type:
     case IR_NM_stack_type:
     case IR_NM_process_type:
     case IR_NM_type_type:
@@ -985,10 +987,14 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  first_expr_processing (IR_stmt_expr (stmt));
 	  break;
 	case IR_NM_assign:
+	  first_expr_processing (IR_assignment_var (stmt));
+	  first_expr_processing (IR_assignment_expr (stmt));
+	  break;
 	case IR_NM_var_assign:
 	case IR_NM_par_assign:
 	  first_expr_processing (IR_assignment_var (stmt));
-	  first_expr_processing (IR_assignment_expr (stmt));
+	  /* var/val initialization is already processed -- see
+	     IR_NM_var processing.  */
 	  break;
 	case IR_NM_mult_assign:
 	case IR_NM_div_assign:
@@ -1153,6 +1159,12 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  {
 	    IR_node_t block, prev_decl, redir, ident = IR_ident (stmt);
 
+	    if (node_mode == IR_NM_var && next_stmt != NULL
+		&& (IR_NODE_MODE (next_stmt) == IR_NM_var_assign
+		    || IR_NODE_MODE (next_stmt) == IR_NM_par_assign))
+	      /* Process idents in init expr before the
+		 declaration.  */
+	      first_expr_processing (IR_assignment_expr (next_stmt));
 	    IR_set_it_is_declared_in_block (IR_unique_ident (ident), TRUE);
 	    if (IR_access (stmt) == DEFAULT_ACCESS)
 	      IR_set_access
@@ -1488,9 +1500,6 @@ process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
     case IR_NM_floatof: bc_node_mode = BC_NM_fof; break;
     case IR_NM_vecof: bc_node_mode = BC_NM_vecof; break;
     case IR_NM_tabof: bc_node_mode = BC_NM_tabof; break;
-    case IR_NM_funof: bc_node_mode = BC_NM_funof; break;
-    case IR_NM_threadof: bc_node_mode = BC_NM_threadof; break;
-    case IR_NM_classof: bc_node_mode = BC_NM_classof; break;
     case IR_NM_new: bc_node_mode = BC_NM_new; break;
     case IR_NM_const: bc_node_mode = BC_NM_const; break;
     default:
@@ -1829,18 +1838,20 @@ ir2er_type (IR_node_mode_t irnm)
 {
   switch (irnm)
     {
-    case IR_NM_char_type: return ER_NM_char;
-    case IR_NM_int_type: return ER_NM_int;
-    case IR_NM_long_type: return ER_NM_long;
-    case IR_NM_float_type: return ER_NM_float;
-    case IR_NM_hide_type: return ER_NM_hide;
-    case IR_NM_hideblock_type: return ER_NM_hideblock;
-    case IR_NM_vec_type: return ER_NM_vect;
-    case IR_NM_tab_type: return ER_NM_tab;
-    case IR_NM_fun_type: return ER_NM_code;
-    case IR_NM_stack_type: return ER_NM_stack;
-    case IR_NM_process_type: return ER_NM_process;
-    case IR_NM_type_type: return ER_NM_type;
+    case IR_NM_char_type: return type_char;
+    case IR_NM_int_type: return type_int;
+    case IR_NM_long_type: return type_long;
+    case IR_NM_float_type: return type_float;
+    case IR_NM_hide_type: return type_hide;
+    case IR_NM_hideblock_type: return type_hideblock;
+    case IR_NM_vec_type: return type_vect;
+    case IR_NM_tab_type: return type_tab;
+    case IR_NM_fun_type: return type_fun;
+    case IR_NM_class_type: return type_class;
+    case IR_NM_thread_type: return type_thread;
+    case IR_NM_stack_type: return type_obj;
+    case IR_NM_process_type: return type_process;
+    case IR_NM_type_type: return type_type;
     default:
       d_unreachable ();
     }
@@ -1999,6 +2010,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
     case IR_NM_vec_type:
     case IR_NM_tab_type:
     case IR_NM_fun_type:
+    case IR_NM_class_type:
+    case IR_NM_thread_type:
     case IR_NM_stack_type:
     case IR_NM_process_type:
     case IR_NM_type_type:

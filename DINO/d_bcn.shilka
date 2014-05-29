@@ -75,9 +75,6 @@ lof		{return BC_NM_lof;}
 fof		{return BC_NM_fof;}
 vecof		{return BC_NM_vecof;}
 tabof		{return BC_NM_tabof;}
-funof		{return BC_NM_funof;}
-threadof	{return BC_NM_threadof;}
-classof		{return BC_NM_classof;}
 fmtvecof	{return BC_NM_fmtvecof;}
 in		{return BC_NM_in;}
 or		{return BC_NM_or;}

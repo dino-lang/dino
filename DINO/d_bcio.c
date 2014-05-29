@@ -213,9 +213,6 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_fof:
 	case BC_NM_vecof:
 	case BC_NM_tabof:
-	case BC_NM_funof:
-	case BC_NM_threadof:
-	case BC_NM_classof:
 	  printf (" op1=%d op2=%d // %d <- %d", BC_op1 (bc), BC_op2 (bc),
 		  BC_op1 (bc), BC_op2 (bc));
 	  break;

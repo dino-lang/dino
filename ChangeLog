@@ -1,3 +1,67 @@
+2014-05-29  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_bc.sprut (TRANSLITERATE_NAME, transliterate_bc_decl): Rename
+	to TRANSLIT_NAME and translit_bc_decl.
+	(CLOSURE_NAME, closure_bc_decl): New.
+	(funof, threadof, classof): Remove.
+	(bc_decls_table): Add entry for closure.
+	* DINO/d_bcio.c (dump_code): Remove funof, threadof, and classof.
+	* DINO/d_bcn.shilka: Ditto.
+	* DINO/d_built.h (transliterate_call): Rename to translit_call.
+	(closure_call): New.
+	* DINO/d_context.c (first_expr_processing): Add cases for class
+	and thread types.  Process only assignment var for var_assign and
+	par_assign.
+	(first_block_passing): Process assignment expr in var_assign and
+	par_assign after the var declarations.
+	(process_unary_op): Remove cases for funof, classof, threadof.
+	(ir2er_type): Return the type, not mode.
+	(second_expr_processing): Add cases for class and thread types.
+	* DINO/d_conv.c: Rename pack_vect_el_type to pack_vect_el_mode.
+	* DINO/d_eval.c: Ditto.
+	(execute_typeof_op): Use mode_to_type and code_type.
+	(execute_funof_op, execute_threadof_op, execute_classof_op):
+	Remove.
+	(process_unary_vect_op, evaluate_code): Remove cases for funof,
+	classof, threadof.
+	* DINO/d_extern.sprut (enum type_val, type_val_t): New.
+	(pack_vect_el_type): Rename to pack_vect_el_mode.
+	* DINO/d_func.c: Rename pack_vect_el_type to pack_vect_el_mode.
+	(transliterate_call): Rename to translit_call.
+	(eltype_call): Use mode_to_type and code_type.
+	(closure_call): New.
+	(print_val): Use types, not modes.
+	(fuidn_call): Check null getpwuid result.
+	* DINO/d_heap.c: Rename pack_vect_el_type to pack_vect_el_mode.
+	* DINO/d_ir.sprut (ENVIRONMENT): Remove unnecessary ().  Use
+	pub/priv keywords.  Add closure.
+	(class_type, thread_type): New.
+	* DINO/d_kw.shilka (ACLASS, AFUN, ATHREAD, CLOSURE): Remove.
+	(priv, pub): Add.
+	* DINO/d_run.sprut (mode_to_type, code_type): New.
+	* DINO/d_yacc.y (process_obj_header, process_obj_block): New.
+	(process_fun_start): New.
+	(ACLASS, AFUN, ATHREAD, CLOSURE): Remove.
+	(PRIV/PUB): Add.
+	(afun_thread_class): Remove.
+	(type): New nonterm.  Use fun_thread_class.
+	(expr): Separate types.  Remove rules for funof/classof/threadof.
+	(aheader): Flatten out, use fun_thread_class.
+	(val_var_list): Propagate access.
+	(val_var): Remove access attached to ident.
+	(declaration): Add access to a declaration.  Add rules for object.
+	(extern_list): Propagate access.
+	(extern_item): Remove access attached to ident.
+	(header): Ditto.  Flatten out.
+	(fun_thread_class_start): Flatten out.
+	(par): Put access first.
+	(formal_parameters): Move to nonterminal up '(' and ')'.
+	* DINO/{ieee.d, ipcerr.d, mpi.d, socket.d}: Use keywords pub/priv.
+	* DINO/dino.tst.in: Modify tests with types, accesses, anonymous
+	functions.  Add tests for closure.  Rename transliterate to
+	translit.  Add test for bug for initialization with redifinition.
+	Add tests for obj.
+
 2014-05-21  Vladimir N Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/position.c: Fix typo in a comment.

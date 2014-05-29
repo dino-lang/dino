@@ -700,7 +700,7 @@ tailored_heap_object_size (ER_node_t obj)
     {
       size = ER_allocated_length (obj);
       el_size = (node_mode == ER_NM_heap_pack_vect
-		 ? type_size_table [ER_pack_vect_el_type (obj)]
+		 ? type_size_table [ER_pack_vect_el_mode (obj)]
 		 : sizeof (val_t));
       all_els_size = ER_els_number (obj) * el_size;
       head_size = ALLOC_SIZE (ER_node_size [node_mode]);
@@ -806,7 +806,7 @@ traverse_used_heap_object (ER_node_t obj)
       return;
     case ER_NM_heap_pack_vect:
       {
-	ER_node_mode_t el_type = ER_pack_vect_el_type (obj);
+	ER_node_mode_t el_type = ER_pack_vect_el_mode (obj);
 	size_t el_size;
 	
 	if (el_type == ER_NM_undef || el_type == ER_NM_nil
@@ -1117,7 +1117,7 @@ change_obj_refs (ER_node_t obj)
 	  ER_node_mode_t el_type;
 	  size_t el_size;
 	  
-	  el_type = ER_pack_vect_el_type (obj);
+	  el_type = ER_pack_vect_el_mode (obj);
 	  if (el_type == ER_NM_undef || el_type == ER_NM_nil || el_type == ER_NM_hide
 	      || el_type == ER_NM_char || el_type == ER_NM_int
 	      || el_type == ER_NM_float || el_type == ER_NM_type)
@@ -1751,7 +1751,7 @@ create_empty_vector (void)
   ER_SET_MODE (vect, ER_NM_heap_pack_vect);
   ER_set_immutable (vect, FALSE);
   ER_set_allocated_length (vect, ALLOC_SIZE (sizeof (_ER_heap_pack_vect)));
-  ER_set_pack_vect_el_type (vect, ER_NM_nil);
+  ER_set_pack_vect_el_mode (vect, ER_NM_nil);
   ER_set_els_number (vect, 0);
   ER_set_disp (vect, 0);
   return vect;
@@ -1789,7 +1789,7 @@ create_pack_vector (size_t els_number, ER_node_mode_t eltype)
 					  * type_size_table [eltype]));
   pack_vect = heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
-  ER_set_pack_vect_el_type (pack_vect, eltype);
+  ER_set_pack_vect_el_mode (pack_vect, eltype);
   ER_set_immutable (pack_vect, FALSE);
   ER_set_els_number (pack_vect, els_number);
   ER_set_disp (pack_vect, 0);
@@ -1811,7 +1811,7 @@ expand_vector (ER_node_t vect, size_t els_number)
   vect_els_number = ER_els_number (vect);
   allocated_length = ER_allocated_length (vect);
   if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-      && ER_pack_vect_el_type (vect) == ER_NM_char)
+      && ER_pack_vect_el_mode (vect) == ER_NM_char)
     {
       els_number++; /* for trailing zero byte */
       vect_els_number++;
@@ -1827,7 +1827,7 @@ expand_vector (ER_node_t vect, size_t els_number)
     {
       header_length = ALLOC_SIZE (sizeof (_ER_heap_pack_vect));
       els = ER_pack_els (vect);
-      el_length = type_size_table [ER_pack_vect_el_type (vect)];
+      el_length = type_size_table [ER_pack_vect_el_mode (vect)];
     }
   if (allocated_length < header_length + els_number * el_length)
     allocated_length = (header_length
@@ -1885,7 +1885,7 @@ unpack_vector (ER_node_t vect)
   allocated_length = ER_allocated_length (vect);
   immutable = ER_immutable (vect);
   els_number = ER_els_number (vect);
-  el_type = ER_pack_vect_el_type (vect);
+  el_type = ER_pack_vect_el_mode (vect);
   el_size = type_size_table [el_type];
   prev_vect = vect;
   pack_vect_allocated_length = allocated_length;
@@ -1975,7 +1975,7 @@ pack_vector_if_possible (ER_node_t unpack_vect)
 	els [els_number] = '\0';
       ER_SET_MODE (pack_vect, ER_NM_heap_pack_vect);
       ER_set_immutable (pack_vect, immutable);
-      ER_set_pack_vect_el_type (pack_vect, el_type);
+      ER_set_pack_vect_el_mode (pack_vect, el_type);
       ER_set_els_number (pack_vect, els_number);
       ER_set_disp (pack_vect, 0);
       ER_set_allocated_length (pack_vect, allocated_length);
@@ -1993,10 +1993,10 @@ eq_vector (ER_node_t v1, ER_node_t v2)
     return FALSE;
   if (ER_NODE_MODE (v1) == ER_NM_heap_pack_vect
       && ER_NODE_MODE (v2) == ER_NM_heap_pack_vect)
-    return (ER_pack_vect_el_type (v1) == ER_pack_vect_el_type (v2)
+    return (ER_pack_vect_el_mode (v1) == ER_pack_vect_el_mode (v2)
 	    && memcmp (ER_pack_els (v1), ER_pack_els (v2),
 		       ER_els_number (v1)
-		       * type_size_table [ER_pack_vect_el_type (v1)]) == 0);
+		       * type_size_table [ER_pack_vect_el_mode (v1)]) == 0);
   if (ER_NODE_MODE (v1) == ER_NM_heap_unpack_vect)
     pack_vector_if_possible (v1);
   if (ER_NODE_MODE (v2) == ER_NM_heap_unpack_vect)
@@ -2004,10 +2004,10 @@ eq_vector (ER_node_t v1, ER_node_t v2)
   if (ER_NODE_MODE (v1) != ER_NODE_MODE (v2))
     return FALSE;
   else if (ER_NODE_MODE (v1) == ER_NM_heap_pack_vect)
-    return (ER_pack_vect_el_type (v1) == ER_pack_vect_el_type (v2)
+    return (ER_pack_vect_el_mode (v1) == ER_pack_vect_el_mode (v2)
 	    && memcmp (ER_pack_els (v1), ER_pack_els (v2),
 		       ER_els_number (v1)
-		       * type_size_table [ER_pack_vect_el_type (v1)]) == 0);
+		       * type_size_table [ER_pack_vect_el_mode (v1)]) == 0);
   else
     return eq_val ((val_t *) ER_unpack_els (v1), (val_t *) ER_unpack_els (v2),
 		   ER_els_number (v1));
@@ -2223,7 +2223,7 @@ hash_key (ER_node_t key)
 	  {
 	    ER_node_t pv = ER_vect (key);
 
-	    if (ER_pack_vect_el_type (pv) == ER_NM_char)
+	    if (ER_pack_vect_el_mode (pv) == ER_NM_char)
 	      {
 		/* Special frequent case.  */
 		char *str;
@@ -2243,9 +2243,9 @@ hash_key (ER_node_t key)
 		size_t displ;
 		size_t el_size;
 		
-		ER_SET_MODE (var_ref, ER_pack_vect_el_type (pv));
+		ER_SET_MODE (var_ref, ER_pack_vect_el_mode (pv));
 		displ = val_displ (var_ref);
-		el_size = type_size_table [ER_pack_vect_el_type (pv)];
+		el_size = type_size_table [ER_pack_vect_el_mode (pv)];
 		for (hash = i = 0; i < ER_els_number (pv); i++)
 		  {
 		    /* We don't care about setting dimension for
@@ -2673,7 +2673,7 @@ vector_to_table_conversion (ER_node_t vect)
       else
 	{
 	  ER_node_t v = (ER_node_t) ((val_t *) entry + 1);
-	  ER_node_mode_t el_type = ER_pack_vect_el_type (vect);
+	  ER_node_mode_t el_type = ER_pack_vect_el_mode (vect);
 	  size_t el_type_size = type_size_table [el_type];
 
 	  ER_SET_MODE (v, el_type);

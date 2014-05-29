@@ -36,12 +36,12 @@ class socket_no_address_error (msg = nil) {use socket_error former msg;}
 class socket_no_recovery_error (msg = nil) {use socket_error former msg;}
 
 final class __socket_package () {
-  extern -_socket_errno, -_socket_invalid_address, -_socket_host_not_found,
-    -_socket_no_address, -_socket_no_recovery, -_socket_try_again, -_socket_eof,
-    -_gethostinfo (), -_getservbyport (), -_getservbyname (),
-    -_socket_init (), -_socket_fin ();
+  priv extern _socket_errno, _socket_invalid_address, _socket_host_not_found,
+    _socket_no_address, _socket_no_recovery, _socket_try_again, _socket_eof,
+    _gethostinfo (), _getservbyport (), _getservbyname (),
+    _socket_init (), _socket_fin ();
 
-  fun -generate_socket_exception () {
+  priv fun generate_socket_exception () {
     if (_socket_errno <= 0) throw socket_eof_except ();
     else if (_socket_errno == _socket_eof) throw socket_eof_except ();
     else if (_socket_errno in ipc_errs.n2e) throw ipc_errs.n2e [_socket_errno];
@@ -98,17 +98,17 @@ final class __socket_package () {
     return s;
   }
 
-  extern -_sread (), -_swrite (), -_recvfrom (), -_sendto (), -_accept (),
-    -_stream_client (), -_dgram_client (), -_stream_server (), -_dgram_server (),
-    -_close_socket ();
+  priv extern _sread (), _swrite (), _recvfrom (), _sendto (), _accept (),
+    _stream_client (), _dgram_client (), _stream_server (), _dgram_server (),
+    _close_socket ();
 
   // If you change it, change code of _recvfrom too.
-  class -datagram (str, peer_addr, port) {}
+  priv class datagram (str, peer_addr, port) {}
 
-  var -proxy_sfd = nil;
+  priv var proxy_sfd = nil;
 
   class stream_client (peer_addr, port) {
-    var -sfd;
+    priv var sfd;
 
     fun read (len) {
       if (type (len) != int)
@@ -127,7 +127,7 @@ final class __socket_package () {
       return nb;
     }
 
-    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
+    priv fun destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (peer_addr) != vec || eltype (peer_addr) != char
         || type (port) != int)
@@ -139,7 +139,7 @@ final class __socket_package () {
   }
 
   class dgram_client () {
-    var -sfd;
+    priv var sfd;
 
     fun recvfrom (len) {
       if (type (len) != int)
@@ -164,7 +164,7 @@ final class __socket_package () {
       return nb;
     }
 
-    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
+    priv fun destroy () {if (sfd != nil) _close_socket (sfd);}
 
     sfd = _dgram_client ();
     if (sfd == nil)
@@ -172,7 +172,7 @@ final class __socket_package () {
   }
 
   class stream_server (port, queue_len) { // bind
-    var -sfd;
+    priv var sfd;
 
     fun accept () {
       var v = _accept (sfd);
@@ -182,7 +182,7 @@ final class __socket_package () {
       return stream_client (v [1], v [2]);
     }
 
-    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
+    priv fun destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_optype_except ();
@@ -194,7 +194,7 @@ final class __socket_package () {
   }
 
   class dgram_server (port) {
-    var -sfd;
+    priv var sfd;
 
     fun recvfrom (len) {
       if (type (len) != int)
@@ -219,7 +219,7 @@ final class __socket_package () {
       return nb;
     }
 
-    fun -destroy () {if (sfd != nil) _close_socket (sfd);}
+    priv fun destroy () {if (sfd != nil) _close_socket (sfd);}
 
     if (type (port) != int)
       throw socket_optype_except ();
@@ -228,7 +228,7 @@ final class __socket_package () {
       generate_socket_exception ();
   }
 
-  fun -destroy () {_socket_fin ();}
+  priv fun destroy () {_socket_fin ();}
 
   _socket_init ();
 }

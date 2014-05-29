@@ -483,14 +483,17 @@ extern BC_node_t tolower_bc_decl;
 #define TOUPPER_NAME "toupper"
 extern BC_node_t toupper_bc_decl;
 
-#define TRANSLITERATE_NAME "transliterate"
-extern BC_node_t transliterate_bc_decl;
+#define TRANSLIT_NAME "translit"
+extern BC_node_t translit_bc_decl;
 
 #define ELTYPE_NAME "eltype"
 extern BC_node_t eltype_bc_decl;
 
 #define KEYS_NAME "keys"
 extern BC_node_t keys_bc_decl;
+
+#define CLOSURE_NAME "closure"
+extern BC_node_t closure_bc_decl;
 
 #define CONTEXT_NAME "context"
 extern BC_node_t context_bc_decl;
@@ -1036,8 +1039,7 @@ field :: op3
 fld, lfld, lfldv :: field;
 
 const, new, not, plus, minus, bnot, length,
- tpof, chof, iof, lof, fof, vecof, tabof,
- funof, threadof, classof :: op2; /* result and operand places */
+  tpof, chof, iof, lof, fof, vecof, tabof :: op2; /* result and operand places */
 
 /* vector folding operation (info is source2: pos2 is an operand one): */
 %abstract
@@ -1390,9 +1392,10 @@ BC_node_t min_bc_decl;
 BC_node_t max_bc_decl;
 BC_node_t tolower_bc_decl;
 BC_node_t toupper_bc_decl;
-BC_node_t transliterate_bc_decl;
+BC_node_t translit_bc_decl;
 BC_node_t eltype_bc_decl;
 BC_node_t keys_bc_decl;
+BC_node_t closure_bc_decl;
 BC_node_t context_bc_decl;
 BC_node_t inside_bc_decl;
 BC_node_t isa_bc_decl;
@@ -1652,9 +1655,10 @@ static struct bc_decl_entry bc_decls_table [] =
   {&min_bc_decl, MIN_NAME, NULL, min_call},
   {&tolower_bc_decl, TOLOWER_NAME, NULL, tolower_call},
   {&toupper_bc_decl, TOUPPER_NAME, NULL, toupper_call},
-  {&transliterate_bc_decl, TRANSLITERATE_NAME, NULL, transliterate_call},
+  {&translit_bc_decl, TRANSLIT_NAME, NULL, translit_call},
   {&eltype_bc_decl, ELTYPE_NAME, NULL, eltype_call},
   {&keys_bc_decl, KEYS_NAME, NULL, keys_call},
+  {&closure_bc_decl, CLOSURE_NAME, NULL, closure_call},
   {&context_bc_decl, CONTEXT_NAME, NULL, context_call},
   {&inside_bc_decl, INSIDE_NAME, NULL, inside_call},
   {&isa_bc_decl, ISA_NAME, NULL, isa_call},

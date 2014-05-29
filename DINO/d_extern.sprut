@@ -29,7 +29,7 @@
 /* Don't use -flat-structure for generation SPI from this description. */
 
 %type bool_t size_t hide_t char_t int_t unsigned_int_t floating_t char_ptr_t
-      bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t
+      bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t type_val_t
       process_status_t stack_ptr_t hidden_pc_t gmp_t
 
 %import {
@@ -80,6 +80,29 @@ enum process_status
 typedef enum process_status process_status_t;
 
 typedef struct ER_node **stack_ptr_t;
+
+/* Type value.  It is more compact and more elobarate than ER_node_mode_t.  */
+enum type_val
+{
+  type_undef,
+  type_nil,
+  type_char,
+  type_int,
+  type_long,
+  type_float,
+  type_hide,
+  type_hideblock,
+  type_vect,
+  type_tab,
+  type_fun,
+  type_class,
+  type_thread,
+  type_obj,
+  type_process,
+  type_type
+};
+
+typedef enum type_val type_val_t;
 
 }
 
@@ -345,7 +368,7 @@ heap_vect :: heap_vect_tab
      to have the same size of packed and unpacked vector header
      representation.  This is used during transformation unpacked
      vector into packed vector (see heap allocator and GC). */
-  pack_vect_el_type : ER_node_mode_t
+  pack_vect_el_mode : ER_node_mode_t
   /* ????? */
   disp : size_t
 ;
@@ -488,7 +511,7 @@ float :: val
 /*%final*/
 type :: val
 %other
-  type : ER_node_mode_t
+  type : type_val_t
 ;
 
 /*%final*/

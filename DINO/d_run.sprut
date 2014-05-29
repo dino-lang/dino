@@ -120,9 +120,51 @@ extern ER_node_t first_process_not_started;
 #define GO_THROUGH_REDIR(ref)\
  while (ER_NODE_MODE (ref) == ER_NM_heap_redir) (ref) = ER_redir (ref)
 
+/* Return type from val mode.  For code we return only type_fun.  It
+   can be made more accurately later.  */
+static inline type_val_t
+mode_to_type (ER_node_mode_t mode)
+{
+  switch (mode)
+    {
+    case ER_NM_nil: return type_nil;
+    case ER_NM_char: return type_char;
+    case ER_NM_int: return type_int;
+    case ER_NM_long: return type_long;
+    case ER_NM_float: return type_float;
+    case ER_NM_hide: return type_hide;
+    case ER_NM_hideblock: return type_hideblock;
+    case ER_NM_vect: return type_vect;
+    case ER_NM_tab: return type_tab;
+    case ER_NM_code: return type_fun;
+    case ER_NM_stack: return type_obj;
+    case ER_NM_process: return type_process;
+    case ER_NM_type: return type_type;
+    default:
+      d_unreachable ();
+    }
+}
+
+/* Return type of CODE.  */
+static inline type_val_t
+code_type (BC_node_t code)
+{
+  d_assert (BC_NODE_MODE (code) == BC_NM_fblock);
+
+  if (BC_fun_p (code))
+    return type_fun;
+  else if (BC_class_p (code))
+    return type_class;
+  else
+    {
+      d_assert (BC_thread_p (code));
+      return type_thread;
+    }
+}
+
 /* Return true if it is non-external function.  */
-static inline
-int fun_p (ER_node_t val)
+static inline int
+fun_p (ER_node_t val)
 {
   BC_node_t code;
 

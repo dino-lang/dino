@@ -23,14 +23,10 @@
 */
 
 %%
-aclass   {return ACLASS;}
-afun     {return AFUN;}
-athread  {return ATHREAD;}
 break    {return BREAK;}
 catch    {return CATCH;}
 char     {return CHAR;}
 class    {return CLASS;}
-closure  {return CLOSURE;}
 continue {return CONTINUE;}
 extern   {return EXTERN;}
 else     {return ELSE;}
@@ -51,7 +47,9 @@ long     {return LONG;}
 new      {return NEW;}
 nil      {return NIL;}
 obj      {return OBJ;}
+priv     {return PRIV;}
 process  {return PROCESS;}
+pub      {return PUB;}
 return   {return RETURN;}
 tab      {return TAB;}
 thread   {return THREAD;}

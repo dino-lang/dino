@@ -241,7 +241,7 @@ extern IR_node_t destroy_unique_ident;
    parsing.  The last character of the string *should* be \n.  That is
    important for correct work OF REPL. */
 #define ENVIRONMENT \
-  "class except () {}\n"\
+  "class except {}\n"\
   " class error (msg = nil) {use except;}\n"\
   "  class signal (msg = nil) {use error former msg;}\n"\
   "   class sigint (msg = nil) {use signal former msg;}\n"\
@@ -350,18 +350,18 @@ extern IR_node_t destroy_unique_ident;
   "class token (code) {}\n"\
   "val nil_anode = anode (\"$nil\", nil);\n"\
   "val error_anode = anode (\"$error\", nil);\n"\
-  "final class parser ()\n"\
+  "final class parser \n"\
   "{\n"\
   "  var ambiguous_p;\n"\
-  "  var -grammar;\n"\
+  "  priv var grammar;\n"\
   "\n"\
-  "  fun -int_earley_parse_grammar(){} fun -int_earley_set_debug_level(){}\n"\
-  "  fun -int_earley_set_one_parse_flag (){}\n"\
-  "  fun -int_earley_set_lookahead_level (){}\n"\
-  "  fun -int_earley_set_cost_flag (){}\n"\
-  "  fun -int_earley_set_error_recovery_flag () {}\n"\
-  "  fun -int_earley_set_recovery_match (){} fun -int_earley_parse (){}\n"\
-  "  fun -int_earley_create_grammar (){}\n"\
+  "  priv fun int_earley_parse_grammar {} priv fun int_earley_set_debug_level {}\n"\
+  "  priv fun int_earley_set_one_parse_flag {}\n"\
+  "  priv fun int_earley_set_lookahead_level {}\n"\
+  "  priv fun int_earley_set_cost_flag {}\n"\
+  "  priv fun int_earley_set_error_recovery_flag {}\n"\
+  "  priv fun int_earley_set_recovery_match {} priv fun int_earley_parse {}\n"\
+  "  priv fun int_earley_create_grammar {}\n"\
   "\n"\
   "  fun set_grammar (descr, strict_p) {\n"\
   "    int_earley_parse_grammar (grammar, strict_p, descr);\n"\
@@ -393,56 +393,56 @@ extern IR_node_t destroy_unique_ident;
   "  grammar = int_earley_create_grammar ();\n"\
   "}\n"\
   "// Do not place any code inside file (it is only for internal purposes)\n"\
-  "final class file (){\n"\
-  "  var -file_ptr;\n"\
+  "final class file {\n"\
+  "  priv var file_ptr;\n"\
   "  throw callop\n"\
   "    (\"File can be created only by functions open or popen\");}\n"\
   "val stdin;\n"\
   "val stdout;\n"\
   "val stderr;\n"\
-  "fun max (){} fun min (){}\n"\
-  "fun tolower (){} fun toupper (){} fun transliterate (){}\n"\
-  "fun eltype (){}\n"\
-  "fun keys (){}\n"\
-  "fun context (){} fun inside (){} fun isa (){}\n"\
-  "fun subv(){} fun cmpv(){} fun del(){} fun ins(){}  fun insv(){}\n"\
-  "fun rev(){} fun sort(){}\n"\
-  "fun sqrt (){} fun exp (){} fun log (){} fun log10(){} fun pow(){} \n"\
-  "fun sin(){} fun cos(){} fun atan2(){} \n"\
-  "fun match(){} fun gmatch(){} fun sub(){} fun gsub(){}\n"\
-  "fun split(){} var split_regex = \"[ \t]+\";\n"\
-  "fun srand(){} fun rand(){} \n"\
-  "fun __process_errno__() {} \n"\
-  "fun readdir(){} fun ftype () {}\n"\
-  "fun fuidn(){} fun fgrpn () {} fun fsize(){}\n"\
-  "fun fatime() {} fun fmtime(){} fun fctime () {}\n"\
-  "fun fumode() {} fun fgmode(){} fun fomode () {}\n"\
-  "fun time(){}\n"\
-  "fun strtime() {} var time_format = \"%a %b %d %H:%M:%S %Z %Y\";\n"\
-  "fun clock(){}\n"\
-  "fun gc() {} \n"\
-  "fun rename() {} fun remove(){}\n"\
-  "fun mkdir() {} fun rmdir(){}\n"\
-  "fun getcwd() {} fun chdir(){}\n"\
-  "fun chumod() {} fun chgmod() {} fun chomod() {} fun isatty(){}\n"\
-  "fun open() {} fun close(){} fun flush(){}\n"\
-  "fun popen() {} fun pclose(){}\n"\
-  "fun tell() {} fun seek() {}\n"\
-  "fun put(){} fun putln(){}\n"\
-  "fun fput(){} fun fputln(){} fun sput(){} fun sputln(){}\n"\
-  "fun putf (){} fun fputf (){} fun sputf (){}\n"\
-  "fun print(){} fun println(){}\n"\
-  "fun fprint(){} fun fprintln(){} fun sprint(){} fun sprintln(){}\n"\
-  "fun get(){} fun getln(){} fun getf(){}\n"\
-  "fun fget(){} fun fgetln(){} fun fgetf(){}\n"\
-  "fun scan(){} fun scanln(){} fun fscan(){} fun fscanln(){}\n"\
-  "fun getpid(){} fun getun(){} fun geteun(){}\n"\
-  "fun getgn(){} fun getegn(){} fun getgroups(){}\n"\
-  "fun system(){}\n"\
-  "fun exit(){}\n"\
-  "fun fold(){} fun filter(){} fun map(){}\n"\
-  "fun transpose(){}\n"\
-  "fun __init__() {} __init__();\n"
+  "fun max {} fun min {}\n"\
+  "fun tolower {} fun toupper {} fun translit {}\n"\
+  "fun eltype {}\n"\
+  "fun keys {}\n"\
+  "fun closure {} fun context {} fun inside {} fun isa {}\n"\
+  "fun subv {} fun cmpv {} fun del {} fun ins {}  fun insv {}\n"\
+  "fun rev {} fun sort {}\n"\
+  "fun sqrt {} fun exp {} fun log {} fun log10 {} fun pow {} \n"\
+  "fun sin {} fun cos {} fun atan2 {} \n"\
+  "fun match {} fun gmatch {} fun sub {} fun gsub {}\n"\
+  "fun split {} var split_regex = \"[ \t]+\";\n"\
+  "fun srand {} fun rand {} \n"\
+  "fun __process_errno__ {} \n"\
+  "fun readdir {} fun ftype {}\n"\
+  "fun fuidn {} fun fgrpn {} fun fsize {}\n"\
+  "fun fatime {} fun fmtime {} fun fctime {}\n"\
+  "fun fumode {} fun fgmode {} fun fomode {}\n"\
+  "fun time {}\n"\
+  "fun strtime {} var time_format = \"%a %b %d %H:%M:%S %Z %Y\";\n"\
+  "fun clock {}\n"\
+  "fun gc {} \n"\
+  "fun rename {} fun remove {}\n"\
+  "fun mkdir {} fun rmdir {}\n"\
+  "fun getcwd {} fun chdir {}\n"\
+  "fun chumod {} fun chgmod {} fun chomod {} fun isatty {}\n"\
+  "fun open {} fun close {} fun flush {}\n"\
+  "fun popen {} fun pclose {}\n"\
+  "fun tell {} fun seek {}\n"\
+  "fun put {} fun putln {}\n"\
+  "fun fput {} fun fputln {} fun sput {} fun sputln {}\n"\
+  "fun putf {} fun fputf {} fun sputf {}\n"\
+  "fun print {} fun println {}\n"\
+  "fun fprint {} fun fprintln {} fun sprint {} fun sprintln {}\n"\
+  "fun get {} fun getln {} fun getf {}\n"\
+  "fun fget {} fun fgetln {} fun fgetf {}\n"\
+  "fun scan {} fun scanln {} fun fscan {} fun fscanln {}\n"\
+  "fun getpid {} fun getun {} fun geteun {}\n"\
+  "fun getgn {} fun getegn {} fun getgroups {}\n"\
+  "fun system {}\n"\
+  "fun exit {}\n"\
+  "fun fold {} fun filter {} fun map {}\n"\
+  "fun transpose {}\n"\
+  "fun __init__ {} __init__();\n"
 }
 
 %local {
@@ -650,8 +650,8 @@ type :: expr
 /* The following nodes represent different types.  Type of nil is used
    only in the evaluator.  Actually there is no nodes `nil_type'. */
 nil_type, hide_type, hideblock_type, char_type, int_type, long_type, float_type,
-   vec_type, tab_type, fun_type, stack_type, process_type,
-   type_type :: type
+   vec_type, tab_type, fun_type, class_type, thread_type,
+   stack_type, process_type, type_type :: type
 ;
 
 /* The following structure represents vec, tab construction

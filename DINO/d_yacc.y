@@ -58,6 +58,10 @@ static IR_node_t process_header_block (IR_node_t, IR_node_t);
 
 static IR_node_t merge_additional_stmts (IR_node_t);
 
+static void process_obj_header (IR_node_t);
+static IR_node_t process_obj_block (IR_node_t, IR_node_t, access_val_t);
+static IR_node_t process_fun_start (IR_node_t, int, access_val_t);
+
 /* The following vars are used by yacc analyzer. */
 
 /* True when we can process typed statements in REPL.  */
@@ -104,10 +108,10 @@ static int repl_can_process_p (void);
    }
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
-%token <pos> ACLASS AFUN ATHREAD BREAK CATCH CHAR CLASS CLOSURE CONTINUE
-       ELSE EXTERN FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PROCESS RETURN TAB THIS THREAD THROW TRY TYPE
-       USE VAL VAR VEC WAIT
+%token <pos> BREAK CATCH CHAR CLASS CONTINUE ELSE EXTERN
+       FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
+       LONG LATER NEW NIL OBJ PRIV PROCESS PUB RETURN
+       TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
 %token <pos> MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN
@@ -138,10 +142,11 @@ static int repl_can_process_p (void);
 /* For resolution of conflicts: `TAB .' and `TAB . [' or `TAB . (',
    and `CHAR .' and `CHAR. (' etc.  */
 %nonassoc TAB CHAR INT LONG FLOAT VEC TYPE
+/* For resolution of conflicts: FUN . and FUN . '(' on '(' etc.  */
 %left '(' '[' '.'
 
 %type <pos> pos
-%type <pointer> afun_thread_class aheader expr designator
+%type <pointer> aheader expr designator type
                 elist_parts_list elist_parts_list_empty elist_part
                 expr_list expr_list_empty actual_parameters friend_list
                 val_var_list val_var
@@ -414,19 +419,8 @@ expr : expr '?' expr ':' expr
 	      YYABORT;
 	  }
        stmt_stop  {$$ = NULL;}
-     | STRING        {$$ = $1;}
-     | CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
-     | INT           {$$ = create_node_with_pos (IR_NM_int_type, $1);}
-     | LONG          {$$ = create_node_with_pos (IR_NM_long_type, $1);}
-     | FLOAT         {$$ = create_node_with_pos (IR_NM_float_type, $1);}
-     | HIDE          {$$ = create_node_with_pos (IR_NM_hide_type, $1);}
-     | HIDEBLOCK     {$$ = create_node_with_pos (IR_NM_hideblock_type, $1);}
-     | VEC           {$$ = create_node_with_pos (IR_NM_vec_type, $1);}
-     | TAB           {$$ = create_node_with_pos (IR_NM_tab_type, $1);}
-     | CLOSURE       {$$ = create_node_with_pos (IR_NM_fun_type, $1);}
-     | OBJ           {$$ = create_node_with_pos (IR_NM_stack_type, $1);}
-     | PROCESS       {$$ = create_node_with_pos (IR_NM_process_type, $1);}
-     | TYPE          {$$ = create_node_with_pos (IR_NM_type_type, $1);}
+     | STRING     {$$ = $1;}
+     | type       {$$ = $1;}
      | TYPE '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_typeof, $1);
@@ -468,44 +462,45 @@ expr : expr '?' expr ':' expr
           $$ = create_node_with_pos (IR_NM_tabof, $1);
           IR_set_operand ($$, $3);
         }
-     | FUN '(' expr ')'
-       	{
-          $$ = create_node_with_pos (IR_NM_funof, $1);
-          IR_set_operand ($$, $3);
-        }
-     | THREAD '(' expr ')'
-       	{
-          $$ = create_node_with_pos (IR_NM_threadof, $1);
-          IR_set_operand ($$, $3);
-        }
-     | CLASS '(' expr ')'
-       	{
-          $$ = create_node_with_pos (IR_NM_classof, $1);
-          IR_set_operand ($$, $3);
-	}
      | THIS { $$ = create_node_with_pos (IR_NM_this, $1); } 
      ;
-aheader : afun_thread_class { process_header (TRUE, $1, get_new_ident (IR_pos ($1))); }
-          formal_parameters  { $$ = process_formal_parameters ($1, $3); }
-        ;
-afun_thread_class : AFUN
-                      {
-		  	 $$ = create_node_with_pos (IR_NM_fun, $1);
-		  	 IR_set_thread_flag ($$, FALSE);
-		  	 IR_set_final_flag ($$, TRUE);
-		      }
-       	          | ATHREAD
-                      {
-		  	 $$ = create_node_with_pos (IR_NM_fun, $1);
-		  	 IR_set_thread_flag ($$, TRUE);
-		  	 IR_set_final_flag ($$, TRUE);
-		      }
-       	          | ACLASS
-                      {
-		  	 $$ = create_node_with_pos (IR_NM_class, $1);
-		  	 IR_set_final_flag ($$, TRUE);
-		      }
-      	          ;
+type : CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
+     | INT           {$$ = create_node_with_pos (IR_NM_int_type, $1);}
+     | LONG          {$$ = create_node_with_pos (IR_NM_long_type, $1);}
+     | FLOAT         {$$ = create_node_with_pos (IR_NM_float_type, $1);}
+     | HIDE          {$$ = create_node_with_pos (IR_NM_hide_type, $1);}
+     | HIDEBLOCK     {$$ = create_node_with_pos (IR_NM_hideblock_type, $1);}
+     | VEC           {$$ = create_node_with_pos (IR_NM_vec_type, $1);}
+     | TAB           {$$ = create_node_with_pos (IR_NM_tab_type, $1);}
+     | fun_thread_class %prec ':'
+         {
+	   $$ = create_node_with_pos (IR_NODE_MODE ($1) == IR_NM_fun
+				      ? IR_NM_fun_type
+				      : IR_NODE_MODE ($1) == IR_NM_class
+				      ? IR_NM_class_type
+				      : IR_NM_thread_type,
+				      IR_pos ($1));
+	 }
+     | OBJ           {$$ = create_node_with_pos (IR_NM_stack_type, $1);}
+     | PROCESS       {$$ = create_node_with_pos (IR_NM_process_type, $1);}
+     | TYPE          {$$ = create_node_with_pos (IR_NM_type_type, $1);}
+     ;
+aheader : fun_thread_class
+            {
+	      IR_set_final_flag ($1, TRUE);
+	      process_header (TRUE, $1, get_new_ident (IR_pos ($1)));
+	      $$ = process_formal_parameters ($1, NULL);
+            }
+        | fun_thread_class '('
+            {
+	      IR_set_final_flag ($1, TRUE);
+              process_header (TRUE, $1, get_new_ident (IR_pos ($1)));
+            }
+          formal_parameters ')'
+            {
+              $$ = process_formal_parameters ($1, $4);
+            }
+	;
 /* Stop symbols:*/
 eof_stop : END_OF_FILE          {yychar = END_OF_FILE;}
          | END_OF_INCLUDE_FILE  {yychar = END_OF_INCLUDE_FILE;}
@@ -667,17 +662,18 @@ expr_list : pos expr
               }
           ;
 access :      { $$ = DEFAULT_ACCESS; }
-       | '-'  { $$ = PRIVATE_ACCESS; }
-       | '+'  { $$ = PUBLIC_ACCESS; }
+       | PRIV { $$ = PRIVATE_ACCESS; }
+       | PUB  { $$ = PUBLIC_ACCESS; }
        ;
 /* Attribute value is cyclic list of stmts corresponding to var decls
-   with the pointer to the last element.  The attribute before
-   val_var_list must be flag of that this is in var decl (not
-   parameters). */
+   with the pointer to the last element.  The attributes before
+   val_var_list must be access flag and flag of that this is in val
+   decl (not in var decl). */
 val_var_list : val_var   {$$ = $1;}
-             | val_var_list ',' {$<flag>$ = $<flag>0;} val_var
+             | val_var_list ','
+                 {$<access>$ = $<access>-1;} {$<flag>$ = $<flag>0;} val_var
        	         {
-	           $$ = $4;
+	           $$ = $5;
 	           if ($1 != NULL)
 	     	     {
 		       IR_node_t first;
@@ -696,17 +692,17 @@ val_var_list : val_var   {$$ = $1;}
        	     ;
 /* Attribute value is cyclic list of stmts corresponding to var decl
    (and possibly assignment stmt) with the pointer to the last
-   element.  The attribute before val_var_list must be flag of
-   that this is in var decl (not parameters). */
-val_var : access IDENT
+   element.  The attributes before val_var_list must be access flag
+   and flag of that this is in val decl (not in var decl). */
+val_var : IDENT
             {
-	      $$ = process_var_decl ($1, $2, IR_pos ($2), $<flag>0,
-				     NULL, IR_pos ($2), IR_NM_var_assign);
+	      $$ = process_var_decl ($<access>-1, $1, IR_pos ($1), $<flag>0,
+				     NULL, IR_pos ($1), IR_NM_var_assign);
 	    }
-        | access IDENT '=' expr
+        | IDENT '=' expr
             {
-	      $$ = process_var_decl ($1, $2, IR_pos ($2), $<flag>0,
-				     $4, $3, IR_NM_var_assign);
+	      $$ = process_var_decl ($<access>-1, $1, IR_pos ($1), $<flag>0,
+				     $3, $2, IR_NM_var_assign);
 	    }
         ;
 /* Attribute value is cyclic list of stmts corresponding to stmt
@@ -1011,33 +1007,37 @@ friend_list : IDENT
    the pointer to last element.  Class (function) declaration is
    represented by two stmt nodes: class (function) node and block
    node. */
-declaration : VAL set_flag val_var_list {$<flag>$ = $<flag>0;}
-                end_simple_stmt {$$ = $3;}
-            | VAR clear_flag val_var_list {$<flag>$ = $<flag>0;}
-                end_simple_stmt {$$ = $3;}
-            | FRIEND friend_list {$<flag>$ = $<flag>0;}
-                end_simple_stmt
+declaration : access VAL {$<access>$ = $1;} set_flag
+                val_var_list {$<flag>$ = $<flag>0;} end_simple_stmt {$$ = $5;}
+            | access VAR {$<access>$ = $1;} clear_flag
+                val_var_list {$<flag>$ = $<flag>0;} end_simple_stmt {$$ = $5;}
+            | FRIEND friend_list {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  IR_set_friend_list (current_scope,
 				      merge_friend_lists
 				      (IR_friend_list (current_scope), $2));
 		  $$ = NULL;
 		}
-            | EXTERN clear_flag extern_list {$<flag>$ = $<flag>0;}
-                end_simple_stmt
-                {$$ = $3;}
+            | access EXTERN {$<access>$ = $1;}
+                extern_list {$<flag>$ = $<flag>0;} end_simple_stmt {$$ = $4;}
             | header block { $$ = process_header_block ($1, $2); }
-            | fun_thread_class_start access IDENT
+            | fun_thread_class_start IDENT
                 {
-		  IR_set_pos ($1, IR_pos ($3));
+		  IR_set_pos ($1, IR_pos ($2));
 		  $<flag>$ = $<flag>0;
                 }
               end_simple_stmt
     	        {
-		  process_header (FALSE, $1, $3);
-		  IR_set_access ($1, $2);
+		  process_header (FALSE, $1, $2);
 		  $$ = $1;
 		}
+            /* Access is flattened out to resolve conflicts on OBJ.  */
+            | OBJ IDENT { process_obj_header ($2); }
+                block {$$ = process_obj_block ($2, $4, DEFAULT_ACCESS);}
+            | PRIV OBJ IDENT { process_obj_header ($3); }
+                block {$$ = process_obj_block ($3, $5, PRIVATE_ACCESS);}
+            | PUB OBJ IDENT { process_obj_header ($3); }
+                block {$$ = process_obj_block ($3, $5, PUBLIC_ACCESS);}
             | INCLUDE STRING {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $<pointer>$ = $2;
@@ -1095,7 +1095,7 @@ alias_opt :  { $$ = NULL; }
           | '(' IDENT ')'  { $$ = $2; }
           ;
 extern_list : extern_item {$$ = $1;}
-            | extern_list ',' {$<flag>$ = $<flag>0;} extern_item
+            | extern_list ',' {$<access>$ = $<access>0;} extern_item
                 {
 		   $$ = $4;
                    if ($1 != NULL)
@@ -1108,21 +1108,21 @@ extern_list : extern_item {$$ = $1;}
                      }
                 }
             ;
-extern_item : access IDENT
+extern_item : IDENT
                 {
-		  $$ = create_node_with_pos (IR_NM_external_var, IR_pos ($2));
+		  $$ = create_node_with_pos (IR_NM_external_var, IR_pos ($1));
 		  IR_set_scope ($$, current_scope);
-		  IR_set_ident ($$, $2);
+		  IR_set_ident ($$, $1);
 		  IR_set_next_stmt ($$, $$);
-		  IR_set_access ($$, $1);
+		  IR_set_access ($$, $<access>0);
                 }
-            | access IDENT '(' ')'
+            | IDENT '(' ')'
                 {
-		  $$ = create_node_with_pos (IR_NM_external_fun, IR_pos ($2));
+		  $$ = create_node_with_pos (IR_NM_external_fun, IR_pos ($1));
 		  IR_set_scope ($$, current_scope);
-		  IR_set_ident ($$, $2);
+		  IR_set_ident ($$, $1);
 		  IR_set_next_stmt ($$, $$);
-		  IR_set_access ($$, $1);
+		  IR_set_access ($$, $<access>0);
                 }
             ;
 inclusion :   {$$ = NULL;}
@@ -1157,36 +1157,55 @@ end_simple_stmt : ';'
 			}
                     }
                 ;
-header : fun_thread_class_start access IDENT
+header : fun_thread_class_start IDENT
            {
-	     IR_set_pos ($1, IR_pos ($3));
-	     IR_set_access ($1, $2);
-	     process_header (TRUE, $1, $3);
+	     IR_set_pos ($1, IR_pos ($2));
+	     process_header (TRUE, $1, $2);
+	     $$ = process_formal_parameters ($1, NULL);
 	   }
-         formal_parameters { $$ = process_formal_parameters ($1, $5); }
+       | fun_thread_class_start IDENT
+           {
+	     IR_set_pos ($1, IR_pos ($2));
+	     process_header (TRUE, $1, $2);
+	   }
+         '(' formal_parameters ')'
+           { $$ = process_formal_parameters ($1, $5); }
        ;
+/* Access is flatten out for resolving conflicts on OBJ and FINAL.  */
 fun_thread_class_start : fun_thread_class
-                           {
-		             $$ = $1;
-		             IR_set_final_flag ($$, FALSE);
-		           }
+                           {$$ = process_fun_start ($1, FALSE, DEFAULT_ACCESS);}
+                       | PRIV fun_thread_class
+                           {$$ = process_fun_start ($2, FALSE, PRIVATE_ACCESS);}
+                       | PUB fun_thread_class
+                           {$$ = process_fun_start ($2, FALSE, PUBLIC_ACCESS);}
                        | FINAL fun_thread_class
-		           {
-		             $$ = $2;
-		             IR_set_final_flag ($$, TRUE);
-		           }
+                           {$$ = process_fun_start ($2, TRUE, DEFAULT_ACCESS);}
+                       | FINAL PRIV fun_thread_class
+                           {$$ = process_fun_start ($3, TRUE, PRIVATE_ACCESS);}
+                       | FINAL PUB fun_thread_class
+                           {$$ = process_fun_start ($3, TRUE, PUBLIC_ACCESS);}
+                       | PRIV FINAL fun_thread_class
+                           {$$ = process_fun_start ($3, TRUE, PRIVATE_ACCESS);}
+                       | PUB FINAL fun_thread_class
+                           {$$ = process_fun_start ($3, TRUE, PUBLIC_ACCESS);}
                        ;
 fun_thread_class : FUN
                      {
 		       $$ = create_node (IR_NM_fun);
 		       IR_set_thread_flag ($$, FALSE);
+		       IR_set_pos ($$, $1);
 		     }
        	         | THREAD
                      {
                        $$ = create_node (IR_NM_fun);
 		       IR_set_thread_flag ($$, TRUE);
+		       IR_set_pos ($$, $1);
 		     }
-       	         | CLASS { $$ = create_node (IR_NM_class); }
+       	         | CLASS
+		     {
+		       $$ = create_node (IR_NM_class);
+		       IR_set_pos ($$, $1);
+		     }
       	         ;
 else_part :                                    {$$ = NULL;}
           | ELSE {$<flag>$ = $<flag>-1;} stmt  {$$ = uncycle_stmt_list ($3);}
@@ -1223,46 +1242,45 @@ par_kind :      {$$ = 0;}
          | VAL  {$$ = 1;}
          | VAR  {$$ = 0;}
          ;
-par : par_kind access IDENT
+par : access par_kind IDENT
         {
-	  $$ = process_var_decl ($2, $3, IR_pos ($3), $1,
+	  $$ = process_var_decl ($1, $3, IR_pos ($3), $2,
 				 NULL, IR_pos ($3), IR_NM_par_assign);
         }
-    | par_kind access IDENT '=' expr
+    | access par_kind IDENT '=' expr
         {
-	  $$ = process_var_decl ($2, $3, IR_pos ($3), $1, $5,
+	  $$ = process_var_decl ($1, $3, IR_pos ($3), $2, $5,
 				 $4, IR_NM_par_assign);
         }
     ;
 par_list_empty :          {$$ = NULL;} 
        	       | par_list {$$ = $1;}
        	       ;
-formal_parameters :    {formal_parameter_args_flag = FALSE; $$ = NULL;}  
-                  | '(' par_list_empty ')'
+formal_parameters : par_list_empty
                        {
                          formal_parameter_args_flag = FALSE;
-			 $$ = $2;
+			 $$ = $1;
 		       }
-       	          | '(' par_list ',' DOTS ')'
+       	          | par_list ',' DOTS
                        {
 			 formal_parameter_args_flag = TRUE;
-			 $$ = create_node_with_pos (IR_NM_var, $4);
-			 if ($2 != NULL)
+			 $$ = create_node_with_pos (IR_NM_var, $3);
+			 if ($1 != NULL)
 			   {
-			     IR_set_next_stmt ($$, IR_next_stmt ($2));
-			     IR_set_next_stmt ($2, $$);
+			     IR_set_next_stmt ($$, IR_next_stmt ($1));
+			     IR_set_next_stmt ($1, $$);
 			   }
 			 else
 			   IR_set_next_stmt ($$, $$);
 			 IR_set_scope ($$, current_scope);
-			 IR_set_ident ($$, get_ident_node (ARGS_NAME, $4));
+			 IR_set_ident ($$, get_ident_node (ARGS_NAME, $3));
 		       }
-       	          | '(' DOTS ')'
+       	          | DOTS
                        {
 			 formal_parameter_args_flag = TRUE;
-			 $$ = create_node_with_pos (IR_NM_var, $2);
+			 $$ = create_node_with_pos (IR_NM_var, $1);
 			 IR_set_scope ($$, current_scope);
-			 IR_set_ident ($$,  get_ident_node (ARGS_NAME, $2));
+			 IR_set_ident ($$,  get_ident_node (ARGS_NAME, $1));
 			 IR_set_next_stmt ($$, $$);
 		       }
        	          ;
@@ -1566,7 +1584,7 @@ process_formal_parameters (IR_node_t decl, IR_node_t pars)
   return pars;
 }
 
-/* Process BLOCK of fun/thread/class/ext HEADER decl.  Return the
+/* Process BLOCK of fun/thread/class/obj HEADER decl.  Return the
    block.  */
 static IR_node_t
 process_header_block (IR_node_t header, IR_node_t block)
@@ -1587,6 +1605,43 @@ merge_additional_stmts (IR_node_t list)
 
   additional_stmts = NULL;
   return res;
+}
+
+static void
+process_obj_header (IR_node_t ident)
+{
+  IR_node_t class_def;
+  
+  class_def = create_node_with_pos (IR_NM_class, IR_pos (ident));
+  IR_set_final_flag (class_def, TRUE);
+  process_header (TRUE, class_def, ident);
+}
+
+static IR_node_t
+process_obj_block (IR_node_t origin_ident, IR_node_t block_stmts,
+		   access_val_t access)
+{
+  IR_node_t val, expr;
+  IR_node_t block = current_scope, ident = IR_copy_node (origin_ident);
+  
+  IR_set_block_stmts (block, uncycle_stmt_list (block_stmts));
+  IR_set_friend_list (block, uncycle_friend_list (IR_friend_list (block)));
+  current_scope = IR_block_scope (block);
+  expr = create_node_with_pos (IR_NM_class_fun_thread_call,
+			       actual_parameters_construction_pos);
+  IR_set_fun_expr (expr, origin_ident);
+  IR_set_actuals (expr, NULL);
+  val = process_var_decl (access, ident, IR_pos (ident), TRUE,
+			  expr, IR_pos (ident), IR_NM_var_assign);
+  return merge_stmt_lists (block, val);
+}
+
+static IR_node_t
+process_fun_start (IR_node_t fun, int final_flag, access_val_t access)
+{
+  IR_set_final_flag (fun, final_flag);
+  IR_set_access (fun, access);
+  return fun;
 }
 
 

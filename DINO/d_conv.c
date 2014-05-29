@@ -327,7 +327,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	    to_vect_string_conversion (val, NULL, NULL);
 	    if (ER_NODE_MODE (val) != ER_NM_vect
 		|| ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
-		|| ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
+		|| ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char)
 	      eval_error (partype_bc_decl, get_cpos (),
 			  DERR_parameter_type, name);
 	    str = ER_pack_els (ER_vect (val));
@@ -395,7 +395,7 @@ to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
       if (format != NULL)
 	{
 	  d_assert (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_vect
-		    && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char);
+		    && ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char);
 	  form_format_string (format, var, 1, "vect (...)");
 	  representation = VLO_BEGIN (temp_vlobj);
 	  /* Remeber `var' may be changed in GC. */
@@ -435,7 +435,7 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
     {
       tvar = to_vect_string_conversion (var, NULL, tvar);
       if (ER_NODE_MODE (ER_vect (tvar)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (ER_vect (tvar)) == ER_NM_char)
+	  && ER_pack_vect_el_mode (ER_vect (tvar)) == ER_NM_char)
 	{
 	  ER_node_t pack_vect = ER_vect (tvar);
 	  enum read_number_code err_code;
@@ -672,10 +672,10 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
     }
   string_flag = ((ER_NODE_MODE (op2) == ER_NM_vect
 		  && ER_NODE_MODE (ER_vect (op2)) == ER_NM_heap_pack_vect
-		  && ER_pack_vect_el_type (ER_vect (op2)) == ER_NM_char)
+		  && ER_pack_vect_el_mode (ER_vect (op2)) == ER_NM_char)
 		  || (ER_NODE_MODE (op1) == ER_NM_vect
 		      && ER_NODE_MODE (ER_vect (op1)) == ER_NM_heap_pack_vect
-		      && ER_pack_vect_el_type (ER_vect (op1)) == ER_NM_char));
+		      && ER_pack_vect_el_mode (ER_vect (op1)) == ER_NM_char));
   if (string_flag)
     {
       *r = op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);

@@ -183,7 +183,7 @@ to_lower_upper (int_t pars_number, int lower_flag)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)
     eval_error (partype_bc_decl, get_cpos (), DERR_parameter_type, name);
   vect = ER_vect (ctop);
 #ifndef NEW_VECTOR
@@ -217,7 +217,7 @@ tolower_call (int_t pars_number)
 }
 
 void
-transliterate_call (int_t pars_number)
+translit_call (int_t pars_number)
 {
   ER_node_t vect, v;
   char *str, *subst, map [256];
@@ -226,7 +226,7 @@ transliterate_call (int_t pars_number)
 
   if (pars_number != 3)
     eval_error (parnumber_bc_decl, get_cpos (),
-		DERR_parameters_number, TRANSLITERATE_NAME);
+		DERR_parameters_number, TRANSLIT_NAME);
   to_vect_string_conversion (IVAL (ctop, -2), NULL, NULL);
   if (ER_NODE_MODE (ctop) == ER_NM_vect)
     {
@@ -256,18 +256,18 @@ transliterate_call (int_t pars_number)
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || (ER_els_number (ER_vect (ctop)) != 0
 	  && (ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char))
+	      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char))
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || (ER_els_number (ER_vect (below_ctop)) != 0
 	  && (ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char))
+	      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char))
       || ER_els_number (ER_vect (ctop)) != ER_els_number (ER_vect (below_ctop))
       || ER_NODE_MODE (vect) != ER_NM_vect
       || (ER_els_number (ER_vect (vect)) != 0
 	  && (ER_NODE_MODE (ER_vect (vect)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_type (ER_vect (vect)) != ER_NM_char)))
+	      || ER_pack_vect_el_mode (ER_vect (vect)) != ER_NM_char)))
     eval_error (partype_bc_decl, get_cpos (),
-		DERR_parameter_type, TRANSLITERATE_NAME);
+		DERR_parameter_type, TRANSLIT_NAME);
   vect = ER_vect (vect);
 #ifndef NEW_VECTOR
   if (ER_immutable (vect))
@@ -319,8 +319,38 @@ eltype_call (int_t pars_number)
     ER_SET_MODE (fun_result, ER_NM_nil);
   else
     {
+      ER_node_mode_t mode = ER_pack_vect_el_mode (vect);
+      type_val_t type = mode_to_type (mode);
+      
+      if (type == type_fun)
+	{
+	  val_t var;
+	  ER_node_t var_ref = (ER_node_t) &var;
+	  size_t displ;
+	  size_t i, el_size;
+	  type_val_t prev_type;
+
+	  d_assert (mode == ER_NM_code);
+	  ER_SET_MODE (var_ref, mode);
+	  displ = val_displ_table [ER_NM_code];
+	  el_size = type_size_table [mode];
+	  prev_type == type_fun;
+	  for (i = 0; i < ER_els_number (vect); i++)
+	    {
+	      memcpy ((char *) var_ref + displ,
+		      (char *) ER_pack_els (vect) + i * el_size,
+		      el_size);
+	      type = code_type (ID_TO_CODE (ER_code_id (var_ref)));
+	      if (i != 0 && type != prev_type)
+		{
+		  ER_SET_MODE (fun_result, ER_NM_nil);
+		  return;
+		}
+	      prev_type = type;
+	    }
+	}
       ER_SET_MODE (fun_result, ER_NM_type);
-      ER_set_type (fun_result, ER_pack_vect_el_type (vect));
+      ER_set_type (fun_result, type);
     }
 }
 
@@ -359,6 +389,33 @@ keys_call (int_t pars_number)
     pack_vector_if_possible (vect);
   ER_SET_MODE (fun_result, ER_NM_vect);
   set_vect_dim (fun_result, vect, 0);
+}
+
+void
+closure_call (int_t pars_number)
+{
+  ER_node_t val;
+  ER_node_t closure;
+  BC_node_t block;
+
+  if (pars_number != 1)
+    eval_error (parnumber_bc_decl, get_cpos (),
+		DERR_parameters_number, CLOSURE_NAME);
+  val = IVAL (ctop, -pars_number + 1);
+  /* Place the result instead of the function. */
+  if (ER_NODE_MODE (val) == ER_NM_stack
+      && (block = ER_block_node (ER_stack (val))) != NULL
+      && BC_NODE_MODE (block) == BC_NM_fblock)
+    {
+      ER_node_t stack;
+      
+      stack = ER_stack (val);
+      ER_SET_MODE (fun_result, ER_NM_code);
+      ER_set_code_id (fun_result, CODE_ID (block));
+      ER_set_code_context (fun_result, ER_context (stack));
+    }
+  else
+    ER_SET_MODE (fun_result, ER_NM_nil);
 }
 
 void
@@ -687,10 +744,10 @@ match_call (int_t pars_number)
   to_vect_string_conversion (below_ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)
     eval_error (partype_bc_decl, get_cpos (), DERR_parameter_type, MATCH_NAME);
   code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
   if (code != 0)
@@ -777,10 +834,10 @@ gmatch_call (int_t pars_number)
   to_vect_string_conversion (par1, NULL, NULL);
   if (ER_NODE_MODE (par2) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par2)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (par2)) != ER_NM_char
+      || ER_pack_vect_el_mode (ER_vect (par2)) != ER_NM_char
       || ER_NODE_MODE (par1) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par1)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (par1)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (par1)) != ER_NM_char)
     eval_error (partype_bc_decl, get_cpos (), DERR_parameter_type, GMATCH_NAME);
   code = find_regex (ER_pack_els (ER_vect (par1)), &reg);
   if (code != 0)
@@ -878,13 +935,13 @@ generall_sub_call (int_t pars_number, int global_flag)
   to_vect_string_conversion (regexp_val, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char
+      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
       || ER_NODE_MODE (regexp_val) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (regexp_val)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (regexp_val)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (regexp_val)) != ER_NM_char)
     eval_error (partype_bc_decl, get_cpos (),
 		DERR_parameter_type, global_flag ? GSUB_NAME : SUB_NAME);
   code = find_regex (ER_pack_els (ER_vect (regexp_val)), &reg);
@@ -1127,11 +1184,11 @@ split_call (int_t pars_number)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
       || (pars_number == 2
 	  && (ER_NODE_MODE (below_ctop) != ER_NM_vect
 	      || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)))
+	      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)))
     eval_error (partype_bc_decl, get_cpos (), DERR_parameter_type, SPLIT_NAME);
   if (pars_number == 2)
     split_regex = ER_pack_els (ER_vect (ctop));
@@ -1144,7 +1201,7 @@ split_call (int_t pars_number)
 			BC_var_num (split_regex_bc_decl));
       if (ER_NODE_MODE (split_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (split_var)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (ER_vect (split_var)) == ER_NM_char)
+	  && ER_pack_vect_el_mode (ER_vect (split_var)) == ER_NM_char)
         split_regex = ER_pack_els (ER_vect (split_var));
       else
 	eval_error (invenvar_bc_decl,
@@ -1384,7 +1441,7 @@ subv_call (int_t pars_number)
   if (length == 0)
     {
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (vect) == ER_NM_char)
+	  && ER_pack_vect_el_mode (vect) == ER_NM_char)
 	{
 	  res = create_string ("");
 	  ER_set_immutable (res, FALSE);
@@ -1394,7 +1451,7 @@ subv_call (int_t pars_number)
     }
   else if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
     {
-      el_type = ER_pack_vect_el_type (vect);
+      el_type = ER_pack_vect_el_mode (vect);
       el_size = type_size_table [el_type];
       res = create_pack_vector (el_type == ER_NM_char ? length + 1 : length,
 				el_type);
@@ -1443,7 +1500,7 @@ cmpv_call (int_t pars_number)
     {
       if (ER_NODE_MODE (vect1) == ER_NM_heap_pack_vect)
 	{
-	  el_type1 = ER_pack_vect_el_type (vect1);
+	  el_type1 = ER_pack_vect_el_mode (vect1);
 	  addr1 = ER_pack_els (vect1) + i * type_size_table [el_type1];
 	}
       else
@@ -1455,7 +1512,7 @@ cmpv_call (int_t pars_number)
 	}
       if (ER_NODE_MODE (vect2) == ER_NM_heap_pack_vect)
 	{
-	  el_type2 = ER_pack_vect_el_type (vect2);
+	  el_type2 = ER_pack_vect_el_mode (vect2);
 	  addr2 = ER_pack_els (vect2) + i * type_size_table [el_type2];
 	}
       else
@@ -1542,7 +1599,7 @@ del_call (int_t pars_number)
 	  /* Remove tail */
 	  ER_set_els_number (vect, start);
 	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	      && ER_pack_vect_el_type (vect) == ER_NM_char)
+	      && ER_pack_vect_el_mode (vect) == ER_NM_char)
 	    ER_pack_els (vect) [start] = '\0';
 	}
       else if (start == 0 && vect_length != 0)
@@ -1551,7 +1608,7 @@ del_call (int_t pars_number)
 	  size_t el_size;
 
 	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
-	    el_size = type_size_table [ER_pack_vect_el_type (vect)];
+	    el_size = type_size_table [ER_pack_vect_el_mode (vect)];
 	  else
 	    el_size = sizeof (val_t);
 	  ER_set_disp (vect, ER_disp (vect) + length * el_size);
@@ -1561,7 +1618,7 @@ del_call (int_t pars_number)
 	;
       else if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
 	{
-	  el_type = ER_pack_vect_el_type (vect);
+	  el_type = ER_pack_vect_el_mode (vect);
 	  el_size = type_size_table [el_type];
 	  memmove (ER_pack_els (vect) + start * el_size,
 		   ER_pack_els (vect) + (start + length) * el_size,
@@ -1649,19 +1706,19 @@ general_ins_call (int_t pars_number, int vector_flag)
 		DERR_immutable_vector_modification);
   if (vector_flag && ER_NODE_MODE (el_vect) == ER_NM_heap_pack_vect
       && (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect
-	  || (ER_pack_vect_el_type (vect)
-	      != ER_pack_vect_el_type (el_vect))))
+	  || (ER_pack_vect_el_mode (vect)
+	      != ER_pack_vect_el_mode (el_vect))))
     {
       el_vect = unpack_vector (el_vect);
       el_val = IVAL (ctop, -pars_number + 2);
     }
   if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
       && ((! vector_flag
-	   && ER_pack_vect_el_type (vect) != ER_NODE_MODE (el_val))
+	   && ER_pack_vect_el_mode (vect) != ER_NODE_MODE (el_val))
 	  || (vector_flag
 	      && (ER_NODE_MODE (el_vect) != ER_NM_heap_pack_vect
-		  || ER_pack_vect_el_type (vect)
-		  != ER_pack_vect_el_type (el_vect)))))
+		  || ER_pack_vect_el_mode (vect)
+		  != ER_pack_vect_el_mode (el_vect)))))
     vect = unpack_vector (vect);
   if (!vector_flag)
     addition = 1;
@@ -1678,7 +1735,7 @@ general_ins_call (int_t pars_number, int vector_flag)
       /* Move */
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
 	{
-	  el_type = ER_pack_vect_el_type (vect);
+	  el_type = ER_pack_vect_el_mode (vect);
 	  el_size = type_size_table [el_type];
 	  memmove (ER_pack_els (vect) + (index + addition) * el_size,
 		   ER_pack_els (vect) + index * el_size,
@@ -1692,7 +1749,7 @@ general_ins_call (int_t pars_number, int vector_flag)
     }
   if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
     {
-      el_type = ER_pack_vect_el_type (vect);
+      el_type = ER_pack_vect_el_mode (vect);
       el_size = type_size_table [el_type];
       if (!vector_flag)
 	memcpy (ER_pack_els (vect) + index * el_size,
@@ -1701,7 +1758,7 @@ general_ins_call (int_t pars_number, int vector_flag)
       else
 	{
 	  d_assert (ER_NODE_MODE (el_vect) == ER_NM_heap_pack_vect
-		    && el_type == ER_pack_vect_el_type (el_vect));
+		    && el_type == ER_pack_vect_el_mode (el_vect));
 	  memcpy (ER_pack_els (vect) + index * el_size,
 		  ER_pack_els (el_vect), el_size * addition);
 	}
@@ -1764,7 +1821,7 @@ rev_call (int_t pars_number)
     {
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
 	{
-	  el_type = ER_pack_vect_el_type (vect);
+	  el_type = ER_pack_vect_el_mode (vect);
 	  el_size = type_size_table [el_type];
 	  for (i = 0, j = vect_length - 1; i < j; i++, j--)
 	    {
@@ -1866,14 +1923,14 @@ sort_call (int_t pars_number)
     {
       if (ER_NODE_MODE (ctop) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	  || (ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
-	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_int
-	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_long
-	      && ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_float))
+	  || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_int
+	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_long
+	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_float))
 	eval_error (partype_bc_decl, get_cpos (),
 		    DERR_parameter_type, SORT_NAME);
       vect = copy_vector (ER_vect (ctop));
-      sorted_vect_el_type = ER_pack_vect_el_type (vect);
+      sorted_vect_el_type = ER_pack_vect_el_mode (vect);
       qsort (ER_pack_els (vect), ER_els_number (vect),
 	     type_size_table [sorted_vect_el_type],
 	     homogeneous_array_sort_compare_function);
@@ -1891,7 +1948,7 @@ sort_call (int_t pars_number)
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	sorted_vect_el_type = ER_NM_val;
       else
-	sorted_vect_el_type = ER_pack_vect_el_type (vect);
+	sorted_vect_el_type = ER_pack_vect_el_mode (vect);
       /* We can not do GC as we can not move the array.  */
       no_gc_p = TRUE;
       DECR_CTOP (2); /* free place for compare function params.  */
@@ -1980,10 +2037,10 @@ two_strings_fun_start (int_t pars_number, const char *function_name)
   to_vect_string_conversion (below_ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (below_ctop)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)
     eval_error (partype_bc_decl,
 		get_cpos (), DERR_parameter_type, function_name);
 }
@@ -2009,7 +2066,7 @@ string_fun_start (int_t pars_number, const char *function_name)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)
     eval_error (partype_bc_decl, get_cpos (),
 		DERR_parameter_type, function_name);
 }
@@ -2153,7 +2210,7 @@ get_stat (ER_node_t var, const char *function_name, struct stat *buf)
   errno = 0;
   if (ER_NODE_MODE (var) == ER_NM_vect
       && ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_pack_vect
-      && ER_pack_vect_el_type (ER_vect (var)) == ER_NM_char)
+      && ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char)
     result = stat (ER_pack_els (ER_vect (var)), buf);
   else if (ER_IS_OF_TYPE (var, ER_NM_stack)
 	   && ER_stack_block (ER_stack (var)) == file_bc_decl)
@@ -2381,7 +2438,7 @@ seek_call (int_t pars_number)
       || (ER_NODE_MODE (ctop) != ER_NM_char
 	  && (ER_NODE_MODE (ctop) != ER_NM_vect
 	      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)))
+	      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)))
     eval_error (partype_bc_decl, get_cpos (), DERR_parameter_type, SEEK_NAME);
   pos = ER_i (below_ctop);
   if (ER_NODE_MODE (ctop) == ER_NM_char)
@@ -2494,7 +2551,7 @@ print_val (ER_node_t val, int quote_flag, int full_p)
       to_vect_string_conversion (val, NULL, NULL);
       vect = ER_vect (val);
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (vect) == ER_NM_char)
+	  && ER_pack_vect_el_mode (vect) == ER_NM_char)
 	{
 	  if (!quote_flag)
 	    VLO_ADD_STRING (temp_vlobj, ER_pack_els (vect));
@@ -2526,7 +2583,7 @@ print_val (ER_node_t val, int quote_flag, int full_p)
 	}
       else
 	{
-	  ER_node_mode_t el_type = ER_pack_vect_el_type (vect);
+	  ER_node_mode_t el_type = ER_pack_vect_el_mode (vect);
 	  val_t temp_val;
 	  size_t displ;
 	  size_t el_size;
@@ -2628,43 +2685,49 @@ print_val (ER_node_t val, int quote_flag, int full_p)
     case ER_NM_type:
       switch (ER_type (val))
 	{
-	case ER_NM_nil:
+	case type_nil:
 	  string = "type (nil)";
 	  break;
-	case ER_NM_char:
+	case type_char:
 	  string = "char";
 	  break;
-	case ER_NM_int:
+	case type_int:
 	  string = "int";
 	  break;
-	case ER_NM_long:
+	case type_long:
 	  string = "long";
 	  break;
-	case ER_NM_float:
+	case type_float:
 	  string = "float";
 	  break;
-	case ER_NM_hide:
+	case type_hide:
 	  string = "hide";
 	  break;
-	case ER_NM_hideblock:
+	case type_hideblock:
 	  string = "hideblock";
 	  break;
-	case ER_NM_vect:
+	case type_vect:
 	  string = "vector";
 	  break;
-	case ER_NM_tab:
+	case type_tab:
 	  string = "table";
 	  break;
-	case ER_NM_code:
-	  string = "closure";
+	case type_fun:
+	  string = "fun";
 	  break;
-	case ER_NM_stack:
+	case type_class:
+	  string = "class";
+	  break;
+	case type_thread:
+	  string = "thread";
+	  break;
+	case type_obj:
 	  string = "obj";
 	  break;
-	case ER_NM_process:
+	case type_process:
 	  string = "process";
 	  break;
-	case ER_NM_type:
+	case type_type:
 	  string = "type";
 	  break;
 	default:
@@ -2752,7 +2815,7 @@ general_put_call (FILE *f, int_t pars_number, int ln_flag,
       to_vect_string_conversion (var, NULL, NULL);
       if (ER_NODE_MODE (var) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (var)) != ER_NM_heap_pack_vect
-	  || ER_pack_vect_el_type (ER_vect (var)) != ER_NM_char)
+	  || ER_pack_vect_el_mode (ER_vect (var)) != ER_NM_char)
 	eval_error (partype_bc_decl, get_cpos (),
 		    DERR_parameter_type, function_name);
       VLO_ADD_STRING (temp_vlobj, ER_pack_els (ER_vect (var)));
@@ -3544,7 +3607,7 @@ general_putf_call (FILE *f, int_t pars_number, enum file_param_type param_type)
   to_vect_string_conversion (val, NULL, NULL);
   if (ER_NODE_MODE (val) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (val)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char)
     eval_error (partype_bc_decl, get_cpos (),
 		DERR_parameter_type, function_name);
   fmt = ER_pack_els (ER_vect (val));
@@ -4057,7 +4120,7 @@ readdir_call (int_t pars_number)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (ctop)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)
     eval_error (partype_bc_decl, get_cpos (),
 		DERR_parameter_type, READDIR_NAME);
   dir = opendir (ER_pack_els (ER_vect (ctop)));
@@ -4176,9 +4239,16 @@ fuidn_call (int_t pars_number)
 {
   struct stat buf;
   ER_node_t result;
-
+  char *str;
+  struct passwd *p;
+  
   stat_start (pars_number, FUIDN_NAME, &buf);
-  result = create_string (getpwuid (buf.st_uid)->pw_name);
+  p = getpwuid (buf.st_uid);
+  if (p == NULL)
+    str = "Unknown";
+  else
+    str = p->pw_name;
+  result = create_string (str);
   ER_SET_MODE (fun_result, ER_NM_vect);
   set_vect_dim (fun_result, result, 0);
 }
@@ -4359,7 +4429,7 @@ strtime_call (int_t pars_number)
       to_vect_string_conversion (format_var, NULL, NULL);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (format_var)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (ER_vect (format_var)) == ER_NM_char)
+	  && ER_pack_vect_el_mode (ER_vect (format_var)) == ER_NM_char)
 	format = ER_pack_els (ER_vect (format_var));
       else
 	eval_error (partype_bc_decl,
@@ -4372,7 +4442,7 @@ strtime_call (int_t pars_number)
       to_vect_string_conversion (format_var, NULL, NULL);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (format_var)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_type (ER_vect (format_var)) == ER_NM_char)
+	  && ER_pack_vect_el_mode (ER_vect (format_var)) == ER_NM_char)
 	format = ER_pack_els (ER_vect (format_var));
       else
 	eval_error (invenvar_bc_decl, get_cpos (),
@@ -4458,7 +4528,7 @@ system_call (int_t pars_number)
 	  to_vect_string_conversion (val, NULL, NULL);
 	  vect = ER_vect (val);
 	  if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_type (vect) != ER_NM_char)
+	      || ER_pack_vect_el_mode (vect) != ER_NM_char)
 	    error_flag = TRUE;
 	  else
 	    {
@@ -4583,7 +4653,7 @@ process_fold_vect_op (ER_node_t op, int_t dim, int_t depth)
   GO_THROUGH_REDIR (op);
   len = ER_els_number (op);
   if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
-    fold_vect_el_type = ER_pack_vect_el_type (op);
+    fold_vect_el_type = ER_pack_vect_el_mode (op);
   else
     fold_vect_el_type = ER_NM_val;
   if (dim > 1 && ER_NODE_MODE (op) == ER_NM_heap_pack_vect
@@ -4710,7 +4780,7 @@ process_filter_vect_op (ER_node_t op, int_t dim, int_t depth)
   GO_THROUGH_REDIR (op);
   len = ER_els_number (op);
   if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
-    filter_vect_el_type = ER_pack_vect_el_type (op);
+    filter_vect_el_type = ER_pack_vect_el_mode (op);
   else
     filter_vect_el_type = ER_NM_val;
   if (dim > 1 && ER_NODE_MODE (op) == ER_NM_heap_pack_vect
@@ -4864,7 +4934,7 @@ process_map_vect_op (ER_node_t op, int_t dim, int_t depth)
   GO_THROUGH_REDIR (op);
   len = ER_els_number (op);
   if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
-    map_vect_el_type = ER_pack_vect_el_type (op);
+    map_vect_el_type = ER_pack_vect_el_mode (op);
   else
     map_vect_el_type = ER_NM_val;
   if (dim > 1 && ER_NODE_MODE (op) == ER_NM_heap_pack_vect
@@ -4982,7 +5052,7 @@ transpose_call (int_t pars_number)
     pack_vector_if_possible (vect);
   nrows = ER_els_number (vect);
   if (nrows == 0 || ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect
-      || ER_pack_vect_el_type (vect) != ER_NM_vect)
+      || ER_pack_vect_el_mode (vect) != ER_NM_vect)
     eval_error (matrixform_bc_decl, get_cpos (),
 		DERR_matrix_form_type, TRANSPOSE_NAME);
   pack_els = ER_pack_els (vect);
@@ -4991,7 +5061,7 @@ transpose_call (int_t pars_number)
       row = ((ER_node_t *) pack_els) [i];
       GO_THROUGH_REDIR (row);
       eltp = (ER_NODE_MODE (row) == ER_NM_heap_pack_vect
-	      ? ER_pack_vect_el_type (row) : ER_NM__error);
+	      ? ER_pack_vect_el_mode (row) : ER_NM__error);
       if (i == 0)
 	{
 	  ncols = ER_els_number (row);
@@ -5031,7 +5101,7 @@ transpose_call (int_t pars_number)
 	  else if (ER_NODE_MODE (row) == ER_NM_heap_pack_vect)
 	    {
 	      d_assert (ER_NODE_MODE (col) == ER_NM_heap_unpack_vect);
-	      eltp = ER_pack_vect_el_type (row);
+	      eltp = ER_pack_vect_el_mode (row);
 	      el_size = type_size_table [eltp];
 	      res_el = IVAL (ER_unpack_els (col), i);
 	      ER_SET_MODE (res_el, eltp);
@@ -5417,7 +5487,7 @@ int_earley_parse_grammar (int npars)
     }
   if (ER_NODE_MODE (par2) != ER_NM_int || ER_NODE_MODE (par3) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par3)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_type (ER_vect (par3)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (par3)) != ER_NM_char)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
   g = (struct grammar *) ER_hide (par1);
@@ -5585,7 +5655,7 @@ init_read_token (void **attr)
   val_t t, t2;
 
   d_assert (ER_NODE_MODE (tokens_vect) == ER_NM_heap_pack_vect
-	    && ER_pack_vect_el_type (tokens_vect) == ER_NM_stack);
+	    && ER_pack_vect_el_mode (tokens_vect) == ER_NM_stack);
   if ((unsigned_int_t) curr_token >= ER_els_number (tokens_vect))
     return -1;
   tok = *attr = ((ER_node_t *) ER_pack_els (tokens_vect)) [curr_token];
@@ -5741,7 +5811,7 @@ tree_to_heap (struct earley_tree_node *root)
       for (i = 0; root->val.anode.children [i] != NULL; i++)
 	;
       vect = create_empty_vector ();
-      ER_set_pack_vect_el_type (vect, ER_NM_stack);
+      ER_set_pack_vect_el_mode (vect, ER_NM_stack);
       vect = expand_vector (vect, i);
       TOP_UP;
       ER_SET_MODE (ctop, ER_NM_vect);
@@ -5755,7 +5825,7 @@ tree_to_heap (struct earley_tree_node *root)
       for (i = 0, alt = root; alt != NULL; alt = alt->val.alt.next, i++)
 	;
       vect = create_empty_vector ();
-      ER_set_pack_vect_el_type (vect, ER_NM_stack);
+      ER_set_pack_vect_el_mode (vect, ER_NM_stack);
       vect = expand_vector (vect, i);
       TOP_UP;
       ER_SET_MODE (ctop, ER_NM_vect);
@@ -5828,7 +5898,7 @@ int_earley_parse (int npars)
   if (ER_NODE_MODE (par2) != ER_NM_vect
       || (ER_NODE_MODE (ER_vect (par2))
 	  != ER_NM_heap_pack_vect)
-      || (ER_pack_vect_el_type (ER_vect (par2)) != ER_NM_stack)
+      || (ER_pack_vect_el_mode (ER_vect (par2)) != ER_NM_stack)
       || ! fun_p (par3))
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);

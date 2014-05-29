@@ -12281,9 +12281,9 @@ int
 float
 vector
 table
-closure
-closure
-closure
+fun
+thread
+class
 obj
 process
 obj
@@ -12302,53 +12302,33 @@ fi
 if test $result = ok -a $start_test_number -le 61; then
 	echo test 61
         cat >$test_file <<'TEST61'
-class c {
-};
-
-var i;
-i = c ();
-println (class (i));
-println (class (10));
+println (closure ('c'));
+println (closure (10));
+println (closure (10l));
+println (closure (10.));
+println (closure ([]));
+println (closure (tab []));
+fun f {}
+println (closure (f));
+thread t {}
+println (closure (t));
+class c {}
+println (closure (c ()));
 TEST61
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT61' && $CMP $stdout $ftemp2; then
+nil
+nil
+nil
+nil
+nil
+nil
+nil
+nil
 class c
-nil
 OUTPUT61
-                        result=ok
-                else
-                        result=fail
-                fi
-        else
-                result=fail
-        fi
-fi
-
-# Test 62.
-if test $result = ok -a $start_test_number -le 62; then
-	echo test 62
-        cat >$test_file <<'TEST62'
-var f;
-thread t {
-  wait (f != nil);
-}
-var p;
-p = t ();
-println (thread (p));
-println (thread (1));
-println (thread (main_thread));
-try {wait (1) f = 10;}
-TEST62
-        echo '      ' $DINO $test_file "2>$stderr"
-        if $DINO $test_file 2>$stderr >$stdout; then
-                echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT62' && $CMP $stdout $ftemp2; then
-thread t
-nil
-nil
-OUTPUT62
                         result=ok
                 else
                         result=fail
@@ -12360,32 +12340,43 @@ fi
 
 # Test 63.
 if test $result = ok -a $start_test_number -le 63; then
-	echo test 63
+	echo test 63: closure params number
         cat >$test_file <<'TEST63'
-var i;
-fun f {
-   class c {
-   }
-   i = c ();
-}
-
-f ();
-println (fun (context (i)));
-println (fun (10));
+closure ();
 TEST63
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
-                echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT63' && $CMP $stdout $ftemp2; then
-fun f
-nil
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT63' && $CMP $stderr $ftemp2; then
+test.d:1:9: run time error - invalid number of actual parameters for `closure'
 OUTPUT63
                         result=ok
                 else
                         result=fail
                 fi
-        else
+        fi
+fi
+
+# Test 63.
+if test $result = ok -a $start_test_number -le 63; then
+	echo test 63: closure params number
+        cat >$test_file <<'TEST63'
+closure (1, 2);
+TEST63
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT63' && $CMP $stderr $ftemp2; then
+test.d:1:9: run time error - invalid number of actual parameters for `closure'
+OUTPUT63
+                        result=ok
+                else
+                        result=fail
+                fi
         fi
 fi
 
@@ -12460,7 +12451,7 @@ if test $result = ok -a $start_test_number -le 66; then
 var i;
 
 {
-  var +l;
+  pub var l;
   class c {};
   i = c();
   l = 10;
@@ -12470,7 +12461,7 @@ println (context (i).l);
 
 fun f ()
 {
-  var +l;
+  pub var l;
   class c {};
   i = c();
   l = 20;
@@ -12479,7 +12470,7 @@ fun f ()
 f ();
 println (context (i).l);
 
-fun fp (+l)
+fun fp (pub l)
 {
   class c {};
   i = c();
@@ -12509,7 +12500,7 @@ cp (50);
 println (context (i).l);
 
 {
-  var +l;
+  pub var l;
   fun f {};
   i = f;
   l = 60;
@@ -12518,7 +12509,7 @@ println (context (i).l);
 println (context (i).l);
 
 {
-  var +l;
+  pub var l;
   class c {};
   i = c;
   l = 70;
@@ -12527,7 +12518,7 @@ println (context (i).l);
 println (context (i).l);
 
 {
-  var +l;
+  pub var l;
   thread t { wait (l);};
   i = t ();
   try {wait (1) l = 0;}
@@ -12565,7 +12556,7 @@ if test $result = ok -a $start_test_number -le 67; then
         cat >$test_file <<'TEST67'
 var ci;
 {
-  var +i;
+  pub var i;
   class c {
   }
   ci = c ();
@@ -18327,7 +18318,7 @@ if test $result = ok -a $start_test_number -le 261; then
 	echo test 261
         cat >$test_file <<'TEST261'
 class c {
-  var -i;
+  priv var i;
   i = 0;
 }
 
@@ -18385,7 +18376,7 @@ if test $result = ok -a $start_test_number -le 263; then
 	echo test 263: Forward and matched decl access
         cat >$test_file <<'TEST263'
 fun f;
-fun +f () {}
+pub fun f () {}
 TEST263
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -18393,7 +18384,7 @@ TEST263
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT263' && $CMP $stderr $ftemp2; then
-test.d:2:6: forward and matched decls of `f' have different access/final attributes
+test.d:2:9: forward and matched decls of `f' have different access/final attributes
 test.d:1:5: (previous declaration of identifier `f')
 OUTPUT263
                         result=ok
@@ -18431,7 +18422,7 @@ if test $result = ok -a $start_test_number -le 265; then
 	echo test 265
         cat >$test_file <<'TEST265'
 fun f;
-fun +f;
+pub fun f;
 fun f() {}
 TEST265
         echo '      ' "$DINO $test_file 2>$stderr"
@@ -18440,7 +18431,7 @@ TEST265
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT265' && $CMP $stderr $ftemp2; then
-test.d:2:6: forward and matched decls of `f' have different access/final attributes
+test.d:2:9: forward and matched decls of `f' have different access/final attributes
 test.d:1:5: (previous declaration of identifier `f')
 OUTPUT265
                         result=ok
@@ -25287,7 +25278,7 @@ fi
 if test $result = ok -a $start_test_number -le 450; then
 	echo test 450: More parameter exception.
         cat >$test_file <<'TEST450'
-class c1 {friend g; var -a;}
+class c1 {friend g; priv var a;}
 TEST450
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -25309,7 +25300,7 @@ if test $result = ok -a $start_test_number -le 451; then
 	echo test 451: More parameter exception.
         cat >$test_file <<'TEST451'
 var g;
-class c1 {friend g; var -a;}
+class c1 {friend g; priv var a;}
 TEST451
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -25331,7 +25322,7 @@ if test $result = ok -a $start_test_number -le 452; then
 	echo test 452
         cat >$test_file <<'TEST452'
 class c2;
-class c1 {friend c2; var -a = 10;}
+class c1 {friend c2; priv var a = 10;}
 var i1 = c1 ();
 class c2 {var a; a = i1.a;}
 var i2 = c2 ();
@@ -27266,10 +27257,10 @@ if test $result = ok -a $start_test_number -le 485; then
         cat >$test_file <<'TEST485'
 var objs_number = 0;
 class object {
-  var -n = objs_number;
+  priv var n = objs_number;
   objs_number++;
   putln ("creating ", n);
-  fun -destroy {objs_number--; putln ("destroying ", n);}
+  priv fun destroy {objs_number--; putln ("destroying ", n);}
 }
 
 var i;
@@ -29541,7 +29532,7 @@ fun parse_file (program_file, debug_level, verbose_flag) {
   var program, // Source code.
   abstract_tree; // Intermediate code.
   try { // To cause exception !pmemory to die with a graceful error message.
-    var +machine = parser();
+    pub var machine = parser();
     machine.set_grammar (grammar, 1);
     machine.set_debug (debug_level); // Turns on verbose mode if applicable.
     machine.set_one_parse (1); // In case the grammar is ambiguous.
@@ -33802,13 +33793,13 @@ try {
     line = getln ();
     if (line [0] != '>') insv (seq, line, -1);
     else {
-      output_seq (transliterate (rev (seq), tr, subst));
+      output_seq (translit (rev (seq), tr, subst));
       del (seq, 0, -1); putln (line);
     }
   }
 } catch (eof) {}
 
-output_seq (transliterate (rev (seq), tr, subst));
+output_seq (translit (rev (seq), tr, subst));
 TEST568
         echo '      ' $DINO $test_file 1000 "2>$stderr"
         if $DINO $test_file 1000 <<'INPUT568' 2>$stderr >$stdout; then
@@ -35167,11 +35158,11 @@ TEST584
         if $DINO -d $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT584' && $CMP $stdout $ftemp2; then
-     0 block pos=0 next=736 vars_num=18 tvars_num=3 // ident=(null)
+     0 block pos=0 next=738 vars_num=18 tvars_num=3 // ident=(null)
        0 fdecl fn="<environment>" ln=1 pos=7 ident=except ident_num=1 decl_scope=0 fblock=1
-       1 fblock pos=17 fdecl=0 class_p=1 simple_p=1 pure_fun_p=1 scope=0 vars_num=0 tvars_num=0 ext_life_p=1 // ident=except
+       1 fblock pos=14 fdecl=0 class_p=1 simple_p=1 pure_fun_p=1 scope=0 vars_num=0 tvars_num=0 ext_life_p=1 // ident=except
 
-         2 fbend pos=17 block=1
+         2 fbend pos=14 block=1
        1 fdecl ln=2 pos=8 ident=error ident_num=2 decl_scope=0 fblock=3
        3 fblock pos=26 next=4 fdecl=1 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=1 // ident=error
          2 vdecl pos=15 ident=msg ident_num=3 decl_scope=3 public_p=1 var_num=0
@@ -35914,43 +35905,43 @@ TEST584
      219 fdecl ln=110 pos=13 ident=parser ident_num=117 decl_scope=0 fblock=419
      419 fblock ln=111 pos=1 next=520 fdecl=219 class_p=1 scope=0 vars_num=2 tvars_num=1 ext_life_p=1 // ident=parser
        220 vdecl ln=112 pos=7 ident=ambiguous_p ident_num=118 decl_scope=419 public_p=1 var_num=0
-       221 vdecl ln=113 pos=8 ident=grammar ident_num=119 decl_scope=419 var_num=1
-       222 fdecl ln=115 pos=8 ident=int_earley_parse_grammar ident_num=120 decl_scope=419 fblock=420
-       420 fblock pos=34 fdecl=222 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_parse_grammar
+       221 vdecl ln=113 pos=12 ident=grammar ident_num=119 decl_scope=419 var_num=1
+       222 fdecl ln=115 pos=12 ident=int_earley_parse_grammar ident_num=120 decl_scope=419 fblock=420
+       420 fblock pos=37 fdecl=222 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_parse_grammar
 
-         421 fbend pos=34 block=420
-       223 fdecl pos=42 ident=int_earley_set_debug_level ident_num=121 decl_scope=419 fblock=422
-       422 fblock pos=70 fdecl=223 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_debug_level
+         421 fbend pos=37 block=420
+       223 fdecl pos=49 ident=int_earley_set_debug_level ident_num=121 decl_scope=419 fblock=422
+       422 fblock pos=76 fdecl=223 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_debug_level
 
-         423 fbend pos=70 block=422
-       224 fdecl ln=116 pos=8 ident=int_earley_set_one_parse_flag ident_num=122 decl_scope=419 fblock=424
-       424 fblock pos=40 fdecl=224 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_one_parse_flag
+         423 fbend pos=76 block=422
+       224 fdecl ln=116 pos=12 ident=int_earley_set_one_parse_flag ident_num=122 decl_scope=419 fblock=424
+       424 fblock pos=42 fdecl=224 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_one_parse_flag
 
-         425 fbend pos=40 block=424
-       225 fdecl ln=117 pos=8 ident=int_earley_set_lookahead_level ident_num=123 decl_scope=419 fblock=426
-       426 fblock pos=41 fdecl=225 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_lookahead_level
+         425 fbend pos=42 block=424
+       225 fdecl ln=117 pos=12 ident=int_earley_set_lookahead_level ident_num=123 decl_scope=419 fblock=426
+       426 fblock pos=43 fdecl=225 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_lookahead_level
 
-         427 fbend pos=41 block=426
-       226 fdecl ln=118 pos=8 ident=int_earley_set_cost_flag ident_num=124 decl_scope=419 fblock=428
-       428 fblock pos=35 fdecl=226 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_cost_flag
+         427 fbend pos=43 block=426
+       226 fdecl ln=118 pos=12 ident=int_earley_set_cost_flag ident_num=124 decl_scope=419 fblock=428
+       428 fblock pos=37 fdecl=226 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_cost_flag
 
-         429 fbend pos=35 block=428
-       227 fdecl ln=119 pos=8 ident=int_earley_set_error_recovery_flag ident_num=125 decl_scope=419 fblock=430
-       430 fblock pos=46 fdecl=227 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_error_recovery_flag
+         429 fbend pos=37 block=428
+       227 fdecl ln=119 pos=12 ident=int_earley_set_error_recovery_flag ident_num=125 decl_scope=419 fblock=430
+       430 fblock pos=47 fdecl=227 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_error_recovery_flag
 
-         431 fbend pos=46 block=430
-       228 fdecl ln=120 pos=8 ident=int_earley_set_recovery_match ident_num=126 decl_scope=419 fblock=432
-       432 fblock pos=40 fdecl=228 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_recovery_match
+         431 fbend pos=47 block=430
+       228 fdecl ln=120 pos=12 ident=int_earley_set_recovery_match ident_num=126 decl_scope=419 fblock=432
+       432 fblock pos=42 fdecl=228 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_recovery_match
 
-         433 fbend pos=40 block=432
-       229 fdecl pos=48 ident=int_earley_parse ident_num=127 decl_scope=419 fblock=434
-       434 fblock pos=67 fdecl=229 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_parse
+         433 fbend pos=42 block=432
+       229 fdecl pos=54 ident=int_earley_parse ident_num=127 decl_scope=419 fblock=434
+       434 fblock pos=71 fdecl=229 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_parse
 
-         435 fbend pos=67 block=434
-       230 fdecl ln=121 pos=8 ident=int_earley_create_grammar ident_num=128 decl_scope=419 fblock=436
-       436 fblock pos=36 fdecl=230 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_create_grammar
+         435 fbend pos=71 block=434
+       230 fdecl ln=121 pos=12 ident=int_earley_create_grammar ident_num=128 decl_scope=419 fblock=436
+       436 fblock pos=38 fdecl=230 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_create_grammar
 
-         437 fbend pos=36 block=436
+         437 fbend pos=38 block=436
        231 fdecl ln=123 pos=7 ident=set_grammar ident_num=129 decl_scope=419 public_p=1 fblock=438
        438 fblock pos=37 next=439 fdecl=231 fun_p=1 pars_num=2 min_pars_num=2 scope=419 vars_num=2 tvars_num=4 // ident=set_grammar
          232 vdecl pos=20 ident=descr ident_num=130 decl_scope=438 var_num=0
@@ -36066,8 +36057,8 @@ TEST584
        522 move pos=11 op1=1 op2=2 rhs_decl=221 // 1 (grammar) <- 2
        523 fbend pos=13 block=419
      250 fdecl ln=153 pos=13 ident=file ident_num=145 decl_scope=0 fblock=524
-     524 fblock pos=20 next=525 fdecl=250 class_p=1 scope=0 vars_num=1 tvars_num=2 ext_life_p=1 // ident=file
-       251 vdecl ln=154 pos=8 ident=file_ptr ident_num=146 decl_scope=524 var_num=0
+     524 fblock pos=18 next=525 fdecl=250 class_p=1 scope=0 vars_num=1 tvars_num=2 ext_life_p=1 // ident=file
+       251 vdecl ln=154 pos=12 ident=file_ptr ident_num=146 decl_scope=524 var_num=0
 
        525 class ln=155 pos=9 op1=1 decl=57 // callop
        526 lds ln=156 pos=6 op1=2 str="File can be created only by functions open or popen" // 2 <- string
@@ -36078,471 +36069,475 @@ TEST584
      253 vdecl ln=158 pos=5 ident=stdout ident_num=148 decl_scope=0 var_num=8
      254 vdecl ln=159 pos=5 ident=stderr ident_num=149 decl_scope=0 var_num=9
      255 fdecl ln=160 pos=5 ident=max ident_num=150 decl_scope=0 fblock=530
-     530 fblock pos=11 fdecl=255 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=max
+     530 fblock pos=9 fdecl=255 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=max
 
-       531 fbend pos=11 block=530
-     256 fdecl pos=18 ident=min ident_num=151 decl_scope=0 fblock=532
-     532 fblock pos=24 fdecl=256 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=min
+       531 fbend pos=9 block=530
+     256 fdecl pos=16 ident=min ident_num=151 decl_scope=0 fblock=532
+     532 fblock pos=20 fdecl=256 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=min
 
-       533 fbend pos=24 block=532
+       533 fbend pos=20 block=532
      257 fdecl ln=161 pos=5 ident=tolower ident_num=152 decl_scope=0 fblock=534
-     534 fblock pos=15 fdecl=257 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tolower
+     534 fblock pos=13 fdecl=257 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tolower
 
-       535 fbend pos=15 block=534
-     258 fdecl pos=22 ident=toupper ident_num=153 decl_scope=0 fblock=536
-     536 fblock pos=32 fdecl=258 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=toupper
+       535 fbend pos=13 block=534
+     258 fdecl pos=20 ident=toupper ident_num=153 decl_scope=0 fblock=536
+     536 fblock pos=28 fdecl=258 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=toupper
 
-       537 fbend pos=32 block=536
-     259 fdecl pos=39 ident=transliterate ident_num=154 decl_scope=0 fblock=538
-     538 fblock pos=55 fdecl=259 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transliterate
+       537 fbend pos=28 block=536
+     259 fdecl pos=35 ident=translit ident_num=154 decl_scope=0 fblock=538
+     538 fblock pos=44 fdecl=259 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=translit
 
-       539 fbend pos=55 block=538
+       539 fbend pos=44 block=538
      260 fdecl ln=162 pos=5 ident=eltype ident_num=155 decl_scope=0 fblock=540
-     540 fblock pos=14 fdecl=260 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=eltype
+     540 fblock pos=12 fdecl=260 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=eltype
 
-       541 fbend pos=14 block=540
+       541 fbend pos=12 block=540
      261 fdecl ln=163 pos=5 ident=keys ident_num=156 decl_scope=0 fblock=542
-     542 fblock pos=12 fdecl=261 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=keys
-
-       543 fbend pos=12 block=542
-     262 fdecl ln=164 pos=5 ident=context ident_num=157 decl_scope=0 fblock=544
-     544 fblock pos=15 fdecl=262 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=context
-
-       545 fbend pos=15 block=544
-     263 fdecl pos=22 ident=inside ident_num=158 decl_scope=0 fblock=546
-     546 fblock pos=31 fdecl=263 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=inside
-
-       547 fbend pos=31 block=546
-     264 fdecl pos=38 ident=isa ident_num=159 decl_scope=0 fblock=548
-     548 fblock pos=44 fdecl=264 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isa
-
-       549 fbend pos=44 block=548
-     265 fdecl ln=165 pos=5 ident=subv ident_num=160 decl_scope=0 fblock=550
-     550 fblock pos=11 fdecl=265 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=subv
-
-       551 fbend pos=11 block=550
-     266 fdecl pos=18 ident=cmpv ident_num=161 decl_scope=0 fblock=552
-     552 fblock pos=24 fdecl=266 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cmpv
-
-       553 fbend pos=24 block=552
-     267 fdecl pos=31 ident=del ident_num=162 decl_scope=0 fblock=554
-     554 fblock pos=36 fdecl=267 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=del
-
-       555 fbend pos=36 block=554
-     268 fdecl pos=43 ident=ins ident_num=163 decl_scope=0 fblock=556
-     556 fblock pos=48 fdecl=268 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ins
-
-       557 fbend pos=48 block=556
-     269 fdecl pos=56 ident=insv ident_num=164 decl_scope=0 fblock=558
-     558 fblock pos=62 fdecl=269 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=insv
-
-       559 fbend pos=62 block=558
-     270 fdecl ln=166 pos=5 ident=rev ident_num=165 decl_scope=0 fblock=560
-     560 fblock pos=10 fdecl=270 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rev
-
-       561 fbend pos=10 block=560
-     271 fdecl pos=17 ident=sort ident_num=166 decl_scope=0 fblock=562
-     562 fblock pos=23 fdecl=271 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sort
-
-       563 fbend pos=23 block=562
-     272 fdecl ln=167 pos=5 ident=sqrt ident_num=167 decl_scope=0 fblock=564
-     564 fblock pos=12 fdecl=272 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sqrt
-
-       565 fbend pos=12 block=564
-     273 fdecl pos=19 ident=exp ident_num=168 decl_scope=0 fblock=566
-     566 fblock pos=25 fdecl=273 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exp
-
-       567 fbend pos=25 block=566
-     274 fdecl pos=32 ident=log ident_num=169 decl_scope=0 fblock=568
-     568 fblock pos=38 fdecl=274 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log
-
-       569 fbend pos=38 block=568
-     275 fdecl pos=45 ident=log10 ident_num=170 decl_scope=0 fblock=570
-     570 fblock pos=52 fdecl=275 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log10
-
-       571 fbend pos=52 block=570
-     276 fdecl pos=59 ident=pow ident_num=171 decl_scope=0 fblock=572
-     572 fblock pos=64 fdecl=276 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pow
-
-       573 fbend pos=64 block=572
-     277 fdecl ln=168 pos=5 ident=sin ident_num=172 decl_scope=0 fblock=574
-     574 fblock pos=10 fdecl=277 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sin
-
-       575 fbend pos=10 block=574
-     278 fdecl pos=17 ident=cos ident_num=173 decl_scope=0 fblock=576
-     576 fblock pos=22 fdecl=278 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cos
-
-       577 fbend pos=22 block=576
-     279 fdecl pos=29 ident=atan2 ident_num=174 decl_scope=0 fblock=578
-     578 fblock pos=36 fdecl=279 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=atan2
-
-       579 fbend pos=36 block=578
-     280 fdecl ln=169 pos=5 ident=match ident_num=175 decl_scope=0 fblock=580
-     580 fblock pos=12 fdecl=280 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=match
-
-       581 fbend pos=12 block=580
-     281 fdecl pos=19 ident=gmatch ident_num=176 decl_scope=0 fblock=582
-     582 fblock pos=27 fdecl=281 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gmatch
-
-       583 fbend pos=27 block=582
-     282 fdecl pos=34 ident=sub ident_num=177 decl_scope=0 fblock=584
-     584 fblock pos=39 fdecl=282 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sub
-
-       585 fbend pos=39 block=584
-     283 fdecl pos=46 ident=gsub ident_num=178 decl_scope=0 fblock=586
-     586 fblock pos=52 fdecl=283 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gsub
-
-       587 fbend pos=52 block=586
-     284 fdecl ln=170 pos=5 ident=split ident_num=179 decl_scope=0 fblock=588
-     588 fblock pos=12 fdecl=284 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=split
-
-       589 fbend pos=12 block=588
-     285 vdecl pos=19 ident=split_regex ident_num=180 decl_scope=0 var_num=10
-     286 fdecl ln=171 pos=5 ident=srand ident_num=181 decl_scope=0 fblock=590
-     590 fblock pos=12 fdecl=286 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=srand
-
-       591 fbend pos=12 block=590
-     287 fdecl pos=19 ident=rand ident_num=182 decl_scope=0 fblock=592
-     592 fblock pos=25 fdecl=287 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rand
-
-       593 fbend pos=25 block=592
-     288 fdecl ln=172 pos=5 ident=__process_errno__ ident_num=183 decl_scope=0 fblock=594
-     594 fblock pos=25 fdecl=288 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__process_errno__
-
-       595 fbend pos=25 block=594
-     289 fdecl ln=173 pos=5 ident=readdir ident_num=184 decl_scope=0 fblock=596
-     596 fblock pos=14 fdecl=289 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=readdir
-
-       597 fbend pos=14 block=596
-     290 fdecl pos=21 ident=ftype ident_num=185 decl_scope=0 fblock=598
-     598 fblock pos=30 fdecl=290 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ftype
-
-       599 fbend pos=30 block=598
-     291 fdecl ln=174 pos=5 ident=fuidn ident_num=186 decl_scope=0 fblock=600
-     600 fblock pos=12 fdecl=291 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fuidn
-
-       601 fbend pos=12 block=600
-     292 fdecl pos=19 ident=fgrpn ident_num=187 decl_scope=0 fblock=602
-     602 fblock pos=28 fdecl=292 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgrpn
-
-       603 fbend pos=28 block=602
-     293 fdecl pos=35 ident=fsize ident_num=188 decl_scope=0 fblock=604
-     604 fblock pos=42 fdecl=293 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fsize
-
-       605 fbend pos=42 block=604
-     294 fdecl ln=175 pos=5 ident=fatime ident_num=189 decl_scope=0 fblock=606
-     606 fblock pos=14 fdecl=294 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fatime
-
-       607 fbend pos=14 block=606
-     295 fdecl pos=21 ident=fmtime ident_num=190 decl_scope=0 fblock=608
-     608 fblock pos=29 fdecl=295 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fmtime
-
-       609 fbend pos=29 block=608
-     296 fdecl pos=36 ident=fctime ident_num=191 decl_scope=0 fblock=610
-     610 fblock pos=46 fdecl=296 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fctime
-
-       611 fbend pos=46 block=610
-     297 fdecl ln=176 pos=5 ident=fumode ident_num=192 decl_scope=0 fblock=612
-     612 fblock pos=14 fdecl=297 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fumode
-
-       613 fbend pos=14 block=612
-     298 fdecl pos=21 ident=fgmode ident_num=193 decl_scope=0 fblock=614
-     614 fblock pos=29 fdecl=298 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgmode
-
-       615 fbend pos=29 block=614
-     299 fdecl pos=36 ident=fomode ident_num=194 decl_scope=0 fblock=616
-     616 fblock pos=46 fdecl=299 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fomode
-
-       617 fbend pos=46 block=616
-     300 fdecl ln=177 pos=5 ident=time ident_num=195 decl_scope=0 fblock=618
-     618 fblock pos=11 fdecl=300 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=time
-
-       619 fbend pos=11 block=618
-     301 fdecl ln=178 pos=5 ident=strtime ident_num=196 decl_scope=0 fblock=620
-     620 fblock pos=15 fdecl=301 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=strtime
-
-       621 fbend pos=15 block=620
-     302 vdecl pos=22 ident=time_format ident_num=197 decl_scope=0 var_num=11
-     303 fdecl ln=179 pos=5 ident=clock ident_num=198 decl_scope=0 fblock=622
-     622 fblock pos=12 fdecl=303 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=clock
-
-       623 fbend pos=12 block=622
-     304 fdecl ln=180 pos=5 ident=gc ident_num=199 decl_scope=0 fblock=624
-     624 fblock pos=10 fdecl=304 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gc
-
-       625 fbend pos=10 block=624
-     305 fdecl ln=181 pos=5 ident=rename ident_num=200 decl_scope=0 fblock=626
-     626 fblock pos=14 fdecl=305 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rename
-
-       627 fbend pos=14 block=626
-     306 fdecl pos=21 ident=remove ident_num=201 decl_scope=0 fblock=628
-     628 fblock pos=29 fdecl=306 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=remove
-
-       629 fbend pos=29 block=628
-     307 fdecl ln=182 pos=5 ident=mkdir ident_num=202 decl_scope=0 fblock=630
-     630 fblock pos=13 fdecl=307 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=mkdir
-
-       631 fbend pos=13 block=630
-     308 fdecl pos=20 ident=rmdir ident_num=203 decl_scope=0 fblock=632
-     632 fblock pos=27 fdecl=308 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rmdir
-
-       633 fbend pos=27 block=632
-     309 fdecl ln=183 pos=5 ident=getcwd ident_num=204 decl_scope=0 fblock=634
-     634 fblock pos=14 fdecl=309 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getcwd
-
-       635 fbend pos=14 block=634
-     310 fdecl pos=21 ident=chdir ident_num=205 decl_scope=0 fblock=636
-     636 fblock pos=28 fdecl=310 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chdir
-
-       637 fbend pos=28 block=636
-     311 fdecl ln=184 pos=5 ident=chumod ident_num=206 decl_scope=0 fblock=638
-     638 fblock pos=14 fdecl=311 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chumod
-
-       639 fbend pos=14 block=638
-     312 fdecl pos=21 ident=chgmod ident_num=207 decl_scope=0 fblock=640
-     640 fblock pos=30 fdecl=312 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chgmod
-
-       641 fbend pos=30 block=640
-     313 fdecl pos=37 ident=chomod ident_num=208 decl_scope=0 fblock=642
-     642 fblock pos=46 fdecl=313 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chomod
-
-       643 fbend pos=46 block=642
-     314 fdecl pos=53 ident=isatty ident_num=209 decl_scope=0 fblock=644
-     644 fblock pos=61 fdecl=314 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isatty
-
-       645 fbend pos=61 block=644
-     315 fdecl ln=185 pos=5 ident=open ident_num=210 decl_scope=0 fblock=646
-     646 fblock pos=12 fdecl=315 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=open
-
-       647 fbend pos=12 block=646
-     316 fdecl pos=19 ident=close ident_num=211 decl_scope=0 fblock=648
-     648 fblock pos=26 fdecl=316 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=close
-
-       649 fbend pos=26 block=648
-     317 fdecl pos=33 ident=flush ident_num=212 decl_scope=0 fblock=650
-     650 fblock pos=40 fdecl=317 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=flush
-
-       651 fbend pos=40 block=650
-     318 fdecl ln=186 pos=5 ident=popen ident_num=213 decl_scope=0 fblock=652
-     652 fblock pos=13 fdecl=318 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=popen
-
-       653 fbend pos=13 block=652
-     319 fdecl pos=20 ident=pclose ident_num=214 decl_scope=0 fblock=654
-     654 fblock pos=28 fdecl=319 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pclose
-
-       655 fbend pos=28 block=654
-     320 fdecl ln=187 pos=5 ident=tell ident_num=215 decl_scope=0 fblock=656
-     656 fblock pos=12 fdecl=320 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tell
-
-       657 fbend pos=12 block=656
-     321 fdecl pos=19 ident=seek ident_num=216 decl_scope=0 fblock=658
-     658 fblock pos=26 fdecl=321 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=seek
-
-       659 fbend pos=26 block=658
-     322 fdecl ln=188 pos=5 ident=put ident_num=217 decl_scope=0 fblock=660
-     660 fblock pos=10 fdecl=322 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=put
-
-       661 fbend pos=10 block=660
-     323 fdecl pos=17 ident=putln ident_num=218 decl_scope=0 fblock=662
-     662 fblock pos=24 fdecl=323 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putln
-
-       663 fbend pos=24 block=662
-     324 fdecl ln=189 pos=5 ident=fput ident_num=219 decl_scope=0 fblock=664
-     664 fblock pos=11 fdecl=324 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fput
-
-       665 fbend pos=11 block=664
-     325 fdecl pos=18 ident=fputln ident_num=220 decl_scope=0 fblock=666
-     666 fblock pos=26 fdecl=325 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputln
-
-       667 fbend pos=26 block=666
-     326 fdecl pos=33 ident=sput ident_num=221 decl_scope=0 fblock=668
-     668 fblock pos=39 fdecl=326 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sput
-
-       669 fbend pos=39 block=668
-     327 fdecl pos=46 ident=sputln ident_num=222 decl_scope=0 fblock=670
-     670 fblock pos=54 fdecl=327 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputln
-
-       671 fbend pos=54 block=670
-     328 fdecl ln=190 pos=5 ident=putf ident_num=223 decl_scope=0 fblock=672
-     672 fblock pos=12 fdecl=328 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putf
-
-       673 fbend pos=12 block=672
-     329 fdecl pos=19 ident=fputf ident_num=224 decl_scope=0 fblock=674
-     674 fblock pos=27 fdecl=329 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputf
-
-       675 fbend pos=27 block=674
-     330 fdecl pos=34 ident=sputf ident_num=225 decl_scope=0 fblock=676
-     676 fblock pos=42 fdecl=330 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputf
-
-       677 fbend pos=42 block=676
-     331 fdecl ln=191 pos=5 ident=print ident_num=226 decl_scope=0 fblock=678
-     678 fblock pos=12 fdecl=331 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=print
-
-       679 fbend pos=12 block=678
-     332 fdecl pos=19 ident=println ident_num=227 decl_scope=0 fblock=680
-     680 fblock pos=28 fdecl=332 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=println
-
-       681 fbend pos=28 block=680
-     333 fdecl ln=192 pos=5 ident=fprint ident_num=228 decl_scope=0 fblock=682
-     682 fblock pos=13 fdecl=333 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprint
-
-       683 fbend pos=13 block=682
-     334 fdecl pos=20 ident=fprintln ident_num=229 decl_scope=0 fblock=684
-     684 fblock pos=30 fdecl=334 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprintln
-
-       685 fbend pos=30 block=684
-     335 fdecl pos=37 ident=sprint ident_num=230 decl_scope=0 fblock=686
-     686 fblock pos=45 fdecl=335 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprint
-
-       687 fbend pos=45 block=686
-     336 fdecl pos=52 ident=sprintln ident_num=231 decl_scope=0 fblock=688
-     688 fblock pos=62 fdecl=336 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprintln
-
-       689 fbend pos=62 block=688
-     337 fdecl ln=193 pos=5 ident=get ident_num=232 decl_scope=0 fblock=690
-     690 fblock pos=10 fdecl=337 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=get
-
-       691 fbend pos=10 block=690
-     338 fdecl pos=17 ident=getln ident_num=233 decl_scope=0 fblock=692
-     692 fblock pos=24 fdecl=338 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getln
-
-       693 fbend pos=24 block=692
-     339 fdecl pos=31 ident=getf ident_num=234 decl_scope=0 fblock=694
-     694 fblock pos=37 fdecl=339 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getf
-
-       695 fbend pos=37 block=694
-     340 fdecl ln=194 pos=5 ident=fget ident_num=235 decl_scope=0 fblock=696
-     696 fblock pos=11 fdecl=340 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fget
-
-       697 fbend pos=11 block=696
-     341 fdecl pos=18 ident=fgetln ident_num=236 decl_scope=0 fblock=698
-     698 fblock pos=26 fdecl=341 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetln
-
-       699 fbend pos=26 block=698
-     342 fdecl pos=33 ident=fgetf ident_num=237 decl_scope=0 fblock=700
-     700 fblock pos=40 fdecl=342 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetf
-
-       701 fbend pos=40 block=700
-     343 fdecl ln=195 pos=5 ident=scan ident_num=238 decl_scope=0 fblock=702
-     702 fblock pos=11 fdecl=343 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scan
-
-       703 fbend pos=11 block=702
-     344 fdecl pos=18 ident=scanln ident_num=239 decl_scope=0 fblock=704
-     704 fblock pos=26 fdecl=344 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scanln
-
-       705 fbend pos=26 block=704
-     345 fdecl pos=33 ident=fscan ident_num=240 decl_scope=0 fblock=706
-     706 fblock pos=40 fdecl=345 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscan
-
-       707 fbend pos=40 block=706
-     346 fdecl pos=47 ident=fscanln ident_num=241 decl_scope=0 fblock=708
-     708 fblock pos=56 fdecl=346 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscanln
-
-       709 fbend pos=56 block=708
-     347 fdecl ln=196 pos=5 ident=getpid ident_num=242 decl_scope=0 fblock=710
-     710 fblock pos=13 fdecl=347 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getpid
-
-       711 fbend pos=13 block=710
-     348 fdecl pos=20 ident=getun ident_num=243 decl_scope=0 fblock=712
-     712 fblock pos=27 fdecl=348 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getun
-
-       713 fbend pos=27 block=712
-     349 fdecl pos=34 ident=geteun ident_num=244 decl_scope=0 fblock=714
-     714 fblock pos=42 fdecl=349 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=geteun
-
-       715 fbend pos=42 block=714
-     350 fdecl ln=197 pos=5 ident=getgn ident_num=245 decl_scope=0 fblock=716
-     716 fblock pos=12 fdecl=350 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgn
-
-       717 fbend pos=12 block=716
-     351 fdecl pos=19 ident=getegn ident_num=246 decl_scope=0 fblock=718
-     718 fblock pos=27 fdecl=351 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getegn
-
-       719 fbend pos=27 block=718
-     352 fdecl pos=34 ident=getgroups ident_num=247 decl_scope=0 fblock=720
-     720 fblock pos=45 fdecl=352 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgroups
-
-       721 fbend pos=45 block=720
-     353 fdecl ln=198 pos=5 ident=system ident_num=248 decl_scope=0 fblock=722
-     722 fblock pos=13 fdecl=353 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=system
-
-       723 fbend pos=13 block=722
-     354 fdecl ln=199 pos=5 ident=exit ident_num=249 decl_scope=0 fblock=724
-     724 fblock pos=11 fdecl=354 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exit
-
-       725 fbend pos=11 block=724
-     355 fdecl ln=200 pos=5 ident=fold ident_num=250 decl_scope=0 fblock=726
-     726 fblock pos=11 fdecl=355 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fold
-
-       727 fbend pos=11 block=726
-     356 fdecl pos=18 ident=filter ident_num=251 decl_scope=0 fblock=728
-     728 fblock pos=26 fdecl=356 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=filter
-
-       729 fbend pos=26 block=728
-     357 fdecl pos=33 ident=map ident_num=252 decl_scope=0 fblock=730
-     730 fblock pos=38 fdecl=357 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=map
-
-       731 fbend pos=38 block=730
-     358 fdecl ln=201 pos=5 ident=transpose ident_num=253 decl_scope=0 fblock=732
-     732 fblock pos=16 fdecl=358 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transpose
-
-       733 fbend pos=16 block=732
-     359 fdecl ln=202 pos=5 ident=__init__ ident_num=254 decl_scope=0 fblock=734
-     734 fblock pos=16 fdecl=359 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__init__
-
-       735 fbend pos=16 block=734
+     542 fblock pos=10 fdecl=261 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=keys
+
+       543 fbend pos=10 block=542
+     262 fdecl ln=164 pos=5 ident=closure ident_num=157 decl_scope=0 fblock=544
+     544 fblock pos=13 fdecl=262 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=closure
+
+       545 fbend pos=13 block=544
+     263 fdecl pos=20 ident=context ident_num=158 decl_scope=0 fblock=546
+     546 fblock pos=28 fdecl=263 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=context
+
+       547 fbend pos=28 block=546
+     264 fdecl pos=35 ident=inside ident_num=159 decl_scope=0 fblock=548
+     548 fblock pos=42 fdecl=264 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=inside
+
+       549 fbend pos=42 block=548
+     265 fdecl pos=49 ident=isa ident_num=160 decl_scope=0 fblock=550
+     550 fblock pos=53 fdecl=265 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isa
+
+       551 fbend pos=53 block=550
+     266 fdecl ln=165 pos=5 ident=subv ident_num=161 decl_scope=0 fblock=552
+     552 fblock pos=10 fdecl=266 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=subv
+
+       553 fbend pos=10 block=552
+     267 fdecl pos=17 ident=cmpv ident_num=162 decl_scope=0 fblock=554
+     554 fblock pos=22 fdecl=267 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cmpv
+
+       555 fbend pos=22 block=554
+     268 fdecl pos=29 ident=del ident_num=163 decl_scope=0 fblock=556
+     556 fblock pos=33 fdecl=268 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=del
+
+       557 fbend pos=33 block=556
+     269 fdecl pos=40 ident=ins ident_num=164 decl_scope=0 fblock=558
+     558 fblock pos=44 fdecl=269 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ins
+
+       559 fbend pos=44 block=558
+     270 fdecl pos=52 ident=insv ident_num=165 decl_scope=0 fblock=560
+     560 fblock pos=57 fdecl=270 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=insv
+
+       561 fbend pos=57 block=560
+     271 fdecl ln=166 pos=5 ident=rev ident_num=166 decl_scope=0 fblock=562
+     562 fblock pos=9 fdecl=271 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rev
+
+       563 fbend pos=9 block=562
+     272 fdecl pos=16 ident=sort ident_num=167 decl_scope=0 fblock=564
+     564 fblock pos=21 fdecl=272 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sort
+
+       565 fbend pos=21 block=564
+     273 fdecl ln=167 pos=5 ident=sqrt ident_num=168 decl_scope=0 fblock=566
+     566 fblock pos=10 fdecl=273 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sqrt
+
+       567 fbend pos=10 block=566
+     274 fdecl pos=17 ident=exp ident_num=169 decl_scope=0 fblock=568
+     568 fblock pos=21 fdecl=274 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exp
+
+       569 fbend pos=21 block=568
+     275 fdecl pos=28 ident=log ident_num=170 decl_scope=0 fblock=570
+     570 fblock pos=32 fdecl=275 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log
+
+       571 fbend pos=32 block=570
+     276 fdecl pos=39 ident=log10 ident_num=171 decl_scope=0 fblock=572
+     572 fblock pos=45 fdecl=276 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log10
+
+       573 fbend pos=45 block=572
+     277 fdecl pos=52 ident=pow ident_num=172 decl_scope=0 fblock=574
+     574 fblock pos=56 fdecl=277 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pow
+
+       575 fbend pos=56 block=574
+     278 fdecl ln=168 pos=5 ident=sin ident_num=173 decl_scope=0 fblock=576
+     576 fblock pos=9 fdecl=278 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sin
+
+       577 fbend pos=9 block=576
+     279 fdecl pos=16 ident=cos ident_num=174 decl_scope=0 fblock=578
+     578 fblock pos=20 fdecl=279 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cos
+
+       579 fbend pos=20 block=578
+     280 fdecl pos=27 ident=atan2 ident_num=175 decl_scope=0 fblock=580
+     580 fblock pos=33 fdecl=280 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=atan2
+
+       581 fbend pos=33 block=580
+     281 fdecl ln=169 pos=5 ident=match ident_num=176 decl_scope=0 fblock=582
+     582 fblock pos=11 fdecl=281 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=match
+
+       583 fbend pos=11 block=582
+     282 fdecl pos=18 ident=gmatch ident_num=177 decl_scope=0 fblock=584
+     584 fblock pos=25 fdecl=282 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gmatch
+
+       585 fbend pos=25 block=584
+     283 fdecl pos=32 ident=sub ident_num=178 decl_scope=0 fblock=586
+     586 fblock pos=36 fdecl=283 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sub
+
+       587 fbend pos=36 block=586
+     284 fdecl pos=43 ident=gsub ident_num=179 decl_scope=0 fblock=588
+     588 fblock pos=48 fdecl=284 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gsub
+
+       589 fbend pos=48 block=588
+     285 fdecl ln=170 pos=5 ident=split ident_num=180 decl_scope=0 fblock=590
+     590 fblock pos=11 fdecl=285 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=split
+
+       591 fbend pos=11 block=590
+     286 vdecl pos=18 ident=split_regex ident_num=181 decl_scope=0 var_num=10
+     287 fdecl ln=171 pos=5 ident=srand ident_num=182 decl_scope=0 fblock=592
+     592 fblock pos=11 fdecl=287 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=srand
+
+       593 fbend pos=11 block=592
+     288 fdecl pos=18 ident=rand ident_num=183 decl_scope=0 fblock=594
+     594 fblock pos=23 fdecl=288 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rand
+
+       595 fbend pos=23 block=594
+     289 fdecl ln=172 pos=5 ident=__process_errno__ ident_num=184 decl_scope=0 fblock=596
+     596 fblock pos=23 fdecl=289 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__process_errno__
+
+       597 fbend pos=23 block=596
+     290 fdecl ln=173 pos=5 ident=readdir ident_num=185 decl_scope=0 fblock=598
+     598 fblock pos=13 fdecl=290 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=readdir
+
+       599 fbend pos=13 block=598
+     291 fdecl pos=20 ident=ftype ident_num=186 decl_scope=0 fblock=600
+     600 fblock pos=26 fdecl=291 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ftype
+
+       601 fbend pos=26 block=600
+     292 fdecl ln=174 pos=5 ident=fuidn ident_num=187 decl_scope=0 fblock=602
+     602 fblock pos=11 fdecl=292 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fuidn
+
+       603 fbend pos=11 block=602
+     293 fdecl pos=18 ident=fgrpn ident_num=188 decl_scope=0 fblock=604
+     604 fblock pos=24 fdecl=293 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgrpn
+
+       605 fbend pos=24 block=604
+     294 fdecl pos=31 ident=fsize ident_num=189 decl_scope=0 fblock=606
+     606 fblock pos=37 fdecl=294 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fsize
+
+       607 fbend pos=37 block=606
+     295 fdecl ln=175 pos=5 ident=fatime ident_num=190 decl_scope=0 fblock=608
+     608 fblock pos=12 fdecl=295 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fatime
+
+       609 fbend pos=12 block=608
+     296 fdecl pos=19 ident=fmtime ident_num=191 decl_scope=0 fblock=610
+     610 fblock pos=26 fdecl=296 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fmtime
+
+       611 fbend pos=26 block=610
+     297 fdecl pos=33 ident=fctime ident_num=192 decl_scope=0 fblock=612
+     612 fblock pos=40 fdecl=297 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fctime
+
+       613 fbend pos=40 block=612
+     298 fdecl ln=176 pos=5 ident=fumode ident_num=193 decl_scope=0 fblock=614
+     614 fblock pos=12 fdecl=298 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fumode
+
+       615 fbend pos=12 block=614
+     299 fdecl pos=19 ident=fgmode ident_num=194 decl_scope=0 fblock=616
+     616 fblock pos=26 fdecl=299 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgmode
+
+       617 fbend pos=26 block=616
+     300 fdecl pos=33 ident=fomode ident_num=195 decl_scope=0 fblock=618
+     618 fblock pos=40 fdecl=300 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fomode
+
+       619 fbend pos=40 block=618
+     301 fdecl ln=177 pos=5 ident=time ident_num=196 decl_scope=0 fblock=620
+     620 fblock pos=10 fdecl=301 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=time
+
+       621 fbend pos=10 block=620
+     302 fdecl ln=178 pos=5 ident=strtime ident_num=197 decl_scope=0 fblock=622
+     622 fblock pos=13 fdecl=302 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=strtime
+
+       623 fbend pos=13 block=622
+     303 vdecl pos=20 ident=time_format ident_num=198 decl_scope=0 var_num=11
+     304 fdecl ln=179 pos=5 ident=clock ident_num=199 decl_scope=0 fblock=624
+     624 fblock pos=11 fdecl=304 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=clock
+
+       625 fbend pos=11 block=624
+     305 fdecl ln=180 pos=5 ident=gc ident_num=200 decl_scope=0 fblock=626
+     626 fblock pos=8 fdecl=305 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gc
+
+       627 fbend pos=8 block=626
+     306 fdecl ln=181 pos=5 ident=rename ident_num=201 decl_scope=0 fblock=628
+     628 fblock pos=12 fdecl=306 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rename
+
+       629 fbend pos=12 block=628
+     307 fdecl pos=19 ident=remove ident_num=202 decl_scope=0 fblock=630
+     630 fblock pos=26 fdecl=307 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=remove
+
+       631 fbend pos=26 block=630
+     308 fdecl ln=182 pos=5 ident=mkdir ident_num=203 decl_scope=0 fblock=632
+     632 fblock pos=11 fdecl=308 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=mkdir
+
+       633 fbend pos=11 block=632
+     309 fdecl pos=18 ident=rmdir ident_num=204 decl_scope=0 fblock=634
+     634 fblock pos=24 fdecl=309 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rmdir
+
+       635 fbend pos=24 block=634
+     310 fdecl ln=183 pos=5 ident=getcwd ident_num=205 decl_scope=0 fblock=636
+     636 fblock pos=12 fdecl=310 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getcwd
+
+       637 fbend pos=12 block=636
+     311 fdecl pos=19 ident=chdir ident_num=206 decl_scope=0 fblock=638
+     638 fblock pos=25 fdecl=311 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chdir
+
+       639 fbend pos=25 block=638
+     312 fdecl ln=184 pos=5 ident=chumod ident_num=207 decl_scope=0 fblock=640
+     640 fblock pos=12 fdecl=312 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chumod
+
+       641 fbend pos=12 block=640
+     313 fdecl pos=19 ident=chgmod ident_num=208 decl_scope=0 fblock=642
+     642 fblock pos=26 fdecl=313 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chgmod
+
+       643 fbend pos=26 block=642
+     314 fdecl pos=33 ident=chomod ident_num=209 decl_scope=0 fblock=644
+     644 fblock pos=40 fdecl=314 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chomod
+
+       645 fbend pos=40 block=644
+     315 fdecl pos=47 ident=isatty ident_num=210 decl_scope=0 fblock=646
+     646 fblock pos=54 fdecl=315 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isatty
+
+       647 fbend pos=54 block=646
+     316 fdecl ln=185 pos=5 ident=open ident_num=211 decl_scope=0 fblock=648
+     648 fblock pos=10 fdecl=316 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=open
+
+       649 fbend pos=10 block=648
+     317 fdecl pos=17 ident=close ident_num=212 decl_scope=0 fblock=650
+     650 fblock pos=23 fdecl=317 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=close
+
+       651 fbend pos=23 block=650
+     318 fdecl pos=30 ident=flush ident_num=213 decl_scope=0 fblock=652
+     652 fblock pos=36 fdecl=318 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=flush
+
+       653 fbend pos=36 block=652
+     319 fdecl ln=186 pos=5 ident=popen ident_num=214 decl_scope=0 fblock=654
+     654 fblock pos=11 fdecl=319 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=popen
+
+       655 fbend pos=11 block=654
+     320 fdecl pos=18 ident=pclose ident_num=215 decl_scope=0 fblock=656
+     656 fblock pos=25 fdecl=320 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pclose
+
+       657 fbend pos=25 block=656
+     321 fdecl ln=187 pos=5 ident=tell ident_num=216 decl_scope=0 fblock=658
+     658 fblock pos=10 fdecl=321 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tell
+
+       659 fbend pos=10 block=658
+     322 fdecl pos=17 ident=seek ident_num=217 decl_scope=0 fblock=660
+     660 fblock pos=22 fdecl=322 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=seek
+
+       661 fbend pos=22 block=660
+     323 fdecl ln=188 pos=5 ident=put ident_num=218 decl_scope=0 fblock=662
+     662 fblock pos=9 fdecl=323 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=put
+
+       663 fbend pos=9 block=662
+     324 fdecl pos=16 ident=putln ident_num=219 decl_scope=0 fblock=664
+     664 fblock pos=22 fdecl=324 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putln
+
+       665 fbend pos=22 block=664
+     325 fdecl ln=189 pos=5 ident=fput ident_num=220 decl_scope=0 fblock=666
+     666 fblock pos=10 fdecl=325 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fput
+
+       667 fbend pos=10 block=666
+     326 fdecl pos=17 ident=fputln ident_num=221 decl_scope=0 fblock=668
+     668 fblock pos=24 fdecl=326 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputln
+
+       669 fbend pos=24 block=668
+     327 fdecl pos=31 ident=sput ident_num=222 decl_scope=0 fblock=670
+     670 fblock pos=36 fdecl=327 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sput
+
+       671 fbend pos=36 block=670
+     328 fdecl pos=43 ident=sputln ident_num=223 decl_scope=0 fblock=672
+     672 fblock pos=50 fdecl=328 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputln
+
+       673 fbend pos=50 block=672
+     329 fdecl ln=190 pos=5 ident=putf ident_num=224 decl_scope=0 fblock=674
+     674 fblock pos=10 fdecl=329 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putf
+
+       675 fbend pos=10 block=674
+     330 fdecl pos=17 ident=fputf ident_num=225 decl_scope=0 fblock=676
+     676 fblock pos=23 fdecl=330 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputf
+
+       677 fbend pos=23 block=676
+     331 fdecl pos=30 ident=sputf ident_num=226 decl_scope=0 fblock=678
+     678 fblock pos=36 fdecl=331 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputf
+
+       679 fbend pos=36 block=678
+     332 fdecl ln=191 pos=5 ident=print ident_num=227 decl_scope=0 fblock=680
+     680 fblock pos=11 fdecl=332 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=print
+
+       681 fbend pos=11 block=680
+     333 fdecl pos=18 ident=println ident_num=228 decl_scope=0 fblock=682
+     682 fblock pos=26 fdecl=333 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=println
+
+       683 fbend pos=26 block=682
+     334 fdecl ln=192 pos=5 ident=fprint ident_num=229 decl_scope=0 fblock=684
+     684 fblock pos=12 fdecl=334 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprint
+
+       685 fbend pos=12 block=684
+     335 fdecl pos=19 ident=fprintln ident_num=230 decl_scope=0 fblock=686
+     686 fblock pos=28 fdecl=335 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprintln
+
+       687 fbend pos=28 block=686
+     336 fdecl pos=35 ident=sprint ident_num=231 decl_scope=0 fblock=688
+     688 fblock pos=42 fdecl=336 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprint
+
+       689 fbend pos=42 block=688
+     337 fdecl pos=49 ident=sprintln ident_num=232 decl_scope=0 fblock=690
+     690 fblock pos=58 fdecl=337 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprintln
+
+       691 fbend pos=58 block=690
+     338 fdecl ln=193 pos=5 ident=get ident_num=233 decl_scope=0 fblock=692
+     692 fblock pos=9 fdecl=338 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=get
+
+       693 fbend pos=9 block=692
+     339 fdecl pos=16 ident=getln ident_num=234 decl_scope=0 fblock=694
+     694 fblock pos=22 fdecl=339 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getln
+
+       695 fbend pos=22 block=694
+     340 fdecl pos=29 ident=getf ident_num=235 decl_scope=0 fblock=696
+     696 fblock pos=34 fdecl=340 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getf
+
+       697 fbend pos=34 block=696
+     341 fdecl ln=194 pos=5 ident=fget ident_num=236 decl_scope=0 fblock=698
+     698 fblock pos=10 fdecl=341 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fget
+
+       699 fbend pos=10 block=698
+     342 fdecl pos=17 ident=fgetln ident_num=237 decl_scope=0 fblock=700
+     700 fblock pos=24 fdecl=342 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetln
+
+       701 fbend pos=24 block=700
+     343 fdecl pos=31 ident=fgetf ident_num=238 decl_scope=0 fblock=702
+     702 fblock pos=37 fdecl=343 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetf
+
+       703 fbend pos=37 block=702
+     344 fdecl ln=195 pos=5 ident=scan ident_num=239 decl_scope=0 fblock=704
+     704 fblock pos=10 fdecl=344 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scan
+
+       705 fbend pos=10 block=704
+     345 fdecl pos=17 ident=scanln ident_num=240 decl_scope=0 fblock=706
+     706 fblock pos=24 fdecl=345 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scanln
+
+       707 fbend pos=24 block=706
+     346 fdecl pos=31 ident=fscan ident_num=241 decl_scope=0 fblock=708
+     708 fblock pos=37 fdecl=346 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscan
+
+       709 fbend pos=37 block=708
+     347 fdecl pos=44 ident=fscanln ident_num=242 decl_scope=0 fblock=710
+     710 fblock pos=52 fdecl=347 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscanln
+
+       711 fbend pos=52 block=710
+     348 fdecl ln=196 pos=5 ident=getpid ident_num=243 decl_scope=0 fblock=712
+     712 fblock pos=12 fdecl=348 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getpid
+
+       713 fbend pos=12 block=712
+     349 fdecl pos=19 ident=getun ident_num=244 decl_scope=0 fblock=714
+     714 fblock pos=25 fdecl=349 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getun
+
+       715 fbend pos=25 block=714
+     350 fdecl pos=32 ident=geteun ident_num=245 decl_scope=0 fblock=716
+     716 fblock pos=39 fdecl=350 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=geteun
+
+       717 fbend pos=39 block=716
+     351 fdecl ln=197 pos=5 ident=getgn ident_num=246 decl_scope=0 fblock=718
+     718 fblock pos=11 fdecl=351 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgn
+
+       719 fbend pos=11 block=718
+     352 fdecl pos=18 ident=getegn ident_num=247 decl_scope=0 fblock=720
+     720 fblock pos=25 fdecl=352 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getegn
+
+       721 fbend pos=25 block=720
+     353 fdecl pos=32 ident=getgroups ident_num=248 decl_scope=0 fblock=722
+     722 fblock pos=42 fdecl=353 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgroups
+
+       723 fbend pos=42 block=722
+     354 fdecl ln=198 pos=5 ident=system ident_num=249 decl_scope=0 fblock=724
+     724 fblock pos=12 fdecl=354 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=system
+
+       725 fbend pos=12 block=724
+     355 fdecl ln=199 pos=5 ident=exit ident_num=250 decl_scope=0 fblock=726
+     726 fblock pos=10 fdecl=355 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exit
+
+       727 fbend pos=10 block=726
+     356 fdecl ln=200 pos=5 ident=fold ident_num=251 decl_scope=0 fblock=728
+     728 fblock pos=10 fdecl=356 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fold
+
+       729 fbend pos=10 block=728
+     357 fdecl pos=17 ident=filter ident_num=252 decl_scope=0 fblock=730
+     730 fblock pos=24 fdecl=357 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=filter
+
+       731 fbend pos=24 block=730
+     358 fdecl pos=31 ident=map ident_num=253 decl_scope=0 fblock=732
+     732 fblock pos=35 fdecl=358 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=map
+
+       733 fbend pos=35 block=732
+     359 fdecl ln=201 pos=5 ident=transpose ident_num=254 decl_scope=0 fblock=734
+     734 fblock pos=15 fdecl=359 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transpose
+
+       735 fbend pos=15 block=734
+     360 fdecl ln=202 pos=5 ident=__init__ ident_num=255 decl_scope=0 fblock=736
+     736 fblock pos=14 fdecl=360 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__init__
+
+       737 fbend pos=14 block=736
 //-----------------------test.d---------------------------
-     360 vdecl fn="test.d" ln=1 pos=5 ident=SieveSize ident_num=255 decl_scope=0 var_num=12
-     361 vdecl pos=16 ident=i ident_num=256 decl_scope=0 var_num=13
-     362 vdecl pos=19 ident=prime ident_num=257 decl_scope=0 var_num=14
-     363 vdecl pos=26 ident=k ident_num=258 decl_scope=0 var_num=15
-     364 vdecl pos=29 ident=count ident_num=259 decl_scope=0 var_num=16
-     365 vdecl pos=36 ident=flags ident_num=260 decl_scope=0 var_num=17
+     361 vdecl fn="test.d" ln=1 pos=5 ident=SieveSize ident_num=256 decl_scope=0 var_num=12
+     362 vdecl pos=16 ident=i ident_num=257 decl_scope=0 var_num=13
+     363 vdecl pos=19 ident=prime ident_num=258 decl_scope=0 var_num=14
+     364 vdecl pos=26 ident=k ident_num=259 decl_scope=0 var_num=15
+     365 vdecl pos=29 ident=count ident_num=260 decl_scope=0 var_num=16
+     366 vdecl pos=36 ident=flags ident_num=261 decl_scope=0 var_num=17
 
 //-----------------------<environment>----------------------------
-     736 class fn="<environment>" ln=108 pos=17 op1=18 decl=212 // anode
-     737 lds pos=24 op1=19 str="$nil" // 19 <- string
-     738 ldnil pos=32 op1=20 // 20 <- nil
-     739 call pos=23 op1=18 op2=2 // call (start=18) (npars=2)
-     740 move pos=15 op1=5 op2=18 rhs_decl=217 // 5 (nil_anode) <- 18
-     741 class ln=109 pos=19 op1=18 decl=212 // anode
-     742 lds pos=26 op1=19 str="$error" // 19 <- string
-     743 ldnil pos=36 op1=20 // 20 <- nil
-     744 call pos=25 op1=18 op2=2 // call (start=18) (npars=2)
-     745 move pos=17 op1=6 op2=18 rhs_decl=218 // 6 (error_anode) <- 18
-     746 lds ln=170 pos=33 op1=10 str="[ \t]+" // 10 <- string
-     747 lds ln=178 pos=36 op1=11 str="%a %b %d %H:%M:%S %Z %Y" // 11 <- string
-     748 ibcall ln=202 pos=27 cfblock=734 op1=18 op2=0
+     738 class fn="<environment>" ln=108 pos=17 op1=18 decl=212 // anode
+     739 lds pos=24 op1=19 str="$nil" // 19 <- string
+     740 ldnil pos=32 op1=20 // 20 <- nil
+     741 call pos=23 op1=18 op2=2 // call (start=18) (npars=2)
+     742 move pos=15 op1=5 op2=18 rhs_decl=217 // 5 (nil_anode) <- 18
+     743 class ln=109 pos=19 op1=18 decl=212 // anode
+     744 lds pos=26 op1=19 str="$error" // 19 <- string
+     745 ldnil pos=36 op1=20 // 20 <- nil
+     746 call pos=25 op1=18 op2=2 // call (start=18) (npars=2)
+     747 move pos=17 op1=6 op2=18 rhs_decl=218 // 6 (error_anode) <- 18
+     748 lds ln=170 pos=32 op1=10 str="[ \t]+" // 10 <- string
+     749 lds ln=178 pos=34 op1=11 str="%a %b %d %H:%M:%S %Z %Y" // 11 <- string
+     750 ibcall ln=202 pos=25 cfblock=736 op1=18 op2=0
 //-----------------------test.d----------------------------
-     749 ldi fn="test.d" ln=2 pos=13 op1=12 op2=8190 // 12 <- i8190
-     750 addi ln=4 pos=20 pos2=10 pos3=22 op1=18 op2=12 op3=1 // 18 <- 12 + i1
-     751 ldi pos=26 op1=19 op2=0 // 19 <- i0
-     752 vec pos=9 op1=17 op2=18 op3=1 // 17 <- [els=18, nparts=1]
-     753 ldi ln=5 pos=9 op1=16 op2=0 // 16 <- i0
-     754 ldi ln=6 pos=10 next=758 op1=13 op2=0 // 13 <- i0
-     755 ldi ln=7 pos=14 op1=18 op2=1 // 18 <- i1
-     756 stvt pos=12 pos2=8 op1=17 op2=13 op3=18
-     757 btleinc ln=6 pos=15 next=759 op1=13 binc_inc=1 bcmp_op2=12 bcmp_res=18 pc=755 // goto 755 if 18 <- (13 += i1) cmp 12
-     758 btle pos=15 op1=13 bcmp_op2=12 bcmp_res=18 pc=755 // goto 755 if 18 <- 13 cmp 12
-     759 ldi ln=8 pos=10 next=774 op1=13 op2=0 // 13 <- i0
-     760 ind ln=9 pos=12 op1=18 op2=17 op3=13 // 18 <- 17[13]
-     761 lconv pos=12 op1=18 op2=18 // 18 <- 18
-     762 bf pos=12 op1=18 pc=773 // goto 773 unless 18
-     763 add ln=11 pos=17 pos2=15 pos3=19 op1=18 op2=13 op3=13 // 18 <- 13 op 13
-     764 addi pos=21 pos2=17 pos3=23 op1=14 op2=18 op3=3 // 14 <- 18 + i3
-     765 add ln=12 pos=13 pos2=11 pos3=15 next=770 op1=15 op2=13 op3=14 // 15 <- 13 op 14
-     766 btle ln=15 pos=21 next=772 op1=15 bcmp_op2=12 bcmp_res=18 pc=767 // goto 767 if 18 <- 15 cmp 12
-     767 ldi ln=17 pos=22 op1=18 op2=0 // 18 <- i0
-     768 stvt pos=20 pos2=16 op1=17 op2=15 op3=18
-     769 add ln=18 pos=13 pos2=11 op1=15 op2=15 op3=14 // 15 <- 15 op 14
-     770 ldi ln=13 pos=13 op1=18 op2=1 // 18 <- i1
-     771 bt pos=13 op1=18 pc=766 // goto 766 if 18
-     772 addi ln=20 pos=12 pos2=7 op1=16 op2=16 op3=1 // 16 <- 16 + i1
-     773 btleinc ln=8 pos=15 next=775 op1=13 binc_inc=1 bcmp_op2=12 bcmp_res=18 pc=760 // goto 760 if 18 <- (13 += i1) cmp 12
-     774 btle pos=15 op1=13 bcmp_op2=12 bcmp_res=18 pc=760 // goto 760 if 18 <- 13 cmp 12
-     775 move ln=23 pos=10 op1=18 op2=16 rhs_decl=364 // 18 (count) <- 16
-     776 ibcall pos=9 cfblock=680 op1=18 op2=1
-     777 bend pos=10 block=0
+     751 ldi fn="test.d" ln=2 pos=13 op1=12 op2=8190 // 12 <- i8190
+     752 addi ln=4 pos=20 pos2=10 pos3=22 op1=18 op2=12 op3=1 // 18 <- 12 + i1
+     753 ldi pos=26 op1=19 op2=0 // 19 <- i0
+     754 vec pos=9 op1=17 op2=18 op3=1 // 17 <- [els=18, nparts=1]
+     755 ldi ln=5 pos=9 op1=16 op2=0 // 16 <- i0
+     756 ldi ln=6 pos=10 next=760 op1=13 op2=0 // 13 <- i0
+     757 ldi ln=7 pos=14 op1=18 op2=1 // 18 <- i1
+     758 stvt pos=12 pos2=8 op1=17 op2=13 op3=18
+     759 btleinc ln=6 pos=15 next=761 op1=13 binc_inc=1 bcmp_op2=12 bcmp_res=18 pc=757 // goto 757 if 18 <- (13 += i1) cmp 12
+     760 btle pos=15 op1=13 bcmp_op2=12 bcmp_res=18 pc=757 // goto 757 if 18 <- 13 cmp 12
+     761 ldi ln=8 pos=10 next=776 op1=13 op2=0 // 13 <- i0
+     762 ind ln=9 pos=12 op1=18 op2=17 op3=13 // 18 <- 17[13]
+     763 lconv pos=12 op1=18 op2=18 // 18 <- 18
+     764 bf pos=12 op1=18 pc=775 // goto 775 unless 18
+     765 add ln=11 pos=17 pos2=15 pos3=19 op1=18 op2=13 op3=13 // 18 <- 13 op 13
+     766 addi pos=21 pos2=17 pos3=23 op1=14 op2=18 op3=3 // 14 <- 18 + i3
+     767 add ln=12 pos=13 pos2=11 pos3=15 next=772 op1=15 op2=13 op3=14 // 15 <- 13 op 14
+     768 btle ln=15 pos=21 next=774 op1=15 bcmp_op2=12 bcmp_res=18 pc=769 // goto 769 if 18 <- 15 cmp 12
+     769 ldi ln=17 pos=22 op1=18 op2=0 // 18 <- i0
+     770 stvt pos=20 pos2=16 op1=17 op2=15 op3=18
+     771 add ln=18 pos=13 pos2=11 op1=15 op2=15 op3=14 // 15 <- 15 op 14
+     772 ldi ln=13 pos=13 op1=18 op2=1 // 18 <- i1
+     773 bt pos=13 op1=18 pc=768 // goto 768 if 18
+     774 addi ln=20 pos=12 pos2=7 op1=16 op2=16 op3=1 // 16 <- 16 + i1
+     775 btleinc ln=8 pos=15 next=777 op1=13 binc_inc=1 bcmp_op2=12 bcmp_res=18 pc=762 // goto 762 if 18 <- (13 += i1) cmp 12
+     776 btle pos=15 op1=13 bcmp_op2=12 bcmp_res=18 pc=762 // goto 762 if 18 <- 13 cmp 12
+     777 move ln=23 pos=10 op1=18 op2=16 rhs_decl=365 // 18 (count) <- 16
+     778 ibcall pos=9 cfblock=682 op1=18 op2=1
+     779 bend pos=10 block=0
 OUTPUT584
                         result=ok
                 else
@@ -37575,37 +37570,22 @@ fi
 
 # Test 595.
 if test $result = ok -a $start_test_number -le 595; then
-	echo test 595: Different vector unary operations 4
+	echo test 595: Eltype of vector of fun and class
         cat >$test_file <<'TEST595'
-var ct = nil;
-thread t {ct = curr_thread;}
+fun f {}
 class c {}
-fun f {class fc {};return fc();}
-fun main {
-  var i, one = 1, two = 2, three = 3;
-  for (i = 0; i < 2; i++) {
-    var v1 = [3:one, 3:two, 3:three];
-    println ("func()", fun (v1[:]));
-    println ("thread()", thread (v1[:]));
-    println ("class()", class (v1[:]));
-    putln ("--------------------------------");
-    one = context (f()); t (); wait (ct != nil); two = ct; three = c ();
-  }
-}
-main ();
+val v = [f, c];
+println (eltype (v));
+
+val v = [c, c];
+println (eltype (v));
 TEST595
         echo '      ' $DINO -t $test_file "2>$stderr"
         if $DINO -t $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT595' && $CMP $stdout $ftemp2; then
-"func()"[nil, nil, nil, nil, nil, nil, nil, nil, nil]
-"thread()"[nil, nil, nil, nil, nil, nil, nil, nil, nil]
-"class()"[nil, nil, nil, nil, nil, nil, nil, nil, nil]
---------------------------------
-"func()"[fun f, fun f, fun f, nil, nil, nil, nil, nil, nil]
-"thread()"[nil, nil, nil, thread t, thread t, thread t, nil, nil, nil]
-"class()"[nil, nil, nil, nil, nil, nil, class c, class c, class c]
---------------------------------
+nil
+class
 OUTPUT595
                         result=ok
                 else
@@ -37872,11 +37852,11 @@ fi
 if test $result = ok -a $start_test_number -le 605; then
 	echo test 605: Anonymous func/class/thread
         cat >$test_file <<'TEST605'
-putln (afun (a,b) {return a < b ? a : b;} (3, 5));
-afun (a,b) {putln (a > b ? a : b);} (3, 5);
-var o = aclass (c) {};
+putln (fun (a,b) {return a < b ? a : b;} (3, 5));
+fun (a,b) {putln (a > b ? a : b);} (3, 5);
+var o = class (c) {};
 putln (o (42).c);
-athread {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
+thread {put ("Wait... "); wait (o==nil); putln ("Continue");} ();
 o = nil;
 TEST605
         echo '      ' $DINO -t $test_file "2>$stderr"
@@ -37902,10 +37882,10 @@ if test $result = ok -a $start_test_number -le 606; then
 	echo test 606: Fold function
         cat >$test_file <<'TEST606'
 var v = [1,2,3,4];
-println (fold (afun (a, b) {return a + b;}, v[:], 0));
-println (fold (afun (a, b) {return a * b;}, v[:], 1));
+println (fold (fun (a, b) {return a + b;}, v[:], 0));
+println (fold (fun (a, b) {return a * b;}, v[:], 1));
 var f = fold;
-println (f (afun (a, b) {return a * b;}, v[:], 1));
+println (f (fun (a, b) {return a * b;}, v[:], 1));
 TEST606
         echo '      ' $DINO -t $test_file "2>$stderr"
         if $DINO -t $test_file 2>$stderr >$stdout; then
@@ -37929,7 +37909,7 @@ if test $result = ok -a $start_test_number -le 607; then
 	echo test 607: Wrong fold argument
         cat >$test_file <<'TEST607'
 var v = [1,2,3,4];
-println (fold (afun (a, b) {return a + b;}, nil, 0));
+println (fold (fun (a, b) {return a + b;}, nil, 0));
 TEST607
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -37957,12 +37937,12 @@ if test $result = ok -a $start_test_number -le 608; then
 	echo test 608: Filter function
         cat >$test_file <<'TEST608'
 var i, v = [0, 1, -2, 3, -4];
-println (filter (afun (a) {return a > 0;}, v));
+println (filter (fun (a) {return a > 0;}, v));
 v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afun (a) {return a > 0;}, v, 2));
+println (filter (fun (a) {return a > 0;}, v, 2));
 for (i = 0; i < 1000; i++) {
   v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
-  v = filter (afun (a) {if (i % 100) gc ();return a > 0;}, v, 2);
+  v = filter (fun (a) {if (i % 100) gc ();return a > 0;}, v, 2);
 }
 println (v);
 TEST608
@@ -37988,7 +37968,7 @@ if test $result = ok -a $start_test_number -le 609; then
 	echo test 609: Wrong filter argument
         cat >$test_file <<'TEST609'
 var v = [0, 1, -2, 3, -4];
-println (filter (afun (a) {return a > 0;}, nil));
+println (filter (fun (a) {return a > 0;}, nil));
 TEST609
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38016,7 +37996,7 @@ if test $result = ok -a $start_test_number -le 610; then
 	echo test 610: Another wrong filter argument
         cat >$test_file <<'TEST610'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afun (a) {return a > 0;}, v));
+println (filter (fun (a) {return a > 0;}, v));
 TEST610
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38024,7 +38004,7 @@ TEST610
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT610' && $CMP $stderr $ftemp2; then
-test.d:2:37: run time error - invalid types of operands of operator ">"
+test.d:2:36: run time error - invalid types of operands of operator ">"
 OUTPUT610
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT610-2' && $CMP $stdout $ftemp2; then
@@ -38044,7 +38024,7 @@ if test $result = ok -a $start_test_number -le 611; then
 	echo test 611: Wrong filter function result
         cat >$test_file <<'TEST611'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (filter (afun (a) {return nil;}, v, 2));
+println (filter (fun (a) {return nil;}, v, 2));
 TEST611
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38072,10 +38052,10 @@ if test $result = ok -a $start_test_number -le 612; then
 	echo test 612: Map function
         cat >$test_file <<'TEST612'
 var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (map (afun (a) {return a < 0 ? nil : a;}, v, 2));
+println (map (fun (a) {return a < 0 ? nil : a;}, v, 2));
 for (i = 0; i < 1000; i++) {
   v = [[0, 1.1, -2, 3, -4], [5, -6.1, 7, -8, 9]];
-  v = map (afun (a) {if (i % 100) gc ();return a < 0 ? 0 : a;}, v, 2);
+  v = map (fun (a) {if (i % 100) gc ();return a < 0 ? 0 : a;}, v, 2);
 }
 println (v);
 TEST612
@@ -38100,7 +38080,7 @@ if test $result = ok -a $start_test_number -le 613; then
 	echo test 613: Wrong map argument
         cat >$test_file <<'TEST613'
 var v = [0, 1, -2, 3, -4];
-println (map (afun (a) {return a > 0;}, nil));
+println (map (fun (a) {return a > 0;}, nil));
 TEST613
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38128,7 +38108,7 @@ if test $result = ok -a $start_test_number -le 614; then
 	echo test 614: Another wrong map argument
         cat >$test_file <<'TEST614'
 var v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
-println (map (afun (a) {return a > 0;}, v));
+println (map (fun (a) {return a > 0;}, v));
 TEST614
         echo '      ' "$DINO $test_file 2>$stderr >$stdout"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -38136,7 +38116,7 @@ TEST614
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT614' && $CMP $stderr $ftemp2; then
-test.d:2:34: run time error - invalid types of operands of operator ">"
+test.d:2:33: run time error - invalid types of operands of operator ">"
 OUTPUT614
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT614-2' && $CMP $stdout $ftemp2; then
@@ -45280,6 +45260,53 @@ OUTPUT694
                 else
                         result=fail
                 fi
+        fi
+fi
+
+# Test 695.
+if test $result = ok -a $start_test_number -le 695; then
+	echo test 695: A bug for initialization with redifinition
+        cat >$test_file <<'TEST695'
+val a = 10, a = a + 10;
+putln (a);
+TEST695
+        echo '      ' $DINO $test_file " >$stdout 2>&1"
+        if $DINO $test_file >$stdout 2>&1; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT695' && $CMP $stdout $ftemp2; then
+20
+OUTPUT695
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 696.
+if test $result = ok -a $start_test_number -le 696; then
+	echo test 696: An object
+        cat >$test_file <<'TEST696'
+obj a {
+  fun p {putln ("obj");}
+}
+
+a.p ();
+TEST696
+        echo '      ' $DINO $test_file " >$stdout 2>&1"
+        if $DINO $test_file >$stdout 2>&1; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT696' && $CMP $stdout $ftemp2; then
+obj
+OUTPUT696
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
         fi
 fi
 
