@@ -434,9 +434,9 @@ process_type_definition_2 (IR_node_t definition)
       if (yacc_input_flag && !w_flag
           && (IR_IS_OF_TYPE (IR_identifier_or_literal (current_symbol),
                              IR_NM_literal)
-              || single_definition_in_table != NULL
-              && IR_IS_OF_TYPE (single_definition_in_table,
-                                IR_NM_single_term_definition)))
+              || (single_definition_in_table != NULL
+		  && IR_IS_OF_TYPE (single_definition_in_table,
+				    IR_NM_single_term_definition))))
         warning
           (IR_position (IR_identifier_or_literal (current_symbol)),
            "warning: token %s used in %%type (not POSIX YACC)",
@@ -485,7 +485,6 @@ process_definition_list (void)
 {
   IR_node_t current_definition;
   IR_node_t error_identifier;
-  IR_node_t single_definition;
 
   current_priority = 0;
   IR_set_single_definition_list (description, NULL);
@@ -897,18 +896,18 @@ pattern_eq_function (hash_table_entry_t pattern_1,
 	if (!pattern_eq_function (current_sequence_element_1,
 				  current_sequence_element_2))
 	  return FALSE;
-      if (IR_precedence_identifier_or_literal (p1) != NULL
-	  && IR_precedence_identifier_or_literal (p2) == NULL
-	  || IR_precedence_identifier_or_literal (p1) == NULL
-	  && IR_precedence_identifier_or_literal (p2) != NULL)
+      if ((IR_precedence_identifier_or_literal (p1) != NULL
+	   && IR_precedence_identifier_or_literal (p2) == NULL)
+	  || (IR_precedence_identifier_or_literal (p1) == NULL
+	      && IR_precedence_identifier_or_literal (p2) != NULL))
 	return FALSE;
-      if (IR_max_look_ahead_number (p1) == NULL
-          && IR_max_look_ahead_number (p2) != NULL
-          || IR_max_look_ahead_number (p1) != NULL
-          && IR_max_look_ahead_number (p2) == NULL
-          || IR_max_look_ahead_number (p1) != NULL
-          && (IR_number_value (IR_max_look_ahead_number (p1))
-              != IR_number_value (IR_max_look_ahead_number (p2))))
+      if ((IR_max_look_ahead_number (p1) == NULL
+	   && IR_max_look_ahead_number (p2) != NULL)
+          || (IR_max_look_ahead_number (p1) != NULL
+	      && IR_max_look_ahead_number (p2) == NULL)
+          || (IR_max_look_ahead_number (p1) != NULL
+	      && (IR_number_value (IR_max_look_ahead_number (p1))
+		  != IR_number_value (IR_max_look_ahead_number (p2)))))
         return FALSE;
       return
 	((IR_precedence_identifier_or_literal (p1) == NULL
@@ -929,30 +928,30 @@ pattern_eq_function (hash_table_entry_t pattern_1,
     }
   else if (IR_IS_OF_TYPE (p1, IR_NM_separator_iteration))
     {
-      if (IR_iteration_precedence_identifier_or_literal (p1) != NULL
-	  && IR_iteration_precedence_identifier_or_literal (p2) == NULL
-	  || IR_iteration_precedence_identifier_or_literal (p1) == NULL
-	  && IR_iteration_precedence_identifier_or_literal (p2) != NULL
-	  || IR_separator_precedence_identifier_or_literal (p1) != NULL
-	  && IR_separator_precedence_identifier_or_literal (p2) == NULL
-	  || IR_separator_precedence_identifier_or_literal (p1) == NULL
-	  && IR_separator_precedence_identifier_or_literal (p2) != NULL)
+      if ((IR_iteration_precedence_identifier_or_literal (p1) != NULL
+	   && IR_iteration_precedence_identifier_or_literal (p2) == NULL)
+	  || (IR_iteration_precedence_identifier_or_literal (p1) == NULL
+	      && IR_iteration_precedence_identifier_or_literal (p2) != NULL)
+	  || (IR_separator_precedence_identifier_or_literal (p1) != NULL
+	      && IR_separator_precedence_identifier_or_literal (p2) == NULL)
+	  || (IR_separator_precedence_identifier_or_literal (p1) == NULL
+	      && IR_separator_precedence_identifier_or_literal (p2) != NULL))
 	return FALSE;
-      if (IR_iteration_max_look_ahead_number (p1) == NULL
-          && IR_iteration_max_look_ahead_number (p2) != NULL
-          || IR_iteration_max_look_ahead_number (p1) != NULL
-          && IR_iteration_max_look_ahead_number (p2) == NULL
-          || IR_iteration_max_look_ahead_number (p1) != NULL
-          && (IR_number_value (IR_iteration_max_look_ahead_number (p1))
-              != IR_number_value (IR_iteration_max_look_ahead_number (p2))))
+      if ((IR_iteration_max_look_ahead_number (p1) == NULL
+	   && IR_iteration_max_look_ahead_number (p2) != NULL)
+          || (IR_iteration_max_look_ahead_number (p1) != NULL
+	      && IR_iteration_max_look_ahead_number (p2) == NULL)
+          || (IR_iteration_max_look_ahead_number (p1) != NULL
+	      && (IR_number_value (IR_iteration_max_look_ahead_number (p1))
+		  != IR_number_value (IR_iteration_max_look_ahead_number (p2)))))
         return FALSE;
-      if (IR_separator_max_look_ahead_number (p1) == NULL
-          && IR_separator_max_look_ahead_number (p2) != NULL
-          || IR_separator_max_look_ahead_number (p1) != NULL
-          && IR_separator_max_look_ahead_number (p2) == NULL
-          || IR_separator_max_look_ahead_number (p1) != NULL
-          && (IR_number_value (IR_separator_max_look_ahead_number (p1))
-              != IR_number_value (IR_separator_max_look_ahead_number (p2))))
+      if ((IR_separator_max_look_ahead_number (p1) == NULL
+	   && IR_separator_max_look_ahead_number (p2) != NULL)
+          || (IR_separator_max_look_ahead_number (p1) != NULL
+	      && IR_separator_max_look_ahead_number (p2) == NULL)
+          || (IR_separator_max_look_ahead_number (p1) != NULL
+	      && (IR_number_value (IR_separator_max_look_ahead_number (p1))
+		  != IR_number_value (IR_separator_max_look_ahead_number (p2)))))
         return FALSE;
       return
 	(pattern_eq_function (IR_iteration_sequence (p1),
@@ -1007,10 +1006,10 @@ pattern_eq_function (hash_table_entry_t pattern_1,
     return pattern_eq_function (IR_pattern (p1), IR_pattern (p2));
   else if (IR_IS_OF_TYPE (p1, IR_NM_range_atom))
     {
-      if (IR_left_bound (p1) == NULL && IR_left_bound (p2) != NULL
-	  || IR_left_bound (p1) != NULL && IR_left_bound (p2) == NULL
-	  || IR_right_bound (p1) == NULL && IR_right_bound (p2) != NULL
-	  || IR_right_bound (p1) != NULL && IR_right_bound (p2) == NULL)
+      if ((IR_left_bound (p1) == NULL && IR_left_bound (p2) != NULL)
+	  || (IR_left_bound (p1) != NULL && IR_left_bound (p2) == NULL)
+	  || (IR_right_bound (p1) == NULL && IR_right_bound (p2) != NULL)
+	  || (IR_right_bound (p1) != NULL && IR_right_bound (p2) == NULL))
 	return FALSE;
       return
 	((IR_left_bound (p1) == NULL
@@ -1023,14 +1022,14 @@ pattern_eq_function (hash_table_entry_t pattern_1,
     }
   else if (IR_IS_OF_TYPE (p1, IR_NM_identifier_or_literal_atom))
     {
-      if (IR_IS_OF_TYPE (IR_identifier_or_literal (p1),
-			 IR_NM_identifier)
-	  && !IR_IS_OF_TYPE (IR_identifier_or_literal (p2),
-			     IR_NM_identifier)
-	  || !IR_IS_OF_TYPE (IR_identifier_or_literal (p1),
-			     IR_NM_identifier)
-	  && IR_IS_OF_TYPE (IR_identifier_or_literal (p2),
-			    IR_NM_identifier))
+      if ((IR_IS_OF_TYPE (IR_identifier_or_literal (p1),
+			  IR_NM_identifier)
+	   && !IR_IS_OF_TYPE (IR_identifier_or_literal (p2),
+			      IR_NM_identifier))
+	  || (!IR_IS_OF_TYPE (IR_identifier_or_literal (p1),
+			      IR_NM_identifier)
+	      && IR_IS_OF_TYPE (IR_identifier_or_literal (p2),
+				IR_NM_identifier)))
 	return FALSE;
       if (IR_IS_OF_TYPE (IR_identifier_or_literal (p1),
 			 IR_NM_identifier))
@@ -1418,8 +1417,6 @@ process_sequence_element (IR_node_t sequence_element,
           int start_explicit_code_flag;
           int finish_explicit_code_flag;
           IR_node_t literal;
-          IR_node_t left_literal;
-          IR_node_t right_literal;
 
           start_code = literal_code_value (IR_left_bound (sequence_element),
                                            &start_explicit_code_flag);

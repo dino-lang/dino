@@ -30,7 +30,7 @@ int sync_flag;
 /* Current program counter of command being executed.  This value is
    used to execution of commands for interpreter (see comments for
    typedef pc_t). */
-pc_t cpc;
+d_restrict pc_t cpc;
 
 /* Pointer to the stack frame of the block in which cpc is being
    placed. */
@@ -41,8 +41,8 @@ ER_node_t cstack;
 ER_node_t uppest_stack;
 
 /* Start of the vars of the uppest stack and cstack.  */
-ER_node_t tvars;
-ER_node_t cvars;
+d_restrict ER_node_t tvars;
+d_restrict ER_node_t cvars;
 
 /* Pointers to the var on the top and below the top of stack cstack.
    Don't use the variables during GC. */
@@ -728,7 +728,7 @@ next_heap_object (ER_node_t obj)
 static void
 clean_heap_object_process_flag (void)
 {
-  ER_node_t curr_obj, p;
+  ER_node_t curr_obj;
   struct heap_chunk *curr_descr;
 
   for (curr_descr = VLO_BEGIN (heap_chunks);
@@ -737,7 +737,7 @@ clean_heap_object_process_flag (void)
     {
       for (curr_obj = (ER_node_t) curr_descr->chunk_start;
 	   (char *) curr_obj < curr_descr->chunk_free;
-	   p = curr_obj, curr_obj = next_heap_object (curr_obj))
+	   curr_obj = next_heap_object (curr_obj))
 	ER_set_it_was_processed (curr_obj, FALSE);
       for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
 	   (char *) curr_obj < curr_descr->chunk_bound;
@@ -1510,20 +1510,6 @@ update_profile (BC_node_t block_node)
   return calls_number;
 }
 
-/* Make the current stack vars starting with OFFSET undefined.  */
-static void do_always_inline
-make_cvars_undefined (int_t offset)
-{
-  ER_node_t curr_var;
-
-  if (offset >= 0)
-    /* Seting up mode of all permanent stack vars as undef. */
-    for (curr_var = IVAL (cvars, offset);
-	 curr_var <= ctop;
-	 curr_var = IVAL (curr_var, 1))
-      ER_SET_MODE (curr_var, ER_NM_undef);
-}
-
 /* Make STACK with VARS_NUM as the current stack.  Make vars starting
    with OFFSET undefined. */
 static void do_always_inline
@@ -1535,7 +1521,8 @@ setup_new_cstack (ER_node_t stack, int_t vars_num, int_t offset)
   cstack = stack;
   cvars = ER_stack_vars (cstack);
   ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
-  make_cvars_undefined (offset);
+  if (offset >= 0)
+    reset_vars (IVAL (cvars, offset), IVAL (ctop, 1));
   /* We set them only here because we need to set mode before.
      Remeber about possible field checking. */
   if (cprocess != NULL)
@@ -1705,7 +1692,7 @@ expand_uppest_stack (void)
   if (ER_all_block_vars_num (uppest_stack) >= vars_num + tvars_num)
     {
       ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
-      make_cvars_undefined (previous_uppest_stack_vars_num);
+      reset_vars (IVAL (cvars, previous_uppest_stack_vars_num), IVAL (ctop, 1));
       previous_uppest_stack_vars_num = vars_num;
       return;
     }
@@ -2501,7 +2488,7 @@ expand_tab (ER_node_t tab)
 {
   ER_node_t new_tab;
   ER_node_t new_entry;
-  int immutable, int_p;
+  int immutable;
   size_t allocated_length;
   size_t i;
 

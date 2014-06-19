@@ -562,4 +562,5 @@ main (int argc, char **argv)
   if (number_of_errors == 0)
     generate_spi ();
   sprut_finish (FALSE);
+  return 0;
 }

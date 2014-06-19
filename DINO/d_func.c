@@ -334,7 +334,7 @@ eltype_call (int_t pars_number)
 	  ER_SET_MODE (var_ref, mode);
 	  displ = val_displ_table [ER_NM_code];
 	  el_size = type_size_table [mode];
-	  prev_type == type_fun;
+	  prev_type = type_fun;
 	  for (i = 0; i < ER_els_number (vect); i++)
 	    {
 	      memcpy ((char *) var_ref + displ,
@@ -395,7 +395,6 @@ void
 closure_call (int_t pars_number)
 {
   ER_node_t val;
-  ER_node_t closure;
   BC_node_t block;
 
   if (pars_number != 1)
@@ -1866,7 +1865,6 @@ static int
 array_sort_compare_function (const void *el1, const void *el2)
 {
   int res;
-  ER_node_t context;
 
   TOP_UP;
   if (sorted_vect_el_type != ER_NM_val)
@@ -1937,9 +1935,7 @@ sort_call (int_t pars_number)
     }
   else
     {
-      ER_node_t context;
-
-      if (ER_NODE_MODE (below_ctop) != ER_NM_vect || ! fun_p (ctop))
+      if (ER_NODE_MODE (below_ctop) != ER_NM_vect || ! function_p (ctop))
 	eval_error (partype_bc_decl, get_cpos (),
 		    DERR_parameter_type, SORT_NAME);
       vect = copy_vector (ER_vect (below_ctop));
@@ -3482,6 +3478,7 @@ scanel (FILE *f, struct token token, const char *function_name, int ln_flag)
     default:
       invinput_error (f, function_name, ln_flag);
     }
+  d_unreachable ();
 }
 
 static void
@@ -3718,8 +3715,6 @@ getgroups_call (int_t pars_number)
 static void do_inline
 float_function_start (int_t pars_number, const char *function_name)
 {
-  floating_t result;
-
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
@@ -3733,8 +3728,6 @@ float_function_start (int_t pars_number, const char *function_name)
 static void do_inline
 float_function_start2 (int_t pars_number, const char *function_name)
 {
-  floating_t result;
-
   if (pars_number != 2)
     eval_error (parnumber_bc_decl, get_cpos (),
 		DERR_parameters_number, function_name);
@@ -4574,7 +4567,6 @@ print_trace_stack (void)
 void
 exit_call (int_t pars_number)
 {
-  int code;
   BC_node_t block;
   ER_node_t stack;
   struct trace_stack_elem elem;
@@ -4602,9 +4594,6 @@ exit_call (int_t pars_number)
 	}
     }
   dino_finish (ER_i (ctop));
-  /* Place the result instead of the function. */
-  ER_SET_MODE (fun_result, ER_NM_int);
-  ER_set_i (fun_result, code);
 }
 
 /* The following variables contain type of the elements of folded
@@ -4618,7 +4607,6 @@ static int_t fold_dim;
 static void
 fold_function (const void *el)
 {
-  int res;
   ER_node_t context;
 
   context = GET_TEMP_REF (fold_dim);
@@ -4700,7 +4688,7 @@ fold_call (int_t pars_number)
 		get_cpos (), DERR_parameters_number, FOLD_NAME);
   par1 = IVAL (ctop, -pars_number + 1);
   par2 = IVAL (ctop, -pars_number + 2);
-  if (! fun_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
+  if (! function_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
     eval_error (partype_bc_decl, get_cpos (),
 		DERR_parameter_type, FOLD_NAME);
   fun_result_offset = (val_t *) fun_result - (val_t *) cvars;
@@ -4861,7 +4849,7 @@ filter_call (int_t pars_number)
 		get_cpos (), DERR_parameters_number, FILTER_NAME);
   par1 = IVAL (ctop, -pars_number + 1);
   par2 = IVAL (ctop, -pars_number + 2);
-  if (! fun_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
+  if (! function_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
     eval_error (partype_bc_decl, get_cpos (),
 		DERR_parameter_type, FILTER_NAME);
   fun_result_offset = (val_t *) fun_result - (val_t *) cvars;
@@ -4905,7 +4893,6 @@ static int_t map_dim;
 static void
 map_function (const void *el)
 {
-  int res;
   ER_node_t context;
   
   context = GET_TEMP_REF (2 * map_dim);
@@ -4996,7 +4983,7 @@ map_call (int_t pars_number)
 		get_cpos (), DERR_parameters_number, MAP_NAME);
   par1 = IVAL (ctop, -pars_number + 1);
   par2 = IVAL (ctop, -pars_number + 2);
-  if (! fun_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
+  if (! function_p (par1) || ER_NODE_MODE (par2) != ER_NM_vect)
     eval_error (partype_bc_decl, get_cpos (), DERR_parameter_type, MAP_NAME);
   fun_result_offset = (val_t *) fun_result - (val_t *) cvars;
   vect = ER_vect (par2);
@@ -5126,7 +5113,6 @@ transpose_call (int_t pars_number)
 void
 init_call (int_t pars_number)
 {
-  ER_node_t instance;
   ER_node_t var;
 
   d_assert (pars_number == 0);
@@ -5179,14 +5165,6 @@ call_external_fun (int pars_number, BC_node_t fdecl)
   *(val_t *) ctop
     = (*fun) (pars_number, (val_t *) IVAL (ER_unpack_els (vect), 0));
   INCREMENT_PC();
-}
-
-/* Set up variable FROM to BOUND (no including) to nil.  */
-static void do_always_inline
-reset_vars (ER_node_t from, ER_node_t bound)
-{
-  for (; from < bound; from = IVAL (from, 1))
-    ER_SET_MODE (from, ER_NM_undef);
 }
 
 /* Set up formal parameters starting with VARS of BLOCK from
@@ -5252,25 +5230,12 @@ create_class_stack (val_t *call_start, int_t actuals_num, int simple_p)
   return stack;
 }
 
-/* Return pc for the 1st stmt of FBLOCK.  If there is no one (abstract
-   function case), generate error.  */
-static BC_node_t do_always_inline
-get_fblock_pc (BC_node_t fblock)
-{
-  BC_node_t pc, fdecl;
-
-  d_assert (BC_NODE_MODE (fblock) == BC_NM_fblock);
-  pc = BC_next (fblock);
-  if (pc != NULL)
-    return pc;
-  eval_error (abstrcall_bc_decl, get_cpos (),
-	      DERR_unfinished_fun_class_call, BC_ident (BC_fdecl (fblock)));
-}
+unsigned int generated_c_functions_num, generated_c_function_calls_num;
 
 /* The following variable is PC of the last call of real DINO function
    (not external or implementation function).  It is used to
    diagnostic of earley parser functions. */
-static pc_t real_fun_call_pc;
+pc_t real_fun_call_pc;
 
 /* Function processing tail (if TAIL_FLAG) call of function CODE with
    CONTEXT with ACTUALS_NUM params starting with PAR_START.  */
@@ -5288,7 +5253,7 @@ process_fun_call (val_t *par_start, BC_node_t code, ER_node_t context,
 		DERR_thread_call_in_sync_stmt);
   real_fun_call_pc = cpc;
   d_assert (BC_NODE_MODE (code) == BC_NM_fblock
-	    && BC_implementation_fun (code) == NULL);
+	    && BC_fmode (code) != BC_builtin);
   if (tail_flag && ! BC_ext_life_p (ER_block_node (cstack))
       && context != cstack && cstack != uppest_stack
       /* We should not worry about extending stack.  Finally in the
@@ -5303,7 +5268,7 @@ process_fun_call (val_t *par_start, BC_node_t code, ER_node_t context,
   else
     heap_push (block, context, -1);
   setup_pars (block, actuals_num, cvars, par_start, vars_number);
-  cpc = get_fblock_pc (block);
+  do_call (block);
   if (BC_thread_p (code))
     {
       ER_node_t process;
@@ -5320,44 +5285,6 @@ process_fun_call (val_t *par_start, BC_node_t code, ER_node_t context,
       ER_set_process (ctop, process);
       TOP_DOWN;
     }
-}
-
-/* The same as previous but also process implementation functions.  */
-void do_always_inline
-process_imm_fun_call (val_t *call_start, BC_node_t code, ER_node_t context,
-		       int actuals_num, int tail_flag)
-{
-  int vars_number = real_block_vars_number (code);
-  int i;
-  
-  d_assert (BC_NODE_MODE (code) == BC_NM_fblock
-	    && BC_implementation_fun (code) == NULL
-	    && ! BC_thread_p (code) && ! BC_args_p (code)
-	    && actuals_num == BC_pars_num (code));
-  real_fun_call_pc = cpc;
-  if (tail_flag && ! BC_ext_life_p (ER_block_node (cstack))
-      && context != cstack && cstack != uppest_stack
-      /* We should not worry about extending stack.  Finally in the
-	 chain of calls of different functions we have a function
-	 block big enough to contain all subsequent tail calls.  */
-      && (ER_all_block_vars_num (cstack) >= vars_number + BC_tvars_num (code)))
-    {
-      ER_set_context (cstack, context);
-      ER_set_block_node (cstack, code);
-      ctop = IVAL (cvars, vars_number - 1);
-    }
-  else if (heap_push_or_set_res (code, context, call_start))
-    {
-      INCREMENT_PC ();
-      return;
-    }
-  /* Transfer actuals.  */
-  for (i = 0; i < actuals_num; i++)
-    *(val_t *) IVAL (cvars, i) = *call_start++;
-  /* Reset rest of variables.  */
-  reset_vars ((ER_node_t) ((val_t *) cvars + actuals_num),
-	      (ER_node_t) ((val_t *) cvars + vars_number));
-  cpc = get_fblock_pc (code);
 }
 
 void do_always_inline
@@ -5384,9 +5311,8 @@ process_fun_class_call (ER_node_t call_start, int_t actuals_num, int tail_flag)
 {
   BC_node_t code;
   implementation_fun_t ifunc;
-  ER_node_t fun_class_val, context;
+  ER_node_t context;
   ER_node_t instance;
-  BC_node_mode_t mode;
 
   ctop = IVAL (call_start, -1);
   if (ER_NODE_MODE (call_start) == ER_NM_efun)
@@ -5401,16 +5327,7 @@ process_fun_class_call (ER_node_t call_start, int_t actuals_num, int tail_flag)
     eval_error (callop_bc_decl, get_cpos (),
 		DERR_none_class_or_fun_before_left_bracket);
   code = ID_TO_CODE (ER_code_id (call_start));
-  mode = BC_NODE_MODE (code);
-  if ((ifunc = BC_implementation_fun (code)) != NULL)
-    {
-      fun_result = IVAL (ctop, 1);
-      DECR_CTOP (-actuals_num - 1);
-      (*ifunc) (actuals_num);
-      DECR_CTOP (actuals_num + 1);
-      INCREMENT_PC ();
-    }
-  else if (BC_class_p (code))
+  if (BC_class_p (code))
     {
       instance = create_class_stack ((val_t *) call_start, actuals_num,
 				     BC_simple_p (code));
@@ -5423,7 +5340,17 @@ process_fun_class_call (ER_node_t call_start, int_t actuals_num, int tail_flag)
 	  INCREMENT_PC ();
 	}
       else
-	cpc = get_fblock_pc (code);
+	do_call (code);
+    }
+  else if (BC_fmode (code) == BC_builtin)
+    {
+      ifunc = BC_implementation_fun (code);
+      d_assert (ifunc != NULL);
+      fun_result = IVAL (ctop, 1);
+      DECR_CTOP (-actuals_num - 1);
+      (*ifunc) (actuals_num);
+      DECR_CTOP (actuals_num + 1);
+      INCREMENT_PC ();
     }
   else
     {
@@ -5899,7 +5826,7 @@ int_earley_parse (int npars)
       || (ER_NODE_MODE (ER_vect (par2))
 	  != ER_NM_heap_pack_vect)
       || (ER_pack_vect_el_mode (ER_vect (par2)) != ER_NM_stack)
-      || ! fun_p (par3))
+      || ! function_p (par3))
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
   fun_result_offset = (val_t *) fun_result - (val_t *) cvars;

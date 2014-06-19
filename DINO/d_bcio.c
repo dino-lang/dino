@@ -28,6 +28,7 @@
 #include "d_bcn.c"
 #include "d_bcf.c"
 #include "d_bcio.h"
+#include "d_run.h"
 
 /* Print INDENT spaces into stdout. */
 static void
@@ -459,6 +460,9 @@ dump_code (BC_node_t infos, int indent)
 		  printf (" simple_p=1");
 		if (BC_simple_p (bc))
 		  printf (" pure_fun_p=1");
+		/* builtin mode will be set up anyway.  */
+		if (BC_fmode (bc) != 0 && BC_fmode (bc) != BC_builtin)
+		  printf (" fmode=%d", (int) BC_fmode (bc));
 		if (BC_pars_num (bc) != 0)
 		  printf (" pars_num=%d", BC_pars_num (bc));
 		if (BC_min_pars_num (bc) != 0)
@@ -530,6 +534,7 @@ dump_code (BC_node_t infos, int indent)
 		  BC_decl_num (BC_decl (bc)), BC_ident (BC_decl (bc)));
 	  break;
 	case BC_NM_move:
+	case BC_NM_imove:
 	  printf (" op1=%d op2=%d rhs_decl=%d // %d (%s) <- %d",
 		  BC_op1 (bc), BC_op2 (bc), BC_decl_num (BC_rhs_decl (bc)),
 		  BC_op1 (bc), BC_ident (BC_rhs_decl (bc)), BC_op2 (bc));
@@ -754,7 +759,6 @@ get_token (void)
         case '\"':
           {
             int correct_newln;
-            char *string_value_in_code_memory;
             
 	    curr_token_position = current_position;
 	    current_position.column_number++;
@@ -881,7 +885,7 @@ get_token (void)
 static const char *fn, *fn2, *fn3;
 static int_t ln, ln2, ln3, pos, pos2, pos3, decl_num;
 static int_t public_p, ext_life_p;
-static int_t fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p;
+static int_t fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p, fmode;
 static int_t pars_num, min_pars_num;
 
 /* Init fields which may have a default value. */
@@ -889,7 +893,7 @@ static void
 init_fields (void)
 {
   public_p = ext_life_p = fun_p = class_p
-    = thread_p = args_p = simple_p = pure_fun_p = 0;
+    = thread_p = args_p = simple_p = pure_fun_p = fmode = 0;
   pars_num = min_pars_num = 0;
 }
 
@@ -1246,6 +1250,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
 	      pure_fun_p = token_attr.i;
 	      break;
+	    case FR_fmode:
+	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
+	      fmode = token_attr.i;
+	      break;
 	    case FR_pars_num:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
 	      pars_num = token_attr.i;
@@ -1477,6 +1485,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	  BC_set_args_p (curr_node, args_p != 0);
 	  BC_set_simple_p (curr_node, simple_p != 0);
 	  BC_set_pure_fun_p (curr_node, pure_fun_p != 0);
+	  BC_set_fmode (curr_node, (fun_mode_t) fmode);
 	  BC_set_pars_num (curr_node, pars_num);
 	  BC_set_min_pars_num (curr_node, min_pars_num);
 	}

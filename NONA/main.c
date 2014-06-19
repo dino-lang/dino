@@ -341,4 +341,5 @@ main (int argc, char **argv)
   if (number_of_errors == 0)
     generate ();
   nona_finish (FALSE);
+  return 0;
 }

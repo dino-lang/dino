@@ -57,6 +57,7 @@
 #include "bits.h"
 #include "ticker.h"
 #include "vlobject.h"
+#include "errors.h"
 #include "common.h"
 #include "tab.h"
 #include "ird.h"
@@ -144,8 +145,8 @@ generalized_output_string (FILE *f, const char *string, int tolower_flag)
 {
   for (; *string != '\0'; string++)
     {
-      if (tolower_flag && fputc (our_tolower (*string), f) == EOF
-          || !tolower_flag && fputc (*string, f) == EOF)
+      if ((tolower_flag && fputc (our_tolower (*string), f) == EOF)
+          || (!tolower_flag && fputc (*string, f) == EOF))
         {
           if (f == output_description_file)
             system_error (TRUE, no_position, "fatal error -- %s: ",

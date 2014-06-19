@@ -493,7 +493,8 @@ lr.o: $(top_srcdir)/MSTA/../MSTA/lr.c \
  $(top_srcdir)/MSTA/../MSTA/contexts.h \
  $(top_srcdir)/MSTA/../MSTA/relation.h \
  $(top_srcdir)/MSTA/../MSTA/lr-sets.h \
- $(top_srcdir)/MSTA/../MSTA/lr.h
+ $(top_srcdir)/MSTA/../MSTA/lr.h \
+ $(top_srcdir)/MSTA/../MSTA/output.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/lr.c
 regular.o: $(top_srcdir)/MSTA/../MSTA/regular.c \
  ../AMMUNITION/cocom-config.h \
@@ -546,7 +547,8 @@ parser.o: $(top_srcdir)/MSTA/../MSTA/parser.c \
  $(top_srcdir)/MSTA/../MSTA/gen-comm.h \
  $(top_srcdir)/MSTA/../MSTA/output.h \
  $(top_srcdir)/MSTA/../MSTA/contexts.h \
- $(top_srcdir)/MSTA/../MSTA/parser.h
+ $(top_srcdir)/MSTA/../MSTA/parser.h \
+ $(top_srcdir)/MSTA/../MSTA/lr-sets.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/parser.c
 gen.o: $(top_srcdir)/MSTA/../MSTA/gen.c \
  ../AMMUNITION/cocom-config.h \
@@ -582,7 +584,8 @@ main.o: $(top_srcdir)/MSTA/../MSTA/main.c \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/AMMUNITION/position.h \
- $(top_srcdir)/AMMUNITION/ticker.h ird.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h ird.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/MSTA/../MSTA/common.h \

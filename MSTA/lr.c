@@ -165,15 +165,12 @@ get_shifted_LR_situation_list (IR_node_t first_symbol_LR_situation)
   IR_node_t first_new_LR_situation;
   IR_node_t last_new_LR_situation;
   IR_node_t current_symbol_LR_situation;
-  IR_node_t single_definition;
   vlo_t situations;
   IR_node_t *LR_situation_ptr;
 
   assert (IR_first_symbol_LR_situation (first_symbol_LR_situation)
           && !IR_IS_OF_TYPE (IR_element_after_dot (first_symbol_LR_situation),
                              IR_NM_canonical_rule_end));
-  single_definition = IR_element_itself (IR_element_after_dot
-                                         (first_symbol_LR_situation));
   VLO_CREATE (situations, 100);
   for (current_symbol_LR_situation = first_symbol_LR_situation;
        current_symbol_LR_situation != NULL;
@@ -552,15 +549,15 @@ static IR_node_t another_conflict_resolution_LR_situation;
 static void
 add_context_conflicts (token_string_t token_string)
 {
-  if (!IR_IS_OF_TYPE (IR_element_after_dot
-                      (another_conflict_resolution_LR_situation),
-                      IR_NM_canonical_rule_end)
-      && !(IR_first_symbol_LR_situation
-           (another_conflict_resolution_LR_situation))
-      || !error_conflict_flag && contains_error (token_string)
-      && (characteristic_symbol_of_LR_set
-	  (IR_LR_set (another_conflict_resolution_LR_situation))
-	  == error_single_definition))
+  if ((!IR_IS_OF_TYPE (IR_element_after_dot
+		       (another_conflict_resolution_LR_situation),
+		       IR_NM_canonical_rule_end)
+       && !(IR_first_symbol_LR_situation
+	    (another_conflict_resolution_LR_situation)))
+      || (!error_conflict_flag && contains_error (token_string)
+	  && (characteristic_symbol_of_LR_set
+	      (IR_LR_set (another_conflict_resolution_LR_situation))
+	      == error_single_definition)))
     return;
   if (fold_is_used_in_conflict_resolution)
     add_conflict (IR_LR_set (another_conflict_resolution_LR_situation),
@@ -728,6 +725,9 @@ finish_dependence_nodes_table (void)
 }
 
 #ifndef NDEBUG
+
+#include "output.h"
+
 static void
 print_dependence_node (IR_node_t dependence_node, int context_flag)
 {
@@ -1158,12 +1158,8 @@ evaluate_graph_context (IR_node_t dependence_node, int pass_number)
 {
 #ifndef NDEBUG
   if (debug_level >= 2)
-    {
-      IR_node_t current_dependence_list_element;
-      
-      fprintf (stderr, "\n**** Top evaluation of %d dependence context ****\n",
-               IR_unique_number (dependence_node));
-    }
+    fprintf (stderr, "\n**** Top evaluation of %d dependence context ****\n",
+	     IR_unique_number (dependence_node));
 #endif
   while (evaluate_node_context (dependence_node, pass_number++))
     ;

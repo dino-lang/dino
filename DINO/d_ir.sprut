@@ -798,6 +798,8 @@ block :: stmt
         /* The list of exceptions for TRY block, NULL for simple
            block. */
         exceptions : exception
+        /* Flag of the hint presence */
+        hint : bool_t {$ = FALSE;}
 ;
 
 exception :: generic_pos

@@ -151,7 +151,7 @@ TEST5
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT5' && cmp $temp_file $temp2_file; then
-_test.sprut:1:0: syntax error in declaration
+_test.sprut:1:1: syntax error in declaration
 OUTPUT5
                         result=ok
                 else
@@ -175,7 +175,7 @@ TEST6
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT6' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: syntax error in predefined type declaration
+_test.sprut:2:1: syntax error in predefined type declaration
 OUTPUT6
                         result=ok
                 else
@@ -199,7 +199,7 @@ TEST7
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT7' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: syntax error in double node type declaration
+_test.sprut:2:1: syntax error in double node type declaration
 OUTPUT7
                         result=ok
                 else
@@ -222,7 +222,7 @@ TEST8
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT8' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: syntax error in node type definition
+_test.sprut:2:1: syntax error in node type definition
 OUTPUT8
                         result=ok
                 else
@@ -247,7 +247,7 @@ TEST9
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT9' && cmp $temp_file $temp2_file; then
-_test.sprut:4:0: syntax error in field definition
+_test.sprut:4:1: syntax error in field definition
 OUTPUT9
                         result=ok
                 else
@@ -272,7 +272,7 @@ TEST10
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT10' && cmp $temp_file $temp2_file; then
-_test.sprut:4:0: class field `f' is double
+_test.sprut:4:1: class field `f' is double
 OUTPUT10
                         result=ok
                 else
@@ -307,8 +307,8 @@ TEST11
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT11' && cmp $temp_file $temp2_file; then
-In file processed from _test.sprut:2:7:
-_test_1.sprut:2:0: fatal error -- cycle on inclusion of file `_test.sprut'
+In file processed from _test.sprut:2:8:
+_test_1.sprut:2:1: fatal error -- cycle on inclusion of file `_test.sprut'
 OUTPUT11
                         result=ok
                 else
@@ -335,7 +335,7 @@ TEST12
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT12' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: fatal error -- `__test__.sprut': No such file or directory
+_test.sprut:2:1: fatal error -- `__test__.sprut': No such file or directory
 OUTPUT12
                         result=ok
                 else
@@ -367,11 +367,11 @@ TEST13
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT13' && cmp $temp_file $temp2_file; then
-_test.sprut:2:1: invalid character constant
-_test.sprut:3:1: invalid character constant
-_test.sprut:4:3: invalid character constant
-_test.sprut:5:5: invalid character constant
-_test.sprut:6:3: string end is absent
+_test.sprut:2:2: invalid character constant
+_test.sprut:3:2: invalid character constant
+_test.sprut:4:4: invalid character constant
+_test.sprut:5:6: invalid character constant
+_test.sprut:6:4: string end is absent
 OUTPUT13
                         result=ok
                 else
@@ -396,7 +396,7 @@ TEST14
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT14' && cmp $temp_file $temp2_file; then
-_test.sprut:4:10: constraint end is absent
+_test.sprut:4:11: constraint end is absent
 OUTPUT14
                         result=ok
                 else
@@ -423,7 +423,7 @@ TEST15
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT15' && cmp $temp_file $temp2_file; then
-_test.sprut:5:0: C code insertion end is absent
+_test.sprut:5:1: C code insertion end is absent
 OUTPUT15
                         result=ok
                 else
@@ -449,7 +449,7 @@ TEST16
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT16' && cmp $temp_file $temp2_file; then
-_test.sprut:1:0: unknown keyword `%skelton'
+_test.sprut:1:1: unknown keyword `%skelton'
 OUTPUT16
                         result=ok
                 else
@@ -476,7 +476,7 @@ TEST17
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT17' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: invalid input character '%'
+_test.sprut:2:1: invalid input character '%'
 OUTPUT17
                         result=ok
                 else
@@ -503,7 +503,7 @@ TEST18
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT18' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: invalid input character '-'
+_test.sprut:2:1: invalid input character '-'
 OUTPUT18
                         result=ok
                 else
@@ -537,8 +537,8 @@ TEST19
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT19' && cmp $temp_file $temp2_file; then
-_test.sprut:2:6: identifier `a' is declared early as node type
-_test_1.sprut:2:0: here declaration of the node type
+_test.sprut:2:7: identifier `a' is declared early as node type
+_test_1.sprut:2:1: here declaration of the node type
 OUTPUT19
                         result=ok
                 else
@@ -564,8 +564,8 @@ TEST20
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT20' && cmp $temp_file $temp2_file; then
-_test.sprut:3:0: identifier `a' is declared early as predefined type
-_test.sprut:1:6: here declaration of predefined type
+_test.sprut:3:1: identifier `a' is declared early as predefined type
+_test.sprut:1:7: here declaration of predefined type
 OUTPUT20
                         result=ok
                 else
@@ -594,8 +594,8 @@ TEST21
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT21' && cmp $temp_file $temp2_file; then
-_test.sprut:6:0: `a' is declared early with basic super types
-_test.sprut:2:0: here declaration with basic super types
+_test.sprut:6:1: `a' is declared early with basic super types
+_test.sprut:2:1: here declaration with basic super types
 OUTPUT21
                         result=ok
                 else
@@ -625,7 +625,7 @@ TEST22
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT22' && cmp $temp_file $temp2_file; then
-_test.sprut:7:0: `%abstract' can't be without basic super types
+_test.sprut:7:1: `%abstract' can't be without basic super types
 OUTPUT22
                         result=ok
                 else
@@ -654,7 +654,7 @@ TEST23
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT23' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: basic super types aren't defined anywhere for node type `a'
+_test.sprut:2:1: basic super types aren't defined anywhere for node type `a'
 OUTPUT23
                         result=ok
                 else
@@ -679,7 +679,7 @@ TEST24
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT24' && cmp $temp_file $temp2_file; then
-_test.sprut:2:5: undefined identifier `b' is used as super type
+_test.sprut:2:6: undefined identifier `b' is used as super type
 OUTPUT24
                         result=ok
                 else
@@ -705,8 +705,8 @@ TEST25
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT25' && cmp $temp_file $temp2_file; then
-_test.sprut:3:5: predefined type `b' is used as super type
-_test.sprut:1:6: here declaration of predefined type
+_test.sprut:3:6: predefined type `b' is used as super type
+_test.sprut:1:7: here declaration of predefined type
 OUTPUT25
                         result=ok
                 else
@@ -737,8 +737,8 @@ TEST26
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT26' && cmp $temp_file $temp2_file; then
-_test.sprut:2:0: cycle in super type `a' of node type `b'
-_test.sprut:10:0: cycle in super type `b' of node type `a'
+_test.sprut:2:1: cycle in super type `a' of node type `b'
+_test.sprut:10:1: cycle in super type `b' of node type `a'
 OUTPUT26
                         result=ok
                 else
@@ -768,7 +768,7 @@ TEST27
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT27' && cmp $temp_file $temp2_file; then
-_test.sprut:4:5: undefined identifier `b' is used as field type
+_test.sprut:4:6: undefined identifier `b' is used as field type
 OUTPUT27
                         result=ok
                 else
@@ -800,10 +800,10 @@ TEST28
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT28' && cmp $temp_file $temp2_file; then
-_test.sprut:8:0: field `f1' is declared early in node type `a'
-_test.sprut:4:0: here first declaration of the field
-_test.sprut:9:0: field `f1' is declared early in node type `a'
-_test.sprut:4:0: here first declaration of the field
+_test.sprut:8:1: field `f1' is declared early in node type `a'
+_test.sprut:4:1: here first declaration of the field
+_test.sprut:9:1: field `f1' is declared early in node type `a'
+_test.sprut:4:1: here first declaration of the field
 OUTPUT28
                         result=ok
                 else
@@ -840,10 +840,10 @@ TEST29
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT29' && cmp $temp_file $temp2_file; then
-_test.sprut:12:0: field `f1' is declared early in super type `a'
-_test.sprut:4:0: here first declaration of the field
-_test.sprut:16:0: field `f2' is declared early in super type `a'
-_test.sprut:8:0: here first declaration of the field
+_test.sprut:12:1: field `f1' is declared early in super type `a'
+_test.sprut:4:1: here first declaration of the field
+_test.sprut:16:1: field `f2' is declared early in super type `a'
+_test.sprut:8:1: here first declaration of the field
 OUTPUT29
                         result=ok
                 else
@@ -880,10 +880,10 @@ TEST30
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT30' && cmp $temp_file $temp2_file; then
-_test.sprut:8:0: field `f1' in node type `a' has another type
-_test.sprut:4:0: here first declaration of the field
-_test.sprut:16:0: field `f1' in node type `a' has another type
-_test.sprut:4:0: here first declaration of the field
+_test.sprut:8:1: field `f1' in node type `a' has another type
+_test.sprut:4:1: here first declaration of the field
+_test.sprut:16:1: field `f1' in node type `a' has another type
+_test.sprut:4:1: here first declaration of the field
 OUTPUT30
                         result=ok
                 else
@@ -920,10 +920,10 @@ TEST31
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT31' && cmp $temp_file $temp2_file; then
-_test.sprut:8:0: field `f1' in node type `a' has another double attribute
-_test.sprut:4:0: here first declaration of the field
-_test.sprut:16:0: field `f1' in node type `a' has another double attribute
-_test.sprut:4:0: here first declaration of the field
+_test.sprut:8:1: field `f1' in node type `a' has another double attribute
+_test.sprut:4:1: here first declaration of the field
+_test.sprut:16:1: field `f1' in node type `a' has another double attribute
+_test.sprut:4:1: here first declaration of the field
 OUTPUT31
                         result=ok
                 else
@@ -960,10 +960,10 @@ TEST32
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT32' && cmp $temp_file $temp2_file; then
-_test.sprut:8:0: field `f1' in node type `a' is in another (non-class) part
-_test.sprut:4:0: here first declaration of the field
-_test.sprut:16:0: field `f1' in node type `a' is in another (non-class) part
-_test.sprut:4:0: here first declaration of the field
+_test.sprut:8:1: field `f1' in node type `a' is in another (non-class) part
+_test.sprut:4:1: here first declaration of the field
+_test.sprut:16:1: field `f1' in node type `a' is in another (non-class) part
+_test.sprut:4:1: here first declaration of the field
 OUTPUT32
                         result=ok
                 else
@@ -996,7 +996,7 @@ TEST33
         if $SPRUT $test_file 2>$temp_file; then
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT33' && cmp $temp_file $temp2_file; then
-_test.sprut:4:0: warning -- repeated extension of description `_test_1' is ignored
+_test.sprut:4:1: warning -- repeated extension of description `_test_1' is ignored
 OUTPUT33
                         result=ok
                 else
@@ -1027,10 +1027,10 @@ TEST34
         if $SPRUT $test_file 2>$temp_file; then
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT34' && cmp $temp_file $temp2_file; then
-_test.sprut:4:0: warning -- repeated declaration `a' as double node type
-_test.sprut:2:0: here the first declaration of double node type
-_test.sprut:6:0: warning -- repeated declaration `a' as double node type
-_test.sprut:2:0: here the first declaration of double node type
+_test.sprut:4:1: warning -- repeated declaration `a' as double node type
+_test.sprut:2:1: here the first declaration of double node type
+_test.sprut:6:1: warning -- repeated declaration `a' as double node type
+_test.sprut:2:1: here the first declaration of double node type
 OUTPUT34
                         result=ok
                 else
@@ -1061,10 +1061,10 @@ TEST35
         if $SPRUT $test_file 2>$temp_file; then
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT35' && cmp $temp_file $temp2_file; then
-_test.sprut:4:0: warning -- repeated declaration of predefined type `a'
-_test.sprut:2:0: here first declaration of predefined type
-_test.sprut:6:0: warning -- repeated declaration of predefined type `a'
-_test.sprut:2:0: here first declaration of predefined type
+_test.sprut:4:1: warning -- repeated declaration of predefined type `a'
+_test.sprut:2:1: here first declaration of predefined type
+_test.sprut:6:1: warning -- repeated declaration of predefined type `a'
+_test.sprut:2:1: here first declaration of predefined type
 OUTPUT35
                         result=ok
                 else
@@ -1097,10 +1097,10 @@ TEST36
         if $SPRUT $test_file 2>$temp_file; then
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT36' && cmp $temp_file $temp2_file; then
-_test.sprut:8:0: warning -- there is also field `f' in node type `a'
-_test.sprut:4:0: here previous declaration of the field
-_test.sprut:12:0: warning -- there is also field `f' in node type `b'
-_test.sprut:8:0: here previous declaration of the field
+_test.sprut:8:1: warning -- there is also field `f' in node type `a'
+_test.sprut:4:1: here previous declaration of the field
+_test.sprut:12:1: warning -- there is also field `f' in node type `b'
+_test.sprut:8:1: here previous declaration of the field
 OUTPUT36
                         result=ok
                 else
@@ -1142,7 +1142,7 @@ TEST37
         else
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT37' && cmp $temp_file $temp2_file; then
-_test.sprut:18:7: node type `d' has intersected super types `c' and `a'
+_test.sprut:18:8: node type `d' has intersected super types `c' and `a'
 OUTPUT37
                         result=ok
                 else
@@ -1172,7 +1172,7 @@ TEST38
         if $SPRUT $test_file 2>$temp_file; then
                 echo '      ' cmp $temp_file $temp2_file
                 if cat >$temp2_file <<'OUTPUT38' && cmp $temp_file $temp2_file; then
-_test.sprut:10:7: repeated occurrence `a' as super type of `b' is ignored
+_test.sprut:10:8: repeated occurrence `a' as super type of `b' is ignored
 OUTPUT38
                         result=ok
                 else

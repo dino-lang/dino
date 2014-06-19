@@ -203,7 +203,7 @@ void
 default_output_error_function (int appended_message_flag, position_t
                                position, const char *message)
 {
-  position_t *position_ptr;
+  const position_t *position_ptr;
 
   if (position.file_name == NULL)
     fputs (message, stderr);

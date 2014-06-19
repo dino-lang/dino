@@ -1420,7 +1420,7 @@ process_canonical_rule_action
                                         VLO_BEGIN (tag_name), "$");
                 }
               else if (isdigit (code [1])
-                       || code [1] == '-' && isdigit (code [2]))
+                       || (code [1] == '-' && isdigit (code [2])))
                 {
                   code++;
                   current_position.column_number++;

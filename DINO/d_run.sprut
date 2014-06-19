@@ -37,6 +37,16 @@
 
 %export {
 
+#ifdef __GNUC__
+#define expect(e) __builtin_expect (e, 1)
+#define doubt(e) __builtin_expect (e, 0)
+#define d_restrict __restrict__
+#else
+#define expect(e) (e)
+#define doubt(e) (e)
+#define d_restrict
+#endif
+
 #define INCREMENT_PC() (cpc = BC_next (cpc))
 
 /* The macro call returns optimal allocation size for vector elements.
@@ -45,11 +55,11 @@
 
 extern int sync_flag;
 
-extern pc_t cpc;
+extern d_restrict pc_t cpc;
 extern ER_node_t cstack;
 extern ER_node_t uppest_stack;
-extern ER_node_t tvars;
-extern ER_node_t cvars;
+extern d_restrict ER_node_t tvars;
+extern d_restrict ER_node_t cvars;
 extern ER_node_t ctop;
 extern int tvar_num1, tvar_num2;
 
@@ -120,60 +130,6 @@ extern ER_node_t first_process_not_started;
 #define GO_THROUGH_REDIR(ref)\
  while (ER_NODE_MODE (ref) == ER_NM_heap_redir) (ref) = ER_redir (ref)
 
-/* Return type from val mode.  For code we return only type_fun.  It
-   can be made more accurately later.  */
-static inline type_val_t
-mode_to_type (ER_node_mode_t mode)
-{
-  switch (mode)
-    {
-    case ER_NM_nil: return type_nil;
-    case ER_NM_char: return type_char;
-    case ER_NM_int: return type_int;
-    case ER_NM_long: return type_long;
-    case ER_NM_float: return type_float;
-    case ER_NM_hide: return type_hide;
-    case ER_NM_hideblock: return type_hideblock;
-    case ER_NM_vect: return type_vect;
-    case ER_NM_tab: return type_tab;
-    case ER_NM_code: return type_fun;
-    case ER_NM_stack: return type_obj;
-    case ER_NM_process: return type_process;
-    case ER_NM_type: return type_type;
-    default:
-      d_unreachable ();
-    }
-}
-
-/* Return type of CODE.  */
-static inline type_val_t
-code_type (BC_node_t code)
-{
-  d_assert (BC_NODE_MODE (code) == BC_NM_fblock);
-
-  if (BC_fun_p (code))
-    return type_fun;
-  else if (BC_class_p (code))
-    return type_class;
-  else
-    {
-      d_assert (BC_thread_p (code));
-      return type_thread;
-    }
-}
-
-/* Return true if it is non-external function.  */
-static inline int
-fun_p (ER_node_t val)
-{
-  BC_node_t code;
-
-  if (ER_NODE_MODE (val) != ER_NM_code)
-    return FALSE;
-  code = ID_TO_CODE (ER_code_id (val));
-  return BC_fun_p (code);
-}
-
 extern void initiate_int_tables (void);
 
 extern unsigned int gc_number;
@@ -192,6 +148,8 @@ extern int_t gc_interrupts_number;
 extern ticker_t gc_ticker;
 #endif
 #endif
+
+extern pc_t real_fun_call_pc;
 
 #if ! defined (NO_PROFILE) && HAVE_SETITIMER
 extern int_t all_interrupts_number; 
@@ -246,6 +204,116 @@ extern void eval_error (BC_node_t error_decl, position_t position,
 #endif
 
 extern const char *er_type_name (int);
+
+/* Return type from val mode.  For code we return only type_fun.  It
+   can be made more accurately later.  */
+static inline type_val_t
+mode_to_type (ER_node_mode_t mode)
+{
+  switch (mode)
+    {
+    case ER_NM_nil: return type_nil;
+    case ER_NM_char: return type_char;
+    case ER_NM_int: return type_int;
+    case ER_NM_long: return type_long;
+    case ER_NM_float: return type_float;
+    case ER_NM_hide: return type_hide;
+    case ER_NM_hideblock: return type_hideblock;
+    case ER_NM_vect: return type_vect;
+    case ER_NM_tab: return type_tab;
+    case ER_NM_code: return type_fun;
+    case ER_NM_stack: return type_obj;
+    case ER_NM_process: return type_process;
+    case ER_NM_type: return type_type;
+    default:
+      d_unreachable ();
+    }
+}
+
+/* Return type of CODE.  */
+static inline type_val_t
+code_type (BC_node_t code)
+{
+  d_assert (BC_NODE_MODE (code) == BC_NM_fblock);
+
+  if (BC_fun_p (code))
+    return type_fun;
+  else if (BC_class_p (code))
+    return type_class;
+  else
+    {
+      d_assert (BC_thread_p (code));
+      return type_thread;
+    }
+}
+
+/* Return true if it is non-external function.  */
+static inline int
+function_p (ER_node_t val)
+{
+  BC_node_t code;
+
+  if (ER_NODE_MODE (val) != ER_NM_code)
+    return FALSE;
+  code = ID_TO_CODE (ER_code_id (val));
+  return BC_fun_p (code);
+}
+
+/* Set up variable FROM to BOUND (no including) to nil.  */
+static void do_always_inline
+reset_vars (ER_node_t from, ER_node_t bound)
+{
+  for (; from < bound; from = IVAL (from, 1))
+    ER_SET_MODE (from, ER_NM_undef);
+}
+
+/* Return pc for the 1st stmt of FBLOCK.  If there is no one (abstract
+   function case), generate error.  */
+static BC_node_t do_always_inline
+get_fblock_pc (BC_node_t fblock)
+{
+  BC_node_t pc;
+
+  d_assert (BC_NODE_MODE (fblock) == BC_NM_fblock);
+  pc = BC_next (fblock);
+  if (pc != NULL)
+    return pc;
+  eval_error (abstrcall_bc_decl, get_cpos (),
+	      DERR_unfinished_fun_class_call, BC_ident (BC_fdecl (fblock)));
+}
+
+extern unsigned int generated_c_functions_num, generated_c_function_calls_num;
+
+/* Make FBLOCK call itself.  It might be C code generation and its
+   call.  */
+static void do_always_inline
+do_call (BC_node_t fblock)
+{
+  if (BC_fmode (fblock) == BC_gen)
+    {
+      void *addr;
+      
+      d_assert (! BC_thread_p (fblock));
+      if ((addr = BC_implementation_fun (fblock)) == NULL)
+	{
+	  addr = gen_cfblock (fblock);
+	  if (addr == NULL)
+	    BC_set_fmode (fblock, BC_no_gen);
+	  else
+	    {
+	      generated_c_functions_num++;
+	      BC_set_implementation_fun (fblock, addr);
+	    }
+	}
+      if (addr != NULL)
+	{
+	  ((void (*) (ER_node_t, ER_node_t)) addr) (cvars, tvars);
+	  generated_c_function_calls_num++;
+	  return;
+	}
+    }
+  cpc = get_fblock_pc (fblock);
+}
 
 }
 

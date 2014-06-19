@@ -83,7 +83,7 @@ TEST1
         else
                 echo '      ' $CMP $stderr $ftemp
                 if cat >$ftemp <<'OUTPUT1' && $CMP $stderr $ftemp; then
-_temp.oka:2:17: Units `ib0' and `ib1' should be in the same automaton
+_temp.oka:2:18: Units `ib0' and `ib1' should be in the same automaton
 OUTPUT1
                         result=ok
                 else
@@ -194,6 +194,11 @@ Automaton `float'
        167 DFA states,              420 DFA arcs
        167 minimal DFA states,      420 minimal DFA arcs
        129 all instructions           5 instruction equivalence classes
+
+  1659 all allocated states,       4062 all allocated arcs
+  1777 all allocated alternative states
+  1068 all comb vector elements,   2149 all transition table elements
+    21 locked states number
 
 OUTPUT2
                         result=ok
@@ -431,6 +436,11 @@ Automaton `float'
        149 minimal DFA states,      687 minimal DFA arcs
        146 all instructions           8 instruction equivalence classes
 
+  4520 all allocated states,      15219 all allocated arcs
+  3640 all allocated alternative states
+ 11706 all comb vector elements,  27096 all transition table elements
+     0 locked states number
+
 OUTPUT3
                         result=ok
                 else
@@ -462,8 +472,8 @@ TEST4
         else
                 echo '      ' $CMP $stderr $ftemp
                 if cat >$ftemp <<'OUTPUT4' && $CMP $stderr $ftemp; then
-_temp.oka:3:11: unit `ib0' excludes itself
-_temp.oka:3:17: unit `ib0' excludes itself
+_temp.oka:3:12: unit `ib0' excludes itself
+_temp.oka:3:18: unit `ib0' excludes itself
 OUTPUT4
                         result=ok
                 else
@@ -494,8 +504,8 @@ TEST5
         else
                 echo '      ' $CMP $stderr $ftemp
                 if cat >$ftemp <<'OUTPUT5' && $CMP $stderr $ftemp; then
-_temp.oka:4:11: units `ib1' and `ib0' in exclusion set belong to different automata
-_temp.oka:4:17: units `ib0' and `ib1' in exclusion set belong to different automata
+_temp.oka:4:12: units `ib1' and `ib0' in exclusion set belong to different automata
+_temp.oka:4:18: units `ib0' and `ib1' in exclusion set belong to different automata
 OUTPUT5
                         result=ok
                 else
@@ -531,6 +541,11 @@ Automaton `integer1'
          2 minimal DFA states,        3 minimal DFA arcs
          2 all instructions           2 instruction equivalence classes
 
+     4 all allocated states,          6 all allocated arcs
+     4 all allocated alternative states
+     3 all comb vector elements,      4 all transition table elements
+     1 locked states number
+
 OUTPUT6
                         result=ok
                 else
@@ -565,6 +580,11 @@ Automaton #0
          2 DFA states,                3 DFA arcs
          2 minimal DFA states,        3 minimal DFA arcs
          2 all instructions           2 instruction equivalence classes
+
+     4 all allocated states,          6 all allocated arcs
+     4 all allocated alternative states
+     3 all comb vector elements,      4 all transition table elements
+     1 locked states number
 
 OUTPUT7
                         result=ok

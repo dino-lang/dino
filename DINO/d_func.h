@@ -28,9 +28,6 @@ extern int internal_inside_call (const char **message_ptr, ER_node_t where,
 extern int internal_isa_call (const char **message_ptr, ER_node_t where,
 			      ER_node_t what);
 extern void print_trace_stack (void);
-extern void process_imm_fun_call (val_t *call_start, BC_node_t code,
-				  ER_node_t context, int actuals_num,
-				  int tail_flag);
 extern void process_imm_ifun_call (BC_node_t code, int actuals_num);
 extern void process_fun_class_call (ER_node_t call_start, int_t pars_number,
 				    int tail_call_flag);

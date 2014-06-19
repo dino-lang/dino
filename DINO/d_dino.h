@@ -150,6 +150,8 @@ int dlclose (void *handle);
 #define STANDARD_DINO_INCLUDE_DIRECTORY "/usr/local/lib"
 #endif
 
+#define STANDARD_DINO_GEN_FILE_NAME "d_gen.i"
+
 #define DINO_INCLUDE_PATH_NAME_VARIABLE "DINO_PATH"
 
 #ifndef STANDARD_DINO_LIB_DIRECTORY

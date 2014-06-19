@@ -215,10 +215,10 @@ set_up_default_LR_situation_of_trie_level
       if (error_reduce_flag
 	  || (current_LR_situation_ptr
 	      > (IR_node_t *) VLO_END (reduce_LR_situations))
-	  || !IR_it_is_errored_LR_set (IR_LR_set (*current_LR_situation_ptr))
-	  && (characteristic_symbol_of_LR_set
-	      (IR_LR_set (*current_LR_situation_ptr))
-	      != error_single_definition))
+	  || (!IR_it_is_errored_LR_set (IR_LR_set (*current_LR_situation_ptr))
+	      && (characteristic_symbol_of_LR_set
+		  (IR_LR_set (*current_LR_situation_ptr))
+		  != error_single_definition)))
 	for (;
 	     current_LR_situation_ptr
 	       <= (IR_node_t *) VLO_END (reduce_LR_situations);

@@ -43,6 +43,7 @@
 #include "position.h"
 #include "errors.h"
 #include "ticker.h"
+#include "hashtab.h"
 #include "ird.h"
 #include "common.h"
 #include "tab.h"
@@ -720,4 +721,5 @@ main (int argc, char **argv)
     fprintf (stderr, "overall time -- %ssec\n",
              active_time_string (all_ticker));
   msta_finish (FALSE);
+  return 0;
 }

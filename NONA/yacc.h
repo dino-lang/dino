@@ -40,5 +40,7 @@
 
 extern void initiate_parser (void);
 extern void start_parser_file (const char *new_file_name);
-extern yyparse ();
+extern int yylex (void);
+extern int yyerror (const char *message);
+extern int yyparse ();
 extern void finish_parser (void);

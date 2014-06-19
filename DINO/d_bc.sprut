@@ -24,7 +24,7 @@
 
 */
 
-%type position_t int_t gmp_t floating_t string_t bool_t implementation_fun_t
+%type position_t int_t gmp_t floating_t string_t bool_t fun_mode_t implementation_fun_t
       ticker_t ER_hidden_node_t
 
 %import {
@@ -34,6 +34,18 @@
 typedef struct ER_node *ER_hidden_node_t;
 
 typedef const char *string_t;
+
+typedef enum
+  {
+    /* Regular function/class/thread: */
+    BC_no_gen,
+    /* Try to generate C code.  This can not be used for threads.
+       If the generation failed, we mark it as BC_no_gen.  */
+    BC_gen,
+    /* Implementation function:  */
+    BC_builtin
+  } fun_mode_t;
+
 typedef void (*implementation_fun_t) (int_t pars_number);
 
 }
@@ -798,6 +810,7 @@ extern void init_env_decl_processing (void);
 extern int all_env_decls_processed_p (void);
 extern void process_env_decl (BC_node_t);
 extern void prepare_block (BC_node_t);
+extern void *gen_cfblock (BC_node_t fblock);
 
 }
 
@@ -920,6 +933,7 @@ fblock :: block
         fun_p, class_p, thread_p, args_p : bool_t
         simple_p, pure_fun_p : bool_t
         pars_num, min_pars_num : int_t
+        fmode : fun_mode_t {$ = BC_no_gen;}
         /* The following fields are used and defined only during evaluation  */
         implementation_fun : implementation_fun_t {$ = NULL;}
 	/* Time of function (class body) execution.  Defined if the
@@ -1009,6 +1023,7 @@ ldl :: op1 /* result place */
 	   BC_mpz_ptr instead.  */
         gmp_ : gmp_t
 ;
+
 ldf :: op1 /* result place */
 %other
         f : floating_t
@@ -1053,6 +1068,11 @@ fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
   lsh, rsh, ash, concat, add, sub, mult, div, mod :: op3;
 addi, eqi, nei, lti, gti, lei, gei :: op3i; /* non-slice insns */
 
+/* integer variants of most above insns.  */
+ior, ixor, iand, ieq, ine, iid, iunid, ilt, igt, ile, ige,
+  ilsh, irsh, iash, iadd, isub, imult, idiv, imod :: op3;
+iaddi, ieqi, inei, ilti, igti, ilei, igei :: op3i;
+
 b :: bcode; /* unconditional branch to next */
 
 btdef :: br;  /* skip if op1 is defined.  */
@@ -1070,11 +1090,20 @@ brts, brfs :: brs;
    bcmp_res can be used as temporary.  */
 bteq, btne, btge, btlt, btle, btgt :: bcmp;
 
+/* integer variants */
+ibteq, ibtne, ibtge, ibtlt, ibtle, ibtgt :: bcmp;
+
 bteqi, btnei, btgei, btlti, btlei, btgti :: bcmpi;
+
+/* integer variants */
+ibteqi, ibtnei, ibtgei, ibtlti, ibtlei, ibtgti :: bcmpi;
 
 /* op1 = op1 + inc; bcmp_res = op1 cmp bcmp_op2; bt bcmp_res
    Inc is int.  All others are places.  */
 bteqinc, btneinc, btgeinc, btltinc, btleinc, btgtinc :: binc;
+
+/* Integer variants */
+ibteqinc, ibtneinc, ibtgeinc, ibtltinc, ibtleinc, ibtgtinc :: binc;
 
 /* Logical conversion created from a number.  */
 lconv :: op2; /* result and operand places.  */
@@ -1110,10 +1139,13 @@ move :: op2 /* destination/source places.  */
 %other
         rhs_decl : decl /* rhs variable/function */
 ;
+imove :: move
+;
 /* Assignments: */
 /* vec or tab, stack, external store: container, element, value places */
 stvt, sts, ste :: op3;
 slst :: op3i2; /* vector place, slice dimension as int, value place  */
+
 
 /* Assignment with operations: */
 /* container, element, expr, lvalue val places */
@@ -1123,9 +1155,12 @@ mult_st, div_st, mod_st,
 
 /* Slice assignments: */
 /* container place, slice dimension as int, expr place, lvalue val place */
+%abstract
+op_slst :: op4i2
+;
 mult_slst, div_slst, mod_slst,
   add_slst, sub_slst, concat_slst, lsh_slst,
-  rsh_slst, ash_slst, and_slst, xor_slst, or_slst :: op4i2;
+  rsh_slst, ash_slst, and_slst, xor_slst, or_slst :: op_slst;
 
 out :: op1i; /* # of surrounding blocks as int */
 
@@ -1194,9 +1229,18 @@ info :: %root
 	reachable_p : bool_t
 ;
 
+/* Used during C code generation.  */
+gen_info :: %root
+%other
+        origin_info : source
+        /* Label number, negative if no label is neccesary */
+        label_num : int_t
+;
+
 %%
 
 #include "d_built.h"
+#include "d_runtab.h"
 
 /* Remember that first program byetcode is always block. */
 BC_node_t first_program_bc;
@@ -1795,7 +1839,10 @@ process_env_decl (BC_node_t decl)
     decl = BC_fblock (decl);
   *bc_decls_table[curr_decl_entry_num].decl_ptr = decl;
   if (BC_IS_OF_TYPE (decl, BC_NM_fblock))
-    BC_set_implementation_fun (decl, bc_decls_table[curr_decl_entry_num].fun_ptr);
+    {
+      BC_set_fmode (decl, BC_builtin);
+      BC_set_implementation_fun (decl, bc_decls_table[curr_decl_entry_num].fun_ptr);
+    }
   curr_decl_entry_num++;
 }
 
@@ -1830,6 +1877,307 @@ prepare_block (BC_node_t block)
 	next_info = BC_next_info (info);
 	BC_set_info (bc, BC_source (info));
       }
+}
+
+
+
+#if defined(HAVE_DLOPEN)
+
+static void
+print_op (FILE *f, int comma_p, int_t nop)
+{
+  if (comma_p)
+    fprintf (f, ", ");
+  if (nop >= 0)
+    fprintf (f, "get_var (cv, %d)", nop);
+  else
+    fprintf (f, "get_var (tv, %d)", -nop - 1);
+}
+
+static void
+print_node (FILE *f, BC_node_t bc)
+{
+  fprintf (f, "  cpc = (BC_node_t) 0x%lx;\n", (long unsigned) bc);
+  fprintf (f, "  ");
+  if (BC_IS_OF_TYPE (bc, BC_NM_br) || BC_IS_OF_TYPE (bc, BC_NM_foreach))
+    fprintf (f, "if (");
+  if (BC_IS_OF_TYPE (bc, BC_NM_fold_op))
+    fprintf (f, "foldop (");
+  else if (BC_IS_OF_TYPE (bc, BC_NM_const))
+    fprintf (f, "constop (");
+  else if (BC_IS_OF_TYPE (bc, BC_NM_div))
+    fprintf (f, "divop (");
+  else if (BC_IS_OF_TYPE (bc, BC_NM_op_slst))
+    fprintf (f, "op_slst (");
+  else if (BC_IS_OF_TYPE (bc, BC_NM_lindv))
+    fprintf (f, "ind (");
+  else
+    fprintf (f, "%s (", BC_node_name[BC_NODE_MODE (bc)]);
+  if (BC_IS_OF_TYPE (bc, BC_NM_op1))
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_op1i) || BC_IS_OF_TYPE (bc, BC_NM_op2i12))
+	fprintf (f, "%d", BC_op1 (bc));
+      else
+	print_op (f, FALSE, BC_op1 (bc));
+    }
+  if (BC_IS_OF_TYPE (bc, BC_NM_op2))
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_op2i)
+	  || BC_IS_OF_TYPE (bc, BC_NM_op2i12)
+	  || BC_IS_OF_TYPE (bc, BC_NM_op3i2)
+	  || BC_IS_OF_TYPE (bc, BC_NM_op4i2))
+	fprintf (f, ", %d", BC_op2 (bc));
+      else
+	print_op (f, TRUE, BC_op2 (bc));
+    }
+  if (BC_IS_OF_TYPE (bc, BC_NM_op3))
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_op3i))
+	fprintf (f, ", %d", BC_op3 (bc));
+      else
+	print_op (f, TRUE, BC_op3 (bc));
+    }
+  if (BC_IS_OF_TYPE (bc, BC_NM_op4))
+    print_op (f, TRUE, BC_op4 (bc));
+  if (BC_IS_OF_TYPE (bc, BC_NM_brs))
+    print_op (f, TRUE, BC_res (bc));
+  if (BC_IS_OF_TYPE (bc, BC_NM_bcmp))
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_bcmpi))
+	fprintf (f, ", %d", BC_bcmp_op2 (bc));
+      else
+	print_op (f, TRUE, BC_bcmp_op2 (bc));
+      fprintf (f, ", %d", BC_bcmp_res (bc));
+    }
+  if (BC_IS_OF_TYPE (bc, BC_NM_binc))
+    fprintf (f, ", %d", BC_binc_inc (bc));
+  if (BC_IS_OF_TYPE (bc, BC_NM_br))
+    fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));
+  else if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
+    fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_body_pc (bc))));
+  else
+    fprintf (f, ");\n");
+  if (BC_IS_OF_TYPE (bc, BC_NM_ret) || BC_IS_OF_TYPE (bc, BC_NM_leave))
+    fprintf (f, "  return;\n");
+    
+}
+
+static int_t curr_label_num;
+static vlo_t fbcode;
+
+static void
+traverse_bcode (BC_node_t bc)
+{
+  int first_p;
+  BC_node_t info, gen_info;
+  vlo_t stack;
+
+  VLO_CREATE (stack, 0);
+  VLO_ADD_MEMORY (stack, &bc, sizeof (bc));
+  while (VLO_LENGTH (stack) != 0)
+    {
+      bc = ((BC_node_t *) VLO_BOUND (stack)) [-1];
+      VLO_SHORTEN (stack, sizeof (bc));
+      for (first_p = TRUE; bc != NULL; bc = BC_next (bc), first_p = FALSE)
+	{
+	  info = BC_info (bc);
+	  if (! BC_IS_OF_TYPE (info, BC_NM_source))
+	    {
+	      if (BC_label_num (info) < 0)
+		{
+		  BC_set_label_num (info, curr_label_num);
+		  curr_label_num++;
+		}
+	      continue;
+	    }
+	  gen_info = BC_create_node (BC_NM_gen_info);
+	  BC_set_origin_info (gen_info, info);
+	  if (! first_p)
+	    BC_set_label_num (gen_info, -1);
+	  else
+	    {
+	      BC_set_label_num (gen_info, curr_label_num);
+	      curr_label_num++;
+	    }
+	  BC_set_info (bc, gen_info);
+	  VLO_ADD_MEMORY (fbcode, &bc, sizeof (bc));
+	  if (BC_IS_OF_TYPE (bc, BC_NM_br))
+	    {
+	      BC_node_t n = BC_pc (bc);
+	      
+	      VLO_ADD_MEMORY (stack, &n, sizeof (n));
+	    }
+	  if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
+	    {
+	      BC_node_t n = BC_body_pc (bc);
+	      
+	      VLO_ADD_MEMORY (stack, &n, sizeof (n));
+	    }
+	}
+    }
+  VLO_DELETE (stack);
+}
+
+#define GEN_DIR "/tmp/"
+#define GEN_FUN_PREFIX "dg_"
+#define CC_PREFIX "gcc -O2 -fPIC -g -shared"
+
+static void
+form_fname (vlo_t *fname, const char *name, const char *suffix)
+{
+  VLO_ADD_STRING (*fname, GEN_DIR);
+  VLO_ADD_STRING (*fname, GEN_FUN_PREFIX);
+  VLO_ADD_STRING (*fname, name);
+  VLO_ADD_STRING (*fname, suffix);
+}
+
+/* Copy the generation file into F.  Return FALSE if any error on the
+   generation file op occurs.  */
+static int
+copy_gen_file (FILE *f)
+{
+  int res;
+  size_t len;
+  FILE *genf;
+  char block[512];
+  vlo_t gen_fname;
+
+  VLO_CREATE (gen_fname, 0);
+  VLO_ADD_STRING (gen_fname, "./");
+  VLO_ADD_STRING (gen_fname, STANDARD_DINO_GEN_FILE_NAME);
+  genf = fopen (VLO_BEGIN (gen_fname), "r");
+  if (genf == NULL)
+    {
+      VLO_NULLIFY (gen_fname);
+      VLO_ADD_STRING (gen_fname, STANDARD_DINO_INCLUDE_DIRECTORY);
+      VLO_ADD_STRING (gen_fname, "/");
+      VLO_ADD_STRING (gen_fname, STANDARD_DINO_GEN_FILE_NAME);
+      genf = fopen (VLO_BEGIN (gen_fname), "r");
+      if (genf == NULL)
+	{
+	  VLO_DELETE (gen_fname);
+	  return FALSE;
+	}
+    }
+  VLO_DELETE (gen_fname);
+  while ((len = fread (block, 1, sizeof (block), genf)) > 0)
+    fwrite (block, 1, len, f);
+  fflush (f);
+  res = ferror (genf) == 0;
+  if (fclose (genf))
+    return FALSE;
+  return res;
+}
+#endif
+
+void *
+gen_cfblock (BC_node_t fblock)
+{
+#if !defined(HAVE_DLOPEN)
+  return NULL;
+#else
+  BC_node_t *bc_ptr, info;
+  FILE *f;
+  vlo_t fname, objname, command, func_name;
+  void *addr;
+  int error_p;
+
+  VLO_CREATE (fname, 0);
+  form_fname (&fname, BC_ident (BC_fdecl (fblock)), ".c");
+  f = fopen (VLO_BEGIN (fname), "w");
+  if (f == NULL)
+    return NULL;
+  VLO_CREATE (fbcode, 0);
+  curr_label_num = 0;
+  traverse_bcode (BC_next (fblock));
+  error_p = TRUE;
+  VLO_CREATE (func_name, 0);
+  if (copy_gen_file (f))
+    {
+      VLO_ADD_STRING (func_name, GEN_FUN_PREFIX);
+      VLO_ADD_STRING (func_name, BC_ident (BC_fdecl (fblock)));
+      fprintf (f, "void %s (struct ER_node *__restrict__ cv,\n",
+	       (const char *) VLO_BEGIN (func_name));
+      fprintf (f, "         struct ER_node *__restrict__ tv) {\n");
+      for (bc_ptr = (BC_node_t *) VLO_BEGIN (fbcode);
+	   bc_ptr < (BC_node_t *) VLO_BOUND (fbcode);
+	   bc_ptr++)
+	{
+	  info = BC_info (*bc_ptr);
+	  if (BC_label_num (info) >= 0)
+	    fprintf (f, "l%d:\n", BC_label_num (info));
+	  print_node (f, *bc_ptr);
+	  if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_tcall)
+	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_itcall)
+	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_titcall)
+	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_citcall))
+	    fprintf (f, "  return;\n");
+	  else if (bc_ptr + 1 >= (BC_node_t *) VLO_BOUND (fbcode)
+		   || BC_next (*bc_ptr) != bc_ptr[1])
+	    {
+	      if (BC_next (*bc_ptr) == NULL)
+		{
+		  fprintf (f, "  return;\n");
+		  d_assert (BC_IS_OF_TYPE (*bc_ptr, BC_NM_fbend));
+		}
+	      else
+		{
+		  info = BC_info (BC_next (*bc_ptr));
+		  d_assert (BC_label_num (info) >= 0);
+		  fprintf (f, "  goto l%d;\n", BC_label_num (info));
+		}
+	    }
+	}
+      fprintf (f, "}\n");
+      /* Restore original info */
+      for (bc_ptr = (BC_node_t *) VLO_BEGIN (fbcode);
+	   bc_ptr < (BC_node_t *) VLO_BOUND (fbcode);
+	   bc_ptr++)
+	{
+	  info = BC_info (*bc_ptr);
+	  BC_set_info (*bc_ptr, BC_origin_info (info));
+	  /* BC_FREE (info); ???*/
+	}
+      VLO_DELETE (fbcode);
+      error_p = ferror (f) != 0;
+      if (fclose (f))
+	{
+	  remove (VLO_BEGIN (fname));
+	  VLO_DELETE (fname);
+	  VLO_DELETE (func_name);
+	  return NULL;
+	}
+    }
+  addr = NULL;
+  if (!error_p)
+    {
+      VLO_CREATE (objname, 0);
+      form_fname (&objname, BC_ident (BC_fdecl (fblock)), ".so");
+      VLO_CREATE (command, 0);
+      VLO_ADD_STRING (command, CC_PREFIX);
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (fname));
+      VLO_ADD_STRING (command, " -o ");
+      VLO_ADD_STRING (command, VLO_BEGIN (objname));
+      if (system (VLO_BEGIN (command)) == 0)
+	{
+	  void *handle = dlopen (VLO_BEGIN (objname), RTLD_NOW | RTLD_GLOBAL);
+	  if (handle != NULL)
+	    {
+	      addr = dlsym (handle, VLO_BEGIN (func_name));
+	      if (dlerror () != NULL)
+		addr = NULL;
+	    }
+	}
+      /*remove (VLO_BEGIN (objname));*/
+      VLO_DELETE (command);
+      VLO_DELETE (objname);
+    }
+  VLO_DELETE (func_name);
+  /*remove (VLO_BEGIN (fname));*/
+  VLO_DELETE (fname);
+  return addr;
+#endif
 }
 
 /*

@@ -1675,6 +1675,7 @@ flush_syntax_error (void)
 }
 
 
+int
 yyerror (const char *message)
 {
   flush_syntax_error ();

@@ -47,6 +47,7 @@
 #include "output.h"
 #include "contexts.h"
 #include "parser.h"
+#include "lr-sets.h"
 
 #ifdef HAVE_ASSERT_H
 #include <assert.h>
@@ -1553,6 +1554,7 @@ output_token_representation (FILE *f, IR_node_t single_term_definition,
         (left_range_value <= literal_code
          && (IR_right_range_bound_value (single_term_definition)
              >= literal_code));
+      right_range_value = IR_right_range_bound_value (single_term_definition);
       if (literal_code == left_range_value)
         return
           output_identifier_or_literal
@@ -3423,7 +3425,6 @@ output_pop_shift_action_attribute (IR_node_t canonical_rule,
   IR_node_t bound_right_hand_side_element;
   IR_node_t original_canonical_rule;
   IR_node_t single_definition;
-  int rule_length;
   int stack_displacement;
 
   if (strcmp (attribute_name, "$") == 0)
@@ -3445,8 +3446,6 @@ output_pop_shift_action_attribute (IR_node_t canonical_rule,
         }
       else
         original_canonical_rule = canonical_rule;
-      rule_length = (canonical_rule_right_hand_side_prefix_length
-                     (original_canonical_rule, NULL));
       if (isdigit (*attribute_name) || *attribute_name == '-')
         attribute_number = atoi (attribute_name);
       else
@@ -4161,7 +4160,7 @@ output_switch (void)
   output_string (f, "        case ");
   output_string (f, NO_ACTION_VALUE_MACRO_NAME);
   output_string (f, ":\n");
-  /*    /* Here error processing and error recovery. * /
+  /*    / * Here error processing and error recovery. * /
         if (yyerr_status <= 0)
           {
             yyerror (YYERROR_MESSAGE);
@@ -4661,7 +4660,7 @@ yynext_error:
                  && yyacheck [yytemp + YYERRCLASS] == yystate
                  && yyaction [yytemp] < <first pop shift action>)
                {
-                 /* shift on error * /
+                 / * shift on error * /
 #if YYDEBUG != 0
                  if (yydebug)
                    fprintf (stderr, "state %d, error shifting to state %d\n", yystate, yyaction [yytemp + YYERRCLASS]);
@@ -4716,7 +4715,7 @@ yynext_error:
 -------------- if msta_error_recovery == MINIMAL_ERROR_RECOVERY --------------
         if (yystates_top <= yystates
             && yybest_recovery_cost == YYUNDEFINED_RECOVERY_COST)
-            /* No more error states and no recovery. * /
+            / * No more error states and no recovery. * /
             YYABORT;
         if (yystates_top <= yystates
             || yycurr_token_num - yyerror_token_num >= yybest_recovery_cost)
@@ -4731,7 +4730,7 @@ yynext_error:
 	    fprintf (stderr, "Error recovery - restoring %d states and %d attributes\n",
 			 yyerror_state_num, yyerror_attribute_num);
 #endif
-	  /* It corresponds .error * /
+	  / * It corresponds .error * /
 	  memcpy (yystates, yysaved_states,
 	  	      yyerror_state_num * sizeof (int));
 	  memcpy (yystate_token_nums, yysaved_state_token_nums,
@@ -5468,7 +5467,7 @@ yynext_error:
                   {
                     if (first_shift_flag)
                       {
-                        /* /* shifts * / */
+                        /* / * shifts * / */
                         output_string (f, "        /* shifts */\n");
                         first_shift_flag = FALSE;
                       }
@@ -5575,7 +5574,7 @@ yynext_error:
 		  || regular_optimization_flag);
           if (first_reduce_flag)
             {
-              /* /* reduces * / */
+              /* / * reduces * / */
               output_string (f, "        /* reduces */\n");
               first_reduce_flag = FALSE;
             }
@@ -5669,7 +5668,7 @@ yynext_error:
               {
                 if (first_regular_arc_flag)
                   {
-                    /* /* regular arcs * / */
+                    /* / * regular arcs * / */
                     output_string (f, "        /* regular arcs */\n");
                     first_regular_arc_flag = FALSE;
                   }
@@ -5879,8 +5878,7 @@ output_definition_inside_yyparse (void)
 static void
 output_code_before_switch (void)
 {
-  int i;
-  FILE *f = output_implementation_file;
+ FILE *f = output_implementation_file;
 
   /*
      #if YYDEBUG != 0
@@ -6419,7 +6417,7 @@ output_code_before_switch (void)
 ---------------------------------------
        {
          yychar1 = yytranslate[0];
-         yychar = YYEOF; /* To prevent repeated reading EOF * /
+         yychar = YYEOF; / * To prevent repeated reading EOF * /
        }
    */
   output_string (f, "          if (");
@@ -6711,7 +6709,7 @@ output_code_before_switch (void)
 -------------------------------------
            {
              yychar1 = 0;
-             yylook_ahead_char = YYEOF; /* To prevent repeated reading EOF * /
+             yylook_ahead_char = YYEOF; / * To prevent repeated reading EOF * /
            }
                     or 
 ---------------- scanner ------------
@@ -6721,7 +6719,7 @@ output_code_before_switch (void)
 -------------------------------------
            {
              yychar1 = 0;
-             *yyfirst_char_ptr_1 = YYEOF; /* To prevent repeated reading EOF * /
+             *yyfirst_char_ptr_1 = YYEOF; / * To prevent repeated reading EOF * /
             }
        */
       output_string (f, "              if (");
@@ -7213,7 +7211,7 @@ output_parser_itself (void)
     }
   if (!IR_scanner_flag (description))
     output_initiation_code ();
-  /* `yystate = 0; /* Start state * /' */
+  /* `yystate = 0; / * Start state * /' */
   output_string (f, "  ");
   output_string (f, YYSTATE_VARIABLE_NAME);
   output_string (f, " = 0; /* Start state */\n");
@@ -7263,7 +7261,7 @@ output_parser_itself (void)
 	      yybest_error_attributes_num * sizeof (yylval));
       yystates_top = yystates + yybest_error_state_num - 1;
       yyattributes_top = yyattributes + yybest_error_attributes_num - 1;
-      /* Restore input * /
+      / * Restore input * /
       yytemp = yycurr_token_num;
       for (yychar_ptr = yyfirst_char_ptr - 1;;)
 	{
@@ -7276,7 +7274,7 @@ output_parser_itself (void)
 	  yychar_ptr--;
 	}
       yybest_token_ignored_num++;
-      /* Shift yybest_token_ignored_num: * /
+      / * Shift yybest_token_ignored_num: * /
       while (yybest_token_ignored_num-- != 0)
 	{
 	  if (yybest_token_ignored_num == 1)
@@ -7309,7 +7307,7 @@ output_parser_itself (void)
       yystate = yybest_error_state;
       if (yypushed [yystate])
 	{
-	  /* We don't need to check stack ends * /
+	  / * We don't need to check stack ends * /
 	  (*++yystates_top) = yystate;
 	  (*++yyattributes_top) = yybest_error_attribute;
 	}

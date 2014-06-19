@@ -37,7 +37,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
   ER_node_t val;
   const char *ptr, *str;
   char *curr_fmt, res_fmt [100];
-  int start, curr_par_num, width, precision, add, out;
+  int curr_par_num, width, precision, add, out;
   int alternate_flag, zero_flag, left_adjust_flag;
   int blank_flag, plus_flag, width_flag, precision_flag;
   char next;
@@ -616,7 +616,6 @@ void
 implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
 				       ER_node_t *l, ER_node_t *r)
 {
-  int long_p;
   static val_t tvar1, tvar2;
 
   op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
@@ -655,7 +654,6 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
 {
   int string_flag;
   ER_node_t vect;
-  floating_t f;
   static val_t tvar1, tvar2;
 
   if (ER_NODE_MODE (op2) == ER_NM_vect)

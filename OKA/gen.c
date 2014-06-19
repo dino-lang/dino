@@ -616,6 +616,7 @@ set_up_unit_reservation (reservation_sets_list_t reservations,
 	   + unit_number, 1);
 }
 
+#if 0
 static int
 it_is_empty_reservation_sets_list (reservation_sets_list_t operand)
 {
@@ -632,6 +633,7 @@ it_is_empty_reservation_sets_list (reservation_sets_list_t operand)
       return FALSE;
   return TRUE;
 }
+#endif
 
 static reservation_sets_list_t
   get_exclusion_set (reservation_sets_list_t in_set);
@@ -699,6 +701,7 @@ reservation_sets_list_or (reservation_sets_list_t result,
       = *current_unit_set_element_ptr_1 | *current_unit_set_element_ptr_2;
 }
 
+#if 0
 static void
 reservation_sets_list_and (reservation_sets_list_t result,
                            reservation_sets_list_t operand_1,
@@ -718,6 +721,7 @@ reservation_sets_list_and (reservation_sets_list_t result,
     *current_result_unit_set_element_ptr
       = *current_unit_set_element_ptr_1 & *current_unit_set_element_ptr_2;
 }
+#endif
 
 static void
 output_cycle_reservations (FILE *f, reservation_sets_list_t reservations,
@@ -961,11 +965,13 @@ set_up_state_reservation (IR_node_t state, int cycle_number, int unit_number)
   set_up_unit_reservation (IR_reservations (state), cycle_number, unit_number);
 }
 
+#if 0
 static int
 it_is_state_without_reservations (IR_node_t state)
 {
   return it_is_empty_reservation_sets_list (IR_reservations (state));
 }
+#endif
 
 static int
 state_reservations_are_intersected (IR_node_t state_1, IR_node_t state_2)
@@ -3129,6 +3135,7 @@ output_ifdef_parameter_name (FILE *f, const char *ifdef_parameter_name)
    contains parameter with given base name (see function
    `output_ifdef_parameter_name'). */
 
+#if 0
 static void
 output_ifdef (FILE *f, const char *ifdef_parameter_base_name)
 {
@@ -3136,6 +3143,7 @@ output_ifdef (FILE *f, const char *ifdef_parameter_base_name)
   output_ifdef_parameter_name (f, ifdef_parameter_base_name);
   output_char ('\n', f);
 }
+#endif
 
 /* This function outputs C preprocessor line `#ifndef ...'  which
    contains parameter with given base name (see function
@@ -4373,8 +4381,8 @@ output_expression (IR_node_t expression, int upper_operation_priority)
   else if (IR_IS_OF_TYPE (expression, IR_NM_two_operand_expression))
     {
       if (upper_operation_priority == REPETITION_PRIORITY
-          || upper_operation_priority == CONCATENATION_PRIORITY
-          && IR_IS_OF_TYPE (expression, IR_NM_alternative))
+          || (upper_operation_priority == CONCATENATION_PRIORITY
+	      && IR_IS_OF_TYPE (expression, IR_NM_alternative)))
         output_char ('(', output_description_file);
       if (IR_IS_OF_TYPE (expression, IR_NM_alternative))
         current_operation_priority = LOWEST_PRIORITY;
@@ -4394,8 +4402,8 @@ output_expression (IR_node_t expression, int upper_operation_priority)
       output_expression (IR_right_operand (expression),
                          current_operation_priority);
       if (upper_operation_priority == REPETITION_PRIORITY
-          || upper_operation_priority == CONCATENATION_PRIORITY
-          && IR_IS_OF_TYPE (expression, IR_NM_alternative))
+          || (upper_operation_priority == CONCATENATION_PRIORITY
+	      && IR_IS_OF_TYPE (expression, IR_NM_alternative)))
         output_char (')', output_description_file);
     }
   else if (IR_IS_OF_TYPE (expression, IR_NM_expression_atom))

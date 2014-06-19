@@ -451,7 +451,7 @@ static void
 update_copied_redirs (int start)
 {
   int i, n;
-  IR_node_t *redirs, redir, old, new;
+  IR_node_t *redirs, redir, old;
 
   n = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
   redirs = (IR_node_t *) VLO_BEGIN (copied_redirs);
@@ -685,7 +685,7 @@ static IR_node_t
 process_use_clause (IR_node_t use_clause, IR_node_t origin_block,
 		    IR_node_t next_stmt)
 {
-  IR_node_t block, item, *item_ptr, *res_item_ptr;
+  IR_node_t item, *item_ptr, *res_item_ptr;
   IR_node_t ident, decl, stmt, res, last, copy, redir;
   int err_p, n, start;
 
@@ -702,6 +702,7 @@ process_use_clause (IR_node_t use_clause, IR_node_t origin_block,
 	 sizeof (IR_node_t), use_item_cmp);
   /* Check repeated identifier occurence and set up decls references,
      remove duplicates and already bound later items.  */
+  err_p = FALSE;
   for (n = 0, res_item_ptr = item_ptr = ((IR_node_t *) VLO_BEGIN (use_items)
 					 + curr_use_items_start);
        item_ptr < (IR_node_t *) VLO_BOUND (use_items);
@@ -1099,7 +1100,6 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    IR_node_t saved_curr_scope = curr_scope;
 	    int saved_curr_use_items_start = curr_use_items_start;
 	    int copied_redirs_start;
-	    IR_node_t curr_stmt;
 	    IR_node_t curr_except;
 	    IR_node_t *item_ptr;
 
@@ -1880,7 +1880,7 @@ static vlo_t all_fblocks;
 static inline BC_node_t
 get_fblock (IR_node_t fun_decl)
 {
-  BC_node_t bc, fdecl, info;
+  BC_node_t bc, fdecl;
   IR_node_t src, origin, block = IR_next_stmt (fun_decl);
   
   src = block;
@@ -2592,7 +2592,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       {
 	int pars_num, fun_op_num;
 	pc_t saved_prev_pc;
-	IR_node_t elist, flatten, fun_decl = NULL;
+	IR_node_t fun_decl = NULL;
 	int general_p = TRUE, env_p = FALSE, top_p = FALSE;
 	    
 	there_is_function_call_in_expr = TRUE;
@@ -2951,7 +2951,7 @@ copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block)
 static void
 copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
 {
-  BC_node_t bc_block, fv, info, bc, *bc_ptr;
+  BC_node_t bc_block, fv, bc, *bc_ptr;
   
   VLO_NULLIFY (bc_copies);
   bc = get_fblock (fun);
@@ -2985,6 +2985,9 @@ copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
 	      && (fv = BC_subst (BC_info (fv))) != NULL)
 	    BC_set_uses (bc, fv);
 	}
+      if (BC_IS_OF_TYPE (bc, BC_NM_except) && (fv = BC_next_except (bc)) != NULL
+	  && (fv = BC_subst (BC_info (fv))) != NULL)
+	BC_set_next_except (bc, fv);
       if (BC_IS_OF_TYPE (bc, BC_NM_fdecl) && (fv = BC_fblock (bc)) != NULL
 	  && (fv = BC_subst (BC_info (fv))) != NULL)
 	BC_set_fblock (bc, fv);
@@ -3033,7 +3036,7 @@ second_block_passing (IR_node_t first_level_stmt)
   BC_node_t bc, var_bc, before_pc, src;
   BC_node_mode_t bc_node_mode, var_mode;
   IR_node_t stmt, next_stmt, decl;
-  IR_node_t op, temp;
+  IR_node_t temp;
   IR_node_mode_t stmt_mode;
   int result, var_result, temp_vars_num, val_p;
   int container_num, index_num;
@@ -3621,7 +3624,7 @@ second_block_passing (IR_node_t first_level_stmt)
 	    pc_t catches_finish;
 	    pc_t previous_node_catch_list_pc;
 	    IR_node_t fun_class, friend, use;
-	    BC_node_t except_bc, last_except_with_block, bc_block;
+	    BC_node_t except_bc, last_except_with_block;
 	    int simple_block_flag = FALSE;
 
 	    curr_scope = stmt;
@@ -3644,8 +3647,8 @@ second_block_passing (IR_node_t first_level_stmt)
 		BC_set_scope (bc, curr_bc_scope);
 		BC_set_simple_p (bc, FALSE);
 		BC_set_fun_p (bc,
-			       IR_IS_OF_TYPE (fun_class, IR_NM_fun)
-			       && ! IR_thread_flag (fun_class));
+			      IR_IS_OF_TYPE (fun_class, IR_NM_fun)
+			      && ! IR_thread_flag (fun_class));
 		BC_set_class_p (bc, IR_IS_OF_TYPE (fun_class, IR_NM_class));
 		BC_set_thread_p (bc,
 				 IR_IS_OF_TYPE (fun_class, IR_NM_fun)
@@ -3658,6 +3661,9 @@ second_block_passing (IR_node_t first_level_stmt)
 				   (IR_IS_OF_TYPE (fun_class, IR_NM_class)
 				    || IR_thread_flag (fun_class)
 				    || IR_extended_life_context_flag (stmt)));
+		BC_set_fmode (bc,
+			      IR_hint (stmt) && ! IR_thread_flag (fun_class)
+			      ? BC_gen : BC_no_gen);
 	      }
 	    add_to_bcode (bc);
 	    curr_bc_scope = bc;
@@ -3956,6 +3962,8 @@ go_through (BC_node_t start_bc)
       case BC_NM_gti:
 	node_mode = bt_p ? BC_NM_btgti : BC_NM_btlei;
 	break;
+      default:
+	break;
       }
   if (node_mode != BC_NM__error
       && (op1 < 0 || BC_op2 (second_bc) == op1)
@@ -4032,7 +4040,6 @@ mark_reachable_info (BC_node_t bc)
 static void
 process_bc (BC_node_t start)
 { 
-  int last_uniq_ident_num;
   BC_node_t info, bc, next, next_info;
   
   curr_bc_block = start;

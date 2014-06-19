@@ -3021,7 +3021,7 @@ output_node_type_definitions_and_structures (IR_node_t node_type, int level)
   int there_are_fields;
   int i;
 
-  if (!flat_structure_flag && IR_fields_structure_has_been_output (node_type)
+  if ((! flat_structure_flag && IR_fields_structure_has_been_output (node_type))
       || node_type == root_node_type)
     return;
   IR_set_fields_structure_has_been_output (node_type, TRUE);
@@ -3459,8 +3459,8 @@ output_node_type_class_structures (IR_node_t node_type, int level)
   int there_are_class_fields;
   int i;
 
-  if (!flat_structure_flag
-      && IR_class_fields_structure_has_been_output (node_type)
+  if ((! flat_structure_flag
+       && IR_class_fields_structure_has_been_output (node_type))
       || node_type == root_node_type)
     return;
   IR_set_class_fields_structure_has_been_output (node_type, TRUE);
@@ -4660,7 +4660,7 @@ static void
 output_title_of_next_double_link_function (FILE *f, int as_macro_flag,
                                            int function_prefix_flag)
 {
-  assert (!cpp_flag || !as_macro_flag && !function_prefix_flag);
+  assert (!cpp_flag || (!as_macro_flag && !function_prefix_flag));
   if (!as_macro_flag)
     {
       output_double_link_t_name (f);
@@ -4714,7 +4714,7 @@ static void
 output_title_of_previous_double_link_function (FILE *f, int as_macro_flag,
                                                int function_prefix_flag)
 {
-  assert (!cpp_flag || !as_macro_flag && !function_prefix_flag);
+  assert (!cpp_flag || (!as_macro_flag && !function_prefix_flag));
   if (!as_macro_flag)
     {
       output_double_link_t_name (f);
@@ -4762,7 +4762,7 @@ static void
 output_title_of_owner_function (FILE *f, int as_macro_flag,
                                 int function_prefix_flag)
 {
-  assert (!cpp_flag || !as_macro_flag && !function_prefix_flag);
+  assert (!cpp_flag || (!as_macro_flag && !function_prefix_flag));
   if (!as_macro_flag)
     {
       output_node_t_name (f);
@@ -5055,7 +5055,7 @@ output_title_of_field_access_function (FILE *f, IR_node_t field,
                                        int as_macro_flag,
                                        int function_prefix_flag)
 {
-  assert (!cpp_flag || !as_macro_flag && !function_prefix_flag);
+  assert (!cpp_flag || (!as_macro_flag && !function_prefix_flag));
   if (!as_macro_flag)
     {
       output_field_type_name (f, IR_field_type (field));
@@ -5372,7 +5372,7 @@ output_title_of_field_modification_function (FILE *f, IR_node_t field,
                                              int as_macro_flag,
                                              int function_prefix_flag)
 {
-  assert (!cpp_flag || !as_macro_flag && !function_prefix_flag);
+  assert (!cpp_flag || (!as_macro_flag && !function_prefix_flag));
   if (!as_macro_flag)
     output_string (f, "void ");
   output_name_of_set_function (f, IR_identifier_itself (IR_field_identifier
@@ -5496,7 +5496,7 @@ output_field_modification_function_definition (IR_node_t field)
           output_string (f, " == NULL");
           if (IR_NODE_MODE (IR_field_type (field)) == IR_NM_node_type)
             {
-              output_string (f, cpp_flag ? "\n          || " : "\n      || ");
+              output_string (f, cpp_flag ? "\n          || (" : "\n      || (");
               output_string (f, MODIFICATION_FUNCTION_VALUE_PARAMETER_NAME);
               output_string (f, " != NULL && !");
               if (!fast_flag)
@@ -5555,6 +5555,7 @@ output_field_modification_function_definition (IR_node_t field)
                 output_string (f, MODIFICATION_FUNCTION_VALUE_PARAMETER_NAME);
               output_string (f, ") != ");
               output_node_mode_type_value (f, ERROR_NAME);
+              output_string (f, ")");
             }
           output_string (f, cpp_flag ? "\n          || !" : "\n      || !");
           if (field == IR_previous_synonym_field (field)
@@ -8130,8 +8131,8 @@ output_field_check (IR_node_t field, int class_field_flag)
 {
   if (IR_NODE_MODE (field) == IR_NM_field)
     {
-      if (IR_declaration_part (field) != DP_CLASS && !class_field_flag
-          || IR_declaration_part (field) == DP_CLASS && class_field_flag)
+      if ((IR_declaration_part (field) != DP_CLASS && !class_field_flag)
+          || (IR_declaration_part (field) == DP_CLASS && class_field_flag))
         {
           if (IR_NODE_MODE (IR_field_type (field)) == IR_NM_node_type)
             {
@@ -8200,8 +8201,8 @@ output_field_check (IR_node_t field, int class_field_flag)
     }
   else if (IR_NODE_MODE (field) == IR_NM_constraint)
     {
-      if (IR_declaration_part (field) != DP_CLASS && !class_field_flag
-          || IR_declaration_part (field) == DP_CLASS && class_field_flag)
+      if ((IR_declaration_part (field) != DP_CLASS && !class_field_flag)
+          || (IR_declaration_part (field) == DP_CLASS && class_field_flag))
         {
           output_string (output_implementation_file, "      if (!(");
           output_code (output_implementation_file, field,
@@ -9027,8 +9028,8 @@ static void
 output_field_print (IR_node_t field, int class_field_flag)
 {
   if (IR_NODE_MODE (field) == IR_NM_field
-      && (IR_declaration_part (field) != DP_CLASS && !class_field_flag
-          || IR_declaration_part (field) == DP_CLASS && class_field_flag))
+      && ((IR_declaration_part (field) != DP_CLASS && !class_field_flag)
+	  || (IR_declaration_part (field) == DP_CLASS && class_field_flag)))
     {
       output_string (output_implementation_file,
                      "      printf (\"      ");
@@ -10146,8 +10147,8 @@ static void
 output_field_traverse (IR_node_t field, int class_field_flag)
 {
   if (IR_NODE_MODE (field) == IR_NM_field
-      && (IR_declaration_part (field) != DP_CLASS && !class_field_flag
-          || IR_declaration_part (field) == DP_CLASS && class_field_flag)
+      && ((IR_declaration_part (field) != DP_CLASS && !class_field_flag)
+          || (IR_declaration_part (field) == DP_CLASS && class_field_flag))
       && IR_NODE_MODE (IR_field_type (field)) == IR_NM_node_type)
     {
       output_string (output_implementation_file, "      ");
@@ -10608,8 +10609,8 @@ static void
 output_field_transformation (IR_node_t field, int class_field_flag)
 {
   if (IR_NODE_MODE (field) == IR_NM_field
-      && (IR_declaration_part (field) != DP_CLASS && !class_field_flag
-          || IR_declaration_part (field) == DP_CLASS && class_field_flag)
+      && ((IR_declaration_part (field) != DP_CLASS && !class_field_flag)
+	  || (IR_declaration_part (field) == DP_CLASS && class_field_flag))
       && IR_NODE_MODE (IR_field_type (field)) == IR_NM_node_type)
     {
       if (IR_double_field_flag (field))

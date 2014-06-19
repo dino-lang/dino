@@ -1195,6 +1195,7 @@ flush_syntax_error (void)
    `flush_syntax_error' and saves message given as parameter and
    `current_lexema position' as its position (see scanner). */
 
+int
 yyerror (const char *message)
 {
   flush_syntax_error ();

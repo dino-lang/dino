@@ -438,7 +438,6 @@ typedef unsigned char fraction_t [INTERNAL_FRACTION_SIZE];
 
 static inline int biased_exponent (void *fp, float_desc_t d)
 {
-  int result = 0;
   unsigned char b0 = 0, b1 = 0;
 
   if (d->exponent_bit_length <= CHAR_BIT)
@@ -4278,7 +4277,7 @@ float_to_string (int non_biased_exponent, int sign, fraction_t fraction,
   unsigned_integer::to_string (INTERNAL_FRACTION_SIZE, fraction,
                                fraction_str);
   ten_power += strlen (fraction_str) - 1;
-  assert (strlen (fraction_str) > number_of_significant_digits
+  assert (strlen (fraction_str) > (unsigned) number_of_significant_digits
           && (strlen (fraction_str)
               <= (unsigned) number_of_significant_digits + 3));
   if (fraction_str [number_of_significant_digits] >= '5')
@@ -4497,8 +4496,8 @@ binary_string_to_float (const char *operand, int base, int *sign,
   leading_zero_flag = 1 /* TRUE */;
   binary_exponent = INTERNAL_FRACTION_SIZE * CHAR_BIT - 1;
   while ((isdigit (*operand) && *operand - '0' < base)
-	 || base == 16 && ((*operand >= 'a' && *operand <= 'f')
-			   || (*operand >= 'A' && *operand <= 'F')))
+	 || (base == 16 && ((*operand >= 'a' && *operand <= 'f')
+			    || (*operand >= 'A' && *operand <= 'F'))))
     {
       if (*operand != '0' || !leading_zero_flag)
         {
@@ -4530,8 +4529,8 @@ binary_string_to_float (const char *operand, int base, int *sign,
     {
       operand++;
       while ((isdigit (*operand) && *operand - '0' < base)
-	     || base == 16 && ((*operand >= 'a' && *operand <= 'f')
-			       || (*operand >= 'A' && *operand <= 'F')))
+	     || (base == 16 && ((*operand >= 'a' && *operand <= 'f')
+				|| (*operand >= 'A' && *operand <= 'F'))))
         {
           if (*operand != '0' || !leading_zero_flag)
             {

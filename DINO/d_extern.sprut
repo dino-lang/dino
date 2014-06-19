@@ -225,7 +225,7 @@ extern void *get_library_search_function (const char *name);
 
 #if defined(NDEBUG)
 #define IVAL(first_var, index)\
-   ((ER_node_t) ((char *) (first_var) + (index) * (int) sizeof (val_t)))
+   ((ER_node_t) ((val_t *) (first_var) + (index)))
 #else
 #define IVAL(first_var, index)\
   _indexed_val ((ER_node_t) (first_var), index)
@@ -233,7 +233,7 @@ extern void *get_library_search_function (const char *name);
 
 #if defined(NDEBUG)
 #define INDEXED_ENTRY_KEY(first_entry, index)\
-   ((ER_node_t) ((char *) (first_entry) + 2 * (index) * (int) sizeof (val_t)))
+   ((ER_node_t) ((val_t *) (first_entry) + 2 * (index)))
 #else
 #define INDEXED_ENTRY_KEY(first_entry, index)\
    _indexed_entry_key (first_entry, index)
@@ -241,7 +241,7 @@ extern void *get_library_search_function (const char *name);
 
 #if defined(NDEBUG)
 #define INDEXED_ENTRY_VAL(first_entry, index)\
-   ((ER_node_t) ((char *) (first_entry) + (2 * (index) + 1) * (int) sizeof (val_t)))
+   ((ER_node_t) ((val_t *) (first_entry) + (2 * (index) + 1)))
 #else
 #define INDEXED_ENTRY_VAL(first_entry, index)\
    _indexed_entry_val (first_entry, index)

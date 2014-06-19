@@ -31,6 +31,7 @@
 #include "d_context.h"
 #include "d_bcio.h"
 #include "d_eval.h"
+#include "d_func.h"
 
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -642,6 +643,9 @@ dino_finish (int code)
 	fprintf (stderr, "Tables collisions - %d\n", tab_collisions);
       if (tab_expansions != 0)
 	fprintf (stderr, "Tables expansions - %d\n", tab_expansions);
+      if (generated_c_functions_num != 0)
+	fprintf (stderr, "Generated C code functions - %u, their calls - %u\n",
+		 generated_c_functions_num, generated_c_function_calls_num);
     }
   longjmp (exit_longjump_buff, (code == 0 ? -1 : code < 0 ? 1 : code));
 }
@@ -663,6 +667,7 @@ static void
 dino_start (void)
 {
   change_allocation_error_function (error_func_for_allocate);
+  generated_c_functions_num = generated_c_function_calls_num = 0;
   max_gmp_memory_size = gmp_memory_size = 0;
   mp_set_memory_functions (gmp_alloc, gmp_realloc, gmp_free);
   initiate_positions ();
@@ -1188,4 +1193,5 @@ dino_main (int argc, char *argv[], char *envp[])
 	}
     }
   dino_finish (number_of_errors != 0);
+  d_unreachable ();
 }

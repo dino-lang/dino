@@ -37,9 +37,7 @@ void
 initiate_run_tables (void)
 {
   VLO_CREATE (block_decl_tables.block_ident_decls, 2000);
-#ifdef BLOCK_TAB
   VLO_CREATE (block_tab, 800);
-#endif
 }
 
 /* The func creates new block decls idents table in this abstract data. */

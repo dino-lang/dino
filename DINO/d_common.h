@@ -63,6 +63,7 @@ extern position_t source_position;
 extern size_t gmp_memory_size;
 extern int bc_nodes_num;
 extern unsigned int heap_chunk_size;
+extern unsigned int generated_c_functions_num, generated_c_function_calls_num;
 extern int repl_flag;
 extern int statistics_flag;
 extern int trace_flag;
@@ -96,7 +97,7 @@ read_number (int curr_ch, int get_ch (void), void unget_ch (int),
 	     int *read_ch_num, const char **result, int *base,
 	     int *float_p, int *long_p);
 
-extern void print_cont_prompt (void);
+extern void print_stmt_prompt (void);
 extern void print_stmt_cont_prompt (void);
 extern void d_verror (int fatal_error_flag, position_t position,
 		      const char *format, va_list ap);

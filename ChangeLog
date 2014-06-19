@@ -1,3 +1,216 @@
+2014-06-19  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* AMMUNITION/IEEE.cpp (biased_exponent): Remove unused var result.
+	(float_to_string): Fix mix of signed and unsigned.
+	(binary_string_to_float): Add parentheses for &&.
+	* AMMUNITION/earley.cpp (use_functions, use_description): Make
+	conditional.
+	* AMMUNITION/errors.c (default_output_error_function): Add prefix
+	const.
+	* MSTA/Makefile.in: Update dependencies.
+	* MSTA/anal.c (process_type_definition_2, pattern_eq_function):
+	Add parentheses for &&.
+	(process_definition_list): Remove unused single_definition.
+	(process_sequence_element): Remove unused left_literal and
+	right_literal.
+	* MSTA/ird.sprut (process_canonical_rule_action): Add parentheses
+	for &&.
+	* MSTA/la-trie.c (set_up_default_LR_situation_of_trie_level):
+	Ditto.
+	* MSTA/lr.c: Include "output.h".
+	(get_shifted_LR_situation_list): Remove unused
+	single_definition.
+	(add_context_conflicts): Add parentheses for &&.
+	(evaluate_graph_context): Remove unused
+	current_dependence_list_element.
+	* MSTA/main.c: Include "hashtab.h".
+	(main): Add return at the end.
+	* MSTA/parser.c (output_token_representation): Set up
+	right_range_value.
+	(output_pop_shift_action_attribute): Remove unused rule_length.
+	(output_switch, output_parser_itself): Change /* into / * in
+	comments.
+	(output_code_before_switch): Ditto.  Remove unused i.
+	* MSTA/yacc.h (yylex, yyerror): Add
+	(yyparse): Add return type.
+	* MSTA/yacc.y (yyerror): Add return type.
+	* NONA/yacc.h (yylex, yyerror): Add
+	(yyparse): Add return type.
+	* NONA/yacc.y (yyerror): Add return type.
+	* NONA/main.c (main): Add return at the end.
+	* OKA/gen.c (it_is_empty_reservation_sets_list): Make conditional.
+	(reservation_sets_list_and, it_is_state_without_reservations): Ditto.
+	(output_ifdef): Ditto.
+	(output_expression): Add parentheses for &&.
+	* OKA/main.c (main): Add return at the end.
+	* OKA/oka.tst: Change positions add additional expected output.
+	* OKA/yacc.h (yylex, yyerror): Add
+	(yyparse): Add return type.
+	* OKA/yacc.y (yyerror): Add return type.
+	* SHILKA/Makefile.in: Update dependencies.
+	* SHILKA/gen.c: Include "errors.h".
+	(generalized_output_string): Add parentheses for &&.
+	* SHILKA/main.c (main): Add return at the end.
+	* SHILKA/yacc.h (yylex, yyerror): Add
+	(yyparse): Add return type.
+	* SHILKA/yacc.y (yyerror): Add return type.
+	* SPRUT/gen.c (output_node_type_definitions_and_structures): Add
+	parentheses for &&.
+	(output_node_type_class_structures): Ditto.
+	(output_title_of_next_double_link_function): Ditto.
+	(output_title_of_previous_double_link_function): Ditto.
+	(output_title_of_owner_function): Ditto.
+	(output_title_of_field_access_function): Ditto.
+	(output_field_check, output_field_print, output_field_traverse):
+	Ditto.
+	(output_field_transformation): Ditto.
+	(output_title_of_field_modification_function): Ditto.  Output
+	additional ().
+	* SPRUT/main.c (main): Add return at the end.
+	* SPRUT/sprut.tst: Change expected positions.
+	* SPRUT/yacc.h (yylex, yyerror): Add
+	(yyparse): Add return type.
+	* SPRUT/yacc.y (yyerror): Add return type.
+	* configure.in: Add SED and EGREP.
+	* configure: Update.
+	* DINO/Makefile.in: Update dependencies.
+	(EGREP): Add.  Set up.
+	(SED): Set up autoconfig.
+	(source): Add d_gen.c and d_minimize.d.
+	(d_gen.i): New entry.
+	(install, clean): Add d_gen.i.
+	(depend): Add d_gen.c and d_genheader.i.
+	* DINO/compare.tst: Put dino tests first.
+	(speed): Decrease iteration to 100.
+	(TIME, perc, print_dino): New.
+	(Announce_DINO): Remove.
+	(Announce_Test): Remove -n from NECHO.
+	(print_time): Modify.
+	(ack, fibonacci, heapsort, nested loops, random, loop): Add JIT
+	version.
+	(func calls, tak, fact): Ditto.
+	(array access): Bump up rep to 300.
+	(count line): Bump up rep.
+	(echo client, exception mechanism, fibonacci, hash access): Bump up rep.
+	(hash part 2, heapsort, start up, list processing, matrix mult):
+	Bump up rep.
+	(method calls, nested loops, object instantiation): Ditto.
+	(producer/consumer, random, reverse file, sieve): Ditto.
+	(spell checker, statistical moments, sum of a file): Ditto.
+	(loop, func calls, tak, fact, matrix mult): Ditto.
+	* DINO/d_bc.sprut: Include d_runtab.h.
+	(fun_mode_t): New.
+	(gen_cfblock): New external.
+	(fmode): New field fmode.
+	(ior, ixor, iand, ieq, ine, iid, iunid, ilt, igt, ile, ige): New nodes.
+	(ilsh, irsh, iash, iadd, isub, imult, idiv, imod, iaddi, ieqi): Ditto.
+	(inei, ilti, igti, ilei, igei): Ditto.
+	(ibteq, ibtne, ibtge, ibtlt, ibtle, ibtgt): Ditto.
+	(ibteqi, ibtnei, ibtgei, ibtlti, ibtlei, ibtgti): Ditto.
+	(ibteqinc, ibtneinc, ibtgeinc, ibtltinc, ibtleinc, ibtgtinc):
+	Ditto.
+	(imove, op_slst): Ditto.
+	(gen_info): Ditto.
+	(process_env_decl): Set fmode.
+	(print_op, print_node, curr_label_num, fbcode, traverse_bcode): New.
+	(GEN_DIR, GEN_FUN_PREFIX, CC_PREFIX, form_fname, copy_gen_file): Ditto.
+	(gen_cfblock): Ditto.
+	* DINO/d_bcf.shilka: Include d_run.h.
+	(fmode): New.
+	* DINO/d_bcio.c: Include d_run.h.
+	(dump_code): Output fmode.  Process imove.
+	(fmode): New.
+	(init_fields): Init fmode.
+	(read_bc_program): Process field fmode.
+	* DINO/d_bcn.shilka (ior, ixor, iand, ilsh, irsh, iash, iadd): New.
+	(isub, imult, idiv, imod, iaddi, ieqi): Ditto.
+	(ibteq, ibtne, ibtge, ibtlt, ibtle, ibtgt): Ditto.
+	(ibteqi, ibtnei, ibtgei, ibtlti, ibtlei, ibtgti): Ditto.
+	(ibteqinc, ibtneinc, ibtgeinc, ibtltinc, ibtleinc, ibtgtinc):
+	Ditto.
+	(imove): Ditto.
+	* DINO/d_common.h (generated_c_functions_num): New.
+	(generated_c_function_calls_num): Ditto.
+	(print_cont_prompt): Rename to print_stmt_prompt.
+	* DINO/d_context.c (update_copied_redirs): Remove unused new.
+	(process_use_clause): Init err_p.
+	(first_block_passing): Removed unused curr_stmt.
+	(get_fblock): Removed unused info.
+	(second_expr_processing): Removed unused elist, flatten.
+	(copy_fun_bc_block): Removed unused info.  Set up next_except.
+	(second_block_passing): Removed unused op, bc_block.  Set up
+	fmode.
+	(go_through): Add default case.
+	(process_bc): Remove unused last_uniq_ident_num.
+	* DINO/d_conv.c (form_format_string): Remove unused start.
+	(implicit_conversion_for_binary_int_op): Removed unused long_p.
+	(implicit_conversion_for_eq_op): Removed unused f.
+	* DINO/d_dino.c (dino_finish): Print generated_c_functions_num,
+	generated_c_function_calls_num.
+	(dino_start): Init generated_c_functions_num,
+	generated_c_function_calls_num.
+	(dino_main): Add d_unreachable.
+	* DINO/d_dino.h (STANDARD_DINO_GEN_FILE_NAME): New.
+	* DINO/d_eval.c: Include d_gen.c. Modify and Move a lot of code there.
+	(extract_op1, extract_op2, extract_op3): Change return type.
+	(iand, ior, ixor): Rename to i_and, i_or, i_xor.
+	(process_var_ref_and_val, process_var_val, process_external_var):
+	Make external.
+	(get_designator_pos, execute_a_period_operation): Ditto.
+	(load_vector_element_by_index, load_table_element_by_key): Ditto.
+	(store_designator_value, store_vect_tab_designator_value): Ditto.
+	(store_stack_designator_value, slice_extract, slice_assign): Ditto.
+	(execute_plus_op, execute_minus_op, execute_mult_op): Ditto.
+	(execute_div_op, execute_mod_op, execute_lshift_op): Ditto.
+	(execute_rshift_op, execute_ashift_op, execute_and_op): Ditto.
+	(execute_xor_op, execute_or_op, execute_concat_op): Ditto.
+	(execute_common_eq_ne_op, execute_eq_op, execute_ne_op): Ditto.
+	(execute_lt_op, execute_ge_op, execute_le_op, execute_gt_op): Ditto.
+	(execute_identity_op, binary_vect_op, unary_vect_op, fold_vect_op): Ditto.
+	(vec, tab, out, throw, except): New.
+	(evaluate_code): Rewrite using new funcs, add code for new nodes.
+	* DINO/d_extern.sprut (IVAL, INDEXED_ENTRY_KEY)
+	(INDEXED_ENTRY_VAL): Use val_t cast.
+	* DINO/d_func.c: Use function_p instead of fun_p.
+	(eltype_call): Fix typo in assignment.
+	(closure_call): Remove unused closure.
+	(array_sort_compare_function): Remove unused context.
+	(sort_call): Add d_unreachable.
+	(float_function_start, float_function_start2): Remove unused
+	result.
+	(exit_call): Remove unused code.  Remove setting the result.
+	(fold_function): Remove unused res.
+	(init_call): Remove unused instance.
+	(reset_vars, get_fblock_pc): Move to d_ir.sprut.
+	(generated_c_functions_num, generated_c_function_calls_num): New.
+	(real_fun_call_pc): Make external.
+	(process_fun_call): Call do_call instead of get_fblock_pc.
+	(process_imm_fun_call): Move to d_gen.c.
+	(process_fun_class_call): Remove unused mode, fun_class_val.
+	Check class first.
+	(DINO/d_func.h): Remove process_fun_class_call.
+	* DINO/d_heap.c (cpc, tvars, cvars): Add d_restrict.
+	(clean_heap_object_process_flag): Remove unused p.
+	(make_cvars_undefined): Remove.
+	(setup_new_cstack, expand_uppest_stack): Use reset_vars instead of
+	make_cvars_undefined.
+	(expand_tab): Remove unused int_p.
+	* DINO/d_ir.sprut (block): New field hint.
+	* DINO/d_run.sprut (expect, doubt, d_restrict): New.
+	(cpc, tvars, cvars): Add d_restrict.
+	(fun_p): Rename to function_p.
+	(real_fun_call_pc): New.
+	(reset_vars, get_fblock_pc): Move from d_func.c.
+	(generated_c_functions_num, generated_c_function_calls_num): New.
+	(do_call): New.
+	* DINO/d_runtab.c (initiate_run_tables): Make a code
+	unconditional.
+	* DINO/d_yacc.y (yylex): New.
+	(process_header_block): Add parameter.
+	(hint): New nonterminal.
+	(skip_line_rest): Remove unused c.
+	* DINO/dino.tst.in: Change output from a thread test.
+
 2014-05-29  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_bc.sprut (TRANSLITERATE_NAME, transliterate_bc_decl): Rename

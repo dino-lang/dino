@@ -412,4 +412,5 @@ main (int argc, char **argv)
       fprintf (stderr, "all time:%s\n", active_time_string (all_time));
     }
   oka_finish (FALSE);
+  return 0;
 }

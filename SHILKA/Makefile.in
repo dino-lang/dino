@@ -390,6 +390,10 @@ gen.o: $(top_srcdir)/SHILKA/../SHILKA/gen.c \
  $(top_srcdir)/AMMUNITION/ticker.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/SHILKA/../SHILKA/common.h ird.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/AMMUNITION/position.h \

@@ -139,7 +139,7 @@ fi
 echo '>>>> ' dino: `$DINO -h 2>&1|fgrep Version`
 
 speed() {
-  (time -p sh -c 'i=0;while expr $i != 200;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
+  (time -p sh -c 'i=0;while expr $i != 100;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
 }
 
 s=`speed`
@@ -183,22 +183,57 @@ if test x$DINO_ONLY != x; then
   fi
 fi
 
-Announce_DINO() {
-    if test x$DINO_ONLY = x; then echo DINO$1:;fi
-}
-
 Announce_Test() {
     if test x$DINO_ONLY = x || test "x$NECHO" = x; then echo $*
     else
-       s=`$NECHO -n "$*"|sed "s/:  +++++/:/"`
-       $NECHO -n "$s"
+       s=`$NECHO "$*"|sed "s/:  +++++/:/"`
+       $NECHO "$s"
        l=`expr length "$s"`
        while test $l -le 67; do $NECHO " "; l=`expr $l + 1`; done
     fi
 }
 
+TIME="/usr/bin/time -f user%U"
+
+perc () {
+  echo `awk "BEGIN {if ($2==0) print \"Inf\"; else printf \"%.1fx\n\", $1/$2;}"`
+}
+
 print_time() {
-    egrep 'user[ 	]*[0-9]' $* | sed s/user// | sed s/\\t//
+    s=`egrep 'user[ 	]*[0-9]' $2 | sed s/.*user// | sed s/\\t//`
+    if test "x$NECHO" = x; then
+	echo $1:
+	echo "   " $s
+    else
+	n=$1:
+	$NECHO $n
+	l=`expr length "$n"`
+	while test $l -le 40; do $NECHO " "; l=`expr $l + 1`; done
+	$NECHO $s
+	l=`expr length "$s"`
+	while test $l -le 10; do $NECHO " "; l=`expr $l + 1`; done
+        echo `perc $s $dtime`
+    fi
+}
+
+print_dino() {
+    s=`egrep 'user[ 	]*[0-9]' $2 | sed s/.*user// | sed s/\\t//`
+    if test "x$1" = x;then dtime=$s;fi
+    if test x$DINO_ONLY != x; then
+	echo "   " $s
+    elif test "x$NECHO" = x; then
+	echo DINO:$1
+	echo "   " $s
+    else
+	n=DINO:$1
+	$NECHO $n
+	l=`expr length "$n"`
+	while test $l -le 40; do $NECHO " "; l=`expr $l + 1`; done
+	$NECHO $s
+	l=`expr length "$s"`
+	while test $l -le 10; do $NECHO " "; l=`expr $l + 1`; done
+        echo `perc $s $dtime`
+    fi
 }
 
 # Test 1.
@@ -207,6 +242,35 @@ if test $start_test_number -le 1; then
 ######################################################
 if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=8;else rep=10;fi
 Announce_Test "+++++ Test #1: ackermann (good test for recursive functions N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+fun ack (m, n) {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+var n = int (argv [0] < 1 ? 1 : argv [0]);
+putln ("Ack(3,", n, "): ", ack (3, n));
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun ack (m, n) ! {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+var n = int (argv [0] < 1 ? 1 : argv [0]);
+putln ("Ack(3,", n, "): ", ack (3, n));
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo $DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -236,9 +300,8 @@ $NUM = 1 if ($NUM < 1);
 my $ack = Ack(3, $NUM);
 print "Ack(3,$NUM): $ack\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -261,15 +324,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -292,15 +353,12 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$TCL != x; then
-echo
 echo  Tcl has stack overflow on the test
-echo
 fi
 
 if test x$AWK != x; then
@@ -320,13 +378,10 @@ BEGIN {
 }
 EOF
 
-  echo
-  echo AWK might be too slow for this test.
-  echo
+  echo AWK is too slow for this test.
 
-#  echo AWK:
-#  if test "x$NECHO" != x;then $NECHO "   ";fi
-#  if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+#  title=AWK
+##  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -348,9 +403,8 @@ NUM = tonumber((arg and arg[1])) or 1
 io.write("Ack(3,", NUM ,"): ", Ack(3,NUM), "\n")
 EOF
 
-echo LUA:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $LUA $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+title=LUA
+if ($TIME $LUA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -373,9 +427,8 @@ end
 NUM = Integer(ARGV.shift || 1)
 print "Ack(3,", NUM, "): ", ack(3, NUM), "\n"
 EOF
-echo RUBY:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=RUBY
+if ($TIME $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -388,9 +441,8 @@ def ack (m:Int, n:Int):Int =
 val n = args(0).toInt
 println ("Ack(3,", n, "): ", ack (3, n))
 EOF
-echo SCALA:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=SCALA
+if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -404,12 +456,10 @@ function ack (m, n) {
 var n = arguments [0] < 1 ? 1 : arguments [0];
 print ("Ack(3,", n, "): ", ack (3, n));
 EOF
-echo JS:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-echo JS -j:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=JS
+if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title="JS -j"
+if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -432,24 +482,9 @@ let _ =
     with Invalid_argument _ -> 1 in
   Printf.printf "Ack(3,%d): %d\n" arg (ack 3 arg)
 EOF
-echo OCAML:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=OCAML
+if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun ack (m, n) {
-    if (m == 0) return n + 1;
-    if (n == 0) return ack (m - 1, 1);
-    return ack (m - 1, ack (m, (n - 1)));
-}
-
-var n = int (argv [0] < 1 ? 1 : argv [0]);
-putln ("Ack(3,", n, "): ", ack (3, n));
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -457,8 +492,40 @@ fi
 if test $start_test_number -le 2; then
 
 ######################################################
-rep=`expr $factor '*' 200`
+rep=`expr $factor '*' 300`
 Announce_Test "+++++ Test #2: Array access (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+var x = [n:0], y = [n:0];
+
+for (i = 0; i < n; i++)
+  x [i] = i + 1;
+for (k = 0; k < 1000; k++)
+  for (i = 0; i < n; i++)
+    y[i] += x[i];
+
+putln (y [0], " ", y [n - 1]);
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+var x = [n:0], y = [n:0];
+
+for (i = 0; i < n; i++)
+  x [i] = i + 1;
+for (k = 0; k < 1000; k++)
+  y[:] += x[:];
+
+putln (y [0], " ", y [n - 1]);
+EOF
+title=" (Slice Variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -486,9 +553,8 @@ for my $k (0..999) {
 
 print "$Y[0] $Y[$last]\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -512,15 +578,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -541,9 +605,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -574,9 +637,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -602,9 +664,8 @@ BEGIN {
     print y[0], y[n-1]
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -625,9 +686,8 @@ end
 
 io.write (y [1], " ", y [n], "\n");
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -656,9 +716,8 @@ end
 
 puts "#{y[0]} #{y[last]}"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -675,9 +734,8 @@ for (j <- 1 to 1000)
 
 println (y(0), y(n - 1));
 EOF
-echo SCALA:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=SCALA
+if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -694,12 +752,10 @@ for (k = 0; k < 1000; k++)
 
 print (y [0], " ", y [n - 1]);
 EOF
-echo JS:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-echo JS -j:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=JS
+if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title="JS -j"
+if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -727,44 +783,9 @@ let _ =
   done;
   Printf.printf "%d %d\n" y.(0) y.(last)
 EOF
-echo OCAML:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=OCAML
+if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
-var x = [n:0], y = [n:0];
-
-for (i = 0; i < n; i++)
-  x [i] = i + 1;
-for (k = 0; k < 1000; k++)
-  for (i = 0; i < n; i++)
-    y[i] += x[i];
-
-putln (y [0], " ", y [n - 1]);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          Slice Variant:"
-fi
-cat <<'EOF' >$ftest
-var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
-var x = [n:0], y = [n:0];
-
-for (i = 0; i < n; i++)
-  x [i] = i + 1;
-for (k = 0; k < 1000; k++)
-  y[:] += x[:];
-
-putln (y [0], " ", y [n - 1]);
-EOF
-Announce_DINO " (Slice Variant)"
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -772,7 +793,7 @@ fi
 if test $start_test_number -le 3; then
 
 ######################################################
-rep=`expr $factor '/' 7`
+rep=`expr $factor '/' 6`
 Announce_Test "+++++ Test #3: Count lines/words/chars (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -808,6 +829,26 @@ rm -f $input; touch $input
 i=0
 while test $i -lt $rep;do cat $temp >>$input; cp $input $temp; i=`expr $i + 1`;done
 
+cat <<'EOF' >$ftest
+var ln, v, nc = 0, nw = 0, nl = 0, l;
+
+try {
+  for (;;) {
+    ln = getln ();
+    nc += #ln + 1;
+    v = split (ln);
+    l = #v;
+    nw += (#v [l - 1] == 0 ? l - 1 : l);
+    nl++;
+  }
+} catch (eof) {
+  putln (nl, " ", nw, " ", nc);
+  exit (0);
+}
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -829,9 +870,8 @@ while (read(STDIN, $_, 4095)) {
 }
 print "$nl $nw $nc\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -858,15 +898,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -893,9 +931,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -931,9 +968,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -956,9 +992,8 @@ BEGIN { delete ARGV }
 }
 END { print NR, nw, nc }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -980,9 +1015,8 @@ cc = cc + lc   -- count the newlines as characters
 
 io.write(lc, " ", wc, " ", cc, "\n")
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -1003,9 +1037,8 @@ loop do
 end
 puts "#{nl} #{nw} #{nc}"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -1026,9 +1059,8 @@ for (line <- Source.stdin.getLines()) {
 }
 println (nl, nw, nc)
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -1074,31 +1106,9 @@ let _ =
   scan_out_of_word 0 0;
   Printf.printf "%d %d %d\n" !nl !nw !nc
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var ln, v, nc = 0, nw = 0, nl = 0, l;
-
-try {
-  for (;;) {
-    ln = getln ();
-    nc += #ln + 1;
-    v = split (ln);
-    l = #v;
-    nw += (#v [l - 1] == 0 ? l - 1 : l);
-    nl++;
-  }
-} catch (eof) {
-  putln (nl, " ", nw, " ", nc);
-  exit (0);
-}
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -1106,8 +1116,40 @@ fi
 if test $start_test_number -le 4; then
 
 ######################################################
-rep=`expr $factor '*' 5000`
+rep=`expr $factor '*' 7000`
 Announce_Test "+++++ Test #4: Echo client/server (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+include "socket";
+if (#argv < 2) {
+  var s, cl, str, l = 0;
+  s = sockets.stream_server (10003, 4);
+  cl = s.accept ();
+  try {
+    for (;;) {
+      str = cl.read (64); l+= #str; cl.write (str);
+    }
+  } catch (socket_eof_except) {
+    putln ("i got ", l, " bytes");
+  }
+} else {
+  var cl, send, rec, i, n = int (argv [0]);
+  cl = sockets.stream_client ("localhost", 10003);
+  send = "Hello there sailor\n";
+  for (i = 0; i < n; i++) {
+    cl.write (send);
+    rec = cl.read (19);
+    if (send != rec) {
+      put ("different strings"); println (send, rec);
+    }
+  }
+}
+EOF
+
+
+title=
+$DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep > /dev/null &
+  ($TIME $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep client) 2>&1|print_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1191,9 +1233,8 @@ sub main {
 
 main();
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -1262,15 +1303,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   fi
 fi
 
@@ -1339,9 +1378,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -1390,10 +1428,9 @@ if {[llength $argv] < 2} {
     runClient $n localhost 10004
 }
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
+  title=TCL
   $TCLSH $ftest $rep&
-  (time $TCLSH $ftest $rep client) 2>&1|fgrep user
+  ($TIME $TCLSH $ftest $rep client) 2>&1|fgrep user
 fi
 
 if test x$RUBY != x; then
@@ -1440,43 +1477,9 @@ end
 
 echo_server(Integer(ARGV.shift || 1))
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-include "socket";
-if (#argv < 2) {
-  var s, cl, str, l = 0;
-  s = sockets.stream_server (10003, 4);
-  cl = s.accept ();
-  try {
-    for (;;) {
-      str = cl.read (64); l+= #str; cl.write (str);
-    }
-  } catch (socket_eof_except) {
-    putln ("i got ", l, " bytes");
-  }
-} else {
-  var cl, send, rec, i, n = int (argv [0]);
-  cl = sockets.stream_client ("localhost", 10003);
-  send = "Hello there sailor\n";
-  for (i = 0; i < n; i++) {
-    cl.write (send);
-    rec = cl.read (19);
-    if (send != rec) {
-      put ("different strings"); println (send, rec);
-    }
-  }
-}
-EOF
-
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-
-  $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep > /dev/null &
-  (time $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep client) 2>&1|print_time
 
 fi
 
@@ -1484,8 +1487,57 @@ fi
 if test $start_test_number -le 5; then
 
 ######################################################
-rep=`expr $factor '*' 10000`
+rep=`expr $factor '*' 15000`
 Announce_Test "+++++ Test #5: Exceptions mechanism (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var HI = 0;
+var LO = 0;
+
+class Hi_exception (value) {use except;}
+class Lo_exception (value) {use except;}
+
+fun blowup (num) { 
+  throw ((num & 1) ? Lo_exception (num) : Hi_exception (num));
+}
+
+fun lo_function (num) {
+  try {
+    blowup (num);
+  } catch (Lo_exception) {
+    LO++;
+  }
+}
+
+fun hi_function (num) {
+  try {
+    lo_function (num);
+  } catch (Hi_exception) {
+    HI++;
+  }
+}
+
+fun some_function (num) {
+  try { 
+    hi_function (num);
+  } catch (except) {
+    fputln (stderr, "We shouldn't get here (", e.value , ")");
+  }
+}
+
+fun main {
+  var i, num = int (argv [0]);
+
+  if (num < 1) num = 1;
+  for (i = num - 1; i >= 0; i--)
+    some_function (i);
+  putln ("Exceptions: HI=", HI, " / LO=", LO);
+}
+
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1561,9 +1613,8 @@ while ($NUM--) {
 }
 print "Exceptions: HI=$HI / LO=$LO\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -1631,15 +1682,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -1703,9 +1752,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -1765,9 +1813,8 @@ end
 print(string.format("Exceptions: HI=%d / LO=%d", HI, LO))
 
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -1834,9 +1881,8 @@ for iter in 1 .. NUM
 end
 print "Exceptions: HI=", $HI, " / LO=", $LO, "\n"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -1886,9 +1932,8 @@ def main () = {
 
 main ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -1921,60 +1966,9 @@ let _ =
   for i = 1 to n do some_fun i done;
   Printf.printf "Exceptions: HI=%d / LO=%d\n" !hi !lo
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var HI = 0;
-var LO = 0;
-
-class Hi_exception (value) {use except;}
-class Lo_exception (value) {use except;}
-
-fun blowup (num) { 
-  throw ((num & 1) ? Lo_exception (num) : Hi_exception (num));
-}
-
-fun lo_function (num) {
-  try {
-    blowup (num);
-  } catch (Lo_exception) {
-    LO++;
-  }
-}
-
-fun hi_function (num) {
-  try {
-    lo_function (num);
-  } catch (Hi_exception) {
-    HI++;
-  }
-}
-
-fun some_function (num) {
-  try { 
-    hi_function (num);
-  } catch (except) {
-    fputln (stderr, "We shouldn't get here (", e.value , ")");
-  }
-}
-
-fun main {
-  var i, num = int (argv [0]);
-
-  if (num < 1) num = 1;
-  for (i = num - 1; i >= 0; i--)
-    some_function (i);
-  putln ("Exceptions: HI=", HI, " / LO=", LO);
-}
-
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -1982,8 +1976,45 @@ fi
 if test $start_test_number -le 6; then
 
 ######################################################
-if test $factor -eq 1; then rep=24;elif test $factor -eq 10; then rep=28;else rep=32;fi
+if test $factor -eq 1; then rep=26;elif test $factor -eq 10; then rep=30;else rep=34;fi
 Announce_Test "+++++ Test #6: fibonacci (good test for recursive funcs: N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+// Recursive function to compute Fibonacci numbers
+fun fibonacci (n) {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = int (argv [0]);
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  putln (i @ " " @ fibnum); 
+}
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT variant:"
+fi
+cat <<'EOF' >$ftest
+// Recursive function to compute Fibonacci numbers
+fun fibonacci (n) ! {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = int (argv [0]);
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  putln (i @ " " @ fibnum); 
+}
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2002,9 +2033,8 @@ for ($i = 0; $i < $N; $i++) {
   print $i . " " .  $x . "\n";
 }
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -2024,15 +2054,13 @@ for i in xrange (0,N):
     print i, fibnum 
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -2052,9 +2080,8 @@ for i in range (0,N):
     fibnum = fibonacci(i)
     print(i, fibnum) 
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2076,9 +2103,8 @@ proc main {} {
 }
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -2097,9 +2123,8 @@ for i = 0, NUM - 1 do
     io.write (i, fibnum, "\n") 
 end
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -2122,9 +2147,8 @@ for i in 0..N-1 do
   print i, " "; puts fib(i)
 end
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -2134,9 +2158,8 @@ def fib (n:Int):Int = if (n < 2) 1 else fib (n - 2) + fib (n - 1)
 var x = 0; val n = args(0).toInt
 for (i <- 0 to n - 1) {x = fib (n); println (x)}
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -2153,12 +2176,10 @@ for (i = 0; i < n; i++) {
   print (i, " ", fibnum); 
 }
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -2179,28 +2200,9 @@ let _ =
   for i = 0 to n-1 do fib i done;
   Printf.printf "%d\n" (fib n)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-// Recursive function to compute Fibonacci numbers
-fun fibonacci (n) {
-  if (n <= 1) return 1;
-  return (fibonacci(n-1) + fibonacci(n-2));
-}
-
-var i, fibnum, n = int (argv [0]);
-
-for (i = 0; i < n; i++) {
-  fibnum = fibonacci(i);
-  putln (i @ " " @ fibnum); 
-}
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -2208,8 +2210,22 @@ fi
 if test $start_test_number -le 7; then
 
 ######################################################
-rep=`expr $factor '*' 8000`
+rep=`expr $factor '*' 10000`
 Announce_Test "+++++ Test #7: Hash (Associative Array) Access (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
+var f = "%x", x = tab [];
+
+for (i = 1; i <= n; i++)
+ x [vec (i, f)] = i;
+for (i = n; i > 0; i--)
+ if (vec (i, f) in x)
+   c++;
+putln (c);
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2235,9 +2251,8 @@ for my $i (reverse 1..$n) {
 }
 print "$c\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -2262,15 +2277,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -2294,9 +2307,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2326,9 +2338,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -2352,9 +2363,8 @@ BEGIN {
     print c
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -2380,9 +2390,8 @@ end
 
 print(c)
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -2408,9 +2417,8 @@ end
 
 puts c
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -2425,9 +2433,8 @@ for (i <- n to 1 by -1)
    c += 1;
 println (c);
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -2442,12 +2449,10 @@ for (i = n; i > 0; i--)
    c++;
 print (c);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j$ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j$ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -2486,25 +2491,9 @@ let _ =
   done;
   Printf.printf "%d\n" !c
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
-var f = "%x", x = tab [];
-
-for (i = 1; i <= n; i++)
- x [vec (i, f)] = i;
-for (i = n; i > 0; i--)
- if (vec (i, f) in x)
-   c++;
-putln (c);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -2512,8 +2501,28 @@ fi
 if test $start_test_number -le 8; then
 
 ######################################################
-rep=`expr $factor '*' 5`
+rep=`expr $factor '*' 7`
 Announce_Test "+++++ Test #8: Hashes, Part II (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var i, n = int (argv[0]);
+var hash1 = tab [];
+
+for (i = 0; i < 10000; i++)
+  hash1 [vec (i, "foo_%d")] = i;
+
+var k, v, hash2 = tab [];
+for (k: hash1)
+  hash2 [k] = 0;
+for (i = 0 ; i < n; i++)
+  for (k, v: hash1)
+    hash2 [k] += v;
+
+putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2532,9 +2541,8 @@ for (1..$n) {
 }
 print "$hash1{foo_1} $hash1{foo_9999} $hash2{foo_1} $hash2{foo_9999}\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -2560,15 +2568,13 @@ for i in xrange(n):
 print hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999']
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -2594,9 +2600,8 @@ for i in range(n):
 
 print(hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999'])
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -2622,9 +2627,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -2642,9 +2646,8 @@ BEGIN {
     print hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -2671,9 +2674,8 @@ end
 io.write(string.format("%d %d %d %d\n", hash1["foo_1"], hash1["foo_9999"],
          hash2["foo_1"], hash2["foo_9999"]))
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -2700,9 +2702,8 @@ end
 printf "%d %d %d %d\n",
     hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -2722,9 +2723,8 @@ for (i <- 0 to n - 1)
 println (hash1 ("foo_1"), " ", hash1 ("foo_9999"), " ",
          hash2 ("foo_1"), " ", hash2 ("foo_9999"));
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -2745,12 +2745,10 @@ for (i = 0 ; i < n; i++)
 print (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
        hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -2784,31 +2782,9 @@ let _ =
     !(Hashtbl.find hash2 "foo_1")
     !(Hashtbl.find hash2 "foo_9999")
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var i, n = int (argv[0]);
-var hash1 = tab [];
-
-for (i = 0; i < 10000; i++)
-  hash1 [vec (i, "foo_%d")] = i;
-
-var k, v, hash2 = tab [];
-for (k: hash1)
-  hash2 [k] = 0;
-for (i = 0 ; i < n; i++)
-  for (k, v: hash1)
-    hash2 [k] += v;
-
-putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
-       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -2816,8 +2792,133 @@ fi
 if test $start_test_number -le 9; then
 
 ######################################################
-rep=`expr $factor '*' 5000`
+rep=`expr $factor '*' 10000`
 Announce_Test "+++++ Test #9: Heapsort (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return (max * LAST) / IM;
+}
+
+fun heapsort (n, ra) {
+  var rra = 0, i = 0, j = 0;
+  var l = (n >> 1) + 1;
+  var ir = n;
+
+  for (;;) {
+    if (l > 1) {
+      l--;
+      rra = ra [l];
+    } else {
+      rra = ra [ir];
+      ra [ir] = ra [1];
+      ir--;
+      if (ir == 1) {
+        ra [1] = rra;
+        return;
+      }
+    }
+    i = l;
+    j = l << 1;
+    for (; j <= ir; ) {
+      if (j < ir && ra [j] < ra [j + 1]) j++;
+      if (rra < ra [j]) {
+        ra [i] = ra [j];
+        i = j;
+        j = j + i;
+      } else
+        j = ir + 1;
+    }
+    ra [i] = rra;
+  }
+}
+
+fun main {
+  var i, n = (argv [0] < 1) ? 1 : int (argv [0]);
+  var ary = [n + 1 : 0];
+
+  for (i = 1; i <= n; i++)
+    ary [i] = gen_random (1.0);
+  
+  heapsort (n, ary);
+  
+  putln (vec (ary[n], "%.10f"));
+}
+
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT variant:"
+fi
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return (max * LAST) / IM;
+}
+
+fun heapsort (n, ra) ! {
+  var rra = 0, i = 0, j = 0;
+  var l = (n >> 1) + 1;
+  var ir = n;
+
+  for (;;) {
+    if (l > 1) {
+      l--;
+      rra = ra [l];
+    } else {
+      rra = ra [ir];
+      ra [ir] = ra [1];
+      ir--;
+      if (ir == 1) {
+        ra [1] = rra;
+        return;
+      }
+    }
+    i = l;
+    j = l << 1;
+    for (; j <= ir; ) {
+      if (j < ir && ra [j] < ra [j + 1]) j++;
+      if (rra < ra [j]) {
+        ra [i] = ra [j];
+        i = j;
+        j = j + i;
+      } else
+        j = ir + 1;
+    }
+    ra [i] = rra;
+  }
+}
+
+fun main {
+  var i, n = (argv [0] < 1) ? 1 : int (argv [0]);
+  var ary = [n + 1 : 0];
+
+  for (i = 1; i <= n; i++)
+    ary [i] = gen_random (1.0);
+  
+  heapsort (n, ary);
+  
+  putln (vec (ary[n], "%.10f"));
+}
+
+main ();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2884,9 +2985,8 @@ heapsort($N, @ary);
 
 printf("%.10f\n", $ary[-1]);
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -2950,15 +3050,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -3022,9 +3120,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3101,9 +3198,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -3160,9 +3256,8 @@ BEGIN {
     exit;
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -3230,9 +3325,8 @@ end
 
 main()
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -3292,9 +3386,8 @@ heapsort(N, ary)
 
 printf "%.10f\n", ary[N]
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -3356,9 +3449,8 @@ def main () = {
 
 main ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -3420,12 +3512,10 @@ function main (n) {
 
 main (arguments [0] < 1 ? 1 : arguments [0]);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -3492,72 +3582,9 @@ let _ =
   heapsort n ary;
   Printf.printf "%.10f\n" ary.(n)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var IM = 139968;
-var IA = 3877;
-var IC = 29573;
-var LAST = 42;
-
-fun gen_random (max) {
-  LAST = (LAST * IA + IC) % IM;
-  return (max * LAST) / IM;
-}
-
-fun heapsort (n, ra) {
-  var rra = 0, i = 0, j = 0;
-  var l = (n >> 1) + 1;
-  var ir = n;
-
-  for (;;) {
-    if (l > 1) {
-      l--;
-      rra = ra [l];
-    } else {
-      rra = ra [ir];
-      ra [ir] = ra [1];
-      ir--;
-      if (ir == 1) {
-        ra [1] = rra;
-        return;
-      }
-    }
-    i = l;
-    j = l << 1;
-    for (; j <= ir; ) {
-      if (j < ir && ra [j] < ra [j + 1]) j++;
-      if (rra < ra [j]) {
-        ra [i] = ra [j];
-        i = j;
-        j = j + i;
-      } else
-        j = ir + 1;
-    }
-    ra [i] = rra;
-  }
-}
-
-fun main {
-  var i, n = (argv [0] < 1) ? 1 : int (argv [0]);
-  var ary = [n + 1 : 0];
-
-  for (i = 1; i <= n; i++)
-    ary [i] = gen_random (1.0);
-  
-  heapsort (n, ary);
-  
-  putln (vec (ary[n], "%.10f"));
-}
-
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -3565,8 +3592,15 @@ fi
 if test $start_test_number -le 10; then
 
 ######################################################
-rep=`expr $factor '*' 5`
+rep=`expr $factor '*' 10`
 Announce_Test "+++++ Test #10: Hello: Start up time (N=$rep)+++++"
+
+cat <<'EOF' >$ftest
+putln ("hello world");
+EOF
+title=
+($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
+fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -3574,9 +3608,8 @@ if test x$PERL != x; then
 
 print "hello world\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PERL $ftest) 2>&1|print_time
+  title=PERL
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PERL $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -3586,15 +3619,13 @@ if test x$PYTHON != x || test x$PYPY != x; then
 print "hello world"
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) 2>&1|print_time
+    title=PYTHON
+      ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYPY $ftest) 2>&1|print_time
+    title=PYPY
+      ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYPY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
 fi
 
@@ -3604,9 +3635,8 @@ if test x$PYTHON3 != x; then
 
 print ("hello world")
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON3 $ftest) 2>&1|print_time
+  title=PYTHON3
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $PYTHON3 $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$TCLSH != x; then
@@ -3615,9 +3645,8 @@ if test x$TCLSH != x; then
 
 puts "hello world"
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $TCLSH $ftest) 2>&1|print_time
+  title=TCL
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $TCLSH $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$AWK != x; then
@@ -3626,48 +3655,42 @@ if test x$AWK != x; then
 
 BEGIN { print "hello world" }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $AWK -f $ftest </dev/null ) 2>&1|print_time
+  title=AWK
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $AWK -f $ftest </dev/null ) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
 print ("hello world")
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUA $ftest) 2>&1|print_time
+  title=LUA
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUA $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$RUBY != x; then
   cat <<'EOF' >$ftest
 puts "hello world"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) 2>&1|print_time
+  title=RUBY
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$SCALA != x; then
   cat <<'EOF' >$ftest
 println ("hello world")
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $SCALA $ftest) 2>&1|print_time
+  title=SCALA
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $SCALA $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$JS != x; then
   cat <<'EOF' >$ftest
 print ("hello world");
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS $ftest) 2>&1|print_time
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -j $ftest) 2>&1|print_time
+  title=JS
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  title="JS -j"
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -j $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 if test x$OCAML != x; then
@@ -3679,25 +3702,62 @@ if test x$OCAML != x; then
 
 let _ = print_endline "hello world"
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  (time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $OCAML $ftest) 2>&1|print_time
-fi
-
-cat <<'EOF' >$ftest
-putln ("hello world");
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-(time sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO $ftest) 2>&1|print_time
+  title=OCAML
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $OCAML $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
 # Test 11.
 if test $start_test_number -le 11; then
 
 ######################################################
-rep=`expr $factor '*' 1`
+rep=`expr $factor '*' 2`
 Announce_Test "+++++ Test #11: List Processing (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var SIZE = 10000;
+
+fun test_lists {
+  var i, Li1 = [SIZE : 0];
+
+  // create a list of integers (Li1) from 1 to SIZE
+  for (i = 0; i < SIZE; i++) Li1 [i] = i + 1;
+
+  // copy the list to Li2 (not by individual items)
+  var Li2 = new Li1;
+  var Li3 = [];
+
+  // remove each individual item from left side of Li2 and
+  // append to right side of Li3 (preserving order)
+
+  for (;#Li2;) {
+    ins (Li3, Li2 [0], -1);
+    del (Li2, 0);
+  }
+
+  // Li2 must now be empty
+  // remove each individual item from right side of Li3 and
+  // append to right side of Li2 (reversing list)
+  for (;#Li3;) {
+    ins (Li2, Li3 [#Li3 - 1], -1);
+    del (Li3, #Li3 - 1);
+  }
+  Li1 = rev (Li1);
+  if (Li1 [0] != SIZE)
+    return 0;
+  return (Li1 == Li2 ? #Li1 : 0);
+}
+
+fun main() {
+  var result, NUM;
+  for (NUM = argv [0] < 1 ? 1 : int (argv [0]); NUM > 0; NUM--)
+    result = test_lists ();
+  putln (result);
+}
+
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -3748,9 +3808,8 @@ sub test_lists {
     return($len1);
 }
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -3799,15 +3858,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -3856,9 +3913,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -3936,9 +3992,8 @@ proc main {args} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -4055,9 +4110,8 @@ for i=1, N do
 end
 print(result)
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -4109,9 +4163,8 @@ for iter in 1 .. NUM
 end
 print result, "\n"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -4153,9 +4206,8 @@ def main() = {
 
 main ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -4325,57 +4377,9 @@ let _ =
   done;
   Printf.printf "%d\n" !result
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var SIZE = 10000;
-
-fun test_lists {
-  var i, Li1 = [SIZE : 0];
-
-  // create a list of integers (Li1) from 1 to SIZE
-  for (i = 0; i < SIZE; i++) Li1 [i] = i + 1;
-
-  // copy the list to Li2 (not by individual items)
-  var Li2 = new Li1;
-  var Li3 = [];
-
-  // remove each individual item from left side of Li2 and
-  // append to right side of Li3 (preserving order)
-
-  for (;#Li2;) {
-    ins (Li3, Li2 [0], -1);
-    del (Li2, 0);
-  }
-
-  // Li2 must now be empty
-  // remove each individual item from right side of Li3 and
-  // append to right side of Li2 (reversing list)
-  for (;#Li3;) {
-    ins (Li2, Li3 [#Li3 - 1], -1);
-    del (Li3, #Li3 - 1);
-  }
-  Li1 = rev (Li1);
-  if (Li1 [0] != SIZE)
-    return 0;
-  return (Li1 == Li2 ? #Li1 : 0);
-}
-
-fun main() {
-  var result, NUM;
-  for (NUM = argv [0] < 1 ? 1 : int (argv [0]); NUM > 0; NUM--)
-    result = test_lists ();
-  putln (result);
-}
-
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -4383,8 +4387,107 @@ fi
 if test $start_test_number -le 12; then
 
 ######################################################
-rep=`expr $factor '*' 3`
+rep=`expr $factor '*' 5`
 Announce_Test "+++++ Test #12: Matrix Multiplication (N=30, Iter=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var size = 30;
+
+fun mkmatrix (rows, cols) {
+  var i, j, count = 1;
+  var tm, mx = [rows:1];
+
+  for (i = 0; i < rows; i++) {
+    mx [i] = [cols:1];
+    tm = mx [i];
+    for (j = 0; j < cols; j++) {
+      tm [j] = count;
+      count++;
+    }
+  }
+  return mx;
+}
+
+fun mmult (rows, cols, m1, m2) {
+  var i, j, k, sum, tm, m3 = [rows:1];
+
+  for (i = 0; i < rows; i++) {
+    m3 [i] = [cols:1];
+    for (j = 0; j < cols; j++) {
+       sum = 0;
+       tm = m1 [i];
+       for (k = 0; k < cols; k++)
+         sum += tm [k] * m2 [k][j];
+       m3 [i][j] = sum;
+    }
+  }
+  return m3;
+}
+
+fun main {
+  var m1, m2, mm;
+  var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
+
+  m1 = mkmatrix (size, size);
+  m2 = mkmatrix (size, size);
+  for (i = 0; i < iter; i++)
+     mm = mmult (size, size, m1, m2);
+  putln (mm [0][0], ' ', mm [2][3], ' ', mm [3][2], ' ', mm [4][4]);
+}
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Transpose and Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var size = 30;
+
+fun mkmatrix (rows, cols) {
+  var i, j, count = 1;
+  var tm, mx = [rows:1];
+
+  for (i = 0; i < rows; i++) {
+    mx [i] = [cols:1];
+    tm = mx [i];
+    for (j = 0; j < cols; j++) {
+      tm [j] = count;
+      count++;
+    }
+  }
+  return mx;
+}
+
+fun mmult (rows, cols, m1, m2) {
+  var i, j, tm, m3 = [rows:1];
+
+  m2 = transpose (m2);
+  for (i = 0; i < rows; i++) {
+    m3 [i] = [cols:1];
+    for (j = 0; j < cols; j++) {
+       tm = m1 [i];
+       m3 [i][j] = .+ (tm[:] * m2[j][:]);;
+    }
+  }
+  return m3;
+}
+
+fun main {
+  var m1, m2, mm;
+  var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
+
+  m1 = mkmatrix (size, size);
+  m2 = mkmatrix (size, size);
+  for (i = 0; i < iter; i++)
+     mm = mmult (size, size, m1, m2);
+  putln (mm [0][0], ' ', mm [2][3], ' ', mm [3][2], ' ', mm [4][4]);
+}
+main ();
+EOF
+title=" (Transpose and Slice Variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -4448,9 +4551,8 @@ while ($N--) {
 print "$mm->[0]->[0] $mm->[2]->[3] $mm->[3]->[2] $mm->[4]->[4]\n";
 
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -4509,15 +4611,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -4576,9 +4676,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -4649,15 +4748,12 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
-echo
 echo AWK is too slow for this test.
-echo
 fi
 
 if test x$LUA != x; then
@@ -4708,9 +4804,8 @@ for i=1,n do
 end
 io.write(string.format("%d %d %d %d\n", mm[1][1], mm[3][4], mm[4][3], mm[5][5]))
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -4762,9 +4857,8 @@ n.times do
 end
 puts "#{mm[0][0]} #{mm[2][3]} #{mm[3][2]} #{mm[4][4]}"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -4814,9 +4908,8 @@ def main () = {
 }
 main ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -4866,12 +4959,10 @@ function main (iter) {
 }
 main (arguments [0] < 1 ? 1 : arguments [0]);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -4924,111 +5015,9 @@ let _ =
   mmult size size m1 m2 m3;
   Printf.printf "%d %d %d %d\n" m3.(0).(0) m3.(2).(3) m3.(3).(2) m3.(4).(4)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var size = 30;
-
-fun mkmatrix (rows, cols) {
-  var i, j, count = 1;
-  var tm, mx = [rows:1];
-
-  for (i = 0; i < rows; i++) {
-    mx [i] = [cols:1];
-    tm = mx [i];
-    for (j = 0; j < cols; j++) {
-      tm [j] = count;
-      count++;
-    }
-  }
-  return mx;
-}
-
-fun mmult (rows, cols, m1, m2) {
-  var i, j, k, sum, tm, m3 = [rows:1];
-
-  for (i = 0; i < rows; i++) {
-    m3 [i] = [cols:1];
-    for (j = 0; j < cols; j++) {
-       sum = 0;
-       tm = m1 [i];
-       for (k = 0; k < cols; k++)
-         sum += tm [k] * m2 [k][j];
-       m3 [i][j] = sum;
-    }
-  }
-  return m3;
-}
-
-fun main {
-  var m1, m2, mm;
-  var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
-
-  m1 = mkmatrix (size, size);
-  m2 = mkmatrix (size, size);
-  for (i = 0; i < iter; i++)
-     mm = mmult (size, size, m1, m2);
-  putln (mm [0][0], ' ', mm [2][3], ' ', mm [3][2], ' ', mm [4][4]);
-}
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Transpose and Slice Variant:"
-fi
-cat <<'EOF' >$ftest
-var size = 30;
-
-fun mkmatrix (rows, cols) {
-  var i, j, count = 1;
-  var tm, mx = [rows:1];
-
-  for (i = 0; i < rows; i++) {
-    mx [i] = [cols:1];
-    tm = mx [i];
-    for (j = 0; j < cols; j++) {
-      tm [j] = count;
-      count++;
-    }
-  }
-  return mx;
-}
-
-fun mmult (rows, cols, m1, m2) {
-  var i, j, tm, m3 = [rows:1];
-
-  m2 = transpose (m2);
-  for (i = 0; i < rows; i++) {
-    m3 [i] = [cols:1];
-    for (j = 0; j < cols; j++) {
-       tm = m1 [i];
-       m3 [i][j] = .+ (tm[:] * m2[j][:]);;
-    }
-  }
-  return m3;
-}
-
-fun main {
-  var m1, m2, mm;
-  var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
-
-  m1 = mkmatrix (size, size);
-  m2 = mkmatrix (size, size);
-  for (i = 0; i < iter; i++)
-     mm = mmult (size, size, m1, m2);
-  putln (mm [0][0], ' ', mm [2][3], ' ', mm [3][2], ' ', mm [4][4]);
-}
-main ();
-EOF
-Announce_DINO " (Transpose and Slice Variant)"
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -5036,8 +5025,56 @@ fi
 if test $start_test_number -le 13; then
 
 ######################################################
-rep=`expr $factor '*' 10000`
+rep=`expr $factor '*' 15000`
 Announce_Test "+++++ Test #13: Method Calls (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+class Toggle (start_state) {
+  var bool;
+  fun init {bool = start_state;}
+  fun value { return bool; }
+  fun activate { bool = !bool; }
+  init ();
+}
+
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
+    }
+  }
+}
+
+fun main {
+  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
+  var i, v = 1;
+
+  var toggle = Toggle (v);
+  for (i = 1; i <= NUM; i++) {
+    toggle.activate ();
+    v = toggle.value ();
+  }
+  putln (v ? "true" : "false");
+
+  v = 1;
+  var ntoggle = NthToggle (v, 3);
+  for (i = 1; i <= NUM; i++) {
+    ntoggle.activate ();
+    v = ntoggle.value ();
+  }
+  putln (v ? "true" : "false");
+}
+
+main();
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5106,9 +5143,8 @@ sub main {
 
 main();
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -5165,15 +5201,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -5230,9 +5264,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -5314,9 +5347,8 @@ end
 main()
 
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -5377,9 +5409,8 @@ end
 
 main()
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -5424,9 +5455,8 @@ def main () {
 
 main()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -5478,59 +5508,9 @@ let _ =
   done;
   print_bool ntog#activate#value
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-class Toggle (start_state) {
-  var bool;
-  fun init {bool = start_state;}
-  fun value { return bool; }
-  fun activate { bool = !bool; }
-  init ();
-}
-
-class NthToggle (start_state, max_counter) {
-  use Toggle former start_state later activate;
-  init ();
-  var count_max = max_counter;
-  var counter = 0;
-  fun activate {
-    counter++;
-    if (counter >= count_max) {
-      bool = !bool;
-      counter = 0;
-    }
-  }
-}
-
-fun main {
-  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
-  var i, v = 1;
-
-  var toggle = Toggle (v);
-  for (i = 1; i <= NUM; i++) {
-    toggle.activate ();
-    v = toggle.value ();
-  }
-  putln (v ? "true" : "false");
-
-  v = 1;
-  var ntoggle = NthToggle (v, 3);
-  for (i = 1; i <= NUM; i++) {
-    ntoggle.activate ();
-    v = ntoggle.value ();
-  }
-  putln (v ? "true" : "false");
-}
-
-main();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -5538,8 +5518,47 @@ fi
 if test $start_test_number -le 14; then
 
 ######################################################
-if test $factor -eq 1; then rep=10;elif test $factor -eq 10; then rep=14;else rep=18;fi
+if test $factor -eq 1; then rep=12;elif test $factor -eq 10; then rep=16;else rep=20;fi
 Announce_Test "+++++ Test #14: Nested Loops (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var n = argv [0] < 1 ? 1 : int (argv[0]);
+var a, b, c, d, e, f, x = 0;
+
+for (a = 0; a < n; a++)
+  for (b = 0; b < n; b++)
+    for (c = 0; c < n; c++)
+      for (d = 0; d < n; d++)
+        for (e = 0; e < n; e++)
+          for (f = 0; f < n; f++)
+            x++;
+putln (x);
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun main ! {
+  var n = argv [0] < 1 ? 1 : int (argv[0]);
+  var a, b, c, d, e, f, x = 0;
+
+  for (a = 0; a < n; a++)
+    for (b = 0; b < n; b++)
+      for (c = 0; c < n; c++)
+        for (d = 0; d < n; d++)
+          for (e = 0; e < n; e++)
+            for (f = 0; f < n; f++)
+              x++;
+  putln (x);
+}
+
+main ();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5570,9 +5589,8 @@ while ($a--) {
 }
 print "$x\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -5601,15 +5619,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -5638,9 +5654,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -5677,9 +5692,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -5699,9 +5713,8 @@ BEGIN {
     print x
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -5728,9 +5741,8 @@ end
 print(x)
 
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -5758,9 +5770,8 @@ n.times do
 end
 puts x
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -5776,9 +5787,8 @@ for (i <- 1 to N)
             x += 1
 println (x)
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -5795,12 +5805,10 @@ for (a = 0; a < n; a++)
             x++;
 print (x);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -5823,27 +5831,9 @@ let _ =
   let rec loopA x = function 0 -> x | i -> loopA (loopB x n) (i-1) in
   Printf.printf "%d\n" (loopA 0 n)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var n = argv [0] < 1 ? 1 : int (argv[0]);
-var a, b, c, d, e, f, x = 0;
-
-for (a = 0; a < n; a++)
-  for (b = 0; b < n; b++)
-    for (c = 0; c < n; c++)
-      for (d = 0; d < n; d++)
-        for (e = 0; e < n; e++)
-          for (f = 0; f < n; f++)
-            x++;
-putln (x);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -5851,8 +5841,59 @@ fi
 if test $start_test_number -le 15; then
 
 ######################################################
-rep=`expr $factor '*' 10000`
+rep=`expr $factor '*' 20000`
 Announce_Test "+++++ Test #15: Object Instantiation (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+class Toggle (start_state) {
+  var bool;
+  fun init {bool = start_state;}
+  fun value { return bool; }
+  fun activate { bool = !bool; }
+  init ();
+}
+
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
+    }
+  }
+}
+
+fun main {
+  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
+  var i;
+
+  var toggle = Toggle (1);
+  for (i = 1; i <= 5; i++) {
+    toggle.activate ();
+    putln (toggle.value () ? "true" : "false");
+  }
+  for (i = 1; i <= NUM; i++)
+   toggle = Toggle (1);
+
+  putln ();
+
+  var ntoggle = NthToggle (1, 3);
+  for (i = 1; i <= 8; i++) {
+    ntoggle.activate ();
+    putln (ntoggle.value () ? "true" : "false");
+  }
+  for (i = 1; i <= NUM; i++)
+    ntoggle = NthToggle (1, 3);
+}
+
+main();
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5927,9 +5968,8 @@ sub main {
 
 main();
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -5988,15 +6028,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -6055,9 +6093,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -6143,9 +6180,8 @@ end
 
 main()
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -6210,9 +6246,8 @@ end
 
 main()
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -6259,9 +6294,8 @@ def main () {
 
 main()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -6304,62 +6338,9 @@ let ntog = new nth_toggle true 3 in
 for i = 1 to 8 do Printf.printf "%b\n" ntog#activate#value done;
 for i = 1 to n do ignore (new nth_toggle true 3) done
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-class Toggle (start_state) {
-  var bool;
-  fun init {bool = start_state;}
-  fun value { return bool; }
-  fun activate { bool = !bool; }
-  init ();
-}
-
-class NthToggle (start_state, max_counter) {
-  use Toggle former start_state later activate;
-  init ();
-  var count_max = max_counter;
-  var counter = 0;
-  fun activate {
-    counter++;
-    if (counter >= count_max) {
-      bool = !bool;
-      counter = 0;
-    }
-  }
-}
-
-fun main {
-  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
-  var i;
-
-  var toggle = Toggle (1);
-  for (i = 1; i <= 5; i++) {
-    toggle.activate ();
-    putln (toggle.value () ? "true" : "false");
-  }
-  for (i = 1; i <= NUM; i++)
-   toggle = Toggle (1);
-
-  putln ();
-
-  var ntoggle = NthToggle (1, 3);
-  for (i = 1; i <= 8; i++) {
-    ntoggle.activate ();
-    putln (ntoggle.value () ? "true" : "false");
-  }
-  for (i = 1; i <= NUM; i++)
-    ntoggle = NthToggle (1, 3);
-}
-
-main();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -6367,8 +6348,53 @@ fi
 if test $start_test_number -le 16; then
 
 ######################################################
-rep=`expr $factor '*' 2000`
+rep=`expr $factor '*' 3000`
 Announce_Test "+++++ Test #16: Producer/Consumer Threads (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var count = 0;
+var consumed = 0;
+var produced = 0;
+var data = 0;
+var consumer_finish = 0, producer_finish = 0;
+
+thread consumer (n) {
+  var i;
+
+  for (;;) {
+    wait (count != 0);
+    i = data;
+    wait (1) count = 0;
+    consumed++;
+    if (i == n - 1)
+      break;
+  }
+  consumer_finish = 1;
+}
+
+thread producer (n) {
+  var i;
+
+  for (i = 0; i < n; i++) {
+    wait (count == 0);
+    data = i;
+    wait (1) count = 1;
+    produced++;
+  }
+  producer_finish = 1;
+}
+
+fun main (n) {
+    producer (n);
+    consumer (n);
+    wait (consumer_finish && producer_finish);
+    putln (produced, ' ', consumed);
+}
+    
+main (argv [0] < 1 ? 1 : int (argv [0]));
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -6421,13 +6447,10 @@ sub main {
 &main();
 EOF
 
-echo
 echo Perl threads are not implemented on all systems.
-echo
 
-#  echo PERL:
-#  if test "x$NECHO" != x;then $NECHO "   ";fi
-#  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+#  title=PERL
+##  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -6483,15 +6506,13 @@ def main(n):
 main(int(sys.argv[1]))
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -6547,9 +6568,8 @@ def main(n):
     
 main(int(sys.argv[1]))
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -6596,56 +6616,9 @@ end
 
 main(Integer(ARGV.shift || 1))
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var count = 0;
-var consumed = 0;
-var produced = 0;
-var data = 0;
-var consumer_finish = 0, producer_finish = 0;
-
-thread consumer (n) {
-  var i;
-
-  for (;;) {
-    wait (count != 0);
-    i = data;
-    wait (1) count = 0;
-    consumed++;
-    if (i == n - 1)
-      break;
-  }
-  consumer_finish = 1;
-}
-
-thread producer (n) {
-  var i;
-
-  for (i = 0; i < n; i++) {
-    wait (count == 0);
-    data = i;
-    wait (1) count = 1;
-    produced++;
-  }
-  producer_finish = 1;
-}
-
-fun main (n) {
-    producer (n);
-    consumer (n);
-    wait (consumer_finish && producer_finish);
-    putln (produced, ' ', consumed);
-}
-    
-main (argv [0] < 1 ? 1 : int (argv [0]));
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -6653,8 +6626,49 @@ fi
 if test $start_test_number -le 17; then
 
 ######################################################
-rep=`expr $factor '*' 300000`
+rep=`expr $factor '*' 400000`
 Announce_Test "+++++ Test #17: Random Number Generator (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return max * LAST / IM;
+}
+
+var n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (; n; n--)
+  gen_random (100);
+putln (vec (gen_random (100.0), "%.9f"));
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return max * LAST / IM;
+}
+
+var n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (; n; n--)
+  gen_random (100);
+putln (vec (gen_random (100.0), "%.9f"));
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -6673,9 +6687,8 @@ my $N = ($ARGV[0] || 1) - 1;
 gen_random(100.0) while ($N--);
 printf "%.9f\n", gen_random(100.0);
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -6707,15 +6720,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -6747,9 +6758,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -6789,9 +6799,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -6814,9 +6823,8 @@ BEGIN {
     exit;
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -6842,9 +6850,8 @@ for i=1, N do
 end
 io.write(string.format("%.9f\n", result))
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -6868,9 +6875,8 @@ N.times do
 end
 printf "%.9f\n", result
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -6890,9 +6896,8 @@ for (i <- 1 to n)
   gen_random (100)
 println (gen_random (100.0))
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -6912,12 +6917,10 @@ for (; n; n--)
   gen_random (100);
 print (gen_random (100.0).toFixed(9));
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -6947,30 +6950,9 @@ let _ =
     if i > 1 then loop (i-1) else r in
   Printf.printf "%.9f\n" (loop n)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var IM = 139968;
-var IA = 3877;
-var IC = 29573;
-var LAST = 42;
-
-fun gen_random (max) {
-  LAST = (LAST * IA + IC) % IM;
-  return max * LAST / IM;
-}
-
-var n = (argv [0] < 1 ? 1 : argv [0]) - 1;
-for (; n; n--)
-  gen_random (100);
-putln (vec (gen_random (100.0), "%.9f"));
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -7020,6 +7002,43 @@ foo 214) 222 2222 bar
 
 EOF
 
+cat <<'EOF' >$ftest
+fun main {
+  var n = (argv [0] < 1) ? 1 : int (argv [0]);
+  var ln, lno = 0, phones = [];
+  
+  phones = getf (1); lno = #phones;
+
+  var i, j, v, count = 0;
+  var area = "([0-9][0-9][0-9]|\\([0-9][0-9][0-9]\\))";
+  var exch = "([0-9][0-9][0-9])";
+  var last = "([0-9][0-9][0-9][0-9])";
+  var re = "^[^0-9\\(]*" @ area @ " " @ exch @ "[ -]" @ last @ "[^0-9]*$";
+
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < lno; j++) {
+      ln = phones [j];
+      v = match (re, ln);
+      if (v != nil && i == n - 1) {
+        count++;
+        if (ln [v [2]] == '(')
+          putln (count, ": ", subv (ln, v[2], v [3] - v[2]), ' ', 
+                 subv (ln, v[4], v [5] - v[4]), '-',
+                 subv (ln, v[6], v [7] - v[6]));
+        else
+          putln (count, ": (", subv (ln, v[2], v [3] - v[2]), ") ", 
+                 subv (ln, v[4], v [5] - v[4]), '-',
+                 subv (ln, v[6], v [7] - v[6]));
+      }
+    }
+  }
+}
+
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest $rep <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -7056,9 +7075,8 @@ while ($NUM--) {
     }
 }
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -7099,15 +7117,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -7148,9 +7164,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -7182,9 +7197,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -7226,9 +7240,8 @@ END {
     }
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -7261,9 +7274,8 @@ for i=N,1,-1 do
 end
 
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -7304,9 +7316,8 @@ for iter in 1..NUM
     end
 end
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -7339,48 +7350,9 @@ for (iter <- 1 to NUM) {
     }
 }
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun main {
-  var n = (argv [0] < 1) ? 1 : int (argv [0]);
-  var ln, lno = 0, phones = [];
-  
-  phones = getf (1); lno = #phones;
-
-  var i, j, v, count = 0;
-  var area = "([0-9][0-9][0-9]|\\([0-9][0-9][0-9]\\))";
-  var exch = "([0-9][0-9][0-9])";
-  var last = "([0-9][0-9][0-9][0-9])";
-  var re = "^[^0-9\\(]*" @ area @ " " @ exch @ "[ -]" @ last @ "[^0-9]*$";
-
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < lno; j++) {
-      ln = phones [j];
-      v = match (re, ln);
-      if (v != nil && i == n - 1) {
-        count++;
-        if (ln [v [2]] == '(')
-          putln (count, ": ", subv (ln, v[2], v [3] - v[2]), ' ', 
-                 subv (ln, v[4], v [5] - v[4]), '-',
-                 subv (ln, v[6], v [7] - v[6]));
-        else
-          putln (count, ": (", subv (ln, v[2], v [3] - v[2]), ") ", 
-                 subv (ln, v[4], v [5] - v[4]), '-',
-                 subv (ln, v[6], v [7] - v[6]));
-      }
-    }
-  }
-}
-
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -7388,7 +7360,7 @@ fi
 if test $start_test_number -le 19; then
 
 ######################################################
-rep=`expr $factor '*' 2`
+rep=`expr $factor '*' 3`
 Announce_Test "+++++ Test #19: Reverse a File (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -18131,6 +18103,20 @@ rm -f $input; touch $input
 i=0
 while test $i -lt $rep;do cat $temp >>$input; i=`expr $i + 1`;done
 
+cat <<'EOF' >$ftest
+fun main {
+  var i, lns;
+  
+  lns = getf (1);
+  for (i = #lns - 1; i >= 0; i--)
+    putln (lns [i]);
+}
+
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -18138,9 +18124,8 @@ if test x$PERL != x; then
 undef($/);
 print join("\n", reverse split(/\n/, <STDIN>)),"\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -18158,15 +18143,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -18184,9 +18167,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -18206,9 +18188,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -18221,13 +18202,10 @@ END { for (i = NR; i >= 1; i--)
     print x[i]
 }
 EOF
-  echo
   echo AWK might be too slow for this test.
-  echo
 
-#  echo AWK:
-#  if test "x$NECHO" != x;then $NECHO "   ";fi
-#  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+#  title=AWK
+##  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -18248,9 +18226,8 @@ for i=nl,1,-1 do
     io.write(lines[i], "\n")
 end
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -18262,9 +18239,8 @@ if test x$RUBY != x; then
 
 print STDIN.readlines().reverse()
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -18275,9 +18251,8 @@ val B: ArrayBuffer[String] = new ArrayBuffer (0)
 for (line <- Source.stdin.getLines()) B += line
 for (i <- B.length - 1 to 0 by -1) println (B(i))
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -18324,25 +18299,9 @@ let main =
     lect [] (String.create size) 0 size in
   rev_write [] stack buf length length
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun main {
-  var i, lns;
-  
-  lns = getf (1);
-  for (i = #lns - 1; i >= 0; i--)
-    putln (lns [i]);
-}
-
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -18350,8 +18309,53 @@ fi
 if test $start_test_number -le 20; then
 
 ######################################################
-rep=`expr $factor '*' 10`
+rep=`expr $factor '*' 20`
 Announce_Test "+++++ Test #20: Sieve of Eratosthenes (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+fun main {
+  var i, k, count, n = argv [0] < 1 ? 1 : int (argv [0]);
+  var flags = [8193:0];
+  for (; n >= 0; n--) {
+    count = 0;
+    for (i = 0; i <= 8192; i++)
+      flags[i] = 1;
+    for (i = 2; i <= 8192; i++)
+      if (flags[i]) {
+        for (k = i + i; k <= 8192; k += i)
+	  flags[k] = 0;
+        count++;
+      }
+  }
+  putln ("Count: ", count);
+}
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+fun main {
+  var i, count, n = argv [0] < 1 ? 1 : int (argv [0]);
+  var flags = [8193:0];
+  for (; n >= 0; n--) {
+    count = 0;
+    flags[:] = 1;
+    for (i = 2; i <= 8192; i++)
+      if (flags[i]) {
+          flags[i + i : 8193 : i] = 0;
+          count++;
+      }
+  }
+  putln ("Count: ", count);
+}
+main ();
+EOF
+title=" (Slice Variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -18379,9 +18383,8 @@ while ($NUM--) {
 }
 print "Count: $count\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -18411,15 +18414,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -18449,9 +18450,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -18489,9 +18489,8 @@ if {$NUM < 1} {
 set count [sieve $NUM]
 puts "Count: $count"
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -18518,9 +18517,8 @@ BEGIN {
     exit;
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -18556,9 +18554,8 @@ main(NUM)
 io.write("Count: ", count, "\n")
 
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -18588,9 +18585,8 @@ end
 
 print "Count: ", count, "\n"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -18616,9 +18612,8 @@ def main () = {
 }
 main ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -18641,12 +18636,10 @@ function main (n) {
 }
 main (arguments [0] < 1 ? 1 : arguments [0]);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -18684,57 +18677,9 @@ let _ =
   done;
   Printf.printf "Count: %d\n" !cnt
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun main {
-  var i, k, count, n = argv [0] < 1 ? 1 : int (argv [0]);
-  var flags = [8193:0];
-  for (; n >= 0; n--) {
-    count = 0;
-    for (i = 0; i <= 8192; i++)
-      flags[i] = 1;
-    for (i = 2; i <= 8192; i++)
-      if (flags[i]) {
-        for (k = i + i; k <= 8192; k += i)
-	  flags[k] = 0;
-        count++;
-      }
-  }
-  putln ("Count: ", count);
-}
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Slice Variant:"
-fi
-cat <<'EOF' >$ftest
-fun main {
-  var i, count, n = argv [0] < 1 ? 1 : int (argv [0]);
-  var flags = [8193:0];
-  for (; n >= 0; n--) {
-    count = 0;
-    flags[:] = 1;
-    for (i = 2; i <= 8192; i++)
-      if (flags[i]) {
-          flags[i + i : 8193 : i] = 0;
-          count++;
-      }
-  }
-  putln ("Count: ", count);
-}
-main ();
-EOF
-Announce_DINO " (Slice Variant)"
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -18742,7 +18687,7 @@ fi
 if test $start_test_number -le 21; then
 
 ######################################################
-rep=`expr $factor '*' 1`
+rep=`expr $factor '*' 2`
 Announce_Test "+++++ Test #21: Spell Checker (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -95991,6 +95936,26 @@ zooms
 zoos
 EOF
 
+cat <<'EOF' >$ftest
+fun main {
+  var f, i, words, dict = tab [];
+  
+  f = open ("__temp", "r");
+  words = fgetf (f, 1);
+  close (f);
+  for (i = 0; i < #words; i++)
+    dict [words [i]] = 1;
+  
+  words = getf (1);
+  for (i = 0; i < #words; i++)
+    if (!(words [i] in dict))
+      putln (words[i]);
+}
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/perl
@@ -96014,9 +95979,8 @@ while (<STDIN>) {
     print "$_\n" if (!$dict{$_});
 }
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -96042,15 +96006,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -96076,9 +96038,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -96106,9 +96067,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -96128,13 +96088,10 @@ BEGIN {
     }
 }
 EOF
-  echo
   echo AWK might be too slow for this test.
-  echo
 
-#  echo AWK:
-#  if test "x$NECHO" != x;then $NECHO "   ";fi
-#  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+#  title=AWK
+##  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -96158,9 +96115,8 @@ while 1 do
   if not dict[word] then print(word) end
 end
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -96184,9 +96140,8 @@ while STDIN.gets()
     end
 end
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -96208,9 +96163,8 @@ def main () = {
 }
 main ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -96230,31 +96184,9 @@ let rec loop () =
   loop () in
 try loop () with End_of_file -> ()
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun main {
-  var f, i, words, dict = tab [];
-  
-  f = open ("__temp", "r");
-  words = fgetf (f, 1);
-  close (f);
-  for (i = 0; i < #words; i++)
-    dict [words [i]] = 1;
-  
-  words = getf (1);
-  for (i = 0; i < #words; i++)
-    if (!(words [i] in dict))
-      putln (words[i]);
-}
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -96262,7 +96194,7 @@ fi
 if test $start_test_number -le 22; then
 
 ######################################################
-rep=`expr $factor '*' 15`
+rep=`expr $factor '*' 20`
 Announce_Test "+++++ Test #22: Statistical Moments (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -96773,6 +96705,60 @@ rm -f $input; touch $input
 i=0
 while test $i -lt $rep;do cat $temp >>$input; i=`expr $i + 1`;done
 
+cat <<'EOF' >$ftest
+fun main {
+  var i, sum = 0.0;
+  var lns = getf (1);
+  var nums = [#lns:0];
+  
+  nums[:] = lns[:] + 0.0;
+  sum = .+ nums[:];
+  
+  var n = #nums;
+  var mean = sum / n;
+  var average_deviation = 0.0;
+  var standard_deviation = 0.0;
+  var variance = 0.0;
+  var skew = 0.0;
+  var kurtosis = 0.0;
+  var deviation, pow2;
+  
+  for (i = 0; i < n; i++) {
+    deviation = nums [i] - mean;
+    average_deviation += deviation < 0.0 ? -deviation : deviation;
+    pow2 = deviation * deviation;
+    variance += pow2;
+    skew += deviation * pow2;
+    kurtosis += pow2 * pow2;
+  }
+  average_deviation /= n;
+  variance /= (n - 1);
+  standard_deviation = sqrt (variance);
+  
+  if (variance > 0.0) {
+    skew /= (n * variance * standard_deviation);
+    kurtosis = kurtosis / (n * variance * variance) - 3.0;
+  }
+  sort (nums);
+  
+  var mid = n / 2;
+  
+  var median = (n % 2 == 0 ? (nums [mid] + nums [mid - 1]) / 2 : nums [mid]);
+  
+  putln ("n:                  ", n);
+  putln ("median:             ", vec (median, "%f"));
+  putln ("mean:               ", vec (mean, "%f"));
+  putln ("average_deviation:  ", vec (average_deviation, "%f"));
+  putln ("standard_deviation: ", vec (standard_deviation, "%f"));
+  putln ("variance:           ", vec (variance, "%f"));
+  putln ("skew:               ", vec (skew, "%f"));
+  putln ("kurtosis:           ", vec (kurtosis, "%f"));
+}
+main();
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/perl
@@ -96820,9 +96806,8 @@ printf("variance:           %f\n", $variance);
 printf("skew:               %f\n", $skew);
 printf("kurtosis:           %f\n", $kurtosis);
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -96885,15 +96870,13 @@ main()
 
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -96956,9 +96939,8 @@ def main():
 main()
 
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97020,9 +97002,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -97081,9 +97062,8 @@ io.write(string.format("variance:           %f\n", variance))
 io.write(string.format("skew:               %f\n", skew))
 io.write(string.format("kurtosis:           %f\n", kurtosis))
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -97148,9 +97128,8 @@ printf("variance:           %f\n", variance)
 printf("skew:               %f\n", skew)
 printf("kurtosis:           %f\n", kurtosis)
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -97207,9 +97186,8 @@ def main () = {
 }
 main()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=SCALA
+if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -97290,65 +97268,9 @@ let _ =
   Printf.printf "skew:               %f\n" !skew;
   Printf.printf "kurtosis:           %f\n" !kurtosis
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=OCAML
+if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun main {
-  var i, sum = 0.0;
-  var lns = getf (1);
-  var nums = [#lns:0];
-  
-  nums[:] = lns[:] + 0.0;
-  sum = .+ nums[:];
-  
-  var n = #nums;
-  var mean = sum / n;
-  var average_deviation = 0.0;
-  var standard_deviation = 0.0;
-  var variance = 0.0;
-  var skew = 0.0;
-  var kurtosis = 0.0;
-  var deviation, pow2;
-  
-  for (i = 0; i < n; i++) {
-    deviation = nums [i] - mean;
-    average_deviation += deviation < 0.0 ? -deviation : deviation;
-    pow2 = deviation * deviation;
-    variance += pow2;
-    skew += deviation * pow2;
-    kurtosis += pow2 * pow2;
-  }
-  average_deviation /= n;
-  variance /= (n - 1);
-  standard_deviation = sqrt (variance);
-  
-  if (variance > 0.0) {
-    skew /= (n * variance * standard_deviation);
-    kurtosis = kurtosis / (n * variance * variance) - 3.0;
-  }
-  sort (nums);
-  
-  var mid = n / 2;
-  
-  var median = (n % 2 == 0 ? (nums [mid] + nums [mid - 1]) / 2 : nums [mid]);
-  
-  putln ("n:                  ", n);
-  putln ("median:             ", vec (median, "%f"));
-  putln ("mean:               ", vec (mean, "%f"));
-  putln ("average_deviation:  ", vec (average_deviation, "%f"));
-  putln ("standard_deviation: ", vec (standard_deviation, "%f"));
-  putln ("variance:           ", vec (variance, "%f"));
-  putln ("skew:               ", vec (skew, "%f"));
-  putln ("kurtosis:           ", vec (kurtosis, "%f"));
-}
-main();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -97356,8 +97278,21 @@ fi
 if test $start_test_number -le 23; then
 
 ######################################################
-rep=`expr $factor '*' 50000`
+rep=`expr $factor '*' 100000`
 Announce_Test "+++++ Test #23: String Concatenation (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var i, n = argv [0] < 1 ? 1 : int (argv [0]);
+
+var str = new "";
+var add = "hello\n";
+for (i = 0; i < n; i++)
+  insv (str, add, -1);
+
+putln (#str);
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -97373,9 +97308,8 @@ $str .= "hello\n" foreach (1..$NUM);
 print length($str),"\n";
 
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -97396,15 +97330,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -97425,9 +97357,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -97479,9 +97410,8 @@ end
 io.write(string.len(buff:close()), "\n")
 
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -97499,9 +97429,8 @@ proc main {n} {
 
 main [lindex $argv 0]
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 # AWK is too slow therefore it is disqualified.
@@ -97527,9 +97456,8 @@ for i in 1 .. n
 end
 puts str.length
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -97544,9 +97472,8 @@ for (i <- 1 to n)
 
 println (str.length);
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -97560,12 +97487,10 @@ for (i = 0; i < n; i++)
 
 print (str.length);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -97586,24 +97511,9 @@ let _ =
   done;
   Printf.printf "%d\n" (Buffer.length buf);
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var i, n = argv [0] < 1 ? 1 : int (argv [0]);
-
-var str = new "";
-var add = "hello\n";
-for (i = 0; i < n; i++)
-  insv (str, add, -1);
-
-putln (#str);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -97611,7 +97521,7 @@ fi
 if test $start_test_number -le 24; then
 
 ######################################################
-rep=`expr $factor '*' 100`
+rep=`expr $factor '*' 200`
 Announce_Test "+++++ Test #24: Sum a File of Numbers (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
@@ -98622,6 +98532,24 @@ rm -f $input; touch $input
 i=0
 while test $i -lt $rep;do cat $temp >>$input; i=`expr $i + 1`;done
 
+cat <<'EOF' >$ftest
+fun main {
+  var count = 0;
+  
+  for (;;)
+    try {
+      count += scan ();
+    } catch (eof) {
+      break;
+    }
+  putln (count);
+}
+
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -98631,9 +98559,8 @@ shift;
 while (<>) { $tot += $_ }
 print "$tot\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -98652,15 +98579,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -98679,9 +98604,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -98699,9 +98623,8 @@ proc main {} {
 
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -98712,9 +98635,8 @@ BEGIN { delete ARGV; tot = 0 }
 { tot += $1 }
 END { print tot }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -98732,9 +98654,8 @@ end
 print(sum)
 
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -98751,9 +98672,8 @@ while STDIN.gets()
 end
 puts count
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -98764,9 +98684,8 @@ for (line <- Source.stdin.getLines())
   count += line.toInt
 println (count)
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -98781,29 +98700,9 @@ let sum = ref 0
 let rec loop () = sum := !sum + read_int (); loop ()
 let _ = try loop () with End_of_file -> Printf.printf "%d\n" !sum
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun main {
-  var count = 0;
-  
-  for (;;)
-    try {
-      count += scan ();
-    } catch (eof) {
-      break;
-    }
-  putln (count);
-}
-
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -101562,6 +101461,42 @@ rm -f $input; touch $input
 i=0
 while test $i -lt $rep;do cat $temp >>$input; i=`expr $i + 1`;done
 
+cat <<'EOF' >$ftest
+fun cmp (el1, el2) {
+  return cmpv (el1, el2);
+}
+
+fun main {
+  var i, ln, v, word, freq = tab [];
+  var rw = "[^[:alpha:]]+";
+
+  for (;;)
+    try {
+      ln = tolower (getln ());
+      v = split (ln, rw);
+      for (i = 0; i < #v; i++)
+        try {
+          word = v [i];
+          freq [word]++;
+        } catch (invkey) {
+          freq [word] = 1;
+        }
+    } catch (eof) {
+      break;
+    }
+  v = vec (freq);
+  var words = [#v / 2 : 0];
+  for (i = 0; i < #v; i += 2) words [i / 2] = v [i];
+  words = sort (words, cmp);
+  for (i = 0; i < #words; i++)
+    putln (freq [words [i]], "\t", words [i]);
+}
+
+main ();
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -101581,9 +101516,8 @@ my ($w, $c);
 push(@lines, sprintf("%7d\t%s\n", $c, $w)) while (($w, $c) = each(%count));
 print sort { $b cmp $a } @lines;
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -101631,15 +101565,13 @@ def main():
 main()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -101687,9 +101619,8 @@ def main():
 
 main()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -101720,9 +101651,8 @@ proc main {} {
 main
 
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -101750,9 +101680,8 @@ END {
     close(sort)
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -101791,9 +101720,8 @@ for i=1,#words do
   io.write(string.format("%7d\t%s\n", count[w], w))
 end
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -101816,9 +101744,8 @@ lines = Array.new
 freq.each{|w,c| lines << sprintf("%7d\t%s\n", c, w) }
 print lines.sort.reverse
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -101845,9 +101772,8 @@ def main () = {
 
 main ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -101893,47 +101819,9 @@ let _ =
   Hashtbl.iter (to_list out_lines) count;
   List.iter print_endline (List.sort (fun a b -> compare b a) !out_lines)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun cmp (el1, el2) {
-  return cmpv (el1, el2);
-}
-
-fun main {
-  var i, ln, v, word, freq = tab [];
-  var rw = "[^[:alpha:]]+";
-
-  for (;;)
-    try {
-      ln = tolower (getln ());
-      v = split (ln, rw);
-      for (i = 0; i < #v; i++)
-        try {
-          word = v [i];
-          freq [word]++;
-        } catch (invkey) {
-          freq [word] = 1;
-        }
-    } catch (eof) {
-      break;
-    }
-  v = vec (freq);
-  var words = [#v / 2 : 0];
-  for (i = 0; i < #v; i += 2) words [i / 2] = v [i];
-  words = sort (words, cmp);
-  for (i = 0; i < #words; i++)
-    putln (freq [words [i]], "\t", words [i]);
-}
-
-main ();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest <$input) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -101941,17 +101829,38 @@ fi
 if test $start_test_number -le 26; then
 
 ######################################################
-rep=`expr $factor '*' 1000000`
+rep=`expr $factor '*' 2000000`
 Announce_Test "+++++ Test #26: Test Loop ($rep iteration with empty body):  +++++"
+
+cat <<'EOF' >$ftest
+var i, n;
+n = int (argv [0]);
+for (i=0; i < n;i++);
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun main ! {
+  var i, n;
+  n = int (argv [0]);
+  for (i=0; i < n;i++);
+}
+main ();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 my $NUM = $ARGV[0];
 for ($i=0; $i < $NUM;$i++){}
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -101962,15 +101871,13 @@ num = int(sys.argv[1])
 for i in xrange (0,num): i
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -101981,9 +101888,8 @@ import sys
 num = int(sys.argv[1])
 for i in range (0,num): i
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -101995,18 +101901,16 @@ proc main {} {
 }
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
   cat <<'EOF' >$ftest
 BEGIN {n = ARGV[1]; for (i=0.0; i<n; i=i+1.0);}
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -102015,9 +101919,8 @@ local n = tonumber((arg and arg[1]) or 1)
 for a=1,n do
 end
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -102026,9 +101929,8 @@ n = Integer(ARGV.shift || 1)
 n.times do
 end
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -102036,9 +101938,8 @@ if test x$SCALA != x; then
 val n = args(0).toInt
 for (i <- 0 to n) {}
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -102047,12 +101948,10 @@ var i, n;
 n = arguments [0];
 for (i=0; i < n;i++);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102064,19 +101963,9 @@ let _ =
   let rec loop x = function 0 -> x | i -> loop (x+1) (i-1) in
   (loop 0 n)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var i, n;
-n = int (argv [0]);
-for (i=0; i < n;i++);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -102084,8 +101973,29 @@ fi
 if test $start_test_number -le 27; then
 
 ######################################################
-rep=`expr $factor '*' 300000`
+rep=`expr $factor '*' 500000`
 Announce_Test "+++++ Test #27: Function ($rep empty func calls w/out params):  +++++"
+
+cat <<'EOF' >$ftest
+fun f {}
+var i, n;
+n = int (argv [0]);
+for (i = 0; i < n; i++) f();
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun f ! {}
+var i, n;
+n = int (argv [0]);
+for (i = 0; i < n; i++) f();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -102095,9 +102005,8 @@ for ($i = 0; $i < $NUM; $i++) {
   &f();
 }
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -102113,15 +102022,13 @@ for i in xrange(0,num):
    f()
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -102137,9 +102044,8 @@ def f():
 for i in range(0,num):
    f()
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -102155,9 +102061,8 @@ proc main {} {
 }
 main
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -102169,9 +102074,8 @@ for a=1,n do
   f ()
 end
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -102184,9 +102088,8 @@ n.times do
   f
 end
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -102196,9 +102099,8 @@ def f() = {}
 val n = args(0).toInt
 for (i <- 1 to n) f ()
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -102208,12 +102110,10 @@ var i, n;
 n = arguments [0];
 for (i = 0; i < n; i++) f();
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102226,20 +102126,9 @@ let _ =
     with Invalid_argument _ -> 1 in
   for i = 0 to n-1 do f done;
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun f {}
-var i, n;
-n = int (argv [0]);
-for (i = 0; i < n; i++) f();
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -102247,8 +102136,37 @@ fi
 if test $start_test_number -le 28; then
 
 ######################################################
-if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=7;else rep=9;fi
+if test $factor -eq 1; then rep=7;elif test $factor -eq 10; then rep=8;else rep=10;fi
 Announce_Test "+++++ Test #28: tak(`expr $rep '*' 3`, `expr $rep '*' 2`, $rep) (good test for recursive functions):  +++++"
+
+cat <<'EOF' >$ftest
+fun tak (x, y, z) {
+  if (y >= x)
+    return z;
+  else
+    return tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y));
+}
+var n = int (argv [0]);
+putln (tak (n * 3, n * 2, n));
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun tak (x, y, z) ! {
+  if (y >= x)
+    return z;
+  else
+    return tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y));
+}
+var n = int (argv [0]);
+putln (tak (n * 3, n * 2, n));
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -102266,9 +102184,8 @@ sub tak {
 my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
 print &tak($N * 3, $N * 2, $N) . "\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -102285,15 +102202,13 @@ N = int(sys.argv[1])
 print tak(N * 3, N * 2, N)
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -102310,9 +102225,8 @@ def tak (x, y, z):
 N = int(sys.argv[1])
 print (tak(N * 3, N * 2, N))
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -102330,9 +102244,8 @@ proc tak {x y z} {
 set N [lindex $argv 0]
 puts [tak [expr {$N * 3}] [expr {$N * 2}] $N]
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -102348,9 +102261,8 @@ end
 N = tonumber((arg and arg[1]) or 1)
 print (tak(N * 3, N * 2, N))
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -102366,9 +102278,8 @@ end
 N = Integer(ARGV.shift || 1)
 print tak(N * 3, N * 2, N), "\n"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -102379,9 +102290,8 @@ def tak (x: Int, y: Int, z: Int): Int =
 val n = args(0).toInt
 println (tak (n * 3, n * 2, n))
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -102395,12 +102305,10 @@ function tak (x, y, z) {
 var n = arguments [0];
 print (tak (n * 3, n * 2, n));
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102414,24 +102322,9 @@ let _ =
     with Invalid_argument _ -> 1 in
   Printf.printf "%d\n" (tak (n * 3) (n * 2) n)
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun tak (x, y, z) {
-  if (y >= x)
-    return z;
-  else
-    return tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y));
-}
-var n = int (argv [0]);
-putln (tak (n * 3, n * 2, n));
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -102439,8 +102332,45 @@ fi
 if test $start_test_number -le 29; then
 
 ######################################################
-rep=`expr $factor '*' 50000`
+rep=`expr $factor '*' 70000`
 Announce_Test "+++++ Test #29: fact (good test for recursive functions: N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+fun fact (x) {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+var i, x, n = int (argv [0]);
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+putln (x);
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun fact (x) ! {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+var i, x, n = int (argv [0]);
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+putln (x);
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -102461,9 +102391,8 @@ for ($i = 0; $i < $N; $i++) {
 
 print $x . "\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -102484,15 +102413,13 @@ while n < N:
 print x
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -102513,9 +102440,8 @@ while n < N:
 
 print (x)
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -102537,9 +102463,8 @@ proc main {} {
 }
 puts [main]
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -102559,9 +102484,8 @@ while (n < N) do
 end
 print (x)
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -102582,9 +102506,8 @@ while (n < N) do
 end
 print x
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -102595,9 +102518,8 @@ var x = 0; val n = args(0).toInt
 for (i <- 1 to n) x = fact (12)
 println (x)
 EOF
-echo SCALA:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=SCALA
+if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -102615,12 +102537,10 @@ for (i = 0; i < n; i++)
 
 print (x);
 EOF
-echo JS:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-echo JS -j:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $JS -j $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=JS
+if ($TIME $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title="JS -j"
+if ($TIME $JS -j $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102635,28 +102555,9 @@ let _ =
   for i = 0 to (n-1) do r := fact 12;done;
   Printf.printf "%d\n" !r
 EOF
-echo OCAML:
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+title=OCAML
+if ($TIME $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-fun fact (x) {
-  if (x <= 1)
-    return 1;
-  return x * fact (x-1);
-}
-
-var i, x, n = int (argv [0]);
-
-for (i = 0; i < n; i++)
-  x = fact (12);
-
-putln (x);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -102666,6 +102567,51 @@ if test $start_test_number -le 30; then
 ######################################################
 rep=`expr $factor '*' 8190`
 Announce_Test "+++++ Test #30: sieve (usage of arrays when possible N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var SieveSize, i, k, prime, count, iter, flags;
+SieveSize = int (argv [0]);
+
+flags = [SieveSize + 1 : 0];
+for (iter = 0; iter < 10; iter++) {
+    count = 0;
+    for (i = 0; i <= SieveSize; i++)
+      flags[i] = 1;
+    for (i = 0; i <= SieveSize; i++)
+      if (flags[i]) {
+          prime = i + i + 3;
+          for (k = i + prime; k <= SieveSize; k += prime)
+            flags[k] = 0;
+          count++;
+      }
+}
+putln (count);
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var SieveSize, i, prime, count, iter, flags;
+SieveSize = int (argv [0]);
+
+flags = [SieveSize + 1 : 0];
+for (iter = 0; iter < 10; iter++) {
+    count = 0;
+    flags[:] = 1;
+    for (i = 0; i <= SieveSize; i++)
+      if (flags[i]) {
+          prime = i + i + 3;
+          flags[i + prime : SieveSize + 1 : prime] = 0;
+          count++;
+      }
+}
+putln (count);
+EOF
+title=" (Slice Variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -102689,9 +102635,8 @@ if test x$PERL != x; then
     }
   print "$count\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -102715,15 +102660,13 @@ for iter in range(10):
 print count
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -102747,9 +102690,8 @@ for iter in range(10):
         count = count + 1
 print (count)
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -102782,9 +102724,8 @@ puts [main]
 
 exit 0
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -102813,9 +102754,8 @@ SieveSize=ARGV[1];
   print count
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -102839,9 +102779,8 @@ for iter=1,10 do
 end
 io.write(count, "\n")
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -102865,9 +102804,8 @@ flags0 = Array.new(SieveSize + 1, true)
 end
 print $count, "\n"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -102891,9 +102829,8 @@ for (iter <- 0 to 10) {
 }
 println (count)
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -102916,12 +102853,10 @@ for (iter = 0; iter < 10; iter++) {
 }
 print (count);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -102952,57 +102887,9 @@ let _ =
   done;
   Printf.printf "%d\n" !cnt
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var SieveSize, i, k, prime, count, iter, flags;
-SieveSize = int (argv [0]);
-
-flags = [SieveSize + 1 : 0];
-for (iter = 0; iter < 10; iter++) {
-    count = 0;
-    for (i = 0; i <= SieveSize; i++)
-      flags[i] = 1;
-    for (i = 0; i <= SieveSize; i++)
-      if (flags[i]) {
-          prime = i + i + 3;
-          for (k = i + prime; k <= SieveSize; k += prime)
-            flags[k] = 0;
-          count++;
-      }
-}
-putln (count);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Slice Variant:"
-fi
-cat <<'EOF' >$ftest
-var SieveSize, i, prime, count, iter, flags;
-SieveSize = int (argv [0]);
-
-flags = [SieveSize + 1 : 0];
-for (iter = 0; iter < 10; iter++) {
-    count = 0;
-    flags[:] = 1;
-    for (i = 0; i <= SieveSize; i++)
-      if (flags[i]) {
-          prime = i + i + 3;
-          flags[i + prime : SieveSize + 1 : prime] = 0;
-          count++;
-      }
-}
-putln (count);
-EOF
-Announce_DINO " (Slice Variant)"
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -103012,6 +102899,30 @@ if test $start_test_number -le 31; then
 ######################################################
 rep=`expr $factor '*' 8190`
 Announce_Test "+++++ Test #31: sieve (usage of associative tables N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var SieveSize, i, prime, k, count, iter, flags;
+SieveSize = int (argv [0]);
+
+flags = tab [];
+for (iter = 0; iter < 10; iter++;)
+  {
+    count = 0;
+    for (i = 0; i <= SieveSize; i++)
+      flags[i] = 1;
+    for (i = 0; i <= SieveSize; i++;)
+      if (flags[i])
+        {
+          prime = i + i + 3;
+          for (k = i + prime; k <= SieveSize;k += prime)
+            flags[k] = 0;
+          count++;
+        }
+  }
+println (count);
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -103035,9 +102946,8 @@ for ($iter = 0; $iter < 10; $iter++) {
 }
 print $count . "\n";
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -103061,15 +102971,13 @@ for iter in range (10):
 print count
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -103093,9 +103001,8 @@ for iter in range (10):
         count = count + 1
 print (count)
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -103128,9 +103035,8 @@ puts [main]
 
 exit 0
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
@@ -103159,9 +103065,8 @@ SieveSize=ARGV[1];
   print count
 }
 EOF
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -103187,9 +103092,8 @@ flags = Hash.new()
 end
 print $count, "\n"
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -103213,9 +103117,8 @@ for (iter <- 0 to 10) {
 }
 println (count)
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -103238,12 +103141,10 @@ for (iter = 0; iter < 10; iter++) {
 }
 print (count);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -103274,35 +103175,9 @@ let _ =
   done;
   Printf.printf "%d\n" !cnt
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var SieveSize, i, prime, k, count, iter, flags;
-SieveSize = int (argv [0]);
-
-flags = tab [];
-for (iter = 0; iter < 10; iter++;)
-  {
-    count = 0;
-    for (i = 0; i <= SieveSize; i++)
-      flags[i] = 1;
-    for (i = 0; i <= SieveSize; i++;)
-      if (flags[i])
-        {
-          prime = i + i + 3;
-          for (k = i + prime; k <= SieveSize;k += prime)
-            flags[k] = 0;
-          count++;
-        }
-  }
-println (count);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -103310,8 +103185,83 @@ fi
 if test $start_test_number -le 32; then
 
 ######################################################
-if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=100;else rep=300;fi
+if test $factor -eq 1; then rep=30;elif test $factor -eq 10; then rep=200;else rep=400;fi
 Announce_Test "+++++ Test #32: Matrix mult (use arrays when possible N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var m1, m2;
+
+fun mmult (m1, m2)
+{
+  var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
+
+  m1rows = #m1; m2rows = #m2;
+  m1cols = #m1[0]; m2cols = #m2[0];
+  if (m2cols != m2rows)
+    {
+       println ("matrices don't match");
+       return;
+    }
+  result = [m1rows:0];
+  for (i=0; i < m1rows; i++) {
+    result [i] = [m2cols:0];
+    tr = result[i]; tm = m1[i];
+    for (j=0; j < m2cols; j++)
+      {
+        el = 0;
+        for (k=0; k < m1cols; k++)
+          el += tm[k]*m2[k][j];
+        tr[j] = el;
+      }
+  }
+  return result;
+}
+
+var n = int (argv [0]);
+
+m1 = [n:[n:1]];
+m2 = [n:[n:1]];
+mmult (m1, m2);
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Transpose and Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var m1, m2;
+
+fun mmult (m1, m2)
+{
+  var i, j, m1rows, m1cols, m2rows, m2cols, result, tm, tr;
+
+  m1rows = #m1; m2rows = #m2;
+  m1cols = #m1[0]; m2cols = #m2[0];
+  if (m2cols != m2rows)
+    {
+       println ("matrices don't match");
+       return;
+    }
+  result = [m1rows:0];
+  m2 = transpose (m2);
+  for (i=0; i < m1rows; i++) {
+    result [i] = [m2cols:0];
+    tr = result[i]; tm = m1[i];
+    for (j=0; j < m2cols; j++)
+      tr[j] = .+ (tm[:] * m2[j][:]);
+  }
+  return result;
+}
+
+var n = int (argv [0]);
+
+m1 = [n:[n:1]];
+m2 = [n:[n:1]];
+mmult (m1, m2);
+EOF
+title=" (Transpose and Slice Variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -103344,9 +103294,8 @@ for ($i=0; $i < $NUM;$i++){
 }
 mmult ($m1, $NUM, $NUM, $m2, $NUM, $NUM);
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -103378,15 +103327,13 @@ for i in range (NUM):
 mmult (m1,m2)
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -103418,9 +103365,8 @@ for i in range (NUM):
 
 mmult (m1,m2)
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -103459,9 +103405,8 @@ proc initm {} {
 initm
 mmult $n
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -103503,9 +103448,8 @@ for i=1,n do
 end
 mmult(m1, m2)
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -103542,9 +103486,8 @@ for i in 0 .. (n - 1)
 end
 mmult(m1, m2)
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -103581,9 +103524,8 @@ val m1: Array[Array[Int]] = Array.fill(n, n)(1)
 val m2: Array[Array[Int]] = Array.fill(n, n)(1)
 mmult (m1, m2);
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -103626,12 +103568,10 @@ for (i=0; i < n; i++) {
 }
 mmult (m1, m2);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -103661,10 +103601,18 @@ let _ =
   and m3 = Array.make_matrix n n 0 in
   mmult n n m1 m2 m3
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
+
+fi
+
+# Test 33.
+if test $start_test_number -le 33; then
+
+######################################################
+if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=70;else rep=200;fi
+Announce_Test "+++++ Test #33: Matrix mult (usage of tables N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var m1, m2;
@@ -103680,77 +103628,34 @@ fun mmult (m1, m2)
        println ("matrices don't match");
        return;
     }
-  result = [m1rows:0];
+  result = tab [];
   for (i=0; i < m1rows; i++) {
-    result [i] = [m2cols:0];
-    tr = result[i]; tm = m1[i];
-    for (j=0; j < m2cols; j++)
-      {
-        el = 0;
-        for (k=0; k < m1cols; k++)
-          el += tm[k]*m2[k][j];
-        tr[j] = el;
-      }
-  }
-  return result;
-}
-
-var n = int (argv [0]);
-
-m1 = [n:[n:1]];
-m2 = [n:[n:1]];
-mmult (m1, m2);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Transpose and Slice Variant:"
-fi
-cat <<'EOF' >$ftest
-var m1, m2;
-
-fun mmult (m1, m2)
-{
-  var i, j, m1rows, m1cols, m2rows, m2cols, result, tm, tr;
-
-  m1rows = #m1; m2rows = #m2;
-  m1cols = #m1[0]; m2cols = #m2[0];
-  if (m2cols != m2rows)
-    {
-       println ("matrices don't match");
-       return;
+    result[i] = tab [];
+    tr = result[i];
+    for (j=0; j < m2cols; j++) {
+      el = 0;
+      tm = m1[i];
+      for (k=0; k < m1cols; k++)
+        el += tm[k]*m2[k][j];
+      tr[j] = el;
     }
-  result = [m1rows:0];
-  m2 = transpose (m2);
-  for (i=0; i < m1rows; i++) {
-    result [i] = [m2cols:0];
-    tr = result[i]; tm = m1[i];
-    for (j=0; j < m2cols; j++)
-      tr[j] = .+ (tm[:] * m2[j][:]);
   }
   return result;
 }
 
-var n = int (argv [0]);
+var i, j, n = int (argv [0]);
 
-m1 = [n:[n:1]];
-m2 = [n:[n:1]];
+m1 = tab [];
+for (i = 0;i < n; i++) {
+  m1[i] = tab [];
+  for (j = 0;j < n; j++)
+    m1[i][j] = 2;
+}
+m2 = m1;
 mmult (m1, m2);
 EOF
-Announce_DINO " (Transpose and Slice Variant)"
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-
-fi
-
-# Test 33.
-if test $start_test_number -le 33; then
-
-######################################################
-if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=70;else rep=200;fi
-Announce_Test "+++++ Test #33: Matrix mult (usage of tables N=$rep):  +++++"
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -103783,9 +103688,8 @@ for ($i=0; $i < $NUM;$i++){
 }
 mmult ($m1, $NUM, $NUM, $m2, $NUM, $NUM);
 EOF
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
@@ -103818,15 +103722,13 @@ for i in xrange (0,NUM):
 mmult (m1, NUM, NUM, m2, NUM, NUM)
 EOF
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
@@ -103859,9 +103761,8 @@ for i in range (0,NUM):
 
 mmult (m1, NUM, NUM, m2, NUM, NUM)
 EOF
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
@@ -103900,9 +103801,8 @@ proc initm {} {
 initm
 mmult $n
 EOF
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
@@ -103944,9 +103844,8 @@ for i=1,n do
 end
 mmult(m1, m2)
 EOF
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
@@ -103990,9 +103889,8 @@ for i in 0 .. (n - 1)
 end
 mmult(m1, m2)
 EOF
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -104036,9 +103934,8 @@ for (i <- 0 to n - 1) {
 val m2 = m1.clone
 mmult (m1, m2)
 EOF
-  echo SCALA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $SCALA $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
@@ -104081,12 +103978,10 @@ for (i=0; i < n; i++) {
 }
 mmult (m1, m2);
 EOF
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -104126,54 +104021,9 @@ let _ =
   and m3 = mkmatrix n n 0 in
   mmult n n m1 m2 m3
 EOF
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest $rep) >$temp2 2>&1;then print_time $temp2;else fgrep rror $temp2; echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
-
-cat <<'EOF' >$ftest
-var m1, m2;
-
-fun mmult (m1, m2)
-{
-  var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
-
-  m1rows = #m1; m2rows = #m2;
-  m1cols = #m1[0]; m2cols = #m2[0];
-  if (m2cols != m2rows)
-    {
-       println ("matrices don't match");
-       return;
-    }
-  result = tab [];
-  for (i=0; i < m1rows; i++) {
-    result[i] = tab [];
-    tr = result[i];
-    for (j=0; j < m2cols; j++) {
-      el = 0;
-      tm = m1[i];
-      for (k=0; k < m1cols; k++)
-        el += tm[k]*m2[k][j];
-      tr[j] = el;
-    }
-  }
-  return result;
-}
-
-var i, j, n = int (argv [0]);
-
-m1 = tab [];
-for (i = 0;i < n; i++) {
-  m1[i] = tab [];
-  for (j = 0;j < n; j++)
-    m1[i][j] = 2;
-}
-m2 = m1;
-mmult (m1, m2);
-EOF
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 
@@ -104184,90 +104034,78 @@ if test $start_test_number -le 34; then
 rep=`expr $factor '*' 8000`
 Announce_Test "+++++ Test #34: compile speed (simple program of $rep lines):  +++++"
 
+$DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
+title=
+if ($TIME $DINO $ftest </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   $DINO -c 'putln("$j = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("$i = $j;");' $rep > $ftest
-  echo PERL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PERL $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PERL
+  if ($TIME $PERL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
   if test x$PYTHON != x; then
-    echo PYTHON:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYTHON $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYTHON
+      if ($TIME $PYTHON $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
-    echo PYPY:
-    if test "x$NECHO" != x;then $NECHO "   ";fi
-    if (time $PYPY $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+    title=PYPY
+      if ($TIME $PYPY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
 if test x$PYTHON3 != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  echo PYTHON3:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $PYTHON3 $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
   $DINO -c 'putln("set j 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("set i $j");' $rep > $ftest
-  echo TCL:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $TCLSH $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=TCL
+  if ($TIME $TCLSH $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$AWK != x; then
   $DINO -c 'putln("END {\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
   echo '}' >>$ftest
-  echo AWK:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $AWK -f $ftest </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=AWK
+  if ($TIME $AWK -f $ftest </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  echo LUA:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $LUA $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=LUA
+  if ($TIME $LUA $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  echo RUBY:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $RUBY $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=RUBY
+  if ($TIME $RUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
-  echo Scala:
+  $NECHO Scala:
   echo '  ' Scala can not take even 10000 lines file
 fi
 
 if test x$JS != x; then
   $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
-  echo JS:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
-  echo JS -j:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $JS -j $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
   $DINO -c 'putln("let j = 1;;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("let i = j;;");' $rep > $ftest
-  echo OCAML:
-  if test "x$NECHO" != x;then $NECHO "   ";fi
-  if (time $OCAML $ftest) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
-
-$DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
-Announce_DINO
-if test "x$NECHO" != x;then $NECHO "   ";fi
-if (time $DINO $ftest </dev/null) >$temp2 2>&1;then print_time $temp2;else echo FAILED;fi
 
 fi
 

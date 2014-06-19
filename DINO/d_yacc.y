@@ -33,6 +33,7 @@
    it means empty program. */
 IR_node_t first_program_stmt;
 
+extern int yylex (void);
 static int yyerror (const char *message);
 
 static IR_node_t merge_stmt_lists (IR_node_t list1, IR_node_t list2);
@@ -54,7 +55,7 @@ process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
 
 static void process_header (int create_block_p, IR_node_t decl, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
-static IR_node_t process_header_block (IR_node_t, IR_node_t);
+ static IR_node_t process_header_block (IR_node_t, IR_node_t, int);
 
 static IR_node_t merge_additional_stmts (IR_node_t);
 
@@ -157,7 +158,7 @@ static int repl_can_process_p (void);
         	fun_thread_class fun_thread_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
-%type <flag> clear_flag  set_flag  par_kind
+%type <flag> clear_flag hint set_flag  par_kind
 %type <access> access
 
 %start program
@@ -523,6 +524,8 @@ stmt_stop : eof_stop
           ;
 pos :  {$$ = current_position;}
     ;
+hint :     {$$ = FALSE;}
+     | '!' {$$ = TRUE;}
 designator : expr '[' expr ']'
        	       {
                  $$ = create_node_with_pos (IR_NM_index, $2);
@@ -562,11 +565,11 @@ designator : expr '[' expr ']'
                  IR_set_component ($$, $3);
                }
            | IDENT     {$$ = $1;}
-           | aheader block
+           | aheader hint block
                {
 		 additional_stmts
 		   = merge_stmt_lists (additional_stmts,
-				       process_header_block ($1, $2));
+				       process_header_block ($1, $3, $2));
 		 $$ = IR_ident (IR_next_stmt (additional_stmts));
 	       }
            ;
@@ -1020,7 +1023,10 @@ declaration : access VAL {$<access>$ = $1;} set_flag
 		}
             | access EXTERN {$<access>$ = $1;}
                 extern_list {$<flag>$ = $<flag>0;} end_simple_stmt {$$ = $4;}
-            | header block { $$ = process_header_block ($1, $2); }
+            | header hint block
+                {
+		  $$ = process_header_block ($1, $3, $2);
+		}
             | fun_thread_class_start IDENT
                 {
 		  IR_set_pos ($1, IR_pos ($2));
@@ -1587,10 +1593,11 @@ process_formal_parameters (IR_node_t decl, IR_node_t pars)
 /* Process BLOCK of fun/thread/class/obj HEADER decl.  Return the
    block.  */
 static IR_node_t
-process_header_block (IR_node_t header, IR_node_t block)
+process_header_block (IR_node_t header, IR_node_t block, int hint)
 {
   IR_node_t res = current_scope; /*i.e. block.*/
 
+  IR_set_hint (res, hint);
   IR_set_block_stmts
     (res, uncycle_stmt_list (merge_stmt_lists (header, block)));
   IR_set_friend_list (res, uncycle_friend_list (IR_friend_list (res)));
@@ -2129,8 +2136,6 @@ d_ungetc (int ch)
 void
 skip_line_rest (void)
 {
-  int c;
-
   d_assert (repl_flag && *environment == 0);
   /* Close all include files.  */
   while (istream_stack_height () != 0)
@@ -2155,7 +2160,8 @@ static vlo_t symbol_text;
    node (if it is needed) and sets up yylval to the node address.  The
    function skips all white spaces and commentaries and fixes all
    lexical errors. */
-int yylex (void)
+int
+yylex (void)
 {
   int input_char;
   int number_of_successive_error_characters;

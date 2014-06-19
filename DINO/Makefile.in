@@ -40,6 +40,7 @@
 #            INSTALL     utility used for installation `dino'
 #            INSTALLDATA utility used for installing nonexecutables
 #            SED         utility used instead of POSIX utility `sed'
+#            EGREP       utility used instead of POSIX utility `egrep'
 #            ETAGS       utility used for creation of `dino' tag table
 #            CC          used C compiler
 #            CFLAGS      C compiler flags
@@ -112,10 +113,13 @@ INSTALL=@INSTALL@
 INSTALLDATA=@INSTALL_DATA@
 
 # Utility used instead of POSIX utility `sed'.
-SED=sed
+SED=@SED@
 
 # Utility used instead of POSIX utility `awk'.
 AWK=@AWK@
+
+# Utility used instead of POSIX utility `egrep'.
+EGREP=@EGREP@
 
 # Utility for creation of `dino' tag table.
 ETAGS=etags
@@ -200,7 +204,7 @@ common = $(srcdir)/d_dino.h $(srcdir)/d_errors.h $(srcdir)/d_common.h
 source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
          $(srcdir)/d_runtab.h $(srcdir)/d_bcio.h\
 	 $(srcdir)/d_context.h $(srcdir)/d_conv.h\
-	 $(srcdir)/d_func.h $(srcdir)/d_eval.h\
+	 $(srcdir)/d_func.h $(srcdir)/d_eval.h $(srcdir)/d_gen.c\
          $(srcdir)/d_errors.c $(srcdir)/d_yacc.y $(srcdir)/d_runtab.c\
 	 $(srcdir)/d_context.c $(srcdir)/d_bcio.c\
          $(srcdir)/d_func.c $(srcdir)/d_conv.c\
@@ -212,7 +216,8 @@ source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
 	 $(srcdir)/d_mpi.c $(srcdir)/mpi.d\
 	 $(srcdir)/d_ieee.c $(srcdir)/ieee.d\
 	 $(srcdir)/d_ipcerr.c $(srcdir)/ipcerr.d\
-	 $(srcdir)/d_socket.c $(srcdir)/socket.d
+	 $(srcdir)/d_socket.c $(srcdir)/socket.d\
+         $(srcdir)/d_minimize.d
 
 ammunition = ../AMMUNITION/C/allocate.o ../AMMUNITION/C/vlobject.o\
 	     ../AMMUNITION/C/position.o ../AMMUNITION/C/hashtab.o\
@@ -232,7 +237,13 @@ example_files = extern.d fact.d fibonacci.d idcount.d mult.d \
 additional_rcs_files = dino.sgml.in
 
 # Default entry
-all : d_config.h $(dino_lib) $(DINO_EXTERN_LIBS) dino d_extern.h
+all : d_config.h $(dino_lib) $(DINO_EXTERN_LIBS) dino d_extern.h d_gen.i
+
+d_gen.i : dino d_genheader.i $(srcdir)/d_minimize.d
+	@if test d_gen.i -ot d_genheader.i;then\
+           echo C code Generation Header Minimization ...;\
+           $(EGREP) -v '^#|^$$' d_genheader.i | ./dino $(srcdir)/d_minimize.d > $@;\
+        fi
 
 d_config.h: ../AMMUNITION/cocom-config.h
 	cp ../AMMUNITION/cocom-config.h d_config.h
@@ -325,6 +336,7 @@ install: all
 	$(INSTALLDATA) d_extern.h $(DESTDIR)/$(dinoincludedir)
 	$(INSTALLDATA) d_config.h $(DESTDIR)/$(dinoincludedir)
 	$(INSTALLDATA) $(srcdir)/d_types.h $(DESTDIR)/$(dinoincludedir)
+	$(INSTALLDATA) d_gen.i $(DESTDIR)/$(dinoincludedir)
 	-mkdir -p $(DESTDIR)/$(man1dir)
 	$(INSTALLDATA) $(srcdir)/dino.1 $(DESTDIR)/$(man1dir)/dino.1
 	-mkdir -p $(DESTDIR)/$(docdir)
@@ -352,6 +364,7 @@ uninstall:
 	rm -f $(DESTDIR)/$(dinoincludedir)/d_extern.h
 	rm -f $(DESTDIR)/$(dinoincludedir)/d_config.h
 	rm -f $(DESTDIR)/$(dinoincludedir)/d_types.h
+	rm -f $(DESTDIR)/$(dinoincludedir)/d_gen.i
 	-rmdir $(DESTDIR)/$(dinoincludedir)
 	-rmdir $(DESTDIR)/$(includedir)
 	rm -f $(DESTDIR)/$(man1dir)/dino.1
@@ -374,6 +387,7 @@ clean :
                          d_ipcerr.o d_socket.o\
 			 dino\
 			 d_ir.c d_ir.h d_bc.c d_bc.h d_extern.h\
+                         d_gen.i d_genheader.i\
 			 d_run.c d_run.h d_kw.c d_bcn.c d_bcf.c d_yacc.c
 
 # Deletion all not needed for distribution: the same as entry `clean'.
@@ -492,6 +506,7 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
 	echo '# Do not place anything below this line' >>Makefile.tmp
 	echo '#' >>Makefile.tmp
 	for i in d_ir.c d_bc.c d_run.c d_kw.c d_bcn.c d_bcf.c d_yacc.c\
+	   $(srcdir)/../DINO/d_gen.c\
 	   $(srcdir)/../DINO/d_errors.c\
            $(srcdir)/../DINO/d_runtab.c $(srcdir)/../DINO/d_context.c\
 	   $(srcdir)/../DINO/d_bcio.c\
@@ -512,6 +527,8 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_bc\.h%d_bc.h%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_run\.h%d_run.h%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_extern\.h%d_extern.h%'\
+                | $(SED) 's%\$$(top_srcdir)/DINO/d_gen\.c%d_gen.c%'\
+                | $(SED) 's%\d_gen\.o%d_genheader.i%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_kw\.c%d_kw.c%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_bcn\.c%d_bcn.c%'\
                 | $(SED) 's%\$$(top_srcdir)/DINO/d_bcf\.c%d_bcf.c%'\
@@ -528,6 +545,8 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
 		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
            elif test $$i = $(srcdir)/../AMMUNITION/IEEE.c -o $$i = $(srcdir)/../AMMUNITION/bits.c;then \
 		echo '	$$(CC) -c $$(ECFLAGS) -o $$@' $$i; \
+           elif test $$i = $(srcdir)/../DINO/d_gen.c;then \
+		echo '	$$(CC) $$(OPTIONS) ' \@C_DEBUG_DEFINE\@ ' -E > $$@' $$i; \
            else echo '	$$(CC) -c $$(CFLAGS) -o $$@' $$i;fi \
                 | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
                 | $(SED) 's/\\./\\\\./'g` \
@@ -572,7 +591,8 @@ d_bc.o: d_bc.c d_bc.h $(top_srcdir)/DINO/d_common.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/d_types.h \
- $(top_srcdir)/DINO/d_built.h
+ $(top_srcdir)/DINO/d_built.h \
+ $(top_srcdir)/DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ d_bc.c
 d_run.o: d_run.c d_run.h $(top_srcdir)/DINO/d_types.h \
  d_config.h d_bc.h $(top_srcdir)/DINO/d_common.h \
@@ -617,6 +637,30 @@ d_yacc.o: d_yacc.c $(top_srcdir)/DINO/d_common.h \
  $(top_srcdir)/DINO/d_types.h d_ir.h \
  $(top_srcdir)/DINO/d_yacc.h d_kw.c
 	$(CC) -c $(CFLAGS) -o $@ d_yacc.c
+d_genheader.i: $(top_srcdir)/DINO/../DINO/d_gen.c \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/AMMUNITION/bits.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/DINO/../DINO/d_types.h \
+ $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_bc.h \
+ $(top_srcdir)/DINO/d_common.h \
+ $(top_srcdir)/DINO/d_runtab.h \
+ $(top_srcdir)/DINO/../DINO/d_func.h \
+ $(top_srcdir)/DINO/../DINO/d_eval.h
+	$(CC) $(OPTIONS)  @C_DEBUG_DEFINE@  -E > $@ $(top_srcdir)/DINO/../DINO/d_gen.c
 d_errors.o: $(top_srcdir)/DINO/../DINO/d_errors.c \
  $(top_srcdir)/DINO/../DINO/d_common.h \
  $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
@@ -697,7 +741,9 @@ d_bcio.o: $(top_srcdir)/DINO/../DINO/d_bcio.c \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h d_bcn.c d_bcf.c \
- $(top_srcdir)/DINO/../DINO/d_bcio.h
+ $(top_srcdir)/DINO/../DINO/d_bcio.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_bc.h \
+ $(top_srcdir)/DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_bcio.c
 d_conv.o: $(top_srcdir)/DINO/../DINO/d_conv.c \
  $(top_srcdir)/DINO/../DINO/d_conv.h d_run.h \
@@ -768,7 +814,8 @@ d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
  $(top_srcdir)/DINO/d_common.h \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_func.h \
- $(top_srcdir)/DINO/../DINO/d_eval.h
+ $(top_srcdir)/DINO/../DINO/d_eval.h \
+ $(top_srcdir)/DINO/../DINO/d_gen.c
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_eval.c
 d_heap.o: $(top_srcdir)/DINO/../DINO/d_heap.c d_run.h \
  $(top_srcdir)/DINO/d_types.h d_config.h d_bc.h \
@@ -814,7 +861,8 @@ d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/DINO/../DINO/d_yacc.h \
  $(top_srcdir)/DINO/../DINO/d_context.h \
  $(top_srcdir)/DINO/../DINO/d_bcio.h \
- $(top_srcdir)/DINO/../DINO/d_eval.h
+ $(top_srcdir)/DINO/../DINO/d_eval.h \
+ $(top_srcdir)/DINO/../DINO/d_func.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_dino.c
 d_main.o: $(top_srcdir)/DINO/../DINO/d_main.c \
  $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h d_run.h \
