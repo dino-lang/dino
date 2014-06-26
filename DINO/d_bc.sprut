@@ -1042,10 +1042,11 @@ fun, efun, class :: op1_decl; /* result place, fdecl/efdecl */
 
 /* op1 is result place; op2 and op3 are container place and index/key place
    or dim for slice.  */ 
-ind, lindv, key, lkeyv, sl, lslv :: op3;
+ind, lindv, key, lkeyv :: op3;
+sl, lslv :: op3i;
 
 %abstract
-field :: op3
+field :: op3i
 %other
 	fldid : string_t  /* field identifier  */
 ;
@@ -1133,7 +1134,7 @@ foreach_val :: foreach
 	vcontainer, vindex: int_t
 ;
 
-vec, tab :: op3; /* result place, element parts start place, parts number */
+vec, tab :: op3i; /* result place, element parts start place, parts number */
 
 move :: op2 /* destination/source places.  */
 %other
@@ -1911,6 +1912,8 @@ print_node (FILE *f, BC_node_t bc)
     fprintf (f, "op_slst (");
   else if (BC_IS_OF_TYPE (bc, BC_NM_lindv))
     fprintf (f, "ind (");
+  else if (BC_IS_OF_TYPE (bc, BC_NM_fun) || BC_IS_OF_TYPE (bc, BC_NM_class))
+    fprintf (f, "funclass (");
   else
     fprintf (f, "%s (", BC_node_name[BC_NODE_MODE (bc)]);
   if (BC_IS_OF_TYPE (bc, BC_NM_op1))
@@ -1951,6 +1954,10 @@ print_node (FILE *f, BC_node_t bc)
     }
   if (BC_IS_OF_TYPE (bc, BC_NM_binc))
     fprintf (f, ", %d", BC_binc_inc (bc));
+  if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
+      || BC_IS_OF_TYPE (bc, BC_NM_call)
+      || BC_IS_OF_TYPE (bc, BC_NM_tcall))
+    fprintf (f, ", 1"); /* from_c_code_p argument  */
   if (BC_IS_OF_TYPE (bc, BC_NM_br))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));
   else if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
@@ -2023,11 +2030,26 @@ traverse_bcode (BC_node_t bc)
 #define CC_PREFIX "gcc -O2 -fPIC -g -shared"
 
 static void
-form_fname (vlo_t *fname, const char *name, const char *suffix)
+form_fun_name (vlo_t *fun_name, BC_node_t fdecl)
 {
+  char str[70];
+
+  VLO_ADD_STRING (*fun_name, GEN_FUN_PREFIX);
+  VLO_ADD_STRING (*fun_name, BC_ident (fdecl));
+  sprintf (str, "%lx", (unsigned long) fdecl);
+  VLO_ADD_STRING (*fun_name, str);
+}
+
+static void
+form_fname (vlo_t *fname, BC_node_t fdecl, const char *suffix)
+{
+  char str[70];
+
   VLO_ADD_STRING (*fname, GEN_DIR);
-  VLO_ADD_STRING (*fname, GEN_FUN_PREFIX);
-  VLO_ADD_STRING (*fname, name);
+  form_fun_name (fname, fdecl);
+  VLO_ADD_STRING (*fname, "p");
+  sprintf (str, "%d", (unsigned long) getpid ());
+  VLO_ADD_STRING (*fname, str);
   VLO_ADD_STRING (*fname, suffix);
 }
 
@@ -2078,12 +2100,12 @@ gen_cfblock (BC_node_t fblock)
 #else
   BC_node_t *bc_ptr, info;
   FILE *f;
-  vlo_t fname, objname, command, func_name;
+  vlo_t fname, objname, command, fun_name;
   void *addr;
   int error_p;
 
   VLO_CREATE (fname, 0);
-  form_fname (&fname, BC_ident (BC_fdecl (fblock)), ".c");
+  form_fname (&fname, BC_fdecl (fblock), ".c");
   f = fopen (VLO_BEGIN (fname), "w");
   if (f == NULL)
     return NULL;
@@ -2091,14 +2113,14 @@ gen_cfblock (BC_node_t fblock)
   curr_label_num = 0;
   traverse_bcode (BC_next (fblock));
   error_p = TRUE;
-  VLO_CREATE (func_name, 0);
+  VLO_CREATE (fun_name, 0);
   if (copy_gen_file (f))
     {
-      VLO_ADD_STRING (func_name, GEN_FUN_PREFIX);
-      VLO_ADD_STRING (func_name, BC_ident (BC_fdecl (fblock)));
-      fprintf (f, "void %s (struct ER_node *__restrict__ cv,\n",
-	       (const char *) VLO_BEGIN (func_name));
-      fprintf (f, "         struct ER_node *__restrict__ tv) {\n");
+      form_fun_name (&fun_name, BC_fdecl (fblock));
+      fprintf (f, "void %s (struct ER_node *__restrict__ cv, ",
+	       (const char *) VLO_BEGIN (fun_name));
+      fprintf (f, "struct ER_node *__restrict__ tv) {\n");
+      fprintf (f, "  set_c_code_p ();\n");
       for (bc_ptr = (BC_node_t *) VLO_BEGIN (fbcode);
 	   bc_ptr < (BC_node_t *) VLO_BOUND (fbcode);
 	   bc_ptr++)
@@ -2107,11 +2129,15 @@ gen_cfblock (BC_node_t fblock)
 	  if (BC_label_num (info) >= 0)
 	    fprintf (f, "l%d:\n", BC_label_num (info));
 	  print_node (f, *bc_ptr);
-	  if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_tcall)
+	  if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_fbend)
+	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_tcall)
 	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_itcall)
 	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_titcall)
 	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_citcall))
 	    fprintf (f, "  return;\n");
+	  else if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_block)
+		   || BC_IS_OF_TYPE (*bc_ptr, BC_NM_bend))
+	    fprintf (f, "  cv = cvars;\n");
 	  else if (bc_ptr + 1 >= (BC_node_t *) VLO_BOUND (fbcode)
 		   || BC_next (*bc_ptr) != bc_ptr[1])
 	    {
@@ -2144,7 +2170,7 @@ gen_cfblock (BC_node_t fblock)
 	{
 	  remove (VLO_BEGIN (fname));
 	  VLO_DELETE (fname);
-	  VLO_DELETE (func_name);
+	  VLO_DELETE (fun_name);
 	  return NULL;
 	}
     }
@@ -2152,7 +2178,7 @@ gen_cfblock (BC_node_t fblock)
   if (!error_p)
     {
       VLO_CREATE (objname, 0);
-      form_fname (&objname, BC_ident (BC_fdecl (fblock)), ".so");
+      form_fname (&objname, BC_fdecl (fblock), ".so");
       VLO_CREATE (command, 0);
       VLO_ADD_STRING (command, CC_PREFIX);
       VLO_ADD_STRING (command, " ");
@@ -2164,17 +2190,19 @@ gen_cfblock (BC_node_t fblock)
 	  void *handle = dlopen (VLO_BEGIN (objname), RTLD_NOW | RTLD_GLOBAL);
 	  if (handle != NULL)
 	    {
-	      addr = dlsym (handle, VLO_BEGIN (func_name));
+	      addr = dlsym (handle, VLO_BEGIN (fun_name));
 	      if (dlerror () != NULL)
 		addr = NULL;
 	    }
 	}
-      /*remove (VLO_BEGIN (objname));*/
+      if (! save_temps_flag)
+	remove (VLO_BEGIN (objname));
       VLO_DELETE (command);
       VLO_DELETE (objname);
     }
-  VLO_DELETE (func_name);
-  /*remove (VLO_BEGIN (fname));*/
+  VLO_DELETE (fun_name);
+  if (! save_temps_flag)
+    remove (VLO_BEGIN (fname));
   VLO_DELETE (fname);
   return addr;
 #endif

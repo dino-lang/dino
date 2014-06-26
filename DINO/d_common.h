@@ -69,6 +69,7 @@ extern int statistics_flag;
 extern int trace_flag;
 extern int profile_flag;
 extern int dump_flag;
+extern int save_temps_flag;
 extern double start_time;
 extern int_t a2i (const char *str, int base);
 extern floating_t a2f (const char *str);

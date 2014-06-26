@@ -45166,6 +45166,662 @@ OUTPUT696
         fi
 fi
 
+# Test 697.
+if test $result = ok -a $start_test_number -le 697; then
+	echo test 697: JIT: from C to interpreter
+        cat >$test_file <<'TEST697'
+fun a {
+  putln ("in a");
+}
+
+fun b ! {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST697
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT697' && $CMP $stdout $ftemp2; then
+in b
+in a
+at b end
+end
+OUTPUT697
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT697-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT697-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 698.
+if test $result = ok -a $start_test_number -le 698; then
+	echo test 698: JIT: from interpreter to C
+        cat >$test_file <<'TEST698'
+fun a ! {
+  putln ("in a");
+}
+
+fun b {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST698
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT698' && $CMP $stdout $ftemp2; then
+in b
+in a
+at b end
+end
+OUTPUT698
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT698-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT698-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 699.
+if test $result = ok -a $start_test_number -le 699; then
+	echo test 699: JIT: from C to C
+        cat >$test_file <<'TEST699'
+fun a ! {
+  putln ("in a");
+}
+
+fun b ! {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST699
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT699' && $CMP $stdout $ftemp2; then
+in b
+in a
+at b end
+end
+OUTPUT699
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT699-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 2, their calls - 2
+OUTPUT699-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 700.
+if test $result = ok -a $start_test_number -le 700; then
+	echo test 700: JIT: Interpreter calls C with throw
+        cat >$test_file <<'TEST700'
+fun a ! {
+  putln ("in a");
+  throw except ();
+}
+
+fun b {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+try {
+  b ();
+} catch (except) {putln ("except");}
+
+putln ("end");
+TEST700
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT700' && $CMP $stdout $ftemp2; then
+in b
+in a
+except
+end
+OUTPUT700
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT700-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT700-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 701.
+if test $result = ok -a $start_test_number -le 701; then
+	echo test 701: JIT: C calls interpreter with throw
+        cat >$test_file <<'TEST701'
+fun a {
+  putln ("in a");
+  throw except ();
+}
+
+fun b ! {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+try {
+  b ();
+} catch (except) {putln ("except");}
+
+putln ("end");
+TEST701
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT701' && $CMP $stdout $ftemp2; then
+in b
+in a
+except
+end
+OUTPUT701
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT701-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT701-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 702.
+if test $result = ok -a $start_test_number -le 702; then
+	echo test 702: JIT: C calls C with throw
+        cat >$test_file <<'TEST702'
+fun a ! {
+  putln ("in a");
+  throw except ();
+}
+
+fun b ! {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+try {
+  b ();
+} catch (except) {putln ("except");}
+
+putln ("end");
+TEST702
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT702' && $CMP $stdout $ftemp2; then
+in b
+in a
+except
+end
+OUTPUT702
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT702-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 2, their calls - 2
+OUTPUT702-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 703.
+if test $result = ok -a $start_test_number -le 703; then
+	echo test 703: JIT: Interpreter with try calls C with throw
+        cat >$test_file <<'TEST703'
+fun a ! {
+  putln ("in a");
+  throw except ();
+}
+
+fun b {
+  putln ("in b");
+  try {
+    a ();
+  } catch (except) {putln ("except");}
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST703
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT703' && $CMP $stdout $ftemp2; then
+in b
+in a
+except
+at b end
+end
+OUTPUT703
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT703-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT703-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 704.
+if test $result = ok -a $start_test_number -le 704; then
+	echo test 704: JIT: C with try calls C with throw
+        cat >$test_file <<'TEST704'
+fun a ! {
+  putln ("in a");
+  throw except ();
+}
+
+fun b ! {
+  putln ("in b");
+  try {
+    a ();
+  } catch (except) {putln ("except");}
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST704
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT704' && $CMP $stdout $ftemp2; then
+in b
+in a
+except
+at b end
+end
+OUTPUT704
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT704-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 2, their calls - 2
+OUTPUT704-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 705.
+if test $result = ok -a $start_test_number -le 705; then
+	echo test 705: JIT: C with try calls interpreter with throw
+        cat >$test_file <<'TEST705'
+fun a {
+  putln ("in a");
+  throw except ();
+}
+
+fun b ! {
+  putln ("in b");
+  try {
+    a ();
+  } catch (except) {putln ("except");}
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST705
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT705' && $CMP $stdout $ftemp2; then
+in b
+in a
+except
+at b end
+end
+OUTPUT705
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT705-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT705-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 706.
+if test $result = ok -a $start_test_number -le 706; then
+	echo test 706: JIT: C calls interpreter with exception
+        cat >$test_file <<'TEST706'
+fun a {
+  1/0;
+}
+
+fun b ! {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST706
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+           result=fail
+	else
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT706' && $CMP $stdout $ftemp2; then
+in b
+OUTPUT706
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT706-2' && $CMP $stderr $ftemp2; then
+test.d:2:4: floating point exception
+OUTPUT706-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                   result=fail
+                fi
+        fi
+fi
+
+# Test 707.
+if test $result = ok -a $start_test_number -le 707; then
+	echo test 707: JIT: Interpreter calls C with exception
+        cat >$test_file <<'TEST707'
+fun a ! {
+  1/0;
+}
+
+fun b {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST707
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+           result=fail
+	else
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT707' && $CMP $stdout $ftemp2; then
+in b
+OUTPUT707
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT707-2' && $CMP $stderr $ftemp2; then
+test.d:2:4: floating point exception
+OUTPUT707-2
+			result=ok
+		    elif cat >$ftemp2 <<'OUTPUT707-3' && $CMP $stderr $ftemp2; then
+test.d:7:5: floating point exception
+OUTPUT707-3
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                   result=fail
+                fi
+        fi
+fi
+
+# Test 708.
+if test $result = ok -a $start_test_number -le 708; then
+	echo test 708: JIT: C calls C with exception
+        cat >$test_file <<'TEST708'
+fun a ! {
+  1/0;
+}
+
+fun b ! {
+  putln ("in b");
+  a ();
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST708
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+           result=fail
+	else
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT708' && $CMP $stdout $ftemp2; then
+in b
+OUTPUT708
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT708-2' && $CMP $stderr $ftemp2; then
+test.d:2:4: floating point exception
+OUTPUT708-2
+			result=ok
+		    elif cat >$ftemp2 <<'OUTPUT708-3' && $CMP $stderr $ftemp2; then
+test.d:7:5: floating point exception
+OUTPUT708-3
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                   result=fail
+                fi
+        fi
+fi
+
+# Test 709.
+if test $result = ok -a $start_test_number -le 709; then
+	echo test 709: JIT: C calls interpreter with GC
+        cat >$test_file <<'TEST709'
+fun a {
+  gc ();
+}
+
+fun b ! {
+  putln ("in b");
+  try {
+    a ();
+  } catch (except) {putln ("except");}
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST709
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT709' && $CMP $stdout $ftemp2; then
+in b
+at b end
+end
+OUTPUT709
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT709-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT709-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 710.
+if test $result = ok -a $start_test_number -le 710; then
+	echo test 710: JIT: Interpreter calls C with GC
+        cat >$test_file <<'TEST710'
+fun a ! {
+  gc ();
+}
+
+fun b {
+  putln ("in b");
+  try {
+    a ();
+  } catch (except) {putln ("except");}
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST710
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT710' && $CMP $stdout $ftemp2; then
+in b
+at b end
+end
+OUTPUT710
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT710-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 1, their calls - 1
+OUTPUT710-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 711.
+if test $result = ok -a $start_test_number -le 711; then
+	echo test 711: JIT: C calls C with GC
+        cat >$test_file <<'TEST711'
+fun a ! {
+  gc ();
+}
+
+fun b ! {
+  putln ("in b");
+  try {
+    a ();
+  } catch (except) {putln ("except");}
+  putln ("at b end");
+}
+
+b ();
+putln ("end");
+TEST711
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT711' && $CMP $stdout $ftemp2; then
+in b
+at b end
+end
+OUTPUT711
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT711-2' && (fgrep 'Generated' $stderr | $CMP - $ftemp2); then
+Generated C code functions - 2, their calls - 2
+OUTPUT711-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

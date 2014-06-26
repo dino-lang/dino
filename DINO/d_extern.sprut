@@ -399,6 +399,7 @@ heap_tab :: heap_vect_tab
 %abstract
 context_heap_obj :: heap_obj
 %other
+  c_code_p : bool_t /* True if it has a corresponds c code stack.  */
   context_number : int_t        /* Unique number */
   /* May contains more vars than it is really necessary for the block.  */
   all_block_vars_num : int_t

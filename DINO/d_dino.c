@@ -833,17 +833,18 @@ void add_dino_path (const char *prefix, const char *subdir,
 "%%\n"\
 "command line: dino [option ...] [program-file] arguments\n"\
 "\n"\
-"`-h'         help\n"\
-"`-c program' execute program\n"\
-"`-m size'    set heap chunk size (1m - default, 1000k, or 1000000)\n"\
-"`-Idirname'  directory for searching for Dino programs\n"\
-"`-Ldirname'  Dino extern libraries\n"\
-"`-s'         output statistics to stderr\n"\
-"`-t'         output final trace to stderr\n"\
-"`-g'         generate C code\n"\
-"`-p'         output profile information into stderr\n"\
-"`-d'         dump program IR\n"\
-"`-i dump'    read IR instead of program\n"
+"`-h'           help\n"\
+"`-c program'   execute program\n"\
+"`-m size'      set heap chunk size (1m - default, 1000k, or 1000000)\n"\
+"`-Idirname'    directory for searching for Dino programs\n"\
+"`-Ldirname'    Dino extern libraries\n"\
+"`-s'           output statistics to stderr\n"\
+"`-t'           output final trace to stderr\n"\
+"`-g'           generate C code\n"\
+"`-p'           output profile information into stderr\n"\
+"`-d'           dump program IR\n"\
+"`-i dump'      read IR instead of program\n"\
+"`--save-temps' save temp JIT C and object files\n"
 
 int bc_nodes_num;
 
@@ -856,6 +857,7 @@ int statistics_flag;
 int trace_flag;
 int profile_flag;
 int dump_flag;
+int save_temps_flag;
 
 /* CYGWIN reports incorrect start time, we need this for correction of
    clock. */
@@ -966,6 +968,7 @@ dino_main (int argc, char *argv[], char *envp[])
   trace_flag = FALSE;
   profile_flag = FALSE;
   dump_flag = FALSE;
+  save_temps_flag = FALSE;
   eval_long_jump_set_flag = FALSE;
   /* Process all command line options. */
   for (i = next_option (TRUE), okay = TRUE; i != 0; i = next_option (FALSE))
@@ -1004,6 +1007,8 @@ dino_main (int argc, char *argv[], char *envp[])
 	dump_flag = TRUE;
       else if (strcmp (option, "-i") == 0)
 	input_dump = argument_vector [i + 1];
+      else if (strcmp (option, "--save-temps") == 0)
+	save_temps_flag = TRUE;
       else if (strcmp (option, "-m") == 0)
 	{
 	  heap_chunk_size = atoi (argument_vector [i + 1]);

@@ -453,9 +453,7 @@ make_the_same_length_keyword_partition (void)
 
 static IR_node_t first_free_trie_node;
 
-#ifndef NDEBUG
 static int allocated_trie_nodes_number = 0;
-#endif
 
 static void
 free_trie_node (IR_node_t trie_node)
@@ -487,9 +485,7 @@ get_free_trie_node (void)
 
   if (first_free_trie_node == NULL)
     {
-#ifndef NDEBUG
       allocated_trie_nodes_number++;
-#endif
       new_trie_node = IR_new_trie_node ();
     }
   else
@@ -2033,10 +2029,8 @@ output_statistics (FILE *f)
   IR_node_t current_keyword;
 
   output_char ('\n', f);
-#ifndef NDEBUG
   output_decimal_number (f, allocated_trie_nodes_number, 0);
   output_string (f, " all allocated trie nodes\n");
-#endif
   output_decimal_number (f, IR_keywords_number (description), 0);
   output_string (f, " keywords, ");
   output_decimal_number (f, IR_keyword_names_number (description), 0);

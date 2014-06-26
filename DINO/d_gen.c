@@ -468,6 +468,7 @@ execute_charof_op (ER_node_t res, ER_node_t op1, int vect_p)
     {
 #ifdef ERANGE
       errno = ERANGE;
+      ifun_call_pc = cpc;
       process_system_errors ("int-to-char conversion");
 #endif
     }
@@ -1147,8 +1148,8 @@ tabof (ER_node_t res, ER_node_t op1)
   execute_tableof_op (res, op1, TRUE);
 }
 
-static void vec (void);
-static void tab (void);
+extern void vec (ER_node_t res, ER_node_t op1, int_t vect_parts_number);
+extern void tab (ER_node_t res, ER_node_t op1, int_t tab_els_number);
 
 static void do_always_inline
 ind (ER_node_t res, ER_node_t op1, ER_node_t op2)
@@ -1180,21 +1181,21 @@ lslv (ER_node_t res, ER_node_t op1, int_t op3n)
 }
 
 static void do_always_inline
-call (ER_node_t op1, int_t op2n)
+call (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
-  process_fun_class_call (op1, op2n, FALSE);
+  process_fun_class_call (op1, op2n, FALSE, from_c_code_p);
 }
   
 static void do_always_inline
-tcall (ER_node_t op1, int_t op2n)
+tcall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
-  process_fun_class_call (op1, op2n, TRUE);
+  process_fun_class_call (op1, op2n, TRUE, from_c_code_p);
 }
   
 /* The same as previous but also process implementation functions.  */
 static void do_always_inline
 process_imm_fun_call (val_t *call_start, BC_node_t code, ER_node_t context,
-		      int actuals_num, int tail_flag)
+		      int actuals_num, int tail_flag, int from_c_code_p)
 {
   int vars_number = real_block_vars_number (code);
   int i;
@@ -1226,60 +1227,63 @@ process_imm_fun_call (val_t *call_start, BC_node_t code, ER_node_t context,
   /* Reset rest of variables.  */
   reset_vars ((ER_node_t) ((val_t *) cvars + actuals_num),
 	      (ER_node_t) ((val_t *) cvars + vars_number));
-  do_call (code);
+  do_call (code, from_c_code_p);
 }
 
 static void do_always_inline
-common_icall (ER_node_t op1, int_t op2n, ER_node_t op3, int tail_flag)
+common_icall (ER_node_t op1, int_t op2n, ER_node_t op3,
+	      int tail_flag, int from_c_code_p)
 {
   ctop = IVAL (op1, -1);
   process_imm_fun_call ((val_t *) op1, BC_cfblock (cpc), op3,
-			op2n, tail_flag);
+			op2n, tail_flag, from_c_code_p);
 }
 
 static void do_always_inline
-icall (ER_node_t op1, int_t op2n)
+icall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
   common_icall (op1, op2n,
-		find_context_by_scope (BC_scope (BC_cfblock (cpc))), FALSE);
+		find_context_by_scope (BC_scope (BC_cfblock (cpc))),
+		FALSE, from_c_code_p);
 }
 
 static void do_always_inline
-itcall (ER_node_t op1, int_t op2n)
+itcall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
   common_icall (op1, op2n,
-		find_context_by_scope (BC_scope (BC_cfblock (cpc))), TRUE);
+		find_context_by_scope (BC_scope (BC_cfblock (cpc))),
+		TRUE, from_c_code_p);
 }
 
 static void do_always_inline
-cicall (ER_node_t op1, int_t op2n)
+cicall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
-  common_icall (op1, op2n, cstack, FALSE);
+  common_icall (op1, op2n, cstack, FALSE, from_c_code_p);
 }
 
 static void do_always_inline
-citcall (ER_node_t op1, int_t op2n)
+citcall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
-  common_icall (op1, op2n, cstack, TRUE);
+  common_icall (op1, op2n, cstack, TRUE, from_c_code_p);
 }
 
 static void do_always_inline
-ticall (ER_node_t op1, int_t op2n)
+ticall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
-  common_icall (op1, op2n, uppest_stack, FALSE);
+  common_icall (op1, op2n, uppest_stack, FALSE, from_c_code_p);
 }
 
 static void do_always_inline
-titcall (ER_node_t op1, int_t op2n)
+titcall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
-  common_icall (op1, op2n, uppest_stack, TRUE);
+  common_icall (op1, op2n, uppest_stack, TRUE, from_c_code_p);
 }
 
 static void do_always_inline
-ibcall (ER_node_t op1, int_t op2n)
+ibcall (ER_node_t op1, int_t op2n, int from_c_code_p)
 {
   ctop = IVAL (op1, -1);
-  process_imm_ifun_call (BC_cfblock (cpc), op2n);
+  process_imm_ifun_call (BC_cfblock (cpc), op2n, from_c_code_p);
 }
 
 static void do_always_inline
@@ -2130,6 +2134,12 @@ bend (void)
 }
 
 static int do_always_inline
+exit_p (void)
+{
+  return (cpc == NULL || ER_c_code_p (cstack));
+}
+
+static int do_always_inline
 fblock_end (BC_node_t bc_node)
 {
   if (BC_fun_p (bc_node))
@@ -2150,7 +2160,7 @@ fblock_end (BC_node_t bc_node)
   else
     d_unreachable ();
   heap_pop ();
-  return cpc == NULL;
+  return exit_p ();
   /* Do not put INTERRUPT here as the result is not on the top and
      possible GC called directly (or indirectly through thread
      switching) from INTERRUPT can make the result wrong.  Another
@@ -2209,7 +2219,7 @@ ret (ER_node_t res)
 	  *(val_t *) IVAL (ER_ctop (ER_prev_stack (cstack)), 1)
 	    = *(val_t *) res;
 	  heap_pop ();
-	  return cpc == NULL;
+	  return exit_p ();
 	}
       heap_pop ();
       d_assert (cstack != NULL);
@@ -2248,7 +2258,7 @@ block (void)
   BC_set_saved_sync_p (cpc, sync_flag);
 }
 
-static int throw (void);
+extern int throw (ER_node_t op1);
 
 static int do_always_inline
 foreach (ER_node_t tv, ER_node_t op1, ER_node_t op2, ER_node_t res)
@@ -2392,4 +2402,10 @@ rpr_def (ER_node_t res)
 static void do_always_inline
 nop (void)
 {
+}
+
+static void do_always_inline
+set_c_code_p (void)
+{
+  ER_set_c_code_p (cstack, 1);
 }

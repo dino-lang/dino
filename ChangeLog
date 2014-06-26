@@ -1,3 +1,70 @@
+2014-06-26  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* SHILKA/gen.c (allocated_trie_nodes_number): Make it
+	unconditional.
+	(get_free_trie_node, output_statistics): Use
+	allocated_trie_nodes_number unconditionally.
+	* DINO/dino.tst.in: Add new tests for JIT.
+	* DINO/d_run.sprut (call_pos, ifun_call_pc): New.
+	(call_fun_class): Add parameter.
+	(switch_to_bcode, evaluate_code): New externals.
+	(do_call): Add new parameter.  Make call right before return.
+	Call evaluate_code for from_c_code_p.
+	* DINO/d_heap.c (used_c_stack_p): New.
+	(traverse_used_heap_object): Set up used_c_stack_p.
+	(destroy_stacks): Pass new argument to call_fun_class.
+	(GC): Reset used_c_stack_p.  Call switch_to_bcode.
+	(heap_push_without_profile_update): Reset stack c_code_p.
+	* DINO/d_gen.c (execute_charof_op): Set up ifun_call_pc.
+	(vec, tab): Add parameters.
+	(call tcall, process_imm_fun_call, common_icall, icall, itcall):
+	Add parameter.
+	(cicall, citcall, ticall, titcall, ibcall): Ditto.
+	(exit_p): New.
+	(fblock_end, ret): Use it.
+	(throw): Add parameter.
+	(set_c_code_p): New.
+	* DINO/d_func.h (process_imm_ifun_call, process_fun_class_call):
+	Add parameter.
+	* DINO/d_func.c: Use call_pos instead of get_cpos in builtin
+	functions.
+	(curr_from_c_code_p, ifun_call_pc): New.
+	(call_external_fun): Move INCREMENT_PC before the call.
+	(process_imm_ifun_call): Ditto.  Set up ifun_call_pc.  Manage
+	curr_from_c_code_p.
+	(process_fun_call): Add parameter.
+	(process_fun_class_call): Add parameter.  Move INCREMENT_PC before
+	the call.  Set up ifun_call_pc.  Manage curr_from_c_code_p.
+	* DINO/d_extern.sprut (context_heap_obj): Add field c_code_p.
+	* DINO/d_eval.c (eval_long_jump_set_flag, eval_longjump_buf): Move
+	upper.
+	(find_catch_pc): Make void return type.  Call switch_to_bcode if
+	necessary.
+	(vec, tab, throw): Add parameter(s).
+	(evaluate_code): Make external.  Make INTERRUPT_CHECK calls the
+	last one.
+	(switch_to_bcode): New.
+	* DINO/d_dino.c (COMMAND_LINE_DESCRIPTION): Add --save-temps.
+	(save_temps_flag): New.
+	(dino_main): Set it.
+	* DINO/d_conv.h (form_format_string): Add parameter.
+	* DINO/d_common.h (save_temps_flag): New.
+	* DINO/d_conv.c (get_fmt_op_pos): New.
+	(form_format_string): Add parameter.  Use get_fmt_op_pos.  Set up
+	ifun_call_pc.
+	(implicit_arithmetic_conversion): Set up ifun_call_pc.
+	* DINO/d_bc.sprut (sl, lslv, field, vec, tab): Make them op3i.
+	(print_node): Print funclass for fun or class.  Print additional
+	argument for imcall, call, tcall.
+	(form_fun_name): New.
+	(form_fname): Use it.  Change 2nd arg type.  Add pid to the name.
+	(gen_cfblock): Use form_fun_name.  Generate set_c_code_p call.
+	Generate return after fbend.  Use save_temps_flag.  Uncomment
+	remove calls.
+	* DINO/compare.tst: Add JIT variant tests.
+	(int1000): New.
+	(print_dino): Use it in print.  Reset dtime if it is smaller.
+
 2014-06-19  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/IEEE.cpp (biased_exponent): Remove unused var result.

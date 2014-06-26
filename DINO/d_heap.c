@@ -791,6 +791,11 @@ traverse_used_var (ER_node_t var)
     }
 }
 
+/* Set up when we find used C code stack.  */
+static int used_c_stack_p;
+
+/* Traverse and Mark all reachable objects from OBJ.  Set up
+   USED_C_STACK_P if necessary.  */
 static void
 traverse_used_heap_object (ER_node_t obj)
 {
@@ -858,6 +863,8 @@ traverse_used_heap_object (ER_node_t obj)
       {
 	ER_node_t var;
 	
+	if (ER_c_code_p (obj))
+	  used_c_stack_p = TRUE;
 	traverse_used_heap_object (ER_prev_stack (obj));
 	traverse_used_heap_object (ER_context (obj));
 	for (var = ER_stack_vars (obj); /* !!! */
@@ -1405,7 +1412,7 @@ destroy_stacks (void)
 	    /* We mark it before the call to prevent infinite loop if
 	       the exception occurs during the call. */
 	    ER_set_state (curr_obj, IS_destroyed);
-	    call_fun_class (BC_fblock (decl), curr_obj, 0);
+	    call_fun_class (BC_fblock (decl), curr_obj, 0, FALSE);
 	  }
     }
 }
@@ -1422,6 +1429,7 @@ GC (void)
 
   if (no_gc_p)
     return;
+  used_c_stack_p = FALSE;
   /* Mark that we don't need GC anymore.  */
   d_assert (GC_executed_stmts_count <= 0);
   executed_stmts_count = GC_executed_stmts_count;
@@ -1456,6 +1464,9 @@ GC (void)
 #endif
   if (flag)
     destroy_stacks ();
+  /* Switch to byte code execution as stacks might move.  */
+  if (used_c_stack_p)
+    switch_to_bcode ();
 }
 
 
@@ -1569,6 +1580,7 @@ heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
+  ER_set_c_code_p (stack, FALSE);
   ER_set_call_pc (stack, cpc);
   ER_set_context (stack, context);
   ER_set_prev_stack (stack, cstack);

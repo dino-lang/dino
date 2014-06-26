@@ -56,6 +56,7 @@
 extern int sync_flag;
 
 extern d_restrict pc_t cpc;
+extern d_restrict pc_t ifun_call_pc;
 extern ER_node_t cstack;
 extern ER_node_t uppest_stack;
 extern d_restrict ER_node_t tvars;
@@ -83,6 +84,13 @@ static position_t do_always_inline
 get_cpos (void)
 {
   return get_pos (cpc);
+}
+
+/* Return source position of last implementation function call.  */
+static position_t do_always_inline
+call_pos (void)
+{
+  return get_pos (ifun_call_pc);
 }
 
 #define TOP_UP   DECR_CTOP (-1)
@@ -192,8 +200,13 @@ extern void *external_address (BC_node_t decl);
 
 extern void process_system_errors (const char *function_name);
 
-extern void call_fun_class (BC_node_t fun, ER_node_t context, int_t pars_number);
+extern void call_fun_class (BC_node_t fun, ER_node_t context,
+			    int_t pars_number, int from_c_code_p);
 
+
+extern void switch_to_bcode (void);
+
+extern void evaluate_code (void);
 
 #ifdef __GNUC__
 extern void eval_error (BC_node_t error_decl, position_t position,
@@ -287,7 +300,7 @@ extern unsigned int generated_c_functions_num, generated_c_function_calls_num;
 /* Make FBLOCK call itself.  It might be C code generation and its
    call.  */
 static void do_always_inline
-do_call (BC_node_t fblock)
+do_call (BC_node_t fblock, int from_c_code_p)
 {
   if (BC_fmode (fblock) == BC_gen)
     {
@@ -307,12 +320,14 @@ do_call (BC_node_t fblock)
 	}
       if (addr != NULL)
 	{
-	  ((void (*) (ER_node_t, ER_node_t)) addr) (cvars, tvars);
 	  generated_c_function_calls_num++;
+	  ((void (*) (ER_node_t, ER_node_t)) addr) (cvars, tvars);
 	  return;
 	}
     }
   cpc = get_fblock_pc (fblock);
+  if (from_c_code_p)
+    evaluate_code ();
 }
 
 }

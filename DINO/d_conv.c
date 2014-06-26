@@ -28,11 +28,17 @@
 
 /* The file contains functions for run-time conversion values. */
 
+static position_t
+get_fmt_op_pos (int_t vec_p)
+{
+  return vec_p ? get_cpos () : call_pos ();
+}
+
 /* Form string in TEMP_VLOBJ from N_PARS PARS according to format FMT.
    Throw exception with NAME if something is wrong.  */
 void
 form_format_string (const char *fmt, ER_node_t pars, int n_pars,
-		    const char *name)
+		    const char *name, int vec_p)
 {
   ER_node_t val;
   const char *ptr, *str;
@@ -90,7 +96,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		else
 		  width = -1;
 		if (width < 0)
-		  eval_error (invfmt_bc_decl, get_cpos (),
+		  eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			      DERR_invalid_format, name);
 		next = *++ptr;
 	      }
@@ -101,11 +107,11 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	  {
 	    width_flag = TRUE;
 	    if (curr_par_num >= n_pars)
-	      eval_error (parnumber_bc_decl, get_cpos (),
+	      eval_error (parnumber_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_parameters_number, name);
 	    val = IVAL (pars, curr_par_num);
 	    if (ER_NODE_MODE (val) != ER_NM_int)
-	      eval_error (partype_bc_decl, get_cpos (),
+	      eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_parameter_type, name);
 	    width = ER_i (val);
 	    if (width < 0)
@@ -127,11 +133,11 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	    if (next == '*')
 	      {
 		if (curr_par_num >= n_pars)
-		  eval_error (parnumber_bc_decl, get_cpos (),
+		  eval_error (parnumber_bc_decl, get_fmt_op_pos (vec_p),
 			      DERR_parameters_number, name);
 		val = IVAL (pars, curr_par_num);
 		if (ER_NODE_MODE (val) != ER_NM_int)
-		  eval_error (partype_bc_decl, get_cpos (),
+		  eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			      DERR_parameter_type, name);
 		precision = ER_i (val);
 		if (precision < 0)
@@ -153,7 +159,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		    else
 		      precision = -1;
 		    if (precision < 0)
-		      eval_error (invfmt_bc_decl, get_cpos (),
+		      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 				  DERR_invalid_format, name);
 		    next = *++ptr;
 		  }
@@ -196,13 +202,13 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	  {
 	    if (alternate_flag || zero_flag || left_adjust_flag
 		|| blank_flag || plus_flag || width_flag || precision_flag)
-	      eval_error (invfmt_bc_decl, get_cpos (),
+	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
 	    VLO_ADD_BYTE (temp_vlobj, '%');
 	    continue;
 	  }
 	if (curr_par_num >= n_pars)
-	  eval_error (parnumber_bc_decl, get_cpos (),
+	  eval_error (parnumber_bc_decl, get_fmt_op_pos (vec_p),
 		      DERR_parameters_number, name);
 	val = IVAL (pars, curr_par_num);
 	add = width + 5;
@@ -213,7 +219,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	    if ((next == 'd' && alternate_flag)
 		|| ((next == 'o' || next == 'x' || next == 'X')
 		    && (blank_flag || plus_flag)))
-	      eval_error (invfmt_bc_decl, get_cpos (),
+	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
 	    curr_fmt += sprintf (curr_fmt, "%c", next);
 	    add += 100;
@@ -224,7 +230,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		  out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
 				 ER_i (val));
 		else if (ER_NODE_MODE (val) != ER_NM_long)
-		  eval_error (partype_bc_decl, get_cpos (),
+		  eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			      DERR_parameter_type, name);
 		else
 		  {
@@ -295,7 +301,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	    else
 	      {
 		if (ER_NODE_MODE (val) != ER_NM_float)
-		  eval_error (partype_bc_decl, get_cpos (),
+		  eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			      DERR_parameter_type, name);
 		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
 			       ER_f (val));
@@ -305,14 +311,14 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	  {
 	    if (alternate_flag || zero_flag || blank_flag || plus_flag
 		|| precision_flag)
-	      eval_error (invfmt_bc_decl, get_cpos (),
+	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
 	    *curr_fmt++ = 'c';
 	    *curr_fmt++ = '\0';
 	    add += 10;
 	    VLO_EXPAND (temp_vlobj, add);
 	    if (ER_NODE_MODE (val) != ER_NM_char)
-	      eval_error (partype_bc_decl, get_cpos (),
+	      eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_parameter_type, name);
 	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
 			   ER_ch (val));
@@ -320,7 +326,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	else if (next == 's')
 	  {
 	    if (alternate_flag || zero_flag || blank_flag || plus_flag)
-	      eval_error (invfmt_bc_decl, get_cpos (),
+	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
 	    *curr_fmt++ = 's';
 	    *curr_fmt++ = '\0';
@@ -328,7 +334,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	    if (ER_NODE_MODE (val) != ER_NM_vect
 		|| ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
 		|| ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char)
-	      eval_error (partype_bc_decl, get_cpos (),
+	      eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_parameter_type, name);
 	    str = ER_pack_els (ER_vect (val));
 	    add += strlen (str) + 10;
@@ -337,16 +343,19 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 			   str);
 	  }
 	else
-	  eval_error (invfmt_bc_decl, get_cpos (), DERR_invalid_format, name);
+	  eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p), DERR_invalid_format, name);
 	curr_par_num++;
 	d_assert (out <= add);
 	VLO_SHORTEN (temp_vlobj, add - out);
       }
   if (curr_par_num != n_pars)
-    eval_error (parnumber_bc_decl, get_cpos (), DERR_parameters_number, name);
+    eval_error (parnumber_bc_decl, get_fmt_op_pos (vec_p), DERR_parameters_number, name);
   VLO_ADD_BYTE (temp_vlobj, '\0');
   if (errno != 0)
-    process_system_errors (name);
+    {
+      ifun_call_pc = cpc;
+      process_system_errors (name);
+    }
 }
 
 ER_node_t
@@ -362,7 +371,7 @@ to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
     {
       if (format != NULL)
 	{
-	  form_format_string (format, var, 1, "vect (...)");
+	  form_format_string (format, var, 1, "vect (...)", TRUE);
 	  representation = VLO_BEGIN (temp_vlobj);
 	}
       else if (mode == ER_NM_float)
@@ -396,7 +405,7 @@ to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
 	{
 	  d_assert (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_vect
 		    && ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char);
-	  form_format_string (format, var, 1, "vect (...)");
+	  form_format_string (format, var, 1, "vect (...)", TRUE);
 	  representation = VLO_BEGIN (temp_vlobj);
 	  /* Remeber `var' may be changed in GC. */
 	  vect = create_string (representation);
@@ -474,7 +483,10 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 			{
 			  f = a2f (ER_pack_els (pack_vect));
 			  if (errno)
-			    process_system_errors ("string-to-float conversion");
+			    {
+			      ifun_call_pc = cpc;
+			      process_system_errors ("string-to-float conversion");
+			    }
 			  ER_SET_MODE (tvar, ER_NM_float);
 			  ER_set_f (tvar, f);
 			}
@@ -482,7 +494,10 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 			{
 			  i = a2i (repr, base);
 			  if (errno)
-			    process_system_errors ("string-to-int conversion");
+			    {
+			      ifun_call_pc = cpc;
+			      process_system_errors ("string-to-int conversion");
+			    }
 			  ER_SET_MODE (tvar, ER_NM_int);
 			  ER_set_i (tvar, i);
 			}

@@ -195,6 +195,10 @@ Announce_Test() {
 
 TIME="/usr/bin/time -f user%U"
 
+int1000 () {
+ echo `awk "BEGIN {printf \"%d\n\", int ($1 * 1000)}"`
+}
+
 perc () {
   echo `awk "BEGIN {if ($2==0) print \"Inf\"; else printf \"%.1fx\n\", $1/$2;}"`
 }
@@ -232,7 +236,10 @@ print_dino() {
 	$NECHO $s
 	l=`expr length "$s"`
 	while test $l -le 10; do $NECHO " "; l=`expr $l + 1`; done
-        echo `perc $s $dtime`
+	if test "x$1" = x;then echo base;
+        elif expr `int1000 $s` '<' `int1000 $dtime` >/dev/null; then
+          dtime=$s; echo new base;
+        else echo `perc $s $dtime`; fi
     fi
 }
 
@@ -259,6 +266,7 @@ if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else e
 if test x$DINO_ONLY != x; then
   Announce_Test "+++++          JIT variant:"
 fi
+
 cat <<'EOF' >$ftest
 fun ack (m, n) ! {
     if (m == 0) return n + 1;
@@ -270,7 +278,7 @@ var n = int (argv [0] < 1 ? 1 : argv [0]);
 putln ("Ack(3,", n, "): ", ack (3, n));
 EOF
 title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo $DINO: FAILED;fi
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2 1;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -525,6 +533,27 @@ for (k = 0; k < 1000; k++)
 putln (y [0], " ", y [n - 1]);
 EOF
 title=" (Slice Variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT Variant:"
+fi
+cat <<'EOF' >$ftest
+fun main ! {
+  var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+  var x = [n:0], y = [n:0];
+
+  for (i = 0; i < n; i++)
+    x [i] = i + 1;
+  for (k = 0; k < 1000; k++)
+    for (i = 0; i < n; i++)
+      y[i] += x[i];
+
+  putln (y [0], " ", y [n - 1]);
+}
+main ();
+EOF
+title=" (JIT Variant)"
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
@@ -847,6 +876,32 @@ try {
 }
 EOF
 title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT Variant:"
+fi
+cat <<'EOF' >$ftest
+fun main ! {
+  var ln, v, nc = 0, nw = 0, nl = 0, l;
+
+  try {
+    for (;;) {
+      ln = getln ();
+      nc += #ln + 1;
+      v = split (ln);
+      l = #v;
+      nw += (#v [l - 1] == 0 ? l - 1 : l);
+      nl++;
+    }
+  } catch (eof) {
+    putln (nl, " ", nw, " ", nc);
+    exit (0);
+  }
+}
+main ();
+EOF
+title=" (JIT Variant)"
 if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
@@ -1539,6 +1594,58 @@ EOF
 title=
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT Variant:"
+fi
+cat <<'EOF' >$ftest
+var HI = 0;
+var LO = 0;
+
+class Hi_exception (value) {use except;}
+class Lo_exception (value) {use except;}
+
+fun blowup (num) ! { 
+  throw ((num & 1) ? Lo_exception (num) : Hi_exception (num));
+}
+
+fun lo_function (num) ! {
+  try {
+    blowup (num);
+  } catch (Lo_exception) {
+    LO++;
+  }
+}
+
+fun hi_function (num) ! {
+  try {
+    lo_function (num);
+  } catch (Hi_exception) {
+    HI++;
+  }
+}
+
+fun some_function (num) {
+  try { 
+    hi_function (num);
+  } catch (except) {
+    fputln (stderr, "We shouldn't get here (", e.value , ")");
+  }
+}
+
+fun main {
+  var i, num = int (argv [0]);
+
+  if (num < 1) num = 1;
+  for (i = num - 1; i >= 0; i--)
+    some_function (i);
+  putln ("Exceptions: HI=", HI, " / LO=", LO);
+}
+
+main ();
+EOF
+title=" (JIT Variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -2227,6 +2334,26 @@ EOF
 title=
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun main ! {
+  var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
+  var f = "%x", x = tab [];
+
+  for (i = 1; i <= n; i++)
+   x [vec (i, f)] = i;
+  for (i = n; i > 0; i--)
+   if (vec (i, f) in x)
+     c++;
+  putln (c);
+}
+main ();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
@@ -2522,6 +2649,32 @@ putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
        hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
 EOF
 title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun main ! {
+  var i, n = int (argv[0]);
+  var hash1 = tab [];
+
+  for (i = 0; i < 10000; i++)
+    hash1 [vec (i, "foo_%d")] = i;
+
+  var k, v, hash2 = tab [];
+  for (k: hash1)
+    hash2 [k] = 0;
+  for (i = 0 ; i < n; i++)
+    for (k, v: hash1)
+      hash2 [k] += v;
+
+  putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+         hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+}
+main ();
+EOF
+title=" (JIT variant)"
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
@@ -3600,7 +3753,7 @@ putln ("hello world");
 EOF
 title=
 ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
-fi
+
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -3706,6 +3859,8 @@ EOF
   ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $OCAML $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
+fi
+
 # Test 11.
 if test $start_test_number -le 11; then
 
@@ -3757,6 +3912,55 @@ fun main() {
 main ();
 EOF
 title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+var SIZE = 10000;
+
+fun test_lists ! {
+  var i, Li1 = [SIZE : 0];
+
+  // create a list of integers (Li1) from 1 to SIZE
+  for (i = 0; i < SIZE; i++) Li1 [i] = i + 1;
+
+  // copy the list to Li2 (not by individual items)
+  var Li2 = new Li1;
+  var Li3 = [];
+
+  // remove each individual item from left side of Li2 and
+  // append to right side of Li3 (preserving order)
+
+  for (;#Li2;) {
+    ins (Li3, Li2 [0], -1);
+    del (Li2, 0);
+  }
+
+  // Li2 must now be empty
+  // remove each individual item from right side of Li3 and
+  // append to right side of Li2 (reversing list)
+  for (;#Li3;) {
+    ins (Li2, Li3 [#Li3 - 1], -1);
+    del (Li3, #Li3 - 1);
+  }
+  Li1 = rev (Li1);
+  if (Li1 [0] != SIZE)
+    return 0;
+  return (Li1 == Li2 ? #Li1 : 0);
+}
+
+fun main() {
+  var result, NUM;
+  for (NUM = argv [0] < 1 ? 1 : int (argv [0]); NUM > 0; NUM--)
+    result = test_lists ();
+  putln (result);
+}
+
+main ();
+EOF
+title=" (JIT variant)"
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
@@ -5075,6 +5279,110 @@ main();
 EOF
 title=
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+class Toggle (start_state) {
+  var bool;
+  fun init {bool = start_state;}
+  fun value ! { return bool; }
+  fun activate ! { bool = !bool; }
+  init ();
+}
+
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate ! {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
+    }
+  }
+}
+
+fun main ! {
+  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
+  var i, v = 1;
+
+  var toggle = Toggle (v);
+  for (i = 1; i <= NUM; i++) {
+    toggle.activate ();
+    v = toggle.value ();
+  }
+  putln (v ? "true" : "false");
+
+  v = 1;
+  var ntoggle = NthToggle (v, 3);
+  for (i = 1; i <= NUM; i++) {
+    ntoggle.activate ();
+    v = ntoggle.value ();
+  }
+  putln (v ? "true" : "false");
+}
+
+main();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+use strict;
+
+my $SIZE = 10000;
+
+my $ITER = $ARGV[0];
+$ITER = 1 if ($ITER < 1);
+
+my $result = 0;
+while ($ITER--) {
+    $result = &test_lists();
+}
+print "$result\n";
+
+sub test_lists {
+    # create a list of integers (Li1) from 1 to SIZE
+    my @Li1 = (1..$SIZE);
+    # copy the list to Li2 (not by individual items)
+    my @Li2 = @Li1;
+    my @Li3 = ();
+    # remove each individual item from left side of Li2 and
+    # append to right side of Li3 (preserving order)
+    push(@Li3, shift @Li2) while (@Li2);
+    # Li2 must now be empty
+    # remove each individual item from right side of Li3 and
+    # append to right side of Li2 (reversing list)
+    push(@Li2, pop @Li3) while (@Li3);
+    # Li3 must now be empty
+    # reverse Li1 in place
+    @Li1 = reverse @Li1;
+    # check that first item is now SIZE
+    return(0) if $Li1[0] != $SIZE;
+    # compare Li1 and Li2 for equality
+    my $len1 = scalar(@Li1);
+    my $len2 = scalar(@Li2);
+    my $lists_equal = ($len1 == $len2);
+    return(0) if not $lists_equal;
+    for my $i (0..($len1-1)) {
+        if ($Li1[$i] != $Li2[$i]) {
+            $lists_equal = 0;
+            last;
+        }
+    }
+    return(0) if not $lists_equal;
+    # return the length of the list
+    return($len1);
+}
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest

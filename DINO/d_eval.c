@@ -32,6 +32,12 @@
 #include "d_eval.h"
 #include "d_gen.c"
 
+/* The following variable value is TRUE if we've started evaluation
+   and set up longjump buffer `eval_longjump_buff'. */
+int eval_long_jump_set_flag;
+/* The following variable is used for throwing errors. */
+static jmp_buf eval_longjump_buff;
+
 static void do_always_inline
 extract_op1 (ER_node_t *op1)
 {
@@ -1030,11 +1036,13 @@ slice_assign (ER_node_t container, int_t dim, ER_node_t val)
    occurrence. */
 static position_t exception_position;
 
-/* Find PC to process EXCEPT.  If it is not found, finish program or
-   return NULL in case of REPL.  */
-static pc_t
+/* Find PC to process EXCEPT and set it as CPC.  If it is not found,
+   finish program or set up CPC as NULL in case of REPL.  Jump if we
+   need to pop C stack or found PC (it becomes CPC) is in C stack.  */
+static void
 find_catch_pc (ER_node_t except)
 {
+  int jump_p;
   BC_node_t block;
   ER_node_t message;
   struct trace_stack_elem elem;
@@ -1042,6 +1050,7 @@ find_catch_pc (ER_node_t except)
 
   if (trace_flag)
     VLO_NULLIFY (trace_stack);
+  jump_p = ER_c_code_p (cstack);
   for (; cstack != uppest_stack;)
     {
       block = ER_block_node (cstack);
@@ -1057,6 +1066,8 @@ find_catch_pc (ER_node_t except)
 	delete_cprocess_during_exception ();
       if (cstack != uppest_stack)
 	heap_pop ();
+      if (ER_c_code_p (cstack))
+	jump_p = TRUE;
       /* Set up ctop as it should be for any statement begin.  */
       if (cstack != NULL)
 	ctop = (ER_node_t) ((char *) cvars
@@ -1073,7 +1084,9 @@ find_catch_pc (ER_node_t except)
 	  ER_set_process_status (cprocess, PS_READY);
 	  if (trace_flag)
 	    VLO_NULLIFY (trace_stack);
-	  return cpc;
+	  if (jump_p)
+	    switch_to_bcode ();
+	  return;
 	}
       else if (cstack == NULL)
 	break;
@@ -1099,7 +1112,7 @@ find_catch_pc (ER_node_t except)
 	    pack_vector_if_possible (vect);
 	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
 	      && ER_pack_vect_el_mode (vect) == ER_NM_char)
-	    /* No return after error. */
+	    /* No return after error unless REPL. */
 	    d_error (! repl_flag, exception_position, ER_pack_els (vect));
 	}
     }
@@ -1111,7 +1124,9 @@ find_catch_pc (ER_node_t except)
 		 BC_ident (BC_fdecl (ER_block_node (except))));
       dino_finish (1);
     }
-  return NULL;
+  cpc = NULL;
+  if (jump_p)
+    switch_to_bcode ();
 }
 
 static int do_always_inline
@@ -2939,7 +2954,9 @@ fold_vect_op (ER_node_t res, ER_node_t op)
 }
 
 /* Macro for possible switch the process or to do GC.  Remeber cpc
-   must be correct for resuming the current process lately. */
+   must be correct for resuming the current process lately.  For
+   correct work of JIT, this macro should be the last for byte code
+   execution as the long jump might be from it.  */
 #define INTERRUPT_CHECK\
   do {\
     if (++executed_stmts_count >= 0) {			\
@@ -2947,21 +2964,19 @@ fold_vect_op (ER_node_t res, ER_node_t op)
     }				       			\
   } while (0)
 
-static void
-vec (void)
+void
+vec (ER_node_t res, ER_node_t op1, int_t vect_parts_number)
 {
   /* If you make a change here, please look at DINO read
      functions. */
-  ER_node_t res, op1, vect, saved_ctop;
-  int_t vect_parts_number, curr_vect_part_number;
+  ER_node_t vect, saved_ctop;
+  int_t curr_vect_part_number;
   int_t curr_vect_element_number;
   size_t el_type_size;
   size_t els_number;
   int_t repetition;
   int pack_flag;
 	    
-  extract_op2 (&res, &op1);
-  vect_parts_number = BC_op3 (cpc);
   if (vect_parts_number == 0)
     vect = create_empty_vector ();
   else
@@ -3037,15 +3052,13 @@ vec (void)
   set_vect_dim (res, vect, 0);
 }
 
-static void
-tab (void)
+void
+tab (ER_node_t res, ER_node_t op1, int_t tab_els_number)
 {
-  ER_node_t res, op1, tab, saved_ctop;
-  int_t tab_els_number, curr_tab_el_number;
+  ER_node_t tab, saved_ctop;
+  int_t curr_tab_el_number;
   ER_node_t entry;
   
-  extract_op2 (&res, &op1);
-  tab_els_number = BC_op3 (cpc);
   saved_ctop = ctop;
   ctop = op1;
   DECR_CTOP (-2 * tab_els_number);
@@ -3080,24 +3093,23 @@ out (void)
     heap_pop ();
 }
 
-static int
-throw (void)
+int
+throw (ER_node_t op1)
 {
   const char *message;
-  ER_node_t op1, op2;
+  ER_node_t op2;
   val_t tvar1;
 
   op2 = (ER_node_t) &tvar1;
   ER_SET_MODE (op2, ER_NM_code);
   ER_set_code_id (op2, CODE_ID (except_bc_decl));
   ER_set_code_context (op2, uppest_stack);
-  op1 = get_op (BC_op1 (cpc));
   if (! ER_IS_OF_TYPE (op1, ER_NM_stack)
       || ! internal_isa_call (&message, op2, op1))
     eval_error (optype_bc_decl, get_cpos (),
 		DERR_no_exception_after_throw);
   exception_position = get_cpos ();
-  cpc = find_catch_pc (ER_stack (op1));
+  find_catch_pc (ER_stack (op1));
   return cpc == NULL;
 }
 
@@ -3133,14 +3145,14 @@ except (void)
       if (cpc == NULL)
 	{
 	  /* No more catches - go to covered try-blocks. */
-	  cpc = find_catch_pc (ER_stack (op1));
+	  find_catch_pc (ER_stack (op1));
 	  return cpc == NULL;
 	}
     }
   return FALSE;
 }
 
-static void
+void
 evaluate_code (void)
 {
   BC_node_mode_t node_mode;
@@ -3161,18 +3173,18 @@ evaluate_code (void)
 #endif
 	case BC_NM_stvt:
 	  stvt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_sts:
 	  sts (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_ste:
 	  ste (get_op (BC_op1 (cpc)), get_op (BC_op3 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_ldnil:
 	  ldnil (get_op (BC_op1 (cpc)));
@@ -3367,11 +3379,11 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_vec:
-	  vec ();
+	  vec (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_tab:
-	  tab ();
+	  tab (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_ind:
@@ -3388,31 +3400,31 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_call:
-	  call (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  call (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_tcall:
-	  tcall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  tcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_icall:
-	  icall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  icall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_itcall:
-	  itcall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  itcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_cicall:
-	  cicall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  cicall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_citcall:
-	  citcall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  citcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_ticall:
-	  ticall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  ticall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_titcall:
-	  titcall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  titcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_ibcall:
-	  ibcall (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  ibcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_add:
 	  add (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
@@ -3516,63 +3528,63 @@ evaluate_code (void)
 	  break;
 	case BC_NM_add_st:
 	  add_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_sub_st:
 	  sub_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_mult_st:
 	  mult_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_div_st:
 	  div_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_mod_st:
 	  mod_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_concat_st:
 	  concat_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_lsh_st:
 	  lsh_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_rsh_st:
 	  rsh_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_ash_st:
 	  ash_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_and_st:
 	  and_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_xor_st:
 	  xor_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_or_st:
 	  or_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_mult_slst:
 	case BC_NM_div_slst:
@@ -3587,8 +3599,8 @@ evaluate_code (void)
 	case BC_NM_xor_slst:
 	case BC_NM_or_slst:
 	  op_slst (get_op (BC_op1 (cpc)), BC_op2 (cpc), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_slst:
 	  slst (get_op (BC_op1 (cpc)), BC_op2 (cpc), get_op (BC_op3 (cpc)));
@@ -3596,8 +3608,8 @@ evaluate_code (void)
 	  break;
 	case BC_NM_b:
 	  b ();
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_btdef:
 	  /* Branch if defined  */
@@ -3908,14 +3920,14 @@ evaluate_code (void)
 	  break;
 	case BC_NM_out:
 	  out ();
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_bend:
           if (bend ())
 	    return;
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_leave:
 	  if (leave ())
@@ -3934,16 +3946,16 @@ evaluate_code (void)
 	  break;
 	case BC_NM_waitend:
 	  waitend ();
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_block:
 	  block ();
-	  INTERRUPT_CHECK;
 	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_throw:
-	  if (throw ())
+	  if (throw (get_op (BC_op1 (cpc))))
 	    return;
 	  break;
 	case BC_NM_except:
@@ -4000,7 +4012,8 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_nop:
-	  /* for DINO developing purposes only.  */
+	  /* for DINO developing purposes only.  It should be absent
+	     in unoptimized code.  */
 	  nop ();
 	  INCREMENT_PC ();
 	  break;
@@ -4088,12 +4101,6 @@ initiate_vars (void)
   ER_set_process (var, cprocess);
 }
 
-/* The following variable value is TRUE if we've started evaluation
-   and set up longjump buffer `eval_longjump_buff'. */
-int eval_long_jump_set_flag;
-/* The following variable is used for throwing errors. */
-static jmp_buf eval_longjump_buff;
-
 #define MAX_EVAL_ERROR_MESSAGE_LENGTH 300
 
 void
@@ -4117,12 +4124,13 @@ eval_error (BC_node_t except_class_block,
   /* Zeroth variable is message in class `error' */
   ER_SET_MODE (IVAL (ER_stack_vars (error_instance), 0), ER_NM_vect);
   set_vect_dim (IVAL (ER_stack_vars (error_instance), 0), string, 0);
-  cpc = find_catch_pc (error_instance);
+  find_catch_pc (error_instance);
   longjmp (eval_longjump_buff, 1);
 }
 
 void
-call_fun_class (BC_node_t code, ER_node_t context, int_t pars_number)
+call_fun_class (BC_node_t code, ER_node_t context, int_t pars_number,
+		int from_c_code_p)
 {
   pc_t saved_cpc;
   pc_t saved_next_pc;
@@ -4134,10 +4142,10 @@ call_fun_class (BC_node_t code, ER_node_t context, int_t pars_number)
   saved_process_number = ER_process_number (cprocess);
   DECR_CTOP (pars_number);
   if (BC_implementation_fun (code) != NULL)
-    process_imm_ifun_call (code, pars_number);
+    process_imm_ifun_call (code, pars_number, from_c_code_p);
   else
     process_imm_fun_call ((val_t *) IVAL (ctop, 1), code, context,
-			  pars_number, FALSE);
+			  pars_number, FALSE, from_c_code_p);
   for (;;)
     {
       if (cpc != NULL)
@@ -4152,6 +4160,15 @@ call_fun_class (BC_node_t code, ER_node_t context, int_t pars_number)
 }
 
 static ticker_t all_time_ticker;
+
+
+/* Switch to byte code execution: CPC should be at the right place
+   (first executed stmt will be CPC).  */
+void
+switch_to_bcode (void)
+{
+  longjmp (eval_longjump_buff, 1);
+}
 
 /* Evaluate top level block START_PC.  Initiate data if INIT_P.
    Otherwise, reuse the already created data.  */
@@ -4196,7 +4213,7 @@ evaluate_program (pc_t start_pc, int init_p, int last_p)
     ;
   if (cpc == NULL)
     {
-      /* Uncatched exception in REPL. */
+      /* Uncatched exception in REPL or through C stack. */
       d_assert (repl_flag);
       return;
     }
