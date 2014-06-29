@@ -283,6 +283,7 @@ extern char DERR_class_as_variable [];
 extern char DERR_value_is_not_class_instance_or_stack [];
 extern char DERR_decl_is_absent_in_given_class_or_block [];
 extern char DERR_undefined_value_access [];
+extern char DERR_undefined_value_assign [];
 extern char DERR_private_decl_access_from_outside_block [];
 /* Accessvalue. */
 extern char DERR_undefined_class_or_fun [];

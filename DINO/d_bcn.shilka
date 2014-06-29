@@ -167,8 +167,11 @@ tab		{return BC_NM_tab;}
 move		{return BC_NM_move;}
 imove		{return BC_NM_imove;}
 stvt		{return BC_NM_stvt;}
+stvtu		{return BC_NM_stvtu;}
 sts		{return BC_NM_sts;}
+stsu		{return BC_NM_stsu;}
 ste		{return BC_NM_ste;}
+steu		{return BC_NM_steu;}
 slst		{return BC_NM_slst;}
 mult_st		{return BC_NM_mult_st;}
 div_st		{return BC_NM_div_st;}

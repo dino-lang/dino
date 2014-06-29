@@ -1138,13 +1138,16 @@ vec, tab :: op3i; /* result place, element parts start place, parts number */
 
 move :: op2 /* destination/source places.  */
 %other
-        rhs_decl : decl /* rhs variable/function */
+        /* rhs variable/function or lsh var if rhs is not variable/function. */
+        move_decl : decl
 ;
 imove :: move
 ;
 /* Assignments: */
 /* vec or tab, stack, external store: container, element, value places */
 stvt, sts, ste :: op3;
+/* analogous to above ones but the assigned value may be undef */
+stvtu, stsu, steu :: op3;
 slst :: op3i2; /* vector place, slice dimension as int, value place  */
 
 
@@ -1209,7 +1212,7 @@ except :: op2 /* except instance and class places */
    execution.  */
 nop :: bcode;
 
-/* This code represents printing expr in REPL.  It is never output or
+/* These codes represent printing expr in REPL.  It is never output or
    input.  Code rpr_def never prints undefined values (e.g. proc call
    results).  */
 rpr, rpr_def :: op1

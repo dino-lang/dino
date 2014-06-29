@@ -77,7 +77,7 @@ fldid
 body_pc
 vcontainer
 vindex
-rhs_decl
+move_decl
 ret_decl
 block
 

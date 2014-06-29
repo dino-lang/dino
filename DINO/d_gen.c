@@ -749,14 +749,41 @@ stvt (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+stvtu (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  if (ER_NODE_MODE (op2) == ER_NM_undef)
+    eval_error (accessop_bc_decl, get_cpos (),
+		DERR_undefined_value_assign);
+  store_vect_tab_designator_value (res, op1, op2);
+}
+
+static void do_always_inline
 sts (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   store_stack_designator_value (res, op1, op2);
 }
 
 static void do_always_inline
+stsu (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  if (ER_NODE_MODE (op2) == ER_NM_undef)
+    eval_error (accessop_bc_decl, get_cpos (),
+		DERR_undefined_value_assign);
+  store_stack_designator_value (res, op1, op2);
+}
+
+static void do_always_inline
 ste (ER_node_t res, ER_node_t op2)
 {
+  *(val_t *) ER_external_var_ref (res) = *(val_t *) op2;
+}
+
+static void do_always_inline
+steu (ER_node_t res, ER_node_t op2)
+{
+  if (ER_NODE_MODE (op2) == ER_NM_undef)
+    eval_error (accessop_bc_decl, get_cpos (),
+		DERR_undefined_value_assign);
   *(val_t *) ER_external_var_ref (res) = *(val_t *) op2;
 }
 
@@ -2202,13 +2229,6 @@ ret (ER_node_t res)
 {
   BC_node_t bc_node;
 
-  if (ER_NODE_MODE (res) == ER_NM_undef)
-    {
-      d_assert (BC_ret_decl (cpc) != NULL);
-      eval_error (accessop_bc_decl, get_cpos (),
-		  DERR_undefined_value_access,
-		  BC_ident (BC_ret_decl (cpc)));
-    }
   for (;;)
     {
       bc_node = ER_block_node (cstack);
@@ -2312,9 +2332,15 @@ static void do_always_inline
 move (ER_node_t res, ER_node_t op1)
 {
   if (ER_NODE_MODE (op1) == ER_NM_undef)
-    eval_error (accessop_bc_decl, get_cpos (),
-		DERR_undefined_value_access,
-		BC_ident (BC_rhs_decl (cpc)));
+    {
+      if (op1 < cvars || op1 > ctop)
+	eval_error (accessop_bc_decl, get_cpos (),
+		    DERR_undefined_value_assign);
+      else
+	eval_error (accessop_bc_decl, get_cpos (),
+		    DERR_undefined_value_access,
+		    BC_ident (BC_move_decl (cpc)));
+    }
   *(val_t *) res = *(val_t *) op1;
 }
 

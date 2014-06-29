@@ -3176,13 +3176,28 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
+	case BC_NM_stvtu:
+	  stvtu (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
 	case BC_NM_sts:
 	  sts (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
+	case BC_NM_stsu:
+	  stsu (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
 	case BC_NM_ste:
 	  ste (get_op (BC_op1 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_steu:
+	  steu (get_op (BC_op1 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;

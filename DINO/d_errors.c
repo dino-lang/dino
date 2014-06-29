@@ -405,6 +405,8 @@ char DERR_decl_is_absent_in_given_class_or_block []
   = "run time error - there is no such declaration in given class";
 char DERR_undefined_value_access []
   = "run time error - undefined `%s' value access";
+char DERR_undefined_value_assign []
+  = "run time error - undefined value assign";
 char DERR_private_decl_access_from_outside_block []
   = "run time error - access to private decl `%s' from outside";
 char DERR_undefined_class_or_fun []

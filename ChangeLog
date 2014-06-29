@@ -1,3 +1,24 @@
+2014-06-29  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Remove return in gen_random.  Add JIT hint.
+	* DINO/d_bc.sprut (move): Rename rhs_decl to move_decl.
+	* DINO/d_bcf.shilka: Ditto.
+	* DINO/d_bcio.c (dump_code): Add stvtu, stsu, steu cases.
+	(read_bc_program): Rename rhs_decl to move_decl.
+	* DINO/d_bcn.shilka (stvtu, stsu, steu): New.
+	* DINO/d_context.c (add_move): Rename rhs_decl to move_decl.
+	(copy_fun_bc_block): Ditto.
+	(second_block_passing): Add a new arg.  Process last expr-stmt as
+	return.  Generate new node.
+	(skip_nops): New.
+	(go_through): Use it.
+	* DINO/d_errors.[ch] (DERR_undefined_value_assign): New.
+	* DINO/d_eval.c (evaluate_code): Add stvtu, stsu, steu cases.
+	* DINO/d_gen.c (stvtu, stsu, steu): New.
+	(ret): Remove check on undef.
+	(move): Generate a new error.
+	* DINO/dino.tst.in: New dump output.  New tests.
+
 2014-06-26  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* SHILKA/gen.c (allocated_trie_nodes_number): Make it

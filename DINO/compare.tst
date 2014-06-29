@@ -6945,7 +6945,7 @@ var LAST = 42;
 
 fun gen_random (max) {
   LAST = (LAST * IA + IC) % IM;
-  return max * LAST / IM;
+  max * LAST / IM;
 }
 
 var n = (argv [0] < 1 ? 1 : argv [0]) - 1;
@@ -6965,9 +6965,9 @@ var IA = 3877;
 var IC = 29573;
 var LAST = 42;
 
-fun gen_random (max) {
+fun gen_random (max) ! {
   LAST = (LAST * IA + IC) % IM;
-  return max * LAST / IM;
+  max * LAST / IM;
 }
 
 var n = (argv [0] < 1 ? 1 : argv [0]) - 1;

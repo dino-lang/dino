@@ -315,11 +315,14 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op3 (bc), BC_op4 (bc));
 	  break;
 	case BC_NM_stvt:
+	case BC_NM_stvtu:
 	case BC_NM_sts:
+	case BC_NM_stsu:
 	  printf (" op1=%d op2=%d op3=%d",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
 	  break;
 	case BC_NM_ste:
+	case BC_NM_steu:
 	  printf (" op1=%d op3=%d", BC_op1 (bc), BC_op3 (bc));
 	  break;
 	case BC_NM_slst:
@@ -535,9 +538,9 @@ dump_code (BC_node_t infos, int indent)
 	  break;
 	case BC_NM_move:
 	case BC_NM_imove:
-	  printf (" op1=%d op2=%d rhs_decl=%d // %d (%s) <- %d",
-		  BC_op1 (bc), BC_op2 (bc), BC_decl_num (BC_rhs_decl (bc)),
-		  BC_op1 (bc), BC_ident (BC_rhs_decl (bc)), BC_op2 (bc));
+	  printf (" op1=%d op2=%d move_decl=%d // %d (%s) <- %d",
+		  BC_op1 (bc), BC_op2 (bc), BC_decl_num (BC_move_decl (bc)),
+		  BC_op1 (bc), BC_ident (BC_move_decl (bc)), BC_op2 (bc));
 	  break;
 	default:
 	  /* Other nodes should not occur here. */
@@ -1342,7 +1345,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_ret, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
 	      break;
-	    case FR_rhs_decl:
+	    case FR_move_decl:
 	      if (check_fld (BC_NM_move, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
 	      break;
@@ -1431,7 +1434,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_lds, FR_str, "str");
       check_fld_set (BC_NM_field, FR_fldid, "fldid");
       check_fld_set (BC_NM_foreach, FR_body_pc, "body_pc");
-      check_fld_set (BC_NM_move, FR_rhs_decl, "rhs_decl");
+      check_fld_set (BC_NM_move, FR_move_decl, "move_decl");
       check_fld_set (BC_NM_bend, FR_block, "block");
       check_fld_set (BC_NM_foreach_val, FR_vcontainer, "vcontainer");
       check_fld_set (BC_NM_foreach_val, FR_vindex, "vindex");
@@ -1578,9 +1581,9 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	  ptr = get_bcode (fld->fld_val);
 	  BC_set_body_pc (fld->node, ptr);
 	  break;
-	case FR_rhs_decl:
+	case FR_move_decl:
 	  ptr = get_decl (fld->fld_val);
-	  BC_set_rhs_decl (fld->node, ptr);
+	  BC_set_move_decl (fld->node, ptr);
 	  break;
 	case FR_ret_decl:
 	  ptr = get_decl (fld->fld_val);
