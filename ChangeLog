@@ -1,3 +1,61 @@
+2014-06-30  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_bc.sprut: Move non-executed code below.
+	(inot, iplus, iminus, ibnot, fplus, fminus): New nodes.
+	(fadd, fmult, fand, for, fxor): Rename to fold_add, fold_mult,
+	fold_and, fold_or, fold_xor.
+	(iid, iunid): Remove.
+	(fadd, fsub, fmult, fdiv, fmodop, ifadd, ifsub, fisub, ifmult): New.
+	(ifdiv, fidiv, faddi, ibt, ibf, ibfni, fbteq, fbtne, fbtge): Ditto.
+	(fbtlt, fbtle, fbtgt, fmove): Ditto.
+	* DINO/d_bcio.c (dump_code): Rename the fold ops.  Add cases for
+	inot, iplus, iminus, ibnot, fplus, fminus, ieq, ine, ilt, ige,
+	igt, ile, iadd, isub, imult, idiv, imod, fadd, fsub, fmult, fdiv,
+	fmodop, ifadd, ifsub, fisub, ifmult, ifdiv, fidiv, ilsh, irsh,
+	iash, iand, ixor, ior, ieqi, inei, ilei, igei, igti, ilti, iaddi,
+	faddi, ibf, ibfni, ibteq, ibtne, ibtle, ibtgt, ibtge, ibtlt,
+	fbteq, fbtne, fbtle, fbtgt, fbtge, fbtlt, ibteqi, ibtnei, ibtlei,
+	ibtgti, ibtgei, ibtlti, ibteqinc, ibtneinc, ibtleinc, ibtgtinc,
+	ibtgeinc, ibtltinc, ibt, fmove.
+	* DINO/d_bcn.shilka: Rename the fold ops.
+	(inot, iplus, iminus, ibnot, fplus, fminus, ieq, ine): New.
+	(ilt, ige, igt, ile, fadd, fsub, fmult, fdiv, fmodop, ifadd): New.
+	(ifsub, fisub, ifmult, ifdiv, fidiv, faddi, ieqi, inei): New.
+	(ilti, igei, igti, ilei, ibt, ibf, ibfni): New.
+	(fbteq, fbtne, fbtle, fbtgt, fbtge, fbtlt, fmove): New.
+	* DINO/d_context.c (process_unary_op): Rename the fold ops.
+	(go_through): Consider iaddi, ibt, ibf, ieqi, inei, ilti, igei,
+	igti, ilei.  Generate also integer varoants of branches.
+	* DINO/d_gen.c (insn_tp): Remove.
+	(iplus, iminus, ilshift, irshift, iashift): Rename to i_plus,
+	i_minus, i_lshift, i_rshift, i_ashift.
+	(ieq, ine, ilt, ile, igt, ige): Rename to i_eq, i_ne, i_lt, i_le,
+	i_gt, i_ge.
+	(fplus, fminus, fmult, fdiv, frem): Rename to f_plus, f_minus,
+	f_mult, f_div, f_mod.
+	(feq, fne, flt, fle, fgt, fge, inot): Rename to f_eq, f_ne, f_lt, f_le,
+	f_gt, f_ge, i_not.
+	(execute_btcmp, execute_btcmpi, execute_btcmpinc, caddi): Change
+	parameter tp to int_p.
+	(cbteqinc, cbtneinc, cbtleinc, cbtgeinc, cbtltinc, cbtgtinc): Ditto.
+	(cbteq, cbtne, cbtle, cbtge, cbtlt, cbtgt): Ditto.
+	(cbteqi, cbtnei, cbtlei, cbtgei, cbtlti, cbtgti): Ditto.
+	(inot, ibnot, ieq, ieqi, ine, inei, ilt, ilti, igt, igti): New.
+	(ige, igei, ile, ilei, iplus, fplus, iminus, fminus): New.
+	(cadd, caddi, csub, cmult, cdiv, cmod, clsh, crsh, cash): Change
+	parameter v to int_p.
+	(cand, cxor, cor): Ditto.
+	(fadd, ifadd, faddi, fsub, ifsub, fisub, fmult, ifmult): New.
+	(fdiv, ifdiv, fidiv, fmodop, ibf, ibfni): New.
+	(fbteq, fbtne, fbtge, fbtlt, fbtle, fbtgt, ibt, fmove): New.
+	* DINO/d_eval.c: Rename the fold ops.
+	(evaluate_code): Check BC_NM_nop instead of BC_NM__error.
+	Add cases for inot, ibnot, ieq, ieqi, ine, inei, ile, ilei, ilt,
+	ilti, ige, igei, igt, igti, iplus, fplus, iminus, fminus, fadd,
+	ifadd, iaddi, faddi, fsub, ifsub, fisub, fmult, ifmult, fdiv,
+	ifdiv, fidiv, fmodop, ibf, ibfni, fbteq, fbtne, fbtge, fbtlt,
+	fbtle, fbtgt, ibt, fmove.
+
 2014-06-29  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Remove return in gen_random.  Add JIT hint.

@@ -1488,11 +1488,11 @@ process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
     case IR_NM_unary_minus: bc_node_mode = BC_NM_minus; break;
     case IR_NM_bitwise_not: bc_node_mode = BC_NM_bnot; break;
     case IR_NM_length: bc_node_mode = BC_NM_length; break;
-    case IR_NM_fold_plus: bc_node_mode = BC_NM_fadd; break;
-    case IR_NM_fold_mult: bc_node_mode = BC_NM_fmult; break;
-    case IR_NM_fold_and: bc_node_mode = BC_NM_fand; break;
-    case IR_NM_fold_xor: bc_node_mode = BC_NM_fxor; break;
-    case IR_NM_fold_or: bc_node_mode = BC_NM_for; break;
+    case IR_NM_fold_plus: bc_node_mode = BC_NM_fold_add; break;
+    case IR_NM_fold_mult: bc_node_mode = BC_NM_fold_mult; break;
+    case IR_NM_fold_and: bc_node_mode = BC_NM_fold_and; break;
+    case IR_NM_fold_xor: bc_node_mode = BC_NM_fold_xor; break;
+    case IR_NM_fold_or: bc_node_mode = BC_NM_fold_or; break;
     case IR_NM_typeof: bc_node_mode = BC_NM_tpof; break;
     case IR_NM_charof: bc_node_mode = BC_NM_chof; break;
     case IR_NM_intof: bc_node_mode = BC_NM_iof; break;
@@ -3940,20 +3940,31 @@ go_through (BC_node_t start_bc)
   if (BC_subst (info) != NULL)
     return BC_subst (info);
   second_bc = first_bc = bc;
-  if (BC_NODE_MODE (first_bc) == BC_NM_addi
+  if ((BC_NODE_MODE (first_bc) == BC_NM_addi
+       || BC_NODE_MODE (first_bc) == BC_NM_iaddi)
       && BC_op1 (first_bc) == BC_op2 (first_bc))
     {
       op1 = BC_op1 (first_bc);
       second_bc = BC_next (first_bc);
       if (second_bc == NULL
 	  || (next_bc = BC_next (second_bc)) == NULL
-	  || BC_NODE_MODE (next_bc) != BC_NM_bt
+	  /* We generate bt for loops so there is no sense to consider
+	     bf here for increment variants.  */
+	  || (BC_NODE_MODE (next_bc) != BC_NM_bt
+	      && BC_NODE_MODE (next_bc) != BC_NM_ibt)
+	  /* Immediate is only increment for now: */
 	  || BC_NODE_MODE (second_bc) == BC_NM_eqi
 	  || BC_NODE_MODE (second_bc) == BC_NM_nei
 	  || BC_NODE_MODE (second_bc) == BC_NM_gei
 	  || BC_NODE_MODE (second_bc) == BC_NM_lti
 	  || BC_NODE_MODE (second_bc) == BC_NM_lei
-	  || BC_NODE_MODE (second_bc) == BC_NM_gti)
+	  || BC_NODE_MODE (second_bc) == BC_NM_gti
+	  || BC_NODE_MODE (second_bc) == BC_NM_ieqi
+	  || BC_NODE_MODE (second_bc) == BC_NM_inei
+	  || BC_NODE_MODE (second_bc) == BC_NM_igei
+	  || BC_NODE_MODE (second_bc) == BC_NM_ilti
+	  || BC_NODE_MODE (second_bc) == BC_NM_ilei
+	  || BC_NODE_MODE (second_bc) == BC_NM_igti)
 	{
 	  op1 = -1;
 	  second_bc = first_bc;
@@ -3961,8 +3972,10 @@ go_through (BC_node_t start_bc)
     }
   node_mode = BC_NM__error;
   if ((next_bc = BC_next (second_bc)) != NULL
-      && ((bt_p = BC_NODE_MODE (next_bc) == BC_NM_bt)
-	  || BC_NODE_MODE (next_bc) == BC_NM_bf))
+      && ((bt_p = (BC_NODE_MODE (next_bc) == BC_NM_bt
+		   || BC_NODE_MODE (next_bc) == BC_NM_ibt))
+	  || BC_NODE_MODE (next_bc) == BC_NM_bf
+	  || BC_NODE_MODE (next_bc) == BC_NM_ibf))
     switch (BC_NODE_MODE (second_bc))
       {
       case BC_NM_eq:
@@ -4000,6 +4013,42 @@ go_through (BC_node_t start_bc)
 	break;
       case BC_NM_gti:
 	node_mode = bt_p ? BC_NM_btgti : BC_NM_btlei;
+	break;
+      case BC_NM_ieq:
+	node_mode = op1 >= 0 ? BC_NM_ibteqinc : bt_p ? BC_NM_ibteq : BC_NM_ibtne;
+	break;
+      case BC_NM_ine:
+	node_mode = op1 >= 0 ? BC_NM_ibtneinc : bt_p ? BC_NM_ibtne : BC_NM_ibteq;
+	break;
+      case BC_NM_ige:
+	node_mode = op1 >= 0 ? BC_NM_ibtgeinc : bt_p ? BC_NM_ibtge : BC_NM_ibtlt;
+	break;
+      case BC_NM_ilt:
+	node_mode = op1 >= 0 ? BC_NM_ibtltinc : bt_p ? BC_NM_ibtlt : BC_NM_ibtge;
+	break;
+      case BC_NM_ile:
+	node_mode = op1 >= 0 ? BC_NM_ibtleinc : bt_p ? BC_NM_ibtle : BC_NM_ibtgt;
+	break;
+      case BC_NM_igt:
+	node_mode = op1 >= 0 ? BC_NM_ibtgtinc : bt_p ? BC_NM_ibtgt : BC_NM_ibtle;
+	break;
+      case BC_NM_ieqi:
+	node_mode = bt_p ? BC_NM_ibteqi : BC_NM_ibtnei;
+	break;
+      case BC_NM_inei:
+	node_mode = bt_p ? BC_NM_ibtnei : BC_NM_ibteqi;
+	break;
+      case BC_NM_igei:
+	node_mode = bt_p ? BC_NM_ibtgei : BC_NM_ibtlti;
+	break;
+      case BC_NM_ilti:
+	node_mode = bt_p ? BC_NM_ibtlti : BC_NM_ibtgei;
+	break;
+      case BC_NM_ilei:
+	node_mode = bt_p ? BC_NM_ibtlei : BC_NM_ibtgti;
+	break;
+      case BC_NM_igti:
+	node_mode = bt_p ? BC_NM_ibtgti : BC_NM_ibtlei;
 	break;
       default:
 	break;

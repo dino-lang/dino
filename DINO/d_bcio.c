@@ -199,12 +199,18 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_bnot:
 	case BC_NM_plus:
 	case BC_NM_minus:
+	case BC_NM_inot:
+	case BC_NM_ibnot:
+	case BC_NM_iplus:
+	case BC_NM_iminus:
+	case BC_NM_fplus:
+	case BC_NM_fminus:
 	case BC_NM_length:
-	case BC_NM_fadd:
-	case BC_NM_fmult:
-	case BC_NM_fand:
-	case BC_NM_fxor:
-	case BC_NM_for:
+	case BC_NM_fold_add:
+	case BC_NM_fold_mult:
+	case BC_NM_fold_and:
+	case BC_NM_fold_xor:
+	case BC_NM_fold_or:
 	case BC_NM_const:
 	case BC_NM_new:
 	case BC_NM_tpof:
@@ -260,18 +266,40 @@ dump_code (BC_node_t infos, int indent)
 	  break;
 	case BC_NM_in:
 	case BC_NM_eq:
+	case BC_NM_ieq:
 	case BC_NM_ne:
+	case BC_NM_ine:
 	case BC_NM_id:
 	case BC_NM_unid:
 	case BC_NM_lt:
+	case BC_NM_ilt:
 	case BC_NM_ge:
+	case BC_NM_ige:
 	case BC_NM_gt:
+	case BC_NM_igt:
 	case BC_NM_le:
+	case BC_NM_ile:
+	case BC_NM_add:
+	case BC_NM_sub:
 	case BC_NM_mult:
 	case BC_NM_div:
 	case BC_NM_mod:
-	case BC_NM_add:
-	case BC_NM_sub:
+	case BC_NM_iadd:
+	case BC_NM_isub:
+	case BC_NM_imult:
+	case BC_NM_idiv:
+	case BC_NM_imod:
+	case BC_NM_fadd:
+	case BC_NM_fsub:
+	case BC_NM_fmult:
+	case BC_NM_fdiv:
+	case BC_NM_fmodop:
+	case BC_NM_ifadd:
+	case BC_NM_ifsub:
+	case BC_NM_fisub:
+	case BC_NM_ifmult:
+	case BC_NM_ifdiv:
+	case BC_NM_fidiv:
 	case BC_NM_concat:
 	case BC_NM_lsh:
 	case BC_NM_rsh:
@@ -279,22 +307,36 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_and:
 	case BC_NM_xor:
 	case BC_NM_or:
+	case BC_NM_ilsh:
+	case BC_NM_irsh:
+	case BC_NM_iash:
+	case BC_NM_iand:
+	case BC_NM_ixor:
+	case BC_NM_ior:
 	case BC_NM_fmtvecof:
 	  printf (" op1=%d op2=%d op3=%d // %d <- %d op %d",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
 	  break;
 	case BC_NM_eqi:
+	case BC_NM_ieqi:
 	case BC_NM_nei:
+	case BC_NM_inei:
 	case BC_NM_lei:
+	case BC_NM_ilei:
 	case BC_NM_gei:
+	case BC_NM_igei:
 	case BC_NM_gti:
+	case BC_NM_igti:
 	case BC_NM_lti:
+	case BC_NM_ilti:
 	  printf (" op1=%d op2=%d op3=%d // %d <- %d cmp i%d",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
 	  break;
 	case BC_NM_addi:
+	case BC_NM_iaddi:
+	case BC_NM_faddi:
 	  printf (" op1=%d op2=%d op3=%d // %d <- %d + i%d",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
@@ -350,7 +392,9 @@ dump_code (BC_node_t infos, int indent)
 		  BC_idn (BC_info (BC_pc (bc))), BC_op1 (bc));
 	  break;
 	case BC_NM_bf: /* if_stmt */
+	case BC_NM_ibf:
 	case BC_NM_bfni: /* cond */
+	case BC_NM_ibfni:
 	  printf (" op1=%d pc=%d // goto %d unless %d",
 		  BC_op1 (bc), BC_idn (BC_info (BC_pc (bc))),
 		  BC_idn (BC_info (BC_pc (bc))), BC_op1 (bc));
@@ -361,6 +405,18 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_btgt:
 	case BC_NM_btge:
 	case BC_NM_btlt:
+	case BC_NM_ibteq:
+	case BC_NM_ibtne:
+	case BC_NM_ibtle:
+	case BC_NM_ibtgt:
+	case BC_NM_ibtge:
+	case BC_NM_ibtlt:
+	case BC_NM_fbteq:
+	case BC_NM_fbtne:
+	case BC_NM_fbtle:
+	case BC_NM_fbtgt:
+	case BC_NM_fbtge:
+	case BC_NM_fbtlt:
 	  printf (" op1=%d bcmp_op2=%d bcmp_res=%d pc=%d // goto %d if %d <- %d cmp %d",
 		  BC_op1 (bc), BC_bcmp_op2 (bc), BC_bcmp_res (bc),
 		  BC_idn (BC_info (BC_pc (bc))), BC_idn (BC_info (BC_pc (bc))),
@@ -372,6 +428,12 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_btgti:
 	case BC_NM_btgei:
 	case BC_NM_btlti:
+	case BC_NM_ibteqi:
+	case BC_NM_ibtnei:
+	case BC_NM_ibtlei:
+	case BC_NM_ibtgti:
+	case BC_NM_ibtgei:
+	case BC_NM_ibtlti:
 	  printf (" op1=%d bcmp_op2=%d bcmp_res=%d pc=%d // goto %d if %d <- %d cmp i%d",
 		  BC_op1 (bc), BC_bcmp_op2 (bc), BC_bcmp_res (bc),
 		  BC_idn (BC_info (BC_pc (bc))), BC_idn (BC_info (BC_pc (bc))),
@@ -383,6 +445,12 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_btgtinc:
 	case BC_NM_btgeinc:
 	case BC_NM_btltinc:
+	case BC_NM_ibteqinc:
+	case BC_NM_ibtneinc:
+	case BC_NM_ibtleinc:
+	case BC_NM_ibtgtinc:
+	case BC_NM_ibtgeinc:
+	case BC_NM_ibtltinc:
 	  printf (" op1=%d binc_inc=%d bcmp_op2=%d bcmp_res=%d pc=%d"
 		  " // goto %d if %d <- (%d += i%d) cmp %d",
 		  BC_op1 (bc), BC_binc_inc (bc),
@@ -391,6 +459,7 @@ dump_code (BC_node_t infos, int indent)
 		  BC_idn (BC_info (BC_pc (bc))), BC_bcmp_res (bc),
 		  BC_op1 (bc), BC_binc_inc (bc), BC_bcmp_op2 (bc));
 	  break;
+	case BC_NM_ibt:
 	case BC_NM_bt:
 	  printf (" op1=%d pc=%d // goto %d if %d",
 		  BC_op1 (bc), BC_idn (BC_info (BC_pc (bc))),
@@ -538,6 +607,7 @@ dump_code (BC_node_t infos, int indent)
 	  break;
 	case BC_NM_move:
 	case BC_NM_imove:
+	case BC_NM_fmove:
 	  printf (" op1=%d op2=%d move_decl=%d // %d (%s) <- %d",
 		  BC_op1 (bc), BC_op2 (bc), BC_decl_num (BC_move_decl (bc)),
 		  BC_op1 (bc), BC_ident (BC_move_decl (bc)), BC_op2 (bc));

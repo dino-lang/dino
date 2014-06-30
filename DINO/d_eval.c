@@ -1217,35 +1217,35 @@ void do_inline
 execute_plus_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_plus_operands_types,
-		 iplus, fplus, lplus);
+		 i_plus, f_plus, lplus);
 }
 
 void do_inline
 execute_minus_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_minus_operands_types,
-		 iminus, fminus, lminus);
+		 i_minus, f_minus, lminus);
 }
 
 void do_inline
 execute_mult_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_mult_operands_types,
-		 i_mult, fmult, lmult);
+		 i_mult, f_mult, lmult);
 }
 
 void do_inline
 execute_div_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_div_operands_types,
-		 i_div, fdiv, lidiv);
+		 i_div, f_div, lidiv);
 }
 
 void do_inline
 execute_mod_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
   execute_ar_op (res, op1, op2, vect_p, DERR_mod_operands_types,
-		 i_mod, frem, limod);
+		 i_mod, f_mod, limod);
 }
 
 /* Do integer operations using iop on OP1 and OP2.  Put result into
@@ -1282,19 +1282,19 @@ execute_int_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
 void do_inline
 execute_lshift_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  execute_int_op (res, op1, op2, vect_p, DERR_lshift_operands_types, ilshift);
+  execute_int_op (res, op1, op2, vect_p, DERR_lshift_operands_types, i_lshift);
 }
 
 void do_inline
 execute_rshift_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  execute_int_op (res, op1, op2, vect_p, DERR_rshift_operands_types, irshift);
+  execute_int_op (res, op1, op2, vect_p, DERR_rshift_operands_types, i_rshift);
 }
 
 void do_inline
 execute_ashift_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  execute_int_op (res, op1, op2, vect_p, DERR_ashift_operands_types, iashift);
+  execute_int_op (res, op1, op2, vect_p, DERR_ashift_operands_types, i_ashift);
 }
 
 void do_inline
@@ -1509,13 +1509,13 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
 void do_inline
 execute_eq_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  comp_op (BC_NM_eq, res, op1, op2, vect_p, ieq, feq, execute_common_eq_ne_op);
+  comp_op (BC_NM_eq, res, op1, op2, vect_p, i_eq, f_eq, execute_common_eq_ne_op);
 }
 
 void do_inline
 execute_ne_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  comp_op (BC_NM_ne, res, op1, op2, vect_p, ine, fne, execute_common_eq_ne_op);
+  comp_op (BC_NM_ne, res, op1, op2, vect_p, i_ne, f_ne, execute_common_eq_ne_op);
 }
 
 /* Implement common case of comparison OPER of OP1 and OP2.  Put
@@ -1561,25 +1561,25 @@ execute_common_cmp_op (BC_node_mode_t oper, ER_node_t res,
 void do_inline
 execute_lt_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  comp_op (BC_NM_lt, res, op1, op2, vect_p, ilt, flt, execute_common_cmp_op);
+  comp_op (BC_NM_lt, res, op1, op2, vect_p, i_lt, f_lt, execute_common_cmp_op);
 }
 
 void do_inline
 execute_ge_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  comp_op (BC_NM_ge, res, op1, op2, vect_p, ige, fge, execute_common_cmp_op);
+  comp_op (BC_NM_ge, res, op1, op2, vect_p, i_ge, f_ge, execute_common_cmp_op);
 }
 
 void do_inline
 execute_gt_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  comp_op (BC_NM_gt, res, op1, op2, vect_p, igt, fgt, execute_common_cmp_op);
+  comp_op (BC_NM_gt, res, op1, op2, vect_p, i_gt, f_gt, execute_common_cmp_op);
 }
 
 void do_inline
 execute_le_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 {
-  comp_op (BC_NM_le, res, op1, op2, vect_p, ile, fle, execute_common_cmp_op);
+  comp_op (BC_NM_le, res, op1, op2, vect_p, i_le, f_le, execute_common_cmp_op);
 }
 
 /* Implement identity (if INDENTITY_P) or unidentity comparison of OP1
@@ -1971,13 +1971,13 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 		case BC_NM_add_st:
 		case BC_NM_add_slst:
 		  int_pack_vect_op (FALSE, len1, pack_res_els, pack_els1,
-				    pack_els2, op2, iplus);
+				    pack_els2, op2, i_plus);
 		  break;
 		case BC_NM_sub:
 		case BC_NM_sub_st:
 		case BC_NM_sub_slst:
 		  int_pack_vect_op (rev_p, len1, pack_res_els, pack_els1,
-				    pack_els2, op2, iminus);
+				    pack_els2, op2, i_minus);
 		  break;
 		case BC_NM_mult:
 		case BC_NM_mult_st:
@@ -2015,31 +2015,31 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 		case BC_NM_add_st:
 		case BC_NM_add_slst:
 		  float_pack_vect_op (FALSE, len1, pack_res_els, pack_els1,
-				      pack_els2, op2, fplus);
+				      pack_els2, op2, f_plus);
 		  break;
 		case BC_NM_sub:
 		case BC_NM_sub_st:
 		case BC_NM_sub_slst:
 		  float_pack_vect_op (rev_p, len1, pack_res_els, pack_els1,
-				      pack_els2, op2, fminus);
+				      pack_els2, op2, f_minus);
 		  break;
 		case BC_NM_mult:
 		case BC_NM_mult_st:
 		case BC_NM_mult_slst:
 		  float_pack_vect_op (FALSE, len1, pack_res_els, pack_els1,
-				      pack_els2, op2, fmult);
+				      pack_els2, op2, f_mult);
 		  break;
 		case BC_NM_div:
 		case BC_NM_div_st:
 		case BC_NM_div_slst:
 		  float_pack_vect_op (rev_p, len1, pack_res_els, pack_els1,
-				      pack_els2, op2, fdiv);
+				      pack_els2, op2, f_div);
 		  break;
 		case BC_NM_mod:
 		case BC_NM_mod_st:
 		case BC_NM_mod_slst:
 		  float_pack_vect_op (rev_p, len1, pack_res_els, pack_els1,
-				      pack_els2, op2, frem);
+				      pack_els2, op2, f_mod);
 		  break;
 		default:
 		  d_unreachable ();
@@ -2139,19 +2139,19 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 		case BC_NM_lsh_st:
 		case BC_NM_lsh_slst:
 		  int_pack_vect_op (rev_p, len1, pack_res_els, pack_els1,
-				    pack_els2, op2, ilshift);
+				    pack_els2, op2, i_lshift);
 		  break;
 		case BC_NM_rsh:
 		case BC_NM_rsh_st:
 		case BC_NM_rsh_slst:
 		  int_pack_vect_op (rev_p, len1, pack_res_els, pack_els1,
-				    pack_els2, op2, irshift);
+				    pack_els2, op2, i_rshift);
 		  break;
 		case BC_NM_ash:
 		case BC_NM_ash_st:
 		case BC_NM_ash_slst:
 		  int_pack_vect_op (rev_p, len1, pack_res_els, pack_els1,
-				    pack_els2, op2, iashift);
+				    pack_els2, op2, i_ashift);
 		  break;
 		case BC_NM_and:
 		case BC_NM_and_st:
@@ -2287,15 +2287,15 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	    {
 	    case ER_NM_char:
 	      char_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-				     pack_els2, op2, neg_p ? ine : ieq);
+				     pack_els2, op2, neg_p ? i_ne : i_eq);
 	      break;
 	    case ER_NM_int:
 	      int_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-				    pack_els2, op2, neg_p ? ine : ieq);
+				    pack_els2, op2, neg_p ? i_ne : i_eq);
 	      break;
 	    case ER_NM_float:
 	      float_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-				      pack_els2, op2, neg_p ? fne : feq);
+				      pack_els2, op2, neg_p ? f_ne : f_eq);
 	      break;
 	    default:
 	      goto eq_common;
@@ -2349,19 +2349,19 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 		{
 		case BC_NM_lt:
 		  int_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					pack_els2, op2, rev_p ? ige : ilt);
+					pack_els2, op2, rev_p ? i_ge : i_lt);
 		  break;
 		case BC_NM_ge:
 		  int_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					pack_els2, op2, rev_p ? ilt : ige);
+					pack_els2, op2, rev_p ? i_lt : i_ge);
 		  break;
 		case BC_NM_le:
 		  int_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					pack_els2, op2, rev_p ? igt : ile);
+					pack_els2, op2, rev_p ? i_gt : i_le);
 		  break;
 		case BC_NM_gt:
 		  int_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					pack_els2, op2, rev_p ? ile : igt);
+					pack_els2, op2, rev_p ? i_le : i_gt);
 		  break;
 		default:
 		  d_unreachable ();
@@ -2372,19 +2372,19 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 		{
 		case BC_NM_lt:
 		  float_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					  pack_els2, op2, rev_p ? fge : flt);
+					  pack_els2, op2, rev_p ? f_ge : f_lt);
 		  break;
 		case BC_NM_ge:
 		  float_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					  pack_els2, op2, rev_p ? flt : fge);
+					  pack_els2, op2, rev_p ? f_lt : f_ge);
 		  break;
 		case BC_NM_le:
 		  float_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					  pack_els2, op2, rev_p ? fgt : fle);
+					  pack_els2, op2, rev_p ? f_gt : f_le);
 		  break;
 		case BC_NM_gt:
 		  float_pack_vect_cmp_op (len1, pack_res_els, pack_els1,
-					  pack_els2, op2, rev_p ? fle : fgt);
+					  pack_els2, op2, rev_p ? f_le : f_gt);
 		  break;
 		default:
 		  d_unreachable ();
@@ -2657,7 +2657,7 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 	  switch (oper)
 	    {
 	    case BC_NM_not:
-	      int_pack_vect_unary_op (len, pack_res_els, pack_els, inot);
+	      int_pack_vect_unary_op (len, pack_res_els, pack_els, i_not);
 	      break;
 	    case BC_NM_bnot:
 	      int_pack_vect_unary_op (len, pack_res_els, pack_els, ibitwise_not);
@@ -2868,23 +2868,23 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
     {
       switch (oper)
 	{
-	case BC_NM_fadd:
+	case BC_NM_fold_add:
 	  execute_pack_fold_op (res, 0, op, el_type, len, pack_els,
-				execute_plus_op, iplus, fplus);
+				execute_plus_op, i_plus, f_plus);
 	  break;
-	case BC_NM_fmult:
+	case BC_NM_fold_mult:
 	  execute_pack_fold_op (res, 1, op, el_type, len, pack_els,
-				execute_mult_op, i_mult, fmult);
+				execute_mult_op, i_mult, f_mult);
 	  break;
-	case BC_NM_fand:
+	case BC_NM_fold_and:
 	  execute_pack_fold_op (res, ~ (int_t) 0, op, el_type, len, pack_els,
 				execute_and_op, i_and, NULL);
 	  break;
-	case BC_NM_fxor:
+	case BC_NM_fold_xor:
 	  execute_pack_fold_op (res, 0, op, el_type, len, pack_els,
 				execute_xor_op, i_xor, NULL);
 	  break;
-	case BC_NM_for:
+	case BC_NM_fold_or:
 	  execute_pack_fold_op (res, 0, op, el_type, len, pack_els,
 				execute_or_op, i_or, NULL);
 	  break;
@@ -2899,19 +2899,19 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
 	  l = *(val_t *) IVAL (unpack_els, i);
 	  switch (oper)
 	    {
-	    case BC_NM_fadd:
+	    case BC_NM_fold_add:
 	      execute_plus_op (res, res, (ER_node_t) &l, FALSE);
 	      break;
-	    case BC_NM_fmult:
+	    case BC_NM_fold_mult:
 	      execute_mult_op (res, res, (ER_node_t) &l, FALSE);
 	      break;
-	    case BC_NM_fand:
+	    case BC_NM_fold_and:
 	      execute_and_op (res, res, (ER_node_t) &l, FALSE);
 	      break;
-	    case BC_NM_fxor:
+	    case BC_NM_fold_xor:
 	      execute_xor_op (res, res, (ER_node_t) &l, FALSE);
 	      break;
-	    case BC_NM_for:
+	    case BC_NM_fold_or:
 	      execute_or_op (res, res, (ER_node_t) &l, FALSE);
 	      break;
 	    default:
@@ -2936,15 +2936,15 @@ fold_vect_op (ER_node_t res, ER_node_t op)
   ER_SET_MODE (res, ER_NM_int);
   switch (BC_NODE_MODE (cpc))
     {
-    case BC_NM_fadd:
-    case BC_NM_fxor:
-    case BC_NM_for:
+    case BC_NM_fold_add:
+    case BC_NM_fold_xor:
+    case BC_NM_fold_or:
       ER_set_i (res, 0);
       break;
-    case BC_NM_fmult:
+    case BC_NM_fold_mult:
       ER_set_i (res, 1);
       break;
-    case BC_NM_fand:
+    case BC_NM_fold_and:
       ER_set_i (res, ~ (int_t) 0);
       break;
     default:
@@ -3157,8 +3157,9 @@ evaluate_code (void)
 {
   BC_node_mode_t node_mode;
 
-  /* Check that all BC_node_mode_t can be stored in unsigned char.  */
-  d_assert ((int) BC_NM__error < 256);
+  /* Check that all real executed byte code can be stored in unsigned
+     char.  */
+  d_assert ((int) BC_NM_nop < 256);
   for (;;)
     {
       node_mode = BC_NODE_MODE (cpc);
@@ -3273,15 +3274,23 @@ evaluate_code (void)
 	  not (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_inot:
+	  inot (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_bnot:
 	  bnot (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  break;
-	case BC_NM_fadd:
-	case BC_NM_fmult:
-	case BC_NM_fand:
-	case BC_NM_fxor:
-	case BC_NM_for:
+	case BC_NM_ibnot:
+	  ibnot (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fold_add:
+	case BC_NM_fold_mult:
+	case BC_NM_fold_and:
+	case BC_NM_fold_xor:
+	case BC_NM_fold_or:
 	  foldop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  break;
@@ -3289,16 +3298,32 @@ evaluate_code (void)
 	  eq (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_ieq:
+	  ieq (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_eqi:
 	  eqi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ieqi:
+	  ieqi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_ne:
 	  ne (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_ine:
+	  ine (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_nei:
 	  nei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_inei:
+	  inei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_id:
@@ -3313,40 +3338,88 @@ evaluate_code (void)
 	  lt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_ilt:
+	  ilt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_lti:
 	  lti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ilti:
+	  ilti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_ge:
 	  ge (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_ige:
+	  ige (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_gei:
 	  gei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_igei:
+	  igei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_gt:
 	  gt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_igt:
+	  igt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_gti:
 	  gti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_igti:
+	  igti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_le:
 	  le (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_ile:
+	  ile (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_lei:
 	  lei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ilei:
+	  ilei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_plus:
 	  plus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_iplus:
+	  iplus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fplus:
+	  fplus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_minus:
 	  minus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_iminus:
+	  iminus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fminus:
+	  fminus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_length:
@@ -3497,24 +3570,72 @@ evaluate_code (void)
 	  iadd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_fadd:
+	  fadd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ifadd:
+	  ifadd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_iaddi:
 	  iaddi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_faddi:
+	  faddi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_isub:
 	  isub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_fsub:
+	  fsub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ifsub:
+	  ifsub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fisub:
+	  fisub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_imult:
 	  imult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fmult:
+	  fmult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ifmult:
+	  ifmult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_idiv:
 	  idiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_fdiv:
+	  fdiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ifdiv:
+	  ifdiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fidiv:
+	  fidiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_imod:
 	  imod (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fmodop:
+	  fmodop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_ilsh:
@@ -3641,8 +3762,21 @@ evaluate_code (void)
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
+	case BC_NM_ibf:
+	  if (ibf (get_op (BC_op1 (cpc))))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
 	case BC_NM_bfni:
 	  if (bfni (get_op (BC_op1 (cpc))))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_ibfni:
+	  if (ibfni (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
@@ -3827,6 +3961,48 @@ evaluate_code (void)
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
+	case BC_NM_fbteq:
+	  if (fbteq (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_fbtne:
+	  if (fbtne (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_fbtge:
+	  if (fbtge (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_fbtlt:
+	  if (fbtlt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_fbtle:
+	  if (fbtle (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_fbtgt:
+	  if (fbtgt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
 	case BC_NM_bteqi:
 	  if (bteqi (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
@@ -3918,6 +4094,13 @@ evaluate_code (void)
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
+	case BC_NM_ibt:
+	  if (ibt (get_op (BC_op1 (cpc))))
+	    cpc = BC_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
 	case BC_NM_foreach:
 	  if (foreach (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc))))
 	    cpc = BC_body_pc (cpc);
@@ -3983,6 +4166,10 @@ evaluate_code (void)
 	  break;
 	case BC_NM_imove:
 	  imove (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fmove:
+	  fmove (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_var:

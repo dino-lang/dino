@@ -816,44 +816,11 @@ extern void *gen_cfblock (BC_node_t fblock);
 
 %%
 
-/* !!!For any change here, correspondent changes in d_bcread.c,
-   d_bc[fn].shilka, and d_context.c::copy_fun_bc_block should be also
-   done.  */
-
-/* Remember: alsways use right abstract node when operands are immediate.  */
-
+/* This node should be first.  As we assume that its code is zero.  */
+%abstract
 icode :: %root /* A common node for evaluation */
 ;
 
-/* Positions:  */
-source :: icode
-%other
-        pos : position_t
-;
-source2 :: source
-%other
-        /* alternative position, e.g. variable position for a store or
-	   operand position for an operator.  */
-        pos2 : position_t
-;
-source3 :: source2
-%other
-        /* another alternative position, e.g. 2nd operand position for
-	   an operator.  */
-        pos3 : position_t
-;
-
-/* Declarations. */
-%abstract
-decl :: source
-%other
-        decl_num : int_t /* unique decl number */
-        ident : string_t
-        ident_num : int_t
-	decl_scope : block
-        next_decl : decl /* next decl in the same scope */
-        public_p : bool_t
-;
 vdecl :: decl /* var decl */
 %other
         var_num : int_t
@@ -862,34 +829,14 @@ fdecl :: decl /* fblock decl */
 %other
 	fblock : fblock
 ;
-%abstract
-edecl :: decl /* external decl */
-%other
-	address : string_t {$ = NULL;} /* defined during evaluation only.  */
-;
 evdecl, efdecl :: edecl
 ;
 
-friend :: icode
-%other
-	friend : block
-        next_friend : friend
-;
+/* !!!For any change here, corresponding changes in d_bcread.c,
+   d_bc[fn].shilka, and d_context.c::copy_fun_bc_block should be also
+   done.  */
 
-use :: icode
-%other
-	use : block
-        next_use : use
-;
-
-%abstract
-bcode :: icode
-%other
-        next : bcode
-        /* It is an info node before evaluation and source node during
-	   the evaluation.  */
-        info : %root
-;
+/* Remember: alsways use right abstract node when operands are immediate.  */
 
 /* The block flow in except presence is the following:
 
@@ -940,6 +887,244 @@ fblock :: block
 	   previous field is not zero. */
         exec_time : ticker_t
         interrupts_number : int_t
+;
+
+ldnil, ldthis :: op1; /* result place */
+flat :: op1; /* operand and result place */
+ldi, ldch, ldtp :: op2i; /* result place, value as int  */
+
+ldl :: op1 /* result place */
+%other
+	/* Don't use directly gmp_ for performance reasons.  Only use
+	   BC_mpz_ptr instead.  */
+        gmp_ : gmp_t
+;
+
+ldf :: op1 /* result place */
+%other
+        f : floating_t
+;
+
+lds :: op1 /* result place */
+%other
+        str : string_t;
+;
+
+/* non-local / external var value / reference [and value].
+   Decl is vdecl (var, lvar, lvarv), evdecl (evar, levar, levarv)  */
+var, lvar, lvarv, evar, levar, levarv :: op1_decl; /* result place */
+
+fun, efun, class :: op1_decl; /* result place, fdecl/efdecl */
+
+/* op1 is result place; op2 and op3 are container place and index/key place
+   or dim for slice.  */ 
+ind, lindv, key, lkeyv :: op3;
+sl, lslv :: op3i;
+
+/* op1 is result place; op2 is container place and op3 is block decl
+   ident number */	
+fld, lfld, lfldv :: field;
+
+const, new, not, plus, minus, bnot, length,
+  tpof, chof, iof, lof, fof, vecof, tabof :: op2; /* result and operand places */
+
+/* integer variants of some above insns.  */
+inot, iplus, iminus, ibnot :: op2;
+
+/* fp variants: */
+fplus, fminus :: op2;
+
+/* vector folding operation (info is source2: pos2 is an operand one): */
+fold_add, fold_mult, fold_and, fold_or, fold_xor :: fold_op
+;
+
+/* result and two operand places.  */
+fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
+  lsh, rsh, ash, concat, add, sub, mult, div, mod :: op3;
+addi, eqi, nei, lti, gti, lei, gei :: op3i; /* non-slice insns */
+
+/* integer variants of most above insns.  */
+ior, ixor, iand, ieq, ine, ilt, igt, ile, ige,
+  ilsh, irsh, iash, iadd, isub, imult, idiv, imod :: op3;
+iaddi, ieqi, inei, ilti, igti, ilei, igei :: op3i;
+
+/* fp variants: */
+fadd, fsub, fmult, fdiv, fmodop :: op3;
+
+/* integer-fp variants: */
+ifadd, ifsub, fisub, ifmult, ifdiv, fidiv :: op3;
+faddi :: op3i;
+
+b :: bcode; /* unconditional branch to next */
+
+btdef :: br;  /* skip if op1 is defined.  */
+
+/* Branch when true, false, false (non-interrupt) and non-nil.
+   bt info is for_stmt, bf is if_stmt, bfni is cond,
+   btdef is par_assign.  */
+bt, bf, bfni :: br; /* operand place and goto byte code ref.  */
+
+/* Integer variants of above insns */
+ibt, ibf, ibfni :: br;
+
+/* Branch and set: res <= op; goto (op or !op ? pc : next).
+   Created logical_or (brts) or logical_and (brfs).  */
+brts, brfs :: brs;
+
+/* combined for non-slice comparison: goto pc if(not) op1 cmp? bcmp_op2.
+   bcmp_res can be used as temporary.  */
+bteq, btne, btge, btlt, btle, btgt :: bcmp;
+
+/* integer variants */
+ibteq, ibtne, ibtge, ibtlt, ibtle, ibtgt :: bcmp;
+
+/* fp variants */
+fbteq, fbtne, fbtge, fbtlt, fbtle, fbtgt :: bcmp;
+
+bteqi, btnei, btgei, btlti, btlei, btgti :: bcmpi;
+
+/* integer variants */
+ibteqi, ibtnei, ibtgei, ibtlti, ibtlei, ibtgti :: bcmpi;
+
+/* op1 = op1 + inc; bcmp_res = op1 cmp bcmp_op2; bt bcmp_res
+   Inc is int.  All others are places.  */
+bteqinc, btneinc, btgeinc, btltinc, btleinc, btgtinc :: binc;
+
+/* Integer variants */
+ibteqinc, ibtneinc, ibtgeinc, ibtltinc, ibtleinc, ibtgtinc :: binc;
+
+/* Logical conversion created from a number.  */
+lconv :: op2; /* result and operand places.  */
+
+/* This node serves as test loop expr in the interpreter.  The pc flows as
+   following
+
+  pushi 0 ->foreach designator(s) calculation->table calc.->foreach->
+               ^                                            |
+               |                                            |: body_pc
+             pushi 1<-------------foreach_stmts<------------
+*/
+/* Table, container, element, foreach search start places.
+   Info is source2 (pos is position of foreach-stmt, pos2
+   is the index designator position).  */
+foreach :: op4
+%other
+	body_pc : bcode
+;
+
+/* Variant of for-each with value designator.  Info is source3 (pos is
+   position of foreach-stmt, pos2 is the index designator position,
+   pos3 is the value designator position).  */
+foreach_val :: foreach
+%other
+	/* container and element places  */
+	vcontainer, vindex: int_t
+;
+
+vec, tab :: op3i; /* result place, element parts start place, parts number */
+
+move :: op2 /* destination/source places.  */
+%other
+        /* rhs variable/function or lsh var if rhs is not variable/function. */
+        move_decl : decl
+;
+imove, fmove :: move
+;
+/* Assignments: */
+/* vec or tab, stack, external store: container, element, value places */
+stvt, sts, ste :: op3;
+/* analogous to above ones but the assigned value may be undef */
+stvtu, stsu, steu :: op3;
+slst :: op3i2; /* vector place, slice dimension as int, value place  */
+
+
+/* Assignment with operations: */
+/* container, element, expr, lvalue val places */
+mult_st, div_st, mod_st,
+  add_st, sub_st, concat_st, lsh_st,
+  rsh_st, ash_st, and_st, xor_st, or_st :: op4;
+
+mult_slst, div_slst, mod_slst,
+  add_slst, sub_slst, concat_slst, lsh_slst,
+  rsh_slst, ash_slst, and_slst, xor_slst, or_slst :: op_slst;
+
+out :: op1i; /* # of surrounding blocks as int */
+
+/* general calls: params start place, params number as int.
+   Letter t means tail call.  */
+call, tcall :: op2i;
+
+/* immediate calls: params start place (first value is undefined),
+   params number as int, fun decl.  Immidiate implementation function
+   call is ibcall.  For others: first letter t or c means top stack or
+   current stack context, tcall means tail call.  */
+ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imcall;
+
+/* sbend is simple block leave (at the end of the simple block).
+   position is block end or return without value.  */
+leave, sbend :: bcode;
+
+/* Analogous to leave but it is always the last code in the block
+   statement chain. */
+bend :: bcode
+%other
+	block : block
+;
+
+/* Function block end.  */
+fbend :: bend
+;
+
+ret :: op1  /* return with result: ret value place */
+%other
+        ret_decl : decl /* no-null if ident in the return. */
+;
+throw :: op1;
+wait :: br;
+waitend :: bcode;
+
+except :: op2 /* except instance and class places */
+%other
+	next_except : bcode
+;
+
+/* These codes represent printing expr in REPL.  It is never output or
+   input.  Code rpr_def never prints undefined values (e.g. proc call
+   results).  */
+rpr, rpr_def :: op1
+;
+
+/* This byte code should be last.  The byte code is used only during
+   code generation.  Info is info of the corresponding cond, for-stmt,
+   foreach-stmt, if-stmt, par_assign, block for end of exceptions.  It
+   is removed before the execution.  */
+nop :: bcode;
+
+/* Abstract nodes.  Put it here to keep executed node number < 256.  */
+
+/* Declarations. */
+%abstract
+decl :: source
+%other
+        decl_num : int_t /* unique decl number */
+        ident : string_t
+        ident_num : int_t
+	decl_scope : block
+        next_decl : decl /* next decl in the same scope */
+        public_p : bool_t
+;
+%abstract
+edecl :: decl /* external decl */
+%other
+	address : string_t {$ = NULL;} /* defined during evaluation only.  */
+;
+%abstract
+bcode :: icode
+%other
+        next : bcode
+        /* It is an info node before evaluation and source node during
+	   the evaluation.  */
+        info : %root
 ;
 %abstract
 op1 :: bcode
@@ -1012,210 +1197,47 @@ imcall :: op2i
 %other
 	cfblock : fblock
 ;
-
-ldnil, ldthis :: op1; /* result place */
-flat :: op1; /* operand and result place */
-ldi, ldch, ldtp :: op2i; /* result place, value as int  */
-
-ldl :: op1 /* result place */
-%other
-	/* Don't use directly gmp_ for performance reasons.  Only use
-	   BC_mpz_ptr instead.  */
-        gmp_ : gmp_t
-;
-
-ldf :: op1 /* result place */
-%other
-        f : floating_t
-;
-
-lds :: op1 /* result place */
-%other
-        str : string_t;
-;
-
-/* non-local / external var value / reference [and value].
-   Decl is vdecl (var, lvar, lvarv), evdecl (evar, levar, levarv)  */
-var, lvar, lvarv, evar, levar, levarv :: op1_decl; /* result place */
-
-fun, efun, class :: op1_decl; /* result place, fdecl/efdecl */
-
-/* op1 is result place; op2 and op3 are container place and index/key place
-   or dim for slice.  */ 
-ind, lindv, key, lkeyv :: op3;
-sl, lslv :: op3i;
-
 %abstract
 field :: op3i
 %other
 	fldid : string_t  /* field identifier  */
 ;
-/* op1 is result place; op2 is container place and op3 is block decl
-   ident number */	
-fld, lfld, lfldv :: field;
-
-const, new, not, plus, minus, bnot, length,
-  tpof, chof, iof, lof, fof, vecof, tabof :: op2; /* result and operand places */
-
-/* vector folding operation (info is source2: pos2 is an operand one): */
 %abstract
 fold_op :: op2
 ;
-fadd, fmult, fand, for, fxor :: fold_op
-;
-
-/* result and two operand places.  */
-fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
-  lsh, rsh, ash, concat, add, sub, mult, div, mod :: op3;
-addi, eqi, nei, lti, gti, lei, gei :: op3i; /* non-slice insns */
-
-/* integer variants of most above insns.  */
-ior, ixor, iand, ieq, ine, iid, iunid, ilt, igt, ile, ige,
-  ilsh, irsh, iash, iadd, isub, imult, idiv, imod :: op3;
-iaddi, ieqi, inei, ilti, igti, ilei, igei :: op3i;
-
-b :: bcode; /* unconditional branch to next */
-
-btdef :: br;  /* skip if op1 is defined.  */
-
-/* Branch when true, false, false (non-interrupt) and non-nil.
-   bt info is for_stmt, bf is if_stmt, bfni is cond,
-   btdef is par_assign.  */
-bt, bf, bfni :: br; /* operand place and goto byte code ref.  */
-
-/* Branch and set: res <= op; goto (op or !op ? pc : next).
-   Created logical_or (brts) or logical_and (brfs).  */
-brts, brfs :: brs;
-
-/* combined for non-slice comparison: goto pc if(not) op1 cmp? bcmp_op2.
-   bcmp_res can be used as temporary.  */
-bteq, btne, btge, btlt, btle, btgt :: bcmp;
-
-/* integer variants */
-ibteq, ibtne, ibtge, ibtlt, ibtle, ibtgt :: bcmp;
-
-bteqi, btnei, btgei, btlti, btlei, btgti :: bcmpi;
-
-/* integer variants */
-ibteqi, ibtnei, ibtgei, ibtlti, ibtlei, ibtgti :: bcmpi;
-
-/* op1 = op1 + inc; bcmp_res = op1 cmp bcmp_op2; bt bcmp_res
-   Inc is int.  All others are places.  */
-bteqinc, btneinc, btgeinc, btltinc, btleinc, btgtinc :: binc;
-
-/* Integer variants */
-ibteqinc, ibtneinc, ibtgeinc, ibtltinc, ibtleinc, ibtgtinc :: binc;
-
-/* Logical conversion created from a number.  */
-lconv :: op2; /* result and operand places.  */
-
-/* This node serves as test loop expr in the interpreter.  The pc flows as
-   following
-
-  pushi 0 ->foreach designator(s) calculation->table calc.->foreach->
-               ^                                            |
-               |                                            |: body_pc
-             pushi 1<-------------foreach_stmts<------------
-*/
-/* Table, container, element, foreach search start places.
-   Info is source2 (pos is position of foreach-stmt, pos2
-   is the index designator position).  */
-foreach :: op4
-%other
-	body_pc : bcode
-;
-
-/* Variant of for-each with value designator.  Info is source3 (pos is
-   position of foreach-stmt, pos2 is the index designator position,
-   pos3 is the value designator position).  */
-foreach_val :: foreach
-%other
-	/* container and element places  */
-	vcontainer, vindex: int_t
-;
-
-vec, tab :: op3i; /* result place, element parts start place, parts number */
-
-move :: op2 /* destination/source places.  */
-%other
-        /* rhs variable/function or lsh var if rhs is not variable/function. */
-        move_decl : decl
-;
-imove :: move
-;
-/* Assignments: */
-/* vec or tab, stack, external store: container, element, value places */
-stvt, sts, ste :: op3;
-/* analogous to above ones but the assigned value may be undef */
-stvtu, stsu, steu :: op3;
-slst :: op3i2; /* vector place, slice dimension as int, value place  */
-
-
-/* Assignment with operations: */
-/* container, element, expr, lvalue val places */
-mult_st, div_st, mod_st,
-  add_st, sub_st, concat_st, lsh_st,
-  rsh_st, ash_st, and_st, xor_st, or_st :: op4;
-
 /* Slice assignments: */
 /* container place, slice dimension as int, expr place, lvalue val place */
 %abstract
 op_slst :: op4i2
 ;
-mult_slst, div_slst, mod_slst,
-  add_slst, sub_slst, concat_slst, lsh_slst,
-  rsh_slst, ash_slst, and_slst, xor_slst, or_slst :: op_slst;
+/* Declarations nodes: */
 
-out :: op1i; /* # of surrounding blocks as int */
-
-/* general calls: params start place, params number as int.
-   Letter t means tail call.  */
-call, tcall :: op2i;
-
-/* immediate calls: params start place (first value is undefined),
-   params number as int, fun decl.  Immidiate implementation function
-   call is ibcall.  For others: first letter t or c means top stack or
-   current stack context, tcall means tail call.  */
-ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imcall;
-
-/* sbend is simple block leave (at the end of the simple block).
-   position is block end or return without value.  */
-leave, sbend :: bcode;
-
-/* Analogous to leave but it is always the last code in the block
-   statement chain. */
-bend :: bcode
+/* Positions:  */
+source :: icode
 %other
-	block : block
+        pos : position_t
 ;
-
-/* Function block end.  */
-fbend :: bend
-;
-
-ret :: op1  /* return with result: ret value place */
+source2 :: source
 %other
-        ret_decl : decl /* no-null if ident in the return. */
+        /* alternative position, e.g. variable position for a store or
+	   operand position for an operator.  */
+        pos2 : position_t
 ;
-throw :: op1;
-wait :: br;
-waitend :: bcode;
-
-except :: op2 /* except instance and class places */
+source3 :: source2
 %other
-	next_except : bcode
+        /* another alternative position, e.g. 2nd operand position for
+	   an operator.  */
+        pos3 : position_t
 ;
-
-/* This byte code is used only during code generation.  Info is info
-   of the corresponding cond, for-stmt, foreach-stmt, if-stmt,
-   par_assign, block for end of exceptions.  It is removed before the
-   execution.  */
-nop :: bcode;
-
-/* These codes represent printing expr in REPL.  It is never output or
-   input.  Code rpr_def never prints undefined values (e.g. proc call
-   results).  */
-rpr, rpr_def :: op1
+friend :: icode
+%other
+	friend : block
+        next_friend : friend
+;
+use :: icode
+%other
+	use : block
+        next_use : use
 ;
 
 /* ---- Nodes used only for generation and optimizations ---- */

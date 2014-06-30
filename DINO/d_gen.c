@@ -57,13 +57,6 @@ extern void store_stack_designator_value (ER_node_t stack, ER_node_t index,
 extern void slice_extract (ER_node_t res, ER_node_t container, int_t dim);
 extern void slice_assign (ER_node_t container, int_t dim, ER_node_t val);
 
-enum insn_tp
-  {
-    UNKNOWN_TP,
-    INT_TP,
-    FLOAT_TP
-  };
-
 /* The following three functions return TRUE if OP1 and OP2 are
    correspondingly int, float, or slice type.  */
 static int do_always_inline
@@ -95,34 +88,34 @@ extern void binary_vect_op (ER_node_t, ER_node_t, ER_node_t);
 #define ffunc(name) static do_always_inline floating_t name (floating_t a, floating_t b)
 #define icmpf(name) static do_always_inline int name (int_t a, int_t b)
 #define fcmpf(name) static do_always_inline int name (floating_t a, floating_t b)
-ifunc (iplus) { return a + b;}
-ifunc (iminus) { return a - b;}
+ifunc (i_plus) { return a + b;}
+ifunc (i_minus) { return a - b;}
 ifunc (i_mult) { return a * b;}
 ifunc (i_div) { return a / b;}
 ifunc (i_mod) { return a % b;}
 ifunc (i_and) { return a & b;}
 ifunc (i_xor) { return a ^ b;}
 ifunc (i_or) { return a | b;}
-ifunc (ilshift) { return a << b;}
-ifunc (irshift) { return (unsigned_int_t) a >> b;}
-ifunc (iashift) { return a >> b;}
-icmpf (ieq) { return a == b;}
-icmpf (ine) { return a != b;}
-icmpf (ilt) { return a < b;}
-icmpf (ile) { return a <= b;}
-icmpf (igt) { return a > b;}
-icmpf (ige) { return a >= b;}
-ffunc (fplus) { return a + b;}
-ffunc (fminus) { return a - b;}
-ffunc (fmult) { return a * b;}
-ffunc (fdiv) { return a / b;}
-ffunc (frem) { return fmod (a, b);}
-fcmpf (feq) { return a == b;}
-fcmpf (fne) { return a != b;}
-fcmpf (flt) { return a < b;}
-fcmpf (fle) { return a <= b;}
-fcmpf (fgt) { return a > b;}
-fcmpf (fge) { return a >= b;}
+ifunc (i_lshift) { return a << b;}
+ifunc (i_rshift) { return (unsigned_int_t) a >> b;}
+ifunc (i_ashift) { return a >> b;}
+icmpf (i_eq) { return a == b;}
+icmpf (i_ne) { return a != b;}
+icmpf (i_lt) { return a < b;}
+icmpf (i_le) { return a <= b;}
+icmpf (i_gt) { return a > b;}
+icmpf (i_ge) { return a >= b;}
+ffunc (f_plus) { return a + b;}
+ffunc (f_minus) { return a - b;}
+ffunc (f_mult) { return a * b;}
+ffunc (f_div) { return a / b;}
+ffunc (f_mod) { return fmod (a, b);}
+fcmpf (f_eq) { return a == b;}
+fcmpf (f_ne) { return a != b;}
+fcmpf (f_lt) { return a < b;}
+fcmpf (f_le) { return a <= b;}
+fcmpf (f_gt) { return a > b;}
+fcmpf (f_ge) { return a >= b;}
 
 /* Return true if OP1 is a slice.  */
 static int do_always_inline
@@ -144,7 +137,7 @@ ifunc1 (iunary_plus) { return a;}
 ifunc1 (iunary_minus) { return -a;}
 ffunc1 (funary_plus) { return a;}
 ffunc1 (funary_minus) { return -a;}
-ifunc1 (inot) { return a == 0;}
+ifunc1 (i_not) { return a == 0;}
 iffunc1 (fnot) { return a == 0.0;}
 ifunc1 (ibitwise_not) { return ~a;}
 
@@ -289,7 +282,7 @@ execute_not_op (ER_node_t res, ER_node_t op1, int vect_p)
 
   if (expect (ER_NODE_MODE (op1) == ER_NM_int))
     {
-      i = inot (ER_i (op1));
+      i = i_not (ER_i (op1));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i);
       return;
@@ -301,7 +294,7 @@ execute_not_op (ER_node_t res, ER_node_t op1, int vect_p)
     }
   op1 = implicit_arithmetic_conversion (op1, (ER_node_t) &tvar1);
   if (expect (ER_NODE_MODE (op1) == ER_NM_int))
-    i = inot (ER_i (op1));
+    i = i_not (ER_i (op1));
   else if (expect (ER_NODE_MODE (op1) == ER_NM_float))
     i = fnot (ER_f (op1));
   else if (ER_NODE_MODE (op1) == ER_NM_long)
@@ -662,16 +655,15 @@ common_bt (ER_node_t op1)
 }
 
 static int do_always_inline
-execute_btcmp (enum insn_tp tp, ER_node_t op1, ER_node_t op2, int_t bcmp_resn,
+execute_btcmp (int int_p, ER_node_t op1, ER_node_t op2, int_t bcmp_resn,
 	       BC_node_mode_t cmp_nm, int icmp (int_t, int_t),
 	       int fcmp (floating_t, floating_t),
 	       void gencmp (BC_node_mode_t, ER_node_t, ER_node_t, ER_node_t, int))
 {
   ER_node_t res;
 
-  if (tp == INT_TP
-      || expect (ER_NODE_MODE (op1) == ER_NM_int
-		 && ER_NODE_MODE (op2) == ER_NM_int))
+  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int
+		       && ER_NODE_MODE (op2) == ER_NM_int))
     return icmp (ER_i (op1), ER_i (op2));
   res = get_op (bcmp_resn);
   comp_op (cmp_nm, res, op1, op2, FALSE, icmp, fcmp, gencmp);
@@ -679,7 +671,7 @@ execute_btcmp (enum insn_tp tp, ER_node_t op1, ER_node_t op2, int_t bcmp_resn,
 }
 
 static int do_always_inline
-execute_btcmpi (enum insn_tp tp, ER_node_t op1, int_t i, int_t bcmp_resn,
+execute_btcmpi (int int_p, ER_node_t op1, int_t i, int_t bcmp_resn,
 		BC_node_mode_t cmp_nm, int icmp (int_t, int_t),
 		int fcmp (floating_t, floating_t),
 		void gencmp (BC_node_mode_t, ER_node_t, ER_node_t, ER_node_t, int))
@@ -687,7 +679,7 @@ execute_btcmpi (enum insn_tp tp, ER_node_t op1, int_t i, int_t bcmp_resn,
   ER_node_t res, op2;
   static val_t v;
 
-  if (tp == INT_TP || expect (ER_NODE_MODE (op1) == ER_NM_int))
+  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
     return icmp (ER_i (op1), i);
   res = get_op (bcmp_resn);
   op2 = (ER_node_t) &v;
@@ -698,7 +690,7 @@ execute_btcmpi (enum insn_tp tp, ER_node_t op1, int_t i, int_t bcmp_resn,
 }
 
 static int do_always_inline
-execute_btcmpinc (enum insn_tp tp,
+execute_btcmpinc (int int_p,
 		  ER_node_t op1, ER_node_t op2, int_t bcmp_resn, int_t i,
 		  int icmp (int_t, int_t),
 		  int fcmp (floating_t, floating_t),
@@ -706,7 +698,7 @@ execute_btcmpinc (enum insn_tp tp,
 {
   val_t v;
 
-  if (tp == INT_TP || expect (ER_NODE_MODE (op1) == ER_NM_int))
+  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
     {
       i += ER_i (op1);
       ER_set_i (op1, i);
@@ -719,7 +711,7 @@ execute_btcmpinc (enum insn_tp tp,
       ER_set_i ((ER_node_t) &v, i);
       execute_plus_op (op1, op1, (ER_node_t) &v, FALSE);
     }
-  return execute_btcmp (tp, op1, op2, bcmp_resn, BC_NM_eq, icmp, fcmp, gencmp);
+  return execute_btcmp (int_p, op1, op2, bcmp_resn, BC_NM_eq, icmp, fcmp, gencmp);
 }
 
 static int do_always_inline
@@ -946,9 +938,25 @@ not (ER_node_t res, ER_node_t op1)
 }
 
 static void do_always_inline
+inot (ER_node_t res, ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_not (ER_i (op1)));
+}
+
+static void do_always_inline
 bnot (ER_node_t res, ER_node_t op1)
 {
   execute_bitwise_not_op (res, op1, TRUE);
+}
+
+static void do_always_inline
+ibnot (ER_node_t res, ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, ibitwise_not (ER_i (op1)));
 }
 
 static void do_always_inline
@@ -970,12 +978,28 @@ eq (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+ieq (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (int_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_eq (ER_i (op1), ER_i (op2)));
+}
+
+static void do_always_inline
 eqi (ER_node_t res, ER_node_t op1, int_t op3n)
 {
   ER_node_t op2;
   
-  if (execute_cmpi (res, op1, op3n, &op2, ieq))
+  if (execute_cmpi (res, op1, op3n, &op2, i_eq))
     common_eq (res, op1, op2);
+}
+
+static void do_always_inline
+ieqi (ER_node_t res, ER_node_t op1, int_t op3n)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_eq (ER_i (op1), op3n));
 }
 
 static void do_always_inline
@@ -991,12 +1015,28 @@ ne (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+ine (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (int_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_ne (ER_i (op1), ER_i (op2)));
+}
+
+static void do_always_inline
 nei (ER_node_t res, ER_node_t op1, int_t op3n)
 {
   ER_node_t op2;
   
-  if (execute_cmpi (res, op1, op3n, &op2, ine))
+  if (execute_cmpi (res, op1, op3n, &op2, i_ne))
     common_ne (res, op1, op2);
+}
+
+static void do_always_inline
+inei (ER_node_t res, ER_node_t op1, int_t op3n)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_ne (ER_i (op1), op3n));
 }
 
 static void do_always_inline
@@ -1024,12 +1064,28 @@ lt (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+ilt (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (int_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_lt (ER_i (op1), ER_i (op2)));
+}
+
+static void do_always_inline
 lti (ER_node_t res, ER_node_t op1, int_t op3n)
 {
   ER_node_t op2;
   
-  if (execute_cmpi (res, op1, op3n, &op2, ilt))
+  if (execute_cmpi (res, op1, op3n, &op2, i_lt))
     common_lt (res, op1, op2);
+}
+
+static void do_always_inline
+ilti (ER_node_t res, ER_node_t op1, int_t op3n)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_lt (ER_i (op1), op3n));
 }
 
 static void do_always_inline
@@ -1045,12 +1101,28 @@ ge (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+ige (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (int_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_ge (ER_i (op1), ER_i (op2)));
+}
+
+static void do_always_inline
 gei (ER_node_t res, ER_node_t op1, int_t op3n)
 {
   ER_node_t op2;
   
-  if (execute_cmpi (res, op1, op3n, &op2, ige))
+  if (execute_cmpi (res, op1, op3n, &op2, i_ge))
     common_ge (res, op1, op2);
+}
+
+static void do_always_inline
+igei (ER_node_t res, ER_node_t op1, int_t op3n)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_ge (ER_i (op1), op3n));
 }
 
 static void do_always_inline
@@ -1066,12 +1138,28 @@ gt (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+igt (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (int_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_gt (ER_i (op1), ER_i (op2)));
+}
+
+static void do_always_inline
 gti (ER_node_t res, ER_node_t op1, int_t op3n)
 {
   ER_node_t op2;
   
-  if (execute_cmpi (res, op1, op3n, &op2, igt))
+  if (execute_cmpi (res, op1, op3n, &op2, i_gt))
     common_gt (res, op1, op2);
+}
+
+static void do_always_inline
+igti (ER_node_t res, ER_node_t op1, int_t op3n)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_gt (ER_i (op1), op3n));
 }
 
 static void do_always_inline
@@ -1087,12 +1175,28 @@ le (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+ile (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (int_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_le (ER_i (op1), ER_i (op2)));
+}
+
+static void do_always_inline
 lei (ER_node_t res, ER_node_t op1, int_t op3n)
 {
   ER_node_t op2;
   
-  if (execute_cmpi (res, op1, op3n, &op2, ile))
+  if (execute_cmpi (res, op1, op3n, &op2, i_le))
     common_le (res, op1, op2);
+}
+
+static void do_always_inline
+ilei (ER_node_t res, ER_node_t op1, int_t op3n)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, i_le (ER_i (op1), op3n));
 }
 
 static void do_always_inline
@@ -1103,10 +1207,42 @@ plus (ER_node_t res, ER_node_t op1)
 }
 
 static void do_always_inline
+iplus (ER_node_t res, ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, iunary_plus (ER_i (op1)));
+}
+
+static void do_always_inline
+fplus (ER_node_t res, ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_float);
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, funary_plus (ER_f (op1)));
+}
+
+static void do_always_inline
 minus (ER_node_t res, ER_node_t op1)
 {
   execute_unary_ar_op (res, op1, TRUE, DERR_unary_minus_operand_type,
 		       iunary_minus, funary_minus, lunary_minus);
+}
+
+static void do_always_inline
+iminus (ER_node_t res, ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  ER_SET_MODE (res, ER_NM_int);
+  ER_set_i (res, iunary_minus (ER_i (op1)));
+}
+
+static void do_always_inline
+fminus (ER_node_t res, ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_float);
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, funary_minus (ER_f (op1)));
 }
 
 static void do_always_inline
@@ -1320,18 +1456,18 @@ common_plus (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
-cadd (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+cadd (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
-      ER_set_i (res, iplus (ER_i (op1), ER_i (op2)));
+      ER_set_i (res, i_plus (ER_i (op1), ER_i (op2)));
       return;
     }
   if (float_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_float);
-      ER_set_f (res, fplus (ER_f (op1), ER_f (op2)));
+      ER_set_f (res, f_plus (ER_f (op1), ER_f (op2)));
       return;
     }
   common_plus (res, op1, op2);
@@ -1340,26 +1476,45 @@ cadd (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 add (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cadd (UNKNOWN_TP, res, op1, op2);
+  cadd (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 iadd (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cadd (INT_TP, res, op1, op2);
+  cadd (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-caddi (enum insn_tp tp, ER_node_t res, ER_node_t op1, int_t op3n)
+fadd (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (float_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f_plus (ER_f (op1), ER_f (op2)));
+}
+
+static void do_always_inline
+ifadd (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  f = f_plus ((floating_t) ER_i (op1), ER_f (op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f);
+}
+
+static void do_always_inline
+caddi (int int_p, ER_node_t res, ER_node_t op1, int_t op3n)
 {
   ER_node_t op2;
   val_t v;
   int_t i;
 
   i = op3n;
-  if (tp == INT_TP || expect (ER_NODE_MODE (op1) == ER_NM_int))
+  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
     {
-      i = iplus (ER_i (op1), i);
+      i = i_plus (ER_i (op1), i);
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i);
     }
@@ -1375,28 +1530,39 @@ caddi (enum insn_tp tp, ER_node_t res, ER_node_t op1, int_t op3n)
 static void do_always_inline
 addi (ER_node_t op1, ER_node_t op2, int_t op3n)
 {
-  caddi (UNKNOWN_TP, op1, op2, op3n);
+  caddi (FALSE, op1, op2, op3n);
 }
 
 static void do_always_inline
 iaddi (ER_node_t op1, ER_node_t op2, int_t op3n)
 {
-  caddi (INT_TP, op1, op2, op3n);
+  caddi (TRUE, op1, op2, op3n);
 }
 
 static void do_always_inline
-csub (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+faddi (ER_node_t op1, ER_node_t op2, int_t op3n)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op2) == ER_NM_float);
+  f = f_plus (ER_f (op2), (floating_t) op3n);
+  ER_SET_MODE (op1, ER_NM_float);
+  ER_set_f (op1, f);
+}
+
+static void do_always_inline
+csub (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
-      ER_set_i (res, iminus (ER_i (op1), ER_i (op2)));
+      ER_set_i (res, i_minus (ER_i (op1), ER_i (op2)));
       return;
     }
   if (float_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_float);
-      ER_set_f (res, fminus (ER_f (op1), ER_f (op2)));
+      ER_set_f (res, f_minus (ER_f (op1), ER_f (op2)));
       return;
     }
   execute_minus_op (res, op1, op2, TRUE);
@@ -1405,19 +1571,49 @@ csub (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 sub (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  csub (UNKNOWN_TP, res, op1, op2);
+  csub (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 isub (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  csub (INT_TP, res, op1, op2);
+  csub (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-cmult (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+fsub (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  d_assert (float_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f_minus (ER_f (op1), ER_f (op2)));
+}
+
+static void do_always_inline
+ifsub (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  f = f_minus ((floating_t) ER_i (op1), ER_f (op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f);
+}
+
+static void do_always_inline
+fisub (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_float || ER_NODE_MODE (op2) == ER_NM_int);
+  f = f_minus (ER_f (op1), (floating_t) ER_i (op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f);
+}
+
+static void do_always_inline
+cmult (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_mult (ER_i (op1), ER_i (op2)));
@@ -1426,7 +1622,7 @@ cmult (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
   if (float_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_float);
-      ER_set_f (res, fmult (ER_f (op1), ER_f (op2)));
+      ER_set_f (res, f_mult (ER_f (op1), ER_f (op2)));
       return;
     }
   execute_mult_op (res, op1, op2, TRUE);
@@ -1435,19 +1631,38 @@ cmult (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 mult (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cmult (UNKNOWN_TP, res, op1, op2);
+  cmult (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 imult (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cmult (INT_TP, res, op1, op2);
+  cmult (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-cdiv (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+fmult (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  d_assert (float_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f_mult (ER_f (op1), ER_f (op2)));
+}
+
+static void do_always_inline
+ifmult (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  f = f_mult ((floating_t) ER_i (op1), ER_f (op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f);
+}
+
+static void do_always_inline
+cdiv (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_div (ER_i (op1), ER_i (op2)));
@@ -1456,7 +1671,7 @@ cdiv (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
   if (float_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_float);
-      ER_set_f (res, fdiv (ER_f (op1), ER_f (op2)));
+      ER_set_f (res, f_div (ER_f (op1), ER_f (op2)));
       return;
     }
   execute_div_op (res, op1, op2, TRUE);
@@ -1465,19 +1680,49 @@ cdiv (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 divop (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cdiv (UNKNOWN_TP, res, op1, op2);
+  cdiv (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 idiv (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cdiv (INT_TP, res, op1, op2);
+  cdiv (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-cmod (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+fdiv (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  d_assert (float_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f_div (ER_f (op1), ER_f (op2)));
+}
+
+static void do_always_inline
+ifdiv (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  f = f_div ((floating_t) ER_i (op1), ER_f (op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f);
+}
+
+static void do_always_inline
+fidiv (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_float || ER_NODE_MODE (op2) == ER_NM_int);
+  f = f_div (ER_f (op1), (floating_t) ER_i (op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f);
+}
+
+static void do_always_inline
+cmod (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_mod (ER_i (op1), ER_i (op2)));
@@ -1486,7 +1731,7 @@ cmod (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
   if (float_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_float);
-      ER_set_f (res, frem (ER_f (op1), ER_f (op2)));
+      ER_set_f (res, f_mod (ER_f (op1), ER_f (op2)));
       return;
     }
   execute_mod_op (res, op1, op2, TRUE);
@@ -1495,13 +1740,21 @@ cmod (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 mod (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cmod (UNKNOWN_TP, res, op1, op2);
+  cmod (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 imod (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cmod (INT_TP, res, op1, op2);
+  cmod (TRUE, res, op1, op2);
+}
+
+static void do_always_inline
+fmodop (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  d_assert (float_bin_op (op1, op2));
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_f (res, f_mod (ER_f (op1), ER_f (op2)));
 }
 
 static void do_always_inline
@@ -1511,12 +1764,12 @@ concat (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
-clsh (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+clsh (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
-      ER_set_i (res, ilshift (ER_i (op1), ER_i (op2)));
+      ER_set_i (res, i_lshift (ER_i (op1), ER_i (op2)));
       return;
     }
   execute_lshift_op (res, op1, op2, TRUE);
@@ -1525,22 +1778,22 @@ clsh (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 lsh (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  clsh (UNKNOWN_TP, res, op1, op2);
+  clsh (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 ilsh (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  clsh (INT_TP, res, op1, op2);
+  clsh (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-crsh (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+crsh (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
-      ER_set_i (res, irshift (ER_i (op1), ER_i (op2)));
+      ER_set_i (res, i_rshift (ER_i (op1), ER_i (op2)));
       return;
     }
   execute_rshift_op (res, op1, op2, TRUE);
@@ -1549,22 +1802,22 @@ crsh (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 rsh (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  crsh (UNKNOWN_TP, res, op1, op2);
+  crsh (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 irsh (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  crsh (INT_TP, res, op1, op2);
+  crsh (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-cash (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+cash (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
-      ER_set_i (res, iashift (ER_i (op1), ER_i (op2)));
+      ER_set_i (res, i_ashift (ER_i (op1), ER_i (op2)));
       return;
     }
   execute_ashift_op (res, op1, op2, TRUE);
@@ -1573,19 +1826,19 @@ cash (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 ash (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cash (UNKNOWN_TP, res, op1, op2);
+  cash (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 iash (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cash (INT_TP, res, op1, op2);
+  cash (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-cand (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+cand (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_and (ER_i (op1), ER_i (op2)));
@@ -1597,19 +1850,19 @@ cand (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 and (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cand (UNKNOWN_TP, res, op1, op2);
+  cand (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 iand (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cand (INT_TP, res, op1, op2);
+  cand (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-cxor (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+cxor (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_xor (ER_i (op1), ER_i (op2)));
@@ -1621,19 +1874,19 @@ cxor (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 xor (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cxor (UNKNOWN_TP, res, op1, op2);
+  cxor (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 ixor (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cxor (INT_TP, res, op1, op2);
+  cxor (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
-cor (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
+cor (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (v == INT_TP || int_bin_op (op1, op2))
+  if (int_p || int_bin_op (op1, op2))
     {
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_or (ER_i (op1), ER_i (op2)));
@@ -1645,13 +1898,13 @@ cor (enum insn_tp v, ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 or (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cor (UNKNOWN_TP, res, op1, op2);
+  cor (FALSE, res, op1, op2);
 }
 
 static void do_always_inline
 ior (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  cor (INT_TP, res, op1, op2);
+  cor (TRUE, res, op1, op2);
 }
 
 static void do_always_inline
@@ -1786,6 +2039,13 @@ bf (ER_node_t op1)
 }
 
 static int do_always_inline
+ibf (ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  return ER_i (op1) == 0;
+}
+
+static int do_always_inline
 bfni (ER_node_t op1)
 {
 #ifndef SMALL_CODE
@@ -1797,351 +2057,407 @@ bfni (ER_node_t op1)
 }
 
 static int do_always_inline
-cbteqinc (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
+ibfni (ER_node_t op1)
 {
-  return execute_btcmpinc (tp, op1, bcmp_op2, bcmp_resn, inc, ieq, feq,
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  return ER_i (op1) == 0;
+}
+
+static int do_always_inline
+cbteqinc (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
+{
+  return execute_btcmpinc (int_p, op1, bcmp_op2, bcmp_resn, inc, i_eq, f_eq,
 			   execute_common_eq_ne_op);
 }
 
 static int do_always_inline
 bteqinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbteqinc (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbteqinc (FALSE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
 ibteqinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbteqinc (INT_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbteqinc (TRUE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
-cbtneinc (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
+cbtneinc (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return execute_btcmpinc (tp, op1, bcmp_op2, bcmp_resn, inc, ine, fne,
+  return execute_btcmpinc (int_p, op1, bcmp_op2, bcmp_resn, inc, i_ne, f_ne,
 			   execute_common_eq_ne_op);
 }
 
 static int do_always_inline
 btneinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtneinc (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtneinc (FALSE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
 ibtneinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtneinc (INT_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtneinc (TRUE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
-cbtgeinc (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
+cbtgeinc (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return execute_btcmpinc (tp, op1, bcmp_op2, bcmp_resn, inc, ige, fge,
+  return execute_btcmpinc (int_p, op1, bcmp_op2, bcmp_resn, inc, i_ge, f_ge,
 			   execute_common_cmp_op);
 }
 
 static int do_always_inline
 btgeinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtgeinc (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtgeinc (FALSE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
 ibtgeinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtgeinc (INT_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtgeinc (TRUE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
-cbtltinc (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
+cbtltinc (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return execute_btcmpinc (tp, op1, bcmp_op2, bcmp_resn, inc, ilt, flt,
+  return execute_btcmpinc (int_p, op1, bcmp_op2, bcmp_resn, inc, i_lt, f_lt,
 			   execute_common_cmp_op);
 }
 
 static int do_always_inline
 btltinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtltinc (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtltinc (FALSE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
 ibtltinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtltinc (INT_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtltinc (TRUE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
-cbtleinc (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
+cbtleinc (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return execute_btcmpinc (tp, op1, bcmp_op2, bcmp_resn, inc, ile, fle,
+  return execute_btcmpinc (int_p, op1, bcmp_op2, bcmp_resn, inc, i_le, f_le,
 			   execute_common_cmp_op);
 }
 
 static int do_always_inline
 btleinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtleinc (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtleinc (FALSE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
 ibtleinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtleinc (INT_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtleinc (TRUE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
-cbtgtinc (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
+cbtgtinc (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return execute_btcmpinc (tp, op1, bcmp_op2, bcmp_resn, inc, igt, fgt,
+  return execute_btcmpinc (int_p, op1, bcmp_op2, bcmp_resn, inc, i_gt, f_gt,
 			   execute_common_cmp_op);
 }
 
 static int do_always_inline
 btgtinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtgtinc (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtgtinc (FALSE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
 ibtgtinc (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn, int_t inc)
 {
-  return cbtgtinc (INT_TP, op1, bcmp_op2, bcmp_resn, inc);
+  return cbtgtinc (TRUE, op1, bcmp_op2, bcmp_resn, inc);
 }
 
 static int do_always_inline
-cbteq (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+cbteq (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return execute_btcmp (tp, op1, bcmp_op2, bcmp_resn, BC_NM_eq, ieq, feq,
+  return execute_btcmp (int_p, op1, bcmp_op2, bcmp_resn, BC_NM_eq, i_eq, f_eq,
 			execute_common_eq_ne_op);
 }
 
 static int do_always_inline
 bteq (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbteq (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn);
+  return cbteq (FALSE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
 ibteq (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbteq (INT_TP, op1, bcmp_op2, bcmp_resn);
+  return cbteq (TRUE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
-cbtne (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+fbteq (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return execute_btcmp (tp, op1, bcmp_op2, bcmp_resn, BC_NM_gt, ine, fne,
+  d_assert (float_bin_op (op1, bcmp_op2));
+  return f_eq (ER_f (op1), ER_f (bcmp_op2));
+}
+
+static int do_always_inline
+cbtne (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+{
+  return execute_btcmp (int_p, op1, bcmp_op2, bcmp_resn, BC_NM_gt, i_ne, f_ne,
 			execute_common_eq_ne_op);
 }
 
 static int do_always_inline
 btne (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtne (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtne (FALSE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
 ibtne (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtne (INT_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtne (TRUE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
-cbtge (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+fbtne (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return execute_btcmp (tp, op1, bcmp_op2, bcmp_resn, BC_NM_ge, ige, fge,
+  d_assert (float_bin_op (op1, bcmp_op2));
+  return f_ne (ER_f (op1), ER_f (bcmp_op2));
+}
+
+static int do_always_inline
+cbtge (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+{
+  return execute_btcmp (int_p, op1, bcmp_op2, bcmp_resn, BC_NM_ge, i_ge, f_ge,
 			execute_common_cmp_op);
 }
 
 static int do_always_inline
 btge (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtge (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtge (FALSE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
 ibtge (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtge (INT_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtge (TRUE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
-cbtlt (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+fbtge (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return execute_btcmp (tp, op1, bcmp_op2, bcmp_resn, BC_NM_lt, ilt, flt,
+  d_assert (float_bin_op (op1, bcmp_op2));
+  return f_ge (ER_f (op1), ER_f (bcmp_op2));
+}
+
+static int do_always_inline
+cbtlt (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+{
+  return execute_btcmp (int_p, op1, bcmp_op2, bcmp_resn, BC_NM_lt, i_lt, f_lt,
 			execute_common_cmp_op);
 }
 
 static int do_always_inline
 btlt (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtlt (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtlt (FALSE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
 ibtlt (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtlt (INT_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtlt (TRUE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
-cbtle (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+fbtlt (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return execute_btcmp (tp, op1, bcmp_op2, bcmp_resn, BC_NM_le, ile, fle,
+  d_assert (float_bin_op (op1, bcmp_op2));
+  return f_lt (ER_f (op1), ER_f (bcmp_op2));
+}
+
+static int do_always_inline
+cbtle (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+{
+  return execute_btcmp (int_p, op1, bcmp_op2, bcmp_resn, BC_NM_le, i_le, f_le,
 			execute_common_cmp_op);
 }
 
 static int do_always_inline
 btle (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtle (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtle (FALSE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
 ibtle (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtle (INT_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtle (TRUE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
-cbtgt (enum insn_tp tp, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+fbtle (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return execute_btcmp (tp, op1, bcmp_op2, bcmp_resn, BC_NM_gt, igt, fgt,
+  d_assert (float_bin_op (op1, bcmp_op2));
+  return f_le (ER_f (op1), ER_f (bcmp_op2));
+}
+
+static int do_always_inline
+cbtgt (int int_p, ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
+{
+  return execute_btcmp (int_p, op1, bcmp_op2, bcmp_resn, BC_NM_gt, i_gt, f_gt,
 			execute_common_cmp_op);
 }
 
 static int do_always_inline
 btgt (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtgt (UNKNOWN_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtgt (FALSE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
 ibtgt (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return cbtgt (INT_TP, op1, bcmp_op2, bcmp_resn);
+  return cbtgt (TRUE, op1, bcmp_op2, bcmp_resn);
 }
 
 static int do_always_inline
-cbteqi (enum insn_tp tp, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
+fbtgt (ER_node_t op1, ER_node_t bcmp_op2, int_t bcmp_resn)
 {
-  return (execute_btcmpi (tp, op1, bcmp_op2n, bcmp_resn, BC_NM_eq, ieq, feq,
+  d_assert (float_bin_op (op1, bcmp_op2));
+  return f_gt (ER_f (op1), ER_f (bcmp_op2));
+}
+
+static int do_always_inline
+cbteqi (int int_p, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
+{
+  return (execute_btcmpi (int_p, op1, bcmp_op2n, bcmp_resn, BC_NM_eq, i_eq, f_eq,
 			  execute_common_eq_ne_op));
 }
 
 static int do_always_inline
 bteqi (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbteqi (UNKNOWN_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbteqi (FALSE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
 ibteqi (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbteqi (INT_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbteqi (TRUE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
-cbtnei (enum insn_tp tp, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
+cbtnei (int int_p, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return (execute_btcmpi (tp, op1, bcmp_op2n, bcmp_resn, BC_NM_ne, ine, fne,
+  return (execute_btcmpi (int_p, op1, bcmp_op2n, bcmp_resn, BC_NM_ne, i_ne, f_ne,
 			  execute_common_eq_ne_op));
 }
 
 static int do_always_inline
 btnei (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtnei (UNKNOWN_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtnei (FALSE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
 ibtnei (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtnei (INT_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtnei (TRUE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
-cbtlti (enum insn_tp tp, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
+cbtlti (int int_p, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return (execute_btcmpi (tp, op1, bcmp_op2n, bcmp_resn, BC_NM_lt, ilt, flt,
+  return (execute_btcmpi (int_p, op1, bcmp_op2n, bcmp_resn, BC_NM_lt, i_lt, f_lt,
 			  execute_common_cmp_op));
 }
 
 static int do_always_inline
 btlti (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtlti (UNKNOWN_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtlti (FALSE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
 ibtlti (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtlti (INT_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtlti (TRUE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
-cbtlei (enum insn_tp tp, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
+cbtlei (int int_p, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return (execute_btcmpi (tp, op1, bcmp_op2n, bcmp_resn, BC_NM_le, ile, fle,
+  return (execute_btcmpi (int_p, op1, bcmp_op2n, bcmp_resn, BC_NM_le, i_le, f_le,
 			  execute_common_cmp_op));
 }
 
 static int do_always_inline
 btlei (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtlei (UNKNOWN_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtlei (FALSE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
 ibtlei (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtlei (INT_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtlei (TRUE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
-cbtgti (enum insn_tp tp, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
+cbtgti (int int_p, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return (execute_btcmpi (tp, op1, bcmp_op2n, bcmp_resn, BC_NM_gt, igt, fgt,
+  return (execute_btcmpi (int_p, op1, bcmp_op2n, bcmp_resn, BC_NM_gt, i_gt, f_gt,
 			  execute_common_cmp_op));
 }
 
 static int do_always_inline
 btgti (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtgti (UNKNOWN_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtgti (FALSE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
 ibtgti (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtgti (INT_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtgti (TRUE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
-cbtgei (enum insn_tp tp, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
+cbtgei (int int_p, ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return (execute_btcmpi (tp, op1, bcmp_op2n, bcmp_resn, BC_NM_ge, ige, fge,
+  return (execute_btcmpi (int_p, op1, bcmp_op2n, bcmp_resn, BC_NM_ge, i_ge, f_ge,
 			  execute_common_cmp_op));
 }
 
 static int do_always_inline
 btgei (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtgei (UNKNOWN_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtgei (FALSE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
 ibtgei (ER_node_t op1, int_t bcmp_op2n, int_t bcmp_resn)
 {
-  return cbtgei (INT_TP, op1, bcmp_op2n, bcmp_resn);
+  return cbtgei (TRUE, op1, bcmp_op2n, bcmp_resn);
 }
 
 static int do_always_inline
 bt (ER_node_t op1)
 {
   return common_bt (op1);
+}
+
+static int do_always_inline
+ibt (ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+  return ER_i (op1) != 0;
 }
 
 static void out (void);
@@ -2350,6 +2666,14 @@ imove (ER_node_t res, ER_node_t op1)
   d_assert (ER_NODE_MODE (op1) == ER_NM_int);
   ER_SET_MODE (res, ER_NM_int);
   ER_set_i (res, ER_i (op1));
+}
+
+static void do_always_inline
+fmove (ER_node_t res, ER_node_t op1)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_float);
+  ER_SET_MODE (res, ER_NM_float);
+  ER_set_i (res, ER_f (op1));
 }
 
 static void do_always_inline
