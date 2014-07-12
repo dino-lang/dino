@@ -294,7 +294,7 @@ shrink_block_stack_size (BC_node_t block_node)
 {
   d_assert (block_node != NULL
 	    && BC_IS_OF_TYPE (block_node, BC_NM_block));
-  return vars_stack_size (real_block_vars_number (block_node));
+  return vars_stack_size (BC_vars_num (block_node));
 }
 
 /* The func returns size (in bytes) of the stack of the block node given
@@ -304,7 +304,7 @@ new_block_stack_size (BC_node_t block_node)
 {
   d_assert (block_node != NULL
 	    && BC_IS_OF_TYPE (block_node, BC_NM_block));
-  return (vars_stack_size (real_block_vars_number (block_node))
+  return (vars_stack_size (BC_vars_num (block_node))
 	  + BC_tvars_num (block_node) * sizeof (val_t));
 }
 
@@ -523,7 +523,7 @@ final_call_destroy_functions (void)
 	  block_node = ER_block_node (cstack);
 	  cvars = ER_stack_vars (cstack);
 	  ctop = (ER_node_t) ((char *) cvars
-			      + real_block_vars_number (block_node)
+			      + BC_vars_num (block_node)
 			      * sizeof (val_t) - sizeof (val_t));
 	  cpc = BC_next (ER_call_pc (cstack));
 	  if (cprocess != NULL)
@@ -656,7 +656,7 @@ shrink_stack (ER_node_t stack)
   else
     {
       size -= ALLOC_SIZE (shrink_block_stack_size (block));
-      ER_set_all_block_vars_num (stack, real_block_vars_number (block));
+      ER_set_all_block_vars_num (stack, BC_vars_num (block));
       d_assert (stack_size (stack) == shrink_block_stack_size (block));
       curr_heap_chunk->chunk_free -= size;
       free_heap_memory += size;
@@ -664,7 +664,7 @@ shrink_stack (ER_node_t stack)
   /* We need it for correct changing refs during GC.  */
   ER_set_ctop (stack,
 	       (char *) ((val_t *) ER_stack_vars (stack)
-			 + real_block_vars_number (block) - 1));
+			 + BC_vars_num (block) - 1));
 }
 
 static int do_always_inline
@@ -1285,8 +1285,7 @@ move_or_destroy_object (ER_node_t obj, struct heap_chunk **descr,
 	  || ER_NODE_MODE (obj) == ER_NM_heap_unpack_vect)
 	ER_set_allocated_length (obj, tailored_size);
       else if (stack_for_shrink_p (obj))
-	ER_set_all_block_vars_num
-	  (obj, real_block_vars_number (ER_block_node (obj)));
+	ER_set_all_block_vars_num (obj, BC_vars_num (ER_block_node (obj)));
       d_assert (ER_new_place (obj) == place);
       if (place != (char *) obj)
 	memmove (place, obj, tailored_size);
@@ -1496,129 +1495,52 @@ profile_interrupt (void)
 }
 #endif
 
-/* Update calls_number of BLOCK_NODE and return it.  Update profile
-   info too when we use profiling.  */
-static int_t do_always_inline
+#ifndef NO_PROFILE
+/* Update profile info when we use profiling.  */
+void do_always_inline
 update_profile (BC_node_t block_node)
 {
-  int_t calls_number = BC_calls_number (block_node) + 1;
-
-  BC_set_calls_number (block_node, calls_number);
-#ifndef NO_PROFILE
-  if (profile_flag)
+  BC_set_calls_number (block_node, BC_calls_number (block_node) + 1);
+  if (BC_NODE_MODE (block_node) == BC_NM_fblock)
     {
-      if (BC_NODE_MODE (block_node) == BC_NM_fblock)
-	{
 #if !HAVE_SETITIMER
-	  if (BC_calls_number (block_node) == 0)
-	    BC_set_exec_time (block_node, create_ticker ());
-	  else
-	    ticker_on (&BC_exec_time (block_node));
+      if (BC_calls_number (block_node) == 0)
+	BC_set_exec_time (block_node, create_ticker ());
+      else
+	ticker_on (&BC_exec_time (block_node));
 #endif
-	}
     }
+}
 #endif
-  return calls_number;
-}
 
-/* Make STACK with VARS_NUM as the current stack.  Make vars starting
-   with OFFSET undefined. */
-static void do_always_inline
-setup_new_cstack (ER_node_t stack, int_t vars_num, int_t offset)
-{
-  d_assert (real_block_vars_number (ER_block_node (stack)) == vars_num);
-  if (cstack != NULL)
-    ER_set_ctop (cstack, (char *) ctop);
-  cstack = stack;
-  cvars = ER_stack_vars (cstack);
-  ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
-  if (offset >= 0)
-    reset_vars (IVAL (cvars, offset), IVAL (ctop, 1));
-  /* We set them only here because we need to set mode before.
-     Remeber about possible field checking. */
-  if (cprocess != NULL)
-    ER_set_saved_cstack (cprocess, cstack);
-}
-
-/* Minimum number of calls after which we reuse stacks.  */
-#define STACK_REUSE_THRESHOLD 100
-
-/* The following func allocates heap memory for stack frame (heap
-   stack header and vars) of the block given as BLOCK_NODE.  The func
-   initiates all fields of stack and returns pointer to it.  The func
-   also sets up value of cstack.  The func sets up mode of all
-   permanent stack vars as ER_NM_undef starting from offset.  If
-   offset is negative, stack vars are not set.  CALLS_NUMBER is number
-   of how many times block_node was called before.  */
-static void do_always_inline
-heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
-				  int offset, int_t calls_number)
+ER_node_t do_always_inline
+alloc_new_stack (BC_node_t block_node, int vars_num)
 {
   ER_node_t stack;
-  int vars_num;
 
-  vars_num = real_block_vars_number (block_node);
-  if ((stack = BC_free_stacks (block_node)) != NULL)
-    {
-      BC_set_free_stacks (block_node, ER_prev_stack (stack));
-    }
-  else
-    {
-      /* Remember about possible GC. */
-      stack = ((ER_node_t)
-	       heap_allocate (new_block_stack_size (block_node),
-			      ! BC_ext_life_p (block_node)
-			      && calls_number < STACK_REUSE_THRESHOLD));
-      ER_SET_MODE (stack, ER_NM_heap_stack);
-      ER_set_block_node (stack, block_node);
-      ER_set_all_block_vars_num (stack, vars_num + BC_tvars_num (block_node));
-      ER_set_context_number (stack, context_number);
-      context_number++;
-      ER_set_immutable (stack, FALSE);
-      ER_set_state (stack, IS_initial);
-    }
-#ifndef NO_CONTAINER_CACHE
-  current_cached_container_tick++;
-#endif
-  ER_set_c_code_p (stack, FALSE);
-  ER_set_call_pc (stack, cpc);
-  ER_set_context (stack, context);
-  ER_set_prev_stack (stack, cstack);
-  setup_new_cstack (stack, vars_num, offset);
+  /* Remember about possible GC. */
+  stack = ((ER_node_t)
+	   heap_allocate (new_block_stack_size (block_node), FALSE));
+  ER_SET_MODE (stack, ER_NM_heap_stack);
+  ER_set_block_node (stack, block_node);
+  ER_set_all_block_vars_num (stack, vars_num + BC_tvars_num (block_node));
+  ER_set_context_number (stack, context_number);
+  context_number++;
+  ER_set_immutable (stack, FALSE);
+  ER_set_state (stack, IS_initial);
+  return stack;
 }
 
 /* As the above function but also update profile info.  */
 void
 heap_push (BC_node_t block_node, ER_node_t context, int offset)
 {
-  int_t calls_number = update_profile (block_node);
-
-  heap_push_without_profile_update (block_node, context, offset, calls_number);
-}
-
-/* Try to reuse the result of pure function.  Return true if we had an
-   success.  Otherwise, setup new stack and return FALSE.  */
-int
-heap_push_or_set_res (BC_node_t block_node, ER_node_t context,
-		      val_t *call_start)
-{
-  int_t calls_number;
-  ER_node_t stack;
-
-  d_assert (BC_NODE_MODE (block_node) == BC_NM_fblock);
-  calls_number = update_profile (block_node);
-  if ((stack = BC_free_stacks (block_node)) != NULL
-      && BC_pure_fun_p (block_node)
-      && eq_val ((val_t *) ER_stack_vars (stack), call_start,
-		 BC_pars_num (block_node)))
-    {
-      /* Restoring the calculated value.  */
-      *(val_t *) call_start = *(val_t *) IVAL (ER_stack_vars (stack),
-					       BC_pars_num (block_node));
-      return TRUE;
-    }
-  heap_push_without_profile_update (block_node, context, -1, calls_number);
-  return FALSE;
+#ifndef NO_PROFILE
+  if (profile_flag)
+    update_profile (block_node);
+#endif
+  heap_push_without_profile_update (block_node, context,
+				    BC_vars_num (block_node), offset);
 }
 
 /* The following func finishes work of the block, modifing cstack and
@@ -1648,12 +1570,12 @@ heap_pop (void)
   else
     {
       cvars = ER_stack_vars (cstack);
+      /* ??? Too conservative until next call: some temporary are
+	 saved.  */
       ctop = (ER_node_t) ER_ctop (cstack);
     }
   if (BC_ext_life_p (block_node))
     shrink_stack (stack);
-  else if (BC_calls_number (block_node) < STACK_REUSE_THRESHOLD)
-    try_heap_stack_free (stack, heap_object_size (stack));
   else
     {
       ER_set_prev_stack (stack, BC_free_stacks (block_node));
@@ -1681,7 +1603,7 @@ create_uppest_stack (BC_node_t block_node)
   heap_push (block_node, NULL, 0);
   uppest_stack = cstack;
   tvars = ER_stack_vars (uppest_stack);
-  previous_uppest_stack_vars_num = real_block_vars_number (block_node);
+  previous_uppest_stack_vars_num = BC_vars_num (block_node);
 }
 
 /* Expand the uppest stack if necessary.  The current stack should the
@@ -1698,7 +1620,7 @@ expand_uppest_stack (void)
      && cprocess == ER_process (IVAL (ER_stack_vars (cstack),
 				      BC_var_num (main_thread_bc_decl))));
   block_node = ER_block_node (uppest_stack);
-  vars_num = real_block_vars_number (block_node);
+  vars_num = BC_vars_num (block_node);
   d_assert (previous_uppest_stack_vars_num <= vars_num);
   tvars_num = BC_tvars_num (block_node);
   if (ER_all_block_vars_num (uppest_stack) >= vars_num + tvars_num)

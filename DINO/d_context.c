@@ -2638,6 +2638,9 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	  bc = new_bc_code_with_src (BC_NM_call, expr);
 	else
 	  {
+	    IR_node_t block;
+	    BC_node_t fblock;
+
 	    d_assert (!env_p || top_p);
 	    if (pars_num == 0)
 	      get_temp_stack_slot (&temp_vars_num); /* for result */
@@ -2648,7 +2651,12 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 				       : IR_scope (fun_decl) == curr_real_scope
 				       ? BC_NM_cicall : BC_NM_icall,
 				       expr);
-	    BC_set_cfblock (bc, get_fblock (fun_decl));
+	    fblock = get_fblock (fun_decl);
+	    BC_set_cfblock (bc, fblock);
+	    if (fun_decl != NULL && !IR_forward_decl_flag (fun_decl)
+		&& (block = IR_next_stmt (fun_decl)) != NULL
+		&& IR_hint (block) == INLINE_HINT)
+	      BC_set_inline_p (BC_info (bc), TRUE);
 	  }
 	BC_set_op1 (bc, fun_op_num);
 	BC_set_op2 (bc, pars_num);
@@ -2889,12 +2897,52 @@ copy_and_link_bcode (BC_node_t bc)
   VLO_ADD_MEMORY (bc_copies, &new_bc, sizeof (new_bc));
 }
 
+static void copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block);
+
+static void
+copy_bc_decls (BC_node_t bc_block, BC_node_t origin_bc_block, int var_base)
+{
+  BC_node_t bc, bc_decl, last_bc_decl, next_bc_decl, origin_bc_decl;
+
+  for (last_bc_decl = BC_decls (bc_block);
+       last_bc_decl != NULL
+	 && (next_bc_decl = BC_next_decl (last_bc_decl)) != NULL;
+       last_bc_decl = next_bc_decl)
+    ;
+  /* Make decls copy:  */
+  for (origin_bc_decl = BC_decls (origin_bc_block);
+       origin_bc_decl != NULL;
+       origin_bc_decl = BC_next_decl (origin_bc_decl))
+    {
+      bc_decl = BC_copy_node (origin_bc_decl);
+      BC_set_next_decl (bc_decl, NULL);
+      set_new_decl_num (bc_decl);
+      set_decl_subst (origin_bc_decl, bc_decl);
+      VLO_ADD_MEMORY (bc_copies, &bc_decl, sizeof (bc_decl));
+      if (last_bc_decl == NULL)
+	BC_set_decls (bc_block, bc_decl);
+      else
+	BC_set_next_decl (last_bc_decl, bc_decl);
+      last_bc_decl = bc_decl;
+      if (BC_IS_OF_TYPE (bc_decl, BC_NM_vdecl))
+	BC_set_var_num (bc_decl, BC_var_num (bc_decl) + var_base);
+      else if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl))
+	{
+	  bc = copy_bcode (BC_fblock (origin_bc_decl));
+	  BC_set_fblock (bc_decl, bc);
+	  BC_set_fdecl (bc, bc_decl);
+	  VLO_ADD_MEMORY (all_fblocks, &bc, sizeof (bc));
+	  copy_bc_block (BC_fblock (origin_bc_decl), bc);
+	}
+    }
+}
+
 /* Make a copy of bcode and decls of ORIGIN_BC_BLOCK and add it to
    BC_BLOCK.  It is done without changing BC fields.  */
 static void
 copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block)
 {
-  BC_node_t info, bc, bc_decl, last_bc_decl, origin_bc_decl;
+  BC_node_t info, bc;
   BC_node_t saved_curr_info = curr_info;
   int level = 0;
 
@@ -2918,47 +2966,19 @@ copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block)
 	}
     }
   d_assert (BC_IS_OF_TYPE (bc, BC_NM_fbend));
-  /* Make decls copy:  */
-  for (last_bc_decl = NULL, origin_bc_decl = BC_decls (origin_bc_block);
-       origin_bc_decl != NULL;
-       origin_bc_decl = BC_next_decl (origin_bc_decl))
-    {
-      bc_decl = BC_copy_node (origin_bc_decl);
-      set_new_decl_num (bc_decl);
-      set_decl_subst (origin_bc_decl, bc_decl);
-      VLO_ADD_MEMORY (bc_copies, &bc_decl, sizeof (bc_decl));
-      if (last_bc_decl == NULL)
-	BC_set_decls (bc_block, bc_decl);
-      else
-	BC_set_next_decl (last_bc_decl, bc_decl);
-      last_bc_decl = bc_decl;
-      if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl))
-	{
-	  bc = copy_bcode (BC_fblock (origin_bc_decl));
-	  BC_set_fblock (bc_decl, bc);
-	  BC_set_fdecl (bc, bc_decl);
-	  VLO_ADD_MEMORY (all_fblocks, &bc, sizeof (bc));
-	  copy_bc_block (BC_fblock (origin_bc_decl), bc);
-	}
-    }
+  BC_set_decls (bc_block, NULL);
+  copy_bc_decls (bc_block, origin_bc_block, 0);
   curr_info = saved_curr_info;
 }
 
-/* Make copy of ORIGIN_FUN BC and add it to FUN.  Change all necessary
-   fields in the copied nodes.  This function is very sensitive to
-   changes BC description.  So modify it approprietly after BC
-   description changes.  */
+/* Modify all pc and decl fields of copied nodes correspondingly.
+   Exclude ones for changing cfblock and decl fields if EXCEPT returns
+   TRUE.  */
 static void
-copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
+modify_copied_pc (int (*except) (BC_node_t))
 {
-  BC_node_t bc_block, fv, bc, *bc_ptr;
+  BC_node_t fv, bc, *bc_ptr;
   
-  VLO_NULLIFY (bc_copies);
-  bc = get_fblock (fun);
-  BC_set_scope (bc, curr_bc_scope);
-  bc_block = IR_fdecl_bc_block (original_fun);
-  copy_bc_block (bc_block, bc);
-  /* Modify fields of copied nodes correspondingly.  */
   for (bc_ptr = (BC_node_t *) VLO_BEGIN (bc_copies);
        bc_ptr < (BC_node_t *) VLO_BOUND (bc_copies);
        bc_ptr++)
@@ -2992,12 +3012,14 @@ copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
 	  && (fv = BC_subst (BC_info (fv))) != NULL)
 	BC_set_fblock (bc, fv);
       if (BC_IS_OF_TYPE (bc, BC_NM_op1_decl) && (fv = BC_decl (bc)) != NULL
+	  && (except == NULL || ! except (fv))
 	  && (fv = get_decl_subst (fv)) != NULL)
 	BC_set_decl (bc, fv);
       if (BC_IS_OF_TYPE (bc, BC_NM_br) && (fv = BC_pc (bc)) != NULL
 	  && (fv = BC_subst (BC_info (fv))) != NULL)
 	BC_set_pc (bc, fv);
       if (BC_IS_OF_TYPE (bc, BC_NM_imcall) && (fv = BC_cfblock (bc)) != NULL
+	  && (except == NULL || ! except (fv))
 	  && (fv = BC_subst (BC_info (fv))) != NULL)
 	BC_set_cfblock (bc, fv);
       if (BC_IS_OF_TYPE (bc, BC_NM_foreach) && (fv = BC_body_pc (bc)) != NULL
@@ -3012,8 +3034,24 @@ copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
       if (BC_IS_OF_TYPE (bc, BC_NM_bend) && (fv = BC_block (bc)) != NULL
 	  && (fv = BC_subst (BC_info (fv))) != NULL)
 	BC_set_block (bc, fv);
-      
     }
+}
+
+/* Make copy of ORIGIN_FUN BC and add it to FUN.  Change all necessary
+   fields in the copied nodes.  This function is very sensitive to
+   changes BC description.  So modify it approprietly after BC
+   description changes.  */
+static void
+copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
+{
+  BC_node_t bc_block, bc;
+  
+  VLO_NULLIFY (bc_copies);
+  bc = get_fblock (fun);
+  BC_set_scope (bc, curr_bc_scope);
+  bc_block = IR_fdecl_bc_block (original_fun);
+  copy_bc_block (bc_block, bc);
+  modify_copied_pc (NULL);
 }
 
 /* This recursive func passes (correctly setting up SOURCE_POSITION
@@ -3693,9 +3731,9 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 				   (IR_IS_OF_TYPE (fun_class, IR_NM_class)
 				    || IR_thread_flag (fun_class)
 				    || IR_extended_life_context_flag (stmt)));
-		BC_set_fmode (bc,
-			      IR_hint (stmt) && ! IR_thread_flag (fun_class)
-			      ? BC_gen : BC_no_gen);
+		BC_set_fmode
+		  (bc, IR_hint (stmt) == JIT_HINT ? BC_gen : BC_no_gen);
+		BC_set_pure_fun_p (bc, IR_hint (stmt) == PURE_HINT);
 	      }
 	    add_to_bcode (bc);
 	    curr_bc_scope = bc;
@@ -4073,7 +4111,7 @@ go_through (BC_node_t start_bc)
 
 /* Modify call BC to tail calls if it is possible.  */
 static void
-process_imcall (BC_node_t bc)
+process_tail_imcall (BC_node_t bc)
 {
   BC_node_t next_pc;
 
@@ -4123,6 +4161,200 @@ mark_reachable_info (BC_node_t bc)
     }
 }
 
+/* Modify op fields of copied nodes correspondingly.  */
+static void
+modify_copied_ops (int_t base)
+{
+  int_t op;
+  BC_node_t bc, *bc_ptr;
+  
+  for (bc_ptr = (BC_node_t *) VLO_BEGIN (bc_copies);
+       bc_ptr < (BC_node_t *) VLO_BOUND (bc_copies);
+       bc_ptr++)
+    {
+      bc = *bc_ptr;
+      if (BC_IS_OF_TYPE (bc, BC_NM_op1) && ! BC_IS_OF_TYPE (bc, BC_NM_op1i)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_op2i12) && (op = BC_op1 (bc)) >= 0)
+	BC_set_op1 (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_op2) && ! BC_IS_OF_TYPE (bc, BC_NM_op2i)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_op2i12)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_op3i2)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_op4i2) && (op = BC_op2 (bc)) >= 0)
+	BC_set_op2 (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_op3) && ! BC_IS_OF_TYPE (bc, BC_NM_op3i)
+	  && (op = BC_op3 (bc)) >= 0)
+	BC_set_op3 (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_op4) && (op = BC_op4 (bc)) >= 0)
+	BC_set_op4 (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_brs) && (op = BC_res (bc)) >= 0)
+	BC_set_res (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_bcmp))
+	{
+	  if (! BC_IS_OF_TYPE (bc, BC_NM_bcmpi) && (op = BC_bcmp_op2 (bc)) >= 0)
+	    BC_set_bcmp_op2 (bc, op + base);
+	  if ((op = BC_bcmp_res (bc)) >= 0)
+	    BC_set_bcmp_res (bc, op + base);
+	}
+    }
+}
+
+/* Stack of fblocks being currently inlined.  */
+static vlo_t inline_stack;
+
+/* Return true if FBLOCK is in inline stack.  */
+static int
+in_inline_stack_p (BC_node_t fblock)
+{
+  BC_node_t *fblock_ptr;
+
+  for (fblock_ptr = (BC_node_t *) VLO_BEGIN (inline_stack);
+       fblock_ptr < (BC_node_t *) VLO_BOUND (inline_stack);
+       fblock_ptr++)
+    if (*fblock_ptr == fblock)
+      return TRUE;
+  return FALSE;
+}
+
+/* Current number of inlined calls.  */
+unsigned int inlined_calls_num;
+
+/* Container for copied returns. */
+static vlo_t inline_returns;
+
+/* Inline call with INFO.  Return the start of the inlined code or
+   INFO if we failed to inline. */
+static BC_node_t
+inline_call (BC_node_t info)
+{
+  int level;
+  unsigned int len;
+  int_t tvars_num, var_base;
+  BC_node_t bc, fblock, start, finish, finish2, res, last, *bc_ptr;
+  BC_node_t call_bc = BC_bc (info);
+
+  d_assert (BC_IS_OF_TYPE (call_bc, BC_NM_imcall));
+  fblock = BC_cfblock (call_bc);
+  /* Don't inline fun with extended life as we need it's stack for
+     some purposes.  To prevent cycling and code blow up don't inline
+     recursively or function call inside the function. */
+  if (BC_ext_life_p (fblock)
+      || in_inline_stack_p (fblock) || fblock == curr_bc_block)
+    /* To prevent infinite inlininig of recursive functions. */
+    return info;
+  inlined_calls_num++;
+  VLO_ADD_MEMORY (inline_stack, &fblock, sizeof (fblock));
+  var_base = BC_op1 (call_bc);
+  start = new_bc_code (BC_NM_stinc,
+		       new_bc_node (BC_NM_source, BC_pos (BC_source (info))));
+  BC_set_op1 (start, 0); /* var_base will be added */
+  BC_set_op2 (start, BC_pars_num (fblock)); /* var_base will be added */
+  BC_set_op3 (start, BC_vars_num (fblock));
+  tvars_num = (var_base - BC_vars_num (curr_bc_block)
+	       + BC_vars_num (fblock) + BC_tvars_num (fblock));
+  if (tvars_num > BC_tvars_num (curr_bc_block))
+    BC_set_tvars_num (curr_bc_block, tvars_num);
+  curr_info = NULL;
+  res = BC_info (start);
+  link_info (res);
+  finish = new_bc_code (BC_NM_stdecu,
+			new_bc_node (BC_NM_source, no_position));
+  BC_set_op1 (finish, 0); /* will be fixed to var_base */
+  BC_set_next (finish, BC_next (fblock));
+  VLO_NULLIFY (bc_copies);
+  VLO_ADD_MEMORY (bc_copies, &start, sizeof (start));
+  VLO_ADD_MEMORY (bc_copies, &finish, sizeof (finish));
+  /* Reset substitution fields: */
+  for (info = BC_next_info (BC_info (fblock));
+       info != NULL;
+       info = BC_next_info (info))
+    BC_set_subst (info, NULL);
+  /* Make bcode copy:  */
+  level = 0;
+  VLO_NULLIFY (inline_returns);
+  for (info = BC_next_info (BC_info (fblock));; info = BC_next_info (info))
+    {
+      bc = BC_bc (info);
+      if (BC_IS_OF_TYPE (bc, BC_NM_fbend)
+	  || BC_IS_OF_TYPE (bc, BC_NM_leave))
+	{
+	  d_assert (level == 0);
+	  BC_set_subst (BC_info (bc), finish);
+	  if (BC_IS_OF_TYPE (bc, BC_NM_fbend))
+	    {
+	      BC_set_pos (BC_source (BC_info (finish)),
+			  BC_pos (BC_source (info)));
+	      break;
+	    }
+	}
+      else if (BC_IS_OF_TYPE (bc, BC_NM_ret))
+	{
+	  d_assert (level == 0);
+	  finish2 = new_bc_code (BC_NM_stdec,
+				 new_bc_node (BC_NM_source,
+					      BC_pos (BC_source (info))));
+	  VLO_ADD_MEMORY (inline_returns, &finish2, sizeof (finish2));
+	  BC_set_op1 (finish2, 0); /* will be fixed to var_base */
+	  BC_set_op2 (finish2, BC_op1 (bc));
+	  BC_set_subst (BC_info (bc), finish2);
+	  link_info (BC_info (finish2));
+	  VLO_ADD_MEMORY (bc_copies, &finish2, sizeof (finish));
+	}
+      else
+	{
+	  BC_node_mode_t bc_mode;
+	  
+	  copy_and_link_bcode (bc);
+	  last = ((BC_node_t *) VLO_BOUND (bc_copies)) [-1];
+	  /* We should remove tail calls as we still need to execute a
+	     code after the call.  */
+	  if (BC_NODE_MODE (last) == BC_NM_tcall)
+	    bc_mode = BC_NM_call;
+	  else if (BC_NODE_MODE (last) == BC_NM_itcall)
+	    bc_mode = BC_NM_icall;
+	  else if (BC_NODE_MODE (last) == BC_NM_titcall)
+	    bc_mode = BC_NM_ticall;
+	  else if (BC_NODE_MODE (last) == BC_NM_citcall)
+	    bc_mode = BC_NM_cicall;
+	  else
+	    bc_mode = BC_NM__error;
+	  if (bc_mode != BC_NM__error)
+	    BC_SET_MODE (last, bc_mode);
+	}
+      if (BC_IS_OF_TYPE (bc, BC_NM_block))
+	level++;
+      else if (BC_IS_OF_TYPE (bc, BC_NM_bend))
+	{
+	  d_assert (level != 0);
+	  level--;
+	}
+    }
+  d_assert (BC_IS_OF_TYPE (bc, BC_NM_fbend));
+  last = BC_info (finish);
+  link_info (last);
+  BC_set_next (start, BC_bc (BC_next_info (res)));
+  BC_set_subst (BC_info (fblock), curr_bc_block);
+  len = VLO_LENGTH (bc_copies);
+  copy_bc_decls (curr_bc_block, fblock, var_base);
+  modify_copied_pc (in_inline_stack_p);
+  /* Do not change in ops in copied fblocks. */
+  len = VLO_LENGTH (bc_copies) - len;
+  VLO_SHORTEN (bc_copies, len);
+  modify_copied_ops (var_base);
+  BC_set_subst (BC_info (call_bc), start);
+  BC_set_next (finish, BC_next (call_bc));
+  for (bc_ptr = (BC_node_t*) VLO_BEGIN (inline_returns);
+       bc_ptr < (BC_node_t*) VLO_BOUND (inline_returns);
+       bc_ptr++)
+    BC_set_next (*bc_ptr, BC_next (call_bc));
+  info = BC_prev_info (BC_info (call_bc));
+  BC_set_next_info (info, res);
+  BC_set_prev_info (res, info);
+  info = BC_next_info (BC_info (call_bc));
+  BC_set_next_info (last, info);
+  BC_set_prev_info (info, last);
+  return res;
+}
+
 /* Process nodes from START generating tail calls, removing
    uneccessary nodes, and combining byte code insns.  */
 static void
@@ -4131,11 +4363,21 @@ process_bc (BC_node_t start)
   BC_node_t info, bc, next, next_info;
   
   curr_bc_block = start;
+  VLO_NULLIFY (inline_stack);
   for (info = BC_info (start); info != NULL; info = BC_next_info (info))
     {
       BC_set_subst (info, NULL);
       BC_set_reachable_p (info, FALSE);
+      if (BC_inline_p (info))
+	{
+	  d_assert (BC_IS_OF_TYPE (BC_bc (info), BC_NM_imcall));
+	  info = inline_call (info);
+	}
+      bc = BC_bc (info);
+      if (BC_IS_OF_TYPE (bc, BC_NM_stdecu))
+	VLO_SHORTEN (inline_stack, sizeof (BC_node_t));
     }
+  d_assert (VLO_LENGTH (inline_stack) == 0);
   for (info = BC_info (start); info != NULL; info = BC_next_info (info))
     {
       bc = BC_bc (info);
@@ -4152,7 +4394,7 @@ process_bc (BC_node_t start)
       if (BC_IS_OF_TYPE (bc, BC_NM_except)
 	  && (next = BC_next_except (bc)) != NULL)
 	BC_set_next_except (bc, go_through (next));
-      process_imcall (bc);
+      process_tail_imcall (bc);
     }
   mark_reachable_info (start);
   /* Remove unreachable infos.  Setup unqiue ident numbers.  */
@@ -4227,6 +4469,8 @@ initiate_context (void)
   VLO_CREATE (use_items, 0);
   VLO_CREATE (copied_redirs, 0);
   VLO_CREATE (bc_copies, 0);
+  VLO_CREATE (inline_returns, 0);
+  VLO_CREATE (inline_stack, 0);
   initiate_decl_subst ();
   last_uniq_ident_num = DESTROY_IDENT_NUMBER;
   last_decl_num = 0;
@@ -4238,6 +4482,8 @@ finish_context (void)
 {
   finish_foreach_vars ();
   finish_decl_subst ();
+  VLO_DELETE (inline_stack);
+  VLO_DELETE (inline_returns);
   VLO_DELETE (bc_copies);
   VLO_DELETE (use_items);
   VLO_DELETE (copied_redirs);

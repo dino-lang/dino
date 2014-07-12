@@ -222,6 +222,7 @@ print_time() {
 
 print_dino() {
     s=`egrep 'user[ 	]*[0-9]' $2 | sed s/.*user// | sed s/\\t//`
+    if expr `int1000 $s` = 0 >/dev/null; then s="0.01";fi
     if test "x$1" = x;then dtime=$s;fi
     if test x$DINO_ONLY != x; then
 	echo "   " $s
@@ -268,7 +269,7 @@ if test x$DINO_ONLY != x; then
 fi
 
 cat <<'EOF' >$ftest
-fun ack (m, n) ! {
+fun ack (m, n) !jit {
     if (m == 0) return n + 1;
     if (n == 0) return ack (m - 1, 1);
     return ack (m - 1, ack (m, (n - 1)));
@@ -539,7 +540,7 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++          JIT Variant:"
 fi
 cat <<'EOF' >$ftest
-fun main ! {
+fun main !jit {
   var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
   var x = [n:0], y = [n:0];
 
@@ -882,7 +883,7 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++          JIT Variant:"
 fi
 cat <<'EOF' >$ftest
-fun main ! {
+fun main !jit {
   var ln, v, nc = 0, nw = 0, nl = 0, l;
 
   try {
@@ -1604,11 +1605,11 @@ var LO = 0;
 class Hi_exception (value) {use except;}
 class Lo_exception (value) {use except;}
 
-fun blowup (num) ! { 
+fun blowup (num) !jit { 
   throw ((num & 1) ? Lo_exception (num) : Hi_exception (num));
 }
 
-fun lo_function (num) ! {
+fun lo_function (num) !jit {
   try {
     blowup (num);
   } catch (Lo_exception) {
@@ -1616,7 +1617,7 @@ fun lo_function (num) ! {
   }
 }
 
-fun hi_function (num) ! {
+fun hi_function (num) !jit {
   try {
     lo_function (num);
   } catch (Hi_exception) {
@@ -2104,11 +2105,31 @@ title=
 if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
+  Announce_Test "+++++          Pure fun variant:"
+fi
+cat <<'EOF' >$ftest
+// Recursive function to compute Fibonacci numbers
+fun fibonacci (n) !pure {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = int (argv [0]);
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  putln (i @ " " @ fibnum); 
+}
+EOF
+title=" (Pure fun variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
   Announce_Test "+++++          JIT variant:"
 fi
 cat <<'EOF' >$ftest
 // Recursive function to compute Fibonacci numbers
-fun fibonacci (n) ! {
+fun fibonacci (n) !jit {
   if (n <= 1) return 1;
   return (fibonacci(n-1) + fibonacci(n-2));
 }
@@ -2338,7 +2359,7 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++          JIT variant:"
 fi
 cat <<'EOF' >$ftest
-fun main ! {
+fun main !jit {
   var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
   var f = "%x", x = tab [];
 
@@ -2655,7 +2676,7 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++          JIT variant:"
 fi
 cat <<'EOF' >$ftest
-fun main ! {
+fun main !jit {
   var i, n = int (argv[0]);
   var hash1 = tab [];
 
@@ -3023,7 +3044,7 @@ fun gen_random (max) {
   return (max * LAST) / IM;
 }
 
-fun heapsort (n, ra) ! {
+fun heapsort (n, ra) !jit {
   var rra = 0, i = 0, j = 0;
   var l = (n >> 1) + 1;
   var ir = n;
@@ -3920,7 +3941,7 @@ fi
 cat <<'EOF' >$ftest
 var SIZE = 10000;
 
-fun test_lists ! {
+fun test_lists !jit {
   var i, Li1 = [SIZE : 0];
 
   // create a list of integers (Li1) from 1 to SIZE
@@ -5287,8 +5308,8 @@ cat <<'EOF' >$ftest
 class Toggle (start_state) {
   var bool;
   fun init {bool = start_state;}
-  fun value ! { return bool; }
-  fun activate ! { bool = !bool; }
+  fun value !jit { return bool; }
+  fun activate !jit { bool = !bool; }
   init ();
 }
 
@@ -5297,7 +5318,7 @@ class NthToggle (start_state, max_counter) {
   init ();
   var count_max = max_counter;
   var counter = 0;
-  fun activate ! {
+  fun activate !jit {
     counter++;
     if (counter >= count_max) {
       bool = !bool;
@@ -5306,7 +5327,7 @@ class NthToggle (start_state, max_counter) {
   }
 }
 
-fun main ! {
+fun main !jit {
   var NUM = argv [0] < 1 ? 1 : int (argv [0]);
   var i, v = 1;
 
@@ -5330,59 +5351,6 @@ main();
 EOF
 title=" (JIT variant)"
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-use strict;
-
-my $SIZE = 10000;
-
-my $ITER = $ARGV[0];
-$ITER = 1 if ($ITER < 1);
-
-my $result = 0;
-while ($ITER--) {
-    $result = &test_lists();
-}
-print "$result\n";
-
-sub test_lists {
-    # create a list of integers (Li1) from 1 to SIZE
-    my @Li1 = (1..$SIZE);
-    # copy the list to Li2 (not by individual items)
-    my @Li2 = @Li1;
-    my @Li3 = ();
-    # remove each individual item from left side of Li2 and
-    # append to right side of Li3 (preserving order)
-    push(@Li3, shift @Li2) while (@Li2);
-    # Li2 must now be empty
-    # remove each individual item from right side of Li3 and
-    # append to right side of Li2 (reversing list)
-    push(@Li2, pop @Li3) while (@Li3);
-    # Li3 must now be empty
-    # reverse Li1 in place
-    @Li1 = reverse @Li1;
-    # check that first item is now SIZE
-    return(0) if $Li1[0] != $SIZE;
-    # compare Li1 and Li2 for equality
-    my $len1 = scalar(@Li1);
-    my $len2 = scalar(@Li2);
-    my $lists_equal = ($len1 == $len2);
-    return(0) if not $lists_equal;
-    for my $i (0..($len1-1)) {
-        if ($Li1[$i] != $Li2[$i]) {
-            $lists_equal = 0;
-            last;
-        }
-    }
-    return(0) if not $lists_equal;
-    # return the length of the list
-    return($len1);
-}
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5849,7 +5817,7 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
-fun main ! {
+fun main !jit {
   var n = argv [0] < 1 ? 1 : int (argv[0]);
   var a, b, c, d, e, f, x = 0;
 
@@ -6948,9 +6916,9 @@ fun gen_random (max) {
   max * LAST / IM;
 }
 
-var n = (argv [0] < 1 ? 1 : argv [0]) - 1;
-for (; n; n--)
-  gen_random (100);
+var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (i = 0; i < n; i++)
+  gen_random (100.);
 putln (vec (gen_random (100.0), "%.9f"));
 EOF
 title=
@@ -6965,17 +6933,64 @@ var IA = 3877;
 var IC = 29573;
 var LAST = 42;
 
-fun gen_random (max) ! {
+fun gen_random (max) !jit {
   LAST = (LAST * IA + IC) % IM;
   max * LAST / IM;
 }
 
-var n = (argv [0] < 1 ? 1 : argv [0]) - 1;
-for (; n; n--)
-  gen_random (100);
+var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (i = 0; i < n; i++)
+  gen_random (100.);
 putln (vec (gen_random (100.0), "%.9f"));
 EOF
 title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Inline variant:"
+fi
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) !inline {
+  LAST = (LAST * IA + IC) % IM;
+  max * LAST / IM;
+}
+
+var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (i = 0; i < n; i++)
+  gen_random (100.);
+putln (vec (gen_random (100.0), "%.9f"));
+EOF
+title=" (Inline variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Inline+JIT variant:"
+fi
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) !inline {
+  LAST = (LAST * IA + IC) % IM;
+  max * LAST / IM;
+}
+
+fun main !jit {
+  var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+  for (i = 0; i < n; i++)
+    gen_random (100.);
+  putln (vec (gen_random (100.0), "%.9f"));
+}
+main ();
+EOF
+title=" (Inline+JIT variant)"
 if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
@@ -7125,9 +7140,9 @@ BEGIN {
 
     n = ((ARGV[1] < 1) ? 1 : ARGV[1]) - 1;
     while (n--) {
-        gen_random(100);
+        gen_random(100.);
     }
-    printf("%.9f\n", gen_random(100));
+    printf("%.9f\n", gen_random(100.));
     exit;
 }
 EOF
@@ -7154,7 +7169,7 @@ end
 local N = tonumber((arg and arg[1])) or 1
 local result = 0
 for i=1, N do
-    result = gen_random(100)
+    result = gen_random(100.)
 end
 io.write(string.format("%.9f\n", result))
 EOF
@@ -7201,7 +7216,7 @@ def gen_random (max: Double): Double = {
 
 val n = args(0).toInt
 for (i <- 1 to n)
-  gen_random (100)
+  gen_random (100.)
 println (gen_random (100.0))
 EOF
   title=SCALA
@@ -7222,7 +7237,7 @@ function gen_random (max) {
 
 var n = (arguments [0] < 1 ? 1 : arguments [0]) - 1;
 for (; n; n--)
-  gen_random (100);
+  gen_random (100.);
 print (gen_random (100.0).toFixed(9));
 EOF
   title=JS
@@ -102152,7 +102167,7 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
-fun main ! {
+fun main !jit {
   var i, n;
   n = int (argv [0]);
   for (i=0; i < n;i++);
@@ -102297,12 +102312,39 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
-fun f ! {}
+fun f !jit {}
 var i, n;
 n = int (argv [0]);
 for (i = 0; i < n; i++) f();
 EOF
 title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Inline variant:"
+fi
+cat <<'EOF' >$ftest
+fun f !inline {}
+var i, n;
+n = int (argv [0]);
+for (i = 0; i < n; i++) f();
+EOF
+title=" (Inline variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Inline+JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun f !inline {}
+fun main !jit {
+  var i, n;
+  n = int (argv [0]);
+  for (i = 0; i < n; i++) f();
+}
+main ();
+EOF
+title=" (Inline+JIT variant)"
 if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
@@ -102464,7 +102506,7 @@ if test x$DINO_ONLY != x; then
   Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
-fun tak (x, y, z) ! {
+fun tak (x, y, z) !jit {
   if (y >= x)
     return z;
   else
@@ -102661,10 +102703,30 @@ title=
 if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Pure fun variant:"
+fi
+cat <<'EOF' >$ftest
+fun fact (x) !pure {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+var i, x, n = int (argv [0]);
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+putln (x);
+EOF
+title=" (Pure fun variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
   Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
-fun fact (x) ! {
+fun fact (x) !jit {
   if (x <= 1)
     return 1;
   return x * fact (x-1);

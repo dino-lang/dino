@@ -31,6 +31,9 @@ evdecl		{return BC_NM_evdecl;}
 efdecl		{return BC_NM_efdecl;}
 block		{return BC_NM_block;}
 fblock		{return BC_NM_fblock;}
+stinc		{return BC_NM_stinc;}
+stdec		{return BC_NM_stdec;}
+stdecu		{return BC_NM_stdecu;}
 ldnil		{return BC_NM_ldnil;}
 ldthis		{return BC_NM_ldthis;}
 flat		{return BC_NM_flat;}

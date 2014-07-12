@@ -585,6 +585,16 @@ dump_code (BC_node_t infos, int indent)
 	      }
 	    break;
 	  }
+	case BC_NM_stinc:
+	  printf (" op1=%d op2=%d op3=%d",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
+	  break;
+	case BC_NM_stdecu:
+	  printf (" op1=%d", BC_op1 (bc));
+	  break;
+	case BC_NM_stdec:
+	  printf (" op1=%d op2=%d", BC_op1 (bc), BC_op2 (bc));
+	  break;
 	case BC_NM_throw:
 	  printf (" op1=%d", BC_op1 (bc));
 	  break;

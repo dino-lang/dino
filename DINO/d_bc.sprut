@@ -75,15 +75,6 @@ typedef BC_node_t pc_t;
 
 typedef void (*implementation_fun_t) (int_t pars_number);
 
-/* Return real block vars number (see commentaries for
-   block_node). */
-static int_t do_always_inline
-real_block_vars_number (BC_node_t block_node_ptr)
-{
-  return BC_vars_num (block_node_ptr);
-}
-
-
 extern BC_node_t first_program_bc;
 
 /* Unique number for identifier destroy.  */
@@ -889,6 +880,14 @@ fblock :: block
         interrupts_number : int_t
 ;
 
+/* Setup ctop top op1 + op3 - 1 vars, making vars from [op2, op1 +
+   op3 - 1] undef. */
+stinc :: op3i;
+/* Move op2 to op1, setup ctop just below op1. */
+stdec :: op2;
+/* Make op1 is undef, setup ctop just below op1. */
+stdecu :: op1;
+
 ldnil, ldthis :: op1; /* result place */
 flat :: op1; /* operand and result place */
 ldi, ldch, ldtp :: op2i; /* result place, value as int  */
@@ -1253,7 +1252,9 @@ info :: %root
         subst : icode /* used for optimizations  */
         idn : int_t /* Info identifier number */
 	reachable_p : bool_t
+	inline_p : bool_t {$ = FALSE;}
 ;
+
 
 /* Used during C code generation.  */
 gen_info :: %root
@@ -1980,6 +1981,9 @@ print_node (FILE *f, BC_node_t bc)
   if (BC_IS_OF_TYPE (bc, BC_NM_binc))
     fprintf (f, ", %d", BC_binc_inc (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
+      && BC_NODE_MODE (bc) != BC_NM_ibcall)
+    fprintf (f, ", %d", BC_vars_num (BC_cfblock (bc))); /* vars num */
+  if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
       || BC_IS_OF_TYPE (bc, BC_NM_call)
       || BC_IS_OF_TYPE (bc, BC_NM_tcall))
     fprintf (f, ", 1"); /* from_c_code_p argument  */
@@ -2052,7 +2056,8 @@ traverse_bcode (BC_node_t bc)
 
 #define GEN_DIR "/tmp/"
 #define GEN_FUN_PREFIX "dg_"
-#define CC_PREFIX "gcc -O2 -fPIC -g -shared"
+#define CC_PREFIX  "gcc -O2 -fPIC -shared -fpreprocessed -pipe -g"
+#define CC_PREFIX2 "gcc -O2 -fPIC -shared -fpreprocessed -pipe -xc -"
 
 static void
 form_fun_name (vlo_t *fun_name, BC_node_t fdecl)
@@ -2131,9 +2136,30 @@ gen_cfblock (BC_node_t fblock)
 
   VLO_CREATE (fname, 0);
   form_fname (&fname, BC_fdecl (fblock), ".c");
-  f = fopen (VLO_BEGIN (fname), "w");
+  VLO_CREATE (objname, 0);
+  form_fname (&objname, BC_fdecl (fblock), ".so");
+  VLO_CREATE (command, 0);
+  if (! save_temps_flag)
+    VLO_ADD_STRING (command, CC_PREFIX2);
+  else
+    {
+      VLO_ADD_STRING (command, CC_PREFIX);
+      VLO_ADD_STRING (command, " ");
+      VLO_ADD_STRING (command, VLO_BEGIN (fname));
+    }
+  VLO_ADD_STRING (command, " -o ");
+  VLO_ADD_STRING (command, VLO_BEGIN (objname));
+  if (save_temps_flag)
+    f = fopen (VLO_BEGIN (fname), "w");
+  else
+    f = popen (VLO_BEGIN (command), "w");
   if (f == NULL)
-    return NULL;
+    {
+      VLO_DELETE (command);
+      VLO_DELETE (objname);
+      VLO_DELETE (fname);
+      return NULL;
+    }
   VLO_CREATE (fbcode, 0);
   curr_label_num = 0;
   traverse_bcode (BC_next (fblock));
@@ -2193,24 +2219,19 @@ gen_cfblock (BC_node_t fblock)
       error_p = ferror (f) != 0;
       if (fclose (f))
 	{
-	  remove (VLO_BEGIN (fname));
-	  VLO_DELETE (fname);
+	  if (! save_temps_flag)
+	    remove (VLO_BEGIN (fname));
 	  VLO_DELETE (fun_name);
+	  VLO_DELETE (command);
+	  VLO_DELETE (objname);
+	  VLO_DELETE (fname);
 	  return NULL;
 	}
     }
   addr = NULL;
   if (!error_p)
     {
-      VLO_CREATE (objname, 0);
-      form_fname (&objname, BC_fdecl (fblock), ".so");
-      VLO_CREATE (command, 0);
-      VLO_ADD_STRING (command, CC_PREFIX);
-      VLO_ADD_STRING (command, " ");
-      VLO_ADD_STRING (command, VLO_BEGIN (fname));
-      VLO_ADD_STRING (command, " -o ");
-      VLO_ADD_STRING (command, VLO_BEGIN (objname));
-      if (system (VLO_BEGIN (command)) == 0)
+      if (! save_temps_flag || system (VLO_BEGIN (command)) == 0)
 	{
 	  void *handle = dlopen (VLO_BEGIN (objname), RTLD_NOW | RTLD_GLOBAL);
 	  if (handle != NULL)
@@ -2222,10 +2243,10 @@ gen_cfblock (BC_node_t fblock)
 	}
       if (! save_temps_flag)
 	remove (VLO_BEGIN (objname));
-      VLO_DELETE (command);
-      VLO_DELETE (objname);
     }
   VLO_DELETE (fun_name);
+  VLO_DELETE (command);
+  VLO_DELETE (objname);
   if (! save_temps_flag)
     remove (VLO_BEGIN (fname));
   VLO_DELETE (fname);

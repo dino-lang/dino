@@ -662,8 +662,14 @@ execute_btcmp (int int_p, ER_node_t op1, ER_node_t op2, int_t bcmp_resn,
 {
   ER_node_t res;
 
-  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int
-		       && ER_NODE_MODE (op2) == ER_NM_int))
+  if (int_p)
+    {
+      d_assert (ER_NODE_MODE (op1) == ER_NM_int
+		&& ER_NODE_MODE (op2) == ER_NM_int);
+      return icmp (ER_i (op1), ER_i (op2));
+    }
+  if (expect (ER_NODE_MODE (op1) == ER_NM_int
+	      && ER_NODE_MODE (op2) == ER_NM_int))
     return icmp (ER_i (op1), ER_i (op2));
   res = get_op (bcmp_resn);
   comp_op (cmp_nm, res, op1, op2, FALSE, icmp, fcmp, gencmp);
@@ -679,7 +685,12 @@ execute_btcmpi (int int_p, ER_node_t op1, int_t i, int_t bcmp_resn,
   ER_node_t res, op2;
   static val_t v;
 
-  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
+  if (int_p)
+    {
+      d_assert (ER_NODE_MODE (op1) == ER_NM_int);
+      return icmp (ER_i (op1), i);
+    }
+  if (expect (ER_NODE_MODE (op1) == ER_NM_int))
     return icmp (ER_i (op1), i);
   res = get_op (bcmp_resn);
   op2 = (ER_node_t) &v;
@@ -698,20 +709,25 @@ execute_btcmpinc (int int_p,
 {
   val_t v;
 
-  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
+  if (int_p)
+    {
+      d_assert (ER_NODE_MODE (op1) == ER_NM_int
+		&& ER_NODE_MODE (op2) == ER_NM_int);
+      i += ER_i (op1);
+      ER_set_i (op1, i);
+      return icmp (i, ER_i (op2));
+    }
+  if (expect (ER_NODE_MODE (op1) == ER_NM_int
+	      && ER_NODE_MODE (op2) == ER_NM_int))
     {
       i += ER_i (op1);
       ER_set_i (op1, i);
-      if (expect (ER_NODE_MODE (op2) == ER_NM_int))
-	return icmp (i, ER_i (op2));
+      return icmp (i, ER_i (op2));
     }
-  else
-    {
-      ER_SET_MODE ((ER_node_t) &v, ER_NM_int);
-      ER_set_i ((ER_node_t) &v, i);
-      execute_plus_op (op1, op1, (ER_node_t) &v, FALSE);
-    }
-  return execute_btcmp (int_p, op1, op2, bcmp_resn, BC_NM_eq, icmp, fcmp, gencmp);
+  ER_SET_MODE ((ER_node_t) &v, ER_NM_int);
+  ER_set_i ((ER_node_t) &v, i);
+  execute_plus_op (op1, op1, (ER_node_t) &v, FALSE);
+  return execute_btcmp (FALSE, op1, op2, bcmp_resn, BC_NM_eq, icmp, fcmp, gencmp);
 }
 
 static int do_always_inline
@@ -1355,12 +1371,40 @@ tcall (ER_node_t op1, int_t op2n, int from_c_code_p)
   process_fun_class_call (op1, op2n, TRUE, from_c_code_p);
 }
   
+/* Try to reuse the result of pure function.  Return true if we had an
+   success.  Otherwise, setup new stack and return FALSE.  */
+static int do_always_inline
+heap_push_or_set_res (BC_node_t block_node, ER_node_t context,
+		      val_t *call_start, int vars_num)
+{
+  ER_node_t stack;
+
+  d_assert (BC_NODE_MODE (block_node) == BC_NM_fblock
+	    && BC_vars_num (block_node) == vars_num);
+#ifndef NO_PROFILE
+  if (profile_flag)
+    update_profile (block_node);
+#endif
+  if ((stack = BC_free_stacks (block_node)) != NULL
+      && BC_pure_fun_p (block_node)
+      && eq_val ((val_t *) ER_stack_vars (stack), call_start,
+		 BC_pars_num (block_node)))
+    {
+      /* Restoring the calculated value.  */
+      *(val_t *) call_start = *(val_t *) IVAL (ER_stack_vars (stack),
+					       BC_pars_num (block_node));
+      return TRUE;
+    }
+  heap_push_without_profile_update (block_node, context, vars_num, -1);
+  return FALSE;
+}
+
 /* The same as previous but also process implementation functions.  */
 static void do_always_inline
 process_imm_fun_call (val_t *call_start, BC_node_t code, ER_node_t context,
-		      int actuals_num, int tail_flag, int from_c_code_p)
+		      int actuals_num, int vars_number,
+		      int tail_flag, int from_c_code_p)
 {
-  int vars_number = real_block_vars_number (code);
   int i;
   
   d_assert (BC_NODE_MODE (code) == BC_NM_fblock
@@ -1379,7 +1423,7 @@ process_imm_fun_call (val_t *call_start, BC_node_t code, ER_node_t context,
       ER_set_block_node (cstack, code);
       ctop = IVAL (cvars, vars_number - 1);
     }
-  else if (heap_push_or_set_res (code, context, call_start))
+  else if (heap_push_or_set_res (code, context, call_start, vars_number))
     {
       INCREMENT_PC ();
       return;
@@ -1395,51 +1439,51 @@ process_imm_fun_call (val_t *call_start, BC_node_t code, ER_node_t context,
 
 static void do_always_inline
 common_icall (ER_node_t op1, int_t op2n, ER_node_t op3,
-	      int tail_flag, int from_c_code_p)
+	      int vars_number, int tail_flag, int from_c_code_p)
 {
   ctop = IVAL (op1, -1);
   process_imm_fun_call ((val_t *) op1, BC_cfblock (cpc), op3,
-			op2n, tail_flag, from_c_code_p);
+			op2n, vars_number, tail_flag, from_c_code_p);
 }
 
 static void do_always_inline
-icall (ER_node_t op1, int_t op2n, int from_c_code_p)
+icall (ER_node_t op1, int_t op2n, int vars_number, int from_c_code_p)
 {
   common_icall (op1, op2n,
 		find_context_by_scope (BC_scope (BC_cfblock (cpc))),
-		FALSE, from_c_code_p);
+		vars_number, FALSE, from_c_code_p);
 }
 
 static void do_always_inline
-itcall (ER_node_t op1, int_t op2n, int from_c_code_p)
+itcall (ER_node_t op1, int_t op2n, int vars_number, int from_c_code_p)
 {
   common_icall (op1, op2n,
 		find_context_by_scope (BC_scope (BC_cfblock (cpc))),
-		TRUE, from_c_code_p);
+		vars_number, TRUE, from_c_code_p);
 }
 
 static void do_always_inline
-cicall (ER_node_t op1, int_t op2n, int from_c_code_p)
+cicall (ER_node_t op1, int_t op2n, int vars_number, int from_c_code_p)
 {
-  common_icall (op1, op2n, cstack, FALSE, from_c_code_p);
+  common_icall (op1, op2n, cstack, vars_number, FALSE, from_c_code_p);
 }
 
 static void do_always_inline
-citcall (ER_node_t op1, int_t op2n, int from_c_code_p)
+citcall (ER_node_t op1, int_t op2n, int vars_number, int from_c_code_p)
 {
-  common_icall (op1, op2n, cstack, TRUE, from_c_code_p);
+  common_icall (op1, op2n, cstack, vars_number, TRUE, from_c_code_p);
 }
 
 static void do_always_inline
-ticall (ER_node_t op1, int_t op2n, int from_c_code_p)
+ticall (ER_node_t op1, int_t op2n, int vars_number, int from_c_code_p)
 {
-  common_icall (op1, op2n, uppest_stack, FALSE, from_c_code_p);
+  common_icall (op1, op2n, uppest_stack, vars_number, FALSE, from_c_code_p);
 }
 
 static void do_always_inline
-titcall (ER_node_t op1, int_t op2n, int from_c_code_p)
+titcall (ER_node_t op1, int_t op2n, int vars_number, int from_c_code_p)
 {
-  common_icall (op1, op2n, uppest_stack, TRUE, from_c_code_p);
+  common_icall (op1, op2n, uppest_stack, vars_number, TRUE, from_c_code_p);
 }
 
 static void do_always_inline
@@ -1460,6 +1504,7 @@ cadd (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_plus (ER_i (op1), ER_i (op2)));
       return;
@@ -1514,6 +1559,7 @@ caddi (int int_p, ER_node_t res, ER_node_t op1, int_t op3n)
   i = op3n;
   if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       i = i_plus (ER_i (op1), i);
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i);
@@ -1555,6 +1601,7 @@ csub (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_minus (ER_i (op1), ER_i (op2)));
       return;
@@ -1615,6 +1662,7 @@ cmult (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_mult (ER_i (op1), ER_i (op2)));
       return;
@@ -1664,6 +1712,7 @@ cdiv (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_div (ER_i (op1), ER_i (op2)));
       return;
@@ -1724,6 +1773,7 @@ cmod (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_mod (ER_i (op1), ER_i (op2)));
       return;
@@ -1768,6 +1818,7 @@ clsh (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_lshift (ER_i (op1), ER_i (op2)));
       return;
@@ -1792,6 +1843,7 @@ crsh (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_rshift (ER_i (op1), ER_i (op2)));
       return;
@@ -1816,6 +1868,7 @@ cash (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_ashift (ER_i (op1), ER_i (op2)));
       return;
@@ -1840,6 +1893,7 @@ cand (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_and (ER_i (op1), ER_i (op2)));
       return;
@@ -1864,6 +1918,7 @@ cxor (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_xor (ER_i (op1), ER_i (op2)));
       return;
@@ -1888,6 +1943,7 @@ cor (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
     {
+      d_assert (! int_p || int_bin_op (op1, op2));
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i_or (ER_i (op1), ER_i (op2)));
       return;
@@ -2584,6 +2640,31 @@ static void do_always_inline
 waitend (void)
 {
   sync_flag = FALSE;
+}
+
+static void do_always_inline
+stinc (ER_node_t op1, ER_node_t op2, int_t op3i)
+{
+  reset_vars (op2, IVAL (op1, op3i));
+  ctop = IVAL (op1, op3i - 1);
+}
+
+static void do_always_inline
+stdecu (ER_node_t op1)
+{
+  ER_SET_MODE (op1, ER_NM_undef);
+  /* ??? To conservative until next call: some temporaries are
+     saved.  */
+  ctop = IVAL (op1, -1);
+}
+
+static void do_always_inline
+stdec (ER_node_t op1, ER_node_t op2)
+{
+  *(val_t *) op1 = *(val_t *) op2;
+  /* ??? Too conservative until next call: some temporaries are
+     saved.  */
+  ctop = IVAL (op1, -1);
 }
 
 static void do_always_inline

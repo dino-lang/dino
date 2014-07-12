@@ -53,9 +53,11 @@ process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
                   int val_flag, IR_node_t expr, position_t expr_pos,
                   IR_node_mode_t assign);
 
-static void process_header (int create_block_p, IR_node_t decl, IR_node_t);
+static void process_header (int, IR_node_t, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
- static IR_node_t process_header_block (IR_node_t, IR_node_t, int);
+ static IR_node_t process_header_block (IR_node_t, IR_node_t, hint_val_t);
+
+static hint_val_t get_hint (IR_node_t);
 
 static IR_node_t merge_additional_stmts (IR_node_t);
 
@@ -105,6 +107,7 @@ static int repl_can_process_p (void);
     IR_node_t pointer;
     position_t pos;
     int flag; /* FALSE - var/tab, TRUE - val/vec */
+    hint_val_t hint;
     access_val_t access;
    }
 
@@ -158,7 +161,8 @@ static int repl_can_process_p (void);
         	fun_thread_class fun_thread_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
-%type <flag> clear_flag hint set_flag  par_kind
+%type <flag> clear_flag set_flag  par_kind
+%type <hint> hint
 %type <access> access
 
 %start program
@@ -524,8 +528,10 @@ stmt_stop : eof_stop
           ;
 pos :  {$$ = current_position;}
     ;
-hint :     {$$ = FALSE;}
-     | '!' {$$ = TRUE;}
+hint :           {$$ = NO_HINT;}
+     | '!' IDENT {$$ = get_hint ($2);}
+     | '!' error {$$ = NO_HINT;}
+     ;
 designator : expr '[' expr ']'
        	       {
                  $$ = create_node_with_pos (IR_NM_index, $2);
@@ -1590,13 +1596,45 @@ process_formal_parameters (IR_node_t decl, IR_node_t pars)
   return pars;
 }
 
+
+static hint_val_t
+get_hint (IR_node_t ident)
+{
+  const char *str = IR_ident_string (IR_unique_ident (ident));
+
+  if (strcmp (str, "jit") == 0)
+    return JIT_HINT;
+  else if (strcmp (str, "inline") == 0)
+    return INLINE_HINT;
+  else if (strcmp (str, "pure") == 0)
+    return PURE_HINT;
+  else
+    {
+      error (FALSE, IR_pos (ident), ERR_unknown_hint, str);
+      return NO_HINT;
+    }
+}
+
 /* Process BLOCK of fun/thread/class/obj HEADER decl.  Return the
    block.  */
 static IR_node_t
-process_header_block (IR_node_t header, IR_node_t block, int hint)
+process_header_block (IR_node_t header, IR_node_t block, hint_val_t hint)
 {
   IR_node_t res = current_scope; /*i.e. block.*/
+  IR_node_t fun = IR_fun_class (res);
 
+  if (fun != NULL && (hint == PURE_HINT || hint == INLINE)
+      && (! IR_IS_OF_TYPE (fun, IR_NM_fun) || IR_thread_flag (fun)))
+    {
+      error (FALSE, IR_pos (fun), ERR_wrong_hint_for_non_fun);
+      hint = NO_HINT;
+    }
+  else if (fun != NULL && hint == JIT_HINT
+	   && IR_IS_OF_TYPE (fun, IR_NM_fun) && IR_thread_flag (fun))
+    {
+      error (FALSE, IR_pos (fun), ERR_jit_hint_for_thread);
+      hint = NO_HINT;
+    }
   IR_set_hint (res, hint);
   IR_set_block_stmts
     (res, uncycle_stmt_list (merge_stmt_lists (header, block)));

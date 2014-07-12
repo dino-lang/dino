@@ -45171,7 +45171,7 @@ fun a {
   putln ("in a");
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   a ();
   putln ("at b end");
@@ -45209,7 +45209,7 @@ fi
 if test $result = ok -a $start_test_number -le 698; then
 	echo test 698: JIT: from interpreter to C
         cat >$test_file <<'TEST698'
-fun a ! {
+fun a ! jit {
   putln ("in a");
 }
 
@@ -45251,11 +45251,11 @@ fi
 if test $result = ok -a $start_test_number -le 699; then
 	echo test 699: JIT: from C to C
         cat >$test_file <<'TEST699'
-fun a ! {
+fun a ! jit {
   putln ("in a");
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   a ();
   putln ("at b end");
@@ -45293,7 +45293,7 @@ fi
 if test $result = ok -a $start_test_number -le 700; then
 	echo test 700: JIT: Interpreter calls C with throw
         cat >$test_file <<'TEST700'
-fun a ! {
+fun a ! jit {
   putln ("in a");
   throw except ();
 }
@@ -45344,7 +45344,7 @@ fun a {
   throw except ();
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   a ();
   putln ("at b end");
@@ -45385,12 +45385,12 @@ fi
 if test $result = ok -a $start_test_number -le 702; then
 	echo test 702: JIT: C calls C with throw
         cat >$test_file <<'TEST702'
-fun a ! {
+fun a ! jit {
   putln ("in a");
   throw except ();
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   a ();
   putln ("at b end");
@@ -45431,7 +45431,7 @@ fi
 if test $result = ok -a $start_test_number -le 703; then
 	echo test 703: JIT: Interpreter with try calls C with throw
         cat >$test_file <<'TEST703'
-fun a ! {
+fun a ! jit {
   putln ("in a");
   throw except ();
 }
@@ -45477,12 +45477,12 @@ fi
 if test $result = ok -a $start_test_number -le 704; then
 	echo test 704: JIT: C with try calls C with throw
         cat >$test_file <<'TEST704'
-fun a ! {
+fun a ! jit {
   putln ("in a");
   throw except ();
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   try {
     a ();
@@ -45528,7 +45528,7 @@ fun a {
   throw except ();
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   try {
     a ();
@@ -45573,7 +45573,7 @@ fun a {
   1/0;
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   a ();
   putln ("at b end");
@@ -45608,7 +45608,7 @@ fi
 if test $result = ok -a $start_test_number -le 707; then
 	echo test 707: JIT: Interpreter calls C with exception
         cat >$test_file <<'TEST707'
-fun a ! {
+fun a ! jit {
   1/0;
 }
 
@@ -45651,11 +45651,11 @@ fi
 if test $result = ok -a $start_test_number -le 708; then
 	echo test 708: JIT: C calls C with exception
         cat >$test_file <<'TEST708'
-fun a ! {
+fun a ! jit {
   1/0;
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   a ();
   putln ("at b end");
@@ -45698,7 +45698,7 @@ fun a {
   gc ();
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   try {
     a ();
@@ -45737,7 +45737,7 @@ fi
 if test $result = ok -a $start_test_number -le 710; then
 	echo test 710: JIT: Interpreter calls C with GC
         cat >$test_file <<'TEST710'
-fun a ! {
+fun a ! jit {
   gc ();
 }
 
@@ -45780,11 +45780,11 @@ fi
 if test $result = ok -a $start_test_number -le 711; then
 	echo test 711: JIT: C calls C with GC
         cat >$test_file <<'TEST711'
-fun a ! {
+fun a ! jit {
   gc ();
 }
 
-fun b ! {
+fun b ! jit {
   putln ("in b");
   try {
     a ();
@@ -45949,6 +45949,466 @@ OUTPUT716
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT716-2' && $CMP $stdout $ftemp2; then
 OUTPUT716-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 717.
+if test $result = ok -a $start_test_number -le 717; then
+	echo test 717: Inlining with inside function
+        cat >$test_file <<'TEST717'
+fun f (x) ! inline {
+  fun f2 (y) {x+y;}
+  f2 (10);
+}
+
+putln (f (5));
+TEST717
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT717' && $CMP $stdout $ftemp2; then
+15
+OUTPUT717
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT717-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+Inlined calls - 1
+OUTPUT717-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 718.
+if test $result = ok -a $start_test_number -le 718; then
+	echo test 718: Inlining with clouser
+        cat >$test_file <<'TEST718'
+fun f (x) ! inline {
+  fun f2 (y) {x+y;}
+  return f2;
+}
+
+putln (f (5) (10));
+TEST718
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT718' && $CMP $stdout $ftemp2; then
+15
+OUTPUT718
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT718-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+OUTPUT718-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 719.
+if test $result = ok -a $start_test_number -le 719; then
+	echo test 719: Nested Inlining
+        cat >$test_file <<'TEST719'
+fun f (x) ! inline {
+  fun f2 (y) ! inline {x+y;}
+  f2 (10);
+}
+
+putln (f (5));
+TEST719
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT719' && $CMP $stdout $ftemp2; then
+15
+OUTPUT719
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT719-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+Inlined calls - 3
+OUTPUT719-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 720.
+if test $result = ok -a $start_test_number -le 720; then
+	echo test 720: Inlining with clouser
+        cat >$test_file <<'TEST720'
+fun f (x) ! inline {
+  fun f2 (y) {x+y;}
+  return this;
+}
+
+var o = f (5);
+TEST720
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT720' && $CMP $stdout $ftemp2; then
+OUTPUT720
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT720-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+OUTPUT720-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 721.
+if test $result = ok -a $start_test_number -le 721; then
+	echo test 721: Inlining recursive function
+        cat >$test_file <<'TEST721'
+fun fact (x) ! inline {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+putln (fact (12));
+TEST721
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT721' && $CMP $stdout $ftemp2; then
+479001600
+OUTPUT721
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT721-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+Inlined calls - 1
+OUTPUT721-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 722.
+if test $result = ok -a $start_test_number -le 722; then
+	echo test 722: Inlining complex recursive function
+        cat >$test_file <<'TEST722'
+fun ack (m, n) !inline {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+val n = 5;
+putln ("Ack(3,", n, "): ", ack (3, n));
+TEST722
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT722' && $CMP $stdout $ftemp2; then
+Ack(3,5): 253
+OUTPUT722
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT722-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+Inlined calls - 1
+OUTPUT722-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 723.
+if test $result = ok -a $start_test_number -le 723; then
+	echo test 723: Inlining tail recursive functions
+        cat >$test_file <<'TEST723'
+fun even;
+fun odd (i) !inline { if (i == 0) return 0; return even (i - 1);}
+fun even (i) !inline { if (i == 0) return 1; return odd (i - 1);}
+putln (odd (10));
+TEST723
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT723' && $CMP $stdout $ftemp2; then
+0
+OUTPUT723
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT723-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+Inlined calls - 4
+OUTPUT723-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 724.
+if test $result = ok -a $start_test_number -le 724; then
+	echo test 724: Inlining tail recursive functions inside another function
+        cat >$test_file <<'TEST724'
+fun main {
+  fun even;
+  fun odd (i) !inline { if (i == 0) return 0; return even (i - 1);}
+  fun even (i) !inline { if (i == 0) return 1; return odd (i - 1);}
+  putln (odd (10));
+}
+main ();
+TEST724
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT724' && $CMP $stdout $ftemp2; then
+0
+OUTPUT724
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT724-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+Inlined calls - 4
+OUTPUT724-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 725.
+if test $result = ok -a $start_test_number -le 725; then
+	echo test 725: Inlining with inside function in another function
+        cat >$test_file <<'TEST725'
+fun main {
+  fun f (x) ! inline {
+    fun f2 (y) {x+y;}
+    f2 (10);
+  }
+  putln (f (5));
+}
+main ();
+TEST725
+        echo '      ' $DINO -s $test_file " >$stdout 2>$stderr"
+        if $DINO -s $test_file >$stdout 2>$stderr; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT725' && $CMP $stdout $ftemp2; then
+15
+OUTPUT725
+                    echo '      ' $CMP $stderr $ftemp2
+		    if cat >$ftemp2 <<'OUTPUT725-2' && (fgrep 'Inlined' $stderr | $CMP - $ftemp2); then
+Inlined calls - 1
+OUTPUT725-2
+			result=ok
+                    else
+                        result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 726
+if test $result = ok -a $start_test_number -le 726; then
+	echo test 726: Inline for thread
+        cat >$test_file <<'TEST726'
+thread t !inline {}
+TEST726
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT726' && $CMP $stderr $ftemp2; then
+test.d:1:8: inline or pure hint is permitted only for fun
+OUTPUT726
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT726-2' && $CMP $stdout $ftemp2; then
+OUTPUT726-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 727
+if test $result = ok -a $start_test_number -le 727; then
+	echo test 727: Inline for class
+        cat >$test_file <<'TEST727'
+class t !inline {}
+TEST727
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT727' && $CMP $stderr $ftemp2; then
+test.d:1:7: inline or pure hint is permitted only for fun
+OUTPUT727
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT727-2' && $CMP $stdout $ftemp2; then
+OUTPUT727-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 728
+if test $result = ok -a $start_test_number -le 728; then
+	echo test 728: Pure for thread
+        cat >$test_file <<'TEST728'
+thread t !pure {}
+TEST728
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT728' && $CMP $stderr $ftemp2; then
+test.d:1:8: inline or pure hint is permitted only for fun
+OUTPUT728
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT728-2' && $CMP $stdout $ftemp2; then
+OUTPUT728-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 729
+if test $result = ok -a $start_test_number -le 729; then
+	echo test 729: Pure for class
+        cat >$test_file <<'TEST729'
+class t !pure {}
+TEST729
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT729' && $CMP $stderr $ftemp2; then
+test.d:1:7: inline or pure hint is permitted only for fun
+OUTPUT729
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT729-2' && $CMP $stdout $ftemp2; then
+OUTPUT729-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 730
+if test $result = ok -a $start_test_number -le 730; then
+	echo test 730: Pure for thread
+        cat >$test_file <<'TEST730'
+thread t !jit {}
+TEST730
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT730' && $CMP $stderr $ftemp2; then
+test.d:1:8: jit hint is not permitted for thread
+OUTPUT730
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT730-2' && $CMP $stdout $ftemp2; then
+OUTPUT730-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 731
+if test $result = ok -a $start_test_number -le 731; then
+	echo test 731: Unknown hint
+        cat >$test_file <<'TEST731'
+fun f !abracadabra {}
+TEST731
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT731' && $CMP $stderr $ftemp2; then
+test.d:1:8: unknown hint abracadabra
+OUTPUT731
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT731-2' && $CMP $stdout $ftemp2; then
+OUTPUT731-2
                           result=ok
                     else
                           result=fail

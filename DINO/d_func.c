@@ -5252,7 +5252,7 @@ process_fun_call (val_t *par_start, BC_node_t code, ER_node_t context,
 		  int actuals_num, int tail_flag, int from_c_code_p)
 {
   BC_node_t block = code;
-  int vars_number = real_block_vars_number (block);
+  int vars_number = BC_vars_num (block);
   
   if (BC_thread_p (code) && sync_flag)
     /* We check it before creating a stack (see

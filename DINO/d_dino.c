@@ -624,13 +624,16 @@ dino_finish (int code)
     finish_read_bc ();
   if (statistics_flag && code == 0)
     {
-      finish_heap ();
-      fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
-      size = get_size_repr (heap_size, &unit);
-      size2 = get_size_repr (max_heap_size, &unit2);
-      fprintf (stderr, "Heap size - %d%c (max %d%c), heap chunks - %d (max %d), ",
-	       size, unit, size2, unit2,
-	       heap_chunks_number, max_heap_chunks_number);
+      if (evaluated_p)
+	{
+	  finish_heap ();
+	  fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
+	  size = get_size_repr (heap_size, &unit);
+	  size2 = get_size_repr (max_heap_size, &unit2);
+	  fprintf (stderr, "Heap size - %d%c (max %d%c), heap chunks - %d (max %d), ",
+		   size, unit, size2, unit2,
+		   heap_chunks_number, max_heap_chunks_number);
+	}
       size = get_size_repr (gmp_memory_size, &unit);
       size2 = get_size_repr (max_gmp_memory_size, &unit2);
       fprintf (stderr, "Long ints - %d%c (max %d%c)\n",
@@ -646,6 +649,8 @@ dino_finish (int code)
       if (generated_c_functions_num != 0)
 	fprintf (stderr, "Generated C code functions - %u, their calls - %u\n",
 		 generated_c_functions_num, generated_c_function_calls_num);
+      if (inlined_calls_num != 0)
+	fprintf (stderr, "Inlined calls - %u\n", inlined_calls_num);
     }
   longjmp (exit_longjump_buff, (code == 0 ? -1 : code < 0 ? 1 : code));
 }
@@ -668,6 +673,7 @@ dino_start (void)
 {
   change_allocation_error_function (error_func_for_allocate);
   generated_c_functions_num = generated_c_function_calls_num = 0;
+  inlined_calls_num = 0;
   max_gmp_memory_size = gmp_memory_size = 0;
   mp_set_memory_functions (gmp_alloc, gmp_realloc, gmp_free);
   initiate_positions ();

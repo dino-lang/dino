@@ -1071,7 +1071,7 @@ find_catch_pc (ER_node_t except)
       /* Set up ctop as it should be for any statement begin.  */
       if (cstack != NULL)
 	ctop = (ER_node_t) ((char *) cvars
-			    + real_block_vars_number (ER_block_node (cstack))
+			    + BC_vars_num (ER_block_node (cstack))
 			    * sizeof (val_t) - sizeof (val_t));
       cpc = BC_excepts (block);
       if (cpc != NULL)
@@ -3494,22 +3494,28 @@ evaluate_code (void)
 	  tcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
 	  break;
 	case BC_NM_icall:
-	  icall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
+	  icall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		 BC_vars_num (BC_cfblock (cpc)), FALSE);
 	  break;
 	case BC_NM_itcall:
-	  itcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
+	  itcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		  BC_vars_num (BC_cfblock (cpc)), FALSE);
 	  break;
 	case BC_NM_cicall:
-	  cicall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
+	  cicall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		  BC_vars_num (BC_cfblock (cpc)), FALSE);
 	  break;
 	case BC_NM_citcall:
-	  citcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
+	  citcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		   BC_vars_num (BC_cfblock (cpc)), FALSE);
 	  break;
 	case BC_NM_ticall:
-	  ticall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
+	  ticall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		  BC_vars_num (BC_cfblock (cpc)), FALSE);
 	  break;
 	case BC_NM_titcall:
-	  titcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
+	  titcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		   BC_vars_num (BC_cfblock (cpc)), FALSE);
 	  break;
 	case BC_NM_ibcall:
 	  ibcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
@@ -4147,6 +4153,19 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
+	case BC_NM_stinc:
+	  stinc (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  INTERRUPT_CHECK;
+	  break;
+	case BC_NM_stdec:
+	  stdec (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_stdecu:
+	  stdecu (get_op (BC_op1 (cpc)));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_block:
 	  block ();
 	  INCREMENT_PC ();
@@ -4347,7 +4366,8 @@ call_fun_class (BC_node_t code, ER_node_t context, int_t pars_number,
     process_imm_ifun_call (code, pars_number, from_c_code_p);
   else
     process_imm_fun_call ((val_t *) IVAL (ctop, 1), code, context,
-			  pars_number, FALSE, from_c_code_p);
+			  pars_number, BC_vars_num (code),
+			  FALSE, from_c_code_p);
   for (;;)
     {
       if (cpc != NULL)

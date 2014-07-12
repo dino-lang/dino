@@ -1,3 +1,73 @@
+2014-07-11  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Change ! to !jit.  Add pure and inline
+	variants for some tests.  Remove PERL test in wrong place.
+	(print_dino): Use minimal value instead of 0.
+	(stinc, stdec, stdecu): New nodes.
+	(info): New field inline_p.
+	(print_node): Print additional param for imcall.
+	(CC_PREFIX): Use -pipe and -fpreprocessed.
+	(CC_PREFIX2): New.
+	(gen_cfblock): Use popen and CC_PREFIX2 when --save-temps is
+	absent.
+	* DINO/d_bc.sprut (real_block_vars_number): Remove.
+	* DINO/d_bcio.c (dump_code): Print stinc, stdec, stdecu.
+	* DINO/d_bcn.shilka (stinc, stdec, stdecu): New.
+	* DINO/d_common.h (inlined_calls_num): New.
+	* DINO/d_context.c (second_expr_processing): Set inline_p.
+	(copy_bc_decls): New.  Take the code from copy_bc_block.
+	(copy_bc_block): Use copy_bc_decls.
+	(modify_copied_pc): New.  Take the code from copy_fun_bc_block.
+	(copy_fun_bc_block): Use modify_copied_pc.
+	(process_imcall): Rename to process_tail_imcall.
+	(modify_copied_ops, inline_stack, in_inline_stack_p): New.
+	(inlined_calls_num, inline_returns, inline_call): New.
+	(process_bc): Nullify inline_stack.  Call inline_call if
+	necessary.
+	(initiate_context, finish_context): Init/finish inline_stack and
+	inline_returns.
+	* DINO/d_dino.c (dino_finish): Check evaluated_p to finish_heap
+	and print its statistics.
+	* DINO/d_errors.[ch] (ERR_unknown_hint): New.
+	(ERR_wrong_hint_for_non_fun): New.
+	(ERR_jit_hint_for_thread): New.
+	* DINO/d_eval.c: Remove real_block_vars_number.
+	(evaluate_code): Pass new parameter to icall, itcall, cicall,
+	citcall, ticall, titcall.  Add cases stinc, stdec, stdecu.
+	(call_fun_class): Pass new parameter to process_imm_fun_call.
+	* DINO/d_func.c (process_fun_call): Remove real_block_vars_number.
+	* DINO/d_gen.c (execute_btcmp, execute_btcmpi): Add assert for
+	int_p.
+	(execute_btcmpinc): Pass FALSE instead pf int_p to execute_btcmp.
+	(heap_push_or_set_res): Move from d_heap.c.  Add parameter.
+	(process_imm_fun_call, common_icall, icall, itcall, cicall): Add
+	new parameter vars_number.
+	(citcall, ticall, titcall): Ditto.
+	(cadd, caddi, csubm cmult, cdiv, cmod, clsh, crsh, cash, cand):
+	Add assert for int_p.
+	(cxor, cor): Ditto.
+	(stinc, stdec, stdecu): New.
+	* DINO/d_heap.c: Remove real_block_vars_number.
+	(update_profile): Make external and void result type.
+	(setup_new_cstack, heap_push_without_profile_update): Move to
+	d_run.sprut.
+	(alloc_new_stack): Make external.
+	(STACK_REUSE_THRESHOLD): Remove.
+	(heap_push): Add guard to update_profile.
+	(heap_pop): Don't call try_heap_stack_free.
+	* DINO/d_ir.sprut (enum hint_val, hint_val_t): New.
+	(block): Change type of field hint.
+	* DINO/d_run.sprut (update_profile, alloc_new_stack): New
+	externals.
+	(setup_new_cstack, heap_push_without_profile_update): Move from
+	d_heap.c
+	* DINO/d_yacc.y: Change type of hint nonterminal.  Change rulse for
+	hint.
+	(process_header, process_header_block): Add hint parameter.
+  	(get_hint): New.
+	* DINO/dino.tst.in: Change ! to !jit.  Add tests for inline and
+	pure.
+
 2014-06-30  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_bc.sprut: Move non-executed code below.

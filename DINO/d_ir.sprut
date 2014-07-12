@@ -95,6 +95,16 @@ enum access_val
 
 typedef enum access_val access_val_t;
 
+enum hint_val
+{
+  NO_HINT,
+  INLINE_HINT,
+  PURE_HINT,
+  JIT_HINT
+};
+
+typedef enum hint_val hint_val_t;
+
 }
 
 %export {
@@ -466,7 +476,7 @@ IR_node_t destroy_unique_ident;
 }
 
 %type char_t int_t gmp_t floating_t string_t integer_t bool_t position_t
-      type_mask_t ticker_t BC_hidden_node_t access_val_t
+      type_mask_t ticker_t BC_hidden_node_t access_val_t hint_val_t
 
 %%
 
@@ -799,7 +809,7 @@ block :: stmt
            block. */
         exceptions : exception
         /* Flag of the hint presence */
-        hint : bool_t {$ = FALSE;}
+        hint : hint_val_t {$ = NO_HINT;}
 ;
 
 exception :: generic_pos

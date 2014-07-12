@@ -41,6 +41,10 @@ char ERR_int_value[] = "too big integer value";
 char ERR_string_end_absence[] = "string end is absent";
 char ERR_exponent_absence[] = "exponent of float is absent";
 char ERR_eof_in_comment[] = "comment is not finished (EOF)";
+char ERR_unknown_hint[] = "unknown hint %s";
+char ERR_wrong_hint_for_non_fun[]
+  = "inline or pure hint is permitted only for fun";
+char ERR_jit_hint_for_thread[] = "jit hint is not permitted for thread";
 char ERR_interrupt_exception[] = "interrupt";
 char ERR_illegal_instruction_exception[] = "illegal instruction";
 char ERR_abort_exception[] = "abort";

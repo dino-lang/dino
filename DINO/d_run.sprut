@@ -172,10 +172,10 @@ extern void initiate_heap (void);
 extern void final_call_destroy_functions (void);
 extern void finish_heap (void);
 extern void GC (void);
+extern void update_profile (BC_node_t block_node);
+extern ER_node_t alloc_new_stack (BC_node_t block_node, int vars_num);
 extern void heap_push (BC_node_t block_node_ptr, ER_node_t context,
 		       int offset);
-extern int heap_push_or_set_res (BC_node_t code, ER_node_t context,
-				 val_t *call_start);
 extern void heap_pop (void);
 extern void create_uppest_stack (BC_node_t block_node);
 extern void expand_uppest_stack (void);
@@ -328,6 +328,51 @@ do_call (BC_node_t fblock, int from_c_code_p)
   cpc = get_fblock_pc (fblock);
   if (from_c_code_p)
     evaluate_code ();
+}
+
+/* Make STACK with VARS_NUM as the current stack.  Make vars starting
+   with OFFSET undefined. */
+static void do_always_inline
+setup_new_cstack (ER_node_t stack, int_t vars_num, int_t offset)
+{
+  d_assert (BC_vars_num (ER_block_node (stack)) == vars_num);
+  if (cstack != NULL)
+    ER_set_ctop (cstack, (char *) ctop);
+  cstack = stack;
+  cvars = ER_stack_vars (cstack);
+  ctop = (ER_node_t) ((char *) cvars + (vars_num - 1) * sizeof (val_t));
+  if (offset >= 0)
+    reset_vars (IVAL (cvars, offset), IVAL (ctop, 1));
+  /* We set them only here because we need to set mode before.
+     Remeber about possible field checking. */
+  if (cprocess != NULL)
+    ER_set_saved_cstack (cprocess, cstack);
+}
+
+/* The following func allocates heap memory for stack frame (heap
+   stack header and vars) of the block given as BLOCK_NODE.  The func
+   initiates all fields of stack and returns pointer to it.  The func
+   also sets up value of cstack.  The func sets up mode of all
+   permanent stack vars as ER_NM_undef starting from offset.  If
+   offset is negative, stack vars are not set.  */
+static void do_always_inline
+heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
+				  int vars_num, int offset)
+{
+  ER_node_t stack;
+
+  if ((stack = BC_free_stacks (block_node)) != NULL)
+    BC_set_free_stacks (block_node, ER_prev_stack (stack));
+  else
+    stack = alloc_new_stack (block_node, vars_num);
+#ifndef NO_CONTAINER_CACHE
+  current_cached_container_tick++;
+#endif
+  ER_set_c_code_p (stack, FALSE);
+  ER_set_call_pc (stack, cpc);
+  ER_set_context (stack, context);
+  ER_set_prev_stack (stack, cstack);
+  setup_new_cstack (stack, vars_num, offset);
 }
 
 }
