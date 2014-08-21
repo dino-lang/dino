@@ -202,6 +202,22 @@ Automaton `float'
 
 OUTPUT2
                         result=ok
+                elif cat >$ftemp <<'OUTPUT2a' && $CMP $stderr $ftemp; then
+
+Automaton `integer'
+      1176 NDFA states,            3544 NDFA arcs
+      1176 DFA states,             3632 DFA arcs
+       146 minimal DFA states,      611 minimal DFA arcs
+       129 all instructions           9 instruction equivalence classes
+
+Automaton `float'
+       167 NDFA states,             420 NDFA arcs
+       167 DFA states,              420 DFA arcs
+       167 minimal DFA states,      420 minimal DFA arcs
+       129 all instructions           5 instruction equivalence classes
+
+OUTPUT2a
+                        result=ok
                 else
                         result=fail
                 fi
@@ -443,6 +459,22 @@ Automaton `float'
 
 OUTPUT3
                         result=ok
+                elif cat >$ftemp <<'OUTPUT3a' && $CMP $stderr $ftemp; then
+
+Automaton `integer'
+      3048 NDFA states,           12732 NDFA arcs
+      2651 DFA states,            11527 DFA arcs
+      1619 minimal DFA states,     8720 minimal DFA arcs
+       146 all instructions          16 instruction equivalence classes
+
+Automaton `float'
+       180 NDFA states,             720 NDFA arcs
+       209 DFA states,              867 DFA arcs
+       149 minimal DFA states,      687 minimal DFA arcs
+       146 all instructions           8 instruction equivalence classes
+
+OUTPUT3a
+                        result=ok
                 else
                         result=fail
                 fi
@@ -548,6 +580,16 @@ Automaton `integer1'
 
 OUTPUT6
                         result=ok
+                elif cat >$ftemp <<'OUTPUT6a' && $CMP $stderr $ftemp; then
+
+Automaton `integer1'
+         3 NDFA states,               5 NDFA arcs
+         2 DFA states,                3 DFA arcs
+         2 minimal DFA states,        3 minimal DFA arcs
+         2 all instructions           2 instruction equivalence classes
+
+OUTPUT6a
+                        result=ok
                 else
                         result=fail
                 fi
@@ -587,6 +629,16 @@ Automaton #0
      1 locked states number
 
 OUTPUT7
+                        result=ok
+                elif cat >$ftemp <<'OUTPUT7a' && $CMP $stderr $ftemp; then
+
+Automaton #0
+         3 NDFA states,               5 NDFA arcs
+         2 DFA states,                3 DFA arcs
+         2 minimal DFA states,        3 minimal DFA arcs
+         2 all instructions           2 instruction equivalence classes
+
+OUTPUT7a
                         result=ok
                 else
                         result=fail

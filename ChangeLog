@@ -1,3 +1,14 @@
+2014-08-21  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* configure.in: Add AC_CHECK_SIZEOF(size_t).  Add Darwin case.
+	* configure: Udpate.
+	* AMMUNITION/cocom-config.h.in: Udpate.
+	* DINO/d_heap.c (MURMUR_MAGIC, MURMUR_SHIFT, MURMUR_SEED): New.
+	(murmur_init, murmur_step, murmur_finish, murmur): New.
+	(hash_ref, hash_val, hash_key): Use murmur hash functions.
+	* DINO/Makefile.in (compare-only-dino): New entry.  Use it for test.
+	* OKA/oka.tst: Add expected output for non-debug case.
+
 2014-07-11  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Change ! to !jit.  Add pure and inline

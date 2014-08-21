@@ -306,11 +306,14 @@ d_yacc.c: $(srcdir)/d_yacc.y
 	@echo must be - conflicts: 7 shift/reduce.
 	../MSTA/msta -no-regular-optimization -local-error-recovery $(srcdir)/d_yacc.y
 
-test : test-dino compare-dino
+test : test-dino compare-only-dino
 
 test-dino : dino
 	@echo ++++ Test dino interpriter ++++
 	$(SHELL) dino.tst
+
+compare-only-dino : dino
+	DINO_ONLY=y $(SHELL) $(srcdir)/compare.tst
 
 compare-dino : dino
 	@echo ++++ Comparison of different script language implementations ++++

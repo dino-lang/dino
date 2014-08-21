@@ -47,6 +47,7 @@ AC_C_BIGENDIAN
 AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
+AC_CHECK_SIZEOF(size_t)
 AC_TYPE_GETGROUPS
 AC_CHECK_SIZEOF(char *)
 dnl There is no clock_t `sys/types.h', or `stdlib.h' or `stddef.h' on Linux
@@ -110,6 +111,15 @@ case $system in
 	  GCC_FPIC=-fPIC
 	  LIB_SUFFIX=so
 	  MAKELIB="\$(CC) -shared -Wl,-soname,\\\$\$0 -o \\\$\$0"
+	  AFTER_MAKELIB="echo \\\$\$0"
+# The following option is needed if we use no shared dino library but
+# shared external library
+          SPECIAL_LINK_OPTION=-rdynamic
+          ;;
+	Darwin*)
+	  GCC_FPIC=-fPIC
+	  LIB_SUFFIX=so
+	  MAKELIB="\$(CC) -shared -Wl,-undefined,dynamic_lookup -Wl,-install_name,\\\$\$0 -o \\\$\$0"
 	  AFTER_MAKELIB="echo \\\$\$0"
 # The following option is needed if we use no shared dino library but
 # shared external library

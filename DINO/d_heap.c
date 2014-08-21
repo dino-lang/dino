@@ -2037,6 +2037,100 @@ eq_table (ER_node_t t1, ER_node_t t2)
   return TRUE;
 }
 
+
+
+/* Murmur Hash is described on http://murmurhash.googlepages.com.  */
+#if SIZEOF_SIZE_T == 8
+static const size_t MURMUR_MAGIC = 0xc6a4a7935bd1e995;
+static const int MURMUR_SHIFT = 47;
+#elif SIZEOF_SIZE_T == 4
+static const size_t MURMUR_MAGIC = 0x5bd1e995;
+static const int MURMUR_SHIFT = 24;
+#else
+#error size_t should be 32- or 64-bit
+#endif
+
+static const unsigned int MURMUR_SEED = 0x811c9dc5;
+
+static size_t do_always_inline
+murmur_init (size_t len)
+{
+  return MURMUR_SEED ^ (len * MURMUR_MAGIC);
+}
+
+static size_t do_always_inline
+murmur_step (size_t h, size_t val)
+{
+  val *= MURMUR_MAGIC; 
+  val ^= val >> MURMUR_SHIFT; 
+  val *= MURMUR_MAGIC; 
+  h ^= val;
+  return h * MURMUR_MAGIC;
+}
+
+static size_t do_always_inline
+murmur_finish (size_t h)
+{
+  h ^= h >> MURMUR_SHIFT;
+  h *= MURMUR_MAGIC;
+  h ^= h >> MURMUR_SHIFT;
+  return h;
+}
+
+static size_t
+murmur (const void *key, size_t len)
+{
+  size_t h = murmur_init (len);
+  const unsigned char *data = (const unsigned char *) key;
+  
+  while (len >= sizeof (size_t))
+    {
+      size_t k;
+
+      /* It is slower but less hassle with portability.  */
+      k  = data[0];
+      k |= data[1] << 8;
+      k |= data[2] << 16;
+      k |= data[3] << 24;
+#if SIZEOF_SIZE_T == 8
+      k |= ((size_t) data[4]) << 32;
+      k |= ((size_t) data[5]) << 40;
+      k |= ((size_t) data[6]) << 48;
+      k |= ((size_t) data[7]) << 56;
+#endif
+      h = murmur_step (h, k);
+      len -= sizeof (size_t);
+      data += sizeof (size_t);
+    }
+  
+  switch (len)
+    {
+#if SIZEOF_SIZE_T == 8
+    case 7:
+      h ^= ((size_t) data[6]) << 48;
+    case 6:
+      h ^= ((size_t) data[5]) << 40;
+    case 5:
+      h ^= ((size_t) data[4]) << 32;
+    case 4:
+      h ^= ((size_t) data[3]) << 24;
+#endif
+    case 3:
+      h ^= ((size_t) data[2]) << 16;
+    case 2:
+      h ^= ((size_t) data[1]) << 8;
+    case 1:
+      h ^= ((size_t) data[0]);
+      h *= MURMUR_MAGIC;
+    }
+ 
+  h = murmur_finish (h);
+  
+  return h;
+}
+
+
+
 static size_t do_always_inline
 hash_ref (ER_node_t ref)
 {
@@ -2078,8 +2172,7 @@ hash_val (ER_node_t val)
 	length = sizeof (floating_t);
 	f = ER_f (val);
 	string = (unsigned char *) &f;
-	for (hash = i = 0; i < length; i++)
-	  hash += string[i] << (3 * i % (CHAR_BIT * (sizeof (size_t) - 1)));
+	hash = murmur (string, length);
 	return hash;
       }
     case ER_NM_type:
@@ -2095,8 +2188,9 @@ hash_val (ER_node_t val)
     case ER_NM_tab:
       return (size_t) ER_unique_number (ER_tab (val));
     case ER_NM_code:
-      return ((size_t) ER_code_id (val)
-	      + (size_t) ER_unique_number (ER_code_context (val)));
+      return murmur_finish (murmur_step
+                            (murmur_step (murmur_init (2), (size_t) ER_code_id (val)),
+			     (size_t) ER_unique_number (ER_code_context (val))));
     case ER_NM_efun:
       return (size_t) ER_efdecl (val);
     case ER_NM_process:
@@ -2144,52 +2238,21 @@ hash_key (ER_node_t key)
 	  {
 	    ER_node_t pv = ER_vect (key);
 
-	    if (ER_pack_vect_el_mode (pv) == ER_NM_char)
-	      {
-		/* Special frequent case.  */
-		char *str;
-
-		str = (char *) ER_pack_els (pv);
-		for (hash = i = 0; i < ER_els_number (pv); i++)
-		  {
-		    el_hash = str [i];
-		    shift = 13 * i % (CHAR_BIT * sizeof (size_t));
-		    hash += (el_hash << shift) | (el_hash >> shift);
-		  }
-	      }
-	    else
-	      {
-		val_t var;
-		ER_node_t var_ref = (ER_node_t) &var;
-		size_t displ;
-		size_t el_size;
-		
-		ER_SET_MODE (var_ref, ER_pack_vect_el_mode (pv));
-		displ = val_displ (var_ref);
-		el_size = type_size_table [ER_pack_vect_el_mode (pv)];
-		for (hash = i = 0; i < ER_els_number (pv); i++)
-		  {
-		    /* We don't care about setting dimension for
-		       vectors here as it is not used by hash_val.  */
-		    memcpy ((char *) var_ref + displ,
-			    (char *) ER_pack_els (pv) + i * el_size,
-			    el_size);
-		    el_hash = hash_val (var_ref);
-		    shift = 13 * i % (CHAR_BIT * sizeof (size_t));
-		    hash += (el_hash << shift) | (el_hash >> shift);
-		  }
-	      }
+	    hash = murmur (ER_pack_els (pv),
+			   ER_els_number (pv) 
+			   * type_size_table [ER_pack_vect_el_mode (pv)]);
 	  }
 	else
 	  {
 	    ER_node_t unpv = ER_vect (key);
 	    
-	    for (hash = i = 0; i < ER_els_number (unpv); i++)
+	    hash = murmur_init (ER_els_number (unpv));
+	    for (i = 0; i < ER_els_number (unpv); i++)
 	      {
 		el_hash = hash_val (IVAL (ER_unpack_els (unpv), i));
-		shift = 13 * i % (CHAR_BIT * sizeof (size_t));
-		hash += (el_hash << shift) | (el_hash >> shift);
+		hash = murmur_step (hash, el_hash);
 	      }
+	    hash = murmur_finish (hash);
 	  }
 	break;
       }
@@ -2201,39 +2264,39 @@ hash_key (ER_node_t key)
 	tab = ER_tab (key);
 	GO_THROUGH_REDIR (tab);
 	ER_set_tab (key, tab);
+	hash = murmur_init (ER_entries_number (tab));
 	for (i = 0; i < ER_entries_number (tab); i++)
 	  {
 	    entry_key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-	    if (ER_NODE_MODE (entry_key) != ER_NM_empty_entry
-		&& ER_NODE_MODE (entry_key) != ER_NM_deleted_entry)
-	      /* We need here associative operation. */
-	      hash += (hash_val (entry_key) + hash_val (IVAL (entry_key, 1)));
+	    if (ER_NODE_MODE (entry_key) == ER_NM_empty_entry
+		|| ER_NODE_MODE (entry_key) == ER_NM_deleted_entry)
+	      continue;
+	    hash = murmur_step (hash, hash_val (entry_key));
+	    hash = murmur_step (hash, hash_val (IVAL (entry_key, 1)));
 	  }
+	hash = murmur_finish (hash);
 	break;
       }
     case ER_NM_stack:
       {
 	ER_node_t var;
 
-	for (i = hash = 0, var = ER_stack_vars (ER_stack (key));
+	hash = murmur_init ((char *) ER_ctop (ER_stack (key))
+			    - (char *) ER_stack_vars (ER_stack (key)));
+	for (i = 0, var = ER_stack_vars (ER_stack (key));
 	     (char *) var <= ER_ctop (ER_stack (key));
 	     var = IVAL (var, 1), i++)
 	  {
 	    el_hash = hash_val (var);
-	    shift = 13 * i % (CHAR_BIT * sizeof (size_t));
-	    hash += (el_hash << shift) | (el_hash >> shift);
+	    hash = murmur_step (hash, el_hash);
 	  }
+	hash = murmur_finish (hash);
 	break;
       }
     case ER_NM_hideblock:
       string = (unsigned char *) ER_hideblock_start (ER_hideblock (key));
       length = ER_hideblock_length (ER_hideblock (key));
-      for (hash = i = 0; i < length; i++)
-	{
-	  el_hash = string[i];
-	  shift = 13 * i % (CHAR_BIT * sizeof (size_t));
-	  hash += (el_hash << shift) | (el_hash >> shift);
-	}
+      hash = murmur (string, length);
       break;
     default:
       d_unreachable ();
