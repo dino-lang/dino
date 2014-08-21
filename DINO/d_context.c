@@ -2655,6 +2655,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	    BC_set_cfblock (bc, fblock);
 	    if (fun_decl != NULL && !IR_forward_decl_flag (fun_decl)
 		&& (block = IR_next_stmt (fun_decl)) != NULL
+		&& IR_IS_OF_TYPE (block, IR_NM_block)
+		&& IR_fun_class (block) == fun_decl
 		&& IR_hint (block) == INLINE_HINT)
 	      BC_set_inline_p (BC_info (bc), TRUE);
 	  }

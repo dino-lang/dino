@@ -1,5 +1,10 @@
 2014-08-21  Vladimir Makarov  <vmakarov@users.sf.net>
 
+	* DINO/d_context.c (second_expr_processing): Check that the next
+	stmt is a block for setting inline hint.
+
+2014-08-21  Vladimir Makarov  <vmakarov@users.sf.net>
+
 	* configure.in: Add AC_CHECK_SIZEOF(size_t).  Add Darwin case.
 	* configure: Udpate.
 	* AMMUNITION/cocom-config.h.in: Udpate.
