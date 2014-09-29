@@ -405,7 +405,7 @@ to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
 	{
 	  d_assert (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_vect
 		    && ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char);
-	  form_format_string (format, var, 1, "vect (...)", TRUE);
+	  form_format_string (format, var, 1, "vec (...)", TRUE);
 	  representation = VLO_BEGIN (temp_vlobj);
 	  /* Remeber `var' may be changed in GC. */
 	  vect = create_string (representation);

@@ -114,7 +114,7 @@ fi
 
 if test x$SKIP_SCALA = x && echo 'println ()' | scala >/dev/null 2>&1;then
   SCALA=scala
-  echo '>>>> ' `echo|scala -version 2>&1|fgrep Scala`
+  echo '>>>> ' `echo 'println ()'|scala -version 2>&1|fgrep Scala`
 else
   echo We have no scala
   SCALA=
@@ -128,6 +128,14 @@ else
   JS=
 fi
 
+if test x$SKIP_NODEJS = x && echo 'console.log ()' | node >/dev/null 2>&1;then
+  NODEJS=node
+  echo '>>>> Node.js: ' `node -v 2>&1`
+else
+  echo We have no JavaScript
+  NODEJS=
+fi
+
 if test x$SKIP_OCAML = x && echo 'print ()' | ocaml >/dev/null 2>&1;then
   OCAML=ocaml
   echo '>>>> ' `ocaml < /dev/null|fgrep ersion`
@@ -139,7 +147,7 @@ fi
 echo '>>>> ' dino: `$DINO -h 2>&1|fgrep Version`
 
 speed() {
-  (time -p sh -c 'i=0;while expr $i != 100;do i=`expr $i + 1`;done') 2>&1|fgrep user|$AWK '{print int ($2 * 10)}'
+  (time -p sh -c 'i=0;while expr $i != 50;do i=`expr $i + 1`;done') 2>&1|fgrep user|awk '{print int ($2 * 10)}'
 }
 
 s=`speed`
@@ -174,11 +182,12 @@ if test x$DINO_ONLY != x; then
   if test x$DO_RUBY = x;then RUBY="";fi
   if test x$DO_SCALA = x;then SCALA="";fi
   if test x$DO_JS = x;then JS="";fi
+  if test x$DO_NODEJS = x;then NODEJS="";fi
   if test x$DO_OCAML = x;then OCAML="";fi
 
   if test x$PERL != x || test x$PYTHON != x || test x$PYPY != x || test x$PYTHON3 != x \
      || test x$TCLSH != x || test x$AWK != x || test x$LUA != x || test x$RUBY != x \
-     || test x$SCALA != x || test x$JS != x || test x$OCAML != x;then
+     || test x$SCALA != x || test x$JS != x || test x$NODEJS != x || test x$OCAML != x;then
     DINO_ONLY="";
   fi
 fi
@@ -248,340 +257,35 @@ print_dino() {
 if test $start_test_number -le 1; then
 
 ######################################################
-if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=8;else rep=10;fi
-Announce_Test "+++++ Test #1: ackermann (good test for recursive functions N=$rep):  +++++"
+rep=`expr $factor '*' 2000000`
+Announce_Test "+++++ Test  #1: Test Loop ($rep iteration with empty body):  +++++"
 
 cat <<'EOF' >$ftest
-fun ack (m, n) {
-    if (m == 0) return n + 1;
-    if (n == 0) return ack (m - 1, 1);
-    return ack (m - 1, ack (m, (n - 1)));
-}
-
-var n = int (argv [0] < 1 ? 1 : argv [0]);
-putln ("Ack(3,", n, "): ", ack (3, n));
+var i, n;
+n = int (argv [0]);
+for (i=0; i < n;i++);
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT variant:"
-fi
-
-cat <<'EOF' >$ftest
-fun ack (m, n) !jit {
-    if (m == 0) return n + 1;
-    if (n == 0) return ack (m - 1, 1);
-    return ack (m - 1, ack (m, (n - 1)));
-}
-
-var n = int (argv [0] < 1 ? 1 : argv [0]);
-putln ("Ack(3,", n, "): ", ack (3, n));
-EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2 1;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-use integer;
-
-# It's prettier but slower to do this
-#sub Ack {
-#    my($M, $N) = @_;
-#    return( $N + 1 )         if ($M == 0);
-#    return( Ack($M - 1, 1) ) if ($N == 0);
-#    Ack($M - 1, Ack($M, $N - 1));
-#}
-
-# in our quest for speed, we must get ugly:
-# it helps reduce stack frame size a little bit
-# from Leif Stensson
-sub Ack {
-    return $_[0] ? ($_[1] ? Ack($_[0]-1, Ack($_[0], $_[1]-1))
-                    : Ack($_[0]-1, 1))
-        : $_[1]+1;
-}
-
-my $NUM = $ARGV[0];
-$NUM = 1 if ($NUM < 1);
-my $ack = Ack(3, $NUM);
-print "Ack(3,$NUM): $ack\n";
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# from Brad Knotwell
-import sys
-
-def Ack(M, N):
-    if (not M):
-        return( N + 1 )
-    if (not N):
-        return( Ack(M-1, 1) )
-    return( Ack(M-1, Ack(M, N-1)) )
-
-def main():
-    NUM = int(sys.argv[1])
-    print "Ack(3,%d): %d" % (NUM, Ack(3, NUM))
-
-main()
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# from Brad Knotwell
-import sys
-
-def Ack(M, N):
-    if (not M):
-        return( N + 1 )
-    if (not N):
-        return( Ack(M-1, 1) )
-    return( Ack(M-1, Ack(M, N-1)) )
-
-def main():
-    NUM = int(sys.argv[1])
-    print ("Ack(3,%d): %d" % (NUM, Ack(3, NUM)))
-
-main()
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$TCL != x; then
-echo  Tcl has stack overflow on the test
-fi
-
-if test x$AWK != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-function ack(m, n) {
-    if (m == 0) return( n + 1 );
-    if (n == 0) return( ack(m - 1, 1) );
-    return( ack(m - 1, ack(m, (n - 1))) );
-}
-
-BEGIN {
-    n = (ARGV[1] < 1) ? 1 : ARGV[1];
-    printf("Ack(3,%d): %d\n", n, ack(3, n));
-    exit;
-}
-EOF
-
-  echo AWK is too slow for this test.
-
-#  title=AWK
-##  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
--- $Id: ackermann.lua,v 1.5 2000/12/09 20:07:43 doug Exp $
--- http://www.bagley.org/~doug/shootout/
-
-function Ack(M, N)
-    if (M == 0) then
-    return( N + 1 )
-    end
-    if (N == 0) then
-    return( Ack(M - 1, 1) )
-    end
-    return( Ack(M - 1, Ack(M, (N - 1))) )
-end
-
-NUM = tonumber((arg and arg[1])) or 1
-io.write("Ack(3,", NUM ,"): ", Ack(3,NUM), "\n")
-EOF
-
-title=LUA
-if ($TIME $LUA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: ackermann.ruby,v 1.6 2000/11/27 03:39:25 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-
-def ack(m, n)
-    if m == 0 then
-    n + 1
-    elsif n == 0 then
-    ack(m - 1, 1)
-    else
-    ack(m - 1, ack(m, n - 1))
-    end
-end
-
-NUM = Integer(ARGV.shift || 1)
-print "Ack(3,", NUM, "): ", ack(3, NUM), "\n"
-EOF
-title=RUBY
-if ($TIME $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-def ack (m:Int, n:Int):Int =
-  if (m==0) n+1
-  else if (n==0) ack (m-1,1)
-  else ack (m-1, ack(m,n-1))
-
-val n = args(0).toInt
-println ("Ack(3,", n, "): ", ack (3, n))
-EOF
-title=SCALA
-if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$JS != x; then
-  cat <<'EOF' >$ftest
-function ack (m, n) {
-    if (m == 0) return n + 1;
-    if (n == 0) return ack (m - 1, 1);
-    return ack (m - 1, ack (m, (n - 1)));
-}
-
-var n = arguments [0] < 1 ? 1 : arguments [0];
-print ("Ack(3,", n, "): ", ack (3, n));
-EOF
-title=JS
-if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-title="JS -j"
-if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-(*
- * $Id: ackermann.ocaml,v 1.9 2001/01/08 02:56:48 doug Exp $
- * http://www.bagley.org/~doug/shootout/
- * with help from Markus Mottl
- *)
-
-
-let rec ack m n =
-  if m = 0 then n + 1
-  else if n = 0 then ack (m - 1) 1
-  else ack (m - 1) (ack m (n - 1))
-
-let _ =
-  let arg =
-    try int_of_string Sys.argv.(1)
-    with Invalid_argument _ -> 1 in
-  Printf.printf "Ack(3,%d): %d\n" arg (ack 3 arg)
-EOF
-title=OCAML
-if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 2.
-if test $start_test_number -le 2; then
-
-######################################################
-rep=`expr $factor '*' 300`
-Announce_Test "+++++ Test #2: Array access (N=$rep):  +++++"
-
-cat <<'EOF' >$ftest
-var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
-var x = [n:0], y = [n:0];
-
-for (i = 0; i < n; i++)
-  x [i] = i + 1;
-for (k = 0; k < 1000; k++)
-  for (i = 0; i < n; i++)
-    y[i] += x[i];
-
-putln (y [0], " ", y [n - 1]);
-EOF
-title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          Slice Variant:"
-fi
-cat <<'EOF' >$ftest
-var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
-var x = [n:0], y = [n:0];
-
-for (i = 0; i < n; i++)
-  x [i] = i + 1;
-for (k = 0; k < 1000; k++)
-  y[:] += x[:];
-
-putln (y [0], " ", y [n - 1]);
-EOF
-title=" (Slice Variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT Variant:"
+  Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
 fun main !jit {
-  var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
-  var x = [n:0], y = [n:0];
-
-  for (i = 0; i < n; i++)
-    x [i] = i + 1;
-  for (k = 0; k < 1000; k++)
-    for (i = 0; i < n; i++)
-      y[i] += x[i];
-
-  putln (y [0], " ", y [n - 1]);
+  var i, n;
+  n = int (argv [0]);
+  for (i=0; i < n;i++);
 }
 main ();
 EOF
-title=" (JIT Variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-# this program is modified from:
-#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
-# Timing Trials, or, the Trials of Timing: Experiments with Scripting
-# and User-Interface Languages</a> by Brian W. Kernighan and
-# Christopher J. Van Wyk.
-
-my $n = @ARGV[0] || 1;
-my @X;
-my @Y;
-
-my $last = $n - 1;
-for my $i (0..$last) {
-    $X[$i] = $i + 1;
-}
-for my $k (0..999) {
-    for my $i (reverse 0..$last) {
-        $Y[$i] += $X[$i];
-    }
-}
-
-print "$Y[0] $Y[$last]\n";
+my $NUM = $ARGV[0];
+for ($i=0; $i < $NUM;$i++){}
 EOF
   title=PERL
   if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -589,23 +293,10 @@ fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Brad Knotwell
-
 import sys
 
-def main():
-    n = int(sys.argv[1])
-    x = n * [0]       
-    y = n * [0]
-    for i in xrange(0,n):
-        x[i] = i + 1
-    for k in xrange(0,1000):
-        for i in xrange(n-1,-1,-1):
-            y[i] = y[i] + x[i]
-    print y[0], y[-1]
-
-main()
+num = int(sys.argv[1])
+for i in xrange (0,num): i
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
@@ -622,16 +313,218 @@ if test x$PYTHON3 != x; then
   cat <<'EOF' >$ftest
 import sys
 
+num = int(sys.argv[1])
+for i in range (0,num): i
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  cat <<'EOF' >$ftest
+proc main {} {
+  global argv
+  set n [lindex $argv 0]
+  for {set i 0} {$i < $n} {incr i} {}
+}
+main
+EOF
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$AWK != x; then
+  cat <<'EOF' >$ftest
+BEGIN {n = ARGV[1]; for (i=0.0; i<n; i=i+1.0);}
+EOF
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+local n = tonumber((arg and arg[1]) or 1)
+for a=1,n do
+end
+EOF
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+n = Integer(ARGV.shift || 1)
+n.times do
+end
+EOF
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val n = args(0).toInt
+for (i <- 0 to n) {}
+EOF
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, n;
+n = arguments [0];
+for (i=0; i < n;i++);
+EOF
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var i, n;
+n = process.argv[2];
+for (i=0; i < n;i++);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let rec loop x = function 0 -> x | i -> loop (x+1) (i-1) in
+  (loop 0 n)
+EOF
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 2.
+if test $start_test_number -le 2; then
+
+######################################################
+rep=`expr $factor '*' 10000`
+Announce_Test "+++++ Test  #2: Hash (Associative Array) Access (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
+var f = "%x", x = tab [];
+
+for (i = 1; i <= n; i++)
+ x [vec (i, f)] = i;
+for (i = n; i > 0; i--)
+ if (vec (i, f) in x)
+   c++;
+putln (c);
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun main !jit {
+  var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
+  var f = "%x", x = tab [];
+
+  for (i = 1; i <= n; i++)
+   x [vec (i, f)] = i;
+  for (i = n; i > 0; i--)
+   if (vec (i, f) in x)
+     c++;
+  putln (c);
+}
+main ();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# this program is modified from:
+#   http:#cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
+# Timing Trials, or, the Trials of Timing: Experiments with Scripting
+# and User-Interface Languages</a> by Brian W. Kernighan and
+# Christopher J. Van Wyk.
+
+use strict;
+
+my $n = $ARGV[0] || 1;
+my %X = ();
+my $c = 0;
+
+for my $i (1..$n) {
+    $X{sprintf('%x', $i)} = $i;
+}
+for my $i (reverse 1..$n) {
+    ++$c if exists $X{$i};
+}
+print "$c\n";
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from from Gustavo Niemeyer
+
+import sys
+#sys.setcheckinterval(10000)
+
 def main():
     n = int(sys.argv[1])
-    x = n * [0]       
-    y = n * [0]
-    for i in range(0,n):
-        x[i] = i + 1
-    for k in range(0,1000):
-        for i in range(n-1,-1,-1):
-            y[i] = y[i] + x[i]
-    print(y[0], y[-1])
+    X = {}
+    myhex = hex
+    for i in xrange(1,n+1):
+        X[myhex(i)[2:]] = i
+    c = 0
+    for i in xrange(n, 0, -1):
+        c = c + (repr(i) in X)
+    print c
+
+main()
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from from Gustavo Niemeyer
+
+import sys
+
+def main():
+    n = int(sys.argv[1])
+    X = {}
+    myhex = hex
+    for i in range(1,n+1):
+        X[myhex(i)[2:]] = i
+    c = 0
+    for i in range(n, 0, -1):
+        c = c + (repr(i) in X)
+    print (c)
 
 main()
 EOF
@@ -652,17 +545,16 @@ if test x$TCLSH != x; then
 proc main {} {
     global argv
     set n [lindex $argv 0]
-    set last [expr {$n - 1}]
-    for {set i 0} {$i < $n} {incr i} {
-        set x($i) [expr {$i + 1}]
-        set y($i) 0
+    for {set i 1} {$i <= $n} {incr i} {
+        set x([format {%x} $i]) $i
     }
-    for {set k 0} {$k < 1000} {incr k} {
-        for {set j $last} {$j >= 0} {incr j -1} {
-            set y($j) [expr {$x($j) + $y($j)}]
+    set c 0
+    for {set i $n} {$i > 0} {incr i -1} {
+        if {[info exists x($i)]} {
+            incr c
         }
     }
-    puts "$y(0) $y($last)"
+    puts $c
 }
 
 main
@@ -684,37 +576,40 @@ if test x$AWK != x; then
 BEGIN {
     n = (ARGV[1] < 1) ? 1 : ARGV[1];
 
-    for (i = 0; i < n; i++)
-        x[i] = i + 1
-    for (k = 0; k < 1000; k++) {
-        for (j = n-1; j >= 0; j--)
-            y[j] += x[j]
-    }
-
-    print y[0], y[n-1]
+    for (i = 1; i <= n; i++)
+        x[sprintf("%x", i)] = i
+    for (i = n; i > 0; i--)
+        if (i in x)
+            c++
+    print c
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
-n = tonumber((arg and arg[1])) or 1
-x = {}
-y = {}
 
-for i = 1, n do
-  x [i] = i + 1
-  y[i] = 0
-end
-for k = 1, 1000 do
-  for j = 1, n do
-    y [j] = y [j] + x [j]
-  end
+
+-- $Id: hash.lua,v 1.1 2000/12/10 00:48:41 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local n = tonumber((arg and arg[1]) or 1)
+
+local X={}
+for i=1,n do
+  X[string.format("%x", i)] = i
 end
 
-io.write (y [1], " ", y [n], "\n");
+local c = 0
+
+for i=n,1,-1 do
+  if X[i..''] then c = c+1 end
+end
+
+print(c)
 EOF
   title=LUA
   if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -724,97 +619,117 @@ if test x$RUBY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
-# $Id: ary3.ruby,v 1.1 2001/05/31 02:27:48 doug Exp $
+# $Id: hash.ruby,v 1.2 2001/05/16 15:54:34 doug Exp $
 # http://www.bagley.org/~doug/shootout/
 
 n = Integer(ARGV.shift || 1)
 
-i = 0
-x = Array.new(n)
-y = Array.new(n)
-last = n-1
-
-for i in 0 .. last
-    x[i] = i + 1
-    y[i] = 0
+X = {}
+for i in 1 .. n
+    X[sprintf("%x", i)] = 1
 end
-for k in 0 .. 999
-    last.step(0,-1) do |i|
-    y[i] += x[i]
+
+c = 0
+(n).step(1,-1) do |i|
+    if (X.has_key?(i.to_s)) then
+    c += 1
     end
 end
 
-puts "#{y[0]} #{y[last]}"
+puts c
 EOF
   title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
   cat <<'EOF' >$ftest
-val n = args (0).toInt
-val x = Array.fill[Int](n)(0);
-val y = Array.fill[Int](n)(0);
+var c = 0; val n = args(0).toInt;
+var x : Map[String, Int] = Map ();
 
-for (i <- 0 to n - 1)
-  x(i) = i + 1;
-for (j <- 1 to 1000)
-  for (i <- 0 to n - 1)
-    y(i) += x(i);
-
-println (y(0), y(n - 1));
+for (i <- 1 to n)
+ x += (Integer.toHexString (i) -> i);
+for (i <- n to 1 by -1)
+ if (x.contains (Integer.toHexString (i)))
+   c += 1;
+println (c);
 EOF
-title=SCALA
-if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$JS != x; then
   cat <<'EOF' >$ftest
-var i, k, n = arguments [0] < 1 ? 1 : arguments [0];
-var x = new Array(), y = new Array ();
+var i, c = 0, n = arguments [0] < 1 ? 1 : arguments [0];
+var x = new Array();
 
-for (i = 0; i < n; i++) {
-  x[i] = i + 1; y[i] = 0;
-}
-for (k = 0; k < 1000; k++)
-  for (i = 0; i < n; i++)
-    y[i] += x[i];
-
-print (y [0], " ", y [n - 1]);
+for (i = 1; i <= n; i++)
+ x[i.toString (16)] = i.toString (16);
+for (i = n; i > 0; i--)
+ if (i.toString (16) in x)
+   c++;
+print (c);
 EOF
-title=JS
-if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-title="JS -j"
-if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j$ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var i, c = 0, n = process.argv[2] < 1 ? 1 : process.argv[2];
+var x = new Array();
+
+for (i = 1; i <= n; i++)
+ x[i.toString (16)] = i.toString (16);
+for (i = n; i > 0; i--)
+ if (i.toString (16) in x)
+   c++;
+console.log (c);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
- * $Id: ary3.ocaml,v 1.1 2001/05/31 02:27:48 doug Exp $
+ * $Id: hash.ocaml,v 1.4 2001/01/08 03:02:47 doug Exp $
  * http://www.bagley.org/~doug/shootout/
  * with help from Markus Mottl
  *)
+
+let hexdigits =  [| '0'; '1'; '2'; '3'; '4'; '5'; '6'; '7';
+                    '8'; '9'; 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; |]
+
+let buf = String.create 32
+
+let rec hexstring_of_int n idx len =
+  if n <= 0 then String.sub buf idx len
+  else begin
+    let new_idx = idx - 1
+    and new_len = len + 1 in
+    String.set buf new_idx hexdigits.(n land 15);
+    hexstring_of_int (n lsr 4) new_idx new_len
+  end
 
 let _ =
   let n =
     try int_of_string Sys.argv.(1)
     with Invalid_argument _ -> 1 in
-  let last = n-1
-  and x = Array.make n 0
-  and y = Array.make n 0 in
-  for i = 0 to last do
-    x.(i) <- (i + 1)
+  let hx = Hashtbl.create n in
+  for i = 1 to n do
+    Hashtbl.add hx (hexstring_of_int i 32 0) true
   done;
-  for k = 0 to 999 do
-    for i = last downto 0 do
-      y.(i) <- (x.(i) + y.(i))
-    done
+  let c = ref 0 in
+  for i = n downto 1 do
+    if Hashtbl.mem hx (string_of_int i) then incr c
   done;
-  Printf.printf "%d %d\n" y.(0) y.(last)
+  Printf.printf "%d\n" !c
 EOF
-title=OCAML
-if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -823,347 +738,270 @@ fi
 if test $start_test_number -le 3; then
 
 ######################################################
-rep=`expr $factor '/' 6`
-Announce_Test "+++++ Test #3: Count lines/words/chars (N=$rep):  +++++"
-
-cat <<'EOF' >$temp
-Subject:      Re: Who was Izchak Miller?
-From:         "Jane D. Anonymous" <nobody@yale.edu>
-Date:         1996/04/28
-Message-Id:   <4lv7bc$oh@news.ycc.yale.edu>
-References:   <317C405E.5DFA@panix.com> <4lk6vl$gde@ns.oar.net>
-To:           75176.2330@compuserve.com
-Content-Type: text/plain; charset=us-ascii
-Organization: Yale University
-X-Url:        news:4lk6vl$gde@ns.oar.net
-Mime-Version: 1.0
-Newsgroups:   rec.games.roguelike.nethack
-X-Mailer:     Mozilla 1.1N (Macintosh; I; 68K)
-
-Hello there, Izchak Miller was my father.  When I was younger I spent 
-many a night, hunched over the keyboard with a cup of tea, playing 
-nethack with him and my brother.  my dad was a philosopher with a strong 
-weakness for fantasy/sci fi.  I remember when he started to get involved 
-with the Nethack team- my brother's Dungeons and Dragons monster book 
-found a regular place beside my dad's desk. it's nice to see him living 
-on in the game he loved so much :-).  
-                                                                  Tamar Miller
-
-The following is a really long word of 5000 characters:
-
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
-EOF
-
-rm -f $input; touch $input
-
-i=0
-while test $i -lt $rep;do cat $temp >>$input; cp $input $temp; i=`expr $i + 1`;done
+rep=`expr $factor '*' 70000`
+Announce_Test "+++++ Test  #3: fact (good test for recursive functions: N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
-var ln, v, nc = 0, nw = 0, nl = 0, l;
-
-try {
-  for (;;) {
-    ln = getln ();
-    nc += #ln + 1;
-    v = split (ln);
-    l = #v;
-    nw += (#v [l - 1] == 0 ? l - 1 : l);
-    nl++;
-  }
-} catch (eof) {
-  putln (nl, " ", nw, " ", nc);
-  exit (0);
+fun fact (x) {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
 }
+
+var i, x, n = int (argv [0]);
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+putln (x);
 EOF
 title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT Variant:"
+  Announce_Test "+++++           Pure fun variant:"
 fi
 cat <<'EOF' >$ftest
-fun main !jit {
-  var ln, v, nc = 0, nw = 0, nl = 0, l;
-
-  try {
-    for (;;) {
-      ln = getln ();
-      nc += #ln + 1;
-      v = split (ln);
-      l = #v;
-      nw += (#v [l - 1] == 0 ? l - 1 : l);
-      nl++;
-    }
-  } catch (eof) {
-    putln (nl, " ", nw, " ", nc);
-    exit (0);
-  }
+fun fact (x) !pure {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
 }
-main ();
+
+var i, x, n = int (argv [0]);
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+putln (x);
 EOF
-title=" (JIT Variant)"
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title=" (Pure fun variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun fact (x) !jit {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+var i, x, n = int (argv [0]);
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+putln (x);
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
+sub fact {
+    local ($x) = @_;
 
-# this program is modified from:
-#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
-# Timing Trials, or, the Trials of Timing: Experiments with Scripting
-# and User-Interface Languages</a> by Brian W. Kernighan and
-# Christopher J. Van Wyk.
-
-use strict;
-
-my($nl, $nw, $nc);
-while (read(STDIN, $_, 4095)) {
-    $_ .= <STDIN>;
-    $nl += scalar(split(/\n/));
-    $nc += length;
-    $nw += scalar(split);
+    if ($x <= 1) {
+        return 1;
+    } else {
+        return $x * &fact ($x - 1);
+    }
 }
-print "$nl $nw $nc\n";
+
+my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
+for ($i = 0; $i < $N; $i++) {
+  $x = &fact(12);
+}
+
+print $x . "\n";
 EOF
   title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Brad Knotwell
-
 import sys
 
-def main():
-    nl = nw = nc = 0
-    rl = sys.stdin.readlines
-    lines = rl(4096)
+def fact(x):
+  if x <= 1:
+    return 1
+  return x * fact(x-1)
 
-    while lines:
-        nl += len(lines)
-        for line in lines:
-            nc += len(line)
-            nw += len(line.split())
-        lines = rl(4096)
+n = 0
+N = int(sys.argv[1])
+while n < N:
+  x = fact(12)
+  n = n + 1
 
-    print "%d %d %d" % (nl, nw, nc)
-
-main()
+print x
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
 if test x$PYTHON3 != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Brad Knotwell
-
 import sys
 
-def main():
-    nl = nw = nc = 0
-    rl = sys.stdin.readlines
-    lines = rl(4096)
+def fact(x):
+  if x <= 1:
+    return 1
+  return x * fact(x-1)
 
-    while lines:
-        nl += len(lines)
-        for line in lines:
-            nc += len(line)
-            nw += len(line.split())
-        lines = rl(4096)
+n = 0
+N = int(sys.argv[1])
+while n < N:
+  x = fact(12)
+  n = n + 1
 
-    print ("%d %d %d" % (nl, nw, nc))
-
-main()
+print (x)
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-# this program is modified from:
-#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
-# Timing Trials, or, the Trials of Timing: Experiments with Scripting
-# and User-Interface Languages</a> by Brian W. Kernighan and
-# Christopher J. Van Wyk.
-
-# Modified by Miguel Sofer
+proc fact x {
+  if {$x <= 1} {
+    return 1
+  }
+  return [expr {$x * [fact [expr {$x-1}]]}]
+}
 
 proc main {} {
-    set nl 0
-    set nc 0
-    set nw 0
-
-    while {1} {
-        set data [read stdin 4096]
-        if {![string length $data]} {break}
-        if {[gets stdin extra] >= 0} {
-            append data $extra
-            incr nc
-        }
-        incr nc [string length $data]
-        incr nw [regexp -all {(?:^|\s)\S} $data]
-        incr nl [regexp -all -line {^} $data]
-    }
-    puts "$nl $nw $nc"
+  global argv
+  set N [lindex $argv 0]
+  for {set i 0} {$i < $N} {incr i} {
+    set x [fact 12]
+  }
+  return $x
 }
-
-main
+puts [main]
 EOF
   title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$AWK != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-# this program modified from:
-#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
-# Timing Trials, or, the Trials of Timing: Experiments with Scripting
-# and User-Interface Languages</a> by Brian W. Kernighan and
-# Christopher J. Van Wyk.
-
-# this version is a little more efficient than the original via
-# use of NR
-
-BEGIN { delete ARGV }
-{
-    nc += length($0) + 1
-    nw += NF
-}
-END { print NR, nw, nc }
-EOF
-  title=AWK
-  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
-
-
--- $Id: wc.lua,v 1.1 2001/05/14 16:33:47 doug Exp $
--- http://www.bagley.org/~doug/shootout/
--- contributed by Roberto Ierusalimschy
-
-local cc,lc,wc = 0,0,0
-for line in io.lines() do
-  cc = cc + string.len(line)  -- count chars in the line
-  local _,t = string.gsub(line, "%S+", "")   -- count words in the line
-  wc = wc+t
-  lc = lc+1            -- count lines
+function fact(x)
+  if (x <= 1) then
+    return 1
+  end
+  return x * fact(x-1)
 end
-cc = cc + lc   -- count the newlines as characters
 
-io.write(lc, " ", wc, " ", cc, "\n")
+n = 0
+N = tonumber((arg and arg[1]) or 1)
+while (n < N) do
+  x = fact(12)
+  n = n + 1
+end
+print (x)
 EOF
   title=LUA
-  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
   cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: wc.ruby,v 1.5 2001/06/26 05:07:54 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-# with help from Paul Brannan
-
-nl = nw = nc = 0
-loop do
-  data = (STDIN.read(4096) or break) << (STDIN.gets || "")
-  nc += data.length
-  nl += data.count("\n")
-  ((data.strip! || data).tr!("\n", " ") || data).squeeze!
-  nw += data.count(" ") + 1
+def fact(x)
+  if (x <= 1) then
+    1
+  else
+    x * fact(x-1)
+  end
 end
-puts "#{nl} #{nw} #{nc}"
+
+N = Integer(ARGV.shift || 1)
+n = 0
+while (n < N) do
+  x = fact(12)
+  n = n + 1
+end
+print x
 EOF
   title=RUBY
-  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
   cat <<'EOF' >$ftest
-import scala.io.Source
-var nl = 0; var nw = 0; var nc = 0; var l = 0
-var v: Array[String] = Array ()
-val r = "[ \t]+".r
-for (line <- Source.stdin.getLines()) {
-  nl += 1
-  v = r.split (line)
-  println (v.deep)
-  l = v.length
-  nw += l
-  if (v(l - 1).length == 0) nw -= 1
-  if (v(0).length == 0) nw -= 1
-  nc += line.length + 1
-}
-println (nl, nw, nc)
+def fact (n:Int):Int = if (n <= 1) 1 else n * fact (n - 1)
+
+var x = 0; val n = args(0).toInt
+for (i <- 1 to n) x = fact (12)
+println (x)
 EOF
-  title=SCALA
-  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+title=SCALA
+if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function fact (x) {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+var i, x, n = arguments [0];
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+print (x);
+EOF
+title=JS
+if ($TIME $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title="JS -j"
+if ($TIME $JS -j $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+function fact (x) {
+  if (x <= 1)
+    return 1;
+  return x * fact (x-1);
+}
+
+var i, x, n = process.argv[2];
+
+for (i = 0; i < n; i++)
+  x = fact (12);
+
+console.log (x);
+EOF
+title=NODEJS
+if ($TIME $NODEJS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
-(*
- * $Id: wc.ocaml,v 1.7 2001/05/25 22:33:22 doug Exp $
- * http://www.bagley.org/~doug/shootout/
- * based on code by Cuihtlauac ALVARADO and Markus Mottl
- *)
-
-let nl = ref 0
-let nw = ref 0
-let nc = ref 0
-let max = 4096
-let buf = String.create max
-
-let readblock scanfun =
-  let nread = input stdin buf 0 max in
-  if nread = 0 then () else
-  begin nc := !nc + nread; scanfun 0 nread end
-
-
-let rec scan_out_of_word i n =
-  if i < n then
-    match buf.[i] with
-    | '\n'     -> incr nl; scan_out_of_word (i+1) n
-    | ' '|'\t' ->          scan_out_of_word (i+1) n
-    | _        -> incr nw; scan_in_word (i+1) n
-  else
-    readblock scan_out_of_word
-
-and scan_in_word i n =
-  if i < n then
-    match buf.[i] with
-    | '\n'     -> incr nl; scan_out_of_word (i+1) n
-    | ' '|'\t' ->          scan_out_of_word (i+1) n
-    | _        ->          scan_in_word (i+1) n
-  else
-    readblock scan_in_word
-
+let rec fact x = if x <= 1 then 1 else x * fact (x-1)
 
 let _ =
-  scan_out_of_word 0 0;
-  Printf.printf "%d %d %d\n" !nl !nw !nc
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1
+  and r = ref 0 in
+  for i = 0 to (n-1) do r := fact 12;done;
+  Printf.printf "%d\n" !r
 EOF
-  title=OCAML
-  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+title=OCAML
+if ($TIME $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -1172,122 +1010,82 @@ fi
 if test $start_test_number -le 4; then
 
 ######################################################
-rep=`expr $factor '*' 7000`
-Announce_Test "+++++ Test #4: Echo client/server (N=$rep):  +++++"
+if test $factor -eq 1; then rep=26;elif test $factor -eq 10; then rep=30;else rep=34;fi
+Announce_Test "+++++ Test  #4: fibonacci (good test for recursive funcs: N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
-include "socket";
-if (#argv < 2) {
-  var s, cl, str, l = 0;
-  s = sockets.stream_server (10003, 4);
-  cl = s.accept ();
-  try {
-    for (;;) {
-      str = cl.read (64); l+= #str; cl.write (str);
-    }
-  } catch (socket_eof_except) {
-    putln ("i got ", l, " bytes");
-  }
-} else {
-  var cl, send, rec, i, n = int (argv [0]);
-  cl = sockets.stream_client ("localhost", 10003);
-  send = "Hello there sailor\n";
-  for (i = 0; i < n; i++) {
-    cl.write (send);
-    rec = cl.read (19);
-    if (send != rec) {
-      put ("different strings"); println (send, rec);
-    }
-  }
+// Recursive function to compute Fibonacci numbers
+fun fibonacci (n) {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = int (argv [0]);
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  putln (i @ " " @ fibnum); 
 }
 EOF
-
-
 title=
-$DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep > /dev/null &
-  ($TIME $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep client) 2>&1|print_dino
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Pure fun variant:"
+fi
+cat <<'EOF' >$ftest
+// Recursive function to compute Fibonacci numbers
+fun fibonacci (n) !pure {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = int (argv [0]);
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  putln (i @ " " @ fibnum); 
+}
+EOF
+title=" (Pure fun variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+// Recursive function to compute Fibonacci numbers
+fun fibonacci (n) !jit {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = int (argv [0]);
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  putln (i @ " " @ fibnum); 
+}
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
+sub fibonaci {
+    local ($x) = @_;
 
-use Socket;
-
-my $DATA = "Hello there sailor\n";
-
-sub server_sock {
-    local *SS;
-    socket(SS, PF_INET, SOCK_STREAM, 0) or
-        die "server/socket ($!)";
-    setsockopt(SS, SOL_SOCKET, SO_REUSEADDR, pack("l", 1)) or
-        die "server/setsockopt ($!)";
-    bind(SS, sockaddr_in(0, INADDR_LOOPBACK)) or
-        die "server/bind ($!)";
-    listen(SS, 2);
-    return(*SS);
-}
-
-sub get_port {
-    local *SK = shift;
-    (sockaddr_in(getsockname(SK)))[0];
-}
-
-sub client_sock {
-    my $port = shift;
-    local *CS;
-    socket(CS, PF_INET, SOCK_STREAM, getprotobyname('tcp')) or
-        die "client/socket ($!)";
-    connect(CS, sockaddr_in($port, INADDR_LOOPBACK)) or
-        die "client/connect ($!)";
-    return(*CS);
-}
-
-sub echo_client {
-    my($N, $port) = @_;
-    local *SOCK = client_sock($port);
-    select(SOCK);
-    $| = 1;
-    for my $i (0..($N-1)) {
-        print $DATA;
-        my $ans = <SOCK>;
-        ($ans eq $DATA) or die qq{client: "$DATA" ne "$ans"};
+    if ($x <= 1) {
+        return 1;
     }
-    close SOCK;
+    return (&fibonaci($x-1) + &fibonaci($x-2));
 }
 
-sub echo_server {
-    my($N) = @_;
-    local *SSOCK = server_sock();
-    my $port = get_port(*SSOCK);
-    my $pid = fork;
-    defined $pid or die "server/fork ($!)";
-    if ($pid) {
-        # parent is server
-        local *CSOCK;
-        accept(CSOCK, SSOCK) or die "server/accept ($!)";
-        select(CSOCK);
-        $| = 1;
-        my $n = 0;
-        while (<CSOCK>) {
-            print $_;
-            $n += length($_);
-        }
-        select(STDOUT);
-        print "server processed $n bytes\n";
-    } else {
-        # child is client
-        echo_client($N, $port);
-    }
-    wait();
+my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
+for ($i = 0; $i < $N; $i++) {
+  $x = &fibonaci($i);
+  print $i . " " .  $x . "\n";
 }
-
-sub main {
-    my $N = $ARGV[0] || 1;
-    echo_server($N);
-    exit(0);
-}
-
-main();
 EOF
   title=PERL
   if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -1295,246 +1093,187 @@ fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Brad Knotwell
+import sys
 
-import sys, os
-from socket import *
+def fibonacci (n):
+     if n <= 1:
+        return 1
+     return (fibonacci(n-1) + fibonacci(n-2))
 
-DATA = "Hello there sailor\n"
-bufferSize = len(DATA)
 
-def server_sock():
-    sock = socket(AF_INET, SOCK_STREAM)
-    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind(('127.0.0.1', 0));
-    sock.listen(2)
-    return(sock)
-
-def get_port(sock):
-    host, port = sock.getsockname()
-    return(port)
-
-def client_sock(port):
-    sock = socket(AF_INET, SOCK_STREAM)
-    sock.connect(('127.0.0.1', port))
-    return(sock)
-
-def echo_client(n, port):
-    sock = client_sock(port)
-    sender,receiver = sock.send,sock.recv
-    for i in range(0,n):
-        sender(DATA)
-        ans = receiver(bufferSize)
-        while ans[-1] != "\n":
-            ans = ans + receiver(bufferSize - len(ans))
-        if ans <> DATA:
-            raise("client: \"%s\" ne \"%s\"" % (DATA, ans))
-    sock.close()
-
-def echo_server(n):
-    ssock = server_sock()
-    if os.fork() > 0:
-        # parent is server
-        csock, addr = ssock.accept()
-        n = 0
-        sender,receiver = csock.send,csock.recv
-        while 1:
-            dat = receiver(bufferSize)
-            if not dat: break
-            sender(dat)
-            n = n + len(dat)
-        print "server processed %d bytes" % n
-        os.wait()
-    else:
-        # child is client
-        echo_client(n, get_port(ssock))
-
-def main():
-    n = int(sys.argv[1])
-    if n < 1:
-        n = 1
-    echo_server(n)
-
-main()
+fibnum = 0;
+N = int(sys.argv[1])
+for i in xrange (0,N):
+    fibnum = fibonacci(i)
+    print i, fibnum 
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
   if test x$PYPY != x; then
     title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
 if test x$PYTHON3 != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Brad Knotwell
+import sys
 
-import sys, os
-from socket import *
+def fibonacci (n):
+     if n <= 1:
+        return 1
+     return (fibonacci(n-1) + fibonacci(n-2))
 
-DATA = b"Hello there sailor\n"
-bufferSize = len(DATA)
 
-def server_sock():
-    sock = socket(AF_INET, SOCK_STREAM)
-    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind(('127.0.0.1', 0));
-    sock.listen(2)
-    return(sock)
-
-def get_port(sock):
-    host, port = sock.getsockname()
-    return(port)
-
-def client_sock(port):
-    sock = socket(AF_INET, SOCK_STREAM)
-    sock.connect(('127.0.0.1', port))
-    return(sock)
-
-def echo_client(n, port):
-    sock = client_sock(port)
-    sender,receiver = sock.send,sock.recv
-    for i in range(0,n):
-        sender(DATA)
-        ans = receiver(bufferSize)
-        while ans[-1] != ord(b'\n'):
-            ans = ans + receiver(bufferSize - len(ans))
-        if ans != DATA:
-            raise "client: \"%s\" ne \"%s\""
-    sock.close()
-
-def echo_server(n):
-    ssock = server_sock()
-    if os.fork() > 0:
-        # parent is server
-        csock, addr = ssock.accept()
-        n = 0
-        sender,receiver = csock.send,csock.recv
-        while 1:
-            dat = receiver(bufferSize)
-            if not dat: break
-            sender(dat)
-            n = n + len(dat)
-        print("server processed %d bytes" % n)
-        os.wait()
-    else:
-        # child is client
-        echo_client(n, get_port(ssock))
-
-def main():
-    n = int(sys.argv[1])
-    if n < 1:
-        n = 1
-    echo_server(n)
-
-main()
+fibnum = 0;
+N = int(sys.argv[1])
+for i in range (0,N):
+    fibnum = fibonacci(i)
+    print(i, fibnum) 
 EOF
   title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-# from: Kristoffer Lawson
-# with help from Miguel Sofer
-
-proc newClient {sock addr port} {
-    fconfigure $sock -buffering line
-    set r [gets $sock]
-    set rLength 0
-    while {![eof $sock]} {
-        # Extra increase because [gets] doesn't return \n
-        incr rLength [expr {[string length $r] + 1}]
-        puts $sock $r
-        set r [gets $sock]
-    }
-    puts "server processed $rLength bytes"
-    exit
+proc fibonaci x {
+  if {$x <= 1} {
+    return 1
+  }
+  return [expr {[fibonaci [expr {$x-1}]] + [fibonaci [expr {$x-2}]]}]
 }
 
-
-proc runClient {n addr port} {
-    set sock [socket $addr $port]
-    fconfigure $sock -buffering line
-    set msg "Hello there sailor"
-
-    incr n
-    while {[incr n -1]} {
-        puts $sock $msg
-        if {[string compare [gets $sock] $msg] == 0} continue
-        error "Received different message: $r."
-    }
+proc main {} {
+  global argv
+  set N [lindex $argv 0]
+  for {set i 0} {$i < $N} {incr i} {
+    set x [fibonaci $i]
+    puts "$i $x"
+  }
 }
-
-
-set n [lindex $argv 0]
-
-if {[llength $argv] < 2} {
-    socket -server newClient -myaddr localhost 10004
-    # exec tclsh [info script] $n client &
-    vwait forever
-} else {
-    runClient $n localhost 10004
-}
+main
 EOF
   title=TCL
-  $TCLSH $ftest $rep&
-  ($TIME $TCLSH $ftest $rep client) 2>&1|fgrep user
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+function fibonacci (n)
+     if (n <= 1) then
+        return 1
+     end
+     return (fibonacci(n-1) + fibonacci(n-2))
+end
+
+fibnum = 0;
+NUM = tonumber((arg and arg[1])) or 1
+for i = 0, NUM - 1 do
+    fibnum = fibonacci (i)
+    io.write (i, fibnum, "\n") 
+end
+EOF
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$RUBY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
-# $Id: echo.ruby,v 1.3 2001/05/08 08:08:41 doug Exp $
+# $Id: fibo.ruby,v 1.2 2000/12/24 19:10:50 doug Exp $
 # http://www.bagley.org/~doug/shootout/
 
-require "socket"
-
-DATA = "Hello there sailor\n"
-
-def echo_client(n, port)
-    sock = TCPsocket.open('127.0.0.1', port)
-    n.times do
-    sock.write(DATA)
-    ans = sock.readline
-    if ans != DATA then
-        raise sprintf("client: \"%s\" \"%s\"", DATA, ans)
-    end
-    end
-    sock.close
-end
-
-
-def echo_server(n)
-    ssock = TCPserver.open('127.0.0.1', 0)
-    port = ssock.addr[1]
-    if pid = fork then
-    # parent is server
-    csock = ssock.accept
-    n = 0
-    while str = csock.gets
-        n += csock.write(str)
-    end
-    Process.wait
-        printf "server processed %d bytes\n", n
+def fib(n)
+    if n < 2 then
+    1
     else
-    # child is client
-    echo_client(n, port)
+    fib(n-2) + fib(n-1)
     end
 end
 
-echo_server(Integer(ARGV.shift || 1))
+N = Integer(ARGV.shift || 1)
+for i in 0..N-1 do
+  print i, " "; puts fib(i)
+end
 EOF
   title=RUBY
   if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def fib (n:Int):Int = if (n < 2) 1 else fib (n - 2) + fib (n - 1)
+
+var x = 0; val n = args(0).toInt
+for (i <- 0 to n - 1) {x = fib (n); println (x)}
+EOF
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function fibonacci (n) {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = arguments [0];
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  print (i, " ", fibnum); 
+}
+EOF
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+function fibonacci (n) {
+  if (n <= 1) return 1;
+  return (fibonacci(n-1) + fibonacci(n-2));
+}
+
+var i, fibnum, n = process.argv[2];
+
+for (i = 0; i < n; i++) {
+  fibnum = fibonacci(i);
+  console.log (i, " ", fibnum); 
+}
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: fibo.ocaml,v 1.3 2001/01/08 03:01:50 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ *)
+
+let rec fib n =
+  if n < 2 then 1
+  else fib (n - 2) + fib (n - 1)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  for i = 0 to n-1 do fib i done;
+  Printf.printf "%d\n" (fib n)
+EOF
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -1544,7 +1283,7 @@ if test $start_test_number -le 5; then
 
 ######################################################
 rep=`expr $factor '*' 15000`
-Announce_Test "+++++ Test #5: Exceptions mechanism (N=$rep):  +++++"
+Announce_Test "+++++ Test  #5: Exceptions mechanism (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var HI = 0;
@@ -1596,7 +1335,7 @@ title=
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT Variant:"
+  Announce_Test "+++++           JIT Variant:"
 fi
 cat <<'EOF' >$ftest
 var HI = 0;
@@ -2084,82 +1823,174 @@ fi
 if test $start_test_number -le 6; then
 
 ######################################################
-if test $factor -eq 1; then rep=26;elif test $factor -eq 10; then rep=30;else rep=34;fi
-Announce_Test "+++++ Test #6: fibonacci (good test for recursive funcs: N=$rep):  +++++"
+rep=`expr $factor '*' 15000`
+Announce_Test "+++++ Test  #6: Method Calls (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
-// Recursive function to compute Fibonacci numbers
-fun fibonacci (n) {
-  if (n <= 1) return 1;
-  return (fibonacci(n-1) + fibonacci(n-2));
+class Toggle (start_state) {
+  var bool;
+  fun init {bool = start_state;}
+  fun value { return bool; }
+  fun activate { bool = !bool; }
+  init ();
 }
 
-var i, fibnum, n = int (argv [0]);
-
-for (i = 0; i < n; i++) {
-  fibnum = fibonacci(i);
-  putln (i @ " " @ fibnum); 
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
+    }
+  }
 }
+
+fun main {
+  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
+  var i, v = 1;
+
+  var toggle = Toggle (v);
+  for (i = 1; i <= NUM; i++) {
+    toggle.activate ();
+    v = toggle.value ();
+  }
+  putln (v ? "true" : "false");
+
+  v = 1;
+  var ntoggle = NthToggle (v, 3);
+  for (i = 1; i <= NUM; i++) {
+    ntoggle.activate ();
+    v = ntoggle.value ();
+  }
+  putln (v ? "true" : "false");
+}
+
+main();
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          Pure fun variant:"
+  Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
-// Recursive function to compute Fibonacci numbers
-fun fibonacci (n) !pure {
-  if (n <= 1) return 1;
-  return (fibonacci(n-1) + fibonacci(n-2));
+class Toggle (start_state) {
+  var bool;
+  fun init {bool = start_state;}
+  fun value !jit { return bool; }
+  fun activate !jit { bool = !bool; }
+  init ();
 }
 
-var i, fibnum, n = int (argv [0]);
-
-for (i = 0; i < n; i++) {
-  fibnum = fibonacci(i);
-  putln (i @ " " @ fibnum); 
-}
-EOF
-title=" (Pure fun variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT variant:"
-fi
-cat <<'EOF' >$ftest
-// Recursive function to compute Fibonacci numbers
-fun fibonacci (n) !jit {
-  if (n <= 1) return 1;
-  return (fibonacci(n-1) + fibonacci(n-2));
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate !jit {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
+    }
+  }
 }
 
-var i, fibnum, n = int (argv [0]);
+fun main !jit {
+  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
+  var i, v = 1;
 
-for (i = 0; i < n; i++) {
-  fibnum = fibonacci(i);
-  putln (i @ " " @ fibnum); 
+  var toggle = Toggle (v);
+  for (i = 1; i <= NUM; i++) {
+    toggle.activate ();
+    v = toggle.value ();
+  }
+  putln (v ? "true" : "false");
+
+  v = 1;
+  var ntoggle = NthToggle (v, 3);
+  for (i = 1; i <= NUM; i++) {
+    ntoggle.activate ();
+    v = ntoggle.value ();
+  }
+  putln (v ? "true" : "false");
 }
+
+main();
 EOF
 title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
-sub fibonaci {
-    local ($x) = @_;
+# http://www.bagley.org/~doug/shootout/
+# with help from Ben Tilly
 
-    if ($x <= 1) {
-        return 1;
+package Toggle;
+
+sub new {
+    my($class, $start_state) = @_;
+    bless( { Bool => $start_state }, $class );
+}
+
+sub value {
+    (shift)->{Bool};
+}
+
+sub activate {
+    my $self = shift;
+    $self->{Bool} ^= 1;
+    return($self);
+}
+
+
+package NthToggle;
+our @ISA = qw(Toggle);
+
+sub new {
+    my($class, $start_state, $max_counter) = @_;
+    my $self = $class->SUPER::new($start_state);
+    $self->{CountMax} = $max_counter;
+    $self->{Counter} = 0;
+    return($self);
+}
+
+sub activate {
+    my $self = shift;
+    if (++$self->{Counter} >= $self->{CountMax}) {
+        $self->{Bool} ^= 1;
+        $self->{Counter} = 0;
     }
-    return (&fibonaci($x-1) + &fibonaci($x-2));
+    return($self);
 }
 
-my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
-for ($i = 0; $i < $N; $i++) {
-  $x = &fibonaci($i);
-  print $i . " " .  $x . "\n";
+
+package main;
+
+sub main {
+    my $NUM = $ARGV[0];
+    $NUM = 1 if ($NUM < 1);
+
+    my $val = 1;
+    my $toggle = Toggle->new($val);
+    for (1..$NUM) {
+        $val = $toggle->activate->value;
+    }
+    print (($val) ? "true\n" : "false\n");
+
+    $val = 1;
+    my $ntoggle = NthToggle->new($val, 3);
+    for (1..$NUM) {
+        $val = $ntoggle->activate->value;
+    }
+    print (($val) ? "true\n" : "false\n");
 }
+
+main();
 EOF
   title=PERL
   if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2167,19 +1998,56 @@ fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
 import sys
 
-def fibonacci (n):
-     if n <= 1:
-        return 1
-     return (fibonacci(n-1) + fibonacci(n-2))
+class Toggle:
+    def __init__(self, start_state):
+        self.bool = start_state
+    def value(self):
+        return(self.bool)
+    def activate(self):
+        self.bool = not self.bool
+        return(self)
+
+class NthToggle(Toggle):
+    def __init__(self, start_state, max_counter):
+        Toggle.__init__(self, start_state)
+        self.count_max = max_counter
+        self.counter = 0
+    def activate(self):
+        self.counter = self.counter + 1
+        if (self.counter >= self.count_max):
+            self.bool = not self.bool
+            self.counter = 0
+        return(self)
 
 
-fibnum = 0;
-N = int(sys.argv[1])
-for i in xrange (0,N):
-    fibnum = fibonacci(i)
-    print i, fibnum 
+def main():
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+
+    val = 1
+    toggle = Toggle(val)
+    for i in xrange(0,NUM):
+        val = toggle.activate().value()
+    if val:
+        print "true"
+    else:
+        print "false"
+
+    val = 1
+    ntoggle = NthToggle(val, 3)
+    for i in xrange(0,NUM):
+        val = ntoggle.activate().value()
+    if val:
+        print "true"
+    else:
+        print "false"
+
+main()
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
@@ -2194,62 +2062,139 @@ fi
 
 if test x$PYTHON3 != x; then
   cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
 import sys
 
-def fibonacci (n):
-     if n <= 1:
-        return 1
-     return (fibonacci(n-1) + fibonacci(n-2))
+class Toggle:
+    def __init__(self, start_state):
+        self.bool = start_state
+    def value(self):
+        return(self.bool)
+    def activate(self):
+        self.bool = not self.bool
+        return(self)
+
+class NthToggle(Toggle):
+    def __init__(self, start_state, max_counter):
+        Toggle.__init__(self, start_state)
+        self.count_max = max_counter
+        self.counter = 0
+    def activate(self):
+        self.counter = self.counter + 1
+        if (self.counter >= self.count_max):
+            self.bool = not self.bool
+            self.counter = 0
+        return(self)
 
 
-fibnum = 0;
-N = int(sys.argv[1])
-for i in range (0,N):
-    fibnum = fibonacci(i)
-    print(i, fibnum) 
+def main():
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+
+    val = 1
+    toggle = Toggle(val)
+    for i in range(0,NUM):
+        val = toggle.activate().value()
+    if val:
+        print ("true")
+    else:
+        print ("false")
+
+    val = 1
+    ntoggle = NthToggle(val, 3)
+    for i in range(0,NUM):
+        val = ntoggle.activate().value()
+    if val:
+        print ("true")
+    else:
+        print ("false")
+
+main()
 EOF
   title=PYTHON3
   if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-proc fibonaci x {
-  if {$x <= 1} {
-    return 1
-  }
-  return [expr {[fibonaci [expr {$x-1}]] + [fibonaci [expr {$x-2}]]}]
-}
-
-proc main {} {
-  global argv
-  set N [lindex $argv 0]
-  for {set i 0} {$i < $N} {incr i} {
-    set x [fibonaci $i]
-    puts "$i $x"
-  }
-}
-main
-EOF
-  title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
-function fibonacci (n)
-     if (n <= 1) then
-        return 1
-     end
-     return (fibonacci(n-1) + fibonacci(n-2))
+
+
+-- $Id: methcall.lua,v 1.2 2000/12/24 22:04:51 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+--------------------------------------------------------------
+-- Toggle class
+--------------------------------------------------------------
+
+Toggle = {}
+
+function Toggle:value ()
+  return self.state
 end
 
-fibnum = 0;
-NUM = tonumber((arg and arg[1])) or 1
-for i = 0, NUM - 1 do
-    fibnum = fibonacci (i)
-    io.write (i, fibnum, "\n") 
+function Toggle:activate ()
+  self.state = not self.state
+  return self
 end
+
+function Toggle:new (start_state)
+  local o = {state = start_state}
+  self.__index =self
+  setmetatable(o, self)
+  return o
+end
+
+
+--------------------------------------------------------------
+-- NthToggle class
+--------------------------------------------------------------
+
+NthToggle = Toggle:new()
+
+function NthToggle:activate ()
+  self.counter = self.counter + 1
+  if self.counter >= self.count_max then
+    self.state = not self.state
+    self.counter = 0
+  end
+  return self
+end
+
+function NthToggle:new (start_state, max_counter)
+  local o = Toggle.new(self, start_state)
+  o.count_max = max_counter
+  o.counter = 0
+  return o
+end
+
+
+-----------------------------------------------------------
+-- main
+-----------------------------------------------------------
+
+function main ()
+  local N = tonumber((arg and arg[1])) or 1
+
+  local val = 1
+  local toggle = Toggle:new(val)
+  for i=1,N do
+    val = toggle:activate():value()
+  end
+  print(val and "true" or "false")
+    
+  val = 1
+  local ntoggle = NthToggle:new(val, 3)
+  for i=1,N do
+    val = ntoggle:activate():value()
+  end
+  print(val and "true" or "false")
+end
+
+main()
+
 EOF
   title=LUA
   if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2259,21 +2204,59 @@ if test x$RUBY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
-# $Id: fibo.ruby,v 1.2 2000/12/24 19:10:50 doug Exp $
+# $Id: methcall.ruby,v 1.2 2000/12/24 22:04:51 doug Exp $
 # http://www.bagley.org/~doug/shootout/
 
-def fib(n)
-    if n < 2 then
-    1
-    else
-    fib(n-2) + fib(n-1)
+class Toggle
+    def initialize(start_state)
+    @bool = start_state
+    self
+    end
+    def value()
+    @bool
+    end
+    def activate()
+    @bool = !@bool
+    self
     end
 end
 
-N = Integer(ARGV.shift || 1)
-for i in 0..N-1 do
-  print i, " "; puts fib(i)
+class NthToggle < Toggle
+    def initialize(start_state, max_counter)
+    super(start_state)
+    @count_max = max_counter
+    @counter = 0
+    self
+    end
+    def activate()
+    @counter += 1
+    if (@counter >= @count_max) then
+        @bool = !@bool
+        @counter = 0
+    end
+    self
+    end
 end
+
+def main()
+    n = Integer(ARGV.shift || 1)
+
+    val = 1
+    toggle = Toggle.new(val)
+    n.times do
+    val = toggle.activate().value()
+    end
+    if val then puts "true" else puts "false" end
+
+    val = 1
+    ntoggle = NthToggle.new(val, 3)
+    n.times do
+    val = ntoggle.activate().value()
+    end
+    if val then puts "true" else puts "false" end
+end
+
+main()
 EOF
   title=RUBY
   if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2281,52 +2264,98 @@ fi
 
 if test x$SCALA != x; then
   cat <<'EOF' >$ftest
-def fib (n:Int):Int = if (n < 2) 1 else fib (n - 2) + fib (n - 1)
+class Toggle (start_state: Boolean) {
+  var bool = start_state
+  def value () = bool
+  def activate () = {bool = !bool }
+}
 
-var x = 0; val n = args(0).toInt
-for (i <- 0 to n - 1) {x = fib (n); println (x)}
+class NthToggle (start_state: Boolean, max_counter: Int) extends Toggle (start_state) {
+    var count_max = max_counter
+    var counter = 0
+    override def activate () = {
+      counter += 1
+      if (counter >= count_max) {
+        bool = !bool
+        counter = 0
+      }
+    }
+}
+
+def main () {
+  val NUM = args(0).toInt
+  var v = true
+
+  val toggle = new Toggle (v)
+  for (i <- 1 to NUM) {
+    toggle.activate ()
+    v = toggle.value ()
+  }
+  println (if (v) "true" else "false")
+
+  v = true
+  var ntoggle = new NthToggle (v, 3)
+  for (i <- 1 to NUM) {
+    ntoggle.activate ()
+    v = ntoggle.value ()
+  }
+  println (if (v) "true" else "false")
+}
+
+main()
 EOF
   title=SCALA
   if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
-if test x$JS != x; then
-  cat <<'EOF' >$ftest
-function fibonacci (n) {
-  if (n <= 1) return 1;
-  return (fibonacci(n-1) + fibonacci(n-2));
-}
-
-var i, fibnum, n = arguments [0];
-
-for (i = 0; i < n; i++) {
-  fibnum = fibonacci(i);
-  print (i, " ", fibnum); 
-}
-EOF
-  title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-  title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
- * $Id: fibo.ocaml,v 1.3 2001/01/08 03:01:50 doug Exp $
+ * $Id: methcall.ocaml,v 1.6 2001/01/08 03:08:35 doug Exp $
  * http://www.bagley.org/~doug/shootout/
+ * from: Benedikt Rosenau
+ * with contributions from Markus Mottl
  *)
 
-let rec fib n =
-  if n < 2 then 1
-  else fib (n - 2) + fib (n - 1)
+let print_bool b = print_endline (string_of_bool b)
+
+class toggle start_state = object (self)
+  val mutable state = start_state
+
+  method value = state
+  method activate = state <- not state; self
+end
+
+class nth_toggle start_state max_counter = object (self)
+  inherit toggle start_state
+
+  val count_max = max_counter
+  val mutable counter = 0
+
+  method activate =
+    counter <- counter + 1;
+    if counter >= count_max
+    then begin
+      state <- not state;
+      counter <- 0
+    end;
+    self
+end
 
 let _ =
   let n =
     try int_of_string Sys.argv.(1)
     with Invalid_argument _ -> 1 in
-  for i = 0 to n-1 do fib i done;
-  Printf.printf "%d\n" (fib n)
+  let tog = new toggle true in
+  for i = 2 to n do
+    ignore tog#activate#value
+  done;
+  print_bool tog#activate#value;
+  let ntog = new nth_toggle true 3 in
+  for i = 2 to n do
+    ignore ntog#activate#value
+  done;
+  print_bool ntog#activate#value
 EOF
   title=OCAML
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2338,66 +2367,132 @@ fi
 if test $start_test_number -le 7; then
 
 ######################################################
-rep=`expr $factor '*' 10000`
-Announce_Test "+++++ Test #7: Hash (Associative Array) Access (N=$rep):  +++++"
+rep=`expr $factor '*' 20000`
+Announce_Test "+++++ Test  #7: Object Instantiation (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
-var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
-var f = "%x", x = tab [];
+class Toggle (start_state) {
+  var bool;
+  fun init {bool = start_state;}
+  fun value { return bool; }
+  fun activate { bool = !bool; }
+  init ();
+}
 
-for (i = 1; i <= n; i++)
- x [vec (i, f)] = i;
-for (i = n; i > 0; i--)
- if (vec (i, f) in x)
-   c++;
-putln (c);
+class NthToggle (start_state, max_counter) {
+  use Toggle former start_state later activate;
+  init ();
+  var count_max = max_counter;
+  var counter = 0;
+  fun activate {
+    counter++;
+    if (counter >= count_max) {
+      bool = !bool;
+      counter = 0;
+    }
+  }
+}
+
+fun main {
+  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
+  var i;
+
+  var toggle = Toggle (1);
+  for (i = 1; i <= 5; i++) {
+    toggle.activate ();
+    putln (toggle.value () ? "true" : "false");
+  }
+  for (i = 1; i <= NUM; i++)
+   toggle = Toggle (1);
+
+  putln ();
+
+  var ntoggle = NthToggle (1, 3);
+  for (i = 1; i <= 8; i++) {
+    ntoggle.activate ();
+    putln (ntoggle.value () ? "true" : "false");
+  }
+  for (i = 1; i <= NUM; i++)
+    ntoggle = NthToggle (1, 3);
+}
+
+main();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT variant:"
-fi
-cat <<'EOF' >$ftest
-fun main !jit {
-  var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
-  var f = "%x", x = tab [];
-
-  for (i = 1; i <= n; i++)
-   x [vec (i, f)] = i;
-  for (i = n; i > 0; i--)
-   if (vec (i, f) in x)
-     c++;
-  putln (c);
-}
-main ();
-EOF
-title=" (JIT variant)"
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
 
-# this program is modified from:
-#   http:#cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
-# Timing Trials, or, the Trials of Timing: Experiments with Scripting
-# and User-Interface Languages</a> by Brian W. Kernighan and
-# Christopher J. Van Wyk.
-
 use strict;
 
-my $n = $ARGV[0] || 1;
-my %X = ();
-my $c = 0;
 
-for my $i (1..$n) {
-    $X{sprintf('%x', $i)} = $i;
+package Toggle;
+
+sub new {
+    my($class, $start_state) = @_;
+    bless( { Bool => $start_state }, $class );
 }
-for my $i (reverse 1..$n) {
-    ++$c if exists $X{$i};
+
+sub value {
+    my $self = shift;
+    return($self->{Bool});
 }
-print "$c\n";
+
+sub activate {
+    my $self = shift;
+    $self->{Bool} ^= 1;
+    return($self);
+}
+
+
+package NthToggle;
+@NthToggle::ISA = qw(Toggle);
+
+sub new {
+    my($class, $start_state, $max_counter) = @_;
+    my $self = $class->SUPER::new($start_state);
+    $self->{CountMax} = $max_counter;
+    $self->{Counter} = 0;
+    return($self);
+}
+
+sub activate {
+    my $self = shift;
+    if (++$self->{Counter} >= $self->{CountMax}) {
+        $self->{Bool} ^= 1;
+        $self->{Counter} = 0;
+    }
+    return($self);
+}
+
+
+package main;
+
+sub main {
+    my $NUM = ($ARGV[0] > 0) ? $ARGV[0] : 1;
+
+    my $toggle = Toggle->new(1);
+    for (1..5) {
+        print (($toggle->activate->value) ? "true\n" : "false\n");
+    }
+    for (1..$NUM) {
+        $toggle = Toggle->new(1);
+    }
+
+    print "\n";
+
+    my $ntoggle = NthToggle->new(1, 3);
+    for (1..8) {
+        print (($ntoggle->activate->value) ? "true\n" : "false\n");
+    }
+    for (1..$NUM) {
+        $ntoggle = NthToggle->new(1, 3);
+    }
+}
+
+main();
 EOF
   title=PERL
   if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2406,21 +2501,55 @@ fi
 if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
-# with help from from Gustavo Niemeyer
 
 import sys
-#sys.setcheckinterval(10000)
+
+class Toggle:
+    def __init__(self, start_state):
+        self.bool = start_state
+    def value(self):
+        return(self.bool)
+    def activate(self):
+        self.bool = not self.bool
+        return(self)
+
+class NthToggle(Toggle):
+    def __init__(self, start_state, max_counter):
+        Toggle.__init__(self, start_state)
+        self.count_max = max_counter
+        self.counter = 0
+    def activate(self):
+        self.counter = self.counter + 1
+        if (self.counter >= self.count_max):
+            self.bool = not self.bool
+            self.counter = 0
+        return(self)
+
 
 def main():
-    n = int(sys.argv[1])
-    X = {}
-    myhex = hex
-    for i in xrange(1,n+1):
-        X[myhex(i)[2:]] = i
-    c = 0
-    for i in xrange(n, 0, -1):
-        c = c + (repr(i) in X)
-    print c
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+
+    toggle = Toggle(1)
+    for i in xrange(0,5):
+        if toggle.activate().value():
+            print "true"
+        else:
+            print "false"
+    for i in xrange(0,NUM):
+        toggle = Toggle(1)
+
+    print ""
+
+    ntoggle = NthToggle(1, 3)
+    for i in xrange(0,8):
+        if ntoggle.activate().value():
+            print "true"
+        else:
+            print "false"
+    for i in xrange(0,NUM):
+        ntoggle = NthToggle(1, 3)
 
 main()
 EOF
@@ -2438,20 +2567,55 @@ fi
 if test x$PYTHON3 != x; then
   cat <<'EOF' >$ftest
 # http://www.bagley.org/~doug/shootout/
-# with help from from Gustavo Niemeyer
 
 import sys
 
+class Toggle:
+    def __init__(self, start_state):
+        self.bool = start_state
+    def value(self):
+        return(self.bool)
+    def activate(self):
+        self.bool = not self.bool
+        return(self)
+
+class NthToggle(Toggle):
+    def __init__(self, start_state, max_counter):
+        Toggle.__init__(self, start_state)
+        self.count_max = max_counter
+        self.counter = 0
+    def activate(self):
+        self.counter = self.counter + 1
+        if (self.counter >= self.count_max):
+            self.bool = not self.bool
+            self.counter = 0
+        return(self)
+
+
 def main():
-    n = int(sys.argv[1])
-    X = {}
-    myhex = hex
-    for i in range(1,n+1):
-        X[myhex(i)[2:]] = i
-    c = 0
-    for i in range(n, 0, -1):
-        c = c + (repr(i) in X)
-    print (c)
+    NUM = int(sys.argv[1])
+    if NUM < 1:
+        NUM = 1
+
+    toggle = Toggle(1)
+    for i in range(0,5):
+        if toggle.activate().value():
+            print("true")
+        else:
+            print("false")
+    for i in range(0,NUM):
+        toggle = Toggle(1)
+
+    print("")
+
+    ntoggle = NthToggle(1, 3)
+    for i in range(0,8):
+        if ntoggle.activate().value():
+            print("true")
+        else:
+            print("false")
+    for i in range(0,NUM):
+        ntoggle = NthToggle(1, 3)
 
 main()
 EOF
@@ -2459,84 +2623,88 @@ EOF
   if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-# this program is modified from:
-#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
-# Timing Trials, or, the Trials of Timing: Experiments with Scripting
-# and User-Interface Languages</a> by Brian W. Kernighan and
-# Christopher J. Van Wyk.
-
-proc main {} {
-    global argv
-    set n [lindex $argv 0]
-    for {set i 1} {$i <= $n} {incr i} {
-        set x([format {%x} $i]) $i
-    }
-    set c 0
-    for {set i $n} {$i > 0} {incr i -1} {
-        if {[info exists x($i)]} {
-            incr c
-        }
-    }
-    puts $c
-}
-
-main
-EOF
-  title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$AWK != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-# this program modified from:
-#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
-# Timing Trials, or, the Trials of Timing: Experiments with Scripting
-# and User-Interface Languages</a> by Brian W. Kernighan and
-# Christopher J. Van Wyk.
-
-BEGIN {
-    n = (ARGV[1] < 1) ? 1 : ARGV[1];
-
-    for (i = 1; i <= n; i++)
-        x[sprintf("%x", i)] = i
-    for (i = n; i > 0; i--)
-        if (i in x)
-            c++
-    print c
-}
-EOF
-  title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
-
-
--- $Id: hash.lua,v 1.1 2000/12/10 00:48:41 doug Exp $
+-- $Id: objinst.lua,v 1.3 2001/07/11 17:18:08 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
 -- contributed by Roberto Ierusalimschy
 
-local n = tonumber((arg and arg[1]) or 1)
 
-local X={}
-for i=1,n do
-  X[string.format("%x", i)] = i
+
+--------------------------------------------------------------
+-- Toggle class
+--------------------------------------------------------------
+
+Toggle = {}
+
+function Toggle:value ()
+  return self.state
 end
 
-local c = 0
-
-for i=n,1,-1 do
-  if X[i..''] then c = c+1 end
+function Toggle:activate ()
+  self.state = not self.state
+  return self
 end
 
-print(c)
+function Toggle:new (start_state)
+  local o = {state = start_state}
+  self.__index = self
+  setmetatable(o, self)
+  return o
+end
+
+
+--------------------------------------------------------------
+-- NthToggle class
+--------------------------------------------------------------
+
+NthToggle = Toggle:new()
+
+function NthToggle:activate ()
+  self.counter = self.counter + 1
+  if self.counter >= self.count_max then
+    self.state = not self.state
+    self.counter = 0
+  end
+  return self
+end
+
+function NthToggle:new (start_state, max_counter)
+  local o = Toggle.new(self, start_state)
+  o.count_max = max_counter
+  o.counter = 0
+  return o
+end
+
+
+-----------------------------------------------------------
+-- main
+-----------------------------------------------------------
+
+function main ()
+    local N = tonumber((arg and arg[1])) or 1
+    local toggle = Toggle:new(1)
+    for i=1,5 do
+      toggle:activate()
+      print(toggle:value() and "true" or "false")
+    end
+    for i=1,N do
+      toggle = Toggle:new(1)
+    end
+
+    print("")
+
+    local ntoggle = NthToggle:new(1, 3)
+    for i=1,8 do
+      ntoggle:activate()
+      print(toggle:value() and "true" or "false")
+    end
+    for i=1,N do
+      ntoggle = NthToggle:new(1, 3)
+    end
+end
+
+main()
 EOF
   title=LUA
   if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2546,24 +2714,63 @@ if test x$RUBY != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
-# $Id: hash.ruby,v 1.2 2001/05/16 15:54:34 doug Exp $
+# $Id: objinst.ruby,v 1.2 2000/12/24 22:04:57 doug Exp $
 # http://www.bagley.org/~doug/shootout/
 
-n = Integer(ARGV.shift || 1)
-
-X = {}
-for i in 1 .. n
-    X[sprintf("%x", i)] = 1
-end
-
-c = 0
-(n).step(1,-1) do |i|
-    if (X.has_key?(i.to_s)) then
-    c += 1
+class Toggle
+    def initialize(start_state)
+    @bool = start_state
+    self
+    end
+    def value()
+    @bool
+    end
+    def activate()
+    @bool = !@bool
+    self
     end
 end
 
-puts c
+class NthToggle < Toggle
+    def initialize(start_state, max_counter)
+    super(start_state)
+    @count_max = max_counter
+    @counter = 0
+    self
+    end
+    def activate()
+    @counter += 1
+    if (@counter >= @count_max) then
+        @bool = !@bool
+        @counter = 0
+    end
+    self
+    end
+end
+
+def main()
+    n = Integer(ARGV.shift || 1)
+
+    toggle = Toggle.new(1)
+    5.times do
+    if toggle.activate().value() then puts "true" else puts "false" end
+    end
+    n.times do
+    toggle = Toggle.new(1)
+    end
+
+    puts
+
+    ntoggle = NthToggle.new(1, 3)
+    8.times do
+    if ntoggle.activate().value() then puts "true" else puts "false" end
+    end
+    n.times do
+    ntoggle = NthToggle.new(1, 3)
+    end
+end
+
+main()
 EOF
   title=RUBY
   if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2571,73 +2778,91 @@ fi
 
 if test x$SCALA != x; then
   cat <<'EOF' >$ftest
-var c = 0; val n = args(0).toInt;
-var x : Map[String, Int] = Map ();
+class Toggle (start_state: Boolean) {
+  var bool = start_state
+  def value () = bool
+  def activate () = {bool = !bool }
+}
 
-for (i <- 1 to n)
- x += (Integer.toHexString (i) -> i);
-for (i <- n to 1 by -1)
- if (x.contains (Integer.toHexString (i)))
-   c += 1;
-println (c);
+class NthToggle (start_state: Boolean, max_counter: Int) extends Toggle (start_state) {
+    var count_max = max_counter
+    var counter = 0
+    override def activate () = {
+      counter += 1
+      if (counter >= count_max) {
+        bool = !bool
+        counter = 0
+      }
+    }
+}
+
+def main () {
+  val NUM = args(0).toInt
+
+  var toggle = new Toggle (true)
+  for (i <- 1 to 5) {
+    toggle.activate ()
+    println (if (toggle.value ()) "true" else "false")
+  }
+  for (i <- 1 to NUM)
+   toggle = new Toggle (true);
+
+  println ()
+
+  var ntoggle = new NthToggle (true, 3)
+  for (i <- 1 to 8) {
+    ntoggle.activate ()
+    println (if (ntoggle.value ()) "true" else "false")
+  }
+  for (i <- 1 to NUM)
+    ntoggle = new NthToggle (true, 3);
+}
+
+main()
 EOF
   title=SCALA
   if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
-if test x$JS != x; then
-  cat <<'EOF' >$ftest
-var i, c = 0, n = arguments [0] < 1 ? 1 : arguments [0];
-var x = new Array();
-
-for (i = 1; i <= n; i++)
- x[i.toString (16)] = i.toString (16);
-for (i = n; i > 0; i--)
- if (i.toString (16) in x)
-   c++;
-print (c);
-EOF
-  title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-  title="JS -j"
-  if ($TIME $JS -j$ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
- * $Id: hash.ocaml,v 1.4 2001/01/08 03:02:47 doug Exp $
+ * $Id: objinst.ocaml,v 1.8 2001/07/28 21:52:59 doug Exp $
  * http://www.bagley.org/~doug/shootout/
- * with help from Markus Mottl
+ * from: Benedikt Rosenau
+ * with contributions from Markus Mottl
  *)
 
-let hexdigits =  [| '0'; '1'; '2'; '3'; '4'; '5'; '6'; '7';
-                    '8'; '9'; 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; |]
+class toggle start_state = object (self)
+  val mutable state = start_state
 
-let buf = String.create 32
+  method value = state
+  method activate = state <- not state; self
+end
 
-let rec hexstring_of_int n idx len =
-  if n <= 0 then String.sub buf idx len
-  else begin
-    let new_idx = idx - 1
-    and new_len = len + 1 in
-    String.set buf new_idx hexdigits.(n land 15);
-    hexstring_of_int (n lsr 4) new_idx new_len
-  end
+class nth_toggle start_state max_counter = object (self)
+  inherit toggle start_state
 
-let _ =
-  let n =
-    try int_of_string Sys.argv.(1)
-    with Invalid_argument _ -> 1 in
-  let hx = Hashtbl.create n in
-  for i = 1 to n do
-    Hashtbl.add hx (hexstring_of_int i 32 0) true
-  done;
-  let c = ref 0 in
-  for i = n downto 1 do
-    if Hashtbl.mem hx (string_of_int i) then incr c
-  done;
-  Printf.printf "%d\n" !c
+  val count_max = max_counter
+  val mutable counter = 0
+
+  method activate =
+    counter <- counter + 1;
+    if counter >= count_max then begin
+      state <- not state;
+      counter <- 0
+    end;
+    self
+end
+
+let n = if Array.length Sys.argv > 1 then int_of_string Sys.argv.(1) else 1
+let tog = new toggle true;;
+for i = 1 to 5 do Printf.printf "%b\n" tog#activate#value done;
+for i = 1 to n do ignore (new toggle true) done;
+print_newline ();
+let ntog = new nth_toggle true 3 in
+for i = 1 to 8 do Printf.printf "%b\n" ntog#activate#value done;
+for i = 1 to n do ignore (new nth_toggle true 3) done
 EOF
   title=OCAML
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2649,71 +2874,75 @@ fi
 if test $start_test_number -le 8; then
 
 ######################################################
-rep=`expr $factor '*' 7`
-Announce_Test "+++++ Test #8: Hashes, Part II (N=$rep):  +++++"
+rep=`expr $factor '*' 8190`
+Announce_Test "+++++ Test  #8: sieve (usage of arrays when possible N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
-var i, n = int (argv[0]);
-var hash1 = tab [];
+var SieveSize, i, k, prime, count, iter, flags;
+SieveSize = int (argv [0]);
 
-for (i = 0; i < 10000; i++)
-  hash1 [vec (i, "foo_%d")] = i;
-
-var k, v, hash2 = tab [];
-for (k: hash1)
-  hash2 [k] = 0;
-for (i = 0 ; i < n; i++)
-  for (k, v: hash1)
-    hash2 [k] += v;
-
-putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
-       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+flags = [SieveSize + 1 : 0];
+for (iter = 0; iter < 10; iter++) {
+    count = 0;
+    for (i = 0; i <= SieveSize; i++)
+      flags[i] = 1;
+    for (i = 0; i <= SieveSize; i++)
+      if (flags[i]) {
+          prime = i + i + 3;
+          for (k = i + prime; k <= SieveSize; k += prime)
+            flags[k] = 0;
+          count++;
+      }
+}
+putln (count);
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT variant:"
+  Announce_Test "+++++           Slice Variant:"
 fi
 cat <<'EOF' >$ftest
-fun main !jit {
-  var i, n = int (argv[0]);
-  var hash1 = tab [];
+var SieveSize, i, prime, count, iter, flags;
+SieveSize = int (argv [0]);
 
-  for (i = 0; i < 10000; i++)
-    hash1 [vec (i, "foo_%d")] = i;
-
-  var k, v, hash2 = tab [];
-  for (k: hash1)
-    hash2 [k] = 0;
-  for (i = 0 ; i < n; i++)
-    for (k, v: hash1)
-      hash2 [k] += v;
-
-  putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
-         hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+flags = [SieveSize + 1 : 0];
+for (iter = 0; iter < 10; iter++) {
+    count = 0;
+    flags[:] = 1;
+    for (i = 0; i <= SieveSize; i++)
+      if (flags[i]) {
+          prime = i + i + 3;
+          flags[i + prime : SieveSize + 1 : prime] = 0;
+          count++;
+      }
 }
-main ();
+putln (count);
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title=" (Slice Variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Steve Fink
-
-use strict;
-
-my $n = ($ARGV[0] > 0) ? $ARGV[0] : 1;
-my %hash1 = ();
-$hash1{"foo_$_"} = $_ for 0..9999;
-my %hash2 = ();
-my($k, $v);
-for (1..$n) {
-    $hash2{$_} += $hash1{$_} while (defined ($_ = each %hash1));
-}
-print "$hash1{foo_1} $hash1{foo_9999} $hash2{foo_1} $hash2{foo_9999}\n";
+    $SieveSize = $ARGV[0];
+    for ($iter = 0; $iter < 10; $iter++) {
+      $count = 0;
+      for ($i = 0; $i <= $SieveSize; $i++) {
+        $flags[$i] = 1;
+      }
+      for ($i = 0; $i <= $SieveSize; $i++) {
+        if ($flags[$i]) {
+            $prime = $i + $i + 3;
+            $k = $i + $prime;
+            while ($k <= $SieveSize) {
+                $flags[$k] = 0;
+                $k = $k + $prime;
+            }
+            $count++;
+        }
+      }
+    }
+  print "$count\n";
 EOF
   title=PERL
   if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2721,25 +2950,23 @@ fi
 
 if test x$PYTHON != x || test x$PYPY != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# from Mark Baker
-
 import sys
 
-n = int(sys.argv[1])
-hash1 = {}
-for i in xrange(10000):
-    hash1['foo_' + `i`] = i
-
-hash2 = {}
-for i in xrange(n):
-    for k in hash1.keys():
-        try:
-            hash2[k] = hash2[k] + hash1[k]
-        except KeyError:
-            hash2[k] = hash1[k]
-
-print hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999']
+SieveSize = int(sys.argv[1])
+flags = {}
+for iter in range(10):
+  count = 0
+  for i in range(SieveSize + 1):
+    flags[i] = 1
+  for i in range(SieveSize + 1):
+    if flags[i]:
+        prime = i + i + 3
+        k = i + prime
+        while k <= SieveSize:
+            flags[k] = 0
+            k = k + prime
+        count = count + 1
+print count
 EOF
   if test x$PYTHON != x; then
     title=PYTHON
@@ -2754,25 +2981,23 @@ fi
 
 if test x$PYTHON3 != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# from Mark Baker
-
 import sys
 
-n = int(sys.argv[1])
-hash1 = {}
-for i in range(10000):
-    hash1['foo_' + repr(i)] = i
-
-hash2 = {}
-for i in range(n):
-    for k in list(hash1.keys()):
-        try:
-            hash2[k] = hash2[k] + hash1[k]
-        except KeyError:
-            hash2[k] = hash1[k]
-
-print(hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999'])
+SieveSize = int(sys.argv[1])
+flags = {}
+for iter in range(10):
+  count = 0
+  for i in range(SieveSize + 1):
+    flags[i] = 1
+  for i in range(SieveSize + 1):
+    if flags[i]:
+        prime = i + i + 3
+        k = i + prime
+        while k <= SieveSize:
+            flags[k] = 0
+            k = k + prime
+        count = count + 1
+print (count)
 EOF
   title=PYTHON3
   if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2780,26 +3005,33 @@ fi
 
 if test x$TCLSH != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Branko Vesligaj
 
 proc main {} {
-    global argv
-    set n [lindex $argv 0]
-    for {set i 0} {$i < 10000} {incr i} {
-        set hash1(foo_$i) $i
-    }
-    for {set i $n} {$i > 0} {incr i -1} {
-        foreach k [array names hash1] {
-            if {[catch {set hash2($k) [expr {$hash1($k) + $hash2($k)}]}]} {
-                set hash2($k) $hash1($k)
-            }
-        }
-    }
-    puts [join [list $hash1(foo_1) $hash1(foo_9999) $hash2(foo_1) $hash2(foo_9999) ] " "]
-}
+  global argv
+  set SieveSize [lindex $argv 0]
 
-main
+  for {set iter 0} {$iter < 10} {incr iter} {
+    set count 0
+    for {set i 0} {$i <= $SieveSize} {incr i} {
+      set flags($i) 1
+    }
+    for {set i 0} {$i <= $SieveSize} {incr i} {
+      if {$flags($i)} {
+        set prime [expr {$i + $i + 3}]
+        set k [expr {$i + $prime}]
+        while {$k <= $SieveSize} {
+           set flags($k) 0
+           set k [expr {$k + $prime}]
+        }
+        incr count
+      }
+    }
+  }
+  return $count
+}
+puts [main]
+
+exit 0
 EOF
   title=TCL
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2807,46 +3039,54 @@ fi
 
 if test x$AWK != x; then
   cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
 BEGIN {
-    n = (ARGV[1] < 1) ? 1 : ARGV[1];
+SieveSize=ARGV[1];
 
-    for (i=0; i<10000; i++)
-        hash1[sprintf("foo_%d", i)] = i
-    for (i=0; i<n; i++)
-        for (k in hash1)
-            hash2[k] += hash1[k]
-    print hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
+  for (iter = 0; iter < 10; iter++)
+    {
+      count = 0;
+      for (i = 0; i <= SieveSize; i++)
+        flags[i] = 1;
+      for (i = 0; i <= SieveSize; i++)
+        if (flags[i])
+          {
+            prime = i + i + 3;
+            k = i + prime;
+            while (k <= SieveSize)
+              {
+                flags[k] = 0;
+                k = k + prime;
+              }
+            count++;
+          }
+    }
+  print count
 }
 EOF
   title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 if test x$LUA != x; then
   cat <<'EOF' >$ftest
-
-
--- $Id: hash2.lua,v 1.2 2001/01/11 14:52:55 doug Exp $
--- http://www.bagley.org/~doug/shootout/
--- contributed by Roberto Ierusalimschy
-
-local n = tonumber((arg and arg[1]) or 1)
-
-local hash1={}
-for i=1,10000 do
-    hash1["foo_"..i] = i
-end
-local hash2={}
-for i=1,n do
-  for k,v in pairs(hash1) do
-    hash2[k] = v + (hash2[k] or 0)
+SieveSize = tonumber((arg and arg[1])) or 1
+flags = {}
+for iter=1,10 do
+  count = 0
+  for i=0, SieveSize do
+    flags[i] = true
+  end
+  for i=0,SieveSize do
+    if flags[i] then
+      prime = i + i + 3
+      for k=i+prime, SieveSize, prime do
+        flags[k] = false
+      end
+      count = count + 1    
+    end
   end
 end
-
-io.write(string.format("%d %d %d %d\n", hash1["foo_1"], hash1["foo_9999"],
-         hash2["foo_1"], hash2["foo_9999"]))
+io.write(count, "\n")
 EOF
   title=LUA
   if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
@@ -2854,27 +3094,24 @@ fi
 
 if test x$RUBY != x; then
   cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: hash2.ruby,v 1.2 2001/05/16 16:17:08 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-
-n = Integer(ARGV.shift || 1)
-
-hash1 = {}
-for i in 0 .. 9999
-    hash1["foo_" << i.to_s] = i
-end
-
-hash2 = Hash.new(0)
-n.times do
-    for k in hash1.keys
-    hash2[k] += hash1[k]
+SieveSize = Integer(ARGV.shift || 1)
+flags0 = Array.new(SieveSize + 1, true)
+10.times do
+  $count = 0
+  flags = flags0.dup
+  for i in 0 .. SieveSize
+    if flags[i] then
+      prime = i + i + 3
+      k = i + prime
+      while k <= SieveSize do
+        flags[k] = false
+        k = k + prime
+      end
+      $count = $count + 1
     end
+  end
 end
-
-printf "%d %d %d %d\n",
-    hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
+print $count, "\n"
 EOF
   title=RUBY
   if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2882,20 +3119,24 @@ fi
 
 if test x$SCALA != x; then
   cat <<'EOF' >$ftest
-val n = args(0).toInt;
-var hash1 = scala.collection.mutable.HashMap.empty[String, Int];
+var prime = 0
+var count = 0
+val SieveSize = args(0).toInt
+var flags = Array.fill[Boolean](SieveSize + 1)(false)
 
-for (i <- 0 to 10000 - 1)
-  hash1 += ("foo_" + i.toString -> i);
-
-var hash2 = scala.collection.mutable.HashMap.empty[String, Int];
-for (i <- 0 to n - 1)
-  hash1.foreach (p => if (hash2.contains (p._1))
-                      hash2(p._1) = hash2(p._1) + hash1(p._1)
-                      else hash2(p._1) = hash1(p._1))
-
-println (hash1 ("foo_1"), " ", hash1 ("foo_9999"), " ",
-         hash2 ("foo_1"), " ", hash2 ("foo_9999"));
+for (iter <- 0 to 10) {
+    count = 0
+    for (i <- 0 to SieveSize)
+      flags(i) = true;
+    for (i <- 0 to SieveSize)
+      if (flags(i)) {
+          prime = i + i + 3
+          for (j <- i + prime to SieveSize by prime)    
+            flags(j) = false;
+          count += 1;
+      }
+}
+println (count)
 EOF
   title=SCALA
   if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2903,21 +3144,23 @@ fi
 
 if test x$JS != x; then
   cat <<'EOF' >$ftest
-var i, n = arguments[0];
-var hash1 = new Array ();
+var SieveSize, i, k, prime, count, iter;
+var flags = new Array ();
+SieveSize = arguments [0];
 
-for (i = 0; i < 10000; i++)
-  hash1 ["foo_" + i] = i;
-
-var k, hash2 = new Array ();
-for (k in hash1)
-  hash2 [k] = 0;
-for (i = 0 ; i < n; i++)
-  for (k in hash1)
-    hash2 [k] += hash1 [k];
-
-print (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
-       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+for (iter = 0; iter < 10; iter++) {
+  count = 0;
+  for (i = 0; i <= SieveSize; i++)
+    flags[i] = 1;
+  for (i = 0; i <= SieveSize; i++)
+    if (flags[i]) {
+      prime = i + i + 3;
+      for (k = i + prime; k <= SieveSize; k += prime)
+        flags[k] = 0;
+      count++;
+    }
+}
+print (count);
 EOF
   title=JS
   if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2925,36 +3168,57 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var SieveSize, i, k, prime, count, iter;
+var flags = new Array ();
+SieveSize = process.argv[2];
+
+for (iter = 0; iter < 10; iter++) {
+  count = 0;
+  for (i = 0; i <= SieveSize; i++)
+    flags[i] = 1;
+  for (i = 0; i <= SieveSize; i++)
+    if (flags[i]) {
+      prime = i + i + 3;
+      for (k = i + prime; k <= SieveSize; k += prime)
+        flags[k] = 0;
+      count++;
+    }
+}
+console.log (count);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
-(*
- * $Id: hash2.ocaml,v 1.3 2001/01/08 13:21:09 doug Exp $
- * http://www.bagley.org/~doug/shootout/
- * with help from Markus Mottl
- *)
+let sievesize = try int_of_string Sys.argv.(1) with Invalid_argument _ -> 1
+
+let flags = String.make (sievesize + 1) 'f'
+
+let rec inner_loop k i =
+  if k <= sievesize then begin
+    flags.[k] <- 'f';
+    inner_loop (k + i) i
+  end
+
+let rec middle_loop i cnt =
+  if i <= sievesize then
+    if flags.[i] = 't' then begin
+      inner_loop (3 * i + 3) (i + i + 3);
+      middle_loop (i + 1) (cnt + 1) end
+    else middle_loop (i + 1) cnt
+  else cnt
 
 let _ =
-  let n =
-    try int_of_string Sys.argv.(1)
-    with Invalid_argument _ -> 1
-  and hash1 = Hashtbl.create 10000 in
-  for i = 0 to 9999 do
-    Hashtbl.add hash1 ("foo_" ^ string_of_int i) (ref i)
+  let cnt = ref 0 in
+  for iter = 1 to 10 do
+    for i = 0 to sievesize do flags.[i] <- 't'; done;
+    cnt := middle_loop 0 0;
   done;
-  let hash2 = Hashtbl.create 10000 in
-  let update_hash2 k v =
-    try
-      let valref = Hashtbl.find hash2 k in
-      valref := !valref + !v
-    with Not_found -> Hashtbl.add hash2 k (ref !v) in
-  for i = 1 to n do
-    Hashtbl.iter update_hash2 hash1
-  done;
-  Printf.printf "%d %d %d %d\n"
-    !(Hashtbl.find hash1 "foo_1")
-    !(Hashtbl.find hash1 "foo_9999")
-    !(Hashtbl.find hash2 "foo_1")
-    !(Hashtbl.find hash2 "foo_9999")
+  Printf.printf "%d\n" !cnt
 EOF
   title=OCAML
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
@@ -2967,7 +3231,7 @@ if test $start_test_number -le 9; then
 
 ######################################################
 rep=`expr $factor '*' 10000`
-Announce_Test "+++++ Test #9: Heapsort (N=$rep):  +++++"
+Announce_Test "+++++ Test  #9: Heapsort (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var IM = 139968;
@@ -3031,7 +3295,7 @@ title=
 if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
 
 if test x$DINO_ONLY != x; then
-  Announce_Test "+++++          JIT variant:"
+  Announce_Test "+++++           JIT variant:"
 fi
 cat <<'EOF' >$ftest
 var IM = 139968;
@@ -3692,6 +3956,69 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+function gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return (max * LAST) / IM;
+}
+
+function heapsort (n, ra) {
+  var rra = 0, i = 0, j = 0;
+  var l = (n/ 2) + 1;
+  var ir = n;
+
+  for (;;) {
+    if (l > 1) {
+      l--;
+      rra = ra [l];
+    } else {
+      rra = ra [ir];
+      ra [ir] = ra [1];
+      ir--;
+      if (ir == 1) {
+        ra [1] = rra;
+        return;
+      }
+    }
+    i = l;
+    j = l << 1;
+    for (; j <= ir; ) {
+      if (j < ir && ra [j] < ra [j + 1]) j++;
+      if (rra < ra [j]) {
+        ra [i] = ra [j];
+        i = j;
+        j = j + i;
+      } else
+        j = ir + 1;
+    }
+    ra [i] = rra;
+  }
+}
+
+function main (n) {
+  var i;
+  var ary = new Array ();
+
+  for (i = 1; i <= n; i++)
+    ary [i] = gen_random (1.0);
+  
+  heapsort (n, ary);
+  
+  console.log (ary[n].toFixed(10));
+}
+
+main (process.argv[2] < 1 ? 1 : process.argv[2]);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
@@ -3766,8 +4093,1772 @@ fi
 if test $start_test_number -le 10; then
 
 ######################################################
+rep=`expr $factor '*' 20`
+Announce_Test "+++++ Test #10: Statistical Moments (N=$rep):  +++++"
+
+cat <<'EOF' >$temp
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+EOF
+
+rm -f $input; touch $input
+
+i=0
+while test $i -lt $rep;do cat $temp >>$input; i=`expr $i + 1`;done
+
+cat <<'EOF' >$ftest
+fun main {
+  var i, sum = 0.0;
+  var lns = getf (1);
+  var nums = [#lns:0];
+  
+  nums[:] = lns[:] + 0.0;
+  sum = .+ nums[:];
+  
+  var n = #nums;
+  var mean = sum / n;
+  var average_deviation = 0.0;
+  var standard_deviation = 0.0;
+  var variance = 0.0;
+  var skew = 0.0;
+  var kurtosis = 0.0;
+  var deviation, pow2;
+  
+  for (i = 0; i < n; i++) {
+    deviation = nums [i] - mean;
+    average_deviation += deviation < 0.0 ? -deviation : deviation;
+    pow2 = deviation * deviation;
+    variance += pow2;
+    skew += deviation * pow2;
+    kurtosis += pow2 * pow2;
+  }
+  average_deviation /= n;
+  variance /= (n - 1);
+  standard_deviation = sqrt (variance);
+  
+  if (variance > 0.0) {
+    skew /= (n * variance * standard_deviation);
+    kurtosis = kurtosis / (n * variance * variance) - 3.0;
+  }
+  sort (nums);
+  
+  var mid = n / 2;
+  
+  var median = (n % 2 == 0 ? (nums [mid] + nums [mid - 1]) / 2 : nums [mid]);
+  
+  putln ("n:                  ", n);
+  putln ("median:             ", vec (median, "%f"));
+  putln ("mean:               ", vec (mean, "%f"));
+  putln ("average_deviation:  ", vec (average_deviation, "%f"));
+  putln ("standard_deviation: ", vec (standard_deviation, "%f"));
+  putln ("variance:           ", vec (variance, "%f"));
+  putln ("skew:               ", vec (skew, "%f"));
+  putln ("kurtosis:           ", vec (kurtosis, "%f"));
+}
+main();
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/perl
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+use strict;
+
+my @nums = <STDIN>;
+my $sum = 0;
+foreach (@nums) { $sum += $_ }
+my $n = scalar(@nums);
+my $mean = $sum/$n;
+my $average_deviation = 0;
+my $standard_deviation = 0;
+my $variance = 0;
+my $skew = 0;
+my $kurtosis = 0;
+foreach (@nums) {
+    my $deviation = $_ - $mean;
+    $average_deviation += abs($deviation);
+    $variance += $deviation**2;
+    $skew += $deviation**3;
+    $kurtosis += $deviation**4;
+}
+$average_deviation /= $n;
+$variance /= ($n - 1);
+$standard_deviation = sqrt($variance);
+
+if ($variance) {
+    $skew /= ($n * $variance * $standard_deviation);
+    $kurtosis = $kurtosis/($n * $variance * $variance) - 3.0;
+}
+
+@nums = sort { $a <=> $b } @nums;
+my $mid = int($n/2);
+my $median = ($n % 2) ? $nums[$mid] : ($nums[$mid] + $nums[$mid-1])/2;
+
+printf("n:                  %d\n", $n);
+printf("median:             %f\n", $median);
+printf("mean:               %f\n", $mean);
+printf("average_deviation:  %f\n", $average_deviation);
+printf("standard_deviation: %f\n", $standard_deviation);
+printf("variance:           %f\n", $variance);
+printf("skew:               %f\n", $skew);
+printf("kurtosis:           %f\n", $kurtosis);
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+import sys, string, math, operator
+
+def main():
+    sum = 0
+    nums = []
+
+    nums = map(float, sys.stdin.readlines())
+    for num in nums:
+      sum += num
+
+    n = len(nums)
+    mean = sum/n
+    average_deviation = 0
+    standard_deviation = 0
+    variance = 0
+    skew = 0
+    kurtosis = 0
+
+    for num in nums:
+        deviation = num - mean
+        average_deviation += abs(deviation)
+        variance += deviation**2;
+        skew += deviation**3;
+        kurtosis += deviation**4
+
+    average_deviation /= n
+    variance /= (n - 1)
+    standard_deviation = math.sqrt(variance)
+
+    if variance > 0.0:
+        skew /= (n * variance * standard_deviation)
+        kurtosis = kurtosis/(n * variance * variance) - 3.0
+
+    nums.sort()
+    mid = int (math.floor (n / 2))
+
+    if (n % 2) == 0:
+        median = (nums[mid] + nums[mid-1])/2
+    else:
+        median = nums[mid]
+
+    print "n:                  %d" % n
+    print "median:             %f" % median
+    print "mean:               %f" % mean
+    print "average_deviation:  %f" % average_deviation
+    print "standard_deviation: %f" % standard_deviation
+    print "variance:           %f" % variance
+    print "skew:               %f" % skew
+    print "kurtosis:           %f" % kurtosis
+
+main()
+
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python3
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+import sys, string, math, operator
+
+def main():
+    sum = 0
+    nums = []
+
+    nums = list(map(float, sys.stdin.readlines()))
+    for num in nums:
+      sum += num
+
+    n = len(nums)
+    mean = sum/n
+    average_deviation = 0
+    standard_deviation = 0
+    variance = 0
+    skew = 0
+    kurtosis = 0
+
+    for num in nums:
+        deviation = num - mean
+        average_deviation += abs(deviation)
+        variance += deviation**2;
+        skew += deviation**3;
+        kurtosis += deviation**4
+
+    average_deviation /= n
+    variance /= (n - 1)
+    standard_deviation = math.sqrt(variance)
+
+    if variance > 0.0:
+        skew /= (n * variance * standard_deviation)
+        kurtosis = kurtosis/(n * variance * variance) - 3.0
+
+    nums.sort()
+    mid = int (math.floor (n / 2))
+
+    if (n % 2) == 0:
+        median = (nums[mid] + nums[mid-1])/2
+    else:
+        median = nums[mid]
+
+    print("n:                  %d" % n)
+    print("median:             %f" % median)
+    print("mean:               %f" % mean)
+    print("average_deviation:  %f" % average_deviation)
+    print("standard_deviation: %f" % standard_deviation)
+    print("variance:           %f" % variance)
+    print("skew:               %f" % skew)
+    print("kurtosis:           %f" % kurtosis)
+
+main()
+
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/tclsh
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+proc main {} {
+    set sum 0.0
+    set nums [read stdin]
+    foreach num $nums {
+        set sum [expr {$sum + $num}]
+    }
+    set n [llength $nums]
+    set mean [expr {$sum / $n}]
+    set average_deviation 0.0
+    set standard_deviation 0.0
+    set variance 0.0
+    set skew 0.0
+    set kurtosis 0.0
+    
+    foreach num $nums {
+        set deviation [expr {$num - $mean}]
+        set average_deviation [expr {$average_deviation + abs($deviation)}]
+        set variance [expr {$variance + pow($deviation, 2)}]
+        set skew [expr {$skew + pow($skew, 3)}]
+        set kurtosis [expr {$kurtosis + pow($deviation, 4)}]
+    }
+
+    set average_deviation [expr {$average_deviation / $n}]
+    set variance [expr {$variance / ($n - 1)}]
+    set standard_deviation [expr {sqrt($variance)}]
+
+    if {$variance} {
+        set skew [expr {$skew / ($n * $variance * $standard_deviation)}]
+        set kurtosis [expr {$kurtosis / ($n * $variance * $variance) - 3.0}]
+    }
+
+    set nums [lsort -integer $nums]
+    set mid [expr {int($n / 2)}]
+    if [expr {$n % 2}] {
+        set median [lindex $nums $mid]
+    } else {
+        set a [lindex $nums $mid]
+        set b [lindex $nums [expr {$mid - 1}]]
+        set median [expr {($a + $b) / 2.0}]
+    }
+        
+    puts [format "n:                  %d" $n]
+    puts [format "median:             %f" $median]
+    puts [format "mean:               %f" $mean]
+    puts [format "average_deviation:  %f" $average_deviation]
+    puts [format "standard_deviation: %f" $standard_deviation]
+    puts [format "variance:           %f" $variance]
+    puts [format "skew:               %f" $skew]
+    puts [format "kurtosis:           %f" $kurtosis]
+}
+
+main
+EOF
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: moments.lua,v 1.2 2001/01/05 01:35:56 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local nums = {}
+local n = 0
+local sum = 0
+for line in io.lines() do
+  line = line+0        -- convert line to number
+  sum = sum + line
+  n = n + 1
+  nums[n] = line
+end
+
+local mean = sum/n
+
+local average_deviation, variance, skew, kurtosis = 0, 0, 0, 0
+
+for i = 1, n do
+  local deviation = nums[i] - mean
+  average_deviation = average_deviation + math.abs(deviation)
+  variance = variance + deviation^2
+  skew = skew + deviation^3
+  kurtosis = kurtosis + deviation^4
+end
+
+average_deviation = average_deviation/n
+variance = variance/(n-1)
+local standard_deviation = math.sqrt(variance)
+if variance ~= 0 then
+  skew = skew / (n * variance * standard_deviation)
+  kurtosis = kurtosis/(n * variance * variance) - 3.0
+end
+
+table.sort(nums)
+local mid = math.floor(n/2)
+local median
+if n % 2 == 1 then
+  median = nums[mid+1]
+else
+  median = (nums[mid] + nums[mid+1])/2
+end
+
+io.write(string.format("n:                  %d\n", n))
+io.write(string.format("median:             %f\n", median))
+io.write(string.format("mean:               %f\n", mean))
+io.write(string.format("average_deviation:  %f\n", average_deviation))
+io.write(string.format("standard_deviation: %f\n", standard_deviation))
+io.write(string.format("variance:           %f\n", variance))
+io.write(string.format("skew:               %f\n", skew))
+io.write(string.format("kurtosis:           %f\n", kurtosis))
+EOF
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: moments.ruby,v 1.5 2001/01/05 01:35:56 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+# throw away unused parameter sent by benchmark framework
+ARGV.shift()
+
+sum = 0.0
+nums = []
+num = nil
+deviation = nil
+
+STDIN.readlines().each{|line|
+    num = Float(line)
+    nums << num
+    sum += num
+}
+n = nums.length()
+mean = sum/n;
+average_deviation = 0
+standard_deviation = 0
+variance = 0
+skew = 0
+kurtosis = 0
+
+nums.each{|num|
+    deviation = num - mean
+    average_deviation += deviation.abs()
+    variance += deviation**2;
+    skew += deviation**3;
+    kurtosis += deviation**4
+}
+average_deviation /= n
+variance /= (n - 1)
+standard_deviation = Math.sqrt(variance)
+
+if (variance > 0.0)
+    skew /= (n * variance * standard_deviation)
+    kurtosis = kurtosis/(n * variance * variance) - 3.0
+end
+
+nums.sort()
+mid = n / 2
+
+if (n % 2) == 0
+    median = (nums[mid] + nums[mid-1])/2
+else
+    median = nums[mid]
+end
+
+printf("n:                  %d\n", n)
+printf("median:             %f\n", median)
+printf("mean:               %f\n", mean)
+printf("average_deviation:  %f\n", average_deviation)
+printf("standard_deviation: %f\n", standard_deviation)
+printf("variance:           %f\n", variance)
+printf("skew:               %f\n", skew)
+printf("kurtosis:           %f\n", kurtosis)
+EOF
+  title=RUBY
+if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+import scala.collection.mutable.ArrayBuffer
+def main () = {
+  var sum = 0.0
+  val nums: ArrayBuffer[Double] = new ArrayBuffer (0)
+  for (line <- Source.stdin.getLines()) nums += line.toDouble
+
+  sum = nums.fold (0.0) ((x,y) => x + y)
+  
+  val n = nums.length
+  val mean = sum / n
+  var average_deviation = 0.0
+  var standard_deviation = 0.0
+  var variance = 0.0
+  var skew = 0.0
+  var kurtosis = 0.0
+  var deviation = 0.0; var pow2 = 0.0
+  
+  for (i <- 0 to n - 1) {
+    deviation = nums(i) - mean
+    average_deviation += (if (deviation < 0.0) -deviation else deviation)
+    pow2 = deviation * deviation
+    variance += pow2
+    skew += deviation * pow2
+    kurtosis += pow2 * pow2
+  }
+  average_deviation /= n
+  variance /= (n - 1)
+  standard_deviation = math.sqrt (variance)
+  
+  if (variance > 0.0) {
+    skew /= (n * variance * standard_deviation)
+    kurtosis = kurtosis / (n * variance * variance) - 3.0
+  }
+  val a = nums.toArray
+  scala.util.Sorting.quickSort (a)
+  println (n,a.deep)
+  val mid = n / 2
+  
+  val median = if (n % 2 == 0) (a(mid) + a(mid - 1)) / 2 else a(mid)
+  
+  println ("n:                  " + n.toString)
+  println ("median:             " + "%f" format median)
+  println ("mean:               " + "%f" format mean)
+  println ("average_deviation:  " + "%f" format average_deviation)
+  println ("standard_deviation: " + "%f" format standard_deviation)
+  println ("variance:           " + "%f" format variance)
+  println ("skew:               " + "%f" format skew)
+  println ("kurtosis:           " + "%f" format kurtosis)
+}
+main()
+EOF
+  title=SCALA
+if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: moments.ocaml,v 1.9 2001/05/20 16:43:13 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let _ =
+  let n = ref 0
+  and num = ref 0.0
+  and sum = ref 0.0
+  and mean = ref 0.0
+  and average_deviation = ref 0.0
+  and standard_deviation = ref 0.0
+  and variance = ref 0.0
+  and skew = ref 0.0
+  and kurtosis = ref 0.0
+  and deviation = ref 0.0
+  and size = ref 4096 in
+  let nums_in = ref (Array.create !size 0.0) in
+
+  try
+    while true do
+      num := read_float ();
+      !nums_in.(!n) <- !num;
+      sum := !sum +. !num;
+      incr n;
+      if !n = !size then begin
+    nums_in := Array.append !nums_in (Array.create !size 0.0);
+    size := !size * 2
+      end
+    done
+  with End_of_file -> ();
+
+  let nums = Array.create !n 0.0 in
+  Array.blit !nums_in 0 nums 0 !n;
+
+  let n_float = float_of_int !n in
+  mean := !sum /. n_float;
+
+  for i = 0 to !n - 1 do
+    deviation := nums.(i) -. !mean;
+    average_deviation := !average_deviation +. abs_float !deviation;
+    let dev2 = !deviation *. !deviation in
+    variance := !variance +. dev2;
+    let dev3 = dev2 *. !deviation in
+    skew := !skew +. dev3;
+    let dev4 = dev3 *. !deviation in
+    kurtosis := !kurtosis +. dev4;
+  done;
+
+  average_deviation := !average_deviation /. n_float;
+  variance := !variance /. float_of_int (!n - 1);
+  standard_deviation := sqrt !variance;
+
+  if !variance > 0.0 then begin
+    skew := !skew /. n_float /. !variance /. !standard_deviation;
+    kurtosis := !kurtosis /. n_float /. !variance /. !variance -. 3.0;
+  end;
+
+  Array.stable_sort compare nums;
+
+  let mid = !n lsr 1 in
+
+  let median =
+    if !n mod 2 = 1 then nums.(mid)
+    else (nums.(mid) +. nums.(mid - 1)) /. 2.0 in
+
+  Printf.printf "n:                  %d\n" !n;
+  Printf.printf "median:             %f\n" median;
+  Printf.printf "mean:               %f\n" !mean;
+  Printf.printf "average_deviation:  %f\n" !average_deviation;
+  Printf.printf "standard_deviation: %f\n" !standard_deviation;
+  Printf.printf "variance:           %f\n" !variance;
+  Printf.printf "skew:               %f\n" !skew;
+  Printf.printf "kurtosis:           %f\n" !kurtosis
+EOF
+  title=OCAML
+if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 11.
+if test $start_test_number -le 11; then
+
+######################################################
+rep=`expr $factor '*' 400000`
+Announce_Test "+++++ Test #11: Random Number Generator (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  max * LAST / IM;
+}
+
+var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (i = 0; i < n; i++)
+  gen_random (100.);
+putln (vec (gen_random (100.0), "%.9f"));
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) !jit {
+  LAST = (LAST * IA + IC) % IM;
+  max * LAST / IM;
+}
+
+var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (i = 0; i < n; i++)
+  gen_random (100.);
+putln (vec (gen_random (100.0), "%.9f"));
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Inline variant:"
+fi
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) !inline {
+  LAST = (LAST * IA + IC) % IM;
+  max * LAST / IM;
+}
+
+var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+for (i = 0; i < n; i++)
+  gen_random (100.);
+putln (vec (gen_random (100.0), "%.9f"));
+EOF
+title=" (Inline variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Inline+JIT variant:"
+fi
+cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+fun gen_random (max) !inline {
+  LAST = (LAST * IA + IC) % IM;
+  max * LAST / IM;
+}
+
+fun main !jit {
+  var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
+  for (i = 0; i < n; i++)
+    gen_random (100.);
+  putln (vec (gen_random (100.0), "%.9f"));
+}
+main ();
+EOF
+title=" (Inline+JIT variant)"
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+use strict;
+
+use constant IM => 139968;
+use constant IA => 3877;
+use constant IC => 29573;
+
+my $LAST = 42;
+sub gen_random { ($_[0] * ($LAST = ($LAST * IA + IC) % IM)) / IM }
+
+my $N = ($ARGV[0] || 1) - 1;
+gen_random(100.0) while ($N--);
+printf "%.9f\n", gen_random(100.0);
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brent Burley
+
+import sys
+
+IM = 139968
+IA = 3877
+IC = 29573
+
+LAST = 42
+def gen_random(max):
+    global LAST
+    LAST = (LAST * IA + IC) % IM
+    return( (max * LAST) / IM )
+
+def main():
+    N = int(sys.argv[1])
+    if N < 1:
+        N = 1
+    gr = gen_random
+    for i in xrange(1,N):
+        gr(100.0)
+    print "%.9f" % gr(100.0)
+
+main()
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brent Burley
+
+import sys
+
+IM = 139968
+IA = 3877
+IC = 29573
+
+LAST = 42
+def gen_random(max):
+    global LAST
+    LAST = (LAST * IA + IC) % IM
+    return( (max * LAST) / IM )
+
+def main():
+    N = int(sys.argv[1])
+    if N < 1:
+        N = 1
+    gr = gen_random
+    for i in range(1,N):
+        gr(100.0)
+    print ("%.9f" % gr(100.0))
+
+main()
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Miguel Sofer
+
+set IM 139968
+set IA   3877
+set IC  29573
+
+set last 42
+
+proc make_gen_random {} {
+    global IM IA IC
+    set params [list IM $IM IA $IA IC $IC]
+    set body [string map $params {
+        global last
+        expr {($max * [set last [expr {($last * IA + IC) % IM}]]) / IM}
+    }]
+    proc gen_random {max} $body
+}
+
+proc main {} {
+    global argv
+
+    set N [expr {[lindex $argv 0] - 1}]
+    make_gen_random
+
+    while {$N} {
+        gen_random 100.0
+        incr N -1
+    }
+
+    puts [format "%.9f" [gen_random 100.0]]
+}
+
+main
+EOF
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$AWK != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+function gen_random(max) { return( (max * (LAST = (LAST * IA + IC) % IM)) / IM ); }
+
+BEGIN {
+    IM = 139968;
+    IA = 3877;
+    IC = 29573;
+    LAST = 42;
+
+    n = ((ARGV[1] < 1) ? 1 : ARGV[1]) - 1;
+    while (n--) {
+        gen_random(100.);
+    }
+    printf("%.9f\n", gen_random(100.));
+    exit;
+}
+EOF
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: random.lua,v 1.12 2001/05/08 01:36:50 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local IM = 139968
+local IA = 3877
+local IC = 29573
+
+local LAST = 42
+local function gen_random(max)
+    LAST = (LAST * IA + IC) % IM
+    return( (max * LAST) / IM )
+end
+
+local N = tonumber((arg and arg[1])) or 1
+local result = 0
+for i=1, N do
+    result = gen_random(100.)
+end
+io.write(string.format("%.9f\n", result))
+EOF
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: random.ruby,v 1.13 2001/05/08 06:35:57 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+IM = 139968
+IA = 3877
+IC = 29573
+
+$last = 42.0
+def gen_random (max) (max * ($last = ($last * IA + IC) % IM)) / IM end
+
+N = Integer(ARGV.shift || 1)
+result = 0
+N.times do
+    result = gen_random(100.0)
+end
+printf "%.9f\n", result
+EOF
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val IM = 139968
+val IA = 3877
+val IC = 29573
+var LAST = 42
+
+def gen_random (max: Double): Double = {
+  LAST = (LAST * IA + IC) % IM
+  max * LAST / IM
+}
+
+val n = args(0).toInt
+for (i <- 1 to n)
+  gen_random (100.)
+println (gen_random (100.0))
+EOF
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+function gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return max * LAST / IM;
+}
+
+var n = (arguments [0] < 1 ? 1 : arguments [0]) - 1;
+for (; n; n--)
+  gen_random (100.);
+print (gen_random (100.0).toFixed(9));
+EOF
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var IM = 139968;
+var IA = 3877;
+var IC = 29573;
+var LAST = 42;
+
+function gen_random (max) {
+  LAST = (LAST * IA + IC) % IM;
+  return max * LAST / IM;
+}
+
+var n = (process.argv[2] < 1 ? 1 : process.argv[2]) - 1;
+for (; n; n--)
+  gen_random (100.);
+console.log (gen_random (100.0).toFixed(9));
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: random.ocaml,v 1.10 2001/07/26 01:33:45 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let im = 139968
+let ia = 3877
+let ic = 29573
+let last_ref = ref 42
+
+let gen_random max =
+  let new_last = (!last_ref * ia + ic) mod im in
+  last_ref := new_last;
+  max *. float_of_int new_last /. float im
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let rec loop i =
+    let r = gen_random 100.0 in
+    if i > 1 then loop (i-1) else r in
+  Printf.printf "%.9f\n" (loop n)
+EOF
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 12.
+if test $start_test_number -le 12; then
+
+######################################################
+rep=`expr $factor '*' 3000`
+Announce_Test "+++++ Test #12: Producer/Consumer Threads (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var count = 0;
+var consumed = 0;
+var produced = 0;
+var data = 0;
+var consumer_finish = 0, producer_finish = 0;
+
+thread consumer (n) {
+  var i;
+
+  for (;;) {
+    wait (count != 0);
+    i = data;
+    wait (1) count = 0;
+    consumed++;
+    if (i == n - 1)
+      break;
+  }
+  consumer_finish = 1;
+}
+
+thread producer (n) {
+  var i;
+
+  for (i = 0; i < n; i++) {
+    wait (count == 0);
+    data = i;
+    wait (1) count = 1;
+    produced++;
+  }
+  producer_finish = 1;
+}
+
+fun main (n) {
+    producer (n);
+    consumer (n);
+    wait (consumer_finish && producer_finish);
+    putln (produced, ' ', consumed);
+}
+    
+main (argv [0] < 1 ? 1 : int (argv [0]));
+EOF
+title=
+if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/test/bin/perl
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+use strict;
+use Thread qw(cond_wait cond_signal);
+
+my $count = 0;
+my $data = 0;
+my $produced = 0;
+my $consumed = 0;
+
+sub consumer {
+    my $n = shift;
+    while (1) {
+        lock($count);
+        cond_wait($count) while ($count == 0);
+        my $i = $data;
+        $count = 0;
+        $consumed++;
+        last if ($i == $n);
+        cond_signal($count);
+    }
+}
+
+sub producer {
+    my $n = shift;
+    for (my $i=1; $i<=$n; $i++) {
+        lock($count);
+        cond_wait($count) while ($count == 1);
+        $data = $i;
+        $count = 1;
+        $produced++;
+        cond_signal($count);
+    }
+}
+
+sub main {
+    my $n = ($ARGV[0] < 1) ? 1 : $ARGV[0];
+    my $p = Thread->new(\&producer, $n);
+    my $c = Thread->new(\&consumer, $n);
+    $p->join;
+    $c->join;
+    print "$produced $consumed\n";
+}
+
+&main();
+EOF
+
+echo Perl threads are not implemented on all systems.
+
+#  title=PERL
+##  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+import sys
+from threading import * 
+
+access = Condition()
+count = 0
+consumed = 0
+produced = 0
+data = 0
+
+def consumer(n):
+    global count, data, consumed
+    while 1:
+        access.acquire()
+        while count == 0:
+            access.wait()
+        i = data
+        count = 0
+        access.notify()
+        access.release()
+        consumed += 1
+        if i == n:
+            break
+
+def producer(n):
+    global count, data, produced
+    for i in xrange(1,n+1):
+        access.acquire()
+        while count == 1:
+            access.wait()
+        data = i
+        count = 1
+        access.notify()
+        access.release()
+        produced += 1
+
+def main(n):
+    t1 = Thread(target=producer, args=(n,))
+    t2 = Thread(target=consumer, args=(n,))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    print produced, consumed
+    
+main(int(sys.argv[1]))
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/python3
+# $Id$
+# http://www.bagley.org/~doug/shootout/
+
+import sys
+from threading import * 
+
+access = Condition()
+count = 0
+consumed = 0
+produced = 0
+data = 0
+
+def consumer(n):
+    global count, data, consumed
+    while 1:
+        access.acquire()
+        while count == 0:
+            access.wait()
+        i = data
+        count = 0
+        access.notify()
+        access.release()
+        consumed += 1
+        if i == n:
+            break
+
+def producer(n):
+    global count, data, produced
+    for i in range(1,n+1):
+        access.acquire()
+        while count == 1:
+            access.wait()
+        data = i
+        count = 1
+        access.notify()
+        access.release()
+        produced += 1
+
+def main(n):
+    t1 = Thread(target=producer, args=(n,))
+    t2 = Thread(target=consumer, args=(n,))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    print (produced, consumed)
+    
+main(int(sys.argv[1]))
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: prodcons.ruby,v 1.2 2000/12/20 04:33:20 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+require 'thread'
+
+def main(n)
+    mutex = Mutex.new
+    access = ConditionVariable.new
+    count = data = consumed = produced = 0
+    consumer = Thread.new do
+    i = 0
+    loop do
+        mutex.synchronize {
+        while count == 0 do access.wait(mutex) end
+        i = data
+        count = 0
+        access.signal
+        }
+        consumed += 1
+        if i == n then break end
+    end
+    end
+    producer = Thread.new do
+    for i in 1 .. n do
+        mutex.synchronize {
+        while count == 1 do access.wait(mutex) end
+        data = i
+        count = 1
+        access.signal
+        }
+        produced += 1
+    end
+    end
+    producer.join
+    consumer.join
+    puts "#{produced} #{consumed}"
+end
+
+main(Integer(ARGV.shift || 1))
+EOF
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 13.
+if test $start_test_number -le 13; then
+
+######################################################
 rep=`expr $factor '*' 10`
-Announce_Test "+++++ Test #10: Hello: Start up time (N=$rep)+++++"
+Announce_Test "+++++ Test #13: Hello: Start up time (N=$rep)+++++"
 
 cat <<'EOF' >$ftest
 putln ("hello world");
@@ -3867,6 +5958,14 @@ EOF
   ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JS -j $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+console.log ("hello world");
+EOF
+  title=NODEJS
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $NODEJS $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
@@ -3882,12 +5981,1767 @@ fi
 
 fi
 
-# Test 11.
-if test $start_test_number -le 11; then
+# Test 14.
+if test $start_test_number -le 14; then
+
+######################################################
+rep=`expr $factor '*' 8000`
+Announce_Test "+++++ Test #14: compile speed (simple program of $rep lines):  +++++"
+
+$DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
+title=
+if ($TIME $DINO $ftest </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  $DINO -c 'putln("$j = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("$i = $j;");' $rep > $ftest
+  title=PERL
+  if ($TIME $PERL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  $DINO -c 'putln("set j 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("set i $j");' $rep > $ftest
+  title=TCL
+  if ($TIME $TCLSH $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$AWK != x; then
+  $DINO -c 'putln("END {\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
+  echo '}' >>$ftest
+  title=AWK
+  if ($TIME $AWK -f $ftest </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  title=LUA
+  if ($TIME $LUA $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  title=RUBY
+  if ($TIME $RUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  $NECHO Scala:
+  echo '  ' Scala can not take even 10000 lines file
+fi
+
+if test x$JS != x; then
+  $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
+  title=JS
+  if ($TIME $JS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
+  title=NODEJS
+  if ($TIME $NODEJS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  $DINO -c 'putln("let j = 1;;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("let i = j;;");' $rep > $ftest
+  title=OCAML
+  if ($TIME $OCAML $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 15.
+if test $start_test_number -le 15; then
+
+######################################################
+if test $factor -eq 1; then rep=6;elif test $factor -eq 10; then rep=8;else rep=10;fi
+Announce_Test "+++++ Test #15: ackermann (good test for recursive functions N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+fun ack (m, n) {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+var n = int (argv [0] < 1 ? 1 : argv [0]);
+putln ("Ack(3,", n, "): ", ack (3, n));
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+
+cat <<'EOF' >$ftest
+fun ack (m, n) !jit {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+var n = int (argv [0] < 1 ? 1 : argv [0]);
+putln ("Ack(3,", n, "): ", ack (3, n));
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2 1;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+use integer;
+
+# It's prettier but slower to do this
+#sub Ack {
+#    my($M, $N) = @_;
+#    return( $N + 1 )         if ($M == 0);
+#    return( Ack($M - 1, 1) ) if ($N == 0);
+#    Ack($M - 1, Ack($M, $N - 1));
+#}
+
+# in our quest for speed, we must get ugly:
+# it helps reduce stack frame size a little bit
+# from Leif Stensson
+sub Ack {
+    return $_[0] ? ($_[1] ? Ack($_[0]-1, Ack($_[0], $_[1]-1))
+                    : Ack($_[0]-1, 1))
+        : $_[1]+1;
+}
+
+my $NUM = $ARGV[0];
+$NUM = 1 if ($NUM < 1);
+my $ack = Ack(3, $NUM);
+print "Ack(3,$NUM): $ack\n";
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo DINO: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Brad Knotwell
+import sys
+
+def Ack(M, N):
+    if (not M):
+        return( N + 1 )
+    if (not N):
+        return( Ack(M-1, 1) )
+    return( Ack(M-1, Ack(M, N-1)) )
+
+def main():
+    NUM = int(sys.argv[1])
+    print "Ack(3,%d): %d" % (NUM, Ack(3, NUM))
+
+main()
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Brad Knotwell
+import sys
+
+def Ack(M, N):
+    if (not M):
+        return( N + 1 )
+    if (not N):
+        return( Ack(M-1, 1) )
+    return( Ack(M-1, Ack(M, N-1)) )
+
+def main():
+    NUM = int(sys.argv[1])
+    print ("Ack(3,%d): %d" % (NUM, Ack(3, NUM)))
+
+main()
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$TCL != x; then
+echo  Tcl has stack overflow on the test
+fi
+
+if test x$AWK != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+function ack(m, n) {
+    if (m == 0) return( n + 1 );
+    if (n == 0) return( ack(m - 1, 1) );
+    return( ack(m - 1, ack(m, (n - 1))) );
+}
+
+BEGIN {
+    n = (ARGV[1] < 1) ? 1 : ARGV[1];
+    printf("Ack(3,%d): %d\n", n, ack(3, n));
+    exit;
+}
+EOF
+
+  echo AWK is too slow for this test.
+
+#  title=AWK
+##  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+-- $Id: ackermann.lua,v 1.5 2000/12/09 20:07:43 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+
+function Ack(M, N)
+    if (M == 0) then
+    return( N + 1 )
+    end
+    if (N == 0) then
+    return( Ack(M - 1, 1) )
+    end
+    return( Ack(M - 1, Ack(M, (N - 1))) )
+end
+
+NUM = tonumber((arg and arg[1])) or 1
+io.write("Ack(3,", NUM ,"): ", Ack(3,NUM), "\n")
+EOF
+
+title=LUA
+if ($TIME $LUA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: ackermann.ruby,v 1.6 2000/11/27 03:39:25 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+def ack(m, n)
+    if m == 0 then
+    n + 1
+    elsif n == 0 then
+    ack(m - 1, 1)
+    else
+    ack(m - 1, ack(m, n - 1))
+    end
+end
+
+NUM = Integer(ARGV.shift || 1)
+print "Ack(3,", NUM, "): ", ack(3, NUM), "\n"
+EOF
+title=RUBY
+if ($TIME $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+def ack (m:Int, n:Int):Int =
+  if (m==0) n+1
+  else if (n==0) ack (m-1,1)
+  else ack (m-1, ack(m,n-1))
+
+val n = args(0).toInt
+println ("Ack(3,", n, "): ", ack (3, n))
+EOF
+title=SCALA
+if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+function ack (m, n) {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+var n = arguments [0] < 1 ? 1 : arguments [0];
+print ("Ack(3,", n, "): ", ack (3, n));
+EOF
+title=JS
+if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title="JS -j"
+if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+function ack (m, n) {
+    if (m == 0) return n + 1;
+    if (n == 0) return ack (m - 1, 1);
+    return ack (m - 1, ack (m, (n - 1)));
+}
+
+var n = process.argv[2] < 1 ? 1 : process.argv[2];
+console.log ("Ack(3,", n, "): ", ack (3, n));
+EOF
+title=NODEJS
+if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: ackermann.ocaml,v 1.9 2001/01/08 02:56:48 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+
+let rec ack m n =
+  if m = 0 then n + 1
+  else if n = 0 then ack (m - 1) 1
+  else ack (m - 1) (ack m (n - 1))
+
+let _ =
+  let arg =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  Printf.printf "Ack(3,%d): %d\n" arg (ack 3 arg)
+EOF
+title=OCAML
+if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 16.
+if test $start_test_number -le 16; then
+
+######################################################
+rep=`expr $factor '*' 300`
+Announce_Test "+++++ Test #16: Array access (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+var x = [n:0], y = [n:0];
+
+for (i = 0; i < n; i++)
+  x [i] = i + 1;
+for (k = 0; k < 1000; k++)
+  for (i = 0; i < n; i++)
+    y[i] += x[i];
+
+putln (y [0], " ", y [n - 1]);
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           Slice Variant:"
+fi
+cat <<'EOF' >$ftest
+var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+var x = [n:0], y = [n:0];
+
+for (i = 0; i < n; i++)
+  x [i] = i + 1;
+for (k = 0; k < 1000; k++)
+  y[:] += x[:];
+
+putln (y [0], " ", y [n - 1]);
+EOF
+title=" (Slice Variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT Variant:"
+fi
+cat <<'EOF' >$ftest
+fun main !jit {
+  var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
+  var x = [n:0], y = [n:0];
+
+  for (i = 0; i < n; i++)
+    x [i] = i + 1;
+  for (k = 0; k < 1000; k++)
+    for (i = 0; i < n; i++)
+      y[i] += x[i];
+
+  putln (y [0], " ", y [n - 1]);
+}
+main ();
+EOF
+title=" (JIT Variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# this program is modified from:
+#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
+# Timing Trials, or, the Trials of Timing: Experiments with Scripting
+# and User-Interface Languages</a> by Brian W. Kernighan and
+# Christopher J. Van Wyk.
+
+my $n = @ARGV[0] || 1;
+my @X;
+my @Y;
+
+my $last = $n - 1;
+for my $i (0..$last) {
+    $X[$i] = $i + 1;
+}
+for my $k (0..999) {
+    for my $i (reverse 0..$last) {
+        $Y[$i] += $X[$i];
+    }
+}
+
+print "$Y[0] $Y[$last]\n";
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys
+
+def main():
+    n = int(sys.argv[1])
+    x = n * [0]       
+    y = n * [0]
+    for i in xrange(0,n):
+        x[i] = i + 1
+    for k in xrange(0,1000):
+        for i in xrange(n-1,-1,-1):
+            y[i] = y[i] + x[i]
+    print y[0], y[-1]
+
+main()
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+import sys
+
+def main():
+    n = int(sys.argv[1])
+    x = n * [0]       
+    y = n * [0]
+    for i in range(0,n):
+        x[i] = i + 1
+    for k in range(0,1000):
+        for i in range(n-1,-1,-1):
+            y[i] = y[i] + x[i]
+    print(y[0], y[-1])
+
+main()
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# this program is modified from:
+#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
+# Timing Trials, or, the Trials of Timing: Experiments with Scripting
+# and User-Interface Languages</a> by Brian W. Kernighan and
+# Christopher J. Van Wyk.
+
+proc main {} {
+    global argv
+    set n [lindex $argv 0]
+    set last [expr {$n - 1}]
+    for {set i 0} {$i < $n} {incr i} {
+        set x($i) [expr {$i + 1}]
+        set y($i) 0
+    }
+    for {set k 0} {$k < 1000} {incr k} {
+        for {set j $last} {$j >= 0} {incr j -1} {
+            set y($j) [expr {$x($j) + $y($j)}]
+        }
+    }
+    puts "$y(0) $y($last)"
+}
+
+main
+EOF
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$AWK != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# this program modified from:
+#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
+# Timing Trials, or, the Trials of Timing: Experiments with Scripting
+# and User-Interface Languages</a> by Brian W. Kernighan and
+# Christopher J. Van Wyk.
+
+BEGIN {
+    n = (ARGV[1] < 1) ? 1 : ARGV[1];
+
+    for (i = 0; i < n; i++)
+        x[i] = i + 1
+    for (k = 0; k < 1000; k++) {
+        for (j = n-1; j >= 0; j--)
+            y[j] += x[j]
+    }
+
+    print y[0], y[n-1]
+}
+EOF
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+n = tonumber((arg and arg[1])) or 1
+x = {}
+y = {}
+
+for i = 1, n do
+  x [i] = i + 1
+  y[i] = 0
+end
+for k = 1, 1000 do
+  for j = 1, n do
+    y [j] = y [j] + x [j]
+  end
+end
+
+io.write (y [1], " ", y [n], "\n");
+EOF
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: ary3.ruby,v 1.1 2001/05/31 02:27:48 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+n = Integer(ARGV.shift || 1)
+
+i = 0
+x = Array.new(n)
+y = Array.new(n)
+last = n-1
+
+for i in 0 .. last
+    x[i] = i + 1
+    y[i] = 0
+end
+for k in 0 .. 999
+    last.step(0,-1) do |i|
+    y[i] += x[i]
+    end
+end
+
+puts "#{y[0]} #{y[last]}"
+EOF
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val n = args (0).toInt
+val x = Array.fill[Int](n)(0);
+val y = Array.fill[Int](n)(0);
+
+for (i <- 0 to n - 1)
+  x(i) = i + 1;
+for (j <- 1 to 1000)
+  for (i <- 0 to n - 1)
+    y(i) += x(i);
+
+println (y(0), y(n - 1));
+EOF
+title=SCALA
+if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, k, n = arguments [0] < 1 ? 1 : arguments [0];
+var x = new Array(), y = new Array ();
+
+for (i = 0; i < n; i++) {
+  x[i] = i + 1; y[i] = 0;
+}
+for (k = 0; k < 1000; k++)
+  for (i = 0; i < n; i++)
+    y[i] += x[i];
+
+print (y [0], " ", y [n - 1]);
+EOF
+title=JS
+if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title="JS -j"
+if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var i, k, n = process.argv[2] < 1 ? 1 : process.argv[2];
+var x = new Array(), y = new Array ();
+
+for (i = 0; i < n; i++) {
+  x[i] = i + 1; y[i] = 0;
+}
+for (k = 0; k < 1000; k++)
+  for (i = 0; i < n; i++)
+    y[i] += x[i];
+
+console.log (y [0], " ", y [n - 1]);
+EOF
+title=NODEJS
+if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: ary3.ocaml,v 1.1 2001/05/31 02:27:48 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1 in
+  let last = n-1
+  and x = Array.make n 0
+  and y = Array.make n 0 in
+  for i = 0 to last do
+    x.(i) <- (i + 1)
+  done;
+  for k = 0 to 999 do
+    for i = last downto 0 do
+      y.(i) <- (x.(i) + y.(i))
+    done
+  done;
+  Printf.printf "%d %d\n" y.(0) y.(last)
+EOF
+title=OCAML
+if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 17.
+if test $start_test_number -le 17; then
+
+######################################################
+rep=`expr $factor '/' 6`
+Announce_Test "+++++ Test #17: Count lines/words/chars (N=$rep):  +++++"
+
+cat <<'EOF' >$temp
+Subject:      Re: Who was Izchak Miller?
+From:         "Jane D. Anonymous" <nobody@yale.edu>
+Date:         1996/04/28
+Message-Id:   <4lv7bc$oh@news.ycc.yale.edu>
+References:   <317C405E.5DFA@panix.com> <4lk6vl$gde@ns.oar.net>
+To:           75176.2330@compuserve.com
+Content-Type: text/plain; charset=us-ascii
+Organization: Yale University
+X-Url:        news:4lk6vl$gde@ns.oar.net
+Mime-Version: 1.0
+Newsgroups:   rec.games.roguelike.nethack
+X-Mailer:     Mozilla 1.1N (Macintosh; I; 68K)
+
+Hello there, Izchak Miller was my father.  When I was younger I spent 
+many a night, hunched over the keyboard with a cup of tea, playing 
+nethack with him and my brother.  my dad was a philosopher with a strong 
+weakness for fantasy/sci fi.  I remember when he started to get involved 
+with the Nethack team- my brother's Dungeons and Dragons monster book 
+found a regular place beside my dad's desk. it's nice to see him living 
+on in the game he loved so much :-).  
+                                                                  Tamar Miller
+
+The following is a really long word of 5000 characters:
+
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+EOF
+
+rm -f $input; touch $input
+
+i=0
+while test $i -lt $rep;do cat $temp >>$input; cp $input $temp; i=`expr $i + 1`;done
+
+cat <<'EOF' >$ftest
+var ln, v, nc = 0, nw = 0, nl = 0, l;
+
+try {
+  for (;;) {
+    ln = getln ();
+    nc += #ln + 1;
+    v = split (ln);
+    l = #v;
+    nw += (#v [l - 1] == 0 ? l - 1 : l);
+    nl++;
+  }
+} catch (eof) {
+  putln (nl, " ", nw, " ", nc);
+  exit (0);
+}
+EOF
+title=
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT Variant:"
+fi
+cat <<'EOF' >$ftest
+fun main !jit {
+  var ln, v, nc = 0, nw = 0, nl = 0, l;
+
+  try {
+    for (;;) {
+      ln = getln ();
+      nc += #ln + 1;
+      v = split (ln);
+      l = #v;
+      nw += (#v [l - 1] == 0 ? l - 1 : l);
+      nl++;
+    }
+  } catch (eof) {
+    putln (nl, " ", nw, " ", nc);
+    exit (0);
+  }
+}
+main ();
+EOF
+title=" (JIT Variant)"
+if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# this program is modified from:
+#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
+# Timing Trials, or, the Trials of Timing: Experiments with Scripting
+# and User-Interface Languages</a> by Brian W. Kernighan and
+# Christopher J. Van Wyk.
+
+use strict;
+
+my($nl, $nw, $nc);
+while (read(STDIN, $_, 4095)) {
+    $_ .= <STDIN>;
+    $nl += scalar(split(/\n/));
+    $nc += length;
+    $nw += scalar(split);
+}
+print "$nl $nw $nc\n";
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys
+
+def main():
+    nl = nw = nc = 0
+    rl = sys.stdin.readlines
+    lines = rl(4096)
+
+    while lines:
+        nl += len(lines)
+        for line in lines:
+            nc += len(line)
+            nw += len(line.split())
+        lines = rl(4096)
+
+    print "%d %d %d" % (nl, nw, nc)
+
+main()
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys
+
+def main():
+    nl = nw = nc = 0
+    rl = sys.stdin.readlines
+    lines = rl(4096)
+
+    while lines:
+        nl += len(lines)
+        for line in lines:
+            nc += len(line)
+            nw += len(line.split())
+        lines = rl(4096)
+
+    print ("%d %d %d" % (nl, nw, nc))
+
+main()
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# this program is modified from:
+#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
+# Timing Trials, or, the Trials of Timing: Experiments with Scripting
+# and User-Interface Languages</a> by Brian W. Kernighan and
+# Christopher J. Van Wyk.
+
+# Modified by Miguel Sofer
+
+proc main {} {
+    set nl 0
+    set nc 0
+    set nw 0
+
+    while {1} {
+        set data [read stdin 4096]
+        if {![string length $data]} {break}
+        if {[gets stdin extra] >= 0} {
+            append data $extra
+            incr nc
+        }
+        incr nc [string length $data]
+        incr nw [regexp -all {(?:^|\s)\S} $data]
+        incr nl [regexp -all -line {^} $data]
+    }
+    puts "$nl $nw $nc"
+}
+
+main
+EOF
+  title=TCL
+  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$AWK != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# this program modified from:
+#   http://cm.bell-labs.com/cm/cs/who/bwk/interps/pap.html
+# Timing Trials, or, the Trials of Timing: Experiments with Scripting
+# and User-Interface Languages</a> by Brian W. Kernighan and
+# Christopher J. Van Wyk.
+
+# this version is a little more efficient than the original via
+# use of NR
+
+BEGIN { delete ARGV }
+{
+    nc += length($0) + 1
+    nw += NF
+}
+END { print NR, nw, nc }
+EOF
+  title=AWK
+  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: wc.lua,v 1.1 2001/05/14 16:33:47 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local cc,lc,wc = 0,0,0
+for line in io.lines() do
+  cc = cc + string.len(line)  -- count chars in the line
+  local _,t = string.gsub(line, "%S+", "")   -- count words in the line
+  wc = wc+t
+  lc = lc+1            -- count lines
+end
+cc = cc + lc   -- count the newlines as characters
+
+io.write(lc, " ", wc, " ", cc, "\n")
+EOF
+  title=LUA
+  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: wc.ruby,v 1.5 2001/06/26 05:07:54 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+# with help from Paul Brannan
+
+nl = nw = nc = 0
+loop do
+  data = (STDIN.read(4096) or break) << (STDIN.gets || "")
+  nc += data.length
+  nl += data.count("\n")
+  ((data.strip! || data).tr!("\n", " ") || data).squeeze!
+  nw += data.count(" ") + 1
+end
+puts "#{nl} #{nw} #{nc}"
+EOF
+  title=RUBY
+  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+import scala.io.Source
+var nl = 0; var nw = 0; var nc = 0; var l = 0
+var v: Array[String] = Array ()
+val r = "[ \t]+".r
+for (line <- Source.stdin.getLines()) {
+  nl += 1
+  v = r.split (line)
+  println (v.deep)
+  l = v.length
+  nw += l
+  if (v(l - 1).length == 0) nw -= 1
+  if (v(0).length == 0) nw -= 1
+  nc += line.length + 1
+}
+println (nl, nw, nc)
+EOF
+  title=SCALA
+  if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: wc.ocaml,v 1.7 2001/05/25 22:33:22 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * based on code by Cuihtlauac ALVARADO and Markus Mottl
+ *)
+
+let nl = ref 0
+let nw = ref 0
+let nc = ref 0
+let max = 4096
+let buf = String.create max
+
+let readblock scanfun =
+  let nread = input stdin buf 0 max in
+  if nread = 0 then () else
+  begin nc := !nc + nread; scanfun 0 nread end
+
+
+let rec scan_out_of_word i n =
+  if i < n then
+    match buf.[i] with
+    | '\n'     -> incr nl; scan_out_of_word (i+1) n
+    | ' '|'\t' ->          scan_out_of_word (i+1) n
+    | _        -> incr nw; scan_in_word (i+1) n
+  else
+    readblock scan_out_of_word
+
+and scan_in_word i n =
+  if i < n then
+    match buf.[i] with
+    | '\n'     -> incr nl; scan_out_of_word (i+1) n
+    | ' '|'\t' ->          scan_out_of_word (i+1) n
+    | _        ->          scan_in_word (i+1) n
+  else
+    readblock scan_in_word
+
+
+let _ =
+  scan_out_of_word 0 0;
+  Printf.printf "%d %d %d\n" !nl !nw !nc
+EOF
+  title=OCAML
+  if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 18.
+if test $start_test_number -le 18; then
+
+######################################################
+rep=`expr $factor '*' 7000`
+Announce_Test "+++++ Test #18: Echo client/server (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+include "socket";
+if (#argv < 2) {
+  var s, cl, str, l = 0;
+  s = sockets.stream_server (10003, 4);
+  cl = s.accept ();
+  try {
+    for (;;) {
+      str = cl.read (64); l+= #str; cl.write (str);
+    }
+  } catch (socket_eof_except) {
+    putln ("i got ", l, " bytes");
+  }
+} else {
+  var cl, send, rec, i, n = int (argv [0]);
+  cl = sockets.stream_client ("localhost", 10003);
+  send = "Hello there sailor\n";
+  for (i = 0; i < n; i++) {
+    cl.write (send);
+    rec = cl.read (19);
+    if (send != rec) {
+      put ("different strings"); println (send, rec);
+    }
+  }
+}
+EOF
+
+
+title=
+$DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep > /dev/null &
+  ($TIME $DINO -I$srcdir -L./d_ipcerr.so -L./d_socket.so $ftest $rep client) 2>&1|print_dino
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+use Socket;
+
+my $DATA = "Hello there sailor\n";
+
+sub server_sock {
+    local *SS;
+    socket(SS, PF_INET, SOCK_STREAM, 0) or
+        die "server/socket ($!)";
+    setsockopt(SS, SOL_SOCKET, SO_REUSEADDR, pack("l", 1)) or
+        die "server/setsockopt ($!)";
+    bind(SS, sockaddr_in(0, INADDR_LOOPBACK)) or
+        die "server/bind ($!)";
+    listen(SS, 2);
+    return(*SS);
+}
+
+sub get_port {
+    local *SK = shift;
+    (sockaddr_in(getsockname(SK)))[0];
+}
+
+sub client_sock {
+    my $port = shift;
+    local *CS;
+    socket(CS, PF_INET, SOCK_STREAM, getprotobyname('tcp')) or
+        die "client/socket ($!)";
+    connect(CS, sockaddr_in($port, INADDR_LOOPBACK)) or
+        die "client/connect ($!)";
+    return(*CS);
+}
+
+sub echo_client {
+    my($N, $port) = @_;
+    local *SOCK = client_sock($port);
+    select(SOCK);
+    $| = 1;
+    for my $i (0..($N-1)) {
+        print $DATA;
+        my $ans = <SOCK>;
+        ($ans eq $DATA) or die qq{client: "$DATA" ne "$ans"};
+    }
+    close SOCK;
+}
+
+sub echo_server {
+    my($N) = @_;
+    local *SSOCK = server_sock();
+    my $port = get_port(*SSOCK);
+    my $pid = fork;
+    defined $pid or die "server/fork ($!)";
+    if ($pid) {
+        # parent is server
+        local *CSOCK;
+        accept(CSOCK, SSOCK) or die "server/accept ($!)";
+        select(CSOCK);
+        $| = 1;
+        my $n = 0;
+        while (<CSOCK>) {
+            print $_;
+            $n += length($_);
+        }
+        select(STDOUT);
+        print "server processed $n bytes\n";
+    } else {
+        # child is client
+        echo_client($N, $port);
+    }
+    wait();
+}
+
+sub main {
+    my $N = $ARGV[0] || 1;
+    echo_server($N);
+    exit(0);
+}
+
+main();
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys, os
+from socket import *
+
+DATA = "Hello there sailor\n"
+bufferSize = len(DATA)
+
+def server_sock():
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind(('127.0.0.1', 0));
+    sock.listen(2)
+    return(sock)
+
+def get_port(sock):
+    host, port = sock.getsockname()
+    return(port)
+
+def client_sock(port):
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.connect(('127.0.0.1', port))
+    return(sock)
+
+def echo_client(n, port):
+    sock = client_sock(port)
+    sender,receiver = sock.send,sock.recv
+    for i in range(0,n):
+        sender(DATA)
+        ans = receiver(bufferSize)
+        while ans[-1] != "\n":
+            ans = ans + receiver(bufferSize - len(ans))
+        if ans <> DATA:
+            raise("client: \"%s\" ne \"%s\"" % (DATA, ans))
+    sock.close()
+
+def echo_server(n):
+    ssock = server_sock()
+    if os.fork() > 0:
+        # parent is server
+        csock, addr = ssock.accept()
+        n = 0
+        sender,receiver = csock.send,csock.recv
+        while 1:
+            dat = receiver(bufferSize)
+            if not dat: break
+            sender(dat)
+            n = n + len(dat)
+        print "server processed %d bytes" % n
+        os.wait()
+    else:
+        # child is client
+        echo_client(n, get_port(ssock))
+
+def main():
+    n = int(sys.argv[1])
+    if n < 1:
+        n = 1
+    echo_server(n)
+
+main()
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Brad Knotwell
+
+import sys, os
+from socket import *
+
+DATA = b"Hello there sailor\n"
+bufferSize = len(DATA)
+
+def server_sock():
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind(('127.0.0.1', 0));
+    sock.listen(2)
+    return(sock)
+
+def get_port(sock):
+    host, port = sock.getsockname()
+    return(port)
+
+def client_sock(port):
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.connect(('127.0.0.1', port))
+    return(sock)
+
+def echo_client(n, port):
+    sock = client_sock(port)
+    sender,receiver = sock.send,sock.recv
+    for i in range(0,n):
+        sender(DATA)
+        ans = receiver(bufferSize)
+        while ans[-1] != ord(b'\n'):
+            ans = ans + receiver(bufferSize - len(ans))
+        if ans != DATA:
+            raise "client: \"%s\" ne \"%s\""
+    sock.close()
+
+def echo_server(n):
+    ssock = server_sock()
+    if os.fork() > 0:
+        # parent is server
+        csock, addr = ssock.accept()
+        n = 0
+        sender,receiver = csock.send,csock.recv
+        while 1:
+            dat = receiver(bufferSize)
+            if not dat: break
+            sender(dat)
+            n = n + len(dat)
+        print("server processed %d bytes" % n)
+        os.wait()
+    else:
+        # child is client
+        echo_client(n, get_port(ssock))
+
+def main():
+    n = int(sys.argv[1])
+    if n < 1:
+        n = 1
+    echo_server(n)
+
+main()
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+# from: Kristoffer Lawson
+# with help from Miguel Sofer
+
+proc newClient {sock addr port} {
+    fconfigure $sock -buffering line
+    set r [gets $sock]
+    set rLength 0
+    while {![eof $sock]} {
+        # Extra increase because [gets] doesn't return \n
+        incr rLength [expr {[string length $r] + 1}]
+        puts $sock $r
+        set r [gets $sock]
+    }
+    puts "server processed $rLength bytes"
+    exit
+}
+
+
+proc runClient {n addr port} {
+    set sock [socket $addr $port]
+    fconfigure $sock -buffering line
+    set msg "Hello there sailor"
+
+    incr n
+    while {[incr n -1]} {
+        puts $sock $msg
+        if {[string compare [gets $sock] $msg] == 0} continue
+        error "Received different message: $r."
+    }
+}
+
+
+set n [lindex $argv 0]
+
+if {[llength $argv] < 2} {
+    socket -server newClient -myaddr localhost 10004
+    # exec tclsh [info script] $n client &
+    vwait forever
+} else {
+    runClient $n localhost 10004
+}
+EOF
+  title=TCL
+  $TCLSH $ftest $rep&
+  ($TIME $TCLSH $ftest $rep client) 2>&1|fgrep user
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: echo.ruby,v 1.3 2001/05/08 08:08:41 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+require "socket"
+
+DATA = "Hello there sailor\n"
+
+def echo_client(n, port)
+    sock = TCPsocket.open('127.0.0.1', port)
+    n.times do
+    sock.write(DATA)
+    ans = sock.readline
+    if ans != DATA then
+        raise sprintf("client: \"%s\" \"%s\"", DATA, ans)
+    end
+    end
+    sock.close
+end
+
+
+def echo_server(n)
+    ssock = TCPserver.open('127.0.0.1', 0)
+    port = ssock.addr[1]
+    if pid = fork then
+    # parent is server
+    csock = ssock.accept
+    n = 0
+    while str = csock.gets
+        n += csock.write(str)
+    end
+    Process.wait
+        printf "server processed %d bytes\n", n
+    else
+    # child is client
+    echo_client(n, port)
+    end
+end
+
+echo_server(Integer(ARGV.shift || 1))
+EOF
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 19.
+if test $start_test_number -le 19; then
+
+######################################################
+rep=`expr $factor '*' 7`
+Announce_Test "+++++ Test #19: Hashes, Part II (N=$rep):  +++++"
+
+cat <<'EOF' >$ftest
+var i, n = int (argv[0]);
+var hash1 = tab [];
+
+for (i = 0; i < 10000; i++)
+  hash1 [vec (i, "foo_%d")] = i;
+
+var k, v, hash2 = tab [];
+for (k: hash1)
+  hash2 [k] = 0;
+for (i = 0 ; i < n; i++)
+  for (k, v: hash1)
+    hash2 [k] += v;
+
+putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+EOF
+title=
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$DINO_ONLY != x; then
+  Announce_Test "+++++           JIT variant:"
+fi
+cat <<'EOF' >$ftest
+fun main !jit {
+  var i, n = int (argv[0]);
+  var hash1 = tab [];
+
+  for (i = 0; i < 10000; i++)
+    hash1 [vec (i, "foo_%d")] = i;
+
+  var k, v, hash2 = tab [];
+  for (k: hash1)
+    hash2 [k] = 0;
+  for (i = 0 ; i < n; i++)
+    for (k, v: hash1)
+      hash2 [k] += v;
+
+  putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+         hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+}
+main ();
+EOF
+title=" (JIT variant)"
+if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+
+if test x$PERL != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Steve Fink
+
+use strict;
+
+my $n = ($ARGV[0] > 0) ? $ARGV[0] : 1;
+my %hash1 = ();
+$hash1{"foo_$_"} = $_ for 0..9999;
+my %hash2 = ();
+my($k, $v);
+for (1..$n) {
+    $hash2{$_} += $hash1{$_} while (defined ($_ = each %hash1));
+}
+print "$hash1{foo_1} $hash1{foo_9999} $hash2{foo_1} $hash2{foo_9999}\n";
+EOF
+  title=PERL
+  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$PYTHON != x || test x$PYPY != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Mark Baker
+
+import sys
+
+n = int(sys.argv[1])
+hash1 = {}
+for i in xrange(10000):
+    hash1['foo_' + `i`] = i
+
+hash2 = {}
+for i in xrange(n):
+    for k in hash1.keys():
+        try:
+            hash2[k] = hash2[k] + hash1[k]
+        except KeyError:
+            hash2[k] = hash1[k]
+
+print hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999']
+EOF
+  if test x$PYTHON != x; then
+    title=PYTHON
+      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+
+  if test x$PYPY != x; then
+    title=PYPY
+      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+fi
+
+if test x$PYTHON3 != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# from Mark Baker
+
+import sys
+
+n = int(sys.argv[1])
+hash1 = {}
+for i in range(10000):
+    hash1['foo_' + repr(i)] = i
+
+hash2 = {}
+for i in range(n):
+    for k in list(hash1.keys()):
+        try:
+            hash2[k] = hash2[k] + hash1[k]
+        except KeyError:
+            hash2[k] = hash1[k]
+
+print(hash1['foo_1'], hash1['foo_9999'], hash2['foo_1'], hash2['foo_9999'])
+EOF
+  title=PYTHON3
+  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$TCLSH != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+# with help from Branko Vesligaj
+
+proc main {} {
+    global argv
+    set n [lindex $argv 0]
+    for {set i 0} {$i < 10000} {incr i} {
+        set hash1(foo_$i) $i
+    }
+    for {set i $n} {$i > 0} {incr i -1} {
+        foreach k [array names hash1] {
+            if {[catch {set hash2($k) [expr {$hash1($k) + $hash2($k)}]}]} {
+                set hash2($k) $hash1($k)
+            }
+        }
+    }
+    puts [join [list $hash1(foo_1) $hash1(foo_9999) $hash2(foo_1) $hash2(foo_9999) ] " "]
+}
+
+main
+EOF
+  title=TCL
+  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$AWK != x; then
+  cat <<'EOF' >$ftest
+# http://www.bagley.org/~doug/shootout/
+
+BEGIN {
+    n = (ARGV[1] < 1) ? 1 : ARGV[1];
+
+    for (i=0; i<10000; i++)
+        hash1[sprintf("foo_%d", i)] = i
+    for (i=0; i<n; i++)
+        for (k in hash1)
+            hash2[k] += hash1[k]
+    print hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
+}
+EOF
+  title=AWK
+  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$LUA != x; then
+  cat <<'EOF' >$ftest
+
+
+-- $Id: hash2.lua,v 1.2 2001/01/11 14:52:55 doug Exp $
+-- http://www.bagley.org/~doug/shootout/
+-- contributed by Roberto Ierusalimschy
+
+local n = tonumber((arg and arg[1]) or 1)
+
+local hash1={}
+for i=1,10000 do
+    hash1["foo_"..i] = i
+end
+local hash2={}
+for i=1,n do
+  for k,v in pairs(hash1) do
+    hash2[k] = v + (hash2[k] or 0)
+  end
+end
+
+io.write(string.format("%d %d %d %d\n", hash1["foo_1"], hash1["foo_9999"],
+         hash2["foo_1"], hash2["foo_9999"]))
+EOF
+  title=LUA
+  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$RUBY != x; then
+  cat <<'EOF' >$ftest
+#!/usr/local/bin/ruby
+# -*- mode: ruby -*-
+# $Id: hash2.ruby,v 1.2 2001/05/16 16:17:08 doug Exp $
+# http://www.bagley.org/~doug/shootout/
+
+n = Integer(ARGV.shift || 1)
+
+hash1 = {}
+for i in 0 .. 9999
+    hash1["foo_" << i.to_s] = i
+end
+
+hash2 = Hash.new(0)
+n.times do
+    for k in hash1.keys
+    hash2[k] += hash1[k]
+    end
+end
+
+printf "%d %d %d %d\n",
+    hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
+EOF
+  title=RUBY
+  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$SCALA != x; then
+  cat <<'EOF' >$ftest
+val n = args(0).toInt;
+var hash1 = scala.collection.mutable.HashMap.empty[String, Int];
+
+for (i <- 0 to 10000 - 1)
+  hash1 += ("foo_" + i.toString -> i);
+
+var hash2 = scala.collection.mutable.HashMap.empty[String, Int];
+for (i <- 0 to n - 1)
+  hash1.foreach (p => if (hash2.contains (p._1))
+                      hash2(p._1) = hash2(p._1) + hash1(p._1)
+                      else hash2(p._1) = hash1(p._1))
+
+println (hash1 ("foo_1"), " ", hash1 ("foo_9999"), " ",
+         hash2 ("foo_1"), " ", hash2 ("foo_9999"));
+EOF
+  title=SCALA
+  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$JS != x; then
+  cat <<'EOF' >$ftest
+var i, n = arguments[0];
+var hash1 = new Array ();
+
+for (i = 0; i < 10000; i++)
+  hash1 ["foo_" + i] = i;
+
+var k, hash2 = new Array ();
+for (k in hash1)
+  hash2 [k] = 0;
+for (i = 0 ; i < n; i++)
+  for (k in hash1)
+    hash2 [k] += hash1 [k];
+
+print (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+       hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+EOF
+  title=JS
+  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  title="JS -j"
+  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var i, n = process.argv[2];
+var hash1 = new Array ();
+
+for (i = 0; i < 10000; i++)
+  hash1 ["foo_" + i] = i;
+
+var k, hash2 = new Array ();
+for (k in hash1)
+  hash2 [k] = 0;
+for (i = 0 ; i < n; i++)
+  for (k in hash1)
+    hash2 [k] += hash1 [k];
+
+console.log (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
+             hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$OCAML != x; then
+  cat <<'EOF' >$ftest
+(*
+ * $Id: hash2.ocaml,v 1.3 2001/01/08 13:21:09 doug Exp $
+ * http://www.bagley.org/~doug/shootout/
+ * with help from Markus Mottl
+ *)
+
+let _ =
+  let n =
+    try int_of_string Sys.argv.(1)
+    with Invalid_argument _ -> 1
+  and hash1 = Hashtbl.create 10000 in
+  for i = 0 to 9999 do
+    Hashtbl.add hash1 ("foo_" ^ string_of_int i) (ref i)
+  done;
+  let hash2 = Hashtbl.create 10000 in
+  let update_hash2 k v =
+    try
+      let valref = Hashtbl.find hash2 k in
+      valref := !valref + !v
+    with Not_found -> Hashtbl.add hash2 k (ref !v) in
+  for i = 1 to n do
+    Hashtbl.iter update_hash2 hash1
+  done;
+  Printf.printf "%d %d %d %d\n"
+    !(Hashtbl.find hash1 "foo_1")
+    !(Hashtbl.find hash1 "foo_9999")
+    !(Hashtbl.find hash2 "foo_1")
+    !(Hashtbl.find hash2 "foo_9999")
+EOF
+  title=OCAML
+  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+fi
+
+# Test 20.
+if test $start_test_number -le 20; then
 
 ######################################################
 rep=`expr $factor '*' 2`
-Announce_Test "+++++ Test #11: List Processing (N=$rep):  +++++"
+Announce_Test "+++++ Test #20: List Processing (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var SIZE = 10000;
@@ -4608,12 +8462,12 @@ fi
 
 fi
 
-# Test 12.
-if test $start_test_number -le 12; then
+# Test 21.
+if test $start_test_number -le 21; then
 
 ######################################################
 rep=`expr $factor '*' 5`
-Announce_Test "+++++ Test #12: Matrix Multiplication (N=30, Iter=$rep):  +++++"
+Announce_Test "+++++ Test #21: Matrix Multiplication (N=30, Iter=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var size = 30;
@@ -5190,6 +9044,57 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var size = 30;
+
+function mkmatrix (rows, cols) {
+  var i, j, count = 1;
+  var tm, mx = new Array ();
+
+  for (i = 0; i < rows; i++) {
+    mx [i] = new Array ();
+    tm = mx [i];
+    for (j = 0; j < cols; j++) {
+      tm [j] = count;
+      count++;
+    }
+  }
+  return mx;
+}
+
+function mmult (rows, cols, m1, m2) {
+  var i, j, k, sum, tm, m3 = new Array ();
+
+  for (i = 0; i < rows; i++) {
+    m3 [i] = new Array ();
+    for (j = 0; j < cols; j++) {
+       sum = 0;
+       tm = m1 [i];
+       for (k = 0; k < cols; k++)
+         sum += tm [k] * m2 [k][j];
+       m3 [i][j] = sum;
+    }
+  }
+  return m3;
+}
+
+function main (iter) {
+  var m1, m2, mm;
+  var i;
+
+  m1 = mkmatrix (size, size);
+  m2 = mkmatrix (size, size);
+  for (i = 0; i < iter; i++)
+     mm = mmult (size, size, m1, m2);
+  console.log (mm [0][0], mm [2][3], mm [3][2], mm [4][4]);
+}
+main (process.argv[2] < 1 ? 1 : process.argv[2]);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
@@ -5246,556 +9151,12 @@ fi
 
 fi
 
-# Test 13.
-if test $start_test_number -le 13; then
-
-######################################################
-rep=`expr $factor '*' 15000`
-Announce_Test "+++++ Test #13: Method Calls (N=$rep):  +++++"
-
-cat <<'EOF' >$ftest
-class Toggle (start_state) {
-  var bool;
-  fun init {bool = start_state;}
-  fun value { return bool; }
-  fun activate { bool = !bool; }
-  init ();
-}
-
-class NthToggle (start_state, max_counter) {
-  use Toggle former start_state later activate;
-  init ();
-  var count_max = max_counter;
-  var counter = 0;
-  fun activate {
-    counter++;
-    if (counter >= count_max) {
-      bool = !bool;
-      counter = 0;
-    }
-  }
-}
-
-fun main {
-  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
-  var i, v = 1;
-
-  var toggle = Toggle (v);
-  for (i = 1; i <= NUM; i++) {
-    toggle.activate ();
-    v = toggle.value ();
-  }
-  putln (v ? "true" : "false");
-
-  v = 1;
-  var ntoggle = NthToggle (v, 3);
-  for (i = 1; i <= NUM; i++) {
-    ntoggle.activate ();
-    v = ntoggle.value ();
-  }
-  putln (v ? "true" : "false");
-}
-
-main();
-EOF
-title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
-cat <<'EOF' >$ftest
-class Toggle (start_state) {
-  var bool;
-  fun init {bool = start_state;}
-  fun value !jit { return bool; }
-  fun activate !jit { bool = !bool; }
-  init ();
-}
-
-class NthToggle (start_state, max_counter) {
-  use Toggle former start_state later activate;
-  init ();
-  var count_max = max_counter;
-  var counter = 0;
-  fun activate !jit {
-    counter++;
-    if (counter >= count_max) {
-      bool = !bool;
-      counter = 0;
-    }
-  }
-}
-
-fun main !jit {
-  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
-  var i, v = 1;
-
-  var toggle = Toggle (v);
-  for (i = 1; i <= NUM; i++) {
-    toggle.activate ();
-    v = toggle.value ();
-  }
-  putln (v ? "true" : "false");
-
-  v = 1;
-  var ntoggle = NthToggle (v, 3);
-  for (i = 1; i <= NUM; i++) {
-    ntoggle.activate ();
-    v = ntoggle.value ();
-  }
-  putln (v ? "true" : "false");
-}
-
-main();
-EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Ben Tilly
-
-package Toggle;
-
-sub new {
-    my($class, $start_state) = @_;
-    bless( { Bool => $start_state }, $class );
-}
-
-sub value {
-    (shift)->{Bool};
-}
-
-sub activate {
-    my $self = shift;
-    $self->{Bool} ^= 1;
-    return($self);
-}
-
-
-package NthToggle;
-our @ISA = qw(Toggle);
-
-sub new {
-    my($class, $start_state, $max_counter) = @_;
-    my $self = $class->SUPER::new($start_state);
-    $self->{CountMax} = $max_counter;
-    $self->{Counter} = 0;
-    return($self);
-}
-
-sub activate {
-    my $self = shift;
-    if (++$self->{Counter} >= $self->{CountMax}) {
-        $self->{Bool} ^= 1;
-        $self->{Counter} = 0;
-    }
-    return($self);
-}
-
-
-package main;
-
-sub main {
-    my $NUM = $ARGV[0];
-    $NUM = 1 if ($NUM < 1);
-
-    my $val = 1;
-    my $toggle = Toggle->new($val);
-    for (1..$NUM) {
-        $val = $toggle->activate->value;
-    }
-    print (($val) ? "true\n" : "false\n");
-
-    $val = 1;
-    my $ntoggle = NthToggle->new($val, 3);
-    for (1..$NUM) {
-        $val = $ntoggle->activate->value;
-    }
-    print (($val) ? "true\n" : "false\n");
-}
-
-main();
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-import sys
-
-class Toggle:
-    def __init__(self, start_state):
-        self.bool = start_state
-    def value(self):
-        return(self.bool)
-    def activate(self):
-        self.bool = not self.bool
-        return(self)
-
-class NthToggle(Toggle):
-    def __init__(self, start_state, max_counter):
-        Toggle.__init__(self, start_state)
-        self.count_max = max_counter
-        self.counter = 0
-    def activate(self):
-        self.counter = self.counter + 1
-        if (self.counter >= self.count_max):
-            self.bool = not self.bool
-            self.counter = 0
-        return(self)
-
-
-def main():
-    NUM = int(sys.argv[1])
-    if NUM < 1:
-        NUM = 1
-
-    val = 1
-    toggle = Toggle(val)
-    for i in xrange(0,NUM):
-        val = toggle.activate().value()
-    if val:
-        print "true"
-    else:
-        print "false"
-
-    val = 1
-    ntoggle = NthToggle(val, 3)
-    for i in xrange(0,NUM):
-        val = ntoggle.activate().value()
-    if val:
-        print "true"
-    else:
-        print "false"
-
-main()
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-import sys
-
-class Toggle:
-    def __init__(self, start_state):
-        self.bool = start_state
-    def value(self):
-        return(self.bool)
-    def activate(self):
-        self.bool = not self.bool
-        return(self)
-
-class NthToggle(Toggle):
-    def __init__(self, start_state, max_counter):
-        Toggle.__init__(self, start_state)
-        self.count_max = max_counter
-        self.counter = 0
-    def activate(self):
-        self.counter = self.counter + 1
-        if (self.counter >= self.count_max):
-            self.bool = not self.bool
-            self.counter = 0
-        return(self)
-
-
-def main():
-    NUM = int(sys.argv[1])
-    if NUM < 1:
-        NUM = 1
-
-    val = 1
-    toggle = Toggle(val)
-    for i in range(0,NUM):
-        val = toggle.activate().value()
-    if val:
-        print ("true")
-    else:
-        print ("false")
-
-    val = 1
-    ntoggle = NthToggle(val, 3)
-    for i in range(0,NUM):
-        val = ntoggle.activate().value()
-    if val:
-        print ("true")
-    else:
-        print ("false")
-
-main()
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
-
-
--- $Id: methcall.lua,v 1.2 2000/12/24 22:04:51 doug Exp $
--- http://www.bagley.org/~doug/shootout/
--- contributed by Roberto Ierusalimschy
-
---------------------------------------------------------------
--- Toggle class
---------------------------------------------------------------
-
-Toggle = {}
-
-function Toggle:value ()
-  return self.state
-end
-
-function Toggle:activate ()
-  self.state = not self.state
-  return self
-end
-
-function Toggle:new (start_state)
-  local o = {state = start_state}
-  self.__index =self
-  setmetatable(o, self)
-  return o
-end
-
-
---------------------------------------------------------------
--- NthToggle class
---------------------------------------------------------------
-
-NthToggle = Toggle:new()
-
-function NthToggle:activate ()
-  self.counter = self.counter + 1
-  if self.counter >= self.count_max then
-    self.state = not self.state
-    self.counter = 0
-  end
-  return self
-end
-
-function NthToggle:new (start_state, max_counter)
-  local o = Toggle.new(self, start_state)
-  o.count_max = max_counter
-  o.counter = 0
-  return o
-end
-
-
------------------------------------------------------------
--- main
------------------------------------------------------------
-
-function main ()
-  local N = tonumber((arg and arg[1])) or 1
-
-  local val = 1
-  local toggle = Toggle:new(val)
-  for i=1,N do
-    val = toggle:activate():value()
-  end
-  print(val and "true" or "false")
-    
-  val = 1
-  local ntoggle = NthToggle:new(val, 3)
-  for i=1,N do
-    val = ntoggle:activate():value()
-  end
-  print(val and "true" or "false")
-end
-
-main()
-
-EOF
-  title=LUA
-  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: methcall.ruby,v 1.2 2000/12/24 22:04:51 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-
-class Toggle
-    def initialize(start_state)
-    @bool = start_state
-    self
-    end
-    def value()
-    @bool
-    end
-    def activate()
-    @bool = !@bool
-    self
-    end
-end
-
-class NthToggle < Toggle
-    def initialize(start_state, max_counter)
-    super(start_state)
-    @count_max = max_counter
-    @counter = 0
-    self
-    end
-    def activate()
-    @counter += 1
-    if (@counter >= @count_max) then
-        @bool = !@bool
-        @counter = 0
-    end
-    self
-    end
-end
-
-def main()
-    n = Integer(ARGV.shift || 1)
-
-    val = 1
-    toggle = Toggle.new(val)
-    n.times do
-    val = toggle.activate().value()
-    end
-    if val then puts "true" else puts "false" end
-
-    val = 1
-    ntoggle = NthToggle.new(val, 3)
-    n.times do
-    val = ntoggle.activate().value()
-    end
-    if val then puts "true" else puts "false" end
-end
-
-main()
-EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-class Toggle (start_state: Boolean) {
-  var bool = start_state
-  def value () = bool
-  def activate () = {bool = !bool }
-}
-
-class NthToggle (start_state: Boolean, max_counter: Int) extends Toggle (start_state) {
-    var count_max = max_counter
-    var counter = 0
-    override def activate () = {
-      counter += 1
-      if (counter >= count_max) {
-        bool = !bool
-        counter = 0
-      }
-    }
-}
-
-def main () {
-  val NUM = args(0).toInt
-  var v = true
-
-  val toggle = new Toggle (v)
-  for (i <- 1 to NUM) {
-    toggle.activate ()
-    v = toggle.value ()
-  }
-  println (if (v) "true" else "false")
-
-  v = true
-  var ntoggle = new NthToggle (v, 3)
-  for (i <- 1 to NUM) {
-    ntoggle.activate ()
-    v = ntoggle.value ()
-  }
-  println (if (v) "true" else "false")
-}
-
-main()
-EOF
-  title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-(*
- * $Id: methcall.ocaml,v 1.6 2001/01/08 03:08:35 doug Exp $
- * http://www.bagley.org/~doug/shootout/
- * from: Benedikt Rosenau
- * with contributions from Markus Mottl
- *)
-
-let print_bool b = print_endline (string_of_bool b)
-
-class toggle start_state = object (self)
-  val mutable state = start_state
-
-  method value = state
-  method activate = state <- not state; self
-end
-
-class nth_toggle start_state max_counter = object (self)
-  inherit toggle start_state
-
-  val count_max = max_counter
-  val mutable counter = 0
-
-  method activate =
-    counter <- counter + 1;
-    if counter >= count_max
-    then begin
-      state <- not state;
-      counter <- 0
-    end;
-    self
-end
-
-let _ =
-  let n =
-    try int_of_string Sys.argv.(1)
-    with Invalid_argument _ -> 1 in
-  let tog = new toggle true in
-  for i = 2 to n do
-    ignore tog#activate#value
-  done;
-  print_bool tog#activate#value;
-  let ntog = new nth_toggle true 3 in
-  for i = 2 to n do
-    ignore ntog#activate#value
-  done;
-  print_bool ntog#activate#value
-EOF
-  title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 14.
-if test $start_test_number -le 14; then
+# Test 22.
+if test $start_test_number -le 22; then
 
 ######################################################
 if test $factor -eq 1; then rep=12;elif test $factor -eq 10; then rep=16;else rep=20;fi
-Announce_Test "+++++ Test #14: Nested Loops (N=$rep):  +++++"
+Announce_Test "+++++ Test #22: Nested Loops (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var n = argv [0] < 1 ? 1 : int (argv[0]);
@@ -6087,6 +9448,24 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var n = process.argv[2] < 1 ? 1 : process.argv[2];
+var a, b, c, d, e, f, x = 0;
+
+for (a = 0; a < n; a++)
+  for (b = 0; b < n; b++)
+    for (c = 0; c < n; c++)
+      for (d = 0; d < n; d++)
+        for (e = 0; e < n; e++)
+          for (f = 0; f < n; f++)
+            x++;
+console.log (x);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
@@ -6113,1178 +9492,12 @@ fi
 
 fi
 
-# Test 15.
-if test $start_test_number -le 15; then
-
-######################################################
-rep=`expr $factor '*' 20000`
-Announce_Test "+++++ Test #15: Object Instantiation (N=$rep):  +++++"
-
-cat <<'EOF' >$ftest
-class Toggle (start_state) {
-  var bool;
-  fun init {bool = start_state;}
-  fun value { return bool; }
-  fun activate { bool = !bool; }
-  init ();
-}
-
-class NthToggle (start_state, max_counter) {
-  use Toggle former start_state later activate;
-  init ();
-  var count_max = max_counter;
-  var counter = 0;
-  fun activate {
-    counter++;
-    if (counter >= count_max) {
-      bool = !bool;
-      counter = 0;
-    }
-  }
-}
-
-fun main {
-  var NUM = argv [0] < 1 ? 1 : int (argv [0]);
-  var i;
-
-  var toggle = Toggle (1);
-  for (i = 1; i <= 5; i++) {
-    toggle.activate ();
-    putln (toggle.value () ? "true" : "false");
-  }
-  for (i = 1; i <= NUM; i++)
-   toggle = Toggle (1);
-
-  putln ();
-
-  var ntoggle = NthToggle (1, 3);
-  for (i = 1; i <= 8; i++) {
-    ntoggle.activate ();
-    putln (ntoggle.value () ? "true" : "false");
-  }
-  for (i = 1; i <= NUM; i++)
-    ntoggle = NthToggle (1, 3);
-}
-
-main();
-EOF
-title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-use strict;
-
-
-package Toggle;
-
-sub new {
-    my($class, $start_state) = @_;
-    bless( { Bool => $start_state }, $class );
-}
-
-sub value {
-    my $self = shift;
-    return($self->{Bool});
-}
-
-sub activate {
-    my $self = shift;
-    $self->{Bool} ^= 1;
-    return($self);
-}
-
-
-package NthToggle;
-@NthToggle::ISA = qw(Toggle);
-
-sub new {
-    my($class, $start_state, $max_counter) = @_;
-    my $self = $class->SUPER::new($start_state);
-    $self->{CountMax} = $max_counter;
-    $self->{Counter} = 0;
-    return($self);
-}
-
-sub activate {
-    my $self = shift;
-    if (++$self->{Counter} >= $self->{CountMax}) {
-        $self->{Bool} ^= 1;
-        $self->{Counter} = 0;
-    }
-    return($self);
-}
-
-
-package main;
-
-sub main {
-    my $NUM = ($ARGV[0] > 0) ? $ARGV[0] : 1;
-
-    my $toggle = Toggle->new(1);
-    for (1..5) {
-        print (($toggle->activate->value) ? "true\n" : "false\n");
-    }
-    for (1..$NUM) {
-        $toggle = Toggle->new(1);
-    }
-
-    print "\n";
-
-    my $ntoggle = NthToggle->new(1, 3);
-    for (1..8) {
-        print (($ntoggle->activate->value) ? "true\n" : "false\n");
-    }
-    for (1..$NUM) {
-        $ntoggle = NthToggle->new(1, 3);
-    }
-}
-
-main();
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-import sys
-
-class Toggle:
-    def __init__(self, start_state):
-        self.bool = start_state
-    def value(self):
-        return(self.bool)
-    def activate(self):
-        self.bool = not self.bool
-        return(self)
-
-class NthToggle(Toggle):
-    def __init__(self, start_state, max_counter):
-        Toggle.__init__(self, start_state)
-        self.count_max = max_counter
-        self.counter = 0
-    def activate(self):
-        self.counter = self.counter + 1
-        if (self.counter >= self.count_max):
-            self.bool = not self.bool
-            self.counter = 0
-        return(self)
-
-
-def main():
-    NUM = int(sys.argv[1])
-    if NUM < 1:
-        NUM = 1
-
-    toggle = Toggle(1)
-    for i in xrange(0,5):
-        if toggle.activate().value():
-            print "true"
-        else:
-            print "false"
-    for i in xrange(0,NUM):
-        toggle = Toggle(1)
-
-    print ""
-
-    ntoggle = NthToggle(1, 3)
-    for i in xrange(0,8):
-        if ntoggle.activate().value():
-            print "true"
-        else:
-            print "false"
-    for i in xrange(0,NUM):
-        ntoggle = NthToggle(1, 3)
-
-main()
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-import sys
-
-class Toggle:
-    def __init__(self, start_state):
-        self.bool = start_state
-    def value(self):
-        return(self.bool)
-    def activate(self):
-        self.bool = not self.bool
-        return(self)
-
-class NthToggle(Toggle):
-    def __init__(self, start_state, max_counter):
-        Toggle.__init__(self, start_state)
-        self.count_max = max_counter
-        self.counter = 0
-    def activate(self):
-        self.counter = self.counter + 1
-        if (self.counter >= self.count_max):
-            self.bool = not self.bool
-            self.counter = 0
-        return(self)
-
-
-def main():
-    NUM = int(sys.argv[1])
-    if NUM < 1:
-        NUM = 1
-
-    toggle = Toggle(1)
-    for i in range(0,5):
-        if toggle.activate().value():
-            print("true")
-        else:
-            print("false")
-    for i in range(0,NUM):
-        toggle = Toggle(1)
-
-    print("")
-
-    ntoggle = NthToggle(1, 3)
-    for i in range(0,8):
-        if ntoggle.activate().value():
-            print("true")
-        else:
-            print("false")
-    for i in range(0,NUM):
-        ntoggle = NthToggle(1, 3)
-
-main()
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
--- $Id: objinst.lua,v 1.3 2001/07/11 17:18:08 doug Exp $
--- http://www.bagley.org/~doug/shootout/
--- contributed by Roberto Ierusalimschy
-
-
-
---------------------------------------------------------------
--- Toggle class
---------------------------------------------------------------
-
-Toggle = {}
-
-function Toggle:value ()
-  return self.state
-end
-
-function Toggle:activate ()
-  self.state = not self.state
-  return self
-end
-
-function Toggle:new (start_state)
-  local o = {state = start_state}
-  self.__index = self
-  setmetatable(o, self)
-  return o
-end
-
-
---------------------------------------------------------------
--- NthToggle class
---------------------------------------------------------------
-
-NthToggle = Toggle:new()
-
-function NthToggle:activate ()
-  self.counter = self.counter + 1
-  if self.counter >= self.count_max then
-    self.state = not self.state
-    self.counter = 0
-  end
-  return self
-end
-
-function NthToggle:new (start_state, max_counter)
-  local o = Toggle.new(self, start_state)
-  o.count_max = max_counter
-  o.counter = 0
-  return o
-end
-
-
------------------------------------------------------------
--- main
------------------------------------------------------------
-
-function main ()
-    local N = tonumber((arg and arg[1])) or 1
-    local toggle = Toggle:new(1)
-    for i=1,5 do
-      toggle:activate()
-      print(toggle:value() and "true" or "false")
-    end
-    for i=1,N do
-      toggle = Toggle:new(1)
-    end
-
-    print("")
-
-    local ntoggle = NthToggle:new(1, 3)
-    for i=1,8 do
-      ntoggle:activate()
-      print(toggle:value() and "true" or "false")
-    end
-    for i=1,N do
-      ntoggle = NthToggle:new(1, 3)
-    end
-end
-
-main()
-EOF
-  title=LUA
-  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: objinst.ruby,v 1.2 2000/12/24 22:04:57 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-
-class Toggle
-    def initialize(start_state)
-    @bool = start_state
-    self
-    end
-    def value()
-    @bool
-    end
-    def activate()
-    @bool = !@bool
-    self
-    end
-end
-
-class NthToggle < Toggle
-    def initialize(start_state, max_counter)
-    super(start_state)
-    @count_max = max_counter
-    @counter = 0
-    self
-    end
-    def activate()
-    @counter += 1
-    if (@counter >= @count_max) then
-        @bool = !@bool
-        @counter = 0
-    end
-    self
-    end
-end
-
-def main()
-    n = Integer(ARGV.shift || 1)
-
-    toggle = Toggle.new(1)
-    5.times do
-    if toggle.activate().value() then puts "true" else puts "false" end
-    end
-    n.times do
-    toggle = Toggle.new(1)
-    end
-
-    puts
-
-    ntoggle = NthToggle.new(1, 3)
-    8.times do
-    if ntoggle.activate().value() then puts "true" else puts "false" end
-    end
-    n.times do
-    ntoggle = NthToggle.new(1, 3)
-    end
-end
-
-main()
-EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-class Toggle (start_state: Boolean) {
-  var bool = start_state
-  def value () = bool
-  def activate () = {bool = !bool }
-}
-
-class NthToggle (start_state: Boolean, max_counter: Int) extends Toggle (start_state) {
-    var count_max = max_counter
-    var counter = 0
-    override def activate () = {
-      counter += 1
-      if (counter >= count_max) {
-        bool = !bool
-        counter = 0
-      }
-    }
-}
-
-def main () {
-  val NUM = args(0).toInt
-
-  var toggle = new Toggle (true)
-  for (i <- 1 to 5) {
-    toggle.activate ()
-    println (if (toggle.value ()) "true" else "false")
-  }
-  for (i <- 1 to NUM)
-   toggle = new Toggle (true);
-
-  println ()
-
-  var ntoggle = new NthToggle (true, 3)
-  for (i <- 1 to 8) {
-    ntoggle.activate ()
-    println (if (ntoggle.value ()) "true" else "false")
-  }
-  for (i <- 1 to NUM)
-    ntoggle = new NthToggle (true, 3);
-}
-
-main()
-EOF
-  title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-(*
- * $Id: objinst.ocaml,v 1.8 2001/07/28 21:52:59 doug Exp $
- * http://www.bagley.org/~doug/shootout/
- * from: Benedikt Rosenau
- * with contributions from Markus Mottl
- *)
-
-class toggle start_state = object (self)
-  val mutable state = start_state
-
-  method value = state
-  method activate = state <- not state; self
-end
-
-class nth_toggle start_state max_counter = object (self)
-  inherit toggle start_state
-
-  val count_max = max_counter
-  val mutable counter = 0
-
-  method activate =
-    counter <- counter + 1;
-    if counter >= count_max then begin
-      state <- not state;
-      counter <- 0
-    end;
-    self
-end
-
-let n = if Array.length Sys.argv > 1 then int_of_string Sys.argv.(1) else 1
-let tog = new toggle true;;
-for i = 1 to 5 do Printf.printf "%b\n" tog#activate#value done;
-for i = 1 to n do ignore (new toggle true) done;
-print_newline ();
-let ntog = new nth_toggle true 3 in
-for i = 1 to 8 do Printf.printf "%b\n" ntog#activate#value done;
-for i = 1 to n do ignore (new nth_toggle true 3) done
-EOF
-  title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 16.
-if test $start_test_number -le 16; then
-
-######################################################
-rep=`expr $factor '*' 3000`
-Announce_Test "+++++ Test #16: Producer/Consumer Threads (N=$rep):  +++++"
-
-cat <<'EOF' >$ftest
-var count = 0;
-var consumed = 0;
-var produced = 0;
-var data = 0;
-var consumer_finish = 0, producer_finish = 0;
-
-thread consumer (n) {
-  var i;
-
-  for (;;) {
-    wait (count != 0);
-    i = data;
-    wait (1) count = 0;
-    consumed++;
-    if (i == n - 1)
-      break;
-  }
-  consumer_finish = 1;
-}
-
-thread producer (n) {
-  var i;
-
-  for (i = 0; i < n; i++) {
-    wait (count == 0);
-    data = i;
-    wait (1) count = 1;
-    produced++;
-  }
-  producer_finish = 1;
-}
-
-fun main (n) {
-    producer (n);
-    consumer (n);
-    wait (consumer_finish && producer_finish);
-    putln (produced, ' ', consumed);
-}
-    
-main (argv [0] < 1 ? 1 : int (argv [0]));
-EOF
-title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/test/bin/perl
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-use strict;
-use Thread qw(cond_wait cond_signal);
-
-my $count = 0;
-my $data = 0;
-my $produced = 0;
-my $consumed = 0;
-
-sub consumer {
-    my $n = shift;
-    while (1) {
-        lock($count);
-        cond_wait($count) while ($count == 0);
-        my $i = $data;
-        $count = 0;
-        $consumed++;
-        last if ($i == $n);
-        cond_signal($count);
-    }
-}
-
-sub producer {
-    my $n = shift;
-    for (my $i=1; $i<=$n; $i++) {
-        lock($count);
-        cond_wait($count) while ($count == 1);
-        $data = $i;
-        $count = 1;
-        $produced++;
-        cond_signal($count);
-    }
-}
-
-sub main {
-    my $n = ($ARGV[0] < 1) ? 1 : $ARGV[0];
-    my $p = Thread->new(\&producer, $n);
-    my $c = Thread->new(\&consumer, $n);
-    $p->join;
-    $c->join;
-    print "$produced $consumed\n";
-}
-
-&main();
-EOF
-
-echo Perl threads are not implemented on all systems.
-
-#  title=PERL
-##  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/python
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-import sys
-from threading import * 
-
-access = Condition()
-count = 0
-consumed = 0
-produced = 0
-data = 0
-
-def consumer(n):
-    global count, data, consumed
-    while 1:
-        access.acquire()
-        while count == 0:
-            access.wait()
-        i = data
-        count = 0
-        access.notify()
-        access.release()
-        consumed += 1
-        if i == n:
-            break
-
-def producer(n):
-    global count, data, produced
-    for i in xrange(1,n+1):
-        access.acquire()
-        while count == 1:
-            access.wait()
-        data = i
-        count = 1
-        access.notify()
-        access.release()
-        produced += 1
-
-def main(n):
-    t1 = Thread(target=producer, args=(n,))
-    t2 = Thread(target=consumer, args=(n,))
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
-    print produced, consumed
-    
-main(int(sys.argv[1]))
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/python3
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-import sys
-from threading import * 
-
-access = Condition()
-count = 0
-consumed = 0
-produced = 0
-data = 0
-
-def consumer(n):
-    global count, data, consumed
-    while 1:
-        access.acquire()
-        while count == 0:
-            access.wait()
-        i = data
-        count = 0
-        access.notify()
-        access.release()
-        consumed += 1
-        if i == n:
-            break
-
-def producer(n):
-    global count, data, produced
-    for i in range(1,n+1):
-        access.acquire()
-        while count == 1:
-            access.wait()
-        data = i
-        count = 1
-        access.notify()
-        access.release()
-        produced += 1
-
-def main(n):
-    t1 = Thread(target=producer, args=(n,))
-    t2 = Thread(target=consumer, args=(n,))
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
-    print (produced, consumed)
-    
-main(int(sys.argv[1]))
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: prodcons.ruby,v 1.2 2000/12/20 04:33:20 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-
-require 'thread'
-
-def main(n)
-    mutex = Mutex.new
-    access = ConditionVariable.new
-    count = data = consumed = produced = 0
-    consumer = Thread.new do
-    i = 0
-    loop do
-        mutex.synchronize {
-        while count == 0 do access.wait(mutex) end
-        i = data
-        count = 0
-        access.signal
-        }
-        consumed += 1
-        if i == n then break end
-    end
-    end
-    producer = Thread.new do
-    for i in 1 .. n do
-        mutex.synchronize {
-        while count == 1 do access.wait(mutex) end
-        data = i
-        count = 1
-        access.signal
-        }
-        produced += 1
-    end
-    end
-    producer.join
-    consumer.join
-    puts "#{produced} #{consumed}"
-end
-
-main(Integer(ARGV.shift || 1))
-EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 17.
-if test $start_test_number -le 17; then
-
-######################################################
-rep=`expr $factor '*' 400000`
-Announce_Test "+++++ Test #17: Random Number Generator (N=$rep):  +++++"
-
-cat <<'EOF' >$ftest
-var IM = 139968;
-var IA = 3877;
-var IC = 29573;
-var LAST = 42;
-
-fun gen_random (max) {
-  LAST = (LAST * IA + IC) % IM;
-  max * LAST / IM;
-}
-
-var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
-for (i = 0; i < n; i++)
-  gen_random (100.);
-putln (vec (gen_random (100.0), "%.9f"));
-EOF
-title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
-cat <<'EOF' >$ftest
-var IM = 139968;
-var IA = 3877;
-var IC = 29573;
-var LAST = 42;
-
-fun gen_random (max) !jit {
-  LAST = (LAST * IA + IC) % IM;
-  max * LAST / IM;
-}
-
-var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
-for (i = 0; i < n; i++)
-  gen_random (100.);
-putln (vec (gen_random (100.0), "%.9f"));
-EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Inline variant:"
-fi
-cat <<'EOF' >$ftest
-var IM = 139968;
-var IA = 3877;
-var IC = 29573;
-var LAST = 42;
-
-fun gen_random (max) !inline {
-  LAST = (LAST * IA + IC) % IM;
-  max * LAST / IM;
-}
-
-var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
-for (i = 0; i < n; i++)
-  gen_random (100.);
-putln (vec (gen_random (100.0), "%.9f"));
-EOF
-title=" (Inline variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Inline+JIT variant:"
-fi
-cat <<'EOF' >$ftest
-var IM = 139968;
-var IA = 3877;
-var IC = 29573;
-var LAST = 42;
-
-fun gen_random (max) !inline {
-  LAST = (LAST * IA + IC) % IM;
-  max * LAST / IM;
-}
-
-fun main !jit {
-  var i, n = (argv [0] < 1 ? 1 : argv [0]) - 1;
-  for (i = 0; i < n; i++)
-    gen_random (100.);
-  putln (vec (gen_random (100.0), "%.9f"));
-}
-main ();
-EOF
-title=" (Inline+JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-use strict;
-
-use constant IM => 139968;
-use constant IA => 3877;
-use constant IC => 29573;
-
-my $LAST = 42;
-sub gen_random { ($_[0] * ($LAST = ($LAST * IA + IC) % IM)) / IM }
-
-my $N = ($ARGV[0] || 1) - 1;
-gen_random(100.0) while ($N--);
-printf "%.9f\n", gen_random(100.0);
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Brent Burley
-
-import sys
-
-IM = 139968
-IA = 3877
-IC = 29573
-
-LAST = 42
-def gen_random(max):
-    global LAST
-    LAST = (LAST * IA + IC) % IM
-    return( (max * LAST) / IM )
-
-def main():
-    N = int(sys.argv[1])
-    if N < 1:
-        N = 1
-    gr = gen_random
-    for i in xrange(1,N):
-        gr(100.0)
-    print "%.9f" % gr(100.0)
-
-main()
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# with help from Brent Burley
-
-import sys
-
-IM = 139968
-IA = 3877
-IC = 29573
-
-LAST = 42
-def gen_random(max):
-    global LAST
-    LAST = (LAST * IA + IC) % IM
-    return( (max * LAST) / IM )
-
-def main():
-    N = int(sys.argv[1])
-    if N < 1:
-        N = 1
-    gr = gen_random
-    for i in range(1,N):
-        gr(100.0)
-    print ("%.9f" % gr(100.0))
-
-main()
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-# from Miguel Sofer
-
-set IM 139968
-set IA   3877
-set IC  29573
-
-set last 42
-
-proc make_gen_random {} {
-    global IM IA IC
-    set params [list IM $IM IA $IA IC $IC]
-    set body [string map $params {
-        global last
-        expr {($max * [set last [expr {($last * IA + IC) % IM}]]) / IM}
-    }]
-    proc gen_random {max} $body
-}
-
-proc main {} {
-    global argv
-
-    set N [expr {[lindex $argv 0] - 1}]
-    make_gen_random
-
-    while {$N} {
-        gen_random 100.0
-        incr N -1
-    }
-
-    puts [format "%.9f" [gen_random 100.0]]
-}
-
-main
-EOF
-  title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$AWK != x; then
-  cat <<'EOF' >$ftest
-# http://www.bagley.org/~doug/shootout/
-
-function gen_random(max) { return( (max * (LAST = (LAST * IA + IC) % IM)) / IM ); }
-
-BEGIN {
-    IM = 139968;
-    IA = 3877;
-    IC = 29573;
-    LAST = 42;
-
-    n = ((ARGV[1] < 1) ? 1 : ARGV[1]) - 1;
-    while (n--) {
-        gen_random(100.);
-    }
-    printf("%.9f\n", gen_random(100.));
-    exit;
-}
-EOF
-  title=AWK
-  if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
--- $Id: random.lua,v 1.12 2001/05/08 01:36:50 doug Exp $
--- http://www.bagley.org/~doug/shootout/
--- contributed by Roberto Ierusalimschy
-
-local IM = 139968
-local IA = 3877
-local IC = 29573
-
-local LAST = 42
-local function gen_random(max)
-    LAST = (LAST * IA + IC) % IM
-    return( (max * LAST) / IM )
-end
-
-local N = tonumber((arg and arg[1])) or 1
-local result = 0
-for i=1, N do
-    result = gen_random(100.)
-end
-io.write(string.format("%.9f\n", result))
-EOF
-  title=LUA
-  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: random.ruby,v 1.13 2001/05/08 06:35:57 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-
-IM = 139968
-IA = 3877
-IC = 29573
-
-$last = 42.0
-def gen_random (max) (max * ($last = ($last * IA + IC) % IM)) / IM end
-
-N = Integer(ARGV.shift || 1)
-result = 0
-N.times do
-    result = gen_random(100.0)
-end
-printf "%.9f\n", result
-EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-val IM = 139968
-val IA = 3877
-val IC = 29573
-var LAST = 42
-
-def gen_random (max: Double): Double = {
-  LAST = (LAST * IA + IC) % IM
-  max * LAST / IM
-}
-
-val n = args(0).toInt
-for (i <- 1 to n)
-  gen_random (100.)
-println (gen_random (100.0))
-EOF
-  title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$JS != x; then
-  cat <<'EOF' >$ftest
-var IM = 139968;
-var IA = 3877;
-var IC = 29573;
-var LAST = 42;
-
-function gen_random (max) {
-  LAST = (LAST * IA + IC) % IM;
-  return max * LAST / IM;
-}
-
-var n = (arguments [0] < 1 ? 1 : arguments [0]) - 1;
-for (; n; n--)
-  gen_random (100.);
-print (gen_random (100.0).toFixed(9));
-EOF
-  title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-  title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-(*
- * $Id: random.ocaml,v 1.10 2001/07/26 01:33:45 doug Exp $
- * http://www.bagley.org/~doug/shootout/
- * with help from Markus Mottl
- *)
-
-let im = 139968
-let ia = 3877
-let ic = 29573
-let last_ref = ref 42
-
-let gen_random max =
-  let new_last = (!last_ref * ia + ic) mod im in
-  last_ref := new_last;
-  max *. float_of_int new_last /. float im
-
-let _ =
-  let n =
-    try int_of_string Sys.argv.(1)
-    with Invalid_argument _ -> 1 in
-  let rec loop i =
-    let r = gen_random 100.0 in
-    if i > 1 then loop (i-1) else r in
-  Printf.printf "%.9f\n" (loop n)
-EOF
-  title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 18.
-if test $start_test_number -le 18; then
+# Test 23.
+if test $start_test_number -le 23; then
 
 ######################################################
 rep=`expr $factor '*' 500`
-Announce_Test "+++++ Test #18: Regular Expression Matching (N=$rep):  +++++"
+Announce_Test "+++++ Test #23: Regular Expression Matching (N=$rep):  +++++"
 
 cat <<'EOF' >$input
 datafile for regex matching of phone numbers test
@@ -7679,12 +9892,12 @@ fi
 
 fi
 
-# Test 19.
-if test $start_test_number -le 19; then
+# Test 24.
+if test $start_test_number -le 24; then
 
 ######################################################
 rep=`expr $factor '*' 3`
-Announce_Test "+++++ Test #19: Reverse a File (N=$rep):  +++++"
+Announce_Test "+++++ Test #24: Reverse a File (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
 aback
@@ -18628,12 +20841,12 @@ fi
 
 fi
 
-# Test 20.
-if test $start_test_number -le 20; then
+# Test 25.
+if test $start_test_number -le 25; then
 
 ######################################################
-rep=`expr $factor '*' 20`
-Announce_Test "+++++ Test #20: Sieve of Eratosthenes (N=$rep):  +++++"
+rep=`expr $factor '*' 25`
+Announce_Test "+++++ Test #25: Sieve of Eratosthenes (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 fun main {
@@ -18965,6 +21178,30 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+function main (n) {
+  var i, k, count;
+  var flags = new Array ();
+  for (; n >= 0; n--) {
+    count = 0;
+    for (i = 0; i <= 8192; i++)
+      flags[i] = 1;
+    for (i = 2; i <= 8192; i++)
+      if (flags[i]) {
+          for (k = i + i; k <= 8192; k += i)
+            flags[k] = 0;
+          count++;
+      }
+  }
+  console.log ("Count: ", count);
+}
+main (process.argv[2] < 1 ? 1 : process.argv[2]);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 (*
@@ -19006,12 +21243,12 @@ fi
 
 fi
 
-# Test 21.
-if test $start_test_number -le 21; then
+# Test 26.
+if test $start_test_number -le 26; then
 
 ######################################################
 rep=`expr $factor '*' 2`
-Announce_Test "+++++ Test #21: Spell Checker (N=$rep):  +++++"
+Announce_Test "+++++ Test #26: Spell Checker (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
 aback
@@ -96513,1096 +98750,12 @@ fi
 
 fi
 
-# Test 22.
-if test $start_test_number -le 22; then
-
-######################################################
-rep=`expr $factor '*' 20`
-Announce_Test "+++++ Test #22: Statistical Moments (N=$rep):  +++++"
-
-cat <<'EOF' >$temp
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179
-180
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190
-191
-192
-193
-194
-195
-196
-197
-198
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-224
-225
-226
-227
-228
-229
-230
-231
-232
-233
-234
-235
-236
-237
-238
-239
-240
-241
-242
-243
-244
-245
-246
-247
-248
-249
-250
-251
-252
-253
-254
-255
-256
-257
-258
-259
-260
-261
-262
-263
-264
-265
-266
-267
-268
-269
-270
-271
-272
-273
-274
-275
-276
-277
-278
-279
-280
-281
-282
-283
-284
-285
-286
-287
-288
-289
-290
-291
-292
-293
-294
-295
-296
-297
-298
-299
-300
-301
-302
-303
-304
-305
-306
-307
-308
-309
-310
-311
-312
-313
-314
-315
-316
-317
-318
-319
-320
-321
-322
-323
-324
-325
-326
-327
-328
-329
-330
-331
-332
-333
-334
-335
-336
-337
-338
-339
-340
-341
-342
-343
-344
-345
-346
-347
-348
-349
-350
-351
-352
-353
-354
-355
-356
-357
-358
-359
-360
-361
-362
-363
-364
-365
-366
-367
-368
-369
-370
-371
-372
-373
-374
-375
-376
-377
-378
-379
-380
-381
-382
-383
-384
-385
-386
-387
-388
-389
-390
-391
-392
-393
-394
-395
-396
-397
-398
-399
-400
-401
-402
-403
-404
-405
-406
-407
-408
-409
-410
-411
-412
-413
-414
-415
-416
-417
-418
-419
-420
-421
-422
-423
-424
-425
-426
-427
-428
-429
-430
-431
-432
-433
-434
-435
-436
-437
-438
-439
-440
-441
-442
-443
-444
-445
-446
-447
-448
-449
-450
-451
-452
-453
-454
-455
-456
-457
-458
-459
-460
-461
-462
-463
-464
-465
-466
-467
-468
-469
-470
-471
-472
-473
-474
-475
-476
-477
-478
-479
-480
-481
-482
-483
-484
-485
-486
-487
-488
-489
-490
-491
-492
-493
-494
-495
-496
-497
-498
-499
-500
-EOF
-
-rm -f $input; touch $input
-
-i=0
-while test $i -lt $rep;do cat $temp >>$input; i=`expr $i + 1`;done
-
-cat <<'EOF' >$ftest
-fun main {
-  var i, sum = 0.0;
-  var lns = getf (1);
-  var nums = [#lns:0];
-  
-  nums[:] = lns[:] + 0.0;
-  sum = .+ nums[:];
-  
-  var n = #nums;
-  var mean = sum / n;
-  var average_deviation = 0.0;
-  var standard_deviation = 0.0;
-  var variance = 0.0;
-  var skew = 0.0;
-  var kurtosis = 0.0;
-  var deviation, pow2;
-  
-  for (i = 0; i < n; i++) {
-    deviation = nums [i] - mean;
-    average_deviation += deviation < 0.0 ? -deviation : deviation;
-    pow2 = deviation * deviation;
-    variance += pow2;
-    skew += deviation * pow2;
-    kurtosis += pow2 * pow2;
-  }
-  average_deviation /= n;
-  variance /= (n - 1);
-  standard_deviation = sqrt (variance);
-  
-  if (variance > 0.0) {
-    skew /= (n * variance * standard_deviation);
-    kurtosis = kurtosis / (n * variance * variance) - 3.0;
-  }
-  sort (nums);
-  
-  var mid = n / 2;
-  
-  var median = (n % 2 == 0 ? (nums [mid] + nums [mid - 1]) / 2 : nums [mid]);
-  
-  putln ("n:                  ", n);
-  putln ("median:             ", vec (median, "%f"));
-  putln ("mean:               ", vec (mean, "%f"));
-  putln ("average_deviation:  ", vec (average_deviation, "%f"));
-  putln ("standard_deviation: ", vec (standard_deviation, "%f"));
-  putln ("variance:           ", vec (variance, "%f"));
-  putln ("skew:               ", vec (skew, "%f"));
-  putln ("kurtosis:           ", vec (kurtosis, "%f"));
-}
-main();
-EOF
-title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/perl
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-use strict;
-
-my @nums = <STDIN>;
-my $sum = 0;
-foreach (@nums) { $sum += $_ }
-my $n = scalar(@nums);
-my $mean = $sum/$n;
-my $average_deviation = 0;
-my $standard_deviation = 0;
-my $variance = 0;
-my $skew = 0;
-my $kurtosis = 0;
-foreach (@nums) {
-    my $deviation = $_ - $mean;
-    $average_deviation += abs($deviation);
-    $variance += $deviation**2;
-    $skew += $deviation**3;
-    $kurtosis += $deviation**4;
-}
-$average_deviation /= $n;
-$variance /= ($n - 1);
-$standard_deviation = sqrt($variance);
-
-if ($variance) {
-    $skew /= ($n * $variance * $standard_deviation);
-    $kurtosis = $kurtosis/($n * $variance * $variance) - 3.0;
-}
-
-@nums = sort { $a <=> $b } @nums;
-my $mid = int($n/2);
-my $median = ($n % 2) ? $nums[$mid] : ($nums[$mid] + $nums[$mid-1])/2;
-
-printf("n:                  %d\n", $n);
-printf("median:             %f\n", $median);
-printf("mean:               %f\n", $mean);
-printf("average_deviation:  %f\n", $average_deviation);
-printf("standard_deviation: %f\n", $standard_deviation);
-printf("variance:           %f\n", $variance);
-printf("skew:               %f\n", $skew);
-printf("kurtosis:           %f\n", $kurtosis);
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/python
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-import sys, string, math, operator
-
-def main():
-    sum = 0
-    nums = []
-
-    nums = map(float, sys.stdin.readlines())
-    for num in nums:
-      sum += num
-
-    n = len(nums)
-    mean = sum/n
-    average_deviation = 0
-    standard_deviation = 0
-    variance = 0
-    skew = 0
-    kurtosis = 0
-
-    for num in nums:
-        deviation = num - mean
-        average_deviation += abs(deviation)
-        variance += deviation**2;
-        skew += deviation**3;
-        kurtosis += deviation**4
-
-    average_deviation /= n
-    variance /= (n - 1)
-    standard_deviation = math.sqrt(variance)
-
-    if variance > 0.0:
-        skew /= (n * variance * standard_deviation)
-        kurtosis = kurtosis/(n * variance * variance) - 3.0
-
-    nums.sort()
-    mid = int (math.floor (n / 2))
-
-    if (n % 2) == 0:
-        median = (nums[mid] + nums[mid-1])/2
-    else:
-        median = nums[mid]
-
-    print "n:                  %d" % n
-    print "median:             %f" % median
-    print "mean:               %f" % mean
-    print "average_deviation:  %f" % average_deviation
-    print "standard_deviation: %f" % standard_deviation
-    print "variance:           %f" % variance
-    print "skew:               %f" % skew
-    print "kurtosis:           %f" % kurtosis
-
-main()
-
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/python3
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-import sys, string, math, operator
-
-def main():
-    sum = 0
-    nums = []
-
-    nums = list(map(float, sys.stdin.readlines()))
-    for num in nums:
-      sum += num
-
-    n = len(nums)
-    mean = sum/n
-    average_deviation = 0
-    standard_deviation = 0
-    variance = 0
-    skew = 0
-    kurtosis = 0
-
-    for num in nums:
-        deviation = num - mean
-        average_deviation += abs(deviation)
-        variance += deviation**2;
-        skew += deviation**3;
-        kurtosis += deviation**4
-
-    average_deviation /= n
-    variance /= (n - 1)
-    standard_deviation = math.sqrt(variance)
-
-    if variance > 0.0:
-        skew /= (n * variance * standard_deviation)
-        kurtosis = kurtosis/(n * variance * variance) - 3.0
-
-    nums.sort()
-    mid = int (math.floor (n / 2))
-
-    if (n % 2) == 0:
-        median = (nums[mid] + nums[mid-1])/2
-    else:
-        median = nums[mid]
-
-    print("n:                  %d" % n)
-    print("median:             %f" % median)
-    print("mean:               %f" % mean)
-    print("average_deviation:  %f" % average_deviation)
-    print("standard_deviation: %f" % standard_deviation)
-    print("variance:           %f" % variance)
-    print("skew:               %f" % skew)
-    print("kurtosis:           %f" % kurtosis)
-
-main()
-
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/tclsh
-# $Id$
-# http://www.bagley.org/~doug/shootout/
-
-proc main {} {
-    set sum 0.0
-    set nums [read stdin]
-    foreach num $nums {
-        set sum [expr {$sum + $num}]
-    }
-    set n [llength $nums]
-    set mean [expr {$sum / $n}]
-    set average_deviation 0.0
-    set standard_deviation 0.0
-    set variance 0.0
-    set skew 0.0
-    set kurtosis 0.0
-    
-    foreach num $nums {
-        set deviation [expr {$num - $mean}]
-        set average_deviation [expr {$average_deviation + abs($deviation)}]
-        set variance [expr {$variance + pow($deviation, 2)}]
-        set skew [expr {$skew + pow($skew, 3)}]
-        set kurtosis [expr {$kurtosis + pow($deviation, 4)}]
-    }
-
-    set average_deviation [expr {$average_deviation / $n}]
-    set variance [expr {$variance / ($n - 1)}]
-    set standard_deviation [expr {sqrt($variance)}]
-
-    if {$variance} {
-        set skew [expr {$skew / ($n * $variance * $standard_deviation)}]
-        set kurtosis [expr {$kurtosis / ($n * $variance * $variance) - 3.0}]
-    }
-
-    set nums [lsort -integer $nums]
-    set mid [expr {int($n / 2)}]
-    if [expr {$n % 2}] {
-        set median [lindex $nums $mid]
-    } else {
-        set a [lindex $nums $mid]
-        set b [lindex $nums [expr {$mid - 1}]]
-        set median [expr {($a + $b) / 2.0}]
-    }
-        
-    puts [format "n:                  %d" $n]
-    puts [format "median:             %f" $median]
-    puts [format "mean:               %f" $mean]
-    puts [format "average_deviation:  %f" $average_deviation]
-    puts [format "standard_deviation: %f" $standard_deviation]
-    puts [format "variance:           %f" $variance]
-    puts [format "skew:               %f" $skew]
-    puts [format "kurtosis:           %f" $kurtosis]
-}
-
-main
-EOF
-  title=TCL
-  if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
-
-
--- $Id: moments.lua,v 1.2 2001/01/05 01:35:56 doug Exp $
--- http://www.bagley.org/~doug/shootout/
--- contributed by Roberto Ierusalimschy
-
-local nums = {}
-local n = 0
-local sum = 0
-for line in io.lines() do
-  line = line+0        -- convert line to number
-  sum = sum + line
-  n = n + 1
-  nums[n] = line
-end
-
-local mean = sum/n
-
-local average_deviation, variance, skew, kurtosis = 0, 0, 0, 0
-
-for i = 1, n do
-  local deviation = nums[i] - mean
-  average_deviation = average_deviation + math.abs(deviation)
-  variance = variance + deviation^2
-  skew = skew + deviation^3
-  kurtosis = kurtosis + deviation^4
-end
-
-average_deviation = average_deviation/n
-variance = variance/(n-1)
-local standard_deviation = math.sqrt(variance)
-if variance ~= 0 then
-  skew = skew / (n * variance * standard_deviation)
-  kurtosis = kurtosis/(n * variance * variance) - 3.0
-end
-
-table.sort(nums)
-local mid = math.floor(n/2)
-local median
-if n % 2 == 1 then
-  median = nums[mid+1]
-else
-  median = (nums[mid] + nums[mid+1])/2
-end
-
-io.write(string.format("n:                  %d\n", n))
-io.write(string.format("median:             %f\n", median))
-io.write(string.format("mean:               %f\n", mean))
-io.write(string.format("average_deviation:  %f\n", average_deviation))
-io.write(string.format("standard_deviation: %f\n", standard_deviation))
-io.write(string.format("variance:           %f\n", variance))
-io.write(string.format("skew:               %f\n", skew))
-io.write(string.format("kurtosis:           %f\n", kurtosis))
-EOF
-  title=LUA
-  if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-#!/usr/local/bin/ruby
-# -*- mode: ruby -*-
-# $Id: moments.ruby,v 1.5 2001/01/05 01:35:56 doug Exp $
-# http://www.bagley.org/~doug/shootout/
-
-# throw away unused parameter sent by benchmark framework
-ARGV.shift()
-
-sum = 0.0
-nums = []
-num = nil
-deviation = nil
-
-STDIN.readlines().each{|line|
-    num = Float(line)
-    nums << num
-    sum += num
-}
-n = nums.length()
-mean = sum/n;
-average_deviation = 0
-standard_deviation = 0
-variance = 0
-skew = 0
-kurtosis = 0
-
-nums.each{|num|
-    deviation = num - mean
-    average_deviation += deviation.abs()
-    variance += deviation**2;
-    skew += deviation**3;
-    kurtosis += deviation**4
-}
-average_deviation /= n
-variance /= (n - 1)
-standard_deviation = Math.sqrt(variance)
-
-if (variance > 0.0)
-    skew /= (n * variance * standard_deviation)
-    kurtosis = kurtosis/(n * variance * variance) - 3.0
-end
-
-nums.sort()
-mid = n / 2
-
-if (n % 2) == 0
-    median = (nums[mid] + nums[mid-1])/2
-else
-    median = nums[mid]
-end
-
-printf("n:                  %d\n", n)
-printf("median:             %f\n", median)
-printf("mean:               %f\n", mean)
-printf("average_deviation:  %f\n", average_deviation)
-printf("standard_deviation: %f\n", standard_deviation)
-printf("variance:           %f\n", variance)
-printf("skew:               %f\n", skew)
-printf("kurtosis:           %f\n", kurtosis)
-EOF
-  title=RUBY
-if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-import scala.io.Source
-import scala.collection.mutable.ArrayBuffer
-def main () = {
-  var sum = 0.0
-  val nums: ArrayBuffer[Double] = new ArrayBuffer (0)
-  for (line <- Source.stdin.getLines()) nums += line.toDouble
-
-  sum = nums.fold (0.0) ((x,y) => x + y)
-  
-  val n = nums.length
-  val mean = sum / n
-  var average_deviation = 0.0
-  var standard_deviation = 0.0
-  var variance = 0.0
-  var skew = 0.0
-  var kurtosis = 0.0
-  var deviation = 0.0; var pow2 = 0.0
-  
-  for (i <- 0 to n - 1) {
-    deviation = nums(i) - mean
-    average_deviation += (if (deviation < 0.0) -deviation else deviation)
-    pow2 = deviation * deviation
-    variance += pow2
-    skew += deviation * pow2
-    kurtosis += pow2 * pow2
-  }
-  average_deviation /= n
-  variance /= (n - 1)
-  standard_deviation = math.sqrt (variance)
-  
-  if (variance > 0.0) {
-    skew /= (n * variance * standard_deviation)
-    kurtosis = kurtosis / (n * variance * variance) - 3.0
-  }
-  val a = nums.toArray
-  scala.util.Sorting.quickSort (a)
-  println (n,a.deep)
-  val mid = n / 2
-  
-  val median = if (n % 2 == 0) (a(mid) + a(mid - 1)) / 2 else a(mid)
-  
-  println ("n:                  " + n.toString)
-  println ("median:             " + "%f" format median)
-  println ("mean:               " + "%f" format mean)
-  println ("average_deviation:  " + "%f" format average_deviation)
-  println ("standard_deviation: " + "%f" format standard_deviation)
-  println ("variance:           " + "%f" format variance)
-  println ("skew:               " + "%f" format skew)
-  println ("kurtosis:           " + "%f" format kurtosis)
-}
-main()
-EOF
-  title=SCALA
-if ($TIME $SCALA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-(*
- * $Id: moments.ocaml,v 1.9 2001/05/20 16:43:13 doug Exp $
- * http://www.bagley.org/~doug/shootout/
- * with help from Markus Mottl
- *)
-
-let _ =
-  let n = ref 0
-  and num = ref 0.0
-  and sum = ref 0.0
-  and mean = ref 0.0
-  and average_deviation = ref 0.0
-  and standard_deviation = ref 0.0
-  and variance = ref 0.0
-  and skew = ref 0.0
-  and kurtosis = ref 0.0
-  and deviation = ref 0.0
-  and size = ref 4096 in
-  let nums_in = ref (Array.create !size 0.0) in
-
-  try
-    while true do
-      num := read_float ();
-      !nums_in.(!n) <- !num;
-      sum := !sum +. !num;
-      incr n;
-      if !n = !size then begin
-    nums_in := Array.append !nums_in (Array.create !size 0.0);
-    size := !size * 2
-      end
-    done
-  with End_of_file -> ();
-
-  let nums = Array.create !n 0.0 in
-  Array.blit !nums_in 0 nums 0 !n;
-
-  let n_float = float_of_int !n in
-  mean := !sum /. n_float;
-
-  for i = 0 to !n - 1 do
-    deviation := nums.(i) -. !mean;
-    average_deviation := !average_deviation +. abs_float !deviation;
-    let dev2 = !deviation *. !deviation in
-    variance := !variance +. dev2;
-    let dev3 = dev2 *. !deviation in
-    skew := !skew +. dev3;
-    let dev4 = dev3 *. !deviation in
-    kurtosis := !kurtosis +. dev4;
-  done;
-
-  average_deviation := !average_deviation /. n_float;
-  variance := !variance /. float_of_int (!n - 1);
-  standard_deviation := sqrt !variance;
-
-  if !variance > 0.0 then begin
-    skew := !skew /. n_float /. !variance /. !standard_deviation;
-    kurtosis := !kurtosis /. n_float /. !variance /. !variance -. 3.0;
-  end;
-
-  Array.stable_sort compare nums;
-
-  let mid = !n lsr 1 in
-
-  let median =
-    if !n mod 2 = 1 then nums.(mid)
-    else (nums.(mid) +. nums.(mid - 1)) /. 2.0 in
-
-  Printf.printf "n:                  %d\n" !n;
-  Printf.printf "median:             %f\n" median;
-  Printf.printf "mean:               %f\n" !mean;
-  Printf.printf "average_deviation:  %f\n" !average_deviation;
-  Printf.printf "standard_deviation: %f\n" !standard_deviation;
-  Printf.printf "variance:           %f\n" !variance;
-  Printf.printf "skew:               %f\n" !skew;
-  Printf.printf "kurtosis:           %f\n" !kurtosis
-EOF
-  title=OCAML
-if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 23.
-if test $start_test_number -le 23; then
+# Test 27.
+if test $start_test_number -le 27; then
 
 ######################################################
 rep=`expr $factor '*' 100000`
-Announce_Test "+++++ Test #23: String Concatenation (N=$rep):  +++++"
+Announce_Test "+++++ Test #27: String Concatenation (N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var i, n = argv [0] < 1 ? 1 : int (argv [0]);
@@ -97806,7 +98959,7 @@ var i, n = arguments [0] < 1 ? 1 : arguments [0];
 var str = "";
 var add = "hello\n";
 for (i = 0; i < n; i++)
-  str += add;
+  str = str + add;
 
 print (str.length);
 EOF
@@ -97814,6 +98967,21 @@ EOF
   if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
   title="JS -j"
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var i, n = process.argv[2] < 1 ? 1 : process.argv[2];
+
+var str = "";
+var add = "hello\n";
+for (i = 0; i < n; i++)
+  str += add;
+
+console.log (str.length);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$OCAML != x; then
@@ -97840,12 +99008,12 @@ fi
 
 fi
 
-# Test 24.
-if test $start_test_number -le 24; then
+# Test 28.
+if test $start_test_number -le 28; then
 
 ######################################################
 rep=`expr $factor '*' 200`
-Announce_Test "+++++ Test #24: Sum a File of Numbers (N=$rep):  +++++"
+Announce_Test "+++++ Test #28: Sum a File of Numbers (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
 1
@@ -99029,12 +100197,12 @@ fi
 
 fi
 
-# Test 25.
-if test $start_test_number -le 25; then
+# Test 29.
+if test $start_test_number -le 29; then
 
 ######################################################
 rep=`expr $factor '*' 2`
-Announce_Test "+++++ Test #25: Word Frequency (N=$rep):  +++++"
+Announce_Test "+++++ Test #29: Word Frequency (N=$rep):  +++++"
 
 cat <<'EOF' >$temp
 
@@ -102148,156 +103316,12 @@ fi
 
 fi
 
-# Test 26.
-if test $start_test_number -le 26; then
-
-######################################################
-rep=`expr $factor '*' 2000000`
-Announce_Test "+++++ Test #26: Test Loop ($rep iteration with empty body):  +++++"
-
-cat <<'EOF' >$ftest
-var i, n;
-n = int (argv [0]);
-for (i=0; i < n;i++);
-EOF
-title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
-cat <<'EOF' >$ftest
-fun main !jit {
-  var i, n;
-  n = int (argv [0]);
-  for (i=0; i < n;i++);
-}
-main ();
-EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-my $NUM = $ARGV[0];
-for ($i=0; $i < $NUM;$i++){}
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-import sys
-
-num = int(sys.argv[1])
-for i in xrange (0,num): i
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-import sys
-
-num = int(sys.argv[1])
-for i in range (0,num): i
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-proc main {} {
-  global argv
-  set n [lindex $argv 0]
-  for {set i 0} {$i < $n} {incr i} {}
-}
-main
-EOF
-  title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$AWK != x; then
-  cat <<'EOF' >$ftest
-BEGIN {n = ARGV[1]; for (i=0.0; i<n; i=i+1.0);}
-EOF
-  title=AWK
-  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
-local n = tonumber((arg and arg[1]) or 1)
-for a=1,n do
-end
-EOF
-  title=LUA
-  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-n = Integer(ARGV.shift || 1)
-n.times do
-end
-EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-val n = args(0).toInt
-for (i <- 0 to n) {}
-EOF
-  title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$JS != x; then
-  cat <<'EOF' >$ftest
-var i, n;
-n = arguments [0];
-for (i=0; i < n;i++);
-EOF
-  title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-  title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-let _ =
-  let n =
-    try int_of_string Sys.argv.(1)
-    with Invalid_argument _ -> 1 in
-  let rec loop x = function 0 -> x | i -> loop (x+1) (i-1) in
-  (loop 0 n)
-EOF
-  title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 27.
-if test $start_test_number -le 27; then
+# Test 30.
+if test $start_test_number -le 30; then
 
 ######################################################
 rep=`expr $factor '*' 500000`
-Announce_Test "+++++ Test #27: Function ($rep empty func calls w/out params):  +++++"
+Announce_Test "+++++ Test #30: Function ($rep empty func calls w/out params):  +++++"
 
 cat <<'EOF' >$ftest
 fun f {}
@@ -102466,6 +103490,17 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+function f () {}
+var i, n;
+n = process.argv[2];
+for (i = 0; i < n; i++) f();
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 let f () = 1
@@ -102482,12 +103517,12 @@ fi
 
 fi
 
-# Test 28.
-if test $start_test_number -le 28; then
+# Test 31.
+if test $start_test_number -le 31; then
 
 ######################################################
 if test $factor -eq 1; then rep=7;elif test $factor -eq 10; then rep=8;else rep=10;fi
-Announce_Test "+++++ Test #28: tak(`expr $rep '*' 3`, `expr $rep '*' 2`, $rep) (good test for recursive functions):  +++++"
+Announce_Test "+++++ Test #31: tak(`expr $rep '*' 3`, `expr $rep '*' 2`, $rep) (good test for recursive functions):  +++++"
 
 cat <<'EOF' >$ftest
 fun tak (x, y, z) {
@@ -102661,6 +103696,21 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+function tak (x, y, z) {
+  if (y >= x)
+    return z;
+  else
+    return tak (tak (x-1, y, z), tak (y-1, z, x), tak (z-1, x, y));
+}
+var n = process.argv[2];
+console.log (tak (n * 3, n * 2, n));
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 let rec tak x y z =
@@ -102678,597 +103728,12 @@ fi
 
 fi
 
-# Test 29.
-if test $start_test_number -le 29; then
-
-######################################################
-rep=`expr $factor '*' 70000`
-Announce_Test "+++++ Test #29: fact (good test for recursive functions: N=$rep):  +++++"
-
-cat <<'EOF' >$ftest
-fun fact (x) {
-  if (x <= 1)
-    return 1;
-  return x * fact (x-1);
-}
-
-var i, x, n = int (argv [0]);
-
-for (i = 0; i < n; i++)
-  x = fact (12);
-
-putln (x);
-EOF
-title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Pure fun variant:"
-fi
-cat <<'EOF' >$ftest
-fun fact (x) !pure {
-  if (x <= 1)
-    return 1;
-  return x * fact (x-1);
-}
-
-var i, x, n = int (argv [0]);
-
-for (i = 0; i < n; i++)
-  x = fact (12);
-
-putln (x);
-EOF
-title=" (Pure fun variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
-cat <<'EOF' >$ftest
-fun fact (x) !jit {
-  if (x <= 1)
-    return 1;
-  return x * fact (x-1);
-}
-
-var i, x, n = int (argv [0]);
-
-for (i = 0; i < n; i++)
-  x = fact (12);
-
-putln (x);
-EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-sub fact {
-    local ($x) = @_;
-
-    if ($x <= 1) {
-        return 1;
-    } else {
-        return $x * &fact ($x - 1);
-    }
-}
-
-my $N = ($ARGV[0] < 1) ? 1 : $ARGV[0];
-for ($i = 0; $i < $N; $i++) {
-  $x = &fact(12);
-}
-
-print $x . "\n";
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-import sys
-
-def fact(x):
-  if x <= 1:
-    return 1
-  return x * fact(x-1)
-
-n = 0
-N = int(sys.argv[1])
-while n < N:
-  x = fact(12)
-  n = n + 1
-
-print x
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-import sys
-
-def fact(x):
-  if x <= 1:
-    return 1
-  return x * fact(x-1)
-
-n = 0
-N = int(sys.argv[1])
-while n < N:
-  x = fact(12)
-  n = n + 1
-
-print (x)
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-proc fact x {
-  if {$x <= 1} {
-    return 1
-  }
-  return [expr {$x * [fact [expr {$x-1}]]}]
-}
-
-proc main {} {
-  global argv
-  set N [lindex $argv 0]
-  for {set i 0} {$i < $N} {incr i} {
-    set x [fact 12]
-  }
-  return $x
-}
-puts [main]
-EOF
-  title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
-function fact(x)
-  if (x <= 1) then
-    return 1
-  end
-  return x * fact(x-1)
-end
-
-n = 0
-N = tonumber((arg and arg[1]) or 1)
-while (n < N) do
-  x = fact(12)
-  n = n + 1
-end
-print (x)
-EOF
-  title=LUA
-  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-def fact(x)
-  if (x <= 1) then
-    1
-  else
-    x * fact(x-1)
-  end
-end
-
-N = Integer(ARGV.shift || 1)
-n = 0
-while (n < N) do
-  x = fact(12)
-  n = n + 1
-end
-print x
-EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-def fact (n:Int):Int = if (n <= 1) 1 else n * fact (n - 1)
-
-var x = 0; val n = args(0).toInt
-for (i <- 1 to n) x = fact (12)
-println (x)
-EOF
-title=SCALA
-if ($TIME $SCALA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$JS != x; then
-  cat <<'EOF' >$ftest
-function fact (x) {
-  if (x <= 1)
-    return 1;
-  return x * fact (x-1);
-}
-
-var i, x, n = arguments [0];
-
-for (i = 0; i < n; i++)
-  x = fact (12);
-
-print (x);
-EOF
-title=JS
-if ($TIME $JS $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-title="JS -j"
-if ($TIME $JS -j $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-let rec fact x = if x <= 1 then 1 else x * fact (x-1)
-
-let _ =
-  let n =
-    try int_of_string Sys.argv.(1)
-    with Invalid_argument _ -> 1
-  and r = ref 0 in
-  for i = 0 to (n-1) do r := fact 12;done;
-  Printf.printf "%d\n" !r
-EOF
-title=OCAML
-if ($TIME $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 30.
-if test $start_test_number -le 30; then
+# Test 32.
+if test $start_test_number -le 32; then
 
 ######################################################
 rep=`expr $factor '*' 8190`
-Announce_Test "+++++ Test #30: sieve (usage of arrays when possible N=$rep):  +++++"
-
-cat <<'EOF' >$ftest
-var SieveSize, i, k, prime, count, iter, flags;
-SieveSize = int (argv [0]);
-
-flags = [SieveSize + 1 : 0];
-for (iter = 0; iter < 10; iter++) {
-    count = 0;
-    for (i = 0; i <= SieveSize; i++)
-      flags[i] = 1;
-    for (i = 0; i <= SieveSize; i++)
-      if (flags[i]) {
-          prime = i + i + 3;
-          for (k = i + prime; k <= SieveSize; k += prime)
-            flags[k] = 0;
-          count++;
-      }
-}
-putln (count);
-EOF
-title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Slice Variant:"
-fi
-cat <<'EOF' >$ftest
-var SieveSize, i, prime, count, iter, flags;
-SieveSize = int (argv [0]);
-
-flags = [SieveSize + 1 : 0];
-for (iter = 0; iter < 10; iter++) {
-    count = 0;
-    flags[:] = 1;
-    for (i = 0; i <= SieveSize; i++)
-      if (flags[i]) {
-          prime = i + i + 3;
-          flags[i + prime : SieveSize + 1 : prime] = 0;
-          count++;
-      }
-}
-putln (count);
-EOF
-title=" (Slice Variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  cat <<'EOF' >$ftest
-    $SieveSize = $ARGV[0];
-    for ($iter = 0; $iter < 10; $iter++) {
-      $count = 0;
-      for ($i = 0; $i <= $SieveSize; $i++) {
-        $flags[$i] = 1;
-      }
-      for ($i = 0; $i <= $SieveSize; $i++) {
-        if ($flags[$i]) {
-            $prime = $i + $i + 3;
-            $k = $i + $prime;
-            while ($k <= $SieveSize) {
-                $flags[$k] = 0;
-                $k = $k + $prime;
-            }
-            $count++;
-        }
-      }
-    }
-  print "$count\n";
-EOF
-  title=PERL
-  if ($TIME $PERL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  cat <<'EOF' >$ftest
-import sys
-
-SieveSize = int(sys.argv[1])
-flags = {}
-for iter in range(10):
-  count = 0
-  for i in range(SieveSize + 1):
-    flags[i] = 1
-  for i in range(SieveSize + 1):
-    if flags[i]:
-        prime = i + i + 3
-        k = i + prime
-        while k <= SieveSize:
-            flags[k] = 0
-            k = k + prime
-        count = count + 1
-print count
-EOF
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  cat <<'EOF' >$ftest
-import sys
-
-SieveSize = int(sys.argv[1])
-flags = {}
-for iter in range(10):
-  count = 0
-  for i in range(SieveSize + 1):
-    flags[i] = 1
-  for i in range(SieveSize + 1):
-    if flags[i]:
-        prime = i + i + 3
-        k = i + prime
-        while k <= SieveSize:
-            flags[k] = 0
-            k = k + prime
-        count = count + 1
-print (count)
-EOF
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$TCLSH != x; then
-  cat <<'EOF' >$ftest
-
-proc main {} {
-  global argv
-  set SieveSize [lindex $argv 0]
-
-  for {set iter 0} {$iter < 10} {incr iter} {
-    set count 0
-    for {set i 0} {$i <= $SieveSize} {incr i} {
-      set flags($i) 1
-    }
-    for {set i 0} {$i <= $SieveSize} {incr i} {
-      if {$flags($i)} {
-        set prime [expr {$i + $i + 3}]
-        set k [expr {$i + $prime}]
-        while {$k <= $SieveSize} {
-           set flags($k) 0
-           set k [expr {$k + $prime}]
-        }
-        incr count
-      }
-    }
-  }
-  return $count
-}
-puts [main]
-
-exit 0
-EOF
-  title=TCL
-  if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$AWK != x; then
-  cat <<'EOF' >$ftest
-BEGIN {
-SieveSize=ARGV[1];
-
-  for (iter = 0; iter < 10; iter++)
-    {
-      count = 0;
-      for (i = 0; i <= SieveSize; i++)
-        flags[i] = 1;
-      for (i = 0; i <= SieveSize; i++)
-        if (flags[i])
-          {
-            prime = i + i + 3;
-            k = i + prime;
-            while (k <= SieveSize)
-              {
-                flags[k] = 0;
-                k = k + prime;
-              }
-            count++;
-          }
-    }
-  print count
-}
-EOF
-  title=AWK
-  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  cat <<'EOF' >$ftest
-SieveSize = tonumber((arg and arg[1])) or 1
-flags = {}
-for iter=1,10 do
-  count = 0
-  for i=0, SieveSize do
-    flags[i] = true
-  end
-  for i=0,SieveSize do
-    if flags[i] then
-      prime = i + i + 3
-      for k=i+prime, SieveSize, prime do
-        flags[k] = false
-      end
-      count = count + 1    
-    end
-  end
-end
-io.write(count, "\n")
-EOF
-  title=LUA
-  if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  cat <<'EOF' >$ftest
-SieveSize = Integer(ARGV.shift || 1)
-flags0 = Array.new(SieveSize + 1, true)
-10.times do
-  $count = 0
-  flags = flags0.dup
-  for i in 0 .. SieveSize
-    if flags[i] then
-      prime = i + i + 3
-      k = i + prime
-      while k <= SieveSize do
-        flags[k] = false
-        k = k + prime
-      end
-      $count = $count + 1
-    end
-  end
-end
-print $count, "\n"
-EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  cat <<'EOF' >$ftest
-var prime = 0
-var count = 0
-val SieveSize = args(0).toInt
-var flags = Array.fill[Boolean](SieveSize + 1)(false)
-
-for (iter <- 0 to 10) {
-    count = 0
-    for (i <- 0 to SieveSize)
-      flags(i) = true;
-    for (i <- 0 to SieveSize)
-      if (flags(i)) {
-          prime = i + i + 3
-          for (j <- i + prime to SieveSize by prime)    
-            flags(j) = false;
-          count += 1;
-      }
-}
-println (count)
-EOF
-  title=SCALA
-  if ($TIME $SCALA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$JS != x; then
-  cat <<'EOF' >$ftest
-var SieveSize, i, k, prime, count, iter;
-var flags = new Array ();
-SieveSize = arguments [0];
-
-for (iter = 0; iter < 10; iter++) {
-  count = 0;
-  for (i = 0; i <= SieveSize; i++)
-    flags[i] = 1;
-  for (i = 0; i <= SieveSize; i++)
-    if (flags[i]) {
-      prime = i + i + 3;
-      for (k = i + prime; k <= SieveSize; k += prime)
-        flags[k] = 0;
-      count++;
-    }
-}
-print (count);
-EOF
-  title=JS
-  if ($TIME $JS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-  title="JS -j"
-  if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  cat <<'EOF' >$ftest
-let sievesize = try int_of_string Sys.argv.(1) with Invalid_argument _ -> 1
-
-let flags = String.make (sievesize + 1) 'f'
-
-let rec inner_loop k i =
-  if k <= sievesize then begin
-    flags.[k] <- 'f';
-    inner_loop (k + i) i
-  end
-
-let rec middle_loop i cnt =
-  if i <= sievesize then
-    if flags.[i] = 't' then begin
-      inner_loop (3 * i + 3) (i + i + 3);
-      middle_loop (i + 1) (cnt + 1) end
-    else middle_loop (i + 1) cnt
-  else cnt
-
-let _ =
-  let cnt = ref 0 in
-  for iter = 1 to 10 do
-    for i = 0 to sievesize do flags.[i] <- 't'; done;
-    cnt := middle_loop 0 0;
-  done;
-  Printf.printf "%d\n" !cnt
-EOF
-  title=OCAML
-  if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
-fi
-
-fi
-
-# Test 31.
-if test $start_test_number -le 31; then
-
-######################################################
-rep=`expr $factor '*' 8190`
-Announce_Test "+++++ Test #31: sieve (usage of associative tables N=$rep):  +++++"
+Announce_Test "+++++ Test #32: sieve (usage of associative tables N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var SieveSize, i, prime, k, count, iter, flags;
@@ -103517,6 +103982,30 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var SieveSize, i, k, prime, count, iter;
+var flags = new Array ();
+SieveSize = process.argv[2];
+
+for (iter = 0; iter < 10; iter++) {
+  count = 0;
+  for (i = 0; i <= SieveSize; i++)
+    flags[i] = 1;
+  for (i = 0; i <= SieveSize; i++)
+    if (flags[i]) {
+      prime = i + i + 3;
+      for (k = i + prime; k <= SieveSize; k += prime)
+        flags[k] = 0;
+      count++;
+    }
+}
+console.log (count);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 let sievesize = try int_of_string Sys.argv.(1) with Invalid_argument _ -> 1
@@ -103551,12 +104040,12 @@ fi
 
 fi
 
-# Test 32.
-if test $start_test_number -le 32; then
+# Test 33.
+if test $start_test_number -le 33; then
 
 ######################################################
 if test $factor -eq 1; then rep=30;elif test $factor -eq 10; then rep=200;else rep=400;fi
-Announce_Test "+++++ Test #32: Matrix mult (use arrays when possible N=$rep):  +++++"
+Announce_Test "+++++ Test #33: Matrix mult (use arrays when possible N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var m1, m2;
@@ -103944,6 +104433,50 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var m1 = new Array (), m2 = new Array ();
+
+function mmult (m1, m2)
+{
+  var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
+
+  m1rows = m1.length; m2rows = m2.length;
+  m1cols = m1[0].length; m2cols = m2[0].length;
+  if (m2cols != m2rows) {
+       console.log ("matrices don't match");
+       return;
+  }
+  
+  result = new Array ();
+  for (i=0; i < m1rows; i++) {
+    result [i] = new Array ();
+    tr = result[i]; tm = m1[i];
+    for (j = 0; j < m2cols; j++)
+      {
+        el = 0;
+        for (k=0; k < m1cols; k++)
+          el += tm[k]*m2[k][j];
+        tr[j] = el;
+      }
+  }
+  return result;
+}
+
+var i, j, n = process.argv[2];
+
+for (i=0; i < n; i++) {
+  m1[i] = new Array (); m2[i] = new Array ();
+  for (j=0; j < n; j++) {
+    m1[i][j] = 1; m2[i][j] = 1;
+  }
+}
+mmult (m1, m2);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 let mkmatrix rows cols = Array.make_matrix rows cols 1
@@ -103977,12 +104510,12 @@ fi
 
 fi
 
-# Test 33.
-if test $start_test_number -le 33; then
+# Test 34.
+if test $start_test_number -le 34; then
 
 ######################################################
 if test $factor -eq 1; then rep=20;elif test $factor -eq 10; then rep=70;else rep=200;fi
-Announce_Test "+++++ Test #33: Matrix mult (usage of tables N=$rep):  +++++"
+Announce_Test "+++++ Test #34: Matrix mult (usage of tables N=$rep):  +++++"
 
 cat <<'EOF' >$ftest
 var m1, m2;
@@ -104354,6 +104887,50 @@ EOF
   if ($TIME $JS -j $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$NODEJS != x; then
+  cat <<'EOF' >$ftest
+var m1 = new Array (), m2 = new Array ();
+
+function mmult (m1, m2)
+{
+  var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
+
+  m1rows = m1.length; m2rows = m2.length;
+  m1cols = m1[0].length; m2cols = m2[0].length;
+  if (m2cols != m2rows) {
+       console.log ("matrices don't match");
+       return;
+  }
+  
+  result = new Array ();
+  for (i=0; i < m1rows; i++) {
+    result [i] = new Array ();
+    tr = result[i]; tm = m1[i];
+    for (j = 0; j < m2cols; j++)
+      {
+        el = 0;
+        for (k=0; k < m1cols; k++)
+          el += tm[k]*m2[k][j];
+        tr[j] = el;
+      }
+  }
+  return result;
+}
+
+var i, j, n = process.argv[2];
+
+for (i=0; i < n; i++) {
+  m1[i] = new Array (); m2[i] = new Array ();
+  for (j=0; j < n; j++) {
+    m1[i][j] = 1; m2[i][j] = 1;
+  }
+}
+mmult (m1, m2);
+EOF
+  title=NODEJS
+  if ($TIME $NODEJS $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 if test x$OCAML != x; then
   cat <<'EOF' >$ftest
 let mkmatrix rows cols v = 
@@ -104397,86 +104974,5 @@ fi
 
 fi
 
-# Test 34.
-if test $start_test_number -le 34; then
-
-######################################################
-rep=`expr $factor '*' 8000`
-Announce_Test "+++++ Test #34: compile speed (simple program of $rep lines):  +++++"
-
-$DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
-title=
-if ($TIME $DINO $ftest </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
-
-if test x$PERL != x; then
-  $DINO -c 'putln("$j = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("$i = $j;");' $rep > $ftest
-  title=PERL
-  if ($TIME $PERL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$PYTHON != x || test x$PYPY != x; then
-  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  if test x$PYTHON != x; then
-    title=PYTHON
-      if ($TIME $PYTHON $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-
-  if test x$PYPY != x; then
-    title=PYPY
-      if ($TIME $PYPY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  fi
-fi
-
-if test x$PYTHON3 != x; then
-  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  title=PYTHON3
-  if ($TIME $PYTHON3 $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$TCLSH != x; then
-  $DINO -c 'putln("set j 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("set i $j");' $rep > $ftest
-  title=TCL
-  if ($TIME $TCLSH $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$AWK != x; then
-  $DINO -c 'putln("END {\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
-  echo '}' >>$ftest
-  title=AWK
-  if ($TIME $AWK -f $ftest </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$LUA != x; then
-  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  title=LUA
-  if ($TIME $LUA $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$RUBY != x; then
-  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  title=RUBY
-  if ($TIME $RUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$SCALA != x; then
-  $NECHO Scala:
-  echo '  ' Scala can not take even 10000 lines file
-fi
-
-if test x$JS != x; then
-  $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
-  title=JS
-  if ($TIME $JS $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-  title="JS -j"
-  if ($TIME $JS -j $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-if test x$OCAML != x; then
-  $DINO -c 'putln("let j = 1;;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("let i = j;;");' $rep > $ftest
-  title=OCAML
-  if ($TIME $OCAML $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
-fi
-
-fi
 
 rm -f $ftest $input $temp $temp2 $patchf

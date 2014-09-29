@@ -36,15 +36,15 @@ typedef struct ER_node *ER_hidden_node_t;
 typedef const char *string_t;
 
 typedef enum
-  {
-    /* Regular function/class/thread: */
-    BC_no_gen,
-    /* Try to generate C code.  This can not be used for threads.
-       If the generation failed, we mark it as BC_no_gen.  */
-    BC_gen,
-    /* Implementation function:  */
-    BC_builtin
-  } fun_mode_t;
+{
+  /* Regular function/class/thread: */
+  BC_no_gen,
+  /* Try to generate C code.  This can not be used for threads.
+     If the generation failed, we mark it as BC_no_gen.  */
+  BC_gen,
+  /* Implementation function:  */
+  BC_builtin
+} fun_mode_t;
 
 typedef void (*implementation_fun_t) (int_t pars_number);
 
@@ -940,19 +940,22 @@ fold_add, fold_mult, fold_and, fold_or, fold_xor :: fold_op
 /* result and two operand places.  */
 fmtvecof, in, or, xor, and, eq, ne, id, unid, lt, gt, le, ge,
   lsh, rsh, ash, concat, add, sub, mult, div, mod :: op3;
-addi, eqi, nei, lti, gti, lei, gei :: op3i; /* non-slice insns */
+addi, multi, eqi, nei, lti, gti, lei, gei :: op3i; /* non-slice insns */
+
+/* op1 = op2 * op3 + op4.  */
+madd :: op4;
 
 /* integer variants of most above insns.  */
 ior, ixor, iand, ieq, ine, ilt, igt, ile, ige,
   ilsh, irsh, iash, iadd, isub, imult, idiv, imod :: op3;
-iaddi, ieqi, inei, ilti, igti, ilei, igei :: op3i;
+iaddi, imulti, ieqi, inei, ilti, igti, ilei, igei :: op3i;
 
 /* fp variants: */
 fadd, fsub, fmult, fdiv, fmodop :: op3;
 
 /* integer-fp variants: */
 ifadd, ifsub, fisub, ifmult, ifdiv, fidiv :: op3;
-faddi :: op3i;
+faddi, fmulti :: op3i;
 
 b :: bcode; /* unconditional branch to next */
 

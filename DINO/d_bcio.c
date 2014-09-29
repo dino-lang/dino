@@ -341,6 +341,18 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
 	  break;
+	case BC_NM_multi:
+	case BC_NM_imulti:
+	case BC_NM_fmulti:
+	  printf (" op1=%d op2=%d op3=%d // %d <- %d * i%d",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
+	  break;
+	case BC_NM_madd:
+	  printf (" op1=%d op2=%d op3=%d op4=%d // %d <- %d * %d + %d",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc),
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc));
+	  break;
 	case BC_NM_mult_st:
 	case BC_NM_div_st:
 	case BC_NM_mod_st:

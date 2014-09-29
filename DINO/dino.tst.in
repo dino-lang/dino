@@ -46419,6 +46419,109 @@ OUTPUT731-2
         fi
 fi
 
+# Test 732.
+if test $result = ok -a $start_test_number -le 732; then
+	echo test 732: multi generation
+        cat >$test_file <<'TEST732'
+val i = 2;
+putln (i * 10);
+TEST732
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep multi $stdout
+                if fgrep multi $stdout > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 733.
+if test $result = ok -a $start_test_number -le 733; then
+	echo test 733: multi generation
+        cat >$test_file <<'TEST733'
+var i = 0;
+i*=2;
+i=i*3;
+i=4*i;
+TEST733
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' expr '`' fgrep multi $stdout '|wc -l`' = 3
+                if expr `fgrep " multi" $stdout|wc -l` = 3 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 734.
+if test $result = ok -a $start_test_number -le 734; then
+	echo test 734: no multi generation for slices
+        cat >$test_file <<'TEST734'
+var i = [10:0];
+i[:]=i[:]*2;
+TEST734
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep -v multi $stdout
+                if fgrep -v multi $stdout > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 735.
+if test $result = ok -a $start_test_number -le 735; then
+	echo test 735: madd generation
+        cat >$test_file <<'TEST735'
+var i = 0, j = 0;
+i=j+i*i;
+i=i*i+j;
+TEST735
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' expr '`' fgrep madd $stdout '|wc -l`' = 2
+                if expr `fgrep " madd" $stdout|wc -l` = 2 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 736.
+if test $result = ok -a $start_test_number -le 736; then
+	echo test 736: no madd generation for slices
+        cat >$test_file <<'TEST736'
+var i = [10:0], j = 2;
+i[:]=i[:]*j + i[:];
+TEST736
+        echo '      ' $DINO -d $test_file "2>$stdout"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep -v madd $stdout
+                if fgrep -v madd $stdout > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

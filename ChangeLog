@@ -1,3 +1,29 @@
+2014-09-29  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Add NODEJS for comparison.  Rearrange tests.
+	* DINO/d_bc.sprut (multi, imulti, fmulti, madd): New nodes.
+	* DINO/d_bcio.c (dump_code): Process the new nodes.
+	* DINO/d_bcn.shilka: Add the new nodes.
+	* DINO/d_context.c (not_defined_result): New.
+	(setup_result_var_number, process_unary_op, process_binary_op):
+	Use it.
+	(second_expr_processing): Ditto.  Pass BC_NM_multi for
+	process_binary_op for mult.
+	(second_block_passing): Use not_defined_result.  Generate multi.
+	(madd_combine): New.
+	(branch_combine): Split from ...
+	(go_through): Here.  Use madd_combine.
+	* DINO/d_conv.c (to_vect_string_conversion): Modify the message.
+	* DINO/d_eval.c (process_binary_vect_op): Add multi.
+	(evaluate_code): Process multi, madd, imulti, fmulti.
+	* DINO/d_gen.c (check_vector_index): Don't check on < 0.
+	(ind): Add check before implicit_int_conversion call.
+	(common_mult): New.
+	(cmult): Use it.
+	(cmulti, multi, imulti, fmulti, madd): New functions.
+	* DINO/dino.tst.in (not_defined_result): New tests for multi and
+	madd.
+
 2014-08-21  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_context.c (second_expr_processing): Check that the next

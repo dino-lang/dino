@@ -31,8 +31,9 @@ check_vector_index (ER_node_t vect, ER_node_t index)
 	eval_error (indextype_bc_decl, get_cpos (), DERR_index_is_not_int);
     }
   index_value = ER_i (index);
-  if (index_value < 0
-      || (unsigned_int_t) index_value >= ER_els_number (vect))
+  /* Negative will be too big after the cast.  Therefore we don't need
+     to check on less than zero.  */
+  if ((unsigned_int_t) index_value >= ER_els_number (vect))
     {
       if (index_value < 0)
 	eval_error (indexvalue_bc_decl,
@@ -1337,7 +1338,8 @@ ind (ER_node_t res, ER_node_t op1, ER_node_t op2)
 
   if (ER_NODE_MODE (op1) == ER_NM_vect)
     {
-      op2 = implicit_int_conversion (op2, (ER_node_t) &tvar1);
+      if (ER_NODE_MODE (op2) != ER_NM_int)
+	op2 = implicit_int_conversion (op2, (ER_node_t) &tvar1);
       load_vector_element_by_index (res, ER_vect (op1), op2);
     }
   else if (ER_NODE_MODE (op1) == ER_NM_tab)
@@ -1658,6 +1660,12 @@ fisub (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 static void do_always_inline
+common_mult (ER_node_t res, ER_node_t op1, ER_node_t op2)
+{
+  execute_mult_op (res, op1, op2, TRUE);
+}
+
+static void do_always_inline
 cmult (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   if (int_p || int_bin_op (op1, op2))
@@ -1673,7 +1681,7 @@ cmult (int int_p, ER_node_t res, ER_node_t op1, ER_node_t op2)
       ER_set_f (res, f_mult (ER_f (op1), ER_f (op2)));
       return;
     }
-  execute_mult_op (res, op1, op2, TRUE);
+  common_mult (res, op1, op2);
 }
 
 static void do_always_inline
@@ -1705,6 +1713,53 @@ ifmult (ER_node_t res, ER_node_t op1, ER_node_t op2)
   f = f_mult ((floating_t) ER_i (op1), ER_f (op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
+}
+
+static void do_always_inline
+cmulti (int int_p, ER_node_t res, ER_node_t op1, int_t op3n)
+{
+  ER_node_t op2;
+  val_t v;
+  int_t i;
+
+  i = op3n;
+  if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
+    {
+      d_assert (! int_p || int_bin_op (op1, op2));
+      i = i_mult (ER_i (op1), i);
+      ER_SET_MODE (res, ER_NM_int);
+      ER_set_i (res, i);
+    }
+  else
+    {
+      op2 = (ER_node_t) &v;
+      ER_SET_MODE (op2, ER_NM_int);
+      ER_set_i (op2, i);
+      common_mult (res, op1, op2);
+    }
+}
+
+static void do_always_inline
+multi (ER_node_t op1, ER_node_t op2, int_t op3n)
+{
+  cmulti (FALSE, op1, op2, op3n);
+}
+
+static void do_always_inline
+imulti (ER_node_t op1, ER_node_t op2, int_t op3n)
+{
+  cmulti (TRUE, op1, op2, op3n);
+}
+
+static void do_always_inline
+fmulti (ER_node_t op1, ER_node_t op2, int_t op3n)
+{
+  floating_t f;
+
+  d_assert (ER_NODE_MODE (op2) == ER_NM_float);
+  f = f_mult (ER_f (op2), (floating_t) op3n);
+  ER_SET_MODE (op1, ER_NM_float);
+  ER_set_f (op1, f);
 }
 
 static void do_always_inline
@@ -1805,6 +1860,35 @@ fmodop (ER_node_t res, ER_node_t op1, ER_node_t op2)
   d_assert (float_bin_op (op1, op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f_mod (ER_f (op1), ER_f (op2)));
+}
+
+static void do_always_inline
+madd (ER_node_t res, ER_node_t op1, ER_node_t op2, ER_node_t op3)
+{
+  val_t interm;
+  int_t i;
+  floating_t f;
+
+  if (expect (ER_NODE_MODE (op1) == ER_NM_int)
+      && expect (ER_NODE_MODE (op2) == ER_NM_int)
+      && expect (ER_NODE_MODE (op3) == ER_NM_int))
+    {
+      i = ER_i (op1) * ER_i (op2) + ER_i (op3);
+      ER_SET_MODE (res, ER_NM_int);
+      ER_set_i (res, i);
+      return;
+    }
+  if (expect (ER_NODE_MODE (op1) == ER_NM_float)
+      && expect (ER_NODE_MODE (op2) == ER_NM_float)
+      && expect (ER_NODE_MODE (op3) == ER_NM_float))
+    {
+      f = ER_f (op1) * ER_f (op2) + ER_f (op3);
+      ER_SET_MODE (res, ER_NM_float);
+      ER_set_f (res, f);
+      return;
+    }
+  cmult (FALSE, (ER_node_t) &interm, op1, op2);
+  cadd (FALSE, res, (ER_node_t) &interm, op3);
 }
 
 static void do_always_inline

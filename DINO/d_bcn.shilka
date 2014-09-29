@@ -119,6 +119,8 @@ mult		{return BC_NM_mult;}
 div		{return BC_NM_div;}
 mod		{return BC_NM_mod;}
 addi		{return BC_NM_addi;}
+multi		{return BC_NM_multi;}
+madd		{return BC_NM_madd;}
 iadd		{return BC_NM_iadd;}
 isub		{return BC_NM_isub;}
 imult		{return BC_NM_imult;}
@@ -137,6 +139,8 @@ ifdiv		{return BC_NM_ifdiv;}
 fidiv		{return BC_NM_fidiv;}
 iaddi		{return BC_NM_iaddi;}
 faddi		{return BC_NM_faddi;}
+imulti		{return BC_NM_imulti;}
+fmulti		{return BC_NM_fmulti;}
 eqi		{return BC_NM_eqi;}
 ieqi		{return BC_NM_ieqi;}
 nei		{return BC_NM_nei;}

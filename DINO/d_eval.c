@@ -1948,6 +1948,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
     case BC_NM_sub_st:
     case BC_NM_sub_slst:
     case BC_NM_mult:
+    case BC_NM_multi:
     case BC_NM_mult_st:
     case BC_NM_mult_slst:
     case BC_NM_div:
@@ -1980,6 +1981,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 				    pack_els2, op2, i_minus);
 		  break;
 		case BC_NM_mult:
+		case BC_NM_multi:
 		case BC_NM_mult_st:
 		case BC_NM_mult_slst:
 		  int_pack_vect_op (FALSE, len1, pack_res_els, pack_els1,
@@ -2024,6 +2026,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 				      pack_els2, op2, f_minus);
 		  break;
 		case BC_NM_mult:
+		case BC_NM_multi:
 		case BC_NM_mult_st:
 		case BC_NM_mult_slst:
 		  float_pack_vect_op (FALSE, len1, pack_res_els, pack_els1,
@@ -2087,6 +2090,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	      execute_minus_op (el_res, (ER_node_t) &l, (ER_node_t) &r, FALSE);
 	      break;
 	    case BC_NM_mult:
+	    case BC_NM_multi:
 	    case BC_NM_mult_st:
 	    case BC_NM_mult_slst:
 	      execute_mult_op (el_res, (ER_node_t) &l, (ER_node_t) &r, FALSE);
@@ -3536,12 +3540,21 @@ evaluate_code (void)
 	  mult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
+	case BC_NM_multi:
+	  multi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_div:
 	  divop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_mod:
 	  mod (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_madd:
+	  madd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)),
+		get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_concat:
@@ -3618,6 +3631,14 @@ evaluate_code (void)
 	  break;
 	case BC_NM_ifmult:
 	  ifmult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_imulti:
+	  imulti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_fmulti:
+	  fmulti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_idiv:

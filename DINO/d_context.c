@@ -1383,10 +1383,12 @@ get_temp_stack_slot (int *temp_vars_num)
   return res;
 }
 
+static const int not_defined_result = INT_MIN;
+
 static int do_inline
 setup_result_var_number (int *result, int *temp_vars_num)
 {
-  int new_p = result == NULL || *result < 0;
+  int new_p = result == NULL || *result == not_defined_result;
   int res = (new_p ? get_temp_stack_slot (temp_vars_num) : *result);
 
   if (result != NULL)
@@ -1471,16 +1473,16 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 static void do_inline
 process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
 {
-  int op_result = -1;
+  int op_result = not_defined_result;
   int temp_vars_num = *curr_temp_vars_num;
   BC_node_mode_t bc_node_mode;
   BC_node_t bc, src;
 
   SET_SOURCE_POSITION (op);
-  op_result = -1;
+  op_result = not_defined_result;
   IR_set_operand (op, second_expr_processing (IR_operand (op), FALSE,
-					     &op_result, &temp_vars_num,
-					     FALSE, NULL, NULL, FALSE));
+					      &op_result, &temp_vars_num,
+					      FALSE, NULL, NULL, FALSE));
   switch (IR_NODE_MODE (op))
     {
     case IR_NM_not: bc_node_mode = BC_NM_not; break;
@@ -1540,7 +1542,7 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
 		   BC_node_mode_t new_op_mode, BC_node_mode_t rev_op_mode)
 {
   int skip_left_p, skip_right_p;
-  int l_op_result = -1, r_op_result = -1;
+  int l_op_result = not_defined_result, r_op_result = not_defined_result;
   int temp_vars_num = *curr_temp_vars_num;
   BC_node_mode_t bc_node_mode;
   BC_node_t bc, src;
@@ -1557,8 +1559,8 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
 	{
 	  IR_set_right_operand
 	    (op, second_expr_processing (r, FALSE,
-					&r_op_result, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 &r_op_result, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	  skip_right_p = TRUE;
 	  if (unary_slice_p (IR_right_operand (op)))
 	    ;
@@ -1574,8 +1576,8 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
 	{
 	  IR_set_left_operand
 	    (op, second_expr_processing (l, FALSE,
-					&l_op_result, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 &l_op_result, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	  skip_left_p = TRUE;
 	  if (unary_slice_p (IR_left_operand (op)))
 	    ;
@@ -2065,7 +2067,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	      }
 	    else
 	      {
-		d_assert (result != NULL && *result < 0);
+		d_assert (result != NULL && *result == not_defined_result);
 		/* We need 2 stack slots for non local var occurrence
 		   lvalue representation.  */
 		BC_set_op1
@@ -2093,17 +2095,18 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       }
     case IR_NM_period:
       {
-	int op_result = -1;
+	int op_result = not_defined_result;
 
-	d_assert (! lvalue_p || result == NULL || *result < 0);
+	d_assert (! lvalue_p
+		  || result == NULL || *result == not_defined_result);
 	SET_SOURCE_POSITION (expr);
 	bc = new_bc_code_with_src (BC_NM_fld, expr); // ??? should be decl
 	BC_set_fldid (bc,
 		      IR_ident_string (IR_unique_ident (IR_component (expr))));
 	IR_set_designator
 	  (expr, second_expr_processing (IR_designator (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 &op_result, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	BC_set_op2 (bc, op_result);
 	if (lvalue_p)
 	  {
@@ -2136,7 +2139,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 
 	bc = lconv = nop = NULL;
 	SET_SOURCE_POSITION (expr);
-	op_result = (result == NULL ? -1 : *result);
+	op_result = (result == NULL ? not_defined_result : *result);
 	if (false_pc != NULL)
 	  nop = new_bc_code_with_src (BC_NM_nop, expr);
 	IR_set_operand
@@ -2161,11 +2164,11 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	    BC_set_pc (bc, lconv);
 	  }
 	temp_vars_num = *curr_temp_vars_num;
-	op_result = (result == NULL ? -1 : *result);
+	op_result = (result == NULL ? not_defined_result : *result);
 	IR_set_cont_operand
 	  (expr, second_expr_processing (IR_cont_operand (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE,
-					false_pc, true_pc, FALSE));
+					 &op_result, &temp_vars_num, FALSE,
+					 false_pc, true_pc, FALSE));
 	if (false_pc == NULL)
 	  {
 	    BC_set_op2 (lconv, op_result);
@@ -2183,11 +2186,11 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
     case IR_NM_not:
       if (false_pc != NULL)
 	{
-	  int op_result = (result == NULL ? -1 : *result);
+	  int op_result = (result == NULL ? not_defined_result : *result);
 
 	  second_expr_processing (IR_operand (expr), fun_class_assign_p,
-				 &op_result, curr_temp_vars_num, lvalue_p,
-				 true_pc, false_pc, TRUE);
+				  &op_result, curr_temp_vars_num, lvalue_p,
+				  true_pc, false_pc, TRUE);
 	  IR_set_value_type (expr, EVT_INT);
 	  false_pc = true_pc = NULL;
 	}
@@ -2276,8 +2279,12 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       process_binary_op (expr, result, curr_temp_vars_num,
 			 BC_NM_addi, BC_NM_addi);
       goto common_ar_op;
-    case IR_NM_minus:
     case IR_NM_mult:
+      l = IR_left_operand (expr); r = IR_right_operand (expr);
+      process_binary_op (expr, result, curr_temp_vars_num,
+			 BC_NM_multi, BC_NM_multi);
+      goto common_ar_op;
+    case IR_NM_minus:
     case IR_NM_div:
     case IR_NM_mod:
       l = IR_left_operand (expr); r = IR_right_operand (expr);
@@ -2423,11 +2430,11 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	int op_result;
 
         SET_SOURCE_POSITION (expr);
-	op_result = -1;
+	op_result = not_defined_result;
         IR_set_cond_expr
 	  (expr, second_expr_processing (IR_cond_expr (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 &op_result, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	bc = new_bc_code_with_src (BC_NM_bfni, expr);
 	BC_set_op1 (bc, op_result);
 	add_to_bcode (bc);
@@ -2436,8 +2443,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	/* Put it on stack.  */
         IR_set_true_expr
 	  (expr, second_expr_processing (IR_true_expr (expr),
-					fun_class_assign_p,
-					NULL, &temp_vars_num, FALSE,
+					 fun_class_assign_p,
+					 NULL, &temp_vars_num, FALSE,
 					NULL, NULL, FALSE));
 	d_assert (temp_vars_num = *curr_temp_vars_num + 1);
 	true_path_end = BC_bc (curr_info);
@@ -2445,11 +2452,11 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	/* Put it on stack.  */
         IR_set_false_expr
 	  (expr, second_expr_processing (IR_false_expr (expr),
-					fun_class_assign_p,
-					NULL, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 fun_class_assign_p,
+					 NULL, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	if (result != NULL)
-	  *result = -1;
+	  *result = not_defined_result;
 	setup_result_var_number (result, curr_temp_vars_num);
 	/* Overall result should be on stack.  */
 	d_assert (result == NULL
@@ -2486,15 +2493,15 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	    IR_set_repetition_key
 	      (elist,
 	       second_expr_processing (IR_repetition_key (elist), FALSE,
-				      NULL, &temp_vars_num,
+				       NULL, &temp_vars_num,
 				       FALSE, NULL, NULL, FALSE));
             if (node_mode == IR_NM_vec)
               type_test (IR_repetition_key (elist), EVT_NUMBER_STRING_MASK,
                          ERR_invalid_repetition_type);
 	    IR_set_expr
 	      (elist, second_expr_processing (IR_expr (elist), TRUE,
-					     NULL, &temp_vars_num, FALSE,
-					     NULL, NULL, FALSE));
+					      NULL, &temp_vars_num, FALSE,
+					      NULL, NULL, FALSE));
 	  }
 	BC_set_op3 (bc, n);
 	IR_set_value_type (expr, node_mode == IR_NM_vec ? EVT_VEC : EVT_TAB);
@@ -2503,23 +2510,24 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       }
     case IR_NM_index:
       {
-	int op_result = -1;
+	int op_result = not_defined_result;
 
-	d_assert (! lvalue_p || result == NULL || *result < 0);
+	d_assert (! lvalue_p
+		  || result == NULL || *result == not_defined_result);
 	SET_SOURCE_POSITION (expr);
 	bc = new_bc_code_with_src (BC_NM_ind, expr);
 	IR_set_designator
 	  (expr, second_expr_processing (IR_designator (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 &op_result, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	BC_set_op2 (bc, op_result);
 	if (lvalue_p)
 	  *curr_temp_vars_num = temp_vars_num;
-	op_result = -1;
+	op_result = not_defined_result;
 	IR_set_component
 	  (expr, second_expr_processing (IR_component (expr), FALSE,
-					&op_result, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 &op_result, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	BC_set_op3 (bc, op_result);
 	if (lvalue_p)
 	  {
@@ -2537,7 +2545,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       {
 	IR_node_t des = IR_designator (expr);
 
-	d_assert (! lvalue_p || result == NULL || *result < 0);
+	d_assert (! lvalue_p
+		  || result == NULL || *result == not_defined_result);
 	SET_SOURCE_POSITION (expr);
 	bc = new_bc_code_with_src (BC_NM_sl, expr);
 	if (des != NULL)
@@ -2545,8 +2554,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	    BC_set_op3 (bc, 1); /* dimension */
 	    BC_set_op2 (bc, temp_vars_num + curr_vars_number);
 	    des = second_expr_processing (des, FALSE, NULL, &temp_vars_num,
-					 IR_IS_OF_TYPE (des, IR_NM_slice),
-					 NULL, NULL, FALSE);
+					  IR_IS_OF_TYPE (des, IR_NM_slice),
+					  NULL, NULL, FALSE);
 	    if (des != NULL && IR_IS_OF_TYPE (des, IR_NM_slice))
 	      {
 		d_assert (BC_NODE_MODE (curr_pc) == BC_NM_sl);
@@ -2559,16 +2568,16 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	IR_set_designator (expr, des);
 	IR_set_component
 	  (expr, second_expr_processing (IR_component (expr), FALSE,
-					NULL, &temp_vars_num, FALSE
-					, NULL, NULL, FALSE));
+					 NULL, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	IR_set_bound
 	  (expr, second_expr_processing (IR_bound (expr), FALSE,
-					NULL, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 NULL, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	IR_set_step
 	  (expr, second_expr_processing (IR_step (expr), FALSE,
-					NULL, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 NULL, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	if (lvalue_p)
 	  {
 	    BC_set_op1 (bc, -1);
@@ -2601,8 +2610,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	saved_prev_pc = curr_pc;
 	IR_set_fun_expr
 	  (expr, second_expr_processing (IR_fun_expr (expr), FALSE,
-					NULL, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 NULL, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	if (BC_NODE_MODE (curr_pc) == BC_NM_fun)
 	  {
 	    d_assert (IR_NODE_MODE (IR_fun_expr (expr)) == IR_NM_ident);
@@ -2632,7 +2641,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	pars_num = process_actuals (fun_decl, fun_op_num,
 				    IR_actuals (expr), &temp_vars_num);
 	if (result != NULL)
-	  *result = -1;
+	  *result = not_defined_result;
 	setup_result_var_number (result, curr_temp_vars_num);
 	if (general_p)
 	  bc = new_bc_code_with_src (BC_NM_call, expr);
@@ -3089,7 +3098,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
       switch (stmt_mode = IR_NODE_MODE (stmt))
 	{
 	case IR_NM_expr_stmt:
-	  result = -1;
+	  result = not_defined_result;
 	  IR_set_stmt_expr
 	    (stmt,
 	     second_expr_processing (IR_stmt_expr (stmt), TRUE,
@@ -3163,13 +3172,13 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	case IR_NM_or_assign:
 	  bc_node_mode = BC_NM_or_st;
 	common_assign:
-	  var_result = -1;
+	  var_result = not_defined_result;
 	  before_pc = curr_pc;
 	  src = new_bc_node (BC_NM_source2, IR_pos (stmt));
 	  BC_set_pos2 (src, IR_pos (stmt));
 	  temp = second_expr_processing (IR_assignment_var (stmt), FALSE,
-					&var_result, &temp_vars_num, TRUE,
-					NULL, NULL, FALSE);
+					 &var_result, &temp_vars_num, TRUE,
+					 NULL, NULL, FALSE);
 	  if (temp != NULL)
 	    IR_set_assignment_var (stmt, temp);
 	  var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
@@ -3243,7 +3252,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      && (stmt_mode == IR_NM_assign || stmt_mode == IR_NM_var_assign))
 	    result = var_result;
 	  else
-	    result = -1;
+	    result = not_defined_result;
 	  if (var_bc != NULL)
 	    {
 	      IR_node_t expr;
@@ -3251,8 +3260,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      IR_set_assignment_expr
 		(stmt,
 		 second_expr_processing (IR_assignment_expr (stmt), TRUE,
-					&result, &temp_vars_num, FALSE,
-					NULL, NULL, FALSE));
+					 &result, &temp_vars_num, FALSE,
+					 NULL, NULL, FALSE));
 	      expr = IR_assignment_expr (stmt);
 	      BC_set_op3 (bc, result);
 	      if (temp != NULL && ! IR_IS_OF_TYPE (temp, IR_NM_slice))
@@ -3280,8 +3289,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		  IR_set_assignment_expr
 		    (stmt,
 		     second_expr_processing (val, TRUE,
-					    &result, &temp_vars_num, FALSE,
-					    NULL, NULL, FALSE));
+					     &result, &temp_vars_num, FALSE,
+					     NULL, NULL, FALSE));
 		  if (temp != NULL && result != var_result)
 		    {
 		      IR_node_t ident = IR_assignment_expr (stmt);
@@ -3296,11 +3305,13 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		{
 		  IR_node_mode_t op_mode = IR_NODE_MODE (stmt);
 
-		  if (op_mode == IR_NM_plus_assign
+		  if ((op_mode == IR_NM_plus_assign || op_mode == IR_NM_mult_assign)
 		      && IR_IS_OF_TYPE (val, IR_NM_int)
 		      && temp != NULL && ! IR_IS_OF_TYPE (temp, IR_NM_slice))
 		    {
-		      bc = new_bc_code (BC_NM_addi, src);
+		      bc = new_bc_code (op_mode == IR_NM_plus_assign
+					? BC_NM_addi : BC_NM_multi,
+					src);
 		      BC_set_op3 (bc, IR_int_value (IR_unique_int (val)));
 		      BC_set_op2 (bc, var_result);
 		    }
@@ -3309,8 +3320,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		      IR_set_assignment_expr
 			(stmt,
 			 second_expr_processing (val, TRUE,
-						&result, &temp_vars_num, FALSE,
-						NULL, NULL, FALSE));
+						 &result, &temp_vars_num, FALSE,
+						 NULL, NULL, FALSE));
 		      /* Generate op (var_result, var_result, result).  */
 		      bc = new_bc_code (make_op_mode (stmt), src);
 		      BC_set_op2 (bc, var_result);
@@ -3329,11 +3340,11 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	  {
 	    BC_node_t st_bc, aend_bc, lvalue_bc;
 
-	    var_result = -1;
+	    var_result = not_defined_result;
 	    before_pc = curr_pc;
 	    temp = second_expr_processing (IR_assignment_var (stmt), FALSE,
-					  &var_result, &temp_vars_num, FALSE,
-					  NULL, NULL, FALSE);
+					   &var_result, &temp_vars_num, FALSE,
+					   NULL, NULL, FALSE);
 	    if (temp != NULL)
 	      {
 		d_assert (IR_IS_OF_TYPE (temp, IR_NM_ident));
@@ -3362,7 +3373,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		  result = var_result;
 		else
 		  {
-		    result = -1;
+		    result = not_defined_result;
 		    bc_node_mode
 		      = make_designator_lvalue (var_bc,
 						ERR_non_variable_in_assignment,
@@ -3383,8 +3394,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      }
 	    IR_set_assignment_expr
 	      (stmt, second_expr_processing (IR_assignment_expr (stmt), TRUE,
-					    &result, &temp_vars_num, FALSE,
-					    NULL, NULL, FALSE));
+					     &result, &temp_vars_num, FALSE,
+					     NULL, NULL, FALSE));
 	    add_flatten_node_if_necessary (IR_assignment_expr (stmt), result);
 	    if (lvalue_bc != NULL)
 	      {
@@ -3406,11 +3417,11 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    BC_node_t false_pc = new_bc_code_with_src (BC_NM_nop, stmt);
 	    BC_node_t true_pc = new_bc_code_with_src (BC_NM_nop, stmt);
 	    
-	    result = -1;
+	    result = not_defined_result;
 	    IR_set_if_expr
 	      (stmt, second_expr_processing (IR_if_expr (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE,
-					    false_pc, true_pc, FALSE));
+					     &result, &temp_vars_num, FALSE,
+					     false_pc, true_pc, FALSE));
 	    add_to_bcode (true_pc);
 	    if_finish = new_bc_code_with_src (BC_NM_nop, stmt);
 	    second_block_passing (IR_if_part (stmt), FALSE);
@@ -3445,12 +3456,12 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    second_block_passing (IR_for_iterate_stmt (stmt), FALSE);
 	    d_assert (curr_info != NULL);
 	    before_guard_expr = BC_bc (curr_info);
-	    result = -1;
+	    result = not_defined_result;
 	    IR_set_for_guard_expr
 	      (stmt, second_expr_processing (IR_for_guard_expr (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE,
-					    for_finish, before_body,
-					    TRUE));
+					     &result, &temp_vars_num, FALSE,
+					     for_finish, before_body,
+					     TRUE));
 	    type_test (IR_for_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_for_guard_expr_type);
 	    add_to_bcode (for_finish);
@@ -3475,8 +3486,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    result = IR_foreach_tab_place (stmt);
 	    IR_set_foreach_tab
 	      (stmt, second_expr_processing (tab, FALSE,
-					    &result, &temp_vars_num, FALSE,
-					    NULL, NULL, FALSE));
+					     &result, &temp_vars_num, FALSE,
+					     NULL, NULL, FALSE));
 	    if (tab != NULL)
 	      source_position = IR_pos (tab);
 	    type_test (tab, EVT_TAB, ERR_invalid_foreach_table_type);
@@ -3493,7 +3504,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    BC_set_op2 (ldi_bc, 0);
 	    add_to_bcode (ldi_bc);
 	    before_loop_start = BC_bc (curr_info);
-	    var_result = -1;
+	    var_result = not_defined_result;
 	    before_pc = curr_pc;
 	    temp = second_expr_processing (IR_foreach_index_designator (stmt), FALSE,
 					   &var_result, &temp_vars_num, TRUE,
@@ -3524,7 +3535,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    before_pc = curr_pc;
 	    if (val_des != NULL)
 	      {
-		var_result = -1;
+		var_result = not_defined_result;
 		temp = second_expr_processing (val_des, FALSE,
 					       &var_result, &temp_vars_num, TRUE,
 					       NULL, NULL, FALSE);
@@ -3608,7 +3619,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 			 && IR_thread_flag (fun_class))
 		  cont_err (source_position,
 			    ERR_return_with_result_in_thread);
-		result = -1;
+		result = not_defined_result;
 		IR_set_returned_expr
 		  (stmt,
 		   second_expr_processing (IR_returned_expr (stmt), TRUE,
@@ -3655,11 +3666,11 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    
 	    before_wait_guard_expr = curr_pc;
 	    there_is_function_call_in_expr = FALSE;
-	    result = -1;
+	    result = not_defined_result;
 	    IR_set_wait_guard_expr
 	      (stmt, second_expr_processing (IR_wait_guard_expr (stmt), FALSE,
-					    &result, &temp_vars_num, FALSE,
-					    NULL, NULL, FALSE));
+					     &result, &temp_vars_num, FALSE,
+					     NULL, NULL, FALSE));
 	    bc = new_bc_code_with_src (BC_NM_wait, stmt);
 	    BC_set_op1 (bc, result);
 	    type_test (IR_wait_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
@@ -3678,8 +3689,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	  BC_set_op1 (bc, temp_vars_num + curr_vars_number);
 	  IR_set_throw_expr
 	    (stmt, second_expr_processing (IR_throw_expr (stmt), FALSE,
-					  NULL, &temp_vars_num, FALSE,
-					  NULL, NULL, FALSE));
+					   NULL, &temp_vars_num, FALSE,
+					   NULL, NULL, FALSE));
 	  type_test (IR_throw_expr (stmt), EVT_UNKNOWN,
 		     ERR_invalid_throw_expr_type);
 	  add_to_bcode (bc);
@@ -3817,7 +3828,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 					     BC_NM_block)
 			      || BC_IS_OF_TYPE (previous_node_catch_list_pc,
 						BC_NM_except));
-		    result = -1;
+		    result = not_defined_result;
 		    temp_vars_num = 0;
 		    except_bc = new_bc_code_with_src (BC_NM_except,
 						      curr_except);
@@ -3962,23 +3973,14 @@ skip_nops (BC_node_t bc)
   return bc;
 }
 
-/* The following function passes through nodes unnecessary for
-   execution.  Also do byte code combining.  */
 static BC_node_t
-go_through (BC_node_t start_bc)
+branch_combine (BC_node_t bc)
 {
   BC_node_mode_t node_mode;
-  BC_node_t first_bc, second_bc, bc, next_bc, info;
-  int bt_p, op1 = -1;
+  BC_node_t first_bc, second_bc, next_bc, info;
+  int bt_p, op1 = not_defined_result;
 
-  if (start_bc == NULL)
-    return NULL;
-  bc = skip_nops (start_bc);
-  if (bc == NULL)
-    return NULL;
   info = BC_info (bc);
-  if (BC_subst (info) != NULL)
-    return BC_subst (info);
   second_bc = first_bc = bc;
   if ((BC_NODE_MODE (first_bc) == BC_NM_addi
        || BC_NODE_MODE (first_bc) == BC_NM_iaddi)
@@ -4006,7 +4008,7 @@ go_through (BC_node_t start_bc)
 	  || BC_NODE_MODE (second_bc) == BC_NM_ilei
 	  || BC_NODE_MODE (second_bc) == BC_NM_igti)
 	{
-	  op1 = -1;
+	  op1 = not_defined_result;
 	  second_bc = first_bc;
 	}
     }
@@ -4094,12 +4096,12 @@ go_through (BC_node_t start_bc)
 	break;
       }
   if (node_mode != BC_NM__error
-      && (op1 < 0 || BC_op2 (second_bc) == op1)
+      && (op1 == not_defined_result || BC_op2 (second_bc) == op1)
       && BC_op1 (second_bc) >= BC_vars_num (curr_bc_block))
     {
       bc = new_bc_code (node_mode, BC_source (BC_info (next_bc)));
       insert_info (BC_info (bc), info);
-      if (op1 >= 0)
+      if (op1 != not_defined_result)
 	BC_set_binc_inc (bc, BC_op3 (first_bc));
       BC_set_op1 (bc, BC_op2 (second_bc));
       BC_set_bcmp_op2 (bc, BC_op3 (second_bc));
@@ -4107,8 +4109,79 @@ go_through (BC_node_t start_bc)
       BC_set_next (bc, BC_next (next_bc) == first_bc ? bc : BC_next (next_bc));
       BC_set_pc (bc, BC_pc (next_bc) == first_bc ? bc : BC_pc (next_bc));
     }
-  BC_set_subst (info, bc);
   return bc;
+}
+
+static BC_node_t
+madd_combine (BC_node_t bc)
+{
+  BC_node_t info, next_bc;
+  int_t op1, op2, op3, op4;
+
+  op1 = not_defined_result;
+  if (BC_NODE_MODE (bc) == BC_NM_mult
+      && BC_op1 (bc) >= BC_vars_num (curr_bc_block)
+      && (next_bc = BC_next (bc)) != NULL
+      && BC_NODE_MODE (next_bc) == BC_NM_add)
+    {
+      op1 = BC_op1 (next_bc);
+      op2 = BC_op2 (bc);
+      op3 = BC_op3 (bc);
+      if (BC_op2 (next_bc) == BC_op1 (bc))
+	op4 = BC_op3 (next_bc);
+      else if (BC_op3 (next_bc) == BC_op1 (bc))
+	op4 = BC_op2 (next_bc);
+      else
+	op1 = not_defined_result;
+    }
+  else if (BC_NODE_MODE (bc) == BC_NM_add
+	   && (next_bc = BC_next (bc)) != NULL && BC_NODE_MODE (next_bc) == BC_NM_mult
+	   && BC_op1 (next_bc) >= BC_vars_num (curr_bc_block))
+    {
+      op1 = BC_op1 (next_bc);
+      op2 = BC_op2 (bc);
+      op3 = BC_op3 (bc);
+      if (BC_op2 (next_bc) == BC_op1 (bc))
+	op4 = BC_op3 (next_bc);
+      else if (BC_op3 (next_bc) == BC_op1 (bc))
+	op4 = BC_op2 (next_bc);
+      else
+	op1 = not_defined_result;
+    }
+  if (op1 != not_defined_result)
+    {
+      info = BC_info (bc);
+      bc = new_bc_code (BC_NM_madd, BC_source (BC_info (next_bc)));
+      insert_info (BC_info (bc), info);
+      BC_set_op1 (bc, op1);
+      BC_set_op2 (bc, op2);
+      BC_set_op3 (bc, op3);
+      BC_set_op4 (bc, op4);
+      BC_set_next (bc, BC_next (next_bc));
+    }
+  return bc;
+}
+
+/* The following function passes through nodes unnecessary for
+   execution.  Also do byte code combining.  */
+static BC_node_t
+go_through (BC_node_t start_bc)
+{
+  BC_node_t bc, subst, info;
+
+  if (start_bc == NULL)
+    return NULL;
+  bc = skip_nops (start_bc);
+  if (bc == NULL)
+    return NULL;
+  info = BC_info (bc);
+  if (BC_subst (info) != NULL)
+    return BC_subst (info);
+  subst = branch_combine (bc);
+  if (subst == bc)
+    subst = madd_combine (bc);
+  BC_set_subst (info, subst);
+  return subst;
 }
 
 /* Modify call BC to tail calls if it is possible.  */
