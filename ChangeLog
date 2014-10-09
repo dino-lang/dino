@@ -1,3 +1,41 @@
+2014-10-08  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* AMMUNITION/spset.h, AMMUNITION/spset.c,
+	AMMUNITION/cspset.c: New files.
+	* AMMUNITION/cspset.h, AMMUNITION/cspset.c,
+	AMMUNITION/cspset.cpp: New files.
+	* AMMUNITION/spset.tst.in, AMMUNITION/spset++.tst.in: New files.
+	* AMMUNITION/Makefile.in (source): Add spset.[hc], spset.cpp,
+	spset.tst.in, spset++.tst.in and cspset.[hc], cspset.cpp,
+	cspset.tst.in, cspset++.tst.in.
+	(Cobjects): Add spset.o and cspset.o.
+	(Cppobjects): Add spset.o and cspset.o.
+	(test-c): Add spset-tst and cspset-tst.
+	(test-cpp): Add spsetcpp-tst and cspsetcpp-tst.
+	(spset-tst, cspset-tst, spsetcpp-tst, cspsetcpp-tst): New entries.
+	(install, uninstall): Add spset.h and cspset.h.
+	(clean): Add spset.tst, cspset.tst, spset.tst, cspset.tst.
+	(depend): Add spset.c, cspset.c, spset.cpp, cspset.cpp.
+	(spset.o, cspset.o): New generated dependencies.
+	* configure.in (output_files): Add spset.tst, cspset.tst,
+	spset++.tst, cspset++.tst.
+	* configure: Update.
+	* AMMUNITION/ammunition.sgml.in: Add spset and cspset package
+	description.
+	* AMMUNITION/ammunition++.sgml.in: Ditto.
+	* AMMUNITION/ammunition.html: Update.
+	* AMMUNITION/ammunition-(1, 13).html: Update.
+	* AMMUNITION/ammunition.{dvi,info,pdf,ps,txt}: Update.
+	* AMMUNITION/ammunition++-(1, 8, 10, 11, 13).html: Update.
+	* AMMUNITION/ammunition.dvi: Update.
+	* AMMUNITION/ammunition++.{dvi,info,pdf,ps,txt}: Update.
+	* AMMUNITION/ammunition++.html: Update.
+	* AMMUNITION/ammunition-{14,15}.html: New files.
+	* AMMUNITION/ammunition++-{14,15}.html: New files.
+        * cocom.sgml.in: Add spset and cspset descriptions.
+	* cocom.{html,dvi,info.pdf,ps}: Update.
+	* sgml-info: New.
+
 2014-09-29  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Add NODEJS for comparison.  Rearrange tests.

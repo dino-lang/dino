@@ -348,9 +348,9 @@ value.</P>
 <BLOCKQUOTE><CODE>
 <PRE>
            `class sint&lt;size> operator +
-                               (const class sint&lt;size> &amp;op)'
+                               (const class sint&lt;size> &amp;amp;op)'
            `class unsint&lt;size> operator +
-                               (const class unsint&lt;size> &amp;op)'
+                               (const class unsint&lt;size> &amp;amp;op)'
            
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -400,9 +400,9 @@ implement another operation (right shift)
 <BLOCKQUOTE><CODE>
 <PRE>
            `class sint&lt;size> operator |
-                             (const class sint&lt;size> &amp;op)'
+                             (const class sint&lt;size> &amp;amp;op)'
            `class unsint&lt;size> operator |
-                               (const class unsint&lt;size> &amp;op)'
+                               (const class unsint&lt;size> &amp;amp;op)'
            
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -411,7 +411,7 @@ make bitwise `or' of integers.  There are analogous
 operators which implement bitwise `and' and `xor':
 <BLOCKQUOTE><CODE>
 <PRE>
-           `&amp;',
+           `&amp;amp;',
            `^'.
            
 </PRE>
@@ -432,8 +432,8 @@ make bitwise `not' of integer of given size.</P>
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-           `int operator == (const class sint&lt;size> &amp;op)'
-           `int operator == (const class unsint&lt;size> &amp;op)'
+           `int operator == (const class sint&lt;size> &amp;amp;op)'
+           `int operator == (const class unsint&lt;size> &amp;amp;op)'
            
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -528,11 +528,11 @@ by number of given size.</P>
 <BLOCKQUOTE><CODE>
 <PRE>
         `template &lt;int result_size, int operand_size>
-         inline void new_size (class sint&lt;operand_size> &amp;operand,
-                               class sint&lt;result_size> &amp;result)'
+         inline void new_size (class sint&lt;operand_size> &amp;amp;operand,
+                               class sint&lt;result_size> &amp;amp;result)'
         `template &lt;int result_size, int operand_size>
-         inline void new_size (class unsint&lt;operand_size> &amp;operand,
-                               class unsint&lt;result_size> &amp;result)'
+         inline void new_size (class unsint&lt;operand_size> &amp;amp;operand,
+                               class unsint&lt;result_size> &amp;amp;result)'
         
 </PRE>
 </CODE></BLOCKQUOTE>

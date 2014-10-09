@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>COCOM tool set</TITLE>
 
 
@@ -42,9 +42,11 @@ formats.</P>
 <P>Currently there are the following packages:</P>
 <P>
 <DL>
-<DT><B>allocate</B><DD><P>Allocating and freeing memory with automatic fixing some
+<DT><B>allocate</B><DD>
+<P>Allocating and freeing memory with automatic fixing some
 allocation errors.</P>
-<DT><B>vlobject</B><DD><P>Work with variable length objects (VLO).  Any number of bytes
+<DT><B>vlobject</B><DD>
+<P>Work with variable length objects (VLO).  Any number of bytes
 may be added to and removed from the end of VLO.  If it is
 needed the memory allocated for storing variable length object
 may be expanded possibly with changing the object place.  But
@@ -52,7 +54,8 @@ between any additions of the bytes (or tailoring) the object
 place is not changed.  To decrease number of changes of the
 object place the memory being allocated for the object is
 longer than the current object length.</P>
-<DT><B>objstack</B><DD><P>Work with stacks of objects (OS).  Work with the object on the
+<DT><B>objstack</B><DD>
+<P>Work with stacks of objects (OS).  Work with the object on the
 stack top is analogous to one with a variable length object.
 One motivation for the package is the problem of growing char
 strings in symbol tables.  Memory for OS is allocated by
@@ -63,40 +66,63 @@ new segment is created and the top object is transferred into
 the new segment, i.e. there is not any memory reallocation.
 Therefore the top object may change its address. But other
 objects never change address.</P>
-<DT><B>hashtab</B><DD><P>Work with hash tables.  The package permits to work
+<DT><B>hashtab</B><DD>
+<P>Work with hash tables.  The package permits to work
 simultaneously with several expandable hash tables.  Besides
 insertion and search of elements the elements from the hash
 tables can be also removed.  The table element can be only a
 pointer.  The size of hash tables is not fixed.  The hash
 table will be automatically expanded when its occupancy will
 became big.</P>
-<DT><B>position</B><DD><P>Work with source code positions.  The package serves to
+<DT><B>position</B><DD>
+<P>Work with source code positions.  The package serves to
 support information about source positions of compiled files
 taking all included files into account.</P>
-<DT><B>errors</B><DD><P>Output of compiler messages.  The package serves output
+<DT><B>errors</B><DD>
+<P>Output of compiler messages.  The package serves output
 one-pass or multi-pass compiler messages of various modes
 (errors, warnings, fatal, system errors and appended messages)
 in Unix style or for traditional listing.  The package also
 permits adequate error reporting for included files.</P>
-<DT><B>commline</B><DD><P>Work with command line.  The package implements features
+<DT><B>commline</B><DD>
+<P>Work with command line.  The package implements features
 analogous to ones of public domain function `getopt'.  The
 goal of the package creation is to use more readable language
 of command line description and to use command line
 description as help output of program.</P>
-<DT><B>ticker</B><DD><P>Simultaneous work with several tickers (timers).</P>
-<DT><B>bits</B><DD><P>Work with bit strings (copying, moving, setting, testing,
+<DT><B>ticker</B><DD>
+<P>Simultaneous work with several tickers (timers).</P>
+<DT><B>bits</B><DD>
+<P>Work with bit strings (copying, moving, setting, testing,
 comparison).</P>
-<DT><B>arithm</B><DD><P>Implementing host machine-independently arbitrary precision
+<DT><B>spset</B><DD>
+<P>Work with expandable sparse sets of numbers.  The
+implementation is based on one descibed in "An Efficient
+Representation for Sparse Sets" by Preston Briggs and Linda
+Torczon.  Memory needed for the set is proportional to maximal
+element value in the set.</P>
+<DT><B>spset</B><DD>
+<P>Work with expandable compact sparse sets of numbers.  It has
+very similar interface with `spset'.  The algorithm
+complexities of set operations in practice is the same as for
+package `spset' but have bigger constants.  Memory needed for
+the set is proportional to number of elements in the set and
+is node depended on element value.  It is implemented by
+special case hash tables.</P>
+<DT><B>arithm</B><DD>
+<P>Implementing host machine-independently arbitrary precision
 integer numbers arithmetic.  The implementation of the package
 functions are not sufficiently efficient in order to use for
 run-time.  The package functions are oriented to implement
 constant-folding in compilers, cross-compilers.</P>
-<DT><B>IEEE</B><DD><P>Implementing host machine-independently IEEE floating point
+<DT><B>IEEE</B><DD>
+<P>Implementing host machine-independently IEEE floating point
 arithmetic.  The implementation of the package functions are
 not sufficiently efficient in order to use for run-time.  The
 package functions are oriented to implement constant-folding
 in compilers, cross-compilers.</P>
-<DT><B>earley</B><DD><P>The package `earley' implements earley parser.  The earley
+<DT><B>earley</B><DD>
+<P>The package `earley' implements earley parser.  The earley
 parser implementation has the following features:
 <UL>
 <LI>It is sufficiently fast and does not require much

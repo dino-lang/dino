@@ -5,7 +5,7 @@
 
 <title>Ammunition (Reusable packages) - C++ interface
 <author>Vladimir Makarov, <tt>vmakarov@users.sourceforge.net</tt>
-<date>Apr 5, 2001
+<date>Oct 10, 2014
 <abstract>
 This document describes ammunition (reusable packages written in C/C++).
 </abstract>
@@ -33,6 +33,8 @@ names and tasks):
    <tag>IEEE</tag>          implementing host machine-independently IEEE
                        floating point arithmetic
    <tag>ticker</tag>        timer
+   <tag>spset</tag>         Expandable sparse set
+   <tag>cspset</tag>        Compact expandable sparse set
    <tag>earley</tag>        Earley parser
    </descrip>
 
@@ -839,7 +841,7 @@ only one class `command_line'.  The class has the following members:
           <tscreen><verb>
           `command_line (int argc, char **argv,
                          const char *description,
-                         int &correct_description_flag)'
+                         int &amp;correct_description_flag)'
           </verb></tscreen>
           The constructor processes command line description given as
           string parameter and command line itself given as two
@@ -1268,9 +1270,9 @@ external definitions:
         <tag>Public operators `+'</tag>
            <tscreen><verb>
            `class sint<size> operator +
-                               (const class sint<size> &op)'
+                               (const class sint<size> &amp;op)'
            `class unsint<size> operator +
-                               (const class unsint<size> &op)'
+                               (const class unsint<size> &amp;op)'
            </verb></tscreen>
            make integer addition of integers of given size.  The
            operator fixes overflow when result can not be represented by
@@ -1302,14 +1304,14 @@ external definitions:
         <tag>Public operators `|'</tag>
            <tscreen><verb>
            `class sint<size> operator |
-                             (const class sint<size> &op)'
+                             (const class sint<size> &amp;op)'
            `class unsint<size> operator |
-                               (const class unsint<size> &op)'
+                               (const class unsint<size> &amp;op)'
            </verb></tscreen>
            make bitwise `or' of integers.  There are analogous
            operators which implement bitwise `and' and `xor':
            <tscreen><verb>
-           `&',
+           `&amp;',
            `^'.
            </verb></tscreen>
    
@@ -1322,8 +1324,8 @@ external definitions:
    
         <tag>Public operators `=='</tag>
            <tscreen><verb>
-           `int operator == (const class sint<size> &op)'
-           `int operator == (const class unsint<size> &op)'
+           `int operator == (const class sint<size> &amp;op)'
+           `int operator == (const class unsint<size> &amp;op)'
            </verb></tscreen>
            compare two integers of given size on equality and returns 1
            or 0 depending on result of the comparison.  There are
@@ -1388,11 +1390,11 @@ external definitions:
      <tag>Template functions `new_size'</tag>
         <tscreen><verb>
         `template <int result_size, int operand_size>
-         inline void new_size (class sint<operand_size> &operand,
-                               class sint<result_size> &result)'
+         inline void new_size (class sint<operand_size> &amp;operand,
+                               class sint<result_size> &amp;result)'
         `template <int result_size, int operand_size>
-         inline void new_size (class unsint<operand_size> &operand,
-                               class unsint<result_size> &result)'
+         inline void new_size (class unsint<operand_size> &amp;operand,
+                               class unsint<result_size> &amp;result)'
         </verb></tscreen>
         change size of integer.  The functions fix overflow when
         result can not be represented by number of given size.
@@ -1692,7 +1694,7 @@ interface contains the following external definitions:
    
         <tag>Public operator `+'</tag>
            <tscreen><verb>
-           `class IEEE_float operator + (class IEEE_float &op)'
+           `class IEEE_float operator + (class IEEE_float &amp;op)'
            </verb></tscreen>
            makes single precision addition of floating point numbers.
            There are analogous operators which implement other floating
@@ -1784,7 +1786,7 @@ interface contains the following external definitions:
    </verb></tscreen>
         <tag>Public operator `=='</tag>
            <tscreen><verb>
-           `int operator == (class IEEE_float &op)'
+           `int operator == (class IEEE_float &amp;op)'
            </verb></tscreen>
            compares two floating point numbers on equality and returns
            1 or 0 depending on result of the comparison.  There are
@@ -1929,9 +1931,9 @@ interface contains the following external definitions:
            <tscreen><verb>
            `class IEEE_double to_double (void)'
            `class IEEE_quad to_quad (void)'
-           `class IEEE_float &from_signed_integer
+           `class IEEE_float &amp;from_signed_integer
                               (int size, const void *integer)'
-           `class IEEE_float &from_unsigned_integer
+           `class IEEE_float &amp;from_unsigned_integer
                               (int size,
                                const void *unsigned_integer)'
            `void to_signed_integer (int size, void *integer)'
@@ -1942,10 +1944,10 @@ interface contains the following external definitions:
            <tscreen><verb>
            `class IEEE_float to_single (void)'
            `class IEEE_quad to_quad (void)'
-           `class IEEE_double &from_signed_integer
+           `class IEEE_double &amp;from_signed_integer
                                (int size,
                                 const void *integer)'
-           `class IEEE_double &from_unsigned_integer
+           `class IEEE_double &amp;from_unsigned_integer
                                 (int size,
                                  const void *unsigned_integer)'
            `void to_signed_integer (int size, void *integer)'
@@ -1956,10 +1958,10 @@ interface contains the following external definitions:
            <tscreen><verb>
            `class IEEE_float to_single (void)'
            `class IEEE_double to_double (void)'
-           `class IEEE_quad &from_signed_integer
+           `class IEEE_quad &amp;from_signed_integer
                                (int size,
                                 const void *integer)'
-           `class IEEE_quad &from_unsigned_integer
+           `class IEEE_quad &amp;from_unsigned_integer
                                 (int size,
                                  const void *unsigned_integer)'
            `void to_signed_integer (int size, void *integer)'
@@ -1976,7 +1978,7 @@ interface contains the following external definitions:
            NaNs) are described for conversion floating point number to
            integer by the following table
    <tscreen><verb>
-                       Operand     | Result & Exception
+                       Operand     | Result &amp; Exception
                      --------------|-------------------
                          SNaN      |     0  
                                    |IEEE_INV(_RO)
@@ -1997,7 +1999,7 @@ interface contains the following external definitions:
            values (and for NaNs) are described for conversion floating
            point number to unsigned integer by the following table
    <tscreen><verb>
-                       Operand     | Result & Exception
+                       Operand     | Result &amp; Exception
                      --------------|-------------------
                          SNaN      |     0  
                                    |IEEE_INV(_RO)
@@ -2029,56 +2031,56 @@ interface contains the following external definitions:
         are the following functions:
         <tscreen><verb>
         `template <int size> 
-         class IEEE_float &IEEE_float_from_unsint
-                           (class IEEE_float &single,
-                            class unsint<size> &unsigned_integer)'
+         class IEEE_float &amp;IEEE_float_from_unsint
+                           (class IEEE_float &amp;single,
+                            class unsint<size> &amp;unsigned_integer)'
 
         `template <int size>
-         class IEEE_float &IEEE_float_from_sint
-                           (class IEEE_float &single,
-                            class sint<size> &integer)
+         class IEEE_float &amp;IEEE_float_from_sint
+                           (class IEEE_float &amp;single,
+                            class sint<size> &amp;integer)
 
         `template <int size>
-         void IEEE_float_to_sint (class IEEE_float &single,
-                                  class sint<size> &integer)'
+         void IEEE_float_to_sint (class IEEE_float &amp;single,
+                                  class sint<size> &amp;integer)'
         `template <int size>
          void IEEE_float_to_unsint
-                      (class IEEE_float &single,
-                       class unsint<size> &unsigned_integer)'
+                      (class IEEE_float &amp;single,
+                       class unsint<size> &amp;unsigned_integer)'
         `template <int size> 
-         class IEEE_double &IEEE_double_from_unsint
-                            (class IEEE_double &single,
-                             class unsint<size> &unsigned_integer)'
+         class IEEE_double &amp;IEEE_double_from_unsint
+                            (class IEEE_double &amp;single,
+                             class unsint<size> &amp;unsigned_integer)'
 
         `template <int size>
-         class IEEE_double &IEEE_double_from_sint
-                            (class IEEE_double &single,
-                             class sint<size> &integer)
+         class IEEE_double &amp;IEEE_double_from_sint
+                            (class IEEE_double &amp;single,
+                             class sint<size> &amp;integer)
 
         `template <int size>
-         void IEEE_double_to_sint (class IEEE_double &single,
-                                   class sint<size> &integer)'
+         void IEEE_double_to_sint (class IEEE_double &amp;single,
+                                   class sint<size> &amp;integer)'
         `template <int size>
          void IEEE_double_to_unsint
-              (class IEEE_double &single,
-               class unsint<size> &unsigned_integer)'
+              (class IEEE_double &amp;single,
+               class unsint<size> &amp;unsigned_integer)'
         `template <int size> 
-         class IEEE_quad &IEEE_quad_from_unsint
-                            (class IEEE_quad &single,
-                             class unsint<size> &unsigned_integer)'
+         class IEEE_quad &amp;IEEE_quad_from_unsint
+                            (class IEEE_quad &amp;single,
+                             class unsint<size> &amp;unsigned_integer)'
 
         `template <int size>
-         class IEEE_quad &IEEE_quad_from_sint
-                            (class IEEE_quad &single,
-                             class sint<size> &integer)
+         class IEEE_quad &amp;IEEE_quad_from_sint
+                            (class IEEE_quad &amp;single,
+                             class sint<size> &amp;integer)
 
         `template <int size>
-         void IEEE_quad_to_sint (class IEEE_quad &single,
-                                 class sint<size> &integer)'
+         void IEEE_quad_to_sint (class IEEE_quad &amp;single,
+                                 class sint<size> &amp;integer)'
         `template <int size>
          void IEEE_quad_to_unsint
-              (class IEEE_quad &single,
-               class unsint<size> &unsigned_integer)'
+              (class IEEE_quad &amp;single,
+               class unsint<size> &amp;unsigned_integer)'
         </verb></tscreen>
         Exceptions for these functions are the same as described above
         for functions `from_signed_integer', `to_signed_integer' and
@@ -2143,6 +2145,388 @@ interface contains the following external definitions and macros:
              expression because the string is stored in a static variable
              of the function.
           </descrip>
+       </descrip>
+
+<sect>Expandable sparse set
+<p>
+The package `bits' can be used to represent sets.  In many applications
+(e.g. in compiler optimizations) sets are sparse for all possible
+elements values.  The package `spset' implements sparse sets described
+in "An Efficient Representation for Sparse Sets" by Preston Briggs and
+Linda Torczon.  The sparse set implementation has the following
+features:
+    <itemize>
+    <item>It is fast.  It has complexity O(1) for testing, insertion,
+      remove of the element and O(n) for union, intersection,
+      difference, comparison, and traverse of the sets, where `n' is
+      number of elements in the set.
+
+    <item>The set has a size.  Elements with values less than size can
+      be stored in the set.  The memory is needed for the set
+      representation is O(size).
+
+    <item>When the element is inserted and does not fit into the set, the set
+      is automatically extended to store the element and may be
+      elements with even bigger values.
+    </itemize>
+
+The interface part of the sparse set is file `spset.h'.  The
+implementation part is file `spset.cpp'.  The interface contains the
+following external definitions and macros:
+     <descrip>
+     <tag>Type `spset_elem_t'</tag>
+        is an unsigned integer type representing the set element.
+
+     <tag>Macro `SPSET_MAX_ELEM'</tag>
+        is a maximal possible value of the previous type.
+
+     <tag>Class `spset'</tag>
+        The class contains the following functions:
+        <descrip>
+        <tag>Public constructor `spset'</tag>
+          <tscreen><verb>
+          `spset (spset_elem_t size = 0)'
+          </verb></tscreen>
+          creates set with initial size close to `size' but not less
+          than it.  With default parameter value the minimal size set
+          is created.
+
+        <tag>Public destructor `~spset'</tag>
+          <tscreen><verb>
+          `~spset (vodi)'
+          </verb></tscreen>
+          deletes given set and frees memory allocated for it.
+
+        <tag>Public member function `size'</tag>
+           <tscreen><verb>
+           `spset_elem_t size (void)'
+           </verb></tscreen>
+           returns the current size of the set.  Elements with
+           values less than the size can be inserted without an
+           expansion.
+    
+        <tag>Public member function `cardinality'</tag>
+           <tscreen><verb>
+           `spset_elem_t cardinality (void)'
+           </verb></tscreen>
+           returns number of elements containing currently in the set.
+     
+        <tag>Public member function `copy'</tag>
+           <tscreen><verb>
+           `void copy (spset *from)'
+           </verb></tscreen>
+           copies value of set `from' to given set.
+     
+        <tag>Public member function `swap'</tag>
+           <tscreen><verb>
+           `void swap (spset *s)'
+           </verb></tscreen>
+           swaps values of given set and `s'.
+     
+        <tag>Public member function `in_p'</tag>
+           <tscreen><verb>
+           `int in_p (spset_elem_t el)'
+           </verb></tscreen>
+           returns TRUE if the set constains element `el'.
+     
+        <tag>Public member function `insert'</tag>
+           <tscreen><verb>
+           `int insert (spset_elem_t el)'
+           </verb></tscreen>
+           inserts element `el' into the set.  Return TRUE if the set
+           has been changed, in order words, it did not contain the
+           element.  If the set size is not enough to contain the
+           element, the set is expanded.
+     
+        <tag>Public member function `remove'</tag>
+           <tscreen><verb>
+           `int remove (spset_elem_t el)'
+           </verb></tscreen>
+           removes element `el' from the set.  Return TRUE if the set
+           has been changed, in order words, it really contained the
+           element.
+     
+        <tag>Public member function `clear'</tag>
+           <tscreen><verb>
+           `int clear (void)'
+           </verb></tscreen>
+           removes all elements from the set.  Return TRUE if the set
+           has been changed, in order words, it was not empty.
+     
+        <tag>Public member function `equal_p'</tag>
+           <tscreen><verb>
+           `int equal_p (spset *s)'
+           </verb></tscreen>
+           returns TRUE if given set and `s' contain exactly the same
+           elements.
+     
+        <tag>Public member function `intersect'</tag>
+           <tscreen><verb>
+           `int intersect (spset *s)'
+           </verb></tscreen>
+           removes elements in given set which are not is set `s'.
+           Returns TRUE if the set has been changed, in order
+           words, if given set or `s' had any non-common elements.
+     
+        <tag>Public member function `unity'</tag>
+           <tscreen><verb>
+           `int unity (spset *s)'
+           </verb></tscreen>
+           adds all elements of set `s' to given set.  Returns TRUE if
+           the set has been changed, in order words, if any new element
+           was added to given set.  The set can be automatically
+           expanded if it is necessary.
+     
+        <tag>Public member function `diff'</tag>
+           <tscreen><verb>
+           `int intersect (spset *s)'
+           </verb></tscreen>
+           removes all elements of set `s' from given set.  Returns
+           TRUE if the set has been changed, in order words, if given
+           set and `s' had any common elements.
+     
+        <tag>Public member function `shrink'</tag>
+           <tscreen><verb>
+           `void shrink (void)'
+           </verb></tscreen>
+           decreases size of the set if it is possible.  During set
+           life, the set can be automatically expanded but it is never
+           automatically shrinked.  After some element removes, it
+           might be possible to shrink set size to save memory.  The
+           function serves this purpose.
+     
+        <tag>Public static function `release_unused_memory'</tag>
+           <tscreen><verb>
+           `void release_unused_memory (void)'
+           </verb></tscreen>
+           releases internal memory pool.  The pool is used to speed up
+           size changing of sets.  It is wise to call the function when
+           you finish to work with all sets.
+     
+        <tag>Public member function `print'</tag>
+           <tscreen><verb>
+           `void print (FILE *f)'
+           </verb></tscreen>
+           prints all elements of the set into file `f'.
+     
+        <tag>Public member function `debug'</tag>
+           <tscreen><verb>
+           `void debug (void)'
+           </verb></tscreen>
+           prints all elements of the set into stderr.
+        </descrip>
+
+     <tag>Class `spset_iterator'</tag>
+        is used to define iterators for traverses of sets (see the
+        macro below).
+
+     <tag>Macro `EXECUTE_FOR_EACH_SPSET_ELEM'</tag>
+        <tscreen><verb>
+        `EXECUTE_FOR_EACH_SPSET_ELEM (SET, EL, SI) c++-stmt'
+        </verb></tscreen>
+        executes `c++-stmt' for each element of `SET'.  During
+        execution, the current element value is assigned to `EL'.
+        You need to declare somewhere and use iterator `SI' in the
+        macro call.  The order of traverse of the set elements is
+        undefined.  The traverse behaviour when the traversed set is
+        changed during the traverse is not defined.
+     </descrip>
+
+<sect>Expandable compact sparse set
+<p>
+The package `spsets' can be used to represent few sets as the set
+memory is proportional to maximal possible element value.  And as this
+value can be big, the sets can be big too.  In some applications
+(e.g. basic block pseudo live info at the beginning and end of each
+basic block in compiler) you need a lot of sets and spset package is
+not acceptable for such uses as it will require huge memory.  We need
+a set representation whose memory is proportional to number of set
+elements which for sparse sets is much smaller than maximal possible
+element value.  The package 'cspset' (expandable compact sparse sets)
+implements such representation.  We use special case hash tables of
+appropriate sizes to keep the tables compact but still fast for
+access.  The algorithm complexities of set operations in practice is
+the same as for package `spset' but have bigger constants.
+
+The interface part of the sparse set is file `cspset.h'.  The
+implementation part is file `cspset.cpp'.  The interface is very similar
+to `spset` one.  It contains the following external definitions and
+macros:
+       <descrip>
+       <tag>Type `cspset_elem_t'</tag>
+          is an unsigned integer type representing the set element.
+          It is the same type as spset_elem_t.
+
+       <tag>Constant `cspset_max_elem'</tag>
+          is a maximal possible value of the previous type for the
+          element.  That is pretty big value very close to maximal
+          value of the above type.
+
+       <tag>Class `cspset'</tag>
+          describes a compact sparse set.  The class contains the
+          following functions:
+          <descrip>
+          <tag>Public constructor `cspset'</tag>
+            <tscreen><verb>
+            `cspset (cspset_elem_t size = 0)'
+            </verb></tscreen>
+            creates set with initial size close to `size' but not less
+            than it.  With default parameter value the minimal size set
+            is created.
+  
+          <tag>Public destructor `~cspset'</tag>
+            <tscreen><verb>
+            `~cspset (vodi)'
+            </verb></tscreen>
+            deletes given set and frees memory allocated for it.
+  
+          <tag>Public member function `size'</tag>
+             <tscreen><verb>
+             `cspset_elem_t size (void)'
+             </verb></tscreen>
+             returns the current size of the set.  The set without an
+             expansion can contain elements whose quantity is close to
+             the set size.
+       
+          <tag>Public member function `cardinality'</tag>
+             <tscreen><verb>
+             `cspset_elem_t cardinality (void)'
+             </verb></tscreen>
+             returns number of elements containing currently in the set.
+       
+          <tag>Public member function `copy'</tag>
+             <tscreen><verb>
+             `void copy (cspset *from)'
+             </verb></tscreen>
+             copies value of set `from' to given set.
+       
+          <tag>Public member function `swap'</tag>
+             <tscreen><verb>
+             `void swap (cspset *s)'
+             </verb></tscreen>
+             swaps values of given set and `s'.
+       
+          <tag>Public member function `in_p'</tag>
+             <tscreen><verb>
+             `int in_p (cspset_elem_t el)'
+             </verb></tscreen>
+             returns TRUE if the set constains element `el'.
+       
+          <tag>Public member function `insert'</tag>
+             <tscreen><verb>
+             `int insert (cspset_elem_t el)'
+             </verb></tscreen>
+             inserts element `el' into the set.  Return TRUE if the set
+             has been changed, in order words, it did not contain the
+             element.  If the set size is not enough to contain the
+             element, the set is expanded.
+       
+          <tag>Public member function `remove'</tag>
+             <tscreen><verb>
+             `int remove (cspset_elem_t el)'
+             </verb></tscreen>
+             removes element `el' from the set.  Return TRUE if the set
+             has been changed, in order words, it really contained the
+             element.
+       
+          <tag>Public member function `clear'</tag>
+             <tscreen><verb>
+             `int clear (void)'
+             </verb></tscreen>
+             removes all elements from the set.  Return TRUE if the set
+             has been changed, in order words, it was not empty.
+       
+          <tag>Public member function `equal_p'</tag>
+             <tscreen><verb>
+             `int equal_p (cspset *s)'
+             </verb></tscreen>
+             returns TRUE if given set and `s' contain exactly the same
+             elements.
+       
+          <tag>Public member function `intersect'</tag>
+             <tscreen><verb>
+             `int intersect (cspset *s)'
+             </verb></tscreen>
+             removes elements in given set which are not is set `s'.
+             Returns TRUE if the set has been changed, in order
+             words, if given set or `s' had any non-common elements.
+       
+          <tag>Public member function `unity'</tag>
+             <tscreen><verb>
+             `int unity (cspset *s)'
+             </verb></tscreen>
+             adds all elements of set `s' to given set.  Returns TRUE if
+             the set has been changed, in order words, if any new element
+             was added to given set.  The set can be automatically
+             expanded if it is necessary.
+       
+          <tag>Public member function `diff'</tag>
+             <tscreen><verb>
+             `int intersect (cspset *s)'
+             </verb></tscreen>
+             removes all elements of set `s' from given set.  Returns
+             TRUE if the set has been changed, in order words, if given
+             set and `s' had any common elements.
+       
+          <tag>Public member function `shrink'</tag>
+             <tscreen><verb>
+             `void shrink (void)'
+             </verb></tscreen>
+             decreases size of the set if it is possible.  During set
+             life, the set can be automatically expanded but it is never
+             automatically shrinked.  After some element removes, it
+             might be possible to shrink set size to save memory.  The
+             function serves this purpose.
+       
+          <tag>Public static function `release_unused_memory'</tag>
+             <tscreen><verb>
+             `void release_unused_memory (void)'
+             </verb></tscreen>
+             releases internal memory pool.  The pool is used to speed up
+             size changing of sets.  It is wise to call the function when
+             you finish to work with all sets.
+       
+          <tag>Public member function `print'</tag>
+             <tscreen><verb>
+             `void print (FILE *f)'
+             </verb></tscreen>
+             prints all elements of the set into file `f'.
+       
+          <tag>Public member function `debug'</tag>
+             <tscreen><verb>
+             `void debug (void)'
+             </verb></tscreen>
+             prints all elements of the set into stderr.
+   
+          <tag>Function `to_spset'</tag>
+             <tscreen><verb>
+             `void to_spset (spset_t *to)'
+             </verb></tscreen>
+             is used to transform given compact sparse set to sparse set
+             `to'.
+   
+          <tag>Function `from_spset'</tag>
+             <tscreen><verb>
+             `void from_spset (spset_t *from)'
+             </verb></tscreen>
+             is used to transform given compact sparse set from sparse
+             set `from'.
+          </descrip>
+
+       <tag>Class `cspset_iterator'</tag>
+          is used to define iterators for traverses of sets (see the
+          macro below).
+  
+       <tag>Macro `EXECUTE_FOR_EACH_CSPSET_ELEM'</tag>
+          <tscreen><verb>
+          `EXECUTE_FOR_EACH_CSPSET_ELEM (SET, EL, SI) c++-stmt'
+          </verb></tscreen>
+          executes `c++-stmt' for each element of `SET'.  During
+          execution, the current element value is assigned to `EL'.
+          You need to declare somewhere and use iterator `SI' in the
+          macro call.  The order of traverse of the set elements is
+          undefined.  The traverse behaviour when the traversed set is
+          changed during the traverse is not defined.
        </descrip>
 
 <sect>Earley parser

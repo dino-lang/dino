@@ -153,6 +153,10 @@ source = $(srcdir)/allocate.h $(srcdir)/allocate.c $(srcdir)/allocate.tst.in\
          $(srcdir)/objstack.cpp $(srcdir)/objstack++.tst.in\
 	 $(srcdir)/hashtab.h $(srcdir)/hashtab.c $(srcdir)/hashtab.tst.in\
          $(srcdir)/hashtab.cpp $(srcdir)/hashtab++.tst.in\
+	 $(srcdir)/spset.h $(srcdir)/spset.c $(srcdir)/spset.tst.in\
+         $(srcdir)/spset.cpp $(srcdir)/spset++.tst.in\
+	 $(srcdir)/cspset.h $(srcdir)/cspset.c $(srcdir)/cspset.tst.in\
+         $(srcdir)/cspset.cpp $(srcdir)/cspset++.tst.in\
          $(srcdir)/commline.h $(srcdir)/commline.c $(srcdir)/commline.tst.in\
          $(srcdir)/commline.cpp $(srcdir)/commline++.tst.in\
 	 $(srcdir)/position.h $(srcdir)/position.c $(srcdir)/position.tst.in\
@@ -185,16 +189,16 @@ additional_rcs_files = ammunition.sgml.in ammunition++.sgml.in
 
 # All C object files
 Cobjects = $(Cdir)/allocate.o  $(Cdir)/vlobject.o  $(Cdir)/objstack.o\
-           $(Cdir)/hashtab.o $(Cdir)/commline.o\
-           $(Cdir)/position.o  $(Cdir)/errors.o\
+           $(Cdir)/hashtab.o $(Cdir)/spset.o  $(Cdir)/cspset.o\
+           $(Cdir)/commline.o $(Cdir)/position.o  $(Cdir)/errors.o\
            $(Cdir)/ticker.o  $(Cdir)/bits.o\
            $(Cdir)/arithm.o  $(Cdir)/IEEE.o\
            $(Cdir)/earley.o
 
 # All C++ object files
 Cppobjects = $(Cxxdir)/allocate.o  $(Cxxdir)/vlobject.o  $(Cxxdir)/objstack.o\
-             $(Cxxdir)/hashtab.o $(Cxxdir)/commline.o\
-             $(Cxxdir)/position.o  $(Cxxdir)/errors.o\
+             $(Cxxdir)/hashtab.o $(Cxxdir)/spset.o $(Cxxdir)/cspset.o\
+             $(Cxxdir)/commline.o $(Cxxdir)/position.o  $(Cxxdir)/errors.o\
              $(Cxxdir)/ticker.o  $(Cxxdir)/bits.o\
              $(Cxxdir)/arithm.o  $(Cxxdir)/IEEE.o\
              $(Cxxdir)/earley.o
@@ -287,7 +291,7 @@ sgramm.c: $(srcdir)/sgramm.y
 test: test-c test-cpp
 
 test-c: IEEEtens.c allocate-tst vlobject-tst objstack-tst \
-        hashtab-tst commline-tst position-tst errors-tst \
+        hashtab-tst spset-tst cspset-tst commline-tst position-tst errors-tst \
         ticker-tst bits-tst arithm-tst IEEE-tst earley-tst
 allocate-tst:
 	$(SHELL) allocate.tst
@@ -297,6 +301,10 @@ objstack-tst:
 	$(SHELL) objstack.tst
 hashtab-tst:
 	$(SHELL) hashtab.tst
+spset-tst:
+	$(SHELL) spset.tst
+cspset-tst:
+	$(SHELL) cspset.tst
 commline-tst:
 	$(SHELL) commline.tst
 position-tst:
@@ -315,8 +323,9 @@ earley-tst:
 	$(SHELL) earley.tst
 
 test-cpp: IEEEtens.c allocatecpp-tst vlobjectcpp-tst objstackcpp-tst \
-          hashtabcpp-tst commlinecpp-tst positioncpp-tst errorscpp-tst \
-          tickercpp-tst bitscpp-tst arithmcpp-tst IEEEcpp-tst earleycpp-tst
+          hashtabcpp-tst spsetcpp-tst cspsetcpp-tst commlinecpp-tst \
+          positioncpp-tst errorscpp-tst tickercpp-tst bitscpp-tst \
+          arithmcpp-tst IEEEcpp-tst earleycpp-tst
 allocatecpp-tst:
 	$(SHELL) allocate++.tst
 vlobjectcpp-tst:
@@ -325,6 +334,10 @@ objstackcpp-tst:
 	$(SHELL) objstack++.tst
 hashtabcpp-tst:
 	$(SHELL) hashtab++.tst
+spsetcpp-tst:
+	$(SHELL) spset++.tst
+cspsetcpp-tst:
+	$(SHELL) cspset++.tst
 commlinecpp-tst:
 	$(SHELL) commline++.tst
 positioncpp-tst:
@@ -354,6 +367,8 @@ install: all
 	$(INSTALLDATA) $(srcdir)/vlobject.h $(DESTDIR)/$(includedir)/vlobject.h
 	$(INSTALLDATA) $(srcdir)/objstack.h $(DESTDIR)/$(includedir)/objstack.h
 	$(INSTALLDATA) $(srcdir)/hashtab.h $(DESTDIR)/$(includedir)/hashtab.h
+	$(INSTALLDATA) $(srcdir)/spset.h $(DESTDIR)/$(includedir)/spset.h
+	$(INSTALLDATA) $(srcdir)/cspset.h $(DESTDIR)/$(includedir)/cspset.h
 	$(INSTALLDATA) $(srcdir)/commline.h $(DESTDIR)/$(includedir)/commline.h
 	$(INSTALLDATA) $(srcdir)/position.h $(DESTDIR)/$(includedir)/position.h
 	$(INSTALLDATA) $(srcdir)/errors.h $(DESTDIR)/$(includedir)/errors.h
@@ -381,6 +396,8 @@ uninstall:
 	rm -f $(DESTDIR)/$(includedir)/vlobject.h
 	rm -f $(DESTDIR)/$(includedir)/objstack.h
 	rm -f $(DESTDIR)/$(includedir)/hashtab.h
+	rm -f $(DESTDIR)/$(includedir)/spset.h
+	rm -f $(DESTDIR)/$(includedir)/cspset.h
 	rm -f $(DESTDIR)/$(includedir)/commline.h
 	rm -f $(DESTDIR)/$(includedir)/position.h
 	rm -f $(DESTDIR)/$(includedir)/errors.h
@@ -418,9 +435,11 @@ realclean: distclean
 distclean: clean
 	rm -f Makefile
 	rm -f allocate.tst vlobject.tst objstack.tst hashtab.tst
+	rm -f spset.tst cspset.tst
 	rm -f commline.tst position.tst errors.tst ticker.tst bits.tst
 	rm -f arithm.tst IEEE.tst earley.tst sgramm.c
 	rm -f allocate++.tst vlobject++.tst objstack++.tst hashtab++.tst
+	rm -f spset++.tst cspset++.tst
 	rm -f commline++.tst position++.tst errors++.tst ticker++.tst
 	rm -f bits++.tst arithm++.tst IEEE++.tst earley++.tst
 	rm -f ammunition.sgml ammunition.tex ammunition.log\
@@ -572,7 +591,7 @@ depend : IEEEtens.c sgramm.c $(Cdir) $(Cxxdir)
 	echo '# The following is generated with the aid of Makefile entry depend' >>Makefile.tmp
 	echo '# Do not place anything below this line' >>Makefile.tmp
 	echo '#' >>Makefile.tmp
-	for i in allocate.c vlobject.c objstack.c hashtab.c\
+	for i in allocate.c vlobject.c objstack.c hashtab.c spset.c cspset.c\
 	         commline.c position.c errors.c ticker.c\
 	         bits.c arithm.c IEEE.c earley.c;\
 	do\
@@ -592,7 +611,7 @@ depend : IEEEtens.c sgramm.c $(Cdir) $(Cxxdir)
 	done
 	
 	@echo ++++ Adding Makefile dependencies for C++ ++++
-	for i in allocate.cpp vlobject.cpp objstack.cpp hashtab.cpp\
+	for i in allocate.cpp vlobject.cpp objstack.cpp hashtab.cpp spset.cpp cspset.cpp\
 	         commline.cpp position.cpp errors.cpp ticker.cpp\
 	         bits.cpp arithm.cpp IEEE.cpp earley.cpp;\
 	do\
@@ -624,6 +643,10 @@ C/objstack.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.c  cocom-config.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.c
 C/hashtab.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.c
+C/spset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.c
+C/cspset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.c
 C/commline.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.c
 C/position.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h
@@ -648,6 +671,10 @@ C++/objstack.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.cpp  cocom-conf
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.cpp
 C++/hashtab.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.cpp
+C++/spset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.cpp
+C++/cspset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.cpp
 C++/commline.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.cpp
 C++/position.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h

@@ -5,7 +5,7 @@
 
 Ammunition (Reusable packages) - C++ interface
 Vladimir Makarov, vmakarov@users.sourceforge.net
-Apr 5, 2001
+Oct 10, 2014
 
 This document describes ammunition (reusable packages written in C/C++).
 
@@ -33,6 +33,8 @@ names and tasks):
    o IEEE          implementing host machine-independently IEEE
                        floating point arithmetic
    o ticker        timer
+   o spset         Expandable sparse set
+   o cspset        Compact expandable sparse set
    o earley        Earley parser
    
 
@@ -2145,7 +2147,389 @@ interface contains the following external definitions and macros:
           
        
 
-13. Earley parser
+13. Expandable sparse set
+
+The package `bits' can be used to represent sets.  In many applications
+(e.g. in compiler optimizations) sets are sparse for all possible
+elements values.  The package `spset' implements sparse sets described
+in "An Efficient Representation for Sparse Sets" by Preston Briggs and
+Linda Torczon.  The sparse set implementation has the following
+features:
+    
+    o It is fast.  It has complexity O(1) for testing, insertion,
+      remove of the element and O(n) for union, intersection,
+      difference, comparison, and traverse of the sets, where `n' is
+      number of elements in the set.
+
+    o The set has a size.  Elements with values less than size can
+      be stored in the set.  The memory is needed for the set
+      representation is O(size).
+
+    o When the element is inserted and does not fit into the set, the set
+      is automatically extended to store the element and may be
+      elements with even bigger values.
+    
+
+The interface part of the sparse set is file `spset.h'.  The
+implementation part is file `spset.cpp'.  The interface contains the
+following external definitions and macros:
+     
+     o Type `spset_elem_t'
+        is an unsigned integer type representing the set element.
+
+     o Macro `SPSET_MAX_ELEM'
+        is a maximal possible value of the previous type.
+
+     o Class `spset'
+        The class contains the following functions:
+        
+        o Public constructor `spset'
+          
+          `spset (spset_elem_t size = 0)'
+          
+          creates set with initial size close to `size' but not less
+          than it.  With default parameter value the minimal size set
+          is created.
+
+        o Public destructor `~spset'
+          
+          `~spset (vodi)'
+          
+          deletes given set and frees memory allocated for it.
+
+        o Public member function `size'
+           
+           `spset_elem_t size (void)'
+           
+           returns the current size of the set.  Elements with
+           values less than the size can be inserted without an
+           expansion.
+    
+        o Public member function `cardinality'
+           
+           `spset_elem_t cardinality (void)'
+           
+           returns number of elements containing currently in the set.
+     
+        o Public member function `copy'
+           
+           `void copy (spset *from)'
+           
+           copies value of set `from' to given set.
+     
+        o Public member function `swap'
+           
+           `void swap (spset *s)'
+           
+           swaps values of given set and `s'.
+     
+        o Public member function `in_p'
+           
+           `int in_p (spset_elem_t el)'
+           
+           returns TRUE if the set constains element `el'.
+     
+        o Public member function `insert'
+           
+           `int insert (spset_elem_t el)'
+           
+           inserts element `el' into the set.  Return TRUE if the set
+           has been changed, in order words, it did not contain the
+           element.  If the set size is not enough to contain the
+           element, the set is expanded.
+     
+        o Public member function `remove'
+           
+           `int remove (spset_elem_t el)'
+           
+           removes element `el' from the set.  Return TRUE if the set
+           has been changed, in order words, it really contained the
+           element.
+     
+        o Public member function `clear'
+           
+           `int clear (void)'
+           
+           removes all elements from the set.  Return TRUE if the set
+           has been changed, in order words, it was not empty.
+     
+        o Public member function `equal_p'
+           
+           `int equal_p (spset *s)'
+           
+           returns TRUE if given set and `s' contain exactly the same
+           elements.
+     
+        o Public member function `intersect'
+           
+           `int intersect (spset *s)'
+           
+           removes elements in given set which are not is set `s'.
+           Returns TRUE if the set has been changed, in order
+           words, if given set or `s' had any non-common elements.
+     
+        o Public member function `unity'
+           
+           `int unity (spset *s)'
+           
+           adds all elements of set `s' to given set.  Returns TRUE if
+           the set has been changed, in order words, if any new element
+           was added to given set.  The set can be automatically
+           expanded if it is necessary.
+     
+        o Public member function `diff'
+           
+           `int intersect (spset *s)'
+           
+           removes all elements of set `s' from given set.  Returns
+           TRUE if the set has been changed, in order words, if given
+           set and `s' had any common elements.
+     
+        o Public member function `shrink'
+           
+           `void shrink (void)'
+           
+           decreases size of the set if it is possible.  During set
+           life, the set can be automatically expanded but it is never
+           automatically shrinked.  After some element removes, it
+           might be possible to shrink set size to save memory.  The
+           function serves this purpose.
+     
+        o Public static function `release_unused_memory'
+           
+           `void release_unused_memory (void)'
+           
+           releases internal memory pool.  The pool is used to speed up
+           size changing of sets.  It is wise to call the function when
+           you finish to work with all sets.
+     
+        o Public member function `print'
+           
+           `void print (FILE *f)'
+           
+           prints all elements of the set into file `f'.
+     
+        o Public member function `debug'
+           
+           `void debug (void)'
+           
+           prints all elements of the set into stderr.
+        
+
+     o Class `spset_iterator'
+        is used to define iterators for traverses of sets (see the
+        macro below).
+
+     o Macro `EXECUTE_FOR_EACH_SPSET_ELEM'
+        
+        `EXECUTE_FOR_EACH_SPSET_ELEM (SET, EL, SI) c++-stmt'
+        
+        executes `c++-stmt' for each element of `SET'.  During
+        execution, the current element value is assigned to `EL'.
+        You need to declare somewhere and use iterator `SI' in the
+        macro call.  The order of traverse of the set elements is
+        undefined.  The traverse behaviour when the traversed set is
+        changed during the traverse is not defined.
+     
+
+14. Expandable compact sparse set
+
+The package `spsets' can be used to represent few sets as the set
+memory is proportional to maximal possible element value.  And as this
+value can be big, the sets can be big too.  In some applications
+(e.g. basic block pseudo live info at the beginning and end of each
+basic block in compiler) you need a lot of sets and spset package is
+not acceptable for such uses as it will require huge memory.  We need
+a set representation whose memory is proportional to number of set
+elements which for sparse sets is much smaller than maximal possible
+element value.  The package 'cspset' (expandable compact sparse sets)
+implements such representation.  We use special case hash tables of
+appropriate sizes to keep the tables compact but still fast for
+access.  The algorithm complexities of set operations in practice is
+the same as for package `spset' but have bigger constants.
+
+The interface part of the sparse set is file `cspset.h'.  The
+implementation part is file `cspset.cpp'.  The interface is very similar
+to `spset` one.  It contains the following external definitions and
+macros:
+       
+       o Type `cspset_elem_t'
+          is an unsigned integer type representing the set element.
+          It is the same type as spset_elem_t.
+
+       o Constant `cspset_max_elem'
+          is a maximal possible value of the previous type for the
+          element.  That is pretty big value very close to maximal
+          value of the above type.
+
+       o Class `cspset'
+          describes a compact sparse set.  The class contains the
+          following functions:
+          
+          o Public constructor `cspset'
+            
+            `cspset (cspset_elem_t size = 0)'
+            
+            creates set with initial size close to `size' but not less
+            than it.  With default parameter value the minimal size set
+            is created.
+  
+          o Public destructor `~cspset'
+            
+            `~cspset (vodi)'
+            
+            deletes given set and frees memory allocated for it.
+  
+          o Public member function `size'
+             
+             `cspset_elem_t size (void)'
+             
+             returns the current size of the set.  The set without an
+             expansion can contain elements whose quantity is close to
+             the set size.
+       
+          o Public member function `cardinality'
+             
+             `cspset_elem_t cardinality (void)'
+             
+             returns number of elements containing currently in the set.
+       
+          o Public member function `copy'
+             
+             `void copy (cspset *from)'
+             
+             copies value of set `from' to given set.
+       
+          o Public member function `swap'
+             
+             `void swap (cspset *s)'
+             
+             swaps values of given set and `s'.
+       
+          o Public member function `in_p'
+             
+             `int in_p (cspset_elem_t el)'
+             
+             returns TRUE if the set constains element `el'.
+       
+          o Public member function `insert'
+             
+             `int insert (cspset_elem_t el)'
+             
+             inserts element `el' into the set.  Return TRUE if the set
+             has been changed, in order words, it did not contain the
+             element.  If the set size is not enough to contain the
+             element, the set is expanded.
+       
+          o Public member function `remove'
+             
+             `int remove (cspset_elem_t el)'
+             
+             removes element `el' from the set.  Return TRUE if the set
+             has been changed, in order words, it really contained the
+             element.
+       
+          o Public member function `clear'
+             
+             `int clear (void)'
+             
+             removes all elements from the set.  Return TRUE if the set
+             has been changed, in order words, it was not empty.
+       
+          o Public member function `equal_p'
+             
+             `int equal_p (cspset *s)'
+             
+             returns TRUE if given set and `s' contain exactly the same
+             elements.
+       
+          o Public member function `intersect'
+             
+             `int intersect (cspset *s)'
+             
+             removes elements in given set which are not is set `s'.
+             Returns TRUE if the set has been changed, in order
+             words, if given set or `s' had any non-common elements.
+       
+          o Public member function `unity'
+             
+             `int unity (cspset *s)'
+             
+             adds all elements of set `s' to given set.  Returns TRUE if
+             the set has been changed, in order words, if any new element
+             was added to given set.  The set can be automatically
+             expanded if it is necessary.
+       
+          o Public member function `diff'
+             
+             `int intersect (cspset *s)'
+             
+             removes all elements of set `s' from given set.  Returns
+             TRUE if the set has been changed, in order words, if given
+             set and `s' had any common elements.
+       
+          o Public member function `shrink'
+             
+             `void shrink (void)'
+             
+             decreases size of the set if it is possible.  During set
+             life, the set can be automatically expanded but it is never
+             automatically shrinked.  After some element removes, it
+             might be possible to shrink set size to save memory.  The
+             function serves this purpose.
+       
+          o Public static function `release_unused_memory'
+             
+             `void release_unused_memory (void)'
+             
+             releases internal memory pool.  The pool is used to speed up
+             size changing of sets.  It is wise to call the function when
+             you finish to work with all sets.
+       
+          o Public member function `print'
+             
+             `void print (FILE *f)'
+             
+             prints all elements of the set into file `f'.
+       
+          o Public member function `debug'
+             
+             `void debug (void)'
+             
+             prints all elements of the set into stderr.
+   
+          o Function `to_spset'
+             
+             `void to_spset (spset_t *to)'
+             
+             is used to transform given compact sparse set to sparse set
+             `to'.
+   
+          o Function `from_spset'
+             
+             `void from_spset (spset_t *from)'
+             
+             is used to transform given compact sparse set from sparse
+             set `from'.
+          
+
+       o Class `cspset_iterator'
+          is used to define iterators for traverses of sets (see the
+          macro below).
+  
+       o Macro `EXECUTE_FOR_EACH_CSPSET_ELEM'
+          
+          `EXECUTE_FOR_EACH_CSPSET_ELEM (SET, EL, SI) c++-stmt'
+          
+          executes `c++-stmt' for each element of `SET'.  During
+          execution, the current element value is assigned to `EL'.
+          You need to declare somewhere and use iterator `SI' in the
+          macro call.  The order of traverse of the set elements is
+          undefined.  The traverse behaviour when the traversed set is
+          changed during the traverse is not defined.
+       
+
+15. Earley parser
 
 The package `earley' implements earley parser.  The earley parser
 implementation has the following features:

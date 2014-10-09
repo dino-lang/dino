@@ -10,7 +10,7 @@ Ammunition (Reusable packages) - C interface
 ********************************************
 
      Vladimir Makarov, `vmakarov@users.sourceforge.net'
-     Apr 5, 2001
+     Oct 10, 2014
 
    This document describes ammunition (reusable packages written in
 C/C++).
@@ -29,6 +29,8 @@ C/C++).
 * Package for machine-independent arbitrary precision integer arithmetic::
 * Package for machine-independent IEEE floating point arithmetic::
 * Ticker package::
+* Expandable sparse set::
+* Expandable compact sparse set::
 * Earley parser::
 
 
@@ -76,6 +78,12 @@ and tasks):
 
 'ticker'
      timer
+
+'spset'
+     Expandable sparse set
+
+'cspset'
+     Compact expandable sparse set
 
 'earley'
      Earley parser
@@ -1975,7 +1983,7 @@ defined.  It is made because supporting IEEE 18-bits numbers requires
 more 100Kb memory.
 
 
-File: ammunition.info,  Node: Ticker package,  Next: Earley parser,  Prev: Package for machine-independent IEEE floating point arithmetic,  Up: Top
+File: ammunition.info,  Node: Ticker package,  Next: Expandable sparse set,  Prev: Package for machine-independent IEEE floating point arithmetic,  Up: Top
 
 12 Ticker package
 *****************
@@ -2026,9 +2034,385 @@ following external definitions and macros:
      is stored in a static variable of the function.
 
 
-File: ammunition.info,  Node: Earley parser,  Prev: Ticker package,  Up: Top
+File: ammunition.info,  Node: Expandable sparse set,  Next: Expandable compact sparse set,  Prev: Ticker package,  Up: Top
 
-13 Earley parser
+13 Expandable sparse set
+************************
+
+The package 'bits' can be used to represent sets.  In many applications
+(e.g.  in compiler optimizations) sets are sparse for all possible
+elements values.  The package 'spset' implements sparse sets described
+in "An Efficient Representation for Sparse Sets" by Preston Briggs and
+Linda Torczon.  The sparse set implementation has the following
+features:
+
+   * It is fast.  It has complexity O(1) for testing, insertion, remove
+     of the element and O(n) for union, intersection, difference,
+     comparison, and traverse of the sets, where 'n' is number of
+     elements in the set.
+   * The set has a size.  Elements with values less than size can be
+     stored in the set.  The memory is needed for the set representation
+     is O(size).
+   * When the element is inserted and does not fit into the set, the set
+     is automatically extended to store the element and may be elements
+     with even bigger values.
+
+   The interface part of the sparse set is file 'spset.h'.  The
+implementation part is file 'spset.c'.  The interface contains the
+following external definitions and macros:
+
+'Type `spset_elem_t''
+     is an unsigned integer type representing the set element.
+
+'Macro `SPSET_MAX_ELEM''
+     is a maximal possible value of the previous type.
+
+'Type `spset_t''
+     represents a sparse set.  Knowledge of structure (implementation)
+     of this type is not visible and not needed for using the parser.
+
+'Function `spset_init''
+
+                    `void spset_init (spset_t *s, spset_elem_t size)'
+
+     should be called the first.  It initializes set 's' with initial
+     size close to 'size' but not less than it.  You can work only with
+     initialized and non-finished sets.
+
+'Function `spset_finish''
+
+                    `void spset_finish (spset_t *s)'
+
+     should be called the last.  It finishes set work with set 's'.
+
+'Function `spset_size''
+
+                    `spset_elem_t spset_size (spset_t *s)'
+
+     returns the current size of the set 's'.  Elements with values less
+     than the size can be inserted without an expansion.
+
+'Function `spset_cardinality''
+
+                    `spset_elem_t spset_cardinality (spset_t *s)'
+
+     returns number of elements containing currently in set 's'.
+
+'Function `spset_copy''
+
+                    `void spset_copy (spset_t *to, spset_t *from)'
+
+     copies value of set 'from' to set 'to'.
+
+'Function `spset_swap''
+
+                    `void spset_swap (spset_t *s1, spset_t *s2)'
+
+     swaps values of sets 's1' and 's2'.
+
+'Function `spset_in_p''
+
+                    `int spset_in_p (spset_t *s, spset_elem_t el)'
+
+     returns TRUE if set 's' constains element 'el'.
+
+'Function `spset_insert''
+
+                    `int spset_insert (spset_t *s, spset_elem_t el)'
+
+     inserts element 'el' into set 's'.  Return TRUE if the set has been
+     changed, in order words, it did not contain the element.  If the
+     set size is not enough to contain the element, the set is expanded.
+
+'Function `spset_remove''
+
+                    `int spset_remove (spset_t *s, spset_elem_t el)'
+
+     removes element 'el' from set 's'.  Return TRUE if the set has been
+     changed, in order words, it really contained the element.
+
+'Function `spset_clear''
+
+                    `int spset_clear (spset_t *s)'
+
+     removes all elements from set 's'.  Return TRUE if the set has been
+     changed, in order words, it was not empty.
+
+'Function `spset_equal_p''
+
+                    `int spset_equal_p (spset_t *s1, spset_t *s2)'
+
+     returns TRUE if sets 's1' and 's2' contain exactly the same
+     elements.
+
+'Function `spset_intersect''
+
+                    `int spset_intersect (spset_t *s1, spset_t *s2)'
+
+     removes elements in set 's1' which are not is set 's2'.  Returns
+     TRUE if the set 's1' has been changed, in order words, if 's1' or
+     's2' had any non-common elements.
+
+'Function `spset_unity''
+
+                    `int spset_unity (spset_t *s1, spset_t *s2)'
+
+     adds all elements of set 's2' to set 's1'.  Returns TRUE if the set
+     's1' has been changed, in order words, if any new element was added
+     to 's1'.  The set can be automatically expanded if it is necessary.
+
+'Function `spset_diff''
+
+                    `int spset_intersect (spset_t *s1, spset_t *s2)'
+
+     removes all elements of set 's2' from set 's1'.  Returns TRUE if
+     the set 's1' has been changed, in order words, if 's1' and 's2' had
+     any common elements.
+
+'Function `spset_shrink''
+
+                    `void spset_shrink (spset_t *s)'
+
+     decreases size of set 's' if it is possible.  During set life, the
+     set can be automatically expanded but it is never automatically
+     shrinked.  After some element removes, it might be possible to
+     shrink set size to save memory.  The function serves this purpose.
+
+'Function `spset_release_unused_memory''
+
+                    `void spset_release_unused_memory (void)'
+
+     releases internal memory pool.  The pool is used to speed up size
+     changing of sets.  It is wise to call the function when you finish
+     to work with all sets.
+
+'Function `spset_print''
+
+                    `void spset_print (FILE *f, spset_t *s)'
+
+     prints all elements of set 's' into file 'f'.
+
+'Function `spset_debug''
+
+                    `void spset_debug (spset_t *s)'
+
+     prints all elements of set 's' into stderr.
+
+'Type `spset_iterator_t''
+     is used to define iterators for traverses of sets (see the macro
+     below).
+
+'Macro `EXECUTE_FOR_EACH_SPSET_ELEM''
+
+                    `EXECUTE_FOR_EACH_SPSET_ELEM (SET, EL, SI) c-stmt'
+
+     executes 'c-stmt' for each element of 'SET'. During execution, the
+     current element value is assigned to 'EL'. You need to declare
+     somewhere and use iterator 'SI' in the macro call.  The order of
+     traverse of the set elements is undefined.  The traverse behaviour
+     when the traversed set is changed during the traverse is not
+     defined.
+
+
+File: ammunition.info,  Node: Expandable compact sparse set,  Next: Earley parser,  Prev: Expandable sparse set,  Up: Top
+
+14 Expandable compact sparse set
+********************************
+
+The package 'spsets' can be used to represent few sets as the set memory
+is proportional to maximal possible element value.  And as this value
+can be big, the sets can be big too.  In some applications (e.g.  basic
+block pseudo live info at the beginning and end of each basic block in
+compiler) you need a lot of sets and spset package is not acceptable for
+such uses as it will require huge memory.  We need a set representation
+whose memory is proportional to number of set elements which for sparse
+sets is much smaller than maximal possible element value.  The package
+'cspset' (expandable compact sparse sets) implements such
+representation.  We use special case hash tables of appropriate sizes to
+keep the tables compact but still fast for access.  The algorithm
+complexities of set operations in practice is the same as for package
+'spset' but have bigger constants.
+
+   The interface part of the sparse set is file 'cspset.h'.  The
+implementation part is file 'cspset.c'.  The interface is very similar
+to 'spset' one.  It contains the following external definitions and
+macros:
+
+'Type `cspset_elem_t''
+     is an unsigned integer type representing the set element.  It is
+     the same type as spset_elem_t.
+
+'Constant `cspset_max_elem''
+     is a maximal possible value of the previous type for the element.
+     That is pretty big value very close to maximal value of the above
+     type.
+
+'Type `cspset_t''
+     represents a compact sparse set.  Knowledge of structure
+     (implementation) of this type is not visible and not needed for
+     using the parser.
+
+'Function `cspset_init''
+
+                    `void cspset_init (cspset_t *s, cspset_elem_t size)'
+
+     should be called the first.  It initializes set 's' with initial
+     size close to 'size' but not less than it.  You can work only with
+     initialized and non-finished sets.
+
+'Function `cspset_finish''
+
+                    `void cspset_finish (cspset_t *s)'
+
+     should be called the last.  It finishes set work with set 's'.
+
+'Function `cspset_size''
+
+                    `cspset_elem_t cspset_size (cspset_t *s)'
+
+     returns the current size of the set 's'.  The set without an
+     expansion can contain elements whose quantity is close to the set
+     size.
+
+'Function `cspset_cardinality''
+
+                    `cspset_elem_t cspset_cardinality (cspset_t *s)'
+
+     returns number of elements containing currently in set 's'.
+
+'Function `cspset_copy''
+
+                    `void cspset_copy (cspset_t *to, cspset_t *from)'
+
+     copies value of set 'from' to set 'to'.
+
+'Function `cspset_swap''
+
+                    `void cspset_swap (cspset_t *s1, cspset_t *s2)'
+
+     swaps values of sets 's1' and 's2'.
+
+'Function `cspset_in_p''
+
+                    `int cspset_in_p (cspset_t *s, cspset_elem_t el)'
+
+     returns TRUE if set 's' constains element 'el'.
+
+'Function `cspset_insert''
+
+                    `int cspset_insert (cspset_t *s, cspset_elem_t el)'
+
+     inserts element 'el' into set 's'.  Return TRUE if the set has been
+     changed, in order words, it did not contain the element.  If the
+     set size is not enough to contain the current number of elements,
+     the set is expanded.
+
+'Function `cspset_remove''
+
+                    `int cspset_remove (cspset_t *s, cspset_elem_t el)'
+
+     removes element 'el' from set 's'.  Return TRUE if the set has been
+     changed, in order words, it really contained the element.
+
+'Function `cspset_clear''
+
+                    `int cspset_clear (cspset_t *s)'
+
+     removes all elements from set 's'.  Return TRUE if the set has been
+     changed, in order words, it was not empty.
+
+'Function `cspset_equal_p''
+
+                    `int cspset_equal_p (cspset_t *s1, cspset_t *s2)'
+
+     returns TRUE if sets 's1' and 's2' contain exactly the same
+     elements.
+
+'Function `cspset_intersect''
+
+                    `int cspset_intersect (cspset_t *s1, cspset_t *s2)'
+
+     removes elements in set 's1' which are not is set 's2'.  Returns
+     TRUE if the set 's1' has been changed, in order words, if 's1' or
+     's2' had any non-common elements.
+
+'Function `cspset_unity''
+
+                    `int cspset_unity (cspset_t *s1, cspset_t *s2)'
+
+     adds all elements of set 's2' to set 's1'.  Returns TRUE if the set
+     's1' has been changed, in order words, if any new element was added
+     to 's1'.  The set can be automatically expanded if it is necessary.
+
+'Function `cspset_diff''
+
+                    `int cspset_intersect (cspset_t *s1, cspset_t *s2)'
+
+     removes all elements of set 's2' from set 's1'.  Returns TRUE if
+     the set 's1' has been changed, in order words, if 's1' and 's2' had
+     any common elements.
+
+'Function `cspset_shrink''
+
+                    `void cspset_shrink (cspset_t *s)'
+
+     decreases size of set 's' if it is possible.  During set life, the
+     set can be automatically expanded but it is never automatically
+     shrinked.  After some element removes, it might be possible to
+     shrink set size to save memory.  The function serves this purpose.
+
+'Function `cspset_release_unused_memory''
+
+                    `void cspset_release_unused_memory (void)'
+
+     releases internal memory pool.  The pool is used to speed up size
+     changing of sets.  It is wise to call the function when you finish
+     to work with all sets.
+
+'Function `cspset_print''
+
+                    `void cspset_print (FILE *f, cspset_t *s)'
+
+     prints all elements of set 's' into file 'f'.
+
+'Function `cspset_debug''
+
+                    `void cspset_debug (cspset_t *s)'
+
+     prints all elements of set 's' into stderr.
+
+'Type `cspset_iterator_t''
+     is used to define iterators for traverses of sets (see the macro
+     below).
+
+'Macro `EXECUTE_FOR_EACH_CSPSET_ELEM''
+
+                    `EXECUTE_FOR_EACH_CSPSET_ELEM (SET, EL, SI) c-stmt'
+
+     executes 'c-stmt' for each element of 'SET'. During execution, the
+     current element value is assigned to 'EL'. You need to declare
+     somewhere and use iterator 'SI' in the macro call.  The order of
+     traverse of the set elements is undefined.  The traverse behaviour
+     when the traversed set is changed during the traverse is not
+     defined.
+
+'Function `cspset_to_spset''
+
+                    `void cspset_to_spset (cspset_t *from, spset_t *to)'
+
+     is used to transform compact sparse set 'from' to sparse set 'to'.
+
+'Function `cspset_from_spset''
+
+                    `void cspset_from_spset (cspset_t *to, spset_t *from)'
+
+     is used to transform compact sparse set 'to' from sparse set
+     'from'.
+
+
+File: ammunition.info,  Node: Earley parser,  Prev: Expandable compact sparse set,  Up: Top
+
+15 Earley parser
 ****************
 
 The package 'earley' implements earley parser.  The earley parser
@@ -2522,18 +2906,20 @@ following external definitions and macros:
 
 Tag Table:
 Node: Top107
-Node: Introduction995
-Node: Package for allocating memory with fixing some allocation errors2014
-Node: Package for work with variable length objects5084
-Node: Package for work with stacks of objects10049
-Node: Package for work with hash tables16071
-Node: Package for work with source code positions21176
-Node: Package for output of compiler messages25397
-Node: Package for work with command line32442
-Node: Package for work with bit strings38999
-Node: Package for machine-independent arbitrary precision integer arithmetic42273
-Node: Package for machine-independent IEEE floating point arithmetic52306
-Node: Ticker package84798
-Node: Earley parser86473
+Node: Introduction1056
+Node: Package for allocating memory with fixing some allocation errors2156
+Node: Package for work with variable length objects5226
+Node: Package for work with stacks of objects10191
+Node: Package for work with hash tables16213
+Node: Package for work with source code positions21318
+Node: Package for output of compiler messages25539
+Node: Package for work with command line32584
+Node: Package for work with bit strings39141
+Node: Package for machine-independent arbitrary precision integer arithmetic42415
+Node: Package for machine-independent IEEE floating point arithmetic52448
+Node: Ticker package84940
+Node: Expandable sparse set86623
+Node: Expandable compact sparse set92727
+Node: Earley parser99475
 
 End Tag Table

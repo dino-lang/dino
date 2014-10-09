@@ -289,11 +289,13 @@ output_files="DINO/Makefile DINO/dino.tst\
           SHILKA/Makefile MSTA/Makefile SPRUT/Makefile\
           AMMUNITION/Makefile AMMUNITION/allocate.tst AMMUNITION/vlobject.tst\
           AMMUNITION/objstack.tst AMMUNITION/hashtab.tst\
+          AMMUNITION/spset.tst AMMUNITION/cspset.tst\
           AMMUNITION/commline.tst AMMUNITION/position.tst\
           AMMUNITION/errors.tst AMMUNITION/ticker.tst AMMUNITION/bits.tst\
           AMMUNITION/arithm.tst AMMUNITION/IEEE.tst AMMUNITION/earley.tst\
           AMMUNITION/allocate++.tst AMMUNITION/vlobject++.tst\
           AMMUNITION/objstack++.tst AMMUNITION/hashtab++.tst\
+          AMMUNITION/spset++.tst AMMUNITION/cspset++.tst\
           AMMUNITION/commline++.tst AMMUNITION/position++.tst\
           AMMUNITION/errors++.tst AMMUNITION/ticker++.tst\
           AMMUNITION/bits++.tst AMMUNITION/arithm++.tst AMMUNITION/IEEE++.tst\

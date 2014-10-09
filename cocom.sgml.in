@@ -92,6 +92,20 @@ Currently there are the following packages:
    <tag>bits</tag>
         Work with bit strings (copying, moving, setting, testing,
         comparison).
+   <tag>spset</tag>
+        Work with expandable sparse sets of numbers.  The
+        implementation is based on one descibed in "An Efficient
+        Representation for Sparse Sets" by Preston Briggs and Linda
+        Torczon.  Memory needed for the set is proportional to maximal
+        element value in the set.
+   <tag>spset</tag>
+        Work with expandable compact sparse sets of numbers.  It has
+        very similar interface with `spset'.  The algorithm
+        complexities of set operations in practice is the same as for
+        package `spset' but have bigger constants.  Memory needed for
+        the set is proportional to number of elements in the set and
+        is node depended on element value.  It is implemented by
+        special case hash tables.
    <tag>arithm</tag>
         Implementing host machine-independently arbitrary precision
         integer numbers arithmetic.  The implementation of the package

@@ -10,7 +10,7 @@ Ammunition (Reusable packages) - C++ interface
 **********************************************
 
      Vladimir Makarov, `vmakarov@users.sourceforge.net'
-     Apr 5, 2001
+     Oct 10, 2014
 
    This document describes ammunition (reusable packages written in
 C/C++).
@@ -29,6 +29,8 @@ C/C++).
 * Package for machine-independent arbitrary precision integer arithmetic::
 * Package for machine-independent IEEE floating point arithmetic::
 * Ticker package::
+* Expandable sparse set::
+* Expandable compact sparse set::
 * Earley parser::
 
 
@@ -76,6 +78,12 @@ and tasks):
 
 'ticker'
      timer
+
+'spset'
+     Expandable sparse set
+
+'cspset'
+     Compact expandable sparse set
 
 'earley'
      Earley parser
@@ -870,7 +878,7 @@ one class 'command_line'.  The class has the following members:
 
                     `command_line (int argc, char **argv,
                                    const char *description,
-                                   int _description_flag)'
+                                   int &correct_description_flag)'
 
      The constructor processes command line description given as string
      parameter and command line itself given as two parameter 'argc' and
@@ -1288,9 +1296,9 @@ external definitions:
      'Public operators `+''
 
                           `class sint<size> operator +
-                                              (const class sint<size> )'
+                                              (const class sint<size> &op)'
                           `class unsint<size> operator +
-                                              (const class unsint<size> )'
+                                              (const class unsint<size> &op)'
 
           make integer addition of integers of given size.  The operator
           fixes overflow when result can not be represented by number of
@@ -1320,9 +1328,9 @@ external definitions:
      'Public operators `|''
 
                           `class sint<size> operator |
-                                            (const class sint<size> )'
+                                            (const class sint<size> &op)'
                           `class unsint<size> operator |
-                                              (const class unsint<size> )'
+                                              (const class unsint<size> &op)'
 
           make bitwise 'or' of integers.  There are analogous operators
           which implement bitwise 'and' and 'xor':
@@ -1339,8 +1347,8 @@ external definitions:
 
      'Public operators `==''
 
-                          `int operator == (const class sint<size> )'
-                          `int operator == (const class unsint<size> )'
+                          `int operator == (const class sint<size> &op)'
+                          `int operator == (const class unsint<size> &op)'
 
           compare two integers of given size on equality and returns 1
           or 0 depending on result of the comparison.  There are
@@ -1403,11 +1411,11 @@ external definitions:
 'Template functions `new_size''
 
                   `template <int result_size, int operand_size>
-                   inline void new_size (class sint<operand_size> ,
-                                         class sint<result_size> )'
+                   inline void new_size (class sint<operand_size> &operand,
+                                         class sint<result_size> &result)'
                   `template <int result_size, int operand_size>
-                   inline void new_size (class unsint<operand_size> ,
-                                         class unsint<result_size> )'
+                   inline void new_size (class unsint<operand_size> &operand,
+                                         class unsint<result_size> &result)'
 
      change size of integer.  The functions fix overflow when result can
      not be represented by number of given size.
@@ -1702,7 +1710,7 @@ interface contains the following external definitions:
 
      'Public operator `+''
 
-                          `class IEEE_float operator + (class IEEE_float )'
+                          `class IEEE_float operator + (class IEEE_float &op)'
 
           makes single precision addition of floating point numbers.
           There are analogous operators which implement other floating
@@ -1794,7 +1802,7 @@ interface contains the following external definitions:
 
      'Public operator `==''
 
-                          `int operator == (class IEEE_float )'
+                          `int operator == (class IEEE_float &op)'
 
           compares two floating point numbers on equality and returns 1
           or 0 depending on result of the comparison.  There are
@@ -1939,9 +1947,9 @@ interface contains the following external definitions:
 
                           `class IEEE_double to_double (void)'
                           `class IEEE_quad to_quad (void)'
-                          `class IEEE_float _signed_integer
+                          `class IEEE_float &from_signed_integer
                                              (int size, const void *integer)'
-                          `class IEEE_float _unsigned_integer
+                          `class IEEE_float &from_unsigned_integer
                                              (int size,
                                               const void *unsigned_integer)'
                           `void to_signed_integer (int size, void *integer)'
@@ -1952,10 +1960,10 @@ interface contains the following external definitions:
 
                           `class IEEE_float to_single (void)'
                           `class IEEE_quad to_quad (void)'
-                          `class IEEE_double _signed_integer
+                          `class IEEE_double &from_signed_integer
                                               (int size,
                                                const void *integer)'
-                          `class IEEE_double _unsigned_integer
+                          `class IEEE_double &from_unsigned_integer
                                                (int size,
                                                 const void *unsigned_integer)'
                           `void to_signed_integer (int size, void *integer)'
@@ -1966,10 +1974,10 @@ interface contains the following external definitions:
 
                           `class IEEE_float to_single (void)'
                           `class IEEE_double to_double (void)'
-                          `class IEEE_quad _signed_integer
+                          `class IEEE_quad &from_signed_integer
                                               (int size,
                                                const void *integer)'
-                          `class IEEE_quad _unsigned_integer
+                          `class IEEE_quad &from_unsigned_integer
                                                (int size,
                                                 const void *unsigned_integer)'
                           `void to_signed_integer (int size, void *integer)'
@@ -2037,56 +2045,56 @@ interface contains the following external definitions:
      functions will be absent.  There are the following functions:
 
                   `template <int size>
-                   class IEEE_float _float_from_unsint
-                                     (class IEEE_float ,
-                                      class unsint<size> _integer)'
+                   class IEEE_float &IEEE_float_from_unsint
+                                     (class IEEE_float &single,
+                                      class unsint<size> &unsigned_integer)'
 
                   `template <int size>
-                   class IEEE_float _float_from_sint
-                                     (class IEEE_float ,
-                                      class sint<size> )
+                   class IEEE_float &IEEE_float_from_sint
+                                     (class IEEE_float &single,
+                                      class sint<size> &integer)
 
                   `template <int size>
-                   void IEEE_float_to_sint (class IEEE_float ,
-                                            class sint<size> )'
+                   void IEEE_float_to_sint (class IEEE_float &single,
+                                            class sint<size> &integer)'
                   `template <int size>
                    void IEEE_float_to_unsint
-                                (class IEEE_float ,
-                                 class unsint<size> _integer)'
+                                (class IEEE_float &single,
+                                 class unsint<size> &unsigned_integer)'
                   `template <int size>
-                   class IEEE_double _double_from_unsint
-                                      (class IEEE_double ,
-                                       class unsint<size> _integer)'
+                   class IEEE_double &IEEE_double_from_unsint
+                                      (class IEEE_double &single,
+                                       class unsint<size> &unsigned_integer)'
 
                   `template <int size>
-                   class IEEE_double _double_from_sint
-                                      (class IEEE_double ,
-                                       class sint<size> )
+                   class IEEE_double &IEEE_double_from_sint
+                                      (class IEEE_double &single,
+                                       class sint<size> &integer)
 
                   `template <int size>
-                   void IEEE_double_to_sint (class IEEE_double ,
-                                             class sint<size> )'
+                   void IEEE_double_to_sint (class IEEE_double &single,
+                                             class sint<size> &integer)'
                   `template <int size>
                    void IEEE_double_to_unsint
-                        (class IEEE_double ,
-                         class unsint<size> _integer)'
+                        (class IEEE_double &single,
+                         class unsint<size> &unsigned_integer)'
                   `template <int size>
-                   class IEEE_quad _quad_from_unsint
-                                      (class IEEE_quad ,
-                                       class unsint<size> _integer)'
+                   class IEEE_quad &IEEE_quad_from_unsint
+                                      (class IEEE_quad &single,
+                                       class unsint<size> &unsigned_integer)'
 
                   `template <int size>
-                   class IEEE_quad _quad_from_sint
-                                      (class IEEE_quad ,
-                                       class sint<size> )
+                   class IEEE_quad &IEEE_quad_from_sint
+                                      (class IEEE_quad &single,
+                                       class sint<size> &integer)
 
                   `template <int size>
-                   void IEEE_quad_to_sint (class IEEE_quad ,
-                                           class sint<size> )'
+                   void IEEE_quad_to_sint (class IEEE_quad &single,
+                                           class sint<size> &integer)'
                   `template <int size>
                    void IEEE_quad_to_unsint
-                        (class IEEE_quad ,
-                         class unsint<size> _integer)'
+                        (class IEEE_quad &single,
+                         class unsint<size> &unsigned_integer)'
 
      Exceptions for these functions are the same as described above for
      functions 'from_signed_integer', 'to_signed_integer' and so on.
@@ -2098,7 +2106,7 @@ defined.  It is made because supporting IEEE 18-bits numbers requires
 more 100Kb memory.
 
 
-File: ammunition++.info,  Node: Ticker package,  Next: Earley parser,  Prev: Package for machine-independent IEEE floating point arithmetic,  Up: Top
+File: ammunition++.info,  Node: Ticker package,  Next: Expandable sparse set,  Prev: Package for machine-independent IEEE floating point arithmetic,  Up: Top
 
 12 Ticker package
 *****************
@@ -2152,9 +2160,389 @@ the following external definitions and macros:
           function.
 
 
-File: ammunition++.info,  Node: Earley parser,  Prev: Ticker package,  Up: Top
+File: ammunition++.info,  Node: Expandable sparse set,  Next: Expandable compact sparse set,  Prev: Ticker package,  Up: Top
 
-13 Earley parser
+13 Expandable sparse set
+************************
+
+The package 'bits' can be used to represent sets.  In many applications
+(e.g.  in compiler optimizations) sets are sparse for all possible
+elements values.  The package 'spset' implements sparse sets described
+in "An Efficient Representation for Sparse Sets" by Preston Briggs and
+Linda Torczon.  The sparse set implementation has the following
+features:
+
+   * It is fast.  It has complexity O(1) for testing, insertion, remove
+     of the element and O(n) for union, intersection, difference,
+     comparison, and traverse of the sets, where 'n' is number of
+     elements in the set.
+   * The set has a size.  Elements with values less than size can be
+     stored in the set.  The memory is needed for the set representation
+     is O(size).
+   * When the element is inserted and does not fit into the set, the set
+     is automatically extended to store the element and may be elements
+     with even bigger values.
+
+   The interface part of the sparse set is file 'spset.h'.  The
+implementation part is file 'spset.cpp'.  The interface contains the
+following external definitions and macros:
+
+'Type `spset_elem_t''
+     is an unsigned integer type representing the set element.
+
+'Macro `SPSET_MAX_ELEM''
+     is a maximal possible value of the previous type.
+
+'Class `spset''
+     The class contains the following functions:
+
+     'Public constructor `spset''
+
+                         `spset (spset_elem_t size = 0)'
+
+          creates set with initial size close to 'size' but not less
+          than it.  With default parameter value the minimal size set is
+          created.
+
+     'Public destructor ` spset''
+
+                         `~spset (vodi)'
+
+          deletes given set and frees memory allocated for it.
+
+     'Public member function `size''
+
+                          `spset_elem_t size (void)'
+
+          returns the current size of the set.  Elements with values
+          less than the size can be inserted without an expansion.
+
+     'Public member function `cardinality''
+
+                          `spset_elem_t cardinality (void)'
+
+          returns number of elements containing currently in the set.
+
+     'Public member function `copy''
+
+                          `void copy (spset *from)'
+
+          copies value of set 'from' to given set.
+
+     'Public member function `swap''
+
+                          `void swap (spset *s)'
+
+          swaps values of given set and 's'.
+
+     'Public member function `in_p''
+
+                          `int in_p (spset_elem_t el)'
+
+          returns TRUE if the set constains element 'el'.
+
+     'Public member function `insert''
+
+                          `int insert (spset_elem_t el)'
+
+          inserts element 'el' into the set.  Return TRUE if the set has
+          been changed, in order words, it did not contain the element.
+          If the set size is not enough to contain the element, the set
+          is expanded.
+
+     'Public member function `remove''
+
+                          `int remove (spset_elem_t el)'
+
+          removes element 'el' from the set.  Return TRUE if the set has
+          been changed, in order words, it really contained the element.
+
+     'Public member function `clear''
+
+                          `int clear (void)'
+
+          removes all elements from the set.  Return TRUE if the set has
+          been changed, in order words, it was not empty.
+
+     'Public member function `equal_p''
+
+                          `int equal_p (spset *s)'
+
+          returns TRUE if given set and 's' contain exactly the same
+          elements.
+
+     'Public member function `intersect''
+
+                          `int intersect (spset *s)'
+
+          removes elements in given set which are not is set 's'.
+          Returns TRUE if the set has been changed, in order words, if
+          given set or 's' had any non-common elements.
+
+     'Public member function `unity''
+
+                          `int unity (spset *s)'
+
+          adds all elements of set 's' to given set.  Returns TRUE if
+          the set has been changed, in order words, if any new element
+          was added to given set.  The set can be automatically expanded
+          if it is necessary.
+
+     'Public member function `diff''
+
+                          `int intersect (spset *s)'
+
+          removes all elements of set 's' from given set.  Returns TRUE
+          if the set has been changed, in order words, if given set and
+          's' had any common elements.
+
+     'Public member function `shrink''
+
+                          `void shrink (void)'
+
+          decreases size of the set if it is possible.  During set life,
+          the set can be automatically expanded but it is never
+          automatically shrinked.  After some element removes, it might
+          be possible to shrink set size to save memory.  The function
+          serves this purpose.
+
+     'Public static function `release_unused_memory''
+
+                          `void release_unused_memory (void)'
+
+          releases internal memory pool.  The pool is used to speed up
+          size changing of sets.  It is wise to call the function when
+          you finish to work with all sets.
+
+     'Public member function `print''
+
+                          `void print (FILE *f)'
+
+          prints all elements of the set into file 'f'.
+
+     'Public member function `debug''
+
+                          `void debug (void)'
+
+          prints all elements of the set into stderr.
+
+'Class `spset_iterator''
+     is used to define iterators for traverses of sets (see the macro
+     below).
+
+'Macro `EXECUTE_FOR_EACH_SPSET_ELEM''
+
+                  `EXECUTE_FOR_EACH_SPSET_ELEM (SET, EL, SI) c++-stmt'
+
+     executes 'c++-stmt' for each element of 'SET'. During execution,
+     the current element value is assigned to 'EL'. You need to declare
+     somewhere and use iterator 'SI' in the macro call.  The order of
+     traverse of the set elements is undefined.  The traverse behaviour
+     when the traversed set is changed during the traverse is not
+     defined.
+
+
+File: ammunition++.info,  Node: Expandable compact sparse set,  Next: Earley parser,  Prev: Expandable sparse set,  Up: Top
+
+14 Expandable compact sparse set
+********************************
+
+The package 'spsets' can be used to represent few sets as the set memory
+is proportional to maximal possible element value.  And as this value
+can be big, the sets can be big too.  In some applications (e.g.  basic
+block pseudo live info at the beginning and end of each basic block in
+compiler) you need a lot of sets and spset package is not acceptable for
+such uses as it will require huge memory.  We need a set representation
+whose memory is proportional to number of set elements which for sparse
+sets is much smaller than maximal possible element value.  The package
+'cspset' (expandable compact sparse sets) implements such
+representation.  We use special case hash tables of appropriate sizes to
+keep the tables compact but still fast for access.  The algorithm
+complexities of set operations in practice is the same as for package
+'spset' but have bigger constants.
+
+   The interface part of the sparse set is file 'cspset.h'.  The
+implementation part is file 'cspset.cpp'.  The interface is very similar
+to 'spset' one.  It contains the following external definitions and
+macros:
+
+'Type `cspset_elem_t''
+     is an unsigned integer type representing the set element.  It is
+     the same type as spset_elem_t.
+
+'Constant `cspset_max_elem''
+     is a maximal possible value of the previous type for the element.
+     That is pretty big value very close to maximal value of the above
+     type.
+
+'Class `cspset''
+     describes a compact sparse set.  The class contains the following
+     functions:
+
+     'Public constructor `cspset''
+
+                           `cspset (cspset_elem_t size = 0)'
+
+          creates set with initial size close to 'size' but not less
+          than it.  With default parameter value the minimal size set is
+          created.
+
+     'Public destructor ` cspset''
+
+                           `~cspset (vodi)'
+
+          deletes given set and frees memory allocated for it.
+
+     'Public member function `size''
+
+                            `cspset_elem_t size (void)'
+
+          returns the current size of the set.  The set without an
+          expansion can contain elements whose quantity is close to the
+          set size.
+
+     'Public member function `cardinality''
+
+                            `cspset_elem_t cardinality (void)'
+
+          returns number of elements containing currently in the set.
+
+     'Public member function `copy''
+
+                            `void copy (cspset *from)'
+
+          copies value of set 'from' to given set.
+
+     'Public member function `swap''
+
+                            `void swap (cspset *s)'
+
+          swaps values of given set and 's'.
+
+     'Public member function `in_p''
+
+                            `int in_p (cspset_elem_t el)'
+
+          returns TRUE if the set constains element 'el'.
+
+     'Public member function `insert''
+
+                            `int insert (cspset_elem_t el)'
+
+          inserts element 'el' into the set.  Return TRUE if the set has
+          been changed, in order words, it did not contain the element.
+          If the set size is not enough to contain the element, the set
+          is expanded.
+
+     'Public member function `remove''
+
+                            `int remove (cspset_elem_t el)'
+
+          removes element 'el' from the set.  Return TRUE if the set has
+          been changed, in order words, it really contained the element.
+
+     'Public member function `clear''
+
+                            `int clear (void)'
+
+          removes all elements from the set.  Return TRUE if the set has
+          been changed, in order words, it was not empty.
+
+     'Public member function `equal_p''
+
+                            `int equal_p (cspset *s)'
+
+          returns TRUE if given set and 's' contain exactly the same
+          elements.
+
+     'Public member function `intersect''
+
+                            `int intersect (cspset *s)'
+
+          removes elements in given set which are not is set 's'.
+          Returns TRUE if the set has been changed, in order words, if
+          given set or 's' had any non-common elements.
+
+     'Public member function `unity''
+
+                            `int unity (cspset *s)'
+
+          adds all elements of set 's' to given set.  Returns TRUE if
+          the set has been changed, in order words, if any new element
+          was added to given set.  The set can be automatically expanded
+          if it is necessary.
+
+     'Public member function `diff''
+
+                            `int intersect (cspset *s)'
+
+          removes all elements of set 's' from given set.  Returns TRUE
+          if the set has been changed, in order words, if given set and
+          's' had any common elements.
+
+     'Public member function `shrink''
+
+                            `void shrink (void)'
+
+          decreases size of the set if it is possible.  During set life,
+          the set can be automatically expanded but it is never
+          automatically shrinked.  After some element removes, it might
+          be possible to shrink set size to save memory.  The function
+          serves this purpose.
+
+     'Public static function `release_unused_memory''
+
+                            `void release_unused_memory (void)'
+
+          releases internal memory pool.  The pool is used to speed up
+          size changing of sets.  It is wise to call the function when
+          you finish to work with all sets.
+
+     'Public member function `print''
+
+                            `void print (FILE *f)'
+
+          prints all elements of the set into file 'f'.
+
+     'Public member function `debug''
+
+                            `void debug (void)'
+
+          prints all elements of the set into stderr.
+
+     'Function `to_spset''
+
+                            `void to_spset (spset_t *to)'
+
+          is used to transform given compact sparse set to sparse set
+          'to'.
+
+     'Function `from_spset''
+
+                            `void from_spset (spset_t *from)'
+
+          is used to transform given compact sparse set from sparse set
+          'from'.
+
+'Class `cspset_iterator''
+     is used to define iterators for traverses of sets (see the macro
+     below).
+
+'Macro `EXECUTE_FOR_EACH_CSPSET_ELEM''
+
+                    `EXECUTE_FOR_EACH_CSPSET_ELEM (SET, EL, SI) c++-stmt'
+
+     executes 'c++-stmt' for each element of 'SET'. During execution,
+     the current element value is assigned to 'EL'. You need to declare
+     somewhere and use iterator 'SI' in the macro call.  The order of
+     traverse of the set elements is undefined.  The traverse behaviour
+     when the traversed set is changed during the traverse is not
+     defined.
+
+
+File: ammunition++.info,  Node: Earley parser,  Prev: Expandable compact sparse set,  Up: Top
+
+15 Earley parser
 ****************
 
 The package 'earley' implements earley parser.  The earley parser
@@ -2649,18 +3037,20 @@ following external definitions and macros:
 
 Tag Table:
 Node: Top111
-Node: Introduction1005
-Node: Package for allocating memory with fixing some allocation errors2026
-Node: Package for work with variable length objects4903
-Node: Package for work with stacks of objects9671
-Node: Package for work with hash tables15683
-Node: Package for work with source code positions20781
-Node: Package for output of compiler messages25406
-Node: Package for work with command line32189
-Node: Package for work with bit strings38986
-Node: Package for machine-independent arbitrary precision integer arithmetic42534
-Node: Package for machine-independent IEEE floating point arithmetic58785
-Node: Ticker package93303
-Node: Earley parser95047
+Node: Introduction1066
+Node: Package for allocating memory with fixing some allocation errors2168
+Node: Package for work with variable length objects5045
+Node: Package for work with stacks of objects9813
+Node: Package for work with hash tables15825
+Node: Package for work with source code positions20923
+Node: Package for output of compiler messages25548
+Node: Package for work with command line32331
+Node: Package for work with bit strings39136
+Node: Package for machine-independent arbitrary precision integer arithmetic42684
+Node: Package for machine-independent IEEE floating point arithmetic58983
+Node: Ticker package93753
+Node: Expandable sparse set95505
+Node: Expandable compact sparse set101709
+Node: Earley parser108545
 
 End Tag Table

@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
+ <TITLE>Ammunition (Reusable packages) - C interface: Expandable compact sparse set</TITLE>
+ <LINK HREF="ammunition-15.html" REL=next>
+ <LINK HREF="ammunition-13.html" REL=previous>
+ <LINK HREF="ammunition.html#toc14" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="ammunition-15.html">Next</A>
+<A HREF="ammunition-13.html">Previous</A>
+<A HREF="ammunition.html#toc14">Contents</A>
+<HR>
+<H2><A NAME="s14">14.</A> <A HREF="ammunition.html#toc14">Expandable compact sparse set</A></H2>
+
+<P>The package `spsets' can be used to represent few sets as the set
+memory is proportional to maximal possible element value.  And as this
+value can be big, the sets can be big too.  In some applications
+(e.g. basic block pseudo live info at the beginning and end of each
+basic block in compiler) you need a lot of sets and spset package is
+not acceptable for such uses as it will require huge memory.  We need
+a set representation whose memory is proportional to number of set
+elements which for sparse sets is much smaller than maximal possible
+element value.  The package 'cspset' (expandable compact sparse sets)
+implements such representation.  We use special case hash tables of
+appropriate sizes to keep the tables compact but still fast for
+access.  The algorithm complexities of set operations in practice is
+the same as for package `spset' but have bigger constants.</P>
+<P>The interface part of the sparse set is file `cspset.h'.  The
+implementation part is file `cspset.c'.  The interface is very similar
+to `spset` one.  It contains the following external definitions and
+macros:
+<DL>
+<DT><B>Type `cspset_elem_t'</B><DD>
+<P>is an unsigned integer type representing the set element.
+It is the same type as spset_elem_t.</P>
+
+<DT><B>Constant `cspset_max_elem'</B><DD>
+<P>is a maximal possible value of the previous type for the
+element.  That is pretty big value very close to maximal
+value of the above type.</P>
+
+<DT><B>Type `cspset_t'</B><DD>
+<P>represents a compact sparse set.  Knowledge of structure
+(implementation) of this type is not visible and not needed
+for using the parser.</P>
+
+<DT><B>Function `cspset_init'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_init (cspset_t *s, cspset_elem_t size)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+should be called the first.  It initializes set `s' with
+initial size close to `size' but not less than it.  You can
+work only with initialized and non-finished sets.</P>
+
+<DT><B>Function `cspset_finish'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_finish (cspset_t *s)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+should be called the last.  It finishes set work with set
+`s'.</P>
+
+<DT><B>Function `cspset_size'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `cspset_elem_t cspset_size (cspset_t *s)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns the current size of the set `s'.  The set without an
+expansion can contain elements whose quantity is close to
+the set size.</P>
+
+<DT><B>Function `cspset_cardinality'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `cspset_elem_t cspset_cardinality (cspset_t *s)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns number of elements containing currently in set `s'.</P>
+
+<DT><B>Function `cspset_copy'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_copy (cspset_t *to, cspset_t *from)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+copies value of set `from' to set `to'.</P>
+
+<DT><B>Function `cspset_swap'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_swap (cspset_t *s1, cspset_t *s2)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+swaps values of sets `s1' and `s2'.</P>
+
+<DT><B>Function `cspset_in_p'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_in_p (cspset_t *s, cspset_elem_t el)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns TRUE if set `s' constains element `el'.</P>
+
+<DT><B>Function `cspset_insert'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_insert (cspset_t *s, cspset_elem_t el)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+inserts element `el' into set `s'.  Return TRUE if the set
+has been changed, in order words, it did not contain the
+element.  If the set size is not enough to contain the
+current number of elements, the set is expanded.</P>
+
+<DT><B>Function `cspset_remove'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_remove (cspset_t *s, cspset_elem_t el)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+removes element `el' from set `s'.  Return TRUE if the set
+has been changed, in order words, it really contained the
+element.</P>
+
+<DT><B>Function `cspset_clear'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_clear (cspset_t *s)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+removes all elements from set `s'.  Return TRUE if the set
+has been changed, in order words, it was not empty.</P>
+
+<DT><B>Function `cspset_equal_p'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_equal_p (cspset_t *s1, cspset_t *s2)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns TRUE if sets `s1' and `s2' contain exactly the same
+elements.</P>
+
+<DT><B>Function `cspset_intersect'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_intersect (cspset_t *s1, cspset_t *s2)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+removes elements in set `s1' which are not is set `s2'.
+Returns TRUE if the set `s1' has been changed, in order
+words, if `s1' or `s2' had any non-common elements.</P>
+
+<DT><B>Function `cspset_unity'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_unity (cspset_t *s1, cspset_t *s2)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+adds all elements of set `s2' to set `s1'.  Returns TRUE if
+the set `s1' has been changed, in order words, if any new
+element was added to `s1'.  The set can be automatically
+expanded if it is necessary.</P>
+
+<DT><B>Function `cspset_diff'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `int cspset_intersect (cspset_t *s1, cspset_t *s2)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+removes all elements of set `s2' from set `s1'.  Returns
+TRUE if the set `s1' has been changed, in order words, if
+`s1' and `s2' had any common elements.</P>
+
+<DT><B>Function `cspset_shrink'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_shrink (cspset_t *s)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+decreases size of set `s' if it is possible.  During set
+life, the set can be automatically expanded but it is never
+automatically shrinked.  After some element removes, it
+might be possible to shrink set size to save memory.  The
+function serves this purpose.</P>
+
+<DT><B>Function `cspset_release_unused_memory'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_release_unused_memory (void)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+releases internal memory pool.  The pool is used to speed up
+size changing of sets.  It is wise to call the function when
+you finish to work with all sets.</P>
+
+<DT><B>Function `cspset_print'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_print (FILE *f, cspset_t *s)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+prints all elements of set `s' into file `f'.</P>
+
+<DT><B>Function `cspset_debug'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_debug (cspset_t *s)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+prints all elements of set `s' into stderr.</P>
+
+<DT><B>Type `cspset_iterator_t'</B><DD>
+<P>is used to define iterators for traverses of sets (see the
+macro below).</P>
+
+<DT><B>Macro `EXECUTE_FOR_EACH_CSPSET_ELEM'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `EXECUTE_FOR_EACH_CSPSET_ELEM (SET, EL, SI) c-stmt'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+executes `c-stmt' for each element of `SET'.  During
+execution, the current element value is assigned to `EL'.
+You need to declare somewhere and use iterator `SI' in the
+macro call.  The order of traverse of the set elements is
+undefined.  The traverse behaviour when the traversed set is
+changed during the traverse is not defined.</P>
+
+<DT><B>Function `cspset_to_spset'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_to_spset (cspset_t *from, spset_t *to)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is used to transform compact sparse set `from' to sparse set
+`to'.</P>
+
+<DT><B>Function `cspset_from_spset'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+          `void cspset_from_spset (cspset_t *to, spset_t *from)'
+          
+</PRE>
+</CODE></BLOCKQUOTE>
+
+is used to transform compact sparse set `to' from sparse set
+`from'.</P>
+</DL>
+</P>
+
+<HR>
+<A HREF="ammunition-15.html">Next</A>
+<A HREF="ammunition-13.html">Previous</A>
+<A HREF="ammunition.html#toc14">Contents</A>
+</BODY>
+</HTML>
