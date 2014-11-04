@@ -29,6 +29,7 @@
 #include "d_run.h"
 #include "d_context.h"
 #include "d_bcio.h"
+#include "d_inference.h"
 
 /* Pointer to block node which opens current scope. */
 static IR_node_t curr_scope;
@@ -101,58 +102,55 @@ cont_err_finish (position_t pos, const char *format, const char *str)
 }
 
 
-static vlo_t foreach_vars;
+
+/* Stack foreach statemets for processing.  */
+static vlo_t foreach_stmts;
 
 static void
-initiate_foreach_vars (void)
+initiate_foreach_stmts (void)
 {
-  VLO_CREATE (foreach_vars, 0);
+  VLO_CREATE (foreach_stmts, 0);
 }
 
-static void
-start_block_foreach_vars (void)
-{
-  int m1 = -1;
-
-  VLO_ADD_MEMORY (foreach_vars, &m1, sizeof (int));
-}
-
-static void
-finish_block_foreach_vars (void)
-{
-  while (VLO_LENGTH (foreach_vars) > 0
-	 && ((int *) VLO_BOUND (foreach_vars))[-1] >= 0)
-    VLO_SHORTEN (foreach_vars, sizeof (int));
-  if (VLO_LENGTH (foreach_vars) > 0)
-    VLO_SHORTEN (foreach_vars, sizeof (int));
-}
-
+/* Return index for new foreach stmts.  */
 static int
-get_new_foreach_var (void)
+get_foreach_stmts_bound (void)
 {
-  int res;
+  return VLO_LENGTH (foreach_stmts) / sizeof (IR_node_t);
+}
 
-  if (VLO_LENGTH (foreach_vars) > 0
-      && (res = ((int *) VLO_BOUND (foreach_vars))[-1]) >= 0)
+/* Assign slots to vars of block foreach stmts which start from
+   START_INDEX.  */
+static void
+finish_block_foreach_stmts (int start_index)
+{
+  IR_node_t *foreach_ptr;
+  int slot_num = IR_vars_number (curr_scope);
+  int n = 0;
+
+  for (foreach_ptr = &((IR_node_t *) VLO_BEGIN (foreach_stmts)) [start_index];
+       foreach_ptr < (IR_node_t *) VLO_BOUND (foreach_stmts);
+       foreach_ptr++)
     {
-      VLO_SHORTEN (foreach_vars, sizeof (int));
-      return res;
+      n++;
+      if (*foreach_ptr == NULL)
+	slot_num -= 2;
+      else
+	{
+	  IR_set_foreach_tab_place (*foreach_ptr, slot_num);
+	  IR_set_foreach_search_start_place (*foreach_ptr, slot_num + 1);
+	  slot_num += 2;
+	  if (slot_num > IR_vars_number (curr_scope))
+	    IR_set_vars_number (curr_scope, slot_num);
+	}
     }
-  res = IR_vars_number (curr_scope);
-  IR_set_vars_number (curr_scope, res + 1);
-  return res;
+  VLO_SHORTEN (foreach_stmts, n * sizeof (IR_node_t));
 }
 
 static void
-free_foreach_var (int var_num)
+finish_foreach_stmts (void)
 {
-  VLO_ADD_MEMORY (foreach_vars, &var_num, sizeof (int));
-}
-
-static void
-finish_foreach_vars (void)
-{
-  VLO_DELETE (foreach_vars);
+  VLO_DELETE (foreach_stmts);
 }
 
 
@@ -957,6 +955,15 @@ add_block_use (IR_node_t decl)
     add_block_use (IR_use_decl (use));
 }
 
+/* Return true if BLOCK is simple in other words it will be part of
+   some outer block.  */
+static int
+simple_block_p (IR_node_t block)
+{
+  return (IR_fun_class (block) == NULL && ! IR_decls_flag (block)
+	  && IR_exceptions (block) == NULL && IR_block_scope (block) != NULL);
+}
+
 /* This recursive func passes all stmts and exprs (correctly setting
    up SOURCE_POSITION and curr_scope (before first call of the func
    curr_scope is to be NULL)) on the same stmt nesting level, includes
@@ -1051,6 +1058,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  break;
 	case IR_NM_foreach_stmt:
 	  {
+	    IR_node_t t;
 	    IR_node_t index_des = IR_foreach_index_designator (stmt);
 	    IR_node_t value_des = IR_foreach_value_designator (stmt);
 
@@ -1069,14 +1077,13 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		    cont_err (IR_pos (value_des), ERR_slice_as_foreach_value_designator);
 		  }
 	      }
-	    IR_set_foreach_tab_place (stmt, get_new_foreach_var ());
-	    IR_set_foreach_search_start_place (stmt, get_new_foreach_var ());
+	    VLO_ADD_MEMORY (foreach_stmts, &stmt, sizeof (stmt));
 	    first_expr_processing (IR_foreach_tab (stmt));
 	    IR_set_foreach_stmts (stmt,
 				  first_block_passing (IR_foreach_stmts (stmt),
 						       curr_block_level));
-	    free_foreach_var (IR_foreach_search_start_place (stmt));
-	    free_foreach_var (IR_foreach_tab_place (stmt));
+	    t = NULL;
+	    VLO_ADD_MEMORY (foreach_stmts, &t, sizeof (t));
 	    break;
 	  }
 	case IR_NM_break_stmt:
@@ -1102,16 +1109,23 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    int copied_redirs_start;
 	    IR_node_t curr_except;
 	    IR_node_t *item_ptr;
+	    int block_foreach_start;
 
 	    copied_redirs_start = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
 	    curr_use_items_start = VLO_LENGTH (use_items) / sizeof (IR_node_t);
 	    curr_scope = stmt;
 	    set_block_level (stmt, curr_block_level);
-	    start_block_foreach_vars ();
+	    block_foreach_start = get_foreach_stmts_bound ();
 	    IR_set_block_stmts
 	      (stmt, first_block_passing (IR_block_stmts (stmt),
 					  curr_block_level + 1));
-	    finish_block_foreach_vars ();
+	    
+	    
+	    /* Now we can say does the block have var decls and is the
+	       block simple or in other words in what scope the vars
+	       will be placed.  */
+	    if (! simple_block_p (stmt))
+	      finish_block_foreach_stmts (block_foreach_start);
 	    process_friend_list (stmt);
 	    curr_scope = saved_curr_scope;
 	    for (curr_except = IR_exceptions (stmt);
@@ -2722,8 +2736,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
    for that
 
    BC_NM_fld                  BC_NM_lfld(v)
-   BC_NM_ind                  BC_NM_lindv
-   BC_NM_key                  BC_NM_lkeyv
+   BC_NM_ind                  BC_NM_ind
    BC_NM_var                  BC_NM_lvar(v)
    BC_NM_evar                 BC_NM_levar(v)
 
@@ -2739,11 +2752,9 @@ make_designator_lvalue (BC_node_t designator, const char *error_message,
     case BC_NM_fld:
       return (val_p ? BC_NM_lfldv : BC_NM_lfld);
     case BC_NM_ind:
-      return (val_p ? BC_NM_lindv : BC_NM_ind);
+      return BC_NM_ind;
     case BC_NM_sl:
       return (val_p ? BC_NM_lslv : BC_NM_sl);
-    case BC_NM_key:
-      return (val_p ? BC_NM_lkeyv : BC_NM_key);
     case BC_NM_var:
       return (val_p ? BC_NM_lvarv : BC_NM_lvar);
     case BC_NM_evar:
@@ -2836,8 +2847,7 @@ get_lvalue_location (BC_node_t designator, IR_node_t ir_des,
       *container_num = BC_op1 (bc);
       *index_num = get_temp_stack_slot (temp_vars_num);
     }
-  else if (BC_IS_OF_TYPE (designator, BC_NM_ind)
-	   || BC_IS_OF_TYPE (designator, BC_NM_key))
+  else if (BC_IS_OF_TYPE (designator, BC_NM_ind))
     {
       /* Remove the bc code: */
       d_assert (curr_pc == designator);
@@ -3224,8 +3234,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		    BC_set_op4 (bc, get_temp_stack_slot (&temp_vars_num));
 		}
 	      else if (val_p && (var_mode == BC_NM_ind
-				 || var_mode == BC_NM_sl
-				 || var_mode == BC_NM_key))
+				 || var_mode == BC_NM_sl))
 		{
 		  BC_set_op4 (bc, get_temp_stack_slot (&temp_vars_num));
 		  BC_set_op1 (var_bc, BC_op4 (bc));
@@ -3233,8 +3242,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      else if (val_p)
 		BC_set_op4 (bc, -1);
 	      if (! val_p && (var_mode == BC_NM_ind
-			      || var_mode == BC_NM_sl
-			      || var_mode == BC_NM_key))
+			      || var_mode == BC_NM_sl))
 		{
 		  curr_pc = prev_pc;
 		  curr_info = BC_prev_info (curr_info);
@@ -3708,7 +3716,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    pc_t previous_node_catch_list_pc;
 	    IR_node_t fun_class, friend, use;
 	    BC_node_t except_bc, last_except_with_block;
-	    int simple_block_flag = FALSE;
+	    int simple_block_flag = simple_block_p (stmt);
 
 	    curr_scope = stmt;
 	    fun_class = IR_fun_class (stmt);
@@ -3717,9 +3725,6 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		if ((bc = IR_bc_block (stmt)) == NULL)
 		  bc = new_bc_code (BC_NM_block,
 				    new_bc_node (BC_NM_source, IR_pos (stmt)));
-		if (! IR_decls_flag (stmt) && IR_exceptions (stmt) == NULL
-		    && saved_curr_scope != NULL)
-		  simple_block_flag = TRUE;
 		BC_set_ext_life_p (bc, IR_extended_life_context_flag (stmt));
 		BC_set_scope (bc, curr_bc_scope);
 		IR_set_bc_block (stmt, bc);
@@ -3792,6 +3797,16 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 					    new_bc_node (BC_NM_source,
 							 source_position));
 		BC_set_block (block_finish, curr_bc_scope);
+	      }
+	    if (BC_IS_OF_TYPE (block_finish, BC_NM_fbend)
+		&& ! BC_IS_OF_TYPE (curr_pc, BC_NM_ret)
+		&& ! BC_IS_OF_TYPE (curr_pc, BC_NM_leave))
+	      {
+		/* Type inference requires that fbend is reached only
+		   through ret or leave.  */
+		BC_node_t leave = new_bc_code_with_src (BC_NM_leave, stmt);
+
+		add_to_bcode (leave);
 	      }
 	    add_to_bcode (block_finish);
 	    curr_scope = saved_curr_scope;
@@ -4021,22 +4036,22 @@ branch_combine (BC_node_t bc)
     switch (BC_NODE_MODE (second_bc))
       {
       case BC_NM_eq:
-	node_mode = op1 >= 0 ? BC_NM_bteqinc : bt_p ? BC_NM_bteq : BC_NM_btne;
+	node_mode = op1 != not_defined_result ? BC_NM_bteqinc : bt_p ? BC_NM_bteq : BC_NM_btne;
 	break;
       case BC_NM_ne:
-	node_mode = op1 >= 0 ? BC_NM_btneinc : bt_p ? BC_NM_btne : BC_NM_bteq;
+	node_mode = op1 != not_defined_result ? BC_NM_btneinc : bt_p ? BC_NM_btne : BC_NM_bteq;
 	break;
       case BC_NM_ge:
-	node_mode = op1 >= 0 ? BC_NM_btgeinc : bt_p ? BC_NM_btge : BC_NM_btlt;
+	node_mode = op1 != not_defined_result ? BC_NM_btgeinc : bt_p ? BC_NM_btge : BC_NM_btlt;
 	break;
       case BC_NM_lt:
-	node_mode = op1 >= 0 ? BC_NM_btltinc : bt_p ? BC_NM_btlt : BC_NM_btge;
+	node_mode = op1 != not_defined_result ? BC_NM_btltinc : bt_p ? BC_NM_btlt : BC_NM_btge;
 	break;
       case BC_NM_le:
-	node_mode = op1 >= 0 ? BC_NM_btleinc : bt_p ? BC_NM_btle : BC_NM_btgt;
+	node_mode = op1 != not_defined_result ? BC_NM_btleinc : bt_p ? BC_NM_btle : BC_NM_btgt;
 	break;
       case BC_NM_gt:
-	node_mode = op1 >= 0 ? BC_NM_btgtinc : bt_p ? BC_NM_btgt : BC_NM_btle;
+	node_mode = op1 != not_defined_result ? BC_NM_btgtinc : bt_p ? BC_NM_btgt : BC_NM_btle;
 	break;
       case BC_NM_eqi:
 	node_mode = bt_p ? BC_NM_bteqi : BC_NM_btnei;
@@ -4057,22 +4072,22 @@ branch_combine (BC_node_t bc)
 	node_mode = bt_p ? BC_NM_btgti : BC_NM_btlei;
 	break;
       case BC_NM_ieq:
-	node_mode = op1 >= 0 ? BC_NM_ibteqinc : bt_p ? BC_NM_ibteq : BC_NM_ibtne;
+	node_mode = op1 != not_defined_result ? BC_NM_ibteqinc : bt_p ? BC_NM_ibteq : BC_NM_ibtne;
 	break;
       case BC_NM_ine:
-	node_mode = op1 >= 0 ? BC_NM_ibtneinc : bt_p ? BC_NM_ibtne : BC_NM_ibteq;
+	node_mode = op1 != not_defined_result ? BC_NM_ibtneinc : bt_p ? BC_NM_ibtne : BC_NM_ibteq;
 	break;
       case BC_NM_ige:
-	node_mode = op1 >= 0 ? BC_NM_ibtgeinc : bt_p ? BC_NM_ibtge : BC_NM_ibtlt;
+	node_mode = op1 != not_defined_result ? BC_NM_ibtgeinc : bt_p ? BC_NM_ibtge : BC_NM_ibtlt;
 	break;
       case BC_NM_ilt:
-	node_mode = op1 >= 0 ? BC_NM_ibtltinc : bt_p ? BC_NM_ibtlt : BC_NM_ibtge;
+	node_mode = op1 != not_defined_result ? BC_NM_ibtltinc : bt_p ? BC_NM_ibtlt : BC_NM_ibtge;
 	break;
       case BC_NM_ile:
-	node_mode = op1 >= 0 ? BC_NM_ibtleinc : bt_p ? BC_NM_ibtle : BC_NM_ibtgt;
+	node_mode = op1 != not_defined_result ? BC_NM_ibtleinc : bt_p ? BC_NM_ibtle : BC_NM_ibtgt;
 	break;
       case BC_NM_igt:
-	node_mode = op1 >= 0 ? BC_NM_ibtgtinc : bt_p ? BC_NM_ibtgt : BC_NM_ibtle;
+	node_mode = op1 != not_defined_result ? BC_NM_ibtgtinc : bt_p ? BC_NM_ibtgt : BC_NM_ibtle;
 	break;
       case BC_NM_ieqi:
 	node_mode = bt_p ? BC_NM_ibteqi : BC_NM_ibtnei;
@@ -4162,6 +4177,37 @@ madd_combine (BC_node_t bc)
   return bc;
 }
 
+static BC_node_t
+ind_combine (BC_node_t bc)
+{
+  BC_node_t info, next_bc;
+  int_t op1, op2, op3, op4;
+
+  if (BC_NODE_MODE (bc) == BC_NM_ind
+      && BC_op1 (bc) >= BC_vars_num (curr_bc_block)
+      && (next_bc = BC_next (bc)) != NULL
+      && BC_NODE_MODE (next_bc) == BC_NM_ind
+      && BC_op2 (next_bc) == BC_op1 (bc)
+      /* We should have the same result.  If it is not it is used
+	 somewhere and we can not combine the indexation.  */
+      && BC_op1 (next_bc) == BC_op1 (bc))
+    {
+      op1 = BC_op1 (next_bc);
+      op2 = BC_op2 (bc);
+      op3 = BC_op3 (bc);
+      op4 = BC_op3 (next_bc);
+      info = BC_info (bc);
+      bc = new_bc_code (BC_NM_ind2, BC_source (BC_info (next_bc)));
+      insert_info (BC_info (bc), info);
+      BC_set_op1 (bc, op1);
+      BC_set_op2 (bc, op2);
+      BC_set_op3 (bc, op3);
+      BC_set_op4 (bc, op4);
+      BC_set_next (bc, BC_next (next_bc));
+    }
+  return bc;
+}
+
 /* The following function passes through nodes unnecessary for
    execution.  Also do byte code combining.  */
 static BC_node_t
@@ -4180,6 +4226,8 @@ go_through (BC_node_t start_bc)
   subst = branch_combine (bc);
   if (subst == bc)
     subst = madd_combine (bc);
+  if (subst == bc)
+    subst = ind_combine (bc);
   BC_set_subst (info, subst);
   return subst;
 }
@@ -4477,7 +4525,10 @@ process_bc (BC_node_t start)
   for (info = BC_info (start); info != NULL; info = next_info)
     {
       next_info = BC_next_info (info);
-      if (! BC_reachable_p (info))
+      if (! BC_reachable_p (info)
+	  /* Don't remove bend we need this for type inference
+	     optimization.  */
+	  && ! BC_IS_OF_TYPE (BC_bc (info), BC_NM_bend))
 	unlink_info (info);
     }
 }
@@ -4531,6 +4582,8 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
 	   bc_ptr < (BC_node_t *) VLO_BOUND (all_fblocks);
 	   bc_ptr++)
 	process_bc (*bc_ptr);
+      if (optimize_flag)
+	inference_pass (first_program_bc, &all_fblocks);
     }
 }
 
@@ -4549,13 +4602,17 @@ initiate_context (void)
   initiate_decl_subst ();
   last_uniq_ident_num = DESTROY_IDENT_NUMBER;
   last_decl_num = 0;
-  initiate_foreach_vars ();
+  initiate_foreach_stmts ();
+  if (optimize_flag)
+    initiate_inference_pass ();
 }
 
 void
 finish_context (void)
 {
-  finish_foreach_vars ();
+  if (optimize_flag)
+    finish_inference_pass ();
+  finish_foreach_stmts ();
   finish_decl_subst ();
   VLO_DELETE (inline_stack);
   VLO_DELETE (inline_returns);

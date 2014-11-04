@@ -53,9 +53,9 @@ fun		{return BC_NM_fun;}
 efun		{return BC_NM_efun;}
 class		{return BC_NM_class;}
 ind		{return BC_NM_ind;}
-lindv		{return BC_NM_lindv;}
 sl		{return BC_NM_sl;}
 lslv		{return BC_NM_lslv;}
+ind2		{return BC_NM_ind2;}
 fld		{return BC_NM_fld;}
 lfld		{return BC_NM_lfld;}
 lfldv		{return BC_NM_lfldv;}

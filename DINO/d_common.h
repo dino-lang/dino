@@ -66,6 +66,7 @@ extern unsigned int heap_chunk_size;
 extern unsigned int generated_c_functions_num, generated_c_function_calls_num;
 extern unsigned int inlined_calls_num;
 extern int repl_flag;
+extern int optimize_flag;
 extern int statistics_flag;
 extern int trace_flag;
 extern int profile_flag;

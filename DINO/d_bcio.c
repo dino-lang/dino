@@ -28,10 +28,11 @@
 #include "d_bcn.c"
 #include "d_bcf.c"
 #include "d_bcio.h"
+#include "d_inference.h"
 #include "d_run.h"
 
 /* Print INDENT spaces into stdout. */
-static void
+void
 print_indent (int indent)
 {
   int i;
@@ -115,8 +116,10 @@ new_file_p (BC_node_t n)
   return curr_file_name != NULL && curr_file_name != BC_pos (n).file_name;
 }
 
-/* Print all byte code.  Seperate code from different file by
-   //----... */
+/* Print all byte code using functions
+   print_inference_info_before_insn and
+   print_inference_info_after_insn.  Separate code from different
+   files by ----... */
 void
 dump_code (BC_node_t infos, int indent)
 {
@@ -131,8 +134,11 @@ dump_code (BC_node_t infos, int indent)
       if (new_file_p (bc))
 	printf ("//-----------------------%s----------------------------\n",
 		BC_pos (give_source_node (bc)).file_name);
+      if (optimize_flag)
+	print_inference_info_before_insn (info, indent);
       print_indent (indent);
-      printf ("%6d %s", BC_idn (info), BC_node_name[node_mode]);
+      printf ("%6d", BC_idn (info));
+      printf (" %s", BC_node_name[node_mode]);
       d_assert (indent >= 0);
       print_source (bc);
       if (BC_next (bc) != NULL
@@ -243,10 +249,14 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op1 (bc), BC_op2 (bc), BC_op1 (bc), BC_op2 (bc));
 	  break;
 	case BC_NM_ind:
-	case BC_NM_lindv:
 	  printf (" op1=%d op2=%d op3=%d // %d <- %d[%d]",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
+	  break;
+	case BC_NM_ind2:
+	  printf (" op1=%d op2=%d op3=%d op4=%d // %d <- %d[%d][%d]",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc),
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc));
 	  break;
 	case BC_NM_icall:
 	case BC_NM_ibcall:
@@ -639,6 +649,8 @@ dump_code (BC_node_t infos, int indent)
 	  d_unreachable ();
 	}
       printf ("\n");
+      if (optimize_flag)
+	print_inference_info_after_insn (info, indent);
     }
 }
 

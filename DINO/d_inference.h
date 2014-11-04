@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2013-2014 Vladimir Makarov.
+   Copyright (C) 2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -22,8 +22,8 @@
 
 */
 
-extern void print_indent (int);
-extern void dump_code (BC_node_t, int);
-extern void initiate_read_bc (void);
-extern void read_bc_program (const char *, FILE *, int);
-extern void finish_read_bc (void);
+extern void initiate_inference_pass (void);
+extern int print_inference_info_before_insn (BC_node_t, int);
+extern int print_inference_info_after_insn (BC_node_t, int);
+extern void inference_pass (BC_node_t, vlo_t *);
+extern void finish_inference_pass (void);

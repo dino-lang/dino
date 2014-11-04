@@ -234,7 +234,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 	  /* This is a trick to make switch faster by removing range
 	     comparison.  */
     case 0:
-    case 255:
+    case UCHAR_MAX:
       abort ();
 #endif
     case BC_NM_vdecl:
@@ -545,7 +545,7 @@ check_and_get_slice_info (ER_node_t start_val, unsigned_int_t vec_len,
     eval_error (slicetype_bc_decl, get_designator_pos (),
 		DERR_slice_start_is_not_int, depth);
   if (ER_NODE_MODE (IVAL (start_val, 1)) != ER_NM_int)
-    eval_error (slicetype_bc_decl,	get_designator_pos (),
+    eval_error (slicetype_bc_decl, get_designator_pos (),
 		DERR_slice_bound_is_not_int, depth);
   if (ER_NODE_MODE (IVAL (start_val, 2)) != ER_NM_int)
     eval_error (slicetype_bc_decl, get_designator_pos (),
@@ -3479,8 +3479,12 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_ind:
-	case BC_NM_lindv:
 	  ind (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ind2:
+	  ind2 (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)),
+		get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_sl:

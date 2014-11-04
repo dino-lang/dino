@@ -195,7 +195,7 @@ top_srcdir = @top_srcdir@
 
 # All object files of the syntax description translator:
 objects = d_errors.o d_ir.o d_bc.o d_run.o d_heap.o d_yacc.o d_runtab.o\
-	  d_context.o d_bcio.o d_conv.o d_func.o d_eval.o d_dino.o
+	  d_context.o d_inference.o d_bcio.o d_conv.o d_func.o d_eval.o d_dino.o
 
 # ALL header files used by all source files of Dino self.
 common = $(srcdir)/d_dino.h $(srcdir)/d_errors.h $(srcdir)/d_common.h
@@ -203,10 +203,10 @@ common = $(srcdir)/d_dino.h $(srcdir)/d_errors.h $(srcdir)/d_common.h
 # All source files of Dino.
 source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
          $(srcdir)/d_runtab.h $(srcdir)/d_bcio.h\
-	 $(srcdir)/d_context.h $(srcdir)/d_conv.h\
+	 $(srcdir)/d_context.h $(srcdir)/d_inference.h $(srcdir)/d_conv.h\
 	 $(srcdir)/d_func.h $(srcdir)/d_eval.h $(srcdir)/d_gen.c\
          $(srcdir)/d_errors.c $(srcdir)/d_yacc.y $(srcdir)/d_runtab.c\
-	 $(srcdir)/d_context.c $(srcdir)/d_bcio.c\
+	 $(srcdir)/d_context.c $(srcdir)/d_inference.c $(srcdir)/d_bcio.c\
          $(srcdir)/d_func.c $(srcdir)/d_conv.c\
          $(srcdir)/d_eval.c $(srcdir)/d_dino.c\
 	 $(srcdir)/d_aixdl.c $(srcdir)/d_main.c\
@@ -221,6 +221,7 @@ source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
 
 ammunition = ../AMMUNITION/C/allocate.o ../AMMUNITION/C/vlobject.o\
 	     ../AMMUNITION/C/position.o ../AMMUNITION/C/hashtab.o\
+	     ../AMMUNITION/C/spset.o ../AMMUNITION/C/cspset.o\
 	     ../AMMUNITION/C/objstack.o ../AMMUNITION/C/errors.o\
 	     ../AMMUNITION/C/commline.o ../AMMUNITION/C/ticker.o\
 	     ../AMMUNITION/C/bits.o ../AMMUNITION/C/earley.o
@@ -514,8 +515,8 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
            $(srcdir)/../DINO/d_runtab.c $(srcdir)/../DINO/d_context.c\
 	   $(srcdir)/../DINO/d_bcio.c\
            $(srcdir)/../DINO/d_conv.c $(srcdir)/../DINO/d_func.c\
-	   $(srcdir)/../DINO/d_eval.c $(srcdir)/../DINO/d_heap.c\
-	   $(srcdir)/../DINO/d_dino.c\
+	   $(srcdir)/../DINO/d_eval.c $(srcdir)/../DINO/d_inference.c\
+           $(srcdir)/../DINO/d_heap.c $(srcdir)/../DINO/d_dino.c\
 	   $(srcdir)/../DINO/d_main.c\
 	   $(srcdir)/../DINO/d_mpi.c $(srcdir)/../AMMUNITION/arithm.c\
 	   $(srcdir)/../DINO/d_ieee.c\
@@ -724,7 +725,8 @@ d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
  $(top_srcdir)/DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_context.h \
- $(top_srcdir)/DINO/../DINO/d_bcio.h
+ $(top_srcdir)/DINO/../DINO/d_bcio.h \
+ $(top_srcdir)/DINO/../DINO/d_inference.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_context.c
 d_bcio.o: $(top_srcdir)/DINO/../DINO/d_bcio.c \
  $(top_srcdir)/DINO/../DINO/d_common.h \
@@ -744,7 +746,8 @@ d_bcio.o: $(top_srcdir)/DINO/../DINO/d_bcio.c \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/DINO/../DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h d_bcn.c d_bcf.c \
- $(top_srcdir)/DINO/../DINO/d_bcio.h d_run.h \
+ $(top_srcdir)/DINO/../DINO/d_bcio.h \
+ $(top_srcdir)/DINO/../DINO/d_inference.h d_run.h \
  $(top_srcdir)/DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_bcio.c
@@ -820,6 +823,28 @@ d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
  $(top_srcdir)/DINO/../DINO/d_eval.h \
  $(top_srcdir)/DINO/../DINO/d_gen.c
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_eval.c
+d_inference.o: $(top_srcdir)/DINO/../DINO/d_inference.c \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/AMMUNITION/bits.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/DINO/../DINO/d_types.h \
+ $(top_srcdir)/AMMUNITION/spset.h \
+ $(top_srcdir)/AMMUNITION/cspset.h \
+ $(top_srcdir)/AMMUNITION/spset.h d_bc.h \
+ $(top_srcdir)/DINO/d_common.h
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_inference.c
 d_heap.o: $(top_srcdir)/DINO/../DINO/d_heap.c d_run.h \
  $(top_srcdir)/DINO/d_types.h d_config.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h \
@@ -863,6 +888,7 @@ d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_yacc.h \
  $(top_srcdir)/DINO/../DINO/d_context.h \
+ $(top_srcdir)/DINO/../DINO/d_inference.h \
  $(top_srcdir)/DINO/../DINO/d_bcio.h \
  $(top_srcdir)/DINO/../DINO/d_eval.h \
  $(top_srcdir)/DINO/../DINO/d_func.h

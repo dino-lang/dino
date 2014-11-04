@@ -25,11 +25,13 @@
 */
 
 %type position_t int_t gmp_t floating_t string_t bool_t fun_mode_t implementation_fun_t
-      ticker_t ER_hidden_node_t
+      ticker_t ER_hidden_node_t void_ptr_t
 
 %import {
 
 #include "d_common.h"
+
+typedef void *void_ptr_t;
 
 typedef struct ER_node *ER_hidden_node_t;
 
@@ -917,8 +919,12 @@ fun, efun, class :: op1_decl; /* result place, fdecl/efdecl */
 
 /* op1 is result place; op2 and op3 are container place and index/key place
    or dim for slice.  */ 
-ind, lindv, key, lkeyv :: op3;
+ind :: op3;
 sl, lslv :: op3i;
+
+/* Matrix element indexing.  op1 is result place, op2 is container,
+   op3 and op4 are indexes.  */
+ind2 :: op4;
 
 /* op1 is result place; op2 is container place and op3 is block decl
    ident number */	
@@ -1109,11 +1115,11 @@ nop :: bcode;
 decl :: source
 %other
         decl_num : int_t /* unique decl number */
-        ident : string_t
         ident_num : int_t
+        public_p : bool_t
+        ident : string_t
 	decl_scope : block
         next_decl : decl /* next decl in the same scope */
-        public_p : bool_t
 ;
 %abstract
 edecl :: decl /* external decl */
@@ -1253,6 +1259,7 @@ info :: %root
         prev_info : info {$ = NULL;}
         bc : icode /* The corresponding byte code */
         subst : icode /* used for optimizations  */
+	aux : void_ptr_t /* used for type inference  */
         idn : int_t /* Info identifier number */
 	reachable_p : bool_t
 	inline_p : bool_t {$ = FALSE;}
@@ -1939,8 +1946,6 @@ print_node (FILE *f, BC_node_t bc)
     fprintf (f, "divop (");
   else if (BC_IS_OF_TYPE (bc, BC_NM_op_slst))
     fprintf (f, "op_slst (");
-  else if (BC_IS_OF_TYPE (bc, BC_NM_lindv))
-    fprintf (f, "ind (");
   else if (BC_IS_OF_TYPE (bc, BC_NM_fun) || BC_IS_OF_TYPE (bc, BC_NM_class))
     fprintf (f, "funclass (");
   else
@@ -2027,7 +2032,7 @@ traverse_bcode (BC_node_t bc)
 		  BC_set_label_num (info, curr_label_num);
 		  curr_label_num++;
 		}
-	      continue;
+	      break;
 	    }
 	  gen_info = BC_create_node (BC_NM_gen_info);
 	  BC_set_origin_info (gen_info, info);

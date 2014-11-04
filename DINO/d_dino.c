@@ -29,6 +29,7 @@
 #include "d_run.h"
 #include "d_yacc.h"
 #include "d_context.h"
+#include "d_inference.h"
 #include "d_bcio.h"
 #include "d_eval.h"
 #include "d_func.h"
@@ -844,6 +845,7 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-m size'      set heap chunk size (1m - default, 1000k, or 1000000)\n"\
 "`-Idirname'    directory for searching for Dino programs\n"\
 "`-Ldirname'    Dino extern libraries\n"\
+"`-O'           optimize\n"\
 "`-s'           output statistics to stderr\n"\
 "`-t'           output final trace to stderr\n"\
 "`-g'           generate C code\n"\
@@ -859,6 +861,7 @@ int bc_nodes_num;
 
 unsigned int heap_chunk_size;
 int repl_flag;
+int optimize_flag;
 int statistics_flag;
 int trace_flag;
 int profile_flag;
@@ -970,6 +973,7 @@ dino_main (int argc, char *argv[], char *envp[])
   repl_flag = argument_count == 1;
   dino_start ();
   heap_chunk_size = DEFAULT_HEAP_CHUNK_SIZE;
+  optimize_flag = FALSE;
   statistics_flag = FALSE;
   trace_flag = FALSE;
   profile_flag = FALSE;
@@ -997,6 +1001,8 @@ dino_main (int argc, char *argv[], char *envp[])
 	}
       else if (strcmp (option, "-c") == 0)
 	command_line_program = argument_vector [i + 1];
+      else if (strcmp (option, "-O") == 0)
+	optimize_flag = TRUE;
       else if (strcmp (option, "-s") == 0)
 	statistics_flag = TRUE;
       else if (strcmp (option, "-t") == 0)
@@ -1041,9 +1047,10 @@ dino_main (int argc, char *argv[], char *envp[])
 	d_unreachable ();
     }
   if (repl_flag)
-    ;
+    optimize_flag = FALSE;
   else if (input_dump != NULL)
     {
+      optimize_flag = FALSE;
       program_arguments_number = number_of_operands ();
       flag_of_first = TRUE;
       input_dump_file = fopen (input_dump, "rb");
@@ -1110,8 +1117,10 @@ dino_main (int argc, char *argv[], char *envp[])
     {
       int first_p;
 
-      printf ("Dino (version %.2f)\n", DINO_VERSION);
+      printf ("Dino interpreter, version %.2f\n", DINO_VERSION);
+      printf ("Copyright (c) 1997-2014, Vladimir Makarov, vmakarov.gcc@gmail.com\n");
       printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");
+      printf ("Use \";\" for stmt end, for if-stmt w/o else use \";;\", e.g. if (cond) v = e;;\n");
       start_scanner_file ("", no_position);
       initiate_parser ();
       initiate_context ();
@@ -1172,19 +1181,26 @@ dino_main (int argc, char *argv[], char *envp[])
 	    {
 	      initiate_context ();
 	      test_context (first_program_stmt, TRUE);
-	      finish_context ();
 	    }
 	}
       output_errors ();
-      if (number_of_errors == 0 && first_program_bc != NULL)
+      if (number_of_errors != 0 || first_program_bc == NULL)
+	{
+	  if (input_dump_file == NULL && first_program_stmt != NULL)
+	    finish_context ();
+	}
+      else
 	{
 	  if (dump_flag)
 	    {
 	      int_t idn = 0, decl_num = 0;
+
 	      enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
 	      dump_code (BC_info (first_program_bc), 0);
 	    }
-	  else
+	  if (input_dump_file == NULL && first_program_stmt != NULL)
+	    finish_context ();
+	  if (! dump_flag)
 	    {
 	      if (input_dump_file == NULL)
 		{

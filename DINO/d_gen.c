@@ -19,18 +19,8 @@ extern void execute_a_period_operation (int block_decl_ident_number,
 					ER_node_t res, ER_node_t op,
 					int lvalue_p, int lvalue_val_p);
 static int_t do_always_inline
-check_vector_index (ER_node_t vect, ER_node_t index)
+check_vector_index_value (ER_node_t vect, int_t index_value)
 {
-  int_t index_value;
-  val_t tvar;
-
-  if (doubt (ER_NODE_MODE (index) != ER_NM_int))
-    {
-      index = implicit_int_conversion (index, (ER_node_t) &tvar);
-      if (doubt (ER_NODE_MODE (index) != ER_NM_int))
-	eval_error (indextype_bc_decl, get_cpos (), DERR_index_is_not_int);
-    }
-  index_value = ER_i (index);
   /* Negative will be too big after the cast.  Therefore we don't need
      to check on less than zero.  */
   if ((unsigned_int_t) index_value >= ER_els_number (vect))
@@ -43,6 +33,21 @@ check_vector_index (ER_node_t vect, ER_node_t index)
 		    DERR_index_is_greater_than_array_bound);
     }
   return index_value;
+}
+
+static int_t do_always_inline
+check_vector_index (ER_node_t vect, ER_node_t index)
+{
+  int_t index_value;
+  val_t tvar;
+
+  if (doubt (ER_NODE_MODE (index) != ER_NM_int))
+    {
+      index = implicit_int_conversion (index, (ER_node_t) &tvar);
+      if (doubt (ER_NODE_MODE (index) != ER_NM_int))
+	eval_error (indextype_bc_decl, get_cpos (), DERR_index_is_not_int);
+    }
+  return check_vector_index_value (vect, ER_i (index));
 }
 
 extern void load_vector_element_by_index (ER_node_t to, ER_node_t vect,
@@ -1334,16 +1339,74 @@ extern void tab (ER_node_t res, ER_node_t op1, int_t tab_els_number);
 static void do_always_inline
 ind (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  val_t tvar1;
-
   if (ER_NODE_MODE (op1) == ER_NM_vect)
     {
-      if (ER_NODE_MODE (op2) != ER_NM_int)
-	op2 = implicit_int_conversion (op2, (ER_node_t) &tvar1);
-      load_vector_element_by_index (res, ER_vect (op1), op2);
+      ER_node_t v = ER_vect (op1);
+
+      if (ER_NODE_MODE (op2) == ER_NM_int)
+	{
+	  if (ER_NODE_MODE (v) == ER_NM_heap_pack_vect)
+	    {
+	      int_t index_val;
+	      ER_node_mode_t el_type = ER_pack_vect_el_mode (v);
+	      
+	      if (el_type == ER_NM_int)
+		{
+		  index_val = check_vector_index_value (v, ER_i (op2));
+		  ER_SET_MODE (res, ER_NM_int);
+		  ER_set_i (res, ((int_t *) ER_pack_els (v)) [index_val]);
+		  return;
+		}
+	      if (el_type == ER_NM_float)
+		{
+		  index_val = check_vector_index_value (v, ER_i (op2));
+		  ER_SET_MODE (res, ER_NM_float);
+		  ER_set_f (res, ((floating_t *) ER_pack_els (v)) [index_val]);
+		  return;
+		}
+	    }
+	}
+      load_vector_element_by_index (res, v, op2);
     }
   else if (ER_NODE_MODE (op1) == ER_NM_tab)
     load_table_element_by_key (res, ER_tab (op1), op2);
+  else
+    eval_error (indexop_bc_decl, get_cpos (),
+		DERR_index_operation_for_non_vec_tab);
+}
+
+static void do_always_inline
+ind2 (ER_node_t res, ER_node_t op1, ER_node_t op2, ER_node_t op3)
+{
+  if (ER_NODE_MODE (op1) == ER_NM_vect)
+    {
+      ER_node_t v = ER_vect (op1);
+
+      if (ER_NODE_MODE (op2) == ER_NM_int)
+	{
+	  if (ER_NODE_MODE (v) == ER_NM_heap_pack_vect)
+	    {
+	      int_t index_val;
+	      ER_node_mode_t el_type = ER_pack_vect_el_mode (v);
+	      
+	      if (el_type == ER_NM_vect)
+		{
+		  index_val = check_vector_index_value (v, ER_i (op2));
+		  ER_SET_MODE (res, ER_NM_vect);
+		  ER_set_vect (res, ((ER_node_t *) ER_pack_els (v)) [index_val]);
+		  ind (res, res, op3);
+		  return;
+		}
+	    }
+	}
+      load_vector_element_by_index (res, v, op2);
+      ind (res, res, op3);
+    }
+  else if (ER_NODE_MODE (op1) == ER_NM_tab)
+    {
+      load_table_element_by_key (res, ER_tab (op1), op2);
+      ind (res, res, op3);
+    }
   else
     eval_error (indexop_bc_decl, get_cpos (),
 		DERR_index_operation_for_non_vec_tab);
@@ -1545,7 +1608,7 @@ ifadd (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   floating_t f;
 
-  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int && ER_NODE_MODE (op2) == ER_NM_float);
   f = f_plus ((floating_t) ER_i (op1), ER_f (op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
@@ -1561,7 +1624,7 @@ caddi (int int_p, ER_node_t res, ER_node_t op1, int_t op3n)
   i = op3n;
   if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
     {
-      d_assert (! int_p || int_bin_op (op1, op2));
+      d_assert (! int_p || ER_NODE_MODE (op1) == ER_NM_int);
       i = i_plus (ER_i (op1), i);
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i);
@@ -1642,7 +1705,7 @@ ifsub (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   floating_t f;
 
-  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int && ER_NODE_MODE (op2) == ER_NM_float);
   f = f_minus ((floating_t) ER_i (op1), ER_f (op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
@@ -1653,7 +1716,7 @@ fisub (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   floating_t f;
 
-  d_assert (ER_NODE_MODE (op1) == ER_NM_float || ER_NODE_MODE (op2) == ER_NM_int);
+  d_assert (ER_NODE_MODE (op1) == ER_NM_float && ER_NODE_MODE (op2) == ER_NM_int);
   f = f_minus (ER_f (op1), (floating_t) ER_i (op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
@@ -1709,7 +1772,7 @@ ifmult (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   floating_t f;
 
-  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int && ER_NODE_MODE (op2) == ER_NM_float);
   f = f_mult ((floating_t) ER_i (op1), ER_f (op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
@@ -1725,7 +1788,7 @@ cmulti (int int_p, ER_node_t res, ER_node_t op1, int_t op3n)
   i = op3n;
   if (int_p || expect (ER_NODE_MODE (op1) == ER_NM_int))
     {
-      d_assert (! int_p || int_bin_op (op1, op2));
+      d_assert (! int_p || ER_NODE_MODE (op1) == ER_NM_int);
       i = i_mult (ER_i (op1), i);
       ER_SET_MODE (res, ER_NM_int);
       ER_set_i (res, i);
@@ -1806,7 +1869,7 @@ ifdiv (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   floating_t f;
 
-  d_assert (ER_NODE_MODE (op1) == ER_NM_int || ER_NODE_MODE (op2) == ER_NM_float);
+  d_assert (ER_NODE_MODE (op1) == ER_NM_int && ER_NODE_MODE (op2) == ER_NM_float);
   f = f_div ((floating_t) ER_i (op1), ER_f (op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
@@ -1817,7 +1880,7 @@ fidiv (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   floating_t f;
 
-  d_assert (ER_NODE_MODE (op1) == ER_NM_float || ER_NODE_MODE (op2) == ER_NM_int);
+  d_assert (ER_NODE_MODE (op1) == ER_NM_float && ER_NODE_MODE (op2) == ER_NM_int);
   f = f_div (ER_f (op1), (floating_t) ER_i (op2));
   ER_SET_MODE (res, ER_NM_float);
   ER_set_f (res, f);
@@ -2672,12 +2735,8 @@ leave (void)
 static int do_always_inline
 fbend (void)
 {
-  BC_node_t bc_node = ER_block_node (cstack);
-
-  d_assert (BC_block (cpc) == bc_node);
-  sync_flag = BC_saved_sync_p (bc_node);
-  d_assert (BC_NODE_MODE (bc_node) == BC_NM_fblock);
-  return fblock_end (bc_node);
+  /* We should never reach the node.  */
+  assert (FALSE);
 }
 
 static int do_always_inline
@@ -2838,7 +2897,7 @@ fmove (ER_node_t res, ER_node_t op1)
 {
   d_assert (ER_NODE_MODE (op1) == ER_NM_float);
   ER_SET_MODE (res, ER_NM_float);
-  ER_set_i (res, ER_f (op1));
+  ER_set_f (res, ER_f (op1));
 }
 
 static void do_always_inline

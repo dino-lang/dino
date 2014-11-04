@@ -26,9 +26,9 @@
 # (http://www.bagley.org/~doug/shootout)
 #
 # Environment variables to control the script:
-# o SKIP_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS,OCAML}
+# o SKIP_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS,OCAML,HASKELL}
 # o DINO_ONLY - it can be overwitten by the following:
-# o DO_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS,OCAML}
+# o DO_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,RUBY,SCALA,JS,OCAML,HASKELL}
 #
 
 DINO='./dino'
@@ -132,16 +132,24 @@ if test x$SKIP_NODEJS = x && echo 'console.log ()' | node >/dev/null 2>&1;then
   NODEJS=node
   echo '>>>> Node.js: ' `node -v 2>&1`
 else
-  echo We have no JavaScript
+  echo We have no NODEJS
   NODEJS=
 fi
 
 if test x$SKIP_OCAML = x && echo 'print ()' | ocaml >/dev/null 2>&1;then
-  OCAML=ocaml
+  OCAML=$srcdir/ocaml.sh
   echo '>>>> ' `ocaml < /dev/null|fgrep ersion`
 else
   echo We have no OCAML
   OCAML=
+fi
+
+if test x$SKIP_HASKELL = x && ghc --help >/dev/null 2>&1;then
+  HASKELL=$srcdir/haskell.sh
+  echo '>>>> ' `ghc -v < /dev/null 2>&1|fgrep ersion`
+else
+  echo We have no HASKELL
+  HASKELL=
 fi
 
 echo '>>>> ' dino: `$DINO -h 2>&1|fgrep Version`
@@ -184,10 +192,12 @@ if test x$DINO_ONLY != x; then
   if test x$DO_JS = x;then JS="";fi
   if test x$DO_NODEJS = x;then NODEJS="";fi
   if test x$DO_OCAML = x;then OCAML="";fi
+  if test x$DO_HASKELL = x;then HASKELL="";fi
 
   if test x$PERL != x || test x$PYTHON != x || test x$PYPY != x || test x$PYTHON3 != x \
      || test x$TCLSH != x || test x$AWK != x || test x$LUA != x || test x$RUBY != x \
-     || test x$SCALA != x || test x$JS != x || test x$NODEJS != x || test x$OCAML != x;then
+     || test x$SCALA != x || test x$JS != x || test x$NODEJS != x \
+     || test x$OCAML != x || test x$HASKELL != x;then
     DINO_ONLY="";
   fi
 fi
@@ -253,6 +263,53 @@ print_dino() {
     fi
 }
 
+run_dino() {
+# Run without optimization:
+  if test "x$title" != x && test x$DINO_ONLY != x; then
+    Announce_Test "+++++           $title:"
+  fi
+  ok=
+  if test "x$1" != x; then
+    if ($TIME $DINO $ftest $rep < $1) >$temp2 2>&1; then ok=y;fi
+  else
+    if ($TIME $DINO $ftest $rep < /dev/null) >$temp2 2>&1; then ok=y;fi
+  fi
+  if test x$ok != x
+  then
+    if test "x$title" != x; then
+      print_dino " ($title)" $temp2
+    else
+      print_dino "" $temp2
+    fi
+  else
+     echo DINO: FAILED;
+  fi
+# Run with optimization:
+  if test x$DINO_ONLY != x; then
+    if test "x$title" != x; then
+      Announce_Test "+++++           $title + OPT:"
+    else
+      Announce_Test "+++++           OPT:"
+    fi
+  fi
+  ok=
+  if test "x$1" != x; then
+    if ($TIME $DINO -O $ftest $rep < $1) >$temp2 2>&1; then ok=y;fi
+  else
+    if ($TIME $DINO -O $ftest $rep < /dev/null) >$temp2 2>&1; then ok=y;fi
+  fi
+  if test x$ok != x
+  then
+    if test "x$title" != x; then
+      print_dino " ($title + OPT)" $temp2
+    else
+      print_dino " (OPT)" $temp2
+    fi
+  else
+     echo DINO: FAILED;
+  fi
+}
+
 # Test 1.
 if test $start_test_number -le 1; then
 
@@ -266,11 +323,8 @@ n = int (argv [0]);
 for (i=0; i < n;i++);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun main !jit {
   var i, n;
@@ -279,8 +333,8 @@ fun main !jit {
 }
 main ();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -405,6 +459,24 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+main = do
+       ~[number] <- getArgs
+       let n = max (read number) 1 in
+         putStrLn (show (loop n 0))
+
+loop :: Int -> Int -> Int
+loop 0 sum = sum
+loop 1 sum = sum
+loop n sum = loop (n - 1) sum
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 2.
@@ -426,11 +498,8 @@ for (i = n; i > 0; i--)
 putln (c);
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun main !jit {
   var i, c = 0, n = argv [0] < 1 ? 1 : int (argv [0]);
@@ -445,8 +514,8 @@ fun main !jit {
 }
 main ();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -732,6 +801,35 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+import Data.Set
+import Numeric
+
+countKeys tbl 0 = 0
+countKeys tbl n = case (member (Main.showHex n "") tbl) of
+                    True -> 1 + countKeys tbl (n - 1)
+                    _    -> countKeys tbl (n - 1)
+
+buildTable tbl max num | num <= max = buildTable (insert (Main.showHex num "") tbl) max (num + 1)
+                       | otherwise = tbl
+
+showHex n r = let (n',d) = quotRem n 16
+                  r'     = toEnum (fromEnum '0' + fromIntegral d) : r
+                  in if n' == 0 then r' else Main.showHex n' r'
+
+main = do  args <- getArgs
+           case args of
+            [number] -> let num = read number
+                            tbl = buildTable empty num 1
+                    in do putStrLn $ show (countKeys tbl num)
+            _        -> fail "You must enter a number."
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 3.
@@ -756,11 +854,8 @@ for (i = 0; i < n; i++)
 putln (x);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Pure fun variant:"
-fi
 cat <<'EOF' >$ftest
 fun fact (x) !pure {
   if (x <= 1)
@@ -775,12 +870,9 @@ for (i = 0; i < n; i++)
 
 putln (x);
 EOF
-title=" (Pure fun variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Pure fun variant"
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun fact (x) !jit {
   if (x <= 1)
@@ -795,8 +887,8 @@ for (i = 0; i < n; i++)
 
 putln (x);
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1004,6 +1096,26 @@ title=OCAML
 if ($TIME $OCAML $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+fact :: Int -> Int
+fact 1 = 1
+fact n = n * fact (n - 1)
+
+main = do
+          ~[number] <- getArgs
+          putStrLn (show (snd (loop (read number) 12)))
+
+loop :: Int -> Int -> (Int, Int)
+loop 0 n = (0, fact n)
+loop c n = (fact n, snd (loop (c - 1) n))
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 4.
@@ -1028,11 +1140,8 @@ for (i = 0; i < n; i++) {
 }
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Pure fun variant:"
-fi
 cat <<'EOF' >$ftest
 // Recursive function to compute Fibonacci numbers
 fun fibonacci (n) !pure {
@@ -1047,12 +1156,9 @@ for (i = 0; i < n; i++) {
   putln (i @ " " @ fibnum); 
 }
 EOF
-title=" (Pure fun variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Pure fun variant"
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 // Recursive function to compute Fibonacci numbers
 fun fibonacci (n) !jit {
@@ -1067,8 +1173,8 @@ for (i = 0; i < n; i++) {
   putln (i @ " " @ fibnum); 
 }
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1276,6 +1382,24 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+fib :: Int -> Int
+fib 0 = 1
+fib 1 = 1
+fib n = fib (n - 1) + fib (n - 2)
+
+main = do
+          ~[number] <- getArgs
+          let n = read number in
+            putStrLn (show (map fib [0..n-1]))
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 5.
@@ -1332,11 +1456,8 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT Variant:"
-fi
 cat <<'EOF' >$ftest
 var HI = 0;
 var LO = 0;
@@ -1383,8 +1504,8 @@ fun main {
 
 main ();
 EOF
-title=" (JIT Variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -1872,11 +1993,8 @@ fun main {
 main();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 class Toggle (start_state) {
   var bool;
@@ -1922,8 +2040,8 @@ fun main !jit {
 
 main();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2419,7 +2537,7 @@ fun main {
 main();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -2897,11 +3015,8 @@ for (iter = 0; iter < 10; iter++) {
 putln (count);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Slice Variant:"
-fi
 cat <<'EOF' >$ftest
 var SieveSize, i, prime, count, iter, flags;
 SieveSize = int (argv [0]);
@@ -2919,8 +3034,8 @@ for (iter = 0; iter < 10; iter++) {
 }
 putln (count);
 EOF
-title=" (Slice Variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Slice variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -3224,6 +3339,39 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+module Main where
+
+import System.Environment
+
+
+main = getArgs >>= putStrLn . ("Count: "++) . show . (mytest 10) . read . headOr1
+  where headOr1 x = if length x /= 1 then "1" else head x
+
+-- here we try to force it to recompute at each step.  Note
+-- we are forcing
+-- a comparison with -1.  Of course there is still no guarantee
+-- that any particular Haskell implementation will actually
+-- recompute the value.
+mytest :: Int -> Int -> Int
+mytest 1 s = length (sieve [2..s])
+mytest n s | length (sieve [2..s]) == -1 = error "doh"
+           | otherwise                      = mytest (n-1) s
+
+-- we use Int rather than let Haskell default to Integer,
+-- because we are trying to remain competetive with other
+-- languages that do not do arbitrary precision math by
+-- default...
+sieve :: [Int] -> [Int]
+sieve [] = []
+sieve (h:t) = h : sieve [x| x<-t, x`mod`h /= 0]
+EOF
+  echo HASKELL is too slow for this test.
+#  title=Haskell
+#  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 9.
@@ -3292,11 +3440,8 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -3355,8 +3500,8 @@ fun main {
 
 main ();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -4087,6 +4232,57 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+import Numeric
+
+main = do
+         arg <- getArgs
+         case arg of
+              [num] -> putStrLn (showFFloat (Just 10) answer "")
+                   where
+                     answer = last . heapsort . take (read num) . random $ 1.0
+	      _        -> fail "You must enter a number."
+
+-- construct an infinite list of random numbers
+random :: Double -> [Double]
+random max = map norm . rand $ 42
+           where norm x = (fromIntegral x) * (max / (fromIntegral im))
+                 rand x = x' : (rand x')
+                    where x' = (x * ia + ic) `mod` im
+                 im     = 139968
+                 ia     = 3877
+                 ic     = 29573
+
+-- fold up a list like a tree
+treefold f z []      = z
+treefold f z [x]     = x
+treefold f z (a:b:l) = treefold f z (f a b : pairfold l)
+                         where pairfold (x:y:rest) = f x y : pairfold rest
+                               pairfold l          = l
+
+-- heapfold using linked lists
+data Heap a = Nil | Node a [Heap a]
+heapsort :: Ord a => [a] -> [a]
+heapsort = flatten_heap . merge_heaps . map heapify
+    where heapify x   = Node x []
+          merge_heaps :: Ord a => [Heap a] -> Heap a
+          merge_heaps = treefold merge_heap Nil
+
+          flatten_heap Nil            = []
+          flatten_heap (Node x heaps) = x:flatten_heap (merge_heaps heaps)
+
+          merge_heap Nil                     Nil = Nil
+          merge_heap heap@(Node _ _)         Nil = heap
+          merge_heap node_a@(Node a heaps_a) node_b@(Node b heaps_b)
+                     | a < b     = Node a (node_b : heaps_a)
+                     | otherwise = Node b (node_a : heaps_b)
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 10.
@@ -4656,7 +4852,7 @@ fun main {
 main();
 EOF
 title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino $input
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5171,6 +5367,86 @@ EOF
 if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+module Main where
+
+import System.Environment
+import Numeric
+
+-- read the file
+main = do input <- getContents
+          putAns (lines input)         
+        
+
+-- print out the answers
+putAns :: [String] -> IO ()
+putAns st_nums = do
+                   putStrLn ("n:                  " ++ (showInt (truncate n) ""))
+                   putStrLn ("median:             " ++ (showFFloat (Just 6) (median nums n) ""))
+                   putStrLn ("mean:               " ++ (showFFloat (Just 6) mean ""))
+                   putStrLn ("average_deviation:  " ++ (showFFloat (Just 6) avg_dev ""))
+                   putStrLn ("standard_deviation: " ++ (showFFloat (Just 6) std_dev ""))
+                   putStrLn ("variance:           " ++ (showFFloat (Just 6) var ""))
+                   putStrLn ("skew:               " ++ (showFFloat (Just 6) skew ""))
+                   putStrLn ("kurtosis:           " ++ (showFFloat (Just 6) kurt ""))
+                     where
+                        n = fromIntegral (length nums)
+                        nums = strToDoub st_nums
+                        mean = (sum nums) / n
+                        deviation = [x-mean | x <- nums] 
+                        avg_dev = (sum [abs x | x <- deviation])/ n
+                        var = (sum [x**2 | x <- deviation]) / (n-1)
+                        std_dev = sqrt var
+                        skew = (sum [x**3 | x <- deviation]) / (n*var*std_dev)
+                        kurt = (sum [x**4 | x <- deviation]) / (n*var*var)-3.0
+
+
+-- convert the strings to doubles
+strToDoub :: [String] -> [Double]
+strToDoub nums = map conv nums
+    where  conv x = fst (head (readFloat x))
+
+-- calculate the median
+median :: [Double] -> Double -> Double
+median nums n = mid (mSort nums)
+       where 
+         mid x 
+           | odd (length x) = x!! midpt
+           | otherwise       = ((x!!(midpt-1)) + (x!!midpt)) / 2.0
+         midpt :: Int
+         midpt = floor (n/2) 
+
+-- Sorting: the various languages use various algorithms
+-- here's  an optimized mergesort from 
+-- "Algorithms - a Functional Approach" by
+-- Fethi Rabhe & Guy Lapalme
+split :: (Ord a) => [a] -> [[a]]
+split [] = []
+split (x:xs) = [x]:split xs
+
+merge :: (Ord a) => [a] -> [a] -> [a]
+merge [] b  = b
+merge a [] = a
+merge a@(x:xs) b@(y:ys)
+    | (x<=y) = x : (merge xs b)
+    | otherwise = y : (merge a ys)
+
+mergepairs :: (Ord a) => [[a]] -> [[a]]
+mergepairs [] = []
+mergepairs x@[l] = x
+mergepairs (l1:l2:rest) = (merge l1 l2) : (mergepairs $! rest)
+
+-- The actual sort
+mSort :: (Ord a) => [a] -> [a]
+mSort l = ms (split l)
+    where  ms [r] = r
+           ms l   = ms (mergepairs l)
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest +RTS -K32M -RTS <$input) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 11.
@@ -5197,11 +5473,8 @@ for (i = 0; i < n; i++)
 putln (vec (gen_random (100.0), "%.9f"));
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -5218,12 +5491,9 @@ for (i = 0; i < n; i++)
   gen_random (100.);
 putln (vec (gen_random (100.0), "%.9f"));
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Inline variant:"
-fi
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -5240,12 +5510,9 @@ for (i = 0; i < n; i++)
   gen_random (100.);
 putln (vec (gen_random (100.0), "%.9f"));
 EOF
-title=" (Inline variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Inline variant"
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Inline+JIT variant:"
-fi
 cat <<'EOF' >$ftest
 var IM = 139968;
 var IA = 3877;
@@ -5265,8 +5532,8 @@ fun main !jit {
 }
 main ();
 EOF
-title=" (Inline+JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Inline+JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5573,6 +5840,30 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+import Numeric
+
+main = do
+       ~[number] <- getArgs
+       putStrLn (showFFloat (Just 9) (randloop (read number::Int) 42 0.0 100.0) "")
+
+randloop :: Int -> Int -> Double -> Double -> Double
+randloop 0 seed r max = r
+randloop n seed r max = randloop (n-1) newseed newrand max
+    where normalize x max = (fromIntegral x) * (max / imd)
+          newseed         = (seed * ia + ic) `mod` im
+          newrand         = normalize newseed max
+          im              = 139968
+          imd             = fromIntegral im
+          ia              = 3877
+          ic              = 29573
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest +RTS -K1024M -RTS $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 12.
@@ -5625,7 +5916,7 @@ fun main (n) {
 main (argv [0] < 1 ? 1 : int (argv [0]));
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5866,6 +6157,12 @@ EOF
 title=
 ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
 
+title=" OPT"
+if test "x$title" != x && test x$DINO_ONLY != x; then
+  Announce_Test "+++++          $title:"
+fi
+($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $DINO -O $ftest) > $temp2 2>&1 && print_dino "$title" $temp2
+
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -5979,6 +6276,14 @@ EOF
   ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $OCAML $ftest) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+main = putStrLn "Hello, World"
+EOF
+  title=Haskell
+  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $HASKELL $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+fi
+
 fi
 
 # Test 14.
@@ -5990,7 +6295,7 @@ Announce_Test "+++++ Test #14: compile speed (simple program of $rep lines):  ++
 
 $DINO -c 'putln("var i, j;\nj = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j;");' $rep > $ftest
 title=
-if ($TIME $DINO $ftest </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
 if test x$PERL != x; then
   $DINO -c 'putln("$j = 1;");var i, n=argv[0]; for (i=0;i<n;i++)putln ("$i = $j;");' $rep > $ftest
@@ -6067,6 +6372,12 @@ if test x$OCAML != x; then
   if ($TIME $OCAML $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
+  title=Haskell
+  if ($TIME $HASKELL $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 15.
@@ -6087,11 +6398,8 @@ var n = int (argv [0] < 1 ? 1 : argv [0]);
 putln ("Ack(3,", n, "): ", ack (3, n));
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 
 cat <<'EOF' >$ftest
 fun ack (m, n) !jit {
@@ -6103,8 +6411,8 @@ fun ack (m, n) !jit {
 var n = int (argv [0] < 1 ? 1 : argv [0]);
 putln ("Ack(3,", n, "): ", ack (3, n));
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2 1;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -6335,6 +6643,24 @@ title=OCAML
 if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+main = do
+       ~[number] <- getArgs
+       let n = read number in
+         putStrLn ("Ack(3," ++ (show n) ++ "): " ++ (show (ack 3 n)))
+
+ack :: Int -> Int -> Int
+ack 0 n = n+1
+ack m 0 = ack (m-1) 1
+ack m n = ack (m-1) (ack m (n-1))
+EOF
+title=Haskell
+if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 16.
@@ -6357,11 +6683,8 @@ for (k = 0; k < 1000; k++)
 putln (y [0], " ", y [n - 1]);
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Slice Variant:"
-fi
 cat <<'EOF' >$ftest
 var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
 var x = [n:0], y = [n:0];
@@ -6373,12 +6696,9 @@ for (k = 0; k < 1000; k++)
 
 putln (y [0], " ", y [n - 1]);
 EOF
-title=" (Slice Variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Slice variant"
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT Variant:"
-fi
 cat <<'EOF' >$ftest
 fun main !jit {
   var i, k, n = int (argv [0] < 1 ? 1 : argv [0]);
@@ -6394,8 +6714,8 @@ fun main !jit {
 }
 main ();
 EOF
-title=" (JIT Variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -6675,6 +6995,38 @@ title=OCAML
 if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import Data.Array
+import System.Environment
+
+make_x :: Int -> Array Int Int
+make_x len = array (1,len) [(i, i) | i <- [1..len]]
+
+make_y0 :: Int -> Array Int Int
+make_y0 len = array (1,len) [(i, 0) | i <- [1..len]]
+
+add_array :: Int -> Array Int Int -> Array Int Int -> Array Int Int
+add_array 0 a b = b
+add_array len a b = array (1,len) [(i, ((a ! i) + (b ! i))) | i <- [1..len]]
+
+add_arrays_n :: Int -> Int -> Array Int Int -> Array Int Int -> Array Int Int
+add_arrays_n 0 len a b = b
+add_arrays_n n len a b =
+    add_arrays_n (n-1) len a (add_array len a b)
+
+ary3 :: Int -> IO ()
+ary3 len = do putStr (show (y ! 1)) ; putStr " " ; putStrLn (show (y ! len))
+             where y = add_arrays_n 1000 len (make_x len) (make_y0 len)
+
+main = do
+        ~[n] <- getArgs 
+        ary3 (read n::Int)
+EOF
+title=Haskell
+if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 17.
@@ -6735,11 +7087,8 @@ try {
 }
 EOF
 title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino $input
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT Variant:"
-fi
 cat <<'EOF' >$ftest
 fun main !jit {
   var ln, v, nc = 0, nw = 0, nl = 0, l;
@@ -6760,8 +7109,8 @@ fun main !jit {
 }
 main ();
 EOF
-title=" (JIT Variant)"
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino $input
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -7422,11 +7771,8 @@ putln (hash1 ["foo_1"], " ", hash1 ["foo_9999"], " ",
        hash2 ["foo_1"], " ", hash2 ["foo_9999"]);
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun main !jit {
   var i, n = int (argv[0]);
@@ -7447,8 +7793,8 @@ fun main !jit {
 }
 main ();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -7787,11 +8133,8 @@ fun main() {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 var SIZE = 10000;
 
@@ -7835,8 +8178,8 @@ fun main() {
 
 main ();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -8460,6 +8803,39 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+copy [] = []
+copy (x:xs) = x:copy xs
+
+-- `seq`s below force evaluation of isok1 and isok2
+test :: Int -> Int
+test size = isok1 `seq` length l3
+  where single x = [x]
+        l1 = [1..size] 
+        l2 = copy l1 -- Should be just: "l1"
+        l3 = foldl (++) [] (map single l2)
+        l2' = foldr (++) [] (map single l3)
+        l1' = reverse l1
+        isok1 = head l1' == size
+        isok2 = l1' == l2'
+  
+mytest :: Int -> Int -> Int
+mytest s 1 = test s
+mytest s n | test s == -1 = error "doh"
+           | otherwise                      = mytest s (n-1)
+
+main = do arg <- getArgs
+          case arg of
+            [number] -> putStrLn $ show $ (mytest 10000) $ (read number)
+            _        -> do name <- getProgName; fail ("Usage: " ++ name ++ "number")
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 21.
@@ -8516,11 +8892,57 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Transpose and Slice Variant:"
-fi
+cat <<'EOF' >$ftest
+var size = 30;
+
+fun mkmatrix (rows, cols) {
+  var i, j, count = 1;
+  var tm, mx = [rows:1];
+
+  for (i = 0; i < rows; i++) {
+    mx [i] = [cols:1];
+    tm = mx [i];
+    for (j = 0; j < cols; j++) {
+      tm [j] = count;
+      count++;
+    }
+  }
+  return mx;
+}
+
+fun mmult (rows, cols, m1, m2) !jit {
+  var i, j, k, sum, tm, m3 = [rows:1];
+
+  for (i = 0; i < rows; i++) {
+    m3 [i] = [cols:1];
+    for (j = 0; j < cols; j++) {
+       sum = 0;
+       tm = m1 [i];
+       for (k = 0; k < cols; k++)
+         sum += tm [k] * m2 [k][j];
+       m3 [i][j] = sum;
+    }
+  }
+  return m3;
+}
+
+fun main {
+  var m1, m2, mm;
+  var i, iter = argv [0] < 1 ? 1 : int (argv [0]);
+
+  m1 = mkmatrix (size, size);
+  m2 = mkmatrix (size, size);
+  for (i = 0; i < iter; i++)
+     mm = mmult (size, size, m1, m2);
+  putln (mm [0][0], ' ', mm [2][3], ' ', mm [3][2], ' ', mm [4][4]);
+}
+main ();
+EOF
+title="JIT variant"
+run_dino
+
 cat <<'EOF' >$ftest
 var size = 30;
 
@@ -8565,8 +8987,8 @@ fun main {
 }
 main ();
 EOF
-title=" (Transpose and Slice Variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Transpose and Slice Variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -9172,11 +9594,8 @@ for (a = 0; a < n; a++)
 putln (x);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun main !jit {
   var n = argv [0] < 1 ? 1 : int (argv[0]);
@@ -9194,8 +9613,8 @@ fun main !jit {
 
 main ();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -9490,6 +9909,49 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+main = do
+       ~[number] <- getArgs
+       let n = read number in
+         putStrLn (show (loopA n n 0))
+
+loopA :: Int -> Int -> Int -> Int
+loopA n m x 
+   | n > 0         = loopA (n-1) m (loopB m m x)
+   | otherwise     = x
+
+loopB :: Int -> Int -> Int -> Int
+loopB n m x
+   | n > 0         = loopB (n-1) m (loopC m m x)
+   | otherwise     = x
+
+loopC :: Int -> Int -> Int -> Int
+loopC n m x
+   | n > 0         = loopC (n-1) m (loopD m m x)
+   | otherwise     = x
+
+loopD :: Int -> Int -> Int -> Int
+loopD n m x
+   | n > 0         = loopD (n-1) m (loopE m m x)
+   | otherwise     = x
+
+loopE :: Int -> Int -> Int -> Int
+loopE n m x
+   | n > 0         = loopE (n-1) m (loopF m x)
+   | otherwise     = x
+
+loopF :: Int -> Int -> Int 
+loopF n x
+   | n > 0         = loopF (n-1) (x+1)
+   | otherwise     = x
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else cat $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 23.
@@ -9573,7 +10035,7 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest $rep <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino $input
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -20651,7 +21113,7 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino $input
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -20868,11 +21330,8 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Slice Variant:"
-fi
 cat <<'EOF' >$ftest
 fun main {
   var i, count, n = argv [0] < 1 ? 1 : int (argv [0]);
@@ -20890,8 +21349,8 @@ fun main {
 }
 main ();
 EOF
-title=" (Slice Variant)"
-if ($TIME $DINO $ftest $rep) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Slice variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -21239,6 +21698,38 @@ let _ =
 EOF
   title=OCAML
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+module Main where
+
+import System.Environment
+
+
+main = getArgs >>= putStrLn . ("Count: "++) . show . mytest . read . headOr1
+  where headOr1 x = if length x /= 1 then "1" else head x
+
+-- here we try to force it to recompute at each step.  Note
+-- we are forcing
+-- a comparison with -1.  Of course there is still no guarantee
+-- that any particular Haskell implementation will actually
+-- recompute the value.
+mytest :: Int -> Int
+mytest 1 = length (sieve [2..8192])
+mytest n | length (sieve [2..8192]) == -1 = error "doh"
+         | otherwise                      = mytest (n-1)
+
+-- we use Int rather than let Haskell default to Integer,
+-- because we are trying to remain competetive with other
+-- languages that do not do arbitrary precision math by
+-- default...
+sieve :: [Int] -> [Int]
+sieve [] = []
+sieve (h:t) = h : sieve [x| x<-t, x`mod`h /= 0]
+EOF
+   title=Haskell
+   if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -98514,7 +99005,7 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino $input
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -98768,7 +99259,7 @@ for (i = 0; i < n; i++)
 putln (#str);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -99004,6 +99495,22 @@ let _ =
 EOF
   title=OCAML
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+lengthNHellos n = length (concat (replicate n "hello\n"))
+
+main = do
+       arg <- getArgs
+       case arg of
+         [number] -> putStrLn $ show $ lengthNHellos (read number)
+         _        -> do name <- getProgName; fail ("Usage: " ++ name ++ "number")
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 fi
@@ -100039,7 +100546,7 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino $input
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -100193,6 +100700,18 @@ let _ = try loop () with End_of_file -> Printf.printf "%d\n" !sum
 EOF
   title=OCAML
   if ($TIME $OCAML $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+fi
+
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import Numeric
+
+main = interact (flip (++) "\n" . show . sum . nums . lines)
+       where
+       nums  = map (fst . head . readDec)
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
 fi
@@ -102986,7 +103505,7 @@ fun main {
 main ();
 EOF
 title=
-if ($TIME $DINO $ftest <$input) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino $input
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -103330,35 +103849,26 @@ n = int (argv [0]);
 for (i = 0; i < n; i++) f();
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun f !jit {}
 var i, n;
 n = int (argv [0]);
 for (i = 0; i < n; i++) f();
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Inline variant:"
-fi
 cat <<'EOF' >$ftest
 fun f !inline {}
 var i, n;
 n = int (argv [0]);
 for (i = 0; i < n; i++) f();
 EOF
-title=" (Inline variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Inline variant"
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Inline+JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun f !inline {}
 fun main !jit {
@@ -103368,8 +103878,8 @@ fun main !jit {
 }
 main ();
 EOF
-title=" (Inline+JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Inline+JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -103515,6 +104025,27 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+f :: Int -> Int
+f n = n
+  
+mytest :: Int -> Int
+mytest 1 = f 1
+mytest n | f n == -1 = error "doh"
+         | otherwise                      = mytest (n-1)
+
+main = do arg <- getArgs
+          case arg of
+            [number] -> putStrLn $ show $ mytest $ (read number)
+            _        -> do name <- getProgName; fail ("Usage: " ++ name ++ "number")
+EOF
+  title=Haskell
+  if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 31.
@@ -103535,11 +104066,8 @@ var n = int (argv [0]);
 putln (tak (n * 3, n * 2, n));
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           JIT variant:"
-fi
 cat <<'EOF' >$ftest
 fun tak (x, y, z) !jit {
   if (y >= x)
@@ -103550,8 +104078,8 @@ fun tak (x, y, z) !jit {
 var n = int (argv [0]);
 putln (tak (n * 3, n * 2, n));
 EOF
-title=" (JIT variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="JIT variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -103726,6 +104254,23 @@ EOF
   if ($TIME $OCAML $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
+if test x$HASKELL != x; then
+  cat <<'EOF' >$ftest
+import System.Environment
+
+main = do
+       ~[number] <- getArgs
+       let n = read number in
+         putStrLn (show (tak (3*n) (2*n) n))
+
+tak :: Int -> Int -> Int -> Int
+tak x y z | y >= x = z
+          | otherwise = tak (tak (x-1) y z) (tak (y-1) z x) (tak (z-1) x y)
+EOF
+title=Haskell
+if ($TIME $HASKELL $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+fi
+
 fi
 
 # Test 32.
@@ -103757,7 +104302,7 @@ for (iter = 0; iter < 10; iter++;)
 println (count);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -104083,11 +104628,45 @@ m2 = [n:[n:1]];
 mmult (m1, m2);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
-if test x$DINO_ONLY != x; then
-  Announce_Test "+++++           Transpose and Slice Variant:"
-fi
+cat <<'EOF' >$ftest
+var m1, m2;
+
+fun mmult (m1, m2) !jit {
+  var i, j, k, m1rows, m1cols, m2rows, m2cols, result, tm, tr, el;
+
+  m1rows = #m1; m2rows = #m2;
+  m1cols = #m1[0]; m2cols = #m2[0];
+  if (m2cols != m2rows)
+    {
+       println ("matrices don't match");
+       return;
+    }
+  result = [m1rows:0];
+  for (i=0; i < m1rows; i++) {
+    result [i] = [m2cols:0];
+    tr = result[i]; tm = m1[i];
+    for (j=0; j < m2cols; j++)
+      {
+        el = 0;
+        for (k=0; k < m1cols; k++)
+          el += tm[k]*m2[k][j];
+        tr[j] = el;
+      }
+  }
+  return result;
+}
+
+var n = int (argv [0]);
+
+m1 = [n:[n:1]];
+m2 = [n:[n:1]];
+mmult (m1, m2);
+EOF
+title="JIT variant"
+run_dino
+
 cat <<'EOF' >$ftest
 var m1, m2;
 
@@ -104119,8 +104698,8 @@ m1 = [n:[n:1]];
 m2 = [n:[n:1]];
 mmult (m1, m2);
 EOF
-title=" (Transpose and Slice Variant)"
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+title="Transpose and Slice Variant"
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest
@@ -104558,7 +105137,7 @@ m2 = m1;
 mmult (m1, m2);
 EOF
 title=
-if ($TIME $DINO $ftest $rep </dev/null) >$temp2 2>&1;then print_dino "$title" $temp2;else echo DINO: FAILED;fi
+run_dino
 
 if test x$PERL != x; then
   cat <<'EOF' >$ftest

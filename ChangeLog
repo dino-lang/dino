@@ -1,3 +1,75 @@
+2014-11-04  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_inference.[ch]: New files.
+	* DINO/Makefile.in: Update dependencies and ...
+	(objects): Add d_inference.o.
+	(source): Add d_inference.[ch].
+	(ammunition): Add spset.o and cspset.o.
+	(depend): Add d_inference.c.
+	* DINO/compare.tst: Add code to check Hasekell.  Add some haskell
+	tests.  Fix message about the absence of nodejs.
+	(SKIP_HASKELL, DO_HASKELL): New.
+	(run_dino): New.  Add optimization usage.  Use it everywhere for
+	run dino.
+	* DINO/d_bc.sprut (void_ptr_t): New type.
+	(lindv, key, lkeyv): Remove.
+	(ind2): New.
+	(decl): Rearrange fields.
+	(info): Add field aux.
+	(print_node): Remove lindv.
+	(traverse_code): Use break instead of continue when comming into
+	already visited node.
+	* d_bcio.c: Include d_inference.h.
+	(print_indent): Make extern.
+	(dump_code): Use print_inference_info_before_insn and
+	print_inference_info_after_insn.  Remove lindv.  Add ind2.
+	* DINO/d_bcio.h (print_indent): New extern.
+	* DINO/d_bcn.shilka (lindv): Remove.
+	(ind2): Add.
+	* DINO/d_common.h (optimize_flag): New extern.
+	* DINO/d_context.c: Include d_inference.h.
+	(foreach_vars, initiate_foreach_vars, finish_foreach_vars): Rename
+	to foreach_stmts, initiate_foreach_stmts, and
+	finish_foreach_stmts.
+	(start_block_foreach_vars, free_foreach_var, get_new_foreach_var):
+	Remove.
+	(finish_block_foreach_vars): Remove.
+	(get_foreach_stmts_bound, finish_block_foreach_stmts): New.
+	(simple_block_p): New.
+	(first_block_passing): Use new functions.
+	(make_designator_lvalue get_lvalue_location): Remove code for key,
+	lkeyv and lindv.
+	(second_block_passing): Ditto.  Use simple_block_p.
+	(branch_combine): Use not_defined_result.
+	(ind_combine): New.
+	(go_through): Use ind_combine.
+	(process_bc): Don't remove (f)bend.
+	(test_context): Call inference_pass.
+	(initiate_context): Call initiate_inference_pass.
+	(finish_context): Call finish_inference_pass.
+	* DINO/d_dino.c: Include d_inference.h.
+	(optimize_flag): New.
+	(dino_main): Handle -O and optimize_flag.  Change head message for REPL.
+	Move finish_context below dump_code.
+	* DINO/d_eval.c (execute_a_period_operation): Change 255 to
+	UCHAR_MAX.
+	(evaluate_code): Remove lindv.  Add ind2 case.
+	* DINO/d_gen.c (check_vector_index_value): New.
+	(check_vector_index): Use it.
+	(ind): Add fast path for int or float packed vector and int index.
+	(ind2): New.
+	(ifadd, caddi, ifsub, fisub, cmulti, ifdiv, fidiv): Fix the
+	assert.
+	(fbend): Rewrite.  It should be never achieved.
+	(fmove): Fix setting the value.
+	* DINO/dino.{dvi, pdf, ps): Update.
+	* DINO/dino.tst.in (644-649 tests): Fix expected REPL headline
+	message.
+	(732 - 736): Fix echo for running command.
+	(737 - 740): New tests for ind2.
+	(741 - 742): Tests for type inference.
+	(743): Test for foreach var allocation bug.
+
 2014-10-08  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* AMMUNITION/spset.h, AMMUNITION/spset.c,
