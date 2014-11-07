@@ -183,6 +183,23 @@ include_decl (IR_node_t decl)
   return result;
 }
 
+/* The last used number to enumerate unique indentifiers used as
+   fields.  */
+static int last_uniq_field_ident_num;
+
+/* Setup FIELD_IDENT_NUMBER for UNIQUE_IDENT.  */
+static int
+set_field_ident_number (IR_node_t unique_ident)
+{
+  if (IR_field_ident_number (unique_ident) >= 0)
+    return IR_field_ident_number (unique_ident);
+  if (destroy_unique_ident != unique_ident)
+    {
+      last_uniq_field_ident_num++;
+      IR_set_field_ident_number (unique_ident, last_uniq_field_ident_num);
+    }
+}
+
 /* The following recursive func passes (correctly setting up
    SOURCE_POSITION) EXPR (it may be NULL) sets up members parts_number
    and class_func_thread_call_parameters_number in vector node (table
@@ -249,6 +266,7 @@ first_expr_processing (IR_node_t expr)
     case IR_NM_period:
       SET_SOURCE_POSITION (expr);
       first_expr_processing (IR_designator (expr));
+      set_field_ident_number (IR_unique_ident (IR_component (expr)));
       check_slice (expr, IR_designator (expr),
 		   ERR_period_ident_applied_to_slice);
       break;
@@ -1732,8 +1750,6 @@ finish_decl_subst (void)
   VLO_DELETE (decl_subst);
 }
 
-/* The last used number to enumerate unique indentifiers.  */
-static int last_uniq_ident_num;
 /* The last used number to enumerate decls.  */
 static int last_decl_num;
 
@@ -1743,22 +1759,6 @@ set_new_decl_num (BC_node_t bc_decl)
 {
   last_decl_num++;
   BC_set_decl_num (bc_decl, last_decl_num);
-}
-
-/* Setup and return BLOCK_DECL_IDENT_NUMBER for UNIQUE_IDENT.  */
-static int
-get_block_decl_ident_number (IR_node_t unique_ident)
-{
-  if (IR_block_decl_ident_number (unique_ident) >= 0)
-    return IR_block_decl_ident_number (unique_ident);
-  if (destroy_unique_ident == unique_ident)
-    IR_set_block_decl_ident_number (unique_ident, DESTROY_IDENT_NUMBER);
-  else
-    {
-      last_uniq_ident_num++;
-      IR_set_block_decl_ident_number (unique_ident, last_uniq_ident_num);
-    }
-  return IR_block_decl_ident_number (unique_ident);
 }
 
 /* The func returns byte code decl node for corresponding DECL.  DECL
@@ -1790,7 +1790,7 @@ get_bcode_decl (IR_node_t decl)
   set_new_decl_num (bc_decl);
   unique_ident = IR_unique_ident (IR_ident (decl));
   BC_set_ident (bc_decl, IR_ident_string (unique_ident));
-  BC_set_ident_num (bc_decl, get_block_decl_ident_number (unique_ident));
+  BC_set_fldid_num (bc_decl, IR_field_ident_number (unique_ident));
   bc_block = IR_bc_block (IR_scope (decl));
   d_assert (bc_block != NULL);
   BC_set_decl_scope (bc_decl, bc_block);
@@ -2131,8 +2131,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	  BC_set_op1
 	    (bc, setup_result_var_number (result, curr_temp_vars_num));
 	d_assert (IR_IS_OF_TYPE (IR_component (expr), IR_NM_ident));
-	BC_set_op3 (bc, get_block_decl_ident_number (IR_unique_ident
-						     (IR_component (expr))));
+	BC_set_op3
+	  (bc, IR_field_ident_number (IR_unique_ident (IR_component (expr))));
 	add_to_bcode (bc);
 	d_assert (IR_component (expr) != NULL
 		  && IR_NODE_MODE (IR_component (expr)) == IR_NM_ident);
@@ -4521,7 +4521,6 @@ process_bc (BC_node_t start)
     }
   mark_reachable_info (start);
   /* Remove unreachable infos.  Setup unqiue ident numbers.  */
-  last_uniq_ident_num = DESTROY_IDENT_NUMBER;
   for (info = BC_info (start); info != NULL; info = next_info)
     {
       next_info = BC_next_info (info);
@@ -4582,8 +4581,16 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
 	   bc_ptr < (BC_node_t *) VLO_BOUND (all_fblocks);
 	   bc_ptr++)
 	process_bc (*bc_ptr);
+      if (dump_flag)
+	{
+	  int_t idn = 0, decl_num = 0;
+	  
+	  enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
+	}
       if (optimize_flag)
 	inference_pass (first_program_bc, &all_fblocks);
+      if (dump_flag)
+	dump_code (BC_info (first_program_bc), 0);
     }
 }
 
@@ -4600,7 +4607,7 @@ initiate_context (void)
   VLO_CREATE (inline_returns, 0);
   VLO_CREATE (inline_stack, 0);
   initiate_decl_subst ();
-  last_uniq_ident_num = DESTROY_IDENT_NUMBER;
+  last_uniq_field_ident_num = DESTROY_FLDID_NUM;
   last_decl_num = 0;
   initiate_foreach_stmts ();
   if (optimize_flag)

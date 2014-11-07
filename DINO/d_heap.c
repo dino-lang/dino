@@ -413,13 +413,17 @@ static void
 new_heap_chunk (size_t size)
 {
   char *str;
+  size_t old_size;
 
   VLO_EXPAND (heap_chunks, sizeof (struct heap_chunk));
   curr_heap_chunk
     = &((struct heap_chunk *) VLO_BEGIN (heap_chunks))
       [VLO_LENGTH (heap_chunks) / sizeof (struct heap_chunk) - 1];
+  old_size = size;
   if (size + free_heap_memory < (heap_size - free_heap_memory) / 3)
     size = (heap_size - 4 * free_heap_memory) / 3;
+  if (old_size != size)
+    size = 8*1024*1024;
   size = ALLOC_SIZE (size);
   CALLOC (str, 1, size);
   curr_heap_chunk->chunk_start = curr_heap_chunk->chunk_free = str;
@@ -479,7 +483,7 @@ initiate_heap ()
   free_gc_memory_percent = 0;
   context_number = 0;
   no_gc_p = in_gc_p = FALSE;
-  d_assert (DESTROY_IDENT_NUMBER >= 0);
+  d_assert (DESTROY_FLDID_NUM >= 0);
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick = 0;
 #endif
@@ -674,8 +678,7 @@ stack_with_destroy (ER_node_t obj)
 
   if (ER_NODE_MODE (obj) != ER_NM_heap_stack)
     return FALSE;
-  decl = LV_BLOCK_IDENT_DECL (BC_block_number (ER_block_node (obj)),
-			      DESTROY_IDENT_NUMBER);
+  decl = LV_BLOCK_IDENT_DECL (ER_block_node (obj), DESTROY_FLDID_NUM);
   if (decl == NULL)
     return FALSE;
   return BC_IS_OF_TYPE (decl, BC_NM_fdecl);
@@ -1406,8 +1409,8 @@ destroy_stacks (void)
 	if (ER_NODE_MODE (curr_obj) == ER_NM_heap_stack
 	    && ER_state (curr_obj) == IS_to_be_destroyed)
 	  {
-	    decl = LV_BLOCK_IDENT_DECL (BC_block_number (ER_block_node (curr_obj)),
-					DESTROY_IDENT_NUMBER);
+	    decl = LV_BLOCK_IDENT_DECL (ER_block_node (curr_obj),
+					DESTROY_FLDID_NUM);
 	    /* We mark it before the call to prevent infinite loop if
 	       the exception occurs during the call. */
 	    ER_set_state (curr_obj, IS_destroyed);

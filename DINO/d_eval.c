@@ -194,8 +194,8 @@ check_member_access (BC_node_t decl, BC_node_t fblock)
 }
 
 void do_inline
-execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
-			    ER_node_t op, int lvalue_p, int lvalue_val_p)
+execute_general_period_operation (int block_decl_ident_number, ER_node_t res,
+				  ER_node_t op, int lvalue_p, int lvalue_val_p)
 {
   BC_node_t decl;
   BC_node_t block;
@@ -212,8 +212,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
       d_assert (container != NULL);
       block = ER_block_node (container);
       if (block_decl_ident_number >= 0)
-	decl = LV_BLOCK_IDENT_DECL (BC_block_number (block),
-				    block_decl_ident_number);
+	decl = LV_BLOCK_IDENT_DECL (block, block_decl_ident_number);
       if (decl != NULL
 	  || BC_NODE_MODE (block) != BC_NM_fblock || ! BC_class_p (block))
 	break;
@@ -259,6 +258,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 			DERR_undefined_value_access, BC_ident (decl));
 	  *(val_t *) val = *(val_t *) ref;
 	}
+      BC_set_hint (cpc, decl);
       break;
     case BC_NM_evdecl:
       process_external_var (res, decl, lvalue_p, lvalue_val_p);
@@ -278,6 +278,7 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 	ER_SET_MODE (res, ER_NM_code);
 	ER_set_code_context (res, container);
 	ER_set_code_id (res, CODE_ID (fblock));
+        BC_set_hint (cpc, decl);
       }
       break;
     case BC_NM_efdecl:
@@ -661,7 +662,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	  unpack_els = ER_unpack_els (vect);
 	  unpack_els1 = ER_unpack_els (vect1);
 	  for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
-	    *(val_t *)IVAL (unpack_els, i1) = *(val_t *)IVAL (unpack_els1, i1);
+	    *(val_t *)IVAL (unpack_els, i) = *(val_t *)IVAL (unpack_els1, i1);
 	}
     }
   else
@@ -1938,7 +1939,10 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
       ER_set_els_number (res, len1);
       return res;
     }
-  switch (oper = BC_NODE_MODE (cpc))
+  oper = BC_NODE_MODE (cpc);
+  if (oper == BC_NM_madd)
+    oper = madd_mult_p ? BC_NM_mult : BC_NM_add;
+  switch (oper)
     {
     case BC_NM_add:
     case BC_NM_addi:

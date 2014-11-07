@@ -79,9 +79,6 @@ typedef void (*implementation_fun_t) (int_t pars_number);
 
 extern BC_node_t first_program_bc;
 
-/* Unique number for identifier destroy.  */
-#define DESTROY_IDENT_NUMBER 0
-
 #define EXCEPT_NAME "except"
 extern BC_node_t except_bc_decl;
 
@@ -863,6 +860,11 @@ block :: bcode
            cached_container_tick is not equal to the current value. */
 	cached_container_address : string_t
 	cached_container_tick : int_t {$ = -1;}
+        /* The following fields is setup during Bcode preparation for
+	   its evaluation.  They describe table: fldid -> the
+	   corresponding decl in the block.  */
+ 	fld_table_len : int_t {$ = 0;}
+ 	fld_table : string_t {$ = NULL;}
         /* The following fields are used and defined only during evaluation  */
         calls_number : int_t {$ = 0;}
 	free_stacks : ER_hidden_node_t {$ = NULL;}
@@ -1115,7 +1117,7 @@ nop :: bcode;
 decl :: source
 %other
         decl_num : int_t /* unique decl number */
-        ident_num : int_t
+        fldid_num : int_t {$ = -1;}
         public_p : bool_t
         ident : string_t
 	decl_scope : block
@@ -1209,6 +1211,8 @@ imcall :: op2i
 field :: op3i
 %other
 	fldid : string_t  /* field identifier  */
+        /* Set up during evaluation for quicker access.  */
+        hint : decl { $ = NULL; }
 ;
 %abstract
 fold_op :: op2

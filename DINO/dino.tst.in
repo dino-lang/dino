@@ -20341,6 +20341,10 @@ TEST349
 test.d:4:7: run time error - process deadlock
 OUTPUT349
                         result=ok
+                elif cat >$ftemp2 <<'OUTPUT349-1' && $CMP $stderr $ftemp2; then
+test.d:1:18: run time error - process deadlock
+OUTPUT349-1
+                        result=ok
                 else
                         result=fail
                 fi

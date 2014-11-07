@@ -1,3 +1,71 @@
+2014-11-07  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_bc.sprut (DESTROY_IDENT_NUMBER): Remove.
+	(block): New fields fld_table_len and fld_table.
+	(decl): Rename ident_num to fldid_num.
+	(field): New field hint.
+	* DINO/d_bcf.shilka: Rename ident_num to fldid_num.
+	* DINO/d_bcio.c (dump_code): Use FORMAT_DOUBLE_DIGS.  Use
+	fldid_num instead of fident_num.  Output only non-negative values.
+	(read_bc_program): Rename FR_ident_num to FR_fldid_num.  Process
+	ints for FR_f too.  Don't check fldid_num presence.  Rename
+	env_decls to all_decls.  Process all decls for define_block_decl.
+	* DINO/d_common.h (DESTROY_FLDID_NUM): New.
+	* DINO/d_context.c (last_uniq_ident_num): Rename to
+	last_uniq_field_ident_num.
+	(set_field_ident_number): New.
+	(first_expr_processing): Call set_field_ident_number.
+	(get_block_decl_ident_number): Remove.
+	(get_bcode_decl): Use BC_set_fldid_num instead of
+	BC_set_ident_num.
+	(second_expr_processing): Use IR_field_ident_number instead of
+	get_block_decl_ident_number.
+	(process_bc): Remove setting last_uniq_ident_num.
+	(test_context): Enumerate bcode before inference_pass call.
+	* DINO/d_dino.c: Remove include of d_bcio.h.
+	(dino_main): Move finish_context up.  Remove bcode enumeration.
+	* DINO/d_eval.c (execute_a_period_operation): Rename to
+	execute_general_period_operation.  Set the hint.
+	(process_slice_extract): Fix result element indexing for unpack
+	elements.
+	(process_binary_vect_op): Use madd_mult_p.
+	* DINO/d_gen.c (execute_a_period_operation): Rename to
+	execute_general_period_operation.
+	(common_stvt): New.
+	(stvt, stvtu): Use it.
+	(execute_a_period_operation): New with fast execution path.
+	(ind, ind2): Add expect.
+	(madd_mult_p): New.
+	(madd): Set it up.
+	* DINO/d_heap.c (new_heap_chunk): Contraint chunk grow to 8MB.
+	(initiate_heap, stack_with_destroy, destroy_stacks): Rename
+	DESTROY_IDENT_NUMBER to DESTROY_FLDID_NUM.
+	* DINO/d_inference.c (struct problem): New field get_id.
+	(get_insn_id): New.
+	(forward_dataflow): Use get_id.
+	(calculate_bb_avail): Add new field to avail_problem.
+	(type_transf): Fix code for block and fblock.
+	(calculate_types): Add new field to type_problem.
+	(specialize_insn): Fix code for eqi, nei, lti, gtei, lei, gei,
+	bteqi, btnei, btgei, btlti, btlei, btgti.
+	(print_op): Remove code for decls.
+	(print_inference_info_before_insn): Fix print for index.
+	* DINO/d_ir.sprut (ENVIRONMENT).  Add code for access msg and code
+	fields.  Rename block_decl_ident_number to field_ident_number.
+	(initiate_icode): Set up field_ident_number for destroy_unique_ident.
+	* DINO/d_run.sprut (get_another_block_decl): Use fldid_num instead
+	of ident_num.
+	* DINO/d_runtab.c (struct block_decl_tables, block_decl_tables):
+	Move from d_runtab.h.
+	(BLOCKS_NUMBER, LV_BLOCK_IDENT_DECLS_TABLE): Ditto.
+	(define_block_decl): Set up fields fld_table and fld_table_len.
+	* DINO/d_runtab.h (struct block_decl_tables, block_decl_tables):
+	Move to d_runtab.c.
+	(BLOCKS_NUMBER, LV_BLOCK_IDENT_DECLS_TABLE): Ditto.
+	(LV_BLOCK_IDENT_DECL): Change.
+	* DINO/d_types.h (DBL_DIG, FORMAT_DOUBLE_DIGS): Define.
+	* DINO/dino.tst.in (test 349): Add another expected output.
+
 2014-11-04  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_inference.[ch]: New files.

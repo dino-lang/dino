@@ -358,6 +358,7 @@ extern IR_node_t destroy_unique_ident;
   "var argv, env; val version, main_thread, curr_thread;\n"\
   "class anode (name, transl) {}\n"\
   "class token (code) {}\n"\
+  "if (0) {var t; t.msg; t.code;} // mark some fields\n"\
   "val nil_anode = anode (\"$nil\", nil);\n"\
   "val error_anode = anode (\"$error\", nil);\n"\
   "final class parser \n"\
@@ -916,13 +917,13 @@ ident
 
 unique_ident
 %other
-        /* If the following member is negative than the ident is
-           not used for access to any block decl.  Otherwise
-           the member value is number of the ident in all
-           idents used for access to any block decl.  This
-           member must be initiated by negative value for the node
-           creation time. */
-        block_decl_ident_number : integer_t {$ = -1;}
+        /* If the following member is negative than the ident is not
+           used for access to any block decl through field operation.
+           Otherwise the member value is number of the ident in all
+           idents used for access to any block decl through field
+           access operation.  This member must be initiated by
+           negative value for the node creation time. */
+        field_ident_number : integer_t {$ = -1;}
         /* If the following member is TRUE than the ident is
            decalared in some block. */
         it_is_declared_in_block : bool_t
@@ -1371,7 +1372,7 @@ create_unique_ident_node (const char *str)
       IR_set_ident_string (ref, string_in_pool);
       /* The following means that the ident is not used for access to 
          any class decl. */
-      IR_set_block_decl_ident_number (ref, -1);
+      IR_set_field_ident_number (ref, -1);
       include_to_table (ref);
     }
   return ref;
@@ -1406,6 +1407,7 @@ initiate_icode (void)
   temp_ident = IR_create_node (IR_NM_ident);
   temp_decl = IR_create_node (IR_NM_var);
   destroy_unique_ident = create_unique_ident_node ("destroy");
+  IR_set_field_ident_number (destroy_unique_ident, DESTROY_FLDID_NUM);
 }
 
 void

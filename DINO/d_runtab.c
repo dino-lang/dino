@@ -29,7 +29,24 @@
 /* Table of all blocks.  */
 vlo_t block_tab;
 
-struct block_decl_tables block_decl_tables;
+struct block_decl_tables
+{
+  /* The following VLO contains VLO'es in which the pointers to block
+     decls stored by unique ident numbers. */
+  vlo_t block_ident_decls;
+};
+
+static struct block_decl_tables block_decl_tables;
+
+/* The macro call value is number of blocks in block_decl_tables. */
+#define BLOCKS_NUMBER()\
+  (VLO_LENGTH (block_decl_tables.block_ident_decls) / sizeof (vlo_t))
+
+/* The macro call value is block decls idents table (represented
+   by VLO) for the block with number BLOCK_NUMBER.  The macro call value is
+   l-value. */
+#define LV_BLOCK_IDENT_DECLS_TABLE(block_number)\
+  (((vlo_t *) VLO_BEGIN (block_decl_tables.block_ident_decls)) [block_number])
 
 /* This func is to be called only once before any work with this
    abstract data. */
@@ -70,20 +87,24 @@ define_block_decl (BC_node_t decl, BC_node_t block)
 {
   BC_node_t null = NULL;
   vlo_t *table_ref;
-  int block_number, decl_ident_num, i;
+  int block_number, fldid_num, i;
 
   block_number = BC_block_number (block);
-  decl_ident_num = BC_ident_num (decl);
-  if (decl_ident_num < 0)
+  fldid_num = BC_fldid_num (decl);
+  if (fldid_num < 0)
     /* There is no access to identifier. */
     return;
   table_ref = (&LV_BLOCK_IDENT_DECLS_TABLE (block_number));
-  if (VLO_LENGTH (*table_ref) <= decl_ident_num * sizeof (BC_node_t))
-    for (i = VLO_LENGTH (*table_ref) / sizeof (BC_node_t);
-	 i <= decl_ident_num;
-	 i++)
-      VLO_ADD_MEMORY (*table_ref, (char *)&null, sizeof (BC_node_t));
-  ((BC_node_t *) VLO_BEGIN (*table_ref)) [decl_ident_num] = decl;
+  if (VLO_LENGTH (*table_ref) <= fldid_num * sizeof (BC_node_t))
+    {
+      for (i = VLO_LENGTH (*table_ref) / sizeof (BC_node_t);
+	   i <= fldid_num;
+	   i++)
+	VLO_ADD_MEMORY (*table_ref, (char *)&null, sizeof (BC_node_t));
+      BC_set_fld_table (block, (void *) VLO_BEGIN (*table_ref));
+      BC_set_fld_table_len (block, fldid_num + 1);
+    }
+  ((BC_node_t *) VLO_BEGIN (*table_ref)) [fldid_num] = decl;
 }
 
 void

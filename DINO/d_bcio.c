@@ -168,8 +168,8 @@ dump_code (BC_node_t infos, int indent)
 	  printf ("l");
 	  break;
 	case BC_NM_ldf:
-	  printf (" op1=%d f=%g // %d <- f%g", BC_op1 (bc), BC_f (bc),
-		  BC_op1 (bc), BC_f (bc));
+	  printf (" op1=%d f=%.*g // %d <- f%g", BC_op1 (bc), BC_f (bc),
+		  FORMAT_DOUBLE_DIGS,  BC_op1 (bc), BC_f (bc));
 	  break;
 	case BC_NM_ldtp:
 	  printf (" op1=%d op2=%d // %d <- %s", BC_op1 (bc), BC_op2 (bc),
@@ -590,10 +590,11 @@ dump_code (BC_node_t infos, int indent)
 		printf ("%6d %s", BC_decl_num (bc_decl),
 			BC_node_name[BC_NODE_MODE (bc_decl)]);
 		print_source (bc_decl);
-		printf (" ident=%s ident_num=%d decl_scope=%d%s",
-			BC_ident (bc_decl), BC_ident_num (bc_decl),
+		printf (" ident=%s decl_scope=%d%s", BC_ident (bc_decl),
 			BC_idn (BC_info (BC_decl_scope (bc_decl))),
 			BC_public_p (bc_decl) ? " public_p=1" : "");
+		if (BC_fldid_num (bc_decl) >= 0)
+		  printf (" fldid_num=%d", BC_fldid_num (bc_decl));
 		if (BC_IS_OF_TYPE (bc_decl, BC_NM_vdecl))
 		  printf (" var_num=%d", BC_var_num (bc_decl));
 		else if (BC_IS_OF_TYPE (bc_decl, BC_NM_fdecl))
@@ -1154,13 +1155,13 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
   int skip_ln, label;
   struct ptr_fld *fld;
   BC_node_t *decl_ptr;
-  vlo_t block_infos, env_decls;
+  vlo_t block_infos, all_decls;
   BC_node_t prev_info = NULL;
 
   start_file_position (file_name);
   input_file = inpf;
   mpz_init (mpz_attr);
-  VLO_CREATE (env_decls, 1024);
+  VLO_CREATE (all_decls, 1024);
   VLO_CREATE (ptr_flds, 4096);
   VLO_CREATE (bcode_map, 2048);
   VLO_CREATE (decl_map, 2048);
@@ -1277,9 +1278,9 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_decl, D_IDENT)) goto fail;
 	      BC_set_ident (curr_node, token_attr.str);
 	      break;
-	    case FR_ident_num:
+	    case FR_fldid_num:
 	      if (check_fld (BC_NM_decl, D_INT)) goto fail;
-	      BC_set_ident_num (curr_node, token_attr.i);
+	      BC_set_fldid_num (curr_node, token_attr.i);
 	      break;
 	    case FR_decl_scope:
 	      if (check_fld (BC_NM_decl, D_INT)) goto fail;
@@ -1422,8 +1423,12 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      mpz_set (*BC_mpz_ptr (curr_node), mpz_attr);
 	      break;
 	    case FR_f:
-	      if (check_fld (BC_NM_ldf, D_FLOAT)) goto fail;
-	      BC_set_f (curr_node, token_attr.f);
+	      if (curr_token == D_FLOAT)
+		BC_set_f (curr_node, token_attr.f);
+	      else if (check_fld (BC_NM_ldf, D_INT))
+		goto fail;
+	      else
+		BC_set_f (curr_node, (floating_t) token_attr.i);
 	      break;
 	    case FR_str:
 	      if (check_fld (BC_NM_lds, D_STRING)) goto fail;
@@ -1517,7 +1522,6 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	BC_set_info (curr_node, source_node);
       /* Check obligatory field presence. */
       check_fld_set (BC_NM_decl, FR_ident, "ident");
-      check_fld_set (BC_NM_decl, FR_ident_num, "ident_num");
       check_fld_set (BC_NM_vdecl, FR_var_num, "var_num");
       check_fld_set (BC_NM_fdecl, FR_fblock, "fblock");
       check_fld_set (BC_NM_block, FR_vars_num, "vars_num");
@@ -1572,8 +1576,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       /* Set up fields which may have a default value. */
       if (BC_IS_OF_TYPE (curr_node, BC_NM_decl))
 	{
-	  if (strcmp (fn, ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
-	    VLO_ADD_MEMORY (env_decls, &curr_node, sizeof (curr_node));
+	  VLO_ADD_MEMORY (all_decls, &curr_node, sizeof (curr_node));
 	  BC_set_public_p (curr_node, public_p != 0);
 	}
       if (BC_IS_OF_TYPE (curr_node, BC_NM_block))
@@ -1705,17 +1708,18 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
   VLO_DELETE (decl_map);
   VLO_DELETE (bcode_map);
   VLO_DELETE (ptr_flds);
-  /* Set up environment.  */
+  /* Set up environment and block field table.  */
   init_env_decl_processing ();
-  for (decl_ptr = (BC_node_t *) VLO_BEGIN (env_decls);
-       decl_ptr < (BC_node_t *) VLO_BOUND (env_decls);
+  for (decl_ptr = (BC_node_t *) VLO_BEGIN (all_decls);
+       decl_ptr < (BC_node_t *) VLO_BOUND (all_decls);
        decl_ptr++)
     {
       d_assert (BC_ident (*decl_ptr) != NULL);
       define_block_decl (*decl_ptr, BC_decl_scope (*decl_ptr));
-      process_env_decl (*decl_ptr);
+      if (strcmp (BC_pos (*decl_ptr).file_name, ENVIRONMENT_PSEUDO_FILE_NAME) == 0)
+	process_env_decl (*decl_ptr);
     }
-  VLO_DELETE (env_decls);
+  VLO_DELETE (all_decls);
   mpz_clear (mpz_attr);
 }
 

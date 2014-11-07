@@ -35,7 +35,7 @@ pos2
 pos3
 decl_num
 ident
-ident_num
+fldid_num
 decl_scope
 public_p
 var_num

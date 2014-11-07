@@ -67,8 +67,7 @@ extern int tvar_num1, tvar_num2;
 static BC_node_t do_always_inline
 get_another_block_decl (BC_node_t block, BC_node_t decl)
 {
-  return LV_BLOCK_IDENT_DECL (BC_block_number (block),
-			      BC_ident_num (decl));
+  return LV_BLOCK_IDENT_DECL (block, BC_fldid_num (decl));
 }
 
 /* Return source position of byte code BC.  */

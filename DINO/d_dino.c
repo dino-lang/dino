@@ -30,7 +30,6 @@
 #include "d_yacc.h"
 #include "d_context.h"
 #include "d_inference.h"
-#include "d_bcio.h"
 #include "d_eval.h"
 #include "d_func.h"
 
@@ -1181,25 +1180,12 @@ dino_main (int argc, char *argv[], char *envp[])
 	    {
 	      initiate_context ();
 	      test_context (first_program_stmt, TRUE);
+	      finish_context ();
 	    }
 	}
       output_errors ();
-      if (number_of_errors != 0 || first_program_bc == NULL)
+      if (number_of_errors == 0 && first_program_bc != NULL)
 	{
-	  if (input_dump_file == NULL && first_program_stmt != NULL)
-	    finish_context ();
-	}
-      else
-	{
-	  if (dump_flag)
-	    {
-	      int_t idn = 0, decl_num = 0;
-
-	      enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
-	      dump_code (BC_info (first_program_bc), 0);
-	    }
-	  if (input_dump_file == NULL && first_program_stmt != NULL)
-	    finish_context ();
 	  if (! dump_flag)
 	    {
 	      if (input_dump_file == NULL)

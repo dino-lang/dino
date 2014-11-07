@@ -52,6 +52,9 @@
 #define VALUE_OF_DIGIT(ch) ((ch) - '0')
 #define STANDARD_INPUT_FILE_SUFFIX ".d"
 
+/* Unique number for field destroy.  */
+#define DESTROY_FLDID_NUM 0
+
 extern const char **include_path_directories;
 extern const char **libraries;
 extern const char *command_line_program;

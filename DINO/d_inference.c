@@ -211,6 +211,8 @@ struct problem
 {
   /* index of node starting with 0.  */
   int (*get_index) (node_t);
+  /* id for external representation.  */
+  int (*get_id) (node_t);
   /* graph access functions.  */
   edge_t (*src_edges) (node_t), (*dest_edges) (node_t);
   edge_t (*next_src_edge) (edge_t), (*next_dest_edge) (edge_t);
@@ -242,6 +244,7 @@ static edge_t next_dest_cfg_edge (edge_t e) { return ((cfg_edge_t) e)->next_dest
 
 /* Access functions for def-use graph: */
 static int get_insn_index (node_t insn) { return ((df_insn_t) insn)->index; }
+static int get_insn_id (node_t insn) { return BC_idn (BC_info (((df_insn_t) insn)->bc)); }
 static edge_t insn_uses (node_t insn) { return ((df_insn_t) insn)->uses; }
 static edge_t insn_defs (node_t insn) { return ((df_insn_t) insn)->defs; }
 static int get_insn_tick (node_t insn) { return ((df_insn_t) insn)->temp; }
@@ -468,7 +471,7 @@ forward_dataflow (struct problem *problem, node_t *nodes, int nodes_num,
 	{
 	  if (i % 10 == 0)
 	    printf ("\n// ");
-	  printf (" %5d", problem->get_index (nodes_in_postorder_inverted[i]));
+	  printf (" %5d", problem->get_id (nodes_in_postorder_inverted[i]));
 	}
       printf ("\n");
     }
@@ -1432,8 +1435,8 @@ calculate_bb_avail (void)
 {
   static struct problem avail_problem =
     {
-      get_bb_index, bb_srcs, bb_dests, next_src_cfg_edge, next_dest_cfg_edge,
-      cfg_edge_src, cfg_edge_dest,
+      get_bb_index, get_bb_index, bb_srcs, bb_dests,
+      next_src_cfg_edge, next_dest_cfg_edge, cfg_edge_src, cfg_edge_dest,
       get_bb_tick, set_bb_tick, get_bb_order, set_bb_order,
       avail_confl0, avail_confl, avail_transf
     };
@@ -1866,22 +1869,27 @@ type_transf (node_t node)
       return FALSE;
     case BC_NM_block:
     case BC_NM_fblock:
-      change_p = FALSE;
-      n = BC_NODE_MODE (bc) == BC_NM_fblock ? BC_pars_num (bc) : 0;
-      for (i = n - 1; i >= 0; i--)
-	{
-	  /* If it is not connected -- type can be any.  */
-	  type_t t = insn->uses == NULL ? TP_varying : insn->types[n + i];
+      {
+	int vars_num = BC_vars_num (insn->block->bc_block);
 
-	  if (insn->types[i] != t)
-	    change_p = TRUE;
-	  insn->types[i] = t;
-	}
-      /* See comment for stdecu.  */
-      for (i = BC_vars_num (insn->block->bc_block) - 1; i >= n; i--)
-	insn->types[n + i] = TP_undef;
-      return change_p;
-      break;
+	change_p = FALSE;
+	n = BC_NODE_MODE (bc) == BC_NM_fblock ? BC_pars_num (bc) : 0;
+	for (i = n - 1; i >= 0; i--)
+	  {
+	    /* If it is not connected -- type can be any.  */
+	    type_t t = (insn->uses == NULL
+			? TP_varying : insn->types[vars_num + i]);
+	    
+	    if (insn->types[i] != t)
+	      change_p = TRUE;
+	    insn->types[i] = t;
+	  }
+	/* See comment for stdecu.  */
+	for (i = vars_num - 1; i >= n; i--)
+	  insn->types[i] = TP_undef;
+	return change_p;
+	break;
+      }
     case BC_NM_ret:
       res_tp = insn->types[1];
       break;
@@ -1900,8 +1908,8 @@ calculate_types (void)
 {
   static struct problem type_problem =
     {
-      get_insn_index, insn_uses, insn_defs, next_use_edge, next_def_edge,
-      edge_def, edge_use,
+      get_insn_index, get_insn_id, insn_uses, insn_defs,
+      next_use_edge, next_def_edge, edge_def, edge_use,
       get_insn_tick, set_insn_tick, get_insn_order, set_insn_order,
       NULL, type_confl, type_transf
     };
@@ -2050,11 +2058,11 @@ specialize_insn (df_insn_t insn)
 	nm = BC_NM_ine;
       break;
     case BC_NM_eqi:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ieqi;
       break;
     case BC_NM_nei:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_inei;
       break;
     case BC_NM_lt:
@@ -2074,19 +2082,19 @@ specialize_insn (df_insn_t insn)
 	nm = BC_NM_ige;
       break;
     case BC_NM_lti:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ilti;
       break;
     case BC_NM_gti:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_igti;
       break;
     case BC_NM_lei:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ilei;
       break;
     case BC_NM_gei:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_igei;
       break;
     case BC_NM_stinc: case BC_NM_stdec: case BC_NM_stdecu:
@@ -2208,27 +2216,27 @@ specialize_insn (df_insn_t insn)
 	nm = BC_NM_fbtgt;
       break;
     case BC_NM_bteqi:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ibteqi;
       break;
     case BC_NM_btnei:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ibtnei;
       break;
     case BC_NM_btgei:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ibtgei;
       break;
     case BC_NM_btlti:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ibtlti;
       break;
     case BC_NM_btlei:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ibtlei;
       break;
     case BC_NM_btgti:
-      if (insn->types[1] == TP_int && insn->types[2] == TP_int)
+      if (insn->types[1] == TP_int)
 	nm = BC_NM_ibtgti;
       break;
     case BC_NM_out: case BC_NM_sbend: case BC_NM_bend:
@@ -2269,10 +2277,7 @@ print_op (df_insn_t insn, int num)
 {
   BC_node_t bc = insn->bc;
 
-  if (BC_IS_OF_TYPE (bc, BC_NM_decl))
-    printf ("d%d", BC_decl_num (bc));
-  else
-    printf ("c%dr%d", BC_idn (BC_info (bc)), num);
+  printf ("%dr%d", BC_idn (BC_info (bc)), num);
 }
 
 static void
@@ -2424,7 +2429,7 @@ print_inference_info_before_insn (BC_node_t info, int indent)
   if (bb->head == insn)
     {
       print_indent (indent);
-      printf ("  // bb%d start (head=i%d): src=", bb->index, insn->index);
+      printf ("  // bb%d start (head_insn_index=i%d): src=", bb->index, insn->index);
       for (e = bb->srcs; e!= NULL; e = e->next_src)
 	{
 	  printf ("%d", e->src->index);
@@ -2475,7 +2480,7 @@ print_inference_info_after_insn (BC_node_t info, int indent)
   if (bb->tail != insn)
     return FALSE;
   print_indent (indent);
-  printf ("  // bb%d end (tail=i%d): dest=", bb->index, insn->index);
+  printf ("  // bb%d end (tail_insn_index=i%d): dest=", bb->index, insn->index);
   for (e = bb->dests; e!= NULL; e = e->next_dest)
     {
       printf ("%d", e->dest->index);

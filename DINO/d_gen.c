@@ -15,9 +15,9 @@ extern void process_external_var (ER_node_t res, BC_node_t evdecl,
 				  int lvalue_p, int val_too_p);
 extern position_t get_designator_pos (void);
 
-extern void execute_a_period_operation (int block_decl_ident_number,
-					ER_node_t res, ER_node_t op,
-					int lvalue_p, int lvalue_val_p);
+extern void execute_general_period_operation (int block_decl_ident_number,
+					      ER_node_t res, ER_node_t op,
+					      int lvalue_p, int lvalue_val_p);
 static int_t do_always_inline
 check_vector_index_value (ER_node_t vect, int_t index_value)
 {
@@ -757,9 +757,43 @@ execute_cmpi (ER_node_t res, ER_node_t op1, int_t op3n,
 }
 
 static void do_always_inline
+common_stvt (ER_node_t vec_tab, ER_node_t index, ER_node_t val)
+{
+  if (expect (ER_NODE_MODE (vec_tab) == ER_NM_vect))
+    {
+      ER_node_t v = ER_vect (vec_tab);
+
+      if (expect (ER_NODE_MODE (index) == ER_NM_int))
+	{
+	  if (expect (ER_NODE_MODE (v) == ER_NM_heap_pack_vect
+		      && ! ER_immutable (v)))
+	    {
+	      int_t index_val;
+	      ER_node_mode_t el_type = ER_pack_vect_el_mode (v);
+	      ER_node_mode_t val_type = ER_NODE_MODE (val);
+
+	      if (el_type == ER_NM_int && val_type == ER_NM_int)
+		{
+		  index_val = check_vector_index_value (v, ER_i (index));
+		  ((int_t *) ER_pack_els (v)) [index_val] = ER_i (val);
+		  return;
+		}
+	      if (el_type == ER_NM_float && val_type == ER_NM_float)
+		{
+		  index_val = check_vector_index_value (v, ER_i (index));
+		  ((floating_t *) ER_pack_els (v)) [index_val] = ER_f (val);
+		  return;
+		}
+	    }
+	}
+    }
+  store_vect_tab_designator_value (vec_tab, index, val);
+}
+
+static void do_always_inline
 stvt (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  store_vect_tab_designator_value (res, op1, op2);
+  common_stvt (res, op1, op2);
 }
 
 static void do_always_inline
@@ -768,7 +802,7 @@ stvtu (ER_node_t res, ER_node_t op1, ER_node_t op2)
   if (ER_NODE_MODE (op2) == ER_NM_undef)
     eval_error (accessop_bc_decl, get_cpos (),
 		DERR_undefined_value_assign);
-  store_vect_tab_designator_value (res, op1, op2);
+  common_stvt (res, op1, op2);
 }
 
 static void do_always_inline
@@ -880,6 +914,55 @@ static void do_always_inline
 flat (ER_node_t op1)
 {
   ER_set_dim (op1, 0);
+}
+
+void do_inline
+execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
+			    ER_node_t op, int lvalue_p, int lvalue_val_p)
+{
+  BC_node_t block, fblock, decl;
+  ER_node_t stack, ref, val;
+
+  if (ER_NODE_MODE (op) == ER_NM_stack)
+    {
+      stack = ER_stack (op);
+      block = ER_block_node (stack);
+      if ((decl = BC_hint (cpc)) != NULL && BC_decl_scope (decl) == block)
+	{
+	  if (BC_NODE_MODE (decl) == BC_NM_vdecl)
+	    {
+	      if (! lvalue_p)
+		val = res;
+	      else
+		{
+		  ER_SET_MODE (res, ER_NM_stack);
+		  ER_set_stack (res, stack);
+		  ER_SET_MODE (IVAL (res, 1), ER_NM_int);
+		  ER_set_i (IVAL (res, 1), BC_var_num (decl));
+		  if (! lvalue_val_p)
+		    return;
+		  val = IVAL (res, 2);
+		}
+	      ref = IVAL (ER_stack_vars (stack), BC_var_num (decl));
+	      if (ER_NODE_MODE (ref) != ER_NM_undef)
+		{
+		  *(val_t *) val = *(val_t *) ref;
+		  return;
+		}
+	    }
+	  else
+	    {
+	      assert (BC_NODE_MODE (decl) == BC_NM_fdecl && BC_fblock (decl)
+		      && ! lvalue_p);
+	      ER_SET_MODE (res, ER_NM_code);
+	      ER_set_code_context (res, stack);
+	      ER_set_code_id (res, CODE_ID (BC_fblock (decl)));
+	      return;
+	    }
+	}
+    }
+  execute_general_period_operation (block_decl_ident_number, res,
+				    op, lvalue_p, lvalue_val_p);
 }
 
 static void do_always_inline
@@ -1339,13 +1422,13 @@ extern void tab (ER_node_t res, ER_node_t op1, int_t tab_els_number);
 static void do_always_inline
 ind (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  if (ER_NODE_MODE (op1) == ER_NM_vect)
+  if (expect (ER_NODE_MODE (op1) == ER_NM_vect))
     {
       ER_node_t v = ER_vect (op1);
 
-      if (ER_NODE_MODE (op2) == ER_NM_int)
+      if (expect (ER_NODE_MODE (op2) == ER_NM_int))
 	{
-	  if (ER_NODE_MODE (v) == ER_NM_heap_pack_vect)
+	  if (expect (ER_NODE_MODE (v) == ER_NM_heap_pack_vect))
 	    {
 	      int_t index_val;
 	      ER_node_mode_t el_type = ER_pack_vect_el_mode (v);
@@ -1378,13 +1461,13 @@ ind (ER_node_t res, ER_node_t op1, ER_node_t op2)
 static void do_always_inline
 ind2 (ER_node_t res, ER_node_t op1, ER_node_t op2, ER_node_t op3)
 {
-  if (ER_NODE_MODE (op1) == ER_NM_vect)
+  if (expect (ER_NODE_MODE (op1) == ER_NM_vect))
     {
       ER_node_t v = ER_vect (op1);
 
-      if (ER_NODE_MODE (op2) == ER_NM_int)
+      if (expect (ER_NODE_MODE (op2) == ER_NM_int))
 	{
-	  if (ER_NODE_MODE (v) == ER_NM_heap_pack_vect)
+	  if (expect (ER_NODE_MODE (v) == ER_NM_heap_pack_vect))
 	    {
 	      int_t index_val;
 	      ER_node_mode_t el_type = ER_pack_vect_el_mode (v);
@@ -1925,6 +2008,8 @@ fmodop (ER_node_t res, ER_node_t op1, ER_node_t op2)
   ER_set_f (res, f_mod (ER_f (op1), ER_f (op2)));
 }
 
+static int madd_mult_p;
+
 static void do_always_inline
 madd (ER_node_t res, ER_node_t op1, ER_node_t op2, ER_node_t op3)
 {
@@ -1950,7 +2035,9 @@ madd (ER_node_t res, ER_node_t op1, ER_node_t op2, ER_node_t op3)
       ER_set_f (res, f);
       return;
     }
+  madd_mult_p = TRUE;
   cmult (FALSE, (ER_node_t) &interm, op1, op2);
+  madd_mult_p = FALSE;
   cadd (FALSE, res, (ER_node_t) &interm, op3);
 }
 

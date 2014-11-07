@@ -45,40 +45,14 @@ extern vlo_t block_tab;
 #define ID_TO_CODE(id)       ((BC_node_t) (id))
 #endif
 
-struct block_decl_tables
-{
-  /* The following VLO contains VLO'es in which the pointers to block
-     decls stored by unique ident numbers. */
-  vlo_t block_ident_decls;
-};
-
-extern struct block_decl_tables block_decl_tables;
-
-/* The macro call value is number of blocks in block_decl_tables. */
-#define BLOCKS_NUMBER()\
-  (VLO_LENGTH (block_decl_tables.block_ident_decls) / sizeof (vlo_t))
-
-/* The macro call value is block decls idents table (represented
-   by VLO) for the block with number BLOCK_NUMBER.  The macro call value is
-   l-value. */
-#define LV_BLOCK_IDENT_DECLS_TABLE(block_number)\
-  (((vlo_t *) VLO_BEGIN (block_decl_tables.block_ident_decls)) [block_number])
-
-/* The macro call value is block decls idents table element for the
-   block with number BLOCK_NUMBER and ident BLOCK_DECL_IDENT_NUMBER.
-   The element value is NULL if there is not decl with given ident in
-   given block.  Otherwise this value is pointer to node representing
-   decl with given ident in given block.  BLOCK_NUMBER is to be in
-   range 0..BLOCKS_NUMBER () - 1.  BLOCK_DECL_IDENT_NUMBER is to be in
-   range 0..block_decl_tables.idents_number-1 (see commentaries
-   for field block_decl_ident_number in unique_ident_node).  Also
-   order of abstract data operations calls is to be correct (see
-   commentaries for func define_block_decl). */
-#define LV_BLOCK_IDENT_DECL(block_number, block_decl_ident_number)\
-  (block_decl_ident_number * sizeof (BC_node_t)\
-   < VLO_LENGTH (LV_BLOCK_IDENT_DECLS_TABLE (block_number))\
-   ? (((BC_node_t *) VLO_BEGIN (LV_BLOCK_IDENT_DECLS_TABLE (block_number)))\
-      [block_decl_ident_number])\
+/* The macro call value is block field idents table element for the
+   BLOCK and ident BLOCK_DECL_IDENT_NUMBER.  The element value is NULL
+   if the field can not be accessed by '.' with given ident in given
+   block.  Otherwise this value is pointer to node representing decl
+   with given field ident in given block.  */
+#define LV_BLOCK_IDENT_DECL(block, block_decl_ident_number)\
+  (block_decl_ident_number < BC_fld_table_len (block) \
+   ? ((BC_node_t *) BC_fld_table (block))[block_decl_ident_number] \
    : NULL)
 
 extern void initiate_run_tables (void);

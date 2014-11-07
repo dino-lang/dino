@@ -74,6 +74,17 @@ typedef struct { mpz_t mpz;} gmp_t;
 #define FLT_MAX_EXP  128
 #define DBL_MANT_DIG  53
 #define DBL_MAX_EXP 1024
+#define DBL_DIG 15
+#endif
+
+#ifdef DBL_DECIMAL_DIG
+#define FORMAT_DOUBLE_DIGS (DBL_DECIMAL_DIG)
+#else  
+#ifdef DECIMAL_DIG
+#define FORMAT_DOUBLE_DIGS (DECIMAL_DIG)
+#else  
+#define FORMAT_DOUBLE_DIGS (DBL_DIG + 3)
+#endif
 #endif
 
 #if INT_MAX == 2147483647
