@@ -1,0 +1,80 @@
+// Copyright (C) 2014 Vladimir Makarov.
+// This is a script to minimize a header file necessary for C code
+// generation of Dino functions.  It is done by repetitive removing
+// declarations and checking that it is still a correct version by
+// GCC.
+
+// The script reads the file from stdin and put the result into stdout.
+
+var code; // Current version of the header file.
+
+// Return [begin, end] of last (N>=1) decls in the code ending BEGIN
+// and starting with definition of DEF (if not nil).
+fun get_decl (end, n, def = nil) {
+  var level = 0, curr = 0, begin;
+
+  for (var i = end; i >= 0; i--)
+    if (level == 0 && (code[i] == ';' || code[i] == '}')) {
+      begin = i;
+      if (end != begin)
+        curr++;
+      if (def == nil && curr == n
+          || def != nil && match ("^[^{]*" @ def, code[begin + 1:end+1]) != nil)
+        return [begin + 1, end];
+      if (code[i] == '}')
+        level++;
+    } else if (code[i] == '}') level++;
+    else if (code[i] == '{') level--;
+  return [-1, -1];
+}
+
+if (#argv != 0) {fputln (stderr, "Usage: < in > out"); exit (0);}
+
+code = new getf ();
+
+// Find start of the code we should not change:
+var start_invariant = get_decl (#code - 1, 1, "find_context_by_scope");
+// fputln (stderr, "Invariant start: ", code[start_invariant[0]: start_invariant[1] + 1]);
+var pos, removed = 0, all = 0;
+var tfnbase = "_dino_minimization_file.";
+var tfname = tfnbase @ "c"; // file we use for the compilation
+for (var end = start_invariant[0] - 1;;) {
+  for (var n = 2;;) { // We try to remove N decls at once to speed up the process
+    pos = get_decl (end, n);
+    if (pos[0] < 0) {
+      if (n == 1)
+        break;
+      n /= 2; // Fail: decrease searched decls number
+      continue;
+    }
+    var test = open (tfname, "w");
+    fput (test, code[0:pos[0]], code[pos[1]+1:]); // Put all but decls found above
+    close (test);
+    if (system ("gcc -S -Werror -Wfatal-errors -Wimplicit-function-declaration "
+                @ tfname @ " 2>/dev/null")) {
+      if (n != 1) n /= 2; // Fail: decrease searched decls number
+      else {
+        all++;
+	//        fputln (stderr, "Keeping: ", code[pos[0]:pos[1]+1]);
+        end = pos[0] - 1; // Don't remove the necessary last decl
+        // Always try two decls first to exclude considering one
+        // decl 'ident' in something like 'typedef struct ... {}
+        // ident;'
+        if (end >= 0 && code[end]==';') n = 2;
+      }
+    } else {
+      //      fputln (stderr, "Removing: ", code[pos[0]:pos[1]+1]);
+      // Remove unnecessary code and continue from the place right
+      // before the removed code.
+      del (code, pos[0], pos[1] - pos[0] + 1); end = pos[0] - 1;
+      all += n; removed += n; n *= 2;  // Success: increase searched decls number
+    }
+  }
+  if (pos[0] < 0)
+    break; // We processed all
+}
+
+remove (tfname);
+remove (tfnbase @ "s");
+fputln (stderr, "Removed ", removed, " decls out of ", all);
+putln (code); // Output the result
