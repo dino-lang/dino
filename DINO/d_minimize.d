@@ -28,8 +28,8 @@ fun get_decl (end, n, def = nil) {
   return [-1, -1];
 }
 
-if (#argv != 0) {fputln (stderr, "Usage: < in > out"); exit (0);}
-
+if (#argv != 1) {fputln (stderr, "Usage: <c-compiler> < in > out"); exit (0);}
+val CC = argv[0];
 code = new getf ();
 
 // Find start of the code we should not change:
@@ -50,7 +50,7 @@ for (var end = start_invariant[0] - 1;;) {
     var test = open (tfname, "w");
     fput (test, code[0:pos[0]], code[pos[1]+1:]); // Put all but decls found above
     close (test);
-    if (system ("gcc -S -Werror -Wfatal-errors -Wimplicit-function-declaration "
+    if (system (CC @ " -S -Werror -Wfatal-errors -Wimplicit-function-declaration "
                 @ tfname @ " 2>/dev/null")) {
       if (n != 1) n /= 2; // Fail: decrease searched decls number
       else {
