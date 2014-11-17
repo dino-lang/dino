@@ -16022,8 +16022,8 @@ if test $result = ok -a $start_test_number -le 179; then
         cat >$test_file <<'TEST179'
 println (scanln ());
 TEST179
-        echo '      ' "echo 1000000000000|$DINO $test_file 2>$stderr"
-        if echo 1000000000000|$DINO $test_file 2>$stderr >$stdout; then
+        echo '      ' "echo 1000000000000000000000000|$DINO $test_file 2>$stderr"
+        if echo 1000000000000000000000000|$DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
                 echo '      ' $CMP - $stderr
@@ -16083,7 +16083,7 @@ fi
 if test $result = ok -a $start_test_number -le 182; then
 	echo test 182
         cat >$test_file <<'TEST182'
-var i=100000000000;
+var i=100000000000000000000000;
 TEST182
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -16104,7 +16104,7 @@ fi
 if test $result = ok -a $start_test_number -le 183; then
 	echo test 183
         cat >$test_file <<'TEST183'
-var i=-100000000000;
+var i=-100000000000000000000000;
 TEST183
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -16188,7 +16188,7 @@ fi
 if test $result = ok -a $start_test_number -le 187; then
 	echo test 187
         cat >$test_file <<'TEST187'
-var i="1000000000000" + 0;
+var i="1000000000000000000000000" + 0;
 TEST187
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -16196,7 +16196,7 @@ TEST187
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT187' && $CMP $stderr $ftemp2; then
-test.d:1:23: system error - result too big (small): `string-to-int conversion'
+test.d:1:35: system error - result too big (small): `string-to-int conversion'
 OUTPUT187
                         result=ok
                 else
@@ -20904,7 +20904,7 @@ println (tab ([]));
 println (tab ([5:10]));
 println (tab (101));
 println (tab ('c'));
-println (tab (10.1));
+println (tab (10.25));
 println (tab ([5:10, "c"]));
 println (tab (tab []));
 println (tab (tab ["a":10.0, 10:5]));
@@ -20912,7 +20912,7 @@ println (vec (tab []));
 println (vec (tab ["e":5, "g": 6]));
 println (vec (101));
 println (vec ('c'));
-println (vec (10.1));
+println (vec (10.25));
 println (vec ([]));
 println (vec ("abcd"));
 println (vec ([3:3]));
@@ -20925,7 +20925,7 @@ tab []
 tab [0:10, 1:10, 2:10, 3:10, 4:10]
 tab [0:'1', 1:'0', 2:'1']
 tab [0:'c']
-tab [0:'1', 1:'0', 2:'.', 3:'1']
+tab [0:'1', 1:'0', 2:'.', 3:'2', 4:'5']
 tab [0:10, 1:10, 2:10, 3:10, 4:10, 5:"c"]
 tab []
 tab [10:5, "a":10]
@@ -20933,7 +20933,7 @@ tab [10:5, "a":10]
 ["e", 5, "g", 6]
 "101"
 "c"
-"10.1"
+"10.25"
 []
 "abcd"
 [3, 3, 3]
@@ -21286,14 +21286,14 @@ if test $result = ok -a $start_test_number -le 375; then
 putln (tolower ("abcd"));
 putln (tolower ("ABCD"));
 putln (tolower (10));
-putln (tolower (10e10));
+putln (tolower (10e20));
 putln (tolower ('c'));
 putln (tolower ('C'));
 //
 putln (toupper ("abcd"));
 putln (toupper ("ABCD"));
 putln (toupper (10));
-putln (toupper (10e10));
+putln (toupper (10e20));
 putln (toupper ('c'));
 putln (toupper ('C'));
 TEST375
@@ -21304,13 +21304,13 @@ TEST375
 abcd
 abcd
 10
-1e+11
+1e+21
 c
 c
 ABCD
 ABCD
 10
-1E+11
+1E+21
 C
 C
 OUTPUT375
@@ -21319,13 +21319,13 @@ OUTPUT375
 abcd
 abcd
 10
-1e+011
+1e+021
 c
 c
 ABCD
 ABCD
 10
-1E+011
+1E+021
 C
 C
 OUTPUT375-1
@@ -26920,7 +26920,7 @@ fi
 if test $result = ok -a $start_test_number -le 476; then
 	echo test 476
         cat >$test_file <<'TEST476'
-println (char ("30000000000000000"));
+println (char ("3000000000000000000000000"));
 TEST476
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -26983,7 +26983,7 @@ fi
 if test $result = ok -a $start_test_number -le 479; then
 	echo test 479
         cat >$test_file <<'TEST479'
-println (int ("30000000000000000"));
+println (int ("3000000000000000000000000000"));
 TEST479
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -27263,18 +27263,18 @@ if test $result = ok -a $start_test_number -le 487; then
 	echo test 487
         cat >$test_file <<'TEST487'
 put (sput (10));put (" ");
-put (sput (10.2e10, " "));
+put (sput (10.2e20, " "));
 put (sputln ('c', " ", "ssss"));
 TEST487
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT487' && $CMP $stdout $ftemp2; then
-10 1.02e+11 c ssss
+10 1.02e+21 c ssss
 OUTPUT487
                         result=ok
                 elif cat >$ftemp2 <<'OUTPUT487a' && $CMP $stdout $ftemp2; then
-10 1.02e+011 c ssss
+10 1.02e+021 c ssss
 OUTPUT487a
                         result=ok
                 else
@@ -37330,7 +37330,7 @@ for (i = 0; i < 2; i++) {
   println ("~", ~v1[:]);
   println ("#", #v1[:]);
   putln ("--------------------------------");
-  two = 2.3;
+  two = 2.5;
 }
 TEST592
         echo '      ' $DINO -t $test_file "2>$stderr"
@@ -37343,8 +37343,8 @@ TEST592
 "~"[-3, -3, -3, -3, -3, -3, -3, -3, -3, -3]
 "#"[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 --------------------------------
-"+"[2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3]
-"-"[-2.3, -2.3, -2.3, -2.3, -2.3, -2.3, -2.3, -2.3, -2.3, -2.3]
+"+"[2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
+"-"[-2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]
 "!"[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 "~"[-3, -3, -3, -3, -3, -3, -3, -3, -3, -3]
 "#"[3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
@@ -37402,7 +37402,7 @@ for (i = 0; i < 2; i++) {
   println ("int()", int (v1[:]));
   println ("float()", float (v1[:]));
   putln ("--------------------------------");
-  two = 2.3;
+  two = 2.5;
 }
 TEST594
         echo '      ' $DINO -t $test_file "2>$stderr"
@@ -37417,7 +37417,7 @@ TEST594
 "type()"[float, float, float, float, float, float, float, float, float, float]
 "char()""\2\2\2\2\2\2\2\2\2\2"
 "int()"[2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-"float()"[2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3]
+"float()"[2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
 --------------------------------
 OUTPUT594
                         result=ok
@@ -39768,390 +39768,390 @@ put ("#0X: "); try {putf ("->%#0X<-\n",4);} catch (invfmt) {err ();}
 put ("0X: "); try {putf ("->%0X<-\n",-4);} catch (invfmt) {err ();}
 put ("0X: "); try {putf ("->%0X<-\n",0);} catch (invfmt) {err ();}
 put ("0X: "); try {putf ("->%0X<-\n",4);} catch (invfmt) {err ();}
-put ("#0- +10d: "); try {putf ("->%#0- +10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- +10d: "); try {putf ("->%#0- +10d<-\n",0);} catch (invfmt) {err ();}
-put ("#0- +10d: "); try {putf ("->%#0- +10d<-\n",4);} catch (invfmt) {err ();}
-put ("0- +10d: "); try {putf ("->%0- +10d<-\n",-4);} catch (invfmt) {err ();}
-put ("0- +10d: "); try {putf ("->%0- +10d<-\n",0);} catch (invfmt) {err ();}
-put ("0- +10d: "); try {putf ("->%0- +10d<-\n",4);} catch (invfmt) {err ();}
-put ("#- +10d: "); try {putf ("->%#- +10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#- +10d: "); try {putf ("->%#- +10d<-\n",0);} catch (invfmt) {err ();}
-put ("#- +10d: "); try {putf ("->%#- +10d<-\n",4);} catch (invfmt) {err ();}
-put ("- +10d: "); try {putf ("->%- +10d<-\n",-4);} catch (invfmt) {err ();}
-put ("- +10d: "); try {putf ("->%- +10d<-\n",0);} catch (invfmt) {err ();}
-put ("- +10d: "); try {putf ("->%- +10d<-\n",4);} catch (invfmt) {err ();}
-put ("#0 +10d: "); try {putf ("->%#0 +10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 +10d: "); try {putf ("->%#0 +10d<-\n",0);} catch (invfmt) {err ();}
-put ("#0 +10d: "); try {putf ("->%#0 +10d<-\n",4);} catch (invfmt) {err ();}
-put ("0 +10d: "); try {putf ("->%0 +10d<-\n",-4);} catch (invfmt) {err ();}
-put ("0 +10d: "); try {putf ("->%0 +10d<-\n",0);} catch (invfmt) {err ();}
-put ("0 +10d: "); try {putf ("->%0 +10d<-\n",4);} catch (invfmt) {err ();}
-put ("# +10d: "); try {putf ("->%# +10d<-\n",-4);} catch (invfmt) {err ();}
-put ("# +10d: "); try {putf ("->%# +10d<-\n",0);} catch (invfmt) {err ();}
-put ("# +10d: "); try {putf ("->%# +10d<-\n",4);} catch (invfmt) {err ();}
-put (" +10d: "); try {putf ("->% +10d<-\n",-4);} catch (invfmt) {err ();}
-put (" +10d: "); try {putf ("->% +10d<-\n",0);} catch (invfmt) {err ();}
-put (" +10d: "); try {putf ("->% +10d<-\n",4);} catch (invfmt) {err ();}
-put ("#0-+10d: "); try {putf ("->%#0-+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-+10d: "); try {putf ("->%#0-+10d<-\n",0);} catch (invfmt) {err ();}
-put ("#0-+10d: "); try {putf ("->%#0-+10d<-\n",4);} catch (invfmt) {err ();}
-put ("0-+10d: "); try {putf ("->%0-+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("0-+10d: "); try {putf ("->%0-+10d<-\n",0);} catch (invfmt) {err ();}
-put ("0-+10d: "); try {putf ("->%0-+10d<-\n",4);} catch (invfmt) {err ();}
-put ("#-+10d: "); try {putf ("->%#-+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#-+10d: "); try {putf ("->%#-+10d<-\n",0);} catch (invfmt) {err ();}
-put ("#-+10d: "); try {putf ("->%#-+10d<-\n",4);} catch (invfmt) {err ();}
-put ("-+10d: "); try {putf ("->%-+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("-+10d: "); try {putf ("->%-+10d<-\n",0);} catch (invfmt) {err ();}
-put ("-+10d: "); try {putf ("->%-+10d<-\n",4);} catch (invfmt) {err ();}
-put ("#0+10d: "); try {putf ("->%#0+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#0+10d: "); try {putf ("->%#0+10d<-\n",0);} catch (invfmt) {err ();}
-put ("#0+10d: "); try {putf ("->%#0+10d<-\n",4);} catch (invfmt) {err ();}
-put ("0+10d: "); try {putf ("->%0+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("0+10d: "); try {putf ("->%0+10d<-\n",0);} catch (invfmt) {err ();}
-put ("0+10d: "); try {putf ("->%0+10d<-\n",4);} catch (invfmt) {err ();}
-put ("#+10d: "); try {putf ("->%#+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#+10d: "); try {putf ("->%#+10d<-\n",0);} catch (invfmt) {err ();}
-put ("#+10d: "); try {putf ("->%#+10d<-\n",4);} catch (invfmt) {err ();}
-put ("+10d: "); try {putf ("->%+10d<-\n",-4);} catch (invfmt) {err ();}
-put ("+10d: "); try {putf ("->%+10d<-\n",0);} catch (invfmt) {err ();}
-put ("+10d: "); try {putf ("->%+10d<-\n",4);} catch (invfmt) {err ();}
-put ("#0- 10d: "); try {putf ("->%#0- 10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- 10d: "); try {putf ("->%#0- 10d<-\n",0);} catch (invfmt) {err ();}
-put ("#0- 10d: "); try {putf ("->%#0- 10d<-\n",4);} catch (invfmt) {err ();}
-put ("0- 10d: "); try {putf ("->%0- 10d<-\n",-4);} catch (invfmt) {err ();}
-put ("0- 10d: "); try {putf ("->%0- 10d<-\n",0);} catch (invfmt) {err ();}
-put ("0- 10d: "); try {putf ("->%0- 10d<-\n",4);} catch (invfmt) {err ();}
-put ("#- 10d: "); try {putf ("->%#- 10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#- 10d: "); try {putf ("->%#- 10d<-\n",0);} catch (invfmt) {err ();}
-put ("#- 10d: "); try {putf ("->%#- 10d<-\n",4);} catch (invfmt) {err ();}
-put ("- 10d: "); try {putf ("->%- 10d<-\n",-4);} catch (invfmt) {err ();}
-put ("- 10d: "); try {putf ("->%- 10d<-\n",0);} catch (invfmt) {err ();}
-put ("- 10d: "); try {putf ("->%- 10d<-\n",4);} catch (invfmt) {err ();}
-put ("#0 10d: "); try {putf ("->%#0 10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 10d: "); try {putf ("->%#0 10d<-\n",0);} catch (invfmt) {err ();}
-put ("#0 10d: "); try {putf ("->%#0 10d<-\n",4);} catch (invfmt) {err ();}
-put ("0 10d: "); try {putf ("->%0 10d<-\n",-4);} catch (invfmt) {err ();}
-put ("0 10d: "); try {putf ("->%0 10d<-\n",0);} catch (invfmt) {err ();}
-put ("0 10d: "); try {putf ("->%0 10d<-\n",4);} catch (invfmt) {err ();}
-put ("# 10d: "); try {putf ("->%# 10d<-\n",-4);} catch (invfmt) {err ();}
-put ("# 10d: "); try {putf ("->%# 10d<-\n",0);} catch (invfmt) {err ();}
-put ("# 10d: "); try {putf ("->%# 10d<-\n",4);} catch (invfmt) {err ();}
-put (" 10d: "); try {putf ("->% 10d<-\n",-4);} catch (invfmt) {err ();}
-put (" 10d: "); try {putf ("->% 10d<-\n",0);} catch (invfmt) {err ();}
-put (" 10d: "); try {putf ("->% 10d<-\n",4);} catch (invfmt) {err ();}
-put ("#0-10d: "); try {putf ("->%#0-10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-10d: "); try {putf ("->%#0-10d<-\n",0);} catch (invfmt) {err ();}
-put ("#0-10d: "); try {putf ("->%#0-10d<-\n",4);} catch (invfmt) {err ();}
-put ("0-10d: "); try {putf ("->%0-10d<-\n",-4);} catch (invfmt) {err ();}
-put ("0-10d: "); try {putf ("->%0-10d<-\n",0);} catch (invfmt) {err ();}
-put ("0-10d: "); try {putf ("->%0-10d<-\n",4);} catch (invfmt) {err ();}
-put ("#-10d: "); try {putf ("->%#-10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#-10d: "); try {putf ("->%#-10d<-\n",0);} catch (invfmt) {err ();}
-put ("#-10d: "); try {putf ("->%#-10d<-\n",4);} catch (invfmt) {err ();}
-put ("-10d: "); try {putf ("->%-10d<-\n",-4);} catch (invfmt) {err ();}
-put ("-10d: "); try {putf ("->%-10d<-\n",0);} catch (invfmt) {err ();}
-put ("-10d: "); try {putf ("->%-10d<-\n",4);} catch (invfmt) {err ();}
-put ("#010d: "); try {putf ("->%#010d<-\n",-4);} catch (invfmt) {err ();}
-put ("#010d: "); try {putf ("->%#010d<-\n",0);} catch (invfmt) {err ();}
-put ("#010d: "); try {putf ("->%#010d<-\n",4);} catch (invfmt) {err ();}
-put ("010d: "); try {putf ("->%010d<-\n",-4);} catch (invfmt) {err ();}
-put ("010d: "); try {putf ("->%010d<-\n",0);} catch (invfmt) {err ();}
-put ("010d: "); try {putf ("->%010d<-\n",4);} catch (invfmt) {err ();}
-put ("#10d: "); try {putf ("->%#10d<-\n",-4);} catch (invfmt) {err ();}
-put ("#10d: "); try {putf ("->%#10d<-\n",0);} catch (invfmt) {err ();}
-put ("#10d: "); try {putf ("->%#10d<-\n",4);} catch (invfmt) {err ();}
-put ("10d: "); try {putf ("->%10d<-\n",-4);} catch (invfmt) {err ();}
-put ("10d: "); try {putf ("->%10d<-\n",0);} catch (invfmt) {err ();}
-put ("10d: "); try {putf ("->%10d<-\n",4);} catch (invfmt) {err ();}
-put ("#0- +10o: "); try {putf ("->%#0- +10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- +10o: "); try {putf ("->%#0- +10o<-\n",0);} catch (invfmt) {err ();}
-put ("#0- +10o: "); try {putf ("->%#0- +10o<-\n",4);} catch (invfmt) {err ();}
-put ("0- +10o: "); try {putf ("->%0- +10o<-\n",-4);} catch (invfmt) {err ();}
-put ("0- +10o: "); try {putf ("->%0- +10o<-\n",0);} catch (invfmt) {err ();}
-put ("0- +10o: "); try {putf ("->%0- +10o<-\n",4);} catch (invfmt) {err ();}
-put ("#- +10o: "); try {putf ("->%#- +10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#- +10o: "); try {putf ("->%#- +10o<-\n",0);} catch (invfmt) {err ();}
-put ("#- +10o: "); try {putf ("->%#- +10o<-\n",4);} catch (invfmt) {err ();}
-put ("- +10o: "); try {putf ("->%- +10o<-\n",-4);} catch (invfmt) {err ();}
-put ("- +10o: "); try {putf ("->%- +10o<-\n",0);} catch (invfmt) {err ();}
-put ("- +10o: "); try {putf ("->%- +10o<-\n",4);} catch (invfmt) {err ();}
-put ("#0 +10o: "); try {putf ("->%#0 +10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 +10o: "); try {putf ("->%#0 +10o<-\n",0);} catch (invfmt) {err ();}
-put ("#0 +10o: "); try {putf ("->%#0 +10o<-\n",4);} catch (invfmt) {err ();}
-put ("0 +10o: "); try {putf ("->%0 +10o<-\n",-4);} catch (invfmt) {err ();}
-put ("0 +10o: "); try {putf ("->%0 +10o<-\n",0);} catch (invfmt) {err ();}
-put ("0 +10o: "); try {putf ("->%0 +10o<-\n",4);} catch (invfmt) {err ();}
-put ("# +10o: "); try {putf ("->%# +10o<-\n",-4);} catch (invfmt) {err ();}
-put ("# +10o: "); try {putf ("->%# +10o<-\n",0);} catch (invfmt) {err ();}
-put ("# +10o: "); try {putf ("->%# +10o<-\n",4);} catch (invfmt) {err ();}
-put (" +10o: "); try {putf ("->% +10o<-\n",-4);} catch (invfmt) {err ();}
-put (" +10o: "); try {putf ("->% +10o<-\n",0);} catch (invfmt) {err ();}
-put (" +10o: "); try {putf ("->% +10o<-\n",4);} catch (invfmt) {err ();}
-put ("#0-+10o: "); try {putf ("->%#0-+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-+10o: "); try {putf ("->%#0-+10o<-\n",0);} catch (invfmt) {err ();}
-put ("#0-+10o: "); try {putf ("->%#0-+10o<-\n",4);} catch (invfmt) {err ();}
-put ("0-+10o: "); try {putf ("->%0-+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("0-+10o: "); try {putf ("->%0-+10o<-\n",0);} catch (invfmt) {err ();}
-put ("0-+10o: "); try {putf ("->%0-+10o<-\n",4);} catch (invfmt) {err ();}
-put ("#-+10o: "); try {putf ("->%#-+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#-+10o: "); try {putf ("->%#-+10o<-\n",0);} catch (invfmt) {err ();}
-put ("#-+10o: "); try {putf ("->%#-+10o<-\n",4);} catch (invfmt) {err ();}
-put ("-+10o: "); try {putf ("->%-+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("-+10o: "); try {putf ("->%-+10o<-\n",0);} catch (invfmt) {err ();}
-put ("-+10o: "); try {putf ("->%-+10o<-\n",4);} catch (invfmt) {err ();}
-put ("#0+10o: "); try {putf ("->%#0+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#0+10o: "); try {putf ("->%#0+10o<-\n",0);} catch (invfmt) {err ();}
-put ("#0+10o: "); try {putf ("->%#0+10o<-\n",4);} catch (invfmt) {err ();}
-put ("0+10o: "); try {putf ("->%0+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("0+10o: "); try {putf ("->%0+10o<-\n",0);} catch (invfmt) {err ();}
-put ("0+10o: "); try {putf ("->%0+10o<-\n",4);} catch (invfmt) {err ();}
-put ("#+10o: "); try {putf ("->%#+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#+10o: "); try {putf ("->%#+10o<-\n",0);} catch (invfmt) {err ();}
-put ("#+10o: "); try {putf ("->%#+10o<-\n",4);} catch (invfmt) {err ();}
-put ("+10o: "); try {putf ("->%+10o<-\n",-4);} catch (invfmt) {err ();}
-put ("+10o: "); try {putf ("->%+10o<-\n",0);} catch (invfmt) {err ();}
-put ("+10o: "); try {putf ("->%+10o<-\n",4);} catch (invfmt) {err ();}
-put ("#0- 10o: "); try {putf ("->%#0- 10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- 10o: "); try {putf ("->%#0- 10o<-\n",0);} catch (invfmt) {err ();}
-put ("#0- 10o: "); try {putf ("->%#0- 10o<-\n",4);} catch (invfmt) {err ();}
-put ("0- 10o: "); try {putf ("->%0- 10o<-\n",-4);} catch (invfmt) {err ();}
-put ("0- 10o: "); try {putf ("->%0- 10o<-\n",0);} catch (invfmt) {err ();}
-put ("0- 10o: "); try {putf ("->%0- 10o<-\n",4);} catch (invfmt) {err ();}
-put ("#- 10o: "); try {putf ("->%#- 10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#- 10o: "); try {putf ("->%#- 10o<-\n",0);} catch (invfmt) {err ();}
-put ("#- 10o: "); try {putf ("->%#- 10o<-\n",4);} catch (invfmt) {err ();}
-put ("- 10o: "); try {putf ("->%- 10o<-\n",-4);} catch (invfmt) {err ();}
-put ("- 10o: "); try {putf ("->%- 10o<-\n",0);} catch (invfmt) {err ();}
-put ("- 10o: "); try {putf ("->%- 10o<-\n",4);} catch (invfmt) {err ();}
-put ("#0 10o: "); try {putf ("->%#0 10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 10o: "); try {putf ("->%#0 10o<-\n",0);} catch (invfmt) {err ();}
-put ("#0 10o: "); try {putf ("->%#0 10o<-\n",4);} catch (invfmt) {err ();}
-put ("0 10o: "); try {putf ("->%0 10o<-\n",-4);} catch (invfmt) {err ();}
-put ("0 10o: "); try {putf ("->%0 10o<-\n",0);} catch (invfmt) {err ();}
-put ("0 10o: "); try {putf ("->%0 10o<-\n",4);} catch (invfmt) {err ();}
-put ("# 10o: "); try {putf ("->%# 10o<-\n",-4);} catch (invfmt) {err ();}
-put ("# 10o: "); try {putf ("->%# 10o<-\n",0);} catch (invfmt) {err ();}
-put ("# 10o: "); try {putf ("->%# 10o<-\n",4);} catch (invfmt) {err ();}
-put (" 10o: "); try {putf ("->% 10o<-\n",-4);} catch (invfmt) {err ();}
-put (" 10o: "); try {putf ("->% 10o<-\n",0);} catch (invfmt) {err ();}
-put (" 10o: "); try {putf ("->% 10o<-\n",4);} catch (invfmt) {err ();}
-put ("#0-10o: "); try {putf ("->%#0-10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-10o: "); try {putf ("->%#0-10o<-\n",0);} catch (invfmt) {err ();}
-put ("#0-10o: "); try {putf ("->%#0-10o<-\n",4);} catch (invfmt) {err ();}
-put ("0-10o: "); try {putf ("->%0-10o<-\n",-4);} catch (invfmt) {err ();}
-put ("0-10o: "); try {putf ("->%0-10o<-\n",0);} catch (invfmt) {err ();}
-put ("0-10o: "); try {putf ("->%0-10o<-\n",4);} catch (invfmt) {err ();}
-put ("#-10o: "); try {putf ("->%#-10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#-10o: "); try {putf ("->%#-10o<-\n",0);} catch (invfmt) {err ();}
-put ("#-10o: "); try {putf ("->%#-10o<-\n",4);} catch (invfmt) {err ();}
-put ("-10o: "); try {putf ("->%-10o<-\n",-4);} catch (invfmt) {err ();}
-put ("-10o: "); try {putf ("->%-10o<-\n",0);} catch (invfmt) {err ();}
-put ("-10o: "); try {putf ("->%-10o<-\n",4);} catch (invfmt) {err ();}
-put ("#010o: "); try {putf ("->%#010o<-\n",-4);} catch (invfmt) {err ();}
-put ("#010o: "); try {putf ("->%#010o<-\n",0);} catch (invfmt) {err ();}
-put ("#010o: "); try {putf ("->%#010o<-\n",4);} catch (invfmt) {err ();}
-put ("010o: "); try {putf ("->%010o<-\n",-4);} catch (invfmt) {err ();}
-put ("010o: "); try {putf ("->%010o<-\n",0);} catch (invfmt) {err ();}
-put ("010o: "); try {putf ("->%010o<-\n",4);} catch (invfmt) {err ();}
-put ("#10o: "); try {putf ("->%#10o<-\n",-4);} catch (invfmt) {err ();}
-put ("#10o: "); try {putf ("->%#10o<-\n",0);} catch (invfmt) {err ();}
-put ("#10o: "); try {putf ("->%#10o<-\n",4);} catch (invfmt) {err ();}
-put ("10o: "); try {putf ("->%10o<-\n",-4);} catch (invfmt) {err ();}
-put ("10o: "); try {putf ("->%10o<-\n",0);} catch (invfmt) {err ();}
-put ("10o: "); try {putf ("->%10o<-\n",4);} catch (invfmt) {err ();}
-put ("#0- +10x: "); try {putf ("->%#0- +10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- +10x: "); try {putf ("->%#0- +10x<-\n",0);} catch (invfmt) {err ();}
-put ("#0- +10x: "); try {putf ("->%#0- +10x<-\n",4);} catch (invfmt) {err ();}
-put ("0- +10x: "); try {putf ("->%0- +10x<-\n",-4);} catch (invfmt) {err ();}
-put ("0- +10x: "); try {putf ("->%0- +10x<-\n",0);} catch (invfmt) {err ();}
-put ("0- +10x: "); try {putf ("->%0- +10x<-\n",4);} catch (invfmt) {err ();}
-put ("#- +10x: "); try {putf ("->%#- +10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#- +10x: "); try {putf ("->%#- +10x<-\n",0);} catch (invfmt) {err ();}
-put ("#- +10x: "); try {putf ("->%#- +10x<-\n",4);} catch (invfmt) {err ();}
-put ("- +10x: "); try {putf ("->%- +10x<-\n",-4);} catch (invfmt) {err ();}
-put ("- +10x: "); try {putf ("->%- +10x<-\n",0);} catch (invfmt) {err ();}
-put ("- +10x: "); try {putf ("->%- +10x<-\n",4);} catch (invfmt) {err ();}
-put ("#0 +10x: "); try {putf ("->%#0 +10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 +10x: "); try {putf ("->%#0 +10x<-\n",0);} catch (invfmt) {err ();}
-put ("#0 +10x: "); try {putf ("->%#0 +10x<-\n",4);} catch (invfmt) {err ();}
-put ("0 +10x: "); try {putf ("->%0 +10x<-\n",-4);} catch (invfmt) {err ();}
-put ("0 +10x: "); try {putf ("->%0 +10x<-\n",0);} catch (invfmt) {err ();}
-put ("0 +10x: "); try {putf ("->%0 +10x<-\n",4);} catch (invfmt) {err ();}
-put ("# +10x: "); try {putf ("->%# +10x<-\n",-4);} catch (invfmt) {err ();}
-put ("# +10x: "); try {putf ("->%# +10x<-\n",0);} catch (invfmt) {err ();}
-put ("# +10x: "); try {putf ("->%# +10x<-\n",4);} catch (invfmt) {err ();}
-put (" +10x: "); try {putf ("->% +10x<-\n",-4);} catch (invfmt) {err ();}
-put (" +10x: "); try {putf ("->% +10x<-\n",0);} catch (invfmt) {err ();}
-put (" +10x: "); try {putf ("->% +10x<-\n",4);} catch (invfmt) {err ();}
-put ("#0-+10x: "); try {putf ("->%#0-+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-+10x: "); try {putf ("->%#0-+10x<-\n",0);} catch (invfmt) {err ();}
-put ("#0-+10x: "); try {putf ("->%#0-+10x<-\n",4);} catch (invfmt) {err ();}
-put ("0-+10x: "); try {putf ("->%0-+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("0-+10x: "); try {putf ("->%0-+10x<-\n",0);} catch (invfmt) {err ();}
-put ("0-+10x: "); try {putf ("->%0-+10x<-\n",4);} catch (invfmt) {err ();}
-put ("#-+10x: "); try {putf ("->%#-+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#-+10x: "); try {putf ("->%#-+10x<-\n",0);} catch (invfmt) {err ();}
-put ("#-+10x: "); try {putf ("->%#-+10x<-\n",4);} catch (invfmt) {err ();}
-put ("-+10x: "); try {putf ("->%-+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("-+10x: "); try {putf ("->%-+10x<-\n",0);} catch (invfmt) {err ();}
-put ("-+10x: "); try {putf ("->%-+10x<-\n",4);} catch (invfmt) {err ();}
-put ("#0+10x: "); try {putf ("->%#0+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#0+10x: "); try {putf ("->%#0+10x<-\n",0);} catch (invfmt) {err ();}
-put ("#0+10x: "); try {putf ("->%#0+10x<-\n",4);} catch (invfmt) {err ();}
-put ("0+10x: "); try {putf ("->%0+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("0+10x: "); try {putf ("->%0+10x<-\n",0);} catch (invfmt) {err ();}
-put ("0+10x: "); try {putf ("->%0+10x<-\n",4);} catch (invfmt) {err ();}
-put ("#+10x: "); try {putf ("->%#+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#+10x: "); try {putf ("->%#+10x<-\n",0);} catch (invfmt) {err ();}
-put ("#+10x: "); try {putf ("->%#+10x<-\n",4);} catch (invfmt) {err ();}
-put ("+10x: "); try {putf ("->%+10x<-\n",-4);} catch (invfmt) {err ();}
-put ("+10x: "); try {putf ("->%+10x<-\n",0);} catch (invfmt) {err ();}
-put ("+10x: "); try {putf ("->%+10x<-\n",4);} catch (invfmt) {err ();}
-put ("#0- 10x: "); try {putf ("->%#0- 10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- 10x: "); try {putf ("->%#0- 10x<-\n",0);} catch (invfmt) {err ();}
-put ("#0- 10x: "); try {putf ("->%#0- 10x<-\n",4);} catch (invfmt) {err ();}
-put ("0- 10x: "); try {putf ("->%0- 10x<-\n",-4);} catch (invfmt) {err ();}
-put ("0- 10x: "); try {putf ("->%0- 10x<-\n",0);} catch (invfmt) {err ();}
-put ("0- 10x: "); try {putf ("->%0- 10x<-\n",4);} catch (invfmt) {err ();}
-put ("#- 10x: "); try {putf ("->%#- 10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#- 10x: "); try {putf ("->%#- 10x<-\n",0);} catch (invfmt) {err ();}
-put ("#- 10x: "); try {putf ("->%#- 10x<-\n",4);} catch (invfmt) {err ();}
-put ("- 10x: "); try {putf ("->%- 10x<-\n",-4);} catch (invfmt) {err ();}
-put ("- 10x: "); try {putf ("->%- 10x<-\n",0);} catch (invfmt) {err ();}
-put ("- 10x: "); try {putf ("->%- 10x<-\n",4);} catch (invfmt) {err ();}
-put ("#0 10x: "); try {putf ("->%#0 10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 10x: "); try {putf ("->%#0 10x<-\n",0);} catch (invfmt) {err ();}
-put ("#0 10x: "); try {putf ("->%#0 10x<-\n",4);} catch (invfmt) {err ();}
-put ("0 10x: "); try {putf ("->%0 10x<-\n",-4);} catch (invfmt) {err ();}
-put ("0 10x: "); try {putf ("->%0 10x<-\n",0);} catch (invfmt) {err ();}
-put ("0 10x: "); try {putf ("->%0 10x<-\n",4);} catch (invfmt) {err ();}
-put ("# 10x: "); try {putf ("->%# 10x<-\n",-4);} catch (invfmt) {err ();}
-put ("# 10x: "); try {putf ("->%# 10x<-\n",0);} catch (invfmt) {err ();}
-put ("# 10x: "); try {putf ("->%# 10x<-\n",4);} catch (invfmt) {err ();}
-put (" 10x: "); try {putf ("->% 10x<-\n",-4);} catch (invfmt) {err ();}
-put (" 10x: "); try {putf ("->% 10x<-\n",0);} catch (invfmt) {err ();}
-put (" 10x: "); try {putf ("->% 10x<-\n",4);} catch (invfmt) {err ();}
-put ("#0-10x: "); try {putf ("->%#0-10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-10x: "); try {putf ("->%#0-10x<-\n",0);} catch (invfmt) {err ();}
-put ("#0-10x: "); try {putf ("->%#0-10x<-\n",4);} catch (invfmt) {err ();}
-put ("0-10x: "); try {putf ("->%0-10x<-\n",-4);} catch (invfmt) {err ();}
-put ("0-10x: "); try {putf ("->%0-10x<-\n",0);} catch (invfmt) {err ();}
-put ("0-10x: "); try {putf ("->%0-10x<-\n",4);} catch (invfmt) {err ();}
-put ("#-10x: "); try {putf ("->%#-10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#-10x: "); try {putf ("->%#-10x<-\n",0);} catch (invfmt) {err ();}
-put ("#-10x: "); try {putf ("->%#-10x<-\n",4);} catch (invfmt) {err ();}
-put ("-10x: "); try {putf ("->%-10x<-\n",-4);} catch (invfmt) {err ();}
-put ("-10x: "); try {putf ("->%-10x<-\n",0);} catch (invfmt) {err ();}
-put ("-10x: "); try {putf ("->%-10x<-\n",4);} catch (invfmt) {err ();}
-put ("#010x: "); try {putf ("->%#010x<-\n",-4);} catch (invfmt) {err ();}
-put ("#010x: "); try {putf ("->%#010x<-\n",0);} catch (invfmt) {err ();}
-put ("#010x: "); try {putf ("->%#010x<-\n",4);} catch (invfmt) {err ();}
-put ("010x: "); try {putf ("->%010x<-\n",-4);} catch (invfmt) {err ();}
-put ("010x: "); try {putf ("->%010x<-\n",0);} catch (invfmt) {err ();}
-put ("010x: "); try {putf ("->%010x<-\n",4);} catch (invfmt) {err ();}
-put ("#10x: "); try {putf ("->%#10x<-\n",-4);} catch (invfmt) {err ();}
-put ("#10x: "); try {putf ("->%#10x<-\n",0);} catch (invfmt) {err ();}
-put ("#10x: "); try {putf ("->%#10x<-\n",4);} catch (invfmt) {err ();}
-put ("10x: "); try {putf ("->%10x<-\n",-4);} catch (invfmt) {err ();}
-put ("10x: "); try {putf ("->%10x<-\n",0);} catch (invfmt) {err ();}
-put ("10x: "); try {putf ("->%10x<-\n",4);} catch (invfmt) {err ();}
-put ("#0- +10X: "); try {putf ("->%#0- +10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- +10X: "); try {putf ("->%#0- +10X<-\n",0);} catch (invfmt) {err ();}
-put ("#0- +10X: "); try {putf ("->%#0- +10X<-\n",4);} catch (invfmt) {err ();}
-put ("0- +10X: "); try {putf ("->%0- +10X<-\n",-4);} catch (invfmt) {err ();}
-put ("0- +10X: "); try {putf ("->%0- +10X<-\n",0);} catch (invfmt) {err ();}
-put ("0- +10X: "); try {putf ("->%0- +10X<-\n",4);} catch (invfmt) {err ();}
-put ("#- +10X: "); try {putf ("->%#- +10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#- +10X: "); try {putf ("->%#- +10X<-\n",0);} catch (invfmt) {err ();}
-put ("#- +10X: "); try {putf ("->%#- +10X<-\n",4);} catch (invfmt) {err ();}
-put ("- +10X: "); try {putf ("->%- +10X<-\n",-4);} catch (invfmt) {err ();}
-put ("- +10X: "); try {putf ("->%- +10X<-\n",0);} catch (invfmt) {err ();}
-put ("- +10X: "); try {putf ("->%- +10X<-\n",4);} catch (invfmt) {err ();}
-put ("#0 +10X: "); try {putf ("->%#0 +10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 +10X: "); try {putf ("->%#0 +10X<-\n",0);} catch (invfmt) {err ();}
-put ("#0 +10X: "); try {putf ("->%#0 +10X<-\n",4);} catch (invfmt) {err ();}
-put ("0 +10X: "); try {putf ("->%0 +10X<-\n",-4);} catch (invfmt) {err ();}
-put ("0 +10X: "); try {putf ("->%0 +10X<-\n",0);} catch (invfmt) {err ();}
-put ("0 +10X: "); try {putf ("->%0 +10X<-\n",4);} catch (invfmt) {err ();}
-put ("# +10X: "); try {putf ("->%# +10X<-\n",-4);} catch (invfmt) {err ();}
-put ("# +10X: "); try {putf ("->%# +10X<-\n",0);} catch (invfmt) {err ();}
-put ("# +10X: "); try {putf ("->%# +10X<-\n",4);} catch (invfmt) {err ();}
-put (" +10X: "); try {putf ("->% +10X<-\n",-4);} catch (invfmt) {err ();}
-put (" +10X: "); try {putf ("->% +10X<-\n",0);} catch (invfmt) {err ();}
-put (" +10X: "); try {putf ("->% +10X<-\n",4);} catch (invfmt) {err ();}
-put ("#0-+10X: "); try {putf ("->%#0-+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-+10X: "); try {putf ("->%#0-+10X<-\n",0);} catch (invfmt) {err ();}
-put ("#0-+10X: "); try {putf ("->%#0-+10X<-\n",4);} catch (invfmt) {err ();}
-put ("0-+10X: "); try {putf ("->%0-+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("0-+10X: "); try {putf ("->%0-+10X<-\n",0);} catch (invfmt) {err ();}
-put ("0-+10X: "); try {putf ("->%0-+10X<-\n",4);} catch (invfmt) {err ();}
-put ("#-+10X: "); try {putf ("->%#-+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#-+10X: "); try {putf ("->%#-+10X<-\n",0);} catch (invfmt) {err ();}
-put ("#-+10X: "); try {putf ("->%#-+10X<-\n",4);} catch (invfmt) {err ();}
-put ("-+10X: "); try {putf ("->%-+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("-+10X: "); try {putf ("->%-+10X<-\n",0);} catch (invfmt) {err ();}
-put ("-+10X: "); try {putf ("->%-+10X<-\n",4);} catch (invfmt) {err ();}
-put ("#0+10X: "); try {putf ("->%#0+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#0+10X: "); try {putf ("->%#0+10X<-\n",0);} catch (invfmt) {err ();}
-put ("#0+10X: "); try {putf ("->%#0+10X<-\n",4);} catch (invfmt) {err ();}
-put ("0+10X: "); try {putf ("->%0+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("0+10X: "); try {putf ("->%0+10X<-\n",0);} catch (invfmt) {err ();}
-put ("0+10X: "); try {putf ("->%0+10X<-\n",4);} catch (invfmt) {err ();}
-put ("#+10X: "); try {putf ("->%#+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#+10X: "); try {putf ("->%#+10X<-\n",0);} catch (invfmt) {err ();}
-put ("#+10X: "); try {putf ("->%#+10X<-\n",4);} catch (invfmt) {err ();}
-put ("+10X: "); try {putf ("->%+10X<-\n",-4);} catch (invfmt) {err ();}
-put ("+10X: "); try {putf ("->%+10X<-\n",0);} catch (invfmt) {err ();}
-put ("+10X: "); try {putf ("->%+10X<-\n",4);} catch (invfmt) {err ();}
-put ("#0- 10X: "); try {putf ("->%#0- 10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#0- 10X: "); try {putf ("->%#0- 10X<-\n",0);} catch (invfmt) {err ();}
-put ("#0- 10X: "); try {putf ("->%#0- 10X<-\n",4);} catch (invfmt) {err ();}
-put ("0- 10X: "); try {putf ("->%0- 10X<-\n",-4);} catch (invfmt) {err ();}
-put ("0- 10X: "); try {putf ("->%0- 10X<-\n",0);} catch (invfmt) {err ();}
-put ("0- 10X: "); try {putf ("->%0- 10X<-\n",4);} catch (invfmt) {err ();}
-put ("#- 10X: "); try {putf ("->%#- 10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#- 10X: "); try {putf ("->%#- 10X<-\n",0);} catch (invfmt) {err ();}
-put ("#- 10X: "); try {putf ("->%#- 10X<-\n",4);} catch (invfmt) {err ();}
-put ("- 10X: "); try {putf ("->%- 10X<-\n",-4);} catch (invfmt) {err ();}
-put ("- 10X: "); try {putf ("->%- 10X<-\n",0);} catch (invfmt) {err ();}
-put ("- 10X: "); try {putf ("->%- 10X<-\n",4);} catch (invfmt) {err ();}
-put ("#0 10X: "); try {putf ("->%#0 10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#0 10X: "); try {putf ("->%#0 10X<-\n",0);} catch (invfmt) {err ();}
-put ("#0 10X: "); try {putf ("->%#0 10X<-\n",4);} catch (invfmt) {err ();}
-put ("0 10X: "); try {putf ("->%0 10X<-\n",-4);} catch (invfmt) {err ();}
-put ("0 10X: "); try {putf ("->%0 10X<-\n",0);} catch (invfmt) {err ();}
-put ("0 10X: "); try {putf ("->%0 10X<-\n",4);} catch (invfmt) {err ();}
-put ("# 10X: "); try {putf ("->%# 10X<-\n",-4);} catch (invfmt) {err ();}
-put ("# 10X: "); try {putf ("->%# 10X<-\n",0);} catch (invfmt) {err ();}
-put ("# 10X: "); try {putf ("->%# 10X<-\n",4);} catch (invfmt) {err ();}
-put (" 10X: "); try {putf ("->% 10X<-\n",-4);} catch (invfmt) {err ();}
-put (" 10X: "); try {putf ("->% 10X<-\n",0);} catch (invfmt) {err ();}
-put (" 10X: "); try {putf ("->% 10X<-\n",4);} catch (invfmt) {err ();}
-put ("#0-10X: "); try {putf ("->%#0-10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#0-10X: "); try {putf ("->%#0-10X<-\n",0);} catch (invfmt) {err ();}
-put ("#0-10X: "); try {putf ("->%#0-10X<-\n",4);} catch (invfmt) {err ();}
-put ("0-10X: "); try {putf ("->%0-10X<-\n",-4);} catch (invfmt) {err ();}
-put ("0-10X: "); try {putf ("->%0-10X<-\n",0);} catch (invfmt) {err ();}
-put ("0-10X: "); try {putf ("->%0-10X<-\n",4);} catch (invfmt) {err ();}
-put ("#-10X: "); try {putf ("->%#-10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#-10X: "); try {putf ("->%#-10X<-\n",0);} catch (invfmt) {err ();}
-put ("#-10X: "); try {putf ("->%#-10X<-\n",4);} catch (invfmt) {err ();}
-put ("-10X: "); try {putf ("->%-10X<-\n",-4);} catch (invfmt) {err ();}
-put ("-10X: "); try {putf ("->%-10X<-\n",0);} catch (invfmt) {err ();}
-put ("-10X: "); try {putf ("->%-10X<-\n",4);} catch (invfmt) {err ();}
-put ("#010X: "); try {putf ("->%#010X<-\n",-4);} catch (invfmt) {err ();}
-put ("#010X: "); try {putf ("->%#010X<-\n",0);} catch (invfmt) {err ();}
-put ("#010X: "); try {putf ("->%#010X<-\n",4);} catch (invfmt) {err ();}
-put ("010X: "); try {putf ("->%010X<-\n",-4);} catch (invfmt) {err ();}
-put ("010X: "); try {putf ("->%010X<-\n",0);} catch (invfmt) {err ();}
-put ("010X: "); try {putf ("->%010X<-\n",4);} catch (invfmt) {err ();}
-put ("#10X: "); try {putf ("->%#10X<-\n",-4);} catch (invfmt) {err ();}
-put ("#10X: "); try {putf ("->%#10X<-\n",0);} catch (invfmt) {err ();}
-put ("#10X: "); try {putf ("->%#10X<-\n",4);} catch (invfmt) {err ();}
-put ("10X: "); try {putf ("->%10X<-\n",-4);} catch (invfmt) {err ();}
-put ("10X: "); try {putf ("->%10X<-\n",0);} catch (invfmt) {err ();}
-put ("10X: "); try {putf ("->%10X<-\n",4);} catch (invfmt) {err ();}
+put ("#0- +20d: "); try {putf ("->%#0- +20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- +20d: "); try {putf ("->%#0- +20d<-\n",0);} catch (invfmt) {err ();}
+put ("#0- +20d: "); try {putf ("->%#0- +20d<-\n",4);} catch (invfmt) {err ();}
+put ("0- +20d: "); try {putf ("->%0- +20d<-\n",-4);} catch (invfmt) {err ();}
+put ("0- +20d: "); try {putf ("->%0- +20d<-\n",0);} catch (invfmt) {err ();}
+put ("0- +20d: "); try {putf ("->%0- +20d<-\n",4);} catch (invfmt) {err ();}
+put ("#- +20d: "); try {putf ("->%#- +20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#- +20d: "); try {putf ("->%#- +20d<-\n",0);} catch (invfmt) {err ();}
+put ("#- +20d: "); try {putf ("->%#- +20d<-\n",4);} catch (invfmt) {err ();}
+put ("- +20d: "); try {putf ("->%- +20d<-\n",-4);} catch (invfmt) {err ();}
+put ("- +20d: "); try {putf ("->%- +20d<-\n",0);} catch (invfmt) {err ();}
+put ("- +20d: "); try {putf ("->%- +20d<-\n",4);} catch (invfmt) {err ();}
+put ("#0 +20d: "); try {putf ("->%#0 +20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 +20d: "); try {putf ("->%#0 +20d<-\n",0);} catch (invfmt) {err ();}
+put ("#0 +20d: "); try {putf ("->%#0 +20d<-\n",4);} catch (invfmt) {err ();}
+put ("0 +20d: "); try {putf ("->%0 +20d<-\n",-4);} catch (invfmt) {err ();}
+put ("0 +20d: "); try {putf ("->%0 +20d<-\n",0);} catch (invfmt) {err ();}
+put ("0 +20d: "); try {putf ("->%0 +20d<-\n",4);} catch (invfmt) {err ();}
+put ("# +20d: "); try {putf ("->%# +20d<-\n",-4);} catch (invfmt) {err ();}
+put ("# +20d: "); try {putf ("->%# +20d<-\n",0);} catch (invfmt) {err ();}
+put ("# +20d: "); try {putf ("->%# +20d<-\n",4);} catch (invfmt) {err ();}
+put (" +20d: "); try {putf ("->% +20d<-\n",-4);} catch (invfmt) {err ();}
+put (" +20d: "); try {putf ("->% +20d<-\n",0);} catch (invfmt) {err ();}
+put (" +20d: "); try {putf ("->% +20d<-\n",4);} catch (invfmt) {err ();}
+put ("#0-+20d: "); try {putf ("->%#0-+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-+20d: "); try {putf ("->%#0-+20d<-\n",0);} catch (invfmt) {err ();}
+put ("#0-+20d: "); try {putf ("->%#0-+20d<-\n",4);} catch (invfmt) {err ();}
+put ("0-+20d: "); try {putf ("->%0-+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("0-+20d: "); try {putf ("->%0-+20d<-\n",0);} catch (invfmt) {err ();}
+put ("0-+20d: "); try {putf ("->%0-+20d<-\n",4);} catch (invfmt) {err ();}
+put ("#-+20d: "); try {putf ("->%#-+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#-+20d: "); try {putf ("->%#-+20d<-\n",0);} catch (invfmt) {err ();}
+put ("#-+20d: "); try {putf ("->%#-+20d<-\n",4);} catch (invfmt) {err ();}
+put ("-+20d: "); try {putf ("->%-+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("-+20d: "); try {putf ("->%-+20d<-\n",0);} catch (invfmt) {err ();}
+put ("-+20d: "); try {putf ("->%-+20d<-\n",4);} catch (invfmt) {err ();}
+put ("#0+20d: "); try {putf ("->%#0+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#0+20d: "); try {putf ("->%#0+20d<-\n",0);} catch (invfmt) {err ();}
+put ("#0+20d: "); try {putf ("->%#0+20d<-\n",4);} catch (invfmt) {err ();}
+put ("0+20d: "); try {putf ("->%0+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("0+20d: "); try {putf ("->%0+20d<-\n",0);} catch (invfmt) {err ();}
+put ("0+20d: "); try {putf ("->%0+20d<-\n",4);} catch (invfmt) {err ();}
+put ("#+20d: "); try {putf ("->%#+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#+20d: "); try {putf ("->%#+20d<-\n",0);} catch (invfmt) {err ();}
+put ("#+20d: "); try {putf ("->%#+20d<-\n",4);} catch (invfmt) {err ();}
+put ("+20d: "); try {putf ("->%+20d<-\n",-4);} catch (invfmt) {err ();}
+put ("+20d: "); try {putf ("->%+20d<-\n",0);} catch (invfmt) {err ();}
+put ("+20d: "); try {putf ("->%+20d<-\n",4);} catch (invfmt) {err ();}
+put ("#0- 20d: "); try {putf ("->%#0- 20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- 20d: "); try {putf ("->%#0- 20d<-\n",0);} catch (invfmt) {err ();}
+put ("#0- 20d: "); try {putf ("->%#0- 20d<-\n",4);} catch (invfmt) {err ();}
+put ("0- 20d: "); try {putf ("->%0- 20d<-\n",-4);} catch (invfmt) {err ();}
+put ("0- 20d: "); try {putf ("->%0- 20d<-\n",0);} catch (invfmt) {err ();}
+put ("0- 20d: "); try {putf ("->%0- 20d<-\n",4);} catch (invfmt) {err ();}
+put ("#- 20d: "); try {putf ("->%#- 20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#- 20d: "); try {putf ("->%#- 20d<-\n",0);} catch (invfmt) {err ();}
+put ("#- 20d: "); try {putf ("->%#- 20d<-\n",4);} catch (invfmt) {err ();}
+put ("- 20d: "); try {putf ("->%- 20d<-\n",-4);} catch (invfmt) {err ();}
+put ("- 20d: "); try {putf ("->%- 20d<-\n",0);} catch (invfmt) {err ();}
+put ("- 20d: "); try {putf ("->%- 20d<-\n",4);} catch (invfmt) {err ();}
+put ("#0 20d: "); try {putf ("->%#0 20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 20d: "); try {putf ("->%#0 20d<-\n",0);} catch (invfmt) {err ();}
+put ("#0 20d: "); try {putf ("->%#0 20d<-\n",4);} catch (invfmt) {err ();}
+put ("0 20d: "); try {putf ("->%0 20d<-\n",-4);} catch (invfmt) {err ();}
+put ("0 20d: "); try {putf ("->%0 20d<-\n",0);} catch (invfmt) {err ();}
+put ("0 20d: "); try {putf ("->%0 20d<-\n",4);} catch (invfmt) {err ();}
+put ("# 20d: "); try {putf ("->%# 20d<-\n",-4);} catch (invfmt) {err ();}
+put ("# 20d: "); try {putf ("->%# 20d<-\n",0);} catch (invfmt) {err ();}
+put ("# 20d: "); try {putf ("->%# 20d<-\n",4);} catch (invfmt) {err ();}
+put (" 20d: "); try {putf ("->% 20d<-\n",-4);} catch (invfmt) {err ();}
+put (" 20d: "); try {putf ("->% 20d<-\n",0);} catch (invfmt) {err ();}
+put (" 20d: "); try {putf ("->% 20d<-\n",4);} catch (invfmt) {err ();}
+put ("#0-20d: "); try {putf ("->%#0-20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-20d: "); try {putf ("->%#0-20d<-\n",0);} catch (invfmt) {err ();}
+put ("#0-20d: "); try {putf ("->%#0-20d<-\n",4);} catch (invfmt) {err ();}
+put ("0-20d: "); try {putf ("->%0-20d<-\n",-4);} catch (invfmt) {err ();}
+put ("0-20d: "); try {putf ("->%0-20d<-\n",0);} catch (invfmt) {err ();}
+put ("0-20d: "); try {putf ("->%0-20d<-\n",4);} catch (invfmt) {err ();}
+put ("#-20d: "); try {putf ("->%#-20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#-20d: "); try {putf ("->%#-20d<-\n",0);} catch (invfmt) {err ();}
+put ("#-20d: "); try {putf ("->%#-20d<-\n",4);} catch (invfmt) {err ();}
+put ("-20d: "); try {putf ("->%-20d<-\n",-4);} catch (invfmt) {err ();}
+put ("-20d: "); try {putf ("->%-20d<-\n",0);} catch (invfmt) {err ();}
+put ("-20d: "); try {putf ("->%-20d<-\n",4);} catch (invfmt) {err ();}
+put ("#020d: "); try {putf ("->%#020d<-\n",-4);} catch (invfmt) {err ();}
+put ("#020d: "); try {putf ("->%#020d<-\n",0);} catch (invfmt) {err ();}
+put ("#020d: "); try {putf ("->%#020d<-\n",4);} catch (invfmt) {err ();}
+put ("020d: "); try {putf ("->%020d<-\n",-4);} catch (invfmt) {err ();}
+put ("020d: "); try {putf ("->%020d<-\n",0);} catch (invfmt) {err ();}
+put ("020d: "); try {putf ("->%020d<-\n",4);} catch (invfmt) {err ();}
+put ("#20d: "); try {putf ("->%#20d<-\n",-4);} catch (invfmt) {err ();}
+put ("#20d: "); try {putf ("->%#20d<-\n",0);} catch (invfmt) {err ();}
+put ("#20d: "); try {putf ("->%#20d<-\n",4);} catch (invfmt) {err ();}
+put ("20d: "); try {putf ("->%20d<-\n",-4);} catch (invfmt) {err ();}
+put ("20d: "); try {putf ("->%20d<-\n",0);} catch (invfmt) {err ();}
+put ("20d: "); try {putf ("->%20d<-\n",4);} catch (invfmt) {err ();}
+put ("#0- +20o: "); try {putf ("->%#0- +20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- +20o: "); try {putf ("->%#0- +20o<-\n",0);} catch (invfmt) {err ();}
+put ("#0- +20o: "); try {putf ("->%#0- +20o<-\n",4);} catch (invfmt) {err ();}
+put ("0- +20o: "); try {putf ("->%0- +20o<-\n",-4);} catch (invfmt) {err ();}
+put ("0- +20o: "); try {putf ("->%0- +20o<-\n",0);} catch (invfmt) {err ();}
+put ("0- +20o: "); try {putf ("->%0- +20o<-\n",4);} catch (invfmt) {err ();}
+put ("#- +20o: "); try {putf ("->%#- +20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#- +20o: "); try {putf ("->%#- +20o<-\n",0);} catch (invfmt) {err ();}
+put ("#- +20o: "); try {putf ("->%#- +20o<-\n",4);} catch (invfmt) {err ();}
+put ("- +20o: "); try {putf ("->%- +20o<-\n",-4);} catch (invfmt) {err ();}
+put ("- +20o: "); try {putf ("->%- +20o<-\n",0);} catch (invfmt) {err ();}
+put ("- +20o: "); try {putf ("->%- +20o<-\n",4);} catch (invfmt) {err ();}
+put ("#0 +20o: "); try {putf ("->%#0 +20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 +20o: "); try {putf ("->%#0 +20o<-\n",0);} catch (invfmt) {err ();}
+put ("#0 +20o: "); try {putf ("->%#0 +20o<-\n",4);} catch (invfmt) {err ();}
+put ("0 +20o: "); try {putf ("->%0 +20o<-\n",-4);} catch (invfmt) {err ();}
+put ("0 +20o: "); try {putf ("->%0 +20o<-\n",0);} catch (invfmt) {err ();}
+put ("0 +20o: "); try {putf ("->%0 +20o<-\n",4);} catch (invfmt) {err ();}
+put ("# +20o: "); try {putf ("->%# +20o<-\n",-4);} catch (invfmt) {err ();}
+put ("# +20o: "); try {putf ("->%# +20o<-\n",0);} catch (invfmt) {err ();}
+put ("# +20o: "); try {putf ("->%# +20o<-\n",4);} catch (invfmt) {err ();}
+put (" +20o: "); try {putf ("->% +20o<-\n",-4);} catch (invfmt) {err ();}
+put (" +20o: "); try {putf ("->% +20o<-\n",0);} catch (invfmt) {err ();}
+put (" +20o: "); try {putf ("->% +20o<-\n",4);} catch (invfmt) {err ();}
+put ("#0-+20o: "); try {putf ("->%#0-+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-+20o: "); try {putf ("->%#0-+20o<-\n",0);} catch (invfmt) {err ();}
+put ("#0-+20o: "); try {putf ("->%#0-+20o<-\n",4);} catch (invfmt) {err ();}
+put ("0-+20o: "); try {putf ("->%0-+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("0-+20o: "); try {putf ("->%0-+20o<-\n",0);} catch (invfmt) {err ();}
+put ("0-+20o: "); try {putf ("->%0-+20o<-\n",4);} catch (invfmt) {err ();}
+put ("#-+20o: "); try {putf ("->%#-+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#-+20o: "); try {putf ("->%#-+20o<-\n",0);} catch (invfmt) {err ();}
+put ("#-+20o: "); try {putf ("->%#-+20o<-\n",4);} catch (invfmt) {err ();}
+put ("-+20o: "); try {putf ("->%-+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("-+20o: "); try {putf ("->%-+20o<-\n",0);} catch (invfmt) {err ();}
+put ("-+20o: "); try {putf ("->%-+20o<-\n",4);} catch (invfmt) {err ();}
+put ("#0+20o: "); try {putf ("->%#0+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#0+20o: "); try {putf ("->%#0+20o<-\n",0);} catch (invfmt) {err ();}
+put ("#0+20o: "); try {putf ("->%#0+20o<-\n",4);} catch (invfmt) {err ();}
+put ("0+20o: "); try {putf ("->%0+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("0+20o: "); try {putf ("->%0+20o<-\n",0);} catch (invfmt) {err ();}
+put ("0+20o: "); try {putf ("->%0+20o<-\n",4);} catch (invfmt) {err ();}
+put ("#+20o: "); try {putf ("->%#+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#+20o: "); try {putf ("->%#+20o<-\n",0);} catch (invfmt) {err ();}
+put ("#+20o: "); try {putf ("->%#+20o<-\n",4);} catch (invfmt) {err ();}
+put ("+20o: "); try {putf ("->%+20o<-\n",-4);} catch (invfmt) {err ();}
+put ("+20o: "); try {putf ("->%+20o<-\n",0);} catch (invfmt) {err ();}
+put ("+20o: "); try {putf ("->%+20o<-\n",4);} catch (invfmt) {err ();}
+put ("#0- 20o: "); try {putf ("->%#0- 20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- 20o: "); try {putf ("->%#0- 20o<-\n",0);} catch (invfmt) {err ();}
+put ("#0- 20o: "); try {putf ("->%#0- 20o<-\n",4);} catch (invfmt) {err ();}
+put ("0- 20o: "); try {putf ("->%0- 20o<-\n",-4);} catch (invfmt) {err ();}
+put ("0- 20o: "); try {putf ("->%0- 20o<-\n",0);} catch (invfmt) {err ();}
+put ("0- 20o: "); try {putf ("->%0- 20o<-\n",4);} catch (invfmt) {err ();}
+put ("#- 20o: "); try {putf ("->%#- 20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#- 20o: "); try {putf ("->%#- 20o<-\n",0);} catch (invfmt) {err ();}
+put ("#- 20o: "); try {putf ("->%#- 20o<-\n",4);} catch (invfmt) {err ();}
+put ("- 20o: "); try {putf ("->%- 20o<-\n",-4);} catch (invfmt) {err ();}
+put ("- 20o: "); try {putf ("->%- 20o<-\n",0);} catch (invfmt) {err ();}
+put ("- 20o: "); try {putf ("->%- 20o<-\n",4);} catch (invfmt) {err ();}
+put ("#0 20o: "); try {putf ("->%#0 20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 20o: "); try {putf ("->%#0 20o<-\n",0);} catch (invfmt) {err ();}
+put ("#0 20o: "); try {putf ("->%#0 20o<-\n",4);} catch (invfmt) {err ();}
+put ("0 20o: "); try {putf ("->%0 20o<-\n",-4);} catch (invfmt) {err ();}
+put ("0 20o: "); try {putf ("->%0 20o<-\n",0);} catch (invfmt) {err ();}
+put ("0 20o: "); try {putf ("->%0 20o<-\n",4);} catch (invfmt) {err ();}
+put ("# 20o: "); try {putf ("->%# 20o<-\n",-4);} catch (invfmt) {err ();}
+put ("# 20o: "); try {putf ("->%# 20o<-\n",0);} catch (invfmt) {err ();}
+put ("# 20o: "); try {putf ("->%# 20o<-\n",4);} catch (invfmt) {err ();}
+put (" 20o: "); try {putf ("->% 20o<-\n",-4);} catch (invfmt) {err ();}
+put (" 20o: "); try {putf ("->% 20o<-\n",0);} catch (invfmt) {err ();}
+put (" 20o: "); try {putf ("->% 20o<-\n",4);} catch (invfmt) {err ();}
+put ("#0-20o: "); try {putf ("->%#0-20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-20o: "); try {putf ("->%#0-20o<-\n",0);} catch (invfmt) {err ();}
+put ("#0-20o: "); try {putf ("->%#0-20o<-\n",4);} catch (invfmt) {err ();}
+put ("0-20o: "); try {putf ("->%0-20o<-\n",-4);} catch (invfmt) {err ();}
+put ("0-20o: "); try {putf ("->%0-20o<-\n",0);} catch (invfmt) {err ();}
+put ("0-20o: "); try {putf ("->%0-20o<-\n",4);} catch (invfmt) {err ();}
+put ("#-20o: "); try {putf ("->%#-20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#-20o: "); try {putf ("->%#-20o<-\n",0);} catch (invfmt) {err ();}
+put ("#-20o: "); try {putf ("->%#-20o<-\n",4);} catch (invfmt) {err ();}
+put ("-20o: "); try {putf ("->%-20o<-\n",-4);} catch (invfmt) {err ();}
+put ("-20o: "); try {putf ("->%-20o<-\n",0);} catch (invfmt) {err ();}
+put ("-20o: "); try {putf ("->%-20o<-\n",4);} catch (invfmt) {err ();}
+put ("#020o: "); try {putf ("->%#020o<-\n",-4);} catch (invfmt) {err ();}
+put ("#020o: "); try {putf ("->%#020o<-\n",0);} catch (invfmt) {err ();}
+put ("#020o: "); try {putf ("->%#020o<-\n",4);} catch (invfmt) {err ();}
+put ("020o: "); try {putf ("->%020o<-\n",-4);} catch (invfmt) {err ();}
+put ("020o: "); try {putf ("->%020o<-\n",0);} catch (invfmt) {err ();}
+put ("020o: "); try {putf ("->%020o<-\n",4);} catch (invfmt) {err ();}
+put ("#20o: "); try {putf ("->%#20o<-\n",-4);} catch (invfmt) {err ();}
+put ("#20o: "); try {putf ("->%#20o<-\n",0);} catch (invfmt) {err ();}
+put ("#20o: "); try {putf ("->%#20o<-\n",4);} catch (invfmt) {err ();}
+put ("20o: "); try {putf ("->%20o<-\n",-4);} catch (invfmt) {err ();}
+put ("20o: "); try {putf ("->%20o<-\n",0);} catch (invfmt) {err ();}
+put ("20o: "); try {putf ("->%20o<-\n",4);} catch (invfmt) {err ();}
+put ("#0- +20x: "); try {putf ("->%#0- +20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- +20x: "); try {putf ("->%#0- +20x<-\n",0);} catch (invfmt) {err ();}
+put ("#0- +20x: "); try {putf ("->%#0- +20x<-\n",4);} catch (invfmt) {err ();}
+put ("0- +20x: "); try {putf ("->%0- +20x<-\n",-4);} catch (invfmt) {err ();}
+put ("0- +20x: "); try {putf ("->%0- +20x<-\n",0);} catch (invfmt) {err ();}
+put ("0- +20x: "); try {putf ("->%0- +20x<-\n",4);} catch (invfmt) {err ();}
+put ("#- +20x: "); try {putf ("->%#- +20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#- +20x: "); try {putf ("->%#- +20x<-\n",0);} catch (invfmt) {err ();}
+put ("#- +20x: "); try {putf ("->%#- +20x<-\n",4);} catch (invfmt) {err ();}
+put ("- +20x: "); try {putf ("->%- +20x<-\n",-4);} catch (invfmt) {err ();}
+put ("- +20x: "); try {putf ("->%- +20x<-\n",0);} catch (invfmt) {err ();}
+put ("- +20x: "); try {putf ("->%- +20x<-\n",4);} catch (invfmt) {err ();}
+put ("#0 +20x: "); try {putf ("->%#0 +20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 +20x: "); try {putf ("->%#0 +20x<-\n",0);} catch (invfmt) {err ();}
+put ("#0 +20x: "); try {putf ("->%#0 +20x<-\n",4);} catch (invfmt) {err ();}
+put ("0 +20x: "); try {putf ("->%0 +20x<-\n",-4);} catch (invfmt) {err ();}
+put ("0 +20x: "); try {putf ("->%0 +20x<-\n",0);} catch (invfmt) {err ();}
+put ("0 +20x: "); try {putf ("->%0 +20x<-\n",4);} catch (invfmt) {err ();}
+put ("# +20x: "); try {putf ("->%# +20x<-\n",-4);} catch (invfmt) {err ();}
+put ("# +20x: "); try {putf ("->%# +20x<-\n",0);} catch (invfmt) {err ();}
+put ("# +20x: "); try {putf ("->%# +20x<-\n",4);} catch (invfmt) {err ();}
+put (" +20x: "); try {putf ("->% +20x<-\n",-4);} catch (invfmt) {err ();}
+put (" +20x: "); try {putf ("->% +20x<-\n",0);} catch (invfmt) {err ();}
+put (" +20x: "); try {putf ("->% +20x<-\n",4);} catch (invfmt) {err ();}
+put ("#0-+20x: "); try {putf ("->%#0-+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-+20x: "); try {putf ("->%#0-+20x<-\n",0);} catch (invfmt) {err ();}
+put ("#0-+20x: "); try {putf ("->%#0-+20x<-\n",4);} catch (invfmt) {err ();}
+put ("0-+20x: "); try {putf ("->%0-+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("0-+20x: "); try {putf ("->%0-+20x<-\n",0);} catch (invfmt) {err ();}
+put ("0-+20x: "); try {putf ("->%0-+20x<-\n",4);} catch (invfmt) {err ();}
+put ("#-+20x: "); try {putf ("->%#-+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#-+20x: "); try {putf ("->%#-+20x<-\n",0);} catch (invfmt) {err ();}
+put ("#-+20x: "); try {putf ("->%#-+20x<-\n",4);} catch (invfmt) {err ();}
+put ("-+20x: "); try {putf ("->%-+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("-+20x: "); try {putf ("->%-+20x<-\n",0);} catch (invfmt) {err ();}
+put ("-+20x: "); try {putf ("->%-+20x<-\n",4);} catch (invfmt) {err ();}
+put ("#0+20x: "); try {putf ("->%#0+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#0+20x: "); try {putf ("->%#0+20x<-\n",0);} catch (invfmt) {err ();}
+put ("#0+20x: "); try {putf ("->%#0+20x<-\n",4);} catch (invfmt) {err ();}
+put ("0+20x: "); try {putf ("->%0+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("0+20x: "); try {putf ("->%0+20x<-\n",0);} catch (invfmt) {err ();}
+put ("0+20x: "); try {putf ("->%0+20x<-\n",4);} catch (invfmt) {err ();}
+put ("#+20x: "); try {putf ("->%#+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#+20x: "); try {putf ("->%#+20x<-\n",0);} catch (invfmt) {err ();}
+put ("#+20x: "); try {putf ("->%#+20x<-\n",4);} catch (invfmt) {err ();}
+put ("+20x: "); try {putf ("->%+20x<-\n",-4);} catch (invfmt) {err ();}
+put ("+20x: "); try {putf ("->%+20x<-\n",0);} catch (invfmt) {err ();}
+put ("+20x: "); try {putf ("->%+20x<-\n",4);} catch (invfmt) {err ();}
+put ("#0- 20x: "); try {putf ("->%#0- 20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- 20x: "); try {putf ("->%#0- 20x<-\n",0);} catch (invfmt) {err ();}
+put ("#0- 20x: "); try {putf ("->%#0- 20x<-\n",4);} catch (invfmt) {err ();}
+put ("0- 20x: "); try {putf ("->%0- 20x<-\n",-4);} catch (invfmt) {err ();}
+put ("0- 20x: "); try {putf ("->%0- 20x<-\n",0);} catch (invfmt) {err ();}
+put ("0- 20x: "); try {putf ("->%0- 20x<-\n",4);} catch (invfmt) {err ();}
+put ("#- 20x: "); try {putf ("->%#- 20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#- 20x: "); try {putf ("->%#- 20x<-\n",0);} catch (invfmt) {err ();}
+put ("#- 20x: "); try {putf ("->%#- 20x<-\n",4);} catch (invfmt) {err ();}
+put ("- 20x: "); try {putf ("->%- 20x<-\n",-4);} catch (invfmt) {err ();}
+put ("- 20x: "); try {putf ("->%- 20x<-\n",0);} catch (invfmt) {err ();}
+put ("- 20x: "); try {putf ("->%- 20x<-\n",4);} catch (invfmt) {err ();}
+put ("#0 20x: "); try {putf ("->%#0 20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 20x: "); try {putf ("->%#0 20x<-\n",0);} catch (invfmt) {err ();}
+put ("#0 20x: "); try {putf ("->%#0 20x<-\n",4);} catch (invfmt) {err ();}
+put ("0 20x: "); try {putf ("->%0 20x<-\n",-4);} catch (invfmt) {err ();}
+put ("0 20x: "); try {putf ("->%0 20x<-\n",0);} catch (invfmt) {err ();}
+put ("0 20x: "); try {putf ("->%0 20x<-\n",4);} catch (invfmt) {err ();}
+put ("# 20x: "); try {putf ("->%# 20x<-\n",-4);} catch (invfmt) {err ();}
+put ("# 20x: "); try {putf ("->%# 20x<-\n",0);} catch (invfmt) {err ();}
+put ("# 20x: "); try {putf ("->%# 20x<-\n",4);} catch (invfmt) {err ();}
+put (" 20x: "); try {putf ("->% 20x<-\n",-4);} catch (invfmt) {err ();}
+put (" 20x: "); try {putf ("->% 20x<-\n",0);} catch (invfmt) {err ();}
+put (" 20x: "); try {putf ("->% 20x<-\n",4);} catch (invfmt) {err ();}
+put ("#0-20x: "); try {putf ("->%#0-20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-20x: "); try {putf ("->%#0-20x<-\n",0);} catch (invfmt) {err ();}
+put ("#0-20x: "); try {putf ("->%#0-20x<-\n",4);} catch (invfmt) {err ();}
+put ("0-20x: "); try {putf ("->%0-20x<-\n",-4);} catch (invfmt) {err ();}
+put ("0-20x: "); try {putf ("->%0-20x<-\n",0);} catch (invfmt) {err ();}
+put ("0-20x: "); try {putf ("->%0-20x<-\n",4);} catch (invfmt) {err ();}
+put ("#-20x: "); try {putf ("->%#-20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#-20x: "); try {putf ("->%#-20x<-\n",0);} catch (invfmt) {err ();}
+put ("#-20x: "); try {putf ("->%#-20x<-\n",4);} catch (invfmt) {err ();}
+put ("-20x: "); try {putf ("->%-20x<-\n",-4);} catch (invfmt) {err ();}
+put ("-20x: "); try {putf ("->%-20x<-\n",0);} catch (invfmt) {err ();}
+put ("-20x: "); try {putf ("->%-20x<-\n",4);} catch (invfmt) {err ();}
+put ("#020x: "); try {putf ("->%#020x<-\n",-4);} catch (invfmt) {err ();}
+put ("#020x: "); try {putf ("->%#020x<-\n",0);} catch (invfmt) {err ();}
+put ("#020x: "); try {putf ("->%#020x<-\n",4);} catch (invfmt) {err ();}
+put ("020x: "); try {putf ("->%020x<-\n",-4);} catch (invfmt) {err ();}
+put ("020x: "); try {putf ("->%020x<-\n",0);} catch (invfmt) {err ();}
+put ("020x: "); try {putf ("->%020x<-\n",4);} catch (invfmt) {err ();}
+put ("#20x: "); try {putf ("->%#20x<-\n",-4);} catch (invfmt) {err ();}
+put ("#20x: "); try {putf ("->%#20x<-\n",0);} catch (invfmt) {err ();}
+put ("#20x: "); try {putf ("->%#20x<-\n",4);} catch (invfmt) {err ();}
+put ("20x: "); try {putf ("->%20x<-\n",-4);} catch (invfmt) {err ();}
+put ("20x: "); try {putf ("->%20x<-\n",0);} catch (invfmt) {err ();}
+put ("20x: "); try {putf ("->%20x<-\n",4);} catch (invfmt) {err ();}
+put ("#0- +20X: "); try {putf ("->%#0- +20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- +20X: "); try {putf ("->%#0- +20X<-\n",0);} catch (invfmt) {err ();}
+put ("#0- +20X: "); try {putf ("->%#0- +20X<-\n",4);} catch (invfmt) {err ();}
+put ("0- +20X: "); try {putf ("->%0- +20X<-\n",-4);} catch (invfmt) {err ();}
+put ("0- +20X: "); try {putf ("->%0- +20X<-\n",0);} catch (invfmt) {err ();}
+put ("0- +20X: "); try {putf ("->%0- +20X<-\n",4);} catch (invfmt) {err ();}
+put ("#- +20X: "); try {putf ("->%#- +20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#- +20X: "); try {putf ("->%#- +20X<-\n",0);} catch (invfmt) {err ();}
+put ("#- +20X: "); try {putf ("->%#- +20X<-\n",4);} catch (invfmt) {err ();}
+put ("- +20X: "); try {putf ("->%- +20X<-\n",-4);} catch (invfmt) {err ();}
+put ("- +20X: "); try {putf ("->%- +20X<-\n",0);} catch (invfmt) {err ();}
+put ("- +20X: "); try {putf ("->%- +20X<-\n",4);} catch (invfmt) {err ();}
+put ("#0 +20X: "); try {putf ("->%#0 +20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 +20X: "); try {putf ("->%#0 +20X<-\n",0);} catch (invfmt) {err ();}
+put ("#0 +20X: "); try {putf ("->%#0 +20X<-\n",4);} catch (invfmt) {err ();}
+put ("0 +20X: "); try {putf ("->%0 +20X<-\n",-4);} catch (invfmt) {err ();}
+put ("0 +20X: "); try {putf ("->%0 +20X<-\n",0);} catch (invfmt) {err ();}
+put ("0 +20X: "); try {putf ("->%0 +20X<-\n",4);} catch (invfmt) {err ();}
+put ("# +20X: "); try {putf ("->%# +20X<-\n",-4);} catch (invfmt) {err ();}
+put ("# +20X: "); try {putf ("->%# +20X<-\n",0);} catch (invfmt) {err ();}
+put ("# +20X: "); try {putf ("->%# +20X<-\n",4);} catch (invfmt) {err ();}
+put (" +20X: "); try {putf ("->% +20X<-\n",-4);} catch (invfmt) {err ();}
+put (" +20X: "); try {putf ("->% +20X<-\n",0);} catch (invfmt) {err ();}
+put (" +20X: "); try {putf ("->% +20X<-\n",4);} catch (invfmt) {err ();}
+put ("#0-+20X: "); try {putf ("->%#0-+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-+20X: "); try {putf ("->%#0-+20X<-\n",0);} catch (invfmt) {err ();}
+put ("#0-+20X: "); try {putf ("->%#0-+20X<-\n",4);} catch (invfmt) {err ();}
+put ("0-+20X: "); try {putf ("->%0-+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("0-+20X: "); try {putf ("->%0-+20X<-\n",0);} catch (invfmt) {err ();}
+put ("0-+20X: "); try {putf ("->%0-+20X<-\n",4);} catch (invfmt) {err ();}
+put ("#-+20X: "); try {putf ("->%#-+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#-+20X: "); try {putf ("->%#-+20X<-\n",0);} catch (invfmt) {err ();}
+put ("#-+20X: "); try {putf ("->%#-+20X<-\n",4);} catch (invfmt) {err ();}
+put ("-+20X: "); try {putf ("->%-+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("-+20X: "); try {putf ("->%-+20X<-\n",0);} catch (invfmt) {err ();}
+put ("-+20X: "); try {putf ("->%-+20X<-\n",4);} catch (invfmt) {err ();}
+put ("#0+20X: "); try {putf ("->%#0+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#0+20X: "); try {putf ("->%#0+20X<-\n",0);} catch (invfmt) {err ();}
+put ("#0+20X: "); try {putf ("->%#0+20X<-\n",4);} catch (invfmt) {err ();}
+put ("0+20X: "); try {putf ("->%0+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("0+20X: "); try {putf ("->%0+20X<-\n",0);} catch (invfmt) {err ();}
+put ("0+20X: "); try {putf ("->%0+20X<-\n",4);} catch (invfmt) {err ();}
+put ("#+20X: "); try {putf ("->%#+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#+20X: "); try {putf ("->%#+20X<-\n",0);} catch (invfmt) {err ();}
+put ("#+20X: "); try {putf ("->%#+20X<-\n",4);} catch (invfmt) {err ();}
+put ("+20X: "); try {putf ("->%+20X<-\n",-4);} catch (invfmt) {err ();}
+put ("+20X: "); try {putf ("->%+20X<-\n",0);} catch (invfmt) {err ();}
+put ("+20X: "); try {putf ("->%+20X<-\n",4);} catch (invfmt) {err ();}
+put ("#0- 20X: "); try {putf ("->%#0- 20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#0- 20X: "); try {putf ("->%#0- 20X<-\n",0);} catch (invfmt) {err ();}
+put ("#0- 20X: "); try {putf ("->%#0- 20X<-\n",4);} catch (invfmt) {err ();}
+put ("0- 20X: "); try {putf ("->%0- 20X<-\n",-4);} catch (invfmt) {err ();}
+put ("0- 20X: "); try {putf ("->%0- 20X<-\n",0);} catch (invfmt) {err ();}
+put ("0- 20X: "); try {putf ("->%0- 20X<-\n",4);} catch (invfmt) {err ();}
+put ("#- 20X: "); try {putf ("->%#- 20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#- 20X: "); try {putf ("->%#- 20X<-\n",0);} catch (invfmt) {err ();}
+put ("#- 20X: "); try {putf ("->%#- 20X<-\n",4);} catch (invfmt) {err ();}
+put ("- 20X: "); try {putf ("->%- 20X<-\n",-4);} catch (invfmt) {err ();}
+put ("- 20X: "); try {putf ("->%- 20X<-\n",0);} catch (invfmt) {err ();}
+put ("- 20X: "); try {putf ("->%- 20X<-\n",4);} catch (invfmt) {err ();}
+put ("#0 20X: "); try {putf ("->%#0 20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#0 20X: "); try {putf ("->%#0 20X<-\n",0);} catch (invfmt) {err ();}
+put ("#0 20X: "); try {putf ("->%#0 20X<-\n",4);} catch (invfmt) {err ();}
+put ("0 20X: "); try {putf ("->%0 20X<-\n",-4);} catch (invfmt) {err ();}
+put ("0 20X: "); try {putf ("->%0 20X<-\n",0);} catch (invfmt) {err ();}
+put ("0 20X: "); try {putf ("->%0 20X<-\n",4);} catch (invfmt) {err ();}
+put ("# 20X: "); try {putf ("->%# 20X<-\n",-4);} catch (invfmt) {err ();}
+put ("# 20X: "); try {putf ("->%# 20X<-\n",0);} catch (invfmt) {err ();}
+put ("# 20X: "); try {putf ("->%# 20X<-\n",4);} catch (invfmt) {err ();}
+put (" 20X: "); try {putf ("->% 20X<-\n",-4);} catch (invfmt) {err ();}
+put (" 20X: "); try {putf ("->% 20X<-\n",0);} catch (invfmt) {err ();}
+put (" 20X: "); try {putf ("->% 20X<-\n",4);} catch (invfmt) {err ();}
+put ("#0-20X: "); try {putf ("->%#0-20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#0-20X: "); try {putf ("->%#0-20X<-\n",0);} catch (invfmt) {err ();}
+put ("#0-20X: "); try {putf ("->%#0-20X<-\n",4);} catch (invfmt) {err ();}
+put ("0-20X: "); try {putf ("->%0-20X<-\n",-4);} catch (invfmt) {err ();}
+put ("0-20X: "); try {putf ("->%0-20X<-\n",0);} catch (invfmt) {err ();}
+put ("0-20X: "); try {putf ("->%0-20X<-\n",4);} catch (invfmt) {err ();}
+put ("#-20X: "); try {putf ("->%#-20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#-20X: "); try {putf ("->%#-20X<-\n",0);} catch (invfmt) {err ();}
+put ("#-20X: "); try {putf ("->%#-20X<-\n",4);} catch (invfmt) {err ();}
+put ("-20X: "); try {putf ("->%-20X<-\n",-4);} catch (invfmt) {err ();}
+put ("-20X: "); try {putf ("->%-20X<-\n",0);} catch (invfmt) {err ();}
+put ("-20X: "); try {putf ("->%-20X<-\n",4);} catch (invfmt) {err ();}
+put ("#020X: "); try {putf ("->%#020X<-\n",-4);} catch (invfmt) {err ();}
+put ("#020X: "); try {putf ("->%#020X<-\n",0);} catch (invfmt) {err ();}
+put ("#020X: "); try {putf ("->%#020X<-\n",4);} catch (invfmt) {err ();}
+put ("020X: "); try {putf ("->%020X<-\n",-4);} catch (invfmt) {err ();}
+put ("020X: "); try {putf ("->%020X<-\n",0);} catch (invfmt) {err ();}
+put ("020X: "); try {putf ("->%020X<-\n",4);} catch (invfmt) {err ();}
+put ("#20X: "); try {putf ("->%#20X<-\n",-4);} catch (invfmt) {err ();}
+put ("#20X: "); try {putf ("->%#20X<-\n",0);} catch (invfmt) {err ();}
+put ("#20X: "); try {putf ("->%#20X<-\n",4);} catch (invfmt) {err ();}
+put ("20X: "); try {putf ("->%20X<-\n",-4);} catch (invfmt) {err ();}
+put ("20X: "); try {putf ("->%20X<-\n",0);} catch (invfmt) {err ();}
+put ("20X: "); try {putf ("->%20X<-\n",4);} catch (invfmt) {err ();}
 TEST650
         echo '      ' $DINO $test_file " >$stdout 2>&1"
         if $DINO $test_file >$stdout 2>&1; then
@@ -40325,28 +40325,28 @@ d: ->4<-
  o: badformat
  o: badformat
  o: badformat
-#0-o: ->037777777774<-
+#0-o: ->01777777777777777777774<-
 #0-o: ->0<-
 #0-o: ->04<-
-0-o: ->37777777774<-
+0-o: ->1777777777777777777774<-
 0-o: ->0<-
 0-o: ->4<-
-#-o: ->037777777774<-
+#-o: ->01777777777777777777774<-
 #-o: ->0<-
 #-o: ->04<-
--o: ->37777777774<-
+-o: ->1777777777777777777774<-
 -o: ->0<-
 -o: ->4<-
-#0o: ->037777777774<-
+#0o: ->01777777777777777777774<-
 #0o: ->0<-
 #0o: ->04<-
-0o: ->37777777774<-
+0o: ->1777777777777777777774<-
 0o: ->0<-
 0o: ->4<-
-#o: ->037777777774<-
+#o: ->01777777777777777777774<-
 #o: ->0<-
 #o: ->04<-
-o: ->37777777774<-
+o: ->1777777777777777777774<-
 o: ->0<-
 o: ->4<-
 #0- +x: badformat
@@ -40421,28 +40421,28 @@ o: ->4<-
  x: badformat
  x: badformat
  x: badformat
-#0-x: ->0xfffffffc<-
+#0-x: ->0xfffffffffffffffc<-
 #0-x: ->0<-
 #0-x: ->0x4<-
-0-x: ->fffffffc<-
+0-x: ->fffffffffffffffc<-
 0-x: ->0<-
 0-x: ->4<-
-#-x: ->0xfffffffc<-
+#-x: ->0xfffffffffffffffc<-
 #-x: ->0<-
 #-x: ->0x4<-
--x: ->fffffffc<-
+-x: ->fffffffffffffffc<-
 -x: ->0<-
 -x: ->4<-
-#0x: ->0xfffffffc<-
+#0x: ->0xfffffffffffffffc<-
 #0x: ->0<-
 #0x: ->0x4<-
-0x: ->fffffffc<-
+0x: ->fffffffffffffffc<-
 0x: ->0<-
 0x: ->4<-
-#x: ->0xfffffffc<-
+#x: ->0xfffffffffffffffc<-
 #x: ->0<-
 #x: ->0x4<-
-x: ->fffffffc<-
+x: ->fffffffffffffffc<-
 x: ->0<-
 x: ->4<-
 #0- +X: badformat
@@ -40517,28 +40517,28 @@ x: ->4<-
  X: badformat
  X: badformat
  X: badformat
-#0-X: ->0XFFFFFFFC<-
+#0-X: ->0XFFFFFFFFFFFFFFFC<-
 #0-X: ->0<-
 #0-X: ->0X4<-
-0-X: ->FFFFFFFC<-
+0-X: ->FFFFFFFFFFFFFFFC<-
 0-X: ->0<-
 0-X: ->4<-
-#-X: ->0XFFFFFFFC<-
+#-X: ->0XFFFFFFFFFFFFFFFC<-
 #-X: ->0<-
 #-X: ->0X4<-
--X: ->FFFFFFFC<-
+-X: ->FFFFFFFFFFFFFFFC<-
 -X: ->0<-
 -X: ->4<-
-#0X: ->0XFFFFFFFC<-
+#0X: ->0XFFFFFFFFFFFFFFFC<-
 #0X: ->0<-
 #0X: ->0X4<-
-0X: ->FFFFFFFC<-
+0X: ->FFFFFFFFFFFFFFFC<-
 0X: ->0<-
 0X: ->4<-
-#X: ->0XFFFFFFFC<-
+#X: ->0XFFFFFFFFFFFFFFFC<-
 #X: ->0<-
 #X: ->0X4<-
-X: ->FFFFFFFC<-
+X: ->FFFFFFFFFFFFFFFC<-
 X: ->0<-
 X: ->4<-
 #0- +0d: badformat
@@ -40709,28 +40709,28 @@ X: ->4<-
  0o: badformat
  0o: badformat
  0o: badformat
-#0-0o: ->037777777774<-
+#0-0o: ->01777777777777777777774<-
 #0-0o: ->0<-
 #0-0o: ->04<-
-0-0o: ->37777777774<-
+0-0o: ->1777777777777777777774<-
 0-0o: ->0<-
 0-0o: ->4<-
-#-0o: ->037777777774<-
+#-0o: ->01777777777777777777774<-
 #-0o: ->0<-
 #-0o: ->04<-
--0o: ->37777777774<-
+-0o: ->1777777777777777777774<-
 -0o: ->0<-
 -0o: ->4<-
-#00o: ->037777777774<-
+#00o: ->01777777777777777777774<-
 #00o: ->0<-
 #00o: ->04<-
-00o: ->37777777774<-
+00o: ->1777777777777777777774<-
 00o: ->0<-
 00o: ->4<-
-#0o: ->037777777774<-
+#0o: ->01777777777777777777774<-
 #0o: ->0<-
 #0o: ->04<-
-0o: ->37777777774<-
+0o: ->1777777777777777777774<-
 0o: ->0<-
 0o: ->4<-
 #0- +0x: badformat
@@ -40805,28 +40805,28 @@ X: ->4<-
  0x: badformat
  0x: badformat
  0x: badformat
-#0-0x: ->0xfffffffc<-
+#0-0x: ->0xfffffffffffffffc<-
 #0-0x: ->0<-
 #0-0x: ->0x4<-
-0-0x: ->fffffffc<-
+0-0x: ->fffffffffffffffc<-
 0-0x: ->0<-
 0-0x: ->4<-
-#-0x: ->0xfffffffc<-
+#-0x: ->0xfffffffffffffffc<-
 #-0x: ->0<-
 #-0x: ->0x4<-
--0x: ->fffffffc<-
+-0x: ->fffffffffffffffc<-
 -0x: ->0<-
 -0x: ->4<-
-#00x: ->0xfffffffc<-
+#00x: ->0xfffffffffffffffc<-
 #00x: ->0<-
 #00x: ->0x4<-
-00x: ->fffffffc<-
+00x: ->fffffffffffffffc<-
 00x: ->0<-
 00x: ->4<-
-#0x: ->0xfffffffc<-
+#0x: ->0xfffffffffffffffc<-
 #0x: ->0<-
 #0x: ->0x4<-
-0x: ->fffffffc<-
+0x: ->fffffffffffffffc<-
 0x: ->0<-
 0x: ->4<-
 #0- +0X: badformat
@@ -40901,414 +40901,414 @@ X: ->4<-
  0X: badformat
  0X: badformat
  0X: badformat
-#0-0X: ->0XFFFFFFFC<-
+#0-0X: ->0XFFFFFFFFFFFFFFFC<-
 #0-0X: ->0<-
 #0-0X: ->0X4<-
-0-0X: ->FFFFFFFC<-
+0-0X: ->FFFFFFFFFFFFFFFC<-
 0-0X: ->0<-
 0-0X: ->4<-
-#-0X: ->0XFFFFFFFC<-
+#-0X: ->0XFFFFFFFFFFFFFFFC<-
 #-0X: ->0<-
 #-0X: ->0X4<-
--0X: ->FFFFFFFC<-
+-0X: ->FFFFFFFFFFFFFFFC<-
 -0X: ->0<-
 -0X: ->4<-
-#00X: ->0XFFFFFFFC<-
+#00X: ->0XFFFFFFFFFFFFFFFC<-
 #00X: ->0<-
 #00X: ->0X4<-
-00X: ->FFFFFFFC<-
+00X: ->FFFFFFFFFFFFFFFC<-
 00X: ->0<-
 00X: ->4<-
-#0X: ->0XFFFFFFFC<-
+#0X: ->0XFFFFFFFFFFFFFFFC<-
 #0X: ->0<-
 #0X: ->0X4<-
-0X: ->FFFFFFFC<-
+0X: ->FFFFFFFFFFFFFFFC<-
 0X: ->0<-
 0X: ->4<-
-#0- +10d: badformat
-#0- +10d: badformat
-#0- +10d: badformat
-0- +10d: ->-4        <-
-0- +10d: ->+0        <-
-0- +10d: ->+4        <-
-#- +10d: badformat
-#- +10d: badformat
-#- +10d: badformat
-- +10d: ->-4        <-
-- +10d: ->+0        <-
-- +10d: ->+4        <-
-#0 +10d: badformat
-#0 +10d: badformat
-#0 +10d: badformat
-0 +10d: ->-000000004<-
-0 +10d: ->+000000000<-
-0 +10d: ->+000000004<-
-# +10d: badformat
-# +10d: badformat
-# +10d: badformat
- +10d: ->        -4<-
- +10d: ->        +0<-
- +10d: ->        +4<-
-#0-+10d: badformat
-#0-+10d: badformat
-#0-+10d: badformat
-0-+10d: ->-4        <-
-0-+10d: ->+0        <-
-0-+10d: ->+4        <-
-#-+10d: badformat
-#-+10d: badformat
-#-+10d: badformat
--+10d: ->-4        <-
--+10d: ->+0        <-
--+10d: ->+4        <-
-#0+10d: badformat
-#0+10d: badformat
-#0+10d: badformat
-0+10d: ->-000000004<-
-0+10d: ->+000000000<-
-0+10d: ->+000000004<-
-#+10d: badformat
-#+10d: badformat
-#+10d: badformat
-+10d: ->        -4<-
-+10d: ->        +0<-
-+10d: ->        +4<-
-#0- 10d: badformat
-#0- 10d: badformat
-#0- 10d: badformat
-0- 10d: ->-4        <-
-0- 10d: -> 0        <-
-0- 10d: -> 4        <-
-#- 10d: badformat
-#- 10d: badformat
-#- 10d: badformat
-- 10d: ->-4        <-
-- 10d: -> 0        <-
-- 10d: -> 4        <-
-#0 10d: badformat
-#0 10d: badformat
-#0 10d: badformat
-0 10d: ->-000000004<-
-0 10d: -> 000000000<-
-0 10d: -> 000000004<-
-# 10d: badformat
-# 10d: badformat
-# 10d: badformat
- 10d: ->        -4<-
- 10d: ->         0<-
- 10d: ->         4<-
-#0-10d: badformat
-#0-10d: badformat
-#0-10d: badformat
-0-10d: ->-4        <-
-0-10d: ->0         <-
-0-10d: ->4         <-
-#-10d: badformat
-#-10d: badformat
-#-10d: badformat
--10d: ->-4        <-
--10d: ->0         <-
--10d: ->4         <-
-#010d: badformat
-#010d: badformat
-#010d: badformat
-010d: ->-000000004<-
-010d: ->0000000000<-
-010d: ->0000000004<-
-#10d: badformat
-#10d: badformat
-#10d: badformat
-10d: ->        -4<-
-10d: ->         0<-
-10d: ->         4<-
-#0- +10o: badformat
-#0- +10o: badformat
-#0- +10o: badformat
-0- +10o: badformat
-0- +10o: badformat
-0- +10o: badformat
-#- +10o: badformat
-#- +10o: badformat
-#- +10o: badformat
-- +10o: badformat
-- +10o: badformat
-- +10o: badformat
-#0 +10o: badformat
-#0 +10o: badformat
-#0 +10o: badformat
-0 +10o: badformat
-0 +10o: badformat
-0 +10o: badformat
-# +10o: badformat
-# +10o: badformat
-# +10o: badformat
- +10o: badformat
- +10o: badformat
- +10o: badformat
-#0-+10o: badformat
-#0-+10o: badformat
-#0-+10o: badformat
-0-+10o: badformat
-0-+10o: badformat
-0-+10o: badformat
-#-+10o: badformat
-#-+10o: badformat
-#-+10o: badformat
--+10o: badformat
--+10o: badformat
--+10o: badformat
-#0+10o: badformat
-#0+10o: badformat
-#0+10o: badformat
-0+10o: badformat
-0+10o: badformat
-0+10o: badformat
-#+10o: badformat
-#+10o: badformat
-#+10o: badformat
-+10o: badformat
-+10o: badformat
-+10o: badformat
-#0- 10o: badformat
-#0- 10o: badformat
-#0- 10o: badformat
-0- 10o: badformat
-0- 10o: badformat
-0- 10o: badformat
-#- 10o: badformat
-#- 10o: badformat
-#- 10o: badformat
-- 10o: badformat
-- 10o: badformat
-- 10o: badformat
-#0 10o: badformat
-#0 10o: badformat
-#0 10o: badformat
-0 10o: badformat
-0 10o: badformat
-0 10o: badformat
-# 10o: badformat
-# 10o: badformat
-# 10o: badformat
- 10o: badformat
- 10o: badformat
- 10o: badformat
-#0-10o: ->037777777774<-
-#0-10o: ->0         <-
-#0-10o: ->04        <-
-0-10o: ->37777777774<-
-0-10o: ->0         <-
-0-10o: ->4         <-
-#-10o: ->037777777774<-
-#-10o: ->0         <-
-#-10o: ->04        <-
--10o: ->37777777774<-
--10o: ->0         <-
--10o: ->4         <-
-#010o: ->037777777774<-
-#010o: ->0000000000<-
-#010o: ->0000000004<-
-010o: ->37777777774<-
-010o: ->0000000000<-
-010o: ->0000000004<-
-#10o: ->037777777774<-
-#10o: ->         0<-
-#10o: ->        04<-
-10o: ->37777777774<-
-10o: ->         0<-
-10o: ->         4<-
-#0- +10x: badformat
-#0- +10x: badformat
-#0- +10x: badformat
-0- +10x: badformat
-0- +10x: badformat
-0- +10x: badformat
-#- +10x: badformat
-#- +10x: badformat
-#- +10x: badformat
-- +10x: badformat
-- +10x: badformat
-- +10x: badformat
-#0 +10x: badformat
-#0 +10x: badformat
-#0 +10x: badformat
-0 +10x: badformat
-0 +10x: badformat
-0 +10x: badformat
-# +10x: badformat
-# +10x: badformat
-# +10x: badformat
- +10x: badformat
- +10x: badformat
- +10x: badformat
-#0-+10x: badformat
-#0-+10x: badformat
-#0-+10x: badformat
-0-+10x: badformat
-0-+10x: badformat
-0-+10x: badformat
-#-+10x: badformat
-#-+10x: badformat
-#-+10x: badformat
--+10x: badformat
--+10x: badformat
--+10x: badformat
-#0+10x: badformat
-#0+10x: badformat
-#0+10x: badformat
-0+10x: badformat
-0+10x: badformat
-0+10x: badformat
-#+10x: badformat
-#+10x: badformat
-#+10x: badformat
-+10x: badformat
-+10x: badformat
-+10x: badformat
-#0- 10x: badformat
-#0- 10x: badformat
-#0- 10x: badformat
-0- 10x: badformat
-0- 10x: badformat
-0- 10x: badformat
-#- 10x: badformat
-#- 10x: badformat
-#- 10x: badformat
-- 10x: badformat
-- 10x: badformat
-- 10x: badformat
-#0 10x: badformat
-#0 10x: badformat
-#0 10x: badformat
-0 10x: badformat
-0 10x: badformat
-0 10x: badformat
-# 10x: badformat
-# 10x: badformat
-# 10x: badformat
- 10x: badformat
- 10x: badformat
- 10x: badformat
-#0-10x: ->0xfffffffc<-
-#0-10x: ->0         <-
-#0-10x: ->0x4       <-
-0-10x: ->fffffffc  <-
-0-10x: ->0         <-
-0-10x: ->4         <-
-#-10x: ->0xfffffffc<-
-#-10x: ->0         <-
-#-10x: ->0x4       <-
--10x: ->fffffffc  <-
--10x: ->0         <-
--10x: ->4         <-
-#010x: ->0xfffffffc<-
-#010x: ->0000000000<-
-#010x: ->0x00000004<-
-010x: ->00fffffffc<-
-010x: ->0000000000<-
-010x: ->0000000004<-
-#10x: ->0xfffffffc<-
-#10x: ->         0<-
-#10x: ->       0x4<-
-10x: ->  fffffffc<-
-10x: ->         0<-
-10x: ->         4<-
-#0- +10X: badformat
-#0- +10X: badformat
-#0- +10X: badformat
-0- +10X: badformat
-0- +10X: badformat
-0- +10X: badformat
-#- +10X: badformat
-#- +10X: badformat
-#- +10X: badformat
-- +10X: badformat
-- +10X: badformat
-- +10X: badformat
-#0 +10X: badformat
-#0 +10X: badformat
-#0 +10X: badformat
-0 +10X: badformat
-0 +10X: badformat
-0 +10X: badformat
-# +10X: badformat
-# +10X: badformat
-# +10X: badformat
- +10X: badformat
- +10X: badformat
- +10X: badformat
-#0-+10X: badformat
-#0-+10X: badformat
-#0-+10X: badformat
-0-+10X: badformat
-0-+10X: badformat
-0-+10X: badformat
-#-+10X: badformat
-#-+10X: badformat
-#-+10X: badformat
--+10X: badformat
--+10X: badformat
--+10X: badformat
-#0+10X: badformat
-#0+10X: badformat
-#0+10X: badformat
-0+10X: badformat
-0+10X: badformat
-0+10X: badformat
-#+10X: badformat
-#+10X: badformat
-#+10X: badformat
-+10X: badformat
-+10X: badformat
-+10X: badformat
-#0- 10X: badformat
-#0- 10X: badformat
-#0- 10X: badformat
-0- 10X: badformat
-0- 10X: badformat
-0- 10X: badformat
-#- 10X: badformat
-#- 10X: badformat
-#- 10X: badformat
-- 10X: badformat
-- 10X: badformat
-- 10X: badformat
-#0 10X: badformat
-#0 10X: badformat
-#0 10X: badformat
-0 10X: badformat
-0 10X: badformat
-0 10X: badformat
-# 10X: badformat
-# 10X: badformat
-# 10X: badformat
- 10X: badformat
- 10X: badformat
- 10X: badformat
-#0-10X: ->0XFFFFFFFC<-
-#0-10X: ->0         <-
-#0-10X: ->0X4       <-
-0-10X: ->FFFFFFFC  <-
-0-10X: ->0         <-
-0-10X: ->4         <-
-#-10X: ->0XFFFFFFFC<-
-#-10X: ->0         <-
-#-10X: ->0X4       <-
--10X: ->FFFFFFFC  <-
--10X: ->0         <-
--10X: ->4         <-
-#010X: ->0XFFFFFFFC<-
-#010X: ->0000000000<-
-#010X: ->0X00000004<-
-010X: ->00FFFFFFFC<-
-010X: ->0000000000<-
-010X: ->0000000004<-
-#10X: ->0XFFFFFFFC<-
-#10X: ->         0<-
-#10X: ->       0X4<-
-10X: ->  FFFFFFFC<-
-10X: ->         0<-
-10X: ->         4<-
+#0- +20d: badformat
+#0- +20d: badformat
+#0- +20d: badformat
+0- +20d: ->-4                  <-
+0- +20d: ->+0                  <-
+0- +20d: ->+4                  <-
+#- +20d: badformat
+#- +20d: badformat
+#- +20d: badformat
+- +20d: ->-4                  <-
+- +20d: ->+0                  <-
+- +20d: ->+4                  <-
+#0 +20d: badformat
+#0 +20d: badformat
+#0 +20d: badformat
+0 +20d: ->-0000000000000000004<-
+0 +20d: ->+0000000000000000000<-
+0 +20d: ->+0000000000000000004<-
+# +20d: badformat
+# +20d: badformat
+# +20d: badformat
+ +20d: ->                  -4<-
+ +20d: ->                  +0<-
+ +20d: ->                  +4<-
+#0-+20d: badformat
+#0-+20d: badformat
+#0-+20d: badformat
+0-+20d: ->-4                  <-
+0-+20d: ->+0                  <-
+0-+20d: ->+4                  <-
+#-+20d: badformat
+#-+20d: badformat
+#-+20d: badformat
+-+20d: ->-4                  <-
+-+20d: ->+0                  <-
+-+20d: ->+4                  <-
+#0+20d: badformat
+#0+20d: badformat
+#0+20d: badformat
+0+20d: ->-0000000000000000004<-
+0+20d: ->+0000000000000000000<-
+0+20d: ->+0000000000000000004<-
+#+20d: badformat
+#+20d: badformat
+#+20d: badformat
++20d: ->                  -4<-
++20d: ->                  +0<-
++20d: ->                  +4<-
+#0- 20d: badformat
+#0- 20d: badformat
+#0- 20d: badformat
+0- 20d: ->-4                  <-
+0- 20d: -> 0                  <-
+0- 20d: -> 4                  <-
+#- 20d: badformat
+#- 20d: badformat
+#- 20d: badformat
+- 20d: ->-4                  <-
+- 20d: -> 0                  <-
+- 20d: -> 4                  <-
+#0 20d: badformat
+#0 20d: badformat
+#0 20d: badformat
+0 20d: ->-0000000000000000004<-
+0 20d: -> 0000000000000000000<-
+0 20d: -> 0000000000000000004<-
+# 20d: badformat
+# 20d: badformat
+# 20d: badformat
+ 20d: ->                  -4<-
+ 20d: ->                   0<-
+ 20d: ->                   4<-
+#0-20d: badformat
+#0-20d: badformat
+#0-20d: badformat
+0-20d: ->-4                  <-
+0-20d: ->0                   <-
+0-20d: ->4                   <-
+#-20d: badformat
+#-20d: badformat
+#-20d: badformat
+-20d: ->-4                  <-
+-20d: ->0                   <-
+-20d: ->4                   <-
+#020d: badformat
+#020d: badformat
+#020d: badformat
+020d: ->-0000000000000000004<-
+020d: ->00000000000000000000<-
+020d: ->00000000000000000004<-
+#20d: badformat
+#20d: badformat
+#20d: badformat
+20d: ->                  -4<-
+20d: ->                   0<-
+20d: ->                   4<-
+#0- +20o: badformat
+#0- +20o: badformat
+#0- +20o: badformat
+0- +20o: badformat
+0- +20o: badformat
+0- +20o: badformat
+#- +20o: badformat
+#- +20o: badformat
+#- +20o: badformat
+- +20o: badformat
+- +20o: badformat
+- +20o: badformat
+#0 +20o: badformat
+#0 +20o: badformat
+#0 +20o: badformat
+0 +20o: badformat
+0 +20o: badformat
+0 +20o: badformat
+# +20o: badformat
+# +20o: badformat
+# +20o: badformat
+ +20o: badformat
+ +20o: badformat
+ +20o: badformat
+#0-+20o: badformat
+#0-+20o: badformat
+#0-+20o: badformat
+0-+20o: badformat
+0-+20o: badformat
+0-+20o: badformat
+#-+20o: badformat
+#-+20o: badformat
+#-+20o: badformat
+-+20o: badformat
+-+20o: badformat
+-+20o: badformat
+#0+20o: badformat
+#0+20o: badformat
+#0+20o: badformat
+0+20o: badformat
+0+20o: badformat
+0+20o: badformat
+#+20o: badformat
+#+20o: badformat
+#+20o: badformat
++20o: badformat
++20o: badformat
++20o: badformat
+#0- 20o: badformat
+#0- 20o: badformat
+#0- 20o: badformat
+0- 20o: badformat
+0- 20o: badformat
+0- 20o: badformat
+#- 20o: badformat
+#- 20o: badformat
+#- 20o: badformat
+- 20o: badformat
+- 20o: badformat
+- 20o: badformat
+#0 20o: badformat
+#0 20o: badformat
+#0 20o: badformat
+0 20o: badformat
+0 20o: badformat
+0 20o: badformat
+# 20o: badformat
+# 20o: badformat
+# 20o: badformat
+ 20o: badformat
+ 20o: badformat
+ 20o: badformat
+#0-20o: ->01777777777777777777774<-
+#0-20o: ->0                   <-
+#0-20o: ->04                  <-
+0-20o: ->1777777777777777777774<-
+0-20o: ->0                   <-
+0-20o: ->4                   <-
+#-20o: ->01777777777777777777774<-
+#-20o: ->0                   <-
+#-20o: ->04                  <-
+-20o: ->1777777777777777777774<-
+-20o: ->0                   <-
+-20o: ->4                   <-
+#020o: ->01777777777777777777774<-
+#020o: ->00000000000000000000<-
+#020o: ->00000000000000000004<-
+020o: ->1777777777777777777774<-
+020o: ->00000000000000000000<-
+020o: ->00000000000000000004<-
+#20o: ->01777777777777777777774<-
+#20o: ->                   0<-
+#20o: ->                  04<-
+20o: ->1777777777777777777774<-
+20o: ->                   0<-
+20o: ->                   4<-
+#0- +20x: badformat
+#0- +20x: badformat
+#0- +20x: badformat
+0- +20x: badformat
+0- +20x: badformat
+0- +20x: badformat
+#- +20x: badformat
+#- +20x: badformat
+#- +20x: badformat
+- +20x: badformat
+- +20x: badformat
+- +20x: badformat
+#0 +20x: badformat
+#0 +20x: badformat
+#0 +20x: badformat
+0 +20x: badformat
+0 +20x: badformat
+0 +20x: badformat
+# +20x: badformat
+# +20x: badformat
+# +20x: badformat
+ +20x: badformat
+ +20x: badformat
+ +20x: badformat
+#0-+20x: badformat
+#0-+20x: badformat
+#0-+20x: badformat
+0-+20x: badformat
+0-+20x: badformat
+0-+20x: badformat
+#-+20x: badformat
+#-+20x: badformat
+#-+20x: badformat
+-+20x: badformat
+-+20x: badformat
+-+20x: badformat
+#0+20x: badformat
+#0+20x: badformat
+#0+20x: badformat
+0+20x: badformat
+0+20x: badformat
+0+20x: badformat
+#+20x: badformat
+#+20x: badformat
+#+20x: badformat
++20x: badformat
++20x: badformat
++20x: badformat
+#0- 20x: badformat
+#0- 20x: badformat
+#0- 20x: badformat
+0- 20x: badformat
+0- 20x: badformat
+0- 20x: badformat
+#- 20x: badformat
+#- 20x: badformat
+#- 20x: badformat
+- 20x: badformat
+- 20x: badformat
+- 20x: badformat
+#0 20x: badformat
+#0 20x: badformat
+#0 20x: badformat
+0 20x: badformat
+0 20x: badformat
+0 20x: badformat
+# 20x: badformat
+# 20x: badformat
+# 20x: badformat
+ 20x: badformat
+ 20x: badformat
+ 20x: badformat
+#0-20x: ->0xfffffffffffffffc  <-
+#0-20x: ->0                   <-
+#0-20x: ->0x4                 <-
+0-20x: ->fffffffffffffffc    <-
+0-20x: ->0                   <-
+0-20x: ->4                   <-
+#-20x: ->0xfffffffffffffffc  <-
+#-20x: ->0                   <-
+#-20x: ->0x4                 <-
+-20x: ->fffffffffffffffc    <-
+-20x: ->0                   <-
+-20x: ->4                   <-
+#020x: ->0x00fffffffffffffffc<-
+#020x: ->00000000000000000000<-
+#020x: ->0x000000000000000004<-
+020x: ->0000fffffffffffffffc<-
+020x: ->00000000000000000000<-
+020x: ->00000000000000000004<-
+#20x: ->  0xfffffffffffffffc<-
+#20x: ->                   0<-
+#20x: ->                 0x4<-
+20x: ->    fffffffffffffffc<-
+20x: ->                   0<-
+20x: ->                   4<-
+#0- +20X: badformat
+#0- +20X: badformat
+#0- +20X: badformat
+0- +20X: badformat
+0- +20X: badformat
+0- +20X: badformat
+#- +20X: badformat
+#- +20X: badformat
+#- +20X: badformat
+- +20X: badformat
+- +20X: badformat
+- +20X: badformat
+#0 +20X: badformat
+#0 +20X: badformat
+#0 +20X: badformat
+0 +20X: badformat
+0 +20X: badformat
+0 +20X: badformat
+# +20X: badformat
+# +20X: badformat
+# +20X: badformat
+ +20X: badformat
+ +20X: badformat
+ +20X: badformat
+#0-+20X: badformat
+#0-+20X: badformat
+#0-+20X: badformat
+0-+20X: badformat
+0-+20X: badformat
+0-+20X: badformat
+#-+20X: badformat
+#-+20X: badformat
+#-+20X: badformat
+-+20X: badformat
+-+20X: badformat
+-+20X: badformat
+#0+20X: badformat
+#0+20X: badformat
+#0+20X: badformat
+0+20X: badformat
+0+20X: badformat
+0+20X: badformat
+#+20X: badformat
+#+20X: badformat
+#+20X: badformat
++20X: badformat
++20X: badformat
++20X: badformat
+#0- 20X: badformat
+#0- 20X: badformat
+#0- 20X: badformat
+0- 20X: badformat
+0- 20X: badformat
+0- 20X: badformat
+#- 20X: badformat
+#- 20X: badformat
+#- 20X: badformat
+- 20X: badformat
+- 20X: badformat
+- 20X: badformat
+#0 20X: badformat
+#0 20X: badformat
+#0 20X: badformat
+0 20X: badformat
+0 20X: badformat
+0 20X: badformat
+# 20X: badformat
+# 20X: badformat
+# 20X: badformat
+ 20X: badformat
+ 20X: badformat
+ 20X: badformat
+#0-20X: ->0XFFFFFFFFFFFFFFFC  <-
+#0-20X: ->0                   <-
+#0-20X: ->0X4                 <-
+0-20X: ->FFFFFFFFFFFFFFFC    <-
+0-20X: ->0                   <-
+0-20X: ->4                   <-
+#-20X: ->0XFFFFFFFFFFFFFFFC  <-
+#-20X: ->0                   <-
+#-20X: ->0X4                 <-
+-20X: ->FFFFFFFFFFFFFFFC    <-
+-20X: ->0                   <-
+-20X: ->4                   <-
+#020X: ->0X00FFFFFFFFFFFFFFFC<-
+#020X: ->00000000000000000000<-
+#020X: ->0X000000000000000004<-
+020X: ->0000FFFFFFFFFFFFFFFC<-
+020X: ->00000000000000000000<-
+020X: ->00000000000000000004<-
+#20X: ->  0XFFFFFFFFFFFFFFFC<-
+#20X: ->                   0<-
+#20X: ->                 0X4<-
+20X: ->    FFFFFFFFFFFFFFFC<-
+20X: ->                   0<-
+20X: ->                   4<-
 OUTPUT650
                         result=ok
                 else
@@ -44198,7 +44198,7 @@ try {println (" +09 " + 0);} catch (optype) {putln ("optypes");}
 try {println (" 1a" + 0);} catch (optype) {putln ("optypes");}
 try {println ("0x10.1" + 0);} catch (optype) {putln ("optypes");}
 println ("010e+1" + 0);
-try {println ("100000000000" + 0);} catch (syserror) {putln (e.msg);}
+try {println ("100000000000000000000" + 0);} catch (syserror) {putln (e.msg);}
 try {println ("10e+10000" + 0);} catch (syserror) {putln (e.msg);}
 try {println ("10e-10000" + 0);} catch (syserror) {putln (e.msg);}
 TEST665
@@ -46742,6 +46742,1280 @@ TEST743
                 result=ok
         else
                 result=fail
+        fi
+fi
+
+
+# Test 744.
+if test $result = ok -a $start_test_number -le 744; then
+	echo test 744: Nbody from computer language shooutout
+        cat >$test_file <<'TEST744'
+
+val pi = 3.141592653589793;
+val solar_mass = (4 * pi * pi);
+val days_per_year = 365.24;
+
+class planet (x, y, z, vx, vy, vz, mass) {}
+
+fun advance (bodies, dt) !jit {
+  val lim = #bodies - 1;
+  var i, j, b, b2, dx, dy, dz, distance, mag;
+    
+  for (i = 0; i < lim; i++) {
+    b = bodies[i];
+    for (j = i + 1; j <= lim; j++) {
+      b2 = bodies[j]; dx = b.x - b2.x; dy = b.y - b2.y; dz = b.z - b2.z;
+      distance = sqrt (dx * dx + dy * dy + dz * dz);
+      mag = dt / (distance * distance * distance);
+      b.vx -= dx * b2.mass * mag; b.vy -= dy * b2.mass * mag; b.vz -= dz * b2.mass * mag;
+      b2.vx += dx * b.mass * mag; b2.vy += dy * b.mass * mag; b2.vz += dz * b.mass * mag;
+    }
+  }
+  for (i = 0; i <= lim; i++) {
+    b = bodies[i];
+    b.x += dt * b.vx; b.y += dt * b.vy; b.z += dt * b.vz;
+  }
+}
+
+fun energy (bodies) {
+  val nbodies = #bodies;
+  var e, i, j, b, b2, dx, dy, dz, distance;
+
+  e = 0.0;
+  for (i = 0; i < nbodies; i++) {
+    b = bodies[i];
+    e += 0.5 * b.mass * (b.vx * b.vx + b.vy * b.vy + b.vz * b.vz);
+    for (j = i + 1; j < nbodies; j++) {
+      b2 = bodies[j];
+      dx = b.x - b2.x; dy = b.y - b2.y; dz = b.z - b2.z;
+      distance = sqrt (dx * dx + dy * dy + dz * dz);
+      e -= (b.mass * b2.mass) / distance;
+    }
+  }
+  return e;
+}
+
+fun offset_momentum (bodies) {
+  val nbodies = #bodies;
+  var i,  px = 0.0, py = 0.0, pz = 0.0;
+
+  for (i = 0; i < nbodies; i++) {
+    px += bodies[i].vx * bodies[i].mass;
+    py += bodies[i].vy * bodies[i].mass;
+    pz += bodies[i].vz * bodies[i].mass;
+  }
+  bodies[0].vx = - px / solar_mass;
+  bodies[0].vy = - py / solar_mass;
+  bodies[0].vz = - pz / solar_mass;
+}
+
+var bodies = [
+  /* sun */
+  planet (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, solar_mass),
+  /* jupiter */
+  planet (4.84143144246472090e+00,
+	  -1.16032004402742839e+00,
+	  -1.03622044471123109e-01,
+	  1.66007664274403694e-03 * days_per_year,
+	  7.69901118419740425e-03 * days_per_year,
+	  -6.90460016972063023e-05 * days_per_year,
+	  9.54791938424326609e-04 * solar_mass),
+  /* saturn */
+  planet (8.34336671824457987e+00,
+	  4.12479856412430479e+00,
+	  -4.03523417114321381e-01,
+	  -2.76742510726862411e-03 * days_per_year,
+	  4.99852801234917238e-03 * days_per_year,
+	  2.30417297573763929e-05 * days_per_year,
+	  2.85885980666130812e-04 * solar_mass),
+  /* uranus */
+  planet (1.28943695621391310e+01,
+	  -1.51111514016986312e+01,
+	  -2.23307578892655734e-01,
+	  2.96460137564761618e-03 * days_per_year,
+	  2.37847173959480950e-03 * days_per_year,
+	  -2.96589568540237556e-05 * days_per_year,
+	  4.36624404335156298e-05 * solar_mass),
+  /* neptune */
+  planet (1.53796971148509165e+01,
+	  -2.59193146099879641e+01,
+	  1.79258772950371181e-01,
+	  2.68067772490389322e-03 * days_per_year,
+	  1.62824170038242295e-03 * days_per_year,
+	  -9.51592254519715870e-05 * days_per_year,
+	  5.15138902046611451e-05 * solar_mass)
+];
+
+var i, n = int (argv [0] < 1 ? 1 : argv [0]);
+
+offset_momentum (bodies);
+putf ("%.9f\n", energy (bodies));
+for (i = 1; i <= n; i++)
+  advance (bodies, 0.01);
+putf ("%.9f\n", energy (bodies));
+TEST744
+        echo '      ' $DINO '-O' $test_file 10000 "2>$stderr"
+        if $DINO -O $test_file 10000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT744' && $CMP $stdout $ftemp2; then
+-0.169075164
+-0.169016441
+OUTPUT744
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 745.
+if test $result = ok -a $start_test_number -le 745; then
+	echo test 745: Manually optimized nbody
+        cat >$test_file <<'TEST745'
+val pi = 3.141592653589793;
+val solar_mass = (4 * pi * pi);
+val days_per_year = 365.24;
+
+class planet (x, y, z, vx, vy, vz, mass) {}
+
+fun advance (bodies, dt) !jit {
+  val lim = #bodies - 1;
+  var i, j, b, b2, dx, dy, dz, distance, distance2, mag;
+  var bmass, bx, by, bz, bvx, bvy, bvz, mass2, mmag, mmag2;
+    
+  for (i = 0; i < lim; i++) {
+    b = bodies[i]; bmass = b.mass;
+    bx = b.x; by = b.y; bz = b.z; bvx = b.vx; bvy = b.vy; bvz = b.vz;
+    for (j = i + 1; j <= lim; j++) {
+      b2 = bodies[j]; dx = bx - b2.x; dy = by - b2.y; dz = bz - b2.z;
+      distance2 = dx * dx + dy * dy + dz * dz; distance = sqrt (distance2);
+      mag = dt / (distance2 * distance);
+      mass2 = b2.mass; mmag2 = -mass2 * mag;
+      bvx += dx * mmag2; bvy += dy * mmag2; bvz += dz * mmag2;
+      mmag = bmass * mag;
+      b2.vx += dx * mmag; b2.vy += dy * mmag; b2.vz += dz * mmag;
+    }
+    b.x = bx; b.y = by; b.z = bz; b.vx = bvx; b.vy = bvy; b.vz = bvz;
+  }
+  for (i = 0; i <= lim; i++) {
+    b = bodies[i];
+    b.x += dt * b.vx; b.y += dt * b.vy; b.z += dt * b.vz;
+  }
+}
+
+fun energy (bodies) {
+  val nbodies = #bodies;
+  var e, i, j, b, b2, dx, dy, dz, distance;
+
+  e = 0.0;
+  for (i = 0; i < nbodies; i++) {
+    b = bodies[i];
+    e += 0.5 * b.mass * (b.vx * b.vx + b.vy * b.vy + b.vz * b.vz);
+    for (j = i + 1; j < nbodies; j++) {
+      b2 = bodies[j];
+      dx = b.x - b2.x; dy = b.y - b2.y; dz = b.z - b2.z;
+      distance = sqrt (dx * dx + dy * dy + dz * dz);
+      e -= (b.mass * b2.mass) / distance;
+    }
+  }
+  return e;
+}
+
+fun offset_momentum (bodies) {
+  val nbodies = #bodies;
+  var i,  px = 0.0, py = 0.0, pz = 0.0;
+
+  for (i = 0; i < nbodies; i++) {
+    px += bodies[i].vx * bodies[i].mass;
+    py += bodies[i].vy * bodies[i].mass;
+    pz += bodies[i].vz * bodies[i].mass;
+  }
+  bodies[0].vx = - px / solar_mass;
+  bodies[0].vy = - py / solar_mass;
+  bodies[0].vz = - pz / solar_mass;
+}
+
+var bodies = [
+  /* sun */
+  planet (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, solar_mass),
+  /* jupiter */
+  planet (4.84143144246472090e+00,
+	  -1.16032004402742839e+00,
+	  -1.03622044471123109e-01,
+	  1.66007664274503694e-03 * days_per_year,
+	  7.69901118419740425e-03 * days_per_year,
+	  -6.90460016972063023e-05 * days_per_year,
+	  9.54791938424326609e-04 * solar_mass),
+  /* saturn */
+  planet (8.34336671824457987e+00,
+	  4.12479856412430479e+00,
+	  -4.03523417114321381e-01,
+	  -2.76742510726862411e-03 * days_per_year,
+	  4.99852801234917238e-03 * days_per_year,
+	  2.30417297573763929e-05 * days_per_year,
+	  2.85885980666130812e-04 * solar_mass),
+  /* uranus */
+  planet (1.28943695621391310e+01,
+	  -1.51111514016986312e+01,
+	  -2.23307578892655734e-01,
+	  2.96460137564761618e-03 * days_per_year,
+	  2.37847173959480950e-03 * days_per_year,
+	  -2.96589568540237556e-05 * days_per_year,
+	  4.36624404335156298e-05 * solar_mass),
+  /* neptune */
+  planet (1.53796971148509165e+01,
+	  -2.59193146099879641e+01,
+	  1.79258772950371181e-01,
+	  2.68067772490389322e-03 * days_per_year,
+	  1.62824170038242295e-03 * days_per_year,
+	  -9.51592254519715870e-05 * days_per_year,
+	  5.15138902046611451e-05 * solar_mass)
+];
+
+var i, n = int (argv [0] < 1 ? 1 : argv [0]);
+
+offset_momentum (bodies);
+putf ("%.9f\n", energy (bodies));
+for (i = 1; i <= n; i++)
+  advance (bodies, 0.01);
+putf ("%.9f\n", energy (bodies));
+TEST745
+        echo '      ' $DINO '-O' $test_file 10000 "2>$stderr"
+        if $DINO -O $test_file 10000 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT745' && $CMP $stdout $ftemp2; then
+-0.169075164
+-0.169016441
+OUTPUT745
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 746.
+if test $result = ok -a $start_test_number -le 746; then
+	echo test 746: Printing min/max int
+        cat >$test_file <<'TEST746'
+println (~0 & ~(1<<31));
+println (1<<31);
+println (~0 & ~(1<<63));
+println (1<<63);
+TEST746
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT746' && $CMP $stdout $ftemp2; then
+-2147483649
+2147483648
+9223372036854775807
+-9223372036854775808
+OUTPUT746
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 747.
+if test $result = ok -a $start_test_number -le 747; then
+	echo test 747: Printing min/max int produced by formated vec
+        cat >$test_file <<'TEST747'
+println (vec (~0 & ~(1<<31), "%d"));
+println (vec (1<<31, "%d"));
+println (vec (~0 & ~(1<<63), "%d"));
+println (vec (1<<63, "%d"));
+TEST747
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT747' && $CMP $stdout $ftemp2; then
+"-2147483649"
+"2147483648"
+"9223372036854775807"
+"-9223372036854775808"
+OUTPUT747
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 748.
+if test $result = ok -a $start_test_number -le 748; then
+	echo test 748: Slowest meteor version from Java code
+        cat >$test_file <<'TEST748'
+val height = 10, width = 5;
+val false = 0, true = 1;
+val SHIFT = [ 0, 6, 11, 17, 22, 28, 33, 39, 44, 50 ];
+val MASK  = [ [ 0x01,      0x02,      0x04,      0x08,      0x10   ],
+	      [ 0x01 << 6, 0x02 << 6, 0x04 << 6, 0x08 <<  6,0x10 << 6  ],
+	      [ 0x01 << 11,0x02 << 11,0x04 << 11,0x08 << 11,0x10 << 11 ],
+	      [ 0x01 << 17,0x02 << 17,0x04 << 17,0x08 << 17,0x10 << 17 ],
+	      [ 0x01 << 22,0x02 << 22,0x04 << 22,0x08 << 22,0x10 << 22 ],
+	      [ 0x01 << 28,0x02 << 28,0x04 << 28,0x08 << 28,0x10 << 28 ],
+	      [ 0x01 << 33,0x02 << 33,0x04 << 33,0x08 << 33,0x10 << 33 ],
+	      [ 0x01 << 39,0x02 << 39,0x04 << 39,0x08 << 39,0x10 << 39 ],
+	      [ 0x01 << 44,0x02 << 44,0x04 << 44,0x08 << 44,0x10 << 44 ],
+	      [ 0x01 << 50,0x02 << 50,0x04 << 50,0x08 << 50,0x10 << 50 ]];
+     
+class Shape (symbol, vector, bitmap, shift, islet, max_row, min_col, max_col) {}
+
+val PIECE0 = [ Shape ('0',[[3, 5],[2, 4],[1, 3],[0, 2],[0, 0]],0x0000000000082083,0,false,6,0,4),
+	       Shape ('0',[[4,-2],[3,-1],[2, 0],[1, 1],[0, 0]],0x0000000000421082,1,false,5,2,8),
+	       Shape ('0',[[1,-7],[1,-5],[1,-3],[1,-1],[0, 0]],0x00000000000003D0,4,false,8,7,9),
+	       Shape ('0',[[0, 0],[1, 1],[2, 2],[3, 3],[3, 5]],0x00000000000C1041,0,false,6,0,4),
+	       Shape ('0',[[0, 0],[1,-1],[2,-2],[3,-3],[4,-2]],0x0000000000821084,2,false,5,3,9),
+	       Shape ('0',[[0, 6],[0, 4],[0, 2],[0, 0],[1,-1]],0x000000000000005E,1,false,8,1,3),
+	       Shape ('0',[[0, 0],[1, 1],[2, 2],[3, 3],[4, 2]],0x0000000000841041,0,false,5,0,6),
+	       Shape ('0',[[0, 0],[1,-1],[2,-2],[3,-3],[3,-5]],0x0000000000062108,3,false,6,5,9),
+	       Shape ('0',[[1, 7],[1, 5],[1, 3],[1, 1],[0, 0]],0x00000000000003C1,0,false,8,0,2),
+	       Shape ('0',[[4, 2],[3, 1],[2, 0],[1,-1],[0, 0]],0x0000000001041042,1,false,5,1,7),
+	       Shape ('0',[[3,-3],[2,-2],[1,-1],[0, 0],[0, 2]],0x000000000002108C,2,false,6,3,7),
+	       Shape ('0',[[0, 0],[0, 2],[0, 4],[0, 6],[1, 7]],0x000000000000020F,0,false,8,0,2)];
+ 
+val PIECE1 = [ Shape ('1',[[0, 2],[0, 0],[1,-1],[2, 0],[3,-1]],0x0000000000021046,1,false,6,1,7),
+	       Shape ('1',[[1, 3],[0, 2],[0, 0],[1,-1],[1,-3]],0x00000000000002CC,2,false,8,3,6),
+	       Shape ('1',[[3, 3],[2, 4],[1, 3],[1, 1],[0, 0]],0x00000000000420C1,0,false,6,0,5),
+	       Shape ('1',[[3,-3],[3,-1],[2, 0],[1,-1],[0, 0]],0x0000000000062084,2,false,6,3,9),
+	       Shape ('1',[[0, 0],[1, 1],[1, 3],[0, 4],[0, 6]],0x00000000000000CD,0,true, 8,0,3),
+	       Shape ('1',[[0, 0],[1,-1],[2, 0],[2, 2],[3, 3]],0x0000000000083042,1,false,6,1,6),
+	       Shape ('1',[[0, 6],[1, 5],[1, 3],[0, 2],[0, 0]],0x000000000000018B,0,true, 8,0,3),
+	       Shape ('1',[[3, 3],[3, 1],[2, 0],[1, 1],[0, 0]],0x0000000000060841,0,false,6,0,6),
+	       Shape ('1',[[3,-3],[2,-4],[1,-3],[1,-1],[0, 0]],0x00000000000208C4,2,false,6,4,9),
+	       Shape ('1',[[1,-1],[0, 0],[0, 2],[1, 3],[1, 5]],0x0000000000000346,1,false,8,1,4),
+	       Shape ('1',[[0, 0],[0, 2],[1, 3],[2, 2],[3, 3]],0x0000000000041083,0,false,6,0,6),
+	       Shape ('1',[[0, 0],[1, 1],[2, 0],[2,-2],[3,-3]],0x0000000000023104,2,false,6,3,8)];
+
+val PIECE2 = [ Shape ('2',[[1, 1],[0, 0],[2, 0],[2,-2],[2,-4]],0x0000000000003904,2,false,7,4,8),
+	       Shape ('2',[[2, 4],[1, 5],[2, 2],[1, 1],[0, 0]],0x0000000000003141,0,false,7,0,4),
+	       Shape ('2',[[3,-1],[3, 1],[2,-2],[1,-1],[0, 0]],0x0000000000060842,1,false,6,2,8),
+	       Shape ('2',[[1,-1],[2, 0],[0, 0],[0, 2],[0, 4]],0x000000000000104E,1,false,7,1,5),
+	       Shape ('2',[[0, 0],[1,-1],[0, 2],[1, 3],[2, 4]],0x0000000000004146,1,false,7,1,5),
+	       Shape ('2',[[0, 2],[0, 0],[1, 3],[2, 2],[3, 1]],0x0000000000021083,0,true, 6,0,6),
+	       Shape ('2',[[0, 2],[1, 3],[0, 0],[1,-1],[2,-2]],0x0000000000000946,1,false,7,2,6),
+	       Shape ('2',[[1, 5],[2, 4],[0, 4],[0, 2],[0, 0]],0x0000000000002107,0,false,7,0,4),
+	       Shape ('2',[[3, 1],[3,-1],[2, 2],[1, 1],[0, 0]],0x0000000000062082,1,false,6,1,7),
+	       Shape ('2',[[2,-4],[1,-5],[2,-2],[1,-1],[0, 0]],0x0000000000003148,3,false,7,5,9),
+	       Shape ('2',[[1,-1],[0, 0],[2, 0],[2, 2],[2, 4]],0x0000000000007042,1,false,7,1,5),
+	       Shape ('2',[[0, 0],[0, 2],[1,-1],[2, 0],[3, 1]],0x0000000000041046,1,false,6,1,7)];
+
+val PIECE3 = [ Shape ('3',[[0, 0],[2, 0],[1,-1],[2,-2],[2,-4]],0x0000000000003884,2,false,7,4,9),
+	       Shape ('3',[[1, 5],[2, 2],[1, 3],[1, 1],[0, 0]],0x00000000000011C1,0,false,7,0,4),
+	       Shape ('3',[[3, 1],[2,-2],[2, 0],[1,-1],[0, 0]],0x0000000000041842,1,false,6,2,8),
+	       Shape ('3',[[2, 0],[0, 0],[1, 1],[0, 2],[0, 4]],0x0000000000000847,0,false,7,0,5),
+	       Shape ('3',[[1,-3],[0, 0],[1,-1],[1, 1],[2, 2]],0x00000000000041C4,2,false,7,3,7),
+	       Shape ('3',[[0, 0],[1, 3],[1, 1],[2, 2],[3, 1]],0x00000000000210C1,0,true, 6,0,6),
+	       Shape ('3',[[1, 3],[0, 0],[1, 1],[1,-1],[2,-2]],0x00000000000009C2,1,false,7,2,6),
+	       Shape ('3',[[2, 4],[0, 4],[1, 3],[0, 2],[0, 0]],0x0000000000002087,0,false,7,0,5),
+	       Shape ('3',[[3,-1],[2, 2],[2, 0],[1, 1],[0, 0]],0x0000000000023082,1,false,6,1,7),
+	       Shape ('3',[[1,-5],[2,-2],[1,-3],[1,-1],[0, 0]],0x00000000000021C8,3,false,7,5,9),
+		Shape ('3',[[0, 0],[2, 0],[1, 1],[2, 2],[2, 4]],0x0000000000003841,0,false,7,0,5),
+	       Shape ('3',[[0, 0],[1,-3],[1,-1],[2,-2],[3,-1]],0x00000000000410C4,2,false,6,3,9)];
+ 
+val PIECE4 = [ Shape ('4',[[1, 5],[2, 2],[1, 3],[0, 2],[0, 0]],0x0000000000001183,0,false,7,0,4),
+	       Shape ('4',[[3, 1],[2,-2],[2, 0],[1, 1],[0, 0]],0x0000000000041882,1,false,6,2,8),
+	       Shape ('4',[[2, 0],[0, 0],[1, 1],[1, 3],[0, 4]],0x00000000000008C5,0,true, 7,0,5),
+	       Shape ('4',[[1,-3],[0, 0],[1,-1],[2, 0],[2, 2]],0x00000000000060C4,2,false,7,3,7),
+	       Shape ('4',[[0, 0],[1, 3],[1, 1],[2, 0],[3, 1]],0x00000000000208C1,0,false,6,0,6),
+	       Shape ('4',[[0, 0],[2, 0],[1,-1],[1,-3],[2,-4]],0x00000000000028C4,2,false,7,4,9),
+	       Shape ('4',[[0, 0],[1,-3],[1,-1],[2, 0],[3,-1]],0x00000000000420C4,2,false,6,3,9),
+	       Shape ('4',[[1, 3],[0, 0],[1, 1],[2, 0],[2,-2]],0x0000000000001982,1,false,7,2,6),
+	       Shape ('4',[[2, 4],[0, 4],[1, 3],[1, 1],[0, 0]],0x00000000000020C5,0,true, 7,0,5),
+	       Shape ('4',[[3,-1],[2, 2],[2, 0],[1,-1],[0, 0]],0x0000000000023042,1,false,6,1,7),
+	       Shape ('4',[[1,-3],[2, 0],[1,-1],[0, 0],[0, 2]],0x00000000000020CC,2,false,7,3,7),
+	       Shape ('4',[[0, 0],[2, 0],[1, 1],[1, 3],[2, 4]],0x00000000000028C1,0,false,7,0,5)];
+ 
+val PIECE5 = [ Shape ('5',[[0, 2],[1, 1],[0, 0],[1,-1],[2,-2]],0x00000000000008C6,1,false,7,2,7),
+	       Shape ('5',[[1, 5],[1, 3],[0, 4],[0, 2],[0, 0]],0x0000000000000187,0,false,8,0,4),
+	       Shape ('5',[[3, 1],[2, 0],[2, 2],[1, 1],[0, 0]],0x0000000000021841,0,false,6,0,7),
+	       Shape ('5',[[2,-4],[1,-3],[2,-2],[1,-1],[0, 0]],0x00000000000018C4,2,false,7,4,9),
+	       Shape ('5',[[0, 0],[0, 2],[1, 1],[1, 3],[1, 5]],0x00000000000001C3,0,false,8,0,4),
+	       Shape ('5',[[0, 0],[1, 1],[1,-1],[2, 0],[3, 1]],0x00000000000410C2,1,false,6,1,8),
+	       Shape ('5',[[0, 2],[0, 0],[1, 1],[1,-1],[1,-3]],0x00000000000001CC,2,false,8,3,7),
+	       Shape ('5',[[2, 4],[1, 3],[2, 2],[1, 1],[0, 0]],0x00000000000030C1,0,false,7,0,5),
+	       Shape ('5',[[3,-1],[2, 0],[2,-2],[1,-1],[0, 0]],0x0000000000021842,1,false,6,2,9),
+	       Shape ('5',[[1,-1],[1, 1],[0, 0],[0, 2],[0, 4]],0x00000000000000CE,1,false,8,1,5),
+	       Shape ('5',[[0, 0],[1, 1],[0, 2],[1, 3],[2, 4]],0x00000000000020C3,0,false,7,0,5),
+	       Shape ('5',[[0, 0],[1,-1],[1, 1],[2, 0],[3,-1]],0x00000000000210C2,1,false,6,1,8)];
+
+val PIECE6 = [ Shape ('6',[[1, 1],[0, 0],[1,-1],[1,-3],[2,-4]],0x00000000000009C4,2,false,7,4,8),
+	       Shape ('6',[[2, 4],[1, 5],[1, 3],[0, 2],[0, 0]],0x0000000000002183,0,false,7,0,4),
+	       Shape ('6',[[3,-1],[3, 1],[2, 0],[1, 1],[0, 0]],0x0000000000061082,1,false,6,1,8),
+	       Shape ('6',[[1,-5],[2,-4],[1,-3],[1,-1],[0, 0]],0x00000000000011C8,3,false,7,5,9),
+	       Shape ('6',[[0, 0],[1,-1],[1, 1],[2, 2],[2, 4]],0x00000000000060C2,1,false,7,1,5),
+	       Shape ('6',[[0, 2],[0, 0],[1, 1],[2, 0],[3, 1]],0x0000000000020843,0,false,6,0,7),
+	       Shape ('6',[[0, 0],[1, 1],[1,-1],[2,-2],[2,-4]],0x0000000000001984,2,false,7,4,8),
+	       Shape ('6',[[1, 5],[2, 4],[1, 3],[1, 1],[0, 0]],0x00000000000021C1,0,false,7,0,4),
+	       Shape ('6',[[3, 1],[3,-1],[2, 0],[1,-1],[0, 0]],0x0000000000061042,1,false,6,1,8),
+	       Shape ('6',[[2,-2],[1,-3],[1,-1],[0, 0],[0, 2]],0x00000000000010CC,2,false,7,3,7),
+	       Shape ('6',[[1,-1],[0, 0],[1, 1],[1, 3],[2, 4]],0x00000000000041C2,1,false,7,1,5),
+	       Shape ('6',[[0, 0],[0, 2],[1, 1],[2, 2],[3, 1]],0x0000000000021043,0,false,6,0,7)];
+ 
+val PIECE7 = [ Shape ('7',[[0, 2],[1, 1],[0, 0],[2, 0],[2,-2]],0x0000000000001886,1,false,7,2,7),
+	       Shape ('7',[[1, 5],[1, 3],[0, 4],[1, 1],[0, 0]],0x00000000000001C5,0,true, 8,0,4),
+	       Shape ('7',[[3, 1],[2, 0],[2, 2],[1,-1],[0, 0]],0x0000000000043042,1,false,6,1,7),
+	       Shape ('7',[[2,-2],[1,-1],[2, 0],[0, 0],[0, 2]],0x0000000000001846,1,false,7,2,7),
+	       Shape ('7',[[0, 0],[0, 2],[1, 1],[0, 4],[1, 5]],0x0000000000000147,0,false,8,0,4),
+	       Shape ('7',[[0, 0],[1, 1],[1,-1],[2, 2],[3, 1]],0x00000000000420C2,1,false,6,1,7),
+	       Shape ('7',[[0, 4],[0, 2],[1, 3],[0, 0],[1,-1]],0x000000000000014E,1,false,8,1,5),
+	       Shape ('7',[[2, 4],[1, 3],[2, 2],[0, 2],[0, 0]],0x0000000000003083,0,false,7,0,5),
+	       Shape ('7',[[3,-1],[2, 0],[2,-2],[1, 1],[0, 0]],0x0000000000021882,1,false,6,2,8),
+	       Shape ('7',[[1,-1],[1, 1],[0, 0],[1, 3],[0, 4]],0x00000000000001CA,1,false,8,1,5),
+	       Shape ('7',[[0, 0],[1, 1],[0, 2],[2, 2],[2, 4]],0x0000000000003043,0,false,7,0,5),
+	       Shape ('7',[[0, 0],[1,-1],[1, 1],[2,-2],[3,-1]],0x00000000000208C2,1,false,6,2,8)];
+ 
+val PIECE8 = [ Shape ('8',[[4, 2],[3, 1],[2, 0],[1, 1],[0, 0]],0x0000000000820841,0,false,5,0,7),
+	       Shape ('8',[[3,-5],[2,-4],[1,-3],[1,-1],[0, 0]],0x0000000000021188,3,false,6,5,9),
+	       Shape ('8',[[0, 0],[0, 2],[0, 4],[1, 5],[1, 7]],0x0000000000000307,0,false,8,0,2),
+	       Shape ('8',[[0, 0],[1, 1],[2, 2],[3, 1],[4, 2]],0x0000000000821041,0,true, 5,0,7),
+	       Shape ('8',[[0, 0],[1,-1],[2,-2],[2,-4],[3,-5]],0x0000000000023108,3,false,6,5,9),
+	       Shape ('8',[[1, 7],[1, 5],[1, 3],[0, 2],[0, 0]],0x0000000000000383,0,false,8,0,2),
+	       Shape ('8',[[0, 0],[1, 1],[2, 2],[2, 4],[3, 5]],0x0000000000083041,0,false,6,0,4),
+	       Shape ('8',[[0, 0],[1,-1],[2,-2],[3,-1],[4,-2]],0x0000000000420842,1,false,5,2,9),
+	       Shape ('8',[[0, 4],[0, 2],[0, 0],[1,-1],[1,-3]],0x00000000000000DC,2,false,8,3,5),
+	       Shape ('8',[[3, 5],[2, 4],[1, 3],[1, 1],[0, 0]],0x00000000000820C1,0,false,6,0,4),
+	       Shape ('8',[[4,-2],[3,-1],[2, 0],[1,-1],[0, 0]],0x0000000000421042,1,false,5,2,9),
+	       Shape ('8',[[1,-5],[1,-3],[1,-1],[0, 0],[0, 2]],0x00000000000001D8,3,false,8,5,7)];
+ 
+val PIECE9 = [ Shape ('9',[[3, 3],[2, 2],[1, 1],[0, 0],[0, 2]],0x0000000000041043,0,false,6,0,6),
+	       Shape ('9',[[3,-3],[2,-2],[1,-1],[0, 0],[1, 1]],0x0000000000021184,2,false,6,3,8),
+	       Shape ('9',[[0, 0],[0, 2],[0, 4],[0, 6],[1, 5]],0x000000000000010F,0,false,8,0,3),
+	       Shape ('9',[[0, 0],[1, 1],[2, 2],[3, 3],[3, 1]],0x0000000000061041,0,true, 6,0,6),
+	       Shape ('9',[[0, 0],[1,-1],[2,-2],[3,-3],[2,-4]],0x0000000000021884,2,false,6,4,9),
+	       Shape ('9',[[1, 5],[1, 3],[1, 1],[1,-1],[0, 0]],0x00000000000003C2,1,false,8,1,4),
+	       Shape ('9',[[0, 0],[1, 1],[2, 2],[3, 3],[2, 4]],0x0000000000043041,0,false,6,0,5),
+	       Shape ('9',[[0, 0],[1,-1],[2,-2],[3,-3],[3,-1]],0x0000000000061084,2,false,6,3,9),
+	       Shape ('9',[[0, 6],[0, 4],[0, 2],[0, 0],[1, 1]],0x000000000000004F,0,false,8,0,3),
+	       Shape ('9',[[3, 3],[2, 2],[1, 1],[0, 0],[1,-1]],0x00000000000820C2,1,false,6,1,6),
+	       Shape ('9',[[3,-1],[2, 0],[1, 1],[0, 2],[0, 0]],0x0000000000021086,1,false,6,1,7),
+	       Shape ('9',[[1,-5],[1,-3],[1,-1],[1, 1],[0, 0]],0x00000000000003C8,3,false,8,5,8)];
+
+var solutions = [];
+var solution;
+var depth     = 0;
+
+fun modified_shape (shape, row, col) {
+  Shape (shape.symbol, shape.vector,
+	 shape.bitmap << ((SHIFT[row] + (col - (row % 2)) / 2) - shape.shift), 0,
+	 shape.islet, shape.max_row, shape.min_col, shape.max_col);
+}
+
+class Piece (list) {
+  var shapes;
+
+  fun get_shapes (row, col) { shapes[row][col]; }
+
+  { // Initialze shapes:
+    var mutant, row, col, i;
+    
+    shapes = [10: []];
+    for (row = 0; row < 10; row++) {
+      shapes[row] = [10: []];
+      for (col = 0; col < 10; col++)
+	shapes[row][col] = [];
+    }
+    for (i = 0; i < #list; i++) {
+      mutant = list[i];
+      for (row = 0; row <= mutant.max_row; row++) {
+	for (col = mutant.min_col; col <= mutant.max_col; col++) {
+	  if (! mutant.islet)
+	    ins (shapes[row][col], modified_shape (mutant, row, col), -1);
+	  else if (row != 0 || col != 0)
+	    ins (shapes[row][col], modified_shape (mutant, row, col), -1);
+	}
+      }
+    }
+  }
+}
+ 
+val pieces    = [ Piece (PIECE0), Piece (PIECE1), Piece (PIECE2),
+		  Piece (PIECE3), Piece (PIECE4), Piece (PIECE5),
+		  Piece (PIECE6), Piece (PIECE7), Piece (PIECE8), Piece (PIECE9)];
+
+class Entry (row, col, shape) {}
+
+fun init_solution {
+  solution = [];
+  for (var i = 0; i < 10; i++) ins (solution, Entry (0, 0, nil), -1);
+}
+
+fun serialize (solution) {
+  var puzzle = [50 : ' '], shape, row, col, entry, xy, i, j;
+           
+  for (i = 0; i < #solution; i++) {
+    entry = solution[i];
+    shape = entry.shape;
+    row   = entry.row;
+    col   = entry.col;
+    for (j = 0; j < #shape.vector; j++) {
+      xy = shape.vector[j];
+      puzzle[5 * (row + xy[0]) + (col + xy[1])/2] = shape.symbol;
+    }
+  }
+  return puzzle;
+}
+
+fun solve_puzzle (puzzle, row, col) !jit {
+  var i, j, piece, list, shape, clone, irow, icol, entry;
+  for (i = 0; i < #pieces; i++) {
+    // ... find shapes that fit
+    piece = pieces[i];
+    if (piece == nil)
+      continue;
+    list = piece.get_shapes (row, col);
+      
+    for (j = #list - 1; j >= 0; j--) { // ... fits badly ?
+      shape = list[j];
+      if ((shape.bitmap & puzzle) != 0)
+	continue;
+      clone = puzzle | shape.bitmap;
+      // ... find next position
+      icol = col / 2 + 1;
+      for (irow = row; irow < height; irow++) {
+	for (; icol < width; icol++)
+	  if ((clone & MASK[irow][icol]) == 0)
+	    break;
+	if (icol < width)
+	  break;
+	icol = 0;
+      }
+      // ... solve next
+      pieces[i]  = nil;
+      entry   = solution[depth]; depth++;
+      entry.row   = row;
+      entry.col   = col;
+      entry.shape = shape;
+      if (depth == 10)
+	ins (solutions, serialize (solution), -1);
+      else
+	solve_puzzle (clone, irow, 2 * icol + (irow % 2));
+	  
+      depth--;
+      pieces[i] = piece;
+    }
+  }
+}
+
+fun solve {solve_puzzle (0x0002004008010020, 0, 0);}
+
+fun print (solution) {
+  for (var y = 0; y < height; y++) {
+    if (y % 2 == 1) put (" ");
+    for (var x = 0; x < width; x++) {
+      if (x != 0) put (' ');
+      put (solution [x + y * width]);
+    }
+    putln ();
+  }
+}
+
+fun str_cmp (s1, s2) {
+  for (var i = 0; i < #s1 && i < #s2; i++)
+    if (s1[i] < s2[i]) return -1;
+    else if (s1[i] > s2[i]) return 1;
+  if (#s1 == #s2) return 0;
+  return i < #s1 ? 1 : -1;
+}
+
+fun main {
+  var n = int (#argv == 0 || argv [0] < 1 ? 2098 : argv [0]);
+  init_solution ();
+         
+  solve ();
+  if (#solutions > n)
+    putln ("Error");
+  else if (#solutions < n)
+    putln ("Timeout");
+  else {
+    putln (#solutions,  " solutions found\n");
+    solutions = sort (solutions, str_cmp);
+    print (solutions[0]);
+    putln ();
+    print (solutions[#solutions - 1]);
+    putln ();
+  }
+}
+
+main ();
+TEST748
+        echo '      ' $DINO '-O' $test_file 2098 "2>$stderr"
+        if $DINO -O $test_file 2098 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT748' && $CMP $stdout $ftemp2; then
+2098 solutions found
+
+0 0 0 0 1
+ 2 2 2 0 1
+2 6 6 1 1
+ 2 6 1 5 5
+8 6 5 5 5
+ 8 6 3 3 3
+4 8 8 9 3
+ 4 4 8 9 3
+4 7 4 7 9
+ 7 7 7 9 9
+
+9 9 9 9 8
+ 9 6 6 8 5
+6 6 8 8 5
+ 6 8 2 5 5
+7 7 7 2 5
+ 7 4 7 2 0
+1 4 2 2 0
+ 1 4 4 0 3
+1 4 0 0 3
+ 1 1 3 3 3
+
+OUTPUT748
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 749.
+if test $result = ok -a $start_test_number -le 749; then
+	echo test 749: Meteor version from Python
+        cat >$test_file <<'TEST749'
+val width = 5, height = 10;
+val E = 0, NE = 1, NW = 2, W = 3, SW = 4, SE = 5;
+val rotate      = tab [ E : NE, NE : NW, NW : W, W : SW, SW : SE, SE : E];
+val flip        = tab [ E : W, NE : NW, NW : NE, W : E, SW : SE, SE : SW];
+val move        = tab [ E : fun (x, y) {[x + 1, y];},
+			W : fun (x, y) {[x - 1, y];},
+			NE : fun (x, y) {[x + (y % 2), y - 1];},
+			NW : fun (x, y) {[x + (y % 2) - 1, y - 1];},
+			SE : fun (x, y) {[x + (y % 2), y + 1];},
+			SW : fun (x, y) {[x + (y % 2) - 1, y + 1];}];
+
+val pieces = [[E, E, E, SE],
+              [SE, SW, W, SW],
+              [W, W, SW, SE],
+              [E,  E, SW, SE],
+              [NW, W, NW, SE, SW],
+              [E,  E, NE, W],
+              [NW, NE, NE, W],
+              [NE, SE, E, NE],
+              [SE, SE, E, SE],
+              [E, NW, NW, NW]];
+
+var solutions = [];
+var masks = [10:0];
+
+fun valid (x, y) !inline { 0 <= x && x < width && 0 <= y && y < height; }
+fun legal (mask, board) !inline { (mask & board) == 0; }
+fun zerocount (mask) {
+  for (var s = 0, x = 0; x < 50; x++) s += ((1 << x) & mask) == 0;
+  return s;
+}
+
+fun findFreeCell (board) {
+  for (var y = 0; y < height; y++)
+    for (var x = 0; x < width; x++)
+      if ((board & (1 << (x + width * y))) == 0)
+	return [x,y];
+}
+
+
+fun floodFill (board, p) {
+  var m, f, x = p[0], y = p[1];
+
+  if (! valid (x, y) || (board & (1 << (x + width * y))) != 0) return board;
+  
+  board |= 1 << (x + width * y);
+  
+  for (m, f: move)
+    board |= floodFill (board, f (x, y));
+  return board;
+}
+
+fun noIslands (mask) {
+  var zeroes = zerocount (mask), new_zeroes;
+    
+  if (zeroes < 5) return 0;
+  
+  for (; mask != 0x3FFFFFFFFFFFF;) {
+    mask = floodFill (mask, findFreeCell (mask));
+    new_zeroes = zerocount (mask);
+    if (zeroes - new_zeroes < 5) return 0;
+    zeroes = new_zeroes;
+  }
+  return 1;
+}
+
+fun getBitmask (x, y, piece) {
+  var p, nc, cell, mask = 1 << (x + width * y);
+  
+  for (nc = 0; nc < #piece; nc++) {
+    cell = piece[nc];
+    p = move[cell] (x, y);
+    x = p[0]; y = p[1];
+    if (valid (x, y))
+      mask |= 1 << (x + width * y);
+    else
+      return [0, 0];
+  }
+  return [1, mask];
+}
+
+fun allBitmasks (piece, color) {
+  var bitmasks = [], orient, rotation, x, y, p, mask, nc;
+
+  for (orient = 0; orient < 2; orient++) {
+    for (rotation = 0; rotation < (6 - 3 * (color == 4)); rotation++) {
+      for (y = 0; y < height; y++)
+	for (x = 0; x < width; x++) {
+	  p = getBitmask (x, y, piece); mask = p[1];
+	  if (p[0] && noIslands (mask))
+	    ins (bitmasks, mask, -1);
+	}
+      for (nc = 0; nc < #piece; nc++) piece[nc] = rotate[piece[nc]];
+    }
+    for (nc = 0; nc < #piece; nc++) piece[nc] = flip[piece[nc]];
+  }
+  
+  return bitmasks;
+}
+
+var masksAtCell;
+
+fun generateBitmasks {
+  var color = 0, np, piece, masks, cellMask, cellCounter, i, j;
+
+  masksAtCell = [width * height: []];
+  for (i = 0; i < width * height; i++) {
+    masksAtCell[i] = [10: []];
+    for (j = 0; j < 10; j++)
+      masksAtCell[i][j] = [];
+  }
+  for (np = 0; np < #pieces; np++) {
+    piece = pieces[np];
+    masks = allBitmasks (piece, color);
+    masks = sort (masks);
+    cellMask = 1 << (width * height - 1);
+    cellCounter = width * height - 1;
+    for (j = #masks - 1; j >= 0;)
+      if ((masks[j] & cellMask) == cellMask) {
+	ins (masksAtCell[cellCounter][color], masks[j], -1);
+	j--;
+      } else {
+	cellMask >>= 1;
+	cellCounter--;
+      }
+    color++	;
+  }
+}
+
+fun stringOfMasks (masks) {
+  var s = "", mask = 1, x, y, color;
+
+  for (y = 0; y < height; y++)
+    for (x = 0; x < width; x++) {
+      for (color = 0; color < 10; color++)
+	if ((masks[color] & mask) != 0) {
+	  s @= color; break;
+	} else if (color == 9)
+	  s @= ".";
+      mask <<= 1;
+    }
+  return s;
+}
+
+fun inverse (s) {
+  var x, y, ns = new s;
+  
+  for (x = 0; x < width; x++)
+    for (y = 0; y < height; y++)
+      ns [x + y * width] = s [width - x - 1 + (height - y - 1) * width];
+  return s;
+}
+
+fun solveCell (cell, board, n) !jit {
+  var s, mask, color, m, nm, cell_masks, color_masks;
+
+  if (#solutions >= n) return;
+
+  if (board == 0x3FFFFFFFFFFFF) { // Solved
+    s = stringOfMasks (masks);
+    ins (solutions, s, -1);
+    ins (solutions, inverse (s), -1);
+    return;
+  }
+
+  if ((board & (1 << cell)) != 0) { // Cell full
+    solveCell (cell - 1, board, n);
+    return;
+  }
+  
+  if (cell < 0) // Out of board
+    return;
+
+  cell_masks = masksAtCell[cell];
+  for (color = 0; color < 10; color++)
+    if (masks[color] == 0) {
+      color_masks = cell_masks[color];
+      for (nm = 0; nm < #color_masks; nm++) {
+	m = color_masks[nm];
+	if (legal (m, board)) {
+	  masks[color] = m;
+	  solveCell (cell - 1, board | m, n);
+	  masks[color] = 0;
+	}
+      }
+    }
+}
+
+fun solve (n) {
+  generateBitmasks ();
+  solveCell (width * height - 1, 0, n);
+}
+
+fun printSolution (solution) {
+  for (var y = 0; y < height; y++) {
+    if (y % 2 == 1) put (" ");
+    for (var x = 0; x < width; x++) {
+      if (x != 0) put (' ');
+      put (solution [x + y * width]);
+    }
+    putln ();
+  }
+}
+
+fun str_cmp (s1, s2) {
+  for (var i = 0; i < #s1 && i < #s2; i++)
+    if (s1[i] < s2[i]) return -1;
+    else if (s1[i] > s2[i]) return 1;
+  if (#s1 == #s2) return 0;
+  return i < #s1 ? 1 : -1;
+}
+
+fun main () {
+  var n = int (argv [0] < 1 ? 1 : argv [0]);
+  solve (n);
+  putln (#solutions, " solutions found\n");
+  solutions = sort (solutions, str_cmp);
+  printSolution (solutions[0]);
+  putln ();
+  printSolution (solutions[#solutions - 1]);
+}
+
+main ();
+TEST749
+        echo '      ' $DINO '-O' $test_file 2098 "2>$stderr"
+        if $DINO -O $test_file 2098 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT749' && $CMP $stdout $ftemp2; then
+2098 solutions found
+
+0 0 0 0 1
+ 2 2 2 0 1
+2 6 6 1 1
+ 2 6 1 5 5
+8 6 5 5 5
+ 8 6 3 3 3
+4 8 8 9 3
+ 4 4 8 9 3
+4 7 4 7 9
+ 7 7 7 9 9
+
+9 9 9 9 8
+ 9 6 6 8 5
+6 6 8 8 5
+ 6 8 2 5 5
+7 7 7 2 5
+ 7 4 7 2 0
+1 4 2 2 0
+ 1 4 4 0 3
+1 4 0 0 3
+ 1 1 3 3 3
+OUTPUT749
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 750.
+if test $result = ok -a $start_test_number -le 750; then
+	echo test 750: Fastest meteor version from C++
+        cat >$test_file <<'TEST750'
+val false = 0, true = 1;
+val nPieceCount = 10;
+val pieces  = [ [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]],
+		[[0, 0], [0, 1], [-2, 2], [-1, 2], [-3, 3]],
+		[[0, 0], [1, 0], [2, 0], [-1, 1], [-1, 2]],
+		[[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]],
+		[[0, 0], [0, 1], [1, 1], [-1, 2], [1, 2]],
+		[[0, 0], [1, 0], [-2, 1], [-1, 1], [0, 1]],
+		[[0, 0], [1, 0], [0, 1], [-1, 2], [-1, 3]],
+		[[0, 0], [2, 0], [-1, 1], [0, 1], [1, 1]],
+		[[0, 0], [0, 1], [0, 2], [1, 2], [1, 3]],
+		[[0, 0], [0, 1], [0, 2], [-1, 3], [0, 3]]];
+
+var i, g_AllMasks = [8192: 0], g_MaskStart = [50: []];
+for (i = 0; i < #g_MaskStart; i++) g_MaskStart[i] = [8: 0];
+
+var g_solutions, g_min_solution = [50: ""], g_max_solution = [50: ""];;
+
+var EvenRowsLookup = [50: 0], LeftBorderLookup = [50: 0];
+
+fun popcount (x) {
+  var c;
+  for (c = 0; x; x >>>= 1)
+    if (x & 1) c++;
+  return c;
+}
+   
+fun ctz (x) !inline {
+  var c;
+
+  if (! x) {putln ("Internal Error"); exit (1);}
+  for (c = 0; (x & 1) == 0; x >>>= 1)
+    c++;
+  return c;
+}
+   
+fun GoodPiece (mask, pos) {
+   var bOK = true;
+   val even_rows = 0xf07c1f07c1f07c1f;
+   val odd_rows = ~even_rows;   
+   val left_border = 0x1084210842108421;
+   val right_border = left_border >> 1;
+   var a, b, a_old, s1, s2, s3, s4, s5, s6, s7, s8;
+   
+   b = (mask << pos) | 0xFFFC000000000000;
+   b = ~b;
+
+   for (;b;) {
+     a = b & -b;
+     for (;;) {
+         s1 = a << 5;
+         s2 = a >>> 5;
+         s3 = (a << 1) & (~left_border);
+         s4 = (a >>> 1) & (~right_border);
+         s5 = ((a & even_rows) >>> 6) & (~right_border);
+         s6 = ((a & even_rows) << 4) & (~right_border);
+         s7 = ((a & odd_rows) >>> 4) & (~left_border);
+         s8 = ((a & odd_rows) << 6) & (~left_border);
+         a_old = a;
+         a = (a | s1 | s2 | s3 | s4 | s5 | s6 | s7 | s8) & b;
+	 if (a_old == a)
+	   break;
+      }
+     if (popcount (a) % 5 != 0) {
+         bOK = false;
+         break;
+      }
+      b ^= a;
+   }
+   return bOK;
+}
+
+fun Initialise {
+  var i;
+  for (i = 0; i < 50; i++) {
+    EvenRowsLookup[i] = 0xF07C1F07C1F07C1F >>> i;
+    LeftBorderLookup[i] = 0x1084210842108421 >>> i;
+  }
+  
+  var nTotalCount = 0;
+  var x = [5: 0], y = [5: 0];
+  var nXBase, nYBase, nPos, nPiece, j, nCurrentRotation, nMinX, nMinY;
+  var mask, bFit, nX, nY, nBit, xnew, ynew, nOrigPos, nFilter, filter_mask;
+  var bottom, last_row, pMask;
+
+  for (nYBase = 2; nYBase < 4; nYBase++) {
+    for (nXBase = 0; nXBase < 5; nXBase++) {
+      nPos = nXBase + 5 * nYBase;
+      g_MaskStart[nPos][0] = nTotalCount;
+      for (nPiece = 0; nPiece < nPieceCount; nPiece++) {
+	for (j = 0; j < 5; j++) {
+	  x[j] = pieces[nPiece][j][0]; y[j] = pieces[nPiece][j][1];
+	}
+         
+	for (nCurrentRotation = 0; nCurrentRotation < 12; nCurrentRotation++) {
+	  if (nPiece != 3 || (nCurrentRotation / 3) % 2 == 0) {
+	    nMinX = x[0]; nMinY = y[0];
+	    for (i = 1; i < 5; i++) {
+	      if (y[i] < nMinY || (y[i] == nMinY && x[i] < nMinX)) {
+		nMinX = x[i]; nMinY = y[i];
+	      }
+	    }
+            
+	    mask = 0; bFit = true;
+	    for (i = 0; i < 5; i++) {
+	      nX = (x[i] - nMinX + (nXBase - nYBase / 2)) + (y[i] - nMinY + nYBase) / 2;
+	      nY = y[i] - nMinY + nYBase;
+	      if (nX >= 0 && nX < 5) {
+		nBit = nX - nXBase +5 * (nY - nYBase); mask |= (1 << nBit);
+	      } else
+		bFit = false;
+	    }
+	    if (bFit && GoodPiece (mask, nPos)) {
+	      g_AllMasks[nTotalCount] = mask | (1 << (nPiece + 22)); nTotalCount++;
+	    }
+	  }
+	  for (i = 0; i < 5; i++) {
+	    xnew = x[i] + y[i]; ynew = -x[i]; x[i] = xnew; y[i] = ynew;
+	    if (nCurrentRotation == 5) {
+	      xnew = x[i] + y[i]; ynew = -y[i]; x[i] = xnew; y[i] = ynew;
+	    }      
+	  }
+	}
+      }
+      g_AllMasks[nTotalCount] = 0; nTotalCount++;
+    }
+  }
+   
+  // copy rows 2 and 3 to other rows
+  for (nYBase = 0; nYBase < 10; nYBase++) {
+    if (nYBase != 2 && nYBase != 3) {
+      for (nXBase = 0; nXBase < 5; nXBase++) {
+	nPos = nXBase + 5 * nYBase;
+	nOrigPos = nXBase + 5 * (nYBase % 2 + 2);
+	g_MaskStart[nPos][0] = nTotalCount;
+	pMask = g_MaskStart[nOrigPos][0];
+	bottom = (0xFFFC000000000000 >>> nPos) & 0x003FFFFF;
+	last_row = (0xFFFC000000000000 >>> (nPos + 5)) & 0x003FFFFF;
+	for (;g_AllMasks[pMask];) {
+	  mask = g_AllMasks[pMask]; pMask++;
+	  if ((mask & bottom) == 0) {
+	    if ((nYBase == 0 || (mask & last_row))
+		&& ! GoodPiece (mask & 0x003FFFFF, nPos))
+	      continue;
+	    g_AllMasks[nTotalCount] = mask; nTotalCount++;
+	  }
+	}
+	g_AllMasks[nTotalCount] = 0; nTotalCount++;
+      }
+    }
+  }
+  
+  for (nFilter = 1; nFilter < 8; nFilter++) {
+    for (nPos = 0; nPos < 50; nPos++) {
+      g_MaskStart[nPos][nFilter] = nTotalCount;
+      filter_mask = ((nFilter & 1) << 1) | ((nFilter & 6)
+					    << (4 - (EvenRowsLookup[nPos] & 1)));
+      pMask = g_MaskStart[nPos][0];
+      for (;g_AllMasks[pMask];) {
+	mask = g_AllMasks[pMask];
+	if ((mask & filter_mask) == 0) {
+	  g_AllMasks[nTotalCount] = mask; nTotalCount++;
+	}
+	pMask++;
+      }
+      g_AllMasks[nTotalCount] = 0; nTotalCount++;
+    }
+  }
+}
+
+fun CompareSolution(board, min_solution, max_solution) {
+  var i, j;
+   
+   for (i = 0; i < 50; i++) {
+     if (board[i] < min_solution[i]) {
+       for (j = 0; j < 50; j++)
+	 min_solution[j] = board[j];
+       break;
+     } else if (board[i] > min_solution[i])
+       break;
+   }
+   for (i = 0;i < 50; i++) {
+     if (board[i] > max_solution[i]) {
+       for (j = 0; j < 50; j++)
+	 max_solution[j] = board[j];
+       break;
+      } else if (board[i] < max_solution[i])
+       break;
+   }
+}
+
+fun PrintBoard (board) {
+  var i;
+  
+  for (i = 0; i < 50; i++) {
+    putf ("%d ", board[i]);
+    if (i % 5 == 4) {
+      putln ();
+      if ((i & 1) == 0) put (" ");
+    }
+  }
+  putln ();
+}
+
+fun RecordSolution (current_solution) {
+  var board = [50: 0], flip_board = [50: 0];
+  var i, piece, mask, pos = 0, current_bit, b1 = 0, b, count;
+  for (i = 0; i < 10; i++) {
+    mask = current_solution[i]; piece = ctz (mask >>> 22);
+    mask &= 0x003FFFFF; b1 |= mask;
+    for (;mask;) {
+      current_bit = mask & -mask; count = ctz (current_bit);
+      board[count + pos] = piece; flip_board[49 - count - pos] = piece;
+      mask ^= current_bit;
+    }
+    count = ctz (~b1); pos += count; b1 >>>= count;
+  }
+  if (g_solutions == 0)
+    for (i = 0; i < 50; i++) {
+      b = board[i]; g_min_solution[i] = b; g_max_solution[i] = b;
+    }
+  else {
+    CompareSolution (board, g_min_solution, g_max_solution);
+    CompareSolution (flip_board, g_min_solution, g_max_solution);
+  }
+  g_solutions += 2;
+}
+     
+fun search1 (board, pos, used, placed, current_solution) !jit {
+  var count, even_rows, odd_rows, left_border, right_border;
+  var s1, s2, s3, s4, s5, s6, s7, s8, f, board_and_used, masks, mask, pMask;
+
+  if (placed == 10)
+    RecordSolution (current_solution);
+  else {
+    even_rows = EvenRowsLookup[pos]; odd_rows = ~even_rows;
+    
+    left_border = LeftBorderLookup[pos]; right_border = left_border >>> 1;
+    
+    s1 = (board << 1) | left_border;
+    s2 = (board >>> 1) | right_border;
+    s3 = (board << 4) | ((1 << 4) - 1) | right_border;
+    s4 = (board >>> 4) | left_border;
+    s5 = (board << 5) | ((1 << 5) - 1);
+    s6 = (board >>> 5);
+    s7 = (board << 6) | ((1 << 6) - 1) | left_border;
+    s8 = (board >>> 6) | right_border;
+    
+    if (~board & s1 & s2 & s5 & s6 & ((even_rows & s4 & s7) | (odd_rows & s3 & s8)))
+      return;
+    count = ctz (~board); pos += count; board >>>= count;
+    
+    f = ((board >>> 1) & 1) | ((board >>> (4 - (EvenRowsLookup[pos] & 1))) & 6);   
+    board_and_used = board | used;
+    for (pMask = g_MaskStart[pos][f]; g_AllMasks[pMask];) {
+      for (;g_AllMasks[pMask] & board_and_used;)
+	pMask++;
+      mask = g_AllMasks[pMask];
+      if (mask) {
+	current_solution[placed] = mask;
+	search1 (board | ((mask & 0x003FFFFF)), pos, used | (mask & 0xFFC00000),
+		 placed + 1, current_solution);
+	pMask++;
+      }
+    }
+  }
+}
+
+fun search {
+  var mask, current_solution, pMask;
+
+  for (pMask = g_MaskStart[0][0];; pMask++) {
+    mask = g_AllMasks[pMask];
+    if (! mask)
+      break;
+    current_solution = [10: 0]; current_solution[0] = mask;
+    search1 (mask & 0x003FFFFF, 0, mask & 0xFFC00000, 1, current_solution);
+  }
+}
+
+fun main {
+  var n = int (#argv == 0 || argv [0] < 1 ? 2098 : argv [0]);
+
+   Initialise ();
+
+   g_solutions = 0;
+
+   search ();
+   
+   putf ("%d solutions found\n\n", g_solutions);
+   PrintBoard (g_min_solution);
+   PrintBoard (g_max_solution);
+}
+
+main ();
+TEST750
+        echo '      ' $DINO '-O' $test_file 2098 "2>$stderr"
+        if $DINO -O $test_file 2098 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT750' && $CMP $stdout $ftemp2; then
+2098 solutions found
+
+0 0 0 0 1 
+ 2 2 2 0 1 
+2 6 6 1 1 
+ 2 6 1 5 5 
+8 6 5 5 5 
+ 8 6 3 3 3 
+4 8 8 9 3 
+ 4 4 8 9 3 
+4 7 4 7 9 
+ 7 7 7 9 9 
+
+9 9 9 9 8 
+ 9 6 6 8 5 
+6 6 8 8 5 
+ 6 8 2 5 5 
+7 7 7 2 5 
+ 7 4 7 2 0 
+1 4 2 2 0 
+ 1 4 4 0 3 
+1 4 0 0 3 
+ 1 1 3 3 3 
+
+OUTPUT750
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 751
+if test $result = ok -a $start_test_number -le 751; then
+	echo test 751: Bug -- aborting on wrong program
+        cat >$test_file <<'TEST751'
+move        = tab [ 1 : fun (x, y) {[x + (y % 2) - 1, y + 1);}];
+TEST751
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT751' && $CMP $stderr $ftemp2; then
+test.d:1:1: undeclared identifier `move'
+test.d:1:60: syntax error
+OUTPUT751
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT751-2' && $CMP $stdout $ftemp2; then
+OUTPUT751-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
         fi
 fi
 

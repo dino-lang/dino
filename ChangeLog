@@ -1,3 +1,201 @@
+2014-11-16  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* configure.in (strtoll, strtoull): New check.
+	(strtol): Remove check.
+	* configure: Update.
+	* AMMUNITION/cocom-config.h.in: Update.
+	* DINO/dino.tst.in (746-751): New tests.
+	(179, 182, 183, 187, 476, 479, 665): Use longer int.
+	(362): Use 10.25.
+	(375,487): Use e20.
+	(594): Use 2.5.
+	(650): Use width 20.
+	* DINO/d_types.h: Always require <limits.h>.
+	(int_t, unsigned_int_t): Rename to rint_t, unsigned_rint_t.  Make
+	them 64-bit at least.
+	(MAX_RINT, MIN_RINT): New.
+	(floating_t, FLOATING_HUGE_VAL, MAX_FLOAT, IS_FLOATING_NAN):
+	Rename to rfloat_t, RFLOAT_HUGE_VAL, MAX_RFLOAT, IS_RFLOAT_NAN,
+	RFLOAT_NAN.
+	* DINO/d_runtab.h (CODE_ID): Use bcid_t.
+	* DINO/d_run.sprut (process_number, context_number): Define as
+	int.
+	(gc_interrupts_number, all_interrupts_number): Ditto.
+	(clear_c_stack_flags): New.
+	(call_fun_class): Define pars_number as int.
+	(setup_new_cstack): Define vars_num as int.
+	(heap_push_without_profile_update): Use c_stack_p instead of
+	c_code_p.
+	* DINO/d_mpi.c: Use int for npars, rint_t * for size and par in
+	function decls.
+	(return_int): Use rint_t for i.
+	* d_ir.sprut (integer_t, int_t, floating_t): Rename to int_t,
+	rint_t, rfloat_t.
+	* DINO/d_inference.c (get_insn_op_place): Process ldbi.
+	(type_transf): Ditto.
+	(specialize_insn): Ditto.  Use int for t.
+	(avail_transf): Use int for place.
+	* DINO/d_ieee.c: Use rint_t for size.
+	(return_int): Use rint_t for i.
+	* DINO/d_socket.c: Use int to npars.  Use rint_t for len.
+	(return_int): Use rint_t for i.
+	* DINO/compare.tst: Use ocaml instead of ocaml.sh.
+	* DINO/Makefile.in: Use time for d_minimize.d.
+	* DINO/d_heap.c (int_t, floating_t): Rename t	o rint_t, rfloat_t.
+	(process_number, context_number): Define as int.
+	(gc_interrupts_number, all_interrupts_number): Ditto.
+	(previous_uppest_stack_vars_num): Ditto.
+	(vars_stack_size): Use int for nvars.
+	(used_c_stack_p): Rename to leave_c_stacks_p.
+	(traverse_used_heap_object): Clear c_stack_p flags.
+	(clear_c_stack_flags): New.
+	(mark_used_heap_objects): Make free_stacks a garabge.
+	* DINO/d_gen.c: Use int instead of int_t everywhere except:
+	(ifunc, ffunc, icmpf, fcmpf, ifunc1, ffunc1, iffunc1, ilfunc1):
+	Use rint_t and rfloat_t.
+	(execute_btcmpinc): Use rint_t for res.
+	(vec, tab): Use rint_t for vect_parts_number and tan_parts_number.
+	(check_vector_index_value, check_vector_index, common_stvt, int)
+	(ind2): Use rint_t for index_val.
+	(execute_not_op, execute_bitwise_not_op, execute_charof_length_op)
+	(execute_charof_op, execute_intof_op, execute_cmpi, caddi)
+	(cmulti): Use rint_t for i.
+	(execute_floatof_op, ifadd, faddi, ifsub, fisub, ifmult, ifdiv)
+	(fmulti, fidiv): Use rfloat_t for f.
+	(execute_unary_ar_op, madd): Use rint_t for i and rfloat_t for f.
+	(ldbi): New.
+	(process_imm_fun_call): Make it return flags.
+	(common_icall, {i,ci,ti}tcall): Ditto.
+	(exit_p): Add parameter.  Rename to evaluate_exit_p.  Make righ c_stack_p
+	processing.
+	(fblock_end, ret): Pass parameter to evaluate_exit_p.
+	(set_c_code_p): Rename c_code_p to c_stack_p.
+	* DINO/d_func.h (process_fun_class_call): Use int for pars_number.
+	* DINO/d_func.c: Use int for pars_number.
+	(min_max_call): Use int for i.
+	(match_call, compare_elements) : Use rint_t * instead of int_t *.
+	(gmatch_clall): Use rint_t for el.
+	(subv_call, del_call): Use rint_t for start, length,
+	(cmpv_call): Use rint_t for res.
+	(isatty_call): Use rint_t for result.
+	(tell_call, seek_call): Use rint_t for pos.
+	(print_val): Use the right for format for rint_t.
+	(fgetf_call): Use rint_t for i and repeat.
+	(floating_nan, minus_floating_nan): Rename to rfloat_nan,
+	minus_rfloat_nan.
+	(FLOATING_HUGE_VAL, IS_FLOATING_NAN): Rename to RFLOAT_HUGE_VAL,
+	IS_RFLOAT_NAN.
+	(fsize_call, f{a,m,c}time_call): Use rint_t for result.
+	(fold_dim, filter_dim, map_dim): Use int.
+	(process_fold_vect_op, process_filter_vect_op)
+	(process_map_vect_op): Use int for dim.
+	(create_class_stack, process_fun_class_call): Use int for
+	actuals_num.
+	(curr_token): Use size_t.
+	(init_read_token): Use %lu format for curr_token.
+	* DINO/d_extern.sprut: Rename unsigned_int_t and
+	floating_t to unsigned_rint_t and rfloat_t.
+	(set_vect_dim, find_next_key): Use int for dim and start.
+	(bcid_t): Define as int.
+	(int_t): Define as int.
+	(int): Use rint_t for i.
+	(context_heap_obj): Rename c_code_p to c_stack_p.
+	(heap_hideblock): Use rint_t for hideblock_length.
+	* DINO/d_eval.c (load_packed_vector_element)
+	(store_packed_vector_element): Use rint_t for index_val.  Use
+	rint_t* instead of int_t*.
+	(load_vector_element_by_index, store_vector_element): Use rint_t
+	for index_val.
+	(check_and_get_slice_info): Use rint_t instead of int_t.  Use
+	size_t for niter.  Use int for depth.
+	(process_slice_extract): Ditto.  Use int for dim and depth.  Use
+	rint_t* instead of int_t*.
+	(slice_extract): Use int for dim.
+	(process_slice_assign): Ditto.  Use int for depth.  Use size for
+	niter1.  Use rint_t instead of int_t.  Use rint_t* instead of
+	int_t*.
+	(slice_assign): Use int for dim and val_dim.
+	(execute_ar_op, execute_int_op): Use rint_t instead of int_t.
+	(int_pack_vect_op, char_pack_vect_cmp_op, int_pack_vect_cmp_op):
+	Ditto.  Use rint_t* instead of int_t*.
+	(process_binary_vect_op): Use int for dim and depth.  Print len as
+	long.  Use rint_t* instead of int_t*.
+	(get_dim): Use int for dim.
+	(int_pack_vect_unary_op): Use rint_t instead of int_t.  Use
+	rint_t* instead of int_t*.
+	(unary_vect_op): Use int for dim.
+	(execute_pack_fold_op): Use rint_t instead of int_t.  Use rint_t*
+	instead of int_t*.
+	(process_fold_vect_op): Use int for dim and depth.
+	(fold_vect_op): Use int for dim.  Use (rint_t) cast for 0.
+	(vec): Use rint_t instead of int_t.
+	(tab): Ditto.  Pass curr_tab_el_number as long long.
+	(evaluate_code): Process ldbi.
+	(call_fun_class): Use int for pars_number and
+	saved_process_number.
+	(restart_eval): New.
+	(eval_error, switch_to_bcode); Use restart_eval.
+	* DINO/d_errors.c (DERR_different_slice_operand_lengths)
+	(DERR_different_vec_operand_lengths): Use ld format.
+	(DERR_repeated_key): Use lld format.
+	* DINO/d_dino.c (a2i): Use rint_t and strtoll.
+	(i2a): Use rint_t and the right format.
+	(f2a): Use FORMAT_DOUBLE_DIGS.
+	(min_rint_mpz, max_rint_mpz): New.
+	(mpz_ok_for_int_p): Rename to mpz_ok_for_rint_p.  Use the above
+	values.
+	(mpz2): Use rint_t and strtoll.
+	(i2mpz): Use rint_t, LONG_MIN, LONG_MAX, and lld format.
+	(mpz_start, mpz_finish): New.
+	(dino_finish): Call mpz_finish.
+	(dino_main): Call mpz_start.
+	* DINO/d_conv.c (get_fmt_op_pos): Use int for the param.
+	(form_format_string): Use INT_MAX instead of MAX_INT.  Use the
+	right format.
+	(implicit_arithmetic_conversion, implicit_only_int_conversion)
+	(implicit_eq_conversion): Use rint_t instead of int_t.
+	* DINO/d_context.c: Use int instead of int_t.  Rename MAX_INT to
+	MAX_RINT.
+	(int_p): New.
+	(process_binary_op): Use int_p.
+	(gen_int_load): New.
+	(second_expr_processing): Use it.
+	* DINO/d_common.h (a2i, i2a, mpz2i, i2mpz): Use rint_t instead of
+	int_t.
+	(mpz_ok_for_int_p): Rename to mpz_ok_for_rint_p.
+	* DINO/d_built.h: Use int for pars_number.
+	* DINO/d_bcn.shilka (ldbi): New.
+	* DINO/d_bcio.c: Use int for int_t.  Use rfloat_t instead of
+	floating_t.
+	(dump_code): Add code for ldbi.
+	(toke_attr): Use rint_t for i.
+	(read_bc_program): Process FR_bi.
+	* DINO/d_bcf.shilka (bi): New.
+	* DINO/d_bc.sprut: Use int instead of int_t in C code sections.
+	(int_t): Define as int.
+	(ldbi): New.
+	(print_op): Move tcalls processing from gen_cfblock.  Generate
+	tcalls result processing.
+	(gen_cfblock): See previous entry.
+	* compare.tst: Use ocaml instead of ocaml.sh.
+	* DINO/d_yacc.y (executive_stmt): Check on NULL for taking pos of
+	expr.
+
+2014-11-08  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/dino.tst.in: New different nbody tests.
+
+2014-11-08  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/Makefile.in (OPTIONS): Transfer CC.
+	(d_gen.i): Transfer CC to d_minimize.d.
+	* DINO/d_bc.sprut (CC_PREFIX, CC_PREFIX2): Rename to CC_OPTIONS
+	and CC_OPTIONS2.  Remove gcc from them.
+	(gen_cfblock): Add CC to command line.
+	* DINO/d_heap.c (new_heap_chunk): Allocate at list old_size.
+	* DINO/d_minimize.d: New.
+	* DINO/haskell.sh: New.
+
 2014-11-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_bc.sprut (DESTROY_IDENT_NUMBER): Remove.
@@ -281,7 +479,7 @@
 	externals.
 	(setup_new_cstack, heap_push_without_profile_update): Move from
 	d_heap.c
-	* DINO/d_yacc.y: Change type of hint nonterminal.  Change rulse for
+	* DINO/d_yacc.y: Change type of hint nonterminal.  Change rules for
 	hint.
 	(process_header, process_header_block): Add hint parameter.
   	(get_hint): New.

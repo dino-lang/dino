@@ -620,7 +620,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       break;
     case BC_NM_ldnil: case BC_NM_ldthis:
-    case BC_NM_ldi: case BC_NM_ldch: case BC_NM_ldtp:
+    case BC_NM_ldi: case BC_NM_ldbi: case BC_NM_ldch: case BC_NM_ldtp:
     case BC_NM_ldl: case BC_NM_ldf: case BC_NM_lds:
     case BC_NM_var: case BC_NM_evar:
     case BC_NM_fun: case BC_NM_efun: case BC_NM_class:
@@ -1410,7 +1410,7 @@ avail_transf (node_t n)
   cspset_elem_t el;
   df_insn_t insn;
   int insn_def;
-  int_t place;
+  int place;
   int change_p = FALSE;
   int fbend_p = BC_IS_OF_TYPE (bb->tail->bc, BC_NM_fbend);
 
@@ -1700,7 +1700,7 @@ type_transf (node_t node)
     case BC_NM_ldch: case BC_NM_chof:
       res_tp = TP_char;
       break;
-    case BC_NM_ldi: case BC_NM_iof:
+    case BC_NM_ldi: case BC_NM_ldbi: case BC_NM_iof:
       res_tp = TP_int;
       break;
     case BC_NM_ldl: case BC_NM_lof:
@@ -1931,7 +1931,7 @@ specialize_insn (df_insn_t insn)
   switch (nm)
     {
     case BC_NM_ldch: case BC_NM_chof:
-    case BC_NM_ldi: case BC_NM_iof:
+    case BC_NM_ldi: case BC_NM_ldbi: case BC_NM_iof:
     case BC_NM_ldl: case BC_NM_lof:
     case BC_NM_ldf: case BC_NM_fof:
     case BC_NM_lds: case BC_NM_vec: case BC_NM_vecof: case BC_NM_fmtvecof:
@@ -2254,7 +2254,7 @@ specialize_insn (df_insn_t insn)
     BC_SET_MODE (bc, nm);
   if (exchange_p)
     {
-      int_t t = BC_op2 (bc);
+      int t = BC_op2 (bc);
 
       BC_set_op2 (bc, BC_op3 (bc));
       BC_set_op3 (bc, t);

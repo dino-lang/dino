@@ -129,38 +129,43 @@ memmove (void *s1, const void *s2, size_t n)
 
 /* This page contains functions for transformation to/from string. */
 
-/* The function returns int_t value for character number
+/* The function returns rint_t value for character number
    representation in BASE.  It always change the value of ERRNO. */
-int_t
+rint_t
 a2i (const char *str, int base)
 {
-  int_t res;
-  long int l;
+  rint_t res;
+  long long int l;
 
   d_assert (base == 8 || base == 10 || base == 16);
   errno = 0;
-#ifdef HAVE_STRTOL
-  l = strtol (str, (char **) NULL, base);
+  d_assert (sizeof (rint_t) <= sizeof (long long int));
+#if defined (HAVE_STRTOLL) && defined (HAVE_STRTOULL)
+  if (base == 10)
+    l = strtoll (str, (char **) NULL, base);
+  else
+    l = strtoull (str, (char **) NULL, base);
   res = l;
 #ifdef ERANGE
   if (res != l)
     errno = ERANGE;
 #endif
 #else
-#error  The system is too old: strtol is required.
+#error  The system is too old: strtoll/strtoull is required.
 #endif
   return res;
 }
 
-/* The function returns floating_t value for character number
+/* The function returns rfloat_t value for character number
    representation.  It always change the value of ERRNO. */
-floating_t
+rfloat_t
 a2f (const char *str)
 {
   double d;
-  floating_t res;
+  rfloat_t res;
 
   errno = 0;
+  d_assert (sizeof (rfloat_t) <= sizeof (double));
 #ifdef HAVE_STRTOD
   d = strtod (str, (char **) NULL);
   res = d;
@@ -176,24 +181,30 @@ a2f (const char *str)
 
 /* Convert int NUMBER into string and return it.  */
 const char *
-i2a (int_t number)
+i2a (rint_t number)
 {
-  static char result [30];
+  static char result [50];
 
-  sprintf (result, "%ld", (long int) number);
+  if (sizeof (rint_t) <= sizeof (long int))
+    sprintf (result, "%ld", (long int) number);
+  else
+    {
+      d_assert (sizeof (rint_t) <= sizeof (long long int));
+      sprintf (result, "%lld", number);
+    }
   return result;
 }
 
 /* Convert float NUMBER into string and return it.  */
 const char *
-f2a (floating_t number)
+f2a (rfloat_t number)
 {
-  static char result [30];
+  static char result [50];
 
-  sprintf (result, "%g", number);
+  d_assert (sizeof (rfloat_t) <= sizeof (double));
+  sprintf (result, "%.*g", FORMAT_DOUBLE_DIGS, (double) number);
   return result;
 }
-
 
 static vlo_t repr_vlobj;
 
@@ -214,30 +225,52 @@ mpz2a (mpz_t number, int base, int upper_case_p)
   return VLO_BEGIN (repr_vlobj);
 }
 
+static mpz_t min_rint_mpz;
+static mpz_t max_rint_mpz;
+
 int
-mpz_ok_for_int_p (mpz_t number)
+mpz_ok_for_rint_p (mpz_t number)
 {
-  d_assert (sizeof (int) == sizeof (int_t));
-  return mpz_fits_sint_p (number);
+  d_assert (sizeof (long int) <= sizeof (rint_t));
+  if (mpz_fits_slong_p (number))
+    return TRUE;
+  return (mpz_cmp (min_rint_mpz, number) <= 0
+	  && mpz_cmp (number, max_rint_mpz) <= 0);
 }
 
-int_t
+rint_t
 mpz2i (mpz_t number)
 {
-  d_assert (mpz_fits_sint_p (number));
-  return mpz_get_si (number);
+  d_assert (mpz_ok_for_rint_p (number));
+  if (mpz_fits_slong_p (number))
+    return mpz_get_si (number);
+  d_assert (sizeof (long long int) >= sizeof (rint_t));
+#ifdef HAVE_STRTOLL
+  return strtoll (mpz2a (number, 10, FALSE), (char **) NULL, 10);
+#else
+#error  The system is too old: strtoll is required.
+#endif
 }
 
 void
-i2mpz (mpz_t mpz, int_t i)
+i2mpz (mpz_t mpz, rint_t i)
 {
-  d_assert (sizeof (int) == sizeof (int_t));
-  mpz_set_si (mpz, i);
+  static char str[30];
+
+  if (LONG_MIN <= i && i <= LONG_MAX)
+    mpz_set_si (mpz, (long int) i);
+  else
+    {
+      d_assert (sizeof (rint_t) == sizeof (long long int));
+      sprintf (str, "%lld", i);
+      mpz_set_str (mpz, str, 10);
+    }
 }
 
 void
-f2mpz (mpz_t mpz, floating_t f)
+f2mpz (mpz_t mpz, rfloat_t f)
 {
+  d_assert (sizeof (rfloat_t) == sizeof (double));
   mpz_set_d (mpz, f);
 }
 
@@ -252,6 +285,21 @@ hash_mpz (mpz_t mpz)
   for (i = 0; i < size; i++)
     res += mpz->_mp_d[i] & GMP_NUMB_MASK;
   return (size_t) res;
+}
+
+static void
+mpz_start (void)
+{
+  mpz_init (min_rint_mpz); i2mpz (min_rint_mpz, MIN_RINT);
+  mpz_init (max_rint_mpz); i2mpz (max_rint_mpz, MAX_RINT);
+  
+}
+
+static void
+mpz_finish (void)
+{
+  mpz_clear (min_rint_mpz); mpz_clear (max_rint_mpz);
+  
 }
 
 
@@ -652,6 +700,7 @@ dino_finish (int code)
       if (inlined_calls_num != 0)
 	fprintf (stderr, "Inlined calls - %u\n", inlined_calls_num);
     }
+  mpz_finish ();
   longjmp (exit_longjump_buff, (code == 0 ? -1 : code < 0 ? 1 : code));
 }
 
@@ -1081,6 +1130,7 @@ dino_main (int argc, char *argv[], char *envp[])
           okay = FALSE;
         }
     }
+  mpz_start ();
   home = getenv (DINO_HOME_NAME_VARIABLE);
   /* Include dirs: */
   add_dino_path (NULL, NULL, getenv (DINO_INCLUDE_PATH_NAME_VARIABLE),

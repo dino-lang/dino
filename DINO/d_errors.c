@@ -295,17 +295,17 @@ char DERR_slice_bound_is_not_int []
 char DERR_slice_step_is_not_int []
   = "run time error - slice step is not integer (dimension = %d)";
 char DERR_different_slice_operand_lengths []
-  = "run time error - different lengths of slices %d vs %d (dimension = %d)";
+  = "run time error - different lengths of slices %ld vs %ld (dimension = %d)";
 char DERR_slice_operand_form []
   = "run time error - slice to wrongly formed vector (dimension = %d)";
 char DERR_different_vec_operand_lengths []
-  = "run time - different vector operand lengths: %d vs. %d (dimension = %d)";
+  = "run time - different vector operand lengths: %ld vs. %ld (dimension = %d)";
 char DERR_vector_form_type []
   = "run time error - wrong vector form for vector operation";
 char DERR_matrix_form_type []
   = "run time error - wrong matrix form for matrix operation `%s'";
 char DERR_repeated_key []
-  = "run time error - repeated key #%d in the table  (`tab [...]')";
+  = "run time error - repeated key #%lld in the table  (`tab [...]')";
 char DERR_no_such_key []
   = "run time error - no such key in table";
 char DERR_in_table_operand_type [] = "run time error - non table right to `:'";

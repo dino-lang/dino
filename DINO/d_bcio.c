@@ -162,6 +162,19 @@ dump_code (BC_node_t infos, int indent)
 	  printf (" op1=%d op2=%d // %d <- i%d", BC_op1 (bc), BC_op2 (bc),
 		  BC_op1 (bc), BC_op2 (bc));
 	  break;
+	case BC_NM_ldbi:
+	  if (sizeof (long) >= sizeof (rint_t))
+	    printf (" op1=%d bi=%ld // %d <- i%ld",
+		    BC_op1 (bc), (long) BC_bi (bc),
+		    BC_op1 (bc), (long) BC_bi (bc));
+	  else
+	    {
+	      assert (sizeof (long long) == sizeof (rint_t));
+	      printf (" op1=%d bi=%lld // %d <- i%lld",
+		      BC_op1 (bc), (long long) BC_bi (bc),
+		      BC_op1 (bc), (long long) BC_bi (bc));
+	    }
+	  break;
 	case BC_NM_ldl:
 	  printf (" op1=%d mpz=", BC_op1 (bc));
 	  mpz_out_str (stdout, 10, *BC_mpz_ptr (bc));
@@ -680,8 +693,8 @@ enum token
 /* The token attributes. */
 static union
 {
-  int_t i;
-  floating_t f;
+  rint_t i;
+  rfloat_t f;
   const char *str;
 } token_attr;
 
@@ -991,10 +1004,10 @@ get_token (void)
 
 /* Fields: */
 static const char *fn, *fn2, *fn3;
-static int_t ln, ln2, ln3, pos, pos2, pos3, decl_num;
-static int_t public_p, ext_life_p;
-static int_t fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p, fmode;
-static int_t pars_num, min_pars_num;
+static int ln, ln2, ln3, pos, pos2, pos3, decl_num;
+static int public_p, ext_life_p;
+static int fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p, fmode;
+static int pars_num, min_pars_num;
 
 /* Init fields which may have a default value. */
 static void
@@ -1061,7 +1074,7 @@ struct ptr_fld
 {
   /* Field id and its repreresntation value. */
   int fld;
-  int_t fld_val;
+  int fld_val;
   /* Node where the field was read. */
   BC_node_t node;
   /* The field name. */
@@ -1090,7 +1103,7 @@ static vlo_t decl_map, bcode_map;
 
 /* Bound LABEL to the current node (decl or bcode). */
 static void
-bound_label_to_curr_node (int_t label)
+bound_label_to_curr_node (int label)
 {
   vlo_t *map;
 
@@ -1109,7 +1122,7 @@ bound_label_to_curr_node (int_t label)
 
 /* Return bcode with given LABEL. */
 static BC_node_t
-get_bcode (int_t label)
+get_bcode (int label)
 {
   BC_node_t res;
 
@@ -1428,7 +1441,13 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      else if (check_fld (BC_NM_ldf, D_INT))
 		goto fail;
 	      else
-		BC_set_f (curr_node, (floating_t) token_attr.i);
+		BC_set_f (curr_node, (rfloat_t) token_attr.i);
+	      break;
+	    case FR_bi:
+	      if (check_fld (BC_NM_ldbi, D_INT))
+		goto fail;
+	      else
+		BC_set_bi (curr_node, token_attr.i);
 	      break;
 	    case FR_str:
 	      if (check_fld (BC_NM_lds, D_STRING)) goto fail;

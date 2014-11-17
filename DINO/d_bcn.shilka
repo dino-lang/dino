@@ -38,6 +38,7 @@ ldnil		{return BC_NM_ldnil;}
 ldthis		{return BC_NM_ldthis;}
 flat		{return BC_NM_flat;}
 ldi		{return BC_NM_ldi;}
+ldbi		{return BC_NM_ldbi;}
 ldl		{return BC_NM_ldl;}
 ldch		{return BC_NM_ldch;}
 ldtp		{return BC_NM_ldtp;}

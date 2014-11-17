@@ -141,7 +141,7 @@ get_ip_address (char *name)
 }
 
 val_t
-_gethostinfo (int npars, val_t *vals)
+_gethostinfo (int_t npars, val_t *vals)
 {
   int i;
   char *name;
@@ -252,7 +252,7 @@ form_servent (ER_node_t instance, struct servent *se)
 }
 
 val_t
-_getservbyport (int npars, val_t *vals)
+_getservbyport (int_t npars, val_t *vals)
 {
   ER_node_t instance, var, vect;
   int port;
@@ -278,7 +278,7 @@ _getservbyport (int npars, val_t *vals)
 
 
 val_t
-_getservbyname (int npars, val_t *vals)
+_getservbyname (int_t npars, val_t *vals)
 {
   ER_node_t instance, var, vect;
   char *name, *proto;
@@ -304,9 +304,10 @@ _getservbyname (int npars, val_t *vals)
 
 
 val_t
-_sread (int npars, val_t *vals)
+_sread (int_t npars, val_t *vals)
 {
-  int sd, len;
+  int sd;
+  rint_t len;
   ER_node_t vect;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -341,9 +342,10 @@ _sread (int npars, val_t *vals)
 }
 
 val_t
-_swrite (int npars, val_t *vals)
+_swrite (int_t npars, val_t *vals)
 {
-  int sd, len;
+  int sd;
+  rint_t len;
   char *str;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -369,9 +371,10 @@ _swrite (int npars, val_t *vals)
 }
 
 val_t
-_recvfrom (int npars, val_t *vals)
+_recvfrom (int_t npars, val_t *vals)
 {
-  int sd, len;
+  int sd;
+  rint_t len;
 #ifdef hpux
   int from_len;
 #else
@@ -423,9 +426,10 @@ _recvfrom (int npars, val_t *vals)
 }
 
 val_t
-_sendto (int npars, val_t *vals)
+_sendto (int_t npars, val_t *vals)
 {
-  int sd, len, port;
+  int sd, port;
+  rint_t len;
   char *str, *addr;
   struct sockaddr_in saddr;
   struct in_addr *sin_addr_ptr;
@@ -468,7 +472,7 @@ _sendto (int npars, val_t *vals)
 }
 
 val_t
-_accept (int npars, val_t *vals)
+_accept (int_t npars, val_t *vals)
 {
   int sd, new_sd;
 #ifdef hpux
@@ -510,7 +514,7 @@ _accept (int npars, val_t *vals)
 }
 
 val_t
-_stream_client (int npars, val_t *vals)
+_stream_client (int_t npars, val_t *vals)
 {
   char *addr;
   int sfd, port;
@@ -557,7 +561,7 @@ _stream_client (int npars, val_t *vals)
 }
 
 val_t
-_dgram_client (int npars, val_t *vals)
+_dgram_client (int_t npars, val_t *vals)
 {
   int sfd;
   val_t val;
@@ -579,9 +583,10 @@ _dgram_client (int npars, val_t *vals)
 }
 
 val_t
-_stream_server (int npars, val_t *vals)
+_stream_server (int_t npars, val_t *vals)
 {
-  int sfd, port, queue_len;
+  int sfd, port;
+  rint_t queue_len;
   struct sockaddr_in saddr;
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -618,7 +623,7 @@ _stream_server (int npars, val_t *vals)
 }
 
 val_t
-_dgram_server (int npars, val_t *vals)
+_dgram_server (int_t npars, val_t *vals)
 {
   int sfd, port;
   struct sockaddr_in saddr;
@@ -654,7 +659,7 @@ _dgram_server (int npars, val_t *vals)
 }
 
 val_t
-_close_socket (int npars, val_t *vals)
+_close_socket (int_t npars, val_t *vals)
 {
   int sd;
   val_t val;
@@ -670,7 +675,7 @@ _close_socket (int npars, val_t *vals)
 }
 
 val_t
-_socket_init (int npars, val_t *vals)
+_socket_init (int_t npars, val_t *vals)
 {
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -696,7 +701,7 @@ _socket_init (int npars, val_t *vals)
 }
 
 val_t
-_socket_fin (int npars, val_t *vals)
+_socket_fin (int_t npars, val_t *vals)
 {
   val_t val;
   ER_node_t res = (ER_node_t) &val;

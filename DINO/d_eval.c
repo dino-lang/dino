@@ -294,8 +294,9 @@ execute_general_period_operation (int block_decl_ident_number, ER_node_t res,
 
 /* Load element INDEX_VAL of packed VECT into TO.  */
 static void do_inline
-load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
+load_packed_vector_element (ER_node_t to, ER_node_t vect, rint_t index_val)
 {
+  ER_node_t t;
   ER_node_mode_t el_type;
   size_t el_type_size;
 
@@ -320,10 +321,10 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
       ER_set_ch (to, ((char_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_int:
-      ER_set_i (to, ((int_t *) ER_pack_els (vect)) [index_val]);
+      ER_set_i (to, ((rint_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_float:
-      ER_set_f (to, ((floating_t *) ER_pack_els (vect)) [index_val]);
+      ER_set_f (to, ((rfloat_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_long:
       ER_set_l (to, ((ER_node_t *) ER_pack_els (vect)) [index_val]);
@@ -332,10 +333,14 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
       ER_set_type (to, ((ER_node_mode_t *) ER_pack_els (vect)) [index_val]);
       break;
     case ER_NM_vect:
-      set_vect_dim (to, ((ER_node_t *) ER_pack_els (vect)) [index_val], 0);
+      t = ((ER_node_t *) ER_pack_els (vect)) [index_val];
+      GO_THROUGH_REDIR (t);
+      set_vect_dim (to, t, 0);
       break;
     case ER_NM_tab:
-      ER_set_tab (to, ((ER_node_t *) ER_pack_els (vect)) [index_val]);
+      t = ((ER_node_t *) ER_pack_els (vect)) [index_val];
+      GO_THROUGH_REDIR (t);
+      ER_set_tab (to, t);
       break;
     case ER_NM_process:
       ER_set_process
@@ -358,7 +363,7 @@ load_packed_vector_element (ER_node_t to, ER_node_t vect, int_t index_val)
 void do_inline
 load_vector_element_by_index (ER_node_t to, ER_node_t vect, ER_node_t index)
 {
-  int_t index_val;
+  rint_t index_val;
   int pack_flag;
 
   GO_THROUGH_REDIR (vect);
@@ -373,7 +378,7 @@ load_vector_element_by_index (ER_node_t to, ER_node_t vect, ER_node_t index)
 
 /* Store VAL into element INDEX_VAL of packed VECT.  */
 static void do_inline
-store_packed_vector_element (ER_node_t vect, int_t index_val, ER_node_t val)
+store_packed_vector_element (ER_node_t vect, rint_t index_val, ER_node_t val)
 {
   ER_node_mode_t el_type;
   size_t el_type_size;
@@ -399,10 +404,10 @@ store_packed_vector_element (ER_node_t vect, int_t index_val, ER_node_t val)
       ((char_t *) ER_pack_els (vect)) [index_val] = ER_ch (val);
       break;
     case ER_NM_int:
-      ((int_t *) ER_pack_els (vect)) [index_val] = ER_i (val);
+      ((rint_t *) ER_pack_els (vect)) [index_val] = ER_i (val);
       break;
     case ER_NM_float:
-      ((floating_t *) ER_pack_els (vect)) [index_val] = ER_f (val);
+      ((rfloat_t *) ER_pack_els (vect)) [index_val] = ER_f (val);
       break;
     case ER_NM_long:
       ((ER_node_t *) ER_pack_els (vect)) [index_val] = ER_l (val);
@@ -436,7 +441,7 @@ store_packed_vector_element (ER_node_t vect, int_t index_val, ER_node_t val)
 static void do_inline
 store_vector_element (ER_node_t vect, ER_node_t index, ER_node_t val)
 {
-  int_t index_val;
+  rint_t index_val;
   int pack_flag;
 
   GO_THROUGH_REDIR (vect);
@@ -536,11 +541,11 @@ store_stack_designator_value (ER_node_t stack, ER_node_t index, ER_node_t val)
    result len) of a slice on DEPTH whose start starts with
    START_VAL.  */
 static void do_inline
-check_and_get_slice_info (ER_node_t start_val, unsigned_int_t vec_len,
-			  int_t depth, int_t *start, int_t *bound,
-			  int_t *step, int_t *niter)
+check_and_get_slice_info (ER_node_t start_val, unsigned_rint_t vec_len,
+			  int depth, rint_t *start, rint_t *bound,
+			  rint_t *step, size_t *niter)
 {
-  int_t start0, bound0, step0, niter0, abs_step;
+  rint_t start0, bound0, step0, niter0, abs_step;
 
   if (ER_NODE_MODE (IVAL (start_val, 0)) != ER_NM_int)
     eval_error (slicetype_bc_decl, get_designator_pos (),
@@ -581,13 +586,14 @@ check_and_get_slice_info (ER_node_t start_val, unsigned_int_t vec_len,
 /* Process slice extract to CONTAINER1 of dimension DIM1 (> 0) with
    slice start, bound, step placed on START_VAL1.  */
 static ER_node_t
-process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
-		       int_t depth)
+process_slice_extract (ER_node_t container1, ER_node_t start_val1, int dim1,
+		       int depth)
 {
   ER_node_t unpack_els, unpack_els1 = NULL;
   char *pack_els, *pack_els1 = NULL;
-  int_t len1, start1, bound1, step1, niter1;
-  int_t i, i1;
+  rint_t len1, start1, bound1, step1;
+  size_t niter1;
+  rint_t i, i1;
   ER_node_t vect, vect1, v1;
   int pack_flag1 = FALSE;
   ER_node_mode_t el_type1;
@@ -624,11 +630,11 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      break;
 	    case ER_NM_int:
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
-		((int_t *) pack_els) [i] = ((int_t *) pack_els1) [i1];
+		((rint_t *) pack_els) [i] = ((rint_t *) pack_els1) [i1];
 	      break;
 	    case ER_NM_float:
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
-		((floating_t *) pack_els) [i] = ((floating_t *) pack_els1) [i1];
+		((rfloat_t *) pack_els) [i] = ((rfloat_t *) pack_els1) [i1];
 	      break;
 	    case ER_NM_type:
 	      for (i = 0, i1 = start1; i1 != bound1; i++, i1 += step1)
@@ -711,7 +717,7 @@ process_slice_extract (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 /* Extract slice starting with CONTAINER and of dimension DIM.  Put
    the result into RES.  */
 void do_inline
-slice_extract (ER_node_t res, ER_node_t container, int_t dim)
+slice_extract (ER_node_t res, ER_node_t container, int dim)
 {
   ER_node_t vect;
 
@@ -729,14 +735,16 @@ slice_extract (ER_node_t res, ER_node_t container, int_t dim)
    whole vector of DIM2 (when DIM2 > 0) or the assigned value
    otherwise.  */
 static void
-process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
-		      ER_node_t container2, int_t dim2, int depth)
+process_slice_assign (ER_node_t container1, ER_node_t start_val1, int dim1,
+		      ER_node_t container2, int dim2, int depth)
 {
   ER_node_t unpack_els1 = NULL, unpack_els2 = NULL;
   char *pack_els1 = NULL, *pack_els2 = NULL;
-  int_t len1, start1, bound1, step1, niter1;
-  int_t len2 = 0, niter2 = 0;
-  int_t i1, i2;
+  rint_t len1, start1, bound1, step1;
+  size_t niter1;
+  rint_t len2 = 0;
+  size_t niter2 = 0;
+  rint_t i1, i2;
   ER_node_t vect1, vect2 = NULL;
   int pack_flag1, pack_flag2 = FALSE;
   ER_node_t v1, v2;
@@ -762,7 +770,8 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
     }
   if (dim2 != 0 && niter1 != niter2)
     eval_error (optype_bc_decl, get_designator_pos (),
-		DERR_different_slice_operand_lengths, niter1, niter2, depth);
+		DERR_different_slice_operand_lengths,
+		(long) niter1, (long) niter2, depth);
   if (dim1 == 1 && dim2 == 0)
     {
       if (pack_flag1 && ER_pack_vect_el_mode (vect1) == ER_NODE_MODE (container2))
@@ -783,11 +792,11 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      break;
 	    case ER_NM_int:
 	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((int_t *) pack_els1) [i1] = ER_i (container2);
+		((rint_t *) pack_els1) [i1] = ER_i (container2);
 	      break;
 	    case ER_NM_float:
 	      for (i1 = start1; i1 != bound1; i1 += step1)
-		((floating_t *) pack_els1) [i1] = ER_f (container2);
+		((rfloat_t *) pack_els1) [i1] = ER_f (container2);
 	      break;
 	    case ER_NM_long:
 	      for (i1 = start1; i1 != bound1; i1 += step1)
@@ -875,12 +884,12 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 	      break;
 	    case ER_NM_int:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
-		((int_t *) pack_els1) [i1] = ((int_t *) pack_els2) [i2];
+		((rint_t *) pack_els1) [i1] = ((rint_t *) pack_els2) [i2];
 	      break;
 	    case ER_NM_float:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
-		((floating_t *) pack_els1) [i1]
-		  = ((floating_t *) pack_els2) [i2];
+		((rfloat_t *) pack_els1) [i1]
+		  = ((rfloat_t *) pack_els2) [i2];
 	      break;
 	    case ER_NM_long:
 	      for (i1 = start1, i2 = 0; i1 != bound1; i1 += step1, i2++)
@@ -1017,9 +1026,9 @@ process_slice_assign (ER_node_t container1, ER_node_t start_val1, int_t dim1,
 
 /* Assign VAL to slice starting with CONTAINER and of dimension DIM.  */
 void do_inline
-slice_assign (ER_node_t container, int_t dim, ER_node_t val)
+slice_assign (ER_node_t container, int dim, ER_node_t val)
 {
-  int_t val_dim = 0;
+  int val_dim = 0;
 
   if (ER_NODE_MODE (container) != ER_NM_vect)
     eval_error (sliceform_bc_decl, get_designator_pos (),
@@ -1051,7 +1060,7 @@ find_catch_pc (ER_node_t except)
 
   if (trace_flag)
     VLO_NULLIFY (trace_stack);
-  jump_p = ER_c_code_p (cstack);
+  jump_p = ER_c_stack_p (cstack);
   for (; cstack != uppest_stack;)
     {
       block = ER_block_node (cstack);
@@ -1067,7 +1076,7 @@ find_catch_pc (ER_node_t except)
 	delete_cprocess_during_exception ();
       if (cstack != uppest_stack)
 	heap_pop ();
-      if (ER_c_code_p (cstack))
+      if (ER_c_stack_p (cstack))
 	jump_p = TRUE;
       /* Set up ctop as it should be for any statement begin.  */
       if (cstack != NULL)
@@ -1164,8 +1173,8 @@ lcmpf (lge) { return mpz_cmp (*ER_mpz_ptr (a), *ER_mpz_ptr (b)) >= 0;}
    operations if VECT_P.  */
 static void do_always_inline
 execute_ar_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
-	       const char *err_message, int_t iop (int_t, int_t),
-	       floating_t fop (floating_t, floating_t),
+	       const char *err_message, rint_t iop (rint_t, rint_t),
+	       rfloat_t fop (rfloat_t, rfloat_t),
 	       ER_node_t lop (ER_node_t, ER_node_t))
 {
   if (int_bin_op (op1, op2))
@@ -1187,14 +1196,14 @@ execute_ar_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
       implicit_conversion_for_binary_arithmetic_op (op1, op2, &l, &r);
       if (int_bin_op (l, r))
 	{
-	  int_t op_i1 = ER_i (l), op_i2 = ER_i (r);
+	  rint_t op_i1 = ER_i (l), op_i2 = ER_i (r);
 
 	  ER_SET_MODE (res, ER_NM_int);
 	  ER_set_i (res, iop (op_i1, op_i2));
 	}
       else if (float_bin_op (l, r))
 	{
-	  floating_t op_f1 = ER_f (l), op_f2 = ER_f (r);
+	  rfloat_t op_f1 = ER_f (l), op_f2 = ER_f (r);
 
 	  ER_SET_MODE (res, ER_NM_float);
 	  ER_set_f (res, fop (op_f1, op_f2));
@@ -1249,12 +1258,12 @@ execute_mod_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 		 i_mod, f_mod, limod);
 }
 
-/* Do integer operations using iop on OP1 and OP2.  Put result into
+/* Do int operations using iop on OP1 and OP2.  Put result into
    RES.  Use MSG in case of error.  Check and do vector operations if
    VECT_P.  */
 static void do_always_inline
 execute_int_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
-	       const char *err_message, int_t iop (int_t, int_t))
+	       const char *err_message, rint_t iop (rint_t, rint_t))
 {
   if (int_bin_op (op1, op2))
     {
@@ -1270,7 +1279,7 @@ execute_int_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p,
       implicit_conversion_for_binary_int_op (op1, op2, &l, &r);
       if (int_bin_op (l, r))
 	{
-	  int_t op_i1 = ER_i (l), op_i2 = ER_i (r);
+	  rint_t op_i1 = ER_i (l), op_i2 = ER_i (r);
 
 	  ER_SET_MODE (res, ER_NM_int);
 	  ER_set_i (res, iop (op_i1, op_i2));
@@ -1694,68 +1703,68 @@ get_right_operand_pos (void)
   return BC_pos3 (info);
 }
 
-/* Execute LEN integer operations IOP of packed array elements
+/* Execute LEN int operations IOP of packed array elements
    PACK_RES_ELS1 and PACK_ELS2 (if it is not NULL), otherwise
    implement operation PACK_ELS1 element IOP OP2 or OP2 IOP PACK_ELS1
    element (if REV_P).  Put results in PACK_RES_ELS.  */
 static do_always_inline void
 int_pack_vect_op (int rev_p, size_t len, char *pack_res_els, char *pack_els1,
-		  char *pack_els2, ER_node_t op2, int_t iop (int_t, int_t))
+		  char *pack_els2, ER_node_t op2, rint_t iop (rint_t, rint_t))
 {
   size_t i;
-  int_t op_i2;
+  rint_t op_i2;
 
   if (pack_els2 != NULL)
     {
       d_assert (! rev_p);
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i]
-	  = iop (((int_t *) pack_els1) [i], ((int_t *) pack_els2) [i]);
+	((rint_t *) pack_res_els) [i]
+	  = iop (((rint_t *) pack_els1) [i], ((rint_t *) pack_els2) [i]);
     }
   else if (rev_p)
     {
       op_i2 = ER_i (op2);
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i] = iop (op_i2, ((int_t *) pack_els1) [i]);
+	((rint_t *) pack_res_els) [i] = iop (op_i2, ((rint_t *) pack_els1) [i]);
     }
   else
     {
       op_i2 = ER_i (op2);
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i] = iop (((int_t *) pack_els1) [i], op_i2);
+	((rint_t *) pack_res_els) [i] = iop (((rint_t *) pack_els1) [i], op_i2);
     }
 }
 
-/* Analogous the function above but for floating point operations.  */
+/* Analogous the function above but for rfloat point operations.  */
 static do_always_inline void
 float_pack_vect_op (int rev_p, size_t len, char *pack_res_els, char *pack_els1,
 		    char *pack_els2, ER_node_t op2,
-		    floating_t fop (floating_t, floating_t))
+		    rfloat_t fop (rfloat_t, rfloat_t))
 {
   size_t i;
-  floating_t op_f2;
+  rfloat_t op_f2;
 
   if (pack_els2 != NULL)
     {
       d_assert (! rev_p);
       for (i = 0; i < len; i++)
-	((floating_t *) pack_res_els) [i]
-	  = fop (((floating_t *) pack_els1) [i],
-		 ((floating_t *) pack_els2) [i]);
+	((rfloat_t *) pack_res_els) [i]
+	  = fop (((rfloat_t *) pack_els1) [i],
+		 ((rfloat_t *) pack_els2) [i]);
     }
   else if (rev_p)
     {
       op_f2 = ER_f (op2);
       for (i = 0; i < len; i++)
-	((floating_t *) pack_res_els) [i]
-	  = fop (op_f2, ((floating_t *) pack_els1) [i]);
+	((rfloat_t *) pack_res_els) [i]
+	  = fop (op_f2, ((rfloat_t *) pack_els1) [i]);
     }
   else
     {
       op_f2 = ER_f (op2);
       for (i = 0; i < len; i++)
-	((floating_t *) pack_res_els) [i]
-	  = fop (((floating_t *) pack_els1) [i], op_f2);
+	((rfloat_t *) pack_res_els) [i]
+	  = fop (((rfloat_t *) pack_els1) [i], op_f2);
     }
 }
 
@@ -1763,47 +1772,47 @@ float_pack_vect_op (int rev_p, size_t len, char *pack_res_els, char *pack_els1,
    operations.  */
 static do_always_inline void
 char_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
-		       char *pack_els2, ER_node_t op2, int icmp (int_t, int_t))
+		       char *pack_els2, ER_node_t op2, int icmp (rint_t, rint_t))
 {
   size_t i;
-  int_t op_i2;
+  rint_t op_i2;
 
   if (pack_els2 != NULL)
     {
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i]
+	((rint_t *) pack_res_els) [i]
 	  = icmp (((char_t *) pack_els1) [i], ((char_t *) pack_els2) [i]);
     }
   else
     {
       op_i2 = ER_i (op2);
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i]
+	((rint_t *) pack_res_els) [i]
 	  = icmp (((char_t *) pack_els1) [i], op_i2);
     }
 }
 
-/* Analogous the function above but used for integer comparison
+/* Analogous the function above but used for int comparison
    operations.  */
 static do_always_inline void
 int_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
-		      char *pack_els2, ER_node_t op2, int icmp (int_t, int_t))
+		      char *pack_els2, ER_node_t op2, int icmp (rint_t, rint_t))
 {
   size_t i;
-  int_t op_i2;
+  rint_t op_i2;
 
   if (pack_els2 != NULL)
     {
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i]
-	  = icmp (((int_t *) pack_els1) [i], ((int_t *) pack_els2) [i]);
+	((rint_t *) pack_res_els) [i]
+	  = icmp (((rint_t *) pack_els1) [i], ((rint_t *) pack_els2) [i]);
     }
   else
     {
       op_i2 = ER_i (op2);
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i]
-	  = icmp (((int_t *) pack_els1) [i], op_i2);
+	((rint_t *) pack_res_els) [i]
+	  = icmp (((rint_t *) pack_els1) [i], op_i2);
     }
 }
 
@@ -1812,24 +1821,24 @@ int_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
 static do_always_inline void
 float_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
 			char *pack_els2, ER_node_t op2,
-			int fcmp (floating_t, floating_t))
+			int fcmp (rfloat_t, rfloat_t))
 {
   size_t i;
-  floating_t op_f2;
+  rfloat_t op_f2;
 
   if (pack_els2 != NULL)
     {
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i]
-	  = fcmp (((floating_t *) pack_els1) [i],
-		 ((floating_t *) pack_els2) [i]);
+	((rint_t *) pack_res_els) [i]
+	  = fcmp (((rfloat_t *) pack_els1) [i],
+		 ((rfloat_t *) pack_els2) [i]);
     }
   else
     {
       op_f2 = ER_f (op2);
       for (i = 0; i < len; i++)
-	((int_t *) pack_res_els) [i]
-	  = fcmp (((floating_t *) pack_els1) [i], op_f2);
+	((rint_t *) pack_res_els) [i]
+	  = fcmp (((rfloat_t *) pack_els1) [i], op_f2);
     }
 }
 
@@ -1838,8 +1847,8 @@ float_pack_vect_cmp_op (size_t len, char *pack_res_els, char *pack_els1,
    DIM2 (DIM1 >= DIM2).  If REV_P, operands are taken for operations
    in different order.  The current recursion depth is DEPTH.  */
 static ER_node_t
-process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
-			ER_node_t op2, int_t dim2, int_t depth)
+process_binary_vect_op (int rev_p, ER_node_t op1, int dim1,
+			ER_node_t op2, int dim2, int depth)
 {
   int pack_flag1, pack_flag2, scalar_p2, neg_p;
   size_t i, len1, len2;
@@ -1889,7 +1898,8 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	}
       if (len1 != len2)
 	eval_error (veclen_bc_decl, get_cpos (),
-		    DERR_different_vec_operand_lengths, len1, len2, depth);
+		    DERR_different_vec_operand_lengths,
+		    (long) len1, (long) len2, depth);
     }
   if (dim1 > 1)
     {
@@ -2337,7 +2347,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	  else
 	    execute_identity_op (! neg_p, (ER_node_t) &rval,
 				 (ER_node_t) &l, (ER_node_t) &r, FALSE);
-	  ((int_t *) pack_res_els) [i] = ER_i ((ER_node_t) &rval);
+	  ((rint_t *) pack_res_els) [i] = ER_i ((ER_node_t) &rval);
 	}
       ER_set_els_number (res, len1);
       return res;
@@ -2447,7 +2457,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	    default:
 	      d_unreachable ();
 	    }
-	  ((int_t *) pack_res_els) [i] = ER_i ((ER_node_t) &rval);
+	  ((rint_t *) pack_res_els) [i] = ER_i ((ER_node_t) &rval);
 	}
       ER_set_els_number (res, len1);
       return res;
@@ -2477,7 +2487,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
 	    }
 	  execute_in_op ((ER_node_t) &rval,
 			 (ER_node_t) &l, (ER_node_t) &r, FALSE);
-	  ((int_t *) pack_res_els) [i] = ER_i ((ER_node_t) &rval);
+	  ((rint_t *) pack_res_els) [i] = ER_i ((ER_node_t) &rval);
 	}
       ER_set_els_number (res, len1);
       return res;
@@ -2516,7 +2526,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int_t dim1,
     }
 }
 
-static int_t do_always_inline
+static int do_always_inline
 get_dim (ER_node_t op)
 {
   return ER_NODE_MODE (op) == ER_NM_vect ? ER_dim (op) : 0;
@@ -2527,7 +2537,7 @@ void
 binary_vect_op (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
   int rev_p = FALSE;
-  int_t dim1, dim2, t;
+  int dim1, dim2, t;
   ER_node_t top, vect;
 
   dim1 = get_dim (op1);
@@ -2557,34 +2567,34 @@ binary_vect_op (ER_node_t res, ER_node_t op1, ER_node_t op2)
 }
 
 
-/* Execute LEN integer operations IOP of packed array elements
+/* Execute LEN int operations IOP of packed array elements
    PACK_ELS.  Put results in PACK_RES_ELS.  */
 static do_always_inline void
 int_pack_vect_unary_op (size_t len, char *pack_res_els, char *pack_els,
-			int_t iop (int_t))
+			rint_t iop (rint_t))
 {
   size_t i;
 
   for (i = 0; i < len; i++)
-    ((int_t *) pack_res_els) [i] = iop (((int_t *) pack_els) [i]);
+    ((rint_t *) pack_res_els) [i] = iop (((rint_t *) pack_els) [i]);
 }
 
-/* Analogous to function above but for floating point operations.  */
+/* Analogous to function above but for rfloat point operations.  */
 static do_always_inline void
 float_pack_vect_unary_op (size_t len, char *pack_res_els, char *pack_els,
-			  floating_t fop (floating_t))
+			  rfloat_t fop (rfloat_t))
 {
   size_t i;
 
   for (i = 0; i < len; i++)
-    ((floating_t *) pack_res_els) [i] = fop (((floating_t *) pack_els) [i]);
+    ((rfloat_t *) pack_res_els) [i] = fop (((rfloat_t *) pack_els) [i]);
 }
 
 /* Recursive function implementing unary vector operations defined by
    CPC.  Operand is OP with dimension DIM.  The current recursion
    depth is DEPTH.  */
 static ER_node_t
-process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
+process_unary_vect_op (ER_node_t op, int dim, int depth)
 {
   int pack_flag;
   size_t i, len;
@@ -2758,7 +2768,7 @@ process_unary_vect_op (ER_node_t op, int_t dim, int_t depth)
 void
 unary_vect_op (ER_node_t res, ER_node_t op)
 {
-  int_t dim;
+  int dim;
   ER_node_t vect;
 
   dim = get_dim (op);
@@ -2777,23 +2787,23 @@ unary_vect_op (ER_node_t res, ER_node_t op)
    vector PACK_VECT of length LEN with elements type EL_TYPE.  Use
    INITVAL as initial value for folding.  Put result into RES.  */
 static void do_always_inline
-execute_pack_fold_op (ER_node_t res, int_t initval, ER_node_t pack_vect,
+execute_pack_fold_op (ER_node_t res, rint_t initval, ER_node_t pack_vect,
 		      ER_node_mode_t el_type, size_t len, char *pack_els,
 		      void genop (ER_node_t, ER_node_t, ER_node_t, int),
-		      int_t iop (int_t, int_t),
-		      floating_t fop (floating_t, floating_t))
+		      rint_t iop (rint_t, rint_t),
+		      rfloat_t fop (rfloat_t, rfloat_t))
 {
   size_t i;
   val_t l, rval;
   ER_node_t r = (ER_node_t) &rval;
-  int_t ires;
-  floating_t fres;
+  rint_t ires;
+  rfloat_t fres;
 
   if (el_type == ER_NM_int)
     {
       ires = initval;
       for (i = 0; i < len; i++)
-	ires = iop (ires, ((int_t *) pack_els) [i]);
+	ires = iop (ires, ((rint_t *) pack_els) [i]);
       ER_SET_MODE (r, ER_NM_int);
       ER_set_i (r, ires);
     }
@@ -2801,7 +2811,7 @@ execute_pack_fold_op (ER_node_t res, int_t initval, ER_node_t pack_vect,
     {
       fres = initval;
       for (i = 0; i < len; i++)
-	fres = fop (fres, ((floating_t *) pack_els) [i]);
+	fres = fop (fres, ((rfloat_t *) pack_els) [i]);
       ER_SET_MODE (r, ER_NM_float);
       ER_set_f (r, fres);
     }
@@ -2823,7 +2833,7 @@ execute_pack_fold_op (ER_node_t res, int_t initval, ER_node_t pack_vect,
    CPC.  Operand is vector OP with dimension DIM.  The current
    recursion depth is DEPTH.  */
 static void
-process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
+process_fold_vect_op (ER_node_t res, ER_node_t op, int dim, int depth)
 {
   int pack_flag;
   size_t i, len;
@@ -2885,7 +2895,7 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
 				execute_mult_op, i_mult, f_mult);
 	  break;
 	case BC_NM_fold_and:
-	  execute_pack_fold_op (res, ~ (int_t) 0, op, el_type, len, pack_els,
+	  execute_pack_fold_op (res, ~ (rint_t) 0, op, el_type, len, pack_els,
 				execute_and_op, i_and, NULL);
 	  break;
 	case BC_NM_fold_xor:
@@ -2933,7 +2943,7 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int_t dim, int_t depth)
 void
 fold_vect_op (ER_node_t res, ER_node_t op)
 {
-  int_t dim;
+  int dim;
 
   dim = get_dim (op);
   if (ER_NODE_MODE (op) == ER_NM_vect && dim > 0)
@@ -2953,7 +2963,7 @@ fold_vect_op (ER_node_t res, ER_node_t op)
       ER_set_i (res, 1);
       break;
     case BC_NM_fold_and:
-      ER_set_i (res, ~ (int_t) 0);
+      ER_set_i (res, ~ (rint_t) 0);
       break;
     default:
       d_unreachable ();
@@ -2973,16 +2983,16 @@ fold_vect_op (ER_node_t res, ER_node_t op)
   } while (0)
 
 void
-vec (ER_node_t res, ER_node_t op1, int_t vect_parts_number)
+vec (ER_node_t res, ER_node_t op1, rint_t vect_parts_number)
 {
   /* If you make a change here, please look at DINO read
      functions. */
   ER_node_t vect, saved_ctop;
-  int_t curr_vect_part_number;
-  int_t curr_vect_element_number;
+  rint_t curr_vect_part_number;
+  rint_t curr_vect_element_number;
   size_t el_type_size;
   size_t els_number;
-  int_t repetition;
+  rint_t repetition;
   int pack_flag;
 	    
   if (vect_parts_number == 0)
@@ -3054,17 +3064,17 @@ vec (ER_node_t res, ER_node_t op1, int_t vect_parts_number)
 	      }
 	  }
       d_assert
-	((unsigned_int_t) curr_vect_element_number == els_number);
+	((unsigned_rint_t) curr_vect_element_number == els_number);
     }
   ER_SET_MODE (res, ER_NM_vect);
   set_vect_dim (res, vect, 0);
 }
 
 void
-tab (ER_node_t res, ER_node_t op1, int_t tab_els_number)
+tab (ER_node_t res, ER_node_t op1, rint_t tab_els_number)
 {
   ER_node_t tab, saved_ctop;
-  int_t curr_tab_el_number;
+  rint_t curr_tab_el_number;
   ER_node_t entry;
   
   saved_ctop = ctop;
@@ -3079,7 +3089,7 @@ tab (ER_node_t res, ER_node_t op1, int_t tab_els_number)
       if (ER_NODE_MODE (entry) != ER_NM_empty_entry
 	  && ER_NODE_MODE (entry) != ER_NM_deleted_entry)
 	eval_error (keyvalue_bc_decl, get_cpos (), DERR_repeated_key,
-		    curr_tab_el_number);
+		    (long long) curr_tab_el_number);
       *(val_t *) entry = *(val_t *) IVAL (op1, curr_tab_el_number);
       make_immutable (entry);
       *((val_t *) entry + 1)
@@ -3224,6 +3234,10 @@ evaluate_code (void)
 	  break;
 	case BC_NM_ldi:
 	  ldi (get_op (BC_op1 (cpc)), BC_op2 (cpc));
+	  INCREMENT_PC ();
+	  break;
+	case BC_NM_ldbi:
+	  ldbi (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_ldl:
@@ -4351,6 +4365,20 @@ initiate_vars (void)
   ER_set_process (var, cprocess);
 }
 
+#ifdef __GNUC__
+static void restart_eval (void) __attribute__ ((noreturn));
+#endif
+
+/* Restart top level evaluator.  */
+static void
+restart_eval (void)
+{
+  /* We need to remove all c_stack_p flags as we jump through
+     generated C functions.  */
+  clear_c_stack_flags ();
+  longjmp (eval_longjump_buff, 1);
+}
+
 #define MAX_EVAL_ERROR_MESSAGE_LENGTH 300
 
 void
@@ -4375,16 +4403,16 @@ eval_error (BC_node_t except_class_block,
   ER_SET_MODE (IVAL (ER_stack_vars (error_instance), 0), ER_NM_vect);
   set_vect_dim (IVAL (ER_stack_vars (error_instance), 0), string, 0);
   find_catch_pc (error_instance);
-  longjmp (eval_longjump_buff, 1);
+  restart_eval ();
 }
 
 void
-call_fun_class (BC_node_t code, ER_node_t context, int_t pars_number,
+call_fun_class (BC_node_t code, ER_node_t context, int pars_number,
 		int from_c_code_p)
 {
   pc_t saved_cpc;
   pc_t saved_next_pc;
-  int_t saved_process_number;
+  int saved_process_number;
 
   saved_cpc = cpc;
   saved_next_pc = BC_next (cpc);
@@ -4418,7 +4446,7 @@ static ticker_t all_time_ticker;
 void
 switch_to_bcode (void)
 {
-  longjmp (eval_longjump_buff, 1);
+  restart_eval ();
 }
 
 /* Evaluate top level block START_PC.  Initiate data if INIT_P.

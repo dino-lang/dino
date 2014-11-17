@@ -41,7 +41,7 @@ extern vlo_t block_tab;
 #define CODE_ID(bl)          (BC_block_number (bl))
 #define ID_TO_CODE(id)       (((BC_node_t *) VLO_BEGIN (block_tab)) [id])
 #else
-#define CODE_ID(bl)          ((int_t) (bl))
+#define CODE_ID(bl)          ((bcid_t) (bl))
 #define ID_TO_CODE(id)       ((BC_node_t) (id))
 #endif
 

@@ -130,8 +130,8 @@ struct trace_stack_elem
 extern vlo_t trace_stack;
 
 extern ER_node_t cprocess;
-extern int_t context_number;
-extern int_t process_number;
+extern int context_number;
+extern int process_number;
 extern ER_node_t first_process_not_started;
 
 #define GO_THROUGH_REDIR(ref)\
@@ -150,7 +150,7 @@ extern int current_cached_container_tick;
 #endif
 #ifndef NO_PROFILE
 #if HAVE_SETITIMER
-extern int_t gc_interrupts_number;
+extern int gc_interrupts_number;
 #else
 extern ticker_t gc_ticker;
 #endif
@@ -159,7 +159,7 @@ extern ticker_t gc_ticker;
 extern pc_t real_fun_call_pc;
 
 #if ! defined (NO_PROFILE) && HAVE_SETITIMER
-extern int_t all_interrupts_number; 
+extern int all_interrupts_number; 
 extern void profile_interrupt (void);
 #endif
 
@@ -178,6 +178,7 @@ extern void heap_push (BC_node_t block_node_ptr, ER_node_t context,
 extern void heap_pop (void);
 extern void create_uppest_stack (BC_node_t block_node);
 extern void expand_uppest_stack (void);
+extern void clear_c_stack_flags (void);
 
 extern unsigned int tab_collisions;
 extern unsigned int tab_expansions;
@@ -200,7 +201,7 @@ extern void *external_address (BC_node_t decl);
 extern void process_system_errors (const char *function_name);
 
 extern void call_fun_class (BC_node_t fun, ER_node_t context,
-			    int_t pars_number, int from_c_code_p);
+			    int pars_number, int from_c_code_p);
 
 
 extern void switch_to_bcode (void);
@@ -332,7 +333,7 @@ do_call (BC_node_t fblock, int from_c_code_p)
 /* Make STACK with VARS_NUM as the current stack.  Make vars starting
    with OFFSET undefined. */
 static void do_always_inline
-setup_new_cstack (ER_node_t stack, int_t vars_num, int_t offset)
+setup_new_cstack (ER_node_t stack, int vars_num, int offset)
 {
   d_assert (BC_vars_num (ER_block_node (stack)) == vars_num);
   if (cstack != NULL)
@@ -367,7 +368,7 @@ heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
 #ifndef NO_CONTAINER_CACHE
   current_cached_container_tick++;
 #endif
-  ER_set_c_code_p (stack, FALSE);
+  ER_set_c_stack_p (stack, FALSE);
   ER_set_call_pc (stack, cpc);
   ER_set_context (stack, context);
   ER_set_prev_stack (stack, cstack);

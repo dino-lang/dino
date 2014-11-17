@@ -46,7 +46,7 @@ return_hideblock (void *hideblock)
 }
 
 static val_t
-return_int (int_t i)
+return_int (rint_t i)
 {
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -1157,7 +1157,7 @@ ieee_quad_to_double (int npars, val_t *vals)
 }
 
 static void *
-extract_mpi (int npars, val_t *vals, int_t *size)
+extract_mpi (int npars, val_t *vals, rint_t *size)
 {
   ER_node_t var;
   ER_node_t size_var;
@@ -1174,7 +1174,7 @@ extract_mpi (int npars, val_t *vals, int_t *size)
 val_t
 ieee_single_from_integer (int npars, val_t *vals)
 {
-  int_t size;
+  rint_t size;
   IEEE_float_t res;
   void *hideblock;
 
@@ -1188,7 +1188,7 @@ ieee_single_from_integer (int npars, val_t *vals)
 val_t
 ieee_integer_from_single (int npars, val_t *vals)
 {
-  int_t size;
+  rint_t size;
   IEEE_float_t temp;
   void *hideblock;
 
@@ -1203,7 +1203,7 @@ ieee_integer_from_single (int npars, val_t *vals)
 val_t
 ieee_double_from_integer (int npars, val_t *vals)
 {
-  int_t size;
+  rint_t size;
   IEEE_double_t res;
   void *hideblock;
 
@@ -1217,7 +1217,7 @@ ieee_double_from_integer (int npars, val_t *vals)
 val_t
 ieee_integer_from_double (int npars, val_t *vals)
 {
-  int_t size;
+  rint_t size;
   IEEE_double_t temp;
   void *hideblock;
 
@@ -1232,7 +1232,7 @@ ieee_integer_from_double (int npars, val_t *vals)
 val_t
 ieee_quad_from_integer (int npars, val_t *vals)
 {
-  int_t size;
+  rint_t size;
   IEEE_quad_t res;
   void *hideblock;
 
@@ -1246,7 +1246,7 @@ ieee_quad_from_integer (int npars, val_t *vals)
 val_t
 ieee_integer_from_quad (int npars, val_t *vals)
 {
-  int_t size;
+  rint_t size;
   IEEE_quad_t temp;
   void *hideblock;
 

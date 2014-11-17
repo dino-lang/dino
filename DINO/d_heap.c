@@ -61,10 +61,10 @@ vlo_t temp_vlobj2;
 ER_node_t cprocess;
 
 /* Variable used to assign unique number to the contexts. */
-int_t context_number;
+int context_number;
 
 /* Variable used to assign unique number to the processes. */
-int_t process_number;
+int process_number;
 
 /* The following variable value is the first process blocked by a wait
    stmt and there is no process started after this.  This variable is
@@ -88,9 +88,9 @@ initiate_int_tables (void)
   type_size_table [ER_NM_nil] = 0;
   type_size_table [ER_NM_hide] = sizeof (hide_t);
   type_size_table [ER_NM_char] = sizeof (char_t);
-  type_size_table [ER_NM_int] = sizeof (int_t);
+  type_size_table [ER_NM_int] = sizeof (rint_t);
   type_size_table [ER_NM_long] = sizeof (ER_node_t);
-  type_size_table [ER_NM_float] = sizeof (floating_t);
+  type_size_table [ER_NM_float] = sizeof (rfloat_t);
   type_size_table [ER_NM_type] = sizeof (ER_node_mode_t);
   type_size_table [ER_NM_tab]
     = type_size_table [ER_NM_process]
@@ -283,7 +283,7 @@ eq_val (val_t *val1_ptr, val_t *val2_ptr, size_t number)
 
 /* Stack size with NVARS variables.  */
 static size_t do_always_inline
-vars_stack_size (int_t nvars)
+vars_stack_size (int nvars)
 {
   return nvars * sizeof (val_t) + ALLOC_SIZE (sizeof (_ER_heap_stack));
 }
@@ -392,7 +392,7 @@ int current_cached_container_tick;
 #ifndef NO_PROFILE
 #if HAVE_SETITIMER
 /* Number of interrupts in GC. */
-int_t gc_interrupts_number;
+int gc_interrupts_number;
 #else
 /* Time in GC. */
 ticker_t gc_ticker;
@@ -414,6 +414,7 @@ new_heap_chunk (size_t size)
 {
   char *str;
   size_t old_size;
+  static const max_default_chunk_size = 8*1024*1024;
 
   VLO_EXPAND (heap_chunks, sizeof (struct heap_chunk));
   curr_heap_chunk
@@ -421,9 +422,11 @@ new_heap_chunk (size_t size)
       [VLO_LENGTH (heap_chunks) / sizeof (struct heap_chunk) - 1];
   old_size = size;
   if (size + free_heap_memory < (heap_size - free_heap_memory) / 3)
-    size = (heap_size - 4 * free_heap_memory) / 3;
-  if (old_size != size)
-    size = 8*1024*1024;
+    {
+      size = (heap_size - 4 * free_heap_memory) / 3;
+      if (size > max_default_chunk_size && old_size <= max_default_chunk_size)
+	size = max_default_chunk_size;
+    }
   size = ALLOC_SIZE (size);
   CALLOC (str, 1, size);
   curr_heap_chunk->chunk_start = curr_heap_chunk->chunk_free = str;
@@ -794,11 +797,11 @@ traverse_used_var (ER_node_t var)
     }
 }
 
-/* Set up when we find used C code stack.  */
-static int used_c_stack_p;
+/* Set up when we find used stack corresponding to C stack.  */
+static int leave_c_stacks_p;
 
 /* Traverse and Mark all reachable objects from OBJ.  Set up
-   USED_C_STACK_P if necessary.  */
+   LEAVE_C_STACKS_P if necessary.  */
 static void
 traverse_used_heap_object (ER_node_t obj)
 {
@@ -866,8 +869,11 @@ traverse_used_heap_object (ER_node_t obj)
       {
 	ER_node_t var;
 	
-	if (ER_c_code_p (obj))
-	  used_c_stack_p = TRUE;
+	if (ER_c_stack_p (obj))
+	  {
+	    leave_c_stacks_p = TRUE;
+	    ER_set_c_stack_p (obj, FALSE);
+	  }
 	traverse_used_heap_object (ER_prev_stack (obj));
 	traverse_used_heap_object (ER_context (obj));
 	for (var = ER_stack_vars (obj); /* !!! */
@@ -930,7 +936,6 @@ mark_used_heap_objects (void)
 {
   int i;
   BC_node_t *block_ptr;
-  ER_node_t stack;
 
   clean_heap_object_process_flag ();
   traverse_used_heap_object (cstack);
@@ -938,8 +943,7 @@ mark_used_heap_objects (void)
   for (block_ptr = (BC_node_t *) VLO_BEGIN (block_tab);
        block_ptr < (BC_node_t *) VLO_BOUND (block_tab);
        block_ptr++)
-    if ((stack = BC_free_stacks (*block_ptr)) != NULL)
-      traverse_used_heap_object (stack);
+    BC_set_free_stacks (*block_ptr, NULL);
   for (i = 0; i < TEMP_REFS_LENGTH (); i++)
     traverse_used_heap_object (GET_TEMP_REF (i));
   for (i = 0; i < VLO_LENGTH (external_vars) / sizeof (void *); i++)
@@ -1431,7 +1435,7 @@ GC (void)
 
   if (no_gc_p)
     return;
-  used_c_stack_p = FALSE;
+  leave_c_stacks_p = FALSE;
   /* Mark that we don't need GC anymore.  */
   d_assert (GC_executed_stmts_count <= 0);
   executed_stmts_count = GC_executed_stmts_count;
@@ -1467,14 +1471,14 @@ GC (void)
   if (flag)
     destroy_stacks ();
   /* Switch to byte code execution as stacks might move.  */
-  if (used_c_stack_p)
+  if (leave_c_stacks_p)
     switch_to_bcode ();
 }
 
 
 
 #if ! defined (NO_PROFILE) && HAVE_SETITIMER
-int_t all_interrupts_number;
+int all_interrupts_number;
 
 /* The following function processes interrupt from virtual alarm. */
 void
@@ -1597,7 +1601,7 @@ heap_pop (void)
 }
 
 /* Number of vars in previous version of the top block.  */
-static int_t previous_uppest_stack_vars_num;
+static int previous_uppest_stack_vars_num;
 
 /* Create the uppest stack from its BLOCK_NODE.  */
 void
@@ -1615,7 +1619,7 @@ void
 expand_uppest_stack (void)
 {
   BC_node_t block_node;
-  int_t vars_num, tvars_num, new_all_block_vars;
+  int vars_num, tvars_num, new_all_block_vars;
   ER_node_t stack;
   
   d_assert
@@ -1643,6 +1647,24 @@ expand_uppest_stack (void)
   previous_uppest_stack_vars_num = vars_num;
   uppest_stack = cstack;
   tvars = cvars;
+}
+
+void
+clear_c_stack_flags (void)
+{
+  ER_node_t process, stack;
+  
+  if (generated_c_function_calls_num == 0)
+    return;
+  for (process = cprocess;;)
+    {
+      stack = process == cprocess ? cstack : ER_saved_cstack (process);
+      for (; stack != NULL; stack = ER_prev_stack (stack))
+	ER_set_c_stack_p (stack, FALSE);
+      process = ER_next (process);
+      if (process == cprocess)
+	break;
+    }
 }
 
 
@@ -2144,7 +2166,7 @@ hash_ref (ER_node_t ref)
 
 /* Return hash value of integer I.  */
 static size_t do_always_inline
-int_hash_val (int_t i)
+int_hash_val (rint_t i)
 {
   return (size_t) i;
 }
@@ -2170,9 +2192,9 @@ hash_val (ER_node_t val)
       return int_hash_val (ER_i (val));
     case ER_NM_float:
       {
-	floating_t f;
+	rfloat_t f;
 	
-	length = sizeof (floating_t);
+	length = sizeof (rfloat_t);
 	f = ER_f (val);
 	string = (unsigned char *) &f;
 	hash = murmur (string, length);
@@ -2418,7 +2440,7 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
   ER_node_t entry_key;
   ER_node_t first_deleted_entry_key;
   size_t hash_value, secondary_hash_value;
-  int_t last_key_index;
+  rint_t last_key_index;
   int int_p;
 
   int_p = ER_NODE_MODE (key) == ER_NM_int;
@@ -2465,7 +2487,7 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
           if (int_p && ER_NODE_MODE (entry_key) == ER_NM_int
 	      ? ER_i (entry_key) == ER_i (key) : eq_key (entry_key, key))
 	    {
-	      ER_set_last_key_index (tab, (int_t) hash_value);
+	      ER_set_last_key_index (tab, (rint_t) hash_value);
 	      break;
 	    }
         }
@@ -2582,7 +2604,7 @@ copy_tab (ER_node_t tab)
 /* The function returns the next key in TAB after given one or the
    first key if KEY == NULL. */
 ER_node_t
-find_next_key (ER_node_t tab, int_t start)
+find_next_key (ER_node_t tab, int start)
 {
   size_t i;
   ER_node_t key;

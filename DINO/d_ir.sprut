@@ -80,7 +80,7 @@ typedef enum expr_value_type expr_value_type_t;
 
 typedef int type_mask_t;
 
-typedef int integer_t;
+typedef int int_t;
 
 typedef const char *string_t;
 
@@ -212,9 +212,9 @@ extern IR_node_t find_decl (IR_node_t ident, IR_node_t scope);
 extern void set_environment_declarations (IR_node_t environment_scope);
 
 extern IR_node_t get_ident_node (char *name, position_t pos);
-extern IR_node_t get_int_node (int_t number_value, position_t pos);
+extern IR_node_t get_int_node (rint_t number_value, position_t pos);
  extern IR_node_t get_long_node (const char *repr, position_t pos, int base);
-extern IR_node_t get_float_node (floating_t number_value, position_t pos);
+extern IR_node_t get_float_node (rfloat_t number_value, position_t pos);
 
 /* Variable name for the rest parameter values (...). */
 #define ARGS_NAME "args"
@@ -476,7 +476,7 @@ IR_node_t destroy_unique_ident;
 
 }
 
-%type char_t int_t gmp_t floating_t string_t integer_t bool_t position_t
+%type char_t rint_t gmp_t rfloat_t string_t int_t bool_t position_t
       type_mask_t ticker_t BC_hidden_node_t access_val_t hint_val_t
 
 %%
@@ -506,7 +506,7 @@ unique_char :: ir_node
 /* Only number_node can refer to this node. */
 unique_int :: ir_node
 %other
-        int_value : int_t
+        int_value : rint_t
 ;
 
 unique_long :: ir_node
@@ -517,7 +517,7 @@ unique_long :: ir_node
 
 unique_float :: ir_node
 %other
-        float_value : floating_t
+        float_value : rfloat_t
 ;
 
 unique_string :: ir_node
@@ -866,11 +866,11 @@ fun_or_class :: fun_class
         /* Number of parameters of the fun.  The formal
            parameters are the start vars in the fun block.  The
            number takes into account variable for `...' too. */
-        parameters_number : integer_t
+        parameters_number : int_t
         /* Number of minimal actual parameters for the fun.  It is
 	   actually number of first formal parameters without default
 	   value. */
-        min_actual_parameters_number : integer_t
+        min_actual_parameters_number : int_t
 	/* Flag of that args must be defined.  In order words ... is
            used. */
 	args_flag : bool_t
@@ -923,7 +923,7 @@ unique_ident
            idents used for access to any block decl through field
            access operation.  This member must be initiated by
            negative value for the node creation time. */
-        field_ident_number : integer_t {$ = -1;}
+        field_ident_number : int_t {$ = -1;}
         /* If the following member is TRUE than the ident is
            decalared in some block. */
         it_is_declared_in_block : bool_t
@@ -938,13 +938,13 @@ expr
 vec_tab
 %other
         /* Number of elements in the list elist. */
-        parts_number : integer_t
+        parts_number : int_t
 ;
 
 class_fun_thread_call
 %other
         /* Number of elements in the list actuals. */
-        class_fun_thread_call_parameters_number : integer_t
+        class_fun_thread_call_parameters_number : int_t
 ;
 
 slice
@@ -965,12 +965,12 @@ foreach_stmt
 block
 %other
         /* Number of all blocks which contain given block. */
-        block_level : integer_t
+        block_level : int_t
         /* Number of vars immediately placed in given block. */
-        vars_number : integer_t {$ = 0;}
+        vars_number : int_t {$ = 0;}
         /* Number of temporary vars needed for expr
            evaluation in given block. */
-        temporary_vars_number : integer_t {$ = 0;}
+        temporary_vars_number : int_t {$ = 0;}
         /* See the following comment.  The field value is NULL if the
 	   corresponding block is not try-block. */
         catch_list_pc : generic_pos
@@ -1065,7 +1065,7 @@ var
 %other
         /* Number (0, ...) of the var (only immediatly placed) in
            block vars.  The numeration of vars in fun starts with 0. */
-        var_number_in_block : integer_t
+        var_number_in_block : int_t
 ;
 
 use_item
@@ -1104,11 +1104,11 @@ decl_redir :: stmt
 fun_or_class
 %other
         /* Number of function/class calls. */
-        calls_number : integer_t {$ = 0;}
+        calls_number : int_t {$ = 0;}
 	/* Time of function (class body) execution.  Defined if the
 	   previous field is not zero. */
         exec_time : ticker_t
-        interrupts_number : integer_t
+        interrupts_number : int_t
 ;
 
 external_decl
@@ -1124,7 +1124,7 @@ block
            defined if cached_container_tick is not equal to the
            current value. */
 	cached_container_address : string_t
-	cached_container_tick : integer_t {$ = -1;}
+	cached_container_tick : int_t {$ = -1;}
         /* The following field is set up on enter of the block.  */
         block_saved_sync_flag : bool_t
 ;
@@ -1150,8 +1150,8 @@ hash_func (hash_table_entry_t el_ptr)
   IR_node_mode_t mode;
   const char *chp;
   char ch;
-  int_t int_number;
-  floating_t float_number;
+  rint_t int_number;
+  rfloat_t float_number;
   size_t i, size, hash_value;
 
   node_ref = IR_PTR (el_ptr);
@@ -1173,13 +1173,13 @@ hash_func (hash_table_entry_t el_ptr)
 	}
       else if (mode == IR_NM_unique_int)
 	{
-	  size = sizeof (int_t);
+	  size = sizeof (rint_t);
           int_number = IR_int_value (node_ref);
 	  chp = (char *) &int_number;
 	}
       else if (mode == IR_NM_unique_float)
 	{
-	  size = sizeof (floating_t);
+	  size = sizeof (rfloat_t);
           float_number = IR_float_value (node_ref);
 	  chp = (char *) &float_number;
 	}
@@ -1470,7 +1470,7 @@ get_ident_node (char *name, position_t pos)
 /* Return new int node with given NUMBER_VALUE and POS. */
 
 IR_node_t
-get_int_node (int_t number_value, position_t pos)
+get_int_node (rint_t number_value, position_t pos)
 {
   IR_node_t result;
   IR_node_t unique_number_value_node;
@@ -1514,7 +1514,7 @@ get_long_node (const char *rep, position_t pos, int base)
 /* Return new number node with given NUMBER_VALUE and POS. */
 
 IR_node_t
-get_float_node (floating_t number_value, position_t pos)
+get_float_node (rfloat_t number_value, position_t pos)
 {
   IR_node_t result;
   IR_node_t unique_number_value_node;

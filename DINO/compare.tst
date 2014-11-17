@@ -137,7 +137,7 @@ else
 fi
 
 if test x$SKIP_OCAML = x && echo 'print ()' | ocaml >/dev/null 2>&1;then
-  OCAML=$srcdir/ocaml.sh
+  OCAML=ocaml
   echo '>>>> ' `ocaml < /dev/null|fgrep ersion`
 else
   echo We have no OCAML

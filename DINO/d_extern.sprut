@@ -28,13 +28,15 @@
 
 /* Don't use -flat-structure for generation SPI from this description. */
 
-%type bool_t size_t hide_t char_t int_t unsigned_int_t floating_t char_ptr_t
+%type bool_t size_t hide_t char_t int_t rint_t unsigned_rint_t rfloat_t char_ptr_t
       bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t type_val_t
       process_status_t stack_ptr_t hidden_pc_t gmp_t
 
 %import {
 
 #include "d_types.h"
+
+typedef int int_t;
 
 typedef void *hide_t;
 
@@ -44,7 +46,7 @@ typedef struct BC_node *hidden_pc_t;
 
 typedef char *char_ptr_t;
 
-typedef int_t bcid_t;
+typedef int bcid_t;
 
 /* This enumeration declares all possible states of of heap stack
    which contains function destroy.  Don't change it.  */
@@ -306,14 +308,14 @@ extern ER_node_t create_tab (size_t size);
 extern ER_node_t find_tab_entry (ER_node_t tab, ER_node_t key, int reserve);
 extern int remove_tab_el (ER_node_t tab, ER_node_t key);
 extern ER_node_t copy_tab (ER_node_t tab);
-extern ER_node_t find_next_key (ER_node_t tab, int_t start);
+extern ER_node_t find_next_key (ER_node_t tab, int start);
 extern ER_node_t table_to_vector_conversion (ER_node_t tab);
 extern ER_node_t vector_to_table_conversion (ER_node_t vect);
 
 extern void make_immutable (ER_node_t obj);
 
 static void do_always_inline
-set_vect_dim (ER_node_t v, ER_node_t vect, int_t dim)
+set_vect_dim (ER_node_t v, ER_node_t vect, int dim)
 {
   ER_set_vect (v, vect);
   ER_set_dim (v, dim);
@@ -399,7 +401,8 @@ heap_tab :: heap_vect_tab
 %abstract
 context_heap_obj :: heap_obj
 %other
-  c_code_p : bool_t /* True if it has a corresponds c code stack.  */
+  /* Flag of existence of C stack corresponding to given stack..  */
+  c_stack_p : bool_t
   context_number : int_t        /* Unique number */
   /* May contains more vars than it is really necessary for the block.  */
   all_block_vars_num : int_t
@@ -445,7 +448,7 @@ heap_process :: context_heap_obj
 heap_hideblock :: heap_obj
 %other
   /* Length of the block without the header. */
-  hideblock_length : int_t
+  hideblock_length : rint_t
   /* The data are placed immediately after this node in the heap. */
 ;
 
@@ -494,7 +497,7 @@ char :: val
 /*%final*/
 int :: val
 %other
-  i : int_t
+  i : rint_t
 ;
 
 /*%final*/
@@ -506,7 +509,7 @@ long :: val
 /*%final*/
 float :: val
 %other
-  f : floating_t
+  f : rfloat_t
 ;
 
 /*%final*/

@@ -244,7 +244,7 @@ all : d_config.h $(dino_lib) $(DINO_EXTERN_LIBS) dino d_extern.h d_gen.i
 d_gen.i : dino d_genheader.i $(srcdir)/d_minimize.d
 	@if test d_gen.i -ot d_genheader.i;then\
            echo C code Generation Header Minimization ...;\
-           $(EGREP) -v '^#|^$$' d_genheader.i | ./dino $(srcdir)/d_minimize.d "$(CC)" > $@;\
+           $(EGREP) -v '^#|^$$' d_genheader.i | time ./dino $(srcdir)/d_minimize.d "$(CC)" > $@;\
         fi
 
 d_config.h: ../AMMUNITION/cocom-config.h

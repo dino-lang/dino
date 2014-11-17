@@ -70,6 +70,7 @@ bcmp_res
 binc_inc
 cfblock
 next_except
+bi
 f
 mpz
 str

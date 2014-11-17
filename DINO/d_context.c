@@ -308,7 +308,7 @@ first_expr_processing (IR_node_t expr)
 	SET_SOURCE_POSITION (expr);
 	first_expr_processing (IR_left_operand (expr));
 	if (r != NULL && IR_IS_OF_TYPE (r, IR_NM_int)
-	    && IR_int_value (IR_unique_int (r)) != MAX_INT)
+	    && IR_int_value (IR_unique_int (r)) != MAX_RINT)
 	  {
 	    IR_set_right_operand
 	      (expr,
@@ -1042,7 +1042,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    
 	    first_expr_processing (IR_assignment_var (stmt));
 	    if (expr != NULL && IR_IS_OF_TYPE (expr, IR_NM_int)
-		&& IR_int_value (IR_unique_int (expr)) != MAX_INT)
+		&& IR_int_value (IR_unique_int (expr)) != MAX_RINT)
 	      {
 		IR_set_assignment_expr
 		  (stmt,
@@ -1565,6 +1565,12 @@ unary_slice_p (IR_node_t op)
   return op != NULL && IR_value_type (op) == EVT_SLICE;
 }
 
+static do_inline int
+int_p (rint_t i)
+{
+  return INT_MIN <= i && i <= INT_MAX;
+}
+
 /* Generate code for binary OP using NEW_OP_MODE (or REV_OP_MODE if we
    exchange operands) if an operand is an int constant (it is always
    processed second even if it is actually the first operand).  Update
@@ -1594,7 +1600,8 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
 					 &r_op_result, &temp_vars_num, FALSE,
 					 NULL, NULL, FALSE));
 	  skip_right_p = TRUE;
-	  if (unary_slice_p (IR_right_operand (op)))
+	  if (! int_p (IR_int_value (IR_unique_int (l)))
+	      || unary_slice_p (IR_right_operand (op)))
 	    ;
 	  else
 	    {
@@ -1611,7 +1618,8 @@ process_binary_op (IR_node_t op, int *result, int *curr_temp_vars_num,
 					 &l_op_result, &temp_vars_num, FALSE,
 					 NULL, NULL, FALSE));
 	  skip_left_p = TRUE;
-	  if (unary_slice_p (IR_left_operand (op)))
+	  if (! int_p (IR_int_value (IR_unique_int (r)))
+	      || unary_slice_p (IR_left_operand (op)))
 	    ;
 	  else
 	    {
@@ -1724,7 +1732,7 @@ initiate_decl_subst (void)
 static void
 set_decl_subst (BC_node_t decl, BC_node_t subst)
 {
-  int_t decl_num = BC_decl_num (decl);
+  int decl_num = BC_decl_num (decl);
   BC_node_t null = NULL;
 
   while (VLO_LENGTH (decl_subst) <= decl_num * sizeof (BC_node_t))
@@ -1736,7 +1744,7 @@ set_decl_subst (BC_node_t decl, BC_node_t subst)
 static BC_node_t
 get_decl_subst (BC_node_t decl)
 {
-  int_t decl_num = BC_decl_num (decl);
+  int decl_num = BC_decl_num (decl);
 
   if (VLO_LENGTH (decl_subst) <= decl_num * sizeof (BC_node_t))
     return NULL;
@@ -1931,6 +1939,23 @@ get_fblock (IR_node_t fun_decl)
   return bc;
 }
 
+static BC_node_t
+gen_int_load (rint_t i, IR_node_t src)
+{
+  BC_node_t bc;
+
+  if (int_p (i))
+    {
+      bc = new_bc_code_with_src (BC_NM_ldi, src);
+      BC_set_op2 (bc, i);
+    }
+  else
+    {
+      bc = new_bc_code_with_src (BC_NM_ldbi, src);
+      BC_set_bi (bc, i);
+    }
+  return bc;
+}
 
 /* The following recursive func passes (correctly setting up
    SOURCE_POSITION) EXPR (it may be NULL) and changes idents on
@@ -1977,9 +2002,8 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       add_to_bcode (bc);
       break;
     case IR_NM_int:
-      bc = new_bc_code_with_src (BC_NM_ldi, expr);
+      bc = gen_int_load (IR_int_value (IR_unique_int (expr)), expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
-      BC_set_op2 (bc, IR_int_value (IR_unique_int (expr)));
       IR_set_value_type (expr, EVT_INT);
       add_to_bcode (bc);
       break;
@@ -4131,7 +4155,7 @@ static BC_node_t
 madd_combine (BC_node_t bc)
 {
   BC_node_t info, next_bc;
-  int_t op1, op2, op3, op4;
+  int op1, op2, op3, op4;
 
   op1 = not_defined_result;
   if (BC_NODE_MODE (bc) == BC_NM_mult
@@ -4181,7 +4205,7 @@ static BC_node_t
 ind_combine (BC_node_t bc)
 {
   BC_node_t info, next_bc;
-  int_t op1, op2, op3, op4;
+  int op1, op2, op3, op4;
 
   if (BC_NODE_MODE (bc) == BC_NM_ind
       && BC_op1 (bc) >= BC_vars_num (curr_bc_block)
@@ -4286,9 +4310,9 @@ mark_reachable_info (BC_node_t bc)
 
 /* Modify op fields of copied nodes correspondingly.  */
 static void
-modify_copied_ops (int_t base)
+modify_copied_ops (int base)
 {
-  int_t op;
+  int op;
   BC_node_t bc, *bc_ptr;
   
   for (bc_ptr = (BC_node_t *) VLO_BEGIN (bc_copies);
@@ -4351,7 +4375,7 @@ inline_call (BC_node_t info)
 {
   int level;
   unsigned int len;
-  int_t tvars_num, var_base;
+  int tvars_num, var_base;
   BC_node_t bc, fblock, start, finish, finish2, res, last, *bc_ptr;
   BC_node_t call_bc = BC_bc (info);
 
@@ -4583,7 +4607,7 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
 	process_bc (*bc_ptr);
       if (dump_flag)
 	{
-	  int_t idn = 0, decl_num = 0;
+	  int idn = 0, decl_num = 0;
 	  
 	  enumerate_infoed_bcode (first_program_bc, &idn, &decl_num);
 	}

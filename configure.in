@@ -67,7 +67,7 @@ fi
 dnl Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror memcpy memset memcmp memmove vsprintf dlopen getgroups\
-               strtol strtod setitimer sigaction sigemptyset)
+               strtol strtoll strtoull strtod setitimer sigaction sigemptyset)
 
 AC_SUBST(START_SPRUT_OPTIONS)
 AC_SUBST(C_DEBUG_DEFINE)

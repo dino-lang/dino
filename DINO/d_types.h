@@ -49,18 +49,7 @@ typedef struct { mpz_t mpz;} gmp_t;
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #else
-#ifndef UCHAR_MAX
-#define UCHAR_MAX 255
-#endif
-#ifndef UINT_MAX
-#define UINT_MAX (INT_MAX * 2U + 1)
-#endif
-#ifndef INT_MAX
-#define INT_MAX 2147483647
-#endif  
-#ifndef INT_MIN
-#define INT_MIN (-INT_MAX-1)
-#endif
+#error We need limits.h
 #endif
 
 #include <math.h>
@@ -74,7 +63,7 @@ typedef struct { mpz_t mpz;} gmp_t;
 #define FLT_MAX_EXP  128
 #define DBL_MANT_DIG  53
 #define DBL_MAX_EXP 1024
-#define DBL_DIG 15
+#define DBL_DIG 16
 #endif
 
 #ifdef DBL_DECIMAL_DIG
@@ -83,31 +72,42 @@ typedef struct { mpz_t mpz;} gmp_t;
 #ifdef DECIMAL_DIG
 #define FORMAT_DOUBLE_DIGS (DECIMAL_DIG)
 #else  
-#define FORMAT_DOUBLE_DIGS (DBL_DIG + 3)
+#define FORMAT_DOUBLE_DIGS (DBL_DIG + 1)
 #endif
 #endif
 
-#if INT_MAX == 2147483647
-typedef int int_t;
-typedef unsigned int unsigned_int_t;
-#define MAX_INT   INT_MAX	/* int */
+#if INT_MAX >= 9223372036854775807
+typedef int rint_t;
+typedef unsigned int unsigned_rint_t;
+#define MAX_RINT   INT_MAX	/* int */
+#define MIN_RINT   INT_MIN	/* int */
+#elif LONG_MAX >= 9223372036854775807
+typedef long int rint_t;
+typedef unsigned long int unsigned_rint_t;
+#define MAX_RINT   LONG_MAX	/* long */
+#define MIN_RINT   LONG_MIN	/* long */
+#elif LLONG_MAX >= 9223372036854775807
+typedef long long int rint_t;
+typedef unsigned long long int unsigned_rint_t;
+#define MAX_RINT   LLONG_MAX	/* long long */
+#define MIN_RINT   LLONG_MIN	/* long long */
 #else
-#error there is no 32 bits int
+#error there is no 64 bits int
 #endif
 
 #if DBL_MANT_DIG == 53 && DBL_MAX_EXP == 1024
-typedef double floating_t;
+typedef double rfloat_t;
 
 #ifdef HUGE_VAL
-#define FLOATING_HUGE_VAL HUGE_VAL
+#define RFLOAT_HUGE_VAL HUGE_VAL
 #endif
 
 #define MAX_FLOAT DBL_MAX	/* double */
 #elif FLT_MANT_DIG == 53 && FLT_MAX_EXP == 1024
-typedef float floating_t;
+typedef float rfloat_t;
 
 #ifdef HUGE_VALF
-#define FLOATING_HUGE_VAL HUGE_VALF
+#define RFLOAT_HUGE_VAL HUGE_VALF
 #endif
 
 #define MAX_FLOAT FLT_MAX	/* float */
@@ -115,23 +115,24 @@ typedef float floating_t;
 #error there is no IEEE double
 #endif
 
+/* Alignment??? 32-bit int ? */
 #ifdef WORDS_BIGENDIAN
 static const char __nan__[8] = { 0x7f, 0xf8, 0, 0, 0, 0, 0, 0 };
-#define IS_FLOATING_NAN(var)\
-  ((((int_t *) &var) [0] & ((int_t *) __nan__) [0]) == ((int_t *) __nan__) [0])
+#define IS_RFLOAT_NAN(var)\
+  ((((int *) &var) [0] & ((int *) __nan__) [0]) == ((int *) __nan__) [0])
 #else
 static const char __nan__[8] = { 0, 0, 0, 0, 0, 0, 0xf8, 0x7f };
-#define IS_FLOATING_NAN(var)\
-  ((((int_t *) &var) [1] & ((int_t *) __nan__) [1]) == ((int_t *) __nan__) [1])
+#define IS_RFLOAT_NAN(var)\
+  ((((int *) &var) [1] & ((int *) __nan__) [1]) == ((int *) __nan__) [1])
 #endif
 
-#ifndef FLOATING_HUGE_VAL
+#ifndef RFLOAT_HUGE_VAL
 #ifdef WORDS_BIGENDIAN
 static const char __infinity[8] = { 0x7f, 0xf0, 0, 0, 0, 0, 0, 0 };
 #else
 static const char __infinity[8] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x7f };
 #endif
-#define FLOATING_NAN (*(floating_t *) __infinity)
+#define RFLOAT_NAN (*(rfloat_t *) __infinity)
 #endif
 
 typedef unsigned char char_t;

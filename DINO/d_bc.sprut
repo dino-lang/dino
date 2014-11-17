@@ -24,12 +24,14 @@
 
 */
 
-%type position_t int_t gmp_t floating_t string_t bool_t fun_mode_t implementation_fun_t
-      ticker_t ER_hidden_node_t void_ptr_t
+%type position_t int_t rint_t gmp_t rfloat_t string_t bool_t fun_mode_t
+      implementation_fun_t ticker_t ER_hidden_node_t void_ptr_t
 
 %import {
 
 #include "d_common.h"
+
+typedef int int_t;
 
 typedef void *void_ptr_t;
 
@@ -48,7 +50,7 @@ typedef enum
   BC_builtin
 } fun_mode_t;
 
-typedef void (*implementation_fun_t) (int_t pars_number);
+typedef void (*implementation_fun_t) (int pars_number);
 
 }
 
@@ -75,7 +77,7 @@ typedef BC_node_t pc_t;
    node with mode m. */
 #define BC_SET_MODE(v, m) (BC_NODE_MODE (v) = (m))
 
-typedef void (*implementation_fun_t) (int_t pars_number);
+typedef void (*implementation_fun_t) (int pars_number);
 
 extern BC_node_t first_program_bc;
 
@@ -795,7 +797,7 @@ extern BC_node_t transpose_bc_decl;
 extern BC_node_t init_bc_decl;
 
 extern BC_node_t attach_info (BC_node_t);
-extern void enumerate_infoed_bcode (BC_node_t, int_t *, int_t *);
+extern void enumerate_infoed_bcode (BC_node_t, int *, int *);
 extern void init_env_decl_processing (void);
 extern int all_env_decls_processed_p (void);
 extern void process_env_decl (BC_node_t);
@@ -894,7 +896,13 @@ stdecu :: op1;
 
 ldnil, ldthis :: op1; /* result place */
 flat :: op1; /* operand and result place */
-ldi, ldch, ldtp :: op2i; /* result place, value as int  */
+ldch, ldi, ldtp :: op2i; /* result place, value as int  */
+
+/* Load integer which can not be presented by int.  */
+ldbi :: op1
+%other
+        bi : rint_t
+;
 
 ldl :: op1 /* result place */
 %other
@@ -905,7 +913,7 @@ ldl :: op1 /* result place */
 
 ldf :: op1 /* result place */
 %other
-        f : floating_t
+        f : rfloat_t
 ;
 
 lds :: op1 /* result place */
@@ -1028,7 +1036,7 @@ foreach :: op4
 foreach_val :: foreach
 %other
 	/* container and element places  */
-	vcontainer, vindex: int_t
+	vcontainer, vindex : int_t
 ;
 
 vec, tab :: op3i; /* result place, element parts start place, parts number */
@@ -1306,7 +1314,7 @@ attach_info (BC_node_t node)
 /* Enumerate infos of BLOCK starting with *CURR_IDN and decls starting
    with *CURR_DECL_NUM.  Update *CURR_IDN and *CURR_DECL_NUM. */
 void
-enumerate_infoed_bcode (BC_node_t block, int_t *curr_idn, int *curr_decl_num)
+enumerate_infoed_bcode (BC_node_t block, int *curr_idn, int *curr_decl_num)
 {
   BC_node_t bc_decl, info, bc;
   int info_p;
@@ -1925,7 +1933,7 @@ prepare_block (BC_node_t block)
 #if defined(HAVE_DLOPEN)
 
 static void
-print_op (FILE *f, int comma_p, int_t nop)
+print_op (FILE *f, int comma_p, int nop)
 {
   if (comma_p)
     fprintf (f, ", ");
@@ -1938,9 +1946,14 @@ print_op (FILE *f, int comma_p, int_t nop)
 static void
 print_node (FILE *f, BC_node_t bc)
 {
+  int tcall_p = (BC_IS_OF_TYPE (bc, BC_NM_tcall)
+		 || BC_IS_OF_TYPE (bc, BC_NM_itcall)
+		 || BC_IS_OF_TYPE (bc, BC_NM_titcall)
+		 || BC_IS_OF_TYPE (bc, BC_NM_citcall));
   fprintf (f, "  cpc = (BC_node_t) 0x%lx;\n", (long unsigned) bc);
   fprintf (f, "  ");
-  if (BC_IS_OF_TYPE (bc, BC_NM_br) || BC_IS_OF_TYPE (bc, BC_NM_foreach))
+  if (BC_IS_OF_TYPE (bc, BC_NM_br) || BC_IS_OF_TYPE (bc, BC_NM_foreach)
+      || tcall_p)
     fprintf (f, "if (");
   if (BC_IS_OF_TYPE (bc, BC_NM_fold_op))
     fprintf (f, "foldop (");
@@ -2003,6 +2016,8 @@ print_node (FILE *f, BC_node_t bc)
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));
   else if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_body_pc (bc))));
+  else if (tcall_p)
+    fprintf (f, ")) return;\n");
   else
     fprintf (f, ");\n");
   if (BC_IS_OF_TYPE (bc, BC_NM_ret) || BC_IS_OF_TYPE (bc, BC_NM_leave))
@@ -2010,7 +2025,7 @@ print_node (FILE *f, BC_node_t bc)
     
 }
 
-static int_t curr_label_num;
+static int curr_label_num;
 static vlo_t fbcode;
 
 static void
@@ -2068,8 +2083,8 @@ traverse_bcode (BC_node_t bc)
 
 #define GEN_DIR "/tmp/"
 #define GEN_FUN_PREFIX "dg_"
-#define CC_PREFIX  "gcc -O2 -fPIC -shared -fpreprocessed -pipe -g"
-#define CC_PREFIX2 "gcc -O2 -fPIC -shared -fpreprocessed -pipe -xc -"
+#define CC_OPTIONS  " -O2 -fPIC -shared -fpreprocessed -pipe -g"
+#define CC_OPTIONS2 " -O2 -fPIC -shared -fpreprocessed -pipe -xc -"
 
 static void
 form_fun_name (vlo_t *fun_name, BC_node_t fdecl)
@@ -2144,18 +2159,19 @@ gen_cfblock (BC_node_t fblock)
   FILE *f;
   vlo_t fname, objname, command, fun_name;
   void *addr;
-  int error_p;
+  int error_p, tcall_p;
 
   VLO_CREATE (fname, 0);
   form_fname (&fname, BC_fdecl (fblock), ".c");
   VLO_CREATE (objname, 0);
   form_fname (&objname, BC_fdecl (fblock), ".so");
   VLO_CREATE (command, 0);
+  VLO_ADD_STRING (command, CC);
   if (! save_temps_flag)
-    VLO_ADD_STRING (command, CC_PREFIX2);
+    VLO_ADD_STRING (command, CC_OPTIONS2);
   else
     {
-      VLO_ADD_STRING (command, CC_PREFIX);
+      VLO_ADD_STRING (command, CC_OPTIONS);
       VLO_ADD_STRING (command, " ");
       VLO_ADD_STRING (command, VLO_BEGIN (fname));
     }
@@ -2192,11 +2208,7 @@ gen_cfblock (BC_node_t fblock)
 	  if (BC_label_num (info) >= 0)
 	    fprintf (f, "l%d:\n", BC_label_num (info));
 	  print_node (f, *bc_ptr);
-	  if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_fbend)
-	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_tcall)
-	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_itcall)
-	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_titcall)
-	      || BC_IS_OF_TYPE (*bc_ptr, BC_NM_citcall))
+	  if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_fbend))
 	    fprintf (f, "  return;\n");
 	  else if (BC_IS_OF_TYPE (*bc_ptr, BC_NM_block)
 		   || BC_IS_OF_TYPE (*bc_ptr, BC_NM_bend))

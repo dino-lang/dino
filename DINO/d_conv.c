@@ -29,7 +29,7 @@
 /* The file contains functions for run-time conversion values. */
 
 static position_t
-get_fmt_op_pos (int_t vec_p)
+get_fmt_op_pos (int vec_p)
 {
   return vec_p ? get_cpos () : call_pos ();
 }
@@ -85,10 +85,10 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	    width_flag = TRUE;
 	    do
 	      {
-		if (width <= MAX_INT / 10)
+		if (width <= INT_MAX / 10)
 		  {
 		    width *= 10;
-		    if (width <= MAX_INT - (next - '0'))
+		    if (width <= INT_MAX - (next - '0'))
 		      width += next - '0';
 		    else
 		      width = -1;
@@ -148,10 +148,10 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	      {
 		do
 		  {
-		    if (precision <= MAX_INT / 10)
+		    if (precision <= INT_MAX / 10)
 		      {
 			precision *= 10;
-			if (precision <= MAX_INT - (next - '0'))
+			if (precision <= INT_MAX - (next - '0'))
 			  precision += next - '0';
 			else
 			  precision = -1;
@@ -221,6 +221,18 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		    && (blank_flag || plus_flag)))
 	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
+	    if (next == 'd' || next == 'o' || next == 'x' || next == 'X')
+	      {
+		if (sizeof (rint_t) == sizeof (int))
+		  ;
+		else if (sizeof (rint_t) == sizeof (long))
+		  curr_fmt += sprintf (curr_fmt, "l");
+		else
+		  {
+		    assert (sizeof (rint_t) == sizeof (long long));
+		    curr_fmt += sprintf (curr_fmt, "ll");
+		  }
+	      }
 	    curr_fmt += sprintf (curr_fmt, "%c", next);
 	    add += 100;
 	    VLO_EXPAND (temp_vlobj, add);
@@ -428,8 +440,8 @@ static void vungetc (int c) { vindex--; d_assert (vnumber[vindex] == c); }
 ER_node_t do_inline
 implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 {
-  int_t i;
-  floating_t f;
+  rint_t i;
+  rfloat_t f;
 
   if (tvar == NULL)
     tvar = var;
@@ -512,11 +524,11 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 static ER_node_t do_inline
 implicit_only_int_conversion (ER_node_t op, ER_node_t tvar)
 {
-  int_t i;
+  rint_t i;
   
   if (ER_NODE_MODE (op) == ER_NM_float)
     {
-      i = (int_t) ER_f (op);
+      i = (rint_t) ER_f (op);
       ER_SET_MODE (tvar, ER_NM_int);
       ER_set_i (tvar, i);
       return tvar;
@@ -525,7 +537,7 @@ implicit_only_int_conversion (ER_node_t op, ER_node_t tvar)
     {
       mpz_t *mpz_ptr = ER_mpz_ptr (ER_l (op));
 
-      if (! mpz_ok_for_int_p (*mpz_ptr))
+      if (! mpz_ok_for_rint_p (*mpz_ptr))
 	eval_error (opvalue_bc_decl, get_cpos (),
 		    DERR_long_is_too_big_for_conversion_to_int);
       ER_SET_MODE (tvar, ER_NM_int);
@@ -564,7 +576,7 @@ implicit_only_float_conversion (ER_node_t op, ER_node_t tvar)
 {
   if (ER_NODE_MODE (op) == ER_NM_int)
     {
-      floating_t f = ER_i (op);
+      rfloat_t f = ER_i (op);
 
       ER_SET_MODE (tvar, ER_NM_float);
       ER_set_f (tvar, f);
@@ -576,7 +588,7 @@ implicit_only_float_conversion (ER_node_t op, ER_node_t tvar)
       double d = mpz_get_d (*ER_mpz_ptr (gmp));
       
       ER_SET_MODE (tvar, ER_NM_float);
-      ER_set_f (tvar, (floating_t) d);
+      ER_set_f (tvar, (rfloat_t) d);
       return tvar;
     }
   return op;
@@ -651,7 +663,7 @@ implicit_conversion_for_binary_int_op (ER_node_t op1, ER_node_t op2,
 static ER_node_t do_inline
 implicit_eq_conversion (ER_node_t op, ER_node_t tvar)
 {
-  int_t i;
+  rint_t i;
 
   if (ER_NODE_MODE (op) == ER_NM_char)
     {

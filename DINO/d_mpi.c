@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -29,7 +29,7 @@
 #include "arithm.h"
 
 static void
-mpi_binary_op (int npars, val_t *vals, int_t *size,
+mpi_binary_op (int npars, val_t *vals, rint_t *size,
 	       void **hidevalue1, void **hidevalue2,
 	       ER_node_t *res, void **res_hidevalue)
 {
@@ -69,7 +69,7 @@ return_mpi (ER_node_t mpi)
 }
 
 static val_t
-return_int (int_t i)
+return_int (rint_t i)
 {
   val_t val;
   ER_node_t res = (ER_node_t) &val;
@@ -92,7 +92,7 @@ static val_t
 arithm_op (int npars, val_t *vals,
 	   void (*func) (int, const void *, const void *, void *))
 {
-  int_t size;
+  rint_t size;
   void *hidevalue1, *hidevalue2, *res_hidevalue;
   ER_node_t mpi;
 
@@ -164,7 +164,7 @@ mpi_unsigned_remainder (int npars, val_t *vals)
 }
 
 static void
-mpi_par_op (int npars, val_t *vals, int_t *size, int_t *par, int size_is_par,
+mpi_par_op (int npars, val_t *vals, rint_t *size, rint_t *par, int size_is_par,
 	    void **hidevalue, ER_node_t *res, void **res_hidevalue)
 {
   ER_node_t var;
@@ -192,7 +192,7 @@ mpi_par_op (int npars, val_t *vals, int_t *size, int_t *par, int size_is_par,
 static val_t
 shift (int npars, val_t *vals, void (*func) (int, const void *, int, void *))
 {
-  int_t size, par;
+  rint_t size, par;
   void *hidevalue, *res_hidevalue;
   ER_node_t mpi;
 
@@ -230,7 +230,7 @@ static val_t
 logical (int npars, val_t *vals,
 	 void (*func) (int, const void *, const void *, void *))
 {
-  int_t size;
+  rint_t size;
   void *hidevalue1, *hidevalue2, *res_hidevalue;
   ER_node_t mpi;
 
@@ -278,7 +278,7 @@ mpi_unsigned_xor (int npars, val_t *vals)
 }
 
 static void
-mpi_unary_op (int npars, val_t *vals, int_t *size,
+mpi_unary_op (int npars, val_t *vals, rint_t *size,
 	      void **hidevalue, ER_node_t *res, void **res_hidevalue)
 {
   ER_node_t var;
@@ -303,7 +303,7 @@ mpi_unary_op (int npars, val_t *vals, int_t *size,
 static val_t
 not (int npars, val_t *vals, void (*func) (int, const void *, void *))
 {
-  int_t size;
+  rint_t size;
   void *hidevalue, *res_hidevalue;
   ER_node_t mpi;
 
@@ -325,7 +325,7 @@ mpi_unsigned_not (int npars, val_t *vals)
 }
 
 static void
-mpi_cmp_op (int npars, val_t *vals, int_t *size,
+mpi_cmp_op (int npars, val_t *vals, rint_t *size,
 	    void **hidevalue1, void **hidevalue2)
 {
   ER_node_t var1;
@@ -346,7 +346,7 @@ mpi_cmp_op (int npars, val_t *vals, int_t *size,
 static val_t
 cmp (int npars, val_t *vals, int (*func) (int, const void *, const void *))
 {
-  int_t size;
+  rint_t size;
   void *hidevalue1, *hidevalue2;
 
   mpi_cmp_op (npars, vals, &size, &hidevalue1, &hidevalue2);
@@ -429,7 +429,7 @@ static val_t
 change_size (int npars, val_t *vals,
 	     void (*func) (int, const void *, int, void *))
 {
-  int_t size, par;
+  rint_t size, par;
   void *hidevalue, *res_hidevalue;
   ER_node_t mpi;
 
@@ -462,7 +462,7 @@ to_based_string (int npars, val_t *vals,
   ER_node_t res = (ER_node_t) &val;
   ER_node_t var;
   ER_node_t size_var;
-  int_t size;
+  rint_t size;
   void *hidevalue;
   ER_node_t vect;
   char str [3 * MAX_INTEGER_SIZE];
@@ -497,7 +497,7 @@ static val_t
 from_based_string (int npars, val_t *vals,
 		   char *(*func) (int, const char *, int, void *))
 {
-  int_t size;
+  rint_t size;
   void *hideblock;
   ER_node_t size_var;
   ER_node_t mpi;

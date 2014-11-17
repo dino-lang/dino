@@ -765,9 +765,11 @@ incr_decr : INCR {$$ = get_int_node (1, $1);}
           ;
 executive_stmt :
       {$<flag>$ = $<flag>0;} end_simple_stmt      {$$ = NULL;}
-    | expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | expr {$<pos>$ = current_position; $<pos>$.column_number--; }
+        {$<flag>$ = $<flag>0;} end_simple_stmt
         {
-          $$ = create_node_with_pos (IR_NM_expr_stmt, IR_pos ($1));
+          $$ = create_node_with_pos (IR_NM_expr_stmt,
+				     $1 == NULL ? $<pos>2 : IR_pos ($1));
 	  IR_set_stmt_expr ($$, $1);
         }
     | designator assign expr {$<flag>$ = $<flag>0;} end_simple_stmt
