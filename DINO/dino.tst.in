@@ -13135,6 +13135,9 @@ OUTPUT78a
 	    elif uname -a|fgrep Linux|fgrep ia64 && $CMP - $stderr <<'OUTPUT78b'; then
 OUTPUT78b
 		    result=ok
+	    elif uname -a|fgrep Linux|fgrep aarch64 && $CMP - $stderr <<'OUTPUT78c'; then
+OUTPUT78c
+		    result=ok
 	    else
 		    result=fail
 	    fi
@@ -20811,6 +20814,10 @@ TEST358
 test.d:1:12: system error - domain error: `log'
 OUTPUT358
                         result=ok
+                elif cat >$ftemp2 <<'OUTPUT358a' && $CMP $stderr $ftemp2; then
+test.d:1:12: system error - result too big (small): `log'
+OUTPUT358a
+                        result=ok
                 else
                         result=fail
                 fi
@@ -20852,6 +20859,10 @@ TEST360
                 if cat >$ftemp2 <<'OUTPUT360' && $CMP $stderr $ftemp2; then
 test.d:1:13: system error - domain error: `sqrt'
 OUTPUT360
+                        result=ok
+                elif cat >$ftemp2 <<'OUTPUT360a' && $CMP $stderr $ftemp2; then
+test.d:1:13: system error - result too big (small): `sqrt'
+OUTPUT360a
                         result=ok
                 else
                         result=fail
@@ -38924,6 +38935,15 @@ dino> One more: right
 dino> 
 OUTPUT647
                         result=ok
+# when system does not catch zero division
+                elif cat >$ftemp2 <<'OUTPUT647a' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino> dino> Right
+dino> dino> Right again
+dino> dino> One more: right
+dino> 
+OUTPUT647a
+                        result=ok
                 else
                         result=fail
                 fi
@@ -43781,6 +43801,11 @@ OUTPUT654b
 test.d:1:13: floating point exception
 OUTPUT654-1
 		    result=ok
+# on systems where there is no zero exception division, gmp generates abort
+	    elif cat >$ftemp2 <<'OUTPUT654-1a' && $CMP $stderr $ftemp2; then
+test.d:1:13: abort
+OUTPUT654-1a
+		    result=ok
 	    else
                     result=fail
 	    fi
@@ -43812,6 +43837,11 @@ OUTPUT655b
 	    if cat >$ftemp2 <<'OUTPUT655-1' && $CMP $stderr $ftemp2; then
 test.d:1:13: floating point exception
 OUTPUT655-1
+		    result=ok
+# on systems where there is no zero exception division, gmp generates abort
+	    elif cat >$ftemp2 <<'OUTPUT654-1a' && $CMP $stderr $ftemp2; then
+test.d:1:13: abort
+OUTPUT654-1a
 		    result=ok
 	    else
                     result=fail
@@ -45574,7 +45604,7 @@ if test $result = ok -a $start_test_number -le 706; then
 	echo test 706: JIT: C calls interpreter with exception
         cat >$test_file <<'TEST706'
 fun a {
-  1/0;
+  throw except ();
 }
 
 fun b ! jit {
@@ -45596,7 +45626,7 @@ in b
 OUTPUT706
                     echo '      ' $CMP $stderr $ftemp2
 		    if cat >$ftemp2 <<'OUTPUT706-2' && $CMP $stderr $ftemp2; then
-test.d:2:4: floating point exception
+test.d:2:3: run time error - exception except has not been processed
 OUTPUT706-2
 			result=ok
                     else
@@ -45613,7 +45643,7 @@ if test $result = ok -a $start_test_number -le 707; then
 	echo test 707: JIT: Interpreter calls C with exception
         cat >$test_file <<'TEST707'
 fun a ! jit {
-  1/0;
+  throw except ();
 }
 
 fun b {
@@ -45635,12 +45665,8 @@ in b
 OUTPUT707
                     echo '      ' $CMP $stderr $ftemp2
 		    if cat >$ftemp2 <<'OUTPUT707-2' && $CMP $stderr $ftemp2; then
-test.d:2:4: floating point exception
+test.d:2:3: run time error - exception except has not been processed
 OUTPUT707-2
-			result=ok
-		    elif cat >$ftemp2 <<'OUTPUT707-3' && $CMP $stderr $ftemp2; then
-test.d:7:5: floating point exception
-OUTPUT707-3
 			result=ok
                     else
                         result=fail
@@ -45656,7 +45682,7 @@ if test $result = ok -a $start_test_number -le 708; then
 	echo test 708: JIT: C calls C with exception
         cat >$test_file <<'TEST708'
 fun a ! jit {
-  1/0;
+  throw except ();
 }
 
 fun b ! jit {
@@ -45678,12 +45704,8 @@ in b
 OUTPUT708
                     echo '      ' $CMP $stderr $ftemp2
 		    if cat >$ftemp2 <<'OUTPUT708-2' && $CMP $stderr $ftemp2; then
-test.d:2:4: floating point exception
+test.d:2:3: run time error - exception except has not been processed
 OUTPUT708-2
-			result=ok
-		    elif cat >$ftemp2 <<'OUTPUT708-3' && $CMP $stderr $ftemp2; then
-test.d:7:5: floating point exception
-OUTPUT708-3
 			result=ok
                     else
                         result=fail

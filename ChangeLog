@@ -1,3 +1,11 @@
+2014-11-17  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/dino.tst.in (78, 358, 360): Add output specific for
+	aarch64.
+	(647): Process output for system w/o zero division signal.
+	(654, 655): Process abort for long zero division.
+	(706, 707, 708): Use throw instead of zero division.
+
 2014-11-16  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* configure.in (strtoll, strtoull): New check.
