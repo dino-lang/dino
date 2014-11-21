@@ -69,8 +69,6 @@ char ERR_vec_tab_element_access_applied_to_slice []
 char ERR_call_applied_to_slice [] = "call is applied to slice";
 char ERR_slice_as_foreach_index_designator []
   = "vector slice is used as foreach-stmt index_designator";
-char ERR_slice_as_foreach_value_designator []
-  = "vector slice is used as foreach-stmt value designator";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
 char ERR_use_before_definition [] = "use `%s' before defined fun or class";
@@ -163,8 +161,6 @@ char ERR_const_assignment [] = "constant `%s' in assignment statement";
 char ERR_const_swap [] = "constant `%s' in swap statement";
 char ERR_non_variable_in_foreach_index []
   = "non variable in foreach-stmt index designator";
-char ERR_non_variable_in_foreach_value []
-  = "non variable in foreach-stmt value designator";
 char ERR_continue_is_not_in_loop []
   = "statement continue is not in for-statement";
 char ERR_break_is_not_in_loop []
@@ -308,7 +304,7 @@ char DERR_repeated_key []
   = "run time error - repeated key #%lld in the table  (`tab [...]')";
 char DERR_no_such_key []
   = "run time error - no such key in table";
-char DERR_in_table_operand_type [] = "run time error - non table right to `:'";
+char DERR_in_table_operand_type [] = "run time error - non table right to `in'";
 char DERR_unfinished_fun_class_call []
   = "run time error - unfinished fun/class `%s' call";
 char DERR_none_class_or_fun_before_left_bracket []

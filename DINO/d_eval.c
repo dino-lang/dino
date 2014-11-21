@@ -4151,15 +4151,15 @@ evaluate_code (void)
 	  INTERRUPT_CHECK;
 	  break;
 	case BC_NM_foreach:
-	  if (foreach (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc))))
+	  if (foreach (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc))))
 	    cpc = BC_body_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
-	case BC_NM_foreach_val:
-	  if (foreachval (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)),
-			  get_op (BC_op4 (cpc)), get_op (BC_vcontainer (cpc)), get_op (BC_vindex (cpc))))
+	case BC_NM_foreach2:
+	  if (foreach2 (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)),
+			get_op (BC_element (cpc))))
 	    cpc = BC_body_pc (cpc);
 	  else
 	    INCREMENT_PC ();

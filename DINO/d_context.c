@@ -1078,22 +1078,12 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  {
 	    IR_node_t t;
 	    IR_node_t index_des = IR_foreach_index_designator (stmt);
-	    IR_node_t value_des = IR_foreach_value_designator (stmt);
 
 	    first_expr_processing (index_des);
 	    if (index_des != NULL && IR_IS_OF_TYPE (index_des, IR_NM_slice))
 	      {
 		IR_set_foreach_index_designator (stmt, NULL);
 		cont_err (IR_pos (index_des), ERR_slice_as_foreach_index_designator);
-	      }
-	    if (value_des != NULL)
-	      {
-		first_expr_processing (value_des);
-		if (value_des != NULL && IR_IS_OF_TYPE (value_des, IR_NM_slice))
-		  {
-		    IR_set_foreach_value_designator (stmt, NULL);
-		    cont_err (IR_pos (value_des), ERR_slice_as_foreach_value_designator);
-		  }
 	      }
 	    VLO_ADD_MEMORY (foreach_stmts, &stmt, sizeof (stmt));
 	    first_expr_processing (IR_foreach_tab (stmt));
@@ -3508,7 +3498,6 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    BC_node_t src, before_loop_start, ldi_bc;
 	    BC_node_t saved_start_next_iteration, saved_for_finish;
 	    int saved_number_of_surrounding_blocks;
-	    IR_node_t val_des = IR_foreach_value_designator (stmt);
 	    IR_node_t tab = IR_foreach_tab (stmt);
 
 	    saved_number_of_surrounding_blocks = number_of_surrounding_blocks;
@@ -3523,14 +3512,11 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    if (tab != NULL)
 	      source_position = IR_pos (tab);
 	    type_test (tab, EVT_TAB, ERR_invalid_foreach_table_type);
-	    src = new_bc_node (val_des == NULL ? BC_NM_source2 : BC_NM_source3,
-			       IR_pos (stmt));
+	    src = new_bc_node (BC_NM_source2, IR_pos (stmt));
 	    if (IR_foreach_index_designator (stmt) != NULL)
 	      BC_set_pos2 (src, IR_pos (IR_foreach_index_designator (stmt)));
 	    else
 	      BC_set_pos2 (src, IR_pos (stmt));
-	    if (val_des != NULL)
-	      BC_set_pos3 (src, IR_pos (val_des));
 	    ldi_bc = new_bc_code (BC_NM_ldi, src);
 	    BC_set_op1 (ldi_bc, IR_foreach_search_start_place (stmt));
 	    BC_set_op2 (ldi_bc, 0);
@@ -3541,56 +3527,33 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    temp = second_expr_processing (IR_foreach_index_designator (stmt), FALSE,
 					   &var_result, &temp_vars_num, TRUE,
 					   NULL, NULL, FALSE);
+	    if (temp != NULL)
+	      IR_set_foreach_index_designator (stmt, temp);
 	    var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
-	    bc = new_bc_code (val_des == NULL
-			      ? BC_NM_foreach : BC_NM_foreach_val, src);
+	    bc = new_bc_code (var_bc == NULL ? BC_NM_foreach : BC_NM_foreach2,
+			      src);
 	    BC_set_op1 (bc, result);
-	    BC_set_op4 (bc, BC_op1 (ldi_bc));
+	    BC_set_op2 (bc, BC_op1 (ldi_bc));
 	    if (temp != NULL)
 	      source_position = IR_pos (temp);
-	    if (var_bc != NULL)
-	      BC_SET_MODE (var_bc,
-			   make_designator_lvalue
-			   (var_bc, ERR_non_variable_in_foreach_index, FALSE));
-	    if (temp != NULL)
-	      {
-		IR_set_foreach_index_designator (stmt, temp);
-		/* In order not to generate different foreach_stmt
-		   corresponding to local non-local variables, we use
-		   a general solution by representing local variables
-		   by nodes lvalue_var_occurrence_and_val.  */
-		get_lvalue_location (var_bc, temp, &temp_vars_num,
-				     &container_num, &index_num);
-		BC_set_op2 (bc, container_num);
-		BC_set_op3 (bc, index_num);
-	      }
 	    before_pc = curr_pc;
-	    if (val_des != NULL)
+	    if (var_bc == NULL)
+	      BC_set_op3 (bc, var_result);
+	    else
 	      {
-		var_result = not_defined_result;
-		temp = second_expr_processing (val_des, FALSE,
-					       &var_result, &temp_vars_num, TRUE,
-					       NULL, NULL, FALSE);
-		var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
-		if (temp != NULL)
-		  source_position = IR_pos (temp);
-		if (var_bc != NULL)
-		  BC_SET_MODE
-		    (var_bc,
-		     make_designator_lvalue
-		     (var_bc, ERR_non_variable_in_foreach_value, FALSE));
+		BC_SET_MODE (var_bc,
+			     make_designator_lvalue
+			     (var_bc, ERR_non_variable_in_foreach_index, FALSE));
 		if (temp != NULL)
 		  {
-		    IR_set_foreach_value_designator (stmt, temp);
 		    /* In order not to generate different foreach_stmt
-		       corresponding to local non-local variables, we
-		       use a general solution by representing local
-		       variables by nodes
-		       lvalue_var_occurrence_and_val.  */
+		       corresponding to local non-local variables, we use
+		       a general solution by representing local variables
+		       by nodes lvalue_var_occurrence_and_val.  */
 		    get_lvalue_location (var_bc, temp, &temp_vars_num,
 					 &container_num, &index_num);
-		    BC_set_vcontainer (bc, container_num);
-		    BC_set_vindex (bc, index_num);
+		    BC_set_op3 (bc, container_num);
+		    BC_set_element (bc, index_num);
 		  }
 	      }
 	    add_to_bcode (bc);

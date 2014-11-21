@@ -1022,21 +1022,21 @@ lconv :: op2; /* result and operand places.  */
                |                                            |: body_pc
              pushi 1<-------------foreach_stmts<------------
 */
-/* Table, container, element, foreach search start places.
+
+/* Table, foreach search start, local/global var  places.
    Info is source2 (pos is position of foreach-stmt, pos2
    is the index designator position).  */
-foreach :: op4
+foreach :: op3
 %other
 	body_pc : bcode
 ;
 
-/* Variant of for-each with value designator.  Info is source3 (pos is
-   position of foreach-stmt, pos2 is the index designator position,
-   pos3 is the value designator position).  */
-foreach_val :: foreach
+/* Table, foreach search start, key container and container element
+   places.  Info is source2 (pos is position of foreach-stmt, pos2 is
+   the index designator position).  */
+foreach2 :: foreach
 %other
-	/* container and element places  */
-	vcontainer, vindex : int_t
+        element : int_t
 ;
 
 vec, tab :: op3i; /* result place, element parts start place, parts number */
@@ -2005,6 +2005,8 @@ print_node (FILE *f, BC_node_t bc)
     }
   if (BC_IS_OF_TYPE (bc, BC_NM_binc))
     fprintf (f, ", %d", BC_binc_inc (bc));
+  if (BC_IS_OF_TYPE (bc, BC_NM_foreach2))
+    fprintf (f, ", %d", BC_element (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
       && BC_NODE_MODE (bc) != BC_NM_ibcall)
     fprintf (f, ", %d", BC_vars_num (BC_cfblock (bc))); /* vars num */

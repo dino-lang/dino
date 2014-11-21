@@ -577,9 +577,9 @@ putln ("e in t - 1:", "e" in t);
 putln ("10 in t - 1:", 10 in t);
 putln ("11 in t - 0:", 11 in t);
 t = tab ["e":10, "f":11, "g":12, "h":13];
-for (i: t) putln (i);
+for (i in t) putln (i);
 t = tab ["e", "f", "g", "h"];
-for (i: t) putln (i);
+for (i in t) putln (i);
 TEST17
         echo '      ' $DINO $test_file "2>$stderr" ">$ftemp2" '&&' sort $ftemp2 ">$stdout"
         if $DINO $test_file 2>$stderr >$ftemp2 && sort $ftemp2 >$stdout; then
@@ -19740,7 +19740,7 @@ if test $result = ok -a $start_test_number -le 323; then
 fun f {}
 var t;
 t = tab [];
-for (f: t);
+for (f in t);
 TEST323
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19793,7 +19793,7 @@ class c {
 var o, t;
 o = c();
 t = tab [];
-for (o.f: t);
+for (o.f in t);
 TEST325
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -19846,7 +19846,7 @@ class c {
 var o, t;
 o = c();
 t = tab [];
-for (o.f: t);
+for (o.f in t);
 TEST327
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20194,7 +20194,7 @@ TEST343
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT343' && $CMP $stderr $ftemp2; then
-test.d:3:11: run time error - non table right to `:'
+test.d:3:11: run time error - non table right to `in'
 OUTPUT343
                         result=ok
                 else
@@ -20232,7 +20232,7 @@ if test $result = ok -a $start_test_number -le 345; then
         cat >$test_file <<'TEST345'
 var i,t;
 t = [];
-for (i: t) putln ("wrong");
+for (i in t) putln ("wrong");
 TEST345
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -20240,7 +20240,7 @@ TEST345
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT345' && $CMP $stderr $ftemp2; then
-test.d:3:1: run time error - non table right to `:'
+test.d:3:1: run time error - non table right to `in'
 OUTPUT345
                         result=ok
                 else
@@ -20408,7 +20408,7 @@ if (tab []) {}
 var i;
 for (i=0;c;i++) {}
 wait (c);
-for (i: 10) {}
+for (i in 10) {}
 try {
   throw 1;
 }
@@ -20424,7 +20424,7 @@ TEST352
 test.d:2:5: invalid type of operand in logical operation
 test.d:4:10: invalid type of operand in logical operation
 test.d:5:7: invalid type of wait-expr
-test.d:6:9: invalid type of foreach-table
+test.d:6:11: invalid type of foreach-table
 test.d:8:3: invalid type of throw-expr
 test.d:10:7: syntax error
 OUTPUT352
@@ -20470,7 +20470,7 @@ TEST354
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT354' && $CMP $stderr $ftemp2; then
-test.d:2:8: syntax error
+test.d:2:7: syntax error
 test.d:2:23: syntax error
 OUTPUT354
                         result=ok
@@ -20781,7 +20781,7 @@ if test $result = ok -a $start_test_number -le 357; then
         cat >$test_file <<'TEST357'
 var k;
 //putln ("#env=", #env);
-for (k: env)
+for (k in env)
   putln (k, "=", env [k]);
 TEST357
         echo '      ' $DINO $test_file "2>$stderr"
@@ -28194,7 +28194,7 @@ fun parse_instruction_anode (instruction_anode) {
       fun do_redeclaration (block_to_redeclare) {
         // We have a block we need to define with synchronized variables.
         var current_identifier_processed_key;
-        for (current_identifier_processed_key: block.vartable)
+        for (current_identifier_processed_key in block.vartable)
           if (!(current_identifier_processed_key
 	        in block_to_redeclare.vartable)) {
             block_to_redeclare.vartable [current_identifier_processed_key] =
@@ -28697,7 +28697,7 @@ fun print_instruction (instruction, tablevel = 0, tabchar = ' ') {
     put (instruction.name, " ");
     if (instruction.name == "block") {
       putln ("{");
-      for (i: instruction.args [0].vartable) {
+      for (i in instruction.args [0].vartable) {
         for (var j = 0; j < tablevel + 2; j++) put (tabchar);
         putln ("$", sprint (i), " : ", instruction.args [0].vartable [i].type0,
                instruction.args [0].vartable [i].arrfl ?
@@ -32783,7 +32783,7 @@ fun frequency (seq, k) {
   }
 
   for (frame = 0; frame < k; frame++) kfrequency (seq, freq, k, frame);
-  for (c: freq) ins (sfreq, c, -1);
+  for (c in freq) ins (sfreq, c, -1);
   sfreq = sort (sfreq, freq_cmp);
   sum = #seq - k + 1;
   for (i = 0; i < #sfreq; i++) {
@@ -33441,7 +33441,7 @@ var subst = tab [
   "V" : "(a|c|g)", "W" : "(a|t)", "Y" : "(c|t)"
 ];
 
-for (c: subst)
+for (c in subst)
   seq = gsub (c, seq, subst [c]);
 
 putln ("\n", ilen, "\n", clen, "\n", #seq);
@@ -44328,20 +44328,19 @@ fi
 
 # Test 668.
 if test $result = ok -a $start_test_number -le 668; then
-	echo test 668: Non-variable in foreach value
+	echo test 668: Foreach with vector
         cat >$test_file <<'TEST668'
-fun f {}
-var i, t = tab [];
-for (i, f: t);
+var i, v = [];
+for (i in v);
 TEST668
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
                 echo '      ' $CMP - $stderr
-                if cat >$ftemp2 <<'OUTPUT668' && $CMP $stderr $ftemp2; then
-test.d:3:9: non variable in foreach-stmt value designator
-OUTPUT668
+                if cat >$ftemp2 <<'OUTPUT669' && $CMP $stderr $ftemp2; then
+test.d:2:1: run time error - non table right to `in'
+OUTPUT669
                         result=ok
                 else
                         result=fail
@@ -44351,10 +44350,10 @@ fi
 
 # Test 669.
 if test $result = ok -a $start_test_number -le 669; then
-	echo test 669: Slice as index and value designator in foreach
+	echo test 669: Slice as index  designator in foreach
         cat >$test_file <<'TEST669'
-var iv = [10:1], vv = [10:2], t = tab[10:10];
-for (iv[:], vv[1:2]: t);
+var iv = [10:1], vv = [10:2], t = tab [10:10];
+for (iv[:] in t);
 TEST669
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -44363,7 +44362,6 @@ TEST669
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT669' && $CMP $stderr $ftemp2; then
 test.d:2:8: vector slice is used as foreach-stmt index_designator
-test.d:2:15: vector slice is used as foreach-stmt value designator
 OUTPUT669
                         result=ok
                 else
@@ -44374,41 +44372,38 @@ fi
 
 # Test 670.
 if test $result = ok -a $start_test_number -le 670; then
-	echo test 670: Foreach with value variable
+	echo test 670: Foreach with vector
         cat >$test_file <<'TEST670'
-var i, v, t = tab[1:"a", 10: "b", 100:"c"];
-for (i, v: t) putln (i, ":", v);
-putln (i, " ", v);
+var i, v = ["a", "b", "c"];
+for (i in v) putln (i, ":", v[i]);
+putln (i, " ", v[i]);
 TEST670
-        echo '      ' $DINO $test_file " >$stdout 2>&1"
-        if $DINO $test_file >$stdout 2>&1; then
-                echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT670' && $CMP $stdout $ftemp2; then
-1:a
-10:b
-100:c
-100 c
+        echo '      ' "$DINO $test_file 2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT670' && $CMP $stderr $ftemp2; then
+test.d:2:1: run time error - non table right to `in'
 OUTPUT670
                         result=ok
                 else
                         result=fail
                 fi
-        else
-                result=fail
         fi
 fi
 
 # Test 671.
 if test $result = ok -a $start_test_number -le 671; then
-	echo test 671: Foreach with composite index and value variables
+	echo test 671: Foreach with composite index
         cat >$test_file <<'TEST671'
 var i=[1], v=tab[1], t = tab[1:"a", 10: "b", 100:"c"];
-for (i[0], v[1]: t) putln (i[0], ":", v[1]);
-putln (i[0], " ", v[1]);
+for (i[0] in t) putln (i[0], ":", t[i[0]]);
+putln (i[0], " ", t[i[0]]);
 class c (f) {};
 var o = c ("n");
-for (i[0], o.f: t) putln (i[0], ":", o.f);
-putln (i[0], " ", o.f);
+for (o.f in t) putln (o.f, ":", t[o.f]);
+putln (o.f, " ", t[o.f]);
 TEST671
         echo '      ' $DINO $test_file " >$stdout 2>&1"
         if $DINO $test_file >$stdout 2>&1; then
@@ -46750,7 +46745,7 @@ if test $result = ok -a $start_test_number -le 743; then
 fun t (t) {
   var i, k;
   for (i = 0; i < 10; i++) {
-    for (k: t)
+    for (k in t)
       if (!(i in t))
         return 1;
   }
@@ -47455,14 +47450,14 @@ fun findFreeCell (board) {
 
 
 fun floodFill (board, p) {
-  var m, f, x = p[0], y = p[1];
+  var m, x = p[0], y = p[1];
 
   if (! valid (x, y) || (board & (1 << (x + width * y))) != 0) return board;
   
   board |= 1 << (x + width * y);
   
-  for (m, f: move)
-    board |= floodFill (board, f (x, y));
+  for (m in move)
+    board |= floodFill (board, move[m] (x, y));
   return board;
 }
 

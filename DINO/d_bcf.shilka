@@ -76,9 +76,8 @@ mpz
 str
 fldid
 body_pc
-vcontainer
-vindex
 move_decl
+element
 ret_decl
 block
 

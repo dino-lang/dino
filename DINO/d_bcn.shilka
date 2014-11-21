@@ -208,7 +208,7 @@ ibtleinc	{return BC_NM_ibtleinc;}
 ibtgtinc	{return BC_NM_ibtgtinc;}
 lconv		{return BC_NM_lconv;}
 foreach		{return BC_NM_foreach;}
-foreach_val	{return BC_NM_foreach_val;}
+foreach2	{return BC_NM_foreach2;}
 vec		{return BC_NM_vec;}
 tab		{return BC_NM_tab;}
 move		{return BC_NM_move;}

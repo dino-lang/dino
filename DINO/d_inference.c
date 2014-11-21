@@ -837,7 +837,20 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       else
 	return NO_MORE_OPERAND;
       break;
-    case BC_NM_foreach: case BC_NM_foreach_val:
+    case BC_NM_foreach:
+      if (result_p)
+	{
+	  if  (nop == 0)
+	    res = BC_op3 (bc);
+	  else
+	    return NO_MORE_OPERAND;
+	}
+      else if  (nop == 0)
+	res = BC_op1 (bc);
+      else
+	return NO_MORE_OPERAND;
+      break;
+    case BC_NM_foreach2:
       if (result_p)
 	return NO_MORE_OPERAND;
       else if  (nop == 0)
@@ -1798,15 +1811,13 @@ type_transf (node_t node)
       insn->types[1] = res_tp2;
       return TRUE;
     case BC_NM_foreach:
-      res_tp = TP_varying; /* we can not know index type */
-      break;
-    case BC_NM_foreach_val:
-      res_tp = res_tp2 = TP_varying; /* we can not know index/value type */
-      if (insn->types[0] == res_tp && insn->types[1] == res_tp2)
+      res_tp = TP_varying; /* We can not know index type */
+      if (insn->types[0] == res_tp)
 	return FALSE;
       insn->types[0] = res_tp;
-      insn->types[1] = res_tp2;
       return TRUE;
+    case BC_NM_foreach2:
+      res_tp = TP_varying;
       break;
     case BC_NM_move:
       res_tp = insn->types[1];
@@ -2141,7 +2152,7 @@ specialize_insn (df_insn_t insn)
 	nm = BC_NM_ibtgtinc;
       break;
     case BC_NM_foreach:
-    case BC_NM_foreach_val:
+    case BC_NM_foreach2:
       break;
     case BC_NM_move:
       if (insn->types[1] == TP_int)

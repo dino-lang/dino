@@ -756,8 +756,6 @@ foreach_stmt :: stmt
 %other
         /* Reference to index designator. */
         foreach_index_designator : designator
-        /* Reference to value designator, NULL if absent.  */
-        foreach_value_designator : designator
         /* Reference to tab right to `:'.*/
         foreach_tab : expr
         /* Reference to stmts in given for-stmt. */

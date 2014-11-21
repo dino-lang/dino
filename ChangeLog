@@ -1,3 +1,45 @@
+2014-11-20  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/Makefile.in: One more shift-reduce conflict.
+	* DINO/compare.tst: Use in for foreach.  Remove foreach with
+	value.
+	* DINO/d_bc.sprut (foreach): New.  Rename old one to foreach2, op4
+	to element.
+	(foreach_val): Remove.
+	(print_node): Print field element.
+	* DINO/d_bcf.shilka (element): New.
+	(vcontainer, vindex): Remove.
+	* DINO/d_bcio.c (dump_code): Remove foreach_val.  Update code for
+	foreach, add code for foreach2.
+	(read_bc_program): Process FR_element.  Remove code for
+	FR_vcontainer, FR_vindex.
+	* DINO/d_bcn.shilka (foreach_val): Remove.
+	(foreach2): New.
+	* DINO/d_context.c (first_block_passing): Remove processing
+	foreach_value_designator.
+	(second_block_passing): Ditto.  Generate foreach2.  Use
+	BC_NM_source2 for foreach/foreach2.
+	* DINO/d_errors.h (ERR_slice_as_foreach_value_designator): Remove.
+	(ERR_non_variable_in_foreach_value): Ditto.
+	* DINO/d_errors.c (ERR_slice_as_foreach_value_designator): Remove.
+	(ERR_non_variable_in_foreach_value): Ditto.
+	(DERR_in_table_operand_type): Mention in.
+	* DINO/d_eval.c (evaluate_code): Correct code for foreach.  Remove
+	code for foreach_val.  Add code for foreach2.
+	* DINO/d_gen.c (foreach): Rename and rearrange parameters, change
+	the code.
+	(foreach_val): Remove.
+	(foreach2): New.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Remove code
+	for foreach_val.  Add code for foreach2.  Modify code for foreach.
+	(specialize_insn): Ditto.
+	* DINO/d_ir.sprut (foreach_stmt): Remove field
+	foreach_value_designator.
+	* DINO/d_yacc.y: Remove rule for foreach with value.  Use IN
+	instead of ':'.
+	* DINO/dino.tst.in: Use in instead of ':' in foreach-stmts.
+	Rewrite tests with foreach with val.
+
 2014-11-17  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.tst.in (78, 358, 360): Add output specific for

@@ -2940,7 +2940,7 @@ block (void)
 extern int throw (ER_node_t op1);
 
 static int do_always_inline
-foreach (ER_node_t tv, ER_node_t op1, ER_node_t op2, ER_node_t res)
+foreach (ER_node_t tv, ER_node_t start, ER_node_t key)
 {
   ER_node_t tab;
   val_t *k;
@@ -2950,20 +2950,19 @@ foreach (ER_node_t tv, ER_node_t op1, ER_node_t op2, ER_node_t res)
 		DERR_in_table_operand_type);
   tab = ER_tab (tv);
   GO_THROUGH_REDIR (tab);
-  k = (val_t *) find_next_key (tab, ER_i (res));
+  k = (val_t *) find_next_key (tab, ER_i (start));
   if (ER_NODE_MODE ((ER_node_t) k) != ER_NM_empty_entry
       && ER_NODE_MODE ((ER_node_t) k) != ER_NM_deleted_entry)
     {
-      ER_set_i (res, (k - (val_t *) ER_tab_els (tab)) / 2 + 1);
-      store_designator_value (op1, op2, (ER_node_t) k);
+      ER_set_i (start, (k - (val_t *) ER_tab_els (tab)) / 2 + 1);
+      *(val_t *) key = *(val_t *) k;
       return TRUE;
     }
   return FALSE;
 }
 
 static int do_always_inline
-foreachval (ER_node_t tv, ER_node_t op1, ER_node_t op2, ER_node_t res,
-	    ER_node_t container, ER_node_t index)
+foreach2 (ER_node_t tv, ER_node_t start, ER_node_t container, ER_node_t element)
 {
   ER_node_t tab;
   val_t *k;
@@ -2973,13 +2972,12 @@ foreachval (ER_node_t tv, ER_node_t op1, ER_node_t op2, ER_node_t res,
 		DERR_in_table_operand_type);
   tab = ER_tab (tv);
   GO_THROUGH_REDIR (tab);
-  k = (val_t *) find_next_key (tab, ER_i (res));
+  k = (val_t *) find_next_key (tab, ER_i (start));
   if (ER_NODE_MODE ((ER_node_t) k) != ER_NM_empty_entry
       && ER_NODE_MODE ((ER_node_t) k) != ER_NM_deleted_entry)
     {
-      ER_set_i (res, (k - (val_t *) ER_tab_els (tab)) / 2 + 1);
-      store_designator_value (container, index, (ER_node_t) (k + 1));
-      store_designator_value (op1, op2, (ER_node_t) k);
+      ER_set_i (start, (k - (val_t *) ER_tab_els (tab)) / 2 + 1);
+      store_designator_value (container, element, (ER_node_t) k);
       return TRUE;
     }
   return FALSE;
