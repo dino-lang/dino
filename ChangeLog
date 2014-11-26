@@ -1,3 +1,45 @@
+2014-11-26  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_bc.sprut (block): New field undef_destroy_p.
+	(fblock): New field forward_p.
+	(process_env_decl): Add assert.
+	(prepare_block): Remove case fblock == NULL.
+	* DINO/d_bcf.shilka (forward_p): New.
+	* DINO/d_bcio.c (dump_code): Fix pure_fun_p output.  Add output of
+	forward_p.
+	(forward_p): New global.
+	(init_fields): Initiate it.
+	(read_bc_program): Process forward_p.  Don't set next for
+	forward_p fblock.  Set up forward_p for fblock.
+	* DINO/d_context.c (get_fblock): Set up forward_p.
+	(copy_bc_block): Don't copy for forward_p.
+	(copy_fun_bc_block): Use get_fblock for original_fun.
+	(second_block_passing): Reset forward_p.  Set up scope for
+	forward_p fblock.
+	* DINO/d_conv.c (implicit_conversion_for_eq_op): Set up l and r
+	for all cases.
+	* DINO/d_eval.c (execute_general_period_operation): Check
+	forward_p.
+	* DINO/d_extern.sprut: Move c_stack_p from context_heap_obj to
+	heap_stack.
+	* DINO/d_func.c (fold_initval, {fold,filter,map}_vect_el_type,
+	{fold,filter,map}_el_fun_block, {fold,filter,map}_dim): Remove.
+	({fold,filter,map}_function, process_{fold,filter,map}_vect_op):
+	Add new arguments to pass the removed var values.
+	({fold,filter,map}_call): Pass the new arguments.
+	* DINO/d_gen.c (execute_a_period_operation): Check forward_p and
+	call new eval_error.
+	(evaluate_exit_p): Skip non-fblocks.
+	(funclass): Check forward_p.
+	* DINO/d_heap.c (destroy_stacks): Process undef_destroy_p and call
+	eval_error if necessary.
+	* DINO/d_inference.c (create_insns): Add case for forward fblock
+	only.
+	(imcall_to_consider_p, build_call_def_use): Ignore forward fblock.
+	* DINO/d_yacc.y (process_var_decl): Use merge_additional_stmts.
+	* DINO/dino.tst.in (584, 585): Modify dump tests.
+	(752-760): New tests.
+
 2014-11-20  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/Makefile.in: One more shift-reduce conflict.

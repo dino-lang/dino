@@ -267,7 +267,7 @@ execute_general_period_operation (int block_decl_ident_number, ER_node_t res,
       {
 	BC_node_t fblock = BC_fblock (decl);
 
-	if (fblock == NULL)
+	if (BC_forward_p (fblock))
 	  eval_error (accessvalue_bc_decl, get_cpos (),
 		      DERR_undefined_class_or_fun, BC_ident (decl));
 	if (lvalue_p)

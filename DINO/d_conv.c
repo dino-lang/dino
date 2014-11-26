@@ -715,6 +715,8 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
 	pack_vector_if_possible (ER_vect (op2));
       else
 	pack_vector_if_possible (ER_vect (op1));
+      *l = op1;
+      *r = op2;
     }
   else
     {

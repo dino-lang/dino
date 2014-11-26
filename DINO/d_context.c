@@ -1925,6 +1925,9 @@ get_fblock (IR_node_t fun_decl)
 	IR_set_bc_block (block, bc);
       BC_set_decls (bc, NULL);
       BC_set_fdecl (bc, fdecl);
+      /* Set up the flag it will be reset when we process the
+	 corresponding IR block.  */
+      BC_set_forward_p (bc, TRUE);
     }
   return bc;
 }
@@ -2972,8 +2975,8 @@ copy_bc_decls (BC_node_t bc_block, BC_node_t origin_bc_block, int var_base)
     }
 }
 
-/* Make a copy of bcode and decls of ORIGIN_BC_BLOCK and add it to
-   BC_BLOCK.  It is done without changing BC fields.  */
+/* Make a copy of bcode and decls of fblock ORIGIN_BC_BLOCK and add it
+   to fblock BC_BLOCK.  It is done without changing BC fields.  */
 static void
 copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block)
 {
@@ -2985,24 +2988,28 @@ copy_bc_block (BC_node_t origin_bc_block, BC_node_t bc_block)
   curr_info = NULL;
   link_info (BC_info (bc_block));
   VLO_ADD_MEMORY (bc_copies, &bc_block, sizeof (bc_block));
-  /* Make bcode copy:  */
-  for (info = BC_next_info (BC_info (origin_bc_block));;
-       info = BC_next_info (info))
-    {
-      bc = BC_bc (info);
-      copy_and_link_bcode (bc);
-      if (BC_IS_OF_TYPE (bc, BC_NM_block))
-	level++;
-      else if (BC_IS_OF_TYPE (bc, BC_NM_bend))
-	{
-	  if (level == 0)
-	    break;
-	  level--;
-	}
-    }
-  d_assert (BC_IS_OF_TYPE (bc, BC_NM_fbend));
   BC_set_decls (bc_block, NULL);
-  copy_bc_decls (bc_block, origin_bc_block, 0);
+  if (! BC_forward_p (origin_bc_block))
+    {
+      BC_set_forward_p (bc_block, FALSE);
+      /* Make bcode copy:  */
+      for (info = BC_next_info (BC_info (origin_bc_block));;
+	   info = BC_next_info (info))
+	{
+	  bc = BC_bc (info);
+	  copy_and_link_bcode (bc);
+	  if (BC_IS_OF_TYPE (bc, BC_NM_block))
+	    level++;
+	  else if (BC_IS_OF_TYPE (bc, BC_NM_bend))
+	    {
+	      if (level == 0)
+		break;
+	      level--;
+	    }
+	}
+      d_assert (BC_IS_OF_TYPE (bc, BC_NM_fbend));
+      copy_bc_decls (bc_block, origin_bc_block, 0);
+    }
   curr_info = saved_curr_info;
 }
 
@@ -3084,7 +3091,7 @@ copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
   VLO_NULLIFY (bc_copies);
   bc = get_fblock (fun);
   BC_set_scope (bc, curr_bc_scope);
-  bc_block = IR_fdecl_bc_block (original_fun);
+  bc_block = get_fblock (original_fun);
   copy_bc_block (bc_block, bc);
   modify_copied_pc (NULL);
 }
@@ -3719,6 +3726,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    else
 	      {
 		bc = get_fblock (fun_class);
+		BC_set_forward_p (bc, FALSE);
 		BC_set_scope (bc, curr_bc_scope);
 		BC_set_simple_p (bc, FALSE);
 		BC_set_fun_p (bc,
@@ -3928,6 +3936,16 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 				  get_fblock (curr_decl));
 		    copy_fun_bc_block (stmt, decl);
 		  }
+	      }
+	    else if ((stmt_mode == IR_NM_class || stmt_mode == IR_NM_fun)
+		     && IR_fdecl_bc_block (curr_decl) == NULL
+		     && IR_forward_decl_flag (curr_decl))
+	      {
+		/* It is forward decl: create block without stmts and
+		   set the scope up.  */
+		d_assert (IR_forward_decl_flag (curr_decl));
+		bc = get_fblock (curr_decl);
+		BC_set_scope (bc, curr_bc_scope);
 	      }
 	    break;
 	  }

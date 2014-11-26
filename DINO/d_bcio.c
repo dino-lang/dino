@@ -564,8 +564,10 @@ dump_code (BC_node_t infos, int indent)
 		  printf (" args_p=1");
 		if (BC_simple_p (bc))
 		  printf (" simple_p=1");
-		if (BC_simple_p (bc))
+		if (BC_pure_fun_p (bc))
 		  printf (" pure_fun_p=1");
+		if (BC_forward_p (bc))
+		  printf (" forward_p=1");
 		/* builtin mode will be set up anyway.  */
 		if (BC_fmode (bc) != 0 && BC_fmode (bc) != BC_builtin)
 		  printf (" fmode=%d", (int) BC_fmode (bc));
@@ -1005,15 +1007,15 @@ get_token (void)
 static const char *fn, *fn2, *fn3;
 static int ln, ln2, ln3, pos, pos2, pos3, decl_num;
 static int public_p, ext_life_p;
-static int fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p, fmode;
-static int pars_num, min_pars_num;
+static int fun_p, class_p, thread_p, args_p, simple_p, pure_fun_p, forward_p;
+static int fmode, pars_num, min_pars_num;
 
 /* Init fields which may have a default value. */
 static void
 init_fields (void)
 {
   public_p = ext_life_p = fun_p = class_p
-    = thread_p = args_p = simple_p = pure_fun_p = fmode = 0;
+    = thread_p = args_p = simple_p = pure_fun_p = forward_p = fmode = 0;
   pars_num = min_pars_num = 0;
 }
 
@@ -1370,6 +1372,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
 	      pure_fun_p = token_attr.i;
 	      break;
+	    case FR_forward_p:
+	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
+	      forward_p = token_attr.i;
+	      break;
 	    case FR_fmode:
 	      if (check_fld (BC_NM_fblock, D_INT)) goto fail;
 	      fmode = token_attr.i;
@@ -1485,7 +1491,9 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       /* Set up next. */
       if (prev_node != NULL
 	  && BC_IS_OF_TYPE (curr_node, BC_NM_bcode)
-	  && ! BC_IS_OF_TYPE (prev_node, BC_NM_fbend))
+	  && ! BC_IS_OF_TYPE (prev_node, BC_NM_fbend)
+	  && ! (BC_IS_OF_TYPE (prev_node, BC_NM_fblock)
+		&& BC_forward_p (prev_node)))
 	BC_set_next (prev_node, curr_node);
       if (BIT (curr_fld_presence, FR_next))
 	prev_node = NULL;
@@ -1534,7 +1542,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	}
       if (curr_node != source_node)
 	BC_set_info (curr_node, source_node);
-      /* Check obligatory field presence. */
+      /* Check obligatory field presence.  */
       check_fld_set (BC_NM_decl, FR_ident, "ident");
       check_fld_set (BC_NM_vdecl, FR_var_num, "var_num");
       check_fld_set (BC_NM_fdecl, FR_fblock, "fblock");
@@ -1608,6 +1616,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	  BC_set_args_p (curr_node, args_p != 0);
 	  BC_set_simple_p (curr_node, simple_p != 0);
 	  BC_set_pure_fun_p (curr_node, pure_fun_p != 0);
+	  BC_set_forward_p (curr_node, forward_p != 0);
 	  BC_set_fmode (curr_node, (fun_mode_t) fmode);
 	  BC_set_pars_num (curr_node, pars_num);
 	  BC_set_min_pars_num (curr_node, min_pars_num);

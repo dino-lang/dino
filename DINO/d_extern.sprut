@@ -401,8 +401,6 @@ heap_tab :: heap_vect_tab
 %abstract
 context_heap_obj :: heap_obj
 %other
-  /* Flag of existence of C stack corresponding to given stack..  */
-  c_stack_p : bool_t
   context_number : int_t        /* Unique number */
   /* May contains more vars than it is really necessary for the block.  */
   all_block_vars_num : int_t
@@ -415,6 +413,8 @@ context_heap_obj :: heap_obj
 /* Stack of a block. */
 heap_stack :: context_heap_obj
 %other
+  /* Flag of existence of C stack corresponding to given stack.  */
+  c_stack_p : bool_t
   /* The stack which will be after execution code in the stack.  Chain
      `context' contains the chain `prev_stack'.  But between
      prev_stack - cstack may be additional environments (stacks). */

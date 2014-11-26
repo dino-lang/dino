@@ -960,11 +960,15 @@ execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 	    }
 	  else
 	    {
-	      assert (BC_NODE_MODE (decl) == BC_NM_fdecl && BC_fblock (decl)
-		      && ! lvalue_p);
+	      BC_node_t fblock = BC_fblock (decl);
+
+	      assert (BC_NODE_MODE (decl) == BC_NM_fdecl && ! lvalue_p);
+	      if (BC_forward_p (fblock))
+		eval_error (accessvalue_bc_decl, get_cpos (),
+			    DERR_undefined_class_or_fun, BC_ident (decl));
 	      ER_SET_MODE (res, ER_NM_code);
 	      ER_set_code_context (res, stack);
-	      ER_set_code_id (res, CODE_ID (BC_fblock (decl)));
+	      ER_set_code_id (res, CODE_ID (fblock));
 	      return;
 	    }
 	}
@@ -2789,14 +2793,35 @@ bend (void)
 static int do_always_inline
 evaluate_exit_p (ER_node_t from_stack)
 {
-  return (cpc == NULL
-	  /* It is a return to C-code.  */
-	  || (ER_c_stack_p (cstack)
-	      && BC_implementation_fun (ER_block_node (cstack)) != NULL)
-	  /* It is a return from chain of tail calls originated from
-	     C-code.  */
-	  || (ER_c_stack_p (from_stack)
-	      && BC_implementation_fun (ER_block_node (from_stack)) == NULL));
+  if (cpc == NULL)
+    return TRUE;
+  if (BC_NODE_MODE (ER_block_node (cstack)) == BC_NM_fblock)
+    {
+      /* It is a return to C-code.  */
+      if (ER_c_stack_p (cstack)
+	  && BC_implementation_fun (ER_block_node (cstack)) != NULL)
+	return TRUE;
+    }
+  else
+    {
+      ER_node_t stack;
+      
+      for (stack = cstack;;)
+	{
+	  stack = ER_prev_stack (stack);
+	  if (stack == NULL
+	      || BC_NODE_MODE (ER_block_node (stack)) == BC_NM_fblock)
+	    break;
+	}
+      /* It is a return to C-code.  */
+      if (stack != NULL && ER_c_stack_p (stack)
+	  && BC_implementation_fun (ER_block_node (stack)) != NULL)
+	return TRUE;
+    }
+  /* It might be a return from chain of tail calls originated from
+     C-code.  */
+  return  (ER_c_stack_p (from_stack)
+	   && BC_implementation_fun (ER_block_node (from_stack)) == NULL);
 }
 
 static int do_always_inline
@@ -3070,7 +3095,7 @@ funclass (ER_node_t res)
   d_assert (BC_NODE_MODE (decl) == BC_NM_fdecl);
   ER_SET_MODE (res, ER_NM_code);
   fblock = BC_fblock (decl);
-  if (fblock == NULL)
+  if (BC_forward_p (fblock))
     eval_error (accessvalue_bc_decl, get_cpos (),
 		DERR_undefined_class_or_fun, BC_ident (decl));
   ER_set_code_id (res, CODE_ID (fblock));

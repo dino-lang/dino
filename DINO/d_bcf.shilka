@@ -55,6 +55,7 @@ thread_p
 args_p
 simple_p
 pure_fun_p
+forward_p
 fmode
 pars_num
 min_pars_num

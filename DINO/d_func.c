@@ -4609,22 +4609,16 @@ exit_call (int pars_number)
   dino_finish (ER_i (ctop));
 }
 
-/* The following variables contain type of the elements of folded
-   array, fold element function, the current result of the fold
-   operation, and fold vector dimension.  */
-static ER_node_mode_t fold_vect_el_type;
-static BC_node_t fold_el_fun_block;
-static val_t fold_initval;
-static int fold_dim;
-
 static void
-fold_function (const void *el)
+fold_function (const void *el, val_t *fold_initval,
+	       BC_node_t fold_el_fun_block,
+	       ER_node_mode_t fold_vect_el_type, int fold_dim)
 {
   ER_node_t context;
 
   context = GET_TEMP_REF (fold_dim);
   TOP_UP;
-  *(val_t *) ctop = fold_initval;
+  *(val_t *) ctop = *fold_initval;
   TOP_UP;
   if (fold_vect_el_type == ER_NM_val)
     *(val_t *) ctop = *(val_t *) el;
@@ -4638,17 +4632,19 @@ fold_function (const void *el)
     }
   call_fun_class (fold_el_fun_block, context, 2, curr_from_c_code_p);
   TOP_UP;
-  fold_initval = *(val_t *) ctop;
+  *fold_initval = *(val_t *) ctop;
   TOP_DOWN;
 }
 
 static void
-process_fold_vect_op (ER_node_t op, int dim, int depth)
+process_fold_vect_op (ER_node_t op, val_t *fold_initval,
+		      BC_node_t fold_el_fun_block, int dim, int depth)
 {
   size_t i, len;
   char *pack_els;
   ER_node_t v;
   ER_node_t unpack_els;
+  ER_node_mode_t fold_vect_el_type;
 
   d_assert (dim > 0);
   GO_THROUGH_REDIR (op);
@@ -4667,22 +4663,26 @@ process_fold_vect_op (ER_node_t op, int dim, int depth)
 	{
 	  pack_els = ER_pack_els (op);
 	  if (dim > 1)
-	    process_fold_vect_op (((ER_node_t *) pack_els) [i],
-				  dim - 1, depth + 1);
+	    process_fold_vect_op (((ER_node_t *) pack_els) [i], fold_initval,
+				  fold_el_fun_block, dim - 1, depth + 1);
 	  else
-	    fold_function (pack_els + i * type_size_table [fold_vect_el_type]);
+	    fold_function (pack_els + i * type_size_table [fold_vect_el_type],
+			   fold_initval, fold_el_fun_block,
+			   fold_vect_el_type, dim + depth - 1);
 	}
       else
 	{
 	  unpack_els = ER_unpack_els (op);
 	  v = IVAL (unpack_els, i);
 	  if (dim == 1)
-	    fold_function (v);
+	    fold_function (v, fold_initval, fold_el_fun_block,
+			   fold_vect_el_type, dim + depth - 1);
 	  else if (ER_NODE_MODE (v) != ER_NM_vect)
 	    eval_error (vecform_bc_decl, call_pos (),
 			DERR_vector_form_type, depth);
 	  else
-	    process_fold_vect_op (ER_vect (v), dim - 1, depth + 1);
+	    process_fold_vect_op (ER_vect (v), fold_initval, fold_el_fun_block,
+				  dim - 1, depth + 1);
 	}
       op = GET_TEMP_REF (0);
     }
@@ -4694,7 +4694,9 @@ fold_call (int pars_number)
 {
   ER_node_t context, vect;
   ER_node_t par1, par2;
-  int fun_result_offset;
+  int fold_dim, fun_result_offset;
+  BC_node_t fold_el_fun_block;
+  val_t fold_initval;
 
   if (pars_number != 3 && pars_number != 4)
     eval_error (parnumber_bc_decl,
@@ -4728,7 +4730,7 @@ fold_call (int pars_number)
       context = ER_code_context (par1);
       fold_el_fun_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
-      process_fold_vect_op (vect, fold_dim, 1);
+      process_fold_vect_op (vect, &fold_initval, fold_el_fun_block, fold_dim, 1);
       POP_TEMP_REF (1);
     }
   /* Place the result. */
@@ -4736,14 +4738,9 @@ fold_call (int pars_number)
   *(val_t *) fun_result = fold_initval;
 }
 
-/* The following variables contain type of the elements of
-   filtered array, filter element function, and vector dimension  */
-static ER_node_mode_t filter_vect_el_type;
-static BC_node_t filter_el_fun_block;
-static int filter_dim;
-
 static int
-filter_function (const void *el)
+filter_function (const void *el, BC_node_t filter_el_fun_block,
+		 ER_node_mode_t filter_vect_el_type, int filter_dim)
 {
   int res;
   ER_node_t context;
@@ -4772,10 +4769,12 @@ filter_function (const void *el)
 }
 
 static ER_node_t
-process_filter_vect_op (ER_node_t op, int dim, int depth)
+process_filter_vect_op (ER_node_t op, BC_node_t filter_el_fun_block,
+			int dim, int depth)
 {
   size_t i, nel, len, el_size;
   ER_node_t el, result;
+  ER_node_mode_t filter_vect_el_type;
 
   d_assert (dim > 0);
   GO_THROUGH_REDIR (op);
@@ -4803,20 +4802,22 @@ process_filter_vect_op (ER_node_t op, int dim, int depth)
 	{
 	  if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
 	    el = process_filter_vect_op (((ER_node_t *) ER_pack_els (op)) [i],
-					 dim - 1, depth + 1);
+					 filter_el_fun_block, dim - 1, depth + 1);
 	  else if (ER_NODE_MODE (IVAL (ER_unpack_els (op), i)) != ER_NM_vect)
 	    eval_error (vecform_bc_decl, call_pos (),
 			DERR_vector_form_type, depth);
 	  else
 	    el = process_filter_vect_op (ER_vect (IVAL (ER_unpack_els (op), i)),
-					 dim - 1, depth + 1);
+					 filter_el_fun_block, dim - 1, depth + 1);
 	  op = GET_TEMP_REF (0);
 	  result = GET_TEMP_REF (1);
 	  set_packed_vect_el (result, nel, el);
 	}
       else if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
 	{
-	  if (!filter_function (ER_pack_els (op) + i * el_size))
+	  if (!filter_function (ER_pack_els (op) + i * el_size,
+				filter_el_fun_block,
+				filter_vect_el_type, dim + depth - 1))
 	    {
 	      op = GET_TEMP_REF (0);
 	      result = GET_TEMP_REF (1);
@@ -4832,7 +4833,9 @@ process_filter_vect_op (ER_node_t op, int dim, int depth)
 	}
       else
 	{
-	  int flag = filter_function (IVAL (ER_unpack_els (op), i));
+	  int flag = filter_function (IVAL (ER_unpack_els (op), i),
+				      filter_el_fun_block,
+				      filter_vect_el_type, dim + depth - 1);
 
 	  op = GET_TEMP_REF (0);
 	  result = GET_TEMP_REF (1);
@@ -4855,7 +4858,8 @@ filter_call (int pars_number)
 {
   ER_node_t context, vect;
   ER_node_t par1, par2;
-  int fun_result_offset;
+  int filter_dim, fun_result_offset;
+  BC_node_t filter_el_fun_block;
 
   if (pars_number != 2 && pars_number != 3)
     eval_error (parnumber_bc_decl,
@@ -4888,7 +4892,7 @@ filter_call (int pars_number)
       context = ER_code_context (par1);
       filter_el_fun_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
-      vect = process_filter_vect_op (vect, filter_dim, 1);
+      vect = process_filter_vect_op (vect, filter_el_fun_block, filter_dim, 1);
       POP_TEMP_REF (1);
     }
   /* Place the result. */
@@ -4897,14 +4901,9 @@ filter_call (int pars_number)
   set_vect_dim (fun_result, vect, 0);
 }
 
-/* The following variables contain type of the elements of mapped
-   array, map element function, and map vector dimension.  */
-static ER_node_mode_t map_vect_el_type;
-static BC_node_t map_el_fun_block;
-static int map_dim;
-
 static void
-map_function (const void *el)
+map_function (const void *el, BC_node_t map_el_fun_block,
+	      ER_node_mode_t map_vect_el_type, int map_dim)
 {
   ER_node_t context;
   
@@ -4925,10 +4924,12 @@ map_function (const void *el)
 }
 
 static ER_node_t
-process_map_vect_op (ER_node_t op, int dim, int depth)
+process_map_vect_op (ER_node_t op, BC_node_t map_el_fun_block,
+		     int dim, int depth)
 {
   size_t i, len, el_size;
   ER_node_t el, result;
+  ER_node_mode_t map_vect_el_type;
 
   d_assert (dim > 0);
   GO_THROUGH_REDIR (op);
@@ -4953,9 +4954,11 @@ process_map_vect_op (ER_node_t op, int dim, int depth)
       if (dim == 1)
 	{
 	  if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
-	    map_function (ER_pack_els (op) + i * el_size);
+	    map_function (ER_pack_els (op) + i * el_size, map_el_fun_block,
+			  map_vect_el_type, dim + depth - 1);
 	  else
-	    map_function (IVAL (ER_unpack_els (op), i));
+	    map_function (IVAL (ER_unpack_els (op), i), map_el_fun_block,
+			  map_vect_el_type, dim + depth - 1);
 	  op = GET_TEMP_REF (0);
 	  result = GET_TEMP_REF (1);
 	  *(val_t *) IVAL (ER_unpack_els (result), i) = *(val_t *) ctop;
@@ -4965,13 +4968,13 @@ process_map_vect_op (ER_node_t op, int dim, int depth)
 	{
 	  if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
 	    el = process_map_vect_op (((ER_node_t *) ER_pack_els (op)) [i],
-				      dim - 1, depth + 1);
+				      map_el_fun_block, dim - 1, depth + 1);
 	  else if (ER_NODE_MODE (IVAL (ER_unpack_els (op), i)) != ER_NM_vect)
 	    eval_error (vecform_bc_decl, call_pos (),
 			DERR_vector_form_type, depth);
 	  else
 	    el = process_map_vect_op (ER_vect (IVAL (ER_unpack_els (op), i)),
-				      dim - 1, depth + 1);
+				      map_el_fun_block, dim - 1, depth + 1);
 	  op = GET_TEMP_REF (0);
 	  result = GET_TEMP_REF (1);
 	  set_packed_vect_el (result, i, el);
@@ -4989,7 +4992,8 @@ map_call (int pars_number)
 {
   ER_node_t context, vect;
   ER_node_t par1, par2;
-  int fun_result_offset;
+  int map_dim, fun_result_offset;
+  BC_node_t map_el_fun_block;
 
   if (pars_number != 2 && pars_number != 3)
     eval_error (parnumber_bc_decl,
@@ -5021,7 +5025,7 @@ map_call (int pars_number)
       context = ER_code_context (par1);
       map_el_fun_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
-      vect = process_map_vect_op (vect, map_dim, 1);
+      vect = process_map_vect_op (vect, map_el_fun_block, map_dim, 1);
       POP_TEMP_REF (1);
     }
   /* Place the result. */

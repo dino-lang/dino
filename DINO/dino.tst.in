@@ -34999,7 +34999,7 @@ fi
 
 # Test 584.
 if test $result = ok -a $start_test_number -le 584; then
-	echo test 584: Normal dump
+	echo test 584: Read/write dump
         cat >$test_file <<'TEST584'
 var SieveSize, i, prime, k, count, flags;
 SieveSize = 8190;
@@ -35015,7 +35015,7 @@ for (i = 0; i <= SieveSize; i++;)
       k = i + prime;
       for (;1;;)
         {
-	      if (k > SieveSize)
+          if (k > SieveSize)
             break;
           flags[k] = 0;
           k += prime;
@@ -35025,1396 +35025,19 @@ for (i = 0; i <= SieveSize; i++;)
 
 println (count);
 TEST584
-        echo '      ' $DINO -d $test_file "2>$stdout"
+        echo '      ' $DINO '-d' $test_file ">$stdout"
         if $DINO -d $test_file 2>$stderr >$stdout; then
-                echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT584' && $CMP $stdout $ftemp2; then
-     0 block pos=0 next=739 vars_num=18 tvars_num=3 // ident=(null)
-       0 fdecl fn="<environment>" ln=1 pos=7 ident=except ident_num=1 decl_scope=0 fblock=1
-       1 fblock pos=14 fdecl=0 class_p=1 simple_p=1 pure_fun_p=1 scope=0 vars_num=0 tvars_num=0 ext_life_p=1 // ident=except
-
-         2 fbend pos=14 block=1
-       1 fdecl ln=2 pos=8 ident=error ident_num=2 decl_scope=0 fblock=3
-       3 fblock pos=26 next=4 fdecl=1 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=1 // ident=error
-         2 vdecl pos=15 ident=msg ident_num=3 decl_scope=3 public_p=1 var_num=0
-
-         4 btdef pos=15 op1=0 pc=6 // goto 6 unless 0 is undefined
-         5 ldnil pos=21 op1=0 // 0 <- nil
-         6 fbend pos=15 block=3
-       3 fdecl ln=3 pos=9 ident=signal ident_num=4 decl_scope=0 fblock=7
-       7 fblock pos=28 next=8 fdecl=3 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=signal
-         4 vdecl pos=17 ident=msg ident_num=3 decl_scope=7 public_p=1 var_num=0
-
-         8 btdef pos=17 op1=0 pc=10 // goto 10 unless 0 is undefined
-         9 ldnil pos=23 op1=0 // 0 <- nil
-        10 fbend ln=2 pos=15 block=7
-       5 fdecl ln=4 pos=10 ident=sigint ident_num=5 decl_scope=0 fblock=11
-      11 fblock pos=29 next=12 fdecl=5 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=7 use=1 use=3 // ident=sigint
-         6 vdecl pos=18 ident=msg ident_num=3 decl_scope=11 public_p=1 var_num=0
-
-        12 btdef pos=18 op1=0 pc=14 // goto 14 unless 0 is undefined
-        13 ldnil pos=24 op1=0 // 0 <- nil
-        14 fbend ln=2 pos=15 block=11
-       7 fdecl ln=5 pos=10 ident=sigill ident_num=6 decl_scope=0 fblock=15
-      15 fblock pos=29 next=16 fdecl=7 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=7 use=1 use=3 // ident=sigill
-         8 vdecl pos=18 ident=msg ident_num=3 decl_scope=15 public_p=1 var_num=0
-
-        16 btdef pos=18 op1=0 pc=18 // goto 18 unless 0 is undefined
-        17 ldnil pos=24 op1=0 // 0 <- nil
-        18 fbend ln=2 pos=15 block=15
-       9 fdecl ln=6 pos=10 ident=sigabrt ident_num=7 decl_scope=0 fblock=19
-      19 fblock pos=30 next=20 fdecl=9 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=7 use=1 use=3 // ident=sigabrt
-        10 vdecl pos=19 ident=msg ident_num=3 decl_scope=19 public_p=1 var_num=0
-
-        20 btdef pos=19 op1=0 pc=22 // goto 22 unless 0 is undefined
-        21 ldnil pos=25 op1=0 // 0 <- nil
-        22 fbend ln=2 pos=15 block=19
-      11 fdecl ln=7 pos=10 ident=sigfpe ident_num=8 decl_scope=0 fblock=23
-      23 fblock pos=29 next=24 fdecl=11 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=7 use=1 use=3 // ident=sigfpe
-        12 vdecl pos=18 ident=msg ident_num=3 decl_scope=23 public_p=1 var_num=0
-
-        24 btdef pos=18 op1=0 pc=26 // goto 26 unless 0 is undefined
-        25 ldnil pos=24 op1=0 // 0 <- nil
-        26 fbend ln=2 pos=15 block=23
-      13 fdecl ln=8 pos=10 ident=sigterm ident_num=9 decl_scope=0 fblock=27
-      27 fblock pos=30 next=28 fdecl=13 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=7 use=1 use=3 // ident=sigterm
-        14 vdecl pos=19 ident=msg ident_num=3 decl_scope=27 public_p=1 var_num=0
-
-        28 btdef pos=19 op1=0 pc=30 // goto 30 unless 0 is undefined
-        29 ldnil pos=25 op1=0 // 0 <- nil
-        30 fbend ln=2 pos=15 block=27
-      15 fdecl ln=9 pos=10 ident=sigsegv ident_num=10 decl_scope=0 fblock=31
-      31 fblock pos=30 next=32 fdecl=15 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=7 use=1 use=3 // ident=sigsegv
-        16 vdecl pos=19 ident=msg ident_num=3 decl_scope=31 public_p=1 var_num=0
-
-        32 btdef pos=19 op1=0 pc=34 // goto 34 unless 0 is undefined
-        33 ldnil pos=25 op1=0 // 0 <- nil
-        34 fbend ln=2 pos=15 block=31
-      17 fdecl ln=10 pos=9 ident=invenv ident_num=11 decl_scope=0 fblock=35
-      35 fblock pos=28 next=36 fdecl=17 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invenv
-        18 vdecl pos=17 ident=msg ident_num=3 decl_scope=35 public_p=1 var_num=0
-
-        36 btdef pos=17 op1=0 pc=38 // goto 38 unless 0 is undefined
-        37 ldnil pos=23 op1=0 // 0 <- nil
-        38 fbend ln=2 pos=15 block=35
-      19 fdecl ln=11 pos=9 ident=invop ident_num=12 decl_scope=0 fblock=39
-      39 fblock pos=27 next=40 fdecl=19 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invop
-        20 vdecl pos=16 ident=msg ident_num=3 decl_scope=39 public_p=1 var_num=0
-
-        40 btdef pos=16 op1=0 pc=42 // goto 42 unless 0 is undefined
-        41 ldnil pos=22 op1=0 // 0 <- nil
-        42 fbend ln=2 pos=15 block=39
-      21 fdecl ln=12 pos=10 ident=optype ident_num=13 decl_scope=0 fblock=43
-      43 fblock pos=29 next=44 fdecl=21 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=39 use=1 use=3 // ident=optype
-        22 vdecl pos=18 ident=msg ident_num=3 decl_scope=43 public_p=1 var_num=0
-
-        44 btdef pos=18 op1=0 pc=46 // goto 46 unless 0 is undefined
-        45 ldnil pos=24 op1=0 // 0 <- nil
-        46 fbend ln=2 pos=15 block=43
-      23 fdecl ln=13 pos=10 ident=opvalue ident_num=14 decl_scope=0 fblock=47
-      47 fblock pos=30 next=48 fdecl=23 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=39 use=1 use=3 // ident=opvalue
-        24 vdecl pos=19 ident=msg ident_num=3 decl_scope=47 public_p=1 var_num=0
-
-        48 btdef pos=19 op1=0 pc=50 // goto 50 unless 0 is undefined
-        49 ldnil pos=25 op1=0 // 0 <- nil
-        50 fbend ln=2 pos=15 block=47
-      25 fdecl ln=14 pos=9 ident=invindex ident_num=15 decl_scope=0 fblock=51
-      51 fblock pos=30 next=52 fdecl=25 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invindex
-        26 vdecl pos=19 ident=msg ident_num=3 decl_scope=51 public_p=1 var_num=0
-
-        52 btdef pos=19 op1=0 pc=54 // goto 54 unless 0 is undefined
-        53 ldnil pos=25 op1=0 // 0 <- nil
-        54 fbend ln=2 pos=15 block=51
-      27 fdecl ln=15 pos=10 ident=indextype ident_num=16 decl_scope=0 fblock=55
-      55 fblock pos=32 next=56 fdecl=27 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=51 use=1 use=3 // ident=indextype
-        28 vdecl pos=21 ident=msg ident_num=3 decl_scope=55 public_p=1 var_num=0
-
-        56 btdef pos=21 op1=0 pc=58 // goto 58 unless 0 is undefined
-        57 ldnil pos=27 op1=0 // 0 <- nil
-        58 fbend ln=2 pos=15 block=55
-      29 fdecl ln=16 pos=10 ident=indexvalue ident_num=17 decl_scope=0 fblock=59
-      59 fblock pos=33 next=60 fdecl=29 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=51 use=1 use=3 // ident=indexvalue
-        30 vdecl pos=22 ident=msg ident_num=3 decl_scope=59 public_p=1 var_num=0
-
-        60 btdef pos=22 op1=0 pc=62 // goto 62 unless 0 is undefined
-        61 ldnil pos=28 op1=0 // 0 <- nil
-        62 fbend ln=2 pos=15 block=59
-      31 fdecl ln=17 pos=10 ident=indexop ident_num=18 decl_scope=0 fblock=63
-      63 fblock pos=30 next=64 fdecl=31 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=51 use=1 use=3 // ident=indexop
-        32 vdecl pos=19 ident=msg ident_num=3 decl_scope=63 public_p=1 var_num=0
-
-        64 btdef pos=19 op1=0 pc=66 // goto 66 unless 0 is undefined
-        65 ldnil pos=25 op1=0 // 0 <- nil
-        66 fbend ln=2 pos=15 block=63
-      33 fdecl ln=18 pos=9 ident=invslice ident_num=19 decl_scope=0 fblock=67
-      67 fblock pos=30 next=68 fdecl=33 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invslice
-        34 vdecl pos=19 ident=msg ident_num=3 decl_scope=67 public_p=1 var_num=0
-
-        68 btdef pos=19 op1=0 pc=70 // goto 70 unless 0 is undefined
-        69 ldnil pos=25 op1=0 // 0 <- nil
-        70 fbend ln=2 pos=15 block=67
-      35 fdecl ln=19 pos=10 ident=slicetype ident_num=20 decl_scope=0 fblock=71
-      71 fblock pos=32 next=72 fdecl=35 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=67 use=1 use=3 // ident=slicetype
-        36 vdecl pos=21 ident=msg ident_num=3 decl_scope=71 public_p=1 var_num=0
-
-        72 btdef pos=21 op1=0 pc=74 // goto 74 unless 0 is undefined
-        73 ldnil pos=27 op1=0 // 0 <- nil
-        74 fbend ln=2 pos=15 block=71
-      37 fdecl ln=20 pos=10 ident=sliceform ident_num=21 decl_scope=0 fblock=75
-      75 fblock pos=32 next=76 fdecl=37 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=67 use=1 use=3 // ident=sliceform
-        38 vdecl pos=21 ident=msg ident_num=3 decl_scope=75 public_p=1 var_num=0
-
-        76 btdef pos=21 op1=0 pc=78 // goto 78 unless 0 is undefined
-        77 ldnil pos=27 op1=0 // 0 <- nil
-        78 fbend ln=2 pos=15 block=75
-      39 fdecl ln=21 pos=9 ident=invector ident_num=22 decl_scope=0 fblock=79
-      79 fblock pos=30 next=80 fdecl=39 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invector
-        40 vdecl pos=19 ident=msg ident_num=3 decl_scope=79 public_p=1 var_num=0
-
-        80 btdef pos=19 op1=0 pc=82 // goto 82 unless 0 is undefined
-        81 ldnil pos=25 op1=0 // 0 <- nil
-        82 fbend ln=2 pos=15 block=79
-      41 fdecl ln=22 pos=10 ident=veclen ident_num=23 decl_scope=0 fblock=83
-      83 fblock pos=29 next=84 fdecl=41 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=79 use=1 use=3 // ident=veclen
-        42 vdecl pos=18 ident=msg ident_num=3 decl_scope=83 public_p=1 var_num=0
-
-        84 btdef pos=18 op1=0 pc=86 // goto 86 unless 0 is undefined
-        85 ldnil pos=24 op1=0 // 0 <- nil
-        86 fbend ln=2 pos=15 block=83
-      43 fdecl ln=23 pos=10 ident=vecform ident_num=24 decl_scope=0 fblock=87
-      87 fblock pos=30 next=88 fdecl=43 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=79 use=1 use=3 // ident=vecform
-        44 vdecl pos=19 ident=msg ident_num=3 decl_scope=87 public_p=1 var_num=0
-
-        88 btdef pos=19 op1=0 pc=90 // goto 90 unless 0 is undefined
-        89 ldnil pos=25 op1=0 // 0 <- nil
-        90 fbend ln=2 pos=15 block=87
-      45 fdecl ln=24 pos=10 ident=matrixform ident_num=25 decl_scope=0 fblock=91
-      91 fblock pos=33 next=92 fdecl=45 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=79 use=1 use=3 // ident=matrixform
-        46 vdecl pos=22 ident=msg ident_num=3 decl_scope=91 public_p=1 var_num=0
-
-        92 btdef pos=22 op1=0 pc=94 // goto 94 unless 0 is undefined
-        93 ldnil pos=28 op1=0 // 0 <- nil
-        94 fbend ln=2 pos=15 block=91
-      47 fdecl ln=25 pos=9 ident=invkey ident_num=26 decl_scope=0 fblock=95
-      95 fblock pos=28 next=96 fdecl=47 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invkey
-        48 vdecl pos=17 ident=msg ident_num=3 decl_scope=95 public_p=1 var_num=0
-
-        96 btdef pos=17 op1=0 pc=98 // goto 98 unless 0 is undefined
-        97 ldnil pos=23 op1=0 // 0 <- nil
-        98 fbend ln=2 pos=15 block=95
-      49 fdecl ln=26 pos=10 ident=keyvalue ident_num=27 decl_scope=0 fblock=99
-      99 fblock pos=31 next=100 fdecl=49 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=95 use=1 use=3 // ident=keyvalue
-        50 vdecl pos=20 ident=msg ident_num=3 decl_scope=99 public_p=1 var_num=0
-
-       100 btdef pos=20 op1=0 pc=102 // goto 102 unless 0 is undefined
-       101 ldnil pos=26 op1=0 // 0 <- nil
-       102 fbend ln=2 pos=15 block=99
-      51 fdecl ln=27 pos=10 ident=keyop ident_num=28 decl_scope=0 fblock=103
-     103 fblock pos=28 next=104 fdecl=51 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=95 use=1 use=3 // ident=keyop
-        52 vdecl pos=17 ident=msg ident_num=3 decl_scope=103 public_p=1 var_num=0
-
-       104 btdef pos=17 op1=0 pc=106 // goto 106 unless 0 is undefined
-       105 ldnil pos=23 op1=0 // 0 <- nil
-       106 fbend ln=2 pos=15 block=103
-      53 fdecl ln=28 pos=9 ident=invcall ident_num=29 decl_scope=0 fblock=107
-     107 fblock pos=29 next=108 fdecl=53 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invcall
-        54 vdecl pos=18 ident=msg ident_num=3 decl_scope=107 public_p=1 var_num=0
-
-       108 btdef pos=18 op1=0 pc=110 // goto 110 unless 0 is undefined
-       109 ldnil pos=24 op1=0 // 0 <- nil
-       110 fbend ln=2 pos=15 block=107
-      55 fdecl ln=29 pos=10 ident=abstrcall ident_num=30 decl_scope=0 fblock=111
-     111 fblock pos=32 next=112 fdecl=55 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=abstrcall
-        56 vdecl pos=21 ident=msg ident_num=3 decl_scope=111 public_p=1 var_num=0
-
-       112 btdef pos=21 op1=0 pc=114 // goto 114 unless 0 is undefined
-       113 ldnil pos=27 op1=0 // 0 <- nil
-       114 fbend ln=2 pos=15 block=111
-      57 fdecl ln=30 pos=10 ident=callop ident_num=31 decl_scope=0 fblock=115
-     115 fblock pos=29 next=116 fdecl=57 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=callop
-        58 vdecl pos=18 ident=msg ident_num=3 decl_scope=115 public_p=1 var_num=0
-
-       116 btdef pos=18 op1=0 pc=118 // goto 118 unless 0 is undefined
-       117 ldnil pos=24 op1=0 // 0 <- nil
-       118 fbend ln=2 pos=15 block=115
-      59 fdecl ln=31 pos=10 ident=partype ident_num=32 decl_scope=0 fblock=119
-     119 fblock pos=30 next=120 fdecl=59 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=partype
-        60 vdecl pos=19 ident=msg ident_num=3 decl_scope=119 public_p=1 var_num=0
-
-       120 btdef pos=19 op1=0 pc=122 // goto 122 unless 0 is undefined
-       121 ldnil pos=25 op1=0 // 0 <- nil
-       122 fbend ln=2 pos=15 block=119
-      61 fdecl ln=32 pos=10 ident=invresult ident_num=33 decl_scope=0 fblock=123
-     123 fblock pos=32 next=124 fdecl=61 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=invresult
-        62 vdecl pos=21 ident=msg ident_num=3 decl_scope=123 public_p=1 var_num=0
-
-       124 btdef pos=21 op1=0 pc=126 // goto 126 unless 0 is undefined
-       125 ldnil pos=27 op1=0 // 0 <- nil
-       126 fbend ln=2 pos=15 block=123
-      63 fdecl ln=33 pos=10 ident=invinput ident_num=34 decl_scope=0 fblock=127
-     127 fblock pos=31 next=128 fdecl=63 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=invinput
-        64 vdecl pos=20 ident=msg ident_num=3 decl_scope=127 public_p=1 var_num=0
-
-       128 btdef pos=20 op1=0 pc=130 // goto 130 unless 0 is undefined
-       129 ldnil pos=26 op1=0 // 0 <- nil
-       130 fbend ln=2 pos=15 block=127
-      65 fdecl ln=34 pos=10 ident=invfmt ident_num=35 decl_scope=0 fblock=131
-     131 fblock pos=29 next=132 fdecl=65 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=invfmt
-        66 vdecl pos=18 ident=msg ident_num=3 decl_scope=131 public_p=1 var_num=0
-
-       132 btdef pos=18 op1=0 pc=134 // goto 134 unless 0 is undefined
-       133 ldnil pos=24 op1=0 // 0 <- nil
-       134 fbend ln=2 pos=15 block=131
-      67 fdecl ln=35 pos=10 ident=eof ident_num=36 decl_scope=0 fblock=135
-     135 fblock pos=26 next=136 fdecl=67 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=eof
-        68 vdecl pos=15 ident=msg ident_num=3 decl_scope=135 public_p=1 var_num=0
-
-       136 btdef pos=15 op1=0 pc=138 // goto 138 unless 0 is undefined
-       137 ldnil pos=21 op1=0 // 0 <- nil
-       138 fbend ln=2 pos=15 block=135
-      69 fdecl ln=36 pos=10 ident=parnumber ident_num=37 decl_scope=0 fblock=139
-     139 fblock pos=32 next=140 fdecl=69 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=parnumber
-        70 vdecl pos=21 ident=msg ident_num=3 decl_scope=139 public_p=1 var_num=0
-
-       140 btdef pos=21 op1=0 pc=142 // goto 142 unless 0 is undefined
-       141 ldnil pos=27 op1=0 // 0 <- nil
-       142 fbend ln=2 pos=15 block=139
-      71 fdecl ln=37 pos=10 ident=syncthreadcall ident_num=38 decl_scope=0 fblock=143
-     143 fblock pos=37 next=144 fdecl=71 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=syncthreadcall
-        72 vdecl pos=26 ident=msg ident_num=3 decl_scope=143 public_p=1 var_num=0
-
-       144 btdef pos=26 op1=0 pc=146 // goto 146 unless 0 is undefined
-       145 ldnil pos=32 op1=0 // 0 <- nil
-       146 fbend ln=2 pos=15 block=143
-      73 fdecl ln=38 pos=10 ident=syserror ident_num=39 decl_scope=0 fblock=147
-     147 fblock pos=31 next=148 fdecl=73 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=syserror
-        74 vdecl pos=20 ident=msg ident_num=3 decl_scope=147 public_p=1 var_num=0
-
-       148 btdef pos=20 op1=0 pc=150 // goto 150 unless 0 is undefined
-       149 ldnil pos=26 op1=0 // 0 <- nil
-       150 fbend ln=2 pos=15 block=147
-      75 fdecl ln=39 pos=11 ident=eaccess ident_num=40 decl_scope=0 fblock=151
-     151 fblock pos=31 next=152 fdecl=75 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=eaccess
-        76 vdecl pos=20 ident=msg ident_num=3 decl_scope=151 public_p=1 var_num=0
-
-       152 btdef pos=20 op1=0 pc=154 // goto 154 unless 0 is undefined
-       153 ldnil pos=26 op1=0 // 0 <- nil
-       154 fbend ln=2 pos=15 block=151
-      77 fdecl ln=40 pos=11 ident=eagain ident_num=41 decl_scope=0 fblock=155
-     155 fblock pos=30 next=156 fdecl=77 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=eagain
-        78 vdecl pos=19 ident=msg ident_num=3 decl_scope=155 public_p=1 var_num=0
-
-       156 btdef pos=19 op1=0 pc=158 // goto 158 unless 0 is undefined
-       157 ldnil pos=25 op1=0 // 0 <- nil
-       158 fbend ln=2 pos=15 block=155
-      79 fdecl ln=41 pos=11 ident=ebadf ident_num=42 decl_scope=0 fblock=159
-     159 fblock pos=29 next=160 fdecl=79 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=ebadf
-        80 vdecl pos=18 ident=msg ident_num=3 decl_scope=159 public_p=1 var_num=0
-
-       160 btdef pos=18 op1=0 pc=162 // goto 162 unless 0 is undefined
-       161 ldnil pos=24 op1=0 // 0 <- nil
-       162 fbend ln=2 pos=15 block=159
-      81 fdecl ln=42 pos=11 ident=ebusy ident_num=43 decl_scope=0 fblock=163
-     163 fblock pos=29 next=164 fdecl=81 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=ebusy
-        82 vdecl pos=18 ident=msg ident_num=3 decl_scope=163 public_p=1 var_num=0
-
-       164 btdef pos=18 op1=0 pc=166 // goto 166 unless 0 is undefined
-       165 ldnil pos=24 op1=0 // 0 <- nil
-       166 fbend ln=2 pos=15 block=163
-      83 fdecl ln=43 pos=11 ident=echild ident_num=44 decl_scope=0 fblock=167
-     167 fblock pos=30 next=168 fdecl=83 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=echild
-        84 vdecl pos=19 ident=msg ident_num=3 decl_scope=167 public_p=1 var_num=0
-
-       168 btdef pos=19 op1=0 pc=170 // goto 170 unless 0 is undefined
-       169 ldnil pos=25 op1=0 // 0 <- nil
-       170 fbend ln=2 pos=15 block=167
-      85 fdecl ln=44 pos=11 ident=edeadlk ident_num=45 decl_scope=0 fblock=171
-     171 fblock pos=31 next=172 fdecl=85 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=edeadlk
-        86 vdecl pos=20 ident=msg ident_num=3 decl_scope=171 public_p=1 var_num=0
-
-       172 btdef pos=20 op1=0 pc=174 // goto 174 unless 0 is undefined
-       173 ldnil pos=26 op1=0 // 0 <- nil
-       174 fbend ln=2 pos=15 block=171
-      87 fdecl ln=45 pos=11 ident=edom ident_num=46 decl_scope=0 fblock=175
-     175 fblock pos=28 next=176 fdecl=87 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=edom
-        88 vdecl pos=17 ident=msg ident_num=3 decl_scope=175 public_p=1 var_num=0
-
-       176 btdef pos=17 op1=0 pc=178 // goto 178 unless 0 is undefined
-       177 ldnil pos=23 op1=0 // 0 <- nil
-       178 fbend ln=2 pos=15 block=175
-      89 fdecl ln=46 pos=11 ident=eexist ident_num=47 decl_scope=0 fblock=179
-     179 fblock pos=30 next=180 fdecl=89 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=eexist
-        90 vdecl pos=19 ident=msg ident_num=3 decl_scope=179 public_p=1 var_num=0
-
-       180 btdef pos=19 op1=0 pc=182 // goto 182 unless 0 is undefined
-       181 ldnil pos=25 op1=0 // 0 <- nil
-       182 fbend ln=2 pos=15 block=179
-      91 fdecl ln=47 pos=11 ident=efault ident_num=48 decl_scope=0 fblock=183
-     183 fblock pos=30 next=184 fdecl=91 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=efault
-        92 vdecl pos=19 ident=msg ident_num=3 decl_scope=183 public_p=1 var_num=0
-
-       184 btdef pos=19 op1=0 pc=186 // goto 186 unless 0 is undefined
-       185 ldnil pos=25 op1=0 // 0 <- nil
-       186 fbend ln=2 pos=15 block=183
-      93 fdecl ln=48 pos=11 ident=efbig ident_num=49 decl_scope=0 fblock=187
-     187 fblock pos=29 next=188 fdecl=93 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=efbig
-        94 vdecl pos=18 ident=msg ident_num=3 decl_scope=187 public_p=1 var_num=0
-
-       188 btdef pos=18 op1=0 pc=190 // goto 190 unless 0 is undefined
-       189 ldnil pos=24 op1=0 // 0 <- nil
-       190 fbend ln=2 pos=15 block=187
-      95 fdecl ln=49 pos=11 ident=eintr ident_num=50 decl_scope=0 fblock=191
-     191 fblock pos=29 next=192 fdecl=95 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=eintr
-        96 vdecl pos=18 ident=msg ident_num=3 decl_scope=191 public_p=1 var_num=0
-
-       192 btdef pos=18 op1=0 pc=194 // goto 194 unless 0 is undefined
-       193 ldnil pos=24 op1=0 // 0 <- nil
-       194 fbend ln=2 pos=15 block=191
-      97 fdecl ln=50 pos=11 ident=einval ident_num=51 decl_scope=0 fblock=195
-     195 fblock pos=30 next=196 fdecl=97 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=einval
-        98 vdecl pos=19 ident=msg ident_num=3 decl_scope=195 public_p=1 var_num=0
-
-       196 btdef pos=19 op1=0 pc=198 // goto 198 unless 0 is undefined
-       197 ldnil pos=25 op1=0 // 0 <- nil
-       198 fbend ln=2 pos=15 block=195
-      99 fdecl ln=51 pos=11 ident=eio ident_num=52 decl_scope=0 fblock=199
-     199 fblock pos=27 next=200 fdecl=99 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=eio
-       100 vdecl pos=16 ident=msg ident_num=3 decl_scope=199 public_p=1 var_num=0
-
-       200 btdef pos=16 op1=0 pc=202 // goto 202 unless 0 is undefined
-       201 ldnil pos=22 op1=0 // 0 <- nil
-       202 fbend ln=2 pos=15 block=199
-     101 fdecl ln=52 pos=11 ident=eisdir ident_num=53 decl_scope=0 fblock=203
-     203 fblock pos=30 next=204 fdecl=101 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=eisdir
-       102 vdecl pos=19 ident=msg ident_num=3 decl_scope=203 public_p=1 var_num=0
-
-       204 btdef pos=19 op1=0 pc=206 // goto 206 unless 0 is undefined
-       205 ldnil pos=25 op1=0 // 0 <- nil
-       206 fbend ln=2 pos=15 block=203
-     103 fdecl ln=53 pos=11 ident=emfile ident_num=54 decl_scope=0 fblock=207
-     207 fblock pos=30 next=208 fdecl=103 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=emfile
-       104 vdecl pos=19 ident=msg ident_num=3 decl_scope=207 public_p=1 var_num=0
-
-       208 btdef pos=19 op1=0 pc=210 // goto 210 unless 0 is undefined
-       209 ldnil pos=25 op1=0 // 0 <- nil
-       210 fbend ln=2 pos=15 block=207
-     105 fdecl ln=54 pos=11 ident=emlink ident_num=55 decl_scope=0 fblock=211
-     211 fblock pos=30 next=212 fdecl=105 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=emlink
-       106 vdecl pos=19 ident=msg ident_num=3 decl_scope=211 public_p=1 var_num=0
-
-       212 btdef pos=19 op1=0 pc=214 // goto 214 unless 0 is undefined
-       213 ldnil pos=25 op1=0 // 0 <- nil
-       214 fbend ln=2 pos=15 block=211
-     107 fdecl ln=55 pos=11 ident=enametoolong ident_num=56 decl_scope=0 fblock=215
-     215 fblock pos=36 next=216 fdecl=107 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enametoolong
-       108 vdecl pos=25 ident=msg ident_num=3 decl_scope=215 public_p=1 var_num=0
-
-       216 btdef pos=25 op1=0 pc=218 // goto 218 unless 0 is undefined
-       217 ldnil pos=31 op1=0 // 0 <- nil
-       218 fbend ln=2 pos=15 block=215
-     109 fdecl ln=56 pos=11 ident=enfile ident_num=57 decl_scope=0 fblock=219
-     219 fblock pos=30 next=220 fdecl=109 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enfile
-       110 vdecl pos=19 ident=msg ident_num=3 decl_scope=219 public_p=1 var_num=0
-
-       220 btdef pos=19 op1=0 pc=222 // goto 222 unless 0 is undefined
-       221 ldnil pos=25 op1=0 // 0 <- nil
-       222 fbend ln=2 pos=15 block=219
-     111 fdecl ln=57 pos=11 ident=enodev ident_num=58 decl_scope=0 fblock=223
-     223 fblock pos=30 next=224 fdecl=111 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enodev
-       112 vdecl pos=19 ident=msg ident_num=3 decl_scope=223 public_p=1 var_num=0
-
-       224 btdef pos=19 op1=0 pc=226 // goto 226 unless 0 is undefined
-       225 ldnil pos=25 op1=0 // 0 <- nil
-       226 fbend ln=2 pos=15 block=223
-     113 fdecl ln=58 pos=11 ident=enoent ident_num=59 decl_scope=0 fblock=227
-     227 fblock pos=30 next=228 fdecl=113 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enoent
-       114 vdecl pos=19 ident=msg ident_num=3 decl_scope=227 public_p=1 var_num=0
-
-       228 btdef pos=19 op1=0 pc=230 // goto 230 unless 0 is undefined
-       229 ldnil pos=25 op1=0 // 0 <- nil
-       230 fbend ln=2 pos=15 block=227
-     115 fdecl ln=59 pos=11 ident=enoexec ident_num=60 decl_scope=0 fblock=231
-     231 fblock pos=31 next=232 fdecl=115 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enoexec
-       116 vdecl pos=20 ident=msg ident_num=3 decl_scope=231 public_p=1 var_num=0
-
-       232 btdef pos=20 op1=0 pc=234 // goto 234 unless 0 is undefined
-       233 ldnil pos=26 op1=0 // 0 <- nil
-       234 fbend ln=2 pos=15 block=231
-     117 fdecl ln=60 pos=11 ident=enolck ident_num=61 decl_scope=0 fblock=235
-     235 fblock pos=30 next=236 fdecl=117 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enolck
-       118 vdecl pos=19 ident=msg ident_num=3 decl_scope=235 public_p=1 var_num=0
-
-       236 btdef pos=19 op1=0 pc=238 // goto 238 unless 0 is undefined
-       237 ldnil pos=25 op1=0 // 0 <- nil
-       238 fbend ln=2 pos=15 block=235
-     119 fdecl ln=61 pos=11 ident=enomem ident_num=62 decl_scope=0 fblock=239
-     239 fblock pos=30 next=240 fdecl=119 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enomem
-       120 vdecl pos=19 ident=msg ident_num=3 decl_scope=239 public_p=1 var_num=0
-
-       240 btdef pos=19 op1=0 pc=242 // goto 242 unless 0 is undefined
-       241 ldnil pos=25 op1=0 // 0 <- nil
-       242 fbend ln=2 pos=15 block=239
-     121 fdecl ln=62 pos=11 ident=enospc ident_num=63 decl_scope=0 fblock=243
-     243 fblock pos=30 next=244 fdecl=121 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enospc
-       122 vdecl pos=19 ident=msg ident_num=3 decl_scope=243 public_p=1 var_num=0
-
-       244 btdef pos=19 op1=0 pc=246 // goto 246 unless 0 is undefined
-       245 ldnil pos=25 op1=0 // 0 <- nil
-       246 fbend ln=2 pos=15 block=243
-     123 fdecl ln=63 pos=11 ident=enosys ident_num=64 decl_scope=0 fblock=247
-     247 fblock pos=30 next=248 fdecl=123 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enosys
-       124 vdecl pos=19 ident=msg ident_num=3 decl_scope=247 public_p=1 var_num=0
-
-       248 btdef pos=19 op1=0 pc=250 // goto 250 unless 0 is undefined
-       249 ldnil pos=25 op1=0 // 0 <- nil
-       250 fbend ln=2 pos=15 block=247
-     125 fdecl ln=64 pos=11 ident=enotdir ident_num=65 decl_scope=0 fblock=251
-     251 fblock pos=31 next=252 fdecl=125 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enotdir
-       126 vdecl pos=20 ident=msg ident_num=3 decl_scope=251 public_p=1 var_num=0
-
-       252 btdef pos=20 op1=0 pc=254 // goto 254 unless 0 is undefined
-       253 ldnil pos=26 op1=0 // 0 <- nil
-       254 fbend ln=2 pos=15 block=251
-     127 fdecl ln=65 pos=11 ident=enotempty ident_num=66 decl_scope=0 fblock=255
-     255 fblock pos=33 next=256 fdecl=127 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enotempty
-       128 vdecl pos=22 ident=msg ident_num=3 decl_scope=255 public_p=1 var_num=0
-
-       256 btdef pos=22 op1=0 pc=258 // goto 258 unless 0 is undefined
-       257 ldnil pos=28 op1=0 // 0 <- nil
-       258 fbend ln=2 pos=15 block=255
-     129 fdecl ln=66 pos=11 ident=enotty ident_num=67 decl_scope=0 fblock=259
-     259 fblock pos=30 next=260 fdecl=129 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enotty
-       130 vdecl pos=19 ident=msg ident_num=3 decl_scope=259 public_p=1 var_num=0
-
-       260 btdef pos=19 op1=0 pc=262 // goto 262 unless 0 is undefined
-       261 ldnil pos=25 op1=0 // 0 <- nil
-       262 fbend ln=2 pos=15 block=259
-     131 fdecl ln=67 pos=11 ident=enxio ident_num=68 decl_scope=0 fblock=263
-     263 fblock pos=29 next=264 fdecl=131 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=enxio
-       132 vdecl pos=18 ident=msg ident_num=3 decl_scope=263 public_p=1 var_num=0
-
-       264 btdef pos=18 op1=0 pc=266 // goto 266 unless 0 is undefined
-       265 ldnil pos=24 op1=0 // 0 <- nil
-       266 fbend ln=2 pos=15 block=263
-     133 fdecl ln=68 pos=11 ident=eperm ident_num=69 decl_scope=0 fblock=267
-     267 fblock pos=29 next=268 fdecl=133 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=eperm
-       134 vdecl pos=18 ident=msg ident_num=3 decl_scope=267 public_p=1 var_num=0
-
-       268 btdef pos=18 op1=0 pc=270 // goto 270 unless 0 is undefined
-       269 ldnil pos=24 op1=0 // 0 <- nil
-       270 fbend ln=2 pos=15 block=267
-     135 fdecl ln=69 pos=11 ident=epipe ident_num=70 decl_scope=0 fblock=271
-     271 fblock pos=29 next=272 fdecl=135 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=epipe
-       136 vdecl pos=18 ident=msg ident_num=3 decl_scope=271 public_p=1 var_num=0
-
-       272 btdef pos=18 op1=0 pc=274 // goto 274 unless 0 is undefined
-       273 ldnil pos=24 op1=0 // 0 <- nil
-       274 fbend ln=2 pos=15 block=271
-     137 fdecl ln=70 pos=11 ident=erange ident_num=71 decl_scope=0 fblock=275
-     275 fblock pos=30 next=276 fdecl=137 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=erange
-       138 vdecl pos=19 ident=msg ident_num=3 decl_scope=275 public_p=1 var_num=0
-
-       276 btdef pos=19 op1=0 pc=278 // goto 278 unless 0 is undefined
-       277 ldnil pos=25 op1=0 // 0 <- nil
-       278 fbend ln=2 pos=15 block=275
-     139 fdecl ln=71 pos=11 ident=erofs ident_num=72 decl_scope=0 fblock=279
-     279 fblock pos=29 next=280 fdecl=139 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=erofs
-       140 vdecl pos=18 ident=msg ident_num=3 decl_scope=279 public_p=1 var_num=0
-
-       280 btdef pos=18 op1=0 pc=282 // goto 282 unless 0 is undefined
-       281 ldnil pos=24 op1=0 // 0 <- nil
-       282 fbend ln=2 pos=15 block=279
-     141 fdecl ln=72 pos=11 ident=espipe ident_num=73 decl_scope=0 fblock=283
-     283 fblock pos=30 next=284 fdecl=141 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=espipe
-       142 vdecl pos=19 ident=msg ident_num=3 decl_scope=283 public_p=1 var_num=0
-
-       284 btdef pos=19 op1=0 pc=286 // goto 286 unless 0 is undefined
-       285 ldnil pos=25 op1=0 // 0 <- nil
-       286 fbend ln=2 pos=15 block=283
-     143 fdecl ln=73 pos=11 ident=esrch ident_num=74 decl_scope=0 fblock=287
-     287 fblock pos=29 next=288 fdecl=143 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=esrch
-       144 vdecl pos=18 ident=msg ident_num=3 decl_scope=287 public_p=1 var_num=0
-
-       288 btdef pos=18 op1=0 pc=290 // goto 290 unless 0 is undefined
-       289 ldnil pos=24 op1=0 // 0 <- nil
-       290 fbend ln=2 pos=15 block=287
-     145 fdecl ln=74 pos=11 ident=exdev ident_num=75 decl_scope=0 fblock=291
-     291 fblock pos=29 next=292 fdecl=145 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=147 use=3 use=1 use=107 // ident=exdev
-       146 vdecl pos=18 ident=msg ident_num=3 decl_scope=291 public_p=1 var_num=0
-
-       292 btdef pos=18 op1=0 pc=294 // goto 294 unless 0 is undefined
-       293 ldnil pos=24 op1=0 // 0 <- nil
-       294 fbend ln=2 pos=15 block=291
-     147 fdecl ln=75 pos=10 ident=systemcall ident_num=76 decl_scope=0 fblock=295
-     295 fblock pos=33 next=296 fdecl=147 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=systemcall
-       148 vdecl pos=22 ident=msg ident_num=3 decl_scope=295 public_p=1 var_num=0
-
-       296 btdef pos=22 op1=0 pc=298 // goto 298 unless 0 is undefined
-       297 ldnil pos=28 op1=0 // 0 <- nil
-       298 fbend ln=2 pos=15 block=295
-     149 fdecl ln=76 pos=11 ident=noshell ident_num=77 decl_scope=0 fblock=299
-     299 fblock pos=31 next=300 fdecl=149 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=295 use=3 use=1 use=107 // ident=noshell
-       150 vdecl pos=20 ident=msg ident_num=3 decl_scope=299 public_p=1 var_num=0
-
-       300 btdef pos=20 op1=0 pc=302 // goto 302 unless 0 is undefined
-       301 ldnil pos=26 op1=0 // 0 <- nil
-       302 fbend ln=2 pos=15 block=299
-     151 fdecl ln=77 pos=11 ident=systemfail ident_num=78 decl_scope=0 fblock=303
-     303 fblock pos=34 next=304 fdecl=151 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=295 use=3 use=1 use=107 // ident=systemfail
-       152 vdecl pos=23 ident=msg ident_num=3 decl_scope=303 public_p=1 var_num=0
-
-       304 btdef pos=23 op1=0 pc=306 // goto 306 unless 0 is undefined
-       305 ldnil pos=29 op1=0 // 0 <- nil
-       306 fbend ln=2 pos=15 block=303
-     153 fdecl ln=78 pos=10 ident=invregexp ident_num=79 decl_scope=0 fblock=307
-     307 fblock pos=32 next=308 fdecl=153 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=invregexp
-       154 vdecl pos=21 ident=msg ident_num=3 decl_scope=307 public_p=1 var_num=0
-
-       308 btdef pos=21 op1=0 pc=310 // goto 310 unless 0 is undefined
-       309 ldnil pos=27 op1=0 // 0 <- nil
-       310 fbend ln=2 pos=15 block=307
-     155 fdecl ln=79 pos=11 ident=ebrack ident_num=80 decl_scope=0 fblock=311
-     311 fblock pos=30 next=312 fdecl=155 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=ebrack
-       156 vdecl pos=19 ident=msg ident_num=3 decl_scope=311 public_p=1 var_num=0
-
-       312 btdef pos=19 op1=0 pc=314 // goto 314 unless 0 is undefined
-       313 ldnil pos=25 op1=0 // 0 <- nil
-       314 fbend ln=2 pos=15 block=311
-     157 fdecl ln=80 pos=11 ident=erange ident_num=71 decl_scope=0 fblock=315
-     315 fblock pos=30 next=316 fdecl=157 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=erange
-       158 vdecl pos=19 ident=msg ident_num=3 decl_scope=315 public_p=1 var_num=0
-
-       316 btdef pos=19 op1=0 pc=318 // goto 318 unless 0 is undefined
-       317 ldnil pos=25 op1=0 // 0 <- nil
-       318 fbend ln=2 pos=15 block=315
-     159 fdecl ln=81 pos=11 ident=ectype ident_num=81 decl_scope=0 fblock=319
-     319 fblock pos=30 next=320 fdecl=159 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=ectype
-       160 vdecl pos=19 ident=msg ident_num=3 decl_scope=319 public_p=1 var_num=0
-
-       320 btdef pos=19 op1=0 pc=322 // goto 322 unless 0 is undefined
-       321 ldnil pos=25 op1=0 // 0 <- nil
-       322 fbend ln=2 pos=15 block=319
-     161 fdecl ln=82 pos=11 ident=eparen ident_num=82 decl_scope=0 fblock=323
-     323 fblock pos=30 next=324 fdecl=161 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=eparen
-       162 vdecl pos=19 ident=msg ident_num=3 decl_scope=323 public_p=1 var_num=0
-
-       324 btdef pos=19 op1=0 pc=326 // goto 326 unless 0 is undefined
-       325 ldnil pos=25 op1=0 // 0 <- nil
-       326 fbend ln=2 pos=15 block=323
-     163 fdecl ln=83 pos=11 ident=esubreg ident_num=83 decl_scope=0 fblock=327
-     327 fblock pos=31 next=328 fdecl=163 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=esubreg
-       164 vdecl pos=20 ident=msg ident_num=3 decl_scope=327 public_p=1 var_num=0
-
-       328 btdef pos=20 op1=0 pc=330 // goto 330 unless 0 is undefined
-       329 ldnil pos=26 op1=0 // 0 <- nil
-       330 fbend ln=2 pos=15 block=327
-     165 fdecl ln=84 pos=11 ident=eend ident_num=84 decl_scope=0 fblock=331
-     331 fblock pos=28 next=332 fdecl=165 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=eend
-       166 vdecl pos=17 ident=msg ident_num=3 decl_scope=331 public_p=1 var_num=0
-
-       332 btdef pos=17 op1=0 pc=334 // goto 334 unless 0 is undefined
-       333 ldnil pos=23 op1=0 // 0 <- nil
-       334 fbend ln=2 pos=15 block=331
-     167 fdecl ln=85 pos=11 ident=eescape ident_num=85 decl_scope=0 fblock=335
-     335 fblock pos=31 next=336 fdecl=167 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=eescape
-       168 vdecl pos=20 ident=msg ident_num=3 decl_scope=335 public_p=1 var_num=0
-
-       336 btdef pos=20 op1=0 pc=338 // goto 338 unless 0 is undefined
-       337 ldnil pos=26 op1=0 // 0 <- nil
-       338 fbend ln=2 pos=15 block=335
-     169 fdecl ln=86 pos=11 ident=badpat ident_num=86 decl_scope=0 fblock=339
-     339 fblock pos=30 next=340 fdecl=169 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=badpat
-       170 vdecl pos=19 ident=msg ident_num=3 decl_scope=339 public_p=1 var_num=0
-
-       340 btdef pos=19 op1=0 pc=342 // goto 342 unless 0 is undefined
-       341 ldnil pos=25 op1=0 // 0 <- nil
-       342 fbend ln=2 pos=15 block=339
-     171 fdecl ln=87 pos=11 ident=esize ident_num=87 decl_scope=0 fblock=343
-     343 fblock pos=29 next=344 fdecl=171 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=esize
-       172 vdecl pos=18 ident=msg ident_num=3 decl_scope=343 public_p=1 var_num=0
-
-       344 btdef pos=18 op1=0 pc=346 // goto 346 unless 0 is undefined
-       345 ldnil pos=24 op1=0 // 0 <- nil
-       346 fbend ln=2 pos=15 block=343
-     173 fdecl ln=88 pos=11 ident=espace ident_num=88 decl_scope=0 fblock=347
-     347 fblock pos=30 next=348 fdecl=173 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=307 use=3 use=1 use=107 // ident=espace
-       174 vdecl pos=19 ident=msg ident_num=3 decl_scope=347 public_p=1 var_num=0
-
-       348 btdef pos=19 op1=0 pc=350 // goto 350 unless 0 is undefined
-       349 ldnil pos=25 op1=0 // 0 <- nil
-       350 fbend ln=2 pos=15 block=347
-     175 fdecl ln=89 pos=10 ident=invparser ident_num=89 decl_scope=0 fblock=351
-     351 fblock pos=32 next=352 fdecl=175 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=invparser
-       176 vdecl pos=21 ident=msg ident_num=3 decl_scope=351 public_p=1 var_num=0
-
-       352 btdef pos=21 op1=0 pc=354 // goto 354 unless 0 is undefined
-       353 ldnil pos=27 op1=0 // 0 <- nil
-       354 fbend ln=2 pos=15 block=351
-     177 fdecl ln=90 pos=11 ident=invgrammar ident_num=90 decl_scope=0 fblock=355
-     355 fblock pos=34 next=356 fdecl=177 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=351 use=3 use=1 use=107 // ident=invgrammar
-       178 vdecl pos=23 ident=msg ident_num=3 decl_scope=355 public_p=1 var_num=0
-
-       356 btdef pos=23 op1=0 pc=358 // goto 358 unless 0 is undefined
-       357 ldnil pos=29 op1=0 // 0 <- nil
-       358 fbend ln=2 pos=15 block=355
-     179 fdecl ln=91 pos=11 ident=invtoken ident_num=91 decl_scope=0 fblock=359
-     359 fblock pos=32 next=360 fdecl=179 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=351 use=3 use=1 use=107 // ident=invtoken
-       180 vdecl pos=21 ident=msg ident_num=3 decl_scope=359 public_p=1 var_num=0
-
-       360 btdef pos=21 op1=0 pc=362 // goto 362 unless 0 is undefined
-       361 ldnil pos=27 op1=0 // 0 <- nil
-       362 fbend ln=2 pos=15 block=359
-     181 fdecl ln=92 pos=11 ident=pmemory ident_num=92 decl_scope=0 fblock=363
-     363 fblock pos=31 next=364 fdecl=181 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=351 use=3 use=1 use=107 // ident=pmemory
-       182 vdecl pos=20 ident=msg ident_num=3 decl_scope=363 public_p=1 var_num=0
-
-       364 btdef pos=20 op1=0 pc=366 // goto 366 unless 0 is undefined
-       365 ldnil pos=26 op1=0 // 0 <- nil
-       366 fbend ln=2 pos=15 block=363
-     183 fdecl ln=93 pos=10 ident=invextern ident_num=93 decl_scope=0 fblock=367
-     367 fblock pos=32 next=368 fdecl=183 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=invextern
-       184 vdecl pos=21 ident=msg ident_num=3 decl_scope=367 public_p=1 var_num=0
-
-       368 btdef pos=21 op1=0 pc=370 // goto 370 unless 0 is undefined
-       369 ldnil pos=27 op1=0 // 0 <- nil
-       370 fbend ln=2 pos=15 block=367
-     185 fdecl ln=94 pos=11 ident=noextern ident_num=94 decl_scope=0 fblock=371
-     371 fblock pos=32 next=372 fdecl=185 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=367 use=3 use=1 use=107 // ident=noextern
-       186 vdecl pos=21 ident=msg ident_num=3 decl_scope=371 public_p=1 var_num=0
-
-       372 btdef pos=21 op1=0 pc=374 // goto 374 unless 0 is undefined
-       373 ldnil pos=27 op1=0 // 0 <- nil
-       374 fbend ln=2 pos=15 block=371
-     187 fdecl ln=95 pos=11 ident=libclose ident_num=95 decl_scope=0 fblock=375
-     375 fblock pos=32 next=376 fdecl=187 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=367 use=3 use=1 use=107 // ident=libclose
-       188 vdecl pos=21 ident=msg ident_num=3 decl_scope=375 public_p=1 var_num=0
-
-       376 btdef pos=21 op1=0 pc=378 // goto 378 unless 0 is undefined
-       377 ldnil pos=27 op1=0 // 0 <- nil
-       378 fbend ln=2 pos=15 block=375
-     189 fdecl ln=96 pos=11 ident=noexternsupp ident_num=96 decl_scope=0 fblock=379
-     379 fblock pos=36 next=380 fdecl=189 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=367 use=3 use=1 use=107 // ident=noexternsupp
-       190 vdecl pos=25 ident=msg ident_num=3 decl_scope=379 public_p=1 var_num=0
-
-       380 btdef pos=25 op1=0 pc=382 // goto 382 unless 0 is undefined
-       381 ldnil pos=31 op1=0 // 0 <- nil
-       382 fbend ln=2 pos=15 block=379
-     191 fdecl ln=97 pos=10 ident=invenvar ident_num=97 decl_scope=0 fblock=383
-     383 fblock pos=31 next=384 fdecl=191 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=invenvar
-       192 vdecl pos=20 ident=msg ident_num=3 decl_scope=383 public_p=1 var_num=0
-
-       384 btdef pos=20 op1=0 pc=386 // goto 386 unless 0 is undefined
-       385 ldnil pos=26 op1=0 // 0 <- nil
-       386 fbend ln=2 pos=15 block=383
-     193 fdecl ln=98 pos=10 ident=internal ident_num=98 decl_scope=0 fblock=387
-     387 fblock pos=31 next=388 fdecl=193 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=107 use=1 use=3 // ident=internal
-       194 vdecl pos=20 ident=msg ident_num=3 decl_scope=387 public_p=1 var_num=0
-
-       388 btdef pos=20 op1=0 pc=390 // goto 390 unless 0 is undefined
-       389 ldnil pos=26 op1=0 // 0 <- nil
-       390 fbend ln=2 pos=15 block=387
-     195 fdecl ln=99 pos=9 ident=invaccess ident_num=99 decl_scope=0 fblock=391
-     391 fblock pos=31 next=392 fdecl=195 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=invaccess
-       196 vdecl pos=20 ident=msg ident_num=3 decl_scope=391 public_p=1 var_num=0
-
-       392 btdef pos=20 op1=0 pc=394 // goto 394 unless 0 is undefined
-       393 ldnil pos=26 op1=0 // 0 <- nil
-       394 fbend ln=2 pos=15 block=391
-     197 fdecl ln=100 pos=10 ident=accessop ident_num=100 decl_scope=0 fblock=395
-     395 fblock pos=31 next=396 fdecl=197 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=391 use=1 use=3 // ident=accessop
-       198 vdecl pos=20 ident=msg ident_num=3 decl_scope=395 public_p=1 var_num=0
-
-       396 btdef pos=20 op1=0 pc=398 // goto 398 unless 0 is undefined
-       397 ldnil pos=26 op1=0 // 0 <- nil
-       398 fbend ln=2 pos=15 block=395
-     199 fdecl ln=101 pos=10 ident=accessvalue ident_num=101 decl_scope=0 fblock=399
-     399 fblock pos=34 next=400 fdecl=199 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=391 use=1 use=3 // ident=accessvalue
-       200 vdecl pos=23 ident=msg ident_num=3 decl_scope=399 public_p=1 var_num=0
-
-       400 btdef pos=23 op1=0 pc=402 // goto 402 unless 0 is undefined
-       401 ldnil pos=29 op1=0 // 0 <- nil
-       402 fbend ln=2 pos=15 block=399
-     201 fdecl ln=102 pos=10 ident=immutable ident_num=102 decl_scope=0 fblock=403
-     403 fblock pos=32 next=404 fdecl=201 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=391 use=1 use=3 // ident=immutable
-       202 vdecl pos=21 ident=msg ident_num=3 decl_scope=403 public_p=1 var_num=0
-
-       404 btdef pos=21 op1=0 pc=406 // goto 406 unless 0 is undefined
-       405 ldnil pos=27 op1=0 // 0 <- nil
-       406 fbend ln=2 pos=15 block=403
-     203 fdecl ln=103 pos=9 ident=deadlock ident_num=103 decl_scope=0 fblock=407
-     407 fblock pos=30 next=408 fdecl=203 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=deadlock
-       204 vdecl pos=19 ident=msg ident_num=3 decl_scope=407 public_p=1 var_num=0
-
-       408 btdef pos=19 op1=0 pc=410 // goto 410 unless 0 is undefined
-       409 ldnil pos=25 op1=0 // 0 <- nil
-       410 fbend ln=2 pos=15 block=407
-     205 fdecl ln=104 pos=9 ident=syncwait ident_num=104 decl_scope=0 fblock=411
-     411 fblock pos=30 next=412 fdecl=205 class_p=1 pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 use=3 use=1 // ident=syncwait
-       206 vdecl pos=19 ident=msg ident_num=3 decl_scope=411 public_p=1 var_num=0
-
-       412 btdef pos=19 op1=0 pc=414 // goto 414 unless 0 is undefined
-       413 ldnil pos=25 op1=0 // 0 <- nil
-       414 fbend ln=2 pos=15 block=411
-     207 vdecl ln=105 pos=5 ident=argv ident_num=105 decl_scope=0 var_num=0
-     208 vdecl pos=11 ident=env ident_num=106 decl_scope=0 var_num=1
-     209 vdecl pos=20 ident=version ident_num=107 decl_scope=0 var_num=2
-     210 vdecl pos=29 ident=main_thread ident_num=108 decl_scope=0 var_num=3
-     211 vdecl pos=42 ident=curr_thread ident_num=109 decl_scope=0 var_num=4
-     212 fdecl ln=106 pos=7 ident=anode ident_num=110 decl_scope=0 fblock=415
-     415 fblock pos=28 next=416 fdecl=212 class_p=1 simple_p=1 pure_fun_p=1 pars_num=2 min_pars_num=2 scope=0 vars_num=2 tvars_num=0 ext_life_p=1 // ident=anode
-       213 vdecl pos=14 ident=name ident_num=111 decl_scope=415 public_p=1 var_num=0
-       214 vdecl pos=20 ident=transl ident_num=112 decl_scope=415 public_p=1 var_num=1
-
-       416 fbend pos=20 block=415
-     215 fdecl ln=107 pos=7 ident=token ident_num=113 decl_scope=0 fblock=417
-     417 fblock pos=20 next=418 fdecl=215 class_p=1 simple_p=1 pure_fun_p=1 pars_num=1 min_pars_num=1 scope=0 vars_num=1 tvars_num=0 ext_life_p=1 // ident=token
-       216 vdecl pos=14 ident=code ident_num=114 decl_scope=417 public_p=1 var_num=0
-
-       418 fbend pos=14 block=417
-     217 vdecl ln=108 pos=5 ident=nil_anode ident_num=115 decl_scope=0 var_num=5
-     218 vdecl ln=109 pos=5 ident=error_anode ident_num=116 decl_scope=0 var_num=6
-     219 fdecl ln=110 pos=13 ident=parser ident_num=117 decl_scope=0 fblock=419
-     419 fblock ln=111 pos=1 next=521 fdecl=219 class_p=1 scope=0 vars_num=2 tvars_num=1 ext_life_p=1 // ident=parser
-       220 vdecl ln=112 pos=7 ident=ambiguous_p ident_num=118 decl_scope=419 public_p=1 var_num=0
-       221 vdecl ln=113 pos=12 ident=grammar ident_num=119 decl_scope=419 var_num=1
-       222 fdecl ln=115 pos=12 ident=int_earley_parse_grammar ident_num=120 decl_scope=419 fblock=420
-       420 fblock pos=37 fdecl=222 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_parse_grammar
-
-         421 fbend pos=37 block=420
-       223 fdecl pos=49 ident=int_earley_set_debug_level ident_num=121 decl_scope=419 fblock=422
-       422 fblock pos=76 fdecl=223 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_debug_level
-
-         423 fbend pos=76 block=422
-       224 fdecl ln=116 pos=12 ident=int_earley_set_one_parse_flag ident_num=122 decl_scope=419 fblock=424
-       424 fblock pos=42 fdecl=224 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_one_parse_flag
-
-         425 fbend pos=42 block=424
-       225 fdecl ln=117 pos=12 ident=int_earley_set_lookahead_level ident_num=123 decl_scope=419 fblock=426
-       426 fblock pos=43 fdecl=225 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_lookahead_level
-
-         427 fbend pos=43 block=426
-       226 fdecl ln=118 pos=12 ident=int_earley_set_cost_flag ident_num=124 decl_scope=419 fblock=428
-       428 fblock pos=37 fdecl=226 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_cost_flag
-
-         429 fbend pos=37 block=428
-       227 fdecl ln=119 pos=12 ident=int_earley_set_error_recovery_flag ident_num=125 decl_scope=419 fblock=430
-       430 fblock pos=47 fdecl=227 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_error_recovery_flag
-
-         431 fbend pos=47 block=430
-       228 fdecl ln=120 pos=12 ident=int_earley_set_recovery_match ident_num=126 decl_scope=419 fblock=432
-       432 fblock pos=42 fdecl=228 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_set_recovery_match
-
-         433 fbend pos=42 block=432
-       229 fdecl pos=54 ident=int_earley_parse ident_num=127 decl_scope=419 fblock=434
-       434 fblock pos=71 fdecl=229 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_parse
-
-         435 fbend pos=71 block=434
-       230 fdecl ln=121 pos=12 ident=int_earley_create_grammar ident_num=128 decl_scope=419 fblock=436
-       436 fblock pos=38 fdecl=230 fun_p=1 scope=419 vars_num=0 tvars_num=0 // ident=int_earley_create_grammar
-
-         437 fbend pos=38 block=436
-       231 fdecl ln=123 pos=7 ident=set_grammar ident_num=129 decl_scope=419 public_p=1 fblock=438
-       438 fblock pos=37 next=439 fdecl=231 fun_p=1 pars_num=2 min_pars_num=2 scope=419 vars_num=2 tvars_num=4 // ident=set_grammar
-         232 vdecl pos=20 ident=descr ident_num=130 decl_scope=438 var_num=0
-         233 vdecl pos=27 ident=strict_p ident_num=131 decl_scope=438 var_num=1
-
-         439 fun ln=124 pos=5 op1=2 decl=222 // int_earley_parse_grammar
-         440 var pos=31 op1=3 decl=221 // grammar
-         441 move pos=40 op1=4 op2=1 move_decl=233 // 4 (strict_p) <- 1
-         442 move pos=50 op1=5 op2=0 move_decl=232 // 5 (descr) <- 0
-         443 call pos=30 op1=2 op2=3 // call (start=2) (npars=3)
-         444 ret pos=30 op1=2
-         445 fbend pos=50 block=438
-       234 fdecl ln=126 pos=7 ident=set_debug ident_num=132 decl_scope=419 public_p=1 fblock=446
-       446 fblock pos=25 next=447 fdecl=234 fun_p=1 pars_num=1 min_pars_num=1 scope=419 vars_num=1 tvars_num=3 // ident=set_debug
-         235 vdecl pos=18 ident=level ident_num=133 decl_scope=446 var_num=0
-
-         447 fun ln=127 pos=12 op1=1 decl=223 // int_earley_set_debug_level
-         448 var pos=40 op1=2 decl=221 // grammar
-         449 move pos=49 op1=3 op2=0 move_decl=235 // 3 (level) <- 0
-         450 call pos=39 op1=1 op2=2 // call (start=1) (npars=2)
-         451 ret pos=5 op1=1
-         452 fbend pos=49 block=446
-       236 fdecl ln=129 pos=7 ident=set_one_parse ident_num=134 decl_scope=419 public_p=1 fblock=453
-       453 fblock pos=28 next=454 fdecl=236 fun_p=1 pars_num=1 min_pars_num=1 scope=419 vars_num=1 tvars_num=3 // ident=set_one_parse
-         237 vdecl pos=22 ident=flag ident_num=135 decl_scope=453 var_num=0
-
-         454 fun ln=130 pos=12 op1=1 decl=224 // int_earley_set_one_parse_flag
-         455 var pos=43 op1=2 decl=221 // grammar
-         456 move pos=52 op1=3 op2=0 move_decl=237 // 3 (flag) <- 0
-         457 call pos=42 op1=1 op2=2 // call (start=1) (npars=2)
-         458 ret pos=5 op1=1
-         459 fbend pos=52 block=453
-       238 fdecl ln=132 pos=7 ident=set_lookahead ident_num=136 decl_scope=419 public_p=1 fblock=460
-       460 fblock pos=28 next=461 fdecl=238 fun_p=1 pars_num=1 min_pars_num=1 scope=419 vars_num=1 tvars_num=3 // ident=set_lookahead
-         239 vdecl pos=22 ident=flag ident_num=135 decl_scope=460 var_num=0
-
-         461 fun ln=133 pos=12 op1=1 decl=225 // int_earley_set_lookahead_level
-         462 var pos=44 op1=2 decl=221 // grammar
-         463 move pos=53 op1=3 op2=0 move_decl=239 // 3 (flag) <- 0
-         464 call pos=43 op1=1 op2=2 // call (start=1) (npars=2)
-         465 ret pos=5 op1=1
-         466 fbend pos=53 block=460
-       240 fdecl ln=135 pos=7 ident=set_cost ident_num=137 decl_scope=419 public_p=1 fblock=467
-       467 fblock pos=23 next=468 fdecl=240 fun_p=1 pars_num=1 min_pars_num=1 scope=419 vars_num=1 tvars_num=3 // ident=set_cost
-         241 vdecl pos=17 ident=flag ident_num=135 decl_scope=467 var_num=0
-
-         468 fun ln=136 pos=12 op1=1 decl=226 // int_earley_set_cost_flag
-         469 var pos=38 op1=2 decl=221 // grammar
-         470 move pos=47 op1=3 op2=0 move_decl=241 // 3 (flag) <- 0
-         471 call pos=37 op1=1 op2=2 // call (start=1) (npars=2)
-         472 ret pos=5 op1=1
-         473 fbend pos=47 block=467
-       242 fdecl ln=138 pos=7 ident=set_recovery ident_num=138 decl_scope=419 public_p=1 fblock=474
-       474 fblock pos=27 next=475 fdecl=242 fun_p=1 pars_num=1 min_pars_num=1 scope=419 vars_num=1 tvars_num=3 // ident=set_recovery
-         243 vdecl pos=21 ident=flag ident_num=135 decl_scope=474 var_num=0
-
-         475 fun ln=139 pos=12 op1=1 decl=227 // int_earley_set_error_recovery_flag
-         476 var pos=48 op1=2 decl=221 // grammar
-         477 move pos=57 op1=3 op2=0 move_decl=243 // 3 (flag) <- 0
-         478 call pos=47 op1=1 op2=2 // call (start=1) (npars=2)
-         479 ret pos=5 op1=1
-         480 fbend pos=57 block=474
-       244 fdecl ln=141 pos=7 ident=set_recovery_match ident_num=139 decl_scope=419 public_p=1 fblock=481
-       481 fblock pos=35 next=482 fdecl=244 fun_p=1 pars_num=1 min_pars_num=1 scope=419 vars_num=1 tvars_num=3 // ident=set_recovery_match
-         245 vdecl pos=27 ident=n_toks ident_num=140 decl_scope=481 var_num=0
-
-         482 fun ln=142 pos=12 op1=1 decl=228 // int_earley_set_recovery_match
-         483 var pos=43 op1=2 decl=221 // grammar
-         484 move pos=52 op1=3 op2=0 move_decl=245 // 3 (n_toks) <- 0
-         485 call pos=42 op1=1 op2=2 // call (start=1) (npars=2)
-         486 ret pos=5 op1=1
-         487 fbend pos=52 block=481
-       246 fdecl ln=144 pos=7 ident=parse ident_num=141 decl_scope=419 public_p=1 fblock=488
-       488 fblock pos=33 next=489 fdecl=246 fun_p=1 pars_num=2 min_pars_num=2 scope=419 vars_num=3 tvars_num=13 // ident=parse
-         247 vdecl pos=14 ident=tokens ident_num=142 decl_scope=488 var_num=0
-         248 vdecl pos=22 ident=error_fun ident_num=143 decl_scope=488 var_num=1
-         249 vdecl ln=145 pos=9 ident=__i ident_num=144 decl_scope=488 var_num=2
-
-         489 ldi ln=146 pos=11 op1=3 op2=1 // 3 <- i1
-         490 ldi pos=15 op1=4 op2=2 // 4 <- i2
-         491 ldi pos=20 op1=5 op2=3 // 5 <- i3
-         492 ldi pos=24 op1=6 op2=4 // 6 <- i4
-         493 ldi pos=29 op1=7 op2=5 // 7 <- i5
-         494 ldi pos=33 op1=8 op2=6 // 8 <- i6
-         495 ldi pos=38 op1=9 op2=7 // 9 <- i7
-         496 ldi pos=42 op1=10 op2=8 // 10 <- i8
-         497 ldi pos=47 op1=11 op2=9 // 11 <- i9
-         498 ldi pos=51 op1=12 op2=10 // 12 <- i10
-         499 ldi pos=57 op1=13 op2=11 // 13 <- i11
-         500 ldi pos=62 op1=14 op2=12 // 14 <- i12
-         501 ldi pos=67 op1=15 op2=13 // 15 <- i13
-         502 and pos=65 pos2=62 pos3=67 op1=14 op2=14 op3=15 // 14 <- 14 op 15
-         503 xor pos=60 pos2=57 pos3=65 op1=13 op2=13 op3=14 // 13 <- 13 op 14
-         504 and pos=54 pos2=51 pos3=60 op1=12 op2=12 op3=13 // 12 <- 12 op 13
-         505 xor pos=49 pos2=47 pos3=54 op1=11 op2=11 op3=12 // 11 <- 11 op 12
-         506 and pos=44 pos2=42 pos3=49 op1=10 op2=10 op3=11 // 10 <- 10 op 11
-         507 xor pos=40 pos2=38 pos3=44 op1=9 op2=9 op3=10 // 9 <- 9 op 10
-         508 and pos=35 pos2=33 pos3=40 op1=8 op2=8 op3=9 // 8 <- 8 op 9
-         509 xor pos=31 pos2=29 pos3=35 op1=7 op2=7 op3=8 // 7 <- 7 op 8
-         510 and pos=26 pos2=24 pos3=31 op1=6 op2=6 op3=7 // 6 <- 6 op 7
-         511 xor pos=22 pos2=20 pos3=26 op1=5 op2=5 op3=6 // 5 <- 5 op 6
-         512 and pos=17 pos2=15 pos3=22 op1=4 op2=4 op3=5 // 4 <- 4 op 5
-         513 xor pos=13 pos2=11 pos3=17 op1=2 op2=3 op3=4 // 2 <- 3 op 4
-         514 fun ln=147 pos=12 op1=3 decl=229 // int_earley_parse
-         515 var pos=30 op1=4 decl=221 // grammar
-         516 move pos=39 op1=5 op2=0 move_decl=247 // 5 (tokens) <- 0
-         517 move pos=47 op1=6 op2=1 move_decl=248 // 6 (error_fun) <- 1
-         518 call pos=29 op1=3 op2=3 // call (start=3) (npars=3)
-         519 ret pos=5 op1=3
-         520 fbend pos=47 block=488
-
-       521 fun ln=150 pos=13 op1=2 decl=230 // int_earley_create_grammar
-       522 call pos=39 op1=2 op2=0 // call (start=2) (npars=0)
-       523 move pos=11 op1=1 op2=2 move_decl=221 // 1 (grammar) <- 2
-       524 fbend pos=13 block=419
-     250 fdecl ln=153 pos=13 ident=file ident_num=145 decl_scope=0 fblock=525
-     525 fblock pos=18 next=526 fdecl=250 class_p=1 scope=0 vars_num=1 tvars_num=2 ext_life_p=1 // ident=file
-       251 vdecl ln=154 pos=12 ident=file_ptr ident_num=146 decl_scope=525 var_num=0
-
-       526 class ln=155 pos=9 op1=1 decl=57 // callop
-       527 lds ln=156 pos=6 op1=2 str="File can be created only by functions open or popen" // 2 <- string
-       528 call pos=5 op1=1 op2=1 // call (start=1) (npars=1)
-       529 throw ln=155 pos=3 op1=1
-       530 fbend ln=156 pos=59 block=525
-     252 vdecl ln=157 pos=5 ident=stdin ident_num=147 decl_scope=0 var_num=7
-     253 vdecl ln=158 pos=5 ident=stdout ident_num=148 decl_scope=0 var_num=8
-     254 vdecl ln=159 pos=5 ident=stderr ident_num=149 decl_scope=0 var_num=9
-     255 fdecl ln=160 pos=5 ident=max ident_num=150 decl_scope=0 fblock=531
-     531 fblock pos=9 fdecl=255 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=max
-
-       532 fbend pos=9 block=531
-     256 fdecl pos=16 ident=min ident_num=151 decl_scope=0 fblock=533
-     533 fblock pos=20 fdecl=256 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=min
-
-       534 fbend pos=20 block=533
-     257 fdecl ln=161 pos=5 ident=tolower ident_num=152 decl_scope=0 fblock=535
-     535 fblock pos=13 fdecl=257 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tolower
-
-       536 fbend pos=13 block=535
-     258 fdecl pos=20 ident=toupper ident_num=153 decl_scope=0 fblock=537
-     537 fblock pos=28 fdecl=258 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=toupper
-
-       538 fbend pos=28 block=537
-     259 fdecl pos=35 ident=translit ident_num=154 decl_scope=0 fblock=539
-     539 fblock pos=44 fdecl=259 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=translit
-
-       540 fbend pos=44 block=539
-     260 fdecl ln=162 pos=5 ident=eltype ident_num=155 decl_scope=0 fblock=541
-     541 fblock pos=12 fdecl=260 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=eltype
-
-       542 fbend pos=12 block=541
-     261 fdecl ln=163 pos=5 ident=keys ident_num=156 decl_scope=0 fblock=543
-     543 fblock pos=10 fdecl=261 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=keys
-
-       544 fbend pos=10 block=543
-     262 fdecl ln=164 pos=5 ident=closure ident_num=157 decl_scope=0 fblock=545
-     545 fblock pos=13 fdecl=262 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=closure
-
-       546 fbend pos=13 block=545
-     263 fdecl pos=20 ident=context ident_num=158 decl_scope=0 fblock=547
-     547 fblock pos=28 fdecl=263 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=context
-
-       548 fbend pos=28 block=547
-     264 fdecl pos=35 ident=inside ident_num=159 decl_scope=0 fblock=549
-     549 fblock pos=42 fdecl=264 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=inside
-
-       550 fbend pos=42 block=549
-     265 fdecl pos=49 ident=isa ident_num=160 decl_scope=0 fblock=551
-     551 fblock pos=53 fdecl=265 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isa
-
-       552 fbend pos=53 block=551
-     266 fdecl ln=165 pos=5 ident=subv ident_num=161 decl_scope=0 fblock=553
-     553 fblock pos=10 fdecl=266 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=subv
-
-       554 fbend pos=10 block=553
-     267 fdecl pos=17 ident=cmpv ident_num=162 decl_scope=0 fblock=555
-     555 fblock pos=22 fdecl=267 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cmpv
-
-       556 fbend pos=22 block=555
-     268 fdecl pos=29 ident=del ident_num=163 decl_scope=0 fblock=557
-     557 fblock pos=33 fdecl=268 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=del
-
-       558 fbend pos=33 block=557
-     269 fdecl pos=40 ident=ins ident_num=164 decl_scope=0 fblock=559
-     559 fblock pos=44 fdecl=269 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ins
-
-       560 fbend pos=44 block=559
-     270 fdecl pos=52 ident=insv ident_num=165 decl_scope=0 fblock=561
-     561 fblock pos=57 fdecl=270 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=insv
-
-       562 fbend pos=57 block=561
-     271 fdecl ln=166 pos=5 ident=rev ident_num=166 decl_scope=0 fblock=563
-     563 fblock pos=9 fdecl=271 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rev
-
-       564 fbend pos=9 block=563
-     272 fdecl pos=16 ident=sort ident_num=167 decl_scope=0 fblock=565
-     565 fblock pos=21 fdecl=272 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sort
-
-       566 fbend pos=21 block=565
-     273 fdecl ln=167 pos=5 ident=sqrt ident_num=168 decl_scope=0 fblock=567
-     567 fblock pos=10 fdecl=273 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sqrt
-
-       568 fbend pos=10 block=567
-     274 fdecl pos=17 ident=exp ident_num=169 decl_scope=0 fblock=569
-     569 fblock pos=21 fdecl=274 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exp
-
-       570 fbend pos=21 block=569
-     275 fdecl pos=28 ident=log ident_num=170 decl_scope=0 fblock=571
-     571 fblock pos=32 fdecl=275 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log
-
-       572 fbend pos=32 block=571
-     276 fdecl pos=39 ident=log10 ident_num=171 decl_scope=0 fblock=573
-     573 fblock pos=45 fdecl=276 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=log10
-
-       574 fbend pos=45 block=573
-     277 fdecl pos=52 ident=pow ident_num=172 decl_scope=0 fblock=575
-     575 fblock pos=56 fdecl=277 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pow
-
-       576 fbend pos=56 block=575
-     278 fdecl ln=168 pos=5 ident=sin ident_num=173 decl_scope=0 fblock=577
-     577 fblock pos=9 fdecl=278 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sin
-
-       578 fbend pos=9 block=577
-     279 fdecl pos=16 ident=cos ident_num=174 decl_scope=0 fblock=579
-     579 fblock pos=20 fdecl=279 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=cos
-
-       580 fbend pos=20 block=579
-     280 fdecl pos=27 ident=atan2 ident_num=175 decl_scope=0 fblock=581
-     581 fblock pos=33 fdecl=280 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=atan2
-
-       582 fbend pos=33 block=581
-     281 fdecl ln=169 pos=5 ident=match ident_num=176 decl_scope=0 fblock=583
-     583 fblock pos=11 fdecl=281 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=match
-
-       584 fbend pos=11 block=583
-     282 fdecl pos=18 ident=gmatch ident_num=177 decl_scope=0 fblock=585
-     585 fblock pos=25 fdecl=282 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gmatch
-
-       586 fbend pos=25 block=585
-     283 fdecl pos=32 ident=sub ident_num=178 decl_scope=0 fblock=587
-     587 fblock pos=36 fdecl=283 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sub
-
-       588 fbend pos=36 block=587
-     284 fdecl pos=43 ident=gsub ident_num=179 decl_scope=0 fblock=589
-     589 fblock pos=48 fdecl=284 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gsub
-
-       590 fbend pos=48 block=589
-     285 fdecl ln=170 pos=5 ident=split ident_num=180 decl_scope=0 fblock=591
-     591 fblock pos=11 fdecl=285 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=split
-
-       592 fbend pos=11 block=591
-     286 vdecl pos=18 ident=split_regex ident_num=181 decl_scope=0 var_num=10
-     287 fdecl ln=171 pos=5 ident=srand ident_num=182 decl_scope=0 fblock=593
-     593 fblock pos=11 fdecl=287 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=srand
-
-       594 fbend pos=11 block=593
-     288 fdecl pos=18 ident=rand ident_num=183 decl_scope=0 fblock=595
-     595 fblock pos=23 fdecl=288 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rand
-
-       596 fbend pos=23 block=595
-     289 fdecl ln=172 pos=5 ident=__process_errno__ ident_num=184 decl_scope=0 fblock=597
-     597 fblock pos=23 fdecl=289 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__process_errno__
-
-       598 fbend pos=23 block=597
-     290 fdecl ln=173 pos=5 ident=readdir ident_num=185 decl_scope=0 fblock=599
-     599 fblock pos=13 fdecl=290 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=readdir
-
-       600 fbend pos=13 block=599
-     291 fdecl pos=20 ident=ftype ident_num=186 decl_scope=0 fblock=601
-     601 fblock pos=26 fdecl=291 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=ftype
-
-       602 fbend pos=26 block=601
-     292 fdecl ln=174 pos=5 ident=fuidn ident_num=187 decl_scope=0 fblock=603
-     603 fblock pos=11 fdecl=292 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fuidn
-
-       604 fbend pos=11 block=603
-     293 fdecl pos=18 ident=fgrpn ident_num=188 decl_scope=0 fblock=605
-     605 fblock pos=24 fdecl=293 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgrpn
-
-       606 fbend pos=24 block=605
-     294 fdecl pos=31 ident=fsize ident_num=189 decl_scope=0 fblock=607
-     607 fblock pos=37 fdecl=294 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fsize
-
-       608 fbend pos=37 block=607
-     295 fdecl ln=175 pos=5 ident=fatime ident_num=190 decl_scope=0 fblock=609
-     609 fblock pos=12 fdecl=295 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fatime
-
-       610 fbend pos=12 block=609
-     296 fdecl pos=19 ident=fmtime ident_num=191 decl_scope=0 fblock=611
-     611 fblock pos=26 fdecl=296 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fmtime
-
-       612 fbend pos=26 block=611
-     297 fdecl pos=33 ident=fctime ident_num=192 decl_scope=0 fblock=613
-     613 fblock pos=40 fdecl=297 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fctime
-
-       614 fbend pos=40 block=613
-     298 fdecl ln=176 pos=5 ident=fumode ident_num=193 decl_scope=0 fblock=615
-     615 fblock pos=12 fdecl=298 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fumode
-
-       616 fbend pos=12 block=615
-     299 fdecl pos=19 ident=fgmode ident_num=194 decl_scope=0 fblock=617
-     617 fblock pos=26 fdecl=299 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgmode
-
-       618 fbend pos=26 block=617
-     300 fdecl pos=33 ident=fomode ident_num=195 decl_scope=0 fblock=619
-     619 fblock pos=40 fdecl=300 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fomode
-
-       620 fbend pos=40 block=619
-     301 fdecl ln=177 pos=5 ident=time ident_num=196 decl_scope=0 fblock=621
-     621 fblock pos=10 fdecl=301 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=time
-
-       622 fbend pos=10 block=621
-     302 fdecl ln=178 pos=5 ident=strtime ident_num=197 decl_scope=0 fblock=623
-     623 fblock pos=13 fdecl=302 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=strtime
-
-       624 fbend pos=13 block=623
-     303 vdecl pos=20 ident=time_format ident_num=198 decl_scope=0 var_num=11
-     304 fdecl ln=179 pos=5 ident=clock ident_num=199 decl_scope=0 fblock=625
-     625 fblock pos=11 fdecl=304 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=clock
-
-       626 fbend pos=11 block=625
-     305 fdecl ln=180 pos=5 ident=gc ident_num=200 decl_scope=0 fblock=627
-     627 fblock pos=8 fdecl=305 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=gc
-
-       628 fbend pos=8 block=627
-     306 fdecl ln=181 pos=5 ident=rename ident_num=201 decl_scope=0 fblock=629
-     629 fblock pos=12 fdecl=306 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rename
-
-       630 fbend pos=12 block=629
-     307 fdecl pos=19 ident=remove ident_num=202 decl_scope=0 fblock=631
-     631 fblock pos=26 fdecl=307 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=remove
-
-       632 fbend pos=26 block=631
-     308 fdecl ln=182 pos=5 ident=mkdir ident_num=203 decl_scope=0 fblock=633
-     633 fblock pos=11 fdecl=308 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=mkdir
-
-       634 fbend pos=11 block=633
-     309 fdecl pos=18 ident=rmdir ident_num=204 decl_scope=0 fblock=635
-     635 fblock pos=24 fdecl=309 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=rmdir
-
-       636 fbend pos=24 block=635
-     310 fdecl ln=183 pos=5 ident=getcwd ident_num=205 decl_scope=0 fblock=637
-     637 fblock pos=12 fdecl=310 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getcwd
-
-       638 fbend pos=12 block=637
-     311 fdecl pos=19 ident=chdir ident_num=206 decl_scope=0 fblock=639
-     639 fblock pos=25 fdecl=311 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chdir
-
-       640 fbend pos=25 block=639
-     312 fdecl ln=184 pos=5 ident=chumod ident_num=207 decl_scope=0 fblock=641
-     641 fblock pos=12 fdecl=312 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chumod
-
-       642 fbend pos=12 block=641
-     313 fdecl pos=19 ident=chgmod ident_num=208 decl_scope=0 fblock=643
-     643 fblock pos=26 fdecl=313 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chgmod
-
-       644 fbend pos=26 block=643
-     314 fdecl pos=33 ident=chomod ident_num=209 decl_scope=0 fblock=645
-     645 fblock pos=40 fdecl=314 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=chomod
-
-       646 fbend pos=40 block=645
-     315 fdecl pos=47 ident=isatty ident_num=210 decl_scope=0 fblock=647
-     647 fblock pos=54 fdecl=315 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=isatty
-
-       648 fbend pos=54 block=647
-     316 fdecl ln=185 pos=5 ident=open ident_num=211 decl_scope=0 fblock=649
-     649 fblock pos=10 fdecl=316 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=open
-
-       650 fbend pos=10 block=649
-     317 fdecl pos=17 ident=close ident_num=212 decl_scope=0 fblock=651
-     651 fblock pos=23 fdecl=317 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=close
-
-       652 fbend pos=23 block=651
-     318 fdecl pos=30 ident=flush ident_num=213 decl_scope=0 fblock=653
-     653 fblock pos=36 fdecl=318 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=flush
-
-       654 fbend pos=36 block=653
-     319 fdecl ln=186 pos=5 ident=popen ident_num=214 decl_scope=0 fblock=655
-     655 fblock pos=11 fdecl=319 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=popen
-
-       656 fbend pos=11 block=655
-     320 fdecl pos=18 ident=pclose ident_num=215 decl_scope=0 fblock=657
-     657 fblock pos=25 fdecl=320 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=pclose
-
-       658 fbend pos=25 block=657
-     321 fdecl ln=187 pos=5 ident=tell ident_num=216 decl_scope=0 fblock=659
-     659 fblock pos=10 fdecl=321 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=tell
-
-       660 fbend pos=10 block=659
-     322 fdecl pos=17 ident=seek ident_num=217 decl_scope=0 fblock=661
-     661 fblock pos=22 fdecl=322 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=seek
-
-       662 fbend pos=22 block=661
-     323 fdecl ln=188 pos=5 ident=put ident_num=218 decl_scope=0 fblock=663
-     663 fblock pos=9 fdecl=323 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=put
-
-       664 fbend pos=9 block=663
-     324 fdecl pos=16 ident=putln ident_num=219 decl_scope=0 fblock=665
-     665 fblock pos=22 fdecl=324 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putln
-
-       666 fbend pos=22 block=665
-     325 fdecl ln=189 pos=5 ident=fput ident_num=220 decl_scope=0 fblock=667
-     667 fblock pos=10 fdecl=325 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fput
-
-       668 fbend pos=10 block=667
-     326 fdecl pos=17 ident=fputln ident_num=221 decl_scope=0 fblock=669
-     669 fblock pos=24 fdecl=326 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputln
-
-       670 fbend pos=24 block=669
-     327 fdecl pos=31 ident=sput ident_num=222 decl_scope=0 fblock=671
-     671 fblock pos=36 fdecl=327 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sput
-
-       672 fbend pos=36 block=671
-     328 fdecl pos=43 ident=sputln ident_num=223 decl_scope=0 fblock=673
-     673 fblock pos=50 fdecl=328 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputln
-
-       674 fbend pos=50 block=673
-     329 fdecl ln=190 pos=5 ident=putf ident_num=224 decl_scope=0 fblock=675
-     675 fblock pos=10 fdecl=329 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=putf
-
-       676 fbend pos=10 block=675
-     330 fdecl pos=17 ident=fputf ident_num=225 decl_scope=0 fblock=677
-     677 fblock pos=23 fdecl=330 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fputf
-
-       678 fbend pos=23 block=677
-     331 fdecl pos=30 ident=sputf ident_num=226 decl_scope=0 fblock=679
-     679 fblock pos=36 fdecl=331 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sputf
-
-       680 fbend pos=36 block=679
-     332 fdecl ln=191 pos=5 ident=print ident_num=227 decl_scope=0 fblock=681
-     681 fblock pos=11 fdecl=332 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=print
-
-       682 fbend pos=11 block=681
-     333 fdecl pos=18 ident=println ident_num=228 decl_scope=0 fblock=683
-     683 fblock pos=26 fdecl=333 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=println
-
-       684 fbend pos=26 block=683
-     334 fdecl ln=192 pos=5 ident=fprint ident_num=229 decl_scope=0 fblock=685
-     685 fblock pos=12 fdecl=334 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprint
-
-       686 fbend pos=12 block=685
-     335 fdecl pos=19 ident=fprintln ident_num=230 decl_scope=0 fblock=687
-     687 fblock pos=28 fdecl=335 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fprintln
-
-       688 fbend pos=28 block=687
-     336 fdecl pos=35 ident=sprint ident_num=231 decl_scope=0 fblock=689
-     689 fblock pos=42 fdecl=336 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprint
-
-       690 fbend pos=42 block=689
-     337 fdecl pos=49 ident=sprintln ident_num=232 decl_scope=0 fblock=691
-     691 fblock pos=58 fdecl=337 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=sprintln
-
-       692 fbend pos=58 block=691
-     338 fdecl ln=193 pos=5 ident=get ident_num=233 decl_scope=0 fblock=693
-     693 fblock pos=9 fdecl=338 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=get
-
-       694 fbend pos=9 block=693
-     339 fdecl pos=16 ident=getln ident_num=234 decl_scope=0 fblock=695
-     695 fblock pos=22 fdecl=339 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getln
-
-       696 fbend pos=22 block=695
-     340 fdecl pos=29 ident=getf ident_num=235 decl_scope=0 fblock=697
-     697 fblock pos=34 fdecl=340 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getf
-
-       698 fbend pos=34 block=697
-     341 fdecl ln=194 pos=5 ident=fget ident_num=236 decl_scope=0 fblock=699
-     699 fblock pos=10 fdecl=341 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fget
-
-       700 fbend pos=10 block=699
-     342 fdecl pos=17 ident=fgetln ident_num=237 decl_scope=0 fblock=701
-     701 fblock pos=24 fdecl=342 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetln
-
-       702 fbend pos=24 block=701
-     343 fdecl pos=31 ident=fgetf ident_num=238 decl_scope=0 fblock=703
-     703 fblock pos=37 fdecl=343 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fgetf
-
-       704 fbend pos=37 block=703
-     344 fdecl ln=195 pos=5 ident=scan ident_num=239 decl_scope=0 fblock=705
-     705 fblock pos=10 fdecl=344 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scan
-
-       706 fbend pos=10 block=705
-     345 fdecl pos=17 ident=scanln ident_num=240 decl_scope=0 fblock=707
-     707 fblock pos=24 fdecl=345 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=scanln
-
-       708 fbend pos=24 block=707
-     346 fdecl pos=31 ident=fscan ident_num=241 decl_scope=0 fblock=709
-     709 fblock pos=37 fdecl=346 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscan
-
-       710 fbend pos=37 block=709
-     347 fdecl pos=44 ident=fscanln ident_num=242 decl_scope=0 fblock=711
-     711 fblock pos=52 fdecl=347 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fscanln
-
-       712 fbend pos=52 block=711
-     348 fdecl ln=196 pos=5 ident=getpid ident_num=243 decl_scope=0 fblock=713
-     713 fblock pos=12 fdecl=348 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getpid
-
-       714 fbend pos=12 block=713
-     349 fdecl pos=19 ident=getun ident_num=244 decl_scope=0 fblock=715
-     715 fblock pos=25 fdecl=349 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getun
-
-       716 fbend pos=25 block=715
-     350 fdecl pos=32 ident=geteun ident_num=245 decl_scope=0 fblock=717
-     717 fblock pos=39 fdecl=350 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=geteun
-
-       718 fbend pos=39 block=717
-     351 fdecl ln=197 pos=5 ident=getgn ident_num=246 decl_scope=0 fblock=719
-     719 fblock pos=11 fdecl=351 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgn
-
-       720 fbend pos=11 block=719
-     352 fdecl pos=18 ident=getegn ident_num=247 decl_scope=0 fblock=721
-     721 fblock pos=25 fdecl=352 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getegn
-
-       722 fbend pos=25 block=721
-     353 fdecl pos=32 ident=getgroups ident_num=248 decl_scope=0 fblock=723
-     723 fblock pos=42 fdecl=353 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=getgroups
-
-       724 fbend pos=42 block=723
-     354 fdecl ln=198 pos=5 ident=system ident_num=249 decl_scope=0 fblock=725
-     725 fblock pos=12 fdecl=354 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=system
-
-       726 fbend pos=12 block=725
-     355 fdecl ln=199 pos=5 ident=exit ident_num=250 decl_scope=0 fblock=727
-     727 fblock pos=10 fdecl=355 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=exit
-
-       728 fbend pos=10 block=727
-     356 fdecl ln=200 pos=5 ident=fold ident_num=251 decl_scope=0 fblock=729
-     729 fblock pos=10 fdecl=356 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=fold
-
-       730 fbend pos=10 block=729
-     357 fdecl pos=17 ident=filter ident_num=252 decl_scope=0 fblock=731
-     731 fblock pos=24 fdecl=357 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=filter
-
-       732 fbend pos=24 block=731
-     358 fdecl pos=31 ident=map ident_num=253 decl_scope=0 fblock=733
-     733 fblock pos=35 fdecl=358 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=map
-
-       734 fbend pos=35 block=733
-     359 fdecl ln=201 pos=5 ident=transpose ident_num=254 decl_scope=0 fblock=735
-     735 fblock pos=15 fdecl=359 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=transpose
-
-       736 fbend pos=15 block=735
-     360 fdecl ln=202 pos=5 ident=__init__ ident_num=255 decl_scope=0 fblock=737
-     737 fblock pos=14 fdecl=360 fun_p=1 scope=0 vars_num=0 tvars_num=0 // ident=__init__
-
-       738 fbend pos=14 block=737
-//-----------------------test.d---------------------------
-     361 vdecl fn="test.d" ln=1 pos=5 ident=SieveSize ident_num=256 decl_scope=0 var_num=12
-     362 vdecl pos=16 ident=i ident_num=257 decl_scope=0 var_num=13
-     363 vdecl pos=19 ident=prime ident_num=258 decl_scope=0 var_num=14
-     364 vdecl pos=26 ident=k ident_num=259 decl_scope=0 var_num=15
-     365 vdecl pos=29 ident=count ident_num=260 decl_scope=0 var_num=16
-     366 vdecl pos=36 ident=flags ident_num=261 decl_scope=0 var_num=17
-
-//-----------------------<environment>----------------------------
-     739 class fn="<environment>" ln=108 pos=17 op1=18 decl=212 // anode
-     740 lds pos=24 op1=19 str="$nil" // 19 <- string
-     741 ldnil pos=32 op1=20 // 20 <- nil
-     742 call pos=23 op1=18 op2=2 // call (start=18) (npars=2)
-     743 move pos=15 op1=5 op2=18 move_decl=217 // 5 (nil_anode) <- 18
-     744 class ln=109 pos=19 op1=18 decl=212 // anode
-     745 lds pos=26 op1=19 str="$error" // 19 <- string
-     746 ldnil pos=36 op1=20 // 20 <- nil
-     747 call pos=25 op1=18 op2=2 // call (start=18) (npars=2)
-     748 move pos=17 op1=6 op2=18 move_decl=218 // 6 (error_anode) <- 18
-     749 lds ln=170 pos=32 op1=10 str="[ \t]+" // 10 <- string
-     750 lds ln=178 pos=34 op1=11 str="%a %b %d %H:%M:%S %Z %Y" // 11 <- string
-     751 ibcall ln=202 pos=25 cfblock=737 op1=18 op2=0
-//-----------------------test.d----------------------------
-     752 ldi fn="test.d" ln=2 pos=13 op1=12 op2=8190 // 12 <- i8190
-     753 addi ln=4 pos=20 pos2=10 pos3=22 op1=18 op2=12 op3=1 // 18 <- 12 + i1
-     754 ldi pos=26 op1=19 op2=0 // 19 <- i0
-     755 vec pos=9 op1=17 op2=18 op3=1 // 17 <- [els=18, nparts=1]
-     756 ldi ln=5 pos=9 op1=16 op2=0 // 16 <- i0
-     757 ldi ln=6 pos=10 next=761 op1=13 op2=0 // 13 <- i0
-     758 ldi ln=7 pos=14 op1=18 op2=1 // 18 <- i1
-     759 stvt pos=12 pos2=8 op1=17 op2=13 op3=18
-     760 btleinc ln=6 pos=15 next=762 op1=13 binc_inc=1 bcmp_op2=12 bcmp_res=18 pc=758 // goto 758 if 18 <- (13 += i1) cmp 12
-     761 btle pos=15 op1=13 bcmp_op2=12 bcmp_res=18 pc=758 // goto 758 if 18 <- 13 cmp 12
-     762 ldi ln=8 pos=10 next=777 op1=13 op2=0 // 13 <- i0
-     763 ind ln=9 pos=12 op1=18 op2=17 op3=13 // 18 <- 17[13]
-     764 lconv pos=12 op1=18 op2=18 // 18 <- 18
-     765 bf pos=12 op1=18 pc=776 // goto 776 unless 18
-     766 add ln=11 pos=17 pos2=15 pos3=19 op1=18 op2=13 op3=13 // 18 <- 13 op 13
-     767 addi pos=21 pos2=17 pos3=23 op1=14 op2=18 op3=3 // 14 <- 18 + i3
-     768 add ln=12 pos=13 pos2=11 pos3=15 next=773 op1=15 op2=13 op3=14 // 15 <- 13 op 14
-     769 btle ln=15 pos=21 next=775 op1=15 bcmp_op2=12 bcmp_res=18 pc=770 // goto 770 if 18 <- 15 cmp 12
-     770 ldi ln=17 pos=22 op1=18 op2=0 // 18 <- i0
-     771 stvt pos=20 pos2=16 op1=17 op2=15 op3=18
-     772 add ln=18 pos=13 pos2=11 op1=15 op2=15 op3=14 // 15 <- 15 op 14
-     773 ldi ln=13 pos=13 op1=18 op2=1 // 18 <- i1
-     774 bt pos=13 op1=18 pc=769 // goto 769 if 18
-     775 addi ln=20 pos=12 pos2=7 op1=16 op2=16 op3=1 // 16 <- 16 + i1
-     776 btleinc ln=8 pos=15 next=778 op1=13 binc_inc=1 bcmp_op2=12 bcmp_res=18 pc=763 // goto 763 if 18 <- (13 += i1) cmp 12
-     777 btle pos=15 op1=13 bcmp_op2=12 bcmp_res=18 pc=763 // goto 763 if 18 <- 13 cmp 12
-     778 move ln=23 pos=10 op1=18 op2=16 move_decl=365 // 18 (count) <- 16
-     779 ibcall pos=9 cfblock=683 op1=18 op2=1
-     780 bend pos=10 block=0
+            echo '      ' $DINO -i "$stdout" ">$ftemp 2>&1"
+            if $DINO -i "$stdout" > "$ftemp" 2>&1; then
+                 echo '      ' $CMP $ftemp2 $ftemp
+                 if cat >$ftemp2 <<'OUTPUT584' && $CMP $ftemp $ftemp2; then
+1899
 OUTPUT584
-                        result=ok
-                else
-                        result=fail
-                fi
+                      result=ok
+                  else
+                      result=fail
+                  fi
+            fi
         else
                 result=fail
         fi
@@ -36422,57 +35045,45 @@ fi
 
 # Test 585.
 if test $result = ok -a $start_test_number -le 585; then
-	echo test 585: Read/write dump
+	echo test 585: Read/write optimized code
         cat >$test_file <<'TEST585'
-class node (item, left, right) {}
+var SieveSize, i, prime, k, count, flags;
+SieveSize = 8190;
 
-fun BottomUpTree (item, depth) {
-  if (depth <= 0) return item;
-  var i = item + item;
+flags = [SieveSize + 1 : 0];
+count = 0;
+for (i = 0; i <= SieveSize; i++)
+  flags[i] = 1;
+for (i = 0; i <= SieveSize; i++;)
+  if (flags[i])
+    {
+      prime = i + i + 3;
+      k = i + prime;
+      for (;1;;)
+        {
+          if (k > SieveSize)
+            break;
+          flags[k] = 0;
+          k += prime;
+        }
+      count++;
+    }
 
-  depth--;
-  return node (item, BottomUpTree (i - 1, depth), BottomUpTree (i, depth));
-}
-
-fun ItemCheck (tree) {
-  return (type (tree) != obj
-	  ? tree : tree.item + ItemCheck (tree.left) - ItemCheck (tree.right));
-}
-
-var N = int (#argv < 1 ? 0 : argv [0]);
-var mindepth = 4, maxdepth = max (N, mindepth + 2);
-var stretchdepth = maxdepth + 1, stretchtree = BottomUpTree (0, stretchdepth);
-
-putf ("stretch tree of depth %d\t  check: %d\n", stretchdepth,
-      ItemCheck (stretchtree));
-
-var i, depth, longlivedtree = BottomUpTree (0, maxdepth);
-
-for (depth = mindepth; depth <= maxdepth; depth += 2) {
-  var iterations = 1 << (maxdepth - depth + mindepth), check = 0;
-
-  for (i = 0; i < iterations; i++)
-    check += (ItemCheck (BottomUpTree (1, depth))
-	      + ItemCheck (BottomUpTree (-1, depth)));
-  putf ("%d\t  trees of depth %d\t  check: %d\n", iterations*2, depth, check);
-}
-
-putf ("long lived tree of depth %d\t  check: %d\n",
-      maxdepth, ItemCheck (longlivedtree));
+println (count);
 TEST585
-        echo '      ' $DINO -d $test_file ">$stdout"
-        if $DINO -d $test_file 2>$stderr >$stdout; then
-            echo '      ' $DINO -d -i "$stdout" ">$ftemp2"
-            if $DINO -d -i "$stdout" > "$ftemp2" 2>$stderr; then
-                echo '      ' $CMP $stdout $ftemp2
-                if $CMP $stdout $ftemp2; then
-                        result=ok
-                else
-                        result=fail
-                fi
-	    else
-                result=fail
-	    fi
+        echo '      ' $DINO '-d -O' $test_file ">$stdout"
+        if $DINO -d -O $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -i "$stdout" ">$ftemp >2&1"
+            if $DINO -i "$stdout" > "$ftemp" 2>&1; then
+                 echo '      ' $CMP $ftemp2 $ftemp
+                 if cat >$ftemp2 <<'OUTPUT585' && $CMP $ftemp $ftemp2; then
+1899
+OUTPUT585
+                      result=ok
+                  else
+                      result=fail
+                  fi
+            fi
         else
                 result=fail
         fi
@@ -48026,6 +46637,460 @@ OUTPUT751
                     echo '      ' $CMP - $stdout
                     if cat >$ftemp2 <<'OUTPUT751-2' && $CMP $stdout $ftemp2; then
 OUTPUT751-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 752.
+if test $result = ok -a $start_test_number -le 752; then
+	echo test 752: Bug: Returning from JIT to non-function block
+        cat >$test_file <<'TEST752'
+fun g (i) { i; }
+fun f !jit {
+  for (var i = 0; i < 1000000; i++) {
+    val k = i;
+    g (k * 2);
+  }
+}
+
+f();
+
+putln ("end");
+TEST752
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT752' && $CMP $stdout $ftemp2; then
+end
+OUTPUT752
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 753.
+if test $result = ok -a $start_test_number -le 753; then
+	echo test 753: Bug: Using decl from the same stmt in anon fun
+        cat >$test_file <<'TEST753'
+val xs = [1,2,3,4,5];
+val x = xs [0], v = map (fun (xx) { x + xx; }, xs);
+println (v);
+TEST753
+        echo '      ' $DINO $test_file "2>$stderr"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT753' && $CMP $stdout $ftemp2; then
+[2, 3, 4, 5, 6]
+OUTPUT753
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 754
+if test $result = ok -a $start_test_number -le 754; then
+	echo test 754: Bug in use of forward declaration
+        cat >$test_file <<'TEST754'
+class c {fun op;}
+class sc {use c;}
+val v = sc().op();
+TEST754
+        echo '      ' "$DINO $test_file 2>$stderr >$stdout"
+        if $DINO $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT754' && $CMP $stderr $ftemp2; then
+test.d:3:13: run time error - undefined class or function `op'
+OUTPUT754
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT754-2' && $CMP $stdout $ftemp2; then
+OUTPUT754-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 755
+if test $result = ok -a $start_test_number -le 755; then
+	echo test 755: Bug in abstract definition inheritance
+        cat >$test_file <<'TEST755'
+class binop (l, r) {
+  fun op;
+  fun show {put ('('); l.show (); putln (); put (op ()); r.show (); put (')');}
+}
+
+class v (i) {
+  fun show {put (i);}
+}
+
+var o = binop (v(1), v(2));
+o.show ();
+TEST755
+        echo '      ' "$DINO '-O' $test_file 2>$stderr >$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT755' && $CMP $stderr $ftemp2; then
+test.d:3:53: run time error - unfinished fun/class `op' call
+OUTPUT755
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT755-2' && $CMP $stdout $ftemp2; then
+(1
+OUTPUT755-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 756
+if test $result = ok -a $start_test_number -le 756; then
+	echo test 756: Bug in abstract definition access
+        cat >$test_file <<'TEST756'
+class c {fun op;}
+val v = c().op ();
+TEST756
+        echo '      ' "$DINO '-O' $test_file 2>$stderr >$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP - $stderr
+                if cat >$ftemp2 <<'OUTPUT756' && $CMP $stderr $ftemp2; then
+test.d:2:12: run time error - undefined class or function `op'
+OUTPUT756
+                    echo '      ' $CMP - $stdout
+                    if cat >$ftemp2 <<'OUTPUT756-2' && $CMP $stdout $ftemp2; then
+OUTPUT756-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 757.
+if test $result = ok -a $start_test_number -le 757; then
+	echo test 757: Bug in abstract definition inheritance: write/read dump
+        cat >$test_file <<'TEST757'
+class binop (l, r) {
+  fun op;
+  fun show {put ('('); l.show (); putln (); put (op ()); r.show (); put (')');}
+}
+
+class v (i) {
+  fun show {put (i);}
+}
+
+var o = binop (v(1), v(2));
+o.show ();
+TEST757
+        echo '      ' $DINO '-d -O' $test_file ">$stdout"
+        if $DINO -d -O $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -i "$stdout" ">$ftemp"
+            if $DINO -i "$stdout" > "$ftemp" 2>$stderr; then
+                result=fail
+            else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT757' && $CMP $stderr $ftemp2; then
+test.d:3:53: run time error - unfinished fun/class `op' call
+OUTPUT757
+                    echo '      ' $CMP $ftemp2 $ftemp
+                    if cat >$ftemp2 <<'OUTPUT757-2' && $CMP $ftemp $ftemp2; then
+(1
+OUTPUT757-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+            fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 758.
+if test $result = ok -a $start_test_number -le 758; then
+	echo test 758: Bug in abstract definition access: write/read dump
+        cat >$test_file <<'TEST758'
+class c {fun op;}
+val v = c().op ();
+TEST758
+        echo '      ' $DINO '-d -O' $test_file ">$stdout"
+        if $DINO -d -O $test_file 2>$stderr >$stdout; then
+            echo '      ' $DINO -i "$stdout" ">$ftemp"
+            if $DINO -i "$stdout" > "$ftemp" 2>$stderr; then
+                result=fail
+            else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT758' && $CMP $stderr $ftemp2; then
+test.d:2:12: run time error - undefined class or function `op'
+OUTPUT758
+                    echo '      ' $CMP $ftemp2 $ftemp
+                    if cat >$ftemp2 <<'OUTPUT758-2' && $CMP $ftemp $ftemp2; then
+OUTPUT758-2
+                          result=ok
+                    else
+                          result=fail
+                    fi
+                else
+                        result=fail
+                fi
+            fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 759.
+if test $result = ok -a $start_test_number -le 759; then
+	echo test 759: Countdown problem without pattern matching
+        cat >$test_file <<'TEST759'
+val false = 0, true = 1;
+// Expressions:
+class binop (l, r) {
+  fun op;
+  fun show {put ('('); l.show (); put (op ()); r.show (); put (')');}
+}
+class add (l, r) { use binop former l, r later op; fun op {"+";} }
+class sub (l, r) { use binop former l, r later op; fun op {"-";} }
+class mul (l, r) { use binop former l, r later op; fun op {"*";} }
+class div (l, r) { use binop former l, r later op; fun op {"/";} }
+class value (i) { fun show { put (i); } }
+
+fun valid (op, l, r) {
+  if (isa (op, sub)) return l > r;
+  else if (isa (op, div)) return l % r == 0;
+  return true;
+}
+
+fun apply (op, l, r) {
+  if (isa (op, add)) return l + r;
+  if (isa (op, sub)) return l - r;
+  if (isa (op, mul)) return l * r;
+  if (isa (op, div)) return l / r;
+}
+
+fun values (e) {
+  if (isa (e, value)) return [e.i];
+  if (isa (e, binop)) return values (e.l) @ values (e.r);
+}
+
+fun eval (e) {
+  if (isa (e, value)) return e.i > 0 ? e.i : nil;
+  if (isa (e, binop)) {
+    var x, y, re, res = nil;
+    x = eval (e.l); y = eval (e.r);
+    if (x != nil && y != nil) {
+      val c = closure (e);
+      if (valid (c, x, y))
+        res = apply (c, x, y);
+    }
+    return res;
+  }
+}
+
+// Combinatorial functions:
+fun subs (xs) {
+  if (#xs == 0) return [[]];
+  val x = xs[0], yss = subs (xs[1:]);
+  yss @ map (fun (ys) { [x] @ ys; }, yss);
+}
+
+fun interleave (x, ys) {
+  if (#ys == 0) return [[x]];
+  val y = ys[0], ys = ys[1:];
+  [[x, y] @ ys] @ map (fun (l) { [y] @ l; }, interleave (x, ys));
+}
+
+fun perms (xs) {
+  if (#xs == 0) return [[]];
+  val x = xs[0], xs = xs[1:];
+  var res = [], rs = map (fun (xx) { interleave (x, xx); }, perms (xs));
+  for (var i = 0; i < #rs; i++)
+    res @= rs[i];
+  res;
+}
+
+fun choices (xs) {
+  var res = [], yss = subs (xs);
+  for (var i = 0; i < #yss; i++)
+    res @= perms (yss[i]);
+  res;
+}
+
+fun solution_p (e, ns, n) {
+  val vs = values (e), css = choices (ns);
+  for (var i = 0; i < #css; i++)
+    if (vs == css[i]) return eval (e) == n;
+  return false;
+}
+
+fun split (xs) {
+  if (#xs <= 1) return [];
+  val x = xs[0], xs = xs[1:], xsss = split (xs);
+  [[[x], xs]] @ map (fun (xss) { [[x] @ xss[0], xss[1]]; }, xsss);
+}
+
+fun ops { [add, sub, mul, div]; }
+fun combine (e1, e2) {
+  var res = [], ops = ops ();
+  for (var i = 0; i < #ops; i++)
+    ins (res, ops[i] (e1, e2), -1);
+  res;
+}
+
+fun exprs (xs) {
+  if (#xs == 0) return [];
+  if (#xs == 1) return [value (xs[0])];
+  val nss = split (xs); var res = [];
+  for (var i = 0; i < #nss; i++) {
+    var ls = nss[i][0], rs = nss[i][1], ls = exprs (ls), rs = exprs (rs);
+    for (var j = 0; j < #ls; j++)
+      for (var k = 0; k < #rs; k++)
+        insv (res, combine (ls[j], rs[k]), -1);
+  }
+  res;
+}
+
+fun solutions (ns, n) {
+  val nss = choices (ns); var res = [];
+  for (var i = 0; i < #nss; i++) {
+    val es = exprs (nss[i]);
+    for (var j = 0; j < #es; j++)
+      if (eval (es[j]) == n)
+	res @= [es[j]];
+  }
+  res;
+}
+
+var valid_fun;
+
+fun combine2 (lv, rv) !jit {
+  val l = lv[0], x = lv[1], r = rv[0], y = rv[1], res = [], ops = ops ();
+  for (var i = 0; i < #ops; i++) {
+    var o = ops[i];
+    if (valid_fun (o, x, y))
+      ins (res, [o (l, r), apply (o, x, y)], -1);
+  }
+  res;
+}
+
+fun results (ns) {
+  if (#ns == 0) return [];
+  if (#ns == 1) return (ns[0] <= 0 ? [] : [[value (ns[0]), ns[0]]]);
+  val res = [], xsss = split (ns);
+  for (var i = 0; i < #xsss; i++) {
+    val lx = results (xsss[i][0]), ry = results (xsss[i][1]);
+    for (var j = 0; j < #lx; j++)
+      for (var k = 0; k < #ry; k++)
+        insv (res, combine2 (lx[j], ry[k]), -1);
+  }
+  res;
+}
+
+fun common_solutions (ns, n) {
+  val nss = choices (ns); var res = [];
+  for (var i = 0; i < #nss; i++) {
+    val rs = results (nss[i]);
+    for (var j = 0; j < #rs; j++)
+      if (rs[j][1] == n)
+	ins (res, rs[j][0], -1);
+  }
+  res;
+}
+
+fun solutions2 (ns, n) {
+  valid_fun = valid;
+  common_solutions (ns, n);
+}
+
+fun valid2 (op, l, r) !jit {
+  if (isa (op, add)) return l <= r;
+  if (isa (op, sub)) return l > r;
+  if (isa (op, mul)) return l != 1 && r != 1 && l <= r;
+  if (isa (op, div)) return r != 1 && l % r == 0;
+}
+
+fun solutions3 (ns, n) {
+  valid_fun = valid2;
+  common_solutions (ns, n);
+}
+
+val ss = solutions3 ([1, 3, 7, 10, 25, 50], 765);
+putln (#ss, " expressions found.  The first one:");
+ss[0].show ();putln ();
+TEST759
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT759' && $CMP $stdout $ftemp2; then
+49 expressions found.  The first one:
+(3*((7*(50-10))-25))
+OUTPUT759
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 760.
+if test $result = ok -a $start_test_number -le 760; then
+	echo test 760: Undefined destroy
+        cat >$test_file <<'TEST760'
+class object {
+  priv fun destroy;
+}
+
+var i;
+for (i = 0; i < 20; i++)
+  object ();
+gc ();
+TEST760
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT760' && $CMP $stderr $ftemp2; then
+test.d:2:12: run time error - unfinished fun/class `destroy' call
+OUTPUT760
+                    echo '      ' $CMP $ftemp2 $stdout
+                    if cat >$ftemp2 <<'OUTPUT760-2' && $CMP $stdout $ftemp2; then
+OUTPUT760-2
                           result=ok
                     else
                           result=fail

@@ -1017,7 +1017,8 @@ create_block (BC_node_t bc_block)
   return block;
 }
 
-/* Create insns starting with BC code START and definition map.  */
+/* Create insns starting with BC block code START and definition
+   map.  */
 static void
 create_insns (BC_node_t start)
 {
@@ -1063,13 +1064,18 @@ create_insns (BC_node_t start)
 	}
       add_insn (insn);
     }
-  assert (block == NULL);
+  assert (block == NULL
+	  /* It might be forward decl fun without definition.  */
+	  || BC_next (start) == NULL);
   insns = VLO_BEGIN (insns_vlo);
   assert (all_insns_num == insns_num
 	  && insns_num == VLO_LENGTH (insns_vlo) / sizeof (df_insn_t));
   def_insns = VLO_BEGIN (def_insns_vlo);
   assert (def_insns_num == VLO_LENGTH (def_insns_vlo) / sizeof (df_insn_t));
-  assert (VLO_LENGTH (block_stack_vlo) == 0);
+  assert (VLO_LENGTH (block_stack_vlo) == 0
+	  /* It might be forward decl fun without definition.  */
+	  || (BC_next (start) == NULL
+	      && VLO_LENGTH (block_stack_vlo) == sizeof (df_insn_t)));
   VLO_DELETE (block_stack_vlo);
 }
 
@@ -1187,11 +1193,17 @@ add_cfg_edge (cfg_bb_t src, cfg_bb_t dest)
 static int inline
 imcall_to_consider_p (BC_node_t bc)
 {
+  BC_node_t fblock;
   df_insn_t dest_insn;
 
   if (! BC_IS_OF_TYPE (bc, BC_NM_imcall))
     return FALSE;
-  dest_insn = BC_aux (BC_info (BC_cfblock (bc)));
+  fblock = BC_cfblock (bc);
+  /* We ignore impossible calls of forward decl fun without
+     definition.  */
+  if (BC_next (fblock) == NULL)
+    return FALSE;
+  dest_insn = BC_aux (BC_info (fblock));
   return ! dest_insn->block->fun_p;
 }
 
@@ -1502,6 +1514,10 @@ build_call_def_use (df_insn_t insn, cspset_t *avail)
   if (! BC_IS_OF_TYPE (bc, BC_NM_imcall))
     return;
   fblock = BC_cfblock (bc);
+  /* We ignore impossible calls of forward decl fun without
+     definition.  */
+  if (BC_next (fblock) == NULL)
+    return;
   fblock_insn = BC_aux (BC_info (fblock));
   /* It might be accessible by generic call.  Don't connect args in
      this case.  */

@@ -1530,7 +1530,7 @@ process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
       IR_set_assignment_expr (init, expr);
       IR_set_next_stmt (res, init);
       IR_set_next_stmt (init, res);
-      res = init;
+      res = merge_additional_stmts (init);
     }
   return res;
 }

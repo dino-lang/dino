@@ -1399,7 +1399,7 @@ compare_chunks (const void *chunk1, const void *chunk2)
 static void
 destroy_stacks (void)
 {
-  BC_node_t decl;
+  BC_node_t decl, fblock;
   ER_node_t curr_obj;
   struct heap_chunk *curr_descr;
 
@@ -1418,7 +1418,21 @@ destroy_stacks (void)
 	    /* We mark it before the call to prevent infinite loop if
 	       the exception occurs during the call. */
 	    ER_set_state (curr_obj, IS_destroyed);
-	    call_fun_class (BC_fblock (decl), curr_obj, 0, FALSE);
+	    d_assert (decl != NULL && BC_IS_OF_TYPE (decl, BC_NM_fdecl));
+	    fblock = BC_fblock (decl);
+	    d_assert (fblock != NULL);
+	    if (BC_next (fblock) != NULL)
+	      call_fun_class (BC_fblock (decl), curr_obj, 0, FALSE);
+	    else
+	      {
+		/* It is just a forward decl without definition.  */
+		int flag = BC_undef_destroy_p (fblock);
+
+		BC_set_undef_destroy_p (fblock, TRUE);
+		if (! flag)
+		  eval_error (abstrcall_bc_decl, BC_pos (decl),
+			      DERR_unfinished_fun_class_call, BC_ident (decl));
+	      }
 	  }
     }
 }
