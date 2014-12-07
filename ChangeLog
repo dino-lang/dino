@@ -1,3 +1,43 @@
+2014-12-07  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/Makefile.in (d_gen.i): Elaborate echo message.
+	* DINO/d_ir.sprut (block): Add fields children, sibling, real_block_scope,
+	vars_base, inline_flag.  Remove decls_flag.
+	* DINO/d_bc.sprut (stdec): Rename to stdecm.
+	(stdecu): Make it op2i.
+	(sbend): Rename it to stpop.  Make it op2i12.
+	* DINO/d_bcio.c (dump_code): Ditto.
+	* DINO/d_eval.c (evaluate_code): Ditto.
+	* DINO/d_gen.c: Ditto.
+	* DINO/d_inference.c: Ditto.
+	(get_insn_defs_num): Don't cache defs_num for stinc.
+	* DINO/d_bcn.shilka: Ditto.
+	* DINO/d_context.c (curr_fdecl_flag): New.
+	(number_of_surrounding_blocks): Remove.
+	(include_decl): Set up curr_fdecl_flag.
+	(simple_block_p): Remove.
+	(add_block_to_tree): New.
+	(first_block_passing):  Set inline_flag for blocks.
+	(inline_blocks): New.
+	(curr_vars_number): Rename to curr_temp_vars_base.
+	(get_temp_stack_slot): Change calculation.
+	(get_bcode_decl): Use vars_base and real_block_scope.
+	(second_expr_processing): Ditto.
+	(curr_for_stmt_block): New.
+	(second_block_passing): Use vars_base, inline_flag,
+	real_block_scope, and curr_for_stmt_block.  Check stpop for
+	break/continue inside of if-stmt.  Generate stpop.  Don't make
+	negative vars_name for inlined block.
+	(nop_p): Add stinc with zero op3.
+	(curr_temp_vars_start): New.
+	(branch_combine, madd_combine, ind_combine): Use it.
+	(mark_reachable_info): Move below.
+	(inline_call): Set op2 for stdecu.
+	(process_bc): Rename to optimize_bc.  Set up
+	curr_temp_vars_start.  Move code for removing unreachable too ...
+	(dce_bc): New.  Use code from process_bc.
+	(test_context): Call inline_blocks and dce_bc.
+
 2014-11-26  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_bc.sprut (block): New field undef_destroy_p.

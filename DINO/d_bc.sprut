@@ -895,9 +895,10 @@ fblock :: block
    op3 - 1] undef. */
 stinc :: op3i;
 /* Move op2 to op1, setup ctop just below op1. */
-stdec :: op2;
-/* Make op1 is undef, setup ctop just below op1. */
-stdecu :: op1;
+stdecm :: op2;
+/* Make op1 is undef, setup ctop just below op1.  Nonzero op2 means
+   the last inlined bc. */
+stdecu :: op2i;
 
 ldnil, ldthis :: op1; /* result place */
 flat :: op1; /* operand and result place */
@@ -1083,9 +1084,11 @@ call, tcall :: op2i;
    current stack context, tcall means tail call.  */
 ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imcall;
 
-/* sbend is simple block leave (at the end of the simple block).
-   position is block end or return without value.  */
-leave, sbend :: bcode;
+leave:: bcode; /* Return without value.  */
+
+/* stpop is used for inlined block leave.  Position is block end.  Pop
+   op1 stack elements.  Nonzero op2 means the last inlined bcode.  */
+stpop :: op2i12;
 
 /* Analogous to leave but it is always the last code in the block
    statement chain. */
@@ -1122,6 +1125,9 @@ rpr, rpr_def :: op1
    foreach-stmt, if-stmt, par_assign, block for end of exceptions.  It
    is removed before the execution.  */
 nop :: bcode;
+
+/* Nodes used for code generation purposes only: put such nodes here
+   to keep executed node number < 256.  */
 
 /* Abstract nodes.  Put it here to keep executed node number < 256.  */
 

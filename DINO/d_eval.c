@@ -4176,6 +4176,10 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
+	case BC_NM_stpop:
+	  stpop (BC_op1 (cpc), BC_op2 (cpc));
+	  INCREMENT_PC ();
+	  break;
 	case BC_NM_leave:
 	  if (leave ())
 	    return;
@@ -4201,12 +4205,12 @@ evaluate_code (void)
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
 	  break;
-	case BC_NM_stdec:
-	  stdec (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	case BC_NM_stdecm:
+	  stdecm (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_stdecu:
-	  stdecu (get_op (BC_op1 (cpc)));
+	  stdecu (get_op (BC_op1 (cpc)), BC_op2 (cpc));
 	  INCREMENT_PC ();
 	  break;
 	case BC_NM_block:

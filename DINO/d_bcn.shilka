@@ -32,7 +32,7 @@ efdecl		{return BC_NM_efdecl;}
 block		{return BC_NM_block;}
 fblock		{return BC_NM_fblock;}
 stinc		{return BC_NM_stinc;}
-stdec		{return BC_NM_stdec;}
+stdecm		{return BC_NM_stdecm;}
 stdecu		{return BC_NM_stdecu;}
 ldnil		{return BC_NM_ldnil;}
 ldthis		{return BC_NM_ldthis;}
@@ -255,8 +255,8 @@ ticall		{return BC_NM_ticall;}
 titcall		{return BC_NM_titcall;}
 cicall		{return BC_NM_cicall;}
 citcall		{return BC_NM_citcall;}
+stpop		{return BC_NM_stpop;}
 leave		{return BC_NM_leave;}
-sbend		{return BC_NM_sbend;}
 bend		{return BC_NM_bend;}
 fbend		{return BC_NM_fbend;}
 ret		{return BC_NM_ret;}

@@ -537,7 +537,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
   switch (BC_NODE_MODE (bc))
     {
     case BC_NM_b: case BC_NM_waitend:
-    case BC_NM_out: case BC_NM_sbend: case BC_NM_bend:
+    case BC_NM_out: case BC_NM_stpop: case BC_NM_bend:
       return NO_MORE_OPERAND;
       break;
     case BC_NM_fbend:
@@ -858,7 +858,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       else
 	return NO_MORE_OPERAND;
       break;
-    case BC_NM_stdec:
+    case BC_NM_stdecm:
       if (nop > 0)
 	return NO_MORE_OPERAND;
       res = result_p ? BC_op1 (bc) : BC_op2 (bc);
@@ -914,7 +914,8 @@ get_insn_defs_num (df_insn_t insn)
   for (i = 0;; i++)
     if (get_insn_op_place (insn, i, TRUE) == NO_MORE_OPERAND)
       {
-	if (! BC_IS_OF_TYPE (bc, BC_NM_block))
+	if (! BC_IS_OF_TYPE (bc, BC_NM_block)
+	    && ! BC_IS_OF_TYPE (bc, BC_NM_stinc))
 	  insn_defs_num_cache[BC_NODE_MODE (bc)] = i;
 	return i;
       }
@@ -1872,7 +1873,7 @@ type_transf (node_t node)
     case BC_NM_btgei: case BC_NM_btlti: case BC_NM_btlei: case BC_NM_btgti:
       res_tp = cmp_type (insn->types[1], TP_int);
       break;
-    case BC_NM_out: case BC_NM_sbend: case BC_NM_bend:
+    case BC_NM_out: case BC_NM_stpop: case BC_NM_bend:
     case BC_NM_throw: case BC_NM_wait: case BC_NM_waitend: case BC_NM_except:
       return FALSE; /* No output */
     case BC_NM_leave:
@@ -1881,7 +1882,7 @@ type_transf (node_t node)
     case BC_NM_fbend:
       res_tp = insn->types[1];
       break;
-    case BC_NM_stdec:
+    case BC_NM_stdecm:
       res_tp = insn->types[1];
       break;
     case BC_NM_stdecu:
@@ -2124,7 +2125,7 @@ specialize_insn (df_insn_t insn)
       if (insn->types[1] == TP_int)
 	nm = BC_NM_igei;
       break;
-    case BC_NM_stinc: case BC_NM_stdec: case BC_NM_stdecu:
+    case BC_NM_stinc: case BC_NM_stdecm: case BC_NM_stdecu:
     case BC_NM_ldnil: case BC_NM_ldthis: case BC_NM_ldtp: case BC_NM_tpof:
     case BC_NM_flat:
     case BC_NM_var: case BC_NM_lvar: case BC_NM_lvarv:
@@ -2266,7 +2267,7 @@ specialize_insn (df_insn_t insn)
       if (insn->types[1] == TP_int)
 	nm = BC_NM_ibtgti;
       break;
-    case BC_NM_out: case BC_NM_sbend: case BC_NM_bend:
+    case BC_NM_out: case BC_NM_stpop: case BC_NM_bend:
     case BC_NM_throw: case BC_NM_wait: case BC_NM_waitend: case BC_NM_except:
     case BC_NM_leave:
     case BC_NM_fbend:

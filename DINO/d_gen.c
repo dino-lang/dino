@@ -2937,7 +2937,13 @@ stinc (ER_node_t op1, ER_node_t op2, int op3i)
 }
 
 static void do_always_inline
-stdecu (ER_node_t op1)
+stpop (int op1i, int op2i)
+{
+  ctop = IVAL (ctop, -op1i);
+}
+
+static void do_always_inline
+stdecu (ER_node_t op1, int op2i)
 {
   ER_SET_MODE (op1, ER_NM_undef);
   /* ??? To conservative until next call: some temporaries are
@@ -2946,7 +2952,7 @@ stdecu (ER_node_t op1)
 }
 
 static void do_always_inline
-stdec (ER_node_t op1, ER_node_t op2)
+stdecm (ER_node_t op1, ER_node_t op2)
 {
   *(val_t *) op1 = *(val_t *) op2;
   /* ??? Too conservative until next call: some temporaries are

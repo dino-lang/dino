@@ -513,9 +513,9 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_out:
 	  printf (" op1=%d", BC_op1 (bc));
 	  break;
-	  /* This is for debugging purposes when some opts are switched
-	     off as they are always on. */
-	case BC_NM_sbend:
+	case BC_NM_stpop:
+	  printf (" op1=%d op2=%d", BC_op1 (bc), BC_op2 (bc));
+	  break;
 	case BC_NM_leave:
 	  if (BC_next_info (info) == NULL)
 	    printf (" block=%d", BC_idn (BC_info (BC_block (bc))));
@@ -627,9 +627,9 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc));
 	  break;
 	case BC_NM_stdecu:
-	  printf (" op1=%d", BC_op1 (bc));
+	  printf (" op1=%d op2=%d", BC_op1 (bc), BC_op2 (bc));
 	  break;
-	case BC_NM_stdec:
+	case BC_NM_stdecm:
 	  printf (" op1=%d op2=%d", BC_op1 (bc), BC_op2 (bc));
 	  break;
 	case BC_NM_throw:

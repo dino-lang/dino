@@ -969,12 +969,23 @@ block
         /* Number of temporary vars needed for expr
            evaluation in given block. */
         temporary_vars_number : int_t {$ = 0;}
+        /* Chain of non-function, try or catch blocks immediately
+	   inside given block and chain of next such blocks
+	   immediately inside the same block.  */
+        children, sibling : block
+        /* Block which will contain given block.  It is NULL if it
+	   will have own stack.  */
+        real_block_scope : block {$ = NULL;}
+        /* Variable base of the block.  If it is in anothe block
+	   stack, the value most probably will be non_zero.  */
+        vars_base : int_t {$ = 0;}
         /* See the following comment.  The field value is NULL if the
 	   corresponding block is not try-block. */
         catch_list_pc : generic_pos
-        /* The following flag is TRUE if the block contains a
-	   declaration. */
-        decls_flag : bool_t {$ = FALSE;}
+	/* True if this block should be inlined.  Block can be inlined
+	   if it does not contain fun/class decls, it is not a
+	   fun/class, try, or catch block.  */
+        inline_flag : bool_t {$ = TRUE;}
         /* The following flag is TRUE if an instance of the block may
            be used after block execution finish.  It is possibly if
            there is a function or class value is assigned to variable,
