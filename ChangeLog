@@ -1,3 +1,35 @@
+2014-12-09  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_bc.sprut (op4i24, macall): New.
+	(print_node): Add code for op4i24 and mcall.
+	* DINO/d_bcn.shilka (mcall): New.
+	* DINO/d_bcf.shilka (mid): New.
+	* DINO/d_bcio.c (dump_code): Process mcall.
+	(read_bc_program): Process field mid.
+	* DINO/d_context.c (second_expr_processing): Generate mcall.
+	(modify_copied_ops): Process op4i24.
+	* DINO/d_eval.c (find_field): New.
+	(execute_general_period_operation): Use it.
+	(evaluate_code): Process mcall.
+	* DINO/d_func.c (create_class_stack): Add 2 params.  Change
+	call_start to actuals_start.
+	(place_file_instance): Pass the new params.
+	(process_fun_class_call): Add 3 new params.
+	(process_call): New.
+	(tree_to_heap): Don't put anode_bc_decl on the stack.  Pass the
+	new params to create_class_stack.
+	* DINO/d_func.h (process_fun_class_call): Change prototype.
+	(process_call): New.
+	* DINO/d_gen.c (find_field): Add the prototype.
+	(call, tcall): Use process_call instead of process_fun_class_call.
+	(mcall): New.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Process
+	mcall.
+	(specialize_insn): Ditto.
+	* DINO/Makefile.in (d_gen.i): Make the generation through temp
+	file.
+	* DINO/haskell.sh: Add execution mode.
+
 2014-12-07  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/Makefile.in (d_gen.i): Elaborate echo message.

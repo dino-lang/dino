@@ -744,7 +744,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       else
 	return NO_MORE_OPERAND;
       break;
-    case BC_NM_call: case BC_NM_tcall:
+    case BC_NM_call: case BC_NM_tcall: case BC_NM_mcall:
       if (result_p && nop == 0)
 	res = BC_op1 (bc);
       else
@@ -1854,7 +1854,7 @@ type_transf (node_t node)
     case BC_NM_and_slst: case BC_NM_xor_slst: case BC_NM_or_slst:
       /* We work only with local vars.  */
       break;
-    case BC_NM_call: case BC_NM_tcall:
+    case BC_NM_call: case BC_NM_tcall: case BC_NM_mcall:
       /* The result unknown.  */
       break;
     case BC_NM_ibcall: case BC_NM_icall: case BC_NM_itcall:
@@ -2190,7 +2190,7 @@ specialize_insn (df_insn_t insn)
     case BC_NM_concat_slst:
     case BC_NM_lsh_slst: case BC_NM_rsh_slst: case BC_NM_ash_slst:
     case BC_NM_and_slst: case BC_NM_xor_slst: case BC_NM_or_slst:
-    case BC_NM_call: case BC_NM_tcall:
+    case BC_NM_call: case BC_NM_tcall: case BC_NM_mcall:
     case BC_NM_ibcall: case BC_NM_icall: case BC_NM_itcall:
     case BC_NM_ticall: case BC_NM_titcall: case BC_NM_cicall: case BC_NM_citcall:
     case BC_NM_b: case BC_NM_btdef:

@@ -1078,11 +1078,20 @@ out :: op1i; /* # of surrounding blocks as int */
    Letter t means tail call.  */
 call, tcall :: op2i;
 
-/* immediate calls: params start place (first value is undefined),
-   params number as int, fun decl.  Immidiate implementation function
-   call is ibcall.  For others: first letter t or c means top stack or
-   current stack context, tcall means tail call.  */
+/* immediate calls: params start place, params number as int, fun
+   decl.  Immidiate implementation function call is ibcall.  For
+   others: first letter t or c means top stack or current stack
+   context, tcall means tail call.  */
 ibcall, icall, itcall, ticall, titcall, cicall, citcall:: imcall;
+
+/* method call: params start place, params number as int, object, and
+   method ident number.  */
+mcall :: op4i24
+%other
+	mid : string_t  /* method identifier  */
+        /* Set up during evaluation for quicker access.  */
+        mhint : decl { $ = NULL; }
+;
 
 leave:: bcode; /* Return without value.  */
 
@@ -1197,6 +1206,9 @@ op4 :: op3
 ;
 %abstract
 op4i2 :: op4 /* op2 is int const */
+;
+%abstract
+op4i24 :: op4i2 /* op2 and op4 are int const */
 ;
 %abstract
 br :: op1
@@ -2003,7 +2015,12 @@ print_node (FILE *f, BC_node_t bc)
 	print_op (f, TRUE, BC_op3 (bc));
     }
   if (BC_IS_OF_TYPE (bc, BC_NM_op4))
-    print_op (f, TRUE, BC_op4 (bc));
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_op4i24))
+	fprintf (f, ", %d", BC_op4 (bc));
+      else
+	print_op (f, TRUE, BC_op4 (bc));
+    }
   if (BC_IS_OF_TYPE (bc, BC_NM_brs))
     print_op (f, TRUE, BC_res (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_bcmp))
@@ -2023,7 +2040,8 @@ print_node (FILE *f, BC_node_t bc)
     fprintf (f, ", %d", BC_vars_num (BC_cfblock (bc))); /* vars num */
   if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
       || BC_IS_OF_TYPE (bc, BC_NM_call)
-      || BC_IS_OF_TYPE (bc, BC_NM_tcall))
+      || BC_IS_OF_TYPE (bc, BC_NM_tcall)
+      || BC_IS_OF_TYPE (bc, BC_NM_mcall))
     fprintf (f, ", 1"); /* from_c_code_p argument  */
   if (BC_IS_OF_TYPE (bc, BC_NM_br))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));

@@ -30,6 +30,10 @@ extern int internal_isa_call (const char **message_ptr, ER_node_t where,
 extern void print_trace_stack (void);
 extern void process_imm_ifun_call (BC_node_t code, int actuals_num,
 				   int from_c_code_p);
-extern void process_fun_class_call (ER_node_t call_start, int pars_number,
+extern void process_fun_class_call (BC_node_t fdecl, ER_node_t context,
+				    ER_node_t call_start,
+				    ER_node_t actuals_start, int pars_number,
 				    int tail_call_flag, int from_c_code_p);
+extern void process_call (ER_node_t call_start, int actuals_num,
+			  int tail_flag, int from_c_code_p);
 extern void initiate_funcs (void);

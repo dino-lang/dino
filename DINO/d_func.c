@@ -108,7 +108,8 @@ extern clock_t clock (void);
 
 #include "regex.h"
 
-static ER_node_t create_class_stack (val_t *call_start, int pars_number,
+static ER_node_t create_class_stack (BC_node_t class_block, ER_node_t context,
+				     val_t *actuals_start, int actuals_num,
 				     int simple_p);
 
 static void
@@ -2020,10 +2021,8 @@ place_file_instance (FILE *f, ER_node_t result)
   ER_node_t var;
   ER_node_t instance;
 
-  ER_SET_MODE (result, ER_NM_code);
-  ER_set_code_id (result, CODE_ID (file_bc_decl));
-  ER_set_code_context (result, uppest_stack);
-  instance = create_class_stack ((val_t *) result, 0, TRUE);
+  instance = create_class_stack (file_bc_decl, uppest_stack,
+				 (val_t *) result, 0, TRUE);
   ER_SET_MODE (result, ER_NM_stack);
   ER_set_stack (result, instance);
   var = IVAL (ER_stack_vars (ER_stack (result)), BC_var_num (file_ptr_bc_decl));
@@ -5229,16 +5228,15 @@ setup_pars (BC_node_t block, int actuals_num,
 }
 
 static ER_node_t do_always_inline
-create_class_stack (val_t *call_start, int actuals_num, int simple_p)
+create_class_stack (BC_node_t class_block, ER_node_t context,
+		    val_t *actuals_start, int actuals_num, int simple_p)
 {
-  BC_node_t class_block;
   ER_node_t stack;
   pc_t saved_cpc = cpc;
 
-  class_block = ID_TO_CODE (ER_code_id ((ER_node_t) call_start));
-  heap_push (class_block, ER_code_context ((ER_node_t) call_start), -1);
+  heap_push (class_block, context, -1);
   setup_pars (class_block, actuals_num, ER_stack_vars (cstack),
-	      call_start + 1, BC_vars_num (class_block));
+	      actuals_start, BC_vars_num (class_block));
   stack = cstack;
   if (simple_p)
     {
@@ -5326,66 +5324,97 @@ process_imm_ifun_call (BC_node_t code, int actuals_num, int from_c_code_p)
 
 
 /* A general function processing tail (if TAIL_FLAG) fun/thread/class
-   call of fun with ACTUALS_NUM par maters starting with
-   CALL_START.  */
-void
-process_fun_class_call (ER_node_t call_start, int actuals_num,
-			int tail_flag, int from_c_code_p)
+   call of fun FDECL in CONTEXT with ACTUALS_NUM paramaters starting
+   with ACTUALS_START and all call related data starting with
+   CALL_START.  If CALL_START refers to the fun value if it is present
+   on the stack.  The function does not setup */
+void do_inline
+process_fun_class_call (BC_node_t fdecl, ER_node_t context,
+			ER_node_t call_start, ER_node_t actuals_start,
+			int actuals_num, int tail_flag, int from_c_code_p)
 {
-  BC_node_t code;
+  BC_node_t fblock;
   implementation_fun_t ifunc;
-  ER_node_t context;
   ER_node_t instance;
 
-  ctop = IVAL (call_start, -1);
-  if (ER_NODE_MODE (call_start) == ER_NM_efun)
+  d_assert (call_start == actuals_start
+	    || IVAL (call_start, 1) == actuals_start);
+  if (BC_NODE_MODE (fdecl) == BC_NM_efdecl)
     {
       d_assert (! tail_flag);
-      DECR_CTOP (-actuals_num - 1);
-      call_external_fun (actuals_num, ER_efdecl (call_start));
-      TOP_DOWN;
+      ctop = IVAL (actuals_start, actuals_num - 1);
+      call_external_fun (actuals_num, fdecl);
+      ctop = IVAL (call_start, -1);
       return;
     }
-  if (ER_NODE_MODE (call_start) != ER_NM_code)
+  if (BC_NODE_MODE (fdecl) != BC_NM_fdecl)
     eval_error (callop_bc_decl, get_cpos (),
 		DERR_none_class_or_fun_before_left_bracket);
-  code = ID_TO_CODE (ER_code_id (call_start));
-  if (BC_class_p (code))
+  fblock = BC_fblock (fdecl);
+  if (BC_class_p (fblock))
     {
-      instance = create_class_stack ((val_t *) call_start, actuals_num,
-				     BC_simple_p (code));
-      if (BC_simple_p (code))
+      ctop = IVAL (call_start, -1);
+      instance = create_class_stack (fblock, context,
+				     (val_t *) actuals_start, actuals_num,
+				     BC_simple_p (fblock));
+      if (BC_simple_p (fblock))
 	{
 	  TOP_UP;
 	  ER_SET_MODE (ctop, ER_NM_stack);
 	  ER_set_stack (ctop, instance);
 	  TOP_DOWN;
 	  INCREMENT_PC ();
+	  return;
 	}
-      else
-	do_call (code, from_c_code_p);
+      do_call (fblock, from_c_code_p);
     }
-  else if (BC_fmode (code) == BC_builtin)
+  else if (BC_fmode (fblock) == BC_builtin)
     {
       int saved_curr_from_c_code_p = curr_from_c_code_p;
       
       curr_from_c_code_p = from_c_code_p;
-      ifunc = BC_implementation_fun (code);
+      ifunc = BC_implementation_fun (fblock);
       d_assert (ifunc != NULL);
-      fun_result = IVAL (ctop, 1);
-      DECR_CTOP (-actuals_num - 1);
+      fun_result = call_start;
+      ctop = IVAL (actuals_start, actuals_num - 1);
       ifun_call_pc = cpc;
       INCREMENT_PC (); /* Put it here as GC might make a long jump.  */
       (*ifunc) (actuals_num);
-      DECR_CTOP (actuals_num + 1);
+      ctop = IVAL (call_start, -1);
       curr_from_c_code_p = saved_curr_from_c_code_p;
     }
   else
     {
-      context = ER_code_context (call_start);
-      process_fun_call ((val_t *) call_start + 1, code, context,
+      /* Don't loose data below params in GC called during the
+	 function execution.  We don't need to be accurate here
+	 (e.g. exclude calculated function value on the stack) as
+	 after the call ctop continues stay the same untill next call.
+	 It is conservative but safe.  */
+      ctop = IVAL (call_start, -1);
+      process_fun_call ((val_t *) actuals_start, fblock, context,
 			actuals_num, tail_flag, from_c_code_p);
     }
+}
+
+/* A general function processing tail (if TAIL_FLAG) fun/thread/class
+   call of fun with ACTUALS_NUM paramaters starting with
+   CALL_START.  */
+void
+process_call (ER_node_t call_start, int actuals_num,
+	      int tail_flag, int from_c_code_p)
+{
+  BC_node_t fdecl = NULL;
+  ER_node_t context = NULL;
+
+  if (ER_NODE_MODE (call_start) == ER_NM_efun)
+    fdecl = ER_efdecl (call_start);
+  else if (ER_NODE_MODE (call_start) == ER_NM_code)
+    {
+      fdecl = BC_fdecl (ID_TO_CODE (ER_code_id (call_start)));
+      context = ER_code_context (call_start);
+    }
+  process_fun_class_call (fdecl, context, call_start, IVAL (call_start, 1),
+			  actuals_num, tail_flag, from_c_code_p);
 }
 
 void
@@ -5735,10 +5764,6 @@ tree_to_heap (struct earley_tree_node *root)
   if (*entry != NULL)
     return ((struct tree_heap_node *) *entry)->heap_node;
   TOP_UP;
-  ER_SET_MODE (ctop, ER_NM_code);
-  ER_set_code_id (ctop, CODE_ID (anode_bc_decl));
-  ER_set_code_context (ctop, uppest_stack);
-  TOP_UP;
   ER_SET_MODE (ctop, ER_NM_vect);
   switch (root->type)
     {
@@ -5749,7 +5774,7 @@ tree_to_heap (struct earley_tree_node *root)
 			      ? nil_anode_bc_decl : error_anode_bc_decl));
       d_assert (ER_NODE_MODE (var) == ER_NM_stack);
       res = ER_stack (var);
-      DECR_CTOP (2);
+      DECR_CTOP (1);
       break;
     case EARLEY_TERM:
       name_vect = create_string ("$term");
@@ -5759,8 +5784,9 @@ tree_to_heap (struct earley_tree_node *root)
       d_assert (ER_NODE_MODE ((ER_node_t) root->val.term.attr)
 		== ER_NM_heap_stack);
       ER_set_stack (ctop, root->val.term.attr);
-      DECR_CTOP (3);
-      res = create_class_stack ((val_t *) IVAL (ctop, 1), 2, TRUE);
+      DECR_CTOP (2);
+      res = create_class_stack (anode_bc_decl, uppest_stack,
+				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
     case EARLEY_ANODE:
       name_vect = create_string (root->val.anode.name);
@@ -5773,8 +5799,9 @@ tree_to_heap (struct earley_tree_node *root)
       TOP_UP;
       ER_SET_MODE (ctop, ER_NM_vect);
       set_vect_dim (ctop, vect, 0);
-      DECR_CTOP (3);
-      res = create_class_stack ((val_t *) IVAL (ctop, 1), 2, TRUE);
+      DECR_CTOP (2);
+      res = create_class_stack (anode_bc_decl, uppest_stack,
+				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
     case EARLEY_ALT:
       name_vect = create_string ("$alt");
@@ -5787,8 +5814,9 @@ tree_to_heap (struct earley_tree_node *root)
       TOP_UP;
       ER_SET_MODE (ctop, ER_NM_vect);
       set_vect_dim (ctop, vect, 0);
-      DECR_CTOP (3);
-      res = create_class_stack ((val_t *) IVAL (ctop, 1), 2, TRUE);
+      DECR_CTOP (2);
+      res = create_class_stack (anode_bc_decl, uppest_stack,
+				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
     default:
       d_unreachable ();

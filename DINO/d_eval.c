@@ -193,32 +193,27 @@ check_member_access (BC_node_t decl, BC_node_t fblock)
     }
 }
 
-void do_inline
-execute_general_period_operation (int block_decl_ident_number, ER_node_t res,
-				  ER_node_t op, int lvalue_p, int lvalue_val_p)
+/* Find and return decl with BLOCK_DECL_IDENT_NUMBER starting with
+   *CONTAINER.  Pass the container of the found decl through
+   CONTAINER.  */
+BC_node_t do_inline
+find_field (int block_decl_ident_number, ER_node_t *container)
 {
-  BC_node_t decl;
-  BC_node_t block;
-  ER_node_t container, val;
+  ER_node_t curr_container;
+  BC_node_t block, decl = NULL;
 
-  if (ER_NODE_MODE (op) == ER_NM_stack)
-    container = ER_stack (op);
-  else
-    eval_error (accessop_bc_decl, get_cpos (),
-		DERR_value_is_not_class_instance_or_stack);
-  decl = NULL;
-  for (;;)
+  for (curr_container = *container;;)
     {
-      d_assert (container != NULL);
-      block = ER_block_node (container);
+      d_assert (curr_container != NULL);
+      block = ER_block_node (curr_container);
       if (block_decl_ident_number >= 0)
 	decl = LV_BLOCK_IDENT_DECL (block, block_decl_ident_number);
       if (decl != NULL
 	  || BC_NODE_MODE (block) != BC_NM_fblock || ! BC_class_p (block))
 	break;
-      container = ER_context (container);
-      if (BC_NODE_MODE (ER_block_node (container)) != BC_NM_fblock
-	  || ! BC_class_p (ER_block_node (container)))
+      curr_container = ER_context (curr_container);
+      if (BC_NODE_MODE (ER_block_node (curr_container)) != BC_NM_fblock
+	  || ! BC_class_p (ER_block_node (curr_container)))
 	break;
     }
   if (decl == NULL)
@@ -226,7 +221,22 @@ execute_general_period_operation (int block_decl_ident_number, ER_node_t res,
 		DERR_decl_is_absent_in_given_class_or_block);
   else
     check_member_access (decl, block);
+  *container = curr_container;
+  return decl;
+}
 
+void do_inline
+execute_general_period_operation (int block_decl_ident_number, ER_node_t res,
+				  ER_node_t op, int lvalue_p, int lvalue_val_p)
+{
+  BC_node_t decl;
+  ER_node_t container, val;
+
+  if (ER_NODE_MODE (op) != ER_NM_stack)
+    eval_error (accessop_bc_decl, get_cpos (),
+		DERR_value_is_not_class_instance_or_stack);
+  container = ER_stack (op);
+  decl = find_field (block_decl_ident_number, &container);
   switch ((unsigned char) BC_NODE_MODE (decl))
     {
 #ifdef __GNUC__
@@ -3545,6 +3555,10 @@ evaluate_code (void)
 	  break;
 	case BC_NM_ibcall:
 	  ibcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
+	  break;
+	case BC_NM_mcall:
+	  mcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		 get_op (BC_op3 (cpc)), BC_op4 (cpc), FALSE);
 	  break;
 	case BC_NM_add:
 	  add (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));

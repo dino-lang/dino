@@ -255,6 +255,7 @@ ticall		{return BC_NM_ticall;}
 titcall		{return BC_NM_titcall;}
 cicall		{return BC_NM_cicall;}
 citcall		{return BC_NM_citcall;}
+mcall		{return BC_NM_mcall;}
 stpop		{return BC_NM_stpop;}
 leave		{return BC_NM_leave;}
 bend		{return BC_NM_bend;}

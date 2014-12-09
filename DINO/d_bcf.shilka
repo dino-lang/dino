@@ -76,6 +76,7 @@ f
 mpz
 str
 fldid
+mid
 body_pc
 move_decl
 element

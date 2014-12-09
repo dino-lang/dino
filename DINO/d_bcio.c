@@ -282,6 +282,11 @@ dump_code (BC_node_t infos, int indent)
 		  BC_idn (BC_info (BC_cfblock (bc))),
 		  BC_op1 (bc), BC_op2 (bc));
 	  break;
+	case BC_NM_mcall:
+	  printf (" op1=%d op2=%d op3=%d op4=%d mid=%s // %d <- %d . %s[idnum=%d] (%d ...)",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc), BC_mid (bc),
+		  BC_op1 (bc), BC_op3 (bc), BC_mid (bc), BC_op4 (bc), BC_op1 (bc));
+	  break;
 	case BC_NM_sl:
 	case BC_NM_lslv:
 	  printf (" op1=%d op2=%d op3=%d",
@@ -1462,6 +1467,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_field, D_IDENT)) goto fail;
 	      BC_set_fldid (curr_node, token_attr.str);
 	      break;
+	    case FR_mid:
+	      if (check_fld (BC_NM_mcall, D_IDENT)) goto fail;
+	      BC_set_mid (curr_node, token_attr.str);
+	      break;
 	    case FR_element:
 	      if (check_fld (BC_NM_foreach2, D_INT)) goto fail;
 	      BC_set_element (curr_node, token_attr.i); 
@@ -1563,6 +1572,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_ldf, FR_f, "f");
       check_fld_set (BC_NM_lds, FR_str, "str");
       check_fld_set (BC_NM_field, FR_fldid, "fldid");
+      check_fld_set (BC_NM_mcall, FR_mid, "mid");
       check_fld_set (BC_NM_foreach, FR_body_pc, "body_pc");
       check_fld_set (BC_NM_foreach2, FR_element, "element");
       check_fld_set (BC_NM_move, FR_move_decl, "move_decl");

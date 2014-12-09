@@ -2687,20 +2687,28 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       }
     case IR_NM_class_fun_thread_call:
       {
-	int pars_num, fun_op_num;
+	int pars_num, call_start;
 	pc_t saved_prev_pc;
 	IR_node_t fun_decl = NULL;
+	BC_node_t fld = NULL;
 	int general_p = TRUE, env_p = FALSE, top_p = FALSE;
 	    
 	there_is_function_call_in_expr = TRUE;
 	SET_SOURCE_POSITION (expr);
-	fun_op_num = temp_vars_num + curr_temp_vars_base;
+	call_start = temp_vars_num + curr_temp_vars_base;
 	saved_prev_pc = curr_pc;
 	IR_set_fun_expr
 	  (expr, second_expr_processing (IR_fun_expr (expr), FALSE,
 					 NULL, &temp_vars_num, FALSE,
 					 NULL, NULL, FALSE));
-	if (BC_NODE_MODE (curr_pc) == BC_NM_fun)
+	if (BC_NODE_MODE (curr_pc) == BC_NM_fld
+	    && saved_prev_pc != curr_pc
+	    && BC_op2 (curr_pc) < call_start)
+	  {
+	    fld = curr_pc;
+	    general_p = FALSE;
+	  }
+	else if (BC_NODE_MODE (curr_pc) == BC_NM_fun)
 	  {
 	    d_assert (IR_NODE_MODE (IR_fun_expr (expr)) == IR_NM_ident);
 	    fun_decl = IR_decl (IR_fun_expr (expr));
@@ -2715,32 +2723,40 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 		      || (IR_class_fun_thread_call_parameters_number (expr)
 			  != IR_parameters_number (fun_decl))))
 		 || (env_p && ! top_p));
-	    if (! general_p)
-	      {
-		/* Remove load func value.  */
-		d_assert (fun_op_num - curr_temp_vars_base + 1
-			  == temp_vars_num);
-		temp_vars_num--;
-		curr_pc = prev_pc;
-		prev_pc = saved_prev_pc;
-		curr_info = BC_prev_info (curr_info);
-	      }
 	  }
-	pars_num = process_actuals (fun_decl, fun_op_num,
+	if (! general_p)
+	  {
+	    /* Remove load of func value or load of fld value.  */
+	    d_assert (call_start - curr_temp_vars_base + 1
+		      == temp_vars_num);
+	    temp_vars_num--;
+	    curr_pc = prev_pc;
+	    prev_pc = saved_prev_pc;
+	    curr_info = BC_prev_info (curr_info);
+	  }
+	pars_num = process_actuals (fun_decl, call_start,
 				    IR_actuals (expr), &temp_vars_num);
 	if (result != NULL)
 	  *result = not_defined_result;
 	setup_result_var_number (result, curr_temp_vars_num);
+	if (pars_num == 0)
+	  get_temp_stack_slot (&temp_vars_num); /* reverve for result */
+	bc = new_bc_code_with_src (BC_NM_mcall, expr);
 	if (general_p)
 	  bc = new_bc_code_with_src (BC_NM_call, expr);
+	else if (fld != NULL)
+	  {
+	    /* It is fld followed by call.  */
+	    BC_set_op3 (bc, BC_op2 (fld));
+	    BC_set_op4 (bc, BC_op3 (fld));
+	    BC_set_mid (bc, BC_fldid (fld));
+	  }
 	else
 	  {
 	    IR_node_t block;
 	    BC_node_t fblock;
 
 	    d_assert (!env_p || top_p);
-	    if (pars_num == 0)
-	      get_temp_stack_slot (&temp_vars_num); /* for result */
 	    bc = new_bc_code_with_src (env_p
 				       ? BC_NM_ibcall
 				       : top_p
@@ -2757,7 +2773,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 		&& IR_hint (block) == INLINE_HINT)
 	      BC_set_inline_p (BC_info (bc), TRUE);
 	  }
-	BC_set_op1 (bc, fun_op_num);
+	BC_set_op1 (bc, call_start);
 	BC_set_op2 (bc, pars_num);
 	add_to_bcode (bc);
 	if (!IT_IS_OF_TYPE (IR_fun_expr (expr), EVT_FUN)
@@ -4408,7 +4424,8 @@ modify_copied_ops (int base)
       if (BC_IS_OF_TYPE (bc, BC_NM_op3) && ! BC_IS_OF_TYPE (bc, BC_NM_op3i)
 	  && (op = BC_op3 (bc)) >= 0)
 	BC_set_op3 (bc, op + base);
-      if (BC_IS_OF_TYPE (bc, BC_NM_op4) && (op = BC_op4 (bc)) >= 0)
+      if (BC_IS_OF_TYPE (bc, BC_NM_op4) && ! BC_IS_OF_TYPE (bc, BC_NM_op4i24)
+	  && (op = BC_op4 (bc)) >= 0)
 	BC_set_op4 (bc, op + base);
       if (BC_IS_OF_TYPE (bc, BC_NM_brs) && (op = BC_res (bc)) >= 0)
 	BC_set_res (bc, op + base);

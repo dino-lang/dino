@@ -15,6 +15,7 @@ extern void process_external_var (ER_node_t res, BC_node_t evdecl,
 				  int lvalue_p, int val_too_p);
 extern position_t get_designator_pos (void);
 
+extern BC_node_t find_field (int block_decl_ident_number, ER_node_t *container);
 extern void execute_general_period_operation (int block_decl_ident_number,
 					      ER_node_t res, ER_node_t op,
 					      int lvalue_p, int lvalue_val_p);
@@ -1522,13 +1523,41 @@ lslv (ER_node_t res, ER_node_t op1, int op3n)
 static void do_always_inline
 call (ER_node_t op1, int op2n, int from_c_code_p)
 {
-  process_fun_class_call (op1, op2n, FALSE, from_c_code_p);
+  process_call (op1, op2n, FALSE, from_c_code_p);
 }
   
 static void do_always_inline
 tcall (ER_node_t op1, int op2n, int from_c_code_p)
 {
-  process_fun_class_call (op1, op2n, TRUE, from_c_code_p);
+  process_call (op1, op2n, TRUE, from_c_code_p);
+}
+
+static void do_always_inline
+mcall (ER_node_t op1, int op2n, ER_node_t op3, int op4n, int from_c_code_p)
+{
+  BC_node_t block, fblock, decl;
+  ER_node_t stack, ref, val;
+
+  if (ER_NODE_MODE (op3) != ER_NM_stack)
+    eval_error (accessop_bc_decl, get_cpos (),
+		DERR_value_is_not_class_instance_or_stack);
+  stack = ER_stack (op3);
+  block = ER_block_node (stack);
+  if ((decl = BC_mhint (cpc)) == NULL || BC_decl_scope (decl) != block)
+    {
+      decl = find_field (op4n, &stack);
+      if (BC_NODE_MODE (decl) != BC_NM_fdecl
+	  && BC_NODE_MODE (decl) != BC_NM_efdecl)
+	eval_error (callop_bc_decl, get_cpos (),
+		    DERR_none_class_or_fun_before_left_bracket);
+      if (BC_NODE_MODE (decl) == BC_NM_fdecl
+	  && BC_forward_p (BC_fblock (decl)))
+	eval_error (accessvalue_bc_decl, get_cpos (),
+		    DERR_undefined_class_or_fun, BC_ident (decl));
+      if (BC_decl_scope (decl) == block)
+	BC_set_mhint (cpc, decl);
+    }
+  process_fun_class_call (decl, stack, op1, op1, op2n, FALSE, from_c_code_p);
 }
   
 /* Try to reuse the result of pure function.  Return true if we had an
