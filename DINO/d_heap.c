@@ -199,6 +199,17 @@ _tab_els (ER_node_t tab)
   return res;
 }
 
+entry_ptr_t
+_tab_entries (ER_node_t tab)
+{
+  entry_ptr_t res;
+
+  d_assert (ER_NODE_MODE (tab) == ER_NM_heap_tab);
+  res = (entry_ptr_t) ((char *) tab + ALLOC_SIZE (sizeof (_ER_heap_tab))
+		       + 2 * ER_els_space_bound (tab) * sizeof (val_t));
+  return res;
+}
+
 ER_node_t
 _stack_vars (ER_node_t stack)
 {
@@ -238,20 +249,20 @@ _indexed_val (ER_node_t first_var, int index)
 }
 
 ER_node_t
-_indexed_entry_key (ER_node_t first_entry, int index)
+_indexed_el_key (ER_node_t first_el, int index)
 {
   ER_node_t res;
   
-  res = (ER_node_t) ((char *) first_entry + 2 * index * (int) sizeof (val_t));
+  res = (ER_node_t) ((char *) first_el + 2 * index * (int) sizeof (val_t));
   return res;
 }
 
 ER_node_t
-_indexed_entry_val (ER_node_t first_entry, int index)
+_indexed_el_val (ER_node_t first_el, int index)
 {
   ER_node_t res;
   
-  res = (ER_node_t) ((char *) first_entry
+  res = (ER_node_t) ((char *) first_el
 		     + (2 * index + 1) * (int) sizeof (val_t));
   return res;
 }
@@ -851,14 +862,14 @@ traverse_used_heap_object (ER_node_t obj)
       {
 	ER_node_mode_t mode;
 
-	ER_set_last_key_index (obj, -1);
-	for (i = 0; i < ER_entries_number (obj); i++)
+	ER_set_last_accessed_el_index (obj, EMPTY_ENTRY);
+	for (i = 0; i < ER_els_bound (obj); i++)
 	  {
-	    mode = ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
-	    if (mode == ER_NM_empty_entry || mode == ER_NM_deleted_entry)
+	    mode = ER_NODE_MODE (INDEXED_EL_KEY (ER_tab_els (obj), i));
+	    if (mode == ER_NM_empty_el)
 	      continue;
-	    traverse_used_var (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
-	    traverse_used_var (INDEXED_ENTRY_VAL (ER_tab_els (obj), i));
+	    traverse_used_var (INDEXED_EL_KEY (ER_tab_els (obj), i));
+	    traverse_used_var (INDEXED_EL_VAL (ER_tab_els (obj), i));
 	  }
       }
       return;
@@ -1162,14 +1173,13 @@ change_obj_refs (ER_node_t obj)
 	{
 	  ER_node_mode_t el_type;
 	  
-	  for (i = 0; i < ER_entries_number (obj); i++)
+	  for (i = 0; i < ER_els_bound (obj); i++)
 	    {
-	      el_type = ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
-	      if (el_type == ER_NM_empty_entry
-		  || el_type == ER_NM_deleted_entry)
+	      el_type = ER_NODE_MODE (INDEXED_EL_KEY (ER_tab_els (obj), i));
+	      if (el_type == ER_NM_empty_el)
 		continue;
-	      change_var (INDEXED_ENTRY_KEY (ER_tab_els (obj), i));
-	      change_var (INDEXED_ENTRY_VAL (ER_tab_els (obj), i));
+	      change_var (INDEXED_EL_KEY (ER_tab_els (obj), i));
+	      change_var (INDEXED_EL_VAL (ER_tab_els (obj), i));
 	    }
 	  break;
 	}
@@ -2057,19 +2067,14 @@ eq_table (ER_node_t t1, ER_node_t t2)
     return TRUE;
   if (ER_els_number (t1) != ER_els_number (t2))
     return FALSE;
-  for (i = 0; i < ER_entries_number (t1); i++)
+  for (i = 0; i < ER_els_bound (t1); i++)
     {
-      if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (t1), i))
-	  != ER_NM_empty_entry
-	  && (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (t1), i))
-	      != ER_NM_deleted_entry))
+      if (ER_NODE_MODE (INDEXED_EL_KEY (ER_tab_els (t1), i)) != ER_NM_empty_el)
 	{
-	  key = find_tab_entry (t2, INDEXED_ENTRY_KEY (ER_tab_els (t1), i),
-				FALSE);
-	  if (ER_NODE_MODE (key) == ER_NM_empty_entry
-	      || ER_NODE_MODE (key) == ER_NM_deleted_entry
-	      || !eq_val ((val_t *) ((char *) key + sizeof (val_t)),
-			  (val_t *) INDEXED_ENTRY_VAL (ER_tab_els (t1), i), 1))
+	  key = find_tab_el (t2, INDEXED_EL_KEY (ER_tab_els (t1), i), FALSE);
+	  if (key == NULL || ER_NODE_MODE (key) == ER_NM_empty_el
+	      || ! eq_val ((val_t *) ((char *) key + sizeof (val_t)),
+			   (val_t *) INDEXED_EL_VAL (ER_tab_els (t1), i), 1))
 	    return FALSE;
 	}
     }
@@ -2169,6 +2174,8 @@ murmur (const void *key, size_t len)
 }
 
 
+
+/* This page contains code for DINO hash tables.  */
 
 static size_t do_always_inline
 hash_ref (ER_node_t ref)
@@ -2298,20 +2305,19 @@ hash_key (ER_node_t key)
     case ER_NM_tab:
       {
 	ER_node_t tab;
-	ER_node_t entry_key;
+	ER_node_t el_key;
 
 	tab = ER_tab (key);
 	GO_THROUGH_REDIR (tab);
 	ER_set_tab (key, tab);
 	hash = murmur_init (ER_entries_number (tab));
-	for (i = 0; i < ER_entries_number (tab); i++)
+	for (i = 0; i < ER_els_bound (tab); i++)
 	  {
-	    entry_key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-	    if (ER_NODE_MODE (entry_key) == ER_NM_empty_entry
-		|| ER_NODE_MODE (entry_key) == ER_NM_deleted_entry)
+	    el_key = INDEXED_EL_KEY (ER_tab_els (tab), i);
+	    if (ER_NODE_MODE (el_key) == ER_NM_empty_el)
 	      continue;
-	    hash = murmur_step (hash, hash_val (entry_key));
-	    hash = murmur_step (hash, hash_val (IVAL (entry_key, 1)));
+	    hash = murmur_step (hash, hash_val (el_key));
+	    hash = murmur_step (hash, hash_val (IVAL (el_key, 1)));
 	  }
 	hash = murmur_finish (hash);
 	break;
@@ -2382,13 +2388,14 @@ eq_key (ER_node_t entry_key, ER_node_t key)
   return FALSE; /* No warnings */
 }
 
-/* Start size of table with N elements.  The table must be not expand
-   if we insert size elements number. */
-#define START_TABLE_SIZE(n)  (3 * (n) < 300 ? 300 : 3 * (n))
+/* Initial table occupancy factor.  It means that at first we have 3
+   times more entries than number of elements.  Maximum occupancy will
+   be 2/3.  See function create_tab.  */
+#define OCCUPANCY_FACTOR 3
 
-/* Minimal optimal size of table with N elements.  If the real size is
-   less, it is better to expand the table. */
-#define MINIMAL_TABLE_SIZE(n)  (4*(n)/3)
+/* Initial number of table entries for expected N elements.  */
+#define START_ENTRIES_NUMBER(n) \
+ (OCCUPANCY_FACTOR * (n) < 300 ? 300 : OCCUPANCY_FACTOR * (n))
 
 /* The following function returns the nearest prime number which is
    greater than given source number. */
@@ -2409,19 +2416,23 @@ higher_prime_number (unsigned long number)
 
 /* This function creates table with length slightly longer than given
    source length.  Created hash table is initiated as empty.  The
-   function returns the created hash table. */
+   function returns the created hash table.  */
 ER_node_t
 create_tab (size_t size)
 {
-  size_t entries_number;
-  size_t allocated_length;
-  ER_node_t result;
+  size_t entries_number, max_els_number;
+  size_t els_size, allocated_length;
+  ER_node_t result, tab_els, el_key;
+  entry_ptr_t entries;
   size_t i;
 
-  
-  entries_number = higher_prime_number (START_TABLE_SIZE (size));
+  entries_number = higher_prime_number (START_ENTRIES_NUMBER (size));
+  max_els_number = (entries_number / OCCUPANCY_FACTOR) * 2 + 1;
+  if (max_els_number > MAX_TAB_ELS_NUMBER)
+    max_els_number = MAX_TAB_ELS_NUMBER;
+  els_size = 2 * max_els_number * sizeof (val_t);
   allocated_length = (ALLOC_SIZE (sizeof (_ER_heap_tab))
-		      + 2 * entries_number * sizeof (val_t));
+		      + els_size + entries_number * sizeof (entry_t));
   result = (ER_node_t) heap_allocate (allocated_length, FALSE);
   ER_SET_MODE (result, ER_NM_heap_tab);
   ER_set_immutable (result, FALSE);
@@ -2429,90 +2440,173 @@ create_tab (size_t size)
   ER_set_allocated_length (result, allocated_length);
   ER_set_entries_number (result, entries_number);
   ER_set_deleted_els_number (result, 0);
-  ER_set_last_key_index (result, -1);
+  ER_set_els_bound (result, 0);
+  ER_set_els_space_bound (result, max_els_number);
+  ER_set_last_accessed_el_index (result, EMPTY_ENTRY);
+  entries = ER_tab_entries (result);
   for (i = 0; i < ER_entries_number (result); i++)
-    ER_SET_MODE (INDEXED_ENTRY_KEY (ER_tab_els (result), i),
-		 ER_NM_empty_entry);
+    entries[i] = EMPTY_ENTRY;
   return result;
 }
 
-static ER_node_t expand_tab (ER_node_t tab);
+static ER_node_t tailor_tab (ER_node_t tab);
 
-/* This function searches for table entry which contains key equal to
-   given key or empty entry in which given value can be placed.  The
-   function works in two modes.  The first mode is used only for
-   search.  The second is used for search and reservation empty entry
-   for given value (the value with given key should be inserted into
-   the table entry before another call of the function).  The table is
-   expanded in reservation mode if occupancy (taking into accout also
-   deleted elements) is more than 75%.  Attention: this means that the
-   place of the table may change after any function call with
-   reservation. */
-ER_node_t
-find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
+/* Return index of the first empty elem or EMPTY_ENTRY if there is no
+   such element.  */
+static entry_t do_always_inline
+first_empty_elem (ER_node_t tab)
 {
-  ER_node_t entry_key;
-  ER_node_t first_deleted_entry_key;
-  size_t hash_value, secondary_hash_value;
-  rint_t last_key_index;
+  entry_t els_bound = ER_els_bound (tab);
+  
+  if (els_bound >= ER_els_space_bound (tab))
+    return EMPTY_ENTRY;
+  ER_SET_MODE (INDEXED_EL_KEY (ER_tab_els (tab), els_bound), ER_NM_empty_el);
+  return els_bound;
+}
+
+/* Return index of empty elem or EMPTY_ENTRY if there is no such
+   element.  Reserve the element.  */
+static entry_t do_always_inline
+get_empty_elem_index (ER_node_t tab)
+{
+  entry_t result = first_empty_elem (tab);
+
+  if (result != EMPTY_ENTRY)
+    ER_set_els_bound (tab, ER_els_bound (tab) + 1);
+  return result;
+}
+
+/* Find entry of TAB for elements with KEY.  Return the entry number.
+   If the element is not found, return number of entry when it will
+   be placed if RESERVE.  Otherwise just return the first found empty
+   entry.  The table can be tailored in reservation mode, if there is
+   no elements which can be be reserved.  */
+static entry_t
+find_tab_entry_num (ER_node_t tab, ER_node_t key, int reserve)
+{
+  ER_node_t el_key;
+  entry_ptr_t entries;
+  entry_t entry_num, entry_step, first_deleted_entry_index;
+  size_t hash_value;
+  entry_t el_index;
   int int_p;
 
+  d_assert (ER_NODE_MODE (tab) == ER_NM_heap_tab);
   int_p = ER_NODE_MODE (key) == ER_NM_int;
-  if ((last_key_index = ER_last_key_index (tab)) >= 0)
-    {
-      entry_key = INDEXED_ENTRY_KEY (ER_tab_els (tab), last_key_index);
-      if ((int_p && ER_NODE_MODE (entry_key) == ER_NM_int
-	   && ER_i (entry_key) == ER_i (key))
-	  || (! int_p && eq_key (entry_key, key)))
-	return entry_key;
-    }
-  if (reserve
-      && (ER_entries_number (tab)
-	  <= MINIMAL_TABLE_SIZE (ER_els_number (tab)
-				 + ER_deleted_els_number (tab))))
-    tab = expand_tab (tab);
+  if (reserve && ER_els_bound (tab) >= ER_els_space_bound (tab))
+    tab = tailor_tab (tab);
+  d_assert (! reserve || first_empty_elem (tab) != EMPTY_ENTRY);
   hash_value = (ER_NODE_MODE (key) == ER_NM_int
 		? int_hash_val (ER_i (key)) : hash_key (key));
-  secondary_hash_value = 1 + hash_value % (ER_entries_number (tab) - 2);
-  hash_value %= ER_entries_number (tab);
-  first_deleted_entry_key = NULL;
+  entry_step = 1 + hash_value % (ER_entries_number (tab) - 2);
+  entry_num = hash_value % ER_entries_number (tab);
+  first_deleted_entry_index = EMPTY_ENTRY;
+  entries = ER_tab_entries (tab);
   for (;;)
     {
-      entry_key = INDEXED_ENTRY_KEY (ER_tab_els (tab), hash_value);
-      if (ER_NODE_MODE (entry_key) == ER_NM_empty_entry)
+      el_index = entries [entry_num];
+      if (el_index == EMPTY_ENTRY)
         {
           if (reserve)
 	    {
 	      ER_set_els_number (tab, ER_els_number (tab) + 1);
-	      if (first_deleted_entry_key != NULL)
+	      el_index = get_empty_elem_index (tab);
+	      if (first_deleted_entry_index == EMPTY_ENTRY)
+		entries[entry_num] = el_index;
+	      else
 		{
 		  d_assert (ER_deleted_els_number (tab) > 0);
 		  ER_set_deleted_els_number
 		    (tab, ER_deleted_els_number (tab) - 1);
-		  entry_key = first_deleted_entry_key;
-		  ER_SET_MODE (entry_key, ER_NM_empty_entry);
+		  entries[first_deleted_entry_index] = el_index;
+		  entry_num = first_deleted_entry_index;
 		}
 	    }
-	  ER_set_last_key_index (tab, -1);
           break;
         }
-      else if (ER_NODE_MODE (entry_key) != ER_NM_deleted_entry)
+      else if (el_index != DELETED_ENTRY)
         {
-          if (int_p && ER_NODE_MODE (entry_key) == ER_NM_int
-	      ? ER_i (entry_key) == ER_i (key) : eq_key (entry_key, key))
-	    {
-	      ER_set_last_key_index (tab, (rint_t) hash_value);
-	      break;
-	    }
+	  el_key = INDEXED_EL_KEY (ER_tab_els (tab), el_index);
+          if (int_p && ER_NODE_MODE (el_key) == ER_NM_int
+	      ? ER_i (el_key) == ER_i (key) : eq_key (el_key, key))
+	    break;
         }
-      else if (first_deleted_entry_key == NULL)
-	first_deleted_entry_key = entry_key;
-      hash_value += secondary_hash_value;
-      if (hash_value >= ER_entries_number (tab))
-        hash_value -= ER_entries_number (tab);
+      else if (first_deleted_entry_index == EMPTY_ENTRY)
+	first_deleted_entry_index = entry_num;
+      entry_num += entry_step;
+      if (entry_num >= ER_entries_number (tab))
+        entry_num -= ER_entries_number (tab);
       tab_collisions++;
     }
-  return entry_key;
+  return entry_num;
+}
+
+/* This function searches for table entry which contains key equal to
+   given key or empty entry in which given value can be placed.  The
+   function works in two modes.  The first mode is used only for
+   search.  In this mode the function returns NULL if the element is
+   not found.  The second mode is used for search and reservation
+   empty entry for given value (the value with given key should be
+   inserted into the table entry before another call of the function).
+   In this mode the function never returns NULL.  The table can be
+   tailored in reservation mode.  Attention: this means that the
+   place of the table may change after any function call with
+   reservation. */
+ER_node_t
+find_tab_el (ER_node_t tab, ER_node_t key, int reserve)
+{
+  ER_node_t el_key;
+  entry_t entry_num, el_index;
+  entry_t last_accessed_el_index;
+  int int_p;
+
+  d_assert (ER_NODE_MODE (tab) == ER_NM_heap_tab);
+  int_p = ER_NODE_MODE (key) == ER_NM_int;
+  if ((last_accessed_el_index = ER_last_accessed_el_index (tab)) != EMPTY_ENTRY)
+    {
+      el_key = INDEXED_EL_KEY (ER_tab_els (tab), last_accessed_el_index);
+      if ((int_p && ER_NODE_MODE (el_key) == ER_NM_int
+	   && ER_i (el_key) == ER_i (key))
+	  || (! int_p && eq_key (el_key, key)))
+	return el_key;
+    }
+  entry_num = find_tab_entry_num (tab, key, reserve);
+  /* Tab can be tailored in find_tab_entry_num.  */
+  GO_THROUGH_REDIR (tab);
+  el_index = ER_tab_entries (tab) [entry_num];
+  if (el_index == EMPTY_ENTRY)
+    return NULL;
+  el_key = INDEXED_EL_KEY (ER_tab_els (tab), el_index);
+  if (ER_NODE_MODE (el_key) != ER_NM_empty_el)
+    ER_set_last_accessed_el_index (tab, el_index);
+  return el_key;
+}
+
+
+/* The following function make copy the table TAB.  The copy is
+   always mutable. */
+ER_node_t
+copy_tab (ER_node_t tab)
+{
+  ER_node_t new_tab;
+  ER_node_t tab_els, new_el;
+  size_t i;
+
+  new_tab = create_tab (ER_els_number (tab));
+  tab_els = ER_tab_els (tab);
+  for (i = 0; i < ER_els_bound (tab); i++)
+    if (ER_NODE_MODE (INDEXED_EL_KEY (tab_els, i)) != ER_NM_empty_el)
+      {
+        new_el = find_tab_el (new_tab, INDEXED_EL_KEY (tab_els, i), TRUE);
+        d_assert (ER_NODE_MODE (new_tab) != ER_NM_heap_redir
+		  && new_el != NULL && ER_NODE_MODE (new_el) == ER_NM_empty_el);
+        *(val_t *) new_el = *(val_t *) INDEXED_EL_KEY (tab_els, i);
+        ((val_t *) new_el) [1] = *(val_t *) INDEXED_EL_VAL (tab_els, i);
+	d_assert (ER_IS_OF_TYPE (INDEXED_EL_VAL (tab_els, i), ER_NM_val));
+	d_assert
+	  (ER_IS_OF_TYPE ((ER_node_t) &((val_t *) new_el) [1], ER_NM_val));
+      }
+  return new_tab;
 }
 
 /* The following function changes expand given table by creating new
@@ -2520,44 +2614,23 @@ find_tab_entry (ER_node_t tab, ER_node_t key, int reserve)
    after the call will be about 33%.  Remember also that the place in
    the table of the table entries (identified by keys) are changed. */
 static ER_node_t
-expand_tab (ER_node_t tab)
+tailor_tab (ER_node_t tab)
 {
   ER_node_t new_tab;
-  ER_node_t new_entry;
   int immutable;
   size_t allocated_length;
   size_t i;
 
   immutable = ER_immutable (tab);
   tab_expansions++;
-  new_tab = create_tab (ER_els_number (tab));
+  new_tab = copy_tab (tab);
   ER_set_immutable (new_tab, immutable);
-  d_assert (ER_allocated_length (new_tab) > ER_allocated_length (tab));
-  for (i = 0; i < ER_entries_number (tab); i++)
-    if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	!= ER_NM_empty_entry
-	&& (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	    != ER_NM_deleted_entry))
-      {
-        new_entry = find_tab_entry (new_tab,
-				    INDEXED_ENTRY_KEY (ER_tab_els (tab), i),
-				    TRUE);
-        d_assert (ER_NODE_MODE (new_entry) == ER_NM_empty_entry);
-        *(val_t *) new_entry
-	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-        ((val_t *) new_entry) [1]
-	  = *(val_t *) INDEXED_ENTRY_VAL (ER_tab_els (tab), i);
-	d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (ER_tab_els (tab), i),
-				 ER_NM_val));
-	d_assert (ER_IS_OF_TYPE ((ER_node_t) &((val_t *) new_entry) [1],
-				 ER_NM_val));
-      }
   allocated_length = ER_allocated_length (tab);
   ER_SET_MODE (tab, ER_NM_heap_redir);
   ER_set_allocated_length (tab, allocated_length);
   ER_set_redir (tab, new_tab);
   ER_set_unique_number (new_tab, ER_unique_number (tab));
-  ER_set_last_key_index (new_tab, -1);
+  ER_set_last_accessed_el_index (new_tab, EMPTY_ENTRY);
   return new_tab;
 }
 
@@ -2569,81 +2642,41 @@ expand_tab (ER_node_t tab)
 int
 remove_tab_el (ER_node_t tab, ER_node_t key)
 {
-  ER_node_t entry_key;
+  ER_node_t el_key;
+  entry_ptr_t entries = ER_tab_entries (tab);
+  entry_t entry_num = find_tab_entry_num (tab, key, FALSE);
+  entry_t el_index = entries [entry_num];
 
-  entry_key = find_tab_entry (tab, key, FALSE);
-  if (ER_NODE_MODE (entry_key) == ER_NM_empty_entry
-      || ER_NODE_MODE (entry_key) == ER_NM_deleted_entry)
+  if (el_index == EMPTY_ENTRY)
     return FALSE;
-  ER_SET_MODE (entry_key, ER_NM_deleted_entry);
+  d_assert (el_index != DELETED_ENTRY);
+  entries [entry_num] = DELETED_ENTRY;
+  el_key = INDEXED_EL_KEY (ER_tab_els (tab), el_index);
+  ER_SET_MODE (el_key, ER_NM_empty_el);
   d_assert (ER_els_number (tab) > 0);
   ER_set_els_number (tab, ER_els_number (tab) - 1);
   ER_set_deleted_els_number (tab, ER_deleted_els_number (tab) + 1);
-  ER_set_last_key_index (tab, -1);
+  ER_set_last_accessed_el_index (tab, EMPTY_ENTRY);
   return TRUE;
 }
 
-/* The following function make copy the table TAB.  The copy is
-   always mutable. */
-ER_node_t
-copy_tab (ER_node_t tab)
-{
-  ER_node_t new_tab;
-  ER_node_t new_entry;
-  size_t i;
-
-  new_tab = create_tab (ER_els_number (tab));
-  for (i = 0; i < ER_entries_number (tab); i++)
-    if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	!= ER_NM_empty_entry
-	&& (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	    != ER_NM_deleted_entry))
-      {
-        new_entry = find_tab_entry (new_tab,
-				    INDEXED_ENTRY_KEY (ER_tab_els (tab), i),
-				    TRUE);
-        d_assert (ER_NODE_MODE (new_entry) == ER_NM_empty_entry);
-        *(val_t *) new_entry
-	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-        ((val_t *) new_entry) [1]
-	  = *(val_t *) INDEXED_ENTRY_VAL (ER_tab_els (tab), i);
-	d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (ER_tab_els (tab), i),
-				 ER_NM_val));
-	d_assert (ER_IS_OF_TYPE ((ER_node_t) &((val_t *) new_entry) [1],
-				 ER_NM_val));
-      }
-  return new_tab;
-}
-
-/* The function returns the next key in TAB after given one or the
-   first key if KEY == NULL. */
+/* The function returns the next key in TAB starting with START.  It
+   returns NULL if there is no anymore.  */
 ER_node_t
 find_next_key (ER_node_t tab, int start)
 {
   size_t i;
   ER_node_t key;
 
-  for (i = start; i < ER_entries_number (tab); i++)
+  for (i = start; i < ER_els_bound (tab); i++)
     {
-      key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-      if (ER_NODE_MODE (key) != ER_NM_empty_entry
-	  && ER_NODE_MODE (key) != ER_NM_deleted_entry)
+      key = INDEXED_EL_KEY (ER_tab_els (tab), i);
+      if (ER_NODE_MODE (key) != ER_NM_empty_el)
 	{
-	  ER_set_last_key_index (tab, i);
+	  ER_set_last_accessed_el_index (tab, i);
 	  return key;
 	}
     }
-  for (i = 0; i < ER_entries_number (tab); i++)
-    {
-      key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-      if (ER_NODE_MODE (key) == ER_NM_empty_entry
-	  || ER_NODE_MODE (key) == ER_NM_deleted_entry)
-	{
-	  ER_set_last_key_index (tab, -1);
-	  return key;
-	}
-    }
-  d_unreachable ();
   return NULL;
 }
 
@@ -2651,7 +2684,7 @@ ER_node_t
 table_to_vector_conversion (ER_node_t tab)
 {
   size_t i, index;
-  ER_node_t vect;
+  ER_node_t vect, key;
 
   GO_THROUGH_REDIR (tab);
   index = 0;
@@ -2659,18 +2692,16 @@ table_to_vector_conversion (ER_node_t tab)
     vect = create_empty_vector ();
   else
     vect = create_unpack_vector (ER_els_number (tab) * 2);
-  for (i = 0; i < ER_entries_number (tab); i++)
-    if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	!= ER_NM_empty_entry
-	&& (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	    != ER_NM_deleted_entry))
-      {
-	*(val_t *) IVAL (ER_unpack_els (vect), index)
-	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-	*(val_t *) IVAL (ER_unpack_els (vect), index + 1)
-	  = *(val_t *) INDEXED_ENTRY_VAL (ER_tab_els (tab), i);
-	index += 2;
-      }
+  for (i = 0; i < ER_els_bound (tab); i++)
+    {
+      key = INDEXED_EL_KEY (ER_tab_els (tab), i);
+      if (ER_NODE_MODE (key) == ER_NM_empty_el)
+	continue;
+      *(val_t *) IVAL (ER_unpack_els (vect), index) = *(val_t *) key;
+      *(val_t *) IVAL (ER_unpack_els (vect), index + 1)
+	= *(val_t *) INDEXED_EL_VAL (ER_tab_els (tab), i);
+      index += 2;
+    }
   return vect;
 }
 
@@ -2678,7 +2709,7 @@ ER_node_t
 vector_to_table_conversion (ER_node_t vect)
 {
   size_t i;
-  ER_node_t entry;
+  ER_node_t el;
   val_t val;
   ER_node_t tab, tvar = (ER_node_t) &val;
 
@@ -2688,14 +2719,15 @@ vector_to_table_conversion (ER_node_t vect)
     {
       ER_SET_MODE ((ER_node_t) tvar, ER_NM_int);
       ER_set_i (tvar, i);
-      entry = find_tab_entry (tab, tvar, TRUE);
-      *(val_t *) entry = *(val_t *) tvar;
+      el = find_tab_el (tab, tvar, TRUE);
+      d_assert (el != NULL);
+      *(val_t *) el = *(val_t *) tvar;
       /* Integer is always immutable. */
       if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-	*((val_t *) entry + 1) = *(val_t *) IVAL (ER_unpack_els (vect), i);
+	*((val_t *) el + 1) = *(val_t *) IVAL (ER_unpack_els (vect), i);
       else
 	{
-	  ER_node_t v = (ER_node_t) ((val_t *) entry + 1);
+	  ER_node_t v = (ER_node_t) ((val_t *) el + 1);
 	  ER_node_mode_t el_type = ER_pack_vect_el_mode (vect);
 	  size_t el_type_size = type_size_table [el_type];
 

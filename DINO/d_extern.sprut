@@ -29,7 +29,7 @@
 /* Don't use -flat-structure for generation SPI from this description. */
 
 %type bool_t size_t hide_t char_t int_t rint_t unsigned_rint_t rfloat_t char_ptr_t
-      bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t type_val_t
+      entry_t entry_ptr_t bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t type_val_t
       process_status_t stack_ptr_t hidden_pc_t gmp_t
 
 %import {
@@ -45,6 +45,11 @@ typedef struct BC_node *BC_hidden_node_t;
 typedef struct BC_node *hidden_pc_t;
 
 typedef char *char_ptr_t;
+
+/* The hash table entry.  */
+typedef unsigned int entry_t;
+/* The pointer to hash table entry.  */
+typedef entry_t *entry_ptr_t;
 
 typedef int bcid_t;
 
@@ -137,8 +142,7 @@ typedef union
     _ER_type type;
     _ER_vect vect;
     _ER_tab tab;
-    _ER_empty_entry ee;
-    _ER_deleted_entry de;
+    _ER_empty_el ee;
     _ER_stack stack;
     _ER_process process;
     _ER_external_var_ref external_var_ref;
@@ -198,11 +202,25 @@ extern void *get_library_search_function (const char *name);
 #define ER_unpack_els(vect) _unpack_els (vect)
 #endif
 
+/* Reserved values of the entries.  */
+static const entry_t EMPTY_ENTRY = UINT_MAX - 1;
+static const entry_t DELETED_ENTRY = UINT_MAX;
+/* Maximal number of elements in the hash table.  */
+static const entry_t MAX_TAB_ELS_NUMBER = UINT_MAX - 1;
+
 #if defined(NDEBUG)
 #define ER_tab_els(tab)\
   ((ER_node_t) ((char *) (tab) + ALLOC_SIZE (sizeof (_ER_heap_tab))))
 #else
 #define ER_tab_els(tab) _tab_els (tab)
+#endif
+
+#if defined(NDEBUG)
+#define ER_tab_entries(tab)\
+  ((entry_ptr_t) ((char *) (tab) + ALLOC_SIZE (sizeof (_ER_heap_tab))	\
+                  + 2 * ER_els_space_bound (tab) * sizeof (val_t)))
+#else
+#define ER_tab_entries(tab) _tab_entries (tab)
 #endif
 
 #if defined(NDEBUG)
@@ -234,19 +252,15 @@ extern void *get_library_search_function (const char *name);
 #endif
 
 #if defined(NDEBUG)
-#define INDEXED_ENTRY_KEY(first_entry, index)\
-   ((ER_node_t) ((val_t *) (first_entry) + 2 * (index)))
+#define INDEXED_EL_KEY(first_el, index) ((ER_node_t) ((val_t *) (first_el) + 2 * (index)))
 #else
-#define INDEXED_ENTRY_KEY(first_entry, index)\
-   _indexed_entry_key (first_entry, index)
+#define INDEXED_EL_KEY(first_el, index) _indexed_el_key (first_el, index)
 #endif
 
 #if defined(NDEBUG)
-#define INDEXED_ENTRY_VAL(first_entry, index)\
-   ((ER_node_t) ((val_t *) (first_entry) + (2 * (index) + 1)))
+#define INDEXED_EL_VAL(first_el, index) ((ER_node_t) ((val_t *) (first_el) + (2 * (index) + 1)))
 #else
-#define INDEXED_ENTRY_VAL(first_entry, index)\
-   _indexed_entry_val (first_entry, index)
+#define INDEXED_EL_VAL(first_el, index) _indexed_el_val (first_el, index)
 #endif
 
 #define DECR_TOP(stack, decr)\
@@ -265,6 +279,8 @@ extern ER_node_t _unpack_els (ER_node_t vect);
 
 extern ER_node_t _tab_els (ER_node_t tab);
 
+extern entry_ptr_t _tab_entries (ER_node_t tab);
+
 extern ER_node_t _stack_vars (ER_node_t stack);
 
 extern BC_hidden_node_t _stack_block (ER_node_t stack);
@@ -273,9 +289,9 @@ extern stack_ptr_t _stacks_table (ER_node_t process);
 
 extern ER_node_t _indexed_val (ER_node_t first_var, int index);
 
-extern ER_node_t _indexed_entry_key (ER_node_t first_entry, int index);
+extern ER_node_t _indexed_el_key (ER_node_t first_entry, int index);
 
-extern ER_node_t _indexed_entry_val (ER_node_t first_entry, int index);
+extern ER_node_t _indexed_el_val (ER_node_t first_entry, int index);
 
 #endif
 
@@ -305,7 +321,7 @@ extern int eq_stack (ER_node_t i1, ER_node_t i2);
 
 extern int eq_table (ER_node_t t1, ER_node_t t2);
 extern ER_node_t create_tab (size_t size);
-extern ER_node_t find_tab_entry (ER_node_t tab, ER_node_t key, int reserve);
+ extern ER_node_t find_tab_el (ER_node_t tab, ER_node_t key, int reserve);
 extern int remove_tab_el (ER_node_t tab, ER_node_t key);
 extern ER_node_t copy_tab (ER_node_t tab);
 extern ER_node_t find_next_key (ER_node_t tab, int start);
@@ -384,17 +400,29 @@ heap_pack_vect :: heap_vect
 heap_unpack_vect :: heap_vect
 ;
 
-/* Table. */
+/* Dino hash table.  The hash table has space for elements.  All new
+   elements are placed after already added elements in the space.  The
+   table has also space for entries which contains indexes in element
+   space.  Entries are actually the hash table.  The number of entries
+   is more than possible number of elements in the element space.
+   When element space are full (it still can contains removed
+   elements), the table is rebuilt.  */
 heap_tab :: heap_vect_tab
 %other
-  /* Index of the last access key or -1 if undefined.  It is used to
-     speed up the repeated access.  */
-  last_key_index : int_t
   entries_number : size_t /* number of all entries in the table */
   /* Current number of deleted elements in the table */
   deleted_els_number : size_t
-  /* The first entry is placed immediately after this node in the
-     heap. */
+  /* Bounds of elements and element space.  */
+  els_bound, els_space_bound : entry_t
+  /* Element index of the last accessed key or EMPTY_ENTRY if
+     undefined.  It is used to speed up the repeated access.  */
+  last_accessed_el_index : entry_t
+  /* The first element is placed immediately after this node in the
+     heap.  Element is a pair of values: element key and element val.
+     Some element keys can be empty.  It happens after element
+     deletions. */
+  /* After the elements we have the hash table entries containing the
+     element indexes for the corresponding key hash. */
 ;
 
 /* Code which may have the context (parent environment). */
@@ -531,9 +559,9 @@ tab :: val
   tab : heap_tab
 ;
 
-/* The following nodes can used only as key in table. */
+/* The following node can used only as key in a table element. */
 /*%final*/
-empty_entry, deleted_entry :: val
+empty_el :: val
 ;
 
 /*%final*/

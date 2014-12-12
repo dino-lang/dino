@@ -213,10 +213,28 @@ if test "$GCC" = yes && test x$cocom_debug = x; then
       [lto=yes],
       [AC_MSG_RESULT([no])]
   )
+
   CFLAGS="$my_save_cflags"
+
+  fatlto=no
+  if test "$lto" = yes; then
+      CFLAGS="-flto -ffat-lto-objects"
+      AC_MSG_CHECKING([whether CC supports -ffat-lto-objects])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+            [AC_MSG_RESULT([yes])]
+	    [fatlto=yes],
+	    [AC_MSG_RESULT([no])]
+      )
+      CFLAGS="$my_save_cflags"
+  fi
+  
   if test "$lto" = yes; then
     CFLAGS="`echo $CFLAGS` -flto"
     CXXFLAGS="`echo $CXXFLAGS` -flto"
+    if test "$fatlto" = yes; then
+        CFLAGS="`echo $CFLAGS` -ffat-lto-objects"
+	CXXFLAGS="`echo $CXXFLAGS` -ffat-lto-objects"
+    fi
   fi
 
   system=`uname -m`

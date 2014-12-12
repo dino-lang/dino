@@ -477,12 +477,11 @@ load_table_element_by_key (ER_node_t to, ER_node_t tab, ER_node_t key)
   ER_node_t entry;
 
   GO_THROUGH_REDIR (tab);
-  entry = find_tab_entry (tab, key, FALSE);
-  if (ER_NODE_MODE (entry) == ER_NM_empty_entry
-      || ER_NODE_MODE (entry) == ER_NM_deleted_entry)
+  entry = find_tab_el (tab, key, FALSE);
+  if (entry == NULL || ER_NODE_MODE (entry) == ER_NM_empty_el)
     eval_error (keyvalue_bc_decl, get_cpos (), DERR_no_such_key);
-  *(val_t *) to = *(val_t *) INDEXED_ENTRY_VAL (entry, 0);
-  d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0), ER_NM_val));
+  *(val_t *) to = *(val_t *) INDEXED_EL_VAL (entry, 0);
+  d_assert (ER_IS_OF_TYPE (INDEXED_EL_VAL (entry, 0), ER_NM_val));
 }
 
 static void do_inline
@@ -494,11 +493,12 @@ store_table_element (ER_node_t tab, ER_node_t index, ER_node_t val)
   if (ER_immutable (tab))
     eval_error (immutable_bc_decl, get_designator_pos (),
 		DERR_immutable_table_modification);
-  entry = find_tab_entry (tab, index, TRUE);
+  entry = find_tab_el (tab, index, TRUE);
+  d_assert (entry != NULL);
   *(val_t *) entry = *(val_t *) index;
   make_immutable (entry);
-  *(val_t *) INDEXED_ENTRY_VAL (entry, 0) = *(val_t *) val;
-  d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0), ER_NM_val));
+  *(val_t *) INDEXED_EL_VAL (entry, 0) = *(val_t *) val;
+  d_assert (ER_IS_OF_TYPE (INDEXED_EL_VAL (entry, 0), ER_NM_val));
 }
 
 static void do_inline
@@ -1429,9 +1429,8 @@ execute_in_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
     eval_error (keyop_bc_decl, get_cpos (), DERR_in_table_operand_type);
   tab = ER_tab (op2);
   GO_THROUGH_REDIR (tab);
-  entry = find_tab_entry (tab, op1, FALSE);
-  cmp = (ER_NODE_MODE (entry) != ER_NM_empty_entry
-	 && ER_NODE_MODE (entry) != ER_NM_deleted_entry);
+  entry = find_tab_el (tab, op1, FALSE);
+  cmp = (entry != NULL && ER_NODE_MODE (entry) != ER_NM_empty_el);
   ER_SET_MODE (res, ER_NM_int);
   ER_set_i (res, cmp);
 }
@@ -3095,17 +3094,16 @@ tab (ER_node_t res, ER_node_t op1, rint_t tab_els_number)
        curr_tab_el_number < 2 * tab_els_number;
        curr_tab_el_number += 2)
     {
-      entry = find_tab_entry (tab, IVAL (op1, curr_tab_el_number), TRUE);
-      if (ER_NODE_MODE (entry) != ER_NM_empty_entry
-	  && ER_NODE_MODE (entry) != ER_NM_deleted_entry)
+      entry = find_tab_el (tab, IVAL (op1, curr_tab_el_number), TRUE);
+      d_assert (entry != NULL);
+      if (ER_NODE_MODE (entry) != ER_NM_empty_el)
 	eval_error (keyvalue_bc_decl, get_cpos (), DERR_repeated_key,
 		    (long long) curr_tab_el_number);
       *(val_t *) entry = *(val_t *) IVAL (op1, curr_tab_el_number);
       make_immutable (entry);
       *((val_t *) entry + 1)
 	= *(val_t *) IVAL (op1, curr_tab_el_number + 1);
-      d_assert (ER_IS_OF_TYPE (INDEXED_ENTRY_VAL (entry, 0),
-			       ER_NM_val));
+      d_assert (ER_IS_OF_TYPE (INDEXED_EL_VAL (entry, 0), ER_NM_val));
     }
   ctop = saved_ctop;
   ER_SET_MODE (res, ER_NM_tab);
@@ -4350,8 +4348,9 @@ initiate_vars (void)
       string2 = create_string (program_environment [i] + j + 1);
       ER_SET_MODE ((ER_node_t) &key, ER_NM_vect);
       set_vect_dim ((ER_node_t) &key, string, 0);
-      entry = find_tab_entry (tab, (ER_node_t) &key, TRUE);
-      if (ER_NODE_MODE (entry) != ER_NM_empty_entry)
+      entry = find_tab_el (tab, (ER_node_t) &key, TRUE);
+      d_assert (ER_NODE_MODE (tab) != ER_NM_heap_redir);
+      if (ER_NODE_MODE (entry) != ER_NM_empty_el)
 	eval_error (invenv_bc_decl, no_position, DERR_environment_corrupted);
       ER_SET_MODE (entry, ER_NM_vect);
       set_vect_dim (entry, string, 0);

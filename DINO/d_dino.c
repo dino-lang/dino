@@ -678,13 +678,13 @@ dino_finish (int code)
 	  fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
 	  size = get_size_repr (heap_size, &unit);
 	  size2 = get_size_repr (max_heap_size, &unit2);
-	  fprintf (stderr, "Heap size - %d%c (max %d%c), heap chunks - %d (max %d), ",
+	  fprintf (stderr, "Heap size - %d%c (peak %d%c), heap chunks - %d (peak %d), ",
 		   size, unit, size2, unit2,
 		   heap_chunks_number, max_heap_chunks_number);
 	}
       size = get_size_repr (gmp_memory_size, &unit);
       size2 = get_size_repr (max_gmp_memory_size, &unit2);
-      fprintf (stderr, "Long ints - %d%c (max %d%c)\n",
+      fprintf (stderr, "Long ints - %d%c (peak %d%c)\n",
 	       size, unit, size2, unit2);
       if (gc_number != 0)
 	fprintf (stderr,

@@ -3011,10 +3011,9 @@ foreach (ER_node_t tv, ER_node_t start, ER_node_t key)
   tab = ER_tab (tv);
   GO_THROUGH_REDIR (tab);
   k = (val_t *) find_next_key (tab, ER_i (start));
-  if (ER_NODE_MODE ((ER_node_t) k) != ER_NM_empty_entry
-      && ER_NODE_MODE ((ER_node_t) k) != ER_NM_deleted_entry)
+  if (k != NULL)
     {
-      ER_set_i (start, (k - (val_t *) ER_tab_els (tab)) / 2 + 1);
+      ER_set_i (start, ER_i (start) + 1);
       *(val_t *) key = *(val_t *) k;
       return TRUE;
     }
@@ -3033,10 +3032,9 @@ foreach2 (ER_node_t tv, ER_node_t start, ER_node_t container, ER_node_t element)
   tab = ER_tab (tv);
   GO_THROUGH_REDIR (tab);
   k = (val_t *) find_next_key (tab, ER_i (start));
-  if (ER_NODE_MODE ((ER_node_t) k) != ER_NM_empty_entry
-      && ER_NODE_MODE ((ER_node_t) k) != ER_NM_deleted_entry)
+  if (k != NULL)
     {
-      ER_set_i (start, (k - (val_t *) ER_tab_els (tab)) / 2 + 1);
+      ER_set_i (start, ER_i (start) + 1);
       store_designator_value (container, element, (ER_node_t) k);
       return TRUE;
     }

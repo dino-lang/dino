@@ -1,3 +1,62 @@
+2014-12-12  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_dino.c (dino_finish): Use peak instead of max for
+	statistcis.
+	* DINO/d_eval.c: Rename find_tab_entry, INDEXED_ENTRY_VAL to
+	find_tab_el, INDEXED_EL_VAL.
+	(load_table_element_by_key, execute_in_op, tab): Check only
+	ER_NM_empty_el and NULL value.
+	(store_table_element): Add assert for find_tab_el result.
+	(initiate_vars): Add assert about redir absence.
+	* DINO/d_extern.sprut (entry_t, entry_ptr_t): New types.
+	(val_t): Remove _ER_deleted_entry.
+	(EMPTY_ENTRY, DELETED_ENTRY, MAX_TAB_ELS_NUMBER): New.
+	(ER_tab_entries): New macro.
+	(INDEXED_ENTRY_KEY, INDEXED_ENTRY_VAL): Rename to INDEXED_EL_KEY,
+	INDEXED_EL_VAL.
+	(_tab_entries): New.
+	(_indexed_entry_key, _indexed_entry_val): Rename to _indexed_el_key,
+	_indexed_el_val.
+	(find_tab_entry): Rename to find_tab_el.
+	(heap_tab): Rename last_key_index to last_accessed_el_index.  Add
+	els_bound, els_space_bound.
+	(deleted_entry): Remove.
+	(empty_entry): Rename to empty_el.
+	* DINO/d_heap.c: Rename find_tab_entry, INDEXED_ENTRY_KEY,
+	INDEXED_ENTRY_VAL to find_tab_el, INDEXED_EL_KEY, INDEXED_EL_VAL.
+	(_tab_entries): New.
+	(_indexed_entry_key, _indexed_entry_val): Rename to _indexed_el_key,
+	_indexed_el_val.
+	(traverse_used_heap_object, change_obj_refs, eq_table, hash_key):
+	Use ER_els_bound.  Check only ER_NM_empty_el.
+	(MINIMAL_TABLE_SIZE): Remove.
+	(OCCUPANCY_FACTOR): New.
+	(MINIMAL_TABLE_SIZE): Rename to START_ENTRIES_NUMBER.  Use
+	OCCUPANCY_FACTOR.
+	(create_tab): Allocate space for els and entries.  Use
+	OCCUPANCY_FACTOR.  Initialize new fields.
+	(first_empty_elem, get_empty_elem, find_tab_entry_num): New.
+	(find_tab_el): Rewrite using find_tab_entry_num.  Return NULL when
+	the element is not found in non-reservation mode.
+	(copy_tab): Move up.
+	(expand_tab): Rename to tailor_tab.  Rewrite using copy_tab.
+	(remove_tab_el): Rewrite using find_tab_entry_num.
+	(find_next_key): Use ER_els_bound.  Return NULL for end marker.
+	(table_to_vector_conversion): Use ER_els_bound.  Check only
+	ER_NM_empty_el.
+	(vector_to_table_conversion): Add_assert.
+	* DINO/d_func.c: Rename find_tab_entry, INDEXED_ENTRY_KEY to
+	find_tab_el, INDEXED_EL_KEY.
+	(keys_call, print_val): Use ER_els_bound.  Check
+	only ER_NM_empty_el.
+	(scanel): Add GO_THROUGH_REDIR before find_tab_el.  Check only
+	ER_NM_empty_el.  Add assert.
+	* DINO/d_gen.c (foreach, foreach2): Check key on NULL.  Increment
+	start by 1.
+	* DINO/dino.tst.in: Change tables output.
+	* configure.in: Check GCC -ffat-lto-objects.
+	* configure: Update.
+
 2014-12-09  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_bc.sprut (op4i24, macall): New.

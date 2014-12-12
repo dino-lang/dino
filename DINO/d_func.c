@@ -383,14 +383,11 @@ keys_call (int pars_number)
     vect = create_empty_vector ();
   else
     vect = create_unpack_vector (ER_els_number (tab));
-  for (i = 0; i < ER_entries_number (tab); i++)
-    if (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	!= ER_NM_empty_entry
-	&& (ER_NODE_MODE (INDEXED_ENTRY_KEY (ER_tab_els (tab), i))
-	    != ER_NM_deleted_entry))
+  for (i = 0; i < ER_els_bound (tab); i++)
+    if (ER_NODE_MODE (INDEXED_EL_KEY (ER_tab_els (tab), i)) != ER_NM_empty_el)
       {
 	*(val_t *) IVAL (ER_unpack_els (vect), index)
-	  = *(val_t *) INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
+	  = *(val_t *) INDEXED_EL_KEY (ER_tab_els (tab), i);
 	index++;
       }
   if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
@@ -2622,11 +2619,10 @@ print_val (ER_node_t val, int quote_flag, int full_p)
       tab = ER_tab (val);
       GO_THROUGH_REDIR (tab);
       flag = FALSE;
-      for (num = i = 0; i < ER_entries_number (tab); i++)
+      for (num = i = 0; i < ER_els_bound (tab); i++)
 	{
-	  key = INDEXED_ENTRY_KEY (ER_tab_els (tab), i);
-	  if (ER_NODE_MODE (key) == ER_NM_empty_entry
-	      || ER_NODE_MODE (key) == ER_NM_deleted_entry)
+	  key = INDEXED_EL_KEY (ER_tab_els (tab), i);
+	  if (ER_NODE_MODE (key) == ER_NM_empty_el)
 	    continue;
 	  num++;
 	  if (repl_flag && num > MAX_REPL_PRINTED_ELEMENTS)
@@ -2638,7 +2634,7 @@ print_val (ER_node_t val, int quote_flag, int full_p)
 	    VLO_ADD_STRING (temp_vlobj, ", ");
 	  print_val (key, TRUE, TRUE);
 	  VLO_ADD_STRING (temp_vlobj, ":");
-	  print_val (INDEXED_ENTRY_VAL (ER_tab_els (tab), i), TRUE, TRUE);
+	  print_val (INDEXED_EL_VAL (ER_tab_els (tab), i), TRUE, TRUE);
 	  flag = TRUE;
 	}
       VLO_ADD_STRING (temp_vlobj, "]");
@@ -3476,9 +3472,10 @@ scanel (FILE *f, struct token token, const char *function_name, int ln_flag)
 	      }
 	    else
 	      key_val = result;
-	    entry = find_tab_entry (tab, key, TRUE);
-	    if (ER_NODE_MODE (entry) != ER_NM_empty_entry
-		&& ER_NODE_MODE (entry) != ER_NM_deleted_entry)
+	    GO_THROUGH_REDIR (tab);
+	    entry = find_tab_el (tab, key, TRUE);
+	    d_assert (entry != NULL);
+	    if (ER_NODE_MODE (entry) != ER_NM_empty_el)
 	      invinput_error (f, function_name, ln_flag);
 	    *(val_t *) entry = key_val;
 	    make_immutable (entry);
