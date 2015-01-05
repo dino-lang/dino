@@ -455,7 +455,7 @@ static void
 del_heap_chunks (int number_saved_chunks)
 {
   int i;
-
+  
   for (i = number_saved_chunks;
        i < VLO_LENGTH (heap_chunks) / sizeof (struct heap_chunk);
        i++)
@@ -593,12 +593,12 @@ heap_allocate (size_t size, int stack_p)
 	  < size)
 	new_heap_chunk (size > heap_chunk_size ? size : heap_chunk_size);
     }
- else if (allocs_after_GC > 1000 && gmp_memory_size > 16 * heap_chunk_size)
-   {
-     GC_executed_stmts_count = executed_stmts_count;
-     executed_stmts_count = 0;
-     allocs_after_GC = 0;
-   }
+  else if (allocs_after_GC > 1000 && gmp_memory_size > 16 * heap_chunk_size)
+    {
+      GC_executed_stmts_count = executed_stmts_count;
+      executed_stmts_count = 0;
+      allocs_after_GC = 0;
+    }
   if (stack_p)
     {
       curr_heap_chunk->chunk_stack_top -= size;
@@ -1030,22 +1030,22 @@ define_new_heap_object_places (void)
   return result;
 }
 
-#define CHANGE_REF(ref)\
- do\
-   if ((ref) != NULL)\
-     {\
-       (ref) = (ER_node_t) ER_new_place (ref);\
-     }\
- while (0)
+#define CHANGE_REF(ref)				\
+  do						\
+    if ((ref) != NULL)				\
+      {						\
+	(ref) = (ER_node_t) ER_new_place (ref);	\
+      }						\
+  while (0)
 
-#define CHANGE_VECT_TAB_REF(ref)\
- do\
-   if ((ref) != NULL)\
-     {\
-       GO_THROUGH_REDIR (ref);\
-       (ref) = (ER_node_t) ER_new_place (ref);\
-     }\
- while (0)
+#define CHANGE_VECT_TAB_REF(ref)		\
+  do						\
+    if ((ref) != NULL)				\
+      {						\
+	GO_THROUGH_REDIR (ref);			\
+	(ref) = (ER_node_t) ER_new_place (ref);	\
+      }						\
+  while (0)
 
 /* The function changes one value with given VAL_ADDR of packed
    vector. The type of the value is given in MODE.  Don't use SPRUT
@@ -1339,6 +1339,8 @@ compact_heap (void)
 	  new_place = move_or_destroy_object (curr_obj, &curr_place_descr,
 					      &curr_heap_size, new_place);
 	}
+      /* Put stacks into another part of the heap.  Such cases should
+	 be rare.  */
       for (curr_obj = (ER_node_t) curr_descr->chunk_stack_top;
 	   (char *) curr_obj < curr_descr->chunk_bound;
 	   curr_obj = next_obj)

@@ -1,3 +1,9 @@
+2015-01-05  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/d_context.c (first_block_passing): Don't inline blocks
+	containing try-blocks.
+	* DINO/d_heap.c (compact_heap): Add a comment.
+
 2014-12-12  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_dino.c (dino_finish): Use peak instead of max for

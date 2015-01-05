@@ -1140,8 +1140,11 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    /* This code should be here before reseting flag for try
 	       and catch-block to switch of inlining for upper blocks
 	       because of presense of func/class decls inside the
-	       block.  */
-	    if (curr_fdecl_flag)
+	       block or because of containing try-block as we put
+	       exceptions as the first temp variable of the block
+	       (when we are in inlined block it is hard to say where
+	       is the 1st temp variable).  */
+	    if (curr_fdecl_flag || IR_exceptions (stmt) != NULL)
 	      for (curr_block = stmt;
 		   curr_block != NULL && IR_inline_flag (curr_block);
 		   curr_block = IR_block_scope (curr_block))
