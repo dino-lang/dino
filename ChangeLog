@@ -1,3 +1,8 @@
+2015-04-27  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/compare.tst: Add runs for LUAJIT.
+	(SKIP_LUAJIT, DO_LUAJIT): New.
+
 2015-01-05  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_context.c (first_block_passing): Don't inline blocks
