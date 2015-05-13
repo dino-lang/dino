@@ -265,4 +265,14 @@ throw		{return BC_NM_throw;}
 wait		{return BC_NM_wait;}
 waitend		{return BC_NM_waitend;}
 except		{return BC_NM_except;}
+chvec		{return BC_NM_chvec;}
+chvlen		{return BC_NM_chvlen;}
+chvel		{return BC_NM_chvel;}
+chvend		{return BC_NM_chvend;}
+chtab		{return BC_NM_chtab;}
+chtel		{return BC_NM_chtel;}
+chtend		{return BC_NM_chtend;}
+chst		{return BC_NM_chst;}
+chstel		{return BC_NM_chstel;}
+chstend		{return BC_NM_chstend;}
 %other {return 0;}

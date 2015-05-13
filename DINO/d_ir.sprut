@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2013 Vladimir Makarov.
+   Copyright (C) 1997-2015 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -191,7 +191,6 @@ typedef enum hint_val hint_val_t;
 
 extern os_t irp;
 
-
 extern void initiate_table (void);
 extern void delete_table (void);
 extern IR_node_t *find_table_entry (IR_node_t ref, int reserve);
@@ -204,6 +203,8 @@ extern IR_node_t create_unique_node_with_string (IR_node_mode_t m,
                                                  char **string_in_pool_ptr);
 extern IR_node_t create_unique_ident_node (const char *str);
 extern IR_node_t create_empty_block (IR_node_t scope);
+extern IR_node_t merge_stmt_lists (IR_node_t list1, IR_node_t list2);
+extern IR_node_t uncycle_stmt_list (IR_node_t list);
 extern void initiate_icode (void);
 extern void finish_icode (void);
 
@@ -353,6 +354,7 @@ extern IR_node_t destroy_unique_ident;
   "   class accessop (msg = nil) {use invaccess former msg;}\n"\
   "   class accessvalue (msg = nil) {use invaccess former msg;}\n"\
   "   class immutable (msg = nil) {use invaccess former msg;}\n"\
+  "   class patternmatch (msg = nil) {use invaccess former msg;}\n"\
   "  class deadlock (msg = nil) {use error former msg;}\n"\
   "  class syncwait (msg = nil) {use error former msg;}\n"\
   "var argv, env; val version, main_thread, curr_thread;\n"\
@@ -654,6 +656,10 @@ slice :: index_designator
 this :: expr
 ;
 
+/* These are parts of a pattern.  */
+wildcard, dots :: expr
+;
+
 %abstract
 type :: expr
 ;
@@ -680,6 +686,9 @@ vec, tab ::  vec_tab
    nodes. */
 elist_element :: generic_pos
 %other
+        /* It can be true only for vect/tab elements if repetition/key
+	   was actually given.  */
+        repetition_key_flag : bool_t {$ = FALSE;}
         /* Always null for actual parameters. */
         repetition_key : expr
         expr : expr
@@ -712,7 +721,7 @@ stmt :: generic_pos
 %abstract
 assign_stmt :: stmt
 %other
-        assignment_var : designator
+        assignment_var : expr
         assignment_expr : expr
 ;
 
@@ -720,9 +729,28 @@ assign_stmt :: stmt
    parameter) if the parameter value is nil.  See also node
    par_assign_test. */
 assign, mult_assign, div_assign, mod_assign,
-plus_assign, minus_assign, concat_assign, lshift_assign,
-rshift_assign, ashift_assign, and_assign, xor_assign, or_assign,
-var_assign, par_assign :: assign_stmt
+  plus_assign, minus_assign, concat_assign, lshift_assign,
+  rshift_assign, ashift_assign, and_assign, xor_assign, or_assign,
+  var_assign, par_assign :: assign_stmt
+;
+
+/* The node is created from pattern assignment.  */
+pattern_var :: stmt
+%other
+        /* The following is shared with assignment_var of
+	   corresponding pattern asignment node.  */
+        pattern : expr
+        pattern_var_access : access_val_t
+	/* Flag of that the pattern vars are constant (can not be
+	   changed). */
+        pattern_const_flag : bool_t
+;
+
+%abstract
+pattern_assign_stmt :: assign_stmt
+;
+
+var_pattern_assign, par_pattern_assign :: pattern_assign_stmt
 ;
 
 expr_stmt :: stmt
@@ -762,6 +790,12 @@ foreach_stmt :: stmt
         foreach_stmts : stmt
 ;
 
+switch_stmt :: stmt
+%other
+        switch_expr : expr
+        switch_cases : stmt
+;
+
 %abstract
 for_break_contintue :: stmt
 ;
@@ -795,7 +829,6 @@ wait_stmt :: stmt
 /* The following structure is representing block nodes. */
 block :: stmt
 %other
-        /* This member is defined for all blocks. */
         block_scope : block
         /* Reference to stmts in given block. */
         block_stmts : stmt
@@ -809,6 +842,12 @@ block :: stmt
         exceptions : exception
         /* Flag of the hint presence */
         hint : hint_val_t {$ = NO_HINT;}
+        /* The three fields following are non-null if the block corresponds a
+	   switch case.  */
+        switch_stmt : switch_stmt { $ = NULL; }
+        implicit_case_break_stmt : break_stmt { $ = NULL; }
+        case_pattern : expr { $ = NULL; }
+        case_cond : expr { $ = NULL; }
 ;
 
 exception :: generic_pos
@@ -839,9 +878,8 @@ external_decl :: decl
    too. */
 var :: decl
 %other
-	/* Flag of that this var is created from a formal parameter
-	   with default value. */
-        par_assign_flag : bool_t {$ = FALSE;}
+        /* Flag of a parameter  */
+        par_flag : bool_t {$ = FALSE;}
 ;
 
 /* The following node represents external variable declaration. */
@@ -861,14 +899,6 @@ fun_or_class :: fun_class
         /* The next stmt is always corresponding block node if it is
 	   not forward declaration. */
 %other
-        /* Number of parameters of the fun.  The formal
-           parameters are the start vars in the fun block.  The
-           number takes into account variable for `...' too. */
-        parameters_number : int_t
-        /* Number of minimal actual parameters for the fun.  It is
-	   actually number of first formal parameters without default
-	   value. */
-        min_actual_parameters_number : int_t
 	/* Flag of that args must be defined.  In order words ... is
            used. */
 	args_flag : bool_t
@@ -960,6 +990,12 @@ foreach_stmt
         foreach_search_start_place : int_t
 ;
 
+switch_stmt
+%other
+        /* holder for calculated switch expression */
+        switch_expr_var : var
+;
+
 block
 %other
         /* Number of all blocks which contain given block. */
@@ -1046,6 +1082,14 @@ decl
 
 fun_or_class
 %other
+        /* Number of parameters of the fun.  The formal
+           parameters are the start vars in the fun block.  The
+           number takes into account variable for `...' too. */
+        parameters_number : int_t
+        /* Number of minimal actual parameters for the fun.  It is
+	   actually number of first formal parameters without default
+	   value. */
+        min_actual_parameters_number : int_t {$ = -1;}
         /* Previous statement.  It is defined and used only for
 	   forward decls.  */
         forward_prev : stmt
@@ -1391,12 +1435,48 @@ create_unique_ident_node (const char *str)
 IR_node_t
 create_empty_block (IR_node_t scope)
 {
-  IR_node_t block = create_node_with_pos (IR_NM_block, no_position);
+  IR_node_t block = create_node_with_pos (IR_NM_block, current_position);
   IR_set_fun_class (block, NULL);
   IR_set_friend_list (block, NULL);
   IR_set_block_scope (block, scope);
   IR_set_exceptions (block, NULL);
   return block;
+}
+
+/* Merging two cyclic lists into one cyclic list. */
+IR_node_t
+merge_stmt_lists (IR_node_t list1, IR_node_t list2)
+{
+  IR_node_t result;
+
+  if (list2 != NULL) {
+    if (list1 != NULL)
+      {
+        IR_node_t first;
+        
+        first = IR_next_stmt (list2);
+        IR_set_next_stmt (list2, IR_next_stmt (list1));
+        IR_set_next_stmt (list1, first);
+      }
+    result = list2;
+  }
+  else
+    result = list1;
+  return result;
+}
+
+/* Make normal list from cycle stmt list with the pointer to the last
+   stmt. */
+IR_node_t
+uncycle_stmt_list (IR_node_t list)
+{
+  IR_node_t first;
+
+  if (list == NULL)
+    return list;
+  first = IR_next_stmt (list);
+  IR_set_next_stmt (list, NULL);
+  return first;
 }
 
 /* This func should be invoked only one before any work with intermediate

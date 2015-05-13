@@ -69,6 +69,14 @@ char ERR_vec_tab_element_access_applied_to_slice []
 char ERR_call_applied_to_slice [] = "call is applied to slice";
 char ERR_slice_as_foreach_index_designator []
   = "vector slice is used as foreach-stmt index_designator";
+char ERR_wildcard_in_expression [] = "`_' in expression";
+char ERR_dots_in_expression [] = "`...' in expression";
+char ERR_dots_in_the_list_middle [] = "`...' in the list middle";
+char ERR_dots_with_repetition_key [] = "`...' with repetition/key";
+char ERR_table_dots_as_key_with_value []
+  = "`...' as key with value in the table pattern";
+char ERR_assignment_pattern_without_variables []
+  = "Pattern in assignment has no variables";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
 char ERR_use_before_definition [] = "use `%s' before defined fun or class";
@@ -161,10 +169,10 @@ char ERR_const_assignment [] = "constant `%s' in assignment statement";
 char ERR_const_swap [] = "constant `%s' in swap statement";
 char ERR_non_variable_in_foreach_index []
   = "non variable in foreach-stmt index designator";
-char ERR_continue_is_not_in_loop []
-  = "statement continue is not in for-statement";
-char ERR_break_is_not_in_loop []
-  = "statement break is not in for-statement";
+char ERR_continue_is_not_in_loop_or_case []
+  = "statement continue is not in for-statement or switch case";
+char ERR_break_is_not_in_loop_or_case []
+  = "statement break is not in for-statement or in switch case";
 char ERR_this_outside_fun_class [] = "this is not in function or class";
 char ERR_return_outside_fun_class []
   = "statement return is not in function or class";
@@ -197,7 +205,7 @@ char DERR_identity_operands_types []
 char DERR_eq_operands_types []
   = "run time error - invalid types of operands of operator \"==\" or \"!=\"";
 char DERR_logical_operands_types []
-  = "run time error - invalid types of operands of operator";
+  = "run time error - invalid types of operands of logical operator";
 char DERR_logical_or_operands_types []
   = "run time error - invalid types of operands of operator \"||\"";
 char DERR_logical_and_operands_types []
@@ -417,6 +425,12 @@ char DERR_immutable_table_modification []
   = "run time error - attempt to modify immutable table";
 char DERR_immutable_instance_modification []
   = "run time error - attempt to modify immutable instance";
+char DERR_wrong_vector_pattern_match []
+  = "run time error - expr does not match vector pattern";
+char DERR_wrong_table_pattern_match []
+  = "run time error - expr does not match table pattern";
+char DERR_wrong_stack_pattern_match []
+  = "run time error - expr does not match stack pattern";
 char DERR_deadlock [] = "run time error - process deadlock";
 char DERR_unprocessed_exception []
   = "run time error - exception %s has not been processed";

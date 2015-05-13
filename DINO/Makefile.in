@@ -305,7 +305,7 @@ d_bcf.c : $(srcdir)/d_bcf.shilka
 	../SHILKA/shilka -pFR_ -strip $(srcdir)/d_bcf.shilka
 
 d_yacc.c: $(srcdir)/d_yacc.y
-	@echo must be - conflicts: 8 shift/reduce.
+	@echo must be - conflicts: 9 shift/reduce.
 	../MSTA/msta -no-regular-optimization -local-error-recovery $(srcdir)/d_yacc.y
 
 test : test-dino compare-only-dino

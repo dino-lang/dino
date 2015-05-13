@@ -186,6 +186,7 @@ extern void execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
 			       int vect_p);
 extern void execute_in_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
 			   int vect_p);
+extern int common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t op1, ER_node_t op2);
 extern void execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
 				     ER_node_t op1, ER_node_t op2, int vect_p);
 
@@ -3042,6 +3043,235 @@ foreach2 (ER_node_t tv, ER_node_t start, ER_node_t container, ER_node_t element)
 }
 
 static int except (void);
+
+static int do_always_inline
+chvec (ER_node_t op1, pc_t target)
+{
+  if (expect (ER_NODE_MODE (op1) == ER_NM_vect))
+    return FALSE;
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_vector_pattern_match);
+  return TRUE;
+}
+
+static int do_always_inline
+chvend (ER_node_t op1, ER_node_t op2, pc_t target)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_vect && ER_NODE_MODE (op2) == ER_NM_int);
+  if (ER_i (op2) == ER_els_number (ER_vect (op1)))
+    return FALSE;
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_vector_pattern_match);
+  return TRUE;
+}
+
+static int do_always_inline
+chvlen (ER_node_t op1, ER_node_t op2, ER_node_t op3, pc_t target)
+{
+  rint_t i;
+  val_t tvar;
+  
+  d_assert (ER_NODE_MODE (op1) == ER_NM_vect && ER_NODE_MODE (op2) == ER_NM_int);
+  if (ER_NODE_MODE (op3) != ER_NM_int)
+    {
+      op3 = implicit_int_conversion (op3, (ER_node_t) &tvar);
+      if (doubt (ER_NODE_MODE (op3) != ER_NM_int))
+	eval_error (optype_bc_decl, get_cpos (),
+		    DERR_elist_repetition_type);
+    }
+  i = ER_i (op3);
+  if (i <= 0)
+    return FALSE;
+  i += ER_i (op2);
+  if (i <= ER_els_number (ER_vect (op1)))
+    {
+      ER_set_i (op2, i);
+      return FALSE;
+    }
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_vector_pattern_match);
+  return TRUE;
+}
+
+extern void load_packed_vector_element (ER_node_t, ER_node_t, rint_t);
+
+static int do_always_inline
+chvel (ER_node_t op1, ER_node_t op2, ER_node_t op3, ER_node_t op4,
+       int op5n, pc_t target)
+{
+  rint_t i, rep, start, bound;
+  val_t tvar;
+  ER_node_t vect;
+  int pack_flag;
+  
+  d_assert (ER_NODE_MODE (op1) == ER_NM_vect && ER_NODE_MODE (op2) == ER_NM_int);
+  if (ER_NODE_MODE (op3) != ER_NM_int)
+    {
+      op3 = implicit_int_conversion (op3, (ER_node_t) &tvar);
+      if (doubt (ER_NODE_MODE (op3) != ER_NM_int))
+	eval_error (optype_bc_decl, get_cpos (), DERR_elist_repetition_type);
+    }
+  rep = ER_i (op3);
+  if (rep <= 0)
+    return FALSE;
+  start = ER_i (op2);
+  bound = rep + start;
+  vect = ER_vect (op1);
+  GO_THROUGH_REDIR (vect);
+  pack_flag = ER_NODE_MODE (vect) == ER_NM_heap_pack_vect;
+  d_assert (pack_flag || ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect);
+  if (bound <= ER_els_number (vect))
+    {
+      if (op5n)
+	{
+	  if (pack_flag)
+	    load_packed_vector_element (op4, vect, start);
+	  else
+	    *(val_t *) op4 = *(val_t *) IVAL (ER_unpack_els (vect), start);
+	}
+      for (i = start + (op5n ? 1 : 0); i < bound; i++)
+	{
+	  if (pack_flag)
+	    load_packed_vector_element ((ER_node_t) &tvar, vect, i);
+	  else
+	    tvar = *(val_t *) IVAL (ER_unpack_els (vect), i);
+	  if (! common_eq_ne_op (BC_NM_eq, op4, (ER_node_t) &tvar))
+	    break;
+	}
+      if (i == bound)
+	{
+	  ER_set_i (op2, bound);
+	  return FALSE;
+	}
+    }
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_vector_pattern_match);
+  return TRUE;
+}
+
+static int do_always_inline
+chtab (ER_node_t op1, pc_t target)
+{
+  if (expect (ER_NODE_MODE (op1) == ER_NM_tab))
+    return FALSE;
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_table_pattern_match);
+  return TRUE;
+}
+
+static int do_always_inline
+chtend (ER_node_t op1, int op2i, pc_t target)
+{
+  d_assert (ER_NODE_MODE (op1) == ER_NM_tab);
+  if (op2i == ER_els_number (ER_tab (op1)))
+    return FALSE;
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_table_pattern_match);
+  return TRUE;
+}
+
+static int do_always_inline
+chtel (ER_node_t op1, ER_node_t op2, ER_node_t op3, int op4n, pc_t target)
+{
+  val_t tvar;
+  ER_node_t tab;
+  ER_node_t entry;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_tab);
+  tab = ER_tab (op1);
+  GO_THROUGH_REDIR (tab);
+  entry = find_tab_el (tab, op2, FALSE);
+  if (entry == NULL || ER_NODE_MODE (entry) == ER_NM_empty_el)
+    {
+      if (target == NULL)
+	eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_table_pattern_match);
+      return TRUE;
+    }
+  else if (op4n == 2)
+    return FALSE;
+  if (op4n)
+    *(val_t *) op3 = *(val_t *) INDEXED_EL_VAL (entry, 0);
+  else
+    {
+      tvar = *(val_t *) INDEXED_EL_VAL (entry, 0);
+      if (! common_eq_ne_op (BC_NM_eq, op3, (ER_node_t) &tvar))
+	{
+	  if (target == NULL)
+	    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_table_pattern_match);
+	  return TRUE;
+	}
+    }
+  return FALSE;
+}
+
+static int do_always_inline
+chst (ER_node_t op1, ER_node_t op2, pc_t target)
+{
+  BC_node_t code, code_2;
+
+  if (expect (ER_NODE_MODE (op1) == ER_NM_stack) && ER_NODE_MODE (op2) == ER_NM_code)
+    {
+      code = ER_block_node (ER_stack (op1));
+      code_2 = ID_TO_CODE (ER_code_id (op2));
+      if (code_inside (code, code_2))
+	return FALSE;
+    }
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_stack_pattern_match);
+  return TRUE;
+}
+
+static int do_always_inline
+chstend (ER_node_t op1, int op2n, pc_t target)
+{
+  BC_node_t code;
+  
+  d_assert (ER_NODE_MODE (op1) == ER_NM_stack);
+  code = ER_block_node (ER_stack (op1));
+  if (BC_NODE_MODE (code) == BC_NM_fblock)
+    {
+      if (op2n == BC_pars_num (code))
+	return FALSE;
+    }
+  else if (op2n == 0)
+    return FALSE;
+  if (target == NULL)
+    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_stack_pattern_match);
+  return TRUE;
+}
+
+static int do_always_inline
+chstel (ER_node_t op1, int op2n, ER_node_t op3, int op4n, pc_t target)
+{
+  val_t tvar;
+  ER_node_t stack;
+  BC_node_t code;
+
+  d_assert (ER_NODE_MODE (op1) == ER_NM_stack);
+  stack = ER_stack (op1);
+  code = ER_block_node (stack);
+  if (BC_NODE_MODE (code) != BC_NM_fblock || op2n >= BC_pars_num (code))
+    {
+      if (target == NULL)
+	eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_stack_pattern_match);
+      return TRUE;
+    }
+  else if (op4n == 2)
+    return FALSE;
+  if (op4n)
+    *(val_t *) op3 = *(val_t *) get_var (ER_stack_vars (stack), op2n);
+  else
+    {
+      tvar = *(val_t *) get_var (ER_stack_vars (stack), op2n);
+      if (! common_eq_ne_op (BC_NM_eq, op3, (ER_node_t) &tvar))
+	{
+	  if (target == NULL)
+	    eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_stack_pattern_match);
+	  return TRUE;
+	}
+    }
+  return FALSE;
+}
 
 static void do_always_inline
 move (ER_node_t res, ER_node_t op1)

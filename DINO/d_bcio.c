@@ -664,6 +664,77 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op1 (bc), BC_op2 (bc), BC_decl_num (BC_move_decl (bc)),
 		  BC_op1 (bc), BC_ident (BC_move_decl (bc)), BC_op2 (bc));
 	  break;
+	case BC_NM_chvec:
+	  printf (" op1=%d", BC_op1 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // vec");
+	  break;
+	case BC_NM_chvend:
+	  printf (" op1=%d ch_op2=%d", BC_op1 (bc), BC_ch_op2 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // vec, ind");
+	  break;
+	case BC_NM_chvlen:
+	  printf (" op1=%d ch_op2=%d ch_op3=%d",
+		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // vec, ind, rep");
+	  break;
+	case BC_NM_chvel:
+	  printf (" op1=%d ch_op2=%d ch_op3=%d ch_op4=%d ch_op5=%d",
+		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc), BC_ch_op4 (bc),
+		  BC_ch_op5 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d",
+		    BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // vec, ind, rep, el %s assign",
+		  BC_ch_op5 (bc) ? "with": "w/o");
+	  break;
+	case BC_NM_chtab:
+	  printf (" op1=%d", BC_op1 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // tab");
+	  break;
+	case BC_NM_chtend:
+	  printf (" op1=%d ch_op2=%d", BC_op1 (bc), BC_ch_op2 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // tab, nel");
+	  break;
+	case BC_NM_chtel:
+	  printf (" op1=%d ch_op2=%d ch_op3=%d ch_op4=%d",
+		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc), BC_ch_op4 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf ("// tab, key");
+	  if (BC_ch_op4 (bc) != 2)
+	    printf (", el with %s", BC_ch_op4 (bc) ? " assign" : "compare");
+	  break;
+	case BC_NM_chst:
+	  printf (" op1=%d ch_op2=%d", BC_op1 (bc), BC_ch_op2 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // stack, fun/class");
+	  break;
+	case BC_NM_chstend:
+	  printf (" op1=%d ch_op2=%d", BC_op1 (bc), BC_ch_op2 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // stack, params_num");
+	  break;
+	case BC_NM_chstel:
+	  printf (" op1=%d ch_op2=%d ch_op3=%d ch_op4=%d",
+		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc), BC_ch_op4 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // stack, param_num");
+	  if (BC_ch_op4 (bc) != 2)
+	    printf (", val with %s", BC_ch_op4 (bc) ? " assign" : "compare");
+	  break;
 	default:
 	  /* Other nodes should not occur here. */
 	  d_unreachable ();
@@ -1433,6 +1504,26 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_binc, D_INT)) goto fail;
 	      BC_set_binc_inc (curr_node, token_attr.i);
 	      break;
+	    case FR_fail_pc:
+	      if (check_fld (BC_NM_check, D_INT)) goto fail;
+	      store_curr_ptr_fld (); 
+	      break;
+	    case FR_ch_op2:
+	      if (check_fld (BC_NM_check2, D_INT)) goto fail;
+	      BC_set_ch_op2 (curr_node, token_attr.i);
+	      break;
+	    case FR_ch_op3:
+	      if (check_fld (BC_NM_check3, D_INT)) goto fail;
+	      BC_set_ch_op3 (curr_node, token_attr.i);
+	      break;
+	    case FR_ch_op4:
+	      if (check_fld (BC_NM_check4, D_INT)) goto fail;
+	      BC_set_ch_op4 (curr_node, token_attr.i);
+	      break;
+	    case FR_ch_op5:
+	      if (check_fld (BC_NM_check4, D_INT)) goto fail;
+	      BC_set_ch_op5 (curr_node, token_attr.i);
+	      break;
 	    case FR_cfblock:
 	      if (check_fld (BC_NM_imcall, D_INT)) goto fail;
 	      store_curr_ptr_fld (); 
@@ -1568,6 +1659,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_bcmp, FR_bcmp_op2, "bcmp_op2");
       check_fld_set (BC_NM_bcmp, FR_bcmp_res, "bcmp_res");
       check_fld_set (BC_NM_binc, FR_binc_inc, "binc_inc");
+      check_fld_set (BC_NM_check, FR_ch_op2, "ch_op2");
+      check_fld_set (BC_NM_check3, FR_ch_op3, "ch_op3");
+      check_fld_set (BC_NM_check4, FR_ch_op4, "ch_op4");
+      check_fld_set (BC_NM_check5, FR_ch_op5, "ch_op5");
       check_fld_set (BC_NM_imcall, FR_cfblock, "cfblock");
       check_fld_set (BC_NM_ldf, FR_f, "f");
       check_fld_set (BC_NM_lds, FR_str, "str");
@@ -1637,6 +1732,9 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       if (BC_IS_OF_TYPE (curr_node, BC_NM_except)
 	  && ! BIT (curr_fld_presence, FR_next_except))
 	BC_set_next_except (curr_node, NULL);
+      if (BC_IS_OF_TYPE (curr_node, BC_NM_check)
+	  && ! BIT (curr_fld_presence, FR_fail_pc))
+	BC_set_pc (curr_node, NULL);
       continue;
     fail:
       if (curr_token != D_NL)
@@ -1707,6 +1805,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	case FR_pc:
 	  ptr = get_bcode (fld->fld_val);
 	  BC_set_pc (fld->node, ptr);
+	  break;
+	case FR_fail_pc:
+	  ptr = get_bcode (fld->fld_val);
+	  BC_set_fail_pc (fld->node, ptr);
 	  break;
 	case FR_cfblock:
 	  ptr = get_bcode (fld->fld_val);

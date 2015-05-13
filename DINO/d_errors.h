@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2014 Vladimir Makarov.
+   Copyright (C) 1997-2015 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -53,6 +53,12 @@ extern char ERR_period_ident_applied_to_slice [];
 extern char ERR_vec_tab_element_access_applied_to_slice [];
 extern char ERR_call_applied_to_slice [];
 extern char ERR_slice_as_foreach_index_designator[];
+extern char ERR_wildcard_in_expression [];
+extern char ERR_dots_in_expression [];
+extern char ERR_dots_in_the_list_middle [];
+extern char ERR_dots_with_repetition_key [];
+extern char ERR_table_dots_as_key_with_value [];
+extern char ERR_assignment_pattern_without_variables [];
 extern char ERR_use_before_definition [];
 extern char ERR_use_of_non_fun_class [];
 extern char ERR_use_of_forward_declaration [];
@@ -108,8 +114,8 @@ extern char ERR_non_variable_in_swap [];
 extern char ERR_const_assignment [];
 extern char ERR_const_swap [];
 extern char ERR_non_variable_in_foreach_index [];
-extern char ERR_continue_is_not_in_loop [];
-extern char ERR_break_is_not_in_loop [];
+extern char ERR_continue_is_not_in_loop_or_case [];
+extern char ERR_break_is_not_in_loop_or_case [];
 extern char ERR_this_outside_fun_class [];
 extern char ERR_return_outside_fun_class [];
 extern char ERR_return_with_result_in_class [];
@@ -292,6 +298,10 @@ extern char DERR_undefined_class_or_fun [];
 extern char DERR_immutable_vector_modification [];
 extern char DERR_immutable_table_modification [];
 extern char DERR_immutable_instance_modification [];
+/* Pattern match. */
+extern char DERR_wrong_vector_pattern_match [];
+extern char DERR_wrong_table_pattern_match [];
+extern char DERR_wrong_stack_pattern_match [];
 /* Deadlock. */
 extern char DERR_deadlock [];
 /* Not catched. */

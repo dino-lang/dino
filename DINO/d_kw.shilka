@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2007 Vladimir Makarov.
+   Copyright (C) 1997-2014 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -23,7 +23,9 @@
 */
 
 %%
+_        {return WILDCARD;}
 break    {return BREAK;}
+case     {return CASE;}
 catch    {return CATCH;}
 char     {return CHAR;}
 class    {return CLASS;}
@@ -51,6 +53,7 @@ priv     {return PRIV;}
 process  {return PROCESS;}
 pub      {return PUB;}
 return   {return RETURN;}
+switch   {return SWITCH;}
 tab      {return TAB;}
 thread   {return THREAD;}
 this     {return THIS;}

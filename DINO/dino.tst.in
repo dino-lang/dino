@@ -47101,6 +47101,1261 @@ OUTPUT760-2
         fi
 fi
 
+# Test 761.
+if test $result = ok -a $start_test_number -le 761; then
+	echo test 761: Wrong ... place a in pattern
+        cat >$test_file <<'TEST761'
+var [i, ..., j] = [4, 2, 5, 6];
+println (i, j);
+TEST761
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT761' && $CMP $stderr $ftemp2; then
+test.d:1:9: `...' in the list middle
+OUTPUT761
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 762.
+if test $result = ok -a $start_test_number -le 762; then
+	echo test 762: ... with repetition/key in a pattern
+        cat >$test_file <<'TEST762'
+var [i, j, 1 : ...] = [4, 2, 5, 6];
+println (i, j);
+TEST762
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT762' && $CMP $stderr $ftemp2; then
+test.d:1:16: `...' with repetition/key
+OUTPUT762
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 763.
+if test $result = ok -a $start_test_number -le 763; then
+	echo test 763: Pattern w/o variables
+        cat >$test_file <<'TEST763'
+var [4, ...] = [4, 2, 5, 6];
+TEST763
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT763' && $CMP $stderr $ftemp2; then
+test.d:1:14: Pattern in assignment has no variables
+OUTPUT763
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 764.
+if test $result = ok -a $start_test_number -le 764; then
+	echo test 764: Smaller vector than pattern
+        cat >$test_file <<'TEST764'
+var [i, j] = [4];
+println (i, j);
+TEST764
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT764' && $CMP $stderr $ftemp2; then
+test.d:1:9: run time error - expr does not match vector pattern
+OUTPUT764
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 765.
+if test $result = ok -a $start_test_number -le 765; then
+	echo test 765: Bigger vector than pattern
+        cat >$test_file <<'TEST765'
+var [i, j] = [4, 2, 0];
+println (i, j);
+TEST765
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT765' && $CMP $stderr $ftemp2; then
+test.d:1:5: run time error - expr does not match vector pattern
+OUTPUT765
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 766.
+if test $result = ok -a $start_test_number -le 766; then
+	echo test 766: Vector element does not equal one in pattern
+        cat >$test_file <<'TEST766'
+var [i, 1] = [4, 2];
+println (i);
+TEST766
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT766' && $CMP $stderr $ftemp2; then
+test.d:1:9: run time error - expr does not match vector pattern
+OUTPUT766
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 767.
+if test $result = ok -a $start_test_number -le 767; then
+	echo test 767: Vector elements do not equal ones with repetition in pattern
+        cat >$test_file <<'TEST767'
+var [2:i, j] = [4, 2, 5];
+println (i, j);
+TEST767
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT767' && $CMP $stderr $ftemp2; then
+test.d:1:8: run time error - expr does not match vector pattern
+OUTPUT767
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 768.
+if test $result = ok -a $start_test_number -le 768; then
+	echo test 768: Vector elements do not equal ones with repetition in pattern
+        cat >$test_file <<'TEST768'
+var [2:2, i] = [2, 3, 5];
+println (i);
+TEST768
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT768' && $CMP $stderr $ftemp2; then
+test.d:1:8: run time error - expr does not match vector pattern
+OUTPUT768
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 769.
+if test $result = ok -a $start_test_number -le 769; then
+	echo test 769: Non-matching nested vector pattern 
+        cat >$test_file <<'TEST769'
+var [2, [i, 3], j] = [2, [3, 4], 5];
+println (i, j);
+TEST769
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT769' && $CMP $stderr $ftemp2; then
+test.d:1:13: run time error - expr does not match vector pattern
+OUTPUT769
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 770.
+if test $result = ok -a $start_test_number -le 770; then
+	echo test 770: Non-matching nested vector pattern
+        cat >$test_file <<'TEST770'
+var [2, [i, 4]] = [2, [3, 4], 5];
+println (i);
+TEST770
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT770' && $CMP $stderr $ftemp2; then
+test.d:1:5: run time error - expr does not match vector pattern
+OUTPUT770
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 771.
+if test $result = ok -a $start_test_number -le 771; then
+	echo test 771: Non-matching pattern
+        cat >$test_file <<'TEST771'
+var [i, j] = tab [4, 2];
+println (i, j);
+TEST771
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT771' && $CMP $stderr $ftemp2; then
+test.d:1:5: run time error - expr does not match vector pattern
+OUTPUT771
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 772.
+if test $result = ok -a $start_test_number -le 772; then
+	echo test 772: ... as repetition
+        cat >$test_file <<'TEST772'
+var [i, j, ... : 6] = [4, 2, 5, 6];
+println (i, j);
+TEST772
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT772' && $CMP $stderr $ftemp2; then
+test.d:1:12: `...' in expression
+OUTPUT772
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 773.
+if test $result = ok -a $start_test_number -le 773; then
+	echo test 773: _ as repetition
+        cat >$test_file <<'TEST773'
+var [i, j, _ : 6] = [4, 2, 5, 6];
+println (i, j);
+TEST773
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT773' && $CMP $stderr $ftemp2; then
+test.d:1:12: `_' in expression
+OUTPUT773
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 774.
+if test $result = ok -a $start_test_number -le 774; then
+	echo test 774: Wrong table pattern matching vector
+        cat >$test_file <<'TEST774'
+var tab [4:i, 2:j] = [4, 2];
+println (i, j);
+TEST774
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT774' && $CMP $stderr $ftemp2; then
+test.d:1:5: run time error - expr does not match table pattern
+OUTPUT774
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 775.
+if test $result = ok -a $start_test_number -le 775; then
+	echo test 775: Wrong table pattern matching table smaller size
+        cat >$test_file <<'TEST775'
+var tab [4:i, 0:j] = tab [4];
+println (i, j);
+TEST775
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT775' && $CMP $stderr $ftemp2; then
+test.d:1:17: run time error - expr does not match table pattern
+OUTPUT775
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 776.
+if test $result = ok -a $start_test_number -le 776; then
+	echo test 776: Wrong table pattern matching table bigger size
+        cat >$test_file <<'TEST776'
+var tab [4:i, 2:j] = tab [4, 2, 0];
+println (i, j);
+TEST776
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT776' && $CMP $stderr $ftemp2; then
+test.d:1:5: run time error - expr does not match table pattern
+OUTPUT776
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 777.
+if test $result = ok -a $start_test_number -le 777; then
+	echo test 777: Wrong table pattern matching table with different element
+        cat >$test_file <<'TEST777'
+var tab [4:i, 1:_] = tab [4, 2];
+println (i);
+TEST777
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT777' && $CMP $stderr $ftemp2; then
+test.d:1:17: run time error - expr does not match table pattern
+OUTPUT777
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 778.
+if test $result = ok -a $start_test_number -le 778; then
+	echo test 778: ... as repetition
+        cat >$test_file <<'TEST778'
+var tab [4: i, ...:2] = tab [4, 2, 5, 6];
+TEST778
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT778' && $CMP $stderr $ftemp2; then
+test.d:1:20: `...' as key with value in the table pattern
+OUTPUT778
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 779.
+if test $result = ok -a $start_test_number -le 779; then
+	echo test 779: No vars in pattern assignment
+        cat >$test_file <<'TEST779'
+var tab [4, ...] = tab [4, 2, 5, 6];
+TEST779
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT779' && $CMP $stderr $ftemp2; then
+test.d:1:18: Pattern in assignment has no variables
+OUTPUT779
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 780.
+if test $result = ok -a $start_test_number -le 780; then
+	echo test 780: ... as value in table pattern
+        cat >$test_file <<'TEST780'
+var tab [4:i, 2:j, 6 : ...] = tab [4:4, 2:2, 5, 6];
+println (i, j);
+TEST780
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT780' && $CMP $stderr $ftemp2; then
+test.d:1:24: `...' with repetition/key
+OUTPUT780
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 781.
+if test $result = ok -a $start_test_number -le 781; then
+	echo test 781: _ as key
+        cat >$test_file <<'TEST781'
+var tab [2, _, 5:i] = tab[2, 3, 5];
+println (i);
+TEST781
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT781' && $CMP $stderr $ftemp2; then
+test.d:1:13: `_' in expression
+OUTPUT781
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 782.
+if test $result = ok -a $start_test_number -le 782; then
+	echo test 782: Wrong table pattern matching involving vars in expr
+        cat >$test_file <<'TEST782'
+var tab[2:_, [3:i, 4:j], 5:k] = tab[2, [3, 4], 5];
+println (i, j, k);
+TEST782
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT782' && $CMP $stderr $ftemp2; then
+test.d:1:17: undeclared identifier `i'
+test.d:1:22: undeclared identifier `j'
+OUTPUT782
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 783.
+if test $result = ok -a $start_test_number -le 783; then
+	echo test 783: Wrong nested table pattern matching
+        cat >$test_file <<'TEST783'
+var tab [2, 0:tab[3:i, 4]] = tab[2, 0:tab[3, 4], 5];
+println (i);
+TEST783
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT783' && $CMP $stderr $ftemp2; then
+test.d:1:5: run time error - expr does not match table pattern
+OUTPUT783
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 784.
+if test $result = ok -a $start_test_number -le 784; then
+	echo test 784: Stack pattern matching vector
+        cat >$test_file <<'TEST784'
+class c (i, j) {}
+var c (i,j) = [2,4];
+println (i, j);
+TEST784
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT784' && $CMP $stderr $ftemp2; then
+test.d:2:7: run time error - expr does not match stack pattern
+OUTPUT784
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 785.
+if test $result = ok -a $start_test_number -le 785; then
+	echo test 785: Stack pattern has more params
+        cat >$test_file <<'TEST785'
+class c (i, j) {}
+class s (i, j) {use c former i, j;}
+var c (i, j, k) = s (2, 4);
+println (i, j);
+TEST785
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT785' && $CMP $stderr $ftemp2; then
+test.d:3:14: run time error - expr does not match stack pattern
+OUTPUT785
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 786.
+if test $result = ok -a $start_test_number -le 786; then
+	echo test 786: Stack pattern has less params
+        cat >$test_file <<'TEST786'
+class c (i, j) {}
+class s (i, j) {use c former i, j;}
+var c (i) = s (2, 4);
+println (i);
+TEST786
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT786' && $CMP $stderr $ftemp2; then
+test.d:3:7: run time error - expr does not match stack pattern
+OUTPUT786
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 787.
+if test $result = ok -a $start_test_number -le 787; then
+	echo test 787: Non-matching parameter value
+        cat >$test_file <<'TEST787'
+class c (i, j) {}
+class s (i, j) {use c former i, j;}
+var c (i, 5) = s (2, 4);
+println (i);
+TEST787
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT787' && $CMP $stderr $ftemp2; then
+test.d:3:11: run time error - expr does not match stack pattern
+OUTPUT787
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 788.
+if test $result = ok -a $start_test_number -le 788; then
+	echo test 788: Non-matching parameter value
+        cat >$test_file <<'TEST788'
+class c (i, j) {}
+class s (i, j) {use c former i, j;}
+var c (i, 5, ...) = s (2, 4);
+println (i);
+TEST788
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT788' && $CMP $stderr $ftemp2; then
+test.d:3:11: run time error - expr does not match stack pattern
+OUTPUT788
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 789.
+if test $result = ok -a $start_test_number -le 789; then
+	echo test 789: No vars in stack pattern
+        cat >$test_file <<'TEST789'
+class c (i, j) {}
+class s (i, j, k) {use c former i, j;}
+var c (2, 4, ...) = s (2, 4, 5);
+TEST789
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT789' && $CMP $stderr $ftemp2; then
+test.d:3:19: Pattern in assignment has no variables
+OUTPUT789
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 790.
+if test $result = ok -a $start_test_number -le 790; then
+	echo test 790: Non-matching elem in nested stack pattern
+        cat >$test_file <<'TEST790'
+class c (i, j) {}
+class s (i, j, k) {use c former i, j;}
+var c (2, s (i, _, _), 6) = s (2, s(3, 4, 6), 5);
+println (i);
+TEST790
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT790' && $CMP $stderr $ftemp2; then
+test.d:3:24: run time error - expr does not match stack pattern
+OUTPUT790
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 791.
+if test $result = ok -a $start_test_number -le 791; then
+	echo test 791: Less params in nested stack pattern
+        cat >$test_file <<'TEST791'
+class c (i, j) {}
+class s (i, j, k) {use c former i, j;}
+var c (2, s (i, _, _)) = s (2, s(3, 4, 6), 5);
+println (i);
+TEST791
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT791' && $CMP $stderr $ftemp2; then
+test.d:3:7: run time error - expr does not match stack pattern
+OUTPUT791
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 792.
+if test $result = ok -a $start_test_number -le 792; then
+	echo test 792: Less params in pattern for stack with args
+        cat >$test_file <<'TEST792'
+class c (i, ...) {}
+var c (i) = c (2);
+println (i);
+TEST792
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT792' && $CMP $stderr $ftemp2; then
+test.d:2:7: run time error - expr does not match stack pattern
+OUTPUT792
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 793.
+if test $result = ok -a $start_test_number -le 793; then
+	echo test 793: More params in pattern for stack with args
+        cat >$test_file <<'TEST793'
+class c (i, ...) {}
+var c (i, _, _) = c (2);
+println (i);
+TEST793
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT793' && $CMP $stderr $ftemp2; then
+test.d:2:14: run time error - expr does not match stack pattern
+OUTPUT793
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 794.
+if test $result = ok -a $start_test_number -le 794; then
+	echo test 794: No isa pattern
+        cat >$test_file <<'TEST794'
+class c (i, j) {}
+class s (i, j) {use c former i, j;}
+var s (i,  _) = c (10, 5);
+println (i);
+TEST794
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT794' && $CMP $stderr $ftemp2; then
+test.d:3:7: run time error - expr does not match stack pattern
+OUTPUT794
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 795.
+if test $result = ok -a $start_test_number -le 795; then
+	echo test 795: Different pattern assignments
+        cat >$test_file <<'TEST795'
+var [i, j] = [4, 2];
+println (i, j);
+
+var [i, j, ...] = [4, 2, 5];
+println (i, j);
+
+var k = 2, [i, k + 1 : 2] = [4, 2, 2, 2];
+println (i);
+
+var [2:i, j] = [2, 2, 5];
+println (i, j);
+
+var [2:2, i] = [2, 2, 5];
+println (i);
+
+var [2, [i, j], k] = [2, [3, 4], 5];
+println (i, j, k);
+
+var [2, [i, 4, ...], j] = [2, [3, 4], 5];
+println (i, j);
+
+var [2, [i, _], j] = [2, [3, 4], 5];
+println (i, j);
+
+var k = 2, [i, k + 1 : _] = [4, 2, 2, 2];
+println (i);
+putln ("------------------------------");
+//--------------------------------------------------------------------
+var tab [4:i, 2:j] = tab [4, 2];
+println (i, j);
+
+var tab [4:i, 2:j, ...] = tab [4, 2, 5];
+println (i, j);
+
+var tab [4, 2, 3:i] = tab [4, 2, 3:3];
+println (i);
+
+var tab [2:i, 3:_, 5:j] = tab [2, 3, 5];
+println (i, j);
+
+var tab [3:_, 2:_, 5:i] = tab [2, 3, 5];
+println (i);
+
+var tab [2, 0:tab [3:i, 4:j], 5:k] = tab [2, 0:tab [3:3, 4:4], 5:5];
+println (i, j, k);
+
+var tab [2, 0:tab[3:i, 4, ...], 5:j] = tab [2, 0:tab [3, 4], 5:5];
+println (i, j);
+
+var tab [2, 0: tab [3:i, 4:_], 5:j] = tab [2, 0: tab [3:3, 4], 5:5];
+println (i, j);
+
+var tab [4:i, 2 : _, 3 : _, ...] = tab [4, 2, 3, 5];
+println (i);
+//--------------------------------------------------------------------
+putln ("------------------------------");
+class c (i, j) {}
+class s (i, j, k) {use c former i, j;}
+var c (i, j, k) = s (10, 5, 2);
+println (i, j);
+
+var c (i, j, ...) = s (10, 5, 2);
+println (i, j);
+
+var c (i, j, k, ...) = s (10, 5, 2);
+println (i, j);
+
+var c (i, j, _) = s (10, 5, 2);
+println (i, j);
+
+var c (10, i, j) = s (10, 5, 2);
+println (i, j);
+
+var c (10, 5, j) = s (10, 5, 2);
+println (i);
+
+var c (10, c (i, j), k) = s (10, c (1, 3), 2);
+println (i, j, k);
+
+var c (10, c (i, 3, ...), j) = s (10, c (1, 3), 2);
+println (i, j);
+
+var c (10, c (i, _), j) = s (10, c (1, 3), 2);
+println (i, j);
+
+class c (i, ...) {}
+var c (10, i) = c (10, 5, 6);
+println (i);
+
+var c (10, i) = c (10);
+println (i);
+TEST795
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT795' && $CMP $stdout $ftemp2; then
+42
+42
+4
+25
+5
+345
+35
+35
+4
+------------------------------
+nilnil
+nilnil
+3
+nilnil
+nil
+345
+nil5
+35
+nil
+------------------------------
+105
+105
+105
+105
+52
+5
+132
+12
+12
+[5, 6]
+[]
+OUTPUT795
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 796.
+if test $result = ok -a $start_test_number -le 796; then
+	echo test 796: Different switch statements
+        cat >$test_file <<'TEST796'
+class c (a1, a2) {}
+switch (c (2, 3)) {
+ case c (i,j): putln (i, j);
+ case _: putln ("default");
+}
+
+switch (c (4, 5)) {
+ case c (i,j): putln (i, j);continue;putln (i + j);
+ case _: putln ("default");
+}
+
+switch (c (6, 7)) {
+ case c (i,j): putln (i, j);break;putln (i + j);
+ case _: putln ("default");
+}
+
+switch (10) {
+ case 1: putln (1);
+ case 2: putln (2);
+ case 10: putln (10);
+ case _: putln ("_");
+}
+
+switch ("aa") {
+ case "ab": putln ("ab");
+ case "ac": putln ("ac");
+ case "aa": putln ("aa");
+ case _: putln ("_");
+}
+
+class c (a1, a2) {}
+switch (c (2, 3)) {
+ case c (i,j) if i==j: putln ("eq=", i, j);
+ case c (i,j) if i!=j: putln ("neq=", i, j);
+ case _: putln ("default");
+}
+TEST796
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT796' && $CMP $stdout $ftemp2; then
+23
+45
+default
+67
+10
+aa
+neq=23
+OUTPUT796
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 797.
+if test $result = ok -a $start_test_number -le 797; then
+	echo test 797: Nested switch statements
+        cat >$test_file <<'TEST797'
+switch ([4, 5]) {
+ case [i,j, ...]:
+   switch (j) {
+     case 1: putln (1);
+     case 2: putln (2);
+     case 5:
+       putln (j);
+       for (i in tab[2,3,4]) putln (i);
+     case _: putln ("_");
+   }
+   continue;
+   putln (i + j);
+ case _:
+  putln ("default");
+}
+TEST797
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT797' && $CMP $stdout $ftemp2; then
+5
+2
+3
+4
+default
+OUTPUT797
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 798.
+if test $result = ok -a $start_test_number -le 798; then
+	echo test 798: Pattern vars scope in switch-stmt
+        cat >$test_file <<'TEST798'
+switch ([4, 5]) {
+ case [i,j, ...]:
+   switch (j) {
+     case 5: putln (5);
+     case _: putln ("_");
+   }
+   continue;
+   putln (i + j);
+ case _:
+  putln (i);
+}
+TEST798
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT798' && $CMP $stderr $ftemp2; then
+test.d:10:10: undeclared identifier `i'
+OUTPUT798
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 799.
+if test $result = ok -a $start_test_number -le 799; then
+	echo test 799: Countdown problem with pattern matching
+        cat >$test_file <<'TEST799'
+val false = 0, true = 1;
+// Expressions:
+class binop (l, r) {
+  fun op;
+  fun show {put ('('); l.show (); put (op ()); r.show (); put (')');}
+}
+class add (l, r) { use binop former l, r later op; fun op {"+";} }
+class sub (l, r) { use binop former l, r later op; fun op {"-";} }
+class mul (l, r) { use binop former l, r later op; fun op {"*";} }
+class div (l, r) { use binop former l, r later op; fun op {"/";} }
+class value (i) { fun show { put (i); } }
+
+fun valid (op, l, r) {
+  if (isa (op, sub)) return l > r;
+  else if (isa (op, div)) return l % r == 0;
+  return true;
+}
+
+fun apply (op, l, r) {
+  if (isa (op, add)) return l + r;
+  if (isa (op, sub)) return l - r;
+  if (isa (op, mul)) return l * r;
+  if (isa (op, div)) return l / r;
+}
+
+fun values (e) {
+  if (isa (e, value)) return [e.i];
+  if (isa (e, binop)) return values (e.l) @ values (e.r);
+}
+
+fun eval (e) {
+  if (isa (e, value)) return e.i > 0 ? e.i : nil;
+  if (isa (e, binop)) {
+    var x, y, re, res = nil;
+    x = eval (e.l); y = eval (e.r);
+    if (x != nil && y != nil) {
+      val c = closure (e);
+      if (valid (c, x, y))
+        res = apply (c, x, y);
+    }
+    return res;
+  }
+}
+
+// Combinatorial functions:
+fun subs (xs) {
+  if (#xs == 0) return [[]];
+  val x = xs[0], yss = subs (xs[1:]);
+  yss @ map (fun (ys) { [x] @ ys; }, yss);
+}
+
+fun interleave (x, ys) {
+  if (#ys == 0) return [[x]];
+  val y = ys[0], ys = ys[1:];
+  [[x, y] @ ys] @ map (fun (l) { [y] @ l; }, interleave (x, ys));
+}
+
+fun perms (xs) {
+  if (#xs == 0) return [[]];
+  val x = xs[0], xs = xs[1:];
+  var res = [], rs = map (fun (xx) { interleave (x, xx); }, perms (xs));
+  for (var i = 0; i < #rs; i++)
+    res @= rs[i];
+  res;
+}
+
+fun choices (xs) {
+  var res = [], yss = subs (xs);
+  for (var i = 0; i < #yss; i++)
+    res @= perms (yss[i]);
+  res;
+}
+
+fun solution_p (e, ns, n) {
+  val vs = values (e), css = choices (ns);
+  for (var i = 0; i < #css; i++)
+    if (vs == css[i]) return eval (e) == n;
+  return false;
+}
+
+fun split (xs) {
+  if (#xs <= 1) return [];
+  val x = xs[0], xs = xs[1:], xsss = split (xs);
+  [[[x], xs]] @ map (fun (xss) { [[x] @ xss[0], xss[1]]; }, xsss);
+}
+
+fun ops { [add, sub, mul, div]; }
+fun combine (e1, e2) {
+  var res = [], ops = ops ();
+  for (var i = 0; i < #ops; i++)
+    ins (res, ops[i] (e1, e2), -1);
+  res;
+}
+
+fun exprs (xs) {
+  if (#xs == 0) return [];
+  if (#xs == 1) return [value (xs[0])];
+  val nss = split (xs); var res = [];
+  for (var i = 0; i < #nss; i++) {
+    var ls = nss[i][0], rs = nss[i][1], ls = exprs (ls), rs = exprs (rs);
+    for (var j = 0; j < #ls; j++)
+      for (var k = 0; k < #rs; k++)
+        insv (res, combine (ls[j], rs[k]), -1);
+  }
+  res;
+}
+
+fun solutions (ns, n) {
+  val nss = choices (ns); var res = [];
+  for (var i = 0; i < #nss; i++) {
+    val es = exprs (nss[i]);
+    for (var j = 0; j < #es; j++)
+      if (eval (es[j]) == n)
+	res @= [es[j]];
+  }
+  res;
+}
+
+var valid_fun;
+
+fun combine2 (lv, rv) !jit {
+  val l = lv[0], x = lv[1], r = rv[0], y = rv[1], res = [], ops = ops ();
+  for (var i = 0; i < #ops; i++) {
+    var o = ops[i];
+    if (valid_fun (o, x, y))
+      ins (res, [o (l, r), apply (o, x, y)], -1);
+  }
+  res;
+}
+
+fun results (ns) {
+  if (#ns == 0) return [];
+  if (#ns == 1) return (ns[0] <= 0 ? [] : [[value (ns[0]), ns[0]]]);
+  val res = [], xsss = split (ns);
+  for (var i = 0; i < #xsss; i++) {
+    val lx = results (xsss[i][0]), ry = results (xsss[i][1]);
+    for (var j = 0; j < #lx; j++)
+      for (var k = 0; k < #ry; k++)
+        insv (res, combine2 (lx[j], ry[k]), -1);
+  }
+  res;
+}
+
+fun common_solutions (ns, n) {
+  val nss = choices (ns); var res = [];
+  for (var i = 0; i < #nss; i++) {
+    val rs = results (nss[i]);
+    for (var j = 0; j < #rs; j++)
+      if (rs[j][1] == n)
+	ins (res, rs[j][0], -1);
+  }
+  res;
+}
+
+fun solutions2 (ns, n) {
+  valid_fun = valid;
+  common_solutions (ns, n);
+}
+
+fun valid2 (op, l, r) !jit {
+  if (isa (op, add)) return l <= r;
+  if (isa (op, sub)) return l > r;
+  if (isa (op, mul)) return l != 1 && r != 1 && l <= r;
+  if (isa (op, div)) return r != 1 && l % r == 0;
+}
+
+fun solutions3 (ns, n) {
+  valid_fun = valid2;
+  common_solutions (ns, n);
+}
+
+val ss = solutions3 ([1, 3, 7, 10, 25, 50], 765);
+putln (#ss, " expressions found.  The first one:");
+ss[0].show ();putln ();
+TEST799
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT799' && $CMP $stdout $ftemp2; then
+49 expressions found.  The first one:
+(3*((7*(50-10))-25))
+OUTPUT799
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 800.
+if test $result = ok -a $start_test_number -le 800; then
+	echo test 800: Usage pattern vars in anon fun in the same declaration
+        cat >$test_file <<'TEST800'
+val xs = [1,2,3,4,5];
+val [x, y, ...] = xs, v = map (fun (xx) { x + y + xx; }, xs);
+println (v);
+TEST800
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT800' && $CMP $stdout $ftemp2; then
+[4, 5, 6, 7, 8]
+OUTPUT800
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

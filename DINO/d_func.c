@@ -530,10 +530,25 @@ inside_call (int pars_number)
 }
 
 int
+code_inside (BC_node_t code, BC_node_t where)
+{
+  BC_node_t use;
+  int result;
+
+  d_assert (BC_IS_OF_TYPE (code, BC_NM_block)
+	    && BC_IS_OF_TYPE (where, BC_NM_block));
+  for (result = code == where, use = BC_uses (code);
+       ! result && use != NULL;
+       use = BC_next_use (use))
+    if (BC_use (use) == where)
+      result = 1;
+  return result;
+}
+
+int
 internal_isa_call (const char **message_ptr, ER_node_t where, ER_node_t what)
 {
-  BC_node_t code, code_2, use;
-  int result;
+  BC_node_t code, code_2;
 
   if (message_ptr != NULL)
     *message_ptr = NULL;
@@ -559,12 +574,7 @@ internal_isa_call (const char **message_ptr, ER_node_t where, ER_node_t what)
 	*message_ptr = DERR_parameter_type;
       return 0;
     }
-  for (result = code == code_2, use = BC_uses (code);
-       ! result && use != NULL;
-       use = BC_next_use (use))
-    if (BC_use (use) == code_2)
-      result = 1;
-  return result;
+  return code_inside (code, code_2);
 }
 
 void

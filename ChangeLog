@@ -1,3 +1,101 @@
+2015-05-13  Vladimir Makarov  <vmakarov@users.sf.net>
+
+	* DINO/Makefile.in (d_yacc.c): Change expected conflicts number.
+	* DINO/d_ir.sprut (merge_stmt_lists, uncycle_stmt_list): Move from
+	d_yacc.y.
+	(fun_or_class): Move parameters_number,
+	min_actual_parameters_number to semantic level.
+	(ENVIRONEMNT): Add patternmatch.
+	(assign_stmt): Make assignment_var of type expr.
+	(wildcard, dots, pattern_var, pattern_assign_stmt): New nodes.
+	(var_pattern_assign, par_pattern_assign, switch_stmt): Ditto.
+	(block): Add fields switch_stmt, implicit_case_break_stmt,
+	case_pattern, case_cond.
+	(var): Remove par_assign_flag, add par_flag.
+	* DINO/d_kw.shilka (C\case, switch, _): Add.
+	* DINO/d_yacc.y (process_var_pattern): New.
+	(CASE, SWITCH, WILDCARD): New tokens.
+	(expr): Add rules with WILDCARD, DOTS.
+	(elsit): Set repetition_key_flag.
+	(val_var): Change syntax to pattern.
+	(executive_stmt): Add switch-stmt.
+	(case_list, switch_case, opt_cond, pattern): New non-terminals and
+	rules.
+	(merge_stmt_lists, uncycle_stmt_list): Move to d_ir.sprut.
+	(process_var_decl): Remove unnecessary arg ident_pos.
+	(process_formal_parameters): Set par_flag.  Don't set
+	parameters_number and min_parameters_number yet.
+	* DINO/d_context.c (continue_target): New.
+	(for_finish): Rename to for_or_switch_finish.
+	(foreach_stmts, initiate_foreach_stmts, get_foreach_stmts_bound):
+	Rename to inter_stmt_holders, initiate_inter_stmt_holders,
+	get_inter_stmt_holders_bound.
+	(foreach_holder_end, swicth_holder_end): New.
+	(finish_block_foreach_stmts): Rename to
+	finish_block_inter_stmt_holders.  Add switch process.
+	(finish_foreach_stmts): Rename to finish_inter_stmt_holders.
+	(first_expr_processing): Add parameter pattern_p.  Add processing
+	wildcards and dots.
+	(process_redecl_after): Remove unnecessary parameters.
+	(create_pattern_vars, put_var_list_before): New.
+	(process_decl): Split code procesing blocks in
+	first_block_passing.
+	(first_block_passing): Process var_pattern_assign,
+	par_pattern_assign, pattern_var, and switch_stmt.  Add code for
+	processing case blocks.  Set up min_actual_parameters_number.  Use
+	process_decl.
+	(create_bc_decl): New.
+	(create_bc_ident): Use create_bc_decl.
+	declaration.
+	(second_expr_processing): Process dots and wildcards.
+	(curr_for_stmt_block): Rename to curr_for_stmt_or_case_block.
+	(generate_pattern, generate_break_continue): New.
+	(second_block_passing): Process pattern assignments and
+	pattern_var.  Use generate_break_continue.  Process switch.  Add
+	code for case blocks.
+	(modify_copied_ops): Process check nodes.
+	(optimize_bc): Process fail_pc.
+	(mark_reachable_info): Process fail_pc.
+	* DINO/d_bc.sprut (PATTERNMATCH_NAME, patternmatch_bc_decl): New.
+	(chvec, chvend, chvlen, chtab, chtend, chtel, chst, chstend): New.
+	(chstel, check, check2,check2i, check3, check3i2, check4): Ditto.
+	(check4i, check5, check5i): Ditto.
+	(bc_decls_table): Add entry for patternmatch_bc_decl.
+	(print_node): Process fail_pc of check nodes.  Process operands of
+	check nodes.
+	(traverse_bcode): Process fail_pc of check nodes.
+	* DINO/d_bcio.c (dump_code): Print chvec, chvlen, chvel, chvend,
+	chtab, chtel, chtend, chst, chstel, chstend.
+	(read_bc_program): Read new fields fail_pc, ch_op2, ch_op3,
+	ch_op4, ch_op5.
+	* DINO/d_bcf.shilka (fail_pc, ch_op2, ch_op3, ch_op4, ch_op5):
+	New.
+	* DINO/d_bcn.shilka (chvec, chvlen, chvel, chvend, chtab): New.
+	(chtel, chtend, chst, chstel, chstend): Ditto.
+	* DINO/d_errors.[ch] (ERR_wildcard_in_expression): New.
+	(ERR_dots_in_expression, ERR_dots_in_the_list_middle): Ditto.
+	(ERR_dots_with_repetition_key, ERR_table_dots_as_key_with_value): Ditto.
+	(ERR_assignment_pattern_without_variables): Ditto.
+	(DERR_wrong_vector_pattern_match, DERR_wrong_table_pattern_match): Ditto.
+	(DERR_wrong_stack_pattern_match): Ditto.
+	(ERR_continue_is_not_in_loop, ERR_break_is_not_in_loop): Rename to
+	ERR_continue_is_not_in_loop_or_case,ERR_break_is_not_in_loop_or_case.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Add cases
+	for chvec, chvlen, chvel, chvend, chtab, chtel, chtend, chst,
+	chstel, chstend.
+	(specialize_insn): Ditto.
+	(get_insn_defs_num): Don't cache chvel, chtel, chstel.
+	* DINO/d_gen.c (chvec, chvlen, chvel, chvend, chtab): New
+	functions.
+	(chtel, chtend, chst, chstel, chstend): Ditto.
+	* DINO/d_func.h (code_inside): New.
+	* DINO/d_func.c (code_inside): Split from internal_isa_call.
+	* DINO/d_eval.c (common_eq_ne_op): Split from
+	execute_common_eq_ne_op.
+	(evaluate_code): Add cases for chvec, chvlen, chvel, chvend,
+	chtab, chtel, chtend, chst, chstel, chstend.
+	* DINO/dino.tst.in: Add new tests 761-800 for pattern matching.
+
 2015-04-27  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/compare.tst: Add runs for LUAJIT.

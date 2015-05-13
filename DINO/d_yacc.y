@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2014 Vladimir Makarov.
+   Copyright (C) 1997-2015 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -36,9 +36,6 @@ IR_node_t first_program_stmt;
 extern int yylex (void);
 static int yyerror (const char *message);
 
-static IR_node_t merge_stmt_lists (IR_node_t list1, IR_node_t list2);
-static IR_node_t uncycle_stmt_list (IR_node_t list);
-
 static IR_node_t merge_friend_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_friend_list (IR_node_t list);
 
@@ -49,9 +46,13 @@ static IR_node_t merge_exception_lists (IR_node_t list1, IR_node_t list2);
 static IR_node_t uncycle_exception_list (IR_node_t list);
 
 static IR_node_t
-process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
+process_var_decl (access_val_t access, IR_node_t ident,
                   int val_flag, IR_node_t expr, position_t expr_pos,
                   IR_node_mode_t assign);
+static IR_node_t
+process_var_pattern (access_val_t access, IR_node_t pattern, int val_flag,
+		     IR_node_t expr, position_t expr_pos,
+		     IR_node_mode_t assign);
 
 static void process_header (int, IR_node_t, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
@@ -112,9 +113,9 @@ static int repl_can_process_p (void);
    }
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
-%token <pos> BREAK CATCH CHAR CLASS CONTINUE ELSE EXTERN
+%token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXTERN
        FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PRIV PROCESS PUB RETURN
+       LONG LATER NEW NIL OBJ PRIV PROCESS PUB RETURN SWITCH
        TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
@@ -124,7 +125,7 @@ static int repl_can_process_p (void);
 %token <pos> INCR DECR
 %token <pos> DOTS
 %token <pos> FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR
-%token <pos> INCLUDE INCLUSION END_OF_FILE END_OF_INCLUDE_FILE
+%token <pos> INCLUDE INCLUSION END_OF_FILE END_OF_INCLUDE_FILE WILDCARD
 %token <pos> '?' ':' '|' '^' '&' '<' '>' '@' '+' '-' '*' '/' '%' '!' '~' '#'
 %token <pos> '(' ')' '[' ']' '{' '}' ';' '.' ',' '='
 
@@ -153,8 +154,8 @@ static int repl_can_process_p (void);
 %type <pointer> aheader expr designator type
                 elist_parts_list elist_parts_list_empty elist_part
                 expr_list expr_list_empty actual_parameters friend_list
-                val_var_list val_var
-                assign stmt executive_stmt incr_decr for_guard_expr
+                val_var_list val_var assign stmt executive_stmt incr_decr
+                case_list switch_case opt_cond pattern for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
                 header declaration use_clause_list
                 use_item_list use_item alias_opt extern_list extern_item
@@ -173,7 +174,12 @@ clear_flag : {$$ = 0;}
            ;
 set_flag   : {$$ = 1;}
            ;
-expr : expr '?' expr ':' expr
+expr : NUMBER        {$$ = $1;}
+     | CHARACTER     {$$ = $1;}
+     | NIL           {$$ = create_node_with_pos (IR_NM_nil, $1);}
+     | STRING        {$$ = $1;}
+     | type          {$$ = $1;}
+     | expr '?' expr ':' expr
        	{
           $$ = create_node_with_pos (IR_NM_cond, $2);
           IR_set_cond_expr ($$, $1);
@@ -386,9 +392,6 @@ expr : expr '?' expr ':' expr
 	  IR_set_actuals ($$, $2);
 	}
      | designator    {$$ = $1;}
-     | NUMBER        {$$ = $1;}
-     | CHARACTER     {$$ = $1;}
-     | NIL           {$$ = create_node_with_pos (IR_NM_nil, $1);}
      | '(' expr ')'  {$$ = $2;}
      | '(' error
           {
@@ -424,8 +427,6 @@ expr : expr '?' expr ':' expr
 	      YYABORT;
 	  }
        stmt_stop  {$$ = NULL;}
-     | STRING     {$$ = $1;}
-     | type       {$$ = $1;}
      | TYPE '(' expr ')'
        	{
           $$ = create_node_with_pos (IR_NM_typeof, $1);
@@ -467,7 +468,10 @@ expr : expr '?' expr ':' expr
           $$ = create_node_with_pos (IR_NM_tabof, $1);
           IR_set_operand ($$, $3);
         }
-     | THIS { $$ = create_node_with_pos (IR_NM_this, $1); } 
+     | THIS { $$ = create_node_with_pos (IR_NM_this, $1); }
+     /* The following is allowed only for patterns.  */
+     | WILDCARD { $$ = create_node_with_pos (IR_NM_wildcard, $1); }
+     | DOTS     { $$ = create_node_with_pos (IR_NM_dots, $1); }
      ;
 type : CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
      | INT           {$$ = create_node_with_pos (IR_NM_int_type, $1);}
@@ -614,6 +618,7 @@ elist_part : pos expr
            | pos expr ':' expr
                {
                  $$ = create_node_with_pos (IR_NM_elist_element, $1);
+		 IR_set_repetition_key_flag ($$, TRUE);
      	         IR_set_repetition_key ($$, $2);
                  IR_set_expr ($$, $4);
                }
@@ -705,13 +710,13 @@ val_var_list : val_var   {$$ = $1;}
    and flag of that this is in val decl (not in var decl). */
 val_var : IDENT
             {
-	      $$ = process_var_decl ($<access>-1, $1, IR_pos ($1), $<flag>0,
+	      $$ = process_var_decl ($<access>-1, $1, $<flag>0,
 				     NULL, IR_pos ($1), IR_NM_var_assign);
 	    }
-        | IDENT '=' expr
+        | pattern '=' expr
             {
-	      $$ = process_var_decl ($<access>-1, $1, IR_pos ($1), $<flag>0,
-				     $3, $2, IR_NM_var_assign);
+	      $$ = process_var_pattern ($<access>-1, $1, $<flag>0,
+					$3, $2, IR_NM_var_pattern_assign);
 	    }
         ;
 /* Attribute value is cyclic list of stmts corresponding to stmt
@@ -839,6 +844,16 @@ executive_stmt :
           IR_set_for_iterate_stmt ($$, NULL);
           IR_set_foreach_stmts ($$, uncycle_stmt_list ($7));
         }
+    | SWITCH '(' expr ')' '{'
+        {
+	  $<pointer>$ = create_node_with_pos (IR_NM_switch_stmt, $1);
+          IR_set_switch_expr ($<pointer>$, $3);
+	}
+      case_list '}'
+        {
+	  $$ = $<pointer>6;
+          IR_set_switch_cases ($$, uncycle_stmt_list ($7)); 
+	}
     | BREAK {$<flag>$ = $<flag>0;} end_simple_stmt
         {$$ = create_node_with_pos (IR_NM_break_stmt, $1);}
     | CONTINUE {$<flag>$ = $<flag>0;} end_simple_stmt
@@ -878,6 +893,47 @@ executive_stmt :
     | block_stmt     {$$ = $1;}
     | try_block_stmt {$$ = $1;}
     ;
+/* attribute before is the case-stmt  */
+case_list :                        { $$ = NULL; }
+          | case_list {$<pointer>$ = $<pointer>0; } switch_case
+	      { $$ = merge_stmt_lists ($1, $3); }
+          | error
+              {
+		if (repl_flag)
+		  YYABORT;
+		$$ = NULL;
+	      }
+          ;
+/* attribute before is the case-stmt  */
+switch_case :   {
+                  $<pointer>$ = create_empty_block (current_scope);
+                  current_scope = $<pointer>$;
+                }
+       	     CASE pattern opt_cond ':' stmt_list
+                {
+		  IR_node_t break_stmt;
+		  
+                  $$ = $<pointer>1;
+		  IR_set_switch_stmt ($$, $<pointer>0);
+		  IR_set_case_pattern ($$, $3);
+		  IR_set_case_cond ($$, $4);
+		  /* Add implicit break at the end of case-stmts. */
+		  break_stmt = create_node_with_pos (IR_NM_break_stmt,
+						     current_position);
+		  IR_set_next_stmt (break_stmt, break_stmt);
+		  IR_set_implicit_case_break_stmt ($$, break_stmt);
+		  IR_set_block_stmts ($$, uncycle_stmt_list (merge_stmt_lists
+							     ($6, break_stmt)));
+		  IR_set_next_stmt ($$, $$);
+       		  current_scope = IR_block_scope ($$);
+		}
+            ;
+opt_cond :           { $$ = NULL; }
+         | IF expr   { $$ = $2; }
+         ;
+pattern : expr  { $$ = $1; }
+        ;
+
 for_guard_expr :      {$$ = get_int_node (1, source_position);}
                | expr {$$ = $1;}
                ;
@@ -1248,13 +1304,12 @@ par_kind :      {$$ = 0;}
          ;
 par : access par_kind IDENT
         {
-	  $$ = process_var_decl ($1, $3, IR_pos ($3), $2,
+	  $$ = process_var_decl ($1, $3, $2,
 				 NULL, IR_pos ($3), IR_NM_par_assign);
         }
     | access par_kind IDENT '=' expr
         {
-	  $$ = process_var_decl ($1, $3, IR_pos ($3), $2, $5,
-				 $4, IR_NM_par_assign);
+	  $$ = process_var_decl ($1, $3, $2, $5, $4, IR_NM_par_assign);
         }
     ;
 par_list_empty :          {$$ = NULL;} 
@@ -1351,44 +1406,6 @@ yyerror (const char *message)
     d_error (FALSE, source_position, "%s", message);
   first_error_p = FALSE;
   return 0; /* No warnings */
-}
-
-
-
-/* Merging two cyclic lists into one cyclic list. */
-static IR_node_t
-merge_stmt_lists (IR_node_t list1, IR_node_t list2)
-{
-  IR_node_t result;
-
-  if (list2 != NULL) {
-    if (list1 != NULL)
-      {
-        IR_node_t first;
-        
-        first = IR_next_stmt (list2);
-        IR_set_next_stmt (list2, IR_next_stmt (list1));
-        IR_set_next_stmt (list1, first);
-      }
-    result = list2;
-  }
-  else
-    result = list1;
-  return result;
-}
-
-/* Make normal list from cycle stmt list with the pointer to the last
-   stmt. */
-static IR_node_t
-uncycle_stmt_list (IR_node_t list)
-{
-  IR_node_t first;
-
-  if (list == NULL)
-    return list;
-  first = IR_next_stmt (list);
-  IR_set_next_stmt (list, NULL);
-  return first;
 }
 
 
@@ -1505,17 +1522,17 @@ uncycle_exception_list (IR_node_t list)
   return first;
 }
 
-/* Create variable IDENT with IDENT_POS and VAL_FLAG.  If EXPR is not
-   null, create also assignment with AMODE of EXPR with EXPR_POS to
-   the variable.  Create cyclic list of the node(s) and return the
-   last one.  */
+/* Create variable IDENT with VAL_FLAG.  If EXPR is not null, create
+   also assignment with ASSIGN of EXPR with EXPR_POS to the variable.
+   Create cyclic list of the node(s) and return the last one.  */
 static IR_node_t
-process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
+process_var_decl (access_val_t access, IR_node_t ident,
 		  int val_flag, IR_node_t expr, position_t expr_pos,
 		  IR_node_mode_t assign)
 {
+  position_t ident_pos = IR_pos (ident);
   IR_node_t res = create_node_with_pos (IR_NM_var, ident_pos);
-
+  
   IR_set_access (res, access);
   IR_set_scope (res, current_scope);
   IR_set_ident (res, ident);
@@ -1532,6 +1549,29 @@ process_var_decl (access_val_t access, IR_node_t ident, position_t ident_pos,
       IR_set_next_stmt (init, res);
       res = merge_additional_stmts (init);
     }
+  return res;
+}
+
+/* Create pattern var node with PATTERN, ACCESS, VAR_FLAG and pattern
+   assignment node PATTERN, EXPR and return them.  */
+static IR_node_t
+process_var_pattern (access_val_t access, IR_node_t pattern,
+		     int val_flag, IR_node_t expr, position_t expr_pos,
+		     IR_node_mode_t assign)
+{
+  IR_node_t res, init;
+  
+  d_assert (expr != NULL);
+  res = create_node_with_pos (IR_NM_pattern_var, expr_pos);
+  IR_set_pattern_const_flag (res, val_flag);
+  IR_set_pattern_var_access (res, access);
+  IR_set_pattern (res, pattern);
+  init = create_node_with_pos (assign, expr_pos);
+  IR_set_assignment_var (init, pattern);
+  IR_set_assignment_expr (init, expr);
+  IR_set_next_stmt (res, init);
+  IR_set_next_stmt (init, res);
+  res = merge_additional_stmts (init);
   return res;
 }
 
@@ -1564,26 +1604,16 @@ process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
 static IR_node_t
 process_formal_parameters (IR_node_t decl, IR_node_t pars)
 {
-  int val_var_list_length = 0;
-  int min_actual_parameters_number = -1;
   IR_node_t current_decl = pars;
   
   if (current_decl != NULL)
     do
       {
 	if (IR_IS_OF_TYPE (current_decl, IR_NM_var))
-	  val_var_list_length++;
-	else if (min_actual_parameters_number < 0)
-	  /* That is a first parameter assignment.  */
-	  min_actual_parameters_number = val_var_list_length;
+	  IR_set_par_flag (current_decl, TRUE);
 	current_decl = IR_next_stmt (current_decl);
       }
     while (current_decl != pars);
-  IR_set_parameters_number (decl, val_var_list_length);
-  if (min_actual_parameters_number < 0)
-    min_actual_parameters_number
-      = val_var_list_length - (formal_parameter_args_flag ? 1 : 0);
-  IR_set_min_actual_parameters_number (decl, min_actual_parameters_number);
   IR_set_args_flag (decl, formal_parameter_args_flag);
   return pars;
 }
@@ -1668,7 +1698,7 @@ process_obj_block (IR_node_t origin_ident, IR_node_t block_stmts,
 			       actual_parameters_construction_pos);
   IR_set_fun_expr (expr, origin_ident);
   IR_set_actuals (expr, NULL);
-  val = process_var_decl (access, ident, IR_pos (ident), TRUE,
+  val = process_var_decl (access, ident, TRUE,
 			  expr, IR_pos (ident), IR_NM_var_assign);
   return merge_stmt_lists (block, val);
 }

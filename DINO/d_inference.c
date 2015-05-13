@@ -892,6 +892,37 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       if (nop >= BC_pars_num (bc))
 	return NO_MORE_OPERAND;
       return nop + BC_vars_num (tl_block->bc_block);
+    case BC_NM_chvec:
+    case BC_NM_chvend:
+    case BC_NM_chvlen:
+    case BC_NM_chtab:
+    case BC_NM_chtend:
+    case BC_NM_chst:
+    case BC_NM_chstend:
+      return NO_MORE_OPERAND;
+    case BC_NM_chvel:
+      if (! result_p)
+	return NO_MORE_OPERAND;
+      else
+	{
+	  if  (nop == 0 && BC_ch_op5 (bc))
+	    res = BC_ch_op4 (bc);
+	  else
+	    return NO_MORE_OPERAND;
+	}
+      break;
+    case BC_NM_chtel:
+    case BC_NM_chstel:
+      if (! result_p)
+	return NO_MORE_OPERAND;
+      else
+	{
+	  if  (nop == 0 && BC_ch_op4 (bc))
+	    res = BC_ch_op3 (bc);
+	  else
+	    return NO_MORE_OPERAND;
+	}
+      break;
     default:
       assert (FALSE);
     }
@@ -915,7 +946,10 @@ get_insn_defs_num (df_insn_t insn)
     if (get_insn_op_place (insn, i, TRUE) == NO_MORE_OPERAND)
       {
 	if (! BC_IS_OF_TYPE (bc, BC_NM_block)
-	    && ! BC_IS_OF_TYPE (bc, BC_NM_stinc))
+	    && ! BC_IS_OF_TYPE (bc, BC_NM_stinc)
+	    && ! BC_IS_OF_TYPE (bc, BC_NM_chvel)
+	    && ! BC_IS_OF_TYPE (bc, BC_NM_chtel)
+	    && ! BC_IS_OF_TYPE (bc, BC_NM_chstel))
 	  insn_defs_num_cache[BC_NODE_MODE (bc)] = i;
 	return i;
       }
@@ -1132,6 +1166,11 @@ get_dest (df_insn_t insn, int n)
     {
       if (n == 1 && BC_next_except (bc) != NULL)
 	return BC_aux (BC_info (BC_next_except (bc)));
+    }
+  else if (BC_IS_OF_TYPE (bc, BC_NM_check))
+    {
+      if (n == 1 && BC_fail_pc (bc) != NULL)
+	return BC_aux (BC_info (BC_fail_pc (bc)));
     }
   return NULL;
 }
@@ -1921,6 +1960,23 @@ type_transf (node_t node)
     case BC_NM_ret:
       res_tp = insn->types[1];
       break;
+    case BC_NM_chvec:
+    case BC_NM_chvend:
+    case BC_NM_chvlen:
+    case BC_NM_chtab:
+    case BC_NM_chtend:
+    case BC_NM_chst:
+    case BC_NM_chstend:
+      return FALSE;
+    case BC_NM_chvel:
+      if (! BC_ch_op5 (bc))
+	return FALSE;
+      break;
+    case BC_NM_chtel:
+    case BC_NM_chstel:
+      if (! BC_ch_op4 (bc))
+	return FALSE;
+      break;
     default:
       d_assert (FALSE);
     }
@@ -2274,6 +2330,16 @@ specialize_insn (df_insn_t insn)
     case BC_NM_block:
     case BC_NM_fblock:
     case BC_NM_ret:
+    case BC_NM_chvec:
+    case BC_NM_chvend:
+    case BC_NM_chvlen:
+    case BC_NM_chvel:
+    case BC_NM_chtab:
+    case BC_NM_chtend:
+    case BC_NM_chtel:
+    case BC_NM_chst:
+    case BC_NM_chstend:
+    case BC_NM_chstel:
       break;
     default:
       d_assert (FALSE);

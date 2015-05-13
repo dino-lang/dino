@@ -69,6 +69,11 @@ res
 bcmp_op2
 bcmp_res
 binc_inc
+fail_pc
+ch_op2
+ch_op3
+ch_op4
+ch_op5
 cfblock
 next_except
 bi

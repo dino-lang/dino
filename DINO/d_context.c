@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2014 Vladimir Makarov.
+   Copyright (C) 1997-2015 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -50,15 +50,15 @@ static pc_t curr_pc, prev_pc;
    chain.  */
 static BC_node_t curr_info;
 
-/* Byte code starting new iteration of current for stmt.  This value is
-   used to connect continue stmt. */
-static BC_node_t start_next_iteration;
+/* Byte code starting new iteration of current for stmt or next case
+   of the switch.  This value is used to connect continue stmt. */
+static BC_node_t continue_target;
 
-/* Program counter of finishing of current for stmt.
-   This value is for_finish node and is used to connect break stmt.
-   If this value is equal to NULL then there is not surrounding
-   for-stmt. */
-static BC_node_t for_finish;
+/* Program counter of finishing of current for-stmt or switch case.
+   This value is for_or_switch_finish node and is used to connect
+   break stmt.  If this value is equal to NULL then there is not
+   surrounding for-stmt. */
+static BC_node_t for_or_switch_finish;
 
 /* Jump buffer for exit from the contex pass. */
 static jmp_buf context_exit_longjump_buff;
@@ -102,54 +102,71 @@ cont_err_finish (position_t pos, const char *format, const char *str)
 
 
 
-/* Stack foreach statemets for processing.  */
-static vlo_t foreach_stmts;
+/* Stack foreach/switch statements for processing.  */
+static vlo_t inter_stmt_holders;
 
 static void
-initiate_foreach_stmts (void)
+initiate_inter_stmt_holders (void)
 {
-  VLO_CREATE (foreach_stmts, 0);
+  VLO_CREATE (inter_stmt_holders, 0);
 }
 
-/* Return index for new foreach stmts.  */
+/* Return index for new foreach/switch stmts.  */
 static int
-get_foreach_stmts_bound (void)
+get_inter_stmt_holders_bound (void)
 {
-  return VLO_LENGTH (foreach_stmts) / sizeof (IR_node_t);
+  return VLO_LENGTH (inter_stmt_holders) / sizeof (IR_node_t);
 }
 
-/* Assign slots to vars of block foreach stmts which start from
+/* Values used to mark finish of foreach and switch statements. */
+static IR_node_t foreach_holder_end = (void *) 0;
+static IR_node_t switch_holder_end = (void *) 1;
+ 
+/* Assign slots to vars of block foreach/switch stmts which start from
    START_INDEX.  */
 static void
-finish_block_foreach_stmts (int start_index)
+finish_block_inter_stmt_holders (int start_index)
 {
-  IR_node_t *foreach_ptr;
+  IR_node_t *stmt_ptr;
   int slot_num = IR_vars_number (curr_scope);
   int n = 0;
 
-  for (foreach_ptr = &((IR_node_t *) VLO_BEGIN (foreach_stmts)) [start_index];
-       foreach_ptr < (IR_node_t *) VLO_BOUND (foreach_stmts);
-       foreach_ptr++)
+  for (stmt_ptr = &((IR_node_t *) VLO_BEGIN (inter_stmt_holders)) [start_index];
+       stmt_ptr < (IR_node_t *) VLO_BOUND (inter_stmt_holders);
+       stmt_ptr++)
     {
       n++;
-      if (*foreach_ptr == NULL)
+      if (*stmt_ptr == foreach_holder_end)
 	slot_num -= 2;
-      else
+      else if (*stmt_ptr == switch_holder_end)
+	slot_num--;
+      else if (IR_IS_OF_TYPE (*stmt_ptr, IR_NM_foreach_stmt))
 	{
-	  IR_set_foreach_tab_place (*foreach_ptr, slot_num);
-	  IR_set_foreach_search_start_place (*foreach_ptr, slot_num + 1);
+	  IR_set_foreach_tab_place (*stmt_ptr, slot_num);
+	  IR_set_foreach_search_start_place (*stmt_ptr, slot_num + 1);
 	  slot_num += 2;
 	  if (slot_num > IR_vars_number (curr_scope))
 	    IR_set_vars_number (curr_scope, slot_num);
 	}
+      else
+	{
+	  IR_node_t decl;
+	  
+	  d_assert (IR_IS_OF_TYPE (*stmt_ptr, IR_NM_switch_stmt));
+	  decl = IR_switch_expr_var (*stmt_ptr);
+	  IR_set_var_number_in_block (decl, slot_num);
+	  slot_num++;
+	  if (slot_num > IR_vars_number (curr_scope))
+	    IR_set_vars_number (curr_scope, slot_num);
+	}
     }
-  VLO_SHORTEN (foreach_stmts, n * sizeof (IR_node_t));
+  VLO_SHORTEN (inter_stmt_holders, n * sizeof (IR_node_t));
 }
 
 static void
-finish_foreach_stmts (void)
+finish_inter_stmt_holders (void)
 {
-  VLO_DELETE (foreach_stmts);
+  VLO_DELETE (inter_stmt_holders);
 }
 
 
@@ -202,9 +219,10 @@ set_field_ident_number (IR_node_t unique_ident)
 /* The following recursive func passes (correctly setting up
    SOURCE_POSITION) EXPR (it may be NULL) sets up members parts_number
    and class_func_thread_call_parameters_number in vector node (table
-   node) and class_func_thread_call node. */
+   node) and class_func_thread_call node.  If PATERN_P, we are
+   processing a pattern expression.  */
 static void
-first_expr_processing (IR_node_t expr)
+first_expr_processing (IR_node_t expr, int pattern_p)
 {
   if (expr == NULL)
     return;
@@ -264,7 +282,7 @@ first_expr_processing (IR_node_t expr)
       }
     case IR_NM_period:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_designator (expr));
+      first_expr_processing (IR_designator (expr), FALSE);
       set_field_ident_number (IR_unique_ident (IR_component (expr)));
       check_slice (expr, IR_designator (expr),
 		   ERR_period_ident_applied_to_slice);
@@ -272,8 +290,8 @@ first_expr_processing (IR_node_t expr)
     case IR_NM_logical_or:
     case IR_NM_logical_and:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_operand (expr));
-      first_expr_processing (IR_cont_operand (expr));
+      first_expr_processing (IR_operand (expr), FALSE);
+      first_expr_processing (IR_cont_operand (expr), FALSE);
       break;
     case IR_NM_in:
     case IR_NM_or:
@@ -297,15 +315,15 @@ first_expr_processing (IR_node_t expr)
     case IR_NM_mod:
     case IR_NM_format_vecof:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_left_operand (expr));
-      first_expr_processing (IR_right_operand (expr));
+      first_expr_processing (IR_left_operand (expr), FALSE);
+      first_expr_processing (IR_right_operand (expr), FALSE);
       break;
     case IR_NM_minus:
       {
 	IR_node_t r = IR_right_operand (expr);
 
 	SET_SOURCE_POSITION (expr);
-	first_expr_processing (IR_left_operand (expr));
+	first_expr_processing (IR_left_operand (expr), FALSE);
 	if (r != NULL && IR_IS_OF_TYPE (r, IR_NM_int)
 	    && IR_int_value (IR_unique_int (r)) != MAX_RINT)
 	  {
@@ -314,7 +332,7 @@ first_expr_processing (IR_node_t expr)
 	       get_int_node (-IR_int_value (IR_unique_int (r)), IR_pos (r)));
 	    IR_SET_MODE (expr, IR_NM_plus);
 	  }
-	first_expr_processing (IR_right_operand (expr));
+	first_expr_processing (IR_right_operand (expr), FALSE);
 	break;
       }
     case IR_NM_unary_plus:
@@ -340,28 +358,46 @@ first_expr_processing (IR_node_t expr)
     case IR_NM_threadof:
     case IR_NM_classof:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_operand (expr));
+      first_expr_processing (IR_operand (expr), FALSE);
       break;
     case IR_NM_cond:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_cond_expr (expr));
-      first_expr_processing (IR_true_expr (expr));
-      first_expr_processing (IR_false_expr (expr));
+      first_expr_processing (IR_cond_expr (expr), FALSE);
+      first_expr_processing (IR_true_expr (expr), FALSE);
+      first_expr_processing (IR_false_expr (expr), FALSE);
       break;
     case IR_NM_vec:
     case IR_NM_tab:
       SET_SOURCE_POSITION (expr);
       {
-	IR_node_t elist;
+	IR_node_t elist, next, elist_expr, rep;
 	int elements_number;
+	int tab_dots_p, vec_p = IR_NODE_MODE (expr) == IR_NM_vec;
 	
 	for (elements_number = 0, elist = IR_elist (expr);
-	     elist != NULL; elist = IR_next_elist (elist))
+	     elist != NULL; elist = next)
 	  {
+	    next = IR_next_elist (elist);
 	    elements_number++;
 	    SET_SOURCE_POSITION (elist);
-	    first_expr_processing (IR_repetition_key (elist));
-	    first_expr_processing (IR_expr (elist));
+	    rep = IR_repetition_key (elist);
+	    /* We permits `...' as element (key without val) in the
+	       table pattern.  */
+	    tab_dots_p = (pattern_p && rep != NULL
+			  && ! vec_p && IR_IS_OF_TYPE (rep, IR_NM_dots));
+	    first_expr_processing (rep, tab_dots_p);
+	    elist_expr = IR_expr (elist);
+	    first_expr_processing (elist_expr, pattern_p);
+	    if (pattern_p && elist_expr != NULL
+		&& IR_IS_OF_TYPE (elist_expr, IR_NM_dots))
+	      {
+		if (next != NULL)
+		  cont_err (IR_pos (elist_expr), ERR_dots_in_the_list_middle);
+		else if (IR_repetition_key_flag (elist))
+		  cont_err (IR_pos (elist_expr), ERR_dots_with_repetition_key);
+	      }
+	    if (tab_dots_p && IR_repetition_key_flag (elist))
+	      cont_err (IR_pos (elist_expr), ERR_table_dots_as_key_with_value);
 	  }
 	IR_set_parts_number (expr, elements_number);
 	break;
@@ -369,37 +405,51 @@ first_expr_processing (IR_node_t expr)
     case IR_NM_index:
       SET_SOURCE_POSITION (expr);
       /* Two stack entries are necessary for reference. */
-      first_expr_processing (IR_designator (expr));
+      first_expr_processing (IR_designator (expr), FALSE);
       check_slice (expr, IR_designator (expr),
 		   ERR_vec_tab_element_access_applied_to_slice);
-      first_expr_processing (IR_component (expr));
+      first_expr_processing (IR_component (expr), FALSE);
       break;
     case IR_NM_slice:
       SET_SOURCE_POSITION (expr);
       /* Four stack entries are necessary for reference. */
-      first_expr_processing (IR_designator (expr));
-      first_expr_processing (IR_component (expr));
-      first_expr_processing (IR_bound (expr));
-      first_expr_processing (IR_step (expr));
+      first_expr_processing (IR_designator (expr), FALSE);
+      first_expr_processing (IR_component (expr), FALSE);
+      first_expr_processing (IR_bound (expr), FALSE);
+      first_expr_processing (IR_step (expr), FALSE);
       break;
     case IR_NM_class_fun_thread_call:
       SET_SOURCE_POSITION (expr);
       {
-	IR_node_t elist;
+	IR_node_t elist, next, elist_expr;
 	int parameters_number;
 	
-	first_expr_processing (IR_fun_expr (expr));
+	first_expr_processing (IR_fun_expr (expr), FALSE);
 	check_slice (expr, IR_fun_expr (expr), ERR_call_applied_to_slice);
 	for (parameters_number = 0, elist = IR_actuals (expr); elist != NULL;
-	     elist = IR_next_elist (elist))
+	     elist = next)
 	  {
+	    next = IR_next_elist (elist);
 	    parameters_number++;
 	    SET_SOURCE_POSITION (elist);
-	    d_assert (IR_repetition_key (elist) == NULL);
-	    first_expr_processing (IR_expr (elist));
+	    d_assert (IR_repetition_key (elist) == NULL
+		      && ! IR_repetition_key_flag (elist));
+	    elist_expr = IR_expr (elist);
+	    first_expr_processing (elist_expr, pattern_p);
+	    if (pattern_p && elist_expr != NULL
+		&& IR_IS_OF_TYPE (elist_expr, IR_NM_dots) && next != NULL)
+	      cont_err (IR_pos (elist_expr), ERR_dots_in_the_list_middle);
 	  }
 	IR_set_class_fun_thread_call_parameters_number
 	  (expr, parameters_number);
+	break;
+      case IR_NM_wildcard:
+	if (! pattern_p)
+	  cont_err (IR_pos (expr), ERR_wildcard_in_expression);
+	break;
+      case IR_NM_dots:
+	if (! pattern_p)
+	  cont_err (IR_pos (expr), ERR_dots_in_expression);
 	break;
       }
     default:
@@ -870,13 +920,12 @@ copy_fun_class_attrs (IR_node_t to, IR_node_t from)
   IR_set_fun_class (next_stmt, to);
 }
 
-/* Process CURR_DECL whose previous and next statement are PREV_STMT
-   and NEXT_STMT (in a chain starting with FIRST_STMT) and whose
-   previous decl with the same identifier is PREV_DECL (may be NULL).
-   Update redefine_flag for the corresponding item if any.  We do
-   nothing when PREV_DECL is in the same use clause (or the both are
-   from an used clause).  Return FALSE when nothing is done, TRUE
-   otherwise.  The process consists of
+/* Process CURR_DECL whose previous decl with the same identifier is
+   PREV_DECL (may be NULL).  Update redefine_flag for the
+   corresponding item if any.  We do nothing when PREV_DECL is in the
+   same use clause (or the both are from an used clause).  Return
+   FALSE when nothing is done, TRUE otherwise.  The process consists
+   of
 
    o Check that ident of redefinition in given fun/class of the used
      definition is mentioned in an later item of an use clause
@@ -884,27 +933,24 @@ copy_fun_class_attrs (IR_node_t to, IR_node_t from)
    o Check that the definition and the redefinition are matched.
    o Set field TO of the corresponding redirs created for the later
      item to CURR_DECL.
-   o Update CURR_DECL, NEXT_STMT, and FIRST_STMT
 
   Before the function execution we have only unique, not processed,
   later items in USE_ITEMS for the current block.  */
 static int
-process_redecl_after (IR_node_t prev_decl, IR_node_t prev_stmt,
-		      IR_node_t *curr_decl, IR_node_t *next_stmt,
-		      IR_node_t *first_stmt)
+process_redecl_after (IR_node_t prev_decl, IR_node_t curr_decl)
 {
   long int n;
-  IR_node_t id = IR_ident (*curr_decl);
+  IR_node_t id = IR_ident (curr_decl);
   IR_node_t uid = IR_unique_ident (id);
   IR_node_t item, redir;
 
-  d_assert (IR_IS_OF_TYPE (*curr_decl, IR_NM_decl)
+  d_assert (IR_IS_OF_TYPE (curr_decl, IR_NM_decl)
 	    && (prev_decl == NULL
 		|| (IR_IS_OF_TYPE (prev_decl, IR_NM_decl)
 		    && uid == IR_unique_ident (IR_ident (prev_decl)))));
   if (prev_decl != NULL
-      && ((IR_alias_flag (prev_decl) && ! IR_alias_flag (*curr_decl))
-	  || IR_use_clause (prev_decl) != IR_use_clause (*curr_decl)))
+      && ((IR_alias_flag (prev_decl) && ! IR_alias_flag (curr_decl))
+	  || IR_use_clause (prev_decl) != IR_use_clause (curr_decl)))
     {
       cont_err_start (IR_pos (id), ERR_alias_redefinition,
 		      IR_ident_string (uid));
@@ -929,20 +975,20 @@ process_redecl_after (IR_node_t prev_decl, IR_node_t prev_stmt,
 	  for (redir = IR_redirs (item);
 	       redir != NULL;
 	       redir = IR_next_redir (redir))
-	    if (check_matching (IR_redir_origin (redir), *curr_decl))
-	      IR_set_to (redir, *curr_decl);
+	    if (check_matching (IR_redir_origin (redir), curr_decl))
+	      IR_set_to (redir, curr_decl);
 	}
     }
   if (prev_decl == NULL
-      || IR_use_clause (prev_decl) == IR_use_clause (*curr_decl))
+      || IR_use_clause (prev_decl) == IR_use_clause (curr_decl))
     return FALSE;
   /* We can not have prev_decl and decl from different use-clauses or
      from orginal scope and from an use-clause correspondingly.
      Function process_use_clause guarantees it.  */
   d_assert (IR_use_clause (prev_decl) != NULL
-	    && IR_use_clause (*curr_decl) == NULL);
+	    && IR_use_clause (curr_decl) == NULL);
   cont_err_start
-    (IR_pos (IR_ident (*curr_decl)),
+    (IR_pos (IR_ident (curr_decl)),
      ERR_used_decl_redefinition_not_mentioned_in_later, IR_ident_string (uid));
   cont_err_finish (IR_pos (IR_use_clause (prev_decl)),
 		   ERR_here_is_corresponding_use_clause, IR_ident_string (uid));
@@ -988,6 +1034,163 @@ add_block_to_tree (IR_node_t block)
   IR_set_children (curr_scope, block);
 }
 
+/* Recursive function creating and adding variables in EXPR which is
+   part of statement PATTERN_FROM to cyclic list LAST.  Return the
+   result cycling list by its last added element.  */
+static IR_node_t
+create_pattern_vars (IR_node_t pattern_from, IR_node_t expr, IR_node_t last)
+{
+  IR_node_t elist;
+  
+  if (expr == NULL)
+    return;
+  switch (IR_NODE_MODE (expr))
+    {
+    case IR_NM_ident:
+      {
+	IR_node_t decl;
+
+	decl = create_node_with_pos (IR_NM_var, IR_pos (expr));
+	IR_set_ident (decl, expr);
+	IR_set_scope (decl, curr_scope);
+	if (IR_IS_OF_TYPE (pattern_from, IR_NM_pattern_assign_stmt))
+	  {
+	    IR_set_access (decl, IR_pattern_var_access (pattern_from));
+	    IR_set_const_flag (decl, IR_pattern_const_flag (pattern_from));
+	  }
+	else
+	  {
+	    IR_set_access (decl, DEFAULT_ACCESS);
+	    IR_set_const_flag (decl, FALSE);
+	  }
+	IR_set_next_stmt (decl, decl);
+	last = merge_stmt_lists (last, decl);
+	break;
+      }
+    case IR_NM_vec:
+    case IR_NM_tab:
+      for (elist = IR_elist (expr); elist != NULL; elist = IR_next_elist (elist))
+	last = create_pattern_vars (pattern_from, IR_expr (elist), last);
+      break;
+    case IR_NM_class_fun_thread_call:
+      for (elist = IR_actuals (expr); elist != NULL; elist = IR_next_elist (elist))
+	{
+	  d_assert (IR_repetition_key (elist) == NULL);
+	  last = create_pattern_vars (pattern_from, IR_expr (elist), last);
+	}
+      break;
+    }
+  return last;
+}
+
+/* Process decl with given previous, next and first level statement.
+   PAR_ASSIGN_P is true, if the decl is parameter with default value
+   assignment.  Modify previous or first level statement reflecting
+   changes in the list of statements. Return statement will be
+   current.  */
+static IR_node_t
+process_decl (IR_node_t stmt, IR_node_t *prev_stmt_ptr, IR_node_t next_stmt,
+	      IR_node_t *first_level_stmt_ptr, int par_assign_p)
+{
+  IR_node_t block, prev_decl, redir, ident = IR_ident (stmt);
+  IR_node_mode_t node_mode = IR_NODE_MODE (stmt);
+
+  IR_set_it_is_declared_in_block (IR_unique_ident (ident), TRUE);
+  if (IR_access (stmt) == DEFAULT_ACCESS)
+    IR_set_access
+      (stmt,
+       curr_scope != NULL && IR_fun_class (curr_scope) != NULL
+       && IR_IS_OF_TYPE (IR_fun_class (curr_scope), IR_NM_class)
+       ? PUBLIC_ACCESS : PRIVATE_ACCESS);
+  if (IR_IS_OF_TYPE (stmt, IR_NM_fun_or_class) && IR_forward_decl_flag (stmt))
+    IR_set_forward_prev (stmt, *prev_stmt_ptr);
+  block = IR_scope (stmt);
+  d_assert (block != NULL && IR_NODE_MODE (block) == IR_NM_block);
+  prev_decl = find_decl_in_given_scope (ident, block);
+  if (process_redecl_after (prev_decl, stmt))
+    return stmt;
+  d_assert (prev_decl == NULL
+	    || IR_use_clause (prev_decl) == IR_use_clause (stmt));
+  if (node_mode == IR_NM_var)
+    {
+      IR_node_t scope, fun_class;
+      
+      IR_set_var_number_in_block (stmt, IR_vars_number (block));
+      IR_set_vars_number (block, IR_vars_number (block) + 1);
+      include_decl (stmt); /* Redefinition */
+      if (IR_par_flag (stmt) && (scope = IR_scope (stmt)) != NULL
+	  && (fun_class = IR_fun_class (scope)) != NULL)
+	{
+	  if (par_assign_p && IR_min_actual_parameters_number (fun_class) < 0)
+	    IR_set_min_actual_parameters_number (fun_class,
+						 IR_parameters_number (fun_class));
+	  IR_set_parameters_number (fun_class,
+				    IR_parameters_number (fun_class) + 1);
+	}
+    }
+  else if (prev_decl == NULL
+	   || ! IR_IS_OF_TYPE (prev_decl, IR_NM_fun_or_class)
+	   || ! IR_forward_decl_flag (prev_decl))
+    {
+      /* First ident occurrence or redefinition: */
+      include_decl (stmt);
+    }
+  else if (! check_matching (prev_decl, stmt))
+    ;
+  else if (IR_forward_decl_flag (stmt))
+    /* Two forward declarations. */
+    ;
+  else
+    {
+      IR_node_t prev;
+
+      /* A forward fun/class decl followed by non-forward one
+	 with definition.  Change the curr decl on the prev
+	 decl. */
+      d_assert (next_stmt != NULL
+		&& IR_IS_OF_TYPE (next_stmt, IR_NM_block));
+      redir = create_node_with_pos (IR_NM_decl_redir, IR_pos (prev_decl));
+      IR_set_redir_origin (redir, prev_decl);
+      IR_set_to (redir, prev_decl);
+      IR_set_next_redir (redir, NULL);
+      set_next_stmt (redir, IR_next_stmt (prev_decl));
+      prev = IR_forward_prev (prev_decl);
+      add_to_stmt (redir, prev, first_level_stmt_ptr);
+      if (*prev_stmt_ptr == prev_decl)
+	*prev_stmt_ptr = redir;
+      copy_fun_class_attrs (prev_decl, stmt);
+      /* Prev decl is not forward anymore.  */
+      IR_set_forward_prev (prev_decl, NULL);
+      IR_set_fun_class (next_stmt, prev_decl);
+      add_to_stmt (prev_decl, *prev_stmt_ptr, first_level_stmt_ptr);
+      set_next_stmt (prev_decl, next_stmt);
+      set_next_stmt (stmt, NULL);
+      stmt = prev_decl;
+    }
+  return stmt;
+}
+
+/* Put LIST of vars before stmt.  Modify previous or first level
+   statement of STMT.  */
+static void
+put_var_list_before (IR_node_t list, IR_node_t stmt,
+		     IR_node_t *prev_stmt_ptr, IR_node_t *first_level_stmt_ptr)
+{
+  IR_node_t el, next_el;
+  
+  if (list == NULL)
+    return;
+  add_to_stmt (list, *prev_stmt_ptr, first_level_stmt_ptr);
+  for (el = list; el != NULL; *prev_stmt_ptr = el, el = next_el)
+    {
+      next_el = IR_next_stmt (el);
+      process_decl (el, prev_stmt_ptr,
+		    next_el != NULL ? next_el : stmt,
+		    first_level_stmt_ptr, TRUE);
+    }
+  IR_set_next_stmt (*prev_stmt_ptr, stmt);
+}
+
 /* This recursive func passes all stmts and exprs (correctly setting
    up SOURCE_POSITION and curr_scope (before first call of the func
    curr_scope is to be NULL)) on the same stmt nesting level, includes
@@ -1016,17 +1219,23 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
       switch (node_mode)
 	{
 	case IR_NM_expr_stmt:
-	  first_expr_processing (IR_stmt_expr (stmt));
+	  first_expr_processing (IR_stmt_expr (stmt), FALSE);
 	  break;
 	case IR_NM_assign:
-	  first_expr_processing (IR_assignment_var (stmt));
-	  first_expr_processing (IR_assignment_expr (stmt));
+	  first_expr_processing (IR_assignment_var (stmt), FALSE);
+	  first_expr_processing (IR_assignment_expr (stmt), FALSE);
 	  break;
 	case IR_NM_var_assign:
 	case IR_NM_par_assign:
-	  first_expr_processing (IR_assignment_var (stmt));
+	  first_expr_processing (IR_assignment_var (stmt), FALSE);
 	  /* var/val initialization is already processed -- see
 	     IR_NM_var processing.  */
+	  break;
+	case IR_NM_var_pattern_assign:
+	case IR_NM_par_pattern_assign:
+	  first_expr_processing (IR_assignment_var (stmt), TRUE);
+	  /* var/val initialization is already processed -- see
+	     IR_NM_pattern_var processing.  */
 	  break;
 	case IR_NM_mult_assign:
 	case IR_NM_div_assign:
@@ -1039,14 +1248,14 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_and_assign:
 	case IR_NM_xor_assign:
 	case IR_NM_or_assign:
-	  first_expr_processing (IR_assignment_var (stmt));
-	  first_expr_processing (IR_assignment_expr (stmt));
+	  first_expr_processing (IR_assignment_var (stmt), FALSE);
+	  first_expr_processing (IR_assignment_expr (stmt), FALSE);
 	  break;
 	case IR_NM_minus_assign:
 	  {
 	    IR_node_t expr = IR_assignment_expr (stmt);
 	    
-	    first_expr_processing (IR_assignment_var (stmt));
+	    first_expr_processing (IR_assignment_var (stmt), FALSE);
 	    if (expr != NULL && IR_IS_OF_TYPE (expr, IR_NM_int)
 		&& IR_int_value (IR_unique_int (expr)) != MAX_RINT)
 	      {
@@ -1056,11 +1265,11 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 				 IR_pos (expr)));
 		IR_SET_MODE (stmt, IR_NM_plus_assign);
 	      }
-	    first_expr_processing (IR_assignment_expr (stmt));
+	    first_expr_processing (IR_assignment_expr (stmt), FALSE);
 	    break;
 	  }
 	case IR_NM_if_stmt:
-	  first_expr_processing (IR_if_expr (stmt));
+	  first_expr_processing (IR_if_expr (stmt), FALSE);
 	  IR_set_if_part
 	    (stmt,
 	     first_block_passing (IR_if_part (stmt), curr_block_level));
@@ -1072,7 +1281,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  IR_set_for_initial_stmt
 	    (stmt, first_block_passing (IR_for_initial_stmt (stmt),
 					curr_block_level));
-	  first_expr_processing (IR_for_guard_expr (stmt));
+	  first_expr_processing (IR_for_guard_expr (stmt), FALSE);
 	  IR_set_for_iterate_stmt
 	    (stmt, first_block_passing (IR_for_iterate_stmt (stmt),
 					curr_block_level));
@@ -1082,22 +1291,21 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  break;
 	case IR_NM_foreach_stmt:
 	  {
-	    IR_node_t t;
 	    IR_node_t index_des = IR_foreach_index_designator (stmt);
 
-	    first_expr_processing (index_des);
+	    first_expr_processing (index_des, FALSE);
 	    if (index_des != NULL && IR_IS_OF_TYPE (index_des, IR_NM_slice))
 	      {
-		IR_set_foreach_index_designator (stmt, NULL);
+		IR_set_foreach_index_designator (stmt, FALSE);
 		cont_err (IR_pos (index_des), ERR_slice_as_foreach_index_designator);
 	      }
-	    VLO_ADD_MEMORY (foreach_stmts, &stmt, sizeof (stmt));
-	    first_expr_processing (IR_foreach_tab (stmt));
+	    VLO_ADD_MEMORY (inter_stmt_holders, &stmt, sizeof (stmt));
+	    first_expr_processing (IR_foreach_tab (stmt), FALSE);
 	    IR_set_foreach_stmts (stmt,
 				  first_block_passing (IR_foreach_stmts (stmt),
 						       curr_block_level));
-	    t = NULL;
-	    VLO_ADD_MEMORY (foreach_stmts, &t, sizeof (t));
+	    VLO_ADD_MEMORY (inter_stmt_holders, &foreach_holder_end,
+			    sizeof (foreach_holder_end));
 	    break;
 	  }
 	case IR_NM_break_stmt:
@@ -1105,34 +1313,72 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_return_without_result:
 	  break;
 	case IR_NM_return_with_result:
-	  first_expr_processing (IR_returned_expr (stmt));
+	  first_expr_processing (IR_returned_expr (stmt), FALSE);
 	  break;
 	case IR_NM_throw:
-	  first_expr_processing (IR_throw_expr (stmt));
+	  first_expr_processing (IR_throw_expr (stmt), FALSE);
 	  break;
 	case IR_NM_wait_stmt:
-	  first_expr_processing (IR_wait_guard_expr (stmt));
+	  first_expr_processing (IR_wait_guard_expr (stmt), FALSE);
 	  IR_set_wait_stmt (stmt,
 			    first_block_passing (IR_wait_stmt (stmt),
 						 curr_block_level));
 	  break;
+	case IR_NM_switch_stmt:
+	  {
+	    IR_node_t decl, switch_expr = IR_switch_expr (stmt);
+	    
+	    VLO_ADD_MEMORY (inter_stmt_holders, &stmt, sizeof (stmt));
+	    first_expr_processing (switch_expr, FALSE);
+	    decl = create_node_with_pos (IR_NM_var, IR_pos (switch_expr));
+	    IR_set_ident (decl, get_ident_node ("switch$expr",
+						IR_pos (switch_expr)));
+	    IR_set_scope (decl, curr_scope);
+	    IR_set_access (decl, DEFAULT_ACCESS);
+	    IR_set_next_stmt (decl, stmt);
+	    include_decl (decl);
+	    add_to_stmt (decl, prev_stmt, &first_level_stmt);
+	    prev_stmt = decl;
+	    IR_set_switch_expr_var (stmt, decl);
+	    IR_set_switch_cases (stmt,
+				 first_block_passing (IR_switch_cases (stmt),
+						      curr_block_level));
+	    VLO_ADD_MEMORY (inter_stmt_holders, &switch_holder_end,
+			    sizeof (switch_holder_end));
+	    break;
+	  }
 	case IR_NM_block:
 	  {
 	    IR_node_t saved_curr_scope = curr_scope;
 	    int saved_curr_use_items_start = curr_use_items_start;
 	    int saved_curr_fdecl_flag = curr_fdecl_flag;
 	    int copied_redirs_start;
-	    IR_node_t curr_block, curr_except;
+	    IR_node_t curr_block, curr_except, fun_class;
 	    IR_node_t *item_ptr;
 	    int block_foreach_start;
 
+	    d_assert (IR_case_pattern (stmt) == NULL
+		      || (IR_fun_class (stmt) == NULL
+			  && IR_exceptions (stmt) == NULL));
 	    add_block_to_tree (stmt);
 	    copied_redirs_start = VLO_LENGTH (copied_redirs) / sizeof (IR_node_t);
 	    curr_use_items_start = VLO_LENGTH (use_items) / sizeof (IR_node_t);
 	    curr_scope = stmt;
 	    curr_fdecl_flag = FALSE;
 	    set_block_level (stmt, curr_block_level);
-	    block_foreach_start = get_foreach_stmts_bound ();
+	    block_foreach_start = get_inter_stmt_holders_bound ();
+	    if (IR_case_pattern (stmt) != NULL)
+	      {
+		IR_node_t prev = NULL, first = IR_block_stmts (stmt);
+		IR_node_t list
+		  = uncycle_stmt_list (create_pattern_vars
+				       (stmt, IR_case_pattern (stmt), NULL));
+
+		put_var_list_before (list, first, &prev, &first);
+		IR_set_block_stmts (stmt, first);
+		first_expr_processing (IR_case_pattern (stmt), TRUE);
+		first_expr_processing (IR_case_cond (stmt), FALSE);
+	      }
 	    IR_set_block_stmts
 	      (stmt, first_block_passing (IR_block_stmts (stmt),
 					  curr_block_level + 1));
@@ -1149,21 +1395,21 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		   curr_block != NULL && IR_inline_flag (curr_block);
 		   curr_block = IR_block_scope (curr_block))
 		IR_set_inline_flag (curr_block, FALSE);
-	    if (IR_exceptions (stmt) != NULL || IR_fun_class (stmt) != NULL)
+	    fun_class = IR_fun_class (stmt);
+	    if (IR_exceptions (stmt) != NULL || fun_class != NULL)
 	      IR_set_inline_flag (stmt, FALSE);
 	    if (! IR_inline_flag (stmt))
-	      finish_block_foreach_stmts (block_foreach_start);
+	      finish_block_inter_stmt_holders (block_foreach_start);
 	    curr_scope = saved_curr_scope;
 	    curr_fdecl_flag = saved_curr_fdecl_flag;
 	    for (curr_except = IR_exceptions (stmt);
 		 curr_except != NULL;
 		 curr_except = IR_next_exception (curr_except))
 	      {
-		first_expr_processing (IR_exception_class_expr (curr_except));
+		first_expr_processing (IR_exception_class_expr (curr_except), FALSE);
 		if (IR_catch_block (curr_except) != NULL)
 		  {
-		    IR_set_inline_flag (IR_catch_block (curr_except),
-					FALSE);
+		    IR_set_inline_flag (IR_catch_block (curr_except), FALSE);
 		    IR_set_catch_block
 		      (curr_except,
 		       first_block_passing (IR_catch_block (curr_except),
@@ -1194,6 +1440,12 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    VLO_SHORTEN (copied_redirs,
 			 VLO_LENGTH (copied_redirs)
 			 - copied_redirs_start * sizeof (IR_node_t));
+	    if (fun_class != NULL
+		&& IR_min_actual_parameters_number (fun_class) < 0)
+	      IR_set_min_actual_parameters_number
+		(fun_class,
+		 IR_parameters_number (fun_class)
+		 - (IR_args_flag (fun_class) ? 1 : 0));
 	    break;
 	  }
 	case IR_NM_fun:
@@ -1203,76 +1455,38 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_external_fun:
 	  {
 	    IR_node_t block, prev_decl, redir, ident = IR_ident (stmt);
+	    int assign_p
+	      = (node_mode == IR_NM_var && next_stmt != NULL
+		 && (IR_NODE_MODE (next_stmt) == IR_NM_var_assign
+		     || IR_NODE_MODE (next_stmt) == IR_NM_par_assign));
 
-	    if (node_mode == IR_NM_var && next_stmt != NULL
-		&& (IR_NODE_MODE (next_stmt) == IR_NM_var_assign
-		    || IR_NODE_MODE (next_stmt) == IR_NM_par_assign))
+	    if (assign_p)
 	      /* Process idents in init expr before the
 		 declaration.  */
-	      first_expr_processing (IR_assignment_expr (next_stmt));
-	    IR_set_it_is_declared_in_block (IR_unique_ident (ident), TRUE);
-	    if (IR_access (stmt) == DEFAULT_ACCESS)
-	      IR_set_access
-		(stmt,
-		 IR_fun_class (curr_scope) != NULL
-		 && IR_IS_OF_TYPE (IR_fun_class (curr_scope), IR_NM_class)
-		 ? PUBLIC_ACCESS : PRIVATE_ACCESS);
-	    if (IR_IS_OF_TYPE (stmt, IR_NM_fun_or_class)
-		&& IR_forward_decl_flag (stmt))
-	      IR_set_forward_prev (stmt, prev_stmt);
-	    block = IR_scope (stmt);
-	    d_assert (block != NULL && IR_NODE_MODE (block) == IR_NM_block);
-	    prev_decl = find_decl_in_given_scope (ident, block);
-	    if (process_redecl_after (prev_decl, prev_stmt, &stmt, &next_stmt,
-				      &first_level_stmt))
-	      break;
-	    d_assert (prev_decl == NULL
-		      || IR_use_clause (prev_decl) == IR_use_clause (stmt));
-	    if (node_mode == IR_NM_var)
-	      {
-		IR_set_var_number_in_block (stmt, IR_vars_number (block));
-		IR_set_vars_number (block, IR_vars_number (block) + 1);
-		include_decl (stmt); /* Redefinition */
-	      }
-	    else if (prev_decl == NULL
-		     || ! IR_IS_OF_TYPE (prev_decl, IR_NM_fun_or_class)
-		     || ! IR_forward_decl_flag (prev_decl))
-	      {
-		/* First ident occurrence or redefinition: */
-		include_decl (stmt);
-	      }
-	    else if (! check_matching (prev_decl, stmt))
-	      ;
-	    else if (IR_forward_decl_flag (stmt))
-	      /* Two forward declarations. */
-	      ;
-	    else
-	      {
-		IR_node_t prev;
+	      first_expr_processing (IR_assignment_expr (next_stmt), FALSE);
+	    stmt = process_decl (stmt, &prev_stmt, next_stmt, &first_level_stmt,
+				 assign_p && (IR_NODE_MODE (next_stmt)
+					      == IR_NM_par_assign));
+	    break;
+	  }
+	case IR_NM_pattern_var:
+	  {
+	    IR_node_t list;
+	    int assign_p
+	      = (next_stmt != NULL
+		 && (IR_NODE_MODE (next_stmt) == IR_NM_var_pattern_assign
+		     || IR_NODE_MODE (next_stmt) == IR_NM_par_pattern_assign));
 
-		/* A forward fun/class decl followed by non-forward one
-		   with definition.  Change the curr decl on the prev
-		   decl. */
-		d_assert (next_stmt != NULL
-			  && IR_IS_OF_TYPE (next_stmt, IR_NM_block));
-		redir = create_node_with_pos (IR_NM_decl_redir, IR_pos (prev_decl));
-		IR_set_redir_origin (redir, prev_decl);
-		IR_set_to (redir, prev_decl);
-		IR_set_next_redir (redir, NULL);
-		set_next_stmt (redir, IR_next_stmt (prev_decl));
-		prev = IR_forward_prev (prev_decl);
-		add_to_stmt (redir, prev, &first_level_stmt);
-		if (prev_stmt == prev_decl)
-		  prev_stmt = redir;
-		copy_fun_class_attrs (prev_decl, stmt);
-		/* Prev decl is not forward anymore.  */
-		IR_set_forward_prev (prev_decl, NULL);
-		IR_set_fun_class (next_stmt, prev_decl);
-		add_to_stmt (prev_decl, prev_stmt, &first_level_stmt);
-		set_next_stmt (prev_decl, next_stmt);
-		set_next_stmt (stmt, NULL);
-		stmt = prev_decl;
-	      }
+	    if (assign_p)
+	      /* Process idents in init expr before the
+		 declaration.  */
+	      first_expr_processing (IR_assignment_expr (next_stmt), FALSE);
+	    list = uncycle_stmt_list (create_pattern_vars
+				      (stmt, IR_pattern (stmt), NULL));
+	    if (list == NULL)
+	      cont_err (IR_pos (stmt), ERR_assignment_pattern_without_variables);
+	    else
+	      put_var_list_before (list, stmt, &prev_stmt, &first_level_stmt);
 	    break;
 	  }
 	case IR_NM_use:
@@ -1543,8 +1757,8 @@ new_bc_code_with_src (BC_node_mode_t bnm, IR_node_t origin)
 
 static IR_node_t
 second_expr_processing (IR_node_t expr, int fun_class_assign_p,
-		       int *result, int *curr_temp_vars_num, int lvalue_p,
-		       BC_node_t false_pc, BC_node_t true_pc, int next_false_p);
+			int *result, int *curr_temp_vars_num, int lvalue_p,
+			BC_node_t false_pc, BC_node_t true_pc, int next_false_p);
 
 static void do_inline
 process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
@@ -1855,16 +2069,24 @@ get_bcode_decl (IR_node_t decl)
 }
 
 /* The func creates bc_decl_node (var, func or class) for
-   corresponding DECL.  DECL must be only var, func or class. */
+   corresponding DECL with position of POS_NODE.  DECL must be only
+   var, func or class. */
+static BC_node_t
+create_bc_decl (IR_node_t decl, IR_node_t pos_node)
+{
+  BC_node_t bc, bc_decl = get_bcode_decl (decl);
+
+  bc = new_bc_code_with_src (bc_decl_mode (decl), pos_node);
+  BC_set_decl (bc, bc_decl);
+  return bc;
+}
+
+/* The func creates bc_decl_node (var, func or class) for decl with
+   corresponding IDENT.  The decl must be only var, func or class. */
 static BC_node_t
 create_bc_ident (IR_node_t ident)
 {
-  IR_node_t decl = IR_decl (ident);
-  BC_node_t bc, bc_decl = get_bcode_decl (decl);
-
-  bc = new_bc_code_with_src (bc_decl_mode (decl), ident);
-  BC_set_decl (bc, bc_decl);
-  return bc;
+  return create_bc_decl (IR_decl (ident), ident);
 }
 
 /* Process actual parameters ACTUALS and add flatten nodes if
@@ -2786,6 +3008,10 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	IR_set_value_type (expr, EVT_UNKNOWN);
 	break;
       }
+    case IR_NM_dots:
+    case IR_NM_wildcard:
+      d_assert (number_of_errors != 0);
+      break;
     default:
       d_unreachable ();
     }
@@ -3172,8 +3398,285 @@ copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
   modify_copied_pc (NULL);
 }
 
-/* Block containing currently processed for-stmt, NULL otherwise.  */
-static IR_node_t curr_for_stmt_block;
+/* Block containing currently processed for-stmt or switch case, NULL
+   otherwise.  */
+static IR_node_t curr_for_stmt_or_case_block;
+
+/* Generate code for matching value in OP and PATTERN modifying
+   curr_temp_vars_num if necessary.  Goto FAIL_PC if matching
+   failed.  */
+static void
+generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
+		  int *curr_temp_vars_num)
+{
+  int_t var_num;
+  IR_node_t el, next_el, expr, rep, decl, scope;
+  BC_node_t bc;
+  int vec_p, call_p, n, ind, fun_op, rep_op, el_op, pat_op, one;
+  int temp_start, temp_vars_num = *curr_temp_vars_num;
+
+  if (pattern == NULL)
+    return;
+  vec_p = IR_IS_OF_TYPE (pattern, IR_NM_vec);
+  call_p = IR_IS_OF_TYPE (pattern, IR_NM_class_fun_thread_call);
+  if (vec_p || call_p || IR_IS_OF_TYPE (pattern, IR_NM_tab))
+    {
+      if (call_p)
+	{
+	  fun_op = not_defined_result;
+	  temp_start = temp_vars_num;
+	  IR_set_fun_expr (pattern, second_expr_processing (IR_fun_expr (pattern), FALSE,
+							 &fun_op, &temp_start,
+							 FALSE, NULL, NULL, FALSE));
+	  bc = new_bc_code_with_src (BC_NM_chst, pattern);
+	  BC_set_op1 (bc, op);
+	  BC_set_ch_op2 (bc, fun_op);
+	  BC_set_fail_pc (bc, fail_pc);
+	  add_to_bcode (bc);
+	}
+      else
+	{
+	  bc = new_bc_code_with_src (vec_p ? BC_NM_chvec : BC_NM_chtab, pattern);
+	  BC_set_op1 (bc, op);
+	  BC_set_fail_pc (bc, fail_pc);
+	  add_to_bcode (bc);
+	  if (vec_p)
+	    {
+	      ind = get_temp_stack_slot (&temp_vars_num);
+	      bc = new_bc_code_with_src (BC_NM_ldi, pattern);
+	      BC_set_op1 (bc, ind);
+	      add_to_bcode (bc);
+	    }
+	}
+      for (n = 0, el = (call_p ? IR_actuals (pattern) : IR_elist (pattern));
+	   el != NULL;
+	   el = next_el, n++)
+	{
+	  next_el = IR_next_elist (el);
+	  expr = IR_expr (el);
+	  if (expr == NULL)
+	    continue;
+	  d_assert (! call_p || IR_repetition_key (el) == NULL);
+	  temp_start = temp_vars_num;
+	  rep = IR_repetition_key (el);
+	  if (! call_p
+	      && (vec_p
+		  || (rep != NULL
+		      && ! IR_IS_OF_TYPE (rep, IR_NM_dots)
+		      && ! IR_IS_OF_TYPE (rep, IR_NM_wildcard))))
+	    {
+	      rep_op = not_defined_result;
+	      IR_set_repetition_key
+		(el,
+		 second_expr_processing (rep, FALSE,
+					 &rep_op, &temp_start,
+					 FALSE, NULL, NULL, FALSE));
+	      if (vec_p)
+		type_test (IR_repetition_key (el), EVT_NUMBER_STRING_MASK,
+			   ERR_invalid_repetition_type);
+	    }
+	  if (IR_IS_OF_TYPE (expr, IR_NM_ident) || IR_IS_OF_TYPE (expr, IR_NM_wildcard))
+	    {
+	      if (vec_p)
+		{
+		  if (IR_IS_OF_TYPE (expr, IR_NM_wildcard))
+		    bc = new_bc_code_with_src (BC_NM_chvlen, expr);
+		  else
+		    {
+		      bc = new_bc_code_with_src (BC_NM_chvel, expr);
+		      BC_set_ch_op5 (bc, 1);
+		    }
+		}
+	      else
+		{
+		  bc = new_bc_code_with_src (call_p ? BC_NM_chstel : BC_NM_chtel, expr);
+		  BC_set_ch_op4 (bc, IR_IS_OF_TYPE (expr, IR_NM_wildcard) ? 2 : 1);
+		}
+	      BC_set_op1 (bc, op);
+	      if (call_p)
+		BC_set_ch_op2 (bc, n);
+	      else if (! vec_p)
+		BC_set_ch_op2 (bc, rep_op);
+	      else
+		{
+		  BC_set_ch_op2 (bc, ind);
+		  BC_set_ch_op3 (bc, rep_op);
+		}
+	      BC_set_fail_pc (bc, fail_pc);
+	      if (IR_IS_OF_TYPE (expr, IR_NM_ident))
+		{
+		  decl = IR_decl (expr);
+		  /* Should be local var  */
+		  d_assert (decl != NULL && IR_NODE_MODE (decl) == IR_NM_var);
+		  scope = IR_scope (decl);
+		  d_assert (curr_real_scope == IR_real_block_scope (scope));
+		  var_num = IR_var_number_in_block (decl) + IR_vars_base (scope);
+		  if (vec_p)
+		    BC_set_ch_op4 (bc, var_num);
+		  else
+		    BC_set_ch_op3 (bc, var_num);
+		}
+	      add_to_bcode (bc);
+	    }
+	  else if (IR_IS_OF_TYPE (expr, IR_NM_dots)
+		   || (rep != NULL && IR_IS_OF_TYPE (rep, IR_NM_dots)))
+	    {
+	      d_assert (number_of_errors != 0 || next_el == NULL);
+	      break;
+	    }
+	  else if (IR_IS_OF_TYPE (expr, IR_NM_vec_tab)
+		   || IR_IS_OF_TYPE (expr, IR_NM_class_fun_thread_call))
+	    {
+	      el_op = get_temp_stack_slot (&temp_start);
+	      if (vec_p)
+		{
+		  one = get_temp_stack_slot (&temp_start);
+		  bc = new_bc_code_with_src ( BC_NM_ldi, expr);
+		  BC_set_op1 (bc, one);
+		  BC_set_op2 (bc, 1);
+		  add_to_bcode (bc);
+		  bc = new_bc_code_with_src ( BC_NM_chvel, expr);
+		  BC_set_ch_op2 (bc, ind);
+		  BC_set_ch_op3 (bc, one);
+		  BC_set_ch_op4 (bc, el_op);
+		  BC_set_ch_op5 (bc, 1);
+		}
+	      else
+		{
+		  if (call_p)
+		    {
+		      bc = new_bc_code_with_src ( BC_NM_chstel, expr);
+		      BC_set_ch_op2 (bc, n);
+		    }
+		  else
+		    {
+		      bc = new_bc_code_with_src ( BC_NM_chtel, expr);
+		      BC_set_ch_op2 (bc, rep_op);
+		    }
+		  BC_set_ch_op3 (bc, el_op);
+		  BC_set_ch_op4 (bc, 1);
+		}
+	      BC_set_op1 (bc, op);
+	      BC_set_fail_pc (bc, fail_pc);
+	      add_to_bcode (bc);
+	      generate_pattern (expr, el_op, fail_pc, &temp_start);
+	    }
+	  else
+	    {
+	      el_op = not_defined_result;
+	      IR_set_expr (el,
+			   second_expr_processing (IR_expr (el), FALSE,
+						   &el_op, &temp_start,
+						   FALSE, NULL, NULL, FALSE));
+	      if (vec_p)
+		{
+		  bc = new_bc_code_with_src (BC_NM_chvel, expr);
+		  BC_set_ch_op5 (bc, 0);
+		}
+	      else
+		{
+		  bc = new_bc_code_with_src (call_p ? BC_NM_chstel : BC_NM_chtel, expr);
+		  BC_set_ch_op4 (bc, 0);
+		}
+	      BC_set_op1 (bc, op);
+	      if (vec_p)
+		{
+		  BC_set_ch_op2 (bc, ind);
+		  BC_set_ch_op3 (bc, rep_op);
+		  BC_set_ch_op4 (bc, el_op);
+		}
+	      else
+		{
+		  if (call_p)
+		    BC_set_ch_op2 (bc, n);
+		  else
+		    BC_set_ch_op2 (bc, rep_op);
+		  BC_set_ch_op3 (bc, el_op);
+		}
+	      BC_set_fail_pc (bc, fail_pc);
+	      add_to_bcode (bc);
+	    }
+	}
+      if (el == NULL)
+	{
+	  bc = new_bc_code_with_src (vec_p ? BC_NM_chvend
+				     : call_p ? BC_NM_chstend : BC_NM_chtend,
+				     pattern);
+	  BC_set_op1 (bc, op);
+	  BC_set_ch_op2 (bc, vec_p ? ind : n);
+	  BC_set_fail_pc (bc, fail_pc);
+	  add_to_bcode (bc);
+	}
+    }
+  else if (IR_IS_OF_TYPE (pattern, IR_NM_wildcard))
+    ;
+  else if (fail_pc != NULL)
+    {
+      /* Expr for the switch case:  */
+      temp_start = temp_vars_num;
+      second_expr_processing (pattern, FALSE, &pat_op, &temp_start,
+			      FALSE, NULL, NULL, FALSE);
+      bc = new_bc_code_with_src (BC_NM_eq, pattern);
+      el_op = not_defined_result;
+      BC_set_op1 (bc, setup_result_var_number (&el_op, &temp_vars_num));
+      BC_set_op2 (bc, op);
+      BC_set_op3 (bc, pat_op);
+      add_to_bcode (bc);
+      bc = new_bc_code_with_src (BC_NM_bf, pattern);
+      BC_set_pc (bc, fail_pc);
+      add_to_bcode (bc);
+    }
+  else
+    /* Pattern assign can not be just an expression.  */
+    d_assert (number_of_errors != 0);
+}
+
+/* Generate code for break (if BREAK_P) or continue statement.  Use
+   POS for created bcode.  */
+static void
+generate_break_continue (int break_p, position_t pos)
+{
+  int n;
+  IR_node_t scope, first_inline_block, stop_block;
+  BC_node_t bc;
+  
+  stop_block = curr_for_stmt_or_case_block;
+  for (n = 0, first_inline_block = NULL, scope = curr_scope;
+       scope != NULL && scope != stop_block;
+       scope = IR_block_scope (scope))
+    if (IR_inline_flag (scope))
+      {
+	if (first_inline_block == NULL)
+	  first_inline_block = scope;
+      }
+    else
+      {
+	n++;
+	first_inline_block = NULL;
+      }
+  if (n != 0 || first_inline_block == NULL)
+    {
+      bc = new_bc_code (BC_NM_out, new_bc_node (BC_NM_source, pos));
+      BC_set_op1 (bc, n);
+      add_to_bcode (bc);
+    }
+  if (first_inline_block != NULL)
+    {
+      bc = new_bc_code (BC_NM_stpop, new_bc_node (BC_NM_source, pos));
+      BC_set_op1 (bc,
+		  IR_vars_base (first_inline_block)
+		  + IR_vars_number (first_inline_block)
+		  - IR_vars_base (stop_block)
+		  - IR_vars_number (stop_block));
+      BC_set_op2 (bc, 0);
+      add_to_bcode (bc);
+    }
+  if (break_p)
+    BC_set_next (bc, for_or_switch_finish);
+  else
+    BC_set_next (bc, continue_target);
+  curr_pc = NULL;
+}
 
 /* This recursive func passes (correctly setting up SOURCE_POSITION
    and curr_scope (before first call of the func curr_scope is to be
@@ -3293,7 +3796,9 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    IR_set_assignment_var (stmt, temp);
 	  var_bc = before_pc != curr_pc ? curr_pc : NULL; /* local var */
 	  bc = NULL;
-	  val_p = stmt_mode != IR_NM_assign && stmt_mode != IR_NM_var_assign;
+	  val_p = (stmt_mode != IR_NM_assign
+		   && stmt_mode != IR_NM_var_assign
+		   && stmt_mode != IR_NM_var_pattern_assign);
 	  if (temp != NULL && var_bc != NULL)
 	    {
 	      var_mode = BC_NODE_MODE (var_bc);
@@ -3348,7 +3853,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		  curr_info = BC_prev_info (curr_info);
 		}
 	    }
-	  if (stmt_mode != IR_NM_var_assign && temp != NULL
+	  if (stmt_mode != IR_NM_var_assign && stmt_mode != IR_NM_var_pattern_assign
+	      && temp != NULL
 	      && IR_IS_OF_TYPE (temp, IR_NM_ident)
 	      && (IR_IS_OF_TYPE (IR_decl (temp), IR_NM_var)
 		  || IR_IS_OF_TYPE (IR_decl (temp), IR_NM_external_var))
@@ -3357,7 +3863,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		      IR_ident_string (IR_unique_ident
 				       (IR_ident (IR_decl (temp)))));
 	  if (temp != NULL && var_bc == NULL
-	      && (stmt_mode == IR_NM_assign || stmt_mode == IR_NM_var_assign))
+	      && (stmt_mode == IR_NM_assign || stmt_mode == IR_NM_var_assign
+		  || stmt_mode == IR_NM_var_pattern_assign))
 	    result = var_result;
 	  else
 	    result = not_defined_result;
@@ -3392,7 +3899,9 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    {
 	      IR_node_t val = IR_assignment_expr (stmt);
 
-	      if (stmt_mode == IR_NM_assign || stmt_mode == IR_NM_var_assign)
+	      if (stmt_mode == IR_NM_assign
+		  || stmt_mode == IR_NM_var_assign
+		  || stmt_mode == IR_NM_var_pattern_assign)
 		{
 		  IR_set_assignment_expr
 		    (stmt,
@@ -3445,6 +3954,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    }
 	  break;
 	case IR_NM_par_assign:
+	common_par_assign:
 	  {
 	    BC_node_t st_bc, aend_bc, lvalue_bc;
 
@@ -3519,6 +4029,23 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    add_to_bcode (aend_bc);
 	  }
 	  break;
+	case IR_NM_var_pattern_assign:
+	case IR_NM_par_pattern_assign:
+	  temp = IR_assignment_var (stmt);
+	  if (temp != NULL && IR_IS_OF_TYPE (temp, IR_NM_ident))
+	    {
+	      if (stmt_mode == IR_NM_par_pattern_assign)
+		goto common_par_assign;
+	      bc_node_mode = BC_NM_sts;
+	      goto common_assign;
+	    }
+	    result = not_defined_result;
+	    IR_set_assignment_expr
+	      (stmt, second_expr_processing (IR_assignment_expr (stmt), TRUE,
+					     &result, &temp_vars_num, FALSE,
+					     NULL, NULL, FALSE));
+	    generate_pattern (temp, result, NULL, &temp_vars_num);
+	  break;
 	case IR_NM_if_stmt:
 	  {
 	    BC_node_t if_finish, if_part_end_info;
@@ -3547,21 +4074,21 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	case IR_NM_for_stmt:
 	  {
 	    BC_node_t before_guard_expr, before_body, initial_end;
-	    BC_node_t saved_start_next_iteration, saved_for_finish;
-	    IR_node_t saved_curr_for_stmt_block;
+	    BC_node_t saved_continue_target, saved_for_or_switch_finish;
+	    IR_node_t saved_curr_for_stmt_or_case_block;
 	    
-	    saved_curr_for_stmt_block = curr_for_stmt_block;
-	    curr_for_stmt_block = curr_scope;
-	    saved_start_next_iteration = start_next_iteration;
-	    saved_for_finish = for_finish;
+	    saved_curr_for_stmt_or_case_block = curr_for_stmt_or_case_block;
+	    curr_for_stmt_or_case_block = curr_scope;
+	    saved_continue_target = continue_target;
+	    saved_for_or_switch_finish = for_or_switch_finish;
 	    second_block_passing (IR_for_initial_stmt (stmt), FALSE);
 	    initial_end = BC_bc (curr_info);
-	    start_next_iteration = new_bc_code_with_src (BC_NM_nop, stmt);
+	    continue_target = new_bc_code_with_src (BC_NM_nop, stmt);
 	    before_body = new_bc_code_with_src (BC_NM_nop, stmt);
-	    for_finish = new_bc_code_with_src (BC_NM_nop, stmt);
+	    for_or_switch_finish = new_bc_code_with_src (BC_NM_nop, stmt);
 	    add_to_bcode (before_body);
 	    second_block_passing (IR_for_stmts (stmt), FALSE);
-	    add_to_bcode (start_next_iteration);
+	    add_to_bcode (continue_target);
 	    second_block_passing (IR_for_iterate_stmt (stmt), FALSE);
 	    d_assert (curr_info != NULL);
 	    before_guard_expr = BC_bc (curr_info);
@@ -3569,28 +4096,28 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    IR_set_for_guard_expr
 	      (stmt, second_expr_processing (IR_for_guard_expr (stmt), FALSE,
 					     &result, &temp_vars_num, FALSE,
-					     for_finish, before_body,
+					     for_or_switch_finish, before_body,
 					     TRUE));
 	    type_test (IR_for_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_for_guard_expr_type);
-	    add_to_bcode (for_finish);
+	    add_to_bcode (for_or_switch_finish);
 	    BC_set_next (initial_end, BC_next (before_guard_expr));
-	    curr_for_stmt_block = saved_curr_for_stmt_block;
-	    start_next_iteration = saved_start_next_iteration;
-	    for_finish = saved_for_finish;
+	    curr_for_stmt_or_case_block = saved_curr_for_stmt_or_case_block;
+	    continue_target = saved_continue_target;
+	    for_or_switch_finish = saved_for_or_switch_finish;
 	    break;
 	  }
 	case IR_NM_foreach_stmt:
 	  {
 	    BC_node_t src, before_loop_start, ldi_bc;
-	    BC_node_t saved_start_next_iteration, saved_for_finish;
-	    IR_node_t saved_curr_for_stmt_block;
+	    BC_node_t saved_continue_target, saved_for_or_switch_finish;
+	    IR_node_t saved_curr_for_stmt_or_case_block;
 	    IR_node_t tab = IR_foreach_tab (stmt);
 
-	    saved_curr_for_stmt_block = curr_for_stmt_block;
-	    curr_for_stmt_block = curr_scope;
-	    saved_start_next_iteration = start_next_iteration;
-	    saved_for_finish = for_finish;
+	    saved_curr_for_stmt_or_case_block = curr_for_stmt_or_case_block;
+	    curr_for_stmt_or_case_block = curr_scope;
+	    saved_continue_target = continue_target;
+	    saved_for_or_switch_finish = for_or_switch_finish;
 	    result = IR_foreach_tab_place (stmt);
 	    IR_set_foreach_tab
 	      (stmt, second_expr_processing (tab, FALSE,
@@ -3644,68 +4171,31 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		  }
 	      }
 	    add_to_bcode (bc);
-	    start_next_iteration = BC_next (before_loop_start);
-	    for_finish = new_bc_code (BC_NM_nop, src);
+	    continue_target = BC_next (before_loop_start);
+	    for_or_switch_finish = new_bc_code (BC_NM_nop, src);
 	    second_block_passing (IR_foreach_stmts (stmt), FALSE);
 	    before_pc = curr_pc;
-	    add_to_bcode (for_finish);
+	    add_to_bcode (for_or_switch_finish);
 	    BC_set_body_pc (bc,
-			    BC_next (bc) != for_finish
-			    ? BC_next (bc) : start_next_iteration);
-	    BC_set_next (before_pc, start_next_iteration);
-	    BC_set_next (bc, for_finish);
-	    curr_for_stmt_block = saved_curr_for_stmt_block;
-	    start_next_iteration = saved_start_next_iteration;
-	    for_finish = saved_for_finish;
+			    BC_next (bc) != for_or_switch_finish
+			    ? BC_next (bc) : continue_target);
+	    BC_set_next (before_pc, continue_target);
+	    BC_set_next (bc, for_or_switch_finish);
+	    curr_for_stmt_or_case_block = saved_curr_for_stmt_or_case_block;
+	    continue_target = saved_continue_target;
+	    for_or_switch_finish = saved_for_or_switch_finish;
 	    break;
 	  }
 	case IR_NM_break_stmt:
 	case IR_NM_continue_stmt:
-	  if (for_finish == NULL)
-	    cont_err (source_position,
-		      stmt_mode == IR_NM_continue_stmt
-		      ? ERR_continue_is_not_in_loop : ERR_break_is_not_in_loop);
+	  if (stmt_mode == IR_NM_continue_stmt && continue_target == NULL)
+	    cont_err (source_position, ERR_continue_is_not_in_loop_or_case);
+	  else if (stmt_mode == IR_NM_break_stmt
+		   && for_or_switch_finish == NULL)
+	    cont_err (source_position, ERR_break_is_not_in_loop_or_case);
 	  else
-	    {
-	      IR_node_t scope, first_inline_block;
-	      int n;
-
-	      for (n = 0, first_inline_block = NULL, scope = curr_scope;
-		   scope != NULL && scope != curr_for_stmt_block;
-		   scope = IR_block_scope (scope))
-		if (IR_inline_flag (scope))
-		  {
-		    if (first_inline_block == NULL)
-		      first_inline_block = scope;
-		  }
-		else
-		  {
-		    n++;
-		    first_inline_block = NULL;
-		  }
-	      if (n != 0 || first_inline_block == NULL)
-		{
-		  bc = new_bc_code_with_src (BC_NM_out, stmt);
-		  BC_set_op1 (bc, n);
-		  add_to_bcode (bc);
-		}
-	      if (first_inline_block != NULL)
-		{
-		  bc = new_bc_code_with_src (BC_NM_stpop, stmt);
-		  BC_set_op1 (bc,
-			      IR_vars_base (first_inline_block)
-			      + IR_vars_number (first_inline_block)
-			      - IR_vars_base (curr_for_stmt_block)
-			      - IR_vars_number (curr_for_stmt_block));
-		  BC_set_op2 (bc, 0);
-		  add_to_bcode (bc);
-		}
-	      if (stmt_mode == IR_NM_continue_stmt)
-		BC_set_next (bc, start_next_iteration);
-	      else
-		BC_set_next (bc, for_finish);
-	      curr_pc = NULL;
-	    }
+	    generate_break_continue (stmt_mode == IR_NM_break_stmt,
+				     IR_pos (stmt));
 	  break;
 	case IR_NM_return_without_result:
 	case IR_NM_return_with_result:
@@ -3807,6 +4297,30 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		     ERR_invalid_throw_expr_type);
 	  add_to_bcode (bc);
 	  break;
+	case IR_NM_switch_stmt:
+	  {
+	    IR_node_t switch_expr, decl;
+	    BC_node_t saved_for_or_switch_finish = for_or_switch_finish;
+	    BC_node_t saved_continue_target = continue_target;
+	    int place;
+	    
+	    decl = IR_switch_expr_var (stmt);
+	    result = place = IR_var_number_in_block (decl);
+	    switch_expr = second_expr_processing (IR_switch_expr (stmt), FALSE,
+						  &result, &temp_vars_num, FALSE,
+						  NULL, NULL, FALSE);
+	    IR_set_switch_expr (stmt, switch_expr);
+	    if (result != place)
+	      add_move (stmt, get_bcode_decl (decl), place, result);
+	    for_or_switch_finish = new_bc_code_with_src (BC_NM_nop, stmt);
+	    continue_target = new_bc_code_with_src (BC_NM_nop, stmt);
+	    second_block_passing (IR_switch_cases (stmt), FALSE);
+	    add_to_bcode (continue_target);
+	    add_to_bcode (for_or_switch_finish);
+	    for_or_switch_finish = saved_for_or_switch_finish;
+	    continue_target = saved_continue_target;
+	    break;
+	  }
 	case IR_NM_block:
 	  {
 	    IR_node_t saved_curr_scope = curr_scope;
@@ -3818,10 +4332,19 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    pc_t block_finish;
 	    pc_t catches_finish;
 	    pc_t previous_node_catch_list_pc;
-	    IR_node_t fun_class, friend, use;
+	    IR_node_t fun_class, friend, use, switch_stmt;
 	    BC_node_t except_bc, last_except_with_block;
 	    int inline_block_flag = IR_inline_flag (stmt);
 
+	    switch_stmt = IR_switch_stmt (stmt);
+	    if (switch_stmt != NULL)
+	      {
+		add_to_bcode (continue_target);
+		/* It will be bound later to continue code of the
+		   current case.  */
+		continue_target = new_bc_code_with_src (BC_NM_nop, stmt);
+		curr_for_stmt_or_case_block = curr_scope;
+	      }
 	    curr_scope = stmt;
 	    fun_class = IR_fun_class (stmt);
 	    if (fun_class == NULL)
@@ -3907,7 +4430,49 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
  		curr_real_scope = stmt;
 		curr_temp_vars_base = IR_vars_number (stmt);
 	      }
+	    if (switch_stmt != NULL)
+	      {
+		IR_node_t cond;
+		
+		if (inline_block_flag)
+		  result = IR_var_number_in_block (IR_switch_expr_var
+						   (switch_stmt));
+		else
+		  {
+		    bc = create_bc_decl (IR_switch_expr_var (switch_stmt),
+					 switch_stmt);
+		    result = not_defined_result;
+		    BC_set_op1 (bc, setup_result_var_number (&result,
+							     &temp_vars_num));
+		    add_to_bcode (bc);
+		  }
+		generate_pattern (IR_case_pattern (stmt), result,
+				  continue_target, &temp_vars_num);
+		if ((cond = IR_case_cond (stmt)) != NULL)
+		  {
+		    BC_node_t true_pc = new_bc_code_with_src (BC_NM_nop, cond);
+		    
+		    result = not_defined_result;
+		    IR_set_case_cond
+		      (stmt,
+		       second_expr_processing (cond, FALSE, &result,
+					       &temp_vars_num, FALSE,
+					       continue_target, true_pc,
+					       FALSE));
+		    add_to_bcode (true_pc);
+		  }
+	      }
 	    second_block_passing (IR_block_stmts (stmt), TRUE);
+	    if (switch_stmt != NULL)
+	      {
+		/* There are more cases.  Generate code for the case
+		   continue.  This code is placed right after code for
+		   implicit break.  */
+		add_to_bcode (continue_target);
+		/* It will be bound to the next case.  */
+		continue_target = new_bc_code_with_src (BC_NM_nop, stmt);
+		generate_break_continue (FALSE, source_position);
+	      }
 	    if (inline_block_flag)
 	      {
 		d_assert (fun_class == NULL && saved_curr_scope != NULL);
@@ -4079,6 +4644,9 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      }
 	    break;
 	  }
+	case IR_NM_pattern_var:
+	  /* Do nothing */
+	  break;
 	case IR_NM_decl_redir:
 	  {
 	    IR_node_t curr_decl = IR_to (stmt);
@@ -4366,6 +4934,9 @@ go_through (BC_node_t start_bc)
   info = BC_info (bc);
   if (BC_subst (info) != NULL)
     return BC_subst (info);
+#if 1
+  return bc;
+#else
   subst = branch_combine (bc);
   if (subst == bc)
     subst = madd_combine (bc);
@@ -4373,6 +4944,7 @@ go_through (BC_node_t start_bc)
     subst = ind_combine (bc);
   BC_set_subst (info, subst);
   return subst;
+#endif
 }
 
 /* Modify call BC to tail calls if it is possible.  */
@@ -4439,6 +5011,24 @@ modify_copied_ops (int base)
 	  if ((op = BC_bcmp_res (bc)) >= 0)
 	    BC_set_bcmp_res (bc, op + base);
 	}
+      if (BC_IS_OF_TYPE (bc, BC_NM_check2)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_check2i)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_check3i2)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_check4i24)
+	  && (op = BC_ch_op2 (bc)) >= 0)
+	BC_set_ch_op2 (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_check3)
+	  && (op = BC_ch_op3 (bc)) >= 0)
+	BC_set_ch_op3 (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_check4)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_check4i)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_check4i24)
+	  && (op = BC_ch_op4 (bc)) >= 0)
+	BC_set_ch_op4 (bc, op + base);
+      if (BC_IS_OF_TYPE (bc, BC_NM_check5)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_check5i)
+	  && (op = BC_ch_op5 (bc)) >= 0)
+	BC_set_ch_op5 (bc, op + base);
     }
 }
 
@@ -4675,6 +5265,9 @@ optimize_bc (BC_node_t start)
       if (BC_IS_OF_TYPE (bc, BC_NM_except)
 	  && (next = BC_next_except (bc)) != NULL)
 	BC_set_next_except (bc, go_through (next));
+      if (BC_IS_OF_TYPE (bc, BC_NM_check)
+	  && (next = BC_fail_pc (bc)) != NULL)
+	BC_set_fail_pc (bc, go_through (next));
       process_tail_imcall (bc);
     }
   d_assert (VLO_LENGTH (inline_stack) == 0
@@ -4702,6 +5295,8 @@ mark_reachable_info (BC_node_t bc)
 	mark_reachable_info (BC_excepts (bc));
       if (BC_IS_OF_TYPE (bc, BC_NM_except))
 	mark_reachable_info (BC_next_except (bc));
+      if (BC_IS_OF_TYPE (bc, BC_NM_check))
+	mark_reachable_info (BC_fail_pc (bc));
     }
 }
 
@@ -4742,7 +5337,7 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
   curr_bc_scope = NULL;
   curr_info = NULL;
   prev_pc = curr_pc = NULL;
-  for_finish = NULL;
+  for_or_switch_finish = NULL;
   VLO_NULLIFY (all_fblocks);
   if (! first_p)
     {
@@ -4763,7 +5358,7 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
 	}
     }
   inline_blocks (first_program_stmt_ptr, first_program_stmt_ptr, 0);
-  curr_for_stmt_block = NULL;
+  curr_for_stmt_or_case_block = NULL;
   second_block_passing (first_program_stmt_ptr, FALSE);
   /* Never shrink the top block and always put it into stack area.  */
   IR_set_extended_life_context_flag (first_program_stmt_ptr, FALSE);
@@ -4810,7 +5405,7 @@ initiate_context (void)
   initiate_decl_subst ();
   last_uniq_field_ident_num = DESTROY_FLDID_NUM;
   last_decl_num = 0;
-  initiate_foreach_stmts ();
+  initiate_inter_stmt_holders ();
   if (optimize_flag)
     initiate_inference_pass ();
 }
@@ -4820,7 +5415,7 @@ finish_context (void)
 {
   if (optimize_flag)
     finish_inference_pass ();
-  finish_foreach_stmts ();
+  finish_inter_stmt_holders ();
   finish_decl_subst ();
   VLO_DELETE (inline_stack);
   VLO_DELETE (inline_returns);

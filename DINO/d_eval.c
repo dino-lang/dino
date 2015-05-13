@@ -105,7 +105,6 @@ static ER_node_t do_inline
 get_var_val_ref (BC_node_t vdecl)
 {
   int var_number_in_block = BC_var_num (vdecl);
-
   BC_node_t scope = BC_decl_scope (vdecl);
   ER_node_t container;
 
@@ -303,7 +302,7 @@ execute_general_period_operation (int block_decl_ident_number, ER_node_t res,
 }
 
 /* Load element INDEX_VAL of packed VECT into TO.  */
-static void do_inline
+void do_inline
 load_packed_vector_element (ER_node_t to, ER_node_t vect, rint_t index_val)
 {
   ER_node_t t;
@@ -1435,21 +1434,14 @@ execute_in_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
   ER_set_i (res, cmp);
 }
 
-/* Implement common case of equality/inequality comparison CMP_OP of
-   OP1 and OP2.  Put result into RES.  Check and do vector operations
-   if VECT_P.  */
-void do_inline
-execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
-			 ER_node_t op1, ER_node_t op2, int vect_p)
+/* Common equality/inequality comparison CMP_OP of OP1 and OP2.
+   Return the result.  */
+int do_inline
+common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t op1, ER_node_t op2)
 {
   int cmp;
   ER_node_t l, r;
 
-  if (vect_p && vect_bin_op (op1, op2))
-    {
-      binary_vect_op (res, op1, op2);
-      return;
-    }
   implicit_conversion_for_eq_op (op1, op2, &l, &r);
   if (ER_NODE_MODE (r) != ER_NODE_MODE (l))
     {
@@ -1521,8 +1513,26 @@ execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
       default:
 	d_unreachable ();
       }
+  return cmp_op == BC_NM_eq ? cmp : !cmp;
+}
+
+/* Implement common case of equality/inequality comparison CMP_OP of
+   OP1 and OP2.  Put result into RES.  Check and do vector operations
+   if VECT_P.  */
+void do_inline
+execute_common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t res,
+			 ER_node_t op1, ER_node_t op2, int vect_p)
+{
+  int cmp;
+
+  if (vect_p && vect_bin_op (op1, op2))
+    {
+      binary_vect_op (res, op1, op2);
+      return;
+    }
+  cmp = common_eq_ne_op (cmp_op, op1, op2);
   ER_SET_MODE (res, ER_NM_int);
-  ER_set_i (res, cmp_op == BC_NM_eq ? cmp : !cmp);
+  ER_set_i (res, cmp);
 }
 
 void do_inline
@@ -4237,6 +4247,75 @@ evaluate_code (void)
 	case BC_NM_except:
 	  if (except ())
 	    return;
+	  break;
+	case BC_NM_chvec:
+	  if (chvec (get_op (BC_op1 (cpc)), BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chvend:
+	  if (chvend (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
+		      BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chvlen:
+	  if (chvlen (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
+		      get_op (BC_ch_op3 (cpc)), BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chvel:
+	  if (chvel (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
+		     get_op (BC_ch_op3 (cpc)), get_op (BC_ch_op4 (cpc)),
+		     BC_ch_op5 (cpc), BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chtab:
+	  if (chtab (get_op (BC_op1 (cpc)), BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chtend:
+	  if (chtend (get_op (BC_op1 (cpc)), BC_ch_op2 (cpc), BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chtel:
+	  if (chtel (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
+		     get_op (BC_ch_op3 (cpc)), BC_ch_op4 (cpc),
+		     BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chst:
+	  if (chst (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
+		    BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chstend:
+	  if (chstend (get_op (BC_op1 (cpc)), BC_ch_op2 (cpc), BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  break;
+	case BC_NM_chstel:
+	  if (chstel (get_op (BC_op1 (cpc)), BC_ch_op2 (cpc),
+		      get_op (BC_ch_op3 (cpc)), BC_ch_op4 (cpc),
+		      BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
 	  break;
 	case BC_NM_move:
 	  move (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));

@@ -390,6 +390,9 @@ extern BC_node_t accessvalue_bc_decl;
 #define IMMUTABLE_NAME "immutable"
 extern BC_node_t immutable_bc_decl;
 
+#define PATTERNMATCH_NAME "patternmatch"
+extern BC_node_t patternmatch_bc_decl;
+
 #define DEADLOCK_NAME "deadlock"
 extern BC_node_t deadlock_bc_decl;
 
@@ -1123,6 +1126,33 @@ except :: op2 /* except instance and class places */
 	next_except : bcode
 ;
 
+/* Patterns:  */
+chvec :: check; /* check that op1 is a vector */
+chvend :: check2; /* check that op2 at the end of vector op1 */
+/* Increase op2 by op3 and check that op2 is not outside vector op1.  */
+chvlen :: check3;
+/* Depending on the op5 value. If it is nonzero, assign op2 element of
+   vector op1 to op4, increase op2 by op3, and check that op2 is not
+   outside the vector and (op3 - 1) elements are equal to op4 element.
+   If op5 is zero, skip assigning and check op3 elements on
+   equality.  */
+chvel :: check5i;
+chtab :: check; /* check that op1 is a table */
+chtend :: check2i; /* check that #op1 == immed op2 */
+/* Depending on the op5 value. If it is 1, assign element with key op2
+   of table op1 to op3, fail if there is no such element.  If op4 is
+   zero, skip assigning and check the element on equality with op3.
+   If it is 2, don't assign or check equality (op3 is ignored in this
+   case). */
+chtel :: check4i;
+chst :: check2; /* check that op1 is a stack and is of fun/class op2 */
+chstend :: check2i; /* check that stack op1 has immed op2 params */
+/* Depending on the op4 value.  If it is 1, check that there is immed
+   op2 param of stack op1 and assign it to op3.  If it is zero, check
+   on equality with op3 instead of assigning.  If it is 2, don't
+   assign or check equality (op3 is ignored in this case). */
+chstel :: check4i24;
+
 /* These codes represent printing expr in REPL.  It is never output or
    input.  Code rpr_def never prints undefined values (e.g. proc call
    results).  */
@@ -1232,6 +1262,46 @@ bcmpi :: bcmp
 binc :: bcmp
 %other
 	binc_inc : int_t
+;
+%abstract
+check :: op1
+%other
+        fail_pc : bcode
+;
+%abstract
+check2 :: check
+%other
+        ch_op2 : int_t
+;
+%abstract
+check2i :: check2  /* ch_op2 is int const */
+;
+%abstract
+check3 :: check2
+%other
+        ch_op3 : int_t
+;
+%abstract
+check3i2 :: check3 /* ch_op2 is int const */
+;
+%abstract
+check4 :: check3
+%other
+        ch_op4 : int_t
+;
+%abstract
+check4i :: check4 /* ch_op4 is int const */
+;
+%abstract
+check4i24 :: check4i /* ch_op{2,4} are int const */
+;
+%abstract
+check5 :: check4
+%other
+        ch_op5 : int_t
+;
+%abstract
+check5i :: check5 /* ch_op5 is int const */
 ;
 %abstract
 imcall :: op2i
@@ -1476,6 +1546,7 @@ BC_node_t invaccess_bc_decl;
 BC_node_t accessop_bc_decl;
 BC_node_t accessvalue_bc_decl;
 BC_node_t immutable_bc_decl;
+BC_node_t patternmatch_bc_decl;
 BC_node_t deadlock_bc_decl;
 BC_node_t syncwait_bc_decl;
 BC_node_t argv_bc_decl;
@@ -1729,6 +1800,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&accessop_bc_decl, ACCESSOP_NAME, NULL, NULL},
   {&accessvalue_bc_decl, ACCESSVALUE_NAME, NULL, NULL},
   {&immutable_bc_decl, IMMUTABLE_NAME, NULL, NULL},
+  {&patternmatch_bc_decl, PATTERNMATCH_NAME, NULL, NULL},
   {&deadlock_bc_decl, DEADLOCK_NAME, NULL, NULL},
   {&syncwait_bc_decl, SYNCWAIT_NAME, NULL, NULL},
   {&argv_bc_decl, ARGV_NAME, NULL, NULL},
@@ -1976,6 +2048,7 @@ print_node (FILE *f, BC_node_t bc)
   fprintf (f, "  cpc = (BC_node_t) 0x%lx;\n", (long unsigned) bc);
   fprintf (f, "  ");
   if (BC_IS_OF_TYPE (bc, BC_NM_br) || BC_IS_OF_TYPE (bc, BC_NM_foreach)
+      || (BC_IS_OF_TYPE (bc, BC_NM_check) && BC_fail_pc (bc) != NULL)
       || tcall_p)
     fprintf (f, "if (");
   if (BC_IS_OF_TYPE (bc, BC_NM_fold_op))
@@ -2043,10 +2116,41 @@ print_node (FILE *f, BC_node_t bc)
       || BC_IS_OF_TYPE (bc, BC_NM_tcall)
       || BC_IS_OF_TYPE (bc, BC_NM_mcall))
     fprintf (f, ", 1"); /* from_c_code_p argument  */
+
+  if (BC_IS_OF_TYPE (bc, BC_NM_check2))
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_check2i)
+	  || BC_IS_OF_TYPE (bc, BC_NM_check3i2)
+	  || BC_IS_OF_TYPE (bc, BC_NM_check4i24))
+	fprintf (f, ", %d", BC_ch_op2 (bc));
+      else
+	print_op (f, TRUE, BC_ch_op2 (bc));
+    }
+  if (BC_IS_OF_TYPE (bc, BC_NM_check3))
+    print_op (f, TRUE, BC_ch_op3 (bc));
+  if (BC_IS_OF_TYPE (bc, BC_NM_check4))
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_check4i)
+	  || BC_IS_OF_TYPE (bc, BC_NM_check4i24))
+	fprintf (f, ", %d", BC_ch_op4 (bc));
+      else
+	print_op (f, TRUE, BC_ch_op4 (bc));
+    }
+  if (BC_IS_OF_TYPE (bc, BC_NM_check5))
+    {
+      if (BC_IS_OF_TYPE (bc, BC_NM_check5i))
+	fprintf (f, ", %d", BC_ch_op5 (bc));
+      else
+	print_op (f, TRUE, BC_ch_op5 (bc));
+    }
+  if (BC_IS_OF_TYPE (bc, BC_NM_check))
+    fprintf (f, ", (pc_t) 0x%lx", BC_fail_pc (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_br))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));
   else if (BC_IS_OF_TYPE (bc, BC_NM_foreach))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_body_pc (bc))));
+  else if (BC_IS_OF_TYPE (bc, BC_NM_check) && BC_fail_pc (bc) != NULL)
+    fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_fail_pc (bc))));
   else if (tcall_p)
     fprintf (f, ")) return;\n");
   else
@@ -2106,6 +2210,13 @@ traverse_bcode (BC_node_t bc)
 	      BC_node_t n = BC_body_pc (bc);
 	      
 	      VLO_ADD_MEMORY (stack, &n, sizeof (n));
+	    }
+	  if (BC_IS_OF_TYPE (bc, BC_NM_check))
+	    {
+	      BC_node_t n = BC_fail_pc (bc);
+	      
+	      if (n != NULL)
+		VLO_ADD_MEMORY (stack, &n, sizeof (n));
 	    }
 	}
     }
