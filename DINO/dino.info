@@ -2233,13 +2233,19 @@ numbers and identifiers in stdin:
                for (i = 0; i < #key; i++)
                  putln (key[i], " : ", voc{key[i]});
 
-   The following program uses the Dino package 'mpi':
+   The following program uses the Dino package 'socket':
 
-               include "mpi";
-               var mpi1, mpi2;
-               mpi1 = mpis.from_string(50, "1000000000000000000000000000000000000");
-               mpi2 = mpis.from_string(50, "5000000000000000000000000000000000000");
-               putln (mpis.to_string (mpis.add (mpi1, mpi2)));
+               include "socket";
+               var s, cl, str, l = 0;
+               s = sockets.stream_server (10003, 4);
+               cl = s.accept ();
+               try {
+                 for (;;) {
+                    str = cl.read (64); l += #str; cl.write (str);
+                 }
+               } catch (socket_eof_except) {
+                 putln ("i got ", l, " bytes");
+               }
 
 
 File: dino.info,  Node: Predeclared identifiers,  Next: Appendix A- Syntax of Dino,  Prev: Program,  Up: Top
@@ -4512,35 +4518,35 @@ Node: Throw-statement85907
 Node: Try-block86609
 Node: Wait-statement89042
 Node: Program90144
-Node: Predeclared identifiers93555
-Node: Predeclared variables94022
-Node: Arguments and environment94419
-Node: Version95069
-Node: Threads95602
-Node: Files96144
-Node: Miscellaneous variables96847
-Node: Predeclared classes97576
-Node: File97926
-Node: Exception classes98382
-Node: Earley parser classes110286
-Node: Parser-110665
-Node: Token-121474
-Node: Anode-122154
-Node: Nil_anode and error_anode-124300
-Node: Example of Earley parser usage-124711
-Node: Predeclared functions127589
-Node: Mathematical functions128819
-Node: Pattern matching functions130389
-Node: File functions142554
-Node: Functions for access to file/directory information142987
-Node: Functions for work with directories147668
-Node: Functions for work with files-149256
-Node: File output functions152956
-Node: File input functions165421
-Node: Time functions169243
-Node: Functions for access to process information172220
-Node: Miscellaneous functions173732
-Node: Appendix A- Syntax of Dino187136
-Node: Appendix B- Implementation192307
+Node: Predeclared identifiers93666
+Node: Predeclared variables94133
+Node: Arguments and environment94530
+Node: Version95180
+Node: Threads95713
+Node: Files96255
+Node: Miscellaneous variables96958
+Node: Predeclared classes97687
+Node: File98037
+Node: Exception classes98493
+Node: Earley parser classes110397
+Node: Parser-110776
+Node: Token-121585
+Node: Anode-122265
+Node: Nil_anode and error_anode-124411
+Node: Example of Earley parser usage-124822
+Node: Predeclared functions127700
+Node: Mathematical functions128930
+Node: Pattern matching functions130500
+Node: File functions142665
+Node: Functions for access to file/directory information143098
+Node: Functions for work with directories147779
+Node: Functions for work with files-149367
+Node: File output functions153067
+Node: File input functions165532
+Node: Time functions169354
+Node: Functions for access to process information172331
+Node: Miscellaneous functions173843
+Node: Appendix A- Syntax of Dino187247
+Node: Appendix B- Implementation192418
 
 End Tag Table

@@ -1,5 +1,10 @@
 2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* DINO/dino.sgml.in: Remove mpi, use socket.
+	* DINO/dino.{dvi,html*,info,pdf,ps,txt}: Update.
+
+2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* DINO/dino.sgml.in: Describe hints.  Use tt instead of bf for
 	keywords.  Fix tscreen for expression-statement.
 	* DINO/dino.{dvi,html*,info,pdf,ps,txt}: Update.

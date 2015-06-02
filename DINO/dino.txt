@@ -2468,14 +2468,20 @@
 
 
 
-  The following program uses the Dino package mpi:
+  The following program uses the Dino package socket:
 
 
-                 include "mpi";
-                 var mpi1, mpi2;
-                 mpi1 = mpis.from_string(50, "1000000000000000000000000000000000000");
-                 mpi2 = mpis.from_string(50, "5000000000000000000000000000000000000");
-                 putln (mpis.to_string (mpis.add (mpi1, mpi2)));
+                 include "socket";
+                 var s, cl, str, l = 0;
+                 s = sockets.stream_server (10003, 4);
+                 cl = s.accept ();
+                 try {
+                   for (;;) {
+                      str = cl.read (64); l += #str; cl.write (str);
+                   }
+                 } catch (socket_eof_except) {
+                   putln ("i got ", l, " bytes");
+                 }
 
 
 

@@ -2170,13 +2170,19 @@ it has been yet not inserted into the block of the declaration.
             putln (key[i], " : ", voc{key[i]});
 </verb></tscreen>
 <p>
-        The following program uses the Dino package <tt>mpi</tt>:
+        The following program uses the Dino package <tt>socket</tt>:
 <tscreen><verb>
-          include "mpi";
-          var mpi1, mpi2;
-          mpi1 = mpis.from_string(50, "1000000000000000000000000000000000000");
-          mpi2 = mpis.from_string(50, "5000000000000000000000000000000000000");
-          putln (mpis.to_string (mpis.add (mpi1, mpi2)));
+          include "socket";
+          var s, cl, str, l = 0;
+          s = sockets.stream_server (10003, 4);
+          cl = s.accept ();
+          try {
+            for (;;) {
+               str = cl.read (64); l += #str; cl.write (str);
+            }
+          } catch (socket_eof_except) {
+            putln ("i got ", l, " bytes");
+          }
 </verb></tscreen>
 
 <sect>Predeclared identifiers

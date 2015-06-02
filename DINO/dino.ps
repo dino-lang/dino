@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0
 %%Creator: dvips(k) 5.994 Copyright 2014 Radical Eye Software
 %%Title: /home/cygnus/vmakarov/COCOM/cocom2/DINO/dino.dvi
-%%CreationDate: Tue Jun  2 15:19:36 2015
+%%CreationDate: Tue Jun  2 15:26:46 2015
 %%Pages: 71
 %%PageOrder: Ascend
 %%BoundingBox: 0 0 612 792
@@ -14,7 +14,7 @@
 %+ /home/cygnus/vmakarov/COCOM/cocom2/DINO/dino.ps
 %+ /home/cygnus/vmakarov/COCOM/cocom2/DINO/dino.dvi
 %DVIPSParameters: dpi=600
-%DVIPSSource:  TeX output 2015.06.02:1519
+%DVIPSSource:  TeX output 2015.06.02:1526
 %%BeginProcSet: tex.pro 0 0
 %!
 /TeXDict 300 dict def TeXDict begin/N{def}def/B{bind def}N/S{exch}N/X{S
@@ -8662,7 +8662,7 @@ SDict begin [/Subtype /Link/Dest (subsubsection.9.1.3) cvn/H /I/Border
  878 3301 a Black 47 w Fj(.)41 b(.)h(.)f(.)h(.)g(.)f(.)h(.)
 f(.)h(.)f(.)h(.)f(.)h(.)g(.)f(.)h(.)f(.)h(.)f(.)h(.)g(.)f(.)h(.)f(.)h
 (.)f(.)h(.)g(.)f(.)h(.)f(.)h(.)f(.)h(.)f(.)h(.)g(.)f(.)h(.)f(.)h(.)f(.)
-h(.)p Black 93 w(37)p Black 0 0 1 TeXcolorrgb 315 3457
+h(.)p Black 93 w(38)p Black 0 0 1 TeXcolorrgb 315 3457
 a
 SDict begin H.S end
  315 3457 a Fj(9.1.4)94 b(Files)751 3457 y
@@ -11858,94 +11858,84 @@ b(iden)m(ti\034ers)2728 b Fj(37)p Black 678 162 a Fb(})600
 y(})600 578 y(key)f(=)f(sort)h(\(keys)g(\(voc\),)h(comp\);)600
 682 y(for)f(\(i)f(=)h(0;)f(i)h(<)f(#key;)i(i++\))678
 786 y(putln)f(\(key[i],)h(")f(:)f(",)h(voc{key[i]}\);)0
-1009 y Fj(The)28 b(follo)n(wing)e(program)g(uses)h(the)h(Dino)f(pac)n
-(k)-5 b(age)26 b Fi(mpi)p Fj(:)p Black Black Black Black
-600 1223 a Fb(include)40 b("mpi";)600 1327 y(var)g(mpi1,)g(mpi2;)600
-1431 y(mpi1)g(=)f(mpis.from_string\(50,)44 b
-("100000000000000000000000000000)q(00000)q(00"\))q(;)600
-1535 y(mpi2)c(=)f(mpis.from_string\(50,)44 b
-("500000000000000000000000000000)q(00000)q(00"\))q(;)600
-1639 y(putln)c(\(mpis.to_string)j(\(mpis.add)e(\(mpi1,)f(mpi2\)\)\);)0
-1781 y
+987 y Fj(The)28 b(follo)n(wing)e(program)g(uses)h(the)h(Dino)f(pac)n(k)
+-5 b(age)26 b Fi(socket)p Fj(:)p Black Black Black Black
+600 1178 a Fb(include)40 b("socket";)600 1282 y(var)g(s,)f(cl,)h(str,)g
+(l)g(=)f(0;)600 1386 y(s)g(=)h(sockets.stream_server)j(\(10003,)e(4\);)
+600 1490 y(cl)e(=)h(s.accept)h(\(\);)600 1594 y(try)f({)678
+1698 y(for)g(\(;;\))g({)796 1802 y(str)g(=)f(cl.read)i(\(64\);)f(l)g
+(+=)f(#str;)i(cl.write)g(\(str\);)678 1906 y(})600 2010
+y(})e(catch)h(\(socket_eof_except\))k({)678 2114 y(putln)c(\("i)g(got)g
+(",)g(l,)g(")f(bytes"\);)600 2219 y(})0 2345 y
 SDict begin H.S end
- 0 1781 a 0 1781 a
+ 0 2345
+a 0 2345 a
 SDict begin 13.68 H.A end
- 0 1781 a 0 1781 a
+ 0 2345 a 0 2345 a
 SDict begin [/View [/XYZ H.V]/Dest (section.9) cvn /DEST pdfmark end
- 0 1781 a 196
-x Fg(9)131 b(Predeclared)44 b(iden)l(ti\034ers)0 2216
-y Fj(Dino)30 b(has)g(quite)g(a)f(lot)h(of)g(predeclared)f(iden)n
-(ti\034ers.)43 b(The)30 b(section)g Fc(De)l(clar)l(ations)i(and)h(Sc)l
-(op)l(e)f(R)n(ules)k Fj(con)n(tains)29 b(them)i(in)0
-2330 y(alphan)n(umeric)26 b(order.)36 b(Here)27 b(they)h(are)e(describ)
-r(ed)i(according)d(to)j(the)g(declaration)e(category)f(whic)n(h)j(they)
-g(b)r(elongs)f(to.)0 2462 y
+ 0 2345 a 207 x Fg(9)131
+b(Predeclared)44 b(iden)l(ti\034ers)0 2791 y Fj(Dino)30
+b(has)g(quite)g(a)f(lot)h(of)g(predeclared)f(iden)n(ti\034ers.)43
+b(The)30 b(section)g Fc(De)l(clar)l(ations)i(and)h(Sc)l(op)l(e)f(R)n
+(ules)k Fj(con)n(tains)29 b(them)i(in)0 2904 y(alphan)n(umeric)26
+b(order.)36 b(Here)27 b(they)h(are)e(describ)r(ed)i(according)d(to)j
+(the)g(declaration)e(category)f(whic)n(h)j(they)g(b)r(elongs)f(to.)0
+3032 y
 SDict begin H.S end
- 0 2462 a 0 2462 a
+ 0 3032 a 0 3032 a
 SDict begin 13.68 H.A end
- 0 2462
-a 0 2462 a
+ 0 3032 a 0 3032 a
 SDict begin [/View [/XYZ H.V]/Dest (subsection.9.1) cvn /DEST pdfmark
 end
- 0 2462 a 159 x Fa(9.1)112 b(Predeclared)38
-b(v)-6 b(ariables)0 2831 y Fj(Dino)21 b(has)g(some)g(predeclared)f(v)-5
-b(ariables)20 b(whic)n(h)h(con)n(tain)f(useful)i(information)f(or)f
-(can)h(b)r(e)g(used)h(to)f(con)n(trol)f(the)h(b)r(eha)n(viour)0
-2945 y(of)28 b(the)f(Dino)h(in)n(terpreter.)0 3077 y
+ 0 3032 a 159
+x Fa(9.1)112 b(Predeclared)38 b(v)-6 b(ariables)0 3401
+y Fj(Dino)21 b(has)g(some)g(predeclared)f(v)-5 b(ariables)20
+b(whic)n(h)h(con)n(tain)f(useful)i(information)f(or)f(can)h(b)r(e)g
+(used)h(to)f(con)n(trol)f(the)h(b)r(eha)n(viour)0 3515
+y(of)28 b(the)f(Dino)h(in)n(terpreter.)0 3642 y
 SDict begin H.S end
-
-0 3077 a 0 3077 a
+ 0 3642
+a 0 3642 a
 SDict begin 13.68 H.A end
- 0 3077 a 0 3077 a
+ 0 3642 a 0 3642 a
 SDict begin [/View [/XYZ H.V]/Dest (subsubsection.9.1.1) cvn /DEST
 pdfmark end
- 0 3077 a 140 x Ff(9.1.1)94
-b(Argumen)m(ts)31 b(and)h(en)m(vironmen)m(t)0 3428 y
+ 0 3642 a 140 x Ff(9.1.1)94
+b(Argumen)m(ts)31 b(and)h(en)m(vironmen)m(t)0 3992 y
 Fj(T)-7 b(o)27 b(access)g(argumen)n(ts)f(to)h(the)h(program)e(and)h
 (the)h(en)n(vironmen)n(t,)e(the)i(follo)n(wing)f(v)-5
-b(ariables)26 b(can)h(b)r(e)h(used:)p Black 125 3650
+b(ariables)26 b(can)h(b)r(e)h(used:)p Black 125 4193
 a Fe(\017)p Black 41 w Fi(argv)p Fj(.)57 b(The)34 b(v)-5
 b(ariable)34 b(v)-5 b(alue)35 b(is)f(an)h(imm)n(utable)g(v)n(ector)e
 (whose)h(elemen)n(ts)h(are)f(strings)g(\(imm)n(utable)h(v)n(ectors)e
-(of)208 3764 y(c)n(haracters\))25 b(represen)n(ting)h(argumen)n(ts)g
+(of)208 4306 y(c)n(haracters\))25 b(represen)n(ting)h(argumen)n(ts)g
 (to)i(the)g(program)d(\(see)i(implemen)n(tation\).)p
-Black 125 3944 a Fe(\017)p Black 41 w Fi(env)p Fj(.)32
+Black 125 4475 a Fe(\017)p Black 41 w Fi(env)p Fj(.)32
 b(The)20 b(v)-5 b(ariable)18 b(v)-5 b(alue)19 b(is)g(imm)n(utable)g
 (table)h(whose)e(elemen)n(ts)h(are)f(strings)h(\(imm)n(utable)g(v)n
-(ectors)f(of)h(c)n(haracters\))208 4058 y(represen)n(ting)26
+(ectors)f(of)h(c)n(haracters\))208 4589 y(represen)n(ting)26
 b(v)-5 b(alues)27 b(of)g(en)n(vironmen)n(t)g(v)-5 b(ariables)26
 b(whose)h(names)g(are)f(the)i(k)n(eys)f(of)h(the)f(table.)0
-4190 y
+4716 y
 SDict begin H.S end
- 0 4190 a 0 4190 a
+ 0 4716 a 0 4716 a
 SDict begin 13.68 H.A end
- 0 4190 a 0 4190 a
+ 0 4716 a 0 4716 a
 SDict begin [/View [/XYZ H.V]/Dest (subsubsection.9.1.2) cvn /DEST
 pdfmark end
- 0 4190 a 140
-x Ff(9.1.2)94 b(V)-8 b(ersion)0 4540 y Fj(As)25 b(Dino)h(is)f(a)g(liv)n
+ 0 4716 a 140
+x Ff(9.1.2)94 b(V)-8 b(ersion)0 5066 y Fj(As)25 b(Dino)h(is)f(a)g(liv)n
 (e)g(programming)e(language,)h(it)h(and)h(its)f(in)n(terpreter)f(are)g
 (in)i(the)g(pro)r(cess)e(of)h(p)r(ermanen)n(t)g(dev)n(elopmen)n(t.)0
-4654 y(T)-7 b(o)33 b(access)e(the)j(Dino)f(in)n(terpreter's)e(v)n
+5180 y(T)-7 b(o)33 b(access)e(the)j(Dino)f(in)n(terpreter's)e(v)n
 (ersion)h(n)n(um)n(b)r(er)g(and)h(consequen)n(tly)f(the)h(language)e(v)
-n(ersion,)i(the)g(\034nal)g(v)-5 b(ariable)0 4767 y Fi(version)23
+n(ersion,)i(the)g(\034nal)g(v)-5 b(ariable)0 5294 y Fi(version)23
 b Fj(can)i(b)r(e)h(used.)36 b(The)25 b(v)-5 b(ariable)25
 b(v)-5 b(alue)25 b(is)g(the)h(Dino)g(v)n(ersion)e(as)g(a)h(\035oating)g
 (p)r(oin)n(t)h(n)n(um)n(b)r(er.)35 b(F)-7 b(or)25 b(example,)h(if)g
-(the)0 4881 y(curren)n(t)h(Dino)g(v)n(ersion)f(is)i(0.54,)e(the)i(v)-5
-b(ariable)27 b(v)-5 b(alue)27 b(will)h(b)r(e)g(0.54.)0
-5013 y
-SDict begin H.S end
- 0 5013 a 0 5013 a
-SDict begin 13.68 H.A end
- 0 5013 a 0 5013 a
-SDict begin [/View [/XYZ H.V]/Dest (subsubsection.9.1.3) cvn /DEST
-pdfmark end
- 0 5013 a 141
-x Ff(9.1.3)94 b(Threads)0 5364 y Fj(T)-7 b(o)27 b(access)g(some)f
-(information)h(ab)r(out)h(threads)f(in)g(Dino)h(program,)e(the)i(follo)
-n(wing)e(v)-5 b(ariables)26 b(can)h(b)r(e)h(used.)p Black
-Black eop end
+(the)0 5407 y(curren)n(t)h(Dino)g(v)n(ersion)f(is)i(0.54,)e(the)i(v)-5
+b(ariable)27 b(v)-5 b(alue)27 b(will)h(b)r(e)g(0.54.)p
+Black Black eop end
 %%Page: 38 38
 TeXDict begin 38 37 bop 0 0 a
 SDict begin /product where{pop product(Distiller)search{pop pop pop
@@ -11961,97 +11951,108 @@ SDict begin H.R end
 SDict begin [/View [/XYZ H.V]/Dest (page.38) cvn /DEST pdfmark end
  -8 -308
 a Black Black 0 -167 3900 5 v 0 -200 a Ff(9.)73 b(Predeclared)33
-b(iden)m(ti\034ers)2728 b Fj(38)p Black Black 125 162
-a Fe(\017)p Black 41 w Fi(main_thread)p Fj(.)56 b(The)35
+b(iden)m(ti\034ers)2728 b Fj(38)p Black 0 79 a
+SDict begin H.S end
+ 0 79 a
+0 79 a
+SDict begin 13.68 H.A end
+ 0 79 a 0 79 a
+SDict begin [/View [/XYZ H.V]/Dest (subsubsection.9.1.3) cvn /DEST
+pdfmark end
+ 0 79 a 83 x Ff(9.1.3)94 b(Threads)0
+372 y Fj(T)-7 b(o)27 b(access)g(some)f(information)h(ab)r(out)h
+(threads)f(in)g(Dino)h(program,)e(the)i(follo)n(wing)e(v)-5
+b(ariables)26 b(can)h(b)r(e)h(used.)p Black 125 580 a
+Fe(\017)p Black 41 w Fi(main_thread)p Fj(.)56 b(The)35
 b(v)-5 b(ariable)35 b(v)-5 b(alue)35 b(is)g(the)h(main)g(thread.)60
 b(When)36 b(the)g(program)d(starts,)k(there)e(is)g(only)g(one)208
-275 y(thread)27 b(whic)n(h)g(is)h(called)f Fc(the)j(main)g(thr)l(e)l
-(ad)9 b Fj(.)p Black 125 455 a Fe(\017)p Black 41 w Fi(curr_thread)p
+694 y(thread)27 b(whic)n(h)g(is)h(called)f Fc(the)j(main)g(thr)l(e)l
+(ad)9 b Fj(.)p Black 125 867 a Fe(\017)p Black 41 w Fi(curr_thread)p
 Fj(.)32 b(The)27 b(v)-5 b(ariable)27 b(v)-5 b(alue)27
 b(is)h(the)g(thread)f(in)h(whic)n(h)f(y)n(ou)g(reference)g(the)g(v)-5
-b(ariable.)0 678 y(All)28 b(these)g(v)-5 b(ariables)26
+b(ariable.)0 1076 y(All)28 b(these)g(v)-5 b(ariables)26
 b(are)g(\034nal,)i(so)f(y)n(ou)g(can)g(not)g(c)n(hange)g(their)g(v)-5
-b(alues.)0 810 y
+b(alues.)0 1205 y
 SDict begin H.S end
- 0 810 a 0 810 a
+ 0 1205 a 0 1205 a
 SDict begin 13.68 H.A end
- 0 810 a 0 810 a
+ 0 1205 a 0 1205 a
 SDict begin [/View [/XYZ H.V]/Dest (subsubsection.9.1.4) cvn /DEST
 pdfmark end
- 0 810
-a 141 x Ff(9.1.4)94 b(Files)0 1161 y Fj(T)-7 b(o)37 b(output)h
-(something)f(in)n(to)g(standard)f(streams)g(or)h(to)g(input)h
+
+0 1205 a 140 x Ff(9.1.4)94 b(Files)0 1555 y Fj(T)-7 b(o)37
+b(output)h(something)f(in)n(to)g(standard)f(streams)g(or)h(to)g(input)h
 (something)f(from)g(the)g(standard)g(input)h(stream,)h(the)0
-1274 y(follo)n(wing)26 b(v)-5 b(ariables)27 b(can)g(b)r(e)h(used:)p
-Black 125 1497 a Fe(\017)p Black 41 w Fi(stdin)p Fj(.)60
+1669 y(follo)n(wing)26 b(v)-5 b(ariables)27 b(can)g(b)r(e)h(used:)p
+Black 125 1878 a Fe(\017)p Black 41 w Fi(stdin)p Fj(.)60
 b(The)37 b(v)-5 b(ariable)35 b(v)-5 b(alue)36 b(is)g(an)g(ob)5
 b(ject)36 b(of)g(the)h(class)e Fi(file)g Fj(whic)n(h)h(corresp)r(onds)e
-(to)i(the)h(standard)e(input)208 1611 y(stream.)p Black
-125 1791 a Fe(\017)p Black 41 w Fi(stdout)p Fj(.)44 b(The)31
+(to)i(the)h(standard)e(input)208 1991 y(stream.)p Black
+125 2164 a Fe(\017)p Black 41 w Fi(stdout)p Fj(.)44 b(The)31
 b(v)-5 b(ariable)30 b(v)-5 b(alue)31 b(is)g(an)g(ob)5
 b(ject)31 b(of)g(the)g(class)f Fi(file)f Fj(whic)n(h)i(corresp)r(onds)e
-(to)i(the)h(standard)e(output)208 1904 y(stream.)p Black
-125 2084 a Fe(\017)p Black 41 w Fi(stderr)p Fj(.)56 b(The)35
+(to)i(the)h(standard)e(output)208 2278 y(stream.)p Black
+125 2450 a Fe(\017)p Black 41 w Fi(stderr)p Fj(.)56 b(The)35
 b(v)-5 b(ariable)33 b(v)-5 b(alue)35 b(is)g(an)f(ob)5
 b(ject)35 b(of)g(the)g(class)f Fi(file)f Fj(whic)n(h)i(corresp)r(onds)d
-(to)j(the)g(standard)f(error)208 2198 y(stream.)0 2421
+(to)j(the)g(standard)f(error)208 2564 y(stream.)0 2773
 y(All)28 b(these)g(v)-5 b(ariables)26 b(are)g(\034nal,)i(so)f(y)n(ou)g
-(can)g(not)g(c)n(hange)g(their)g(v)-5 b(alues.)0 2553
+(can)g(not)g(c)n(hange)g(their)g(v)-5 b(alues.)0 2902
 y
 SDict begin H.S end
- 0 2553 a 0 2553 a
+ 0 2902 a 0 2902 a
 SDict begin 13.68 H.A end
- 0 2553 a 0 2553 a
+ 0 2902 a 0 2902 a
 SDict begin [/View [/XYZ H.V]/Dest (subsubsection.9.1.5) cvn /DEST
 pdfmark end
- 0 2553 a 140 x
-Ff(9.1.5)94 b(Miscellaneous)29 b(v)-5 b(ariables)0 2904
+ 0 2902 a 140 x
+Ff(9.1.5)94 b(Miscellaneous)29 b(v)-5 b(ariables)0 3252
 y Fj(V)e(alues)27 b(of)h(the)g(follo)n(wing)e(v)-5 b(ariables)26
 b(are)h(used)h(b)n(y)f(some)g(predeclared)f(functions:)p
-Black 125 3126 a Fe(\017)p Black 41 w Fi(split_regex)p
+Black 125 3461 a Fe(\017)p Black 41 w Fi(split_regex)p
 Fj(.)35 b(The)28 b(v)-5 b(ariable)28 b(v)-5 b(alue)28
 b(is)h(a)f(string)g(whic)n(h)g(represen)n(ts)f(regular)g(expression)g
-(whic)n(h)h(is)h(used)f(b)n(y)h(the)208 3240 y(predeclared)e(function)j
+(whic)n(h)h(is)h(used)f(b)n(y)h(the)208 3575 y(predeclared)e(function)j
 Fi(split)d Fj(when)j(the)f(second)g(parameter)e(is)j(not)f(giv)n(en.)41
 b(The)29 b(initial)g(v)-5 b(alue)29 b(of)h(the)f(v)-5
-b(ariable)208 3354 y(is)27 b(string)g Fi("[)43 b Fe(n)p
-Fi(t]+")p Fj(.)p Black 125 3534 a Fe(\017)p Black 41
+b(ariable)208 3688 y(is)27 b(string)g Fi("[)43 b Fe(n)p
+Fi(t]+")p Fj(.)p Black 125 3861 a Fe(\017)p Black 41
 w Fi(time_format)p Fj(.)37 b(The)29 b(v)-5 b(ariable)29
 b(v)-5 b(alue)29 b(is)g(a)g(string)g(whic)n(h)g(is)g(the)h(output)g
 (format)e(of)i(time)g(used)f(b)n(y)g(the)h(function)208
-3647 y Fi(strtime)e Fj(when)k(it)g(is)g(called)f(without)h(parameters.)
+3975 y Fi(strtime)e Fj(when)k(it)g(is)g(called)f(without)h(parameters.)
 47 b(The)32 b(initial)g(v)-5 b(alue)31 b(of)h(the)g(v)-5
 b(ariable)30 b(is)i(the)g(string)f Fi("\045a)42 b(\045b)208
-3761 y(\045d)g(\045H:\045M:\045S)e(\045Z)j(\045Y")p Fj(.)0
-3884 y
+4088 y(\045d)g(\045H:\045M:\045S)e(\045Z)j(\045Y")p Fj(.)0
+4208 y
 SDict begin H.S end
- 0 3884 a 0 3884 a
+ 0 4208 a 0 4208 a
 SDict begin 13.68 H.A end
- 0 3884 a 0 3884 a
+ 0 4208 a 0 4208 a
 SDict begin [/View [/XYZ H.V]/Dest (subsection.9.2) cvn /DEST pdfmark
 end
- 0 3884 a 168
-x Fa(9.2)112 b(Predeclared)38 b(classes)0 4262 y Fj(The)28
+ 0 4208 a 169
+x Fa(9.2)112 b(Predeclared)38 b(classes)0 4587 y Fj(The)28
 b(most)f(of)g(the)h(predeclared)f(classes)f(describ)r(e)h(exceptions)g
 (whic)n(h)g(ma)n(y)g(b)r(e)h(generated)f(in)g(Dino)h(program.)0
-4395 y
+4716 y
 SDict begin H.S end
- 0 4395 a 0 4395 a
+ 0 4716 a 0 4716 a
 SDict begin 13.68 H.A end
- 0 4395 a 0 4395 a
+ 0 4716 a 0 4716 a
 SDict begin [/View [/XYZ H.V]/Dest (subsubsection.9.2.1) cvn /DEST
 pdfmark end
- 0 4395 a 140
-x Ff(9.2.1)94 b(File)0 4745 y Fj(Dino)34 b(has)f(predeclared)f(\034nal)
+ 0 4716 a 140
+x Ff(9.2.1)94 b(File)0 5066 y Fj(Dino)34 b(has)f(predeclared)f(\034nal)
 i(class)e Fi(file)p Fj(.)54 b(W)-7 b(ork)33 b(with)h(\034les)g(in)g
 (Dino)f(program)f(are)h(made)g(through)g(ob)5 b(jects)33
-b(of)h(the)0 4859 y(class.)h(All)24 b(declarations)f(inside)h(of)h
+b(of)h(the)0 5180 y(class.)h(All)24 b(declarations)f(inside)h(of)h
 (class)e(are)g(priv)-5 b(ate.)36 b(The)24 b(ob)5 b(jects)24
 b(of)g(the)g(class)g(can)g(b)r(e)g(created)g(only)g(b)n(y)g
-(predeclared)0 4972 y(functions)30 b Fi(open)d Fj(or)i
+(predeclared)0 5294 y(functions)30 b Fi(open)d Fj(or)i
 Fi(popen)p Fj(.)40 b(If)29 b(y)n(ou)g(create)f(an)h(ob)5
 b(ject)29 b(of)g(the)h(class)e(b)n(y)h(calling)g(the)h(class,)e
-(exception)h Fi(callop)e Fj(will)j(b)r(e)0 5086 y(generated.)p
+(exception)h Fi(callop)e Fj(will)j(b)r(e)0 5407 y(generated.)p
 Black Black eop end
 %%Page: 39 39
 TeXDict begin 39 38 bop 0 0 a
