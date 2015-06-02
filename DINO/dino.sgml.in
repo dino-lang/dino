@@ -419,9 +419,9 @@ value of variables is undefined.  Nothing can be done with this value.
 This value even can not be stored.
 <p>
 The value of the variable can not be changed after its initialization
-if its declaration is in a list starting with keyword <bf>val</bf>.
+if its declaration is in a list starting with keyword <tt>val</tt>.
 <p>
-Keywords <bf>pub</bf> and <bf>priv</bf> can be used to redefine the
+Keywords <tt>pub</tt> and <tt>priv</tt> can be used to redefine the
 default accessibility.  They make the declared variables
 correspondingly public and private.
 <tscreen><verb>
@@ -448,11 +448,11 @@ and the DINO SPI are not described here (some details are given in
 appendix B).  As rule, the external functions and variables will be
 implemented as dynamically loaded libraries.  This is the powerful
 instrument of DINO extension.  The external functions and variables
-are declared after keyword <bf>extern</bf>.  An external function
+are declared after keyword <tt>extern</tt>.  An external function
 identifier is followed by <tt>()</tt>.  All external declarations
 (e.g. in different blocks) with the same identifier refer the the same
 external function or variable.  As in variable declaration,
-keywords <bf>pub</bf> and <bf>priv</bf> can be used to redefine the
+keywords <tt>pub</tt> and <tt>priv</tt> can be used to redefine the
 default accessibility.
 <tscreen><verb>
           ExternDeclarations = [pub | priv] extern ExternItems ";"
@@ -496,11 +496,11 @@ thread</em>) exists in a DINO program.
 The formal parameters are considered to be declared in a
 function/class block and to be initialized by values of <em>actual
 parameters</em> during a call of the function/class.  By default they
-can change their value.  Keyword <bf>val</bf> prevents changing value
+can change their value.  Keyword <tt>val</tt> prevents changing value
 of the corresponding formal parameter after the initialization.
 <p>
 Default accessibility of the formal parameter can be changed by using
-keywords <bf>pub</bf> or <bf>priv</bf> (see accessibility in section
+keywords <tt>pub</tt> or <tt>priv</tt> (see accessibility in section
 "Declarations and Scope Rules").
 <p>
 The number of <em>actual parameters</em> should be the same as the
@@ -542,11 +542,11 @@ function <tt>destroy</tt> because it may result in increase of the
 heap.
 <p>
 A function/class declaration can have optional qualifiers.
-Qualifier <bf>final</bf> can not be mentioned in use-clause.
-Qualifiers <bf>pub</bf> and <bf>priv</bf> changes default
+Qualifier <tt>final</tt> can not be mentioned in use-clause.
+Qualifiers <tt>pub</tt> and <tt>priv</tt> changes default
 accessibility of the declaration.
 <tscreen><verb>
-          FuncClassDeclaration = Header FormalParameters Block
+          FuncClassDeclaration = Header FormalParameters Hint Block
 
           Header = [Qualifiers] FuncThreadClass IDENT
 
@@ -566,6 +566,8 @@ accessibility of the declaration.
 	  ParList = Par { "," Par}
 
 	  Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+          Hint = [ "!" IDENT ]
 </verb></tscreen>
         Examples:
 <p>
@@ -679,6 +681,13 @@ examples of forward declarations:
             fun print_op (); fun apply ();
 	  }
 </verb></tscreen>
+<p>
+Function/class declaration may have an optimization hint.  Currently,
+there are only 3 hints.  Hint <tt>!pure</tt> means that the function
+is pure, i.e. it has no side effects and returns result depending only
+on the call arguments.  Hint <tt>!inline</tt> means inlining the
+function calls.  Hint <tt>!jit</tt> use JIT compiler for the
+function/class.
 
 <sect1>Use Clause
 <p>
@@ -741,12 +750,12 @@ Sometimes it is usefull to guarantee that there is only single object
 (<em>singleton object</em>) of a class.  Although it can be achieved
 by creating of object of an anonymous class (see section "Anonymous
 Functions and Classes") and assigning it to a variable declared
-as <bf>val</bf>, Dino has a special declaration for singleton object:
+as <tt>val</tt>, Dino has a special declaration for singleton object:
 <tscreen><verb>
         SingletonObject = [pub | priv] obj IDENT block
 </verb></tscreen>
 <p>
-Keywords <bf>pub</bf> and <bf>priv</bf> can be used to redefine the
+Keywords <tt>pub</tt> and <tt>priv</tt> can be used to redefine the
 default accessibility.  They make the declared object correspondingly
 public and private.  Example of singleton object declaration:
 <tscreen><verb>
@@ -815,7 +824,7 @@ and the corresponding element values are the same.
 Dino has the following types of values:
           <itemize>
           <item>the special value <em>nil</em>.  The value is
-            represented by the keyword <bf>nil</bf>.
+            represented by the keyword <tt>nil</tt>.
 <tscreen><verb>
                  Expr = nil
 </verb></tscreen>
@@ -883,7 +892,7 @@ Dino has the following types of values:
             by a list of key values (expression values) in brackets
             <tt>[</tt> and <tt>]</tt> with optional element values
             with a preceding <tt>:</tt>.  By default the element value
-            is equal to <bf>nil</bf>.  It is not allowed to have
+            is equal to <tt>nil</tt>.  It is not allowed to have
             elements with equal keys in a table.  If it is not true in
             a table constructor, exception <tt>keyvalue</tt> is
             generated.  Elements of tables are accessed by their keys.
@@ -918,7 +927,7 @@ Dino has the following types of values:
             instance).  This is a structured shared type value.  There
             is no literal Dino representation of such values.  Objects
             are generated by a block instantiation and usually
-            accessed by value <bf>this</bf>.
+            accessed by value <tt>this</tt>.
           <item><em>hide value</em>.  A hide value can not be
             generated by a Dino code.  They are generated by external
             functions.
@@ -946,8 +955,8 @@ Dino has the following types of values:
 </verb></tscreen>
             There are the following type values:
             <itemize>
-            <item>type of <bf>nil</bf>.  There is no value
-              representing type of <bf>nil</bf>.  So use the
+            <item>type of <tt>nil</tt>.  There is no value
+              representing type of <tt>nil</tt>.  So use the
               construction <tt>type (nil)</tt> to get it.
             <item>type of characters.  The value is represented by
               the Dino keyword <tt>char</tt>.
@@ -1553,11 +1562,11 @@ referenced by the slices.  Examples:
 <sect1>Current block instance
 <p>
 The instance of the block immediately surrounding the current program
-point can be accessed by using keyword <bf>this</bf>.
+point can be accessed by using keyword <tt>this</tt>.
 <tscreen><verb>
           Expr = this
 </verb></tscreen>
-        Example of usage of <bf>this</bf>:
+        Example of usage of <tt>this</tt>:
 <tscreen><verb>
           class c (x) { putln (this.x, "===", x); }
           fun f (pub x) { return this; }
@@ -1732,7 +1741,7 @@ return of the expression value as the function call result.  In REPL
 results in printing the expression value.
 <tscreen><verb>
           ExecutiveStmt = Expr ";"
-<tscreen><verb>
+</verb></tscreen>
         Examples:
 <tscreen><verb>
           putln ("percent=" @ percent @ "%");
@@ -2080,8 +2089,8 @@ execution of any statements all include-declarations are replaced by
 files whose base names are given by the strings.  It is made
 recursively, i.e.  the files themselves can contain other
 include-declarations.  There should be no infinite recursion in this.
-If <bf>+</bf> is present in the include-declaration, the file is
-inserted in any case.  Without <bf>+</bf> the file is inserted only if
+If <tt>+</tt> is present in the include-declaration, the file is
+inserted in any case.  Without <tt>+</tt> the file is inserted only if
 it has been yet not inserted into the block of the declaration.
 <tscreen><verb>
           Program = StmtList
@@ -2711,26 +2720,26 @@ The following public functions and variables are declared in the class
           <itemize>
           <item>index of the token (in array <tt>tokens</tt>) on which
             the syntax error occured.
-          <item>the error token itself.  It may be <bf>nil</bf> for
+          <item>the error token itself.  It may be <tt>nil</tt> for
             end of file.
           <item>index of the first token (in array <tt>tokens</tt>)
             ignored due to error recovery.
           <item>the first ignored token itself.  It may be
-            <bf>nil</bf> for end of file.
+            <tt>nil</tt> for end of file.
           <item>index of the first token (in array <tt>tokens</tt>)
             which is not ignored after error recovery.
           <item>the first not ignored token itself.  It may be
-            <bf>nil</bf> for end of file.
+            <tt>nil</tt> for end of file.
           </itemize>
        If the parser works with switched off error recovery (see
        function <tt>set_recovery</tt>, the third and fifth parameters
        will be negative and forth and sixth parameter will be
-       <bf>nil</bf>.
+       <tt>nil</tt>.
 
        The function returns an object of the predeclared class
        <tt>anode</tt> which is the root of the abtsract tree
        representing the translation of the parser input.  The function
-       returns <bf>nil</bf> only if syntax error was occurred and
+       returns <tt>nil</tt> only if syntax error was occurred and
        error recovery was switched off.  The function can generate
        exception <tt>partype</tt> if the parameter types are wrong or
        exception <tt>invtoken_decl</tt> if any of the input tokens
@@ -2777,7 +2786,7 @@ few node types which have special meaning:
        node exists in one exemplar (see description of variable
        <tt>error_anode</tt>) and represents the translation of
        reserved grammar symbol <tt>error</tt>.  The value is public
-       variable <tt>transl</tt> will be <bf>nil</bf> in this case.
+       variable <tt>transl</tt> will be <tt>nil</tt> in this case.
      <item>The empty node which has the reserved name <tt>$nil</tt>.
        This node also exists in one exemplar (see description of
        variable <tt>nil_anode</tt>) and represents the translation of
@@ -2785,7 +2794,7 @@ few node types which have special meaning:
        For example, in a grammar rule an abstract node refers for the
        translation of a nonterminal for which we do not produce a
        translation.  The value is public variable of such class object
-       will be <bf>nil</bf> in this case.
+       will be <tt>nil</tt> in this case.
      <item>Alternative node which has the reserved name <tt>$alt</tt>.
        It represents all possible alternatives in the translation of
        the grammar nonterminal.  The value of the public variable
@@ -3089,7 +3098,7 @@ There are the following Dino pattern matching functions:
        subexpressions.  Match lengths are measured in characters, not
        collating elements.  A null string is considered longer than no
        match at all.  If there is no matching, the function returns
-       the value <bf>nil</bf>.  Otherwise, the function returns a new
+       the value <tt>nil</tt>.  Otherwise, the function returns a new
        mutable vector of integers.  The length of the vector is <tt>2
        * (N + 1)</tt> where <tt>N</tt> is the number of atoms which
        are regular expressions in parentheses.  The first two elements
@@ -3127,7 +3136,7 @@ There are the following Dino pattern matching functions:
        the first character of substring corresponding to all regular
        expression in the corresponding occurrences and the second
        element is index of the last character plus one.  If there is
-       no one occurrence, the function returns <bf>nil</bf>.
+       no one occurrence, the function returns <tt>nil</tt>.
        <p>
        Example: The program
 <tscreen><verb>
@@ -3143,7 +3152,7 @@ There are the following Dino pattern matching functions:
        for substrings matching the regular expression <tt>regex</tt>
        in <tt>string</tt>.  All parameters should be string after
        implicit string conversion.  If there is no matching, the
-       function returns the value <bf>nil</bf>.  Otherwise, the
+       function returns the value <tt>nil</tt>.  Otherwise, the
        function returns a new mutable vector of characters in which
        the first substring matched has been changed to the string
        <tt>subst</tt>.  Within the replacement string <tt>subst</tt>,
@@ -3883,9 +3892,9 @@ There are the following miscellaneous functions:
        contain more than one occurence of a character.  In this case
        the last correspondence is taken.
      <item><tt>eltype (vect)</tt>.  The function expects that the
-       parameter value is a vector.  The function returns <bf>nil</bf>
+       parameter value is a vector.  The function returns <tt>nil</tt>
        if the vector is heterogenous, otherwise the function returns
-       the type of the vector elements (type of <bf>nil</bf> if the
+       the type of the vector elements (type of <tt>nil</tt> if the
        vector is empty).
      <item><tt>keys (tab)</tt>.  The function expects that the
        parameter value is a table.  The function returns a new mutable
@@ -4255,7 +4264,9 @@ Var = IDENT | pattern "="  Expr
 
 ExternDeclarations = [pub | priv] extern ExternItems ";"
 
-FuncClassDeclaration = Header FormalParameters Block
+FuncClassDeclaration = Header FormalParameters Hint Block
+
+Hint = [ "!" IDENT ]
 
 FriendClause = friend IDENT { "," IDENT } ";"
      	

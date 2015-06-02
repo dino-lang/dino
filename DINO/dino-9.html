@@ -575,27 +575,27 @@ parameter <CODE>error_func</CODE> with six parameters:
 <UL>
 <LI>index of the token (in array <CODE>tokens</CODE>) on which
 the syntax error occured.</LI>
-<LI>the error token itself.  It may be <B>nil</B> for
+<LI>the error token itself.  It may be <CODE>nil</CODE> for
 end of file.</LI>
 <LI>index of the first token (in array <CODE>tokens</CODE>)
 ignored due to error recovery.</LI>
 <LI>the first ignored token itself.  It may be
-<B>nil</B> for end of file.</LI>
+<CODE>nil</CODE> for end of file.</LI>
 <LI>index of the first token (in array <CODE>tokens</CODE>)
 which is not ignored after error recovery.</LI>
 <LI>the first not ignored token itself.  It may be
-<B>nil</B> for end of file.</LI>
+<CODE>nil</CODE> for end of file.</LI>
 </UL>
 
 If the parser works with switched off error recovery (see
 function <CODE>set_recovery</CODE>, the third and fifth parameters
 will be negative and forth and sixth parameter will be
-<B>nil</B>.
+<CODE>nil</CODE>.
 
 The function returns an object of the predeclared class
 <CODE>anode</CODE> which is the root of the abtsract tree
 representing the translation of the parser input.  The function
-returns <B>nil</B> only if syntax error was occurred and
+returns <CODE>nil</CODE> only if syntax error was occurred and
 error recovery was switched off.  The function can generate
 exception <CODE>partype</CODE> if the parameter types are wrong or
 exception <CODE>invtoken_decl</CODE> if any of the input tokens
@@ -642,7 +642,7 @@ passed as a parameter of function <CODE>parse</CODE> of function
 node exists in one exemplar (see description of variable
 <CODE>error_anode</CODE>) and represents the translation of
 reserved grammar symbol <CODE>error</CODE>.  The value is public
-variable <CODE>transl</CODE> will be <B>nil</B> in this case.</LI>
+variable <CODE>transl</CODE> will be <CODE>nil</CODE> in this case.</LI>
 <LI>The empty node which has the reserved name <CODE>$nil</CODE>.
 This node also exists in one exemplar (see description of
 variable <CODE>nil_anode</CODE>) and represents the translation of
@@ -650,7 +650,7 @@ a grammar symbol for which we did not describe a translation.
 For example, in a grammar rule an abstract node refers for the
 translation of a nonterminal for which we do not produce a
 translation.  The value is public variable of such class object
-will be <B>nil</B> in this case.</LI>
+will be <CODE>nil</CODE> in this case.</LI>
 <LI>Alternative node which has the reserved name <CODE>$alt</CODE>.
 It represents all possible alternatives in the translation of
 the grammar nonterminal.  The value of the public variable
@@ -973,7 +973,7 @@ higher-level subexpressions take priority over their component
 subexpressions.  Match lengths are measured in characters, not
 collating elements.  A null string is considered longer than no
 match at all.  If there is no matching, the function returns
-the value <B>nil</B>.  Otherwise, the function returns a new
+the value <CODE>nil</CODE>.  Otherwise, the function returns a new
 mutable vector of integers.  The length of the vector is <CODE>2
 * (N + 1)</CODE> where <CODE>N</CODE> is the number of atoms which
 are regular expressions in parentheses.  The first two elements
@@ -1017,7 +1017,7 @@ to the occurrences.  The first element of the pairs is index of
 the first character of substring corresponding to all regular
 expression in the corresponding occurrences and the second
 element is index of the last character plus one.  If there is
-no one occurrence, the function returns <B>nil</B>.
+no one occurrence, the function returns <CODE>nil</CODE>.
 <P>Example: The program
 <BLOCKQUOTE><CODE>
 <PRE>
@@ -1039,7 +1039,7 @@ outputs
 for substrings matching the regular expression <CODE>regex</CODE>
 in <CODE>string</CODE>.  All parameters should be string after
 implicit string conversion.  If there is no matching, the
-function returns the value <B>nil</B>.  Otherwise, the
+function returns the value <CODE>nil</CODE>.  Otherwise, the
 function returns a new mutable vector of characters in which
 the first substring matched has been changed to the string
 <CODE>subst</CODE>.  Within the replacement string <CODE>subst</CODE>,
@@ -1856,9 +1856,9 @@ strings should have the same length.  The second string may
 contain more than one occurence of a character.  In this case
 the last correspondence is taken.</LI>
 <LI><CODE>eltype (vect)</CODE>.  The function expects that the
-parameter value is a vector.  The function returns <B>nil</B>
+parameter value is a vector.  The function returns <CODE>nil</CODE>
 if the vector is heterogenous, otherwise the function returns
-the type of the vector elements (type of <B>nil</B> if the
+the type of the vector elements (type of <CODE>nil</CODE> if the
 vector is empty).</LI>
 <LI><CODE>keys (tab)</CODE>.  The function expects that the
 parameter value is a table.  The function returns a new mutable

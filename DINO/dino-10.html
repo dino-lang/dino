@@ -170,7 +170,9 @@ Var = IDENT | pattern "="  Expr
 
 ExternDeclarations = [pub | priv] extern ExternItems ";"
 
-FuncClassDeclaration = Header FormalParameters Block
+FuncClassDeclaration = Header FormalParameters Hint Block
+
+Hint = [ "!" IDENT ]
 
 FriendClause = friend IDENT { "," IDENT } ";"
         

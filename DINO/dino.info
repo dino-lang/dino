@@ -442,9 +442,9 @@ of variables is undefined.  Nothing can be done with this value.  This
 value even can not be stored.
 
    The value of the variable can not be changed after its initialization
-if its declaration is in a list starting with keyword *val*.
+if its declaration is in a list starting with keyword 'val'.
 
-   Keywords *pub* and *priv* can be used to redefine the default
+   Keywords 'pub' and 'priv' can be used to redefine the default
 accessibility.  They make the declared variables correspondingly public
 and private.
 
@@ -474,10 +474,10 @@ DINO SPI are not described here (some details are given in appendix B).
 As rule, the external functions and variables will be implemented as
 dynamically loaded libraries.  This is the powerful instrument of DINO
 extension.  The external functions and variables are declared after
-keyword *extern*.  An external function identifier is followed by '[]'.
+keyword 'extern'.  An external function identifier is followed by '[]'.
 All external declarations (e.g.  in different blocks) with the same
 identifier refer the the same external function or variable.  As in
-variable declaration, keywords *pub* and *priv* can be used to redefine
+variable declaration, keywords 'pub' and 'priv' can be used to redefine
 the default accessibility.
 
                ExternDeclarations = [pub | priv] extern ExternItems ";"
@@ -522,11 +522,11 @@ exists in a DINO program.
    The formal parameters are considered to be declared in a
 function/class block and to be initialized by values of _actual
 parameters_ during a call of the function/class.  By default they can
-change their value.  Keyword *val* prevents changing value of the
+change their value.  Keyword 'val' prevents changing value of the
 corresponding formal parameter after the initialization.
 
    Default accessibility of the formal parameter can be changed by using
-keywords *pub* or *priv* (see accessibility in section "Declarations and
+keywords 'pub' or 'priv' (see accessibility in section "Declarations and
 Scope Rules").
 
    The number of _actual parameters_ should be the same as the number of
@@ -566,10 +566,10 @@ creation of objects during the call of function 'destroy' because it may
 result in increase of the heap.
 
    A function/class declaration can have optional qualifiers.  Qualifier
-*final* can not be mentioned in use-clause.  Qualifiers *pub* and *priv*
+'final' can not be mentioned in use-clause.  Qualifiers 'pub' and 'priv'
 changes default accessibility of the declaration.
 
-               FuncClassDeclaration = Header FormalParameters Block
+               FuncClassDeclaration = Header FormalParameters Hint Block
 
                Header = [Qualifiers] FuncThreadClass IDENT
 
@@ -589,6 +589,8 @@ changes default accessibility of the declaration.
                ParList = Par { "," Par}
 
                Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+               Hint = [ "!" IDENT ]
 
    Examples:
 
@@ -700,6 +702,12 @@ declarations:
                  fun print_op (); fun apply ();
                }
 
+   Function/class declaration may have an optimization hint.  Currently,
+there are only 3 hints.  Hint '!pure' means that the function is pure,
+i.e.  it has no side effects and returns result depending only on the
+call arguments.  Hint '!inline' means inlining the function calls.  Hint
+'!jit' use JIT compiler for the function/class.
+
 
 File: dino.info,  Node: Use Clause,  Next: Singleton Object,  Prev: Functions and Classes,  Up: Declarations and Scope Rules
 
@@ -765,11 +773,11 @@ Sometimes it is usefull to guarantee that there is only single object
 (_singleton object_) of a class.  Although it can be achieved by
 creating of object of an anonymous class (see section "Anonymous
 Functions and Classes") and assigning it to a variable declared as
-*val*, Dino has a special declaration for singleton object:
+'val', Dino has a special declaration for singleton object:
 
              SingletonObject = [pub | priv] obj IDENT block
 
-   Keywords *pub* and *priv* can be used to redefine the default
+   Keywords 'pub' and 'priv' can be used to redefine the default
 accessibility.  They make the declared object correspondingly public and
 private.  Example of singleton object declaration:
 
@@ -851,7 +859,7 @@ corresponding element values are the same.
    Dino has the following types of values:
 
    * the special value _nil_.  The value is represented by the keyword
-     *nil*.
+     'nil'.
 
                            Expr = nil
    * _character_ which represents ASCII characters.  For the
@@ -907,7 +915,7 @@ corresponding element values are the same.
      represented keyword tab, followed by a list of key values
      (expression values) in brackets '[' and ']' with optional element
      values with a preceding ':'.  By default the element value is equal
-     to *nil*.  It is not allowed to have elements with equal keys in a
+     to 'nil'.  It is not allowed to have elements with equal keys in a
      table.  If it is not true in a table constructor, exception
      'keyvalue' is generated.  Elements of tables are accessed by their
      keys.  Elements of mutable tables can be added to or removed from
@@ -936,7 +944,7 @@ corresponding element values are the same.
    * _object_ (block instance, usually a class block instance).  This is
      a structured shared type value.  There is no literal Dino
      representation of such values.  Objects are generated by a block
-     instantiation and usually accessed by value *this*.
+     instantiation and usually accessed by value 'this'.
    * _hide value_.  A hide value can not be generated by a Dino code.
      They are generated by external functions.
    * _hide block_.  This value is analogous to a hide value.  The
@@ -962,7 +970,7 @@ corresponding element values are the same.
 
      There are the following type values:
 
-        * type of *nil*.  There is no value representing type of *nil*.
+        * type of 'nil'.  There is no value representing type of 'nil'.
           So use the construction 'type (nil)' to get it.
         * type of characters.  The value is represented by the Dino
           keyword 'char'.
@@ -1579,11 +1587,11 @@ File: dino.info,  Node: Current block instance,  Next: Anonymous Functions and C
 ==========================
 
 The instance of the block immediately surrounding the current program
-point can be accessed by using keyword *this*.
+point can be accessed by using keyword 'this'.
 
                Expr = this
 
-   Example of usage of *this*:
+   Example of usage of 'this':
 
                class c (x) { putln (this.x, "===", x); }
                fun f (pub x) { return this; }
@@ -1785,9 +1793,9 @@ return of the expression value as the function call result.  In REPL
 results in printing the expression value.
 
                ExecutiveStmt = Expr ";"
-     <tscreen><verb>
-             Examples:
-     <tscreen><verb>
+
+   Examples:
+
                putln ("percent=" @ percent @ "%");
                newthread ();
                5 + 10;
@@ -2147,8 +2155,8 @@ execution of any statements all include-declarations are replaced by
 files whose base names are given by the strings.  It is made
 recursively, i.e.  the files themselves can contain other
 include-declarations.  There should be no infinite recursion in this.
-If *+* is present in the include-declaration, the file is inserted in
-any case.  Without *+* the file is inserted only if it has been yet not
+If '+' is present in the include-declaration, the file is inserted in
+any case.  Without '+' the file is inserted only if it has been yet not
 inserted into the block of the declaration.
 
                Program = StmtList
@@ -2793,23 +2801,23 @@ class 'parser':
 
         * index of the token (in array 'tokens') on which the syntax
           error occured.
-        * the error token itself.  It may be *nil* for end of file.
+        * the error token itself.  It may be 'nil' for end of file.
         * index of the first token (in array 'tokens') ignored due to
           error recovery.
-        * the first ignored token itself.  It may be *nil* for end of
+        * the first ignored token itself.  It may be 'nil' for end of
           file.
         * index of the first token (in array 'tokens') which is not
           ignored after error recovery.
-        * the first not ignored token itself.  It may be *nil* for end
+        * the first not ignored token itself.  It may be 'nil' for end
           of file.
 
      If the parser works with switched off error recovery (see function
      'set_recovery', the third and fifth parameters will be negative and
-     forth and sixth parameter will be *nil*.
+     forth and sixth parameter will be 'nil'.
 
      The function returns an object of the predeclared class 'anode'
      which is the root of the abtsract tree representing the translation
-     of the parser input.  The function returns *nil* only if syntax
+     of the parser input.  The function returns 'nil' only if syntax
      error was occurred and error recovery was switched off.  The
      function can generate exception 'partype' if the parameter types
      are wrong or exception 'invtoken_decl' if any of the input tokens
@@ -2856,14 +2864,14 @@ elements.  There are a few node types which have special meaning:
    * Error node which has reserved name '$error'.  This node exists in
      one exemplar (see description of variable 'error_anode') and
      represents the translation of reserved grammar symbol 'error'.  The
-     value is public variable 'transl' will be *nil* in this case.
+     value is public variable 'transl' will be 'nil' in this case.
    * The empty node which has the reserved name '$nil'.  This node also
      exists in one exemplar (see description of variable 'nil_anode')
      and represents the translation of a grammar symbol for which we did
      not describe a translation.  For example, in a grammar rule an
      abstract node refers for the translation of a nonterminal for which
      we do not produce a translation.  The value is public variable of
-     such class object will be *nil* in this case.
+     such class object will be 'nil' in this case.
    * Alternative node which has the reserved name '$alt'.  It represents
      all possible alternatives in the translation of the grammar
      nonterminal.  The value of the public variable 'transl' will be an
@@ -3172,7 +3180,7 @@ the regular expression.
      priority over their component subexpressions.  Match lengths are
      measured in characters, not collating elements.  A null string is
      considered longer than no match at all.  If there is no matching,
-     the function returns the value *nil*.  Otherwise, the function
+     the function returns the value 'nil'.  Otherwise, the function
      returns a new mutable vector of integers.  The length of the vector
      is '2 * (N + 1)' where 'N' is the number of atoms which are regular
      expressions in parentheses.  The first two elements are the index
@@ -3207,7 +3215,7 @@ the regular expression.
      substring corresponding to all regular expression in the
      corresponding occurrences and the second element is index of the
      last character plus one.  If there is no one occurrence, the
-     function returns *nil*.  Example: The program
+     function returns 'nil'.  Example: The program
 
                     println (gmatch ("aa", "aaaaa"));
                     println (gmatch ("aa", "aaaaa", 1));
@@ -3220,7 +3228,7 @@ the regular expression.
    * 'sub (regex, string, subst)'.  The function searches for substrings
      matching the regular expression 'regex' in 'string'.  All
      parameters should be string after implicit string conversion.  If
-     there is no matching, the function returns the value *nil*.
+     there is no matching, the function returns the value 'nil'.
      Otherwise, the function returns a new mutable vector of characters
      in which the first substring matched has been changed to the string
      'subst'.  Within the replacement string 'subst', the sequence '\n',
@@ -3914,9 +3922,9 @@ There are the following miscellaneous functions:
      length.  The second string may contain more than one occurence of a
      character.  In this case the last correspondence is taken.
    * 'eltype (vect)'.  The function expects that the parameter value is
-     a vector.  The function returns *nil* if the vector is
+     a vector.  The function returns 'nil' if the vector is
      heterogenous, otherwise the function returns the type of the vector
-     elements (type of *nil* if the vector is empty).
+     elements (type of 'nil' if the vector is empty).
    * 'keys (tab)'.  The function expects that the parameter value is a
      table.  The function returns a new mutable vector containing all
      the keys in the table.  The order of keys in the vector is
@@ -4264,7 +4272,9 @@ File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implement
 
      ExternDeclarations = [pub | priv] extern ExternItems ";"
 
-     FuncClassDeclaration = Header FormalParameters Block
+     FuncClassDeclaration = Header FormalParameters Hint Block
+
+     Hint = [ "!" IDENT ]
 
      FriendClause = friend IDENT { "," IDENT } ";"
 
@@ -4471,66 +4481,66 @@ Node: Declarations and Scope Rules10245
 Node: Variable Declarations18747
 Node: External Declarations20487
 Node: Functions and Classes21894
-Node: Use Clause30398
-Node: Singleton Object32603
-Node: Expressions33412
-Node: Types and Values34024
-Node: Designators43068
-Node: Calls48391
-Node: Operators50455
-Node: Logical operators54752
-Node: Bit operators56560
-Node: Comparison operators57683
-Node: Arithmetic operators59679
-Node: Miscellaneous operators60890
-Node: Slice Operators65004
-Node: Current block instance67919
-Node: Anonymous Functions and Classes68382
-Node: Patterns69224
-Node: Executive statements73052
-Node: Empty statement73986
-Node: Block-statement74406
-Node: Expression-statement75125
-Node: Assignment statements75955
-Node: If-statement78594
-Node: For-statement79450
-Node: Foreach-statement80933
-Node: Switch-statement81929
-Node: Break- and continue-statement83542
-Node: Return-statement84813
-Node: Throw-statement85579
-Node: Try-block86281
-Node: Wait-statement88714
-Node: Program89816
-Node: Predeclared identifiers93227
-Node: Predeclared variables93694
-Node: Arguments and environment94091
-Node: Version94741
-Node: Threads95274
-Node: Files95816
-Node: Miscellaneous variables96519
-Node: Predeclared classes97248
-Node: File97598
-Node: Exception classes98054
-Node: Earley parser classes109958
-Node: Parser-110337
-Node: Token-121146
-Node: Anode-121826
-Node: Nil_anode and error_anode-123972
-Node: Example of Earley parser usage-124383
-Node: Predeclared functions127261
-Node: Mathematical functions128491
-Node: Pattern matching functions130061
-Node: File functions142226
-Node: Functions for access to file/directory information142659
-Node: Functions for work with directories147340
-Node: Functions for work with files-148928
-Node: File output functions152628
-Node: File input functions165093
-Node: Time functions168915
-Node: Functions for access to process information171892
-Node: Miscellaneous functions173404
-Node: Appendix A- Syntax of Dino186808
-Node: Appendix B- Implementation191947
+Node: Use Clause30776
+Node: Singleton Object32981
+Node: Expressions33790
+Node: Types and Values34402
+Node: Designators43446
+Node: Calls48769
+Node: Operators50833
+Node: Logical operators55130
+Node: Bit operators56938
+Node: Comparison operators58061
+Node: Arithmetic operators60057
+Node: Miscellaneous operators61268
+Node: Slice Operators65382
+Node: Current block instance68297
+Node: Anonymous Functions and Classes68760
+Node: Patterns69602
+Node: Executive statements73430
+Node: Empty statement74364
+Node: Block-statement74784
+Node: Expression-statement75503
+Node: Assignment statements76283
+Node: If-statement78922
+Node: For-statement79778
+Node: Foreach-statement81261
+Node: Switch-statement82257
+Node: Break- and continue-statement83870
+Node: Return-statement85141
+Node: Throw-statement85907
+Node: Try-block86609
+Node: Wait-statement89042
+Node: Program90144
+Node: Predeclared identifiers93555
+Node: Predeclared variables94022
+Node: Arguments and environment94419
+Node: Version95069
+Node: Threads95602
+Node: Files96144
+Node: Miscellaneous variables96847
+Node: Predeclared classes97576
+Node: File97926
+Node: Exception classes98382
+Node: Earley parser classes110286
+Node: Parser-110665
+Node: Token-121474
+Node: Anode-122154
+Node: Nil_anode and error_anode-124300
+Node: Example of Earley parser usage-124711
+Node: Predeclared functions127589
+Node: Mathematical functions128819
+Node: Pattern matching functions130389
+Node: File functions142554
+Node: Functions for access to file/directory information142987
+Node: Functions for work with directories147668
+Node: Functions for work with files-149256
+Node: File output functions152956
+Node: File input functions165421
+Node: Time functions169243
+Node: Functions for access to process information172220
+Node: Miscellaneous functions173732
+Node: Appendix A- Syntax of Dino187136
+Node: Appendix B- Implementation192307
 
 End Tag Table

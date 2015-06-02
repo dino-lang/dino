@@ -663,7 +663,7 @@
   changes default accessibility of the declaration.
 
 
-                 FuncClassDeclaration = Header FormalParameters Block
+                 FuncClassDeclaration = Header FormalParameters Hint Block
 
                  Header = [Qualifiers] FuncThreadClass IDENT
 
@@ -683,6 +683,8 @@
                  ParList = Par { "," Par}
 
                  Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+                 Hint = [ "!" IDENT ]
 
 
 
@@ -816,6 +818,12 @@
                  }
 
 
+
+  Function/class declaration may have an optimization hint. Currently,
+  there are only 3 hints. Hint !pure means that the function is pure,
+  i.e. it has no side effects and returns result depending only on the
+  call arguments. Hint !inline means inlining the function calls. Hint
+  !jit use JIT compiler for the function/class.
 
   4.4.  Use Clause
 
@@ -1983,9 +1991,12 @@
 
 
                  ExecutiveStmt = Expr ";"
-       <tscreen><verb>
-               Examples:
-       <tscreen><verb>
+
+
+
+  Examples:
+
+
                  putln ("percent=" @ percent @ "%");
                  newthread ();
                  5 + 10;
@@ -4640,7 +4651,9 @@
 
        ExternDeclarations = [pub | priv] extern ExternItems ";"
 
-       FuncClassDeclaration = Header FormalParameters Block
+       FuncClassDeclaration = Header FormalParameters Hint Block
+
+       Hint = [ "!" IDENT ]
 
        FriendClause = friend IDENT { "," IDENT } ";"
 

@@ -1,5 +1,11 @@
 2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* DINO/dino.sgml.in: Describe hints.  Use tt instead of bf for
+	keywords.  Fix tscreen for expression-statement.
+	* DINO/dino.{dvi,html*,info,pdf,ps,txt}: Update.
+
+2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* DINO/d_dino.c (COMMAND_LINE_DESCRIPTION): Remove -g.
 	* DINO/d_ir.sprut (assign): Change comment.
 	* DINO/d_yacc.y (hint, program): Process REPL mode.
