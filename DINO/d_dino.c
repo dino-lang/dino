@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 1997-2014 Vladimir Makarov.
+   Copyright (C) 1997-2015 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -896,7 +896,6 @@ void add_dino_path (const char *prefix, const char *subdir,
 "`-O'           optimize\n"\
 "`-s'           output statistics to stderr\n"\
 "`-t'           output final trace to stderr\n"\
-"`-g'           generate C code\n"\
 "`-p'           output profile information into stderr\n"\
 "`-d'           dump program IR\n"\
 "`-i dump'      read IR instead of program\n"\
@@ -1167,7 +1166,7 @@ dino_main (int argc, char *argv[], char *envp[])
       int first_p;
 
       printf ("Dino interpreter, version %.2f\n", DINO_VERSION);
-      printf ("Copyright (c) 1997-2014, Vladimir Makarov, vmakarov.gcc@gmail.com\n");
+      printf ("Copyright (c) 1997-2015, Vladimir Makarov, vmakarov.gcc@gmail.com\n");
       printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");
       printf ("Use \";\" for stmt end, for if-stmt w/o else use \";;\", e.g. if (cond) v = e;;\n");
       start_scanner_file ("", no_position);

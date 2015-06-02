@@ -726,7 +726,7 @@ assign_stmt :: stmt
 ;
 
 /* var_assign is an assign inside var-clause.  par_assign (or assign for
-   parameter) if the parameter value is nil.  See also node
+   parameter) if the parameter value is not given.  See also node
    par_assign_test. */
 assign, mult_assign, div_assign, mod_assign,
   plus_assign, minus_assign, concat_assign, lshift_assign,

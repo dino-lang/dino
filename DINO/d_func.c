@@ -530,7 +530,7 @@ inside_call (int pars_number)
 }
 
 int
-code_inside (BC_node_t code, BC_node_t where)
+code_use_p (BC_node_t code, BC_node_t where)
 {
   BC_node_t use;
   int result;
@@ -574,7 +574,7 @@ internal_isa_call (const char **message_ptr, ER_node_t where, ER_node_t what)
 	*message_ptr = DERR_parameter_type;
       return 0;
     }
-  return code_inside (code, code_2);
+  return code_use_p (code, code_2);
 }
 
 void

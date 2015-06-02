@@ -724,16 +724,16 @@ dump_code (BC_node_t infos, int indent)
 	  printf (" op1=%d ch_op2=%d", BC_op1 (bc), BC_ch_op2 (bc));
 	  if ((cl = BC_fail_pc (bc)) != NULL)
 	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
-	  printf (" // stack, params_num");
+	  printf (" // fun/class, params_num");
 	  break;
 	case BC_NM_chstel:
-	  printf (" op1=%d ch_op2=%d ch_op3=%d ch_op4=%d",
-		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc), BC_ch_op4 (bc));
+	  printf (" op1=%d ch_op2=%d ch_op3=%d ch_op4=%d ch_op5=%d",
+		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc), BC_ch_op4 (bc), BC_ch_op5 (bc));
 	  if ((cl = BC_fail_pc (bc)) != NULL)
 	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
-	  printf (" // stack, param_num");
-	  if (BC_ch_op4 (bc) != 2)
-	    printf (", val with %s", BC_ch_op4 (bc) ? " assign" : "compare");
+	  printf (" // stack, class, var, param_num");
+	  if (BC_ch_op5 (bc) != 2)
+	    printf (", val with %s", BC_ch_op5 (bc) ? " assign" : "compare");
 	  break;
 	default:
 	  /* Other nodes should not occur here. */

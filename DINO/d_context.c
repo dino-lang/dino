@@ -1053,7 +1053,7 @@ create_pattern_vars (IR_node_t pattern_from, IR_node_t expr, IR_node_t last)
 	decl = create_node_with_pos (IR_NM_var, IR_pos (expr));
 	IR_set_ident (decl, expr);
 	IR_set_scope (decl, curr_scope);
-	if (IR_IS_OF_TYPE (pattern_from, IR_NM_pattern_assign_stmt))
+	if (IR_IS_OF_TYPE (pattern_from, IR_NM_pattern_var))
 	  {
 	    IR_set_access (decl, IR_pattern_var_access (pattern_from));
 	    IR_set_const_flag (decl, IR_pattern_const_flag (pattern_from));
@@ -2058,6 +2058,12 @@ get_bcode_decl (IR_node_t decl)
   set_new_decl_num (bc_decl);
   unique_ident = IR_unique_ident (IR_ident (decl));
   BC_set_ident (bc_decl, IR_ident_string (unique_ident));
+  if (repl_flag)
+    /* In normal mode, field_ident_number is set up from the field
+       access. In REPL we don't know about all accesses.  The field
+       can be accessed later.  Therefore we should set
+       field_ident_number anyway. */
+    set_field_ident_number (unique_ident);
   BC_set_fldid_num (bc_decl, IR_field_ident_number (unique_ident));
   /* Use real block scope:  */
   bc_block = IR_bc_block (IR_real_block_scope (scope));
@@ -3412,8 +3418,8 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
   int_t var_num;
   IR_node_t el, next_el, expr, rep, decl, scope;
   BC_node_t bc;
-  int vec_p, call_p, n, ind, fun_op, rep_op, el_op, pat_op, one;
-  int temp_start, temp_vars_num = *curr_temp_vars_num;
+  int vec_p, call_p, n, ind, rep_op, el_op, pat_op, one;
+  int temp_start, fun_op = -1, temp_vars_num = *curr_temp_vars_num;
 
   if (pattern == NULL)
     return;
@@ -3426,8 +3432,9 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 	  fun_op = not_defined_result;
 	  temp_start = temp_vars_num;
 	  IR_set_fun_expr (pattern, second_expr_processing (IR_fun_expr (pattern), FALSE,
-							 &fun_op, &temp_start,
-							 FALSE, NULL, NULL, FALSE));
+							    &fun_op, &temp_start,
+							    FALSE, NULL, NULL, FALSE));
+	  temp_vars_num++;
 	  bc = new_bc_code_with_src (BC_NM_chst, pattern);
 	  BC_set_op1 (bc, op);
 	  BC_set_ch_op2 (bc, fun_op);
@@ -3486,22 +3493,23 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 		      bc = new_bc_code_with_src (BC_NM_chvel, expr);
 		      BC_set_ch_op5 (bc, 1);
 		    }
-		}
-	      else
-		{
-		  bc = new_bc_code_with_src (call_p ? BC_NM_chstel : BC_NM_chtel, expr);
-		  BC_set_ch_op4 (bc, IR_IS_OF_TYPE (expr, IR_NM_wildcard) ? 2 : 1);
-		}
-	      BC_set_op1 (bc, op);
-	      if (call_p)
-		BC_set_ch_op2 (bc, n);
-	      else if (! vec_p)
-		BC_set_ch_op2 (bc, rep_op);
-	      else
-		{
 		  BC_set_ch_op2 (bc, ind);
 		  BC_set_ch_op3 (bc, rep_op);
 		}
+	      else if (call_p)
+		{
+		  bc = new_bc_code_with_src (BC_NM_chstel, expr);
+		  BC_set_ch_op2 (bc, fun_op);
+		  BC_set_ch_op4 (bc, n);
+		  BC_set_ch_op5 (bc, IR_IS_OF_TYPE (expr, IR_NM_wildcard) ? 2 : 1);
+		}
+	      else
+		{
+		  bc = new_bc_code_with_src (BC_NM_chtel, expr);
+		  BC_set_ch_op2 (bc, rep_op);
+		  BC_set_ch_op4 (bc, IR_IS_OF_TYPE (expr, IR_NM_wildcard) ? 2 : 1);
+		}
+	      BC_set_op1 (bc, op);
 	      BC_set_fail_pc (bc, fail_pc);
 	      if (IR_IS_OF_TYPE (expr, IR_NM_ident))
 		{
@@ -3546,15 +3554,17 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 		  if (call_p)
 		    {
 		      bc = new_bc_code_with_src ( BC_NM_chstel, expr);
-		      BC_set_ch_op2 (bc, n);
+		      BC_set_ch_op2 (bc, fun_op);
+		      BC_set_ch_op4 (bc, n);
+		      BC_set_ch_op5 (bc, 1);
 		    }
 		  else
 		    {
 		      bc = new_bc_code_with_src ( BC_NM_chtel, expr);
 		      BC_set_ch_op2 (bc, rep_op);
+		      BC_set_ch_op4 (bc, 1);
 		    }
 		  BC_set_ch_op3 (bc, el_op);
-		  BC_set_ch_op4 (bc, 1);
 		}
 	      BC_set_op1 (bc, op);
 	      BC_set_fail_pc (bc, fail_pc);
@@ -3571,38 +3581,44 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 	      if (vec_p)
 		{
 		  bc = new_bc_code_with_src (BC_NM_chvel, expr);
-		  BC_set_ch_op5 (bc, 0);
-		}
-	      else
-		{
-		  bc = new_bc_code_with_src (call_p ? BC_NM_chstel : BC_NM_chtel, expr);
-		  BC_set_ch_op4 (bc, 0);
-		}
-	      BC_set_op1 (bc, op);
-	      if (vec_p)
-		{
 		  BC_set_ch_op2 (bc, ind);
 		  BC_set_ch_op3 (bc, rep_op);
 		  BC_set_ch_op4 (bc, el_op);
+		  BC_set_ch_op5 (bc, 0);
+		}
+	      else if (call_p)
+		{
+		  bc = new_bc_code_with_src (BC_NM_chstel, expr);
+		  BC_set_ch_op2 (bc, fun_op);
+		  BC_set_ch_op4 (bc, n);
+		  BC_set_ch_op5 (bc, 0);
+		  BC_set_ch_op3 (bc, el_op);
 		}
 	      else
 		{
-		  if (call_p)
-		    BC_set_ch_op2 (bc, n);
-		  else
-		    BC_set_ch_op2 (bc, rep_op);
+		  bc = new_bc_code_with_src (BC_NM_chtel, expr);
+		  BC_set_ch_op2 (bc, rep_op);
 		  BC_set_ch_op3 (bc, el_op);
+		  BC_set_ch_op4 (bc, 0);
 		}
+	      BC_set_op1 (bc, op);
 	      BC_set_fail_pc (bc, fail_pc);
 	      add_to_bcode (bc);
 	    }
 	}
       if (el == NULL)
 	{
-	  bc = new_bc_code_with_src (vec_p ? BC_NM_chvend
-				     : call_p ? BC_NM_chstend : BC_NM_chtend,
-				     pattern);
-	  BC_set_op1 (bc, op);
+	  if (call_p)
+	    {
+	      bc = new_bc_code_with_src (BC_NM_chstend, pattern);
+	      BC_set_op1 (bc, fun_op);
+	    }
+	  else
+	    {
+	      bc = new_bc_code_with_src (vec_p ? BC_NM_chvend : BC_NM_chtend,
+					 pattern);
+	      BC_set_op1 (bc, op);
+	    }
 	  BC_set_ch_op2 (bc, vec_p ? ind : n);
 	  BC_set_fail_pc (bc, fail_pc);
 	  add_to_bcode (bc);
@@ -3614,6 +3630,7 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
     {
       /* Expr for the switch case:  */
       temp_start = temp_vars_num;
+      pat_op = not_defined_result;
       second_expr_processing (pattern, FALSE, &pat_op, &temp_start,
 			      FALSE, NULL, NULL, FALSE);
       bc = new_bc_code_with_src (BC_NM_eq, pattern);
@@ -4934,9 +4951,6 @@ go_through (BC_node_t start_bc)
   info = BC_info (bc);
   if (BC_subst (info) != NULL)
     return BC_subst (info);
-#if 1
-  return bc;
-#else
   subst = branch_combine (bc);
   if (subst == bc)
     subst = madd_combine (bc);
@@ -4944,7 +4958,6 @@ go_through (BC_node_t start_bc)
     subst = ind_combine (bc);
   BC_set_subst (info, subst);
   return subst;
-#endif
 }
 
 /* Modify call BC to tail calls if it is possible.  */
@@ -5014,7 +5027,6 @@ modify_copied_ops (int base)
       if (BC_IS_OF_TYPE (bc, BC_NM_check2)
 	  && ! BC_IS_OF_TYPE (bc, BC_NM_check2i)
 	  && ! BC_IS_OF_TYPE (bc, BC_NM_check3i2)
-	  && ! BC_IS_OF_TYPE (bc, BC_NM_check4i24)
 	  && (op = BC_ch_op2 (bc)) >= 0)
 	BC_set_ch_op2 (bc, op + base);
       if (BC_IS_OF_TYPE (bc, BC_NM_check3)
@@ -5022,7 +5034,7 @@ modify_copied_ops (int base)
 	BC_set_ch_op3 (bc, op + base);
       if (BC_IS_OF_TYPE (bc, BC_NM_check4)
 	  && ! BC_IS_OF_TYPE (bc, BC_NM_check4i)
-	  && ! BC_IS_OF_TYPE (bc, BC_NM_check4i24)
+	  && ! BC_IS_OF_TYPE (bc, BC_NM_check5i45)
 	  && (op = BC_ch_op4 (bc)) >= 0)
 	BC_set_ch_op4 (bc, op + base);
       if (BC_IS_OF_TYPE (bc, BC_NM_check5)

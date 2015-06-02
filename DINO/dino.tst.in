@@ -47780,18 +47780,18 @@ class s (i, j, k) {use c former i, j;}
 var c (2, s (i, _, _)) = s (2, s(3, 4, 6), 5);
 println (i);
 TEST791
-        echo '      ' $DINO '-O' $test_file ">$stdout"
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
-                result=fail
-        else
-                echo '      ' $CMP $ftemp2 $stderr
-                if cat >$ftemp2 <<'OUTPUT791' && $CMP $stderr $ftemp2; then
-test.d:3:7: run time error - expr does not match stack pattern
-OUTPUT791
-			result=ok
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT792' && $CMP $stdout $ftemp2; then
+3
+OUTPUT792
+                        result=ok
                 else
                         result=fail
                 fi
+        else
+                result=fail
         fi
 fi
 
@@ -47927,32 +47927,32 @@ println (i);
 putln ("------------------------------");
 class c (i, j) {}
 class s (i, j, k) {use c former i, j;}
-var c (i, j, k) = s (10, 5, 2);
+var c (i, j) = s (10, 5, 2);
 println (i, j);
 
 var c (i, j, ...) = s (10, 5, 2);
 println (i, j);
 
-var c (i, j, k, ...) = s (10, 5, 2);
+var c (i, j, ...) = s (10, 5, 2);
 println (i, j);
 
-var c (i, j, _) = s (10, 5, 2);
+var c (i, j) = s (10, 5, 2);
 println (i, j);
 
-var c (10, i, j) = s (10, 5, 2);
-println (i, j);
-
-var c (10, 5, j) = s (10, 5, 2);
+var c (10, i) = s (10, 5, 2);
 println (i);
 
-var c (10, c (i, j), k) = s (10, c (1, 3), 2);
-println (i, j, k);
+var c (i, 5) = s (10, 5, 2);
+println (i);
 
-var c (10, c (i, 3, ...), j) = s (10, c (1, 3), 2);
+var c (10, c (i, j)) = s (10, c (1, 3), 2);
 println (i, j);
 
-var c (10, c (i, _), j) = s (10, c (1, 3), 2);
+var c (10, c (i, 3, ...)) = s (10, c (1, 3), 2);
 println (i, j);
+
+var c (10, c (i, _)) = s (10, c (1, 3), 2);
+println (i);
 
 class c (i, ...) {}
 var c (10, i) = c (10, 5, 6);
@@ -47989,11 +47989,11 @@ nil
 105
 105
 105
-52
 5
-132
-12
-12
+10
+13
+13
+1
 [5, 6]
 []
 OUTPUT795
@@ -48347,6 +48347,195 @@ TEST800
                 if cat >$ftemp2 <<'OUTPUT800' && $CMP $stdout $ftemp2; then
 [4, 5, 6, 7, 8]
 OUTPUT800
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 801.
+if test $result = ok -a $start_test_number -le 801; then
+	echo test 801: Bug in REPL
+        cat >$test_file <<'TEST801'
+class c(a) {} class sc (a, b){use c former a;}
+switch (sc (10, 15)) { case c(10): putln ("ok")}
+switch (sc (10, 15)) { case c(10,15): putln ("fail");}
+TEST801
+        echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout"
+        if $DINO < $test_file 2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT801' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino> dino>       switch (sc (10, 15)) { case c(10): putln ("ok")}
+                                                     ^
+      syntax error
+dino> dino> 
+OUTPUT801
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 802.
+if test $result = ok -a $start_test_number -le 802; then
+	echo test 802: Bug in access to pattern variables.
+        cat >$test_file <<'TEST802'
+fun f(pub a){pub val b = a + 10;return this;}
+val k = f(10);
+putln (k.a, " ", k.b);
+TEST802
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT802' && $CMP $stdout $ftemp2; then
+10 20
+OUTPUT802
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 803.
+if test $result = ok -a $start_test_number -le 803; then
+	echo test 803: Bug in access to object in REPL.
+        cat >$test_file <<'TEST803'
+class c(a){}
+val o = c(10);
+o.a;
+TEST803
+        echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout"
+        if $DINO < $test_file 2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT803' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino> dino> dino> 10
+dino> 
+OUTPUT803
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 804.
+if test $result = ok -a $start_test_number -le 804; then
+	echo test 804: default value param and ...
+        cat >$test_file <<'TEST804'
+fun f (a, b= 1, ...) {a + b;}
+fun (a, b= 1, ...) {a + b;};
+TEST804
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT804' && $CMP $stderr $ftemp2; then
+test.d:1:12: usage of parameter default value and `...'
+test.d:2:10: usage of parameter default value and `...'
+OUTPUT804
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 805.
+if test $result = ok -a $start_test_number -le 805; then
+	echo test 805: default value param in the middle
+        cat >$test_file <<'TEST805'
+fun f (a, b= 1, c) {a + c + b;}
+fun (a, b= 1, c) {a + c + b;};
+TEST805
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT805' && $CMP $stderr $ftemp2; then
+test.d:1:12: default value formal parameters should be the last ones
+test.d:2:10: default value formal parameters should be the last ones
+OUTPUT805
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 806.
+if test $result = ok -a $start_test_number -le 806; then
+	echo test 806: Zero slice step
+        cat >$test_file <<'TEST806'
+var v=[10:1];
+putln (v[1:20:0]);
+TEST806
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT806' && $CMP $stderr $ftemp2; then
+test.d:2:9: run time error - slice step is zero (dimension = 1)
+OUTPUT806
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 807.
+if test $result = ok -a $start_test_number -le 807; then
+	echo test 807: Negative slice start
+        cat >$test_file <<'TEST807'
+var v=[10:1];
+putln (v[-1:2]);
+TEST807
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT807' && $CMP $stderr $ftemp2; then
+test.d:2:9: run time error - slice start is negative (dimension = 1)
+OUTPUT807
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 808.
+if test $result = ok -a $start_test_number -le 808; then
+	echo test 808: Empty slice bug
+        cat >$test_file <<'TEST808'
+val v=[1,2,3,4];
+println (v[3:1:-1]);
+println (v[3:1:1]);
+TEST808
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT808' && $CMP $stdout $ftemp2; then
+[]
+[]
+OUTPUT808
                         result=ok
                 else
                         result=fail

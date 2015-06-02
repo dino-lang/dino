@@ -45,6 +45,10 @@ char ERR_unknown_hint[] = "unknown hint %s";
 char ERR_wrong_hint_for_non_fun[]
   = "inline or pure hint is permitted only for fun";
 char ERR_jit_hint_for_thread[] = "jit hint is not permitted for thread";
+char ERR_default_value_parameter_and_dots[]
+  = "usage of parameter default value and `...'";
+char ERR_default_value_parameters_should_be_last[]
+  = "default value formal parameters should be the last ones";
 char ERR_interrupt_exception[] = "interrupt";
 char ERR_illegal_instruction_exception[] = "illegal instruction";
 char ERR_abort_exception[] = "abort";
@@ -298,6 +302,10 @@ char DERR_slice_bound_is_not_int []
   = "run time error - slice bound is not integer (dimension = %d)";
 char DERR_slice_step_is_not_int []
   = "run time error - slice step is not integer (dimension = %d)";
+char DERR_slice_start_is_negative []
+  = "run time error - slice start is negative (dimension = %d)";
+char DERR_slice_step_is_zero []
+  = "run time error - slice step is zero (dimension = %d)";
 char DERR_different_slice_operand_lengths []
   = "run time error - different lengths of slices %ld vs %ld (dimension = %d)";
 char DERR_slice_operand_form []

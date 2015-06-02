@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014 Vladimir Makarov.
+   Copyright (C) 2015 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
 
@@ -912,12 +912,22 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	}
       break;
     case BC_NM_chtel:
-    case BC_NM_chstel:
       if (! result_p)
 	return NO_MORE_OPERAND;
       else
 	{
 	  if  (nop == 0 && BC_ch_op4 (bc))
+	    res = BC_ch_op3 (bc);
+	  else
+	    return NO_MORE_OPERAND;
+	}
+      break;
+    case BC_NM_chstel:
+      if (! result_p)
+	return NO_MORE_OPERAND;
+      else
+	{
+	  if  (nop == 0 && BC_ch_op5 (bc))
 	    res = BC_ch_op3 (bc);
 	  else
 	    return NO_MORE_OPERAND;
@@ -1973,8 +1983,11 @@ type_transf (node_t node)
 	return FALSE;
       break;
     case BC_NM_chtel:
-    case BC_NM_chstel:
       if (! BC_ch_op4 (bc))
+	return FALSE;
+      break;
+    case BC_NM_chstel:
+      if (! BC_ch_op5 (bc))
 	return FALSE;
       break;
     default:

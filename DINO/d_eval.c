@@ -569,9 +569,11 @@ check_and_get_slice_info (ER_node_t start_val, unsigned_rint_t vec_len,
   bound0 = ER_i (IVAL (start_val, 1));
   step0 = ER_i (IVAL (start_val, 2));
   if (start0 < 0)
-    ;
+    eval_error (sliceform_bc_decl, get_designator_pos (),
+		DERR_slice_start_is_negative, depth);
   if (step0 == 0)
-    ;
+    eval_error (sliceform_bc_decl, get_designator_pos (),
+		DERR_slice_step_is_zero, depth);
   if (bound0 < 0)
     {
       bound0 = vec_len + bound0 + 1;
@@ -582,6 +584,8 @@ check_and_get_slice_info (ER_node_t start_val, unsigned_rint_t vec_len,
     bound0 = vec_len;
   abs_step = (step0 > 0 ? step0 : -step0);
   niter0 = (bound0 - start0 + abs_step - 1) / abs_step;
+  if (niter0 < 0)
+    niter0 = 0;
   if (step0 > 0)
     bound0 = start0 + niter0 * abs_step;
   else
@@ -4310,8 +4314,8 @@ evaluate_code (void)
 	    INCREMENT_PC ();
 	  break;
 	case BC_NM_chstel:
-	  if (chstel (get_op (BC_op1 (cpc)), BC_ch_op2 (cpc),
-		      get_op (BC_ch_op3 (cpc)), BC_ch_op4 (cpc),
+	  if (chstel (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
+		      get_op (BC_ch_op3 (cpc)), BC_ch_op4 (cpc), BC_ch_op5 (cpc),
 		      BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else

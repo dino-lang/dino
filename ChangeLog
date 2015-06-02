@@ -1,5 +1,39 @@
 2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
 
+	* DINO/d_dino.c (COMMAND_LINE_DESCRIPTION): Remove -g.
+	* DINO/d_ir.sprut (assign): Change comment.
+	* DINO/d_yacc.y (hint, program): Process REPL mode.
+	(process_formal_parameters): Check init params to be last and no
+	combining with '...'.
+	DINO/d_gen.c (code_inside): Rename to code_use_p.
+	(chstend): Change expected type of param op1.
+	(chstel): Change expected type of param op2.  Add parameter op5n.
+	* DINO/d_errors.{ch} (ERR_default_value_parameter_and_dots): New.
+	(ERR_default_value_parameters_should_be_last): Ditto.
+	(DERR_slice_start_is_negative): Ditto.
+	(char DERR_slice_step_is_zero): Ditto.
+	* DINO/d_bc.sprut (chstel): Change format.
+	(check4i24): Remove.
+	(check5i45): New.
+	(print_node): Process check5i45.
+	* DINO/d_bcio.c (dump_code): New format for chstel.
+	* DINO/d_context.c (create_pattern_vars): Add code for REPL.
+	(generate_pattern): New format for chstel.  Init pat_op
+	undefined.  Switch on combining.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Change code
+	for chstel.
+	* DINO/d_gen.c (code_inside): Rename to code_use_p.
+	* DINO/d_func.h (code_inside): Ditto.
+	* DINO/d_func.c (code_inside): Ditto.
+	* DINO/d_eval.c (check_and_get_slice_info): Check slice start and
+	step values.  Make niter0 non-negative.
+	(evaluate_code): Pass new param to chstel.
+	* DINO/dino.tst.in (791, 795): Change expected for sub-class
+	match.
+	(801-808): New.
+
+2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+
 	* DINO/dino.sgml.in: Remove history, extensions.  Describe hex
 	numbers, long numbers, new keywords, new scope rules, new
 	pre-declared identifiers, patterns, undef values, val, pub/priv

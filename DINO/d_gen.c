@@ -3213,7 +3213,7 @@ chst (ER_node_t op1, ER_node_t op2, pc_t target)
     {
       code = ER_block_node (ER_stack (op1));
       code_2 = ID_TO_CODE (ER_code_id (op2));
-      if (code_inside (code, code_2))
+      if (code_use_p (code, code_2))
 	return FALSE;
     }
   if (target == NULL)
@@ -3226,8 +3226,8 @@ chstend (ER_node_t op1, int op2n, pc_t target)
 {
   BC_node_t code;
   
-  d_assert (ER_NODE_MODE (op1) == ER_NM_stack);
-  code = ER_block_node (ER_stack (op1));
+  d_assert (ER_NODE_MODE (op1) == ER_NM_code);
+  code = ID_TO_CODE (ER_code_id (op1));
   if (BC_NODE_MODE (code) == BC_NM_fblock)
     {
       if (op2n == BC_pars_num (code))
@@ -3241,28 +3241,31 @@ chstend (ER_node_t op1, int op2n, pc_t target)
 }
 
 static int do_always_inline
-chstel (ER_node_t op1, int op2n, ER_node_t op3, int op4n, pc_t target)
+chstel (ER_node_t op1, ER_node_t op2, ER_node_t op3, int op4n, int op5n,
+	pc_t target)
 {
   val_t tvar;
   ER_node_t stack;
   BC_node_t code;
 
-  d_assert (ER_NODE_MODE (op1) == ER_NM_stack);
+  d_assert (ER_NODE_MODE (op1) == ER_NM_stack
+	    && ER_NODE_MODE (op2) == ER_NM_code);
   stack = ER_stack (op1);
-  code = ER_block_node (stack);
-  if (BC_NODE_MODE (code) != BC_NM_fblock || op2n >= BC_pars_num (code))
+  code = ID_TO_CODE (ER_code_id (op2));
+  if (BC_NODE_MODE (code) != BC_NM_fblock || op4n >= BC_pars_num (code))
     {
       if (target == NULL)
-	eval_error (patternmatch_bc_decl, get_cpos (), DERR_wrong_stack_pattern_match);
+	eval_error (patternmatch_bc_decl, get_cpos (),
+		    DERR_wrong_stack_pattern_match);
       return TRUE;
     }
-  else if (op4n == 2)
+  else if (op5n == 2)
     return FALSE;
-  if (op4n)
-    *(val_t *) op3 = *(val_t *) get_var (ER_stack_vars (stack), op2n);
+  if (op5n)
+    *(val_t *) op3 = *(val_t *) get_var (ER_stack_vars (stack), op4n);
   else
     {
-      tvar = *(val_t *) get_var (ER_stack_vars (stack), op2n);
+      tvar = *(val_t *) get_var (ER_stack_vars (stack), op4n);
       if (! common_eq_ne_op (BC_NM_eq, op3, (ER_node_t) &tvar))
 	{
 	  if (target == NULL)

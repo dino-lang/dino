@@ -37,6 +37,8 @@ extern char ERR_eof_in_comment[];
 extern char ERR_unknown_hint[];
 extern char ERR_wrong_hint_for_non_fun[];
 extern char ERR_jit_hint_for_thread[];
+extern char ERR_default_value_parameter_and_dots[];
+extern char ERR_default_value_parameters_should_be_last[];
 extern char ERR_interrupt_exception[];
 extern char ERR_illegal_instruction_exception[];
 extern char ERR_abort_exception[];
@@ -188,6 +190,8 @@ extern char DERR_index_operation_for_non_vec_tab [];
 extern char DERR_slice_start_is_not_int [];
 extern char DERR_slice_bound_is_not_int [];
 extern char DERR_slice_step_is_not_int [];
+extern char DERR_slice_start_is_negative [];
+extern char DERR_slice_step_is_zero [];
 /* Slice len. */
 extern char DERR_different_slice_operand_lengths [];
 /* Slice form. */

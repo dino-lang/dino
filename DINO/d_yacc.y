@@ -534,7 +534,12 @@ pos :  {$$ = current_position;}
     ;
 hint :           {$$ = NO_HINT;}
      | '!' IDENT {$$ = get_hint ($2);}
-     | '!' error {$$ = NO_HINT;}
+     | '!' error
+       {
+	 if (repl_flag)
+	   YYABORT;
+         $$ = NO_HINT;
+       }
      ;
 designator : expr '[' expr ']'
        	       {
@@ -1376,7 +1381,11 @@ program :   {
             }
           stmt_list
             {
-              first_program_stmt = current_scope;
+	      /* In REPL mode we can achieve this code in error
+		 recovery mode, don't change first_program_stmt it
+		 should be always the same for REPL.  */
+	      if (! repl_flag || first_program_stmt == NULL)
+		first_program_stmt = current_scope;
               IR_set_block_stmts (first_program_stmt,
                                   uncycle_stmt_list ($2));
 	      IR_set_friend_list
@@ -1604,17 +1613,28 @@ process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
 static IR_node_t
 process_formal_parameters (IR_node_t decl, IR_node_t pars)
 {
-  IR_node_t current_decl = pars;
+  IR_node_t next, current_decl = pars, first_assign = NULL;
   
   if (current_decl != NULL)
     do
       {
-	if (IR_IS_OF_TYPE (current_decl, IR_NM_var))
-	  IR_set_par_flag (current_decl, TRUE);
 	current_decl = IR_next_stmt (current_decl);
+	if (IR_IS_OF_TYPE (current_decl, IR_NM_var))
+	  {
+	    IR_set_par_flag (current_decl, TRUE);
+	    if (first_assign != NULL && ! formal_parameter_args_flag
+		&& (next = IR_next_stmt (current_decl)) != NULL
+		&& IR_IS_OF_TYPE (next, IR_NM_var))
+	      error (FALSE, IR_pos (first_assign),
+		     ERR_default_value_parameters_should_be_last);
+	  }
+	if (IR_IS_OF_TYPE (current_decl, IR_NM_par_assign))
+	  first_assign = current_decl;
       }
     while (current_decl != pars);
   IR_set_args_flag (decl, formal_parameter_args_flag);
+  if (formal_parameter_args_flag && first_assign != NULL)
+    error (FALSE, IR_pos (first_assign), ERR_default_value_parameter_and_dots);
   return pars;
 }
 

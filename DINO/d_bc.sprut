@@ -1147,11 +1147,12 @@ chtend :: check2i; /* check that #op1 == immed op2 */
 chtel :: check4i;
 chst :: check2; /* check that op1 is a stack and is of fun/class op2 */
 chstend :: check2i; /* check that stack op1 has immed op2 params */
-/* Depending on the op4 value.  If it is 1, check that there is immed
-   op2 param of stack op1 and assign it to op3.  If it is zero, check
-   on equality with op3 instead of assigning.  If it is 2, don't
-   assign or check equality (op3 is ignored in this case). */
-chstel :: check4i24;
+/* Depending on the op5 value.  If it is 1, check that there is immed
+   op4 param of class/fun op2 in stack op1 and assign it to op3.  If
+   it is zero, check on equality with op3 instead of assigning.  If it
+   is 2, don't assign or check equality (op3 is ignored in this
+   case). */
+chstel :: check5i45;
 
 /* These codes represent printing expr in REPL.  It is never output or
    input.  Code rpr_def never prints undefined values (e.g. proc call
@@ -1293,15 +1294,15 @@ check4 :: check3
 check4i :: check4 /* ch_op4 is int const */
 ;
 %abstract
-check4i24 :: check4i /* ch_op{2,4} are int const */
-;
-%abstract
 check5 :: check4
 %other
         ch_op5 : int_t
 ;
 %abstract
 check5i :: check5 /* ch_op5 is int const */
+;
+%abstract
+check5i45 :: check5i /* ch_op4 and ch_op5 are int consts */
 ;
 %abstract
 imcall :: op2i
@@ -2120,8 +2121,7 @@ print_node (FILE *f, BC_node_t bc)
   if (BC_IS_OF_TYPE (bc, BC_NM_check2))
     {
       if (BC_IS_OF_TYPE (bc, BC_NM_check2i)
-	  || BC_IS_OF_TYPE (bc, BC_NM_check3i2)
-	  || BC_IS_OF_TYPE (bc, BC_NM_check4i24))
+	  || BC_IS_OF_TYPE (bc, BC_NM_check3i2))
 	fprintf (f, ", %d", BC_ch_op2 (bc));
       else
 	print_op (f, TRUE, BC_ch_op2 (bc));
@@ -2131,7 +2131,7 @@ print_node (FILE *f, BC_node_t bc)
   if (BC_IS_OF_TYPE (bc, BC_NM_check4))
     {
       if (BC_IS_OF_TYPE (bc, BC_NM_check4i)
-	  || BC_IS_OF_TYPE (bc, BC_NM_check4i24))
+	  || BC_IS_OF_TYPE (bc, BC_NM_check5i45))
 	fprintf (f, ", %d", BC_ch_op4 (bc));
       else
 	print_op (f, TRUE, BC_ch_op4 (bc));
