@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
+ <TITLE>The Programming Language DINO: Appendix B. Implementation</TITLE>
+ <LINK HREF="dino-10.html" REL=previous>
+ <LINK HREF="dino.html#toc11" REL=contents>
+</HEAD>
+<BODY>
+Next
+<A HREF="dino-10.html">Previous</A>
+<A HREF="dino.html#toc11">Contents</A>
+<HR>
+<H2><A NAME="s11">11.</A> <A HREF="dino.html#toc11">Appendix B. Implementation</A></H2>
+
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+Dino(1)                          User Manuals                          Dino(1)
+
+
+
+NAME
+       dino - the interpreter of the programming language Dino
+
+SYNOPSIS
+       dino  [  -h  -s  -t -m size -Idirname -Lpath -O --save-temps -d -p] (-c
+       program | program-file | -i dump-file ) dino-program-arguments
+
+DESCRIPTION
+       dino interprets a program in the Dino programming language.   The  pro‐
+       gram file (and include files) must have the suffix .d
+
+       The  description  of  Dino language is in the report of the Programming
+       Language Dino.
+
+OPTIONS
+       Calling the interpreter without arguments is to call REPL (an  interac‐
+       tive  environment  for  execution  of  Dino statements and printing the
+       results of the statement execution).  The options which the Dino inter‐
+       preter recognizes are:
+
+       -c program
+              Execute  the Dino program given on the command line as the argu‐
+              ment.
+
+       -h     Output information about Dino command line options.
+
+       -m number
+              Determine the size of the heap chunks used by  the  Dino  inter‐
+              preter.   The  size can be given in bytes (e.g. 32000), in kilo‐
+              bytes (e.g. 64k), or in megabytes (e.g. 1m).  The  default  size
+              is  1  Megabyte.   Initially,  the  Dino interpreter creates one
+              chunk.  It allocates one additional chunk (as rule of  the  same
+              size)  whenever there is no additional memory after garbage col‐
+              lection.
+
+       -s     Output some statistics of interpreter work into stderr.  Statis‐
+              tics  contain  the maximal heap size, number of heap chunks, and
+              number of collisions in hash  tables  which  are  used  for  the
+              implementation of Dino tables.
+
+       -t     Output  information  about call stack of the program into stderr
+              for unprocessed exception or calling exit function.  This output
+              sometimes can be different from what people would expect because
+              of tail call elimination.
+
+       -Idirname
+              Define the  directory  in  which  Dino  include  files  will  be
+              searched  for.  The order of searching in directories given with
+              this option is the same as the one on the command line.
+
+       -Ldirname
+              Define  where  to  search  for  external  libraries  (if  shared
+              libraries  are  implemented  on  the  system.   This is true for
+              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
+              nal  variables and functions will be searched for.  The order of
+              searching in libraries given with this option is the same as one
+              on the command line.
+
+       -O     Do type inference and byte code specialization.  It can speed up
+              the program execution, especially when JIT is used.
+
+       -d     Output Dino byte code to the standard output.
+
+       -i     Read Dino byte code from a given file and execute it.   You  can
+              use this option instead of providing Dino program file.
+
+       --save-temps
+              If  a  Dino  function processed by JIT compiler, the generated C
+              source code and PIC object code can  be  saved  after  finishing
+              Dino  interpreter  in directory /tmp with this option.  The file
+              names will contain identifier number of the  corresponding  Dino
+              interpreter process.
+
+       -p     Output  profile  information  into  stderr.  Profile information
+              contains the number of calls and execution times of  all  called
+              functions and classes.
+
+FILES
+       file.d
+              a Dino program file
+       libdino.so
+              a Dino shared library on some Unix systems.
+       ieee.d
+              the  Dino  file implementing IEEE standard floating point arith‐
+              metic.
+       ieee.so
+              the Dino shared library used for implementing IEEE on some  Unix
+              systems.
+       ipcerr.d
+              the  Dino  file  definining  exceptions of ipc/network software.
+              This file is used by socket.d.
+       ipcerr.so
+              the Dino shared library used for  implementing  IPCERR  on  some
+              Unix systems.
+       socket.d
+              the Dino file implementing work with sockets.
+       socket.so
+              the  Dino  shared  library  used for implementing SOCKET on some
+              Unix systems.
+       Dino interpreter creates temporary C and object files  for  Dino  func‐
+       tions processed by JIT compiler in directory /tmp.
+
+ENVIRONMENT
+       There  are the following environment variables which affect Dino behav‐
+       ior:
+
+       DINO_HOME
+              If not null, it defines the places of the dino shared  libraries
+              (such a library may be only on some Unix systems including Linux
+              and  Solaris),  include  files,  and  dino   standard   external
+              libraries.   The  places  are defined as the subdirectory lib in
+              directory given by the environment variable value.   You  should
+              define  the variable value on Windows if you installed the files
+              in a directory other than C:\dino\lib
+
+       DINO_PATH
+              If not null, it defines the places of dino  include-files.   The
+              value  of the variable has more priority than DINO_HOME but less
+              priority than values given through -I options.
+
+       DINO_LIB
+              If not null, it defines places of dino shared library,  if  any.
+              The   value  of  variable  has  more  priority  than  DINO_HOME.
+              DINO_EXTERN_LIBS.
+
+       DINO_EXTERN_LIBS
+              If not null,  it  defines  paths  of  additional  Dino  external
+              libraries.   The  libraries should be separated by ":" (on Unix)
+              or ";" (on Windows).  The value has less  priority  than  values
+              given in -L options.
+
+DIAGNOSTICS
+       DINO diagnostics are self-explanatory.
+
+AUTHOR
+       Vladimir N. Makarov, vmakarov@users.sourceforge.net
+
+BUGS
+       Please report bugs to cocom-bugs@lists.sourceforge.net.
+
+
+
+Dino                              25 May 2015                          Dino(1)
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<HR>
+Next
+<A HREF="dino-10.html">Previous</A>
+<A HREF="dino.html#toc11">Contents</A>
+</BODY>
+</HTML>

@@ -26,7 +26,8 @@ letters are considered to be distinct.
 <OL>
 <LI>An <EM>identifier</EM> is a sequence of letters and digits
 starting with a letter.  The underline is believed to be a
-valid letter in an identifier.
+valid letter in an identifier.  A single underline is fixed
+for other usage (see wildcard in section "Patterns").
 <BLOCKQUOTE><CODE>
 <PRE>
           Ident = Letter {Letter | Digit}
@@ -42,6 +43,10 @@ valid letter in an identifier.
           OctalDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
 
           Digit = OctalDigit | "8" | "9"
+
+          HexDigit = Digit | "a" | "A" | "b" | "B" | "c" | "C"
+                   | "d" | "D" | "e" | "E" | "f" | "F"
+                    
 </PRE>
 </CODE></BLOCKQUOTE>
 
@@ -53,15 +58,23 @@ Examples:
 </CODE></BLOCKQUOTE>
 
 </LI>
-<LI><EM>Numbers</EM> are (unsigned) decimal integer or floating
-point numbers.  Numbers start with a digit.  Floating point
-numbers are distinguished by the presence of decimal point
-<CODE>.</CODE> or an exponent in the number.
+<LI><EM>Numbers</EM> are (unsigned) integer or floating point
+numbers.  Numbers start with a digit.  Numbers starting with
+prefix <CODE>0x</CODE> or <CODE>0X</CODE> are hexadecimal integer
+numbers.  Otherwise integer numbers starting with <CODE>0</CODE>
+are octal integer numbers.  Octal integer numbers should not
+contain <CODE>8</CODE> or <CODE>9</CODE>.  If an integer number has
+suffix <CODE>l</CODE> or <CODE>L</CODE>, it is a long number (see long
+values in section "Types and Values").  Floating point numbers
+are distinguished from decimal integer numbers by the presence
+of decimal point <CODE>.</CODE> or an exponent in the number.
 <BLOCKQUOTE><CODE>
 <PRE>
-          Number = Integer | FloatingPointNumber
+          Number = Integer | Long | FloatingPointNumber
 
-          Integer = Digit {Digit}
+          Integer = Digit {Digit} | "0" ("x" | "X") HexDigit { HexDigit }
+
+          Long = Integer ("l" | "L")
 
           FloatingPointNumber = Digit {Digit} "." { Digit } [Exponent]
                               | Digit {Digit} [Exponent]
@@ -74,6 +87,8 @@ Examples:
 <BLOCKQUOTE><CODE>
 <PRE>
           10
+          10L
+          22222222222222222222222222222222222222222222222222222222l
           100.
           1e2
           100.0E+0
@@ -154,21 +169,22 @@ Keywords can not be used in the place of an identifier.
           OperatorOrDelimeter = "?" | ":" | "|" | "||" | "&amp;" | "&amp;&amp;" | "^"
                               | "==" | "!=" | "===" | "!==" | "&lt;" | ">"
                               | "&lt;=" | ">=" | "&lt;&lt;" | ">>" | ">>>" | "@"
-                              | "+" | "-" | "/" | "*" | "%" | "!"
-                              | "~" | "#" | "(" | ")" | "[" | "]"
-                              | "{" | "}" | "." | "," | ";" | "="
-                              | "*=" | "/=" | "%=" | "+=" | "-="
-                              | "@=" | "&lt;&lt;=" | ">>=" | ">>>=" | "&amp;="
-                              | "^=" | "|=" | "++" | "--" | "..."
-                              | Keyword
+                              | "+" | "-" | "/" | "*" | "%" | "!" | "~"
+                              | "#" | ".+" | ".*" | ".&amp;" | ".^" | ".|"
+                              | "(" | ")" | "[" | "]" | "{" | "}"
+                              | "." | "," | ";" | "=" | "*=" | "/="
+                              | "%=" | "+=" | "-=" | "@=" | "&lt;&lt;=" | ">>="
+                              | ">>>=" | "&amp;=" | "^=" | "|=" | "++" | "--"
+                              | "..." | Keyword
 
-          Keyword = "break" | "catch" | "char" | "class" | "continue"
-                  | "else" | "ext" | "extern"
-                  | "final" | "float" | "for" | "friend" | "func"
-                  | "hide" | "hideblock" | "if" | "in" | "int"
-                  | "new" | "nil" | "public" | "private" | "return"
-                  | "table" | "thread" | "throw" | "try" | "type"
-                  | "var" | "vector" | "wait"
+          Keyword = "_" | "break" | "case" | "catch" | "char" | "class"
+                  | "continue" | "else" | "extern" | "final" | "float"
+                  | "for" | "former" | "friend" | "fun" | "hide"
+                  | "hideblock" | "if" | "in" | "int" | "later" | "long"
+                  | "new" | "nil" | "obj" | "priv" | "process" | "pub"
+                  | "return" | "swicth" | "tab" | "thread" | "this"
+                  | "throw" | "try" | "type" | "use" | "val" | "var"
+                  | "vec" | "wait"
 </PRE>
 </CODE></BLOCKQUOTE>
 

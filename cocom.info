@@ -1,4 +1,4 @@
-This is cocom.info, produced by makeinfo version 5.1 from
+This is cocom.info, produced by makeinfo version 5.2 from
 sgmltmp.cocom.2.texi.
 
 
@@ -10,7 +10,7 @@ COCOM tool set
 **************
 
      Vladimir Makarov, `vmakarov@users.sourceforge.net'
-     Sep. 10, 2004
+     May. 18, 2015
 
    This document describes COCOM tool set oriented towards the creation
 of compilers, cross-compilers, interpreters, and other language
@@ -329,9 +329,10 @@ oriented on the same domain of applications as famous scripting
 languages perl, tcl, python.  The most of programmers know C language.
 Therefore Dino aims to look like C language where it is possible.  Dino
 is an object oriented languages with garbage collection.  Dino has
-possibilities of parallelism description and exceptions handling.  Dino
-is an extensible language with possibility of dynamic load of libraries
-written on other languages.  The high level structures of Dino are
+possibilities of concurrent execution, pattern matching, and exceptions
+handling.  Dino is an extensible language with possibility of dynamic
+load of libraries written on other languages.  The high level structures
+of Dino are
 
    * heterogenous extensible arrays
    * extensible associative tables with possibilities of deleting table
@@ -342,9 +343,9 @@ written on other languages.  The high level structures of Dino are
 description of movement of dinosaurs in an project.  It has been
 considerably redesigned and implemented with the aid of COCOM tool set.
 
-   In future, I am going to implement debugger and port a GUI library
-into DINO. Any help in this will be appreciated.  I am also going to use
-DINO for compiler prototyping.
+   In future, I am going to implement more libraries fo DINO. Any help
+in this will be appreciated.  I am also going to use DINO for compiler
+prototyping.
 
    Current state: Implemented, documented, and tested.  Experimental
 status.

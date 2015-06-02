@@ -6,78 +6,11 @@
 <title>The Programming Language DINO
 <author>Vladimir Makarov, <tt>vmakarov@users.sourceforge.net</tt>.
 Edited by Serhei Makarov.
-<date>Nov 21, 2012
+<date>June 2, 2015
 <abstract>
 This document describes the programming language DINO.
 </abstract>
 <toc>
-
-<tscreen><verb>
-
-History
-==========
-  Apr 29, 2001.  Documentation of all objects corresponding to Earley's
-	         parser was added.
-
-  May 05, 2001.  Semantics of private declarations are changed slightly.
-                 Earlier, they were accessible only by a separate
-                 identifier.  Now they are accessible inside their
-                 scope.  In other words, they can be accessible by `.'
-                 or `->' inside the scope.
-
-                 Added profile option -p.
-
-                 Added IEEE standard floating point arithmetic.
-                 
-                 Declaration block friends.
-
-  Jun 22, 2001.  Function rcount is added.
-
-  Jul 19, 2001.  Functions getf and fgetf have been added.
-
-  Jun 23, 2001.  Function gmatch is added, rcount is removed.
-
-  Jun 25, 2001.  Operators char, int, float are added.
-
-  Sep 25, 2001.  Vector conversion with format.  New function rev.
-                 Del, ins, and insv now return the vector.
-
-  Oct 27, 2001.  New predefined variable version.  Additional
-                 parameter for getf and fgetf.
-
-  Oct 31, 2001.  Added special method destroy.
-
-  Nov 22, 2001.  New functions sput, sputln, sprint, sprintln added.
-
-  Dec 13, 2001.  New variables nil_anode and error_anode and new
-                 function set_cost.
-
-  Mar 15, 2002.  Function parse may return nil.
-
-  Mar 18, 2002.  New function set_lookahead.
-
-  Apr 30, 2002.  Calling destroy by finishing the program.
-
-  Dec 8, 2002.   Equality of instance, classes and functions means
-                 the same context.
-  Dec 14, 2003.  Making table key is immutable in assignment.
-
-  Jan 29, 2004.  New exception invfmt. New functions putf, fputf, sputf.
-
-  Jan 4,  2006.  New function trans.  Make function rev returning a new
-                 array.
-
-  Jan 15, 2006.  Removing depricated -> and dereference '*' operations
-
-  Jan 16, 2006.  New swap operation.
-
-  Jan 25, 2006.  Add sync statement in wait-stmt
-
-  Nov 21, 2012.  Remove swap operation.
-
-  Apr 23, 2013.  Undefined values.
-
-</verb></tscreen>
 
 <sect>Introduction
 <p>
@@ -88,7 +21,7 @@ applications as the famous scripting languages Perl, TCL, and Python.
 Most programmers know the C programming language.  Therefore Dino aims
 to look like C where it is possible.  Dino is an object oriented
 language with garbage collection.  Dino has possibilities of
-parallelism description and exception handling.  Dino is an extensible
+concurrency execution and exception handling.  Dino is an extensible
 language with the possibility of dynamic loading of libraries written
 on other languages.  The high level structures of Dino are
     <itemize>
@@ -140,7 +73,8 @@ letters are considered to be distinct.
 
      <item>An <em>identifier</em> is a sequence of letters and digits
         starting with a letter.  The underline is believed to be a
-        valid letter in an identifier.
+        valid letter in an identifier.  A single underline is fixed
+        for other usage (see wildcard in section "Patterns").
 <tscreen><verb>
           Ident = Letter {Letter | Digit}
 
@@ -155,20 +89,32 @@ letters are considered to be distinct.
           OctalDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
 
           Digit = OctalDigit | "8" | "9"
+
+          HexDigit = Digit | "a" | "A" | "b" | "B" | "c" | "C"
+	           | "d" | "D" | "e" | "E" | "f" | "F"
+	            
 </verb></tscreen>
         Examples:
 <tscreen><verb>
           line  line2  next_line  NextLine
 </verb></tscreen>
 
-     <item><em>Numbers</em> are (unsigned) decimal integer or floating
-        point numbers.  Numbers start with a digit.  Floating point
-        numbers are distinguished by the presence of decimal point
-        <tt>.</tt> or an exponent in the number.
+     <item><em>Numbers</em> are (unsigned) integer or floating point
+        numbers.  Numbers start with a digit.  Numbers starting with
+        prefix <tt>0x</tt> or <tt>0X</tt> are hexadecimal integer
+        numbers.  Otherwise integer numbers starting with <tt>0</tt>
+        are octal integer numbers.  Octal integer numbers should not
+        contain <tt>8</tt> or <tt>9</tt>.  If an integer number has
+        suffix <tt>l</tt> or <tt>L</tt>, it is a long number (see long
+        values in section "Types and Values").  Floating point numbers
+        are distinguished from decimal integer numbers by the presence
+        of decimal point <tt>.</tt> or an exponent in the number.
 <tscreen><verb>
-          Number = Integer | FloatingPointNumber
+          Number = Integer | Long | FloatingPointNumber
 
-          Integer = Digit {Digit}
+          Integer = Digit {Digit} | "0" ("x" | "X") HexDigit { HexDigit }
+
+          Long = Integer ("l" | "L")
 
           FloatingPointNumber = Digit {Digit} "." { Digit } [Exponent]
                               | Digit {Digit} [Exponent]
@@ -178,6 +124,8 @@ letters are considered to be distinct.
         Examples:
 <tscreen><verb>
           10
+          10L
+          22222222222222222222222222222222222222222222222222222222l
           100.
           1e2
           100.0E+0
@@ -242,21 +190,22 @@ letters are considered to be distinct.
           OperatorOrDelimeter = "?" | ":" | "|" | "||" | "&" | "&&" | "^"
 	                      | "==" | "!=" | "===" | "!==" | "<" | ">"
 			      | "<=" | ">=" | "<<" | ">>" | ">>>" | "@"
-	                      | "+" | "-" | "/" | "*" | "%" | "!"
-                              | "~" | "#" | "(" | ")" | "[" | "]"
-	                      | "{" | "}" | "." | "," | ";" | "="
-	                      | "*=" | "/=" | "%=" | "+=" | "-="
-                              | "@=" | "<<=" | ">>=" | ">>>=" | "&="
-	                      | "^=" | "|=" | "++" | "--" | "..."
-                              | Keyword
+	                      | "+" | "-" | "/" | "*" | "%" | "!" | "~"
+     			      | "#" | ".+" | ".*" | ".&" | ".^" | ".|"
+			      | "(" | ")" | "[" | "]" | "{" | "}"
+                              | "." | "," | ";" | "=" | "*=" | "/="
+                              | "%=" | "+=" | "-=" | "@=" | "<<=" | ">>="
+                              | ">>>=" | "&=" | "^=" | "|=" | "++" | "--"
+			      | "..." | Keyword
 
-          Keyword = "break" | "catch" | "char" | "class" | "continue"
-	          | "else" | "ext" | "extern"
-                  | "final" | "float" | "for" | "friend" | "func"
-                  | "hide" | "hideblock" | "if" | "in" | "int"
-                  | "new" | "nil" | "public" | "private" | "return"
-	          | "table" | "thread" | "throw" | "try" | "type"
-                  | "var" | "vector" | "wait"
+          Keyword = "_" | "break" | "case" | "catch" | "char" | "class"
+                  | "continue" | "else" | "extern" | "final" | "float"
+                  | "for" | "former" | "friend" | "fun" | "hide"
+                  | "hideblock" | "if" | "in" | "int" | "later" | "long"
+                  | "new" | "nil" | "obj" | "priv" | "process" | "pub"
+                  | "return" | "swicth" | "tab" | "thread" | "this"
+                  | "throw" | "try" | "type" | "use" | "val" | "var"
+                  | "vec" | "wait"
 </verb></tscreen>
 
      <item><em>Comments</em> are considered analogous to blanks on the
@@ -276,9 +225,10 @@ letters are considered to be distinct.
 <p>
 A Dino program is block structured.  Each block introduces a new
 identifier scope.  A block consists of executive statements and
-declarations and may contain nested blocks.  Each identifier used in a
-program should be declared in a declaration in the program, unless it
-is a predeclared identifier.
+declarations and may contain nested blocks.  There are also implicit
+blocks containing each case-part of switch statements (see
+below). Each identifier used in a program should be declared in a
+declaration in the program, unless it is a predeclared identifier.
 <tscreen><verb>
           Block = "{"  StmtList "}"
 
@@ -289,21 +239,24 @@ is a predeclared identifier.
 </verb></tscreen>
 When declaring an identifier, you also specify certain permanent
 properties of a declaration, such as whether it is a variable, a
-function, or a class.  The identifier is then used to refer to the
-associated declaration (more correctly with the declaration instance).
+function, a class, or a singleton object.  The identifier is then used
+to refer to the associated declaration (more correctly with the
+declaration instance).
 <tscreen><verb>
           Declaration = VarDeclarations
                       | AccessClause
                       | ExternDeclarations
-                      | FuncClassExtDeclaration
+                      | FuncClassDeclaration
+                      | SingletonObject
+                      | ForwardDeclaration
                       | IncludeDeclaration
 </verb></tscreen>
-The scope of a declaration is textually from the start (not from the
-point of declaration!) to the end of the block to which the
-declaration belongs and hence to which the declaration is local.  It
-excludes the scopes of declarations with the same identifier which are
-in nested blocks.  In a block, a maximum of one declaration of the
-same identifier is possible.
+The scope of a declaration is textually from the point of declaration
+to the end of the block to which the declaration belongs and hence to
+which the declaration is local.  The declaration scope can stop
+earlier at the point of another declaration with the same identifier
+in the same block.  The declaration scope excludes the scopes of
+declarations with the same identifier which are in nested blocks.
 <p>
 It is important to understand the notion of instantiation of the
 declaration.  This notion reflects program execution, not the static
@@ -332,30 +285,27 @@ class is bound to the given context.
             if (i % 4 == 0)
               {
                 var j = i;
-                func r () {return j;}
+                fun r () {return j;}
                 f = r;
               }
           putln (f ());
 </verb></tscreen>
 <p>
-Declaration is always either private or public.  Private declaration
-is accessible only inside the declaration scope or inside functions or
-classes which are declared as <em>friend</em> in the declaration
-block.  A public declaration instance is always accessible when
-association (see below) of the identifier is successful.  By default,
-[instances of] declarations in a class block are public.  In all other
-places, the (instances of) declarations are private by default.  The
-following constructions are used for declaring an identifier to be
-public, private, or as friend:
+There are certain rules for declaration accessibility.  Declaration is
+always either <em>private</em> or <em>public</em>.  Private
+declaration is accessible only inside the declaration scope or inside
+functions or classes which are declared as <em>friend</em> in the
+declaration block.  A public declaration instance is always accessible
+when association (see below) of the identifier is successful.  By
+default, (instances of) declarations in a class block are public.  In
+all other places, the (instances of) declarations are private by
+default.  The following constructions are used for declaring an
+identifier to be a friend:
 <tscreen><verb>
-          AccessClause = (public | private | friend) AccessList ";"
-
-          AccessList = IDENT { "," IDENT }
+          FriendClause = friend IDENT { "," IDENT } ";"
 </verb></tscreen>
         Examples:
 <tscreen><verb>
-          public param1, param2;
-          private call_count;
           friend class2;
 </verb></tscreen>
 Association of an identifier and the corresponding declaration
@@ -363,155 +313,89 @@ instance is performed by the following rules:
      <itemize>
      <item>The corresponding declaration instance is searched for a
        separate identifier occurrence in the instance of the block in
-       which the identifier occurs.  If the latter failed, the
+       which the identifier occurs.  The identifier should be in the scope
+       of the corresponding declaration.  If there is no such declaration, the
        declaration is searched in the covering block instance of the
-       current block instance, and so on.
+       current block instance back from the current block, and so on.
+       In any case, the identifier should be in the scope of the
+       corresponding declaration.
      <item>Declaration instance for an identifier in the following
        construction
 <tscreen><verb>
        designator.identifier
 </verb></tscreen>
        is searched in the block instance (e.g. in a class object)
-       whose value is in the designator.  If the designator is a class
-       object, its context is a class object, and the search failed,
-       the search is continued in the covering class object etc.  The
+       whose value is in the designator.  The scope of the found
+       declaration should always include the block end.  The
        exception <tt>accessop</tt> occurs if the declaration is not
        found with such identifier, or the declaration is private and
-       the construction is not in the declaration scope and not inside
-       a friend of the declaration scope.
+       the construction is not inside a friend of the declaration
+       scope.
      </itemize>
 The following identifiers are predeclared on the top level (in the
 implicit block covering the whole program).  They are described in
 more detail later in the report.
 <tscreen><verb>
-  anode          argv           atan2
-  chdir          chgmod         chomod         chumod
-  clock          close          cmpv           context
-  cos            curr_thread
-  del
-  eltype         env            error_anode    errors
-  except         excepts        exit           exp
+  abstrcall      accessop       accessvalue    anode
+  argv           atan2
+  callop         chdir          chgmod         chomod
+  chumod         clock          close          closure
+  cmpv           context        cos            curr_thread
+  deadlock       del
+  eaccess        eagain         ebadf          ebrack
+  ebusy
+  echild         ectype         edeadlk        edom
+  eend           eescape        eexist         efault
+  efbig          eintr          einval         eio
+  eisdir         eltype         emfile         emlink
+  enametoolong   enfile         enodev         enoent
+  enoexec        enolck         enomem         enospc
+  enosys         enotdir        enotempty      enotty
+  env            enxio          eof            eparen
+  eperm          epipe          erange         erofs
+  error_anode    error          esize          espace
+  espipe         esrch          esubreg        exdev
+  except         exit           exp
   fatime         fctime         fget           fgetf
-  fgetln         fgmode         fgn            file
-  flush          fmtime         fomode         fprint
-  fprintln       fput           fputln         fscan
-  fscanln        fsize          ftype          fumode
-  fun
+  fgetln         fgmode         fgrpn          file
+  filter         flush          fmtime         fold
+  fomode         fprint         fprintln       fput
+  fputln         fscan          fscanln        fsize
+  ftype          fuidn          fumode
   gc             get            getcwd         getegn
   geteun         getgn          getgroups      getf
   getln          getpid         getun          gmatch
   gsub
-  ins            inside         insv           invaccesses
-  invcalls       invexterns     invindexes     invkeys
-  invops         invparsers     invregexps     isatty
-  keys
-  log            log10
-  main_thread    match          max            min
-  mkdir
-  nil_anode
-  open
-  parser         pclose         popen          pow
+  immutable      indexop        indextype      indexvalue     
+  ins            inside         insv           invaccess
+  invcall        invector       invenv         invenvar
+  invextern      invfmt         invgrammar     invindex
+  invinput       invkey         invop          invparser
+  invregexp      invresult      invslice       invtoken
+  isa            isatty
+  keyop          keys           keyvalue
+  libclose       log            log10
+  main_thread    match          matrixform     max
+  min            mkdir
+  nil_anode      noextern       noexternsupp   noshell
+  open           optype         opvalue
+  parser         parnumber      partype        patternmatch
+  pclose         pmemory        popen          pow
   print          println        put            putln
   rand           readdir        remove         rename
   rev            rmdir
-  scan           scanln         seek           signals
-  sin            sort           split          split_regex
-  sprint         sprintln       sput           sputln
-  sqrt           srand          stderr         stdin
-  stdout         strtime        sub            subv
-  syserrors      system         systemcalls
-  tell           time           time_format    token
-  tolower        toupper        trans
-  version
-</verb></tscreen>
-The following identifiers are predeclared in the class <em>except</em>
-mentioned above.
-<tscreen><verb>
-  error
-</verb></tscreen>
-The following identifiers are predeclared in the class <em>error</em>
-mentioned above.
-<tscreen><verb>
-  deadlock
-  invaccess      invcall        invenv         invindex
-  invkey         invop
-  signal         syncwait
-</verb></tscreen>
-The following identifiers are predeclared in the class <em>signal</em>
-mentioned above.
-<tscreen><verb>
+  scan           scanln         seek           signal
   sigabrt        sigfpe         sigill         sigint
   sigsegv        sigterm
-</verb></tscreen>
-The following identifiers are predeclared in the class <em>invop</em>
-mentioned above.
-<tscreen><verb>
-  optype         opvalue
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>invindex</em> mentioned above.
-<tscreen><verb>
-  indexop        indextype      indexvalue
-</verb></tscreen>
-The following identifiers are predeclared in the class <em>invkey</em>
-mentioned above.
-<tscreen><verb>
-  keyop          keyvalue
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>invcall</em> mentioned above.
-<tscreen><verb>
-  callop
-  eof
-  internal       invenvar       invextern      invfmt
-  invinput       invparser      invregexp      invresult
-  parnumber      partype
-  syncthreadcall syserror       systemcall
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>syserror</em> mentioned above.
-<tscreen><verb>
-  eaccess        eagain         ebadf          ebusy
-  echild         edeadlk        edom           eexist
-  efault         efbig          eintr          einval
-  eio            eisdir         emfile         emlink
-  enametoolong   enfile         enodev         enoent
-  enoexec        enolck         enomem         enospc
-  enosys         enotdir        enotempty      enotty
-  enxio          eperm          epipe          erange
-  erofs          espipe         esrch          exdev
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>systemcall</em> mentioned above.
-<tscreen><verb>
-  noshell
-  systemfail
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>invparser</em> mentioned above.
-<tscreen><verb>
-  invgrammar     invtoken
-  pmemory
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>invregexp</em> mentioned above.
-<tscreen><verb>
-  badpat
-  ebrack         ectype         eend           eescape
-  eparen         erange         esize          espace
-  esubreg
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>invextern</em> mentioned above.
-<tscreen><verb>
-  libclose
-  noextern       noexternsupp
-</verb></tscreen>
-The following identifiers are predeclared in the class
-<em>invaccess</em> mentioned above.
-<tscreen><verb>
-  accessop       accessvalue
-  immutable
+  sin            sliceform      slicetype      sort
+  split          split_regex    sprint         sprintln
+  sput           sputln         sqrt           srand
+  stderr         stdin          stdout         strtime
+  sub            subv           syncthreadcall syncwait
+  syserror       system         systemcall     systemfail
+  transpose      tell           time           time_format
+  token          tolower        toupper        trans
+  veclen         vecform        version
 </verb></tscreen>
 
 <sect1>Variable Declarations
@@ -520,23 +404,37 @@ Dino is an imperative language. In other words it has
 <em>variables</em> which are named containers of values.  A variable
 can contain any value.  This means that DINO is a dynamically-typed
 language.  The declaration of a variable also may define the initial
-value of the variable.  Assigning of the initial value to the variable
-instance is made after execution of the previous statements of the
-block.  By default the initial value of variables is undefined.
-Nothing can be done with this.  This value even can be stored.  The
-value of the variable can not be changed after its initialization if
-its declaration contains the keyword <bf>final</bf>.
+value of the variable.  In this case a <em>pattern</em> can stand on
+the left side of the assignment instead of just an identifier.  The
+pattern should contain at least one variable.  The pattern variables
+are declared at the assignment point.  Pattern should match the
+assigned value, otherwise exception <tt>patternmatch</tt> is
+generated.  Details about patterns, pattern variables, and pattern
+matching is decribed later in this document.
+<p>
+Assigning of the initial value to the variable instance is made after
+execution of the previous statements of the block and after execution
+of previous assignments in the variable list.  By default the initial
+value of variables is undefined.  Nothing can be done with this value.
+This value even can not be stored.
+<p>
+The value of the variable can not be changed after its initialization
+if its declaration is in a list starting with keyword <bf>val</bf>.
+<p>
+Keywords <bf>pub</bf> and <bf>priv</bf> can be used to redefine the
+default accessibility.  They make the declared variables
+correspondingly public and private.
 <tscreen><verb>
-          VarDeclarations = var  VarParList ";"
+          VarDeclarations = [pub | priv] (val | var) VarList ";"
 
-          VarParList = VarPar { "," VarPar }
+          VarList = Var { "," Var }
        	
-          VarPar = [final] IDENT [ "="  Expr]
+          Var = IDENT | Pattern "="  Expr
 </verb></tscreen>
         Examples:
 <tscreen><verb>
-          var i = 0, j, k;
-          var final constant = 10, final nil_constant, l;
+          var i = 0, [el1, el2] = [2, 5], j, k;
+          val constant = 10, nil_constant = nil;
 </verb></tscreen>
 
 <sect1>External Declarations
@@ -553,9 +451,13 @@ instrument of DINO extension.  The external functions and variables
 are declared after keyword <bf>extern</bf>.  An external function
 identifier is followed by <tt>()</tt>.  All external declarations
 (e.g. in different blocks) with the same identifier refer the the same
-external function or variable.
+external function or variable.  As in variable declaration,
+keywords <bf>pub</bf> and <bf>priv</bf> can be used to redefine the
+default accessibility.
 <tscreen><verb>
-          ExternDeclarations = extern  ExternItem { "," ExternItem } ";"
+          ExternDeclarations = [pub | priv] extern ExternItems ";"
+
+          ExternItems = ExternItem { "," ExternItem }
 
           ExternItem = IDENT 
                      | IDENT  "(" ")"
@@ -565,138 +467,141 @@ external function or variable.
           extern function (), variable;
 </verb></tscreen>
 
-<sect1>Functions, Classes, Extensions
+<sect1>Functions and Classes
 <p>
-A function/class declaration consists of a function/class header and a
-function/class block (body).  The header specifies the function
-identifier and <em>formal parameters</em>.  A function can return the
-result with the aid of the statement <em>return</em>.  If the result
-value after the keyword <em>return</em> is absent or the return
-statement is absent or is not executed, the function result is
-undefined.  A class call returns an object of the class which can be
-considered as a block instance of the class body.  The
-return-statement for classes must be without a result.
+A function/class declaration consists of a
+function/class <em>header</em>, <em>formal parameters</em>, and a
+function/class block (body).  The header specifies the function/class
+identifier.
+<p>
+A function can return the result with the aid of the
+statement <em>return</em>.  If the result value after the
+keyword <em>return</em> is absent or the return statement is not
+executed, the function result is undefined.  Expression-statement as
+the last statement in the function block is actually abbreviation of
+return with the expression.
+<p>
+A class call returns the class block instance (an <em>object</em> of
+the class).  The return-statement for classes must be without a result.
+<p>
 <em>Thread-functions</em> are analogous to general functions.  The
-difference is in that a new execution <em>thread</em> is created
-during the thread-function call, the return-statement inside
+difference is in that a new execution thread (<em>process</em>) is
+created during the thread-function call, the return-statement inside
 thread-function must be without an expression, and the thread-function
-returns the corresponding (execution) thread.  The execution thread
-finishes when the corresponding thread block finishes.  Execution
-threads are executed parallelly.  Originally only one thread (called
-the <em>main thread</em>) exists in a DINO program.
+returns the corresponding process.  The process finishes when the
+corresponding thread block finishes.  Processes are executed
+concurrently.  Originally only one process (called the <em>main
+thread</em>) exists in a DINO program.
 <p>
 The formal parameters are considered to be declared in a
 function/class block and to be initialized by values of <em>actual
-parameters</em> during a call of the function/class.  The function can
-be called with any number of <em>actual parameters</em>.  If the
-number of actual parameters is less than the formal parameters number,
-the remaining formal parameters are initialized by the special value
-<bf>nil</bf>.  Otherwise if the number of actual parameters is more
-than the number of formal parameters, the remaining actual parameter
-values are ignored.  In order to process all actual parameters, you
-should place <tt>...</tt> at the end of the list of formal parameter
-declarations.  This means that the formal parameter with the
+parameters</em> during a call of the function/class.  By default they
+can change their value.  Keyword <bf>val</bf> prevents changing value
+of the corresponding formal parameter after the initialization.
+<p>
+Default accessibility of the formal parameter can be changed by using
+keywords <bf>pub</bf> or <bf>priv</bf> (see accessibility in section
+"Declarations and Scope Rules").
+<p>
+The number of <em>actual parameters</em> should be the same as the
+number of formal parameters.  There are two exclusion to this
+requirement.  One exclusion is formal parameters initialized by a
+default value in a way analogous to variable initialization.  The
+actual parameters corresponding to the formal parameters with default
+values can be omitted.  In this case, the formal parameters will have
+the default value.  Another exclusion is an usage of <tt>...</tt> at
+the end of the list of formal parameter declarations, the number of
+actual parameters can be more the number of formal parameters.
+Using <tt>...</tt> results in that the formal parameter with the
 identifier <tt>args</tt> will be declared implicitly.  The value of
 the parameter will be a vector whose elements will be the remaining
-actual parameter values.  If the number of actual parameters is less
-or equal to the number of formal parameters (not taking the implicit
+actual parameter values.  If the number of actual parameters is equal
+to the number of formal parameters (not taking the implicit
 parameter <tt>args</tt> into account), the value of <tt>args</tt> will
-be the empty vector.  The formal parameter can be initialized by a
-default value in a way analogous to variable initialization.  The
-initialization is made only when the corresponding actual parameter
-value is undefined.
+be the empty vector.
+<p>
+All formal parameters with default values should be at the end of the
+parameter list.  Usage of formal parameters with default values is
+prohibited in case when <tt>...</tt> is used.
 <p>
 If a class contains a function with the name <tt>destroy</tt>, the
 function will be called when the class object becomes garbage during
 the garbage collection process or at the end of the program.  The
-function can also be called explicitly if it is declared as public.
-You should remember that although the function may have parameters
-and return a value, the garbage collector (or finishing the program)
-ignores the result value and does not pass actual parameters.  The
-single exception when the function <tt>destroy</tt> is not called by
-finishing the program is the case when memory can not be allocated
-more.  So the values of the parameters will be <bf>nil</bf> if the
-function is called by the garbage collector (or finishing the
-program).  You may prevent removing the corresponding object in the
-function destroy by assigning the object to a variable.  It means that
-the function can be called several times (during several garbage
-collections) for the same object.  But you should also avoid creation
-of objects during the call of function <tt>destroy</tt> because it may
-result in increase of the heap.
+function can also be called explicitly from outside if it is declared
+as public.  You should remember that the function is called by the
+garbage collector without actual parameters and the garbage collector
+(or finishing the program) ignores the result value.  So the function
+should satisfy the above rules to be called without actual parameters.
 <p>
-Instead of inheritance usually used in object-oriented languages, Dino
-supports <em>extension</em>.  This feature permits to modify
-function/class behaviour.  All code inside an extension body is
-inserted at the end of body of the function/class declared with the
-same identifier in the same block in the same order as the extensions
-are placed in the block.  A function/class declared as <em>final</em>
-can not be extended.
+You may prevent removing the corresponding object by the garbage
+collector in the function destroy by assigning the object to a
+variable.  It means that the function can be called several times
+(during several garbage collections) for the same object.  But you
+should also avoid creation of objects during the call of
+function <tt>destroy</tt> because it may result in increase of the
+heap.
+<p>
+A function/class declaration can have optional qualifiers.
+Qualifier <bf>final</bf> can not be mentioned in use-clause.
+Qualifiers <bf>pub</bf> and <bf>priv</bf> changes default
+accessibility of the declaration.
 <tscreen><verb>
-          FuncClassExtDeclaration = Header Block
+          FuncClassDeclaration = Header FormalParameters Block
 
-          Header = [final] FuncThreadClass IDENT FormalParameters
-                 | ext IDENT
+          Header = [Qualifiers] FuncThreadClass IDENT
 
-          FuncThreadClass = func 
+          Qualifiers = pub | priv | final
+	              | pub final | priv final
+	              | final pub | final priv
+
+          FuncThreadClass = fun 
                  	  | thread 
                  	  | class 
       	
-          FormalParameters = "("  [ VarParList ] ")"
-                 	   | "("  VarParList "," "..."  ")"
-                 	   | "(" "..."  ")"
+          FormalParameters =
+	                   | "(" [ ParList ] ")"
+                 	   | "(" ParList "," "..." ")"
+                 	   | "(" "..." ")"
+
+	  ParList = Par { "," Par}
+
+	  Par = [pub | priv] [val | var] IDENT [ "=" Expr]
 </verb></tscreen>
         Examples:
 <p>
-        The following is a parameterless class header:
+        The following is parameterless class:
 <tscreen><verb>
-          class stack ()
+          class stack () {}
+          class stack {}
 </verb></tscreen>
-        The following is a class header with an initialization:
+        The following is a class header with initialization parameters:
 <tscreen><verb>
-          class stack (max_height = var a = 1, b = 2)
+          class stack (max_height = variable,
+                       val a = 1, priv val b = 2)
 </verb></tscreen>
         The following is a function with a variable number of parameters:
 <tscreen><verb>
-          func print_args (...)
+          fun print_args (...)
             {
               for (i = 0; i < #args; i++)
                 println (args[i]);
             }
 </verb></tscreen>
-        The following example illustrates the usage of extensions:
-<tscreen><verb>
-           class point (x = 0, y = 0) {
-           }
-           ext point {
-             class circle (radius = 1) {
-	       func square () {return 3.14 * radius * radius;}
-             }
-           }
-           ext point {
-             ext circle {
-               class ellipse (width) {
-                 func square () {
-                   ...
-                 }
-               }
-           }
-</verb></tscreen>
         The following example is a class with the function <tt>destroy</tt>:
 <tscreen><verb>
           var objs_number = 0;
           class obj () {
-            private n, destroy;
-            var n = objs_number;
+            priv var n = objs_number;
             objs_number++;
-            func destroy () {objs_number--; objs_number--;}
+            priv fun destroy () {objs_number--; objs_number--;}
           }
 </verb></tscreen>
         The following example illustrates threads:
 <tscreen><verb>
           class buffer (length = 3) {
             var b = [length:nil], first = 0, free = 0, empty = 1;
-            private b, first, free, length;
-            func consume () {
+            priv b, first, free, length;
+            fun consume () {
               var res;
           
               wait (!empty);
@@ -705,19 +610,19 @@ can not be extended.
               wait (1) empty = first == free;
               return res;
             }
-            func produce (val) {
+            fun produce (value) {
               wait (empty || free != first);
-              b [free] = val;
+              b [free] = value;
               free = (free + 1) % length;
               wait (1) empty = 0;
             }
           }
           
           thread consumer (buffer) {
-              func produce (val) {
-                buffer.produce (val);
+              fun produce (value) {
+                buffer.produce (value);
                 put ("produce: ");
-                println (val);
+                println (value);
               }
               produce (10);
               produce (10.5);
@@ -727,14 +632,14 @@ can not be extended.
           }
           
           thread producer (buffer) {
-            var val;
+            var value;
           
             for (;;) {
-              val = buffer.consume ();
-              if (val == nil)
+              value = buffer.consume ();
+              if (value == nil)
                 break;
               put ("consume: ");
-              println (val);
+              println (value);
             }
           }
           
@@ -742,7 +647,114 @@ can not be extended.
           consumer (queue);
           producer (queue);
 </verb></tscreen>
-       	
+<p>
+According to Dino scope rules, a declaration should be present before
+any usage of the declared identifier.  Sometimes we need to use
+function/class identifier before its declaration, e.g. in the case of
+mutually recursive functions.  To do this, Dino has forward
+declarations.
+<p>
+  A forward declaration is just a function/class header followed by
+semicolon:
+<tscreen><verb>
+            ForwardDeclaration = Header ";"
+</verb></tscreen>
+<p>
+Forward declaration denotes first declaration with the same identifier
+in the same block after the forward declaration.  The forward and the
+corresponding declaration should be the same declaration type
+(function, class, or thread), and have the same accessibility and the
+same qualifier <tt>final</tt>.
+<p>
+The corresponding declaration may be absent.  In this case a call of
+the function/class results in occuring exception <tt>abstrcall</tt>.
+Forward declaration without the corresponding declaration can be
+usefull to describe <em>abstract classes</em>.  The following are
+examples of forward declarations:
+<tscreen><verb>
+          fun even;
+          fun odd (i) { if (i == 0) return 0; return even (i - 1);}
+          fun even (i) { if (i == 0) return 1; return odd (i - 1);}
+	  class operation { // abstract class
+            fun print_op (); fun apply ();
+	  }
+</verb></tscreen>
+
+<sect1>Use Clause
+<p>
+Dino has a powerful block composition operator <em>use</em>.  Using it
+inside a class block can emulate <em>(multiple) inheritance, traits,
+duck typing, and dynamic dispatching</em>.  The use-clause has the
+following syntax:
+<tscreen><verb>
+          UseClause = use IDENT { UseItemClause }
+
+          UseItemClause = [former | later] UseItem { "," UseItem }
+
+          Item = IDENT [ "(" IDENT ")"]
+</verb></tscreen>
+<p>
+Use-clause provides a safe way to support object oriented programming.
+It has the following semantics:
+<itemize>
+  <item>Declarations of class/function with identifier given in
+  <em>use</em> are inlayed.
+  <item>Declarations before the use-clause rewrite corresponding
+  inlayed declarations mentioned in <em>former</em>-items.
+  <item>Declarations after the use-clause rewrite corresponding
+  inserted declarations mentioned in <em>later</em>-items.
+  <item>The original (rewritten) and new (rewritting) declarations
+  should be <em>present</em> if they are given in former- or
+  later-items.
+  <item>The original and new declarations should be <em>matched</em>.
+  It means that they should be the same declaration type (variable,
+  function, class, thread, and external), they should have the same
+  accessibility, they should the same final attribute for functions,
+  classes, and threads.
+  <item>The original rewritten declaration can be still used in the
+  block if it is <em>renamed</em>.  The declaration is renamed when a
+  identfier in parentheses is given.  The original declaration can be
+  used with this identfier.
+</itemize>
+These rules are necessary for correct <em>duck-typing</em> or class
+<em>sub-typing</em>.
+<p>
+        The following example illustrates use-clause:
+<tscreen><verb>
+           class point (x, y) {
+           }
+           class circle (x, y, radius) {
+             use point former x, y;
+	     fun square () {3.14 * radius * radius;}
+           }
+           class ellipse (x, y, radius, width) {
+             use circle former x, y, radius later square;
+             fun square () {
+               ...
+             }
+           }
+</verb></tscreen>
+
+<sect1>Singleton Object
+<p>
+Sometimes it is usefull to guarantee that there is only single object
+(<em>singleton object</em>) of a class.  Although it can be achieved
+by creating of object of an anonymous class (see section "Anonymous
+Functions and Classes") and assigning it to a variable declared
+as <bf>val</bf>, Dino has a special declaration for singleton object:
+<tscreen><verb>
+        SingletonObject = [pub | priv] obj IDENT block
+</verb></tscreen>
+<p>
+Keywords <bf>pub</bf> and <bf>priv</bf> can be used to redefine the
+default accessibility.  They make the declared object correspondingly
+public and private.  Example of singleton object declaration:
+<tscreen><verb>
+           priv obj coord {
+             val x = 0, y = 10;
+           }
+</verb></tscreen>
+
 <sect>Expressions
 <p>
 Expressions are constructs denoting rules of computation of a value
@@ -815,10 +827,18 @@ Dino has the following types of values:
 </verb></tscreen>
           <item><em>integer</em>.  For its representation see
             <tt>Integer</tt> in the section <em>Vocabulary and
-            Representation</em>.  It is always stored as a 32-bit
+            Representation</em>.  It is always stored as a 64-bit
             integer value.
 <tscreen><verb>
                  Expr = INTEGER
+</verb></tscreen>
+          <item><em>long</em>.  For its representation see
+            <tt>Long</tt> in the section <em>Vocabulary and
+            Representation</em>.  Long values are signed
+            multi-precision integer.  The maximal and minimimal values
+            are constrained only by overall memory size.
+<tscreen><verb>
+                 Expr = LONG
 </verb></tscreen>
           <item><em>floating point number</em>.  For its
             representation see <tt>FloatingPointNumber</tt> in section
@@ -859,9 +879,9 @@ Dino has the following types of values:
                []
 </verb></tscreen>
           <item><em>table</em>.  This is a structured shared type
-            value.  A table value is represented by a list of key
-            values (expression values) in figure parentheses
-            <tt>{</tt> and <tt>}</tt> with optional element values
+            value.  A table value is represented keyword tab, followed
+            by a list of key values (expression values) in brackets
+            <tt>[</tt> and <tt>]</tt> with optional element values
             with a preceding <tt>:</tt>.  By default the element value
             is equal to <bf>nil</bf>.  It is not allowed to have
             elements with equal keys in a table.  If it is not true in
@@ -873,14 +893,14 @@ Dino has the following types of values:
             table constructor execution is that the keys become
             immutable.
 <tscreen><verb>
-                 Expr = "{"  ElistPartsList "}"
+                 Expr = tab "["  ElistPartsList "]"
 </verb></tscreen>
             Examples:
 <tscreen><verb>
-               {'a', 'b', 10:[10]}
-               {'a' : nil, 'b' : nil, 10 : [10]}
-               {[10, 'a', {10}] : 10, [10] : {20:20}}
-               {}
+               tab ['a', 'b', 10:[10]]
+               tab ['a' : nil, 'b' : nil, 10 : [10]]
+               tab [[10, 'a', tab [10]] : 10, [10] : tab [20:20]]
+               tab [}
 </verb></tscreen>
           <item><em>function</em>.  Its value is represented by the
             function designator.  It is important to remember that the
@@ -891,15 +911,14 @@ Dino has the following types of values:
           <item><em>class</em>.  Its value is represented by the class
             designator.  It is important to remember that the class is
             bound to a context.
-          <item><em>block instance</em>.  There is no Dino
-            representation of such values.
-          <item><em>thread</em>.  There is no literal Dino
-            representation of such values.  A thread value is
+          <item><em>process</em>.  There is no literal Dino
+            representation of such values.  A process is
             generated by calling a thread-function.
-          <item><em>object</em>(class instance).  This is a structured
-            shared type value.  There is no literal Dino
-            representation of such values.  Objects are generated by
-            calling classes.
+          <item><em>object</em> (block instance, usually a class block
+            instance).  This is a structured shared type value.  There
+            is no literal Dino representation of such values.  Objects
+            are generated by a block instantiation and usually
+            accessed by value <bf>this</bf>.
           <item><em>hide value</em>.  A hide value can not be
             generated by a Dino code.  They are generated by external
             functions.
@@ -916,14 +935,13 @@ Dino has the following types of values:
                       | float
                       | hide
                       | hideblock
-                      | vector
-                      | table
-                      | func
+                      | vec
+                      | tab
+                      | fun
                       | thread
                       | class
-                      | func "(" ")"
-                      | thread "(" ")"
-                      | class "(" ")"
+                      | process
+                      | obj
                       | type
 </verb></tscreen>
             There are the following type values:
@@ -938,21 +956,19 @@ Dino has the following types of values:
             <item>type of floating point numbers.  The value is
               represented by the Dino keyword <tt>float</tt>.
             <item>type of vectors.  The value is represented by the
-              Dino keyword <tt>vector</tt>.
+              Dino keyword <tt>vec</tt>.
             <item>type of tables.  The value is represented by the
-              Dino keyword <tt>table</tt>.
+              Dino keyword <tt>tab</tt>.
             <item>type of functions.  The value is represented by the
-              Dino keyword <tt>func</tt>.
+              Dino keyword <tt>fun</tt>.
             <item>type of thread-functions.  The value is represented
               by the Dino keyword <tt>thread</tt>.
             <item>type of classes.  The value is represented by the
               Dino keyword <tt>class</tt>.
-            <item>type of block instances.  The value is represented
-              by the Dino construction <tt>func ()</tt>.
+            <item>type of block instances (objects).  The value is
+              represented by the Dino keyword <tt>obj</tt>.
             <item>type of threads.  The value is represented by the
-              Dino construction <tt>thread ()</tt>.
-            <item>type of objects.  The value is represented by the
-              Dino construction <tt>class ()</tt>.
+              Dino keyword <tt>process</tt>.
             <item>type of hide values.  The value is represented by
               the Dino keyword <tt>hide</tt>.
             <item>type of hideblocks.  The value is represented by
@@ -964,7 +980,6 @@ Dino has the following types of values:
 
 <sect1>Designators
 <p>
-
 There is a special Dino construction called a <em>designator</em>.  A
 designator refers for a vector or table element or for a declaration.
 If the designator refers to a vector or table element or for a
@@ -973,53 +988,47 @@ assignment statement.  If the designator stands in an expression, the
 corresponding value is used (vector/table element value, variable
 value, function, thread-function, or class).  When the designator
 referring to table element stands up in the left hand side of an
-assignment statement, its key becomes immutable.
+assignment statement, <em>its key becomes immutable</em>.
+<p>
+A designator referring to a vector or table element has the following
+syntax:
 <tscreen><verb>
-          Expr = Designator
+           Designator = (Designator | Call) "["  Expr "]"
 </verb></tscreen>
-A designator referring to a vector element has the following syntax:
+The value of the construction before the brackets must be a vector or table.
+Otherwise, the exception <tt>indexop</tt> is generated.
+<p>
+If the value of the construction before the brackets is a vector, the
+value of expression in the brackets (so called the <em>index</em>) is
+converted to integer.  If this is not possible,
+exception <tt>indextype</tt> is generated.  If the index is negative
+or greater than or equal to the vector length, the
+exception <tt>indexvalue</tt> is generated.  The value of the
+designator will be the vector element value with given index (the
+indexes starts with zero).  Examples:
 <tscreen><verb>
-          Designator = DesignatorOrCall "["  Expr "]"
-
-          DesignatorOrCall = Designator
-                           | Call
+          vector [1]
+          vector ["1"]
+          vector [1.0]
 </verb></tscreen>
-The value of the construction before the brackets must be a vector.
-Otherwise, the exception <tt>indexop</tt> is generated.  The value of
-expression in the brackets (so called the <em>index</em>) is converted
-to integer.  If this is not possible, exception <tt>indextype</tt> is
-generated.  If the index is negative or greater than or equal to the
-vector length, the exception <tt>indexvalue</tt> is generated.  The
-value of the designator will be the vector element value with given
-index (the indexes starts with zero).
-        Examples:
-<tscreen><verb>
-          vect [1]
-          vect ["1"]
-          vect [1.0]
-</verb></tscreen>
-A designator referring to a table element has the following syntax:
-<tscreen><verb>
-          Designator = DesignatorOrCall "{"  Expr "}"
-</verb></tscreen>
-The value of the construction before the figure brackets must be a
-table.  Otherwise, the exception <tt>keyop</tt> is generated.  The
-value of expression in the figure brackets is called the <em>key</em>.
+<p>
+If the value of the construction before the brackets is a table, the
+value of expression in the brackets is called the <em>key</em>.
 The value of the designator will be the table element value with the
 key which is equal to given key.  If the element with the given key is
 absent in the table, exception <tt>keyvalue</tt> is generated.
-        Examples:
+Examples:
 <tscreen><verb>
-          tab {'c'}
-          tab {10}
-          tab {"1"}
-          tab {1.0}
+          table ['c']
+          table [10]
+          table ["1"]
+          table [1.0]
 </verb></tscreen>
 The remaining forms of designator refer to a declaration.  See section
 <em>Declarations and Scope Rules</em> for a description on how they
 work.
 <tscreen><verb>
-          Designator = DesignatorOrCall "."  IDENT
+          Designator = (Designator | Call) "."  IDENT
                      | IDENT
 </verb></tscreen>
         Examples:
@@ -1027,6 +1036,75 @@ work.
           value
           value.f
 </verb></tscreen>
+<p>
+Dino also has an extended form of the designator described above.
+This form is called <em>vector slice</em>:
+<tscreen><verb>
+          Expr = ExtDesignator
+
+          ExtDesignator = Designator {Slice}
+
+          Slice = "["  [Expr] ":" [Expr] [":" Expr] "]"
+</verb></tscreen>
+<p>
+Slice is applied to a vector, otherwise exception <tt>sliceform</tt>
+is generated.  Slice refers for a part of vector given by start index,
+bound, and the step.  If they are not integer,
+exception <tt>slicetype</tt> is generated.
+<p>
+The negative bound means counting index from the vector
+end.  <tt>-1</tt> corresponds to the vector length, <tt>-2</tt>
+corresponds to the vector length - 1, <tt>-3</tt> corresponds to the
+vector length -2, and so on.  If the bound is more than the vector
+length, the bound is assumed to be equal to the vector length.  If the
+bound is omitted, it is believed to be equal <tt>-1</tt>, or in other
+words, to the vector length.
+<p>
+If the start index is less than zero, exception <tt>sliceform</tt> is
+generated.  The same happens if the step is zero.  If the start index
+is omitted, it is believed to be zero.  If the step is omitted, it is
+believed to be one.
+<p>
+The slice refers to vector elements with
+indexes <tt>start</tt>, <tt>start + abs (step)</tt>, <tt>start + 2 *
+abs (step)</tt>, <tt>start + 3 * abs (step)</tt> and so on while the
+index is less than the bound.  If the step is negative, the elements
+are considered in the reverse order.
+        Examples:
+<tscreen><verb>
+          v[:]    // all vector elements
+          v[1:]   // all vector elements except the first one
+	  v[:-2]  // all vector elements except the last one
+	  v[::-1] // all vector elements in reverse order
+	  v[0::2] // all vector elements with even indexes
+</verb></tscreen>
+<p>
+More one slice can be given after the designator.  In this case, next
+slice is applicable to each element of the previous slice.  That means that
+each element and the next slice should abide by the above rules.  The
+first slice is called the first <em>dimension</em> slice, the second one is
+called the second dimension slice and so on.
+        Examples of multi-dimensional slices:
+<tscreen><verb>
+          m[:][:]     // all matrix elements
+          m[:][::2]   // matrix elements with even columns
+          m[::2][::]  // matrix elements with even rows
+          m[::2][::]  // matrix elements with even rows and columns
+</verb></tscreen>
+<p>
+Slices are actually not real reference values.  They can be considered
+as an attribute which exists in a statement at most.  If vector with
+slices is an operand of an operation which has a slice variant, the
+operation is applied to each element of the vector referenced by the
+slices in given order.  The result is a new vector with the same
+dimension slices referencing all elements with the step equal to one.
+<p>
+When vector with slices is an operand of an operation, the new vector
+consisting of elements referenced by the slices is created.  The new
+vector will have the same dimension slices referencing for all new
+vector elements with the step equal one.  This is done to avoid
+side-effects of function-calls inside a statement with slices.
+
 
 <sect1>Calls
 <p>
@@ -1063,7 +1141,7 @@ Otherwise, the function return value is undefined.
 
           Call = Designator ActualParameters
 
-          ActualParameters = "("  [ Expr { "," Expr } ] ")"
+          ActualParameters = "(" [ Expr { "," Expr } ] ")"
 </verb></tscreen>
        Examples:
 <tscreen><verb>
@@ -1116,36 +1194,45 @@ generated (when something about exceptions in this case is not
 mentioned).  The following conversions may be made by default:
     <itemize>
     <item><em>Integer conversion</em>.  If the operand is a character,
-      its code becomes integer.  If the operand is a floating point
-      number, its fractional part is thrown away and integral part
-      becomes integer.  If the operand is a vector of characters, the
-      corresponding string is believed to be the decimal
-      representation of integer and is converted into the
+      its code becomes integer.  If the operand is a long integer, it
+      becomes integer.  If the long integer requires more 64 bits,
+      exception <tt>opvalue</tt> is generated.  If the operand is a
+      floating point number, its fractional part is thrown away and
+      integral part becomes integer.  If the operand is a vector of
+      characters, the corresponding string is believed to be the
+      decimal representation of integer and is converted into the
       corresponding integer.  If the corresponding string is not a
       correct integer representation, the result is undefined.  If the
       corresponding string represents an integer whose representation
-      requires more 32 bits, exception <tt>syserrors.erange</tt>may be
+      requires more 64 bits, exception <tt>erange</tt> may be
       generated.  In all remaining cases the results of conversion
       coincide with the operand.
     <item><em>Arithmetic conversion</em>.  Analogous to integer
-      conversion except for that the conversion of float pointing
-      number to integer is not made and if the string represents a
-      floating point number (i.e. contains an exponent or fraction),
-      the result will be the corresponding floating point number
-      instead of integer.  Additionally if the operand is in a
-      non-short circuit binary operator (non-logical operators) and
-      another operand is a floating point number after the conversion,
-      the first operand is converted into a floating point number too.
-      Analogously if the result is an integer which can not be
-      represented by a 32-bit integer or the result is a floating
-      point number not represented by IEEE double format, the
-      exception <tt>syserrors.erange</tt> may be generated.
+      conversion except for that the conversion of long integer or
+      float pointing number to integer is not made and if the string
+      represents a long integer (i.e. contains suffix <tt>l</tt>
+      or <tt>L</tt>) or a floating point number (i.e. contains an
+      exponent or fraction), the result will be the corresponding long
+      integer or floating point number instead of integer.  If the
+      result of conversion to integer from the string is out of range
+      of 64-bit representation or the result of conversion to
+      floating-point number from the string is out of IEEE double
+      format range, the exception <tt>erange</tt> may be generated.
+      <p>
+      Additionally if the operand is in a non-short circuit binary
+      operator (non-logical operators) and another operand is a
+      floating point number after the conversion, the first operand is
+      converted into a floating point number too.  In this case, if
+      the firts operand is a long integer out of IEEE double format
+      range, the result is undefined.  Otherwise, if another operand
+      is a long integer after the conversion, the first operand is
+      converted into long integer too.
     <item><em>String conversion</em>.  If the operand is a character,
       the result will be a new string (immutable vector of characters)
       with one element which is the character.  If the operand is an
-      integer or a floating point number, the result will be a new
-      string of characters which is a decimal string representation of
-      the number.
+      integer, long integer, or a floating point number, the result
+      will be a new string of characters which is a decimal string
+      representation of the number (long will have no suffix).
     </itemize>
 
 <sect2>Logical operators
@@ -1157,19 +1244,19 @@ operators.  That means that the second operand is evaluated depending
 on the result of the first operand.  When the operands of the
 operators are evaluated, the arithmetic conversion is made.
 <p>
-If the first operand of logical `or' is nonzero (integer or floating
-point), the result will be 1.  Otherwise, the second operand is
-evaluated.  If the second operand is nonzero, the result will be 1.
-Otherwise, the result will be 0.
+If the first operand of logical `or' is nonzero (integer, long
+integer, or floating point), the result will be 1.  Otherwise, the
+second operand is evaluated.  If the second operand is nonzero, the
+result will be 1.  Otherwise, the result will be 0.
 <p>
-If the first operand of logical `and' is zero (integer or floating
-point), the result will be 0.  Otherwise, the second operand is
-evaluated.  If the second operand is nonzero, the result will be 1.
-Otherwise, the result will be 0.
+If the first operand of logical `and' is zero (integer, long integer,
+or floating point), the result will be 0.  Otherwise, the second
+operand is evaluated.  If the second operand is nonzero, the result
+will be 1.  Otherwise, the result will be 0.
 <p>
 Logical negation `!' makes impilict integer conversion of the operand.
-If the operand is zero (integer or floating point), the result will be
-1.  Otherwise, the result will be 0.
+If the operand is zero (integer, long integer or floating point), the
+result will be 1.  Otherwise, the result will be 0.
 <p>
 Operator <tt>in</tt> checks that there is an element with the given
 key (the first operand) in the given table (the second operand).  If
@@ -1184,7 +1271,7 @@ result will be 0.  If the second operand is not a table, exception
 </verb></tscreen>
         Examples:
 <tscreen><verb>
-          !(type (i) == int && type (a) == table && i >= 0 && i < #a)
+          !(type (i) == int && type (a) == tab && i >= 0 && i < #a)
           k in t && t {k} == 0
           0.0  || another_try
           0  || another_try
@@ -1195,7 +1282,7 @@ result will be 0.  If the second operand is not a table, exception
 The following operators work on integers (implicit integer conversion
 is made) and return an integer result.  Operators <tt>| ^ & ~</tt>
 denote correspondingly bitwise or, bitwise exclusive or, bitwise and,
-and bitwise negation of 32-bit integers.
+and bitwise negation of 64-bit integers.
 <p>
 Operators <tt><< >>> >></tt> denote correspondingly logical left bit
 shift, logical right bit shift, and arithmetic (with sign extension)
@@ -1240,9 +1327,10 @@ operators never generate exceptions.
 <p>
 By default the arithmetic conversion is applied to the operands of
 operators <tt>< > <= >=</tt>.  There is no exception if the operands
-after the conversion are of integer or floating point type.  So the
-operands should be characters, integers, floating point numbers, or
-strings representing integers or floating point numbers.
+after the conversion are of integer, long integer, or floating point
+type.  So the operands should be characters, integers, long integers,
+floating point numbers, or strings representing integers, long
+integers, or floating point numbers.
 <tscreen><verb>
           Expr = Expr "=="  Expr  
                | Expr "!="  Expr  
@@ -1257,7 +1345,9 @@ strings representing integers or floating point numbers.
 <tscreen><verb>
           10 == 10
           10 === 10
+          10 == 10l
           10 == 10.0
+          10 !== 10l
           10 !== 10.0
           10 <= 'c'
           p != nil
@@ -1269,15 +1359,16 @@ strings representing integers or floating point numbers.
 
 <sect2>Arithmetic operators
 <p>
-The following operators return integer or floating point numbers.
-Before operator execution, implicit arithmetic conversion is made on
-the operands.  The binary operators <tt>+ - * / %</tt> denote
-correspondingly integer or floating point addition, subtraction,
-multiplication, division, and evaluation of remainder.  Unary operator
+The following operators return integer, long integer, or floating
+point numbers.  Before operator execution, implicit arithmetic
+conversion is made on the operands.  The binary operators <tt>+ - * /
+%</tt> denote correspondingly integer, long integer, or floating point
+addition, subtraction, multiplication, division, and evaluation of
+remainder.  Unary operator
 <tt>-</tt> denotes arithmetic negation.  The unary operator <tt>+</tt>
 is given for symmetry and it returns simply the operand after the
-conversion.  It can be used for conversion of a string into an integer
-or floating point number.
+conversion.  It can be used for conversion of a string into an
+integer, a long integer, or floating point number.
 <tscreen><verb>
           Expr = Expr "+"  Expr
                | Expr "-"  Expr
@@ -1290,6 +1381,7 @@ or floating point number.
         Examples:
 <tscreen><verb>
           +"0"
+          +"10l"
           +"10."
           +"1e1"
           -i
@@ -1302,7 +1394,8 @@ or floating point number.
 The Dino conditional expression is analogous to the C language one.
 Implicit arithmetic conversion is made for the first expression
 followed by <tt>?</tt>.  If the value of the expression is non zero
-(integer or floating point), the second expression with following
+(integer, long integer, or floating point), the second expression with
+following
 <tt>:</tt> is evaluated and it will be the result of the condition
 expression.  Otherwise, the third expression is evaluated and it
 becomes the result.
@@ -1324,55 +1417,43 @@ operand.  The operand should be an integer after the conversion.
 Otherwise, exception <tt>optype</tt> will be generated.  The integer
 is transformed into the character with the corresponding code.  If the
 code is too big to be a character or is negative, exception
-<tt>syserrors.erange</tt> is generated.
+<tt>erange</tt> is generated.
 <p>
 The operator <tt>int</tt> is used to conversion of a value into an
 integer.  Implicit integer conversion is applied to the operand.  The
 operand should be an integer after the conversion.  Otherwise,
 exception <tt>optype</tt> will be generated.  If the code is too big
-to be an integer, exception <tt>syserrors.erange</tt> is generated.
+to be an integer, exception <tt>erange</tt> is generated.
 <p>
 The operator <tt>float</tt> is used to conversion of a value into
 floating-point number.  The first, implicit arithmetic conversion is
-applied to the operand.  The operand should be an integer or a
-floating-point number after the conversion.  Otherwise, exception
-<tt>optype</tt> will be generated.  If the result integer is
-transformed into the corresponding floating-point number.  If the code
-is too big or too small to be a floating-point number, exception
-<tt>syserrors.erange</tt> is generated.
+applied to the operand.  The operand should be an integer, an long
+integer, or a floating-point number after the conversion.  Otherwise,
+exception
+<tt>optype</tt> will be generated.  Integer is transformed the
+corresponding floating-point number.  The same is done for long
+integer but if the number is too big or too small to be a
+floating-point number, the result is undefined.
 <p>
-The operator <tt>vector</tt> is used for conversion of a value into a
+The operator <tt>vec</tt> is used for conversion of a value into a
 vector.  First, implicit string conversion is applied to the operand.
 The optional second expression defines the format used only for the
-string conversion of a character, an integer, a floating point number,
-or a string.  The second parameter value should be a string after
-implicit string conversion.  The format should not be given for a
-table.  The first operand should be a table or a vector after
-conversion.  The table is transformed into a new vector which consists
-of pairs (one pair for each element in the table).  The first element
-of the pair is a key of the corresponding element, and the second one
-is the element itself.  The order of pairs in the result vector is
-undefined.
+string conversion of a character, an integer, a long integer, a
+floating point number, or a string.  The second parameter value should
+be a string after implicit string conversion.  The format should not
+be given for a table.  The first operand should be a table or a vector
+after conversion.  The table is transformed into a new vector which
+consists of pairs (one pair for each element in the table).  The first
+element of the pair is a key of the corresponding element, and the
+second one is the element itself.  The order of pairs in the result
+vector is undefined.
 <p>
-The operator <tt>table</tt> is used to conversion of a value into
+The operator <tt>tab</tt> is used to conversion of a value into
 table.  First, string conversion is applied to the operand.  The
 operand should be a vector or a table after the conversion.  The
 vector is transformed into a new table whose elements are equal to the
 vector elements that have integer keys equal to the corresponding
 vector indexes.
-<p>
-If the operand of the operator <tt>func</tt> is a block instance of
-the body of a function, it returns the corresponding function.
-Otherwise, it returns the value <bf>nil</bf>.  The operator never
-generates exceptions.
-<p>
-If the operand of the operator <tt>thread</tt> is a thread, it returns
-the corresponding thread-function.  Otherwise, it returns the value
-<bf>nil</bf>.  The operator never generates exceptions.
-<p>
-If the operand of the operator <tt>class</tt> is an object, it returns
-the object's class.  Otherwise, it returns the value <bf>nil</bf>.
-The operator never generates exceptions.
 <tscreen><verb>
           Expr = Expr "?"  Expr ":" Expr
                | "#"  Expr
@@ -1381,11 +1462,8 @@ The operator never generates exceptions.
                | char "(" Expr ")"
                | int "(" Expr ")"
                | float "(" Expr ")"
-               | vector "(" Expr ["," Expr] ")"
-               | table "(" Expr ")"
-               | func "(" Expr ")"
-               | thread "(" Expr ")"
-               | class "(" Expr ")"
+               | vec "(" Expr ["," Expr] ")"
+               | tab "(" Expr ")"
 </verb></tscreen>
         Examples:
 <tscreen><verb>
@@ -1396,14 +1474,205 @@ The operator never generates exceptions.
           type (type)
           type (10)
           char (12)
-          vector  (10)
-          vector  (10, "%x")
-          vector ({"1":1, "2":2})
-          table ([1, 2, 3, 4])
-          func (context (obj))
-          thread (curr_thread)
-          class (c ())
+          vec  (10)
+          vec  (10, "%x")
+          vec ({"1":1, "2":2})
+          tab ([1, 2, 3, 4])
 </verb></tscreen>
+
+<sect2>Slice Operators
+<p>
+There are slice variants of all operators of mentioned above except
+for short circuit operators <tt>&&</tt> and <tt>||</tt> and
+conditional expression.
+<p>
+For unary operators, operator execution on slices creates a new
+vector structure consisting of elements referenced by the slices in
+given order, creates the same dimension slices referencing all elements of the new
+vector structure and execute the operator on each element of the
+created slices which will be the result of the operator.  Examples:
+<tscreen><verb>
+          var v = [1, 2, "3"], m = [[1, 2.], [3, 4, 5]];
+          ! v[:];
+	  - m[1:][::2];
+	  float (m[:][:]);
+</verb></tscreen>
+<p>
+Binary operators on slices are a bit more complicated.  If the both
+operands have slices, they should have the same <em>form</em>
+(dimension, number of elements in each corresponding sub-vector
+referenced by the slices), otherwise <tt>sliceform</tt> exception is
+generated.  The operator execution can be considered as creating a new
+vector structure consisting of elements referenced by the slices in
+and creating the same dimension slices referencing all elements of the
+new vector structure.  The same is done for the second slice.  Than
+the elements of the new vector structure created for the first operand
+is changed by the result of the operator applied to this element and
+the corresponding element from the slices created for the second
+operand.  The slices created for the first operand will be the result.  Examples:
+<tscreen><verb>
+          var v = [1, 2, 3], m = [[4, 5], [6, 7]];
+          v[:] * v[:];
+	  m[:][0::2] + m[:][1::2];
+</verb></tscreen>
+<p>
+If only one operand has the slices, the operator execution can be
+considered as creating a new vector structure consisting of elements
+referenced by the slices and creating the same dimension slice
+referencing all elements of the new vector structure.  Than the
+elements of the new vector structure is changed by the result of the
+operator applied to this element and another operand in given operand
+order.  The created slices will be the result.  Examples:
+<tscreen><verb>
+          var v = [1, 2, 3], m = [[4, 5], [6, 7]];
+          1 - v[:];
+	  v[:] * v[:] * 2;
+	  m[:][0::2] + 1;
+</verb></tscreen>
+<p>
+Dino has additional unary operators which work only on slices:
+<tscreen><verb>
+          Expr = ".+"  Expr
+               | ".*"  Expr
+               | ".&"  Expr
+               | ".^"  Expr
+               | ".|"  Expr
+</verb></tscreen>
+<p>
+The are called <em>fold operators</em>.  If the operand has no
+slices, exception <tt>vecform</tt> is generated.  The operator execution
+is to apply the corresponing non-fold operator to all elements
+referenced by the slices.  Examples:
+<tscreen><verb>
+          var v = [1, 2, 3], m = [[4, 5], [6, 7]];
+          .+ v[:];
+	  .* v[:];
+	  .& m[:][:];
+</verb></tscreen>
+
+<sect1>Current block instance
+<p>
+The instance of the block immediately surrounding the current program
+point can be accessed by using keyword <bf>this</bf>.
+<tscreen><verb>
+          Expr = this
+</verb></tscreen>
+        Example of usage of <bf>this</bf>:
+<tscreen><verb>
+          class c (x) { putln (this.x, "===", x); }
+          fun f (pub x) { return this; }
+</verb></tscreen>
+
+<sect1>Anonymous Functions and Classes
+<p>
+Instead of declaring a function/class and using its identifier
+once in an expression, anonymous function/class can be used.
+The anonymous functions/classes are regular expressions.  They
+have the same syntax as the corresponding declarations.  The only
+difference is an absence of function/class identifier:
+<tscreen><verb>
+          Expr = AnonHeader FormalParameters Block
+
+          AnonHeader = [Qualifiers] FuncThreadClass
+</verb></tscreen>
+        Examples:
+<tscreen><verb>
+          fun (a) {a > 0;}
+          class (x, y) {}
+          thread (n) {for (var i = 0; i < n; i++) putln (i);}
+</verb></tscreen>
+        Example of anonymous function usage:
+<tscreen><verb>
+          fold (fun (a, b) {a * b;}, v, 1);
+</verb></tscreen>
+
+
+<sect>Patterns
+<p>
+Patterns have form of expressions.  They are used to match an
+expression and decompose it.  Pattern can have form a vector value, a
+table value, a function call, identifier, or special <em>wildcard</em>
+symbol <tt>"_"</tt>.  Anything else is treated as an expression.
+<tscreen><verb>
+           Pattern = Expr
+           Expr = "_" | "..."
+</verb></tscreen>
+<p>
+A separate wildcard matches any value.  Identifier also matches any
+value but additionally the matched value is assigned to
+the <em>pattern variable</em> denoted by the identifier.  Expression
+pattern matches any value equal to the the expression value.
+<p>
+A <em>vector pattern</em> matches a <em>vector value</em>.  All vector
+pattern elements should match all subsequent elements of the vector
+value.  If a vector pattern element has a form of another pattern than
+it matches the corresponding vector value element iff the element
+pattern matches the corresponding element value of the vector value.
+<p>
+A vector pattern element can also have a form <tt>expr ":"
+pattern</tt>.  The value of the expression before <tt>":"</tt> is
+converted into an integer value by default.  If the value after the
+conversion is not integer, exception <tt>optype</tt> is generated.
+The value can be zero or negative.  In this case matching the pattern
+element is always successful and this matching does not correspond any
+element of the matched vector value.  Othewise, the pattern
+after <tt>":"</tt> should match corresponding elements in the vector
+value.  The exact number of the elements is defined by expression
+value before <tt>":"</tt>.  The matched element values should be equal
+unless the pattern after <tt>":"</tt> is a wildcard <tt>"_"</tt>.
+<p>
+The last element of the vector pattern can be <tt>"..."</tt>.  It
+matches the rest elements in the matched vector value.  The following
+are examples of vector patterns (a, b, and c are identifies of pattern
+variables):
+<tscreen><verb>
+           [a, b]
+	   [a, ...]
+	   [2, [a, b], 3 : c, 4 : _]
+</verb></tscreen>
+<p>
+A <em>table pattern</em> matches a <em>table value</em>.  All table
+pattern elements should match all elements of the table value.  If a
+table pattern element has a form <tt>expr</tt>, then the table value
+should have an element with a key given by the expression.
+<p>
+A table pattern element can also have a form <tt>expr ":"
+pattern</tt>.  In this case the table value also should have an
+element with a key given by the expression.  Additionally the element
+value with given key should match the pattern after <tt>":"</tt>.
+<p>
+The last element of the table pattern can be <tt>"..."</tt>.  It
+matches the rest elements in the matched table value.  The following
+are examples of table patterns (a, b, and c are identifies of pattern
+variables):
+<tscreen><verb>
+           tab ["k1", "k2"]
+	   tab ["k1" : _, ...]
+	   tab ["k" @ 1, [a, b], "k2" : c, ...]
+</verb></tscreen>
+<p>
+An object pattern has a form of function/class call.  A <em>object
+pattern</em> matches a class/function instance.  The function/class
+should be a subtype of class/function given by the value of the
+expression before <tt>"("</tt>.  The parameters in the pattern should
+match all corresponding instance parameter values.  The number of the
+values is taken from function/class given by the expression
+before <tt>"("</tt>, not from function class of the instance.
+Remember that arguments corresponding to <tt>"..."</tt> in
+function/class parameter definitions become one array value.
+<p>
+The last parameter of the object pattern can be <tt>"..."</tt>.  It
+matches the rest arguments of the corresponding object.  The following
+are examples of object patterns (a, b, and c are identifies of pattern
+variables):
+<tscreen><verb>
+	   leaf (10)
+           node (_, a)
+	   node (node (a, b), leaf (c))
+</verb></tscreen>
+<p>
+Symbols <tt>"_"</tt> and <tt>"..."</tt> can be used only in patterns - they
+can not be used in expressions.
 
 <sect>Executive statements
 <p>
@@ -1452,6 +1721,25 @@ Rules</em>.
             }
 </verb></tscreen>
 
+<sect1>Expression-statement
+<p>
+Dino has an expression statement.  Although it seems that the
+expression value is not used, the expression evaluation can results in
+side-effects, e.g. through calling a function/class.
+Expression-statement as the last statement in the function block means
+return of the expression value as the function call result.  In REPL
+(see Appendix B. Implementation), execution of an expression-statement
+results in printing the expression value.
+<tscreen><verb>
+          ExecutiveStmt = Expr ";"
+<tscreen><verb>
+        Examples:
+<tscreen><verb>
+          putln ("percent=" @ percent @ "%");
+          newthread ();
+	  5 + 10;
+</verb></tscreen>
+    
 <sect1>Assignment statements
 <p>
 Assignment-statements are used to change variable values or element
@@ -1476,7 +1764,7 @@ difference is in the fact that the designator is evaluated only once,
 not twice as in the analogous form.  It is important to know if you
 have <em>side effects</em> in the statement.
 <tscreen><verb>
-          ExecutiveStmt = Designator Assign  Expr ";"
+          ExecutiveStmt = Designator Assign Expr ";"
                         | Designator ("++" | "--")  ";"
                         | ("++" | "--")  Designator ";"
           Assign = "="
@@ -1501,31 +1789,30 @@ have <em>side effects</em> in the statement.
           --i;
           i *= 20;
 </verb></tscreen>
-
-<sect1>Call-statement
 <p>
-A call-statement is used to call a function, a thread-function, or a
-class.  It works analogous to the call in an expression (see
-sub-section <em>Calls</em> in section <em>Types and Values</em>).  The
-single difference is in that a call-statement throws away the call's
-result.
+If the designator is a slice and the expression value is a slice too,
+they both should have the same <em>form</em>,
+otherwise <tt>sliceform</tt> exception is generated.  In this case
+each element referenced by the designator slice gets value of the
+corresponding element referenced by the expression slice.  If the
+designator is a slice but the expression value is not, each element
+referenced by the designator slice gets the expression value.  Examples
+of the slice assignment:
 <tscreen><verb>
-          ExecutiveStmt = Designator ActualParameters  ";"
-</verb></tscreen>
-        Examples:
-<tscreen><verb>
-          putln ("percent=" @ percent @ "%");
-          newthread ();
+          v = [1, 2, 3, 4];
+          v[:] += 1;
+          v[::-1] = v[:]; // reverse v
 </verb></tscreen>
 
 <sect1>If-statement
 <p>
 The Dino if-statement is analogous to the C language one.  First, the
 expression after <tt>if</tt> is evaluated and arithmetic conversion is
-done to it.  The value should be an integer or a floating-point
-number, otherwise the exception <tt>optype</tt> is generated.  If the
-value is nonzero the first statement is executed, otherwise the
-statement after <tt>else</tt> is executed (if any).  The problem with
+done to it.  The value should be an integer, a long integer, or a
+floating-point number, otherwise the exception <tt>optype</tt> is
+generated.  If the value is nonzero the first statement is executed,
+otherwise the statement after <tt>else</tt> is executed (if any).  The
+problem with
 <em>dangling else</em> is resolved analogous to the C language --
 <tt>else</tt> is associated with the closest <tt>if</tt>.
 <tscreen><verb>
@@ -1545,8 +1832,8 @@ statement is executed in the following way.
      <item>Execution of the first statement in the parentheses.
      <item>The expression (<em>for-guard</em>) is evaluated and
         implicit arithmetic conversion is made.  The value should be
-        an integer or a floating point number.  If this is not true,
-        exception <tt>optype</tt> is generated.
+        an integer, a long integer, or a floating point number.  If
+        this is not true, exception <tt>optype</tt> is generated.
      <item>If the value of for-guard is nonzero, the body of the loop
         (the last statement) is executed.  Otherwise, the
         for-statement execution finishes.
@@ -1560,7 +1847,7 @@ of the statement <tt>break</tt> in the body.  The body can be finished
 by execution of statement <tt>continue</tt>.  In this case, the
 for-statement execution continues with the step 4.
 <tscreen><verb>
-          ExecutiveStmt = for  "("  Stmt ForGuardExpr ";"  Stmt ")" Stmt
+          ExecutiveStmt = for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
 
           ForGuardExpr = [Expr]
 </verb></tscreen>
@@ -1583,7 +1870,7 @@ be finished with the aid of the statement <tt>continue</tt> and a
 foreach-statement can be finished by execution of statement
 <tt>break</tt>.
 <tscreen><verb>
-          ExecutiveStmt = for  "("  Designator in Expr ")" Stmt
+          ExecutiveStmt = for  "(" Designator in Expr ")" Stmt
 </verb></tscreen>
         Examples:
 <tscreen><verb>
@@ -1596,13 +1883,53 @@ foreach-statement can be finished by execution of statement
           }
 </verb></tscreen>
 
+<sect1>Switch-statement
+<p>
+This statement is used to try matching switch-expression value (it is
+evaluated only once) and the patterns in given order and execute the
+statements corresponding to the first matched pattern.  Each case
+forms an own scope.  Pattern variables are declared in the
+corresponding case scope.  Execution of continue-statement in
+case-statements results in continuing the process of matching
+switch-expression value with the subsequent patterns.  Execution of
+break-statement in case-statements results in finishing the
+switch-statement execution.  There is implicit break at the end of
+each case statement list.
+<p>
+If optional case condition is given, then it is evaluated after
+succesfull matching with the corresponding pattern and arithmetic
+conversion is done to it.  The value should be an integer, a long
+integer, or a floating-point number, otherwise the
+exception <tt>optype</tt> is generated.  If the value is nonzero the
+all match is considered successfull, otherwise the subsequent case
+patterns are tried.
+<tscreen><verb>
+          ExecutiveStmt = switch "(" Expr ")" "{" CaseList "}"
+          CaseList = { case Pattern [CaseCond] ":" StmtList }
+	  CaseCond = if Expr
+</verb></tscreen>
+        Examples:
+          class c (a1, a2) {}
+          switch (c (2, 3)) {
+            case c (i, j): putln (i, j);
+            case _: putln ("default");
+          }
+          switch (c (2, 3)) {
+            case c (i, j) if i == j: putln ("eq=", i, j);
+            case c (i, j) if i != j: putln ("neq=", i, j);
+            case _: putln ("default");
+          }
+<tscreen><verb>
+</verb></tscreen>
+
 <sect1>Break- and continue-statement
 <p>
 Statements <tt>break</tt> and <tt>continue</tt> are used
-correspondingly to finish execution of the closest-containing for- or
-foreach-statement covering the statement and to finish one iteration
-of the body of the for- or foreach-statement.  These statement can be
-used only inside a for- or foreach-statement.
+correspondingly to finish execution of the closest-containing for-,
+foreach-, or switch-statement covering the statement and to finish one iteration
+of the body of the for- or foreach-statement and to continue trying
+subsequent cases for switch-statement.  These statement can be
+used only inside a for-, foreach-, or switch-statement.
 <tscreen><verb>
           ExecutiveStmt = break ";"
                         | continue ";"
@@ -1617,6 +1944,15 @@ used only inside a for- or foreach-statement.
           for (i in t)
             if (t{i} == elval)
               break;
+          switch (tree) {
+	    case leaf (n):
+              putln ("leaf");
+              if (n == 10) continue;
+            case node (n1, n2):
+              if (n1 != n2) break;
+              putln ("special node");
+	    case _: putln ("might be a leaf with 10");		   
+          }
 </verb></tscreen>
 
 <sect1>Return-statement
@@ -1650,12 +1986,8 @@ is described in the following section.
 </verb></tscreen>
         Examples:
 <tscreen><verb>
-          ext except {
-            ext error {
-              class myexcept (msg) {}
-            }
-          }
-          throw errors.myexcept ("this is an user defined exception");
+          class myexcept (msg) {use error former msg;}
+          throw myexcept ("this is an user defined exception");
 </verb></tscreen>
 
 <sect1>Try-block
@@ -1704,7 +2036,7 @@ contains the object representing the exception.
             var ln;
             for (;;)
               ln = getln ();
-          } catch (invcalls.eof) {
+          } catch (eof) {
           }
           try {
             var v = [];
@@ -1722,9 +2054,9 @@ a Dino program.  The expression can not contain a function, class, or
 a thread-function call.  The thread in which the statement has been
 executed waits until the expression value becomes nonzero.  The
 expression value (after implicit arithmetic conversion) should be an
-integer or a floating point number.  Otherwise the exception
-<tt>optype</tt> is generated.  When the expression value becomes
-nonzero, the statement after the expression (it is called
+integer, a long integer, or a floating point number.  Otherwise the
+exception <tt>optype</tt> is generated.  When the expression value
+becomes nonzero, the statement after the expression (it is called
 sync-statement) is executed without interruption by other process.  It
 is used as critical region for process synchronization.  In a critical
 region execution of wait-statement is prohibited (it results in
@@ -1761,7 +2093,7 @@ it has been yet not inserted into the block of the declaration.
         The following program outputs the first 24 Fibonachi numbers:
 <tscreen><verb>
           // Recursive function to compute Fibonacci numbers
-          func fibonacci (n)
+          fun fibonacci (n)
             {
                if (n <= 1) return 1;
                return (fibonacci(n-1) + fibonacci(n-2));
@@ -1818,10 +2150,10 @@ it has been yet not inserted into the block of the declaration.
               a = split (ln, "[^[:alnum:]]");
               for (i = 0; i < #a; i++)
                 voc {a[i]} = (a[i] in voc ? voc {a[i]} + 1 : 1);
-            } catch (invcalls.eof) {
+            } catch (eof) {
               break;
             }
-          func comp (el1, el2) {
+          fun comp (el1, el2) {
             return cmpv (tolower (el1), tolower (el2));
           }
           key = sort (keys (voc), comp);
@@ -1884,44 +2216,6 @@ following variables can be used.
        which is called <em>the main thread</em>.
      <item><tt>curr_thread</tt>.  The variable value is the thread in
        which you reference the variable.
-     </itemize>
-All these variables are final, so you can not change their values.
-
-<sect2>Exceptions
-<p>
-When it is necessary to create an exception which is a object of a
-class declared inside class <tt>except</tt> or when it is necessary to
-refer to a class inside class <tt>except</tt>, the following variables
-can be used.  Instead of typing <tt>catch
-(except().signal().sigint)</tt>, you could type <tt>catch
-(signals.sigint)</tt>.
-     <itemize>
-     <item><tt>excepts</tt>.  The variable value is an object of the
-       class <tt>except</tt>.
-     <item><tt>errors</tt>.  The variable value is an object of the
-       class <tt>excepts.error</tt>.
-     <item><tt>signals</tt>.  The variable value is an object of the
-       class <tt>errors.signal</tt>.
-     <item><tt>invops</tt>.  The variable value is an object of the
-       class <tt>errors.invop</tt>.
-     <item><tt>invindexes</tt>.  The variable value is an object of
-       the class <tt>errors.invindex</tt>.
-     <item><tt>invkeys</tt>.  The variable value is an object of the
-       class <tt>errors.invkey</tt>.
-     <item><tt>invcalls</tt>.  The variable value is an object of the
-       class <tt>errors.invcall</tt>.
-     <item><tt>syserrors</tt>.  The variable value is an object of the
-       class <tt>invcalls.syserror</tt>.
-     <item><tt>systemcalls</tt>.  The variable value is an object of
-       the class <tt>invcalls.systemcall</tt>.
-     <item><tt>invparsers</tt>.  The variable value is an object of
-       the class <tt>invcalls.invparser</tt>.
-     <item><tt>invregexps</tt>.  The variable value is an object of
-       the class <tt>invcalls.invregexp</tt>.
-     <item><tt>invexterns</tt>.  The variable value is an object of
-       the class <tt>invcalls.invextern</tt>.
-     <item><tt>invaccesses</tt>.  The variable value is an object of
-       the class <tt>errors.invaccess</tt>.
      </itemize>
 All these variables are final, so you can not change their values.
 
@@ -2411,9 +2705,9 @@ The following public functions and variables are declared in the class
        major function of the class.  It makes translation according to
        the previously set up grammar of input given by the parameter
        <tt>tokens</tt> whose value should be an array of objects of
-       predeclared class <tt>token</tt>.  If the parser recognizes a
-       syntax error it calls the function given through parameter
-       <tt>error_func</tt> with six parameters:
+       predeclared class <tt>token</tt> or its subtype.  If the parser
+       recognizes a syntax error it calls the function given through
+       parameter <tt>error_func</tt> with six parameters:
           <itemize>
           <item>index of the token (in array <tt>tokens</tt>) on which
             the syntax error occured.
@@ -2533,17 +2827,17 @@ which is the postfix polish form of input string
           p.set_grammar (grammar, 1);
 
           // Add attribute repr to token:
-          ext token { var repr; }
+          class our_token (code) { use token former code; var repr; }
           // The following code forms input tokens from string:
           var str = "a+b*(c+d*a)";
           var i, inp = [#str : nil];
           for (i = 0; i < #str; i++) {
-            inp [i] = token (str[i] + 0);
+            inp [i] = our_token (str[i] + 0);
             inp [i].repr = str[i];
           }
           // The following function output messages about syntax errors
           // syntax error recovery:
-          func error (err_start, err_tok,
+          fun error (err_start, err_tok,
                       start_ignored_num, start_ignored_tok_attr,
 	              start_recovered_num, start_recovered_tok) {
             put ("syntax error on token #", err_start,
@@ -2555,7 +2849,7 @@ which is the postfix polish form of input string
           var root = p.parse (inp, error); // parse
 
           // Output translation in polish inverse form
-          func pr (r) {
+          fun pr (r) {
             var i, n = r.name;
 
             if (n == "$term")
@@ -2602,8 +2896,8 @@ return value is undefined.
 <p>
 The following functions make implicit arithmetic conversion of the
 parameters.  After the conversions the parameters are expected to be
-of integer or floating point type.  The result is always a floating
-point number.
+of integer, long integer, or floating point type.  The result is
+always a floating point number.
      <itemize>
      <item><tt>sqrt (x)</tt>.  The function returns the square root of
        <tt>x</tt>.  The function generates the exception <tt>edom</tt>
@@ -2614,11 +2908,11 @@ point number.
      <item><tt>log (x)</tt>.  The function returns the natural
        logarithm of <tt>x</tt>.  The function generates the exception
        <tt>edom</tt> if <tt>x</tt> is negative or may generate
-       <tt>syserrors.erange</tt> if the value is zero.
+       <tt>erange</tt> if the value is zero.
      <item><tt>log10 (x)</tt>.  The function returns the decimal
        logarithm of <tt>x</tt>.  The function generates the exception
        <tt>edom</tt> if <tt>x</tt> is negative or may generate
-       <tt>syserrors.erange</tt> if the value is zero.
+       <tt>erange</tt> if the value is zero.
      <item><tt>pow (x, y)</tt>.  The function returns <tt>x</tt>
        raised to the power of <tt>y</tt>.  The function generates
        exception <tt>edom</tt> if x is negative and y is not of
@@ -2949,12 +3243,12 @@ instance.
        Under some OSes the function never returns some of the
        characters (e.g. 'c' or 'b').  The function may return nil if
        it can not categorize the file as above.
-     <item><tt>fun (fileinstance_or_filename)</tt>.  The function
+     <item><tt>fuidn (fileinstance_or_filename)</tt>.  The function
        returns new string representing name of owner of the file
        (directory).  Under some OSes the function may return the new
        string <tt>"Unknown"</tt> if there is no notion "owner" in the
        OS file system.
-     <item><tt>fgn (fileinstance_or_filename)</tt>.  Analogous to the
+     <item><tt>fgrpn (fileinstance_or_filename)</tt>.  Analogous to the
        previous function except for it returns a new string
        representing name of the group of the file (directory).  Under
        some OSes the function may return the new string
@@ -3180,11 +3474,12 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        zeros are not removed from the output as they would be without
        the flag.  The following code using flag '#' in format
 <tscreen><verb>
-         putf ("->%#o %#x %#.0e %#.0f %#g\n", 8, 10, 2., 3., 4.);
+         putf ("->%#o %#x %#x %#.0e %#.0f %#g<-\n",
+               8, 10, 16l, 2., 3., 4.);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         ->010 0xa 2.e+00 3. 4.00000
+         ->010 0xa 0x10 2.e+00 3. 4.00000<-
 </verb></tscreen>
 
        Flag '0' means that the output value will be zero padded on the
@@ -3194,11 +3489,12 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        conversions 'c' and 's'.  The following code using flag '0' in
        format
 <tscreen><verb>
-         putf ("->%04d %04x %09.2e %05.2f %05.2g\n", 8, 10, 2., 3., 4.);
+         putf ("->%04d %04x %04x %09.2e %05.2f %05.2g<-\n",
+               8, 10, 16l, 2., 3., 4.);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         ->0008 000a 02.00e+00 03.00 00004
+         ->0008 000a 0010 02.00e+00 03.00 00004<-
 </verb></tscreen>
 
        Flag '-' means that the output will be left adjusted on the
@@ -3206,12 +3502,12 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        overrides flag '0' if the both are given.  The following code
        using flag '-' in format
 <tscreen><verb>
-         putf ("->%-04d %-04x %-09.2e %-05.2f %-05.2g\n",
-               8, 10, 2., 3., 4.);
+         putf ("->%-04d %-04x %-04x %-09.2e %-05.2f %-05.2g<-\n",
+               8, 10, 16l, 2., 3., 4.);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         ->8    a    2.00e+00  3.00  4
+         ->8    a    10    2.00e+00  3.00  4    <-
 </verb></tscreen>
 
        Flag ' ' means that the output of a signed number will start
@@ -3220,11 +3516,12 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        flags ' ' and '+' appear, the flag ' ' is ignored.  The
        following code using flag ' ' in format
 <tscreen><verb>
-         putf ("->% d % .2e % .2f % .2g\n", 8, 2., 3., 4.);
+         putf ("->% d % d % .2e % .2f % .2g<-\n",
+               8, 16l, 2., 3., 4.);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         -> 8  2.00e+00  3.00  4
+         -> 8  16  2.00e+00  3.00  4<-
 </verb></tscreen>
 
        Flag '+' means that the output of a signed number will start
@@ -3233,11 +3530,12 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        overrides flag ' ' if both are given.  The following code using
        flag '+' in format
 <tscreen><verb>
-         putf ("->%+d %+.2e %+.2f %+.2g\n", 8, 2., 3., 4.);
+         putf ("->%+d %+d %+.2e %+.2f %+.2g<-\n",
+               8, 16l, 2., 3., 4.);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         ->+8 +2.00e+00 +3.00 +4
+         ->+8 +16 +2.00e+00 +3.00 +4<-
 </verb></tscreen>
 
        The width defines a minimum width of the output value.  If the
@@ -3251,11 +3549,12 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        width is believed to be equal to zero.  The following code
        using width in format
 <tscreen><verb>
-         putf ("->%5d %05d %-5d %*d %*d<-\n", 8, 9, 10, 5, 8, -5, 10);
+         putf ("->%5d %05d %-5d %5d %*d %*d<-\n",
+               8, 9, 10, 16l, 5, 8, -5, 10);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         ->    8 00009 10        8 10   <-
+         ->    8 00009 10       16     8 10   <-
 </verb></tscreen>
 
        The precision is prohibited for conversions 'c'.  If the number
@@ -3271,28 +3570,30 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        characters to be output from a string.  The following code
        using precision in format
 <tscreen><verb>
-         putf ("->%.d %.0d %.5d %.0f %.0e %.2g<-\n",
-               8, 8, 9, 2.3, 3.53);
-         putf ("->%.2s %.0d %.*d %.*d<-\n", "long", 0, 5, 8, -5, 8);
+         putf ("->%.d %.0d %.5d %.d %.0f %.0e %.2g<-\n",
+               8, 8, 9, 16l, 2.3, 2.3, 3.53);
+         putf ("->%.2s %.0d %.*d %.*d %.*d<-\n",
+               "long", 0, 5, 8, -5, 8, 5, 16l);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         ->8 8 00009 2 2e+00 3.5<-
-         ->lo  00008 8<-
+         ->8 8 00009 16 2 2e+00 3.5<-
+         ->lo  00008 8 00016<-
 </verb></tscreen>
 
-       Conversion 'd' should be used to output integer.  The default
-       precision is 1.  When 0 is output with an explicit precision 0,
-       the output is empty.
+       Conversion 'd' should be used to output integer or long
+       integer.  The default precision is 1.  When 0 is output with an
+       explicit precision 0, the output is empty.
 
        Conversions 'o', 'x', and 'X' should be used to output an
-       integer value as unsigned in octal and hexadecimal form.  The
-       lower case letters <tt>abcdef</tt> are used for 'x' and the
-       upper case letters <tt>ABCDEF</tt> are used for 'X'.  The
-       precision gives the minimum number of digits that must
-       appear. If the output value requires fewer digits, it is padded
-       on the left with zeros.  The default precision is 1.  When 0 is
-       output with an explicit precision 0, the output is empty.
+       integer or long integer value as unsigned in octal and
+       hexadecimal form.  The lower case letters <tt>abcdef</tt> are
+       used for 'x' and the upper case letters <tt>ABCDEF</tt> are
+       used for 'X'.  The precision gives the minimum number of digits
+       that must appear. If the output value requires fewer digits, it
+       is padded on the left with zeros.  The default precision is 1.
+       When 0 is output with an explicit precision 0, the output is
+       empty.
 
        Conversion 'f' should be used to output floating point values.
        The output value has a form <tt>[-]ddd.ddd</tt> where the
@@ -3329,15 +3630,15 @@ functions may generate an exception declared in the class <tt>syserror</tt>
 
        The following code using different conversions in format
 <tscreen><verb>
-         putf ("->%% %c %s %d %o %x %X<-\n",
-               'c', "string", 7, 8, 20, 20);
+         putf ("->%% %c %s %d %o %x %X %d %o %x %X<-\n",
+               'c', "string", 7, 8, 20, 20, 8l, 9l, 21l, 21l);
          putf ("->%f<-\n", 1.5);
          putf ("->%e %E %g %G %g %G<-\n",
                2.8, 2.8, 3.7, 3.7, 455555555.555, 5.9e-5);
 </verb></tscreen>
        will output
 <tscreen><verb>
-         ->% c string 7 10 14 14<-
+         ->% c string 7 10 14 14 8 11 15 15<-
          ->1.500000<-
          ->2.800000e+00 2.800000E+00 3.7 3.7 4.55556e+08 5.9E-05<-
 </verb></tscreen>
@@ -3357,11 +3658,11 @@ functions may generate an exception declared in the class <tt>syserror</tt>
        some values (functions, classes, block instances, class
        instances, threads) are not represented fully in DINO.  Such
        values are represented schematically.  For example, the output
-       <tt>func f {}.g(unique_number)</tt> would mean function
+       <tt>fun f {}.g(unique_number)</tt> would mean function
        <tt>f</tt> in the call of function (or class) <tt>g</tt> with
        the given unique number and function g is in the instance of
        the implicit block covering the whole program.  For the
-       function <tt>g</tt>, output would look simply like <tt>func
+       function <tt>g</tt>, output would look simply like <tt>fun
        g</tt> because there is only one instance of the implicit block
        covering the whole program.  Output for an instance of the
        class <tt>c</tt> in the function <tt>f</tt> looks like
@@ -3553,10 +3854,11 @@ There are the following miscellaneous functions:
      <itemize>
      <item><tt>max (v1, v2, ...)</tt>.  The function searches for and
        returns the maximal value in all of its parameters.  The
-       parameters should be of integer or floating point type after
-       implicit arithmetic conversion.  So the function can return an
-       integer or floating point number depending on the type of the
-       maximal value after the conversion.
+       parameters should be of integer, long integer, or floating
+       point type after implicit arithmetic conversion.  So the
+       function can return an integer, a long integer, or floating
+       point number depending on the type of the first maximal value
+       after the conversion.
      <item><tt>min (v1, v2, ...)</tt>.  The function is analogous to
        the previous function, but searches for and returns the minimal
        value.
@@ -3621,6 +3923,22 @@ There are the following miscellaneous functions:
 </verb></tscreen>
        The first call of <tt>inside</tt> returns 1, while the second
        one returns 0.
+     <item><tt>isa (fco, fc)</tt>.  The goal for function usage is to
+       check that function, class, or object given by the first
+       parameter <tt>fco</tt> uses declarations (through a use-clause)
+       of a function or a class given by the second
+       parameter <tt>fc</tt>, in other words the first is a subtype of
+       the second.  If it is true, the function returns 1, otherwise
+       it returns zero.  If the parameter types are wrong, the
+       function generates exception <tt>partype</tt>.  The following
+       example illustrates usage of <tt>isa</tt>.
+<tscreen><verb>
+          class c () {}
+          class subc () { use c;}
+          isa (subc, c);
+          isa (subc (), c);
+</verb></tscreen>
+       The call of <tt>isa</tt> in the example returns 1.
      <item><tt>subv (vect, index[, length])</tt>.  The function is
        used to extract a slice of vector elements.  The first
        parameter value should be a vector after implicit string
@@ -3682,14 +4000,15 @@ There are the following miscellaneous functions:
      <item><tt>sort (vect[, compare_function])</tt>.  The function
        returns a new sorted vector.  The original vector given as the
        first parameter value should be a homogeneous vector whose
-       elements are of character, integer, or floating point type.  If
-       the second parameter is not given, standard arithmetic order
-       (see comparison operators) is used.  To use special ordering,
-       use the second parameter which should be a function which
-       compares two elements of the vector and returns a negative
-       integer if the first parameter value (element) is less than the
-       second one, a positive integer if the first parameter value is
-       greater than the second one, and zero if they are equal.
+       elements are of character, integer, long integer, or floating
+       point type.  If the second parameter is not given, standard
+       arithmetic order (see comparison operators) is used.  To use
+       special ordering, use the second parameter which should be a
+       function which compares two elements of the vector and returns
+       a negative integer if the first parameter value (element) is
+       less than the second one, a positive integer if the first
+       parameter value is greater than the second one, and zero if
+       they are equal.
      <item><tt>exit (code)</tt>.  The function finishes the work of
        the interpreter with the given code which should be an integer
        value after implicit integer conversion.
@@ -3712,6 +4031,64 @@ There are the following miscellaneous functions:
        floating point value between 0 and 1.  If the function
        <tt>srand</tt> was not called before, 1 will be used as the
        seed value.
+     <item><tt>transpose (m)</tt>.  The function expects
+       matrix <tt>m</tt>.  It means that <tt>m</tt> should be vector
+       (each element is a matrix row) of vectors of equal length.
+       If <tt>m</tt> is not a vector, exception <tt>partype</tt> is
+       generated.  If elements of <tt>m</tt> are not vectors of the
+       same length, exceptions <tt>matrixform</tt> is generated.  The
+       function returns a new mutable vector of mutable vectors which
+       is a matrix transposition of <tt>m</tt>.
+     <item><tt>filter (f, v [, d])</tt>.  The function expects
+       function <tt>f</tt>, vector <tt>v</tt>, and optional
+       integer <tt>d</tt> after integer conversion.  Otherwise
+       exception <tt>partype</tt> is generated.  If <tt>d</tt> is not
+       given, it is believed to be 1.  The function processes v's
+       elements if <tt>d</tt> is equal one, elements of vectors which
+       are v's elements if <tt>d</tt> is equal to 2 and so on.  In
+       other words, <tt>d</tt> is level on which vector elements are
+       processed.  If v has no structure necessary for processing,
+       exception <tt>vecform</tt> is generated.  If <tt>d</tt> is zero
+       or negative, the function just returns <tt>v</tt>.  Otherwise
+       the function creates new mutable vector having the same
+       structure as <tt>v</tt> with only elements on level <tt>d</tt>
+       for which function <tt>f</tt> returns nonzero value after
+       integer conversion.  If the result of function <tt>f</tt> after
+       the integer conversion is not integer,
+       exception <tt>invresult</tt> is generated.  The following
+       example illustrates usage of <tt>filter</tt>.
+<tscreen><verb>
+          var i, v = [0, 1, -2, 3, -4];
+          println (filter (fun (a) {a > 0;}, v));
+          v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+          println (filter (fun (a) {a > 0;}, v, 2));
+</verb></tscreen>
+    <item><tt>map (f, v [, d])</tt>.  The meaning of function
+       parameters and constraints to their values are analogous to
+       ones of function <tt>filter</tt>.  Only function <tt>f</tt> can
+       return any value.  The elements processed by
+       function <tt>f</tt> is changed onto the result of
+       function <tt>f</tt>.  The following example illustrates usage
+       of <tt>map</tt>.
+<tscreen><verb>
+          var i, v = [[0, 1, -2, 3, -4], [5, -6, 7, -8, 9]];
+          println (map (fun (a) {a < 0 ? nil : a;}, v, 2));
+</verb></tscreen>
+     <item><tt>fold (f, v, init [, d])</tt>.  The meaning of function
+       parameters <tt>f</tt>, <tt>v</tt>, and <tt>d</tt> and
+       constraints to their values are analogous to ones of
+       function <tt>filter</tt>.  The function processes all elements
+       of vectors on level <tt>d</tt> and returns value
+       <tt>f (f (f (f (init, el0), el1), ...) , eln)</tt> where
+       <tt>el0</tt>, ..., <tt>eln</tt> are vector elements on
+       level <tt>d</tt> taken from left to right.  If <tt>d</tt> is
+       zero or negative or the vectors are empty, the function
+       returns <tt>init</tt>.  The following example illustrates usage
+       of <tt>fold</tt>.
+<tscreen><verb>
+          var v = [1,2,3,4];
+          println (fold (fun (a, b) {a + b;}, v, 0));
+</verb></tscreen> 
      <item><tt>sput (...), sputln (...), sputf (format, ...)</tt> The
        functions are analogous to functions put, putln, print, and
        println but they return the result string instead of output of
@@ -3756,6 +4133,11 @@ Expr = Expr "?"  Expr ":" Expr
      | "#"  Expr
      | final  Expr
      | new  Expr
+     | ".+"  Expr
+     | ".*"  Expr
+     | ".&"  Expr
+     | ".^"  Expr
+     | ".|"  Expr
      | Designator
      | INTEGER
      | FLOATINGPOINTNUMBER
@@ -3764,34 +4146,34 @@ Expr = Expr "?"  Expr ":" Expr
      | "(" Expr ")"
      | Call
      | "["  ElistPartsList "]"
-     | "{"  ElistPartsList "}"
+     | tab "["  ElistPartsList "]"
      | STRING
      | char
      | int
+     | long
      | float
      | hide
      | hideblock
-     | vector
-     | table
-     | func
+     | vec
+     | tab
+     | fun
      | thread
      | class
-     | func "(" ")"
+     | obj
+     | process
+     | type
+     | this
      | char "(" Expr ")"
      | int "(" Expr ")"
      | float "(" Expr ")"
-     | vector "(" Expr ["," Expr] ")"
-     | table "(" Expr ")"
-     | thread "(" ")"
-     | class "(" ")"
-     | type
+     | vec "(" Expr ["," Expr] ")"
+     | tab "(" Expr ")"
      | type "(" Expr ")"
-     | func "(" Expr ")"
-     | thread "(" Expr ")"
-     | class "(" Expr ")"
+     | AnonHeader FormalParameters Block
+     | "_"
+     | "..."
 
 Designator = DesignatorOrCall "["  Expr "]"
-           | DesignatorOrCall "{"  Expr "}"
            | DesignatorOrCall ActualParameters
            | DesignatorOrCall "."  IDENT
            | IDENT
@@ -3803,12 +4185,10 @@ DesignatorOrCall = Designator
 
 Call = Designator ActualParameters
 
-ActualParameters = "("  [ Expr { "," Expr } ] ")"
+ActualParameters = "(" [ Expr { "," Expr } ] ")"
        	
-VarParList = VarPar { "," VarPar }
-       	
-VarPar = [final] IDENT [ "="  Expr]
-
+AnonHeader = [Qualifiers] FuncThreadClass
+			  
 Stmt = ExecutiveStmt
      | Declaration
 
@@ -3826,15 +4206,18 @@ Assign = "="
        | "^="
        | "|="
 
+Pattern = Expr
+
 ExecutiveStmt = ";"
+              | Expr ";"
               | Designator Assign  Expr ";"
               | Designator ("++" | "--")  ";"
               | ("++" | "--")  Designator ";"
-              | Designator ActualParameters  ";"
               | if  "(" Expr ")" Stmt [ else Stmt ]
-              | for  "("  Stmt ForGuardExpr ";"  Stmt ")" Stmt
-              | for  "("  Designator in Expr ")" Stmt
-              | break ";"
+              | for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
+              | for  "(" Designator in Expr ")" Stmt
+	      | switch "(" Expr ")" "{" CaseList "}"
+	      | break ";"
               | continue ";"
               | return  [ Expr ] ";"
               | throw  Expr ";"
@@ -3844,6 +4227,9 @@ ExecutiveStmt = ";"
 
 ForGuardExpr = [Expr]
 
+CaseList = { case Pattern [CaseCond] ":" StmtList }
+CaseCond = if Expr
+		  
 BlockStmt = Block
 
 TryBlockStmt = try Block { Catch }
@@ -3853,37 +4239,58 @@ Catch = catch  "(" ExceptClassList ")" Block
 ExceptClassList = Expr { "," Expr }
 
 Declaration = VarDeclarations
-            | AccessClause
+            | FriendClause
             | ExternDeclarations
-            | FuncClassExtDeclaration
+            | FuncClassDeclaration
+            | SingletonObject
+            | ForwardDeclaration
+            | UseClause
             | IncludeDeclaration
 
-VarDeclarations = var  VarParList ";"
+VarDeclarations =  [pub | priv] (val | var)  VarList ";"
 
-ExternDeclarations = extern  ExternItem { "," ExternItem } ";"
+VarList = Var { "," Var }
+       	
+Var = IDENT | pattern "="  Expr
 
-FuncClassExtDeclaration = Header Block
+ExternDeclarations = [pub | priv] extern ExternItems ";"
 
-AccessClause = (public | private | friend) AccessList ";"
+FuncClassDeclaration = Header FormalParameters Block
 
-AccessList = IDENT { "," IDENT }
+FriendClause = friend IDENT { "," IDENT } ";"
      	
 IncludeDeclaration = include ["+"] STRING ";"
+
+ExternItems = ExternItem { "," ExternItem }
 
 ExternItem = IDENT 
            | IDENT  "(" ")"
 
-Header = [final] FuncThreadClass IDENT FormalParameters
-       | ext IDENT
+Header = [Qualifiers] FuncThreadClass IDENT
 
-FuncThreadClass = func 
+Qualifiers = pub | priv | final
+           | pub final | priv final
+           | final pub | final priv
+
+FuncThreadClass = fun 
        	        | thread 
        	        | class 
       	
-FormalParameters = "("  [ VarParList ] ")"
-       	         | "("  VarParList "," "..."  ")"
-       	         | "(" "..."  ")"
+FormalParameters =
+                 | "(" [ ParList ] ")"
+       	         | "(" ParList "," "..." ")"
+       	         | "(" "..." ")"
        	
+ParList = Par { "," Par}
+
+Par = [pub | priv] [val | var] IDENT [ "=" Expr]
+
+UseClause = use IDENT { UseItemClause }
+
+UseItemClause = [former | later] UseItem { "," UseItem }
+
+Item = IDENT [ "(" IDENT ")"]
+
 Block = "{"  StmtList "}"
 
 StmtList = { Stmt }

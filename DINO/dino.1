@@ -1,32 +1,40 @@
 .\" Process this file with
 .\" groff -man -Tascii foo.1
 .\"
-.TH DINO 1 "5 May 2001" DINO "User Manuals"
+.TH Dino 1 "25 May 2015" Dino "User Manuals"
 .SH NAME
-dino \- the interpreter of the programming language DINO
+dino \- the interpreter of the programming language Dino
 .SH SYNOPSIS
-.B dino [ -s -t -h size -Idirname -Lpath -p] (-c
+.B dino [ -h -s -t -m size -Idirname -Lpath -O --save-temps -d -p] (-c
 .I program
 .B |
 .I program-file
+.B | -i
+.I dump-file
 .B ) dino-program-arguments
 .SH DESCRIPTION
 .B dino
-interprets a program in the DINO programming language.  The
+interprets a program in the Dino programming language.  The
 program file (and include files) must have the suffix
 .B .d
 .
 .PP
-The description of DINO language is in the report of the Programming
-Language DINO.
+The description of Dino language is in the report of the Programming
+Language Dino.
 .SH OPTIONS
-The options which the DINO interpreter recognizes are:
+Calling the interpreter without arguments is to call
+.I REPL
+(an interactive environment for execution of Dino statements and printing the results of
+the statement execution).
+The options which the Dino interpreter recognizes are:
 .IP "-c program"
 Execute the Dino
 .B program
 given on the command line as the argument.
-.IP "-h number"
-Determine the size of the heap chunks used by the DINO interpreter.
+.IP -h
+Output information about Dino command line options.
+.IP "-m number"
+Determine the size of the heap chunks used by the Dino interpreter.
 The size can be given in bytes (e.g. 32000), in kilobytes (e.g. 64k),
 or in megabytes (e.g. 1m).  The default size is 1 Megabyte.
 Initially, the Dino interpreter creates one chunk.  It allocates one
@@ -36,7 +44,7 @@ additional memory after garbage collection.
 Output some statistics of interpreter work into stderr.  Statistics
 contain the maximal heap size, number of heap chunks, and number of
 collisions in hash tables which are used for the implementation of
-DINO tables.
+Dino tables.
 .IP -t
 Output information about call stack of the program into stderr for
 unprocessed exception or calling exit function.  This output sometimes
@@ -52,6 +60,20 @@ libraries are implemented on the system.  This is true for Linux,
 Solaris, Irix, OSF, and Windows) in which the Dino external variables and
 functions will be searched for.  The order of searching in libraries
 given with this option is the same as one on the command line.
+.IP -O
+Do type inference and byte code specialization.  It can speed up the
+program execution, especially when JIT is used.
+.IP -d
+Output Dino byte code to the standard output.
+.IP -i dump-file
+Read Dino byte code from a given file and execute it.  You can use this
+option instead of providing Dino program file.
+.IP --save-temps
+If a Dino function processed by JIT compiler, the generated C source code
+and PIC object code can be saved after finishing Dino interpreter in directory
+.B /tmp
+with this option.  The file names will contain identifier number of the
+corresponding Dino interpreter process.
 .IP -p
 Output profile information into stderr.  Profile information contains
 the number of calls and execution times of all called functions and
@@ -59,48 +81,42 @@ classes.
 .SH FILES
 .I file.d
 .RS
-a DINO program file
+a Dino program file
 .RE
 .I libdino.so
 .RS
-a DINO shared library on some Unix systems.
-.RE
-.I mpi.d
-.RS
-the DINO file implementing multiple precision arithmetic.
-.RE
-.I mpi.so
-.RS
-the DINO shared library used for implementing MPI on some Unix systems.
+a Dino shared library on some Unix systems.
 .RE
 .I ieee.d
 .RS
-the DINO file implementing IEEE standard floating point arithmetic.
+the Dino file implementing IEEE standard floating point arithmetic.
 .RE
 .I ieee.so
 .RS
-the DINO shared library used for implementing IEEE on some Unix systems.
+the Dino shared library used for implementing IEEE on some Unix systems.
 .RE
 .I ipcerr.d
 .RS
-the DINO file definining exceptions of ipc/network software.  This file is
+the Dino file definining exceptions of ipc/network software.  This file is
 used by socket.d.
 .RE
 .I ipcerr.so
 .RS
-the DINO shared library used for implementing IPCERR on some Unix systems.
+the Dino shared library used for implementing IPCERR on some Unix systems.
 .RE
 .I socket.d
 .RS
-the DINO file implementing work with sockets.
+the Dino file implementing work with sockets.
 .RE
 .I socket.so
 .RS
-the DINO shared library used for implementing SOCKET on some Unix systems.
+the Dino shared library used for implementing SOCKET on some Unix systems.
 .RE
-There are no temporary files used by DINO.
+Dino interpreter creates temporary C and object files for Dino functions
+processed by JIT compiler in directory
+.B /tmp.
 .SH ENVIRONMENT
-There are the following environment variables which affect DINO behavior:
+There are the following environment variables which affect Dino behavior:
 .IP DINO_HOME
 If not null, it defines the places of the dino shared libraries (such a
 library may be only on some Unix systems including Linux and Solaris), include

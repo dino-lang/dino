@@ -399,7 +399,7 @@ clean :
 distclean: clean
 	rm -f Makefile
 	rm -f dino.sgml dino.tex dino.log dino.aux dino.toc\
-              dino.sgml.tmp dino.tmp d_config.h
+              dino.sgml dino.tmp d_config.h
 
 # Deletion all which can be built up automatically:
 # the same as entry `distclean' and emacs TAGS table.
@@ -449,10 +449,10 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : dino.sgml.tmp $(srcdir)/dino.txt $(srcdir)/dino.html\
+doc : dino.sgml $(srcdir)/dino.txt $(srcdir)/dino.html\
       $(srcdir)/dino.info $(srcdir)/dino.pdf $(srcdir)/dino.dvi $(srcdir)/dino.ps
 
-dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
+dino.sgml : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
 	nroff -man $(srcdir)/dino.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > dino.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "dino.tmp") > 0)\
@@ -460,11 +460,11 @@ dino.sgml.tmp : $(srcdir)/dino.sgml.in $(srcdir)/dino.1
                  else print;}' $(srcdir)/dino.sgml.in > $@
 	rm -f dino.tmp
 
-$(srcdir)/dino.txt: dino.sgml.tmp
-	$(srcdir)/../sgml-txt dino.sgml.tmp > $@
+$(srcdir)/dino.txt: dino.sgml
+	linuxdoc -B txt --papersize=letter -f dino.sgml
+	mv dino.txt $(srcdir)
 	
-$(srcdir)/dino.html: dino.sgml.tmp
-	$(srcdir)/../sgml-html dino.sgml.tmp >dino.sgml
+$(srcdir)/dino.html: dino.sgml
 	linuxdoc -B html --papersize=letter dino.sgml
 	if test -f dino-1.html;then\
   	  for i in dino-*.html;do\
@@ -473,8 +473,7 @@ $(srcdir)/dino.html: dino.sgml.tmp
         fi
 	mv dino.html $(srcdir)/dino.html
 	
-$(srcdir)/dino.info: dino.sgml.tmp
-	cp dino.sgml.tmp dino.sgml
+$(srcdir)/dino.info: dino.sgml
 	linuxdoc -B info --papersize=letter dino.sgml
 	if test -f dino.info-1;then\
 	  for i in dino.info-*;do\
@@ -483,22 +482,19 @@ $(srcdir)/dino.info: dino.sgml.tmp
         fi
 	mv dino.info $(srcdir)/dino.info
 	
-$(srcdir)/dino.dvi $(srcdir)/dino.pdf: dino.sgml.tmp
-	$(srcdir)/../sgml-tex dino.sgml.tmp >dino.sgml
+$(srcdir)/dino.dvi: dino.sgml
 	linuxdoc -B latex --papersize=letter dino.sgml
 	if test ! -f dino.dvi\
            -o -f dino.tex -a dino.tex -nt dino.dvi; then\
     	        latex dino.tex; latex dino.tex;\
         fi
 	mv dino.dvi $(srcdir)/dino.dvi
-	if test ! -f dino.pdf\
-           -o -f dino.tex -a dino.tex -nt dino.pdf; then\
-    	        pdflatex dino.tex; pdflatex dino.tex;\
-        fi
-	mv dino.pdf $(srcdir)/dino.pdf
 
 $(srcdir)/dino.ps: $(srcdir)/dino.dvi
 	dvips -o $@ $(srcdir)/dino.dvi
+
+$(srcdir)/dino.pdf: $(srcdir)/dino.ps
+	ps2pdf $(srcdir)/dino.ps $@
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for DINO object files to the end of given file.

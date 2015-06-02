@@ -2,156 +2,221 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
- <TITLE>The Programming Language DINO: Appendix B. Implementation</TITLE>
+ <TITLE>The Programming Language DINO: Appendix A. Syntax of Dino</TITLE>
+ <LINK HREF="dino-11.html" REL=next>
  <LINK HREF="dino-9.html" REL=previous>
  <LINK HREF="dino.html#toc10" REL=contents>
 </HEAD>
 <BODY>
-Next
+<A HREF="dino-11.html">Next</A>
 <A HREF="dino-9.html">Previous</A>
 <A HREF="dino.html#toc10">Contents</A>
 <HR>
-<H2><A NAME="s10">10.</A> <A HREF="dino.html#toc10">Appendix B. Implementation</A></H2>
+<H2><A NAME="s10">10.</A> <A HREF="dino.html#toc10">Appendix A. Syntax of Dino</A></H2>
 
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-DINO(1)                          User Manuals                          DINO(1)
+Expr = Expr "?"  Expr ":" Expr
+     | Expr "||"  Expr
+     | Expr "&amp;&amp;"  Expr
+     | Expr in  Expr
+     | Expr "|"  Expr
+     | Expr "^"  Expr
+     | Expr "&amp;"  Expr 
+     | Expr "=="  Expr  
+     | Expr "!="  Expr  
+     | Expr "==="  Expr  
+     | Expr "!=="  Expr  
+     | Expr "&lt;"  Expr
+     | Expr ">"  Expr  
+     | Expr "&lt;="  Expr
+     | Expr ">="  Expr 
+     | Expr "&lt;&lt;"  Expr
+     | Expr ">>"  Expr
+     | Expr ">>>"  Expr
+     | Expr "@"  Expr
+     | Expr "+"  Expr
+     | Expr "-"  Expr
+     | Expr "*"  Expr
+     | Expr "/"  Expr
+     | Expr "%"  Expr
+     | "!"  Expr
+     | "+"  Expr
+     | "-"  Expr
+     | "~"  Expr
+     | "#"  Expr
+     | final  Expr
+     | new  Expr
+     | ".+"  Expr
+     | ".*"  Expr
+     | ".&amp;"  Expr
+     | ".^"  Expr
+     | ".|"  Expr
+     | Designator
+     | INTEGER
+     | FLOATINGPOINTNUMBER
+     | CHARACTER
+     | nil
+     | "(" Expr ")"
+     | Call
+     | "["  ElistPartsList "]"
+     | tab "["  ElistPartsList "]"
+     | STRING
+     | char
+     | int
+     | long
+     | float
+     | hide
+     | hideblock
+     | vec
+     | tab
+     | fun
+     | thread
+     | class
+     | obj
+     | process
+     | type
+     | this
+     | char "(" Expr ")"
+     | int "(" Expr ")"
+     | float "(" Expr ")"
+     | vec "(" Expr ["," Expr] ")"
+     | tab "(" Expr ")"
+     | type "(" Expr ")"
+     | AnonHeader FormalParameters Block
+     | "_"
+     | "..."
 
+Designator = DesignatorOrCall "["  Expr "]"
+           | DesignatorOrCall ActualParameters
+           | DesignatorOrCall "."  IDENT
+           | IDENT
 
+ElistPartsList = [ Expr [ ":" Expr ] {"," Expr [ ":" Expr ] } ]
+        
+DesignatorOrCall = Designator
+                 | Call
 
-NAME
-       dino - the interpreter of the programming language DINO
+Call = Designator ActualParameters
 
-SYNOPSIS
-       dino  [ -s -t -h size -Idirname -Lpath -p] (-c program | program-file )
-       dino-program-arguments
+ActualParameters = "(" [ Expr { "," Expr } ] ")"
+        
+AnonHeader = [Qualifiers] FuncThreadClass
+                          
+Stmt = ExecutiveStmt
+     | Declaration
 
-DESCRIPTION
-       dino interprets a program in the DINO programming language.   The  pro‐
-       gram file (and include files) must have the suffix .d
+Assign = "="
+       | "*="
+       | "/="
+       | "%="
+       | "+="
+       | "-="
+       | "@="
+       | "&lt;&lt;="
+       | ">>="
+       | ">>>="
+       | "&amp;="
+       | "^="
+       | "|="
 
-       The  description  of  DINO language is in the report of the Programming
-       Language DINO.
+Pattern = Expr
 
-OPTIONS
-       The options which the DINO interpreter recognizes are:
+ExecutiveStmt = ";"
+              | Expr ";"
+              | Designator Assign  Expr ";"
+              | Designator ("++" | "--")  ";"
+              | ("++" | "--")  Designator ";"
+              | if  "(" Expr ")" Stmt [ else Stmt ]
+              | for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
+              | for  "(" Designator in Expr ")" Stmt
+              | switch "(" Expr ")" "{" CaseList "}"
+              | break ";"
+              | continue ";"
+              | return  [ Expr ] ";"
+              | throw  Expr ";"
+              | wait  "(" Expr ")" Stmt
+              | BlockStmt
+              | TryBlockStmt
 
-       -c program
-              Execute the Dino program given on the command line as the  argu‐
-              ment.
+ForGuardExpr = [Expr]
 
-       -h number
-              Determine  the  size  of the heap chunks used by the DINO inter‐
-              preter.  The size can be given in bytes (e.g. 32000),  in  kilo‐
-              bytes  (e.g.  64k), or in megabytes (e.g. 1m).  The default size
-              is 1 Megabyte.  Initially,  the  Dino  interpreter  creates  one
-              chunk.   It  allocates one additional chunk (as rule of the same
-              size) whenever there is no additional memory after garbage  col‐
-              lection.
+CaseList = { case Pattern [CaseCond] ":" StmtList }
+CaseCond = if Expr
+                  
+BlockStmt = Block
 
-       -s     Output some statistics of interpreter work into stderr.  Statis‐
-              tics contain the maximal heap size, number of heap  chunks,  and
-              number  of  collisions  in  hash  tables  which are used for the
-              implementation of DINO tables.
+TryBlockStmt = try Block { Catch }
+        
+Catch = catch  "(" ExceptClassList ")" Block
 
-       -t     Output information about call stack of the program  into  stderr
-              for unprocessed exception or calling exit function.  This output
-              sometimes can be different from what people would expect because
-              of tail call elimination.
+ExceptClassList = Expr { "," Expr }
 
-       -Idirname
-              Define  the  directory  in  which  Dino  include  files  will be
-              searched for.  The order of searching in directories given  with
-              this option is the same as the one on the command line.
+Declaration = VarDeclarations
+            | FriendClause
+            | ExternDeclarations
+            | FuncClassDeclaration
+            | SingletonObject
+            | ForwardDeclaration
+            | UseClause
+            | IncludeDeclaration
 
-       -Ldirname
-              Define  where  to  search  for  external  libraries  (if  shared
-              libraries are implemented on  the  system.   This  is  true  for
-              Linux, Solaris, Irix, OSF, and Windows) in which the Dino exter‐
-              nal variables and functions will be searched for.  The order  of
-              searching in libraries given with this option is the same as one
-              on the command line.
+VarDeclarations =  [pub | priv] (val | var)  VarList ";"
 
-       -p     Output profile information  into  stderr.   Profile  information
-              contains  the  number of calls and execution times of all called
-              functions and classes.
+VarList = Var { "," Var }
+        
+Var = IDENT | pattern "="  Expr
 
-FILES
-       file.d
-              a DINO program file
-       libdino.so
-              a DINO shared library on some Unix systems.
-       mpi.d
-              the DINO file implementing multiple precision arithmetic.
-       mpi.so
-              the DINO shared library used for implementing MPI on  some  Unix
-              systems.
-       ieee.d
-              the  DINO  file implementing IEEE standard floating point arith‐
-              metic.
-       ieee.so
-              the DINO shared library used for implementing IEEE on some  Unix
-              systems.
-       ipcerr.d
-              the  DINO  file  definining  exceptions of ipc/network software.
-              This file is used by socket.d.
-       ipcerr.so
-              the DINO shared library used for  implementing  IPCERR  on  some
-              Unix systems.
-       socket.d
-              the DINO file implementing work with sockets.
-       socket.so
-              the  DINO  shared  library  used for implementing SOCKET on some
-              Unix systems.
-       There are no temporary files used by DINO.
+ExternDeclarations = [pub | priv] extern ExternItems ";"
 
-ENVIRONMENT
-       There are the following environment variables which affect DINO  behav‐
-       ior:
+FuncClassDeclaration = Header FormalParameters Block
 
-       DINO_HOME
-              If  not null, it defines the places of the dino shared libraries
-              (such a library may be only on some Unix systems including Linux
-              and   Solaris),   include  files,  and  dino  standard  external
-              libraries.  The places are defined as the  subdirectory  lib  in
-              directory  given  by the environment variable value.  You should
-              define the variable value on Windows if you installed the  files
-              in a directory other than C:\dino\lib
+FriendClause = friend IDENT { "," IDENT } ";"
+        
+IncludeDeclaration = include ["+"] STRING ";"
 
-       DINO_PATH
-              If  not  null, it defines the places of dino include-files.  The
-              value of the variable has more priority than DINO_HOME but  less
-              priority than values given through -I options.
+ExternItems = ExternItem { "," ExternItem }
 
-       DINO_LIB
-              If  not  null, it defines places of dino shared library, if any.
-              The  value  of  variable  has  more  priority  than   DINO_HOME.
-              DINO_EXTERN_LIBS.
+ExternItem = IDENT 
+           | IDENT  "(" ")"
 
-       DINO_EXTERN_LIBS
-              If  not  null,  it  defines  paths  of  additional Dino external
-              libraries.  The libraries should be separated by ":"  (on  Unix)
-              or  ";"  (on  Windows).  The value has less priority than values
-              given in -L options.
+Header = [Qualifiers] FuncThreadClass IDENT
 
-DIAGNOSTICS
-       DINO diagnostics are self-explanatory.
+Qualifiers = pub | priv | final
+           | pub final | priv final
+           | final pub | final priv
 
-AUTHOR
-       Vladimir N. Makarov, vmakarov@users.sourceforge.net
+FuncThreadClass = fun 
+                | thread 
+                | class 
+        
+FormalParameters =
+                 | "(" [ ParList ] ")"
+                 | "(" ParList "," "..." ")"
+                 | "(" "..." ")"
+        
+ParList = Par { "," Par}
 
-BUGS
-       Please report bugs to cocom-bugs@lists.sourceforge.net.
+Par = [pub | priv] [val | var] IDENT [ "=" Expr]
 
+UseClause = use IDENT { UseItemClause }
 
+UseItemClause = [former | later] UseItem { "," UseItem }
 
-DINO                              5 May 2001                           DINO(1)
+Item = IDENT [ "(" IDENT ")"]
+
+Block = "{"  StmtList "}"
+
+StmtList = { Stmt }
+        
+Program = StmtList
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
+
 <HR>
-Next
+<A HREF="dino-11.html">Next</A>
 <A HREF="dino-9.html">Previous</A>
 <A HREF="dino.html#toc10">Contents</A>
 </BODY>

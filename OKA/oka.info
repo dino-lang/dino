@@ -1,5 +1,5 @@
-This is oka.info, produced by makeinfo version 4.13 from
-info file generated from .//oka.sgml by means of linuxdoc-tools.
+This is oka.info, produced by makeinfo version 5.2 from
+sgmltmp.oka.2.texi.
 
 
 
@@ -35,11 +35,10 @@ File: oka.info,  Node: Introduction,  Next: Pipeline hazards description languag
 
 OKA is a translator of a processor pipeline hazards description (PHD)
 into code for fast recognition of pipeline hazards.  Instruction
-execution can be started only if its issue conditions are satisfied.
-If not, instruction is interlocked until its conditions are satisfied.
-Such an "interlock (pipeline) delay" causes interruption of the
-fetching of successor instructions (or demands NOP instructions, e.g.
-for MIPS).
+execution can be started only if its issue conditions are satisfied.  If
+not, instruction is interlocked until its conditions are satisfied.
+Such an "interlock (pipeline) delay" causes interruption of the fetching
+of successor instructions (or demands NOP instructions, e.g.  for MIPS).
 
    There are two major kind of interlock delays in modern superscalar
 RISC processors.  The first one is data dependence delay.  The
@@ -50,13 +49,13 @@ but will be ready till given time after the instruction execution
 start).  Taking into account of such kind delay is simple.  Data
 dependence (true, output, and anti-dependence) delay between two
 instructions is given by constant.  In the most cases this approach is
-adequate.  The second kind of interlock delay is reservation delay.
-Two such way dependent instructions under execution will be in need of
-shared processors resources, i.e. buses, internal registers, and/or
-functional units, which are reserved for some time.  Taking into
-account of this kind of delay is complex especially for modern RISC
-processors.  The goal of OKA is to generate code for fast recognition
-of such kind delay (pipeline hazards).
+adequate.  The second kind of interlock delay is reservation delay.  Two
+such way dependent instructions under execution will be in need of
+shared processors resources, i.e.  buses, internal registers, and/or
+functional units, which are reserved for some time.  Taking into account
+of this kind of delay is complex especially for modern RISC processors.
+The goal of OKA is to generate code for fast recognition of such kind
+delay (pipeline hazards).
 
 
 File: oka.info,  Node: Pipeline hazards description language,  Next: Generated code,  Prev: Introduction,  Up: Top
@@ -81,8 +80,8 @@ File: oka.info,  Node: Layout of pipeline hazards description,  Next: Declaratio
 2.1 Layout of pipeline hazards description
 ==========================================
 
-Pipeline hazards description structure has the following layout which
-is similar to one of YACC file.
+Pipeline hazards description structure has the following layout which is
+similar to one of YACC file.
 
           DECLARATIONS
           %%
@@ -90,29 +89,27 @@ is similar to one of YACC file.
           %%
           ADDITIONAL C/C++ CODE
 
-   The `%%' serves to separate the sections of description.  All
-sections are optional.  The first `%%' starts section of rules and is
-obligatory even if the section is empty, the second `%%' may be absent
+   The '%%' serves to separate the sections of description.  All
+sections are optional.  The first '%%' starts section of rules and is
+obligatory even if the section is empty, the second '%%' may be absent
 if section of additional C/C++ code is absent too.
 
-   The section of declarations contains declarations of functional
-units and instructions of a processor.  The section also may contain
-declarations of automata on which result automaton are split in order
-to decrease size of tables needed for fast recognition of pipeline
-hazards.  And finally the section may contain subsections of code on
-C/C++.
+   The section of declarations contains declarations of functional units
+and instructions of a processor.  The section also may contain
+declarations of automata on which result automaton are split in order to
+decrease size of tables needed for fast recognition of pipeline hazards.
+And finally the section may contain subsections of code on C/C++.
 
-   The next section contains expressions list which describes
-functional units reservations by instructions.  Regular expressions in
-general case correspond to nondeterministic final state automaton.  The
-expression list can be empty.  In this case the result automaton can
-contains only arcs marked by special token corresponding advancing
-cycle.
+   The next section contains expressions list which describes functional
+units reservations by instructions.  Regular expressions in general case
+correspond to nondeterministic final state automaton.  The expression
+list can be empty.  In this case the result automaton can contains only
+arcs marked by special token corresponding advancing cycle.
 
-   The additional C/C++ code can contain any C/C++ code you want to
-use.  Often functions which are not generated by the translator but are
-needed to work of the instruction scheduler go here.  This code without
-changes is placed at the end of file generated by the translator.
+   The additional C/C++ code can contain any C/C++ code you want to use.
+Often functions which are not generated by the translator but are needed
+to work of the instruction scheduler go here.  This code without changes
+is placed at the end of file generated by the translator.
 
 
 File: oka.info,  Node: Declarations,  Next: Expressions,  Prev: Layout of pipeline hazards description,  Up: Pipeline hazards description language
@@ -126,8 +123,8 @@ The section of declarations may contain the following construction:
 
    Such constructions declare instructions (or instruction class) of
 processor.  All instructions must be defined in constructions of such
-kind.  The same instruction identifier can be defined repeatedly.
-There is analogous construction which can serves to describe frequently
+kind.  The same instruction identifier can be defined repeatedly.  There
+is analogous construction which can serves to describe frequently
 repeated functional units reservations by real instructions.
 
           %reservation IDENTIFIER ...
@@ -137,14 +134,14 @@ repeated functional units reservations by real instructions.
           %unit <automaton identifier> IDENTIFIER ...
 
    The construction is used to describe functional units of given
-processor.  Optional identifier in angle brackets describes how to
-split result automaton onto smaller automata.  Each such automaton will
+processor.  Optional identifier in angle brackets describes how to split
+result automaton onto smaller automata.  Each such automaton will
 contain states corresponding to only reservations of functional units
-described with given automaton identifier.  The same unit identifier
-can be defined repeatedly with the same automaton identifier.
+described with given automaton identifier.  The same unit identifier can
+be defined repeatedly with the same automaton identifier.
 
    Sometimes it is necessary to describe that some units can not be
-reserved simultaneously, e.g. floating point unit is pipelined but can
+reserved simultaneously, e.g.  floating point unit is pipelined but can
 execute only single or double floating point operation.  The following
 construction is useful in such situations
 
@@ -181,13 +178,13 @@ constructions in the declaration section
 so on) used in sections.  The local C/C++ declarations are inserted at
 the begin of generated implementation file (see pipeline hazards
 description interface) but after include-directive of interface file.
-C/C++ declarations which start with `%import' are inserted at the begin
+C/C++ declarations which start with '%import' are inserted at the begin
 of generated interface file.  C/C++ declarations which start with
-`%export' are inserted at the end of generated interface file.  For
+'%export' are inserted at the end of generated interface file.  For
 example, such C/C++ code may contain definitions of of external
-variables and functions which refer to definitions generated by OKA.
-All C/C++ declarations are placed in the same order as in the section
-of declarations.
+variables and functions which refer to definitions generated by OKA. All
+C/C++ declarations are placed in the same order as in the section of
+declarations.
 
 
 File: oka.info,  Node: Expressions,  Prev: Declarations,  Up: Pipeline hazards description language
@@ -217,27 +214,26 @@ general case and can contain the following forms:
            [ EXPRESSION ]
            ( EXPRESSION )
 
-   Binary operator ` ' (blank) and `+' describes sequential
-reservations given by the expressions.  In the first case the first
-unit in the right expression is reserved on the next cycle after the
-reservation of the last unit in left expression (so called
-concatenation with cycle advancing).  The reservation of an unit is
-described simply by the unit identifier.  In the second case the first
-unit in the right expression is reserved on the same cycle after the
-reservation of the last unit in left expression (so called
-concatenation without cycle advancing).  Sometimes it is necessary to
-describe absence of unit reservations during several cycles.  The
-construction `%nothing' serves for this purpose.  `%nothing' can be in
-the same place as an unit identifier.
+   Binary operator ' ' (blank) and '+' describes sequential reservations
+given by the expressions.  In the first case the first unit in the right
+expression is reserved on the next cycle after the reservation of the
+last unit in left expression (so called concatenation with cycle
+advancing).  The reservation of an unit is described simply by the unit
+identifier.  In the second case the first unit in the right expression
+is reserved on the same cycle after the reservation of the last unit in
+left expression (so called concatenation without cycle advancing).
+Sometimes it is necessary to describe absence of unit reservations
+during several cycles.  The construction '%nothing' serves for this
+purpose.  '%nothing' can be in the same place as an unit identifier.
 
-   Reservation identifier is simply changed by the construction `(the
+   Reservation identifier is simply changed by the construction '(the
 corresponding reservation expression)'.
 
-   The construction `EXPRESSION * NUMBER' is simply abbreviation of
-`EXPRESSION EXPRESSION ...' where the expression is repeated by given
+   The construction 'EXPRESSION * NUMBER' is simply abbreviation of
+'EXPRESSION EXPRESSION ...'  where the expression is repeated by given
 positive number times.
 
-   The construction `EXPRESSION | EXPRESSION' means that the
+   The construction 'EXPRESSION | EXPRESSION' means that the
 instructions reserve units according to the left or to the right
 expression (so called alternative).  If an unit is present only on one
 alternative it should belong to the same automaton as units on other
@@ -250,12 +246,12 @@ priority:
            `+' and ` '  - the middle priority
            `|'          - the lowest priority
 
-   The construction `[EXPRESSION]' serves for describing optional
-construction and is simply abbreviation of the following construction `
+   The construction '[EXPRESSION]' serves for describing optional
+construction and is simply abbreviation of the following construction '
 | EXPRESSION'.
 
-   The parentheses are used to grouping sub-expressions in another
-order then the one given by priorities and associativities of operators.
+   The parentheses are used to grouping sub-expressions in another order
+then the one given by priorities and associativities of operators.
 
    Full YACC syntax (with some hints in order to transform into LALR
 (1)-grammar) of pipeline hazards description language is placed in
@@ -270,7 +266,7 @@ File: oka.info,  Node: Generated code,  Next: OKA Usage,  Prev: Pipeline hazards
 A specification as described in the previous section is translated by
 OKA (pipeline hazards description translator) into interface and
 implementation files having the same names as one of specification file
-and correspondingly suffixes `.h' and `.c' (C code) or `.cpp' (C++
+and correspondingly suffixes '.h' and '.c' (C code) or '.cpp' (C++
 code).
 
 * Menu:
@@ -286,7 +282,7 @@ File: oka.info,  Node: C++ code,  Next: C code,  Up: Generated code
 
 Interface file of PHD consists of the following definitions:
 
-`Class `OKA_chip'.'
+'Class `OKA_chip'.'
      Object of the class describes current state of processor.  The
      class has the following public members:
 
@@ -299,9 +295,8 @@ Interface file of PHD consists of the following definitions:
           its current state, the function returns 1 and the object
           (processor) changes own state which reflects starting the
           execution of given instruction.  In the opposite case, when
-          the instruction can not be started, the function returns 0
-          and the object (processor) does not change own state.
-
+          the instruction can not be started, the function returns 0 and
+          the object (processor) does not change own state.
        2. Function
 
                             `int OKA_is_dead_lock (void)'
@@ -310,37 +305,33 @@ Interface file of PHD consists of the following definitions:
           corresponding processor state is not possible on any
           instruction.  The single way to change object (processor)
           state is to advance time (on one cycle) with the aid of
-          special pseudo-instruction code `OKA__ADVANCE_CYCLE'.  For
-          example, dead lock state for dual-issue processor can be
-          state reflecting starting two instructions on a cycle.
-
+          special pseudo-instruction code 'OKA__ADVANCE_CYCLE'. For
+          example, dead lock state for dual-issue processor can be state
+          reflecting starting two instructions on a cycle.
        3. Function
 
                             `void OKA_reset (void)'
 
           The function sets up the object (processor) in initial state.
           No any processor unit is busy in the state.
-
        4. Constructor
 
                             `OKA_chip (void)'
 
-          The constructor simply calls function `OKA_reset'.
+          The constructor simply calls function 'OKA_reset'.
 
-`Macros or enumeration (see option `-enum')'
+'Macros or enumeration (see option `-enum')'
      which declare instruction codes.  Macros or enumeration constants
-     have the same name as one in PHD and prefix `OKA_' (see also
-     option `-p').  OKA always generates additional code
-     `OKA__ADVANCE_CYCLE'.  If such pseudo-instruction starts, the
-     processor make transition into the state reflecting advancing time
-     on one cycle.  It is guaranteed that there is always transition
-     from any processor state on given pseudo-instruction.  Macros or
-     enumeration are generated in interface file only if option
-     `-export' is present on OKA command line.  By default, the macros
-     or the enumeration are generated in the implementation file.
-     Usually, the last case means that the scheduler code is placed PHD
-     in additional C/C++ code.
-
+     have the same name as one in PHD and prefix 'OKA_' (see also option
+     '-p').  OKA always generates additional code 'OKA__ADVANCE_CYCLE'.
+     If such pseudo-instruction starts, the processor make transition
+     into the state reflecting advancing time on one cycle.  It is
+     guaranteed that there is always transition from any processor state
+     on given pseudo-instruction.  Macros or enumeration are generated
+     in interface file only if option '-export' is present on OKA
+     command line.  By default, the macros or the enumeration are
+     generated in the implementation file.  Usually, the last case means
+     that the scheduler code is placed PHD in additional C/C++ code.
 
 
 File: oka.info,  Node: C code,  Prev: C++ code,  Up: Generated code
@@ -348,25 +339,25 @@ File: oka.info,  Node: C code,  Prev: C++ code,  Up: Generated code
 3.2 C code
 ==========
 
-Interface file of PHD consists of the following definitions of
-generated type and functions:
+Interface file of PHD consists of the following definitions of generated
+type and functions:
 
-  1. Structure `OKA_chip' which describes state of the processor.
+  1. Structure 'OKA_chip' which describes state of the processor.
 
-  2. Type definition `OKA_chip' which is simply structure `OKA_chip'.
+  2. Type definition 'OKA_chip' which is simply structure 'OKA_chip'.
 
   3. Function
 
                     `int OKA_transition (OKA_chip *OKA_chip,
                                          int OKA_instruction)'
 
-     The function has two parameter: pointer to structure describing
-     the processor state and instruction code.  If corresponding
-     instruction can be started by the processor in its current state,
-     the function returns 1 and the structure is changed in order to
-     reflects starting the execution of given instruction.  In the
-     opposite case, when the instruction can not be started, the
-     function returns 0 and the structure is not changed.
+     The function has two parameter: pointer to structure describing the
+     processor state and instruction code.  If corresponding instruction
+     can be started by the processor in its current state, the function
+     returns 1 and the structure is changed in order to reflects
+     starting the execution of given instruction.  In the opposite case,
+     when the instruction can not be started, the function returns 0 and
+     the structure is not changed.
 
   4. Function
 
@@ -374,9 +365,9 @@ generated type and functions:
 
      The function returns 1 (TRUE) when transition from the processor
      state given by the structure is not possible on any instruction.
-     The single way to change processor state is to advance time (on
-     one cycle) with the aid of special pseudo-instruction code
-     `OKA__ADVANCE_CYCLE'.  For example, dead lock state for dual-issue
+     The single way to change processor state is to advance time (on one
+     cycle) with the aid of special pseudo-instruction code
+     'OKA__ADVANCE_CYCLE'. For example, dead lock state for dual-issue
      processor can be state reflecting starting two instructions on a
      cycle.
 
@@ -386,16 +377,15 @@ generated type and functions:
 
      The function sets up the structure (processor) in initial state.
      No any processor unit is busy in the state.
-
-  6. Macros or enumeration (see option `-enum') which declare
+  6. Macros or enumeration (see option '-enum') which declare
      instruction codes.  Macros or enumeration constants have the same
-     name as one in PHD and prefix `OKA_' (see also option `-p').  OKA
-     always generates additional code `OKA__ADVANCE_CYCLE'.  If such
+     name as one in PHD and prefix 'OKA_' (see also option '-p').  OKA
+     always generates additional code 'OKA__ADVANCE_CYCLE'. If such
      pseudo-instruction starts, the processor make transition into the
      state reflecting advancing time on one cycle.  It is guaranteed
      that there is always transition from any processor state on given
      pseudo-instruction.  Macros or enumeration are generated in
-     interface file only if option `-export' is present on OKA command
+     interface file only if option '-export' is present on OKA command
      line.  By default, the macros or the enumeration are generated in
      the implementation file.  Usually, the last case means that the
      scheduler code is placed PHD in additional C/C++ code.
@@ -419,23 +409,23 @@ File: oka.info,  Node: OKA Usage,  Next: Implementation,  Prev: Generated code, 
 
 
      DESCRIPTION
-            OKA generates code for fast recognition of pipeline hazards of  proces-
+            OKA generates code for fast recognition of pipeline hazards of  proces‐
             sor  which  is described in specification file.  The specification file
-            must have suffix ‘.oka’
+            must have suffix `.oka'
 
 
-            The generated code consists of interface and implementation files  hav-
+            The generated code consists of interface and implementation files  hav‐
             ing  the  same  names  as one of specification file and correspondingly
-            suffixes ‘.h’ and ‘.c’ (C code) or ‘.cpp’ (C++ code).
+            suffixes `.h' and `.c' (C code) or `.cpp' (C++ code).
 
-            Full documentation of OKA is in OKA User’s manual.
+            Full documentation of OKA is in OKA User's manual.
 
      OPTIONS
             The options which are known for OKA are:
 
             -c++   OKA generates C++ code instead of C code (default).
 
-            -debug OKA creates code for output of debugging information during exe-
+            -debug OKA creates code for output of debugging information during exe‐
                    cution of the generated code.
 
             -enum  OKA  generates  instruction  codes  as enumeration constant.  By
@@ -451,12 +441,12 @@ File: oka.info,  Node: OKA Usage,  Next: Implementation,  Prev: Generated code, 
 
             -split OKA makes automatic splitting automaton on given number automata
                    in  order  to decrease sizes of generated tables.  The option is
-                   taken into account only if constructions ‘%unit’ are  absent  in
+                   taken into account only if constructions `%unit' are  absent  in
                    the  specification  file.   This option has not been implemented
                    yet.
 
             -pprefix
-                   Generated code uses ‘prefix’ instead of ‘OKA’ for names  of  the
+                   Generated code uses `prefix' instead of `OKA' for names  of  the
                    generated objects.
 
             -time  OKA outputs detail time statistics of its work into stderr.
@@ -464,7 +454,7 @@ File: oka.info,  Node: OKA Usage,  Next: Implementation,  Prev: Generated code, 
             -v     OKA  creates  description  file  which  contains  description of
                    result automaton and statistics information.  The file will have
                    the  same  name  as  one  of given specification file and suffix
-                   ‘.output’ into standard stream.
+                   `.output' into standard stream.
 
      FILES
             file.oka
@@ -504,9 +494,9 @@ File: oka.info,  Node: Implementation,  Next: Future of OKA development,  Prev: 
 ****************
 
 The OKA is implemented with other COCOM tools.  NDFA(s) is created at
-the begin.  After that NDFA(s) is transformed to DFA(s).  DFA(s) is
-than minimized.  Tables representing DFA(s) are compacted with the aid
-of comb-vector method.  To decrease size of the generated tables also
+the begin.  After that NDFA(s) is transformed to DFA(s).  DFA(s) is than
+minimized.  Tables representing DFA(s) are compacted with the aid of
+comb-vector method.  To decrease size of the generated tables also
 instructions are divided on equivalence classes.  It is especially
 important when automaton is split on several automata.
 
@@ -517,15 +507,12 @@ File: oka.info,  Node: Future of OKA development,  Next: Appendix 1 - Syntax of 
 ***************************
 
   1. Automatic splitting automaton on given number automata.
-
   2. Code for determining what units are reserved in given state.  It
-     may be necessary in some very complex cases when given model is
-     not sufficient for accurate recognition of pipeline hazards.
-
-  3. Possibility for generation of reverse automaton.  Which can be
-     used to insert instruction in already scheduled basic block, e.g.
-     for trace scheduling or scheduling super-blocks.
-
+     may be necessary in some very complex cases when given model is not
+     sufficient for accurate recognition of pipeline hazards.
+  3. Possibility for generation of reverse automaton.  Which can be used
+     to insert instruction in already scheduled basic block, e.g.  for
+     trace scheduling or scheduling super-blocks.
   4. Expansion of model of description of pipeline hazards in order to
      enable descriptions of processors with dynamic execution and
      register renaming.
@@ -886,20 +873,20 @@ The following output was generated under Linux 1.2.8 on Compaq Aero
 
 
 Tag Table:
-Node: Top125
-Node: Introduction850
-Node: Pipeline hazards description language2467
-Node: Layout of pipeline hazards description3005
-Node: Declarations4665
-Node: Expressions7595
-Node: Generated code10671
-Node: C++ code11137
-Node: C code13695
-Node: OKA Usage16149
-Node: Implementation19600
-Node: Future of OKA development20140
-Node: Appendix 1 - Syntax of pipeline Hazards Description (YACC grammar)20981
-Node: Appendix 2 - Description of Alpha architecture (EV5 version)24424
-Node: Appendix 3 - Output of pipeline Hazards Description Translator32650
+Node: Top93
+Node: Introduction818
+Node: Pipeline hazards description language2438
+Node: Layout of pipeline hazards description2976
+Node: Declarations4634
+Node: Expressions7566
+Node: Generated code10642
+Node: C++ code11108
+Node: C code13656
+Node: OKA Usage16107
+Node: Implementation19530
+Node: Future of OKA development20070
+Node: Appendix 1 - Syntax of pipeline Hazards Description (YACC grammar)20909
+Node: Appendix 2 - Description of Alpha architecture (EV5 version)24352
+Node: Appendix 3 - Output of pipeline Hazards Description Translator32578
 
 End Tag Table

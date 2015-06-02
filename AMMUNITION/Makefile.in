@@ -446,8 +446,8 @@ distclean: clean
               ammunition.aux ammunition.toc
 	rm -f ammunition++.sgml ammunition++.tex ammunition++.log\
 	      ammunition++.aux ammunition++.toc\
-              ammunition.sgml.tmp ammunition.tmp\
-              ammunition++.sgml.tmp ammunition++.tmp
+              ammunition.sgml ammunition.tmp\
+              ammunition++.sgml ammunition++.tmp
 
 # Updating TAGS table for reusable packages sources.
 TAGS : $(source)
@@ -487,7 +487,7 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : ammunition.sgml.tmp ammunition++.sgml.tmp\
+doc : ammunition.sgml ammunition++.sgml\
       $(srcdir)/ammunition.txt $(srcdir)/ammunition.html\
       $(srcdir)/ammunition.info $(srcdir)/ammunition.pdf\
       $(srcdir)/ammunition.dvi $(srcdir)/ammunition.ps\
@@ -495,14 +495,14 @@ doc : ammunition.sgml.tmp ammunition++.sgml.tmp\
       $(srcdir)/ammunition++.info $(srcdir)/ammunition++.pdf\
       $(srcdir)/ammunition++.dvi $(srcdir)/ammunition++.ps
 
-ammunition.sgml.tmp: $(srcdir)/ammunition.sgml.in
-	cp $(srcdir)/ammunition.sgml.in ammunition.sgml.tmp
+ammunition.sgml: $(srcdir)/ammunition.sgml.in
+	cp $(srcdir)/ammunition.sgml.in ammunition.sgml
 
-$(srcdir)/ammunition.txt: $(srcdir)/ammunition.sgml.in
-	$(srcdir)/../sgml-txt ammunition.sgml.tmp > $@
+$(srcdir)/ammunition.txt: ammunition.sgml
+	linuxdoc -B txt --papersize=letter -f ammunition.sgml
+	mv ammunition.txt $(srcdir)
 	
-$(srcdir)/ammunition.html: $(srcdir)/ammunition.sgml.in
-	$(srcdir)/../sgml-html ammunition.sgml.tmp >ammunition.sgml
+$(srcdir)/ammunition.html: ammunition.sgml
 	linuxdoc -B html --papersize=letter ammunition.sgml
 	if test -f ammunition-1.html;then\
   	  for i in ammunition-*.html;do\
@@ -511,8 +511,7 @@ $(srcdir)/ammunition.html: $(srcdir)/ammunition.sgml.in
         fi
 	mv ammunition.html $(srcdir)/ammunition.html
 	
-$(srcdir)/ammunition.info: ammunition.sgml.tmp
-	cp ammunition.sgml.tmp ammunition.sgml
+$(srcdir)/ammunition.info: ammunition.sgml
 	linuxdoc -B info --papersize=letter ammunition.sgml
 	if test -f ammunition.info-1;then\
 	  for i in ammunition.info-*;do\
@@ -521,31 +520,28 @@ $(srcdir)/ammunition.info: ammunition.sgml.tmp
         fi
 	mv ammunition.info $(srcdir)/ammunition.info
 	
-$(srcdir)/ammunition.dvi $(srcdir)/ammunition.pdf: $(srcdir)/ammunition.sgml.in
-	$(srcdir)/../sgml-tex ammunition.sgml.tmp >ammunition.sgml
+$(srcdir)/ammunition.dv: ammunition.sgml
 	linuxdoc -B latex --papersize=letter ammunition.sgml
 	if test ! -f ammunition.dvi\
            -o -f ammunition.tex -a ammunition.tex -nt ammunition.dvi; then\
     	        latex ammunition.tex; latex ammunition.tex;\
         fi
 	mv ammunition.dvi $(srcdir)/ammunition.dvi
-	if test ! -f ammunition.pdf\
-           -o -f ammunition.tex -a ammunition.tex -nt ammunition.pdf; then\
-    	        pdflatex ammunition.tex; pdflatex ammunition.tex;\
-        fi
-	mv ammunition.pdf $(srcdir)/ammunition.pdf
 
 $(srcdir)/ammunition.ps: $(srcdir)/ammunition.dvi
 	dvips -o $@ $(srcdir)/ammunition.dvi
 
-ammunition++.sgml.tmp: $(srcdir)/ammunition++.sgml.in
-	cp $(srcdir)/ammunition++.sgml.in ammunition++.sgml.tmp
+$(srcdir)/ammunition.pdf: $(srcdir)/ammunition.ps
+	ps2pdf $(srcdir)/ammunition.ps $@
 
-$(srcdir)/ammunition++.txt: $(srcdir)/ammunition++.sgml.in
-	$(srcdir)/../sgml-txt ammunition++.sgml.tmp > $@
-	
-$(srcdir)/ammunition++.html: $(srcdir)/ammunition++.sgml.in
-	$(srcdir)/../sgml-html ammunition++.sgml.tmp >ammunition++.sgml
+ammunition++.sgml: $(srcdir)/ammunition++.sgml.in
+	cp $(srcdir)/ammunition++.sgml.in ammunition++.sgml
+
+$(srcdir)/ammunition++.txt: ammunition++.sgml
+	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
+	mv ammunition++.txt $(srcdir)
+
+$(srcdir)/ammunition++.html: ammunition++.sgml
 	linuxdoc -B html --papersize=letter ammunition++.sgml
 	if test -f ammunition++-1.html;then\
   	  for i in ammunition++-*.html;do\
@@ -554,8 +550,7 @@ $(srcdir)/ammunition++.html: $(srcdir)/ammunition++.sgml.in
         fi
 	mv ammunition++.html $(srcdir)/ammunition++.html
 	
-$(srcdir)/ammunition++.info: ammunition++.sgml.tmp
-	cp ammunition++.sgml.tmp ammunition++.sgml
+$(srcdir)/ammunition++.info: ammunition++.sgml
 	linuxdoc -B info --papersize=letter ammunition++.sgml
 	if test -f ammunition++.info-1;then\
 	  for i in ammunition++.info-*;do\
@@ -564,22 +559,19 @@ $(srcdir)/ammunition++.info: ammunition++.sgml.tmp
         fi
 	mv ammunition++.info $(srcdir)/ammunition++.info
 	
-$(srcdir)/ammunition++.dvi $(srcdir)/ammunition++.pdf: $(srcdir)/ammunition++.sgml.in
-	$(srcdir)/../sgml-tex ammunition++.sgml.tmp >ammunition++.sgml
+$(srcdir)/ammunition++.dvi: ammunition++.sgml
 	linuxdoc -B latex --papersize=letter ammunition++.sgml
 	if test ! -f ammunition++.dvi\
            -o -f ammunition++.tex -a ammunition++.tex -nt ammunition++.dvi; then\
     	        latex ammunition++.tex; latex ammunition++.tex;\
         fi
 	mv ammunition++.dvi $(srcdir)/ammunition++.dvi
-	if test ! -f ammunition++.pdf\
-           -o -f ammunition++.tex -a ammunition++.tex -nt ammunition++.pdf; then\
-    	        pdflatex ammunition++.tex; pdflatex ammunition++.tex;\
-        fi
-	mv ammunition++.pdf $(srcdir)/ammunition++.pdf
 
 $(srcdir)/ammunition++.ps: $(srcdir)/ammunition++.dvi
 	dvips -o $@ $(srcdir)/ammunition++.dvi
+
+$(srcdir)/ammunition++.pdf: $(srcdir)/ammunition++.ps
+	ps2pdf $(srcdir)/ammunition++.ps $@
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for IRDT object files to the end of given file.

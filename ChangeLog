@@ -1,3 +1,33 @@
+2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* DINO/dino.sgml.in: Remove history, extensions.  Describe hex
+	numbers, long numbers, new keywords, new scope rules, new
+	pre-declared identifiers, patterns, undef values, val, pub/priv
+	for vars/pars/extern, process, qualifiers, params number checking,
+	constraints on init params and ... usage, forward decls, use
+	clause, singleton, 64 integer, long, new tab.  Remove thread
+	value, block instance.  Decribe process, slices, conversion for
+	long, operations of long and slices, this, anonymous
+	function/classes, expression-statement.  Remove call-statement.
+	Describe switch-statement.  Remove excpetion objects.  Describe
+	transpose, filter, map, fold, isa.  Change Syntax.
+	* DINO/dino.1: Describe REPL.  Rename -h to -m.  Add options -h,
+	-O, --save-temp, -p, -i.  Remove mpi.d, mpi.so.
+	* Makefile.in: Remove usage of sgml-{txt,html,tex,postinfo. Use
+	ps2pdf instead of pdflatex.
+	* {AMMUNITION,DINO,MSTA,NONA,OKA,SHILKA,SPRUT}/Makefile.in: Diito.
+	Remove more escape sequences from .1 files.
+	* cocom.sgml.in: Add more about Dino.
+	* cocom.{dvi,html,info,pdf,ps,txt}: Update.
+	* AMMUNITION/ammunition++.{dvi,html*,info,pdf,ps,txt}: Update.
+	* AMMUNITION/ammunition.{info,txt}: Update.
+	* DINO/dino.{dvi,html*,info,pdf,ps,txt}: Update.
+	* MSTA/msta.{dvi,html*,info,pdf,ps,txt}: Update.
+	* NONA/nona.{dvi,html*,info,pdf,ps,txt}: Update.
+	* OKA/oka.{dvi,html*,info,pdf,ps,txt}: Update.
+	* SHILKA/shilka.{dvi,html*,info,pdf,ps,txt}: Update.
+	* SPRUT/sprut.{dvi,html*,info,pdf,ps,txt}: Update.
+
 2015-05-13  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/Makefile.in (d_yacc.c): Change expected conflicts number.

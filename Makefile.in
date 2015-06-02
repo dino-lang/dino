@@ -220,7 +220,7 @@ uninstall:
 # Deletion of temporary (object) files.
 clean:
 # COCOM only start
-	rm -f cocom.sgml cocom.tmp
+	rm -f cocom.sgml
 	for i in $(only_cocom_directories);do\
 	  (cd $$i; $(MAKE) clean);\
 	done
@@ -232,7 +232,7 @@ clean:
 # Deletion all not needed for distribution.
 distclean:
 # COCOM only start
-	rm -f cocom.sgml cocom.tmp
+	rm -f cocom.sgml
 	for i in $(only_cocom_directories);do\
 	  (cd $$i; $(MAKE) distclean);\
 	done
@@ -314,11 +314,14 @@ doc : $(srcdir)/cocom.txt $(srcdir)/cocom.html $(srcdir)/cocom.info $(srcdir)/co
 	done
 # COCOM only end
 
-$(srcdir)/cocom.txt: $(srcdir)/cocom.sgml.in
-	$(srcdir)/sgml-txt $(srcdir)/cocom.sgml.in > $@
+cocom.sgml: $(srcdir)/cocom.sgml.in
+	cp $(srcdir)/cocom.sgml.in cocom.sgml
+
+$(srcdir)/cocom.txt: cocom.sgml
+	linuxdoc -B txt --papersize=letter -f cocom.sgml
+	mv cocom.txt $(srcdir)
 	
-$(srcdir)/cocom.html: $(srcdir)/cocom.sgml.in
-	$(srcdir)/sgml-html $(srcdir)/cocom.sgml.in >cocom.sgml
+$(srcdir)/cocom.html: cocom.sgml
 	linuxdoc -B html --papersize=letter cocom.sgml
 	if test -f cocom-1.html;then\
   	  for i in cocom-*.html;do\
@@ -327,12 +330,8 @@ $(srcdir)/cocom.html: $(srcdir)/cocom.sgml.in
         fi
 	mv cocom.html $(srcdir)/cocom.html
 	
-$(srcdir)/cocom.info: $(srcdir)/cocom.sgml.in
-	$(srcdir)/sgml-info $(srcdir)/cocom.sgml.in >cocom.sgml
+$(srcdir)/cocom.info: cocom.sgml
 	linuxdoc -B info --papersize=letter cocom.sgml
-	for i in cocom.info*;do\
-   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
-	done
 	if test -f cocom.info-1;then\
 	  for i in cocom.info-*;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -340,22 +339,19 @@ $(srcdir)/cocom.info: $(srcdir)/cocom.sgml.in
         fi
 	mv cocom.info $(srcdir)/cocom.info
 	
-$(srcdir)/cocom.dvi $(srcdir)/cocom.pdf: $(srcdir)/cocom.sgml.in
-	$(srcdir)/sgml-tex $(srcdir)/cocom.sgml.in >cocom.sgml
+$(srcdir)/cocom.dvi: cocom.sgml
 	linuxdoc -B latex --papersize=letter cocom.sgml
 	if test ! -f cocom.dvi\
            -o -f cocom.tex -a cocom.tex -nt cocom.dvi; then\
     	        latex cocom.tex; latex cocom.tex;\
         fi
 	mv cocom.dvi $(srcdir)/cocom.dvi
-	if test ! -f cocom.pdf\
-           -o -f cocom.tex -a cocom.tex -nt cocom.pdf; then\
-    	        pdflatex cocom.tex; pdflatex cocom.tex;\
-        fi
-	mv cocom.pdf $(srcdir)/cocom.pdf
 
 $(srcdir)/cocom.ps: $(srcdir)/cocom.dvi
 	dvips -o $@ $(srcdir)/cocom.dvi
+
+$(srcdir)/cocom.pdf: $(srcdir)/cocom.ps
+	ps2pdf $(srcdir)/cocom.ps $@
 # COCOM only end
 
 # COCOM only start

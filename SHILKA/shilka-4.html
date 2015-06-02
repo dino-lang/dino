@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
  <TITLE>SHILKA (keywords description translator): SHILKA Usage</TITLE>
  <LINK HREF="shilka-5.html" REL=next>
  <LINK HREF="shilka-3.html" REL=previous>
@@ -26,21 +26,21 @@ NAME
 
 SYNOPSIS
        shilka [ -c++ --statistics -inline -strip -length -case -no-definitions
-       -interface -export -enum -pprefix -time -fast n -w -h -help -v]  speci-
+       -interface -export -enum -pprefix -time -fast n -w -h -help -v]  speci‐
        fication-file
 
 DESCRIPTION
-       SHILKA  generates code for fast recognition of pipeline hazards of pro-
+       SHILKA  generates code for fast recognition of pipeline hazards of pro‐
        cessor which is described in  specification  file.   The  specification
-       file must have suffix ‘.shilka’
+       file must have suffix `.shilka'
 
        The  generated  code  consists of optional interface and implementation
-       files having the same names as one of  specification  file  and  corre-
-       spondingly  suffixes  ‘.h’  (if option -interface is given) and ‘.c’ (C
-       code) or ‘.cpp’ (C++ code).
+       files having the same names as one of  specification  file  and  corre‐
+       spondingly  suffixes  `.h'  (if option -interface is given) and `.c' (C
+       code) or `.cpp' (C++ code).
 
-       The fast recognition of keywords is based on structure called as  mini-
-       mal  prunned  O-trie.  Full documentation of SHILKA is in SHILKA User’s
+       The fast recognition of keywords is based on structure called as  mini‐
+       mal  prunned  O-trie.  Full documentation of SHILKA is in SHILKA User's
        manual.
 
 OPTIONS
@@ -56,7 +56,7 @@ OPTIONS
 
        -inline
               Generation  of  function  of keyword recognition as inline (take
-              care with used C compiler).  This can be speed up keyword recog-
+              care with used C compiler).  This can be speed up keyword recog‐
               nition.
 
        -strip Striping  off  code  for  gathering and printing statistics.  By
@@ -67,9 +67,9 @@ OPTIONS
        -length
               Usage of strncmp instead of strcmp to  compare  keywords.   This
               can  be  useful  if keyword is represented by a string without C
-              string end marker (’ ’).
+              string end marker (' ').
 
-       -case  Keywords case is ignored during their recognition.  This is use-
+       -case  Keywords case is ignored during their recognition.  This is use‐
               ful  for  recognition keywords (or standard identifiers) in such
               language as Fortran.
 
@@ -78,25 +78,25 @@ OPTIONS
               keywords.
 
        -interface
-              Generation of additional interface file (with suffix ‘.h’ ).
+              Generation of additional interface file (with suffix `.h' ).
 
        -export
               SHILKA  generates macros defining identifiers of keywords in the
               interface file (instead of in the  implementation  file).   This
               option has sense only when -interface is present.
 
-       -enum  Output  of  enumeration instead of macro definitions for identi-
+       -enum  Output  of  enumeration instead of macro definitions for identi‐
               fiers of keywords.
 
        -pprefix
-              Usage of prefix instead of ‘KR_’ (default) for names  of  gener-
+              Usage of prefix instead of `KR_' (default) for names  of  gener‐
               ated objects.
 
        -time  Output of time statistics of the SHILKA run into stderr.
 
        -fast n
               If  number  of  rested  unchecked characters is less or equal n,
-              then functions  ‘strcmp’  or  ‘strncmp’  is  not  used  at  all.
+              then functions  `strcmp'  or  `strncmp'  is  not  used  at  all.
               Instead of this, simply comparing rested unchecked characters is
               used.  This can speed up keyword recognition.  The default value
               of the parameter is 3.

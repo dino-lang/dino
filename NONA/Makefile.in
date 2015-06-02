@@ -200,7 +200,7 @@ clean :
 distclean: clean
 	rm -f Makefile
 	rm -f nona.sgml nona.tex nona.log nona.aux nona.toc\
-              nona.sgml.tmp nona.tmp
+              nona.sgml nona.tmp
 
 # Deletion all which can be built up automatically:
 # the same as entry `distclean' and emacs TAGS table.
@@ -243,21 +243,21 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : nona.sgml.tmp $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
+doc : nona.sgml $(srcdir)/nona.txt $(srcdir)/nona.html $(srcdir)/nona.info $(srcdir)/nona.pdf $(srcdir)/nona.dvi $(srcdir)/nona.ps
 
-nona.sgml.tmp : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
-	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");print;}' > nona.tmp
+nona.sgml : $(srcdir)/nona.sgml.in $(srcdir)/nona.1
+	nroff -man $(srcdir)/nona.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > nona.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "nona.tmp") > 0)\
                         print line;close("nona.tmp")}\
                  else print;}' $(srcdir)/nona.sgml.in > $@
 	rm -f nona.tmp
 
-$(srcdir)/nona.txt: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
-	$(srcdir)/../sgml-txt nona.sgml.tmp > $@
+$(srcdir)/nona.txt: nona.sgml
+	linuxdoc -B txt --papersize=letter -f nona.sgml
+	mv nona.txt $(srcdir)
 	
-$(srcdir)/nona.html: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
-	$(srcdir)/../sgml-html nona.sgml.tmp >nona.sgml
+$(srcdir)/nona.html: nona.sgml
 	linuxdoc -B html --papersize=letter nona.sgml
 	if test -f nona-1.html;then\
   	  for i in nona-*.html;do\
@@ -266,12 +266,8 @@ $(srcdir)/nona.html: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
         fi
 	mv nona.html $(srcdir)/nona.html
 	
-$(srcdir)/nona.info: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
-	$(srcdir)/../sgml-info nona.sgml.tmp >nona.sgml
+$(srcdir)/nona.info: nona.sgml
 	linuxdoc -B info --papersize=letter nona.sgml
-	for i in nona.info*;do\
-   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
-	done
 	if test -f nona.info-1;then\
 	  for i in nona.info-*;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -279,22 +275,19 @@ $(srcdir)/nona.info: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
         fi
 	mv nona.info $(srcdir)/nona.info
 
-$(srcdir)/nona.dvi $(srcdir)/nona.pdf: $(srcdir)/nona.sgml.in $(srcdir)/nona.1
-	$(srcdir)/../sgml-tex nona.sgml.tmp >nona.sgml
+$(srcdir)/nona.dvi: nona.sgml
 	linuxdoc -B latex --papersize=letter nona.sgml
 	if test ! -f nona.dvi\
            -o -f nona.tex -a nona.tex -nt nona.dvi; then\
     	        latex nona.tex; latex nona.tex;\
         fi
 	mv nona.dvi $(srcdir)/nona.dvi
-	if test ! -f nona.pdf\
-           -o -f nona.tex -a nona.tex -nt nona.pdf; then\
-    	        pdflatex nona.tex; pdflatex nona.tex;\
-        fi
-	mv nona.pdf $(srcdir)/nona.pdf
 
 $(srcdir)/nona.ps: $(srcdir)/nona.dvi
 	dvips -o $@ $(srcdir)/nona.dvi
+
+$(srcdir)/nona.pdf: $(srcdir)/nona.ps
+	ps2pdf $(srcdir)/nona.ps $@
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for NONA object files to the end of given file.

@@ -1,4 +1,4 @@
-This is ammunition.info, produced by makeinfo version 5.1 from
+This is ammunition.info, produced by makeinfo version 5.2 from
 sgmltmp.ammunition.2.texi.
 
 
@@ -117,6 +117,7 @@ The interface contains the following external definitions and macros:
                   `void change_allocation_error_function
                         (void (*error_function) (void))) (void)'
 
+
      is used for changing up action on the situation 'no memory'.  The
      function also returns former function which was early action on the
      situation 'no memory'.
@@ -124,6 +125,7 @@ The interface contains the following external definitions and macros:
 'Function `default_allocation_error_function''
 
                   `void default_allocation_error_function (void)'
+
 
      is default action of the package on the situation 'no memory'.
      This action consists of output message '*** no memory ***' to
@@ -134,6 +136,7 @@ The interface contains the following external definitions and macros:
 
                   `MALLOC(ptr, size)'
 
+
      is analogous to ANSI C library function 'malloc'.  But the macro
      has two parameters.  The first is pointer variable which is set up
      by address of allocated memory.  The second is size of needed
@@ -142,6 +145,7 @@ The interface contains the following external definitions and macros:
 'Macro `CALLOC''
 
                   `CALLOC(ptr, nel, size)'
+
 
      is analogous to ANSI C library function 'calloc'.  But the macro
      has three parameters.  The first is pointer variable which is set
@@ -152,12 +156,14 @@ The interface contains the following external definitions and macros:
 
                   `FREE(ptr)'
 
+
      is analogous to ANSI C library function 'free' but can accept nil
      pointer value.  In this case macro does nothing.
 
 'Macro `REALLOC''
 
                   `REALLOC(new, old, size)'
+
 
      is analogous to ANSI C library function 'realloc' but has three
      parameters.  The first parameter is variable which is set up by new
@@ -208,6 +214,7 @@ the following definitions and macros:
 
                     `VLO_CREATE(vlo, initial_length)'
 
+
      is used for creation of VLO with initial zero length.  Initial
      memory allocated for VLO whose descriptor is given as the first
      macro parameter is given as the second parameter.  If the second
@@ -218,12 +225,14 @@ the following definitions and macros:
 
                     `VLO_DELETE(vlo)'
 
+
      is used for freeing memory used by VLO whose descriptor is given as
      the macro parameter.
 
 'Macro `VLO_NULLIFY''
 
                     `VLO_NULLIFY(vlo)'
+
 
      makes that length of VLO whose descriptor is given as the macro
      parameter will be equal to zero (but memory for VLO is not freed
@@ -233,6 +242,7 @@ the following definitions and macros:
 
                     `VLO_TAILOR(vlo)'
 
+
      makes that length of memory allocated for VLO whose descriptor is
      given as the macro parameter becomes equal to VLO length.
 
@@ -240,12 +250,14 @@ the following definitions and macros:
 
                     `VLO_LENGTH(vlo)'
 
+
      returns current length of VLO whose descriptor is given as the
      macro parameter.
 
 'Macros `VLO_BEGIN', `VLO_END', `VLO_BOUND''
 
                     `VLO_BEGIN(vlo)', `VLO_END(vlo)', `VLO_BOUND(vlo)'
+
 
      return pointer (of type 'void *') to correspondingly the first, the
      last byte of VLO whose descriptor is given as the macros parameter,
@@ -256,6 +268,7 @@ the following definitions and macros:
 
                     `VLO_SHORTEN(vlo, n)'
 
+
      removes n bytes from the end of VLO whose descriptor is given as
      the first parameter.  VLO is nullified if its length is less than
      n.
@@ -263,6 +276,7 @@ the following definitions and macros:
 'Macro `VLO_EXPAND''
 
                     `VLO_EXPAND(vlo, length)'
+
 
      increases length of VLO whose descriptor is given as the first
      parameter on number of bytes given as the second parameter.  The
@@ -272,12 +286,14 @@ the following definitions and macros:
 
                     `VLO_ADD_BYTE(vlo, b)'
 
+
      adds byte given as the second parameter to the end of VLO whose
      descriptor is given as the first parameter.
 
 'Macro `VLO_ADD_MEMORY''
 
                     `VLO_ADD_MEMORY(vlo, str, length)'
+
 
      adds memory starting with address given as the second macro
      parameter and with length given as the third parameter to the end
@@ -286,6 +302,7 @@ the following definitions and macros:
 'Macro `VLO_ADD_STRING''
 
                     `VLO_ADD_STRING(vlo, str)'
+
 
      adds C string (with end marker 0) given as the second macro
      parameter to the end of VLO whose descriptor is given as the first
@@ -341,6 +358,7 @@ the following definitions and macros:
 
                   `OS_CREATE(os, initial_segment_length)'
 
+
      creates OS which contains the single zero length object.  OS
      descriptor is given as the first macro parameter.  Minimum size of
      memory segments which will be allocated for OS is given as the
@@ -353,6 +371,7 @@ the following definitions and macros:
 
                   `OS_DELETE(os)'
 
+
      is used for freeing all memory used by OS whose descriptor is given
      as the macro parameter.
 
@@ -360,12 +379,14 @@ the following definitions and macros:
 
                   `OS_EMPTY(os)'
 
+
      is used for removing all objects and freeing all memory allocated
      for OS except for the first segment.
 
 'Macro `OS_TOP_FINISH''
 
                   `OS_TOP_FINISH(os)'
+
 
      creates new variable length object with initial zero length on the
      top of OS whose descriptor is given as the macro parameter.  The
@@ -377,6 +398,7 @@ the following definitions and macros:
 
                   `OS_TOP_NULLIFY(os)'
 
+
      makes that length of variable length object on the top of OS whose
      descriptor is given as the macro parameter will be equal to zero.
 
@@ -384,12 +406,14 @@ the following definitions and macros:
 
                   `OS_TOP_LENGTH(os)'
 
+
      returns current length of variable length object on the top of OS
      whose descriptor is given as the macro parameter.
 
 'Macros `OS_TOP_BEGIN', `OS_TOP_END', `OS_TOP_BOUND''
 
                   `OS_TOP_BEGIN(os)', `OS_TOP_END(os)', `OS_TOP_BOUND(os)'
+
 
      return pointer to correspondingly the first and the last byte of
      variable length object on the top of OS whose descriptor is given
@@ -401,6 +425,7 @@ the following definitions and macros:
 
                   `OS_TOP_SHORTEN(os, n)'
 
+
      removes n bytes from the end of variable length object on the top
      of OS whose descriptor is given as the first parameter.  The top
      variable length object is nullified if its length is less than n.
@@ -408,6 +433,7 @@ the following definitions and macros:
 'Macro `OS_TOP_EXPAND''
 
                   `OS_TOP_EXPAND(os, length)'
+
 
      increases length of variable length object on the top of OS whose
      descriptor is given as the first parameter on number of bytes given
@@ -418,6 +444,7 @@ the following definitions and macros:
 
                   `OS_TOP_ADD_BYTE(os, b)'
 
+
      adds byte given as the second parameter to the end of variable
      length object on the top of OS whose descriptor is given as the
      first parameter.
@@ -425,6 +452,7 @@ the following definitions and macros:
 'Macro `OS_TOP_ADD_MEMORY''
 
                   `OS_TOP_ADD_MEMORY(os, str, length)'
+
 
      adds memory starting with address given as the second macro
      parameter and with length given as the third parameter to the end
@@ -434,6 +462,7 @@ the following definitions and macros:
 'Macro `OS_TOP_ADD_STRING''
 
                   `OS_TOP_ADD_STRING(os, str)'
+
 
      adds C string (with end marker 0) given as the second macro
      parameter to the end of variable length string on the top of OS
@@ -484,6 +513,7 @@ abstract data is file 'hashtab.h'.  The implementation part is file
                       int (*eq_function) (hash_table_entry_t el1_ptr,
                                           hash_table_entry_t el2_ptr))'
 
+
      creates and returns hash table with length slightly longer than
      value of function parameter 'size'.  Created hash table is
      initiated as empty (all the hash table entries are NULL). The hash
@@ -495,12 +525,14 @@ abstract data is file 'hashtab.h'.  The implementation part is file
 
                   `void delete_hash_table (hash_table_t htab)'
 
+
      frees memory allocated for hash table given as parameter 'htab'.
      Naturally the hash table must already exist.
 
 'Function `empty_hash_table''
 
                   `void empty_hash_table  (hash_table_t htab)'
+
 
      makes hash table given as parameter 'htab' empty.  Naturally the
      hash table must already exist.  If you need to remove all table
@@ -515,6 +547,7 @@ abstract data is file 'hashtab.h'.  The implementation part is file
                                        (hash_table_t htab,
                                         hash_table_entry_t element,
                                         int reserve)'
+
 
      searches for hash table entry which contains element equal to value
      of the function parameter 'element' or empty entry in which
@@ -531,6 +564,7 @@ abstract data is file 'hashtab.h'.  The implementation part is file
                   `void remove_element_from_hash_table_entry
                         (hash_table_t htab, hash_table_entry_t element)'
 
+
      removes element from hash table_entry whose value is given as the
      function parameter.  Hash table entry for given value should be not
      empty (or deleted).  The hash table entry value will be marked as
@@ -540,11 +574,13 @@ abstract data is file 'hashtab.h'.  The implementation part is file
 
                   `size_t hash_table_size (hash_table_t htab)'
 
+
      returns current size of given hash table.
 
 'Function `hash_table_elements_number''
 
                   `size_t hash_table_elements_number (hash_table_t htab)'
+
 
      returns current number of elements in given hash table.
 
@@ -552,12 +588,14 @@ abstract data is file 'hashtab.h'.  The implementation part is file
 
                   `int hash_table_collisions (hash_table_t htab)'
 
+
      returns number of of percents of fixed collisions during all work
      with given hash table.
 
 'Function `all_hash_table_collisions''
 
                   `int all_hash_table_collisions (void)'
+
 
      returns number of of percents of fixed collisions during all work
      with all hash tables.
@@ -616,6 +654,7 @@ the following external definitions:
 
                   `void initiate_positions (void)'
 
+
      initiates the package.  Value of variable 'current_position'
      becomes equal to 'no_position'.
 
@@ -623,11 +662,13 @@ the following external definitions:
 
                   `void finish_positions (void)'
 
+
      frees all memory allocated during package work.
 
 'Function `position_file_inclusion_level''
 
                   `int position_file_inclusion_level (position_t position)'
+
 
      returns level of inclusion of file of position given as the
      function parameter.  The level numbers are started with zero for
@@ -637,6 +678,7 @@ the following external definitions:
 'Function `start_file_position''
 
                   `void start_file_position (const char *file_name)'
+
 
      copys position structure (by dynamic memory allocation) in variable
      'current_position' and sets up new values of members of
@@ -651,6 +693,7 @@ the following external definitions:
 
                   `void finish_file_position (void)'
 
+
      recovers previous value of variable 'current_position', more
      exactly sets up the variable by structure to which the variable
      member 'path' refers.
@@ -659,6 +702,7 @@ the following external definitions:
 
                   `int compare_positions (position_t position_1,
                                           position_t position_2)'
+
 
      compares two positions given by parameters of type 'position_t' and
      returns -1 (if the first position is less than the second), 0 (if
@@ -714,12 +758,14 @@ The interface contains the following external definitions:
 
                   `void default_fatal_error_function (void)'
 
+
      defines originally value of variable 'fatal_error_function'.  The
      function only calls 'exit (1)'.
 
 'Function `initiate_errors''
 
                   `void initiate_errors (int immediate_output_flag)'
+
 
      initiates the package in regime depending on parameter value.  If
      the parameter value is nonzero than all fixed messages are output
@@ -730,11 +776,13 @@ The interface contains the following external definitions:
 
                   `void finish_errors (void)'
 
+
      frees all memory allocated during package work.
 
 'Function `output_errors''
 
                   `void output_errors (void)'
+
 
      sorts (stable sorting) all fixed messages by their positions,
      outputs ones, and deletes ones.  Appended messages will be output
@@ -747,6 +795,7 @@ The interface contains the following external definitions:
                        `void error (int fatal_error_flag, position_t
                                     position, const char *format, ...)'
 
+
      fixes error (fatal error if the first parameter value is nonzero)
      at the position given as the second parameter.  If the error is
      fatal than functions 'output_errors' and '*fatal_error_function'
@@ -755,9 +804,11 @@ The interface contains the following external definitions:
 
                      error (1, current_position, "fatal error - no memory");
 
+
 'Function `warning''
 
                   `void warning (position_t position, const char *format, ...)'
+
 
      is analogous to the previous but is used to fix a warning.
 
@@ -765,6 +816,7 @@ The interface contains the following external definitions:
 
                   `void append_message (position_t position,
                                         const char *format, ...)'
+
 
      When regime of immediately output of fixed message is on this
      function is analogous to the previous (except for incrementing
@@ -778,9 +830,11 @@ The interface contains the following external definitions:
 
                         `<file>:<line>:<position-1>: repeated declaration'
 
+
      and then
 
                         `<file>:<line>:<position-1>: previous declaration'.
+
 
      Description of function 'default_output_error_function' contains
      explanation why decremented position is output.
@@ -791,6 +845,7 @@ The interface contains the following external definitions:
                                       position_t position,
                                       const char *format, ...)'
 
+
      is analogous to function 'error' but serves to fix a system error.
      The current system message without head blanks (given by standard
      function 'strerror') is placed after the message formed by the
@@ -799,6 +854,7 @@ The interface contains the following external definitions:
 
                        system_error  (1, current_position,
                                       "fatal error - %s:", new_file_name);
+
 
 'Variable `output_error_function''
      contains pointer to function which is used to output error message.
@@ -811,6 +867,7 @@ The interface contains the following external definitions:
                         (int appended_message_flag, position_t position,
                          const char *message)'
 
+
      Originally value of variable 'output_error_function' is equal to
      this function.  The function is oriented to output in Unix style
      according to GNU standard.  To output a listing the value of
@@ -821,6 +878,7 @@ The interface contains the following external definitions:
             FILE_NAME:1: MESSAGE                 (zero line number)
             FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
             FILE_NAME:LINE_NUMBER:COLUMN_NUMBER: MESSAGE  (all other cases)
+
 
      After that the function outputs newline.  The function also outputs
      additional messages 'in file processed from ...'  if given message
@@ -888,6 +946,7 @@ following external definitions:
                     `int start_command_line_processing
                          (int argc, char **argv, const char *description)'
 
+
      must be called before any work with abstract data.  The function
      processes command line description given as string parameter and
      command line itself given as two parameter 'argc' and 'argv'.  The
@@ -900,6 +959,7 @@ following external definitions:
 
                     `void output_command_line_description (void)'
 
+
      outputs the second part (without '%%') of description of options to
      stderr.  This function should be called when it is necessary to
      show the program usage.
@@ -907,6 +967,7 @@ following external definitions:
 'Function `next_operand''
 
                     `int next_operand (int flag_of_first)'
+
 
      returns command line argument number of next operand if the
      function parameter is nonzero.  Otherwise the function returns
@@ -919,11 +980,13 @@ following external definitions:
 
                     `int number_of_operands (void)'
 
+
      returns number of operands in the command line.
 
 'Function `next_option''
 
                     `int next_option (int flag_of_first)'
+
 
      returns command line argument number of next option if the function
      parameter is nonzero.  Otherwise the function returns number of the
@@ -935,6 +998,7 @@ following external definitions:
 
                     `char *option_characteristics (int argument_number,
                                                    int *option_has_argument)'
+
 
      returns pointer to option name which describes the command line
      argument with number 'argument_number' given as the first parameter
@@ -954,6 +1018,7 @@ following external definitions:
 
                     `int last_option_place (const char *option_name)'
 
+
      returns number of last option with given option name in the command
      line.  The function returns 0 if the option is absent in the
      command line.
@@ -961,6 +1026,7 @@ following external definitions:
 'Function `option_argument''
 
                     `char *option_argument (const char *option_name)'
+
 
      returns pointer to argument of last option in the command line with
      given option name.  The function returns NULL if the option is
@@ -994,6 +1060,7 @@ following external definitions of macros and functions:
 
                     `BIT(start_byte, bit_displacement)'
 
+
      returns given bit value as integer value '0' or '1'.  There is
      macro 'SET_BIT (start_byte, bit_displacement, bit) for changing
      value of a bit.  Parameter 'bit' must have value '0' or '1'.
@@ -1004,6 +1071,7 @@ following external definitions of macros and functions:
                                              int bit_displacement,
                                              int bit_length)'
 
+
      returns '1' if given bit string contains only zero value bits, 0
      otherwise.
 
@@ -1012,6 +1080,7 @@ following external definitions of macros and functions:
                     `void bit_string_set (void *start_byte, int
                                           bit_displacement, int bit,
                                           int bit_length)'
+
 
      sets up new value of all bits of given bit string.  This function
      is bit string analog of standard C function 'memset'.
@@ -1022,6 +1091,7 @@ following external definitions of macros and functions:
                                            const void *from,
                                            int from_bit_displacement,
                                            int bit_length)'
+
 
      copys a bit string to another bit string.  The bit strings must be
      nonoverlapped.  This function is bit string analog of standard C
@@ -1034,6 +1104,7 @@ following external definitions of macros and functions:
                                           int from_bit_displacement,
                                           int bit_length)'
 
+
      copys a bit string to another bit string.  The bit strings can be
      overlapped.  This function is bit string analog of standard C
      function 'memmove'.
@@ -1044,6 +1115,7 @@ following external definitions of macros and functions:
                          (const void *str1, int bit_displacement1,
                           const void *str2, int bit_displacement2,
                           int bit_length)'
+
 
      returns 0 if the bit strings are equal, 1 if the first bit string
      is greater than the second, -1 if the first bit string is less than
@@ -1104,16 +1176,19 @@ definitions:
                   `void (*set_integer_overflow_reaction
                           (void (*function) (void))) (void)'
 
+
      changes reaction on integer overflow and returns previous overflow
      reaction function.  There is analogous function
 
                   `set_unsigned_integer_overflow_reaction'
+
 
      for unsigned integer overflow.
 
 'Function `integer_maximum''
 
                   `void integer_maximum   (int  size,  void  *result)'
+
 
      creates given size (in bytes) maximal integer constant which is
      placed in memory whose address is given by the second parameter.
@@ -1122,11 +1197,13 @@ definitions:
                   `integer_minimum' and
                   `unsigned_integer_maximum'.
 
+
 'Function `add_integer''
 
                   `void add_integer (int size,
                                      const void *op1, const void *op2,
                                      void *result)'
+
 
      makes integer addition of integers of given size.  The function
      fixes overflow when result can not be represented by number of
@@ -1138,6 +1215,7 @@ definitions:
                   `divide_integer',
                   `integer_remainder'.
 
+
      Also there are analogous functions
 
                   `subtract_unsigned_integer',
@@ -1145,12 +1223,14 @@ definitions:
                   `divide_unsigned_integer',
                   `unsigned_integer_remainder'
 
+
      for unsigned integers.
 
 'Function `integer_shift_left''
 
                   `void  integer_shift_left (int size,  const void *operand,
                                              int bits, void *result)'
+
 
      makes left shift of integer of given size on given number of bits.
      If number of bits is negative the function makes shift to right
@@ -1166,10 +1246,12 @@ definitions:
                   `unsigned_integer_shift_left' and
                   `unsigned_integer_shift_right' for unsigned integers.
 
+
 'Function `integer_or''
 
                   `void integer_or (int size, const void *op1, const void *op2,
                                     void *result)'
+
 
      makes bitwise 'or' of integers of given size.  There is analogous
      functions which implement bitwise 'and' or 'xor':
@@ -1177,11 +1259,13 @@ definitions:
                   `integer_and',
                   `integer_xor'.
 
+
      Also there are equivalent functions
 
                   `unsigned_integer_or',
                   `unsigned_integer_and',
                   `unsigned_integer_xor',
+
 
      for unsigned integers.
 
@@ -1190,14 +1274,17 @@ definitions:
                   `void integer_not (int size, const void *operand,
                                      void *result)'
 
+
      makes bitwise 'not' of integer of given size.  There is equivalent
      function for unsigned integer:
 
                   `unsigned_integer_not'.
 
+
 'Function `eq_integer''
 
                   `int eq_integer (int size, const void *op1, const void *op2)'
+
 
      compares two integers of given size on equality and returns 1 or 0
      depending on result of the comparison.  There are analogous
@@ -1209,6 +1296,7 @@ definitions:
                   `ge_integer',
                   and `le_integer'.
 
+
      Also there are analogous functions
 
                   `eq_unsigned_integer',
@@ -1218,6 +1306,7 @@ definitions:
                   `ge_unsigned_integer',
                   and `le_unsigned_integer'
 
+
      for unsigned integers.
 
 'Function `change_integer_size''
@@ -1226,11 +1315,13 @@ definitions:
                                               const  void *operand,
                                               int result_size, void *result)'
 
+
      changes size of integer.  The function fixes overflow when result
      can not be represented by number of given size.  There is analogous
      function
 
                   `change_unsigned_integer_size'
+
 
      for unsigned integers.
 
@@ -1239,11 +1330,13 @@ definitions:
                   `char *integer_to_string (int  size, const void *operand,
                                             char *result)'
 
+
      transforms integer of given size to decimal ascii representation.
      Sign is present in result string only for negative numbers.  The
      function returns value 'result'.  There is analogous function
 
                   `unsigned_integer_to_string'
+
 
      for unsigned integers.
 
@@ -1251,6 +1344,7 @@ definitions:
 
                   `char *integer_to_based_string (int  size, const void *operand,
                                                   int base, char *result)'
+
 
      transforms integer of given size to ascii representation with given
      base.  The base should be between 2 and 36 including them.  Digits
@@ -1260,12 +1354,14 @@ definitions:
 
                   `unsigned_integer_to_based_string'
 
+
      for unsigned integers.
 
 'Function `integer_from_string''
 
                   `char *integer_from_string (int  size, const char *operand,
                                               void *result)'
+
 
      skips all white spaces at the begin of source string and transforms
      the tail of the source string (decimal ascii representation with
@@ -1277,6 +1373,7 @@ definitions:
 
                   `unsigned_integer_from_string'
 
+
      for unsigned integers.  But sign '+' is believed to be not part of
      unsigned integer.
 
@@ -1284,6 +1381,7 @@ definitions:
 
                   `char *integer_from_based_string (int  size, const char *operand,
                                                     int base, void *result)'
+
 
      skips all white spaces at the begin of source string and transforms
      the tail of the source string (ascii representation with given base
@@ -1296,6 +1394,7 @@ definitions:
      represented by number of given size.  There is analogous function
 
                   `unsigned_integer_from_based_string'
+
 
      for unsigned integers.  But sign '+' is believed to be not part of
      unsigned integer.
@@ -1400,19 +1499,23 @@ interface contains the following external definitions:
 
                   `void IEEE_reset (void)'
 
+
      and to separate bits in mask returned by functions
 
                   `IEEE_get_sticky_status_bits',
                   `IEEE_get_status_bits', and
                   `IEEE_get_trap_mask'.
 
+
 'Function `IEEE_get_trap_mask''
 
                   `int IEEE_get_trap_mask (void)'
 
+
      returns exceptions trap mask.  Function
 
                   `int IEEE_set_trap_mask (int mask)'
+
 
      sets up new exception trap mask and returns the previous.
 
@@ -1426,11 +1529,13 @@ interface contains the following external definitions:
 
                   `int IEEE_set_sticky_status_bits (int mask)'
 
+
      changes sticky status bits and returns the previous bits.
 
      Function
 
                   `int IEEE_get_sticky_status_bits (void)'
+
 
      returns mask of current sticky status bits.  Only sticky status
      bits corresponding to masked exceptions are updated regardless
@@ -1440,6 +1545,7 @@ interface contains the following external definitions:
 'Function `IEEE_get_status_bits''
 
                   `int IEEE_get_status_bits (void)'
+
 
      returns mask of status bits.  It is supposed that the function will
      be used in trap on an floating point exception.  Status bits are
@@ -1473,9 +1579,11 @@ interface contains the following external definitions:
 
                   `int IEEE_set_round (int round_mode)'
 
+
      which sets up current rounding mode and returns previous mode and
 
                   `int IEEE_get_round (void)'
+
 
      which returns current mode.  Initial rounding mode is round to
      nearest.
@@ -1483,6 +1591,7 @@ interface contains the following external definitions:
 'Function `default_floating_point_exception_trap''
 
                   `void default_floating_point_exception_trap (void)'
+
 
      Originally reaction on occurred trap on an unmasked floating point
      exception is equal to this function.  The function does nothing.
@@ -1494,12 +1603,14 @@ interface contains the following external definitions:
                   `void (*IEEE_set_floating_point_exception_trap
                           (void (*function) (void))) (void)'
 
+
      sets up trap on an unmasked exception.  Function given as parameter
      simulates floating point exception trap.
 
 'Function `IEEE_positive_zero''
 
                   `IEEE_float_t IEEE_positive_zero (void)'
+
 
      returns positive single precision zero constant.  There are
      analogous functions which return other special case values:
@@ -1522,6 +1633,7 @@ interface contains the following external definitions:
                   `IEEE_quad_positive_infinity',
                   `IEEE_quad_negative_infinity'.
 
+
      According to the IEEE standard NaN (and trapping NaN) can be
      represented by more one bit string.  But all functions of the
      package generate and use only one its representation created by
@@ -1536,6 +1648,7 @@ interface contains the following external definitions:
 'Function `IEEE_is_positive_zero''
 
                   `int IEEE_is_positive_zero (IEEE_float single_float)'
+
 
      returns 1 if given number is positive single precision zero
      constant.  There are analogous functions for other special case
@@ -1571,6 +1684,7 @@ interface contains the following external definitions:
                   `IEEE_is_quad_positive_minimum',
                   `IEEE_is_quad_negative_minimum'.
 
+
      In spite of that all functions of the package generate and use only
      one its representation created by function 'IEEE_NaN' (or
      'IEEE_trapping_NaN', or 'IEEE_double_NaN', or
@@ -1584,10 +1698,12 @@ interface contains the following external definitions:
 
                   `int IEEE_is_normalized (IEEE_float_t single_float)'
 
+
      returns TRUE if single precision number is normalized (special case
      values are not normalized).  There is analogous function
 
                   `IEEE_is_denormalized'
+
 
      for determination of denormalized number.  There are analogous
      functions
@@ -1597,12 +1713,14 @@ interface contains the following external definitions:
                   `IEEE_is_quad_normalized' and
                   `IEEE_is_quad_denormalized'
 
+
      for doubles and quads.
 
 'Function `IEEE_add_single''
 
                   `IEEE_float_t IEEE_add_single (IEEE_float_t single1,
                                                  IEEE_float_t single2)'
+
 
      makes single precision addition of floating point numbers.  There
      are analogous functions which implement other floating point
@@ -1619,6 +1737,7 @@ interface contains the following external definitions:
                   `IEEE_subtract_quad',
                   `IEEE_multiply_quad',
                   `IEEE_divide_quad'.
+
 
      Results and input exceptions for operands of special cases values
      (except for NaNs) are described for addition by the following table
@@ -1697,6 +1816,7 @@ interface contains the following external definitions:
                   `int IEEE_eq_single (IEEE_float_t single1,
                                        IEEE_float_t single2)'
 
+
      compares two single precision floating point numbers on equality
      and returns 1 or 0 depending on result of the comparison.  There
      are analogous functions which implement other integer operations:
@@ -1718,6 +1838,7 @@ interface contains the following external definitions:
                   `IEEE_lt_quad',
                   `IEEE_ge_quad',
                   `IEEE_le_quad'.
+
 
      Results and input exceptions for operands of special cases values
      are described for equality and inequality by the following table
@@ -1812,6 +1933,7 @@ interface contains the following external definitions:
                         (int size, IEEE_quad_t quad_float,
                          void *unsigned_integer)'.
 
+
      Actually no one output exceptions occur during transformation of
      single precision floating point number to double and quad precision
      number or of double precision floating point number to quad
@@ -1868,6 +1990,7 @@ interface contains the following external definitions:
                   `char *IEEE_single_to_string (IEEE_float_t single_float,
                                                 char *result)'
 
+
      transforms single precision to decimal ascii representation with
      obligatory integer part (1 digit), fractional part (of constant
      length), and optional exponent.  Signs minus are present if it is
@@ -1879,6 +2002,7 @@ interface contains the following external definitions:
                   `IEEE_string_to_double'
                   `IEEE_string_to_quad'
 
+
      for doubles and quads.  Current round mode does not affect the
      resultant ascii representation.  The function outputs 9 decimal
      fraction digits for single precision number, 17 decimal fraction
@@ -1889,6 +2013,7 @@ interface contains the following external definitions:
 
                   `char *IEEE_single_to_binary_string (IEEE_float_t single_float,
                                                        int base, char *result)'
+
 
 
      The function is analogous to IEEE_single_to_string but transforms
@@ -1905,6 +2030,7 @@ interface contains the following external definitions:
                   `IEEE_string_to_binary_double'
                   `IEEE_string_to_binary_quad'
 
+
      for doubles and quads.  Current round mode does not affect the
      resultant ascii representation.
 
@@ -1913,12 +2039,14 @@ interface contains the following external definitions:
                   `char *IEEE_single_from_string (const char *operand,
                                                   IEEE_float_t *result)'
 
+
      skips all white spaces at the begin of source string and transforms
      tail of the source string to single precision floating point
      number.  The number must correspond the following syntax
 
                      ['+' | '-'] [<decimal digits>] [ '.' [<decimal digits>] ]
                           [ ('e' | 'E') ['+' | '-'] <decimal digits>]
+
 
      or must be the following strings 'SNaN', 'QNaN', '+Inf', '-Inf',
      '+0', or '-0'.  The function returns pointer to first character in
@@ -1931,6 +2059,7 @@ interface contains the following external definitions:
 
                   `IEEE_double_from_string'
                   `IEEE_quad_from_string'
+
 
      for doubles and quads.  Current round mode may affect resultant
      floating point number.  It is guaranteed that transformation 'IEEE
@@ -1953,12 +2082,14 @@ interface contains the following external definitions:
                                                          int base,
                                                          IEEE_float_t *result)'
 
+
      The function is analogous to IEEE_single_to_string but transforms
      binary representation of the single precision floating point
      number.  The number must correspond the following syntax
 
                      ['+' | '-'] [<digits less base>] [ '.' [<digits less base>] ]
                           [ ('p' | 'P') ['+' | '-'] <decimal digits>]
+
 
      or must be the following strings 'SNaN', 'QNaN', '+Inf', '-Inf',
      '+0', or '-0'.  The function returns pointer to first character in
@@ -1972,6 +2103,7 @@ interface contains the following external definitions:
 
                   `IEEE_double_from_binary_string'
                   `IEEE_quad_from_binary_string'
+
 
      for doubles and quads.  Current round mode can affect resultant
      floating point number if there are too many given digits.
@@ -2002,6 +2134,7 @@ following external definitions and macros:
 
                     `ticker_t create_ticker (void)'
 
+
      returns new timer.  The state of the timer is active.  This
      function call must to be the first for given timer.
 
@@ -2009,11 +2142,13 @@ following external definitions and macros:
 
                     `void ticker_off (ticker_t *ticker)'
 
+
      stops the timer given as the first parameter.
 
 'Function `ticker_on''
 
                     `void ticker_on (ticker_t *ticker)'
+
 
      activates the timer given as the first parameter.
 
@@ -2021,12 +2156,14 @@ following external definitions and macros:
 
                     `double active_time (ticker_t ticker)'
 
+
      returns time in seconds as double float value in which given timer
      was active.
 
 'Public function `active_time_string''
 
                     `const char *active_time_string (void)'
+
 
      returns string representation of time in seconds in which the timer
      given as the function parameter was active.  Remember that this
@@ -2075,6 +2212,7 @@ following external definitions and macros:
 
                     `void spset_init (spset_t *s, spset_elem_t size)'
 
+
      should be called the first.  It initializes set 's' with initial
      size close to 'size' but not less than it.  You can work only with
      initialized and non-finished sets.
@@ -2083,11 +2221,13 @@ following external definitions and macros:
 
                     `void spset_finish (spset_t *s)'
 
+
      should be called the last.  It finishes set work with set 's'.
 
 'Function `spset_size''
 
                     `spset_elem_t spset_size (spset_t *s)'
+
 
      returns the current size of the set 's'.  Elements with values less
      than the size can be inserted without an expansion.
@@ -2096,11 +2236,13 @@ following external definitions and macros:
 
                     `spset_elem_t spset_cardinality (spset_t *s)'
 
+
      returns number of elements containing currently in set 's'.
 
 'Function `spset_copy''
 
                     `void spset_copy (spset_t *to, spset_t *from)'
+
 
      copies value of set 'from' to set 'to'.
 
@@ -2108,17 +2250,20 @@ following external definitions and macros:
 
                     `void spset_swap (spset_t *s1, spset_t *s2)'
 
+
      swaps values of sets 's1' and 's2'.
 
 'Function `spset_in_p''
 
                     `int spset_in_p (spset_t *s, spset_elem_t el)'
 
+
      returns TRUE if set 's' constains element 'el'.
 
 'Function `spset_insert''
 
                     `int spset_insert (spset_t *s, spset_elem_t el)'
+
 
      inserts element 'el' into set 's'.  Return TRUE if the set has been
      changed, in order words, it did not contain the element.  If the
@@ -2128,12 +2273,14 @@ following external definitions and macros:
 
                     `int spset_remove (spset_t *s, spset_elem_t el)'
 
+
      removes element 'el' from set 's'.  Return TRUE if the set has been
      changed, in order words, it really contained the element.
 
 'Function `spset_clear''
 
                     `int spset_clear (spset_t *s)'
+
 
      removes all elements from set 's'.  Return TRUE if the set has been
      changed, in order words, it was not empty.
@@ -2142,12 +2289,14 @@ following external definitions and macros:
 
                     `int spset_equal_p (spset_t *s1, spset_t *s2)'
 
+
      returns TRUE if sets 's1' and 's2' contain exactly the same
      elements.
 
 'Function `spset_intersect''
 
                     `int spset_intersect (spset_t *s1, spset_t *s2)'
+
 
      removes elements in set 's1' which are not is set 's2'.  Returns
      TRUE if the set 's1' has been changed, in order words, if 's1' or
@@ -2157,6 +2306,7 @@ following external definitions and macros:
 
                     `int spset_unity (spset_t *s1, spset_t *s2)'
 
+
      adds all elements of set 's2' to set 's1'.  Returns TRUE if the set
      's1' has been changed, in order words, if any new element was added
      to 's1'.  The set can be automatically expanded if it is necessary.
@@ -2165,6 +2315,7 @@ following external definitions and macros:
 
                     `int spset_intersect (spset_t *s1, spset_t *s2)'
 
+
      removes all elements of set 's2' from set 's1'.  Returns TRUE if
      the set 's1' has been changed, in order words, if 's1' and 's2' had
      any common elements.
@@ -2172,6 +2323,7 @@ following external definitions and macros:
 'Function `spset_shrink''
 
                     `void spset_shrink (spset_t *s)'
+
 
      decreases size of set 's' if it is possible.  During set life, the
      set can be automatically expanded but it is never automatically
@@ -2182,6 +2334,7 @@ following external definitions and macros:
 
                     `void spset_release_unused_memory (void)'
 
+
      releases internal memory pool.  The pool is used to speed up size
      changing of sets.  It is wise to call the function when you finish
      to work with all sets.
@@ -2190,11 +2343,13 @@ following external definitions and macros:
 
                     `void spset_print (FILE *f, spset_t *s)'
 
+
      prints all elements of set 's' into file 'f'.
 
 'Function `spset_debug''
 
                     `void spset_debug (spset_t *s)'
+
 
      prints all elements of set 's' into stderr.
 
@@ -2205,6 +2360,7 @@ following external definitions and macros:
 'Macro `EXECUTE_FOR_EACH_SPSET_ELEM''
 
                     `EXECUTE_FOR_EACH_SPSET_ELEM (SET, EL, SI) c-stmt'
+
 
      executes 'c-stmt' for each element of 'SET'. During execution, the
      current element value is assigned to 'EL'. You need to declare
@@ -2256,6 +2412,7 @@ macros:
 
                     `void cspset_init (cspset_t *s, cspset_elem_t size)'
 
+
      should be called the first.  It initializes set 's' with initial
      size close to 'size' but not less than it.  You can work only with
      initialized and non-finished sets.
@@ -2264,11 +2421,13 @@ macros:
 
                     `void cspset_finish (cspset_t *s)'
 
+
      should be called the last.  It finishes set work with set 's'.
 
 'Function `cspset_size''
 
                     `cspset_elem_t cspset_size (cspset_t *s)'
+
 
      returns the current size of the set 's'.  The set without an
      expansion can contain elements whose quantity is close to the set
@@ -2278,11 +2437,13 @@ macros:
 
                     `cspset_elem_t cspset_cardinality (cspset_t *s)'
 
+
      returns number of elements containing currently in set 's'.
 
 'Function `cspset_copy''
 
                     `void cspset_copy (cspset_t *to, cspset_t *from)'
+
 
      copies value of set 'from' to set 'to'.
 
@@ -2290,17 +2451,20 @@ macros:
 
                     `void cspset_swap (cspset_t *s1, cspset_t *s2)'
 
+
      swaps values of sets 's1' and 's2'.
 
 'Function `cspset_in_p''
 
                     `int cspset_in_p (cspset_t *s, cspset_elem_t el)'
 
+
      returns TRUE if set 's' constains element 'el'.
 
 'Function `cspset_insert''
 
                     `int cspset_insert (cspset_t *s, cspset_elem_t el)'
+
 
      inserts element 'el' into set 's'.  Return TRUE if the set has been
      changed, in order words, it did not contain the element.  If the
@@ -2311,12 +2475,14 @@ macros:
 
                     `int cspset_remove (cspset_t *s, cspset_elem_t el)'
 
+
      removes element 'el' from set 's'.  Return TRUE if the set has been
      changed, in order words, it really contained the element.
 
 'Function `cspset_clear''
 
                     `int cspset_clear (cspset_t *s)'
+
 
      removes all elements from set 's'.  Return TRUE if the set has been
      changed, in order words, it was not empty.
@@ -2325,12 +2491,14 @@ macros:
 
                     `int cspset_equal_p (cspset_t *s1, cspset_t *s2)'
 
+
      returns TRUE if sets 's1' and 's2' contain exactly the same
      elements.
 
 'Function `cspset_intersect''
 
                     `int cspset_intersect (cspset_t *s1, cspset_t *s2)'
+
 
      removes elements in set 's1' which are not is set 's2'.  Returns
      TRUE if the set 's1' has been changed, in order words, if 's1' or
@@ -2340,6 +2508,7 @@ macros:
 
                     `int cspset_unity (cspset_t *s1, cspset_t *s2)'
 
+
      adds all elements of set 's2' to set 's1'.  Returns TRUE if the set
      's1' has been changed, in order words, if any new element was added
      to 's1'.  The set can be automatically expanded if it is necessary.
@@ -2348,6 +2517,7 @@ macros:
 
                     `int cspset_intersect (cspset_t *s1, cspset_t *s2)'
 
+
      removes all elements of set 's2' from set 's1'.  Returns TRUE if
      the set 's1' has been changed, in order words, if 's1' and 's2' had
      any common elements.
@@ -2355,6 +2525,7 @@ macros:
 'Function `cspset_shrink''
 
                     `void cspset_shrink (cspset_t *s)'
+
 
      decreases size of set 's' if it is possible.  During set life, the
      set can be automatically expanded but it is never automatically
@@ -2365,6 +2536,7 @@ macros:
 
                     `void cspset_release_unused_memory (void)'
 
+
      releases internal memory pool.  The pool is used to speed up size
      changing of sets.  It is wise to call the function when you finish
      to work with all sets.
@@ -2373,11 +2545,13 @@ macros:
 
                     `void cspset_print (FILE *f, cspset_t *s)'
 
+
      prints all elements of set 's' into file 'f'.
 
 'Function `cspset_debug''
 
                     `void cspset_debug (cspset_t *s)'
+
 
      prints all elements of set 's' into stderr.
 
@@ -2388,6 +2562,7 @@ macros:
 'Macro `EXECUTE_FOR_EACH_CSPSET_ELEM''
 
                     `EXECUTE_FOR_EACH_CSPSET_ELEM (SET, EL, SI) c-stmt'
+
 
      executes 'c-stmt' for each element of 'SET'. During execution, the
      current element value is assigned to 'EL'. You need to declare
@@ -2400,11 +2575,13 @@ macros:
 
                     `void cspset_to_spset (cspset_t *from, spset_t *to)'
 
+
      is used to transform compact sparse set 'from' to sparse set 'to'.
 
 'Function `cspset_from_spset''
 
                     `void cspset_from_spset (cspset_t *to, spset_t *from)'
+
 
      is used to transform compact sparse set 'to' from sparse set
      'from'.
@@ -2629,6 +2806,7 @@ following external definitions and macros:
 
                     `struct grammar *earley_create_grammar (void)'
 
+
      should be called the first.  It actually creates an earley parser
      with undefined grammar.  You can use two or more parsers
      simultaneously.  The function returns 'NULL' if there is no memory.
@@ -2637,6 +2815,7 @@ following external definitions and macros:
 
                     `int earley_error_code (struct grammar *g)'
 
+
      returns the last occurred error code (see the possible error codes
      above) for given parser.  If the function returns zero, no error
      was found so far.
@@ -2644,6 +2823,7 @@ following external definitions and macros:
 'Function `earley_error_message''
 
                     `const char *earley_error_message (struct grammar *g)'
+
 
      returns detail message about last occurred error.  The message
      always corresponds to the last error code returned the previous
@@ -2658,6 +2838,7 @@ following external definitions and macros:
                                                              const char **abs_node,
                                                              int *anode_cost,
                                                              int **transl))'
+
 
      is one of two functions which tunes the parser to given grammar.
      The grammar is read with the aid functions given as parameters.
@@ -2710,6 +2891,7 @@ following external definitions and macros:
                     `int earley_parse_grammar (struct grammar *g, int strict_p,
                                                const char *description)'
 
+
      is another function which tunes the parser to given grammar.  The
      grammar is given by string 'description'.  The description is
      similiar YACC one.  It has the following syntax:
@@ -2739,6 +2921,7 @@ following external definitions and macros:
                        numbers :
                                | numbers NUMBER
                                | numbers '-'
+
 
      So the description consists of terminal declaration and rules
      sections.
@@ -2774,6 +2957,7 @@ following external definitions and macros:
                     `int earley_set_lookahead_level (struct grammar *grammar,
                                                      int level)'
 
+
      sets up level of usage of look ahead in parser work.  Value zero
      means no usage of lookaheads at all.  Lookahead with static
      (independent on input tokens) context sets in parser situation
@@ -2791,6 +2975,7 @@ following external definitions and macros:
                     `int earley_set_debug_level (struct grammar *grammar,
                                                  int level)'
 
+
      sets up level of debugging information output to 'stderr'.  The
      more level, the more information is output.  The default value is 0
      (no output).  The debugging information includes statistics, result
@@ -2805,6 +2990,7 @@ following external definitions and macros:
                     `int earley_set_one_parse_flag (struct grammar *grammar,
                                                     int flag)'
 
+
      sets up building only one translation tree (parameter value 0) or
      all parse trees for ambiguous grammar for which several parsings
      are possible.  For unambiguous grammar the flag does not affect the
@@ -2814,6 +3000,7 @@ following external definitions and macros:
 'Function `earley_set_cost_flag''
 
                     `int earley_set_cost_flag (struct grammar *grammar, int flag)'
+
 
      sets up building only translation tree (trees if we set up
      one_parse_flag to 0) with minimal cost.  For unambiguous grammar
@@ -2825,6 +3012,7 @@ following external definitions and macros:
                     `int earley_set_error_recovery_flag (struct grammar *grammar,
                                                          int flag)'
 
+
      sets up internal flag whose nonzero value means making error
      recovery if syntax error occurred.  Otherwise, syntax error results
      in finishing parsing (although function 'syntax_error' in function
@@ -2835,6 +3023,7 @@ following external definitions and macros:
 
                     `int earley_set_recovery_match (struct grammar *grammar,
                                                     int n_toks)'
+
 
      sets up recovery parameter which means how much subsequent tokens
      should be successfully shifted to finish error recovery.  The
@@ -2855,6 +3044,7 @@ following external definitions and macros:
                                        void (*parse_free) (void *mem),
                                        struct earley_tree_node **root,
                                        int *ambiguous_p)'
+
 
      is major parser function.  It parses input according the grammar.
      The function returns the error code (which can be also returned by
@@ -2899,6 +3089,7 @@ following external definitions and macros:
 
                     `void earley_free_grammar (struct grammar *grammar)'
 
+
      frees all memory allocated for the parser.  This function should be
      called the last for given parser.
 
@@ -2908,18 +3099,18 @@ Tag Table:
 Node: Top107
 Node: Introduction1056
 Node: Package for allocating memory with fixing some allocation errors2156
-Node: Package for work with variable length objects5226
-Node: Package for work with stacks of objects10191
-Node: Package for work with hash tables16213
-Node: Package for work with source code positions21318
-Node: Package for output of compiler messages25539
-Node: Package for work with command line32584
-Node: Package for work with bit strings39141
-Node: Package for machine-independent arbitrary precision integer arithmetic42415
-Node: Package for machine-independent IEEE floating point arithmetic52448
-Node: Ticker package84940
-Node: Expandable sparse set86623
-Node: Expandable compact sparse set92727
-Node: Earley parser99475
+Node: Package for work with variable length objects5232
+Node: Package for work with stacks of objects10208
+Node: Package for work with hash tables16242
+Node: Package for work with source code positions21356
+Node: Package for output of compiler messages25583
+Node: Package for work with command line32642
+Node: Package for work with bit strings39207
+Node: Package for machine-independent arbitrary precision integer arithmetic42487
+Node: Package for machine-independent IEEE floating point arithmetic52547
+Node: Ticker package85072
+Node: Expandable sparse set86760
+Node: Expandable compact sparse set92883
+Node: Earley parser99652
 
 End Tag Table

@@ -2,7 +2,7 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
- <TITLE>The Programming Language DINO: Program</TITLE>
+ <TITLE>The Programming Language DINO: Executive statements</TITLE>
  <LINK HREF="dino-8.html" REL=next>
  <LINK HREF="dino-6.html" REL=previous>
  <LINK HREF="dino.html#toc7" REL=contents>
@@ -12,112 +12,486 @@
 <A HREF="dino-6.html">Previous</A>
 <A HREF="dino.html#toc7">Contents</A>
 <HR>
-<H2><A NAME="s7">7.</A> <A HREF="dino.html#toc7">Program</A></H2>
+<H2><A NAME="s7">7.</A> <A HREF="dino.html#toc7">Executive statements</A></H2>
 
-<P>A Dino program is simply a sequence of statements.  There is a special
-declaration useful for writing programs consisting of several files or
-for making Dino packages.  This is the include-declaration.  Before
-execution of any statements all include-declarations are replaced by
-files whose base names are given by the strings.  It is made
-recursively, i.e.  the files themselves can contain other
-include-declarations.  There should be no infinite recursion in this.
-If <B>+</B> is present in the include-declaration, the file is
-inserted in any case.  Without <B>+</B> the file is inserted only if
-it has been yet not inserted into the block of the declaration.
+<P>Statements denote actions.  There are <EM>simple</EM> and
+<EM>compound</EM> statements.  Simple statements do not consist of any
+parts that are statements themselves.  They are the assignment,
+procedure call, return, break, continue, throw, and the wait
+statements.  Analogous to the C language the last symbol of a Dino
+simple statement is semicolon <CODE>;</CODE>.  Compound statements
+consists of parts that are statements themselves.  They are used to
+express sequencing, exception handling, conditional, and repetitive
+execution.</P>
+
+<H2><A NAME="ss7.1">7.1</A> <A HREF="dino.html#toc7.1">Empty statement</A>
+</H2>
+
+<P>There is also the empty statement in Dino.  It denotes no action.  The
+empty statement is included in Dino for convenience.
 <BLOCKQUOTE><CODE>
 <PRE>
-          Program = StmtList
-
-          IncludeDeclaration = include ["+"] STRING ";"
+          ExecutiveStmt = ";"
 </PRE>
 </CODE></BLOCKQUOTE>
 
-Examples:</P>
-<P>The following program outputs the first 24 Fibonachi numbers:
+Example: Usage of an empty statement in a for-statement:
 <BLOCKQUOTE><CODE>
 <PRE>
-          // Recursive function to compute Fibonacci numbers
-          func fibonacci (n)
+          for (i = 0; a[i] == 0; i++)
+            ;
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.2">7.2</A> <A HREF="dino.html#toc7.2">Block-statement</A>
+</H2>
+
+<P>A block-statement is simply a block and can used to group statements
+into one statement and/or describe local declarations.  For details on
+how the block is executed see section <EM>Declaration and Scope
+Rules</EM>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = BlockStmt
+
+          BlockStmt = Block
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Example: Usage of a block-statement in a for-statement:
+<BLOCKQUOTE><CODE>
+<PRE>
+          sum = 0;
+          for (i = 0; i &lt; #a; i++)
             {
-               if (n &lt;= 1) return 1;
-               return (fibonacci(n-1) + fibonacci(n-2));
-            }
-          
-          var i, fibnum;
-          
-          fibnum = 0;
-          for (i = 0; i &lt;= 24; i++) 
-            {
-              fibnum = fibonacci(i);
-              putln (i @ " " @ fibnum); 
+              var value = a[i];
+              if (value > 0)
+                sum += value;
             }
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-<P>The following program outputs the number of prime numbers less
-than 8190:
+
+<H2><A NAME="ss7.3">7.3</A> <A HREF="dino.html#toc7.3">Expression-statement</A>
+</H2>
+
+<P>Dino has an expression statement.  Although it seems that the
+expression value is not used, the expression evaluation can results in
+side-effects, e.g. through calling a function/class.
+Expression-statement as the last statement in the function block means
+return of the expression value as the function call result.  In REPL
+(see Appendix B. Implementation), execution of an expression-statement
+results in printing the expression value.
 <BLOCKQUOTE><CODE>
 <PRE>
-          var i, prime, k, count, flags;
-          var final SieveSize = 8190;
-
-          flags = [SieveSize + 1 : 0];
-          count = 0;
-          for (i = 0; i &lt;= SieveSize; i++)
-            flags[i] = 1;
-          for (i = 0; i &lt;= SieveSize; i++)
-            if (flags[i])
-              {
-                prime = i + i + 3;
-                k = i + prime;
-                for (;1;;)
-                  {
-                      if (k > SieveSize)
-                      break;
-                    flags[k] = 0;
-                    k += prime;
-                  }
-                count++;
-              }
-          println (count);
+          ExecutiveStmt = Expr ";"
+&lt;tscreen>&lt;verb>
+        Examples:
+&lt;tscreen>&lt;verb>
+          putln ("percent=" @ percent @ "%");
+          newthread ();
+          5 + 10;
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-<P>The following program outputs the number of occurrences of
-different numbers and identifiers in stdin:
+
+<H2><A NAME="ss7.4">7.4</A> <A HREF="dino.html#toc7.4">Assignment statements</A>
+</H2>
+
+<P>Assignment-statements are used to change variable values or element
+values of a structured value which are referred through a designator
+(see sub-section <EM>Designator</EM> in section <EM>Expressions</EM>.
+The designator can not denote a final variable (see section
+<EM>Variable Declaration</EM>).  You can not change the element value
+of an immutable value (see section <EM>Types and Values</EM>).  In
+this case exception <CODE>immutable</CODE> is generated.  Assignment to a
+table element has a side effect, the element key becomes immutable.</P>
+<P>A simple assignment statement looks like <CODE>Designator = Expr;</CODE>.
+That means that the expression value is assigned to variable or
+element of structured type value denoted by the designator.  For the
+convenience of C programmers there are also the Dino assignments
+<CODE>Designator op= Expr;</CODE>, <CODE>Designator++;</CODE>,
+<CODE>++Designator;</CODE>, <CODE>Designator--;</CODE>, and
+<CODE>--Designator;</CODE>.  They are analogous correspondingly to
+<CODE>Designator = Designator op Expr;</CODE>, <CODE>Designator = Designator
++ 1;</CODE>, and <CODE>Designator = Designator - 1;</CODE>.  The only
+difference is in the fact that the designator is evaluated only once,
+not twice as in the analogous form.  It is important to know if you
+have <EM>side effects</EM> in the statement.
 <BLOCKQUOTE><CODE>
 <PRE>
-          var i, key, voc = {};
-          for (;;)
-            try {
-              var ln, a;
+          ExecutiveStmt = Designator Assign Expr ";"
+                        | Designator ("++" | "--")  ";"
+                        | ("++" | "--")  Designator ";"
+          Assign = "="
+                 | "*="
+                 | "/="
+                 | "%="
+                 | "+="
+                 | "-="
+                 | "@="
+                 | "&lt;&lt;="
+                 | ">>="
+                 | ">>>="
+                 | "&amp;="
+                 | "^="
+                 | "|="
+</PRE>
+</CODE></BLOCKQUOTE>
 
-              ln = getln ();
-              if (ln == "")
-                continue;
-              a = split (ln, "[^[:alnum:]]");
-              for (i = 0; i &lt; #a; i++)
-                voc {a[i]} = (a[i] in voc ? voc {a[i]} + 1 : 1);
-            } catch (invcalls.eof) {
-              break;
-            }
-          func comp (el1, el2) {
-            return cmpv (tolower (el1), tolower (el2));
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          v = [10, 20];
+          i = 1;
+          i++;
+          --i;
+          i *= 20;
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+<P>If the designator is a slice and the expression value is a slice too,
+they both should have the same <EM>form</EM>,
+otherwise <CODE>sliceform</CODE> exception is generated.  In this case
+each element referenced by the designator slice gets value of the
+corresponding element referenced by the expression slice.  If the
+designator is a slice but the expression value is not, each element
+referenced by the designator slice gets the expression value.  Examples
+of the slice assignment:
+<BLOCKQUOTE><CODE>
+<PRE>
+          v = [1, 2, 3, 4];
+          v[:] += 1;
+          v[::-1] = v[:]; // reverse v
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.5">7.5</A> <A HREF="dino.html#toc7.5">If-statement</A>
+</H2>
+
+<P>The Dino if-statement is analogous to the C language one.  First, the
+expression after <CODE>if</CODE> is evaluated and arithmetic conversion is
+done to it.  The value should be an integer, a long integer, or a
+floating-point number, otherwise the exception <CODE>optype</CODE> is
+generated.  If the value is nonzero the first statement is executed,
+otherwise the statement after <CODE>else</CODE> is executed (if any).  The
+problem with
+<EM>dangling else</EM> is resolved analogous to the C language --
+<CODE>else</CODE> is associated with the closest <CODE>if</CODE>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = if  "(" Expr ")" Stmt [ else Stmt ]
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          if (i &lt; 0) i = 0;
+          if (i &lt; j) return -1; else if (i > 0) return 1; else return 0;
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.6">7.6</A> <A HREF="dino.html#toc7.6">For-statement</A>
+</H2>
+
+<P>The Dino for-statement is analogous to the C language one.  The
+statement is executed in the following way.
+<OL>
+<LI>Execution of the first statement in the parentheses.</LI>
+<LI>The expression (<EM>for-guard</EM>) is evaluated and
+implicit arithmetic conversion is made.  The value should be
+an integer, a long integer, or a floating point number.  If
+this is not true, exception <CODE>optype</CODE> is generated.</LI>
+<LI>If the value of for-guard is nonzero, the body of the loop
+(the last statement) is executed.  Otherwise, the
+for-statement execution finishes.</LI>
+<LI>When the body has been executed, the second statement in
+the parentheses is executed and steps 2,3,4 (one iteration) are
+repeated.</LI>
+</OL>
+
+If the second statement is a simple statement, the statement semicolon
+can be omitted.  The for-statement also can be finished by execution
+of the statement <CODE>break</CODE> in the body.  The body can be finished
+by execution of statement <CODE>continue</CODE>.  In this case, the
+for-statement execution continues with the step 4.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
+
+          ForGuardExpr = [Expr]
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          for (i = 0; i &lt; 10; i++;) sum += v [i];
+          for (i = 0; i &lt; 10; i++) sum += v [i];
+          for ({sum = 0; i = 0;} i &lt; 10; i++) sum += v [i];
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.7">7.7</A> <A HREF="dino.html#toc7.7">Foreach-statement</A>
+</H2>
+
+<P>This statement is used to execution of the foreach-statement body (the
+statement) for all keys of table which is value of the expression.
+The expression value should be a table.  If this is not true,
+exception <CODE>keyop</CODE> is generated.  The current key value on each
+iteration is assigned to the designator.  The order in which the key
+values are assigned on each iteration is undefined.  One iteration can
+be finished with the aid of the statement <CODE>continue</CODE> and a
+foreach-statement can be finished by execution of statement
+<CODE>break</CODE>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = for  "(" Designator in Expr ")" Stmt
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          putln ("The table is");
+          for (k in t) {
+            put ("key=");
+            print (k);
+            put (", element=");
+            println (t{k});
           }
-          key = sort (keys (voc), comp);
-          for (i = 0; i &lt; #key; i++)
-            putln (key[i], " : ", voc{key[i]});
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-<P>The following program uses the Dino package <CODE>mpi</CODE>:
+
+<H2><A NAME="ss7.8">7.8</A> <A HREF="dino.html#toc7.8">Switch-statement</A>
+</H2>
+
+<P>This statement is used to try matching switch-expression value (it is
+evaluated only once) and the patterns in given order and execute the
+statements corresponding to the first matched pattern.  Each case
+forms an own scope.  Pattern variables are declared in the
+corresponding case scope.  Execution of continue-statement in
+case-statements results in continuing the process of matching
+switch-expression value with the subsequent patterns.  Execution of
+break-statement in case-statements results in finishing the
+switch-statement execution.  There is implicit break at the end of
+each case statement list.</P>
+<P>If optional case condition is given, then it is evaluated after
+succesfull matching with the corresponding pattern and arithmetic
+conversion is done to it.  The value should be an integer, a long
+integer, or a floating-point number, otherwise the
+exception <CODE>optype</CODE> is generated.  If the value is nonzero the
+all match is considered successfull, otherwise the subsequent case
+patterns are tried.
 <BLOCKQUOTE><CODE>
 <PRE>
-          include "mpi";
-          var mpi1, mpi2;
-          mpi1 = mpis.from_string(50, "1000000000000000000000000000000000000");
-          mpi2 = mpis.from_string(50, "5000000000000000000000000000000000000");
-          putln (mpis.to_string (mpis.add (mpi1, mpi2)));
+          ExecutiveStmt = switch "(" Expr ")" "{" CaseList "}"
+          CaseList = { case Pattern [CaseCond] ":" StmtList }
+          CaseCond = if Expr
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+class c (a1, a2) {}
+switch (c (2, 3)) {
+case c (i, j): putln (i, j);
+case _: putln ("default");
+}
+switch (c (2, 3)) {
+case c (i, j) if i == j: putln ("eq=", i, j);
+case c (i, j) if i != j: putln ("neq=", i, j);
+case _: putln ("default");
+}
+<BLOCKQUOTE><CODE>
+<PRE>
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.9">7.9</A> <A HREF="dino.html#toc7.9">Break- and continue-statement</A>
+</H2>
+
+<P>Statements <CODE>break</CODE> and <CODE>continue</CODE> are used
+correspondingly to finish execution of the closest-containing for-,
+foreach-, or switch-statement covering the statement and to finish one iteration
+of the body of the for- or foreach-statement and to continue trying
+subsequent cases for switch-statement.  These statement can be
+used only inside a for-, foreach-, or switch-statement.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = break ";"
+                        | continue ";"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          for (i = 0; i &lt; 10; i++) {
+             if (ind [i] &lt; 0)
+               continue;
+             val = v [ind[i]];
+          }
+          for (i in t)
+            if (t{i} == elval)
+              break;
+          switch (tree) {
+            case leaf (n):
+              putln ("leaf");
+              if (n == 10) continue;
+            case node (n1, n2):
+              if (n1 != n2) break;
+              putln ("special node");
+            case _: putln ("might be a leaf with 10");             
+          }
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.10">7.10</A> <A HREF="dino.html#toc7.10">Return-statement</A>
+</H2>
+
+<P>Return-statement is used to finish execution of a function, a thread,
+or class block.  The statement corresponds to the closest-containing
+function, thread-function, or class covering the statement, so the
+return-statement can be placed only in a function, a function-thread,
+or a class.  The expression in a return-statement can be given only
+for functions.  In this case, the expression value will be the value
+of the function call (instead of undefined value).
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = return  [ Expr ] ";"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          return;
+          return [10, 2:0]
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.11">7.11</A> <A HREF="dino.html#toc7.11">Throw-statement</A>
+</H2>
+
+<P>This statement generates an exception which is given by value of the
+expression.  The expression should evaluate to an object of
+predeclared class <CODE>except</CODE> or an object of a class declared
+somewhere in predeclared class <CODE>except</CODE>.  If this is not true,
+exception <CODE>optype</CODE> is generated.  How exceptions are processed
+is described in the following section.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = throw  Expr ";"
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          class myexcept (msg) {use error former msg;}
+          throw myexcept ("this is an user defined exception");
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.12">7.12</A> <A HREF="dino.html#toc7.12">Try-block</A>
+</H2>
+
+<P>Exceptions can be generated by the Dino interpreter when some
+conditions are not satisfied, by predeclared Dino functions, by other
+OS processes, by user interruptions, or by the user with the aid of a
+throw-statement.  Actually, the exceptions are represented by an
+object of the predeclared class <CODE>except</CODE> or by an object of a
+class declared inside the predeclared class <CODE>except</CODE>.  All
+predeclared exceptions are described in the section <EM>Predeclared
+Identifiers</EM>.  To detect and process exceptions, a try-block can
+be used.</P>
+<P>When an exception is generated, the closest-containing try-block which
+is covering the statement generating the exception or currently being
+executed (when this is is generated by an OS process or by an user
+interruption) is searched for.  Then, expressions in the catch list
+elements are processed.  The expression value in the catch list
+element being currently processed should be the predeclared class
+<CODE>except</CODE> or a class declared inside the predeclared class
+<CODE>except</CODE>.  If the expression being processed is a class and the
+exception is an object of the class or an object of a class declared
+inside the class, the block corresponding to the given catch list
+element is executed.  If there is no such catch expression, the
+closest-containing try-block covering the current try-block is
+searched for and processing the exception is repeated.  If there are
+no more try-blocks, the program finishes with a diagnostic message
+which is dependent on the generated exception.</P>
+<P>Blocks corresponding to catch list elements have a predeclared
+variable <CODE>e</CODE>.  When block execution starts, the variable
+contains the object representing the exception.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = TryBlockStmt
+
+          TryBlockStmt = try Block { Catch }
+        
+          Catch = catch  "(" ExceptClassList ")" Block
+
+          ExceptClassList = Expr { "," Expr }
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          try {
+            var ln;
+            for (;;)
+              ln = getln ();
+          } catch (eof) {
+          }
+          try {
+            var v = [];
+            v {1} = 0;
+          } catch (except) {
+            put ("catching and propagating exception"); println (class (e));
+            throw e;
+          }
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<H2><A NAME="ss7.13">7.13</A> <A HREF="dino.html#toc7.13">Wait-statement</A>
+</H2>
+
+<P>This statement is used for the synchronization of different threads in
+a Dino program.  The expression can not contain a function, class, or
+a thread-function call.  The thread in which the statement has been
+executed waits until the expression value becomes nonzero.  The
+expression value (after implicit arithmetic conversion) should be an
+integer, a long integer, or a floating point number.  Otherwise the
+exception <CODE>optype</CODE> is generated.  When the expression value
+becomes nonzero, the statement after the expression (it is called
+sync-statement) is executed without interruption by other process.  It
+is used as critical region for process synchronization.  In a critical
+region execution of wait-statement is prohibited (it results in
+generation of exception <CODE>syncwait</CODE>).  Also thread calls inside
+a critical region result in generation exception
+<CODE>syncthreadcall</CODE>.
+<BLOCKQUOTE><CODE>
+<PRE>
+          ExecutiveStmt = wait  "(" Expr ")" Stmt
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Examples:
+<BLOCKQUOTE><CODE>
+<PRE>
+          wait (!empty);
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>

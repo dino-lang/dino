@@ -398,7 +398,7 @@ for determination of denormalized number.</P>
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-           `class IEEE_float operator + (class IEEE_float &amp;amp;op)'
+           `class IEEE_float operator + (class IEEE_float &amp;op)'
            
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -515,7 +515,7 @@ following table
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-           `int operator == (class IEEE_float &amp;amp;op)'
+           `int operator == (class IEEE_float &amp;op)'
            
 </PRE>
 </CODE></BLOCKQUOTE>
@@ -704,9 +704,9 @@ number if there are too many given digits.</P>
 <PRE>
            `class IEEE_double to_double (void)'
            `class IEEE_quad to_quad (void)'
-           `class IEEE_float &amp;amp;from_signed_integer
+           `class IEEE_float &amp;from_signed_integer
                               (int size, const void *integer)'
-           `class IEEE_float &amp;amp;from_unsigned_integer
+           `class IEEE_float &amp;from_unsigned_integer
                               (int size,
                                const void *unsigned_integer)'
            `void to_signed_integer (int size, void *integer)'
@@ -721,10 +721,10 @@ In class `IEEE_double'
 <PRE>
            `class IEEE_float to_single (void)'
            `class IEEE_quad to_quad (void)'
-           `class IEEE_double &amp;amp;from_signed_integer
+           `class IEEE_double &amp;from_signed_integer
                                (int size,
                                 const void *integer)'
-           `class IEEE_double &amp;amp;from_unsigned_integer
+           `class IEEE_double &amp;from_unsigned_integer
                                 (int size,
                                  const void *unsigned_integer)'
            `void to_signed_integer (int size, void *integer)'
@@ -739,10 +739,10 @@ In class `IEEE_quad'
 <PRE>
            `class IEEE_float to_single (void)'
            `class IEEE_double to_double (void)'
-           `class IEEE_quad &amp;amp;from_signed_integer
+           `class IEEE_quad &amp;from_signed_integer
                                (int size,
                                 const void *integer)'
-           `class IEEE_quad &amp;amp;from_unsigned_integer
+           `class IEEE_quad &amp;from_unsigned_integer
                                 (int size,
                                  const void *unsigned_integer)'
            `void to_signed_integer (int size, void *integer)'
@@ -763,7 +763,7 @@ NaNs) are described for conversion floating point number to
 integer by the following table
 <BLOCKQUOTE><CODE>
 <PRE>
-                       Operand     | Result &amp;amp; Exception
+                       Operand     | Result &amp; Exception
                      --------------|-------------------
                          SNaN      |     0  
                                    |IEEE_INV(_RO)
@@ -788,7 +788,7 @@ values (and for NaNs) are described for conversion floating
 point number to unsigned integer by the following table
 <BLOCKQUOTE><CODE>
 <PRE>
-                       Operand     | Result &amp;amp; Exception
+                       Operand     | Result &amp; Exception
                      --------------|-------------------
                          SNaN      |     0  
                                    |IEEE_INV(_RO)
@@ -825,56 +825,56 @@ are the following functions:
 <BLOCKQUOTE><CODE>
 <PRE>
         `template &lt;int size> 
-         class IEEE_float &amp;amp;IEEE_float_from_unsint
-                           (class IEEE_float &amp;amp;single,
-                            class unsint&lt;size> &amp;amp;unsigned_integer)'
+         class IEEE_float &amp;IEEE_float_from_unsint
+                           (class IEEE_float &amp;single,
+                            class unsint&lt;size> &amp;unsigned_integer)'
 
         `template &lt;int size>
-         class IEEE_float &amp;amp;IEEE_float_from_sint
-                           (class IEEE_float &amp;amp;single,
-                            class sint&lt;size> &amp;amp;integer)
+         class IEEE_float &amp;IEEE_float_from_sint
+                           (class IEEE_float &amp;single,
+                            class sint&lt;size> &amp;integer)
 
         `template &lt;int size>
-         void IEEE_float_to_sint (class IEEE_float &amp;amp;single,
-                                  class sint&lt;size> &amp;amp;integer)'
+         void IEEE_float_to_sint (class IEEE_float &amp;single,
+                                  class sint&lt;size> &amp;integer)'
         `template &lt;int size>
          void IEEE_float_to_unsint
-                      (class IEEE_float &amp;amp;single,
-                       class unsint&lt;size> &amp;amp;unsigned_integer)'
+                      (class IEEE_float &amp;single,
+                       class unsint&lt;size> &amp;unsigned_integer)'
         `template &lt;int size> 
-         class IEEE_double &amp;amp;IEEE_double_from_unsint
-                            (class IEEE_double &amp;amp;single,
-                             class unsint&lt;size> &amp;amp;unsigned_integer)'
+         class IEEE_double &amp;IEEE_double_from_unsint
+                            (class IEEE_double &amp;single,
+                             class unsint&lt;size> &amp;unsigned_integer)'
 
         `template &lt;int size>
-         class IEEE_double &amp;amp;IEEE_double_from_sint
-                            (class IEEE_double &amp;amp;single,
-                             class sint&lt;size> &amp;amp;integer)
+         class IEEE_double &amp;IEEE_double_from_sint
+                            (class IEEE_double &amp;single,
+                             class sint&lt;size> &amp;integer)
 
         `template &lt;int size>
-         void IEEE_double_to_sint (class IEEE_double &amp;amp;single,
-                                   class sint&lt;size> &amp;amp;integer)'
+         void IEEE_double_to_sint (class IEEE_double &amp;single,
+                                   class sint&lt;size> &amp;integer)'
         `template &lt;int size>
          void IEEE_double_to_unsint
-              (class IEEE_double &amp;amp;single,
-               class unsint&lt;size> &amp;amp;unsigned_integer)'
+              (class IEEE_double &amp;single,
+               class unsint&lt;size> &amp;unsigned_integer)'
         `template &lt;int size> 
-         class IEEE_quad &amp;amp;IEEE_quad_from_unsint
-                            (class IEEE_quad &amp;amp;single,
-                             class unsint&lt;size> &amp;amp;unsigned_integer)'
+         class IEEE_quad &amp;IEEE_quad_from_unsint
+                            (class IEEE_quad &amp;single,
+                             class unsint&lt;size> &amp;unsigned_integer)'
 
         `template &lt;int size>
-         class IEEE_quad &amp;amp;IEEE_quad_from_sint
-                            (class IEEE_quad &amp;amp;single,
-                             class sint&lt;size> &amp;amp;integer)
+         class IEEE_quad &amp;IEEE_quad_from_sint
+                            (class IEEE_quad &amp;single,
+                             class sint&lt;size> &amp;integer)
 
         `template &lt;int size>
-         void IEEE_quad_to_sint (class IEEE_quad &amp;amp;single,
-                                 class sint&lt;size> &amp;amp;integer)'
+         void IEEE_quad_to_sint (class IEEE_quad &amp;single,
+                                 class sint&lt;size> &amp;integer)'
         `template &lt;int size>
          void IEEE_quad_to_unsint
-              (class IEEE_quad &amp;amp;single,
-               class unsint&lt;size> &amp;amp;unsigned_integer)'
+              (class IEEE_quad &amp;single,
+               class unsint&lt;size> &amp;unsigned_integer)'
         
 </PRE>
 </CODE></BLOCKQUOTE>

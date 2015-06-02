@@ -15,80 +15,10 @@ Contents
 <H1>The Programming Language DINO</H1>
 
 <H2>Vladimir Makarov, <CODE>vmakarov@users.sourceforge.net</CODE>.
-Edited by Serhei Makarov.</H2>Nov 21, 2012
+Edited by Serhei Makarov.</H2>June 2, 2015
 <HR>
 <EM>This document describes the programming language DINO.</EM>
 <HR>
-<P>
-<BLOCKQUOTE><CODE>
-<PRE>
-
-History
-==========
-  Apr 29, 2001.  Documentation of all objects corresponding to Earley's
-                 parser was added.
-
-  May 05, 2001.  Semantics of private declarations are changed slightly.
-                 Earlier, they were accessible only by a separate
-                 identifier.  Now they are accessible inside their
-                 scope.  In other words, they can be accessible by `.'
-                 or `->' inside the scope.
-
-                 Added profile option -p.
-
-                 Added IEEE standard floating point arithmetic.
-                 
-                 Declaration block friends.
-
-  Jun 22, 2001.  Function rcount is added.
-
-  Jul 19, 2001.  Functions getf and fgetf have been added.
-
-  Jun 23, 2001.  Function gmatch is added, rcount is removed.
-
-  Jun 25, 2001.  Operators char, int, float are added.
-
-  Sep 25, 2001.  Vector conversion with format.  New function rev.
-                 Del, ins, and insv now return the vector.
-
-  Oct 27, 2001.  New predefined variable version.  Additional
-                 parameter for getf and fgetf.
-
-  Oct 31, 2001.  Added special method destroy.
-
-  Nov 22, 2001.  New functions sput, sputln, sprint, sprintln added.
-
-  Dec 13, 2001.  New variables nil_anode and error_anode and new
-                 function set_cost.
-
-  Mar 15, 2002.  Function parse may return nil.
-
-  Mar 18, 2002.  New function set_lookahead.
-
-  Apr 30, 2002.  Calling destroy by finishing the program.
-
-  Dec 8, 2002.   Equality of instance, classes and functions means
-                 the same context.
-  Dec 14, 2003.  Making table key is immutable in assignment.
-
-  Jan 29, 2004.  New exception invfmt. New functions putf, fputf, sputf.
-
-  Jan 4,  2006.  New function trans.  Make function rev returning a new
-                 array.
-
-  Jan 15, 2006.  Removing depricated -> and dereference '*' operations
-
-  Jan 16, 2006.  New swap operation.
-
-  Jan 25, 2006.  Add sync statement in wait-stmt
-
-  Nov 21, 2012.  Remove swap operation.
-
-  Apr 23, 2013.  Undefined values.
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
 <P>
 <H2><A NAME="toc1">1.</A> <A HREF="dino-1.html">Introduction</A></H2>
 
@@ -104,7 +34,9 @@ History
 <UL>
 <LI><A NAME="toc4.1">4.1</A> <A HREF="dino-4.html#ss4.1">Variable Declarations</A>
 <LI><A NAME="toc4.2">4.2</A> <A HREF="dino-4.html#ss4.2">External Declarations</A>
-<LI><A NAME="toc4.3">4.3</A> <A HREF="dino-4.html#ss4.3">Functions, Classes, Extensions</A>
+<LI><A NAME="toc4.3">4.3</A> <A HREF="dino-4.html#ss4.3">Functions and Classes</A>
+<LI><A NAME="toc4.4">4.4</A> <A HREF="dino-4.html#ss4.4">Use Clause</A>
+<LI><A NAME="toc4.5">4.5</A> <A HREF="dino-4.html#ss4.5">Singleton Object</A>
 </UL>
 <P>
 <H2><A NAME="toc5">5.</A> <A HREF="dino-5.html">Expressions</A></H2>
@@ -114,40 +46,46 @@ History
 <LI><A NAME="toc5.2">5.2</A> <A HREF="dino-5.html#ss5.2">Designators</A>
 <LI><A NAME="toc5.3">5.3</A> <A HREF="dino-5.html#ss5.3">Calls</A>
 <LI><A NAME="toc5.4">5.4</A> <A HREF="dino-5.html#ss5.4">Operators</A>
+<LI><A NAME="toc5.5">5.5</A> <A HREF="dino-5.html#ss5.5">Current block instance</A>
+<LI><A NAME="toc5.6">5.6</A> <A HREF="dino-5.html#ss5.6">Anonymous Functions and Classes</A>
 </UL>
 <P>
-<H2><A NAME="toc6">6.</A> <A HREF="dino-6.html">Executive statements</A></H2>
+<H2><A NAME="toc6">6.</A> <A HREF="dino-6.html">Patterns</A></H2>
+
+<P>
+<H2><A NAME="toc7">7.</A> <A HREF="dino-7.html">Executive statements</A></H2>
 
 <UL>
-<LI><A NAME="toc6.1">6.1</A> <A HREF="dino-6.html#ss6.1">Empty statement</A>
-<LI><A NAME="toc6.2">6.2</A> <A HREF="dino-6.html#ss6.2">Block-statement</A>
-<LI><A NAME="toc6.3">6.3</A> <A HREF="dino-6.html#ss6.3">Assignment statements</A>
-<LI><A NAME="toc6.4">6.4</A> <A HREF="dino-6.html#ss6.4">Call-statement</A>
-<LI><A NAME="toc6.5">6.5</A> <A HREF="dino-6.html#ss6.5">If-statement</A>
-<LI><A NAME="toc6.6">6.6</A> <A HREF="dino-6.html#ss6.6">For-statement</A>
-<LI><A NAME="toc6.7">6.7</A> <A HREF="dino-6.html#ss6.7">Foreach-statement</A>
-<LI><A NAME="toc6.8">6.8</A> <A HREF="dino-6.html#ss6.8">Break- and continue-statement</A>
-<LI><A NAME="toc6.9">6.9</A> <A HREF="dino-6.html#ss6.9">Return-statement</A>
-<LI><A NAME="toc6.10">6.10</A> <A HREF="dino-6.html#ss6.10">Throw-statement</A>
-<LI><A NAME="toc6.11">6.11</A> <A HREF="dino-6.html#ss6.11">Try-block</A>
-<LI><A NAME="toc6.12">6.12</A> <A HREF="dino-6.html#ss6.12">Wait-statement</A>
+<LI><A NAME="toc7.1">7.1</A> <A HREF="dino-7.html#ss7.1">Empty statement</A>
+<LI><A NAME="toc7.2">7.2</A> <A HREF="dino-7.html#ss7.2">Block-statement</A>
+<LI><A NAME="toc7.3">7.3</A> <A HREF="dino-7.html#ss7.3">Expression-statement</A>
+<LI><A NAME="toc7.4">7.4</A> <A HREF="dino-7.html#ss7.4">Assignment statements</A>
+<LI><A NAME="toc7.5">7.5</A> <A HREF="dino-7.html#ss7.5">If-statement</A>
+<LI><A NAME="toc7.6">7.6</A> <A HREF="dino-7.html#ss7.6">For-statement</A>
+<LI><A NAME="toc7.7">7.7</A> <A HREF="dino-7.html#ss7.7">Foreach-statement</A>
+<LI><A NAME="toc7.8">7.8</A> <A HREF="dino-7.html#ss7.8">Switch-statement</A>
+<LI><A NAME="toc7.9">7.9</A> <A HREF="dino-7.html#ss7.9">Break- and continue-statement</A>
+<LI><A NAME="toc7.10">7.10</A> <A HREF="dino-7.html#ss7.10">Return-statement</A>
+<LI><A NAME="toc7.11">7.11</A> <A HREF="dino-7.html#ss7.11">Throw-statement</A>
+<LI><A NAME="toc7.12">7.12</A> <A HREF="dino-7.html#ss7.12">Try-block</A>
+<LI><A NAME="toc7.13">7.13</A> <A HREF="dino-7.html#ss7.13">Wait-statement</A>
 </UL>
 <P>
-<H2><A NAME="toc7">7.</A> <A HREF="dino-7.html">Program</A></H2>
+<H2><A NAME="toc8">8.</A> <A HREF="dino-8.html">Program</A></H2>
 
 <P>
-<H2><A NAME="toc8">8.</A> <A HREF="dino-8.html">Predeclared identifiers</A></H2>
+<H2><A NAME="toc9">9.</A> <A HREF="dino-9.html">Predeclared identifiers</A></H2>
 
 <UL>
-<LI><A NAME="toc8.1">8.1</A> <A HREF="dino-8.html#ss8.1">Predeclared variables</A>
-<LI><A NAME="toc8.2">8.2</A> <A HREF="dino-8.html#ss8.2">Predeclared classes</A>
-<LI><A NAME="toc8.3">8.3</A> <A HREF="dino-8.html#ss8.3">Predeclared functions</A>
+<LI><A NAME="toc9.1">9.1</A> <A HREF="dino-9.html#ss9.1">Predeclared variables</A>
+<LI><A NAME="toc9.2">9.2</A> <A HREF="dino-9.html#ss9.2">Predeclared classes</A>
+<LI><A NAME="toc9.3">9.3</A> <A HREF="dino-9.html#ss9.3">Predeclared functions</A>
 </UL>
 <P>
-<H2><A NAME="toc9">9.</A> <A HREF="dino-9.html">Appendix A. Syntax of Dino</A></H2>
+<H2><A NAME="toc10">10.</A> <A HREF="dino-10.html">Appendix A. Syntax of Dino</A></H2>
 
 <P>
-<H2><A NAME="toc10">10.</A> <A HREF="dino-10.html">Appendix B. Implementation</A></H2>
+<H2><A NAME="toc11">11.</A> <A HREF="dino-11.html">Appendix B. Implementation</A></H2>
 
 <HR>
 <A HREF="dino-1.html">Next</A>

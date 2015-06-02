@@ -672,7 +672,7 @@ clean :
 distclean: clean
 	rm -f Makefile
 	rm -f sprut.sgml sprut.tex sprut.log sprut.aux sprut.toc\
-              sprut.sgml.tmp sprut.tmp
+              sprut.sgml sprut.tmp
 
 # Deletion all which can be built up automatically:
 # the same as entry `distclean' and emacs TAGS table.
@@ -715,10 +715,10 @@ dist: dist-copy
 
 # Creation of documentation
 
-doc : sprut.sgml.tmp $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.pdf $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
+doc : sprut.sgml $(srcdir)/sprut.txt $(srcdir)/sprut.html $(srcdir)/sprut.info $(srcdir)/sprut.pdf $(srcdir)/sprut.dvi $(srcdir)/sprut.ps
 
-sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
-	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");print;}' > sprut.tmp
+sprut.sgml : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
+	nroff -man $(srcdir)/sprut.1 | $(AWK) '{gsub (/.\b/,"");gsub (/.\200\230/,"\140");gsub (/.\200\231/,"\047");gsub (/\033\[[140]m/,"");gsub (/\033\[2[24]m/,"");print;}' > sprut.tmp
 	$(AWK) '{if($$0 == "%%%")\
                      {while ((getline line < "sprut.tmp") > 0)\
                         print line;close("sprut.tmp")}\
@@ -726,11 +726,11 @@ sprut.sgml.tmp : $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
 	rm -f sprut.tmp
 
 
-$(srcdir)/sprut.txt: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
-	$(srcdir)/../sgml-txt sprut.sgml.tmp > $@
+$(srcdir)/sprut.txt: sprut.sgml
+	linuxdoc -B txt --papersize=letter -f sprut.sgml
+	mv sprut.txt $(srcdir)
 	
-$(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
-	$(srcdir)/../sgml-html sprut.sgml.tmp >sprut.sgml
+$(srcdir)/sprut.html: sprut.sgml
 	linuxdoc -B html --papersize=letter sprut.sgml
 	if test -f sprut-1.html;then\
   	  for i in sprut-*.html;do\
@@ -739,12 +739,8 @@ $(srcdir)/sprut.html: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
         fi
 	mv sprut.html $(srcdir)/sprut.html
 	
-$(srcdir)/sprut.info: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
-	$(srcdir)/../sgml-info sprut.sgml.tmp >sprut.sgml
+$(srcdir)/sprut.info: sprut.sgml
 	linuxdoc -B info --papersize=letter sprut.sgml
-	for i in sprut.info*;do\
-   	  if $(srcdir)/../sgml-postinfo $$i >tmp;then mv tmp $$i;fi;\
-	done
 	if test -f sprut.info-1;then\
 	  for i in sprut.info-*;do\
    	    mv $$i $(srcdir)/$$i;\
@@ -752,22 +748,19 @@ $(srcdir)/sprut.info: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
         fi
 	mv sprut.info $(srcdir)/sprut.info
 	
-$(srcdir)/sprut.dvi $(srcdir)/sprut.pdf: $(srcdir)/sprut.sgml.in $(srcdir)/sprut.1
-	$(srcdir)/../sgml-tex sprut.sgml.tmp >sprut.sgml
+$(srcdir)/sprut.dvi: sprut.sgml
 	linuxdoc -B latex --papersize=letter sprut.sgml
 	if test ! -f sprut.dvi\
            -o -f sprut.tex -a sprut.tex -nt sprut.dvi; then\
     	        latex sprut.tex; latex sprut.tex;\
         fi
 	mv sprut.dvi $(srcdir)/sprut.dvi
-	if test ! -f sprut.pdf\
-           -o -f sprut.tex -a sprut.tex -nt sprut.pdf; then\
-    	        pdflatex sprut.tex; pdflatex sprut.tex;\
-        fi
-	mv sprut.pdf $(srcdir)/sprut.pdf
 
 $(srcdir)/sprut.ps: $(srcdir)/sprut.dvi
 	dvips -o $@ $(srcdir)/sprut.dvi
+
+$(srcdir)/sprut.pdf: $(srcdir)/sprut.ps
+	ps2pdf $(srcdir)/sprut.ps $@
 
 # The following entry is only for internal usage.  It adds makefile
 # dependencies for SPRUT object files to the end of given file.

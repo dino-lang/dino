@@ -1,4 +1,4 @@
-This is ammunition++.info, produced by makeinfo version 5.1 from
+This is ammunition++.info, produced by makeinfo version 5.2 from
 sgmltmp.ammunition++.2.texi.
 
 
@@ -116,6 +116,7 @@ has the following functions:
                   `void change_error_function
                         (void (*error_function) (void))) (void)'
 
+
      is used for changing up action on the situation 'no memory'.  The
      function also returns former function which was early action on the
      situation 'no memory'.
@@ -123,6 +124,7 @@ has the following functions:
 'Static public function `default_error_function''
 
                   `void default_error_function (void)'
+
 
      is default action of the package on the situation 'no memory'.
      This action consists of output message '*** no memory ***' to
@@ -133,6 +135,7 @@ has the following functions:
 
                   `void *malloc (size_t size)'
 
+
      is analogous to ANSI C library function 'malloc'.  The parameter is
      size of needed memory.  The function returns address of allocated
      memory.
@@ -140,6 +143,7 @@ has the following functions:
 'Static public function `calloc''
 
                   `void *calloc (size_t nel, size_t size)'
+
 
      is analogous to ANSI C library function 'calloc'.  The parameters
      have the same sense as in standard function 'calloc'.  The function
@@ -149,12 +153,14 @@ has the following functions:
 
                   `void free (void *ptr)'
 
+
      is analogous to ANSI C library function 'free' but can accept nil
      pointer value.  In this case function does nothing.
 
 'Static public function `realloc''
 
                   `void *realloc(void *old, size_t size)'
+
 
      is analogous to ANSI C library function 'realloc'.  The first
      parameter is old address of reallocated memory.  The second
@@ -203,6 +209,7 @@ contains the following objects:
 
                             `vlo (size_t initial_length = VLO_DEFAULT_LENGTH)'
 
+
           is used for creation of descriptor of VLO with initial zero
           length.  If the parameter value is absent, the value is equal
           to zero then the VLO initial allocated memory length is equal
@@ -212,12 +219,14 @@ contains the following objects:
 
                             `~vlo (void)'
 
+
           is used for deleting the descritor of VLO and freeing memory
           used by the VLO.
 
      'Public function `nullify''
 
                             `void nullify (void)'
+
 
           makes that length of VLO of given descriptor will be equal to
           zero (but memory for VLO is not freed and not reallocated).
@@ -226,6 +235,7 @@ contains the following objects:
 
                             `void tailor (void)'
 
+
           makes that length of memory allocated for VLO of given
           descriptor becomes equal to VLO length.
 
@@ -233,11 +243,13 @@ contains the following objects:
 
                             `size_t length (void)'
 
+
           returns current length of VLO of given descriptor.
 
      'Public functions `begin', `end', `bound''
 
                             `void *begin(void)', `void *end(void)', `void *bound(void)'
+
 
           return pointer (of type 'void *') to correspondingly the
           first, the last byte of VLO of given descriptor, and pointer
@@ -248,12 +260,14 @@ contains the following objects:
 
                             `void shorten (size_t n)'
 
+
           removes n bytes from the end of VLO of given descriptor.  VLO
           is nullified if its length is less than n.
 
      'Public function `expand''
 
                             `void expand (size_t length)'
+
 
           increases length of VLO of given descriptor on number of bytes
           given as the parameter.  The values of bytes added to the end
@@ -263,12 +277,14 @@ contains the following objects:
 
                             `void add_byte (int b)'
 
+
           adds byte given as the parameter to the end of VLO of given
           descriptor.
 
      'Public function `add_memory''
 
                             `void add_memory (void *str, size_t length)'
+
 
           adds memory starting with address given as the first macro
           parameter and with length given as the second parameter to the
@@ -277,6 +293,7 @@ contains the following objects:
      'Public function `add_string''
 
                             `void add_string (const char *str)'
+
 
           adds C string (with end marker 0) given as the parameter to
           the end of VLO of given descriptor.  Before the addition the
@@ -330,6 +347,7 @@ contains the following objects:
                           `os (size_t initial_segment_length
                                            = OS_DEFAULT_SEGMENT_LENGTH)'
 
+
           creates OS which contains the single zero length object.
           Minimum size of memory segments which will be allocated for OS
           is given as the parameter.  If the parameter is absent the
@@ -341,6 +359,7 @@ contains the following objects:
 
                           `~os (void)'
 
+
           is used for deleting the descritor of OS and freeing memory
           used by the OS.
 
@@ -348,12 +367,14 @@ contains the following objects:
 
                           `void empty (void)'
 
+
           is used for removing all objects on OS and freeing all memory
           allocated for OS except for the first segment.
 
      'Public function `top_finish''
 
                           `void top_finish (void)'
+
 
           creates new variable length object with initial zero length on
           the top of OS of given descriptor.  The work (analogous to one
@@ -365,12 +386,14 @@ contains the following objects:
 
                           `void top_nullify (void)'
 
+
           makes that length of variable length object on the top of OS
           of given descriptor will be equal to zero.
 
      'Public function `top_length''
 
                           `size_t top_length (os)'
+
 
           returns current length of variable length object on the top of
           OS of given descriptor.
@@ -379,6 +402,7 @@ contains the following objects:
 
                           `void *top_begin (void)', `void *top_end (void)',
                           `void *top_bound (void)'
+
 
           return pointer to correspondingly the first, the last byte of
           variable length object on the top of OS of given descriptor,
@@ -389,6 +413,7 @@ contains the following objects:
 
                           `void top_shorten (size_t n)'
 
+
           removes n bytes from the end of variable length object on the
           top of OS of given descriptor.  The top variable length object
           is nullified if its length is less than n.
@@ -396,6 +421,7 @@ contains the following objects:
      'Public function `top_expand''
 
                           `void top_expand (size_t length)'
+
 
           increases length of variable length object on the top of OS of
           given descriptor on number of bytes given as the parameter.
@@ -406,12 +432,14 @@ contains the following objects:
 
                           `void top_add_byte (int b)'
 
+
           adds byte given as the parameter to the end of variable length
           object on the top of OS of given descriptor.
 
      'Public function `top_add_memory''
 
                           `void top_add_memory (void *str, size_t length)'
+
 
           adds memory starting with address given as the first parameter
           and with length given as the second parameter to the end of
@@ -420,6 +448,7 @@ contains the following objects:
      'Public function `top_add_string''
 
                           `void top_add_string (const char *str)'
+
 
           adds C++ string (with end marker 0) given as the parameter to
           the end of variable length string on the top of OS of the
@@ -473,6 +502,7 @@ abstract data is file 'hashtab.h'.  The implementation part is file
                               int (*eq_function) (hash_table_entry_t el1_ptr,
                                                   hash_table_entry_t el2_ptr))'
 
+
           creates hash table with length slightly longer than value of
           function parameter 'size'.  Created hash table is initiated as
           empty (all the hash table entries are NULL). The hash table
@@ -484,11 +514,13 @@ abstract data is file 'hashtab.h'.  The implementation part is file
 
                           `~hash_table (void)'
 
+
           deletes given hash table and frees memory allocated for it.
 
      'Public function `empty''
 
                           `void empty  (void)'
+
 
           makes the hash table empty.  If you need to remove all table
           elements, it is better to use this function than several times
@@ -500,6 +532,7 @@ abstract data is file 'hashtab.h'.  The implementation part is file
                           `hash_table_entry_t *find_entry
                                                (hash_table_entry_t element,
                                                 int reserve)'
+
 
           searches for hash table entry which contains element equal to
           value of the function parameter 'element' or empty entry in
@@ -517,6 +550,7 @@ abstract data is file 'hashtab.h'.  The implementation part is file
                           `void remove_element_from_entry
                                    (hash_table_entry_t element)'
 
+
           removes element from hash table_entry whose value is given as
           the function parameter.  Hash table entry for given value
           should be not empty (or deleted).  The hash table entry value
@@ -526,11 +560,13 @@ abstract data is file 'hashtab.h'.  The implementation part is file
 
                           `size_t size (void)'
 
+
           returns current size of given hash table.
 
      'Public function `elements_number''
 
                           `size_t elements_number (void)'
+
 
           returns current number of elements in given hash table.
 
@@ -538,12 +574,14 @@ abstract data is file 'hashtab.h'.  The implementation part is file
 
                           `int collisions (void)'
 
+
           returns number of of percents of fixed collisions during all
           work with given hash table.
 
      'Static public function `all_collisions''
 
                           `int all_collisions (void)'
+
 
           returns number of of percents of fixed collisions during all
           work with all hash tables.
@@ -587,11 +625,13 @@ the following objects:
 
                               `const char *file_name (void)'
 
+
           returns name of file to which given position belongs.
 
      'Public function `path''
 
                               `class position *path (void)'
+
 
           is pointer to another position class object representing
           position of a include-clause which caused immediately given
@@ -600,6 +640,7 @@ the following objects:
      'Public function `path''
 
                               `int file_inclusion_level (void)'
+
 
           returns number of level of position file inclusion.  The level
           numbers are started with zero for positions corresponding
@@ -622,6 +663,7 @@ the following objects:
 
                           `void initiate (void)'
 
+
           initiates the package.  Value of variable 'current' becomes
           equal to 'no_position'.
 
@@ -629,11 +671,13 @@ the following objects:
 
                           `void finish (void)'
 
+
           frees all memory allocated during package work.
 
      'Static public function `start_file''
 
                           `void start_file (const char *file_name)'
+
 
           save position in member variable 'current' and sets up new
           values of members of 'current'.  Values of members
@@ -648,6 +692,7 @@ the following objects:
 
                           `void finish_file (void)'
 
+
           restores previous value of the member 'current', more exactly
           sets up the member by position to which the member 'path'
           refers.
@@ -656,6 +701,7 @@ the following objects:
 
                           `int compare_positions (position_t position_1,
                                                   position_t position_2)'
+
 
           compares two positions given by parameters of type
           'position_t' and returns -1 (if the first position is less
@@ -692,6 +738,7 @@ class has the following members:
                   `unsigned int number_of_errors (void)'
                   `unsigned int number_of_warnings (void)'
 
+
      return values which are number of correspondingly errors and
      warnings fixed after given class object creation.
 
@@ -707,6 +754,7 @@ class has the following members:
 
                   `void fatal_error_function (void)'
 
+
      without parameters which will be called after fixing a fatal error.
      The fatal error function is suggested to do not return the control
      back.  The default fatal error function only calls 'exit (1)'.
@@ -714,6 +762,7 @@ class has the following members:
 'Public constructor `errors''
 
                   `errors (int immediate_output_flag)'
+
 
      creates the class 'errors' object working in regime depending on
      parameter value.  If the parameter value is nonzero than all fixed
@@ -724,11 +773,13 @@ class has the following members:
 
                   `~errors (void)'
 
+
      frees all memory allocated during the class 'errors' object work.
 
 'Public function `output''
 
                   `void output (void)'
+
 
      sorts (stable sorting) all fixed messages by their positions,
      outputs ones, and deletes ones.  Appended messages will be output
@@ -741,6 +792,7 @@ class has the following members:
                        `void error (int fatal_error_flag, position_t
                                     position, const char *format, ...)'
 
+
      fixes error (fatal error if the first parameter value is nonzero)
      at the position given as the second parameter.  If the error is
      fatal than functions 'output' and '*fatal_error_function' are
@@ -749,9 +801,11 @@ class has the following members:
 
                      error (1, current_position, "fatal error - no memory");
 
+
 'Public function `warning''
 
                   `void warning (position_t position, const char *format, ...)'
+
 
      is analogous to the previous but is used to fix a warning.
 
@@ -759,6 +813,7 @@ class has the following members:
 
                   `void append_message (position_t position,
                                         const char *format, ...)'
+
 
      When regime of immediately output of fixed message is on this
      function is analogous to the previous (except for incrementing
@@ -772,9 +827,11 @@ class has the following members:
 
                         `<file>:<line>:<position-1>: repeated declaration'
 
+
      and then
 
                         `<file>:<line>:<position-1>: previous declaration'.
+
 
      Description of function 'output_error_function' contains
      explanation why decremented position is output.
@@ -785,6 +842,7 @@ class has the following members:
                                       position_t position,
                                       const char *format, ...)'
 
+
      is analogous to function 'error' but serves to fix a system error.
      The current system message without head blanks (given by standard
      function 'strerror') is placed after the message formed by the
@@ -794,11 +852,13 @@ class has the following members:
                        system_error  (1, current_position,
                                       "fatal error - %s:", new_file_name);
 
+
 'Public virtual function `output_error_function''
 
                   `void default_output_error_function
                         (int appended_message_flag, position_t position,
                          const char *message)'
+
 
      is used to output error message.  The function has three parameters
      - flag of appended message, message position and message itself.
@@ -812,6 +872,7 @@ class has the following members:
             FILE_NAME:1: MESSAGE                 (zero line number)
             FILE_NAME:LINE_NUMBER: MESSAGE       (zero column number)
             FILE_NAME:LINE_NUMBER:COLUMN_NUMBER: MESSAGE  (all other cases)
+
 
      After that the function outputs newline.  The function also outputs
      additional messages 'in file processed from ...'  if given message
@@ -880,6 +941,7 @@ one class 'command_line'.  The class has the following members:
                                    const char *description,
                                    int &correct_description_flag)'
 
+
      The constructor processes command line description given as string
      parameter and command line itself given as two parameter 'argc' and
      'argv'.  The function returns 0 through parameter
@@ -890,11 +952,13 @@ one class 'command_line'.  The class has the following members:
 
                     `~command_line (void)'
 
+
      finishes work with the command line.
 
 'Public function `output_description''
 
                     `void output_description (void)'
+
 
      outputs the second part (without '%%') of description of options to
      stderr.  This function should be called when it is necessary to
@@ -903,6 +967,7 @@ one class 'command_line'.  The class has the following members:
 'Public function `next_operand''
 
                     `int next_operand (int flag_of_first)'
+
 
      returns command line argument number of next operand if the
      function parameter is nonzero.  Otherwise the function returns
@@ -915,11 +980,13 @@ one class 'command_line'.  The class has the following members:
 
                     `int number_of_operands (void)'
 
+
      returns number of operands in the command line.
 
 'Public function `next_option''
 
                     `int next_option (int flag_of_first)'
+
 
      returns command line argument number of next option if the function
      parameter is nonzero.  Otherwise the function returns number of the
@@ -932,6 +999,7 @@ one class 'command_line'.  The class has the following members:
 
                     `char *option_characteristics (int argument_number,
                                                    int *option_has_argument)'
+
 
      returns pointer to option name which describes the command line
      argument with number 'argument_number' given as the first parameter
@@ -951,6 +1019,7 @@ one class 'command_line'.  The class has the following members:
 
                     `int last_option_place (const char *option_name)'
 
+
      returns number of last option with given option name in the command
      line.  The function returns 0 if the option is absent in the
      command line.
@@ -958,6 +1027,7 @@ one class 'command_line'.  The class has the following members:
 'Public function `option_argument''
 
                     `char *option_argument (const char *option_name)'
+
 
      returns pointer to argument of last option in the command line with
      given option name.  The function returns NULL if the option is
@@ -968,6 +1038,7 @@ one class 'command_line'.  The class has the following members:
 
                     `int argument_count (void)'
                     `char **argument_vector (void)'
+
 
      return 'argc' and 'argv' of function 'main'.  See also description
      of the class constructor.
@@ -996,11 +1067,13 @@ contains the following members:
 
                     `int bit (const void *start_byte, int bit_displacement)'
 
+
      returns given bit value as integer value '0' or '1'.  There is
      static public function 'set_bit'
 
                     `void set_bit (void *start_byte, int bit_displacement,
                                    int bit)
+
 
      for changing value of a bit.  Parameter 'bit' must have value '0'
      or '1'.
@@ -1011,6 +1084,7 @@ contains the following members:
                                              int bit_displacement,
                                              int bit_length)'
 
+
      returns '1' if given bit string contains only zero value bits, 0
      otherwise.
 
@@ -1019,6 +1093,7 @@ contains the following members:
                     `void bit_string_set (void *start_byte, int
                                           bit_displacement, int bit,
                                           int bit_length)'
+
 
      sets up new value of all bits of given bit string.  This function
      is bit string analog of standard C++ function 'memset'.
@@ -1029,6 +1104,7 @@ contains the following members:
                                            const void *from,
                                            int from_bit_displacement,
                                            int bit_length)'
+
 
      copys a bit string to another bit string.  The bit strings must be
      nonoverlapped.  This function is bit string analog of standard C++
@@ -1041,6 +1117,7 @@ contains the following members:
                                           int from_bit_displacement,
                                           int bit_length)'
 
+
      copys a bit string to another bit string.  The bit strings can be
      overlapped.  This function is bit string analog of standard C++
      function 'memmove'.
@@ -1051,6 +1128,7 @@ contains the following members:
                          (const void *str1, int bit_displacement1,
                           const void *str2, int bit_displacement2,
                           int bit_length)'
+
 
      returns 0 if the bit strings are equal, 1 if the first bit string
      is greater than the second, -1 if the first bit string is less than
@@ -1111,6 +1189,7 @@ external definitions:
 
                           `void default_arithmetic_overflow_reaction (void)'
 
+
           Originally reaction on all integer and unsigned integer
           overflow is equal to this function.  The function does
           nothing.  Reaction on overflow for integers or unsigned
@@ -1127,12 +1206,14 @@ external definitions:
                           `void (*set_overflow_reaction
                                   (void (*function) (void))) (void)'
 
+
           change reaction on integer overflow and returns previous
           overflow reaction function.
 
      'Static public functions `maximum''
 
                           `void maximum   (int  size,  void  *result)'
+
 
           create given size (in bytes) maximal integer constant which is
           placed in memory whose address is given by the second
@@ -1144,6 +1225,7 @@ external definitions:
                                      const void *op2,
                                      void *result)'
 
+
           make integer addition of integers of given size.  The
           functions fix overflow when result can not be represented by
           number of given size.  There are analogous functions which
@@ -1154,10 +1236,12 @@ external definitions:
                           `divide',
                           `remainder'.
 
+
      'Static public functions `shift_left''
 
                           `void  shift_left (int size,  const void *operand,
                                              int bits, void *result)'
+
 
           make left shift of integer of given size on given number of
           bits.  If number of bits is negative the functions make shift
@@ -1169,11 +1253,13 @@ external definitions:
 
                           `shift_right'.
 
+
      'Static public function `_or_''
 
                           `void _or_ (int size, const void *op1,
                                       const void *op2,
                                       void *result)'
+
 
           make bitwise 'or' of integers of given size.  There are
           analogous functions which implement bitwise 'and' and 'xor':
@@ -1181,16 +1267,19 @@ external definitions:
                           `_and_',
                           `_xor_'.
 
+
           Static public functions
 
                           `void _not_ (int size, const void *operand,
                                        void *result)'
+
 
           make bitwise 'not' of integer of given size.
 
      'Static public functions `eq''
 
                           `int eq (int size, const void *op1, const void *op2)'
+
 
           compare two integers of given size on equality and returns 1
           or 0 depending on result of the comparison.  There are
@@ -1202,11 +1291,13 @@ external definitions:
                           `ge',
                           and `le'.
 
+
      'Static public functions `change_size''
 
                           `void  change_size (int operand_size,
                                               const  void *operand,
                                               int result_size, void *result)'
+
 
           change size of integer.  The functions fix overflow when
           result can not be represented by number of given size.
@@ -1215,6 +1306,7 @@ external definitions:
 
                           `char *to_string (int  size, const void *operand,
                                             char *result)'
+
 
           transform integer of given size to decimal ascii
           representation.  Sign is present in result string only for
@@ -1225,6 +1317,7 @@ external definitions:
 
                           `char *to_based_string (int  size, const void *operand,
                                                   int base, char *result)'
+
 
           transform integer of given size to ascii representation with
           given base.  The base should be between 2 and 36 including
@@ -1237,6 +1330,7 @@ external definitions:
 
                           `char *from_string (int  size, const char *operand,
                                               void *result)'
+
 
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (decimal ascii
@@ -1251,6 +1345,7 @@ external definitions:
 
                           `char *from_based_string (int  size, const char *operand,
                                                     int base, void *result)'
+
 
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (ascii representation
@@ -1280,6 +1375,7 @@ external definitions:
                           `sint (int value)', `sint (void)'
                           `unsint (unsigned int value)', `unsint (void)'
 
+
           can be used for creation integer with given value or zero
           integer.
 
@@ -1289,6 +1385,7 @@ external definitions:
                           `class sint<size> min (void)'
                           `class unsint<size> max (void)'
                           `class unsint<size> min (void)'
+
 
           create integers and unsigned integers of maximal and minimal
           value.
@@ -1300,6 +1397,7 @@ external definitions:
                           `class unsint<size> operator +
                                               (const class unsint<size> &op)'
 
+
           make integer addition of integers of given size.  The operator
           fixes overflow when result can not be represented by number of
           given size.  There are analogous operators which implement
@@ -1310,10 +1408,12 @@ external definitions:
                           `/',
                           `%'.
 
+
      'Public operators `<<''
 
                           `class sint<size> operator << (int bits)'
                           `class unsint<size> operator << (int bits)'
+
 
           make left shift of integer on given number of bits.  If number
           of bits is negative operator makes shift to right actually.
@@ -1325,6 +1425,7 @@ external definitions:
 
                           `>>'.
 
+
      'Public operators `|''
 
                           `class sint<size> operator |
@@ -1332,16 +1433,19 @@ external definitions:
                           `class unsint<size> operator |
                                               (const class unsint<size> &op)'
 
+
           make bitwise 'or' of integers.  There are analogous operators
           which implement bitwise 'and' and 'xor':
 
                           `&',
                           `^'.
 
+
           Public operators
 
                           `class sint<size> operator ~ (void)'
                           `class unsint<size> operator ~ (void)'
+
 
           make bitwise 'not' of integer of given size.
 
@@ -1349,6 +1453,7 @@ external definitions:
 
                           `int operator == (const class sint<size> &op)'
                           `int operator == (const class unsint<size> &op)'
+
 
           compare two integers of given size on equality and returns 1
           or 0 depending on result of the comparison.  There are
@@ -1360,9 +1465,11 @@ external definitions:
                           `>=',
                           and `<='.
 
+
      'Public functions `to_str''
 
                           `char *to_str (char *result)'
+
 
           transform integer to decimal ascii representation.  Sign is
           present in result string only for negative numbers (it is not
@@ -1372,6 +1479,7 @@ external definitions:
      'Public functions `to_based_str''
 
                           `char *to_based_str (int base, char *result)'
+
 
           transform integer to ascii representation with given base.
           The base should be between 2 and 36 including them.  Digits
@@ -1383,6 +1491,7 @@ external definitions:
      'Public functions `from_str''
 
                           `char *from_str (const char *operand)'
+
 
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (decimal ascii
@@ -1396,6 +1505,7 @@ external definitions:
      'Public functions `from_based_str''
 
                           `char *from_based_str (const char *operand, int base)'
+
 
           skip all white spaces at the begin of source string and
           transforms the tail of the source string (ascii representation
@@ -1416,6 +1526,7 @@ external definitions:
                   `template <int result_size, int operand_size>
                    inline void new_size (class unsint<operand_size> &operand,
                                          class unsint<result_size> &result)'
+
 
      change size of integer.  The functions fix overflow when result can
      not be represented by number of given size.
@@ -1545,29 +1656,35 @@ interface contains the following external definitions:
 
                           `void reset (void)'
 
+
           and to separate bits in mask returned by functions
 
                           `IEEE_get_sticky_status_bits',
                           `IEEE_get_status_bits', and
                           `IEEE_get_trap_mask'.
+
 
      'Function `IEEE_reset''
 
                           `void IEEE_reset (void)'
 
+
           and to separate bits in mask returned by functions
 
                           `IEEE_get_sticky_status_bits',
                           `IEEE_get_status_bits', and
                           `IEEE_get_trap_mask'.
 
+
      'Static public function `get_trap_mask''
 
                           `int get_trap_mask (void)'
 
+
           returns exceptions trap mask.  Static public function
 
                           `int set_trap_mask (int mask)'
+
 
           sets up new exception trap mask and returns the previous.
 
@@ -1581,11 +1698,13 @@ interface contains the following external definitions:
 
                           `int set_sticky_status_bits (int mask)'
 
+
           changes sticky status bits and returns the previous bits.
 
           Static public function
 
                           `int get_sticky_status_bits (void)'
+
 
           returns mask of current sticky status bits.  Only sticky
           status bits corresponding to masked exceptions are updated
@@ -1595,6 +1714,7 @@ interface contains the following external definitions:
      'Static public function `get_status_bits''
 
                           `int get_status_bits (void)'
+
 
           returns mask of status bits.  It is supposed that the function
           will be used in trap on an floating point exception.  Status
@@ -1606,10 +1726,12 @@ interface contains the following external definitions:
 
                           `int set_round (int round_mode)'
 
+
           which sets up current rounding mode and returns previous mode
           and
 
                           `int IEEE_get_round (void)'
+
 
           which returns current mode.  Initial rounding mode is round to
           nearest.
@@ -1617,6 +1739,7 @@ interface contains the following external definitions:
      'Static public function `default_floating_point_exception_trap''
 
                           `void default_floating_point_exception_trap (void)'
+
 
           Originally reaction on occurred trap on an unmasked floating
           point exception is equal to this function.  The function does
@@ -1627,6 +1750,7 @@ interface contains the following external definitions:
 
                           `void (*set_floating_point_exception_trap
                                   (void (*function) (void))) (void)'
+
 
           sets up trap on an unmasked exception.  Function given as
           parameter simulates floating point exception trap.
@@ -1647,12 +1771,14 @@ interface contains the following external definitions:
                           `IEEE_quad (void)'
                           `IEEE_quad (float f)'
 
+
           creates IEEE single, IEEE double, or IEEE quad precision
           numbers with pozitive zero values or with given value.
 
      'Public function `positive_zero''
 
                           `void positive_zero (void)'
+
 
           Given float becomes positive single precision zero constant.
           There are analogous functions which return other special case
@@ -1663,6 +1789,7 @@ interface contains the following external definitions:
                           `trapping_NaN',
                           `positive_infinity',
                           `negative_infinity',
+
 
           According to the IEEE standard NaN (and trapping NaN) can be
           represented by more one bit string.  But all functions of the
@@ -1678,6 +1805,7 @@ interface contains the following external definitions:
 
                           `int is_positive_zero (void)'
 
+
           returns 1 if given number is positive single precision zero
           constant.  There are analogous functions for other special
           case values:
@@ -1692,6 +1820,7 @@ interface contains the following external definitions:
                           `is_positive_minimum' (positive min value),
                           `is_negative_minimum',
 
+
           In spite of that all functions of the package generate and use
           only one its representation created by function 'NaN' (or
           'trapping_NaN'). The function 'is_NaN' (and 'trapping_NaN')
@@ -1701,16 +1830,19 @@ interface contains the following external definitions:
 
                           `int is_normalized (void)'
 
+
           returns TRUE if given number is normalized (special case
           values are not normalized).  There is analogous function
 
                           `is_denormalized'
+
 
           for determination of denormalized number.
 
      'Public operator `+''
 
                           `class IEEE_float operator + (class IEEE_float &op)'
+
 
           makes single precision addition of floating point numbers.
           There are analogous operators which implement other floating
@@ -1719,6 +1851,7 @@ interface contains the following external definitions:
                           `-',
                           `*',
                           `/',
+
 
           Results and input exceptions for operands of special cases
           values (except for NaNs) are described for addition by the
@@ -1737,6 +1870,7 @@ interface contains the following external definitions:
                               Others |    +Inf      |    -Inf     |
                                      |    none      |    none     |
 
+
           Results and input exceptions for operands of special cases
           values (except for NaNs) are described for subtraction by the
           following table
@@ -1753,6 +1887,7 @@ interface contains the following external definitions:
                               -------|-------------|--------------|----------
                               Others |    -Inf     |    +Inf      |
                                      |    none     |    none      |
+
 
           Results and input exceptions for operands of special cases
           values (except for NaNs) are described for multiplication by
@@ -1777,6 +1912,7 @@ interface contains the following external definitions:
                           Others | (+-)Inf  |  (+-)Inf  |   (+-)0    |
                                  |  none    |   none    |   none     |
 
+
           Results and input exceptions for operands of special cases
           values (except for NaNs) are described for division by the
           following table
@@ -1800,9 +1936,11 @@ interface contains the following external definitions:
                           Others |  (+-)0    |  (+-)0    |  (+-)Inf  |
                                  |  none     |   none    |  IEEE_DZ  |
 
+
      'Public operator `==''
 
                           `int operator == (class IEEE_float &op)'
+
 
           compares two floating point numbers on equality and returns 1
           or 0 depending on result of the comparison.  There are
@@ -1813,6 +1951,7 @@ interface contains the following external definitions:
                           `>=',
                           `<',
                           `<='.
+
 
           Results and input exceptions for operands of special cases
           values are described for equality and inequality by the
@@ -1832,6 +1971,7 @@ interface contains the following external definitions:
                           Others |   FALSE     |   FALSE      |
                                  |  IEEE_INV   |    none      |
 
+
           Results and input exceptions for operands of special cases
           values are described for other comparison operation by the
           following table
@@ -1850,9 +1990,11 @@ interface contains the following external definitions:
                           Others |   FALSE     |   FALSE      |
                                  |  IEEE_INV   |  IEEE_INV    |
 
+
      'Public functions `to_string''
 
                           `char *to_string (char *result)'
+
 
           transform single precision to decimal ascii representation
           with obligatory integer part (1 digit), fractional part (of
@@ -1869,6 +2011,7 @@ interface contains the following external definitions:
      'Public functions `to_binary_string''
 
                           `char *to_binary_string (int base, char *result)'
+
 
 
           The functions are analogous to to_string but but transform
@@ -1888,6 +2031,7 @@ interface contains the following external definitions:
 
                           `char *from_string (const char *operand)'
 
+
           skip all white spaces at the begin of source string and
           transforms tail of the source string to single precision
           floating point number.  The number must correspond the
@@ -1896,6 +2040,7 @@ interface contains the following external definitions:
                              ['+' | '-'] [<decimal digits>]
                                          [ '.' [<decimal digits>] ]
                                   [ ('e' | 'E') ['+' | '-'] <decimal digits>]
+
 
           or must be the following strings 'SNaN', 'QNaN', '+Inf',
           '-Inf', '+0', or '-0'.  The functions return pointer to first
@@ -1923,12 +2068,14 @@ interface contains the following external definitions:
 
                           `char *from_binary_string (const char *operand, int base)'
 
+
           The functions ar analogous to to_string but transform binary
           representation of the floating point number.  The number must
           correspond the following syntax
 
                              ['+' | '-'] [<digits less base>] [ '.' [<digits less base>] ]
                                   [ ('p' | 'P') ['+' | '-'] <decimal digits>]
+
 
           or must be the following strings 'SNaN', 'QNaN', '+Inf',
           '-Inf', '+0', or '-0'.  The functions return pointer to first
@@ -1956,6 +2103,7 @@ interface contains the following external definitions:
                           `void to_unsigned_integer (int size,
                                                      void *unsigned_integer)'
 
+
           In class 'IEEE_double'
 
                           `class IEEE_float to_single (void)'
@@ -1970,6 +2118,7 @@ interface contains the following external definitions:
                           `void to_unsigned_integer (int size,
                                                      void *unsigned_integer)'
 
+
           In class 'IEEE_quad'
 
                           `class IEEE_float to_single (void)'
@@ -1983,6 +2132,7 @@ interface contains the following external definitions:
                           `void to_signed_integer (int size, void *integer)'
                           `void to_unsigned_integer (int size,
                                                      void *unsigned_integer)'
+
 
           Actually no one output exceptions occur during transformation
           of single precision floating point number to double (or quad)
@@ -2010,6 +2160,7 @@ interface contains the following external definitions:
                                         Others    |
                                                   |
 
+
           Results and input exceptions for operand of special cases
           values (and for NaNs) are described for conversion floating
           point number to unsigned integer by the following table
@@ -2030,6 +2181,7 @@ interface contains the following external definitions:
                                     --------------|-------------------
                                         Others    |
                                                   |
+
 
           Results and exceptions for NaNs during transformation of
           floating point numbers to (unsigned) integers are differed
@@ -2096,6 +2248,7 @@ interface contains the following external definitions:
                         (class IEEE_quad &single,
                          class unsint<size> &unsigned_integer)'
 
+
      Exceptions for these functions are the same as described above for
      functions 'from_signed_integer', 'to_signed_integer' and so on.
 
@@ -2128,11 +2281,13 @@ the following external definitions and macros:
 
                             `ticker (void)'
 
+
           creates new timer.  The state of the timer is active.
 
      'Public function `ticker_off''
 
                             `void ticker_off (void)'
+
 
           stops given timer.
 
@@ -2140,11 +2295,13 @@ the following external definitions and macros:
 
                             `void ticker_on (void)'
 
+
           activates given timer.
 
      'Function `active_time''
 
                             `double active_time (ticker_t ticker)'
+
 
           returns time in seconds as double float value in which the
           timer given as the function parameter was active.
@@ -2152,6 +2309,7 @@ the following external definitions and macros:
      'Function `active_time_string''
 
                             `const char *active_time_string (ticker_t ticker)'
+
 
           returns string representation of time in seconds in which the
           timer given as the function parameter was active.  Remember
@@ -2200,6 +2358,7 @@ following external definitions and macros:
 
                          `spset (spset_elem_t size = 0)'
 
+
           creates set with initial size close to 'size' but not less
           than it.  With default parameter value the minimal size set is
           created.
@@ -2208,11 +2367,13 @@ following external definitions and macros:
 
                          `~spset (vodi)'
 
+
           deletes given set and frees memory allocated for it.
 
      'Public member function `size''
 
                           `spset_elem_t size (void)'
+
 
           returns the current size of the set.  Elements with values
           less than the size can be inserted without an expansion.
@@ -2221,11 +2382,13 @@ following external definitions and macros:
 
                           `spset_elem_t cardinality (void)'
 
+
           returns number of elements containing currently in the set.
 
      'Public member function `copy''
 
                           `void copy (spset *from)'
+
 
           copies value of set 'from' to given set.
 
@@ -2233,17 +2396,20 @@ following external definitions and macros:
 
                           `void swap (spset *s)'
 
+
           swaps values of given set and 's'.
 
      'Public member function `in_p''
 
                           `int in_p (spset_elem_t el)'
 
+
           returns TRUE if the set constains element 'el'.
 
      'Public member function `insert''
 
                           `int insert (spset_elem_t el)'
+
 
           inserts element 'el' into the set.  Return TRUE if the set has
           been changed, in order words, it did not contain the element.
@@ -2254,12 +2420,14 @@ following external definitions and macros:
 
                           `int remove (spset_elem_t el)'
 
+
           removes element 'el' from the set.  Return TRUE if the set has
           been changed, in order words, it really contained the element.
 
      'Public member function `clear''
 
                           `int clear (void)'
+
 
           removes all elements from the set.  Return TRUE if the set has
           been changed, in order words, it was not empty.
@@ -2268,12 +2436,14 @@ following external definitions and macros:
 
                           `int equal_p (spset *s)'
 
+
           returns TRUE if given set and 's' contain exactly the same
           elements.
 
      'Public member function `intersect''
 
                           `int intersect (spset *s)'
+
 
           removes elements in given set which are not is set 's'.
           Returns TRUE if the set has been changed, in order words, if
@@ -2282,6 +2452,7 @@ following external definitions and macros:
      'Public member function `unity''
 
                           `int unity (spset *s)'
+
 
           adds all elements of set 's' to given set.  Returns TRUE if
           the set has been changed, in order words, if any new element
@@ -2292,6 +2463,7 @@ following external definitions and macros:
 
                           `int intersect (spset *s)'
 
+
           removes all elements of set 's' from given set.  Returns TRUE
           if the set has been changed, in order words, if given set and
           's' had any common elements.
@@ -2299,6 +2471,7 @@ following external definitions and macros:
      'Public member function `shrink''
 
                           `void shrink (void)'
+
 
           decreases size of the set if it is possible.  During set life,
           the set can be automatically expanded but it is never
@@ -2310,6 +2483,7 @@ following external definitions and macros:
 
                           `void release_unused_memory (void)'
 
+
           releases internal memory pool.  The pool is used to speed up
           size changing of sets.  It is wise to call the function when
           you finish to work with all sets.
@@ -2318,11 +2492,13 @@ following external definitions and macros:
 
                           `void print (FILE *f)'
 
+
           prints all elements of the set into file 'f'.
 
      'Public member function `debug''
 
                           `void debug (void)'
+
 
           prints all elements of the set into stderr.
 
@@ -2333,6 +2509,7 @@ following external definitions and macros:
 'Macro `EXECUTE_FOR_EACH_SPSET_ELEM''
 
                   `EXECUTE_FOR_EACH_SPSET_ELEM (SET, EL, SI) c++-stmt'
+
 
      executes 'c++-stmt' for each element of 'SET'. During execution,
      the current element value is assigned to 'EL'. You need to declare
@@ -2383,6 +2560,7 @@ macros:
 
                            `cspset (cspset_elem_t size = 0)'
 
+
           creates set with initial size close to 'size' but not less
           than it.  With default parameter value the minimal size set is
           created.
@@ -2391,11 +2569,13 @@ macros:
 
                            `~cspset (vodi)'
 
+
           deletes given set and frees memory allocated for it.
 
      'Public member function `size''
 
                             `cspset_elem_t size (void)'
+
 
           returns the current size of the set.  The set without an
           expansion can contain elements whose quantity is close to the
@@ -2405,11 +2585,13 @@ macros:
 
                             `cspset_elem_t cardinality (void)'
 
+
           returns number of elements containing currently in the set.
 
      'Public member function `copy''
 
                             `void copy (cspset *from)'
+
 
           copies value of set 'from' to given set.
 
@@ -2417,17 +2599,20 @@ macros:
 
                             `void swap (cspset *s)'
 
+
           swaps values of given set and 's'.
 
      'Public member function `in_p''
 
                             `int in_p (cspset_elem_t el)'
 
+
           returns TRUE if the set constains element 'el'.
 
      'Public member function `insert''
 
                             `int insert (cspset_elem_t el)'
+
 
           inserts element 'el' into the set.  Return TRUE if the set has
           been changed, in order words, it did not contain the element.
@@ -2438,12 +2623,14 @@ macros:
 
                             `int remove (cspset_elem_t el)'
 
+
           removes element 'el' from the set.  Return TRUE if the set has
           been changed, in order words, it really contained the element.
 
      'Public member function `clear''
 
                             `int clear (void)'
+
 
           removes all elements from the set.  Return TRUE if the set has
           been changed, in order words, it was not empty.
@@ -2452,12 +2639,14 @@ macros:
 
                             `int equal_p (cspset *s)'
 
+
           returns TRUE if given set and 's' contain exactly the same
           elements.
 
      'Public member function `intersect''
 
                             `int intersect (cspset *s)'
+
 
           removes elements in given set which are not is set 's'.
           Returns TRUE if the set has been changed, in order words, if
@@ -2466,6 +2655,7 @@ macros:
      'Public member function `unity''
 
                             `int unity (cspset *s)'
+
 
           adds all elements of set 's' to given set.  Returns TRUE if
           the set has been changed, in order words, if any new element
@@ -2476,6 +2666,7 @@ macros:
 
                             `int intersect (cspset *s)'
 
+
           removes all elements of set 's' from given set.  Returns TRUE
           if the set has been changed, in order words, if given set and
           's' had any common elements.
@@ -2483,6 +2674,7 @@ macros:
      'Public member function `shrink''
 
                             `void shrink (void)'
+
 
           decreases size of the set if it is possible.  During set life,
           the set can be automatically expanded but it is never
@@ -2494,6 +2686,7 @@ macros:
 
                             `void release_unused_memory (void)'
 
+
           releases internal memory pool.  The pool is used to speed up
           size changing of sets.  It is wise to call the function when
           you finish to work with all sets.
@@ -2502,11 +2695,13 @@ macros:
 
                             `void print (FILE *f)'
 
+
           prints all elements of the set into file 'f'.
 
      'Public member function `debug''
 
                             `void debug (void)'
+
 
           prints all elements of the set into stderr.
 
@@ -2514,12 +2709,14 @@ macros:
 
                             `void to_spset (spset_t *to)'
 
+
           is used to transform given compact sparse set to sparse set
           'to'.
 
      'Function `from_spset''
 
                             `void from_spset (spset_t *from)'
+
 
           is used to transform given compact sparse set from sparse set
           'from'.
@@ -2531,6 +2728,7 @@ macros:
 'Macro `EXECUTE_FOR_EACH_CSPSET_ELEM''
 
                     `EXECUTE_FOR_EACH_CSPSET_ELEM (SET, EL, SI) c++-stmt'
+
 
      executes 'c++-stmt' for each element of 'SET'. During execution,
      the current element value is assigned to 'EL'. You need to declare
@@ -2759,17 +2957,20 @@ following external definitions and macros:
 
                             `earley (void)'
 
+
           creates new parser.  The grammar of the parser is not defined.
 
      'Public destructor'
 
                             `~earley (void)'
 
+
           frees all memory allocated for the parser.
 
      'Public function `error_code''
 
                             `int error_code (void)'
+
 
           returns the last occurred error code (see the possible error
           codes above) for given parser.  If the function returns zero,
@@ -2778,6 +2979,7 @@ following external definitions and macros:
      'Public function `error_message''
 
                             `const char *error_message (void)'
+
 
           returns detail message about last occurred error.  The message
           always corresponds to the last error code returned the
@@ -2792,6 +2994,7 @@ following external definitions and macros:
                                                             const char **abs_node,
                                                             int *anode_cost,
                                                             int **transl))'
+
 
           is one of two functions which tunes the parser to given
           grammar.  The grammar is read with the aid functions given as
@@ -2846,6 +3049,7 @@ following external definitions and macros:
 
                             `int parse_grammar (int strict_p, const char *description)'
 
+
           is another function which tunes the parser to given grammar.
           The grammar is given by string 'description'.  The description
           is similiar YACC one.  It has the following syntax:
@@ -2875,6 +3079,7 @@ following external definitions and macros:
                                numbers :
                                        | numbers NUMBER
                                        | numbers '-'
+
 
           So the description consists of terminal declaration and rules
           sections.
@@ -2911,6 +3116,7 @@ following external definitions and macros:
 
                             `int set_lookahead_level (int level)'
 
+
           sets up level of usage of look ahead in parser work.  Value
           zero means no usage of lookaheads at all.  Lookahead with
           static (independent on input tokens) context sets in parser
@@ -2928,6 +3134,7 @@ following external definitions and macros:
 
                             `int set_debug_level (int level)'
 
+
           sets up level of debugging information output to 'stderr'.
           The more level, the more information is output.  The default
           value is 0 (no output).  The debugging information includes
@@ -2942,6 +3149,7 @@ following external definitions and macros:
 
                             `int set_one_parse_flag (int flag)'
 
+
           sets up building only one translation tree (parameter value 0)
           or all parse trees for ambiguous grammar for which several
           parsings are possible.  For unambiguous grammar the flag does
@@ -2951,6 +3159,7 @@ following external definitions and macros:
      'Public function `earley_set_cost_flag''
 
                             `int set_cost_flag (int flag)'
+
 
           sets up building only translation tree (trees if we set up
           one_parse_flag to 0) with minimal cost.  For unambiguous
@@ -2962,6 +3171,7 @@ following external definitions and macros:
 
                             `int set_error_recovery_flag (int flag)'
 
+
           sets up internal flag whose nonzero value means making error
           recovery if syntax error occurred.  Otherwise, syntax error
           results in finishing parsing (although function 'syntax_error'
@@ -2971,6 +3181,7 @@ following external definitions and macros:
      'Public function `set_recovery_match''
 
                             `int set_recovery_match (int n_toks)'
+
 
           sets up recovery parameter which means how much subsequent
           tokens should be successfully shifted to finish error
@@ -2990,6 +3201,7 @@ following external definitions and macros:
                                         void (*parse_free) (void *mem),
                                         struct earley_tree_node **root,
                                         int *ambiguous_p)'
+
 
           is major parser function.  It parses input according the
           grammar.  The function returns the error code (which can be
@@ -3039,18 +3251,18 @@ Tag Table:
 Node: Top111
 Node: Introduction1066
 Node: Package for allocating memory with fixing some allocation errors2168
-Node: Package for work with variable length objects5045
-Node: Package for work with stacks of objects9813
-Node: Package for work with hash tables15825
-Node: Package for work with source code positions20923
-Node: Package for output of compiler messages25548
-Node: Package for work with command line32331
-Node: Package for work with bit strings39136
-Node: Package for machine-independent arbitrary precision integer arithmetic42684
-Node: Package for machine-independent IEEE floating point arithmetic58983
-Node: Ticker package93753
-Node: Expandable sparse set95505
-Node: Expandable compact sparse set101709
-Node: Earley parser108545
+Node: Package for work with variable length objects5051
+Node: Package for work with stacks of objects9830
+Node: Package for work with hash tables15854
+Node: Package for work with source code positions20961
+Node: Package for output of compiler messages25594
+Node: Package for work with command line32392
+Node: Package for work with bit strings39207
+Node: Package for machine-independent arbitrary precision integer arithmetic42762
+Node: Package for machine-independent IEEE floating point arithmetic59094
+Node: Ticker package93906
+Node: Expandable sparse set95663
+Node: Expandable compact sparse set101886
+Node: Earley parser108743
 
 End Tag Table

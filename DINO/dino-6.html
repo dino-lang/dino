@@ -2,7 +2,7 @@
 <HTML>
 <HEAD>
  <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.66">
- <TITLE>The Programming Language DINO: Executive statements</TITLE>
+ <TITLE>The Programming Language DINO: Patterns</TITLE>
  <LINK HREF="dino-7.html" REL=next>
  <LINK HREF="dino-5.html" REL=previous>
  <LINK HREF="dino.html#toc6" REL=contents>
@@ -12,421 +12,94 @@
 <A HREF="dino-5.html">Previous</A>
 <A HREF="dino.html#toc6">Contents</A>
 <HR>
-<H2><A NAME="s6">6.</A> <A HREF="dino.html#toc6">Executive statements</A></H2>
+<H2><A NAME="s6">6.</A> <A HREF="dino.html#toc6">Patterns</A></H2>
 
-<P>Statements denote actions.  There are <EM>simple</EM> and
-<EM>compound</EM> statements.  Simple statements do not consist of any
-parts that are statements themselves.  They are the assignment,
-procedure call, return, break, continue, throw, and the wait
-statements.  Analogous to the C language the last symbol of a Dino
-simple statement is semicolon <CODE>;</CODE>.  Compound statements
-consists of parts that are statements themselves.  They are used to
-express sequencing, exception handling, conditional, and repetitive
-execution.</P>
-
-<H2><A NAME="ss6.1">6.1</A> <A HREF="dino.html#toc6.1">Empty statement</A>
-</H2>
-
-<P>There is also the empty statement in Dino.  It denotes no action.  The
-empty statement is included in Dino for convenience.
+<P>Patterns have form of expressions.  They are used to match an
+expression and decompose it.  Pattern can have form a vector value, a
+table value, a function call, identifier, or special <EM>wildcard</EM>
+symbol <CODE>"_"</CODE>.  Anything else is treated as an expression.
 <BLOCKQUOTE><CODE>
 <PRE>
-          ExecutiveStmt = ";"
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Example: Usage of an empty statement in a for-statement:
-<BLOCKQUOTE><CODE>
-<PRE>
-          for (i = 0; a[i] == 0; i++)
-            ;
+           Pattern = Expr
+           Expr = "_" | "..."
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-
-<H2><A NAME="ss6.2">6.2</A> <A HREF="dino.html#toc6.2">Block-statement</A>
-</H2>
-
-<P>A block-statement is simply a block and can used to group statements
-into one statement and/or describe local declarations.  For details on
-how the block is executed see section <EM>Declaration and Scope
-Rules</EM>.
+<P>A separate wildcard matches any value.  Identifier also matches any
+value but additionally the matched value is assigned to
+the <EM>pattern variable</EM> denoted by the identifier.  Expression
+pattern matches any value equal to the the expression value.</P>
+<P>A <EM>vector pattern</EM> matches a <EM>vector value</EM>.  All vector
+pattern elements should match all subsequent elements of the vector
+value.  If a vector pattern element has a form of another pattern than
+it matches the corresponding vector value element iff the element
+pattern matches the corresponding element value of the vector value.</P>
+<P>A vector pattern element can also have a form <CODE>expr ":"
+pattern</CODE>.  The value of the expression before <CODE>":"</CODE> is
+converted into an integer value by default.  If the value after the
+conversion is not integer, exception <CODE>optype</CODE> is generated.
+The value can be zero or negative.  In this case matching the pattern
+element is always successful and this matching does not correspond any
+element of the matched vector value.  Othewise, the pattern
+after <CODE>":"</CODE> should match corresponding elements in the vector
+value.  The exact number of the elements is defined by expression
+value before <CODE>":"</CODE>.  The matched element values should be equal
+unless the pattern after <CODE>":"</CODE> is a wildcard <CODE>"_"</CODE>.</P>
+<P>The last element of the vector pattern can be <CODE>"..."</CODE>.  It
+matches the rest elements in the matched vector value.  The following
+are examples of vector patterns (a, b, and c are identifies of pattern
+variables):
 <BLOCKQUOTE><CODE>
 <PRE>
-          ExecutiveStmt = BlockStmt
-
-          BlockStmt = Block
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Example: Usage of a block-statement in a for-statement:
-<BLOCKQUOTE><CODE>
-<PRE>
-          sum = 0;
-          for (i = 0; i &lt; #a; i++)
-            {
-              var value = a[i];
-              if (value > 0)
-                sum += value;
-            }
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
-<H2><A NAME="ss6.3">6.3</A> <A HREF="dino.html#toc6.3">Assignment statements</A>
-</H2>
-
-<P>Assignment-statements are used to change variable values or element
-values of a structured value which are referred through a designator
-(see sub-section <EM>Designator</EM> in section <EM>Expressions</EM>.
-The designator can not denote a final variable (see section
-<EM>Variable Declaration</EM>).  You can not change the element value
-of an immutable value (see section <EM>Types and Values</EM>).  In
-this case exception <CODE>immutable</CODE> is generated.  Assignment to a
-table element has a side effect, the element key becomes immutable.</P>
-<P>A simple assignment statement looks like <CODE>Designator = Expr;</CODE>.
-That means that the expression value is assigned to variable or
-element of structured type value denoted by the designator.  For the
-convenience of C programmers there are also the Dino assignments
-<CODE>Designator op= Expr;</CODE>, <CODE>Designator++;</CODE>,
-<CODE>++Designator;</CODE>, <CODE>Designator--;</CODE>, and
-<CODE>--Designator;</CODE>.  They are analogous correspondingly to
-<CODE>Designator = Designator op Expr;</CODE>, <CODE>Designator = Designator
-+ 1;</CODE>, and <CODE>Designator = Designator - 1;</CODE>.  The only
-difference is in the fact that the designator is evaluated only once,
-not twice as in the analogous form.  It is important to know if you
-have <EM>side effects</EM> in the statement.
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = Designator Assign  Expr ";"
-                        | Designator ("++" | "--")  ";"
-                        | ("++" | "--")  Designator ";"
-          Assign = "="
-                 | "*="
-                 | "/="
-                 | "%="
-                 | "+="
-                 | "-="
-                 | "@="
-                 | "&lt;&lt;="
-                 | ">>="
-                 | ">>>="
-                 | "&amp;="
-                 | "^="
-                 | "|="
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          v = [10, 20];
-          i = 1;
-          i++;
-          --i;
-          i *= 20;
+           [a, b]
+           [a, ...]
+           [2, [a, b], 3 : c, 4 : _]
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-
-<H2><A NAME="ss6.4">6.4</A> <A HREF="dino.html#toc6.4">Call-statement</A>
-</H2>
-
-<P>A call-statement is used to call a function, a thread-function, or a
-class.  It works analogous to the call in an expression (see
-sub-section <EM>Calls</EM> in section <EM>Types and Values</EM>).  The
-single difference is in that a call-statement throws away the call's
-result.
+<P>A <EM>table pattern</EM> matches a <EM>table value</EM>.  All table
+pattern elements should match all elements of the table value.  If a
+table pattern element has a form <CODE>expr</CODE>, then the table value
+should have an element with a key given by the expression.</P>
+<P>A table pattern element can also have a form <CODE>expr ":"
+pattern</CODE>.  In this case the table value also should have an
+element with a key given by the expression.  Additionally the element
+value with given key should match the pattern after <CODE>":"</CODE>.</P>
+<P>The last element of the table pattern can be <CODE>"..."</CODE>.  It
+matches the rest elements in the matched table value.  The following
+are examples of table patterns (a, b, and c are identifies of pattern
+variables):
 <BLOCKQUOTE><CODE>
 <PRE>
-          ExecutiveStmt = Designator ActualParameters  ";"
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          putln ("percent=" @ percent @ "%");
-          newthread ();
+           tab ["k1", "k2"]
+           tab ["k1" : _, ...]
+           tab ["k" @ 1, [a, b], "k2" : c, ...]
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-
-<H2><A NAME="ss6.5">6.5</A> <A HREF="dino.html#toc6.5">If-statement</A>
-</H2>
-
-<P>The Dino if-statement is analogous to the C language one.  First, the
-expression after <CODE>if</CODE> is evaluated and arithmetic conversion is
-done to it.  The value should be an integer or a floating-point
-number, otherwise the exception <CODE>optype</CODE> is generated.  If the
-value is nonzero the first statement is executed, otherwise the
-statement after <CODE>else</CODE> is executed (if any).  The problem with
-<EM>dangling else</EM> is resolved analogous to the C language --
-<CODE>else</CODE> is associated with the closest <CODE>if</CODE>.
+<P>An object pattern has a form of function/class call.  A <EM>object
+pattern</EM> matches a class/function instance.  The function/class
+should be a subtype of class/function given by the value of the
+expression before <CODE>"("</CODE>.  The parameters in the pattern should
+match all corresponding instance parameter values.  The number of the
+values is taken from function/class given by the expression
+before <CODE>"("</CODE>, not from function class of the instance.
+Remember that arguments corresponding to <CODE>"..."</CODE> in
+function/class parameter definitions become one array value.</P>
+<P>The last parameter of the object pattern can be <CODE>"..."</CODE>.  It
+matches the rest arguments of the corresponding object.  The following
+are examples of object patterns (a, b, and c are identifies of pattern
+variables):
 <BLOCKQUOTE><CODE>
 <PRE>
-          ExecutiveStmt = if  "(" Expr ")" Stmt [ else Stmt ]
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          if (i &lt; 0) i = 0;
-          if (i &lt; j) return -1; else if (i > 0) return 1; else return 0;
+           leaf (10)
+           node (_, a)
+           node (node (a, b), leaf (c))
 </PRE>
 </CODE></BLOCKQUOTE>
 </P>
-
-<H2><A NAME="ss6.6">6.6</A> <A HREF="dino.html#toc6.6">For-statement</A>
-</H2>
-
-<P>The Dino for-statement is analogous to the C language one.  The
-statement is executed in the following way.
-<OL>
-<LI>Execution of the first statement in the parentheses.</LI>
-<LI>The expression (<EM>for-guard</EM>) is evaluated and
-implicit arithmetic conversion is made.  The value should be
-an integer or a floating point number.  If this is not true,
-exception <CODE>optype</CODE> is generated.</LI>
-<LI>If the value of for-guard is nonzero, the body of the loop
-(the last statement) is executed.  Otherwise, the
-for-statement execution finishes.</LI>
-<LI>When the body has been executed, the second statement in
-the parentheses is executed and steps 2,3,4 (one iteration) are
-repeated.</LI>
-</OL>
-
-If the second statement is a simple statement, the statement semicolon
-can be omitted.  The for-statement also can be finished by execution
-of the statement <CODE>break</CODE> in the body.  The body can be finished
-by execution of statement <CODE>continue</CODE>.  In this case, the
-for-statement execution continues with the step 4.
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = for  "("  Stmt ForGuardExpr ";"  Stmt ")" Stmt
-
-          ForGuardExpr = [Expr]
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          for (i = 0; i &lt; 10; i++;) sum += v [i];
-          for (i = 0; i &lt; 10; i++) sum += v [i];
-          for ({sum = 0; i = 0;} i &lt; 10; i++) sum += v [i];
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
-<H2><A NAME="ss6.7">6.7</A> <A HREF="dino.html#toc6.7">Foreach-statement</A>
-</H2>
-
-<P>This statement is used to execution of the foreach-statement body (the
-statement) for all keys of table which is value of the expression.
-The expression value should be a table.  If this is not true,
-exception <CODE>keyop</CODE> is generated.  The current key value on each
-iteration is assigned to the designator.  The order in which the key
-values are assigned on each iteration is undefined.  One iteration can
-be finished with the aid of the statement <CODE>continue</CODE> and a
-foreach-statement can be finished by execution of statement
-<CODE>break</CODE>.
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = for  "("  Designator in Expr ")" Stmt
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          putln ("The table is");
-          for (k in t) {
-            put ("key=");
-            print (k);
-            put (", element=");
-            println (t{k});
-          }
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
-<H2><A NAME="ss6.8">6.8</A> <A HREF="dino.html#toc6.8">Break- and continue-statement</A>
-</H2>
-
-<P>Statements <CODE>break</CODE> and <CODE>continue</CODE> are used
-correspondingly to finish execution of the closest-containing for- or
-foreach-statement covering the statement and to finish one iteration
-of the body of the for- or foreach-statement.  These statement can be
-used only inside a for- or foreach-statement.
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = break ";"
-                        | continue ";"
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          for (i = 0; i &lt; 10; i++) {
-             if (ind [i] &lt; 0)
-               continue;
-             val = v [ind[i]];
-          }
-          for (i in t)
-            if (t{i} == elval)
-              break;
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
-<H2><A NAME="ss6.9">6.9</A> <A HREF="dino.html#toc6.9">Return-statement</A>
-</H2>
-
-<P>Return-statement is used to finish execution of a function, a thread,
-or class block.  The statement corresponds to the closest-containing
-function, thread-function, or class covering the statement, so the
-return-statement can be placed only in a function, a function-thread,
-or a class.  The expression in a return-statement can be given only
-for functions.  In this case, the expression value will be the value
-of the function call (instead of undefined value).
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = return  [ Expr ] ";"
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          return;
-          return [10, 2:0]
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
-<H2><A NAME="ss6.10">6.10</A> <A HREF="dino.html#toc6.10">Throw-statement</A>
-</H2>
-
-<P>This statement generates an exception which is given by value of the
-expression.  The expression should evaluate to an object of
-predeclared class <CODE>except</CODE> or an object of a class declared
-somewhere in predeclared class <CODE>except</CODE>.  If this is not true,
-exception <CODE>optype</CODE> is generated.  How exceptions are processed
-is described in the following section.
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = throw  Expr ";"
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          ext except {
-            ext error {
-              class myexcept (msg) {}
-            }
-          }
-          throw errors.myexcept ("this is an user defined exception");
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
-<H2><A NAME="ss6.11">6.11</A> <A HREF="dino.html#toc6.11">Try-block</A>
-</H2>
-
-<P>Exceptions can be generated by the Dino interpreter when some
-conditions are not satisfied, by predeclared Dino functions, by other
-OS processes, by user interruptions, or by the user with the aid of a
-throw-statement.  Actually, the exceptions are represented by an
-object of the predeclared class <CODE>except</CODE> or by an object of a
-class declared inside the predeclared class <CODE>except</CODE>.  All
-predeclared exceptions are described in the section <EM>Predeclared
-Identifiers</EM>.  To detect and process exceptions, a try-block can
-be used.</P>
-<P>When an exception is generated, the closest-containing try-block which
-is covering the statement generating the exception or currently being
-executed (when this is is generated by an OS process or by an user
-interruption) is searched for.  Then, expressions in the catch list
-elements are processed.  The expression value in the catch list
-element being currently processed should be the predeclared class
-<CODE>except</CODE> or a class declared inside the predeclared class
-<CODE>except</CODE>.  If the expression being processed is a class and the
-exception is an object of the class or an object of a class declared
-inside the class, the block corresponding to the given catch list
-element is executed.  If there is no such catch expression, the
-closest-containing try-block covering the current try-block is
-searched for and processing the exception is repeated.  If there are
-no more try-blocks, the program finishes with a diagnostic message
-which is dependent on the generated exception.</P>
-<P>Blocks corresponding to catch list elements have a predeclared
-variable <CODE>e</CODE>.  When block execution starts, the variable
-contains the object representing the exception.
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = TryBlockStmt
-
-          TryBlockStmt = try Block { Catch }
-        
-          Catch = catch  "(" ExceptClassList ")" Block
-
-          ExceptClassList = Expr { "," Expr }
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          try {
-            var ln;
-            for (;;)
-              ln = getln ();
-          } catch (invcalls.eof) {
-          }
-          try {
-            var v = [];
-            v {1} = 0;
-          } catch (except) {
-            put ("catching and propagating exception"); println (class (e));
-            throw e;
-          }
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
-
-<H2><A NAME="ss6.12">6.12</A> <A HREF="dino.html#toc6.12">Wait-statement</A>
-</H2>
-
-<P>This statement is used for the synchronization of different threads in
-a Dino program.  The expression can not contain a function, class, or
-a thread-function call.  The thread in which the statement has been
-executed waits until the expression value becomes nonzero.  The
-expression value (after implicit arithmetic conversion) should be an
-integer or a floating point number.  Otherwise the exception
-<CODE>optype</CODE> is generated.  When the expression value becomes
-nonzero, the statement after the expression (it is called
-sync-statement) is executed without interruption by other process.  It
-is used as critical region for process synchronization.  In a critical
-region execution of wait-statement is prohibited (it results in
-generation of exception <CODE>syncwait</CODE>).  Also thread calls inside
-a critical region result in generation exception
-<CODE>syncthreadcall</CODE>.
-<BLOCKQUOTE><CODE>
-<PRE>
-          ExecutiveStmt = wait  "(" Expr ")" Stmt
-</PRE>
-</CODE></BLOCKQUOTE>
-
-Examples:
-<BLOCKQUOTE><CODE>
-<PRE>
-          wait (!empty);
-</PRE>
-</CODE></BLOCKQUOTE>
-</P>
+<P>Symbols <CODE>"_"</CODE> and <CODE>"..."</CODE> can be used only in patterns - they
+can not be used in expressions.</P>
 
 <HR>
 <A HREF="dino-7.html">Next</A>
