@@ -409,8 +409,7 @@ for (i = 0; i < n; i++);
 ---
 
 # Implementation -- Profiling
-* Typical performance tuning:
-    * Profiling: dino -p meteor.d
+* Typical performance tuning: Profiling: dino -p meteor.d
 ```
 ** Calls *** Time **** Name **************************************
   761087        0.43  --  search1: "meteor.d": 229
@@ -419,8 +418,7 @@ for (i = 0; i < n; i++);
      ...
                 0.51  --  All Program
 ```
-    <!-- -->
-    * Adding hints: !inline for ctz and !jit for search1
+* Adding hints: !inline for ctz and !jit for search1
 
 ```
 ** Calls *** Time **** Name **************************************

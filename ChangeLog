@@ -1,5 +1,9 @@
 2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: One more fix in profiling slide.
+
+2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Fix list in profiling slide.
 
 2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
