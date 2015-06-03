@@ -9,7 +9,7 @@ File: nona.info,  Node: Top,  Next: Introduction,  Up: (dir)
 NONA (code selector description translator)
 *******************************************
 
-     Vladimir Makarov, `vmakarov@users.sourceforge.net'
+     Vladimir Makarov, `vmakarov@gcc.gnu.org'
      Apr 5, 2001
 
    This document describes NONA (a code selector description into code
@@ -661,13 +661,13 @@ File: nona.info,  Node: NONA Usage,  Next: Appendix 1 - Syntax of code selector 
             NONA diagnostics is self-explanatory.
 
      AUTHOR
-            Vladimir N. Makarov, vmakarov@users.sourceforge.net
+            Vladimir N. Makarov, vmakarov@gcc.gnu.org
 
      SEE ALSO
             msta(1), shilka(1), sprut(1), oka(1).  NONA manual.
 
      BUGS
-            Please, report bugs to cocom-bugs@lists.sourceforge.net.
+            Please, report bugs to https://github.com/dino-lang/dino/issues.
 
 
 
@@ -765,17 +765,17 @@ description language.
 
 Tag Table:
 Node: Top95
-Node: Introduction619
-Node: Code selector description language2962
-Node: Layout of code selector description3621
-Node: Declarations5318
-Node: Rules8443
-Node: Generated code11468
-Node: C Interface objects12063
-Node: C++ Interface objects15997
-Node: Implementation file macros20454
-Node: Storage management macros23690
-Node: NONA Usage25114
-Node: Appendix 1 - Syntax of code selector description language28153
+Node: Introduction609
+Node: Code selector description language2952
+Node: Layout of code selector description3611
+Node: Declarations5308
+Node: Rules8433
+Node: Generated code11458
+Node: C Interface objects12053
+Node: C++ Interface objects15987
+Node: Implementation file macros20444
+Node: Storage management macros23680
+Node: NONA Usage25104
+Node: Appendix 1 - Syntax of code selector description language28141
 
 End Tag Table

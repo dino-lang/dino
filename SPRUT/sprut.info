@@ -9,7 +9,7 @@ File: sprut.info,  Node: Top,  Next: Introduction,  Up: (dir)
 SPRUT (internal representation description translator)
 ******************************************************
 
-     Vladimir Makarov, `vmakarov@users.sourceforge.net'
+     Vladimir Makarov, `vmakarov@gcc.gnu.org'
      Apr 5, 2001
 
    This document describes SPRUT (translator of a compiler internal
@@ -1618,13 +1618,13 @@ File: sprut.info,  Node: SPRUT Usage,  Next: Appendix 1 - Syntax of internal rep
             SPRUT diagnostics is self-explanatory.
 
      AUTHOR
-            Vladimir N. Makarov, vmakarov@users.sourceforge.net
+            Vladimir N. Makarov, vmakarov@gcc.gnu.org
 
      SEE ALSO
             msta(1), shilka(1), oka(1), nona(1).  SPRUT manual.
 
      BUGS
-            Please, report bugs to cocom-bugs@lists.sourceforge.net.
+            Please, report bugs to https://github.com/dino-lang/dino/issues.
 
 
 
@@ -1744,21 +1744,21 @@ description language.
 
 Tag Table:
 Node: Top97
-Node: Introduction666
-Node: Internal representation description language2804
-Node: Layout of internal representation description3689
-Node: Declarations5267
-Node: Types of nodes8721
-Node: Standard Procedural Interface14978
-Node: C SPI15762
-Node: C SPI types variables macros16061
-Node: C Functions20370
-Node: C++ SPI39732
-Node: C++ SPI types variables macros40250
-Node: C++ Functions43676
-Node: Type specific macros62877
-Node: Storage management macros66612
-Node: SPRUT Usage68226
-Node: Appendix 1 - Syntax of internal representation description language77190
+Node: Introduction656
+Node: Internal representation description language2794
+Node: Layout of internal representation description3679
+Node: Declarations5257
+Node: Types of nodes8711
+Node: Standard Procedural Interface14968
+Node: C SPI15752
+Node: C SPI types variables macros16051
+Node: C Functions20360
+Node: C++ SPI39722
+Node: C++ SPI types variables macros40240
+Node: C++ Functions43666
+Node: Type specific macros62867
+Node: Storage management macros66602
+Node: SPRUT Usage68216
+Node: Appendix 1 - Syntax of internal representation description language77178
 
 End Tag Table

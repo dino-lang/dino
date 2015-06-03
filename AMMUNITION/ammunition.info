@@ -9,7 +9,7 @@ File: ammunition.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Ammunition (Reusable packages) - C interface
 ********************************************
 
-     Vladimir Makarov, `vmakarov@users.sourceforge.net'
+     Vladimir Makarov, `vmakarov@gcc.gnu.org'
      Oct 10, 2014
 
    This document describes ammunition (reusable packages written in
@@ -3097,20 +3097,20 @@ following external definitions and macros:
 
 Tag Table:
 Node: Top107
-Node: Introduction1056
-Node: Package for allocating memory with fixing some allocation errors2156
-Node: Package for work with variable length objects5232
-Node: Package for work with stacks of objects10208
-Node: Package for work with hash tables16242
-Node: Package for work with source code positions21356
-Node: Package for output of compiler messages25583
-Node: Package for work with command line32642
-Node: Package for work with bit strings39207
-Node: Package for machine-independent arbitrary precision integer arithmetic42487
-Node: Package for machine-independent IEEE floating point arithmetic52547
-Node: Ticker package85072
-Node: Expandable sparse set86760
-Node: Expandable compact sparse set92883
-Node: Earley parser99652
+Node: Introduction1046
+Node: Package for allocating memory with fixing some allocation errors2146
+Node: Package for work with variable length objects5222
+Node: Package for work with stacks of objects10198
+Node: Package for work with hash tables16232
+Node: Package for work with source code positions21346
+Node: Package for output of compiler messages25573
+Node: Package for work with command line32632
+Node: Package for work with bit strings39197
+Node: Package for machine-independent arbitrary precision integer arithmetic42477
+Node: Package for machine-independent IEEE floating point arithmetic52537
+Node: Ticker package85062
+Node: Expandable sparse set86750
+Node: Expandable compact sparse set92873
+Node: Earley parser99642
 
 End Tag Table

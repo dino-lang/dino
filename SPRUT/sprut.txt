@@ -1,5 +1,5 @@
   SPRUT (internal representation description translator)
-  Vladimir Makarov, vmakarov@users.sourceforge.net
+  Vladimir Makarov, vmakarov@gcc.gnu.org
   Apr 5, 2001
 
   This document describes SPRUT (translator of a compiler internal rep-
@@ -1841,13 +1841,13 @@
               SPRUT diagnostics is self-explanatory.
 
        AUTHOR
-              Vladimir N. Makarov, vmakarov@users.sourceforge.net
+              Vladimir N. Makarov, vmakarov@gcc.gnu.org
 
        SEE ALSO
               msta(1), shilka(1), oka(1), nona(1).  SPRUT manual.
 
        BUGS
-              Please, report bugs to cocom-bugs@lists.sourceforge.net.
+              Please, report bugs to https://github.com/dino-lang/dino/issues.
 
 
 

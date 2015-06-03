@@ -9,7 +9,7 @@ File: msta.info,  Node: Top,  Next: Introduction,  Up: (dir)
 MSTA (syntax description translator)
 ************************************
 
-     Vladimir Makarov, `vmakarov@users.sourceforge.net'
+     Vladimir Makarov, `vmakarov@gcc.gnu.org'
      May 5, 1999
 
    This document describes MSTA (translator of syntax description of a
@@ -1368,13 +1368,13 @@ File: msta.info,  Node: MSTA Usage,  Next: Future of MSTA development,  Prev: Im
             MSTA diagnostics is self-explanatory.
 
      AUTHOR
-            Vladimir N. Makarov, vmakarov@users.sourceforge.net
+            Vladimir N. Makarov, vmakarov@gcc.gnu.org
 
      SEE ALSO
             oka(1), sprut(1), nona(1), shilka(1).  SHILKA manual.
 
      BUGS
-            Please, report bugs to cocom-bugs@lists.sourceforge.net.
+            Please, report bugs to https://github.com/dino-lang/dino/issues.
 
 
 
@@ -1748,19 +1748,19 @@ This output is produced on Compaq Aero 486 SX/25 with 12Mb under Linux
 
 Tag Table:
 Node: Top95
-Node: Introduction767
-Node: MSTA description language2259
-Node: Layout of MSTA description2765
-Node: Declarations3456
-Node: Rules10105
-Node: Generated code21099
-Node: C code21576
-Node: C++ code40208
-Node: Implementation41625
-Node: MSTA Usage46283
-Node: Future of MSTA development61250
-Node: Appendix 1 - Syntax of MSTA description file (YACC description)61677
-Node: Appendix 2 - Example of MSTA scanner description file67175
-Node: Appendix 3 - Run of MSTA on the previous description file70483
+Node: Introduction757
+Node: MSTA description language2249
+Node: Layout of MSTA description2755
+Node: Declarations3446
+Node: Rules10095
+Node: Generated code21089
+Node: C code21566
+Node: C++ code40198
+Node: Implementation41615
+Node: MSTA Usage46273
+Node: Future of MSTA development61238
+Node: Appendix 1 - Syntax of MSTA description file (YACC description)61665
+Node: Appendix 2 - Example of MSTA scanner description file67163
+Node: Appendix 3 - Run of MSTA on the previous description file70471
 
 End Tag Table

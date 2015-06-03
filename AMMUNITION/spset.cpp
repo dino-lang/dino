@@ -2,7 +2,7 @@
 
    Copyright (C) 2014 Vladimir Makarov.
 
-   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
    This is part of package allocate; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public License

@@ -1,9 +1,9 @@
 #
 #   FILE NAME:   Makefile
 #
-#   Copyright (C) 1997-2007 Vladimir Makarov.
+#   Copyright (C) 1997-2015 Vladimir Makarov.
 #
-#   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+#   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 #
 #   This file is part of the tool NONA.
 #
@@ -268,12 +268,11 @@ $(srcdir)/nona.html: nona.sgml
 	
 $(srcdir)/nona.info: nona.sgml
 	linuxdoc -B info --papersize=letter nona.sgml
-	if test -f nona.info-1;then\
-	  for i in nona.info-*;do\
+	if test -f nona.info;then\
+	  for i in nona.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	mv nona.info $(srcdir)/nona.info
 
 $(srcdir)/nona.dvi: nona.sgml
 	linuxdoc -B latex --papersize=letter nona.sgml

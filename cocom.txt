@@ -1,5 +1,5 @@
   COCOM tool set
-  Vladimir Makarov, vmakarov@users.sourceforge.net
+  Vladimir Makarov, vmakarov@gcc.gnu.org
   May. 18, 2015
 
   This document describes COCOM tool set oriented towards the creation

@@ -1,9 +1,9 @@
 #
 #   FILE NAME:   Makefile
 #
-#   Copyright (C) 1997-2007 Vladimir Makarov.
+#   Copyright (C) 1997-2015 Vladimir Makarov.
 #
-#   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+#   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 #
 #   This file is part of the tool SPRUT.
 #
@@ -741,12 +741,11 @@ $(srcdir)/sprut.html: sprut.sgml
 	
 $(srcdir)/sprut.info: sprut.sgml
 	linuxdoc -B info --papersize=letter sprut.sgml
-	if test -f sprut.info-1;then\
-	  for i in sprut.info-*;do\
+	if test -f sprut.info;then\
+	  for i in sprut.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	mv sprut.info $(srcdir)/sprut.info
 	
 $(srcdir)/sprut.dvi: sprut.sgml
 	linuxdoc -B latex --papersize=letter sprut.sgml

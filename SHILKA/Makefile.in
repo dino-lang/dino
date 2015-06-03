@@ -1,9 +1,9 @@
 #
 #   FILE NAME:   Makefile
 #
-#   Copyright (C) 1997-2007 Vladimir Makarov.
+#   Copyright (C) 1997-2015 Vladimir Makarov.
 #
-#   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+#   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 #
 #   This file is part of the tool SHILKA.
 #
@@ -277,12 +277,11 @@ $(srcdir)/shilka.html: shilka.sgml
 	
 $(srcdir)/shilka.info: shilka.sgml
 	linuxdoc -B info shilka.sgml
-	if test -f shilka.info-1;then\
-	  for i in shilka.info-*;do\
+	if test -f shilka.info;then\
+	  for i in shilka.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	mv shilka.info $(srcdir)/shilka.info
 	
 $(srcdir)/shilka.dvi: shilka.sgml
 	linuxdoc -B latex shilka.sgml

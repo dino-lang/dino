@@ -9,7 +9,7 @@ File: shilka.info,  Node: Top,  Next: Introduction,  Up: (dir)
 SHILKA (keywords description translator)
 ****************************************
 
-     Vladimir Makarov, `vmakarov@users.sourceforge.net'
+     Vladimir Makarov, `vmakarov@gcc.gnu.org'
      Apr 5, 2001
 
    This document describes SHILKA (translator of a keyword description
@@ -700,13 +700,13 @@ File: shilka.info,  Node: SHILKA Usage,  Next: Future of SHILKA development,  Pr
             SHILKA diagnostics is self-explanatory.
 
      AUTHOR
-            Vladimir N. Makarov, vmakarov@users.sourceforge.net
+            Vladimir N. Makarov, vmakarov@gcc.gnu.org
 
      SEE ALSO
             msta(1), oka(1), sprut(1), nona(1).  SHILKA manual.
 
      BUGS
-            Please, report bugs to cocom-bugs@lists.sourceforge.net.
+            Please, report bugs to https://github.com/dino-lang/dino/issues.
 
 
 
@@ -840,18 +840,18 @@ This output is produced on Compaq Aero 486 SX/25 with 12Mb under Linux
 
 Tag Table:
 Node: Top99
-Node: Introduction759
-Node: Keywords description language9315
-Node: Layout of keywords description9984
-Node: Declarations11513
-Node: Keywords13794
-Node: Generated code16122
-Node: C++ code16630
-Node: C code20276
-Node: SHILKA Usage23706
-Node: Future of SHILKA development28741
-Node: Appendix 1 - Syntax of SHILKA description file (YACC description)29139
-Node: Appendix 2 - Example of SHILKA description file30648
-Node: Appendix 3 - Run of SHILKA on the previous description file33507
+Node: Introduction749
+Node: Keywords description language9305
+Node: Layout of keywords description9974
+Node: Declarations11503
+Node: Keywords13784
+Node: Generated code16112
+Node: C++ code16620
+Node: C code20266
+Node: SHILKA Usage23696
+Node: Future of SHILKA development28729
+Node: Appendix 1 - Syntax of SHILKA description file (YACC description)29127
+Node: Appendix 2 - Example of SHILKA description file30636
+Node: Appendix 3 - Run of SHILKA on the previous description file33495
 
 End Tag Table

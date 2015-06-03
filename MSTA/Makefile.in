@@ -1,9 +1,9 @@
 #
 #   FILE NAME:   Makefile
 #
-#   Copyright (C) 1997-2007 Vladimir Makarov.
+#   Copyright (C) 1997-2015 Vladimir Makarov.
 #
-#   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+#   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 #
 #   This file is part of the tool MSTA.
 #
@@ -306,12 +306,11 @@ $(srcdir)/msta.html: msta.sgml
 	
 $(srcdir)/msta.info: msta.sgml
 	linuxdoc -B info --papersize=letter msta.sgml
-	if test -f msta.info-1;then\
-	  for i in msta.info-*;do\
+	if test -f msta.info;then\
+	  for i in msta.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	mv msta.info $(srcdir)/msta.info
 	
 $(srcdir)/msta.dvi: msta.sgml
 	linuxdoc -B latex --papersize=letter msta.sgml

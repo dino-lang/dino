@@ -3,9 +3,9 @@
 #
 #   TITLE:       Makefile for work with ammunition (reusable packages)
 #
-#   Copyright (C) 1997-2007 Vladimir Makarov.
+#   Copyright (C) 1997-2015 Vladimir Makarov.
 #
-#   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+#   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 #
 #   This is part of the AMMUNITION; you can redistribute it and/or
 #   modify it under the terms of the GNU Library General Public License
@@ -513,14 +513,13 @@ $(srcdir)/ammunition.html: ammunition.sgml
 	
 $(srcdir)/ammunition.info: ammunition.sgml
 	linuxdoc -B info --papersize=letter ammunition.sgml
-	if test -f ammunition.info-1;then\
-	  for i in ammunition.info-*;do\
+	if test -f ammunition.info;then\
+	  for i in ammunition.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	mv ammunition.info $(srcdir)/ammunition.info
 	
-$(srcdir)/ammunition.dv: ammunition.sgml
+$(srcdir)/ammunition.dvi: ammunition.sgml
 	linuxdoc -B latex --papersize=letter ammunition.sgml
 	if test ! -f ammunition.dvi\
            -o -f ammunition.tex -a ammunition.tex -nt ammunition.dvi; then\
@@ -552,12 +551,11 @@ $(srcdir)/ammunition++.html: ammunition++.sgml
 	
 $(srcdir)/ammunition++.info: ammunition++.sgml
 	linuxdoc -B info --papersize=letter ammunition++.sgml
-	if test -f ammunition++.info-1;then\
-	  for i in ammunition++.info-*;do\
+	if test -f ammunition++.info;then\
+	  for i in ammunition++.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	mv ammunition++.info $(srcdir)/ammunition++.info
 	
 $(srcdir)/ammunition++.dvi: ammunition++.sgml
 	linuxdoc -B latex --papersize=letter ammunition++.sgml

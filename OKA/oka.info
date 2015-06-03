@@ -9,7 +9,7 @@ File: oka.info,  Node: Top,  Next: Introduction,  Up: (dir)
 OKA (pipeline hazards description translator)
 *********************************************
 
-     Vladimir Makarov, `vmakarov@users.sourceforge.net'
+     Vladimir Makarov, `vmakarov@gcc.gnu.org'
      Apr 5, 2001
 
    This document describes OKA (translator of a processor pipeline
@@ -475,13 +475,13 @@ File: oka.info,  Node: OKA Usage,  Next: Implementation,  Prev: Generated code, 
             OKA diagnostics is self-explanatory.
 
      AUTHOR
-            Vladimir N. Makarov, vmakarov@users.sourceforge.net
+            Vladimir N. Makarov, vmakarov@gcc.gnu.org
 
      SEE ALSO
             msta(1), shilka(1), sprut(1), nona(1).  OKA manual.
 
      BUGS
-            Please, report bugs to cocom-bugs@lists.sourceforge.net.
+            Please, report bugs to https://github.com/dino-lang/dino/issues.
 
 
 
@@ -874,19 +874,19 @@ The following output was generated under Linux 1.2.8 on Compaq Aero
 
 Tag Table:
 Node: Top93
-Node: Introduction818
-Node: Pipeline hazards description language2438
-Node: Layout of pipeline hazards description2976
-Node: Declarations4634
-Node: Expressions7566
-Node: Generated code10642
-Node: C++ code11108
-Node: C code13656
-Node: OKA Usage16107
-Node: Implementation19530
-Node: Future of OKA development20070
-Node: Appendix 1 - Syntax of pipeline Hazards Description (YACC grammar)20909
-Node: Appendix 2 - Description of Alpha architecture (EV5 version)24352
-Node: Appendix 3 - Output of pipeline Hazards Description Translator32578
+Node: Introduction808
+Node: Pipeline hazards description language2428
+Node: Layout of pipeline hazards description2966
+Node: Declarations4624
+Node: Expressions7556
+Node: Generated code10632
+Node: C++ code11098
+Node: C code13646
+Node: OKA Usage16097
+Node: Implementation19518
+Node: Future of OKA development20058
+Node: Appendix 1 - Syntax of pipeline Hazards Description (YACC grammar)20897
+Node: Appendix 2 - Description of Alpha architecture (EV5 version)24340
+Node: Appendix 3 - Output of pipeline Hazards Description Translator32566
 
 End Tag Table

@@ -4,7 +4,7 @@
 <!-- Title information -->
 
 <title>Ammunition (Reusable packages) - C interface
-<author>Vladimir Makarov, <tt>vmakarov@users.sourceforge.net</tt>
+<author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>
 <date>Oct 10, 2014
 <abstract>
 This document describes ammunition (reusable packages written in C/C++).

@@ -1,8 +1,8 @@
 #   FILE NAME:   Makefile
 #
-#   Copyright (C) 1997-2007 Vladimir Makarov.
+#   Copyright (C) 1997-2015 Vladimir Makarov.
 #
-#   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+#   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 #
 #   This file is part of COCOM toolset and interpreter of DINO.
 #
@@ -117,9 +117,8 @@ only_cocom_doc_files = cocom.txt cocom.info* cocom*.html cocom.pdf cocom.dvi coc
 only_cocom_rcs_doc_files = 
 
 # Files which are not in distribution
-only_cocom_additional_rcs_files = cocom.sgml.in configure.in msta-template.bmp\
-                                  sgml-html sgml-info sgml-rtf sgml-tex\
-                                  sgml-txt sgml-postinfo
+only_cocom_additional_rcs_files = cocom.sgml.in configure.in msta-template.bmp
+
 # COCOM only end
 
 # All directories containing needed for DINO
@@ -332,12 +331,11 @@ $(srcdir)/cocom.html: cocom.sgml
 	
 $(srcdir)/cocom.info: cocom.sgml
 	linuxdoc -B info --papersize=letter cocom.sgml
-	if test -f cocom.info-1;then\
-	  for i in cocom.info-*;do\
+	if test -f cocom.info;then\
+	  for i in cocom.info*;do\
    	    mv $$i $(srcdir)/$$i;\
 	  done;\
         fi
-	mv cocom.info $(srcdir)/cocom.info
 	
 $(srcdir)/cocom.dvi: cocom.sgml
 	linuxdoc -B latex --papersize=letter cocom.sgml

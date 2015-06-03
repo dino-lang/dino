@@ -1,7 +1,7 @@
 /*
    Copyright (C) 2014 Vladimir Makarov.
 
-   Written by Vladimir Makarov <vmakarov@users.sourceforge.net>
+   Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
    This file is part of interpreter of DINO.
 

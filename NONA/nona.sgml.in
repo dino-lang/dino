@@ -4,7 +4,7 @@
 <!-- Title information -->
 
 <title>NONA (code selector description translator)
-<author>Vladimir Makarov, <tt>vmakarov@users.sourceforge.net</tt>
+<author>Vladimir Makarov, <tt>vmakarov@gcc.gnu.org</tt>
 <date>Apr 5, 2001
 <abstract>
 This document describes NONA (a code selector description into code
