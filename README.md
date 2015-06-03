@@ -1,8 +1,8 @@
 # Programming language Dino and its implementation
-## Vladimir Makarov, vmakarov.gcc@gmail.com
+## Vladimir Makarov, vmakarov@gcc.gnu.org
 ## Jun, 2015
 
-# Presentation layout
+# Description Layout
 * Introduction to Dino
     * History
     * Dino as a high-level scripting language
@@ -580,10 +580,6 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ---
 
 # Dino availability
-* Description link:
-      <http://cocom.sourceforge.net/dinopage.html>
-* Download page link:
-      <http://cocom.sourceforge.net/download.html>
 * DINO and COCOM repository:
-      <git://cocom.git.sourceforge.net/gitroot/cocom/cocom>
+      <https://github.com/dino-lang/dino.git>
 

@@ -1,5 +1,9 @@
 2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Change email and repository.
+
+2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* CHANGES: Rename to COCOM-CHANGES.
 	* README: Rename to COCOM-README.
 	* README.md, Dino.jpg, Dino_Flow.png: New files.
