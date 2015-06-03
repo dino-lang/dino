@@ -1,15 +1,15 @@
-2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+2015-06-02  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.sgml.in: Remove mpi, use socket.
 	* DINO/dino.{dvi,html*,info,pdf,ps,txt}: Update.
 
-2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+2015-06-02  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.sgml.in: Describe hints.  Use tt instead of bf for
 	keywords.  Fix tscreen for expression-statement.
 	* DINO/dino.{dvi,html*,info,pdf,ps,txt}: Update.
 
-2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+2015-06-02  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/d_dino.c (COMMAND_LINE_DESCRIPTION): Remove -g.
 	* DINO/d_ir.sprut (assign): Change comment.
@@ -43,7 +43,7 @@
 	match.
 	(801-808): New.
 
-2015-06-02  Vladimir Makarov  <vmakarov@redhat.com>
+2015-06-02  Vladimir Makarov  <vmakarov@users.sf.net>
 
 	* DINO/dino.sgml.in: Remove history, extensions.  Describe hex
 	numbers, long numbers, new keywords, new scope rules, new
