@@ -1,5 +1,269 @@
 2015-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO-INSTALL: Change address.
+
+2015-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* cocom.sgml.in: New email address.
+	* AMMUNITION/ammunition.sgml.in: Ditto.
+	* AMMUNITION/ammunition++.sgml.in: Ditto.
+	* DINO/dino.{1, sgml.in}: Ditto.
+	* MSTA/msta.{1, sgml.in}: Ditto.
+	* NONA/nona.{1, sgml.in}: Ditto.
+	* OKA/oka.{1, sgml.in}: Ditto.
+	* SHILKA/shilka.{1, sgml.in}: Ditto.
+	* SPRUT/sprut.{1, sgml.in}: Ditto.
+	* cocom.{dvi, html, info, pdf, ps, txt}: Update.
+	* AMMUNITION/ammunition++.{dvi, html*, info, pdf, ps, txt}: Update.
+	* AMMUNITION/ammunition.{info, txt}: Update.
+	* DINO/dino.{dvi, html*, info, pdf, ps, txt}: Update.
+	* MSTA/msta.{dvi, html*, info, pdf, ps, txt}: Update.
+	* NONA/nona.{dvi, html*, info, pdf, ps, txt}: Update.
+	* OKA/oka.{dvi, html*, info, pdf, ps, txt}: Update.
+	* SHILKA/shilka.{dvi, html*, info, pdf, ps, txt}: Update.
+	* SPRUT/sprut.{dvi, html*, info, pdf, ps, txt}: Update.
+	* DINO/dino.info-{1, 2, 3, 4}: Remove.
+	* MSTA/msta.info-{1, 2}: Remove.
+	* SPRUT/sprut.info-{1, 2}: Remove.
+	* dino.desc: Chnage address and bump version.
+	* dino-copyright: Change home.
+	* cocom-copyright: Change home.
+	* Makefile.in: Change years, info generation,
+	only_cocom_additional_rcs_files.
+	* {AMMUNITION, MSTA, OKA, NONA, SHILKA, SPRUT}/Makefile.in:
+	Change years and address, info generation.
+	* DINO/Makefile.in: Ditto.  Remove mpi_lib. Change
+	DINO_EXTERN_LIB, source.  Remove dependence for mpi_lib.  Remove
+	mpi.d and d_mpi.c
+	* DINO/mpi.d: Remove.
+	* DINO/d_mpi.c: Ditto.
+	* AMMUNITION/IEEE++.tst.in: Change address and years.
+	* AMMUNITION/IEEE.c: Ditto.
+	* AMMUNITION/IEEE.cpp: Ditto.
+	* AMMUNITION/IEEE.h: Ditto.
+	* AMMUNITION/IEEE.tst.in: Ditto.
+	* AMMUNITION/allocate++.tst.in: Ditto.
+	* AMMUNITION/allocate.c: Ditto.
+	* AMMUNITION/allocate.cpp: Ditto.
+	* AMMUNITION/allocate.h: Ditto.
+	* AMMUNITION/allocate.tst.in: Ditto.
+	* AMMUNITION/arithm++.tst.in: Ditto.
+	* AMMUNITION/arithm.c: Ditto.
+	* AMMUNITION/arithm.cpp: Ditto.
+	* AMMUNITION/arithm.h: Ditto.
+	* AMMUNITION/arithm.tst.in: Ditto.
+	* AMMUNITION/bits++.tst.in: Ditto.
+	* AMMUNITION/bits.c: Ditto.
+	* AMMUNITION/bits.cpp: Ditto.
+	* AMMUNITION/bits.h: Ditto.
+	* AMMUNITION/bits.tst.in: Ditto.
+	* AMMUNITION/commline++.tst.in: Ditto.
+	* AMMUNITION/commline.c: Ditto.
+	* AMMUNITION/commline.cpp: Ditto.
+	* AMMUNITION/commline.h: Ditto.
+	* AMMUNITION/commline.tst.in: Ditto.
+	* AMMUNITION/cspset++.tst.in: Ditto.
+	* AMMUNITION/cspset.c: Ditto.
+	* AMMUNITION/cspset.cpp: Ditto.
+	* AMMUNITION/cspset.h: Ditto.
+	* AMMUNITION/cspset.tst.in: Ditto.
+	* AMMUNITION/earley++.tst.in: Ditto.
+	* AMMUNITION/earley.c: Ditto.
+	* AMMUNITION/earley.cpp: Ditto.
+	* AMMUNITION/earley.h: Ditto.
+	* AMMUNITION/earley.tst.in: Ditto.
+	* AMMUNITION/errors++.tst.in: Ditto.
+	* AMMUNITION/errors.c: Ditto.
+	* AMMUNITION/errors.cpp: Ditto.
+	* AMMUNITION/errors.h: Ditto.
+	* AMMUNITION/errors.tst.in: Ditto.
+	* AMMUNITION/hashtab++.tst.in: Ditto.
+	* AMMUNITION/hashtab.c: Ditto.
+	* AMMUNITION/hashtab.cpp: Ditto.
+	* AMMUNITION/hashtab.h: Ditto.
+	* AMMUNITION/hashtab.tst.in: Ditto.
+	* AMMUNITION/objstack++.tst.in: Ditto.
+	* AMMUNITION/objstack.c: Ditto.
+	* AMMUNITION/objstack.cpp: Ditto.
+	* AMMUNITION/objstack.h: Ditto.
+	* AMMUNITION/objstack.tst.in: Ditto.
+	* AMMUNITION/position++.tst.in: Ditto.
+	* AMMUNITION/position.c: Ditto.
+	* AMMUNITION/position.cpp: Ditto.
+	* AMMUNITION/position.h: Ditto.
+	* AMMUNITION/position.tst.in: Ditto.
+	* AMMUNITION/sgramm.y: Ditto.
+	* AMMUNITION/spset++.tst.in: Ditto.
+	* AMMUNITION/spset.c: Ditto.
+	* AMMUNITION/spset.cpp: Ditto.
+	* AMMUNITION/spset.h: Ditto.
+	* AMMUNITION/spset.tst.in: Ditto.
+	* AMMUNITION/ticker++.tst.in: Ditto.
+	* AMMUNITION/ticker.c: Ditto.
+	* AMMUNITION/ticker.cpp: Ditto.
+	* AMMUNITION/ticker.h: Ditto.
+	* AMMUNITION/ticker.tst.in: Ditto.
+	* AMMUNITION/vlobject++.tst.in: Ditto.
+	* AMMUNITION/vlobject.c: Ditto.
+	* AMMUNITION/vlobject.cpp: Ditto.
+	* AMMUNITION/vlobject.h: Ditto.
+	* AMMUNITION/vlobject.tst.in: Ditto.
+	* DINO/compare.tst: Ditto.
+	* DINO/d_bc.sprut: Ditto.
+	* DINO/d_bcf.shilka: Ditto.
+	* DINO/d_bcio.c: Ditto.
+	* DINO/d_bcio.h: Ditto.
+	* DINO/d_bcn.shilka: Ditto.
+	* DINO/d_built.h: Ditto.
+	* DINO/d_common.h: Ditto.
+	* DINO/d_context.c: Ditto.
+	* DINO/d_context.h: Ditto.
+	* DINO/d_conv.c: Ditto.
+	* DINO/d_conv.h: Ditto.
+	* DINO/d_dino.c: Ditto.
+	* DINO/d_dino.h: Ditto.
+	* DINO/d_errors.c: Ditto.
+	* DINO/d_errors.h: Ditto.
+	* DINO/d_eval.c: Ditto.
+	* DINO/d_eval.h: Ditto.
+	* DINO/d_extern.sprut: Ditto.
+	* DINO/d_func.c: Ditto.
+	* DINO/d_func.h: Ditto.
+	* DINO/d_heap.c: Ditto.
+	* DINO/d_ieee.c: Ditto.
+	* DINO/d_inference.c: Ditto.
+	* DINO/d_inference.h: Ditto.
+	* DINO/d_ipcerr.c: Ditto.
+	* DINO/d_ir.sprut: Ditto.
+	* DINO/d_kw.shilka: Ditto.
+	* DINO/d_main.c: Ditto.
+	* DINO/d_run.sprut: Ditto.
+	* DINO/d_runtab.c: Ditto.
+	* DINO/d_runtab.h: Ditto.
+	* DINO/d_socket.c: Ditto.
+	* DINO/d_types.h: Ditto.
+	* DINO/d_yacc.h: Ditto.
+	* DINO/d_yacc.y: Ditto.
+	* DINO/dino.tst.in: Ditto.
+	* DINO/ieee.d: Ditto.
+	* DINO/ipcerr.d: Ditto.
+	* DINO/socket.d: Ditto.
+	* MSTA/anal.c: Ditto.
+	* MSTA/anal.h: Ditto.
+	* MSTA/common.c: Ditto.
+	* MSTA/common.h: Ditto.
+	* MSTA/compare.tst.in: Ditto.
+	* MSTA/contexts.c: Ditto.
+	* MSTA/contexts.h: Ditto.
+	* MSTA/descript.c: Ditto.
+	* MSTA/descript.h: Ditto.
+	* MSTA/gen-comm.c: Ditto.
+	* MSTA/gen-comm.h: Ditto.
+	* MSTA/gen.c: Ditto.
+	* MSTA/gen.h: Ditto.
+	* MSTA/ird.sprut: Ditto.
+	* MSTA/la-trie.c: Ditto.
+	* MSTA/la-trie.h: Ditto.
+	* MSTA/lr-sets.c: Ditto.
+	* MSTA/lr-sets.h: Ditto.
+	* MSTA/lr.c: Ditto.
+	* MSTA/lr.h: Ditto.
+	* MSTA/main.c: Ditto.
+	* MSTA/oberon2-kw.shilka: Ditto.
+	* MSTA/output.c: Ditto.
+	* MSTA/output.h: Ditto.
+	* MSTA/p-yacc.y: Ditto.
+	* MSTA/parser.c: Ditto.
+	* MSTA/parser.h: Ditto.
+	* MSTA/quality.tst.in: Ditto.
+	* MSTA/regular.c: Ditto.
+	* MSTA/regular.h: Ditto.
+	* MSTA/relation.c: Ditto.
+	* MSTA/relation.h: Ditto.
+	* MSTA/tab.c: Ditto.
+	* MSTA/tab.h: Ditto.
+	* MSTA/yacc.h: Ditto.
+	* MSTA/yacc.y: Ditto.
+	* NONA/a29k.nona: Ditto.
+	* NONA/anal.c: Ditto.
+	* NONA/anal.h: Ditto.
+	* NONA/common.c: Ditto.
+	* NONA/common.h: Ditto.
+	* NONA/gen.c: Ditto.
+	* NONA/gen.h: Ditto.
+	* NONA/ird.sprut: Ditto.
+	* NONA/main.c: Ditto.
+	* NONA/tab.c: Ditto.
+	* NONA/tab.h: Ditto.
+	* NONA/yacc.h: Ditto.
+	* NONA/yacc.y: Ditto.
+	* OKA/alpha-ev4.oka: Ditto.
+	* OKA/alpha-ev5.oka: Ditto.
+	* OKA/anal.c: Ditto.
+	* OKA/anal.h: Ditto.
+	* OKA/common.c: Ditto.
+	* OKA/common.h: Ditto.
+	* OKA/gen.c: Ditto.
+	* OKA/gen.h: Ditto.
+	* OKA/ird.sprut: Ditto.
+	* OKA/main.c: Ditto.
+	* OKA/oka.tst: Ditto.
+	* OKA/tab.c: Ditto.
+	* OKA/tab.h: Ditto.
+	* OKA/yacc.h: Ditto.
+	* OKA/yacc.y: Ditto.
+	* SHILKA/ada-standards.shilka: Ditto.
+	* SHILKA/ada.shilka: Ditto.
+	* SHILKA/anal.c: Ditto.
+	* SHILKA/anal.h: Ditto.
+	* SHILKA/b.shilka: Ditto.
+	* SHILKA/c.shilka: Ditto.
+	* SHILKA/common.c: Ditto.
+	* SHILKA/common.h: Ditto.
+	* SHILKA/cpp.shilka: Ditto.
+	* SHILKA/d.shilka: Ditto.
+	* SHILKA/gcc.shilka: Ditto.
+	* SHILKA/gen.c: Ditto.
+	* SHILKA/gen.h: Ditto.
+	* SHILKA/gpc.shilka: Ditto.
+	* SHILKA/ird.sprut: Ditto.
+	* SHILKA/java.shilka: Ditto.
+	* SHILKA/main.c: Ditto.
+	* SHILKA/modula2.shilka: Ditto.
+	* SHILKA/modula3.shilka: Ditto.
+	* SHILKA/pascal.shilka: Ditto.
+	* SHILKA/shilka.tst.in: Ditto.
+	* SHILKA/tab.c: Ditto.
+	* SHILKA/tab.h: Ditto.
+	* SHILKA/yacc.h: Ditto.
+	* SHILKA/yacc.y: Ditto.
+	* SPRUT/A_base.sprut: Ditto.
+	* SPRUT/A_syntax.sprut: Ditto.
+	* SPRUT/A_test.sprut: Ditto.
+	* SPRUT/A_value.sprut: Ditto.
+	* SPRUT/anal.c: Ditto.
+	* SPRUT/anal.h: Ditto.
+	* SPRUT/common.c: Ditto.
+	* SPRUT/common.h: Ditto.
+	* SPRUT/gen.c: Ditto.
+	* SPRUT/gen.h: Ditto.
+	* SPRUT/ird.sprut: Ditto.
+	* SPRUT/main.c: Ditto.
+	* SPRUT/sprut-ird.c: Ditto.
+	* SPRUT/sprut-ird.h: Ditto.
+	* SPRUT/sprut.tst: Ditto.
+	* SPRUT/std_bmem.sprut: Ditto.
+	* SPRUT/std_mem.sprut: Ditto.
+	* SPRUT/std_pos.sprut: Ditto.
+	* SPRUT/std_str.sprut: Ditto.
+	* SPRUT/std_type.sprut: Ditto.
+	* SPRUT/tab.c: Ditto.
+	* SPRUT/tab.h: Ditto.
+	* SPRUT/yacc.h: Ditto.
+	* SPRUT/yacc.y: Ditto.
+
+2015-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* dino.desc, cocom.dsc, cocom.spec, dino.spec, INSTALL: Bump
 	versions.
 	* {cocom,dino}-copyright: Change email address.

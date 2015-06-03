@@ -109,5 +109,5 @@ For example
       CC=gcc CXX=gcc no_shlib=yes configure
 
  
-Vladimir Makarov 	(vmakarov@users.sourceforge.net) 
+Vladimir Makarov 	(vmakarov@gcc.gnu.org) 
 
