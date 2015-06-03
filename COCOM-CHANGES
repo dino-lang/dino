@@ -1,8 +1,44 @@
-* Dino:
+This file is not a ChangeLog.  It shows only major changes in COCOM
+with user point of view.
 
-     o New option -t is added to print final call stack trace.
-     o Interpreter IC was improved.  It resulted in significant interpreter speedup.
-     o Swap operator was removed.
+* Ammunition:
+    o New packages:
+       o spset -- expandable sparse set
+       o cspset -- expandable compact sparse set
+
+* Dino:
+    o New language features:
+	o new scope rules
+	o undefined values and early recognition of them
+	o hex numbers
+	o making integers 64-bit
+	o long numbers
+	o new tab syntax
+	o slices
+	o patterns
+	o anonymous functions/classes
+	o new class model with use-clause
+	o singleton objects
+	o this as the current block instance
+	o expression-statement
+	o switch-statement
+	o more strict constraints on actual/formal parameters number
+	o new functions: filter, map, fold, isa, transpose
+	o changed syntax for var/par/extern decls and qualifiers for fun/class
+	o standard exceptions rewriting
+	o optimization hints
+     o Removed features:
+        o swap operator
+	o call-statement (covered by new expression statement)
+	o extension
+     o New implementation features:
+        o using register-transfer bytecode instead of stack-based one
+	o a lot of optimizations on byte code
+	o type inference
+	o JIT
+	o new options: -O, --save-temp, -p, -i, -h, -t
+	o REPL
+
 
 10/02/2007: Version 0.996 of COCOM has been made.  The major
 difference with the previous version:

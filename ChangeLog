@@ -1,5 +1,10 @@
 2015-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* COCOM-CHANGES: Add changes since last release.
+	* DINO-CHANGES: Ditto.
+
+2015-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO-INSTALL: Change address.
 
 2015-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
