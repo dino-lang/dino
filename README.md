@@ -419,7 +419,7 @@ for (i = 0; i < n; i++);
      ...
                 0.51  --  All Program
 ```
-
+    <!-- -->
     * Adding hints: !inline for ctz and !jit for search1
 
 ```
