@@ -76,12 +76,12 @@ In other case do follows:
 
   2. Specify where to find `configure' when you run it:
 
-          ../cocom-0.996/configure ...
+          ../cocom-0.997/configure ...
 
   3. Specify where to find the sources, as an argument `--srcdir' to
      `configure':
 
-          ../cocom-0.996/configure --srcdir=../cocom-0.996
+          ../cocom-0.997/configure --srcdir=../cocom-0.997
 
   4. It is better to use full directory path for --srcdir if you use
      EMACS compile command.
@@ -110,5 +110,5 @@ For example
       CC=gcc CXX=gcc no_shlib=yes configure
 
  
-Vladimir Makarov 	(vmakarov@users.sourceforge.net) 
+Vladimir Makarov 	(vmakarov@gcc.gnu.org) 
 

@@ -1,6 +1,6 @@
 Summary: COCOM
 Name: cocom
-Version: 0.996
+Version: 0.997
 Release: 1
 Source0: %{name}-%{version}.tar.gz
 License: GPL and LGPL
@@ -13,7 +13,7 @@ Requires: gmp
 COCOM tool set oriented towards the creation of compilers,
 cross-compilers, interpreters, and other language processors.  And
 high level scripting dynamic-typed language DINO.  DINO is oriented on
-the same domain of applications as famous scripting languages perl,
+the same domain of applications as popular scripting languages perl,
 tcl, python.
 
 %prep
@@ -30,7 +30,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%define dino_version 0.55
+%define dino_version 0.91
 
 %files
 %defattr(0644,root,root) 

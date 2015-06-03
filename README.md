@@ -549,4 +549,38 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 # Dino availability
 * DINO and COCOM repository:
       <https://github.com/dino-lang/dino.git>
+* License -- GPL 2 and LGPL 2:
+    * See files COPYING and COPYING.LIB
 
+---
+
+# Dino Building
+* See file INSTALL for details
+* Configure in a build directory:
+```
+  <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
+```
+* Configure in a debug mode: -O0 and full IR checking (it makes DINO several times slower):
+```
+  cocom_debug=y <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
+```
+* Make:
+```
+  make
+```
+* Testing all COCOM and DINO:
+```
+  make test
+```
+* Testing only DINO (about 800 tests and benchmarking comparison with available implementations of other languages which can take a lot of time):
+```
+  cd DINO; make test
+```
+* Installing all COCOM and DINO:
+```
+  make install
+```
+* Installing only DINO:
+```
+  cd DINO; make install
+```

@@ -1,6 +1,6 @@
 Summary: Interpreter of the language DINO
 Name: dino
-Version: 0.55
+Version: 0.91
 Release: 1
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -10,7 +10,7 @@ BuildRequires: gmp-devel
 Requires: gmp
 
 %description
-DINO is oriented on the same domain of applications as famous
+DINO is oriented on the same domain of applications as popular
 scripting languages perl, tcl, python.
 
 %prep
