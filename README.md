@@ -193,7 +193,7 @@
 
 ---
 
-* Pattern matching -- switch statement
+# Pattern matching -- switch statement
 ```
     switch (v) {
       case [...]: putln ("array"); continue;
@@ -237,7 +237,7 @@
 
 # Earley parser
 * Predefined class for language prototyping:
-    * Fast.  Processing ~200K lines/sec of C program using 60KB memory on modern CPUs
+    * Fast.  Processing ~250K lines/sec of 67K lines of C program using 3.9MB memory on modern CPUs
     * Simple syntax directed translation
     * Parsing input can be described by ambiguous grammar:
         * Can produce compact representation of all possible parse trees
@@ -329,8 +329,9 @@ for (i = 0; i < n; i++);
       label: addi op1, op1, i1; blt res, op1, op2, label =>
       label: btltinc op1, op2, i2, res, label
 ```
-* Inlining
-* Pure function optimization
+
+    * Inlining
+    * Pure function optimization
 
 ---
 
@@ -403,8 +404,8 @@ for (i = 0; i < n; i++);
     * MSTA - faster superset of YACC with better error recovery
     * SHILKA - fast keyword recognizer generator
     * AMMUNITION - different packages (source position handling, error reporting, Earley parser etc)
-*GMP - multi-precision integer library
-*GNU regex library
+* GMP - multi-precision integer library
+* GNU regex library
 
 ---
 
@@ -419,7 +420,9 @@ for (i = 0; i < n; i++);
      ...
                 0.51  --  All Program
 ```
-* Adding hints: !inline for ctz and !jit for search1
+
+    * Adding hints: !inline for ctz and !jit for search1
+    
 ```
 ** Calls *** Time **** Name **************************************
   761087        0.15  --  search1: "meteor.d": 229
