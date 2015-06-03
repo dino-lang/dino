@@ -1,5 +1,9 @@
 2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Fix slides for optimization and tuning.
+
+2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Fix slides for switch-statement, Earley parser, and
 	used tools.
 

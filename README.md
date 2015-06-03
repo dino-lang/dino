@@ -323,15 +323,14 @@ for (i = 0; i < n; i++);
     * High-level dead code elimination
     * Jump optimization
     * Call tail optimization
+    * Inlining
+    * Pure function optimization
     * Byte code combining (this is just an illustration, the readable BCode representation has a bit different format -- see the previous slide)
 ```
       label: addi op1, op1, i1; lt res, op1, op2; bt res, label =>
       label: addi op1, op1, i1; blt res, op1, op2, label =>
       label: btltinc op1, op2, i2, res, label
 ```
-
-    * Inlining
-    * Pure function optimization
 
 ---
 
@@ -422,7 +421,7 @@ for (i = 0; i < n; i++);
 ```
 
     * Adding hints: !inline for ctz and !jit for search1
-    
+
 ```
 ** Calls *** Time **** Name **************************************
   761087        0.15  --  search1: "meteor.d": 229
