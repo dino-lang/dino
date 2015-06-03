@@ -1,5 +1,10 @@
 2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Remove info about currying and dar.  Fix items after
+	code.
+
+2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Change email and repository.
 
 2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>

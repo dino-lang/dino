@@ -105,23 +105,6 @@
 
 ---
 
-# Functions -- continuation
-* Syntax sugar for currying:
-```
-    fun incr (base) (incr) {base + incr;}
-```
-    * it means
-```
-      fun incr (base) {fun (incr) {base + incr;}}
-```
-    * usage
-```
-      val incr5 = incr (5);
-      val s = incr5 (2), e = incr5 (3);
-```
-
----
-
 # Threads
 * Thread: a function with concurrent execution
 ```
@@ -346,8 +329,8 @@ for (i = 0; i < n; i++);
       label: addi op1, op1, i1; blt res, op1, op2, label =>
       label: btltinc op1, op2, i2, res, label
 ```
-    * Inlining
-    * Pure function optimization
+* Inlining
+* Pure function optimization
 
 ---
 
@@ -368,6 +351,7 @@ for (i = 0; i < n; i++);
 ```
       fun fact (n) !jit {n <=1 ? 1 : n * fact (n - 1);}
 ```
+* JIT details:
     * Triggered by the first call
     * Portable implementation through C code generation
         * memory file system is used (can be persistent memory in future)
@@ -435,7 +419,7 @@ for (i = 0; i < n; i++);
      ...
                 0.51  --  All Program
 ```
-    * Adding hints: !inline for ctz and !jit for search1
+* Adding hints: !inline for ctz and !jit for search1
 ```
 ** Calls *** Time **** Name **************************************
   761087        0.15  --  search1: "meteor.d": 229
@@ -444,23 +428,6 @@ for (i = 0; i < n; i++);
      ...
                 0.17  --  All Program
 ```
-
----
-
-# Implementation -- Dino Archive
-* Dino archive
-    * A file containing all source and user shared library files
-    * It is created by
-```
-      dino --dar main.d -Iinclude -Llib/somelib.so ...
-```
-    * It can be run as
-```
-      dino main.dar <dino program args>
-```
-    * During the run files in memory file system created and used
-    * Dino archive is very compact and convenient representation of all program as one file
-
 
 ---
 
