@@ -1,3 +1,11 @@
+2015-06-03  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* {AMMUNITION,MSTA,NONA,OKA,SHILKA,SPRUT}/Makefile.in (distdir):
+	Bump to 0.997.
+	* Makefile.in (distdir): Ditto.
+	(distdinodir): Bump to 0.91.
+	* DINO/Makefile.in (DINO_VERSION): Bump to 0.91.
+
 2015-06-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: One more fix in profiling slide.

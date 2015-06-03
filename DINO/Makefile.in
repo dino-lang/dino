@@ -62,7 +62,7 @@
 
 SHELL=/bin/sh
 
-DINO_VERSION=0.55
+DINO_VERSION=0.91
 
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.  Don't forget cange version

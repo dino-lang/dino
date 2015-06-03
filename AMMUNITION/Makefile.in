@@ -65,7 +65,7 @@ SHELL=/bin/sh
 
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.
-distdir = ammunition-0.996
+distdir = ammunition-0.997
 
 # Additional prefix used to install ammunition temporarily.  It is
 # necessary only for RPM.

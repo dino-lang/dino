@@ -1,9 +1,8 @@
-   This is COCOM tool set (Russian Armoury) oriented onto the creation
-of compilers, cross-compilers, interpreters, and other language
-processors.  The distribution also contains interpreter of language
-DINO as an example of the tool set usage.  The tool set is aimed to
-use on Unixes of different flavors.  To install COCOM under Win32
-please use Cygwin.
+   This is COCOM tool set oriented onto the creation of compilers,
+cross-compilers, interpreters, and other language processors.  The
+distribution also contains interpreter of language DINO as an example
+of the tool set usage.  The tool set is aimed to use on Unixes of
+different flavors.  To install COCOM under Win32 please use Cygwin.
 
    The tool set is distributed under GNU Public License (see more
 detail in file COPYING).  All AMMUNITION packages (except for earley

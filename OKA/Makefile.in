@@ -60,7 +60,7 @@ SHELL=/bin/sh
 
 # The subdirectory used for copying sources and creation of 
 # compressed distribution tar file.
-distdir = oka-0.996
+distdir = oka-0.997
 
 # Common prefix for installation directories.
 # NOTE: this directory must exist when you start installation.
