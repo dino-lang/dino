@@ -4793,53 +4793,58 @@
                      a Dino program file
               libdino.so
                      a Dino shared library on some Unix systems.
+              mpi.d
+                     the DINO file implementing multiple precision arithmetic.
+              mpi.so
+                     the  DINO  shared library used for implementing MPI on some Unix
+                     systems.
               ieee.d
-                     the  Dino  file implementing IEEE standard floating point arith
+                     the Dino file implementing IEEE standard floating  point  arith
                      metic.
               ieee.so
-                     the Dino shared library used for implementing IEEE on some  Unix
+                     the  Dino shared library used for implementing IEEE on some Unix
                      systems.
               ipcerr.d
-                     the  Dino  file  definining  exceptions of ipc/network software.
+                     the Dino file definining  exceptions  of  ipc/network  software.
                      This file is used by socket.d.
               ipcerr.so
-                     the Dino shared library used for  implementing  IPCERR  on  some
+                     the  Dino  shared  library  used for implementing IPCERR on some
                      Unix systems.
               socket.d
                      the Dino file implementing work with sockets.
               socket.so
-                     the  Dino  shared  library  used for implementing SOCKET on some
+                     the Dino shared library used for  implementing  SOCKET  on  some
                      Unix systems.
-              Dino interpreter creates temporary C and object files  for  Dino  func
+              Dino  interpreter  creates  temporary C and object files for Dino func
               tions processed by JIT compiler in directory /tmp.
 
        ENVIRONMENT
-              There  are the following environment variables which affect Dino behav
+              There are the following environment variables which affect Dino  behav
               ior:
 
               DINO_HOME
-                     If not null, it defines the places of the dino shared  libraries
+                     If  not null, it defines the places of the dino shared libraries
                      (such a library may be only on some Unix systems including Linux
-                     and  Solaris),  include  files,  and  dino   standard   external
-                     libraries.   The  places  are defined as the subdirectory lib in
-                     directory given by the environment variable value.   You  should
-                     define  the variable value on Windows if you installed the files
+                     and   Solaris),   include  files,  and  dino  standard  external
+                     libraries.  The places are defined as the  subdirectory  lib  in
+                     directory  given  by the environment variable value.  You should
+                     define the variable value on Windows if you installed the  files
                      in a directory other than C:\dino\lib
 
               DINO_PATH
-                     If not null, it defines the places of dino  include-files.   The
-                     value  of the variable has more priority than DINO_HOME but less
+                     If  not  null, it defines the places of dino include-files.  The
+                     value of the variable has more priority than DINO_HOME but  less
                      priority than values given through -I options.
 
               DINO_LIB
-                     If not null, it defines places of dino shared library,  if  any.
-                     The   value  of  variable  has  more  priority  than  DINO_HOME.
+                     If  not  null, it defines places of dino shared library, if any.
+                     The  value  of  variable  has  more  priority  than   DINO_HOME.
                      DINO_EXTERN_LIBS.
 
               DINO_EXTERN_LIBS
-                     If not null,  it  defines  paths  of  additional  Dino  external
-                     libraries.   The  libraries should be separated by ":" (on Unix)
-                     or ";" (on Windows).  The value has less  priority  than  values
+                     If  not  null,  it  defines  paths  of  additional Dino external
+                     libraries.  The libraries should be separated by ":"  (on  Unix)
+                     or  ";"  (on  Windows).  The value has less priority than values
                      given in -L options.
 
        DIAGNOSTICS

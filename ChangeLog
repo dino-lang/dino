@@ -1,3 +1,14 @@
+2015-06-05  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_mpi.c: Restore.
+	* DINO/d_mpi.d: Ditto.
+	* DINO/Makefile.in: Restore mpi_lib. Change DINO_EXTERN_LIB,
+	source.  Restore dependence for mpi_lib.  Restore mpi.d and
+	d_mpi.c
+	* DINO/dino.1: Restore info about mpi.
+	* DINO/dino-11.html: Update.
+	* DINO/dino.{dvi, info, ps, pdf, txt}: Update.
+
 2015-06-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* COCOM-CHANGES: Add changes since last release.
