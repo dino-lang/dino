@@ -335,7 +335,7 @@ char DERR_invalid_format [] = "run time error - invalid format in `%s'";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []
-  = "run time error - invalid number of actual parameters for `%s'";
+  = "run time error - unexpected number of parameters for `%s'";
 char DERR_too_few_actual_parameters []
   = "run time error - too few actual parameters for `%s'";
 char DERR_too_many_actual_parameters []

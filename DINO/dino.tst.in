@@ -12350,7 +12350,7 @@ TEST63
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT63' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `closure'
+test.d:1:9: run time error - unexpected number of parameters for `closure'
 OUTPUT63
                         result=ok
                 else
@@ -12371,7 +12371,7 @@ TEST63
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT63' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `closure'
+test.d:1:9: run time error - unexpected number of parameters for `closure'
 OUTPUT63
                         result=ok
                 else
@@ -13891,7 +13891,7 @@ TEST107
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT107' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `time'
+test.d:1:6: run time error - unexpected number of parameters for `time'
 OUTPUT107
                         result=ok
                 else
@@ -13912,7 +13912,7 @@ TEST108
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT108' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `strtime'
+test.d:1:9: run time error - unexpected number of parameters for `strtime'
 OUTPUT108
                         result=ok
                 else
@@ -14023,7 +14023,7 @@ TEST113
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT113' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `clock'
+test.d:1:7: run time error - unexpected number of parameters for `clock'
 OUTPUT113
                         result=ok
                 else
@@ -14409,7 +14409,7 @@ TEST122
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT122' && $CMP $stderr $ftemp2; then
-test.d:1:31: run time error - invalid number of actual parameters for `sort'
+test.d:1:31: run time error - unexpected number of parameters for `sort'
 OUTPUT122
                         result=ok
                 else
@@ -14430,7 +14430,7 @@ TEST123
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT123' && $CMP $stderr $ftemp2; then
-test.d:1:31: run time error - invalid number of actual parameters for `sort'
+test.d:1:31: run time error - unexpected number of parameters for `sort'
 OUTPUT123
                         result=ok
                 else
@@ -14589,7 +14589,7 @@ TEST130
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT130' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `getpid'
+test.d:1:8: run time error - unexpected number of parameters for `getpid'
 OUTPUT130
                         result=ok
                 else
@@ -14631,7 +14631,7 @@ TEST132
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT132' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `getun'
+test.d:1:7: run time error - unexpected number of parameters for `getun'
 OUTPUT132
                         result=ok
                 else
@@ -14652,7 +14652,7 @@ TEST133
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT133' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `geteun'
+test.d:1:8: run time error - unexpected number of parameters for `geteun'
 OUTPUT133
                         result=ok
                 else
@@ -14673,7 +14673,7 @@ TEST134
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT134' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `getgn'
+test.d:1:7: run time error - unexpected number of parameters for `getgn'
 OUTPUT134
                         result=ok
                 else
@@ -14694,7 +14694,7 @@ TEST135
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT135' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `getegn'
+test.d:1:8: run time error - unexpected number of parameters for `getegn'
 OUTPUT135
                         result=ok
                 else
@@ -14742,7 +14742,7 @@ TEST137
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT137' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `ftype'
+test.d:1:7: run time error - unexpected number of parameters for `ftype'
 OUTPUT137
                         result=ok
                 else
@@ -14763,7 +14763,7 @@ TEST138
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT138' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `ftype'
+test.d:1:7: run time error - unexpected number of parameters for `ftype'
 OUTPUT138
                         result=ok
                 else
@@ -14825,7 +14825,7 @@ TEST141
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT141' && $CMP $stderr $ftemp2; then
-test.d:1:11: run time error - invalid number of actual parameters for `getgroups'
+test.d:1:11: run time error - unexpected number of parameters for `getgroups'
 OUTPUT141
                         result=ok
                 else
@@ -14870,7 +14870,7 @@ TEST143
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT143' && $CMP $stderr $ftemp2; then
-test.d:1:4: run time error - invalid number of actual parameters for `gc'
+test.d:1:4: run time error - unexpected number of parameters for `gc'
 OUTPUT143
                         result=ok
                 else
@@ -14956,7 +14956,7 @@ TEST147
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT147' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `fatime'
+test.d:1:8: run time error - unexpected number of parameters for `fatime'
 OUTPUT147
                         result=ok
                 else
@@ -15166,7 +15166,7 @@ TEST155
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT155' && $CMP $stderr $ftemp2; then
-test.d:1:13: run time error - invalid number of actual parameters for `get'
+test.d:1:13: run time error - unexpected number of parameters for `get'
 OUTPUT155
                         result=ok
                 else
@@ -15187,7 +15187,7 @@ TEST156
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT156' && $CMP $stderr $ftemp2; then
-test.d:1:14: run time error - invalid number of actual parameters for `fget'
+test.d:1:14: run time error - unexpected number of parameters for `fget'
 OUTPUT156
                         result=ok
                 else
@@ -15324,7 +15324,7 @@ TEST162
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT162' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of actual parameters for `getln'
+test.d:1:15: run time error - unexpected number of parameters for `getln'
 OUTPUT162
                         result=ok
                 else
@@ -15345,7 +15345,7 @@ TEST163
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT163' && $CMP $stderr $ftemp2; then
-test.d:1:16: run time error - invalid number of actual parameters for `fgetln'
+test.d:1:16: run time error - unexpected number of parameters for `fgetln'
 OUTPUT163
                         result=ok
                 else
@@ -15596,7 +15596,7 @@ TEST170
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT170' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `scan'
+test.d:1:6: run time error - unexpected number of parameters for `scan'
 OUTPUT170
                         result=ok
                 else
@@ -15617,7 +15617,7 @@ TEST171
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT171' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `scanln'
+test.d:1:8: run time error - unexpected number of parameters for `scanln'
 OUTPUT171
                         result=ok
                 else
@@ -15638,7 +15638,7 @@ TEST172
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT172' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `fscan'
+test.d:1:7: run time error - unexpected number of parameters for `fscan'
 OUTPUT172
                         result=ok
                 else
@@ -15659,7 +15659,7 @@ TEST173
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT173' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `fscanln'
+test.d:1:9: run time error - unexpected number of parameters for `fscanln'
 OUTPUT173
                         result=ok
                 else
@@ -16357,7 +16357,7 @@ TEST193
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT193' && $CMP $stderr $ftemp2; then
-test.d:1:14: run time error - invalid number of actual parameters for `open'
+test.d:1:14: run time error - unexpected number of parameters for `open'
 OUTPUT193
                         result=ok
                 else
@@ -16420,7 +16420,7 @@ TEST196
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT196' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `close'
+test.d:1:7: run time error - unexpected number of parameters for `close'
 OUTPUT196
                         result=ok
                 else
@@ -16462,7 +16462,7 @@ TEST198
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT198' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `flush'
+test.d:1:7: run time error - unexpected number of parameters for `flush'
 OUTPUT198
                         result=ok
                 else
@@ -16534,7 +16534,7 @@ TEST201
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT201' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of actual parameters for `popen'
+test.d:1:15: run time error - unexpected number of parameters for `popen'
 OUTPUT201
                         result=ok
                 else
@@ -16655,7 +16655,7 @@ TEST206
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT206' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `pclose'
+test.d:1:8: run time error - unexpected number of parameters for `pclose'
 OUTPUT206
                         result=ok
                 else
@@ -16722,7 +16722,7 @@ TEST209
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT209' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `eltype'
+test.d:1:8: run time error - unexpected number of parameters for `eltype'
 OUTPUT209
                         result=ok
                 else
@@ -16933,7 +16933,7 @@ TEST217
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT217' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `remove'
+test.d:1:8: run time error - unexpected number of parameters for `remove'
 OUTPUT217
                         result=ok
                 else
@@ -17003,7 +17003,7 @@ TEST220
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT220' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `rename'
+test.d:1:8: run time error - unexpected number of parameters for `rename'
 OUTPUT220
                         result=ok
                 else
@@ -17067,7 +17067,7 @@ TEST223
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT223' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `mkdir'
+test.d:1:7: run time error - unexpected number of parameters for `mkdir'
 OUTPUT223
                         result=ok
                 else
@@ -17132,7 +17132,7 @@ TEST226
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT226' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `rmdir'
+test.d:1:7: run time error - unexpected number of parameters for `rmdir'
 OUTPUT226
                         result=ok
                 else
@@ -17201,7 +17201,7 @@ TEST229
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT229' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `getcwd'
+test.d:1:8: run time error - unexpected number of parameters for `getcwd'
 OUTPUT229
                         result=ok
                 else
@@ -17251,7 +17251,7 @@ TEST231
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT231' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `chdir'
+test.d:1:7: run time error - unexpected number of parameters for `chdir'
 OUTPUT231
                         result=ok
                 else
@@ -17376,7 +17376,7 @@ TEST237
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT237' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `isatty'
+test.d:1:8: run time error - unexpected number of parameters for `isatty'
 OUTPUT237
                         result=ok
                 else
@@ -17458,7 +17458,7 @@ TEST240
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT240' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `chumod'
+test.d:1:8: run time error - unexpected number of parameters for `chumod'
 OUTPUT240
                         result=ok
                 else
@@ -17569,7 +17569,7 @@ TEST244
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT244' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `chgmod'
+test.d:1:8: run time error - unexpected number of parameters for `chgmod'
 OUTPUT244
                         result=ok
                 else
@@ -17680,7 +17680,7 @@ TEST248
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT248' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `chomod'
+test.d:1:8: run time error - unexpected number of parameters for `chomod'
 OUTPUT248
                         result=ok
                 else
@@ -18477,7 +18477,7 @@ TEST267
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT267' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `atan2'
+test.d:1:7: run time error - unexpected number of parameters for `atan2'
 OUTPUT267
                         result=ok
                 else
@@ -18519,7 +18519,7 @@ TEST269
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT269' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `atan2'
+test.d:1:7: run time error - unexpected number of parameters for `atan2'
 OUTPUT269
                         result=ok
                 else
@@ -18540,7 +18540,7 @@ TEST270
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT270' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `atan2'
+test.d:1:7: run time error - unexpected number of parameters for `atan2'
 OUTPUT270
                         result=ok
                 else
@@ -18617,7 +18617,7 @@ TEST273
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT273' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `cos'
+test.d:1:5: run time error - unexpected number of parameters for `cos'
 OUTPUT273
                         result=ok
                 else
@@ -18659,7 +18659,7 @@ TEST275
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT275' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `del'
+test.d:1:5: run time error - unexpected number of parameters for `del'
 OUTPUT275
                         result=ok
                 else
@@ -18724,7 +18724,7 @@ TEST278
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT278' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `del'
+test.d:1:5: run time error - unexpected number of parameters for `del'
 OUTPUT278
                         result=ok
                 else
@@ -18766,7 +18766,7 @@ TEST280
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT280' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `del'
+test.d:1:5: run time error - unexpected number of parameters for `del'
 OUTPUT280
                         result=ok
                 else
@@ -18788,7 +18788,7 @@ TEST281
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT281' && $CMP $stderr $ftemp2; then
-test.d:2:19: run time error - invalid number of actual parameters for `del'
+test.d:2:19: run time error - unexpected number of parameters for `del'
 OUTPUT281
                         result=ok
                 else
@@ -18906,7 +18906,7 @@ TEST286
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT286' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `ins'
+test.d:1:5: run time error - unexpected number of parameters for `ins'
 OUTPUT286
                         result=ok
                 else
@@ -18949,7 +18949,7 @@ TEST288
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT288' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `ins'
+test.d:1:5: run time error - unexpected number of parameters for `ins'
 OUTPUT288
                         result=ok
                 else
@@ -18991,7 +18991,7 @@ TEST290
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT290' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `ins'
+test.d:1:5: run time error - unexpected number of parameters for `ins'
 OUTPUT290
                         result=ok
                 else
@@ -19034,7 +19034,7 @@ TEST292
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT292' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `insv'
+test.d:1:6: run time error - unexpected number of parameters for `insv'
 OUTPUT292
                         result=ok
                 else
@@ -19077,7 +19077,7 @@ TEST294
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT294' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `insv'
+test.d:1:6: run time error - unexpected number of parameters for `insv'
 OUTPUT294
                         result=ok
                 else
@@ -19119,7 +19119,7 @@ TEST296
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT296' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `insv'
+test.d:1:6: run time error - unexpected number of parameters for `insv'
 OUTPUT296
                         result=ok
                 else
@@ -19211,7 +19211,7 @@ TEST300
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT300' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `fput'
+test.d:1:6: run time error - unexpected number of parameters for `fput'
 OUTPUT300
                         result=ok
                 else
@@ -19347,7 +19347,7 @@ TEST305
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT305' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `inside'
+test.d:1:8: run time error - unexpected number of parameters for `inside'
 OUTPUT305
                         result=ok
                 else
@@ -19412,7 +19412,7 @@ TEST308
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT308' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `match'
+test.d:1:7: run time error - unexpected number of parameters for `match'
 OUTPUT308
                         result=ok
                 else
@@ -19595,7 +19595,7 @@ TEST316
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT316' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `rand'
+test.d:1:6: run time error - unexpected number of parameters for `rand'
 OUTPUT316
                         result=ok
                 else
@@ -19616,7 +19616,7 @@ TEST317
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT317' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `rand'
+test.d:1:6: run time error - unexpected number of parameters for `rand'
 OUTPUT317
                         result=ok
                 else
@@ -19637,7 +19637,7 @@ TEST318
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT318' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `readdir'
+test.d:1:9: run time error - unexpected number of parameters for `readdir'
 OUTPUT318
                         result=ok
                 else
@@ -19658,7 +19658,7 @@ TEST319
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT319' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `readdir'
+test.d:1:9: run time error - unexpected number of parameters for `readdir'
 OUTPUT319
                         result=ok
                 else
@@ -19875,7 +19875,7 @@ TEST328
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT328' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `sin'
+test.d:1:5: run time error - unexpected number of parameters for `sin'
 OUTPUT328
                         result=ok
                 else
@@ -19917,7 +19917,7 @@ TEST330
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT330' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `split'
+test.d:1:7: run time error - unexpected number of parameters for `split'
 OUTPUT330
                         result=ok
                 else
@@ -19938,7 +19938,7 @@ TEST331
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT331' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `split'
+test.d:1:7: run time error - unexpected number of parameters for `split'
 OUTPUT331
                         result=ok
                 else
@@ -20001,7 +20001,7 @@ TEST334
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT334' && $CMP $stderr $ftemp2; then
-test.d:1:7: run time error - invalid number of actual parameters for `srand'
+test.d:1:7: run time error - unexpected number of parameters for `srand'
 OUTPUT334
                         result=ok
                 else
@@ -20043,7 +20043,7 @@ TEST336
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT336' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `sub'
+test.d:1:5: run time error - unexpected number of parameters for `sub'
 OUTPUT336
                         result=ok
                 else
@@ -20064,7 +20064,7 @@ TEST337
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT337' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `sub'
+test.d:1:5: run time error - unexpected number of parameters for `sub'
 OUTPUT337
                         result=ok
                 else
@@ -20148,7 +20148,7 @@ TEST341
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT341' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of actual parameters for `system'
+test.d:1:15: run time error - unexpected number of parameters for `system'
 OUTPUT341
                         result=ok
                 else
@@ -21102,7 +21102,7 @@ TEST369
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT369' && $CMP $stderr $ftemp2; then
-test.d:1:14: run time error - invalid number of actual parameters for `keys'
+test.d:1:14: run time error - unexpected number of parameters for `keys'
 OUTPUT369
                         result=ok
                 else
@@ -21158,7 +21158,7 @@ TEST371
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT371' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `cmpv'
+test.d:1:6: run time error - unexpected number of parameters for `cmpv'
 OUTPUT371
                         result=ok
                 else
@@ -21361,7 +21361,7 @@ TEST376
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT376' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `tolower'
+test.d:1:9: run time error - unexpected number of parameters for `tolower'
 OUTPUT376
                         result=ok
                 else
@@ -21403,7 +21403,7 @@ TEST378
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT378' && $CMP $stderr $ftemp2; then
-test.d:1:9: run time error - invalid number of actual parameters for `tolower'
+test.d:1:9: run time error - unexpected number of parameters for `tolower'
 OUTPUT378
                         result=ok
                 else
@@ -21536,7 +21536,7 @@ TEST382
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT382' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `subv'
+test.d:1:6: run time error - unexpected number of parameters for `subv'
 OUTPUT382
                         result=ok
                 else
@@ -21557,7 +21557,7 @@ TEST383
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT383' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `subv'
+test.d:1:6: run time error - unexpected number of parameters for `subv'
 OUTPUT383
                         result=ok
                 else
@@ -21599,7 +21599,7 @@ TEST385
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT385' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `subv'
+test.d:1:6: run time error - unexpected number of parameters for `subv'
 OUTPUT385
                         result=ok
                 else
@@ -21728,7 +21728,7 @@ TEST391
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT391' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `exit'
+test.d:1:6: run time error - unexpected number of parameters for `exit'
 OUTPUT391
                         result=ok
                 else
@@ -21749,7 +21749,7 @@ TEST392
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT392' && $CMP $stderr $ftemp2; then
-test.d:1:6: run time error - invalid number of actual parameters for `exit'
+test.d:1:6: run time error - unexpected number of parameters for `exit'
 OUTPUT392
                         result=ok
                 else
@@ -21824,7 +21824,7 @@ TEST395
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT395' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `max'
+test.d:1:5: run time error - unexpected number of parameters for `max'
 OUTPUT395
                         result=ok
                 else
@@ -21845,7 +21845,7 @@ TEST396
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT396' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `min'
+test.d:1:5: run time error - unexpected number of parameters for `min'
 OUTPUT396
                         result=ok
                 else
@@ -21866,7 +21866,7 @@ TEST397
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT397' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `max'
+test.d:1:5: run time error - unexpected number of parameters for `max'
 OUTPUT397
                         result=ok
                 else
@@ -21887,7 +21887,7 @@ TEST398
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT398' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `min'
+test.d:1:5: run time error - unexpected number of parameters for `min'
 OUTPUT398
                         result=ok
                 else
@@ -22080,7 +22080,7 @@ TEST406
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT406' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `inside'
+test.d:1:8: run time error - unexpected number of parameters for `inside'
 OUTPUT406
                         result=ok
                 else
@@ -22101,7 +22101,7 @@ TEST407
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT407' && $CMP $stderr $ftemp2; then
-test.d:1:8: run time error - invalid number of actual parameters for `inside'
+test.d:1:8: run time error - unexpected number of parameters for `inside'
 OUTPUT407
                         result=ok
                 else
@@ -26558,7 +26558,7 @@ TEST458
         if $DINO $test_file 2>$stderr; then
                 result=fail
         elif $SCMP $stderr - <<'TEST458-1'; then
-test.d:1:8: run time error - invalid number of actual parameters for `gmatch'
+test.d:1:8: run time error - unexpected number of parameters for `gmatch'
 TEST458-1
                 result=ok
         else
@@ -26742,7 +26742,7 @@ TEST467
         else
                 echo '      ' $CMP $stderr $ftemp2
                 if cat >$ftemp2 <<'OUTPUT467' && $CMP $stderr $ftemp2; then
-test.d:1:15: run time error - invalid number of actual parameters for `fgetf'
+test.d:1:15: run time error - unexpected number of parameters for `fgetf'
 OUTPUT467
                         result=ok
                 else
@@ -31670,7 +31670,7 @@ TEST528
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST528-1'; then
-test.d:1:7: run time error - invalid number of actual parameters for `sputf'
+test.d:1:7: run time error - unexpected number of parameters for `sputf'
 TEST528-1
                 result=ok
         else
@@ -31688,7 +31688,7 @@ TEST529
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST529-1'; then
-test.d:1:7: run time error - invalid number of actual parameters for `sputf'
+test.d:1:7: run time error - unexpected number of parameters for `sputf'
 TEST529-1
                 result=ok
         else
@@ -31706,7 +31706,7 @@ TEST530
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST530-1'; then
-test.d:1:7: run time error - invalid number of actual parameters for `sputf'
+test.d:1:7: run time error - unexpected number of parameters for `sputf'
 TEST530-1
                 result=ok
         else
@@ -31724,7 +31724,7 @@ TEST531
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST531-1'; then
-test.d:1:7: run time error - invalid number of actual parameters for `sputf'
+test.d:1:7: run time error - unexpected number of parameters for `sputf'
 TEST531-1
                 result=ok
         else
@@ -31904,7 +31904,7 @@ TEST541
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST541-1'; then
-test.d:1:7: run time error - invalid number of actual parameters for `sputf'
+test.d:1:7: run time error - unexpected number of parameters for `sputf'
 TEST541-1
                 result=ok
         else
@@ -31922,7 +31922,7 @@ TEST542
         if $DINO $test_file 2>$stderr; then
                 result=ok
         elif $SCMP $stderr - <<'TEST542-1'; then
-test.d:1:7: run time error - invalid number of actual parameters for `fputf'
+test.d:1:7: run time error - unexpected number of parameters for `fputf'
 TEST542-1
                 result=ok
         else
@@ -43432,7 +43432,7 @@ TEST684
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT684' && $CMP $stderr $ftemp2; then
-test.d:1:5: run time error - invalid number of actual parameters for `isa'
+test.d:1:5: run time error - unexpected number of parameters for `isa'
 OUTPUT684
                         result=ok
                 else
@@ -43441,21 +43441,21 @@ OUTPUT684
         fi
 fi
 
-# Test 684.
+# Test 684b.
 if test $result = ok -a $start_test_number -le 684; then
-	echo test 684: wrong 1st par in isa
-        cat >$test_file <<'TEST684'
+	echo test 684b: wrong 1st par in isa
+        cat >$test_file <<'TEST684b'
 class c {}
 isa ("", c);
-TEST684
+TEST684b
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
                 result=fail
         else
                 echo '      ' $CMP - $stderr
-                if cat >$ftemp2 <<'OUTPUT684' && $CMP $stderr $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT684b' && $CMP $stderr $ftemp2; then
 test.d:2:5: run time error - invalid parameter type of `isa'
-OUTPUT684
+OUTPUT684b
                         result=ok
                 else
                         result=fail
@@ -48542,6 +48542,28 @@ OUTPUT808
                 fi
         else
                 result=fail
+        fi
+fi
+
+# Test 809.
+if test $result = ok -a $start_test_number -le 809; then
+	echo test 809: Bug in a call from high order function
+        cat >$test_file <<'TEST809'
+fun f (a, b) {a > b;}
+filter (f, [2]);
+TEST809
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT809' && $CMP $stderr $ftemp2; then
+test.d:2:14: run time error - unexpected number of parameters for `f'
+OUTPUT809
+			result=ok
+                else
+                        result=fail
+                fi
         fi
 fi
 

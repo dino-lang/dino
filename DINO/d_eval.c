@@ -4522,9 +4522,15 @@ call_fun_class (BC_node_t code, ER_node_t context, int pars_number,
   if (BC_implementation_fun (code) != NULL)
     process_imm_ifun_call (code, pars_number, from_c_code_p);
   else
-    process_imm_fun_call ((val_t *) IVAL (ctop, 1), code, context,
-			  pars_number, BC_vars_num (code),
-			  FALSE, from_c_code_p);
+    {
+      if (pars_number != BC_pars_num (code) || BC_args_p (code))
+	eval_error (parnumber_bc_decl, get_cpos (),
+		    DERR_parameters_number,
+		    BC_ident (BC_fdecl (code)));
+      process_imm_fun_call ((val_t *) IVAL (ctop, 1), code, context,
+			    pars_number, BC_vars_num (code),
+			    FALSE, from_c_code_p);
+    }
   for (;;)
     {
       if (cpc != NULL)

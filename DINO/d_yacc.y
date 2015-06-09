@@ -2888,12 +2888,16 @@ get_new_ident (position_t pos)
   char str [50]; /* Enough for integer representation.  */
 
   VLO_NULLIFY (symbol_text);
-  VLO_ADD_STRING (symbol_text, "$");
-  VLO_ADD_STRING (symbol_text, pos.file_name);
-  VLO_ADD_STRING (symbol_text, ".");
+  VLO_ADD_STRING (symbol_text, "$anon");
+  if (pos.file_name != NULL && *pos.file_name != 0)
+    {
+      VLO_ADD_STRING (symbol_text, ".");
+      VLO_ADD_STRING (symbol_text, pos.file_name);
+    }
+  VLO_ADD_STRING (symbol_text, ".ln");
   sprintf (str, "%d", pos.line_number);
   VLO_ADD_STRING (symbol_text, str);
-  VLO_ADD_STRING (symbol_text, ".");
+  VLO_ADD_STRING (symbol_text, ".pos");
   sprintf (str, "%d", pos.column_number);
   VLO_ADD_STRING (symbol_text, str);
   unique_ident = create_unique_ident_node (VLO_BEGIN (symbol_text));
