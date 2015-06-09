@@ -48677,6 +48677,41 @@ OUTPUT814
         fi
 fi
 
+# Test 815.
+if test $result = ok -a $start_test_number -le 815; then
+	echo test 815: Stress test for fold/filter/map
+        cat >$test_file <<'TEST815'
+var v;
+for (var i = 10; i < 100000; i++)
+  v = filter (fun (a) {a > 0;}, [2, 5, 7]);
+
+println (v);
+for (var i = 10; i < 100000; i++)
+  v = map (fun (a) {a + 1;}, [2, 3, 4]);
+
+println (v);
+for (var i = 10; i < 100000; i++)
+  v = fold (fun (a, b) {a + b;}, [2, 3, 4], 0);
+
+println (v);
+TEST815
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT815' && $CMP $stdout $ftemp2; then
+[2, 5, 7]
+[3, 4, 5]
+9
+OUTPUT815
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

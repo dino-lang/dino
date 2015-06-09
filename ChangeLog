@@ -1,3 +1,7 @@
+2015-06-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/dino.tst.in: Add new stress test for fold/map/filter.
+
 2015-06-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/dino.tst.in: Add new tests for fold/map/filter.
