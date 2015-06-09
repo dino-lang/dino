@@ -1,5 +1,14 @@
 2015-06-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/dino.tst.in: Add new tests for fold/map/filter.
+	* DINO/d_func.c (process_fold_vect_op): Free stack space for
+	fold_function.
+	(process_filter_vect_op): Free stack space for
+	filter_function.
+	(process_map_vect_op): Free stack space for map_function.
+
+2015-06-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_errors.c (DERR_parameters_number): Change message.
 	* DINO/d_eval.c (call_fun_class): Check params number.
 	* DINO/d_yacc.y (get_new_ident): Change anonymous function name.

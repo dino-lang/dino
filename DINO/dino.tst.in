@@ -48567,6 +48567,116 @@ OUTPUT809
         fi
 fi
 
+# Test 810.
+if test $result = ok -a $start_test_number -le 810; then
+	echo test 810: Bug in a call from high order function
+        cat >$test_file <<'TEST810'
+fun f () {1;}
+filter (f, [2]);
+TEST810
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT810' && $CMP $stderr $ftemp2; then
+test.d:2:14: run time error - unexpected number of parameters for `f'
+OUTPUT810
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 811.
+if test $result = ok -a $start_test_number -le 811; then
+	echo test 811: Bug in a call from high order function
+        cat >$test_file <<'TEST811'
+fun f (a, b) {a > b;}
+map (f, [2]);
+TEST811
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT811' && $CMP $stderr $ftemp2; then
+test.d:2:11: run time error - unexpected number of parameters for `f'
+OUTPUT811
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 812.
+if test $result = ok -a $start_test_number -le 812; then
+	echo test 812: Bug in a call from high order function
+        cat >$test_file <<'TEST812'
+fun f () {1;}
+map (f, [2]);
+TEST812
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT812' && $CMP $stderr $ftemp2; then
+test.d:2:11: run time error - unexpected number of parameters for `f'
+OUTPUT812
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 813.
+if test $result = ok -a $start_test_number -le 813; then
+	echo test 813: Bug in a call from high order function
+        cat >$test_file <<'TEST813'
+fun f (a, b, c) {a + b + c;}
+fold (f, [2], 0);
+TEST813
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT813' && $CMP $stderr $ftemp2; then
+test.d:2:13: run time error - unexpected number of parameters for `f'
+OUTPUT813
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 814.
+if test $result = ok -a $start_test_number -le 814; then
+	echo test 814: Bug in a call from high order function
+        cat >$test_file <<'TEST814'
+fun f () {1;}
+fold (f, [2], 0);
+TEST814
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT814' && $CMP $stderr $ftemp2; then
+test.d:2:13: run time error - unexpected number of parameters for `f'
+OUTPUT814
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

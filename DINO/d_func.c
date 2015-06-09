@@ -4672,17 +4672,25 @@ process_fold_vect_op (ER_node_t op, val_t *fold_initval,
 	    process_fold_vect_op (((ER_node_t *) pack_els) [i], fold_initval,
 				  fold_el_fun_block, dim - 1, depth + 1);
 	  else
-	    fold_function (pack_els + i * type_size_table [fold_vect_el_type],
-			   fold_initval, fold_el_fun_block,
-			   fold_vect_el_type, dim + depth - 1);
+	    {
+	      DECR_CTOP (2); /* free place for fold function params.  */
+	      fold_function (pack_els + i * type_size_table [fold_vect_el_type],
+			     fold_initval, fold_el_fun_block,
+			     fold_vect_el_type, dim + depth - 1);
+	      DECR_CTOP (-2);
+	    }
 	}
       else
 	{
 	  unpack_els = ER_unpack_els (op);
 	  v = IVAL (unpack_els, i);
 	  if (dim == 1)
-	    fold_function (v, fold_initval, fold_el_fun_block,
-			   fold_vect_el_type, dim + depth - 1);
+	    {
+	      DECR_CTOP (2); /* free place for fold function params.  */
+	      fold_function (v, fold_initval, fold_el_fun_block,
+			     fold_vect_el_type, dim + depth - 1);
+	      DECR_CTOP (-2);
+	    }
 	  else if (ER_NODE_MODE (v) != ER_NM_vect)
 	    eval_error (vecform_bc_decl, call_pos (),
 			DERR_vector_form_type, depth);
@@ -4779,6 +4787,7 @@ process_filter_vect_op (ER_node_t op, BC_node_t filter_el_fun_block,
 			int dim, int depth)
 {
   size_t i, nel, len, el_size;
+  int flag;
   ER_node_t el, result;
   ER_node_mode_t filter_vect_el_type;
 
@@ -4821,9 +4830,12 @@ process_filter_vect_op (ER_node_t op, BC_node_t filter_el_fun_block,
 	}
       else if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
 	{
-	  if (!filter_function (ER_pack_els (op) + i * el_size,
-				filter_el_fun_block,
-				filter_vect_el_type, dim + depth - 1))
+	  TOP_DOWN; /* free place for filter function param.  */
+	  flag = filter_function (ER_pack_els (op) + i * el_size,
+				  filter_el_fun_block,
+				  filter_vect_el_type, dim + depth - 1);
+	  TOP_UP;
+	  if (!flag)
 	    {
 	      op = GET_TEMP_REF (0);
 	      result = GET_TEMP_REF (1);
@@ -4839,10 +4851,11 @@ process_filter_vect_op (ER_node_t op, BC_node_t filter_el_fun_block,
 	}
       else
 	{
-	  int flag = filter_function (IVAL (ER_unpack_els (op), i),
-				      filter_el_fun_block,
-				      filter_vect_el_type, dim + depth - 1);
-
+	  TOP_DOWN; /* free place for filter function param.  */
+	  flag = filter_function (IVAL (ER_unpack_els (op), i),
+				  filter_el_fun_block,
+				  filter_vect_el_type, dim + depth - 1);
+	  TOP_UP;
 	  op = GET_TEMP_REF (0);
 	  result = GET_TEMP_REF (1);
 	  if (!flag)
@@ -4959,6 +4972,7 @@ process_map_vect_op (ER_node_t op, BC_node_t map_el_fun_block,
     {
       if (dim == 1)
 	{
+	  TOP_DOWN; /* free place for filter function param.  */
 	  if (ER_NODE_MODE (op) == ER_NM_heap_pack_vect)
 	    map_function (ER_pack_els (op) + i * el_size, map_el_fun_block,
 			  map_vect_el_type, dim + depth - 1);
@@ -4968,7 +4982,6 @@ process_map_vect_op (ER_node_t op, BC_node_t map_el_fun_block,
 	  op = GET_TEMP_REF (0);
 	  result = GET_TEMP_REF (1);
 	  *(val_t *) IVAL (ER_unpack_els (result), i) = *(val_t *) ctop;
-	  TOP_DOWN;
 	}
       else
 	{
