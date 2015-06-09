@@ -3,7 +3,7 @@
 	* DINO/d_errors.c (DERR_parameters_number): Change message.
 	* DINO/d_eval.c (call_fun_class): Check params number.
 	* DINO/d_yacc.y (get_new_ident): Change anonymous function name.
-	* DINO/dino.tst.in: Change expected message.
+	* DINO/dino.tst.in: Change expected message.  Add new test.
 
 2015-06-05  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
