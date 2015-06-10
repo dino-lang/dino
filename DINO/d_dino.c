@@ -1166,7 +1166,7 @@ dino_main (int argc, char *argv[], char *envp[])
       int first_p;
 
       printf ("Dino interpreter, version %.2f\n", DINO_VERSION);
-      printf ("Copyright (c) 1997-2015, Vladimir Makarov, vmakarov.gcc@gmail.com\n");
+      printf ("Copyright (c) 1997-2015, Vladimir Makarov, vmakarov@gcc.gnu.org\n");
       printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");
       printf ("Use \";\" for stmt end, for if-stmt w/o else use \";;\", e.g. if (cond) v = e;;\n");
       start_scanner_file ("", no_position);

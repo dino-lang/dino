@@ -3735,7 +3735,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 				     &result, &temp_vars_num, FALSE,
 				     NULL, NULL, FALSE));
 	  bc = NULL;
-	  if (repl_flag)
+	  if (repl_flag && IR_block_scope (curr_scope) == NULL)
 	    bc = (new_bc_code_with_src
 		  (IR_IS_OF_TYPE (IR_stmt_expr (stmt),
 				  IR_NM_class_fun_thread_call)

@@ -37584,9 +37584,7 @@ TEST648
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT648' && $CMP $stdout $ftemp2; then
 Use "exit(<int>);" or Ctrl-D to exit
-dino>     |     |     |     |     |     | dino> dino> dino>     | 1
-40320
-1
+dino>     |     |     |     |     |     | dino> dino> dino>     | 40320
 40320
 dino> 
 OUTPUT648
@@ -48703,6 +48701,29 @@ TEST815
 [3, 4, 5]
 9
 OUTPUT815
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 816.
+if test $result = ok -a $start_test_number -le 816; then
+	echo test 816: Bug REPL printing
+        cat >$test_file <<'TEST816'
+filter (fun (e) {e > 0;}, [2]);
+TEST816
+        echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout"
+        if $DINO < $test_file 2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT816' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino> [2]
+dino> 
+OUTPUT816
                         result=ok
                 else
                         result=fail

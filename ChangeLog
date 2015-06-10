@@ -1,3 +1,11 @@
+2015-06-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_context.c (second_block_passing): Add rpr only for high
+	level block.
+	* DINO/d_dino.c (dino_main): Change email-address.
+	* DINO/dino.tst.in (648): Change expected REPL output.
+	(816): New test.
+
 2015-06-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/dino.tst.in: Add new stress test for fold/map/filter.
