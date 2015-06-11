@@ -84,6 +84,8 @@ typedef int int_t;
 
 typedef const char *string_t;
 
+typedef const unsigned int *ustring_t;
+
 typedef struct BC_node *BC_hidden_node_t;
 
 enum access_val
@@ -478,7 +480,7 @@ IR_node_t destroy_unique_ident;
 
 }
 
-%type char_t rint_t gmp_t rfloat_t string_t int_t bool_t position_t
+%type char_t rint_t gmp_t rfloat_t string_t ustring_t int_t bool_t position_t
       type_mask_t ticker_t BC_hidden_node_t access_val_t hint_val_t
 
 %%
@@ -525,6 +527,11 @@ unique_float :: ir_node
 unique_string :: ir_node
 %other
         string_value : string_t
+;
+
+unique_ustring :: ir_node
+%other
+        ustring_value : ustring_t
 ;
 
 /* Only ident can refer to this node. */
@@ -574,6 +581,11 @@ float :: expr
 string :: expr
 %other
         unique_string : unique_string /* always defined */
+;
+
+ustring :: expr
+%other
+        unique_ustring : unique_ustring /* always defined */
 ;
 
 %abstract
