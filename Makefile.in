@@ -130,7 +130,8 @@ only_cocom_directories = NONA OKA
 # COCOM only end
 
 # Regexp directory
-RX = REGEX
+# RX = REGEX
+RX = ONIGURUMA
 
 # Default entry
 all:

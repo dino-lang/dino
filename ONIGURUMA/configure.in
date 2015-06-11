@@ -90,5 +90,23 @@ if test "$_cv_stdarg" = yes; then
   AC_DEFINE(HAVE_STDARG_PROTOTYPES,1,[Define if compiler supports stdarg prototypes])
 fi
 
+if test "$GCC" = yes; then
+  my_save_cflags="$CFLAGS"
+  CFLAGS=-Ofast
+  AC_MSG_CHECKING([whether CC supports -Ofast])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+      [AC_MSG_RESULT([yes])]
+      [fast=yes],
+      [AC_MSG_RESULT([no])]
+  )
+  CFLAGS="$my_save_cflags"
+  if test "$fast" = yes; then
+    CFLAGS="`echo $CFLAGS|sed s/-O2//` -Ofast"
+    CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -Ofast"
+  else
+    CFLAGS="`echo $CFLAGS|sed s/-O2//` -O3"
+    CXXFLAGS="`echo $CXXFLAGS|sed s/-O2//` -O3"
+  fi
+fi
 
 AC_OUTPUT([Makefile onig-config sample/Makefile], [chmod +x onig-config])
