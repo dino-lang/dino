@@ -1,5 +1,9 @@
 2015-06-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* ONIGURUMA: New directory.  Release 5.9.6.
+
+2015-06-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_ir.sprut (ustring_t, unique_ustring, ustring): New.
 
 2015-06-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
