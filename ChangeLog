@@ -1,3 +1,7 @@
+2015-06-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: More info about DINO tests and benchmarks.
+
 2015-06-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_context.c (second_block_passing): Add rpr only for high
