@@ -573,11 +573,11 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
   make test
 ```
 * Testing only DINO (about 800 tests and benchmarking comparison with available implementations of other languages which can take a lot of time):
+    * Tests are in file <build-directory>/DINO/dino.tst generated from DINO/dino.tst.in
+    * Benchmarks are in file DINO/compare.tst
 ```
   cd DINO; make test
 ```
-    * Tests are in file <build-directory>/DINO/dino.tst generated from DINO/dino.tst.in
-    * Benchmarks are in file DINO/compare.tst
 
 * Installing all COCOM and DINO:
 ```

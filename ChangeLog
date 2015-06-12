@@ -1,5 +1,9 @@
 2015-06-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Rearrange the added info.
+
+2015-06-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: More info about DINO tests and benchmarks.
 
 2015-06-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
