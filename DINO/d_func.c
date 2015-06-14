@@ -106,8 +106,6 @@ extern clock_t clock (void);
 #include "d_aixdl.c"
 #endif
 
-#include "regex.h"
-
 static ER_node_t create_class_stack (BC_node_t class_block, ER_node_t context,
 				     val_t *actuals_start, int actuals_num,
 				     int simple_p);
@@ -593,9 +591,14 @@ isa_call (int pars_number)
   ER_set_i (fun_result, result);
 }
 
+
+
+#include "oniguruma.h"
+
 static void
-process_regcomp_errors (int code, const char *function_name)
+process_onig_errors (int code, const char *function_name)
 {
+#if 0
   if (code == REG_EBRACK)
     eval_error (ebrack_bc_decl, call_pos (), DERR_reg_ebrack, function_name);
   else if (code == REG_ERANGE)
@@ -621,19 +624,20 @@ process_regcomp_errors (int code, const char *function_name)
   else if (code == REG_ESPACE)
     eval_error (espace_bc_decl, call_pos (), DERR_reg_espace, function_name);
   else
+#endif
     /* Internal error: may be something else. */
     eval_error (internal_bc_decl, call_pos (),
 		DERR_internal_error, function_name);
 }
 
-#define RE_DINO_SYNTAX (REG_EXTENDED)
+#define RE_DINO_SYNTAX (ONIG_SYNTAX_RUBY)
 
 /* The following structure is element of the cache of compiled
    regex. */
 struct regex_node
 {
   /* Compiled regex. */
-  regex_t regex;
+  regex_t *regex;
   /* Regex string representation.  It is a key of in the cache. */
   const char *string;
 };
@@ -647,6 +651,9 @@ static hash_table_t regex_tab;
 static os_t regex_os;
 /* Vector containing pointers to the cache elements. */
 static vlo_t regex_vlo;
+
+/* Region used for searches.  */
+static OnigRegion *region;
 
 /* Hash of the node. */
 static unsigned
@@ -678,30 +685,32 @@ find_regex (const char *string, regex_t **result)
 {
   hash_table_entry_t *entry;
   struct regex_node *reg;
+  OnigErrorInfo einfo;
+  size_t len;
   int code;
+  OnigEncoding ucode_enc = (big_endian_p
+			    ? ONIG_ENCODING_UTF32_BE : ONIG_ENCODING_UTF32_LE);
 
   *result = NULL;
   regex_node.string = string;
   entry = find_hash_table_entry (regex_tab, &regex_node, FALSE);
   if (*entry != NULL)
     {
-      *result = &((struct regex_node *) (*entry))->regex;
-      return 0;
+      *result = ((struct regex_node *) (*entry))->regex;
+      return ONIG_NORMAL;
     }
   OS_TOP_EXPAND (regex_os, sizeof (struct regex_node));
   reg = OS_TOP_BEGIN (regex_os);
-  code = regcomp (&reg->regex, string, RE_DINO_SYNTAX);
-  if (code != 0)
+  len = strlen (string);
+  code = onig_new (&reg->regex, string, string + len,
+		   ONIG_OPTION_DEFAULT, ONIG_ENCODING_ASCII, RE_DINO_SYNTAX,
+		   &einfo);
+  if (code != ONIG_NORMAL)
     {
-      regfree (&reg->regex);
+      onig_free (reg->regex);
       OS_TOP_NULLIFY (regex_os);
       return code;
     }
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-  reg->regex.not_bol = 0;
-  reg->regex.not_eol = 0;
-  reg->regex.regs_allocated = REGS_FIXED;
-#endif
   OS_TOP_FINISH (regex_os);
   VLO_ADD_MEMORY (regex_vlo, &reg, sizeof (reg));
   OS_TOP_EXPAND (regex_os, strlen (string) + 1);
@@ -710,14 +719,16 @@ find_regex (const char *string, regex_t **result)
   strcpy ((char *) reg->string, string);
   entry = find_hash_table_entry (regex_tab, reg, TRUE);
   *entry = reg;
-  *result = &reg->regex;
-  return 0;
+  *result = reg->regex;
+  return ONIG_NORMAL;
 }
 
 /* Create the cache of compiled regexs. */
 static void
 initiate_regex_tab (void)
 {
+  onig_init ();
+  region = onig_region_new ();
   OS_CREATE (regex_os, 0);
   VLO_CREATE (regex_vlo, 0);
   regex_tab = create_hash_table (400, regex_node_hash, regex_node_eq);
@@ -731,24 +742,21 @@ finish_regex_tab (void)
 
   delete_hash_table (regex_tab);
   for (i = 0; i < VLO_LENGTH (regex_vlo) / sizeof (struct regex_node *); i++)
-    regfree (&((struct regex_node **) VLO_BEGIN (regex_vlo)) [i]->regex);
+    onig_free (((struct regex_node **) VLO_BEGIN (regex_vlo)) [i]->regex);
   VLO_DELETE (regex_vlo);
   OS_DELETE (regex_os);
+  onig_region_free (region, 1);
+  onig_end ();
 }
 
 void
 match_call (int pars_number)
 {
   regex_t *reg;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-  int len;
-  struct re_registers regs;
-#else
-  regmatch_t *pmatch;
-#endif
   ER_node_t result;
   size_t els_number;
   size_t i;
+  const char *start, *end;
   int code;
 
   if (pars_number != 2)
@@ -764,48 +772,25 @@ match_call (int pars_number)
       || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, MATCH_NAME);
   code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
-  if (code != 0)
-    process_regcomp_errors (code, MATCH_NAME);
-  else
+  if (code != ONIG_NORMAL)
+    process_onig_errors (code, MATCH_NAME);
+  start = ER_pack_els (ER_vect (ctop));
+  end = start + strlen (start);
+  code = onig_search (reg, start, end, start, end, region, ONIG_OPTION_NONE);
+  if (code == ONIG_MISMATCH)
+    result = NULL;
+  else if (code >= 0)
     {
-      els_number = (reg->re_nsub + 1) * 2;
-      /* Make pmatch vector. */
-      VLO_NULLIFY (temp_vlobj);
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-      regs.num_regs = reg->re_nsub + 1;
-      VLO_EXPAND (temp_vlobj, 2 * (reg->re_nsub + 1) * sizeof (regoff_t));
-      regs.start = VLO_BEGIN (temp_vlobj);
-      regs.end = regs.start + reg->re_nsub + 1;
-      len = strlen (ER_pack_els (ER_vect (ctop)));
-      if (re_search (reg, ER_pack_els (ER_vect (ctop)),
-		     len, 0, len, &regs) >= 0)
+      els_number = region->num_regs;
+      result = create_pack_vector (2 * els_number, ER_NM_int);
+      for (i = 0; i < els_number; i++)
 	{
-	  result = create_pack_vector (els_number, ER_NM_int);
-	  for (i = 0; i < els_number; i += 2)
-	    {
-	      ((rint_t *) ER_pack_els (result)) [i] = regs.start[i / 2];
-	      ((rint_t *) ER_pack_els (result)) [i + 1] = regs.end[i / 2];
-	    }
+	  ((rint_t *) ER_pack_els (result)) [2 * i] = region->beg[i];
+	  ((rint_t *) ER_pack_els (result)) [2 * i + 1] = region->end[i];
 	}
-      else
-	result = NULL;
-#else
-      VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
-      pmatch = VLO_BEGIN (temp_vlobj);
-      if (!regexec (reg, ER_pack_els (ER_vect (ctop)), reg->re_nsub + 1,
-		    pmatch, 0))
-	{
-	  result = create_pack_vector (els_number, ER_NM_int);
-	  for (i = 0; i < els_number; i += 2)
-	    {
-	      ((rint_t *) ER_pack_els (result)) [i] = pmatch[i / 2].rm_so;
-	      ((rint_t *) ER_pack_els (result)) [i + 1] = pmatch[i / 2].rm_eo;
-	    }
-	}
-      else
-	result = NULL;
-#endif
     }
+  else
+    process_onig_errors (code, MATCH_NAME);
   if (result == NULL)
     ER_SET_MODE (fun_result, ER_NM_nil);
   else
@@ -819,16 +804,11 @@ void
 gmatch_call (int pars_number)
 {
   regex_t *reg;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-  int len;
-  struct re_registers regs;
-#else
-  regmatch_t *pmatch;
-#endif
   ER_node_t par1, par2, result;
   int code, flag, count, disp;
   rint_t el;
-  const char *start;
+  size_t len;
+  const char *start, *end;
 
   if (pars_number != 2 && pars_number != 3)
     eval_error (parnumber_bc_decl, call_pos (),
@@ -854,54 +834,27 @@ gmatch_call (int pars_number)
       || ER_pack_vect_el_mode (ER_vect (par1)) != ER_NM_char)
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, GMATCH_NAME);
   code = find_regex (ER_pack_els (ER_vect (par1)), &reg);
-  if (code != 0)
-    process_regcomp_errors (code, GMATCH_NAME);
-  VLO_NULLIFY (temp_vlobj);
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-  regs.num_regs = reg->re_nsub + 1;
-  VLO_EXPAND (temp_vlobj, 2 * (reg->re_nsub + 1) * sizeof (regoff_t));
-  regs.start = VLO_BEGIN (temp_vlobj);
-  regs.end = regs.start + reg->re_nsub + 1;
-#else
-  /* Make vector which can store regmatch_t's. */
-  VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
-  pmatch = (regmatch_t *) VLO_BEGIN (temp_vlobj);
-#endif
+  if (code != ONIG_NORMAL)
+    process_onig_errors (code, GMATCH_NAME);
   VLO_NULLIFY (temp_vlobj2);
   start = ER_pack_els (ER_vect (par2));
+  len = strlen (start);
+  end = start + len;
   disp = 0;
   count = 0;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-  len = strlen (start);
-  while (re_search (reg, start + disp, len, 0, len, &regs) >= 0)
+  while (onig_search (reg, start + disp, end, start + disp, end,
+		      region, ONIG_OPTION_NONE) >= 0)
     {
-      el = regs.start [0] + disp;
+      el = region->beg [0] + disp;
       VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
-      el = regs.end [0] + disp;
+      el = region->end [0] + disp;
       VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
       if (flag)
-	{
-	  disp++;
-	  len--;
-	}
+	disp++;
       else
-	{
-	  disp += regs.end [0];
-	  len -= regs.end [0];
-	}
+	disp += region->end [0];
       count++;
     }
-#else
-  while (!regexec (reg, start + disp, reg->re_nsub + 1, pmatch, 0))
-    {
-      el = pmatch[0].rm_so + disp;
-      VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
-      el = pmatch[0].rm_eo + disp;
-      VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
-      disp += (!flag ? pmatch[0].rm_eo : 1);
-      count++;
-    }
-#endif
   if (count == 0)
     ER_SET_MODE (fun_result, ER_NM_nil);
   else
@@ -918,13 +871,7 @@ static void
 generall_sub_call (int pars_number, int global_flag)
 {
   regex_t *reg;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-  int len;
-  struct re_registers regs;
-  regoff_t starts [10], ends [10];
-#else
-  regmatch_t pmatch [10];
-#endif
+  size_t len;
   size_t sub_length [10];
   size_t n_subst;
   ER_node_t result;
@@ -932,11 +879,12 @@ generall_sub_call (int pars_number, int global_flag)
   ER_node_t regexp_val;
   size_t length;
   size_t evaluated_length;
-  size_t start;
+  size_t disp;
   size_t i;
   const char *substitution;
   const char *src;
   char *dst;
+  const char *str, *end;
   int c;
   int code;
 
@@ -959,53 +907,33 @@ generall_sub_call (int pars_number, int global_flag)
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, global_flag ? GSUB_NAME : SUB_NAME);
   code = find_regex (ER_pack_els (ER_vect (regexp_val)), &reg);
-  if (code != 0)
-    process_regcomp_errors (code, global_flag ? GSUB_NAME : SUB_NAME);
+  if (code != ONIG_NORMAL)
+    process_onig_errors (code, global_flag ? GSUB_NAME : SUB_NAME);
   else
     {
       vect = ER_vect (below_ctop);
       /* Count result string length. */
-      start = 0;
+      disp = 0;
       n_subst = 0;
       for (i = 0; i < 10; i++)
 	sub_length [i] = 0;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-      regs.num_regs = 10;
-      regs.start = starts;
-      regs.end = ends;
-      len = strlen (ER_pack_els (vect));
-      while ((start < ER_els_number (vect) || start == 0)
-	     && re_search (reg, ER_pack_els (vect) + start, len, 0, len,
-			   &regs) >= 0)
+      str = ER_pack_els (vect);
+      len = strlen (str);
+      end = str + len;
+      while ((disp < ER_els_number (vect) || disp == 0)
+	     && onig_search (reg, str + disp, end, str + disp, end,
+			     region, ONIG_OPTION_NONE) >= 0)
 	{
-	  for (i = 0; i < (reg->re_nsub + 1 > 10 ? 10 : reg->re_nsub + 1); i++)
-	    sub_length [i] += (regs.end [i] - regs.start [i]);
-	  if (regs.end [0] == 0)
-	    {
-	      start++;
-	      len--;
-	    }
+	  for (i = 0; i < (region->num_regs > 10 ? 10 : region->num_regs); i++)
+	    sub_length [i] += (region->end [i] - region->beg [i]);
+	  if (region->end [0] == 0)
+	    disp++;
 	  else
-	    {
-	      start += regs.end [0];
-	      len -= regs.end [0];
-	    }
+	    disp += region->end [0];
 	  n_subst++;
-	  if (!global_flag)
+	  if (! global_flag)
 	    break;
 	}
-#else
-      while ((start < ER_els_number (vect) || start == 0)
-	     && !regexec (reg, ER_pack_els (vect) + start, 10, pmatch, 0))
-	{
-	  for (i = 0; i < (reg->re_nsub + 1 > 10 ? 10 : reg->re_nsub + 1); i++)
-	    sub_length [i] += (pmatch[i].rm_eo - pmatch[i].rm_so);
-	  start += (pmatch[0].rm_eo == 0 ? 1 : pmatch[0].rm_eo);
-	  n_subst++;
-	  if (!global_flag)
-	    break;
-	}
-#endif
       substitution = ER_pack_els (ER_vect (ctop));
       evaluated_length = ER_els_number (vect) - sub_length [0];
       while (*substitution != '\0')
@@ -1025,19 +953,17 @@ generall_sub_call (int pars_number, int global_flag)
       result = create_pack_vector (evaluated_length, ER_NM_char);
       ER_set_els_number (result, 0);
       /* Make actual substitution. */
-      start = length = 0;
+      disp = length = 0;
       dst = ER_pack_els (result);
       substitution = ER_pack_els (ER_vect (ctop));
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-      len = strlen (ER_pack_els (vect));
-      while ((start < ER_els_number (vect) || start == 0)
-	     && re_search (reg, ER_pack_els (vect) + start, len, 0, len,
-			   &regs) >= 0)
+      while ((disp < ER_els_number (vect) || disp == 0)
+	     && onig_search (reg, str + disp, end, str + disp, end,
+			     region, ONIG_OPTION_NONE) >= 0)
 	{
-	  if (regs.start[0] != 0)
-	    memcpy (dst, ER_pack_els (vect) + start, regs.start[0]);
-	  length += regs.start[0];
-	  dst += regs.start[0];
+	  if (region->beg[0] != 0)
+	    memcpy (dst, str + disp, region->beg[0]);
+	  length += region->beg[0];
+	  dst += region->beg[0];
 	  src = substitution;
 	  while (*src != '\0')
 	    {
@@ -1052,95 +978,40 @@ generall_sub_call (int pars_number, int global_flag)
 	      if (i >= 10)
 		{
 		  if (c == '\\' && (*src == '\\' || *src == '&'))
-		    c = *src ++;
+		    c = *src++;
 		  *dst++ = c;
 		  length++;
 		}
-	      else if (i < reg->re_nsub + 1
-		       && regs.end[i] != regs.start[i])
+	      else if (i < region->num_regs
+		       && region->end[i] != region->beg[i])
 		{
-		  memcpy (dst, ER_pack_els (vect) + start + regs.start[i],
-			  regs.end[i] - regs.start[i]);
-		  dst += regs.end[i] - regs.start[i];
-		  length += regs.end[i] - regs.start[i];
+		  memcpy (dst, str + disp + region->beg[i],
+			  region->end[i] - region->beg[i]);
+		  dst += region->end[i] - region->beg[i];
+		  length += region->end[i] - region->beg[i];
 		}
 	    }
-	  if (regs.end[0] == 0)
+	  if (region->end[0] == 0)
 	    {
 	      /* Matched empty string */
 	      if (ER_els_number (vect) != 0)
 		{
-		  *dst++ = *(ER_pack_els (vect) + start);
+		  *dst++ = *(str + disp);
 		  length++;
 		}
-	      start++;
-	      len--;
+	      disp++;
 	    }
 	  else
-	    {
-	      start += regs.end[0];
-	      len -= regs.end[0];
-	    }
+	    disp += region->end[0];
 	  if (!global_flag)
 	    break;
 	}
-#else
-      while ((start < ER_els_number (vect) || start == 0)
-	     && !regexec (reg, ER_pack_els (vect) + start, 10, pmatch, 0))
+      if (disp < ER_els_number (vect))
 	{
-	  if (pmatch[0].rm_so != 0)
-	    memcpy (dst, ER_pack_els (vect) + start, pmatch[0].rm_so);
-	  length += pmatch[0].rm_so;
-	  dst += pmatch[0].rm_so;
-	  src = substitution;
-	  while (*src != '\0')
-	    {
-	      c = *src++;
-	      if (c == '&')
-		i = 0;
-	      else if (c == '\\' && '0' <= *src && *src <= '9')
-		i = *src++ - '0';
-	      else
-		i = 10;
-	      
-	      if (i >= 10)
-		{
-		  if (c == '\\' && (*src == '\\' || *src == '&'))
-		    c = *src ++;
-		  *dst++ = c;
-		  length++;
-		}
-	      else if (i < reg->re_nsub + 1
-		       && pmatch[i].rm_eo != pmatch[i].rm_so)
-		{
-		  memcpy (dst, ER_pack_els (vect) + start + pmatch[i].rm_so,
-			  pmatch[i].rm_eo - pmatch[i].rm_so);
-		  dst += pmatch[i].rm_eo - pmatch[i].rm_so;
-		  length += pmatch[i].rm_eo - pmatch[i].rm_so;
-		}
-	    }
-	  if (pmatch[0].rm_eo == 0)
-	    {
-	      /* Matched empty string */
-	      if (ER_els_number (vect) != 0)
-		{
-		  *dst++ = *(ER_pack_els (vect) + start);
-		  length++;
-		}
-	      start++;
-	    }
-	  else
-	    start += pmatch[0].rm_eo;
-	  if (!global_flag)
-	    break;
-	}
-#endif
-      if (start < ER_els_number (vect))
-	{
-	  memcpy (dst, ER_pack_els (vect) + start,
-		  ER_els_number (vect) - start);
-	  length += ER_els_number (vect) - start;
-	  dst += ER_els_number (vect) - start;
+	  memcpy (dst, str + disp,
+		  ER_els_number (vect) - disp);
+	  length += ER_els_number (vect) - disp;
+	  dst += ER_els_number (vect) - disp;
 	}
       *dst = '\0';
       ER_set_els_number (result, length);
@@ -1171,21 +1042,16 @@ void
 split_call (int pars_number)
 {
   regex_t *reg;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-  int len;
-  struct re_registers regs;
-  regoff_t regs_start, regs_end;
-#else
-  regmatch_t pmatch [1];
-#endif
+  size_t len;
   ER_node_t result;
   ER_node_t vect;
   ER_node_t sub_vect;
   size_t els_number;
   size_t chars_number;
-  size_t start;
+  size_t disp;
   const char *split_regex;
   ER_node_t split_var;
+  const char *str, *end;
   int ch;
   int ok;
   int code;
@@ -1224,137 +1090,74 @@ split_call (int pars_number)
     }
   code = find_regex (split_regex, &reg);
   if (code != 0)
-    process_regcomp_errors (code, SPLIT_NAME);
+    process_onig_errors (code, SPLIT_NAME);
   else
     {
       vect = ER_vect (pars_number == 2 ? below_ctop : ctop);
-      els_number = start = 0;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-      regs.num_regs = 1;
-      regs.start = &regs_start;
-      regs.end = &regs_end;
-      len = strlen (ER_pack_els (vect));
-#endif
+      els_number = disp = 0;
+      str = ER_pack_els (vect);
+      len = strlen (str);
+      end = str + len;
       /* Count substrings. */
-      while (start < ER_els_number (vect) || start == 0)
+      while (disp < ER_els_number (vect) || disp == 0)
 	{
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-	  ok = re_search (reg, ER_pack_els (vect) + start, len,
-			   0, len, &regs) >= 0;
-	  if (ok && regs.start[0] == 0 && regs.end[0] != 0)
+	  ok = onig_search (reg, str + disp, end, str + disp, end,
+			    region, ONIG_OPTION_NONE) >= 0;
+	  if (ok && region->beg[0] == 0 && region->end[0] != 0)
 	    {
 	      /* Pattern by pattern. */
-	      start += regs.end[0];
-	      len -= regs.end[0];
+	      disp += region->end[0];
 	      continue;
 	    }
 	  els_number++;
 	  if (!ok)
 	    break;
-	  if (regs.end[0] == 0)
-	    {
-	      start++;
-	      len--;
-	    }
+	  if (region->end[0] == 0)
+	    disp++;
 	  else
-	    {
-	      start += regs.end[0];
-	      len -= regs.end[0];
-	    }
-#else
-	  ok = !regexec (reg, ER_pack_els (vect) + start, 1, pmatch, 0);
-	  if (ok && pmatch[0].rm_so == 0 && pmatch[0].rm_eo != 0)
-	    {
-	      /* Pattern by pattern. */
-	      start += pmatch[0].rm_eo;
-	      continue;
-	    }
-	  els_number++;
-	  if (!ok)
-	    break;
-	  start += (pmatch[0].rm_eo == 0 ? 1 : pmatch[0].rm_eo);
-#endif
+	    disp += region->end[0];
 	}
       result = create_pack_vector (els_number, ER_NM_vect);
       ER_set_els_number (result, 0);
-      start = els_number = 0;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-      len = strlen (ER_pack_els (vect));
-#endif
-      while (start < ER_els_number (vect) || start == 0)
+      disp = els_number = 0;
+      while (disp < ER_els_number (vect) || disp == 0)
 	{
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-	  ok = re_search (reg, ER_pack_els (vect) + start, len,
-			   0, len, &regs) >= 0;
+	  ok = onig_search (reg, str + disp, end, str + disp, end,
+			    region, ONIG_OPTION_NONE) >= 0;
 	  if (ok)
 	    {
-	      if (regs.start[0] != 0 || regs.end[0] == 0)
+	      if (region->beg[0] != 0 || region->end[0] == 0)
 		{
 		  /* Empty pattern case is here too. */
-		  if (regs.start[0] == 0)
-		    regs.start[0]++;
-		  ch = ER_pack_els (vect) [start + regs.start[0]];
-		  ER_pack_els (vect) [start + regs.start[0]] = '\0';
-		  chars_number = regs.start[0];
+		  if (region->beg[0] == 0)
+		    region->beg[0]++;
+		  ch = ER_pack_els (vect) [disp + region->beg[0]];
+		  ER_pack_els (vect) [disp + region->beg[0]] = '\0';
+		  chars_number = region->beg[0];
 		}
 	      else
 		{
 		  /* Pattern by pattern. */
-		  start += regs.end[0];
-		  len -= regs.end[0];
+		  disp += region->end[0];
 		  continue;
 		}
 	    }
 	  else
-	    chars_number = ER_els_number (vect) - start;
-#else
-	  ok = !regexec (reg, ER_pack_els (vect) + start, 1, pmatch, 0);
-	  if (ok)
-	    {
-	      if (pmatch[0].rm_so != 0 || pmatch[0].rm_eo == 0)
-		{
-		  /* Empty pattern case is here too. */
-		  if (pmatch[0].rm_so == 0)
-		    pmatch[0].rm_so++;
-		  ch = ER_pack_els (vect) [start + pmatch[0].rm_so];
-		  ER_pack_els (vect) [start + pmatch[0].rm_so] = '\0';
-		  chars_number = pmatch[0].rm_so;
-		}
-	      else
-		{
-		  /* Pattern by pattern. */
-		  start += pmatch[0].rm_eo;
-		  continue;
-		}
-	    }
-	  else
-	    chars_number = ER_els_number (vect) - start;
-#endif
+	    chars_number = ER_els_number (vect) - disp;
 	  /* Create substring. */
 	  sub_vect = create_pack_vector (chars_number, ER_NM_char);
 	  ER_set_immutable (sub_vect, TRUE);
-	  strcpy (ER_pack_els (sub_vect), ER_pack_els (vect) + start);
+	  strcpy (ER_pack_els (sub_vect), ER_pack_els (vect) + disp);
 	  set_packed_vect_el (result, els_number, sub_vect);
 	  els_number++;
 	  ER_set_els_number (result, els_number);
 	  if (!ok)
 	    break;
-#ifndef USE_POSIX_REGEXEC_FUNCTION
-	  ER_pack_els (vect) [start + regs.start[0]] = ch;
-	  if (regs.end[0] == 0)
-	    {
-	      start++;
-	      len--;
-	    }
+	  ER_pack_els (vect) [disp + region->beg[0]] = ch;
+	  if (region->end[0] == 0)
+	    disp++;
 	  else
-	    {
-	      start += regs.end[0];
-	      len -= regs.end[0];
-	    }
-#else
-	  ER_pack_els (vect) [start + pmatch[0].rm_so] = ch;
-	  start += (pmatch[0].rm_eo == 0 ? 1 : pmatch[0].rm_eo);
-#endif
+	    disp += region->end[0];
 	}
     }
   if (result == NULL)
@@ -1365,6 +1168,8 @@ split_call (int pars_number)
       set_vect_dim (fun_result, result, 0);
     }
 }
+
+
 
 static int do_inline
 compare_elements (ER_node_mode_t el_type, const void *el1, const void *el2)

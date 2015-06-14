@@ -160,7 +160,7 @@ DINO_LIB_NAME=\"$(dino_lib)\"
 
 # Obligatory compiler options
 OPTIONS=@DEFS@ -I. -I.. -I@top_srcdir@/AMMUNITION  -I../AMMUNITION -I$(srcdir)\
-        -I@top_srcdir@/REGEX\
+        -I@top_srcdir@/ONIGURUMA\
 	-DCC='"$(CC)"'\
 	-DDINO_VERSION=$(DINO_VERSION)\
         -DSTANDARD_DINO_INCLUDE_DIRECTORY=$(DINO_LIBRARY_DIRECTORY)\
@@ -255,7 +255,7 @@ dino: $(srcdir)/d_main.c $(DINO_ADDITIONAL_LIBS)
 
 $(dino_lib): $(objects) $(ammunition)
 	rm -f $(dino_lib)
-	$(SHELL) -c "$(DINO_MAKELIB) $(objects) ../REGEX/regex.o $(ammunition)" $(dino_lib)
+	$(SHELL) -c "$(DINO_MAKELIB) $(objects) ../ONIGURUMA/*.o $(ammunition)" $(dino_lib)
 	$(SHELL) -c "$(DINO_AFTER_MAKELIB)" $(dino_lib)
 
 $(mpi_lib): d_mpi.o arithm.o

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(DINO/d_main.c)
 AC_CONFIG_HEADER(AMMUNITION/cocom-config.h)
 
-dnl AC_CONFIG_SUBDIRS(REGEX ONIGURUMA)
+dnl AC_CONFIG_SUBDIRS(REGEX)
 
 AC_CONFIG_SUBDIRS(ONIGURUMA)
 
@@ -322,7 +322,7 @@ output_files="DINO/Makefile DINO/dino.tst\
           AMMUNITION/earley++.tst\
           MSTA/msta.tst MSTA/quality.tst MSTA/compare.tst\
 	  SHILKA/shilka.tst SHILKA/compare.tst\
-          Makefile REGEX/Makefile REGEX/doc/Makefile REGEX/test/Makefile"
+          Makefile"
 
 # COCOM only start
 output_files="$output_files OKA/Makefile\

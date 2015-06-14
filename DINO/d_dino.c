@@ -127,6 +127,18 @@ memmove (void *s1, const void *s2, size_t n)
 
 
 
+/* Nonzero if it is a big endian machine.  */
+int big_endian_p;
+
+static void
+set_big_endian_flag (void)
+{
+  unsigned int i = 1;
+  big_endian_p = ((char *) &i)[0] == 0;
+}
+
+
+
 /* This page contains functions for transformation to/from string. */
 
 /* The function returns rint_t value for character number
@@ -1006,6 +1018,7 @@ dino_main (int argc, char *argv[], char *envp[])
   int code;
 
   start_time = clock ();
+  set_big_endian_flag ();
   if ((code = setjmp (exit_longjump_buff)) != 0)
     return (code < 0 ? 0 : code);
 #ifndef NDEBUG

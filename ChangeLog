@@ -1,3 +1,27 @@
+2015-06-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.in (OPTIONS): Use ONIGURUMA instead of REGEX.
+	(dino_lib): Use ONIGURUMA/*.o instead of REGEX/regex.o.
+	* DINO/d_dino.c (big_endian_p, set_big_endian_flag): New.
+	(dino_main): Call set_big_endian_flag.
+	* DINO/d_dino.h (big_endian_p): New.
+	* DINO/d_func.c (regex.h): Remove the include.
+	(oniguruma.h): Add the include.
+	(process_regcomp_errors): Rename to process_onig_errors.  Comment
+	processing the old codes.
+	(RE_DINO_SYNTAX): Use ONIG_SYNTAX_RUBY.
+	(struct regex_node): Make regex a pointer.
+	(region): New.
+	(find_regex): Rewrite using oniguruma.
+	(initiate_regex_tab, finish_regex_tab): Initiate and finilize
+	region and oniguruma.
+	(match_call, gmatch_call, generall_sub_call, split_call): Rewrite
+	using oniguruma.
+	* configure.in: Remove ONIGURUMA from comments.  Remove
+	REGEX/Makefile, REGEX/doc/Makefile, and  REGEX/test/Makefile from
+	output_files.
+	* configure: Update.
+
 2015-06-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* configure.in: Add AC_CONFIG_SUBDIRS(ONIGURUMA).

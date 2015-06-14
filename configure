@@ -6169,7 +6169,7 @@ output_files="DINO/Makefile DINO/dino.tst\
           AMMUNITION/earley++.tst\
           MSTA/msta.tst MSTA/quality.tst MSTA/compare.tst\
 	  SHILKA/shilka.tst SHILKA/compare.tst\
-          Makefile REGEX/Makefile REGEX/doc/Makefile REGEX/test/Makefile"
+          Makefile"
 
 # COCOM only start
 output_files="$output_files OKA/Makefile\

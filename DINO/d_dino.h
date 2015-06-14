@@ -174,4 +174,5 @@ int dlclose (void *handle);
 
 #define DINO_EXTERN_LIBS_NAME_VARIABLE "DINO_EXTERN_LIBS"
 
+extern int big_endian_p;
 extern int dino_main (int argc, char *argv[], char *envp[]);
