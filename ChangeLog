@@ -1,7 +1,11 @@
 2015-06-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Remove function param pattern matching.
+
+2015-06-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* README.md: Comment not implemented yet function param pattern
-	matching.  Add returns in switch example..
+	matching.  Add returns in switch example.
 
 2015-06-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 

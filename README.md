@@ -188,11 +188,6 @@
   * pattern can be nested, e.g. `node ([v, ...], 10)`
 * Pattern matching in variable declaration, e.g. `var [a, b, ...] = v;`
   * `v` should be a vector with at least 2 elements, new declared variables `a` and `b` will hold values of the two first elements
-<!---
-Not implemented yet:
-* Pattern matching in parameters, e.g. `fun f ([a, b, ...]) {a + b;}`
-  * Analogously for the single parameter of function `f`
--->
 
 ---
 
