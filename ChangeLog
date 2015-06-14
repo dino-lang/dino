@@ -1,3 +1,8 @@
+2015-06-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Comment not implemented yet function param pattern
+	matching.  Add returns in switch example..
+
 2015-06-12  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Rearrange the added info again.
