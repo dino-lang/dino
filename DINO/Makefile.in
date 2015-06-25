@@ -792,7 +792,7 @@ d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c d_run.h \
  $(top_srcdir)/DINO/../DINO/d_built.h \
  $(top_srcdir)/DINO/../DINO/d_conv.h \
  $(top_srcdir)/DINO/../DINO/d_func.h \
- $(top_srcdir)/REGEX/regex.h \
+ $(top_srcdir)/ONIGURUMA/oniguruma.h \
  $(top_srcdir)/AMMUNITION/earley.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_func.c
 d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
@@ -820,7 +820,8 @@ d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
  $(top_srcdir)/DINO/../DINO/d_eval.h \
  $(top_srcdir)/DINO/../DINO/d_gen.c
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_eval.c
-d_inference.o: $(top_srcdir)/DINO/../DINO/d_inference.c \
+d_inference.o: \
+ $(top_srcdir)/DINO/../DINO/d_inference.c \
  $(top_srcdir)/DINO/../DINO/d_common.h \
  $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
@@ -886,13 +887,12 @@ d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/DINO/../DINO/d_yacc.h \
  $(top_srcdir)/DINO/../DINO/d_context.h \
  $(top_srcdir)/DINO/../DINO/d_inference.h \
- $(top_srcdir)/DINO/../DINO/d_bcio.h \
  $(top_srcdir)/DINO/../DINO/d_eval.h \
  $(top_srcdir)/DINO/../DINO/d_func.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_dino.c
 d_main.o: $(top_srcdir)/DINO/../DINO/d_main.c \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h d_run.h \
- $(top_srcdir)/DINO/d_types.h d_bc.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ d_run.h $(top_srcdir)/DINO/d_types.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h \
  $(top_srcdir)/DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
@@ -911,8 +911,8 @@ d_main.o: $(top_srcdir)/DINO/../DINO/d_main.c \
  $(top_srcdir)/DINO/d_types.h \
  $(top_srcdir)/DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_main.c
-d_mpi.o: $(top_srcdir)/DINO/../DINO/d_mpi.c d_extern.h \
- $(top_srcdir)/DINO/d_types.h d_config.h \
+d_mpi.o: $(top_srcdir)/DINO/../DINO/d_mpi.c \
+ d_extern.h $(top_srcdir)/DINO/d_types.h d_config.h \
  $(top_srcdir)/AMMUNITION/arithm.h \
  ../AMMUNITION/cocom-config.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_mpi.c
@@ -920,8 +920,8 @@ arithm.o: $(top_srcdir)/DINO/../AMMUNITION/arithm.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/DINO/../AMMUNITION/arithm.h
 	$(CC) -c $(ECFLAGS) -o $@ $(top_srcdir)/DINO/../AMMUNITION/arithm.c
-d_ieee.o: $(top_srcdir)/DINO/../DINO/d_ieee.c d_extern.h \
- $(top_srcdir)/DINO/d_types.h d_config.h \
+d_ieee.o: $(top_srcdir)/DINO/../DINO/d_ieee.c \
+ d_extern.h $(top_srcdir)/DINO/d_types.h d_config.h \
  $(top_srcdir)/AMMUNITION/arithm.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/IEEE.h

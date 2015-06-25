@@ -1,3 +1,8 @@
+2015-06-24  Vladimir Makarov  <vmakarov@redhat.com>
+
+	* REGEX: Remove all the directory.
+	* DINO/Makefile.in: Update dependencies.
+
 2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_bc.sprut (ucodestr_t): New type.
