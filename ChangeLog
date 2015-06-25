@@ -1,5 +1,9 @@
 2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* README.md: Make example with dino_debug look better.
+
+2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* configure.in: Add dino_debug.  Test -g3 and use it for debug
 	mode if it is supported.
 	* configure: Update.

@@ -560,7 +560,8 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ```
 * Configure in a debug mode: -O0 and full IR checking (it makes DINO several times slower):
 ```
-  {cocom,dino}_debug=y <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
+  dino_debug=y <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
+  or cocom_debug=y ...
 ```
 * Make:
 ```
