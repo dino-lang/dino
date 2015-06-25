@@ -233,6 +233,7 @@ first_expr_processing (IR_node_t expr, int pattern_p)
     case IR_NM_long:
     case IR_NM_float:
     case IR_NM_string:
+    case IR_NM_ucodestr:
     case IR_NM_nil:
     case IR_NM_char_type:
     case IR_NM_int_type:
@@ -2304,6 +2305,13 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       bc = new_bc_code_with_src (BC_NM_lds, expr);
       BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
       BC_set_str (bc, IR_string_value (IR_unique_string (expr)));
+      IR_set_value_type (expr, EVT_VEC);
+      add_to_bcode (bc);
+      break;
+    case IR_NM_ucodestr:
+      bc = new_bc_code_with_src (BC_NM_ldus, expr);
+      BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
+      BC_set_ustr (bc, IR_ucodestr_value (IR_unique_ucodestr (expr)));
       IR_set_value_type (expr, EVT_VEC);
       add_to_bcode (bc);
       break;

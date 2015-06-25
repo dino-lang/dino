@@ -1752,34 +1752,40 @@ initiate_lines (void)
 
 /* Read next line from file, store it, and return it.  The non-empty
    read line will always have NL at its end.  The trailing `\r' is
-   removed.  The empty line means reaching EOF. */
-static const char *
+   removed.  The empty line means reaching EOF.  */
+static const ucode_t *
 read_line (FILE *f)
 {
   int c;
-  const char *ln;
+  ucode_t uc;
+  const ucode_t *ln;
 
-  while ((c = getc (f)) != EOF && c != '\n')
-    OS_TOP_ADD_BYTE (lines, c);
+  while ((c = get_ucode_from_utf8_stream (read_byte, f)) != EOF && c != '\n')
+    {
+      uc = c;
+      OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
+    }
   if (c != EOF || OS_TOP_LENGTH (lines) > 0)
     {
-      if (OS_TOP_LENGTH (lines) > 0 && *((char *) OS_TOP_END (lines)) =='\r')
-	OS_TOP_SHORTEN (lines, 1);
-      OS_TOP_ADD_BYTE (lines, '\n');
+      if (OS_TOP_LENGTH (lines) > 0 && *((ucode_t *) OS_TOP_END (lines)) =='\r')
+	OS_TOP_SHORTEN (lines, sizeof (ucode_t));
+      uc = '\n';
+      OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
     }
-  OS_TOP_ADD_BYTE (lines, '\0');
+  uc = '\0';
+  OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
   ln = OS_TOP_BEGIN (lines);
   OS_TOP_FINISH (lines);
-  VLO_ADD_MEMORY (lines_vec, &ln, sizeof (char  *));
+  VLO_ADD_MEMORY (lines_vec, &ln, sizeof (ucode_t *));
   return ln;
 }
 
 /* Return N-th read line.  */
-const char *
+const ucode_t *
 get_read_line (int n)
 {
-  d_assert (n >= 0 && VLO_LENGTH (lines_vec) > n * sizeof (char *));
-  return ((char **)VLO_BEGIN (lines_vec)) [n];
+  d_assert (n >= 0 && VLO_LENGTH (lines_vec) > n * sizeof (ucode_t *));
+  return ((ucode_t **)VLO_BEGIN (lines_vec)) [n];
 }
 
 /* Finish the abstract data.  */
@@ -1830,7 +1836,7 @@ static struct istream_state curr_istream_state;
    See package `vl-object'. */
 static vlo_t istream_stack;
 
-/* The following variable is used for storing '\r'. */
+/* The following variable is used for storing ungotten code. */
 static int previous_char;
 
 /* The following function creates empty input stream stack and
@@ -1861,6 +1867,9 @@ istream_stack_height (void)
 {
   return VLO_LENGTH (istream_stack) / sizeof (struct istream_state);
 }
+
+/* Ucode string containing only 0 element.  */
+static ucode_t empty_ucode_string[] = {0};
 
 /* The following function saves current input stream and scanner state
    (if it is defined) in the stack, closes file corresponding to
@@ -1905,7 +1914,8 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
 		      curr_istream_state.file_name);
     }
   else if (repl_flag)
-    command_line_program = ""; /* To read line when we need it. */
+    /* To read line when we need it. */
+    command_line_program = empty_ucode_string;
   previous_char = NOT_A_CHAR;
   start_file_position (curr_istream_state.file_name);
   curr_istream_state.uninput_lexema_code = (-1);
@@ -2115,7 +2125,7 @@ static const char *environment;
    parsing environment. */
 static position_t after_environment_position;
 
-/* The variable is used for implementation of getc when reading from
+/* The variable is used for implementation of d_getc when reading from
    the command line string. */
 static int curr_char_number;
 
@@ -2123,7 +2133,7 @@ static int curr_char_number;
    bunch of stmts.  */
 static int first_repl_empty_line_p;
 
-/* Getc for dino.  Replacing "\r\n" onto "\n". */
+/* Getc for dino.  Reading utf8 and replacing "\r\n" onto "\n". */
 static int
 d_getc (void)
 {
@@ -2132,6 +2142,8 @@ d_getc (void)
   if (*environment != '\0')
     {
       result = *environment++;
+      /* Environment is always Latin-1 string.  */
+      d_assert (in_byte_range_p (result));
       if (*environment == 0)
 	{
 	  /* Restore the position. */
@@ -2143,8 +2155,9 @@ d_getc (void)
     }
   else if (curr_istream_state.file != NULL)
     {
-      if (previous_char != '\r')
-	result = getc (curr_istream_state.file);
+      if (previous_char == NOT_A_CHAR)
+	result
+	  = get_ucode_from_utf8_stream (read_byte, curr_istream_state.file);
       else
 	{
 	  result = previous_char;
@@ -2152,10 +2165,11 @@ d_getc (void)
 	}
       if (result == '\r')
 	{
-	  result = getc (curr_istream_state.file);
+	  result
+	    = get_ucode_from_utf8_stream (read_byte, curr_istream_state.file);
 	  if (result != '\n')
 	    {
-	      ungetc (result, curr_istream_state.file);
+	      previous_char = result;
 	      result = '\r';
 	    }
 	}
@@ -2199,10 +2213,8 @@ d_ungetc (int ch)
     environment--;
   else if (curr_istream_state.file != NULL)
      {
-       if (ch != '\r')
-	 ungetc (ch, curr_istream_state.file);
-       else
-	 previous_char = ch;
+       d_assert (previous_char == NOT_A_CHAR);
+       previous_char = ch;
      }
    else
      {
@@ -2223,10 +2235,13 @@ skip_line_rest (void)
       previous_char = NOT_A_CHAR;
       pop_istream_stack ();
     }
-  command_line_program = "";
+  command_line_program = empty_ucode_string;
   curr_char_number = 0;
   current_position.line_number++;
 }
+
+/* Container used temporary by the scanner.  */
+static vlo_t temp_scanner_vlo;
 
 /* Var length string used by function yylval for text presentation of
    the symbol. */
@@ -2243,7 +2258,9 @@ static vlo_t symbol_text;
 int
 yylex (void)
 {
+  int wrong_escape_code;
   int input_char;
+  ucode_t uc;
   int number_of_successive_error_characters;
   int last_repl_process_flag = repl_process_flag;
 
@@ -2696,7 +2713,8 @@ yylex (void)
         case '\'':
           {
             IR_node_t unique_char_node_ptr;
-            int correct_newln, character_code;
+            int correct_newln;
+	    int character_code;
             
 	    source_position = current_position;
 	    current_position.column_number++;
@@ -2710,12 +2728,19 @@ yylex (void)
 	      }
             else
               {
-                input_char = read_string_code (input_char, &correct_newln,
-					       d_getc, d_ungetc);
+                input_char = read_dino_string_code (input_char, &correct_newln,
+						    &wrong_escape_code,
+						    d_getc, d_ungetc);
                 if (input_char < 0 || correct_newln)
 		  {
 		    current_position.column_number--;
 		    error (FALSE, current_position, ERR_invalid_char_constant);
+		    current_position.column_number++;
+		  }
+		else if (wrong_escape_code)
+		  {
+		    current_position.column_number--;
+		    error (FALSE, current_position, ERR_invalid_escape_code);
 		    current_position.column_number++;
 		  }
               }
@@ -2742,45 +2767,105 @@ yylex (void)
           }
         case '\"':
           {
-            int correct_newln;
+            int correct_newln, unicode_p;
             IR_node_t unique_string_node_ptr;
             char *string_value_in_code_memory;
             
 	    source_position = current_position;
 	    current_position.column_number++;
+	    unicode_p = FALSE;
             for (;;)
               {
                 input_char = d_getc ();
 		current_position.column_number++;
                 if (input_char == '\"')
                   break;
-                input_char = read_string_code (input_char, &correct_newln,
-					       d_getc, d_ungetc);
+                input_char = read_dino_string_code (input_char, &correct_newln,
+						    &wrong_escape_code,
+						    d_getc, d_ungetc);
                 if (input_char < 0)
                   {
                     error (FALSE, current_position, ERR_string_end_absence);
                     break;
                   }
-                if (!correct_newln)
-                  VLO_ADD_BYTE (symbol_text, input_char);
+                if (wrong_escape_code)
+                  {
+		    error (FALSE, current_position, ERR_invalid_escape_code);
+                    continue;
+                  }
+                if (! correct_newln)
+		  {
+		    if (! unicode_p && ! in_byte_range_p (input_char))
+		      {
+			/* Transform accumulated string into ucode
+			   string: */
+			unicode_p = TRUE;
+			copy_vlo (&temp_scanner_vlo, &symbol_text);
+			str_to_ucode_vlo (&symbol_text,
+					  VLO_BEGIN (temp_scanner_vlo),
+					  VLO_LENGTH (symbol_text));
+		      }
+		    if (unicode_p)
+		      {
+			uc = input_char;
+			VLO_ADD_MEMORY (symbol_text, &uc, sizeof (ucode_t));
+		      }
+		    else
+		      VLO_ADD_BYTE (symbol_text, input_char);
+		  }
               }
-            VLO_ADD_BYTE (symbol_text, '\0');
-            IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
-            unique_string_node_ptr = *find_table_entry (temp_unique_string,
-							FALSE);
-            if (unique_string_node_ptr == NULL)
-              {
-                unique_string_node_ptr
-                  = create_unique_node_with_string
-                    (IR_NM_unique_string, VLO_BEGIN (symbol_text),
-                     &string_value_in_code_memory);
-                IR_set_string_value (unique_string_node_ptr,
-                                     string_value_in_code_memory);
-                include_to_table (unique_string_node_ptr);
-              }
-            yylval.pointer = create_node_with_pos (IR_NM_string,
-						   source_position);
-            IR_set_unique_string (yylval.pointer, unique_string_node_ptr);
+	    if (unicode_p)
+	      {
+		uc = '\0';
+		VLO_ADD_MEMORY (symbol_text, &uc, sizeof (ucode_t));
+		IR_set_ucodestr_value (temp_unique_ucodestr,
+				       VLO_BEGIN (symbol_text));
+		d_assert (VLO_LENGTH (symbol_text) > sizeof (ucode_t));
+		IR_set_ucodestr_size
+		  (temp_unique_ucodestr,
+		   VLO_LENGTH (symbol_text) - sizeof (ucode_t));
+		unique_string_node_ptr = *find_table_entry (temp_unique_ucodestr,
+							    FALSE);
+		if (unique_string_node_ptr == NULL)
+		  {
+		    unique_string_node_ptr
+		      = create_unique_node_with_string
+		        (IR_NM_unique_ucodestr, VLO_BEGIN (symbol_text),
+			 VLO_LENGTH (symbol_text),
+			 &string_value_in_code_memory);
+		    IR_set_ucodestr_value (unique_string_node_ptr,
+					     (ucodestr_t) string_value_in_code_memory);
+		    IR_set_ucodestr_size
+		      (unique_string_node_ptr,
+		       VLO_LENGTH (symbol_text) - sizeof (ucode_t));
+		    include_to_table (unique_string_node_ptr);
+		  }
+		yylval.pointer = create_node_with_pos (IR_NM_ucodestr,
+						       source_position);
+		IR_set_unique_ucodestr (yylval.pointer,
+					unique_string_node_ptr);
+	      }
+	    else
+	      {
+		VLO_ADD_BYTE (symbol_text, '\0');
+		IR_set_string_value (temp_unique_string, VLO_BEGIN (symbol_text));
+		unique_string_node_ptr = *find_table_entry (temp_unique_string,
+							    FALSE);
+		if (unique_string_node_ptr == NULL)
+		  {
+		    unique_string_node_ptr
+		      = create_unique_node_with_string
+		      (IR_NM_unique_string, VLO_BEGIN (symbol_text),
+		       VLO_LENGTH (symbol_text),
+		       &string_value_in_code_memory);
+		    IR_set_string_value (unique_string_node_ptr,
+					 string_value_in_code_memory);
+		    include_to_table (unique_string_node_ptr);
+		  }
+		yylval.pointer = create_node_with_pos (IR_NM_string,
+						       source_position);
+		IR_set_unique_string (yylval.pointer, unique_string_node_ptr);
+	      }
             return STRING;
           }
         default:
@@ -2821,12 +2906,12 @@ yylex (void)
               /* Recognition numbers. */
 	      enum read_number_code err_code;
 	      int read_ch_num, float_p, long_p, base;
-	      const char *result;
+	      const char *result; /* Number is always ASCII sequence.  */
 
 	      source_position = current_position;
 	      current_position.column_number++;
-	      err_code = read_number (input_char, d_getc, d_ungetc, &read_ch_num,
-				      &result, &base, &float_p, &long_p);
+	      err_code = read_dino_number (input_char, d_getc, d_ungetc, &read_ch_num,
+					   &result, &base, &float_p, &long_p);
 	      if (err_code == ABSENT_EXPONENT)
 		{
 		  error (FALSE, source_position, ERR_exponent_absence);
@@ -2918,6 +3003,7 @@ initiate_scanner (void)
   curr_char_number = 0;
   environment = ENVIRONMENT;
   VLO_CREATE (symbol_text, 500);
+  VLO_CREATE (temp_scanner_vlo, 500);
 }
 
 /* The following function is called to tune the scanner on input
@@ -2961,6 +3047,8 @@ add_lexema_to_file (int lexema_code)
 void
 finish_scanner (void)
 {
+  VLO_DELETE (symbol_text);
+  VLO_DELETE (temp_scanner_vlo);
   if (repl_flag)
     finish_lines ();
   finish_istream_stack ();

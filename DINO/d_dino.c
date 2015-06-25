@@ -333,7 +333,7 @@ static vlo_t libraries_vector;
 /* The value of the following var is not NULL when the program is
    given on the command line.  In this case its value is the
    program. */
-const char *command_line_program = NULL;
+const ucode_t *command_line_program = NULL;
 
 /* The value of the following var is not NULL when the program is
    given by dump file on the command line.  In this case its value is
@@ -377,14 +377,16 @@ get_first_nondigit (const char *s)
   return *s;
 }
 
+/* Return readbale ASCII representation of unicode CH.  The result
+   exists until the next function call.  */
 char *
-get_ch_repr (int ch)
+get_ucode_ascii_repr (ucode_t ch)
 {
-  static char str [10];
+  static char str [20];
 
   if (ch == '\'' || ch == '"' || ch == '\\')
     sprintf (str, "\\%c", ch);
-  else if (isprint (ch))
+  else if (ch < 128 && isprint (ch))
     sprintf (str, "%c", ch);
   else if (ch == '\n')
     sprintf (str, "\\n");
@@ -400,26 +402,34 @@ get_ch_repr (int ch)
     sprintf (str, "\\r");
   else if (ch == '\f')
     sprintf (str, "\\f");
+  else if (ch < 256)
+    sprintf (str, "\\x%x", ch);
+  else if (ch < (1 << 16))
+    sprintf (str, "\\u%04x", ch);
   else
-    sprintf (str, "\\%o", ch);
+    sprintf (str, "\\U%08x", ch);
   return str;
 }
 
-/* The func reads one code (may be composited from some characters)
-   using C language conventions.  It is supposed that the current
-   character is not end marker (string or character constant).  The
-   func returns the code value or negative number if error is fixed.
-   After the call the current char is first char after the code or the
-   same as before call if error was fixed.  Position is position of
-   the char will be read next.  Parameter INPUT_CHAR is current input
-   char (the next chars may be read by d_getc () and undoing it by
-   d_ungetc).  If the code is symbol string breaking TRUE is passed
-   through parameter correct_newln.  This case is error and the error
-   must be processed after the call if character constant is
-   processed. */
+/* The func reads one code (may be composited from some characters,
+   e.g. using an escape character sequence) using DINO language
+   conventions.  It is supposed that the current character is not end
+   marker (string or character constant).  The func returns the code
+   value or negative number if error is found.  After the call the
+   current char is first char after the code or the same as before
+   call if error was found.  Position is position of the char will be
+   read next.  Parameter INPUT_CHAR is current input char (the next
+   chars may be read by d_getc () and undoing it by d_ungetc).  If the
+   code is symbol string breaking, TRUE is passed through parameter
+   correct_newln.  This case is error and the error must be processed
+   right after the call if character constant is processed.  If we
+   have wrong escape code (hex or unicode escape), TRUE is passed
+   through parameter wrong_escape_code.  The error must be processed
+   after the call too. */
 int
-read_string_code (int input_char, int *correct_newln,
-		  int d_getc (void), void d_ungetc (int))
+read_dino_string_code (int input_char, int *correct_newln,
+		       int *wrong_escape_code,
+		       int d_getc (void), void d_ungetc (int))
 {
   int character_code;
 
@@ -431,7 +441,7 @@ read_string_code (int input_char, int *correct_newln,
       d_ungetc (input_char);
       return (-1);
     }
-  *correct_newln = FALSE;
+  *correct_newln = *wrong_escape_code = FALSE;
   if (input_char == '\\')
     {
       input_char = d_getc ();
@@ -460,7 +470,7 @@ read_string_code (int input_char, int *correct_newln,
         }
       else if (isdigit (input_char) && input_char != '8' && input_char != '9')
 	{
-	  character_code = VALUE_OF_DIGIT (input_char);
+	  character_code = value_of_digit (input_char);
 	  input_char = d_getc ();
 	  if (!isdigit (input_char) || input_char == '8' || input_char == '9')
 	    d_ungetc (input_char);
@@ -468,7 +478,7 @@ read_string_code (int input_char, int *correct_newln,
 	    {
 	      current_position.column_number++;
 	      character_code
-		= (character_code * 8 + VALUE_OF_DIGIT (input_char));
+		= (character_code * 8 + value_of_digit (input_char));
 	      input_char = d_getc ();
 	      if (!isdigit (input_char)
 		  || input_char == '8' || input_char == '9')
@@ -476,13 +486,32 @@ read_string_code (int input_char, int *correct_newln,
 	      else
 		{
 		  character_code
-		    = (character_code * 8 + VALUE_OF_DIGIT (input_char));
+		    = (character_code * 8 + value_of_digit (input_char));
 		  current_position.column_number++;
 		}
 
 	    }
 	  input_char = character_code;
-      }
+	}
+      else if (input_char == 'x' || input_char == 'u' || input_char == 'U')
+	{
+	  /* Hex or Unicode escape code.  */
+	  int i, c;
+	  
+	  character_code = 0;
+	  for (i = (input_char == 'x' ? 2 : input_char == 'u' ? 4 : 8);
+	       i > 0;
+	       i--)
+	    {
+	      input_char = d_getc ();
+	      if (! is_hex_digit (input_char))
+		break;
+	      c = value_of_hex_digit (input_char);
+	      character_code = (character_code << 4) | c;
+	    }
+	  *wrong_escape_code = i > 0;
+	  input_char = character_code;
+	}
     }
   return input_char;
 }
@@ -496,8 +525,9 @@ static vlo_t number_text;
    READ_CH_NUM, RESULT, BASE, FLOAT_P, LONG_P.  Return error code.  If
    the number is not ok only READ_CH_NUM should be defined.  */
 enum read_number_code
-read_number (int c, int get_ch (void), void unget_ch (int), int *read_ch_num,
-	     const char **result, int *base, int *float_p, int *long_p)
+read_dino_number (int c, int get_ch (void), void unget_ch (int),
+		  int *read_ch_num,
+		  const char **result, int *base, int *float_p, int *long_p)
 {
   enum read_number_code err_code = NUMBER_OK;
   int dec_p, hex_p, hex_char_p;
@@ -649,6 +679,9 @@ get_size_repr (size_t size, char *unit)
   return size;
 }
 
+/* Container for ucode of command line.  */
+static vlo_t command_line_vlo;
+
 static int evaluated_p;
 
 void
@@ -680,6 +713,7 @@ dino_finish (int code)
   VLO_DELETE (repr_vlobj);
   VLO_DELETE (include_path_directories_vector);
   VLO_DELETE (libraries_vector);
+  VLO_DELETE (command_line_vlo);
   if (input_dump_file != NULL)
     finish_read_bc ();
   if (statistics_flag && code == 0)
@@ -745,6 +779,7 @@ dino_start (void)
   initiate_icode (); /* only after initiate table */
   initiate_scanner ();
   source_position = no_position;
+  VLO_CREATE (command_line_vlo, 0);
   VLO_CREATE (include_path_directories_vector, 0);
   VLO_CREATE (libraries_vector, 0);
   VLO_CREATE (repr_vlobj, 0);
@@ -985,9 +1020,10 @@ d_verror (int fatal_error_flag, position_t position,
   else
     {
       int i;
-      const char *ln = get_read_line (position.line_number - 1);
+      const ucode_t *ln = get_read_line (position.line_number - 1);
       
-      fprintf (stderr, "%s%s", ln, ERROR_PREFIX);
+      print_ucode_string_as_utf8 (ln, stderr);
+      fprintf (stderr, "%s", ERROR_PREFIX);
       for (i = 1; i < position.column_number; i++)
 	fprintf (stderr, " ");
       fprintf (stderr, "^\n%s%s\n", ERROR_PREFIX, message);
@@ -1004,6 +1040,133 @@ d_error (int fatal_error_flag, position_t position,
   va_start (arguments, format);
   d_verror (fatal_error_flag, position, format, arguments);
   va_end (arguments);
+}
+
+/* Copy containing value of vlo *FROM to vlo *TO.  */
+void
+copy_vlo (vlo_t *to, vlo_t *from)
+{
+  VLO_NULLIFY (*to);
+  VLO_EXPAND (*to, VLO_LENGTH (*from));
+  memcpy (VLO_BEGIN (*to), VLO_BEGIN (*from), VLO_LENGTH (*from));
+}
+
+/* Put LEN chars of string STR as unicodes into vlo *TO.  */
+void
+str_to_ucode_vlo (vlo_t *to, const char *from, size_t len)
+{
+  ucode_t uc;
+  size_t i;
+  
+  VLO_NULLIFY (*to);
+  for (i = 0; i < len; i++)
+    {
+      uc = ((const unsigned char *) from)[i];
+      VLO_ADD_MEMORY (*to, &uc, sizeof (ucode_t));
+    }
+}
+
+/* Read byte C from UTF8 string passed through pointer DATA.
+   Increment the pointer.  Used by utf8_str_to_ucode_vlo.  */
+static inline int
+get_utf8_byte (void *data)
+{
+  const char *utf8 = *(const char **) data;
+  int res = *utf8++;
+
+  if (res == 0)
+    return -1;
+  *(const char **) data = utf8;
+  return res;
+}
+
+/* Put UTF8 string STR into vlo *VLO as unicode string.  Return the
+   string start in the vlo.  */
+static ucode_t *
+utf8_str_to_ucode_vlo (const char *utf8, vlo_t *vlo)
+{
+  VLO_NULLIFY (*vlo);
+  for (;;)
+    {
+      ucode_t u = get_ucode_from_utf8_stream (get_utf8_byte, (void *) &utf8);
+      if (u < 0)
+	break;
+      VLO_ADD_MEMORY (*vlo, &u, sizeof (ucode_t));
+    }
+  return (ucode_t *) VLO_BEGIN (*vlo);
+}
+
+/* Put byte C into vlo passed through DATA.  Used by
+   ucode_str_to_utf8_vlo.  */
+static inline int
+put_utf8_byte (int c, void *data)
+{
+  VLO_ADD_BYTE (*(vlo_t *) data, c);
+  return 1;
+}
+
+/* Put ucode string STR into vlo *VLO as UTF8 string.  Return the
+   string start in the vlo.  */
+char *
+ucode_str_to_utf8_vlo (const ucode_t *str, vlo_t *vlo)
+{
+  size_t i;
+  int code;
+  
+  VLO_NULLIFY (*vlo);
+  for (i = 0;; i++)
+    {
+      code = put_ucode_to_utf8_stream (str[i], put_utf8_byte, (void *) vlo);
+      d_assert (code > 0);
+      if (str[i] == 0)
+	break;
+    }
+  return (char *) VLO_BEGIN (*vlo);
+}
+
+/* Put unicode char C into vlo *VLO as UTF8 string.  Return the string
+   start in the vlo.  */
+char *
+ucode_char_to_utf8_vlo (int c, vlo_t *vlo)
+{
+  int code;
+  
+  VLO_NULLIFY (*vlo);
+  code = put_ucode_to_utf8_stream (c, put_utf8_byte, (void *) vlo);
+  d_assert (code > 0);
+  code = put_ucode_to_utf8_stream (0, put_utf8_byte, (void *) vlo);
+  d_assert (code > 0);
+  return (char *) VLO_BEGIN (*vlo);
+  
+}
+
+/* Put byte string STR into vlo *VLO as UTF8 string.  Return the
+   string start in the vlo.  */
+char *
+byte_str_to_utf8_vlo (byte_t *str, vlo_t *vlo)
+{
+  size_t i;
+  int code;
+  
+  for (i = 0; ; i++)
+    if (str[i] > 127)
+      {
+	VLO_NULLIFY (*vlo);
+	VLO_EXPAND (*vlo, i);
+	memcpy (VLO_BEGIN (*vlo), str, i * sizeof (byte_t));
+	break;
+      }
+    else if (str[i] == 0)
+      return str;
+  for (;; i++)
+    {
+      code = put_ucode_to_utf8_stream (str[i], put_utf8_byte, (void *) vlo);
+      d_assert (code > 0);
+      if (str[i] == 0)
+	break;
+    }
+  return (char *) VLO_BEGIN (*vlo);
+  
 }
 
 int
@@ -1060,7 +1223,8 @@ dino_main (int argc, char *argv[], char *envp[])
 	  dino_finish (1);
 	}
       else if (strcmp (option, "-c") == 0)
-	command_line_program = argument_vector [i + 1];
+	command_line_program = utf8_str_to_ucode_vlo (argument_vector [i + 1],
+						      &command_line_vlo);
       else if (strcmp (option, "-O") == 0)
 	optimize_flag = TRUE;
       else if (strcmp (option, "-s") == 0)

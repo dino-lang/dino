@@ -189,7 +189,7 @@ to_lower_upper (int pars_number, int lower_flag)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte) // ??? char
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, name);
   vect = ER_vect (ctop);
 #ifndef NEW_VECTOR
@@ -238,16 +238,14 @@ translit_call (int pars_number)
     {
       v = ER_vect (ctop);
       GO_THROUGH_REDIR (v);
-      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (v);
+      try_full_pack (v);
       ER_set_vect (ctop, v);
     }
   if (ER_NODE_MODE (below_ctop) == ER_NM_vect)
     {
       v = ER_vect (below_ctop);
       GO_THROUGH_REDIR (v);
-      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (v);
+      try_full_pack (v);
       ER_set_vect (below_ctop, v);
     }
   vect = IVAL (ctop, -2);
@@ -255,23 +253,22 @@ translit_call (int pars_number)
     {
       v = ER_vect (vect);
       GO_THROUGH_REDIR (v);
-      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (v);
+      try_full_pack (v);
       ER_set_vect (vect, v);
     }
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || (ER_els_number (ER_vect (ctop)) != 0
 	  && (ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char))
+	      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || (ER_els_number (ER_vect (below_ctop)) != 0
 	  && (ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char))
+	      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte))
       || ER_els_number (ER_vect (ctop)) != ER_els_number (ER_vect (below_ctop))
       || ER_NODE_MODE (vect) != ER_NM_vect
       || (ER_els_number (ER_vect (vect)) != 0
 	  && (ER_NODE_MODE (ER_vect (vect)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (vect)) != ER_NM_char)))
+	      || ER_pack_vect_el_mode (ER_vect (vect)) != ER_NM_byte)))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, TRANSLIT_NAME);
   vect = ER_vect (vect);
@@ -318,8 +315,7 @@ eltype_call (int pars_number)
 		DERR_parameter_type, ELTYPE_NAME);
   vect = ER_vect (ctop);
   GO_THROUGH_REDIR (vect);
-  if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (vect);
+  try_full_pack (vect);
   /* Place the result instead of the function. */
   if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect)
     ER_SET_MODE (fun_result, ER_NM_nil);
@@ -388,8 +384,7 @@ keys_call (int pars_number)
 	  = *(val_t *) INDEXED_EL_KEY (ER_tab_els (tab), i);
 	index++;
       }
-  if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (vect);
+  try_full_pack (vect);
   ER_SET_MODE (fun_result, ER_NM_vect);
   set_vect_dim (fun_result, vect, 0);
 }
@@ -636,10 +631,15 @@ process_onig_errors (int code, const char *function_name)
    regex. */
 struct regex_node
 {
-  /* Compiled regex. */
-  regex_t *regex;
+  /* Compiled regex for combination of encoding pattern and string.  A
+     field can be NULL if it is not calculated_yet.  */
+  regex_t *latin1_latin1_regex;
+  regex_t *latin1_ucode_regex;
+  regex_t *ucode_ucode_regex;
   /* Regex string representation.  It is a key of in the cache. */
-  const char *string;
+  void *string;
+  /* True if string is ucode_t string.  */
+  int ucode_p;
 };
 
 /* Temporary structure. */
@@ -660,10 +660,22 @@ static unsigned
 regex_node_hash (hash_table_entry_t n)
 {
   unsigned hash_value, i;
-  const char *str = ((struct regex_node *) n)->string;
+  struct regex_node *node = (struct regex_node *) n;
 
-  for (hash_value = i =0; *str != '\0'; str++, i++)
-    hash_value += ((unsigned char) *str << (i % CHAR_BIT));
+  if (node->ucode_p)
+    {
+      const ucode_t *str = node->string;
+      
+      for (hash_value = i = 0; *str != '\0'; str++, i++)
+	hash_value += *str << (i & 0x7);
+    }
+  else
+    {
+      const byte_t *str = node->string;
+      
+      for (hash_value = i = 0; *str != '\0'; str++, i++)
+	hash_value += (*(const unsigned char *) str << (i % CHAR_BIT));
+    }
   return hash_value;
 }
 
@@ -671,55 +683,119 @@ regex_node_hash (hash_table_entry_t n)
 static int
 regex_node_eq (hash_table_entry_t n1, hash_table_entry_t n2)
 {
+  size_t i;
+  int ch1, ch2;
   struct regex_node *node1 = ((struct regex_node *) n1);
   struct regex_node *node2 = ((struct regex_node *) n2);
-
-  return strcmp (node1->string, node2->string) == 0;
+  
+  if (! node1->ucode_p && ! node2->ucode_p)
+    return strcmp (node1->string, node2->string) == 0;
+  for (i = 0;; i++)
+    {
+      ch1 = (node1->ucode_p
+	     ? ((const ucode_t *) node1->string) [i]
+	     : ((const byte_t *) node1->string) [i]);
+      ch2 = (node2->ucode_p
+	     ? ((const ucode_t *) node2->string) [i]
+	     : ((const byte_t *) node2->string) [i]);
+      if (ch1 != ch2)
+	return FALSE;
+      if (ch1 == 0)
+	break;
+    }
+  return TRUE;
 }
 
-/* Find compiled version of regex STRING in the cache.  If it is
-   absent, compile it and insert it into cache.  Returns nonzero if
-   there were errors during the compilation. */
+/* Return size of ucode string STR (if UCODE_P) or byte string
+   otherwize.  The size includes trailing zero char if
+   ZERO_CHAR_P.  */
+static inline size_t
+get_str_size (const void *str, int ucode_p, int zero_char_p)
+{
+  size_t tail_size
+    = ! zero_char_p ? 0 : ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
+  return (ucode_p
+	  ? ucodestrlen ((const ucode_t *) str) * sizeof (ucode_t)
+	  : strlen ((const char *) str) * sizeof (byte_t)) + tail_size;
+}
+
+/* Find compiled version of regex pattern PAT (latin1 or unicode
+   depending on PAT_UCODE_P) in the cache for matching a string
+   (latin1 or unicode depending on STR_UCODE_P).  If it is absent,
+   compile it and insert it into the cache.  Returns nonzero if there
+   were errors during the compilation. */
 static int
-find_regex (const char *string, regex_t **result)
+find_regex (void *pat, int pat_ucode_p, int str_ucode_p, regex_t **result)
 {
   hash_table_entry_t *entry;
-  struct regex_node *reg;
+  struct regex_node *regn;
+  regex_t *r;
   OnigErrorInfo einfo;
-  size_t len;
+  size_t len, size;
   int code;
+  OnigCompileInfo ci;
   OnigEncoding ucode_enc = (big_endian_p
 			    ? ONIG_ENCODING_UTF32_BE : ONIG_ENCODING_UTF32_LE);
 
+  /* Check possible combinations.  */
+  d_assert (! pat_ucode_p || str_ucode_p);
   *result = NULL;
-  regex_node.string = string;
+  regex_node.string = pat;
+  regex_node.ucode_p = pat_ucode_p;
   entry = find_hash_table_entry (regex_tab, &regex_node, FALSE);
   if (*entry != NULL)
     {
-      *result = ((struct regex_node *) (*entry))->regex;
-      return ONIG_NORMAL;
+      regn = (struct regex_node *) (*entry); 
+      *result = (pat_ucode_p ? regn->ucode_ucode_regex
+		 : str_ucode_p ? regn->latin1_ucode_regex
+		 : regn->latin1_latin1_regex);
+      if (*result != NULL)
+	return ONIG_NORMAL;
     }
   OS_TOP_EXPAND (regex_os, sizeof (struct regex_node));
-  reg = OS_TOP_BEGIN (regex_os);
-  len = strlen (string);
-  code = onig_new (&reg->regex, string, string + len,
-		   ONIG_OPTION_DEFAULT, ONIG_ENCODING_ASCII, RE_DINO_SYNTAX,
-		   &einfo);
+  regn = OS_TOP_BEGIN (regex_os);
+  len = (pat_ucode_p ? strlen (pat) : ucodestrlen (pat));
+  ci.num_of_elements = 5;
+  ci.pattern_enc = pat_ucode_p ? ucode_enc : ONIG_ENCODING_ISO_8859_1;
+  ci.target_enc  = str_ucode_p ? ucode_enc : ONIG_ENCODING_ISO_8859_1;
+  ci.syntax      = RE_DINO_SYNTAX;
+  ci.option      = ONIG_OPTION_DEFAULT;
+  ci.case_fold_flag  = ONIGENC_CASE_FOLD_DEFAULT;
+  code = onig_new_deluxe (&r, pat,
+			  (char *) pat + get_str_size (pat, pat_ucode_p, FALSE),
+			  &ci, &einfo);
   if (code != ONIG_NORMAL)
     {
-      onig_free (reg->regex);
+      onig_free (r);
       OS_TOP_NULLIFY (regex_os);
       return code;
     }
-  OS_TOP_FINISH (regex_os);
-  VLO_ADD_MEMORY (regex_vlo, &reg, sizeof (reg));
-  OS_TOP_EXPAND (regex_os, strlen (string) + 1);
-  reg->string = OS_TOP_BEGIN (regex_os);
-  OS_TOP_FINISH (regex_os);
-  strcpy ((char *) reg->string, string);
-  entry = find_hash_table_entry (regex_tab, reg, TRUE);
-  *entry = reg;
-  *result = reg->regex;
+  if (*entry != NULL)
+    regn = (struct regex_node *) (*entry); 
+  else
+    {
+      OS_TOP_FINISH (regex_os);
+      VLO_ADD_MEMORY (regex_vlo, &regn, sizeof (regn));
+      size = get_str_size (pat, pat_ucode_p, TRUE);
+      OS_TOP_EXPAND (regex_os, size);
+      regn->string = OS_TOP_BEGIN (regex_os);
+      OS_TOP_FINISH (regex_os);
+      memcpy (regn->string, pat, size);
+      regn->latin1_latin1_regex
+	= regn->latin1_ucode_regex = regn->ucode_ucode_regex = NULL;
+    }
+  if (pat_ucode_p)
+    regn->ucode_ucode_regex = r;
+  else if (str_ucode_p)
+    regn->latin1_ucode_regex = r;
+  else
+    regn->latin1_latin1_regex = r;
+  if (*entry == NULL)
+    {
+      entry = find_hash_table_entry (regex_tab, regn, TRUE);
+      *entry = regn;
+    }
+  *result = r;
   return ONIG_NORMAL;
 }
 
@@ -739,10 +815,19 @@ static void
 finish_regex_tab (void)
 {
   int i;
+  struct regex_node *regn;
 
   delete_hash_table (regex_tab);
   for (i = 0; i < VLO_LENGTH (regex_vlo) / sizeof (struct regex_node *); i++)
-    onig_free (((struct regex_node **) VLO_BEGIN (regex_vlo)) [i]->regex);
+    {
+      regn = ((struct regex_node **) VLO_BEGIN (regex_vlo)) [i];
+      if (regn->latin1_latin1_regex != NULL)
+	onig_free (regn->latin1_latin1_regex);
+      if (regn->latin1_ucode_regex != NULL)
+	onig_free (regn->latin1_ucode_regex);
+      if (regn->ucode_ucode_regex != NULL)
+	onig_free (regn->ucode_ucode_regex);
+    }
   VLO_DELETE (regex_vlo);
   OS_DELETE (regex_os);
   onig_region_free (region, 1);
@@ -757,7 +842,7 @@ match_call (int pars_number)
   size_t els_number;
   size_t i;
   const char *start, *end;
-  int code;
+  int code, pat_ucode_p, str_ucode_p;
 
   if (pars_number != 2)
     eval_error (parnumber_bc_decl, call_pos (),
@@ -766,27 +851,42 @@ match_call (int pars_number)
   to_vect_string_conversion (below_ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte)
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, MATCH_NAME);
-  code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
+  pat_ucode_p = ER_pack_vect_el_mode (ER_vect (below_ctop)) == ER_NM_char;
+  str_ucode_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char;
+  if (pat_ucode_p && ! str_ucode_p)
+    {
+      /* Impossible ONIGURUMA combination: ucode pattern and ascii
+	 string.  */
+      ER_set_vect (ctop, bytevect_to_ucodevect (ER_vect (ctop)));
+      str_ucode_p = TRUE;
+    }
+  code = find_regex (ER_pack_els (ER_vect (below_ctop)),
+		     pat_ucode_p, str_ucode_p, &reg);
   if (code != ONIG_NORMAL)
     process_onig_errors (code, MATCH_NAME);
   start = ER_pack_els (ER_vect (ctop));
-  end = start + strlen (start);
+  end = start + get_str_size (start, str_ucode_p, FALSE);
   code = onig_search (reg, start, end, start, end, region, ONIG_OPTION_NONE);
   if (code == ONIG_MISMATCH)
     result = NULL;
   else if (code >= 0)
     {
+      size_t ch_size = str_ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
+
       els_number = region->num_regs;
       result = create_pack_vector (2 * els_number, ER_NM_int);
       for (i = 0; i < els_number; i++)
 	{
-	  ((rint_t *) ER_pack_els (result)) [2 * i] = region->beg[i];
-	  ((rint_t *) ER_pack_els (result)) [2 * i + 1] = region->end[i];
+	  ((rint_t *) ER_pack_els (result)) [2 * i] = region->beg[i] / ch_size;
+	  ((rint_t *) ER_pack_els (result)) [2 * i + 1]
+	    = region->end[i] / ch_size;
 	}
     }
   else
@@ -805,9 +905,9 @@ gmatch_call (int pars_number)
 {
   regex_t *reg;
   ER_node_t par1, par2, result;
-  int code, flag, count, disp;
+  int code, flag, count, disp, pat_ucode_p, str_ucode_p;
   rint_t el;
-  size_t len;
+  size_t len, ch_size;
   const char *start, *end;
 
   if (pars_number != 2 && pars_number != 3)
@@ -828,29 +928,41 @@ gmatch_call (int pars_number)
   to_vect_string_conversion (par1, NULL, NULL);
   if (ER_NODE_MODE (par2) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par2)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (par2)) != ER_NM_char
+      || (ER_pack_vect_el_mode (ER_vect (par2)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (par2)) != ER_NM_byte)
       || ER_NODE_MODE (par1) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par1)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (par1)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (par1)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (par1)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, GMATCH_NAME);
-  code = find_regex (ER_pack_els (ER_vect (par1)), &reg);
+  pat_ucode_p = ER_pack_vect_el_mode (ER_vect (par1)) == ER_NM_char;
+  str_ucode_p = ER_pack_vect_el_mode (ER_vect (par2)) == ER_NM_char;
+  if (pat_ucode_p && ! str_ucode_p)
+    {
+      /* Impossible ONIGURUMA combination: ucode pattern and ascii
+	 string.  */
+      ER_set_vect (par2, bytevect_to_ucodevect (ER_vect (par2)));
+      str_ucode_p = TRUE;
+    }
+  code = find_regex (ER_pack_els (ER_vect (par1)),
+		     pat_ucode_p, str_ucode_p, &reg);
   if (code != ONIG_NORMAL)
     process_onig_errors (code, GMATCH_NAME);
   VLO_NULLIFY (temp_vlobj2);
   start = ER_pack_els (ER_vect (par2));
-  len = strlen (start);
-  end = start + len;
+  end = start + get_str_size (start, str_ucode_p, FALSE);
   disp = 0;
   count = 0;
+  ch_size = str_ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
   while (onig_search (reg, start + disp, end, start + disp, end,
 		      region, ONIG_OPTION_NONE) >= 0)
     {
-      el = region->beg [0] + disp;
+      el = (region->beg [0] + disp) / ch_size;
       VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
-      el = region->end [0] + disp;
+      el = (region->end [0] + disp) / ch_size;
       VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
       if (flag)
-	disp++;
+	disp += ch_size;
       else
 	disp += region->end [0];
       count++;
@@ -872,21 +984,19 @@ generall_sub_call (int pars_number, int global_flag)
 {
   regex_t *reg;
   size_t len;
-  size_t sub_length [10];
-  size_t n_subst;
   ER_node_t result;
   ER_node_t vect;
   ER_node_t regexp_val;
-  size_t length;
-  size_t evaluated_length;
+  size_t ch_size, els_num;
   size_t disp;
   size_t i;
   const char *substitution;
   const char *src;
-  char *dst;
   const char *str, *end;
-  int c;
-  int code;
+  int c, nc;
+  ucode_t uc;
+  byte_t ac;
+  int code, pat_ucode_p, str_ucode_p, subst_ucode_p;
 
   if (pars_number != 3)
     eval_error (parnumber_bc_decl, call_pos (), DERR_parameters_number,
@@ -897,98 +1007,106 @@ generall_sub_call (int pars_number, int global_flag)
   to_vect_string_conversion (regexp_val, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte)
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
+      || (ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte)
       || ER_NODE_MODE (regexp_val) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (regexp_val)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (regexp_val)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (regexp_val)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (regexp_val)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, global_flag ? GSUB_NAME : SUB_NAME);
-  code = find_regex (ER_pack_els (ER_vect (regexp_val)), &reg);
+  pat_ucode_p = ER_pack_vect_el_mode (ER_vect (regexp_val)) == ER_NM_char;
+  str_ucode_p = ER_pack_vect_el_mode (ER_vect (below_ctop)) == ER_NM_char;
+  if (pat_ucode_p && ! str_ucode_p)
+    {
+      /* Impossible ONIGURUMA combination: ucode pattern and ascii
+	 string.  */
+      ER_set_vect (below_ctop, bytevect_to_ucodevect (ER_vect (below_ctop)));
+      str_ucode_p = TRUE;
+    }
+  subst_ucode_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char;
+  /* Make original and substitution strings of the same coding.  */
+  if (subst_ucode_p && ! str_ucode_p)
+    {
+      ER_set_vect (below_ctop, bytevect_to_ucodevect (ER_vect (below_ctop)));
+      str_ucode_p = TRUE;
+    }
+  else if (! subst_ucode_p && str_ucode_p)
+    {
+      ER_set_vect (ctop, bytevect_to_ucodevect (ER_vect (ctop)));
+      subst_ucode_p = TRUE;
+    }
+  code = find_regex (ER_pack_els (ER_vect (regexp_val)),
+		     pat_ucode_p, str_ucode_p, &reg);
   if (code != ONIG_NORMAL)
     process_onig_errors (code, global_flag ? GSUB_NAME : SUB_NAME);
   else
     {
+      d_assert (str_ucode_p == subst_ucode_p);
       vect = ER_vect (below_ctop);
-      /* Count result string length. */
-      disp = 0;
-      n_subst = 0;
-      for (i = 0; i < 10; i++)
-	sub_length [i] = 0;
       str = ER_pack_els (vect);
-      len = strlen (str);
-      end = str + len;
-      while ((disp < ER_els_number (vect) || disp == 0)
+      end = str + get_str_size (str, str_ucode_p, FALSE);
+      ch_size = str_ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
+      disp = els_num = 0;
+      VLO_NULLIFY (temp_vlobj2);
+      substitution = ER_pack_els (ER_vect (ctop));
+      while ((disp < ER_els_number (vect) * ch_size || disp == 0)
 	     && onig_search (reg, str + disp, end, str + disp, end,
 			     region, ONIG_OPTION_NONE) >= 0)
 	{
-	  for (i = 0; i < (region->num_regs > 10 ? 10 : region->num_regs); i++)
-	    sub_length [i] += (region->end [i] - region->beg [i]);
-	  if (region->end [0] == 0)
-	    disp++;
-	  else
-	    disp += region->end [0];
-	  n_subst++;
-	  if (! global_flag)
-	    break;
-	}
-      substitution = ER_pack_els (ER_vect (ctop));
-      evaluated_length = ER_els_number (vect) - sub_length [0];
-      while (*substitution != '\0')
-	{
-	  c = *substitution++;
-	  if (c == '&')
-	    evaluated_length += sub_length [0];
-	  else if (c == '\\' && '0' <= *substitution && *substitution <= '9')
-	    evaluated_length += sub_length [*substitution++ - '0'];
-	  else
-	    {
-	      if (c == '\\' && (*substitution == '\\' || *substitution == '&'))
-		substitution++;
-	      evaluated_length += n_subst;
-	    }
-	}
-      result = create_pack_vector (evaluated_length, ER_NM_char);
-      ER_set_els_number (result, 0);
-      /* Make actual substitution. */
-      disp = length = 0;
-      dst = ER_pack_els (result);
-      substitution = ER_pack_els (ER_vect (ctop));
-      while ((disp < ER_els_number (vect) || disp == 0)
-	     && onig_search (reg, str + disp, end, str + disp, end,
-			     region, ONIG_OPTION_NONE) >= 0)
-	{
+	  VLO_EXPAND (temp_vlobj2, region->beg[0]);
 	  if (region->beg[0] != 0)
-	    memcpy (dst, str + disp, region->beg[0]);
-	  length += region->beg[0];
-	  dst += region->beg[0];
+	    memcpy ((char *) VLO_BOUND (temp_vlobj2) - region->beg[0],
+		    str + disp, region->beg[0]);
+	  els_num += region->beg[0] / ch_size;
 	  src = substitution;
 	  while (*src != '\0')
 	    {
-	      c = *src++;
+	      c = (str_ucode_p ? *(ucode_t *) src : *(byte_t *) src);
+	      src += ch_size;
+	      nc = (str_ucode_p ? *(ucode_t *) src : *(byte_t *) src);
 	      if (c == '&')
 		i = 0;
-	      else if (c == '\\' && '0' <= *src && *src <= '9')
-		i = *src++ - '0';
+	      else if (c == '\\' && '0' <= nc && nc <= '9')
+		{
+		  i = nc - '0';
+		  src += ch_size;
+		}
 	      else
 		i = 10;
 	      
 	      if (i >= 10)
 		{
-		  if (c == '\\' && (*src == '\\' || *src == '&'))
-		    c = *src++;
-		  *dst++ = c;
-		  length++;
+		  if (c == '\\' && (nc == '\\' || nc == '&'))
+		    {
+		      c = nc;
+		      src += ch_size;
+		    }
+		  if (str_ucode_p)
+		    {
+		      uc = c;
+		      VLO_ADD_MEMORY (temp_vlobj2, &uc, sizeof (ucode_t));
+		    }
+		  else
+		    {
+		      ac = c;
+		      VLO_ADD_MEMORY (temp_vlobj2, &ac, sizeof (byte_t));
+		    }
+		  els_num++;
 		}
 	      else if (i < region->num_regs
 		       && region->end[i] != region->beg[i])
 		{
-		  memcpy (dst, str + disp + region->beg[i],
-			  region->end[i] - region->beg[i]);
-		  dst += region->end[i] - region->beg[i];
-		  length += region->end[i] - region->beg[i];
+		  len = region->end[i] - region->beg[i];
+
+		  VLO_EXPAND (temp_vlobj2, len);
+		  memcpy ((char *) VLO_BOUND (temp_vlobj2) - len,
+			  str + disp + region->beg[i], len);
+		  els_num += len / ch_size;
 		}
 	    }
 	  if (region->end[0] == 0)
@@ -996,26 +1114,47 @@ generall_sub_call (int pars_number, int global_flag)
 	      /* Matched empty string */
 	      if (ER_els_number (vect) != 0)
 		{
-		  *dst++ = *(str + disp);
-		  length++;
+		  if (str_ucode_p)
+		    {
+		      uc = *(str + disp);
+		      VLO_ADD_MEMORY (temp_vlobj2, &uc, sizeof (ucode_t));
+		    }
+		  else
+		    {
+		      ac = *(str + disp);
+		      VLO_ADD_MEMORY (temp_vlobj2, &ac, sizeof (byte_t));
+		    }
+		  els_num++;
 		}
-	      disp++;
+	      disp += ch_size;
 	    }
 	  else
 	    disp += region->end[0];
 	  if (!global_flag)
 	    break;
 	}
-      if (disp < ER_els_number (vect))
+      if (disp < ER_els_number (vect) * ch_size)
 	{
-	  memcpy (dst, str + disp,
-		  ER_els_number (vect) - disp);
-	  length += ER_els_number (vect) - disp;
-	  dst += ER_els_number (vect) - disp;
+	  len = ER_els_number (vect) * ch_size - disp;
+	  VLO_EXPAND (temp_vlobj2, len);
+	  memcpy ((char *) VLO_BOUND (temp_vlobj2) - len, str + disp, len);
+	  els_num += len / ch_size;
 	}
-      *dst = '\0';
-      ER_set_els_number (result, length);
-      d_assert (length == evaluated_length);
+      if (str_ucode_p)
+	{
+	  uc = '\0';
+	  VLO_ADD_MEMORY (temp_vlobj2, &uc, sizeof (ucode_t));
+	}
+      else
+	{
+	  ac = '\0';
+	  VLO_ADD_MEMORY (temp_vlobj2, &ac, sizeof (byte_t));
+	}
+      result = create_pack_vector (els_num + 1,
+				   str_ucode_p ? ER_NM_char : ER_NM_byte);
+      memcpy (ER_pack_els (result),
+	      VLO_BEGIN (temp_vlobj2), (els_num + 1) * ch_size);
+      ER_set_els_number (result, els_num);
     }
   if (result == NULL)
     ER_SET_MODE (fun_result, ER_NM_nil);
@@ -1046,14 +1185,13 @@ split_call (int pars_number)
   ER_node_t result;
   ER_node_t vect;
   ER_node_t sub_vect;
-  size_t els_number;
+  size_t i, els_number;
   size_t chars_number;
-  size_t disp;
-  const char *split_regex;
+  size_t disp, ch_size;
+  char *split_regex;
   ER_node_t split_var;
   const char *str, *end;
-  int ch;
-  int ok;
+  int ok, pat_ucode_p, str_ucode_p;
   int code;
 
   if (pars_number != 1 && pars_number != 2)
@@ -1064,16 +1202,24 @@ split_call (int pars_number)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte)
       || (pars_number == 2
 	  && (ER_NODE_MODE (below_ctop) != ER_NM_vect
 	      || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)))
+	      || (ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
+		  && ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte))))
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, SPLIT_NAME);
+  str_ucode_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char;
   if (pars_number == 2)
-    split_regex = ER_pack_els (ER_vect (ctop));
+    {
+      split_regex = ER_pack_els (ER_vect (ctop));
+      pat_ucode_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char;
+      str_ucode_p = ER_pack_vect_el_mode (ER_vect (below_ctop)) == ER_NM_char;
+    }
   else
     {
+      str_ucode_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char;
       split_var = IVAL (ER_stack_vars (uppest_stack),
 			BC_var_num (split_regex_bc_decl));
       to_vect_string_conversion (split_var, NULL, NULL);
@@ -1081,14 +1227,26 @@ split_call (int pars_number)
 			BC_var_num (split_regex_bc_decl));
       if (ER_NODE_MODE (split_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (split_var)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_mode (ER_vect (split_var)) == ER_NM_char)
-        split_regex = ER_pack_els (ER_vect (split_var));
+	  && (ER_pack_vect_el_mode (ER_vect (split_var)) == ER_NM_char
+	      || ER_pack_vect_el_mode (ER_vect (split_var)) == ER_NM_byte))
+	{
+	  split_regex = ER_pack_els (ER_vect (split_var));
+	  pat_ucode_p = ER_pack_vect_el_mode (ER_vect (split_var)) == ER_NM_char;
+	}
       else
 	eval_error (invenvar_bc_decl,
 		    call_pos (), DERR_corrupted_environment_var,
 		    SPLIT_REGEX_NAME);
     }
-  code = find_regex (split_regex, &reg);
+  if (pat_ucode_p && ! str_ucode_p)
+    {
+      /* Impossible ONIGURUMA combination: ucode pattern and ascii
+	 string.  */
+      vect = pars_number == 2 ? below_ctop : ctop;
+      ER_set_vect (vect, bytevect_to_ucodevect (ER_vect (vect )));
+      str_ucode_p = TRUE;
+    }
+  code = find_regex (split_regex, pat_ucode_p, str_ucode_p, &reg);
   if (code != 0)
     process_onig_errors (code, SPLIT_NAME);
   else
@@ -1096,31 +1254,11 @@ split_call (int pars_number)
       vect = ER_vect (pars_number == 2 ? below_ctop : ctop);
       els_number = disp = 0;
       str = ER_pack_els (vect);
-      len = strlen (str);
-      end = str + len;
-      /* Count substrings. */
-      while (disp < ER_els_number (vect) || disp == 0)
-	{
-	  ok = onig_search (reg, str + disp, end, str + disp, end,
-			    region, ONIG_OPTION_NONE) >= 0;
-	  if (ok && region->beg[0] == 0 && region->end[0] != 0)
-	    {
-	      /* Pattern by pattern. */
-	      disp += region->end[0];
-	      continue;
-	    }
-	  els_number++;
-	  if (!ok)
-	    break;
-	  if (region->end[0] == 0)
-	    disp++;
-	  else
-	    disp += region->end[0];
-	}
-      result = create_pack_vector (els_number, ER_NM_vect);
-      ER_set_els_number (result, 0);
-      disp = els_number = 0;
-      while (disp < ER_els_number (vect) || disp == 0)
+      end = str + get_str_size (str, str_ucode_p, FALSE);
+      ch_size = str_ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
+      VLO_NULLIFY (temp_vlobj2);
+      disp = 0;
+      while (disp < ER_els_number (vect) * ch_size || disp == 0)
 	{
 	  ok = onig_search (reg, str + disp, end, str + disp, end,
 			    region, ONIG_OPTION_NONE) >= 0;
@@ -1130,10 +1268,8 @@ split_call (int pars_number)
 		{
 		  /* Empty pattern case is here too. */
 		  if (region->beg[0] == 0)
-		    region->beg[0]++;
-		  ch = ER_pack_els (vect) [disp + region->beg[0]];
-		  ER_pack_els (vect) [disp + region->beg[0]] = '\0';
-		  chars_number = region->beg[0];
+		    region->beg[0] += ch_size;
+		  chars_number = region->beg[0] / ch_size;
 		}
 	      else
 		{
@@ -1143,22 +1279,32 @@ split_call (int pars_number)
 		}
 	    }
 	  else
-	    chars_number = ER_els_number (vect) - disp;
+	    chars_number = ER_els_number (vect) - disp / ch_size;
 	  /* Create substring. */
-	  sub_vect = create_pack_vector (chars_number, ER_NM_char);
+	  sub_vect = create_pack_vector (chars_number + 1,
+					 str_ucode_p ? ER_NM_char : ER_NM_byte);
+	  ER_set_els_number (sub_vect, chars_number);
 	  ER_set_immutable (sub_vect, TRUE);
-	  strcpy (ER_pack_els (sub_vect), ER_pack_els (vect) + disp);
-	  set_packed_vect_el (result, els_number, sub_vect);
-	  els_number++;
-	  ER_set_els_number (result, els_number);
+	  memcpy (ER_pack_els (sub_vect), ER_pack_els (vect) + disp,
+		  chars_number * ch_size);
+	  if (str_ucode_p)
+	    ((ucode_t *) ER_pack_els (sub_vect)) [chars_number] = '\0';
+	  else
+	    ((byte_t *) ER_pack_els (sub_vect)) [chars_number] = '\0';
+	  VLO_ADD_MEMORY (temp_vlobj2, &sub_vect, sizeof (sub_vect));
 	  if (!ok)
 	    break;
-	  ER_pack_els (vect) [disp + region->beg[0]] = ch;
 	  if (region->end[0] == 0)
-	    disp++;
+	    disp += ch_size;
 	  else
 	    disp += region->end[0];
 	}
+      els_number = VLO_LENGTH (temp_vlobj2) / sizeof (ER_node_t);
+      result = create_pack_vector (els_number, ER_NM_vect);
+      ER_set_els_number (result, els_number);
+      for (i = 0; i < els_number; i++)
+	set_packed_vect_el (result, i,
+			    ((ER_node_t *) VLO_BEGIN (temp_vlobj2)) [i]);
     }
   if (result == NULL)
     ER_SET_MODE (fun_result, ER_NM_nil);
@@ -1177,9 +1323,16 @@ compare_elements (ER_node_mode_t el_type, const void *el1, const void *el2)
   switch (el_type)
     {
     case ER_NM_char:
-      if (*(char_t *) el1 < *(char_t *) el2)
+      if (*(ucode_t *) el1 < *(ucode_t *) el2)
 	return -1;
-      else if (*(char_t *) el1 == *(char_t *) el2)
+      else if (*(ucode_t *) el1 == *(ucode_t *) el2)
+	return 0;
+      else
+	return 1;
+    case ER_NM_byte:
+      if (*(byte_t *) el1 < *(byte_t *) el2)
+	return -1;
+      else if (*(byte_t *) el1 == *(byte_t *) el2)
 	return 0;
       else
 	return 1;
@@ -1260,9 +1413,16 @@ subv_call (int pars_number)
   if (length == 0)
     {
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_mode (vect) == ER_NM_char)
+	  && (ER_pack_vect_el_mode (vect) == ER_NM_char
+	      || ER_pack_vect_el_mode (vect) == ER_NM_byte))
 	{
-	  res = create_string ("");
+	  if (ER_pack_vect_el_mode (vect) == ER_NM_byte)
+	    res = create_string ("");
+	  else
+	    {
+	      ucode_t empty [] = {0};
+	      create_ucodestr (empty);
+	    }
 	  ER_set_immutable (res, FALSE);
 	}
       else
@@ -1272,13 +1432,16 @@ subv_call (int pars_number)
     {
       el_type = ER_pack_vect_el_mode (vect);
       el_size = type_size_table [el_type];
-      res = create_pack_vector (el_type == ER_NM_char ? length + 1 : length,
+      res = create_pack_vector (el_type == ER_NM_char || el_type == ER_NM_byte
+				? length + 1 : length,
 				el_type);
       ER_set_els_number (res, length);
       memcpy (ER_pack_els (res), ER_pack_els (vect) + start * el_size,
 	      el_size * length);
-      if (el_type == ER_NM_char)
-	ER_pack_els (res) [length] = '\0';
+      if (el_type == ER_NM_byte)
+	((byte_t *) ER_pack_els (res)) [length] = '\0';
+      else if (el_type == ER_NM_char)
+	((ucode_t *) ER_pack_els (res)) [length] = '\0';
     }
   else
     {
@@ -1298,6 +1461,7 @@ cmpv_call (int pars_number)
   ER_node_t vect1, vect2;
   size_t i;
   rint_t res;
+  ucode_t uc;
   ER_node_mode_t el_type1, el_type2;
   char *addr1, *addr2;
   ER_node_t el;
@@ -1341,10 +1505,23 @@ cmpv_call (int pars_number)
 	  addr2
 	    = (char *) el + val_displ_table [ER_NODE_MODE ((ER_node_t) el)];
 	}
+      if (el_type1 == ER_NM_byte && el_type2 == ER_NM_char)
+	{
+	  el_type1 == ER_NM_char;
+	  uc = *(byte_t *) addr1;
+	  addr1 = (char *) &uc;
+	}
+      else if (el_type2 == ER_NM_byte && el_type1 == ER_NM_char)
+	{
+	  el_type2 == ER_NM_char;
+	  uc = *(byte_t *) addr2;
+	  addr2 = (char *) &uc;
+	}
       if (el_type1 != el_type2
 	  || (el_type1 != ER_NM_float
 	      && el_type1 != ER_NM_int
 	      && el_type1 != ER_NM_char
+	      && el_type1 != ER_NM_byte
 	      && el_type1 != ER_NM_long))
 	eval_error (partype_bc_decl, call_pos (),
 		    DERR_parameter_type, CMPV_NAME);
@@ -1417,9 +1594,13 @@ del_call (int pars_number)
 	{
 	  /* Remove tail */
 	  ER_set_els_number (vect, start);
-	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	      && ER_pack_vect_el_mode (vect) == ER_NM_char)
-	    ER_pack_els (vect) [start] = '\0';
+	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
+	    {
+	      if (ER_pack_vect_el_mode (vect) == ER_NM_byte)
+		((byte_t *) ER_pack_els (vect)) [start] = '\0';
+	      else if (ER_pack_vect_el_mode (vect) == ER_NM_char)
+		((ucode_t *) ER_pack_els (vect)) [start] = '\0';
+	    }
 	}
       else if (start == 0 && vect_length != 0)
 	{
@@ -1442,8 +1623,10 @@ del_call (int pars_number)
 	  memmove (ER_pack_els (vect) + start * el_size,
 		   ER_pack_els (vect) + (start + length) * el_size,
 		   el_size * (vect_length - start - length));
-	  if (el_type == ER_NM_char)
-	    ER_pack_els (vect) [vect_length - length] = '\0';
+	  if (el_type == ER_NM_byte)
+	    ((byte_t *) ER_pack_els (vect)) [vect_length - length] = '\0';
+	  else if (el_type == ER_NM_char)
+	    ((ucode_t *) ER_pack_els (vect)) [vect_length - length] = '\0';
 	  ER_set_els_number (vect, vect_length - length);
 	}
       else
@@ -1523,30 +1706,41 @@ general_ins_call (int pars_number, int vector_flag)
   if (ER_immutable (vect))
     eval_error (immutable_bc_decl, call_pos (),
 		DERR_immutable_vector_modification);
-  if (vector_flag && ER_NODE_MODE (el_vect) == ER_NM_heap_pack_vect
-      && (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect
-	  || (ER_pack_vect_el_mode (vect)
-	      != ER_pack_vect_el_mode (el_vect))))
+  if (vector_flag && ER_NODE_MODE (el_vect) == ER_NM_heap_pack_vect)
     {
-      el_vect = unpack_vector (el_vect);
-      el_val = IVAL (ctop, -pars_number + 2);
+      if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect)
+	el_vect = unpack_vector (el_vect);
+      else if (ER_pack_vect_el_mode (vect) == ER_NM_char
+	       && ER_pack_vect_el_mode (el_vect) == ER_NM_byte)
+	el_vect = bytevect_to_ucodevect (el_vect);
+      else if (ER_pack_vect_el_mode (vect) == ER_NM_byte
+	       && ER_pack_vect_el_mode (el_vect) == ER_NM_char)
+	vect = bytevect_to_ucodevect (vect);
+      else if (ER_pack_vect_el_mode (vect) != ER_pack_vect_el_mode (el_vect))
+	el_vect = unpack_vector (el_vect);
     }
-  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-      && ((! vector_flag
-	   && ER_pack_vect_el_mode (vect) != ER_NODE_MODE (el_val))
-	  || (vector_flag
-	      && (ER_NODE_MODE (el_vect) != ER_NM_heap_pack_vect
-		  || ER_pack_vect_el_mode (vect)
-		  != ER_pack_vect_el_mode (el_vect)))))
-    vect = unpack_vector (vect);
+
+  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect)
+    {
+      if (vector_flag)
+	{
+	  if (ER_NODE_MODE (el_vect) != ER_NM_heap_pack_vect
+	      || ER_pack_vect_el_mode (vect) != ER_pack_vect_el_mode (el_vect))
+	    vect = unpack_vector (vect);
+	}
+      else if (ER_pack_vect_el_mode (vect) == ER_NM_byte
+	       && ER_NODE_MODE (el_val) == ER_NM_char
+	       && ! in_byte_range_p (ER_ch (el_val)))
+	vect = bytevect_to_ucodevect (vect);
+      else if (ER_pack_vect_el_mode (vect) != ER_NODE_MODE (el_val))
+	vect = unpack_vector (vect);
+    }
   if (!vector_flag)
     addition = 1;
   else
     addition = ER_els_number (el_vect);
   vect_length = ER_els_number (vect);
-  /* Remember about GC! */
   vect = expand_vector (vect, vect_length + addition);
-  el_val = IVAL (ctop, -pars_number + 2);
   if (index < 0 || index > vect_length)
     index = vect_length;
   if (index < vect_length)
@@ -1581,8 +1775,10 @@ general_ins_call (int pars_number, int vector_flag)
 	  memcpy (ER_pack_els (vect) + index * el_size,
 		  ER_pack_els (el_vect), el_size * addition);
 	}
-      if (el_type == ER_NM_char)
-	ER_pack_els (vect) [vect_length + addition] = '\0';
+      if (el_type == ER_NM_byte)
+	((byte_t *) ER_pack_els (vect)) [vect_length + addition] = '\0';
+      else if (el_type == ER_NM_char)
+	((ucode_t *) ER_pack_els (vect)) [vect_length + addition] = '\0';
     }
   else
     {
@@ -1687,21 +1883,31 @@ array_sort_compare_function (const void *el1, const void *el2)
   int res;
 
   TOP_UP;
-  if (sorted_vect_el_type != ER_NM_val)
+  if (sorted_vect_el_type == ER_NM_byte)
+    {
+      ER_SET_MODE (ctop, ER_NM_char);
+      ER_set_ch (ctop, *(byte_t *) el1);
+    }
+  else if (sorted_vect_el_type != ER_NM_val)
     {
       ER_SET_MODE (ctop, sorted_vect_el_type);
-      memcpy ((char *) ctop + val_displ_table [ER_NODE_MODE (ctop)],
-	      (char **) el1, type_size_table [sorted_vect_el_type]);
+      memcpy ((char *) ctop + val_displ_table [sorted_vect_el_type],
+	      (char *) el1, type_size_table [sorted_vect_el_type]);
       if (sorted_vect_el_type == ER_NM_vect)
 	ER_set_dim (ctop, 0);
     }
   else
     *(val_t *) ctop = *(val_t *) el1;
   TOP_UP;
-  if (sorted_vect_el_type != ER_NM_val)
+  if (sorted_vect_el_type == ER_NM_byte)
+    {
+      ER_SET_MODE (ctop, ER_NM_char);
+      ER_set_ch (ctop, *(byte_t *) el2);
+    }
+  else if (sorted_vect_el_type != ER_NM_val)
     {
       ER_SET_MODE (ctop, sorted_vect_el_type);
-      memcpy ((char *) ctop + val_displ_table [ER_NODE_MODE (ctop)],
+      memcpy ((char *) ctop + val_displ_table [sorted_vect_el_type],
 	      (char *) el2, type_size_table [sorted_vect_el_type]);
       if (sorted_vect_el_type == ER_NM_vect)
 	ER_set_dim (ctop, 0);
@@ -1734,8 +1940,7 @@ sort_call (int pars_number)
     {
       vect = ER_vect (var);
       GO_THROUGH_REDIR (vect);
-      if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (vect);
+      try_full_pack (vect);
       ER_set_vect (var, vect);
     }
   if (pars_number == 1)
@@ -1743,6 +1948,7 @@ sort_call (int pars_number)
       if (ER_NODE_MODE (ctop) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
 	  || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_int
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_long
 	      && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_float))
@@ -1852,12 +2058,39 @@ two_strings_fun_start (int pars_number, const char *function_name)
   to_vect_string_conversion (below_ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte)
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl,
 		call_pos (), DERR_parameter_type, function_name);
+}
+
+/* Put byte (if BYTE_P) or unicode string STR into vlo *VLO.  */
+static inline const char *
+general_str_to_utf8 (void *str, vlo_t *vlo, int byte_p)
+{
+  if (byte_p)
+    return byte_str_to_utf8_vlo ((byte_t *) str, vlo);
+  else
+    return ucode_str_to_utf8_vlo ((ucode_t *) str, vlo);
+}
+
+/* Put byte or unicode vector VECT into temp_vlobj (if FIRST_P) or
+   temp_vlobj2.  */
+static const char *
+strvect_to_utf8 (ER_node_t vect, int first_p)
+{
+  ER_node_mode_t el_type;
+  
+  d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
+  el_type = ER_pack_vect_el_mode (vect);
+  d_assert (el_type == ER_NM_char || el_type == ER_NM_byte);
+  return general_str_to_utf8 (ER_pack_els (vect),
+			      first_p ? &temp_vlobj : &temp_vlobj2,
+			      el_type == ER_NM_byte);
 }
 
 void
@@ -1865,7 +2098,8 @@ rename_call (int pars_number)
 {
   two_strings_fun_start (pars_number, RENAME_NAME);
   errno = 0;
-  rename (ER_pack_els (ER_vect (below_ctop)), ER_pack_els (ER_vect (ctop)));
+  rename (strvect_to_utf8 (ER_vect (below_ctop), TRUE),
+	  strvect_to_utf8 (ER_vect (ctop), FALSE));
   if (errno)
     process_system_errors (RENAME_NAME);
   /* Pop all actual parameters. */
@@ -1881,7 +2115,8 @@ string_fun_start (int pars_number, const char *function_name)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, function_name);
 }
@@ -1891,7 +2126,7 @@ remove_call (int pars_number)
 {
   string_fun_start (pars_number, REMOVE_NAME);
   errno = 0;
-  remove (ER_pack_els (ER_vect (ctop)));
+  remove (strvect_to_utf8 (ER_vect (ctop), TRUE));
   if (errno)
     process_system_errors (REMOVE_NAME);
   /* Place the result instead of the function. */
@@ -1968,7 +2203,7 @@ mkdir_call (int pars_number)
   errno = 0;
   mask = (S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP
 	  | S_IROTH | S_IWOTH | S_IXOTH);
-  mkdir (ER_pack_els (ER_vect (ctop)), mask);
+  mkdir (strvect_to_utf8 (ER_vect (ctop), TRUE), mask);
   if (errno)
     process_system_errors (MKDIR_NAME);
   /* Place the result instead of the function. */
@@ -1980,7 +2215,7 @@ rmdir_call (int pars_number)
 {
   string_fun_start (pars_number, RMDIR_NAME);
   errno = 0;
-  rmdir (ER_pack_els (ER_vect (ctop)));
+  rmdir (strvect_to_utf8 (ER_vect (ctop), TRUE));
   if (errno)
     process_system_errors (RMDIR_NAME);
   /* Place the result instead of the function. */
@@ -2011,7 +2246,7 @@ chdir_call (int pars_number)
 {
   string_fun_start (pars_number, CHDIR_NAME);
   errno = 0;
-  if (chdir (ER_pack_els (ER_vect (ctop))) < 0 && errno)
+  if (chdir (strvect_to_utf8 (ER_vect (ctop), TRUE)) < 0 && errno)
     process_system_errors (CHDIR_NAME);
   /* Place the result instead of the function. */
   ER_SET_MODE (fun_result, ER_NM_undef);
@@ -2025,8 +2260,9 @@ get_stat (ER_node_t var, const char *function_name, struct stat *buf)
   errno = 0;
   if (ER_NODE_MODE (var) == ER_NM_vect
       && ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_pack_vect
-      && ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char)
-    result = stat (ER_pack_els (ER_vect (var)), buf);
+      && (ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char
+	  || ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_byte))
+    result = stat (strvect_to_utf8 (ER_vect (var), TRUE), buf);
   else if (ER_IS_OF_TYPE (var, ER_NM_stack)
 	   && ER_stack_block (ER_stack (var)) == file_bc_decl)
     result
@@ -2050,7 +2286,7 @@ general_chmod (int pars_number, const char *function_name,
   errno = 0;
   get_stat (below_ctop, function_name, &buf);
   mask = (buf.st_mode & ~clear_mask) | set_mask;
-  chmod (ER_pack_els (ER_vect (below_ctop)), mask);
+  chmod (strvect_to_utf8 (ER_vect (below_ctop), TRUE), mask);
   if (errno)
     process_system_errors (function_name);
   /* Place the result instead of the function. */
@@ -2061,10 +2297,10 @@ void
 chumod_call (int pars_number)
 {
   int mask = 0;
-  char *str;
+  const char *str;
 
   two_strings_fun_start (pars_number, CHUMOD_NAME);
-  str = ER_pack_els (ER_vect (ctop));
+  str = strvect_to_utf8 (ER_vect (ctop), TRUE);
   if (in_str_p (str, 'r'))
     mask |= S_IRUSR;
   if (in_str_p (str, 'w'))
@@ -2081,10 +2317,10 @@ void
 chgmod_call (int pars_number)
 {
   int mask = 0;
-  char *str;
+  const char *str;
 
   two_strings_fun_start (pars_number, CHGMOD_NAME);
-  str = ER_pack_els (ER_vect (ctop));
+  str = strvect_to_utf8 (ER_vect (ctop), TRUE);
   if (in_str_p (str, 'r'))
     mask |= S_IRGRP;
   if (in_str_p (str, 'w'))
@@ -2098,10 +2334,10 @@ void
 chomod_call (int pars_number)
 {
   int mask = 0;
-  char *str;
+  const char *str;
 
   two_strings_fun_start (pars_number, CHOMOD_NAME);
-  str = ER_pack_els (ER_vect (ctop));
+  str = strvect_to_utf8 (ER_vect (ctop), TRUE);
   if (in_str_p (str, 'r'))
     mask |= S_IROTH;
   if (in_str_p (str, 'w'))
@@ -2140,7 +2376,8 @@ open_call (int pars_number)
 
   two_strings_fun_start (pars_number, OPEN_NAME);
   errno = 0;
-  f = fopen (ER_pack_els (ER_vect (below_ctop)), ER_pack_els (ER_vect (ctop)));
+  f = fopen (strvect_to_utf8 (ER_vect (below_ctop), TRUE),
+	     strvect_to_utf8 (ER_vect (ctop), FALSE));
   if (errno)
     process_system_errors (OPEN_NAME);
   else if (f == NULL)
@@ -2184,17 +2421,17 @@ void
 popen_call (int pars_number)
 {
   FILE *f;
-
+  const char *s;
+  
   two_strings_fun_start (pars_number, POPEN_NAME);
   errno = 0;
-  if ((*ER_pack_els (ER_vect (ctop)) != 'r'
-       && *ER_pack_els (ER_vect (ctop)) != 'w')
-      || strlen (ER_pack_els (ER_vect (ctop))) != 1)
+  s = strvect_to_utf8 (ER_vect (ctop), FALSE);
+  if ((*s != 'r' && *s != 'w') || strlen (s) != 1)
     {
       errno = EINVAL;
       process_system_errors (POPEN_NAME);
     }
-  f = popen (ER_pack_els (ER_vect (below_ctop)), ER_pack_els (ER_vect (ctop)));
+  f = popen (strvect_to_utf8 (ER_vect (below_ctop), TRUE), s);
   if (errno)
     process_system_errors (POPEN_NAME);
   /* Place the result instead of the function. */
@@ -2253,13 +2490,14 @@ seek_call (int pars_number)
       || (ER_NODE_MODE (ctop) != ER_NM_char
 	  && (ER_NODE_MODE (ctop) != ER_NM_vect
 	      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)))
+	      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+		  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))))
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, SEEK_NAME);
   pos = ER_i (below_ctop);
   if (ER_NODE_MODE (ctop) == ER_NM_char)
     ch = ER_ch (ctop);
   else
-    ch = *ER_pack_els (ER_vect (ctop));
+    ch = *strvect_to_utf8 (ER_vect (ctop), TRUE);
   ch = tolower (ch);
   if (ch == 's')
 #ifdef SEEK_SET
@@ -2292,7 +2530,7 @@ seek_call (int pars_number)
 static void
 print_ch (int ch)
 {
-  char *str = get_ch_repr (ch);
+  char *str = get_ucode_ascii_repr (ch);
 
   VLO_ADD_STRING (temp_vlobj, str);
 }
@@ -2335,10 +2573,8 @@ print_val (ER_node_t val, int quote_flag, int full_p)
       break;
     case ER_NM_char:
       if (!quote_flag)
-	{
-	  sprintf (str, "%c", ER_ch (val));
-	  VLO_ADD_STRING (temp_vlobj, str);
-	}
+	VLO_ADD_STRING (temp_vlobj,
+			ucode_char_to_utf8_vlo (ER_ch (val), &temp_vlobj2));
       else
 	{
 	  VLO_ADD_STRING (temp_vlobj, "\'");
@@ -2371,17 +2607,24 @@ print_val (ER_node_t val, int quote_flag, int full_p)
       to_vect_string_conversion (val, NULL, NULL);
       vect = ER_vect (val);
       if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_mode (vect) == ER_NM_char)
+	  && (ER_pack_vect_el_mode (vect) == ER_NM_char
+	      || ER_pack_vect_el_mode (vect) == ER_NM_byte))
 	{
 	  if (!quote_flag)
-	    VLO_ADD_STRING (temp_vlobj, ER_pack_els (vect));
+	    VLO_ADD_STRING (temp_vlobj, strvect_to_utf8 (vect, FALSE));
 	  else
 	    {
 	      VLO_ADD_STRING (temp_vlobj, "\"");
-	      for (string = (char *) ER_pack_els (vect);
-		   *string != '\0';
-		   string++)
-		print_ch (*string);
+	      if (ER_pack_vect_el_mode (vect) == ER_NM_byte)
+		for (string = (char *) ER_pack_els (vect);
+		     *string != '\0';
+		     string++)
+		  print_ch (*string);
+	      else
+		for (string = ER_pack_els (vect);
+		     *(ucode_t *) string != '\0';
+		     string += sizeof (ucode_t))
+		  print_ch (*(ucode_t *) string);
 	      VLO_ADD_STRING (temp_vlobj, "\"");
 	    }
 	}
@@ -2410,7 +2653,7 @@ print_val (ER_node_t val, int quote_flag, int full_p)
 
 	  VLO_ADD_STRING (temp_vlobj, "[");
 	  ER_SET_MODE ((ER_node_t) &temp_val, el_type);
-	  displ = val_displ_table [ER_NODE_MODE ((ER_node_t) &temp_val)];
+	  displ = val_displ_table [el_type];
 	  el_size = type_size_table [el_type];
 	  for (i = 0; i < ER_els_number (vect); i++)
 	    {
@@ -2589,32 +2832,38 @@ enum file_param_type
   GIVEN_FILE
 };
 
+/* Output byte (if BYTE_P) or ucode string in temp_vlobj to file F as
+   utf8 sequence as set fun_result to undef .  If F is null, create
+   corresponding byte or ucode vector.  Set fun_result to it.  */
 static void
-finish_output (FILE *f, int pars_number)
+finish_output (FILE *f, int byte_p)
 {
   ER_node_t vect;
 
   if (f != NULL)
     {
-      fputs (VLO_BEGIN (temp_vlobj), f);
+      fputs (general_str_to_utf8 (VLO_BEGIN (temp_vlobj),
+				  &temp_vlobj2, byte_p), f);
       /* Place the result instead of the function. */
       ER_SET_MODE (fun_result, ER_NM_undef);
+      return;
     }
+  else if (byte_p)
+    vect = create_string (VLO_BEGIN (temp_vlobj));
   else
-    {
-      vect = create_string (VLO_BEGIN (temp_vlobj));
-      /* Place the result instead of the function. */
-      ER_SET_MODE (fun_result, ER_NM_vect);
-      set_vect_dim (fun_result, vect, 0);
-    }
+    vect = create_ucodestr (VLO_BEGIN (temp_vlobj));
+  /* Place the result instead of the function. */
+  ER_SET_MODE (fun_result, ER_NM_vect);
+  set_vect_dim (fun_result, vect, 0);
 }
 
 static void
 general_put_call (FILE *f, int pars_number, int ln_flag,
 		  enum file_param_type param_type)
 {
-  int i;
-  const char *function_name;
+  int i, byte_p, res_byte_p;
+  size_t ch_size;
+  const char *function_name, *start;
   ER_node_t var;
 
   errno = 0;
@@ -2627,6 +2876,7 @@ general_put_call (FILE *f, int pars_number, int ln_flag,
     function_name = (ln_flag ? PUTLN_NAME : PUT_NAME);
   else
     function_name = (ln_flag ? FPUTLN_NAME : FPUT_NAME);
+  res_byte_p = TRUE;
   VLO_NULLIFY (temp_vlobj);
   for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
     {
@@ -2634,16 +2884,47 @@ general_put_call (FILE *f, int pars_number, int ln_flag,
       to_vect_string_conversion (var, NULL, NULL);
       if (ER_NODE_MODE (var) != ER_NM_vect
 	  || ER_NODE_MODE (ER_vect (var)) != ER_NM_heap_pack_vect
-	  || ER_pack_vect_el_mode (ER_vect (var)) != ER_NM_char)
+	  || (ER_pack_vect_el_mode (ER_vect (var)) != ER_NM_char
+	      && ER_pack_vect_el_mode (ER_vect (var)) != ER_NM_byte))
 	eval_error (partype_bc_decl, call_pos (),
 		    DERR_parameter_type, function_name);
-      VLO_ADD_STRING (temp_vlobj, ER_pack_els (ER_vect (var)));
+      byte_p = ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_byte;
+      start = ER_pack_els (ER_vect (var));
+      if (res_byte_p && ! byte_p)
+	{
+	  copy_vlo (&temp_vlobj2, &temp_vlobj);
+	  str_to_ucode_vlo (&temp_vlobj, VLO_BEGIN (temp_vlobj2),
+			    VLO_LENGTH (temp_vlobj2));
+	  res_byte_p = TRUE;
+	}
+      else if (! res_byte_p && byte_p)
+	{
+	  str_to_ucode_vlo (&temp_vlobj2, start, strlen (start));
+	  start = VLO_BEGIN (temp_vlobj2);
+	  byte_p = FALSE;
+	}
+      ch_size = byte_p ? sizeof (byte_t) : sizeof (ucode_t);
+      VLO_ADD_MEMORY (temp_vlobj,
+		      start, ER_els_number (ER_vect (var)) * ch_size);
     }
-  if (ln_flag)
-    VLO_ADD_STRING (temp_vlobj, "\n");
+  if (res_byte_p)
+    {
+      if (ln_flag)
+	VLO_ADD_BYTE (temp_vlobj, '\n');
+      VLO_ADD_BYTE (temp_vlobj, 0);
+    }
+  else
+    {
+      ucode_t uc[] = {'\n', 0};
+      
+      if (ln_flag)
+	VLO_ADD_MEMORY (temp_vlobj, uc, sizeof (ucode_t) * 2);
+      else
+	VLO_ADD_MEMORY (temp_vlobj, &uc[1], sizeof (ucode_t));
+    }
   if (errno != 0)
     process_system_errors (function_name);
-  finish_output (f, pars_number);
+  finish_output (f, res_byte_p);
 }
 
 void
@@ -2685,7 +2966,7 @@ sputln_call (int pars_number)
 }
 
 static void
-general_print_call (FILE *f, int pars_number, int quote_flag, int ln_flag,
+general_print_call (FILE *f, int pars_number, int ln_flag,
 		    enum file_param_type param_type)
 {
   int i;
@@ -2703,61 +2984,61 @@ general_print_call (FILE *f, int pars_number, int quote_flag, int ln_flag,
     function_name = (ln_flag ? FPRINTLN_NAME : FPRINT_NAME);
   VLO_NULLIFY (temp_vlobj);
   for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
-    print_val (IVAL (ctop, i), quote_flag, TRUE);
+    print_val (IVAL (ctop, i), TRUE, TRUE);
   if (errno != 0)
     process_system_errors (function_name);
   if (ln_flag)
     VLO_ADD_STRING (temp_vlobj, "\n");
   if (errno != 0)
     process_system_errors (function_name);
-  finish_output (f, pars_number);
+  finish_output (f, TRUE);
 }
 
 void
 print_call (int pars_number)
 {
-  general_print_call (stdout, pars_number, TRUE, FALSE, STANDARD_FILE);
+  general_print_call (stdout, pars_number, FALSE, STANDARD_FILE);
 }
 
 void
 println_call (int pars_number)
 {
-  general_print_call (stdout, pars_number, TRUE, TRUE, STANDARD_FILE);
+  general_print_call (stdout, pars_number, TRUE, STANDARD_FILE);
 }
 
 void
 fprint_call (int pars_number)
 {
   general_print_call (file_function_call_start (pars_number, FPRINT_NAME),
-		      pars_number, TRUE, FALSE, GIVEN_FILE);
+		      pars_number, FALSE, GIVEN_FILE);
 }
 
 void
 fprintln_call (int pars_number)
 {
   general_print_call (file_function_call_start (pars_number, FPRINTLN_NAME),
-		      pars_number, TRUE, TRUE, GIVEN_FILE);
+		      pars_number, TRUE, GIVEN_FILE);
 }
 
 void
 sprint_call (int pars_number)
 {
-  general_print_call (NULL, pars_number, TRUE, FALSE, NO_FILE);
+  general_print_call (NULL, pars_number, FALSE, NO_FILE);
 }
 
 void
 sprintln_call (int pars_number)
 {
-  general_print_call (NULL, pars_number, TRUE, TRUE, NO_FILE);
+  general_print_call (NULL, pars_number, TRUE, NO_FILE);
 }
 
 static void
 general_get_call (FILE *f, int file_flag)
 {
-  int ch;
+  ucode_t ch;
 
   errno = 0;
-  ch = fgetc (f);
+  ch = get_ucode_from_utf8_stream (read_byte, f); // ???
   if (errno != 0)
     process_system_errors (file_flag ? FGET_NAME : GET_NAME);
   if (ch == EOF)
@@ -2903,19 +3184,19 @@ fgetf_call (int pars_number)
 			    TRUE, FALSE, flag != 0, FGETF_NAME);
 }
 
-#define F_CHAR   256
-#define F_INT    257
-#define F_FLOAT  258
-#define F_LONG   259
-#define F_STRING 260
-#define F_TAB    261
+#define F_CHAR   (UCODE_MAX + 256)
+#define F_INT    (UCODE_MAX + 257)
+#define F_FLOAT  (UCODE_MAX + 258)
+#define F_LONG   (UCODE_MAX + 259)
+#define F_STRING (UCODE_MAX + 260)
+#define F_TAB    (UCODE_MAX + 261)
 
 struct token
 {
   int token_code;
   union
   {
-    char_t ch;
+    ucode_t ch;
     rint_t i;
     rfloat_t f;
     ER_node_t gmp;
@@ -2939,23 +3220,24 @@ finish_io (void)
   VLO_DELETE (el_text);
 }
 
-/* The following function is analogous to `get_string_code' in Dino
-   scanner.  If `get_string_code' is changed, please modify this
-   function too. */
-static int
-get_char_code (FILE *f, int curr_char, int *correct_newln)
+/* The following function is analogous to `read_dino_string_code' in
+   Dino scanner.  If `read_dino_string_code' is changed, please modify
+   this function too. */
+static ucode_t
+get_char_code (FILE *f, ucode_t curr_char,
+	       int *correct_newln, int *wrong_escape_code)
 {
-  int char_code;
+  ucode_t char_code;
 
   if (curr_char == EOF || curr_char == '\n')
     {
       ungetc (curr_char, f);
       return (-1);
     }
-  *correct_newln = FALSE;
+  *correct_newln = *wrong_escape_code = FALSE;
   if (curr_char == '\\')
     {
-      curr_char = fgetc (f);
+      curr_char = get_ucode_from_utf8_stream (read_byte, f);
       if (curr_char == 'n')
         curr_char = '\n';
       else if (curr_char == 't')
@@ -2976,21 +3258,40 @@ get_char_code (FILE *f, int curr_char, int *correct_newln)
 	*correct_newln = TRUE;
       else if (isdigit (curr_char) && curr_char != '8' && curr_char != '9')
 	{
-	  char_code = VALUE_OF_DIGIT (curr_char);
-	  curr_char = fgetc (f);
+	  char_code = value_of_digit (curr_char);
+	  curr_char = get_ucode_from_utf8_stream (read_byte, f);
 	  if (!isdigit (curr_char) || curr_char == '8' || curr_char == '9')
 	    ungetc (curr_char, f);
 	  else
 	    {
-	      char_code = (char_code * 8 + VALUE_OF_DIGIT (curr_char));
-	      curr_char = fgetc (f);
+	      char_code = (char_code * 8 + value_of_digit (curr_char));
+	      curr_char = get_ucode_from_utf8_stream (read_byte, f);
 	      if (!isdigit (curr_char) || curr_char == '8' || curr_char == '9')
 		ungetc (curr_char, f);
 	      else
-		char_code = (char_code * 8 + VALUE_OF_DIGIT (curr_char));
+		char_code = (char_code * 8 + value_of_digit (curr_char));
 	    }
 	  curr_char = char_code;
-      }
+	}
+      else if (curr_char == 'x' || curr_char == 'u' || curr_char == 'U')
+	{
+	  /* Hex or Unicode escape code.  */
+	  int i, c;
+	  
+	  char_code = 0;
+	  for (i = (curr_char == 'x' ? 2 : curr_char == 'u' ? 4 : 8);
+	       i > 0;
+	       i--)
+	    {
+	      curr_char = get_ucode_from_utf8_stream (read_byte, f);
+	      if (! is_hex_digit (curr_char))
+		break;
+	      c = value_of_hex_digit (curr_char);
+	      char_code = (char_code << 4) | c;
+	    }
+	  *wrong_escape_code = i > 0;
+	  curr_char = char_code;
+	}
     }
   return curr_char;
 }
@@ -3003,15 +3304,15 @@ invinput_error (FILE *f, const char *function_name, int ln_flag)
   if (ln_flag)
     do
       {
-	curr_char = fgetc (f);
+	curr_char = get_ucode_from_utf8_stream (read_byte, f);
       }
     while (curr_char != EOF && curr_char != '\n');
   eval_error (invinput_bc_decl, call_pos (), DERR_invalid_input, function_name);
 }
 
-/* Used by read_number.  */
+/* Used by read_dino_number.  */
 static FILE *number_file;
-static int n_getc (void) { return fgetc (number_file); }
+static int n_getc (void) { return get_ucode_from_utf8_stream (read_byte, number_file); }
 static void n_ungetc (int c) { ungetc (c, number_file); }
 
 /* The following function is analogous to `yylex' in Dino scanner.  If
@@ -3020,12 +3321,13 @@ static struct token
 get_token (FILE *f, const char *function_name, int ln_flag)
 {
   int curr_char;
+  int wrong_escape_code;
   struct token result;
 
   VLO_NULLIFY (el_text);
   for (;;)
     {
-      curr_char = fgetc (f);
+      curr_char = get_ucode_from_utf8_stream (read_byte, f);
       /* `current_position' corresponds `curr_char' here. */
       switch (curr_char)
         {
@@ -3044,32 +3346,33 @@ get_token (FILE *f, const char *function_name, int ln_flag)
 	  result.token_code = curr_char;
 	  return result;
 	case 't':
-	  curr_char = fgetc (f);
+	  curr_char = get_ucode_from_utf8_stream (read_byte, f);
 	  if (curr_char != 'a')
 	    invinput_error (f, function_name, ln_flag);
-	  curr_char = fgetc (f);
+	  curr_char = get_ucode_from_utf8_stream (read_byte, f);
 	  if (curr_char != 'b')
 	    invinput_error (f, function_name, ln_flag);
 	  result.token_code = F_TAB;
 	  return result;
         case '\'':
           {
-            int correct_newln, char_code;
+            int correct_newln, wrong_escape_code;
+	    ucode_t char_code;
             
-            curr_char = fgetc (f);
+            curr_char = get_ucode_from_utf8_stream (read_byte, f);
             if (curr_char == '\'')
 	      invinput_error (f, function_name, ln_flag);
             else
               {
-                curr_char = get_char_code (f, curr_char, &correct_newln);
-                if (curr_char < 0 || correct_newln)
+                curr_char = get_char_code (f, curr_char, &correct_newln, &wrong_escape_code);
+                if (curr_char < 0 || correct_newln || wrong_escape_code)
 		  {
 		    if (ln_flag && curr_char == '\n')
 		      ungetc (curr_char, f);
 		    invinput_error (f, function_name, ln_flag);
 		  }
               }
-            char_code = fgetc (f);
+            char_code = get_ucode_from_utf8_stream (read_byte, f);
             if (char_code != '\'')
               {
                 ungetc (char_code, f);
@@ -3081,15 +3384,16 @@ get_token (FILE *f, const char *function_name, int ln_flag)
           }
         case '\"':
           {
-            int correct_newln;
+            int correct_newln, wrong_escape_code;
             
             for (;;)
               {
-                curr_char = fgetc (f);
+                curr_char = get_ucode_from_utf8_stream (read_byte, f);
                 if (curr_char == '\"')
                   break;
-                curr_char = get_char_code (f, curr_char, &correct_newln);
-                if (curr_char < 0)
+                curr_char = get_char_code (f, curr_char, &correct_newln,
+					   &wrong_escape_code);
+                if (curr_char < 0 || wrong_escape_code)
                   {
 		    invinput_error (f, function_name, ln_flag);
                     break;
@@ -3104,7 +3408,7 @@ get_token (FILE *f, const char *function_name, int ln_flag)
           }
         default:
 	  {
-	    int next_char = fgetc (f);
+	    int next_char = get_ucode_from_utf8_stream (read_byte, f);
 
 	    ungetc (next_char, f);
 	    if (isdigit (curr_char)
@@ -3116,14 +3420,14 @@ get_token (FILE *f, const char *function_name, int ln_flag)
 		const char *repr;
 
 		number_file = f;
-		err_code = read_number (curr_char, n_getc, n_ungetc,
-					&read_ch_num, &repr, &base,
-					&float_p, &long_p);
+		err_code = read_dino_number (curr_char, n_getc, n_ungetc,
+					     &read_ch_num, &repr, &base,
+					     &float_p, &long_p);
 		if (errno)
 		  process_system_errors (function_name);
 		if (err_code != NUMBER_OK)
 		  {
-		    curr_char = fgetc (f);
+		    curr_char = get_ucode_from_utf8_stream (read_byte, f);
 		    if (ln_flag && curr_char == '\n')
 		      ungetc (curr_char, f);
 		    invinput_error (f, function_name, ln_flag);
@@ -3325,7 +3629,7 @@ general_scan_call (FILE *f, int file_flag, int ln_flag)
   if (ln_flag)
     do
       {
-	curr_char = fgetc (f);
+	curr_char = get_ucode_from_utf8_stream (read_byte, f);
       }
     while (curr_char != EOF && curr_char != '\n');
   if (errno != 0)
@@ -3405,8 +3709,7 @@ general_putf_call (FILE *f, int pars_number, enum file_param_type param_type)
 {
   const char *function_name;
   ER_node_t val;
-  const char *fmt;
-  int start;
+  int start, byte_p;
 
   start = 0;
   if (param_type == NO_FILE)
@@ -3428,13 +3731,14 @@ general_putf_call (FILE *f, int pars_number, enum file_param_type param_type)
   to_vect_string_conversion (val, NULL, NULL);
   if (ER_NODE_MODE (val) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, function_name);
-  fmt = ER_pack_els (ER_vect (val));
-  form_format_string (fmt, IVAL (ctop, -pars_number + 2 + start),
-		      pars_number - 1 - start, function_name, FALSE);
-  finish_output (f, pars_number);
+  byte_p = form_format_string (ER_vect (val),
+			       IVAL (ctop, -pars_number + 2 + start),
+			       pars_number - 1 - start, function_name, FALSE);
+  finish_output (f, byte_p);
 }
 
 void
@@ -3914,7 +4218,7 @@ process_errno_call (int pars_number)
   else
     {
       to_vect_string_conversion (ctop, NULL, NULL);
-      name = ER_pack_els (ER_vect (ctop));
+      name = ER_pack_els (ER_vect (ctop)); // ???
     }
   if (errno)
     process_system_errors (name);
@@ -3937,10 +4241,11 @@ readdir_call (int pars_number)
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, READDIR_NAME);
-  dir = opendir (ER_pack_els (ER_vect (ctop)));
+  dir = opendir (strvect_to_utf8 (ER_vect (ctop), TRUE));
   if (dir == NULL)
     process_system_errors (READDIR_NAME);
   else
@@ -3957,7 +4262,7 @@ readdir_call (int pars_number)
 	/* Internall error: EBADF and may be something else. */
 	eval_error (internal_bc_decl, call_pos (),
 		    DERR_internal_error, READDIR_NAME);
-      dir = opendir (ER_pack_els (ER_vect (ctop)));
+      dir = opendir (strvect_to_utf8 (ER_vect (ctop), TRUE));
       if (dir == NULL)
 	process_system_errors (READDIR_NAME);
       else
@@ -3979,7 +4284,7 @@ readdir_call (int pars_number)
 			    DERR_internal_error, READDIR_NAME);
 	      if (dirent == NULL)
 		break;
-	      vect = create_string (dirent->d_name);
+	      vect = create_string (dirent->d_name); // utf8 ???
 	      set_packed_vect_el (result, i, vect);
 	      ER_set_els_number (result, i + 1);
 	    }
@@ -4246,7 +4551,7 @@ strtime_call (int pars_number)
       to_vect_string_conversion (format_var, NULL, NULL);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (format_var)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_mode (ER_vect (format_var)) == ER_NM_char)
+	  && ER_pack_vect_el_mode (ER_vect (format_var)) == ER_NM_byte)
 	format = ER_pack_els (ER_vect (format_var));
       else
 	eval_error (partype_bc_decl,
@@ -4259,7 +4564,7 @@ strtime_call (int pars_number)
       to_vect_string_conversion (format_var, NULL, NULL);
       if (ER_NODE_MODE (format_var) == ER_NM_vect
 	  && ER_NODE_MODE (ER_vect (format_var)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_mode (ER_vect (format_var)) == ER_NM_char)
+	  && ER_pack_vect_el_mode (ER_vect (format_var)) == ER_NM_byte)
 	format = ER_pack_els (ER_vect (format_var));
       else
 	eval_error (invenvar_bc_decl, call_pos (),
@@ -4345,11 +4650,12 @@ system_call (int pars_number)
 	  to_vect_string_conversion (val, NULL, NULL);
 	  vect = ER_vect (val);
 	  if (ER_NODE_MODE (vect) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (vect) != ER_NM_char)
+	      || (ER_pack_vect_el_mode (vect) != ER_NM_char
+		  && ER_pack_vect_el_mode (vect) != ER_NM_byte))
 	    error_flag = TRUE;
 	  else
 	    {
-	      code = system ((char *) ER_pack_els (vect));
+	      code = system (strvect_to_utf8 (vect, TRUE));
 	      if (code == 127)
 		eval_error (noshell_bc_decl, call_pos (),
 			    DERR_no_shell, SYSTEM_NAME);
@@ -4426,13 +4732,18 @@ fold_function (const void *el, val_t *fold_initval,
 	       ER_node_mode_t fold_vect_el_type, int fold_dim)
 {
   ER_node_t context;
-
+  
   context = GET_TEMP_REF (fold_dim);
   TOP_UP;
   *(val_t *) ctop = *fold_initval;
   TOP_UP;
   if (fold_vect_el_type == ER_NM_val)
     *(val_t *) ctop = *(val_t *) el;
+  else if (fold_vect_el_type == ER_NM_byte)
+    {
+      ER_SET_MODE (ctop, ER_NM_char);
+      ER_set_ch (ctop, *(byte_t *) el);
+    }
   else
     {
       ER_SET_MODE (ctop, fold_vect_el_type);
@@ -4544,8 +4855,7 @@ fold_call (int pars_number)
   else
     {
       GO_THROUGH_REDIR (vect);
-      if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (vect);
+      try_full_pack (vect);
       context = ER_code_context (par1);
       fold_el_fun_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
@@ -4568,6 +4878,11 @@ filter_function (const void *el, BC_node_t filter_el_fun_block,
   TOP_UP;
   if (filter_vect_el_type == ER_NM_val)
     *(val_t *) ctop = *(val_t *) el;
+  else if (filter_vect_el_type == ER_NM_byte)
+    {
+      ER_SET_MODE (ctop, ER_NM_char);
+      ER_set_ch (ctop, *(byte_t *) el);
+    }
   else
     {
       ER_SET_MODE (ctop, filter_vect_el_type);
@@ -4672,8 +4987,8 @@ process_filter_vect_op (ER_node_t op, BC_node_t filter_el_fun_block,
       ER_set_els_number (result, nel);
     }
   POP_TEMP_REF (2);
-  if (dim == 1 && ER_NODE_MODE (result) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (result);
+  if (dim == 1)
+    try_full_pack (result);
   return result;
 }
 
@@ -4711,8 +5026,7 @@ filter_call (int pars_number)
   else
     {
       GO_THROUGH_REDIR (vect);
-      if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (vect);
+      try_full_pack (vect);
       context = ER_code_context (par1);
       filter_el_fun_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
@@ -4735,6 +5049,11 @@ map_function (const void *el, BC_node_t map_el_fun_block,
   TOP_UP;
   if (map_vect_el_type == ER_NM_val)
     *(val_t *) ctop = *(val_t *) el;
+  else if (map_vect_el_type == ER_NM_byte)
+    {
+      ER_SET_MODE (ctop, ER_NM_char);
+      ER_set_ch (ctop, *(byte_t *) el);
+    }
   else
     {
       ER_SET_MODE (ctop, map_vect_el_type);
@@ -4805,8 +5124,8 @@ process_map_vect_op (ER_node_t op, BC_node_t map_el_fun_block,
 	}
       ER_set_els_number (result, i + 1);
     }
-  if (dim == 1 && ER_NODE_MODE (result) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (result);
+  if (dim == 1)
+    try_full_pack (result);
   POP_TEMP_REF (2);
   return result;
 }
@@ -4844,8 +5163,7 @@ map_call (int pars_number)
   else
     {
       GO_THROUGH_REDIR (vect);
-      if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (vect);
+      try_full_pack (vect);
       context = ER_code_context (par1);
       map_el_fun_block = ID_TO_CODE (ER_code_id (par1));
       PUSH_TEMP_REF (context);
@@ -4876,8 +5194,7 @@ transpose_call (int pars_number)
 		DERR_parameter_type, TRANSPOSE_NAME);
   vect = ER_vect (ctop);
   GO_THROUGH_REDIR (vect);
-  if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
-    pack_vector_if_possible (vect);
+  try_full_pack (vect);
   nrows = ER_els_number (vect);
   if (nrows == 0 || ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect
       || ER_pack_vect_el_mode (vect) != ER_NM_vect)
@@ -4889,7 +5206,7 @@ transpose_call (int pars_number)
       row = ((ER_node_t *) pack_els) [i];
       GO_THROUGH_REDIR (row);
       eltp = (ER_NODE_MODE (row) == ER_NM_heap_pack_vect
-	      ? ER_pack_vect_el_mode (row) : ER_NM__error);
+	      ? ER_pack_vect_el_mode (row) : ER_NM__error); // ???
       if (i == 0)
 	{
 	  ncols = ER_els_number (row);
@@ -4932,7 +5249,7 @@ transpose_call (int pars_number)
 	      eltp = ER_pack_vect_el_mode (row);
 	      el_size = type_size_table [eltp];
 	      res_el = IVAL (ER_unpack_els (col), i);
-	      ER_SET_MODE (res_el, eltp);
+	      ER_SET_MODE (res_el, eltp); // ????
 	      displ = val_displ_table[eltp];
 	      memcpy ((char *) res_el + displ,
 		      (char *) ER_pack_els (row) + j * el_size, el_size);
@@ -4989,8 +5306,7 @@ call_external_fun (int pars_number, BC_node_t fdecl)
 	{
 	  v = ER_vect (val);
 	  GO_THROUGH_REDIR (v);
-	  if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
-	    pack_vector_if_possible (v);
+	  try_full_pack (v);
 	  ER_set_vect (val, v);
 	}
       else if (ER_IS_OF_TYPE (val, ER_NM_tab))
@@ -5290,17 +5606,18 @@ int_earley_parse_grammar (int npars)
     {
       v = ER_vect (par3);
       GO_THROUGH_REDIR (v);
-      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (v);
+      try_full_pack (v);
       ER_set_vect (par3, v);
     }
   if (ER_NODE_MODE (par2) != ER_NM_int || ER_NODE_MODE (par3) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (par3)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (par3)) != ER_NM_char)
+      || (ER_pack_vect_el_mode (ER_vect (par3)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (par3)) != ER_NM_byte))
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
   g = (struct grammar *) ER_hide (par1);
-  code = earley_parse_grammar (g, ER_i (par2), ER_pack_els (ER_vect (par3)));
+  code = earley_parse_grammar (g, ER_i (par2),
+			       strvect_to_utf8 (ER_vect (par3), TRUE)); // ???
   if (code == EARLEY_NO_MEMORY)
     eval_error (pmemory_bc_decl, get_pos (real_fun_call_pc),
 		"run time error (%s) -- no parser memory", name);
@@ -5701,8 +6018,7 @@ int_earley_parse (int npars)
     {
       v = ER_vect (par2);
       GO_THROUGH_REDIR (v);
-      if (ER_NODE_MODE (v) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (v);
+      try_full_pack (v);
       ER_set_vect (par2, v);
     }
   if (ER_NODE_MODE (par2) != ER_NM_vect

@@ -12877,7 +12877,7 @@ if test $result = ok -a $start_test_number -le 72; then
 println (match ("aaa", "baaab"));
 println (match ("(a)(a)(a)", "baaab"));
 println (match ("aba", "baaab"));                 // no matching
-println (match ("ab.", "baaab\n"));               // matching with NL
+println (match ("ab.", "baaab\n"));               // no matching with NL
 println (match ("[:alpha:]", "p"));
 println (match ("^.aa", "baaab"));
 println (match ("1", 10));
@@ -12892,7 +12892,7 @@ TEST72
 [1, 4]
 [1, 4, 1, 2, 2, 3, 3, 4]
 nil
-[3, 6]
+nil
 [0, 1]
 [0, 3]
 [0, 1]
@@ -26910,7 +26910,7 @@ fi
 if test $result = ok -a $start_test_number -le 475; then
 	echo test 475
         cat >$test_file <<'TEST475'
-println (char (300));
+println (char (0xffffff));
 TEST475
         echo '      ' "$DINO $test_file 2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
@@ -36032,12 +36032,12 @@ TEST594
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT594' && $CMP $stdout $ftemp2; then
 "type()"[int, int, int, int, int, int, int, int, int, int]
-"char()""\2\2\2\2\2\2\2\2\2\2"
+"char()""\x2\x2\x2\x2\x2\x2\x2\x2\x2\x2"
 "int()"[2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 "float()"[2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 --------------------------------
 "type()"[float, float, float, float, float, float, float, float, float, float]
-"char()""\2\2\2\2\2\2\2\2\2\2"
+"char()""\x2\x2\x2\x2\x2\x2\x2\x2\x2\x2"
 "int()"[2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 "float()"[2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
 --------------------------------

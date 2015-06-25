@@ -47,9 +47,31 @@
 /* The following value is used as a variable value which is not char.  */
 #define NOT_A_CHAR (-2000)
 
-/* Macros return value of digit CH.  Macros is undefined for non digit. */
+/* True if CH is a hexdecimal digit.  */
+static int inline
+is_hex_digit (int ch)
+{
+  return ('0' <= ch && ch <= '9'
+	  || 'a' <= (ch) && (ch) <= 'f' || 'A' <= (ch) && (ch) <= 'F');
+}
 
-#define VALUE_OF_DIGIT(ch) ((ch) - '0')
+/* Functions returning value of digit or hex digit CH. */
+
+static int inline
+value_of_digit (int ch)
+{
+  d_assert ('0' <= ch && ch <= '9');
+  return ch - '0';
+}
+
+static int inline
+value_of_hex_digit (int ch)
+{
+  d_assert (is_hex_digit (ch));
+  return ('0' <= ch && ch <= '9' ? ch - '0'
+	  : 'a' <= (ch) && (ch) <= 'f' ? ch - 'a' : ch - 'A');
+}
+
 #define STANDARD_INPUT_FILE_SUFFIX ".d"
 
 /* Unique number for field destroy.  */
@@ -57,7 +79,7 @@
 
 extern const char **include_path_directories;
 extern const char **libraries;
-extern const char *command_line_program;
+extern const ucode_t *command_line_program;
 extern FILE *input_dump_file;
 extern int program_arguments_number;
 extern char **program_arguments;
@@ -76,6 +98,8 @@ extern int profile_flag;
 extern int dump_flag;
 extern int save_temps_flag;
 extern double start_time;
+extern int big_endian_p;
+
 extern rint_t a2i (const char *str, int base);
 extern rfloat_t a2f (const char *str);
 extern const char *i2a (rint_t number);
@@ -87,9 +111,10 @@ extern void i2mpz (mpz_t mpz, rint_t i);
 extern void f2mpz (mpz_t mpz, rfloat_t f);
 
 extern size_t hash_mpz (mpz_t mpz);
-extern char *get_ch_repr (int ch);
-extern int read_string_code (int input_char, int *correct_newln,
-			     int d_getc (void), void d_ungetc (int));
+extern char *get_ucode_ascii_repr (ucode_t ch);
+extern int read_dino_string_code (int input_char, int *correct_newln,
+				  int *wrong_escape_code, int d_getc (void),
+				  void d_ungetc (int));
 enum read_number_code
 {
   NUMBER_OK,
@@ -99,9 +124,9 @@ enum read_number_code
 };
 
 extern enum read_number_code
-read_number (int curr_ch, int get_ch (void), void unget_ch (int),
-	     int *read_ch_num, const char **result, int *base,
-	     int *float_p, int *long_p);
+read_dino_number (int curr_ch, int get_ch (void), void unget_ch (int),
+		  int *read_ch_num, const char **result, int *base,
+		  int *float_p, int *long_p);
 
 extern void print_stmt_prompt (void);
 extern void print_stmt_cont_prompt (void);
@@ -109,6 +134,11 @@ extern void d_verror (int fatal_error_flag, position_t position,
 		      const char *format, va_list ap);
 extern void d_error (int fatal_error_flag, position_t position,
 		     const char *format, ...);
+extern void copy_vlo (vlo_t *to, vlo_t *from);
+extern void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len);
+extern char *ucode_str_to_utf8_vlo (const ucode_t *str, vlo_t *vlo);
+extern char *ucode_char_to_utf8_vlo (int c, vlo_t *vlo);
+extern char *byte_str_to_utf8_vlo (byte_t *str, vlo_t *vlo);
 extern void dino_finish (int code);
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
@@ -163,4 +193,4 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define ATTRIBUTE_UNUSED
 #endif
 
-#endif
+#endif /* #ifndef D_COMMON_H */

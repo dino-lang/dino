@@ -24,8 +24,8 @@
 
 */
 
-%type position_t int_t rint_t gmp_t rfloat_t string_t bool_t fun_mode_t
-      implementation_fun_t ticker_t ER_hidden_node_t void_ptr_t
+%type position_t int_t rint_t gmp_t rfloat_t string_t ucodestr_t bool_t
+      fun_mode_t implementation_fun_t ticker_t ER_hidden_node_t void_ptr_t
 
 %import {
 
@@ -36,8 +36,6 @@ typedef int int_t;
 typedef void *void_ptr_t;
 
 typedef struct ER_node *ER_hidden_node_t;
-
-typedef const char *string_t;
 
 typedef enum
 {
@@ -928,6 +926,11 @@ ldf :: op1 /* result place */
 lds :: op1 /* result place */
 %other
         str : string_t;
+;
+
+ldus :: op1 /* unicode string */
+%other
+        ustr : ucodestr_t;
 ;
 
 /* non-local / external var value / reference [and value].

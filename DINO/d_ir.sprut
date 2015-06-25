@@ -82,10 +82,6 @@ typedef int type_mask_t;
 
 typedef int int_t;
 
-typedef const char *string_t;
-
-typedef const unsigned int *ustring_t;
-
 typedef struct BC_node *BC_hidden_node_t;
 
 enum access_val
@@ -201,7 +197,7 @@ extern IR_node_t find_unique_ident (char *string);
 extern IR_node_t create_node (IR_node_mode_t mode);
 extern IR_node_t create_node_with_pos (IR_node_mode_t mode, position_t pos);
 extern IR_node_t create_unique_node_with_string (IR_node_mode_t m,
-                                                 const char *str,
+                                                 const char *str, size_t len,
                                                  char **string_in_pool_ptr);
 extern IR_node_t create_unique_ident_node (const char *str);
 extern IR_node_t create_empty_block (IR_node_t scope);
@@ -233,6 +229,7 @@ extern IR_node_t temp_unique_long;
 extern IR_node_t temp_unique_float;
 extern IR_node_t temp_unique_char;
 extern IR_node_t temp_unique_string;
+extern IR_node_t temp_unique_ucodestr;
 extern IR_node_t temp_ident;
 extern IR_node_t temp_decl;
 extern IR_node_t destroy_unique_ident;
@@ -474,14 +471,15 @@ IR_node_t temp_unique_long;
 IR_node_t temp_unique_float;
 IR_node_t temp_unique_char;
 IR_node_t temp_unique_string;
+IR_node_t temp_unique_ucodestr;
 IR_node_t temp_ident;
 IR_node_t temp_decl;
 IR_node_t destroy_unique_ident;
 
 }
 
-%type char_t rint_t gmp_t rfloat_t string_t ustring_t int_t bool_t position_t
-      type_mask_t ticker_t BC_hidden_node_t access_val_t hint_val_t
+%type ucode_t size_t rint_t gmp_t rfloat_t string_t ucodestr_t int_t bool_t
+      position_t type_mask_t ticker_t BC_hidden_node_t access_val_t hint_val_t
 
 %%
 
@@ -504,7 +502,7 @@ generic_pos :: ir_node
 /* Only char_node can refer to this node. */
 unique_char :: ir_node
 %other
-        char_value : char_t
+        char_value : ucode_t
 ;
 
 /* Only number_node can refer to this node. */
@@ -529,9 +527,11 @@ unique_string :: ir_node
         string_value : string_t
 ;
 
-unique_ustring :: ir_node
+unique_ucodestr :: ir_node
 %other
-        ustring_value : ustring_t
+        ucodestr_value : ucodestr_t
+        /* Byte size of the ucodestr without trailing zero ucode.  */
+        ucodestr_size : size_t
 ;
 
 /* Only ident can refer to this node. */
@@ -583,9 +583,9 @@ string :: expr
         unique_string : unique_string /* always defined */
 ;
 
-ustring :: expr
+ucodestr :: expr
 %other
-        unique_ustring : unique_ustring /* always defined */
+        unique_ucodestr : unique_ucodestr /* always defined */
 ;
 
 %abstract
@@ -1232,7 +1232,7 @@ hash_func (hash_table_entry_t el_ptr)
     {
       if (mode == IR_NM_unique_char)
 	{
-	  size = sizeof (char_t);
+	  size = sizeof (ucode_t);
           ch = IR_char_value (node_ref);
 	  chp = &ch;
 	}
@@ -1253,6 +1253,11 @@ hash_func (hash_table_entry_t el_ptr)
 	  chp = IR_string_value (node_ref);
 	  size = strlen (chp);
 	}
+      else if (mode == IR_NM_unique_ucodestr)
+	{
+	  chp = (char *) IR_ucodestr_value (node_ref);
+	  size = IR_ucodestr_size (node_ref);
+	}
       else if (mode == IR_NM_unique_ident)
 	{
 	  chp = IR_ident_string (node_ref);
@@ -1261,7 +1266,7 @@ hash_func (hash_table_entry_t el_ptr)
       else
 	d_unreachable ();
       for (hash_value = 0, i = 0; i < size; i++, chp++)
-	hash_value += (*chp) << (i & 0xf);
+	hash_value += (*chp) << (i & 0x7);
     }
   return hash_value;
 }
@@ -1316,6 +1321,12 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
 	    elements_are_equal
 	      = strcmp (IR_string_value (node_ref1),
                         IR_string_value (node_ref2)) == 0;
+	  else if (mode1 == IR_NM_unique_ucodestr)
+	    elements_are_equal
+	      = (IR_ucodestr_size (node_ref1) == IR_ucodestr_size (node_ref2)
+		 && memcmp (IR_ucodestr_value (node_ref1),
+			    IR_ucodestr_value (node_ref2),
+			    IR_ucodestr_size (node_ref1)) == 0);
 	  else
 	    d_unreachable ();
 	}
@@ -1397,22 +1408,24 @@ create_node_with_pos (IR_node_mode_t mode, position_t pos)
   return ref;
 }
 
-/* Allocate memory for node with given mode and string attribute and
-   initiate its common member mode.  Return pointer to the string
-   attribute STR through parameter string_in_pool_ptr.  Nodes with string
-   attribute are unique string, unique ident. */
+/* Allocate memory for node with given mode and string STR of length
+   LEN and initiate its common member mode.  Return pointer to the
+   string in the allocated memory through parameter
+   string_in_pool_ptr.  Nodes with string attribute are unique string,
+   unique ident, and unique ucode string.  */
 
 IR_node_t
 create_unique_node_with_string (IR_node_mode_t m,
-				const char *str, char **string_in_pool_ptr)
+				const char *str, size_t len,
+				char **string_in_pool_ptr)
 {
   IR_node_t ref;
 
   ref = IR_create_node (m);
-  IR_TOP_EXPAND (strlen (str) + 1);
+  IR_TOP_EXPAND (len);
   *string_in_pool_ptr = IR_TOP_BEGIN ();
   IR_TOP_FINISH ();
-  strcpy (*string_in_pool_ptr, str);
+  memcpy (*string_in_pool_ptr, str, len);
   return ref;
 }
 
@@ -1433,6 +1446,7 @@ create_unique_ident_node (const char *str)
   if (ref == NULL)
     {
       ref = create_unique_node_with_string (IR_NM_unique_ident, str,
+					    strlen (str) + 1,
                                             &string_in_pool);
       IR_set_ident_string (ref, string_in_pool);
       /* The following means that the ident is not used for access to 
@@ -1505,6 +1519,7 @@ initiate_icode (void)
   temp_unique_float = IR_create_node (IR_NM_unique_float);
   temp_unique_char = IR_create_node (IR_NM_unique_char);
   temp_unique_string = IR_create_node (IR_NM_unique_string);
+  temp_unique_ucodestr = IR_create_node (IR_NM_unique_ucodestr);
   temp_ident = IR_create_node (IR_NM_ident);
   temp_decl = IR_create_node (IR_NM_var);
   destroy_unique_ident = create_unique_ident_node ("destroy");

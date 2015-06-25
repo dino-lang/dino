@@ -28,7 +28,7 @@
 
 /* Don't use -flat-structure for generation SPI from this description. */
 
-%type bool_t size_t hide_t char_t int_t rint_t unsigned_rint_t rfloat_t char_ptr_t
+%type bool_t size_t hide_t ucode_t int_t rint_t unsigned_rint_t rfloat_t char_ptr_t
       entry_t entry_ptr_t bcid_t stack_state_t BC_hidden_node_t ER_node_mode_t type_val_t
       process_status_t stack_ptr_t hidden_pc_t gmp_t
 
@@ -311,11 +311,13 @@ extern ER_node_t create_unpack_vector (size_t els_number);
 extern ER_node_t create_pack_vector (size_t els_number, ER_node_mode_t eltype);
 extern ER_node_t expand_vector (ER_node_t vect, size_t el_number);
 extern ER_node_t unpack_vector (ER_node_t vect);
-extern void pack_vector_if_possible (ER_node_t unpack_vect);
 extern int eq_vector (ER_node_t v1, ER_node_t v2);
 extern ER_node_t copy_vector (ER_node_t vect);
 extern ER_node_t create_empty_string (size_t min_length);
 extern ER_node_t create_string (const char *string);
+extern ER_node_t create_ucodestr (const ucode_t *str);
+extern ER_node_t bytevect_to_ucodevect (ER_node_t vect);
+extern void try_full_pack (ER_node_t obj);
 
 extern int eq_stack (ER_node_t i1, ER_node_t i2);
 
@@ -519,7 +521,13 @@ hideblock :: val
 /*%final*/
 char :: val
 %other
-  ch : char_t
+  ch : ucode_t
+;
+
+/* The following never exist as a separate value, only as a packed
+   vector element.  */
+/*%final*/
+byte :: val
 ;
 
 /*%final*/

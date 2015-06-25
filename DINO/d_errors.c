@@ -33,6 +33,7 @@
 
 char ERR_no_memory[] = "no memory";
 char ERR_invalid_char_constant[] = "invalid character constant";
+char ERR_invalid_escape_code[] = "invalid escape hex or unicode code";
 char ERR_invalid_input_char[] = "invalid symbol";
 char ERR_octal_int_value[] = "octal int with non-octal digit";
 char ERR_float_value_not_in_decimal_base[] = "float is not in decimal base";

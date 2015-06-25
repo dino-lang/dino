@@ -27,6 +27,7 @@
 extern char ERR_no_memory[];
 extern char ERR_invalid_char_constant[];
 extern char ERR_invalid_input_char[];
+extern char ERR_invalid_escape_code[];
 extern char ERR_octal_int_value[];
 extern char ERR_float_value_not_in_decimal_base[];
 extern char ERR_float_value[];

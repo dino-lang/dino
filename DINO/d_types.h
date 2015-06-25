@@ -135,10 +135,160 @@ static const char __infinity[8] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x7f };
 #define RFLOAT_NAN (*(rfloat_t *) __infinity)
 #endif
 
-typedef unsigned char char_t;
-
-#define MAX_CHAR  UCHAR_MAX /* unsigned char */
-
 typedef char bool_t;
+
+typedef const char *string_t;
+
+
+
+/* This page contains code for dealing with ASCII, UTF8 and
+   UNICODE.  */
+
+typedef unsigned char byte_t;
+
+static inline int
+in_byte_range_p (int ch)
+{
+  return 0 <= ch && ch <= UCHAR_MAX;
+}
+
+typedef int ucode_t;
+
+#define UCODE_MAX ((int) 0x10ffff)
+#define UCODE_BOUND (UCODE_MAX + 1)
+
+typedef const ucode_t *ucodestr_t;
+
+
+static inline int
+in_ucode_range_p (int uc)
+{
+  return 0 <= uc && uc <= (int) 0x10ffff;
+}
+
+/* length of ucode string STR.  */
+static inline
+ucodestrlen (const ucode_t *s)
+{
+  size_t i;
+  
+  for (i = 0; s[i] != 0; i++)
+    ;
+  return i;
+}
+
+/* Read unicode from UTF8 stream provided by function GET_BYTE.  DATA
+   is transferred to GET_BYTE.  The function returns UCODE_BOUND if
+   the stream has a wrong format.  If negative value is returned by
+   GET_BYTE, the function returns the value.  */
+static inline ucode_t
+get_ucode_from_utf8_stream (int (*get_byte) (void *), void *data)
+{
+  int n, b, r = get_byte (data);
+
+  if (r < (int) 0x80)
+    return r; /* It includes negative r too.  */
+  if ((r & 0xe0) == 0xc0) /* Two byte char  */
+    {
+      n = 1;
+      r &= 0x1f;
+    }
+  else if ((r & 0xf0) == 0xe0) /* Three byte char  */
+    {
+      n = 2;
+      r &= 0xf;
+    }
+ else if ((r & 0xf8) == 0xf0) /* Four byte char  */
+    {
+      n = 3;
+      r &= 0x7;
+    }
+  else
+    return UCODE_BOUND;
+  while (n-- > 0)
+    {
+      b = get_byte (data);
+      if (b < 0 && (b & 0xc0) != 0x80)
+	return UCODE_BOUND;
+      r = (r << 6) | (b & 0x3f);
+    }
+  return b <= UCODE_MAX ? b : UCODE_BOUND;
+}
+
+/* Write unicode UC to UTF8 stream provided by function PUT_BYTE.
+   DATA is transferred to PUT_BYTE.  Return negative if it is wrong
+   ucode or error occurs, otherwise return number of output bytes.  */
+static inline int
+put_ucode_to_utf8_stream (ucode_t uc, int (*put_byte) (int, void *), void *data)
+{
+  int i, n;
+  
+  if (! in_ucode_range_p (uc))
+    return -1;
+  if (uc < (int) 0x80)
+    {
+      if (put_byte (uc, data) < 0)
+	return -1;
+      return 1;
+    }
+  if (uc <= (int) 0x7ff) /* Two byte char  */
+    {
+      n = 2;
+      if (put_byte ((uc >> 6) | 0xc0, data) < 0)
+	return -1;
+    }
+  else if (uc < (int) 0xffff) /* Three byte char  */
+    {
+      n = 3;
+      if (put_byte ((uc >> 12) | 0xe0, data) < 0)
+	return -1;
+    }
+  else /* Four byte char  */
+    {
+      n = 4;
+      if (put_byte ((uc >> 18) | 0xf0, data) < 0)
+	return -1;
+    }
+  for (i = n - 2; i >= 0; i--)
+    if (put_byte ((uc >> i * 6) & 0x3f | 0x80, data) < 0)
+      return -1;
+  return n;
+}
+
+#include <stdio.h>
+
+/* Read and return by from file given by DATA.  Used by
+   get_ucode_from_utf8.  */
+static inline int
+read_byte (void *data)
+{
+  FILE *f = (FILE *) data;
+  
+  return fgetc (f);
+}
+
+/* Print byte C to file given by DATA.  Used by
+   print_ucode_string_as_utf8.  */
+static inline int
+print_byte (int c, void *data)
+{
+  FILE *f = (FILE *) data;
+  
+  return fputc (c, f);
+}
+
+/* Print ucode string STR to file F as utf8 sequence.  Return number
+   of output bytes.  */
+static inline
+print_ucode_string_as_utf8 (const ucode_t *str, FILE *f)
+{
+  ucode_t c;
+  int n , res = 0;
+  
+  while ((c = *str++) != '\0')
+    if ((n = put_ucode_to_utf8_stream (c, print_byte, f)) >= 0)
+      res += n;
+  return res;
+}
 
 #endif /*#ifndef __D_CONFIG_H__ */

@@ -34,33 +34,89 @@ get_fmt_op_pos (int vec_p)
   return vec_p ? get_cpos () : call_pos ();
 }
 
-/* Form string in TEMP_VLOBJ from N_PARS PARS according to format FMT.
-   Throw exception with NAME if something is wrong.  */
-void
-form_format_string (const char *fmt, ER_node_t pars, int n_pars,
+/* Return (const char *) ptr + size.  */
+static inline const void *
+cptr_add (const void *ptr, int size)
+{
+  return (const void *) ((const char *) ptr + size);
+}
+
+/* Return (char *) ptr + size.  */
+static inline void *
+ptr_add (void *ptr, int size)
+{
+  return (void *) ((char *) ptr + size);
+}
+
+static inline int
+ptr_ref (const void *ptr, int byte_p)
+{
+  return byte_p ? * (const char *) ptr : * (const ucode_t *) ptr;
+}
+
+/* Put byte (if BYTE_P) or ucode C to string PTR as IND element.  */
+static inline void
+char_assign (void *ptr, int ind, int c, int byte_p)
+{
+  if (byte_p)
+    ((byte_t *) ptr)[ind] = c;
+  else
+    ((ucode_t *) ptr)[ind] = c;
+}
+
+/* Add byte (if BYTE_P) or ucode WHAT to vlo *TO.  */
+static inline void
+add_char (vlo_t *to, int what, int byte_p)
+{
+  if (byte_p)
+    VLO_ADD_BYTE (*to, what);
+  else
+    {
+      ucode_t uc = what;
+      VLO_ADD_MEMORY (*to, &uc, sizeof (ucode_t));
+    }
+}
+
+/* Form string of bytes or unicodes in TEMP_VLOBJ from N_PARS PARS
+   according to format FMT.  Throw exception with NAME if something is
+   wrong.  Return true if TEMP_VLOBJ contains bytes, false if it
+   contains unicodes.  */
+int
+form_format_string (ER_node_t fmt, ER_node_t pars, int n_pars,
 		    const char *name, int vec_p)
 {
   ER_node_t val;
-  const char *ptr, *str;
+  const void *ptr;
   char *curr_fmt, res_fmt [100];
   int curr_par_num, width, precision, add, out;
   int alternate_flag, zero_flag, left_adjust_flag;
   int blank_flag, plus_flag, width_flag, precision_flag;
-  char next;
+  int byte_p, res_byte_p, char_size, res_char_size, next;
+  size_t len, len2;
+  const char *str;
+  char *ch_ptr;
 
   errno = 0;
   VLO_NULLIFY (temp_vlobj);
   curr_par_num = 0;
-  for (ptr = fmt; *ptr != '\0'; ptr++)
-    if (*ptr != '%')
-      VLO_ADD_BYTE (temp_vlobj, *ptr);
+  d_assert (ER_NODE_MODE (fmt) == ER_NM_heap_pack_vect
+	    && (ER_pack_vect_el_mode (fmt) == ER_NM_char
+		|| ER_pack_vect_el_mode (fmt) == ER_NM_byte));
+  res_byte_p = byte_p = ER_pack_vect_el_mode (fmt) == ER_NM_byte;
+  res_char_size = char_size = (byte_p ? sizeof (char) : sizeof (ucode_t));
+  for (ptr = ER_pack_els (fmt);
+       ptr_ref (ptr, byte_p) != '\0';
+       ptr = cptr_add (ptr, char_size))
+    if (ptr_ref (ptr, byte_p) != '%')
+      add_char (&temp_vlobj, ptr_ref (ptr, byte_p), res_byte_p);
     else
       {
 	alternate_flag = zero_flag = left_adjust_flag = FALSE;
 	blank_flag = plus_flag = FALSE;
 	for (;;)
 	  {
-	    next = *++ptr;
+	    ptr = cptr_add (ptr, char_size);
+	    next = ptr_ref (ptr, byte_p);
 	    if (next == '#')
 	      alternate_flag = TRUE;
 	    else if (next == '0')
@@ -73,11 +129,12 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	      plus_flag = TRUE;
 	    else
 	      {
-		ptr--;
+		ptr = cptr_add (ptr, -char_size);
 		break;
 	      }
 	  }
-	next = *++ptr;
+	ptr = cptr_add (ptr, char_size);
+	next = ptr_ref (ptr, byte_p);
 	width = 0;
 	width_flag = FALSE;
 	if (next >= '1' && next <= '9')
@@ -98,10 +155,11 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		if (width < 0)
 		  eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			      DERR_invalid_format, name);
-		next = *++ptr;
+		ptr = cptr_add (ptr, char_size);
+		next = ptr_ref (ptr, byte_p);
 	      }
 	    while (next >= '0' && next <= '9');
-	    ptr--;
+	    ptr = cptr_add (ptr, -char_size);
 	  }
 	else if (next == '*')
 	  {
@@ -122,14 +180,16 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 	    curr_par_num++;
 	  }
 	else
-	  ptr--;
-	next = *++ptr;
+	  ptr = cptr_add (ptr, -char_size);
+	ptr = cptr_add (ptr, char_size);
+	next = ptr_ref (ptr, byte_p);
 	precision = 0;
 	precision_flag = FALSE;
 	if (next == '.')
 	  {
 	    precision_flag = TRUE;
-	    next = *++ptr;
+	    ptr = cptr_add (ptr, char_size);
+	    next = ptr_ref (ptr, byte_p);
 	    if (next == '*')
 	      {
 		if (curr_par_num >= n_pars)
@@ -161,17 +221,19 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		    if (precision < 0)
 		      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 				  DERR_invalid_format, name);
-		    next = *++ptr;
+		    ptr = cptr_add (ptr, char_size);
+		    next = ptr_ref (ptr, byte_p);
 		  }
 		while (next >= '0' && next <= '9');
-		ptr--;
+		ptr = cptr_add (ptr, -char_size);
 	      }
 	    else
-	      ptr--;
+	      ptr = cptr_add (ptr, -char_size);
 	  }
 	else
-	  ptr--;
-	next = *++ptr;
+	  ptr = cptr_add (ptr, -char_size);
+	ptr = cptr_add (ptr, char_size);
+	next = ptr_ref (ptr, byte_p);
 	/* '-' switches off '0', '+' switches off ' '.  */
 	if (left_adjust_flag && zero_flag)
 	  zero_flag = FALSE;
@@ -204,7 +266,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		|| blank_flag || plus_flag || width_flag || precision_flag)
 	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
-	    VLO_ADD_BYTE (temp_vlobj, '%');
+	    add_char (&temp_vlobj, '%', res_byte_p);
 	    continue;
 	  }
 	if (curr_par_num >= n_pars)
@@ -249,9 +311,7 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		    ER_node_t gmp = ER_l (val);
 		    int base, sign = mpz_sgn (*ER_mpz_ptr (gmp));
 		    mpz_t absv;
-		    size_t len, len2, prefix_len;
-		    const char *str;
-		    char *ch_ptr;
+		    size_t prefix_len;
 
 		    mpz_init (absv);
 		    mpz_abs (absv, *ER_mpz_ptr (gmp));
@@ -302,12 +362,12 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		    out = 0;
 		    if (! left_adjust_flag)
 		      for (; len < width; len++, out++)
-			ch_ptr [out] = ' ';
+			char_assign (ch_ptr, out, ' ', res_byte_p);
 		    strcpy (ch_ptr + out, VLO_BEGIN (temp_vlobj2));
 		    out += len2;
 		    if (left_adjust_flag)
 		      for (; len < width; len++, out++)
-			ch_ptr [out] = ' ';
+			char_assign (ch_ptr, out, ' ', res_byte_p);
 		  }
 	      }
 	    else
@@ -318,72 +378,132 @@ form_format_string (const char *fmt, ER_node_t pars, int n_pars,
 		out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
 			       ER_f (val));
 	      }
+	    if (! res_byte_p)
+	      {
+		str_to_ucode_vlo (&temp_vlobj2,
+				  (char *) VLO_BOUND (temp_vlobj) - add, out);
+		VLO_EXPAND (temp_vlobj, add * (res_char_size - 1));
+		memcpy ((char *) VLO_BOUND (temp_vlobj) - add * res_char_size,
+			(char *) VLO_BEGIN (temp_vlobj2),
+			out * sizeof (ucode_t));
+	      }
 	  }
 	else if (next == 'c')
 	  {
+	    int ch;
+	    
 	    if (alternate_flag || zero_flag || blank_flag || plus_flag
 		|| precision_flag)
 	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
-	    *curr_fmt++ = 'c';
-	    *curr_fmt++ = '\0';
 	    add += 10;
-	    VLO_EXPAND (temp_vlobj, add);
+	    VLO_EXPAND (temp_vlobj, add * res_char_size);
 	    if (ER_NODE_MODE (val) != ER_NM_char)
 	      eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_parameter_type, name);
-	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
-			   ER_ch (val));
+	    ch = ER_ch (val);
+	    if (res_byte_p && ! in_byte_range_p (ch))
+	      {
+		/* Transform the result into ucode.  */
+		copy_vlo (&temp_vlobj2, &temp_vlobj);
+		str_to_ucode_vlo (&temp_vlobj, VLO_BEGIN (temp_vlobj2),
+				  VLO_LENGTH (temp_vlobj2));
+		res_byte_p = FALSE;
+		res_char_size = sizeof (ucode_t);
+	      }
+	    ch_ptr = ptr_add (VLO_BOUND (temp_vlobj), -add * res_char_size);
+	    out = 0;
+	    len = 1;
+	    if (! left_adjust_flag)
+	      for (; len < width; len++, out++)
+		char_assign (ch_ptr, out, ' ', res_byte_p);
+	    char_assign (ch_ptr, out, ch, res_byte_p);
+	    out++;
+	    if (left_adjust_flag)
+	      for (; len < width; len++, out++)
+		char_assign (ch_ptr, out, ' ', res_byte_p);
 	  }
 	else if (next == 's')
 	  {
+	    int str_byte_p;
+	    size_t i, str_char_size;
+	    
 	    if (alternate_flag || zero_flag || blank_flag || plus_flag)
 	      eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_invalid_format, name);
-	    *curr_fmt++ = 's';
-	    *curr_fmt++ = '\0';
 	    to_vect_string_conversion (val, NULL, NULL);
 	    if (ER_NODE_MODE (val) != ER_NM_vect
 		|| ER_NODE_MODE (ER_vect (val)) != ER_NM_heap_pack_vect
-		|| ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char)
+		|| (ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char
+		    && ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_byte))
 	      eval_error (partype_bc_decl, get_fmt_op_pos (vec_p),
 			  DERR_parameter_type, name);
+	    str_byte_p = ER_pack_vect_el_mode (ER_vect (val)) == ER_NM_byte;
+	    str_char_size = (str_byte_p ? sizeof (char) : sizeof (ucode_t));
+	    if (res_byte_p && ! str_byte_p)
+	      {
+		/* Transform the result into ucode.  */
+		copy_vlo (&temp_vlobj2, &temp_vlobj);
+		str_to_ucode_vlo (&temp_vlobj, VLO_BEGIN (temp_vlobj2),
+				  VLO_LENGTH (temp_vlobj2));
+		res_byte_p = FALSE;
+		res_char_size = sizeof (ucode_t);
+	      }
 	    str = ER_pack_els (ER_vect (val));
-	    add += strlen (str) + 10;
-	    VLO_EXPAND (temp_vlobj, add);
-	    out = sprintf ((char *) VLO_BOUND (temp_vlobj) - add, res_fmt,
-			   str);
+	    len2 = str_byte_p ? strlen (str) : ucodestrlen ((ucode_t *) str);
+	    add += len2 + 10;
+	    if (precision_flag && len2 > precision)
+	      len2 = precision;
+	    VLO_EXPAND (temp_vlobj, add * res_char_size);
+	    ch_ptr = ptr_add (VLO_BOUND (temp_vlobj), -add * res_char_size);
+	    out = 0;
+	    len = len2;
+	    if (! left_adjust_flag)
+	      for (; len < width; len++, out++)
+		char_assign (ch_ptr, out, ' ', res_byte_p);
+	    for (i = 0; i < len2; i++)
+	      {
+		char_assign (ch_ptr, out,
+			     ptr_ref (str, str_byte_p), res_byte_p);
+		str = cptr_add (str, str_char_size);
+		out++;
+	      }
+	    if (left_adjust_flag)
+	      for (; len < width; len++, out++)
+		char_assign (ch_ptr, out, ' ', res_byte_p);
 	  }
 	else
 	  eval_error (invfmt_bc_decl, get_fmt_op_pos (vec_p), DERR_invalid_format, name);
 	curr_par_num++;
 	d_assert (out <= add);
-	VLO_SHORTEN (temp_vlobj, add - out);
+	VLO_SHORTEN (temp_vlobj, (add - out) * res_char_size);
       }
   if (curr_par_num != n_pars)
     eval_error (parnumber_bc_decl, get_fmt_op_pos (vec_p), DERR_parameters_number, name);
-  VLO_ADD_BYTE (temp_vlobj, '\0');
+  add_char (&temp_vlobj, '\0', res_byte_p);
   if (errno != 0)
     {
       ifun_call_pc = cpc;
       process_system_errors (name);
     }
+  return res_byte_p;
 }
 
 ER_node_t
-to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
+to_vect_string_conversion (ER_node_t var, ER_node_t format, ER_node_t tvar)
 {
   ER_node_mode_t mode;
   const char *representation;
   char str[1000];
   ER_node_t vect;
+  int byte_p = TRUE;
       
   mode = ER_NODE_MODE (var);
   if (mode == ER_NM_float || mode == ER_NM_int || mode == ER_NM_long || mode == ER_NM_char)
     {
       if (format != NULL)
 	{
-	  form_format_string (format, var, 1, "vect (...)", TRUE);
+	  byte_p = form_format_string (format, var, 1, "vect (...)", TRUE);
 	  representation = VLO_BEGIN (temp_vlobj);
 	}
       else if (mode == ER_NM_float)
@@ -398,8 +518,10 @@ to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
 	  str [1] = '\0';
 	  representation = str;
 	}
-      /* Remeber `var' may be changed in GC. */
-      vect = create_string (representation);
+      if (byte_p)
+	vect = create_string (representation);
+      else
+	vect = create_ucodestr ((const ucode_t *) representation);
       if (tvar == NULL)
 	tvar = var;
       ER_SET_MODE (tvar, ER_NM_vect);
@@ -411,16 +533,18 @@ to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
       vect = ER_vect (var);
       GO_THROUGH_REDIR (vect);
       ER_set_vect (var, vect);
-      if (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (ER_vect (var));
+      try_full_pack (ER_vect (var));
       if (format != NULL)
 	{
 	  d_assert (ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_vect
-		    && ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char);
-	  form_format_string (format, var, 1, "vec (...)", TRUE);
+		    && (ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char
+			|| ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_byte));
+	  byte_p = form_format_string (format, var, 1, "vec (...)", TRUE);
 	  representation = VLO_BEGIN (temp_vlobj);
-	  /* Remeber `var' may be changed in GC. */
-	  vect = create_string (representation);
+	  if (byte_p)
+	    vect = create_string (representation);
+	  else
+	    vect = create_ucodestr ((const ucode_t *) representation);
 	  if (tvar == NULL)
 	    tvar = var;
 	  ER_SET_MODE (tvar, ER_NM_vect);
@@ -431,7 +555,7 @@ to_vect_string_conversion (ER_node_t var, const char *format, ER_node_t tvar)
   return var;
 }
 
-/* Used by read_number.  */
+/* Used by read_dino_number.  */
 static size_t vindex;
 static const char *vnumber;
 static int vgetc (void) { return vnumber[vindex++]; }
@@ -456,7 +580,9 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
     {
       tvar = to_vect_string_conversion (var, NULL, tvar);
       if (ER_NODE_MODE (ER_vect (tvar)) == ER_NM_heap_pack_vect
-	  && ER_pack_vect_el_mode (ER_vect (tvar)) == ER_NM_char)
+	  /* Unicode string after try_full_pack in
+	     to_vect_string_conversion can not contain number.  */
+	  && ER_pack_vect_el_mode (ER_vect (tvar)) == ER_NM_byte)
 	{
 	  ER_node_t pack_vect = ER_vect (tvar);
 	  enum read_number_code err_code;
@@ -472,9 +598,9 @@ implicit_arithmetic_conversion (ER_node_t var, ER_node_t tvar)
 		  && isdigit (vnumber[vindex + 1])))
 	    {
 	      vindex++;
-	      err_code = read_number (vnumber[vindex - 1], vgetc, vungetc,
-				      &read_ch_num, &repr, &base,
-				      &float_p, &long_p);
+	      err_code = read_dino_number (vnumber[vindex - 1], vgetc, vungetc,
+					   &read_ch_num, &repr, &base,
+					   &float_p, &long_p);
 	      if (err_code == NUMBER_OK)
 		{
 		  vindex += read_ch_num;
@@ -697,10 +823,12 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
     }
   string_flag = ((ER_NODE_MODE (op2) == ER_NM_vect
 		  && ER_NODE_MODE (ER_vect (op2)) == ER_NM_heap_pack_vect
-		  && ER_pack_vect_el_mode (ER_vect (op2)) == ER_NM_char)
+		  && (ER_pack_vect_el_mode (ER_vect (op2)) == ER_NM_char
+		      || ER_pack_vect_el_mode (ER_vect (op2)) == ER_NM_byte))
 		  || (ER_NODE_MODE (op1) == ER_NM_vect
 		      && ER_NODE_MODE (ER_vect (op1)) == ER_NM_heap_pack_vect
-		      && ER_pack_vect_el_mode (ER_vect (op1)) == ER_NM_char));
+		      && (ER_pack_vect_el_mode (ER_vect (op1)) == ER_NM_char
+			  || ER_pack_vect_el_mode (ER_vect (op1)) == ER_NM_byte)));
   if (string_flag)
     {
       *r = op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);
@@ -711,10 +839,8 @@ implicit_conversion_for_eq_op (ER_node_t op1, ER_node_t op2,
 	   && (ER_NODE_MODE (ER_vect (op2))
 	       != ER_NODE_MODE (ER_vect (op1))))
     {
-      if (ER_NODE_MODE (ER_vect (op2)) == ER_NM_heap_unpack_vect)
-	pack_vector_if_possible (ER_vect (op2));
-      else
-	pack_vector_if_possible (ER_vect (op1));
+      try_full_pack (ER_vect (op2));
+      try_full_pack (ER_vect (op1));
       *l = op1;
       *r = op2;
     }
