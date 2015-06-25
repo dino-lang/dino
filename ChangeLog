@@ -1,4 +1,4 @@
-2015-06-24  Vladimir Makarov  <vmakarov@redhat.com>
+2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* REGEX: Remove all the directory.
 	* DINO/Makefile.in: Update dependencies.
