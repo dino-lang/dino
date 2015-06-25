@@ -5784,14 +5784,44 @@ done
 
 
 
-if test x$cocom_debug = x; then
+if test x$cocom_debug = x -a x$dino_debug = x; then
   C_DEBUG_DEFINE=-DNDEBUG
   START_SPRUT_OPTIONS=-only-macro
 else
+  CFLAGS=-g3
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CC supports -g3" >&5
+$as_echo_n "checking whether CC supports -g3... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      g3=yes
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+  if test "$g3" = yes; then
+    CFLAGS='-O0 -g3'
+    CXXFLAGS='-O0 -g3'
+  else
+    CFLAGS='-O0 -g'
+    CXXFLAGS='-O0 -g'
+  fi
   C_DEBUG_DEFINE=
   START_SPRUT_OPTIONS=-debug
-  CFLAGS='-O0 -g'
-  CXXFLAGS='-O0 -g'
 fi
 
 
@@ -5914,7 +5944,7 @@ fi
 esac
 
 
-if test "$GCC" = yes && test x$cocom_debug = x; then
+if test "$GCC" = yes && test x$cocom_debug = x -a x$dino_debug = x; then
   my_save_cflags="$CFLAGS"
   CFLAGS=-Ofast
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CC supports -Ofast" >&5
