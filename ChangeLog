@@ -1,3 +1,17 @@
+2015-06-26  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/{process_ucodedb.d, UnicodeDB.c, UnicodeData.txt): New
+	files.
+	* DINO/d_udb.[ch]: New files.
+	* DINO/d_func.c (d_udb.h): Include.
+	(initiate_funcs): Call check_ucode_db.
+	(split_call): Use other criterium of empty pattern match.
+	* DINO/Makefile.in: Update dependencies.
+	(objects): Add d_udb.o.
+	(sources): Add d_udb.h and d_udb.c.
+	(additional_files): Add UnicodeData.txt and process_ucodedb.d.
+	(prepare-unicode, $(srcdir)/UnicodeDB.c): New entries.
+
 2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* REGEX: Remove all the directory.

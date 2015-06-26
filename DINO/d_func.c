@@ -25,6 +25,7 @@
 #include "d_run.h"
 #include "d_built.h"
 #include "d_conv.h"
+#include "d_udb.h"
 #include "d_func.h"
 
 #include <sys/types.h>
@@ -1258,25 +1259,16 @@ split_call (int pars_number)
       ch_size = str_ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
       VLO_NULLIFY (temp_vlobj2);
       disp = 0;
-      while (disp < ER_els_number (vect) * ch_size || disp == 0)
+      for (;;)
 	{
 	  ok = onig_search (reg, str + disp, end, str + disp, end,
 			    region, ONIG_OPTION_NONE) >= 0;
 	  if (ok)
 	    {
-	      if (region->beg[0] != 0 || region->end[0] == 0)
-		{
-		  /* Empty pattern case is here too. */
-		  if (region->beg[0] == 0)
-		    region->beg[0] += ch_size;
-		  chars_number = region->beg[0] / ch_size;
-		}
-	      else
-		{
-		  /* Pattern by pattern. */
-		  disp += region->end[0];
-		  continue;
-		}
+	      /* Empty pattern case is here too. */
+	      if (region->beg[0] >= region->end[0])
+		region->beg[0] += ch_size;
+	      chars_number = region->beg[0] / ch_size;
 	    }
 	  else
 	    chars_number = ER_els_number (vect) - disp / ch_size;
@@ -1294,7 +1286,7 @@ split_call (int pars_number)
 	  VLO_ADD_MEMORY (temp_vlobj2, &sub_vect, sizeof (sub_vect));
 	  if (!ok)
 	    break;
-	  if (region->end[0] == 0)
+	  if (region->end[0] <= region->beg[0])
 	    disp += ch_size;
 	  else
 	    disp += region->end[0];
@@ -5561,6 +5553,8 @@ process_call (ER_node_t call_start, int actuals_num,
 void
 initiate_funcs (void)
 {
+  if (! check_ucode_db ())
+    error (TRUE, no_position, "Unicode database is corrupted");
   if (trace_flag)
     VLO_CREATE (trace_stack, 0);
   initiate_io ();

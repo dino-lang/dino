@@ -196,7 +196,8 @@ top_srcdir = @top_srcdir@
 
 # All object files of the syntax description translator:
 objects = d_errors.o d_ir.o d_bc.o d_run.o d_heap.o d_yacc.o d_runtab.o\
-	  d_context.o d_inference.o d_bcio.o d_conv.o d_func.o d_eval.o d_dino.o
+	  d_context.o d_inference.o d_bcio.o d_conv.o d_udb.o d_func.o\
+	  d_eval.o d_dino.o
 
 # ALL header files used by all source files of Dino self.
 common = $(srcdir)/d_dino.h $(srcdir)/d_errors.h $(srcdir)/d_common.h
@@ -204,11 +205,12 @@ common = $(srcdir)/d_dino.h $(srcdir)/d_errors.h $(srcdir)/d_common.h
 # All source files of Dino.
 source = $(common) $(srcdir)/d_built.h $(srcdir)/d_yacc.h\
          $(srcdir)/d_runtab.h $(srcdir)/d_bcio.h\
-	 $(srcdir)/d_context.h $(srcdir)/d_inference.h $(srcdir)/d_conv.h\
-	 $(srcdir)/d_func.h $(srcdir)/d_eval.h $(srcdir)/d_gen.c\
+	 $(srcdir)/d_context.h $(srcdir)/d_inference.h\
+	 $(srcdir)/d_conv.h $(srcdir)/d_udb.h $(srcdir)/d_func.h\
+	 $(srcdir)/d_eval.h $(srcdir)/d_gen.c\
          $(srcdir)/d_errors.c $(srcdir)/d_yacc.y $(srcdir)/d_runtab.c\
 	 $(srcdir)/d_context.c $(srcdir)/d_inference.c $(srcdir)/d_bcio.c\
-         $(srcdir)/d_func.c $(srcdir)/d_conv.c\
+         $(srcdir)/d_udb.c $(srcdir)/d_func.c $(srcdir)/d_conv.c\
          $(srcdir)/d_eval.c $(srcdir)/d_dino.c\
 	 $(srcdir)/d_aixdl.c $(srcdir)/d_main.c\
          $(srcdir)/d_ir.sprut $(srcdir)/d_bc.sprut $(srcdir)/d_types.h\
@@ -228,7 +230,7 @@ ammunition = ../AMMUNITION/C/allocate.o ../AMMUNITION/C/vlobject.o\
 	     ../AMMUNITION/C/bits.o ../AMMUNITION/C/earley.o
 
 additional_files = Makefile.in README INSTALL dino.1 compare.tst dino.tst.in\
-                   ldAix
+                   UnicodeData.txt process_ucodedb.d ldAix
 
 doc_files = dino.txt dino.info* dino*.html dino.pdf dino.dvi dino.ps
 
@@ -307,6 +309,11 @@ d_bcf.c : $(srcdir)/d_bcf.shilka
 d_yacc.c: $(srcdir)/d_yacc.y
 	@echo must be - conflicts: 9 shift/reduce.
 	../MSTA/msta -no-regular-optimization -local-error-recovery $(srcdir)/d_yacc.y
+
+prepare-unicode: $(srcdir)/UnicodeDB.c
+
+$(srcdir)/UnicodeDB.c : $(srcdir)/UnicodeData.txt
+	./dino $(srcdir)/process_ucodedb.d $(srcdir)/UnicodeData.txt >UDB.c && mv UDB.c $@
 
 test : test-dino compare-only-dino
 
@@ -510,8 +517,8 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
 	   $(srcdir)/../DINO/d_gen.c\
 	   $(srcdir)/../DINO/d_errors.c\
            $(srcdir)/../DINO/d_runtab.c $(srcdir)/../DINO/d_context.c\
-	   $(srcdir)/../DINO/d_bcio.c\
-           $(srcdir)/../DINO/d_conv.c $(srcdir)/../DINO/d_func.c\
+	   $(srcdir)/../DINO/d_bcio.c $(srcdir)/../DINO/d_conv.c\
+	   $(srcdir)/../DINO/d_udb.c $(srcdir)/../DINO/d_func.c\
 	   $(srcdir)/../DINO/d_eval.c $(srcdir)/../DINO/d_inference.c\
            $(srcdir)/../DINO/d_heap.c $(srcdir)/../DINO/d_dino.c\
 	   $(srcdir)/../DINO/d_main.c\
@@ -770,6 +777,25 @@ d_conv.o: $(top_srcdir)/DINO/../DINO/d_conv.c \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_common.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_conv.c
+d_udb.o: $(top_srcdir)/DINO/../DINO/d_udb.c \
+ $(top_srcdir)/DINO/../DINO/d_common.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ ../AMMUNITION/cocom-config.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/allocate.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/AMMUNITION/hashtab.h \
+ $(top_srcdir)/AMMUNITION/ticker.h \
+ $(top_srcdir)/AMMUNITION/bits.h \
+ $(top_srcdir)/DINO/../DINO/d_errors.h \
+ $(top_srcdir)/AMMUNITION/errors.h \
+ $(top_srcdir)/AMMUNITION/vlobject.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
+ $(top_srcdir)/AMMUNITION/position.h \
+ $(top_srcdir)/DINO/../DINO/d_types.h \
+ $(top_srcdir)/DINO/../DINO/UnicodeDB.c
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_udb.c
 d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c d_run.h \
  $(top_srcdir)/DINO/d_types.h d_config.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h \
@@ -791,6 +817,7 @@ d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c d_run.h \
  $(top_srcdir)/DINO/d_runtab.h \
  $(top_srcdir)/DINO/../DINO/d_built.h \
  $(top_srcdir)/DINO/../DINO/d_conv.h \
+ $(top_srcdir)/DINO/../DINO/d_udb.h \
  $(top_srcdir)/DINO/../DINO/d_func.h \
  $(top_srcdir)/ONIGURUMA/oniguruma.h \
  $(top_srcdir)/AMMUNITION/earley.h
