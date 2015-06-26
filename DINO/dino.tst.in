@@ -12933,9 +12933,9 @@ TEST73
 ["aaa", "bbb", "ccc", "ddd"]
 ["aaa", "bbb", "ccc", "ddd"]
 ["aaa", "bbb", "ccc", "ddd"]
-["aaa", "bbb", "ccc", "ddd"]
+["", "aaa", "bbb", "ccc", "ddd", ""]
 ["a", "b", "c", "d", "e", "f"]
-["aaa", "bbb", "ccc", "ddd"]
+["", "", "aaa", "", "", "bbb", "", "", "ccc", "ddd", "", ""]
 ["aaabbbcccddd"]
 [""]
 [""]
@@ -21223,7 +21223,8 @@ for (;;)
       continue;
     a = split (ln, "[^[:alnum:]]");
     for (i = 0; i < #a; i++)
-      voc [a[i]] = (a[i] in voc ? voc [a[i]] + 1 : 1);
+      if (#a[i] != 0)
+        voc [a[i]] = (a[i] in voc ? voc [a[i]] + 1 : 1);
   } catch (eof) {
     break;
   }
@@ -48724,6 +48725,27 @@ Use "exit(<int>);" or Ctrl-D to exit
 dino> [2]
 dino> 
 OUTPUT816
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 817.
+if test $result = ok -a $start_test_number -le 817; then
+	echo test 817: Empty field split
+        cat >$test_file <<'TEST817'
+println (split ("0000;<control>;Cc;0;BN;;;;;N;NULL;;;;", ";"));
+TEST817
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT817' && $CMP $stdout $ftemp2; then
+["0000", "<control>", "Cc", "0", "BN", "", "", "", "", "N", "NULL", "", "", "", ""]
+OUTPUT817
                         result=ok
                 else
                         result=fail

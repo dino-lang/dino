@@ -1,5 +1,12 @@
 2015-06-26  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_func.c (split_call): Check disp to break loop.
+	* DINO/dino.tst.in (73): Change expected output.
+	(374): Check empty matched string.
+	(817): New.
+
+2015-06-26  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/{process_ucodedb.d, UnicodeDB.c, UnicodeData.txt): New
 	files.
 	* DINO/d_udb.[ch]: New files.

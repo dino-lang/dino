@@ -1265,8 +1265,8 @@ split_call (int pars_number)
 			    region, ONIG_OPTION_NONE) >= 0;
 	  if (ok)
 	    {
-	      /* Empty pattern case is here too. */
 	      if (region->beg[0] >= region->end[0])
+		/* Empty string matching. */
 		region->beg[0] += ch_size;
 	      chars_number = region->beg[0] / ch_size;
 	    }
@@ -1287,9 +1287,18 @@ split_call (int pars_number)
 	  if (!ok)
 	    break;
 	  if (region->end[0] <= region->beg[0])
-	    disp += ch_size;
+	    {
+	      /* Empty string matching. */
+	      disp += ch_size;
+	      if (disp >= ER_els_number (vect))
+		break;
+	    }
 	  else
-	    disp += region->end[0];
+	    {
+	      disp += region->end[0];
+	      if (disp > ER_els_number (vect))
+		break;
+	    }
 	}
       els_number = VLO_LENGTH (temp_vlobj2) / sizeof (ER_node_t);
       result = create_pack_vector (els_number, ER_NM_vect);
