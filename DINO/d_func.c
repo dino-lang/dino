@@ -962,11 +962,14 @@ gmatch_call (int pars_number)
       VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
       el = (region->end [0] + disp) / ch_size;
       VLO_ADD_MEMORY (temp_vlobj2, &el, sizeof (el));
-      if (flag)
+      if (flag || region->beg[0] >= region->end[0])
+	/* Empty string match here too.  */
 	disp += ch_size;
       else
 	disp += region->end [0];
       count++;
+      if (disp >= ER_els_number (ER_vect (par2)) * ch_size)
+	break;
     }
   if (count == 0)
     ER_SET_MODE (fun_result, ER_NM_nil);
@@ -1100,6 +1103,8 @@ generall_sub_call (int pars_number, int global_flag)
 		  els_num++;
 		}
 	      else if (i < region->num_regs
+		       /* Empty match (end[i]==beg[i]) or non-matched
+			  (beg[i]==end[i]== -1).  */
 		       && region->end[i] != region->beg[i])
 		{
 		  len = region->end[i] - region->beg[i];
@@ -1110,7 +1115,7 @@ generall_sub_call (int pars_number, int global_flag)
 		  els_num += len / ch_size;
 		}
 	    }
-	  if (region->end[0] == 0)
+	  if (region->end[0] == region->beg[0])
 	    {
 	      /* Matched empty string */
 	      if (ER_els_number (vect) != 0)
@@ -1290,13 +1295,13 @@ split_call (int pars_number)
 	    {
 	      /* Empty string matching. */
 	      disp += ch_size;
-	      if (disp >= ER_els_number (vect))
+	      if (disp >= ER_els_number (vect) * ch_size)
 		break;
 	    }
 	  else
 	    {
 	      disp += region->end[0];
-	      if (disp > ER_els_number (vect))
+	      if (disp > ER_els_number (vect) * ch_size)
 		break;
 	    }
 	}
