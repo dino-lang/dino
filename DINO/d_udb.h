@@ -22,4 +22,6 @@
 
 */
 
+extern int ucode_tolower (int c);
+extern int ucode_toupper (int c);
 extern int check_ucode_db (void);

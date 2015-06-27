@@ -63,6 +63,38 @@ find_ucode_desc (int c)
 }
 
 int
+ucode_tolower (int c)
+{
+  const struct ucode_desc *desc = find_ucode_desc (c);
+
+  if (desc == NULL)
+    return c;
+  if (desc->type == 0)
+    return c + desc->u.l;
+  if (desc->type == 4)
+    return c + desc->u.lmu.lo_diff;
+  return c;
+}
+
+int
+ucode_toupper (int c)
+{
+  const struct ucode_desc *desc = find_ucode_desc (c);
+
+  if (desc == NULL)
+    return c;
+  if (desc->type == 1)
+    return c + desc->u.u;
+  if (desc->type == 2)
+    return c + desc->u.mu;
+  if (desc->type == 3)
+    return c + desc->u.mu2.up_diff;
+  if (desc->type == 4)
+    return c + desc->u.lmu.up_diff;
+  return c;
+}
+
+int
 check_ucode_db (void)
 {
 #ifndef NDEBUG

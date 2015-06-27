@@ -1,8 +1,15 @@
+2015-06-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_udb.h (ucode_tolower, ucode_toupper): New.
+	* DINO/d_udb.c (ucode_tolower, ucode_toupper): New.
+	* DINO/d_func.c (to_lower_upper): Permit chars.  Rewrite using the
+	new functions.
+
 2015-06-26  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_func.c (gmatch_call): Check empty string matched.  Check
 	disp to break the loop.
-	(general_sub_call): Add comment.  Changed empty string match
+	(general_sub_call): Add comment.  Change empty string match
 	condition.
 	(split_call): Scale els_number by ch_size.
 	* DINO/dino.tst.in (818-820): New tests.

@@ -183,30 +183,53 @@ to_lower_upper (int pars_number, int lower_flag)
   ER_node_t vect;
   const char *name = (lower_flag ? TOLOWER_NAME : TOUPPER_NAME);
   char *str;
-  size_t len;
+  int nc, ucode_p;
+  size_t i, len, ch_size;
 
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (), DERR_parameters_number, name);
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte) // ??? char
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, name);
   vect = ER_vect (ctop);
+  ucode_p = ER_pack_vect_el_mode (vect) == ER_NM_char;
+  ch_size = ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
 #ifndef NEW_VECTOR
   if (ER_immutable (ER_vect (ctop)))
     eval_error (immutable_bc_decl, invaccesses_bc_decl, call_pos (),
 		DERR_immutable_vector_modification);
 #endif
-  len = strlen (ER_pack_els (vect));
+  str = ER_pack_els (vect);
+  len = (ucode_p ? ucodestrlen ((ucode_t *) str) : strlen (str));
 #ifdef NEW_VECTOR
-  vect = create_empty_string (len + 1);
-  strcpy (ER_pack_els (vect), ER_pack_els (ER_vect (ctop)));
+  vect = create_pack_vector (len + 1, ucode_p ? ER_NM_char : ER_NM_byte);
+  memcpy (ER_pack_els (vect), str, (len + 1) * ch_size);
   ER_set_els_number (vect, len);
+  str = ER_pack_els (vect);
 #endif
-  for (str = ER_pack_els (vect); *str != 0; str++)
-    if (isalpha (*str))
-      *str = (lower_flag ? tolower (*str) : toupper (*str));
+  for (i = 0; i < len; i++)
+    {
+      nc = ucode_p ? ((ucode_t *) str)[i] : ((byte_t *) str)[i];
+      nc = lower_flag ? ucode_tolower (nc) : ucode_toupper (nc);
+      if (! in_byte_range_p (nc) && ! ucode_p)
+	{
+	  vect = bytevect_to_ucodevect (vect);
+	  ch_size = sizeof (ucode_t);
+	  ucode_p = TRUE;
+	  str = ER_pack_els (vect);
+	}
+      if (ucode_p)
+	((ucode_t *) str)[i] = nc;
+      else
+	((byte_t *) str)[i] = nc;
+    }
+  if (ucode_p)
+    ((ucode_t *) str)[i] = 0;
+  else
+    ((byte_t *) str)[i] = 0;
   ER_SET_MODE (fun_result, ER_NM_vect);
   set_vect_dim (fun_result, vect, 0);
 }
