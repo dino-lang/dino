@@ -2511,7 +2511,7 @@ eq_key (ER_node_t entry_key, ER_node_t key)
 
 /* The following function returns the nearest prime number which is
    greater than given source number. */
-static unsigned long
+unsigned long
 higher_prime_number (unsigned long number)
 {
   unsigned long i;

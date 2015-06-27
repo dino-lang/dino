@@ -1,5 +1,18 @@
 2015-06-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_run.sprut (long higher_prime_number): New prototype.
+	* DINO/d_heap.c (long higher_prime_number): Make it external.
+	* DINO/d_func.c (struct subst_map_el): New.
+	(subst_map_hash_index, subst_map_hash_index_len): New.
+	(subst_map_els, subst_map_els_len, subst_map_els_bound): New.
+	(initiate_subst_map, free_subst_map, finish_subst_map): New.
+	(start_subst_map, set_map_subst, get_map_subst): New.
+	(translit_call): Rewrite with the new functions.
+	(initiate_funcs): Call initiate_subst_map.
+	(finish_funcs): Call finish_subst_map.
+
+2015-06-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_udb.h (ucode_tolower, ucode_toupper): New.
 	* DINO/d_udb.c (ucode_tolower, ucode_toupper): New.
 	* DINO/d_func.c (to_lower_upper): Permit chars.  Rewrite using the

@@ -246,13 +246,144 @@ tolower_call (int pars_number)
   to_lower_upper (pars_number, TRUE);
 }
 
+
+
+/* This page contains a map used for transliterate function.  The map
+   is implemented by a simple hash table with buckets. */
+
+/* The hash table bucket element.  */
+struct subst_map_el
+{
+  /* FROM is a key, TO is a value associated with the key.  */
+  ucode_t from, to;
+  /* Cyclic list elements (with the same hash) of the bucket.  */
+  size_t next_subst_map_hash_index;
+};
+
+/* Array translating hash to the index of the first bucket element
+   with this hash.  */
+static size_t *subst_map_hash_index;
+/* The number of allocated elements of the previous array.  */
+static size_t subst_map_hash_index_len;
+
+/* All bucket elements are placed in the following array from its
+   start.  */
+static struct subst_map_el *subst_map_els;
+/* Number of all allocated elements and index of first free
+   elements.  */
+static size_t subst_map_els_len, subst_map_els_bound;
+
+/* Initiate any work with the map.  */
+static void
+initiate_subst_map (void)
+{
+  subst_map_els = NULL;
+  subst_map_hash_index = NULL;
+  subst_map_els_len = 0;
+}
+
+/* Free all allocated memory for the map.  */
+static void
+free_subst_map (void)
+{
+  if (subst_map_els != NULL)
+    free (subst_map_els);
+  if (subst_map_hash_index != NULL)
+    free (subst_map_hash_index);
+}
+
+/* Finish all work with the map.  */
+static void
+finish_subst_map (void)
+{
+  free_subst_map ();
+}
+
+/* Prepare the map to work with at most ELS_NUM elements.  */
+static void
+start_subst_map (size_t els_num)
+{
+  subst_map_els_bound = 0;
+  if (subst_map_els_len < els_num)
+    {
+      free_subst_map ();
+      subst_map_els = malloc (els_num * sizeof (struct subst_map_el));
+      subst_map_hash_index_len = higher_prime_number (els_num * 2);
+      subst_map_hash_index = malloc (subst_map_hash_index_len * sizeof (size_t));
+      subst_map_els_len = els_num;
+    }
+}
+
+/* Add map element for maping FROM to TO.  */
+static void
+set_map_subst (ucode_t from, ucode_t to)
+{
+  unsigned int hash = from % subst_map_hash_index_len;
+  size_t i, ind = subst_map_hash_index [hash];
+
+  if (ind >= subst_map_els_bound)
+    /* New hash: make a cycle.  */
+    subst_map_els[subst_map_els_bound].next_subst_map_hash_index
+      = subst_map_els_bound;
+  else
+    {
+      for (i = ind;;)
+	if (subst_map_els[i].from == from)
+	  {
+	    /* Found element.  */
+	    subst_map_els[i].to = to;
+	    return;
+	  }
+	else
+	  {
+	    i = subst_map_els[i].next_subst_map_hash_index;
+	    if (i == ind)
+	      break;
+	  }
+      /* Add new element to the cycle list.  */
+      subst_map_els[subst_map_els_bound].next_subst_map_hash_index
+	= subst_map_els[ind].next_subst_map_hash_index;
+      subst_map_els[ind].next_subst_map_hash_index = subst_map_els_bound;
+    }
+  subst_map_els[subst_map_els_bound].from = from;
+  subst_map_els[subst_map_els_bound].to = to;
+  subst_map_hash_index[hash] = subst_map_els_bound++;
+  d_assert (subst_map_els_bound <= subst_map_els_len);
+}
+
+/* Return mapping FROM.  If there is no corresponding element, return
+   FROM.  */
+static ucode_t
+get_map_subst (ucode_t from)
+{
+  unsigned int hash = from % subst_map_hash_index_len;
+  size_t i, ind = subst_map_hash_index [hash];
+
+  if (ind >= subst_map_els_bound)
+    return from; /* No bucket for the element.  */
+  else
+    {
+      for (i = ind;;)
+	if (subst_map_els[i].from == from)
+	  return subst_map_els[i].to;
+	else
+	  {
+	    i = subst_map_els[i].next_subst_map_hash_index;
+	    if (i == ind)
+	      return from; /* No element for FROM in the bucket.  */
+	  }
+    }
+}
+
+
+
 void
 translit_call (int pars_number)
 {
   ER_node_t vect, v;
   char *str, *subst, map [256];
-  int i;
-  size_t len;
+  int i, ucode_p, subst_ucode_p, from_ucode_p;
+  size_t len, ch_size;
 
   if (pars_number != 3)
     eval_error (parnumber_bc_decl, call_pos (),
@@ -283,44 +414,68 @@ translit_call (int pars_number)
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || (ER_els_number (ER_vect (ctop)) != 0
 	  && (ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
+	      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+		  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte)))
       || ER_NODE_MODE (below_ctop) != ER_NM_vect
       || (ER_els_number (ER_vect (below_ctop)) != 0
 	  && (ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte))
+	      || (ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
+		  && ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte)))
       || ER_els_number (ER_vect (ctop)) != ER_els_number (ER_vect (below_ctop))
       || ER_NODE_MODE (vect) != ER_NM_vect
       || (ER_els_number (ER_vect (vect)) != 0
 	  && (ER_NODE_MODE (ER_vect (vect)) != ER_NM_heap_pack_vect
-	      || ER_pack_vect_el_mode (ER_vect (vect)) != ER_NM_byte)))
+	      || (ER_pack_vect_el_mode (ER_vect (vect)) != ER_NM_char
+		  && ER_pack_vect_el_mode (ER_vect (vect)) != ER_NM_byte))))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, TRANSLIT_NAME);
   vect = ER_vect (vect);
+  ucode_p = ER_pack_vect_el_mode (vect) == ER_NM_char;
+  subst_ucode_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char;
+  if (! ucode_p && subst_ucode_p)
+    {
+      vect = bytevect_to_ucodevect (vect);
+      ucode_p = TRUE;
+    }
 #ifndef NEW_VECTOR
   if (ER_immutable (vect))
     eval_error (immutable_bc_decl, invaccesses_bc_decl, call_pos (),
 		DERR_immutable_vector_modification);
 #endif
+  str = ER_pack_els (vect);
   len = ER_els_number (vect);
+  ch_size = ucode_p ? sizeof (ucode_t) : sizeof (byte_t);
 #ifdef NEW_VECTOR
-  vect = create_empty_string (len);
+  vect = create_pack_vector (len + 1, ucode_p ? ER_NM_char : ER_NM_byte);
+  memcpy (ER_pack_els (vect), str, (len + 1) * ch_size);
   ER_set_els_number (vect, len);
+  str = ER_pack_els (vect);
 #endif
   if (len != 0 && ER_els_number (ER_vect (ctop)) != 0)
     {
-#ifdef NEW_VECTOR
-      memcpy (ER_pack_els (vect),
-	      ER_pack_els (ER_vect (IVAL (ctop, -2))), len);
-#endif
-      for (i = 0; i < 256; i++)
-	map [i] = i;
+      /* Set map.  */
       subst = ER_pack_els (ER_vect (ctop));
+      from_ucode_p = ER_pack_vect_el_mode (ER_vect (below_ctop)) == ER_NM_char;
+      start_subst_map (ER_els_number (ER_vect (below_ctop)));
       for (i = 0, str = ER_pack_els (ER_vect (below_ctop));
 	   i < ER_els_number (ER_vect (below_ctop));
 	   i++)
-	map [(unsigned) str [i]] = subst [i];
+	if (from_ucode_p)
+	  set_map_subst ((unsigned) ((ucode_t *) str) [i],
+			 subst_ucode_p
+			 ? ((ucode_t *) subst) [i] : ((byte_t *) subst) [i]);
+	else
+	  set_map_subst ((unsigned) ((byte_t *) str) [i],
+			 subst_ucode_p
+			 ? ((ucode_t *) subst) [i] : ((byte_t *) subst) [i]);
+      /* Make substitution.  */
       for (str = ER_pack_els (vect), i = 0; i < len; i++)
-	str [i] = map [(unsigned) str [i]];
+	if (ucode_p)
+	  ((ucode_t *) str) [i]
+	    = get_map_subst ((unsigned) ((ucode_t *) str) [i]);
+	else
+	  ((byte_t *) str) [i]
+	    = get_map_subst ((unsigned) ((byte_t *) str) [i]);
     }
   ER_SET_MODE (fun_result, ER_NM_vect);
   set_vect_dim (fun_result, vect, 0);
@@ -5596,6 +5751,7 @@ initiate_funcs (void)
     VLO_CREATE (trace_stack, 0);
   initiate_io ();
   initiate_regex_tab ();
+  initiate_subst_map ();
 #ifdef RFLOAT_NAN
   rfloat_nan = RFLOAT_NAN;
   minus_rfloat_nan = -RFLOAT_NAN;
@@ -5605,6 +5761,7 @@ initiate_funcs (void)
 void
 finish_funcs (void)
 {
+  finish_subst_map ();
   finish_regex_tab ();
   finish_io ();
   if (trace_flag)
