@@ -333,6 +333,8 @@ char DERR_invalid_result []
 char DERR_invalid_input []
   = "run time error - invalid input read by function `%s'";;
 char DERR_invalid_format [] = "run time error - invalid format in `%s'";
+char DERR_too_big_ucode_for_byte_representation []
+  = "run time error - unicode is too big to be represented by a byte";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []

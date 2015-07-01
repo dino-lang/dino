@@ -219,6 +219,7 @@ extern char DERR_invalid_result [];
 extern char DERR_invalid_input [];
 /* Invalid format. */
 extern char DERR_invalid_format [];
+extern char DERR_too_big_ucode_for_byte_representation [];
 /* EOF. */
 extern char DERR_eof_occured [];
 /* Parameter number. */

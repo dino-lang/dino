@@ -1022,7 +1022,7 @@ d_verror (int fatal_error_flag, position_t position,
       int i;
       const ucode_t *ln = get_read_line (position.line_number - 1);
       
-      print_ucode_string_as_utf8 (ln, stderr);
+      print_ucode_string_as_utf8 (ln, stderr); // ???
       fprintf (stderr, "%s", ERROR_PREFIX);
       for (i = 1; i < position.column_number; i++)
 	fprintf (stderr, " ");
@@ -1224,7 +1224,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	}
       else if (strcmp (option, "-c") == 0)
 	command_line_program = utf8_str_to_ucode_vlo (argument_vector [i + 1],
-						      &command_line_vlo);
+						      &command_line_vlo); // ???
       else if (strcmp (option, "-O") == 0)
 	optimize_flag = TRUE;
       else if (strcmp (option, "-s") == 0)

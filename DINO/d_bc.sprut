@@ -184,6 +184,9 @@ extern BC_node_t invinput_bc_decl;
 #define INVFMT_NAME "invfmt"
 extern BC_node_t invfmt_bc_decl;
 
+#define INVENCODING_NAME "invencoding"
+extern BC_node_t invencoding_bc_decl;
+
 #define EOF_NAME "eof"
 extern BC_node_t eof_bc_decl;
 
@@ -466,6 +469,9 @@ extern BC_node_t file_bc_decl;
 
 #define FILE_PTR_NAME "file_ptr"
 extern BC_node_t file_ptr_bc_decl;
+
+#define FILE_ENCODING_NAME "file_encoding"
+extern BC_node_t file_encoding_bc_decl;
 
 #define STDIN_NAME "stdin"
 extern BC_node_t stdin_bc_decl;
@@ -1482,6 +1488,7 @@ BC_node_t partype_bc_decl;
 BC_node_t invresult_bc_decl;
 BC_node_t invinput_bc_decl;
 BC_node_t invfmt_bc_decl;
+BC_node_t invencoding_bc_decl;
 BC_node_t eof_bc_decl;
 BC_node_t parnumber_bc_decl;
 BC_node_t syncthreadcall_bc_decl;
@@ -1576,6 +1583,7 @@ BC_node_t int_earley_parse_bc_decl;
 BC_node_t int_earley_create_grammar_bc_decl;
 BC_node_t file_bc_decl;
 BC_node_t file_ptr_bc_decl;
+BC_node_t file_encoding_bc_decl;
 BC_node_t stdin_bc_decl;
 BC_node_t stdout_bc_decl;
 BC_node_t stderr_bc_decl;
@@ -1736,6 +1744,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&invresult_bc_decl, INVRESULT_NAME, NULL, NULL},
   {&invinput_bc_decl, INVINPUT_NAME, NULL, NULL},
   {&invfmt_bc_decl, INVFMT_NAME, NULL, NULL},
+  {&invencoding_bc_decl, INVENCODING_NAME, NULL, NULL},
   {&eof_bc_decl, EOF_NAME, NULL, NULL},
   {&parnumber_bc_decl, PARNUMBER_NAME, NULL, NULL},
   {&syncthreadcall_bc_decl, SYNCTHREADCALL_NAME, NULL, NULL},
@@ -1840,6 +1849,7 @@ static struct bc_decl_entry bc_decls_table [] =
    &parser_bc_decl, int_earley_create_grammar},
   {&file_bc_decl, FILE_NAME, NULL, NULL},
   {&file_ptr_bc_decl, FILE_PTR_NAME, &file_bc_decl, NULL},
+  {&file_encoding_bc_decl, FILE_ENCODING_NAME, &file_bc_decl, NULL},
   {&stdin_bc_decl, STDIN_NAME, NULL, NULL},
   {&stdout_bc_decl, STDOUT_NAME, NULL, NULL},
   {&stderr_bc_decl, STDERR_NAME, NULL, NULL},

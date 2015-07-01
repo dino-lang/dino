@@ -1,3 +1,57 @@
+2015-07-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_ir.sprut (ENVIRONMENT): Add invencoding and
+	file_encoding.
+	* DINO/d_bc.sprut (INVENCODING_NAME, invencoding_bc_decl): New.
+	(FILE_ENCODING_NAME, file_encoding_bc_decl): New.
+	(bc_decls_table): Add entries for invencoding and file_encoding.
+	* DINO/d_common.h (get_file_char): New.
+	* DINO/d_dino.c: Add ???.
+	* DINO/d_errors.[ch] (DERR_too_big_ucode_for_byte_representation):
+	New.
+	* DINO/d_func.c (curr_raw_p, get_file_encoding): New.
+	(get_file): Return encoding.
+	(place_file_instance): Set file encoding.
+	(ucode_str_to_raw): New.
+	(general_str_to_utf8): Rename to general_str_to_world, add
+	encoding parameter.
+	(strvect_to_utf8): Rename to strvect_to_world, add encoding
+	parameter.
+	(rename_call, remove_call, mkdir_call, rmdir_call, readdir_call):
+	Use curr_raw_p.
+	(chdir_call, get_stat, get_chmod, chumod_call, chgmod_call):
+	Ditto.
+	(chomod_call, isatty_call, popen_call, repl_print): Ditto.
+	(file_start, file_function_call_start, finish_output): Add
+	encoding parameter.
+	(close_call, pclose_call, tell_call): Pass NULL arg to get_file.
+	(seek_call): Ditto.  Use curr_raw_p.
+	(print_val, general_put_call, general_print_call): Add encoding
+	parameter.  Use it.
+	(put_call, putln_call, fput_call, fputln_call): Use file encoding.
+	(sput_call, sputln_call): Use raw encoding.
+	(print_call, println_call, fprint_call, fprintln_call): Use file
+	encoding.
+	(sprint_call, sprintln_call): Use raw encoding.
+	(general_get_call): Use get_file_char.
+	(general_get_ln_file_call, get_char_code, invinput_error): Ditto.
+	Add encoding parameter.  Use it.
+	(get_token): Ditto.
+	(get_call, getf_call, fget_call, fgetln_call, fgetf_call): Use
+	file encoding.
+	(fget_function_call_start, scanel, general_scan_call): Add
+	encoding parameter.  Use it.
+	(general_putf_call): Ditto.
+	(number_file_raw_p, number_previous_char): New.
+	(n_getc, n_ungetc): Rewrite using the above vars.
+	(scan_call, scanln_call, fscan_call, fscanln_call): Use
+	file encoding.
+	(putf_call, fputf_call): Use file encoding.
+	(sputf_call): Use raw encoding.
+	(init_call): Pass utf8 encoding to place_file_instance.
+	(initiate_funcs): Set curr_raw_p.
+	(int_earley_parse_grammar): Use curr_raw_p.
+
 2015-06-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_run.sprut (long higher_prime_number): New prototype.

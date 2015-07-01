@@ -193,4 +193,10 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define ATTRIBUTE_UNUSED
 #endif
 
+static inline int
+get_file_char (FILE *f, int raw_p)
+{
+  return raw_p ? fgetc (f) : get_ucode_from_utf8_stream (read_byte, f);
+}
+
 #endif /* #ifndef D_COMMON_H */
