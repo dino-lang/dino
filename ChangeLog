@@ -1,3 +1,7 @@
+2015-07-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: 2 byte code representations.
+
 2015-06-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Make example with dino_debug look better.

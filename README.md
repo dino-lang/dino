@@ -286,10 +286,9 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
     * Multi-operand instructions
         * Operations (1-5 ops, usually 3-ops)
         * Control flow insns (blocks, branches, calls etc)
-* 3 Bcode representations:
+* 2 Bcode representations:
     * one in memory (for execution)
     * readable representation (can be modified manually)
-    * compact binary representation for fast reading a compiled program
 
 ---
 
