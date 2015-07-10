@@ -42,7 +42,7 @@ AC_CHECK_LIB(m, log)
 AC_CHECK_LIB(dl, dlopen)
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h sys/socket.h gmp.h)
+AC_CHECK_HEADERS(assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h sys/socket.h gmp.h iconv.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN

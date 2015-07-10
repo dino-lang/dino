@@ -23,5 +23,6 @@
 */
 
 extern int eval_long_jump_set_flag;
+extern void finish_cds (void);
 extern void evaluate_program (pc_t program_start_pc, int init_p, int last_p);
 extern void print_profile (BC_node_t block);

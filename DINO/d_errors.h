@@ -213,6 +213,8 @@ extern char DERR_none_class_or_fun_before_left_bracket [];
 extern char DERR_undefined_class_or_fun [];
 /* Parameter type. */
 extern char DERR_parameter_type [];
+/* Parameter value. */
+extern char DERR_parameter_value [];
 /* Invalid result. */
 extern char DERR_invalid_result [];
 /* Invalid input. */
@@ -220,6 +222,7 @@ extern char DERR_invalid_input [];
 /* Invalid format. */
 extern char DERR_invalid_format [];
 extern char DERR_too_big_ucode_for_byte_representation [];
+extern char DERR_in_ucode_encoding [];
 /* EOF. */
 extern char DERR_eof_occured [];
 /* Parameter number. */

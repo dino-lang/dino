@@ -100,6 +100,9 @@ extern int save_temps_flag;
 extern double start_time;
 extern int big_endian_p;
 
+extern unsigned str_hash_func (hash_table_entry_t str);
+extern int str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2);
+extern const char *get_unique_string (const char *str);
 extern rint_t a2i (const char *str, int base);
 extern rfloat_t a2f (const char *str);
 extern const char *i2a (rint_t number);
@@ -136,9 +139,8 @@ extern void d_error (int fatal_error_flag, position_t position,
 		     const char *format, ...);
 extern void copy_vlo (vlo_t *to, vlo_t *from);
 extern void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len);
-extern char *ucode_str_to_utf8_vlo (const ucode_t *str, vlo_t *vlo);
-extern char *ucode_char_to_utf8_vlo (int c, vlo_t *vlo);
-extern char *byte_str_to_utf8_vlo (byte_t *str, vlo_t *vlo);
+extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo);
+extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo);
 extern void dino_finish (int code);
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
@@ -194,9 +196,9 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #endif
 
 static inline int
-get_file_char (FILE *f, int raw_p)
+get_file_char (FILE *f, conv_desc_t cd)
 {
-  return raw_p ? fgetc (f) : get_ucode_from_utf8_stream (read_byte, f);
+  return cd == NO_CONV_DESC ? fgetc (f) : get_ucode_from_utf8_stream (read_byte, f);
 }
 
 #endif /* #ifndef D_COMMON_H */

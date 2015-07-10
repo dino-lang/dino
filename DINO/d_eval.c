@@ -1193,16 +1193,23 @@ find_catch_pc (ER_node_t except)
 	  if (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect
 	      && (ER_pack_vect_el_mode (vect) == ER_NM_char
 		  || ER_pack_vect_el_mode (vect) == ER_NM_byte))
-	    /* No return after error unless REPL. */
-	    d_error (! repl_flag, exception_position,
-		     ER_pack_vect_el_mode (vect) == ER_NM_byte
-		     ? byte_str_to_utf8_vlo (ER_pack_els (vect), &temp_vlobj)
-		     : ucode_str_to_utf8_vlo ((ucode_t *) ER_pack_els (vect),
-					      &temp_vlobj));
+	    {
+	      const char *message
+		= (ER_pack_vect_el_mode (vect) == ER_NM_byte
+		   ? encode_byte_str_vlo (ER_pack_els (vect),
+					  curr_byte_cd, &temp_vlobj)
+		   : encode_ucode_str_vlo ((ucode_t *) ER_pack_els (vect),
+					   curr_ucode_cd, &temp_vlobj));
+	      
+	      /* No return after error unless REPL. */
+	      if (message != NULL)
+		d_error (! repl_flag, exception_position, message);
+	    }
 	}
     }
   if (! repl_flag)
     {
+      /* Message is not a string or wrong message encoding.  */
       if (ER_block_node (except) != sigint_bc_decl
 	  && ER_block_node (except) != sigterm_bc_decl)
 	d_error (TRUE, exception_position, DERR_unprocessed_exception,
@@ -4677,6 +4684,34 @@ switch_to_bcode (void)
   restart_eval ();
 }
 
+static void
+initiate_cds (void)
+{
+#ifdef HAVE_ICONV_H
+  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+
+  curr_encoding_name = UTF8_STRING;
+  curr_byte_cd = iconv_open (UTF8_STRING, LATIN1_STRING);
+  curr_ucode_cd = iconv_open (UTF8_STRING, utf32);
+  curr_reverse_ucode_cd = iconv_open (utf32, UTF8_STRING);
+#else
+  curr_encoding_name = RAW_STRING;
+  curr_byte_cd = curr_ucode_cd = curr_reverse_ucode_cd = NO_CONV_DESC;
+#endif
+}
+
+void
+finish_cds (void)
+{
+#ifdef HAVE_ICONV_H
+  if (curr_byte_cd != NULL)
+    iconv_close (curr_byte_cd);
+  if (curr_ucode_cd != NULL)
+    iconv_close (curr_ucode_cd);
+#endif
+}
+
+
 /* Evaluate top level block START_PC.  Initiate data if INIT_P.
    Otherwise, reuse the already created data.  */
 void
@@ -4690,6 +4725,7 @@ evaluate_program (pc_t start_pc, int init_p, int last_p)
     expand_uppest_stack ();
   else
     {
+      initiate_cds ();
       initiate_heap ();
       initiate_int_tables ();
       initiate_tables ();

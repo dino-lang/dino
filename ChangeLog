@@ -1,3 +1,103 @@
+2015-07-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/cocom-config.h.in (HAVE_ICONV_H): New undef.
+	* configure.in (AC_CHECK_HEADERS): Add iconv.h.
+	* configure: Update.
+	* DINO/d_yacc.y (struct istream_state): Add cd.
+	* DINO/d_run.sprut (curr_byte_cd, curr_ucode_cd): New.
+	(curr_reverse_ucode_cd, curr_encoding_name): Ditto.
+	(RAW_STRING, UTF8_STRING, LATIN1_STRING): Ditto.
+	* DINO/d_dino.h (conv_desc_t, NO_CONV_DESC): New.
+	* DINO/d_dino.c (str_hash_func, str_compare_func): Moved from
+	d_bcio.c.
+	(unique_strings, unique_string_hash_table): New.
+	(initiate_unique_strings, get_unique_string): Ditto.
+	(finish_unique_strings): Ditto.
+	(dino_finish): Call finish_unique_string, finish_cds, and
+	finish_funcs.
+	(dino_start): Call initiate_unique_strings.
+	(put_utf8_byte, ucode_str_to_utf8_vlo, ucode_char_to_utf8_vlo): Delete.
+	(encode_byte_str_vlo, encode_ucode_str_vlo): New.
+	* DINO/d_errors.[ch] (DERR_parameter_value): New.
+	(DERR_in_ucode_encoding): New.
+	* DINO/d_eval.c (find_catch_pc): Use encode functions.  Check null
+	result.
+	(initiate_cds, finish_cds): New.
+	(evaluate_program): Call initiate_cds.
+	* DINO/d_eval.h (finish_cds): New.
+	* DINO/d_func.c (ifun_name): New.
+	(curr_raw_p); Delete.
+	(process_onig_errors): Remove function_name param.  Use ifun_name.
+	(get_file_encoding): Rename to get_file_encoding_name.  Rewrite
+	returning a string.
+	(get_file): Remove function_name param.  Use ifun_name.  Delete
+	param raw_p.  Add param file_instance.  Set it up.
+	(get_file_input_cd, get_file_output_cd): New.
+	(raw_encoding_name_p, setc_conv_descs, set_file_encoding): New.
+	(place_file_instance): Remove raw_p param.  Use the new functions.
+	(two_strings_fun_start, string_fun_start, get_stat): Remove
+	function_name param.  Use ifun_name.
+	(general_chmod, file_start): Ditto.
+	(general_str_to_world): Remove raw_p, add byte_cd and unicode_cd.
+	Use the encode functions.
+	(strvect_to_world): Remove raw_p.  Use curr_byte_cd and
+	curr_ucode_cd.
+	(close_call): Close file cds.
+	(print_val): Remove raw_p, add byte_cd and unicode_cd.
+	(file_function_call_start): Remove function_name param.  Use
+	ifun_name.  Delete param raw_p.  Add param file_instance.
+	(finish_output, general_put_call, general_print_call): Remove
+	raw_p, add byte_cd and unicode_cd.
+	(put_call, putln_call, fput_call, fputln_call): Use
+	get_file_output_cds.
+	(print_call, println_call, fprint_call, fprintln_call): Ditto.
+	(general_get_call): Remove param raw_p, add cd.
+	(general_get_ln_file_call): Ditto.  Remove fun_name param.
+	Use ifun_name.
+	(get_call, getln_call, getf_call): Use get_file_input_cd.
+	(fget_function_call_start): Remove function_name param.  Use
+	ifun_name.
+	(get_char_code, general_scan_call): Remove param raw_p, add cd.
+	(invinput_error, get_token, scanel): Ditto.  Remove function_name
+	param.  Use ifun_name.
+	(number_file_raw_p): Delete.
+	(number_file_cd): New.
+	(function_without_par): Remove function_name param.  Use
+	ifun_name.
+	(general_putf_call): Remove raw_p, add byte_cd and unicode_cd.
+	(putf_call, fputf_call): Use get_file_output_cds.
+	(float_function_start, float_function_start2): Remove
+	function_name param.  Use ifun_name.
+	(float_function_finish, stat_start): Ditto.
+	(set_encoding_call, get_encoding_call): Ditto.
+	(set_file_encoding_call, get_file_encoding_call): Ditto.
+	* DINO/d_func.h (finish_funcs): New.
+	* DINO/d_ir.sprut (ENVORONMENT): Add parvalue, set_encoding,
+	get_encoding, set_file_encoding, get_file_encoding.  Add file_icd,
+	file_byte_ocd, file_ucode_ocd to file.
+	* DINO/d_bc.spurt (PARVALUE_NAME, parvalue_bc_decl): New.
+	(FILE_ICD_NAME, file_icd_bc_decl): Ditto.
+	(FILE_BYTE_OCD_NAME, file_byte_ocd_bc_decl): Ditto.
+	(FILE_UCODE_OCD_NAME, file_ucode_ocd_bc_decl): Ditto.
+	(SET_ENCODING_NAME, set_encoding_bc_decl): Ditto.
+	(GET_ENCODING_NAME, get_encoding_bc_decl): Ditto.
+	(SET_FILE_ENCODING_NAME, set_file_encoding_bc_decl): Ditto.
+	(GET_FILE_ENCODING_NAME, get_file_encoding_bc_decl): Ditto.
+	(bc_decls_table): Add entries for parvalue_bc_decl,
+	file_icd_bc_decl, file_byte_ocd_bc_decl, file_ucode_ocd_bc_decl,
+	set_encoding_bc_decl, get_encoding_bc_decl,
+	set_file_encoding_bc_decl, get_file_encoding_bc_decl.
+	* DINO/d_bcio.c (str_hash_func, str_compare_func): Move to
+	d_dino.c.
+	* DINO/d_built.h (set_encoding_call, get_encoding_call): New.
+	(set_file_encoding_call, get_file_encoding_call): Ditto.
+	* DINO/d_common.h (str_hash_func, str_compare_func): New.
+	(get_unique_string): Ditto.
+	(ucode_str_to_utf8_vlo, ucode_char_to_utf8_vlo); Delete.
+	(byte_str_to_utf8_vlo): Delete.
+	(encode_byte_str_vlo, encode_ucode_str_vlo): New.
+	(get_file_char): Make second paramater a conversion descriptor.
+
 2015-07-01  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_ir.sprut (ENVIRONMENT): Add invencoding and

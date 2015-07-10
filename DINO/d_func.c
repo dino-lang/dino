@@ -49,6 +49,9 @@ static ER_node_t fun_result;
 /* PC of implementation function call */
 d_restrict pc_t ifun_call_pc;
 
+/* Name of the current implementation function.  */
+static const char *ifun_name;
+
 static char *
 getun (void)
 {
@@ -110,13 +113,6 @@ extern clock_t clock (void);
 static ER_node_t create_class_stack (BC_node_t class_block, ER_node_t context,
 				     val_t *actuals_start, int actuals_num,
 				     int simple_p);
-
-/* This variable reflects the current global encoding.  If it is true,
-   Dino strings are represented by their codes (it means that we use
-   LATIN-1), otherwise UTF8 encoding is used for that.  The variable
-   can be set up by DINO function set_encoding and its value can be
-   queried by function get_encoding.  */
-static int curr_raw_p;
 
 static void
 min_max_call (int pars_number, int min_flag)
@@ -777,38 +773,38 @@ isa_call (int pars_number)
 #include "oniguruma.h"
 
 static void
-process_onig_errors (int code, const char *function_name)
+process_onig_errors (int code)
 {
 #if 0
   if (code == REG_EBRACK)
-    eval_error (ebrack_bc_decl, call_pos (), DERR_reg_ebrack, function_name);
+    eval_error (ebrack_bc_decl, call_pos (), DERR_reg_ebrack, ifun_name);
   else if (code == REG_ERANGE)
     eval_error (reg_erange_bc_decl, call_pos (),
-		DERR_reg_erange, function_name);
+		DERR_reg_erange, ifun_name);
   else if (code == REG_ECTYPE)
-    eval_error (ectype_bc_decl, call_pos (), DERR_reg_ectype, function_name);
+    eval_error (ectype_bc_decl, call_pos (), DERR_reg_ectype, ifun_name);
   else if (code == REG_EPAREN)
-    eval_error (eparen_bc_decl, call_pos (), DERR_reg_eparen, function_name);
+    eval_error (eparen_bc_decl, call_pos (), DERR_reg_eparen, ifun_name);
   else if (code == REG_ESUBREG)
-    eval_error (esubreg_bc_decl, call_pos (), DERR_reg_esubreg, function_name);
+    eval_error (esubreg_bc_decl, call_pos (), DERR_reg_esubreg, ifun_name);
   else if (code == REG_EEND)
-    eval_error (eend_bc_decl, call_pos (), DERR_reg_eend, function_name);
+    eval_error (eend_bc_decl, call_pos (), DERR_reg_eend, ifun_name);
   else if (code == REG_EESCAPE)
-    eval_error (eescape_bc_decl, call_pos (), DERR_reg_eescape, function_name);
+    eval_error (eescape_bc_decl, call_pos (), DERR_reg_eescape, ifun_name);
   else if (code == REG_BADPAT || code == REG_BADRPT
 	   || code == REG_BADBR || code == REG_EBRACE)
     /* We use badpat because I can not find badrpt, badbr, ebrace
        diagnostics for POSIX in GNU Regex. */
-    eval_error (badpat_bc_decl, call_pos (), DERR_reg_badpat, function_name);
+    eval_error (badpat_bc_decl, call_pos (), DERR_reg_badpat, ifun_name);
   else if (code == REG_ESIZE)
-    eval_error (esize_bc_decl, call_pos (), DERR_reg_esize, function_name);
+    eval_error (esize_bc_decl, call_pos (), DERR_reg_esize, ifun_name);
   else if (code == REG_ESPACE)
-    eval_error (espace_bc_decl, call_pos (), DERR_reg_espace, function_name);
+    eval_error (espace_bc_decl, call_pos (), DERR_reg_espace, ifun_name);
   else
 #endif
     /* Internal error: may be something else. */
     eval_error (internal_bc_decl, call_pos (),
-		DERR_internal_error, function_name);
+		DERR_internal_error, ifun_name);
 }
 
 #define RE_DINO_SYNTAX (ONIG_SYNTAX_RUBY)
@@ -1056,7 +1052,7 @@ match_call (int pars_number)
   code = find_regex (ER_pack_els (ER_vect (below_ctop)),
 		     pat_ucode_p, str_ucode_p, &reg);
   if (code != ONIG_NORMAL)
-    process_onig_errors (code, MATCH_NAME);
+    process_onig_errors (code);
   start = ER_pack_els (ER_vect (ctop));
   end = start + get_str_size (start, str_ucode_p, FALSE);
   code = onig_search (reg, start, end, start, end, region, ONIG_OPTION_NONE);
@@ -1076,7 +1072,7 @@ match_call (int pars_number)
 	}
     }
   else
-    process_onig_errors (code, MATCH_NAME);
+    process_onig_errors (code);
   if (result == NULL)
     ER_SET_MODE (fun_result, ER_NM_nil);
   else
@@ -1133,7 +1129,7 @@ gmatch_call (int pars_number)
   code = find_regex (ER_pack_els (ER_vect (par1)),
 		     pat_ucode_p, str_ucode_p, &reg);
   if (code != ONIG_NORMAL)
-    process_onig_errors (code, GMATCH_NAME);
+    process_onig_errors (code);
   VLO_NULLIFY (temp_vlobj2);
   start = ER_pack_els (ER_vect (par2));
   end = start + get_str_size (start, str_ucode_p, FALSE);
@@ -1232,7 +1228,7 @@ generall_sub_call (int pars_number, int global_flag)
   code = find_regex (ER_pack_els (ER_vect (regexp_val)),
 		     pat_ucode_p, str_ucode_p, &reg);
   if (code != ONIG_NORMAL)
-    process_onig_errors (code, global_flag ? GSUB_NAME : SUB_NAME);
+    process_onig_errors (code);
   else
     {
       d_assert (str_ucode_p == subst_ucode_p);
@@ -1439,7 +1435,7 @@ split_call (int pars_number)
     }
   code = find_regex (split_regex, pat_ucode_p, str_ucode_p, &reg);
   if (code != 0)
-    process_onig_errors (code, SPLIT_NAME);
+    process_onig_errors (code);
   else
     {
       vect = ER_vect (pars_number == 2 ? below_ctop : ctop);
@@ -2208,15 +2204,17 @@ print_context (ER_node_t context)
   return TRUE;
 }
 
-static inline int
-get_file_encoding (ER_node_t instance)
+
+
+static inline const char *
+get_file_encoding_name (ER_node_t instance)
 {
-  return ER_i (IVAL (ER_stack_vars (instance),
-		     BC_var_num (file_encoding_bc_decl)));
+  return ER_pack_els (ER_vect (IVAL (ER_stack_vars (instance),
+				     BC_var_num (file_encoding_bc_decl))));
 }
 
 static FILE *
-get_file (int pars_number, const char *function_name, int *raw_p)
+get_file (int pars_number, ER_node_t *file_instance)
 {
   ER_node_t var;
   ER_node_t instance;
@@ -2225,19 +2223,97 @@ get_file (int pars_number, const char *function_name, int *raw_p)
   if (!ER_IS_OF_TYPE (var, ER_NM_stack)
       || ER_stack_block (ER_stack (var)) != file_bc_decl)
     eval_error (partype_bc_decl, call_pos (),
-		DERR_parameter_type, function_name);
+		DERR_parameter_type, ifun_name);
   instance = ER_stack ((ER_node_t) IVAL (ctop, -pars_number + 1));
-  if (raw_p != NULL)
-    *raw_p = get_file_encoding (instance);
+  if (file_instance != NULL)
+    *file_instance = instance;
   return ER_hide (IVAL (ER_stack_vars (instance),
 			BC_var_num (file_ptr_bc_decl)));
 }
 
+static conv_desc_t
+get_file_input_cd (ER_node_t file_instance)
+{
+  ER_node_t var;
+  
+  var = IVAL (ER_stack_vars (file_instance), BC_var_num (file_icd_bc_decl));
+  return (conv_desc_t) (size_t) ER_hide (var);
+}
+
+
 static void
-place_file_instance (FILE *f, int raw_p, ER_node_t result)
+get_file_output_cds (ER_node_t file_instance,
+		     conv_desc_t *byte_cd, conv_desc_t *ucode_cd)
+{
+  ER_node_t var;
+
+  var = IVAL (ER_stack_vars (file_instance),
+	      BC_var_num (file_byte_ocd_bc_decl));
+  *byte_cd = (conv_desc_t) (size_t) ER_hide (var);
+  var = IVAL (ER_stack_vars (file_instance),
+	      BC_var_num (file_ucode_ocd_bc_decl));
+  *ucode_cd = (conv_desc_t) (size_t) ER_hide (var);
+}
+
+static inline int
+raw_encoding_name_p (const char *str)
+{
+  return strcmp (str, RAW_STRING) == 0;
+}
+
+static void
+set_conv_descs (const char *encoding_name,
+		conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
+		conv_desc_t *reverse_ucode_cd)
+{
+  conv_desc_t bcd, ucd, rucd;
+#ifdef HAVE_ICONV_H
+  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+  
+  bcd = iconv_open (encoding_name, LATIN1_STRING);
+  ucd = iconv_open (encoding_name, utf32);
+  rucd = iconv_open (utf32, encoding_name);
+  if (bcd == NO_CONV_DESC || ucd == NO_CONV_DESC || rucd == NO_CONV_DESC)
+    eval_error (parvalue_bc_decl, call_pos (),
+		DERR_parameter_value, ifun_name);
+#else
+  if (! raw_encoding_name_p (encoding_name))
+    eval_error (parvalue_bc_decl, call_pos (),
+		DERR_parameter_value, ifun_name);
+  bcd = ucd = rucd = NO_CONV_DESC;
+#endif
+  *byte_cd = bcd;
+  *ucode_cd = ucd;
+  *reverse_ucode_cd = rucd;
+}
+
+static void
+set_file_encoding (ER_node_t file_vars, const char *encoding_name,
+		   conv_desc_t byte_cd, conv_desc_t ucode_cd,
+		   conv_desc_t reverse_ucode_cd)
+{
+  ER_node_t var;
+
+  var = IVAL (file_vars, BC_var_num (file_byte_ocd_bc_decl));
+  ER_SET_MODE (var, ER_NM_hide);
+  ER_set_hide (var, (hide_t) (size_t) byte_cd);
+  var = IVAL (file_vars, BC_var_num (file_ucode_ocd_bc_decl));
+  ER_SET_MODE (var, ER_NM_hide);
+  ER_set_hide (var, (hide_t) (size_t) ucode_cd);
+  var = IVAL (file_vars, BC_var_num (file_icd_bc_decl));
+  ER_SET_MODE (var, ER_NM_hide);
+  ER_set_hide (var, (hide_t) (size_t) reverse_ucode_cd);
+  var = IVAL (file_vars, BC_var_num (file_encoding_bc_decl));
+  ER_SET_MODE (var, ER_NM_vect);
+  ER_set_vect (var, create_string (encoding_name));
+}
+
+static void
+place_file_instance (FILE *f, ER_node_t result)
 {
   ER_node_t var;
   ER_node_t instance;
+  conv_desc_t byte_cd, ucode_cd, reverse_ucode_cd;
 
   instance = create_class_stack (file_bc_decl, uppest_stack,
 				 (val_t *) result, 0, TRUE);
@@ -2246,18 +2322,17 @@ place_file_instance (FILE *f, int raw_p, ER_node_t result)
   var = IVAL (ER_stack_vars (ER_stack (result)), BC_var_num (file_ptr_bc_decl));
   ER_SET_MODE (var, ER_NM_hide);
   ER_set_hide (var, f);
-  var = IVAL (ER_stack_vars (ER_stack (result)),
-	      BC_var_num (file_encoding_bc_decl));
-  ER_SET_MODE (var, ER_NM_int);
-  ER_set_i (var, raw_p);
+  set_conv_descs (curr_encoding_name, &byte_cd, &ucode_cd, &reverse_ucode_cd);
+  set_file_encoding (ER_stack_vars (instance), curr_encoding_name,
+		     byte_cd, ucode_cd, reverse_ucode_cd);
 }
 
 static void
-two_strings_fun_start (int pars_number, const char *function_name)
+two_strings_fun_start (int pars_number)
 {
   if (pars_number != 2)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
+		DERR_parameters_number, ifun_name);
   to_vect_string_conversion (ctop, NULL, NULL);
   to_vect_string_conversion (below_ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
@@ -2269,7 +2344,7 @@ two_strings_fun_start (int pars_number, const char *function_name)
       || (ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char
 	  && ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl,
-		call_pos (), DERR_parameter_type, function_name);
+		call_pos (), DERR_parameter_type, ifun_name);
 }
 
 /* Return raw representation of ucode string STR.  Raise an exception
@@ -2284,31 +2359,39 @@ ucode_str_to_raw (const ucode_t *str, vlo_t *vlo)
     {
       if (! in_byte_range_p (str[i]))
 	eval_error (invencoding_bc_decl, call_pos (),
-		    DERR_too_big_ucode_for_byte_representation);
+		    DERR_too_big_ucode_for_byte_representation,
+		    ifun_name);
 	VLO_ADD_BYTE (*vlo, str[i]);
     }
   return VLO_BEGIN (*vlo);
 }
 
-/* Return world representation (raw if RAW_P or UTF-8 otherwise) of
-   byte string (if BYTE_P) or unicode string STR.  Use vlo *VLO as
+/* Return world representation of byte string (if BYTE_P) or unicode
+   string STR according to BYTE_CD or UNICODE_CD.  Use vlo *VLO as
    container for the result if necessary.  */
 static inline const char *
-general_str_to_world (void *str, vlo_t *vlo, int byte_p, int raw_p)
+general_str_to_world (void *str, vlo_t *vlo, int byte_p,
+		      conv_desc_t byte_cd, conv_desc_t unicode_cd)
 {
+  const char *repr;
+
   if (byte_p)
-    return (raw_p ? str : byte_str_to_utf8_vlo ((byte_t *) str, vlo));
-  else if (! raw_p)
-    return ucode_str_to_utf8_vlo ((ucode_t *) str, vlo);
+    repr = encode_byte_str_vlo ((byte_t *) str, byte_cd, vlo);
+  else if (unicode_cd != NO_CONV_DESC)
+    repr = encode_ucode_str_vlo ((ucode_t *) str, unicode_cd, vlo);
   else
     return ucode_str_to_raw ((ucode_t *) str, vlo);
+  if (repr != NULL)
+    return repr;
+  eval_error (invencoding_bc_decl, call_pos (),
+	      DERR_in_ucode_encoding, ifun_name);
 }
 
-/* Return world representation (raw if RAW_P or UTF-8 otherwise) of
+/* Return world representation (according to current encoding) of
    vector VECT Use vlo temp_vlobj (if FIRST_P) or temp_vlobj2 as
    container for the result if necessary.  */
 static const char *
-strvect_to_world (ER_node_t vect, int first_p, int raw_p)
+strvect_to_world (ER_node_t vect, int first_p)
 {
   ER_node_mode_t el_type;
   
@@ -2317,16 +2400,17 @@ strvect_to_world (ER_node_t vect, int first_p, int raw_p)
   d_assert (el_type == ER_NM_char || el_type == ER_NM_byte);
   return general_str_to_world (ER_pack_els (vect),
 			       first_p ? &temp_vlobj : &temp_vlobj2,
-			       el_type == ER_NM_byte, raw_p);
+			       el_type == ER_NM_byte,
+			       curr_byte_cd, curr_ucode_cd);
 }
 
 void
 rename_call (int pars_number)
 {
-  two_strings_fun_start (pars_number, RENAME_NAME);
+  two_strings_fun_start (pars_number);
   errno = 0;
-  rename (strvect_to_world (ER_vect (below_ctop), TRUE, curr_raw_p),
-	  strvect_to_world (ER_vect (ctop), FALSE, curr_raw_p));
+  rename (strvect_to_world (ER_vect (below_ctop), TRUE),
+	  strvect_to_world (ER_vect (ctop), FALSE));
   if (errno)
     process_system_errors (RENAME_NAME);
   /* Pop all actual parameters. */
@@ -2334,26 +2418,26 @@ rename_call (int pars_number)
 }
 
 static void
-string_fun_start (int pars_number, const char *function_name)
+string_fun_start (int pars_number)
 {
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
+		DERR_parameters_number, ifun_name);
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_vect
       || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
       || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
 	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
-		DERR_parameter_type, function_name);
+		DERR_parameter_type, ifun_name);
 }
 
 void
 remove_call (int pars_number)
 {
-  string_fun_start (pars_number, REMOVE_NAME);
+  string_fun_start (pars_number);
   errno = 0;
-  remove (strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p));
+  remove (strvect_to_world (ER_vect (ctop), TRUE));
   if (errno)
     process_system_errors (REMOVE_NAME);
   /* Place the result instead of the function. */
@@ -2426,11 +2510,11 @@ mkdir_call (int pars_number)
 {
   int mask;
 
-  string_fun_start (pars_number, MKDIR_NAME);
+  string_fun_start (pars_number);
   errno = 0;
   mask = (S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP
 	  | S_IROTH | S_IWOTH | S_IXOTH);
-  mkdir (strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p), mask);
+  mkdir (strvect_to_world (ER_vect (ctop), TRUE), mask);
   if (errno)
     process_system_errors (MKDIR_NAME);
   /* Place the result instead of the function. */
@@ -2440,9 +2524,9 @@ mkdir_call (int pars_number)
 void
 rmdir_call (int pars_number)
 {
-  string_fun_start (pars_number, RMDIR_NAME);
+  string_fun_start (pars_number);
   errno = 0;
-  rmdir (strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p));
+  rmdir (strvect_to_world (ER_vect (ctop), TRUE));
   if (errno)
     process_system_errors (RMDIR_NAME);
   /* Place the result instead of the function. */
@@ -2471,16 +2555,16 @@ getcwd_call (int pars_number)
 void
 chdir_call (int pars_number)
 {
-  string_fun_start (pars_number, CHDIR_NAME);
+  string_fun_start (pars_number);
   errno = 0;
-  if (chdir (strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p)) < 0 && errno)
+  if (chdir (strvect_to_world (ER_vect (ctop), TRUE)) < 0 && errno)
     process_system_errors (CHDIR_NAME);
   /* Place the result instead of the function. */
   ER_SET_MODE (fun_result, ER_NM_undef);
 }
 
 static void
-get_stat (ER_node_t var, const char *function_name, struct stat *buf)
+get_stat (ER_node_t var, struct stat *buf)
 {
   int result;
 
@@ -2489,7 +2573,7 @@ get_stat (ER_node_t var, const char *function_name, struct stat *buf)
       && ER_NODE_MODE (ER_vect (var)) == ER_NM_heap_pack_vect
       && (ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_char
 	  || ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_byte))
-    result = stat (strvect_to_world (ER_vect (var), TRUE, curr_raw_p), buf);
+    result = stat (strvect_to_world (ER_vect (var), TRUE), buf);
   else if (ER_IS_OF_TYPE (var, ER_NM_stack)
 	   && ER_stack_block (ER_stack (var)) == file_bc_decl)
     result
@@ -2498,24 +2582,23 @@ get_stat (ER_node_t var, const char *function_name, struct stat *buf)
 	       buf);
   else
     eval_error (partype_bc_decl,
-		call_pos (), DERR_parameter_type, function_name);
+		call_pos (), DERR_parameter_type, ifun_name);
   if (result < 0)
-    process_system_errors (function_name);
+    process_system_errors (ifun_name);
 }
 
 static void
-general_chmod (int pars_number, const char *function_name,
-	       int clear_mask, int set_mask)
+general_chmod (int pars_number, int clear_mask, int set_mask)
 {
   struct stat buf;
   int mask;
 
   errno = 0;
-  get_stat (below_ctop, function_name, &buf);
+  get_stat (below_ctop, &buf);
   mask = (buf.st_mode & ~clear_mask) | set_mask;
-  chmod (strvect_to_world (ER_vect (below_ctop), TRUE, curr_raw_p), mask);
+  chmod (strvect_to_world (ER_vect (below_ctop), TRUE), mask);
   if (errno)
-    process_system_errors (function_name);
+    process_system_errors (ifun_name);
   /* Place the result instead of the function. */
   ER_SET_MODE (fun_result, ER_NM_undef);
 }
@@ -2526,8 +2609,8 @@ chumod_call (int pars_number)
   int mask = 0;
   const char *str;
 
-  two_strings_fun_start (pars_number, CHUMOD_NAME);
-  str = strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p);
+  two_strings_fun_start (pars_number);
+  str = strvect_to_world (ER_vect (ctop), TRUE);
   if (in_str_p (str, 'r'))
     mask |= S_IRUSR;
   if (in_str_p (str, 'w'))
@@ -2536,8 +2619,7 @@ chumod_call (int pars_number)
     mask |= S_IXUSR;
   if (in_str_p (str, 's'))
     mask |= S_ISVTX;
-  general_chmod (pars_number, CHUMOD_NAME,
-		 S_IRUSR | S_IWUSR | S_IXUSR | S_ISVTX, mask);
+  general_chmod (pars_number, S_IRUSR | S_IWUSR | S_IXUSR | S_ISVTX, mask);
 }
 
 void
@@ -2546,15 +2628,15 @@ chgmod_call (int pars_number)
   int mask = 0;
   const char *str;
 
-  two_strings_fun_start (pars_number, CHGMOD_NAME);
-  str = strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p);
+  two_strings_fun_start (pars_number);
+  str = strvect_to_world (ER_vect (ctop), TRUE);
   if (in_str_p (str, 'r'))
     mask |= S_IRGRP;
   if (in_str_p (str, 'w'))
     mask |= S_IWGRP;
   if (in_str_p (str, 'x'))
     mask |= S_IXGRP;
-  general_chmod (pars_number, CHGMOD_NAME, S_IRGRP | S_IWGRP | S_IXGRP, mask);
+  general_chmod (pars_number, S_IRGRP | S_IWGRP | S_IXGRP, mask);
 }
 
 void
@@ -2563,24 +2645,24 @@ chomod_call (int pars_number)
   int mask = 0;
   const char *str;
 
-  two_strings_fun_start (pars_number, CHOMOD_NAME);
-  str = strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p);
+  two_strings_fun_start (pars_number);
+  str = strvect_to_world (ER_vect (ctop), TRUE);
   if (in_str_p (str, 'r'))
     mask |= S_IROTH;
   if (in_str_p (str, 'w'))
     mask |= S_IWOTH;
   if (in_str_p (str, 'x'))
     mask |= S_IXOTH;
-  general_chmod (pars_number, CHOMOD_NAME, S_IROTH | S_IWOTH | S_IXOTH, mask);
+  general_chmod (pars_number, S_IROTH | S_IWOTH | S_IXOTH, mask);
 }
 
 static FILE *
-file_start (int pars_number, const char *function_name, int *raw_p)
+file_start (int pars_number, ER_node_t *file_instance)
 {
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
-  return get_file (pars_number, function_name, raw_p);
+		DERR_parameters_number, ifun_name);
+  return get_file (pars_number, file_instance);
 }
 
 void
@@ -2589,7 +2671,7 @@ isatty_call (int pars_number)
   rint_t result;
   FILE *f;
 
-  f = file_start (pars_number, ISATTY_NAME, NULL);
+  f = file_start (pars_number, NULL);
   result = isatty (fileno (f));
   /* Place the result instead of the function. */
   ER_SET_MODE (fun_result, ER_NM_int);
@@ -2601,25 +2683,39 @@ open_call (int pars_number)
 {
   FILE *f;
 
-  two_strings_fun_start (pars_number, OPEN_NAME);
+  two_strings_fun_start (pars_number);
   errno = 0;
-  f = fopen (strvect_to_world (ER_vect (below_ctop), TRUE, curr_raw_p),
-	     strvect_to_world (ER_vect (ctop), FALSE, curr_raw_p));
+  f = fopen (strvect_to_world (ER_vect (below_ctop), TRUE),
+	     strvect_to_world (ER_vect (ctop), FALSE));
   if (errno)
     process_system_errors (OPEN_NAME);
   else if (f == NULL)
     eval_error (einval_bc_decl, call_pos (), DERR_einval, OPEN_NAME);
   /* Place the result instead of the function. */
-  place_file_instance (f, curr_raw_p, fun_result);
+  place_file_instance (f, fun_result);
 }
 
 void
 close_call (int pars_number)
 {
   FILE *f;
-
-  f = file_start (pars_number, CLOSE_NAME, NULL);
+  ER_node_t file_instance, instance_vars, var;
+  conv_desc_t cd;
+  
+  f = file_start (pars_number, &file_instance);
   errno = 0;
+#ifdef HAVE_ICONV_H
+  instance_vars = ER_stack_vars (file_instance);
+  var = IVAL (instance_vars, BC_var_num (file_byte_ocd_bc_decl));
+  if ((cd = (conv_desc_t) ER_hide (var)) != NO_CONV_DESC)
+    iconv_close (cd);
+  var = IVAL (instance_vars, BC_var_num (file_ucode_ocd_bc_decl));
+  if ((cd = (conv_desc_t) ER_hide (var)) != NO_CONV_DESC)
+    iconv_close (cd);
+  var = IVAL (instance_vars, BC_var_num (file_icd_bc_decl));
+  if ((cd = (conv_desc_t) ER_hide (var)) != NO_CONV_DESC)
+    iconv_close (cd);
+#endif
   fclose (f);
   if (errno)
     process_system_errors (CLOSE_NAME);
@@ -2635,7 +2731,7 @@ flush_call (int pars_number)
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (),
 		DERR_parameters_number, FLUSH_NAME);
-  f = get_file (pars_number, FLUSH_NAME, NULL);
+  f = get_file (pars_number, NULL);
   errno = 0;
   fflush (f);
   if (errno)
@@ -2650,19 +2746,19 @@ popen_call (int pars_number)
   FILE *f;
   const char *s;
   
-  two_strings_fun_start (pars_number, POPEN_NAME);
+  two_strings_fun_start (pars_number);
   errno = 0;
-  s = strvect_to_world (ER_vect (ctop), FALSE, curr_raw_p);
+  s = strvect_to_world (ER_vect (ctop), FALSE);
   if ((*s != 'r' && *s != 'w') || strlen (s) != 1)
     {
       errno = EINVAL;
       process_system_errors (POPEN_NAME);
     }
-  f = popen (strvect_to_world (ER_vect (below_ctop), TRUE, curr_raw_p), s);
+  f = popen (strvect_to_world (ER_vect (below_ctop), TRUE), s);
   if (errno)
     process_system_errors (POPEN_NAME);
   /* Place the result instead of the function. */
-  place_file_instance (f, curr_raw_p, fun_result);
+  place_file_instance (f, fun_result);
 }
 
 void
@@ -2671,7 +2767,7 @@ pclose_call (int pars_number)
   FILE *f;
   int res;
 
-  f = file_start (pars_number, PCLOSE_NAME, NULL);
+  f = file_start (pars_number, NULL);
   errno = 0;
   res = pclose (f);
   if (res != 0 && errno)
@@ -2689,7 +2785,7 @@ tell_call (int pars_number)
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (),
 		DERR_parameters_number, TELL_NAME);
-  f = get_file (pars_number, TELL_NAME, NULL);
+  f = get_file (pars_number, NULL);
   errno = 0;
   pos = ftell (f);
   if (errno)
@@ -2710,7 +2806,7 @@ seek_call (int pars_number)
   if (pars_number != 3)
     eval_error (parnumber_bc_decl, call_pos (),
 		DERR_parameters_number, SEEK_NAME);
-  f = get_file (pars_number, SEEK_NAME, NULL);
+  f = get_file (pars_number, NULL);
   implicit_arithmetic_conversion (below_ctop, NULL);
   to_vect_string_conversion (ctop, NULL, NULL);
   if (ER_NODE_MODE (below_ctop) != ER_NM_int
@@ -2724,7 +2820,7 @@ seek_call (int pars_number)
   if (ER_NODE_MODE (ctop) == ER_NM_char)
     ch = ER_ch (ctop);
   else
-    ch = *strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p);
+    ch = *strvect_to_world (ER_vect (ctop), TRUE);
   ch = in_byte_range_p (ch) ? tolower (ch) : ch;
   if (ch == 's')
 #ifdef SEEK_SET
@@ -2764,12 +2860,12 @@ print_ch (int ch)
 
 #define MAX_REPL_PRINTED_ELEMENTS 50
 
-/* Add representation of VAL to temp_vlobj using raw encoding (if
-   RAW_P) or UTF8.  The representation can be abbreviated unless
-   FULL_P.  Strings and chars should have DINO syntax if
-   QUOTE_FLAG.  */
+/* Add representation of VAL to temp_vlobj using encoding BYTE_CD or
+   UNICODE_CD.  The representation can be abbreviated unless FULL_P.
+   Strings and chars should have DINO syntax if QUOTE_FLAG.  */
 static void
-print_val (ER_node_t val, int quote_flag, int full_p, int raw_p)
+print_val (ER_node_t val, int quote_flag, int full_p,
+	   conv_desc_t byte_cd, conv_desc_t unicode_cd)
 {
   BC_node_t code;
   ER_node_t vect;
@@ -2809,7 +2905,7 @@ print_val (ER_node_t val, int quote_flag, int full_p, int raw_p)
 
 	  VLO_ADD_STRING (temp_vlobj,
 			  general_str_to_world (str, &temp_vlobj2,
-						FALSE, raw_p));
+						FALSE, byte_cd, unicode_cd));
 	}
       else
 	{
@@ -2847,7 +2943,8 @@ print_val (ER_node_t val, int quote_flag, int full_p, int raw_p)
 	      || ER_pack_vect_el_mode (vect) == ER_NM_byte))
 	{
 	  if (!quote_flag)
-	    VLO_ADD_STRING (temp_vlobj, strvect_to_world (vect, FALSE, raw_p));
+	    VLO_ADD_STRING (temp_vlobj,
+			    strvect_to_world (vect, FALSE));
 	  else
 	    {
 	      VLO_ADD_STRING (temp_vlobj, "\"");
@@ -2874,7 +2971,8 @@ print_val (ER_node_t val, int quote_flag, int full_p, int raw_p)
 		  VLO_ADD_STRING (temp_vlobj, "...");
 		  break;
 		}
-	      print_val (IVAL (ER_unpack_els (vect), i), TRUE, TRUE, raw_p);
+	      print_val (IVAL (ER_unpack_els (vect), i), TRUE, TRUE,
+			 byte_cd, unicode_cd);
 	      if (i < ER_els_number (vect) - 1)
 		VLO_ADD_STRING (temp_vlobj, ", ");
 	    }
@@ -2901,7 +2999,8 @@ print_val (ER_node_t val, int quote_flag, int full_p, int raw_p)
 	      /* We don't care about vector dimension here.  */
 	      memcpy ((char *) &temp_val + displ,
 		      (char *) ER_pack_els (vect) + i * el_size, el_size);
-	      print_val ((ER_node_t) &temp_val, TRUE, TRUE, raw_p);
+	      print_val ((ER_node_t) &temp_val, TRUE, TRUE,
+			 byte_cd, unicode_cd);
 	      if (i < ER_els_number (vect) - 1)
 		VLO_ADD_STRING (temp_vlobj, ", ");
 	    }
@@ -2926,9 +3025,10 @@ print_val (ER_node_t val, int quote_flag, int full_p, int raw_p)
 	    }
 	  if (flag)
 	    VLO_ADD_STRING (temp_vlobj, ", ");
-	  print_val (key, TRUE, TRUE, raw_p);
+	  print_val (key, TRUE, TRUE, byte_cd, unicode_cd);
 	  VLO_ADD_STRING (temp_vlobj, ":");
-	  print_val (INDEXED_EL_VAL (ER_tab_els (tab), i), TRUE, TRUE, raw_p);
+	  print_val (INDEXED_EL_VAL (ER_tab_els (tab), i), TRUE, TRUE,
+		     byte_cd, unicode_cd);
 	  flag = TRUE;
 	}
       VLO_ADD_STRING (temp_vlobj, "]");
@@ -3048,18 +3148,17 @@ repl_print (ER_node_t val, int def_p)
   if (def_p && ER_NODE_MODE (val) == ER_NM_undef)
     return;
   VLO_NULLIFY (temp_vlobj);
-  print_val (val, TRUE, FALSE, curr_raw_p); // ???
+  print_val (val, TRUE, FALSE, curr_byte_cd, curr_ucode_cd);
   puts (VLO_BEGIN (temp_vlobj));
 }
 
 static FILE *
-file_function_call_start (int pars_number, const char *function_name,
-			  int *raw_p)
+file_function_call_start (int pars_number, ER_node_t *file_instance)
 {
   if (pars_number == 0)
     eval_error (parnumber_bc_decl,
-		call_pos (), DERR_parameters_number, function_name);
-  return get_file (pars_number, function_name, raw_p);
+		call_pos (), DERR_parameters_number, ifun_name);
+  return get_file (pars_number, file_instance);
 }
 
 enum file_param_type
@@ -3069,19 +3168,21 @@ enum file_param_type
   GIVEN_FILE
 };
 
-/* Output byte (if BYTE_P) or ucode string in temp_vlobj to file F as
-   raw (if raw_p) or UTF8 sequence as set fun_result to undef .  If F
-   is null, create corresponding byte or ucode vector.  Set fun_result
-   to it.  */
+/* Output byte (if BYTE_P) or ucode string in temp_vlobj to file F
+   according to BYTE_CD or UNICODE_CD and set fun_result to undef .
+   If F is null, create corresponding byte or ucode vector.  Set
+   fun_result to it.  */
 static void
-finish_output (FILE *f, int byte_p, int raw_p)
+finish_output (FILE *f, int byte_p,
+	       conv_desc_t byte_cd, conv_desc_t unicode_cd)
 {
   ER_node_t vect;
 
   if (f != NULL)
     {
-      fputs (general_str_to_world (VLO_BEGIN (temp_vlobj),
-				   &temp_vlobj2, byte_p, raw_p), f);
+      fputs (general_str_to_world
+	     (VLO_BEGIN (temp_vlobj), &temp_vlobj2, byte_p,
+	      byte_cd, unicode_cd), f);
       /* Place the result instead of the function. */
       ER_SET_MODE (fun_result, ER_NM_undef);
       return;
@@ -3097,23 +3198,16 @@ finish_output (FILE *f, int byte_p, int raw_p)
 
 static void
 general_put_call (FILE *f, int pars_number, int ln_flag,
-		  enum file_param_type param_type, int raw_p)
+		  enum file_param_type param_type,
+		  conv_desc_t byte_cd, conv_desc_t unicode_cd)
 {
   int i, byte_p, res_byte_p;
   size_t ch_size;
-  const char *function_name, *start;
+  const char *start;
   ER_node_t var;
 
   errno = 0;
-  if (param_type == NO_FILE)
-    {
-      function_name = (ln_flag ? SPUTLN_NAME : SPUT_NAME);
-      d_assert (f == NULL);
-    }
-  else if (param_type == STANDARD_FILE)
-    function_name = (ln_flag ? PUTLN_NAME : PUT_NAME);
-  else
-    function_name = (ln_flag ? FPUTLN_NAME : FPUT_NAME);
+  d_assert (param_type != NO_FILE || f == NULL);
   res_byte_p = TRUE;
   VLO_NULLIFY (temp_vlobj);
   for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
@@ -3125,7 +3219,7 @@ general_put_call (FILE *f, int pars_number, int ln_flag,
 	  || (ER_pack_vect_el_mode (ER_vect (var)) != ER_NM_char
 	      && ER_pack_vect_el_mode (ER_vect (var)) != ER_NM_byte))
 	eval_error (partype_bc_decl, call_pos (),
-		    DERR_parameter_type, function_name);
+		    DERR_parameter_type, ifun_name);
       byte_p = ER_pack_vect_el_mode (ER_vect (var)) == ER_NM_byte;
       start = ER_pack_els (ER_vect (var));
       if (res_byte_p && ! byte_p)
@@ -3161,142 +3255,157 @@ general_put_call (FILE *f, int pars_number, int ln_flag,
 	VLO_ADD_MEMORY (temp_vlobj, &uc[1], sizeof (ucode_t));
     }
   if (errno != 0)
-    process_system_errors (function_name);
-  finish_output (f, res_byte_p, raw_p);
+    process_system_errors (ifun_name);
+  finish_output (f, res_byte_p, byte_cd, unicode_cd);
 }
 
 void
 put_call (int pars_number)
 {
-  int raw_p = get_file_encoding (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-						 BC_var_num (stdout_bc_decl))));
-
-  general_put_call (stdout, pars_number, FALSE, STANDARD_FILE, raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+					    BC_var_num (stdout_bc_decl)));
+  
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_put_call (stdout, pars_number, FALSE, STANDARD_FILE,
+		    byte_cd, ucode_cd);
 }
 
 void
 putln_call (int pars_number)
 {
-  int raw_p = get_file_encoding (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-						 BC_var_num (stdout_bc_decl))));
-
-  general_put_call (stdout, pars_number, TRUE, STANDARD_FILE, raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+					    BC_var_num (stdout_bc_decl)));
+  
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_put_call (stdout, pars_number, TRUE, STANDARD_FILE,
+		    byte_cd, ucode_cd);
 }
 
 void
 fput_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = file_function_call_start (pars_number, FPUT_NAME, &raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance;
+  FILE *f = file_function_call_start (pars_number, &file_instance);
 
-  general_put_call (f, pars_number, FALSE, GIVEN_FILE, raw_p);
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_put_call (f, pars_number, FALSE, GIVEN_FILE, byte_cd, ucode_cd);
 }
 
 void
 fputln_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = file_function_call_start (pars_number, FPUTLN_NAME, &raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance;
+  FILE *f = file_function_call_start (pars_number, &file_instance);
 
-  general_put_call (f, pars_number, TRUE, GIVEN_FILE, raw_p);
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_put_call (f, pars_number, TRUE, GIVEN_FILE, byte_cd, ucode_cd);
 }
 
 void
 sput_call (int pars_number)
 {
-  general_put_call (NULL, pars_number, FALSE, NO_FILE, TRUE);
+  general_put_call (NULL, pars_number, FALSE, NO_FILE,
+		    NO_CONV_DESC, NO_CONV_DESC);
 }
 
 void
 sputln_call (int pars_number)
 {
-  general_put_call (NULL, pars_number, TRUE, NO_FILE, TRUE);
+  general_put_call (NULL, pars_number, TRUE, NO_FILE,
+		    NO_CONV_DESC, NO_CONV_DESC);
 }
 
 static void
 general_print_call (FILE *f, int pars_number, int ln_flag,
-		    enum file_param_type param_type, int raw_p)
+		    enum file_param_type param_type,
+		    conv_desc_t byte_cd, conv_desc_t ucode_cd)
 {
   int i;
-  const char *function_name;
 
   errno = 0;
-  if (param_type == NO_FILE)
-    {
-      function_name = (ln_flag ? SPRINTLN_NAME : SPRINT_NAME);
-      d_assert (f == NULL);
-    }
-  else if (param_type == STANDARD_FILE)
-    function_name = (ln_flag ? PRINTLN_NAME : PRINT_NAME);
-  else
-    function_name = (ln_flag ? FPRINTLN_NAME : FPRINT_NAME);
+  d_assert (param_type != NO_FILE || f == NULL);
   VLO_NULLIFY (temp_vlobj);
   for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
-    print_val (IVAL (ctop, i), TRUE, TRUE, raw_p);
+    print_val (IVAL (ctop, i), TRUE, TRUE, byte_cd, ucode_cd);
   if (errno != 0)
-    process_system_errors (function_name);
+    process_system_errors (ifun_name);
   if (ln_flag)
     VLO_ADD_STRING (temp_vlobj, "\n");
   if (errno != 0)
-    process_system_errors (function_name);
-  finish_output (f, TRUE, raw_p);
+    process_system_errors (ifun_name);
+  finish_output (f, TRUE, byte_cd, ucode_cd);
 }
 
 void
 print_call (int pars_number)
 {
-  int raw_p = get_file_encoding (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-						 BC_var_num (stdout_bc_decl))));
-  
-  general_print_call (stdout, pars_number, FALSE, STANDARD_FILE, raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+					    BC_var_num (stdout_bc_decl)));
+
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_print_call (stdout, pars_number, FALSE, STANDARD_FILE, byte_cd, ucode_cd);
 }
 
 void
 println_call (int pars_number)
 {
-  int raw_p = get_file_encoding (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-						 BC_var_num (stdout_bc_decl))));
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+					    BC_var_num (stdout_bc_decl)));
 
-  general_print_call (stdout, pars_number, TRUE, STANDARD_FILE, raw_p);
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_print_call (stdout, pars_number, TRUE, STANDARD_FILE,
+		      byte_cd, ucode_cd);
 }
 
 void
 fprint_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = file_function_call_start (pars_number, FPRINT_NAME, &raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance;
+  FILE *f = file_function_call_start (pars_number, &file_instance);
 
-  general_print_call (f, pars_number, FALSE, GIVEN_FILE, raw_p);
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_print_call (f, pars_number, FALSE, GIVEN_FILE, byte_cd, ucode_cd);
 }
 
 void
 fprintln_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = file_function_call_start (pars_number, FPRINTLN_NAME, &raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance;
+  FILE *f = file_function_call_start (pars_number, &file_instance);
 
-  general_print_call (f, pars_number, TRUE, GIVEN_FILE, raw_p);
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_print_call (f, pars_number, TRUE, GIVEN_FILE, byte_cd, ucode_cd);
 }
 
 void
 sprint_call (int pars_number)
 {
-  general_print_call (NULL, pars_number, FALSE, NO_FILE, TRUE);
+  general_print_call (NULL, pars_number, FALSE, NO_FILE,
+		      NO_CONV_DESC, NO_CONV_DESC);
 }
 
 void
 sprintln_call (int pars_number)
 {
-  general_print_call (NULL, pars_number, TRUE, NO_FILE, TRUE);
+  general_print_call (NULL, pars_number, TRUE, NO_FILE,
+		      NO_CONV_DESC, NO_CONV_DESC);
 }
 
 static void
-general_get_call (FILE *f, int file_flag, int raw_p)
+general_get_call (FILE *f, int file_flag, conv_desc_t cd)
 {
   ucode_t ch;
 
   errno = 0;
-  ch = get_file_char (f, raw_p);
+  ch = get_file_char (f, cd);
   if (errno != 0)
     process_system_errors (file_flag ? FGET_NAME : GET_NAME);
   if (ch == EOF)
@@ -3309,7 +3418,7 @@ general_get_call (FILE *f, int file_flag, int raw_p)
 
 static void
 general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
-			  const char *fun_name, int raw_p)
+			  conv_desc_t cd)
 {
   ER_node_t vect;
   int ch;
@@ -3323,7 +3432,7 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
   ch_n = 0;
   for (;;)
     {
-      ch = get_file_char (f, raw_p);
+      ch = get_file_char (f, cd);
       if (ch != EOF)
 	ch_n++;
       if ((ch == '\n' && (ln_flag || as_lns_p)) || ch == EOF)
@@ -3331,7 +3440,7 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
 	  if (ln_flag || !as_lns_p
 	      || ch == '\n' || VLO_LENGTH (temp_vlobj) != 0)
 	    {
-	      if (raw_p)
+	      if (cd == NO_CONV_DESC)
 		{
 		  VLO_ADD_BYTE (temp_vlobj, '\0');
 		  vect = create_string (VLO_BEGIN (temp_vlobj));
@@ -3351,7 +3460,7 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
 	  if (ln_flag || ch == EOF)
 	    break;
 	}
-      else if (raw_p)
+      else if (cd == NO_CONV_DESC)
 	VLO_ADD_BYTE (temp_vlobj, ch);
       else
 	{
@@ -3368,10 +3477,10 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
 			    ((ER_node_t *) VLO_BEGIN (temp_vlobj2)) [i]);
     }
   if (errno != 0)
-    process_system_errors (fun_name);
+    process_system_errors (ifun_name);
   /* ??? */
   if (ch == EOF && ch_n == 0)
-    eval_error (eof_bc_decl, call_pos (), DERR_eof_occured, fun_name);
+    eval_error (eof_bc_decl, call_pos (), DERR_eof_occured, ifun_name);
   /* Place the result instead of the function. */
   ER_SET_MODE (fun_result, ER_NM_vect);
   set_vect_dim (fun_result, vect, 0);
@@ -3380,13 +3489,11 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
 void
 get_call (int pars_number)
 {
-  int raw_p;
-
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, GET_NAME);
   general_get_call (stdin, FALSE,
-		    get_file_encoding
+		    get_file_input_cd
 		    (ER_stack (IVAL (ER_stack_vars (uppest_stack),
 				     BC_var_num (stdin_bc_decl)))));
 }
@@ -3397,8 +3504,8 @@ getln_call (int pars_number)
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, GETLN_NAME);
-  general_get_ln_file_call (stdin, FALSE, TRUE, FALSE, GETLN_NAME,
-			    get_file_encoding
+  general_get_ln_file_call (stdin, FALSE, TRUE, FALSE,
+			    get_file_input_cd
 			    (ER_stack (IVAL (ER_stack_vars (uppest_stack),
 					     BC_var_num (stdin_bc_decl)))));
 }
@@ -3419,43 +3526,45 @@ getf_call (int pars_number)
 		    DERR_parameter_type, GETF_NAME);
       flag = ER_i (ctop);
     }
-  general_get_ln_file_call (stdin, FALSE, FALSE, flag != 0, GETF_NAME,
-			    get_file_encoding
+  general_get_ln_file_call (stdin, FALSE, FALSE, flag != 0,
+			    get_file_input_cd
 			    (ER_stack (IVAL (ER_stack_vars (uppest_stack),
 					     BC_var_num (stdin_bc_decl)))));
 }
 
 static FILE *
-fget_function_call_start (int pars_number, const char *function_name, int *raw_p)
+fget_function_call_start (int pars_number, ER_node_t *file_instance)
 {
   if (pars_number != 1)
     eval_error (parnumber_bc_decl,
-		call_pos (), DERR_parameters_number, function_name);
-  return get_file (pars_number, function_name, raw_p);
+		call_pos (), DERR_parameters_number, ifun_name);
+  return get_file (pars_number, file_instance);
 }
 
 void
 fget_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = fget_function_call_start (pars_number, FGET_NAME, &raw_p);
+  ER_node_t file_instance;
+  FILE *f = fget_function_call_start (pars_number, &file_instance);
 
-  general_get_call (f, TRUE, raw_p);
+  general_get_call (f, TRUE, get_file_input_cd (file_instance));
 }
 
 void
 fgetln_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = fget_function_call_start (pars_number, FGETLN_NAME, &raw_p);
+  ER_node_t file_instance;
+  FILE *f = fget_function_call_start (pars_number, &file_instance);
 
-  general_get_ln_file_call (f, TRUE, TRUE, FALSE, FGETLN_NAME, raw_p);
+  general_get_ln_file_call (f, TRUE, TRUE, FALSE,
+			    get_file_input_cd (file_instance));
 }
 
 void
 fgetf_call (int pars_number)
 {
-  int raw_p, flag = 0;
+  int flag = 0;
+  ER_node_t file_instance;
   FILE *f;
 
   if (pars_number == 2)
@@ -3469,8 +3578,9 @@ fgetf_call (int pars_number)
   else if (pars_number != 1)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, FGETF_NAME);
-  f = get_file (pars_number, FGETF_NAME, &raw_p);
-  general_get_ln_file_call (f, TRUE, FALSE, flag != 0, FGETF_NAME, raw_p);
+  f = get_file (pars_number, &file_instance);
+  general_get_ln_file_call (f, TRUE, FALSE, flag != 0,
+			    get_file_input_cd (file_instance));
 }
 
 #define F_CHAR   (UCODE_MAX + 256)
@@ -3513,7 +3623,7 @@ finish_io (void)
    Dino scanner.  If `read_dino_string_code' is changed, please modify
    this function too. */
 static ucode_t
-get_char_code (FILE *f, int raw_p, ucode_t curr_char,
+get_char_code (FILE *f, conv_desc_t cd, ucode_t curr_char,
 	       int *correct_newln, int *wrong_escape_code)
 {
   ucode_t char_code;
@@ -3526,7 +3636,7 @@ get_char_code (FILE *f, int raw_p, ucode_t curr_char,
   *correct_newln = *wrong_escape_code = FALSE;
   if (curr_char == '\\')
     {
-      curr_char = get_file_char (f, raw_p);
+      curr_char = get_file_char (f, cd);
       if (curr_char == 'n')
         curr_char = '\n';
       else if (curr_char == 't')
@@ -3548,13 +3658,13 @@ get_char_code (FILE *f, int raw_p, ucode_t curr_char,
       else if (isdigit (curr_char) && curr_char != '8' && curr_char != '9')
 	{
 	  char_code = value_of_digit (curr_char);
-	  curr_char = get_file_char (f, raw_p);
+	  curr_char = get_file_char (f, cd);
 	  if (!isdigit (curr_char) || curr_char == '8' || curr_char == '9')
 	    ungetc (curr_char, f);
 	  else
 	    {
 	      char_code = (char_code * 8 + value_of_digit (curr_char));
-	      curr_char = get_file_char (f, raw_p);
+	      curr_char = get_file_char (f, cd);
 	      if (!isdigit (curr_char) || curr_char == '8' || curr_char == '9')
 		ungetc (curr_char, f);
 	      else
@@ -3572,7 +3682,7 @@ get_char_code (FILE *f, int raw_p, ucode_t curr_char,
 	       i > 0;
 	       i--)
 	    {
-	      curr_char = get_file_char (f, raw_p);
+	      curr_char = get_file_char (f, cd);
 	      if (! is_hex_digit (curr_char))
 		break;
 	      c = value_of_hex_digit (curr_char);
@@ -3586,29 +3696,29 @@ get_char_code (FILE *f, int raw_p, ucode_t curr_char,
 }
 
 static void
-invinput_error (FILE *f, int raw_p, const char *function_name, int ln_flag)
+invinput_error (FILE *f, conv_desc_t cd, int ln_flag)
 {
   int curr_char;
 
   if (ln_flag)
     do
       {
-	curr_char = get_file_char (f, raw_p);
+	curr_char = get_file_char (f, cd);
       }
     while (curr_char != EOF && curr_char != '\n');
-  eval_error (invinput_bc_decl, call_pos (), DERR_invalid_input, function_name);
+  eval_error (invinput_bc_decl, call_pos (), DERR_invalid_input, ifun_name);
 }
 
 /* Used by read_dino_number.  */
 static FILE *number_file;
-static int number_file_raw_p;
+static conv_desc_t number_file_cd;
 static int number_previous_char;
 
 static int
 n_getc (void)
 {
   if (number_previous_char == NOT_A_CHAR)
-    return get_file_char (number_file, number_file_raw_p);
+    return get_file_char (number_file, number_file_cd);
   else
     {
       int c = number_previous_char;
@@ -3628,7 +3738,7 @@ n_ungetc (int c)
 /* The following function is analogous to `yylex' in Dino scanner.  If
    `yylex' is changed, please modify this function too. */
 static struct token
-get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
+get_token (FILE *f, conv_desc_t cd, int ln_flag)
 {
   int curr_char;
   int wrong_escape_code;
@@ -3637,7 +3747,7 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
   VLO_NULLIFY (el_text);
   for (;;)
     {
-      curr_char = get_file_char (f, raw_p);
+      curr_char = get_file_char (f, cd);
       /* `current_position' corresponds `curr_char' here. */
       switch (curr_char)
         {
@@ -3656,12 +3766,12 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
 	  result.token_code = curr_char;
 	  return result;
 	case 't':
-	  curr_char = get_file_char (f, raw_p);
+	  curr_char = get_file_char (f, cd);
 	  if (curr_char != 'a')
-	    invinput_error (f, raw_p, function_name, ln_flag);
-	  curr_char = get_file_char (f, raw_p);
+	    invinput_error (f, cd, ln_flag);
+	  curr_char = get_file_char (f, cd);
 	  if (curr_char != 'b')
-	    invinput_error (f, raw_p, function_name, ln_flag);
+	    invinput_error (f, cd, ln_flag);
 	  result.token_code = F_TAB;
 	  return result;
         case '\'':
@@ -3669,25 +3779,25 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
             int correct_newln, wrong_escape_code;
 	    ucode_t char_code;
             
-            curr_char = get_file_char (f, raw_p);
+            curr_char = get_file_char (f, cd);
             if (curr_char == '\'')
-	      invinput_error (f, raw_p, function_name, ln_flag);
+	      invinput_error (f, cd, ln_flag);
             else
               {
-                curr_char = get_char_code (f, raw_p, curr_char,
+                curr_char = get_char_code (f, cd, curr_char,
 					   &correct_newln, &wrong_escape_code);
                 if (curr_char < 0 || correct_newln || wrong_escape_code)
 		  {
 		    if (ln_flag && curr_char == '\n')
 		      ungetc (curr_char, f);
-		    invinput_error (f, raw_p, function_name, ln_flag);
+		    invinput_error (f, cd, ln_flag);
 		  }
               }
-            char_code = get_file_char (f, raw_p);
+            char_code = get_file_char (f, cd);
             if (char_code != '\'')
               {
                 ungetc (char_code, f);
-		invinput_error (f, raw_p, function_name, ln_flag);
+		invinput_error (f, cd, ln_flag);
               }
 	    result.val.ch = curr_char;
 	    result.token_code = F_CHAR;
@@ -3699,14 +3809,14 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
             
             for (;;)
               {
-                curr_char = get_file_char (f, raw_p);
+                curr_char = get_file_char (f, cd);
                 if (curr_char == '\"')
                   break;
-                curr_char = get_char_code (f, raw_p, curr_char, &correct_newln,
+                curr_char = get_char_code (f, cd, curr_char, &correct_newln,
 					   &wrong_escape_code);
                 if (curr_char < 0 || wrong_escape_code)
                   {
-		    invinput_error (f, raw_p, function_name, ln_flag);
+		    invinput_error (f, cd, ln_flag);
                     break;
                   }
                 if (!correct_newln)
@@ -3719,7 +3829,7 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
           }
         default:
 	  {
-	    int next_char = get_file_char (f, raw_p);
+	    int next_char = get_file_char (f, cd);
 
 	    ungetc (next_char, f);
 	    if (isdigit (curr_char)
@@ -3731,7 +3841,7 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
 		const char *repr;
 
 		number_file = f;
-		number_file_raw_p = raw_p;
+		number_file_cd = cd;
 		number_previous_char = NOT_A_CHAR;
 		err_code = read_dino_number (curr_char, n_getc, n_ungetc,
 					     &read_ch_num, &repr, &base,
@@ -3739,13 +3849,13 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
 		if (number_previous_char != NOT_A_CHAR)
 		  ungetc (number_previous_char, f);
 		if (errno)
-		  process_system_errors (function_name);
+		  process_system_errors (ifun_name);
 		if (err_code != NUMBER_OK)
 		  {
-		    curr_char = get_file_char (f, raw_p);
+		    curr_char = get_file_char (f, cd);
 		    if (ln_flag && curr_char == '\n')
 		      ungetc (curr_char, f);
-		    invinput_error (f, raw_p, function_name, ln_flag);
+		    invinput_error (f, cd, ln_flag);
 		  }
 		else if (long_p)
 		  {
@@ -3772,7 +3882,7 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
 		return result;
 	      }
 	    else
-	      invinput_error (f, raw_p, function_name, ln_flag);
+	      invinput_error (f, cd, ln_flag);
 	  }
         }
     }
@@ -3795,8 +3905,7 @@ get_token (FILE *f, int raw_p, const char *function_name, int ln_flag)
    If syntax (or semantics) of values is changed, please modify this
    function too. */
 static val_t
-scanel (FILE *f, int raw_p, struct token token,
-	const char *function_name, int ln_flag)
+scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
 {
   val_t result;
   ER_node_t ptr = (ER_node_t) &result;
@@ -3835,7 +3944,7 @@ scanel (FILE *f, int raw_p, struct token token,
 	ER_node_t vect;
 
 	vect = create_empty_vector ();
-	token = get_token (f, raw_p, function_name, ln_flag);
+	token = get_token (f, cd, ln_flag);
 	for (;;)
 	  {
 	    if (token.token_code == ']')
@@ -3844,19 +3953,19 @@ scanel (FILE *f, int raw_p, struct token token,
 		set_vect_dim (ptr, vect, 0);
 		return result;
 	      }
-	    result = scanel (f, raw_p, token, function_name, ln_flag);
-	    token = get_token (f, raw_p, function_name, ln_flag);
+	    result = scanel (f, cd, token, ln_flag);
+	    token = get_token (f, cd, ln_flag);
 	    if (token.token_code == ':')
 	      {
 		implicit_int_conversion (ctop, (ER_node_t) &result);
 		if (ER_NODE_MODE (ptr) != ER_NM_int)
-		  invinput_error (f, raw_p, function_name, ln_flag);
+		  invinput_error (f, cd, ln_flag);
 		repeat = ER_i (ptr);
 		if (repeat < 0)
 		  repeat = 0;
-		token = get_token (f, raw_p, function_name, ln_flag);
-		result = scanel (f, raw_p, token, function_name, ln_flag);
-		token = get_token (f, raw_p, function_name, ln_flag);
+		token = get_token (f, cd, ln_flag);
+		result = scanel (f, cd, token, ln_flag);
+		token = get_token (f, cd, ln_flag);
 	      }
 	    else
 	      repeat = 1;
@@ -3867,7 +3976,7 @@ scanel (FILE *f, int raw_p, struct token token,
 	      *(val_t *) IVAL (ER_unpack_els (vect), i) = result;
 	    ER_set_els_number (vect, i);
 	    if (token.token_code == ',')
-	      token = get_token (f, raw_p, function_name, ln_flag);
+	      token = get_token (f, cd, ln_flag);
 	  }
 	}
     case F_TAB:
@@ -3879,10 +3988,10 @@ scanel (FILE *f, int raw_p, struct token token,
 	ER_node_mode_t mode;
 
 	tab = create_tab (40);
-	token = get_token (f, raw_p, function_name, ln_flag);
+	token = get_token (f, cd, ln_flag);
 	if (token.token_code != '[')
-	  invinput_error (f, raw_p, function_name, ln_flag);
-	token = get_token (f, raw_p, function_name, ln_flag);
+	  invinput_error (f, cd, ln_flag);
+	token = get_token (f, cd, ln_flag);
 	for (;;)
 	  {
 	    if (token.token_code == ']')
@@ -3891,15 +4000,15 @@ scanel (FILE *f, int raw_p, struct token token,
 		ER_set_tab (ptr, tab);
 		return result;
 	      }
-	    result = scanel (f, raw_p, token, function_name, ln_flag);
-	    token = get_token (f, raw_p, function_name, ln_flag);
+	    result = scanel (f, cd, token, ln_flag);
+	    token = get_token (f, cd, ln_flag);
 	    if (token.token_code == ':')
 	      {
 		key_val = result;
 		mode = ER_NODE_MODE (key);
-		token = get_token (f, raw_p, function_name, ln_flag);
-		result = scanel (f, raw_p, token, function_name, ln_flag);
-		token = get_token (f, raw_p, function_name, ln_flag);
+		token = get_token (f, cd, ln_flag);
+		result = scanel (f, cd, token, ln_flag);
+		token = get_token (f, cd, ln_flag);
 		if (mode == ER_NM_vect)
 		  set_vect_dim (key, ER_vect (key), 0);
 		else if (mode == ER_NM_tab)
@@ -3911,45 +4020,41 @@ scanel (FILE *f, int raw_p, struct token token,
 	    entry = find_tab_el (tab, key, TRUE);
 	    d_assert (entry != NULL);
 	    if (ER_NODE_MODE (entry) != ER_NM_empty_el)
-	      invinput_error (f, raw_p, function_name, ln_flag);
+	      invinput_error (f, cd, ln_flag);
 	    *(val_t *) entry = key_val;
 	    make_immutable (entry);
 	    *((val_t *) entry + 1) = result;
 	    if (token.token_code == ',')
-	      token = get_token (f, raw_p, function_name, ln_flag);
+	      token = get_token (f, cd, ln_flag);
 	  }
       }
     default:
-      invinput_error (f, raw_p, function_name, ln_flag);
+      invinput_error (f, cd, ln_flag);
     }
   d_unreachable ();
 }
 
 static void
-general_scan_call (FILE *f, int raw_p, int file_flag, int ln_flag)
+general_scan_call (FILE *f, conv_desc_t cd, int file_flag, int ln_flag)
 {
-  const char *function_name;
   struct token token;
   val_t val;
   int curr_char;
 
-  function_name = (file_flag
-		   ? (ln_flag ? FSCANLN_NAME : FSCAN_NAME)
-		   : (ln_flag ? SCANLN_NAME : SCAN_NAME));
   errno = 0;
-  token = get_token (f, raw_p, function_name, ln_flag);
+  token = get_token (f, cd, ln_flag);
   if (token.token_code == EOF)
-    eval_error (eof_bc_decl, call_pos (), DERR_eof_occured, function_name);
-  val = scanel (f, raw_p, token, function_name, ln_flag);
+    eval_error (eof_bc_decl, call_pos (), DERR_eof_occured, ifun_name);
+  val = scanel (f, cd, token, ln_flag);
   /* Skip input to the of line. */
   if (ln_flag)
     do
       {
-	curr_char = get_file_char (f, raw_p);
+	curr_char = get_file_char (f, cd);
       }
     while (curr_char != EOF && curr_char != '\n');
   if (errno != 0)
-    process_system_errors (function_name);
+    process_system_errors (ifun_name);
   /* Place the result. */
   *(val_t *) fun_result = val;
 }
@@ -3957,45 +4062,45 @@ general_scan_call (FILE *f, int raw_p, int file_flag, int ln_flag)
 void
 scan_call (int pars_number)
 {
-  int raw_p;
+  conv_desc_t cd;
 
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, SCAN_NAME);
-  raw_p = get_file_encoding (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-					     BC_var_num (stdin_bc_decl))));
-  general_scan_call (stdin, raw_p, FALSE, FALSE);
+  cd = get_file_input_cd (ER_stack (IVAL (ER_stack_vars (uppest_stack),
+					  BC_var_num (stdin_bc_decl))));
+  general_scan_call (stdin, cd, FALSE, FALSE);
 }
 
 void
 scanln_call (int pars_number)
 {
-  int raw_p;
+  conv_desc_t cd;
 
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, SCANLN_NAME);
-  raw_p = get_file_encoding (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-					     BC_var_num (stdin_bc_decl))));
-  general_scan_call (stdin, raw_p, FALSE, TRUE);
+  cd = get_file_input_cd (ER_stack (IVAL (ER_stack_vars (uppest_stack),
+					  BC_var_num (stdin_bc_decl))));
+  general_scan_call (stdin, cd, FALSE, TRUE);
 }
 
 void
 fscan_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = fget_function_call_start (pars_number, FSCAN_NAME, &raw_p);
+  ER_node_t file_instance;
+  FILE *f = fget_function_call_start (pars_number, &file_instance);
   
-  general_scan_call (f, raw_p, TRUE, FALSE);
+  general_scan_call (f, get_file_input_cd (file_instance), TRUE, FALSE);
 }
 
 void
 fscanln_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = fget_function_call_start (pars_number, FSCANLN_NAME, &raw_p);
+  ER_node_t file_instance;
+  FILE *f = fget_function_call_start (pars_number, &file_instance);
   
-  general_scan_call (f, raw_p, TRUE, TRUE);
+  general_scan_call (f, get_file_input_cd (file_instance), TRUE, TRUE);
 }
 
 static void
@@ -4007,17 +4112,17 @@ int_function_end (rint_t result, int pars_number)
 }
 
 static void
-function_without_par (int pars_number, const char *function_name)
+function_without_par (int pars_number)
 {
   if (pars_number != 0)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
+		DERR_parameters_number, ifun_name);
 }
 
 void
 getpid_call (int pars_number)
 {
-  function_without_par (pars_number, GETPID_NAME);
+  function_without_par (pars_number);
   int_function_end (getpid (), pars_number);
 }
 
@@ -4034,28 +4139,18 @@ str_function_end (char *result, int pars_number)
 
 static void
 general_putf_call (FILE *f, int pars_number, enum file_param_type param_type,
-		   int raw_p)
+		   conv_desc_t byte_cd, conv_desc_t unicode_cd)
 {
-  const char *function_name;
   ER_node_t val;
   int start, byte_p;
 
   start = 0;
-  if (param_type == NO_FILE)
-    {
-      function_name = SPUTF_NAME;
-      d_assert (f == NULL);
-    }
-  else if (param_type == STANDARD_FILE)
-    function_name = PUTF_NAME;
-  else
-    {
-      function_name = FPUTF_NAME;
-      start = 1;
-    }
+  d_assert (param_type != NO_FILE || f == NULL);
+  if (param_type == GIVEN_FILE)
+    start = 1;
   if (pars_number - start <= 0)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
+		DERR_parameters_number, ifun_name);
   val = IVAL (ctop, -pars_number + 1 + start);
   to_vect_string_conversion (val, NULL, NULL);
   if (ER_NODE_MODE (val) != ER_NM_vect
@@ -4063,62 +4158,66 @@ general_putf_call (FILE *f, int pars_number, enum file_param_type param_type,
       || (ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_char
 	  && ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
-		DERR_parameter_type, function_name);
+		DERR_parameter_type, ifun_name);
   byte_p = form_format_string (ER_vect (val),
 			       IVAL (ctop, -pars_number + 2 + start),
-			       pars_number - 1 - start, function_name, FALSE);
-  finish_output (f, byte_p, raw_p);
+			       pars_number - 1 - start, ifun_name, FALSE);
+  finish_output (f, byte_p, byte_cd, unicode_cd);
 }
 
 void
 putf_call (int pars_number)
 {
-  int raw_p = get_file_encoding (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-						 BC_var_num (stdout_bc_decl))));
-
-  general_putf_call (stdout, pars_number, STANDARD_FILE, raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+					    BC_var_num (stdout_bc_decl)));
+  
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_putf_call (stdout, pars_number, STANDARD_FILE, byte_cd, ucode_cd);
 }
 
 void
 fputf_call (int pars_number)
 {
-  int raw_p;
-  FILE *f = file_function_call_start (pars_number, FPUTF_NAME, &raw_p);
+  conv_desc_t byte_cd, ucode_cd;
+  ER_node_t file_instance;
+  FILE *f = file_function_call_start (pars_number, &file_instance);
 
-  general_putf_call (f, pars_number, GIVEN_FILE, raw_p);
+  get_file_output_cds (file_instance, &byte_cd, &ucode_cd);
+  general_putf_call (f, pars_number, GIVEN_FILE, byte_cd, ucode_cd);
 }
 
 void
 sputf_call (int pars_number)
 {
-  general_putf_call (NULL, pars_number, NO_FILE, TRUE);
+  general_putf_call (NULL, pars_number, NO_FILE, NO_CONV_DESC, NO_CONV_DESC);
 }
 
 void
 getun_call (int pars_number)
 {
-  function_without_par (pars_number, GETUN_NAME);
+  function_without_par (pars_number);
   str_function_end (getun (), pars_number);
 }
 
 void
 geteun_call (int pars_number)
 {
-  function_without_par (pars_number, GETEUN_NAME);
+  function_without_par (pars_number);
   str_function_end (geteun (), pars_number);
 }
 
 void
 getgn_call (int pars_number)
 {
-  function_without_par (pars_number, GETGN_NAME);
+  function_without_par (pars_number);
   str_function_end (getgn (), pars_number);
 }
 
 void
 getegn_call (int pars_number)
 {
-  function_without_par (pars_number, GETEGN_NAME);
+  function_without_par (pars_number);
   str_function_end (getegn (), pars_number);
 }
 
@@ -4175,30 +4274,30 @@ getgroups_call (int pars_number)
 }
 
 static void do_inline
-float_function_start (int pars_number, const char *function_name)
+float_function_start (int pars_number)
 {
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
+		DERR_parameters_number, ifun_name);
   implicit_float_conversion (ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_float)
     eval_error (partype_bc_decl,
-		call_pos (), DERR_parameter_type, function_name);
+		call_pos (), DERR_parameter_type, ifun_name);
   errno = 0;
 }
 
 static void do_inline
-float_function_start2 (int pars_number, const char *function_name)
+float_function_start2 (int pars_number)
 {
   if (pars_number != 2)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
+		DERR_parameters_number, ifun_name);
   implicit_float_conversion (ctop, NULL);
   implicit_float_conversion (below_ctop, NULL);
   if (ER_NODE_MODE (ctop) != ER_NM_float
       || ER_NODE_MODE (below_ctop) != ER_NM_float)
     eval_error (partype_bc_decl,
-		call_pos (), DERR_parameter_type, function_name);
+		call_pos (), DERR_parameter_type, ifun_name);
   errno = 0;
 }
 
@@ -4208,8 +4307,7 @@ static rfloat_t minus_rfloat_nan;
 #endif
 
 static void
-float_function_finish (int pars_number, rfloat_t result,
-		       const char *function_name)
+float_function_finish (int pars_number, rfloat_t result)
 {
   if (!errno)
     {
@@ -4224,7 +4322,7 @@ float_function_finish (int pars_number, rfloat_t result,
 #endif
     }
   if (errno)
-    process_system_errors (function_name);
+    process_system_errors (ifun_name);
   /* Place the result instead of the function. */
   ER_SET_MODE (fun_result, ER_NM_float);
   ER_set_f (fun_result, result);
@@ -4233,59 +4331,57 @@ float_function_finish (int pars_number, rfloat_t result,
 void
 sqrt_call (int pars_number)
 {
-  float_function_start (pars_number, SQRT_NAME);
-  float_function_finish (pars_number, sqrt (ER_f (ctop)), SQRT_NAME);
+  float_function_start (pars_number);
+  float_function_finish (pars_number, sqrt (ER_f (ctop)));
 }
 
 void
 exp_call (int pars_number)
 {
-  float_function_start (pars_number, EXP_NAME);
-  float_function_finish (pars_number, exp (ER_f (ctop)), EXP_NAME);
+  float_function_start (pars_number);
+  float_function_finish (pars_number, exp (ER_f (ctop)));
 }
 
 void
 log_call (int pars_number)
 {
-  float_function_start (pars_number, LOG_NAME);
-  float_function_finish (pars_number, log (ER_f (ctop)), LOG_NAME);
+  float_function_start (pars_number);
+  float_function_finish (pars_number, log (ER_f (ctop)));
 }
 
 void
 log10_call (int pars_number)
 {
-  float_function_start (pars_number, LOG10_NAME);
-  float_function_finish (pars_number, log10 (ER_f (ctop)), LOG10_NAME);
+  float_function_start (pars_number);
+  float_function_finish (pars_number, log10 (ER_f (ctop)));
 }
 
 void
 pow_call (int pars_number)
 {
-  float_function_start2 (pars_number, POW_NAME);
-  float_function_finish (pars_number, pow (ER_f (below_ctop), ER_f (ctop)),
-			 POW_NAME);
+  float_function_start2 (pars_number);
+  float_function_finish (pars_number, pow (ER_f (below_ctop), ER_f (ctop)));
 }
 
 void
 sin_call (int pars_number)
 {
-  float_function_start (pars_number, SIN_NAME);
-  float_function_finish (pars_number, sin (ER_f (ctop)), SIN_NAME);
+  float_function_start (pars_number);
+  float_function_finish (pars_number, sin (ER_f (ctop)));
 }
 
 void
 cos_call (int pars_number)
 {
-  float_function_start (pars_number, COS_NAME);
-  float_function_finish (pars_number, cos (ER_f (ctop)), COS_NAME);
+  float_function_start (pars_number);
+  float_function_finish (pars_number, cos (ER_f (ctop)));
 }
 
 void
 atan2_call (int pars_number)
 {
-  float_function_start2 (pars_number, ATAN2_NAME);
-  float_function_finish (pars_number, atan2 (ER_f (below_ctop), ER_f (ctop)),
-			 ATAN2_NAME);
+  float_function_start2 (pars_number);
+  float_function_finish (pars_number, atan2 (ER_f (below_ctop), ER_f (ctop)));
 }
 
 static void
@@ -4335,204 +4431,203 @@ srand_call (int pars_number)
 }
 
 void
-process_system_errors (const char *function_name)
+process_system_errors (const char *fname)
 {
   switch (errno)
     {
 #ifdef EACCES
     case EACCES:
       /* Permission denied. */
-      eval_error (eaccess_bc_decl, call_pos (), DERR_eaccess, function_name);
+      eval_error (eaccess_bc_decl, call_pos (), DERR_eaccess, fname);
       break;
 #endif
 #ifdef EAGAIN
     case EAGAIN:
-      eval_error (eagain_bc_decl, call_pos (), DERR_eagain, function_name);
+      eval_error (eagain_bc_decl, call_pos (), DERR_eagain, fname);
       break;
 #endif
 #ifdef EBADF
     case EBADF:
-      eval_error (ebadf_bc_decl, call_pos (), DERR_ebadf, function_name);
+      eval_error (ebadf_bc_decl, call_pos (), DERR_ebadf, fname);
       break;
 #endif
 #ifdef EBUSY
     case EBUSY:
-      eval_error (ebusy_bc_decl, call_pos (), DERR_ebusy, function_name);
+      eval_error (ebusy_bc_decl, call_pos (), DERR_ebusy, fname);
       break;
 #endif
 #ifdef ECHILD
     case ECHILD:
-      eval_error (echild_bc_decl, call_pos (), DERR_echild, function_name);
+      eval_error (echild_bc_decl, call_pos (), DERR_echild, fname);
       break;
 #endif
 #ifdef EDEADLK
     case EDEADLK:
-      eval_error (edeadlk_bc_decl, call_pos (), DERR_edeadlk, function_name);
+      eval_error (edeadlk_bc_decl, call_pos (), DERR_edeadlk, fname);
       break;
 #endif
 #ifdef EDOM
     case EDOM:
-      eval_error (edom_bc_decl, call_pos (), DERR_edom, function_name);
+      eval_error (edom_bc_decl, call_pos (), DERR_edom, fname);
       break;
 #endif
 #ifdef EEXIST
     case EEXIST:
-      eval_error (eexist_bc_decl, call_pos (), DERR_eexist, function_name);
+      eval_error (eexist_bc_decl, call_pos (), DERR_eexist, fname);
       break;
 #endif
 #ifdef EFAULT
     case EFAULT:
-      eval_error (efault_bc_decl, call_pos (), DERR_efault, function_name);
+      eval_error (efault_bc_decl, call_pos (), DERR_efault, fname);
       break;
 #endif
 #ifdef EFBIG
     case EFBIG:
-      eval_error (efbig_bc_decl, call_pos (), DERR_efbig, function_name);
+      eval_error (efbig_bc_decl, call_pos (), DERR_efbig, fname);
       break;
 #endif
 #ifdef EINTR
     case EINTR:
-      eval_error (eintr_bc_decl, call_pos (), DERR_eintr, function_name);
+      eval_error (eintr_bc_decl, call_pos (), DERR_eintr, fname);
       break;
 #endif
 #ifdef EINVAL
     case EINVAL:
-      eval_error (einval_bc_decl, call_pos (), DERR_einval, function_name);
+      eval_error (einval_bc_decl, call_pos (), DERR_einval, fname);
       break;
 #endif
 #ifdef EIO
     case EIO:
-      eval_error (eio_bc_decl, call_pos (), DERR_eio, function_name);
+      eval_error (eio_bc_decl, call_pos (), DERR_eio, fname);
       break;
 #endif
 #ifdef EISDIR
     case EISDIR:
-      eval_error (eisdir_bc_decl, call_pos (), DERR_eisdir, function_name);
+      eval_error (eisdir_bc_decl, call_pos (), DERR_eisdir, fname);
       break;
 #endif
 #ifdef EMFILE
     case EMFILE:
-      eval_error (emfile_bc_decl, call_pos (), DERR_emfile, function_name);
+      eval_error (emfile_bc_decl, call_pos (), DERR_emfile, fname);
       break;
 #endif
 #ifdef EMLINK
     case EMLINK:
-      eval_error (emlink_bc_decl, call_pos (), DERR_emlink, function_name);
+      eval_error (emlink_bc_decl, call_pos (), DERR_emlink, fname);
       break;
 #endif
 #ifdef ENAMETOOLONG
     case ENAMETOOLONG:
       eval_error (enametoolong_bc_decl, call_pos (),
-		  DERR_enametoolong, function_name);
+		  DERR_enametoolong, fname);
       break;
 #endif
 #ifdef ENFILE
     case ENFILE:
-      eval_error (enfile_bc_decl, call_pos (), DERR_enfile, function_name);
+      eval_error (enfile_bc_decl, call_pos (), DERR_enfile, fname);
       break;
 #endif
 #ifdef ENODEV
     case ENODEV:
-      eval_error (enodev_bc_decl, call_pos (), DERR_enodev, function_name);
+      eval_error (enodev_bc_decl, call_pos (), DERR_enodev, fname);
       break;
 #endif
 #ifdef ENOENT
     case ENOENT:
       /* File or directory does not exist, or directory name is an empty
 	 string. */
-      eval_error (enoent_bc_decl, call_pos (), DERR_enoent, function_name);
+      eval_error (enoent_bc_decl, call_pos (), DERR_enoent, fname);
       break;
 #endif
 #ifdef ENOEXEC
     case ENOEXEC:
-      eval_error (enoexec_bc_decl, call_pos (), DERR_enoexec, function_name);
+      eval_error (enoexec_bc_decl, call_pos (), DERR_enoexec, fname);
       break;
 #endif
 #ifdef ENOLCK
     case ENOLCK:
-      eval_error (enolck_bc_decl, call_pos (), DERR_enolck, function_name);
+      eval_error (enolck_bc_decl, call_pos (), DERR_enolck, fname);
       break;
 #endif
 #ifdef ENOMEM
     case ENOMEM:
-      eval_error (enomem_bc_decl, call_pos (), DERR_enomem, function_name);
+      eval_error (enomem_bc_decl, call_pos (), DERR_enomem, fname);
       break;
 #endif
 #ifdef ENOSPC
     case ENOSPC:
-      eval_error (enospc_bc_decl, call_pos (), DERR_enospc, function_name);
+      eval_error (enospc_bc_decl, call_pos (), DERR_enospc, fname);
       break;
 #endif
 #ifdef ENOSYS
     case ENOSYS:
-      eval_error (enosys_bc_decl, call_pos (), DERR_enosys, function_name);
+      eval_error (enosys_bc_decl, call_pos (), DERR_enosys, fname);
       break;
 #endif
 #ifdef ENOTDIR
     case ENOTDIR:
       /* This is not a directory. */
-      eval_error (enotdir_bc_decl, call_pos (), DERR_enotdir, function_name);
+      eval_error (enotdir_bc_decl, call_pos (), DERR_enotdir, fname);
       break;
 #endif
 #ifdef ENOTEMPTY
 #if defined(EEXIST) && EEXIST!=ENOTEMPTY
     case ENOTEMPTY:
       eval_error (enotempty_bc_decl, call_pos (),
-		  DERR_enotempty, function_name);
+		  DERR_enotempty, fname);
       break;
 #endif
 #endif
 #ifdef ENOTTY
     case ENOTTY:
-      eval_error (enotty_bc_decl, call_pos (), DERR_enotty, function_name);
+      eval_error (enotty_bc_decl, call_pos (), DERR_enotty, fname);
       break;
 #endif
 #ifdef ENXIO
     case ENXIO:
-      eval_error (enxio_bc_decl, call_pos (), DERR_enxio, function_name);
+      eval_error (enxio_bc_decl, call_pos (), DERR_enxio, fname);
       break;
 #endif
 #ifdef EPERM
     case EPERM:
-      eval_error (eperm_bc_decl, call_pos (), DERR_eperm, function_name);
+      eval_error (eperm_bc_decl, call_pos (), DERR_eperm, fname);
       break;
 #endif
 #ifdef EPIPE
     case EPIPE:
-      eval_error (epipe_bc_decl, call_pos (), DERR_epipe, function_name);
+      eval_error (epipe_bc_decl, call_pos (), DERR_epipe, fname);
       break;
 #endif
 #ifdef ERANGE
     case ERANGE:
-      eval_error (erange_bc_decl, call_pos (), DERR_erange, function_name);
+      eval_error (erange_bc_decl, call_pos (), DERR_erange, fname);
       break;
 #endif
 #ifdef EROFS
     case EROFS:
-      eval_error (erofs_bc_decl, call_pos (), DERR_erofs, function_name);
+      eval_error (erofs_bc_decl, call_pos (), DERR_erofs, fname);
       break;
 #endif
 #ifdef ESPIPE
     case ESPIPE:
-      eval_error (espipe_bc_decl, call_pos (), DERR_espipe, function_name);
+      eval_error (espipe_bc_decl, call_pos (), DERR_espipe, fname);
       break;
 #endif
 #ifdef ESRCH
     case ESRCH:
-      eval_error (esrch_bc_decl, call_pos (), DERR_esrch, function_name);
+      eval_error (esrch_bc_decl, call_pos (), DERR_esrch, fname);
       break;
 #endif
 #ifdef EXDEV
     case EXDEV:
-      eval_error (exdev_bc_decl, call_pos (), DERR_exdev, function_name);
+      eval_error (exdev_bc_decl, call_pos (), DERR_exdev, fname);
       break;
 #endif
     default:
       /* We don't care does strerror exist or not because it is for
          errors.c. */
       d_assert (errno > 0);
-      eval_error (syserror_bc_decl, call_pos (),
-		  strerror (errno), function_name);
+      eval_error (syserror_bc_decl, call_pos (), strerror (errno), fname);
       break;
     }
 }
@@ -4579,7 +4674,7 @@ readdir_call (int pars_number)
 	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, READDIR_NAME);
-  dir = opendir (strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p));
+  dir = opendir (strvect_to_world (ER_vect (ctop), TRUE));
   if (dir == NULL)
     process_system_errors (READDIR_NAME);
   else
@@ -4596,7 +4691,7 @@ readdir_call (int pars_number)
 	/* Internall error: EBADF and may be something else. */
 	eval_error (internal_bc_decl, call_pos (),
 		    DERR_internal_error, READDIR_NAME);
-      dir = opendir (strvect_to_world (ER_vect (ctop), TRUE, curr_raw_p));
+      dir = opendir (strvect_to_world (ER_vect (ctop), TRUE));
       if (dir == NULL)
 	process_system_errors (READDIR_NAME);
       else
@@ -4634,13 +4729,13 @@ readdir_call (int pars_number)
 }
 
 static void
-stat_start (int pars_number, const char *function_name, struct stat *buf)
+stat_start (int pars_number, struct stat *buf)
 {
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, function_name);
+		DERR_parameters_number, ifun_name);
   to_vect_string_conversion (ctop, NULL, NULL);
-  get_stat (ctop, function_name, buf);
+  get_stat (ctop, buf);
 }
 
 void
@@ -4649,7 +4744,7 @@ ftype_call (int pars_number)
   struct stat buf;
   int result;
 
-  stat_start (pars_number, FTYPE_NAME, &buf);
+  stat_start (pars_number, &buf);
   if (S_ISREG (buf.st_mode))
     result = 'f';
   else if (S_ISDIR (buf.st_mode))
@@ -4698,7 +4793,7 @@ fuidn_call (int pars_number)
   char *str;
   struct passwd *p;
   
-  stat_start (pars_number, FUIDN_NAME, &buf);
+  stat_start (pars_number, &buf);
   p = getpwuid (buf.st_uid);
   if (p == NULL)
     str = "Unknown";
@@ -4715,7 +4810,7 @@ fgrpn_call (int pars_number)
   struct stat buf;
   ER_node_t result;
   
-  stat_start (pars_number, FGRPN_NAME, &buf);
+  stat_start (pars_number, &buf);
   {
     char *str;
     struct group *p;
@@ -4737,7 +4832,7 @@ fsize_call (int pars_number)
   struct stat buf;
   rint_t result;
 
-  stat_start (pars_number, FSIZE_NAME, &buf);
+  stat_start (pars_number, &buf);
   result = buf.st_size;
   stat_finish (pars_number, result);
 }
@@ -4748,7 +4843,7 @@ fatime_call (int pars_number)
   struct stat buf;
   rint_t result;
 
-  stat_start (pars_number, FATIME_NAME, &buf);
+  stat_start (pars_number, &buf);
   result = buf.st_atime;
   stat_finish (pars_number, result);
 }
@@ -4759,7 +4854,7 @@ fmtime_call (int pars_number)
   struct stat buf;
   rint_t result;
 
-  stat_start (pars_number, FMTIME_NAME, &buf);
+  stat_start (pars_number, &buf);
   result = buf.st_mtime;
   stat_finish (pars_number, result);
 }
@@ -4770,7 +4865,7 @@ fctime_call (int pars_number)
   struct stat buf;
   rint_t result;
 
-  stat_start (pars_number, FCTIME_NAME, &buf);
+  stat_start (pars_number, &buf);
   result = buf.st_ctime;
   stat_finish (pars_number, result);
 }
@@ -4792,7 +4887,7 @@ fumode_call (int pars_number)
   char result [5];
   char *str = result;
 
-  stat_start (pars_number, FUMODE_NAME, &buf);
+  stat_start (pars_number, &buf);
   if (buf.st_mode & S_ISVTX)
     *str++ = 's';
   if (buf.st_mode & S_IRUSR)
@@ -4812,7 +4907,7 @@ fgmode_call (int pars_number)
   char result [5];
   char *str = result;
 
-  stat_start (pars_number, FGMODE_NAME, &buf);
+  stat_start (pars_number, &buf);
   if (buf.st_mode & S_IRGRP)
     *str++ = 'r';
   if (buf.st_mode & S_IWGRP)
@@ -4830,7 +4925,7 @@ fomode_call (int pars_number)
   char result [5];
   char *str = result;
 
-  stat_start (pars_number, FOMODE_NAME, &buf);
+  stat_start (pars_number, &buf);
   if (buf.st_mode & S_IROTH)
     *str++ = 'r';
   if (buf.st_mode & S_IWOTH)
@@ -4989,7 +5084,7 @@ system_call (int pars_number)
 	    error_flag = TRUE;
 	  else
 	    {
-	      code = system (strvect_to_world (vect, TRUE, curr_raw_p));
+	      code = system (strvect_to_world (vect, TRUE));
 	      if (code == 127)
 		eval_error (noshell_bc_decl, call_pos (),
 			    DERR_no_shell, SYSTEM_NAME);
@@ -5600,6 +5695,115 @@ transpose_call (int pars_number)
   set_vect_dim (fun_result, res, 0);
 }
 
+void
+set_encoding_call (int pars_number)
+{
+  ER_node_t result;
+  conv_desc_t byte_cd, ucode_cd, reverse_ucode_cd;
+  const char *str;
+
+  if (pars_number != 1)
+    eval_error (parnumber_bc_decl, call_pos (),
+		DERR_parameters_number, SET_ENCODING_NAME);
+  to_vect_string_conversion (ctop, NULL, NULL);
+  if (ER_NODE_MODE (ctop) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
+    eval_error (partype_bc_decl, call_pos (),
+		DERR_parameter_type, SET_ENCODING_NAME);
+  if (ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char)
+    /* All encodings are ASCII strings.  */
+    eval_error (parvalue_bc_decl, call_pos (),
+		DERR_parameter_value, SET_ENCODING_NAME);
+  str = ER_pack_els (ER_vect (ctop));
+  set_conv_descs (str, &byte_cd, &ucode_cd, &reverse_ucode_cd);
+#ifdef HAVE_ICONV_H
+  if (curr_byte_cd != NO_CONV_DESC)
+    iconv_close (curr_byte_cd);
+  if (curr_ucode_cd != NO_CONV_DESC)
+    iconv_close (curr_ucode_cd);
+  if (curr_reverse_ucode_cd != NO_CONV_DESC)
+    iconv_close (curr_reverse_ucode_cd);
+#endif
+  curr_byte_cd = byte_cd;
+  curr_ucode_cd = ucode_cd;
+  curr_reverse_ucode_cd = reverse_ucode_cd;
+  curr_encoding_name = get_unique_string (str);
+  result = create_string (curr_encoding_name);
+  ER_SET_MODE (fun_result, ER_NM_vect);
+  set_vect_dim (fun_result, result, 0);
+}
+
+void
+get_encoding_call (int pars_number)
+{
+  ER_node_t result;
+
+  if (pars_number != 0)
+    eval_error (parnumber_bc_decl, call_pos (),
+		DERR_parameters_number, GET_ENCODING_NAME);
+  result = create_string (curr_encoding_name);
+  ER_SET_MODE (fun_result, ER_NM_vect);
+  set_vect_dim (fun_result, result, 0);
+}
+
+void
+set_file_encoding_call (int pars_number)
+{
+  ER_node_t result, var, file_instance;
+  conv_desc_t byte_cd, ucode_cd, reverse_ucode_cd;
+  conv_desc_t prev_byte_cd, prev_ucode_cd, prev_reverse_ucode_cd;
+  const char *str;
+  
+  if (pars_number != 2)
+    eval_error (parnumber_bc_decl, call_pos (),
+		DERR_parameters_number, SET_FILE_ENCODING_NAME);
+  to_vect_string_conversion (ctop, NULL, NULL);
+  if (ER_NODE_MODE (ctop) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
+      || (ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+	  && ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_byte))
+    eval_error (partype_bc_decl, call_pos (),
+		DERR_parameter_type, SET_FILE_ENCODING_NAME);
+  if (ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_char)
+    /* All encodings are ASCII strings.  */
+    eval_error (parvalue_bc_decl, call_pos (),
+		DERR_parameter_value, SET_FILE_ENCODING_NAME);
+  str = ER_pack_els (ER_vect (ctop));
+  set_conv_descs (str, &byte_cd, &ucode_cd, &reverse_ucode_cd);
+  get_file (pars_number, &file_instance);
+  get_file_output_cds (file_instance, &prev_byte_cd, &prev_ucode_cd);
+  prev_reverse_ucode_cd = get_file_input_cd (file_instance);
+#ifdef HAVE_ICONV_H
+  if (prev_byte_cd != NO_CONV_DESC)
+    iconv_close (prev_byte_cd);
+  if (prev_ucode_cd != NO_CONV_DESC)
+    iconv_close (prev_ucode_cd);
+  if (prev_reverse_ucode_cd != NO_CONV_DESC)
+    iconv_close (prev_reverse_ucode_cd);
+#endif
+  result = create_string (get_file_encoding_name (file_instance));
+  set_file_encoding (ER_stack_vars (file_instance), str,
+		     byte_cd, ucode_cd, reverse_ucode_cd);
+  ER_SET_MODE (fun_result, ER_NM_vect);
+  set_vect_dim (fun_result, result, 0);
+}
+
+void
+get_file_encoding_call (int pars_number)
+{
+  ER_node_t result, file_instance;
+  
+  if (pars_number != 1)
+    eval_error (parnumber_bc_decl, call_pos (),
+		DERR_parameters_number, GET_FILE_ENCODING_NAME);
+  get_file (pars_number, &file_instance);
+  ER_SET_MODE (fun_result, ER_NM_vect);
+  set_vect_dim (fun_result,
+		create_string (get_file_encoding_name (file_instance)), 0);
+}
+
 /* This function is a trick to fullfil initiations after execution of
    stmts before __init__ call. */
 void
@@ -5611,11 +5815,11 @@ init_call (int pars_number)
   /* ------ Initiations after execution of stmts before __init__ ----- */
   /* Set stdin, stdout, stderr. */
   var = IVAL (ER_stack_vars (cstack), BC_var_num (stdin_bc_decl));
-  place_file_instance (stdin, FALSE, var);
+  place_file_instance (stdin, var);
   var = IVAL (ER_stack_vars (cstack), BC_var_num (stdout_bc_decl));
-  place_file_instance (stdout, FALSE, var);
+  place_file_instance (stdout, var);
   var = IVAL (ER_stack_vars (cstack), BC_var_num (stderr_bc_decl));
-  place_file_instance (stderr, FALSE, var);
+  place_file_instance (stderr, var);
   /* ----- End of the initiations ----- */
   /* Place the result instead of the function. */
   ER_SET_MODE (fun_result, ER_NM_undef);
@@ -5792,6 +5996,7 @@ process_imm_ifun_call (BC_node_t code, int actuals_num, int from_c_code_p)
   DECR_CTOP (-actuals_num);
   ifun_call_pc = cpc;
   INCREMENT_PC (); /*  Put it here as GC might make a long jump.  */
+  ifun_name = BC_ident (BC_fdecl (code));
   (*ifunc) (actuals_num);
   DECR_CTOP (actuals_num);
   curr_from_c_code_p = saved_curr_from_c_code_p;
@@ -5854,6 +6059,7 @@ process_fun_class_call (BC_node_t fdecl, ER_node_t context,
       ctop = IVAL (actuals_start, actuals_num - 1);
       ifun_call_pc = cpc;
       INCREMENT_PC (); /* Put it here as GC might make a long jump.  */
+      ifun_name = BC_ident (BC_fdecl (fblock));
       (*ifunc) (actuals_num);
       ctop = IVAL (call_start, -1);
       curr_from_c_code_p = saved_curr_from_c_code_p;
@@ -5895,7 +6101,6 @@ process_call (ER_node_t call_start, int actuals_num,
 void
 initiate_funcs (void)
 {
-  curr_raw_p = FALSE; /* Use UTF8 encoding by default.  */
   if (! check_ucode_db ())
     error (TRUE, no_position, "Unicode database is corrupted");
   if (trace_flag)
@@ -5956,8 +6161,7 @@ int_earley_parse_grammar (int npars)
 		DERR_parameter_type, name);
   g = (struct grammar *) ER_hide (par1);
   code = earley_parse_grammar (g, ER_i (par2),
-			       strvect_to_world (ER_vect (par3), TRUE,
-						 curr_raw_p)); // ???
+			       strvect_to_world (ER_vect (par3), TRUE));
   if (code == EARLEY_NO_MEMORY)
     eval_error (pmemory_bc_decl, get_pos (real_fun_call_pc),
 		"run time error (%s) -- no parser memory", name);

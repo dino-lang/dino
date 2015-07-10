@@ -1825,6 +1825,10 @@ struct istream_state
      `add_lexema_to_file' after immediately call of this
      function or -1 otherwise. */
   int uninput_lexema_code;
+#ifdef HAVE_ICONV_H
+  /* Conversion descriptor used for the file.  */
+  iconv_t cd;
+#endif
 };
 
 /* The following structure contains all current input stream and

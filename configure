@@ -5175,7 +5175,7 @@ _ACEOF
 fi
 
 
-for ac_header in assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h sys/socket.h gmp.h
+for ac_header in assert.h limits.h errno.h float.h time.h dlfcn.h unistd.h sys/time.h sys/socket.h gmp.h iconv.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"

@@ -175,6 +175,9 @@ extern BC_node_t callop_bc_decl;
 #define PARTYPE_NAME "partype"
 extern BC_node_t partype_bc_decl;
 
+#define PARVALUE_NAME "parvalue"
+extern BC_node_t parvalue_bc_decl;
+
 #define INVRESULT_NAME "invresult"
 extern BC_node_t invresult_bc_decl;
 
@@ -469,6 +472,15 @@ extern BC_node_t file_bc_decl;
 
 #define FILE_PTR_NAME "file_ptr"
 extern BC_node_t file_ptr_bc_decl;
+
+#define FILE_ICD_NAME "file_icd"
+extern BC_node_t file_icd_bc_decl;
+
+#define FILE_BYTE_OCD_NAME "file_byte_ocd"
+extern BC_node_t file_byte_ocd_bc_decl;
+
+#define FILE_UCODE_OCD_NAME "file_ucode_ocd"
+extern BC_node_t file_ucode_ocd_bc_decl;
 
 #define FILE_ENCODING_NAME "file_encoding"
 extern BC_node_t file_encoding_bc_decl;
@@ -799,6 +811,18 @@ extern BC_node_t map_bc_decl;
 
 #define TRANSPOSE_NAME "transpose"
 extern BC_node_t transpose_bc_decl;
+
+#define SET_ENCODING_NAME "set_encoding"
+extern BC_node_t set_encoding_bc_decl;
+
+#define GET_ENCODING_NAME "get_encoding"
+extern BC_node_t get_encoding_bc_decl;
+
+#define SET_FILE_ENCODING_NAME "set_file_encoding"
+extern BC_node_t set_file_encoding_bc_decl;
+
+#define GET_FILE_ENCODING_NAME "get_file_encoding"
+extern BC_node_t get_file_encoding_bc_decl;
 
 #define INIT_NAME "__init__"
 extern BC_node_t init_bc_decl;
@@ -1485,6 +1509,7 @@ BC_node_t invcall_bc_decl;
 BC_node_t abstrcall_bc_decl;
 BC_node_t callop_bc_decl;
 BC_node_t partype_bc_decl;
+BC_node_t parvalue_bc_decl;
 BC_node_t invresult_bc_decl;
 BC_node_t invinput_bc_decl;
 BC_node_t invfmt_bc_decl;
@@ -1583,6 +1608,9 @@ BC_node_t int_earley_parse_bc_decl;
 BC_node_t int_earley_create_grammar_bc_decl;
 BC_node_t file_bc_decl;
 BC_node_t file_ptr_bc_decl;
+BC_node_t file_icd_bc_decl;
+BC_node_t file_byte_ocd_bc_decl;
+BC_node_t file_ucode_ocd_bc_decl;
 BC_node_t file_encoding_bc_decl;
 BC_node_t stdin_bc_decl;
 BC_node_t stdout_bc_decl;
@@ -1693,6 +1721,10 @@ BC_node_t fold_bc_decl;
 BC_node_t filter_bc_decl;
 BC_node_t map_bc_decl;
 BC_node_t transpose_bc_decl;
+BC_node_t set_encoding_bc_decl;
+BC_node_t get_encoding_bc_decl;
+BC_node_t set_file_encoding_bc_decl;
+BC_node_t get_file_encoding_bc_decl;
 BC_node_t init_bc_decl;
 
 struct bc_decl_entry
@@ -1741,6 +1773,7 @@ static struct bc_decl_entry bc_decls_table [] =
   {&abstrcall_bc_decl, ABSTRCALL_NAME, NULL, NULL},
   {&callop_bc_decl, CALLOP_NAME, NULL, NULL},
   {&partype_bc_decl, PARTYPE_NAME, NULL, NULL},
+  {&parvalue_bc_decl, PARVALUE_NAME, NULL, NULL},
   {&invresult_bc_decl, INVRESULT_NAME, NULL, NULL},
   {&invinput_bc_decl, INVINPUT_NAME, NULL, NULL},
   {&invfmt_bc_decl, INVFMT_NAME, NULL, NULL},
@@ -1849,6 +1882,9 @@ static struct bc_decl_entry bc_decls_table [] =
    &parser_bc_decl, int_earley_create_grammar},
   {&file_bc_decl, FILE_NAME, NULL, NULL},
   {&file_ptr_bc_decl, FILE_PTR_NAME, &file_bc_decl, NULL},
+  {&file_icd_bc_decl, FILE_ICD_NAME, &file_bc_decl, NULL},
+  {&file_byte_ocd_bc_decl, FILE_BYTE_OCD_NAME, &file_bc_decl, NULL},
+  {&file_ucode_ocd_bc_decl, FILE_UCODE_OCD_NAME, &file_bc_decl, NULL},
   {&file_encoding_bc_decl, FILE_ENCODING_NAME, &file_bc_decl, NULL},
   {&stdin_bc_decl, STDIN_NAME, NULL, NULL},
   {&stdout_bc_decl, STDOUT_NAME, NULL, NULL},
@@ -1958,6 +1994,10 @@ static struct bc_decl_entry bc_decls_table [] =
   {&filter_bc_decl, FILTER_NAME, NULL, filter_call},
   {&map_bc_decl, MAP_NAME, NULL, map_call},
   {&transpose_bc_decl, TRANSPOSE_NAME, NULL, transpose_call},
+  {&set_encoding_bc_decl, SET_ENCODING_NAME, NULL, set_encoding_call},
+  {&get_encoding_bc_decl, GET_ENCODING_NAME, NULL, get_encoding_call},
+  {&set_file_encoding_bc_decl, SET_FILE_ENCODING_NAME, NULL, set_file_encoding_call},
+  {&get_file_encoding_bc_decl, GET_FILE_ENCODING_NAME, NULL, get_file_encoding_call},
   {&init_bc_decl, INIT_NAME, NULL, init_call}
 };
 

@@ -113,6 +113,16 @@
 #include <errno.h>
 #endif
 
+#ifdef HAVE_ICONV_H
+#include <iconv.h>
+typedef iconv_t conv_desc_t;
+#define NO_CONV_DESC ((iconv_t) -1)
+#else
+typedef unsigned int conv_desc_t;
+#define NO_CONV_DESC ((conv_desc_t) -1)
+#endif
+
+
 #ifndef AIX_DLOPEN
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>

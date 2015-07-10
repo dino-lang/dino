@@ -328,13 +328,17 @@ char DERR_none_class_or_fun_before_left_bracket []
   = "run time error - none class or function is before \"(\"";
 char DERR_parameter_type []
   = "run time error - invalid parameter type of `%s'";
+char DERR_parameter_value []
+  = "run time error - invalid parameter value for `%s'";
 char DERR_invalid_result []
   = "run time error - invalid function result used by function `%s'";;
 char DERR_invalid_input []
   = "run time error - invalid input read by function `%s'";;
 char DERR_invalid_format [] = "run time error - invalid format in `%s'";
 char DERR_too_big_ucode_for_byte_representation []
-  = "run time error - unicode is too big to be represented by a byte";
+  = "run time error - unicode is too big to be represented by a byte for `%s'";
+char DERR_in_ucode_encoding []
+  = "run time error - in unicode encoding for `%s'";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []

@@ -852,26 +852,6 @@ static hash_table_t string_hash_table;
 /* The unicode string hash table. */
 static hash_table_t ucodestr_hash_table;
 
-/* Func for evaluation of hash value of STR. */
-static unsigned
-str_hash_func (hash_table_entry_t str)
-{
-  const char *s = str;
-  unsigned int i, hash_value;
-
-  for (hash_value = i = 0; *s != 0; i++, s++)
-    hash_value += (*s) << (i & 0xf);
-  return hash_value;
-}
-
-/* Func used for comparison of strings represented by STR1 and STR2.
-   Return TRUE if the elements represent equal string. */
-static int
-str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2)
-{
-  return strcmp (str1, str2) == 0;
-}
-
 /* Func for evaluation of hash value of unicode string STR. */
 static unsigned
 ustr_hash_func (hash_table_entry_t str)

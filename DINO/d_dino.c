@@ -139,6 +139,65 @@ set_big_endian_flag (void)
 
 
 
+/* Func for evaluation of hash value of STR. */
+unsigned
+str_hash_func (hash_table_entry_t str)
+{
+  const char *s = str;
+  unsigned int i, hash_value;
+
+  for (hash_value = i = 0; *s != 0; i++, s++)
+    hash_value += (*s) << (i & 0xf);
+  return hash_value;
+}
+
+/* Func used for comparison of strings represented by STR1 and STR2.
+   Return TRUE if the elements represent equal string. */
+int
+str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2)
+{
+  return strcmp (str1, str2) == 0;
+}
+
+/* Container where the unique strings are stored. */
+static os_t unique_strings;
+static hash_table_t unique_string_hash_table;
+
+static void
+initiate_unique_strings (void)
+{
+  OS_CREATE (unique_strings, 0);
+  unique_string_hash_table = create_hash_table (1000, str_hash_func, str_compare_func);
+}
+
+const char *
+get_unique_string (const char *str)
+{
+  const char **table_entry_pointer;
+  char *string_in_table;
+
+  table_entry_pointer
+    = (const char **) find_hash_table_entry (unique_string_hash_table,
+					     (hash_table_entry_t) str, TRUE);
+  if (*table_entry_pointer != NULL)
+    return *table_entry_pointer;
+  OS_TOP_EXPAND (unique_strings, strlen (str) + 1);
+  string_in_table = OS_TOP_BEGIN (unique_strings);
+  OS_TOP_FINISH (unique_strings);
+  strcpy (string_in_table, str);
+  *table_entry_pointer = string_in_table;
+  return string_in_table;
+}
+
+static void
+finish_unique_strings (void)
+{
+  OS_DELETE (unique_strings);
+  delete_hash_table (unique_string_hash_table);
+}
+
+
+
 /* This page contains functions for transformation to/from string. */
 
 /* The function returns rint_t value for character number
@@ -703,6 +762,7 @@ dino_finish (int code)
     }
   finish_run_tables ();
   IR_stop ();
+  finish_unique_strings ();
   delete_table ();
   finish_icode ();
   finish_scanner ();
@@ -720,7 +780,9 @@ dino_finish (int code)
     {
       if (evaluated_p)
 	{
+	  finish_cds ();
 	  finish_heap ();
+	  finish_funcs ();
 	  fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
 	  size = get_size_repr (heap_size, &unit);
 	  size2 = get_size_repr (max_heap_size, &unit2);
@@ -775,6 +837,7 @@ dino_start (void)
   /* Output errors immediately for REPL.  */
   initiate_errors (repl_flag);
   fatal_error_function = dino_fatal_finish;
+  initiate_unique_strings ();
   initiate_table ();
   initiate_icode (); /* only after initiate table */
   initiate_scanner ();
@@ -1096,77 +1159,79 @@ utf8_str_to_ucode_vlo (const char *utf8, vlo_t *vlo)
   return (ucode_t *) VLO_BEGIN (*vlo);
 }
 
-/* Put byte C into vlo passed through DATA.  Used by
-   ucode_str_to_utf8_vlo.  */
-static inline int
-put_utf8_byte (int c, void *data)
-{
-  VLO_ADD_BYTE (*(vlo_t *) data, c);
-  return 1;
-}
-
-/* Put ucode string STR into vlo *VLO as UTF8 string.  Return the
-   string start in the vlo.  */
+/* Put byte string STR into vlo *VLO encoded by CD.  Return the string
+   start in the vlo.  If CD is no conversion descriptor, just return
+   STR.  Return NULL in case of any error.  */
 char *
-ucode_str_to_utf8_vlo (const ucode_t *str, vlo_t *vlo)
+encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo)
 {
-  size_t i;
-  int code;
+  if (cd == NO_CONV_DESC)
+    return (char *) str;
+#ifndef HAVE_ICONV_H
+  d_assert (FALSE);
+#else
+  size_t i, out, r;
+  char *is, *os;
   
+  for (i = 0; str[i]; i++)
+    ;
+  i++;
+  is = str;
   VLO_NULLIFY (*vlo);
-  for (i = 0;; i++)
+  out = i * 4; /* longest utf8 is 4 bytes.  */
+  VLO_EXPAND (*vlo, out);
+  os = VLO_BEGIN (*vlo);
+  errno = 0;
+  r = iconv (cd, &is, &i, &os, &out);
+  if (r == (size_t) -1)
     {
-      code = put_ucode_to_utf8_stream (str[i], put_utf8_byte, (void *) vlo);
-      d_assert (code > 0);
-      if (str[i] == 0)
-	break;
+      if (errno == E2BIG)
+	d_assert (FALSE); /* Not enoough space in os.  */
+      else if (errno == EILSEQ)
+	; /* Invalid multi-byte sequence or can not be
+	     represented.  */
+      else if (errno == EINVAL)
+	; /* Incomplete multi-byte sequence.  */
+      return NULL;
     }
-  return (char *) VLO_BEGIN (*vlo);
+  VLO_SHORTEN (*vlo, out);
+  return VLO_BEGIN (*vlo);
+#endif
 }
 
-/* Put unicode char C into vlo *VLO as UTF8 string.  Return the string
-   start in the vlo.  */
+/* Put ucode string STR into vlo *VLO encoded by CD.  Return the
+   string start in the vlo.  Return NULL in case of any error.  */
 char *
-ucode_char_to_utf8_vlo (int c, vlo_t *vlo)
+encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo)
 {
-  int code;
+#ifndef HAVE_ICONV_H
+  d_assert (FALSE);
+#else
+  size_t i, out, r;
+  char *is, *os;
   
+  for (i = 0; str[i]; i++)
+    ;
+  i++;
+  is = (char *) str;
   VLO_NULLIFY (*vlo);
-  code = put_ucode_to_utf8_stream (c, put_utf8_byte, (void *) vlo);
-  d_assert (code > 0);
-  code = put_ucode_to_utf8_stream (0, put_utf8_byte, (void *) vlo);
-  d_assert (code > 0);
-  return (char *) VLO_BEGIN (*vlo);
-  
-}
-
-/* Put byte string STR into vlo *VLO as UTF8 string.  Return the
-   string start in the vlo.  */
-char *
-byte_str_to_utf8_vlo (byte_t *str, vlo_t *vlo)
-{
-  size_t i;
-  int code;
-  
-  for (i = 0; ; i++)
-    if (str[i] > 127)
-      {
-	VLO_NULLIFY (*vlo);
-	VLO_EXPAND (*vlo, i);
-	memcpy (VLO_BEGIN (*vlo), str, i * sizeof (byte_t));
-	break;
-      }
-    else if (str[i] == 0)
-      return str;
-  for (;; i++)
+  out = i * 4; /* longest utf8 is 4 bytes.  */
+  VLO_EXPAND (*vlo, out);
+  os = VLO_BEGIN (*vlo);
+  i *= sizeof (ucode_t);
+  r = iconv (cd, &is, &i, &os, &out);
+  if (r == (size_t) -1)
     {
-      code = put_ucode_to_utf8_stream (str[i], put_utf8_byte, (void *) vlo);
-      d_assert (code > 0);
-      if (str[i] == 0)
-	break;
+      if (errno == E2BIG)
+	d_assert (FALSE);
+      else if (errno == EILSEQ)
+	;
+      else if (errno == EINVAL)
+	;
     }
-  return (char *) VLO_BEGIN (*vlo);
-  
+  VLO_SHORTEN (*vlo, out);
+  return VLO_BEGIN (*vlo);
+#endif
 }
 
 int

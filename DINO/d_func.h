@@ -38,3 +38,4 @@ extern void process_fun_class_call (BC_node_t fdecl, ER_node_t context,
 extern void process_call (ER_node_t call_start, int actuals_num,
 			  int tail_flag, int from_c_code_p);
 extern void initiate_funcs (void);
+extern void finish_funcs (void);
