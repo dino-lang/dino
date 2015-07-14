@@ -837,7 +837,7 @@ finish_cds (void)
 }
 
 /* Container for ucode of command line.  */
-static os_t command_line_os;
+static vlo_t command_line_vlo;
 
 static int evaluated_p;
 
@@ -871,7 +871,7 @@ dino_finish (int code)
   VLO_DELETE (repr_vlobj);
   VLO_DELETE (include_path_directories_vector);
   VLO_DELETE (libraries_vector);
-  OS_DELETE (command_line_os);
+  VLO_DELETE (command_line_vlo);
   if (input_dump_file != NULL)
     finish_read_bc ();
   if (statistics_flag && code == 0)
@@ -940,7 +940,7 @@ dino_start (void)
   initiate_icode (); /* only after initiate table */
   initiate_scanner ();
   source_position = no_position;
-  OS_CREATE (command_line_os, 0);
+  VLO_CREATE (command_line_vlo, 0);
   VLO_CREATE (include_path_directories_vector, 0);
   VLO_CREATE (libraries_vector, 0);
   VLO_CREATE (repr_vlobj, 0);
@@ -1257,47 +1257,6 @@ utf8_str_to_ucode_vlo (const char *utf8, vlo_t *vlo)
   return (ucode_t *) VLO_BEGIN (*vlo);
 }
 
-/* Put string STR into os *os encoded by CD as a new object.  Return
-   the string start in the os.  If CD is no conversion descriptor,
-   just return STR.  Return NULL in case of any error.  */
-static char *
-encode_str_os (byte_t *str, conv_desc_t cd, os_t *os)
-{
-  if (cd == NO_CONV_DESC)
-    return (char *) str;
-#ifndef HAVE_ICONV_H
-  d_assert (FALSE);
-#else
-  size_t i, out, r;
-  char *inps, *outs, *res;
-  
-  for (i = 0; str[i]; i++)
-    ;
-  i++;
-  inps = str;
-  out = i * 4; /* longest utf8 is 4 bytes.  */
-  OS_TOP_EXPAND (*os, out);
-  outs = OS_TOP_BEGIN (*os);
-  errno = 0;
-  r = iconv (cd, &inps, &i, &outs, &out);
-  if (r == (size_t) -1)
-    {
-      if (errno == E2BIG)
-	d_assert (FALSE); /* Not enough space in os.  */
-      else if (errno == EILSEQ)
-	; /* Invalid multi-byte sequence or can not be
-	     represented.  */
-      else if (errno == EINVAL)
-	; /* Incomplete multi-byte sequence.  */
-      return NULL;
-    }
-  OS_TOP_SHORTEN (*os, out);
-  res = OS_TOP_BEGIN (*os);
-  OS_TOP_FINISH (*os);
-  return res;
-#endif
-}
-
 /* Put byte string STR into vlo *VLO encoded by CD.  Return the string
    start in the vlo.  If CD is no conversion descriptor, just return
    STR.  Return NULL in case of any error.  */
@@ -1382,12 +1341,11 @@ dino_main (int argc, char *argv[], char *envp[])
   const char *input_file_name, *input_dump = NULL;
   const char *string;
   const char *home;
-  int code, command_line_index;
+  int code;
 
   start_time = clock ();
   set_big_endian_flag ();
   command_line_program = NULL;
-  command_line_index = -1;
   if ((code = setjmp (exit_longjump_buff)) != 0)
     return (code < 0 ? 0 : code);
 #ifndef NDEBUG
@@ -1429,7 +1387,11 @@ dino_main (int argc, char *argv[], char *envp[])
 	  dino_finish (1);
 	}
       else if (strcmp (option, "-c") == 0)
-	command_line_index = i + 1;
+	{
+	  str_to_ucode_vlo (&command_line_vlo, argument_vector [i + 1],
+			    strlen (argument_vector [i + 1]) + 1);
+	  command_line_program = VLO_BEGIN (command_line_vlo);
+	}
       else if (strcmp (option, "-O") == 0)
 	optimize_flag = TRUE;
       else if (strcmp (option, "-s") == 0)
@@ -1487,7 +1449,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	system_error (TRUE, no_position, "fatal error -- `%s': ", 
 		      input_dump);
     }
-  else if (command_line_index > 0)
+  else if (command_line_program != NULL)
     {
       program_arguments_number = number_of_operands ();
       flag_of_first = TRUE;
@@ -1535,33 +1497,10 @@ dino_main (int argc, char *argv[], char *envp[])
   initiate_cds ();
   if (!okay || ! set_cds (getenv (DINO_ENCODING)))
     dino_finish (1);
-  if (command_line_index > 0)
-    {
-      command_line_program
-	= (ucode_t *) encode_str_os (argument_vector [command_line_index],
-				     curr_reverse_ucode_cd,
-				     &command_line_os);
-      if (command_line_program == NULL)
-	{
-	  fprintf (stderr,
-		   "dino: wrong command line input for encoding %s\n",
-		   curr_encoding_name);
-	  dino_finish (1);
-	}
-    }
   MALLOC (program_arguments, (program_arguments_number + 1) * sizeof (char *));
   for (i = 0; i < program_arguments_number; i++)
     {
-      program_arguments [i]
-	= encode_str_os (argument_vector [next_operand (flag_of_first)],
-			 curr_reverse_ucode_cd, &command_line_os);
-      if (program_arguments [i] == NULL)
-	{
-	  fprintf (stderr,
-		   "dino: wrong command line argument %d for encoding %s\n",
-		   i, curr_encoding_name);
-	  dino_finish (1);
-	}
+      program_arguments [i] = argument_vector [next_operand (flag_of_first)];
       flag_of_first = FALSE;
     }
   program_arguments [i] = NULL;

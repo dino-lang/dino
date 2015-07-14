@@ -1,5 +1,13 @@
 2015-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_dino.c (command_line_os): Rename to command_line_vlo.
+	Make it vlo.
+	(encode_str_os): Remove.
+	(dino_main): Use str_to_ucode_vlo to make command line.  Do not
+	encode program_arguments.
+
+2015-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.in: Update dependencies.
 	* DINO/d_bc.sprut (UNGET_CHAR_NAME, unget_char_bc_decl): New.
 	(bc_decls_table): Add entry for unget_char_bc_decl.
