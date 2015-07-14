@@ -567,7 +567,7 @@ depend : d_config.h d_ir.c d_ir.h d_bc.c d_bc.h d_run.c d_run.h d_kw.c d_bcn.c d
 # Do not place anything below this line
 #
 d_ir.o: d_ir.c d_ir.h $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h d_config.h \
+ d_config.h $(top_srcdir)/DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -584,7 +584,7 @@ d_ir.o: d_ir.c d_ir.h $(top_srcdir)/DINO/d_common.h \
  $(top_srcdir)/DINO/d_types.h
 	$(CC) -c $(CFLAGS) -o $@ d_ir.c
 d_bc.o: d_bc.c d_bc.h $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h d_config.h \
+ d_config.h $(top_srcdir)/DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -628,7 +628,7 @@ d_bcn.o: d_bcn.c
 d_bcf.o: d_bcf.c
 	$(CC) -c $(CFLAGS) -o $@ d_bcf.c
 d_yacc.o: d_yacc.c $(top_srcdir)/DINO/d_common.h \
- $(top_srcdir)/DINO/d_dino.h d_config.h \
+ d_config.h $(top_srcdir)/DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -646,8 +646,8 @@ d_yacc.o: d_yacc.c $(top_srcdir)/DINO/d_common.h \
  $(top_srcdir)/DINO/d_yacc.h d_kw.c
 	$(CC) -c $(CFLAGS) -o $@ d_yacc.c
 d_genheader.i: $(top_srcdir)/DINO/../DINO/d_gen.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -670,8 +670,8 @@ d_genheader.i: $(top_srcdir)/DINO/../DINO/d_gen.c \
  $(top_srcdir)/DINO/../DINO/d_eval.h
 	$(CC) $(OPTIONS)  @C_DEBUG_DEFINE@  -E > $@ $(top_srcdir)/DINO/../DINO/d_gen.c
 d_errors.o: $(top_srcdir)/DINO/../DINO/d_errors.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -689,8 +689,8 @@ d_errors.o: $(top_srcdir)/DINO/../DINO/d_errors.c \
  $(top_srcdir)/DINO/d_common.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_errors.c
 d_runtab.o: $(top_srcdir)/DINO/../DINO/d_runtab.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -709,8 +709,8 @@ d_runtab.o: $(top_srcdir)/DINO/../DINO/d_runtab.c \
  $(top_srcdir)/DINO/../DINO/d_runtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_runtab.c
 d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -733,8 +733,8 @@ d_context.o: $(top_srcdir)/DINO/../DINO/d_context.c \
  $(top_srcdir)/DINO/../DINO/d_inference.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_context.c
 d_bcio.o: $(top_srcdir)/DINO/../DINO/d_bcio.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -778,8 +778,8 @@ d_conv.o: $(top_srcdir)/DINO/../DINO/d_conv.c \
  $(top_srcdir)/DINO/../DINO/d_common.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_conv.c
 d_udb.o: $(top_srcdir)/DINO/../DINO/d_udb.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -823,8 +823,8 @@ d_func.o: $(top_srcdir)/DINO/../DINO/d_func.c d_run.h \
  $(top_srcdir)/AMMUNITION/earley.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_func.c
 d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -849,8 +849,8 @@ d_eval.o: $(top_srcdir)/DINO/../DINO/d_eval.c \
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_eval.c
 d_inference.o: \
  $(top_srcdir)/DINO/../DINO/d_inference.c \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -893,8 +893,8 @@ d_heap.o: $(top_srcdir)/DINO/../DINO/d_heap.c d_run.h \
 d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/AMMUNITION/commline.h \
  ../AMMUNITION/cocom-config.h \
- $(top_srcdir)/DINO/../DINO/d_common.h \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_common.h d_config.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
@@ -918,8 +918,8 @@ d_dino.o: $(top_srcdir)/DINO/../DINO/d_dino.c \
  $(top_srcdir)/DINO/../DINO/d_func.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/DINO/../DINO/d_dino.c
 d_main.o: $(top_srcdir)/DINO/../DINO/d_main.c \
- $(top_srcdir)/DINO/../DINO/d_dino.h d_config.h \
- d_run.h $(top_srcdir)/DINO/d_types.h d_bc.h \
+ $(top_srcdir)/DINO/../DINO/d_dino.h d_run.h \
+ $(top_srcdir)/DINO/d_types.h d_config.h d_bc.h \
  $(top_srcdir)/DINO/d_common.h \
  $(top_srcdir)/DINO/d_dino.h \
  $(top_srcdir)/AMMUNITION/allocate.h \

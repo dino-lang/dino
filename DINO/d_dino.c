@@ -392,7 +392,7 @@ static vlo_t libraries_vector;
 /* The value of the following var is not NULL when the program is
    given on the command line.  In this case its value is the
    program. */
-const ucode_t *command_line_program = NULL;
+const ucode_t *command_line_program;
 
 /* The value of the following var is not NULL when the program is
    given by dump file on the command line.  In this case its value is
@@ -738,8 +738,106 @@ get_size_repr (size_t size, char *unit)
   return size;
 }
 
+/* These variables reflect the current global encoding.  Value
+   NO_CONV_DESC means raw (one byte) encoding.  Two first encodings
+   are used for world representation of byte (LATIN1) and ucode
+   strings.  The reverse encoding is used to read UNICODE from
+   outside.  The last value contains the name of the current
+   encoding.  */
+conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
+const char *curr_encoding_name;
+
+static void
+initiate_cds (void)
+{
+#ifdef HAVE_ICONV_H
+  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+
+  curr_encoding_name = UTF8_STRING;
+  curr_byte_cd = iconv_open (UTF8_STRING, LATIN1_STRING);
+  curr_ucode_cd = iconv_open (UTF8_STRING, utf32);
+  curr_reverse_ucode_cd = iconv_open (utf32, UTF8_STRING);
+#else
+  curr_encoding_name = RAW_STRING;
+  curr_byte_cd = curr_ucode_cd = curr_reverse_ucode_cd = NO_CONV_DESC;
+#endif
+}
+
+static inline int
+raw_encoding_name_p (const char *str)
+{
+  return strcmp (str, RAW_STRING) == 0;
+}
+
+int
+set_conv_descs (const char *encoding_name,
+		conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
+		conv_desc_t *reverse_ucode_cd)
+{
+  conv_desc_t bcd, ucd, rucd;
+#ifdef HAVE_ICONV_H
+  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
+  
+  bcd = iconv_open (encoding_name, LATIN1_STRING);
+  ucd = iconv_open (encoding_name, utf32);
+  rucd = iconv_open (utf32, encoding_name);
+  if (bcd == NO_CONV_DESC || ucd == NO_CONV_DESC || rucd == NO_CONV_DESC)
+    return FALSE;
+#else
+  if (! raw_encoding_name_p (encoding_name))
+    eval_error (parvalue_bc_decl, call_pos (),
+		DERR_parameter_value, ifun_name);
+  bcd = ucd = rucd = NO_CONV_DESC;
+#endif
+  *byte_cd = bcd;
+  *ucode_cd = ucd;
+  *reverse_ucode_cd = rucd;
+  return TRUE;
+}
+
+static int
+set_cds (const char *encoding)
+{
+  conv_desc_t byte_cd, ucode_cd, reverse_ucode_cd;
+
+  if (encoding == NULL)
+    return TRUE;
+  if (! set_conv_descs (encoding, &byte_cd, &ucode_cd, &reverse_ucode_cd))
+    {
+      fprintf (stderr, "Unrecognized or not implemented encoding %s\n",
+               encoding);
+      return FALSE;
+    }
+#ifdef HAVE_ICONV_H
+  if (curr_byte_cd != NO_CONV_DESC)
+    iconv_close (curr_byte_cd);
+  if (curr_ucode_cd != NO_CONV_DESC)
+    iconv_close (curr_ucode_cd);
+  if (curr_reverse_ucode_cd != NO_CONV_DESC)
+    iconv_close (curr_reverse_ucode_cd);
+#endif
+  curr_byte_cd = byte_cd;
+  curr_ucode_cd = ucode_cd;
+  curr_reverse_ucode_cd = reverse_ucode_cd;
+  curr_encoding_name = encoding;
+  return TRUE;
+}
+
+static void
+finish_cds (void)
+{
+#ifdef HAVE_ICONV_H
+  if (curr_byte_cd != NO_CONV_DESC)
+    iconv_close (curr_byte_cd);
+  if (curr_ucode_cd != NO_CONV_DESC)
+    iconv_close (curr_ucode_cd);
+  if (curr_reverse_ucode_cd != NO_CONV_DESC)
+    iconv_close (curr_reverse_ucode_cd);
+#endif
+}
+
 /* Container for ucode of command line.  */
-static vlo_t command_line_vlo;
+static os_t command_line_os;
 
 static int evaluated_p;
 
@@ -773,14 +871,13 @@ dino_finish (int code)
   VLO_DELETE (repr_vlobj);
   VLO_DELETE (include_path_directories_vector);
   VLO_DELETE (libraries_vector);
-  VLO_DELETE (command_line_vlo);
+  OS_DELETE (command_line_os);
   if (input_dump_file != NULL)
     finish_read_bc ();
   if (statistics_flag && code == 0)
     {
       if (evaluated_p)
 	{
-	  finish_cds ();
 	  finish_heap ();
 	  finish_funcs ();
 	  fprintf (stderr, "Created byte code insns - %d\n", bc_nodes_num);
@@ -808,6 +905,7 @@ dino_finish (int code)
       if (inlined_calls_num != 0)
 	fprintf (stderr, "Inlined calls - %u\n", inlined_calls_num);
     }
+  finish_cds ();
   mpz_finish ();
   longjmp (exit_longjump_buff, (code == 0 ? -1 : code < 0 ? 1 : code));
 }
@@ -842,7 +940,7 @@ dino_start (void)
   initiate_icode (); /* only after initiate table */
   initiate_scanner ();
   source_position = no_position;
-  VLO_CREATE (command_line_vlo, 0);
+  OS_CREATE (command_line_os, 0);
   VLO_CREATE (include_path_directories_vector, 0);
   VLO_CREATE (libraries_vector, 0);
   VLO_CREATE (repr_vlobj, 0);
@@ -1159,6 +1257,47 @@ utf8_str_to_ucode_vlo (const char *utf8, vlo_t *vlo)
   return (ucode_t *) VLO_BEGIN (*vlo);
 }
 
+/* Put string STR into os *os encoded by CD as a new object.  Return
+   the string start in the os.  If CD is no conversion descriptor,
+   just return STR.  Return NULL in case of any error.  */
+static char *
+encode_str_os (byte_t *str, conv_desc_t cd, os_t *os)
+{
+  if (cd == NO_CONV_DESC)
+    return (char *) str;
+#ifndef HAVE_ICONV_H
+  d_assert (FALSE);
+#else
+  size_t i, out, r;
+  char *inps, *outs, *res;
+  
+  for (i = 0; str[i]; i++)
+    ;
+  i++;
+  inps = str;
+  out = i * 4; /* longest utf8 is 4 bytes.  */
+  OS_TOP_EXPAND (*os, out);
+  outs = OS_TOP_BEGIN (*os);
+  errno = 0;
+  r = iconv (cd, &inps, &i, &outs, &out);
+  if (r == (size_t) -1)
+    {
+      if (errno == E2BIG)
+	d_assert (FALSE); /* Not enough space in os.  */
+      else if (errno == EILSEQ)
+	; /* Invalid multi-byte sequence or can not be
+	     represented.  */
+      else if (errno == EINVAL)
+	; /* Incomplete multi-byte sequence.  */
+      return NULL;
+    }
+  OS_TOP_SHORTEN (*os, out);
+  res = OS_TOP_BEGIN (*os);
+  OS_TOP_FINISH (*os);
+  return res;
+#endif
+}
+
 /* Put byte string STR into vlo *VLO encoded by CD.  Return the string
    start in the vlo.  If CD is no conversion descriptor, just return
    STR.  Return NULL in case of any error.  */
@@ -1186,7 +1325,7 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo)
   if (r == (size_t) -1)
     {
       if (errno == E2BIG)
-	d_assert (FALSE); /* Not enoough space in os.  */
+	d_assert (FALSE); /* Not enough space in os.  */
       else if (errno == EILSEQ)
 	; /* Invalid multi-byte sequence or can not be
 	     represented.  */
@@ -1243,10 +1382,12 @@ dino_main (int argc, char *argv[], char *envp[])
   const char *input_file_name, *input_dump = NULL;
   const char *string;
   const char *home;
-  int code;
+  int code, command_line_index;
 
   start_time = clock ();
   set_big_endian_flag ();
+  command_line_program = NULL;
+  command_line_index = -1;
   if ((code = setjmp (exit_longjump_buff)) != 0)
     return (code < 0 ? 0 : code);
 #ifndef NDEBUG
@@ -1288,8 +1429,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	  dino_finish (1);
 	}
       else if (strcmp (option, "-c") == 0)
-	command_line_program = utf8_str_to_ucode_vlo (argument_vector [i + 1],
-						      &command_line_vlo); // ???
+	command_line_index = i + 1;
       else if (strcmp (option, "-O") == 0)
 	optimize_flag = TRUE;
       else if (strcmp (option, "-s") == 0)
@@ -1347,7 +1487,7 @@ dino_main (int argc, char *argv[], char *envp[])
 	system_error (TRUE, no_position, "fatal error -- `%s': ", 
 		      input_dump);
     }
-  else if (command_line_program != NULL)
+  else if (command_line_index > 0)
     {
       program_arguments_number = number_of_operands ();
       flag_of_first = TRUE;
@@ -1392,12 +1532,36 @@ dino_main (int argc, char *argv[], char *envp[])
   string = NULL;
   VLO_ADD_MEMORY (libraries_vector, &string, sizeof (char *));
   libraries = (const char **) VLO_BEGIN (libraries_vector);
-  if (!okay)
+  initiate_cds ();
+  if (!okay || ! set_cds (getenv (DINO_ENCODING)))
     dino_finish (1);
-  MALLOC (program_arguments, (program_arguments_number + 1) * sizeof (char *));
-  for (i = 0; i < program_arguments_number;i++)
+  if (command_line_index > 0)
     {
-      program_arguments [i] = argument_vector [next_operand (flag_of_first)];
+      command_line_program
+	= (ucode_t *) encode_str_os (argument_vector [command_line_index],
+				     curr_reverse_ucode_cd,
+				     &command_line_os);
+      if (command_line_program == NULL)
+	{
+	  fprintf (stderr,
+		   "dino: wrong command line input for encoding %s\n",
+		   curr_encoding_name);
+	  dino_finish (1);
+	}
+    }
+  MALLOC (program_arguments, (program_arguments_number + 1) * sizeof (char *));
+  for (i = 0; i < program_arguments_number; i++)
+    {
+      program_arguments [i]
+	= encode_str_os (argument_vector [next_operand (flag_of_first)],
+			 curr_reverse_ucode_cd, &command_line_os);
+      if (program_arguments [i] == NULL)
+	{
+	  fprintf (stderr,
+		   "dino: wrong command line argument %d for encoding %s\n",
+		   i, curr_encoding_name);
+	  dino_finish (1);
+	}
       flag_of_first = FALSE;
     }
   program_arguments [i] = NULL;

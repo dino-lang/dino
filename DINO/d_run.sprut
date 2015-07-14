@@ -380,13 +380,6 @@ heap_push_without_profile_update (BC_node_t block_node, ER_node_t context,
   setup_new_cstack (stack, vars_num, offset);
 }
 
-extern conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
-extern const char *curr_encoding_name;
-
-#define RAW_STRING "RAW"
-#define UTF8_STRING "UTF-8"
-#define LATIN1_STRING "LATIN1"
-
 }
 
 %%
@@ -407,15 +400,6 @@ heap_redir :: heap_vect_tab
    the interpriter and in the external functions.  */
 
 %%
-
-/* These variables reflect the current global encoding.  Value
-   NO_CONV_DESC means raw (one byte) encoding.  Two first encodings
-   are used for world representation of byte (LATIN1) and ucode
-   strings.  The reverse encoding is used to read UNICODE from
-   outside.  The last value contains the name of the current
-   encoding.  */
-conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
-const char *curr_encoding_name;
 
 /* Return name of ER type T.  */
 const char *

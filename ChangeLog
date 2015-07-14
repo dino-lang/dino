@@ -1,3 +1,59 @@
+2015-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.in: Update dependencies.
+	* DINO/d_bc.sprut (UNGET_CHAR_NAME, unget_char_bc_decl): New.
+	(bc_decls_table): Add entry for unget_char_bc_decl.
+	* DINO/d_common.h: Move most definitions from d_dino.h.  Move
+	ucode functions from d_types.h.
+	(curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd): Move from
+	d_ir.sprut.
+	(curr_encoding_name, RAW_STRING, UTF8_STRING, LATIN1_STRING):
+	Ditto.
+	(set_conv_descs): Move from d_func.c.
+	(get_ucode_from_stream): New.
+	(get_file_char): Remove.
+	* DINO/d_dino.c (curr_byte_cd, curr_ucode_cd): Move from
+	d_ir.sprut.
+	(curr_reverse_ucode_cd, curr_encoding_name): Ditto.
+	(initiate_cds, finish_cds): Move from d_eval.c.
+	(set_cds): New.
+	(raw_encoding_name, set_conv_descs): Move from d_func.c.
+	(command_line_vlo): Rename to command_line_os.  Make it an
+	objstack.
+	(encode_str_os): New.
+	(dino_finish): Call finish_cds.
+	(dino_main): Use current encoding for command line and arguments.
+	Print error if command line is not in this encoding.  Call set_cds
+	and initiate_cds.
+	* DINO/d_dino.h: Move most definitions to d_common.h.
+	(DINO_ENCODING): New.
+	* DINO/d_eval.h (finish_cds): Remove.
+	* DINO/d_eval.c (initiate_cds, finish_cds): Move to d_dino.c.
+	* DINO/d_func.c (get_file_unget_char_ptr): New.
+	(raw_encoding_name, set_conv_descs): Move to d_dino.c.
+	(place_file_instance): Initiate unget_char of the file.
+	(get_file_char, unget_file_char): New.
+	(general_get_call): Add param unget_char_ptr.
+	(general_get_ln_file_call, invinput_error): Ditto.
+	(finish_io): Ditto. Use unget_file_char.
+	(get_call, getln_call, getf_call, fget_call, fgetln_call): Pass
+	new param to general get calls.
+	(fgetf_call): Ditto.
+	(number_unget_char_ptr): New.
+	(number_previous_char): Remove.
+	(n_getc, n_ungetc): Rewrite using unget_char_ptr.
+	(get_token, scanel, general_scan_call): Add param unget_char_ptr.
+	(scan_call, scanln_call, fscan_call): Pass new param to general
+	scan calls.
+	(set_encoding_call, set_file_encoding_call): Check and report
+	encoding correctness.
+	* DINO/d_ir.sprut (ENVIRONMENT): Add unget_char to file.
+	* DINO/d_run.sput (curr_byte_cd, curr_ucode_cd): Move to
+	d_common.h.
+	(curr_reverse_ucode_cd, curr_encoding_name, RAW_STRING): Ditto.
+	(UTF8_STRING, LATIN1_STRING): Ditto.
+	* DINO/d_types.h: Move to d_common.h.
+
 2015-07-10  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/cocom-config.h.in (HAVE_ICONV_H): New undef.

@@ -473,6 +473,9 @@ extern BC_node_t file_bc_decl;
 #define FILE_PTR_NAME "file_ptr"
 extern BC_node_t file_ptr_bc_decl;
 
+#define UNGET_CHAR_NAME "unget_char"
+extern BC_node_t unget_char_bc_decl;
+
 #define FILE_ICD_NAME "file_icd"
 extern BC_node_t file_icd_bc_decl;
 
@@ -1608,6 +1611,7 @@ BC_node_t int_earley_parse_bc_decl;
 BC_node_t int_earley_create_grammar_bc_decl;
 BC_node_t file_bc_decl;
 BC_node_t file_ptr_bc_decl;
+BC_node_t unget_char_bc_decl;
 BC_node_t file_icd_bc_decl;
 BC_node_t file_byte_ocd_bc_decl;
 BC_node_t file_ucode_ocd_bc_decl;
@@ -1882,6 +1886,7 @@ static struct bc_decl_entry bc_decls_table [] =
    &parser_bc_decl, int_earley_create_grammar},
   {&file_bc_decl, FILE_NAME, NULL, NULL},
   {&file_ptr_bc_decl, FILE_PTR_NAME, &file_bc_decl, NULL},
+  {&unget_char_bc_decl, UNGET_CHAR_NAME, &file_bc_decl, NULL},
   {&file_icd_bc_decl, FILE_ICD_NAME, &file_bc_decl, NULL},
   {&file_byte_ocd_bc_decl, FILE_BYTE_OCD_NAME, &file_bc_decl, NULL},
   {&file_ucode_ocd_bc_decl, FILE_UCODE_OCD_NAME, &file_bc_decl, NULL},

@@ -25,10 +25,134 @@
 #ifndef D_COMMON_H
 #define D_COMMON_H 1
 
+#ifdef HAVE_CONFIG_H
+#include "d_config.h"
+#else /* In this case we are oriented to ANSI C and dfcn.h */
+#ifndef HAVE_MEMSET
+#define HAVE_MEMSET
+#endif
+#ifndef HAVE_MEMCPY
+#define HAVE_MEMCPY
+#endif
+#ifndef HAVE_MEMMOVE
+#define HAVE_MEMMOVE
+#endif
+#ifndef HAVE_MEMCMP
+#define HAVE_MEMCMP
+#endif
+#ifndef HAVE_ASSERT_H
+#define HAVE_ASSERT_H
+#endif
+#ifndef HAVE_FLOAT_H
+#define HAVE_FLOAT_H
+#endif
+#ifndef HAVE_LIMITS_H
+#define HAVE_LIMITS_H
+#endif
+#ifndef HAVE_TIME_H
+#define HAVE_TIME_H
+#endif
+#ifndef HAVE_ERRNO_H
+#define HAVE_ERRNO_H
+#endif
+#ifndef HAVE_DLFCN_H
+#define HAVE_DLFCN_H
+#endif
+#ifdef HAVE_SYS_TIME_H
+#undef HAVE_SYS_TIME_H
+#endif
+#endif /* #ifdef HAVE_CONFIG_H */
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <signal.h>
+
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#else
+#ifndef UCHAR_MAX
+#define UCHAR_MAX 255
+#endif
+#ifndef SCHAR_MAX
+#define SCHAR_MAX 127
+#endif
+#ifndef SCHAR_MIN
+#define SCHAR_MIN (-128)
+#endif
+#ifndef UINT_MAX
+#define UINT_MAX (INT_MAX * 2U + 1)
+#endif
+#ifndef INT_MAX
+#define INT_MAX 2147483647
+#endif  
+#ifndef INT_MIN
+#define INT_MIN (-INT_MAX-1)
+#endif
+#endif
+
+#ifdef HAVE_FLOAT_H
+#include <float.h>
+#else
+#define FLT_MAX  3.40282347e+38F         /* IEEE float */
+#define DBL_MAX  1.7976931348623157e+308 /* IEEE double */
+#endif
+
+#ifdef HAVE_ASSERT_H
+#include <assert.h>
+#else
+#ifndef assert
+#define assert(code) do { if (code == 0) abort ();} while (0)
+#endif
+#endif
+
+#define d_assert assert
+
+#define d_unreachable() abort ()
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+#ifndef AIX_DLOPEN
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#ifndef RTLD_GLOBAL
+#define RTLD_GLOBAL 0x0	/* ignore allowing symbols to be global. */
+#endif
+#else
+#ifdef HAVE_DLOPEN
+/* Used mode flags for the dlopen routine. */
+#define RTLD_LAZY	1	/* lazy function call binding */
+#define RTLD_NOW	2	/* immediate function call binding */
+#define RTLD_GLOBAL	0x100	/* allow symbols to be global */
+void *dlopen (const char *filename, int flag);
+const char *dlerror(void);
+void *dlsym(void *handle, char *symbol);
+int dlclose (void *handle);
+#endif
+#endif
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#ifndef ITIMER_VIRTUAL
+#define ITIMER_VIRTUAL 1
+#endif
+#if defined (HAVE_SETITIMER) && !defined(SIGVTALRM)
+#define SIGVTALRM 26 
+#endif
+#endif
+
+#include <ctype.h>
+#include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include "d_dino.h"
 
+#include "d_dino.h"
 #include "allocate.h"
 #include "vlobject.h"
 #include "position.h"
@@ -99,6 +223,8 @@ extern int dump_flag;
 extern int save_temps_flag;
 extern double start_time;
 extern int big_endian_p;
+extern conv_desc_t curr_byte_cd, curr_ucode_cd, curr_reverse_ucode_cd;
+extern const char *curr_encoding_name;
 
 extern unsigned str_hash_func (hash_table_entry_t str);
 extern int str_compare_func (hash_table_entry_t str1, hash_table_entry_t str2);
@@ -114,6 +240,15 @@ extern void i2mpz (mpz_t mpz, rint_t i);
 extern void f2mpz (mpz_t mpz, rfloat_t f);
 
 extern size_t hash_mpz (mpz_t mpz);
+
+#define RAW_STRING "RAW"
+#define UTF8_STRING "UTF-8"
+#define LATIN1_STRING "LATIN1"
+
+extern int set_conv_descs (const char *encoding_name,
+			   conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
+			   conv_desc_t *reverse_ucode_cd);
+
 extern char *get_ucode_ascii_repr (ucode_t ch);
 extern int read_dino_string_code (int input_char, int *correct_newln,
 				  int *wrong_escape_code, int d_getc (void),
@@ -195,10 +330,201 @@ extern void *memmove (void *s1, const void *s2, size_t n);
 #define ATTRIBUTE_UNUSED
 #endif
 
+
+
+/* This page contains code for dealing with ASCII, UTF8 and
+   UNICODE.  */
+
 static inline int
-get_file_char (FILE *f, conv_desc_t cd)
+in_byte_range_p (int ch)
 {
-  return cd == NO_CONV_DESC ? fgetc (f) : get_ucode_from_utf8_stream (read_byte, f);
+  return 0 <= ch && ch <= UCHAR_MAX;
+}
+
+static inline int
+in_ucode_range_p (int uc)
+{
+  return 0 <= uc && uc <= (int) 0x10ffff;
+}
+
+/* length of ucode string STR.  */
+static inline
+ucodestrlen (const ucode_t *s)
+{
+  size_t i;
+  
+  for (i = 0; s[i] != 0; i++)
+    ;
+  return i;
+}
+
+/* Read unicode from stream provided by function GET_BYTE with
+   encoding given by CD.  DATA is transferred to GET_BYTE.  The
+   function returns UCODE_BOUND if the stream has a wrong format.  If
+   negative value is returned by the first call of GET_BYTE, the
+   function returns the value.  */
+static inline ucode_t
+get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
+{
+  size_t in, out, res;
+  char *is, *os;
+  ucode_t uc;
+  char ch;
+  int n, b, r = get_byte (data);
+  
+  if (cd == NO_CONV_DESC || r < 0)
+    return r;
+#ifndef HAVE_ICONV_H
+  d_assert (FALSE);
+#else
+  
+  for (;;)
+    {
+      ch = r;
+      is = &ch;
+      os = (char *) &uc;
+      in = 1;
+      out = sizeof (ucode_t);
+      res = iconv (cd, &is, &in, &os, &out);
+      if (res == (size_t) -1)
+	{
+	  if (errno == EILSEQ)
+	    {
+	      /* Invalid multi-byte sequence or can not be represented
+		 -- reset initial state.  */
+	      iconv (cd, NULL, &in, NULL, &out);
+	      return UCODE_BOUND;
+	    }
+	  else if (errno == EINVAL)
+	    continue; /* Incomplete multi-byte sequence.  */
+	  /* Not enough space in os or other errors.  */
+	  d_assert (FALSE);
+	}
+      if (out == 0)
+	return uc;
+      r = get_byte (data);
+      if (r < 0)
+	{
+	  /* Reset initial value.  */
+	  iconv (cd, NULL, &in, NULL, &out);
+	  return UCODE_BOUND;
+	}
+    }
+#endif
+}
+
+/* Read unicode from UTF8 stream provided by function GET_BYTE.  DATA
+   is transferred to GET_BYTE.  The function returns UCODE_BOUND if
+   the stream has a wrong format.  If negative value is returned by
+   GET_BYTE, the function returns the value.  */
+static inline ucode_t
+get_ucode_from_utf8_stream (int (*get_byte) (void *), void *data)
+{
+  int n, b, r = get_byte (data);
+
+  if (r < (int) 0x80)
+    return r; /* It includes negative r too.  */
+  if ((r & 0xe0) == 0xc0) /* Two byte char  */
+    {
+      n = 1;
+      r &= 0x1f;
+    }
+  else if ((r & 0xf0) == 0xe0) /* Three byte char  */
+    {
+      n = 2;
+      r &= 0xf;
+    }
+ else if ((r & 0xf8) == 0xf0) /* Four byte char  */
+    {
+      n = 3;
+      r &= 0x7;
+    }
+  else
+    return UCODE_BOUND;
+  while (n-- > 0)
+    {
+      b = get_byte (data);
+      if (b < 0 && (b & 0xc0) != 0x80)
+	return UCODE_BOUND;
+      r = (r << 6) | (b & 0x3f);
+    }
+  return b <= UCODE_MAX ? b : UCODE_BOUND;
+}
+
+/* Write unicode UC to UTF8 stream provided by function PUT_BYTE.
+   DATA is transferred to PUT_BYTE.  Return negative if it is wrong
+   ucode or error occurs, otherwise return number of output bytes.  */
+static inline int
+put_ucode_to_utf8_stream (ucode_t uc, int (*put_byte) (int, void *), void *data)
+{
+  int i, n;
+  
+  if (! in_ucode_range_p (uc))
+    return -1;
+  if (uc < (int) 0x80)
+    {
+      if (put_byte (uc, data) < 0)
+	return -1;
+      return 1;
+    }
+  if (uc <= (int) 0x7ff) /* Two byte char  */
+    {
+      n = 2;
+      if (put_byte ((uc >> 6) | 0xc0, data) < 0)
+	return -1;
+    }
+  else if (uc < (int) 0xffff) /* Three byte char  */
+    {
+      n = 3;
+      if (put_byte ((uc >> 12) | 0xe0, data) < 0)
+	return -1;
+    }
+  else /* Four byte char  */
+    {
+      n = 4;
+      if (put_byte ((uc >> 18) | 0xf0, data) < 0)
+	return -1;
+    }
+  for (i = n - 2; i >= 0; i--)
+    if (put_byte ((uc >> i * 6) & 0x3f | 0x80, data) < 0)
+      return -1;
+  return n;
+}
+
+#include <stdio.h>
+
+/* Read and return by from file given by DATA.  Used by
+   get_ucode_from_{utf8, stream}.  */
+static inline int
+read_byte (void *data)
+{
+  FILE *f = (FILE *) data;
+  
+  return fgetc (f);
+}
+
+/* Print byte C to file given by DATA.  Used by
+   print_ucode_string_as_utf8.  */
+static inline int
+print_byte (int c, void *data)
+{
+  FILE *f = (FILE *) data;
+  
+  return fputc (c, f);
+}
+
+/* Print ucode string STR to file F as utf8 sequence.  Return number
+   of output bytes.  */
+static inline
+print_ucode_string_as_utf8 (const ucode_t *str, FILE *f)
+{
+  ucode_t c;
+  int n , res = 0;
+  
+  while ((c = *str++) != '\0')
+    if ((n = put_ucode_to_utf8_stream (c, print_byte, f)) >= 0)
+      res += n;
+  return res;
 }
 
 #endif /* #ifndef D_COMMON_H */

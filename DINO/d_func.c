@@ -2206,6 +2206,14 @@ print_context (ER_node_t context)
 
 
 
+static inline int *
+get_file_unget_char_ptr (ER_node_t instance)
+{
+  return (int *) ((char *) IVAL (ER_stack_vars (instance),
+				 BC_var_num (unget_char_bc_decl))
+		  + val_displ_table [ER_NM_int]);
+}
+
 static inline const char *
 get_file_encoding_name (ER_node_t instance)
 {
@@ -2255,38 +2263,6 @@ get_file_output_cds (ER_node_t file_instance,
   *ucode_cd = (conv_desc_t) (size_t) ER_hide (var);
 }
 
-static inline int
-raw_encoding_name_p (const char *str)
-{
-  return strcmp (str, RAW_STRING) == 0;
-}
-
-static void
-set_conv_descs (const char *encoding_name,
-		conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
-		conv_desc_t *reverse_ucode_cd)
-{
-  conv_desc_t bcd, ucd, rucd;
-#ifdef HAVE_ICONV_H
-  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
-  
-  bcd = iconv_open (encoding_name, LATIN1_STRING);
-  ucd = iconv_open (encoding_name, utf32);
-  rucd = iconv_open (utf32, encoding_name);
-  if (bcd == NO_CONV_DESC || ucd == NO_CONV_DESC || rucd == NO_CONV_DESC)
-    eval_error (parvalue_bc_decl, call_pos (),
-		DERR_parameter_value, ifun_name);
-#else
-  if (! raw_encoding_name_p (encoding_name))
-    eval_error (parvalue_bc_decl, call_pos (),
-		DERR_parameter_value, ifun_name);
-  bcd = ucd = rucd = NO_CONV_DESC;
-#endif
-  *byte_cd = bcd;
-  *ucode_cd = ucd;
-  *reverse_ucode_cd = rucd;
-}
-
 static void
 set_file_encoding (ER_node_t file_vars, const char *encoding_name,
 		   conv_desc_t byte_cd, conv_desc_t ucode_cd,
@@ -2322,7 +2298,13 @@ place_file_instance (FILE *f, ER_node_t result)
   var = IVAL (ER_stack_vars (ER_stack (result)), BC_var_num (file_ptr_bc_decl));
   ER_SET_MODE (var, ER_NM_hide);
   ER_set_hide (var, f);
-  set_conv_descs (curr_encoding_name, &byte_cd, &ucode_cd, &reverse_ucode_cd);
+  var = IVAL (ER_stack_vars (ER_stack (result)),
+	      BC_var_num (unget_char_bc_decl));
+  ER_SET_MODE (var, ER_NM_int);
+  ER_set_i (var, UCODE_BOUND);
+  if (! set_conv_descs (curr_encoding_name,
+			&byte_cd, &ucode_cd, &reverse_ucode_cd))
+    eval_error (parvalue_bc_decl, call_pos (), DERR_parameter_value, ifun_name);
   set_file_encoding (ER_stack_vars (instance), curr_encoding_name,
 		     byte_cd, ucode_cd, reverse_ucode_cd);
 }
@@ -3399,13 +3381,40 @@ sprintln_call (int pars_number)
 		      NO_CONV_DESC, NO_CONV_DESC);
 }
 
+static inline int
+get_file_char (FILE *f, int *unget_char_ptr, conv_desc_t cd)
+{
+  int uc;
+  
+  if (*unget_char_ptr != UCODE_BOUND)
+    {
+      uc = *unget_char_ptr;
+      *unget_char_ptr = UCODE_BOUND;
+      return uc;
+    }
+  uc = (cd == NO_CONV_DESC
+	? fgetc (f) : get_ucode_from_stream (read_byte, cd, f));
+  if (uc == UCODE_BOUND)
+    ;// eval_error (, call_pos, DERR_, ifun_name);
+  return uc;
+}
+
+static inline void
+unget_file_char (int ch, FILE *f, int *unget_char_ptr)
+{
+  d_assert (*unget_char_ptr == UCODE_BOUND);
+  *unget_char_ptr = ch;
+}
+
 static void
-general_get_call (FILE *f, int file_flag, conv_desc_t cd)
+general_get_call (FILE *f, int *unget_char_ptr, int file_flag, conv_desc_t cd)
 {
   ucode_t ch;
 
   errno = 0;
-  ch = get_file_char (f, cd);
+  ch = get_file_char (f, unget_char_ptr,  cd);
+  if (ch == UCODE_BOUND)
+    ;// ???
   if (errno != 0)
     process_system_errors (file_flag ? FGET_NAME : GET_NAME);
   if (ch == EOF)
@@ -3417,8 +3426,8 @@ general_get_call (FILE *f, int file_flag, conv_desc_t cd)
 }
 
 static void
-general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
-			  conv_desc_t cd)
+general_get_ln_file_call (FILE *f, int *unget_char_ptr, int param_flag,
+			  int ln_flag, int as_lns_p, conv_desc_t cd)
 {
   ER_node_t vect;
   int ch;
@@ -3432,7 +3441,11 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
   ch_n = 0;
   for (;;)
     {
-      ch = get_file_char (f, cd);
+      ch = get_file_char (f, unget_char_ptr, cd);
+      if (errno != 0)
+	process_system_errors (ifun_name);
+      if (ch == UCODE_BOUND)
+	; // ???
       if (ch != EOF)
 	ch_n++;
       if ((ch == '\n' && (ln_flag || as_lns_p)) || ch == EOF)
@@ -3476,8 +3489,6 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
 	set_packed_vect_el (vect, i,
 			    ((ER_node_t *) VLO_BEGIN (temp_vlobj2)) [i]);
     }
-  if (errno != 0)
-    process_system_errors (ifun_name);
   /* ??? */
   if (ch == EOF && ch_n == 0)
     eval_error (eof_bc_decl, call_pos (), DERR_eof_occured, ifun_name);
@@ -3489,30 +3500,36 @@ general_get_ln_file_call (FILE *f, int param_flag, int ln_flag, int as_lns_p,
 void
 get_call (int pars_number)
 {
+  ER_node_t file_instance;
+  
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, GET_NAME);
-  general_get_call (stdin, FALSE,
-		    get_file_input_cd
-		    (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-				     BC_var_num (stdin_bc_decl)))));
+  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+				  BC_var_num (stdin_bc_decl)));
+  general_get_call (stdin, get_file_unget_char_ptr (file_instance), FALSE,
+		    get_file_input_cd (file_instance));
 }
 
 void
 getln_call (int pars_number)
 {
+  ER_node_t file_instance;
+  
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, GETLN_NAME);
-  general_get_ln_file_call (stdin, FALSE, TRUE, FALSE,
-			    get_file_input_cd
-			    (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-					     BC_var_num (stdin_bc_decl)))));
+  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+				  BC_var_num (stdin_bc_decl)));
+  general_get_ln_file_call (stdin, get_file_unget_char_ptr (file_instance),
+			    FALSE, TRUE, FALSE,
+			    get_file_input_cd (file_instance));
 }
 
 void
 getf_call (int pars_number)
 {
+  ER_node_t file_instance;
   int flag = 0;
 
   if (pars_number > 1)
@@ -3526,10 +3543,11 @@ getf_call (int pars_number)
 		    DERR_parameter_type, GETF_NAME);
       flag = ER_i (ctop);
     }
-  general_get_ln_file_call (stdin, FALSE, FALSE, flag != 0,
-			    get_file_input_cd
-			    (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-					     BC_var_num (stdin_bc_decl)))));
+  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+				  BC_var_num (stdin_bc_decl)));
+  general_get_ln_file_call (stdin, get_file_unget_char_ptr (file_instance),
+			    FALSE, FALSE, flag != 0,
+			    get_file_input_cd (file_instance));
 }
 
 static FILE *
@@ -3547,7 +3565,8 @@ fget_call (int pars_number)
   ER_node_t file_instance;
   FILE *f = fget_function_call_start (pars_number, &file_instance);
 
-  general_get_call (f, TRUE, get_file_input_cd (file_instance));
+  general_get_call (f, get_file_unget_char_ptr (file_instance),
+		    TRUE, get_file_input_cd (file_instance));
 }
 
 void
@@ -3556,7 +3575,8 @@ fgetln_call (int pars_number)
   ER_node_t file_instance;
   FILE *f = fget_function_call_start (pars_number, &file_instance);
 
-  general_get_ln_file_call (f, TRUE, TRUE, FALSE,
+  general_get_ln_file_call (f, get_file_unget_char_ptr (file_instance),
+			    TRUE, TRUE, FALSE,
 			    get_file_input_cd (file_instance));
 }
 
@@ -3579,7 +3599,8 @@ fgetf_call (int pars_number)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, FGETF_NAME);
   f = get_file (pars_number, &file_instance);
-  general_get_ln_file_call (f, TRUE, FALSE, flag != 0,
+  general_get_ln_file_call (f, get_file_unget_char_ptr (file_instance),
+			    TRUE, FALSE, flag != 0,
 			    get_file_input_cd (file_instance));
 }
 
@@ -3623,20 +3644,20 @@ finish_io (void)
    Dino scanner.  If `read_dino_string_code' is changed, please modify
    this function too. */
 static ucode_t
-get_char_code (FILE *f, conv_desc_t cd, ucode_t curr_char,
+get_char_code (FILE *f, int *unget_char_ptr, conv_desc_t cd, ucode_t curr_char,
 	       int *correct_newln, int *wrong_escape_code)
 {
   ucode_t char_code;
 
   if (curr_char == EOF || curr_char == '\n')
     {
-      ungetc (curr_char, f);
+      unget_file_char (curr_char, f, unget_char_ptr);
       return (-1);
     }
   *correct_newln = *wrong_escape_code = FALSE;
   if (curr_char == '\\')
     {
-      curr_char = get_file_char (f, cd);
+      curr_char = get_file_char (f, unget_char_ptr, cd);
       if (curr_char == 'n')
         curr_char = '\n';
       else if (curr_char == 't')
@@ -3655,18 +3676,21 @@ get_char_code (FILE *f, conv_desc_t cd, ucode_t curr_char,
         ;
       else if (curr_char == '\n')
 	*correct_newln = TRUE;
-      else if (isdigit (curr_char) && curr_char != '8' && curr_char != '9')
+      else if (curr_char <= UCHAR_MAX && isdigit (curr_char)
+	       && curr_char != '8' && curr_char != '9')
 	{
 	  char_code = value_of_digit (curr_char);
-	  curr_char = get_file_char (f, cd);
-	  if (!isdigit (curr_char) || curr_char == '8' || curr_char == '9')
-	    ungetc (curr_char, f);
+	  curr_char = get_file_char (f, unget_char_ptr, cd);
+	  if (curr_char > UCHAR_MAX || !isdigit (curr_char)
+	      || curr_char == '8' || curr_char == '9')
+	    unget_file_char (curr_char, f, unget_char_ptr);
 	  else
 	    {
 	      char_code = (char_code * 8 + value_of_digit (curr_char));
-	      curr_char = get_file_char (f, cd);
-	      if (!isdigit (curr_char) || curr_char == '8' || curr_char == '9')
-		ungetc (curr_char, f);
+	      curr_char = get_file_char (f, unget_char_ptr, cd);
+	      if (curr_char > UCHAR_MAX || !isdigit (curr_char)
+		  || curr_char == '8' || curr_char == '9')
+		unget_file_char (curr_char, f, unget_char_ptr);
 	      else
 		char_code = (char_code * 8 + value_of_digit (curr_char));
 	    }
@@ -3682,8 +3706,8 @@ get_char_code (FILE *f, conv_desc_t cd, ucode_t curr_char,
 	       i > 0;
 	       i--)
 	    {
-	      curr_char = get_file_char (f, cd);
-	      if (! is_hex_digit (curr_char))
+	      curr_char = get_file_char (f, unget_char_ptr, cd);
+	      if (curr_char > UCHAR_MAX || ! is_hex_digit (curr_char))
 		break;
 	      c = value_of_hex_digit (curr_char);
 	      char_code = (char_code << 4) | c;
@@ -3696,14 +3720,14 @@ get_char_code (FILE *f, conv_desc_t cd, ucode_t curr_char,
 }
 
 static void
-invinput_error (FILE *f, conv_desc_t cd, int ln_flag)
+invinput_error (FILE *f, int *unget_char_ptr, conv_desc_t cd, int ln_flag)
 {
   int curr_char;
 
   if (ln_flag)
     do
       {
-	curr_char = get_file_char (f, cd);
+	curr_char = get_file_char (f, unget_char_ptr, cd);
       }
     while (curr_char != EOF && curr_char != '\n');
   eval_error (invinput_bc_decl, call_pos (), DERR_invalid_input, ifun_name);
@@ -3711,34 +3735,25 @@ invinput_error (FILE *f, conv_desc_t cd, int ln_flag)
 
 /* Used by read_dino_number.  */
 static FILE *number_file;
+static int *number_unget_char_ptr;
 static conv_desc_t number_file_cd;
-static int number_previous_char;
 
 static int
 n_getc (void)
 {
-  if (number_previous_char == NOT_A_CHAR)
-    return get_file_char (number_file, number_file_cd);
-  else
-    {
-      int c = number_previous_char;
-
-      number_previous_char = NOT_A_CHAR;
-      return c;
-    }
+  return get_file_char (number_file, number_unget_char_ptr, number_file_cd);
 }
 
 static void
 n_ungetc (int c)
 {
-  d_assert (number_previous_char == NOT_A_CHAR);
-  number_previous_char = c;
+  unget_file_char (c, number_file, number_unget_char_ptr);
 }
 
 /* The following function is analogous to `yylex' in Dino scanner.  If
    `yylex' is changed, please modify this function too. */
 static struct token
-get_token (FILE *f, conv_desc_t cd, int ln_flag)
+get_token (FILE *f, int *unget_char_ptr, conv_desc_t cd, int ln_flag)
 {
   int curr_char;
   int wrong_escape_code;
@@ -3747,7 +3762,7 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
   VLO_NULLIFY (el_text);
   for (;;)
     {
-      curr_char = get_file_char (f, cd);
+      curr_char = get_file_char (f, unget_char_ptr, cd);
       /* `current_position' corresponds `curr_char' here. */
       switch (curr_char)
         {
@@ -3766,12 +3781,12 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
 	  result.token_code = curr_char;
 	  return result;
 	case 't':
-	  curr_char = get_file_char (f, cd);
+	  curr_char = get_file_char (f, unget_char_ptr, cd);
 	  if (curr_char != 'a')
-	    invinput_error (f, cd, ln_flag);
-	  curr_char = get_file_char (f, cd);
+	    invinput_error (f, unget_char_ptr, cd, ln_flag);
+	  curr_char = get_file_char (f, unget_char_ptr, cd);
 	  if (curr_char != 'b')
-	    invinput_error (f, cd, ln_flag);
+	    invinput_error (f, unget_char_ptr, cd, ln_flag);
 	  result.token_code = F_TAB;
 	  return result;
         case '\'':
@@ -3779,25 +3794,25 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
             int correct_newln, wrong_escape_code;
 	    ucode_t char_code;
             
-            curr_char = get_file_char (f, cd);
+            curr_char = get_file_char (f, unget_char_ptr, cd);
             if (curr_char == '\'')
-	      invinput_error (f, cd, ln_flag);
+	      invinput_error (f, unget_char_ptr, cd, ln_flag);
             else
               {
-                curr_char = get_char_code (f, cd, curr_char,
+                curr_char = get_char_code (f, unget_char_ptr, cd, curr_char,
 					   &correct_newln, &wrong_escape_code);
                 if (curr_char < 0 || correct_newln || wrong_escape_code)
 		  {
 		    if (ln_flag && curr_char == '\n')
-		      ungetc (curr_char, f);
-		    invinput_error (f, cd, ln_flag);
+		      unget_file_char (curr_char, f, unget_char_ptr);
+		    invinput_error (f, unget_char_ptr, cd, ln_flag);
 		  }
               }
-            char_code = get_file_char (f, cd);
+            char_code = get_file_char (f, unget_char_ptr, cd);
             if (char_code != '\'')
               {
-                ungetc (char_code, f);
-		invinput_error (f, cd, ln_flag);
+                unget_file_char (char_code, f, unget_char_ptr);
+		invinput_error (f, unget_char_ptr, cd, ln_flag);
               }
 	    result.val.ch = curr_char;
 	    result.token_code = F_CHAR;
@@ -3809,14 +3824,14 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
             
             for (;;)
               {
-                curr_char = get_file_char (f, cd);
+                curr_char = get_file_char (f, unget_char_ptr, cd);
                 if (curr_char == '\"')
                   break;
-                curr_char = get_char_code (f, cd, curr_char, &correct_newln,
-					   &wrong_escape_code);
+                curr_char = get_char_code (f, unget_char_ptr, cd, curr_char,
+					   &correct_newln, &wrong_escape_code);
                 if (curr_char < 0 || wrong_escape_code)
                   {
-		    invinput_error (f, cd, ln_flag);
+		    invinput_error (f, unget_char_ptr, cd, ln_flag);
                     break;
                   }
                 if (!correct_newln)
@@ -3829,12 +3844,12 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
           }
         default:
 	  {
-	    int next_char = get_file_char (f, cd);
+	    int next_char = get_file_char (f, unget_char_ptr, cd);
 
-	    ungetc (next_char, f);
-	    if (isdigit (curr_char)
+	    unget_file_char (next_char, f, unget_char_ptr);
+	    if ((curr_char <= UCHAR_MAX && isdigit (curr_char))
 		|| ((curr_char == '-' || curr_char == '+')
-		    && isdigit (next_char)))
+		    && (curr_char <= UCHAR_MAX && isdigit (next_char))))
 	      {
 		enum read_number_code err_code;
 		int read_ch_num, float_p, long_p, base;
@@ -3842,20 +3857,18 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
 
 		number_file = f;
 		number_file_cd = cd;
-		number_previous_char = NOT_A_CHAR;
+		number_unget_char_ptr = unget_char_ptr;
 		err_code = read_dino_number (curr_char, n_getc, n_ungetc,
 					     &read_ch_num, &repr, &base,
 					     &float_p, &long_p);
-		if (number_previous_char != NOT_A_CHAR)
-		  ungetc (number_previous_char, f);
 		if (errno)
 		  process_system_errors (ifun_name);
 		if (err_code != NUMBER_OK)
 		  {
-		    curr_char = get_file_char (f, cd);
+		    curr_char = get_file_char (f, unget_char_ptr, cd);
 		    if (ln_flag && curr_char == '\n')
-		      ungetc (curr_char, f);
-		    invinput_error (f, cd, ln_flag);
+		      unget_file_char (curr_char, f, unget_char_ptr);
+		    invinput_error (f, unget_char_ptr, cd, ln_flag);
 		  }
 		else if (long_p)
 		  {
@@ -3882,7 +3895,7 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
 		return result;
 	      }
 	    else
-	      invinput_error (f, cd, ln_flag);
+	      invinput_error (f, unget_char_ptr, cd, ln_flag);
 	  }
         }
     }
@@ -3905,7 +3918,8 @@ get_token (FILE *f, conv_desc_t cd, int ln_flag)
    If syntax (or semantics) of values is changed, please modify this
    function too. */
 static val_t
-scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
+scanel (FILE *f, int *unget_char_ptr,
+	conv_desc_t cd, struct token token, int ln_flag)
 {
   val_t result;
   ER_node_t ptr = (ER_node_t) &result;
@@ -3944,7 +3958,7 @@ scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
 	ER_node_t vect;
 
 	vect = create_empty_vector ();
-	token = get_token (f, cd, ln_flag);
+	token = get_token (f, unget_char_ptr, cd, ln_flag);
 	for (;;)
 	  {
 	    if (token.token_code == ']')
@@ -3953,19 +3967,19 @@ scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
 		set_vect_dim (ptr, vect, 0);
 		return result;
 	      }
-	    result = scanel (f, cd, token, ln_flag);
-	    token = get_token (f, cd, ln_flag);
+	    result = scanel (f, unget_char_ptr, cd, token, ln_flag);
+	    token = get_token (f, unget_char_ptr, cd, ln_flag);
 	    if (token.token_code == ':')
 	      {
 		implicit_int_conversion (ctop, (ER_node_t) &result);
 		if (ER_NODE_MODE (ptr) != ER_NM_int)
-		  invinput_error (f, cd, ln_flag);
+		  invinput_error (f, unget_char_ptr, cd, ln_flag);
 		repeat = ER_i (ptr);
 		if (repeat < 0)
 		  repeat = 0;
-		token = get_token (f, cd, ln_flag);
-		result = scanel (f, cd, token, ln_flag);
-		token = get_token (f, cd, ln_flag);
+		token = get_token (f, unget_char_ptr, cd, ln_flag);
+		result = scanel (f, unget_char_ptr, cd, token, ln_flag);
+		token = get_token (f, unget_char_ptr, cd, ln_flag);
 	      }
 	    else
 	      repeat = 1;
@@ -3976,7 +3990,7 @@ scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
 	      *(val_t *) IVAL (ER_unpack_els (vect), i) = result;
 	    ER_set_els_number (vect, i);
 	    if (token.token_code == ',')
-	      token = get_token (f, cd, ln_flag);
+	      token = get_token (f, unget_char_ptr, cd, ln_flag);
 	  }
 	}
     case F_TAB:
@@ -3988,10 +4002,10 @@ scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
 	ER_node_mode_t mode;
 
 	tab = create_tab (40);
-	token = get_token (f, cd, ln_flag);
+	token = get_token (f, unget_char_ptr, cd, ln_flag);
 	if (token.token_code != '[')
-	  invinput_error (f, cd, ln_flag);
-	token = get_token (f, cd, ln_flag);
+	  invinput_error (f, unget_char_ptr, cd, ln_flag);
+	token = get_token (f, unget_char_ptr, cd, ln_flag);
 	for (;;)
 	  {
 	    if (token.token_code == ']')
@@ -4000,15 +4014,15 @@ scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
 		ER_set_tab (ptr, tab);
 		return result;
 	      }
-	    result = scanel (f, cd, token, ln_flag);
-	    token = get_token (f, cd, ln_flag);
+	    result = scanel (f, unget_char_ptr, cd, token, ln_flag);
+	    token = get_token (f, unget_char_ptr, cd, ln_flag);
 	    if (token.token_code == ':')
 	      {
 		key_val = result;
 		mode = ER_NODE_MODE (key);
-		token = get_token (f, cd, ln_flag);
-		result = scanel (f, cd, token, ln_flag);
-		token = get_token (f, cd, ln_flag);
+		token = get_token (f, unget_char_ptr, cd, ln_flag);
+		result = scanel (f, unget_char_ptr, cd, token, ln_flag);
+		token = get_token (f, unget_char_ptr, cd, ln_flag);
 		if (mode == ER_NM_vect)
 		  set_vect_dim (key, ER_vect (key), 0);
 		else if (mode == ER_NM_tab)
@@ -4020,37 +4034,38 @@ scanel (FILE *f, conv_desc_t cd, struct token token, int ln_flag)
 	    entry = find_tab_el (tab, key, TRUE);
 	    d_assert (entry != NULL);
 	    if (ER_NODE_MODE (entry) != ER_NM_empty_el)
-	      invinput_error (f, cd, ln_flag);
+	      invinput_error (f, unget_char_ptr, cd, ln_flag);
 	    *(val_t *) entry = key_val;
 	    make_immutable (entry);
 	    *((val_t *) entry + 1) = result;
 	    if (token.token_code == ',')
-	      token = get_token (f, cd, ln_flag);
+	      token = get_token (f, unget_char_ptr, cd, ln_flag);
 	  }
       }
     default:
-      invinput_error (f, cd, ln_flag);
+      invinput_error (f, unget_char_ptr, cd, ln_flag);
     }
   d_unreachable ();
 }
 
 static void
-general_scan_call (FILE *f, conv_desc_t cd, int file_flag, int ln_flag)
+general_scan_call (FILE *f, int *unget_char_ptr,
+		   conv_desc_t cd, int file_flag, int ln_flag)
 {
   struct token token;
   val_t val;
   int curr_char;
 
   errno = 0;
-  token = get_token (f, cd, ln_flag);
+  token = get_token (f, unget_char_ptr, cd, ln_flag);
   if (token.token_code == EOF)
     eval_error (eof_bc_decl, call_pos (), DERR_eof_occured, ifun_name);
-  val = scanel (f, cd, token, ln_flag);
+  val = scanel (f, unget_char_ptr, cd, token, ln_flag);
   /* Skip input to the of line. */
   if (ln_flag)
     do
       {
-	curr_char = get_file_char (f, cd);
+	curr_char = get_file_char (f, unget_char_ptr, cd);
       }
     while (curr_char != EOF && curr_char != '\n');
   if (errno != 0)
@@ -4062,27 +4077,29 @@ general_scan_call (FILE *f, conv_desc_t cd, int file_flag, int ln_flag)
 void
 scan_call (int pars_number)
 {
-  conv_desc_t cd;
+  ER_node_t file_instance;
 
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, SCAN_NAME);
-  cd = get_file_input_cd (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-					  BC_var_num (stdin_bc_decl))));
-  general_scan_call (stdin, cd, FALSE, FALSE);
+  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+				  BC_var_num (stdin_bc_decl)));
+  general_scan_call (stdin, get_file_unget_char_ptr (file_instance),
+		     get_file_input_cd (file_instance), FALSE, FALSE);
 }
 
 void
 scanln_call (int pars_number)
 {
-  conv_desc_t cd;
+  ER_node_t file_instance;
 
   if (pars_number != 0)
     eval_error (parnumber_bc_decl,
 		call_pos (), DERR_parameters_number, SCANLN_NAME);
-  cd = get_file_input_cd (ER_stack (IVAL (ER_stack_vars (uppest_stack),
-					  BC_var_num (stdin_bc_decl))));
-  general_scan_call (stdin, cd, FALSE, TRUE);
+  file_instance = ER_stack (IVAL (ER_stack_vars (uppest_stack),
+				  BC_var_num (stdin_bc_decl)));
+  general_scan_call (stdin, get_file_unget_char_ptr (file_instance),
+		     get_file_input_cd (file_instance), FALSE, TRUE);
 }
 
 void
@@ -4091,7 +4108,8 @@ fscan_call (int pars_number)
   ER_node_t file_instance;
   FILE *f = fget_function_call_start (pars_number, &file_instance);
   
-  general_scan_call (f, get_file_input_cd (file_instance), TRUE, FALSE);
+  general_scan_call (f, get_file_unget_char_ptr (file_instance),
+		     get_file_input_cd (file_instance), TRUE, FALSE);
 }
 
 void
@@ -4100,7 +4118,8 @@ fscanln_call (int pars_number)
   ER_node_t file_instance;
   FILE *f = fget_function_call_start (pars_number, &file_instance);
   
-  general_scan_call (f, get_file_input_cd (file_instance), TRUE, TRUE);
+  general_scan_call (f, get_file_unget_char_ptr (file_instance),
+		     get_file_input_cd (file_instance), TRUE, TRUE);
 }
 
 static void
@@ -5717,7 +5736,8 @@ set_encoding_call (int pars_number)
     eval_error (parvalue_bc_decl, call_pos (),
 		DERR_parameter_value, SET_ENCODING_NAME);
   str = ER_pack_els (ER_vect (ctop));
-  set_conv_descs (str, &byte_cd, &ucode_cd, &reverse_ucode_cd);
+  if (! set_conv_descs (str, &byte_cd, &ucode_cd, &reverse_ucode_cd))
+    eval_error (parvalue_bc_decl, call_pos (), DERR_parameter_value, ifun_name);
 #ifdef HAVE_ICONV_H
   if (curr_byte_cd != NO_CONV_DESC)
     iconv_close (curr_byte_cd);
@@ -5771,7 +5791,8 @@ set_file_encoding_call (int pars_number)
     eval_error (parvalue_bc_decl, call_pos (),
 		DERR_parameter_value, SET_FILE_ENCODING_NAME);
   str = ER_pack_els (ER_vect (ctop));
-  set_conv_descs (str, &byte_cd, &ucode_cd, &reverse_ucode_cd);
+  if (! set_conv_descs (str, &byte_cd, &ucode_cd, &reverse_ucode_cd))
+    eval_error (parvalue_bc_decl, call_pos (), DERR_parameter_value, ifun_name);
   get_file (pars_number, &file_instance);
   get_file_output_cds (file_instance, &prev_byte_cd, &prev_ucode_cd);
   prev_reverse_ucode_cd = get_file_input_cd (file_instance);

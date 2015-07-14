@@ -4684,34 +4684,6 @@ switch_to_bcode (void)
   restart_eval ();
 }
 
-static void
-initiate_cds (void)
-{
-#ifdef HAVE_ICONV_H
-  const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
-
-  curr_encoding_name = UTF8_STRING;
-  curr_byte_cd = iconv_open (UTF8_STRING, LATIN1_STRING);
-  curr_ucode_cd = iconv_open (UTF8_STRING, utf32);
-  curr_reverse_ucode_cd = iconv_open (utf32, UTF8_STRING);
-#else
-  curr_encoding_name = RAW_STRING;
-  curr_byte_cd = curr_ucode_cd = curr_reverse_ucode_cd = NO_CONV_DESC;
-#endif
-}
-
-void
-finish_cds (void)
-{
-#ifdef HAVE_ICONV_H
-  if (curr_byte_cd != NULL)
-    iconv_close (curr_byte_cd);
-  if (curr_ucode_cd != NULL)
-    iconv_close (curr_ucode_cd);
-#endif
-}
-
-
 /* Evaluate top level block START_PC.  Initiate data if INIT_P.
    Otherwise, reuse the already created data.  */
 void
@@ -4725,7 +4697,6 @@ evaluate_program (pc_t start_pc, int init_p, int last_p)
     expand_uppest_stack ();
   else
     {
-      initiate_cds ();
       initiate_heap ();
       initiate_int_tables ();
       initiate_tables ();

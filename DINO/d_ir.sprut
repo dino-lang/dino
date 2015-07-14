@@ -408,7 +408,7 @@ extern IR_node_t destroy_unique_ident;
   "}\n"\
   "// Do not place any code inside file (it is only for internal purposes)\n"\
   "final class file {\n"\
-  "  priv var file_ptr;\n"\
+  "  priv var file_ptr, unget_char;\n"\
   "  priv var file_icd, file_byte_ocd, file_ucode_ocd, file_encoding;\n"\
   "  throw callop\n"\
   "    (\"File can be created only by functions open or popen\");}\n"\
