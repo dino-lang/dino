@@ -88,7 +88,8 @@ static position_t actual_parameters_construction_pos;
    Its value is flag of variable number parameters (usage of ...). */
 static int formal_parameter_args_flag;
 
-static const char *full_file_name  (const char *extend_identifier);
+static const char *get_full_file_and_encoding_name (const char *fname,
+						    const char **encoding);
 
 static IR_node_t get_new_ident (position_t);
 
@@ -1196,9 +1197,13 @@ inclusion :   {$$ = NULL;}
               }
             INCLUSION
               {
-                start_scanner_file (full_file_name (IR_string_value
-						    (IR_unique_string
-						     ($<pointer>0))),
+		const char *fname, *encoding;
+
+		fname = get_full_file_and_encoding_name (IR_string_value
+							 (IR_unique_string
+							  ($<pointer>0)),
+							 &encoding);
+                start_scanner_file (fname, encoding,
 				    IR_pos ($<pointer>0));
               }
             stmt_list END_OF_INCLUDE_FILE
@@ -1825,10 +1830,10 @@ struct istream_state
      `add_lexema_to_file' after immediately call of this
      function or -1 otherwise. */
   int uninput_lexema_code;
-#ifdef HAVE_ICONV_H
+  /* Name of file encoding.  */
+  const char *encoding_name;
   /* Conversion descriptor used for the file.  */
-  iconv_t cd;
-#endif
+  conv_desc_t cd;
 };
 
 /* The following structure contains all current input stream and
@@ -1844,24 +1849,31 @@ static vlo_t istream_stack;
 static int previous_char;
 
 /* The following function creates empty input stream stack and
-   initiates current input stream and scanner state as undefined. */
+   initiates current input stream and scanner state (including cd) as
+   undefined. */
 static void
 initiate_istream_stack (void)
 {
   VLO_CREATE (istream_stack, 0);
   curr_istream_state.file_name = NULL;
   curr_istream_state.file = NULL;
+  curr_istream_state.encoding_name = NULL;
+  curr_istream_state.cd = NO_CONV_DESC;
   curr_istream_state.uninput_lexema_code = (-1);
 }
 
 /* The following function deletes the input stream stack and closes
-   current input file if current input stream state is defined.  */
+   current input file and its cd if they are defined.  */
 static void
 finish_istream_stack (void)
 {
   VLO_DELETE (istream_stack);
   if (curr_istream_state.file != NULL)
     fclose (curr_istream_state.file);
+#ifdef HAVE_ICONV_H
+  if (curr_istream_state.cd != NO_CONV_DESC)
+    iconv_close (curr_istream_state.cd);
+#endif
 }
 
 /* The following function returns height of input stream stack,
@@ -1877,13 +1889,15 @@ static ucode_t empty_ucode_string[] = {0};
 
 /* The following function saves current input stream and scanner state
    (if it is defined) in the stack, closes file corresponding to
-   current input stream, opens file corresponding to new input stream,
-   and sets up new current input stream and scanner state.  The
-   function also checks up absence of loop of file inclusions.  The
-   function reports errors if the loop exists or new file is not
-   opened. */
+   current input stream and its cd, opens file corresponding to new
+   input stream, and sets up new current input stream and scanner
+   state including cd.  The function also checks up absence of loop of
+   file inclusions.  The function reports errors if the loop exists or
+   new file is not opened.  If ENCODING_NAME is not NULL, use the
+   corresponding encoding.  Otherwise use the current encoding.  */
 static void
-push_curr_istream (const char *new_file_name, position_t error_pos)
+push_curr_istream (const char *new_file_name, const char *encoding_name,
+		   position_t error_pos)
 {
   int i;
 
@@ -1897,6 +1911,11 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
 	  curr_istream_state.file_pos = ftell (curr_istream_state.file);
 	  fclose (curr_istream_state.file);
 	  curr_istream_state.file = NULL;
+#ifdef HAVE_ICONV_H
+	  if (curr_istream_state.cd != NO_CONV_DESC)
+	    iconv_close (curr_istream_state.cd);
+	  curr_istream_state.cd = NO_CONV_DESC;
+#endif
 	}
       VLO_ADD_MEMORY (istream_stack, &curr_istream_state,
 		      sizeof (struct istream_state));
@@ -1909,6 +1928,7 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
     }
   curr_istream_state.file_name = new_file_name;
   curr_istream_state.file = NULL;
+  curr_istream_state.cd = NO_CONV_DESC;
   if (*new_file_name != '\0')
     {
       /* The current stream is not commad line or REPL stdin. */
@@ -1916,6 +1936,13 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
       if (curr_istream_state.file == NULL)
 	system_error (TRUE, error_pos, "fatal error -- `%s': ", 
 		      curr_istream_state.file_name);
+      curr_istream_state.encoding_name
+	= get_unique_string (encoding_name != NULL
+			     ? encoding_name : curr_encoding_name);
+      if (! set_conv_descs (curr_istream_state.encoding_name,
+			    NULL, NULL, &curr_istream_state.cd))
+	d_error (TRUE, no_position, ERR_file_encoding,
+		 curr_istream_state.encoding_name, curr_istream_state.file_name);
     }
   else if (repl_flag)
     /* To read line when we need it. */
@@ -1926,10 +1953,10 @@ push_curr_istream (const char *new_file_name, position_t error_pos)
 }
 
 /* The following function closes file corresponding to current input
-   stream (it must be defined), reopens file corresponding to previous
-   input stream (if it is defined) and restores previous input stream
-   and scanner state.  The function can fix error if the file is not
-   reopened. */
+   stream (it must be defined) and its cdq, reopens file corresponding
+   to previous input stream (if it is defined) and restores previous
+   input stream and scanner state (including file cd).  The function
+   can fix error if the file is not reopened. */
 static void
 pop_istream_stack (void)
 {
@@ -1940,6 +1967,11 @@ pop_istream_stack (void)
 		|| curr_istream_state.file != stdin);
       fclose (curr_istream_state.file);
       curr_istream_state.file = NULL;
+#ifdef HAVE_ICONV_H
+      if (curr_istream_state.cd != NO_CONV_DESC)
+	iconv_close (curr_istream_state.cd);
+      curr_istream_state.cd = NO_CONV_DESC;
+#endif
     }
   if (istream_stack_height () != 0)
     {
@@ -1951,12 +1983,17 @@ pop_istream_stack (void)
 	{
 	  /* It is not command line stream or REPL stdin. */
 	  curr_istream_state.file = fopen (curr_istream_state.file_name, "rb");
+	  curr_istream_state.cd = NO_CONV_DESC;
 	  if (curr_istream_state.file == NULL
 	      || fseek (curr_istream_state.file,
 			curr_istream_state.file_pos, 0) != 0)
 	    system_error (TRUE, no_position,
 			  "fatal error -- repeated opening file `%s': ", 
 			  curr_istream_state.file_name);
+	  if (! set_conv_descs (curr_istream_state.encoding_name,
+				NULL, NULL, &curr_istream_state.cd))
+	    /* We already used the file encoding before.  */
+	    d_assert (FALSE);
 	}
       finish_file_position ();
     }
@@ -2057,6 +2094,14 @@ canonical_path_name (const char *name)
 }
 
 
+/* Find encoding on the first two lines of file F and return it.  If
+   it is not found, return NULL.  */
+static const char *
+read_file_encoding (FILE *f)
+{
+  return NULL; // ???
+}
+
 /* The following function returns full file name.  To make this
    functions searches for files in
      1. current directory (when the current stream is command line stream)
@@ -2067,9 +2112,11 @@ canonical_path_name (const char *name)
         DINO_PATH.
      3. Standard library directory.
    If the file is not found the function returns the extended
-   specification file name mentioned in 1. */
+   specification file name mentioned in 1.  The function also returns
+   file encoding through ENCODING if it can read encoing name in the
+   file, or NULL otherwise. */
 static const char *
-full_file_name (const char *fname)
+get_full_file_and_encoding_name (const char *fname, const char **encoding)
 {
   const char *curr_directory_name;
   const char *real_file_name;
@@ -2097,9 +2144,31 @@ full_file_name (const char *fname)
             break;
           }
       }
+  if (encoding != NULL)
+    {
+      *encoding = NULL;
+      if (curr_file != NULL)
+	*encoding = read_file_encoding (curr_file);
+    }
   if (curr_file != NULL && fclose (curr_file) == EOF)
     system_error (TRUE, no_position, "fatal error -- `%s': ", real_file_name);
   return canonical_path_name (real_file_name);
+}
+
+/* Return file encoding found in FNAME.  If the file can not be read
+   or there is no encoding in the file, return NULL.  */
+const char *
+source_file_encoding (const char *fname)
+{
+  FILE *f;
+  const char *res;
+  
+  f = fopen (fname, "rb");
+  if (f == NULL)
+    return NULL;
+  res = read_file_encoding (f);
+  fclose (f);
+  return res;
 }
 
 
@@ -2160,8 +2229,17 @@ d_getc (void)
   else if (curr_istream_state.file != NULL)
     {
       if (previous_char == NOT_A_CHAR)
-	result
-	  = get_ucode_from_utf8_stream (read_byte, curr_istream_state.file);
+	{
+	  result
+	    = (curr_reverse_ucode_cd == NO_CONV_DESC
+	       ? fgetc (curr_istream_state.file)
+	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
+					curr_istream_state.file));
+	  if (result == UCODE_BOUND)
+	    d_error (TRUE, no_position, ERR_file_decoding,
+		     curr_istream_state.encoding_name,
+		     curr_istream_state.file_name);
+	}
       else
 	{
 	  result = previous_char;
@@ -2170,7 +2248,14 @@ d_getc (void)
       if (result == '\r')
 	{
 	  result
-	    = get_ucode_from_utf8_stream (read_byte, curr_istream_state.file);
+	    = (curr_istream_state.cd == NO_CONV_DESC
+	       ? fgetc (curr_istream_state.file)
+	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
+					curr_istream_state.file));
+	  if (result == UCODE_BOUND)
+	    d_error (TRUE, no_position, ERR_file_decoding,
+		     curr_istream_state.encoding_name,
+		     curr_istream_state.file_name);
 	  if (result != '\n')
 	    {
 	      previous_char = result;
@@ -3017,9 +3102,10 @@ initiate_scanner (void)
    special code for correct diganostic during and after parsing
    environment is executed. */
 void
-start_scanner_file (const char *new_file_name, position_t error_pos)
+start_scanner_file (const char *new_file_name, const char *encoding_name,
+		    position_t error_pos)
 {
-  push_curr_istream (new_file_name, error_pos);
+  push_curr_istream (new_file_name, encoding_name, error_pos);
   if (*environment != 0)
     {
       /* Environment is not processed yet. Save the position. */
@@ -3120,7 +3206,7 @@ add_include_file (const char *name)
   int i;
 
   d_assert (block_level > 0);
-  name = full_file_name (name);
+  name = get_full_file_and_encoding_name (name, NULL);
   names = (char **) ((char *) VLO_END (include_file_names) + 1
 		     - sizeof (char *) * curr_block_include_file_names_number);
   for (i = 0; i < curr_block_include_file_names_number; i++)

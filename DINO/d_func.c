@@ -1845,7 +1845,6 @@ del_call (int pars_number)
     set_vect_dim (fun_result, vect, 0);
 }
 
-/* ????? Use disp. */
 static void
 general_ins_call (int pars_number, int vector_flag)
 {
@@ -3043,7 +3042,7 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	break;
       }
     case ER_NM_process:
-      if (ER_process_block (ER_process (val)) == NULL) /* ??? */
+      if (ER_process_block (ER_process (val)) == NULL)
 	VLO_ADD_STRING (temp_vlobj, "main thread");
       else
 	{
@@ -3395,7 +3394,8 @@ get_file_char (FILE *f, int *unget_char_ptr, conv_desc_t cd)
   uc = (cd == NO_CONV_DESC
 	? fgetc (f) : get_ucode_from_stream (read_byte, cd, f));
   if (uc == UCODE_BOUND)
-    ;// eval_error (, call_pos, DERR_, ifun_name);
+     eval_error (invencoding_bc_decl, call_pos (),
+		 DERR_unexpected_input_encoding, ifun_name);
   return uc;
 }
 
@@ -3414,7 +3414,8 @@ general_get_call (FILE *f, int *unget_char_ptr, int file_flag, conv_desc_t cd)
   errno = 0;
   ch = get_file_char (f, unget_char_ptr,  cd);
   if (ch == UCODE_BOUND)
-    ;// ???
+    eval_error (invencoding_bc_decl, call_pos (),
+		DERR_unexpected_input_encoding, ifun_name);
   if (errno != 0)
     process_system_errors (file_flag ? FGET_NAME : GET_NAME);
   if (ch == EOF)
@@ -3445,7 +3446,8 @@ general_get_ln_file_call (FILE *f, int *unget_char_ptr, int param_flag,
       if (errno != 0)
 	process_system_errors (ifun_name);
       if (ch == UCODE_BOUND)
-	; // ???
+	eval_error (invencoding_bc_decl, call_pos (),
+		    DERR_unexpected_input_encoding, ifun_name);
       if (ch != EOF)
 	ch_n++;
       if ((ch == '\n' && (ln_flag || as_lns_p)) || ch == EOF)
@@ -4682,7 +4684,8 @@ readdir_call (int pars_number)
   struct dirent *dirent;
   size_t i;
   size_t dir_files_number;
-
+  ucode_t *ucode_str;
+  
   if (pars_number != 1)
     eval_error (parnumber_bc_decl, call_pos (),
 		DERR_parameters_number, READDIR_NAME);
@@ -4732,7 +4735,15 @@ readdir_call (int pars_number)
 			    DERR_internal_error, READDIR_NAME);
 	      if (dirent == NULL)
 		break;
-	      vect = create_string (dirent->d_name); // utf8 ???
+	      ucode_str
+		= (ucode_t *) encode_byte_str_vlo (dirent->d_name,
+						   curr_reverse_ucode_cd,
+						   &temp_vlobj);
+	      if (ucode_str == NULL)
+		eval_error (invencoding_bc_decl, call_pos (),
+			    DERR_unexpected_input_encoding, ifun_name);
+	      vect = create_ucodestr (ucode_str);
+	      try_full_pack (vect);
 	      set_packed_vect_el (result, i, vect);
 	      ER_set_els_number (result, i + 1);
 	    }
@@ -6634,8 +6645,8 @@ int_earley_parse (int npars)
   /* Set up ambiguous_p. */
   instance = ER_context (cstack);
   d_assert (instance != NULL && ER_NODE_MODE (instance) == ER_NM_heap_stack
-	    && ER_stack_block (instance) == parser_bc_decl); /* ??? */
-  var = IVAL (ER_stack_vars (instance), BC_var_num (ambiguous_p_bc_decl)); /* ??? */
+	    && ER_stack_block (instance) == parser_bc_decl);
+  var = IVAL (ER_stack_vars (instance), BC_var_num (ambiguous_p_bc_decl));
   ER_SET_MODE (var, ER_NM_int);
   ER_set_i (var, ambiguous_p);
   fun_result = IVAL (cvars, fun_result_offset);

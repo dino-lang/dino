@@ -769,7 +769,11 @@ raw_encoding_name_p (const char *str)
   return strcmp (str, RAW_STRING) == 0;
 }
 
-int
+/* Set up BYTE_CD, UCODE_CD, and REVERSE_UCODE_CD (BYTE_CD and
+   UCODE_CD may be NULL) from given ENCODING_NAME if it is known and
+   implemented.  Return TRUE if encoding is a right one.  Otherwise,
+   return FALSE. */
+int 
 set_conv_descs (const char *encoding_name,
 		conv_desc_t *byte_cd, conv_desc_t *ucode_cd,
 		conv_desc_t *reverse_ucode_cd)
@@ -778,19 +782,37 @@ set_conv_descs (const char *encoding_name,
 #ifdef HAVE_ICONV_H
   const char *utf32 = big_endian_p ? "UTF32BE" : "UTF32LE";
   
-  bcd = iconv_open (encoding_name, LATIN1_STRING);
-  ucd = iconv_open (encoding_name, utf32);
+  if (byte_cd != NULL)
+    {
+      bcd = iconv_open (encoding_name, LATIN1_STRING);
+      if (bcd == NO_CONV_DESC)
+	return FALSE;
+    }
+  if (ucode_cd != NULL)
+    {
+      ucd = iconv_open (encoding_name, utf32);
+      if (ucd == NO_CONV_DESC)
+	{
+	  iconv_close (bcd);
+	  return FALSE;
+	}
+    }
   rucd = iconv_open (utf32, encoding_name);
-  if (bcd == NO_CONV_DESC || ucd == NO_CONV_DESC || rucd == NO_CONV_DESC)
-    return FALSE;
+  if (rucd == NO_CONV_DESC)
+    {
+      iconv_close (bcd);
+      iconv_close (ucd);
+      return FALSE;
+    }
 #else
   if (! raw_encoding_name_p (encoding_name))
-    eval_error (parvalue_bc_decl, call_pos (),
-		DERR_parameter_value, ifun_name);
+    return FALSE;
   bcd = ucd = rucd = NO_CONV_DESC;
 #endif
-  *byte_cd = bcd;
-  *ucode_cd = ucd;
+  if (byte_cd != NULL)
+    *byte_cd = bcd;
+  if (ucode_cd != NULL)
+    *ucode_cd = ucd;
   *reverse_ucode_cd = rucd;
   return TRUE;
 }
@@ -860,13 +882,13 @@ dino_finish (int code)
     }
   finish_run_tables ();
   IR_stop ();
-  finish_unique_strings ();
   delete_table ();
   finish_icode ();
   finish_scanner ();
   output_errors ();
   finish_errors ();
   finish_positions ();
+  finish_unique_strings ();
   VLO_DELETE (number_text);
   VLO_DELETE (repr_vlobj);
   VLO_DELETE (include_path_directories_vector);
@@ -931,11 +953,11 @@ dino_start (void)
   inlined_calls_num = 0;
   max_gmp_memory_size = gmp_memory_size = 0;
   mp_set_memory_functions (gmp_alloc, gmp_realloc, gmp_free);
+  initiate_unique_strings ();
   initiate_positions ();
   /* Output errors immediately for REPL.  */
   initiate_errors (repl_flag);
   fatal_error_function = dino_fatal_finish;
-  initiate_unique_strings ();
   initiate_table ();
   initiate_icode (); /* only after initiate table */
   initiate_scanner ();
@@ -1176,7 +1198,7 @@ d_verror (int fatal_error_flag, position_t position,
     fprintf (stderr, "%s", ERROR_PREFIX);
   if (! repl_flag)
     error (fatal_error_flag, position, "%s", message);
-  else if(*position.file_name != '\0')
+  else if (*position.file_name != '\0')
     error (FALSE, position, "%s", message);
   else
     {
@@ -1514,7 +1536,7 @@ dino_main (int argc, char *argv[], char *envp[])
       printf ("Copyright (c) 1997-2015, Vladimir Makarov, vmakarov@gcc.gnu.org\n");
       printf ("Use \"exit(<int>);\" or Ctrl-D to exit\n");
       printf ("Use \";\" for stmt end, for if-stmt w/o else use \";;\", e.g. if (cond) v = e;;\n");
-      start_scanner_file ("", no_position);
+      start_scanner_file ("", NULL, no_position);
       initiate_parser ();
       initiate_context ();
       set_signal_actions ();
@@ -1565,8 +1587,12 @@ dino_main (int argc, char *argv[], char *envp[])
 	}
       else
 	{
-	  start_scanner_file
-	    ((command_line_program == NULL ? input_file_name : ""), no_position);
+	  if (command_line_program != NULL)
+	    start_scanner_file ("", NULL, no_position);
+	  else
+	    start_scanner_file (input_file_name,
+				source_file_encoding (input_file_name),
+				no_position);
 	  initiate_parser ();
 	  yyparse ();
 	  finish_parser ();

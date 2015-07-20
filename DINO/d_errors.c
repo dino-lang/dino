@@ -32,6 +32,9 @@
    evaluation. */
 
 char ERR_no_memory[] = "no memory";
+char ERR_file_encoding[]
+  = "unknown or not implemented encoding `%s' of file `%s'";
+char ERR_file_decoding[] = "wrong encoding `%s' during reading file `%s'";
 char ERR_invalid_char_constant[] = "invalid character constant";
 char ERR_invalid_escape_code[] = "invalid escape hex or unicode code";
 char ERR_invalid_input_char[] = "invalid symbol";
@@ -339,6 +342,8 @@ char DERR_too_big_ucode_for_byte_representation []
   = "run time error - unicode is too big to be represented by a byte for `%s'";
 char DERR_in_ucode_encoding []
   = "run time error - in unicode encoding for `%s'";
+char DERR_unexpected_input_encoding []
+  = "run time error - unexpected input encoding for `%s'";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []

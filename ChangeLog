@@ -1,3 +1,32 @@
+2015-07-19  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_dino.c (set_conv_descs): Process null byte_cd and
+	ucode_cd.  Do not call eval_error, just return FALSE.
+	(dino_finish): Finish unique strings later.
+	(dino_start): Initiate unique strings earlier.
+	(dino_main): Add encoding argment to calls of start_scanner_file.
+	Use source_file_encoding.
+	* DINO/d_errors.[ch] (ERR_file_encoding, ERR_file_decoding): New.
+	(DERR_unexpected_input_encoding): New.
+	* DINO/d_func.c (get_file_char): Add eval_error call.
+	(general_get_call, general_get_ln_file_call): Ditto.
+	(readdir_call): Use curr_reverse_ucode_cd.
+	* DINO/d_yacc.h (source_file_encoding): New.
+	(sstart_scanner file): Add parameter.  Set it up.
+	* DINO/d_yacc.y (full_file_name): Rename to
+	get_full_file_and_encoding_name.
+	(struct istream_state): Add encoding_name.  Use conv_desc_t for
+	cd.
+	(initiate_istream_stack): Initiate cd and file_encoding.
+	(finish_istream_stack): Finish cd.
+	(push_curr_istream): Add parameter encoding_name.  Close cd.  Set
+	up new encoding name and cd.
+	(pop_istream_stack): Close old cd.  Set up new cd.
+	(read_file_encoding, source_file_encoding): New.
+	(d_getc): Use file encoding.  Check char correctness.
+	(start_scanner_file): Add parameter encoding name.  Pass it to
+	push_curr_istream.
+
 2015-07-13  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_dino.c (command_line_os): Rename to command_line_vlo.
