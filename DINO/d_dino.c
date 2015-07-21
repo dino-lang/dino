@@ -1200,6 +1200,12 @@ d_verror (int fatal_error_flag, position_t position,
     error (fatal_error_flag, position, "%s", message);
   else if (*position.file_name != '\0')
     error (FALSE, position, "%s", message);
+  else if (format == ERR_line_decoding)
+    {
+      /* Do not print line for wrong encoding.  */
+      fprintf (stderr, "%s%s\n", ERROR_PREFIX, message);
+      number_of_errors++;
+    }
   else
     {
       int i;

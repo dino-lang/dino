@@ -1404,6 +1404,9 @@ program :   {
         ;
 %%
 
+/* Container used temporary by the scanner.  */
+static vlo_t temp_scanner_vlo;
+
 /* True if we did not print syntax error yet.  We can not leave
    yyparse by longjmp as we need to finalize some data.  We leave
    YYABORT in most cases but it is guaranted for all yyerors
@@ -1765,8 +1768,24 @@ read_line (FILE *f)
   ucode_t uc;
   const ucode_t *ln;
 
-  while ((c = get_ucode_from_utf8_stream (read_byte, f)) != EOF && c != '\n')
+  for (;;)
     {
+      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? fgetc (f)
+	   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd, f));
+      if (c == EOF || c == '\n')
+	break;
+      if (c == UCODE_BOUND)
+	{
+	  /* Skip to the end of line: */
+	  do
+	    {
+	      c = (curr_reverse_ucode_cd == NO_CONV_DESC ? fgetc (f)
+		   : get_ucode_from_stream (read_byte, curr_reverse_ucode_cd, f));
+	    }
+	  while (c != EOF && c != '\n');
+	  OS_TOP_NULLIFY (lines);
+	  d_error (TRUE, no_position, ERR_line_decoding, curr_encoding_name);
+	}
       uc = c;
       OS_TOP_ADD_MEMORY (lines, &uc, sizeof (ucode_t));
     }
@@ -2093,13 +2112,86 @@ canonical_path_name (const char *name)
   return (const char *) result;
 }
 
+static int
+skip_spaces (const char *str, size_t from)
+{
+  for (; isspace (str[from]);from++)
+    ;
+  return from;
+}
+
+/* The function finds the first string described by a pattern
+
+   -\*-[ \t]*coding:[ \t]*[_-A-Za-z0-9]+[ \t]*-\*- 
+
+  in LN and return the name after "coding:".  Return NULL if we did
+  not find encoding.  */
+static const char *
+find_encoding (char *ln)
+{
+  size_t i, len, start, bound;
+  static const char *prefix = "coding:";
+  
+  len = strlen (prefix);
+  for (i = 0; ln[i] != 0; i++)
+    if (ln[i] == '-' && ln[i + 1] == '*' && ln[i + 2] == '-')
+      {
+         start = i;
+         i = skip_spaces (ln, i + 3);
+	 if (strncmp (ln + i, prefix, len) != 0)
+	  {
+	    /* No "coding:" -- start scanning from second "-" in
+	       "-*-".  */
+            i = start + 1;
+            continue;
+	  }
+         start = i = skip_spaces (ln, i + len);
+         for (; ln[i] != 0; i++)
+	   if (! isalpha (ln[i]) && ! isdigit (ln[i])
+	       && ln[i] != '-' && ln[i] != '_')
+	     break;
+	 if (ln[i] == 0)
+	   return NULL;
+	 bound = i;
+	 if (start == bound)
+	   return NULL;
+	 i = skip_spaces (ln, i);
+	 if (ln[i] == '-' && ln[i + 1] == '*' && ln[i + 2] == '-')
+	   {
+	     ln[bound] = '\0';
+	     return get_unique_string (ln + start);
+	   }
+	 i--;
+      }
+    return NULL;
+}
+
+static char *
+read_str_line (FILE *f, vlo_t *container)
+{
+  int c;
+  
+  VLO_NULLIFY (*container);
+  while ((c = fgetc (f)) != EOF && c != '\n')
+    VLO_ADD_BYTE (*container, c);
+  VLO_ADD_BYTE (*container, '\0');
+  return VLO_BEGIN (*container);
+}
 
 /* Find encoding on the first two lines of file F and return it.  If
    it is not found, return NULL.  */
 static const char *
 read_file_encoding (FILE *f)
 {
-  return NULL; // ???
+  char *ln;
+  const char *name;
+  
+  if (((ln = read_str_line (f, &temp_scanner_vlo)) != NULL
+       && (name = find_encoding (ln)) != NULL)
+      || ((ln = read_str_line (f, &temp_scanner_vlo)) != NULL
+	  && (name = find_encoding (ln)) != NULL))
+    return name;
+  return NULL;
 }
 
 /* The following function returns full file name.  To make this
@@ -2206,7 +2298,7 @@ static int curr_char_number;
    bunch of stmts.  */
 static int first_repl_empty_line_p;
 
-/* Getc for dino.  Reading utf8 and replacing "\r\n" onto "\n". */
+/* Getc for dino.  Reading unicode and replacing "\r\n" onto "\n". */
 static int
 d_getc (void)
 {
@@ -2328,9 +2420,6 @@ skip_line_rest (void)
   curr_char_number = 0;
   current_position.line_number++;
 }
-
-/* Container used temporary by the scanner.  */
-static vlo_t temp_scanner_vlo;
 
 /* Var length string used by function yylval for text presentation of
    the symbol. */

@@ -27,6 +27,7 @@
 extern char ERR_no_memory[];
 extern char ERR_file_encoding[];
 extern char ERR_file_decoding[];
+extern char ERR_line_decoding[];
 extern char ERR_invalid_char_constant[];
 extern char ERR_invalid_input_char[];
 extern char ERR_invalid_escape_code[];

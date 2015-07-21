@@ -35,6 +35,7 @@ char ERR_no_memory[] = "no memory";
 char ERR_file_encoding[]
   = "unknown or not implemented encoding `%s' of file `%s'";
 char ERR_file_decoding[] = "wrong encoding `%s' during reading file `%s'";
+char ERR_line_decoding[] = "wrong encoding `%s' during reading a line";
 char ERR_invalid_char_constant[] = "invalid character constant";
 char ERR_invalid_escape_code[] = "invalid escape hex or unicode code";
 char ERR_invalid_input_char[] = "invalid symbol";

@@ -1,3 +1,13 @@
+2015-07-20  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_yacc.y (temp_scanner_vlo): Move up.
+	(read_line): Use current encoding.
+	(read_str_line, find_encoding, skip_spaces): New.
+	(read_file_encoding): Fully implement.
+	* DINO/d_errors.[ch] (ERR_line_decoding): New.
+	* DINO/d_dino.c (d_verror): Don't print line for
+	ERR_line_decoding.
+
 2015-07-19  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_dino.c (set_conv_descs): Process null byte_cd and
