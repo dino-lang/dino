@@ -31,16 +31,6 @@
 #include "d_inference.h"
 #include "d_run.h"
 
-/* Print INDENT spaces into stdout. */
-void
-print_indent (int indent)
-{
-  int i;
-
-  for (i = 0; i < indent; i++)
-    printf (" ");
-}
-
 /* The line number of the last printed node. */
 static const char *curr_file_name = NULL;
 static unsigned curr_line_number = 0;

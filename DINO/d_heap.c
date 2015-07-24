@@ -425,7 +425,7 @@ new_heap_chunk (size_t size)
 {
   char *str;
   size_t old_size;
-  static const max_default_chunk_size = 8*1024*1024;
+  static const size_t max_default_chunk_size = 8*1024*1024;
 
   VLO_EXPAND (heap_chunks, sizeof (struct heap_chunk));
   curr_heap_chunk

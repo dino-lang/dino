@@ -166,7 +166,7 @@ extern void cspset_shrink (cspset_t *);
 extern int cspset_in_p (cspset_t *, cspset_elem_t);
 extern int cspset_insert (cspset_t *, cspset_elem_t);
 extern int cspset_remove (cspset_t *, cspset_elem_t);
-extern inline int cspset_clear (cspset_t *);
+extern int cspset_clear (cspset_t *);
 extern int cspset_equal_p (cspset_t *, cspset_t *);
 extern int cspset_intersect (cspset_t *, cspset_t *);
 extern int cspset_unity (cspset_t *, cspset_t *);

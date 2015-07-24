@@ -1043,7 +1043,7 @@ create_pattern_vars (IR_node_t pattern_from, IR_node_t expr, IR_node_t last)
   IR_node_t elist;
   
   if (expr == NULL)
-    return;
+    return last;
   switch (IR_NODE_MODE (expr))
     {
     case IR_NM_ident:

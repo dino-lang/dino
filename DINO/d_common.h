@@ -103,6 +103,7 @@ read_number (int curr_ch, int get_ch (void), void unget_ch (int),
 	     int *read_ch_num, const char **result, int *base,
 	     int *float_p, int *long_p);
 
+extern void print_indent (int);
 extern void print_stmt_prompt (void);
 extern void print_stmt_cont_prompt (void);
 extern void d_verror (int fatal_error_flag, position_t position,

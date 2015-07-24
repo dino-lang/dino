@@ -1,3 +1,17 @@
+2015-07-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/cspset.h (cspset_clear): Remove inline.
+	* DINO/d_heap.c (new_heap_chunk): Add missed type size_t fro
+	max_default_chunk_size.
+	* DINO/d_dino.c: Include d_bcio.h.
+	(print_indent): Move from d_bcio.c.
+	* DINO/d_bcio.c (print_indent): See above.
+	* DINO/d_context.c (create_pattern_vars): Return last for null
+	expr.
+	* DINO/d_common.h (print_indent): Move from d_bcio.h.
+	* DINO/d_bcio.h (print_indent): See above.
+	* DINO/compare.tst: Add runs for rubinius and jruby.
+
 2015-07-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: 2 byte code representations.
