@@ -2177,8 +2177,26 @@ sort_call (int pars_number)
   set_vect_dim (fun_result, vect, 0);
 }
 
+static inline void
+add_string_to_print (const char *str, int byte_p)
+{
+  size_t i, len = strlen (str);
+  ucode_t uc;
+  
+  if (byte_p)
+    VLO_ADD_MEMORY (temp_vlobj, str, len);
+  else
+    {
+      for (i = 0; i < len; i++)
+	{
+	  uc = str[i];
+	  VLO_ADD_MEMORY (temp_vlobj, &uc, sizeof (ucode_t));
+	}
+    }
+}
+
 static int
-print_context (ER_node_t context)
+print_context (ER_node_t context, int byte_p)
 {
   BC_node_t block;
   string_t ident;
@@ -2190,15 +2208,15 @@ print_context (ER_node_t context)
   block = ER_block_node (context);
   ident = (BC_NODE_MODE (block) == BC_NM_block
 	   ? NULL : BC_ident (BC_fdecl (block)));
-  if (print_context (ER_context (context)))
-    VLO_ADD_STRING (temp_vlobj, ".");
+  if (print_context (ER_context (context), byte_p))
+    add_string_to_print (".", byte_p);
   if (ident == NULL)
-    VLO_ADD_STRING (temp_vlobj, "{}");
+    add_string_to_print ("{}", byte_p);
   else
     {
-      VLO_ADD_STRING (temp_vlobj, ident);
+      add_string_to_print (ident, byte_p);
       sprintf (str, "(%ld)", (long int) ER_context_number (context));
-      VLO_ADD_STRING (temp_vlobj, str);
+      add_string_to_print (str, byte_p);
     }
   return TRUE;
 }
@@ -2328,44 +2346,29 @@ two_strings_fun_start (int pars_number)
 		call_pos (), DERR_parameter_type, ifun_name);
 }
 
-/* Return raw representation of ucode string STR.  Raise an exception
-   if it is impossible.  Use vlo *VLO as container of the result.  */
-static const char *
-ucode_str_to_raw (const ucode_t *str, vlo_t *vlo)
-{
-  size_t i;
-  
-  VLO_NULLIFY (*vlo);
-  for (i = 0; str[i] != '\0'; i++)
-    {
-      if (! in_byte_range_p (str[i]))
-	eval_error (invencoding_bc_decl, call_pos (),
-		    DERR_too_big_ucode_for_byte_representation,
-		    ifun_name);
-	VLO_ADD_BYTE (*vlo, str[i]);
-    }
-  return VLO_BEGIN (*vlo);
-}
-
 /* Return world representation of byte string (if BYTE_P) or unicode
    string STR according to BYTE_CD or UNICODE_CD.  Use vlo *VLO as
    container for the result if necessary.  */
 static inline const char *
 general_str_to_world (void *str, vlo_t *vlo, int byte_p,
-		      conv_desc_t byte_cd, conv_desc_t unicode_cd)
+		      conv_desc_t byte_cd, conv_desc_t unicode_cd,
+		      size_t *len)
 {
   const char *repr;
-
+  
   if (byte_p)
-    repr = encode_byte_str_vlo ((byte_t *) str, byte_cd, vlo);
+    repr = encode_byte_str_vlo ((byte_t *) str, byte_cd, vlo, len);
   else if (unicode_cd != NO_CONV_DESC)
-    repr = encode_ucode_str_vlo ((ucode_t *) str, unicode_cd, vlo);
+    repr = encode_ucode_str_vlo ((ucode_t *) str, unicode_cd, vlo, len);
   else
-    return ucode_str_to_raw ((ucode_t *) str, vlo);
+    repr = encode_ucode_str_to_raw_vlo ((ucode_t *) str, vlo); // ??
   if (repr != NULL)
     return repr;
   eval_error (invencoding_bc_decl, call_pos (),
-	      DERR_in_ucode_encoding, ifun_name);
+	      byte_p || unicode_cd != NO_CONV_DESC
+	      ? DERR_in_ucode_encoding
+	      : DERR_too_big_ucode_for_byte_representation,
+	      ifun_name);
 }
 
 /* Return world representation (according to current encoding) of
@@ -2375,14 +2378,15 @@ static const char *
 strvect_to_world (ER_node_t vect, int first_p)
 {
   ER_node_mode_t el_type;
-  
+  size_t len;
+
   d_assert (ER_NODE_MODE (vect) == ER_NM_heap_pack_vect);
   el_type = ER_pack_vect_el_mode (vect);
   d_assert (el_type == ER_NM_char || el_type == ER_NM_byte);
   return general_str_to_world (ER_pack_els (vect),
 			       first_p ? &temp_vlobj : &temp_vlobj2,
 			       el_type == ER_NM_byte,
-			       curr_byte_cd, curr_ucode_cd);
+			       curr_byte_cd, curr_ucode_cd, &len);
 }
 
 void
@@ -2478,11 +2482,20 @@ remove_call (int pars_number)
 #endif
 
 static int
-in_str_p (const char *str, int ch)
+in_str_p (const char *str, int byte_p, int ch)
 {
-  for (;*str;str++)
-    if (*str == ch)
-      return TRUE;
+  if (byte_p)
+    {
+      for (; *str; str++)
+	if (*str == ch)
+	  return TRUE;
+    }
+  else
+    {
+      for (; *(const ucode_t *) str; str += sizeof (ucode_t))
+	if (*(const ucode_t *) str == ch)
+	  return TRUE;
+    }
   return FALSE;
 }
 
@@ -2589,16 +2602,18 @@ chumod_call (int pars_number)
 {
   int mask = 0;
   const char *str;
-
+  int byte_p;
+  
   two_strings_fun_start (pars_number);
-  str = strvect_to_world (ER_vect (ctop), TRUE);
-  if (in_str_p (str, 'r'))
+  byte_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_byte;
+  str = ER_pack_els (ER_vect (ctop));
+  if (in_str_p (str, byte_p, 'r'))
     mask |= S_IRUSR;
-  if (in_str_p (str, 'w'))
+  if (in_str_p (str, byte_p, 'w'))
     mask |= S_IWUSR;
-  if (in_str_p (str, 'x'))
+  if (in_str_p (str, byte_p, 'x'))
     mask |= S_IXUSR;
-  if (in_str_p (str, 's'))
+  if (in_str_p (str, byte_p, 's'))
     mask |= S_ISVTX;
   general_chmod (pars_number, S_IRUSR | S_IWUSR | S_IXUSR | S_ISVTX, mask);
 }
@@ -2608,14 +2623,16 @@ chgmod_call (int pars_number)
 {
   int mask = 0;
   const char *str;
+  int byte_p;
 
   two_strings_fun_start (pars_number);
-  str = strvect_to_world (ER_vect (ctop), TRUE);
-  if (in_str_p (str, 'r'))
+  byte_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_byte;
+  str = ER_pack_els (ER_vect (ctop));
+  if (in_str_p (str, byte_p, 'r'))
     mask |= S_IRGRP;
-  if (in_str_p (str, 'w'))
+  if (in_str_p (str, byte_p, 'w'))
     mask |= S_IWGRP;
-  if (in_str_p (str, 'x'))
+  if (in_str_p (str, byte_p, 'x'))
     mask |= S_IXGRP;
   general_chmod (pars_number, S_IRGRP | S_IWGRP | S_IXGRP, mask);
 }
@@ -2625,14 +2642,16 @@ chomod_call (int pars_number)
 {
   int mask = 0;
   const char *str;
+  int byte_p;
 
   two_strings_fun_start (pars_number);
-  str = strvect_to_world (ER_vect (ctop), TRUE);
-  if (in_str_p (str, 'r'))
+  byte_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_byte;
+  str = ER_pack_els (ER_vect (ctop));
+  if (in_str_p (str, byte_p, 'r'))
     mask |= S_IROTH;
-  if (in_str_p (str, 'w'))
+  if (in_str_p (str, byte_p, 'w'))
     mask |= S_IWOTH;
-  if (in_str_p (str, 'x'))
+  if (in_str_p (str, byte_p, 'x'))
     mask |= S_IXOTH;
   general_chmod (pars_number, S_IROTH | S_IWOTH | S_IXOTH, mask);
 }
@@ -2726,15 +2745,31 @@ popen_call (int pars_number)
 {
   FILE *f;
   const char *s;
-  
+  int byte_p;
+
   two_strings_fun_start (pars_number);
   errno = 0;
-  s = strvect_to_world (ER_vect (ctop), FALSE);
-  if ((*s != 'r' && *s != 'w') || strlen (s) != 1)
+  byte_p = ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_byte;
+  s = ER_pack_els (ER_vect (ctop));
+  errno = 0;
+  if (byte_p && ((s[0] != 'r' && s[0] != 'w') || s[1] != 0))
+    errno = EINVAL;
+  else if (! byte_p)
     {
-      errno = EINVAL;
-      process_system_errors (POPEN_NAME);
+      if (((ucode_t *) s) [1] != 0)
+	errno = EINVAL;
+      else
+	{
+	  if (*(ucode_t *) s == 'r')
+	    s = "r";
+	  else if (*(ucode_t *) s == 'w')
+	    s = "w";
+	  else
+	    errno = EINVAL;
+	}
     }
+  if (errno != 0)
+    process_system_errors (POPEN_NAME);
   f = popen (strvect_to_world (ER_vect (below_ctop), TRUE), s);
   if (errno)
     process_system_errors (POPEN_NAME);
@@ -2801,7 +2836,9 @@ seek_call (int pars_number)
   if (ER_NODE_MODE (ctop) == ER_NM_char)
     ch = ER_ch (ctop);
   else
-    ch = *strvect_to_world (ER_vect (ctop), TRUE);
+    ch = (ER_pack_vect_el_mode (ER_vect (ctop)) == ER_NM_byte
+	  ? *ER_pack_els (ER_vect (ctop))
+	  : *(ucode_t *) ER_pack_els (ER_vect (ctop)));
   ch = in_byte_range_p (ch) ? tolower (ch) : ch;
   if (ch == 's')
 #ifdef SEEK_SET
@@ -2832,21 +2869,21 @@ seek_call (int pars_number)
 }
 
 static void
-print_ch (int ch)
+print_ch (int ch, int byte_p)
 {
   char *str = get_ucode_ascii_repr (ch);
 
-  VLO_ADD_STRING (temp_vlobj, str);
+  add_string_to_print (str, byte_p);
 }
 
 #define MAX_REPL_PRINTED_ELEMENTS 50
 
-/* Add representation of VAL to temp_vlobj using encoding BYTE_CD or
-   UNICODE_CD.  The representation can be abbreviated unless FULL_P.
-   Strings and chars should have DINO syntax if QUOTE_FLAG.  */
-static void
-print_val (ER_node_t val, int quote_flag, int full_p,
-	   conv_desc_t byte_cd, conv_desc_t unicode_cd)
+/* Add representation of VAL to temp_vlobj which is byte (if BYTE_P)
+   or ucode string.  The representation can be abbreviated unless
+   FULL_P.  Strings and chars should have DINO syntax if QUOTE_FLAG.
+   Return TRUE if temp_vlobj still contains a byte string.  */
+static int
+print_val (ER_node_t val, int quote_flag, int full_p, int byte_p)
 {
   BC_node_t code;
   ER_node_t vect;
@@ -2860,39 +2897,53 @@ print_val (ER_node_t val, int quote_flag, int full_p,
   switch (ER_NODE_MODE (val))
     {
     case ER_NM_nil:
-      VLO_ADD_STRING (temp_vlobj, "nil");
+      add_string_to_print ("nil", byte_p);
       break;
     case ER_NM_hide:
       sprintf (str, "hide value %lx", (long int) ER_hide (val));
-      VLO_ADD_STRING (temp_vlobj, str);
+      add_string_to_print (str, byte_p);
       break;
     case ER_NM_hideblock:
-      VLO_ADD_STRING (temp_vlobj, "hideblock value (");
+      add_string_to_print ("hideblock value (", byte_p);
       for (i = 0; i < ER_hideblock_length (ER_hideblock (val)); i++)
 	{
 	  if (i != 0)
-	    VLO_ADD_STRING (temp_vlobj, " ");
+	    add_string_to_print (" ", byte_p);
 	  sprintf (str, "%x",
 		   (unsigned char)
 		   ER_hideblock_start (ER_hideblock (val)) [i]);
-	  VLO_ADD_STRING (temp_vlobj, str);
+	  add_string_to_print (str, byte_p);
 	}
-      VLO_ADD_STRING (temp_vlobj, ")");
+      add_string_to_print (")", byte_p);
       break;
     case ER_NM_char:
       if (!quote_flag)
 	{
-	  ucode_t str[2] = {ER_ch (val), 0};
+	  ucode_t ch = ER_ch (val);
 
-	  VLO_ADD_STRING (temp_vlobj,
-			  general_str_to_world (str, &temp_vlobj2,
-						FALSE, byte_cd, unicode_cd));
+	  if (in_byte_range_p (ch) && byte_p)
+	    {
+	      unsigned char b = ch;
+	      
+	      VLO_ADD_MEMORY (temp_vlobj, &b, sizeof (byte_t));
+	    }
+	  else
+	    {
+	      if (byte_p)
+		{
+		  copy_vlo (&temp_vlobj2, &temp_vlobj);
+		  str_to_ucode_vlo (&temp_vlobj, VLO_BEGIN (temp_vlobj2),
+				    VLO_LENGTH (temp_vlobj2));
+		  byte_p = FALSE;
+		}
+	      VLO_ADD_MEMORY (temp_vlobj, &ch, sizeof (ucode_t));
+	    }
 	}
       else
 	{
-	  VLO_ADD_STRING (temp_vlobj, "\'");
-	  print_ch (ER_ch (val));
-	  VLO_ADD_STRING (temp_vlobj, "\'");
+	  add_string_to_print ("\'", byte_p);
+	  print_ch (ER_ch (val), byte_p);
+	  add_string_to_print ("\'", byte_p);
 	}
       break;
     case ER_NM_int:
@@ -2902,19 +2953,19 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	sprintf (str, "%ld", ER_i (val));
       else
 	sprintf (str, "%lld", ER_i (val));
-      VLO_ADD_STRING (temp_vlobj, str);
+      add_string_to_print (str, byte_p);
       break;
     case ER_NM_long:
       {
 	ER_node_t heap_mpz = ER_l (val);
 	
-	VLO_ADD_STRING (temp_vlobj, mpz2a (*ER_mpz_ptr (heap_mpz), 10, FALSE));
-	VLO_ADD_STRING (temp_vlobj, "l");
+	add_string_to_print (mpz2a (*ER_mpz_ptr (heap_mpz), 10, FALSE), byte_p);
+	add_string_to_print ("l", byte_p);
       }
       break;
     case ER_NM_float:
       sprintf (str, "%g", ER_f (val));
-      VLO_ADD_STRING (temp_vlobj, str);
+      add_string_to_print (str, byte_p);
       break;
     case ER_NM_vect:
       to_vect_string_conversion (val, NULL, NULL);
@@ -2923,41 +2974,53 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	  && (ER_pack_vect_el_mode (vect) == ER_NM_char
 	      || ER_pack_vect_el_mode (vect) == ER_NM_byte))
 	{
+	  if (byte_p && ER_pack_vect_el_mode (vect) == ER_NM_char)
+	    {
+	      copy_vlo (&temp_vlobj2, &temp_vlobj);
+	      str_to_ucode_vlo (&temp_vlobj, VLO_BEGIN (temp_vlobj2),
+				VLO_LENGTH (temp_vlobj2));
+	      byte_p = FALSE;
+	    }
 	  if (!quote_flag)
-	    VLO_ADD_STRING (temp_vlobj,
-			    strvect_to_world (vect, FALSE));
+	    {
+	      if (ER_pack_vect_el_mode (vect) == ER_NM_byte)
+		add_string_to_print (ER_pack_els (vect), byte_p);
+	      else
+		VLO_ADD_MEMORY (temp_vlobj, ER_pack_els (vect),
+				ucodestrlen ((ucode_t *) ER_pack_els (vect)));
+	    }
 	  else
 	    {
-	      VLO_ADD_STRING (temp_vlobj, "\"");
+	      add_string_to_print ("\"", byte_p);
 	      if (ER_pack_vect_el_mode (vect) == ER_NM_byte)
 		for (string = (char *) ER_pack_els (vect);
 		     *string != '\0';
 		     string++)
-		  print_ch (*string);
+		  print_ch (*string, byte_p);
 	      else
 		for (string = ER_pack_els (vect);
 		     *(ucode_t *) string != '\0';
 		     string += sizeof (ucode_t))
-		  print_ch (*(ucode_t *) string);
-	      VLO_ADD_STRING (temp_vlobj, "\"");
+		  print_ch (*(ucode_t *) string, byte_p);
+	      add_string_to_print ("\"", byte_p);
 	    }
 	}
       else if (ER_NODE_MODE (vect) == ER_NM_heap_unpack_vect)
 	{
-	  VLO_ADD_STRING (temp_vlobj, "[");
+	  add_string_to_print ("[", byte_p);
 	  for (i = 0; i < ER_els_number (vect); i++)
 	    {
 	      if (repl_flag && i >= MAX_REPL_PRINTED_ELEMENTS)
 		{
-		  VLO_ADD_STRING (temp_vlobj, "...");
+		  add_string_to_print ("...", byte_p);
 		  break;
 		}
-	      print_val (IVAL (ER_unpack_els (vect), i), TRUE, TRUE,
-			 byte_cd, unicode_cd);
+	      byte_p = print_val (IVAL (ER_unpack_els (vect), i), TRUE, TRUE,
+				  byte_p);
 	      if (i < ER_els_number (vect) - 1)
-		VLO_ADD_STRING (temp_vlobj, ", ");
+		add_string_to_print (", ", byte_p);
 	    }
-	  VLO_ADD_STRING (temp_vlobj, "]");
+	  add_string_to_print ("]", byte_p);
 	}
       else
 	{
@@ -2966,7 +3029,7 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	  size_t displ;
 	  size_t el_size;
 
-	  VLO_ADD_STRING (temp_vlobj, "[");
+	  add_string_to_print ("[", byte_p);
 	  ER_SET_MODE ((ER_node_t) &temp_val, el_type);
 	  displ = val_displ_table [el_type];
 	  el_size = type_size_table [el_type];
@@ -2974,22 +3037,21 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	    {
 	      if (repl_flag && i >= MAX_REPL_PRINTED_ELEMENTS)
 		{
-		  VLO_ADD_STRING (temp_vlobj, "...");
+		  add_string_to_print ("...", byte_p);
 		  break;
 		}
 	      /* We don't care about vector dimension here.  */
 	      memcpy ((char *) &temp_val + displ,
 		      (char *) ER_pack_els (vect) + i * el_size, el_size);
-	      print_val ((ER_node_t) &temp_val, TRUE, TRUE,
-			 byte_cd, unicode_cd);
+	      byte_p = print_val ((ER_node_t) &temp_val, TRUE, TRUE, byte_p);
 	      if (i < ER_els_number (vect) - 1)
-		VLO_ADD_STRING (temp_vlobj, ", ");
+		add_string_to_print (", ", byte_p);
 	    }
-	  VLO_ADD_STRING (temp_vlobj, "]");
+	  add_string_to_print ("]", byte_p);
 	}
       break;
     case ER_NM_tab:
-      VLO_ADD_STRING (temp_vlobj, "tab [");
+      add_string_to_print ("tab [", byte_p);
       tab = ER_tab (val);
       GO_THROUGH_REDIR (tab);
       flag = FALSE;
@@ -3001,49 +3063,49 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	  num++;
 	  if (repl_flag && num > MAX_REPL_PRINTED_ELEMENTS)
 	    {
-	      VLO_ADD_STRING (temp_vlobj, ", ...");
+	      add_string_to_print (", ...", byte_p);
 	      break;
 	    }
 	  if (flag)
-	    VLO_ADD_STRING (temp_vlobj, ", ");
-	  print_val (key, TRUE, TRUE, byte_cd, unicode_cd);
-	  VLO_ADD_STRING (temp_vlobj, ":");
-	  print_val (INDEXED_EL_VAL (ER_tab_els (tab), i), TRUE, TRUE,
-		     byte_cd, unicode_cd);
+	    add_string_to_print (", ", byte_p);
+	  byte_p = print_val (key, TRUE, TRUE, byte_p);
+	  add_string_to_print (":", byte_p);
+	  byte_p = print_val (INDEXED_EL_VAL (ER_tab_els (tab), i), TRUE, TRUE,
+			      byte_p);
 	  flag = TRUE;
 	}
-      VLO_ADD_STRING (temp_vlobj, "]");
+      add_string_to_print ("]", byte_p);
       break;
     case ER_NM_code:
       code = ID_TO_CODE (ER_code_id (val));
       if (BC_NODE_MODE (code) == BC_NM_block)
 	;
       else if (BC_fun_p (code))
-	VLO_ADD_STRING (temp_vlobj, "fun ");
+	add_string_to_print ("fun ", byte_p);
       else if (BC_class_p (code))
-	VLO_ADD_STRING (temp_vlobj, "class ");
+	add_string_to_print ("class ", byte_p);
       else if (BC_thread_p (code))
-	VLO_ADD_STRING (temp_vlobj, "thread ");
-      if (print_context (ER_code_context (val)))
-	VLO_ADD_STRING (temp_vlobj, ".");
+	add_string_to_print ("thread ", byte_p);
+      if (print_context (ER_code_context (val), byte_p))
+	add_string_to_print (".", byte_p);
       if (BC_NODE_MODE (code) == BC_NM_fblock)
-	VLO_ADD_STRING (temp_vlobj, BC_ident (BC_fdecl (code)));
+	add_string_to_print (BC_ident (BC_fdecl (code)), byte_p);
       break;
     case ER_NM_stack:
       {
 	BC_node_t block = ER_block_node (ER_stack (val));
 	
 	if (BC_NODE_MODE (block) == BC_NM_fblock && BC_class_p (block))
-	  VLO_ADD_STRING (temp_vlobj, "instance ");
+	  add_string_to_print ("instance ", byte_p);
 	else
-	  VLO_ADD_STRING (temp_vlobj, "stack ");
+	  add_string_to_print ("stack ", byte_p);
 	/* Context may be uppest block stack. */
-	print_context (ER_stack (val));
+	print_context (ER_stack (val), byte_p);
 	break;
       }
     case ER_NM_process:
       if (ER_process_block (ER_process (val)) == NULL)
-	VLO_ADD_STRING (temp_vlobj, "main thread");
+	add_string_to_print ("main thread", byte_p);
       else
 	{
 	  ER_node_t stack;
@@ -3056,8 +3118,8 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	      break;
 	  sprintf (str, "thread %ld ",
 		   (long int) ER_process_number (ER_process (val)));
-	  VLO_ADD_STRING (temp_vlobj, str);
-	  if (!print_context (stack))
+	  add_string_to_print (str, byte_p);
+	  if (!print_context (stack, byte_p))
 	    d_unreachable ();
 	}
       break;
@@ -3112,25 +3174,54 @@ print_val (ER_node_t val, int quote_flag, int full_p,
 	default:
 	  d_unreachable ();
 	}
-      VLO_ADD_STRING (temp_vlobj, string);
+      add_string_to_print (string, byte_p);
       break;
     case ER_NM_undef:
       d_assert (repl_flag);
-      VLO_ADD_STRING (temp_vlobj, "undef");
+      add_string_to_print ("undef", byte_p);
       break;
     default:
       d_unreachable ();
+    }
+  return byte_p;
+}
+
+static inline void
+end_printed_string (int byte_p, int ln_flag)
+{
+  if (byte_p)
+    {
+      if (ln_flag)
+	VLO_ADD_BYTE (temp_vlobj, '\n');
+      VLO_ADD_BYTE (temp_vlobj, 0);
+    }
+  else
+    {
+      ucode_t uc[] = {'\n', 0};
+      
+      if (ln_flag)
+	VLO_ADD_MEMORY (temp_vlobj, uc, sizeof (ucode_t) * 2);
+      else
+	VLO_ADD_MEMORY (temp_vlobj, &uc[1], sizeof (ucode_t));
     }
 }
 
 void
 repl_print (ER_node_t val, int def_p)
 {
+  int byte_p;
+  size_t len;
+  const char *str;
+  
   if (def_p && ER_NODE_MODE (val) == ER_NM_undef)
     return;
   VLO_NULLIFY (temp_vlobj);
-  print_val (val, TRUE, FALSE, curr_byte_cd, curr_ucode_cd);
-  puts (VLO_BEGIN (temp_vlobj));
+  byte_p = print_val (val, TRUE, FALSE, TRUE);
+  end_printed_string (byte_p, TRUE);
+  str = general_str_to_world (VLO_BEGIN (temp_vlobj),
+			      &temp_vlobj2, byte_p,
+			      curr_byte_cd, curr_ucode_cd, &len);
+  fwrite (str, sizeof (char), len, stdout);
 }
 
 static FILE *
@@ -3154,16 +3245,17 @@ enum file_param_type
    If F is null, create corresponding byte or ucode vector.  Set
    fun_result to it.  */
 static void
-finish_output (FILE *f, int byte_p,
-	       conv_desc_t byte_cd, conv_desc_t unicode_cd)
+finish_output (FILE *f, int byte_p, conv_desc_t byte_cd, conv_desc_t unicode_cd)
 {
   ER_node_t vect;
 
   if (f != NULL)
     {
-      fputs (general_str_to_world
-	     (VLO_BEGIN (temp_vlobj), &temp_vlobj2, byte_p,
-	      byte_cd, unicode_cd), f);
+      size_t len;
+      const char *str = general_str_to_world (VLO_BEGIN (temp_vlobj),
+					      &temp_vlobj2, byte_p,
+					      byte_cd, unicode_cd, &len);
+      fwrite (str, sizeof (char), len, f);
       /* Place the result instead of the function. */
       ER_SET_MODE (fun_result, ER_NM_undef);
       return;
@@ -3220,24 +3312,10 @@ general_put_call (FILE *f, int pars_number, int ln_flag,
       VLO_ADD_MEMORY (temp_vlobj,
 		      start, ER_els_number (ER_vect (var)) * ch_size);
     }
-  if (res_byte_p)
-    {
-      if (ln_flag)
-	VLO_ADD_BYTE (temp_vlobj, '\n');
-      VLO_ADD_BYTE (temp_vlobj, 0);
-    }
-  else
-    {
-      ucode_t uc[] = {'\n', 0};
-      
-      if (ln_flag)
-	VLO_ADD_MEMORY (temp_vlobj, uc, sizeof (ucode_t) * 2);
-      else
-	VLO_ADD_MEMORY (temp_vlobj, &uc[1], sizeof (ucode_t));
-    }
+  end_printed_string (res_byte_p, ln_flag);
+  finish_output (f, res_byte_p, byte_cd, unicode_cd);
   if (errno != 0)
     process_system_errors (ifun_name);
-  finish_output (f, res_byte_p, byte_cd, unicode_cd);
 }
 
 void
@@ -3305,20 +3383,18 @@ general_print_call (FILE *f, int pars_number, int ln_flag,
 		    enum file_param_type param_type,
 		    conv_desc_t byte_cd, conv_desc_t ucode_cd)
 {
-  int i;
+  int i, byte_p;
 
   errno = 0;
   d_assert (param_type != NO_FILE || f == NULL);
   VLO_NULLIFY (temp_vlobj);
+  byte_p = TRUE;
   for (i = -pars_number + (param_type == GIVEN_FILE ? 1 : 0) + 1; i <= 0; i++)
-    print_val (IVAL (ctop, i), TRUE, TRUE, byte_cd, ucode_cd);
+    byte_p = print_val (IVAL (ctop, i), TRUE, TRUE, byte_p);
+  end_printed_string (byte_p, ln_flag);
+  finish_output (f, byte_p, byte_cd, ucode_cd);
   if (errno != 0)
     process_system_errors (ifun_name);
-  if (ln_flag)
-    VLO_ADD_STRING (temp_vlobj, "\n");
-  if (errno != 0)
-    process_system_errors (ifun_name);
-  finish_output (f, TRUE, byte_cd, ucode_cd);
 }
 
 void
@@ -4180,10 +4256,13 @@ general_putf_call (FILE *f, int pars_number, enum file_param_type param_type,
 	  && ER_pack_vect_el_mode (ER_vect (val)) != ER_NM_byte))
     eval_error (partype_bc_decl, call_pos (),
 		DERR_parameter_type, ifun_name);
+  errno = 0;
   byte_p = form_format_string (ER_vect (val),
 			       IVAL (ctop, -pars_number + 2 + start),
 			       pars_number - 1 - start, ifun_name, FALSE);
   finish_output (f, byte_p, byte_cd, unicode_cd);
+  if (errno != 0)
+    process_system_errors (ifun_name);
 }
 
 void
@@ -4682,7 +4761,7 @@ readdir_call (int pars_number)
   ER_node_t vect;
   DIR *dir;
   struct dirent *dirent;
-  size_t i;
+  size_t i, len;
   size_t dir_files_number;
   ucode_t *ucode_str;
   
@@ -4738,7 +4817,7 @@ readdir_call (int pars_number)
 	      ucode_str
 		= (ucode_t *) encode_byte_str_vlo (dirent->d_name,
 						   curr_reverse_ucode_cd,
-						   &temp_vlobj);
+						   &temp_vlobj, &len);
 	      if (ucode_str == NULL)
 		eval_error (invencoding_bc_decl, call_pos (),
 			    DERR_unexpected_input_encoding, ifun_name);

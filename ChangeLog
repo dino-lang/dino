@@ -1,3 +1,41 @@
+2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (encode_byte_str_vlo): Add inout param len.
+	(encode_ucode_str_vlo): Ditto.
+	(encode_ucode_str_to_raw_vlo, get_ucode_from_stream): New.
+	(print_string, print_ucode_string): New.
+	(get_ucode_from_stream, get_ucode_from_utf8_stream): Remove.
+	(put_ucode_to_utf8_stream, print_ucode_string_as_utf8): Ditto.
+	* DINO/d_dino.c (dino_finish): Move deleting vlos below.
+	(dino_start): Move created vlos up.
+	(d_verror): Use print_string.
+	(get_utf8_byte, utf8_str_to_ucode_vlo): Remove.
+	(encode_byte_str_vlo): Add inout param len.
+	(encode_ucode_str_vlo): Ditto.
+	(encode_ucode_str_to_raw_vlo, get_ucode_from_stream): New.
+	(print_string, print_ucode_string): New.
+	(check_encoding_on_ascii): New.
+	* DINO/d_eval.c (find_catch_pc): Add param to call
+	encode_{byte,ucode}_str_vlo.
+	* DINO/d_func.c (add_string_to_print): New.
+	(print_contex): Add parameter.
+	(ucode_str_to_raw): Remove.
+	(general_str_to_world): Add parameter.
+	(strvect_to_world): Add argumentto call of general_str_to_world.
+	(in_str_p): Add parameter.
+	(chumod_call, chgmode_call, chomod_call): Pass new arg to
+	in_str_p.
+	(popen_call): Add non-byte case.
+	(print_ch): Add parameter.  Use add_string_to_print.
+	(print_val): Change prototype.  Use add_string_to_print.
+	(end_printed_string): New.
+	(repl_print, general_put_call, general_print_call): Use it.
+	(finish_output): Use fwrite.
+	(general_putf_call): Process errno.
+	* DINO/d_yacc.y (find_encoding): Permit /.: in encoding name.
+	(get_read_line): Remove const from return type.
+	* DINO/d_yacc.h (get_read_line): Ditto.
+
 2015-07-20  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_yacc.y (temp_scanner_vlo): Move up.

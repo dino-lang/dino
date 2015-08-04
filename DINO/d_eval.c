@@ -1186,7 +1186,8 @@ find_catch_pc (ER_node_t except)
       if (ER_NODE_MODE (message) == ER_NM_vect)
 	{
 	  ER_node_t vect;
-	  
+	  size_t len;
+
 	  vect = ER_vect (message);
 	  GO_THROUGH_REDIR (vect);
 	  try_full_pack (vect);
@@ -1197,9 +1198,9 @@ find_catch_pc (ER_node_t except)
 	      const char *message
 		= (ER_pack_vect_el_mode (vect) == ER_NM_byte
 		   ? encode_byte_str_vlo (ER_pack_els (vect),
-					  curr_byte_cd, &temp_vlobj)
+					  curr_byte_cd, &temp_vlobj, &len)
 		   : encode_ucode_str_vlo ((ucode_t *) ER_pack_els (vect),
-					   curr_ucode_cd, &temp_vlobj));
+					   curr_ucode_cd, &temp_vlobj, &len));
 	      
 	      /* No return after error unless REPL. */
 	      if (message != NULL)

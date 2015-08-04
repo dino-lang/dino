@@ -30,7 +30,7 @@ extern const char *source_file_encoding (const char *fname);
 extern void initiate_scanner (void);
 extern void start_scanner_file (const char *file_name, const char *encoding,
 				position_t error_pos);
-extern const ucode_t *get_read_line (int n);
+extern ucode_t *get_read_line (int n);
 extern void skip_line_rest ();
 extern int yyparse (void);
 extern void finish_scanner (void);

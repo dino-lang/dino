@@ -274,8 +274,16 @@ extern void d_error (int fatal_error_flag, position_t position,
 		     const char *format, ...);
 extern void copy_vlo (vlo_t *to, vlo_t *from);
 extern void str_to_ucode_vlo (vlo_t *to, const char *from, size_t len);
-extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo);
-extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo);
+extern char *encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo,
+				  size_t *len);
+extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo,
+				   size_t *len);
+extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
+extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
+				      void *data);
+extern void print_string (FILE *f, const char *str, conv_desc_t cd);
+extern int print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd);
+
 extern void dino_finish (int code);
 
 #define SET_SOURCE_POSITION(ref)     (source_position = IR_pos (ref))
@@ -358,143 +366,10 @@ ucodestrlen (const ucode_t *s)
   return i;
 }
 
-/* Read unicode from stream provided by function GET_BYTE with
-   encoding given by CD.  DATA is transferred to GET_BYTE.  The
-   function returns UCODE_BOUND if the stream has a wrong format.  If
-   negative value is returned by the first call of GET_BYTE, the
-   function returns the value.  */
-static inline ucode_t
-get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
-{
-  size_t in, out, res;
-  char *is, *os;
-  ucode_t uc;
-  char ch;
-  int n, b, r = get_byte (data);
-  
-  if (cd == NO_CONV_DESC || r < 0)
-    return r;
-#ifndef HAVE_ICONV_H
-  d_assert (FALSE);
-#else
-  
-  for (;;)
-    {
-      ch = r;
-      is = &ch;
-      os = (char *) &uc;
-      in = 1;
-      out = sizeof (ucode_t);
-      res = iconv (cd, &is, &in, &os, &out);
-      if (res == (size_t) -1)
-	{
-	  if (errno == EILSEQ)
-	    {
-	      /* Invalid multi-byte sequence or can not be represented
-		 -- reset initial state.  */
-	      iconv (cd, NULL, &in, NULL, &out);
-	      return UCODE_BOUND;
-	    }
-	  else if (errno == EINVAL)
-	    continue; /* Incomplete multi-byte sequence.  */
-	  /* Not enough space in os or other errors.  */
-	  d_assert (FALSE);
-	}
-      if (out == 0)
-	return uc;
-      r = get_byte (data);
-      if (r < 0)
-	{
-	  /* Reset initial value.  */
-	  iconv (cd, NULL, &in, NULL, &out);
-	  return UCODE_BOUND;
-	}
-    }
-#endif
-}
-
-/* Read unicode from UTF8 stream provided by function GET_BYTE.  DATA
-   is transferred to GET_BYTE.  The function returns UCODE_BOUND if
-   the stream has a wrong format.  If negative value is returned by
-   GET_BYTE, the function returns the value.  */
-static inline ucode_t
-get_ucode_from_utf8_stream (int (*get_byte) (void *), void *data)
-{
-  int n, b, r = get_byte (data);
-
-  if (r < (int) 0x80)
-    return r; /* It includes negative r too.  */
-  if ((r & 0xe0) == 0xc0) /* Two byte char  */
-    {
-      n = 1;
-      r &= 0x1f;
-    }
-  else if ((r & 0xf0) == 0xe0) /* Three byte char  */
-    {
-      n = 2;
-      r &= 0xf;
-    }
- else if ((r & 0xf8) == 0xf0) /* Four byte char  */
-    {
-      n = 3;
-      r &= 0x7;
-    }
-  else
-    return UCODE_BOUND;
-  while (n-- > 0)
-    {
-      b = get_byte (data);
-      if (b < 0 && (b & 0xc0) != 0x80)
-	return UCODE_BOUND;
-      r = (r << 6) | (b & 0x3f);
-    }
-  return b <= UCODE_MAX ? b : UCODE_BOUND;
-}
-
-/* Write unicode UC to UTF8 stream provided by function PUT_BYTE.
-   DATA is transferred to PUT_BYTE.  Return negative if it is wrong
-   ucode or error occurs, otherwise return number of output bytes.  */
-static inline int
-put_ucode_to_utf8_stream (ucode_t uc, int (*put_byte) (int, void *), void *data)
-{
-  int i, n;
-  
-  if (! in_ucode_range_p (uc))
-    return -1;
-  if (uc < (int) 0x80)
-    {
-      if (put_byte (uc, data) < 0)
-	return -1;
-      return 1;
-    }
-  if (uc <= (int) 0x7ff) /* Two byte char  */
-    {
-      n = 2;
-      if (put_byte ((uc >> 6) | 0xc0, data) < 0)
-	return -1;
-    }
-  else if (uc < (int) 0xffff) /* Three byte char  */
-    {
-      n = 3;
-      if (put_byte ((uc >> 12) | 0xe0, data) < 0)
-	return -1;
-    }
-  else /* Four byte char  */
-    {
-      n = 4;
-      if (put_byte ((uc >> 18) | 0xf0, data) < 0)
-	return -1;
-    }
-  for (i = n - 2; i >= 0; i--)
-    if (put_byte ((uc >> i * 6) & 0x3f | 0x80, data) < 0)
-      return -1;
-  return n;
-}
-
 #include <stdio.h>
 
 /* Read and return by from file given by DATA.  Used by
-   get_ucode_from_{utf8, stream}.  */
+   get_ucode_from_stream.  */
 static inline int
 read_byte (void *data)
 {
@@ -511,20 +386,6 @@ print_byte (int c, void *data)
   FILE *f = (FILE *) data;
   
   return fputc (c, f);
-}
-
-/* Print ucode string STR to file F as utf8 sequence.  Return number
-   of output bytes.  */
-static inline
-print_ucode_string_as_utf8 (const ucode_t *str, FILE *f)
-{
-  ucode_t c;
-  int n , res = 0;
-  
-  while ((c = *str++) != '\0')
-    if ((n = put_ucode_to_utf8_stream (c, print_byte, f)) >= 0)
-      res += n;
-  return res;
 }
 
 #endif /* #ifndef D_COMMON_H */

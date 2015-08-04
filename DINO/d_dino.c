@@ -889,11 +889,6 @@ dino_finish (int code)
   finish_errors ();
   finish_positions ();
   finish_unique_strings ();
-  VLO_DELETE (number_text);
-  VLO_DELETE (repr_vlobj);
-  VLO_DELETE (include_path_directories_vector);
-  VLO_DELETE (libraries_vector);
-  VLO_DELETE (command_line_vlo);
   if (input_dump_file != NULL)
     finish_read_bc ();
   if (statistics_flag && code == 0)
@@ -929,6 +924,11 @@ dino_finish (int code)
     }
   finish_cds ();
   mpz_finish ();
+  VLO_DELETE (number_text);
+  VLO_DELETE (repr_vlobj);
+  VLO_DELETE (include_path_directories_vector);
+  VLO_DELETE (libraries_vector);
+  VLO_DELETE (command_line_vlo);
   longjmp (exit_longjump_buff, (code == 0 ? -1 : code < 0 ? 1 : code));
 }
 
@@ -949,6 +949,11 @@ static void
 dino_start (void)
 {
   change_allocation_error_function (error_func_for_allocate);
+  VLO_CREATE (command_line_vlo, 0);
+  VLO_CREATE (include_path_directories_vector, 0);
+  VLO_CREATE (libraries_vector, 0);
+  VLO_CREATE (repr_vlobj, 0);
+  VLO_CREATE (number_text, 0);
   generated_c_functions_num = generated_c_function_calls_num = 0;
   inlined_calls_num = 0;
   max_gmp_memory_size = gmp_memory_size = 0;
@@ -962,11 +967,6 @@ dino_start (void)
   initiate_icode (); /* only after initiate table */
   initiate_scanner ();
   source_position = no_position;
-  VLO_CREATE (command_line_vlo, 0);
-  VLO_CREATE (include_path_directories_vector, 0);
-  VLO_CREATE (libraries_vector, 0);
-  VLO_CREATE (repr_vlobj, 0);
-  VLO_CREATE (number_text, 0);
   initiate_run_tables ();
   evaluated_p = FALSE;
 }
@@ -1195,7 +1195,7 @@ d_verror (int fatal_error_flag, position_t position,
 
   vsnprintf (message, MAX_MESSAGE_LEN, format, ap);
   if (repl_flag)
-    fprintf (stderr, "%s", ERROR_PREFIX);
+    print_string (stderr, ERROR_PREFIX, curr_byte_cd);
   if (! repl_flag)
     error (fatal_error_flag, position, "%s", message);
   else if (*position.file_name != '\0')
@@ -1209,13 +1209,24 @@ d_verror (int fatal_error_flag, position_t position,
   else
     {
       int i;
-      const ucode_t *ln = get_read_line (position.line_number - 1);
+      ucode_t *ln = get_read_line (position.line_number - 1);
       
-      print_ucode_string_as_utf8 (ln, stderr); // ???
-      fprintf (stderr, "%s", ERROR_PREFIX);
-      for (i = 1; i < position.column_number; i++)
-	fprintf (stderr, " ");
-      fprintf (stderr, "^\n%s%s\n", ERROR_PREFIX, message);
+      if (! print_ucode_string (stderr, ln, curr_ucode_cd))
+	{
+	  print_string (stderr, "<can not print line ", curr_byte_cd);
+	  print_string (stderr, i2a (position.line_number), curr_byte_cd);
+	  print_string (stderr, " in the current encoding>\n", curr_byte_cd);
+	}
+      else
+	{
+	  print_string (stderr, ERROR_PREFIX, curr_byte_cd);
+	  for (i = 1; i < position.column_number; i++)
+	    print_string (stderr, " ", curr_byte_cd);
+	  print_string (stderr, "^\n", curr_byte_cd);
+	}
+      print_string (stderr, ERROR_PREFIX, curr_byte_cd);
+      print_string (stderr, message, curr_byte_cd);
+      print_string (stderr, "\n", curr_byte_cd);
       number_of_errors++;
     }
 }
@@ -1255,60 +1266,39 @@ str_to_ucode_vlo (vlo_t *to, const char *from, size_t len)
     }
 }
 
-/* Read byte C from UTF8 string passed through pointer DATA.
-   Increment the pointer.  Used by utf8_str_to_ucode_vlo.  */
-static inline int
-get_utf8_byte (void *data)
-{
-  const char *utf8 = *(const char **) data;
-  int res = *utf8++;
-
-  if (res == 0)
-    return -1;
-  *(const char **) data = utf8;
-  return res;
-}
-
-/* Put UTF8 string STR into vlo *VLO as unicode string.  Return the
-   string start in the vlo.  */
-static ucode_t *
-utf8_str_to_ucode_vlo (const char *utf8, vlo_t *vlo)
-{
-  VLO_NULLIFY (*vlo);
-  for (;;)
-    {
-      ucode_t u = get_ucode_from_utf8_stream (get_utf8_byte, (void *) &utf8);
-      if (u < 0)
-	break;
-      VLO_ADD_MEMORY (*vlo, &u, sizeof (ucode_t));
-    }
-  return (ucode_t *) VLO_BEGIN (*vlo);
-}
-
-/* Put byte string STR into vlo *VLO encoded by CD.  Return the string
-   start in the vlo.  If CD is no conversion descriptor, just return
-   STR.  Return NULL in case of any error.  */
+/* Put byte string STR into vlo *VLO encoded by CD.  Return start of
+   the encoded string start and its length in LEN (without encoded
+   null char).  Return NULL in case of any error.  */
 char *
-encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo)
+encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo, size_t *len)
 {
+  size_t i, out, r;
+  char *is, *os;
+
   if (cd == NO_CONV_DESC)
-    return (char *) str;
+    {
+      *len = strlen (str);
+      return (char *) str;
+    }
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
 #else
-  size_t i, out, r;
-  char *is, *os;
-  
   for (i = 0; str[i]; i++)
     ;
-  i++;
   is = str;
   VLO_NULLIFY (*vlo);
-  out = i * 4; /* longest utf8 is 4 bytes.  */
+  out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
   VLO_EXPAND (*vlo, out);
   os = VLO_BEGIN (*vlo);
   errno = 0;
   r = iconv (cd, &is, &i, &os, &out);
+  if (r != (size_t) -1)
+    {
+      *len = os - (char *) VLO_BEGIN (*vlo);
+      /* Add null char */
+      i = sizeof (byte_t);
+      r = iconv (cd, &is, &i, &os, &out);
+    }
   if (r == (size_t) -1)
     {
       if (errno == E2BIG)
@@ -1326,9 +1316,10 @@ encode_byte_str_vlo (byte_t *str, conv_desc_t cd, vlo_t *vlo)
 }
 
 /* Put ucode string STR into vlo *VLO encoded by CD.  Return the
-   string start in the vlo.  Return NULL in case of any error.  */
+   string start in the vlo and its length in LEN (without encoded null
+   char).  Return NULL in case of any error.  */
 char *
-encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo)
+encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo, size_t *len)
 {
 #ifndef HAVE_ICONV_H
   d_assert (FALSE);
@@ -1338,26 +1329,184 @@ encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo)
   
   for (i = 0; str[i]; i++)
     ;
-  i++;
   is = (char *) str;
   VLO_NULLIFY (*vlo);
-  out = i * 4; /* longest utf8 is 4 bytes.  */
+  out = (i + 1) * 4; /* longest utf8 is 4 bytes.  */
   VLO_EXPAND (*vlo, out);
   os = VLO_BEGIN (*vlo);
   i *= sizeof (ucode_t);
   r = iconv (cd, &is, &i, &os, &out);
+  if (r != (size_t) -1)
+    {
+      *len = os - (char *) VLO_BEGIN (*vlo);
+      /* Add null char  */
+      i = sizeof (ucode_t);
+      r = iconv (cd, &is, &i, &os, &out);
+    }
   if (r == (size_t) -1)
     {
       if (errno == E2BIG)
-	d_assert (FALSE);
+	d_assert (FALSE); /* Not enough space in os.  */
       else if (errno == EILSEQ)
-	;
+	; /* Invalid multi-byte sequence or can not be
+	     represented.  */
       else if (errno == EINVAL)
-	;
+	; /* Incomplete multi-byte sequence.  */
+      return NULL;
     }
   VLO_SHORTEN (*vlo, out);
-  return VLO_BEGIN (*vlo);
+ return VLO_BEGIN (*vlo);
 #endif
+}
+
+/* Return raw representation of ucode string STR.  Return NULL if it
+   is impossible.  Use vlo *VLO as container of the result.  */
+const char *
+encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo)
+{
+  size_t i;
+  
+  VLO_NULLIFY (*vlo);
+  for (i = 0; str[i] != '\0'; i++)
+    {
+      if (! in_byte_range_p (str[i]))
+	return NULL;
+      VLO_ADD_BYTE (*vlo, str[i]);
+    }
+  return VLO_BEGIN (*vlo);
+}
+
+/* Read unicode from stream provided by function GET_BYTE with
+   encoding given by CD.  DATA is transferred to GET_BYTE.  The
+   function returns UCODE_BOUND if the stream has a wrong format.  If
+   negative value is returned by the first call of GET_BYTE, the
+   function returns the value.  */
+ucode_t
+get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
+{
+  size_t in, out, res;
+  char *is, *os;
+  ucode_t uc;
+  char ch;
+  int n, b, r = get_byte (data);
+  
+  if (cd == NO_CONV_DESC || r < 0)
+    return r;
+#ifndef HAVE_ICONV_H
+  d_assert (FALSE);
+#else
+  
+  for (;;)
+    {
+      ch = r;
+      is = &ch;
+      os = (char *) &uc;
+      in = 1;
+      out = sizeof (ucode_t);
+      res = iconv (cd, &is, &in, &os, &out);
+      if (res == (size_t) -1)
+	{
+	  if (errno == EILSEQ)
+	    {
+	      /* Invalid multi-byte sequence or can not be represented
+		 -- reset initial state.  */
+	      iconv (cd, NULL, &in, NULL, &out);
+	      return UCODE_BOUND;
+	    }
+	  else if (errno == EINVAL)
+	    continue; /* Incomplete multi-byte sequence.  */
+	  /* Not enough space in os or other errors.  */
+	  d_assert (FALSE);
+	}
+      if (out == 0)
+	return uc;
+      r = get_byte (data);
+      if (r < 0)
+	{
+	  /* Reset initial value.  */
+	  iconv (cd, NULL, &in, NULL, &out);
+	  return UCODE_BOUND;
+	}
+    }
+#endif
+}
+
+/* Print *ASCII* string STR encoded according to CD to file F.  */
+void
+print_string (FILE *f, const char *str, conv_desc_t cd)
+{
+  size_t len;
+  
+  if (cd == NO_CONV_DESC)
+    fprintf (f, "%s", str);
+  else
+    {
+      str = encode_byte_str_vlo ((byte_t *) str, cd, &repr_vlobj, &len);
+      /* We should always encode ascii.  */
+      d_assert (str != NULL);
+      fwrite (str, sizeof (char), len, f);
+    }
+}
+
+/* Print unicode string USTR encoded according to CD to file F and
+   return TRUE.  Do nothing if we can not encode it, just return
+   FALSE.  */
+int
+print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd)
+{
+  size_t i, len;
+  const char *str;
+  
+  if (cd == NO_CONV_DESC)
+    {
+      str = encode_ucode_str_to_raw_vlo (ustr, &repr_vlobj);
+      if (str == NULL)
+	return FALSE;
+	fprintf (f, "%s", str);
+    }
+  else
+    {
+      str = encode_ucode_str_vlo (ustr, cd, &repr_vlobj, &len);
+      if (str == NULL)
+	return FALSE;
+      fwrite (str, sizeof (char), len, f);
+    }
+  return TRUE;
+}
+
+/* Check that ENCODING can represent ASCII characters by the same
+   codes, one byte per character.  */
+int
+check_encoding_on_ascii (const char *encoding)
+{
+  if (raw_encoding_name_p (encoding))
+    return TRUE;
+#ifdef HAVE_ICONV_H
+  {
+    static char test []
+      = ("`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./"
+	 "~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?");
+    size_t r, i, o;
+    /* 5 is enough for any encoding.  */
+    char out [5 * sizeof (test)];
+    char *is, *os;
+    conv_desc_t cd;
+    
+    cd = iconv_open (encoding, LATIN1_STRING);
+    if (cd == NO_CONV_DESC)
+      return FALSE;
+    i = sizeof (test);
+    o = sizeof (out);
+    is = test;
+    os = out;
+    r = iconv (cd, &is, &i, &os, &o);
+    iconv_close (cd);
+    if (r >= 0 && i == 0
+	&& sizeof (test) == os - out && strcmp (test, out) == 0)
+      return TRUE;
+  }
+#endif
+  return FALSE;
 }
 
 int

@@ -1805,7 +1805,7 @@ read_line (FILE *f)
 }
 
 /* Return N-th read line.  */
-const ucode_t *
+ucode_t *
 get_read_line (int n)
 {
   d_assert (n >= 0 && VLO_LENGTH (lines_vec) > n * sizeof (ucode_t *));
@@ -2122,7 +2122,7 @@ skip_spaces (const char *str, size_t from)
 
 /* The function finds the first string described by a pattern
 
-   -\*-[ \t]*coding:[ \t]*[_-A-Za-z0-9]+[ \t]*-\*- 
+   -\*-[ \t]*coding:[ \t]*[_-A-Za-z0-9/.:]+[ \t]*-\*- 
 
   in LN and return the name after "coding:".  Return NULL if we did
   not find encoding.  */
@@ -2148,7 +2148,8 @@ find_encoding (char *ln)
          start = i = skip_spaces (ln, i + len);
          for (; ln[i] != 0; i++)
 	   if (! isalpha (ln[i]) && ! isdigit (ln[i])
-	       && ln[i] != '-' && ln[i] != '_')
+	       && ln[i] != '-' && ln[i] != '_'
+	       && ln[i] != '/' && ln[i] != '.' && ln[i] != ':')
 	     break;
 	 if (ln[i] == 0)
 	   return NULL;
