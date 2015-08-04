@@ -113,9 +113,10 @@ static int repl_can_process_p (void);
    }
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
-%token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXTERN
+%token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXPOSE EXTERN
        FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PRIV PROCESS PUB RETURN SWITCH
+       LONG LATER NEW NIL OBJ PRIV PROCESS PUB RETURN
+       SPACE SWITCH
        TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
@@ -157,7 +158,7 @@ static int repl_can_process_p (void);
                 val_var_list val_var assign stmt executive_stmt incr_decr
                 case_list switch_case opt_cond pattern for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
-                header declaration use_clause_list
+                header declaration fields qual_ident_list qual_ident use_clause_list
                 use_item_list use_item alias_opt extern_list extern_item
         	fun_thread_class fun_thread_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
@@ -573,11 +574,12 @@ designator : expr '[' expr ']'
                  IR_set_designator ($$, $1);
                  IR_set_component ($$, NULL);
                }
-           | expr '.' IDENT
+           | expr fields
        	       {
-                 $$ = create_node_with_pos (IR_NM_period, $2);
-                 IR_set_designator ($$, $1);
-                 IR_set_component ($$, $3);
+                 $$ = IR_designator ($2);
+		 if ($$ == NULL)
+  		   $$ = $2;
+		 IR_set_designator ($2, $1);
                }
            | IDENT     {$$ = $1;}
            | aheader hint block
@@ -587,6 +589,27 @@ designator : expr '[' expr ']'
 				       process_header_block ($1, $3, $2));
 		 $$ = IR_ident (IR_next_stmt (additional_stmts));
 	       }
+           ;
+fields : '.' IDENT
+           {
+	     $$ = create_node_with_pos (IR_NM_period, $1);
+	     IR_set_designator ($$, NULL);
+	     IR_set_component ($$, $2);
+           }
+       | fields '.' IDENT
+           {
+             $$ = create_node_with_pos (IR_NM_period, $2);
+	     if (IR_designator ($1) == NULL)
+	       IR_set_designator ($$, $1);
+	     else
+	       IR_set_designator ($$, IR_designator ($1));
+	     IR_set_designator ($1, $$);
+	     IR_set_component ($$, $3);
+	     $$ = $1;
+	   }
+       ;
+qual_ident : IDENT         {$$ = $1;}
+           | IDENT fields
            ;
 /* Attribute value is the last element of the cycle list.  The
    nonterminal with attribute of type flag must be before
@@ -1040,13 +1063,13 @@ except_class_list : expr
                   ;
 /* Attribute value is cyclic list of ident in clause with the pointer
    to the last one. */
-friend_list : IDENT
+friend_list : qual_ident
                {
                  $$ = create_node (IR_NM_friend_ident);
                  IR_set_ident_in_clause ($$, $1);
                  IR_set_next_friend_ident ($$, $$);
                }
-     	    | friend_list ',' IDENT
+     	    | friend_list ',' qual_ident
      	        {
 		  $$ = create_node (IR_NM_friend_ident);
 		  if ($1 != NULL)
@@ -1096,6 +1119,15 @@ declaration : access VAL {$<access>$ = $1;} set_flag
 		  process_header (FALSE, $1, $2);
 		  $$ = $1;
 		}
+            | SPACE IDENT
+	        {
+		  // process_space_header ($2);
+		}
+                block
+		  {
+		    $$ = NULL;
+		    //$$ = process_space_block ($2, $4);
+		  }
             /* Access is flattened out to resolve conflicts on OBJ.  */
             | OBJ IDENT { process_obj_header ($2); }
                 block {$$ = process_obj_block ($2, $4, DEFAULT_ACCESS);}
@@ -1124,7 +1156,15 @@ declaration : access VAL {$<access>$ = $1;} set_flag
                 {
                   $$ = $7;
                 }
-            | USE IDENT use_clause_list {$<flag>$ = $<flag>0;} end_simple_stmt
+            | EXPOSE qual_ident_list {$<flag>$ = $<flag>0;} end_simple_stmt
+                {
+		  $$ = NULL;
+		  //$$ = create_node_with_pos (IR_NM_expose, IR_pos ($2));
+		  //IR_set_next_stmt ($$, $$);
+                  //IR_set_use_ident ($$, $2);
+		  //IR_set_use_items ($$, uncycle_use_item_list ($3));
+	        }
+            | USE qual_ident use_clause_list {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $$ = create_node_with_pos (IR_NM_use, IR_pos ($2));
 		  IR_set_next_stmt ($$, $$);
@@ -1132,6 +1172,13 @@ declaration : access VAL {$<access>$ = $1;} set_flag
 		  IR_set_use_items ($$, uncycle_use_item_list ($3));
 	        }
             ;
+qual_ident_list :   {$$ = NULL;}
+                | qual_ident_list qual_ident
+                    {
+		      $$ = NULL;
+		      // $$ = merge_use_item_lists ($1, $2);
+		    }
+                ;
 use_clause_list :   {$$ = NULL;}
                 | use_clause_list use_item_list
                     {

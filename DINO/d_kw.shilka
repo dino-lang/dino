@@ -30,8 +30,9 @@ catch    {return CATCH;}
 char     {return CHAR;}
 class    {return CLASS;}
 continue {return CONTINUE;}
-extern   {return EXTERN;}
 else     {return ELSE;}
+expose   {return EXPOSE;}
+extern   {return EXTERN;}
 final    {return FINAL;}
 float    {return FLOAT;}
 for      {return FOR;}
@@ -53,6 +54,7 @@ priv     {return PRIV;}
 process  {return PROCESS;}
 pub      {return PUB;}
 return   {return RETURN;}
+space    {return SPACE;}
 switch   {return SWITCH;}
 tab      {return TAB;}
 thread   {return THREAD;}

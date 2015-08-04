@@ -1,3 +1,10 @@
+2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/Makefile.in (d_yacc.c): Expect 10 conflicts.
+	* DINO/d_yacc.y: Add terminals EXPOSE and SPACE and nonterminals
+	fields, qual_ident_list, and qual_ident.  Add rules for the
+	corresponding terminals.
+
 2015-07-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: 2 byte code representations.
