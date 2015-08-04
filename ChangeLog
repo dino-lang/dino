@@ -1,3 +1,7 @@
+2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/compare.tst: Take x$LUAJIT in quotes.
+
 2015-07-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/cspset.h (cspset_clear): Remove inline.
