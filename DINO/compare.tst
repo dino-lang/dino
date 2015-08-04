@@ -26,9 +26,9 @@
 # (http://www.bagley.org/~doug/shootout)
 #
 # Environment variables to control the script:
-# o SKIP_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,LUAJIT,RUBY,SCALA,JS,OCAML,HASKELL}
+# o SKIP_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,LUAJIT,RUBY,RBX,JRUBY,SCALA,JS,OCAML,HASKELL}
 # o DINO_ONLY - it can be overwitten by the following:
-# o DO_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,LUAJIT,RUBY,SCALA,JS,OCAML,HASKELL}
+# o DO_{PERL,PYTHON,PYTHON3,PYPY,TCLSH,AWK,LUA,LUAJIT,RUBY,RBX,JRUBY,SCALA,JS,OCAML,HASKELL}
 #
 
 DINO='./dino'
@@ -120,6 +120,22 @@ else
   RUBY=
 fi
 
+if test x$SKIP_JRUBY = x && jruby $ftest 2>/dev/null;then
+  JRUBY=jruby
+  echo '>>>> ' `echo|jruby -v 2>&1|fgrep jruby`
+else
+  echo We have no jruby
+  JRUBY=
+fi
+
+if test x$SKIP_RBX = x && rbx $ftest 2>/dev/null;then
+  RBX=rbx
+  echo '>>>> ' `echo|rbx -v 2>&1|fgrep rubinius`
+else
+  echo We have no rbx
+  RBX=
+fi
+
 if test x$SKIP_SCALA = x && echo 'println ()' | scala >/dev/null 2>&1;then
   SCALA=scala
   echo '>>>> ' `echo 'println ()'|scala -version 2>&1|fgrep Scala`
@@ -197,6 +213,8 @@ if test x$DINO_ONLY != x; then
   if test x$DO_LUA = x;then LUA="";fi
   if test x$DO_LUAJIT = x;then LUAJIT="";fi
   if test x$DO_RUBY = x;then RUBY="";fi
+  if test x$DO_JRUBY = x;then JRUBY="";fi
+  if test x$DO_RBX = x;then RBX="";fi
   if test x$DO_SCALA = x;then SCALA="";fi
   if test x$DO_JS = x;then JS="";fi
   if test x$DO_NODEJS = x;then NODEJS="";fi
@@ -204,9 +222,9 @@ if test x$DINO_ONLY != x; then
   if test x$DO_HASKELL = x;then HASKELL="";fi
 
   if test x$PERL != x || test x$PYTHON != x || test x$PYPY != x || test x$PYTHON3 != x \
-     || test x$TCLSH != x || test x$AWK != x || test x$LUA != x || test x$LUAJIT != x \
-     || test x$RUBY != x || test x$SCALA != x || test x$JS != x || test x$NODEJS != x \
-     || test x$OCAML != x || test x$HASKELL != x;then
+     || test x$TCLSH != x || test x$AWK != x || test x$LUA != x || test "x$LUAJIT" != x \
+     || test x$RUBY != x || test x$JRUBY != x || test x$RBX != x || test x$SCALA != x \
+     || test x$JS != x || test x$NODEJS != x || test x$OCAML != x || test x$HASKELL != x;then
     DINO_ONLY="";
   fi
 fi
@@ -404,7 +422,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 local n = tonumber((arg and arg[1]) or 1)
 for a=1,n do
@@ -414,20 +432,30 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 n = Integer(ARGV.shift || 1)
 n.times do
 end
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -672,7 +700,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -699,13 +727,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -728,8 +756,18 @@ end
 
 puts c
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -1006,7 +1044,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 function fact(x)
   if (x <= 1) then
@@ -1027,13 +1065,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 def fact(x)
   if (x <= 1) then
@@ -1051,8 +1089,18 @@ while (n < N) do
 end
 print x
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -1294,7 +1342,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 function fibonacci (n)
      if (n <= 1) then
@@ -1314,13 +1362,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -1340,8 +1388,18 @@ for i in 0..N-1 do
   print i, " "; puts fib(i)
 end
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -1757,7 +1815,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -1818,13 +1876,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -1888,8 +1946,18 @@ for iter in 1 .. NUM
 end
 print "Exceptions: HI=", $HI, " / LO=", $LO, "\n"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -2274,7 +2342,7 @@ EOF
   if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -2357,13 +2425,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -2421,8 +2489,18 @@ end
 
 main()
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -2786,7 +2864,7 @@ EOF
   if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: objinst.lua,v 1.3 2001/07/11 17:18:08 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -2873,13 +2951,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -2941,8 +3019,18 @@ end
 
 main()
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -3233,7 +3321,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 SieveSize = tonumber((arg and arg[1])) or 1
 flags = {}
@@ -3258,13 +3346,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 SieveSize = Integer(ARGV.shift || 1)
 flags0 = Array.new(SieveSize + 1, true)
@@ -3285,8 +3373,18 @@ flags0 = Array.new(SieveSize + 1, true)
 end
 print $count, "\n"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -3900,7 +3998,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 IM = 139968
 IA =   3877
@@ -3969,13 +4067,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -4032,8 +4130,18 @@ heapsort(N, ary)
 
 printf "%.10f\n", ary[N]
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -5164,7 +5272,7 @@ EOF
   if ($TIME $TCLSH $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -5224,13 +5332,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -5292,8 +5400,18 @@ printf("variance:           %f\n", variance)
 printf("skew:               %f\n", skew)
 printf("kurtosis:           %f\n", kurtosis)
 EOF
-  title=RUBY
-if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -5761,7 +5879,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: random.lua,v 1.12 2001/05/08 01:36:50 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -5788,13 +5906,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -5815,8 +5933,18 @@ N.times do
 end
 printf "%.9f\n", result
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -6169,7 +6297,7 @@ EOF
   if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -6213,8 +6341,18 @@ end
 
 main(Integer(ARGV.shift || 1))
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 fi
@@ -6296,7 +6434,7 @@ EOF
   ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $AWK -f $ftest </dev/null ) > $temp2 2>&1 && print_time "$title" $temp2
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 print ("hello world")
 EOF
@@ -6304,18 +6442,28 @@ EOF
     title=LUA
     ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUA $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $LUAJIT $ftest) > $temp2 2>&1 && print_time "$title" $temp2
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 puts "hello world"
 EOF
-  title=RUBY
-  ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  if test x$RUBY != x; then
+    title=RUBY
+    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $JRUBY $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    ($TIME sh -c 'i=0; n=$0; cmd=$1; shift; while test $i -lt $n;do $cmd $*; i=`expr $i + 1`;done' $rep $RBX $ftest) > $temp2 2>&1 && print_time "$title" $temp2
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -6416,22 +6564,32 @@ if test x$AWK != x; then
   if ($TIME $AWK -f $ftest </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
   if test x$LUA != x; then
     title=LUA
     if ($TIME $LUA $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   $DINO -c 'putln("j = 1");var i, n=argv[0]; for (i=0;i<n;i++)putln ("i = j");' $rep > $ftest
-  title=RUBY
-  if ($TIME $RUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -6613,7 +6771,7 @@ EOF
 ##  if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: ackermann.lua,v 1.5 2000/12/09 20:07:43 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -6637,13 +6795,13 @@ EOF
     if ($TIME $LUA $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -6665,6 +6823,10 @@ print "Ack(3,", NUM, "): ", ack(3, NUM), "\n"
 EOF
 title=RUBY
 if ($TIME $RUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title=JRUBY
+if ($TIME $JRUBY $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+title=RBX
+if ($TIME $RBX $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
 fi
 
 if test x$SCALA != x; then
@@ -6952,7 +7114,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 n = tonumber((arg and arg[1])) or 1
 x = {}
@@ -6974,13 +7136,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -7006,8 +7168,18 @@ end
 
 puts "#{y[0]} #{y[last]}"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -7359,7 +7531,7 @@ EOF
   if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -7382,13 +7554,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -7406,8 +7578,19 @@ loop do
 end
 puts "#{nl} #{nw} #{nc}"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -7802,7 +7985,7 @@ EOF
   ($TIME $TCLSH $ftest $rep client) 2>&1|fgrep user
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -7846,8 +8029,18 @@ end
 
 echo_server(Integer(ARGV.shift || 1))
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 fi
@@ -8028,7 +8221,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -8056,13 +8249,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -8086,8 +8279,18 @@ end
 printf "%d %d %d %d\n",
     hash1["foo_1"], hash1["foo_9999"], hash2["foo_1"], hash2["foo_9999"]
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -8530,7 +8733,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -8648,13 +8851,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -8703,8 +8906,18 @@ for iter in 1 .. NUM
 end
 print result, "\n"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -9375,7 +9588,7 @@ if test x$AWK != x; then
 echo AWK is too slow for this test.
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: matrix.lua,v 1.2 2001/01/13 14:47:43 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -9427,13 +9640,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -9482,8 +9695,18 @@ n.times do
 end
 puts "#{mm[0][0]} #{mm[2][3]} #{mm[3][2]} #{mm[4][4]}"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -9897,7 +10120,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: nestedloop.lua,v 1.2 2001/01/12 01:45:42 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -9925,13 +10148,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -9956,8 +10179,18 @@ n.times do
 end
 puts x
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -10372,7 +10605,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: regexmatch.lua,v 1.4 2000/12/09 20:07:45 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -10406,13 +10639,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -10450,8 +10683,18 @@ for iter in 1..NUM
     end
 end
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -21342,7 +21585,7 @@ EOF
 ##  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/lua-- $Id: reversefile.lua,v 1.3 2001/05/14 01:52:38 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -21364,13 +21607,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -21379,8 +21622,18 @@ if test x$RUBY != x; then
 
 print STDIN.readlines().reverse()
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -21658,7 +21911,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: sieve.lua,v 1.9 2001/05/06 04:37:45 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -21695,13 +21948,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -21728,8 +21981,18 @@ end
 
 print "Count: ", count, "\n"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -99293,7 +99556,7 @@ EOF
 ##  if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: spellcheck.lua,v 1.2 2001/01/23 01:30:42 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -99318,13 +99581,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -99345,8 +99608,18 @@ while STDIN.gets()
     end
 end
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -99482,7 +99755,7 @@ EOF
   if ($TIME $PYTHON3 $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: strcat.lua,v 1.2 2001/01/31 03:38:54 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -99535,7 +99808,7 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
@@ -99562,7 +99835,7 @@ fi
 
 # AWK is too slow therefore it is disqualified.
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -99583,8 +99856,18 @@ for i in 1 .. n
 end
 puts str.length
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -100797,7 +101080,7 @@ EOF
   if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 
 
@@ -100816,13 +101099,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -100836,8 +101119,18 @@ while STDIN.gets()
 end
 puts count
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -103860,7 +104153,7 @@ EOF
   if ($TIME $AWK -f $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 -- $Id: wordfreq.lua,v 1.3 2000/12/21 03:20:30 doug Exp $
 -- http://www.bagley.org/~doug/shootout/
@@ -103900,13 +104193,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 #!/usr/local/bin/ruby
 # -*- mode: ruby -*-
@@ -103926,8 +104219,18 @@ lines = Array.new
 freq.each{|w,c| lines << sprintf("%7d\t%s\n", c, w) }
 print lines.sort.reverse
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest <$input) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -104121,7 +104424,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 function f ()
 end
@@ -104134,13 +104437,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 def f()
 end
@@ -104150,8 +104453,18 @@ n.times do
   f
 end
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -104339,7 +104652,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 function tak (x, y, z)
     if not(y < x) then
@@ -104356,13 +104669,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 def tak (x, y, z)
     if not (y < x) then
@@ -104375,8 +104688,18 @@ end
 N = Integer(ARGV.shift || 1)
 print tak(N * 3, N * 2, N), "\n"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -104633,7 +104956,7 @@ EOF
   if ($TIME $AWK -f $ftest $rep </dev/null) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 SieveSize = Integer(ARGV.shift || 1)
 flags = Hash.new()
@@ -104656,8 +104979,18 @@ flags = Hash.new()
 end
 print $count, "\n"
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -105031,7 +105364,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 n = tonumber((arg and arg[1]) or 1)
 
@@ -105074,13 +105407,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 n = Integer(ARGV.shift || 1)
 
@@ -105114,8 +105447,18 @@ for i in 0 .. (n - 1)
 end
 mmult(m1, m2)
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then
@@ -105477,7 +105820,7 @@ EOF
   if ($TIME $TCLSH $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
 fi
 
-if test x$LUA != x || test x$LUAJIT != x; then
+if test x$LUA != x || test "x$LUAJIT" != x; then
   cat <<'EOF' >$ftest
 n = tonumber((arg and arg[1]) or 1)
 
@@ -105520,13 +105863,13 @@ EOF
     title=LUA
     if ($TIME $LUA $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
-  if test x$LUAJIT != x; then
+  if test "x$LUAJIT" != x; then
     title=LUAJIT
     if ($TIME $LUAJIT $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else echo $title: FAILED;fi
   fi
 fi
 
-if test x$RUBY != x; then
+if test x$RUBY != x || test x$JRUBY != x || test x$RBX != x; then
   cat <<'EOF' >$ftest
 n = Integer(ARGV.shift || 1)
 
@@ -105567,8 +105910,18 @@ for i in 0 .. (n - 1)
 end
 mmult(m1, m2)
 EOF
-  title=RUBY
-  if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  if test x$RUBY != x; then
+    title=RUBY
+    if ($TIME $RUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$JRUBY != x; then
+    title=JRUBY
+    if ($TIME $JRUBY $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
+  if test x$RBX != x; then
+    title=RBX
+    if ($TIME $RBX $ftest $rep) >$temp2 2>&1;then print_time "$title" $temp2;else fgrep rror $temp2; echo $title: FAILED;fi
+  fi
 fi
 
 if test x$SCALA != x; then

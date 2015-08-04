@@ -22,7 +22,6 @@
 
 */
 
-extern void print_indent (int);
 extern void dump_code (BC_node_t, int);
 extern void initiate_read_bc (void);
 extern void read_bc_program (const char *, FILE *, int);
