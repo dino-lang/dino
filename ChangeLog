@@ -1,5 +1,17 @@
 2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_gen.c (execute_a_period_operation): Make static.
+	* DINO/d_ir.sprut (space): New.
+	* DINO/d_yacc.y (process_space_header, process_space_block): New.
+	(fields): Make designator always non-null.
+	(qual_ident): Add code fields case.
+	(process_common_header): New.
+	(process_header): Use it.
+	* DINO/dino.tst.in (484): Change expected regexp.
+	(487): Add error "does not have an IP address".
+
+2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/Makefile.in (d_yacc.c): Expect 10 conflicts.
 	* DINO/d_yacc.y: Add terminals EXPOSE and SPACE and nonterminals
 	fields, qual_ident_list, and qual_ident.  Add rules for the

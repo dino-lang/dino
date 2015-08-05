@@ -920,6 +920,9 @@ fun :: fun_or_class
 class :: fun_or_class
 ;
 
+space :: decl /* access and const_flag are currently not used.  */
+;
+
 use :: stmt
 %other
 	use_ident : ident

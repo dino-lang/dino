@@ -56,12 +56,14 @@ process_var_pattern (access_val_t access, IR_node_t pattern, int val_flag,
 
 static void process_header (int, IR_node_t, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
- static IR_node_t process_header_block (IR_node_t, IR_node_t, hint_val_t);
+static IR_node_t process_header_block (IR_node_t, IR_node_t, hint_val_t);
 
 static hint_val_t get_hint (IR_node_t);
 
 static IR_node_t merge_additional_stmts (IR_node_t);
 
+static IR_node_t process_space_header (IR_node_t);
+static IR_node_t process_space_block (IR_node_t, IR_node_t);
 static void process_obj_header (IR_node_t);
 static IR_node_t process_obj_block (IR_node_t, IR_node_t, access_val_t);
 static IR_node_t process_fun_start (IR_node_t, int, access_val_t);
@@ -577,8 +579,6 @@ designator : expr '[' expr ']'
            | expr fields
        	       {
                  $$ = IR_designator ($2);
-		 if ($$ == NULL)
-  		   $$ = $2;
 		 IR_set_designator ($2, $1);
                }
            | IDENT     {$$ = $1;}
@@ -590,19 +590,19 @@ designator : expr '[' expr ']'
 		 $$ = IR_ident (IR_next_stmt (additional_stmts));
 	       }
            ;
+/* Attribute of fields is the first period node which is leaf of the
+   tree representing fields.  Designator of the first period node is
+   the root of the current tree.  */
 fields : '.' IDENT
            {
 	     $$ = create_node_with_pos (IR_NM_period, $1);
-	     IR_set_designator ($$, NULL);
+	     IR_set_designator ($$, $$);
 	     IR_set_component ($$, $2);
            }
        | fields '.' IDENT
            {
              $$ = create_node_with_pos (IR_NM_period, $2);
-	     if (IR_designator ($1) == NULL)
-	       IR_set_designator ($$, $1);
-	     else
-	       IR_set_designator ($$, IR_designator ($1));
+	     IR_set_designator ($$, IR_designator ($1));
 	     IR_set_designator ($1, $$);
 	     IR_set_component ($$, $3);
 	     $$ = $1;
@@ -610,6 +610,10 @@ fields : '.' IDENT
        ;
 qual_ident : IDENT         {$$ = $1;}
            | IDENT fields
+	     {
+	       $$ = IR_designator ($2);
+	       IR_set_designator ($2, $1);
+	     }
            ;
 /* Attribute value is the last element of the cycle list.  The
    nonterminal with attribute of type flag must be before
@@ -1119,15 +1123,8 @@ declaration : access VAL {$<access>$ = $1;} set_flag
 		  process_header (FALSE, $1, $2);
 		  $$ = $1;
 		}
-            | SPACE IDENT
-	        {
-		  // process_space_header ($2);
-		}
-                block
-		  {
-		    $$ = NULL;
-		    //$$ = process_space_block ($2, $4);
-		  }
+            | SPACE IDENT { $<pointer>$ = process_space_header ($2); }
+                block { $$ = process_space_block ($<pointer>3, $4); }
             /* Access is flattened out to resolve conflicts on OBJ.  */
             | OBJ IDENT { process_obj_header ($2); }
                 block {$$ = process_obj_block ($2, $4, DEFAULT_ACCESS);}
@@ -1631,9 +1628,9 @@ process_var_pattern (access_val_t access, IR_node_t pattern,
   return res;
 }
 
-/* Process function/thread/class header.  */
+/* Common code for processing function/thread/class/space header.  */
 static void
-process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
+process_common_header (int create_block_p, IR_node_t decl, IR_node_t ident)
 {
   IR_node_t block;
   
@@ -1642,17 +1639,24 @@ process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
   if (! create_block_p)
     {
       IR_set_next_stmt (decl, decl);
-      IR_set_forward_decl_flag (decl, TRUE);
       return;
     }
   block = create_empty_block (current_scope);
-  IR_set_forward_decl_flag (decl, FALSE);
   IR_set_next_stmt (block, decl);
   IR_set_next_stmt (decl, block);
-  IR_set_fun_class (block, decl);
   /* This assignment is here for that formal parameters are to be in
      corresponding block. */
   current_scope = block;
+}
+
+/* Process function/thread/class header.  */
+static void
+process_header (int create_block_p, IR_node_t decl, IR_node_t ident)
+{
+  IR_set_forward_decl_flag (decl, ! create_block_p);
+  process_common_header (create_block_p, decl, ident);
+  if (create_block_p)
+    IR_set_fun_class (current_scope, decl);
 }
 
 /* Process formal parameters PARS of fun/thread/class DECL.  Return
@@ -1738,6 +1742,29 @@ merge_additional_stmts (IR_node_t list)
   IR_node_t res = merge_stmt_lists (additional_stmts, list);
 
   additional_stmts = NULL;
+  return res;
+}
+
+static IR_node_t
+process_space_header (IR_node_t ident)
+{
+  IR_node_t space_decl;
+  
+  space_decl = create_node_with_pos (IR_NM_space, IR_pos (ident));
+  process_common_header (TRUE, space_decl, ident);
+  return space_decl;
+}
+
+static IR_node_t
+process_space_block (IR_node_t space_decl, IR_node_t block)
+{
+  IR_node_t res = current_scope; /* i.e. block.*/
+
+  IR_set_next_stmt (space_decl, space_decl); /* Make a cycle list.  */
+  IR_set_block_stmts
+    (res, uncycle_stmt_list (merge_stmt_lists (space_decl, block)));
+  IR_set_friend_list (res, uncycle_friend_list (IR_friend_list (res)));
+  current_scope = IR_block_scope (res);
   return res;
 }
 

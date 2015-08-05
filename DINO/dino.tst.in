@@ -27110,7 +27110,7 @@ putln (version);
 TEST484
         echo '      ' $DINO $test_file "2>$stderr"
         if $DINO $test_file 2>$stderr >$stdout; then
-                regex="^[0-9]\.[0-9][0-9]$"
+                regex="^[0-9]\.[0-9]+$"
                 echo '      ' egrep \'$regex\' $stdout
                 if egrep "$regex" $stdout; then
                         result=ok
@@ -27700,6 +27700,11 @@ In file processed from test.d:1:18:
 @srcdir@/socket.d:47:45: connection timed out
 OUTPUT497-2
                         result=ok
+                elif cat >$ftemp2 <<'OUTPUT497-3' && $CMP $ftemp $ftemp2; then
+In file processed from test.d:1:18:
+@srcdir@/socket.d:53:7: does not have an IP address
+OUTPUT497-3
+                        result=ok
                 else
                         result=fail
                 fi
@@ -27711,15 +27716,20 @@ OUTPUT497-2
         else
 		sed 's,\\,/,g' $stderr|sed 's%^.*socket.d%@srcdir@/socket.d%' >$ftemp
                 echo '      ' $CMP $ftemp $ftemp2
-                if cat >$ftemp2 <<'OUTPUT497-3' && $CMP $ftemp $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT497-4' && $CMP $ftemp $ftemp2; then
 In file processed from test.d:1:18:
 @srcdir@/socket.d:51:7: host is unknown
-OUTPUT497-3
+OUTPUT497-4
                         result=ok
-                elif cat >$ftemp2 <<'OUTPUT497-4' && $CMP $ftemp $ftemp2; then
+                elif cat >$ftemp2 <<'OUTPUT497-5' && $CMP $ftemp $ftemp2; then
 In file processed from test.d:1:18:
 @srcdir@/socket.d:47:45: connection timed out
-OUTPUT497-4
+OUTPUT497-5
+                        result=ok
+                elif cat >$ftemp2 <<'OUTPUT497-6' && $CMP $ftemp $ftemp2; then
+In file processed from test.d:1:18:
+@srcdir@/socket.d:53:7: does not have an IP address
+OUTPUT497-6
                         result=ok
                 else
                         result=fail
