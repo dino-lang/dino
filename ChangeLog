@@ -1,3 +1,7 @@
+2015-08-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_context.c (first_block_passing): Process space.
+
 2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_gen.c (execute_a_period_operation): Make static.
