@@ -1,3 +1,8 @@
+2015-09-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* MSTA/compare.tst.in: Add code to check MARPA Earley's parser
+	speed.
+
 2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/compare.tst: Take x$LUAJIT in quotes.
