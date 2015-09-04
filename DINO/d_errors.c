@@ -32,9 +32,11 @@
    evaluation. */
 
 char ERR_no_memory[] = "no memory";
-char ERR_file_encoding[]
+char ERR_source_file_encoding[]
   = "unknown or not implemented encoding `%s' of file `%s'";
-char ERR_file_decoding[] = "wrong encoding `%s' during reading file `%s'";
+char ERR_non_ascii_source_file_encoding[]
+  = "encoding `%s' of file `%s' does not contain ascii byte codes";
+char ERR_file_decoding[] = "wrong encoding `%s' in a source file";
 char ERR_line_decoding[] = "wrong encoding `%s' during reading a line";
 char ERR_invalid_char_constant[] = "invalid character constant";
 char ERR_invalid_escape_code[] = "invalid escape hex or unicode code";
@@ -345,6 +347,8 @@ char DERR_in_ucode_encoding []
   = "run time error - in unicode encoding for `%s'";
 char DERR_unexpected_input_encoding []
   = "run time error - unexpected input encoding for `%s'";
+char DERR_non_ascii_default_encoding[]
+  = "encoding %s given for `%s' does not contain ascii byte codes";
 char DERR_eof_occured []
   = "run time error - EOF occured in `%s'";
 char DERR_parameters_number []

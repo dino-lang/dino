@@ -2996,7 +2996,7 @@ print_val (ER_node_t val, int quote_flag, int full_p, int byte_p)
 		for (string = (char *) ER_pack_els (vect);
 		     *string != '\0';
 		     string++)
-		  print_ch (*string, byte_p);
+		  print_ch (*(byte_t *) string, byte_p);
 	      else
 		for (string = ER_pack_els (vect);
 		     *(ucode_t *) string != '\0';
@@ -3300,7 +3300,7 @@ general_put_call (FILE *f, int pars_number, int ln_flag,
 	  copy_vlo (&temp_vlobj2, &temp_vlobj);
 	  str_to_ucode_vlo (&temp_vlobj, VLO_BEGIN (temp_vlobj2),
 			    VLO_LENGTH (temp_vlobj2));
-	  res_byte_p = TRUE;
+	  res_byte_p = FALSE;
 	}
       else if (! res_byte_p && byte_p)
 	{
@@ -5828,6 +5828,19 @@ set_encoding_call (int pars_number)
   str = ER_pack_els (ER_vect (ctop));
   if (! set_conv_descs (str, &byte_cd, &ucode_cd, &reverse_ucode_cd))
     eval_error (parvalue_bc_decl, call_pos (), DERR_parameter_value, ifun_name);
+  if (! check_encoding_on_ascii (str))
+    {
+#ifdef HAVE_ICONV_H
+      if (byte_cd != NO_CONV_DESC)
+	iconv_close (byte_cd);
+      if (ucode_cd != NO_CONV_DESC)
+	iconv_close (ucode_cd);
+      if (reverse_ucode_cd != NO_CONV_DESC)
+	iconv_close (reverse_ucode_cd);
+#endif
+      eval_error (parvalue_bc_decl, call_pos (), DERR_non_ascii_default_encoding,
+		  str, ifun_name);
+    }
 #ifdef HAVE_ICONV_H
   if (curr_byte_cd != NO_CONV_DESC)
     iconv_close (curr_byte_cd);

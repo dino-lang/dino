@@ -1960,8 +1960,17 @@ push_curr_istream (const char *new_file_name, const char *encoding_name,
 			     ? encoding_name : curr_encoding_name);
       if (! set_conv_descs (curr_istream_state.encoding_name,
 			    NULL, NULL, &curr_istream_state.cd))
-	d_error (TRUE, no_position, ERR_file_encoding,
+	d_error (TRUE, no_position, ERR_source_file_encoding,
 		 curr_istream_state.encoding_name, curr_istream_state.file_name);
+      else if (! check_encoding_on_ascii (curr_istream_state.encoding_name))
+	{
+#ifdef HAVE_ICONV_H
+	  if (curr_istream_state.cd != NO_CONV_DESC)
+	    iconv_close (curr_istream_state.cd);
+#endif
+	  d_error (TRUE, no_position, ERR_non_ascii_source_file_encoding,
+		   curr_istream_state.encoding_name, curr_istream_state.file_name);
+	}
     }
   else if (repl_flag)
     /* To read line when we need it. */
@@ -2329,9 +2338,8 @@ d_getc (void)
 	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
 					curr_istream_state.file));
 	  if (result == UCODE_BOUND)
-	    d_error (TRUE, no_position, ERR_file_decoding,
-		     curr_istream_state.encoding_name,
-		     curr_istream_state.file_name);
+	    d_error (TRUE, current_position, ERR_file_decoding,
+		     curr_istream_state.encoding_name);
 	}
       else
 	{
@@ -2346,9 +2354,8 @@ d_getc (void)
 	       : get_ucode_from_stream (read_byte, curr_istream_state.cd,
 					curr_istream_state.file));
 	  if (result == UCODE_BOUND)
-	    d_error (TRUE, no_position, ERR_file_decoding,
-		     curr_istream_state.encoding_name,
-		     curr_istream_state.file_name);
+	    d_error (TRUE, current_position, ERR_file_decoding,
+		     curr_istream_state.encoding_name);
 	  if (result != '\n')
 	    {
 	      previous_char = result;

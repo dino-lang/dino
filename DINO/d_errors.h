@@ -25,7 +25,8 @@
 #include "errors.h"
 
 extern char ERR_no_memory[];
-extern char ERR_file_encoding[];
+extern char ERR_source_file_encoding[];
+extern char ERR_non_ascii_source_file_encoding[];
 extern char ERR_file_decoding[];
 extern char ERR_line_decoding[];
 extern char ERR_invalid_char_constant[];
@@ -227,6 +228,7 @@ extern char DERR_invalid_format [];
 extern char DERR_too_big_ucode_for_byte_representation [];
 extern char DERR_in_ucode_encoding [];
 extern char DERR_unexpected_input_encoding [];
+extern char DERR_non_ascii_default_encoding[];
 /* EOF. */
 extern char DERR_eof_occured [];
 /* Parameter number. */

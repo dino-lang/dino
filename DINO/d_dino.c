@@ -1195,7 +1195,7 @@ d_verror (int fatal_error_flag, position_t position,
 
   vsnprintf (message, MAX_MESSAGE_LEN, format, ap);
   if (repl_flag)
-    print_string (stderr, ERROR_PREFIX, curr_byte_cd);
+    fprintf (stderr, "%s", ERROR_PREFIX);
   if (! repl_flag)
     error (fatal_error_flag, position, "%s", message);
   else if (*position.file_name != '\0')
@@ -1211,22 +1211,11 @@ d_verror (int fatal_error_flag, position_t position,
       int i;
       ucode_t *ln = get_read_line (position.line_number - 1);
       
-      if (! print_ucode_string (stderr, ln, curr_ucode_cd))
-	{
-	  print_string (stderr, "<can not print line ", curr_byte_cd);
-	  print_string (stderr, i2a (position.line_number), curr_byte_cd);
-	  print_string (stderr, " in the current encoding>\n", curr_byte_cd);
-	}
-      else
-	{
-	  print_string (stderr, ERROR_PREFIX, curr_byte_cd);
-	  for (i = 1; i < position.column_number; i++)
-	    print_string (stderr, " ", curr_byte_cd);
-	  print_string (stderr, "^\n", curr_byte_cd);
-	}
-      print_string (stderr, ERROR_PREFIX, curr_byte_cd);
-      print_string (stderr, message, curr_byte_cd);
-      print_string (stderr, "\n", curr_byte_cd);
+      print_ucode_string (stderr, ln, curr_ucode_cd);
+      fprintf (stderr, "%s", ERROR_PREFIX);
+      for (i = 1; i < position.column_number; i++)
+	fprintf (stderr, " ");
+      fprintf (stderr, "^\n%s%s\n", ERROR_PREFIX, message);
       number_of_errors++;
     }
 }
@@ -1387,8 +1376,8 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
   size_t in, out, res;
   char *is, *os;
   ucode_t uc;
-  char ch;
-  int n, b, r = get_byte (data);
+  char str[4]; /* 4 is longest utf-8 sequence.  */
+  int i, n, b, r = get_byte (data);
   
   if (cd == NO_CONV_DESC || r < 0)
     return r;
@@ -1396,12 +1385,13 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
   d_assert (FALSE);
 #else
   
-  for (;;)
+  for (i = 0;; i++)
     {
-      ch = r;
-      is = &ch;
+      d_assert (i < 4);
+      str[i] = r;
+      is = str;
       os = (char *) &uc;
-      in = 1;
+      in = i + 1;
       out = sizeof (ucode_t);
       res = iconv (cd, &is, &in, &os, &out);
       if (res == (size_t) -1)
@@ -1413,10 +1403,8 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
 	      iconv (cd, NULL, &in, NULL, &out);
 	      return UCODE_BOUND;
 	    }
-	  else if (errno == EINVAL)
-	    continue; /* Incomplete multi-byte sequence.  */
-	  /* Not enough space in os or other errors.  */
-	  d_assert (FALSE);
+	  else
+	    d_assert (errno == EINVAL); /* Incomplete seq.  */
 	}
       if (out == 0)
 	return uc;
@@ -1429,23 +1417,6 @@ get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd, void *data)
 	}
     }
 #endif
-}
-
-/* Print *ASCII* string STR encoded according to CD to file F.  */
-void
-print_string (FILE *f, const char *str, conv_desc_t cd)
-{
-  size_t len;
-  
-  if (cd == NO_CONV_DESC)
-    fprintf (f, "%s", str);
-  else
-    {
-      str = encode_byte_str_vlo ((byte_t *) str, cd, &repr_vlobj, &len);
-      /* We should always encode ascii.  */
-      d_assert (str != NULL);
-      fwrite (str, sizeof (char), len, f);
-    }
 }
 
 /* Print unicode string USTR encoded according to CD to file F and
@@ -1509,6 +1480,12 @@ check_encoding_on_ascii (const char *encoding)
   return FALSE;
 }
 
+#ifdef HAVE_ICONV_H
+#define DEFAULT_DINO_ENCODING UTF8_STRING
+#else
+#define DEFAULT_DINO_ENCODING RAW_STRING
+#endif
+
 int
 dino_main (int argc, char *argv[], char *envp[])
 {
@@ -1517,7 +1494,7 @@ dino_main (int argc, char *argv[], char *envp[])
   char *option;
   const char *input_file_name, *input_dump = NULL;
   const char *string;
-  const char *home;
+  const char *home, *dino_encoding;
   int code;
 
   start_time = clock ();
@@ -1672,8 +1649,19 @@ dino_main (int argc, char *argv[], char *envp[])
   VLO_ADD_MEMORY (libraries_vector, &string, sizeof (char *));
   libraries = (const char **) VLO_BEGIN (libraries_vector);
   initiate_cds ();
-  if (!okay || ! set_cds (getenv (DINO_ENCODING)))
+  dino_encoding = getenv (DINO_ENCODING);
+  if (dino_encoding == NULL)
+    dino_encoding = DEFAULT_DINO_ENCODING;
+  if (!okay || ! set_cds (dino_encoding))
     dino_finish (1);
+  else if (! check_encoding_on_ascii (dino_encoding))
+    {
+      fprintf
+	(stderr,
+	 "There are no ASCII byte codes in encoding %s from environment (%s)\n",
+	 dino_encoding, DINO_ENCODING);
+      dino_finish (1);
+    }
   MALLOC (program_arguments, (program_arguments_number + 1) * sizeof (char *));
   for (i = 0; i < program_arguments_number; i++)
     {

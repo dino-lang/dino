@@ -193,7 +193,7 @@ value_of_hex_digit (int ch)
 {
   d_assert (is_hex_digit (ch));
   return ('0' <= ch && ch <= '9' ? ch - '0'
-	  : 'a' <= (ch) && (ch) <= 'f' ? ch - 'a' : ch - 'A');
+	  : 'a' <= (ch) && (ch) <= 'f' ? ch - 'a' + 10 : ch - 'A' + 10);
 }
 
 #define STANDARD_INPUT_FILE_SUFFIX ".d"
@@ -281,7 +281,6 @@ extern char *encode_ucode_str_vlo (ucode_t *str, conv_desc_t cd, vlo_t *vlo,
 extern const char *encode_ucode_str_to_raw_vlo (const ucode_t *str, vlo_t *vlo);
 extern ucode_t get_ucode_from_stream (int (*get_byte) (void *), conv_desc_t cd,
 				      void *data);
-extern void print_string (FILE *f, const char *str, conv_desc_t cd);
 extern int print_ucode_string (FILE *f, ucode_t *ustr, conv_desc_t cd);
 
 extern void dino_finish (int code);
@@ -376,16 +375,6 @@ read_byte (void *data)
   FILE *f = (FILE *) data;
   
   return fgetc (f);
-}
-
-/* Print byte C to file given by DATA.  Used by
-   print_ucode_string_as_utf8.  */
-static inline int
-print_byte (int c, void *data)
-{
-  FILE *f = (FILE *) data;
-  
-  return fputc (c, f);
 }
 
 #endif /* #ifndef D_COMMON_H */

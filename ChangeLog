@@ -1,3 +1,36 @@
+2015-09-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_common.h (value_of_hex_digit): Add 10 for letters.
+	(print_string, print_byte): Remove.
+	* DINO/d_dino.c (d_verror): Use fprintf instead of print_string.
+	(get_ucode_from_stream): Start from the same char when input is
+	incomplete.
+	(print_string): Remove.
+	(DEFAULT_DINO_ENCODING): New.
+	(dino_main): Process DEFAULT_DINO_ENCODING. Use
+	check_encoding_on_ascii.
+	* DINO/d_errors.c (ERR_file_encoding): Rename to
+	ERR_source_file_encoding.
+	(ERR_file_decoding): Change message.
+	(ERR_non_ascii_source_file_encoding): New.
+	(DERR_non_ascii_default_encoding): New.
+	* DINO/d_errors.h (ERR_file_encoding): Rename to
+	ERR_source_file_encoding.
+	(ERR_non_ascii_source_file_encoding): New.
+	(DERR_non_ascii_default_encoding): New.
+	* DINO/d_func.c (print_val): Use byte_t cast.
+	(general_put_call): Use FALSE for res_byte_p.
+	(set_encoding_call): Use check_encoding_on_ascii.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Process
+	ldus.
+	(specialize_insn): Ditto.
+	* DINO/d_yacc.y (push_curr_istream): Use check_encoding_on_ascii.
+	(d_getc): Use current position for errors.
+	* DINO/dino.tst.in: New tests 821-840.
+	* Makefile.in: Remove REGEX mentioning.
+	* README.md: Oniguruma, Unicode 8 support, and 2 Bcode
+	representations.
+
 2015-08-04  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_common.h (encode_byte_str_vlo): Add inout param len.

@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# // -*- coding: UTF-8 -*-
 #
 # Script to test of DINO.
 #
@@ -48813,6 +48813,455 @@ TEST820
 "acd"
 "bcd"
 OUTPUT820
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 821.
+if test $result = ok -a $start_test_number -le 821; then
+	echo test 821: Hex chars
+        cat >$test_file <<'TEST821'
+println ("\xa0\x20");
+TEST821
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT821' && $CMP $stdout $ftemp2; then
+"\xa0 "
+OUTPUT821
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 822.
+if test $result = ok -a $start_test_number -le 822; then
+	echo test 822: Small unicode chars
+        cat >$test_file <<'TEST822'
+println ("\u0410\u0430");
+TEST822
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT822' && $CMP $stdout $ftemp2; then
+"\u0410\u0430"
+OUTPUT822
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 823.
+if test $result = ok -a $start_test_number -le 823; then
+	echo test 823: Big unicode chars
+        cat >$test_file <<'TEST823'
+println ("\U00010330\U00010331");
+TEST823
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT823' && $CMP $stdout $ftemp2; then
+"\U00010330\U00010331"
+OUTPUT823
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 824.
+if test $result = ok -a $start_test_number -le 824; then
+	echo test 824: UTF-8
+        cat >$test_file <<'TEST824'
+putln ("\u0411\u0431");
+TEST824
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT824' && $CMP $stdout $ftemp2; then
+Ð‘Ð±
+OUTPUT824
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 825.
+if test $result = ok -a $start_test_number -le 825; then
+	echo test 825: Wrong encoding
+        cat >$test_file <<'TEST825'
+set_encoding ("abracadabra");
+TEST825
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT825' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - invalid parameter value for `set_encoding'
+OUTPUT825
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 826.
+if test $result = ok -a $start_test_number -le 826; then
+	echo test 826: Non-ascii encoding
+        cat >$test_file <<'TEST826'
+set_encoding ("GREEK7");
+TEST826
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT826' && $CMP $stderr $ftemp2; then
+test.d:1:14: encoding GREEK7 given for `set_encoding' does not contain ascii byte codes
+OUTPUT826
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 827.
+if test $result = ok -a $start_test_number -le 827; then
+	echo test 827: Wrong par type for set_encoding
+        cat >$test_file <<'TEST827'
+set_encoding (tab[]);
+TEST827
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT827' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - invalid parameter type of `set_encoding'
+OUTPUT827
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 828.
+if test $result = ok -a $start_test_number -le 828; then
+	echo test 828: Wrong par number for set_encoding
+        cat >$test_file <<'TEST828'
+set_encoding ();
+TEST828
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT828' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - unexpected number of parameters for `set_encoding'
+OUTPUT828
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 829.
+if test $result = ok -a $start_test_number -le 829; then
+	echo test 829: Wrong par number for get_encoding
+        cat >$test_file <<'TEST829'
+get_encoding (1);
+TEST829
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT829' && $CMP $stderr $ftemp2; then
+test.d:1:14: run time error - unexpected number of parameters for `get_encoding'
+OUTPUT829
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 830.
+if test $result = ok -a $start_test_number -le 830; then
+	echo test 830: Set/get encoding
+        cat >$test_file <<'TEST830'
+putln (get_encoding ());
+set_encoding ("arabic");
+putln (get_encoding ());
+TEST830
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT830' && $CMP $stdout $ftemp2; then
+UTF-8
+arabic
+OUTPUT830
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 831.
+if test $result = ok -a $start_test_number -le 831; then
+	echo test 831: Source file encoding
+        cat >$test_file <<'TEST831'
+// -*- coding: KOI8-R -*-
+val s = "âÂ";
+putln (get_encoding ());
+putln (s);
+TEST831
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT831' && $CMP $stdout $ftemp2; then
+UTF-8
+Ð‘Ð±
+OUTPUT831
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 832.
+if test $result = ok -a $start_test_number -le 832; then
+	echo test 832: Source file encoding: 2nd line
+        cat >$test_file <<'TEST832'
+//
+// -*- coding: KOI8-R -*-
+val s = "âÂ";
+putln (get_encoding ());
+putln (s);
+TEST832
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT832' && $CMP $stdout $ftemp2; then
+UTF-8
+Ð‘Ð±
+OUTPUT832
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 833.
+if test $result = ok -a $start_test_number -le 833; then
+	echo test 833:  Source file encoding: 3rd line is ignored
+        cat >$test_file <<'TEST833'
+//
+//
+// -*- coding: KOI8-R -*-
+val s = "âÂa";
+putln (get_encoding ());
+putln (s);
+TEST833
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT833' && $CMP $stderr $ftemp2; then
+test.d:4:10: wrong encoding `UTF-8' in a source file
+OUTPUT833
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 834.
+if test $result = ok -a $start_test_number -le 834; then
+	echo test 834: Set/get file encoding
+        cat >$test_file <<'TEST834'
+putln (get_file_encoding (stdout));
+set_file_encoding (stdout, "arabic");
+putln (get_file_encoding (stdout));
+TEST834
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT834' && $CMP $stdout $ftemp2; then
+UTF-8
+arabic
+OUTPUT834
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 835.
+if test $result = ok -a $start_test_number -le 835; then
+	echo test 835: Wrong par number for get_file_encoding
+        cat >$test_file <<'TEST835'
+get_file_encoding ();
+TEST835
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT835' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - unexpected number of parameters for `get_file_encoding'
+OUTPUT835
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 836.
+if test $result = ok -a $start_test_number -le 836; then
+	echo test 836: Wrong par value for get_file_encoding
+        cat >$test_file <<'TEST836'
+get_file_encoding (10);
+TEST836
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT836' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - invalid parameter type of `get_file_encoding'
+OUTPUT836
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 837.
+if test $result = ok -a $start_test_number -le 837; then
+	echo test 837: Wrong file encoding
+        cat >$test_file <<'TEST837'
+set_file_encoding (stdout, "abracadabra");
+TEST837
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT837' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - invalid parameter value for `set_file_encoding'
+OUTPUT837
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 838.
+if test $result = ok -a $start_test_number -le 838; then
+	echo test 838: Wrong parameter for set_file_encoding
+        cat >$test_file <<'TEST838'
+set_file_encoding (10, "abracadabra");
+TEST838
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT838' && $CMP $stderr $ftemp2; then
+test.d:1:19: run time error - invalid parameter value for `set_file_encoding'
+OUTPUT838
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 839.
+if test $result = ok -a $start_test_number -le 839; then
+	echo test 839: output in different encoding
+        cat >$test_file <<'TEST839'
+val s = "Ð‘Ð±";
+set_file_encoding (stdout, "KOI8-R");
+putln (get_file_encoding (stdout));
+putln (s);
+TEST839
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT839' && $CMP $stdout $ftemp2; then
+KOI8-R
+âÂ
+OUTPUT839
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 840.
+if test $result = ok -a $start_test_number -le 840; then
+	echo test 840: REPL encoding printing
+        cat >$test_file <<'TEST840'
+set_encoding ("KOI8-R");
+val s = "âÂ";
+s;
+TEST840
+        echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout"
+        if $DINO < $test_file 2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT840' && $CMP $stdout $ftemp2; then
+Use "exit(<int>);" or Ctrl-D to exit
+dino> "KOI8-R"
+dino> dino> "\u0411\u0431"
+dino> 
+OUTPUT840
                         result=ok
                 else
                         result=fail
