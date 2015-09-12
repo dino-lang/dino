@@ -487,19 +487,33 @@ abstract data is file `hashtab.h'.  The implementation part is file
            </verb></tscreen>
            returns current number of elements in given hash table.
    
-        <tag>Public function `collisions'</tag>
+        <tag>Public function `get_searches'</tag>
            <tscreen><verb>
-           `int collisions (void)'
+           `int get_searches (void)'
            </verb></tscreen>
-           returns number of of percents of fixed collisions during all
-           work with given hash table.
+           returns number of searhces during all work with given hash
+           table.
    
-        <tag>Static public function `all_collisions'</tag>
+        <tag>Public function `get_collisions'</tag>
            <tscreen><verb>
-           `int all_collisions (void)'
+           `int get_collisions (void)'
            </verb></tscreen>
-           returns number of of percents of fixed collisions during all
-           work with all hash tables.
+           returns number of occurred collisions during all work with
+           given hash table.
+   
+        <tag>Static public function `get_all_searches'</tag>
+           <tscreen><verb>
+           `int get_all_searches (void)'
+           </verb></tscreen>
+           returns number of searches during all work with all hash
+           tables.
+
+        <tag>Static public function `get_all_collisions'</tag>
+           <tscreen><verb>
+           `int get_all_collisions (void)'
+           </verb></tscreen>
+           returns number of occurred collisions during all work with
+           all hash tables.
         </descrip>
      </descrip>
 

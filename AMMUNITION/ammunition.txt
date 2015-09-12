@@ -635,25 +635,43 @@
 
      returns current number of elements in given hash table.
 
-     Function `hash_table_collisions'
+     Function `get_searches'
 
 
-                  `int hash_table_collisions (hash_table_t htab)'
-
-
-
-     returns number of of percents of fixed collisions during all work
-     with given hash table.
-
-     Function `all_hash_table_collisions'
-
-
-                  `int all_hash_table_collisions (void)'
+                  `int get_searches (hash_table_t htab)'
 
 
 
-     returns number of of percents of fixed collisions during all work
-     with all hash tables.
+     returns number of searhces during all work with given hash table.
+
+     Function `get_collisions'
+
+
+                  `int get_collisions (hash_table_t htab)'
+
+
+
+     returns number of occurred collisions during all work with given
+     hash table.
+
+     Function `get_all_searches'
+
+
+                  `int get_all_searches (void)'
+
+
+
+     returns number of searches during all work with all hash tables.
+
+     Function `get_all_collisions'
+
+
+                  `int get_all_collisions (void)'
+
+
+
+     returns number of occurred collisions during all work with all hash
+     tables.
 
   6.  Package for work with source code positions
 

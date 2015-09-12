@@ -453,10 +453,10 @@ main ()
   *find_hash_table_entry (htab, "j", 1) = "j";
   *find_hash_table_entry (htab, "klm", 1) = "klm";
   *find_hash_table_entry (htab, "nopqrst", 1) = "nopqrst";
-  c = hash_table_collisions (htab);
-  ac = all_hash_table_collisions ();
+  c = get_collisions (htab);
+  ac = get_all_collisions ();
   empty_hash_table (htab);
-  if (c != hash_table_collisions (htab) || ac != all_hash_table_collisions ())
+  if (c != get_collisions (htab) || ac != get_all_collisions ())
     exit (1);
   if (*find_hash_table_entry (htab, "abcd", 0) != NULL)
     exit (1);

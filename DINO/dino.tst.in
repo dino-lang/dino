@@ -24270,21 +24270,10 @@ fun pr (r, ind) {
 pr (root, 0);
 exit (p.ambiguous_p);
 TEST437
-        echo '      ' "$DINO $test_file >$stdout 2>&1"
-        if $DINO $test_file >$stdout 2>&1; then
+        echo '      ' "$DINO $test_file 2>&1 | fgrep -v '#' >$stdout"
+        if $DINO $test_file 2>&1 | fgrep -v '#' >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT437' && $CMP $stdout $ftemp2; then
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
-Input: #tokens = 12, #unique situations = 22
-       #terminal sets = 30, their size = 240
-       #unique set cores = 10, #their start situations = 25
-       #parent indexes for some non start situations = 0
-       #unique set dist. vects = 13, their length = 30
-       #pairs(set core, symb) = 38, their trans+reduce vects length = 43
-       #unique transition vectors = 12, their length = 16
-       #unique reduce vectors = 4, their length = 4
-       #term nodes = 5, #abstract nodes = 4
-       #alternative nodes = 0, #all nodes = 9
 plus(
   $term(97, 0)
   mult(
@@ -24314,17 +24303,6 @@ plus(
     )
   )
 )
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
-Input: #tokens = 12, #unique situations = 22
-       #terminal sets = 30, their size = 240
-       #unique set cores = 10, #their start situations = 25
-       #parent indexes for some non start situations = 0
-       #unique set dist. vects = 13, their length = 30
-       #pairs(set core, symb) = 38, their trans+reduce vects length = 43
-       #unique transition vectors = 12, their length = 16
-       #unique reduce vectors = 4, their length = 4
-       #term nodes = 5, #abstract nodes = 4
-       #alternative nodes = 0, #all nodes = 9
 OUTPUT437
                         result=ok
                 else
@@ -24396,8 +24374,8 @@ fun pr (r, ind) {
 pr (root, 0);
 exit (p.ambiguous_p);
 TEST438
-        echo '      ' "$DINO $test_file >$stdout 2>&1"
-        if $DINO $test_file >$stdout 2>&1; then
+        echo '      ' "$DINO $test_file 2>&1 | fgrep -v '#' >$stdout"
+        if $DINO $test_file 2>&1 | fgrep -v '#' >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT438' && $CMP $stdout $ftemp2; then
 Translation:
@@ -24411,17 +24389,6 @@ Translation:
       8: TERMINAL: code=97, repr='a'
       6: TERMINAL: code=97, repr='a'
 
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
-Input: #tokens = 12, #unique situations = 22
-       #terminal sets = 30, their size = 240
-       #unique set cores = 10, #their start situations = 25
-       #parent indexes for some non start situations = 0
-       #unique set dist. vects = 13, their length = 30
-       #pairs(set core, symb) = 38, their trans+reduce vects length = 43
-       #unique transition vectors = 12, their length = 16
-       #unique reduce vectors = 4, their length = 4
-       #term nodes = 5, #abstract nodes = 4
-       #alternative nodes = 0, #all nodes = 9
 plus(
   $term(97, 0)
   mult(
@@ -24462,17 +24429,6 @@ Translation:
       8: TERMINAL: code=97, repr='a'
       6: TERMINAL: code=97, repr='a'
 
-Grammar: #terms = 7, #nonterms = 4, #rules = 8, rules size = 24
-Input: #tokens = 12, #unique situations = 22
-       #terminal sets = 30, their size = 240
-       #unique set cores = 10, #their start situations = 25
-       #parent indexes for some non start situations = 0
-       #unique set dist. vects = 13, their length = 30
-       #pairs(set core, symb) = 38, their trans+reduce vects length = 43
-       #unique transition vectors = 12, their length = 16
-       #unique reduce vectors = 4, their length = 4
-       #term nodes = 5, #abstract nodes = 4
-       #alternative nodes = 0, #all nodes = 9
 OUTPUT438
                         result=ok
                 else

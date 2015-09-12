@@ -1,3 +1,61 @@
+2015-09-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/hashtab.c (hash_table_collisions)
+	(all_hash_table_collisions): Remove.
+	* AMMUNITION/hashtab.cpp (_collisions, _all_collisions): Rename to
+	collisions and all_collisions.
+	* AMMUNITION/hashtab.h (get_searches, get_all_searches): New.
+	(get_all_collisions, get_all_collisions): Ditto.
+	(class hash_table): Rename _collisions and _all_collisions to
+	collisions and all_collisions.  Add get_searches,
+	get_all_searches, get_all_collisions, and get_all_collisions.
+	Remove collisions and all_collisions.
+	* AMMUNITION/hashtab.tst.in: Use get_collisions and
+	get_all_collisions.
+	* AMMUNITION/hashtab++.tst.in: Ditto.
+	* AMMUNITION/ammunition.sgml.in (hash_table_collisions): Remove.
+	(all_hash_table_collisions): Ditto.
+	(get_searches, get_all_searches): New.
+	(get_all_collisions, get_all_collisions): Ditto.
+	* AMMUNITION/ammunition++.sgml.in (collisions): Remove.
+	(all_collisions): Ditto.
+	(get_searches, get_all_searches): New.
+	(get_all_collisions, get_all_collisions): Ditto.
+	* AMMUNITION/ammunition++.sgml.in
+	* AMMUNITION/{ammunition++-5.html, ammunition++.dvi}: Update.
+	* AMMUNITION/ammunition++.{info, pdf, ps, txt}: Update.
+	* AMMUNITION/earley.c (SYMB_CODE_TRANS_VECT,  USE_SET_HASH_TABLE):
+	New defines.
+	(struct set_core): Add member hash.
+	(struct set): Add member dists_hash.
+	(MAX_CACHED_GOTO_RESULTS): New.
+	(struct set_term_lookahead): New.
+	(n_sets, n_sets_start_sits, n_set_term_lookaheads): New.
+	(set_term_lookahead_os, set_tab, set_term_lookahead_tab): New.
+	(set_core_hash, dists_hash): Use saved hash.
+	(set_core_dists_hash, set_core_dists_eq, set_term_lookahead_hash):
+	New.
+	(set_term_lookahead_eq): New.
+	(set_init): Initiate new variable.
+	(setup_set_dists_hash, setup_set_core_hash): Ditto.
+	(set_insert): Add code for absolute distances.  Initiate set_os.
+	Set up set dists hash and set core hash.  Insert set into table.
+	(set_print): Add set_dist arg.  Use arg for printing absolute
+	distances.
+	(set_fin): Finalize new variables.
+	(build_new_set): Add code for absolute distances.
+	(check_cached_transition_set): New.
+	(build_pl): Use it.  Add code for hash tables.
+	(make_parse): Add code for absolute distances.
+	(earley_parse): Add printing collisions, unique sets, and triples
+	[set, term, lookahead].
+	* AMMUNITION/earley.tst.in: Change expected output and ignore
+	statistics output for some cases.
+	* AMMUNITION/earley++.tst.in: Ditto.
+	* MSTA/compare.tst.in: Add Earley runs w/o lookahead and with
+	dynamic lookahead.
+	* DINO/dino.tst.in (437, 438): Exclude Earley parser statistics.
+
 2015-09-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* MSTA/compare.tst.in: Add code to check MARPA Earley's parser

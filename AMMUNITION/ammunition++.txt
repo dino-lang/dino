@@ -622,25 +622,44 @@
 
         returns current number of elements in given hash table.
 
-        Public function `collisions'
+        Public function `get_searches'
 
 
-                        `int collisions (void)'
-
-
-
-        returns number of of percents of fixed collisions during all
-        work with given hash table.
-
-        Static public function `all_collisions'
-
-
-                        `int all_collisions (void)'
+                        `int get_searches (void)'
 
 
 
-        returns number of of percents of fixed collisions during all
-        work with all hash tables.
+        returns number of searhces during all work with given hash ta-
+        ble.
+
+        Public function `get_collisions'
+
+
+                        `int get_collisions (void)'
+
+
+
+        returns number of occurred collisions during all work with given
+        hash table.
+
+        Static public function `get_all_searches'
+
+
+                        `int get_all_searches (void)'
+
+
+
+        returns number of searches during all work with all hash tables.
+
+        Static public function `get_all_collisions'
+
+
+                        `int get_all_collisions (void)'
+
+
+
+        returns number of occurred collisions during all work with all
+        hash tables.
 
   6.  Package for work with source code positions
 

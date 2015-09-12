@@ -584,21 +584,35 @@ abstract data is file 'hashtab.h'.  The implementation part is file
 
      returns current number of elements in given hash table.
 
-'Function `hash_table_collisions''
+'Function `get_searches''
 
-                  `int hash_table_collisions (hash_table_t htab)'
-
-
-     returns number of of percents of fixed collisions during all work
-     with given hash table.
-
-'Function `all_hash_table_collisions''
-
-                  `int all_hash_table_collisions (void)'
+                  `int get_searches (hash_table_t htab)'
 
 
-     returns number of of percents of fixed collisions during all work
-     with all hash tables.
+     returns number of searhces during all work with given hash table.
+
+'Function `get_collisions''
+
+                  `int get_collisions (hash_table_t htab)'
+
+
+     returns number of occurred collisions during all work with given
+     hash table.
+
+'Function `get_all_searches''
+
+                  `int get_all_searches (void)'
+
+
+     returns number of searches during all work with all hash tables.
+
+'Function `get_all_collisions''
+
+                  `int get_all_collisions (void)'
+
+
+     returns number of occurred collisions during all work with all hash
+     tables.
 
 
 File: ammunition.info,  Node: Package for work with source code positions,  Next: Package for output of compiler messages,  Prev: Package for work with hash tables,  Up: Top
@@ -3102,15 +3116,15 @@ Node: Package for allocating memory with fixing some allocation errors2146
 Node: Package for work with variable length objects5222
 Node: Package for work with stacks of objects10198
 Node: Package for work with hash tables16232
-Node: Package for work with source code positions21346
-Node: Package for output of compiler messages25573
-Node: Package for work with command line32632
-Node: Package for work with bit strings39197
-Node: Package for machine-independent arbitrary precision integer arithmetic42477
-Node: Package for machine-independent IEEE floating point arithmetic52537
-Node: Ticker package85062
-Node: Expandable sparse set86750
-Node: Expandable compact sparse set92873
-Node: Earley parser99642
+Node: Package for work with source code positions21604
+Node: Package for output of compiler messages25831
+Node: Package for work with command line32890
+Node: Package for work with bit strings39455
+Node: Package for machine-independent arbitrary precision integer arithmetic42735
+Node: Package for machine-independent IEEE floating point arithmetic52795
+Node: Ticker package85320
+Node: Expandable sparse set87008
+Node: Expandable compact sparse set93131
+Node: Earley parser99900
 
 End Tag Table

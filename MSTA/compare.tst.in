@@ -12014,7 +12014,24 @@ main (int argc, char **argv)
 }
 EOF
 
+echo No Lookahead
+if $GCC -I@srcdir@ -I@srcdir@/../AMMUNITION -L../AMMUNITION test.c -lcocom -o $outfile && time $outfile 0 0 <$TEST; then
+  echo
+else
+  echo Failure with Earley parser
+  exit 1
+fi
+
+echo Static Lookahead
 if $GCC -I@srcdir@ -I@srcdir@/../AMMUNITION -L../AMMUNITION test.c -lcocom -o $outfile && time $outfile 1 0 <$TEST; then
+  echo
+else
+  echo Failure with Earley parser
+  exit 1
+fi
+
+echo Dynamic Lookahead
+if $GCC -I@srcdir@ -I@srcdir@/../AMMUNITION -L../AMMUNITION test.c -lcocom -o $outfile && time $outfile 2 0 <$TEST; then
   echo
 else
   echo Failure with Earley parser

@@ -508,19 +508,33 @@ definitions:
         </verb></tscreen>
         returns current number of elements in given hash table.
 
-     <tag>Function `hash_table_collisions'</tag>
+     <tag>Function `get_searches'</tag>
         <tscreen><verb>
-        `int hash_table_collisions (hash_table_t htab)'
+        `int get_searches (hash_table_t htab)'
         </verb></tscreen>
-        returns number of of percents of fixed collisions during all
-        work with given hash table.
+        returns number of searhces during all work with given hash
+        table.
+ 
+     <tag>Function `get_collisions'</tag>
+        <tscreen><verb>
+        `int get_collisions (hash_table_t htab)'
+        </verb></tscreen>
+        returns number of occurred collisions during all work with
+        given hash table.
+ 
+     <tag>Function `get_all_searches'</tag>
+        <tscreen><verb>
+        `int get_all_searches (void)'
+        </verb></tscreen>
+        returns number of searches during all work with all hash
+        tables.
 
-     <tag>Function `all_hash_table_collisions'</tag>
+     <tag>Function `get_all_collisions'</tag>
         <tscreen><verb>
-        `int all_hash_table_collisions (void)'
+        `int get_all_collisions (void)'
         </verb></tscreen>
-        returns number of of percents of fixed collisions during all
-        work with all hash tables.
+        returns number of occurred collisions during all work with
+        all hash tables.
      </descrip>
 
 <sect>Package for work with source code positions
