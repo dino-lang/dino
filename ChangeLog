@@ -1,3 +1,21 @@
+2015-09-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley.c (jauquet_prime_mod32, hash_shift): New.
+	(symb_repr_hash, term_set_hash, set_core_dists_hash): Use them.
+	(set_term_lookahead_hash, setup_set_core_hash): Ditto.
+	(core_symb_vect_hash, transition_els_hash, reduce_els_hash): Ditto.
+	(parse_state_hash): Ditto.
+	(MAX_CACHED_GOTO_RESULTS): Make it 3.
+	(set_init): Add arg.  Use it to calculate hash tables.
+	(earley_parse_init): Add arg.  Pass it to set_init.  Move tok_init
+	to earley_parse.
+	(earley_parse_fin): Move tok_fin to earley_parse.
+	(n_goto_successes): New.
+	(build_pl): Update it.
+	(earley_parse): Print it.
+	* AMMUNITION/earley.tst.in (2-5): Change expected output.
+	* AMMUNITION/earley++.tst.in (2-5): Change expected output.
+
 2015-09-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/hashtab.c (hash_table_collisions)
