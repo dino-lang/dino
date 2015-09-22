@@ -1,3 +1,16 @@
+2015-09-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley.c (expand_int_vlo, sits_hash): New.
+	(struct sit_dist): New.
+	(first_free_sit_dist_index, sit_dist_vlo, sit_dist_vec_vlo): New.
+	(sit_dist_vec_check_vlo, curr_sit_dist_vec_check): New.
+	(sit_dist_set_init, empty_sit_dist_set, sit_dist_insert): New.
+	(sit_dist_set_fin): New.
+	(set_init): Call sit_dist_set_init.
+	(setup_set_core_hash): Use sits_hash.
+	(set_insert): Rewrite duplication removal.
+	(set_fin): Call sit_dist_set_fin.
+
 2015-09-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/earley.c (jauquet_prime_mod32, hash_shift): New.
