@@ -1,3 +1,41 @@
+2015-09-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley.c (TRANSITIVE_TRANSITION): Add commented
+	definition.
+	(expand_int_vlo): Add code for C++.
+	(struct sit): Move empty_tail_p.  Add sit_check.
+	(sit_create): Initiate sit_check.
+	(empty_sit_dist_set): Add C++ variant of expand_int_vlo call.
+	(curr_sit_check, core_symbol_check_vlo, core_symbols_vlo): New.
+	(core_symbol_queue_vlo): New.
+	(set_init, set_fin): Initiate/ finalize them.
+	(set_insert): Remove code for removing duplicates.
+	(struct core_symb_vect): Add transitive_transitions.
+	(n_transitive_transition_vects, n_transitive_transition_vect_len):
+	New.
+	(transitive_transition_els_tab, vect_els_hash, vect_els_eq): New.
+	({transition, reduce}_els_hash): Use vect_els_hash.
+	({transition, reduce}_els_eq): Use vect_els_eq.
+	(transitive_transition_els_hash, transitive_transition_els_eq):
+	New.
+	(core_symb_vect_init): Create transitive_transition_els_tab.
+	Initiate n_transitive_transition_vects and
+	n_transitive_transition_vect_len.
+	(core_symb_vect_new): Initiate transitive_transitions.
+	(vect_new_add_el): New.
+	(core_symb_vect_new_add_transition_el): Use vect_new_add_el.
+	(core_symb_vect_new_add_reduce_el): Ditto.
+	(core_symb_vect_new_add_transitive_transition_el): New.
+	(process_core_symb_vect_el): New.
+	(core_symb_vect_new_all_stop): Use it.  Add code for
+	transitive_trsansitions too.
+	(core_symb_vect_fin): Delete transitive_transition_els_tab.
+	(collect_core_symbols, form_transitive_transition_vectors): New.
+	(expand_new_start_set): Call form_transitive_transition_vectors.
+	(build_new_set): Add code to use transitive transitions.  Don't
+	create duplications.
+	(earley_parse): Print info about transitive transition vectors.
+
 2015-09-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/earley.c (expand_int_vlo, sits_hash): New.
