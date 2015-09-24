@@ -1,3 +1,9 @@
+2015-09-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley{++}.tst.in (2, 2a, 3, 3a, 3b, 4, 5): Change
+	expected output.
+	(30-32, 34, 39, 42, 43, 46): Ditto.
+
 2015-09-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/earley.c (TRANSITIVE_TRANSITION): Add commented
