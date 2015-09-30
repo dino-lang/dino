@@ -35,7 +35,7 @@ names and tasks):
    <tag>ticker</tag>        timer
    <tag>spset</tag>         Expandable sparse set
    <tag>cspset</tag>        Compact expandable sparse set
-   <tag>earley</tag>        Earley parser
+   <tag>YAEP</tag>          Earley parser
    </descrip>
 
 <sect>Package for allocating memory with fixing some allocation errors
@@ -2425,10 +2425,11 @@ macros:
           `from'.
        </descrip>
 
-<sect>Earley parser
+<sect>YAEP
 <p>
-The package `earley' implements earley parser.  The earley parser
-implementation has the following features:
+YAEP is an abbreviation of Yet Another Earley Parser.  The package
+`YAEP' implements earley parser.  The earley parser implementation has
+the following features:
 
     <itemize>
     <item>It is sufficiently fast and does not require much memory.
@@ -2440,7 +2441,7 @@ implementation has the following features:
       5Mb memory for 10K line C program.
 
     <item>It makes simple syntax directed translation.  So an
-      abstract tree is already the output of Earley parser.
+      abstract tree is already the output of YAEP.
 
     <item>It can parse input described by an ambiguous grammar.  In
       this case the parse result can be an abstract tree or all
@@ -2473,8 +2474,8 @@ implementation has the following features:
       visualization program.
     </itemize>
 
-The interface part of the parser is file `earley.h'.  The
-implementation part is file `earley.c'.  The interface contains the
+The interface part of the parser is file `yaep.h'.  The
+implementation part is file `yaep.c'.  The interface contains the
 following external definitions and macros:
        <descrip>
        <tag>Struct `grammar'</tag>
@@ -2482,25 +2483,25 @@ following external definitions and macros:
           (implementation) of this type is not visible and not needed
           for using the parser.
 
-       <tag>Macro `EARLEY_NIL_TRANSLATION_NUMBER'</tag>
+       <tag>Macro `YAEP_NIL_TRANSLATION_NUMBER'</tag>
           is reserved to be designation of empty node for translation.
 
-       <tag>Macro `EARLEY_NO_MEMORY'</tag>
+       <tag>Macro `YAEP_NO_MEMORY'</tag>
           is error code of the parser.  The parser functions return
           the code when parser can not allocate enough memory for its
           work.
 
-       <tag>Macro `EARLEY_UNDEFINED_OR_BAD_GRAMMAR'</tag>
+       <tag>Macro `YAEP_UNDEFINED_OR_BAD_GRAMMAR'</tag>
           is error code of the parser.  The parser functions return
           the code when we call parsing without defining grammar or
           call parsing for bad defined grammar.
 
-       <tag>Macro `EARLEY_DESCRIPTION_SYNTAX_ERROR_CODE'</tag>
+       <tag>Macro `YAEP_DESCRIPTION_SYNTAX_ERROR_CODE'</tag>
           is error code of the parser.  The code is returned when the
           grammar is defined by description and there is syntax error
           in the description.
 
-       <tag>Macro `EARLEY_FIXED_NAME_USAGE'</tag>
+       <tag>Macro `YAEP_FIXED_NAME_USAGE'</tag>
           is error code of the parser.  The code is returned when the
           grammar uses reserved names for terminals and nonterminals.
           There are two reserved names `$S' (for axiom) and `$eof' for
@@ -2508,92 +2509,92 @@ following external definitions and macros:
           symbols and rules with these symbols to the grammar given by
           user.  So user should not use these names in his grammar.
 
-       <tag>Macro `EARLEY_REPEATED_TERM_DECL'</tag>
+       <tag>Macro `YAEP_REPEATED_TERM_DECL'</tag>
           is error code of the parser.  The code is returned when the
           grammar contains several declarations of terminals with the
           same name.
 
-       <tag>Macro `EARLEY_NEGATIVE_TERM_CODE'</tag>
+       <tag>Macro `YAEP_NEGATIVE_TERM_CODE'</tag>
           is error code of the parser.  The code is returned when the
           grammar terminal is described with negative code.
 
-       <tag>Macro `EARLEY_REPEATED_TERM_CODE'</tag>
+       <tag>Macro `YAEP_REPEATED_TERM_CODE'</tag>
           is error code of the parser.  The code is returned when the
           two or more grammar terminals are described with the same
           code.
 
-       <tag>Macro `EARLEY_NO_RULES'</tag>
+       <tag>Macro `YAEP_NO_RULES'</tag>
           is error code of the parser.  The code is returned when the
           grammar given by user has no rules.
 
-       <tag>Macro `EARLEY_TERM_IN_RULE_LHS'</tag>
+       <tag>Macro `YAEP_TERM_IN_RULE_LHS'</tag>
           is error code of the parser.  The code is returned when
           grammar rule given by user contains terminal in left hand
           side of the rule.
 
-       <tag>Macro `EARLEY_INCORRECT_TRANSLATION'</tag>
+       <tag>Macro `YAEP_INCORRECT_TRANSLATION'</tag>
           is error code of the parser.  The code is returned when
           grammar rule translation is not correct.  The single reason
           for this is translation of the rule consists of translations
           of more one symbols in the right hand side of the rule
           without forming an abstract tree node.
 
-       <tag>Macro `EARLEY_NEGATIVE COST'</tag>
+       <tag>Macro `YAEP_NEGATIVE COST'</tag>
           is error code of the parser.  The code is returned when
           abstract node has a negative cost.
 
-       <tag>Macro `EARLEY_INCORRECT_SYMBOL_NUMBER'</tag>
+       <tag>Macro `YAEP_INCORRECT_SYMBOL_NUMBER'</tag>
           is error code of the parser.  The code is returned when
           grammar rule translation contains incorrect symbol number
           which should be nonnegative number less than rule right hand
           side length.
 
-       <tag>Macro `EARLEY_UNACCESSIBLE_NONTERM'</tag>
+       <tag>Macro `YAEP_UNACCESSIBLE_NONTERM'</tag>
           is error code of the parser.  The code is returned when
           there is grammar nonterminal which can not be derived from
           axiom.
 
-       <tag>Macro `EARLEY_NONTERM_DERIVATION'</tag>
+       <tag>Macro `YAEP_NONTERM_DERIVATION'</tag>
           is error code of the parser.  The code is returned when
           there is grammar nonterminal which can not derive a terminal
           string.
 
-       <tag>Macro `EARLEY_LOOP_NONTERM'</tag>
+       <tag>Macro `YAEP_LOOP_NONTERM'</tag>
           is error code of the parser.  The code is returned when
           there is grammar nonterminal which can derive only itself.
           The parser does not work with such grammars.
 
-       <tag>Macro `EARLEY_INVALID_TOKEN_CODE'</tag>
+       <tag>Macro `YAEP_INVALID_TOKEN_CODE'</tag>
           is error code of the parser.  The code is returned when the
           parser got input token whose code is different from all
           grammar terminal codes.
 
-       <tag>Enumeration `earley_tree_node_type'</tag>
+       <tag>Enumeration `yaep_tree_node_type'</tag>
           describes all possible nodes of abstract tree representing
           the translation.  There are the following enumeration
           constants:
             <descrip>
-            <tag>`EARLEY_NIL'</tag>
+            <tag>`YAEP_NIL'</tag>
                the corresponding node represents empty translations.
 
-            <tag>`EARLEY_ERROR'</tag>
+            <tag>`YAEP_ERROR'</tag>
                the corresponding node represents translation of
                special terminal `error' (see error recovery).
 
-	    <tag>`EARLEY_TERM'</tag>
+	    <tag>`YAEP_TERM'</tag>
                the corresponding node represents translation of
                a terminal.
 
-	    <tag>`EARLEY_ANODE'</tag>
+	    <tag>`YAEP_ANODE'</tag>
                the corresponding node represents an abstract node.
 
-	    <tag>`EARLEY_ALT'</tag>
+	    <tag>`YAEP_ALT'</tag>
                the corresponding node represents an alternative of the
                translation.  Such nodes creates only when there are
                two or more possible translations.  It means that the
                grammar is ambiguous.
             </descrip>
-       <tag>Structure `earley_tree_node'</tag>
+       <tag>Structure `yaep_tree_node'</tag>
           represents node of the translation.  The nodes refer for
           each other forming DAG (direct acyclic graph) in general
           case.  The main reason of generating DAG is that some input
@@ -2605,7 +2606,7 @@ following external definitions and macros:
           created, the translation nodes forms a tree.  This structure
           has the following members:
             <descrip>
-            <tag>Member `type' of type `enum earley_tree_node_type'</tag>
+            <tag>Member `type' of type `enum yaep_tree_node_type'</tag>
                representing type of the translation node.
 
             <tag>Union `val'</tag>
@@ -2614,16 +2615,16 @@ following external definitions and macros:
                `alt' of the structure types described below is used to
                represent the translation node.
             </descrip>
-       <tag>Structure `earley_nil'</tag>
+       <tag>Structure `yaep_nil'</tag>
           represents empty node.  It has no members.  Actually the
           translation is DAG (not tree) in general case.  The empty
           and error nodes are present only in one exemplar.
 
-       <tag>Structure `earley_error'</tag>
+       <tag>Structure `yaep_error'</tag>
           represents translation of special terminal `error'.  It has
           no members.  The error node exists only in one exemplar.
 
-       <tag>Structure `earley_term'</tag>
+       <tag>Structure `yaep_term'</tag>
           represents translation of terminals.  It has
           the following two members:
             <descrip>
@@ -2634,7 +2635,7 @@ following external definitions and macros:
                is reference for the attribute of the corresponding
                terminal.
             </descrip>
-       <tag>Structure `earley_anode'</tag>
+       <tag>Structure `yaep_anode'</tag>
           represents abstract node.  It has the following two members:
             <descrip>
             <tag>Member `name' of type `const char *'</tag>
@@ -2646,54 +2647,54 @@ following external definitions and macros:
                children if the cost flag is set up.  Otherwise, the
                value is cost of the abstract node itself.
 
-            <tag>Member `children' of type `struct earley_tree_node **'</tag>
+            <tag>Member `children' of type `struct yaep_tree_node **'</tag>
                is array of nodes representing the translations of the
                symbols given in the rule with the abstract node.
             </descrip>
-       <tag>Structure `earley_alt'</tag>
+       <tag>Structure `yaep_alt'</tag>
           represents an alternative of the translation.  It has the
           following two members:
             <descrip>
-            <tag>Member `node' of type `struct earley_tree_node *'</tag>
+            <tag>Member `node' of type `struct yaep_tree_node *'</tag>
                representing alternative translation.
 
-            <tag>Member `next' of type `struct earley_tree_node *'</tag>
+            <tag>Member `next' of type `struct yaep_tree_node *'</tag>
                is reference for the next alternative of translation.
             </descrip>
-       <tag>Function `earley_create_grammar'</tag>
+       <tag>Function `yaep_create_grammar'</tag>
           <tscreen><verb>
-          `struct grammar *earley_create_grammar (void)'
+          `struct grammar *yaep_create_grammar (void)'
           </verb></tscreen>
-          should be called the first.  It actually creates an earley
+          should be called the first.  It actually creates an yaep
           parser with undefined grammar.  You can use two or more
           parsers simultaneously.  The function returns `NULL' if
           there is no memory.
 
-       <tag>Function `earley_error_code'</tag>
+       <tag>Function `yaep_error_code'</tag>
           <tscreen><verb>
-          `int earley_error_code (struct grammar *g)'
+          `int yaep_error_code (struct grammar *g)'
           </verb></tscreen>
           returns the last occurred error code (see the possible error
           codes above) for given parser.  If the function returns
           zero, no error was found so far.
 
-       <tag>Function `earley_error_message'</tag>
+       <tag>Function `yaep_error_message'</tag>
           <tscreen><verb>
-          `const char *earley_error_message (struct grammar *g)'
+          `const char *yaep_error_message (struct grammar *g)'
           </verb></tscreen>
           returns detail message about last occurred error.  The
           message always corresponds to the last error code returned
           the previous function.
 
-       <tag>Function `earley_read_grammar'</tag>
+       <tag>Function `yaep_read_grammar'</tag>
           <tscreen><verb>
-          `int earley_read_grammar (struct grammar *g, int strict_p,
-                		    const char *(*read_terminal) (int *code),
-		                    const char *(*read_rule)
-                                                  (const char ***rhs,
-					           const char **abs_node,
-                                                   int *anode_cost,
-					           int **transl))'
+          `int yaep_read_grammar (struct grammar *g, int strict_p,
+                		  const char *(*read_terminal) (int *code),
+		                  const char *(*read_rule)
+                                                (const char ***rhs,
+				                 const char **abs_node,
+                                                 int *anode_cost,
+				                 int **transl))'
           </verb></tscreen>
           is one of two functions which tunes the parser to given
           grammar.  The grammar is read with the aid functions given
@@ -2721,7 +2722,7 @@ following external definitions and macros:
           be represented twice).  The end marker of the array should
           be a negative value.  There is a reserved value of the
           translation symbol number denoting empty node.  It is value
-          defined by macro `EARLEY_NIL_TRANSLATION_NUMBER'.  If
+          defined by macro `YAEP_NIL_TRANSLATION_NUMBER'.  If
           parameter `transl' is `NULL' or contains only the end
           marker, translations of the rule will be empty node.  If
           `abs_node' is `NULL', abstract node is not created.  In this
@@ -2745,10 +2746,10 @@ following external definitions and macros:
           The function returns zero if it is all ok.  Otherwise, the
           function returns the error code occured.
 
-       <tag>Function `earley_parse_grammar'</tag>
+       <tag>Function `yaep_parse_grammar'</tag>
           <tscreen><verb>
-          `int earley_parse_grammar (struct grammar *g, int strict_p,
-	                             const char *description)'
+          `int yaep_parse_grammar (struct grammar *g, int strict_p,
+	                           const char *description)'
           </verb></tscreen>
           is another function which tunes the parser to given grammar.
           The grammar is given by string `description'.  The
@@ -2813,10 +2814,10 @@ following external definitions and macros:
           There is reserved terminal `error' which is used to mark
           start point of error recovery.
 
-       <tag>Function `earley_set_lookahead_level'</tag>
+       <tag>Function `yaep_set_lookahead_level'</tag>
           <tscreen><verb>
-          `int earley_set_lookahead_level (struct grammar *grammar,
-                                           int level)'
+          `int yaep_set_lookahead_level (struct grammar *grammar,
+                                         int level)'
           </verb></tscreen>
           sets up level of usage of look ahead in parser work.  Value
           zero means no usage of lookaheads at all.  Lookahead with
@@ -2831,10 +2832,10 @@ following external definitions and macros:
           value is negative, zero is used instead of it.  If the value
           is greater than two, two is used in this case.
 
-       <tag>Function `earley_set_debug_level'</tag>
+       <tag>Function `yaep_set_debug_level'</tag>
           <tscreen><verb>
-          `int earley_set_debug_level (struct grammar *grammar,
-                                       int level)'
+          `int yaep_set_debug_level (struct grammar *grammar,
+                                     int level)'
           </verb></tscreen>
           sets up level of debugging information output to `stderr'.
           The more level, the more information is output.  The default
@@ -2846,10 +2847,10 @@ following external definitions and macros:
           translation for program `dot' of graphic visualization
           package `graphviz'.
 
-       <tag>Function `earley_set_one_parse_flag'</tag>
+       <tag>Function `yaep_set_one_parse_flag'</tag>
           <tscreen><verb>
-          `int earley_set_one_parse_flag (struct grammar *grammar,
-                                          int flag)'
+          `int yaep_set_one_parse_flag (struct grammar *grammar,
+                                        int flag)'
           </verb></tscreen>
           sets up building only one translation tree (parameter value
           0) or all parse trees for ambiguous grammar for which
@@ -2857,9 +2858,9 @@ following external definitions and macros:
           flag does not affect the result.  The default value is 1.
           The function returns the previously used flag value.
 
-       <tag>Function `earley_set_cost_flag'</tag>
+       <tag>Function `yaep_set_cost_flag'</tag>
           <tscreen><verb>
-          `int earley_set_cost_flag (struct grammar *grammar, int flag)'
+          `int yaep_set_cost_flag (struct grammar *grammar, int flag)'
           </verb></tscreen>
           sets up building only translation tree (trees if we set up
           one_parse_flag to 0) with minimal cost.  For unambiguous
@@ -2867,46 +2868,46 @@ following external definitions and macros:
           value is 0.  The function returns the previously used flag
           value.
 
-       <tag>Function `earley_set_error_recovery_flag'</tag>
+       <tag>Function `yaep_set_error_recovery_flag'</tag>
           <tscreen><verb>
-          `int earley_set_error_recovery_flag (struct grammar *grammar,
-                                               int flag)'
+          `int yaep_set_error_recovery_flag (struct grammar *grammar,
+                                             int flag)'
           </verb></tscreen>
           sets up internal flag whose nonzero value means making error
           recovery if syntax error occurred.  Otherwise, syntax error
           results in finishing parsing (although function
-          `syntax_error' in function `earley_parse' will be called
+          `syntax_error' in function `yaep_parse' will be called
           once).  The default value is 1. The function returns the
           previously used flag value.
 
-       <tag>Function `earley_set_recovery_match'</tag>
+       <tag>Function `yaep_set_recovery_match'</tag>
           <tscreen><verb>
-          `int earley_set_recovery_match (struct grammar *grammar,
-                                          int n_toks)'
+          `int yaep_set_recovery_match (struct grammar *grammar,
+                                        int n_toks)'
           </verb></tscreen>
           sets up recovery parameter which means how much subsequent
           tokens should be successfully shifted to finish error
           recovery.  The default value is 3.  The function returns the
           previously used flag value.
 
-       <tag>Function `earley_parse'</tag>
+       <tag>Function `yaep_parse'</tag>
           <tscreen><verb>
-          `int earley_parse (struct grammar *grammar,
-   		 	     int (*read_token) (void **attr),
-			     void (*syntax_error)
-                                  (int err_tok_num, void *err_tok_attr,
-			           int start_ignored_tok_num,
-	                           void *start_ignored_tok_attr,
-		                   int start_recovered_tok_num,
-			           void *start_recovered_tok_attr),
-			     void *(*parse_alloc) (int nmemb),
-			     void (*parse_free) (void *mem),
-			     struct earley_tree_node **root,
-			     int *ambiguous_p)'
+          `int yaep_parse (struct grammar *grammar,
+   		 	   int (*read_token) (void **attr),
+			   void (*syntax_error)
+                                (int err_tok_num, void *err_tok_attr,
+			         int start_ignored_tok_num,
+	                         void *start_ignored_tok_attr,
+		                 int start_recovered_tok_num,
+			         void *start_recovered_tok_attr),
+			   void *(*parse_alloc) (int nmemb),
+			   void (*parse_free) (void *mem),
+			   struct yaep_tree_node **root,
+			   int *ambiguous_p)'
           </verb></tscreen>
 	  is major parser function.  It parses input according the
           grammar.  The function returns the error code (which can be
-          also returned by `earley_error_code').  If the code is
+          also returned by `yaep_error_code').  If the code is
           zero, the function will also return root of the parse tree
           through parameter `root'.  The tree representing the
           translation.  Value passed through `root' will be `NULL'
@@ -2929,27 +2930,27 @@ following external definitions and macros:
           which was not ignored is described by the last parameters.
           If the number of ignored tokens is zero, the all parameters
           describes the same token.  If the error recovery is switched
-          off (see comments for `earley_set_error_recovery_flag'), the
+          off (see comments for `yaep_set_error_recovery_flag'), the
           third and the fifth parameters will be negative and the
           forth and the sixth parameters will be `NULL'.
  
-          Function `parse_alloc' is used by Earley parser to allocate
+          Function `parse_alloc' is used by YAEP to allocate
           memory for parse tree representation (translation).  After
-          calling `earley_free_grammar' we free all memory allocated
+          calling `yaep_free_grammar' we free all memory allocated
           for the parser.  At this point it is convenient to free all
           memory but parse tree.  Therefore we require the following
           function.  So the caller will be responsible to allocate and
           free memory for parse tree representation (translation).
           But the caller should not free the memory until
-          `earley_free_grammar' is called for the parser.  The
+          `yaep_free_grammar' is called for the parser.  The
           function may be called even during reading the grammar not
           only during the parsing.  Function `parse_free' is used by
           the parser to free memory allocated by `parse_alloc'.  If it
           is `NULL', the memory is not freed.
 
-       <tag>Function `earley_free_grammar'</tag>
+       <tag>Function `yaep_free_grammar'</tag>
           <tscreen><verb>
-          `void earley_free_grammar (struct grammar *grammar)'
+          `void yaep_free_grammar (struct grammar *grammar)'
           </verb></tscreen>
           frees all memory allocated for the parser.  This function
           should be called the last for given parser.

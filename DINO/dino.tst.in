@@ -23333,17 +23333,17 @@ TEST428
         if $DINO $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT428' && $CMP $stdout $ftemp2; then
-plus(
-  $term(97, 0)
-  mult(
+mult(
+  plus(
+    $term(97, 0)
     $term(97, 2)
-    plus(
-      mult(
-        $term(97, 5)
-        $term(97, 7)
-      )
-      $term(97, 9)
+  )
+  plus(
+    mult(
+      $term(97, 5)
+      $term(97, 7)
     )
+    $term(97, 9)
   )
 )
 OUTPUT428
@@ -23419,28 +23419,6 @@ TEST429
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT429' && $CMP $stdout $ftemp2; then
 $alt(
-  mult(
-    plus(
-      $term(97, 0)
-      $term(97, 2)
-    )
-    $alt(
-      mult(
-        $term(97, 5)
-        plus(
-          $term(97, 7)
-          $term(97, 9)
-        )
-      )
-      plus(
-        mult(
-          $term(97, 5)
-          $term(97, 7)
-        )
-        $term(97, 9)
-      )
-    )
-  )
   plus(
     $term(97, 0)
     mult(
@@ -23460,6 +23438,28 @@ $alt(
           )
           $term(97, 9)
         )
+      )
+    )
+  )
+  mult(
+    plus(
+      $term(97, 0)
+      $term(97, 2)
+    )
+    $alt(
+      mult(
+        $term(97, 5)
+        plus(
+          $term(97, 7)
+          $term(97, 9)
+        )
+      )
+      plus(
+        mult(
+          $term(97, 5)
+          $term(97, 7)
+        )
+        $term(97, 9)
       )
     )
   )
@@ -23612,12 +23612,12 @@ TEST431
                 echo '      ' $CMP - $stdout
                 if cat >$ftemp2 <<'OUTPUT431' && $CMP $stdout $ftemp2; then
 syntax error on token #5 (42) -- ignore 4 tokens starting with token #5
-plus(
-  $term(97, 0)
-  mult(
+mult(
+  plus(
+    $term(97, 0)
     $term(97, 2)
-    $error
   )
+  $error
 )
 OUTPUT431
                         result=ok
@@ -23694,19 +23694,19 @@ TEST432
                 if cat >$ftemp2 <<'OUTPUT432' && $CMP $stdout $ftemp2; then
 syntax error on token #5 (42) -- ignore 4 tokens starting with token #5
 $alt(
-  mult(
-    plus(
-      $term(97, 0)
-      $term(97, 2)
-    )
-    $error
-  )
   plus(
     $term(97, 0)
     mult(
       $term(97, 2)
       $error
     )
+  )
+  mult(
+    plus(
+      $term(97, 0)
+      $term(97, 2)
+    )
+    $error
   )
 )
 OUTPUT432
@@ -23960,35 +23960,6 @@ TEST435
                 if cat >$ftemp2 <<'OUTPUT435' && $CMP $stdout $ftemp2; then
 $alt(
   plus(
-    $alt(
-      mult(
-        plus(
-          $term(97, 0)
-          $term(98, 2)
-        )
-        $term(99, 4)
-      )
-      plus(
-        $term(97, 0)
-        mult(
-          $term(98, 2)
-          $term(99, 4)
-        )
-      )
-    )
-    $term(100, 6)
-  )
-  mult(
-    plus(
-      $term(97, 0)
-      $term(98, 2)
-    )
-    plus(
-      $term(99, 4)
-      $term(100, 6)
-    )
-  )
-  plus(
     $term(97, 0)
     $alt(
       mult(
@@ -24006,6 +23977,35 @@ $alt(
         $term(100, 6)
       )
     )
+  )
+  mult(
+    plus(
+      $term(97, 0)
+      $term(98, 2)
+    )
+    plus(
+      $term(99, 4)
+      $term(100, 6)
+    )
+  )
+  plus(
+    $alt(
+      plus(
+        $term(97, 0)
+        mult(
+          $term(98, 2)
+          $term(99, 4)
+        )
+      )
+      mult(
+        plus(
+          $term(97, 0)
+          $term(98, 2)
+        )
+        $term(99, 4)
+      )
+    )
+    $term(100, 6)
   )
 )
 OUTPUT435
@@ -24130,19 +24130,19 @@ $alt(
   )
   plus(
     $alt(
-      mult(
-        plus(
-          $term(97, 0)
-          $term(98, 2)
-        )
-        $term(99, 4)
-      )
       plus(
         $term(97, 0)
         mult(
           $term(98, 2)
           $term(99, 4)
         )
+      )
+      mult(
+        plus(
+          $term(97, 0)
+          $term(98, 2)
+        )
+        $term(99, 4)
       )
     )
     $term(97, 6)
@@ -24181,19 +24181,19 @@ $alt(
   )
   plus(
     $alt(
-      mult(
-        plus(
-          $term(97, 0)
-          $term(98, 2)
-        )
-        $term(99, 4)
-      )
       plus(
         $term(97, 0)
         mult(
           $term(98, 2)
           $term(99, 4)
         )
+      )
+      mult(
+        plus(
+          $term(97, 0)
+          $term(98, 2)
+        )
+        $term(99, 4)
       )
     )
     $term(97, 6)

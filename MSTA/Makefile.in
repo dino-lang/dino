@@ -369,8 +369,8 @@ ird.o: ird.c ird.h ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/MSTA/common.h ird.h
 	$(CC) -c $(CFLAGS) -o $@ ird.c
-common.o: $(top_srcdir)/MSTA/../MSTA/common.c ird.h \
- ../AMMUNITION/cocom-config.h \
+common.o: $(top_srcdir)/MSTA/../MSTA/common.c \
+ ird.h ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/objstack.h \
@@ -415,7 +415,8 @@ anal.o: $(top_srcdir)/MSTA/../MSTA/anal.c \
  $(top_srcdir)/MSTA/../MSTA/tab.h \
  $(top_srcdir)/MSTA/../MSTA/anal.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/anal.c
-gen-comm.o: $(top_srcdir)/MSTA/../MSTA/gen-comm.c \
+gen-comm.o: \
+ $(top_srcdir)/MSTA/../MSTA/gen-comm.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/hashtab.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -438,7 +439,8 @@ output.o: $(top_srcdir)/MSTA/../MSTA/output.c \
  $(top_srcdir)/AMMUNITION/objstack.h \
  $(top_srcdir)/MSTA/../MSTA/output.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/output.c
-contexts.o: $(top_srcdir)/MSTA/../MSTA/contexts.c \
+contexts.o: \
+ $(top_srcdir)/MSTA/../MSTA/contexts.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/bits.h \
  $(top_srcdir)/AMMUNITION/hashtab.h \
@@ -450,7 +452,8 @@ contexts.o: $(top_srcdir)/MSTA/../MSTA/contexts.c \
  $(top_srcdir)/MSTA/../MSTA/output.h \
  $(top_srcdir)/MSTA/../MSTA/contexts.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/contexts.c
-relation.o: $(top_srcdir)/MSTA/../MSTA/relation.c \
+relation.o: \
+ $(top_srcdir)/MSTA/../MSTA/relation.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
@@ -460,7 +463,8 @@ relation.o: $(top_srcdir)/MSTA/../MSTA/relation.c \
  $(top_srcdir)/MSTA/../MSTA/contexts.h \
  $(top_srcdir)/MSTA/../MSTA/relation.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/relation.c
-lr-sets.o: $(top_srcdir)/MSTA/../MSTA/lr-sets.c \
+lr-sets.o: \
+ $(top_srcdir)/MSTA/../MSTA/lr-sets.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/hashtab.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -485,10 +489,10 @@ lr.o: $(top_srcdir)/MSTA/../MSTA/lr.c \
  $(top_srcdir)/MSTA/../MSTA/contexts.h \
  $(top_srcdir)/MSTA/../MSTA/relation.h \
  $(top_srcdir)/MSTA/../MSTA/lr-sets.h \
- $(top_srcdir)/MSTA/../MSTA/lr.h \
- $(top_srcdir)/MSTA/../MSTA/output.h
+ $(top_srcdir)/MSTA/../MSTA/lr.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/lr.c
-regular.o: $(top_srcdir)/MSTA/../MSTA/regular.c \
+regular.o: \
+ $(top_srcdir)/MSTA/../MSTA/regular.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/position.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
@@ -502,7 +506,8 @@ regular.o: $(top_srcdir)/MSTA/../MSTA/regular.c \
  $(top_srcdir)/MSTA/../MSTA/lr-sets.h \
  $(top_srcdir)/MSTA/../MSTA/regular.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/regular.c
-la-trie.o: $(top_srcdir)/MSTA/../MSTA/la-trie.c \
+la-trie.o: \
+ $(top_srcdir)/MSTA/../MSTA/la-trie.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
@@ -514,7 +519,8 @@ la-trie.o: $(top_srcdir)/MSTA/../MSTA/la-trie.c \
  $(top_srcdir)/MSTA/../MSTA/gen-comm.h \
  $(top_srcdir)/MSTA/../MSTA/la-trie.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/MSTA/../MSTA/la-trie.c
-descript.o: $(top_srcdir)/MSTA/../MSTA/descript.c \
+descript.o: \
+ $(top_srcdir)/MSTA/../MSTA/descript.c \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/vlobject.h \
  $(top_srcdir)/AMMUNITION/allocate.h \

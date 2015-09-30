@@ -5461,9 +5461,9 @@ finish_funcs (void)
 
 
 
-#include "earley.h"
+#include "yaep.h"
 
-/* This page contains interface to earley parser.  See file
+/* This page contains interface to YAEP (Yet Another Earley parser).  See file
    `d_ir.sprut' for details in interface. */
 
 /* The following function implements function set_grammar in class
@@ -5495,13 +5495,13 @@ int_earley_parse_grammar (int npars)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
   g = (struct grammar *) ER_hide (par1);
-  code = earley_parse_grammar (g, ER_i (par2), ER_pack_els (ER_vect (par3)));
-  if (code == EARLEY_NO_MEMORY)
+  code = yaep_parse_grammar (g, ER_i (par2), ER_pack_els (ER_vect (par3)));
+  if (code == YAEP_NO_MEMORY)
     eval_error (pmemory_bc_decl, get_pos (real_fun_call_pc),
 		"run time error (%s) -- no parser memory", name);
   else if (code != 0)
     eval_error (invgrammar_bc_decl, get_pos (real_fun_call_pc),
-		"run time error (%s) -- %s", name, earley_error_message (g));
+		"run time error (%s) -- %s", name, yaep_error_message (g));
   /* Returned value should be ignored. */
   ER_SET_MODE (fun_result, ER_NM_undef);
 }
@@ -5522,8 +5522,7 @@ int_earley_set_debug_level (int npars)
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
-  i = earley_set_debug_level ((struct grammar *) ER_hide (par1),
-			      ER_i (par2));
+  i = yaep_set_debug_level ((struct grammar *) ER_hide (par1), ER_i (par2));
   ER_SET_MODE (fun_result, ER_NM_int);
   ER_set_i (fun_result, i);
 }
@@ -5544,8 +5543,7 @@ int_earley_set_one_parse_flag (int npars)
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
-  i = earley_set_one_parse_flag ((struct grammar *) ER_hide (par1),
-				 ER_i (par2));
+  i = yaep_set_one_parse_flag ((struct grammar *) ER_hide (par1), ER_i (par2));
   ER_SET_MODE (fun_result, ER_NM_int);
   ER_set_i (fun_result, i);
 }
@@ -5567,8 +5565,7 @@ int_earley_set_lookahead_level (int npars)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
   i = ER_i (par2);
-  i = earley_set_lookahead_level ((struct grammar *) ER_hide (par1),
-				  i ? 1 : 0);
+  i = yaep_set_lookahead_level ((struct grammar *) ER_hide (par1), i ? 1 : 0);
   ER_SET_MODE (fun_result, ER_NM_int);
   ER_set_i (fun_result, i);
 }
@@ -5589,7 +5586,7 @@ int_earley_set_cost_flag (int npars)
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
-  i = earley_set_cost_flag ((struct grammar *) ER_hide (par1), ER_i (par2));
+  i = yaep_set_cost_flag ((struct grammar *) ER_hide (par1), ER_i (par2));
   ER_SET_MODE (fun_result, ER_NM_int);
   ER_set_i (fun_result, i);
 }
@@ -5610,9 +5607,8 @@ int_earley_set_error_recovery_flag (int npars)
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
-  i = earley_set_error_recovery_flag ((struct grammar *)
-				      ER_hide (par1),
-				      ER_i (par2));
+  i = yaep_set_error_recovery_flag ((struct grammar *) ER_hide (par1),
+				    ER_i (par2));
   ER_SET_MODE (fun_result, ER_NM_int);
   ER_set_i (fun_result, i);
 }
@@ -5633,8 +5629,7 @@ int_earley_set_recovery_match (int npars)
   if (ER_NODE_MODE (par2) != ER_NM_int)
     eval_error (partype_bc_decl, get_pos (real_fun_call_pc),
 		DERR_parameter_type, name);
-  i = earley_set_recovery_match ((struct grammar *) ER_hide (par1),
-				 ER_i (par2));
+  i = yaep_set_recovery_match ((struct grammar *) ER_hide (par1), ER_i (par2));
   ER_SET_MODE (fun_result, ER_NM_int);
   ER_set_i (fun_result, i);
 }
@@ -5648,7 +5643,7 @@ static os_t tree_mem_os;
 static ER_node_t tokens_vect;
 static size_t curr_token;
 
-/* The following function produces token to earley_parse. */
+/* The following function produces token to yaep_parse. */
 static int
 init_read_token (void **attr)
 {
@@ -5741,7 +5736,7 @@ init_syntax_token (int err_tok_num, void *err_tok_attr,
 
 struct tree_heap_node
 {
-  struct earley_tree_node *tree_node;
+  struct yaep_tree_node *tree_node;
   ER_node_t heap_node;
 };
 
@@ -5770,11 +5765,11 @@ tree_heap_node_eq (hash_table_entry_t n1, hash_table_entry_t n2)
 /* The following function places abstract tree into heap and returns
    the result. */
 static ER_node_t
-tree_to_heap (struct earley_tree_node *root)
+tree_to_heap (struct yaep_tree_node *root)
 {
   hash_table_entry_t *entry;
   ER_node_t var, res, vect, name_vect;
-  struct earley_tree_node *node, *alt;
+  struct yaep_tree_node *node, *alt;
   struct tree_heap_node *tree_heap_node;
   int i;
 
@@ -5787,16 +5782,16 @@ tree_to_heap (struct earley_tree_node *root)
   ER_SET_MODE (ctop, ER_NM_vect);
   switch (root->type)
     {
-    case EARLEY_NIL:
-    case EARLEY_ERROR:
+    case YAEP_NIL:
+    case YAEP_ERROR:
       var = IVAL (ER_stack_vars (uppest_stack),
-		  BC_var_num (root->type == EARLEY_NIL
+		  BC_var_num (root->type == YAEP_NIL
 			      ? nil_anode_bc_decl : error_anode_bc_decl));
       d_assert (ER_NODE_MODE (var) == ER_NM_stack);
       res = ER_stack (var);
       DECR_CTOP (1);
       break;
-    case EARLEY_TERM:
+    case YAEP_TERM:
       name_vect = create_string ("$term");
       set_vect_dim (ctop, name_vect, 0);
       TOP_UP;
@@ -5808,7 +5803,7 @@ tree_to_heap (struct earley_tree_node *root)
       res = create_class_stack (anode_bc_decl, uppest_stack,
 				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
-    case EARLEY_ANODE:
+    case YAEP_ANODE:
       name_vect = create_string (root->val.anode.name);
       set_vect_dim (ctop, name_vect, 0);
       for (i = 0; root->val.anode.children [i] != NULL; i++)
@@ -5823,7 +5818,7 @@ tree_to_heap (struct earley_tree_node *root)
       res = create_class_stack (anode_bc_decl, uppest_stack,
 				(val_t *) IVAL (ctop, 1), 2, TRUE);
       break;
-    case EARLEY_ALT:
+    case YAEP_ALT:
       name_vect = create_string ("$alt");
       set_vect_dim (ctop, name_vect, 0);
       for (i = 0, alt = root; alt != NULL; alt = alt->val.alt.next, i++)
@@ -5847,13 +5842,13 @@ tree_to_heap (struct earley_tree_node *root)
   OS_TOP_FINISH (tree_mem_os);
   tree_heap_node->tree_node = root;
   tree_heap_node->heap_node = res;
-  if (root->type == EARLEY_ANODE)
+  if (root->type == YAEP_ANODE)
     {
       for (i = 0; (node = root->val.anode.children [i]) != NULL; i++)
 	((ER_node_t *) ER_pack_els (vect)) [i] = tree_to_heap (node);
       ER_set_els_number (vect, i);
     }
-  else if (root->type == EARLEY_ALT)
+  else if (root->type == YAEP_ALT)
     {
       for (i = 0, alt = root; alt != NULL; alt = alt->val.alt.next, i++)
 	((ER_node_t *) ER_pack_els (vect)) [i]
@@ -5882,7 +5877,7 @@ int_earley_parse (int npars)
 {
   struct grammar *g;
   int code, ambiguous_p;
-  struct earley_tree_node *root;
+  struct yaep_tree_node *root;
   ER_node_t par1, par2, par3, v;
   ER_node_t instance, var;
   const char *name = "parse";
@@ -5920,28 +5915,28 @@ int_earley_parse (int npars)
 				     * sizeof (struct tree_heap_node *),
 				     tree_heap_node_hash, tree_heap_node_eq);
   /* We need it because init_syntax_token may change it. */
-  code = earley_parse (g, init_read_token, init_syntax_token,
-		       int_parse_alloc, NULL, &root, &ambiguous_p);
-  if (code == EARLEY_NO_MEMORY)
+  code = yaep_parse (g, init_read_token, init_syntax_token,
+		     int_parse_alloc, NULL, &root, &ambiguous_p);
+  if (code == YAEP_NO_MEMORY)
     {
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
       eval_error (pmemory_bc_decl, get_pos (real_fun_call_pc),
 		  "run time error (%s) -- no parser memory", name);
     }
-  else if (code == EARLEY_UNDEFINED_OR_BAD_GRAMMAR)
+  else if (code == YAEP_UNDEFINED_OR_BAD_GRAMMAR)
     {
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
       eval_error (invgrammar_bc_decl, get_pos (real_fun_call_pc),
-		  "run time error (%s) -- %s", name, earley_error_message (g));
+		  "run time error (%s) -- %s", name, yaep_error_message (g));
     }
-  else if (code == EARLEY_INVALID_TOKEN_CODE)
+  else if (code == YAEP_INVALID_TOKEN_CODE)
     {
       delete_hash_table (tree_heap_tab);
       OS_DELETE (tree_mem_os);
       eval_error (invtoken_bc_decl, get_pos (real_fun_call_pc),
-		  "run time error (%s) -- %s", name, earley_error_message (g));
+		  "run time error (%s) -- %s", name, yaep_error_message (g));
     }
   else
     d_assert (code == 0);
@@ -5974,7 +5969,7 @@ int_earley_create_grammar (int npars)
   struct grammar *g;
 
   d_assert (npars == 0);
-  g = earley_create_grammar ();
+  g = yaep_create_grammar ();
   if (g == NULL)
     eval_error (pmemory_bc_decl, get_pos (real_fun_call_pc),
 		"run time error (parser) -- no parser memory");

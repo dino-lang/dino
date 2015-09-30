@@ -1,3 +1,35 @@
+2015-09-30  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* configure.in: Change earley to yeap.
+	* configure: Update.
+	* AMMUNITION/earley{.h, .c, .ccp, .tst.in, ++.tst.in}: Rename to
+	yaep{.h, .c, .ccp, .tst.in, ++.tst.in}.  Change earley to yeap.
+	* AMMUNITION/sgramm.y: Change earley to yeap.
+	* AMMUNITION/Makefile.in: Change earley to yeap.
+	* AMMUNITION/ammunition.sgml.in: Ditto.
+	* AMMUNITION/ammunition++.sgml.in: Ditto.
+	* AMMUNITION/ammunition.{html, dvi, info, pdf, ps, txt}: Update.
+	* AMMUNITION/ammunition-{1, 15}.html: Update.
+	* AMMUNITION/ammunition++.{html, dvi, info, pdf, ps, txt}: Update.
+	* AMMUNITION/ammunition++-{1, 15}.html: Update.
+	* cocom.{dvi, pdf, ps}: Update.
+	* MSTA/compare.tst.in: Rename earley to yaep.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* MSTA/Makefile.in: Update dependencies.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* NONA/Makefile.in: Update dependencies.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* OKA/Makefile.in: Update dependencies.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SHILKA/Makefile.in: Update dependencies.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+	* SPRUT/Makefile.in: Update dependencies.
+	* DINO/d_func.c: Change earley to yeap.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* DINO/Makefile.in: Change earley to yeap.  Update dependencies.
+	* DINO/dino.tst.in (428, 429, 431, 432, 435, 436): Change expected
+	output of Earley parser for ambiguous grammars.
+
 2015-09-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* AMMUNITION/earley{++}.tst.in (2, 2a, 3, 3a, 3b, 4, 5): Change
