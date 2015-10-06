@@ -1,3 +1,17 @@
+2015-10-06  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/Makefile.in (additional_rcs_files): Add
+	yaep_part.sgml.in and yaep_part++.sgml.in.
+	(ammunition.sgml, ammunition++.sgml): Include yaep part.
+	* AMMUNITION/ammunition[++].sgml.in: Extract YAEP part.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* MSTA/compare.tst.in: Move to AMMUNITION.
+	* MSTA/Makefile.in (additional_files): Remove compare.tst.in.
+	Call AMMUNITION/compare_parsers.tst.
+	* configure.in: Rename MSTA/compare.tst to
+	AMMUNITION/compare_parsers.tst.
+	* configure: Update.
+
 2015-09-30  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* configure.in: Change earley to yeap.

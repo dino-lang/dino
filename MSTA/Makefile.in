@@ -148,8 +148,7 @@ source = $(srcdir)/common.h $(srcdir)/common.c $(srcdir)/tab.h $(srcdir)/tab.c\
 additional_files = README INSTALL msta.1 msta.tst.in quality.tst.in\
                    c5.y cpp5.y fcalc.y fcalc1.y\
                    fparse.y gram.y java.y m2c.y pascal.y p-yacc.y sql1.y\
-                   lex.y oberon2-gram.y oberon2-lex.y oberon2-kw.shilka\
-                   compare.tst.in
+                   lex.y oberon2-gram.y oberon2-lex.y oberon2-kw.shilka
 
 doc_files = msta.txt msta.info* msta*.html msta.pdf msta.dvi msta.ps
 
@@ -202,7 +201,7 @@ test: msta
 	./msta -yacc $(srcdir)/yacc.y
 	cmp y.tab.c temp.c
 	rm -f yacc.c temp.c y.tab.c yacc.output
-	$(SHELL) ./compare.tst
+	$(SHELL) ../AMMUNITION/compare_parsers.tst
 
 # Creation of installation directories and all object files and copying
 # the translator `msta' and its man file to target directories.

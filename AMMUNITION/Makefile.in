@@ -185,7 +185,8 @@ doc_files = ammunition.txt ammunition.info* ammunition*.html\
             ammunition++.pdf ammunition++.dvi ammunition++.ps
 
 # Files which are not in distribution
-additional_rcs_files = ammunition.sgml.in ammunition++.sgml.in
+additional_rcs_files = ammunition.sgml.in yaep_part.sgml.in\
+                       ammunition++.sgml.in yaep_part++.sgml.in 
 
 # All C object files
 Cobjects = $(Cdir)/allocate.o  $(Cdir)/vlobject.o  $(Cdir)/objstack.o\
@@ -495,8 +496,11 @@ doc : ammunition.sgml ammunition++.sgml\
       $(srcdir)/ammunition++.info $(srcdir)/ammunition++.pdf\
       $(srcdir)/ammunition++.dvi $(srcdir)/ammunition++.ps
 
-ammunition.sgml: $(srcdir)/ammunition.sgml.in
-	cp $(srcdir)/ammunition.sgml.in ammunition.sgml
+ammunition.sgml: $(srcdir)/ammunition.sgml.in $(srcdir)/yaep_part.sgml.in
+	$(AWK) "{if(\$$0 == \"%%%\")\
+                     {while ((getline line < \"$(srcdir)/yaep_part.sgml.in\") > 0)\
+                        print line;close(\"$(srcdir)/yaep_part.sgml.in\")}\
+                 else print;}" $(srcdir)/ammunition.sgml.in > $@
 
 $(srcdir)/ammunition.txt: ammunition.sgml
 	linuxdoc -B txt --papersize=letter -f ammunition.sgml
@@ -533,8 +537,11 @@ $(srcdir)/ammunition.ps: $(srcdir)/ammunition.dvi
 $(srcdir)/ammunition.pdf: $(srcdir)/ammunition.ps
 	ps2pdf $(srcdir)/ammunition.ps $@
 
-ammunition++.sgml: $(srcdir)/ammunition++.sgml.in
-	cp $(srcdir)/ammunition++.sgml.in ammunition++.sgml
+ammunition++.sgml: $(srcdir)/ammunition++.sgml.in $(srcdir)/yaep_part++.sgml.in
+	$(AWK) "{if(\$$0 == \"%%%\")\
+                     {while ((getline line < \"$(srcdir)/yaep_part++.sgml.in\") > 0)\
+                        print line;close(\"$(srcdir)/yaep_part++.sgml.in\")}\
+                 else print;}" $(srcdir)/ammunition++.sgml.in > $@
 
 $(srcdir)/ammunition++.txt: ammunition++.sgml
 	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
