@@ -1,5 +1,10 @@
 2015-10-06  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* configure.in (YAEPLIB, YAEPDIR): New substitutions.
+	* configure: Update.
+
+2015-10-06  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* AMMUNITION/Makefile.in (additional_rcs_files): Add
 	yaep_part.sgml.in and yaep_part++.sgml.in.
 	(ammunition.sgml, ammunition++.sgml): Include yaep part.

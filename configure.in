@@ -69,6 +69,11 @@ AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror memcpy memset memcmp memmove vsprintf dlopen getgroups\
                strtol strtoll strtoull strtod setitimer sigaction sigemptyset)
 
+AC_SUBST(YAEPLIB)
+AC_SUBST(YAEPDIR)
+YAEPLIB=cocom
+YAEPDIR=../AMMUNITION
+
 AC_SUBST(START_SPRUT_OPTIONS)
 AC_SUBST(C_DEBUG_DEFINE)
 if test x$cocom_debug = x -a x$dino_debug = x; then
