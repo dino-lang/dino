@@ -1,3 +1,7 @@
+2015-10-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Write about planned release.
+
 2015-10-06  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* configure.in (YAEPLIB, YAEPDIR): New substitutions.
