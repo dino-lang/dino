@@ -538,6 +538,7 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 
 # Implementation - Conclusions
 * A lot of research was done on Dino implementation
+  (see [article about this](https://github.com/dino-lang/implemenation-article))
 * It can be used to improve performance of popular dynamic language implementations:
     * to make them faster
     * to make them more portable

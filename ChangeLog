@@ -1,3 +1,7 @@
+2015-10-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add reference to the article.
+
 2015-10-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Write about planned release.
