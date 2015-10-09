@@ -3197,1191 +3197,1470 @@ evaluate_code (void)
 {
   BC_node_mode_t node_mode;
 
+#if !defined (DIRECT_DISPATCH) && defined (__GNUC__)
+  static void *goto_table [BC_NM__error];
+
+  if (goto_table [BC_NM_stvt] == NULL)
+    {
+      goto_table [BC_NM_stvt] = &&l_BC_NM_stvt;
+      goto_table [BC_NM_stvtu] = &&l_BC_NM_stvtu;
+      goto_table [BC_NM_sts] = &&l_BC_NM_sts;
+      goto_table [BC_NM_stsu] = &&l_BC_NM_stsu;
+      goto_table [BC_NM_ste] = &&l_BC_NM_ste;
+      goto_table [BC_NM_steu] = &&l_BC_NM_steu;
+      goto_table [BC_NM_ldnil] = &&l_BC_NM_ldnil;
+      goto_table [BC_NM_ldthis] = &&l_BC_NM_ldthis;
+      goto_table [BC_NM_ldch] = &&l_BC_NM_ldch;
+      goto_table [BC_NM_ldi] = &&l_BC_NM_ldi;
+      goto_table [BC_NM_ldbi] = &&l_BC_NM_ldbi;
+      goto_table [BC_NM_ldl] = &&l_BC_NM_ldl;
+      goto_table [BC_NM_ldf] = &&l_BC_NM_ldf;
+      goto_table [BC_NM_lds] = &&l_BC_NM_lds;
+      goto_table [BC_NM_ldtp] = &&l_BC_NM_ldtp;
+      goto_table [BC_NM_flat] = &&l_BC_NM_flat;
+      goto_table [BC_NM_fld] = &&l_BC_NM_fld;
+      goto_table [BC_NM_lfld] = &&l_BC_NM_lfld;
+      goto_table [BC_NM_lfldv] = &&l_BC_NM_lfldv;
+      goto_table [BC_NM_brts] = &&l_BC_NM_brts;
+      goto_table [BC_NM_brfs] = &&l_BC_NM_brfs;
+      goto_table [BC_NM_lconv] = &&l_BC_NM_lconv;
+      goto_table [BC_NM_in] = &&l_BC_NM_in;
+      goto_table [BC_NM_not] = &&l_BC_NM_not;
+      goto_table [BC_NM_inot] = &&l_BC_NM_inot;
+      goto_table [BC_NM_bnot] = &&l_BC_NM_bnot;
+      goto_table [BC_NM_ibnot] = &&l_BC_NM_ibnot;
+      goto_table [BC_NM_fold_add] = &&l_BC_NM_fold_add;
+      goto_table [BC_NM_fold_mult] = &&l_BC_NM_fold_mult;
+      goto_table [BC_NM_fold_and] = &&l_BC_NM_fold_and;
+      goto_table [BC_NM_fold_xor] = &&l_BC_NM_fold_xor;
+      goto_table [BC_NM_fold_or] = &&l_BC_NM_fold_or;
+      goto_table [BC_NM_eq] = &&l_BC_NM_eq;
+      goto_table [BC_NM_ieq] = &&l_BC_NM_ieq;
+      goto_table [BC_NM_eqi] = &&l_BC_NM_eqi;
+      goto_table [BC_NM_ieqi] = &&l_BC_NM_ieqi;
+      goto_table [BC_NM_ne] = &&l_BC_NM_ne;
+      goto_table [BC_NM_ine] = &&l_BC_NM_ine;
+      goto_table [BC_NM_nei] = &&l_BC_NM_nei;
+      goto_table [BC_NM_inei] = &&l_BC_NM_inei;
+      goto_table [BC_NM_id] = &&l_BC_NM_id;
+      goto_table [BC_NM_unid] = &&l_BC_NM_unid;
+      goto_table [BC_NM_lt] = &&l_BC_NM_lt;
+      goto_table [BC_NM_ilt] = &&l_BC_NM_ilt;
+      goto_table [BC_NM_lti] = &&l_BC_NM_lti;
+      goto_table [BC_NM_ilti] = &&l_BC_NM_ilti;
+      goto_table [BC_NM_ge] = &&l_BC_NM_ge;
+      goto_table [BC_NM_ige] = &&l_BC_NM_ige;
+      goto_table [BC_NM_gei] = &&l_BC_NM_gei;
+      goto_table [BC_NM_igei] = &&l_BC_NM_igei;
+      goto_table [BC_NM_gt] = &&l_BC_NM_gt;
+      goto_table [BC_NM_igt] = &&l_BC_NM_igt;
+      goto_table [BC_NM_gti] = &&l_BC_NM_gti;
+      goto_table [BC_NM_igti] = &&l_BC_NM_igti;
+      goto_table [BC_NM_le] = &&l_BC_NM_le;
+      goto_table [BC_NM_ile] = &&l_BC_NM_ile;
+      goto_table [BC_NM_lei] = &&l_BC_NM_lei;
+      goto_table [BC_NM_ilei] = &&l_BC_NM_ilei;
+      goto_table [BC_NM_plus] = &&l_BC_NM_plus;
+      goto_table [BC_NM_iplus] = &&l_BC_NM_iplus;
+      goto_table [BC_NM_fplus] = &&l_BC_NM_fplus;
+      goto_table [BC_NM_minus] = &&l_BC_NM_minus;
+      goto_table [BC_NM_iminus] = &&l_BC_NM_iminus;
+      goto_table [BC_NM_fminus] = &&l_BC_NM_fminus;
+      goto_table [BC_NM_length] = &&l_BC_NM_length;
+      goto_table [BC_NM_const] = &&l_BC_NM_const;
+      goto_table [BC_NM_new] = &&l_BC_NM_new;
+      goto_table [BC_NM_tpof] = &&l_BC_NM_tpof;
+      goto_table [BC_NM_chof] = &&l_BC_NM_chof;
+      goto_table [BC_NM_iof] = &&l_BC_NM_iof;
+      goto_table [BC_NM_lof] = &&l_BC_NM_lof;
+      goto_table [BC_NM_fof] = &&l_BC_NM_fof;
+      goto_table [BC_NM_fmtvecof] = &&l_BC_NM_fmtvecof;
+      goto_table [BC_NM_vecof] = &&l_BC_NM_vecof;
+      goto_table [BC_NM_tabof] = &&l_BC_NM_tabof;
+      goto_table [BC_NM_vec] = &&l_BC_NM_vec;
+      goto_table [BC_NM_tab] = &&l_BC_NM_tab;
+      goto_table [BC_NM_ind] = &&l_BC_NM_ind;
+      goto_table [BC_NM_ind2] = &&l_BC_NM_ind2;
+      goto_table [BC_NM_sl] = &&l_BC_NM_sl;
+      goto_table [BC_NM_lslv] = &&l_BC_NM_lslv;
+      goto_table [BC_NM_call] = &&l_BC_NM_call;
+      goto_table [BC_NM_tcall] = &&l_BC_NM_tcall;
+      goto_table [BC_NM_icall] = &&l_BC_NM_icall;
+      goto_table [BC_NM_itcall] = &&l_BC_NM_itcall;
+      goto_table [BC_NM_cicall] = &&l_BC_NM_cicall;
+      goto_table [BC_NM_citcall] = &&l_BC_NM_citcall;
+      goto_table [BC_NM_ticall] = &&l_BC_NM_ticall;
+      goto_table [BC_NM_titcall] = &&l_BC_NM_titcall;
+      goto_table [BC_NM_ibcall] = &&l_BC_NM_ibcall;
+      goto_table [BC_NM_mcall] = &&l_BC_NM_mcall;
+      goto_table [BC_NM_add] = &&l_BC_NM_add;
+      goto_table [BC_NM_addi] = &&l_BC_NM_addi;
+      goto_table [BC_NM_sub] = &&l_BC_NM_sub;
+      goto_table [BC_NM_mult] = &&l_BC_NM_mult;
+      goto_table [BC_NM_multi] = &&l_BC_NM_multi;
+      goto_table [BC_NM_div] = &&l_BC_NM_div;
+      goto_table [BC_NM_mod] = &&l_BC_NM_mod;
+      goto_table [BC_NM_madd] = &&l_BC_NM_madd;
+      goto_table [BC_NM_concat] = &&l_BC_NM_concat;
+      goto_table [BC_NM_lsh] = &&l_BC_NM_lsh;
+      goto_table [BC_NM_rsh] = &&l_BC_NM_rsh;
+      goto_table [BC_NM_ash] = &&l_BC_NM_ash;
+      goto_table [BC_NM_and] = &&l_BC_NM_and;
+      goto_table [BC_NM_xor] = &&l_BC_NM_xor;
+      goto_table [BC_NM_or] = &&l_BC_NM_or;
+      goto_table [BC_NM_iadd] = &&l_BC_NM_iadd;
+      goto_table [BC_NM_fadd] = &&l_BC_NM_fadd;
+      goto_table [BC_NM_ifadd] = &&l_BC_NM_ifadd;
+      goto_table [BC_NM_iaddi] = &&l_BC_NM_iaddi;
+      goto_table [BC_NM_faddi] = &&l_BC_NM_faddi;
+      goto_table [BC_NM_isub] = &&l_BC_NM_isub;
+      goto_table [BC_NM_fsub] = &&l_BC_NM_fsub;
+      goto_table [BC_NM_ifsub] = &&l_BC_NM_ifsub;
+      goto_table [BC_NM_fisub] = &&l_BC_NM_fisub;
+      goto_table [BC_NM_imult] = &&l_BC_NM_imult;
+      goto_table [BC_NM_fmult] = &&l_BC_NM_fmult;
+      goto_table [BC_NM_ifmult] = &&l_BC_NM_ifmult;
+      goto_table [BC_NM_imulti] = &&l_BC_NM_imulti;
+      goto_table [BC_NM_fmulti] = &&l_BC_NM_fmulti;
+      goto_table [BC_NM_idiv] = &&l_BC_NM_idiv;
+      goto_table [BC_NM_fdiv] = &&l_BC_NM_fdiv;
+      goto_table [BC_NM_ifdiv] = &&l_BC_NM_ifdiv;
+      goto_table [BC_NM_fidiv] = &&l_BC_NM_fidiv;
+      goto_table [BC_NM_imod] = &&l_BC_NM_imod;
+      goto_table [BC_NM_fmodop] = &&l_BC_NM_fmodop;
+      goto_table [BC_NM_ilsh] = &&l_BC_NM_ilsh;
+      goto_table [BC_NM_irsh] = &&l_BC_NM_irsh;
+      goto_table [BC_NM_iash] = &&l_BC_NM_iash;
+      goto_table [BC_NM_iand] = &&l_BC_NM_iand;
+      goto_table [BC_NM_ixor] = &&l_BC_NM_ixor;
+      goto_table [BC_NM_ior] = &&l_BC_NM_ior;
+      goto_table [BC_NM_add_st] = &&l_BC_NM_add_st;
+      goto_table [BC_NM_sub_st] = &&l_BC_NM_sub_st;
+      goto_table [BC_NM_mult_st] = &&l_BC_NM_mult_st;
+      goto_table [BC_NM_div_st] = &&l_BC_NM_div_st;
+      goto_table [BC_NM_mod_st] = &&l_BC_NM_mod_st;
+      goto_table [BC_NM_concat_st] = &&l_BC_NM_concat_st;
+      goto_table [BC_NM_lsh_st] = &&l_BC_NM_lsh_st;
+      goto_table [BC_NM_rsh_st] = &&l_BC_NM_rsh_st;
+      goto_table [BC_NM_ash_st] = &&l_BC_NM_ash_st;
+      goto_table [BC_NM_and_st] = &&l_BC_NM_and_st;
+      goto_table [BC_NM_xor_st] = &&l_BC_NM_xor_st;
+      goto_table [BC_NM_or_st] = &&l_BC_NM_or_st;
+      goto_table [BC_NM_mult_slst] = &&l_BC_NM_mult_slst;
+      goto_table [BC_NM_div_slst] = &&l_BC_NM_div_slst;
+      goto_table [BC_NM_mod_slst] = &&l_BC_NM_mod_slst;
+      goto_table [BC_NM_add_slst] = &&l_BC_NM_add_slst;
+      goto_table [BC_NM_sub_slst] = &&l_BC_NM_sub_slst;
+      goto_table [BC_NM_concat_slst] = &&l_BC_NM_concat_slst;
+      goto_table [BC_NM_lsh_slst] = &&l_BC_NM_lsh_slst;
+      goto_table [BC_NM_rsh_slst] = &&l_BC_NM_rsh_slst;
+      goto_table [BC_NM_ash_slst] = &&l_BC_NM_ash_slst;
+      goto_table [BC_NM_and_slst] = &&l_BC_NM_and_slst;
+      goto_table [BC_NM_xor_slst] = &&l_BC_NM_xor_slst;
+      goto_table [BC_NM_or_slst] = &&l_BC_NM_or_slst;
+      goto_table [BC_NM_slst] = &&l_BC_NM_slst;
+      goto_table [BC_NM_b] = &&l_BC_NM_b;
+      goto_table [BC_NM_btdef] = &&l_BC_NM_btdef;
+      goto_table [BC_NM_bf] = &&l_BC_NM_bf;
+      goto_table [BC_NM_ibf] = &&l_BC_NM_ibf;
+      goto_table [BC_NM_bfni] = &&l_BC_NM_bfni;
+      goto_table [BC_NM_ibfni] = &&l_BC_NM_ibfni;
+      goto_table [BC_NM_bteqinc] = &&l_BC_NM_bteqinc;
+      goto_table [BC_NM_btneinc] = &&l_BC_NM_btneinc;
+      goto_table [BC_NM_btgeinc] = &&l_BC_NM_btgeinc;
+      goto_table [BC_NM_btltinc] = &&l_BC_NM_btltinc;
+      goto_table [BC_NM_btleinc] = &&l_BC_NM_btleinc;
+      goto_table [BC_NM_btgtinc] = &&l_BC_NM_btgtinc;
+      goto_table [BC_NM_ibteqinc] = &&l_BC_NM_ibteqinc;
+      goto_table [BC_NM_ibtneinc] = &&l_BC_NM_ibtneinc;
+      goto_table [BC_NM_ibtgeinc] = &&l_BC_NM_ibtgeinc;
+      goto_table [BC_NM_ibtltinc] = &&l_BC_NM_ibtltinc;
+      goto_table [BC_NM_ibtleinc] = &&l_BC_NM_ibtleinc;
+      goto_table [BC_NM_ibtgtinc] = &&l_BC_NM_ibtgtinc;
+      goto_table [BC_NM_bteq] = &&l_BC_NM_bteq;
+      goto_table [BC_NM_btne] = &&l_BC_NM_btne;
+      goto_table [BC_NM_btge] = &&l_BC_NM_btge;
+      goto_table [BC_NM_btlt] = &&l_BC_NM_btlt;
+      goto_table [BC_NM_btle] = &&l_BC_NM_btle;
+      goto_table [BC_NM_btgt] = &&l_BC_NM_btgt;
+      goto_table [BC_NM_ibteq] = &&l_BC_NM_ibteq;
+      goto_table [BC_NM_ibtne] = &&l_BC_NM_ibtne;
+      goto_table [BC_NM_ibtge] = &&l_BC_NM_ibtge;
+      goto_table [BC_NM_ibtlt] = &&l_BC_NM_ibtlt;
+      goto_table [BC_NM_ibtle] = &&l_BC_NM_ibtle;
+      goto_table [BC_NM_ibtgt] = &&l_BC_NM_ibtgt;
+      goto_table [BC_NM_fbteq] = &&l_BC_NM_fbteq;
+      goto_table [BC_NM_fbtne] = &&l_BC_NM_fbtne;
+      goto_table [BC_NM_fbtge] = &&l_BC_NM_fbtge;
+      goto_table [BC_NM_fbtlt] = &&l_BC_NM_fbtlt;
+      goto_table [BC_NM_fbtle] = &&l_BC_NM_fbtle;
+      goto_table [BC_NM_fbtgt] = &&l_BC_NM_fbtgt;
+      goto_table [BC_NM_bteqi] = &&l_BC_NM_bteqi;
+      goto_table [BC_NM_btnei] = &&l_BC_NM_btnei;
+      goto_table [BC_NM_btlti] = &&l_BC_NM_btlti;
+      goto_table [BC_NM_btlei] = &&l_BC_NM_btlei;
+      goto_table [BC_NM_btgti] = &&l_BC_NM_btgti;
+      goto_table [BC_NM_btgei] = &&l_BC_NM_btgei;
+      goto_table [BC_NM_ibteqi] = &&l_BC_NM_ibteqi;
+      goto_table [BC_NM_ibtnei] = &&l_BC_NM_ibtnei;
+      goto_table [BC_NM_ibtlti] = &&l_BC_NM_ibtlti;
+      goto_table [BC_NM_ibtlei] = &&l_BC_NM_ibtlei;
+      goto_table [BC_NM_ibtgti] = &&l_BC_NM_ibtgti;
+      goto_table [BC_NM_ibtgei] = &&l_BC_NM_ibtgei;
+      goto_table [BC_NM_bt] = &&l_BC_NM_bt;
+      goto_table [BC_NM_ibt] = &&l_BC_NM_ibt;
+      goto_table [BC_NM_foreach] = &&l_BC_NM_foreach;
+      goto_table [BC_NM_foreach2] = &&l_BC_NM_foreach2;
+      goto_table [BC_NM_out] = &&l_BC_NM_out;
+      goto_table [BC_NM_bend] = &&l_BC_NM_bend;
+      goto_table [BC_NM_stpop] = &&l_BC_NM_stpop;
+      goto_table [BC_NM_leave] = &&l_BC_NM_leave;
+      goto_table [BC_NM_fbend] = &&l_BC_NM_fbend;
+      goto_table [BC_NM_ret] = &&l_BC_NM_ret;
+      goto_table [BC_NM_wait] = &&l_BC_NM_wait;
+      goto_table [BC_NM_waitend] = &&l_BC_NM_waitend;
+      goto_table [BC_NM_stinc] = &&l_BC_NM_stinc;
+      goto_table [BC_NM_stdecm] = &&l_BC_NM_stdecm;
+      goto_table [BC_NM_stdecu] = &&l_BC_NM_stdecu;
+      goto_table [BC_NM_block] = &&l_BC_NM_block;
+      goto_table [BC_NM_throw] = &&l_BC_NM_throw;
+      goto_table [BC_NM_except] = &&l_BC_NM_except;
+      goto_table [BC_NM_chvec] = &&l_BC_NM_chvec;
+      goto_table [BC_NM_chvend] = &&l_BC_NM_chvend;
+      goto_table [BC_NM_chvlen] = &&l_BC_NM_chvlen;
+      goto_table [BC_NM_chvel] = &&l_BC_NM_chvel;
+      goto_table [BC_NM_chtab] = &&l_BC_NM_chtab;
+      goto_table [BC_NM_chtend] = &&l_BC_NM_chtend;
+      goto_table [BC_NM_chtel] = &&l_BC_NM_chtel;
+      goto_table [BC_NM_chst] = &&l_BC_NM_chst;
+      goto_table [BC_NM_chstend] = &&l_BC_NM_chstend;
+      goto_table [BC_NM_chstel] = &&l_BC_NM_chstel;
+      goto_table [BC_NM_move] = &&l_BC_NM_move;
+      goto_table [BC_NM_imove] = &&l_BC_NM_imove;
+      goto_table [BC_NM_fmove] = &&l_BC_NM_fmove;
+      goto_table [BC_NM_var] = &&l_BC_NM_var;
+      goto_table [BC_NM_lvar] = &&l_BC_NM_lvar;
+      goto_table [BC_NM_lvarv] = &&l_BC_NM_lvarv;
+      goto_table [BC_NM_evar] = &&l_BC_NM_evar;
+      goto_table [BC_NM_levar] = &&l_BC_NM_levar;
+      goto_table [BC_NM_levarv] = &&l_BC_NM_levarv;
+      goto_table [BC_NM_efun] = &&l_BC_NM_efun;
+      goto_table [BC_NM_fun] = &&l_BC_NM_fun;
+      goto_table [BC_NM_class] = &&l_BC_NM_class;
+      goto_table [BC_NM_rpr] = &&l_BC_NM_rpr;
+      goto_table [BC_NM_rpr_def] = &&l_BC_NM_rpr_def;
+      goto_table [BC_NM_nop] = &&l_BC_NM_nop;
+    }
+#define CASE(value) l_ ## value
+#define BREAK continue
+#else
+#define CASE(value) case value
+#define BREAK break
+#endif
+
+#if 0
   /* Check that all real executed byte code can be stored in unsigned
-     char.  */
+     char to use the switch trick.  We have more 255 opcodes now -- so
+     switch off the code.  */
   d_assert ((int) BC_NM_nop < 256);
+#endif
   for (;;)
     {
       node_mode = BC_NODE_MODE (cpc);
+#if !defined (DIRECT_DISPATCH) && defined (__GNUC__)
+      goto *goto_table [node_mode];
+#elif 0
+      /* We have more 255 opcodes now -- so switch off the code.  */
       switch ((unsigned char) node_mode)
+#else
+      switch (node_mode)
+#endif
 	{
-#ifdef __GNUC__
+#if 0
+	  /* We have more 255 opcodes now -- so switch off the
+	     code.  */
+#if defined (DIRECT_DISPATCH) && defined (__GNUC__)
 	  /* This is a trick to make switch faster by removing range
-	     comparison.  */
+	     comparison.  On x86-64 it decreases non-PIC dispatch code
+	     from 5 insns to 2.  The dispatch based on labels needs 3
+	     insns on x86-64.  */
 	case 0:
 	case 255:
 	  abort ();
 #endif
-	case BC_NM_stvt:
+#endif
+	CASE (BC_NM_stvt):
 	  stvt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_stvtu:
+	  BREAK;
+	CASE (BC_NM_stvtu):
 	  stvtu (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_sts:
+	  BREAK;
+	CASE (BC_NM_sts):
 	  sts (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_stsu:
+	  BREAK;
+	CASE (BC_NM_stsu):
 	  stsu (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ste:
+	  BREAK;
+	CASE (BC_NM_ste):
 	  ste (get_op (BC_op1 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_steu:
+	  BREAK;
+	CASE (BC_NM_steu):
 	  steu (get_op (BC_op1 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ldnil:
+	  BREAK;
+	CASE (BC_NM_ldnil):
 	  ldnil (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ldthis:
+	  BREAK;
+	CASE (BC_NM_ldthis):
 	  ldthis (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ldch:
+	  BREAK;
+	CASE (BC_NM_ldch):
 	  ldch (get_op (BC_op1 (cpc)), BC_op2 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ldi:
+	  BREAK;
+	CASE (BC_NM_ldi):
 	  ldi (get_op (BC_op1 (cpc)), BC_op2 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ldbi:
+	  BREAK;
+	CASE (BC_NM_ldbi):
 	  ldbi (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ldl:
+	  BREAK;
+	CASE (BC_NM_ldl):
 	  ldl (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ldf:
+	  BREAK;
+	CASE (BC_NM_ldf):
 	  ldf (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lds:
+	  BREAK;
+	CASE (BC_NM_lds):
 	  lds (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ldtp:
+	  BREAK;
+	CASE (BC_NM_ldtp):
 	  ldtp (get_op (BC_op1 (cpc)), BC_op2 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_flat:
+	  BREAK;
+	CASE (BC_NM_flat):
 	  flat (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fld:
+	  BREAK;
+	CASE (BC_NM_fld):
 	  fld (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lfld:
+	  BREAK;
+	CASE (BC_NM_lfld):
 	  lfld (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lfldv:
+	  BREAK;
+	CASE (BC_NM_lfldv):
 	  lfldv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_brts:
+	  BREAK;
+	CASE (BC_NM_brts):
 	  if (brts (get_op (BC_op1 (cpc)), get_op (BC_res (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_brfs:
+	  BREAK;
+	CASE (BC_NM_brfs):
 	  if (brfs (get_op (BC_op1 (cpc)), get_op (BC_res (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_lconv:
+	  BREAK;
+	CASE (BC_NM_lconv):
 	  lconv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_in:
+	  BREAK;
+	CASE (BC_NM_in):
 	  in (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_not:
+	  BREAK;
+	CASE (BC_NM_not):
 	  not (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_inot:
+	  BREAK;
+	CASE (BC_NM_inot):
 	  inot (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_bnot:
+	  BREAK;
+	CASE (BC_NM_bnot):
 	  bnot (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ibnot:
+	  BREAK;
+	CASE (BC_NM_ibnot):
 	  ibnot (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fold_add:
-	case BC_NM_fold_mult:
-	case BC_NM_fold_and:
-	case BC_NM_fold_xor:
-	case BC_NM_fold_or:
+	  BREAK;
+	CASE (BC_NM_fold_add):
+	CASE (BC_NM_fold_mult):
+	CASE (BC_NM_fold_and):
+	CASE (BC_NM_fold_xor):
+	CASE (BC_NM_fold_or):
 	  foldop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_eq:
+	  BREAK;
+	CASE (BC_NM_eq):
 	  eq (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ieq:
+	  BREAK;
+	CASE (BC_NM_ieq):
 	  ieq (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_eqi:
+	  BREAK;
+	CASE (BC_NM_eqi):
 	  eqi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ieqi:
+	  BREAK;
+	CASE (BC_NM_ieqi):
 	  ieqi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ne:
+	  BREAK;
+	CASE (BC_NM_ne):
 	  ne (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ine:
+	  BREAK;
+	CASE (BC_NM_ine):
 	  ine (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_nei:
+	  BREAK;
+	CASE (BC_NM_nei):
 	  nei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_inei:
+	  BREAK;
+	CASE (BC_NM_inei):
 	  inei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_id:
+	  BREAK;
+	CASE (BC_NM_id):
 	  id (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_unid:
+	  BREAK;
+	CASE (BC_NM_unid):
 	  unid (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lt:
+	  BREAK;
+	CASE (BC_NM_lt):
 	  lt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ilt:
+	  BREAK;
+	CASE (BC_NM_ilt):
 	  ilt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lti:
+	  BREAK;
+	CASE (BC_NM_lti):
 	  lti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ilti:
+	  BREAK;
+	CASE (BC_NM_ilti):
 	  ilti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ge:
+	  BREAK;
+	CASE (BC_NM_ge):
 	  ge (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ige:
+	  BREAK;
+	CASE (BC_NM_ige):
 	  ige (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_gei:
+	  BREAK;
+	CASE (BC_NM_gei):
 	  gei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_igei:
+	  BREAK;
+	CASE (BC_NM_igei):
 	  igei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_gt:
+	  BREAK;
+	CASE (BC_NM_gt):
 	  gt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_igt:
+	  BREAK;
+	CASE (BC_NM_igt):
 	  igt (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_gti:
+	  BREAK;
+	CASE (BC_NM_gti):
 	  gti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_igti:
+	  BREAK;
+	CASE (BC_NM_igti):
 	  igti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_le:
+	  BREAK;
+	CASE (BC_NM_le):
 	  le (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ile:
+	  BREAK;
+	CASE (BC_NM_ile):
 	  ile (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lei:
+	  BREAK;
+	CASE (BC_NM_lei):
 	  lei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ilei:
+	  BREAK;
+	CASE (BC_NM_ilei):
 	  ilei (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_plus:
+	  BREAK;
+	CASE (BC_NM_plus):
 	  plus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_iplus:
+	  BREAK;
+	CASE (BC_NM_iplus):
 	  iplus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fplus:
+	  BREAK;
+	CASE (BC_NM_fplus):
 	  fplus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_minus:
+	  BREAK;
+	CASE (BC_NM_minus):
 	  minus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_iminus:
+	  BREAK;
+	CASE (BC_NM_iminus):
 	  iminus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fminus:
+	  BREAK;
+	CASE (BC_NM_fminus):
 	  fminus (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_length:
+	  BREAK;
+	CASE (BC_NM_length):
 	  length (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_const:
+	  BREAK;
+	CASE (BC_NM_const):
 	  constop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_new:
+	  BREAK;
+	CASE (BC_NM_new):
 	  new (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_tpof:
+	  BREAK;
+	CASE (BC_NM_tpof):
 	  tpof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_chof:
+	  BREAK;
+	CASE (BC_NM_chof):
 	  chof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_iof:
+	  BREAK;
+	CASE (BC_NM_iof):
 	  iof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lof:
+	  BREAK;
+	CASE (BC_NM_lof):
 	  lof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fof:
+	  BREAK;
+	CASE (BC_NM_fof):
 	  fof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fmtvecof:
+	  BREAK;
+	CASE (BC_NM_fmtvecof):
 	  fmtvecof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_vecof:
+	  BREAK;
+	CASE (BC_NM_vecof):
 	  vecof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_tabof:
+	  BREAK;
+	CASE (BC_NM_tabof):
 	  tabof (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_vec:
+	  BREAK;
+	CASE (BC_NM_vec):
 	  vec (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_tab:
+	  BREAK;
+	CASE (BC_NM_tab):
 	  tab (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ind:
+	  BREAK;
+	CASE (BC_NM_ind):
 	  ind (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ind2:
+	  BREAK;
+	CASE (BC_NM_ind2):
 	  ind2 (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)),
 		get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_sl:
+	  BREAK;
+	CASE (BC_NM_sl):
 	  sl (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lslv:
+	  BREAK;
+	CASE (BC_NM_lslv):
 	  lslv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_call:
+	  BREAK;
+	CASE (BC_NM_call):
 	  call (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
-	  break;
-	case BC_NM_tcall:
+	  BREAK;
+	CASE (BC_NM_tcall):
 	  tcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
-	  break;
-	case BC_NM_icall:
+	  BREAK;
+	CASE (BC_NM_icall):
 	  icall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		 BC_vars_num (BC_cfblock (cpc)), FALSE);
-	  break;
-	case BC_NM_itcall:
+	  BREAK;
+	CASE (BC_NM_itcall):
 	  itcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		  BC_vars_num (BC_cfblock (cpc)), FALSE);
-	  break;
-	case BC_NM_cicall:
+	  BREAK;
+	CASE (BC_NM_cicall):
 	  cicall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		  BC_vars_num (BC_cfblock (cpc)), FALSE);
-	  break;
-	case BC_NM_citcall:
+	  BREAK;
+	CASE (BC_NM_citcall):
 	  citcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		   BC_vars_num (BC_cfblock (cpc)), FALSE);
-	  break;
-	case BC_NM_ticall:
+	  BREAK;
+	CASE (BC_NM_ticall):
 	  ticall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		  BC_vars_num (BC_cfblock (cpc)), FALSE);
-	  break;
-	case BC_NM_titcall:
+	  BREAK;
+	CASE (BC_NM_titcall):
 	  titcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		   BC_vars_num (BC_cfblock (cpc)), FALSE);
-	  break;
-	case BC_NM_ibcall:
+	  BREAK;
+	CASE (BC_NM_ibcall):
 	  ibcall (get_op (BC_op1 (cpc)), BC_op2 (cpc), FALSE);
-	  break;
-	case BC_NM_mcall:
+	  BREAK;
+	CASE (BC_NM_mcall):
 	  mcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		 get_op (BC_op3 (cpc)), BC_op4 (cpc), FALSE);
-	  break;
-	case BC_NM_add:
+	  BREAK;
+	CASE (BC_NM_add):
 	  add (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_addi:
+	  BREAK;
+	CASE (BC_NM_addi):
 	  addi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_sub:
+	  BREAK;
+	CASE (BC_NM_sub):
 	  sub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_mult:
+	  BREAK;
+	CASE (BC_NM_mult):
 	  mult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_multi:
+	  BREAK;
+	CASE (BC_NM_multi):
 	  multi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_div:
+	  BREAK;
+	CASE (BC_NM_div):
 	  divop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_mod:
+	  BREAK;
+	CASE (BC_NM_mod):
 	  mod (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_madd:
+	  BREAK;
+	CASE (BC_NM_madd):
 	  madd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)),
 		get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_concat:
+	  BREAK;
+	CASE (BC_NM_concat):
 	  concat (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lsh:
+	  BREAK;
+	CASE (BC_NM_lsh):
 	  lsh (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_rsh:
+	  BREAK;
+	CASE (BC_NM_rsh):
 	  rsh (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ash:
+	  BREAK;
+	CASE (BC_NM_ash):
 	  ash (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_and:
+	  BREAK;
+	CASE (BC_NM_and):
 	  and (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_xor:
+	  BREAK;
+	CASE (BC_NM_xor):
 	  xor (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_or:
+	  BREAK;
+	CASE (BC_NM_or):
 	  or (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_iadd:
+	  BREAK;
+	CASE (BC_NM_iadd):
 	  iadd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fadd:
+	  BREAK;
+	CASE (BC_NM_fadd):
 	  fadd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ifadd:
+	  BREAK;
+	CASE (BC_NM_ifadd):
 	  ifadd (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_iaddi:
+	  BREAK;
+	CASE (BC_NM_iaddi):
 	  iaddi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_faddi:
+	  BREAK;
+	CASE (BC_NM_faddi):
 	  faddi (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_isub:
+	  BREAK;
+	CASE (BC_NM_isub):
 	  isub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fsub:
+	  BREAK;
+	CASE (BC_NM_fsub):
 	  fsub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ifsub:
+	  BREAK;
+	CASE (BC_NM_ifsub):
 	  ifsub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fisub:
+	  BREAK;
+	CASE (BC_NM_fisub):
 	  fisub (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_imult:
+	  BREAK;
+	CASE (BC_NM_imult):
 	  imult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fmult:
+	  BREAK;
+	CASE (BC_NM_fmult):
 	  fmult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ifmult:
+	  BREAK;
+	CASE (BC_NM_ifmult):
 	  ifmult (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_imulti:
+	  BREAK;
+	CASE (BC_NM_imulti):
 	  imulti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fmulti:
+	  BREAK;
+	CASE (BC_NM_fmulti):
 	  fmulti (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_idiv:
+	  BREAK;
+	CASE (BC_NM_idiv):
 	  idiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fdiv:
+	  BREAK;
+	CASE (BC_NM_fdiv):
 	  fdiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ifdiv:
+	  BREAK;
+	CASE (BC_NM_ifdiv):
 	  ifdiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fidiv:
+	  BREAK;
+	CASE (BC_NM_fidiv):
 	  fidiv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_imod:
+	  BREAK;
+	CASE (BC_NM_imod):
 	  imod (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fmodop:
+	  BREAK;
+	CASE (BC_NM_fmodop):
 	  fmodop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ilsh:
+	  BREAK;
+	CASE (BC_NM_ilsh):
 	  ilsh (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_irsh:
+	  BREAK;
+	CASE (BC_NM_irsh):
 	  irsh (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_iash:
+	  BREAK;
+	CASE (BC_NM_iash):
 	  iash (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_iand:
+	  BREAK;
+	CASE (BC_NM_iand):
 	  iand (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ixor:
+	  BREAK;
+	CASE (BC_NM_ixor):
 	  ixor (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_ior:
+	  BREAK;
+	CASE (BC_NM_ior):
 	  ior (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_add_st:
+	  BREAK;
+	CASE (BC_NM_add_st):
 	  add_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_sub_st:
+	  BREAK;
+	CASE (BC_NM_sub_st):
 	  sub_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_mult_st:
+	  BREAK;
+	CASE (BC_NM_mult_st):
 	  mult_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_div_st:
+	  BREAK;
+	CASE (BC_NM_div_st):
 	  div_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_mod_st:
+	  BREAK;
+	CASE (BC_NM_mod_st):
 	  mod_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_concat_st:
+	  BREAK;
+	CASE (BC_NM_concat_st):
 	  concat_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_lsh_st:
+	  BREAK;
+	CASE (BC_NM_lsh_st):
 	  lsh_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_rsh_st:
+	  BREAK;
+	CASE (BC_NM_rsh_st):
 	  rsh_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ash_st:
+	  BREAK;
+	CASE (BC_NM_ash_st):
 	  ash_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_and_st:
+	  BREAK;
+	CASE (BC_NM_and_st):
 	  and_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_xor_st:
+	  BREAK;
+	CASE (BC_NM_xor_st):
 	  xor_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_or_st:
+	  BREAK;
+	CASE (BC_NM_or_st):
 	  or_st (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_mult_slst:
-	case BC_NM_div_slst:
-	case BC_NM_mod_slst:
-	case BC_NM_add_slst:
-	case BC_NM_sub_slst:
-	case BC_NM_concat_slst:
-	case BC_NM_lsh_slst:
-	case BC_NM_rsh_slst:
-	case BC_NM_ash_slst:
-	case BC_NM_and_slst:
-	case BC_NM_xor_slst:
-	case BC_NM_or_slst:
+	  BREAK;
+	CASE (BC_NM_mult_slst):
+	CASE (BC_NM_div_slst):
+	CASE (BC_NM_mod_slst):
+	CASE (BC_NM_add_slst):
+	CASE (BC_NM_sub_slst):
+	CASE (BC_NM_concat_slst):
+	CASE (BC_NM_lsh_slst):
+	CASE (BC_NM_rsh_slst):
+	CASE (BC_NM_ash_slst):
+	CASE (BC_NM_and_slst):
+	CASE (BC_NM_xor_slst):
+	CASE (BC_NM_or_slst):
 	  op_slst (get_op (BC_op1 (cpc)), BC_op2 (cpc), get_op (BC_op3 (cpc)), get_op (BC_op4 (cpc)));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_slst:
+	  BREAK;
+	CASE (BC_NM_slst):
 	  slst (get_op (BC_op1 (cpc)), BC_op2 (cpc), get_op (BC_op3 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_b:
+	  BREAK;
+	CASE (BC_NM_b):
 	  b ();
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btdef:
+	  BREAK;
+	CASE (BC_NM_btdef):
 	  /* Branch if defined  */
 	  if (btdef (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_bf:
+	  BREAK;
+	CASE (BC_NM_bf):
 	  if (bf (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibf:
+	  BREAK;
+	CASE (BC_NM_ibf):
 	  if (ibf (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_bfni:
+	  BREAK;
+	CASE (BC_NM_bfni):
 	  if (bfni (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_ibfni:
+	  BREAK;
+	CASE (BC_NM_ibfni):
 	  if (ibfni (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_bteqinc:
+	  BREAK;
+	CASE (BC_NM_bteqinc):
 	  if (bteqinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 		       BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btneinc:
+	  BREAK;
+	CASE (BC_NM_btneinc):
 	  if (btneinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 		       BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btgeinc:
+	  BREAK;
+	CASE (BC_NM_btgeinc):
 	  if (btgeinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 		       BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btltinc:
+	  BREAK;
+	CASE (BC_NM_btltinc):
 	  if (btltinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 		       BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btleinc:
+	  BREAK;
+	CASE (BC_NM_btleinc):
 	  if (btleinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 		       BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btgtinc:
+	  BREAK;
+	CASE (BC_NM_btgtinc):
 	  if (btgtinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 		       BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibteqinc:
+	  BREAK;
+	CASE (BC_NM_ibteqinc):
 	  if (ibteqinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 			BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtneinc:
+	  BREAK;
+	CASE (BC_NM_ibtneinc):
 	  if (ibtneinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 			BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtgeinc:
+	  BREAK;
+	CASE (BC_NM_ibtgeinc):
 	  if (ibtgeinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 			BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtltinc:
+	  BREAK;
+	CASE (BC_NM_ibtltinc):
 	  if (ibtltinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 			BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtleinc:
+	  BREAK;
+	CASE (BC_NM_ibtleinc):
 	  if (ibtleinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 			BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtgtinc:
+	  BREAK;
+	CASE (BC_NM_ibtgtinc):
 	  if (ibtgtinc (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc),
 			BC_binc_inc (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_bteq:
+	  BREAK;
+	CASE (BC_NM_bteq):
 	  if (bteq (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btne:
+	  BREAK;
+	CASE (BC_NM_btne):
 	  if (btne (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btge:
+	  BREAK;
+	CASE (BC_NM_btge):
 	  if (btge (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btlt:
+	  BREAK;
+	CASE (BC_NM_btlt):
 	  if (btlt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btle:
+	  BREAK;
+	CASE (BC_NM_btle):
 	  if (btle (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btgt:
+	  BREAK;
+	CASE (BC_NM_btgt):
 	  if (btgt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibteq:
+	  BREAK;
+	CASE (BC_NM_ibteq):
 	  if (ibteq (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtne:
+	  BREAK;
+	CASE (BC_NM_ibtne):
 	  if (ibtne (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtge:
+	  BREAK;
+	CASE (BC_NM_ibtge):
 	  if (ibtge (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtlt:
+	  BREAK;
+	CASE (BC_NM_ibtlt):
 	  if (ibtlt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtle:
+	  BREAK;
+	CASE (BC_NM_ibtle):
 	  if (ibtle (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtgt:
+	  BREAK;
+	CASE (BC_NM_ibtgt):
 	  if (ibtgt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_fbteq:
+	  BREAK;
+	CASE (BC_NM_fbteq):
 	  if (fbteq (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_fbtne:
+	  BREAK;
+	CASE (BC_NM_fbtne):
 	  if (fbtne (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_fbtge:
+	  BREAK;
+	CASE (BC_NM_fbtge):
 	  if (fbtge (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_fbtlt:
+	  BREAK;
+	CASE (BC_NM_fbtlt):
 	  if (fbtlt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_fbtle:
+	  BREAK;
+	CASE (BC_NM_fbtle):
 	  if (fbtle (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_fbtgt:
+	  BREAK;
+	CASE (BC_NM_fbtgt):
 	  if (fbtgt (get_op (BC_op1 (cpc)), get_op (BC_bcmp_op2 (cpc)), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_bteqi:
+	  BREAK;
+	CASE (BC_NM_bteqi):
 	  if (bteqi (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btnei:
+	  BREAK;
+	CASE (BC_NM_btnei):
 	  if (btnei (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btlti:
+	  BREAK;
+	CASE (BC_NM_btlti):
 	  if (btlti (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btlei:
+	  BREAK;
+	CASE (BC_NM_btlei):
 	  if (btlei (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btgti:
+	  BREAK;
+	CASE (BC_NM_btgti):
 	  if (btgti (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_btgei:
+	  BREAK;
+	CASE (BC_NM_btgei):
 	  if (btgei (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibteqi:
+	  BREAK;
+	CASE (BC_NM_ibteqi):
 	  if (ibteqi (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtnei:
+	  BREAK;
+	CASE (BC_NM_ibtnei):
 	  if (ibtnei (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtlti:
+	  BREAK;
+	CASE (BC_NM_ibtlti):
 	  if (ibtlti (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtlei:
+	  BREAK;
+	CASE (BC_NM_ibtlei):
 	  if (ibtlei (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtgti:
+	  BREAK;
+	CASE (BC_NM_ibtgti):
 	  if (ibtgti (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibtgei:
+	  BREAK;
+	CASE (BC_NM_ibtgei):
 	  if (ibtgei (get_op (BC_op1 (cpc)), BC_bcmp_op2 (cpc), BC_bcmp_res (cpc)))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_bt:
+	  BREAK;
+	CASE (BC_NM_bt):
 	  if (bt (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_ibt:
+	  BREAK;
+	CASE (BC_NM_ibt):
 	  if (ibt (get_op (BC_op1 (cpc))))
 	    cpc = BC_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_foreach:
+	  BREAK;
+	CASE (BC_NM_foreach):
 	  if (foreach (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc))))
 	    cpc = BC_body_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_foreach2:
+	  BREAK;
+	CASE (BC_NM_foreach2):
 	  if (foreach2 (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)),
 			get_op (BC_element (cpc))))
 	    cpc = BC_body_pc (cpc);
 	  else
 	    INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_out:
+	  BREAK;
+	CASE (BC_NM_out):
 	  out ();
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_bend:
+	  BREAK;
+	CASE (BC_NM_bend):
           if (bend ())
 	    return;
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_stpop:
+	  BREAK;
+	CASE (BC_NM_stpop):
 	  stpop (BC_op1 (cpc), BC_op2 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_leave:
+	  BREAK;
+	CASE (BC_NM_leave):
 	  if (leave ())
 	    return;
-	  break;
-	case BC_NM_fbend:
+	  BREAK;
+	CASE (BC_NM_fbend):
 	  if (fbend ())
 	    return;
-	  break;
-	case BC_NM_ret:
+	  BREAK;
+	CASE (BC_NM_ret):
 	  if (ret (get_op (BC_op1 (cpc))))
 	    return;
-	  break;
-	case BC_NM_wait:
+	  BREAK;
+	CASE (BC_NM_wait):
 	  wait (get_op (BC_op1 (cpc)));
-	  break;
-	case BC_NM_waitend:
+	  BREAK;
+	CASE (BC_NM_waitend):
 	  waitend ();
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_stinc:
+	  BREAK;
+	CASE (BC_NM_stinc):
 	  stinc (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_stdecm:
+	  BREAK;
+	CASE (BC_NM_stdecm):
 	  stdecm (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_stdecu:
+	  BREAK;
+	CASE (BC_NM_stdecu):
 	  stdecu (get_op (BC_op1 (cpc)), BC_op2 (cpc));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_block:
+	  BREAK;
+	CASE (BC_NM_block):
 	  block ();
 	  INCREMENT_PC ();
 	  INTERRUPT_CHECK;
-	  break;
-	case BC_NM_throw:
+	  BREAK;
+	CASE (BC_NM_throw):
 	  if (throw (get_op (BC_op1 (cpc))))
 	    return;
-	  break;
-	case BC_NM_except:
+	  BREAK;
+	CASE (BC_NM_except):
 	  if (except ())
 	    return;
-	  break;
-	case BC_NM_chvec:
+	  BREAK;
+	CASE (BC_NM_chvec):
 	  if (chvec (get_op (BC_op1 (cpc)), BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chvend:
+	  BREAK;
+	CASE (BC_NM_chvend):
 	  if (chvend (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
 		      BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chvlen:
+	  BREAK;
+	CASE (BC_NM_chvlen):
 	  if (chvlen (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
 		      get_op (BC_ch_op3 (cpc)), BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chvel:
+	  BREAK;
+	CASE (BC_NM_chvel):
 	  if (chvel (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
 		     get_op (BC_ch_op3 (cpc)), get_op (BC_ch_op4 (cpc)),
 		     BC_ch_op5 (cpc), BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chtab:
+	  BREAK;
+	CASE (BC_NM_chtab):
 	  if (chtab (get_op (BC_op1 (cpc)), BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chtend:
+	  BREAK;
+	CASE (BC_NM_chtend):
 	  if (chtend (get_op (BC_op1 (cpc)), BC_ch_op2 (cpc), BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chtel:
+	  BREAK;
+	CASE (BC_NM_chtel):
 	  if (chtel (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
 		     get_op (BC_ch_op3 (cpc)), BC_ch_op4 (cpc),
 		     BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chst:
+	  BREAK;
+	CASE (BC_NM_chst):
 	  if (chst (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
 		    BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chstend:
+	  BREAK;
+	CASE (BC_NM_chstend):
 	  if (chstend (get_op (BC_op1 (cpc)), BC_ch_op2 (cpc), BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_chstel:
+	  BREAK;
+	CASE (BC_NM_chstel):
 	  if (chstel (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
 		      get_op (BC_ch_op3 (cpc)), BC_ch_op4 (cpc), BC_ch_op5 (cpc),
 		      BC_fail_pc (cpc)))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();
-	  break;
-	case BC_NM_move:
+	  BREAK;
+	CASE (BC_NM_move):
 	  move (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_imove:
+	  BREAK;
+	CASE (BC_NM_imove):
 	  imove (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fmove:
+	  BREAK;
+	CASE (BC_NM_fmove):
 	  fmove (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_var:
+	  BREAK;
+	CASE (BC_NM_var):
 	  var (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lvar:
+	  BREAK;
+	CASE (BC_NM_lvar):
 	  lvar (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_lvarv:
+	  BREAK;
+	CASE (BC_NM_lvarv):
 	  lvarv (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_evar:
+	  BREAK;
+	CASE (BC_NM_evar):
 	  evar (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_levar:
+	  BREAK;
+	CASE (BC_NM_levar):
 	  levar (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_levarv:
+	  BREAK;
+	CASE (BC_NM_levarv):
 	  levarv (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_efun:
+	  BREAK;
+	CASE (BC_NM_efun):
 	  efun (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_fun:
-	case BC_NM_class:
+	  BREAK;
+	CASE (BC_NM_fun):
+	CASE (BC_NM_class):
 	  funclass (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_rpr:
+	  BREAK;
+	CASE (BC_NM_rpr):
 	  rpr (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_rpr_def:
+	  BREAK;
+	CASE (BC_NM_rpr_def):
 	  rpr_def (get_op (BC_op1 (cpc)));
 	  INCREMENT_PC ();
-	  break;
-	case BC_NM_nop:
+	  BREAK;
+	CASE (BC_NM_nop):
 	  /* for DINO developing purposes only.  It should be absent
 	     in unoptimized code.  */
 	  nop ();
 	  INCREMENT_PC ();
-	  break;
+	  BREAK;
+#if defined (DIRECT_DISPATCH) || !defined (__GNUC__)
 	default:
 	  d_unreachable ();
+#endif
 	}
     }
 }

@@ -1,3 +1,204 @@
+2015-10-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_eval.c (evaluate_code): Add node thread dispatch.
+
+2015-10-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Add reference to the article.
+
+2015-10-07  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Write about planned release.
+
+2015-10-06  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* configure.in (YAEPLIB, YAEPDIR): New substitutions.
+	* configure: Update.
+
+2015-10-06  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/Makefile.in (additional_rcs_files): Add
+	yaep_part.sgml.in and yaep_part++.sgml.in.
+	(ammunition.sgml, ammunition++.sgml): Include yaep part.
+	* AMMUNITION/ammunition[++].sgml.in: Extract YAEP part.
+	* AMMUNITION/ammunition[++].{dvi, pdf, ps}: Update.
+	* MSTA/compare.tst.in: Move to AMMUNITION.
+	* MSTA/Makefile.in (additional_files): Remove compare.tst.in.
+	Call AMMUNITION/compare_parsers.tst.
+	* configure.in: Rename MSTA/compare.tst to
+	AMMUNITION/compare_parsers.tst.
+	* configure: Update.
+
+2015-09-30  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* configure.in: Change earley to yeap.
+	* configure: Update.
+	* AMMUNITION/earley{.h, .c, .ccp, .tst.in, ++.tst.in}: Rename to
+	yaep{.h, .c, .ccp, .tst.in, ++.tst.in}.  Change earley to yeap.
+	* AMMUNITION/sgramm.y: Change earley to yeap.
+	* AMMUNITION/Makefile.in: Change earley to yeap.
+	* AMMUNITION/ammunition.sgml.in: Ditto.
+	* AMMUNITION/ammunition++.sgml.in: Ditto.
+	* AMMUNITION/ammunition.{html, dvi, info, pdf, ps, txt}: Update.
+	* AMMUNITION/ammunition-{1, 15}.html: Update.
+	* AMMUNITION/ammunition++.{html, dvi, info, pdf, ps, txt}: Update.
+	* AMMUNITION/ammunition++-{1, 15}.html: Update.
+	* cocom.{dvi, pdf, ps}: Update.
+	* MSTA/compare.tst.in: Rename earley to yaep.
+	* MSTA/msta.{dvi, pdf, ps}: Update.
+	* MSTA/Makefile.in: Update dependencies.
+	* NONA/nona.{dvi, pdf, ps}: Update.
+	* NONA/Makefile.in: Update dependencies.
+	* OKA/oka.{dvi, pdf, ps}: Update.
+	* OKA/Makefile.in: Update dependencies.
+	* SHILKA/shilka.{dvi, pdf, ps}: Update.
+	* SHILKA/Makefile.in: Update dependencies.
+	* SPRUT/sprut.{dvi, pdf, ps}: Update.
+	* SPRUT/Makefile.in: Update dependencies.
+	* DINO/d_func.c: Change earley to yeap.
+	* DINO/dino.{dvi, pdf, ps}: Update.
+	* DINO/Makefile.in: Change earley to yeap.  Update dependencies.
+	* DINO/dino.tst.in (428, 429, 431, 432, 435, 436): Change expected
+	output of Earley parser for ambiguous grammars.
+
+2015-09-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley{++}.tst.in (2, 2a, 3, 3a, 3b, 4, 5): Change
+	expected output.
+	(30-32, 34, 39, 42, 43, 46): Ditto.
+
+2015-09-23  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley.c (TRANSITIVE_TRANSITION): Add commented
+	definition.
+	(expand_int_vlo): Add code for C++.
+	(struct sit): Move empty_tail_p.  Add sit_check.
+	(sit_create): Initiate sit_check.
+	(empty_sit_dist_set): Add C++ variant of expand_int_vlo call.
+	(curr_sit_check, core_symbol_check_vlo, core_symbols_vlo): New.
+	(core_symbol_queue_vlo): New.
+	(set_init, set_fin): Initiate/ finalize them.
+	(set_insert): Remove code for removing duplicates.
+	(struct core_symb_vect): Add transitive_transitions.
+	(n_transitive_transition_vects, n_transitive_transition_vect_len):
+	New.
+	(transitive_transition_els_tab, vect_els_hash, vect_els_eq): New.
+	({transition, reduce}_els_hash): Use vect_els_hash.
+	({transition, reduce}_els_eq): Use vect_els_eq.
+	(transitive_transition_els_hash, transitive_transition_els_eq):
+	New.
+	(core_symb_vect_init): Create transitive_transition_els_tab.
+	Initiate n_transitive_transition_vects and
+	n_transitive_transition_vect_len.
+	(core_symb_vect_new): Initiate transitive_transitions.
+	(vect_new_add_el): New.
+	(core_symb_vect_new_add_transition_el): Use vect_new_add_el.
+	(core_symb_vect_new_add_reduce_el): Ditto.
+	(core_symb_vect_new_add_transitive_transition_el): New.
+	(process_core_symb_vect_el): New.
+	(core_symb_vect_new_all_stop): Use it.  Add code for
+	transitive_trsansitions too.
+	(core_symb_vect_fin): Delete transitive_transition_els_tab.
+	(collect_core_symbols, form_transitive_transition_vectors): New.
+	(expand_new_start_set): Call form_transitive_transition_vectors.
+	(build_new_set): Add code to use transitive transitions.  Don't
+	create duplications.
+	(earley_parse): Print info about transitive transition vectors.
+
+2015-09-22  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley.c (expand_int_vlo, sits_hash): New.
+	(struct sit_dist): New.
+	(first_free_sit_dist_index, sit_dist_vlo, sit_dist_vec_vlo): New.
+	(sit_dist_vec_check_vlo, curr_sit_dist_vec_check): New.
+	(sit_dist_set_init, empty_sit_dist_set, sit_dist_insert): New.
+	(sit_dist_set_fin): New.
+	(set_init): Call sit_dist_set_init.
+	(setup_set_core_hash): Use sits_hash.
+	(set_insert): Rewrite duplication removal.
+	(set_fin): Call sit_dist_set_fin.
+
+2015-09-14  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/earley.c (jauquet_prime_mod32, hash_shift): New.
+	(symb_repr_hash, term_set_hash, set_core_dists_hash): Use them.
+	(set_term_lookahead_hash, setup_set_core_hash): Ditto.
+	(core_symb_vect_hash, transition_els_hash, reduce_els_hash): Ditto.
+	(parse_state_hash): Ditto.
+	(MAX_CACHED_GOTO_RESULTS): Make it 3.
+	(set_init): Add arg.  Use it to calculate hash tables.
+	(earley_parse_init): Add arg.  Pass it to set_init.  Move tok_init
+	to earley_parse.
+	(earley_parse_fin): Move tok_fin to earley_parse.
+	(n_goto_successes): New.
+	(build_pl): Update it.
+	(earley_parse): Print it.
+	* AMMUNITION/earley.tst.in (2-5): Change expected output.
+	* AMMUNITION/earley++.tst.in (2-5): Change expected output.
+
+2015-09-11  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* AMMUNITION/hashtab.c (hash_table_collisions)
+	(all_hash_table_collisions): Remove.
+	* AMMUNITION/hashtab.cpp (_collisions, _all_collisions): Rename to
+	collisions and all_collisions.
+	* AMMUNITION/hashtab.h (get_searches, get_all_searches): New.
+	(get_all_collisions, get_all_collisions): Ditto.
+	(class hash_table): Rename _collisions and _all_collisions to
+	collisions and all_collisions.  Add get_searches,
+	get_all_searches, get_all_collisions, and get_all_collisions.
+	Remove collisions and all_collisions.
+	* AMMUNITION/hashtab.tst.in: Use get_collisions and
+	get_all_collisions.
+	* AMMUNITION/hashtab++.tst.in: Ditto.
+	* AMMUNITION/ammunition.sgml.in (hash_table_collisions): Remove.
+	(all_hash_table_collisions): Ditto.
+	(get_searches, get_all_searches): New.
+	(get_all_collisions, get_all_collisions): Ditto.
+	* AMMUNITION/ammunition++.sgml.in (collisions): Remove.
+	(all_collisions): Ditto.
+	(get_searches, get_all_searches): New.
+	(get_all_collisions, get_all_collisions): Ditto.
+	* AMMUNITION/ammunition++.sgml.in
+	* AMMUNITION/{ammunition++-5.html, ammunition++.dvi}: Update.
+	* AMMUNITION/ammunition++.{info, pdf, ps, txt}: Update.
+	* AMMUNITION/earley.c (SYMB_CODE_TRANS_VECT,  USE_SET_HASH_TABLE):
+	New defines.
+	(struct set_core): Add member hash.
+	(struct set): Add member dists_hash.
+	(MAX_CACHED_GOTO_RESULTS): New.
+	(struct set_term_lookahead): New.
+	(n_sets, n_sets_start_sits, n_set_term_lookaheads): New.
+	(set_term_lookahead_os, set_tab, set_term_lookahead_tab): New.
+	(set_core_hash, dists_hash): Use saved hash.
+	(set_core_dists_hash, set_core_dists_eq, set_term_lookahead_hash):
+	New.
+	(set_term_lookahead_eq): New.
+	(set_init): Initiate new variable.
+	(setup_set_dists_hash, setup_set_core_hash): Ditto.
+	(set_insert): Add code for absolute distances.  Initiate set_os.
+	Set up set dists hash and set core hash.  Insert set into table.
+	(set_print): Add set_dist arg.  Use arg for printing absolute
+	distances.
+	(set_fin): Finalize new variables.
+	(build_new_set): Add code for absolute distances.
+	(check_cached_transition_set): New.
+	(build_pl): Use it.  Add code for hash tables.
+	(make_parse): Add code for absolute distances.
+	(earley_parse): Add printing collisions, unique sets, and triples
+	[set, term, lookahead].
+	* AMMUNITION/earley.tst.in: Change expected output and ignore
+	statistics output for some cases.
+	* AMMUNITION/earley++.tst.in: Ditto.
+	* MSTA/compare.tst.in: Add Earley runs w/o lookahead and with
+	dynamic lookahead.
+	* DINO/dino.tst.in (437, 438): Exclude Earley parser statistics.
+
+2015-09-03  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* MSTA/compare.tst.in: Add code to check MARPA Earley's parser
+	speed.
+
 2015-08-24  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_context.c (first_block_passing): Process space.

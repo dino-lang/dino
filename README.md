@@ -1,6 +1,6 @@
 # Programming language Dino and its implementation
 ## Vladimir Makarov, vmakarov@gcc.gnu.org
-## Jun, 2015
+## Oct, 2015
 
 # Description Layout
 * Introduction to Dino
@@ -20,9 +20,12 @@
 
 # Some history
 * 1993: Original language design and implementation ![Dino logo](Dino.jpg "Dino logo")
-    * Was used in russian computer game company ANIMATEK as a simple scripting language for describing dinosaurus movements
+    * Was used in russian computer game company ANIMATEK as a simple scripting language
+      for describing dinosaurus movements
 * 1998, 2002, 2007 : Major language and implementation revisions
-* 2015: Latest major revision
+* The next major release is planed to be done in winter of 2015/2016.
+  * This document describes the current state of Dino language and implementation.
+    The document will be changed as the current Dino state is changing.
 
 # The first taste of Dino
   * Eratosthenes sieve:
@@ -535,6 +538,7 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 
 # Implementation - Conclusions
 * A lot of research was done on Dino implementation
+  (see [article about this](https://github.com/dino-lang/implemenation-article))
 * It can be used to improve performance of popular dynamic language implementations:
     * to make them faster
     * to make them more portable

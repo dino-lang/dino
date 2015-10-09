@@ -454,10 +454,10 @@ main ()
   *htab->find_entry ("j", 1) = "j";
   *htab->find_entry ("klm", 1) = "klm";
   *htab->find_entry ("nopqrst", 1) = "nopqrst";
-  c = htab->collisions ();
-  ac = hash_table::all_collisions ();
+  c = htab->get_collisions ();
+  ac = hash_table::get_all_collisions ();
   htab->empty ();
-  if (c != htab->collisions () || ac != hash_table::all_collisions ())
+  if (c != htab->get_collisions () || ac != hash_table::get_all_collisions ())
     exit (1);
   if (*htab->find_entry ("abcd", 0) != NULL)
     exit (1);

@@ -171,9 +171,9 @@ source = $(srcdir)/allocate.h $(srcdir)/allocate.c $(srcdir)/allocate.tst.in\
          $(srcdir)/arithm.cpp $(srcdir)/arithm++.tst.in\
          $(srcdir)/IEEE.h $(srcdir)/IEEE.c $(srcdir)/IEEE.tst.in\
          $(srcdir)/IEEE.cpp $(srcdir)/IEEE++.tst.in\
-         $(srcdir)/earley.h $(srcdir)/earley.c $(srcdir)/sgramm.y\
-	 $(srcdir)/earley.tst.in\
-	 $(srcdir)/earley.cpp $(srcdir)/earley++.tst.in\
+         $(srcdir)/yaep.h $(srcdir)/yaep.c $(srcdir)/sgramm.y\
+	 $(srcdir)/yaep.tst.in\
+	 $(srcdir)/yaep.cpp $(srcdir)/yaep++.tst.in\
          $(srcdir)/cocom-config.h.in $(srcdir)/cocom-config.h.bot\
          $(srcdir)/cocom-config.h.top $(srcdir)/Makefile.in
 
@@ -185,7 +185,8 @@ doc_files = ammunition.txt ammunition.info* ammunition*.html\
             ammunition++.pdf ammunition++.dvi ammunition++.ps
 
 # Files which are not in distribution
-additional_rcs_files = ammunition.sgml.in ammunition++.sgml.in
+additional_rcs_files = ammunition.sgml.in yaep_part.sgml.in\
+                       ammunition++.sgml.in yaep_part++.sgml.in 
 
 # All C object files
 Cobjects = $(Cdir)/allocate.o  $(Cdir)/vlobject.o  $(Cdir)/objstack.o\
@@ -193,7 +194,7 @@ Cobjects = $(Cdir)/allocate.o  $(Cdir)/vlobject.o  $(Cdir)/objstack.o\
            $(Cdir)/commline.o $(Cdir)/position.o  $(Cdir)/errors.o\
            $(Cdir)/ticker.o  $(Cdir)/bits.o\
            $(Cdir)/arithm.o  $(Cdir)/IEEE.o\
-           $(Cdir)/earley.o
+           $(Cdir)/yaep.o
 
 # All C++ object files
 Cppobjects = $(Cxxdir)/allocate.o  $(Cxxdir)/vlobject.o  $(Cxxdir)/objstack.o\
@@ -201,7 +202,7 @@ Cppobjects = $(Cxxdir)/allocate.o  $(Cxxdir)/vlobject.o  $(Cxxdir)/objstack.o\
              $(Cxxdir)/commline.o $(Cxxdir)/position.o  $(Cxxdir)/errors.o\
              $(Cxxdir)/ticker.o  $(Cxxdir)/bits.o\
              $(Cxxdir)/arithm.o  $(Cxxdir)/IEEE.o\
-             $(Cxxdir)/earley.o
+             $(Cxxdir)/yaep.o
 
 # C Library
 Clibrary = libcocom.a
@@ -292,7 +293,7 @@ test: test-c test-cpp
 
 test-c: IEEEtens.c allocate-tst vlobject-tst objstack-tst \
         hashtab-tst spset-tst cspset-tst commline-tst position-tst errors-tst \
-        ticker-tst bits-tst arithm-tst IEEE-tst earley-tst
+        ticker-tst bits-tst arithm-tst IEEE-tst yaep-tst
 allocate-tst:
 	$(SHELL) allocate.tst
 vlobject-tst:
@@ -319,13 +320,13 @@ arithm-tst:
 	$(SHELL) arithm.tst
 IEEE-tst:
 	$(SHELL) IEEE.tst
-earley-tst:
-	$(SHELL) earley.tst
+yaep-tst:
+	$(SHELL) yaep.tst
 
 test-cpp: IEEEtens.c allocatecpp-tst vlobjectcpp-tst objstackcpp-tst \
           hashtabcpp-tst spsetcpp-tst cspsetcpp-tst commlinecpp-tst \
           positioncpp-tst errorscpp-tst tickercpp-tst bitscpp-tst \
-          arithmcpp-tst IEEEcpp-tst earleycpp-tst
+          arithmcpp-tst IEEEcpp-tst yaepcpp-tst
 allocatecpp-tst:
 	$(SHELL) allocate++.tst
 vlobjectcpp-tst:
@@ -352,8 +353,8 @@ arithmcpp-tst:
 	$(SHELL) arithm++.tst
 IEEEcpp-tst:
 	$(SHELL) IEEE++.tst
-earleycpp-tst:
-	$(SHELL) earley++.tst
+yaepcpp-tst:
+	$(SHELL) yaep++.tst
 
 # Creation of installation directories and the library of reusable
 # functions, header files, and their man files to target directories.
@@ -376,7 +377,7 @@ install: all
 	$(INSTALLDATA) $(srcdir)/bits.h $(DESTDIR)/$(includedir)/bits.h
 	$(INSTALLDATA) $(srcdir)/arithm.h $(DESTDIR)/$(includedir)/arithm.h
 	$(INSTALLDATA) $(srcdir)/IEEE.h $(DESTDIR)/$(includedir)/IEEE.h
-	$(INSTALLDATA) $(srcdir)/earley.h $(DESTDIR)/$(includedir)/earley.h
+	$(INSTALLDATA) $(srcdir)/yaep.h $(DESTDIR)/$(includedir)/yaep.h
 	-mkdir -p $(DESTDIR)/$(docdir)
 	$(INSTALLDATA) $(srcdir)/ammunition.txt $(srcdir)/ammunition*.html\
           $(srcdir)/ammunition.info* $(srcdir)/ammunition.pdf\
@@ -405,7 +406,7 @@ uninstall:
 	rm -f $(DESTDIR)/$(includedir)/bits.h
 	rm -f $(DESTDIR)/$(includedir)/arithm.h
 	rm -f $(DESTDIR)/$(includedir)/IEEE.h
-	rm -f $(DESTDIR)/$(includedir)/earley.h
+	rm -f $(DESTDIR)/$(includedir)/yaep.h
 	-rmdir $(DESTDIR)/$(includedir)
 	rm -f $(DESTDIR)/$(docdir)/ammunition.txt \
           $(DESTDIR)/$(docdir)/ammunition*.html\
@@ -437,11 +438,11 @@ distclean: clean
 	rm -f allocate.tst vlobject.tst objstack.tst hashtab.tst
 	rm -f spset.tst cspset.tst
 	rm -f commline.tst position.tst errors.tst ticker.tst bits.tst
-	rm -f arithm.tst IEEE.tst earley.tst sgramm.c
+	rm -f arithm.tst IEEE.tst yaep.tst sgramm.c
 	rm -f allocate++.tst vlobject++.tst objstack++.tst hashtab++.tst
 	rm -f spset++.tst cspset++.tst
 	rm -f commline++.tst position++.tst errors++.tst ticker++.tst
-	rm -f bits++.tst arithm++.tst IEEE++.tst earley++.tst
+	rm -f bits++.tst arithm++.tst IEEE++.tst yaep++.tst
 	rm -f ammunition.sgml ammunition.tex ammunition.log\
               ammunition.aux ammunition.toc
 	rm -f ammunition++.sgml ammunition++.tex ammunition++.log\
@@ -495,8 +496,11 @@ doc : ammunition.sgml ammunition++.sgml\
       $(srcdir)/ammunition++.info $(srcdir)/ammunition++.pdf\
       $(srcdir)/ammunition++.dvi $(srcdir)/ammunition++.ps
 
-ammunition.sgml: $(srcdir)/ammunition.sgml.in
-	cp $(srcdir)/ammunition.sgml.in ammunition.sgml
+ammunition.sgml: $(srcdir)/ammunition.sgml.in $(srcdir)/yaep_part.sgml.in
+	$(AWK) "{if(\$$0 == \"%%%\")\
+                     {while ((getline line < \"$(srcdir)/yaep_part.sgml.in\") > 0)\
+                        print line;close(\"$(srcdir)/yaep_part.sgml.in\")}\
+                 else print;}" $(srcdir)/ammunition.sgml.in > $@
 
 $(srcdir)/ammunition.txt: ammunition.sgml
 	linuxdoc -B txt --papersize=letter -f ammunition.sgml
@@ -533,8 +537,11 @@ $(srcdir)/ammunition.ps: $(srcdir)/ammunition.dvi
 $(srcdir)/ammunition.pdf: $(srcdir)/ammunition.ps
 	ps2pdf $(srcdir)/ammunition.ps $@
 
-ammunition++.sgml: $(srcdir)/ammunition++.sgml.in
-	cp $(srcdir)/ammunition++.sgml.in ammunition++.sgml
+ammunition++.sgml: $(srcdir)/ammunition++.sgml.in $(srcdir)/yaep_part++.sgml.in
+	$(AWK) "{if(\$$0 == \"%%%\")\
+                     {while ((getline line < \"$(srcdir)/yaep_part++.sgml.in\") > 0)\
+                        print line;close(\"$(srcdir)/yaep_part++.sgml.in\")}\
+                 else print;}" $(srcdir)/ammunition++.sgml.in > $@
 
 $(srcdir)/ammunition++.txt: ammunition++.sgml
 	linuxdoc -B txt --papersize=letter -f ammunition++.sgml
@@ -583,7 +590,7 @@ depend : IEEEtens.c sgramm.c $(Cdir) $(Cxxdir)
 	echo '#' >>Makefile.tmp
 	for i in allocate.c vlobject.c objstack.c hashtab.c spset.c cspset.c\
 	         commline.c position.c errors.c ticker.c\
-	         bits.c arithm.c IEEE.c earley.c;\
+	         bits.c arithm.c IEEE.c yaep.c;\
 	do\
 	   echo $(Cdir)/`gcc -MM -iquote -I$(srcdir)/../AMMUNITION $(CFLAGS) $(srcdir)/../AMMUNITION/$$i` | $(SED) 's/\\//g'\
                 | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
@@ -603,7 +610,7 @@ depend : IEEEtens.c sgramm.c $(Cdir) $(Cxxdir)
 	@echo ++++ Adding Makefile dependencies for C++ ++++
 	for i in allocate.cpp vlobject.cpp objstack.cpp hashtab.cpp spset.cpp cspset.cpp\
 	         commline.cpp position.cpp errors.cpp ticker.cpp\
-	         bits.cpp arithm.cpp IEEE.cpp earley.cpp;\
+	         bits.cpp arithm.cpp IEEE.cpp yaep.cpp;\
 	do\
 	   echo $(Cxxdir)/`gcc -MM -iquote -I$(srcdir)/../AMMUNITION $(CFLAGS) $(srcdir)/../AMMUNITION/$$i` | $(SED) 's/\\//g'\
                 | $(SED) `echo 's%$(top_srcdir)/%$$(top_srcdir)/%g'\
@@ -631,28 +638,28 @@ C/vlobject.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.c  cocom-config.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.c
 C/objstack.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.c
-C/hashtab.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h
+C/hashtab.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.c
-C/spset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
+C/spset.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.c
-C/cspset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h
+C/cspset.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.c
 C/commline.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.c
 C/position.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/position.c
-C/errors.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h
+C/errors.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.c
-C/ticker.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.h
+C/ticker.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.c
-C/bits.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h
+C/bits.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.c
-C/arithm.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h
+C/arithm.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.c
-C/IEEE.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEEtens.c
+C/IEEE.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEEtens.c
 	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.c
-C/earley.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/earley.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/earley.h sgramm.c
-	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/earley.c
+C/yaep.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/yaep.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/yaep.h  sgramm.c
+	$(CC) -c $(CFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/yaep.c
 C++/allocate.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.cpp
 C++/vlobject.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h
@@ -661,23 +668,23 @@ C++/objstack.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.cpp  cocom-conf
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.cpp
 C++/hashtab.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.cpp
-C++/spset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
+C++/spset.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.cpp
-C++/cspset.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h
+C++/cspset.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/spset.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/cspset.cpp
 C++/commline.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/commline.cpp
 C++/position.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/position.cpp
-C++/errors.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.h
+C++/errors.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/position.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/errors.cpp
-C++/ticker.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.h
+C++/ticker.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/ticker.cpp
-C++/bits.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h
+C++/bits.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.cpp
-C++/arithm.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
+C++/arithm.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.cpp
-C++/IEEE.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEEtens.c
+C++/IEEE.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.cpp  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/bits.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/arithm.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEEtens.c
 	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/IEEE.cpp
-C++/earley.o: $(top_srcdir)/AMMUNITION/../AMMUNITION/earley.cpp  $(top_srcdir)/AMMUNITION/../AMMUNITION/earley.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/earley.h sgramm.c
-	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/earley.cpp
+C++/yaep.o:  $(top_srcdir)/AMMUNITION/../AMMUNITION/yaep.cpp  $(top_srcdir)/AMMUNITION/../AMMUNITION/yaep.c  cocom-config.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/allocate.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/hashtab.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/vlobject.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/objstack.h  $(top_srcdir)/AMMUNITION/../AMMUNITION/yaep.h  sgramm.c
+	$(CXX) -c $(CXXFLAGS) -o $@ $(top_srcdir)/AMMUNITION/../AMMUNITION/yaep.cpp

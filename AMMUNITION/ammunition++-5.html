@@ -151,29 +151,53 @@ returns current size of given hash table.</P>
 
 returns current number of elements in given hash table.</P>
 
-<DT><B>Public function `collisions'</B><DD>
+<DT><B>Public function `get_searches'</B><DD>
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-           `int collisions (void)'
+           `int get_searches (void)'
            
 </PRE>
 </CODE></BLOCKQUOTE>
 
-returns number of of percents of fixed collisions during all
-work with given hash table.</P>
+returns number of searhces during all work with given hash
+table.</P>
 
-<DT><B>Static public function `all_collisions'</B><DD>
+<DT><B>Public function `get_collisions'</B><DD>
 <P>
 <BLOCKQUOTE><CODE>
 <PRE>
-           `int all_collisions (void)'
+           `int get_collisions (void)'
            
 </PRE>
 </CODE></BLOCKQUOTE>
 
-returns number of of percents of fixed collisions during all
-work with all hash tables.</P>
+returns number of occurred collisions during all work with
+given hash table.</P>
+
+<DT><B>Static public function `get_all_searches'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `int get_all_searches (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns number of searches during all work with all hash
+tables.</P>
+
+<DT><B>Static public function `get_all_collisions'</B><DD>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+           `int get_all_collisions (void)'
+           
+</PRE>
+</CODE></BLOCKQUOTE>
+
+returns number of occurred collisions during all work with
+all hash tables.</P>
 </DL>
 </P>
 </DL>

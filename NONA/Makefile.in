@@ -319,13 +319,14 @@ depend : ird.c ird.h yacc.c
 # The following is generated with the aid of Makefile entry depend
 # Do not place anything below this line
 #
-ird.o: ird.c ird.h $(top_srcdir)/AMMUNITION/objstack.h \
+ird.o: ird.c ird.h \
+ $(top_srcdir)/AMMUNITION/objstack.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h
 	$(CC) -c $(CFLAGS) -o $@ ird.c
-common.o: $(top_srcdir)/NONA/../NONA/common.c ird.h \
- $(top_srcdir)/AMMUNITION/objstack.h \
+common.o: $(top_srcdir)/NONA/../NONA/common.c \
+ ird.h $(top_srcdir)/AMMUNITION/objstack.h \
  ../AMMUNITION/cocom-config.h \
  $(top_srcdir)/AMMUNITION/allocate.h \
  $(top_srcdir)/AMMUNITION/position.h \
