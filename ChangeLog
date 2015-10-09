@@ -1,5 +1,14 @@
 2015-10-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/Makefile.in: Revert changes from branch space creation.
+	* DINO/d_context.c: Ditto.
+	* DINO/d_gen.c: Ditto.
+	* DINO/d_ir.sprut: Ditto.
+	* DINO/d_kw.shilka: Ditto.
+	* DINO/d_yacc.y: Ditto.
+
+2015-10-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_eval.c (evaluate_code): Add node thread dispatch.
 
 2015-10-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>

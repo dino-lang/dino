@@ -1543,19 +1543,6 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  break;
 	case IR_NM_decl_redir:
 	  break;
-	case IR_NM_space:
-	  {
-	    IR_node_t saved_curr_scope = curr_scope;
-
-	    curr_scope = stmt;
-	    set_block_level (stmt, curr_block_level);
-	    IR_set_block_stmts
-	      (stmt, first_block_passing (IR_block_stmts (stmt),
-					  curr_block_level + 1));
-	    process_friend_list (stmt);
-	    curr_scope = saved_curr_scope;
-	    break;
-	  }
 	default:
 	  d_unreachable ();
 	}

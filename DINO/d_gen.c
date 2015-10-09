@@ -926,7 +926,7 @@ flat (ER_node_t op1)
   ER_set_dim (op1, 0);
 }
 
-static void do_inline
+void do_inline
 execute_a_period_operation (int block_decl_ident_number, ER_node_t res,
 			    ER_node_t op, int lvalue_p, int lvalue_val_p)
 {
