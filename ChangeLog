@@ -1,3 +1,7 @@
+2015-10-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_eval.c (evaluate_code): Add node thread dispatch.
+
 2015-10-08  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Add reference to the article.
