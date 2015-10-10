@@ -1,3 +1,20 @@
+2015-10-10  Vladimir Makarov  <vmakarov@rgcc.gnu.org>
+
+	* MSTA/main.c (msta_finish): Rename all_hash_table_collisions to
+	get_all_collisions.
+	* MSTA/tab.c (finish_string_table): Rename to
+	hash_table_collisions to get_collisions.
+	(finish_single_definition_table): Ditto.
+	(finish_literal_definition_table, finish_token_code_value_table):
+	Ditto.
+	* MSTA/lr.c (finish_dependence_nodes_table): Ditto.
+	* MSTA/lr-sets.c (finish_LR_core_table, finish_LR_set_table):
+	Ditto.
+	* MSTA/gen-comm.c (finish_traverse_cache, finish_goto_set_cache):
+	Ditto.
+	* MSTA/contexts.c (finish_token_strings, finish_contexts): Ditto.
+	* MSTA/anal.c (finish_pattern_table): Ditto.
+
 2015-10-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_eval.c (evaluate_code): Add node thread dispatch.
