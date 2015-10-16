@@ -164,7 +164,7 @@ msta_finish (int fatal_exit_flag)
   if (debug_level >= 1)
     fprintf
       (stderr,
-       "All hash table collisions - %d%%\n", all_hash_table_collisions ());
+       "All hash table collisions - %d%%\n", get_all_collisions ());
 #endif
   finish_parser ();
   /* Output of errors only after `finish_parser' because it can flush

@@ -154,7 +154,7 @@ finish_string_table (void)
        "String table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (string_table),
        hash_table_elements_number (string_table),
-       hash_table_collisions (string_table));
+       get_collisions (string_table));
 #endif
   delete_hash_table (string_table);
 }
@@ -277,7 +277,7 @@ finish_single_definition_table (void)
        "Definition table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (single_definition_table),
        hash_table_elements_number (single_definition_table),
-       hash_table_collisions (single_definition_table));
+       get_collisions (single_definition_table));
 #endif
   delete_hash_table (single_definition_table);
 }
@@ -394,7 +394,7 @@ finish_literal_definition_table (void)
        "Literal table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (literal_definition_table),
        hash_table_elements_number (literal_definition_table),
-       hash_table_collisions (literal_definition_table));
+       get_collisions (literal_definition_table));
 #endif
   delete_hash_table (literal_definition_table);
 }
@@ -512,7 +512,7 @@ finish_token_code_value_table (void)
        "Token code table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (token_code_value_table),
        hash_table_elements_number (token_code_value_table),
-       hash_table_collisions (token_code_value_table));
+       get_collisions (token_code_value_table));
 #endif
   delete_hash_table (token_code_value_table);
   OS_DELETE (token_code_values);

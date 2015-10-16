@@ -1082,7 +1082,7 @@ finish_pattern_table (void)
        "Pattern table: entries - %lu, elements - %lu, collisions - %d%%\n",
        hash_table_size (pattern_table),
        hash_table_elements_number (pattern_table),
-       hash_table_collisions (pattern_table));
+       get_collisions (pattern_table));
 #endif
   delete_hash_table (pattern_table);
 }
