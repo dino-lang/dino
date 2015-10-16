@@ -875,11 +875,14 @@ external_decl :: decl
 ;
 
 /* The following node represents formal parameter of funcs and classes
-   too. */
+   too.  If OBJ_BLOCK is not null, this is variable references for an
+   object with OBJ_BLOCK.  In this case const_flag should be also
+   true.  */
 var :: decl
 %other
         /* Flag of a parameter  */
         par_flag : bool_t {$ = FALSE;}
+        obj_block : block {$ = NULL;}
 ;
 
 /* The following node represents external variable declaration. */
@@ -918,6 +921,19 @@ fun :: fun_or_class
 
 /* See commentaries for fun node. */
 class :: fun_or_class
+%other
+	/* Variable holding the object if it is a singleton.  */
+        obj_var : var {$ = NULL;}
+;
+
+/* Nodes created from expose-sentence.  */
+expose :: stmt
+%other
+        expose_designator : designator
+        expose_alias : ident
+        /* True if we want expose all public members of an object
+	   refereed by expose_designator.  */
+        expose_internals_flag : bool_t
 ;
 
 use :: stmt
@@ -940,6 +956,9 @@ former_item, later_item :: use_item
 
 ident
 %other
+        /* Declaration referred by the identifier.  If the identifier
+	   is a field of an object var, it is the corresponding decl
+	   in the object.  */
         decl : decl
 ;
 
@@ -1040,6 +1059,15 @@ block
         /* The following is the list of uses of the block. */
         block_uses : block_use {$ = NULL;}
         bc_block : BC_hidden_node_t {$ = NULL;} /* Byte code block */
+;
+
+/* Declaration created from expose-sentence.  */
+expose_decl :: decl
+%other
+        /* First object containing the exposed declaration and whose
+           scope contains given expose declaration.  */
+        top_object_class : class
+        decl_in_object : decl
 ;
 
 /* The following is a node of the list of friends of block (it means
@@ -1210,7 +1238,8 @@ hash_func (hash_table_entry_t el_ptr)
   node_ref = IR_PTR (el_ptr);
   mode = IR_NODE_MODE (node_ref);
   if (mode == IR_NM_var || mode == IR_NM_external_var
-      || mode == IR_NM_external_fun || mode == IR_NM_fun || mode == IR_NM_class)
+      || mode == IR_NM_external_fun || mode == IR_NM_fun || mode == IR_NM_class
+      || mode == IR_NM_expose_decl)
     hash_value
       = ((unsigned) (long) IR_scope (node_ref)
 	 + (unsigned) (long) IR_GET_UNIQUE_IDENT (IR_ident (node_ref)));
@@ -1270,10 +1299,10 @@ compare_func (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr)
   mode2 = IR_NODE_MODE (node_ref2);
   if ((mode1 == IR_NM_var || mode1 == IR_NM_external_var
        || mode1 == IR_NM_external_fun || mode1 == IR_NM_fun
-       || mode1 == IR_NM_class)
+       || mode1 == IR_NM_class || mode1 == IR_NM_expose_decl)
       && (mode2 == IR_NM_var || mode2 == IR_NM_external_var
 	  || mode2 == IR_NM_external_fun || mode2 == IR_NM_fun
-	  || mode2 == IR_NM_class))
+	  || mode2 == IR_NM_class || mode2 == IR_NM_expose_decl))
     elements_are_equal
       = (IR_scope (node_ref1) == IR_scope (node_ref2)
 	 && (IR_GET_UNIQUE_IDENT (IR_ident (node_ref1))

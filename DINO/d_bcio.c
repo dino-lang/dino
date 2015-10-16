@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014 Vladimir Makarov.
+   Copyright (C) 2014-2015 Vladimir Makarov.
 
    Written by Vladimir Makarov <vmakarov@gcc.gnu.org>
 
@@ -194,6 +194,15 @@ dump_code (BC_node_t infos, int indent)
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_fldid (bc),
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_fldid (bc));
 	  break;
+	case BC_NM_ovfld:
+	case BC_NM_lovfld:
+	case BC_NM_lovfldv:
+	  printf (" op1=%d op2=%d op3=%d ov_decl=%d // %d <- %d . %d (%s)",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
+		  BC_decl_num (BC_ov_decl (bc)),
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
+		  BC_ident (BC_ov_decl (bc)));
+	  break;
 	case BC_NM_brts:
 	case BC_NM_brfs:
 	  printf (" res=%d op1=%d pc=%d // %d <- %d pc=%d",
@@ -276,6 +285,21 @@ dump_code (BC_node_t infos, int indent)
 	  printf (" op1=%d op2=%d op3=%d op4=%d mid=%s // %d <- %d . %s[idnum=%d] (%d ...)",
 		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc), BC_op4 (bc), BC_mid (bc),
 		  BC_op1 (bc), BC_op3 (bc), BC_mid (bc), BC_op4 (bc), BC_op1 (bc));
+	  break;
+	case BC_NM_omcall:
+	  printf (" op1=%d op2=%d op3=%d om_decl=%d // %d <- %d . %d (%s) (%d ...)",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
+		  BC_decl_num (BC_om_decl (bc)), BC_op1 (bc), BC_op3 (bc),
+		  BC_decl_num (BC_om_decl (bc)), BC_ident (BC_om_decl (bc)),
+		  BC_op1 (bc));
+	  break;
+	case BC_NM_omicall:
+	case BC_NM_omitcall:
+	  printf (" op1=%d op2=%d op3=%d mfblock=%d // %d <- %d . %d (%s) (%d ...)",
+		  BC_op1 (bc), BC_op2 (bc), BC_op3 (bc),
+		  BC_idn (BC_info (BC_mfblock (bc))), BC_op1 (bc), BC_op3 (bc),
+		  BC_idn (BC_info (BC_mfblock (bc))), BC_ident (BC_fdecl (BC_mfblock (bc))),
+		  BC_op1 (bc));
 	  break;
 	case BC_NM_sl:
 	case BC_NM_lslv:
@@ -646,6 +670,13 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_class:
 	  printf (" op1=%d decl=%d // %s", BC_op1 (bc),
 		  BC_decl_num (BC_decl (bc)), BC_ident (BC_decl (bc)));
+	  break;
+	case BC_NM_ofun:
+	case BC_NM_oclass:
+	  printf (" op1=%d op2=%d o_decl=%d // %d <- %d . %d (%s)",
+		  BC_op1 (bc), BC_op2 (bc), BC_decl_num (BC_o_decl (bc)),
+		  BC_op1 (bc), BC_op2 (bc), BC_decl_num (BC_o_decl (bc)),
+		  BC_ident (BC_o_decl (bc)));
 	  break;
 	case BC_NM_move:
 	case BC_NM_imove:
@@ -1548,9 +1579,25 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_field, D_IDENT)) goto fail;
 	      BC_set_fldid (curr_node, token_attr.str);
 	      break;
+	    case FR_ov_decl:
+	      if (check_fld (BC_NM_ovfield, D_INT)) goto fail;
+	      store_curr_ptr_fld (); 
+	      break;
+	    case FR_o_decl:
+	      if (check_fld (BC_NM_op2_decl, D_INT)) goto fail;
+	      store_curr_ptr_fld (); 
+	      break;
 	    case FR_mid:
 	      if (check_fld (BC_NM_mcall, D_IDENT)) goto fail;
 	      BC_set_mid (curr_node, token_attr.str);
+	      break;
+	    case FR_om_decl:
+	      if (check_fld (BC_NM_omcall, D_INT)) goto fail;
+	      store_curr_ptr_fld (); 
+	      break;
+	    case FR_mfblock:
+	      if (check_fld (BC_NM_objomicall, D_INT)) goto fail;
+	      store_curr_ptr_fld (); 
 	      break;
 	    case FR_element:
 	      if (check_fld (BC_NM_foreach2, D_INT)) goto fail;
@@ -1654,6 +1701,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_check4, FR_ch_op4, "ch_op4");
       check_fld_set (BC_NM_check5, FR_ch_op5, "ch_op5");
       check_fld_set (BC_NM_imcall, FR_cfblock, "cfblock");
+      check_fld_set (BC_NM_ovfield, FR_ov_decl, "ov_decl");
+      check_fld_set (BC_NM_op2_decl, FR_o_decl, "o_decl");
+      check_fld_set (BC_NM_omcall, FR_om_decl, "om_decl");
+      check_fld_set (BC_NM_objomicall, FR_mfblock, "mfblock");
       check_fld_set (BC_NM_ldf, FR_f, "f");
       check_fld_set (BC_NM_lds, FR_str, "str");
       check_fld_set (BC_NM_field, FR_fldid, "fldid");
@@ -1811,6 +1862,22 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	case FR_body_pc:
 	  ptr = get_bcode (fld->fld_val);
 	  BC_set_body_pc (fld->node, ptr);
+	  break;
+	case FR_ov_decl:
+	  ptr = get_decl (fld->fld_val);
+	  BC_set_ov_decl (fld->node, ptr);
+	  break;
+	case FR_o_decl:
+	  ptr = get_decl (fld->fld_val);
+	  BC_set_o_decl (fld->node, ptr);
+	  break;
+	case FR_om_decl:
+	  ptr = get_decl (fld->fld_val);
+	  BC_set_om_decl (fld->node, ptr);
+	  break;
+	case FR_mfblock:
+	  ptr = get_bcode (fld->fld_val);
+	  BC_set_mfblock (fld->node, ptr);
 	  break;
 	case FR_move_decl:
 	  ptr = get_decl (fld->fld_val);

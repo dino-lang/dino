@@ -936,6 +936,8 @@ var, lvar, lvarv, evar, levar, levarv :: op1_decl; /* result place */
 
 fun, efun, class :: op1_decl; /* result place, fdecl/efdecl */
 
+ofun, oclass :: op2_decl; /* result place, object place */
+
 /* op1 is result place; op2 and op3 are container place and index/key place
    or dim for slice.  */ 
 ind :: op3;
@@ -948,6 +950,10 @@ ind2 :: op4;
 /* op1 is result place; op2 is container place and op3 is block decl
    ident number */	
 fld, lfld, lfldv :: field;
+
+/* object variable access: op1 is result place; op2 is object place
+   and op3 is variable number in the object block */	
+ovfld, lovfld, lovfldv :: ovfield;
 
 const, new, not, plus, minus, bnot, length,
   tpof, chof, iof, lof, fof, vecof, tabof :: op2; /* result and operand places */
@@ -1096,6 +1102,17 @@ mcall :: op4i24
         mhint : decl { $ = NULL; }
 ;
 
+/* method call: params start place, params number as int, object, and
+   method declaration.  */
+omcall :: op3i2
+%other
+        om_decl : decl
+;
+
+/* call of method with constraints: params start place, params number as int, object, and
+   method fblock.  */
+omicall, omitcall :: objomicall;
+
 leave:: bcode; /* Return without value.  */
 
 /* stpop is used for inlined block leave.  Position is block end.  Pop
@@ -1214,6 +1231,16 @@ op2 :: op1
         op2 : int_t
 ;
 %abstract
+op2_decl :: op2
+%other
+        o_decl : decl
+;
+%abstract
+objomicall :: op3i2
+%other
+        mfblock : fblock
+;
+%abstract
 op2i :: op2 /* op2 is int const */
 ;
 %abstract
@@ -1315,6 +1342,11 @@ field :: op3i
 	fldid : string_t  /* field identifier  */
         /* Set up during evaluation for quicker access.  */
         hint : decl { $ = NULL; }
+;
+%abstract
+ovfield :: op3i
+%other
+        ov_decl : decl
 ;
 %abstract
 fold_op :: op2
@@ -2115,7 +2147,10 @@ print_node (FILE *f, BC_node_t bc)
   if (BC_IS_OF_TYPE (bc, BC_NM_imcall)
       || BC_IS_OF_TYPE (bc, BC_NM_call)
       || BC_IS_OF_TYPE (bc, BC_NM_tcall)
-      || BC_IS_OF_TYPE (bc, BC_NM_mcall))
+      || BC_IS_OF_TYPE (bc, BC_NM_mcall)
+      || BC_IS_OF_TYPE (bc, BC_NM_omcall)
+      || BC_IS_OF_TYPE (bc, BC_NM_omicall)
+      || BC_IS_OF_TYPE (bc, BC_NM_omitcall))
     fprintf (f, ", 1"); /* from_c_code_p argument  */
 
   if (BC_IS_OF_TYPE (bc, BC_NM_check2))

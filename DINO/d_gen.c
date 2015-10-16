@@ -997,6 +997,51 @@ lfldv (ER_node_t res, ER_node_t op1, int op3n)
   execute_a_period_operation (op3n, res, op1, TRUE, TRUE);
 }
 
+static void do_always_inline
+execute_ovld_operation (int var_num, ER_node_t res,
+			ER_node_t op, int lvalue_p, int lvalue_val_p)
+{
+  ER_node_t stack, ref, val;
+
+  d_assert (ER_NODE_MODE (op) == ER_NM_stack);
+  stack = ER_stack (op);
+  if (! lvalue_p)
+    val = res;
+  else
+    {
+      ER_SET_MODE (res, ER_NM_stack);
+      ER_set_stack (res, stack);
+      ER_SET_MODE (IVAL (res, 1), ER_NM_int);
+      ER_set_i (IVAL (res, 1), var_num);
+      if (! lvalue_val_p)
+	return;
+      val = IVAL (res, 2);
+    }
+  ref = IVAL (ER_stack_vars (stack), var_num);
+  if (ER_NODE_MODE (ref) == ER_NM_undef)
+    eval_error (accessop_bc_decl, get_cpos (),
+		DERR_undefined_value_access, BC_ident (BC_ov_decl (cpc)));
+  *(val_t *) val = *(val_t *) ref;
+}
+
+static void do_always_inline
+ovfld (ER_node_t res, ER_node_t op1, int op3n)
+{
+  execute_ovld_operation (op3n, res, op1, FALSE, FALSE);
+}
+
+static void do_always_inline
+lovfld (ER_node_t res, ER_node_t op1, int op3n)
+{
+  execute_ovld_operation (op3n, res, op1, TRUE, FALSE);
+}
+
+static void do_always_inline
+lovfldv (ER_node_t res, ER_node_t op1, int op3n)
+{
+  execute_ovld_operation (op3n, res, op1, TRUE, TRUE);
+}
+
 static int do_always_inline
 brts (ER_node_t op1, ER_node_t res)
 {
@@ -1533,34 +1578,6 @@ tcall (ER_node_t op1, int op2n, int from_c_code_p)
   process_call (op1, op2n, TRUE, from_c_code_p);
 }
 
-static void do_always_inline
-mcall (ER_node_t op1, int op2n, ER_node_t op3, int op4n, int from_c_code_p)
-{
-  BC_node_t block, fblock, decl;
-  ER_node_t stack, ref, val;
-
-  if (ER_NODE_MODE (op3) != ER_NM_stack)
-    eval_error (accessop_bc_decl, get_cpos (),
-		DERR_value_is_not_class_instance_or_stack);
-  stack = ER_stack (op3);
-  block = ER_block_node (stack);
-  if ((decl = BC_mhint (cpc)) == NULL || BC_decl_scope (decl) != block)
-    {
-      decl = find_field (op4n, &stack);
-      if (BC_NODE_MODE (decl) != BC_NM_fdecl
-	  && BC_NODE_MODE (decl) != BC_NM_efdecl)
-	eval_error (callop_bc_decl, get_cpos (),
-		    DERR_none_class_or_fun_before_left_bracket);
-      if (BC_NODE_MODE (decl) == BC_NM_fdecl
-	  && BC_forward_p (BC_fblock (decl)))
-	eval_error (accessvalue_bc_decl, get_cpos (),
-		    DERR_undefined_class_or_fun, BC_ident (decl));
-      if (BC_decl_scope (decl) == block)
-	BC_set_mhint (cpc, decl);
-    }
-  process_fun_class_call (decl, stack, op1, op1, op2n, FALSE, from_c_code_p);
-}
-  
 /* Try to reuse the result of pure function.  Return true if we had an
    success.  Otherwise, setup new stack and return FALSE.  */
 static int do_always_inline
@@ -1684,6 +1701,70 @@ ibcall (ER_node_t op1, int op2n, int from_c_code_p)
 {
   ctop = IVAL (op1, -1);
   process_imm_ifun_call (BC_cfblock (cpc), op2n, from_c_code_p);
+}
+
+static void do_always_inline
+mcall (ER_node_t op1, int op2n, ER_node_t op3, int op4n, int from_c_code_p)
+{
+  BC_node_t block, fblock, decl;
+  ER_node_t stack, ref, val;
+
+  if (ER_NODE_MODE (op3) != ER_NM_stack)
+    eval_error (accessop_bc_decl, get_cpos (),
+		DERR_value_is_not_class_instance_or_stack);
+  stack = ER_stack (op3);
+  block = ER_block_node (stack);
+  if ((decl = BC_mhint (cpc)) == NULL || BC_decl_scope (decl) != block)
+    {
+      decl = find_field (op4n, &stack);
+      if (BC_NODE_MODE (decl) != BC_NM_fdecl
+	  && BC_NODE_MODE (decl) != BC_NM_efdecl)
+	eval_error (callop_bc_decl, get_cpos (),
+		    DERR_none_class_or_fun_before_left_bracket);
+      if (BC_NODE_MODE (decl) == BC_NM_fdecl
+	  && BC_forward_p (BC_fblock (decl)))
+	eval_error (accessvalue_bc_decl, get_cpos (),
+		    DERR_undefined_class_or_fun, BC_ident (decl));
+      if (BC_decl_scope (decl) == block)
+	BC_set_mhint (cpc, decl);
+    }
+  process_fun_class_call (decl, stack, op1, op1, op2n, FALSE, from_c_code_p);
+}
+  
+static void do_always_inline
+omcall (ER_node_t op1, int op2n, ER_node_t op3, int from_c_code_p)
+{
+  ER_node_t stack;
+
+  d_assert (ER_NODE_MODE (op3) == ER_NM_stack);
+  stack = ER_stack (op3);
+  process_fun_class_call (BC_om_decl (cpc), stack, op1, op1, op2n, FALSE, from_c_code_p);
+}
+  
+static void do_always_inline
+common_omicall (ER_node_t op1, int op2n, ER_node_t op3,
+		int tail_p, int from_c_code_p)
+{
+  ER_node_t stack;
+  BC_node_t fblock;
+
+  d_assert (ER_NODE_MODE (op3) == ER_NM_stack);
+  ctop = IVAL (op1, -1);
+  fblock = BC_mfblock (cpc);
+  process_imm_fun_call ((val_t *) op1, fblock, stack,
+			op2n, BC_vars_num (fblock), tail_p, from_c_code_p);
+}
+
+static void do_always_inline
+omicall (ER_node_t op1, int op2n, ER_node_t op3, int from_c_code_p)
+{
+  common_omicall (op1, op2n, op3, FALSE, from_c_code_p);
+}
+  
+static void do_always_inline
+omitcall (ER_node_t op1, int op2n, ER_node_t op3, int from_c_code_p)
+{
+  common_omicall (op1, op2n, op3, TRUE, from_c_code_p);
 }
 
 static void do_always_inline
@@ -3367,6 +3448,33 @@ funclass (ER_node_t res)
   ER_set_code_id (res, CODE_ID (fblock));
   ER_set_code_context
     (res, find_context_by_scope (BC_decl_scope (decl)));
+}
+
+static void do_always_inline
+ofunclass (ER_node_t res, ER_node_t op1)
+{
+  BC_node_t fblock, decl = BC_o_decl (cpc);
+	    
+  d_assert (BC_NODE_MODE (decl) == BC_NM_fdecl);
+  ER_SET_MODE (res, ER_NM_code);
+  fblock = BC_fblock (decl);
+  if (BC_forward_p (fblock))
+    eval_error (accessvalue_bc_decl, get_cpos (),
+		DERR_undefined_class_or_fun, BC_ident (decl));
+  ER_set_code_id (res, CODE_ID (fblock));
+  ER_set_code_context (res, ER_stack (op1));
+}
+
+static void do_always_inline
+ofun (ER_node_t res, ER_node_t op1)
+{
+  ofunclass (res, op1);
+}
+
+static void do_always_inline
+oclass (ER_node_t res, ER_node_t op1)
+{
+  ofunclass (res, op1);
 }
 
 static void do_always_inline

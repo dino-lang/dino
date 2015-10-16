@@ -281,11 +281,38 @@ first_expr_processing (IR_node_t expr, int pattern_p)
 	break;
       }
     case IR_NM_period:
-      SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_designator (expr), FALSE);
-      set_field_ident_number (IR_unique_ident (IR_component (expr)));
-      check_slice (expr, IR_designator (expr),
-		   ERR_period_ident_applied_to_slice);
+      {
+	IR_node_t des, decl, obj_block = NULL;
+
+	first_expr_processing (IR_designator (expr), FALSE);
+	SET_SOURCE_POSITION (expr);
+	des = IR_designator (expr);
+	if (des != NULL && IR_IS_OF_TYPE (des, IR_NM_period)
+	    && (decl = IR_decl (IR_component (des))) != NULL
+	    && IR_IS_OF_TYPE (decl, IR_NM_var))
+	  obj_block = IR_obj_block (decl);
+	else if (des != NULL && IR_IS_OF_TYPE (des, IR_NM_ident)
+		 && (decl = IR_decl (des)) != NULL)
+	  {
+	    if (IR_IS_OF_TYPE (decl, IR_NM_expose_decl))
+	      decl = IR_decl_in_object (decl);
+	    if (IR_IS_OF_TYPE (decl, IR_NM_var))
+	      obj_block = IR_obj_block (decl);
+	  }
+	if (obj_block != NULL)
+	  {
+	    IR_set_decl
+	      (IR_component (expr),
+	       find_decl_in_given_scope (IR_component (expr), obj_block));
+	    if (IR_decl (IR_component (expr)) == NULL)
+	      cont_err
+		(source_position, ERR_no_public_declaration_in_object,
+		 IR_ident_string (IR_unique_ident (IR_component (expr))));
+	  }
+	set_field_ident_number (IR_unique_ident (IR_component (expr)));
+	check_slice (expr, IR_designator (expr),
+		     ERR_period_ident_applied_to_slice);
+      }
       break;
     case IR_NM_logical_or:
     case IR_NM_logical_and:
@@ -459,6 +486,78 @@ first_expr_processing (IR_node_t expr, int pattern_p)
 
 static IR_node_t first_block_passing (IR_node_t first_level_stmt,
 				      int curr_block_level);
+
+/* Given designator DES return the correspoding decl, set up
+   TOP_OBJECT_CLASS if we found in decl in objects, assign NULL
+   otherwise.  Report an error if we can not find the declaration and
+   return NULL.  */
+static IR_node_t
+find_expose_designator_decl (IR_node_t des, IR_node_t *top_object_class)
+{
+  IR_node_t decl, obj_block, var_stmt, block_stmt;
+  
+  if (IR_IS_OF_TYPE (des, IR_NM_ident))
+    {
+      decl = find_decl (des, curr_scope);
+      *top_object_class = NULL;
+      if (decl != NULL && IR_IS_OF_TYPE (decl, IR_NM_expose_decl))
+	decl = IR_decl_in_object (decl);
+      if (decl == NULL)
+	cont_err (IR_pos (des), ERR_undeclared_ident,
+		  IR_ident_string (IR_unique_ident (des)));
+      else if (IR_IS_OF_TYPE (decl, IR_NM_var)
+	       && (obj_block = IR_obj_block (decl)) != NULL)
+	*top_object_class = IR_fun_class (obj_block);
+      /* It is a sequence (class; block; obj var) and we did not
+	 process obj var yet.  It means the expose-clause inside the
+	 block.  */
+      else if (IR_IS_OF_TYPE (decl, IR_NM_class)
+	       && (block_stmt = IR_next_stmt (decl)) != NULL
+	       && IR_IS_OF_TYPE (block_stmt, IR_NM_block)
+	       && (var_stmt = IR_next_stmt (block_stmt)) != NULL
+	       && IR_IS_OF_TYPE (var_stmt, IR_NM_var)
+	       && IR_obj_block (var_stmt) == block_stmt)
+	{
+	  cont_err (IR_pos (des), ERR_expose_clause_inside_referring_object,
+		    IR_ident_string (IR_unique_ident (des)));
+	  decl = NULL;
+	}
+      return decl;
+    }
+
+  d_assert (IR_IS_OF_TYPE (des, IR_NM_period));
+  decl = find_expose_designator_decl (IR_designator (des), top_object_class);
+  if (decl == NULL)
+    return NULL;
+  if (! IR_IS_OF_TYPE (decl, IR_NM_var)
+      || (obj_block = IR_obj_block (decl)) == NULL)
+    decl = NULL;
+  else
+    decl = find_decl_in_given_scope (IR_component (des), obj_block);
+  if (decl == NULL || IR_access (decl) != PUBLIC_ACCESS)
+    cont_err (IR_pos (IR_component (des)), ERR_no_public_declaration_in_object,
+	      IR_ident_string (IR_unique_ident ((IR_component (des)))));
+  return decl;
+}
+
+/* Create expose declaration with given parameters and insert it into
+   table.  */
+static void
+create_expose_decl (IR_node_t decl, IR_node_t top_object_class,
+		    IR_node_t expose_alias, IR_node_t pos_node)
+{
+  IR_node_t expose_decl = create_node_with_pos (IR_NM_expose_decl,
+						IR_pos (pos_node));
+  IR_set_next_stmt (expose_decl, NULL);
+  IR_set_scope (expose_decl, curr_scope);
+  IR_set_ident (expose_decl,
+		expose_alias != NULL ? expose_alias : IR_ident (decl));
+  IR_set_access (expose_decl, PRIVATE_ACCESS);
+  IR_set_const_flag (expose_decl, IR_const_flag (decl));
+  IR_set_decl_in_object (expose_decl, decl);
+  IR_set_top_object_class (expose_decl, top_object_class);
+  include_decl (expose_decl);
+}
 
 /* Process friend list of BLOCK and create the friends for
    the current scope. */
@@ -1489,6 +1588,39 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	      put_var_list_before (list, stmt, &prev_stmt, &first_level_stmt);
 	    break;
 	  }
+	case IR_NM_expose:
+	  {
+	    IR_node_t decl, top_object_class, obj_block, block_stmt;
+	    
+	    decl = find_expose_designator_decl (IR_expose_designator (stmt),
+						&top_object_class);
+	    if (decl != NULL)
+	      {
+		
+		if (! IR_expose_internals_flag (stmt))
+		  create_expose_decl (decl, top_object_class,
+				      IR_expose_alias (stmt), stmt);
+		else if (! IR_IS_OF_TYPE (decl, IR_NM_var)
+			 || (obj_block = IR_obj_block (decl)) == NULL)
+		  cont_err (IR_pos (stmt), ERR_non_object_in_expose_clause);
+		else
+		  for (block_stmt = IR_block_stmts (obj_block);
+		       block_stmt != NULL;
+		       block_stmt = IR_next_stmt (block_stmt))
+		    if (IR_IS_OF_TYPE (block_stmt, IR_NM_decl)
+			&& IR_access (block_stmt) == PUBLIC_ACCESS)
+		      create_expose_decl (block_stmt, top_object_class,
+					  NULL, stmt);
+	      }
+	    /* Remove the expose-clause from the chain of stmts. See
+	       epilog of the loop. */
+	    if (prev_stmt == NULL)
+	      first_level_stmt = next_stmt;
+	    else
+	      set_next_stmt (prev_stmt, next_stmt);
+	    stmt = prev_stmt;
+	    break;
+	  }
 	case IR_NM_use:
 	  {
 	    IR_node_t decl, subst = next_stmt;
@@ -1528,7 +1660,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		    add_block_use (decl);
 		  }
 	      }
-	    /* Remove the use-clasue from the chain of stmts. See
+	    /* Remove the use-clause from the chain of stmts. See
 	       epilog of the loop. */
 	    if (prev_stmt == NULL)
 	      first_level_stmt = subst == NULL ? next_stmt : subst;
@@ -2235,6 +2367,92 @@ gen_int_load (rint_t i, IR_node_t src)
   return bc;
 }
 
+/* Generate bcode for access to DECL through IDENT (it can be
+   different from the declaration ident because of aliases in
+   expose-clause).  Update RESULT and CURR_TEMP_VARS_NUM.  */
+static void
+gen_decl_access (IR_node_t ident, IR_node_t decl, int lvalue_p,
+		 int *result, int *curr_temp_vars_num)
+{
+  IR_node_t scope;
+  BC_node_t bc;
+  
+  scope = IR_scope (decl);
+  if (IR_NODE_MODE (decl) == IR_NM_var
+      && curr_real_scope == IR_real_block_scope (scope))
+    {
+      /* local var */
+      int var_num = IR_var_number_in_block (decl) + IR_vars_base (scope);
+      
+      if (result == NULL)
+	add_move (ident, get_bcode_decl (decl),
+		  setup_result_var_number (result, curr_temp_vars_num),
+		  var_num);
+      else
+	*result = var_num;
+    }
+  else if (IR_NODE_MODE (decl) == IR_NM_var && IR_block_scope (scope) == NULL)
+    {
+      /* global var */
+      d_assert (IR_vars_base (scope) == 0);
+      if (result == NULL)
+	add_move (ident, get_bcode_decl (decl),
+		  setup_result_var_number (result, curr_temp_vars_num),
+		  -IR_var_number_in_block (decl) - 1);
+      else
+	*result = -IR_var_number_in_block (decl) - 1;
+    }
+  else
+    {
+      bc = create_bc_ident (ident);
+      if (! lvalue_p)
+	{
+	  BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
+	  add_to_bcode (bc);
+	}
+      else
+	{
+	  d_assert (result != NULL && *result == not_defined_result);
+	  /* We need 2 stack slots for non local var occurrence lvalue
+	     representation.  */
+	  BC_set_op1 (bc, setup_result_var_number (result, curr_temp_vars_num));
+	  get_temp_stack_slot (curr_temp_vars_num);
+	  add_to_bcode (bc);
+	}
+    }
+}
+
+/* Create and return bcode for access to an object DECL.  If it is not
+   var, fun, or class, just return NULL.  */
+static BC_node_t
+create_obj_decl_access (IR_node_t decl, IR_node_t pos_node)
+{
+  BC_node_t bc;
+  
+  if (IR_IS_OF_TYPE (decl, IR_NM_var))
+    {
+      bc = new_bc_code_with_src (BC_NM_ovfld, pos_node);
+      BC_set_op3 (bc, IR_var_number_in_block (decl));
+      BC_set_ov_decl (bc, get_bcode_decl (decl));
+    }
+  else if (IR_IS_OF_TYPE (decl, IR_NM_fun))
+    {
+      bc = new_bc_code_with_src (BC_NM_ofun, pos_node);
+      BC_set_o_decl (bc, get_bcode_decl (decl));
+    }
+  else if (IR_IS_OF_TYPE (decl, IR_NM_class))
+    {
+      bc = new_bc_code_with_src (BC_NM_oclass, pos_node);
+      BC_set_o_decl (bc, get_bcode_decl (decl));
+    }
+  else
+    bc = NULL;
+  return bc;
+}
+
+/* VLO used to generate access for exposed declaration.  */
+static vlo_t exposed_objects;
+
 /* The following recursive func passes (correctly setting up
    SOURCE_POSITION) EXPR (it may be NULL) and changes idents on
    corresponding decls occurrences according to languge visibility
@@ -2341,59 +2559,77 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       break;
     case IR_NM_ident:
       {
-	IR_node_t ident, decl, scope;
-
+	IR_node_t ident, decl;
+	
 	ident = expr;
 	decl = IR_decl (ident);
 	SET_SOURCE_POSITION (expr);
 	if (decl == NULL || IR_scope (decl) == NULL
 	    || IR_pos (decl).file_name == NULL)
 	  return NULL; /* no_position.  */
-	scope = IR_scope (decl);
-	if (IR_NODE_MODE (decl) == IR_NM_var
-	    && curr_real_scope == IR_real_block_scope (scope))
+	if (! IR_IS_OF_TYPE (decl, IR_NM_expose_decl))
+	  gen_decl_access (ident, decl, lvalue_p, result, curr_temp_vars_num);
+	else if (IR_top_object_class (decl) == NULL
+		 || IR_decl_in_object (decl) == IR_top_object_class (decl))
 	  {
-	    /* local var */
-	    int var_num = IR_var_number_in_block (decl) + IR_vars_base (scope);
-
-	    if (result == NULL)
-	      add_move (ident, get_bcode_decl (decl),
-			setup_result_var_number (result, curr_temp_vars_num),
-			var_num);
-	    else
-	      *result = var_num;
-	  }
-	else if (IR_NODE_MODE (decl) == IR_NM_var
-		 && IR_block_scope (scope) == NULL)
-	  {
-	    /* global var */
-	    d_assert (IR_vars_base (scope) == 0);
-	    if (result == NULL)
-	      add_move (ident, get_bcode_decl (decl),
-			setup_result_var_number (result, curr_temp_vars_num),
-			-IR_var_number_in_block (decl) - 1);
-	    else
-	      *result = -IR_var_number_in_block (decl) - 1;
+	    decl = IR_decl_in_object (decl);
+	    gen_decl_access (ident, decl, lvalue_p, result, curr_temp_vars_num);
 	  }
 	else
 	  {
-	    bc = create_bc_ident (ident);
-	    if (! lvalue_p)
+	    int i, n, res, op_result = not_defined_result;
+	    IR_node_t obj_class, obj_var;
+	    BC_node_t bc, before_pc;
+	    
+	    /* Collect object declarations:  */
+	    VLO_NULLIFY (exposed_objects);
+	    obj_class = IR_fun_class (IR_scope (IR_decl_in_object (decl)));
+	    for (;;)
 	      {
-		BC_set_op1
-		  (bc, setup_result_var_number (result, curr_temp_vars_num));
-		add_to_bcode (bc);
+		d_assert (obj_class != NULL
+			  && IR_IS_OF_TYPE (obj_class, IR_NM_class));
+		obj_var = IR_obj_var (obj_class);
+		VLO_ADD_MEMORY (exposed_objects, &obj_var, sizeof (obj_var));
+		if (IR_top_object_class (decl) == obj_class)
+		  break;
+		obj_class = IR_fun_class (IR_scope (obj_class));
+	      }
+	    n = VLO_LENGTH (exposed_objects) / sizeof (obj_var) - 1;
+	    obj_var = ((IR_node_t *) VLO_BEGIN (exposed_objects)) [n];
+	    before_pc = curr_pc;
+	    gen_decl_access (IR_ident (obj_var), obj_var, FALSE,
+			     &op_result, curr_temp_vars_num);
+	    if (before_pc == curr_pc)
+	      res = get_temp_stack_slot (curr_temp_vars_num);
+	    else
+	      res = op_result;
+	    /* Now generate an access to the exposed declaration: */
+	    for (i = n - 1; i >= 0; i--)
+	      {
+		obj_var = ((IR_node_t *) VLO_BEGIN (exposed_objects)) [i];
+		bc = new_bc_code_with_src (BC_NM_ovfld, expr);
+		BC_set_op1 (bc, res);
+		BC_set_op2 (bc, op_result);
+		BC_set_op3 (bc, IR_var_number_in_block (obj_var));
+		BC_set_ov_decl (bc, get_bcode_decl (obj_var));
+		op_result = res;
+	      }
+	    decl = IR_decl_in_object (decl);
+	    bc = create_obj_decl_access (decl, expr);
+	    d_assert (bc != NULL);
+	    BC_set_op2 (bc, op_result);
+	    if (lvalue_p)
+	      {
+		BC_set_op1 (bc, -1);
+		*curr_temp_vars_num = temp_vars_num;
 	      }
 	    else
 	      {
-		d_assert (result != NULL && *result == not_defined_result);
-		/* We need 2 stack slots for non local var occurrence
-		   lvalue representation.  */
-		BC_set_op1
-		  (bc, setup_result_var_number (result, curr_temp_vars_num));
-		get_temp_stack_slot (curr_temp_vars_num);
-		add_to_bcode (bc);
+		BC_set_op1 (bc, res);
+		if (result != NULL)
+		  *result = res;
 	      }
+	    add_to_bcode (bc);
 	  }
 	if (IR_NODE_MODE (decl) == IR_NM_fun)
 	  IR_set_value_type (expr, EVT_FUN);
@@ -2414,18 +2650,31 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       }
     case IR_NM_period:
       {
+	IR_node_t des, decl, obj_block;
 	int op_result = not_defined_result;
 
 	d_assert (! lvalue_p
 		  || result == NULL || *result == not_defined_result);
 	SET_SOURCE_POSITION (expr);
-	bc = new_bc_code_with_src (BC_NM_fld, expr); // ??? should be decl
-	BC_set_fldid (bc,
-		      IR_ident_string (IR_unique_ident (IR_component (expr))));
 	IR_set_designator
 	  (expr, second_expr_processing (IR_designator (expr), FALSE,
 					 &op_result, &temp_vars_num, FALSE,
 					 NULL, NULL, FALSE));
+	d_assert (IR_component (expr) != NULL
+		  && IR_NODE_MODE (IR_component (expr)) == IR_NM_ident);
+	des = IR_designator (expr);
+	decl = IR_decl (IR_component (expr));
+	bc = NULL;
+	if (decl != NULL)
+	  bc = create_obj_decl_access (decl, expr);
+	if (bc == NULL)
+	  {
+	    bc = new_bc_code_with_src (BC_NM_fld, expr); // ??? should be decl
+	    BC_set_fldid (bc,
+			  IR_ident_string (IR_unique_ident (IR_component (expr))));
+	    BC_set_op3
+	      (bc, IR_field_ident_number (IR_unique_ident (IR_component (expr))));
+	  }
 	BC_set_op2 (bc, op_result);
 	if (lvalue_p)
 	  {
@@ -2435,13 +2684,16 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	else
 	  BC_set_op1
 	    (bc, setup_result_var_number (result, curr_temp_vars_num));
-	d_assert (IR_IS_OF_TYPE (IR_component (expr), IR_NM_ident));
-	BC_set_op3
-	  (bc, IR_field_ident_number (IR_unique_ident (IR_component (expr))));
 	add_to_bcode (bc);
-	d_assert (IR_component (expr) != NULL
-		  && IR_NODE_MODE (IR_component (expr)) == IR_NM_ident);
-	if (IR_designator (expr) != NULL)
+	if (des != NULL
+	    /* Check this is not an object member access whose we
+	       already checked on the first pass.  */
+	    && ! (((IR_IS_OF_TYPE (des, IR_NM_ident)
+		    && (decl = IR_decl (des)) != NULL)
+		   || (IR_IS_OF_TYPE (des, IR_NM_period)
+		       && (decl = IR_decl (IR_component (des))) != NULL))
+		  && IR_IS_OF_TYPE (decl, IR_NM_var)
+		  && IR_obj_block (decl) != NULL))
 	  {
 	    if (!IR_it_is_declared_in_block (IR_unique_ident
 					     (IR_component (expr))))
@@ -2921,7 +3173,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	int pars_num, call_start;
 	pc_t saved_prev_pc;
 	IR_node_t fun_decl = NULL;
-	BC_node_t fld = NULL;
+	BC_node_t fld = NULL, ofc = NULL;
 	int general_p = TRUE, env_p = FALSE, top_p = FALSE;
 	    
 	there_is_function_call_in_expr = TRUE;
@@ -2937,6 +3189,14 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	    && BC_op2 (curr_pc) < call_start)
 	  {
 	    fld = curr_pc;
+	    general_p = FALSE;
+	  }
+	else if ((BC_NODE_MODE (curr_pc) == BC_NM_ofun
+		  || BC_NODE_MODE (curr_pc) == BC_NM_oclass)
+		 && saved_prev_pc != curr_pc
+		 && BC_op2 (curr_pc) < call_start)
+	  {
+	    ofc = curr_pc;
 	    general_p = FALSE;
 	  }
 	else if (BC_NODE_MODE (curr_pc) == BC_NM_fun)
@@ -2972,15 +3232,49 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
 	setup_result_var_number (result, curr_temp_vars_num);
 	if (pars_num == 0)
 	  get_temp_stack_slot (&temp_vars_num); /* reverve for result */
-	bc = new_bc_code_with_src (BC_NM_mcall, expr);
 	if (general_p)
 	  bc = new_bc_code_with_src (BC_NM_call, expr);
 	else if (fld != NULL)
 	  {
 	    /* It is fld followed by call.  */
+	    bc = new_bc_code_with_src (BC_NM_mcall, expr);
 	    BC_set_op3 (bc, BC_op2 (fld));
 	    BC_set_op4 (bc, BC_op3 (fld));
 	    BC_set_mid (bc, BC_fldid (fld));
+	  }
+	else if (ofc != NULL)
+	  {
+	    /* It is ofun/oclass followed by call.  */
+	    if (IR_IS_OF_TYPE (IR_fun_expr (expr), IR_NM_period))
+	      fun_decl = IR_decl (IR_component (IR_fun_expr (expr)));
+	    else
+	      {
+		IR_node_t decl;
+		
+		/* It is an exposed identifier  */
+		d_assert (IR_IS_OF_TYPE (IR_fun_expr (expr), IR_NM_ident));
+		decl = IR_decl (IR_fun_expr (expr));
+		d_assert (decl != NULL && IR_IS_OF_TYPE (decl, IR_NM_expose_decl));
+		fun_decl = IR_decl_in_object (decl);
+	      }
+	    env_p = strcmp (IR_pos (fun_decl).file_name,
+			    ENVIRONMENT_PSEUDO_FILE_NAME) == 0;
+	    if (env_p
+		|| IR_args_flag (fun_decl)
+		|| (IR_IS_OF_TYPE (fun_decl, IR_NM_fun)
+		    && IR_thread_flag (fun_decl))
+		|| (IR_class_fun_thread_call_parameters_number (expr)
+		    != IR_parameters_number (fun_decl)))
+	      {
+		bc = new_bc_code_with_src (BC_NM_omcall, expr);
+		BC_set_om_decl (bc, BC_o_decl (ofc));
+	      }	    
+	    else
+	      {
+		bc = new_bc_code_with_src (BC_NM_omicall, expr);
+		BC_set_mfblock (bc, get_fblock (fun_decl));
+	      }
+	    BC_set_op3 (bc, BC_op2 (ofc));
 	  }
 	else
 	  {
@@ -3061,6 +3355,7 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
    for that
 
    BC_NM_fld                  BC_NM_lfld(v)
+   BC_NM_ovfld                BC_NM_lovfld(v)
    BC_NM_ind                  BC_NM_ind
    BC_NM_var                  BC_NM_lvar(v)
    BC_NM_evar                 BC_NM_levar(v)
@@ -3076,6 +3371,8 @@ make_designator_lvalue (BC_node_t designator, const char *error_message,
     {
     case BC_NM_fld:
       return (val_p ? BC_NM_lfldv : BC_NM_lfld);
+    case BC_NM_ovfld:
+      return (val_p ? BC_NM_lovfldv : BC_NM_lovfld);
     case BC_NM_ind:
       return BC_NM_ind;
     case BC_NM_sl:
@@ -3375,6 +3672,12 @@ modify_copied_pc (int (*except) (BC_node_t))
       if (BC_IS_OF_TYPE (bc, BC_NM_foreach) && (fv = BC_body_pc (bc)) != NULL
 	  && (fv = BC_subst (BC_info (fv))) != NULL)
 	BC_set_body_pc (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_ovfield) && (fv = BC_ov_decl (bc)) != NULL
+	  && (fv = get_decl_subst (fv)) != NULL)
+	BC_set_ov_decl (bc, fv);
+      if (BC_IS_OF_TYPE (bc, BC_NM_op2_decl) && (fv = BC_o_decl (bc)) != NULL
+	  && (fv = get_decl_subst (fv)) != NULL)
+	BC_set_o_decl (bc, fv);
       if (BC_IS_OF_TYPE (bc, BC_NM_move) && (fv = BC_move_decl (bc)) != NULL
 	  && (fv = get_decl_subst (fv)) != NULL)
 	BC_set_move_decl (bc, fv);
@@ -3755,6 +4058,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		BC_SET_MODE (curr_pc, BC_NM_titcall);
 	      else if (BC_NODE_MODE (curr_pc) == BC_NM_cicall)
 		BC_SET_MODE (curr_pc, BC_NM_citcall);
+	      else if (BC_NODE_MODE (curr_pc) == BC_NM_omicall)
+		BC_SET_MODE (curr_pc, BC_NM_omitcall);
 	    }
 	  if (bc != NULL)
 	    {
@@ -3845,7 +4150,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		}
 	      if (val_p && (var_mode == BC_NM_var || var_mode == BC_NM_evar))
 		BC_set_op4 (bc, get_temp_stack_slot (&temp_vars_num));
-	      else if (var_mode == BC_NM_fld)
+	      else if (var_mode == BC_NM_fld || var_mode == BC_NM_ovfld)
 		{
 		  /* container */
 		  BC_set_op1 (var_bc, get_temp_stack_slot (&temp_vars_num));
@@ -3855,16 +4160,14 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		  if (val_p)
 		    BC_set_op4 (bc, get_temp_stack_slot (&temp_vars_num));
 		}
-	      else if (val_p && (var_mode == BC_NM_ind
-				 || var_mode == BC_NM_sl))
+	      else if (val_p && (var_mode == BC_NM_ind || var_mode == BC_NM_sl))
 		{
 		  BC_set_op4 (bc, get_temp_stack_slot (&temp_vars_num));
 		  BC_set_op1 (var_bc, BC_op4 (bc));
 		}
 	      else if (val_p)
 		BC_set_op4 (bc, -1);
-	      if (! val_p && (var_mode == BC_NM_ind
-			      || var_mode == BC_NM_sl))
+	      if (! val_p && (var_mode == BC_NM_ind || var_mode == BC_NM_sl))
 		{
 		  curr_pc = prev_pc;
 		  curr_info = BC_prev_info (curr_info);
@@ -3874,7 +4177,8 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      && temp != NULL
 	      && IR_IS_OF_TYPE (temp, IR_NM_ident)
 	      && (IR_IS_OF_TYPE (IR_decl (temp), IR_NM_var)
-		  || IR_IS_OF_TYPE (IR_decl (temp), IR_NM_external_var))
+		  || IR_IS_OF_TYPE (IR_decl (temp), IR_NM_external_var)
+		  || IR_IS_OF_TYPE (IR_decl (temp), IR_NM_expose_decl))
 	      && IR_const_flag (IR_decl (temp)))
 	    cont_err (IR_pos (temp), ERR_const_assignment,
 		      IR_ident_string (IR_unique_ident
@@ -5409,6 +5713,7 @@ initiate_context (void)
   max_block_level = 0;
   VLO_CREATE (all_fblocks, 0);
   curr_use_items_start = 0;
+  VLO_CREATE (exposed_objects, 0);
   VLO_CREATE (use_items, 0);
   VLO_CREATE (copied_redirs, 0);
   VLO_CREATE (bc_copies, 0);
@@ -5432,7 +5737,8 @@ finish_context (void)
   VLO_DELETE (inline_stack);
   VLO_DELETE (inline_returns);
   VLO_DELETE (bc_copies);
-  VLO_DELETE (use_items);
   VLO_DELETE (copied_redirs);
+  VLO_DELETE (use_items);
+  VLO_DELETE (exposed_objects);
   VLO_DELETE (all_fblocks);
 }

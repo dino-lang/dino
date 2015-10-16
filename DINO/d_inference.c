@@ -631,6 +631,19 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       else
 	return NO_MORE_OPERAND;
       break;
+    case BC_NM_ofun: case BC_NM_oclass:
+      if (result_p)
+	{
+	  if  (nop == 0)
+	    res = BC_op1 (bc);
+	  else
+	    return NO_MORE_OPERAND;
+	}
+      else if (nop == 0)
+	res = BC_op2 (bc);
+      else
+	return NO_MORE_OPERAND;
+      break;
     case BC_NM_flat:
       if  (nop == 0)
 	res = BC_op1 (bc);
@@ -689,6 +702,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       break;
     case BC_NM_sl:
     case BC_NM_fld:
+    case BC_NM_ovfld:
     case BC_NM_const: case BC_NM_new:
     case BC_NM_not: case BC_NM_plus: case BC_NM_minus: case BC_NM_bnot:
     case BC_NM_inot: case BC_NM_iplus: case BC_NM_iminus: case BC_NM_ibnot:
@@ -745,6 +759,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       break;
     case BC_NM_call: case BC_NM_tcall: case BC_NM_mcall:
+    case BC_NM_omcall: case BC_NM_omicall: case BC_NM_omitcall:
       if (result_p && nop == 0)
 	res = BC_op1 (bc);
       else
@@ -759,6 +774,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
       break;
     case BC_NM_lvar: case BC_NM_lvarv: case BC_NM_levar: case BC_NM_levarv:
     case BC_NM_lfld: case BC_NM_lfldv: case BC_NM_lslv:
+    case BC_NM_lovfld: case BC_NM_lovfldv:
       if (! result_p)
 	return NO_MORE_OPERAND;
       else if  (nop == 0)
@@ -1836,12 +1852,14 @@ type_transf (node_t node)
     case BC_NM_var: case BC_NM_lvar: case BC_NM_lvarv:
     case BC_NM_evar: case BC_NM_levar: case BC_NM_levarv:
     case BC_NM_fld: case BC_NM_lfld: case BC_NM_lfldv:
+    case BC_NM_ovfld: case BC_NM_lovfld: case BC_NM_lovfldv:
     case BC_NM_ind:
     case BC_NM_ind2:
     case BC_NM_sl: case BC_NM_lslv:
       res_tp = TP_varying;
       break;
     case BC_NM_fun: case BC_NM_efun: case BC_NM_class:
+    case BC_NM_ofun: case BC_NM_oclass:
       res_tp = TP_varying;
       break;
     case BC_NM_const:
@@ -1904,6 +1922,7 @@ type_transf (node_t node)
       /* We work only with local vars.  */
       break;
     case BC_NM_call: case BC_NM_tcall: case BC_NM_mcall:
+    case BC_NM_omcall: case BC_NM_omicall: case BC_NM_omitcall:
       /* The result unknown.  */
       break;
     case BC_NM_ibcall: case BC_NM_icall: case BC_NM_itcall:
@@ -2200,10 +2219,12 @@ specialize_insn (df_insn_t insn)
     case BC_NM_var: case BC_NM_lvar: case BC_NM_lvarv:
     case BC_NM_evar: case BC_NM_levar: case BC_NM_levarv:
     case BC_NM_fld: case BC_NM_lfld: case BC_NM_lfldv:
+    case BC_NM_ovfld: case BC_NM_lovfld: case BC_NM_lovfldv:
     case BC_NM_ind:
     case BC_NM_ind2:
     case BC_NM_sl: case BC_NM_lslv:
     case BC_NM_fun: case BC_NM_efun: case BC_NM_class:
+    case BC_NM_ofun: case BC_NM_oclass:
     case BC_NM_const:
     case BC_NM_new:
     case BC_NM_length:
@@ -2260,6 +2281,7 @@ specialize_insn (df_insn_t insn)
     case BC_NM_lsh_slst: case BC_NM_rsh_slst: case BC_NM_ash_slst:
     case BC_NM_and_slst: case BC_NM_xor_slst: case BC_NM_or_slst:
     case BC_NM_call: case BC_NM_tcall: case BC_NM_mcall:
+    case BC_NM_omcall: case BC_NM_omicall: case BC_NM_omitcall:
     case BC_NM_ibcall: case BC_NM_icall: case BC_NM_itcall:
     case BC_NM_ticall: case BC_NM_titcall: case BC_NM_cicall: case BC_NM_citcall:
     case BC_NM_b: case BC_NM_btdef:

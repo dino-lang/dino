@@ -83,6 +83,12 @@ char ERR_assignment_pattern_without_variables []
   = "Pattern in assignment has no variables";
 char ERR_invalid_friend []
   = "friend identifier `%s' is neither function nor class";
+char ERR_no_public_declaration_in_object []
+  = "no public declaration `%s' in the object";
+char ERR_non_object_in_expose_clause []
+  = "non object in exposing object internals";
+char ERR_expose_clause_inside_referring_object []
+  = "expose-clause inside refering object `%s'";
 char ERR_use_before_definition [] = "use `%s' before defined fun or class";
 char ERR_use_of_non_fun_class [] = "use of non fun/class `%s'";
 char ERR_use_of_forward_declaration []

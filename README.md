@@ -14,18 +14,20 @@
         * Byte code compiler (optimizations)
         * Byte code Interpreter (GC, Concurrency, REPL)
         * JIT, Type inference
-  * Performance comparison with Python, PyPy, Ruby, JS, Scala, OCAML on x86-64, AARH64, ARM, PPC64.
+  * Performance comparison with Python, PyPy, Ruby, JS, Scala, OCAML
+    on x86-64, AARH64, ARM, PPC64.
 
 ---
 
 # Some history
 * 1993: Original language design and implementation ![Dino logo](Dino.jpg "Dino logo")
-    * Was used in russian computer game company ANIMATEK as a simple scripting language
-      for describing dinosaurus movements
+    * Was used in russian computer game company ANIMATEK as a simple
+      scripting language for describing dinosaurus movements
 * 1998, 2002, 2007 : Major language and implementation revisions
 * The next major release is planed to be done in winter of 2015/2016.
-  * This document describes the current state of Dino language and implementation.
-    The document will be changed as the current Dino state is changing.
+  * This document describes the current state of Dino language
+    and implementation. The document will be changed as the current
+    Dino state is changing.
 
 # The first taste of Dino
   * Eratosthenes sieve:
@@ -54,8 +56,10 @@
     * Multi-precision integers
     * Heterogeneous extensible arrays, array slices
     * Associative tables with possibility to delete elements
-    * Powerful and safe class composition operation for (multiple) inheritance and traits description
-    * First class functions, classes, and threads with closures, anonymous functions, classes, threads
+    * Powerful and safe class composition operation for (multiple)
+      inheritance and traits description
+    * First class functions, classes, and threads with closures,
+      anonymous functions, classes, threads
     * Exception handling
     * Concurrency
     * Pattern matching
@@ -67,7 +71,8 @@
 * Associative tables
     * elements can be added and deleted
     * elements can be any values, e.g. other tables
-    * Implemented as hash tables without buckets for compactness and data locality
+    * Implemented as hash tables without buckets for compactness
+      and data locality
         * Secondary hash for conflict resolutions
         * Murmur hash function for most values
 
@@ -151,11 +156,15 @@
 # Object orientation -- continuation
   * A safe and powerful way to support object orientation
       * Declarations of class mentioned in **use** are inlayed
-      * Declarations before the use rewrite corresponding inlayed declarations mentioned in **former**-clause
-      * Declarations after the use rewrite corresponding inserted declarations mentioned in **later**-clause
+      * Declarations before the use rewrite corresponding inlayed
+        declarations mentioned in **former**-clause
+      * Declarations after the use rewrite corresponding inserted
+        declarations mentioned in **later**-clause
       * The declarations should be **matched**
-      * The original and new declarations should be **present** if they are in former- or later-clause
-      * The original declaration can be **renamed** and still used instead of just rewriting if necessary
+      * The original and new declarations should be **present**
+        if they are in former- or later-clause
+      * The original declaration can be **renamed** and still used
+        instead of just rewriting if necessary
 
 ---
 
@@ -166,15 +175,46 @@
     isa (add (num (1), num (2)), binop);
 ```
 * Optimization for removing code duplication
-* Syntactic sugar for singleton
+* Syntactic sugar for singleton (it is implemented as anonymous
+  class and corresponding object creation)
+
 ```
     obj int_pair {
       val min = 0, max = 10;
     }
 ```
-  * implemented as anonymous class and corresponding object creation
 
+---
 
+# Object orientation -- continuation
+* Optimizations for access to object members permit to use
+  objects as **name spaces**
+ 
+```
+    obj sorts {
+      var compare_fun;
+      fun quick_sort (...) {...}
+      fun heap_sort (...) {...}
+    }
+    ...
+    sorts.fft (...);
+```
+* To make access to object more brief an **expose**-clause exists
+* Exposing an object member
+```
+    expose sorts.quick_sort;
+    quick_sort (...);
+```
+* You can have a member access with a different name
+```
+   expose algorithms.quick_sort (asort);
+   asort (...);
+```
+* You can expose all public declarations of an object
+```
+   expose sorts.*;
+   compare_fun = ...; quick_sort (...); heap_sort (...);
+```
 
 ---
 
@@ -185,12 +225,14 @@
     * the value is assigned to the variable
   * **vector pattern** matching vectors, e.g. `[v, _, 5, ...]`
   * **table pattern** matching tables, e.g. `tab ["a": v, ...]`
-  * **object pattern** matching objects of given class or its derived class, e.g. `node (a, 10)`
+  * **object pattern** matching objects of given class or
+    its derived class, e.g. `node (a, 10)`
   * `...` in a pattern list matching zero or more values
   * expression which looks different from the above and matches the equal value
   * pattern can be nested, e.g. `node ([v, ...], 10)`
 * Pattern matching in variable declaration, e.g. `var [a, b, ...] = v;`
-  * `v` should be a vector with at least 2 elements, new declared variables `a` and `b` will hold values of the two first elements
+  * `v` should be a vector with at least 2 elements, new declared variables
+    `a` and `b` will hold values of the two first elements
 
 ---
 
@@ -203,7 +245,8 @@
       case _: putln ("any but array");
     }
 ```
-  * Try to match switch value with case patterns in a particular order, execute the corresponding code for the first matched pattern
+  * Try to match switch value with case patterns in a particular order,
+    execute the corresponding code for the first matched pattern
   * Scope of pattern variables is the corresponding case
   * Continue means continue to try subsequent patterns
   * Break means finish the switch statement execution
@@ -212,7 +255,7 @@
 ---
 
 
-# Example: Classes and functions with pattern matching
+# Example: classes and functions with pattern matching
 * Simple binary tree and its check:
 ```
     class tree {}
@@ -238,12 +281,14 @@
 
 # Earley parser
 * Predefined class for language prototyping:
-    * Fast.  Processing ~250K lines/sec of 67K lines of C program using 3.9MB memory on modern CPUs
+    * Fast.  Processing ~400K lines/sec of 67K lines of C program
+      using 26MB memory on modern CPUs
     * Simple syntax directed translation
     * Parsing input can be described by ambiguous grammar:
         * Can produce compact representation of all possible parse trees
         * Can produce minimal cost parsing tree
-    * Syntax recovery with minimal number of ignored tokens still producing a correct AST
+    * Syntax recovery with minimal number of ignored tokens
+      still producing a correct AST
 
 ---
 
@@ -275,9 +320,11 @@ val asbtract_tree = p.parse (token_vector, syntax_error);
 
 * In usual mode, all program files are processed.
 * In REPL mode, a statement goes all processing.
-* All program Byte Code (Bcode) can be saved in a readable form, modified, and read for execution.
+* All program Byte Code (Bcode) can be saved in a readable form,
+  modified, and read for execution.
 * Function level JIT is implemented with the aid of C compiler.
-* The program can use object files created from a C code (through Foreign Function Interface).
+* The program can use object files created from a C code
+  (through Foreign Function Interface).
 
 ---
 
@@ -325,7 +372,8 @@ for (i = 0; i < n; i++);
     * Call tail optimization
     * Inlining
     * Pure function optimization
-    * Byte code combining (this is just an illustration, the readable BCode representation has a bit different format -- see the previous slide)
+    * Byte code combining (this is just an illustration, the readable
+      BCode representation has a bit different format -- see the previous slide)
 ```
       label: addi op1, op1, i1; lt res, op1, op2; bt res, label =>
       label: addi op1, op1, i1; blt res, op1, op2, label =>
@@ -339,7 +387,8 @@ for (i = 0; i < n; i++);
 * Memory Handling and Garbage Collection:
     * Automatically extended heap
     * Simple escape analysis to transform heap allocations into stack ones
-    * Combination of Mark and Sweep and fast Mark and Copy algorithm permitting to decrease program memory requirement
+    * Combination of Mark and Sweep and fast Mark and Copy algorithm
+      permitting to decrease program memory requirement
 
 
 
@@ -358,8 +407,10 @@ for (i = 0; i < n; i++);
         * option --save-temps can be used for the C code inspecting
     * Usage of the same code as interpreter to simplify implementation
         * C code generator is less 100 lines on C
-        * a script used to minimize the code (about 1/10 of C code interpreter definitions are used for generated code.)
-    * Small function code generation takes about 50-70ms using GCC on modern Intel CPUs
+        * a script used to minimize the code (about 1/10 of C code
+          interpreter definitions are used for generated code.)
+    * Small function code generation takes about 50-70ms
+      using GCC on modern Intel CPUs
 
 
 ---
@@ -367,8 +418,11 @@ for (i = 0; i < n; i++);
 # Implementation -- Type Inference
 * Dino is dynamic type programming language
 * Still many types of operations can be recognized during compilation time:
-    * E.g. general Bcode **add** can be changed by **iadd** (integer variant) or **fadd** (floating point variant) which are executed without operand type checking
-* Type recognition (inference) is very important for better object code generation, **especially for JIT**.
+    * E.g. general Bcode **add** can be changed by **iadd** (integer variant)
+      or **fadd** (floating point variant) which are executed
+      without operand type checking
+* Type recognition (inference) is very important for better
+  object code generation, **especially for JIT**.
     * It can speed up code in many times
 
 
@@ -376,10 +430,14 @@ for (i = 0; i < n; i++);
 
 # Implementation -- Type Inference 2
 * Major steps:
-    1. Building **CFG** (control flow graph) of **all program**: basic blocks and CFG edges connecting them
-    2. Calculating **available** results of Bcode insns -- a forward data-flow problem on CFG
-    3. Using the availability, building **def-use chains** connecting operands and results of Bcode insns and variables
-    4. Calculating types of Bcode insn operands and results -- another forward data flow problem on the built def-use graph
+    1. Building **CFG** (control flow graph) of **all program**:
+       basic blocks and CFG edges connecting them
+    2. Calculating **available** results of Bcode insns -- a forward
+       data-flow problem on CFG
+    3. Using the availability, building **def-use chains** connecting
+       operands and results of Bcode insns and variables
+    4. Calculating types of Bcode insn operands and results -- another
+       forward data flow problem on the built def-use graph
     5. Changing Bcode insns on specialized ones, e.g. **add** on **iadd**
 
 
@@ -392,17 +450,21 @@ for (i = 0; i < n; i++);
     * Threads
     * Possible use of variable (undefined) value before assigning a value to it
 * Therefore we don't recognize all types theoretically possible to recognize
-* Recognizing types of variable values even if the variable changes its type -- difference to type inference in static type languages
+* Recognizing types of variable values even if the variable changes
+  its type -- difference to type inference in static type languages
 
 
 ---
 
 # Implementation -- Tools and libraries
 * Dino is implemented with COCOM tools
-    * SPRUT - compiler of IR object oriented description.  Used for implementation of semantic IR, Bcode and run-time data.  In debugging mode, it permits to check all described constraints and relations
+    * SPRUT - compiler of IR object oriented description.  Used for
+      implementation of semantic IR, Bcode and run-time data.
+      In debugging mode, it permits to check all described constraints and relations
     * MSTA - faster superset of YACC with better error recovery
     * SHILKA - fast keyword recognizer generator
-    * AMMUNITION - different packages (source position handling, error reporting, Earley parser etc)
+    * AMMUNITION - different packages (source position handling, error reporting,
+      Earley parser etc)
 * GMP - multi-precision integer library
 * GNU regex library
 
@@ -441,10 +503,13 @@ for (i = 0; i < n; i++);
 * Some old computer language shootout benchmarks:
     * loop - empty loop body
     * hash - associative tables
-    * fact, fib - factorial and fibonacci (recursive functions with and without tail recursion)
-    * exceptions, methods, objects - exception processing, object method calls, and object instantiations
+    * fact, fib - factorial and fibonacci (recursive functions with and
+      without tail recursion)
+    * exceptions, methods, objects - exception processing, object method calls,
+      and object instantiations
     * sieve, sort - Eratosthenes sieve and heapsort (array benchmarking)
-    * statistics, random - statistical moments and random number generator (general arithmetic)
+    * statistics, random - statistical moments and random number generator
+     (general arithmetic)
     * threads (producer-consumer threads)
     * startup - compilation and execution of empty program
     * compile -  very long code of assignments
@@ -452,9 +517,11 @@ for (i = 0; i < n; i++);
 ---
 
 # Benchmarking -- Languages and CPUs
-* Benchmarking on x86-64 (i5-4670 - 3.4GHz Haswell), AARCH64 (X-gene), ARM (Exynos 5410 - 1.6GHz Cortex-A15), PPC64 (3.5GHz power7) and comparison with:
+* Benchmarking on x86-64 (i5-4670 - 3.4GHz Haswell), AARCH64 (X-gene),
+  ARM (Exynos 5410 - 1.6GHz Cortex-A15), PPC64 (3.5GHz power7) and comparison with:
     * Other interpreters (Python-3.3.x, Ruby-2.0.x)
-    * Different JITs (PyPy-2.2.x - trace JIT for Python, JavaScript-1.8.x - SpiderMonkey/TraceMonkey, Scala-2.10.x - JVM)
+    * Different JITs (PyPy-2.2.x - trace JIT for Python, JavaScript-1.8.x
+      - SpiderMonkey/TraceMonkey, Scala-2.10.x - JVM)
     * Byte code compiler and interpreter (OCAML-4.0.x)
 * Dino compilation and execution time is a **base** in the comparison
 
@@ -561,7 +628,8 @@ Ocaml   |8.2    |1.1    |11.7   |165    |0.4   |0.8   |1.9   |3.7  |2.1    |4.8 
 ```
   <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
 ```
-* Configure in a debug mode: -O0 and full IR checking (it makes DINO several times slower):
+* Configure in a debug mode: -O0 and full IR checking (it makes
+  DINO several times slower):
 ```
   dino_debug=y <dino-path>/configure --srcidir=<dino-path> --prefix=<install-path>
   or cocom_debug=y ...

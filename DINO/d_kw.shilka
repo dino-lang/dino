@@ -30,6 +30,7 @@ catch    {return CATCH;}
 char     {return CHAR;}
 class    {return CLASS;}
 continue {return CONTINUE;}
+expose   {return EXPOSE;}
 extern   {return EXTERN;}
 else     {return ELSE;}
 final    {return FINAL;}

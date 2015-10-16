@@ -47,8 +47,8 @@ static IR_node_t uncycle_exception_list (IR_node_t list);
 
 static IR_node_t
 process_var_decl (access_val_t access, IR_node_t ident,
-                  int val_flag, IR_node_t expr, position_t expr_pos,
-                  IR_node_mode_t assign);
+                  int val_flag, IR_node_t obj_block, IR_node_t expr,
+		  position_t expr_pos, IR_node_mode_t assign);
 static IR_node_t
 process_var_pattern (access_val_t access, IR_node_t pattern, int val_flag,
 		     IR_node_t expr, position_t expr_pos,
@@ -113,10 +113,10 @@ static int repl_can_process_p (void);
    }
 
 %token <pointer> NUMBER CHARACTER STRING IDENT
-%token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXTERN
-       FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PRIV PROCESS PUB RETURN SWITCH
-       TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
+%token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXPOSE EXTERN
+       FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK
+       IF IN INT LONG LATER NEW NIL OBJ PRIV PROCESS PUB
+       RETURN SWITCH TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
 %token <pos> MULT_ASSIGN DIV_ASSIGN MOD_ASSIGN PLUS_ASSIGN MINUS_ASSIGN
@@ -150,16 +150,16 @@ static int repl_can_process_p (void);
 /* For resolution of conflicts: FUN . and FUN . '(' on '(' etc.  */
 %left '(' '[' '.'
 
-%type <pos> pos
+%type <pos> all_fields pos
 %type <pointer> aheader expr designator type
                 elist_parts_list elist_parts_list_empty elist_part
                 expr_list expr_list_empty actual_parameters friend_list
                 val_var_list val_var assign stmt executive_stmt incr_decr
                 case_list switch_case opt_cond pattern for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
-                header declaration use_clause_list
-                use_item_list use_item alias_opt extern_list extern_item
-        	fun_thread_class fun_thread_class_start else_part
+                header declaration expose_clause qual_ident expose_qual_ident
+                use_clause_list use_item_list use_item alias_opt extern_list
+                extern_item fun_thread_class fun_thread_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
 %type <flag> clear_flag set_flag  par_kind
@@ -715,7 +715,7 @@ val_var_list : val_var   {$$ = $1;}
    and flag of that this is in val decl (not in var decl). */
 val_var : IDENT
             {
-	      $$ = process_var_decl ($<access>-1, $1, $<flag>0,
+	      $$ = process_var_decl ($<access>-1, $1, $<flag>0, NULL,
 				     NULL, IR_pos ($1), IR_NM_var_assign);
 	    }
         | pattern '=' expr
@@ -1124,6 +1124,10 @@ declaration : access VAL {$<access>$ = $1;} set_flag
                 {
                   $$ = $7;
                 }
+            | expose_clause {$<flag>$ = $<flag>0;} end_simple_stmt
+                {
+		  $$ = $1;
+	        }
             | USE IDENT use_clause_list {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $$ = create_node_with_pos (IR_NM_use, IR_pos ($2));
@@ -1132,6 +1136,44 @@ declaration : access VAL {$<access>$ = $1;} set_flag
 		  IR_set_use_items ($$, uncycle_use_item_list ($3));
 	        }
             ;
+expose_clause : EXPOSE expose_qual_ident
+                  {
+		    $$ = $2;
+		    IR_set_next_stmt ($$, $$);
+                  }
+              | expose_clause ',' expose_qual_ident
+		  {
+		    IR_set_next_stmt ($3, IR_next_stmt ($1));
+		    IR_set_next_stmt ($1, $3);
+		    $$ = $3;
+		  }
+              ;
+all_fields : '.' '*'    {$$ = $1;}
+           | FOLD_MULT  {$$ = $1;}
+           ;
+expose_qual_ident : qual_ident alias_opt
+                      {
+			$$ = create_node_with_pos (IR_NM_expose, IR_pos ($1));
+			IR_set_expose_designator ($$, $1);
+			IR_set_expose_alias ($$, $2);
+			IR_set_expose_internals_flag ($$, FALSE);
+		      }
+                  | qual_ident all_fields
+                      {
+			$$ = create_node_with_pos (IR_NM_expose, $2);
+			IR_set_expose_designator ($$, $1);
+			IR_set_expose_alias ($$, NULL);
+			IR_set_expose_internals_flag ($$, TRUE);
+		      }
+                  ;
+qual_ident : IDENT { $$ = $1; }
+           | qual_ident '.' IDENT
+               {
+                 $$ = create_node_with_pos (IR_NM_period, $2);
+                 IR_set_designator ($$, $1);
+                 IR_set_component ($$, $3);
+               }
+           ;
 use_clause_list :   {$$ = NULL;}
                 | use_clause_list use_item_list
                     {
@@ -1309,12 +1351,12 @@ par_kind :      {$$ = 0;}
          ;
 par : access par_kind IDENT
         {
-	  $$ = process_var_decl ($1, $3, $2,
+	  $$ = process_var_decl ($1, $3, $2, NULL,
 				 NULL, IR_pos ($3), IR_NM_par_assign);
         }
     | access par_kind IDENT '=' expr
         {
-	  $$ = process_var_decl ($1, $3, $2, $5, $4, IR_NM_par_assign);
+	  $$ = process_var_decl ($1, $3, $2, NULL, $5, $4, IR_NM_par_assign);
         }
     ;
 par_list_empty :          {$$ = NULL;} 
@@ -1531,13 +1573,14 @@ uncycle_exception_list (IR_node_t list)
   return first;
 }
 
-/* Create variable IDENT with VAL_FLAG.  If EXPR is not null, create
-   also assignment with ASSIGN of EXPR with EXPR_POS to the variable.
-   Create cyclic list of the node(s) and return the last one.  */
+/* Create variable IDENT with VAL_FLAG and OBJ_BLOCK.  If EXPR is not
+   null, create also assignment with ASSIGN of EXPR with EXPR_POS to
+   the variable.  Create cyclic list of the node(s) and return the
+   last one.  */
 static IR_node_t
 process_var_decl (access_val_t access, IR_node_t ident,
-		  int val_flag, IR_node_t expr, position_t expr_pos,
-		  IR_node_mode_t assign)
+		  int val_flag, IR_node_t obj_block, IR_node_t expr,
+		  position_t expr_pos, IR_node_mode_t assign)
 {
   position_t ident_pos = IR_pos (ident);
   IR_node_t res = create_node_with_pos (IR_NM_var, ident_pos);
@@ -1546,6 +1589,10 @@ process_var_decl (access_val_t access, IR_node_t ident,
   IR_set_scope (res, current_scope);
   IR_set_ident (res, ident);
   IR_set_const_flag (res, val_flag);
+  IR_set_obj_block (res, obj_block);
+  if (obj_block != NULL && IR_fun_class (obj_block) != NULL)
+    IR_set_obj_var (IR_fun_class (obj_block), res);
+  d_assert (obj_block == NULL || val_flag);
   if (expr == NULL)
     IR_set_next_stmt (res, res);
   else
@@ -1718,7 +1765,7 @@ process_obj_block (IR_node_t origin_ident, IR_node_t block_stmts,
 			       actual_parameters_construction_pos);
   IR_set_fun_expr (expr, origin_ident);
   IR_set_actuals (expr, NULL);
-  val = process_var_decl (access, ident, TRUE,
+  val = process_var_decl (access, ident, TRUE, block,
 			  expr, IR_pos (ident), IR_NM_var_assign);
   return merge_stmt_lists (block, val);
 }

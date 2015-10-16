@@ -1,3 +1,53 @@
+2015-10-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Break long lines.  Add description of objects as
+	spaces and expose-clause.
+	* DINO/d_kw.shilka (expose): New.
+	* DINO/d_bc.sprut (ofun, oclass, ovfld, lovfld, lovfldv, omcall):
+	New.
+	(omicall, omicall, op2_decl, objomicall, ovfield): Ditto.
+	(print_node): Add parameter for omcall, omicall, omitcall.
+	* DINO/d_bcf.shilka (o_decl, ov_decl, om_decl, mfblock): New.
+	* DINO/d_bcio.c (dump_code): Process the new nodes.
+	(read_bc_program): Process the new fields.
+	* DINO/d_bcn.shilka (ofun, oclass, ovfld, lovfld, lovfldv): New.
+	(omcall, omicall, omicall): New.
+	* DINO/d_context.c (first_expr_processing): ???Set up and propagate
+	decl for period op component.
+	(find_expose_designator_decl, create_expose_decl): New.
+	(first_block_passing): Process expose-clause.
+	(gen_decl_access, create_obj_decl_access): New.
+	(exposed_objects): New.
+	(second_expr_processing): Use gen_decl_access.  Add code for
+	generating access to exposed idents.
+	(make_designator_lvalue): Process ovfld.
+	(modify_copied_pc): Process ovfield, op2_del.
+	(second_block_passing): Generate omitcall.  Process ovfld,
+	expose_decl.
+	(initiate_context): Create exposed_objects.
+	(finish_context): Delete exposed_objects.
+	* DINO/d_errors.[ch] (ERR_no_public_declaration_in_object): New.
+	(ERR_non_object_in_expose_clause): New.
+	(ERR_expose_clause_inside_referring_object): New.
+	* DINO/d_eval.c (evaluate_code): Add code for ofun, oclass, ovfld,
+	lovfld, lovfldv, omcall, omicall, omicall.
+	* DINO/d_gen.c (execute_ovld_operation, ofun, oclass, ovfld): New.
+	(lovfld, lovfldv, omcall, common_omicall, omicall, omicall): New.
+	(ofunclass, ofun, oclass): New.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Process
+	ofun, oclass, ovfld, lovfld, lovfldv, omcall, omicall, omicall.
+	(specialize_insn): Ditto.
+	* DINO/d_ir.sprut (class): Add obj_var.
+	(expose, expose_decl): New.
+	(hash_func, compare_func): Process expose_decl.
+	* DINO/d_yacc.y (process_var_decl): Add parameter obj_block.
+	(process_obj_block): Pass the new parameter.
+	(EXPOSE): New terminal.
+	(all_fields, expose_clause, expose_qual_ident, qual_ident): New
+	nonterminals and rules for them.
+	* DINO/dino.tst.in (817-837): New tests for object accesses and
+	expose-clause.
+
 2015-10-09  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/Makefile.in: Revert changes from branch space creation.

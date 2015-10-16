@@ -62,6 +62,7 @@ min_pars_num
 op1
 decl
 op2
+o_decl
 op3
 op4
 pc
@@ -81,7 +82,10 @@ f
 mpz
 str
 fldid
+ov_decl
 mid
+om_decl
+mfblock
 body_pc
 move_decl
 element

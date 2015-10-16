@@ -3221,6 +3221,9 @@ evaluate_code (void)
       goto_table [BC_NM_fld] = &&l_BC_NM_fld;
       goto_table [BC_NM_lfld] = &&l_BC_NM_lfld;
       goto_table [BC_NM_lfldv] = &&l_BC_NM_lfldv;
+      goto_table [BC_NM_ovfld] = &&l_BC_NM_ovfld;
+      goto_table [BC_NM_lovfld] = &&l_BC_NM_lovfld;
+      goto_table [BC_NM_lovfldv] = &&l_BC_NM_lovfldv;
       goto_table [BC_NM_brts] = &&l_BC_NM_brts;
       goto_table [BC_NM_brfs] = &&l_BC_NM_brfs;
       goto_table [BC_NM_lconv] = &&l_BC_NM_lconv;
@@ -3293,6 +3296,9 @@ evaluate_code (void)
       goto_table [BC_NM_titcall] = &&l_BC_NM_titcall;
       goto_table [BC_NM_ibcall] = &&l_BC_NM_ibcall;
       goto_table [BC_NM_mcall] = &&l_BC_NM_mcall;
+      goto_table [BC_NM_omcall] = &&l_BC_NM_omcall;
+      goto_table [BC_NM_omicall] = &&l_BC_NM_omicall;
+      goto_table [BC_NM_omitcall] = &&l_BC_NM_omitcall;
       goto_table [BC_NM_add] = &&l_BC_NM_add;
       goto_table [BC_NM_addi] = &&l_BC_NM_addi;
       goto_table [BC_NM_sub] = &&l_BC_NM_sub;
@@ -3447,6 +3453,8 @@ evaluate_code (void)
       goto_table [BC_NM_efun] = &&l_BC_NM_efun;
       goto_table [BC_NM_fun] = &&l_BC_NM_fun;
       goto_table [BC_NM_class] = &&l_BC_NM_class;
+      goto_table [BC_NM_ofun] = &&l_BC_NM_ofun;
+      goto_table [BC_NM_oclass] = &&l_BC_NM_oclass;
       goto_table [BC_NM_rpr] = &&l_BC_NM_rpr;
       goto_table [BC_NM_rpr_def] = &&l_BC_NM_rpr_def;
       goto_table [BC_NM_nop] = &&l_BC_NM_nop;
@@ -3569,6 +3577,18 @@ evaluate_code (void)
 	  BREAK;
 	CASE (BC_NM_lfldv):
 	  lfldv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_ovfld):
+	  ovfld (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_lovfld):
+	  lovfld (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
+	  INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_lovfldv):
+	  lovfldv (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), BC_op3 (cpc));
 	  INCREMENT_PC ();
 	  BREAK;
 	CASE (BC_NM_brts):
@@ -3848,6 +3868,18 @@ evaluate_code (void)
 	CASE (BC_NM_mcall):
 	  mcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
 		 get_op (BC_op3 (cpc)), BC_op4 (cpc), FALSE);
+	  BREAK;
+	CASE (BC_NM_omcall):
+	  omcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		  get_op (BC_op3 (cpc)), FALSE);
+	  BREAK;
+	CASE (BC_NM_omicall):
+	  omicall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		   get_op (BC_op3 (cpc)), FALSE);
+	  BREAK;
+	CASE (BC_NM_omitcall):
+	  omitcall (get_op (BC_op1 (cpc)), BC_op2 (cpc),
+		    get_op (BC_op3 (cpc)), FALSE);
 	  BREAK;
 	CASE (BC_NM_add):
 	  add (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)), get_op (BC_op3 (cpc)));
@@ -4641,6 +4673,14 @@ evaluate_code (void)
 	CASE (BC_NM_fun):
 	CASE (BC_NM_class):
 	  funclass (get_op (BC_op1 (cpc)));
+	  INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_ofun):
+	  ofun (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
+	  INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_oclass):
+	  oclass (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  BREAK;
 	CASE (BC_NM_rpr):

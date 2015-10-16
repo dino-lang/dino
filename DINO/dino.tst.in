@@ -48699,6 +48699,517 @@ OUTPUT816
         fi
 fi
 
+# Test 817.
+if test $result = ok -a $start_test_number -le 817; then
+	echo test 817: ovfld generation
+        cat >$test_file <<'TEST817'
+obj o {
+  obj o2 { var a2; }
+  var a;
+  obj o {}
+}
+
+print (o.o2.a2, o.a, o.o);
+TEST817
+        echo '      ' $DINO '-d' $test_file "2>$stderr"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep ovfld $stdout
+                if expr `fgrep ovfld $stdout | wc -l` == 4 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 818.
+if test $result = ok -a $start_test_number -le 818; then
+	echo test 818: lovfld generation
+        cat >$test_file <<'TEST818'
+obj o {
+  obj o2 { var a2; }
+  var a;
+}
+
+o.o2.a2 = 42; o.a = 23;
+TEST818
+        echo '      ' $DINO '-d' $test_file "2>$stderr"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep lovfld $stdout
+                if expr `fgrep lovfld $stdout | wc -l` == 2 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 819.
+if test $result = ok -a $start_test_number -le 819; then
+	echo test 819: lovfldv generation
+        cat >$test_file <<'TEST819'
+obj o {
+  obj o2 { var a2 = 0; }
+  var a = 41;
+}
+
+o.o2.a2 += 42; o.a++;
+TEST819
+        echo '      ' $DINO '-d' $test_file "2>$stderr"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep lovfldv $stdout
+                if expr `fgrep lovfldv $stdout | wc -l` == 2 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 820.
+if test $result = ok -a $start_test_number -le 820; then
+	echo test 820: ofun generation
+        cat >$test_file <<'TEST820'
+obj o {
+  fun f { 42; }
+}
+
+print (o.f);
+TEST820
+        echo '      ' $DINO '-d' $test_file "2>$stderr"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep ofun $stdout
+                if expr `fgrep ofun $stdout | wc -l` == 1 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 821.
+if test $result = ok -a $start_test_number -le 821; then
+	echo test 821: oclass generation
+        cat >$test_file <<'TEST821'
+obj o { class c {}}
+print (o.c);
+TEST821
+        echo '      ' $DINO '-d' $test_file "2>$stderr"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep oclass $stdout
+                if expr `fgrep oclass $stdout | wc -l` == 1 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 822.
+if test $result = ok -a $start_test_number -le 822; then
+	echo test 822: Bug in a call from high order function
+        cat >$test_file <<'TEST822'
+class c {var u;}
+obj o { var v;}
+print (o.u);
+TEST822
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT822' && $CMP $stderr $ftemp2; then
+test.d:3:9: no public declaration `u' in the object
+OUTPUT822
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 823.
+if test $result = ok -a $start_test_number -le 823; then
+	echo test 823: omcall generation
+        cat >$test_file <<'TEST823'
+obj o { fun f (...) { 42;} }
+println (o.f ());
+TEST823
+        echo '      ' $DINO '-d' $test_file "2>$stderr"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep omcall $stdout
+                if expr `fgrep omcall $stdout | wc -l` == 1 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 824.
+if test $result = ok -a $start_test_number -le 824; then
+	echo test 824: omicall generation
+        cat >$test_file <<'TEST824'
+obj o { fun f { 42;} }
+println (o.f ());
+TEST824
+        echo '      ' $DINO '-d' $test_file "2>$stderr"
+        if $DINO -d $test_file 2>$stderr >$stdout; then
+                echo '      ' fgrep omicall $stdout
+                if expr `fgrep omicall $stdout | wc -l` == 1 > /dev/null; then
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 825.
+if test $result = ok -a $start_test_number -le 825; then
+	echo test 825: Object access
+        cat >$test_file <<'TEST825'
+obj o {
+  obj o2 { var a2 = 0; }
+  var a = 0;
+  fun f1 (...){ 42;}
+  fun f2 (...){ 42;}
+}
+o.a = 41;
+o.o2.a2 += 42; o.a++;
+putln (o.a, " ", o.o2.a2);
+putln (o.f1 (), " ", o.f2 ());
+TEST825
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT825' && $CMP $stdout $ftemp2; then
+42 42
+42 42
+OUTPUT825
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 826.
+if test $result = ok -a $start_test_number -le 826; then
+	echo test 826: Expose inside the object
+        cat >$test_file <<'TEST826'
+obj o {
+  var a;
+  expose o;
+}
+TEST826
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT826' && $CMP $stderr $ftemp2; then
+test.d:3:10: expose-clause inside refering object `o'
+OUTPUT826
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 827.
+if test $result = ok -a $start_test_number -le 827; then
+	echo test 827: Another expose inside the object
+        cat >$test_file <<'TEST827'
+obj o {
+  var a;
+  expose o.*;
+}
+TEST827
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT827' && $CMP $stderr $ftemp2; then
+test.d:3:10: expose-clause inside refering object `o'
+OUTPUT827
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 828.
+if test $result = ok -a $start_test_number -le 828; then
+	echo test 828: Expose of undeclared ident
+        cat >$test_file <<'TEST828'
+obj o { var v = 42;}
+expose o2;
+TEST828
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT828' && $CMP $stderr $ftemp2; then
+test.d:2:8: undeclared identifier `o2'
+OUTPUT828
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 829.
+if test $result = ok -a $start_test_number -le 829; then
+	echo test 829: Expose of undeclared ident
+        cat >$test_file <<'TEST829'
+obj o { var v = 42;}
+expose o.v2;
+TEST829
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT829' && $CMP $stderr $ftemp2; then
+test.d:2:10: no public declaration `v2' in the object
+OUTPUT829
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 830.
+if test $result = ok -a $start_test_number -le 830; then
+	echo test 830: Expose of private decl
+        cat >$test_file <<'TEST830'
+obj o { priv var v = 42;}
+expose o.v;
+v += 10;
+TEST830
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT830' && $CMP $stderr $ftemp2; then
+test.d:2:10: no public declaration `v' in the object
+OUTPUT830
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 831.
+if test $result = ok -a $start_test_number -le 831; then
+	echo test 831: Expose of val and modifying it
+        cat >$test_file <<'TEST831'
+obj o { val v = 42;}
+expose o.v;
+v += 10;
+TEST831
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT831' && $CMP $stderr $ftemp2; then
+test.d:3:1: constant `v' in assignment statement
+OUTPUT831
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 832.
+if test $result = ok -a $start_test_number -le 832; then
+	echo test 832: Different expose-clauses
+        cat >$test_file <<'TEST832'
+var v = 0;
+obj o {var v = 42;}
+expose o.*;
+putln (v);
+
+var v = 0;
+obj o {var v = 42*42;}
+expose o.v;
+putln (v);
+
+v -= 42;
+expose o.v (va);
+putln (v, " ", va);
+
+fun f {0;}
+obj o { fun f {42;} }
+expose o.*;
+putln (f ());
+TEST832
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT832' && $CMP $stdout $ftemp2; then
+42
+1764
+1722 1722
+42
+OUTPUT832
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 833.
+if test $result = ok -a $start_test_number -le 833; then
+	echo test 833: Access through '.' and expose
+        cat >$test_file <<'TEST833'
+obj o {
+  obj o2 {var v = 42;}
+}
+expose o.*;
+o2.v *= 2;
+putln (o2.v);
+TEST833
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT833' && $CMP $stdout $ftemp2; then
+84
+OUTPUT833
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 834.
+if test $result = ok -a $start_test_number -le 834; then
+	echo test 834: Expose of val and modifying it
+        cat >$test_file <<'TEST834'
+obj o { fun v {}}
+expose o.v;
+v += 10;
+TEST834
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT834' && $CMP $stderr $ftemp2; then
+test.d:3:1: non variable in assignment statement
+OUTPUT834
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 835.
+if test $result = ok -a $start_test_number -le 835; then
+	echo test 835: Access to decl not in object
+        cat >$test_file <<'TEST835'
+var v = 0;
+expose v;
+v+=42;
+println (v);
+var v2 = 0;
+expose v2 (v);
+v+=84;
+println (v);
+TEST835
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT835' && $CMP $stdout $ftemp2; then
+42
+84
+OUTPUT835
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 836.
+if test $result = ok -a $start_test_number -le 836; then
+	echo test 836: Expose through non-public object
+        cat >$test_file <<'TEST836'
+obj o { priv obj o2 {var v = 42;}}
+expose o.o2.v;
+TEST836
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT836' && $CMP $stderr $ftemp2; then
+test.d:2:10: no public declaration `o2' in the object
+OUTPUT836
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 837.
+if test $result = ok -a $start_test_number -le 837; then
+	echo test 837: Undeclared obj member: one error only
+        cat >$test_file <<'TEST837'
+obj o {}
+o.v2;
+TEST837
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT837' && $CMP $stderr $ftemp2; then
+test.d:2:2: no public declaration `v2' in the object
+OUTPUT837
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
 # Final message
 
 if test $result = ok; then

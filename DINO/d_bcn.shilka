@@ -51,8 +51,10 @@ evar		{return BC_NM_evar;}
 levar		{return BC_NM_levar;}
 levarv		{return BC_NM_levarv;}
 fun		{return BC_NM_fun;}
+ofun		{return BC_NM_ofun;}
 efun		{return BC_NM_efun;}
 class		{return BC_NM_class;}
+oclass		{return BC_NM_oclass;}
 ind		{return BC_NM_ind;}
 sl		{return BC_NM_sl;}
 lslv		{return BC_NM_lslv;}
@@ -60,6 +62,9 @@ ind2		{return BC_NM_ind2;}
 fld		{return BC_NM_fld;}
 lfld		{return BC_NM_lfld;}
 lfldv		{return BC_NM_lfldv;}
+ovfld		{return BC_NM_ovfld;}
+lovfld		{return BC_NM_lovfld;}
+lovfldv		{return BC_NM_lovfldv;}
 const		{return BC_NM_const;}
 new		{return BC_NM_new;}
 not		{return BC_NM_not;}
@@ -256,6 +261,9 @@ titcall		{return BC_NM_titcall;}
 cicall		{return BC_NM_cicall;}
 citcall		{return BC_NM_citcall;}
 mcall		{return BC_NM_mcall;}
+omcall		{return BC_NM_omcall;}
+omicall		{return BC_NM_omicall;}
+omitcall	{return BC_NM_omitcall;}
 stpop		{return BC_NM_stpop;}
 leave		{return BC_NM_leave;}
 bend		{return BC_NM_bend;}
