@@ -1624,12 +1624,39 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_use:
 	  {
 	    IR_node_t decl, subst = next_stmt;
-	    IR_node_t scope, ident = IR_use_ident (stmt);
-
-	    decl = find_decl (ident, curr_scope);
+	    IR_node_t scope, ident, qual_ident = IR_use_qual_ident (stmt);
+	    int before, err_p;
+	    
+	    before = number_of_errors;
+	    first_expr_processing (qual_ident, FALSE);
+	    err_p = before != number_of_errors;
+	    if (IR_IS_OF_TYPE (qual_ident, IR_NM_ident))
+	      {
+		ident = qual_ident;
+		decl = IR_decl (qual_ident);
+	      }
+	    else
+	      {
+		IR_node_t des = IR_designator (qual_ident);
+		
+		d_assert (IR_IS_OF_TYPE (qual_ident, IR_NM_period));
+		ident = IR_component (qual_ident);
+		decl = IR_decl (ident);
+		if (! err_p && decl == NULL)
+		  {
+		    cont_err (IR_pos (des), ERR_non_object_in_use_qual_ident,
+			      IR_ident_string (IR_unique_ident
+					       (IR_IS_OF_TYPE (des, IR_NM_ident)
+						? des : IR_component (des))));
+		    err_p = TRUE;
+		  }
+	      }
 	    if (decl == NULL)
-	      cont_err (IR_pos (stmt), ERR_use_before_definition,
-			IR_ident_string (IR_unique_ident (ident)));
+	      {
+		if (! err_p)
+		  cont_err (IR_pos (stmt), ERR_use_before_definition,
+			    IR_ident_string (IR_unique_ident (ident)));
+	      }
 	    else if (! IR_IS_OF_TYPE (decl, IR_NM_fun_class))
 	      cont_err (IR_pos (stmt),
 			ERR_use_of_non_fun_class,
@@ -1648,7 +1675,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		     scope = IR_block_scope (scope))
 		  if (IR_fun_class (scope) == decl)
 		    {
-		      cont_err (IR_pos (ident),
+		      cont_err (IR_pos (qual_ident),
 				ERR_use_of_class_inside_the_class,
 				IR_ident_string (IR_unique_ident (ident)));
 		      break;

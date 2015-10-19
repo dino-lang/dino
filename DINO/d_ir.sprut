@@ -926,7 +926,7 @@ class :: fun_or_class
         obj_var : var {$ = NULL;}
 ;
 
-/* Nodes created from expose-sentence.  */
+/* Nodes created from expose-clause.  */
 expose :: stmt
 %other
         expose_designator : designator
@@ -938,7 +938,7 @@ expose :: stmt
 
 use :: stmt
 %other
-	use_ident : ident
+	use_qual_ident : designator
         use_items : use_item
 ;
 %abstract

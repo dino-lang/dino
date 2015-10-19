@@ -1,3 +1,13 @@
+2015-10-18  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_yacc.y (declaration): Use qual_ident in use-clause.
+	* DINO/d_ir.sprut (use): Rename use_ident to use_qual_ident.
+	* DINO/d_errors.[ch] (ERR_non_object_in_use_qual_ident): New.
+	* DINO/d_context.c (first_block_passing): Process qual_ident in
+	use-clause.
+	* DINO/dino.tst.in (95): Change expected error.
+	(838-840): New.
+
 2015-10-16  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* README.md: Break long lines.  Add description of objects as

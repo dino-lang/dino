@@ -1128,11 +1128,12 @@ declaration : access VAL {$<access>$ = $1;} set_flag
                 {
 		  $$ = $1;
 	        }
-            | USE IDENT use_clause_list {$<flag>$ = $<flag>0;} end_simple_stmt
+            | USE qual_ident use_clause_list
+	        {$<flag>$ = $<flag>0;} end_simple_stmt
                 {
 		  $$ = create_node_with_pos (IR_NM_use, IR_pos ($2));
 		  IR_set_next_stmt ($$, $$);
-                  IR_set_use_ident ($$, $2);
+                  IR_set_use_qual_ident ($$, $2);
 		  IR_set_use_items ($$, uncycle_use_item_list ($3));
 	        }
             ;

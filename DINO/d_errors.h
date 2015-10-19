@@ -64,6 +64,7 @@ extern char ERR_assignment_pattern_without_variables [];
 extern char ERR_no_public_declaration_in_object [];
 extern char ERR_non_object_in_expose_clause [];
 extern char ERR_expose_clause_inside_referring_object [];
+extern char ERR_non_object_in_use_qual_ident [];
 extern char ERR_use_before_definition [];
 extern char ERR_use_of_non_fun_class [];
 extern char ERR_use_of_forward_declaration [];

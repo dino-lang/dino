@@ -13600,7 +13600,7 @@ TEST95
         else
                 echo '      ' $CMP - $stderr
                 if cat >$ftemp2 <<'OUTPUT95' && $CMP $stderr $ftemp2; then
-test.d:2:7: use `c' before defined fun or class
+test.d:2:7: undeclared identifier `c'
 OUTPUT95
                         result=ok
                 else
@@ -49207,6 +49207,73 @@ OUTPUT837
                 else
                         result=fail
                 fi
+        fi
+fi
+
+# Test 838.
+if test $result = ok -a $start_test_number -le 838; then
+	echo test 838: Qualified identifier in use
+        cat >$test_file <<'TEST838'
+obj o { class c (p) {} }
+class s (p) {use o.c2 former p;}
+TEST838
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT838' && $CMP $stderr $ftemp2; then
+test.d:2:19: no public declaration `c2' in the object
+OUTPUT838
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 839.
+if test $result = ok -a $start_test_number -le 839; then
+	echo test 839:  Qualified identifier in use
+        cat >$test_file <<'TEST839'
+class o2 { class c (p) {} }
+class s (p) {use o2.c former p;}
+TEST839
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT839' && $CMP $stderr $ftemp2; then
+test.d:2:18: o2 is not an object in qualified identifier of use-clause
+OUTPUT839
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 840.
+if test $result = ok -a $start_test_number -le 840; then
+	echo test 840: Qualified identifier in use
+        cat >$test_file <<'TEST840'
+obj o { class c (p) {fun pr {putln ("hello, ", p);} } }
+class s (p) {use o.c former p;}
+s (42).pr ();
+TEST840
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT840' && $CMP $stdout $ftemp2; then
+hello, 42
+OUTPUT840
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
         fi
 fi
 
