@@ -3582,7 +3582,7 @@ fun heapsort (n, ra) {
 
 fun main {
   var i, n = (argv [0] < 1) ? 1 : int (argv [0]);
-  var ary = [n + 1 : 0];
+  var ary = [n + 1 : 0.0];
 
   for (i = 1; i <= n; i++)
     ary [i] = gen_random (1.0);
@@ -3643,7 +3643,7 @@ fun heapsort (n, ra) !jit {
 
 fun main {
   var i, n = (argv [0] < 1) ? 1 : int (argv [0]);
-  var ary = [n + 1 : 0];
+  var ary = [n + 1 : 0.0];
 
   for (i = 1; i <= n; i++)
     ary [i] = gen_random (1.0);

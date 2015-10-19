@@ -1,3 +1,7 @@
+2015-10-19  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/compare.tst (heapsort): Create intial floating point array.
+
 2015-10-10  Vladimir Makarov  <vmakarov@rgcc.gnu.org>
 
 	* MSTA/main.c (msta_finish): Rename all_hash_table_collisions to
