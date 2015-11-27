@@ -220,6 +220,9 @@ extern IR_node_t get_float_node (rfloat_t number_value, position_t pos);
 /* Variable name for the rest parameter values (...). */
 #define ARGS_NAME "args"
 
+/* Variable name for class except.  */
+#define EXCEPT_NAME "except"
+
 /* This is name of varibale which will contains catdhed exception in
    corresponding catch block. */
 

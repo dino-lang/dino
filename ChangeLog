@@ -1,3 +1,15 @@
+2015-11-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_ir.sprut (EXCEPT_NAME): New.
+	* DINO/d_yacc.y (create_except_class, create_catch_block): New.
+	(finish_catch_block, create_try_expr): Ditto.
+	(except_class_list_opt, set_flag2, end_exec_stmt):
+	New non-terminals.
+	(expr): Add rules for try-function.
+	(executive_stmt): Use end_exec_stmt.
+	(catch): Call create_catch_block and finish_catch_block.
+	(except_class_list): Call create_except_class.
+
 2015-10-19  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/compare.tst (heapsort): Create intial floating point array.

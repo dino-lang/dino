@@ -56,7 +56,7 @@ process_var_pattern (access_val_t access, IR_node_t pattern, int val_flag,
 
 static void process_header (int, IR_node_t, IR_node_t);
 static IR_node_t process_formal_parameters (IR_node_t, IR_node_t);
- static IR_node_t process_header_block (IR_node_t, IR_node_t, hint_val_t);
+static IR_node_t process_header_block (IR_node_t, IR_node_t, hint_val_t);
 
 static hint_val_t get_hint (IR_node_t);
 
@@ -65,6 +65,14 @@ static IR_node_t merge_additional_stmts (IR_node_t);
 static void process_obj_header (IR_node_t);
 static IR_node_t process_obj_block (IR_node_t, IR_node_t, access_val_t);
 static IR_node_t process_fun_start (IR_node_t, int, access_val_t);
+ static IR_node_t create_except_class (IR_node_t before_list, IR_node_t expr);
+static IR_node_t create_catch_block (position_t pos);
+static void finish_catch_block (IR_node_t catch_block, IR_node_t block,
+				IR_node_t first_exception,
+				IR_node_t friend_list);
+static IR_node_t create_try_expr (IR_node_t try_block, IR_node_t stmt,
+				  IR_node_t excepts,
+				  position_t lpar_pos, position_t rpar_pos);
 
 /* The following vars are used by yacc analyzer. */
 
@@ -151,7 +159,7 @@ static int repl_can_process_p (void);
 %left '(' '[' '.'
 
 %type <pos> pos
-%type <pointer> aheader expr designator type
+%type <pointer> aheader expr designator type except_class_list_opt
                 elist_parts_list elist_parts_list_empty elist_part
                 expr_list expr_list_empty actual_parameters friend_list
                 val_var_list val_var assign stmt executive_stmt incr_decr
@@ -162,7 +170,7 @@ static int repl_can_process_p (void);
         	fun_thread_class fun_thread_class_start else_part
                 expr_empty opt_step par_list par_list_empty par
                 formal_parameters block stmt_list program inclusion
-%type <flag> clear_flag set_flag  par_kind
+%type <flag> clear_flag set_flag  set_flag2 par_kind
 %type <hint> hint
 %type <access> access
 
@@ -173,6 +181,8 @@ static int repl_can_process_p (void);
 clear_flag : {$$ = 0;}
            ;
 set_flag   : {$$ = 1;}
+           ;
+set_flag2  : {$$ = 2;}
            ;
 expr : NUMBER        {$$ = $1;}
      | CHARACTER     {$$ = $1;}
@@ -469,6 +479,36 @@ expr : NUMBER        {$$ = $1;}
           IR_set_operand ($$, $3);
         }
      | THIS { $$ = create_node_with_pos (IR_NM_this, $1); }
+     | TRY  '('
+         {
+	   IR_node_t fun;
+
+	   /* Create anonymous fun: */
+	   fun = create_node (IR_NM_fun);
+	   IR_set_thread_flag (fun, FALSE);
+	   IR_set_pos (fun, $2);
+	   IR_set_final_flag (fun, TRUE);
+	   IR_set_args_flag (fun, FALSE);
+	   process_header (TRUE, fun, get_new_ident ($2)); /* creates fun block */
+	   start_block (); /* start func block */
+	   $<pointer>$ = create_empty_block (current_scope); /* try block */
+	   current_scope = $<pointer>$;
+	   IR_set_pos (current_scope, $2);
+	   start_block (); /* start try block */
+	 }
+       set_flag2  executive_stmt  except_class_list_opt  ')'
+         {
+	   $$ = create_try_expr ($<pointer>3, $5, $6, $2, $7);
+	 }
+     | TRY '(' error
+          {
+	    if (repl_flag)
+	      YYABORT;
+          }
+       bracket_stop
+	  {
+	    $$ = NULL;
+	  }
      /* The following is allowed only for patterns.  */
      | WILDCARD { $$ = create_node_with_pos (IR_NM_wildcard, $1); }
      | DOTS     { $$ = create_node_with_pos (IR_NM_dots, $1); }
@@ -494,6 +534,14 @@ type : CHAR          {$$ = create_node_with_pos (IR_NM_char_type, $1);}
      | PROCESS       {$$ = create_node_with_pos (IR_NM_process_type, $1);}
      | TYPE          {$$ = create_node_with_pos (IR_NM_type_type, $1);}
      ;
+except_class_list_opt :  {
+                           $$ = create_except_class (NULL,
+						     get_ident_node
+						     (EXCEPT_NAME,
+						      current_position));
+                         }
+                      | ',' except_class_list  { $$ = $2; }
+	              ;
 aheader : fun_thread_class
             {
 	      IR_set_final_flag ($1, TRUE);
@@ -774,27 +822,27 @@ incr_decr : INCR {$$ = get_int_node (1, $1);}
           | DECR {$$ = get_int_node (-1, $1);}
           ;
 executive_stmt :
-      {$<flag>$ = $<flag>0;} end_simple_stmt      {$$ = NULL;}
+      {$<flag>$ = $<flag>0;} end_exec_stmt      {$$ = NULL;}
     | expr {$<pos>$ = current_position; $<pos>$.column_number--; }
-        {$<flag>$ = $<flag>0;} end_simple_stmt
+        {$<flag>$ = $<flag>0;} end_exec_stmt
         {
           $$ = create_node_with_pos (IR_NM_expr_stmt,
 				     $1 == NULL ? $<pos>2 : IR_pos ($1));
 	  IR_set_stmt_expr ($$, $1);
         }
-    | designator assign expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | designator assign expr {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = $2;
           IR_set_assignment_var ($$, $1);
           IR_set_assignment_expr ($$, $3);
         }
-    | designator incr_decr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | designator incr_decr {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = create_node_with_pos (IR_NM_plus_assign, IR_pos ($2));
           IR_set_assignment_var ($$, $1); 
           IR_set_assignment_expr ($$, $2);
         }
-    | incr_decr designator {$<flag>$ = $<flag>0;} end_simple_stmt
+    | incr_decr designator {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = create_node_with_pos (IR_NM_plus_assign, IR_pos ($1));
           IR_set_assignment_var ($$, $2); 
@@ -859,11 +907,11 @@ executive_stmt :
 	  $$ = $<pointer>6;
           IR_set_switch_cases ($$, uncycle_stmt_list ($7)); 
 	}
-    | BREAK {$<flag>$ = $<flag>0;} end_simple_stmt
+    | BREAK {$<flag>$ = $<flag>0;} end_exec_stmt
         {$$ = create_node_with_pos (IR_NM_break_stmt, $1);}
-    | CONTINUE {$<flag>$ = $<flag>0;} end_simple_stmt
+    | CONTINUE {$<flag>$ = $<flag>0;} end_exec_stmt
         {$$ = create_node_with_pos (IR_NM_continue_stmt, $1);}
-    | RETURN expr_empty {$<flag>$ = $<flag>0;} end_simple_stmt
+    | RETURN expr_empty {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           if ($2 == NULL)
             $$ = create_node_with_pos (IR_NM_return_without_result, $1);
@@ -873,7 +921,7 @@ executive_stmt :
               IR_set_returned_expr ($$, $2);
             }
        	}
-    | THROW expr {$<flag>$ = $<flag>0;} end_simple_stmt
+    | THROW expr {$<flag>$ = $<flag>0;} end_exec_stmt
        	{
           $$ = create_node_with_pos (IR_NM_throw, $1);
           IR_set_throw_expr ($$, $2); 
@@ -955,13 +1003,14 @@ block_stmt :    {
        		  current_scope = IR_block_scope ($$);
                 }
            ;
-try_block_stmt :    {
+try_block_stmt : TRY
+                    {
                       $<pointer>$ = create_empty_block (current_scope);
 		      current_scope = $<pointer>$;
                     }
-                 TRY block
+                 block
        		    {
-		      $<pointer>$ = $<pointer>1;
+		      $<pointer>$ = $<pointer>2;
 		      IR_set_block_stmts ($<pointer>$, uncycle_stmt_list ($3));
 		      IR_set_friend_list
 			($<pointer>$, uncycle_friend_list (IR_friend_list
@@ -986,26 +1035,14 @@ catch_list :                           {$$ = NULL;}
    the last one. */
 catch : CATCH  '(' except_class_list ')'
           {
-            $<pointer>$ = create_empty_block (current_scope);
-            current_scope = $<pointer>$;
-	    /* Add variable for catched exception. */
-	    $<pointer>$ = create_node_with_pos (IR_NM_var, $4);
-	    IR_set_next_stmt ($<pointer>$, $<pointer>$);
-	    IR_set_scope ($<pointer>$, current_scope);
-	    IR_set_ident ($<pointer>$, get_ident_node (CATCH_EXCEPTION_NAME,
-						       current_position));
+            $<pointer>$ = create_catch_block ($4);
           }
        	block
        	  {
-	    IR_set_block_stmts (current_scope,
-				uncycle_stmt_list (merge_stmt_lists
-						   ($<pointer>5, $6)));
-	    IR_set_friend_list
-	      (current_scope,
+	    finish_catch_block
+	      ($<pointer>5, $6, $3,
 	       uncycle_friend_list (IR_friend_list (current_scope)));
 	    $$ = $3;
-	    IR_set_catch_block (IR_next_exception ($3), current_scope);
-	    current_scope = IR_block_scope (current_scope);
 	  }
       | error
           {
@@ -1016,27 +1053,8 @@ catch : CATCH  '(' except_class_list ')'
       ;
 /* Attribute value is cyclic list of exceptions with the pointer to
    the last one. */
-except_class_list : expr
-                      {
-			position_t pos = current_position;
-			pos.column_number--;
-
-			$$ = create_node_with_pos (IR_NM_exception, pos);
-			IR_set_exception_class_expr ($$, $1);
-			IR_set_catch_block ($$, NULL);
-			IR_set_next_exception ($$, $$);
-		      }
-                  | except_class_list ',' expr
-                      {
-			position_t pos = current_position;
-			pos.column_number--;
-
-			$$ = create_node_with_pos (IR_NM_exception, pos);
-			IR_set_exception_class_expr ($$, $3);
-			IR_set_catch_block ($$, NULL);
-			IR_set_next_exception ($$, IR_next_exception ($1));
-			IR_set_next_exception ($1, $$);
-		      }
+except_class_list : expr { $$ = create_except_class (NULL, $1); }
+                  | except_class_list ',' expr  { $$ = create_except_class ($1, $3); }
                   ;
 /* Attribute value is cyclic list of ident in clause with the pointer
    to the last one. */
@@ -1222,6 +1240,19 @@ end_simple_stmt : ';'
 			}
                     }
                 ;
+end_exec_stmt : end_simple_stmt
+              | ',' 
+                  {
+                    if ($<flag>0 == 2)
+                      yychar = ',';
+	            else if (!YYRECOVERING ())
+		      {
+			yyerror ("syntax error");
+			if (repl_flag)
+			  YYABORT;
+		      }
+                  }
+              ;
 header : fun_thread_class_start IDENT
            {
 	     IR_set_pos ($1, IR_pos ($2));
@@ -1731,7 +1762,114 @@ process_fun_start (IR_node_t fun, int final_flag, access_val_t access)
   return fun;
 }
 
+static IR_node_t
+create_except_class (IR_node_t before_list, IR_node_t expr)
+{
+  IR_node_t res;
+  position_t pos = current_position;
+  pos.column_number--;
+  
+  res = create_node_with_pos (IR_NM_exception, pos);
+  IR_set_exception_class_expr (res, expr);
+  IR_set_catch_block (res, NULL);
+  if (before_list == NULL)
+    IR_set_next_exception (res, res);
+  else
+    {
+      IR_set_next_exception (res, IR_next_exception (before_list));
+      IR_set_next_exception (before_list, res);
+    }
+  return res;
+}
+
+static IR_node_t
+create_catch_block (position_t pos)
+{
+  IR_node_t res = create_empty_block (current_scope);
+
+  current_scope = res;
+  /* Add variable for catched exception. */
+  res = create_node_with_pos (IR_NM_var, pos);
+  IR_set_next_stmt (res, res);
+  IR_set_scope (res, current_scope);
+  IR_set_ident (res,
+		get_ident_node (CATCH_EXCEPTION_NAME, current_position));
+  return res;
+}
+
+static void
+finish_catch_block (IR_node_t catch_block, IR_node_t block,
+		    IR_node_t first_exception, IR_node_t friend_list)
+{
+  IR_set_block_stmts (current_scope,
+		      uncycle_stmt_list (merge_stmt_lists (catch_block, block)));
+  IR_set_friend_list (current_scope, friend_list);
+  IR_set_catch_block (first_exception, current_scope);
+  current_scope = IR_block_scope (current_scope);
+}
+
+/* We have try (<stmt>, <except>, ...).  Create and return
+   fun {try {<stmt>;return 1;} catch (<except>) {return 0;}} ().
+
+   TRY_BLOCK is already created block for the try-statement. LPAR_POS
+   and RPAR_POS are positions of correspondingly left and right
+   parenthesis in try-expr.  */
+static IR_node_t
+create_try_expr (IR_node_t try_block, IR_node_t stmt, IR_node_t excepts,
+		 position_t lpar_pos, position_t rpar_pos)
+{
+  IR_node_t fun, stmt_list, catch_block, fun_expr, call;
+  
+  fun = IR_fun_class (IR_block_scope (try_block));
+  
+  /* Create <executive_stmt>; return 1; */
+  if (stmt != NULL)
+    IR_set_next_stmt (stmt, stmt);
+  stmt_list = create_node_with_pos (IR_NM_return_with_result, rpar_pos);
+  IR_set_returned_expr (stmt_list, get_int_node (1, rpar_pos));
+  IR_set_next_stmt (stmt_list, stmt_list);
+  stmt_list = merge_stmt_lists (stmt, stmt_list);
+  
+  finish_block (); /* finish try-block */
+  
+  /* create try { <executive_stmt>; return 1; } ... */
+  IR_set_block_stmts (try_block, uncycle_stmt_list (stmt_list));
+  IR_set_friend_list (try_block, NULL);
+  current_scope = IR_block_scope (try_block);
+  
+  /* create catch (<except>) {...} */
+  catch_block = create_catch_block (rpar_pos);
+  IR_set_pos (current_scope, rpar_pos);
+  start_block (); /* start catch-block */
+  
+  /* create return 0; */
+  stmt_list = create_node_with_pos (IR_NM_return_with_result, rpar_pos);
+  IR_set_returned_expr (stmt_list, get_int_node (0, rpar_pos));
+  IR_set_next_stmt (stmt_list, stmt_list);
+  
+   /* finish catch_block: */
+  finish_block ();
+  finish_catch_block (catch_block, stmt_list, excepts, NULL);
+  IR_set_exceptions (try_block, uncycle_exception_list (excepts));
+  
+  IR_set_pos (current_scope, lpar_pos);
+  finish_block (); /* finish function block */
+  
+  /* Move (header, block) before the current statement: */
+  IR_set_next_stmt (try_block, try_block);
+  additional_stmts
+    = merge_stmt_lists (additional_stmts,
+			process_header_block (NULL, try_block, NO_HINT));
+  /* create function call  */
+  fun_expr = IR_ident (IR_next_stmt (additional_stmts));
+  call = create_node_with_pos (IR_NM_class_fun_thread_call, rpar_pos);
+  IR_set_fun_expr (call, fun_expr);
+  IR_set_actuals (call, NULL);
+  return call;
+}
+
 
+
 
 /* This page contains abstracr data for reading, storing and
    retrieving lines.  */
