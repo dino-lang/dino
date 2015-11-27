@@ -1,5 +1,13 @@
 2015-11-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
+	* DINO/d_gen.c (execute_a_period_operation): Make it static.
+	* DINO/d_yacc.y (finish_catch_block): Get first exception.
+	* DINO/dino.tst.in (484): Use fp precision.
+	(497): Process "does not have an IP address".
+	(816 - 818): New tests.
+
+2015-11-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
 	* DINO/d_ir.sprut (EXCEPT_NAME): New.
 	* DINO/d_yacc.y (create_except_class, create_catch_block): New.
 	(finish_catch_block, create_try_expr): Ditto.

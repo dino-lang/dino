@@ -65,11 +65,10 @@ static IR_node_t merge_additional_stmts (IR_node_t);
 static void process_obj_header (IR_node_t);
 static IR_node_t process_obj_block (IR_node_t, IR_node_t, access_val_t);
 static IR_node_t process_fun_start (IR_node_t, int, access_val_t);
- static IR_node_t create_except_class (IR_node_t before_list, IR_node_t expr);
+static IR_node_t create_except_class (IR_node_t before_list, IR_node_t expr);
 static IR_node_t create_catch_block (position_t pos);
 static void finish_catch_block (IR_node_t catch_block, IR_node_t block,
-				IR_node_t first_exception,
-				IR_node_t friend_list);
+				IR_node_t excepts, IR_node_t friend_list);
 static IR_node_t create_try_expr (IR_node_t try_block, IR_node_t stmt,
 				  IR_node_t excepts,
 				  position_t lpar_pos, position_t rpar_pos);
@@ -1799,8 +1798,10 @@ create_catch_block (position_t pos)
 
 static void
 finish_catch_block (IR_node_t catch_block, IR_node_t block,
-		    IR_node_t first_exception, IR_node_t friend_list)
+		    IR_node_t excepts, IR_node_t friend_list)
 {
+  IR_node_t first_exception = IR_next_exception (excepts);
+  
   IR_set_block_stmts (current_scope,
 		      uncycle_stmt_list (merge_stmt_lists (catch_block, block)));
   IR_set_friend_list (current_scope, friend_list);
