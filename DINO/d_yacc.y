@@ -131,7 +131,7 @@ static int repl_can_process_p (void);
 %token <pos> XOR_ASSIGN OR_ASSIGN
 %token <pos> INCR DECR
 %token <pos> DOTS
-%token <pos> FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR
+%token <pos> FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FOLD_CONCAT
 %token <pos> INCLUDE INCLUSION END_OF_FILE END_OF_INCLUDE_FILE WILDCARD
 %token <pos> '?' ':' '|' '^' '&' '<' '>' '@' '+' '-' '*' '/' '%' '!' '~' '#'
 %token <pos> '(' ')' '[' ']' '{' '}' ';' '.' ',' '='
@@ -150,7 +150,7 @@ static int repl_can_process_p (void);
 %left '@'
 %left '+' '-'
 %left '*' '/' '%'
-%left '!' '#' '~' FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FINAL NEW
+%left '!' '#' '~' FOLD_PLUS FOLD_MULT FOLD_AND FOLD_XOR FOLD_OR FOLD_CONCAT FINAL NEW
 /* For resolution of conflicts: `TAB .' and `TAB . [' or `TAB . (',
    and `CHAR .' and `CHAR. (' etc.  */
 %nonassoc TAB CHAR INT LONG FLOAT VEC TYPE
@@ -381,6 +381,11 @@ expr : NUMBER        {$$ = $1;}
      | FOLD_OR expr
        	{
           $$ = create_node_with_pos (IR_NM_fold_or, $1);
+          IR_set_operand ($$, $2);
+        }
+     | FOLD_CONCAT expr
+       	{
+          $$ = create_node_with_pos (IR_NM_fold_concat, $1);
           IR_set_operand ($$, $2);
         }
      | FINAL expr
@@ -2808,6 +2813,11 @@ yylex (void)
 	    {
 	      current_position.column_number++;
 	      return FOLD_OR;
+	    }
+          else if (input_char == '@')
+	    {
+	      current_position.column_number++;
+	      return FOLD_CONCAT;
 	    }
 	  else
             {

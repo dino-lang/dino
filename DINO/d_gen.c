@@ -183,7 +183,7 @@ extern void execute_xor_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
 extern void execute_or_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
 			   int vect_p);
 extern void execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
-			       int vect_p);
+			       int vect_p, int append_p);
 extern void execute_in_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
 			   int vect_p);
 extern int common_eq_ne_op (BC_node_mode_t cmp_op, ER_node_t op1, ER_node_t op2);
@@ -2095,7 +2095,7 @@ madd (ER_node_t res, ER_node_t op1, ER_node_t op2, ER_node_t op3)
 static void do_always_inline
 concat (ER_node_t res, ER_node_t op1, ER_node_t op2)
 {
-  execute_concat_op (res, op1, op2, TRUE);
+  execute_concat_op (res, op1, op2, TRUE, FALSE);
 }
 
 static void do_always_inline
@@ -2292,7 +2292,7 @@ mod_st (ER_node_t op1, ER_node_t op2, ER_node_t op3, ER_node_t op4)
 static void do_always_inline
 concat_st (ER_node_t op1, ER_node_t op2, ER_node_t op3, ER_node_t op4)
 {
-  execute_concat_op (op4, op4, op3, TRUE);
+  execute_concat_op (op4, op4, op3, TRUE, FALSE);
   common_op_st (op1, op2, op4);
 }
 

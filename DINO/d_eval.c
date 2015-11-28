@@ -1340,24 +1340,29 @@ execute_or_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
 
 /* The following function implements array concatenation.  */
 void do_inline
-execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
+execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2,
+		   int vect_p, int append_p)
 {
-  size_t els_number;
+  size_t els_number1;
   ER_node_t vect1, vect2;
   val_t tvar1, tvar2;
 
+  d_assert (! vect_p || ! append_p);
+  d_assert (! append_p || ER_NODE_MODE (op1) == ER_NM_vect);
   if (vect_p && vect_bin_op (op1, op2))
     {
       binary_vect_op (res, op1, op2);
       return;
     }
   op2 = to_vect_string_conversion (op2, NULL, (ER_node_t) &tvar2);
-  op1 = to_vect_string_conversion (op1, NULL, (ER_node_t) &tvar1);
+  if (! append_p)
+    op1 = to_vect_string_conversion (op1, NULL, (ER_node_t) &tvar1);
   if (ER_NODE_MODE (op2) != ER_NM_vect
-      || ER_NODE_MODE (op1) != ER_NM_vect)
+      || (! append_p && ER_NODE_MODE (op1) != ER_NM_vect))
     eval_error (optype_bc_decl,	get_cpos (), DERR_concat_operands_types);
   vect1 = ER_vect (op1);
   vect2 = ER_vect (op2);
+  d_assert (! append_p || vect1 != vect2);
   if (ER_NODE_MODE (vect2) != ER_NODE_MODE (vect1)
       || (ER_NODE_MODE (vect2) == ER_NM_heap_pack_vect
 	  && (ER_pack_vect_el_mode (vect2)
@@ -1384,17 +1389,26 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
       else
 	d_unreachable ();
       el_size = type_size_table [result_el_type];
-      els_number = ER_els_number (vect2) + ER_els_number (vect1);
-      result = create_pack_vector (els_number, result_el_type);
-      if (ER_els_number (vect1) != 0)
-	memcpy (ER_pack_els (result), ER_pack_els (vect1),
-		ER_els_number (vect1) * el_size);
+      els_number1 = ER_els_number (vect1);
+      if (append_p)
+	result = expand_vector (vect1, els_number1 + ER_els_number (vect2));
+      else
+	{
+	  result = create_pack_vector (els_number1 + ER_els_number (vect2),
+				       result_el_type);
+	  if (els_number1 != 0)
+	    memcpy (ER_pack_els (result), ER_pack_els (vect1),
+		    els_number1 * el_size);
+	}
       if (ER_els_number (vect2) != 0)
-	memcpy (ER_pack_els (result) + ER_els_number (vect1) * el_size,
-		ER_pack_els (vect2), ER_els_number (vect2) * el_size);
+	{
+	  memcpy (ER_pack_els (result) + els_number1 * el_size,
+		  ER_pack_els (vect2), ER_els_number (vect2) * el_size);
+	  ER_set_els_number (result, els_number1 + ER_els_number (vect2));
+	}
       if (result_el_type == ER_NM_char)
-	ER_pack_els (result) [ER_els_number (vect1) + ER_els_number (vect2)]
-	  = '\0';
+	ER_pack_els (result)
+	  [els_number1 + ER_els_number (vect2)] = '\0';
       ER_SET_MODE (res, ER_NM_vect);
       set_vect_dim (res, result, 0);
     }
@@ -1402,15 +1416,22 @@ execute_concat_op (ER_node_t res, ER_node_t op1, ER_node_t op2, int vect_p)
     {
       ER_node_t result;
       
-      els_number = ER_els_number (vect2) + ER_els_number (vect1);
-      result = create_unpack_vector (els_number);
-      if (ER_els_number (vect1) != 0)
-	memcpy (ER_unpack_els (result), ER_unpack_els (vect1),
-		ER_els_number (vect1) * sizeof (val_t));
+      els_number1 = ER_els_number (vect1);
+      if (append_p)
+	result = expand_vector (vect1, els_number1 + ER_els_number (vect2));
+      else
+	{
+	  result = create_unpack_vector (els_number1 + ER_els_number (vect2));
+	  if (ER_els_number (vect1) != 0)
+	    memcpy (ER_unpack_els (result), ER_unpack_els (vect1),
+		    ER_els_number (vect1) * sizeof (val_t));
+	}
       if (ER_els_number (vect2) != 0)
-	memcpy ((char *) ER_unpack_els (result)
-		+ ER_els_number (vect1) * sizeof (val_t),
-		ER_unpack_els (vect2), ER_els_number (vect2) * sizeof (val_t));
+	{
+	  memcpy ((char *) ER_unpack_els (result) + els_number1 * sizeof (val_t),
+		  ER_unpack_els (vect2), ER_els_number (vect2) * sizeof (val_t));
+	  ER_set_els_number (result, els_number1 + ER_els_number (vect2));
+	}
       ER_SET_MODE (res, ER_NM_vect);
       set_vect_dim (res, result, 0);
     }
@@ -2309,7 +2330,7 @@ process_binary_vect_op (int rev_p, ER_node_t op1, int dim1,
 	      l = *(val_t *) op2;
 	    }
 	  execute_concat_op (IVAL (unpack_res_els, i),
-			     (ER_node_t) &l, (ER_node_t) &r, FALSE);
+			     (ER_node_t) &l, (ER_node_t) &r, FALSE, FALSE);
 	}
       ER_set_els_number (res, len1);
       pack_vector_if_possible (res);
@@ -2929,6 +2950,17 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int dim, int depth)
 	  execute_pack_fold_op (res, 0, op, el_type, len, pack_els,
 				execute_or_op, i_or, NULL);
 	  break;
+	case BC_NM_fold_concat:
+	  {
+	    for (i = 0; i < len; i++)
+	      {
+		val_t tvar;
+		
+		load_packed_vector_element ((ER_node_t) &tvar, op, i);
+		execute_concat_op (res, res, (ER_node_t) &tvar, FALSE, TRUE);
+	      }
+	  }
+	  break;
 	default:
 	  d_unreachable ();
       }
@@ -2954,6 +2986,9 @@ process_fold_vect_op (ER_node_t res, ER_node_t op, int dim, int depth)
 	      break;
 	    case BC_NM_fold_or:
 	      execute_or_op (res, res, (ER_node_t) &l, FALSE);
+	      break;
+	    case BC_NM_fold_concat:
+	      execute_concat_op (res, res, (ER_node_t) &l, FALSE, TRUE);
 	      break;
 	    default:
 	      d_unreachable ();
@@ -2987,6 +3022,10 @@ fold_vect_op (ER_node_t res, ER_node_t op)
       break;
     case BC_NM_fold_and:
       ER_set_i (res, ~ (rint_t) 0);
+      break;
+    case BC_NM_fold_concat:
+      ER_SET_MODE (res, ER_NM_vect);
+      set_vect_dim (res, create_empty_vector (), 0);
       break;
     default:
       d_unreachable ();
@@ -3234,6 +3273,7 @@ evaluate_code (void)
       goto_table [BC_NM_fold_and] = &&l_BC_NM_fold_and;
       goto_table [BC_NM_fold_xor] = &&l_BC_NM_fold_xor;
       goto_table [BC_NM_fold_or] = &&l_BC_NM_fold_or;
+      goto_table [BC_NM_fold_concat] = &&l_BC_NM_fold_concat;
       goto_table [BC_NM_eq] = &&l_BC_NM_eq;
       goto_table [BC_NM_ieq] = &&l_BC_NM_ieq;
       goto_table [BC_NM_eqi] = &&l_BC_NM_eqi;
@@ -3612,6 +3652,7 @@ evaluate_code (void)
 	CASE (BC_NM_fold_and):
 	CASE (BC_NM_fold_xor):
 	CASE (BC_NM_fold_or):
+	CASE (BC_NM_fold_concat):
 	  foldop (get_op (BC_op1 (cpc)), get_op (BC_op2 (cpc)));
 	  INCREMENT_PC ();
 	  BREAK;

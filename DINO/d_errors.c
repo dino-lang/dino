@@ -126,6 +126,8 @@ char ERR_invalid_arithmetic_operation_operand_type []
   = "invalid operand type in (+, -, *, /, %, |, ^, &, ~, <<, >>, >>>)";
 char ERR_invalid_fold_arithmetic_operation_operand_type []
   = "invalid operand type in (.+, .*, .|, .^, .&)";
+char ERR_invalid_fold_concat_operation_operand_type []
+  = "invalid operand type in .@";
 char ERR_invalid_repetition_type []
   = "invalid type of repetition in vector (`[...]')";
 char ERR_invalid_length_operand_type []

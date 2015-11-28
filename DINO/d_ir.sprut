@@ -627,7 +627,7 @@ cond :: expr
 ;
 
 const, new, not, unary_plus, unary_minus, bitwise_not, length,
-  fold_plus, fold_mult, fold_and, fold_xor, fold_or,
+  fold_plus, fold_mult, fold_and, fold_xor, fold_or, fold_concat,
   typeof, charof, intof, longof, floatof, vecof, tabof,
   funof, threadof, classof :: unary_operation
 ;

@@ -345,6 +345,7 @@ first_expr_processing (IR_node_t expr, int pattern_p)
     case IR_NM_fold_and:
     case IR_NM_fold_xor:
     case IR_NM_fold_or:
+    case IR_NM_fold_concat:
     case IR_NM_const:
     case IR_NM_new:
     case IR_NM_typeof:
@@ -1785,6 +1786,7 @@ process_unary_op (IR_node_t op, int *result, int *curr_temp_vars_num)
     case IR_NM_fold_and: bc_node_mode = BC_NM_fold_and; break;
     case IR_NM_fold_xor: bc_node_mode = BC_NM_fold_xor; break;
     case IR_NM_fold_or: bc_node_mode = BC_NM_fold_or; break;
+    case IR_NM_fold_concat: bc_node_mode = BC_NM_fold_concat; break;
     case IR_NM_typeof: bc_node_mode = BC_NM_tpof; break;
     case IR_NM_charof: bc_node_mode = BC_NM_chof; break;
     case IR_NM_intof: bc_node_mode = BC_NM_iof; break;
@@ -2679,6 +2681,12 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       type_test (IR_operand (expr), EVT_SLICE,
 		 ERR_invalid_fold_arithmetic_operation_operand_type);
       IR_set_value_type (expr, EVT_INT);
+      break;
+    case IR_NM_fold_concat:
+      process_unary_op (expr, result, curr_temp_vars_num);
+      type_test (IR_operand (expr), EVT_SLICE,
+		 ERR_invalid_fold_concat_operation_operand_type);
+      IR_set_value_type (expr, EVT_VEC);
       break;
     case IR_NM_typeof:
       process_unary_op (expr, result, curr_temp_vars_num);

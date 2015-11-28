@@ -959,7 +959,7 @@ inot, iplus, iminus, ibnot :: op2;
 fplus, fminus :: op2;
 
 /* vector folding operation (info is source2: pos2 is an operand one): */
-fold_add, fold_mult, fold_and, fold_or, fold_xor :: fold_op
+fold_add, fold_mult, fold_and, fold_or, fold_xor, fold_concat :: fold_op
 ;
 
 /* result and two operand places.  */

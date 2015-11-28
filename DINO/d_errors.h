@@ -87,6 +87,7 @@ extern char ERR_invalid_order_comparison_operation_operand_type [];
 extern char ERR_invalid_concat_operation_operand_type [];
 extern char ERR_invalid_arithmetic_operation_operand_type [];
 extern char ERR_invalid_fold_arithmetic_operation_operand_type [];
+extern char ERR_invalid_fold_concat_operation_operand_type [];
 extern char ERR_invalid_repetition_type [];
 extern char ERR_invalid_length_operand_type [];
 extern char ERR_invalid_conversion_to_char_operand_type [];

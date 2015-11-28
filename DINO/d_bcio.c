@@ -220,6 +220,7 @@ dump_code (BC_node_t infos, int indent)
 	case BC_NM_fold_and:
 	case BC_NM_fold_xor:
 	case BC_NM_fold_or:
+	case BC_NM_fold_concat:
 	case BC_NM_const:
 	case BC_NM_new:
 	case BC_NM_tpof:

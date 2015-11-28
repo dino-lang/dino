@@ -1,3 +1,27 @@
+2015-11-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* DINO/d_bc.sprut (fold_concat): New.
+	* DINO/d_bcio.c (dump_code): Process fold_concat.
+	* DINO/d_context.c (first_expr_processing, process_unary_op):
+	Ditto.
+	(second_expr_processing): Ditto.
+	* DINO/d_errors.[ch]
+	(ERR_invalid_fold_concat_operation_operand_type): New.
+	* DINO/d_eval.c (execute_concat_op): Add append_p parameter.
+	(process_binary_vect_op): Pass the new arg to execute_concat_op.
+	(process_fold_vect_op, fold_vect_op): Implement fold_concat.
+	(evaluate_code): Add case for fold_concat.
+	* DINO/d_gen.c (execute_concat_op): Add the parameter.
+	(concat, concat_st): Pass the new arg.
+	* DINO/d_inference.c (get_insn_op_place, type_transf): Process
+	fold_concat.
+	(specialize_insn): Ditto.
+	* DINO/d_ir.sprut (fold_concat): New.
+	* DINO/d_yacc.y (expr): Add rule for fold_concat.
+	(yylex): Recognize and return FOLD_CONCAT.
+	* DINO/dino.tst.in (820-821)> Tests for fold_concat.
+	* README.md: add slides about exception handling.
+
 2015-11-27  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_gen.c (execute_a_period_operation): Make it static.

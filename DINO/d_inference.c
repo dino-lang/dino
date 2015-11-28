@@ -697,7 +697,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
     case BC_NM_tpof: case BC_NM_chof: case BC_NM_iof:
     case BC_NM_lof: case BC_NM_fof: case BC_NM_vecof: case BC_NM_tabof:
     case BC_NM_fold_add: case BC_NM_fold_mult: case BC_NM_fold_and:
-    case BC_NM_fold_or: case BC_NM_fold_xor:
+    case BC_NM_fold_or: case BC_NM_fold_xor: case BC_NM_fold_concat:
     case BC_NM_addi: case BC_NM_multi: case BC_NM_eqi: case BC_NM_nei:
     case BC_NM_lti: case BC_NM_gti: case BC_NM_lei: case BC_NM_gei:
     case BC_NM_iaddi: case BC_NM_imulti: case BC_NM_ieqi: case BC_NM_inei:
@@ -1852,8 +1852,8 @@ type_transf (node_t node)
       t2 = insn->types[1]; /* slice/vec(converted to vec)/tab */
       res_tp = TP_int;
       break;
-    case BC_NM_fold_add: case BC_NM_fold_mult:
-    case BC_NM_fold_and: case BC_NM_fold_or: case BC_NM_fold_xor:
+    case BC_NM_fold_add: case BC_NM_fold_mult: case BC_NM_fold_and:
+    case BC_NM_fold_or: case BC_NM_fold_xor: case BC_NM_fold_concat:
       res_tp = TP_varying; /* int/float/long/slice depended on els */
       break;
     case BC_NM_in:
@@ -2207,8 +2207,8 @@ specialize_insn (df_insn_t insn)
     case BC_NM_const:
     case BC_NM_new:
     case BC_NM_length:
-    case BC_NM_fold_add: case BC_NM_fold_mult:
-    case BC_NM_fold_and: case BC_NM_fold_or: case BC_NM_fold_xor:
+    case BC_NM_fold_add: case BC_NM_fold_mult: case BC_NM_fold_and:
+    case BC_NM_fold_or: case BC_NM_fold_xor: case BC_NM_fold_concat:
     case BC_NM_in:
     case BC_NM_concat:
     case BC_NM_brts: case BC_NM_brfs: case BC_NM_lconv:

@@ -48699,27 +48699,27 @@ OUTPUT816
         fi
 fi
 
-# Test 816.
-if test $result = ok -a $start_test_number -le 816; then
-	echo test 816: Try-function
-        cat >$test_file <<'TEST816'
+# Test 817.
+if test $result = ok -a $start_test_number -le 817; then
+	echo test 817: try-operator
+        cat >$test_file <<'TEST817'
 var i;
 println (try (i = 5/0));
 println (try (i = 5/1, except));
 println (try (i = 5/0;, except));
 println (try (i = 5/0;, sigfpe));
 println (try (return 10));
-TEST816
+TEST817
         echo '      ' $DINO '-O' $test_file "2>$stderr"
         if $DINO -O $test_file 2>$stderr >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT816' && $CMP $stdout $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT817' && $CMP $stdout $ftemp2; then
 0
 1
 0
 0
 10
-OUTPUT816
+OUTPUT817
                         result=ok
                 else
                         result=fail
@@ -48729,21 +48729,101 @@ OUTPUT816
         fi
 fi
 
-# Test 817.
-if test $result = ok -a $start_test_number -le 817; then
-	echo test 817: Break in try-function
-        cat >$test_file <<'TEST817'
+# Test 818.
+if test $result = ok -a $start_test_number -le 818; then
+	echo test 818: Break in try-operator
+        cat >$test_file <<'TEST818'
 for (var i = 0; i < 10; i++)
   try (break);
-TEST817
+TEST818
         echo '      ' $DINO '-O' $test_file ">$stdout"
         if $DINO -O $test_file 2>$stderr >$stdout; then
                 result=fail
         else
                 echo '      ' $CMP $ftemp2 $stderr
-                if cat >$ftemp2 <<'OUTPUT817' && $CMP $stderr $ftemp2; then
+                if cat >$ftemp2 <<'OUTPUT818' && $CMP $stderr $ftemp2; then
 test.d:2:8: statement break is not in for-statement or in switch case
-OUTPUT817
+OUTPUT818
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 819.
+if test $result = ok -a $start_test_number -le 819; then
+	echo test 819: try-operator with getln
+        cat >$test_file <<'TEST819'
+var ln;
+for (;try (ln = getln (), eof);)
+  println (ln);
+TEST819
+        echo '      ' $DINO '-O' $test_file "2>$stderr"
+        if $DINO -O $test_file 2>$stderr >$stdout  <<'INPUT819'; then
+one
+two
+three
+INPUT819
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT819' && $CMP $stdout $ftemp2; then
+"one"
+"two"
+"three"
+OUTPUT819
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 820.
+if test $result = ok -a $start_test_number -le 820; then
+	echo test 820: Folding concat operation
+        cat >$test_file <<'TEST820'
+var v1;
+v1 = []; println (.@v1[:]);
+v1 = [10, 42]; println (.@v1[:]);
+v1 = [10, 42.0]; println (.@v1[:]);
+v1 = ["a", 42]; println (.@v1[:]);
+v1 = [["a", "b"], [42, 24]]; println (.@v1[:]);
+TEST820
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT820' && $CMP $stdout $ftemp2; then
+[]
+"1042"
+"1042"
+"a42"
+["a", "b", 42, 24]
+OUTPUT820
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 821.
+if test $result = ok -a $start_test_number -le 821; then
+	echo test 821: Wrong operand for folding concat
+        cat >$test_file <<'TEST821'
+var v1 = [10, 42]; println (.@ v1);
+TEST821
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT821' && $CMP $stderr $ftemp2; then
+test.d:1:32: run time error - wrong vector form for vector operation
+OUTPUT821
 			result=ok
                 else
                         result=fail
@@ -48752,35 +48832,6 @@ OUTPUT817
 fi
 
 # Final message
-
-# Test 818.
-if test $result = ok -a $start_test_number -le 818; then
-	echo test 818: Try-function with getln
-        cat >$test_file <<'TEST818'
-var ln;
-for (;try (ln = getln (), eof);)
-  println (ln);
-TEST818
-        echo '      ' $DINO '-O' $test_file "2>$stderr"
-        if $DINO -O $test_file 2>$stderr >$stdout  <<'INPUT818'; then
-one
-two
-three
-INPUT818
-                echo '      ' $CMP $stdout $ftemp2
-                if cat >$ftemp2 <<'OUTPUT818' && $CMP $stdout $ftemp2; then
-"one"
-"two"
-"three"
-OUTPUT818
-                        result=ok
-                else
-                        result=fail
-                fi
-        else
-                result=fail
-        fi
-fi
 
 if test $result = ok; then
         echo $script_file: it is all ok
