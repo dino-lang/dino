@@ -49,11 +49,12 @@ long     {return LONG;}
 new      {return NEW;}
 nil      {return NIL;}
 obj      {return OBJ;}
+pmatch   {return PMATCH;}
 priv     {return PRIV;}
 process  {return PROCESS;}
 pub      {return PUB;}
 return   {return RETURN;}
-switch   {return SWITCH;}
+rmatch   {return RMATCH;}
 tab      {return TAB;}
 thread   {return THREAD;}
 this     {return THIS;}

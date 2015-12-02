@@ -1,3 +1,51 @@
+2015-12-02  Vladimir Makarov  <vmakarov@gcc.gnu.org>
+
+	* README.md: Rename switcto pmatch.  Ad slide about rmatch.
+	* DINO/dino.sgml.in: Rename switch to pmatch.  Describe rmatch.
+	* DINO/dino.{dvi, html, html-[34679], html-10, ps, pdf, txt{: Update.
+	* DINO/dino.tst.in: Rename switch to pmatch.
+	(822-825): New tests for rmatch and pmatch.
+	* DINO/d_yacc.y: Describe pmatch and rmatch instead of switch.
+	Generate paren node.
+	* DINO/d_kw.shilka (switch): Rename to pmatch.
+	(rmatch): New.
+	* DINO/d_ir.sprut (RMATCH_RESULT_NAME): New.
+	(switch_stmt): Rename to match_stmt.  Make it abstract.  Rename
+	fileds.  Ad field match_expr_var.
+	(paren, pmatch_stmt, rmatch_stmt): New.
+	(block): Rname switch_stmt to match_stmt.  Add field
+	rmatch_result_var.
+	* DINO/d_context.c (for_or_switch_finish): Rename to
+	for_or_match_finish.
+	(switch_holder_end): Rename to match_holder_end.
+	(enum pattern_type): New.
+	(first_expr_processing): Make second parameter of type
+	pattern_type and pass the new values.  Process paren.
+	(check_matching): Rename to check_decl_matching.
+	(first_block_passing): Process pmatch_stmt and rmatch_stmt instead
+	of switch_stmt.  Add code for processing cases of rmatch.
+	(second_expr_processing): Process paren.
+	(generate_pattern): Rename to generate_case.  Add cas_block
+	parameter.  Process top-level ident as pattern variable.  Add code
+	for rmatch case.
+	(second_block_passing): Process pmatch_stmt and rmatch_stmt instead
+	of switch_stmt.
+	* DINO/d_bc.sprut (rmatch, rmatchs): New.
+	(print_node): Don't output fail_pc for rmatch and rmatchs.
+	* DINO/d_bcn.shilka (rmatch, rmatchs): New.
+	* DINO/d_bcf.shilka (rm_str): New.
+	* DINO/d_bcio.c (dump_code): Output rmatch and rmatchs.
+	(read_bc_program): Read field rm_str.
+	* DINO/d_inference.c (get_insn_op_place): Process rmatch, rmatchs.
+	(type_transf, specialize_insn): Ditto.
+	* DINO/d_gen.c (rmatch_common, rmatch, rmatchs): New.
+	* DINO/d_func.h (internal_match_call): New.
+	* DINO/d_func.c (match_call): Split creating internal_match_call.
+	* DINO/d_eval.c (evaluate_code): Process rmatch and rmatchs.
+	* DINO/d_errors.[ch]: Rename switch to match.
+	(DERR_rmatch_expr_type): New.
+	(DERR_rmatch_case_expr_type): New.
+
 2015-11-28  Vladimir Makarov  <vmakarov@gcc.gnu.org>
 
 	* DINO/d_bc.sprut (fold_concat): New.

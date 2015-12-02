@@ -275,4 +275,6 @@ chtend		{return BC_NM_chtend;}
 chst		{return BC_NM_chst;}
 chstel		{return BC_NM_chstel;}
 chstend		{return BC_NM_chstend;}
+rmatch		{return BC_NM_rmatch;}
+rmatchs		{return BC_NM_rmatchs;}
 %other {return 0;}

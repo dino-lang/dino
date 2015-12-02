@@ -905,7 +905,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       else
 	{
-	  if  (nop == 0 && BC_ch_op5 (bc))
+	  if (nop == 0 && BC_ch_op5 (bc))
 	    res = BC_ch_op4 (bc);
 	  else
 	    return NO_MORE_OPERAND;
@@ -916,7 +916,7 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       else
 	{
-	  if  (nop == 0 && BC_ch_op4 (bc))
+	  if (nop == 0 && BC_ch_op4 (bc))
 	    res = BC_ch_op3 (bc);
 	  else
 	    return NO_MORE_OPERAND;
@@ -927,8 +927,21 @@ get_insn_op_place (df_insn_t insn, int nop, int result_p)
 	return NO_MORE_OPERAND;
       else
 	{
-	  if  (nop == 0 && BC_ch_op5 (bc))
+	  if (nop == 0 && BC_ch_op5 (bc))
 	    res = BC_ch_op3 (bc);
+	  else
+	    return NO_MORE_OPERAND;
+	}
+      break;
+    case BC_NM_rmatch:
+    case BC_NM_rmatchs:
+      if (! result_p)
+	return NO_MORE_OPERAND; /* We don't calculate operand types
+				   for rmatch.  */
+      else
+	{
+	  if (nop == 0)
+	    res = BC_op1 (bc);
 	  else
 	    return NO_MORE_OPERAND;
 	}
@@ -1990,6 +2003,9 @@ type_transf (node_t node)
       if (! BC_ch_op5 (bc))
 	return FALSE;
       break;
+    case BC_NM_rmatch:
+    case BC_NM_rmatchs:
+      break;
     default:
       d_assert (FALSE);
     }
@@ -2353,6 +2369,8 @@ specialize_insn (df_insn_t insn)
     case BC_NM_chst:
     case BC_NM_chstend:
     case BC_NM_chstel:
+    case BC_NM_rmatch:
+    case BC_NM_rmatchs:
       break;
     default:
       d_assert (FALSE);

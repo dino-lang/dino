@@ -202,10 +202,10 @@ letters are considered to be distinct.
                   | "continue" | "else" | "extern" | "final" | "float"
                   | "for" | "former" | "friend" | "fun" | "hide"
                   | "hideblock" | "if" | "in" | "int" | "later" | "long"
-                  | "new" | "nil" | "obj" | "priv" | "process" | "pub"
-                  | "return" | "swicth" | "tab" | "thread" | "this"
-                  | "throw" | "try" | "type" | "use" | "val" | "var"
-                  | "vec" | "wait"
+                  | "new" | "nil" | "obj" | "pmatch" | "priv"
+                  | "process" | "pub" | "return" | "rmatch" | "tab"
+                  | "thread" | "this" | "throw" | "try" | "type"
+                  | "use" | "val" | "var" | "vec" | "wait"
 </verb></tscreen>
 
      <item><em>Comments</em> are considered analogous to blanks on the
@@ -226,7 +226,7 @@ letters are considered to be distinct.
 A Dino program is block structured.  Each block introduces a new
 identifier scope.  A block consists of executive statements and
 declarations and may contain nested blocks.  There are also implicit
-blocks containing each case-part of switch statements (see
+blocks containing each case-part of match statements (see
 below). Each identifier used in a program should be declared in a
 declaration in the program, unless it is a predeclared identifier.
 <tscreen><verb>
@@ -1601,7 +1601,9 @@ difference is an absence of function/class identifier:
 Patterns have form of expressions.  They are used to match an
 expression and decompose it.  Pattern can have form a vector value, a
 table value, a function call, identifier, or special <em>wildcard</em>
-symbol <tt>"_"</tt>.  Anything else is treated as an expression.
+symbol <tt>"_"</tt>.  Anything else is treated as an expression.  The
+simplest way is to treat a pattern, e.g. identfier, as an expression
+is to put it into paretheses.
 <tscreen><verb>
            Pattern = Expr
            Expr = "_" | "..."
@@ -1635,7 +1637,8 @@ matches the rest elements in the matched vector value.  The following
 are examples of vector patterns (a, b, and c are identifies of pattern
 variables):
 <tscreen><verb>
-           [a, b]
+           [a, b] // a and b are pattern variables
+           [(a), b] // value of earlier declared a is used
 	   [a, ...]
 	   [2, [a, b], 3 : c, 4 : _]
 </verb></tscreen>
@@ -1892,18 +1895,40 @@ foreach-statement can be finished by execution of statement
           }
 </verb></tscreen>
 
-<sect1>Switch-statement
+<sect1>Match-statements
 <p>
-This statement is used to try matching switch-expression value (it is
-evaluated only once) and the patterns in given order and execute the
-statements corresponding to the first matched pattern.  Each case
-forms an own scope.  Pattern variables are declared in the
-corresponding case scope.  Execution of continue-statement in
-case-statements results in continuing the process of matching
-switch-expression value with the subsequent patterns.  Execution of
+There are two kinds of match-statement.  One is used for pattern
+matching and another one is used for regular expression matching.
+They have practically the same syntax.  They differ in usage of
+different start keywords <tt>pmatch</tt> and <tt>rmatch</tt>
+correspondingly for pattern and regular expression matching.
+<p>
+The pattern or regular expression match statement is used to try
+matching match-expression value (it is evaluated only once) and the
+patterns or regular expressions in given order and execute the
+statements corresponding to the first matched case.
+<p>
+Each case forms an own scope.  Pattern variables in pattern match
+statement are declared in the corresponding case scope.  Each case
+scope of regular expression match statement contains implicitly
+declared variable <tt>m</tt>.  If the case regular expression
+successfully matches the match-expression, value of the corresponding
+variable <tt>m</tt> is vector of indexes describing matched substring
+(see the result of function <tt>match</tt> for details).
+<p>
+In case of regular expression matching the string conversion is
+implicitly applied to the match-expression and the case expression
+values.  The exception <tt>optype</tt> occurs if the conversion
+results are not strings.  Case with wildcard <tt>_</tt> also can occur
+in rmatch-statement.  Matching with such case is always successful but
+value of variable <tt>m</tt> is undefined in this case.
+<p>
+Execution of continue-statement in case-statements results in
+continuing the process of matching match-expression value with the
+subsequent patterns or regular expressions.  Execution of
 break-statement in case-statements results in finishing the
-switch-statement execution.  There is implicit break at the end of
-each case statement list.
+match-statement execution.  There is implicit break at the end of each
+case statement list.
 <p>
 If optional case condition is given, then it is evaluated after
 succesfull matching with the corresponding pattern and arithmetic
@@ -1913,32 +1938,38 @@ exception <tt>optype</tt> is generated.  If the value is nonzero the
 all match is considered successfull, otherwise the subsequent case
 patterns are tried.
 <tscreen><verb>
-          ExecutiveStmt = switch "(" Expr ")" "{" CaseList "}"
+          ExecutiveStmt = (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
           CaseList = { case Pattern [CaseCond] ":" StmtList }
 	  CaseCond = if Expr
 </verb></tscreen>
         Examples:
+<tscreen><verb>
           class c (a1, a2) {}
-          switch (c (2, 3)) {
+          pmatch (c (2, 3)) {
             case c (i, j): putln (i, j);
             case _: putln ("default");
           }
-          switch (c (2, 3)) {
+          pmatch (c (2, 3)) {
             case c (i, j) if i == j: putln ("eq=", i, j);
             case c (i, j) if i != j: putln ("neq=", i, j);
             case _: putln ("default");
           }
-<tscreen><verb>
+
+          rmatch (str) {
+	    case "[a-zA-Z]+": putln ("word starting at ", m[0]);
+	    case "[0-9]+": putln ("number starting at ", m[0]);
+            case _: putln ("anything else, m is undefined");
+          }
 </verb></tscreen>
 
 <sect1>Break- and continue-statement
 <p>
 Statements <tt>break</tt> and <tt>continue</tt> are used
 correspondingly to finish execution of the closest-containing for-,
-foreach-, or switch-statement covering the statement and to finish one iteration
+foreach-, or match-statement covering the statement and to finish one iteration
 of the body of the for- or foreach-statement and to continue trying
-subsequent cases for switch-statement.  These statement can be
-used only inside a for-, foreach-, or switch-statement.
+subsequent cases for match-statement.  These statement can be
+used only inside a for-, foreach-, or match-statement.
 <tscreen><verb>
           ExecutiveStmt = break ";"
                         | continue ";"
@@ -1953,7 +1984,7 @@ used only inside a for-, foreach-, or switch-statement.
           for (i in t)
             if (t{i} == elval)
               break;
-          switch (tree) {
+          match (tree) {
 	    case leaf (n):
               putln ("leaf");
               if (n == 10) continue;
@@ -2484,7 +2515,7 @@ The following classes are declared in the class <tt>error</tt>:
            </itemize>
          <item><tt>invregexp</tt>.  Classes inside this class describe
            exceptions specific for calling predeclared functions
-           implementing regular expression pattern matching.
+           implementing regular expression matching.
            <itemize>
            <item><tt>ebrack</tt>.  This class describes the exception
              that a regular expression has an unmatched bracket.
@@ -4231,7 +4262,7 @@ ExecutiveStmt = ";"
               | if  "(" Expr ")" Stmt [ else Stmt ]
               | for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
               | for  "(" Designator in Expr ")" Stmt
-	      | switch "(" Expr ")" "{" CaseList "}"
+	      | (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
 	      | break ";"
               | continue ";"
               | return  [ Expr ] ";"

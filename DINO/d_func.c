@@ -737,7 +737,8 @@ finish_regex_tab (void)
 }
 
 void
-match_call (int pars_number)
+internal_match_call (ER_node_t result_op, const char *regexp_string,
+		     const char *string, const char *additional_msg)
 {
   regex_t *reg;
 #ifndef USE_POSIX_REGEXEC_FUNCTION
@@ -751,21 +752,9 @@ match_call (int pars_number)
   size_t i;
   int code;
 
-  if (pars_number != 2)
-    eval_error (parnumber_bc_decl, call_pos (),
-		DERR_parameters_number, MATCH_NAME);
-  to_vect_string_conversion (ctop, NULL, NULL);
-  to_vect_string_conversion (below_ctop, NULL, NULL);
-  if (ER_NODE_MODE (ctop) != ER_NM_vect
-      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
-      || ER_NODE_MODE (below_ctop) != ER_NM_vect
-      || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
-      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)
-    eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, MATCH_NAME);
-  code = find_regex (ER_pack_els (ER_vect (below_ctop)), &reg);
+  code = find_regex (regexp_string, &reg);
   if (code != 0)
-    process_regcomp_errors (code, MATCH_NAME);
+    process_regcomp_errors (code, additional_msg);
   else
     {
       els_number = (reg->re_nsub + 1) * 2;
@@ -776,9 +765,8 @@ match_call (int pars_number)
       VLO_EXPAND (temp_vlobj, 2 * (reg->re_nsub + 1) * sizeof (regoff_t));
       regs.start = VLO_BEGIN (temp_vlobj);
       regs.end = regs.start + reg->re_nsub + 1;
-      len = strlen (ER_pack_els (ER_vect (ctop)));
-      if (re_search (reg, ER_pack_els (ER_vect (ctop)),
-		     len, 0, len, &regs) >= 0)
+      len = strlen (string);
+      if (re_search (reg, string, len, 0, len, &regs) >= 0)
 	{
 	  result = create_pack_vector (els_number, ER_NM_int);
 	  for (i = 0; i < els_number; i += 2)
@@ -792,8 +780,7 @@ match_call (int pars_number)
 #else
       VLO_EXPAND (temp_vlobj, (reg->re_nsub + 1) * sizeof (regmatch_t));
       pmatch = VLO_BEGIN (temp_vlobj);
-      if (!regexec (reg, ER_pack_els (ER_vect (ctop)), reg->re_nsub + 1,
-		    pmatch, 0))
+      if (!regexec (reg, string, reg->re_nsub + 1, pmatch, 0))
 	{
 	  result = create_pack_vector (els_number, ER_NM_int);
 	  for (i = 0; i < els_number; i += 2)
@@ -807,12 +794,31 @@ match_call (int pars_number)
 #endif
     }
   if (result == NULL)
-    ER_SET_MODE (fun_result, ER_NM_nil);
+    ER_SET_MODE (result_op, ER_NM_nil);
   else
     {
-      ER_SET_MODE (fun_result, ER_NM_vect);
-      set_vect_dim (fun_result, result, 0);
+      ER_SET_MODE (result_op, ER_NM_vect);
+      set_vect_dim (result_op, result, 0);
     }
+}
+
+void
+match_call (int pars_number)
+{
+  if (pars_number != 2)
+    eval_error (parnumber_bc_decl, call_pos (),
+		DERR_parameters_number, MATCH_NAME);
+  to_vect_string_conversion (ctop, NULL, NULL);
+  to_vect_string_conversion (below_ctop, NULL, NULL);
+  if (ER_NODE_MODE (ctop) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (ctop)) != ER_NM_heap_pack_vect
+      || ER_pack_vect_el_mode (ER_vect (ctop)) != ER_NM_char
+      || ER_NODE_MODE (below_ctop) != ER_NM_vect
+      || ER_NODE_MODE (ER_vect (below_ctop)) != ER_NM_heap_pack_vect
+      || ER_pack_vect_el_mode (ER_vect (below_ctop)) != ER_NM_char)
+    eval_error (partype_bc_decl, call_pos (), DERR_parameter_type, MATCH_NAME);
+  internal_match_call (fun_result, ER_pack_els (ER_vect (below_ctop)),
+		       ER_pack_els (ER_vect (ctop)), MATCH_NAME);
 }
 
 void

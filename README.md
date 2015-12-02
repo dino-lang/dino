@@ -194,19 +194,20 @@
 
 ---
 
-# Pattern matching -- switch statement
+# Pattern matching -- pmatch statement
 ```
-    switch (v) {
+    pmatch (v) {
       case [...]: putln ("array"); continue;
       case [a, ...]: if (a == 0) break; putln ("array with non-zero 1st element");
       case node (v) if v != 0: putln ("object of class node with nozero parameter");
       case _: putln ("any but array");
     }
 ```
-  * Try to match switch value with case patterns in a particular order, execute the corresponding code for the first matched pattern
+  * Try to match value with case patterns in a particular order,
+    execute the corresponding code for the first matched pattern
   * Scope of pattern variables is the corresponding case
   * Continue means continue to try subsequent patterns
-  * Break means finish the switch statement execution
+  * Break means finish the match statement execution
     * There is an implicit break at the end of each case
 
 ---
@@ -221,7 +222,7 @@
 ```
 ```
     fun exists_leaf (test, t) {
-      switch (t) {
+      pmatch (t) {
         case leaf (v): return test (v);
         case node (l, r):
           return exists_leaf (test, l) || exists_leaf (test, r);
@@ -233,6 +234,22 @@
       exists_leaf (fun (n) {type (n) == int && n % 2 == 1;}, t);
     }
 ```
+
+# Regular expression matching -- rmatch statement
+```
+    rmatch (str) {
+      case "[a-zA-Z]+": putln ("word starting at ", m[0]);
+      case "[0-9]+": putln ("number starting at ", m[0]);
+      case _: putln ("anything else, m is undefined");
+    }
+```
+  * Try to match string with case regular expressions in a particular order,
+    execute the corresponding code for the first matched regular expression
+  * Implicitly declared variable `m` contains integer vector
+    describing successfully matched sub-string
+  * Scope of variable `m` is the corresponding case
+  * Continue and break statements behave the same way as
+    in pattern match statement
 
 ---
 

@@ -47972,32 +47972,32 @@ fi
 
 # Test 796.
 if test $result = ok -a $start_test_number -le 796; then
-	echo test 796: Different switch statements
+	echo test 796: Different pmatch statements
         cat >$test_file <<'TEST796'
 class c (a1, a2) {}
-switch (c (2, 3)) {
+pmatch (c (2, 3)) {
  case c (i,j): putln (i, j);
  case _: putln ("default");
 }
 
-switch (c (4, 5)) {
+pmatch (c (4, 5)) {
  case c (i,j): putln (i, j);continue;putln (i + j);
  case _: putln ("default");
 }
 
-switch (c (6, 7)) {
+pmatch (c (6, 7)) {
  case c (i,j): putln (i, j);break;putln (i + j);
  case _: putln ("default");
 }
 
-switch (10) {
+pmatch (10) {
  case 1: putln (1);
  case 2: putln (2);
  case 10: putln (10);
  case _: putln ("_");
 }
 
-switch ("aa") {
+pmatch ("aa") {
  case "ab": putln ("ab");
  case "ac": putln ("ac");
  case "aa": putln ("aa");
@@ -48005,7 +48005,7 @@ switch ("aa") {
 }
 
 class c (a1, a2) {}
-switch (c (2, 3)) {
+pmatch (c (2, 3)) {
  case c (i,j) if i==j: putln ("eq=", i, j);
  case c (i,j) if i!=j: putln ("neq=", i, j);
  case _: putln ("default");
@@ -48034,11 +48034,11 @@ fi
 
 # Test 797.
 if test $result = ok -a $start_test_number -le 797; then
-	echo test 797: Nested switch statements
+	echo test 797: Nested pmatch statements
         cat >$test_file <<'TEST797'
-switch ([4, 5]) {
+pmatch ([4, 5]) {
  case [i,j, ...]:
-   switch (j) {
+   pmatch (j) {
      case 1: putln (1);
      case 2: putln (2);
      case 5:
@@ -48073,11 +48073,11 @@ fi
 
 # Test 798.
 if test $result = ok -a $start_test_number -le 798; then
-	echo test 798: Pattern vars scope in switch-stmt
+	echo test 798: Pattern vars scope in pmatch-stmt
         cat >$test_file <<'TEST798'
-switch ([4, 5]) {
+pmatch ([4, 5]) {
  case [i,j, ...]:
-   switch (j) {
+   pmatch (j) {
      case 5: putln (5);
      case _: putln ("_");
    }
@@ -48325,15 +48325,15 @@ if test $result = ok -a $start_test_number -le 801; then
 	echo test 801: Bug in REPL
         cat >$test_file <<'TEST801'
 class c(a) {} class sc (a, b){use c former a;}
-switch (sc (10, 15)) { case c(10): putln ("ok")}
-switch (sc (10, 15)) { case c(10,15): putln ("fail");}
+pmatch (sc (10, 15)) { case c(10): putln ("ok")}
+pmatch (sc (10, 15)) { case c(10,15): putln ("fail");}
 TEST801
         echo '      ' $DINO "<" $test_file "2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout"
         if $DINO < $test_file 2>&1 | egrep -v 'version|Copyright|if-stmt' >$stdout; then
                 echo '      ' $CMP $stdout $ftemp2
                 if cat >$ftemp2 <<'OUTPUT801' && $CMP $stdout $ftemp2; then
 Use "exit(<int>);" or Ctrl-D to exit
-dino> dino>       switch (sc (10, 15)) { case c(10): putln ("ok")}
+dino> dino>       pmatch (sc (10, 15)) { case c(10): putln ("ok")}
                                                      ^
       syntax error
 dino> dino> 
@@ -48742,7 +48742,7 @@ TEST818
         else
                 echo '      ' $CMP $ftemp2 $stderr
                 if cat >$ftemp2 <<'OUTPUT818' && $CMP $stderr $ftemp2; then
-test.d:2:8: statement break is not in for-statement or in switch case
+test.d:2:8: statement break is not in for-statement or in match case
 OUTPUT818
 			result=ok
                 else
@@ -48828,6 +48828,119 @@ OUTPUT821
                 else
                         result=fail
                 fi
+        fi
+fi
+
+# Test 822.
+if test $result = ok -a $start_test_number -le 822; then
+	echo test 822: rmatch
+        cat >$test_file <<'TEST822'
+rmatch ("baaab") {
+case "aaa": put ("1:"); println (m); continue;
+case "(a)" @ "(a)" @ "(a)": put ("2:"); println (m); continue;
+case "aba": put ("3:"); println (m);
+case "^.aa": put ("4:"); println (m); continue;
+case "()aaa": put ("5:"); println (m); continue;
+case _: putln ("default");
+}
+TEST822
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT822' && $CMP $stdout $ftemp2; then
+1:[1, 4]
+2:[1, 4, 1, 2, 2, 3, 3, 4]
+4:[0, 3]
+5:[1, 4, 1, 1]
+default
+OUTPUT822
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
+        fi
+fi
+
+# Test 823.
+if test $result = ok -a $start_test_number -le 823; then
+	echo test 823: Wrong case for rmatch
+        cat >$test_file <<'TEST823'
+rmatch ("aaaa") {
+case [10, 9]: putln ("wrong");
+}
+TEST823
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT823' && $CMP $stderr $ftemp2; then
+test.d:2:6: run time error - rmatch case expression is not a string
+OUTPUT823
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 824.
+if test $result = ok -a $start_test_number -le 824; then
+	echo test 824: Wrong usage of _ and ...
+        cat >$test_file <<'TEST824'
+rmatch ("aaaa") {
+case "[a-z]+": putln ("lower"); println (m);
+case _ + "a":
+case [...]:
+case [10, 9]:
+}
+TEST824
+        echo '      ' $DINO '-O' $test_file ">$stdout"
+        if $DINO -O $test_file 2>$stderr >$stdout; then
+                result=fail
+        else
+                echo '      ' $CMP $ftemp2 $stderr
+                if cat >$ftemp2 <<'OUTPUT824' && $CMP $stderr $ftemp2; then
+test.d:3:6: `_' in expression
+test.d:4:7: `...' in expression
+OUTPUT824
+			result=ok
+                else
+                        result=fail
+                fi
+        fi
+fi
+
+# Test 825.
+if test $result = ok -a $start_test_number -le 825; then
+	echo test 825: Difference in pattern variable and value
+        cat >$test_file <<'TEST825'
+val v = 20;
+pmatch (10) {
+case (v): putln ("val");
+case v: putln ("var");
+}
+
+pmatch ([0, 10]) {
+case [0, (v)]: putln ("val");
+case [0, v]: putln ("var");
+}
+TEST825
+        echo '      ' $DINO -t $test_file "2>$stderr"
+        if $DINO -t $test_file 2>$stderr >$stdout; then
+                echo '      ' $CMP $stdout $ftemp2
+                if cat >$ftemp2 <<'OUTPUT825' && $CMP $stdout $ftemp2; then
+var
+var
+OUTPUT825
+                        result=ok
+                else
+                        result=fail
+                fi
+        else
+                result=fail
         fi
 fi
 

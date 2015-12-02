@@ -1154,6 +1154,16 @@ chstend :: check2i; /* check that stack op1 has immed op2 params */
    case). */
 chstel :: check5i45;
 
+/* Check that string ch_op2 matches regexp ch_op3.  The result of
+   matching (array of indexes) is put into op.  */
+rmatch :: check3;
+
+/* As above but regexp is given as string  */
+rmatchs :: check2
+%other
+     rm_str : string_t
+;
+
 /* These codes represent printing expr in REPL.  It is never output or
    input.  Code rpr_def never prints undefined values (e.g. proc call
    results).  */
@@ -2143,7 +2153,9 @@ print_node (FILE *f, BC_node_t bc)
       else
 	print_op (f, TRUE, BC_ch_op5 (bc));
     }
-  if (BC_IS_OF_TYPE (bc, BC_NM_check))
+  if (BC_IS_OF_TYPE (bc, BC_NM_check)
+      && BC_NODE_MODE (bc) != BC_NM_rmatch
+      && BC_NODE_MODE (bc) != BC_NM_rmatchs)
     fprintf (f, ", (pc_t) 0x%lx", BC_fail_pc (bc));
   if (BC_IS_OF_TYPE (bc, BC_NM_br))
     fprintf (f, ")) goto l%d;\n", BC_label_num (BC_info (BC_pc (bc))));

@@ -223,11 +223,14 @@ extern IR_node_t get_float_node (rfloat_t number_value, position_t pos);
 /* Variable name for class except.  */
 #define EXCEPT_NAME "except"
 
-/* This is name of varibale which will contains catdhed exception in
+/* This is name of varibale which will contains catched exception in
    corresponding catch block. */
-
 #define CATCH_EXCEPTION_NAME "e"
 
+/* This is name of varibale which will contains result of matching
+   with regexp in the corresponding case block (array of indexes).  */
+#define RMATCH_RESULT_NAME "m"
+ 
 extern IR_node_t temp_unique_ident;
 extern IR_node_t temp_unique_int;
 extern IR_node_t temp_unique_long;
@@ -632,6 +635,9 @@ const, new, not, unary_plus, unary_minus, bitwise_not, length,
   funof, threadof, classof :: unary_operation
 ;
 
+/* It is surrounding an expression by parentheses  */
+paren :: unary_operation;
+
 format_vecof :: binary_operation
 ;
 
@@ -793,10 +799,15 @@ foreach_stmt :: stmt
         foreach_stmts : stmt
 ;
 
-switch_stmt :: stmt
+
+%abstract
+match_stmt :: stmt
 %other
-        switch_expr : expr
-        switch_cases : stmt
+        match_expr : expr
+        cases : stmt
+;
+
+pmatch_stmt, rmatch_stmt :: match_stmt
 ;
 
 %abstract
@@ -846,11 +857,13 @@ block :: stmt
         /* Flag of the hint presence */
         hint : hint_val_t {$ = NO_HINT;}
         /* The three fields following are non-null if the block corresponds a
-	   switch case.  */
-        switch_stmt : switch_stmt { $ = NULL; }
+	   match case.  */
+        match_stmt : match_stmt { $ = NULL; }
         implicit_case_break_stmt : break_stmt { $ = NULL; }
         case_pattern : expr { $ = NULL; }
         case_cond : expr { $ = NULL; }
+        /* This is non-null for rmatch case only.  */
+        rmatch_result_var : decl { $ = NULL; }
 ;
 
 exception :: generic_pos
@@ -993,10 +1006,11 @@ foreach_stmt
         foreach_search_start_place : int_t
 ;
 
-switch_stmt
+match_stmt
 %other
-        /* holder for calculated switch expression */
-        switch_expr_var : var
+        /* holder for calculated match (pmatch/rmatch)
+	   expression */
+        match_expr_var : var
 ;
 
 block

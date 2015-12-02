@@ -726,6 +726,21 @@ dump_code (BC_node_t infos, int indent)
 	  if (BC_ch_op5 (bc) != 2)
 	    printf (", val with %s", BC_ch_op5 (bc) ? " assign" : "compare");
 	  break;
+	case BC_NM_rmatch:
+	  printf (" op1=%d ch_op2=%d ch_op3=%d", BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // %d <- regexp_match (%d, %d)",
+		  BC_op1 (bc), BC_ch_op2 (bc), BC_ch_op3 (bc));
+	  break;
+	case BC_NM_rmatchs:
+	  printf (" op1=%d ch_op2=%d rm_str=", BC_op1 (bc), BC_ch_op2 (bc));
+	  print_str (BC_rm_str (bc));
+	  if ((cl = BC_fail_pc (bc)) != NULL)
+	    printf (" fail_pc=%d", BC_idn (BC_info (BC_fail_pc (bc))));
+	  printf (" // %d <- regexp_match (%d, string)",
+		  BC_op1 (bc), BC_ch_op2 (bc));
+	  break;
 	default:
 	  /* Other nodes should not occur here. */
 	  d_unreachable ();
@@ -1545,6 +1560,10 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
 	      if (check_fld (BC_NM_lds, D_STRING)) goto fail;
 	      BC_set_str (curr_node, token_attr.str);
 	      break;
+	    case FR_rm_str:
+	      if (check_fld (BC_NM_rmatchs, D_STRING)) goto fail;
+	      BC_set_rm_str (curr_node, token_attr.str);
+	      break;
 	    case FR_fldid:
 	      if (check_fld (BC_NM_field, D_IDENT)) goto fail;
 	      BC_set_fldid (curr_node, token_attr.str);
@@ -1657,6 +1676,7 @@ read_bc_program (const char *file_name, FILE *inpf, int info_p)
       check_fld_set (BC_NM_imcall, FR_cfblock, "cfblock");
       check_fld_set (BC_NM_ldf, FR_f, "f");
       check_fld_set (BC_NM_lds, FR_str, "str");
+      check_fld_set (BC_NM_rmatchs, FR_rm_str, "rm_str");
       check_fld_set (BC_NM_field, FR_fldid, "fldid");
       check_fld_set (BC_NM_mcall, FR_mid, "mid");
       check_fld_set (BC_NM_foreach, FR_body_pc, "body_pc");

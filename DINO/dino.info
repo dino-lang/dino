@@ -220,10 +220,10 @@ considered to be distinct.
                             | "continue" | "else" | "extern" | "final" | "float"
                             | "for" | "former" | "friend" | "fun" | "hide"
                             | "hideblock" | "if" | "in" | "int" | "later" | "long"
-                            | "new" | "nil" | "obj" | "priv" | "process" | "pub"
-                            | "return" | "swicth" | "tab" | "thread" | "this"
-                            | "throw" | "try" | "type" | "use" | "val" | "var"
-                            | "vec" | "wait"
+                            | "new" | "nil" | "obj" | "pmatch" | "priv"
+                            | "process" | "pub" | "return" | "rmatch" | "tab"
+                            | "thread" | "this" | "throw" | "try" | "type"
+                            | "use" | "val" | "var" | "vec" | "wait"
 
   6. _Comments_ are considered analogous to blanks on the syntax level
      of the program.  There are two types of comments.  The first type
@@ -243,7 +243,7 @@ File: dino.info,  Node: Declarations and Scope Rules,  Next: Expressions,  Prev:
 A Dino program is block structured.  Each block introduces a new
 identifier scope.  A block consists of executive statements and
 declarations and may contain nested blocks.  There are also implicit
-blocks containing each case-part of switch statements (see below).  Each
+blocks containing each case-part of match statements (see below).  Each
 identifier used in a program should be declared in a declaration in the
 program, unless it is a predeclared identifier.
 
@@ -1631,7 +1631,9 @@ File: dino.info,  Node: Patterns,  Next: Executive statements,  Prev: Expression
 Patterns have form of expressions.  They are used to match an expression
 and decompose it.  Pattern can have form a vector value, a table value,
 a function call, identifier, or special _wildcard_ symbol '"_"'.
-Anything else is treated as an expression.
+Anything else is treated as an expression.  The simplest way is to treat
+a pattern, e.g.  identfier, as an expression is to put it into
+paretheses.
 
                 Pattern = Expr
                 Expr = "_" | "..."
@@ -1663,7 +1665,8 @@ the rest elements in the matched vector value.  The following are
 examples of vector patterns (a, b, and c are identifies of pattern
 variables):
 
-                [a, b]
+                [a, b] // a and b are pattern variables
+                [(a), b] // value of earlier declared a is used
                 [a, ...]
                 [2, [a, b], 3 : c, 4 : _]
 
@@ -1731,7 +1734,7 @@ and repetitive execution.
 * If-statement::
 * For-statement::
 * Foreach-statement::
-* Switch-statement::
+* Match-statements::
 * Break- and continue-statement::
 * Return-statement::
 * Throw-statement::
@@ -1923,7 +1926,7 @@ for-statement execution continues with the step 4.
                for ({sum = 0; i = 0;} i < 10; i++) sum += v [i];
 
 
-File: dino.info,  Node: Foreach-statement,  Next: Switch-statement,  Prev: For-statement,  Up: Executive statements
+File: dino.info,  Node: Foreach-statement,  Next: Match-statements,  Prev: For-statement,  Up: Executive statements
 
 7.7 Foreach-statement
 =====================
@@ -1950,20 +1953,43 @@ finished by execution of statement 'break'.
                }
 
 
-File: dino.info,  Node: Switch-statement,  Next: Break- and continue-statement,  Prev: Foreach-statement,  Up: Executive statements
+File: dino.info,  Node: Match-statements,  Next: Break- and continue-statement,  Prev: Foreach-statement,  Up: Executive statements
 
-7.8 Switch-statement
+7.8 Match-statements
 ====================
 
-This statement is used to try matching switch-expression value (it is
-evaluated only once) and the patterns in given order and execute the
-statements corresponding to the first matched pattern.  Each case forms
-an own scope.  Pattern variables are declared in the corresponding case
-scope.  Execution of continue-statement in case-statements results in
-continuing the process of matching switch-expression value with the
-subsequent patterns.  Execution of break-statement in case-statements
-results in finishing the switch-statement execution.  There is implicit
-break at the end of each case statement list.
+There are two kinds of match-statement.  One is used for pattern
+matching and another one is used for regular expression matching.  They
+have practically the same syntax.  They differ in usage of different
+start keywords 'pmatch' and 'rmatch' correspondingly for pattern and
+regular expression matching.
+
+   The pattern or regular expression match statement is used to try
+matching match-expression value (it is evaluated only once) and the
+patterns or regular expressions in given order and execute the
+statements corresponding to the first matched case.
+
+   Each case forms an own scope.  Pattern variables in pattern match
+statement are declared in the corresponding case scope.  Each case scope
+of regular expression match statement contains implicitly declared
+variable 'm'.  If the case regular expression successfully matches the
+match-expression, value of the corresponding variable 'm' is vector of
+indexes describing matched substring (see the result of function 'match'
+for details).
+
+   In case of regular expression matching the string conversion is
+implicitly applied to the match-expression and the case expression
+values.  The exception 'optype' occurs if the conversion results are not
+strings.  Case with wildcard '_' also can occur in rmatch-statement.
+Matching with such case is always successful but value of variable 'm'
+is undefined in this case.
+
+   Execution of continue-statement in case-statements results in
+continuing the process of matching match-expression value with the
+subsequent patterns or regular expressions.  Execution of
+break-statement in case-statements results in finishing the
+match-statement execution.  There is implicit break at the end of each
+case statement list.
 
    If optional case condition is given, then it is evaluated after
 succesfull matching with the corresponding pattern and arithmetic
@@ -1972,28 +1998,41 @@ integer, or a floating-point number, otherwise the exception 'optype' is
 generated.  If the value is nonzero the all match is considered
 successfull, otherwise the subsequent case patterns are tried.
 
-               ExecutiveStmt = switch "(" Expr ")" "{" CaseList "}"
+               ExecutiveStmt = (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
                CaseList = { case Pattern [CaseCond] ":" StmtList }
                CaseCond = if Expr
 
-   Examples: class c (a1, a2) {} switch (c (2, 3)) { case c (i, j):
-putln (i, j); case _: putln ("default"); } switch (c (2, 3)) { case c
-(i, j) if i == j: putln ("eq=", i, j); case c (i, j) if i != j: putln
-("neq=", i, j); case _: putln ("default"); }
+   Examples:
 
+               class c (a1, a2) {}
+               pmatch (c (2, 3)) {
+                 case c (i, j): putln (i, j);
+                 case _: putln ("default");
+               }
+               pmatch (c (2, 3)) {
+                 case c (i, j) if i == j: putln ("eq=", i, j);
+                 case c (i, j) if i != j: putln ("neq=", i, j);
+                 case _: putln ("default");
+               }
+
+               rmatch (str) {
+                 case "[a-zA-Z]+": putln ("word starting at ", m[0]);
+                 case "[0-9]+": putln ("number starting at ", m[0]);
+                 case _: putln ("anything else, m is undefined");
+               }
 
 
-File: dino.info,  Node: Break- and continue-statement,  Next: Return-statement,  Prev: Switch-statement,  Up: Executive statements
+File: dino.info,  Node: Break- and continue-statement,  Next: Return-statement,  Prev: Match-statements,  Up: Executive statements
 
 7.9 Break- and continue-statement
 =================================
 
 Statements 'break' and 'continue' are used correspondingly to finish
-execution of the closest-containing for-, foreach-, or switch-statement
+execution of the closest-containing for-, foreach-, or match-statement
 covering the statement and to finish one iteration of the body of the
 for- or foreach-statement and to continue trying subsequent cases for
-switch-statement.  These statement can be used only inside a for-,
-foreach-, or switch-statement.
+match-statement.  These statement can be used only inside a for-,
+foreach-, or match-statement.
 
                ExecutiveStmt = break ";"
                              | continue ";"
@@ -2008,7 +2047,7 @@ foreach-, or switch-statement.
                for (i in t)
                  if (t{i} == elval)
                    break;
-               switch (tree) {
+               match (tree) {
                  case leaf (n):
                    putln ("leaf");
                    if (n == 10) continue;
@@ -2572,7 +2611,7 @@ class 'error':
                is not enough memory for internal parser data.
         * 'invregexp'.  Classes inside this class describe exceptions
           specific for calling predeclared functions implementing
-          regular expression pattern matching.
+          regular expression matching.
 
              * 'ebrack'.  This class describes the exception that a
                regular expression has an unmatched bracket.
@@ -4239,7 +4278,7 @@ File: dino.info,  Node: Appendix A- Syntax of Dino,  Next: Appendix B- Implement
                    | if  "(" Expr ")" Stmt [ else Stmt ]
                    | for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
                    | for  "(" Designator in Expr ")" Stmt
-                   | switch "(" Expr ")" "{" CaseList "}"
+                   | (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
                    | break ";"
                    | continue ";"
                    | return  [ Expr ] ";"
@@ -4488,70 +4527,70 @@ Node: Top95
 Node: Introduction632
 Node: Syntax1930
 Node: Vocabulary and Representation2834
-Node: Declarations and Scope Rules10235
-Node: Variable Declarations18737
-Node: External Declarations20477
-Node: Functions and Classes21884
-Node: Use Clause30766
-Node: Singleton Object32971
-Node: Expressions33780
-Node: Types and Values34392
-Node: Designators43436
-Node: Calls48759
-Node: Operators50823
-Node: Logical operators55120
-Node: Bit operators56928
-Node: Comparison operators58051
-Node: Arithmetic operators60047
-Node: Miscellaneous operators61258
-Node: Slice Operators65372
-Node: Current block instance68287
-Node: Anonymous Functions and Classes68750
-Node: Patterns69592
-Node: Executive statements73420
-Node: Empty statement74354
-Node: Block-statement74774
-Node: Expression-statement75493
-Node: Assignment statements76273
-Node: If-statement78912
-Node: For-statement79768
-Node: Foreach-statement81251
-Node: Switch-statement82247
-Node: Break- and continue-statement83860
-Node: Return-statement85131
-Node: Throw-statement85897
-Node: Try-block86599
-Node: Wait-statement89032
-Node: Program90134
-Node: Predeclared identifiers93656
-Node: Predeclared variables94123
-Node: Arguments and environment94520
-Node: Version95170
-Node: Threads95703
-Node: Files96245
-Node: Miscellaneous variables96948
-Node: Predeclared classes97677
-Node: File98027
-Node: Exception classes98483
-Node: Earley parser classes110387
-Node: Parser-110766
-Node: Token-121575
-Node: Anode-122255
-Node: Nil_anode and error_anode-124401
-Node: Example of Earley parser usage-124812
-Node: Predeclared functions127690
-Node: Mathematical functions128920
-Node: Pattern matching functions130490
-Node: File functions142655
-Node: Functions for access to file/directory information143088
-Node: Functions for work with directories147769
-Node: Functions for work with files-149357
-Node: File output functions153057
-Node: File input functions165522
-Node: Time functions169344
-Node: Functions for access to process information172321
-Node: Miscellaneous functions173833
-Node: Appendix A- Syntax of Dino187237
-Node: Appendix B- Implementation192408
+Node: Declarations and Scope Rules10246
+Node: Variable Declarations18747
+Node: External Declarations20487
+Node: Functions and Classes21894
+Node: Use Clause30776
+Node: Singleton Object32981
+Node: Expressions33790
+Node: Types and Values34402
+Node: Designators43446
+Node: Calls48769
+Node: Operators50833
+Node: Logical operators55130
+Node: Bit operators56938
+Node: Comparison operators58061
+Node: Arithmetic operators60057
+Node: Miscellaneous operators61268
+Node: Slice Operators65382
+Node: Current block instance68297
+Node: Anonymous Functions and Classes68760
+Node: Patterns69602
+Node: Executive statements73632
+Node: Empty statement74566
+Node: Block-statement74986
+Node: Expression-statement75705
+Node: Assignment statements76485
+Node: If-statement79124
+Node: For-statement79980
+Node: Foreach-statement81463
+Node: Match-statements82459
+Node: Break- and continue-statement85600
+Node: Return-statement86867
+Node: Throw-statement87633
+Node: Try-block88335
+Node: Wait-statement90768
+Node: Program91870
+Node: Predeclared identifiers95392
+Node: Predeclared variables95859
+Node: Arguments and environment96256
+Node: Version96906
+Node: Threads97439
+Node: Files97981
+Node: Miscellaneous variables98684
+Node: Predeclared classes99413
+Node: File99763
+Node: Exception classes100219
+Node: Earley parser classes112115
+Node: Parser-112494
+Node: Token-123303
+Node: Anode-123983
+Node: Nil_anode and error_anode-126129
+Node: Example of Earley parser usage-126540
+Node: Predeclared functions129418
+Node: Mathematical functions130648
+Node: Pattern matching functions132218
+Node: File functions144383
+Node: Functions for access to file/directory information144816
+Node: Functions for work with directories149497
+Node: Functions for work with files-151085
+Node: File output functions154785
+Node: File input functions167250
+Node: Time functions171072
+Node: Functions for access to process information174049
+Node: Miscellaneous functions175561
+Node: Appendix A- Syntax of Dino188965
+Node: Appendix B- Implementation194147
 
 End Tag Table

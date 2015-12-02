@@ -51,14 +51,14 @@ static pc_t curr_pc, prev_pc;
 static BC_node_t curr_info;
 
 /* Byte code starting new iteration of current for stmt or next case
-   of the switch.  This value is used to connect continue stmt. */
+   of the match-stmt.  This value is used to connect continue stmt. */
 static BC_node_t continue_target;
 
-/* Program counter of finishing of current for-stmt or switch case.
-   This value is for_or_switch_finish node and is used to connect
-   break stmt.  If this value is equal to NULL then there is not
-   surrounding for-stmt. */
-static BC_node_t for_or_switch_finish;
+/* Program counter of finishing of current for-stmt or match case.
+   This value is for_or_match_finish node and is used to connect break
+   stmt.  If this value is equal to NULL then there is not surrounding
+   for-stmt. */
+static BC_node_t for_or_match_finish;
 
 /* Jump buffer for exit from the contex pass. */
 static jmp_buf context_exit_longjump_buff;
@@ -102,7 +102,7 @@ cont_err_finish (position_t pos, const char *format, const char *str)
 
 
 
-/* Stack foreach/switch statements for processing.  */
+/* Stack foreach/match statements for processing.  */
 static vlo_t inter_stmt_holders;
 
 static void
@@ -111,18 +111,18 @@ initiate_inter_stmt_holders (void)
   VLO_CREATE (inter_stmt_holders, 0);
 }
 
-/* Return index for new foreach/switch stmts.  */
+/* Return index for new foreach/match stmts.  */
 static int
 get_inter_stmt_holders_bound (void)
 {
   return VLO_LENGTH (inter_stmt_holders) / sizeof (IR_node_t);
 }
 
-/* Values used to mark finish of foreach and switch statements. */
+/* Values used to mark finish of foreach and match statements. */
 static IR_node_t foreach_holder_end = (void *) 0;
-static IR_node_t switch_holder_end = (void *) 1;
+static IR_node_t match_holder_end = (void *) 1;
  
-/* Assign slots to vars of block foreach/switch stmts which start from
+/* Assign slots to vars of block foreach/match stmts which start from
    START_INDEX.  */
 static void
 finish_block_inter_stmt_holders (int start_index)
@@ -138,7 +138,7 @@ finish_block_inter_stmt_holders (int start_index)
       n++;
       if (*stmt_ptr == foreach_holder_end)
 	slot_num -= 2;
-      else if (*stmt_ptr == switch_holder_end)
+      else if (*stmt_ptr == match_holder_end)
 	slot_num--;
       else if (IR_IS_OF_TYPE (*stmt_ptr, IR_NM_foreach_stmt))
 	{
@@ -152,8 +152,8 @@ finish_block_inter_stmt_holders (int start_index)
 	{
 	  IR_node_t decl;
 	  
-	  d_assert (IR_IS_OF_TYPE (*stmt_ptr, IR_NM_switch_stmt));
-	  decl = IR_switch_expr_var (*stmt_ptr);
+	  d_assert (IR_IS_OF_TYPE (*stmt_ptr, IR_NM_match_stmt));
+	  decl = IR_match_expr_var (*stmt_ptr);
 	  IR_set_var_number_in_block (decl, slot_num);
 	  slot_num++;
 	  if (slot_num > IR_vars_number (curr_scope))
@@ -216,13 +216,24 @@ set_field_ident_number (IR_node_t unique_ident)
     }
 }
 
+/* Enumeration describing how to to treat expression.  */
+enum pattern_type
+{
+  /* Usual expression.  */
+  no_patterns,
+  /* Usual expression but top-level '_' is also accepted.  */
+  wildcard_pattern,
+  /* Treat expression as a pattern.  */
+  any_pattern
+};
+
 /* The following recursive func passes (correctly setting up
    SOURCE_POSITION) EXPR (it may be NULL) sets up members parts_number
    and class_func_thread_call_parameters_number in vector node (table
-   node) and class_func_thread_call node.  If PATERN_P, we are
-   processing a pattern expression.  */
+   node) and class_func_thread_call node.  PATERN says how to treat
+   the expression.  */
 static void
-first_expr_processing (IR_node_t expr, int pattern_p)
+first_expr_processing (IR_node_t expr, enum pattern_type pattern)
 {
   if (expr == NULL)
     return;
@@ -282,7 +293,7 @@ first_expr_processing (IR_node_t expr, int pattern_p)
       }
     case IR_NM_period:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_designator (expr), FALSE);
+      first_expr_processing (IR_designator (expr), no_patterns);
       set_field_ident_number (IR_unique_ident (IR_component (expr)));
       check_slice (expr, IR_designator (expr),
 		   ERR_period_ident_applied_to_slice);
@@ -290,8 +301,8 @@ first_expr_processing (IR_node_t expr, int pattern_p)
     case IR_NM_logical_or:
     case IR_NM_logical_and:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_operand (expr), FALSE);
-      first_expr_processing (IR_cont_operand (expr), FALSE);
+      first_expr_processing (IR_operand (expr), no_patterns);
+      first_expr_processing (IR_cont_operand (expr), no_patterns);
       break;
     case IR_NM_in:
     case IR_NM_or:
@@ -315,15 +326,15 @@ first_expr_processing (IR_node_t expr, int pattern_p)
     case IR_NM_mod:
     case IR_NM_format_vecof:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_left_operand (expr), FALSE);
-      first_expr_processing (IR_right_operand (expr), FALSE);
+      first_expr_processing (IR_left_operand (expr), no_patterns);
+      first_expr_processing (IR_right_operand (expr), no_patterns);
       break;
     case IR_NM_minus:
       {
 	IR_node_t r = IR_right_operand (expr);
 
 	SET_SOURCE_POSITION (expr);
-	first_expr_processing (IR_left_operand (expr), FALSE);
+	first_expr_processing (IR_left_operand (expr), no_patterns);
 	if (r != NULL && IR_IS_OF_TYPE (r, IR_NM_int)
 	    && IR_int_value (IR_unique_int (r)) != MAX_RINT)
 	  {
@@ -332,7 +343,7 @@ first_expr_processing (IR_node_t expr, int pattern_p)
 	       get_int_node (-IR_int_value (IR_unique_int (r)), IR_pos (r)));
 	    IR_SET_MODE (expr, IR_NM_plus);
 	  }
-	first_expr_processing (IR_right_operand (expr), FALSE);
+	first_expr_processing (IR_right_operand (expr), no_patterns);
 	break;
       }
     case IR_NM_unary_plus:
@@ -358,14 +369,15 @@ first_expr_processing (IR_node_t expr, int pattern_p)
     case IR_NM_funof:
     case IR_NM_threadof:
     case IR_NM_classof:
+    case IR_NM_paren:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_operand (expr), FALSE);
+      first_expr_processing (IR_operand (expr), no_patterns);
       break;
     case IR_NM_cond:
       SET_SOURCE_POSITION (expr);
-      first_expr_processing (IR_cond_expr (expr), FALSE);
-      first_expr_processing (IR_true_expr (expr), FALSE);
-      first_expr_processing (IR_false_expr (expr), FALSE);
+      first_expr_processing (IR_cond_expr (expr), no_patterns);
+      first_expr_processing (IR_true_expr (expr), no_patterns);
+      first_expr_processing (IR_false_expr (expr), no_patterns);
       break;
     case IR_NM_vec:
     case IR_NM_tab:
@@ -384,12 +396,17 @@ first_expr_processing (IR_node_t expr, int pattern_p)
 	    rep = IR_repetition_key (elist);
 	    /* We permits `...' as element (key without val) in the
 	       table pattern.  */
-	    tab_dots_p = (pattern_p && rep != NULL
+	    tab_dots_p = (pattern == any_pattern && rep != NULL
 			  && ! vec_p && IR_IS_OF_TYPE (rep, IR_NM_dots));
-	    first_expr_processing (rep, tab_dots_p);
+	    first_expr_processing (rep, tab_dots_p ? any_pattern : no_patterns);
 	    elist_expr = IR_expr (elist);
-	    first_expr_processing (elist_expr, pattern_p);
-	    if (pattern_p && elist_expr != NULL
+	    first_expr_processing (elist_expr,
+				   /* wildcard pattern is permitted in
+				      case of switch and rmatch only
+				      on top level.  */
+				   pattern != wildcard_pattern
+				   ? pattern : no_patterns);
+	    if (pattern == any_pattern && elist_expr != NULL
 		&& IR_IS_OF_TYPE (elist_expr, IR_NM_dots))
 	      {
 		if (next != NULL)
@@ -406,18 +423,18 @@ first_expr_processing (IR_node_t expr, int pattern_p)
     case IR_NM_index:
       SET_SOURCE_POSITION (expr);
       /* Two stack entries are necessary for reference. */
-      first_expr_processing (IR_designator (expr), FALSE);
+      first_expr_processing (IR_designator (expr), no_patterns);
       check_slice (expr, IR_designator (expr),
 		   ERR_vec_tab_element_access_applied_to_slice);
-      first_expr_processing (IR_component (expr), FALSE);
+      first_expr_processing (IR_component (expr), no_patterns);
       break;
     case IR_NM_slice:
       SET_SOURCE_POSITION (expr);
       /* Four stack entries are necessary for reference. */
-      first_expr_processing (IR_designator (expr), FALSE);
-      first_expr_processing (IR_component (expr), FALSE);
-      first_expr_processing (IR_bound (expr), FALSE);
-      first_expr_processing (IR_step (expr), FALSE);
+      first_expr_processing (IR_designator (expr), no_patterns);
+      first_expr_processing (IR_component (expr), no_patterns);
+      first_expr_processing (IR_bound (expr), no_patterns);
+      first_expr_processing (IR_step (expr), no_patterns);
       break;
     case IR_NM_class_fun_thread_call:
       SET_SOURCE_POSITION (expr);
@@ -425,7 +442,7 @@ first_expr_processing (IR_node_t expr, int pattern_p)
 	IR_node_t elist, next, elist_expr;
 	int parameters_number;
 	
-	first_expr_processing (IR_fun_expr (expr), FALSE);
+	first_expr_processing (IR_fun_expr (expr), no_patterns);
 	check_slice (expr, IR_fun_expr (expr), ERR_call_applied_to_slice);
 	for (parameters_number = 0, elist = IR_actuals (expr); elist != NULL;
 	     elist = next)
@@ -436,8 +453,8 @@ first_expr_processing (IR_node_t expr, int pattern_p)
 	    d_assert (IR_repetition_key (elist) == NULL
 		      && ! IR_repetition_key_flag (elist));
 	    elist_expr = IR_expr (elist);
-	    first_expr_processing (elist_expr, pattern_p);
-	    if (pattern_p && elist_expr != NULL
+	    first_expr_processing (elist_expr, pattern);
+	    if (pattern == any_pattern && elist_expr != NULL
 		&& IR_IS_OF_TYPE (elist_expr, IR_NM_dots) && next != NULL)
 	      cont_err (IR_pos (elist_expr), ERR_dots_in_the_list_middle);
 	  }
@@ -445,11 +462,11 @@ first_expr_processing (IR_node_t expr, int pattern_p)
 	  (expr, parameters_number);
 	break;
       case IR_NM_wildcard:
-	if (! pattern_p)
+	if (pattern == no_patterns)
 	  cont_err (IR_pos (expr), ERR_wildcard_in_expression);
 	break;
       case IR_NM_dots:
-	if (! pattern_p)
+	if (pattern != any_pattern)
 	  cont_err (IR_pos (expr), ERR_dots_in_expression);
 	break;
       }
@@ -630,7 +647,7 @@ find_use_item_index (IR_node_t ident, IR_node_t use_clause)
 /* Check that PREV_DECL and DECL are matching.  Return TRUE if
    everything is ok.  Otherwise, print error and return FALSE.  */
 static int
-check_matching (IR_node_t prev_decl, IR_node_t decl)
+check_decl_matching (IR_node_t prev_decl, IR_node_t decl)
 {
   if (IR_NODE_MODE (decl) != IR_NODE_MODE (prev_decl)
       || (IR_NODE_MODE (decl) == IR_NM_fun
@@ -845,7 +862,7 @@ process_use_clause (IR_node_t use_clause, IR_node_t origin_block,
 	      }
 	    else
 	      {
-		check_matching (decl, stmt);
+		check_decl_matching (decl, stmt);
 		IR_set_redefine_flag (item, TRUE);
 		/* Put redir instead of used decl.  */
 		redir = create_node_with_pos (IR_NM_decl_redir, IR_pos (stmt));
@@ -976,7 +993,7 @@ process_redecl_after (IR_node_t prev_decl, IR_node_t curr_decl)
 	  for (redir = IR_redirs (item);
 	       redir != NULL;
 	       redir = IR_next_redir (redir))
-	    if (check_matching (IR_redir_origin (redir), curr_decl))
+	    if (check_decl_matching (IR_redir_origin (redir), curr_decl))
 	      IR_set_to (redir, curr_decl);
 	}
     }
@@ -1136,7 +1153,7 @@ process_decl (IR_node_t stmt, IR_node_t *prev_stmt_ptr, IR_node_t next_stmt,
       /* First ident occurrence or redefinition: */
       include_decl (stmt);
     }
-  else if (! check_matching (prev_decl, stmt))
+  else if (! check_decl_matching (prev_decl, stmt))
     ;
   else if (IR_forward_decl_flag (stmt))
     /* Two forward declarations. */
@@ -1220,21 +1237,21 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
       switch (node_mode)
 	{
 	case IR_NM_expr_stmt:
-	  first_expr_processing (IR_stmt_expr (stmt), FALSE);
+	  first_expr_processing (IR_stmt_expr (stmt), no_patterns);
 	  break;
 	case IR_NM_assign:
-	  first_expr_processing (IR_assignment_var (stmt), FALSE);
-	  first_expr_processing (IR_assignment_expr (stmt), FALSE);
+	  first_expr_processing (IR_assignment_var (stmt), no_patterns);
+	  first_expr_processing (IR_assignment_expr (stmt), no_patterns);
 	  break;
 	case IR_NM_var_assign:
 	case IR_NM_par_assign:
-	  first_expr_processing (IR_assignment_var (stmt), FALSE);
+	  first_expr_processing (IR_assignment_var (stmt), no_patterns);
 	  /* var/val initialization is already processed -- see
 	     IR_NM_var processing.  */
 	  break;
 	case IR_NM_var_pattern_assign:
 	case IR_NM_par_pattern_assign:
-	  first_expr_processing (IR_assignment_var (stmt), TRUE);
+	  first_expr_processing (IR_assignment_var (stmt), any_pattern);
 	  /* var/val initialization is already processed -- see
 	     IR_NM_pattern_var processing.  */
 	  break;
@@ -1249,14 +1266,14 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_and_assign:
 	case IR_NM_xor_assign:
 	case IR_NM_or_assign:
-	  first_expr_processing (IR_assignment_var (stmt), FALSE);
-	  first_expr_processing (IR_assignment_expr (stmt), FALSE);
+	  first_expr_processing (IR_assignment_var (stmt), no_patterns);
+	  first_expr_processing (IR_assignment_expr (stmt), no_patterns);
 	  break;
 	case IR_NM_minus_assign:
 	  {
 	    IR_node_t expr = IR_assignment_expr (stmt);
 	    
-	    first_expr_processing (IR_assignment_var (stmt), FALSE);
+	    first_expr_processing (IR_assignment_var (stmt), no_patterns);
 	    if (expr != NULL && IR_IS_OF_TYPE (expr, IR_NM_int)
 		&& IR_int_value (IR_unique_int (expr)) != MAX_RINT)
 	      {
@@ -1266,11 +1283,11 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 				 IR_pos (expr)));
 		IR_SET_MODE (stmt, IR_NM_plus_assign);
 	      }
-	    first_expr_processing (IR_assignment_expr (stmt), FALSE);
+	    first_expr_processing (IR_assignment_expr (stmt), no_patterns);
 	    break;
 	  }
 	case IR_NM_if_stmt:
-	  first_expr_processing (IR_if_expr (stmt), FALSE);
+	  first_expr_processing (IR_if_expr (stmt), no_patterns);
 	  IR_set_if_part
 	    (stmt,
 	     first_block_passing (IR_if_part (stmt), curr_block_level));
@@ -1282,7 +1299,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  IR_set_for_initial_stmt
 	    (stmt, first_block_passing (IR_for_initial_stmt (stmt),
 					curr_block_level));
-	  first_expr_processing (IR_for_guard_expr (stmt), FALSE);
+	  first_expr_processing (IR_for_guard_expr (stmt), no_patterns);
 	  IR_set_for_iterate_stmt
 	    (stmt, first_block_passing (IR_for_iterate_stmt (stmt),
 					curr_block_level));
@@ -1294,14 +1311,14 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	  {
 	    IR_node_t index_des = IR_foreach_index_designator (stmt);
 
-	    first_expr_processing (index_des, FALSE);
+	    first_expr_processing (index_des, no_patterns);
 	    if (index_des != NULL && IR_IS_OF_TYPE (index_des, IR_NM_slice))
 	      {
 		IR_set_foreach_index_designator (stmt, FALSE);
 		cont_err (IR_pos (index_des), ERR_slice_as_foreach_index_designator);
 	      }
 	    VLO_ADD_MEMORY (inter_stmt_holders, &stmt, sizeof (stmt));
-	    first_expr_processing (IR_foreach_tab (stmt), FALSE);
+	    first_expr_processing (IR_foreach_tab (stmt), no_patterns);
 	    IR_set_foreach_stmts (stmt,
 				  first_block_passing (IR_foreach_stmts (stmt),
 						       curr_block_level));
@@ -1314,38 +1331,38 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	case IR_NM_return_without_result:
 	  break;
 	case IR_NM_return_with_result:
-	  first_expr_processing (IR_returned_expr (stmt), FALSE);
+	  first_expr_processing (IR_returned_expr (stmt), no_patterns);
 	  break;
 	case IR_NM_throw:
-	  first_expr_processing (IR_throw_expr (stmt), FALSE);
+	  first_expr_processing (IR_throw_expr (stmt), no_patterns);
 	  break;
 	case IR_NM_wait_stmt:
-	  first_expr_processing (IR_wait_guard_expr (stmt), FALSE);
+	  first_expr_processing (IR_wait_guard_expr (stmt), no_patterns);
 	  IR_set_wait_stmt (stmt,
 			    first_block_passing (IR_wait_stmt (stmt),
 						 curr_block_level));
 	  break;
-	case IR_NM_switch_stmt:
+	case IR_NM_pmatch_stmt:
+	case IR_NM_rmatch_stmt:
 	  {
-	    IR_node_t decl, switch_expr = IR_switch_expr (stmt);
+	    IR_node_t decl, match_expr = IR_match_expr (stmt);
 	    
 	    VLO_ADD_MEMORY (inter_stmt_holders, &stmt, sizeof (stmt));
-	    first_expr_processing (switch_expr, FALSE);
-	    decl = create_node_with_pos (IR_NM_var, IR_pos (switch_expr));
-	    IR_set_ident (decl, get_ident_node ("switch$expr",
-						IR_pos (switch_expr)));
+	    first_expr_processing (match_expr, no_patterns);
+	    decl = create_node_with_pos (IR_NM_var, IR_pos (match_expr));
+	    IR_set_ident (decl, get_ident_node ("match$expr",
+						IR_pos (match_expr)));
 	    IR_set_scope (decl, curr_scope);
 	    IR_set_access (decl, DEFAULT_ACCESS);
 	    IR_set_next_stmt (decl, stmt);
 	    include_decl (decl);
 	    add_to_stmt (decl, prev_stmt, &first_level_stmt);
 	    prev_stmt = decl;
-	    IR_set_switch_expr_var (stmt, decl);
-	    IR_set_switch_cases (stmt,
-				 first_block_passing (IR_switch_cases (stmt),
-						      curr_block_level));
-	    VLO_ADD_MEMORY (inter_stmt_holders, &switch_holder_end,
-			    sizeof (switch_holder_end));
+	    IR_set_match_expr_var (stmt, decl);
+	    IR_set_cases
+	      (stmt, first_block_passing (IR_cases (stmt), curr_block_level));
+	    VLO_ADD_MEMORY (inter_stmt_holders, &match_holder_end,
+			    sizeof (match_holder_end));
 	    break;
 	  }
 	case IR_NM_block:
@@ -1370,15 +1387,35 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    block_foreach_start = get_inter_stmt_holders_bound ();
 	    if (IR_case_pattern (stmt) != NULL)
 	      {
-		IR_node_t prev = NULL, first = IR_block_stmts (stmt);
-		IR_node_t list
-		  = uncycle_stmt_list (create_pattern_vars
-				       (stmt, IR_case_pattern (stmt), NULL));
+		IR_node_t match_stmt = IR_match_stmt (stmt);
+		int pmatch_p = (match_stmt != NULL
+				&& IR_IS_OF_TYPE (match_stmt, IR_NM_pmatch_stmt));
+		IR_node_t list = NULL, prev = NULL, first = IR_block_stmts (stmt);
 
+		if (pmatch_p)
+		  list = create_pattern_vars (stmt, IR_case_pattern (stmt), NULL);
+		else if (match_stmt != NULL
+			 && IR_IS_OF_TYPE (match_stmt, IR_NM_rmatch_stmt))
+		  {
+		    IR_node_t decl = create_node_with_pos (IR_NM_var,
+							   IR_pos (stmt));
+
+		    IR_set_rmatch_result_var (stmt, decl);
+		    IR_set_next_stmt (decl, decl);
+		    IR_set_ident (decl, get_ident_node (RMATCH_RESULT_NAME,
+							IR_pos (stmt)));
+		    IR_set_scope (decl, curr_scope);
+		    IR_set_access (decl, DEFAULT_ACCESS);
+		    IR_set_const_flag (decl, TRUE);
+		    list = decl;
+		  }
+		list = uncycle_stmt_list (list);
 		put_var_list_before (list, first, &prev, &first);
 		IR_set_block_stmts (stmt, first);
-		first_expr_processing (IR_case_pattern (stmt), TRUE);
-		first_expr_processing (IR_case_cond (stmt), FALSE);
+		first_expr_processing
+		  (IR_case_pattern (stmt),
+		   pmatch_p ? any_pattern : wildcard_pattern);
+		first_expr_processing (IR_case_cond (stmt), no_patterns);
 	      }
 	    IR_set_block_stmts
 	      (stmt, first_block_passing (IR_block_stmts (stmt),
@@ -1407,7 +1444,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 		 curr_except != NULL;
 		 curr_except = IR_next_exception (curr_except))
 	      {
-		first_expr_processing (IR_exception_class_expr (curr_except), FALSE);
+		first_expr_processing (IR_exception_class_expr (curr_except), no_patterns);
 		if (IR_catch_block (curr_except) != NULL)
 		  {
 		    IR_set_inline_flag (IR_catch_block (curr_except), FALSE);
@@ -1464,7 +1501,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    if (assign_p)
 	      /* Process idents in init expr before the
 		 declaration.  */
-	      first_expr_processing (IR_assignment_expr (next_stmt), FALSE);
+	      first_expr_processing (IR_assignment_expr (next_stmt), no_patterns);
 	    stmt = process_decl (stmt, &prev_stmt, next_stmt, &first_level_stmt,
 				 assign_p && (IR_NODE_MODE (next_stmt)
 					      == IR_NM_par_assign));
@@ -1481,7 +1518,7 @@ first_block_passing (IR_node_t first_level_stmt, int curr_block_level)
 	    if (assign_p)
 	      /* Process idents in init expr before the
 		 declaration.  */
-	      first_expr_processing (IR_assignment_expr (next_stmt), FALSE);
+	      first_expr_processing (IR_assignment_expr (next_stmt), no_patterns);
 	    list = uncycle_stmt_list (create_pattern_vars
 				      (stmt, IR_pattern (stmt), NULL));
 	    if (list == NULL)
@@ -2259,8 +2296,8 @@ gen_int_load (rint_t i, IR_node_t src)
 
 static IR_node_t
 second_expr_processing (IR_node_t expr, int fun_class_assign_p,
-		       int *result, int *curr_temp_vars_num, int lvalue_p,
-		       BC_node_t false_pc, BC_node_t true_pc, int next_false_p)
+			int *result, int *curr_temp_vars_num, int lvalue_p,
+			BC_node_t false_pc, BC_node_t true_pc, int next_false_p)
 {
   BC_node_t bc;
   IR_node_mode_t node_mode;
@@ -2666,6 +2703,14 @@ second_expr_processing (IR_node_t expr, int fun_class_assign_p,
       type_test (l, EVT_NUMBER_VEC_TAB_SLICE_MASK,
 		 ERR_invalid_length_operand_type);
       IR_set_value_type (expr, unary_slice_p (l) ? EVT_SLICE : EVT_INT);
+      break;
+    case IR_NM_paren:
+      IR_set_operand (expr, second_expr_processing (IR_operand (expr), fun_class_assign_p,
+						    result, curr_temp_vars_num, lvalue_p,
+						    false_pc, true_pc, next_false_p));
+      IR_set_value_type (expr,
+			 IR_operand (expr) == NULL
+			 ? EVT_UNKNOWN : IR_value_type (IR_operand (expr)));
       break;
     case IR_NM_fold_plus:
     case IR_NM_fold_mult:
@@ -3412,38 +3457,54 @@ copy_fun_bc_block (IR_node_t fun, IR_node_t original_fun)
   modify_copied_pc (NULL);
 }
 
-/* Block containing currently processed for-stmt or switch case, NULL
+/* Block containing currently processed for-stmt or match case, NULL
    otherwise.  */
 static IR_node_t curr_for_stmt_or_case_block;
 
-/* Generate code for matching value in OP and PATTERN modifying
-   curr_temp_vars_num if necessary.  Goto FAIL_PC if matching
-   failed.  */
+/* Generate code for matching value in OP and CEXPR modifying
+   curr_temp_vars_num if necessary.  Goto FAIL_PC if matching failed.
+   Treat CEXPR as a pattern if CASE_BLOCK is NULL or mode of match
+   stmt of CASE_BLOCK == IR_NM_pmatch_stmt or as regexp if the mode ==
+   IR_NM_rmatch_stmt.  */
 static void
-generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
-		  int *curr_temp_vars_num)
+generate_case (IR_node_t case_block, IR_node_t cexpr, int op,
+	       BC_node_t fail_pc, int *curr_temp_vars_num)
 {
   int_t var_num;
   IR_node_t el, next_el, expr, rep, decl, scope;
   BC_node_t bc;
-  int vec_p, call_p, n, ind, rep_op, el_op, pat_op, one;
+  int ident_p, vec_p, call_p, n, ind, rep_op, el_op, pat_op, one;
+  IR_node_t match_stmt = case_block == NULL ? NULL : IR_match_stmt (case_block);
+  IR_node_mode_t match_mode = (match_stmt == NULL
+			       ? IR_NM_pmatch_stmt : IR_NODE_MODE (match_stmt));
   int temp_start, fun_op = -1, temp_vars_num = *curr_temp_vars_num;
 
-  if (pattern == NULL)
+  if (cexpr == NULL)
     return;
-  vec_p = IR_IS_OF_TYPE (pattern, IR_NM_vec);
-  call_p = IR_IS_OF_TYPE (pattern, IR_NM_class_fun_thread_call);
-  if (vec_p || call_p || IR_IS_OF_TYPE (pattern, IR_NM_tab))
+  vec_p = IR_IS_OF_TYPE (cexpr, IR_NM_vec);
+  call_p = IR_IS_OF_TYPE (cexpr, IR_NM_class_fun_thread_call);
+  if (match_mode == IR_NM_pmatch_stmt && IR_IS_OF_TYPE (cexpr, IR_NM_ident))
+    {
+      decl = IR_decl (cexpr);
+      /* Should be local var  */
+      d_assert (decl != NULL && IR_NODE_MODE (decl) == IR_NM_var);
+      scope = IR_scope (decl);
+      d_assert (curr_real_scope == IR_real_block_scope (scope));
+      var_num = IR_var_number_in_block (decl) + IR_vars_base (scope);
+      add_move (cexpr, get_bcode_decl (decl), var_num, op);
+    }
+  else if (match_mode == IR_NM_pmatch_stmt
+	   && (vec_p || call_p || IR_IS_OF_TYPE (cexpr, IR_NM_tab)))
     {
       if (call_p)
 	{
 	  fun_op = not_defined_result;
 	  temp_start = temp_vars_num;
-	  IR_set_fun_expr (pattern, second_expr_processing (IR_fun_expr (pattern), FALSE,
-							    &fun_op, &temp_start,
-							    FALSE, NULL, NULL, FALSE));
+	  IR_set_fun_expr (cexpr, second_expr_processing (IR_fun_expr (cexpr), FALSE,
+							  &fun_op, &temp_start,
+							  FALSE, NULL, NULL, FALSE));
 	  temp_vars_num++;
-	  bc = new_bc_code_with_src (BC_NM_chst, pattern);
+	  bc = new_bc_code_with_src (BC_NM_chst, cexpr);
 	  BC_set_op1 (bc, op);
 	  BC_set_ch_op2 (bc, fun_op);
 	  BC_set_fail_pc (bc, fail_pc);
@@ -3451,19 +3512,19 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 	}
       else
 	{
-	  bc = new_bc_code_with_src (vec_p ? BC_NM_chvec : BC_NM_chtab, pattern);
+	  bc = new_bc_code_with_src (vec_p ? BC_NM_chvec : BC_NM_chtab, cexpr);
 	  BC_set_op1 (bc, op);
 	  BC_set_fail_pc (bc, fail_pc);
 	  add_to_bcode (bc);
 	  if (vec_p)
 	    {
 	      ind = get_temp_stack_slot (&temp_vars_num);
-	      bc = new_bc_code_with_src (BC_NM_ldi, pattern);
+	      bc = new_bc_code_with_src (BC_NM_ldi, cexpr);
 	      BC_set_op1 (bc, ind);
 	      add_to_bcode (bc);
 	    }
 	}
-      for (n = 0, el = (call_p ? IR_actuals (pattern) : IR_elist (pattern));
+      for (n = 0, el = (call_p ? IR_actuals (cexpr) : IR_elist (cexpr));
 	   el != NULL;
 	   el = next_el, n++)
 	{
@@ -3577,7 +3638,7 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 	      BC_set_op1 (bc, op);
 	      BC_set_fail_pc (bc, fail_pc);
 	      add_to_bcode (bc);
-	      generate_pattern (expr, el_op, fail_pc, &temp_start);
+	      generate_case (case_block, expr, el_op, fail_pc, &temp_start);
 	    }
 	  else
 	    {
@@ -3618,13 +3679,13 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 	{
 	  if (call_p)
 	    {
-	      bc = new_bc_code_with_src (BC_NM_chstend, pattern);
+	      bc = new_bc_code_with_src (BC_NM_chstend, cexpr);
 	      BC_set_op1 (bc, fun_op);
 	    }
 	  else
 	    {
 	      bc = new_bc_code_with_src (vec_p ? BC_NM_chvend : BC_NM_chtend,
-					 pattern);
+					 cexpr);
 	      BC_set_op1 (bc, op);
 	    }
 	  BC_set_ch_op2 (bc, vec_p ? ind : n);
@@ -3632,23 +3693,51 @@ generate_pattern (IR_node_t pattern, int op, BC_node_t fail_pc,
 	  add_to_bcode (bc);
 	}
     }
-  else if (IR_IS_OF_TYPE (pattern, IR_NM_wildcard))
+  else if (IR_IS_OF_TYPE (cexpr, IR_NM_wildcard))
     ;
   else if (fail_pc != NULL)
     {
-      /* Expr for the switch case:  */
+      /* Expr for the match case:  */
       temp_start = temp_vars_num;
       pat_op = not_defined_result;
-      second_expr_processing (pattern, FALSE, &pat_op, &temp_start,
-			      FALSE, NULL, NULL, FALSE);
-      bc = new_bc_code_with_src (BC_NM_eq, pattern);
-      el_op = not_defined_result;
-      BC_set_op1 (bc, setup_result_var_number (&el_op, &temp_vars_num));
-      BC_set_op2 (bc, op);
-      BC_set_op3 (bc, pat_op);
-      add_to_bcode (bc);
-      bc = new_bc_code_with_src (BC_NM_bf, pattern);
-      BC_set_pc (bc, fail_pc);
+      if (match_mode == IR_NM_pmatch_stmt)
+	{
+	  second_expr_processing (cexpr, FALSE, &pat_op, &temp_start,
+				  FALSE, NULL, NULL, FALSE);
+	  el_op = not_defined_result;
+	  bc = new_bc_code_with_src (BC_NM_eq, cexpr);
+	  BC_set_op1 (bc, setup_result_var_number (&el_op, &temp_vars_num));
+	  BC_set_op2 (bc, op);
+	  BC_set_op3 (bc, pat_op);
+	  add_to_bcode (bc);
+	  bc = new_bc_code_with_src (BC_NM_bf, cexpr);
+	  BC_set_pc (bc, fail_pc);
+	}
+      else
+	{
+	  d_assert (match_mode == IR_NM_rmatch_stmt);
+	  decl = IR_rmatch_result_var (case_block);
+	  /* Should be local var  */
+	  d_assert (decl != NULL && IR_NODE_MODE (decl) == IR_NM_var);
+	  scope = IR_scope (decl);
+	  d_assert (curr_real_scope == IR_real_block_scope (scope));
+	  var_num = IR_var_number_in_block (decl) + IR_vars_base (scope);
+	  if (IR_IS_OF_TYPE (cexpr, IR_NM_string))
+	    {
+	      bc = new_bc_code_with_src (BC_NM_rmatchs, cexpr);
+	      BC_set_rm_str (bc, IR_string_value (IR_unique_string (cexpr)));
+	    }
+	  else
+	    {
+	      second_expr_processing (cexpr, FALSE, &pat_op, &temp_start,
+				      FALSE, NULL, NULL, FALSE);
+	      bc = new_bc_code_with_src (BC_NM_rmatch, cexpr);
+	      BC_set_ch_op3 (bc, pat_op);
+	    }
+	  BC_set_op1 (bc, var_num);
+	  BC_set_ch_op2 (bc, op);
+	  BC_set_fail_pc (bc, fail_pc);
+	}
       add_to_bcode (bc);
     }
   else
@@ -3697,7 +3786,7 @@ generate_break_continue (int break_p, position_t pos)
       add_to_bcode (bc);
     }
   if (break_p)
-    BC_set_next (bc, for_or_switch_finish);
+    BC_set_next (bc, for_or_match_finish);
   else
     BC_set_next (bc, continue_target);
   curr_pc = NULL;
@@ -4064,12 +4153,12 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      bc_node_mode = BC_NM_sts;
 	      goto common_assign;
 	    }
-	    result = not_defined_result;
-	    IR_set_assignment_expr
-	      (stmt, second_expr_processing (IR_assignment_expr (stmt), TRUE,
-					     &result, &temp_vars_num, FALSE,
+	  result = not_defined_result;
+	  IR_set_assignment_expr
+	    (stmt, second_expr_processing (IR_assignment_expr (stmt), TRUE,
+					   &result, &temp_vars_num, FALSE,
 					     NULL, NULL, FALSE));
-	    generate_pattern (temp, result, NULL, &temp_vars_num);
+	  generate_case (NULL, temp, result, NULL, &temp_vars_num);
 	  break;
 	case IR_NM_if_stmt:
 	  {
@@ -4099,18 +4188,18 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	case IR_NM_for_stmt:
 	  {
 	    BC_node_t before_guard_expr, before_body, initial_end;
-	    BC_node_t saved_continue_target, saved_for_or_switch_finish;
+	    BC_node_t saved_continue_target, saved_for_or_match_finish;
 	    IR_node_t saved_curr_for_stmt_or_case_block;
 	    
 	    saved_curr_for_stmt_or_case_block = curr_for_stmt_or_case_block;
 	    curr_for_stmt_or_case_block = curr_scope;
 	    saved_continue_target = continue_target;
-	    saved_for_or_switch_finish = for_or_switch_finish;
+	    saved_for_or_match_finish = for_or_match_finish;
 	    second_block_passing (IR_for_initial_stmt (stmt), FALSE);
 	    initial_end = BC_bc (curr_info);
 	    continue_target = new_bc_code_with_src (BC_NM_nop, stmt);
 	    before_body = new_bc_code_with_src (BC_NM_nop, stmt);
-	    for_or_switch_finish = new_bc_code_with_src (BC_NM_nop, stmt);
+	    for_or_match_finish = new_bc_code_with_src (BC_NM_nop, stmt);
 	    add_to_bcode (before_body);
 	    second_block_passing (IR_for_stmts (stmt), FALSE);
 	    add_to_bcode (continue_target);
@@ -4121,28 +4210,28 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    IR_set_for_guard_expr
 	      (stmt, second_expr_processing (IR_for_guard_expr (stmt), FALSE,
 					     &result, &temp_vars_num, FALSE,
-					     for_or_switch_finish, before_body,
+					     for_or_match_finish, before_body,
 					     TRUE));
 	    type_test (IR_for_guard_expr (stmt), EVT_NUMBER_STRING_MASK,
 		       ERR_invalid_for_guard_expr_type);
-	    add_to_bcode (for_or_switch_finish);
+	    add_to_bcode (for_or_match_finish);
 	    BC_set_next (initial_end, BC_next (before_guard_expr));
 	    curr_for_stmt_or_case_block = saved_curr_for_stmt_or_case_block;
 	    continue_target = saved_continue_target;
-	    for_or_switch_finish = saved_for_or_switch_finish;
+	    for_or_match_finish = saved_for_or_match_finish;
 	    break;
 	  }
 	case IR_NM_foreach_stmt:
 	  {
 	    BC_node_t src, before_loop_start, ldi_bc;
-	    BC_node_t saved_continue_target, saved_for_or_switch_finish;
+	    BC_node_t saved_continue_target, saved_for_or_match_finish;
 	    IR_node_t saved_curr_for_stmt_or_case_block;
 	    IR_node_t tab = IR_foreach_tab (stmt);
 
 	    saved_curr_for_stmt_or_case_block = curr_for_stmt_or_case_block;
 	    curr_for_stmt_or_case_block = curr_scope;
 	    saved_continue_target = continue_target;
-	    saved_for_or_switch_finish = for_or_switch_finish;
+	    saved_for_or_match_finish = for_or_match_finish;
 	    result = IR_foreach_tab_place (stmt);
 	    IR_set_foreach_tab
 	      (stmt, second_expr_processing (tab, FALSE,
@@ -4197,18 +4286,18 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	      }
 	    add_to_bcode (bc);
 	    continue_target = BC_next (before_loop_start);
-	    for_or_switch_finish = new_bc_code (BC_NM_nop, src);
+	    for_or_match_finish = new_bc_code (BC_NM_nop, src);
 	    second_block_passing (IR_foreach_stmts (stmt), FALSE);
 	    before_pc = curr_pc;
-	    add_to_bcode (for_or_switch_finish);
+	    add_to_bcode (for_or_match_finish);
 	    BC_set_body_pc (bc,
-			    BC_next (bc) != for_or_switch_finish
+			    BC_next (bc) != for_or_match_finish
 			    ? BC_next (bc) : continue_target);
 	    BC_set_next (before_pc, continue_target);
-	    BC_set_next (bc, for_or_switch_finish);
+	    BC_set_next (bc, for_or_match_finish);
 	    curr_for_stmt_or_case_block = saved_curr_for_stmt_or_case_block;
 	    continue_target = saved_continue_target;
-	    for_or_switch_finish = saved_for_or_switch_finish;
+	    for_or_match_finish = saved_for_or_match_finish;
 	    break;
 	  }
 	case IR_NM_break_stmt:
@@ -4216,7 +4305,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	  if (stmt_mode == IR_NM_continue_stmt && continue_target == NULL)
 	    cont_err (source_position, ERR_continue_is_not_in_loop_or_case);
 	  else if (stmt_mode == IR_NM_break_stmt
-		   && for_or_switch_finish == NULL)
+		   && for_or_match_finish == NULL)
 	    cont_err (source_position, ERR_break_is_not_in_loop_or_case);
 	  else
 	    generate_break_continue (stmt_mode == IR_NM_break_stmt,
@@ -4322,27 +4411,28 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		     ERR_invalid_throw_expr_type);
 	  add_to_bcode (bc);
 	  break;
-	case IR_NM_switch_stmt:
+	case IR_NM_pmatch_stmt:
+	case IR_NM_rmatch_stmt:
 	  {
-	    IR_node_t switch_expr, decl;
-	    BC_node_t saved_for_or_switch_finish = for_or_switch_finish;
+	    IR_node_t match_expr, decl;
+	    BC_node_t saved_for_or_match_finish = for_or_match_finish;
 	    BC_node_t saved_continue_target = continue_target;
 	    int place;
 	    
-	    decl = IR_switch_expr_var (stmt);
+	    decl = IR_match_expr_var (stmt);
 	    result = place = IR_var_number_in_block (decl);
-	    switch_expr = second_expr_processing (IR_switch_expr (stmt), FALSE,
-						  &result, &temp_vars_num, FALSE,
-						  NULL, NULL, FALSE);
-	    IR_set_switch_expr (stmt, switch_expr);
+	    match_expr = second_expr_processing (IR_match_expr (stmt), FALSE,
+						 &result, &temp_vars_num, FALSE,
+						 NULL, NULL, FALSE);
+	    IR_set_match_expr (stmt, match_expr);
 	    if (result != place)
 	      add_move (stmt, get_bcode_decl (decl), place, result);
-	    for_or_switch_finish = new_bc_code_with_src (BC_NM_nop, stmt);
+	    for_or_match_finish = new_bc_code_with_src (BC_NM_nop, stmt);
 	    continue_target = new_bc_code_with_src (BC_NM_nop, stmt);
-	    second_block_passing (IR_switch_cases (stmt), FALSE);
+	    second_block_passing (IR_cases (stmt), FALSE);
 	    add_to_bcode (continue_target);
-	    add_to_bcode (for_or_switch_finish);
-	    for_or_switch_finish = saved_for_or_switch_finish;
+	    add_to_bcode (for_or_match_finish);
+	    for_or_match_finish = saved_for_or_match_finish;
 	    continue_target = saved_continue_target;
 	    break;
 	  }
@@ -4357,12 +4447,12 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 	    pc_t block_finish;
 	    pc_t catches_finish;
 	    pc_t previous_node_catch_list_pc;
-	    IR_node_t fun_class, friend, use, switch_stmt;
+	    IR_node_t fun_class, friend, use, match_stmt;
 	    BC_node_t except_bc, last_except_with_block;
 	    int inline_block_flag = IR_inline_flag (stmt);
 
-	    switch_stmt = IR_switch_stmt (stmt);
-	    if (switch_stmt != NULL)
+	    match_stmt = IR_match_stmt (stmt);
+	    if (match_stmt != NULL)
 	      {
 		add_to_bcode (continue_target);
 		/* It will be bound later to continue code of the
@@ -4455,24 +4545,24 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
  		curr_real_scope = stmt;
 		curr_temp_vars_base = IR_vars_number (stmt);
 	      }
-	    if (switch_stmt != NULL)
+	    if (match_stmt != NULL)
 	      {
 		IR_node_t cond;
 		
 		if (inline_block_flag)
-		  result = IR_var_number_in_block (IR_switch_expr_var
-						   (switch_stmt));
+		  result
+		    = IR_var_number_in_block (IR_match_expr_var (match_stmt));
 		else
 		  {
-		    bc = create_bc_decl (IR_switch_expr_var (switch_stmt),
-					 switch_stmt);
+		    bc = create_bc_decl (IR_match_expr_var (match_stmt),
+					 match_stmt);
 		    result = not_defined_result;
-		    BC_set_op1 (bc, setup_result_var_number (&result,
-							     &temp_vars_num));
+		    BC_set_op1
+		      (bc, setup_result_var_number (&result, &temp_vars_num));
 		    add_to_bcode (bc);
 		  }
-		generate_pattern (IR_case_pattern (stmt), result,
-				  continue_target, &temp_vars_num);
+		generate_case (stmt, IR_case_pattern (stmt), result,
+			       continue_target, &temp_vars_num);
 		if ((cond = IR_case_cond (stmt)) != NULL)
 		  {
 		    BC_node_t true_pc = new_bc_code_with_src (BC_NM_nop, cond);
@@ -4488,7 +4578,7 @@ second_block_passing (IR_node_t first_level_stmt, int block_p)
 		  }
 	      }
 	    second_block_passing (IR_block_stmts (stmt), TRUE);
-	    if (switch_stmt != NULL)
+	    if (match_stmt != NULL)
 	      {
 		/* There are more cases.  Generate code for the case
 		   continue.  This code is placed right after code for
@@ -5357,7 +5447,7 @@ test_context (IR_node_t first_program_stmt_ptr, int first_p)
   curr_bc_scope = NULL;
   curr_info = NULL;
   prev_pc = curr_pc = NULL;
-  for_or_switch_finish = NULL;
+  for_or_match_finish = NULL;
   VLO_NULLIFY (all_fblocks);
   if (! first_p)
     {

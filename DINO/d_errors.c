@@ -176,9 +176,9 @@ char ERR_const_swap [] = "constant `%s' in swap statement";
 char ERR_non_variable_in_foreach_index []
   = "non variable in foreach-stmt index designator";
 char ERR_continue_is_not_in_loop_or_case []
-  = "statement continue is not in for-statement or switch case";
+  = "statement continue is not in for-statement or match case";
 char ERR_break_is_not_in_loop_or_case []
-  = "statement break is not in for-statement or in switch case";
+  = "statement break is not in for-statement or in match case";
 char ERR_this_outside_fun_class [] = "this is not in function or class";
 char ERR_return_outside_fun_class []
   = "statement return is not in function or class";
@@ -441,6 +441,10 @@ char DERR_wrong_table_pattern_match []
   = "run time error - expr does not match table pattern";
 char DERR_wrong_stack_pattern_match []
   = "run time error - expr does not match stack pattern";
+char DERR_rmatch_expr_type []
+  = "run time error - rmatch expression is not a string";
+char DERR_rmatch_case_expr_type []
+  = "run time error - rmatch case expression is not a string";;
 char DERR_deadlock [] = "run time error - process deadlock";
 char DERR_unprocessed_exception []
   = "run time error - exception %s has not been processed";

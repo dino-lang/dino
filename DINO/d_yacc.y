@@ -122,7 +122,7 @@ static int repl_can_process_p (void);
 %token <pointer> NUMBER CHARACTER STRING IDENT
 %token <pos> BREAK CASE CATCH CHAR CLASS CONTINUE ELSE EXTERN
        FINAL FLOAT FOR FORMER FRIEND FUN HIDE HIDEBLOCK IF IN INT
-       LONG LATER NEW NIL OBJ PRIV PROCESS PUB RETURN SWITCH
+       LONG LATER NEW NIL OBJ PMATCH PRIV PROCESS PUB RETURN RMATCH
        TAB THIS THREAD THROW TRY TYPE USE VAL VAR VEC WAIT
 %token <pos> LOGICAL_OR LOGICAL_AND EQ NE IDENTITY UNIDENTITY LE GE
              LSHIFT RSHIFT ASHIFT
@@ -162,7 +162,7 @@ static int repl_can_process_p (void);
                 elist_parts_list elist_parts_list_empty elist_part
                 expr_list expr_list_empty actual_parameters friend_list
                 val_var_list val_var assign stmt executive_stmt incr_decr
-                case_list switch_case opt_cond pattern for_guard_expr
+                match_head case_list a_case opt_cond pattern regexp_pattern for_guard_expr
                 block_stmt try_block_stmt catch_list catch except_class_list
                 header declaration use_clause_list
                 use_item_list use_item alias_opt extern_list extern_item
@@ -406,7 +406,16 @@ expr : NUMBER        {$$ = $1;}
 	  IR_set_actuals ($$, $2);
 	}
      | designator    {$$ = $1;}
-     | '(' expr ')'  {$$ = $2;}
+     | '(' expr ')'
+          {
+	    if (IR_IS_OF_TYPE ($2, IR_NM_paren))
+	      $$ = $2;
+	    else
+	      {
+		$$ = create_node_with_pos (IR_NM_paren, $1);
+		IR_set_operand ($$, $2);
+	      }
+	  }
      | '(' error
           {
 	    if (repl_flag)
@@ -901,15 +910,15 @@ executive_stmt :
           IR_set_for_iterate_stmt ($$, NULL);
           IR_set_foreach_stmts ($$, uncycle_stmt_list ($7));
         }
-    | SWITCH '(' expr ')' '{'
+    | match_head '(' expr ')' '{'
         {
-	  $<pointer>$ = create_node_with_pos (IR_NM_switch_stmt, $1);
-          IR_set_switch_expr ($<pointer>$, $3);
+          IR_set_match_expr ($1, $3);
+	  $<pointer>$ = $1;
 	}
       case_list '}'
         {
-	  $$ = $<pointer>6;
-          IR_set_switch_cases ($$, uncycle_stmt_list ($7)); 
+	  $$ = $1;
+          IR_set_cases ($$, uncycle_stmt_list ($7)); 
 	}
     | BREAK {$<flag>$ = $<flag>0;} end_exec_stmt
         {$$ = create_node_with_pos (IR_NM_break_stmt, $1);}
@@ -950,9 +959,12 @@ executive_stmt :
     | block_stmt     {$$ = $1;}
     | try_block_stmt {$$ = $1;}
     ;
-/* attribute before is the case-stmt  */
+match_head : PMATCH { $$ = create_node_with_pos (IR_NM_pmatch_stmt, $1); }
+           | RMATCH { $$ = create_node_with_pos (IR_NM_rmatch_stmt, $1); }
+           ;
+/* attribute before is the match-stmt  */
 case_list :                        { $$ = NULL; }
-          | case_list {$<pointer>$ = $<pointer>0; } switch_case
+          | case_list {$<pointer>$ = $<pointer>0; } a_case
 	      { $$ = merge_stmt_lists ($1, $3); }
           | error
               {
@@ -961,36 +973,37 @@ case_list :                        { $$ = NULL; }
 		$$ = NULL;
 	      }
           ;
-/* attribute before is the case-stmt  */
-switch_case :   {
-                  $<pointer>$ = create_empty_block (current_scope);
-                  current_scope = $<pointer>$;
-                }
-       	     CASE pattern opt_cond ':' stmt_list
-                {
-		  IR_node_t break_stmt;
-		  
-                  $$ = $<pointer>1;
-		  IR_set_switch_stmt ($$, $<pointer>0);
-		  IR_set_case_pattern ($$, $3);
-		  IR_set_case_cond ($$, $4);
-		  /* Add implicit break at the end of case-stmts. */
-		  break_stmt = create_node_with_pos (IR_NM_break_stmt,
-						     current_position);
-		  IR_set_next_stmt (break_stmt, break_stmt);
-		  IR_set_implicit_case_break_stmt ($$, break_stmt);
-		  IR_set_block_stmts ($$, uncycle_stmt_list (merge_stmt_lists
-							     ($6, break_stmt)));
-		  IR_set_next_stmt ($$, $$);
-       		  current_scope = IR_block_scope ($$);
-		}
-            ;
+/* attribute before is the match-stmt  */
+a_case :   {
+              $<pointer>$ = create_empty_block (current_scope);
+              current_scope = $<pointer>$;
+            }
+       	 CASE regexp_pattern opt_cond ':' stmt_list
+            {
+	      IR_node_t break_stmt;
+	      
+              $$ = $<pointer>1;
+	      IR_set_match_stmt ($$, $<pointer>0);
+	      IR_set_case_pattern ($$, $3);
+	      IR_set_case_cond ($$, $4);
+	      /* Add implicit break at the end of case-stmts. */
+	      break_stmt = create_node_with_pos (IR_NM_break_stmt,
+						 current_position);
+	      IR_set_next_stmt (break_stmt, break_stmt);
+	      IR_set_implicit_case_break_stmt ($$, break_stmt);
+	      IR_set_block_stmts ($$, uncycle_stmt_list (merge_stmt_lists
+							 ($6, break_stmt)));
+	      IR_set_next_stmt ($$, $$);
+	      current_scope = IR_block_scope ($$);
+	    }
+        ;
 opt_cond :           { $$ = NULL; }
          | IF expr   { $$ = $2; }
          ;
 pattern : expr  { $$ = $1; }
         ;
-
+regexp_pattern : expr  { $$ = $1; }
+               ;
 for_guard_expr :      {$$ = get_int_node (1, source_position);}
                | expr {$$ = $1;}
                ;

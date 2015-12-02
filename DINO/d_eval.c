@@ -3475,6 +3475,8 @@ evaluate_code (void)
       goto_table [BC_NM_chst] = &&l_BC_NM_chst;
       goto_table [BC_NM_chstend] = &&l_BC_NM_chstend;
       goto_table [BC_NM_chstel] = &&l_BC_NM_chstel;
+      goto_table [BC_NM_rmatch] = &&l_BC_NM_rmatch;
+      goto_table [BC_NM_rmatchs] = &&l_BC_NM_rmatchs;
       goto_table [BC_NM_move] = &&l_BC_NM_move;
       goto_table [BC_NM_imove] = &&l_BC_NM_imove;
       goto_table [BC_NM_fmove] = &&l_BC_NM_fmove;
@@ -4635,6 +4637,19 @@ evaluate_code (void)
 	  if (chstel (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
 		      get_op (BC_ch_op3 (cpc)), BC_ch_op4 (cpc), BC_ch_op5 (cpc),
 		      BC_fail_pc (cpc)))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_rmatch):
+	  if (rmatch (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc)),
+		      get_op (BC_ch_op3 (cpc))))
+	    cpc = BC_fail_pc (cpc);
+	  else
+	    INCREMENT_PC ();
+	  BREAK;
+	CASE (BC_NM_rmatchs):
+	  if (rmatchs (get_op (BC_op1 (cpc)), get_op (BC_ch_op2 (cpc))))
 	    cpc = BC_fail_pc (cpc);
 	  else
 	    INCREMENT_PC ();

@@ -131,7 +131,7 @@ ExecutiveStmt = ";"
               | if  "(" Expr ")" Stmt [ else Stmt ]
               | for  "(" Stmt ForGuardExpr ";"  Stmt ")" Stmt
               | for  "(" Designator in Expr ")" Stmt
-              | switch "(" Expr ")" "{" CaseList "}"
+              | (pmatch | rmatch) "(" Expr ")" "{" CaseList "}"
               | break ";"
               | continue ";"
               | return  [ Expr ] ";"

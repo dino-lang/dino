@@ -307,6 +307,9 @@ extern char DERR_immutable_instance_modification [];
 extern char DERR_wrong_vector_pattern_match [];
 extern char DERR_wrong_table_pattern_match [];
 extern char DERR_wrong_stack_pattern_match [];
+/* Regexp match */
+extern char DERR_rmatch_expr_type [];
+extern char DERR_rmatch_case_expr_type [];
 /* Deadlock. */
 extern char DERR_deadlock [];
 /* Not catched. */
